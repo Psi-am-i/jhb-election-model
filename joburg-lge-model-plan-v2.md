@@ -18,14 +18,61 @@ Johannesburg's council is elected under mixed-member proportional representation
 
 **Seat count, verified.** The Municipal Structures Act caps any council at 270 councillors and CoJ has been at that cap since 2016, per MDB testimony to Parliament — so 135/270/136 is stable for 2026 despite one April 2026 press report claiming 274/138 (treat that as journalist error; it contradicts the statutory cap and every other source). One residual check at data-load time: confirm the IEC's 2026 ward list for JHB contains exactly 135 wards, and fail loudly if not.
 
-The compensatory mechanism is the single most important structural fact. A party's total seat count is determined by its **citywide PR ballot share**, with ward wins deducted from that entitlement. Winning a ward does not add a seat — it decides which of your entitled seats is filled by a ward councillor.
+The compensatory mechanism is the single most important structural fact. Winning a ward does not add a seat — it decides which of your entitled seats is filled by a ward councillor.
 
-**Consequence for model design:** ward-level prediction is *not* the primary target. The primary target is citywide PR share. Ward-level modelling earns its place for exactly two reasons:
+> ### ⚠️ Correction (rev 2 → rev 3): the entitlement is **not** the PR ballot share
+>
+> Rev 2 asserted that "a party's total seat count is determined by its citywide
+> PR ballot share". **This is wrong**, and it was verified wrong against the
+> IEC's own *Seat Calculation Detail* reports for both 2016 and 2021.
+>
+> Entitlement is determined by the party's share of the **combined ward + PR
+> vote**. The statutory formula (Municipal Structures Act, Schedule 1), quoted
+> verbatim on the IEC report, is:
+>
+> ```
+> Q = (A / (B - C - D)) + 1 ; disregarding fractions
+>
+>   A  total valid votes cast for all parties, WARD AND PR BALLOTS ADDED TOGETHER
+>   B  total seats available in the municipality (270)
+>   C  independent ward councillors elected
+>   D  ward councillor seats from parties with no PR list
+> ```
+>
+> Seats are then `floor(votes / Q)` per party, with the shortfall allocated by
+> largest remainder. Two exclusions from `A`, both verified to the vote:
+> independents, and parties that contested a ward but registered no PR list.
+>
+> `src/seats.py` implements this and `src/validate_seats.py` reproduces the
+> published council **exactly** for both elections — quota, `A`, and every party's
+> seat count — from the VD-level result files alone:
+>
+> | | A | Q | ANC | DA | ActionSA | EFF |
+> |---|---|---|---|---|---|---|
+> | 2016 | 2,496,617 | 9,247 | 121 | 104 | — | 30 |
+> | 2021 | 1,834,260 | 6,794 | 91 | 71 | 44 | 29 |
+>
+> **Why rev 2's error was invisible.** For almost every party the ward and PR
+> shares agree to within about a point, so PR share is an excellent proxy and the
+> substitution costs nothing. In 2016 the DA polled 38.34% ward / 38.48% PR —
+> which is exactly why the "104 seats ≈ 38.4% of 270" check in rev 2 appeared to
+> confirm the PR-only rule. **ActionSA in 2021 is the counter-example**: 13.98% on
+> the ward ballot against 18.12% on PR, a 4.1pp split-ticket gap. Under the
+> PR-only rule they would be entitled to ~49 seats; they got 44. They contested
+> 134 of 135 wards, so this is genuine ticket-splitting, not missing candidates.
+>
+> **Consequence:** the primary target is citywide **combined ward + PR** share,
+> and the ward ballot is roughly half of it. Ward-level modelling is not the
+> secondary concern described below — it is half the answer, and any party whose
+> two ballots diverge (a new insurgent party, or one with weak local candidates)
+> will be mis-forecast by a PR-only model. §3 must model both ballots.
 
-1. **Overhang.** If a party wins more wards than its PR entitlement, the extra ward seats are retained and the effective majority threshold moves. Note: no CoJ overhang precedent could be verified — in 2016 the DA's 104 seats matched its ~38.4% share of 270 almost exactly, ward wins comfortably inside entitlement. Keep the check (concentrated parties like the PA make it live in principle), but do not describe it as a recurring CoJ phenomenon.
-2. **Turnout leverage.** Citywide PR share is a turnout-weighted average of VD-level shares, so identifying which VDs move that average most is a ward-level question.
+**Consequence for model design:** a ward-by-ward FPTP model that reports "seats won" is still the wrong quantity — but so is a PR-only model. Model both ballots, combine them, then allocate. Ward-level modelling additionally matters for:
 
-Anyone who builds a ward-by-ward FPTP model and reports "seats won" has modelled the wrong quantity.
+1. **Overhang.** If a party wins more wards than its entitlement, the extra ward seats are retained and the effective majority threshold moves. **Verified: no overhang in 2016 or 2021** (`src/validate_seats.py` checks this directly). But 2021 was closer than rev 2 implied — the ANC took 87 wards against an entitlement of 91, leaving just 4 PR seats and only 5 wards of headroom. With the ANC's citywide share falling faster than its ward-level dominance in its strongholds, overhang is a live risk for 2026, not a theoretical one. Keep the check and report the margin.
+2. **Turnout leverage.** Citywide share is a turnout-weighted average of VD-level shares, so identifying which VDs move that average most is a ward-level question.
+
+Also note **contestation coverage** as a distinct effect from ticket-splitting: the PA contested only 52 of 135 wards in 2021, so its ward-ballot total is structurally capped regardless of support. A 2026 forecast must take a view on how many wards each party fields candidates in.
 
 ---
 

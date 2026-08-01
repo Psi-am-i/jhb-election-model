@@ -28,8 +28,18 @@ from __future__ import annotations
 import argparse
 import csv
 import sys
-from collections import Counter, defaultdict
+from collections import defaultdict
 from pathlib import Path
+
+from iec_csv import (
+    MUNI_CODE,
+    is_int,
+    muni_code,
+    normalise_header,
+    sniff_encoding,
+    summarise,
+    write_csv,
+)
 
 # Canonical column names, in output order. Ward is blank for the results-portal
 # layout, which does not carry it.
@@ -46,47 +56,6 @@ COLUMNS = [
     "Party_Votes",
 ]
 
-# Municipalities are written "JHB - City of Johannesburg" in one layout and
-# "JHB - CITY OF JOHANNESBURG [JOHANNESBURG]" in the other, so match on the code.
-MUNI_CODE = "JHB"
-
-# Tried in order; the first that decodes the whole file wins. CP850 never fails,
-# so it must come last.
-ENCODINGS = ("utf-8-sig", "cp850")
-
-
-def _normalise(name: str) -> str:
-    """Map a raw header cell onto its canonical form.
-
-    Strips the BOM and whitespace, folds case, replaces the volatile
-    ``Generated Datetime: <timestamp>`` header with a stable name, then
-    collapses spaces to underscores.
-    """
-    name = name.lstrip("﻿").strip()
-    if name.upper().startswith("GENERATED DATETIME"):
-        return "GENERATED_DATETIME"
-    return name.upper().replace(" ", "_")
-
-
-def sniff_encoding(src: Path) -> str:
-    """Return the first encoding in :data:`ENCODINGS` that decodes ``src`` cleanly."""
-    data = src.read_bytes()
-    for encoding in ENCODINGS:
-        try:
-            data.decode(encoding)
-        except UnicodeDecodeError:
-            continue
-        return encoding
-    raise ValueError(f"{src.name}: no candidate encoding decodes the file")
-
-
-def _is_int(cell: str) -> bool:
-    return cell.strip().lstrip("-").isdigit()
-
-
-def _muni_code(municipality: str) -> str:
-    return municipality.split("-")[0].strip().upper()
-
 
 def parse_portal_row(row: list[str]) -> dict[str, str]:
     """Parse one results-portal row, tolerating unquoted commas in the station name.
@@ -99,7 +68,7 @@ def parse_portal_row(row: list[str]) -> dict[str, str]:
     cells = [cell.strip() for cell in row]
     # Drop trailing padding and the Generated_Datetime column, which is empty on
     # some rows, a timestamp on others, and pushed off the end on shifted rows.
-    while cells and not _is_int(cells[-1]):
+    while cells and not is_int(cells[-1]):
         cells.pop()
     if len(cells) < 8:
         raise ValueError(f"too few columns: {row!r}")
@@ -107,7 +76,7 @@ def parse_portal_row(row: list[str]) -> dict[str, str]:
     party_votes = cells.pop()
     party_name = cells.pop()
     valid, spoilt, registered = cells.pop(), cells.pop(), cells.pop()
-    if not all(_is_int(value) for value in (valid, spoilt, registered)):
+    if not all(is_int(value) for value in (valid, spoilt, registered)):
         raise ValueError(f"non-numeric vote columns: {row!r}")
 
     station = ", ".join(cells[3:])
@@ -145,7 +114,7 @@ def parse_bulk_row(row: dict[str, str]) -> dict[str, str]:
 
 
 def read_municipality(
-    src: Path, muni_code: str = MUNI_CODE, event: str | None = None
+    src: Path, code: str = MUNI_CODE, event: str | None = None
 ) -> list[dict[str, str]]:
     """Return the rows of ``src`` for one municipality, with canonical columns.
 
@@ -155,20 +124,20 @@ def read_municipality(
     """
     with src.open(encoding=sniff_encoding(src), newline="") as handle:
         reader = csv.reader(handle)
-        header = [_normalise(cell) for cell in next(reader)]
+        header = [normalise_header(cell) for cell in next(reader)]
 
         if "ELECTORAL_EVENT" in header:
-            rows = _read_bulk(reader, header, muni_code, event)
+            rows = _read_bulk(reader, header, code, event)
         else:
-            rows = _read_portal(reader, muni_code)
+            rows = _read_portal(reader, code)
 
     return rows
 
 
-def _read_portal(reader, muni_code: str) -> list[dict[str, str]]:
+def _read_portal(reader, code: str) -> list[dict[str, str]]:
     rows, shifted = [], set()
     for row in reader:
-        if len(row) < 2 or _muni_code(row[1]) != muni_code:
+        if len(row) < 2 or muni_code(row[1]) != code:
             continue
         parsed = parse_portal_row(row)
         if "," in parsed["VS_Name"]:
@@ -184,11 +153,11 @@ def _read_portal(reader, muni_code: str) -> list[dict[str, str]]:
     return rows
 
 
-def _read_bulk(reader, header: list[str], muni_code: str, event: str | None) -> list[dict[str, str]]:
+def _read_bulk(reader, header: list[str], code: str, event: str | None) -> list[dict[str, str]]:
     rows = []
     for cells in reader:
         row = dict(zip(header, cells))
-        if _muni_code(row.get("MUNICIPALITY", "")) != muni_code:
+        if muni_code(row.get("MUNICIPALITY", "")) != code:
             continue
         if event and event.upper() not in row["ELECTORAL_EVENT"].upper():
             continue
@@ -202,32 +171,6 @@ def _read_bulk(reader, header: list[str], muni_code: str, event: str | None) -> 
     for row in rows:
         row["Total_Valid_Votes"] = str(totals[row["VD_Number"]])
     return rows
-
-
-def summarise(rows: list[dict[str, str]], top: int = 10) -> str:
-    """Format a turnout and party-share summary, for eyeballing against §8 anchors."""
-    # Registration/turnout columns repeat on every party row for a VD, so
-    # collapse to one row per VD before summing.
-    per_vd = {row["VD_Number"]: row for row in rows}
-    registered = sum(int(r["Registered_Population"]) for r in per_vd.values())
-    valid = sum(int(r["Total_Valid_Votes"]) for r in per_vd.values())
-    spoilt = sum(int(r["Spoilt_Votes"]) for r in per_vd.values())
-
-    votes: Counter[str] = Counter()
-    for row in rows:
-        votes[row["sPartyName"]] += int(row["Party_Votes"])
-
-    wards = {row["Ward"] for row in rows if row["Ward"]}
-    lines = [
-        f"  VDs {len(per_vd):,}   wards {len(wards) or '-'}   parties {len(votes)}",
-        f"  registered {registered:,}   valid {valid:,}   spoilt {spoilt:,}"
-        f"   turnout {(valid + spoilt) / registered:.2%}",
-    ]
-    lines += [
-        f"    {party:<45s} {count:>8,}  {count / valid:>6.2%}"
-        for party, count in votes.most_common(top)
-    ]
-    return "\n".join(lines)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -249,12 +192,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     destination = args.out_dir / f"npe{args.year}_JHB_vd_party.csv"
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    with destination.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=COLUMNS)
-        writer.writeheader()
-        writer.writerows(rows)
-
+    write_csv(destination, COLUMNS, rows)
     print(f"{args.year} -> {destination}  ({len(rows):,} rows)")
     print(summarise(rows))
     return 0
