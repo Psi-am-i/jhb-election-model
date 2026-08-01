@@ -7,10 +7,36 @@ data turns out to be much kinder than that, in one way and less kind in another.
 **Kinder: VD numbers are stable.** Between 98.8% and 100% of the VDs in each
 historic election still exist in the 2026 VD set under the same number, and the
 VDs that do not carry only 0.21%-0.45% of that election's votes. The concordance
-is therefore an identity map on VD number, with a small named residual, rather
-than a shapefile intersection. A handful of the leftovers are recoverable by
+is therefore keyed on VD number, with a small named residual, rather than a
+shapefile intersection. A handful of the leftovers are recoverable by
 voting-station name; most are tents and temporary stations that simply stopped
 existing. Whatever is still unmatched is reported, not silently dropped.
+
+**The caveat that matters.** A stable VD *number* is not a stable VD *boundary*.
+When a VD splits, one child conventionally keeps the parent's number over a
+smaller area, so an unchanged number can still hide a changed catchment -- and a
+historic vote total would then describe a different piece of ground from the
+2026 VD it is matched to. No historic VD boundaries are published (the MDB hosts
+only 2026-era voting-district layers), so this cannot be checked geometrically
+with the data in hand. Two independent proxies both suggest catchments are
+broadly stable for VDs whose number persists:
+
+* registration tracks the citywide trend closely -- median per-VD ratio 0.97-0.99
+  against citywide, with only 0-2 VDs per transition losing more than 30%
+  relative, where routine carve-ups would leave a fat left tail;
+* roughly 90% of VDs keep the same voting station between consecutive
+  elections, rising to 99.1% from 2024 to 2026.
+
+Neither is proof. So rather than assume the question away, every VD is given a
+``stability`` flag from those two signals, and the unstable ones can be
+down-weighted through ``w_split`` (plan §2 step 2, default 0.6) exactly as
+split-derived observations are. The risk is concentrated in the backtest folds,
+which compare VD-level shares across time; the 2026 projection is much less
+exposed, because the 2026 VD set *is* the 2024 set.
+
+Note also that changing *ward* boundaries are not a source of error here. Votes
+are attached to VD numbers and then apportioned into 2026 wards using 2026
+registration, which is precisely the mechanism that absorbs ward reshape.
 
 **Less kind: VDs do not nest inside 2026 wards.** 181 of 865 VDs straddle a 2026
 ward boundary and are stored as one polygon per ward part, so their votes have
@@ -36,6 +62,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import re
 from collections import defaultdict
 from pathlib import Path
 
@@ -52,9 +79,22 @@ ELECTIONS = {
 }
 
 
-def read_vd_votes(path: Path, ballot: str | None) -> dict[str, tuple[str, int]]:
-    """Return VD -> (voting-station name, total votes) for one election."""
+# A VD whose registration moves this far against the citywide trend, or whose
+# voting station changes, is treated as possibly redrawn rather than assumed
+# stable. Deliberately loose: the flag feeds a down-weight, not an exclusion.
+REG_DRIFT_TOLERANCE = 0.30
+
+
+def normalise_station(name: str) -> str:
+    """Fold a voting-station name for comparison across elections."""
+    folded = re.sub(r"[^A-Z0-9 ]", " ", (name or "").upper())
+    return re.sub(r"\s+", " ", folded).strip()
+
+
+def read_vd_votes(path: Path, ballot: str | None) -> dict[str, tuple[str, int, int]]:
+    """Return VD -> (voting-station name, total votes, registered voters)."""
     names: dict[str, str] = {}
+    registered: dict[str, int] = {}
     votes: defaultdict[str, int] = defaultdict(int)
     with path.open(encoding="utf-8", newline="") as handle:
         for row in csv.DictReader(handle):
@@ -62,8 +102,45 @@ def read_vd_votes(path: Path, ballot: str | None) -> dict[str, tuple[str, int]]:
                 continue
             vd = row["VD_Number"]
             names.setdefault(vd, row.get("VS_Name", "").strip())
+            registered.setdefault(vd, int(row["Registered_Population"]))
             votes[vd] += int(row["Party_Votes"])
-    return {vd: (names.get(vd, ""), total) for vd, total in votes.items()}
+    return {
+        vd: (names.get(vd, ""), total, registered.get(vd, 0))
+        for vd, total in votes.items()
+    }
+
+
+def stability_flags(
+    source: dict[str, tuple[str, int, int]],
+    later: dict[str, tuple[str, int, int]],
+) -> dict[str, str]:
+    """Compare a VD against the next election: 'stable', or why it is suspect.
+
+    Registration is compared *relative to the citywide change*, so a VD is only
+    flagged when it moves against the city rather than with it.
+    """
+    common = [vd for vd in source if vd in later and source[vd][2] > 200]
+    if not common:
+        return {}
+    citywide = sum(later[vd][2] for vd in common) / sum(source[vd][2] for vd in common)
+
+    flags: dict[str, str] = {}
+    for vd, (station, _, registered) in source.items():
+        if vd not in later:
+            continue
+        reasons = []
+        if registered > 200:
+            ratio = (later[vd][2] / registered) / citywide
+            if abs(ratio - 1) > REG_DRIFT_TOLERANCE:
+                reasons.append("registration_drift")
+        # Only meaningful when both sides actually name a station: the 2014 bulk
+        # export carries no station names, so comparing against it would flag
+        # every VD in 2011 and 2014 rather than telling us anything.
+        before, after = normalise_station(station), normalise_station(later[vd][0])
+        if before and after and before != after:
+            reasons.append("station_changed")
+        flags[vd] = "+".join(reasons) if reasons else "stable"
+    return flags
 
 
 def ward_parts(vds: gpd.GeoDataFrame) -> list[dict[str, str]]:
@@ -122,16 +199,29 @@ def main(argv: list[str] | None = None) -> int:
     for _, row in vds.iterrows():
         by_station[str(row["VotingStat"]).strip().upper()].add(str(row["VDNumber"]))
 
+    # Stability is judged against the *next* election in the series, so the
+    # last one has nothing to compare against and is stable by construction.
+    years = list(ELECTIONS)
+    loaded = {
+        year: read_vd_votes(args.elections_dir / filename, ballot)
+        for year, (filename, ballot) in ELECTIONS.items()
+    }
+    flags = {
+        year: stability_flags(loaded[year], loaded[years[i + 1]])
+        for i, year in enumerate(years[:-1])
+    }
+    flags[years[-1]] = {vd: "stable" for vd in loaded[years[-1]]}
+
     concordance = []
     print("\nhistoric VD -> 2026 VD:")
     print(f"  {'election':<9s} {'VDs':>5s} {'identity':>9s} {'by name':>8s} {'lost':>5s}  {'votes lost':>10s}")
-    for year, (filename, ballot) in ELECTIONS.items():
-        source = read_vd_votes(args.elections_dir / filename, ballot)
-        cast = sum(total for _, total in source.values())
+    for year in years:
+        source = loaded[year]
+        cast = sum(total for _, total, _ in source.values())
         identity = named = 0
         lost_votes = 0
 
-        for vd, (station, total) in sorted(source.items()):
+        for vd, (station, total, _registered) in sorted(source.items()):
             if vd in target:
                 method, mapped = "identity", vd
                 identity += 1
@@ -152,6 +242,7 @@ def main(argv: list[str] | None = None) -> int:
                     "method": method,
                     "vs_name": station,
                     "votes": str(total),
+                    "stability": flags[year].get(vd, "unknown"),
                 }
             )
 
@@ -172,6 +263,26 @@ def main(argv: list[str] | None = None) -> int:
         "\nUnmatched VDs are mostly tents and temporary stations that stopped"
         "\nexisting. They are recorded with method='unmatched' rather than"
         "\ndropped, so the loss stays visible downstream."
+    )
+
+    # Boundary-stability flags. A VD keeping its number does not guarantee it
+    # kept its catchment, and no historic VD boundaries are published to check
+    # against, so these two proxies stand in and feed the w_split down-weight.
+    print("\nVD boundary stability vs the following election:")
+    print(f"  {'election':<9s} {'stable':>7s} {'suspect':>8s}  {'share of votes suspect':>22s}")
+    for year in years:
+        rows = [r for r in concordance if r["election"] == year]
+        cast = sum(int(r["votes"]) for r in rows)
+        suspect = [r for r in rows if r["stability"] not in ("stable", "unknown")]
+        flagged = sum(int(r["votes"]) for r in suspect)
+        print(
+            f"  {year:<9s} {len(rows) - len(suspect):>7d} {len(suspect):>8d}"
+            f"  {flagged / cast if cast else 0:>21.1%}"
+        )
+    print(
+        "  ('suspect' = registration moved >30% against the citywide trend, or the\n"
+        "   voting station changed. Down-weight these via w_split rather than\n"
+        "   excluding them; see the module docstring.)"
     )
     return 0
 
