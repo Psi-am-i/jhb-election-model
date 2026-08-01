@@ -9,6 +9,9 @@ list contain exactly 135 wards and that we fail loudly otherwise, and §1.2 warn
 that VDs split as registration grows -- the 2026 VD layer carries an explicit
 ``Split_VD`` flag which tells us how much of that has happened.
 
+The VD -> ward apportionment itself lives in :mod:`build_concordance`, which
+weights split VDs by registered voters rather than area.
+
 Usage:
     python src/build_geo.py [--geo-dir data/raw/geo]
 """
@@ -69,40 +72,6 @@ def clip_gdb(path: Path, layer: str, out: Path, muni: str) -> gpd.GeoDataFrame:
     return subset
 
 
-def write_vd_ward_lookup(vds: gpd.GeoDataFrame, out: Path) -> None:
-    """Write the 2026 VD -> ward lookup, one row per VD/ward part.
-
-    A VD straddling a ward boundary appears once per ward, with ``area_share``
-    giving that part's fraction of the VD's total area. Area is a placeholder
-    weight: apportioning a VD's *votes* between wards should really be weighted
-    by registered voters, which needs the VD-part registration figures the plan
-    calls for in §2 step 5. Anything consuming ``area_share`` should treat it as
-    a first approximation and say so.
-    """
-    frame = vds.copy()
-    frame["VD_Number"] = frame["VDNumber"].astype(str)
-    # Equal-area projection so the shares are not distorted by latitude.
-    frame["_area"] = frame.to_crs(6933).geometry.area
-    frame["area_share"] = frame["_area"] / frame.groupby("VD_Number")["_area"].transform("sum")
-    parts = frame.groupby("VD_Number")["WardNo"].transform("nunique")
-
-    out.parent.mkdir(parents=True, exist_ok=True)
-    with out.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(["VD_Number", "Ward_2026", "WardID_2026", "area_share", "is_split"])
-        for _, row in frame.sort_values(["VD_Number", "WardNo"]).iterrows():
-            writer.writerow(
-                [
-                    row["VD_Number"],
-                    row["WardNo"],
-                    row.get("WardID", ""),
-                    f"{row['area_share']:.6f}",
-                    "Y" if parts[row.name] > 1 else "N",
-                ]
-            )
-    print(f"\nwrote {out} ({len(frame):,} VD/ward parts)")
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--geo-dir", type=Path, default=Path("data/raw/geo"))
@@ -110,7 +79,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--elections-dir", type=Path, default=Path("data/raw/elections")
     )
-    parser.add_argument("--processed-dir", type=Path, default=Path("data/processed"))
     args = parser.parse_args(argv)
 
     failures: list[str] = []
@@ -160,8 +128,6 @@ def main(argv: list[str] | None = None) -> int:
             f"\nVD continuity 2024 -> 2026: {len(old & new):,} of {len(old):,} carry over"
             f"   ({len(old - new):,} gone, {len(new - old):,} new)"
         )
-
-    write_vd_ward_lookup(vds2026, args.processed_dir / "vd_ward_2026.csv")
 
     if failures:
         print("\nFAIL:")
