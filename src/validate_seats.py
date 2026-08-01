@@ -64,6 +64,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--year", default="2021")
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
+    parser.add_argument(
+        "--seats",
+        type=int,
+        default=270,
+        help="council size; CoJ was 260 under the 2011 delimitation",
+    )
     args = parser.parse_args(argv)
 
     path = args.data_dir / f"lge{args.year}_JHB_vd_party_clean.csv"
@@ -79,7 +85,7 @@ def main(argv: list[str] | None = None) -> int:
 
     result = allocate(
         combined,
-        total_seats=270,
+        total_seats=args.seats,
         independent_wards=independent_wards,
         no_pr_list_wards=no_pr_list_wards,
     )

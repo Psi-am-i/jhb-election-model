@@ -16,14 +16,24 @@ from pathlib import Path
 # so it must come last.
 ENCODINGS = ("utf-8-sig", "cp850")
 
+# A byte-order mark is decisive, so it is checked before guessing. The 2011 LGE
+# export is UTF-16-LE; later ones are UTF-8 or CP850.
+BOMS = (
+    (b"\xff\xfe", "utf-16"),
+    (b"\xfe\xff", "utf-16"),
+)
+
 # Municipalities are written "JHB - City of Johannesburg" in some files and
 # "JHB - CITY OF JOHANNESBURG [JOHANNESBURG]" in others, so match on the code.
 MUNI_CODE = "JHB"
 
 
 def sniff_encoding(src: Path) -> str:
-    """Return the first encoding in :data:`ENCODINGS` that decodes ``src`` cleanly."""
+    """Return an encoding that decodes ``src``: its BOM if it has one, else a guess."""
     data = src.read_bytes()
+    for bom, encoding in BOMS:
+        if data.startswith(bom):
+            return encoding
     for encoding in ENCODINGS:
         try:
             data.decode(encoding)
