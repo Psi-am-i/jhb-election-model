@@ -1,0 +1,10 @@
+.venv/
+# No data in git. Keep only the directory skeleton, so a fresh clone has
+# somewhere to put it -- git will not descend into an excluded directory, so the
+# directories must be re-included before their .gitkeep files can match.
+data/**
+!data/**/
+!**/.gitkeep
+__pycache__/
+*.pyc
+.DS_Store
