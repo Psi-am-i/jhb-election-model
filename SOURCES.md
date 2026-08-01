@@ -73,12 +73,80 @@ with id **1091** (2021) and **402** (2016) → `lge{year}_JHB_vd_party.csv`.
 Also confirmed working: turnout PDFs at
 `.../LGEPublicReports/{id}/Voter%20Turnout/GP/JHB.pdf`.
 
-## Still to acquire
+Run `src/fetch_iec.py` to sweep every LGE report that is served directly
+(party CSV, detailed results, seat calculation, turnout) for 2011, 2016 and 2021.
 
-* VD boundary / VD→ward lookups and MDB ward shapefiles for 2016, 2021, 2026
-  (plan §1.2, G1–G4).
-* CoJ by-election results 2021–2026 (plan §1.4). Note these are only reachable
-  via per-session `ReportViewer?_f=<encrypted-token>` links, so they need the
-  browser route; `thesouthafricabrief.substack.com` carries the same contests
-  with 2021/2024 comparators already computed.
-* Census 2022 small-area covariates for the turnout sub-model (plan §1.3).
+## Boundaries — MDB Spatial Knowledge Hub
+
+`spatialhub-mdb-sa.opendata.arcgis.com` is an ArcGIS Hub site. Its DCAT feed
+(`/api/feed/dcat-us/1.1.json`) lists the datasets, but only advertises download
+endpoints for some. Every layer sits behind a FeatureServer that takes a
+municipality filter, which is better anyway — Johannesburg is selected
+server-side rather than pulling the whole country. Layer URLs were resolved from
+the MDB's "Wards2026" web map (ArcGIS item `6d7488a7f83645218e547d403871e1e0`).
+
+| Layer | Service | Applies to |
+|---|---|---|
+| 2026 wards | `MDBWards2026` | 4 Nov 2026 election |
+| 2026 voting districts | `VotingDistricts2026_Final` | carries `WardNo`, `Split_VD`, `REGPOP` |
+| 2021 wards | `SA_Wards2020` | 2020 delimitation |
+| 2026 voting stations | `VotingStations_March2026` | points; keyed on `MUNICIPALI`, not `CAT_B` |
+
+The 2016 and 2011 ward layers are File Geodatabase item downloads, not services:
+ArcGIS items `cfddb54aab5f4d62b2144d80d49b3fdb` and
+`12d2deb98816451ab7c4dc09cdfeee6b`, fetched via
+`arcgis.com/sharing/rest/content/items/{id}/data`.
+
+`src/fetch_boundaries.py` pulls all of these; `src/build_geo.py` clips the
+geodatabases and runs the checks.
+
+**Caveat:** `REGPOP` on the 2026 VD layer sums to 2,348,781 — exactly the *2024*
+registration total. It is a 2024 snapshot, not current 2026 registration.
+
+## By-elections — use the dashboard, not the downloads page
+
+The downloads page serves by-election reports only through per-session
+`ReportViewer?_f=<token>` links. Those tokens are session-bound: fetched with
+curl they reach the handler and return "Error occured while trying to generate
+the by-election report".
+
+The **dashboard** is backed by plain static JSON that needs no session:
+
+```
+.../dashboards/byelection/MapsJason/{year}/ByElections.js      # dates + EEIDs
+.../dashboards/byelection/MapsJason/{year}/PartyList.js        # party id -> name
+.../dashboards/byelection/MapsJason/{eeid}/EEID{eeid}BigMapsNational.js
+.../dashboards/byelection/MapsJason/{eeid}/EEID{eeid}Munic{municipalityID}.js
+```
+
+The national/province files carry only the *leading* party per ward. The
+per-municipality file is the one worth having: voting-district level, every
+party, candidate names, historical comparators. `src/fetch_byelections.py`
+walks all of it — 38 Gauteng ward contests since 2021, 15 in CoJ.
+
+## Covariates
+
+Stats SA's **Ward-level Small Area Population Estimates 2022** are directly
+downloadable and cover all 135 CoJ wards on the 2020 delimitation, with
+five-year age bands, sex and population group:
+
+```
+statssa.gov.za/wp-content/uploads/2025/11/Ward-Product_Locked-spreadsheets.zip
+statssa.gov.za/wp-content/uploads/2025/11/Ward-statistical-product-technical-note.pdf
+```
+
+## Still to acquire — needs a human
+
+* **Census 2022 Small Area Layer (SAL)** — plan §1.3 C1 asks for income,
+  dwelling type and employment at small-area level. Stats SA does **not**
+  publish the SAL for download; it is supplied on request only
+  (`info@statssa.gov.za`, +27 12 310 8600). The ward-level product above is the
+  usable substitute in the meantime, but it carries only age/sex/population
+  group — no income or employment. Wazimap-NG (C2) was unreachable when tried.
+* **Voters' roll by VD split by age and sex** — plan §1.3 C3. The IEC's
+  registration statistics page publishes age/gender bands only down to
+  *municipality* level, server-rendered with no API. VD-level registration
+  *totals* we already have, from the election files and the VD layer's `REGPOP`.
+* **2026 registration figures** — the IEC page shows the position as at
+  1 Aug 2026 at municipality level; §3.2 wants the registration-weekend deltas,
+  which are not published yet.
