@@ -128,7 +128,47 @@ From the party crosswalk, on the PR ballot: 2014→2016 gives ANC bloc −6.6 / 
 bloc +6.1 against the plan's cited −6 / +6; 2019→2021 gives −21.1 / +13.9
 against −22 / +13.
 
-### 1.5 2026 ward boundaries are a near-total redraw ✅
+### 1.5 §3.4(b) pairs binary logit with softmax, which is inconsistent ✅
+
+**What the plan says.** Work in logit space, then "softmax renormalisation"
+within each VD.
+
+**Why that is wrong.** `logit(p) = log(p/(1−p))` exponentiates to *odds*, so a
+softmax over logits normalises odds rather than shares. Odds and shares diverge
+as p grows, so the error falls almost entirely on the largest parties. In fold 1
+it put the ANC at 54.0% against an actual 44.9% *even though θ had been set to
+the exactly-observed citywide ratio* — a 9-point error generated purely by the
+renormalisation.
+
+Softmax pairs with multinomial log-shares; binary logit pairs with expit followed
+by rescaling.
+
+**Decision.** Use logit → expit → rescale. This keeps the logit semantics
+§3.4(b) actually wants (proportional swing where a party is small, additive where
+mid-sized, never negative). VD-level MAE fell from 0.93pp to 0.49pp on the
+change, and the EFF's citywide error from −5.4pp to +0.02pp.
+
+### 1.6 θ has two incompatible definitions, and §3.5 quotes the wrong one 🟡
+
+Calibrating fold 1 exposed that "θ" can mean two different numbers:
+
+- **raw** — the observed citywide LGE/NPE ratio. This is what §3.5 quotes
+  ("Observed: 44.5/52 ≈ 0.86 (2016)"), and fold 1 reproduces it exactly:
+  θ_ANC raw = 0.86.
+- **calibrated** — the value that reproduces that citywide ratio *through the
+  model*, once within-VD renormalisation is accounted for. θ_ANC calibrated =
+  **0.79**, θ_DA raw 1.19 against calibrated **1.46**.
+
+Feeding a raw ratio in as if it were calibrated leaves a systematic residual on
+the biggest parties — ANC +3.1pp, DA −3.3pp in fold 1 before the fix.
+
+**Decision.** `calibrate_theta()` solves for the model-consistent value by
+iterative proportional fitting. Both are reported and written to
+`fold1_parameters.csv`. **§3.5's prior ranges are in raw units and cannot be fed
+to the model directly** — they need converting, or restating in calibrated units,
+before the Monte Carlo uses them. This is a live trap for task #11.
+
+### 1.7 2026 ward boundaries are a near-total redraw ✅
 
 129 of 135 CoJ wards changed shape for 2026; only 6 are unchanged. Ward *count*
 stays 135, confirming §0's 135/270/136 and refuting the press report of 274
@@ -232,6 +272,29 @@ rather than small-area granularity also limits the covariate term's resolution.
 0.21–0.45% of each election's votes sit in VDs that no longer exist (mostly tents
 and temporary stations). Recorded as `method='unmatched'` rather than dropped, so
 the loss stays visible downstream instead of becoming a silent shortfall.
+
+### R7 — New-entrant blindness 🟡 *structural, quantified in fold 1*
+
+**The problem.** §4.3 warns that new parties are where the model has no
+information. Fold 1 measures it. Every established party's citywide share is
+reproduced to within 0.03pp, ward winners are called correctly in 132 of 135
+wards, and seat MAE is 0.71 — but the model misses **the AIC entirely (4 actual
+seats, 0 predicted)** and Al Jama-ah (1 actual, 0 predicted), because both polled
+0.00% in the 2014 baseline. It also invents single seats for six minor parties
+that faded.
+
+Total absolute seat error is 12, of which 5 is new-entrant blindness and most of
+the rest is small-party churn in the largest-remainder tail.
+
+**Why this matters more for 2026 than the headline suggests.** Every fold
+contains a new entrant, and so does the live case (MK). §4.3's point stands and
+is now measured rather than asserted: the model is near-exact on parties it has
+seen and blind to those it has not.
+
+**Mitigation.** θ for new entrants is a pure prior and must be treated as a
+scenario lever, not an estimate. §4.3's conclusion — that the honest output is a
+distribution over coalition viability rather than a seat forecast — is the right
+response to this, and fold 1 supports it.
 
 ### R6 — Single-cycle inference 🟡
 
