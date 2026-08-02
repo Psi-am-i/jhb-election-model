@@ -216,6 +216,47 @@ Estimate `λ̂(i)` as a weighted blend of observed history, adjusted by covariat
 
 > **Assumption A3 — relative stability of drop-off.** The *absolute* level of turnout drift is not assumed stable; the *relative pattern* across VDs is. That is, if Sandton VDs dropped off less than Ivory Park VDs in both 2016 and 2021, they will again in 2026. This is the model's central bet and it is a reasonable one — differential turnout has been the most stable feature of South African metro elections.
 
+> ### ⚠️ Measured (rev 3): A3 holds, but λ is the wrong carrier of it
+>
+> `src/turnout.py` computes the series and tests A3 rather than assuming it.
+> Two results, and the second matters more than the first.
+>
+> **A3 is real but modest.** The correlation between λ_2016 and λ_2021 across
+> 823 VDs is **+0.39**. That is the right sign, and it is not a small-sample
+> artefact — it is flat to slightly *lower* when restricted to larger VDs
+> (+0.32 for VDs above 2,000 registered) and +0.33 registration-weighted. But
+> λ_2016 explains only about 15% of the variance in λ_2021, which is a long way
+> from "the most stable feature of South African metro elections".
+>
+> **The previous LGE's turnout level predicts better than λ does.** Predicting
+> 2021 VD turnout, with every predictor rescaled to the true citywide total so
+> the comparison is only about the relative pattern:
+>
+> | Predicting | Previous LGE level | The ratio form above | Preceding NPE level |
+> |---|---|---|---|
+> | 2021 turnout | **0.0409** | 0.0592 | 0.0657 |
+> | 2016 turnout | **0.0527** | *(needs the 2009 NPE)* | 0.0769 |
+>
+> MAE in turnout points. The ordering is the same in both cycles and the
+> interpretation is simple: **like predicts like.** LGE turnout patterns are
+> predicted better by the previous *LGE* than by the preceding *NPE*, and the
+> ratio form only partially closes that gap because it starts from the NPE base
+> and corrects toward LGE with λ.
+>
+> The rescaling matters — without it the ratio form looks far worse still,
+> because it carries 2016's drop-off into 2021 and overshoots the citywide level
+> by 25% (correction ×0.80). 2021's collapse was much deeper than 2016's, which
+> is exactly what `w_recency` exists to hedge and exactly why it cannot be
+> hedged from one prior cycle.
+>
+> **Suggested change to §3.3:** anchor on `T_2021(i)` (the previous LGE) rather
+> than `T_2024(i) × λ̂(i)`, with the citywide level supplied separately by the
+> λ blend or by scenario. Keep λ̂ for the citywide level, where it performs fine
+> — the blend implies 0.66 and a 41.7% citywide 2026 turnout, inside §8.2's
+> 38–42% expectation. Two caveats before adopting it: this is two cycles of
+> evidence, and 2021 was Covid-affected, so §4's folds should score both forms
+> head to head rather than switching on this alone.
+
 **A free covariate the first draft threw away: by-election turnout.** By-elections are used in §3.6 only for share deltas, but their *turnout relative to the same ward's 2021 turnout* is a live differential-enthusiasm signal for λ̂. Example of why this matters: in the March 2025 Ward 99 (Linden/Blairgowrie) by-election the DA took 98% but turnout collapsed to 24% from 57% — suburban-fortress apathy is precisely the failure mode of the "DA voters turn out for locals" bet, and no other data source measures it before election day. Feed `turnout_bye(w)/turnout_2021(w)`, normalised against the same ratio's citywide median across contested wards, into the covariate term of λ̂ for VDs in and demographically adjacent to contested wards. Weight it modestly (it shares A4's selection bias), but do not discard it.
 
 ### 3.4 Share sub-model
