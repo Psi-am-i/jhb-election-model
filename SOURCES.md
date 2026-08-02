@@ -135,6 +135,41 @@ statssa.gov.za/wp-content/uploads/2025/11/Ward-Product_Locked-spreadsheets.zip
 statssa.gov.za/wp-content/uploads/2025/11/Ward-statistical-product-technical-note.pdf
 ```
 
+## Historic VD boundaries — searched for, not published
+
+Needed to verify that a VD keeping its number kept its catchment (see
+`src/build_concordance.py`). Everywhere checked, and not found:
+
+| Where | Result |
+|---|---|
+| MDB ArcGIS org, full service list (43 services) | only 2026-era voting-district layers; ward layers back to 2000 |
+| MDB DCAT catalogues, both hub sites | no VD datasets at all |
+| ArcGIS Online public search | one 4-feature derived sample; nothing national |
+| IEC GeoServer `vmdgeomaps.elections.org.za` | address points (NAD) plus GeoServer demo layers |
+| Internet Archive CDX over both IEC and MDB hosts | ward and municipal shapefiles only, no VD |
+
+The IEC delimits VDs with its own GIS and appears not to publish the boundaries,
+so this needs a request to the IEC's Delimitation Directorate. Until then the
+concordance keys on VD number, with the stability flags described in
+`build_concordance.py` standing in for the geometric check.
+
+The Internet Archive sweep did turn up one live URL worth having, since the MDB
+has already retired the per-municipality shapefile downloads its old site
+served: the **2016 LGE complete VD-level results**, on the same host pattern as
+the 2014 NPE export —
+`elections.org.za/content/Elections/Downloadable-results/2016-Municipal-Elections--Complete-VD-level-results-data-(zipped-CSV)/`.
+Its JHB PR totals reconcile exactly, party for party, against the per-municipality
+CSV we already had.
+
+## Archive
+
+`src/archive.py` records every raw and derived file with its size, SHA-256 and
+provenance in `data/archive_manifest.csv`. The data itself is gitignored, so the
+manifest is the tracked record — it is committed even though the bytes are not.
+`python src/archive.py --verify` re-hashes and reports anything missing, changed
+or new, which is how we will know if a file quietly diverges from the copy every
+validation in this repo was run against.
+
 ## Still to acquire — needs a human
 
 * **Census 2022 Small Area Layer (SAL)** — plan §1.3 C1 asks for income,
