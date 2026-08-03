@@ -35,6 +35,15 @@ OFFICIAL_2021 = {
 OFFICIAL_QUOTA_2021 = 6_794
 OFFICIAL_A_2021 = 1_834_260
 
+# Quota and total-valid-votes as published on each year's Seat Calculation
+# Detail report, so every year self-asserts rather than leaving a reviewer to
+# check figures by eye. 2011 ran on a 260-seat council.
+OFFICIAL_HEADLINE = {
+    "2011": {"quota": 8_319, "A": 2_162_768, "seats": 260},
+    "2016": {"quota": 9_247, "A": 2_496_617, "seats": 270},
+    "2021": {"quota": 6_794, "A": 1_834_260, "seats": 270},
+}
+
 
 def load_votes(path: Path) -> tuple[dict[str, int], dict[str, int]]:
     """Return (ward votes, PR votes) by party from a cleaned LGE file."""
@@ -98,9 +107,25 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  excluded from A: {[p for p in excluded if p not in combined]}")
     print(f"  wards won: {sum(wins.values())} across {len(wins)} parties")
 
+    headline = OFFICIAL_HEADLINE.get(args.year)
+    if headline:
+        ok_quota = result.quota == headline["quota"]
+        ok_a = result.total_votes == headline["A"]
+        ok_seats = sum(result.seats.values()) == headline["seats"]
+        print(
+            f"\n  vs IEC published: quota {headline['quota']:,}"
+            f" {'MATCH' if ok_quota else 'MISMATCH'}"
+            f" | A {headline['A']:,} {'MATCH' if ok_a else 'MISMATCH'}"
+            f" | seats {headline['seats']} {'MATCH' if ok_seats else 'MISMATCH'}"
+        )
+
     if args.year != "2021":
         for party, count in result.top():
             print(f"    {party:<45s} {count:>3d}")
+        if headline and not (ok_quota and ok_a and ok_seats):
+            print("\n  FAIL: does not reproduce the published headline figures")
+            return 1
+        print("\n  PASS: reproduces the published quota, total valid votes and council size")
         return 0
 
     print(f"\n  vs IEC published (quota {OFFICIAL_QUOTA_2021:,}, A {OFFICIAL_A_2021:,}):")
