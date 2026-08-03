@@ -168,7 +168,52 @@ iterative proportional fitting. Both are reported and written to
 to the model directly** — they need converting, or restating in calibrated units,
 before the Monte Carlo uses them. This is a live trap for task #11.
 
-### 1.7 2026 ward boundaries are a near-total redraw ✅
+### 1.7 Fold 2: γ transfers across cycles, θ does not ✅
+
+The plan's §4.1 discipline — fit on fold 1, validate on fold 2, never fit both
+and report the fit — turns out to separate the two parameters cleanly.
+
+| fold 2 configuration | VD MAE | ward winner | seat MAE | total seat error |
+|---|---|---|---|---|
+| refit in-sample (reference) | 0.54pp | — | — | — |
+| **θ and γ both from fold 1** | 0.60pp | 128/135 | 1.86 | **54** |
+| **γ from fold 1, θ recalibrated** | 0.58pp | 128/135 | 0.50 | **12** |
+
+Transferring γ costs almost nothing — VD MAE 0.58 against an in-sample 0.54, and
+the ward-winner count is identical either way. Transferring θ costs a great deal:
+the seat error more than quadruples.
+
+**Interpretation.** γ is structural — it encodes *where* a party's support sits
+relative to its citywide mean, and that geography is stable between cycles. θ is
+political weather, and 2014→2016 tells you very little about 2019→2021. This is
+strong support for §3.5's treatment of θ as a wide scenario lever rather than a
+fitted constant, and it means γ can reasonably be fitted once and reused.
+
+Against §4.3's stated expectation of "±1.5 points MAE on established parties":
+fully out-of-sample, the ANC came in at −0.42pp, the IFP −0.90pp, but the DA
++3.08pp and the EFF +2.60pp. So the expectation is roughly right for some and
+optimistic for others.
+
+### 1.8 Multiplicative θ cannot create a party from zero 🟡
+
+ActionSA took 18.12% in 2021 from 0.00% in the 2019 baseline. Because θ is
+multiplicative, no value of it can produce that — and worse, calibrating θ by IPF
+with the entrant missing **silently distorts every other party's θ to absorb the
+gap**: the ANC's calibrated θ came out at 0.12 and the DA's at 0.15, values that
+look like parameters but are artefacts.
+
+**Decision.** `--entrant CODE=SHARE` seeds a party absent from the baseline at an
+assumed citywide share, spatially flat, and lets the rest renormalise around it.
+With ActionSA seeded, fold 2's VD MAE drops from 0.94pp to 0.54pp and the θ
+values become interpretable again.
+
+**Consequence for 2026.** MK is present in the 2024 base at 12.22%, so it is
+*not* this case and multiplicative θ_MK works. But any party that contests 2026
+without a 2024 provincial-ballot presence needs an absolute share prior, not a θ.
+The PA is a near-miss illustration: 0.03% → 2.96% is a raw θ of 122, which is
+technically representable but not meaningfully a "factor".
+
+### 1.9 2026 ward boundaries are a near-total redraw ✅
 
 129 of 135 CoJ wards changed shape for 2026; only 6 are unchanged. Ward *count*
 stays 135, confirming §0's 135/270/136 and refuting the press report of 274
@@ -212,7 +257,29 @@ move ward, 180 are split across 2026 wards.
 
 The model's live risks, and what is being done about each.
 
-### R1 — VD boundary stability 🟡 *highest residual risk*
+### R1 — VD boundary stability ✅ *tested in fold 2, immaterial*
+
+**Resolved empirically (task #17).** Fold 2 was run three ways — all VDs, the 93
+flagged VDs down-weighted at `w_split` 0.6, and those VDs excluded outright:
+
+| | ward winner | seat MAE | total seat error | θ_ANC |
+|---|---|---|---|---|
+| all VDs | 128/135 | 0.50 | 12 | 1.32 |
+| suspect down-weighted | 129/135 | 0.50 | 12 | 1.32 |
+| suspect excluded | 127/134 | 0.43 | 10 | 1.30 |
+
+Citywide party errors are identical to 0.01pp across all three, θ moves by at
+most 0.03, and the ward-winner count moves by one either way. **The assumption is
+not doing meaningful work**, so the missing historic VD boundaries (task #18) do
+not block any conclusion the model draws. Task #18 stays open as a nice-to-have,
+downgraded from a blocker.
+
+The flags themselves are retained — they cost nothing and would catch a future
+delimitation that *did* move VDs materially.
+
+*Original entry, kept for the reasoning:*
+
+### R1(prior) — why this looked like the highest residual risk 🟡
 
 **Assumption.** A VD keeping its number kept its catchment, so historic votes
 describe the same ground as the 2026 VD they are matched to.

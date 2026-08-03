@@ -193,19 +193,100 @@ def calibrate_theta(
     return theta
 
 
+def load_parameters(path: Path) -> dict[str, dict[str, dict[str, float]]]:
+    """Read a fold's fitted parameters back in, for out-of-sample transfer."""
+    out: defaultdict[str, dict[str, dict[str, float]]] = defaultdict(
+        lambda: {"theta": {}, "theta_raw": {}, "gamma": {}}
+    )
+    with path.open(encoding="utf-8", newline="") as handle:
+        for row in csv.DictReader(handle):
+            ballot = row["ballot"]
+            out[ballot]["theta"][row["party"]] = float(row["theta_calibrated"])
+            out[ballot]["theta_raw"][row["party"]] = float(row["theta_raw"])
+            out[ballot]["gamma"][row["party"]] = float(row["gamma"])
+    return dict(out)
+
+
+def suspect_vds(concordance: Path, election: str) -> set[str]:
+    """VDs flagged as possibly redrawn for a given election (see build_concordance)."""
+    if not concordance.exists():
+        return set()
+    with concordance.open(encoding="utf-8", newline="") as handle:
+        return {
+            row["vd_historic"]
+            for row in csv.DictReader(handle)
+            if row["election"] == election and row["stability"] not in ("stable", "unknown")
+        }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fold", type=int, choices=sorted(FOLDS), default=1)
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
     parser.add_argument("--report", type=int, default=8, help="parties to list")
+    parser.add_argument(
+        "--fit-from",
+        type=int,
+        choices=sorted(FOLDS),
+        help="use another fold's fitted parameters instead of refitting (§4.1)",
+    )
+    parser.add_argument(
+        "--transfer",
+        choices=("all", "gamma"),
+        default="all",
+        help="'all' transfers θ and γ; 'gamma' transfers only γ and recalibrates θ",
+    )
+    parser.add_argument(
+        "--stability",
+        choices=("all", "downweight", "exclude"),
+        default="all",
+        help="how to treat VDs flagged as possibly redrawn (task #17)",
+    )
+    parser.add_argument("--w-split", type=float, default=0.6, help="down-weight for suspect VDs")
+    parser.add_argument(
+        "--entrant",
+        action="append",
+        default=[],
+        metavar="CODE=SHARE",
+        help="seed a party absent from the baseline with a citywide share, "
+             "e.g. ASA=0.1812. Multiplicative θ cannot create a party from zero.",
+    )
     args = parser.parse_args(argv)
+
+    entrants = {}
+    for item in args.entrant:
+        code, _, value = item.partition("=")
+        entrants[code.strip()] = float(value)
 
     spec = FOLDS[args.fold]
     base_votes, _ = load(args.data_dir / spec["base"][0], spec["base"][1])
     base_share, base_city = shares(base_votes), citywide(base_votes)
     base_weight = {vd: sum(counts.values()) for vd, counts in base_votes.items()}
 
-    print(f"fold {args.fold}: {spec['base'][0]} -> {spec['target'][0]}\n")
+    # Task #17: the concordance keys on VD number, which cannot be verified
+    # geometrically. Re-run with suspect VDs down-weighted or dropped and see
+    # whether the parameters move.
+    base_year = spec["base"][0][3:7]
+    flagged = suspect_vds(Path("data/processed/vd_concordance.csv"), base_year)
+    if args.stability == "exclude":
+        base_share = {vd: s for vd, s in base_share.items() if vd not in flagged}
+        base_weight = {vd: w for vd, w in base_weight.items() if vd not in flagged}
+    elif args.stability == "downweight":
+        base_weight = {
+            vd: int(w * args.w_split) if vd in flagged else w for vd, w in base_weight.items()
+        }
+
+    source = None
+    if args.fit_from:
+        source = load_parameters(Path("data/processed") / f"fold{args.fit_from}_parameters.csv")
+
+    print(f"fold {args.fold}: {spec['base'][0]} -> {spec['target'][0]}")
+    print(
+        f"  parameters: {'refit in-sample' if not source else f'from fold {args.fit_from} ({args.transfer})'}"
+        f"   stability: {args.stability}"
+        f"   ({len(flagged)} of {len(base_share) + (len(flagged) if args.stability == 'exclude' else 0)}"
+        f" base VDs flagged)\n"
+    )
 
     fitted: dict[str, dict[str, dict[str, float]]] = {}
     predicted_votes: dict[str, dict[str, dict[str, float]]] = {}
@@ -216,27 +297,57 @@ def main(argv: list[str] | None = None) -> int:
         common = sorted(set(base_share) & set(target_share))
 
         universe = [p for p in set(base_city) | set(target_city) if p != "IND"]
-        gamma = {}
-        for p in universe:
-            if base_city.get(p, 0) > 0.001:
-                gamma[p], _ = fit_gamma(
-                    base_share, target_share, base_city, target_city, base_weight, p
-                )
-            else:
-                gamma[p] = 1.0
+
+        # A party with no baseline cannot be produced by a multiplicative θ. Seed
+        # it at an assumed citywide share, spatially flat, and let everything else
+        # renormalise around it. Without this, IPF silently absorbs the entrant's
+        # share into every other party's θ and the θ values stop meaning anything.
+        model_base_city = dict(base_city)
+        model_base_share = base_share
+        if entrants:
+            model_base_city = {p: v * (1 - sum(entrants.values())) for p, v in base_city.items()}
+            model_base_city.update(entrants)
+            model_base_share = {
+                vd: {
+                    **{p: v * (1 - sum(entrants.values())) for p, v in local.items()},
+                    **entrants,
+                }
+                for vd, local in base_share.items()
+            }
+        if source and ballot in source:
+            # Out-of-sample: γ comes from the other fold, defaulting to 1.0 for
+            # parties it never saw.
+            gamma = {p: source[ballot]["gamma"].get(p, 1.0) for p in universe}
+        else:
+            gamma = {}
+            for p in universe:
+                if base_city.get(p, 0) > 0.001:
+                    gamma[p], _ = fit_gamma(
+                        model_base_share, target_share, model_base_city,
+                        target_city, base_weight, p
+                    )
+                else:
+                    gamma[p] = 1.0
         # The raw citywide ratio is what §3.5 quotes as θ; the calibrated value
         # is what this model needs. They are not interchangeable -- see the
         # report below.
         theta_raw = {
-            p: (target_city.get(p, 0.0) / base_city[p]) if base_city.get(p, 0) > 0 else 1.0
+            p: (target_city.get(p, 0.0) / model_base_city[p])
+            if model_base_city.get(p, 0) > 0 else 1.0
             for p in universe
         }
-        theta = calibrate_theta(
-            base_share, base_city, target_city, gamma, base_weight, universe
-        )
+        if source and ballot in source and args.transfer == "all":
+            # Fully out-of-sample: the other fold's θ too, so nothing about this
+            # transition's outcome is used. Parties it never saw get 1.0.
+            theta = {p: source[ballot]["theta"].get(p, 1.0) for p in universe}
+        else:
+            theta = calibrate_theta(
+                model_base_share, model_base_city, target_city, gamma,
+                base_weight, universe
+            )
         fitted[ballot] = {"theta": theta, "theta_raw": theta_raw, "gamma": gamma}
 
-        prediction = predict(base_share, base_city, theta, gamma)
+        prediction = predict(model_base_share, model_base_city, theta, gamma)
         predicted_votes[ballot] = prediction
 
         # --- §4.2 metrics ---------------------------------------------------
@@ -319,7 +430,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  {p:<10s} {a:>7d} {b:>10d} {b - a:>+5d}")
     print(f"\n  seat MAE: {np.mean(seat_errors):.2f}   total absolute seat error: {sum(seat_errors)}")
 
-    out = Path("data/processed") / f"fold{args.fold}_parameters.csv"
+    suffix = "" if not args.fit_from else f"_from{args.fit_from}"
+    out = Path("data/processed") / f"fold{args.fold}{suffix}_parameters.csv"
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
