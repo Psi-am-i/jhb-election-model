@@ -326,6 +326,53 @@ move ward, 180 are split across 2026 wards.
 
 ---
 
+### 1.11 The forecast: no two-party majority exists except ANC+DA ✅
+
+5,000 draws over §3.5's ranges, bloc-level per §3.4(a), both ballots, Schedule 1
+allocation. Seed 20261104.
+
+| party | median seats | 5th–95th |
+|---|---|---|
+| DA | 87 | 63–105 |
+| ANC | 67 | 53–81 |
+| EFF | 27 | 17–39 |
+| MK | 25 | 16–36 |
+| ActionSA | 17 | 5–38 |
+| PA | 11 | 9–15 |
+
+| coalition | P(≥136) | median | 5th–95th |
+|---|---|---|---|
+| DA + ActionSA | **0.0%** | 105 | 91–116 |
+| DA + ActionSA + IFP + VF+ + ACDP | 0.1% | 116 | 102–128 |
+| ANC + EFF + MK | 0.0% | 120 | 108–129 |
+| **ANC + DA** | **87.5%** | 154 | 127–175 |
+| every party outside the ANC bloc | 99.9% | 150 | 141–162 |
+
+The DA is the largest single party in 86.1% of draws.
+
+**The finding.** No two- or three-party coalition reaches 136 except ANC+DA. A
+majority excluding the ANC bloc is arithmetically available — the whole non-ANC
+field is worth about 150 — but it requires close to *every* other party in the
+council, which puts the PA (median 11) and the minor-party tail in a pivotal
+position rather than ActionSA alone.
+
+DA+ActionSA is tightly bounded at 91–116 despite ActionSA's own range being wide
+(5–38). That is §3.4(a)'s bloc structure working as intended: drawing the bloc
+shift and splitting within it makes the two negatively correlated, so their
+*combined* total is far more stable than either party's — which is the
+politically relevant quantity.
+
+**Consistency with the rest of the work.** §5's leverage result said differential
+turnout is worth about two seats across a thirty-ward, ten-point swing. The gap
+from DA+ActionSA's 105 to 136 is 31 seats. The two results agree: turnout
+mobilisation cannot bridge that, and the plan's §5 conclusion that the DA's path
+runs through ANC voters staying home does not survive either test.
+
+**What this is conditional on.** §3.5's ranges are informed priors, not
+estimates, and the result inherits them entirely. It also inherits R7:
+established parties are forecast well and genuinely new ones not at all. A party
+that does not exist in the 2024 baseline cannot appear in any draw.
+
 ## 2. Obstacles and how they were handled
 
 | # | Obstacle | Resolution | Status |
