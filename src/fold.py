@@ -44,8 +44,20 @@ import parties as P
 from seats import allocate, eligible_parties
 
 FOLDS = {
-    1: {"base": ("npe2014_JHB_vd_party.csv", None), "target": ("lge2016_JHB_vd_party_clean.csv", True)},
-    2: {"base": ("npe2019_JHB_vd_party.csv", None), "target": ("lge2021_JHB_vd_party_clean.csv", True)},
+    1: {
+        "base": ("npe2014_JHB_vd_party.csv", None),
+        "target": ("lge2016_JHB_vd_party_clean.csv", True),
+        "prior_lge": "2011",
+        # λ for the *previous* cycle would need the 2009 NPE, which is not held,
+        # so fold 1 cannot exercise the ratio turnout specification.
+        "lambda_pair": None,
+    },
+    2: {
+        "base": ("npe2019_JHB_vd_party.csv", None),
+        "target": ("lge2021_JHB_vd_party_clean.csv", True),
+        "prior_lge": "2016",
+        "lambda_pair": ("2014", "2016"),
+    },
 }
 
 SHARE_FLOOR = 0.002  # plan §3.4(b): keep zero-vote VDs finite under the logit
@@ -207,6 +219,80 @@ def load_parameters(path: Path) -> dict[str, dict[str, dict[str, float]]]:
     return dict(out)
 
 
+def turnout_weights(
+    spec: dict,
+    method: str,
+    data_dir: Path,
+    universe_vds: set[str],
+) -> tuple[dict[str, float], str]:
+    """Votes cast per VD in the target election, under one turnout specification.
+
+    The share model produces shares; turning those into seats needs a *weight*
+    per VD, which is votes cast. Earlier versions used the baseline election's
+    votes cast, which silently assumed the turnout pattern does not change
+    between an NPE and an LGE -- exactly the assumption §3.3 exists to model.
+
+    Every specification is rescaled so its citywide total equals the target's
+    actual votes cast. Without that, the comparison would be dominated by which
+    method happens to guess the citywide turnout level, when the question here is
+    which is right about the *distribution* of turnout across VDs. Getting the
+    citywide level right is a separate problem, handled by λ̂ (see turnout.py).
+
+    Returns the weights and a human description.
+    """
+    from turnout import ELECTIONS as TURNOUT_FILES, read_turnout
+
+    def series(year: str) -> dict[str, tuple[int, int]]:
+        filename, two_ballot = TURNOUT_FILES[year]
+        return read_turnout(data_dir / filename, two_ballot)
+
+    base_year = spec["base"][0][3:7]
+    target_year = spec["target"][0][3:7]
+    target = series(target_year)
+    actual_total = sum(cast for _, cast in target.values())
+
+    if method == "actual":
+        raw = {vd: float(cast) for vd, (_, cast) in target.items()}
+        label = "actual target turnout (oracle upper bound)"
+    elif method == "base":
+        base = series(base_year)
+        raw = {vd: float(cast) for vd, (_, cast) in base.items()}
+        label = f"{base_year} votes cast (assumes turnout pattern unchanged)"
+    elif method == "level":
+        prior = series(spec["prior_lge"])
+        prior_turnout = {vd: c / r for vd, (r, c) in prior.items() if r}
+        raw = {
+            vd: target[vd][0] * prior_turnout[vd]
+            for vd in target
+            if vd in prior_turnout
+        }
+        label = f"{spec['prior_lge']} LGE turnout pattern x target registration"
+    elif method == "ratio":
+        if not spec["lambda_pair"]:
+            return {}, "unavailable for this fold"
+        before, after = spec["lambda_pair"]
+        s_before, s_after, s_base = series(before), series(after), series(base_year)
+        lam = {
+            vd: (s_after[vd][1] / s_after[vd][0]) / (s_before[vd][1] / s_before[vd][0])
+            for vd in set(s_before) & set(s_after)
+            if s_before[vd][0] and s_after[vd][0] and s_before[vd][1] / s_before[vd][0] > 0.05
+        }
+        base_turnout = {vd: c / r for vd, (r, c) in s_base.items() if r}
+        raw = {
+            vd: target[vd][0] * base_turnout[vd] * lam[vd]
+            for vd in target
+            if vd in lam and vd in base_turnout
+        }
+        label = f"{base_year} turnout x λ_{after} (the plan's §3.3 ratio form)"
+    else:
+        raise ValueError(method)
+
+    raw = {vd: v for vd, v in raw.items() if vd in universe_vds}
+    total = sum(raw.values())
+    factor = actual_total / total if total else 1.0
+    return {vd: v * factor for vd, v in raw.items()}, label
+
+
 def suspect_vds(concordance: Path, election: str) -> set[str]:
     """VDs flagged as possibly redrawn for a given election (see build_concordance)."""
     if not concordance.exists():
@@ -244,6 +330,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--w-split", type=float, default=0.6, help="down-weight for suspect VDs")
     parser.add_argument(
+        "--turnout",
+        choices=("base", "actual", "level", "ratio"),
+        default="level",
+        help="how to weight VDs by votes cast in the target election (task #19)",
+    )
+    parser.add_argument(
         "--entrant",
         action="append",
         default=[],
@@ -276,6 +368,17 @@ def main(argv: list[str] | None = None) -> int:
             vd: int(w * args.w_split) if vd in flagged else w for vd, w in base_weight.items()
         }
 
+    # Votes-cast weights for the target election. This is what turns predicted
+    # shares into seats, and it is where the turnout sub-model enters the fold.
+    weight, weight_label = turnout_weights(
+        spec, args.turnout, args.data_dir, set(base_share)
+    )
+    if not weight:
+        print(f"turnout method '{args.turnout}' is {weight_label}")
+        return 1
+    base_share = {vd: v for vd, v in base_share.items() if vd in weight}
+    base_weight = {vd: base_weight[vd] for vd in base_share}
+
     source = None
     if args.fit_from:
         source = load_parameters(Path("data/processed") / f"fold{args.fit_from}_parameters.csv")
@@ -283,7 +386,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"fold {args.fold}: {spec['base'][0]} -> {spec['target'][0]}")
     print(
         f"  parameters: {'refit in-sample' if not source else f'from fold {args.fit_from} ({args.transfer})'}"
-        f"   stability: {args.stability}"
+        f"   turnout: {args.turnout}"
+        f"\n  weights: {weight_label}"
+        f"\n  stability: {args.stability}"
         f"   ({len(flagged)} of {len(base_share) + (len(flagged) if args.stability == 'exclude' else 0)}"
         f" base VDs flagged)\n"
     )
@@ -343,7 +448,7 @@ def main(argv: list[str] | None = None) -> int:
         else:
             theta = calibrate_theta(
                 model_base_share, model_base_city, target_city, gamma,
-                base_weight, universe
+                weight, universe
             )
         fitted[ballot] = {"theta": theta, "theta_raw": theta_raw, "gamma": gamma}
 
@@ -359,8 +464,8 @@ def main(argv: list[str] | None = None) -> int:
             if p == "IND":
                 continue
             pred_city = sum(
-                prediction[vd].get(p, 0) * base_weight[vd] for vd in common
-            ) / sum(base_weight[vd] for vd in common)
+                prediction[vd].get(p, 0) * weight[vd] for vd in common
+            ) / sum(weight[vd] for vd in common)
             print(
                 f"  {p:<10s} {base_city.get(p, 0):>8.2%} {theta_raw.get(p, 1):>7.2f}"
                 f" {theta.get(p, 1):>7.2f} {gamma.get(p, 1):>6.2f}"
@@ -384,8 +489,8 @@ def main(argv: list[str] | None = None) -> int:
                 if not w:
                     continue
                 for p in universe:
-                    wards[w][p] += prediction[vd].get(p, 0) * base_weight[vd]
-                    actual[w][p] += target_share[vd].get(p, 0) * base_weight[vd]
+                    wards[w][p] += prediction[vd].get(p, 0) * weight[vd]
+                    actual[w][p] += target_share[vd].get(p, 0) * weight[vd]
             correct = sum(
                 1
                 for w in wards
@@ -408,10 +513,10 @@ def main(argv: list[str] | None = None) -> int:
         predicted_counts[ballot] = {
             p: int(round(
                 sum(
-                    predicted_votes[ballot][vd].get(p, 0) * base_weight[vd]
+                    predicted_votes[ballot][vd].get(p, 0) * weight[vd]
                     for vd in predicted_votes[ballot]
                 )
-                / sum(base_weight.values())
+                / sum(weight.values())
                 * cast
             ))
             for p in fitted[ballot]["theta"]

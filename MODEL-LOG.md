@@ -194,7 +194,60 @@ fully out-of-sample, the ANC came in at −0.42pp, the IFP −0.90pp, but the DA
 +3.08pp and the EFF +2.60pp. So the expectation is roughly right for some and
 optimistic for others.
 
-### 1.8 Multiplicative θ cannot create a party from zero 🟡
+### 1.8 Turnout is second-order for seats; θ dominates ✅ *task #19*
+
+The turnout sub-model is now wired into the folds — VDs are weighted by predicted
+votes cast in the *target* election rather than by the baseline's, which is what
+`fold.py` did before and which silently assumed the turnout pattern does not
+change between an NPE and an LGE.
+
+**First attempt produced a null result that was an artefact.** With θ recalibrated
+per run, all four turnout specifications gave identical seats. That is because
+calibration forces predicted citywide shares to match the actual under *whatever*
+weights are supplied, so the weighting is absorbed into θ and can never reach the
+seat allocation. The test only means anything with θ held fixed.
+
+**With θ and γ both fixed from fold 1, so turnout is the only thing varying:**
+
+| turnout weighting | ward winner | total seat error | ANC PR err | DA PR err |
+|---|---|---|---|---|
+| actual target turnout (oracle) | 128/135 | 60 | −2.16pp | +5.55pp |
+| previous LGE pattern | 126/135 | 60 | −1.93pp | +5.14pp |
+| the plan's λ ratio form | 126/135 | 60 | −2.15pp | +5.49pp |
+| baseline votes cast (the crude assumption) | 128/135 | 54 | −0.37pp | +3.01pp |
+
+Two things stand out. **A perfect turnout forecast does not improve the seat
+outcome** — the oracle scores no better than the crude assumption. And the crude
+assumption scores *best*, because fold 1's θ was itself calibrated under baseline
+weighting, so applying it under the same weighting is internally consistent while
+switching introduces a mismatch.
+
+**Conclusions.**
+1. Turnout weighting shifts citywide shares by 1–2pp and total seat error by
+   about 6. Real, but small beside θ error, which moved the same metric from 12
+   to 54.
+2. **Consistency between how θ is calibrated and how it is applied matters more
+   than which turnout specification is used.** This is a live constraint on the
+   Monte Carlo.
+3. Effort spent improving the turnout sub-model buys less accuracy than effort
+   spent on θ. That reorders the priorities the plan implies.
+
+### 1.9 The citywide turnout *level* cannot affect seats at all ✅
+
+Follows from the Schedule 1 formula and is worth stating explicitly because it
+sharpens what the turnout work is for. The quota is `Q = A/(B−C−D) + 1` where `A`
+is total votes cast. Scale every VD's turnout by a constant and `A` scales, `Q`
+scales with it, `floor(votes/Q)` is unchanged and every remainder is unchanged —
+so the seat allocation is identical.
+
+**Only *differential* turnout across VDs can move seats**, by changing the mix
+that produces citywide shares. The projected 41.7% citywide 2026 turnout is
+therefore useful for reporting and for §5's leverage question, but contributes
+nothing to the seat forecast on its own. §5's leverage analysis is precisely the
+right framing: the question is never "how high is turnout" but "which VDs turn
+out relative to which others".
+
+### 1.10 Multiplicative θ cannot create a party from zero 🟡
 
 ActionSA took 18.12% in 2021 from 0.00% in the 2019 baseline. Because θ is
 multiplicative, no value of it can produce that — and worse, calibrating θ by IPF
