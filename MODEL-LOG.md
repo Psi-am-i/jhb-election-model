@@ -232,7 +232,58 @@ switching introduces a mismatch.
 3. Effort spent improving the turnout sub-model buys less accuracy than effort
    spent on θ. That reorders the priorities the plan implies.
 
-### 1.9 The citywide turnout *level* cannot affect seats at all ✅
+### 1.9 §5's leverage prediction is half right, and its magnitude is overstated ✅
+
+§5 states its expected finding "in advance so it can be falsified". Taking that
+at its word, `src/leverage.py` tests it.
+
+**What was predicted and what was found.** Leverage is measured as entitlement
+displaced per point of ward turnout, on a central scenario built from §3.5's
+default θ values.
+
+| §5's prediction | Correlation with leverage | Verdict |
+|---|---|---|
+| *not* highest in marginal wards | −0.399 with marginality | **confirmed, strongly** |
+| highest in high-registration wards | +0.365 with registration | **confirmed** |
+| highest in high-ANC-share wards | −0.358 with ANC share | **contradicted** |
+| highest in historically low-turnout wards | +0.321 with turnout | **contradicted** |
+
+So the *negative* half of the prediction — that this is not a marginal-seats
+story — holds firmly, and is the more important half, because it is what
+distinguishes compensatory PR from a first-past-the-post intuition. The
+*positive* half, that leverage concentrates in the low-turnout Soweto and Orange
+Farm clusters, does not hold as a linear relationship. Leverage tracks a ward's
+*distinctiveness* from the citywide mix weighted by its registration, and the
+northern suburbs are just as distinctive as the south.
+
+**The magnitude claim fails by more.** §5 says "a ten-point turnout swing across
+Soweto moves the ANC's citywide share by several points and reallocates a dozen
+seats". Perturbing whole 30-ward blocs across a full ten-point span:
+
+| cluster perturbed by ±5 points | seats moved | DA+ActionSA entitlement |
+|---|---|---|
+| 30 highest ANC-share wards | 2 | −1.55 |
+| 30 lowest ANC-share wards | 2 | +1.84 |
+| 30 most marginal wards | 1 | −1.13 |
+
+About two seats, not a dozen — overstated by roughly four to six times.
+
+**This reverses the plan's strategic conclusion.** §5 concludes that "the DA's
+path to 136 with ActionSA depends less on persuading anyone and more on whether
+ANC-inclined voters in the south stay home". On these numbers it does not. In the
+central scenario DA+ActionSA reach 113 and need 136 — 23 seats short — while a
+full ten-point differential turnout swing across thirty wards is worth under two
+seats to them. **Differential turnout cannot close a gap of that size; only
+persuasion can.** That is consistent with the fold finding that θ dominates
+turnout, and the two results reinforce each other.
+
+**Method note.** The first implementation measured leverage in integer seats and
+returned zero for almost every ward, with a spurious 2 for whichever ward sat on
+a largest-remainder boundary. That is a property of the rounding, not the ward.
+Fractional entitlement (party votes ÷ quota) is continuous and is what §5's
+"per-ward turnout elasticity index" actually asks for.
+
+### 1.10 The citywide turnout *level* cannot affect seats at all ✅
 
 Follows from the Schedule 1 formula and is worth stating explicitly because it
 sharpens what the turnout work is for. The quota is `Q = A/(B−C−D) + 1` where `A`
