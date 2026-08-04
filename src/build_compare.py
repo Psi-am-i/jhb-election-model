@@ -58,7 +58,7 @@ SPECS = {
             ("Validation", ["5. Validation results"],
              ["How we know it works — and what that does not cover"]),
             ("Corrections & the review", ["3. Corrections to the plan, with reasoning and impact"],
-             ["The model was broken once, and we published the repair"],
+             ["Corrections and review"],
              "The reader edition compresses this to a pointer — the full story is the Review page."),
             ("Assumptions & limits", ["6. Assumptions and limitations a reviewer should weigh"],
              ["The dials you can turn", "Limits worth knowing"]),

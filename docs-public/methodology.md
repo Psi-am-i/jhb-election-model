@@ -115,14 +115,23 @@ as good as the stated assumptions — and why every one of those assumptions is
 a slider on the [interactive page](interactive), so you can test how much any
 conclusion depends on them.
 
-## The model was broken once, and we published the repair
+## Corrections and review
 
 After the first version of this forecast was built, a full review found six
-implementation errors — one of which made the original headline claim
-outright false. All six were fixed the same day, the forecast changed
-materially, and the whole episode is documented on the
-[review page](review), because a model whose mistakes are hidden is not worth
-trusting.
+implementation errors — one of which made its primary claim outright false.
+All six were fixed, and the forecast changed materially. The whole episode —
+finding the errors and repairing them — is documented on the
+[review page](review).
+
+We publish it because it is worth demonstrating how errors lead to
+improvement and better understanding. If you don't look for errors — if you
+don't *want* to find them — you are not trying to learn; you are actively
+avoiding improvement. A model that admits no error in its construction is
+almost guaranteed to be wrong. Good models are the product of continuous
+error-correction, each fix pushing them closer to behaving like the real
+thing they describe. They do not arrive fully formed — and a model that hides
+its mistakes, or hides from them, is refusing the chance to be better, and
+should not be trusted.
 
 ## The dials you can turn
 
