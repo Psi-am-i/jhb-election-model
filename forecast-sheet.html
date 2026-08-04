@@ -350,7 +350,7 @@
 
 </div>
 
-</div>
+</div><!-- /sheet -->
 
 <script>
 // __GEN_START__  (this block is written by src/render_sheet.py — do not edit by hand)
@@ -521,7 +521,7 @@ document.getElementById("seats").innerHTML = GEN.parties.map(p => `
     <div class="track">
       <span class="band" style="left:${p.lo/MAX*100}%;width:${(p.hi-p.lo)/MAX*100}%"></span>
       <span class="med" style="left:calc(${p.med/MAX*100}% - 1.5px)"></span>
-    </div><!-- /sheet -->
+    </div>
     <div class="val"><b>${p.med}</b> <span style="color:var(--ink-3)">${p.lo}–${p.hi}</span></div>
   </div>`).join("");
 

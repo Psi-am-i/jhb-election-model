@@ -380,7 +380,11 @@
 
 </div>
 
-</div>
+<footer class="sitefooter">
+  <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
+  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">source &amp; data on GitHub</a></div>
+</footer>
+</div><!-- /sheet -->
 
 <script>
 // __GEN_START__  (this block is written by src/render_sheet.py — do not edit by hand)
@@ -551,11 +555,7 @@ document.getElementById("seats").innerHTML = GEN.parties.map(p => `
     <div class="track">
       <span class="band" style="left:${p.lo/MAX*100}%;width:${(p.hi-p.lo)/MAX*100}%"></span>
       <span class="med" style="left:calc(${p.med/MAX*100}% - 1.5px)"></span>
-    <footer class="sitefooter">
-  <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
-  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">source &amp; data on GitHub</a></div>
-</footer>
-</div><!-- /sheet -->
+    </div>
     <div class="val"><b>${p.med}</b> <span style="color:var(--ink-3)">${p.lo}–${p.hi}</span></div>
   </div>`).join("");
 
