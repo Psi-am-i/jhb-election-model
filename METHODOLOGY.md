@@ -9,9 +9,13 @@ along the way and what was done about it, and — importantly — where the
 implementation departs from the original written plan and why.
 
 Companion documents: `SOURCES.md` (acquisition detail, URLs, access
-constraints), `MODEL-LOG.md` (running internal log and risk register),
+constraints), `MODEL-LOG.md` (running internal log and risk register; §1.14
+records the 2026-08-04 implementation review, §1.15 the corrected forecast),
 `joburg-lge-model-plan-v2.md` (the original plan, now annotated with
-corrections).
+corrections), `model-review.html` (the review that found six implementation
+errors, with its resolution addendum), and `forecast-interactive.html` (every
+scenario assumption as a bounded, defaulted control; its scenario JSON
+reproduces a slider state exactly in `src/montecarlo.py --config`).
 
 A reviewer wanting to check a specific claim should be able to find both the
 script that produces it and the validation that it is right. Every figure quoted
@@ -312,6 +316,7 @@ which is why each is listed with the specific evidence that caught it.
 | Ward geometry duplicated | 2011 geodatabase stores every ward twice, byte-identical | Exact duplicates dropped; a ward id appearing with *differing* geometry is treated as an error, not silently collapsed |
 | Comparing station names against a file that has none flags everything | 2014 bulk carries no station names | Compare only when both sides name a station |
 | `REGPOP` on the 2026 VD layer is a **2024** snapshot (sums to 2,348,781) | boundary layer | Documented; must not be read as current registration |
+| Turnout above 100% — cast exceeds registered where a VD's roll shrank between snapshot and count | 87 VD-years, worst 245% (2019); one VD's λ projected 9.9% 2026 turnout | VD-years above 105% dropped from the λ series (found in the 2026-08-04 review); fold metrics re-scored below |
 
 Two of these were bugs in our own first implementation (the party-code collision
 and the station-name comparison), caught by validation checks rather than by
@@ -364,22 +369,24 @@ for others.
 Fold 2 re-run three ways, varying the treatment of the 93 VDs flagged as
 possibly redrawn:
 
-| | Ward winner | Seat MAE | θ_ANC |
+| | Ward winner | Seat MAE | Total seat error |
 |---|---|---|---|
-| all VDs | 128/135 | 0.50 | 1.32 |
-| suspect down-weighted (`w_split` 0.6) | 129/135 | 0.50 | 1.32 |
-| suspect excluded | 127/134 | 0.43 | 1.30 |
+| all VDs | 129/135 | 0.50 | 12 |
+| suspect down-weighted (`w_split` 0.6) | 129/135 | 0.50 | 12 |
+| suspect excluded | 129/134 | 0.50 | 12 |
 
-Citywide party errors are identical to 0.01pp, θ moves by at most 0.03, and the
-ward-winner count moves by one. **The VD boundary-stability assumption is not
-doing meaningful work**, so the unavailability of historic VD boundaries does not
-compromise any conclusion the model draws. The flags are retained because they
-cost nothing and would detect a future delimitation that moved VDs materially.
+*(Re-scored 2026-08-04 on the cleaned turnout series; the three variants now
+agree even more closely than the original run.)* **The VD boundary-stability
+assumption is not doing meaningful work**, so the unavailability of historic VD
+boundaries does not compromise any conclusion the model draws. The flags are
+retained because they cost nothing and would detect a future delimitation that
+moved VDs materially.
 
 ### 5.3 Fold 1 — in-sample calibration (2014 NPE → 2016 LGE)
 
 Every established party's citywide share reproduced to within 0.03pp, ward
-winners correct in 132 of 135, seat MAE 0.71.
+winners correct in 135 of 135 (up from 132 before the turnout-data cleaning),
+seat MAE 0.71.
 
 The residual is almost entirely new-entrant blindness, which §4.3 predicts and
 this quantifies: the **AIC took 4 seats from a 0.00% base in 2014** and the model
