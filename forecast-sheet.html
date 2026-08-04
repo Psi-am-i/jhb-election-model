@@ -1,0 +1,360 @@
+<title>Johannesburg 2026: Council Forecast</title>
+
+<style>
+  :root{
+    /* Cool paper, not cream. Neutrals carry a slight blue bias toward the ink. */
+    --paper:#fbfbfa;
+    --paper-2:#f2f3f1;
+    --rule:#d9dbd6;
+    --rule-soft:#e7e8e4;
+    --ink:#1a1d1b;
+    --ink-2:#4a4f4b;
+    --ink-3:#767b76;
+    /* One accent, spent on the majority threshold — the sheet's whole argument. */
+    --accent:#a8621f;
+    --accent-soft:#f0e2d5;
+    /* Data marks: neutral graphite, deliberately apolitical. */
+    --mark:#3b423e;
+    --mark-band:#c9cec9;
+    --good:#2f6d4a;
+
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
+      --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
+      --accent:#d9954f; --accent-soft:#3a2a1a;
+      --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
+    --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
+    --accent:#d9954f; --accent-soft:#3a2a1a;
+    --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a;
+  }
+  :root[data-theme="light"]{
+    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
+    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
+    --accent:#a8621f; --accent-soft:#f0e2d5;
+    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a;
+  }
+
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:15px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sheet{max-width:860px;margin:0 auto;padding:28px 24px 64px;}
+  .page{display:flex;flex-direction:column;gap:26px;}
+  .page + .page{margin-top:34px;padding-top:30px;border-top:1px solid var(--rule);}
+
+  /* ---- masthead ---- */
+  .masthead{display:flex;flex-direction:column;gap:10px;}
+  .kicker{
+    font-family:var(--sans); font-size:11px; font-weight:650;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--accent);
+  }
+  h1{
+    font-family:var(--serif); font-weight:600; font-size:clamp(30px,5.2vw,46px);
+    line-height:1.06; letter-spacing:-.012em; text-wrap:balance; margin:0;
+  }
+  .standfirst{
+    font-family:var(--serif); font-size:clamp(17px,2.4vw,20px); line-height:1.45;
+    color:var(--ink-2); max-width:62ch; text-wrap:pretty;
+  }
+  .dateline{
+    display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;
+    font-family:var(--mono); font-size:11.5px; color:var(--ink-3);
+    border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+    padding:9px 0;
+  }
+  .dateline b{color:var(--ink-2);font-weight:600;}
+
+  h2{
+    font-family:var(--serif); font-weight:600; font-size:22px; line-height:1.2;
+    margin:0; letter-spacing:-.006em;
+  }
+  .eyebrow{
+    font-family:var(--sans); font-size:10.5px; font-weight:650;
+    letter-spacing:.15em; text-transform:uppercase; color:var(--ink-3);
+  }
+  section{display:flex;flex-direction:column;gap:14px;}
+  p{margin:0;max-width:66ch;}
+  .lede{font-size:16px;}
+
+  /* ---- headline stats ---- */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:1px;
+    background:var(--rule-soft);border:1px solid var(--rule-soft);}
+  .stat{background:var(--paper);padding:14px 16px;display:flex;flex-direction:column;gap:3px;}
+  .stat .n{font-family:var(--mono);font-size:29px;font-weight:600;letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;line-height:1;}
+  .stat .l{font-size:12.5px;color:var(--ink-2);line-height:1.35;}
+  .stat.hero .n{color:var(--accent);}
+
+  /* ---- range chart ---- */
+  figure{margin:0;display:flex;flex-direction:column;gap:10px;}
+  figcaption{font-size:12.5px;color:var(--ink-3);max-width:66ch;}
+  .chart{display:flex;flex-direction:column;gap:2px;}
+  .row{display:grid;grid-template-columns:104px 1fr 92px;align-items:center;gap:12px;
+    padding:5px 0;}
+  .pname{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:550;}
+  .chip{width:9px;height:9px;border-radius:2px;flex:none;
+    box-shadow:0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent);}
+  .track{position:relative;height:20px;}
+  .track::before{content:"";position:absolute;inset:9px 0 auto 0;height:1px;background:var(--rule-soft);}
+  .band{position:absolute;top:6px;height:8px;border-radius:4px;background:var(--mark-band);}
+  .med{position:absolute;top:2px;width:3px;height:16px;border-radius:1.5px;background:var(--mark);
+    box-shadow:0 0 0 2px var(--paper);}
+  .val{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums;
+    color:var(--ink-2);text-align:right;}
+  .val b{color:var(--ink);font-weight:600;}
+  .scale{display:grid;grid-template-columns:104px 1fr 92px;gap:12px;
+    font-family:var(--mono);font-size:10.5px;color:var(--ink-3);}
+  .scale .ticks{display:flex;justify-content:space-between;}
+
+  /* ---- coalition table ---- */
+  .tablewrap{overflow-x:auto;}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px;}
+  th{font-family:var(--sans);font-size:10.5px;font-weight:650;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--ink-3);text-align:left;
+    padding:0 10px 7px 0;border-bottom:1px solid var(--rule);}
+  th.num,td.num{text-align:right;padding-right:0;}
+  td{padding:9px 10px 9px 0;border-bottom:1px solid var(--rule-soft);vertical-align:middle;}
+  td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;}
+  tr.key td{background:var(--accent-soft);}
+  tr.key td:first-child{font-weight:650;}
+  .pbar{position:relative;height:6px;background:var(--rule-soft);border-radius:3px;
+    min-width:70px;overflow:hidden;}
+  .pbar i{position:absolute;inset:0 auto 0 0;background:var(--mark);border-radius:3px;}
+  tr.key .pbar i{background:var(--accent);}
+
+  /* ---- notes ---- */
+  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px;}
+  .note{border-left:2px solid var(--rule);padding-left:14px;display:flex;flex-direction:column;gap:6px;}
+  .note h3{font-family:var(--sans);font-size:12px;font-weight:650;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--ink-2);margin:0;}
+  .note p{font-size:13.5px;color:var(--ink-2);}
+  ul{margin:0;padding-left:17px;display:flex;flex-direction:column;gap:5px;
+    font-size:13.5px;color:var(--ink-2);max-width:66ch;}
+  .caveat{background:var(--paper-2);border:1px solid var(--rule-soft);padding:16px 18px;
+    display:flex;flex-direction:column;gap:9px;}
+  .caveat h2{font-size:17px;}
+  .colophon{font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:12px;}
+  .folio{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);
+    display:flex;justify-content:space-between;border-top:1px solid var(--rule-soft);padding-top:8px;}
+
+  @media print{
+    body{background:#fff;color:#000;font-size:10.5pt;}
+    .sheet{max-width:none;padding:0;}
+    .page{break-after:page;}
+    .page:last-child{break-after:auto;}
+    .page + .page{margin-top:0;border-top:none;padding-top:0;}
+  }
+  @media (max-width:560px){
+    .row,.scale{grid-template-columns:82px 1fr 78px;gap:8px;}
+    .pname{font-size:12.5px;}
+  }
+</style>
+
+<div class="sheet">
+
+<!-- ============================ PAGE 1 ============================ -->
+<div class="page">
+
+  <header class="masthead">
+    <div class="kicker">Forecast · City of Johannesburg · 4 November 2026</div>
+    <h1>Nobody wins Johannesburg. The only question is who shares it.</h1>
+    <p class="standfirst">A voting-district model of the City of Johannesburg finds the DA finishing
+    first in 86% of simulations — and no two-party majority available to anyone except the ANC
+    and the DA together.</p>
+    <div class="dateline">
+      <span><b>Issued</b> 4 August 2026</span>
+      <span><b>Method</b> 5,000 simulations, 865 voting districts</span>
+      <span><b>Baseline</b> 2024 provincial ballot</span>
+      <span><b>Council</b> 270 seats · majority 136</span>
+    </div>
+  </header>
+
+  <section class="stats">
+    <div class="stat hero">
+      <div class="n">87.5%</div>
+      <div class="l">Chance an ANC–DA coalition would command a majority — the only pairing that can</div>
+    </div>
+    <div class="stat">
+      <div class="n">86%</div>
+      <div class="l">Simulations in which the DA is the largest single party</div>
+    </div>
+    <div class="stat">
+      <div class="n">0.0%</div>
+      <div class="l">Simulations in which DA + ActionSA reach 136 seats</div>
+    </div>
+    <div class="stat">
+      <div class="n">31</div>
+      <div class="l">Seats DA + ActionSA fall short of a majority, at the midpoint</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Projected seats</div>
+    <h2>Where the parties land</h2>
+    <figure>
+      <div class="chart" id="seats"></div>
+      <div class="scale">
+        <span></span>
+        <span class="ticks"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span><span>125</span></span>
+        <span></span>
+      </div>
+      <figcaption>Bars show the middle 90% of 5,000 simulations; the vertical mark is the midpoint.
+      Figures are seats out of 270. Bars are drawn in a single neutral tone — the colour chip is
+      party identification only and carries no value.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <p class="lede">The headline is not the DA's lead. It is the arithmetic underneath it. Johannesburg
+    elects half its council on a ward ballot and half on a party-list ballot, and a party's total
+    entitlement is set by <em>both added together</em>. That makes the council close to
+    proportional — and it means a fragmented vote produces a fragmented council that no natural
+    alliance can assemble into 136.</p>
+  </section>
+
+  <div class="folio"><span>Johannesburg 2026 · Council Forecast</span><span>Page 1 of 2</span></div>
+</div>
+
+<!-- ============================ PAGE 2 ============================ -->
+<div class="page">
+
+  <section>
+    <div class="eyebrow">The arithmetic that decides it</div>
+    <h2>Which coalitions can actually govern</h2>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Combination</th>
+            <th class="num">Seats (mid)</th>
+            <th class="num">Range</th>
+            <th style="width:26%">Chance of 136</th>
+            <th class="num"></th>
+          </tr>
+        </thead>
+        <tbody id="coalitions"></tbody>
+      </table>
+    </div>
+    <figcaption style="font-size:12.5px;color:var(--ink-3)">Range is the middle 90% of simulations.
+    “Every party outside the ANC bloc” means the DA, ActionSA, PA, IFP, VF+, ACDP, Rise Mzansi,
+    Al Jama-ah and the smaller parties together — nine or more parties, not a working alliance.</figcaption>
+  </section>
+
+  <section>
+    <p class="lede">A majority without the ANC exists on paper. It requires almost every other party
+    in the chamber at once. The Patriotic Alliance — projected at 11 seats and the largest party
+    outside the two blocs — matters more to that arithmetic than ActionSA's recovery does.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">A finding that cuts against the conventional read</div>
+    <h2>Turnout will not decide this</h2>
+    <p>The model was built expecting differential turnout to be decisive — that a collapse in
+    ANC-leaning turnout in the south would hand the city to a DA-led bloc. Tested directly, it does
+    not. Moving turnout by ten points across the thirty most ANC-leaning wards shifts roughly
+    <b>two seats</b>. DA + ActionSA need thirty-one.</p>
+    <p>Turnout still shapes who wins individual wards. It does not close a gap of that size.
+    On this arithmetic the route to 136 runs through persuading voters, not through opponents
+    staying home.</p>
+  </section>
+
+  <div class="cols">
+    <div class="note">
+      <h3>How it works</h3>
+      <p>Each of the 5,000 runs draws a citywide result for 2026, projects it onto all 865 voting
+      districts using each party's historic local geography, applies projected turnout, then runs
+      the statutory seat formula — quota, division, largest remainder.</p>
+    </div>
+    <div class="note">
+      <h3>How it was checked</h3>
+      <p>The seat calculator reproduces the officially published Johannesburg council exactly for
+      2011, 2016 and 2021 — quota, vote totals and every party's seat count. Tested against 2021
+      without being shown the answer, the model called 128 of 135 ward winners.</p>
+    </div>
+  </div>
+
+  <div class="caveat">
+    <h2>What this forecast cannot tell you</h2>
+    <ul>
+      <li><b>It cannot see a party that does not yet exist.</b> ActionSA was not on the ballot in
+      2019 and won 44 seats in 2021. Nothing here would have predicted that, and nothing here would
+      predict an equivalent arrival in 2026.</li>
+      <li><b>It is a distribution, not a prediction.</b> The ranges are the output. A single seat
+      number taken from this sheet without its range is a misuse of it.</li>
+      <li><b>It assumes the contest resembles recent ones.</b> The inputs are informed judgements
+      about how much each party's support shifts between national and local elections, not
+      certainties.</li>
+      <li><b>It is not a poll.</b> No voters were surveyed. This is arithmetic on past results and
+      registration data.</li>
+    </ul>
+  </div>
+
+  <div class="colophon">
+    Sources: Electoral Commission of South Africa — voting-district results for the 2011, 2016 and
+    2021 municipal elections and the 2014, 2019 and 2024 national and provincial elections; IEC
+    by-election results, 2021–2026. Municipal Demarcation Board — 2026 ward and voting-district
+    boundaries. Statistics South Africa — Census 2022 ward estimates.<br>
+    Seat allocation follows Schedule 1 of the Municipal Structures Act. Full methodology, source
+    provenance and known limitations are documented and available on request.<br>
+    Free to reproduce with attribution. Figures generated 4 August 2026.
+  </div>
+
+  <div class="folio"><span>Johannesburg 2026 · Council Forecast</span><span>Page 2 of 2</span></div>
+</div>
+
+</div>
+
+<script>
+  // Median and 5th–95th percentile seats from 5,000 simulations.
+  const PARTIES = [
+    { name:"DA",         chip:"#1B5EA8", med:87, lo:63, hi:105 },
+    { name:"ANC",        chip:"#1B7A3D", med:67, lo:53, hi:81  },
+    { name:"EFF",        chip:"#B3202B", med:27, lo:17, hi:39  },
+    { name:"MK Party",   chip:"#5B6E22", med:25, lo:16, hi:36  },
+    { name:"ActionSA",   chip:"#2FA79B", med:17, lo:5,  hi:38  },
+    { name:"PA",         chip:"#E0A419", med:11, lo:9,  hi:15  },
+    { name:"Rise Mzansi",chip:"#7A6BA8", med:6,  lo:5,  hi:7   },
+    { name:"IFP",        chip:"#C8442A", med:5,  lo:4,  hi:6   },
+    { name:"Others",     chip:"#8b918b", med:22, lo:18, hi:36  }
+  ];
+  const MAX = 125;
+  document.getElementById("seats").innerHTML = PARTIES.map(p => `
+    <div class="row">
+      <div class="pname"><span class="chip" style="background:${p.chip}"></span>${p.name}</div>
+      <div class="track">
+        <span class="band" style="left:${p.lo/MAX*100}%;width:${(p.hi-p.lo)/MAX*100}%"></span>
+        <span class="med" style="left:calc(${p.med/MAX*100}% - 1.5px)"></span>
+      </div>
+      <div class="val"><b>${p.med}</b> <span style="color:var(--ink-3)">${p.lo}–${p.hi}</span></div>
+    </div>`).join("");
+
+  const COALITIONS = [
+    { name:"ANC + DA",                          med:154, lo:127, hi:175, p:0.875, key:true },
+    { name:"Every party outside the ANC bloc",  med:150, lo:141, hi:162, p:0.999, key:true },
+    { name:"ANC + EFF + MK",                    med:120, lo:108, hi:129, p:0.0002 },
+    { name:"DA + ActionSA + IFP + VF+ + ACDP",  med:116, lo:102, hi:128, p:0.0012 },
+    { name:"DA + ActionSA",                     med:105, lo:91,  hi:116, p:0.0000 },
+    { name:"ANC + EFF",                         med:94,  lo:80,  hi:107, p:0.0000 },
+    { name:"ANC + ActionSA",                    med:84,  lo:65,  hi:109, p:0.0010 }
+  ];
+  const pct = v => v >= 0.995 ? "99.9%" : v < 0.0005 ? "under 0.1%" : (v*100).toFixed(1) + "%";
+  document.getElementById("coalitions").innerHTML = COALITIONS.map(c => `
+    <tr class="${c.key ? "key" : ""}">
+      <td>${c.name}</td>
+      <td class="num">${c.med}</td>
+      <td class="num" style="color:var(--ink-3)">${c.lo}–${c.hi}</td>
+      <td><div class="pbar"><i style="width:${Math.max(c.p*100,0.6)}%"></i></div></td>
+      <td class="num">${pct(c.p)}</td>
+    </tr>`).join("");
+</script>

@@ -480,10 +480,13 @@ turnout for forecast accuracy.
 | G | Two-cycle inference | Several parameters rest on two observed NPE→LGE transitions, one Covid-affected. Treat 2021-derived values as scenario levers |
 | H | Concordance leakage | 0.21–0.45% of votes per election sit in VDs that no longer exist; recorded, not dropped |
 
-**Limitation C is now the most important outstanding item**, and is the strongest argument for the plan's own conclusion** that the
-defensible deliverable is a distribution over coalition viability rather than a
-seat forecast. The parties that decide Johannesburg's coalition arithmetic are
-precisely the ones the model is least able to see.
+**Limitation C is now the most important outstanding item.** It is also the
+strongest argument for the plan's own conclusion that the defensible deliverable
+is a distribution over coalition viability rather than a seat forecast: the
+parties that decide Johannesburg's coalition arithmetic are precisely the ones
+the model is least able to see. ActionSA did not exist in 2019 and took 44 seats
+in 2021; nothing in this model would have anticipated that, and nothing in it
+would anticipate an equivalent entrant in 2026.
 
 ---
 
