@@ -45,6 +45,49 @@ SPECS = {
             ("Integrity of the data", ["Archive"], ["Keeping ourselves honest"]),
         ],
     },
+    "methodology": {
+        "original": "METHODOLOGY.md",
+        "proposed": "docs-public/methodology.md",
+        "title": "Methodology — rewrite review",
+        "pairs": [
+            ("Purpose of the page", [""], [""]),
+            ("What is being predicted", ["1. What is being predicted"],
+             ["What is actually being decided"]),
+            ("The pipeline", ["5A. How the model works, end to end"],
+             ["The engine, in six steps"]),
+            ("Validation", ["5. Validation results"],
+             ["How we know it works — and what that does not cover"]),
+            ("Corrections & the review", ["3. Corrections to the plan, with reasoning and impact"],
+             ["The model was broken once, and we published the repair"],
+             "The reader edition compresses this to a pointer — the full story is the Review page."),
+            ("Assumptions & limits", ["6. Assumptions and limitations a reviewer should weigh"],
+             ["The dials you can turn", "Limits worth knowing"]),
+            ("Data provenance & traps", ["2. Data: provenance and validation",
+                                         "4. Data quality problems found"], [],
+             "Not carried here — this material lives on the Sources page and on GitHub."),
+            ("Results", ["5B. Results"], [],
+             "Not carried here — the forecast page IS the results."),
+            ("Reproducibility", ["7. Reproducibility"], [],
+             "Not carried here — the GitHub README covers reproduction."),
+        ],
+    },
+    "review": {
+        "original": "drafts/review-original-excerpts.md",
+        "original_label": "model-review.html (verbatim excerpts)",
+        "proposed": "docs-public/review.md",
+        "title": "Review — rewrite review",
+        "pairs": [
+            ("Framing", ["Verdict"], [""]),
+            ("The headline error", ["E1"], ["The error that mattered most"]),
+            ("The other findings", ["E2 to E6"], ["The other five, briefly"]),
+            ("What the fixes changed", ["Addendum: what the corrected model says"],
+             ["What the fixes changed"]),
+            ("What remains open", ["Addendum: still open"],
+             ["What the review could not fix"]),
+            ("Why publish", [], ["Why publish this at all"],
+             "New section — no original counterpart; the argument for publishing the audit."),
+        ],
+    },
 }
 
 STYLE = """
@@ -139,14 +182,20 @@ def main(argv: list[str] | None = None) -> int:
     prop = sections(Path(spec["proposed"]))
 
     blocks = []
-    for i, (label, orig_keys, prop_keys) in enumerate(spec["pairs"], 1):
+    for i, pair in enumerate(spec["pairs"], 1):
+        label, orig_keys, prop_keys = pair[:3]
+        note = pair[3] if len(pair) > 3 else ""
         left = "\n<hr>\n".join(render(orig[k]) for k in orig_keys if k in orig)
         right = "\n".join(render(prop[k]) for k in prop_keys if k in prop)
+        if not right and note:
+            right = f"<p><em>{note}</em></p>"
+        if not left and note:
+            left = f"<p><em>{note}</em></p>"
         blocks.append(f"""
 <div class="pair">
   <div class="pairhead"><span class="num">{i}</span><h2>{label}</h2></div>
   <div class="duo">
-    <div class="col orig"><div class="collabel">Original — {spec["original"]}</div>{left}</div>
+    <div class="col orig"><div class="collabel">Original — {spec.get("original_label", spec["original"])}</div>{left}</div>
     <div class="col prop"><div class="collabel">Proposed reader edition</div>{right}</div>
   </div>
 </div>""")

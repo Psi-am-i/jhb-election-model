@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Review — rewrite review</title>
+<style>
+  :root{
+    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
+    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
+    --accent:#a8621f; --accent-soft:#f0e2d5; --good:#2f6d4a;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
+      --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
+      --accent:#d9954f; --accent-soft:#3a2a1a; --good:#6fb98a;
+    }
+  }
+  *{box-sizing:border-box;margin:0;}
+  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+    font-size:14.5px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1200px;margin:0 auto;padding:28px 24px 80px;}
+  .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:8px;}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(26px,4vw,36px);
+    line-height:1.12;margin-bottom:10px;}
+  .howto{background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);
+    padding:12px 16px;font-size:13.5px;color:var(--ink-2);margin:14px 0 26px;}
+  .pair{margin:34px 0;}
+  .pairhead{display:flex;align-items:baseline;gap:12px;margin-bottom:10px;}
+  .num{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--accent);
+    border:1.5px solid var(--accent);border-radius:50%;width:30px;height:30px;
+    display:flex;align-items:center;justify-content:center;flex:none;}
+  .pairhead h2{font-family:var(--serif);font-weight:600;font-size:20px;}
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;}
+  @media (max-width:900px){.duo{grid-template-columns:1fr;}}
+  .col{border:1px solid var(--rule-soft);padding:14px 18px;min-width:0;}
+  .col.orig{background:var(--paper-2);}
+  .col.prop{border-left:3px solid var(--good);}
+  .collabel{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;}
+  .col.prop .collabel{color:var(--good);}
+  .col h1,.col h2{font-family:var(--serif);font-size:17px;border:none;margin:12px 0 4px;padding:0;}
+  .col p{margin:8px 0;}
+  .col ul,.col ol{margin:8px 0;padding-left:18px;}
+  .col li{margin:4px 0;}
+  .col code{font-family:var(--mono);font-size:.85em;background:var(--paper);
+    border:1px solid var(--rule-soft);border-radius:3px;padding:.05em .3em;}
+  .col.orig code{background:var(--paper-2);}
+  .col pre{background:var(--paper);border:1px solid var(--rule-soft);border-radius:4px;
+    padding:10px 12px;overflow-x:auto;font-size:12px;margin:10px 0;}
+  .col .tw{overflow-x:auto;}
+  .col table{border-collapse:collapse;width:100%;font-size:12.5px;margin:10px 0;}
+  .col th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);
+    text-align:left;padding:0 10px 5px 0;border-bottom:1px solid var(--rule);}
+  .col td{padding:6px 10px 6px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top;}
+  .colophon{font-family:var(--mono);font-size:11px;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:12px;margin-top:40px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Draft for review · unlisted</div>
+  <h1>Review — rewrite review</h1>
+  <div class="howto">The original stays canonical (on GitHub) whatever happens here — this
+  review decides only what the <em>website</em> says. Reply with verdicts by number, as terse
+  as you like: <b>"1–4 yes, 5 no, 6 yes but drop the last sentence."</b></div>
+
+<div class="pair">
+  <div class="pairhead"><span class="num">1</span><h2>Framing</h2></div>
+  <div class="duo">
+    <div class="col orig"><div class="collabel">Original — model-review.html (verbatim excerpts)</div><p>The data work, the seat allocator, and the backtesting discipline are
+genuinely strong — the allocator reproducing three published councils exactly
+is a real credential, and several plan errors (softmax/logit,
+raw-versus-calibrated θ, entrant seeding) were caught and fixed well. But the
+Monte Carlo stage cut corners the plan explicitly warned against, and one of
+them makes the headline published conclusion <strong>factually wrong under the
+model&rsquo;s own output</strong>: a DA + EFF + MK coalition reaches a majority in 61% of
+the model&rsquo;s own draws, yet every published document says no such coalition
+exists.</p></div>
+    <div class="col prop"><div class="collabel">Proposed reader edition</div><p>Most forecasts show you their conclusions. This page shows you our mistakes.
+After the first version of this model was built, we reviewed it the way a
+hostile examiner would — against its own written plan, line by line, output by
+output. The review found <strong>six implementation errors</strong>, one of which made the
+forecast&rsquo;s original headline claim outright false. Every error was fixed the
+same day, the forecast changed materially, and the full technical audit is
+published, warts and all, in
+<a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/model-review.html"><code>model-review.html</code> on GitHub</a>.
+Here is what happened, in plain language — and why we think publishing it
+makes the forecast more worth your trust, not less.</p></div>
+  </div>
+</div>
+<div class="pair">
+  <div class="pairhead"><span class="num">2</span><h2>The headline error</h2></div>
+  <div class="duo">
+    <div class="col orig"><div class="collabel">Original — model-review.html (verbatim excerpts)</div><p>Plan §3.8 was explicit: enumerate <strong>all 2ⁿ subsets</strong>, reduce to minimal
+winning coalitions, and &ldquo;keep political feasibility as a separate, toggleable
+layer… There is no reason to pre-filter on plausibility, and good reason not
+to.&rdquo; The implementation did the opposite: <code>montecarlo.py:60–67</code> hard-codes six
+politically plausible coalitions and checks only those. […] So the claim in
+MODEL-LOG §1.11, METHODOLOGY §5B, and the forecast sheet — <em>&ldquo;no two- or
+three-party coalition reaches 136 except ANC+DA&rdquo;</em> — is wrong. DA+EFF+MK clears
+the majority in 61% of draws. […] What happened is a conflation of &ldquo;the ANC&rdquo;
+with &ldquo;the ANC bloc&rdquo; […] the plan&rsquo;s whole §3.8 argument (Mashaba governed on
+external EFF support for three years; declared red lines have a short
+half-life) was that the arithmetic layer must never inherit that judgement.</p></div>
+    <div class="col prop"><div class="collabel">Proposed reader edition</div><p>The first version of the forecast declared: <em>no two- or three-party coalition
+can reach a majority except the ANC and DA together.</em> That claim was false —
+and the model&rsquo;s own simulations proved it false, because nobody had asked
+them.</p>
+<p>The plan the model was built from had been explicit: check <strong>every</strong>
+combination of parties, mechanically, with no opinions about who would
+plausibly govern with whom — precisely because South African coalition
+politics has a habit of making yesterday&rsquo;s unthinkable arrangement tomorrow&rsquo;s
+government. The build ignored that instruction and checked six hand-picked,
+&ldquo;realistic&rdquo; coalitions. When the full check was finally run, a combination
+nobody had thought to test — DA + EFF + MK — cleared the majority line in
+<strong>61% of the very same simulations</strong>. The published conclusion wasn&rsquo;t wrong
+because the maths was wrong; it was wrong because a human had quietly
+filtered the question through political taste, which is exactly what the plan
+had forbidden.</p></div>
+  </div>
+</div>
+<div class="pair">
+  <div class="pairhead"><span class="num">3</span><h2>The other findings</h2></div>
+  <div class="duo">
+    <div class="col orig"><div class="collabel">Original — model-review.html (verbatim excerpts)</div><p><strong>E2</strong> — <code>draw_target</code> centres the within-bloc Dirichlet on <strong>2024
+proportions</strong>. But the plan&rsquo;s §3.5 central θ values encode deliberate
+asymmetric views: θ_MK = 0.60 (no ward machinery, beaten by ActionSA in its
+one Soweto test, Ipsos at 8%) […] MK&rsquo;s plan-central case (~7.3% citywide, ~20
+seats) and its bear case are essentially unreachable.</p>
+<p><strong>E3</strong> — Plan §3.7 steps 3–5: predict ward winners, deduct from entitlement,
+<strong>check for overhang and expand the council if it occurs</strong> — and the plan&rsquo;s
+own §0 flags overhang as &ldquo;a live risk for 2026, not a theoretical one&rdquo;. The
+Monte Carlo allocates from combined votes and never looks at wards.</p>
+<p><strong>E4</strong> — <strong>by-elections</strong> (38 contests fetched), <strong>polling</strong>, and <strong>census
+covariates</strong> appear nowhere in the pipeline. The forecast&rsquo;s citywide
+distribution rests entirely on four historical NPE→LGE transitions […]
+Meanwhile the sheet&rsquo;s colophon lists &ldquo;IEC by-election results, 2021–2026&rdquo; as a
+source, which is not true of the numbers on the sheet.</p>
+<p><strong>E5</strong> — The sheet says: <em>&ldquo;Tested against 2021 without being shown the
+answer, the model called 128 of 135 ward winners.&rdquo;</em> […] the headline
+seat-error row uses θ recalibrated against the actual 2021 citywide shares.
+The genuinely blind configuration had a total seat error of <strong>54</strong> [later
+re-scored to 60]. The internal documents are honest about this distinction;
+the sheet is not.</p>
+<p><strong>E6</strong> — A single shared <code>f_other</code> draw scales the IFP, VF+, ACDP, Rise and
+the rest identically per draw. This produces the implausibly tight published
+intervals — Rise 5–7 seats, IFP 4–6; a party&rsquo;s 90% interval spanning two
+seats is not credible.</p></div>
+    <div class="col prop"><div class="collabel">Proposed reader edition</div><ul>
+<li><strong>The plan&rsquo;s own scepticism about MK was silently discarded.</strong> The plan
+  said MK — a party with no local-government machinery — should be expected
+  to underperform its national result. The simulation&rsquo;s internals quietly
+  centred MK on holding its ground instead, making an MK collapse nearly
+  impossible to draw. The plan and the code disagreed, and nobody had
+  noticed.</li>
+<li><strong>Ward winners were never actually counted.</strong> The forecast allocated seats
+  from vote totals but skipped predicting who <em>wins each ward</em> — which is
+  the step that detects overhang, the council growing beyond 270. The plan
+  had flagged overhang as a live risk. It turned out to be the modal outcome,
+  and the first forecast simply could not see it.</li>
+<li><strong>Real evidence was collected and then ignored.</strong> Fifteen by-elections and
+  the published polls had been gathered — and influenced nothing. The
+  forecast cited them as sources while its numbers rested entirely on
+  historical patterns. They are now wired in, with their weight adjustable.</li>
+<li><strong>The validation was oversold.</strong> The sheet said the model was tested
+  &ldquo;without being shown the answer&rdquo;. In truth the test had been given the
+  citywide totals and only had to place them geographically. Genuinely
+  blind, the seat error is five times larger. The claim now says exactly
+  what was and wasn&rsquo;t tested.</li>
+<li><strong>Small parties moved in lockstep.</strong> Every minor party rose and fell
+  together in the simulations, producing absurdly confident seat ranges for
+  them. They now move independently, with ranges set from their actual
+  history.</li>
+</ul>
+<p>There were also data bugs found along the way — including 87 district-year
+records where more people had voted than were registered, a sign of broken
+registration counts that had quietly poisoned the turnout projections.</p></div>
+  </div>
+</div>
+<div class="pair">
+  <div class="pairhead"><span class="num">4</span><h2>What the fixes changed</h2></div>
+  <div class="duo">
+    <div class="col orig"><div class="collabel">Original — model-review.html (verbatim excerpts)</div><p>The dominant new finding is one the broken version could not see:
+<strong>overhang is the modal outcome (89% of draws)</strong>. The ANC wins ~73 of 135
+wards on a ~65-seat entitlement, the council expands to a median of ~281, and
+the majority threshold moves to ~141 — raising the bar for every coalition.
+ANC+DA clears it in 86.5% of draws and is the dominant minimal winning
+coalition; a DA-led minority via abstention (the 2021 pattern) is viable in
+61%; the eight-party anti-ANC alliance is a coin flip at 53%; the DA is
+largest in only 63% of draws once overhang seats count. Banzhaf indices
+settle E1&rsquo;s asserted claim the other way: ActionSA (11%) out-ranks the PA
+(5%) as kingmaker.</p></div>
+    <div class="col prop"><div class="collabel">Proposed reader edition</div><p>The corrected forecast is meaningfully different from the one first computed:</p>
+<ul>
+<li><strong>Overhang went from invisible to the headline.</strong> In roughly nine
+  simulations in ten, the ANC wins more wards than its shrunken vote entitles
+  it to, the council grows past 270, and the majority bar rises to about 141.</li>
+<li><strong>The DA&rsquo;s dominance shrank.</strong> Largest party in 63% of simulations, not
+  86% — the ANC&rsquo;s overhang seats close the gap.</li>
+<li><strong>A kingmaker verdict flipped.</strong> The first sheet asserted the Patriotic
+  Alliance mattered more to coalition-building than ActionSA. Computed
+  properly, it is the other way around.</li>
+<li><strong>The realistic outcomes clarified into three:</strong> a grand coalition, a
+  DA-led minority government resting on abstention (viable in 61% of
+  simulations), or a DA arrangement with one of the parties it has publicly
+  ruled out.</li>
+</ul></div>
+  </div>
+</div>
+<div class="pair">
+  <div class="pairhead"><span class="num">5</span><h2>What remains open</h2></div>
+  <div class="duo">
+    <div class="col orig"><div class="collabel">Original — model-review.html (verbatim excerpts)</div><p>The Schedule 1 overhang fine print has no published IEC worked example (task</p>
+<h1>20 — now the forecast&rsquo;s largest legal uncertainty, bounded by the fixed-270</h1>
+<p>toggle); MK&rsquo;s γ cannot be fitted from one election and stays a documented
+default; the Census Small Area Layer (O7) still gates a better turnout
+covariate; and the citywide ranges remain judgements no backtest can
+validate — which is precisely why they are now sliders.</p></div>
+    <div class="col prop"><div class="collabel">Proposed reader edition</div><p>Honesty about the repairs requires honesty about the remainder. A party that
+does not yet exist cannot be forecast, only allowed for. The legal fine print
+of overhang has never been demonstrated in a published calculation by the
+electoral commission — we have asked. And the range of possible 2026 outcomes
+is judgement that no amount of testing can turn into fact: bounded by twenty
+years of observed swings, tilted by current evidence, and fully exposed as
+adjustable dials on the <a href="interactive">interactive page</a>.</p></div>
+  </div>
+</div>
+<div class="pair">
+  <div class="pairhead"><span class="num">6</span><h2>Why publish</h2></div>
+  <div class="duo">
+    <div class="col orig"><div class="collabel">Original — model-review.html (verbatim excerpts)</div><p><em>New section — no original counterpart; the argument for publishing the audit.</em></p></div>
+    <div class="col prop"><div class="collabel">Proposed reader edition</div><p>Because the alternative is worse. Every model contains errors; the only
+question is whether they are found, and whether anyone is told. This one was
+reviewed hard enough to break, fixed in the open, and re-checked — the
+review, the fixes and the re-run are all in the public repository. A forecast
+that shows you its repair history is one you can calibrate your trust
+against. One that doesn&rsquo;t is asking you to take it on faith.</p></div>
+  </div>
+</div>
+  <div class="colophon">Generated by src/build_compare.py · not linked from the site ·
+  original: drafts/review-original-excerpts.md · proposed: docs-public/review.md</div>
+</div>
+</body>
+</html>
