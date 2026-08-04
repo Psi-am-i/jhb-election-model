@@ -204,12 +204,12 @@ def inject_nav(html: str, active_href: str) -> str:
 
 # source markdown -> (output, kicker, standfirst)
 DOCS = {
-    "METHODOLOGY.md": (
+    "docs-public/methodology.md": (
         "methodology.html",
-        "Methodology & review brief",
-        "What the model predicts, where every input came from, how it was "
-        "validated, and where the implementation departs from the plan — "
-        "written for external review.",
+        "Methodology",
+        "The machinery in plain language: how the council is actually "
+        "elected, how the simulation runs, what is validated — and what can "
+        "only be stated honestly.",
     ),
     "MODEL-LOG.md": (
         "model-log.html",
@@ -249,9 +249,9 @@ CARDS = [
     ("interactive.html", "The interactive model", "hero",
      "Every assumption as a bounded slider at its default. Drag one and see "
      "which conclusions bend and which refuse."),
-    ("methodology.html", "Methodology", "document",
-     "What is predicted, how each stage works, what was validated and what "
-     "cannot be — the review brief."),
+    ("methodology", "Methodology", "document",
+     "How the council is actually elected, how the simulation runs, and the "
+     "honest boundary of what can be validated. Full technical brief on GitHub."),
     ("review.html", "Implementation review", "document",
      "The audit that found six errors in the first build — including a false "
      "headline claim — and the same-day resolution of all of them."),
