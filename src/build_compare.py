@@ -64,6 +64,7 @@ STYLE = """
     }
   }
   *{box-sizing:border-box;margin:0;}
+  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
   body{background:var(--paper);color:var(--ink);font-family:var(--sans);
     font-size:14.5px;line-height:1.6;-webkit-font-smoothing:antialiased;}
   .wrap{max-width:1200px;margin:0 auto;padding:28px 24px 80px;}

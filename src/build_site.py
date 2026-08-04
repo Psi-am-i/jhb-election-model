@@ -157,6 +157,7 @@ def nav_for(active_href: str) -> str:
 # own stylesheets); the rendered documents get it via STYLE above.
 NAV_CSS = """<style>
   /* site-wide standard container: every page, same width and padding */
+  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
   .sheet{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
   .layout{grid-template-columns:minmax(0,270px) minmax(0,1fr);}
   @media (max-width:840px){.layout{grid-template-columns:1fr;}}
