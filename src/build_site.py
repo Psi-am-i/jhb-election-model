@@ -49,7 +49,7 @@ STYLE = """
   *{box-sizing:border-box;margin:0;}
   body{background:var(--paper);color:var(--ink);font-family:var(--sans);
     font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased;}
-  .page{max-width:780px;margin:0 auto;padding:28px 24px 80px;}
+  .page{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
 
   .topnav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;
     font-family:var(--mono);font-size:11.5px;color:var(--ink-3);
@@ -143,7 +143,12 @@ NAV = """<nav class="topnav">
 
 # Standalone nav styling injected into the artefact pages (which carry their
 # own stylesheets); the rendered documents get it via STYLE above.
-NAV_CSS = """<style>{FOOTER_CSS_PLACEHOLDER}
+NAV_CSS = """<style>
+  /* site-wide standard container: every page, same width and padding */
+  .sheet{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
+  .layout{grid-template-columns:minmax(0,270px) minmax(0,1fr);}
+  @media (max-width:840px){.layout{grid-template-columns:1fr;}}
+{FOOTER_CSS_PLACEHOLDER}
   .topnav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;
     font-family:var(--mono);font-size:11.5px;color:var(--ink-3);
     border-bottom:1px solid var(--rule);padding-bottom:9px;margin-bottom:22px;}
@@ -175,13 +180,13 @@ def inject_nav(html: str) -> str:
     html = html.replace("</head>", NAV_CSS + "\n</head>", 1)
     marker = '<div class="sheet">'
     html = html.replace(marker, marker + "\n" + NAV, 1)
-    # footer goes at the end of the content container so it aligns with it
-    if "</div><!-- /sheet -->" in html:
-        html = html.replace("</div><!-- /sheet -->", FOOTER + "\n</div><!-- /sheet -->", 1)
-    else:
-        head, sep, tail = html.rpartition("</div>\n</body>")
-        html = head + FOOTER + "\n</div>\n</body>" + tail
-    return html
+    # Footer goes at the end of the content container so it aligns with it.
+    # Marker only — an earlier fallback guessed at closing tags and prepended
+    # the footer above the doctype on the sheet. Fail loudly instead.
+    marker_close = "</div><!-- /sheet -->"
+    if marker_close not in html:
+        raise SystemExit("artefact page lacks the </div><!-- /sheet --> container marker")
+    return html.replace(marker_close, FOOTER + "\n" + marker_close, 1)
 
 # source markdown -> (output, kicker, standfirst)
 DOCS = {

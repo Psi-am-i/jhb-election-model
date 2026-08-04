@@ -1,9 +1,4 @@
-<footer class="sitefooter">
-  <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
-  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs</div>
-</footer>
-</div>
-</body><!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -171,6 +166,11 @@
   }
 </style>
 <style>
+  /* site-wide standard container: every page, same width and padding */
+  .sheet{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
+  .layout{grid-template-columns:minmax(0,270px) minmax(0,1fr);}
+  @media (max-width:840px){.layout{grid-template-columns:1fr;}}
+
   .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
     border-top:1px solid var(--rule);padding-top:14px;margin-top:44px;}
   .sitefooter a{color:var(--ink-3);}
@@ -549,7 +549,11 @@ document.getElementById("seats").innerHTML = GEN.parties.map(p => `
     <div class="track">
       <span class="band" style="left:${p.lo/MAX*100}%;width:${(p.hi-p.lo)/MAX*100}%"></span>
       <span class="med" style="left:calc(${p.med/MAX*100}% - 1.5px)"></span>
-    </div>
+    <footer class="sitefooter">
+  <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
+  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs</div>
+</footer>
+</div><!-- /sheet -->
     <div class="val"><b>${p.med}</b> <span style="color:var(--ink-3)">${p.lo}–${p.hi}</span></div>
   </div>`).join("");
 
