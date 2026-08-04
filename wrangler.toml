@@ -10,18 +10,15 @@ name = "joburg-whysoserious"
 compatibility_date = "2026-08-01"
 workers_dev = true
 
-# Custom domain. ⚠️ Requires the whysoserious.org ZONE on this Cloudflare
-# account — as of 2026-08-04 the domain's nameservers point at GoDaddy
-# (ns57/ns58.domaincontrol.com), so this route is disabled and the site is
-# live on workers.dev only. To enable: add whysoserious.org as a zone in the
-# Cloudflare dashboard (free plan is fine), switch the nameservers at GoDaddy
-# to the pair Cloudflare assigns, wait for the zone to activate, then
-# uncomment and redeploy — the DNS record and certificate are automatic.
+# Custom domain: joburg.whysoserious.city (zone registered 2026-08-04 for
+# this purpose; the earlier .org plan was dropped — that domain's DNS lives
+# at GoDaddy, not on this Cloudflare account). DNS record and certificate
+# are automatic once the zone is active on the account.
 # NOTE: routes must sit ABOVE any [table] header or it becomes e.g.
 # assets.routes and is silently ignored (that happened; see git history).
-# routes = [
-#   { pattern = "joburg.whysoserious.org", custom_domain = true }
-# ]
+routes = [
+  { pattern = "joburg.whysoserious.city", custom_domain = true }
+]
 
 [assets]
 directory = "./site"
