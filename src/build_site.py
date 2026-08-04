@@ -63,7 +63,7 @@ STYLE = """
   h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,40px);
     line-height:1.12;letter-spacing:-.012em;text-wrap:balance;margin:0 0 10px;}
   .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;
-    color:var(--ink-2);max-width:64ch;text-wrap:pretty;margin-bottom:6px;}
+    color:var(--ink-2);text-wrap:pretty;margin-bottom:6px;}
   .dateline{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);
     font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--rule);
     border-bottom:1px solid var(--rule);padding:9px 0;margin:14px 0 8px;}
@@ -74,8 +74,8 @@ STYLE = """
     border-top:1px solid var(--rule);}
   h3{font-family:var(--serif);font-weight:600;font-size:18px;line-height:1.3;margin:28px 0 2px;}
   h4{font-size:14px;font-weight:650;margin:20px 0 2px;}
-  p{margin:10px 0;max-width:70ch;}
-  ul,ol{margin:10px 0;padding-left:20px;max-width:68ch;
+  p{margin:10px 0;}
+  ul,ol{margin:10px 0;padding-left:20px;
     display:flex;flex-direction:column;gap:5px;}
   strong{font-weight:650;}
   hr{border:none;border-top:1px solid var(--rule-soft);margin:26px 0;}
@@ -126,7 +126,7 @@ STYLE = """
 """
 
 NAV = """<nav class="topnav">
-  <a class="home" href="./">joburg.whysoserious.org</a>
+  <a class="home" href="./">joburg.whysoserious.city</a>
   <a href="forecast.html">forecast</a>
   <a href="interactive.html">interactive</a>
   <a href="methodology.html">methodology</a>
@@ -268,7 +268,7 @@ def build_index() -> str:
     body = f"""<div class="cards">
 {cards}
 </div>
-<p style="max-width:66ch;color:var(--ink-2);font-size:13.5px">Everything here is
+<p style="color:var(--ink-2);font-size:13.5px">Everything here is
 reproducible: the documents are generated from the project's canonical records,
 the sheet's figures come straight from the model outputs, and the interactive
 page emits a scenario file that reproduces any slider state exactly in the full
@@ -295,6 +295,15 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  copied   {source:<28s} -> site/{output}")
     (args.out / "index.html").write_text(build_index(), encoding="utf-8")
     print("  wrote    index.html")
+
+    # Serve everything as UTF-8 regardless of meta tags — the sheet originally
+    # shipped without a <head> and mojibake'd every em-dash (review of the
+    # deployed site, 2026-08-04). All assets here are HTML, so a blanket
+    # header is safe; revisit if non-HTML assets are ever added.
+    (args.out / "_headers").write_text(
+        "/*\n  Content-Type: text/html; charset=utf-8\n", encoding="utf-8"
+    )
+    print("  wrote    _headers (utf-8 content type)")
 
     total = sum(f.stat().st_size for f in args.out.glob("*.html"))
     print(f"site: {len(list(args.out.glob('*.html')))} pages, {total / 1024:.0f} KB total")
