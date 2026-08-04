@@ -116,20 +116,36 @@ the plan and is set out in §3.1 below.</p>
 <p>The honest output is a distribution over coalition viability, not a point seat
 forecast. The reasons are quantified in §6.</p>
 <hr /></div>
-    <div class="col prop"><div class="collabel">Proposed reader edition</div><p>Johannesburg&rsquo;s council is elected on two ballots at once: 135 ward seats
-decided race by race, and 135 seats filled from party lists. The part almost
-everyone gets wrong is how they combine. A party&rsquo;s total number of seats is
-set by its share of <strong>both ballots added together</strong> — winning a ward does not
-<em>add</em> a seat, it just fills one of the seats the party was already entitled
-to. The list seats then top each party up toward its fair share.</p>
-<p>This has two consequences that shape everything on this site. First, the
-council is close to proportional, so a fragmented vote produces a fragmented
-council. Second, a party that wins <em>more</em> wards than its proportional
-entitlement keeps the extras — and the council grows beyond 270 to
-accommodate them. That is called overhang, and the forecast finds it is now
-the ANC&rsquo;s normal condition: a mid-twenties citywide vote, but stronghold wards
-that still win. The majority line moves from 136 to roughly 141, and every
-possible coalition has to clear the higher bar.</p></div>
+    <div class="col prop"><div class="collabel">Proposed reader edition</div><p>Johannesburg&rsquo;s council is elected on two ballots at once. On the first, 135
+ward seats are decided race by race, first past the post — if your candidate
+wins your ward, they win that seat, full stop. On the second, you vote for a
+party. It seems intuitive that the two ballots elect two separate halves of
+the council, but that isn&rsquo;t how it works. The two ballots are <strong>added
+together</strong>, and that combined share decides the <em>total</em> number of seats each
+party is entitled to. Ward wins don&rsquo;t add to a party&rsquo;s total — they fill it.
+The other 135 seats are then allocated from the party lists to top every
+party up to its entitlement. (The part almost everyone gets wrong — including
+an early version of this model&rsquo;s own plan — is thinking the party ballot
+alone sets the totals. It&rsquo;s <em>both ballots combined</em>, and for a party whose
+voters split their tickets the difference is worth real seats.)</p>
+<p>The niggle is that a party can win <em>more</em> wards than its combined share
+entitles it to. Say a small party&rsquo;s support is tightly concentrated: it wins
+3 wards outright, but its overall share of both ballots entitles it to only
+2 seats. Nobody unseats a ward winner — the party keeps all 3. And rather
+than take a seat away from someone else to make room, the council simply
+<em>grows</em> by the extra seat, so every other party still receives its full
+entitlement. That is called overhang. Note carefully what it does and does
+not fix: everyone <em>else</em> stays proportional, while the overhanging party ends
+up slightly <strong>over</strong>-represented — its reward for efficiently concentrated
+support.</p>
+<p>Two consequences shape everything on this site. First, the council is always
+close to proportional, so a fragmented vote produces a fragmented council.
+Second, overhang — and our forecast finds it is now the ANC&rsquo;s normal
+condition: a citywide vote in the mid-twenties, but stronghold wards that
+still win, roughly 73 wards against a 65-seat entitlement. The extra seats
+push the council past 270 and the majority line from 136 to roughly 141 —
+and every possible coalition has to clear the higher bar the ANC&rsquo;s geography
+creates.</p></div>
   </div>
 </div>
 <div class="pair">
@@ -191,7 +207,7 @@ judged against each draw&rsquo;s own threshold (review E1). All of it is also
 explorable interactively in <code>forecast-interactive.html</code>, whose sliders are the
 model&rsquo;s actual assumptions and whose scenario JSON round-trips to
 <code>src/montecarlo.py --config</code>.</p></div>
-    <div class="col prop"><div class="collabel">Proposed reader edition</div><p>Each of the 5,000 simulations runs the same pipeline:</p>
+    <div class="col prop"><div class="collabel">Proposed reader edition</div><p>The forecast comes from running 5,000 simulations of the same pipeline:</p>
 <ol>
 <li><strong>Start from the most recent full map.</strong> The 2024 provincial ballot,
    counted in all 865 of Johannesburg&rsquo;s voting districts, is the baseline —
@@ -200,30 +216,43 @@ model&rsquo;s actual assumptions and whose scenario JSON round-trips to
    the ANC&rsquo;s camp falls, how much the opposition&rsquo;s rises, how the vote splits
    within each camp. Parties that share voters are drawn <em>together</em> — the DA
    and ActionSA compete for the same pool, so one&rsquo;s gain is partly the
-   other&rsquo;s loss. The draws are centred on the evidence we have (fifteen
-   by-elections, the polls) and bounded by every national-to-local swing
-   actually observed since 2006.</li>
+   other&rsquo;s loss, and the same holds for the ANC, EFF and MK, who fight over
+   another. The draws are centred on the evidence we have (fifteen
+   by-elections, the published polls) and bounded by every national-to-local
+   swing actually observed since 2006. When evidence implies something
+   history has never produced, history wins: our by-elections implied the
+   Patriotic Alliance&rsquo;s citywide vote multiplying roughly sevenfold — but
+   by-elections happened to fall in its strongholds, and strongholds are not
+   the city. The model pulls that claim back to the top of its supportable
+   range, a little more than doubling.</li>
 <li><strong>Paint the scenario onto the map.</strong> The citywide outcome is distributed
-   across the 865 districts using each party&rsquo;s own geography. This is the
-   model&rsquo;s best-tested idea: <em>where</em> a party&rsquo;s support sits barely moves
-   between elections, even when <em>how much</em> support it has swings wildly. The
-   geography is measured once and reused; the levels are the uncertain part.</li>
+   across the 865 districts using each party&rsquo;s own geography — where its
+   votes really were cast before. This is the model&rsquo;s best-tested idea:
+   <em>where</em> a party&rsquo;s support sits barely moves between elections, even when
+   <em>how much</em> support it has swings wildly. The geography is measured once
+   and reused; the levels are the uncertain part.</li>
 <li><strong>Turn out the voters.</strong> Each district&rsquo;s turnout is projected with its own
-   uncertainty. One finding worth knowing: the citywide turnout <em>level</em>
-   cannot change a single seat, because the seat formula scales with it.
-   Only <em>differences</em> between districts matter — and even those, tested
-   directly, move a couple of seats at most.</li>
-<li><strong>Count both ballots.</strong> The ward ballot differs from the list ballot —
-   voters split their tickets, and we measured each party&rsquo;s split from 2021.
-   Ward winners are called race by race; list votes are tallied citywide.</li>
+   uncertainty, bounded by how much turnout has actually shifted there
+   before. One finding worth knowing: the citywide turnout <em>level</em> cannot
+   change a single seat, because the seat formula scales with it. Only
+   <em>relative</em> differences between districts matter — and contrary to what
+   you have probably heard, even large turnout shifts between districts,
+   tested directly, move a couple of seats at most.</li>
+<li><strong>Count both ballots.</strong> The ward ballot differs from the party-list
+   ballot — voters split their tickets, and we measured each party&rsquo;s split
+   from 2021. Ward winners are called race by race; list votes are tallied
+   citywide.</li>
 <li><strong>Apply the law.</strong> The statutory seat formula — the same arithmetic the
    electoral commission uses — allocates all seats, overhang included. Then
    every possible coalition is checked against that simulation&rsquo;s own majority
-   line: every pair, every triple, every combination of the parties that won
-   seats, with no judgement applied about who <em>would</em> work with whom.</li>
+   line: every pair of parties, every tripartite alliance, every combination
+   of the parties that won seats — with no judgement applied about who
+   <em>would</em> work with whom.</li>
 </ol>
-<p>Repeat 5,000 times and the output is not a prediction but a distribution:
-how often each seat count occurs, how often each coalition clears the bar.</p></div>
+<p>Repeat 5,000 times, each run drawing fresh values within every variable&rsquo;s
+bounds, and the output is not a single prediction but a distribution: how
+often each seat count occurs, how often each coalition clears the bar — the
+probability of each scenario, not a guess at one.</p></div>
   </div>
 </div>
 <div class="pair">

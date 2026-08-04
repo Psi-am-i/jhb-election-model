@@ -52,9 +52,9 @@ SPECS = {
         "pairs": [
             ("Purpose of the page", [""], [""]),
             ("What is being predicted", ["1. What is being predicted"],
-             ["What is actually being decided"]),
+             ["How Johannesburg's council elections actually work"]),
             ("The pipeline", ["5A. How the model works, end to end"],
-             ["The engine, in six steps"]),
+             ["The machinery of prediction"]),
             ("Validation", ["5. Validation results"],
              ["How we know it works — and what that does not cover"]),
             ("Corrections & the review", ["3. Corrections to the plan, with reasoning and impact"],
