@@ -298,7 +298,7 @@ nothing to the seat forecast on its own. §5's leverage analysis is precisely th
 right framing: the question is never "how high is turnout" but "which VDs turn
 out relative to which others".
 
-### 1.10 Multiplicative θ cannot create a party from zero 🟡
+### 1.11 Multiplicative θ cannot create a party from zero 🟡
 
 ActionSA took 18.12% in 2021 from 0.00% in the 2019 baseline. Because θ is
 multiplicative, no value of it can produce that — and worse, calibrating θ by IPF
@@ -317,7 +317,7 @@ without a 2024 provincial-ballot presence needs an absolute share prior, not a �
 The PA is a near-miss illustration: 0.03% → 2.96% is a raw θ of 122, which is
 technically representable but not meaningfully a "factor".
 
-### 1.9 2026 ward boundaries are a near-total redraw ✅
+### 1.12 2026 ward boundaries are a near-total redraw ✅
 
 129 of 135 CoJ wards changed shape for 2026; only 6 are unchanged. Ward *count*
 stays 135, confirming §0's 135/270/136 and refuting the press report of 274
@@ -326,7 +326,12 @@ move ward, 180 are split across 2026 wards.
 
 ---
 
-### 1.11 The forecast: no two-party majority exists except ANC+DA ✅
+### 1.13 The forecast: no two-party majority exists except ANC+DA ⚠️ superseded — see 1.14/1.15
+
+> **This section's coalition conclusion was falsified by the 2026-08-04
+> external review.** Its enumeration covered six hand-picked coalitions;
+> checked over all subsets of the same draws, DA+EFF+MK reached 136 in 60.8%
+> of them. The corrected forecast is §1.15. Kept for the record.
 
 5,000 draws over §3.5's ranges, bloc-level per §3.4(a), both ballots, Schedule 1
 allocation. Seed 20261104.
@@ -372,6 +377,111 @@ runs through ANC voters staying home does not survive either test.
 estimates, and the result inherits them entirely. It also inherits R7:
 established parties are forecast well and genuinely new ones not at all. A party
 that does not exist in the 2024 baseline cannot appear in any draw.
+
+### 1.14 External review (2026-08-04): six errors, six unstated assumptions ✅ *all fixed*
+
+Full review in `model-review.html`. The errors, one line each, with the fix:
+
+- **E1 — coalition enumeration was pre-filtered on plausibility**, exactly what
+  §3.8 forbade, and the published "no two/three-party coalition except ANC+DA"
+  was false (DA+EFF+MK: 60.8% of the old draws). Fixed: `src/coalitions.py`
+  does full enumeration, minimal winning coalitions, Banzhaf/Shapley–Shubik,
+  and the minority-government class, on per-draw thresholds.
+- **E2 — the within-bloc Dirichlet was centred on 2024 proportions**, silently
+  discarding §3.5's per-party views (θ_MK 0.60 was unreachable); the θ modes
+  also imply an ANC-bloc shift of −14.8 against the table's −9 — an internal
+  inconsistency the old code resolved without flagging. Fixed: split centres on
+  the θ-mode view (tilted by evidence, below), bloc-shift modes are derived and
+  clamped to the historical ranges, and every draw's implied θ is checked
+  against §3.5's ranges with the violation rate reported.
+- **E3 — ward winners and overhang were never computed**, despite §3.7 step 5
+  and §0 flagging overhang as live. Fixed: per-draw FPTP winners over the 135
+  2026 wards, overhang expands the council and moves the threshold
+  (`overhang_rule: expand`; a `cap` counterfactual bounds the unverified
+  statutory fine print).
+- **E4 — by-elections, polling and census covariates influenced nothing.**
+  Fixed: `src/byelections.py` implements §3.6 (within-ward deltas, exp-decay ×
+  √votes × ρ weighting) and the §3.3 turnout covariate data; the deltas tilt
+  each party's central level at `w_bye` (0.40), clamped to §3.5's ranges so
+  stronghold swings cannot claim absurd citywide levels; a polling lever spans
+  the SRF↔Ipsos disagreement.
+- **E5 — the sheet's "without being shown the answer" overstated the fold-2
+  validation** (θ was recalibrated against the actual citywide result). Fixed
+  in the sheet's wording; §5B now states that the backtests validate the
+  spatial machinery and the citywide ranges are unvalidated priors.
+- **E6 — minor parties moved in lockstep under one f_other draw**, giving
+  two-seat "90% intervals". Fixed: independent per-party triangulars with
+  ranges set around the observed fold ratios (IFP 1.34→1.97, VF+ 0.81→1.65,
+  ACDP 0.58→1.82, Al Jama-ah 3.12); Al Jama-ah's θ is now documented here
+  rather than invented silently.
+
+Assumptions surfaced and made adjustable (all are sliders on
+`forecast-interactive.html` and keys in `montecarlo.DEFAULTS`):
+ward/PR ratios (MK 0.80 judgement, PA contestation uplift 1.25), per-draw
+turnout uncertainty (pattern blend + σ 0.08 noise), γ for parties fold 1 never
+saw now fitted on 2021→2024 (`gamma_recent.py`: ASA **0.49**, PA 0.54 — the
+old silent 1.0 was far off), the A5 marginal-voter blend
+(`leverage.py --marginal blend`: leverage magnitudes halve, rankings and the
+"turnout cannot close the gap" conclusion survive), and a generic-entrant slot
+(P 0.25, share mode 4%) because every fold and the live case contained one.
+
+Also fixed while in there: **87 VD-years with turnout above 105%**
+(registration mismatches; one VD projected 9.9% 2026 turnout off a 245% "2019
+turnout") are now dropped from the λ series — A3's correlation eases to +0.32
+and no conclusion changes. Fold 2 re-scored on the cleaned data: γ-transfer
+129/135 ward winners (was 128) with seat error 12 unchanged; the fully blind
+configuration worsens to 60 (was 54), so "θ does not transfer" strengthens.
+The §3.3 by-election turnout covariate is also now wired into λ̂
+(`--kappa-bye`, default 0.25): 14 wards' contests tilt 91 VDs by ×0.91–×1.14,
+and — consistent with turnout being second-order — the seat forecast is
+essentially unchanged by it.
+
+### 1.15 The corrected forecast: overhang is the norm, and it raises everyone's bar ✅
+
+5,000 draws, seed 20261104, all fixes and evidence blending in
+(`data/processed/forecast_summary.json` is the machine-readable record).
+
+| party | median seats | 5th–95th | mean ward wins |
+|---|---|---|---|
+| DA | 81 | 55–103 | 57 |
+| ANC | 75 | 58–86 | 73 |
+| EFF | 28 | 18–40 | 1 |
+| ActionSA | 26 | 10–50 | 0 |
+| MK | 20 | 12–29 | 1 |
+| PA | 14 | 10–17 | 1.5 |
+| new entrant | 0 | 0–19 | 0 |
+
+**The new headline: P(overhang) ≈ 87–90%, almost entirely the ANC's.** With
+its citywide share in the mid-20s but its stronghold wards intact against a
+fragmented opposition, the ANC wins ~73 of 135 wards on a ~65-seat
+entitlement. The council expands to a median of ~281 and the majority
+threshold moves to ~141. Every coalition now has to clear a higher, moving
+bar — this is what killed the marginal three-party arithmetic from the old
+run (DA+EFF+MK falls from 60.8% to ~26%). Caveat carried on everything
+overhang-conditional: the expansion rule is the plan's reading of Schedule 1,
+unverified against an IEC worked example (none exists for CoJ); the `cap`
+toggle bounds its effect.
+
+Coalition arithmetic, fully enumerated (per-draw thresholds):
+
+| finding | value |
+|---|---|
+| ANC+DA majority (also the dominant MWC) | **86.6%** |
+| DA+EFF+ASA | 34% |
+| DA+EFF+MK | 26% |
+| DA minority via abstention, 2021 pattern (only ANC opposes) | **61%** |
+| ANC minority, only DA opposes | 38% |
+| majority without ANC, EFF and MK together (needs ~the whole field) | 99.2% at median 157 vs threshold ~141 |
+| Banzhaf medians | DA 29%, ANC 24%, EFF 11%, **ASA 11%**, MK 8%, PA 5% |
+
+The power indices settle the sheet's asserted claim the review flagged:
+ActionSA out-ranks the PA as kingmaker (11% vs 5%) — the old sheet had it
+backwards. The by-election blend is what moves ActionSA (centre 9.3% → 13.1%;
+its contested-ward deltas imply it holds its 2021 level where it is
+organised); `w_bye` to zero removes it, and the slider exists for exactly that
+argument.
+
+---
 
 ## 2. Obstacles and how they were handled
 
@@ -537,6 +647,10 @@ confirms was wise.
 | Unmatched VDs recorded, not dropped | A silent shortfall is worse than a visible one. |
 | Archive manifest committed though data is gitignored | Sources are not durable (O10). |
 | §0 treated as a correction, §3.3 as a suggestion | §0 is verified against the IEC's own arithmetic three times over; §3.3 rests on two cycles, one anomalous. Different evidence, different confidence. |
+| Coalition arithmetic is never pre-filtered on plausibility | Review E1: the filtered version published a false conclusion. Feasibility is annotation (minority-class opposition sets are editable scenarios), arithmetic is exhaustive. |
+| Overhang expands the council (`expand`), with a `cap` counterfactual toggle | §3.7's reading of Schedule 1; the statutory redistribution fine print is unverified against an IEC worked example, so both bounds ship. |
+| Evidence tilts priors, never replaces them | By-election deltas and polling move the *modes*, clamped to §3.5's historical ranges; `w_bye` and the polling lever expose the weights. A stronghold swing cannot claim an absurd citywide level. |
+| Every review-flagged assumption is a user-facing control | `forecast-interactive.html` sliders share `montecarlo.DEFAULTS`' schema; a slider position round-trips to `--config scenario.json`. Interacting with the sensitivity is how a reader learns what matters. |
 
 ---
 
@@ -546,4 +660,7 @@ confirms was wise.
   (`info@statssa.gov.za`, +27 12 310 8600).
 - **Task #18** — request historic VD boundaries from the IEC Delimitation
   Directorate. Would convert R1 from mitigated to resolved.
+- **Task #20** — ask the IEC (or MDB legal) for a worked example of Schedule 1
+  overhang in a metro. P(overhang) is now ~87–90%, so the expansion rule is
+  no longer fine print — it moves the majority threshold in most draws.
 - **External** — 2026 registration-weekend figures, when published.

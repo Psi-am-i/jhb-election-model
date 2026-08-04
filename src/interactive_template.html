@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Johannesburg 2026 — Interactive Council Forecast</title>
+
+<style>
+  :root{
+    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
+    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
+    --accent:#a8621f; --accent-soft:#f0e2d5;
+    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
+      --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
+      --accent:#d9954f; --accent-soft:#3a2a1a;
+      --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a; --bad:#d98070;
+    }
+  }
+  *{box-sizing:border-box;margin:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  .sheet{max-width:1060px;margin:0 auto;padding:28px 22px 72px;display:flex;
+    flex-direction:column;gap:30px;}
+
+  .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(27px,4.4vw,38px);line-height:1.1;letter-spacing:-.012em;text-wrap:balance;}
+  .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;color:var(--ink-2);max-width:68ch;}
+  .dateline{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);font-size:11.5px;
+    color:var(--ink-3);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:9px 0;}
+  .dateline b{color:var(--ink-2);font-weight:600;}
+  .masthead{display:flex;flex-direction:column;gap:10px;}
+
+  .layout{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:28px;align-items:start;}
+  @media (max-width:840px){.layout{grid-template-columns:1fr;}}
+
+  /* ---- controls ---- */
+  .controls{display:flex;flex-direction:column;gap:18px;position:sticky;top:12px;}
+  @media (max-width:840px){.controls{position:static;}}
+  .cgroup{border:1px solid var(--rule-soft);background:var(--paper-2);padding:13px 15px;
+    display:flex;flex-direction:column;gap:11px;}
+  .cgroup h3{font-size:11px;font-weight:650;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-2);}
+  .cgroup .why{font-size:11.5px;color:var(--ink-3);line-height:1.45;margin-top:-6px;}
+  .ctl{display:flex;flex-direction:column;gap:2px;}
+  .ctl .lab{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;}
+  .ctl .lab .v{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:600;}
+  input[type=range]{width:100%;accent-color:var(--accent);height:20px;}
+  .presets{display:flex;flex-wrap:wrap;gap:6px;}
+  button{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--ink-2);
+    background:var(--paper);border:1px solid var(--rule);border-radius:4px;
+    padding:4px 10px;cursor:pointer;}
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--paper);}
+  select{font-family:var(--mono);font-size:12px;background:var(--paper);color:var(--ink);
+    border:1px solid var(--rule);border-radius:4px;padding:3px 6px;}
+  .toggle{display:flex;gap:6px;align-items:center;font-size:12.5px;}
+  .runrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .status{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);}
+
+  /* ---- results ---- */
+  .results{display:flex;flex-direction:column;gap:24px;min-width:0;}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+    background:var(--rule-soft);border:1px solid var(--rule-soft);}
+  .stat{background:var(--paper);padding:12px 14px;display:flex;flex-direction:column;gap:2px;}
+  .stat .n{font-family:var(--mono);font-size:25px;font-weight:600;letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;line-height:1.1;}
+  .stat .l{font-size:11.5px;color:var(--ink-2);line-height:1.35;}
+  .stat.hero .n{color:var(--accent);}
+  .stat .d{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);}
+
+  .eyebrow{font-size:10.5px;font-weight:650;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);}
+  h2{font-family:var(--serif);font-weight:600;font-size:21px;letter-spacing:-.006em;}
+  section{display:flex;flex-direction:column;gap:12px;}
+  p{max-width:70ch;}
+  figcaption,.small{font-size:12px;color:var(--ink-3);max-width:70ch;}
+
+  .chart{display:flex;flex-direction:column;gap:2px;}
+  .row{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;gap:12px;padding:4px 0;}
+  .pname{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:550;}
+  .chip{width:9px;height:9px;border-radius:2px;flex:none;
+    box-shadow:0 0 0 1px color-mix(in srgb,var(--ink) 14%,transparent);}
+  .track{position:relative;height:20px;}
+  .track::before{content:"";position:absolute;inset:9px 0 auto 0;height:1px;background:var(--rule-soft);}
+  .band{position:absolute;top:6px;height:8px;border-radius:4px;background:var(--mark-band);}
+  .med{position:absolute;top:2px;width:3px;height:16px;border-radius:1.5px;background:var(--mark);
+    box-shadow:0 0 0 2px var(--paper);}
+  .val{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink-2);text-align:right;}
+  .val b{color:var(--ink);font-weight:600;}
+  .scale{display:grid;grid-template-columns:96px 1fr 96px;gap:12px;
+    font-family:var(--mono);font-size:10.5px;color:var(--ink-3);}
+  .scale .ticks{display:flex;justify-content:space-between;}
+
+  .tablewrap{overflow-x:auto;}
+  table{border-collapse:collapse;width:100%;font-size:13px;min-width:520px;}
+  th{font-size:10.5px;font-weight:650;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);
+    text-align:left;padding:0 10px 6px 0;border-bottom:1px solid var(--rule);}
+  th.num,td.num{text-align:right;padding-right:0;}
+  td{padding:7px 10px 7px 0;border-bottom:1px solid var(--rule-soft);}
+  td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  tr.key td{background:var(--accent-soft);}
+  tr.key td:first-child{font-weight:650;}
+  .pbar{position:relative;height:6px;background:var(--rule-soft);border-radius:3px;min-width:60px;overflow:hidden;}
+  .pbar i{position:absolute;inset:0 auto 0 0;background:var(--mark);border-radius:3px;}
+  tr.key .pbar i{background:var(--accent);}
+
+  .cols2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;}
+  .note{border-left:2px solid var(--rule);padding-left:13px;display:flex;flex-direction:column;gap:5px;}
+  .note h3{font-size:11.5px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);}
+  .note p,.note li{font-size:13px;color:var(--ink-2);}
+  ul{margin:0;padding-left:17px;display:flex;flex-direction:column;gap:5px;font-size:13.5px;color:var(--ink-2);max-width:70ch;}
+
+  .believe{background:var(--paper-2);border:1px solid var(--rule-soft);padding:16px 18px;
+    display:flex;flex-direction:column;gap:12px;}
+  .believe h2{font-size:18px;}
+  .believe .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
+  .believe .cell{display:flex;flex-direction:column;gap:4px;}
+  .believe .cell h4{font-size:12.5px;font-weight:650;}
+  .believe .cell p{font-size:12.5px;color:var(--ink-2);}
+  .tick{color:var(--good);font-weight:700;}
+  .cross{color:var(--bad);font-weight:700;}
+
+  textarea{width:100%;min-height:110px;font-family:var(--mono);font-size:11px;
+    background:var(--paper-2);color:var(--ink-2);border:1px solid var(--rule-soft);
+    border-radius:4px;padding:8px;resize:vertical;}
+  .colophon{font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:12px;}
+  .derived{font-family:var(--mono);font-size:11px;color:var(--ink-3);line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header class="masthead">
+  <div class="kicker">Interactive forecast · City of Johannesburg · 4 November 2026</div>
+  <h1>Move the assumptions. Watch the arithmetic.</h1>
+  <p class="standfirst">Every number below is recomputed live from the same model that produces the
+  published forecast — the sliders are its actual assumptions, at their actual defaults, bounded by
+  what history has actually shown. Drag one and see which conclusions bend and which refuse to.</p>
+  <div class="dateline">
+    <span><b>Model</b> voting-district share model · Schedule 1 seat allocation · overhang-aware</span>
+    <span><b>Baseline</b> 2024 provincial ballot, 865 VDs → 135 wards</span>
+    <span><b>Issued</b> 4 August 2026</span>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ============ CONTROLS ============ -->
+<div class="controls">
+  <div class="cgroup">
+    <h3>Presets</h3>
+    <div class="presets">
+      <button data-preset="default" class="primary">Model defaults</button>
+      <button data-preset="nobye">Priors only</button>
+      <button data-preset="srf">SRF poll world</button>
+      <button data-preset="ipsos">Ipsos poll world</button>
+      <button data-preset="mkfall">MK collapses</button>
+      <button data-preset="asafall">ActionSA fades</button>
+    </div>
+  </div>
+
+  <div class="cgroup">
+    <h3>Party levels — the θ dials</h3>
+    <div class="why">How much each party's national-election support survives a local election.
+    1.00 = unchanged. Slider ranges are the plan's §3.5 bounds, set from every observed
+    national→local transition since 2006.</div>
+    <div class="ctl"><div class="lab"><span>ANC</span><span class="v" id="v-thetaANC"></span></div>
+      <input type="range" id="thetaANC" min="0.65" max="0.90" step="0.01" value="0.75"></div>
+    <div class="ctl"><div class="lab"><span>DA</span><span class="v" id="v-thetaDA"></span></div>
+      <input type="range" id="thetaDA" min="1.05" max="1.60" step="0.01" value="1.30"></div>
+    <div class="ctl"><div class="lab"><span>EFF</span><span class="v" id="v-thetaEFF"></span></div>
+      <input type="range" id="thetaEFF" min="0.55" max="1.10" step="0.01" value="0.85"></div>
+    <div class="ctl"><div class="lab"><span>MK</span><span class="v" id="v-thetaMK"></span></div>
+      <input type="range" id="thetaMK" min="0.30" max="1.00" step="0.01" value="0.60"></div>
+    <div class="ctl"><div class="lab"><span>ActionSA</span><span class="v" id="v-thetaASA"></span></div>
+      <input type="range" id="thetaASA" min="0.90" max="3.00" step="0.05" value="1.50"></div>
+  </div>
+
+  <div class="cgroup">
+    <h3>Evidence weights</h3>
+    <div class="why">The 15 CoJ by-elections since 2021 tilt each party's central level (weighted,
+    within-ward deltas, clamped to the ranges above). The polling lever spans the SRF↔Ipsos
+    disagreement — the two polls differ by 24 points on the ANC–DA gap.</div>
+    <div class="ctl"><div class="lab"><span>By-election weight (w_bye)</span><span class="v" id="v-wBye"></span></div>
+      <input type="range" id="wBye" min="0" max="1" step="0.05" value="0.40"></div>
+    <div class="ctl"><div class="lab"><span>Polling lean (Ipsos ← 0 → SRF)</span><span class="v" id="v-pollingLean"></span></div>
+      <input type="range" id="pollingLean" min="-1" max="1" step="0.1" value="0"></div>
+  </div>
+
+  <div class="cgroup">
+    <h3>Bloc correlation</h3>
+    <div class="why">Parties fight over shared voter pools, so they are drawn as blocs and split
+    within. Lower concentration = the split itself is more uncertain. This is why DA+ActionSA's
+    combined range is tighter than ActionSA's own.</div>
+    <div class="ctl"><div class="lab"><span>ANC-bloc split concentration</span><span class="v" id="v-alphaANC"></span></div>
+      <input type="range" id="alphaANC" min="10" max="150" step="5" value="60"></div>
+    <div class="ctl"><div class="lab"><span>DA-bloc split concentration</span><span class="v" id="v-alphaDA"></span></div>
+      <input type="range" id="alphaDA" min="4" max="60" step="2" value="12"></div>
+  </div>
+
+  <div class="cgroup">
+    <h3>The two ballots</h3>
+    <div class="why">Seats follow ward + list votes added together. Split-ticket ratios are
+    measured from 2021; these two have no 2021 measurement or a changed footprint.</div>
+    <div class="ctl"><div class="lab"><span>MK ward/list ratio</span><span class="v" id="v-mkRatio"></span></div>
+      <input type="range" id="mkRatio" min="0.50" max="1.20" step="0.05" value="0.80"></div>
+    <div class="ctl"><div class="lab"><span>PA ward contestation uplift</span><span class="v" id="v-paUplift"></span></div>
+      <input type="range" id="paUplift" min="1.00" max="2.00" step="0.05" value="1.25"></div>
+  </div>
+
+  <div class="cgroup">
+    <h3>Turnout</h3>
+    <div class="why">The citywide level cannot move a single seat — the quota scales with it.
+    Only the <em>pattern</em> across districts matters, and even that is second-order
+    (tested; see “what refused to bend”).</div>
+    <div class="ctl"><div class="lab"><span>Pattern: λ̂ form ← → 2021 pattern</span><span class="v" id="v-turnoutBlend"></span></div>
+      <input type="range" id="turnoutBlend" min="0" max="1" step="0.05" value="0.5"></div>
+    <div class="ctl"><div class="lab"><span>District-level turnout noise σ</span><span class="v" id="v-turnoutNoise"></span></div>
+      <input type="range" id="turnoutNoise" min="0" max="0.20" step="0.01" value="0.08"></div>
+  </div>
+
+  <div class="cgroup">
+    <h3>Wildcards &amp; rules</h3>
+    <div class="why">A party that does not exist yet appeared before each of the last three
+    elections and took 11–18%. The overhang rule follows the plan's reading of Schedule 1;
+    the toggle bounds what the fine print could change.</div>
+    <div class="ctl"><div class="lab"><span>P(new entrant appears)</span><span class="v" id="v-entrantProb"></span></div>
+      <input type="range" id="entrantProb" min="0" max="1" step="0.05" value="0.25"></div>
+    <div class="ctl"><div class="lab"><span>Entrant central share</span><span class="v" id="v-entrantMode"></span></div>
+      <input type="range" id="entrantMode" min="0.01" max="0.12" step="0.005" value="0.04"></div>
+    <div class="toggle"><input type="checkbox" id="overhangExpand" checked>
+      <label for="overhangExpand">Overhang expands the council (threshold moves off 136)</label></div>
+  </div>
+
+  <div class="cgroup">
+    <div class="runrow">
+      <button class="primary" id="run">Run</button>
+      <select id="draws">
+        <option value="600">600 draws (fast)</option>
+        <option value="1500" selected>1,500 draws</option>
+        <option value="4000">4,000 draws (slow)</option>
+      </select>
+      <span class="status" id="status"></span>
+    </div>
+    <div class="derived" id="derived"></div>
+  </div>
+</div>
+
+<!-- ============ RESULTS ============ -->
+<div class="results">
+
+  <section class="stats" id="tiles"></section>
+
+  <section>
+    <div class="eyebrow">Projected seats</div>
+    <h2>Where the parties land</h2>
+    <figure>
+      <div class="chart" id="seats"></div>
+      <div class="scale">
+        <span></span>
+        <span class="ticks"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span><span>125</span></span>
+        <span></span>
+      </div>
+      <figcaption>Bars are the middle 90% of simulations, marks are medians. Colour chips are
+      party identification only. “Others” is the residual micro-party tail modelled as one list.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="eyebrow">Coalition arithmetic — fully enumerated</div>
+    <h2>What can govern</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Combination</th><th class="num">Seats (mid)</th><th class="num">Range</th>
+        <th style="width:24%">Chance of majority</th><th class="num"></th></tr></thead>
+      <tbody id="coalitions"></tbody>
+    </table></div>
+    <figcaption id="coalitionNote"></figcaption>
+  </section>
+
+  <section class="cols2">
+    <div class="note">
+      <h3>Minimal winning coalitions</h3>
+      <p class="small">Winning combinations where every member is necessary — the deals in which
+      each partner holds real leverage.</p>
+      <div class="tablewrap"><table style="min-width:0"><tbody id="mwc"></tbody></table></div>
+    </div>
+    <div class="note">
+      <h3>Kingmaker index (Banzhaf)</h3>
+      <p class="small">The share of winning coalitions in which a party's exit breaks the majority.
+      Why a 10% party is not a 10% actor.</p>
+      <div class="tablewrap"><table style="min-width:0"><tbody id="power"></tbody></table></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">The third way to govern</div>
+    <h2>Minority administrations</h2>
+    <p class="small">The mayor is elected by councillors <em>present and voting</em> — abstention
+    installs minority governments, as it did here after 2021. Arithmetic viability only; whether a
+    party would in fact abstain is politics, deliberately not modelled.</p>
+    <div class="tablewrap"><table style="min-width:0"><tbody id="minority"></tbody></table></div>
+  </section>
+
+  <div class="believe">
+    <h2>Why believe any of this — and why not</h2>
+    <div class="grid">
+      <div class="cell"><h4><span class="tick">✓</span> The seat law is exact</h4>
+        <p>The allocator reproduces the real 2011, 2016 and 2021 councils to the seat — quota,
+        vote totals, every party — from raw voting-district files.</p></div>
+      <div class="cell"><h4><span class="tick">✓</span> Geography is the anchor</h4>
+        <p>Where a party's support sits barely moves between elections even when its level swings
+        wildly. Tested across cycles: geography transferred, levels did not. So the model fits
+        geography and treats levels as the sliders you are holding.</p></div>
+      <div class="cell"><h4><span class="tick">✓</span> Blind test: 129 of 135</h4>
+        <p>Shown only 2021's citywide totals, the model placed them well enough to call 129 of 135
+        ward winners.</p></div>
+      <div class="cell"><h4><span class="tick">✓</span> Turnout was tested, and demoted</h4>
+        <p>Built expecting turnout to decide the city, the model reversed itself: a ten-point swing
+        across thirty wards moves about two seats. Try the turnout sliders — that finding is why
+        they barely matter.</p></div>
+      <div class="cell"><h4><span class="cross">✗</span> It cannot see a party that does not exist</h4>
+        <p>ActionSA went from absent to 44 seats in one cycle. The entrant slider is an honest
+        patch, not a fix.</p></div>
+      <div class="cell"><h4><span class="cross">✗</span> The ranges are judgements</h4>
+        <p>History bounds the sliders, but no backtest can validate a 2026 range. The probabilities
+        are exactly as good as the assumptions you set — which is the point of letting you set
+        them.</p></div>
+    </div>
+  </div>
+
+  <section>
+    <div class="eyebrow">Reproduce this exactly</div>
+    <h2>Scenario file</h2>
+    <p class="small">This JSON reproduces your current sliders in the full 865-district Python
+    model: <code style="font-family:var(--mono)">python src/montecarlo.py --config scenario.json</code></p>
+    <textarea id="scenarioJson" readonly></textarea>
+  </section>
+
+  <div class="colophon" id="colophon">
+    Sources: IEC voting-district results (2011–2024 elections, 2021–2026 by-elections, 15 CoJ
+    contests weighted per plan §3.6); Municipal Demarcation Board 2026 boundaries; Stats SA Census
+    2022 ward estimates (turnout sub-model only). Seat allocation per Municipal Structures Act
+    Schedule 1; overhang treatment per plan §3.7, statutory fine print unverified against an IEC
+    worked example (toggle bounds its effect). This page runs the model at ward resolution —
+    citywide seat arithmetic is exact; ward winners approximate the 865-district model, reference
+    figures from the Python run are shown in the status line. Full methodology, validation and
+    review history in the project repository. Free to reproduce with attribution.
+  </div>
+
+</div><!-- /results -->
+</div><!-- /layout -->
+</div><!-- /sheet -->
+
+<script>
+"use strict";
+const DATA = /*__DATA__*/null;
+const REF  = /*__REF__*/null;
+
+/* ---------- RNG ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+let _spare=null;
+function normal(rng){if(_spare!==null){const v=_spare;_spare=null;return v;}
+  let u=0,v=0;while(u===0)u=rng();while(v===0)v=rng();
+  const m=Math.sqrt(-2*Math.log(u)),a=2*Math.PI*v;_spare=m*Math.sin(a);return m*Math.cos(a);}
+function triangular(rng,lo,mode,hi){mode=Math.min(Math.max(mode,lo),hi);
+  const u=rng(),c=(mode-lo)/(hi-lo||1);
+  return u<c?lo+Math.sqrt(u*(hi-lo)*(mode-lo)):hi-Math.sqrt((1-u)*(hi-lo)*(hi-mode));}
+function gammaSample(rng,a){
+  if(a<1){const u=rng();return gammaSample(rng,a+1)*Math.pow(u,1/a);}
+  const d=a-1/3,c=1/Math.sqrt(9*d);
+  for(;;){let x,v;do{x=normal(rng);v=1+c*x;}while(v<=0);
+    v=v*v*v;const u=rng();
+    if(u<1-0.0331*x*x*x*x)return d*v;
+    if(Math.log(u)<0.5*x*x+d*(1-v+Math.log(v)))return d*v;}}
+function dirichlet(rng,alphas){const g=alphas.map(a=>gammaSample(rng,Math.max(a,0.05)));
+  const s=g.reduce((x,y)=>x+y,0);return g.map(x=>x/s);}
+
+/* ---------- model setup ---------- */
+const FLOOR=0.002;
+const logit=p=>{p=Math.min(Math.max(p,FLOOR),1-FLOOR);return Math.log(p/(1-p));};
+const expit=x=>1/(1+Math.exp(-x));
+
+const P=DATA.parties;                 // 12 individual parties
+const CODES=P.map(p=>p.code);
+const N=CODES.length+2;               // + OTHER + ENTRANT
+const I_OTHER=CODES.length, I_ENTRANT=CODES.length+1;
+const NAME=[...P.map(p=>p.name),"Others","New entrant"];
+const CHIP=[...P.map(p=>p.chip),"#8b918b","#b9b9b9"];
+const idx={};CODES.forEach((c,i)=>idx[c]=i);
+
+const base=new Float64Array(N);
+P.forEach((p,i)=>base[i]=p.base2024);
+base[I_OTHER]=DATA.other_base2024; base[I_ENTRANT]=FLOOR;
+
+const gammaW=new Float64Array(N);
+P.forEach((p,i)=>gammaW[i]=p.gammaWard);
+gammaW[I_OTHER]=0.9; gammaW[I_ENTRANT]=1.0;
+
+// measured 2021 ward/list split-ticket ratios
+const ratioBase=new Float64Array(N).fill(1);
+P.forEach((p,i)=>{if(p.pr2021>0.001)ratioBase[i]=Math.min(Math.max(p.ward2021/p.pr2021,0.5),2.0);});
+
+// ward geography: logit deviations from citywide base, per ward per party
+const W=DATA.wards.length;
+const dev=new Float64Array(W*N);
+const wardVR=new Float64Array(W), wardVL=new Float64Array(W);
+DATA.wards.forEach((w,wi)=>{
+  wardVR[wi]=w.vr; wardVL[wi]=w.vl;
+  for(let i=0;i<=CODES.length;i++){
+    const s=w.s[i]??0;
+    dev[wi*N+i]=logit(s)-logit(base[i]);
+  }
+  dev[wi*N+I_ENTRANT]=0;
+});
+
+/* ---------- controls ---------- */
+const ctlIds=["thetaANC","thetaDA","thetaEFF","thetaMK","thetaASA","wBye","pollingLean",
+  "alphaANC","alphaDA","mkRatio","paUplift","turnoutBlend","turnoutNoise",
+  "entrantProb","entrantMode"];
+const DEFAULT_CFG={thetaANC:0.75,thetaDA:1.30,thetaEFF:0.85,thetaMK:0.60,thetaASA:1.50,
+  wBye:0.40,pollingLean:0,alphaANC:60,alphaDA:12,mkRatio:0.80,paUplift:1.25,
+  turnoutBlend:0.5,turnoutNoise:0.08,entrantProb:0.25,entrantMode:0.04,overhangExpand:true};
+const PRESETS={
+  default:{},
+  nobye:{wBye:0,pollingLean:0},
+  srf:{pollingLean:1},
+  ipsos:{pollingLean:-1},
+  mkfall:{thetaMK:0.35},
+  asafall:{thetaASA:0.95,wBye:0.15},
+};
+function readCfg(){const c={};ctlIds.forEach(id=>c[id]=parseFloat(document.getElementById(id).value));
+  c.overhangExpand=document.getElementById("overhangExpand").checked;return c;}
+function setCfg(c){ctlIds.forEach(id=>{if(id in c)document.getElementById(id).value=c[id];});
+  if("overhangExpand" in c)document.getElementById("overhangExpand").checked=c.overhangExpand;
+  showVals();}
+function showVals(){
+  const fmt={wBye:v=>v.toFixed(2),pollingLean:v=>(v>0?"+":"")+v.toFixed(1),
+    alphaANC:v=>v.toFixed(0),alphaDA:v=>v.toFixed(0),
+    turnoutNoise:v=>"σ "+v.toFixed(2),entrantProb:v=>(v*100).toFixed(0)+"%",
+    entrantMode:v=>(v*100).toFixed(1)+"%"};
+  ctlIds.forEach(id=>{const v=parseFloat(document.getElementById(id).value);
+    document.getElementById("v-"+id).textContent=(fmt[id]||(x=>x.toFixed(2)))(v);});
+}
+
+/* ---------- scenario construction (mirror of montecarlo.py) ---------- */
+const BOUNDS={ANC:[0.65,0.90],DA:[1.05,1.60],EFF:[0.55,1.10],ASA:[0.90,3.00],
+  MK:[0.30,1.00],PA:[1.00,2.20],ALJAMAAH:[0.80,3.00]};
+const IND_THETA={PA:[1.00,1.40,2.20],ALJAMAAH:[0.80,1.50,3.00],IFP:[0.80,1.40,2.20],
+  VFPLUS:[0.70,1.20,2.20],ACDP:[0.60,1.20,2.00],RISE:[0.30,0.80,1.50]};
+const F_OTHER=[0.70,1.30,2.00];
+const ANC_SHIFT=[-22,-3], DA_SHIFT=[5,14], POLLING_SPAN=4;
+const BLOC_ANC=["ANC","EFF","MK"], BLOC_DA=["DA","ASA","BOSA"];
+const THETA_BOSA=0.80;
+
+function centres(cfg){
+  const modes={ANC:cfg.thetaANC,DA:cfg.thetaDA,EFF:cfg.thetaEFF,MK:cfg.thetaMK,
+    ASA:cfg.thetaASA,BOSA:THETA_BOSA};
+  const out=new Float64Array(N);
+  P.forEach((p,i)=>{
+    let m;
+    if(p.code in modes)m=base[i]*modes[p.code];
+    else if(p.code in IND_THETA)m=base[i]*IND_THETA[p.code][1];
+    else m=base[i]*F_OTHER[1];
+    let c=m;
+    if(p.bye&&p.bye.weight_sum>=30&&cfg.wBye>0){
+      let implied=p.pr2021+p.bye.delta;
+      const b=BOUNDS[p.code];
+      if(b)implied=Math.min(Math.max(implied,b[0]*base[i]),b[1]*base[i]);
+      c=(1-cfg.wBye)*m+cfg.wBye*implied;
+    }
+    out[i]=c;
+  });
+  out[I_OTHER]=base[I_OTHER]*F_OTHER[1];
+  out[I_ENTRANT]=0;
+  return out;
+}
+
+function blocSpec(cfg,cent){
+  const lean=cfg.pollingLean*POLLING_SPAN;
+  function spec(members,range,leanSign,alpha){
+    const ids=members.map(c=>idx[c]);
+    const baseTot=ids.reduce((s,i)=>s+base[i],0);
+    const centTot=ids.reduce((s,i)=>s+cent[i],0);
+    let mode=(centTot-baseTot)*100+leanSign*lean;
+    mode=Math.min(Math.max(mode,range[0]),range[1]);
+    const props=ids.map(i=>cent[i]);
+    const ps=props.reduce((a,b)=>a+b,0);
+    return {ids,baseTot,lo:range[0],mode,hi:range[1],
+      alphas:props.map(x=>x/ps*alpha)};
+  }
+  return [spec(BLOC_ANC,ANC_SHIFT,-1,cfg.alphaANC),
+          spec(BLOC_DA,DA_SHIFT,+1,cfg.alphaDA)];
+}
+
+/* ---------- one run ---------- */
+function allocate(votes,total){
+  // Schedule 1: quota = floor(total votes / seats) + 1, floor division per
+  // party, shortfall by largest remainder (ties to the larger vote total).
+  const n=votes.length;let tv=0;for(let i=0;i<n;i++)tv+=votes[i];
+  const quota=Math.floor(tv/total)+1;
+  const seats=new Int32Array(n);const rem=new Float64Array(n);let used=0;
+  for(let i=0;i<n;i++){
+    seats[i]=Math.floor(votes[i]/quota);
+    rem[i]=votes[i]>0?votes[i]/quota-seats[i]:-1; // no remainder seat on zero votes
+    used+=seats[i];
+  }
+  const order=[...Array(n).keys()].sort((a,b)=>rem[b]-rem[a]||votes[b]-votes[a]);
+  const shortfall=Math.min(total-used,n);
+  for(let k=0;k<shortfall;k++)seats[order[k]]++;
+  return {seats,quota};
+}
+
+function run(cfg,nDraws,seed){
+  const rng=mulberry32(seed);
+  const cent=centres(cfg);
+  const blocs=blocSpec(cfg,cent);
+  const inBloc=new Set([...BLOC_ANC,...BLOC_DA].map(c=>idx[c]));
+
+  const ratio=Float64Array.from(ratioBase);
+  ratio[idx.MK]=cfg.mkRatio;
+  ratio[I_ENTRANT]=0.8;
+  ratio[idx.PA]=Math.min(ratioBase[idx.PA]*cfg.paUplift,1.5);
+
+  const individual=[];
+  for(let i=0;i<CODES.length;i++){
+    if(inBloc.has(i))continue;
+    const spec=IND_THETA[CODES[i]];
+    if(spec){const m=Math.min(Math.max(cent[i]/Math.max(base[i],1e-9),spec[0]),spec[2]);
+      individual.push([i,spec[0],m,spec[2]]);}
+    else individual.push([i,F_OTHER[0],F_OTHER[1],F_OTHER[2]]);
+  }
+
+  const seatsAll=new Int32Array(nDraws*N);
+  const thr=new Int32Array(nDraws), council=new Int32Array(nDraws);
+  const winsSum=new Float64Array(N); let overhangDraws=0; const overhangBy=new Float64Array(N);
+
+  const target=new Float64Array(N), wardT=new Float64Array(N),
+        theta=new Float64Array(N), pred=new Float64Array(W*N),
+        wardVotes=new Float64Array(W), votesInt=new Float64Array(N),
+        winsArr=new Int32Array(N);
+
+  for(let d=0;d<nDraws;d++){
+    // --- citywide target ---
+    target.fill(0);
+    for(const b of blocs){
+      const shifted=Math.max(b.baseTot+triangular(rng,b.lo,b.mode,b.hi)/100,0.005);
+      const split=dirichlet(rng,b.alphas);
+      b.ids.forEach((i,k)=>target[i]=shifted*split[k]);
+    }
+    for(const [i,lo,m,hi] of individual)target[i]=base[i]*triangular(rng,lo,m,hi);
+    target[I_OTHER]=base[I_OTHER]*triangular(rng,F_OTHER[0],F_OTHER[1],F_OTHER[2]);
+    let s=0;for(let i=0;i<N;i++)s+=target[i];
+    for(let i=0;i<N;i++)target[i]/=s;
+    if(rng()<cfg.entrantProb){
+      const e=triangular(rng,0.01,cfg.entrantMode,0.12);
+      for(let i=0;i<N;i++)target[i]*=(1-e);
+      target[I_ENTRANT]=e;
+    } else target[I_ENTRANT]=0;
+
+    // --- ward ballot target ---
+    let ws=0;for(let i=0;i<N;i++){wardT[i]=target[i]*ratio[i];ws+=wardT[i];}
+    for(let i=0;i<N;i++)wardT[i]/=ws;
+
+    // --- turnout pattern for this draw ---
+    const blend=Math.min(Math.max(cfg.turnoutBlend+(rng()*2-1)*0.25,0),1);
+    let totalV=0;
+    for(let w=0;w<W;w++){
+      const noise=Math.exp(normal(rng)*cfg.turnoutNoise-cfg.turnoutNoise*cfg.turnoutNoise/2);
+      wardVotes[w]=((1-blend)*wardVR[w]+blend*wardVL[w])*noise;
+      totalV+=wardVotes[w];
+    }
+
+    // --- ward-level ward-ballot prediction (IPF on theta) ---
+    for(let i=0;i<N;i++)theta[i]=wardT[i]>0?wardT[i]/Math.max(base[i],1e-12):0;
+    for(let round=0;round<12;round++){
+      const got=new Float64Array(N);
+      for(let w=0;w<W;w++){
+        let rs=0;const off=w*N;
+        for(let i=0;i<N;i++){
+          const v=theta[i]>0?expit(logit(base[i]*theta[i])+gammaW[i]*dev[off+i]):0;
+          pred[off+i]=v;rs+=v;
+        }
+        const wv=wardVotes[w]/rs;
+        for(let i=0;i<N;i++)got[i]+=pred[off+i]*wv;
+      }
+      let worst=0;
+      for(let i=0;i<N;i++){
+        const g=got[i]/totalV;
+        if(g>1e-9&&wardT[i]>1e-9){theta[i]*=wardT[i]/g;worst=Math.max(worst,Math.abs(g-wardT[i]));}
+      }
+      if(worst<1e-5)break;
+    }
+    // winners
+    winsArr.fill(0);
+    for(let w=0;w<W;w++){
+      const off=w*N;let best=0,bi=0;
+      for(let i=0;i<N;i++)if(pred[off+i]>best){best=pred[off+i];bi=i;}
+      winsArr[bi]++;
+    }
+
+    // --- seats: combined share = mean of the two ballot targets (exact) ---
+    for(let i=0;i<N;i++)votesInt[i]=Math.round((target[i]+wardT[i])*totalV); // ×2 votes /2 share
+    const {seats}=allocate(votesInt,270);
+    let over=0;
+    for(let i=0;i<N;i++)if(winsArr[i]>seats[i])over+=winsArr[i]-seats[i];
+    let cSize=270,th=136;
+    if(over>0){
+      overhangDraws++;
+      for(let i=0;i<N;i++)if(winsArr[i]>seats[i])overhangBy[i]++;
+      if(cfg.overhangExpand){
+        for(let i=0;i<N;i++)if(winsArr[i]>seats[i])seats[i]=winsArr[i];
+        cSize=0;for(let i=0;i<N;i++)cSize+=seats[i];
+        th=Math.floor(cSize/2)+1;
+      }
+    }
+    for(let i=0;i<N;i++){seatsAll[d*N+i]=seats[i];winsSum[i]+=winsArr[i];}
+    thr[d]=th;council[d]=cSize;
+  }
+  return {seatsAll,thr,council,winsSum,overhangDraws,overhangBy,nDraws};
+}
+
+/* ---------- analysis ---------- */
+function quantiles(arr){const a=Float64Array.from(arr).sort();const n=a.length;
+  return {med:a[Math.floor(n*0.5)],lo:a[Math.floor(n*0.05)],hi:a[Math.min(n-1,Math.floor(n*0.95))]};}
+
+function analyse(res){
+  const {seatsAll,thr,nDraws}=res;
+  const perParty=[];
+  for(let i=0;i<N;i++){
+    const s=new Float64Array(nDraws);let mean=0;
+    for(let d=0;d<nDraws;d++){s[d]=seatsAll[d*N+i];mean+=s[d];}
+    mean/=nDraws;
+    perParty.push({i,name:NAME[i],chip:CHIP[i],mean,...quantiles(s),series:s});
+  }
+  const top=perParty.filter(p=>p.mean>=0.4).sort((a,b)=>b.mean-a.mean).slice(0,12);
+  const nT=top.length;
+
+  // subset sums over top parties
+  const nMask=1<<nT;
+  const sums=new Int32Array(nMask*nDraws);
+  for(let m=1;m<nMask;m++){
+    const low=m&-m,pi=31-Math.clz32(low),prev=(m^low)*nDraws,cur=m*nDraws,ser=top[pi].series;
+    for(let d=0;d<nDraws;d++)sums[cur+d]=sums[prev+d]+ser[d];
+  }
+  const winP=m=>{let c=0;const o=m*nDraws;for(let d=0;d<nDraws;d++)if(sums[o+d]>=thr[d])c++;return c/nDraws;};
+  const maskStats=m=>{const o=m*nDraws,a=new Float64Array(nDraws);
+    for(let d=0;d<nDraws;d++)a[d]=sums[o+d];return quantiles(a);};
+  const maskOf=codes=>{let m=0;codes.forEach(c=>{const t=top.findIndex(p=>p.i===idx[c]);if(t>=0)m|=1<<t;});return m;};
+  const label=m=>top.filter((_,k)=>m&(1<<k)).map(p=>p.name).join(" + ");
+
+  // named + discovered pairs/triples
+  const named=[
+    {codes:["ANC","DA"],key:true},
+    {codes:["DA","ASA"]},
+    {codes:["ANC","EFF","MK"]},
+  ];
+  const rows=[];const seen=new Set();
+  for(const nm of named){const m=maskOf(nm.codes);if(!m)continue;seen.add(m);
+    rows.push({label:label(m),m,p:winP(m),...maskStats(m),key:nm.key});}
+  const found=[];
+  for(let k=2;k<=3;k++){
+    const combo=(start,left,m)=>{if(left===0){const p=winP(m);
+        if(p>0.03&&!seen.has(m))found.push({label:label(m),m,p,...maskStats(m)});return;}
+      for(let i=start;i<nT;i++)combo(i+1,left-1,m|(1<<i));};
+    combo(0,k,0);
+  }
+  found.sort((a,b)=>b.p-a.p);
+  rows.push(...found.slice(0,7));
+
+  // "everything except the ANC bloc"
+  const blocIdx=["ANC","EFF","MK"].map(c=>idx[c]);
+  const field=new Float64Array(nDraws);
+  for(let d=0;d<nDraws;d++){let s=0;
+    for(let i=0;i<N;i++)if(!blocIdx.includes(i))s+=seatsAll[d*N+i];field[d]=s;}
+  let fw=0;for(let d=0;d<nDraws;d++)if(field[d]>=thr[d])fw++;
+  rows.push({label:"Everything except ANC, EFF & MK",p:fw/nDraws,...quantiles(field),key:true});
+  rows.sort((a,b)=>b.p-a.p);
+
+  // MWC on a subsample
+  const sub=Math.min(nDraws,500);
+  const mwcCount=new Map();
+  for(let m=1;m<nMask;m++){
+    const o=m*nDraws;let any=0;
+    for(let d=0;d<sub;d++){
+      if(sums[o+d]<thr[d])continue;
+      let minimal=true,mm=m;
+      while(mm){const low=mm&-mm;
+        if(sums[(m^low)*nDraws+d]>=thr[d]){minimal=false;break;}mm^=low;}
+      if(minimal)any++;
+    }
+    if(any/sub>0.02)mwcCount.set(m,any/sub);
+  }
+  const mwc=[...mwcCount.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8)
+    .map(([m,p])=>({label:label(m),p}));
+
+  // Banzhaf on a subsample
+  const bsub=Math.min(nDraws,400);
+  const bz=top.map(()=>new Float64Array(bsub));
+  for(let d=0;d<bsub;d++){
+    let total=0;const sw=new Float64Array(nT);
+    for(let m=0;m<nMask;m++){
+      for(let p=0;p<nT;p++){
+        if(m&(1<<p))continue;
+        const w1=sums[(m|(1<<p))*nDraws+d]>=thr[d],w0=sums[m*nDraws+d]>=thr[d];
+        if(w1&&!w0){sw[p]++;total++;}
+      }
+    }
+    for(let p=0;p<nT;p++)bz[p][d]=total?sw[p]/total:0;
+  }
+  const power=top.map((t,p)=>({name:t.name,chip:t.chip,...quantiles(bz[p])}))
+    .sort((a,b)=>b.med-a.med);
+
+  // minority classes
+  const minority=[
+    ["DA minority — only the ANC votes against (the 2021 pattern)","DA",["ANC"]],
+    ["DA minority — the whole ANC bloc votes against","DA",["ANC","EFF","MK"]],
+    ["ANC minority — only the DA votes against","ANC",["DA"]],
+  ].map(([lab,cand,opp])=>{
+    const ci=idx[cand],oi=opp.map(c=>idx[c]);let v=0;
+    for(let d=0;d<nDraws;d++){let against=0;oi.forEach(i=>against+=seatsAll[d*N+i]);
+      if(seatsAll[d*N+ci]>against)v++;}
+    return {label:lab,p:v/nDraws};
+  });
+
+  // headline tiles
+  const ancda=maskOf(["ANC","DA"]);
+  const thrQ=quantiles(Float64Array.from(thr));
+  const largest=new Map();
+  for(let d=0;d<nDraws;d++){let bi=0,bv=-1;
+    for(let i=0;i<N;i++){const v=seatsAll[d*N+i];if(v>bv){bv=v;bi=i;}}
+    largest.set(bi,(largest.get(bi)||0)+1);}
+  const largestArr=[...largest.entries()].sort((a,b)=>b[1]-a[1]);
+
+  return {perParty:perParty.sort((a,b)=>b.mean-a.mean),rows,mwc,power,minority,
+    pAncDa:winP(ancda),thrMed:thrQ.med,pOver:res.overhangDraws/nDraws,
+    largestName:NAME[largestArr[0][0]],largestP:largestArr[0][1]/nDraws,
+    pNoBloc:fw/nDraws};
+}
+
+/* ---------- render ---------- */
+const fmtP=v=>v>=0.995?"99%+":v<0.0005?"<0.1%":v>=0.1?(v*100).toFixed(0)+"%":(v*100).toFixed(1)+"%";
+
+function render(a,cfg){
+  const tiles=[
+    {n:fmtP(a.pAncDa),l:"ANC + DA reach a majority — the only reliable two-party route",hero:true},
+    {n:fmtP(a.largestP),l:`${a.largestName} finishes as the largest party`},
+    {n:a.thrMed.toFixed(0),l:"Median majority threshold"+(cfg.overhangExpand?" (overhang moves it off 136)":" (fixed at 136)")},
+    {n:fmtP(a.pOver),l:"Draws where a party wins more wards than its entitlement (overhang)"},
+    {n:fmtP(a.pNoBloc),l:"A majority exists without the ANC, EFF and MK together"},
+    {n:fmtP(a.minority[0].p),l:"A DA minority government is arithmetically viable (2021 abstention pattern)"},
+  ];
+  document.getElementById("tiles").innerHTML=tiles.map(t=>
+    `<div class="stat${t.hero?" hero":""}"><div class="n">${t.n}</div><div class="l">${t.l}</div></div>`).join("");
+
+  const MAX=125;
+  document.getElementById("seats").innerHTML=a.perParty.filter(p=>p.mean>=0.4||p.i===I_ENTRANT&&p.hi>0).map(p=>`
+    <div class="row">
+      <div class="pname"><span class="chip" style="background:${p.chip}"></span>${p.name}</div>
+      <div class="track">
+        <span class="band" style="left:${Math.min(p.lo/MAX*100,100)}%;width:${Math.min((p.hi-p.lo)/MAX*100,100)}%"></span>
+        <span class="med" style="left:calc(${Math.min(p.med/MAX*100,100)}% - 1.5px)"></span>
+      </div>
+      <div class="val"><b>${p.med.toFixed(0)}</b> <span style="color:var(--ink-3)">${p.lo.toFixed(0)}–${p.hi.toFixed(0)}</span></div>
+    </div>`).join("");
+
+  document.getElementById("coalitions").innerHTML=a.rows.map(r=>`
+    <tr class="${r.key?"key":""}"><td>${r.label}</td>
+      <td class="num">${r.med.toFixed(0)}</td>
+      <td class="num" style="color:var(--ink-3)">${r.lo.toFixed(0)}–${r.hi.toFixed(0)}</td>
+      <td><div class="pbar"><i style="width:${Math.max(r.p*100,0.6)}%"></i></div></td>
+      <td class="num">${fmtP(r.p)}</td></tr>`).join("");
+  document.getElementById("coalitionNote").textContent=
+    "Every pair and triple was checked — the rows above are the named references plus the "+
+    "strongest discovered combinations. Majority is judged against each simulation's own threshold.";
+
+  document.getElementById("mwc").innerHTML=a.mwc.map(r=>`
+    <tr><td style="font-size:12.5px">${r.label}</td><td class="num">${fmtP(r.p)}</td></tr>`).join("");
+
+  document.getElementById("power").innerHTML=a.power.filter(p=>p.med>0.005||p.hi>0.02).map(p=>`
+    <tr><td style="font-size:12.5px"><span class="chip" style="background:${p.chip};display:inline-block;margin-right:6px"></span>${p.name}</td>
+      <td style="width:45%"><div class="pbar"><i style="width:${Math.min(p.med*250,100)}%"></i></div></td>
+      <td class="num">${(p.med*100).toFixed(1)}%</td></tr>`).join("");
+
+  document.getElementById("minority").innerHTML=a.minority.map(r=>`
+    <tr><td>${r.label}</td>
+      <td style="width:30%"><div class="pbar"><i style="width:${Math.max(r.p*100,0.6)}%"></i></div></td>
+      <td class="num">${fmtP(r.p)}</td></tr>`).join("");
+
+  // scenario JSON for the Python model
+  const scen={
+    theta_mode:{ANC:cfg.thetaANC,EFF:cfg.thetaEFF,MK:cfg.thetaMK,DA:cfg.thetaDA,ASA:cfg.thetaASA,BOSA:THETA_BOSA},
+    w_bye:cfg.wBye,polling_lean:cfg.pollingLean,
+    alpha_anc:cfg.alphaANC,alpha_da:cfg.alphaDA,
+    ward_pr_ratio_overrides:{MK:cfg.mkRatio,ENTRANT:0.8},
+    pa_contestation_uplift:cfg.paUplift,
+    turnout_pattern_blend:cfg.turnoutBlend,turnout_noise_sd:cfg.turnoutNoise,
+    entrant_prob:cfg.entrantProb,entrant_share:[0.01,cfg.entrantMode,0.12],
+    overhang_rule:cfg.overhangExpand?"expand":"cap",
+  };
+  document.getElementById("scenarioJson").value=JSON.stringify(scen,null,1);
+
+  // derived read-out
+  const cent=centres(cfg),blocs=blocSpec(cfg,cent);
+  document.getElementById("derived").innerHTML=
+    `derived bloc shifts: ANC-bloc ${blocs[0].mode.toFixed(1)}pts (range ${blocs[0].lo}…${blocs[0].hi}) · `+
+    `DA-bloc +${blocs[1].mode.toFixed(1)}pts (range +${blocs[1].lo}…+${blocs[1].hi})<br>`+
+    `central levels: ANC ${(cent[idx.ANC]*100).toFixed(1)}% · DA ${(cent[idx.DA]*100).toFixed(1)}% · `+
+    `EFF ${(cent[idx.EFF]*100).toFixed(1)}% · MK ${(cent[idx.MK]*100).toFixed(1)}% · `+
+    `ASA ${(cent[idx.ASA]*100).toFixed(1)}%`+
+    (REF?`<br>Python reference at defaults (5,000 draws): DA ${REF.parties.DA.median}, ANC ${REF.parties.ANC.median}, `+
+    `ASA ${REF.parties.ASA.median}, threshold ${REF.threshold_median}, P(ANC+DA) ${(REF.structural["P(ANC+DA is winning)"]*100).toFixed(0)}%`:"");
+}
+
+/* ---------- wiring ---------- */
+let running=false;
+function go(){
+  if(running)return;running=true;
+  const cfg=readCfg();
+  const nDraws=parseInt(document.getElementById("draws").value);
+  document.getElementById("status").textContent="running "+nDraws.toLocaleString()+" draws…";
+  setTimeout(()=>{
+    const t0=performance.now();
+    const res=run(cfg,nDraws,20261104);
+    const a=analyse(res);
+    render(a,cfg);
+    document.getElementById("status").textContent=
+      nDraws.toLocaleString()+" draws in "+((performance.now()-t0)/1000).toFixed(1)+"s";
+    running=false;
+  },30);
+}
+document.getElementById("run").addEventListener("click",go);
+ctlIds.forEach(id=>{const el=document.getElementById(id);
+  el.addEventListener("input",showVals);
+  el.addEventListener("change",go);});
+document.getElementById("overhangExpand").addEventListener("change",go);
+document.getElementById("draws").addEventListener("change",go);
+document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
+  setCfg({...DEFAULT_CFG,...PRESETS[b.dataset.preset]});go();}));
+showVals();go();
+</script>
+</body>
+</html>

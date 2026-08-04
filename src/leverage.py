@@ -36,10 +36,18 @@ voting (ActionSA's ward and PR shares differed by 4pp in 2021). That understates
 ward-ballot differences but does not affect the geography that drives leverage.
 
 Assumption A5 — marginal voters resemble their VD — is inherited from the plan
-and applies: shares are held fixed under the perturbation.
+and applies: shares are held fixed under the perturbation. The sensitivity
+check §5 asked for is implemented as ``--marginal blend``: the perturbed
+voters vote as a 50/50 blend of their VD's shares and the citywide mix. The
+plan specified the ward's *non-voter demographic profile* for the second half
+of the blend; without the Small Area Layer (O7) the citywide mix is the
+documented proxy — it pulls in the same direction (marginal voters less
+distinctive than core voters) and brackets the assumption from the
+conservative side. If the leverage ranking survives both settings, A5 is not
+doing load-bearing work.
 
 Usage:
-    python src/leverage.py [--delta 0.05]
+    python src/leverage.py [--delta 0.05] [--marginal vd|blend]
 """
 
 from __future__ import annotations
@@ -104,6 +112,7 @@ def council(
     turnout: dict[str, float],
     predicted: dict[str, dict[str, dict[str, float]]],
     bump: tuple[str, float] | None = None,
+    marginal: dict[str, dict[str, dict[str, float]]] | None = None,
 ) -> tuple[dict[str, int], dict[str, float]]:
     """Allocate the council, optionally perturbing one ward's turnout.
 
@@ -115,30 +124,14 @@ def council(
     report zero for nearly every ward and a spurious 2 for whichever one happens
     to sit on a rounding edge. That is a property of the rounding, not of the
     ward. Entitlement is continuous and gives the elasticity index §5 asks for.
+
+    ``marginal``, if given, supplies the shares the *perturbed* voters vote by
+    (the A5 sensitivity blend); the ward's existing voters always vote by the
+    VD's own shares.
     """
     ward_bumped, delta = bump if bump else (None, 0.0)
-    votes: dict[str, defaultdict[str, float]] = {
-        "Ward": defaultdict(float),
-        "PR": defaultdict(float),
-    }
-    for vd, ward, registered in parts:
-        rate = turnout.get(vd)
-        if rate is None or vd not in predicted["PR"]:
-            continue
-        if ward == ward_bumped:
-            rate = min(max(rate + delta, 0.0), 1.0)
-        cast = registered * rate
-        for ballot in ("Ward", "PR"):
-            for party, share in predicted[ballot][vd].items():
-                votes[ballot][party] += cast * share
-
-    combined = eligible_parties(
-        {p: int(round(v)) for p, v in votes["Ward"].items()},
-        {p: int(round(v)) for p, v in votes["PR"].items()},
-    )
-    result = allocate(combined)
-    entitlement = {p: v / result.quota for p, v in combined.items()}
-    return result.seats, entitlement
+    return _tally(parts, turnout, predicted, {ward_bumped} if ward_bumped else set(),
+                  delta, marginal)
 
 
 def council_group(
@@ -147,8 +140,20 @@ def council_group(
     predicted: dict[str, dict[str, dict[str, float]]],
     wards: set[str],
     delta: float,
+    marginal: dict[str, dict[str, dict[str, float]]] | None = None,
 ) -> tuple[dict[str, int], dict[str, float]]:
     """Same as :func:`council`, perturbing a whole set of wards together."""
+    return _tally(parts, turnout, predicted, wards, delta, marginal)
+
+
+def _tally(
+    parts: list[tuple[str, str, int]],
+    turnout: dict[str, float],
+    predicted: dict[str, dict[str, dict[str, float]]],
+    bumped: set[str],
+    delta: float,
+    marginal: dict[str, dict[str, dict[str, float]]] | None,
+) -> tuple[dict[str, int], dict[str, float]]:
     votes: dict[str, defaultdict[str, float]] = {
         "Ward": defaultdict(float),
         "PR": defaultdict(float),
@@ -157,12 +162,17 @@ def council_group(
         rate = turnout.get(vd)
         if rate is None or vd not in predicted["PR"]:
             continue
-        if ward in wards:
-            rate = min(max(rate + delta, 0.0), 1.0)
+        extra = 0.0
+        if ward in bumped:
+            extra = registered * (min(max(rate + delta, 0.0), 1.0) - rate)
         cast = registered * rate
         for ballot in ("Ward", "PR"):
             for party, share in predicted[ballot][vd].items():
                 votes[ballot][party] += cast * share
+            if extra:
+                source = (marginal or predicted)[ballot][vd]
+                for party, share in source.items():
+                    votes[ballot][party] += extra * share
 
     combined = eligible_parties(
         {p: int(round(v)) for p, v in votes["Ward"].items()},
@@ -175,6 +185,13 @@ def council_group(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--delta", type=float, default=0.05, help="turnout perturbation")
+    parser.add_argument(
+        "--marginal",
+        choices=("vd", "blend"),
+        default="vd",
+        help="what the perturbed voters vote like: 'vd' = their VD (A5 as "
+             "assumed), 'blend' = 50/50 VD and citywide mix (the §5 sensitivity)",
+    )
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
     parser.add_argument("--processed", type=Path, default=Path("data/processed"))
     parser.add_argument("--top", type=int, default=15)
@@ -208,6 +225,24 @@ def main(argv: list[str] | None = None) -> int:
         )
         predicted[ballot] = predict(base_share, base_city, theta, gamma)
 
+    # A5 sensitivity: shares the perturbed (marginal) voters vote by.
+    marginal = None
+    if args.marginal == "blend":
+        marginal = {}
+        for ballot in ("Ward", "PR"):
+            total_w = sum(weight.get(vd, 0.0) for vd in predicted[ballot])
+            city: defaultdict[str, float] = defaultdict(float)
+            for vd, local in predicted[ballot].items():
+                wv = weight.get(vd, 0.0)
+                for party, share in local.items():
+                    city[party] += share * wv / total_w
+            marginal[ballot] = {
+                vd: {p: 0.5 * local.get(p, 0.0) + 0.5 * city[p] for p in city}
+                for vd, local in predicted[ballot].items()
+            }
+
+    print(f"marginal-voter assumption: {args.marginal} "
+          f"({'A5 as stated' if args.marginal == 'vd' else '§5 sensitivity blend'})")
     print("2026 central scenario, citywide (§3.5 defaults on the 2024 base):")
     for party in sorted(target_city, key=lambda p: -target_city[p])[:7]:
         print(f"  {party:<10s} {base_city.get(party, 0):>7.2%} -> {target_city[party]:>7.2%}")
@@ -229,8 +264,8 @@ def main(argv: list[str] | None = None) -> int:
 
     rows = []
     for ward in sorted(ward_registered, key=lambda w: int(w)):
-        up_seats, up = council(parts, turnout, predicted, (ward, args.delta))
-        down_seats, down = council(parts, turnout, predicted, (ward, -args.delta))
+        up_seats, up = council(parts, turnout, predicted, (ward, args.delta), marginal)
+        down_seats, down = council(parts, turnout, predicted, (ward, -args.delta), marginal)
         # Total entitlement displaced, halved because every seat gained by one
         # party is lost by another and would otherwise be counted twice.
         moved = sum(abs(up.get(p, 0.0) - down.get(p, 0.0)) for p in set(up) | set(down)) / 2
@@ -336,8 +371,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  {'cluster':<48s} {'seats moved':>11s} {'DA+ASA':>8s}")
     for label, members in clusters.items():
         group = set(members)
-        up_seats, up = council_group(parts, turnout, predicted, group, args.delta)
-        down_seats, down = council_group(parts, turnout, predicted, group, -args.delta)
+        up_seats, up = council_group(parts, turnout, predicted, group, args.delta, marginal)
+        down_seats, down = council_group(parts, turnout, predicted, group, -args.delta, marginal)
         seats_moved = sum(
             abs(up_seats.get(p, 0) - down_seats.get(p, 0))
             for p in set(up_seats) | set(down_seats)

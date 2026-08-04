@@ -75,14 +75,25 @@ def read_turnout(path: Path, two_ballot: bool) -> dict[str, tuple[int, int]]:
 
 
 def turnout_series(data_dir: Path) -> dict[str, dict[str, float]]:
-    """Return election -> VD -> turnout, plus the citywide figure per election."""
+    """Return election -> VD -> turnout, plus the citywide figure per election.
+
+    Turnout above 1.05 is treated as a registration mismatch, not a
+    measurement — e.g. VD 32851278-adjacent 32840018 shows 245% in 2019,
+    which poisons its λ and projected a 9.9% 2026 turnout before this guard.
+    Such VD-years are dropped; downstream blends fall back to the other cycle
+    or the citywide mean.
+    """
     series: dict[str, dict[str, float]] = {}
     for year, (filename, two_ballot) in ELECTIONS.items():
         counts = read_turnout(data_dir / filename, two_ballot)
+        dropped = [vd for vd, (r, c) in counts.items() if r > 0 and c / r > 1.05]
+        if dropped:
+            print(f"  ! {year}: dropped {len(dropped)} VD(s) with turnout > 105% "
+                  f"(registration mismatch): {', '.join(dropped[:5])}")
         series[year] = {
             vd: cast / registered
             for vd, (registered, cast) in counts.items()
-            if registered > 0
+            if registered > 0 and cast / registered <= 1.05
         }
         series[f"_counts_{year}"] = counts  # type: ignore[assignment]
     return series
@@ -103,6 +114,17 @@ def main(argv: list[str] | None = None) -> int:
         type=float,
         default=0.70,
         help="weight on 2021's drop-off vs 2016's (plan §3.5, range 0.50-0.90)",
+    )
+    parser.add_argument(
+        "--kappa-bye",
+        type=float,
+        default=0.25,
+        help="damping on the §3.3 by-election turnout covariate (0 disables). "
+             "For VDs in a ward that held a by-election, λ̂ is tilted by the "
+             "ward's by-election/2021 turnout ratio relative to the citywide "
+             "median of that ratio — the only pre-election measure of "
+             "differential enthusiasm. Weighted modestly per the plan: it "
+             "shares assumption A4's selection bias.",
     )
     args = parser.parse_args(argv)
 
@@ -202,12 +224,40 @@ def main(argv: list[str] | None = None) -> int:
         errors = [abs(raw[vd] * factor - series["2016"][vd]) for vd in shared16]
         print(f"  {label:<48s} MAE {statistics.mean(errors):.4f}")
 
+    # --- §3.3 by-election turnout covariate -----------------------------------
+    # ward (2021 delimitation) -> most recent contest's turnout ratio vs the
+    # citywide median ratio. VD membership comes from the 2021 result file.
+    bye_tilt: dict[str, float] = {}
+    bye_path = Path("data/processed/byelection_turnout.csv")
+    if args.kappa_bye > 0 and bye_path.exists():
+        ward_ratio: dict[str, tuple[str, float]] = {}
+        with bye_path.open(encoding="utf-8", newline="") as handle:
+            for row in csv.DictReader(handle):
+                ratio = float(row["ratio_vs_median"])
+                prior = ward_ratio.get(row["ward"])
+                if prior is None or row["date"] > prior[0]:
+                    ward_ratio[row["ward"]] = (row["date"], ratio)
+        vd_ward_2021: dict[str, str] = {}
+        with (args.data_dir / ELECTIONS["2021"][0]).open(encoding="utf-8", newline="") as handle:
+            for row in csv.DictReader(handle):
+                vd_ward_2021.setdefault(row["VD_Number"], row["Ward"])
+        for vd, ward in vd_ward_2021.items():
+            if ward in ward_ratio:
+                bye_tilt[vd] = 1.0 + args.kappa_bye * (ward_ratio[ward][1] - 1.0)
+        print(
+            f"\n§3.3 by-election turnout covariate: κ={args.kappa_bye}, "
+            f"{len(ward_ratio)} wards, {len(bye_tilt)} VDs tilted "
+            f"(range ×{min(bye_tilt.values()):.2f}–×{max(bye_tilt.values()):.2f})"
+        )
+
     # --- blended λ̂ and the 2026 projection ------------------------------------
     w = args.w_recency
     rows = []
     projected_cast = projected_reg = 0
     counts2024 = series["_counts_2024"]  # type: ignore[index]
     for vd, (registered, cast) in counts2024.items():
+        if vd not in series["2024"]:
+            continue  # dropped as implausible above
         l16, l21 = lambdas["2016"].get(vd), lambdas["2021"].get(vd)
         if l16 is None and l21 is None:
             continue
@@ -217,7 +267,7 @@ def main(argv: list[str] | None = None) -> int:
             else (l21 if l21 is not None else l16)
         )
         t2024 = series["2024"][vd]
-        t2026 = min(t2024 * blended, 1.0)
+        t2026 = min(t2024 * blended * bye_tilt.get(vd, 1.0), 1.0)
         projected_cast += t2026 * registered
         projected_reg += registered
         rows.append(
@@ -231,6 +281,23 @@ def main(argv: list[str] | None = None) -> int:
                 "turnout_2026_projected": f"{t2026:.5f}",
             }
         )
+
+    # A3 (review): the previous-LGE-level pattern won the head-to-head above,
+    # so it is emitted alongside the ratio form — same citywide level (from
+    # λ̂), different relative pattern. Consumers choose or blend (montecarlo
+    # blends per draw; the level cancels in seats, the pattern does not).
+    level_projection = projected_cast / projected_reg
+    with21 = [(r, float(r[f"turnout_2021"])) for r in rows
+              if r["turnout_2021"] != "nan" and not r["turnout_2021"].startswith("na")]
+    mean21 = (sum(t * int(r["registered_2024"]) for r, t in with21)
+              / sum(int(r["registered_2024"]) for r, t in with21))
+    for row in rows:
+        t21 = row["turnout_2021"]
+        if t21 != "nan" and not t21.startswith("na"):
+            level = min(float(t21) * level_projection / mean21, 1.0)
+            row["turnout_2026_level"] = f"{level:.5f}"
+        else:
+            row["turnout_2026_level"] = ""
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open("w", encoding="utf-8", newline="") as handle:

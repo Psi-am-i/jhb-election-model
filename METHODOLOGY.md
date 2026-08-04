@@ -328,18 +328,31 @@ fold 2. Fitting both and reporting the fit would not be validation.
 
 | Configuration | VD MAE | Ward winner | Seat MAE | Total seat error |
 |---|---|---|---|---|
-| refit in-sample (reference only) | 0.54pp | — | — | — |
-| θ and γ both carried from fold 1 | 0.60pp | 128/135 | 1.86 | 54 |
-| **γ from fold 1, θ recalibrated** | 0.58pp | 128/135 | 0.50 | 12 |
+| refit in-sample (reference only) | 0.52pp | 129/135 | 0.43 | 10 |
+| θ and γ both carried from fold 1 | — | 126/135 | 2.22 | 60 |
+| **γ from fold 1, θ recalibrated** | 0.52pp | 129/135 | 0.50 | 12 |
+
+*(Figures re-scored 2026-08-04 after the implausible-turnout data fix — 87
+VD-years with turnout above 105% dropped from the λ series; the earlier
+version of this table read 128/135 and 54.)*
 
 **The central validation finding: γ transfers across cycles, θ does not.**
-Carrying γ over costs almost nothing; carrying θ over quadruples the seat error.
+Carrying γ over costs almost nothing; carrying θ over quintuples the seat error.
 γ is structural — it encodes where a party's support sits relative to its
 citywide mean, and that geography is stable. θ is political weather, and
 2014→2016 says little about 2019→2021.
 
 This supports the plan's own treatment of θ as a wide scenario lever rather than
 a fitted constant, and means γ can reasonably be fitted once and reused.
+
+**What this validation does and does not cover.** Fold 2 validates the
+*spatial projection machinery* — given a citywide outcome, the model places it
+across wards and VDs accurately. It cannot validate the 2026 citywide
+*ranges*, which no backtest can reach: those are informed priors, and every
+probability in §5B inherits them. This is stated here because the earlier
+draft of the distribution sheet blurred the distinction ("without being shown
+the answer") — the θ-recalibrated row is conditional on the actual citywide
+result; the genuinely blind row's seat error was 60, not 12.
 
 Against §4.3's stated expectation of "±1.5 points MAE on established parties":
 the ANC came in at −0.42pp and the IFP at −0.90pp, but the DA at +3.08pp and the
@@ -386,8 +399,15 @@ recent election with full VD coverage, 865 VDs, 1.42m votes.
 **2. Citywide scenario.** A draw specifies where each party lands citywide in
 2026. Following §3.4(a) this is drawn at *bloc* level — one shift for
 {ANC, EFF, MK}, one for {DA, ActionSA, BOSA} — then split within the bloc by a
-Dirichlet. Parties outside both blocs (PA, IFP, VF+, ACDP, Al Jama-ah, Rise) get
-individual factors, because their voter pools genuinely are separate.
+Dirichlet **centred on the plan's §3.5 θ-mode view of each party, tilted by
+by-election evidence at weight w_bye and by the polling lever, with the
+resulting modes clamped to the historically observed ranges** (review E2/E4).
+Parties outside both blocs (PA, IFP, VF+, ACDP, Al Jama-ah, Rise) get
+individual factors drawn independently, with ranges set around their observed
+fold ratios (review E6). Each draw's implied per-party θ is checked against
+§3.5's ranges and the excursion rate reported. A generic-entrant slot appears
+with probability 0.25 at a drawn share (review A6) — every backtest fold and
+the live case contained a party that did not previously exist.
 
 The bloc structure matters more than it looks. Party-level factors are strongly
 cross-correlated — the DA and ActionSA compete for the same voters — so sampling
@@ -409,41 +429,77 @@ prediction reaches the drawn citywide target *through* the model, rather than
 being taken as a raw ratio.
 
 **4. Turnout.** Each VD's votes cast is its registered voters times projected
-2026 turnout, from the λ blend. The same weighting is used to calibrate θ and to
-aggregate the prediction — the fold work showed that consistency matters more
-than the choice of turnout specification.
+2026 turnout — drawn per simulation as a blend of the λ̂ ratio form and the
+2021-LGE-level pattern, with VD-level noise (review A2). The same weighting is
+used to calibrate θ and to aggregate the prediction — the fold work showed
+that consistency matters more than the choice of turnout specification.
 
-**5. Both ballots.** The PR ballot uses the drawn target directly. The ward ballot
-scales it by each party's observed 2021 ward/PR ratio, which carries the
-split-ticket structure that made the §3.1 correction necessary — ActionSA's ratio
-is 0.77.
+**5. Both ballots.** The PR ballot uses the drawn target directly. The ward
+ballot scales it by each party's observed 2021 ward/PR ratio, which carries
+the split-ticket structure that made the §3.1 correction necessary —
+ActionSA's ratio is 0.77. Parties without a 2021 measurement carry documented
+judgements instead of silent defaults: MK (list party, no ward machinery)
+0.80; the PA's ratio takes a contestation uplift for fielding more than
+2021's 52 ward candidates (review A1).
 
-**6. Seats.** Ward and PR votes are added and run through Schedule 1: quota,
-floor division, largest remainder. This is the same code validated against three
-published councils in §2.3.
+**6. Ward winners, seats, overhang.** The ward-ballot prediction is aggregated
+into the 135 2026 wards and FPTP winners taken. Ward and PR votes are added
+and run through Schedule 1 — the same code validated against three published
+councils in §2.3. A party keeps every ward it wins: if wins exceed
+entitlement, the council expands by the excess and the majority threshold
+moves off 136 (review E3; the plan §3.7 reading of Schedule 1 — the statutory
+fine print is unverified against a worked example, and a fixed-270
+counterfactual toggle bounds its effect).
 
-Repeated 5,000 times, the output is a distribution over coalition arithmetic.
+Repeated 5,000 times, the output is a distribution over coalition arithmetic —
+fully enumerated: every subset, minimal winning coalitions, Banzhaf and
+Shapley–Shubik power indices, and the minority-government (abstention) class,
+judged against each draw's own threshold (review E1). All of it is also
+explorable interactively in `forecast-interactive.html`, whose sliders are the
+model's actual assumptions and whose scenario JSON round-trips to
+`src/montecarlo.py --config`.
 
 ## 5B. Results
 
-**Seats** (median, 5th–95th percentile): DA 87 (63–105), ANC 67 (53–81), EFF 27
-(17–39), MK 25 (16–36), ActionSA 17 (5–38), PA 11 (9–15). The DA is the largest
-single party in 86.1% of draws.
+*(Corrected 2026-08-04 after external review — the earlier version of this
+section rested on a pre-filtered coalition list and is superseded; see
+`model-review.html` and MODEL-LOG §1.14–1.15.)*
 
-**Coalition viability**, probability of reaching 136 of 270:
+**Seats** (median, 5th–95th percentile, 5,000 draws, seed 20261104): DA 81
+(55–103), ANC 75 (58–86), EFF 28 (18–40), ActionSA 26 (10–50), MK 20 (12–29),
+PA 14 (10–17), generic new entrant 0 (0–19). The DA is the largest single
+party in most draws; the ANC's seat count includes its overhang wards.
 
-| Coalition | P(majority) | median | 5th–95th |
-|---|---|---|---|
-| DA + ActionSA | 0.0% | 105 | 91–116 |
-| DA + ActionSA + IFP + VF+ + ACDP | 0.1% | 116 | 102–128 |
-| ANC + EFF + MK | 0.0% | 120 | 108–129 |
-| **ANC + DA** | **87.5%** | 154 | 127–175 |
-| every party outside the ANC bloc | 99.9% | 150 | 141–162 |
+**Overhang is the norm, not the edge case.** In ~90% of draws a party — almost
+always the ANC — wins more wards (~73 of 135) than its entitlement, because
+its citywide share is in the mid-20s while its stronghold wards hold against a
+fragmented opposition. The council expands to a median of ~281 and the
+majority threshold moves to ~141. Every probability below is judged against
+each draw's own threshold. Caveat: the expansion rule is §3.7's reading of
+Schedule 1, unverified against an IEC worked example (task #20); a fixed-270
+counterfactual toggle bounds its effect.
 
-No two- or three-party coalition reaches a majority except ANC+DA. A majority
-excluding the ANC bloc is arithmetically available but requires close to every
-other party in the council, which puts the PA and the minor-party tail in a
-pivotal position rather than ActionSA alone.
+**Coalition arithmetic, fully enumerated:**
+
+| Finding | Value |
+|---|---|
+| **ANC + DA** (the dominant minimal winning coalition) | **86.6%**, median 156 |
+| DA + EFF + ActionSA | 34% |
+| DA + EFF + MK | 26% |
+| DA + ActionSA | ~0%, median 108 |
+| **DA minority via abstention, 2021 pattern (only the ANC votes against)** | **61%** |
+| ANC minority (only the DA votes against) | 38% |
+| Some majority without ANC, EFF and MK together | 99.2% — but at median 157 vs threshold ~141, it needs close to the whole non-bloc field |
+
+**Power indices** (Banzhaf, median across draws): DA 29%, ANC 24%, EFF 11%,
+ActionSA 11%, MK 8%, PA 5%. ActionSA out-ranks the PA as kingmaker — the
+earlier sheet asserted the reverse without computing it.
+
+The politically operative summary: the only reliable *majority* route is
+ANC+DA; the realistic alternatives are a DA-led minority administration
+resting on abstention (viable in 61% of draws under the 2021 pattern), or a
+DA arrangement with one of EFF/MK — arithmetic the model reports and politics
+the model deliberately does not judge.
 
 **Turnout leverage** (§5). Per-ward turnout elasticity was computed by perturbing
 each ward ±5 points with shares held fixed. The plan stated its expected finding
@@ -460,12 +516,20 @@ The magnitude claim fails by more. §5 expected a ten-point swing across Soweto 
 reallocate "a dozen seats"; perturbing thirty-ward blocs across a full ten-point
 span moves two.
 
-**These two results agree.** The gap from DA+ActionSA's 105 to 136 is 31 seats,
-and a large differential turnout swing is worth two. The plan's conclusion that
-the DA's path runs through ANC-inclined voters staying home does not survive
-either test — on this arithmetic the gap can only be closed by persuasion, not
-mobilisation. That is also consistent with the fold finding that θ dominates
-turnout for forecast accuracy.
+**The A5 sensitivity check the plan asked for has now been run**
+(`leverage.py --marginal blend`): with the perturbed voters voting as a 50/50
+blend of their VD and the citywide mix, every leverage magnitude roughly
+*halves* (the Soweto-cluster entitlement swing falls from −1.53 to −0.76) and
+the rankings are unchanged. A5 is not doing load-bearing work — if anything it
+flattered turnout.
+
+**These two results agree.** The gap from DA+ActionSA's ~108 to the ~141
+overhang-adjusted threshold is over thirty seats, and a large differential
+turnout swing is worth about two under A5, one under the blend. The plan's
+conclusion that the DA's path runs through ANC-inclined voters staying home
+does not survive any version of the test — on this arithmetic the gap can only
+be closed by persuasion, not mobilisation. That is also consistent with the
+fold finding that θ dominates turnout for forecast accuracy.
 
 ## 6. Assumptions and limitations a reviewer should weigh
 
@@ -473,12 +537,15 @@ turnout for forecast accuracy.
 |---|---|---|
 | A | VD number stability implies catchment stability | **Tested and immaterial** (§5.2) |
 | B | Within-VD homogeneity when splitting across wards (A1) | Mitigated by registration weighting; residual is that political composition may differ between parts of a split VD, irreducible without sub-VD data. Affects 181 of 865 VDs |
-| C | New entrants | **Structural blindness.** The model is near-exact on parties it has seen and blind to those it has not. Fold 1 quantifies the cost at ~5 seats. Every fold and the live case contain an entrant |
-| D | Turnout specification | Two candidates, not yet scored on seat outcome (§3.7) |
+| C | New entrants | **Structural blindness, now carried honestly.** The model is near-exact on parties it has seen and blind to those it has not; fold 1 quantifies the cost at ~5 seats. The forecast carries a generic-entrant slot (P 0.25, share mode 4%, user-adjustable) so the tails reflect the risk instead of footnoting it |
+| D | Turnout specification | **Resolved by drawing it.** Each simulation blends the λ̂ ratio form and the 2021-level pattern with VD noise; the two candidate specifications bound the blend and their disagreement is inside the distribution |
 | E | Turnout specification | **Resolved as second-order.** Turnout is now wired into the folds. With θ held fixed, a *perfect* turnout forecast scores no better on seats than the crude assumption that patterns are unchanged, and turnout weighting moves total seat error by ~6 against θ error moving it 12→54. Consistency between how θ is calibrated and applied matters more than the specification chosen. Note also that the citywide turnout *level* cannot affect seats at all — scaling all turnout scales the quota identically — so only differential turnout matters |
 | F | Missing economic covariates | Turnout sub-model limited to age/sex/population group at ward level |
 | G | Two-cycle inference | Several parameters rest on two observed NPE→LGE transitions, one Covid-affected. Treat 2021-derived values as scenario levers |
 | H | Concordance leakage | 0.21–0.45% of votes per election sit in VDs that no longer exist; recorded, not dropped |
+| I | By-election selection bias (plan A4) | By-elections enter only as within-ward deltas, ρ-weighted, clamped to §3.5's ranges, at weight w_bye 0.40. ActionSA is the party the blend moves most (centre 9.3%→13.1%) — set w_bye to 0 to see the forecast without it |
+| J | Overhang mechanics | The council-expansion reading of Schedule 1 is unverified against an IEC worked example, and with P(overhang) ≈ 90% it now matters (task #20). The fixed-270 counterfactual toggle bounds its effect |
+| K | Marginal-voter composition (plan A5) | **Tested.** Under the 50/50 blend, leverage magnitudes halve and rankings hold; the turnout conclusion strengthens |
 
 **Limitation C is now the most important outstanding item.** It is also the
 strongest argument for the plan's own conclusion that the defensible deliverable
@@ -510,9 +577,22 @@ src/seats.py              Schedule 1 seat allocation
 src/validate_seats.py     allocator regression test against IEC publications
 src/fold.py               backtest folds, both ballots, turnout specifications
 src/leverage.py           per-ward turnout elasticity (§5)
-src/montecarlo.py         5,000-draw forecast and coalition viability (§3.5, §4.3)
+src/byelections.py        §3.6 by-election deltas + §3.3 turnout covariate data
+src/gamma_recent.py       γ fitted on 2021→2024 for parties fold 1 never saw
+src/montecarlo.py         5,000-draw forecast; scenario knobs in DEFAULTS,
+                          overridable via --config JSON / --set key=value
+src/coalitions.py         full enumeration, MWCs, Banzhaf/Shapley, minority class
+src/export_interactive.py ward-level data pack for the interactive page
+src/build_interactive.py  assembles forecast-interactive.html (self-contained)
 src/archive.py            checksum + provenance manifest
 ```
+
+The interactive page (`forecast-interactive.html`) exposes every scenario knob
+as a control at its default, bounded by its documented range, and emits a
+scenario JSON that reproduces the slider state exactly in the Python model.
+Its client-side engine is exact for citywide seat arithmetic and approximates
+ward winners at ward rather than VD resolution; the Python reference figures
+are displayed on the page for comparison.
 
 Suggested order for a reviewer wanting to verify the most consequential claim
 first — each self-asserts against the IEC's published figures and exits non-zero

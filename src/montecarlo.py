@@ -1,75 +1,150 @@
-"""Monte Carlo forecast of the 2026 CoJ council (plan §3.5, §3.8, §4.3).
+"""Monte Carlo forecast of the 2026 CoJ council (plan §3.4–§3.8, review fixes).
 
-Draws the parameters of §3.5, runs each draw through the share model and the
-Schedule 1 seat allocation, and reports the distribution of coalition viability.
-Per §4.3 the deliverable is that distribution, not a point seat forecast.
+Draws a 2026 scenario, runs it through the share model at VD level, aggregates
+both ballots, predicts ward winners, allocates seats under Schedule 1 with the
+overhang check, and reports the full coalition arithmetic. The deliverable is
+a distribution over coalition viability, never a point forecast (§4.3).
 
-Four things learned earlier constrain how this is built:
+This is a rewrite of the first implementation, fixing the review findings:
 
-* **Seats follow the combined ward+PR vote** (§0 correction), so both ballots are
-  drawn and allocated together.
-* **θ is drawn at bloc level**, per §3.4(a), because party-level factors are
-  strongly cross-correlated — θ_DA and θ_ASA compete for the same voters.
-  Sampling them independently produces incoherent draws.
-* **§3.5's θ ranges are raw citywide ratios**, not the model-consistent
-  calibrated values. Each draw therefore specifies a citywide *target* and
-  solves for the θ that reaches it through the model. Feeding the published
-  ranges in directly as calibrated θ would be wrong.
-* **θ must be calibrated under the same VD weighting it is applied with**, which
-  the fold work showed matters more than the turnout specification itself. Both
-  use projected 2026 votes cast.
+* **E1** — coalition arithmetic is fully enumerated (`coalitions.py`): every
+  subset, minimal winning coalitions, Banzhaf/Shapley–Shubik, and the
+  minority-government class. No pre-filtering on political plausibility.
+* **E2** — the within-bloc split is centred on the plan's §3.5 θ modes (its
+  deliberate per-party views: MK 0.60, ANC 0.75), not on 2024 proportions,
+  which silently discarded them. Implied per-party θ is checked against
+  §3.5's ranges and the violation rate reported — the "sanity bounds" the
+  plan promised.
+* **E3** — ward winners are predicted per draw from the ward-ballot shares;
+  overhang expands the council and moves the majority threshold (plan §3.7
+  step 5). Threshold is per-draw, not a constant 136.
+* **E4** — by-election evidence (`byelections.py`, plan §3.6) tilts each
+  party's central level at weight ``w_bye``, clamped to §3.5's ranges so a
+  concentrated party's stronghold deltas cannot claim an absurd citywide
+  level (the A4 selection caveat, enforced numerically). A polling lever
+  spans the SRF↔Ipsos disagreement (§8.3): ±1 moves the bloc modes ±4 points,
+  the modes stay clamped to their historical ranges.
+* **E6** — minor parties draw *independent* θ from ranges set around their
+  observed NPE→LGE ratios (fold 1 and fold 2), not one shared f_other draw
+  that moved them in lockstep and produced two-seat "90% intervals".
+* **A1** — ward/PR split-ticket ratios are per-party from 2021 with explicit
+  overrides: MK (absent in 2021, list party without ward machinery) defaults
+  to 0.80 rather than a silent 1.0; the PA's ratio carries a contestation
+  uplift for fielding more than 2021's 52 ward candidates.
+* **A2** — turnout is uncertain per draw: a blend between the λ̂ ratio-form
+  pattern and the 2021-LGE-level pattern (the two candidates from MODEL-LOG
+  1.2), plus VD-level noise. The citywide level cancels in seats (MODEL-LOG
+  1.10); this varies the *differential* pattern, which does not.
+* **A4** — γ falls back to the 2021→2024 fit (`gamma_recent.py`) before 1.0.
+  ActionSA's fitted γ is 0.49, not the 1.0 the first build assumed.
+* **A6** — an optional generic-entrant slot: with some probability a party
+  absent from every baseline appears at a drawn citywide share, spatially
+  flat. Every backtest fold and the live case contained such an entrant; a
+  forecast that cannot is overconfident by construction.
 
-The ward ballot is not assumed identical to PR. Each party's ward target is its
-PR target scaled by that party's observed 2021 ward/PR ratio, which carries the
-split-ticket structure — ActionSA polled 13.98% ward against 18.12% PR — rather
-than the single scalar κ_ward of §3.5.
+Every knob lives in ``DEFAULTS`` and can be overridden with ``--config
+scenario.json`` or ``--set key=value`` — the same schema the interactive
+forecast page exposes, so a slider position there is reproducible here.
 
 Usage:
     python src/montecarlo.py [--draws 5000] [--seed 20261104]
+                             [--config file.json] [--set w_bye=0.0] ...
 """
 
 from __future__ import annotations
 
 import argparse
+import copy
 import csv
+import json
 from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
 
+import coalitions
 from fold import citywide, load, load_parameters, shares
 from seats import INDEPENDENT, allocate
 
 SHARE_FLOOR = 0.002
-MAJORITY = 136
 COUNCIL = 270
 
-# §3.4(a) blocs. Parties outside these keep individual factors because their
-# voter pools genuinely are separate.
 BLOCS = {"ANC_BLOC": ("ANC", "EFF", "MK"), "DA_BLOC": ("DA", "ASA", "BOSA")}
+ANC_BLOC_PARTIES = ("ANC", "EFF", "MK")
 
-# §3.5 ranges as (low, mode, high), sampled triangular.
-BLOC_SHIFT = {"ANC_BLOC": (-22.0, -9.0, -3.0), "DA_BLOC": (5.0, 9.0, 14.0)}
-INDIVIDUAL_THETA = {"PA": (1.00, 1.40, 2.20), "ALJAMAAH": (0.80, 1.20, 1.80)}
-F_OTHER = (1.00, 1.30, 1.80)
-
-# Dirichlet concentration for the within-bloc split. §3.5: low for the DA bloc
-# because the ActionSA outcome is genuinely bimodal, higher for the ANC bloc.
-ALPHA = {"ANC_BLOC": 60.0, "DA_BLOC": 12.0}
-
-COALITIONS = {
-    "DA + ActionSA": ("DA", "ASA"),
-    "DA + ActionSA + IFP + VF+ + ACDP": ("DA", "ASA", "IFP", "VFPLUS", "ACDP"),
-    "ANC + EFF": ("ANC", "EFF"),
-    "ANC + EFF + MK": ("ANC", "EFF", "MK"),
-    "ANC + DA": ("ANC", "DA"),
-    "ANC + ActionSA": ("ANC", "ASA"),
+# §3.5 raw-θ ranges: the plan's sanity bounds on any derived per-party value,
+# and the clamp on what by-election or polling evidence may claim.
+PLAN_BOUNDS = {
+    "ANC": (0.65, 0.90), "DA": (1.05, 1.60), "EFF": (0.55, 1.10),
+    "ASA": (0.90, 3.00), "MK": (0.30, 1.00), "PA": (1.00, 2.20),
+    "ALJAMAAH": (0.80, 3.00),
 }
 
-# Everything outside the ANC bloc, taken together -- the widest coalition that
-# excludes the ANC, EFF and MK. If this cannot reach 136, no arrangement short of
-# one involving the ANC bloc can govern.
-ANC_BLOC_PARTIES = ("ANC", "EFF", "MK")
+DEFAULTS: dict = {
+    "draws": 5000,
+    "seed": 20261104,
+
+    # NPE→LGE bloc shifts in points on the 2024 base (§3.4a, four observed
+    # transitions). The *mode* is recentred by evidence (θ modes, by-elections,
+    # polling) but always clamped to the historical (low, high).
+    "anc_bloc_shift": [-22.0, -9.0, -3.0],
+    "da_bloc_shift": [5.0, 9.0, 14.0],
+    "alpha_anc": 60.0,       # within-bloc Dirichlet concentration (§3.5 α_split)
+    "alpha_da": 12.0,        # low: the ActionSA outcome is genuinely bimodal
+
+    # §3.5 central θ modes — the plan's per-party views. E2: these centre the
+    # within-bloc split. BOSA has no plan θ; 0.80 is a documented judgement
+    # (suburbs NPE party at its first LGE).
+    "theta_mode": {"ANC": 0.75, "EFF": 0.85, "MK": 0.60,
+                   "DA": 1.30, "ASA": 1.50, "BOSA": 0.80},
+
+    # E6: individual (low, mode, high) raw θ for parties outside the blocs,
+    # drawn independently. Ranges bracket the observed fold-1/fold-2 raw
+    # ratios: IFP 1.34→1.97, VF+ 0.81→1.65, ACDP 0.58→1.82, Al Jama-ah 3.12
+    # in 2021. Rise has no LGE history: judgement, wide, collapse risk real.
+    "individual_theta": {
+        "PA": [1.00, 1.40, 2.20],
+        "ALJAMAAH": [0.80, 1.50, 3.00],
+        "IFP": [0.80, 1.40, 2.20],
+        "VFPLUS": [0.70, 1.20, 2.20],
+        "ACDP": [0.60, 1.20, 2.00],
+        "RISE": [0.30, 0.80, 1.50],
+    },
+    "f_other": [0.70, 1.30, 2.00],   # residual bucket only, no seat-winner left in it
+
+    # E4: by-election blend weight (§3.5 w_bye, range 0–1) and the polling
+    # lever: −1 = Ipsos endpoint, +1 = SRF endpoint, 0 = neither. ±1 moves
+    # the two bloc modes by ∓/±`polling_span` points before clamping.
+    "w_bye": 0.40,
+    "polling_lean": 0.0,
+    "polling_span": 4.0,
+
+    # A1: ward/PR split-ticket ratios are measured from 2021 per party;
+    # overrides for parties without a 2021 measurement or with a changed
+    # footprint. MK: list party, no ward machinery — 0.80 is a judgement
+    # bounded by ActionSA's observed 0.77. PA uplift: fielding more wards
+    # than 2021's 52 raises its ward-ballot capture.
+    "ward_pr_ratio_overrides": {"MK": 0.80, "ENTRANT": 0.80},
+    "pa_contestation_uplift": 1.25,
+
+    # A2: turnout pattern per draw. blend 0 = pure λ̂ ratio form, 1 = pure
+    # 2021-LGE-level pattern; the draw jitters the blend ±jitter and applies
+    # per-VD lognormal noise (σ in log units ≈ the unexplained λ dispersion).
+    "turnout_pattern_blend": 0.5,
+    "turnout_blend_jitter": 0.25,
+    "turnout_noise_sd": 0.08,
+
+    # A6: generic-entrant slot. Off by setting probability to 0.
+    "entrant_prob": 0.25,
+    "entrant_share": [0.01, 0.04, 0.12],
+
+    # E3: what to do when a party wins more wards than its entitlement.
+    # "expand" = the plan §3.7 reading (council grows, threshold moves);
+    # "cap" = counterfactual with the council fixed at 270 (entitlement
+    # honoured, excess ward wins not). The statutory fine print is unverified
+    # against an IEC worked example — comparing the two bounds its effect.
+    "overhang_rule": "expand",
+}
 
 
 def logit(p):
@@ -81,12 +156,13 @@ def expit(x):
     return 1.0 / (1.0 + np.exp(-x))
 
 
-def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6):
-    """Solve for θ reaching `target` citywide, and return the VD-level shares.
+def triangular(rng, spec, size=None):
+    low, mode, high = spec
+    return rng.triangular(low, min(max(mode, low), high), high, size)
 
-    Vectorised equivalent of fold.calibrate_theta + fold.predict. dev is the
-    precomputed per-VD logit deviation from the citywide mean.
-    """
+
+def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6):
+    """Solve for θ reaching `target` citywide through the model; return VD shares."""
     theta = np.where(base_city > 0, target / np.maximum(base_city, 1e-12), 1.0)
     weights = weight / weight.sum()
     for _ in range(rounds):
@@ -103,195 +179,471 @@ def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6
     return pred / pred.sum(axis=1, keepdims=True)
 
 
-def triangular(rng, spec, size=None):
-    low, mode, high = spec
-    return rng.triangular(low, mode, high, size)
+# --------------------------------------------------------------------------
+# scenario configuration
+# --------------------------------------------------------------------------
+
+def parse_set(pairs: list[str], scenario: dict) -> None:
+    """Apply --set key=value overrides; values parsed as JSON where possible."""
+    for item in pairs:
+        key, _, value = item.partition("=")
+        key = key.strip()
+        if key not in scenario:
+            raise SystemExit(f"unknown scenario key: {key!r} (see DEFAULTS)")
+        try:
+            scenario[key] = json.loads(value)
+        except json.JSONDecodeError:
+            scenario[key] = value
 
 
-def draw_target(rng, base_city, index):
-    """One draw of the citywide 2026 PR target, per §3.4(a)."""
-    target = np.zeros_like(base_city)
+def load_scenario(args) -> dict:
+    scenario = copy.deepcopy(DEFAULTS)
+    if args.config:
+        with open(args.config, encoding="utf-8") as handle:
+            overrides = json.load(handle)
+        unknown = set(overrides) - set(scenario)
+        if unknown:
+            raise SystemExit(f"unknown scenario keys in {args.config}: {sorted(unknown)}")
+        for key, value in overrides.items():
+            if isinstance(scenario[key], dict) and isinstance(value, dict):
+                scenario[key].update(value)
+            else:
+                scenario[key] = value
+    parse_set(args.set or [], scenario)
+    if args.draws:
+        scenario["draws"] = args.draws
+    if args.seed:
+        scenario["seed"] = args.seed
+    return scenario
 
+
+# --------------------------------------------------------------------------
+# evidence blending (E2 + E4)
+# --------------------------------------------------------------------------
+
+def blended_centres(
+    scenario: dict,
+    base_city: dict[str, float],
+    share_2021: dict[str, float],
+    bye: dict[str, tuple[float, float]],
+) -> tuple[dict[str, float], dict[str, str]]:
+    """Central citywide 2026 level per party, from θ modes tilted by evidence.
+
+    Start from the §3.5 θ-mode view (base_2024 × mode). For parties with
+    meaningful by-election weight, the implied level (2021 share + weighted
+    delta) is clamped to §3.5's range — a concentrated party's stronghold
+    swing cannot claim an absurd citywide level — and blended in at w_bye.
+    Returns the centres and a note per adjusted party for the report.
+    """
+    w = scenario["w_bye"]
+    notes: dict[str, str] = {}
+    centres: dict[str, float] = {}
+    theta_mode = scenario["theta_mode"]
+    individual = scenario["individual_theta"]
+
+    for party, base in base_city.items():
+        if party in theta_mode:
+            mode_level = base * theta_mode[party]
+        elif party in individual:
+            mode_level = base * individual[party][1]
+        else:
+            mode_level = base * scenario["f_other"][1]
+
+        centre = mode_level
+        if party in bye and w > 0:
+            weight_sum, delta = bye[party]
+            if weight_sum >= 30:  # enough contests to mean anything
+                implied = share_2021.get(party, 0.0) + delta
+                low, high = PLAN_BOUNDS.get(party, (0.0, float("inf")))
+                clamped = min(max(implied, low * base), high * base)
+                centre = (1 - w) * mode_level + w * clamped
+                notes[party] = (
+                    f"θ-mode {mode_level:.1%} → {centre:.1%} "
+                    f"(by-elections imply {implied:.1%}"
+                    + (f", clamped to {clamped:.1%}" if clamped != implied else "")
+                    + f", w_bye {w})"
+                )
+        centres[party] = centre
+    return centres, notes
+
+
+# --------------------------------------------------------------------------
+# the draw
+# --------------------------------------------------------------------------
+
+def make_drawer(scenario, base_city_d, centres, index, rng):
+    """Return a function drawing one citywide PR target vector."""
+    n = len(index)
+    base_city = np.zeros(n)
+    for party, i in index.items():
+        base_city[i] = base_city_d.get(party, SHARE_FLOOR)
+
+    lean = scenario["polling_lean"] * scenario["polling_span"]
+    bloc_spec = {}
     for bloc, members in BLOCS.items():
-        members = [p for p in members if p in index]
-        if not members:
-            continue
-        idx = [index[p] for p in members]
-        base_total = base_city[idx].sum()
-        shifted = max(base_total + triangular(rng, BLOC_SHIFT[bloc]) / 100.0, 0.005)
-        # Within-bloc split around the 2024 proportions.
-        centre = base_city[idx] / base_total
-        split = rng.dirichlet(np.maximum(centre * ALPHA[bloc], 0.05))
-        target[idx] = shifted * split
+        idx = [index[p] for p in members if p in index]
+        base_total = sum(base_city_d.get(p, 0.0) for p in members if p in index)
+        centre_total = sum(centres.get(p, 0.0) for p in members if p in index)
+        low, mode, high = (scenario["anc_bloc_shift"] if bloc == "ANC_BLOC"
+                           else scenario["da_bloc_shift"])
+        # Evidence recentres the mode; history bounds it. Polling lever pushes
+        # the DA bloc up and the ANC bloc down (SRF) or the reverse (Ipsos).
+        evidence_mode = (centre_total - base_total) * 100.0
+        evidence_mode += lean if bloc == "DA_BLOC" else -lean
+        clamped_mode = min(max(evidence_mode, low), high)
+        centre_props = np.array([centres[p] for p in members if p in index])
+        centre_props = centre_props / centre_props.sum()
+        alpha = scenario["alpha_anc"] if bloc == "ANC_BLOC" else scenario["alpha_da"]
+        bloc_spec[bloc] = (idx, base_total, (low, clamped_mode, high),
+                          centre_props, alpha)
 
     handled = {p for members in BLOCS.values() for p in members if p in index}
-    other = triangular(rng, F_OTHER)
-    for party, position in index.items():
-        if party in handled:
+    individual = []
+    for party, i in index.items():
+        if party in handled or party == "ENTRANT":
             continue
-        spec = INDIVIDUAL_THETA.get(party)
-        factor = triangular(rng, spec) if spec else other
-        target[position] = base_city[position] * factor
+        spec = scenario["individual_theta"].get(party)
+        if spec is not None:
+            low, _, high = spec
+            mode = min(max(centres[party] / max(base_city[i], 1e-9), low), high)
+            individual.append((i, (low, mode, high)))
+        else:
+            individual.append((i, tuple(scenario["f_other"])))
 
-    return target / target.sum()
+    entrant_index = index.get("ENTRANT")
 
+    def draw():
+        target = np.zeros(n)
+        for idx, base_total, shift_spec, centre_props, alpha in bloc_spec.values():
+            shifted = max(base_total + triangular(rng, shift_spec) / 100.0, 0.005)
+            split = rng.dirichlet(np.maximum(centre_props * alpha, 0.05))
+            target[idx] = shifted * split
+        for i, spec in individual:
+            target[i] = base_city[i] * triangular(rng, spec)
+        target = target / target.sum()
+        if entrant_index is not None:
+            share = (triangular(rng, scenario["entrant_share"])
+                     if rng.random() < scenario["entrant_prob"] else 0.0)
+            target *= (1.0 - share)
+            target[entrant_index] = share
+        return target
+
+    return draw
+
+
+# --------------------------------------------------------------------------
+# seats with overhang (E3)
+# --------------------------------------------------------------------------
+
+def allocate_with_overhang(
+    combined: dict[str, int], ward_wins: dict[str, int], rule: str = "expand"
+) -> tuple[dict[str, int], int, int, dict[str, int]]:
+    """Schedule 1 allocation with the plan §3.7 overhang treatment.
+
+    A party keeps every ward it wins. If wins exceed entitlement the council
+    expands by the excess and the majority threshold moves (plan §0/§3.7 —
+    the statutory fine print on how the residue redistributes differs in
+    detail; if P(overhang) becomes material, verify against an IEC worked
+    example before publishing an overhang-conditional number).
+
+    Returns (seats, council_size, threshold, overhang_by_party).
+    """
+    alloc = allocate(combined, total_seats=COUNCIL)
+    over = {p: ward_wins[p] - alloc.seats.get(p, 0)
+            for p in ward_wins
+            if ward_wins[p] > alloc.seats.get(p, 0)}
+    seats = dict(alloc.seats)
+    if rule == "cap":
+        return seats, COUNCIL, COUNCIL // 2 + 1, over
+    for party, excess in over.items():
+        seats[party] = seats.get(party, 0) + excess
+    council = COUNCIL + sum(over.values())
+    return seats, council, council // 2 + 1, over
+
+
+# --------------------------------------------------------------------------
+# main
+# --------------------------------------------------------------------------
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--draws", type=int, default=5000)
-    parser.add_argument("--seed", type=int, default=20261104)
+    parser.add_argument("--draws", type=int)
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--config", type=Path, help="scenario JSON overriding DEFAULTS")
+    parser.add_argument("--set", action="append", metavar="KEY=VALUE",
+                        help="override one scenario key, e.g. --set w_bye=0")
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
     parser.add_argument("--processed", type=Path, default=Path("data/processed"))
     args = parser.parse_args(argv)
+    scenario = load_scenario(args)
 
-    rng = np.random.default_rng(args.seed)
+    rng = np.random.default_rng(scenario["seed"])
 
+    # --- baseline ------------------------------------------------------------
     base_votes, _ = load(args.data_dir / "npe2024_JHB_vd_party.csv", None)
     base_share_d, base_city_d = shares(base_votes), citywide(base_votes)
-    universe = sorted(p for p in base_city_d if p != INDEPENDENT)
+    universe = sorted(p for p in base_city_d if p != INDEPENDENT and p != "IND")
+    if scenario["entrant_prob"] > 0:
+        universe.append("ENTRANT")
     index = {party: i for i, party in enumerate(universe)}
-
     vds = sorted(base_share_d)
-    base_city = np.array([base_city_d[p] for p in universe])
+    nvd, npar = len(vds), len(universe)
+
+    base_city = np.array([base_city_d.get(p, SHARE_FLOOR) for p in universe])
     local = np.array([[base_share_d[v].get(p, 0.0) for p in universe] for v in vds])
+    if "ENTRANT" in index:
+        local[:, index["ENTRANT"]] = SHARE_FLOOR  # spatially flat by construction
     dev = logit(local) - logit(base_city)[None, :]
 
-    # Weighting: projected 2026 votes cast, used for calibration and aggregation.
-    with (args.processed / "vd_ward_2026.csv").open(encoding="utf-8", newline="") as fh:
-        registered: defaultdict[str, int] = defaultdict(int)
-        for row in csv.DictReader(fh):
-            registered[row["VD_Number"]] += int(row["part_registered"])
-    with (args.processed / "turnout.csv").open(encoding="utf-8", newline="") as fh:
-        projected = {r["VD_Number"]: float(r["turnout_2026_projected"]) for r in csv.DictReader(fh)}
-    weight = np.array([registered.get(v, 0) * projected.get(v, 0.0) for v in vds])
-
+    # --- γ: fold 1, then the 2021→2024 fit, then 1.0 (A4) --------------------
     params = load_parameters(args.processed / "fold1_parameters.csv")
-    gamma = {
-        ballot: np.array([params[ballot]["gamma"].get(p, 1.0) for p in universe])
-        for ballot in ("PR", "Ward")
-    }
+    recent: dict[str, float] = {}
+    recent_path = args.processed / "gamma_recent.csv"
+    if recent_path.exists():
+        with recent_path.open(encoding="utf-8", newline="") as fh:
+            recent = {r["party"]: float(r["gamma"]) for r in csv.DictReader(fh)}
+    gamma = {}
+    gamma_source = {}
+    for ballot in ("PR", "Ward"):
+        values = np.ones(npar)
+        for p, i in index.items():
+            if p in params[ballot]["gamma"]:
+                values[i] = params[ballot]["gamma"][p]
+                gamma_source[p] = "fold1"
+            elif p in recent:
+                values[i] = recent[p]
+                gamma_source.setdefault(p, "2021→2024")
+            else:
+                gamma_source.setdefault(p, "default 1.0")
+        gamma[ballot] = values
 
-    # Ward/PR differential, measured from 2021 rather than assumed flat.
+    # --- turnout patterns (A2) ----------------------------------------------
+    with (args.processed / "vd_ward_2026.csv").open(encoding="utf-8", newline="") as fh:
+        part_rows = list(csv.DictReader(fh))
+    registered: defaultdict[str, int] = defaultdict(int)
+    for row in part_rows:
+        registered[row["VD_Number"]] += int(row["part_registered"])
+
+    ratio_pattern: dict[str, float] = {}
+    level_pattern: dict[str, float] = {}
+    with (args.processed / "turnout.csv").open(encoding="utf-8", newline="") as fh:
+        for row in csv.DictReader(fh):
+            vd = row["VD_Number"]
+            if row["turnout_2026_projected"]:
+                ratio_pattern[vd] = float(row["turnout_2026_projected"])
+            if row.get("turnout_2021") and row["turnout_2021"] != "nan":
+                level_pattern[vd] = min(float(row["turnout_2021"]), 1.0)
+
+    reg = np.array([registered.get(v, 0) for v in vds], dtype=float)
+    t_ratio = np.array([ratio_pattern.get(v, np.nan) for v in vds])
+    t_level = np.array([level_pattern.get(v, np.nan) for v in vds])
+    mean_ratio = np.nansum(t_ratio * reg) / np.nansum(np.where(np.isnan(t_ratio), 0, reg))
+    t_ratio = np.where(np.isnan(t_ratio), mean_ratio, t_ratio)
+    mean_level = np.nansum(t_level * reg) / np.nansum(np.where(np.isnan(t_level), 0, reg))
+    # Rescale the 2021-level pattern to the λ̂ citywide level: the level comes
+    # from λ̂ either way (MODEL-LOG 1.2); only the *pattern* differs.
+    t_level = np.where(np.isnan(t_level), mean_level, t_level) * (mean_ratio / mean_level)
+
+    # --- ward structure (E3) -------------------------------------------------
+    vd_index = {v: i for i, v in enumerate(vds)}
+    wards = sorted({row["Ward_2026"] for row in part_rows}, key=int)
+    ward_index = {w: i for i, w in enumerate(wards)}
+    part_vd = np.array([vd_index[r["VD_Number"]] for r in part_rows
+                        if r["VD_Number"] in vd_index])
+    part_ward = np.array([ward_index[r["Ward_2026"]] for r in part_rows
+                          if r["VD_Number"] in vd_index])
+    part_reg = np.array([int(r["part_registered"]) for r in part_rows
+                         if r["VD_Number"] in vd_index], dtype=float)
+
+    # --- ward/PR split-ticket ratios (A1) ------------------------------------
     ward21, _ = load(args.data_dir / "lge2021_JHB_vd_party_clean.csv", "Ward")
     pr21, _ = load(args.data_dir / "lge2021_JHB_vd_party_clean.csv", "PR")
     wc, pc = citywide(ward21), citywide(pr21)
-    ratio = np.array([
-        (wc.get(p, 0.0) / pc[p]) if pc.get(p, 0) > 0.001 else 1.0 for p in universe
-    ])
-    ratio = np.clip(ratio, 0.5, 2.0)
+    share_2021 = pc
+    ratio = np.ones(npar)
+    for p, i in index.items():
+        if pc.get(p, 0) > 0.001:
+            ratio[i] = np.clip(wc.get(p, 0.0) / pc[p], 0.5, 2.0)
+    for p, value in scenario["ward_pr_ratio_overrides"].items():
+        if p in index:
+            ratio[index[p]] = value
+    if "PA" in index:
+        ratio[index["PA"]] = min(ratio[index["PA"]] * scenario["pa_contestation_uplift"], 1.5)
 
-    print(f"{args.draws:,} draws, seed {args.seed}, {len(vds)} VDs, {len(universe)} parties")
-    print(f"ward/PR differential from 2021: ActionSA {ratio[index['ASA']]:.2f}, "
-          f"ANC {ratio[index['ANC']]:.2f}, DA {ratio[index['DA']]:.2f}\n")
+    # --- by-election evidence (E4) -------------------------------------------
+    bye: dict[str, tuple[float, float]] = {}
+    bye_path = args.processed / "byelection_party_deltas.csv"
+    if bye_path.exists():
+        with bye_path.open(encoding="utf-8", newline="") as fh:
+            for row in csv.DictReader(fh):
+                bye[row["party"]] = (float(row["weight_sum"]),
+                                    float(row["weighted_delta"]))
+    centres, notes = blended_centres(scenario, base_city_d, share_2021, bye)
+    if "ENTRANT" in index:
+        centres["ENTRANT"] = 0.0
 
+    draw_target = make_drawer(scenario, base_city_d, centres, index, rng)
+
+    # --- report configuration -------------------------------------------------
+    print(f"{scenario['draws']:,} draws, seed {scenario['seed']}, {nvd} VDs, "
+          f"{npar} parties, {len(wards)} wards")
+    print(f"w_bye {scenario['w_bye']}, polling lean {scenario['polling_lean']:+.2f}, "
+          f"turnout blend {scenario['turnout_pattern_blend']} "
+          f"± {scenario['turnout_blend_jitter']} (σ {scenario['turnout_noise_sd']}), "
+          f"entrant P {scenario['entrant_prob']}")
+    if notes:
+        print("\nby-election tilts (clamped to §3.5 ranges):")
+        for party, note in sorted(notes.items()):
+            print(f"  {party:<10s} {note}")
+    print("\nγ sources: " + ", ".join(
+        f"{p}={gamma_source[p]}" for p in ("ASA", "MK", "PA") if p in gamma_source))
+    print(f"ward/PR ratios: MK {ratio[index['MK']]:.2f} (override), "
+          f"ASA {ratio[index['ASA']]:.2f}, PA {ratio[index['PA']]:.2f} "
+          f"(uplift ×{scenario['pa_contestation_uplift']})\n")
+
+    # --- the loop -------------------------------------------------------------
+    draws = scenario["draws"]
     seat_draws: list[dict[str, int]] = []
-    for draw in range(args.draws):
-        pr_target = draw_target(rng, base_city, index)
+    thresholds = np.zeros(draws, dtype=int)
+    council_sizes = np.zeros(draws, dtype=int)
+    overhang_count: defaultdict[str, int] = defaultdict(int)
+    ward_win_sum: defaultdict[str, int] = defaultdict(int)
+    bounds_violations: defaultdict[str, int] = defaultdict(int)
+    bounds_checked = 0
+
+    for d in range(draws):
+        pr_target = draw_target()
+
+        # §3.5 sanity bounds on the implied raw θ (E2). ENTRANT exempt.
+        bounds_checked += 1
+        for p, (low, high) in PLAN_BOUNDS.items():
+            if p in index and base_city[index[p]] > 0.005:
+                implied = pr_target[index[p]] / base_city[index[p]]
+                if not (low * 0.95 <= implied <= high * 1.05):
+                    bounds_violations[p] += 1
+
         ward_target = pr_target * ratio
         ward_target /= ward_target.sum()
+
+        # A2: turnout pattern for this draw.
+        blend = np.clip(scenario["turnout_pattern_blend"]
+                        + rng.uniform(-1, 1) * scenario["turnout_blend_jitter"], 0, 1)
+        noise = rng.normal(0.0, scenario["turnout_noise_sd"], nvd)
+        t_draw = np.clip(((1 - blend) * t_ratio + blend * t_level)
+                         * np.exp(noise - scenario["turnout_noise_sd"] ** 2 / 2),
+                         0.02, 0.95)
+        weight = reg * t_draw
 
         pr = solve_and_predict(dev, base_city, pr_target, gamma["PR"], weight)
         wd = solve_and_predict(dev, base_city, ward_target, gamma["Ward"], weight)
 
         pr_votes = weight @ pr
         ward_votes = weight @ wd
-        combined = {
-            universe[i]: int(round(pr_votes[i] + ward_votes[i])) for i in range(len(universe))
-        }
-        combined = {p: v for p, v in combined.items() if v > 0}
-        seat_draws.append(allocate(combined, total_seats=COUNCIL).seats)
-        if (draw + 1) % 1000 == 0:
-            print(f"  {draw + 1:,} draws")
 
-    # --- report --------------------------------------------------------------
+        # E3: ward winners from the ward ballot, at 2026-ward level.
+        part_cast = part_reg * t_draw[part_vd]
+        ward_tally = np.zeros((len(wards), npar))
+        np.add.at(ward_tally, part_ward, part_cast[:, None] * wd[part_vd])
+        winners = ward_tally.argmax(axis=1)
+        wins: defaultdict[str, int] = defaultdict(int)
+        for w in winners:
+            wins[universe[w]] += 1
+
+        combined = {universe[i]: int(round(pr_votes[i] + ward_votes[i]))
+                    for i in range(npar)}
+        combined = {p: v for p, v in combined.items() if v > 0}
+        seats, council, threshold, over = allocate_with_overhang(
+            combined, dict(wins), scenario["overhang_rule"])
+
+        seat_draws.append(seats)
+        thresholds[d] = threshold
+        council_sizes[d] = council
+        for p in over:
+            overhang_count[p] += 1
+        for p, w in wins.items():
+            ward_win_sum[p] += w
+        if (d + 1) % 1000 == 0:
+            print(f"  {d + 1:,} draws")
+
+    # --- report ---------------------------------------------------------------
     def series(party: str) -> np.ndarray:
-        return np.array([d.get(party, 0) for d in seat_draws])
+        return np.array([s.get(party, 0) for s in seat_draws])
 
     print("\nseat distribution (median [5th–95th percentile]):")
     ranked = sorted(universe, key=lambda p: -series(p).mean())
-    for party in ranked[:10]:
+    for party in ranked:
         s = series(party)
-        if s.mean() < 0.5:
+        if s.mean() < 0.4:
             continue
-        print(f"  {party:<10s} {np.median(s):>5.0f}  [{np.percentile(s, 5):>3.0f} – {np.percentile(s, 95):>3.0f}]")
+        wins_med = ward_win_sum[party] / draws
+        print(f"  {party:<10s} {np.median(s):>5.0f}  [{np.percentile(s, 5):>3.0f} – "
+              f"{np.percentile(s, 95):>3.0f}]   ward wins ≈ {wins_med:>5.1f}")
 
-    sizes = np.array([sum(d.values()) for d in seat_draws])
-    if not (sizes == COUNCIL).all():
-        print(f"\n  WARNING: {int((sizes != COUNCIL).sum())} draw(s) did not allocate "
-              f"{COUNCIL} seats (min {sizes.min()}, max {sizes.max()})")
+    print(f"\ncouncil size: median {int(np.median(council_sizes))}, "
+          f"max {council_sizes.max()}   ·   majority threshold: median "
+          f"{int(np.median(thresholds))}, max {thresholds.max()}")
+    p_overhang = float((council_sizes > COUNCIL).mean())
+    print(f"P(any overhang): {p_overhang:.1%}" + (
+        "   by party: " + ", ".join(
+            f"{p} {overhang_count[p] / draws:.1%}"
+            for p in sorted(overhang_count, key=lambda q: -overhang_count[q]))
+        if overhang_count else ""))
 
-    everyone_else = np.array([
-        sum(v for p, v in d.items() if p not in ANC_BLOC_PARTIES) for d in seat_draws
-    ])
+    if bounds_violations:
+        print("\nimplied θ outside §3.5 sanity ranges (share of draws):")
+        for p in sorted(bounds_violations, key=lambda q: -bounds_violations[q]):
+            print(f"  {p:<10s} {bounds_violations[p] / bounds_checked:>6.1%}")
 
-    print(f"\ncoalition viability (probability of reaching {MAJORITY} of {COUNCIL}):")
-    print(f"  {'coalition':<34s} {'P(majority)':>11s} {'median':>7s} {'5th':>5s} {'95th':>5s}")
-    rows = []
-    for label, members in COALITIONS.items():
-        totals = sum(series(p) for p in members)
-        probability = float((totals >= MAJORITY).mean())
-        rows.append({
-            "coalition": label,
-            "probability": probability,
-            "median_seats": float(np.median(totals)),
-            "p5": float(np.percentile(totals, 5)),
-            "p95": float(np.percentile(totals, 95)),
-        })
-        print(
-            f"  {label:<34s} {probability:>10.1%} {np.median(totals):>7.0f}"
-            f" {np.percentile(totals, 5):>5.0f} {np.percentile(totals, 95):>5.0f}"
-        )
+    # E1: the full coalition arithmetic, per-draw thresholds.
+    seats_by_party = {p: series(p) for p in ranked if series(p).mean() >= 0.4}
+    results = coalitions.analyse(seats_by_party, thresholds)
+    # The "widest field" structural rows must count every seat-holding party,
+    # not just the top twelve the enumeration works over — the micro-party
+    # tail holds ~8 seats and its omission understates the field materially.
+    field = np.array([sum(v for p, v in s.items() if p not in ANC_BLOC_PARTIES)
+                      for s in seat_draws])
+    no_anc = np.array([sum(v for p, v in s.items() if p != "ANC")
+                       for s in seat_draws])
+    results["structural"]["P(some majority without ANC, EFF and MK)"] = float(
+        (field >= thresholds).mean())
+    results["structural"]["P(some majority without the ANC)"] = float(
+        (no_anc >= thresholds).mean())
+    results["structural"]["non-bloc field median seats"] = float(np.median(field))
+    coalitions.report(results, "(per-draw threshold, overhang-adjusted)")
+    coalitions.write_outputs(results, args.processed)
 
-    # The politically operative question is not who wins but whether anything
-    # short of an ANC-DA arrangement can govern.
-    print(
-        f"  {'every party outside the ANC bloc':<34s} "
-        f"{(everyone_else >= MAJORITY).mean():>10.1%} {np.median(everyone_else):>7.0f}"
-        f" {np.percentile(everyone_else, 5):>5.0f} {np.percentile(everyone_else, 95):>5.0f}"
-    )
-
-    largest = [max(d, key=d.get) for d in seat_draws]
-    print("\n  largest single party:")
-    for party in sorted(set(largest), key=lambda p: -largest.count(p))[:4]:
-        print(f"    {party:<10s} {largest.count(party) / len(largest):>6.1%} of draws")
-    anc_da = sum(series(p) for p in ("ANC", "DA"))
-    without_grand = [
-        label for label, members in COALITIONS.items()
-        if set(members) != {"ANC", "DA"}
-    ]
-    any_other = np.zeros(len(seat_draws), dtype=bool)
-    for label in without_grand:
-        any_other |= sum(series(p) for p in COALITIONS[label]) >= MAJORITY
-    print(f"\n  P(ANC + DA reaches {MAJORITY})"
-          f"{'':<34s}{(anc_da >= MAJORITY).mean():>6.1%}")
-    print(f"  P(any *enumerated* coalition other than ANC+DA)"
-          f"{'':<21s}{any_other.mean():>6.1%}")
-    print(f"  P(a majority excluding the ANC bloc entirely)"
-          f"{'':<23s}{(everyone_else >= MAJORITY).mean():>6.1%}")
-    print(
-        "\n  The last two differ because no small enumerated grouping reaches 136,"
-        "\n  but the whole non-ANC-bloc field together does. A majority without the"
-        "\n  ANC therefore requires close to every other party in the council, not a"
-        "\n  two- or three-party arrangement."
-    )
-
-    out = args.processed / "coalition_viability.csv"
-    with out.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(
-            handle, fieldnames=["coalition", "probability", "median_seats", "p5", "p95"]
-        )
-        writer.writeheader()
-        for row in rows:
-            writer.writerow({**row, "probability": f"{row['probability']:.4f}"})
-
+    # --- outputs --------------------------------------------------------------
     seats_out = args.processed / "seat_draws.csv"
+    top = ranked[:13]
     with seats_out.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
-        writer.writerow(["draw"] + ranked[:12])
-        for i, d in enumerate(seat_draws):
-            writer.writerow([i] + [d.get(p, 0) for p in ranked[:12]])
+        writer.writerow(["draw", "threshold", "council_size"] + top)
+        for i, s in enumerate(seat_draws):
+            writer.writerow([i, thresholds[i], council_sizes[i]]
+                            + [s.get(p, 0) for p in top])
 
-    print(f"\nwrote {out} and {seats_out}")
+    summary = {
+        "scenario": scenario,
+        "parties": {
+            p: {"median": float(np.median(series(p))),
+                "p5": float(np.percentile(series(p), 5)),
+                "p95": float(np.percentile(series(p), 95)),
+                "ward_wins_mean": ward_win_sum[p] / draws}
+            for p in ranked if series(p).mean() >= 0.4
+        },
+        "p_overhang": p_overhang,
+        "threshold_median": int(np.median(thresholds)),
+        "structural": results["structural"],
+        "pairs_triples": results["pairs_triples"][:40],
+        "mwc": results["mwc"][:15],
+        "power": results["power"],
+        "minority": results["minority"],
+    }
+    summary_out = args.processed / "forecast_summary.json"
+    with summary_out.open("w", encoding="utf-8") as handle:
+        json.dump(summary, handle, indent=1)
+
+    print(f"\nwrote {seats_out}, {summary_out} and coalition_*.csv")
     return 0
 
 

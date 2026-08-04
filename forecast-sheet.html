@@ -49,7 +49,7 @@
     -webkit-font-smoothing:antialiased;
   }
   .sheet{max-width:860px;margin:0 auto;padding:28px 24px 64px;}
-  .page{display:flex;flex-direction:column;gap:26px;}
+  .page{display:flex;flex-direction:column;gap:24px;}
   .page + .page{margin-top:34px;padding-top:30px;border-top:1px solid var(--rule);}
 
   /* ---- masthead ---- */
@@ -168,36 +168,19 @@
 
   <header class="masthead">
     <div class="kicker">Forecast · City of Johannesburg · 4 November 2026</div>
-    <h1>Nobody wins Johannesburg. The only question is who shares it.</h1>
-    <p class="standfirst">A voting-district model of the City of Johannesburg finds the DA finishing
-    first in 86% of simulations — and no two-party majority available to anyone except the ANC
-    and the DA together.</p>
+    <h1>Nobody wins Johannesburg — and the bar for governing it is moving.</h1>
+    <p class="standfirst">A voting-district model of the city finds the DA finishing first in about
+    six simulations in ten — while the ANC's stronghold wards push the council past 270 seats in
+    nine in ten, raising the majority bar for everyone. Only one pairing reliably clears it.</p>
     <div class="dateline">
-      <span><b>Issued</b> 4 August 2026</span>
-      <span><b>Method</b> 5,000 simulations, 865 voting districts</span>
-      <span><b>Baseline</b> 2024 provincial ballot</span>
-      <span><b>Council</b> 270 seats · majority 136</span>
+      <span><b>Issued</b> 4 August 2026 (rev 2)</span>
+      <span><b>Method</b> 5,000 simulations · 865 voting districts · both ballots · ward winners &amp; overhang</span>
+      <span><b>Baseline</b> 2024 provincial ballot + 15 by-elections</span>
+      <span><b>Council</b> 270 seats + overhang · threshold moves</span>
     </div>
   </header>
 
-  <section class="stats">
-    <div class="stat hero">
-      <div class="n">87.5%</div>
-      <div class="l">Chance an ANC–DA coalition would command a majority — the only pairing that can</div>
-    </div>
-    <div class="stat">
-      <div class="n">86%</div>
-      <div class="l">Simulations in which the DA is the largest single party</div>
-    </div>
-    <div class="stat">
-      <div class="n">0.0%</div>
-      <div class="l">Simulations in which DA + ActionSA reach 136 seats</div>
-    </div>
-    <div class="stat">
-      <div class="n">31</div>
-      <div class="l">Seats DA + ActionSA fall short of a majority, at the midpoint</div>
-    </div>
-  </section>
+  <section class="stats" id="tiles"></section>
 
   <section>
     <div class="eyebrow">Projected seats</div>
@@ -210,17 +193,21 @@
         <span></span>
       </div>
       <figcaption>Bars show the middle 90% of 5,000 simulations; the vertical mark is the midpoint.
-      Figures are seats out of 270. Bars are drawn in a single neutral tone — the colour chip is
-      party identification only and carries no value.</figcaption>
+      Bars are drawn in a single neutral tone — the colour chip is party identification only.
+      “New entrant” is a party that does not exist yet: one appeared before each of the last three
+      elections, so the forecast carries the possibility rather than footnoting it.</figcaption>
     </figure>
   </section>
 
   <section>
-    <p class="lede">The headline is not the DA's lead. It is the arithmetic underneath it. Johannesburg
-    elects half its council on a ward ballot and half on a party-list ballot, and a party's total
-    entitlement is set by <em>both added together</em>. That makes the council close to
-    proportional — and it means a fragmented vote produces a fragmented council that no natural
-    alliance can assemble into 136.</p>
+    <p class="lede">The mechanism underneath the numbers: Johannesburg elects half its council in
+    ward races and half from party lists, and a party's total entitlement follows <em>both ballots
+    added together</em> — winning a ward doesn't add a seat, it fills one. But a party that wins
+    <em>more</em> wards than its entitlement keeps them, and the council grows. That is now the
+    ANC's normal condition: its citywide vote has fallen to the mid-twenties while its stronghold
+    wards hold against a splintered opposition, so it wins roughly 73 wards on a 65-seat
+    entitlement. The extra seats push the majority line from 136 to about 141 — and every possible
+    coalition has to climb the higher bar the ANC's geography creates.</p>
   </section>
 
   <div class="folio"><span>Johannesburg 2026 · Council Forecast</span><span>Page 1 of 2</span></div>
@@ -230,7 +217,7 @@
 <div class="page">
 
   <section>
-    <div class="eyebrow">The arithmetic that decides it</div>
+    <div class="eyebrow">The arithmetic that decides it — every combination checked</div>
     <h2>Which coalitions can actually govern</h2>
     <div class="tablewrap">
       <table>
@@ -239,75 +226,110 @@
             <th>Combination</th>
             <th class="num">Seats (mid)</th>
             <th class="num">Range</th>
-            <th style="width:26%">Chance of 136</th>
+            <th style="width:26%">Chance of majority</th>
             <th class="num"></th>
           </tr>
         </thead>
         <tbody id="coalitions"></tbody>
       </table>
     </div>
-    <figcaption style="font-size:12.5px;color:var(--ink-3)">Range is the middle 90% of simulations.
-    “Every party outside the ANC bloc” means the DA, ActionSA, PA, IFP, VF+, ACDP, Rise Mzansi,
-    Al Jama-ah and the smaller parties together — nine or more parties, not a working alliance.</figcaption>
+    <figcaption style="font-size:12.5px;color:var(--ink-3)">Range is the middle 90% of simulations;
+    majority is judged against each simulation's own threshold. Every pair and triple of parties was
+    enumerated — these are the strongest, plus the reference cases. “Eight-party alliance” is
+    DA + ActionSA + PA + IFP + VF+ + ACDP + Rise + Al Jama-ah.</figcaption>
   </section>
 
   <section>
-    <p class="lede">A majority without the ANC exists on paper. It requires almost every other party
-    in the chamber at once. The Patriotic Alliance — projected at 11 seats and the largest party
-    outside the two blocs — matters more to that arithmetic than ActionSA's recovery does.</p>
+    <p class="lede">There is a third way to govern that no coalition table shows: the mayor is
+    elected by councillors <em>present and voting</em>, so abstention installs minority
+    governments — it is how the DA took this mayoralty in 2021. If only the ANC votes against, a
+    DA minority administration is arithmetically viable in <b id="minorityP">—</b> of simulations.
+    The realistic outcomes are three: a grand coalition, a DA-led minority resting on abstention,
+    or a DA arrangement with one of the parties it has ruled out.</p>
   </section>
 
   <section>
-    <div class="eyebrow">A finding that cuts against the conventional read</div>
-    <h2>Turnout will not decide this</h2>
-    <p>The model was built expecting differential turnout to be decisive — that a collapse in
-    ANC-leaning turnout in the south would hand the city to a DA-led bloc. Tested directly, it does
-    not. Moving turnout by ten points across the thirty most ANC-leaning wards shifts roughly
-    <b>two seats</b>. DA + ActionSA need thirty-one.</p>
-    <p>Turnout still shapes who wins individual wards. It does not close a gap of that size.
-    On this arithmetic the route to 136 runs through persuading voters, not through opponents
-    staying home.</p>
+    <div class="eyebrow">Why the model is built the way it is</div>
+    <div class="cols">
+      <div class="note">
+        <h3>Seats, not vote shares</h3>
+        <p>The council follows a statutory formula, not a percentage. The model's allocator
+        reproduces the real 2011, 2016 and 2021 councils exactly — quota, vote totals, every
+        party's seats — so the formula layer is not an assumption.</p>
+      </div>
+      <div class="note">
+        <h3>Geography is the anchor</h3>
+        <p>Tested across election cycles: <em>where</em> a party's support sits transfers almost
+        perfectly; <em>how much</em> support it has does not. So the model fits the geography once
+        and treats each party's level as an explicit, bounded scenario — the honest shape of the
+        uncertainty.</p>
+      </div>
+      <div class="note">
+        <h3>Parties move in blocs</h3>
+        <p>The DA and ActionSA fight over the same voters, as do the ANC, EFF and MK. Drawing blocs
+        first and splitting within them is why DA+ActionSA's combined range is far tighter than
+        ActionSA's own 10–50: their errors offset. Ignoring that correlation produces impossible
+        scenarios.</p>
+      </div>
+      <div class="note">
+        <h3>Turnout was tested — and demoted</h3>
+        <p>The model was built expecting differential turnout to decide the city. Measured
+        directly, a ten-point swing across thirty wards moves about two seats — one, under the
+        stricter marginal-voter test. The gap to a majority is over thirty. Persuasion, not
+        mobilisation, is the only route.</p>
+      </div>
+    </div>
   </section>
 
   <div class="cols">
     <div class="note">
-      <h3>How it works</h3>
-      <p>Each of the 5,000 runs draws a citywide result for 2026, projects it onto all 865 voting
-      districts using each party's historic local geography, applies projected turnout, then runs
-      the statutory seat formula — quota, division, largest remainder.</p>
+      <h3>How it was checked</h3>
+      <p>Shown only 2021's citywide totals — nothing about where the votes sat — the model placed
+      them well enough to call 129 of 135 ward winners. Fully blind, its seat error quintuples: the
+      spatial machinery is validated, the citywide ranges are judgements. That split is why the
+      output is a distribution.</p>
     </div>
     <div class="note">
-      <h3>How it was checked</h3>
-      <p>The seat calculator reproduces the officially published Johannesburg council exactly for
-      2011, 2016 and 2021 — quota, vote totals and every party's seat count. Tested against 2021
-      without being shown the answer, the model called 128 of 135 ward winners.</p>
+      <h3>Explore it yourself</h3>
+      <p>Every assumption in this sheet is a slider on the companion page
+      <b>forecast-interactive.html</b> — at its default, bounded by observed history. Drag the
+      by-election weight to zero, collapse MK, repeat 2021's turnout: see which conclusions bend
+      and which refuse.</p>
     </div>
   </div>
 
   <div class="caveat">
     <h2>What this forecast cannot tell you</h2>
     <ul>
-      <li><b>It cannot see a party that does not yet exist.</b> ActionSA was not on the ballot in
-      2019 and won 44 seats in 2021. Nothing here would have predicted that, and nothing here would
-      predict an equivalent arrival in 2026.</li>
-      <li><b>It is a distribution, not a prediction.</b> The ranges are the output. A single seat
-      number taken from this sheet without its range is a misuse of it.</li>
-      <li><b>It assumes the contest resembles recent ones.</b> The inputs are informed judgements
-      about how much each party's support shifts between national and local elections, not
-      certainties.</li>
-      <li><b>It is not a poll.</b> No voters were surveyed. This is arithmetic on past results and
-      registration data.</li>
+      <li><b>Viability is not intent.</b> The 87% for ANC+DA is arithmetic, not a prediction that
+      it happens. The model says which deals are available; it says nothing about whether people
+      who dislike each other will sit in the same room.</li>
+      <li><b>It cannot see a party that does not yet exist.</b> ActionSA went from absent to 44
+      seats in one cycle. The entrant slot in the simulations is an honest patch, not a fix.</li>
+      <li><b>The ranges are the output.</b> A single seat number quoted from this sheet without its
+      range is a misuse of it. The probabilities are exactly as good as the stated assumptions —
+      which are all adjustable, above.</li>
+      <li><b>The overhang rule awaits a worked example.</b> Council expansion follows the
+      Municipal Structures Act as read; the IEC has never published a metro overhang calculation.
+      With overhang now the modal outcome, this is the forecast's largest single legal
+      uncertainty.</li>
+      <li><b>It is not a poll.</b> No voters were surveyed. This is arithmetic on results,
+      registration, and fifteen by-elections.</li>
     </ul>
   </div>
 
   <div class="colophon">
     Sources: Electoral Commission of South Africa — voting-district results for the 2011, 2016 and
-    2021 municipal elections and the 2014, 2019 and 2024 national and provincial elections; IEC
-    by-election results, 2021–2026. Municipal Demarcation Board — 2026 ward and voting-district
-    boundaries. Statistics South Africa — Census 2022 ward estimates.<br>
-    Seat allocation follows Schedule 1 of the Municipal Structures Act. Full methodology, source
-    provenance and known limitations are documented and available on request.<br>
-    Free to reproduce with attribution. Figures generated 4 August 2026.
+    2021 municipal elections, the 2014, 2019 and 2024 national and provincial elections, and all 15
+    CoJ by-elections 2021–2026 (weighted within-ward deltas, an input to the central scenario).
+    Municipal Demarcation Board — 2026 ward and voting-district boundaries. Statistics South
+    Africa — Census 2022 ward estimates. Polling (SRF, Ipsos) spans the scenario lever only.<br>
+    Seat allocation follows Schedule 1 of the Municipal Structures Act; overhang expands the
+    council per the plan's reading (unverified against an IEC worked example — flagged, bounded,
+    and adjustable). Figures on this sheet are generated directly from the model outputs by
+    src/render_sheet.py; methodology, validation, review history and the interactive companion are
+    in the project repository.<br>
+    Free to reproduce with attribution. Figures generated 4 August 2026, seed 20261104.
   </div>
 
   <div class="folio"><span>Johannesburg 2026 · Council Forecast</span><span>Page 2 of 2</span></div>
@@ -316,45 +338,188 @@
 </div>
 
 <script>
-  // Median and 5th–95th percentile seats from 5,000 simulations.
-  const PARTIES = [
-    { name:"DA",         chip:"#1B5EA8", med:87, lo:63, hi:105 },
-    { name:"ANC",        chip:"#1B7A3D", med:67, lo:53, hi:81  },
-    { name:"EFF",        chip:"#B3202B", med:27, lo:17, hi:39  },
-    { name:"MK Party",   chip:"#5B6E22", med:25, lo:16, hi:36  },
-    { name:"ActionSA",   chip:"#2FA79B", med:17, lo:5,  hi:38  },
-    { name:"PA",         chip:"#E0A419", med:11, lo:9,  hi:15  },
-    { name:"Rise Mzansi",chip:"#7A6BA8", med:6,  lo:5,  hi:7   },
-    { name:"IFP",        chip:"#C8442A", med:5,  lo:4,  hi:6   },
-    { name:"Others",     chip:"#8b918b", med:22, lo:18, hi:36  }
-  ];
-  const MAX = 125;
-  document.getElementById("seats").innerHTML = PARTIES.map(p => `
-    <div class="row">
-      <div class="pname"><span class="chip" style="background:${p.chip}"></span>${p.name}</div>
-      <div class="track">
-        <span class="band" style="left:${p.lo/MAX*100}%;width:${(p.hi-p.lo)/MAX*100}%"></span>
-        <span class="med" style="left:calc(${p.med/MAX*100}% - 1.5px)"></span>
-      </div>
-      <div class="val"><b>${p.med}</b> <span style="color:var(--ink-3)">${p.lo}–${p.hi}</span></div>
-    </div>`).join("");
+// __GEN_START__  (this block is written by src/render_sheet.py — do not edit by hand)
+const GEN = {
+ "tiles": [
+  {
+   "n": "86%",
+   "hero": true,
+   "l": "Chance an ANC\u2013DA coalition clears the majority \u2014 the only pairing that reliably can"
+  },
+  {
+   "n": "89%",
+   "l": "Simulations where overhang expands the council \u2014 median threshold 141, not 136"
+  },
+  {
+   "n": "61%",
+   "l": "A DA minority government is viable if only the ANC votes against (the 2021 pattern)"
+  },
+  {
+   "n": "63%",
+   "l": "Simulations in which the DA is the largest single party"
+  }
+ ],
+ "parties": [
+  {
+   "name": "DA",
+   "chip": "#1B5EA8",
+   "med": 81,
+   "lo": 55,
+   "hi": 103
+  },
+  {
+   "name": "ANC",
+   "chip": "#1B7A3D",
+   "med": 75,
+   "lo": 58,
+   "hi": 86
+  },
+  {
+   "name": "EFF",
+   "chip": "#B3202B",
+   "med": 28,
+   "lo": 18,
+   "hi": 40
+  },
+  {
+   "name": "ActionSA",
+   "chip": "#2FA79B",
+   "med": 26,
+   "lo": 10,
+   "hi": 50
+  },
+  {
+   "name": "MK Party",
+   "chip": "#5B6E22",
+   "med": 20,
+   "lo": 12,
+   "hi": 29
+  },
+  {
+   "name": "PA",
+   "chip": "#E0A419",
+   "med": 14,
+   "lo": 10,
+   "hi": 17
+  },
+  {
+   "name": "IFP",
+   "chip": "#C8442A",
+   "med": 6,
+   "lo": 4,
+   "hi": 7
+  },
+  {
+   "name": "Rise Mzansi",
+   "chip": "#7A6BA8",
+   "med": 4,
+   "lo": 2,
+   "hi": 5
+  },
+  {
+   "name": "Al Jama-ah",
+   "chip": "#2E8B72",
+   "med": 4,
+   "lo": 3,
+   "hi": 6
+  },
+  {
+   "name": "New entrant",
+   "chip": "#b9b9b9",
+   "med": 0,
+   "lo": 0,
+   "hi": 19
+  },
+  {
+   "name": "Others",
+   "chip": "#8b918b",
+   "med": 6,
+   "lo": 5,
+   "hi": 16
+  }
+ ],
+ "coalitions": [
+  {
+   "name": "ANC + DA",
+   "key": true,
+   "p": 0.865,
+   "med": 156,
+   "lo": 136,
+   "hi": 170
+  },
+  {
+   "name": "Eight-party alliance (no ANC, EFF or MK)",
+   "key": true,
+   "p": 0.5346,
+   "med": 141,
+   "lo": 127,
+   "hi": 154
+  },
+  {
+   "name": "DA + EFF + ActionSA",
+   "p": 0.3424,
+   "med": 137,
+   "lo": 121,
+   "hi": 152
+  },
+  {
+   "name": "DA + EFF + MK",
+   "p": 0.263,
+   "med": 130,
+   "lo": 101,
+   "hi": 154
+  },
+  {
+   "name": "ANC + EFF + MK",
+   "p": 0.0062,
+   "med": 124,
+   "lo": 106,
+   "hi": 137
+  },
+  {
+   "name": "DA + ActionSA",
+   "p": 0.0,
+   "med": 108,
+   "lo": 95,
+   "hi": 120
+  }
+ ],
+ "minority_da_2021": 0.6104,
+ "meta": {
+  "threshold_median": 141,
+  "council_median": 281,
+  "p_overhang": 0.8892
+ }
+};
+// __GEN_END__
 
-  const COALITIONS = [
-    { name:"ANC + DA",                          med:154, lo:127, hi:175, p:0.875, key:true },
-    { name:"Every party outside the ANC bloc",  med:150, lo:141, hi:162, p:0.999, key:true },
-    { name:"ANC + EFF + MK",                    med:120, lo:108, hi:129, p:0.0002 },
-    { name:"DA + ActionSA + IFP + VF+ + ACDP",  med:116, lo:102, hi:128, p:0.0012 },
-    { name:"DA + ActionSA",                     med:105, lo:91,  hi:116, p:0.0000 },
-    { name:"ANC + EFF",                         med:94,  lo:80,  hi:107, p:0.0000 },
-    { name:"ANC + ActionSA",                    med:84,  lo:65,  hi:109, p:0.0010 }
-  ];
-  const pct = v => v >= 0.995 ? "99.9%" : v < 0.0005 ? "under 0.1%" : (v*100).toFixed(1) + "%";
-  document.getElementById("coalitions").innerHTML = COALITIONS.map(c => `
-    <tr class="${c.key ? "key" : ""}">
-      <td>${c.name}</td>
-      <td class="num">${c.med}</td>
-      <td class="num" style="color:var(--ink-3)">${c.lo}–${c.hi}</td>
-      <td><div class="pbar"><i style="width:${Math.max(c.p*100,0.6)}%"></i></div></td>
-      <td class="num">${pct(c.p)}</td>
-    </tr>`).join("");
+document.getElementById("tiles").innerHTML = GEN.tiles.map(t => `
+  <div class="stat${t.hero ? " hero" : ""}">
+    <div class="n">${t.n}</div>
+    <div class="l">${t.l}</div>
+  </div>`).join("");
+
+const MAX = 125;
+document.getElementById("seats").innerHTML = GEN.parties.map(p => `
+  <div class="row">
+    <div class="pname"><span class="chip" style="background:${p.chip}"></span>${p.name}</div>
+    <div class="track">
+      <span class="band" style="left:${p.lo/MAX*100}%;width:${(p.hi-p.lo)/MAX*100}%"></span>
+      <span class="med" style="left:calc(${p.med/MAX*100}% - 1.5px)"></span>
+    </div>
+    <div class="val"><b>${p.med}</b> <span style="color:var(--ink-3)">${p.lo}–${p.hi}</span></div>
+  </div>`).join("");
+
+const pct = v => v >= 0.995 ? "99%+" : v < 0.0005 ? "under 0.1%" :
+  v >= 0.095 ? (v*100).toFixed(0) + "%" : (v*100).toFixed(1) + "%";
+document.getElementById("coalitions").innerHTML = GEN.coalitions.map(c => `
+  <tr class="${c.key ? "key" : ""}">
+    <td>${c.name}</td>
+    <td class="num">${c.med}</td>
+    <td class="num" style="color:var(--ink-3)">${c.lo}–${c.hi}</td>
+    <td><div class="pbar"><i style="width:${Math.max(c.p*100,0.6)}%"></i></div></td>
+    <td class="num">${pct(c.p)}</td>
+  </tr>`).join("");
+
+document.getElementById("minorityP").textContent = pct(GEN.minority_da_2021);
 </script>
