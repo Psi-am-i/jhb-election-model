@@ -53,8 +53,8 @@ The forecast comes from running 5,000 simulations of the same pipeline:
    the ANC's camp falls, how much the opposition's rises, how the vote splits
    within each camp. Parties that share voters are drawn *together* — the DA
    and ActionSA compete for the same pool, so one's gain is partly the
-   other's loss, and the same holds for the ANC, EFF and MK, who fight over
-   another. The draws are centred on the evidence we have (fifteen
+   other's loss, and the same holds for the ANC, EFF and MK, who fight over a
+   pool of their own. The draws are centred on the evidence we have (fifteen
    by-elections, the published polls) and bounded by every national-to-local
    swing actually observed since 2006. When evidence implies something
    history has never produced, history wins: our by-elections implied the
