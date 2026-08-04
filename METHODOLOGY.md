@@ -11,7 +11,7 @@ implementation departs from the original written plan and why.
 Companion documents: `SOURCES.md` (acquisition detail, URLs, access
 constraints), `MODEL-LOG.md` (running internal log and risk register; §1.14
 records the 2026-08-04 implementation review, §1.15 the corrected forecast),
-`joburg-lge-model-plan-v2.md` (the original plan, now annotated with
+`joburg-prediction-model-plan-v2.md` (the original plan, now annotated with
 corrections), `model-review.html` (the review that found six implementation
 errors, with its resolution addendum), and `forecast-interactive.html` (every
 scenario assumption as a bounded, defaulted control; its scenario JSON

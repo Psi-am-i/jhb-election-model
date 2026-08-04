@@ -1,0 +1,983 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Johannesburg 2026 — Johannesburg 2026 LGE — Data Acquisition, Ingestion and Modelling Plan (rev 2)</title>
+<style>
+  :root{
+    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
+    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
+    --accent:#a8621f; --accent-soft:#f0e2d5; --good:#2f6d4a;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
+      --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
+      --accent:#d9954f; --accent-soft:#3a2a1a; --good:#6fb98a;
+    }
+  }
+  *{box-sizing:border-box;margin:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased;}
+  .page{max-width:780px;margin:0 auto;padding:28px 24px 80px;}
+
+  .topnav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;
+    font-family:var(--mono);font-size:11.5px;color:var(--ink-3);
+    border-bottom:1px solid var(--rule);padding-bottom:9px;margin-bottom:26px;}
+  .topnav a{color:var(--ink-3);text-decoration:none;}
+  .topnav a:hover{color:var(--accent);}
+  .topnav a.home{color:var(--accent);font-weight:600;}
+
+  .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:10px;}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,40px);
+    line-height:1.12;letter-spacing:-.012em;text-wrap:balance;margin:0 0 10px;}
+  .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;
+    color:var(--ink-2);max-width:64ch;text-wrap:pretty;margin-bottom:6px;}
+  .dateline{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);
+    font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);padding:9px 0;margin:14px 0 8px;}
+  .dateline b{color:var(--ink-2);font-weight:600;}
+
+  h2{font-family:var(--serif);font-weight:600;font-size:24px;line-height:1.2;
+    letter-spacing:-.006em;margin:42px 0 4px;padding-top:18px;
+    border-top:1px solid var(--rule);}
+  h3{font-family:var(--serif);font-weight:600;font-size:18px;line-height:1.3;margin:28px 0 2px;}
+  h4{font-size:14px;font-weight:650;margin:20px 0 2px;}
+  p{margin:10px 0;max-width:70ch;}
+  ul,ol{margin:10px 0;padding-left:20px;max-width:68ch;
+    display:flex;flex-direction:column;gap:5px;}
+  strong{font-weight:650;}
+  hr{border:none;border-top:1px solid var(--rule-soft);margin:26px 0;}
+  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
+
+  code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);
+    border:1px solid var(--rule-soft);border-radius:3px;padding:.08em .34em;}
+  pre{background:var(--paper-2);border:1px solid var(--rule-soft);border-radius:5px;
+    padding:13px 15px;overflow-x:auto;margin:14px 0;line-height:1.5;}
+  pre code{background:none;border:none;padding:0;font-size:12.5px;color:var(--ink-2);}
+
+  .tablewrap{overflow-x:auto;margin:14px 0;}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;}
+  th{font-family:var(--sans);font-size:10.5px;font-weight:650;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-3);text-align:left;
+    padding:0 12px 7px 0;border-bottom:1px solid var(--rule);vertical-align:bottom;}
+  td{padding:8px 12px 8px 0;border-bottom:1px solid var(--rule-soft);
+    vertical-align:top;color:var(--ink-2);}
+  td:first-child{color:var(--ink);}
+
+  blockquote{border-left:2px solid var(--accent);background:var(--paper-2);
+    padding:10px 16px;margin:14px 0;color:var(--ink-2);}
+  blockquote p{margin:6px 0;}
+  blockquote h3,blockquote h4{margin-top:8px;}
+
+  .colophon{font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:12px;margin-top:48px;}
+
+  /* index cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:14px;margin:22px 0;}
+  .card{display:flex;flex-direction:column;gap:6px;border:1px solid var(--rule-soft);
+    background:var(--paper-2);padding:16px 18px;text-decoration:none;color:var(--ink);
+    transition:border-color .15s;}
+  .card:hover{border-color:var(--accent);}
+  .card.hero{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent);}
+  .card .t{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.25;}
+  .card .d{font-size:13px;color:var(--ink-2);line-height:1.45;}
+  .card .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);}
+
+  @media print{
+    body{background:#fff;color:#000;font-size:10pt;}
+    .page{max-width:none;padding:0;}
+    .topnav{display:none;}
+    h2,h3{break-after:avoid;} table,blockquote,pre{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+<nav class="topnav">
+  <a class="home" href="./">joburg.whysoserious.org</a>
+  <a href="forecast.html">forecast</a>
+  <a href="interactive.html">interactive</a>
+  <a href="methodology.html">methodology</a>
+  <a href="review.html">review</a>
+  <a href="model-log.html">log</a>
+  <a href="sources.html">sources</a>
+  <a href="plan.html">plan</a>
+</nav>
+<header>
+  <div class="kicker">The original plan (rev 2, annotated)</div>
+  <h1>Johannesburg 2026 LGE — Data Acquisition, Ingestion and Modelling Plan (rev 2)</h1>
+  <p class="standfirst">The build plan the model was constructed against — kept as written, including the parts implementation later proved wrong, with its correction boxes.</p>
+</header>
+<p><strong>Purpose:</strong> build a voting-district-level model of the City of Johannesburg that (a) predicts the council composition after the election on <strong>4 November 2026</strong> (date now proclaimed), (b) is backtested against 2016 and 2021, and (c) identifies which wards&rsquo; turnout has the greatest leverage on the final seat arithmetic.</p>
+<p><strong>Rev 2 changes:</strong> seat count verified against the statutory cap; θ parameters recentred on CoJ-specific 2024 data rather than Gauteng-wide figures; parameters reparameterised at bloc level with an explicit correlation structure for the Monte Carlo; swing moved from additive to logit space; PA and Al Jama-ah promoted out of <code>OTHER</code>; fold-1 2011 inconsistency resolved; §8 added as an empirical anchor table so defaults are traceable to sources.</p>
+<p><strong>Status of URLs:</strong> links marked ✔ were confirmed during research. Links marked ⚠ are the expected path structure and should be verified before scripting against them.</p>
+<hr />
+<h2>0. What is actually being predicted</h2>
+<p>Johannesburg&rsquo;s council is elected under mixed-member proportional representation:</p>
+<ul>
+<li>135 ward seats, first-past-the-post</li>
+<li>135 PR seats, <strong>compensatory</strong></li>
+<li>270 total; majority = 136</li>
+</ul>
+<p><strong>Seat count, verified.</strong> The Municipal Structures Act caps any council at 270 councillors and CoJ has been at that cap since 2016, per MDB testimony to Parliament — so 135/270/136 is stable for 2026 despite one April 2026 press report claiming 274/138 (treat that as journalist error; it contradicts the statutory cap and every other source). One residual check at data-load time: confirm the IEC&rsquo;s 2026 ward list for JHB contains exactly 135 wards, and fail loudly if not.</p>
+<p>The compensatory mechanism is the single most important structural fact. Winning a ward does not add a seat — it decides which of your entitled seats is filled by a ward councillor.</p>
+<blockquote>
+<h3>⚠️ Correction (rev 2 → rev 3): the entitlement is <strong>not</strong> the PR ballot share</h3>
+<p>Rev 2 asserted that &ldquo;a party&rsquo;s total seat count is determined by its citywide
+PR ballot share&rdquo;. <strong>This is wrong</strong>, and it was verified wrong against the
+IEC&rsquo;s own <em>Seat Calculation Detail</em> reports for both 2016 and 2021.</p>
+<p>Entitlement is determined by the party&rsquo;s share of the <strong>combined ward + PR
+vote</strong>. The statutory formula (Municipal Structures Act, Schedule 1), quoted
+verbatim on the IEC report, is:</p>
+<p>```
+Q = (A / (B - C - D)) + 1 ; disregarding fractions</p>
+<p>A  total valid votes cast for all parties, WARD AND PR BALLOTS ADDED TOGETHER
+  B  total seats available in the municipality (270)
+  C  independent ward councillors elected
+  D  ward councillor seats from parties with no PR list
+```</p>
+<p>Seats are then <code>floor(votes / Q)</code> per party, with the shortfall allocated by
+largest remainder. Two exclusions from <code>A</code>, both verified to the vote:
+independents, and parties that contested a ward but registered no PR list.</p>
+<p><code>src/seats.py</code> implements this and <code>src/validate_seats.py</code> reproduces the
+published council <strong>exactly</strong> for both elections — quota, <code>A</code>, and every party&rsquo;s
+seat count — from the VD-level result files alone:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>A</th>
+<th>Q</th>
+<th>ANC</th>
+<th>DA</th>
+<th>ActionSA</th>
+<th>EFF</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2016</td>
+<td>2,496,617</td>
+<td>9,247</td>
+<td>121</td>
+<td>104</td>
+<td>—</td>
+<td>30</td>
+</tr>
+<tr>
+<td>2021</td>
+<td>1,834,260</td>
+<td>6,794</td>
+<td>91</td>
+<td>71</td>
+<td>44</td>
+<td>29</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Why rev 2&rsquo;s error was invisible.</strong> For almost every party the ward and PR
+shares agree to within about a point, so PR share is an excellent proxy and the
+substitution costs nothing. In 2016 the DA polled 38.34% ward / 38.48% PR —
+which is exactly why the &ldquo;104 seats ≈ 38.4% of 270&rdquo; check in rev 2 appeared to
+confirm the PR-only rule. <strong>ActionSA in 2021 is the counter-example</strong>: 13.98% on
+the ward ballot against 18.12% on PR, a 4.1pp split-ticket gap. Under the
+PR-only rule they would be entitled to ~49 seats; they got 44. They contested
+134 of 135 wards, so this is genuine ticket-splitting, not missing candidates.</p>
+<p><strong>Consequence:</strong> the primary target is citywide <strong>combined ward + PR</strong> share,
+and the ward ballot is roughly half of it. Ward-level modelling is not the
+secondary concern described below — it is half the answer, and any party whose
+two ballots diverge (a new insurgent party, or one with weak local candidates)
+will be mis-forecast by a PR-only model. §3 must model both ballots.</p>
+</blockquote>
+<p><strong>Consequence for model design:</strong> a ward-by-ward FPTP model that reports &ldquo;seats won&rdquo; is still the wrong quantity — but so is a PR-only model. Model both ballots, combine them, then allocate. Ward-level modelling additionally matters for:</p>
+<ol>
+<li><strong>Overhang.</strong> If a party wins more wards than its entitlement, the extra ward seats are retained and the effective majority threshold moves. <strong>Verified: no overhang in 2016 or 2021</strong> (<code>src/validate_seats.py</code> checks this directly). But 2021 was closer than rev 2 implied — the ANC took 87 wards against an entitlement of 91, leaving just 4 PR seats and only 5 wards of headroom. With the ANC&rsquo;s citywide share falling faster than its ward-level dominance in its strongholds, overhang is a live risk for 2026, not a theoretical one. Keep the check and report the margin.</li>
+<li><strong>Turnout leverage.</strong> Citywide share is a turnout-weighted average of VD-level shares, so identifying which VDs move that average most is a ward-level question.</li>
+</ol>
+<p>Also note <strong>contestation coverage</strong> as a distinct effect from ticket-splitting: the PA contested only 52 of 135 wards in 2021, so its ward-ballot total is structurally capped regardless of support. A 2026 forecast must take a view on how many wards each party fields candidates in.</p>
+<hr />
+<h2>1. Data sources</h2>
+<h3>1.1 Election results</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Source</th>
+<th>Contents</th>
+<th>Link</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R1</td>
+<td>IEC results portal</td>
+<td>Live and archived results dashboards</td>
+<td>https://results.elections.org.za/ ⚠</td>
+</tr>
+<tr>
+<td>R2</td>
+<td>IEC Election Reports &amp; Results</td>
+<td>Downloadable result sets, all elections</td>
+<td>https://www.elections.org.za/ ✔ (navigate to Elections → Election Reports and Results)</td>
+</tr>
+<tr>
+<td>R3</td>
+<td>SANEF Elections Portal</td>
+<td>VD-level results with area-level CSV export; substantially easier than R2</td>
+<td>https://elections.sanef.org.za/ ✔</td>
+</tr>
+<tr>
+<td>R4</td>
+<td>IEC by-election reports</td>
+<td>Per-contest ward results since Nov 2021</td>
+<td>via R2 ⚠</td>
+</tr>
+</tbody>
+</table></div>
+<p>Elections required:</p>
+<ul>
+<li><strong>2011 LGE</strong> — <em>optional</em> share prior for fold 1 only. CoJ had 130 wards / 260 seats in 2011, so using it requires extending the VD concordance back one more delimitation. Only worth it if fold 1 underperforms without it.</li>
+<li><strong>2014 NPE</strong> — provincial ballot, VD level (baseline for fold 1)</li>
+<li><strong>2016 LGE</strong> — ward ballot + PR ballot, VD and ward level (target of fold 1, baseline for fold 2)</li>
+<li><strong>2019 NPE</strong> — provincial ballot, VD level (baseline for fold 2)</li>
+<li><strong>2021 LGE</strong> — ward ballot + PR ballot, VD and ward level (target of fold 2, baseline for fold 3)</li>
+<li><strong>2024 NPE</strong> — provincial ballot, VD level (baseline for fold 3)</li>
+<li><strong>By-elections 2021–2026</strong> — all CoJ wards, plus Gauteng-wide for the swing estimator</li>
+</ul>
+<p>Note that national and provincial elections have no wards. 2024 data exists only at VD level, which is why VD must be the atomic unit throughout.</p>
+<h3>1.2 Geography and crosswalks</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Source</th>
+<th>Contents</th>
+<th>Link</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G1</td>
+<td>MDB Spatial Knowledge Hub</td>
+<td>Shapefiles: ward boundaries by year, municipal boundaries</td>
+<td>https://www.demarcation.org.za/ ✔</td>
+</tr>
+<tr>
+<td>G2</td>
+<td>MDB Ward Delimitation 2024/2026</td>
+<td>2026 ward boundaries, councillor counts per municipality, ward information tables, story map</td>
+<td>https://www.demarcation.org.za/ward-delimitation-2024-2026/ ✔</td>
+</tr>
+<tr>
+<td>G3</td>
+<td>MDB Ward Delimitation Booklet</td>
+<td>Documents the VD-within-ward numbering convention needed for the join</td>
+<td>https://www.demarcation.org.za/wp-content/uploads/2024/07/MDB-Ward-Delimitation-Booklet-Digital-1.pdf ✔</td>
+</tr>
+<tr>
+<td>G4</td>
+<td>IEC VD boundaries</td>
+<td>Voting district shapefiles and VD→ward lookup per election</td>
+<td>via R2 ⚠</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>The boundary problem.</strong> Wards went from 4,468 nationally in 2021 to 4,488 in 2026. CoJ&rsquo;s own ward count and boundaries have shifted at every delimitation. Ward identifiers are therefore <strong>not</strong> comparable across years. VDs are more stable but not fully stable either — they split as registration grows.</p>
+<h3>1.3 Covariates</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Source</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C1</td>
+<td>Stats SA Census 2022, Small Area Layer</td>
+<td>Income, dwelling type, employment, household size</td>
+</tr>
+<tr>
+<td>C2</td>
+<td>Wazimap-NG</td>
+<td>Pre-joined census data, friendlier API</td>
+</tr>
+<tr>
+<td>C3</td>
+<td>IEC voters&rsquo; roll statistics</td>
+<td>Registered voters by VD, by age band and sex</td>
+</tr>
+</tbody>
+</table></div>
+<p>Covariates are used only for the turnout sub-model. They are not needed for share prediction and adding them there invites overfitting.</p>
+<h3>1.4 By-election and polling comparators</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Source</th>
+<th>Value</th>
+<th>Link</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>B1</td>
+<td>The South Africa Brief</td>
+<td>Ward-level by-election writeups with 2021 and 2024 comparators already computed — saves considerable work</td>
+<td>https://thesouthafricabrief.substack.com/ ✔</td>
+</tr>
+<tr>
+<td>B2</td>
+<td>inside-politics</td>
+<td>Metro turnout trend series and a resources page for 2026/7</td>
+<td>https://inside-politics.org/ ✔</td>
+</tr>
+<tr>
+<td>B3</td>
+<td>The Common Sense (SRF)</td>
+<td>Metro polling and 2014/2016/2019/2021/2024 metro comparisons</td>
+<td>https://www.thecommonsense.co.za/ ✔</td>
+</tr>
+<tr>
+<td>B4</td>
+<td>Ipsos, News24/City Press</td>
+<td>Independent polling for triangulation</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2>2. Ingestion and restructuring</h2>
+<h3>Step 1 — Establish the atomic unit</h3>
+<p>Use <strong>voting district</strong> as the unit of observation for all elections. Everything aggregates upward from there.</p>
+<h3>Step 2 — Build a VD concordance</h3>
+<p>VDs split and merge between elections. Construct a concordance table mapping each historic VD to 2026 VDs by spatial intersection of the shapefiles.</p>
+<ul>
+<li><strong>Split</strong> (one 2014 VD → several 2026 VDs): apportion historic votes across the children.</li>
+<li><strong>Merge</strong>: sum.</li>
+<li><strong>Boundary nibble</strong> (minor edge adjustments): ignore below a threshold, default 2% of area.</li>
+</ul>
+<blockquote>
+<p><strong>Assumption A1 — within-VD homogeneity.</strong> When splitting a historic VD, its vote shares are assumed uniform across the child VDs. This is false in practice — VD splits often follow exactly the socioeconomic gradients that predict voting. Mitigate by apportioning on <strong>registered voters</strong> rather than area wherever the roll permits, and by flagging split-derived observations so their influence can be down-weighted.</p>
+<p>Adjustable: <code>w_split</code> — weight applied to split-derived VD observations in fitting. Default <strong>0.6</strong>, range 0.3–1.0.</p>
+</blockquote>
+<h3>Step 3 — Party normalisation</h3>
+<p>Build an explicit party crosswalk with three fields: <code>raw_name</code>, <code>canonical_party</code>, <code>lineage_flag</code>.</p>
+<p><code>lineage_flag</code> values:
+- <code>continuous</code> — same party, comparable across years (ANC, DA, EFF from 2014, IFP, FF+, ACDP, <strong>PA from 2016, Al Jama-ah</strong>)
+- <code>new</code> — no prior baseline (EFF in 2014, ActionSA in 2021, MK/RISE/BOSA in 2024)
+- <code>successor</code> — inherits a predecessor&rsquo;s baseline at some discount (e.g. treatment of COPE)
+- <code>aggregate</code> — swept into an <code>OTHER</code> bucket</p>
+<p><strong>PA and Al Jama-ah are tracked individually, not aggregated.</strong> Rev 2 change, and the reason is ward arithmetic: both have geographically concentrated support that wins wards, which is exactly what the overhang check and ward-count outputs care about. The PA took 2.9% of CoJ in 2024 with support concentrated in Eldorado Park / Westbury / Ennerdale / Newclare, won the Ward 82 by-election in April 2025 by 1,245 votes after more than doubling its 2021 share, and is the only party to have gained multiple CoJ council seats between elections since 2021 — plausible for up to five ward wins in 2026. Al Jama-ah&rsquo;s support sits almost entirely in Wards 9, 10 and 58 and it won Ward 9 on the 2024 provincial ballot. A model that leaves either in <code>OTHER</code> will miscount ward winners in specific, predictable places.</p>
+<p>The <code>OTHER</code> bucket (now: everything outside ANC, DA, EFF, MK, ActionSA, PA, IFP, FF+, ACDP, Rise, BOSA, Al Jama-ah) is still not a nuisance term — the residual was ~4.4% of CoJ in 2024, independents are now permitted, and 508 parties registered nationally — but it no longer conceals any party capable of winning a ward. Define its membership explicitly in the crosswalk so <code>f_other</code> has a fixed denominator across years.</p>
+<blockquote>
+<p><strong>Assumption A2 — new-party baselines.</strong> New parties have no VD-level history, so their 2026 VD shares must be imputed from their 2024 provincial-ballot VD shares scaled by a party-level LGE factor (§3.3). This is the largest single source of model error and should be reported separately in backtesting.</p>
+</blockquote>
+<h3>Step 4 — Turnout series</h3>
+<p>Per VD per election, record: registered voters, votes cast, turnout. Then compute the <strong>drop-off ratio</strong>:</p>
+<pre><code>λ(LGE_t) = turnout(LGE_t) / turnout(NPE_{t-1})
+</code></pre>
+<p>giving <code>λ_2016 = T2016/T2014</code> and <code>λ_2021 = T2021/T2019</code> for every VD. This is the core object of the model.</p>
+<h3>Step 5 — Assign to 2026 wards</h3>
+<p>Join 2026 VDs to 2026 wards using the MDB lookup (G2/G3). Reaggregate all reweighted historic results into 2026 ward envelopes.</p>
+<h3>Step 6 — Storage</h3>
+<p>Parquet, one table per (election, unit) pair, plus the concordance and crosswalk tables. Python with pandas and geopandas; the spatial intersections are the only computationally awkward part and they only need running once.</p>
+<hr />
+<h2>3. The model</h2>
+<h3>3.1 Decomposition</h3>
+<p>For voting district <em>i</em> and party <em>p</em>:</p>
+<pre><code>Votes(i,p) = Registered(i) × Turnout(i) × Share(i,p)
+</code></pre>
+<p>Three sub-models, in ascending order of difficulty and descending order of how much anyone talks about them.</p>
+<h3>3.2 Registration sub-model</h3>
+<p>Largely observed. Take the current roll, apply VD-level growth from the 2026 registration weekends. Low uncertainty; not worth elaborate treatment.</p>
+<h3>3.3 Turnout sub-model — the one that matters</h3>
+<pre><code>T_2026(i) = T_2024(i) × λ̂(i)
+</code></pre>
+<p>Estimate <code>λ̂(i)</code> as a weighted blend of observed history, adjusted by covariates:</p>
+<pre><code>λ̂(i) = w_recency · λ_2021(i) + (1 − w_recency) · λ_2016(i)
+       + β · (covariate deviation)
+</code></pre>
+<blockquote>
+<p><strong>Assumption A3 — relative stability of drop-off.</strong> The <em>absolute</em> level of turnout drift is not assumed stable; the <em>relative pattern</em> across VDs is. That is, if Sandton VDs dropped off less than Ivory Park VDs in both 2016 and 2021, they will again in 2026. This is the model&rsquo;s central bet and it is a reasonable one — differential turnout has been the most stable feature of South African metro elections.</p>
+<h3>⚠️ Measured (rev 3): A3 holds, but λ is the wrong carrier of it</h3>
+<p><code>src/turnout.py</code> computes the series and tests A3 rather than assuming it.
+Two results, and the second matters more than the first.</p>
+<p><strong>A3 is real but modest.</strong> The correlation between λ_2016 and λ_2021 across
+823 VDs is <strong>+0.39</strong>. That is the right sign, and it is not a small-sample
+artefact — it is flat to slightly <em>lower</em> when restricted to larger VDs
+(+0.32 for VDs above 2,000 registered) and +0.33 registration-weighted. But
+λ_2016 explains only about 15% of the variance in λ_2021, which is a long way
+from &ldquo;the most stable feature of South African metro elections&rdquo;.</p>
+<p><strong>The previous LGE&rsquo;s turnout level predicts better than λ does.</strong> Predicting
+2021 VD turnout, with every predictor rescaled to the true citywide total so
+the comparison is only about the relative pattern:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Predicting</th>
+<th>Previous LGE level</th>
+<th>The ratio form above</th>
+<th>Preceding NPE level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2021 turnout</td>
+<td><strong>0.0409</strong></td>
+<td>0.0592</td>
+<td>0.0657</td>
+</tr>
+<tr>
+<td>2016 turnout</td>
+<td><strong>0.0527</strong></td>
+<td><em>(needs the 2009 NPE)</em></td>
+<td>0.0769</td>
+</tr>
+</tbody>
+</table></div>
+<p>MAE in turnout points. The ordering is the same in both cycles and the
+interpretation is simple: <strong>like predicts like.</strong> LGE turnout patterns are
+predicted better by the previous <em>LGE</em> than by the preceding <em>NPE</em>, and the
+ratio form only partially closes that gap because it starts from the NPE base
+and corrects toward LGE with λ.</p>
+<p>The rescaling matters — without it the ratio form looks far worse still,
+because it carries 2016&rsquo;s drop-off into 2021 and overshoots the citywide level
+by 25% (correction ×0.80). 2021&rsquo;s collapse was much deeper than 2016&rsquo;s, which
+is exactly what <code>w_recency</code> exists to hedge and exactly why it cannot be
+hedged from one prior cycle.</p>
+<p><strong>Suggested change to §3.3:</strong> anchor on <code>T_2021(i)</code> (the previous LGE) rather
+than <code>T_2024(i) × λ̂(i)</code>, with the citywide level supplied separately by the
+λ blend or by scenario. Keep λ̂ for the citywide level, where it performs fine
+— the blend implies 0.66 and a 41.7% citywide 2026 turnout, inside §8.2&rsquo;s
+38–42% expectation. Two caveats before adopting it: this is two cycles of
+evidence, and 2021 was Covid-affected, so §4&rsquo;s folds should score both forms
+head to head rather than switching on this alone.</p>
+</blockquote>
+<p><strong>A free covariate the first draft threw away: by-election turnout.</strong> By-elections are used in §3.6 only for share deltas, but their <em>turnout relative to the same ward&rsquo;s 2021 turnout</em> is a live differential-enthusiasm signal for λ̂. Example of why this matters: in the March 2025 Ward 99 (Linden/Blairgowrie) by-election the DA took 98% but turnout collapsed to 24% from 57% — suburban-fortress apathy is precisely the failure mode of the &ldquo;DA voters turn out for locals&rdquo; bet, and no other data source measures it before election day. Feed <code>turnout_bye(w)/turnout_2021(w)</code>, normalised against the same ratio&rsquo;s citywide median across contested wards, into the covariate term of λ̂ for VDs in and demographically adjacent to contested wards. Weight it modestly (it shares A4&rsquo;s selection bias), but do not discard it.</p>
+<h3>3.4 Share sub-model</h3>
+<p><strong>Rev 2: two structural changes here.</strong></p>
+<p><strong>(a) θ is drawn at bloc level, not party level.</strong> The first draft&rsquo;s party-level θ values are strongly cross-correlated because the parties share voter pools — θ_DA and θ_ASA fight over the same voters, as do θ_ANC, θ_EFF and θ_MK. Sampling them independently in the Monte Carlo generates incoherent draws (e.g. ANC, EFF and MK all simultaneously at the top of their ranges). The historical data says the <em>bloc-level</em> NPE→LGE shift is the stable object, and the party-level factors are mostly within-bloc reshuffling:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Transition</th>
+<th>ANC-EFF(-MK) bloc</th>
+<th>DA(-ASA-BOSA) bloc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2004 prov → 2006 LGE</td>
+<td>−6 pts</td>
+<td>+7 pts</td>
+</tr>
+<tr>
+<td>2009 prov → 2011 LGE</td>
+<td>−3</td>
+<td>+12</td>
+</tr>
+<tr>
+<td>2014 prov → 2016 LGE</td>
+<td>−6</td>
+<td>+6</td>
+</tr>
+<tr>
+<td>2019 prov → 2021 LGE</td>
+<td>−22</td>
+<td>+13</td>
+</tr>
+<tr>
+<td>Mean</td>
+<td><strong>≈ −9</strong></td>
+<td><strong>≈ +9.5</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>(The wild 2021 party-level factors — ANC 0.67, DA 0.97 — are largely ActionSA&rsquo;s entry redistributing votes <em>within</em> the anti-ANC bloc plus a Covid-era turnout collapse; the bloc numbers are far better behaved.)</p>
+<p>So: draw a bloc dip/bounce <code>Δ_bloc</code> for each of {ANC-EFF-MK}, {DA-ASA-BOSA}, then draw a <strong>within-bloc split</strong> (Dirichlet over the bloc&rsquo;s parties, concentration set from polling and by-elections), and derive each party&rsquo;s implied θ_p from the two. Parties outside both blocs (PA, IFP, FF+, ACDP, Al Jama-ah, Rise, OTHER) keep individual factors — their voter pools genuinely are separate. The per-party θ ranges in §3.5 survive as <em>sanity bounds</em> on the derived values and as the interface for scenario levers, not as independent sampling distributions.</p>
+<p><strong>(b) Swing is applied in logit space, not additively.</strong> The first draft&rsquo;s <code>+ δ_p</code> breaks at VD level: the DA averages 5% in Soweto wards, so any meaningful negative δ pushes shares negative, and the subsequent renormalisation redistributes swing in ways nobody chose. Instead:</p>
+<pre><code>logit(Share_2026(i,p)) = logit(Share_2024(i,p) × θ_p) + γ_p · localdev(i,p) + δ_p
+</code></pre>
+<p>with softmax renormalisation within each VD. δ_p is now a log-odds shift — uniform in logit space, which approximates proportional swing where a party is small and additive swing where it is mid-sized, and can never produce a negative share. <code>γ_p</code> retains its meaning: how much of a party&rsquo;s local variation is preserved versus flattened toward its citywide mean. Floor input shares at ~0.2% before the logit to keep zero-vote VDs finite.</p>
+<h3>3.5 Parameter table</h3>
+<p>These are the knobs. Defaults are informed priors, not estimates — fit what you can in backtesting and leave the rest as scenario levers. <strong>Rev 2: every θ baseline is now the CoJ-specific 2024 provincial-ballot result (see §8), not the Gauteng-wide figure the first draft used for ActionSA. The factor and the baseline must live on the same geography or the VD-level imputation silently overshoots.</strong> Per-party θ values are <em>derived</em> from bloc draws per §3.4(a); the ranges below bound the derived values.</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Meaning</th>
+<th>Default</th>
+<th>Range</th>
+<th>Basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>w_recency</code></td>
+<td>Weight on 2021 vs 2016 drop-off</td>
+<td>0.70</td>
+<td>0.50–0.90</td>
+<td>Recency vs sample size; note this makes 2021&rsquo;s Covid-era collapse dominant — test sensitivity in fold 2</td>
+</tr>
+<tr>
+<td><code>w_split</code></td>
+<td>Down-weight for split-derived VDs</td>
+<td>0.60</td>
+<td>0.30–1.00</td>
+<td>Judgement</td>
+</tr>
+<tr>
+<td><code>Δ_ANCbloc</code></td>
+<td>ANC-EFF-MK bloc NPE→LGE shift, pts</td>
+<td>−9</td>
+<td>−22 to −3</td>
+<td>Four observed transitions: −6, −3, −6, −22 (§3.4a)</td>
+</tr>
+<tr>
+<td><code>Δ_DAbloc</code></td>
+<td>DA-ASA-BOSA bloc shift, pts</td>
+<td>+9</td>
+<td>+5 to +14</td>
+<td>Four observed transitions: +7, +12, +6, +13</td>
+</tr>
+<tr>
+<td><code>θ_ANC</code></td>
+<td>ANC LGE factor vs 2024 CoJ base 32%</td>
+<td>0.75</td>
+<td>0.65–0.90</td>
+<td>Observed: 44.5/52 ≈ <strong>0.86</strong> (2016), 33.6/50 ≈ <strong>0.67</strong> (2021). The first draft&rsquo;s 0.85 default contradicted its own w_recency = 0.7, which implies ≈ 0.73. Centre there unless 2021 is explicitly argued as an outlier</td>
+</tr>
+<tr>
+<td><code>θ_DA</code></td>
+<td>DA LGE factor vs 2024 CoJ base 25%</td>
+<td>1.30</td>
+<td>1.05–1.60</td>
+<td>Bloc bounce +9 on base 32% mostly accrues to DA if ASA/BOSA stay weak; SRF Q1-2026 has DA at 39% in Joburg ⇒ implied ≈ 1.56 at the poll&rsquo;s face value. Negatively correlated with θ_ASA by construction</td>
+</tr>
+<tr>
+<td><code>θ_EFF</code></td>
+<td>EFF LGE factor vs 2024 CoJ base 12.5%</td>
+<td>0.85</td>
+<td>0.55–1.10</td>
+<td>Observed 11.1/10 ≈ <strong>1.11</strong> (2016) but 10.6/15 ≈ <strong>0.71</strong> (2021) — the first draft&rsquo;s &ldquo;near-flat&rdquo; claim was wrong. SRF Q1-2026: EFF 5% in Gauteng, consistent with the low end</td>
+</tr>
+<tr>
+<td><code>θ_ASA</code></td>
+<td>ActionSA LGE factor vs <strong>2024 CoJ base 6.2%</strong> (88k votes)</td>
+<td>1.50</td>
+<td>0.90–3.00</td>
+<td>First draft used the 4.16% Gauteng base — wrong geography; on the correct 6.2% base its 2.2 default implied 13.6% citywide. Bear case: SRF Q1-2026 has ASA at 7% (⇒ ~1.1); support halved 2021→2024. Bull case: polls also missed ASA badly in 2021, and it took 22.7% in the Sept-2025 Ward 130 Soweto by-election (~3× its 2024 level there), beating MK and the EFF. Genuinely wide; keep it wide but centred lower</td>
+</tr>
+<tr>
+<td><code>θ_MK</code></td>
+<td>MK LGE factor vs 2024 CoJ base 12.2%</td>
+<td>0.60</td>
+<td>0.30–1.00</td>
+<td>No ward machinery; list-vote party facing a two-ballot contest. Corroboration since first draft: MK&rsquo;s by-election strength is a KZN phenomenon — in its one Soweto test (Ward 130) it was beaten by ActionSA — and Ipsos has MK at 8% in Gauteng vs 12.2% CoJ 2024. Regional caveat: MK led the CBD in 2024 (28% average) so apply θ_MK&rsquo;s uncertainty with γ_MK high — its decline will not be spatially uniform</td>
+</tr>
+<tr>
+<td><code>θ_PA</code></td>
+<td>PA LGE factor vs 2024 CoJ base 2.9%</td>
+<td>1.40</td>
+<td>1.00–2.20</td>
+<td>New in rev 2. Doubled its 2021 share in the Ward 82 by-election win; only party gaining multiple CoJ seats mid-term; concentrated support ⇒ ward-win relevant</td>
+</tr>
+<tr>
+<td><code>f_other</code></td>
+<td>Growth factor on the (redefined, smaller) <code>OTHER</code> bucket</td>
+<td>1.30</td>
+<td>1.00–1.80</td>
+<td>Residual ≈ 4.4% in 2024 CoJ; independents now permitted; 508 parties registered</td>
+</tr>
+<tr>
+<td><code>τ</code></td>
+<td>By-election weight half-life (months)</td>
+<td>18</td>
+<td>6–36</td>
+<td>Trades recency against sample</td>
+</tr>
+<tr>
+<td><code>α_split</code></td>
+<td>Dirichlet concentration for within-bloc splits</td>
+<td>—</td>
+<td>—</td>
+<td>Set per bloc from polling dispersion; low α for the DA bloc (ASA outcome genuinely bimodal), higher for the ANC bloc</td>
+</tr>
+<tr>
+<td><code>w_bye</code></td>
+<td>Weight on by-election swing vs polling in <code>δ_p</code></td>
+<td>0.40</td>
+<td>0.00–1.00</td>
+<td>See A4</td>
+</tr>
+<tr>
+<td><code>κ_ward</code></td>
+<td>Ward-ballot vs PR-ballot differential</td>
+<td>0.03</td>
+<td>0.00–0.08</td>
+<td>Independents and local candidates outperform on the ward ballot</td>
+</tr>
+</tbody>
+</table></div>
+<h3>3.6 By-election weighting</h3>
+<pre><code>weight(j) = exp(−age_months(j) / τ) × √(votes_cast(j)) × ρ(j)
+</code></pre>
+<p>where <code>ρ(j)</code> measures how closely ward <em>j</em>&rsquo;s 2024 party profile resembles the citywide profile.</p>
+<blockquote>
+<p><strong>Assumption A4 — by-election selection bias.</strong> By-elections are emphatically not a random sample. They occur where a councillor died, resigned or was expelled, which skews heavily toward ANC-held wards and toward wards with unstable local politics. Turnout of 18–50% makes them candidate-driven rather than brand-driven.</p>
+<p><strong>Mitigation, and this is the important design choice: use deltas, not levels.</strong> Never feed a by-election&rsquo;s raw vote share into the model. Feed the <em>change</em> between that ward&rsquo;s by-election result and its own 2024 result. Levels inherit the selection bias; within-ward deltas largely difference it out. This is why <code>w_bye</code> defaults below 0.5 — even differenced, by-elections are a directional signal rather than a swing model.</p>
+</blockquote>
+<h3>3.7 Seat allocation</h3>
+<ol>
+<li>Predict PR ballot share citywide.</li>
+<li>Allocate 270 seats by the Municipal Structures Act Schedule 1 quota-and-surplus method.</li>
+<li>Predict ward winners from ward-ballot shares (PR shares adjusted by <code>κ_ward</code>).</li>
+<li>Deduct ward wins from each party&rsquo;s entitlement.</li>
+<li><strong>Check for overhang.</strong> If any party&rsquo;s ward wins exceed its entitlement, expand the council and recompute — the majority threshold moves off 136.</li>
+</ol>
+<h3>3.8 Coalition enumeration and power indices</h3>
+<p>The seat vector is not the output. The output is the structure of possible governments it permits.</p>
+<p><strong>Full enumeration.</strong> For every Monte Carlo draw, enumerate all 2ⁿ subsets of represented parties and flag those reaching the majority threshold. With eight to twelve parties holding seats this is 256–4,096 subsets per draw — computationally free. There is no reason to pre-filter on plausibility, and good reason not to.</p>
+<p><strong>Reduce to minimal winning coalitions.</strong> A winning subset is <em>minimal</em> if dropping any member costs it the majority. The set of MWCs is far smaller than the set of winning coalitions and far more informative: it is the set of deals where every partner has real leverage. Report MWCs, not all winners.</p>
+<p><strong>Compute power indices.</strong> This is the part that directly answers the &ldquo;you never know in politics&rdquo; concern. Two indices, both cheap:</p>
+<ul>
+<li><strong>Banzhaf index</strong> — the share of winning coalitions in which party <em>p</em> is <em>pivotal</em> (its removal breaks the majority)</li>
+<li><strong>Shapley–Shubik index</strong> — pivotality weighted by ordering, a better proxy for bargaining sequence</li>
+</ul>
+<p>Power indices are the reason a 10% party is not a 10% actor. In 2016 the EFF took roughly 11% in Johannesburg and then determined the mayoralty without entering government at all — Mashaba ran a minority administration on external EFF support for three years. ActionSA&rsquo;s 16.5% in 2021 bought it a similar structural position. In both cases seat share badly understated leverage, and a Banzhaf calculation would have shown it in advance.</p>
+<p>Report each party&rsquo;s power index as a <strong>distribution across Monte Carlo draws</strong>, not a point value. A party whose Banzhaf index is 0.05 in the median draw but 0.30 in the tenth percentile is exactly the kind of thing this exercise exists to surface.</p>
+<p><strong>Add a minority-government class.</strong> The majority threshold is not actually the binding constraint on electing a mayor. The mayor is chosen by councillors present and voting, so abstention can install a minority administration. This has happened in Johannesburg more than once, including after 2021 when the DA took mayoralties without partners, agreements or majorities. Model a third outcome class alongside majority coalition and no-government: <strong>plurality bloc plus abstention</strong>, viable wherever the largest bloc exceeds the sum of parties that would actively vote against it.</p>
+<p><strong>Keep political feasibility as a separate, toggleable layer.</strong> Compute the arithmetic without any refusal constraints. Then annotate — not filter — with declared positions (who has ruled out whom, which mayoral candidates cannot plausibly serve under which). Store these as an editable table with a confidence weight, because declared red lines in South African coalition politics have a short half-life. Mashaba entered politics to remove the ANC and now governs Tshwane with it. The arithmetic layer should never inherit an assumption that a stated refusal will hold.</p>
+<hr />
+<h2>4. Backtesting</h2>
+<h3>4.1 Folds</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Fold</th>
+<th>Baseline</th>
+<th>Target</th>
+<th>New entrant present</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>2014 NPE (2011 LGE optional — see §1.1 ward-count caveat)</td>
+<td>2016 LGE</td>
+<td>EFF</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2019 NPE + 2016 LGE + by-elections</td>
+<td>2021 LGE</td>
+<td>ActionSA</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2024 NPE + 2021 LGE + by-elections</td>
+<td>2026 LGE</td>
+<td>MK</td>
+</tr>
+</tbody>
+</table></div>
+<p>Fit parameters on fold 1, validate on fold 2, then apply to fold 3. Do not fit on both folds and report the fit — with two observations that is not validation, it is decoration.</p>
+<h3>4.2 Metrics</h3>
+<ul>
+<li><strong>Citywide:</strong> MAE on PR share in percentage points, per party</li>
+<li><strong>Ward-level:</strong> MAE on party share; proportion of wards with correct predicted winner; Brier score on ward winner</li>
+<li><strong>Seat:</strong> MAE on seat counts</li>
+<li><strong>The one that matters:</strong> did the model correctly identify which coalition combinations cleared the majority threshold? A model that is accurate to ±3 points but calls the coalition arithmetic wrong has failed at the only task that has consequences.</li>
+</ul>
+<h3>4.3 A warning worth internalising before you start</h3>
+<p>Both backtest folds contain a major new entrant, and so does the live case. New parties are precisely where the model has no information and must lean entirely on <code>θ_p</code>, a hand-set prior. Expect something like ±1.5 points MAE on established parties and ±5 or worse on new ones.</p>
+<p>That asymmetry is not a detail. With DA + ActionSA needing 136 of 270 and central estimates falling short of it (the draft-1 figure of ~122 predates the rev-2 parameter changes — recompute, but the qualitative point survives every parameterisation tried), the coalition question turns on the <code>OTHER</code> tail and on ActionSA&rsquo;s recovery — the two least predictable quantities in the model. Note the rev-2 bloc structure sharpens this: DA and ASA outcomes are now negatively correlated by construction, so their <em>combined</em> seat count is more stable across draws than either party&rsquo;s — which is the politically relevant quantity. <strong>The honest output is a distribution over coalition-viability, not a seat forecast.</strong> Run 5,000 Monte Carlo draws over the parameter ranges in §3.5 and report the probability that each coalition clears the threshold. That is a defensible deliverable. A point estimate is not.</p>
+<hr />
+<h2>5. Turnout leverage analysis</h2>
+<p>This addresses your second question directly, and it is the part most likely to produce something genuinely new.</p>
+<p><strong>Method.</strong> For each of the 135 wards <em>w</em>:</p>
+<ol>
+<li>Perturb turnout in every VD within <em>w</em> by ±5 percentage points, holding shares fixed.</li>
+<li>Re-run the full pipeline.</li>
+<li>Record Δ in each party&rsquo;s seat count and Δ in the DA+ActionSA combined total.</li>
+<li>Define leverage as <code>L(w) = |Δseats| / Δturnout</code>, and normalise by ward registered voters to separate &ldquo;big ward&rdquo; from &ldquo;pivotal ward&rdquo;.</li>
+</ol>
+<blockquote>
+<p><strong>Assumption A5 — marginal voters resemble their VD.</strong> &ldquo;Holding shares fixed&rdquo; assumes the voters who appear or stay home under the perturbation vote like their VD&rsquo;s existing voters. This is the standard assumption and probably conservative in the direction that matters (in high-ANC-share VDs the marginal stay-at-home voter is, if anything, <em>more</em> likely a disaffected ANC voter than the VD average), but the headline finding below depends on it, so it gets named and numbered like the others. Sensitivity check: re-run leverage with marginal voters drawn from a 50/50 blend of VD shares and the ward&rsquo;s non-voter demographic profile.</p>
+</blockquote>
+<p><strong>Expected finding, stated in advance so it can be falsified.</strong> Leverage will <em>not</em> be highest in marginal wards. It will be highest in <strong>high-registration, high-ANC-share, historically low-turnout wards</strong> — the Soweto and Orange Farm clusters. Those wards hold the largest stock of latent votes whose appearance or non-appearance moves the citywide PR average most. A marginal ward in Northcliff flips one ward seat and, under compensatory PR, changes the council composition by almost nothing. A ten-point turnout swing across Soweto moves the ANC&rsquo;s citywide share by several points and reallocates a dozen seats.</p>
+<p>If that prediction holds, it has a practical implication: the DA&rsquo;s path to 136 with ActionSA depends less on persuading anyone and more on whether ANC-inclined voters in the south stay home. Which is an uncomfortable thing for a model to say, but it is what the arithmetic of compensatory PR implies.</p>
+<p><strong>Secondary output.</strong> A per-ward turnout elasticity index, mappable, which is the artefact most likely to be useful to anyone actually campaigning.</p>
+<hr />
+<h2>6. Known limits</h2>
+<ul>
+<li><strong>Candidate effects are not modelled.</strong> Zille and Mashaba are large, citywide, and have no VD-level signature the model can learn. They enter only through <code>δ_p</code>, set by hand from polling.</li>
+<li><strong>Independents.</strong> Now permitted and unmodellable from history. They live in <code>OTHER</code>.</li>
+<li><strong>Coalition formation is not a vote-share problem.</strong> The model tells you which arithmetic is available. It says nothing about whether two people who dislike each other will sit in the same room.</li>
+<li><strong>Polling scarcity.</strong> Metro-level polls are few and methodologically opaque. Triangulate; do not anchor.</li>
+</ul>
+<hr />
+<h2>7. Suggested build order</h2>
+<ol>
+<li>Party crosswalk and VD concordance — dull, unglamorous, and about 60% of the total effort. Do it first and do it properly.</li>
+<li>Turnout series and λ computation. At this point you can already answer the leverage question, before any share modelling at all.</li>
+<li>Backtest fold 1, calibrate <code>θ</code> parameters.</li>
+<li>Backtest fold 2, validate.</li>
+<li>Monte Carlo over the parameter ranges for 2026.</li>
+<li>Leverage analysis and mapping.</li>
+</ol>
+<p>Steps 1 and 2 alone would produce something worth having.</p>
+<hr />
+<h2>8. Empirical anchors (rev 2)</h2>
+<p>Every default in §3.5 should be traceable to a number here. Items marked <strong>[verify]</strong> are press-reported and must be recomputed from IEC raw data during Step 1; the rest were cross-checked during revision (July 2026).</p>
+<h3>8.1 CoJ 2024 provincial ballot (the θ baselines)</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Party</th>
+<th>2024 CoJ %</th>
+<th>2024 CoJ votes</th>
+<th>2021 LGE %</th>
+<th>Implied trajectory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANC</td>
+<td>32</td>
+<td>~450,000</td>
+<td>33.6</td>
+<td>Bloc erosion to MK, not to opposition</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>25</td>
+<td>~350,000</td>
+<td>26.2</td>
+<td>Flat NPE-to-NPE; LGE bounce is the question</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>12.5</td>
+<td>~180,000</td>
+<td>10.6</td>
+<td>Peaked 2019 (15% prov); declining</td>
+</tr>
+<tr>
+<td>MK</td>
+<td>12.2</td>
+<td>~170,000</td>
+<td>—</td>
+<td>New; Soweto avg 19%, CBD avg 28%, Suburbs 4%</td>
+</tr>
+<tr>
+<td>ActionSA</td>
+<td>6.2</td>
+<td>~88,000</td>
+<td>16.1</td>
+<td>Halved 2021→2024; the model&rsquo;s biggest single uncertainty</td>
+</tr>
+<tr>
+<td>PA</td>
+<td>2.9</td>
+<td>~41,000</td>
+<td>~1.2</td>
+<td>Growing, concentrated</td>
+</tr>
+<tr>
+<td>Rise</td>
+<td>1.6</td>
+<td>~22,000</td>
+<td>—</td>
+<td>Suburbs-only support base</td>
+</tr>
+<tr>
+<td>IFP</td>
+<td>1.4</td>
+<td>~20,000</td>
+<td>~1.3</td>
+<td>Zulu-ward concentrated; competes with MK</td>
+</tr>
+<tr>
+<td>BOSA</td>
+<td>1.0</td>
+<td>~14,000</td>
+<td>—</td>
+<td>Suburbs-only</td>
+</tr>
+<tr>
+<td>Al Jama-ah</td>
+<td>0.8</td>
+<td>~12,000</td>
+<td>~0.9</td>
+<td>Wards 9/10/58 only; won Ward 9 in 2024</td>
+</tr>
+<tr>
+<td>FF+</td>
+<td>0.8</td>
+<td>~11,000</td>
+<td>~1.6</td>
+<td></td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>0.8</td>
+<td>~11,000</td>
+<td>~1.0</td>
+<td></td>
+</tr>
+<tr>
+<td>Residual OTHER</td>
+<td>~4.4</td>
+<td></td>
+<td></td>
+<td><code>f_other</code> denominator</td>
+</tr>
+</tbody>
+</table></div>
+<p>Source: ward-by-ward analysis of IEC 2024 results (Wilkinson/Daily Friend, Sep 2025, using Adrian Frith&rsquo;s data). Votes rounded; <strong>[verify]</strong> exact figures against IEC VD-level files in Step 1.</p>
+<h3>8.2 Turnout series (the λ anchors)</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Election</th>
+<th>CoJ turnout</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2014 NPE</td>
+<td><strong>72.57%</strong> of 2,184,484 registered</td>
+<td>✔ computed from IEC VD-level bulk (provincial ballot, 825 VDs, 130 wards)</td>
+</tr>
+<tr>
+<td>2016 LGE</td>
+<td><strong>57.06%</strong> of 2,246,350 registered</td>
+<td>✔ IEC turnout report; matches the COGTA district profile&rsquo;s 57.1%</td>
+</tr>
+<tr>
+<td>2019 NPE</td>
+<td><strong>67.22%</strong> of 2,291,299 registered</td>
+<td>✔ computed from IEC VD-level bulk (provincial ballot, 853 VDs)</td>
+</tr>
+<tr>
+<td>2021 LGE</td>
+<td><strong>42.61%</strong> of 2,220,710 registered</td>
+<td>✔ IEC turnout report (947,305 votes); press-reported &ldquo;≈43%&rdquo; confirmed</td>
+</tr>
+<tr>
+<td>2024 NPE</td>
+<td><strong>60.79%</strong> of 2,348,781 registered</td>
+<td>✔ computed from IEC VD-level bulk (provincial ballot, 865 VDs)</td>
+</tr>
+</tbody>
+</table></div>
+<p>All five are now computed or IEC-confirmed rather than press-reported. The
+series is monotonically declining across comparable election types and CoJ sits
+slightly above the national figure in each NPE year (2019: 67.2 vs 66; 2024:
+60.8 vs 58.64), which is the expected metro pattern. Note the registration
+denominator is <em>not</em> monotonic — it peaks in 2019, dips in 2021, and recovers by
+2024 — so λ must be computed against each year&rsquo;s own base, not a trend line.</p>
+<p>Implied citywide λ under the §3.3 blend lands near <strong>0.65–0.70</strong> on the 2024 base, i.e. a 2026 turnout prior of roughly 38–42% citywide absent an enthusiasm shock. The IEC is actively campaigning against a repeat of 2021; December 2025 registration stood at 27.67M nationally — feed the 2026 registration-weekend deltas into §3.2 when published.</p>
+<h3>8.3 Polling (δ anchors — triangulate, do not anchor, per §6)</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Poll</th>
+<th>Date</th>
+<th>Numbers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SRF (Social Research Foundation)</td>
+<td>Q1 2026</td>
+<td><strong>Joburg: DA 39%.</strong> Gauteng: DA 37, ANC 31, ASA 7, EFF 5. Zille favourability 65% in Joburg. SRF cautions the Gauteng subsample has a high margin of error</td>
+</tr>
+<tr>
+<td>Ipsos Khayabus</td>
+<td>~Q3 2025</td>
+<td>Gauteng: ANC 42, DA 24, EFF 14, MK 8</td>
+</tr>
+</tbody>
+</table></div>
+<p>The two polls disagree wildly on the ANC-DA gap (SRF: DA +6; Ipsos: ANC +18). That spread — not either point estimate — is the honest input to δ_p&rsquo;s prior width. Recall also that pre-2021 polling missed ActionSA by ~10 points in CoJ.</p>
+<h3>8.4 By-election evidence, CoJ 2025–26 (for §3.6 deltas and §3.3 turnout covariate)</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Ward</th>
+<th>Date</th>
+<th>Result</th>
+<th>Signal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>82 (Westbury/Newclare/Bosmont)</td>
+<td>Apr 2025</td>
+<td>PA won by 1,245 votes, &gt;2× its 2021 share; turnout 27%</td>
+<td>θ_PA; PA ward-win capability</td>
+</tr>
+<tr>
+<td>99 (Linden/Blairgowrie)</td>
+<td>Apr 2025</td>
+<td>DA 98%; turnout 24% (was 57%)</td>
+<td>Suburban turnout apathy — feeds §3.3 covariate</td>
+</tr>
+<tr>
+<td>130 (Soweto)</td>
+<td>Sep 2025</td>
+<td>ANC held, down ~10pts; ASA 22.7% (≈3× its 2024 level), beat MK and EFF</td>
+<td>θ_ASA bull case; θ_MK bear case in Gauteng</td>
+</tr>
+<tr>
+<td>90 (Hyde Park/Parkmore)</td>
+<td>Nov 2025</td>
+<td>DA held; Rise 8% in Hyde Park</td>
+<td>Rise remains suburbs-only</td>
+</tr>
+<tr>
+<td>Evaton West, Emfuleni (not CoJ)</td>
+<td>May 2026</td>
+<td>DA beat ANC by 8 votes in an ANC stronghold</td>
+<td>Directional corroboration of SRF; treat with A4 caution — it is one ward</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>[verify]</strong> all against IEC by-election reports (R4) rather than press writeups, and extend the table with every CoJ by-election Nov 2021 – Oct 2026 during Step 1.</p>
+<h3>8.5 What changed between draft 1 and rev 2, in one line each</h3>
+<ol>
+<li>Seat count 270 confirmed against the statutory cap; 274 press claim rejected.</li>
+<li>Election date fixed: 4 November 2026.</li>
+<li>θ_ASA baseline corrected from Gauteng 4.16% to CoJ 6.2%; default cut from 2.2 to 1.5.</li>
+<li>θ_ANC default cut from 0.85 to 0.75 to agree with the plan&rsquo;s own recency weighting.</li>
+<li>θ_EFF &ldquo;near-flat&rdquo; claim corrected (observed 1.11 then 0.71); default cut to 0.85.</li>
+<li>θ derivation moved to bloc level with Dirichlet within-bloc splits; correlation structure now explicit.</li>
+<li>Additive δ_p replaced with logit-space swing.</li>
+<li>PA and Al Jama-ah promoted out of <code>OTHER</code>; <code>OTHER</code> membership pinned.</li>
+<li>By-election turnout ratio added as a λ̂ covariate.</li>
+<li>Assumption A5 (marginal-voter composition) named in §5.</li>
+<li>CoJ overhang &ldquo;precedent&rdquo; removed — none verifiable; check retained.</li>
+<li>2011 fold-1 inconsistency resolved (optional, with 130-ward caveat).</li>
+</ol>
+<div class="colophon">
+  Generated from joburg-prediction-model-plan-v2.md by src/build_site.py on 2026-08-04 — the Markdown file in the project repository is canonical; regenerate rather than editing this page.<br>
+  Johannesburg 2026 local government election model · joburg.whysoserious.org ·
+  free to reproduce with attribution.
+</div>
+</div>
+</body>
+</html>

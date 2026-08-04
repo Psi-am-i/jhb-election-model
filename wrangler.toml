@@ -1,0 +1,16 @@
+# joburg.whysoserious.org — static-assets Worker (not Pages; see the
+# run-analysis precedent: the account token has Workers:Edit, Pages:Read).
+# Build ./site with `python src/build_site.py`, then `npx wrangler deploy`.
+
+name = "joburg-whysoserious"
+compatibility_date = "2026-08-01"
+workers_dev = true
+
+[assets]
+directory = "./site"
+
+# Custom domain — requires the whysoserious.org zone on this account.
+# Enabled after the zone check; DNS + cert are automatic when it is.
+routes = [
+  { pattern = "joburg.whysoserious.org", custom_domain = true }
+]

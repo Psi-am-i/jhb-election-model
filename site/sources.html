@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Johannesburg 2026 — Data sources — how each raw file was obtained</title>
+<style>
+  :root{
+    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
+    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
+    --accent:#a8621f; --accent-soft:#f0e2d5; --good:#2f6d4a;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
+      --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
+      --accent:#d9954f; --accent-soft:#3a2a1a; --good:#6fb98a;
+    }
+  }
+  *{box-sizing:border-box;margin:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased;}
+  .page{max-width:780px;margin:0 auto;padding:28px 24px 80px;}
+
+  .topnav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;
+    font-family:var(--mono);font-size:11.5px;color:var(--ink-3);
+    border-bottom:1px solid var(--rule);padding-bottom:9px;margin-bottom:26px;}
+  .topnav a{color:var(--ink-3);text-decoration:none;}
+  .topnav a:hover{color:var(--accent);}
+  .topnav a.home{color:var(--accent);font-weight:600;}
+
+  .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:10px;}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,40px);
+    line-height:1.12;letter-spacing:-.012em;text-wrap:balance;margin:0 0 10px;}
+  .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;
+    color:var(--ink-2);max-width:64ch;text-wrap:pretty;margin-bottom:6px;}
+  .dateline{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);
+    font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);padding:9px 0;margin:14px 0 8px;}
+  .dateline b{color:var(--ink-2);font-weight:600;}
+
+  h2{font-family:var(--serif);font-weight:600;font-size:24px;line-height:1.2;
+    letter-spacing:-.006em;margin:42px 0 4px;padding-top:18px;
+    border-top:1px solid var(--rule);}
+  h3{font-family:var(--serif);font-weight:600;font-size:18px;line-height:1.3;margin:28px 0 2px;}
+  h4{font-size:14px;font-weight:650;margin:20px 0 2px;}
+  p{margin:10px 0;max-width:70ch;}
+  ul,ol{margin:10px 0;padding-left:20px;max-width:68ch;
+    display:flex;flex-direction:column;gap:5px;}
+  strong{font-weight:650;}
+  hr{border:none;border-top:1px solid var(--rule-soft);margin:26px 0;}
+  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
+
+  code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);
+    border:1px solid var(--rule-soft);border-radius:3px;padding:.08em .34em;}
+  pre{background:var(--paper-2);border:1px solid var(--rule-soft);border-radius:5px;
+    padding:13px 15px;overflow-x:auto;margin:14px 0;line-height:1.5;}
+  pre code{background:none;border:none;padding:0;font-size:12.5px;color:var(--ink-2);}
+
+  .tablewrap{overflow-x:auto;margin:14px 0;}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;}
+  th{font-family:var(--sans);font-size:10.5px;font-weight:650;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-3);text-align:left;
+    padding:0 12px 7px 0;border-bottom:1px solid var(--rule);vertical-align:bottom;}
+  td{padding:8px 12px 8px 0;border-bottom:1px solid var(--rule-soft);
+    vertical-align:top;color:var(--ink-2);}
+  td:first-child{color:var(--ink);}
+
+  blockquote{border-left:2px solid var(--accent);background:var(--paper-2);
+    padding:10px 16px;margin:14px 0;color:var(--ink-2);}
+  blockquote p{margin:6px 0;}
+  blockquote h3,blockquote h4{margin-top:8px;}
+
+  .colophon{font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:12px;margin-top:48px;}
+
+  /* index cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:14px;margin:22px 0;}
+  .card{display:flex;flex-direction:column;gap:6px;border:1px solid var(--rule-soft);
+    background:var(--paper-2);padding:16px 18px;text-decoration:none;color:var(--ink);
+    transition:border-color .15s;}
+  .card:hover{border-color:var(--accent);}
+  .card.hero{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent);}
+  .card .t{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.25;}
+  .card .d{font-size:13px;color:var(--ink-2);line-height:1.45;}
+  .card .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);}
+
+  @media print{
+    body{background:#fff;color:#000;font-size:10pt;}
+    .page{max-width:none;padding:0;}
+    .topnav{display:none;}
+    h2,h3{break-after:avoid;} table,blockquote,pre{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+<nav class="topnav">
+  <a class="home" href="./">joburg.whysoserious.org</a>
+  <a href="forecast.html">forecast</a>
+  <a href="interactive.html">interactive</a>
+  <a href="methodology.html">methodology</a>
+  <a href="review.html">review</a>
+  <a href="model-log.html">log</a>
+  <a href="sources.html">sources</a>
+  <a href="plan.html">plan</a>
+</nav>
+<header>
+  <div class="kicker">Data sources & acquisition</div>
+  <h1>Data sources — how each raw file was obtained</h1>
+  <p class="standfirst">Where every number came from: IEC results, boundaries, by-elections and census data, with the access constraints and non-obvious identifiers a reproducer will need.</p>
+</header>
+<p><code>data/</code> is gitignored, so this file is the reproducible record of where the raw
+inputs come from. Downloaded archives are kept in
+<code>data/raw/elections/_source/</code> so nothing depends on the browser&rsquo;s download
+folder.</p>
+<h2>Access constraints (learned the hard way)</h2>
+<p><code>results.elections.org.za</code> and <code>www.elections.org.za</code> sit behind Cloudflare and
+return <strong>403 to plain curl</strong>, including with a browser UA and referer. Some
+individual report files are served without the challenge and <em>are</em> curl-able
+(see LGE below); the bulk <code>.zip</code> exports are <strong>not</strong> and must be fetched through
+a real browser session.</p>
+<p>Two further notes:</p>
+<ul>
+<li>The report picker is an ASP.NET postback UI with native <code>&lt;select&gt;</code> elements.
+  Setting <code>.value</code> alone does not fire the tracked setter — use the native
+  property-descriptor setter plus <code>dispatchEvent(new Event('change'))</code>. Space
+  the postbacks out; roughly ten rapid synthetic postbacks earned a WAF 403.</li>
+<li>Reading downloaded bytes requires the terminal to hold macOS <strong>Full Disk
+  Access</strong> (System Settings → Privacy &amp; Security), otherwise <code>~/Downloads</code> is
+  <code>Operation not permitted</code> even though the file is there.</li>
+</ul>
+<h2>Election IDs</h2>
+<p>The portal&rsquo;s election id is <em>not</em> the year and differs per ballot. Read them off
+the <code>MainContent_ddlElections</code> dropdown after selecting the election type:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Year</th>
+<th>National</th>
+<th>Provincial</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2024</td>
+<td>1334</td>
+<td><strong>1335</strong></td>
+</tr>
+<tr>
+<td>2019</td>
+<td>699</td>
+<td><strong>827</strong></td>
+</tr>
+<tr>
+<td>2014</td>
+<td>291</td>
+<td><strong>292</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>LGE ids: <strong>1091</strong> = 2021, <strong>402</strong> = 2016.</p>
+<h2>National &amp; provincial elections (VD-level, provincial ballot)</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Year</th>
+<th>Route</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2024</td>
+<td><code>results.elections.org.za/home/NPEPublicReports/1335/Downloadable%20Results/Provincial.zip</code></td>
+<td>✔ browser download, 4.2 MB</td>
+</tr>
+<tr>
+<td>2019</td>
+<td>same pattern, id <strong>827</strong></td>
+<td>✔ browser download, 4.0 MB</td>
+</tr>
+<tr>
+<td>2014</td>
+<td>same pattern <strong>404s</strong> — 2014 is published on the other host instead: <code>www.elections.org.za/content/Elections/Downloadable-results/2014-National-and-Provincial-Elections--Complete-voting-district-level-results-data-(zipped-CSV)/</code></td>
+<td>✔ browser download, 7.1 MB</td>
+</tr>
+</tbody>
+</table></div>
+<p>Reachable from the UI at <em>NPE-Results → Provincial → \&lt;year&gt; → Downloadable
+report data</em>.</p>
+<p>Ingest with <code>src/ingest_npe.py</code>, which normalises the two layouts and writes the
+CoJ subset to <code>data/raw/elections/npe{year}_JHB_vd_party.csv</code>:</p>
+<pre><code>python src/ingest_npe.py &quot;data/raw/.../2014 NPE.csv&quot; 2014 --event PROVINCIAL
+python src/ingest_npe.py &quot;data/raw/.../827.csv&quot;      2019
+python src/ingest_npe.py &quot;data/raw/.../Provincial.csv&quot; 2024
+</code></pre>
+<p>Layout quirks the ingester handles: header punctuation drift, CP850 encoding in
+2019, unquoted commas in voting-station names that shift columns, and the 2014
+file&rsquo;s <code>VALID VOTES</code> column being the <em>party&rsquo;s</em> votes rather than the VD total.</p>
+<h2>Local government elections (VD-level, ward + PR ballots)</h2>
+<p>These <em>are</em> curl-able without a browser:</p>
+<pre><code>https://results.elections.org.za/home/LGEPublicReports/{id}/Downloadable%20Party%20Results/GP/JHB.csv
+</code></pre>
+<p>with id <strong>1091</strong> (2021) and <strong>402</strong> (2016) → <code>lge{year}_JHB_vd_party.csv</code>.</p>
+<p>Also confirmed working: turnout PDFs at
+<code>.../LGEPublicReports/{id}/Voter%20Turnout/GP/JHB.pdf</code>.</p>
+<p>Run <code>src/fetch_iec.py</code> to sweep every LGE report that is served directly
+(party CSV, detailed results, seat calculation, turnout) for 2011, 2016 and 2021.</p>
+<h2>Boundaries — MDB Spatial Knowledge Hub</h2>
+<p><code>spatialhub-mdb-sa.opendata.arcgis.com</code> is an ArcGIS Hub site. Its DCAT feed
+(<code>/api/feed/dcat-us/1.1.json</code>) lists the datasets, but only advertises download
+endpoints for some. Every layer sits behind a FeatureServer that takes a
+municipality filter, which is better anyway — Johannesburg is selected
+server-side rather than pulling the whole country. Layer URLs were resolved from
+the MDB&rsquo;s &ldquo;Wards2026&rdquo; web map (ArcGIS item <code>6d7488a7f83645218e547d403871e1e0</code>).</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Service</th>
+<th>Applies to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026 wards</td>
+<td><code>MDBWards2026</code></td>
+<td>4 Nov 2026 election</td>
+</tr>
+<tr>
+<td>2026 voting districts</td>
+<td><code>VotingDistricts2026_Final</code></td>
+<td>carries <code>WardNo</code>, <code>Split_VD</code>, <code>REGPOP</code></td>
+</tr>
+<tr>
+<td>2021 wards</td>
+<td><code>SA_Wards2020</code></td>
+<td>2020 delimitation</td>
+</tr>
+<tr>
+<td>2026 voting stations</td>
+<td><code>VotingStations_March2026</code></td>
+<td>points; keyed on <code>MUNICIPALI</code>, not <code>CAT_B</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>The 2016 and 2011 ward layers are File Geodatabase item downloads, not services:
+ArcGIS items <code>cfddb54aab5f4d62b2144d80d49b3fdb</code> and
+<code>12d2deb98816451ab7c4dc09cdfeee6b</code>, fetched via
+<code>arcgis.com/sharing/rest/content/items/{id}/data</code>.</p>
+<p><code>src/fetch_boundaries.py</code> pulls all of these; <code>src/build_geo.py</code> clips the
+geodatabases and runs the checks.</p>
+<p><strong>Caveat:</strong> <code>REGPOP</code> on the 2026 VD layer sums to 2,348,781 — exactly the <em>2024</em>
+registration total. It is a 2024 snapshot, not current 2026 registration.</p>
+<h2>By-elections — use the dashboard, not the downloads page</h2>
+<p>The downloads page serves by-election reports only through per-session
+<code>ReportViewer?_f=&lt;token&gt;</code> links. Those tokens are session-bound: fetched with
+curl they reach the handler and return &ldquo;Error occured while trying to generate
+the by-election report&rdquo;.</p>
+<p>The <strong>dashboard</strong> is backed by plain static JSON that needs no session:</p>
+<pre><code>.../dashboards/byelection/MapsJason/{year}/ByElections.js      # dates + EEIDs
+.../dashboards/byelection/MapsJason/{year}/PartyList.js        # party id -&gt; name
+.../dashboards/byelection/MapsJason/{eeid}/EEID{eeid}BigMapsNational.js
+.../dashboards/byelection/MapsJason/{eeid}/EEID{eeid}Munic{municipalityID}.js
+</code></pre>
+<p>The national/province files carry only the <em>leading</em> party per ward. The
+per-municipality file is the one worth having: voting-district level, every
+party, candidate names, historical comparators. <code>src/fetch_byelections.py</code>
+walks all of it — 38 Gauteng ward contests since 2021, 15 in CoJ.</p>
+<h2>Covariates</h2>
+<p>Stats SA&rsquo;s <strong>Ward-level Small Area Population Estimates 2022</strong> are directly
+downloadable and cover all 135 CoJ wards on the 2020 delimitation, with
+five-year age bands, sex and population group:</p>
+<pre><code>statssa.gov.za/wp-content/uploads/2025/11/Ward-Product_Locked-spreadsheets.zip
+statssa.gov.za/wp-content/uploads/2025/11/Ward-statistical-product-technical-note.pdf
+</code></pre>
+<h2>Historic VD boundaries — searched for, not published</h2>
+<p>Needed to verify that a VD keeping its number kept its catchment (see
+<code>src/build_concordance.py</code>). Everywhere checked, and not found:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Where</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MDB ArcGIS org, full service list (43 services)</td>
+<td>only 2026-era voting-district layers; ward layers back to 2000</td>
+</tr>
+<tr>
+<td>MDB DCAT catalogues, both hub sites</td>
+<td>no VD datasets at all</td>
+</tr>
+<tr>
+<td>ArcGIS Online public search</td>
+<td>one 4-feature derived sample; nothing national</td>
+</tr>
+<tr>
+<td>IEC GeoServer <code>vmdgeomaps.elections.org.za</code></td>
+<td>address points (NAD) plus GeoServer demo layers</td>
+</tr>
+<tr>
+<td>Internet Archive CDX over both IEC and MDB hosts</td>
+<td>ward and municipal shapefiles only, no VD</td>
+</tr>
+</tbody>
+</table></div>
+<p>The IEC delimits VDs with its own GIS and appears not to publish the boundaries,
+so this needs a request to the IEC&rsquo;s Delimitation Directorate. Until then the
+concordance keys on VD number, with the stability flags described in
+<code>build_concordance.py</code> standing in for the geometric check.</p>
+<p>The Internet Archive sweep did turn up one live URL worth having, since the MDB
+has already retired the per-municipality shapefile downloads its old site
+served: the <strong>2016 LGE complete VD-level results</strong>, on the same host pattern as
+the 2014 NPE export —
+<code>elections.org.za/content/Elections/Downloadable-results/2016-Municipal-Elections--Complete-VD-level-results-data-(zipped-CSV)/</code>.
+Its JHB PR totals reconcile exactly, party for party, against the per-municipality
+CSV we already had.</p>
+<h2>Archive</h2>
+<p><code>src/archive.py</code> records every raw and derived file with its size, SHA-256 and
+provenance in <code>data/archive_manifest.csv</code>. The data itself is gitignored, so the
+manifest is the tracked record — it is committed even though the bytes are not.
+<code>python src/archive.py --verify</code> re-hashes and reports anything missing, changed
+or new, which is how we will know if a file quietly diverges from the copy every
+validation in this repo was run against.</p>
+<h2>Still to acquire — needs a human</h2>
+<ul>
+<li><strong>Census 2022 Small Area Layer (SAL)</strong> — plan §1.3 C1 asks for income,
+  dwelling type and employment at small-area level. Stats SA does <strong>not</strong>
+  publish the SAL for download; it is supplied on request only
+  (<code>info@statssa.gov.za</code>, +27 12 310 8600). The ward-level product above is the
+  usable substitute in the meantime, but it carries only age/sex/population
+  group — no income or employment. Wazimap-NG (C2) was unreachable when tried.</li>
+<li><strong>Voters&rsquo; roll by VD split by age and sex</strong> — plan §1.3 C3. The IEC&rsquo;s
+  registration statistics page publishes age/gender bands only down to
+  <em>municipality</em> level, server-rendered with no API. VD-level registration
+  <em>totals</em> we already have, from the election files and the VD layer&rsquo;s <code>REGPOP</code>.</li>
+<li><strong>2026 registration figures</strong> — the IEC page shows the position as at
+  1 Aug 2026 at municipality level; §3.2 wants the registration-weekend deltas,
+  which are not published yet.</li>
+</ul>
+<div class="colophon">
+  Generated from SOURCES.md by src/build_site.py on 2026-08-04 — the Markdown file in the project repository is canonical; regenerate rather than editing this page.<br>
+  Johannesburg 2026 local government election model · joburg.whysoserious.org ·
+  free to reproduce with attribution.
+</div>
+</div>
+</body>
+</html>
