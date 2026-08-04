@@ -103,6 +103,10 @@ STYLE = """
 
   .colophon{font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--ink-3);
     border-top:1px solid var(--rule);padding-top:12px;margin-top:48px;}
+  .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:14px;margin-top:20px;}
+  .sitefooter a{color:var(--ink-3);}
+  .sitefooter a:hover{color:var(--accent);}
 
   /* index cards */
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
@@ -139,7 +143,7 @@ NAV = """<nav class="topnav">
 
 # Standalone nav styling injected into the artefact pages (which carry their
 # own stylesheets); the rendered documents get it via STYLE above.
-NAV_CSS = """<style>
+NAV_CSS = """<style>{FOOTER_CSS_PLACEHOLDER}
   .topnav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;
     font-family:var(--mono);font-size:11.5px;color:var(--ink-3);
     border-bottom:1px solid var(--rule);padding-bottom:9px;margin-bottom:22px;}
@@ -149,12 +153,35 @@ NAV_CSS = """<style>
 </style>"""
 
 
+
+FOOTER = """<footer class="sitefooter">
+  <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
+  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs</div>
+</footer>"""
+
+FOOTER_CSS = """
+  .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:14px;margin-top:44px;}
+  .sitefooter a{color:var(--ink-3);}
+  .sitefooter a:hover{color:var(--accent);}"""
+
+
+NAV_CSS = NAV_CSS.replace("{FOOTER_CSS_PLACEHOLDER}", FOOTER_CSS)
+
+
 def inject_nav(html: str) -> str:
     """Give an artefact page the site navigation: CSS into <head>, nav bar
     at the top of its content container so it aligns with the content."""
     html = html.replace("</head>", NAV_CSS + "\n</head>", 1)
     marker = '<div class="sheet">'
-    return html.replace(marker, marker + "\n" + NAV, 1)
+    html = html.replace(marker, marker + "\n" + NAV, 1)
+    # footer goes at the end of the content container so it aligns with it
+    if "</div><!-- /sheet -->" in html:
+        html = html.replace("</div><!-- /sheet -->", FOOTER + "\n</div><!-- /sheet -->", 1)
+    else:
+        head, sep, tail = html.rpartition("</div>\n</body>")
+        html = head + FOOTER + "\n</div>\n</body>" + tail
+    return html
 
 # source markdown -> (output, kicker, standfirst)
 DOCS = {
@@ -239,10 +266,9 @@ def shell(title: str, kicker: str, masthead: str, body: str, generated_note: str
 </header>
 {body}
 <div class="colophon">
-  {generated_note}<br>
-  Johannesburg 2026 local government election model · joburg.whysoserious.org ·
-  free to reproduce with attribution.
+  {generated_note}
 </div>
+{FOOTER}
 </div>
 </body>
 </html>
