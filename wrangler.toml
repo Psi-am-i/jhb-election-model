@@ -1,16 +1,27 @@
 # joburg.whysoserious.org — static-assets Worker (not Pages; see the
 # run-analysis precedent: the account token has Workers:Edit, Pages:Read).
 # Build ./site with `python src/build_site.py`, then `npx wrangler deploy`.
+#
+# ⚠️ If a CLOUDFLARE_API_TOKEN env var is present it may be a stale
+# placeholder — deploy with `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy`
+# to use the OAuth session instead.
 
 name = "joburg-whysoserious"
 compatibility_date = "2026-08-01"
 workers_dev = true
 
+# Custom domain. ⚠️ Requires the whysoserious.org ZONE on this Cloudflare
+# account — as of 2026-08-04 the domain's nameservers point at GoDaddy
+# (ns57/ns58.domaincontrol.com), so this route is disabled and the site is
+# live on workers.dev only. To enable: add whysoserious.org as a zone in the
+# Cloudflare dashboard (free plan is fine), switch the nameservers at GoDaddy
+# to the pair Cloudflare assigns, wait for the zone to activate, then
+# uncomment and redeploy — the DNS record and certificate are automatic.
+# NOTE: routes must sit ABOVE any [table] header or it becomes e.g.
+# assets.routes and is silently ignored (that happened; see git history).
+# routes = [
+#   { pattern = "joburg.whysoserious.org", custom_domain = true }
+# ]
+
 [assets]
 directory = "./site"
-
-# Custom domain — requires the whysoserious.org zone on this account.
-# Enabled after the zone check; DNS + cert are automatic when it is.
-routes = [
-  { pattern = "joburg.whysoserious.org", custom_domain = true }
-]
