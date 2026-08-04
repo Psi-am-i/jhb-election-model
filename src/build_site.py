@@ -218,6 +218,14 @@ DOCS = {
         "silent data traps, the assumption register, and the decisions taken — "
         "including the review that falsified the first forecast.",
     ),
+    "docs-public/review.md": (
+        "review.html",
+        "The review",
+        "Most forecasts show you their conclusions. This page shows you our "
+        "mistakes — six errors, one false headline claim, and the repair, "
+        "published in full.",
+        "model-review.html",
+    ),
     "docs-public/sources.md": (
         "sources.html",
         "Data sources",
@@ -239,7 +247,6 @@ DOCS = {
 ARTEFACTS = {
     "forecast-sheet.html": "index.html",
     "forecast-interactive.html": "interactive.html",
-    "model-review.html": "review.html",
 }
 
 CARDS = [
@@ -294,7 +301,8 @@ def shell(title: str, kicker: str, masthead: str, body: str, generated_note: str
 """
 
 
-def render_doc(source: Path, kicker: str, standfirst: str, output: str = "") -> str:
+def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
+               tech: str | None = None) -> str:
     text = source.read_text(encoding="utf-8")
     lines = text.splitlines()
     title = lines[0].lstrip("# ").strip()
@@ -307,7 +315,7 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "") -> 
     masthead = (f"  <h1>{title}</h1>\n"
                 f'  <p class="standfirst">{standfirst}</p>')
     if str(source).startswith("docs-public/"):
-        tech = source.name.replace(".md", "").upper() + ".md"
+        tech = tech or source.name.replace(".md", "").upper() + ".md"
         note = (f"Reader edition, generated from {source} on "
                 f"{date.today().isoformat()}. The full technical record — "
                 f"every URL, identifier and workaround — is "
@@ -361,8 +369,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     args.out.mkdir(exist_ok=True)
-    for source, (output, kicker, standfirst) in DOCS.items():
-        page = render_doc(Path(source), kicker, standfirst, output)
+    for source, spec in DOCS.items():
+        output, kicker, standfirst = spec[:3]
+        tech = spec[3] if len(spec) > 3 else None
+        page = render_doc(Path(source), kicker, standfirst, output, tech)
         (args.out / output).write_text(page, encoding="utf-8")
         print(f"  rendered {source:<28s} -> site/{output}")
     for source, output in ARTEFACTS.items():

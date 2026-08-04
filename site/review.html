@@ -3,23 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Johannesburg 2026 Model — Implementation Review</title>
-
+<title>Johannesburg 2026 — How the model was broken — and fixed</title>
 <style>
   :root{
-    --paper:#fbfbfa;
-    --paper-2:#f2f3f1;
-    --rule:#d9dbd6;
-    --rule-soft:#e7e8e4;
-    --ink:#1a1d1b;
-    --ink-2:#4a4f4b;
-    --ink-3:#767b76;
-    --accent:#a8621f;
-    --accent-soft:#f0e2d5;
-    --mark:#3b423e;
-    --good:#2f6d4a;
-    --bad:#a03d2e;
-
+    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
+    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
+    --accent:#a8621f; --accent-soft:#f0e2d5; --good:#2f6d4a;
     --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
     --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
@@ -28,102 +17,95 @@
     :root{
       --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
       --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
-      --accent:#d9954f; --accent-soft:#3a2a1a;
-      --mark:#c2c8c2; --good:#6fb98a; --bad:#d98070;
+      --accent:#d9954f; --accent-soft:#3a2a1a; --good:#6fb98a;
     }
   }
-
   *{box-sizing:border-box;margin:0;}
-  body{
-    background:var(--paper); color:var(--ink);
-    font-family:var(--sans); font-size:15px; line-height:1.6;
-    -webkit-font-smoothing:antialiased;
-  }
-  .sheet{max-width:820px;margin:0 auto;padding:32px 24px 72px;display:flex;flex-direction:column;gap:34px;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased;}
+  .page{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
 
-  .masthead{display:flex;flex-direction:column;gap:10px;}
-  .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);}
-  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,40px);line-height:1.1;letter-spacing:-.012em;text-wrap:balance;}
-  .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;color:var(--ink-2);text-wrap:pretty;}
-  .dateline{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;
-    font-family:var(--mono);font-size:11.5px;color:var(--ink-3);
-    border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:9px 0;}
-  .dateline b{color:var(--ink-2);font-weight:600;}
-
-  section{display:flex;flex-direction:column;gap:14px;}
-  .eyebrow{font-size:10.5px;font-weight:650;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);}
-  h2{font-family:var(--serif);font-weight:600;font-size:23px;line-height:1.2;letter-spacing:-.006em;}
-  h3{font-family:var(--serif);font-weight:600;font-size:17.5px;line-height:1.3;margin-top:8px;}
-  p{margin:0;}
-  p.lede{font-size:16px;}
-  ul,ol{padding-left:19px;display:flex;flex-direction:column;gap:6px;}
-  li{padding-left:2px;}
-  strong{font-weight:650;}
-  em{font-style:italic;}
-  code{font-family:var(--mono);font-size:.88em;background:var(--paper-2);
-    border:1px solid var(--rule-soft);border-radius:3px;padding:.08em .32em;white-space:nowrap;}
-
-  .verdict{background:var(--paper-2);border:1px solid var(--rule-soft);border-left:3px solid var(--accent);
-    padding:18px 20px;display:flex;flex-direction:column;gap:10px;}
-  .verdict h2{font-size:18px;}
-
-  .finding{border:1px solid var(--rule-soft);border-left:3px solid var(--bad);padding:16px 18px;
-    display:flex;flex-direction:column;gap:10px;}
-  .finding.choice{border-left-color:var(--rule);}
-  .finding.good{border-left-color:var(--good);}
-  .finding h3{margin-top:0;}
-  .fhead{display:flex;gap:10px;align-items:baseline;}
-  .fnum{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink-3);flex:none;}
-  .sev{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
-    padding:2px 7px;border-radius:3px;flex:none;align-self:center;}
-  .sev.err{background:color-mix(in srgb, var(--bad) 14%, transparent);color:var(--bad);}
-  .sev.adj{background:var(--paper-2);color:var(--ink-3);border:1px solid var(--rule-soft);}
-  .adjust{border-top:1px dashed var(--rule);padding-top:10px;font-size:13.5px;color:var(--ink-2);}
-  .adjust b{color:var(--ink);}
-
-  .tablewrap{overflow-x:auto;}
-  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:480px;}
-  caption{caption-side:bottom;text-align:left;font-size:12.5px;color:var(--ink-3);padding-top:8px;}
-  th{font-size:10.5px;font-weight:650;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);
-    text-align:left;padding:0 12px 7px 0;border-bottom:1px solid var(--rule);}
-  th.num,td.num{text-align:right;padding-right:0;}
-  td{padding:8px 12px 8px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top;}
-  td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;}
-  tr.hi td{background:var(--accent-soft);}
-  tr.hi td:first-child{font-weight:650;}
-
-  .quiet{font-size:13.5px;color:var(--ink-3);}
-  .colophon{font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--ink-3);
-    border-top:1px solid var(--rule);padding-top:12px;}
-
-  @media print{
-    body{background:#fff;color:#000;font-size:10.5pt;}
-    .sheet{max-width:none;padding:0;gap:22px;}
-    .finding,.verdict{break-inside:avoid;}
-  }
-</style>
-<style>
-  /* site-wide standard container: every page, same width and padding */
-  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
-  .sheet{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
-  .layout{grid-template-columns:minmax(0,270px) minmax(0,1fr);}
-  @media (max-width:840px){.layout{grid-template-columns:1fr;}}
-
-  .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
-    border-top:1px solid var(--rule);padding-top:14px;margin-top:44px;}
-  .sitefooter a{color:var(--ink-3);}
-  .sitefooter a:hover{color:var(--accent);}
   .topnav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;
     font-family:var(--mono);font-size:11.5px;color:var(--ink-3);
-    border-bottom:1px solid var(--rule);padding-bottom:9px;margin-bottom:22px;}
+    border-bottom:1px solid var(--rule);padding-bottom:9px;margin-bottom:26px;}
   .topnav a{color:var(--ink-3);text-decoration:none;}
   .topnav a:hover{color:var(--accent);}
   .topnav a.home{color:var(--accent);font-weight:600;}
   .topnav a.active{color:var(--accent);}
+
+  .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:10px;}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,40px);
+    line-height:1.12;letter-spacing:-.012em;text-wrap:balance;margin:0 0 10px;}
+  .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;
+    color:var(--ink-2);text-wrap:pretty;margin-bottom:6px;}
+  .dateline{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);
+    font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);padding:9px 0;margin:14px 0 8px;}
+  .dateline b{color:var(--ink-2);font-weight:600;}
+
+  h2{font-family:var(--serif);font-weight:600;font-size:24px;line-height:1.2;
+    letter-spacing:-.006em;margin:42px 0 4px;padding-top:18px;
+    border-top:1px solid var(--rule);}
+  h3{font-family:var(--serif);font-weight:600;font-size:18px;line-height:1.3;margin:28px 0 2px;}
+  h4{font-size:14px;font-weight:650;margin:20px 0 2px;}
+  p{margin:10px 0;}
+  ul,ol{margin:10px 0;padding-left:20px;
+    display:flex;flex-direction:column;gap:5px;}
+  strong{font-weight:650;}
+  hr{border:none;border-top:1px solid var(--rule-soft);margin:26px 0;}
+  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
+
+  code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);
+    border:1px solid var(--rule-soft);border-radius:3px;padding:.08em .34em;}
+  pre{background:var(--paper-2);border:1px solid var(--rule-soft);border-radius:5px;
+    padding:13px 15px;overflow-x:auto;margin:14px 0;line-height:1.5;}
+  pre code{background:none;border:none;padding:0;font-size:12.5px;color:var(--ink-2);}
+
+  .tablewrap{overflow-x:auto;margin:14px 0;}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;}
+  th{font-family:var(--sans);font-size:10.5px;font-weight:650;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-3);text-align:left;
+    padding:0 12px 7px 0;border-bottom:1px solid var(--rule);vertical-align:bottom;}
+  td{padding:8px 12px 8px 0;border-bottom:1px solid var(--rule-soft);
+    vertical-align:top;color:var(--ink-2);}
+  td:first-child{color:var(--ink);}
+
+  blockquote{border-left:2px solid var(--accent);background:var(--paper-2);
+    padding:10px 16px;margin:14px 0;color:var(--ink-2);}
+  blockquote p{margin:6px 0;}
+  blockquote h3,blockquote h4{margin-top:8px;}
+
+  .colophon{font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:12px;margin-top:48px;}
+  .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:14px;margin-top:20px;}
+  .sitefooter a{color:var(--ink-3);}
+  .sitefooter a:hover{color:var(--accent);}
+
+  /* index cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:14px;margin:22px 0;}
+  .card{display:flex;flex-direction:column;gap:6px;border:1px solid var(--rule-soft);
+    background:var(--paper-2);padding:16px 18px;text-decoration:none;color:var(--ink);
+    transition:border-color .15s;}
+  .card:hover{border-color:var(--accent);}
+  .card.hero{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent);}
+  .card .t{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.25;}
+  .card .d{font-size:13px;color:var(--ink-2);line-height:1.45;}
+  .card .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);}
+
+  @media print{
+    body{background:#fff;color:#000;font-size:10pt;}
+    .page{max-width:none;padding:0;}
+    .topnav{display:none;}
+    h2,h3{break-after:avoid;} table,blockquote,pre{break-inside:avoid;}
+  }
 </style>
 </head>
 <body>
-<div class="sheet">
+<div class="page">
 <nav class="topnav">
   <a class="home" href="./">joburg.whysoserious.city</a>
   <a href="./">forecast</a>
@@ -135,408 +117,105 @@
   <a href="plan">plan</a>
   <a href="documents">all documents</a>
 </nav>
-
-<header class="masthead">
-  <div class="kicker">Implementation review · City of Johannesburg 2026 LGE model</div>
-  <h1>Review of the plan, the build, and the published forecast</h1>
-  <p class="standfirst">An audit of the model against its own written plan: errors and implementation
-  choices whose effect on published results is misleading or wrong, the assumptions a consumer of the
-  forecast should know about and how to move them, and an assessment of the two-page distribution sheet.
-  Part of the model's development record.</p>
-  <div class="dateline">
-    <span><b>Reviewed</b> 4 August 2026</span>
-    <span><b>Against</b> joburg-prediction-model-plan-v2.md · METHODOLOGY.md · MODEL-LOG.md · src/ · forecast-sheet.html</span>
-    <span><b>Verified on</b> seat_draws.csv, 5,000 draws, seed 20261104</span>
-  </div>
+<header>
+  <div class="kicker">The review</div>
+  <h1>How the model was broken — and fixed</h1>
+  <p class="standfirst">Most forecasts show you their conclusions. This page shows you our mistakes — six errors, one false headline claim, and the repair, published in full.</p>
 </header>
-
-<div class="verdict" style="border-left-color:var(--good)">
-  <h2>Addendum — second pass, later the same day: all findings resolved</h2>
-  <p>Every error below is fixed, every adjustable assumption is now a user-facing control, and the
-  plan items that were skippable-but-buildable have been built. The re-run changed the forecast
-  materially, and the second pass verified the fixes rather than assuming them.</p>
-  <p><strong>What the corrected model says.</strong> The dominant new finding is one the broken
-  version could not see: <strong>overhang is the modal outcome (89% of draws)</strong>. The ANC
-  wins ~73 of 135 wards on a ~65-seat entitlement, the council expands to a median of ~281, and
-  the majority threshold moves to ~141 — raising the bar for every coalition. ANC+DA clears it in
-  86.5% of draws and is the dominant minimal winning coalition; a DA-led minority via abstention
-  (the 2021 pattern) is viable in 61%; the eight-party anti-ANC alliance is a coin flip at 53%; the
-  DA is largest in only 63% of draws once overhang seats count. Banzhaf indices settle E1's
-  asserted claim the other way: ActionSA (11%) out-ranks the PA (5%) as kingmaker. The A5
-  sensitivity was run and halves turnout leverage with rankings unchanged — the
-  persuasion-not-mobilisation conclusion strengthens.</p>
-  <p><strong>What was verified on the second pass.</strong> The seat allocator still reproduces
-  all three published councils exactly; fold 2 was re-scored after the turnout-data fix (129/135
-  ward winners, blind seat error 60 — the γ-transfers/θ-doesn't finding strengthens); the
-  interactive page's client engine was cross-checked headlessly against the Python run (DA 82 vs
-  81, threshold 140 vs 141, P(ANC+DA) 83.7% vs 86.5% — ward-resolution approximation, disclosed on
-  the page); and a fresh bug found during that cross-check (the "widest field" probability computed
-  over only the top-12 parties) was fixed before publication.</p>
-  <p><strong>Still open, and honestly labelled:</strong> the Schedule 1 overhang fine print has no
-  published IEC worked example (task #20 — now the forecast's largest legal uncertainty, bounded by
-  the fixed-270 toggle); MK's γ cannot be fitted from one election and stays a documented default;
-  the Census Small Area Layer (O7) still gates a better turnout covariate; and the citywide ranges
-  remain judgements no backtest can validate — which is precisely why they are now sliders.</p>
-  <p class="quiet">Deliverables: corrected <code>src/montecarlo.py</code> + new
-  <code>coalitions.py</code>, <code>byelections.py</code>, <code>gamma_recent.py</code>,
-  <code>export_interactive.py</code>/<code>build_interactive.py</code>,
-  <code>render_sheet.py</code>; <code>forecast-interactive.html</code> (every assumption a
-  bounded, defaulted control; scenario JSON round-trips to <code>--config</code>); regenerated
-  <code>forecast-sheet.html</code> (rev 2, all figures generated from model outputs); MODEL-LOG
-  §1.14–1.15 and METHODOLOGY updated. Original review preserved below as written.</p>
-</div>
-
-<div class="verdict">
-  <h2>Verdict in brief</h2>
-  <p>The data work, the seat allocator, and the backtesting discipline are genuinely strong — the
-  allocator reproducing three published councils exactly is a real credential, and several plan errors
-  (softmax/logit, raw-versus-calibrated θ, entrant seeding) were caught and fixed well. But the Monte
-  Carlo stage cut corners the plan explicitly warned against, and one of them makes the headline
-  published conclusion <strong>factually wrong under the model's own output</strong>: a DA + EFF + MK
-  coalition reaches a majority in 61% of the model's own draws, yet every published document says no
-  such coalition exists. The two-pager repeats that error and separately overstates the validation.
-  The fix for the worst finding costs nearly nothing — the per-draw seat vectors are already on disk.</p>
-</div>
-
-<!-- ================= PART 1 ================= -->
-<section>
-  <div class="eyebrow">Part 1</div>
-  <h2>Errors whose effect on published results is misleading or wrong</h2>
-
-  <div class="finding">
-    <div class="fhead"><span class="fnum">E1</span><h3>The coalition conclusion is false, because enumeration was pre-filtered on political plausibility</h3><span class="sev err">wrong result</span></div>
-    <p>Plan §3.8 was explicit: enumerate <strong>all 2ⁿ subsets</strong>, reduce to minimal winning
-    coalitions, and "keep political feasibility as a separate, toggleable layer… There is no reason to
-    pre-filter on plausibility, and good reason not to." The implementation did the opposite:
-    <code>montecarlo.py:60–67</code> hard-codes six politically plausible coalitions and checks only
-    those. Running the full enumeration against the saved <code>seat_draws.csv</code>:</p>
-    <div class="tablewrap">
-      <table>
-        <caption>Coalitions never checked by the published run, evaluated post-hoc on the same 5,000
-        draws (seed 20261104). Majority is 136 of 270.</caption>
-        <thead><tr><th>Coalition</th><th class="num">P(≥136)</th><th class="num">Median</th><th class="num">5th–95th</th></tr></thead>
-        <tbody>
-          <tr class="hi"><td>DA + EFF + MK</td><td class="num">60.8%</td><td class="num">140</td><td class="num">114–160</td></tr>
-          <tr><td>DA + EFF + ActionSA</td><td class="num">34.7%</td><td class="num">132</td><td class="num">116–146</td></tr>
-          <tr><td>DA + MK + ActionSA</td><td class="num">26.6%</td><td class="num">130</td><td class="num">115–144</td></tr>
-          <tr><td>DA + EFF + PA</td><td class="num">22.8%</td><td class="num">126</td><td class="num">100–146</td></tr>
-          <tr><td>DA + EFF <em>(a pair)</em></td><td class="num">3.8%</td><td class="num">114</td><td class="num">89–134</td></tr>
-          <tr><td>DA + MK <em>(a pair)</em></td><td class="num">2.7%</td><td class="num">112</td><td class="num">86–133</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p>So the claim in MODEL-LOG §1.11, METHODOLOGY §5B, and the forecast sheet — <em>"no two- or
-    three-party coalition reaches 136 except ANC+DA"</em> — is wrong. The sheet's page-2 lede,
-    <em>"a majority without the ANC exists on paper. It requires almost every other party in the
-    chamber at once,"</em> is also wrong: three parties without the ANC clear it at the median. Even
-    the standfirst's "no two-party majority available to anyone except the ANC and the DA" fails in
-    about 4% of draws (DA+EFF).</p>
-    <p>What happened is a conflation of "the ANC" with "the ANC bloc": the code's
-    <code>everyone_else</code> measures a majority excluding ANC <em>and</em> EFF <em>and</em> MK,
-    and the narrative silently dropped the bloc qualifier. A DA+EFF arrangement may be politically
-    outlandish — but the plan's whole §3.8 argument (Mashaba governed on external EFF support for
-    three years; declared red lines have a short half-life) was that the arithmetic layer must never
-    inherit that judgement. The correct statement is roughly: <em>no majority exists without either
-    the ANC or at least one of EFF/MK; the politically discussed anti-ANC coalitions — DA with
-    ActionSA and the smaller parties — all fall short.</em> That is still a strong finding, arguably
-    a more interesting one: the DA's arithmetic paths all run through parties it has ruled out.</p>
-    <p>Also never built from §3.8: <strong>minimal-winning-coalition reduction, Banzhaf and
-    Shapley–Shubik power indices, and the minority-government (plurality + abstention) outcome
-    class</strong>. This matters for two published claims. The sheet asserts the PA "matters more to
-    that arithmetic than ActionSA's recovery does" — precisely a Banzhaf claim, asserted rather than
-    computed. And with the DA the largest party in 86% of draws, the historically realised outcome —
-    a DA minority administration via abstention, as after 2021 — is missing as a reported class
-    entirely.</p>
-    <div class="adjust"><b>Fix cost: near zero.</b> No re-run needed — the per-draw seat vectors are
-    saved in <code>seat_draws.csv</code> (top-12 parties, covering everyone that matters). Full
-    enumeration, MWC reduction, and power indices over 12 parties are 4,096 subsets × 5,000 draws —
-    seconds of compute, post-hoc.</div>
-  </div>
-
-  <div class="finding">
-    <div class="fhead"><span class="fnum">E2</span><h3>The Monte Carlo quietly discards the plan's per-party θ views inside the blocs</h3><span class="sev err">material</span></div>
-    <p><code>draw_target</code> (<code>montecarlo.py:122–124</code>) centres the within-bloc Dirichlet
-    on <strong>2024 proportions</strong>. But the plan's §3.5 central θ values encode deliberate
-    asymmetric views: θ_MK = 0.60 (no ward machinery, beaten by ActionSA in its one Soweto test,
-    Ipsos at 8%), θ_ANC = 0.75, θ_EFF = 0.85. Centring on 2024 proportions flattens all of that to
-    "everyone declines pro-rata," and with α = 60 the ANC-bloc split is tight, so <strong>MK's
-    plan-central case (~7.3% citywide, ~20 seats) and its bear case (θ = 0.30, ~4%) are essentially
-    unreachable</strong> — the Monte Carlo gives MK a median of 25 seats.</p>
-    <p>There is also an internal inconsistency in the plan that the implementation resolved silently:
-    the θ modes imply an ANC-bloc shift of about <strong>−14.8 points</strong>
-    (32.0×0.75 + 12.5×0.85 + 12.2×0.60 = 41.9 against a 56.7 base), while Δ_ANCbloc's default is
-    <strong>−9</strong>. The parameter table contradicts itself, and the code picked the
-    ANC-friendlier reading without flagging it. Knock-on: <code>leverage.py:62–70</code> builds its
-    "central scenario" from the θ modes, so the leverage analysis and the Monte Carlo are centred on
-    <em>different</em> scenarios — DA+ActionSA at 113 seats in one and 105 in the other.</p>
-    <p>The plan's other guardrails here were also dropped: α (60 / 12) is hard-coded judgement where
-    §3.5 says "set per bloc from polling dispersion," and the promise that per-party ranges "survive
-    as sanity bounds on the derived values" is enforced nowhere.</p>
-    <div class="adjust"><b>How to adjust.</b> In <code>draw_target</code>, centre the Dirichlet on
-    θ-mode-adjusted proportions (<code>centre = base_city[idx] * theta_mode[idx]</code>, renormalised)
-    rather than raw 2024 shares; reconcile Δ_ANCbloc with the θ modes (a genuine judgement call, not
-    a bug — decide which view is actually held); assert that derived θ falls inside §3.5's ranges and
-    log the violation rate. Re-run <code>montecarlo.py</code>. Expected direction: ANC and MK each
-    down several seats at the median, EFF up slightly, ANC+DA viability somewhat lower. The
-    DA+EFF+MK number from E1 barely moves — EFF+MK combined is nearly invariant to the recentring.</div>
-  </div>
-
-  <div class="finding">
-    <div class="fhead"><span class="fnum">E3</span><h3>Ward winners and overhang are never computed in the forecast</h3><span class="sev err">material</span></div>
-    <p>Plan §3.7 steps 3–5: predict ward winners, deduct from entitlement, <strong>check for overhang
-    and expand the council if it occurs</strong> — and the plan's own §0 flags overhang as "a live
-    risk for 2026, not a theoretical one" (the ANC took 87 wards on a 91-seat entitlement in 2021).
-    The Monte Carlo (<code>montecarlo.py:202</code>) allocates from combined votes with
-    <code>independent_wards=0, no_pr_list_wards=0</code> and never looks at wards. The machinery
-    exists — <code>fold.py</code> aggregates VD predictions to ward winners, <code>seats.py</code>
-    has <code>overhang()</code> — it was simply never wired into the forecast. If the DA wins
-    suburban wards at a rate exceeding its ~87-seat entitlement (plausible given its ward-vote
-    concentration and a fragmented field), the council expands and 136 stops being the threshold;
-    none of the published probabilities account for that. Independents — newly permitted, and flagged
-    in plan §6 — are dropped from the universe rather than carried as a C-deduction scenario.</p>
-    <div class="adjust"><b>How to adjust.</b> Per draw: aggregate the ward-ballot VD prediction into
-    2026 wards via <code>vd_ward_2026.csv</code>, take FPTP winners, apply
-    <code>pr_seats()</code>/<code>overhang()</code>, recompute the threshold when overhang occurs,
-    and report P(overhang) by party. Re-run <code>montecarlo.py</code>. This also unlocks reporting
-    <em>which</em> wards each party wins — an output the plan promised and campaigners would use.</div>
-  </div>
-
-  <div class="finding">
-    <div class="fhead"><span class="fnum">E4</span><h3>Three acquired evidence streams influence nothing</h3><span class="sev err">plan–build gap</span></div>
-    <p>Grepping the pipeline: <strong>by-elections</strong> (38 contests fetched; §3.6's exponential
-    weighting, <code>w_bye</code>, and the §3.3 turnout-apathy covariate), <strong>polling</strong>
-    (δ_p — the SRF-versus-Ipsos spread the plan calls "the honest input to δ_p's prior width"), and
-    <strong>census covariates</strong> (the β term in λ̂) appear nowhere in <code>fold.py</code>,
-    <code>turnout.py</code>, <code>leverage.py</code>, or <code>montecarlo.py</code>. δ is zero in the
-    folds — defensibly, since fitting it there would be cheating — but the <em>live case has no δ
-    either</em>. The forecast's citywide distribution rests entirely on four historical NPE→LGE
-    transitions; everything from 2025–26 — Ward 82, Ward 130, Linden's turnout collapse, both polls —
-    is narrative colour only. Meanwhile the sheet's colophon lists "IEC by-election results,
-    2021–2026" as a source, which is not true of the numbers on the sheet.</p>
-    <div class="adjust"><b>How to adjust.</b> Either wire the evidence in — a modest version shifts
-    each party's bloc/θ mode by <code>w_bye ×</code> the §3.6-weighted by-election delta — or state
-    prominently that the forecast is priors-only and correct the colophon. This is the largest silent
-    divergence from the plan's <em>intent</em>: the §8 anchor apparatus was built precisely so current
-    evidence would move the forecast.</div>
-  </div>
-
-  <div class="finding">
-    <div class="fhead"><span class="fnum">E5</span><h3>The validation claim on the sheet overstates what was validated</h3><span class="sev err">misleading</span></div>
-    <p>The sheet says: <em>"Tested against 2021 without being shown the answer, the model called 128
-    of 135 ward winners."</em> Two problems. The reproduce command seeds
-    <code>--entrant ASA=0.1812</code> — ActionSA's <strong>actual 2021 citywide result</strong> — and
-    the headline seat-error row (12) uses θ <em>recalibrated against the actual 2021 citywide
-    shares</em>. The genuinely blind configuration (θ and γ both carried from fold 1) had a total
-    seat error of <strong>54</strong>. The internal documents are honest about this distinction; the
-    sheet is not.</p>
-    <p>The deeper point, worth one sentence in METHODOLOGY §5B: what fold 2 validates is the
-    <strong>spatial projection machinery</strong> (γ and the logit-deviation model) — which is the
-    right thing to validate, since the Monte Carlo also conditions on a drawn citywide target. But it
-    means <em>all</em> of the forecast's uncertainty lives in the drawn citywide distributions, and
-    <strong>nothing in the backtests validates those ranges</strong>. The published probabilities
-    (87.5%, 0.0%, …) are exactly as good as §3.5's hand-set priors, no better.</p>
-    <div class="adjust"><b>How to adjust.</b> Rephrase the sheet: "shown only the citywide totals,
-    the model placed them across wards well enough to call 128 of 135 ward winners." Add the
-    priors-carry-the-uncertainty sentence to §5B.</div>
-  </div>
-
-  <div class="finding">
-    <div class="fhead"><span class="fnum">E6</span><h3>Minor parties move in lockstep, and one parameter was invented</h3><span class="sev err">distorted intervals</span></div>
-    <p>A single shared <code>f_other</code> draw scales the IFP, VF+, ACDP, Rise and the rest
-    identically per draw (<code>montecarlo.py:129–134</code>). This produces the implausibly tight
-    published intervals — Rise 5–7 seats, IFP 4–6; a party's 90% interval spanning two seats is not
-    credible — and overstates correlation in every coalition sum containing minors, including the
-    99.9% for "every party outside the ANC bloc." Separately, <code>ALJAMAAH</code>'s triangular
-    (0.80, 1.20, 1.80) at <code>montecarlo.py:53</code> appears in no plan table — an invented
-    parameter that should be documented in §3.5 or the log.</p>
-    <div class="adjust"><b>How to adjust.</b> Draw each modelled minor independently with wider
-    ranges, and consider an LGE-specific collapse risk for suburbs-NPE parties (Rise, BOSA). Re-run.
-    Direction: minor-party intervals widen substantially; the non-ANC-bloc field's 99.9% drops.</div>
-  </div>
-</section>
-
-<!-- ================= PART 2 ================= -->
-<section>
-  <div class="eyebrow">Part 2</div>
-  <h2>Assumptions and choices to surface — and how to move them</h2>
-  <p>These are defensible but consequential. Each should be stated wherever results are presented;
-  most have a cheap sensitivity run.</p>
-
-  <div class="finding choice">
-    <div class="fhead"><span class="fnum">A1</span><h3>Ward/PR split-ticket ratios frozen at 2021</h3><span class="sev adj">adjustable</span></div>
-    <p>Ratios are measured from 2021, clipped to [0.5, 2.0], and default to 1.0 for parties absent in
-    2021 (<code>montecarlo.py:175–181</code>). MK — a list-vote party the plan itself says has "no
-    ward machinery" — gets ratio 1.0, overstating its ward votes and hence its combined entitlement.
-    Contestation coverage (plan §0: "a 2026 forecast must take a view on how many wards each party
-    fields") is unmodelled; the PA's 2021 ratio bakes in its 52-of-135-ward contestation, which it
-    will likely exceed in 2026.</p>
-    <div class="adjust"><b>Adjust:</b> set MK's ratio near ActionSA's 0.77, or draw it 0.6–1.0; scale
-    the PA's ratio up for wider contestation. Re-run <code>montecarlo.py</code>. Direction: MK
-    entitlement down, PA up — this interacts directly with E1's DA+EFF+MK number.</div>
-  </div>
-
-  <div class="finding choice">
-    <div class="fhead"><span class="fnum">A2</span><h3>No turnout uncertainty in the Monte Carlo</h3><span class="sev adj">adjustable</span></div>
-    <p>One fixed weight vector serves all 5,000 draws (<code>montecarlo.py:166</code>). Justified by
-    the fold finding that turnout is second-order (~6 seats of total error), but six seats is not
-    nothing next to coalition thresholds, and holding it fixed narrows every interval on the sheet.</p>
-    <div class="adjust"><b>Adjust:</b> per draw, blend the λ̂-projected pattern with the 2021-level
-    pattern under a random weight, plus VD-level noise scaled to the observed λ residual spread.
-    Direction: all seat ranges widen modestly; probabilities near 0 or 1 soften.</div>
-  </div>
-
-  <div class="finding choice">
-    <div class="fhead"><span class="fnum">A3</span><h3>The 2026 turnout projection uses the specification that lost its own head-to-head</h3><span class="sev adj">adjustable</span></div>
-    <p><code>turnout.py</code> projects T_2026 = T_2024 × λ̂ — the ratio form — although the model's
-    own test found the previous-LGE-level form better in both measurable cycles (MAE 0.0409 against
-    0.0592). The fold defence (consistency of weighting matters more than specification) covers
-    seats, but ward winners and the leverage geography consume this pattern too.</p>
-    <div class="adjust"><b>Adjust:</b> add a <code>--spec level</code> option projecting T_2026(i)
-    from T_2021(i) rescaled to the λ̂ citywide level; regenerate <code>turnout.csv</code>, then re-run
-    <code>leverage.py</code> and <code>montecarlo.py</code>. Direction: mostly moves ward-level
-    outputs, not citywide seats.</div>
-  </div>
-
-  <div class="finding choice">
-    <div class="fhead"><span class="fnum">A4</span><h3>γ defaults to 1.0 for every party fold 1 never saw</h3><span class="sev adj">adjustable</span></div>
-    <p>That is ActionSA, MK, and effectively the PA: the three most decision-relevant uncertain
-    parties receive an unfitted "preserve 2024 geography exactly" assumption, while the fitted-γ
-    story ("γ transfers across cycles") is told about established parties. ActionSA's Ward 130
-    by-election — three times its 2024 level in Soweto — suggests its geography is actively
-    shifting.</p>
-    <div class="adjust"><b>Adjust:</b> fit γ_ASA and γ_PA on the 2021→2024 transition (both parties
-    existed in both), or run the Monte Carlo at γ = 0.8 for the unfitted three as a sensitivity.</div>
-  </div>
-
-  <div class="finding choice">
-    <div class="fhead"><span class="fnum">A5</span><h3>The plan's A5 sensitivity check was never run, and the leverage scale is a choice</h3><span class="sev adj">adjustable</span></div>
-    <p>Plan §5 promised a re-run of leverage with marginal voters drawn from a 50/50 blend of VD
-    shares and the ward's non-voter demographics. <code>leverage.py</code> inherits A5 and notes it,
-    but the check does not exist — and the reversed strategic conclusion ("turnout cannot close the
-    gap") leans on A5. The census ward data acquired for exactly this purpose is unused. Also worth
-    stating: ±5pp per ward is a chosen scale; 2021 showed differential swings far larger. The honest
-    phrasing is "the most extreme differential-turnout scenarios tested are worth single-digit seats
-    against a 31-seat gap," not "two seats."</p>
-    <div class="adjust"><b>Adjust:</b> implement the 50/50 blend using the ward-level census product;
-    add a scenario at ±10–15pp differential across half the city as an outer bound.</div>
-  </div>
-
-  <div class="finding choice">
-    <div class="fhead"><span class="fnum">A6</span><h3>New-entrant blindness has an unused mitigation</h3><span class="sev adj">adjustable</span></div>
-    <p>R7 is well documented, but the <code>--entrant</code> mechanism is unused in the live case. A
-    generic "unknown 2026 entrant" slot — drawing, say, 0–8% citywide in some fraction of draws —
-    reflects what actually happened in three consecutive elections (EFF era, ActionSA, MK) and would
-    honestly widen the tails instead of leaving the risk as a footnote.</p>
-    <div class="adjust"><b>Adjust:</b> add the entrant slot to <code>draw_target</code>; report
-    results with and without.</div>
-  </div>
-
-  <p class="quiet">Smaller notes: MODEL-LOG has duplicate section numbers (two §1.9s, two §1.10s);
-  <code>montecarlo.py</code> renormalises the drawn target, so drawn bloc shifts are not exactly
-  preserved marginally; <code>turnout.py:166</code> weights the 2021 prediction test by 2024
-  registration rather than 2021's (harmless, but inconsistent); the sheet's numbers are hand-copied
-  into the HTML, duplicating <code>coalition_viability.csv</code>, and will silently go stale after
-  any re-run.</p>
-</section>
-
-<!-- ================= PART 3 ================= -->
-<section>
-  <div class="eyebrow">Part 3</div>
-  <h2>What is solid and worth defending</h2>
-  <div class="finding good">
-    <ul>
-      <li>The seat allocator validated <strong>exactly</strong> against three published councils —
-      quota, total valid votes, and every party's seat count — across two council sizes.</li>
-      <li>The combined-ballot entitlement correction, with the ActionSA split-ticket counter-example
-      that proves it matters.</li>
-      <li>Catching the softmax/logit inconsistency and the raw-versus-calibrated θ trap — both would
-      have silently corrupted results by multiple points.</li>
-      <li>Registration-weighted ward apportionment, including the 59 zero-voter slivers that area
-      weighting would have miscounted.</li>
-      <li>The γ-transfers-and-θ-doesn't finding — the model's best single insight, and the correct
-      justification for its architecture.</li>
-      <li>Testing the boundary-stability assumption to immateriality instead of hoping.</li>
-      <li>The documentation culture: stating predictions in advance and reporting when they fail is
-      rarer than it should be.</li>
-    </ul>
-  </div>
-</section>
-
-<!-- ================= PART 4 ================= -->
-<section>
-  <div class="eyebrow">Part 4</div>
-  <h2>The two-page distribution sheet</h2>
-  <p class="lede">The sheet is light for a specific reason: <strong>it presents conclusions while
-  withholding the two ideas that make the model credible.</strong> What is missing is not length —
-  it is the argument.</p>
-
-  <h3>Required fixes (accuracy, not polish)</h3>
-  <ul>
-    <li>The page-2 lede and any "no two/three-party coalition except ANC+DA" phrasing must change per
-    E1. Suggested honest version: <em>"Every viable majority runs through either the ANC or the
-    EFF/MK bloc. The coalitions actually being discussed — DA with ActionSA and the smaller parties —
-    top out around 116 seats in nineteen simulations out of twenty."</em></li>
-    <li>The hero stat's "the only pairing that can" → "the only pairing that reliably can."</li>
-    <li>"Tested against 2021 without being shown the answer" → "shown only the citywide totals, the
-    model placed them across wards well enough to call 128 of 135 ward winners."</li>
-    <li>Drop by-elections from the sources line, or wire them in (E4).</li>
-    <li>Add the missing caveat — the plan's own line is perfect: <em>the model says which arithmetic
-    is available, not whether two people who dislike each other will sit in the same room.</em>
-    Without it, "87.5%" will be read as the probability of an ANC–DA government, which it is not.</li>
-  </ul>
-
-  <h3>The compelling-explanation gap: four beats the sheet has earned but does not tell</h3>
-  <ol>
-    <li><strong>Why seats, not votes.</strong> Johannesburg's formula adds both ballots and allocates
-    compensatorily — winning wards does not add seats — so a forecast must model the whole formula,
-    not poll shares. Hook: the allocator reproduces the real 2011, 2016 and 2021 councils to the
-    seat.</li>
-    <li><strong>Why geography anchors it.</strong> Where a party's support sits is stable between
-    elections even when its level swings wildly — tested across cycles, the geography transferred
-    and the level did not. So the model fits geography and treats levels as explicit scenarios. This
-    one finding justifies the entire architecture and is currently absent from the sheet.</li>
-    <li><strong>Why parties are drawn in blocs.</strong> The DA and ActionSA fight over the same
-    voters, so their errors offset — which is why their combined range (91–116) is tight while
-    ActionSA alone spans 5–38. The most counterintuitive numbers on the sheet, presented without
-    their explanation.</li>
-    <li><strong>Why turnout is not the story.</strong> The model was built expecting turnout to
-    decide the election, tested that belief, and reversed it. Already the sheet's best section — it
-    needs the "we expected the opposite" framing made explicit, which is what makes it credible.</li>
-  </ol>
-  <p>A short "why believe this / why not" pairing — validated allocator and 128/135 ward winners on
-  one side, blind-to-new-entrants and priors-not-polls on the other — would complete it.
-  Structurally there is room: page 1's lower third is one paragraph, and the "How it works" note is
-  three generic sentences that could become the four beats above.</p>
-</section>
-
-<!-- ================= ORDER ================= -->
-<section>
-  <div class="eyebrow">Recommendation</div>
-  <h2>Suggested order of operations</h2>
-  <ol>
-    <li><strong>Enumeration, MWC reduction, power indices</strong> (E1) — free, post-hoc on
-    <code>seat_draws.csv</code>, and it changes the headline claim. Do first.</li>
-    <li><strong>Dirichlet recentring</strong> (E2) and the <strong>ward-winner/overhang step</strong>
-    (E3) — each changes the numbers; one re-run each.</li>
-    <li><strong>Sensitivities</strong> from Part 2 as time allows, A1 and A2 first.</li>
-    <li><strong>Re-issue the sheet</strong> with the Part 4 restructure, generating its numbers from
-    the CSVs rather than by hand.</li>
-  </ol>
-  <p><strong>Hold distribution of the current sheet.</strong> E1 is the kind of error a competent
-  reader will find, and it is the headline.</p>
-</section>
-
+<p>Most forecasts show you their conclusions. This page shows you our mistakes.
+After the first version of this model was built, we reviewed it the way a
+hostile examiner would — against its own written plan, line by line, output by
+output. The review found <strong>six implementation errors</strong>, one of which made the
+forecast&rsquo;s original headline claim outright false. Every error was fixed the
+same day, the forecast changed materially, and the full technical audit is
+published, warts and all, in
+<a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/model-review.html"><code>model-review.html</code> on GitHub</a>.
+Here is what happened, in plain language — and why we think publishing it
+makes the forecast more worth your trust, not less.</p>
+<h2>The error that mattered most</h2>
+<p>The first version of the forecast declared: <em>no two- or three-party coalition
+can reach a majority except the ANC and DA together.</em> That claim was false —
+and the model&rsquo;s own simulations proved it false, because nobody had asked
+them.</p>
+<p>The plan the model was built from had been explicit: check <strong>every</strong>
+combination of parties, mechanically, with no opinions about who would
+plausibly govern with whom — precisely because South African coalition
+politics has a habit of making yesterday&rsquo;s unthinkable arrangement tomorrow&rsquo;s
+government. The build ignored that instruction and checked six hand-picked,
+&ldquo;realistic&rdquo; coalitions. When the full check was finally run, a combination
+nobody had thought to test — DA + EFF + MK — cleared the majority line in
+<strong>61% of the very same simulations</strong>. The published conclusion wasn&rsquo;t wrong
+because the maths was wrong; it was wrong because a human had quietly
+filtered the question through political taste, which is exactly what the plan
+had forbidden.</p>
+<h2>The other five, briefly</h2>
+<ul>
+<li><strong>The plan&rsquo;s own scepticism about MK was silently discarded.</strong> The plan
+  said MK — a party with no local-government machinery — should be expected
+  to underperform its national result. The simulation&rsquo;s internals quietly
+  centred MK on holding its ground instead, making an MK collapse nearly
+  impossible to draw. The plan and the code disagreed, and nobody had
+  noticed.</li>
+<li><strong>Ward winners were never actually counted.</strong> The forecast allocated seats
+  from vote totals but skipped predicting who <em>wins each ward</em> — which is
+  the step that detects overhang, the council growing beyond 270. The plan
+  had flagged overhang as a live risk. It turned out to be the modal outcome,
+  and the first forecast simply could not see it.</li>
+<li><strong>Real evidence was collected and then ignored.</strong> Fifteen by-elections and
+  the published polls had been gathered — and influenced nothing. The
+  forecast cited them as sources while its numbers rested entirely on
+  historical patterns. They are now wired in, with their weight adjustable.</li>
+<li><strong>The validation was oversold.</strong> The sheet said the model was tested
+  &ldquo;without being shown the answer&rdquo;. In truth the test had been given the
+  citywide totals and only had to place them geographically. Genuinely
+  blind, the seat error is five times larger. The claim now says exactly
+  what was and wasn&rsquo;t tested.</li>
+<li><strong>Small parties moved in lockstep.</strong> Every minor party rose and fell
+  together in the simulations, producing absurdly confident seat ranges for
+  them. They now move independently, with ranges set from their actual
+  history.</li>
+</ul>
+<p>There were also data bugs found along the way — including 87 district-year
+records where more people had voted than were registered, a sign of broken
+registration counts that had quietly poisoned the turnout projections.</p>
+<h2>What the fixes changed</h2>
+<p>The corrected forecast is meaningfully different from the one first computed:</p>
+<ul>
+<li><strong>Overhang went from invisible to the headline.</strong> In roughly nine
+  simulations in ten, the ANC wins more wards than its shrunken vote entitles
+  it to, the council grows past 270, and the majority bar rises to about 141.</li>
+<li><strong>The DA&rsquo;s dominance shrank.</strong> Largest party in 63% of simulations, not
+  86% — the ANC&rsquo;s overhang seats close the gap.</li>
+<li><strong>A kingmaker verdict flipped.</strong> The first sheet asserted the Patriotic
+  Alliance mattered more to coalition-building than ActionSA. Computed
+  properly, it is the other way around.</li>
+<li><strong>The realistic outcomes clarified into three:</strong> a grand coalition, a
+  DA-led minority government resting on abstention (viable in 61% of
+  simulations), or a DA arrangement with one of the parties it has publicly
+  ruled out.</li>
+</ul>
+<h2>What the review could not fix</h2>
+<p>Honesty about the repairs requires honesty about the remainder. A party that
+does not yet exist cannot be forecast, only allowed for. The legal fine print
+of overhang has never been demonstrated in a published calculation by the
+electoral commission — we have asked. And the range of possible 2026 outcomes
+is judgement that no amount of testing can turn into fact: bounded by twenty
+years of observed swings, tilted by current evidence, and fully exposed as
+adjustable dials on the <a href="interactive">interactive page</a>.</p>
+<h2>Why publish this at all</h2>
+<p>Because the alternative is worse. Every model contains errors; the only
+question is whether they are found, and whether anyone is told. This one was
+reviewed hard enough to break, fixed in the open, and re-checked — the
+review, the fixes and the re-run are all in the public repository. A forecast
+that shows you its repair history is one you can calibrate your trust
+against. One that doesn&rsquo;t is asking you to take it on faith.</p>
 <div class="colophon">
-  Implementation review, 4 August 2026 · reviewed against the rev-2 plan and the codebase at commit
-  12a4c17 · enumeration figures computed from data/processed/seat_draws.csv (5,000 draws, seed
-  20261104) during this review · part of the model's development record alongside MODEL-LOG.md and
-  METHODOLOGY.md.
+  Reader edition, generated from docs-public/review.md on 2026-08-05. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/model-review.html">model-review.html on GitHub</a>.
 </div>
-
 <footer class="sitefooter">
   <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
   <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">source &amp; data on GitHub</a></div>
 </footer>
-</div><!-- /sheet -->
+</div>
 </body>
 </html>
