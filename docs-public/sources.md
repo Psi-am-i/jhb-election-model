@@ -94,8 +94,15 @@ Some records could not be obtained because they do not exist in public:
 
 ## Keeping ourselves honest
 
-Because the raw files were assembled by hand from unreliable sources, every
-one of them is fingerprinted: a cryptographic checksum of each input is
-recorded in the public repository, so anyone rebuilding this model can prove
-they are working from byte-identical data — and we will know immediately if a
-source file quietly changes underneath us.
+Because the raw files were assembled by hand from sources that can change or
+vanish, we fingerprint every one of them ourselves: when a file is collected,
+the model's build records its cryptographic checksum — a short code that
+changes if even one byte of the file does. Those fingerprints are published in
+this project's own repository on
+[GitHub](https://github.com/Psi-am-i/jhb-election-model) (the raw files are
+bulky, so we publish the fingerprints and the instructions to fetch the files
+rather than the files themselves). That gives everyone two guarantees: anyone
+who re-downloads the same sources can prove they hold exactly the data this
+forecast was computed from, byte for byte — and if a source file is ever
+quietly altered or withdrawn upstream, the mismatch shows up immediately
+instead of silently corrupting the model.

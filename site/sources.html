@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Johannesburg 2026 — Data sources — how each raw file was obtained</title>
+<title>Johannesburg 2026 — Where the data comes from — and what it took to get it</title>
 <style>
   :root{
     --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
@@ -118,244 +118,114 @@
   <a href="documents">all documents</a>
 </nav>
 <header>
-  <div class="kicker">Data sources & acquisition</div>
-  <h1>Data sources — how each raw file was obtained</h1>
-  <p class="standfirst">Where every number came from: IEC results, boundaries, by-elections and census data, with the access constraints and non-obvious identifiers a reproducer will need.</p>
+  <div class="kicker">Data sources</div>
+  <h1>Where the data comes from — and what it took to get it</h1>
+  <p class="standfirst">Every number in this model traces back to a public record. Where each one lives, what state it was in, and how hard South Africa's public records actually are to reach.</p>
 </header>
-<p><code>data/</code> is gitignored, so this file is the reproducible record of where the raw
-inputs come from. Downloaded archives are kept in
-<code>data/raw/elections/_source/</code> so nothing depends on the browser&rsquo;s download
-folder.</p>
-<h2>Access constraints (learned the hard way)</h2>
-<p><code>results.elections.org.za</code> and <code>www.elections.org.za</code> sit behind Cloudflare and
-return <strong>403 to plain curl</strong>, including with a browser UA and referer. Some
-individual report files are served without the challenge and <em>are</em> curl-able
-(see LGE below); the bulk <code>.zip</code> exports are <strong>not</strong> and must be fetched through
-a real browser session.</p>
-<p>Two further notes:</p>
+<p>Every number in this model traces back to a public record: election results,
+maps of voting districts and wards, by-election returns, census tables. This
+page says where each one lives, what state it was in when we found it, and —
+because it turned out to matter — how hard South Africa&rsquo;s public records
+actually are to reach. The full technical recipes, file by file, are in
+<a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md"><code>SOURCES.md</code> on GitHub</a>.</p>
+<h2>Public records, deliberately hard to reach</h2>
+<p>The IEC&rsquo;s results sites — <code>results.elections.org.za</code> and
+<code>www.elections.org.za</code> — do not allow programmatic collection of their data:
+automated requests are simply refused at the door. Why that should be true of
+a public record is unexplained. Election results belong to everyone, and they
+should be freely and easily available — not guarded in ways that make
+independent analysis a test of patience. In practice, most of the raw data
+behind this model had to be collected through an ordinary browser session,
+clicking each file one by one.</p>
+<p>It gets stranger. The portal identifies each election not by its year but by
+an arbitrary internal code — and the codes for the national and provincial
+halves of the same election day differ. Guess wrong and the site does not
+error: it quietly hands you a different election&rsquo;s results. And one election —
+the 2014 national and provincial vote — is missing from the results portal
+altogether; its files turned out to live on a second, older IEC site.</p>
+<h2>The election results themselves</h2>
+<p>The model rests on six elections at voting-district level — the finest grain
+the IEC publishes:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Election</th>
+<th>What it provides</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2011, 2016, 2021 municipal elections</td>
+<td>Both ballots — ward and party list — for every voting district</td>
+</tr>
+<tr>
+<td>2014, 2019, 2024 national/provincial elections</td>
+<td>The provincial ballot, the model&rsquo;s between-elections baseline</td>
+</tr>
+</tbody>
+</table></div>
+<p>The files themselves were not clean. Different years arrive in different
+character encodings — one in a format from the DOS era. A voting station with
+a comma in its name silently shifts every later column in the row. One year&rsquo;s
+&ldquo;valid votes&rdquo; column does not contain what its name says. Each of these
+corrupts results without raising any error; each had to be caught by
+cross-checking totals against the IEC&rsquo;s own published reports. The full list
+of traps, and the code that handles them, is on GitHub.</p>
+<h2>The maps</h2>
+<p>Council seats follow geography, so the model needs the boundaries of every
+ward and voting district — across four different boundary revisions, because
+Johannesburg&rsquo;s wards have been redrawn before every election. The Municipal
+Demarcation Board publishes the recent layers through its mapping portal; the
+two older ward sets survive only as archived file downloads.</p>
+<p>Public geodata also quietly disappears: the Demarcation Board has already
+retired the per-municipality downloads its old website offered. One dataset
+this model needed — the complete voting-district results of the 2016
+election — now exists in the Internet Archive and nowhere official.</p>
+<p>One trap worth recording: the 2026 voting-district layer carries a field that
+looks like current voter registration. It is actually a snapshot from 2024.
+Take it at face value and every turnout figure built on it is wrong.</p>
+<h2>By-elections</h2>
+<p>Fifteen wards in Johannesburg have held by-elections since 2021 — the only
+hard evidence of how opinion has moved between elections, and an input to this
+forecast. The IEC&rsquo;s official download page could not supply them: its report
+links only work inside the browser session that created them. The IEC&rsquo;s own
+public dashboard, however, is fed by plain data files that anyone can read —
+richer than the reports, down to voting-district level with every party and
+candidate. That is what the model uses.</p>
+<h2>People</h2>
+<p>Statistics South Africa publishes ward-level population estimates from Census
+2022 — age, sex and population group for all 135 wards — and those are used in
+the turnout modelling. The more detailed small-area data (income, dwelling
+type, employment) is not published at all: it is supplied on request, by
+email, to those who know to ask. A national census, funded publicly, should
+not work that way.</p>
+<h2>What nobody publishes</h2>
+<p>Some records could not be obtained because they do not exist in public:</p>
 <ul>
-<li>The report picker is an ASP.NET postback UI with native <code>&lt;select&gt;</code> elements.
-  Setting <code>.value</code> alone does not fire the tracked setter — use the native
-  property-descriptor setter plus <code>dispatchEvent(new Event('change'))</code>. Space
-  the postbacks out; roughly ten rapid synthetic postbacks earned a WAF 403.</li>
-<li>Reading downloaded bytes requires the terminal to hold macOS <strong>Full Disk
-  Access</strong> (System Settings → Privacy &amp; Security), otherwise <code>~/Downloads</code> is
-  <code>Operation not permitted</code> even though the file is there.</li>
+<li><strong>Historic voting-district boundaries.</strong> The IEC draws these with its own
+  mapping systems and appears never to have published them. Five archives and
+  catalogues were searched; a request to the IEC&rsquo;s Delimitation Directorate is
+  the only remaining route. The model works around the gap and tests that the
+  workaround does not change its conclusions.</li>
+<li><strong>The voters&rsquo; roll by age and sex below municipality level</strong>, and the
+  registration figures from the 2026 sign-up weekends — the latter simply not
+  released yet.</li>
 </ul>
-<h2>Election IDs</h2>
-<p>The portal&rsquo;s election id is <em>not</em> the year and differs per ballot. Read them off
-the <code>MainContent_ddlElections</code> dropdown after selecting the election type:</p>
-<div class="tablewrap"><table>
-<thead>
-<tr>
-<th>Year</th>
-<th>National</th>
-<th>Provincial</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>2024</td>
-<td>1334</td>
-<td><strong>1335</strong></td>
-</tr>
-<tr>
-<td>2019</td>
-<td>699</td>
-<td><strong>827</strong></td>
-</tr>
-<tr>
-<td>2014</td>
-<td>291</td>
-<td><strong>292</strong></td>
-</tr>
-</tbody>
-</table></div>
-<p>LGE ids: <strong>1091</strong> = 2021, <strong>402</strong> = 2016.</p>
-<h2>National &amp; provincial elections (VD-level, provincial ballot)</h2>
-<div class="tablewrap"><table>
-<thead>
-<tr>
-<th>Year</th>
-<th>Route</th>
-<th>Result</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>2024</td>
-<td><code>results.elections.org.za/home/NPEPublicReports/1335/Downloadable%20Results/Provincial.zip</code></td>
-<td>✔ browser download, 4.2 MB</td>
-</tr>
-<tr>
-<td>2019</td>
-<td>same pattern, id <strong>827</strong></td>
-<td>✔ browser download, 4.0 MB</td>
-</tr>
-<tr>
-<td>2014</td>
-<td>same pattern <strong>404s</strong> — 2014 is published on the other host instead: <code>www.elections.org.za/content/Elections/Downloadable-results/2014-National-and-Provincial-Elections--Complete-voting-district-level-results-data-(zipped-CSV)/</code></td>
-<td>✔ browser download, 7.1 MB</td>
-</tr>
-</tbody>
-</table></div>
-<p>Reachable from the UI at <em>NPE-Results → Provincial → \&lt;year&gt; → Downloadable
-report data</em>.</p>
-<p>Ingest with <code>src/ingest_npe.py</code>, which normalises the two layouts and writes the
-CoJ subset to <code>data/raw/elections/npe{year}_JHB_vd_party.csv</code>:</p>
-<pre><code>python src/ingest_npe.py &quot;data/raw/.../2014 NPE.csv&quot; 2014 --event PROVINCIAL
-python src/ingest_npe.py &quot;data/raw/.../827.csv&quot;      2019
-python src/ingest_npe.py &quot;data/raw/.../Provincial.csv&quot; 2024
-</code></pre>
-<p>Layout quirks the ingester handles: header punctuation drift, CP850 encoding in
-2019, unquoted commas in voting-station names that shift columns, and the 2014
-file&rsquo;s <code>VALID VOTES</code> column being the <em>party&rsquo;s</em> votes rather than the VD total.</p>
-<h2>Local government elections (VD-level, ward + PR ballots)</h2>
-<p>These <em>are</em> curl-able without a browser:</p>
-<pre><code>https://results.elections.org.za/home/LGEPublicReports/{id}/Downloadable%20Party%20Results/GP/JHB.csv
-</code></pre>
-<p>with id <strong>1091</strong> (2021) and <strong>402</strong> (2016) → <code>lge{year}_JHB_vd_party.csv</code>.</p>
-<p>Also confirmed working: turnout PDFs at
-<code>.../LGEPublicReports/{id}/Voter%20Turnout/GP/JHB.pdf</code>.</p>
-<p>Run <code>src/fetch_iec.py</code> to sweep every LGE report that is served directly
-(party CSV, detailed results, seat calculation, turnout) for 2011, 2016 and 2021.</p>
-<h2>Boundaries — MDB Spatial Knowledge Hub</h2>
-<p><code>spatialhub-mdb-sa.opendata.arcgis.com</code> is an ArcGIS Hub site. Its DCAT feed
-(<code>/api/feed/dcat-us/1.1.json</code>) lists the datasets, but only advertises download
-endpoints for some. Every layer sits behind a FeatureServer that takes a
-municipality filter, which is better anyway — Johannesburg is selected
-server-side rather than pulling the whole country. Layer URLs were resolved from
-the MDB&rsquo;s &ldquo;Wards2026&rdquo; web map (ArcGIS item <code>6d7488a7f83645218e547d403871e1e0</code>).</p>
-<div class="tablewrap"><table>
-<thead>
-<tr>
-<th>Layer</th>
-<th>Service</th>
-<th>Applies to</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>2026 wards</td>
-<td><code>MDBWards2026</code></td>
-<td>4 Nov 2026 election</td>
-</tr>
-<tr>
-<td>2026 voting districts</td>
-<td><code>VotingDistricts2026_Final</code></td>
-<td>carries <code>WardNo</code>, <code>Split_VD</code>, <code>REGPOP</code></td>
-</tr>
-<tr>
-<td>2021 wards</td>
-<td><code>SA_Wards2020</code></td>
-<td>2020 delimitation</td>
-</tr>
-<tr>
-<td>2026 voting stations</td>
-<td><code>VotingStations_March2026</code></td>
-<td>points; keyed on <code>MUNICIPALI</code>, not <code>CAT_B</code></td>
-</tr>
-</tbody>
-</table></div>
-<p>The 2016 and 2011 ward layers are File Geodatabase item downloads, not services:
-ArcGIS items <code>cfddb54aab5f4d62b2144d80d49b3fdb</code> and
-<code>12d2deb98816451ab7c4dc09cdfeee6b</code>, fetched via
-<code>arcgis.com/sharing/rest/content/items/{id}/data</code>.</p>
-<p><code>src/fetch_boundaries.py</code> pulls all of these; <code>src/build_geo.py</code> clips the
-geodatabases and runs the checks.</p>
-<p><strong>Caveat:</strong> <code>REGPOP</code> on the 2026 VD layer sums to 2,348,781 — exactly the <em>2024</em>
-registration total. It is a 2024 snapshot, not current 2026 registration.</p>
-<h2>By-elections — use the dashboard, not the downloads page</h2>
-<p>The downloads page serves by-election reports only through per-session
-<code>ReportViewer?_f=&lt;token&gt;</code> links. Those tokens are session-bound: fetched with
-curl they reach the handler and return &ldquo;Error occured while trying to generate
-the by-election report&rdquo;.</p>
-<p>The <strong>dashboard</strong> is backed by plain static JSON that needs no session:</p>
-<pre><code>.../dashboards/byelection/MapsJason/{year}/ByElections.js      # dates + EEIDs
-.../dashboards/byelection/MapsJason/{year}/PartyList.js        # party id -&gt; name
-.../dashboards/byelection/MapsJason/{eeid}/EEID{eeid}BigMapsNational.js
-.../dashboards/byelection/MapsJason/{eeid}/EEID{eeid}Munic{municipalityID}.js
-</code></pre>
-<p>The national/province files carry only the <em>leading</em> party per ward. The
-per-municipality file is the one worth having: voting-district level, every
-party, candidate names, historical comparators. <code>src/fetch_byelections.py</code>
-walks all of it — 38 Gauteng ward contests since 2021, 15 in CoJ.</p>
-<h2>Covariates</h2>
-<p>Stats SA&rsquo;s <strong>Ward-level Small Area Population Estimates 2022</strong> are directly
-downloadable and cover all 135 CoJ wards on the 2020 delimitation, with
-five-year age bands, sex and population group:</p>
-<pre><code>statssa.gov.za/wp-content/uploads/2025/11/Ward-Product_Locked-spreadsheets.zip
-statssa.gov.za/wp-content/uploads/2025/11/Ward-statistical-product-technical-note.pdf
-</code></pre>
-<h2>Historic VD boundaries — searched for, not published</h2>
-<p>Needed to verify that a VD keeping its number kept its catchment (see
-<code>src/build_concordance.py</code>). Everywhere checked, and not found:</p>
-<div class="tablewrap"><table>
-<thead>
-<tr>
-<th>Where</th>
-<th>Result</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>MDB ArcGIS org, full service list (43 services)</td>
-<td>only 2026-era voting-district layers; ward layers back to 2000</td>
-</tr>
-<tr>
-<td>MDB DCAT catalogues, both hub sites</td>
-<td>no VD datasets at all</td>
-</tr>
-<tr>
-<td>ArcGIS Online public search</td>
-<td>one 4-feature derived sample; nothing national</td>
-</tr>
-<tr>
-<td>IEC GeoServer <code>vmdgeomaps.elections.org.za</code></td>
-<td>address points (NAD) plus GeoServer demo layers</td>
-</tr>
-<tr>
-<td>Internet Archive CDX over both IEC and MDB hosts</td>
-<td>ward and municipal shapefiles only, no VD</td>
-</tr>
-</tbody>
-</table></div>
-<p>The IEC delimits VDs with its own GIS and appears not to publish the boundaries,
-so this needs a request to the IEC&rsquo;s Delimitation Directorate. Until then the
-concordance keys on VD number, with the stability flags described in
-<code>build_concordance.py</code> standing in for the geometric check.</p>
-<p>The Internet Archive sweep did turn up one live URL worth having, since the MDB
-has already retired the per-municipality shapefile downloads its old site
-served: the <strong>2016 LGE complete VD-level results</strong>, on the same host pattern as
-the 2014 NPE export —
-<code>elections.org.za/content/Elections/Downloadable-results/2016-Municipal-Elections--Complete-VD-level-results-data-(zipped-CSV)/</code>.
-Its JHB PR totals reconcile exactly, party for party, against the per-municipality
-CSV we already had.</p>
-<h2>Archive</h2>
-<p><code>src/archive.py</code> records every raw and derived file with its size, SHA-256 and
-provenance in <code>data/archive_manifest.csv</code>. The data itself is gitignored, so the
-manifest is the tracked record — it is committed even though the bytes are not.
-<code>python src/archive.py --verify</code> re-hashes and reports anything missing, changed
-or new, which is how we will know if a file quietly diverges from the copy every
-validation in this repo was run against.</p>
-<h2>Still to acquire — needs a human</h2>
-<ul>
-<li><strong>Census 2022 Small Area Layer (SAL)</strong> — plan §1.3 C1 asks for income,
-  dwelling type and employment at small-area level. Stats SA does <strong>not</strong>
-  publish the SAL for download; it is supplied on request only
-  (<code>info@statssa.gov.za</code>, +27 12 310 8600). The ward-level product above is the
-  usable substitute in the meantime, but it carries only age/sex/population
-  group — no income or employment. Wazimap-NG (C2) was unreachable when tried.</li>
-<li><strong>Voters&rsquo; roll by VD split by age and sex</strong> — plan §1.3 C3. The IEC&rsquo;s
-  registration statistics page publishes age/gender bands only down to
-  <em>municipality</em> level, server-rendered with no API. VD-level registration
-  <em>totals</em> we already have, from the election files and the VD layer&rsquo;s <code>REGPOP</code>.</li>
-<li><strong>2026 registration figures</strong> — the IEC page shows the position as at
-  1 Aug 2026 at municipality level; §3.2 wants the registration-weekend deltas,
-  which are not published yet.</li>
-</ul>
+<h2>Keeping ourselves honest</h2>
+<p>Because the raw files were assembled by hand from sources that can change or
+vanish, we fingerprint every one of them ourselves: when a file is collected,
+the model&rsquo;s build records its cryptographic checksum — a short code that
+changes if even one byte of the file does. Those fingerprints are published in
+this project&rsquo;s own repository on
+<a href="https://github.com/Psi-am-i/jhb-election-model">GitHub</a> (the raw files are
+bulky, so we publish the fingerprints and the instructions to fetch the files
+rather than the files themselves). That gives everyone two guarantees: anyone
+who re-downloads the same sources can prove they hold exactly the data this
+forecast was computed from, byte for byte — and if a source file is ever
+quietly altered or withdrawn upstream, the mismatch shows up immediately
+instead of silently corrupting the model.</p>
 <div class="colophon">
-  Generated from SOURCES.md by src/build_site.py on 2026-08-04 — the Markdown file in the project repository is canonical; regenerate rather than editing this page.
+  Reader edition, generated from docs-public/sources.md on 2026-08-04. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md">SOURCES.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
   <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>

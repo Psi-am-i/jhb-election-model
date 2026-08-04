@@ -217,12 +217,12 @@ DOCS = {
         "silent data traps, the assumption register, and the decisions taken — "
         "including the review that falsified the first forecast.",
     ),
-    "SOURCES.md": (
+    "docs-public/sources.md": (
         "sources.html",
-        "Data sources & acquisition",
-        "Where every number came from: IEC results, boundaries, by-elections "
-        "and census data, with the access constraints and non-obvious "
-        "identifiers a reproducer will need.",
+        "Data sources",
+        "Every number in this model traces back to a public record. Where "
+        "each one lives, what state it was in, and how hard South Africa's "
+        "public records actually are to reach.",
     ),
     "joburg-prediction-model-plan-v2.md": (
         "plan.html",
@@ -257,9 +257,9 @@ CARDS = [
     ("model-log.html", "Model log", "document",
      "Findings, obstacles, silent data traps, the assumption register, and "
      "every decision with its rationale."),
-    ("sources.html", "Data sources", "document",
-     "Acquisition detail for every input, with checksums, access constraints "
-     "and the identifiers that are not what they appear."),
+    ("sources", "Data sources", "document",
+     "Every number traces to a public record — where each lives, and how "
+     "hard public records actually are to reach. Technical recipes on GitHub."),
     ("plan.html", "The original plan", "document",
      "The rev-2 plan as written — including what the build later proved "
      "wrong. Kept because the divergence is part of the record."),
@@ -305,9 +305,17 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "") -> 
 
     masthead = (f"  <h1>{title}</h1>\n"
                 f'  <p class="standfirst">{standfirst}</p>')
-    note = (f"Generated from {source.name} by src/build_site.py on "
-            f"{date.today().isoformat()} — the Markdown file in the project "
-            f"repository is canonical; regenerate rather than editing this page.")
+    if str(source).startswith("docs-public/"):
+        tech = source.name.replace(".md", "").upper() + ".md"
+        note = (f"Reader edition, generated from {source} on "
+                f"{date.today().isoformat()}. The full technical record — "
+                f"every URL, identifier and workaround — is "
+                f'<a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/{tech}">'
+                f"{tech} on GitHub</a>.")
+    else:
+        note = (f"Generated from {source.name} by src/build_site.py on "
+                f"{date.today().isoformat()} — the Markdown file in the project "
+                f"repository is canonical; regenerate rather than editing this page.")
     return shell(f"Johannesburg 2026 — {title}", kicker, masthead, html, note,
                  active_href=output.removesuffix(".html"))
 
