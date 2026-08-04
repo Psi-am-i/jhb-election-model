@@ -127,14 +127,34 @@ STYLE = """
 
 NAV = """<nav class="topnav">
   <a class="home" href="./">joburg.whysoserious.city</a>
-  <a href="forecast.html">forecast</a>
-  <a href="interactive.html">interactive</a>
-  <a href="methodology.html">methodology</a>
-  <a href="review.html">review</a>
-  <a href="model-log.html">log</a>
-  <a href="sources.html">sources</a>
-  <a href="plan.html">plan</a>
+  <a href="./">forecast</a>
+  <a href="interactive">interactive</a>
+  <a href="methodology">methodology</a>
+  <a href="review">review</a>
+  <a href="model-log">log</a>
+  <a href="sources">sources</a>
+  <a href="plan">plan</a>
+  <a href="documents">all documents</a>
 </nav>"""
+
+# Standalone nav styling injected into the artefact pages (which carry their
+# own stylesheets); the rendered documents get it via STYLE above.
+NAV_CSS = """<style>
+  .topnav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;
+    font-family:var(--mono);font-size:11.5px;color:var(--ink-3);
+    border-bottom:1px solid var(--rule);padding-bottom:9px;margin-bottom:22px;}
+  .topnav a{color:var(--ink-3);text-decoration:none;}
+  .topnav a:hover{color:var(--accent);}
+  .topnav a.home{color:var(--accent);font-weight:600;}
+</style>"""
+
+
+def inject_nav(html: str) -> str:
+    """Give an artefact page the site navigation: CSS into <head>, nav bar
+    at the top of its content container so it aligns with the content."""
+    html = html.replace("</head>", NAV_CSS + "\n</head>", 1)
+    marker = '<div class="sheet">'
+    return html.replace(marker, marker + "\n" + NAV, 1)
 
 # source markdown -> (output, kicker, standfirst)
 DOCS = {
@@ -169,14 +189,15 @@ DOCS = {
 }
 
 # already-styled artefacts copied verbatim under stable public names
+# already-styled artefacts, nav-injected; the forecast IS the landing page
 ARTEFACTS = {
-    "forecast-sheet.html": "forecast.html",
+    "forecast-sheet.html": "index.html",
     "forecast-interactive.html": "interactive.html",
     "model-review.html": "review.html",
 }
 
 CARDS = [
-    ("forecast.html", "The forecast", "hero",
+    ("./", "The forecast", "hero",
      "Two pages: seats, coalition arithmetic, and the overhang finding that "
      "moves the majority bar. Start here."),
     ("interactive.html", "The interactive model", "hero",
@@ -246,7 +267,7 @@ def render_doc(source: Path, kicker: str, standfirst: str) -> str:
     return shell(f"Johannesburg 2026 — {title}", kicker, masthead, html, note)
 
 
-def build_index() -> str:
+def build_documents() -> str:
     cards = "\n".join(
         f'  <a class="card{" hero" if tag == "hero" else ""}" href="{href}">'
         f'<span class="tag">{tag}</span>'
@@ -291,10 +312,14 @@ def main(argv: list[str] | None = None) -> int:
         (args.out / output).write_text(page, encoding="utf-8")
         print(f"  rendered {source:<28s} -> site/{output}")
     for source, output in ARTEFACTS.items():
-        shutil.copy(Path(source), args.out / output)
-        print(f"  copied   {source:<28s} -> site/{output}")
-    (args.out / "index.html").write_text(build_index(), encoding="utf-8")
-    print("  wrote    index.html")
+        html = inject_nav(Path(source).read_text(encoding="utf-8"))
+        (args.out / output).write_text(html, encoding="utf-8")
+        print(f"  nav+copy {source:<28s} -> site/{output}")
+    (args.out / "documents.html").write_text(build_documents(), encoding="utf-8")
+    print("  wrote    documents.html")
+    stale = args.out / "forecast.html"
+    if stale.exists():
+        stale.unlink()  # superseded: the forecast is index.html now
 
     # Serve everything as UTF-8 regardless of meta tags — the sheet originally
     # shipped without a <head> and mojibake'd every em-dash (review of the

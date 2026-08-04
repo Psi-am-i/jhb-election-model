@@ -128,6 +128,7 @@
     text-transform:uppercase;color:var(--ink-3);text-align:left;
     padding:0 10px 7px 0;border-bottom:1px solid var(--rule);}
   th.num,td.num{text-align:right;padding-right:0;}
+  th.num:not(:last-child),td.num:not(:last-child){padding-right:18px;}
   td{padding:9px 10px 9px 0;border-bottom:1px solid var(--rule-soft);vertical-align:middle;}
   td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;}
   tr.key td{background:var(--accent-soft);}
@@ -139,6 +140,8 @@
 
   /* ---- notes ---- */
   .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px;}
+  .cols.two{grid-template-columns:repeat(2,minmax(0,1fr));}
+  @media (max-width:640px){.cols.two{grid-template-columns:1fr;}}
   .note{border-left:2px solid var(--rule);padding-left:14px;display:flex;flex-direction:column;gap:6px;}
   .note h3{font-family:var(--sans);font-size:12px;font-weight:650;letter-spacing:.06em;
     text-transform:uppercase;color:var(--ink-2);margin:0;}
@@ -147,11 +150,8 @@
     font-size:13.5px;color:var(--ink-2);}
   .caveat{background:var(--paper-2);border:1px solid var(--rule-soft);padding:16px 18px;
     display:flex;flex-direction:column;gap:9px;}
-  .caveat h2{font-size:17px;}
   .colophon{font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--ink-3);
     border-top:1px solid var(--rule);padding-top:12px;}
-  .folio{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);
-    display:flex;justify-content:space-between;border-top:1px solid var(--rule-soft);padding-top:8px;}
 
   @media print{
     body{background:#fff;color:#000;font-size:10.5pt;}
@@ -217,7 +217,6 @@
     coalition has to climb the higher bar the ANC's geography creates.</p>
   </section>
 
-  <div class="folio"><span>Johannesburg 2026 · Council Forecast</span><span>Page 1 of 2</span></div>
 </div>
 
 <!-- ============================ PAGE 2 ============================ -->
@@ -247,17 +246,20 @@
   </section>
 
   <section>
-    <p class="lede">There is a third way to govern that no coalition table shows: the mayor is
-    elected by councillors <em>present and voting</em>, so abstention installs minority
-    governments — it is how the DA took this mayoralty in 2021. If only the ANC votes against, a
-    DA minority administration is arithmetically viable in <b id="minorityP">—</b> of simulations.
-    The realistic outcomes are three: a grand coalition, a DA-led minority resting on abstention,
-    or a DA arrangement with one of the parties it has ruled out.</p>
+    <div class="eyebrow">The third way to govern</div>
+    <h2>A minority government, resting on abstention</h2>
+    <p class="lede">No coalition table shows it, but the mayor is elected by councillors
+    <em>present and voting</em>, so abstention installs minority governments — it is how the DA
+    took this mayoralty in 2021. If only the ANC votes against, a DA minority administration is
+    arithmetically viable in <b id="minorityP">—</b> of simulations. The realistic outcomes are
+    three: a grand coalition, a DA-led minority resting on abstention, or a DA arrangement with
+    one of the parties it has ruled out.</p>
   </section>
 
   <section>
-    <div class="eyebrow">Why the model is built the way it is</div>
-    <div class="cols">
+    <div class="eyebrow">Design choices</div>
+    <h2>Why the model is built the way it is</h2>
+    <div class="cols two">
       <div class="note">
         <h3>Seats, not vote shares</h3>
         <p>The council follows a statutory formula, not a percentage. The model's allocator
@@ -288,7 +290,10 @@
     </div>
   </section>
 
-  <div class="cols">
+  <section>
+    <div class="eyebrow">Validation</div>
+    <h2>How it was checked — and how you can</h2>
+    <div class="cols two">
     <div class="note">
       <h3>How it was checked</h3>
       <p>Shown only 2021's citywide totals — nothing about where the votes sat — the model placed
@@ -303,10 +308,13 @@
       by-election weight to zero, collapse MK, repeat 2021's turnout: see which conclusions bend
       and which refuse.</p>
     </div>
-  </div>
+    </div>
+  </section>
 
-  <div class="caveat">
+  <section>
+    <div class="eyebrow">Limits</div>
     <h2>What this forecast cannot tell you</h2>
+    <div class="caveat">
     <ul>
       <li><b>Viability is not intent.</b> The 87% for ANC+DA is arithmetic, not a prediction that
       it happens. The model says which deals are available; it says nothing about whether people
@@ -323,7 +331,8 @@
       <li><b>It is not a poll.</b> No voters were surveyed. This is arithmetic on results,
       registration, and fifteen by-elections.</li>
     </ul>
-  </div>
+    </div>
+  </section>
 
   <div class="colophon">
     Sources: Electoral Commission of South Africa — voting-district results for the 2011, 2016 and
@@ -339,7 +348,6 @@
     Free to reproduce with attribution. Figures generated 4 August 2026, seed 20261104.
   </div>
 
-  <div class="folio"><span>Johannesburg 2026 · Council Forecast</span><span>Page 2 of 2</span></div>
 </div>
 
 </div>
