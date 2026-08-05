@@ -143,9 +143,9 @@
     border-top:1px solid var(--rule);padding-top:14px;margin-top:44px;}
   .sitefooter a{color:var(--ink-3);}
   .sitefooter a:hover{color:var(--accent);}
-  .topnav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;
-    font-family:var(--mono);font-size:11.5px;color:var(--ink-3);
-    border-bottom:1px solid var(--rule);padding-bottom:9px;margin-bottom:22px;}
+  .topnav{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;
+    justify-content:space-between;font-family:var(--mono);font-size:14px;color:var(--ink-3);
+    border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:22px;}
   .topnav a{color:var(--ink-3);text-decoration:none;}
   .topnav a:hover{color:var(--accent);}
   .topnav a.home{color:var(--accent);font-weight:600;}
@@ -168,9 +168,10 @@
 <header class="masthead">
   <div class="kicker">Interactive forecast · City of Johannesburg · 4 November 2026</div>
   <h1>Move the assumptions. Watch the arithmetic.</h1>
-  <p class="standfirst">Every number below is recomputed live from the same model that produces the
-  published forecast — the sliders are its actual assumptions, at their actual defaults, bounded by
-  what history has actually shown. Drag one and see which conclusions bend and which refuse to.</p>
+  <p class="standfirst">This is the forecast's engine, running in your browser. Every slider is a
+  real assumption from the published model, set to its published value. Move one — or pick a
+  preset — and 1,500 fresh simulations of the November election run in about a second. Watch
+  which conclusions bend, and which refuse to.</p>
   <div class="dateline">
     <span><b>Model</b> voting-district share model · Schedule 1 seat allocation · overhang-aware</span>
     <span><b>Baseline</b> 2024 provincial ballot, 865 VDs → 135 wards</span>
@@ -185,12 +186,12 @@
   <div class="cgroup">
     <h3>Presets</h3>
     <div class="presets">
-      <button data-preset="default" class="primary">Model defaults</button>
-      <button data-preset="nobye">Priors only</button>
-      <button data-preset="srf">SRF July world</button>
-      <button data-preset="ipsos">Ipsos poll world</button>
-      <button data-preset="mkfall">MK collapses</button>
-      <button data-preset="asafall">ActionSA fades</button>
+      <button data-preset="default" class="primary" title="Every dial at the setting we published — the forecast on the front page.">Our published forecast</button>
+      <button data-preset="nobye" title="Mutes 2026 evidence: no by-elections, no polls. Only the 2006–2024 record speaks.">History only</button>
+      <button data-preset="srf" title="Believes the DA's best poll — SRF, July 2026: DA 42%, ANC 18% in Joburg.">The DA's best poll</button>
+      <button data-preset="ipsos" title="Believes the poll kindest to the ANC — Ipsos, whose method keeps more ANC-leaning voters in.">The ANC's best poll</button>
+      <button data-preset="mkfall" title="MK's national surge fails to translate locally — its dial to the historical floor.">MK collapses</button>
+      <button data-preset="asafall" title="ActionSA keeps fading as it did 2021→2024, and its by-election bright spots are ignored.">ActionSA fades</button>
     </div>
   </div>
 
@@ -881,7 +882,11 @@ ctlIds.forEach(id=>{const el=document.getElementById(id);
 document.getElementById("overhangExpand").addEventListener("change",go);
 document.getElementById("draws").addEventListener("change",go);
 document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("[data-preset]").forEach(x=>x.classList.remove("primary"));
+  b.classList.add("primary");
   setCfg({...DEFAULT_CFG,...PRESETS[b.dataset.preset]});go();}));
+ctlIds.forEach(id=>document.getElementById(id).addEventListener("change",()=>{
+  document.querySelectorAll("[data-preset]").forEach(x=>x.classList.remove("primary"));}));
 showVals();go();
 </script>
 </body>
