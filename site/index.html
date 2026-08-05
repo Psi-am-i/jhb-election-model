@@ -88,8 +88,8 @@
     letter-spacing:.15em; text-transform:uppercase; color:var(--ink-3);
   }
   section{display:flex;flex-direction:column;gap:14px;}
-  a{color:var(--good);text-decoration-thickness:1px;text-underline-offset:2px;}
-  a:hover{color:var(--accent);}
+  .sheet a{color:var(--good);text-decoration-thickness:1px;text-underline-offset:2px;}
+  .sheet a:hover{color:var(--accent);}
   p{margin:0;}
   .lede{font-size:16px;}
 
@@ -475,8 +475,7 @@
       both the 2021 amendment that completes Schedule 1 and the Electoral Commission's own
       Laingsburg 2021 calculation applying it; the Commission has been asked to confirm our
       reading, and the toggle for the older interpretation remains on the interactive page.</li>
-      <li><b>It is not a poll.</b> No voters were surveyed. This is arithmetic on results,
-      registration, and fifteen by-elections.</li>
+      <li><b>This is not a poll.</b> No voters were surveyed. This is arithmetic on results, registration, and fifteen by-elections, with polling introduced as it happens but only as levers bounded by history.</li>
     </ul>
     </div>
   </section>
@@ -494,23 +493,7 @@
   </section>
 
   
-  <div class="colophon">
-    Sources: Electoral Commission of South Africa — voting-district results for the 2011, 2016 and
-    2021 municipal elections, the 2014, 2019 and 2024 national and provincial elections, and all 15
-    CoJ by-elections 2021–2026 (weighted within-ward deltas, an input to the central scenario).
-    Municipal Demarcation Board — 2026 ward and voting-district boundaries. Statistics South
-    Africa — Census 2022 ward estimates. Polling (SRF, Ipsos) spans the scenario lever only.<br>
-    Seat allocation follows Schedule 1 of the Municipal Structures Act; overhang expands the
-    council per the plan's reading (unverified against an IEC worked example — flagged, bounded,
-    and adjustable). Figures on this sheet are generated directly from the model outputs by
-    src/render_sheet.py; methodology, validation, review history and the interactive companion are
-    in the project repository.<br>
-    Figures generated 4 August 2026, seed 20261104.
-  </div>
-
-</div>
-
-<section>
+  <section>
     <div class="eyebrow">How accurate is this?</div>
     <h2>About this model</h2>
     <p class="lede">It calls the official 2011, 2016 and 2021 Johannesburg council results
@@ -520,6 +503,24 @@
     <a href="review">how it was broken — and fixed</a> and
     <a href="sources">where the data comes from</a>.</p>
   </section>
+
+  <div class="colophon">
+    Sources: Electoral Commission of South Africa — voting-district results for the 2011, 2016 and
+    2021 municipal elections, the 2014, 2019 and 2024 national and provincial elections, and all 15
+    CoJ by-elections 2021–2026 (weighted within-ward deltas, an input to the central scenario).
+    Municipal Demarcation Board — 2026 ward and voting-district boundaries. Statistics South
+    Africa — Census 2022 ward estimates. Polling (SRF, Ipsos) spans the scenario lever only.<br>
+    Seat allocation follows Schedule 1 of the Municipal Structures Act, including the
+    excessive-seats clause as the IEC applied it in Laingsburg in 2021 (fixed 270-seat council;
+    the Commission has been asked to confirm; the older council-expands reading remains a toggle
+    on the interactive page). Figures on this sheet are generated directly from the model outputs by
+    src/render_sheet.py; methodology, validation, review history and the interactive companion are
+    in the project repository.<br>
+    Figures generated 6 August 2026, seed 20261104.
+  </div>
+
+</div>
+
 
 <footer class="sitefooter">
   <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
