@@ -105,6 +105,55 @@ def main(argv: list[str] | None = None) -> int:
                  "p_excessive_anc": round(p_excessive, 4)},
     }
 
+    # two-ballots arithmetic strip: 135 wards + 135 list = 270
+    def bar(items, total, label):
+        segs = ""
+        for nm, n, col in items:
+            if n <= 0: continue
+            segs += (f'<div title="{nm} — {n} seats" style="width:{n/total*100:.2f}%;'
+                     f'background:{col}"></div>')
+        return (f'<div style="display:flex;flex-direction:column;gap:4px">'
+                f'<div style="font:650 10.5px var(--sans, sans-serif);letter-spacing:.1em;'
+                f'text-transform:uppercase;color:var(--ink-3)">{label}</div>'
+                f'<div style="display:flex;height:26px;border-radius:3px;overflow:hidden">{segs}</div></div>')
+
+    wardsb, listb, totb = [], [], []
+    other_w = other_l = other_t = 0
+    for pty, v in sorted(summary["parties"].items(), key=lambda kv: -kv[1]["median"]):
+        med = round(v["median"]); wins = round(v.get("ward_wins_mean", 0))
+        lst = max(med - wins, 0)
+        nm = NAMES.get(pty); col = CHIPS.get(pty)
+        if nm and col and med >= 3:
+            if wins: wardsb.append((nm, wins, col))
+            if lst: listb.append((nm, lst, col))
+            totb.append((nm, med, col))
+        else:
+            other_w += wins; other_l += lst; other_t += med
+    for arr, n in ((wardsb, other_w), (listb, other_l), (totb, other_t)):
+        if n: arr.append(("Smaller parties", n, "#8b918b"))
+    strip = f"""<!-- __BALLOTS_START__ -->
+  <section>
+    <div class="eyebrow">The arithmetic — two ballots, one council</div>
+    <h2>135 wards + 135 list seats = 270</h2>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      {bar(wardsb, 135, "Ward seats — won race by race")}
+      {bar(listb, 135, "+ List seats — topping parties up to their share")}
+      {bar(totb, 270, "= The council")}
+    </div>
+    <figcaption>Hover a segment for its seats. Note the ANC's list bar: <b>zero</b>. Its ward
+    wins exceed its proportional share, so the excessive-seats clause strips its list seats
+    entirely and everyone else's shrink to fit — while ActionSA, with broad support but no
+    stronghold wards, lives almost wholly on the list. Two opposite ways of turning votes into
+    seats, in one city.</figcaption>
+  </section>
+  <!-- __BALLOTS_END__ -->"""
+    for tgt in (Path("forecast-sheet.html"), Path("drafts/forecast-draft.html")):
+        s = tgt.read_text(encoding="utf-8")
+        if "__BALLOTS_START__" in s:
+            a = s.index("<!-- __BALLOTS_START__ -->")
+            b2 = s.index("<!-- __BALLOTS_END__ -->") + len("<!-- __BALLOTS_END__ -->")
+            tgt.write_text(s[:a] + strip + s[b2:], encoding="utf-8")
+
     html = args.sheet.read_text(encoding="utf-8")
     start = html.index("// __GEN_START__")
     start = html.index("\n", start) + 1

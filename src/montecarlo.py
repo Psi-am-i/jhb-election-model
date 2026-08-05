@@ -117,7 +117,7 @@ DEFAULTS: dict = {
     # the two bloc modes by ∓/±`polling_span` points before clamping.
     "w_bye": 0.40,
     "polling_lean": 0.0,
-    "polling_span": 4.0,
+    "polling_span": 8.0,  # re-anchored 2026-08-06: lean +1 ~= SRF-Jul CoJ (DA 42/ANC 18), -1 ~= Ipsos-style; POLLING.md
 
     # A1: ward/PR split-ticket ratios are measured from 2021 per party;
     # overrides for parties without a 2021 measurement or with a changed
@@ -152,13 +152,13 @@ DEFAULTS: dict = {
     # Audit 2026-08-05: ward winners were deterministic given a citywide draw,
     # overstating P(overhang) confidence. Lognormal noise (log-sd) applied to
     # each ward x party tally before calling winners; 0 = old behaviour.
-    "ward_noise_sd": 0.0,
+    "ward_noise_sd": 0.10,  # adopted 2026-08-06: audit suite showed headlines stable, P(excessive) honestly softened
 
     # Audit 2026-08-05: the SHARE_FLOOR clamp on the *level* term makes
     # citywide shares below ~0.2% unattainable, inflating the micro-party
     # tail. Lowering this floor (e.g. 1e-6) frees the level while keeping the
     # 0.002 floor on deviation inputs. Default keeps published behaviour.
-    "level_floor": 0.002,
+    "level_floor": 0.000001,  # adopted 2026-08-06: frees sub-0.2% targets; structural rows barely move
 }
 
 
