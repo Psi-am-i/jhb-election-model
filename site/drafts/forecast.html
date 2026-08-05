@@ -88,6 +88,8 @@
     letter-spacing:.15em; text-transform:uppercase; color:var(--ink-3);
   }
   section{display:flex;flex-direction:column;gap:14px;}
+  a{color:var(--good);text-decoration-thickness:1px;text-underline-offset:2px;}
+  a:hover{color:var(--accent);}
   p{margin:0;}
   .lede{font-size:16px;}
 
@@ -426,18 +428,7 @@
     </div>
   </section>
 
-  <section>
-    <div class="eyebrow">Your turn</div>
-    <h2>Don't agree? Simulate the election yourself</h2>
-    <div class="caveat" style="background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent)">
-      <p class="lede">Every assumption behind this page is a slider on the
-      <a href="interactive"><b>interactive simulator</b></a> — each at its default, each bounded
-      by twenty years of observed elections. Collapse MK, mute the by-elections, believe a
-      different poll, re-run 2021's turnout: watch which conclusions bend and which refuse to.
-      Your scenario runs the same model, in your browser, in about a second.</p>
-    </div>
-  </section>
-
+  
   <section>
     <div class="eyebrow">Limits</div>
     <h2>What this forecast cannot tell you</h2>
@@ -462,8 +453,20 @@
   </section>
 
   <section>
-    <div class="eyebrow">About this model</div>
-    <h2>It has earned an opinion</h2>
+    <div class="eyebrow">Your turn</div>
+    <h2>Don't agree? Simulate the election yourself</h2>
+    <div class="caveat" style="background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent)">
+      <p class="lede">Every assumption behind this page is a slider on the
+      <a href="interactive"><b>interactive simulator</b></a> — each at its default, each bounded
+      by twenty years of observed elections. Collapse MK, mute the by-elections, believe a
+      different poll, re-run 2021's turnout: watch which conclusions bend and which refuse to.
+      Your scenario runs the same model, in your browser, in about a second.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">How accurate is this?</div>
+    <h2>About this model</h2>
     <p class="lede">It calls the official 2011, 2016 and 2021 Johannesburg council results
     exactly, seat for seat — and, shown only the citywide totals, calls 129 of 135 ward winners
     in 2021. If you would like to know how it works, start with
