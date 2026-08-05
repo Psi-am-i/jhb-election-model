@@ -258,7 +258,7 @@ def main(argv: list[str] | None = None) -> int:
 
     snippet = f"""{MARK_START}
   <section>
-    <div class="eyebrow">The map — every ward, called by 5,000 simulations</div>
+    <div class="eyebrow">The map — every ward, called using 5,000 simulations</div>
     <h2>Who wins where</h2>
     <figure>
       <div style="position:relative">
