@@ -137,7 +137,7 @@ NAV_ITEMS = [
     ("review", "review"),
     ("sources", "sources"),
     ("plan", "plan"),
-    ("documents", "all documents"),
+    ("https://github.com/Psi-am-i/jhb-election-model", "source-code"),
 ]
 
 
@@ -374,8 +374,6 @@ def main(argv: list[str] | None = None) -> int:
         html = inject_nav(Path(source).read_text(encoding="utf-8"), href)
         (args.out / output).write_text(html, encoding="utf-8")
         print(f"  nav+copy {source:<28s} -> site/{output}")
-    (args.out / "documents.html").write_text(build_documents(), encoding="utf-8")
-    print("  wrote    documents.html")
     stale = args.out / "forecast.html"
     if stale.exists():
         stale.unlink()  # superseded: the forecast is index.html now
