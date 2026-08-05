@@ -141,14 +141,28 @@ DEFAULTS: dict = {
     # E3: what to do when a party wins more wards than its entitlement.
     # "expand" = the plan §3.7 reading (council grows, threshold moves);
     # "cap" = counterfactual with the council fixed at 270 (entitlement
-    # honoured, excess ward wins not). The statutory fine print is unverified
-    # against an IEC worked example — comparing the two bounds its effect.
+    # honoured, excess ward wins not); "deduct" = third reading (audit
+    # 2026-08-05): overhang party keeps its wards, council stays 270, the
+    # OTHER parties' entitlements are re-allocated over the remaining seats,
+    # threshold stays 136. The audit showed cap/expand do NOT bracket deduct
+    # for the non-bloc-field rows. Unverified against an IEC worked example.
     "overhang_rule": "expand",
+
+    # Audit 2026-08-05: ward winners were deterministic given a citywide draw,
+    # overstating P(overhang) confidence. Lognormal noise (log-sd) applied to
+    # each ward x party tally before calling winners; 0 = old behaviour.
+    "ward_noise_sd": 0.0,
+
+    # Audit 2026-08-05: the SHARE_FLOOR clamp on the *level* term makes
+    # citywide shares below ~0.2% unattainable, inflating the micro-party
+    # tail. Lowering this floor (e.g. 1e-6) frees the level while keeping the
+    # 0.002 floor on deviation inputs. Default keeps published behaviour.
+    "level_floor": 0.002,
 }
 
 
-def logit(p):
-    p = np.clip(p, SHARE_FLOOR, 1 - SHARE_FLOOR)
+def logit(p, floor=SHARE_FLOOR):
+    p = np.clip(p, floor, 1 - SHARE_FLOOR)
     return np.log(p / (1 - p))
 
 
@@ -161,12 +175,13 @@ def triangular(rng, spec, size=None):
     return rng.triangular(low, min(max(mode, low), high), high, size)
 
 
-def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6):
+def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6,
+                      level_floor=SHARE_FLOOR):
     """Solve for θ reaching `target` citywide through the model; return VD shares."""
     theta = np.where(base_city > 0, target / np.maximum(base_city, 1e-12), 1.0)
     weights = weight / weight.sum()
     for _ in range(rounds):
-        level = logit(base_city * theta)
+        level = logit(base_city * theta, floor=level_floor)
         pred = expit(level[None, :] + gamma[None, :] * dev)
         pred /= pred.sum(axis=1, keepdims=True)
         got = weights @ pred
@@ -174,7 +189,7 @@ def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6
         theta = theta * np.where(got > 1e-9, target / np.maximum(got, 1e-12), 1.0)
         if gap < tol:
             break
-    level = logit(base_city * theta)
+    level = logit(base_city * theta, floor=level_floor)
     pred = expit(level[None, :] + gamma[None, :] * dev)
     return pred / pred.sum(axis=1, keepdims=True)
 
@@ -353,8 +368,20 @@ def allocate_with_overhang(
             for p in ward_wins
             if ward_wins[p] > alloc.seats.get(p, 0)}
     seats = dict(alloc.seats)
-    if rule == "cap":
+    if rule == "cap" or not over:
         return seats, COUNCIL, COUNCIL // 2 + 1, over
+    if rule == "deduct":
+        fixed: dict[str, int] = {}
+        votes = dict(combined)
+        while True:
+            sub = allocate(votes, total_seats=COUNCIL - sum(fixed.values()))
+            newly = {p: ward_wins[p] for p in list(votes)
+                     if ward_wins.get(p, 0) > sub.seats.get(p, 0)}
+            if not newly:
+                return {**sub.seats, **fixed}, COUNCIL, COUNCIL // 2 + 1, over
+            for party, wins in newly.items():
+                fixed[party] = wins
+                votes.pop(party)
     for party, excess in over.items():
         seats[party] = seats.get(party, 0) + excess
     council = COUNCIL + sum(over.values())
@@ -534,8 +561,11 @@ def main(argv: list[str] | None = None) -> int:
                          0.02, 0.95)
         weight = reg * t_draw
 
-        pr = solve_and_predict(dev, base_city, pr_target, gamma["PR"], weight)
-        wd = solve_and_predict(dev, base_city, ward_target, gamma["Ward"], weight)
+        floor = scenario["level_floor"]
+        pr = solve_and_predict(dev, base_city, pr_target, gamma["PR"], weight,
+                               level_floor=floor)
+        wd = solve_and_predict(dev, base_city, ward_target, gamma["Ward"], weight,
+                               level_floor=floor)
 
         pr_votes = weight @ pr
         ward_votes = weight @ wd
@@ -544,6 +574,9 @@ def main(argv: list[str] | None = None) -> int:
         part_cast = part_reg * t_draw[part_vd]
         ward_tally = np.zeros((len(wards), npar))
         np.add.at(ward_tally, part_ward, part_cast[:, None] * wd[part_vd])
+        if scenario["ward_noise_sd"] > 0:
+            ward_tally = ward_tally * np.exp(
+                rng.normal(0.0, scenario["ward_noise_sd"], ward_tally.shape))
         winners = ward_tally.argmax(axis=1)
         wins: defaultdict[str, int] = defaultdict(int)
         for w in winners:

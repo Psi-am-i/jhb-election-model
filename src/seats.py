@@ -90,8 +90,13 @@ def allocate(
 
     seats = dict(round_one)
     shortfall = available - sum(round_one.values())
-    # Largest remainder, breaking ties on the larger vote total.
-    ranked = sorted(remainders, key=lambda p: (-remainders[p], -combined[p]))
+    if shortfall > len(ranked := sorted(
+            remainders, key=lambda p: (-remainders[p], -combined[p]))):
+        raise ValueError(
+            f"largest-remainder shortfall {shortfall} exceeds party count "
+            f"{len(ranked)} — vote totals too small for this council size")
+    # Largest remainder, breaking ties on the larger vote total. (Schedule 1
+    # breaks exact ties by lot; float remainders make that unreachable here.)
     for party in ranked[:shortfall]:
         seats[party] += 1
 

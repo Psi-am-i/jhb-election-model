@@ -99,7 +99,7 @@ from an NPE base and corrects toward LGE with λ.
 the §0 correction: two cycles of evidence, and 2021 was Covid-affected. Task #19
 scores both forms inside the folds on seat outcome, not VD turnout MAE, before
 either is adopted. λ̂ is retained for the citywide level regardless — it implies
-0.66 and a 41.7% citywide 2026 turnout, inside §8.2's 38–42%.
+0.66 and a 41.9% citywide 2026 turnout (41.7% pre-cleanup), inside §8.2's 38–42%.
 
 **Method note worth keeping.** The rescaling is load-bearing. Without it the
 comparison is rigged: a citywide-drift predictor is handed the true 2021 total
@@ -292,7 +292,7 @@ scales with it, `floor(votes/Q)` is unchanged and every remainder is unchanged �
 so the seat allocation is identical.
 
 **Only *differential* turnout across VDs can move seats**, by changing the mix
-that produces citywide shares. The projected 41.7% citywide 2026 turnout is
+that produces citywide shares. The projected ~41.9% citywide 2026 turnout is
 therefore useful for reporting and for §5's leverage question, but contributes
 nothing to the seat forecast on its own. §5's leverage analysis is precisely the
 right framing: the question is never "how high is turnout" but "which VDs turn
@@ -466,7 +466,7 @@ Coalition arithmetic, fully enumerated (per-draw thresholds):
 
 | finding | value |
 |---|---|
-| ANC+DA majority (also the dominant MWC) | **86.6%** |
+| ANC+DA majority (also the dominant MWC) | **86.5%** |
 | DA+EFF+ASA | 34% |
 | DA+EFF+MK | 26% |
 | DA minority via abstention, 2021 pattern (only ANC opposes) | **61%** |

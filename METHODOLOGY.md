@@ -292,7 +292,7 @@ predicted by the previous LGE than by the preceding NPE.
 treatment than §3.1–§3.4 because the evidence is weaker — two cycles, one of them
 Covid-affected. It will be scored inside the folds on seat outcome before being
 adopted. λ̂ is retained for the citywide level regardless, where it performs well:
-it implies 0.66 and a projected 41.7% citywide 2026 turnout, inside §8.2's
+it implies 0.66 and a projected 41.9% citywide 2026 turnout (41.7% before the corrupt-VD cleanup and by-election tilt), inside §8.2's
 expected 38–42%.
 
 This asymmetry of treatment is deliberate and worth a reviewer's attention: §3.1
@@ -490,7 +490,7 @@ counterfactual toggle bounds its effect.
 
 | Finding | Value |
 |---|---|
-| **ANC + DA** (the dominant minimal winning coalition) | **86.6%**, median 156 |
+| **ANC + DA** (the dominant minimal winning coalition) | **86.5%**, median 156 |
 | DA + EFF + ActionSA | 34% |
 | DA + EFF + MK | 26% |
 | DA + ActionSA | ~0%, median 108 |

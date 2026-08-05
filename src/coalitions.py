@@ -300,6 +300,9 @@ def main(argv: list[str] | None = None) -> int:
                  if "threshold" in rows[0] else np.full(len(rows), 136))
 
     results = analyse(seats, threshold)
+    print("NOTE: standalone runs compute structural rows over the stored top-13"
+          "\nparties only; montecarlo.py corrects them in-process to count every"
+          "\nseat-holding party. Prefer forecast_summary.json for those rows.")
     note = ("(per-draw threshold, overhang-adjusted)"
             if "threshold" in rows[0] else "(fixed majority 136)")
     report(results, note)

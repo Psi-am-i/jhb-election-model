@@ -50,8 +50,8 @@ def main(argv: list[str] | None = None) -> int:
     summary = json.loads((args.processed / "forecast_summary.json").read_text())
 
     def q(series):
-        return (int(np.median(series)), int(np.percentile(series, 5)),
-                int(np.percentile(series, 95)))
+        return (int(round(np.median(series))), int(round(np.percentile(series, 5))),
+                int(round(np.percentile(series, 95))))
 
     def coalition(*members):
         total = sum(S[p] for p in members if p in S)

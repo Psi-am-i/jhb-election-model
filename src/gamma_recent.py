@@ -8,9 +8,13 @@ exactly the parties whose geography is least settled: ActionSA (first contest
 2021), the PA (negligible before 2021), MK (first contest 2024).
 
 This script fits γ where one more transition exists: 2021 LGE PR → 2024 NPE.
-The direction is reversed relative to the folds (LGE→NPE rather than NPE→LGE),
-which is fine for γ — it is a symmetric statement about the persistence of
-geography, not about levels — but worth stating. MK cannot be fitted at all
+The direction is reversed relative to the folds (LGE→NPE rather than NPE→LGE).
+⚠️ That is NOT symmetric: a regression of y on x is attenuated differently from
+x on y, so the fitted coefficient measures how much LGE geography flattens
+into an NPE, while the model applies it in the opposite direction. Under the
+alternative reading (2026 geography resembles 2021's), the right coefficient
+is roughly the reciprocal — a real sensitivity, flagged by the 2026-08-05
+blind audit, carried as a documented judgement until fold-tested. MK cannot be fitted at all
 (one election); it keeps the explicit default, now a documented judgement
 rather than a silent fallback.
 

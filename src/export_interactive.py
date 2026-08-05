@@ -114,8 +114,10 @@ def main(argv: list[str] | None = None) -> int:
                 level_pattern[row["VD_Number"]] = float(row["turnout_2026_level"])
 
     total_reg = sum(reg for _, _, reg in parts)
-    mean_ratio = sum(ratio_pattern.get(vd, 0) * reg for vd, _, reg in parts) / total_reg
-    mean_level = sum(level_pattern.get(vd, 0) * reg for vd, _, reg in parts) / total_reg
+    reg_with_ratio = sum(reg for vd, _, reg in parts if vd in ratio_pattern) or 1
+    reg_with_level = sum(reg for vd, _, reg in parts if vd in level_pattern) or 1
+    mean_ratio = sum(ratio_pattern.get(vd, 0) * reg for vd, _, reg in parts) / reg_with_ratio
+    mean_level = sum(level_pattern.get(vd, 0) * reg for vd, _, reg in parts) / reg_with_level
 
     ward_rows: dict[str, dict] = {}
     for vd, ward, reg in parts:

@@ -826,6 +826,7 @@ function go(){
   const nDraws=parseInt(document.getElementById("draws").value);
   document.getElementById("status").textContent="running "+nDraws.toLocaleString()+" draws…";
   setTimeout(()=>{
+    _spare=null; // reset Box-Muller cache: same seed must give the same stream
     const t0=performance.now();
     const res=run(cfg,nDraws,20261104);
     const a=analyse(res);
