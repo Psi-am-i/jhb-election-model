@@ -184,18 +184,38 @@ def main(argv: list[str] | None = None) -> int:
     for g in (outline.geoms if outline.geom_type == "MultiPolygon" else [outline]):
         pts = [xy(x, y) for x, y in g.exterior.coords]
         od += "M" + "L".join(f"{x:.1f} {y:.1f}" for x, y in pts) + "Z"
-    MINI_W = 236.0
+    MINI_W = 300.0
     ms = MINI_W / W
     mini_h = H * ms
-    mx, my = W - MINI_W - 4, H - mini_h - 4   # bottom-right blank corner
-    bands, cursor = [], 0.0
+    mx, my = W - MINI_W - 4, H - mini_h - 6   # bottom-right blank corner
+
+    # Area-proportional bands: equal-width strips under-sold whichever party
+    # sat at a narrow end of the silhouette (user review: DA looked small).
+    # Integrate the outline's area profile along x and put band boundaries at
+    # each party's cumulative seat share of the TOTAL AREA.
+    from shapely.geometry import Polygon, box
+    screen_polys = []
+    for g in (outline.geoms if outline.geom_type == "MultiPolygon" else [outline]):
+        screen_polys.append(Polygon([xy(x, y) for x, y in g.exterior.coords]))
+    import numpy as _np
+    xs = _np.linspace(0.0, W, 337)
+    slab = _np.zeros(len(xs) - 1)
+    for i in range(len(xs) - 1):
+        strip = box(xs[i], 0, xs[i + 1], H)
+        slab[i] = sum(pl.intersection(strip).area for pl in screen_polys)
+    cum = _np.concatenate([[0.0], _np.cumsum(slab)])
+    total_area = cum[-1]
+    bands, acc = [], 0
+    cursor_x = 0.0
     for party, n in seats:
-        wdt = W * n / 270.0
+        acc += n
+        x_end = float(_np.interp(acc / 270.0 * total_area, cum, xs))
         col = CHIPS.get(party, GREY)
         nm = NAMES.get(party, "Others" if party == "OTHER" else party.title())
-        bands.append(f'<rect x="{cursor:.1f}" y="0" width="{wdt:.1f}" height="{H:.0f}" '
-                     f'fill="{col}" data-tip="{nm} — {n} of 270 seats (median)"/>')
-        cursor += wdt
+        bands.append(f'<rect x="{cursor_x:.1f}" y="0" width="{x_end - cursor_x:.1f}" '
+                     f'height="{H:.0f}" fill="{col}" '
+                     f'data-tip="{nm} — {n} of 270 seats (median)"/>')
+        cursor_x = x_end
     inset = f"""<g transform="translate({mx:.0f},{my:.0f}) scale({ms:.4f})">
       <clipPath id="cityclip"><path d="{od}"/></clipPath>
       <g clip-path="url(#cityclip)">{''.join(bands)}</g>
@@ -213,11 +233,12 @@ def main(argv: list[str] | None = None) -> int:
         f'<span style="width:10px;height:10px;border-radius:2px;background:{CHIPS[c]};'
         f'display:inline-block"></span>{NAMES[c]}</span>'
         for c in ("ANC", "DA", "EFF", "ASA", "PA", "IFP", "ALJAMAAH"))
+    KEY_BASE = "#7d6aa6"  # neutral purple: no party owns it
     def key_swatch(pattern_lines: float | None) -> str:
-        base = f'<rect width="18" height="12" rx="2" fill="{CHIPS["ANC"]}"/>'
+        base = f'<rect width="18" height="12" rx="2" fill="{KEY_BASE}"/>'
         if pattern_lines is None:
             return base
-        return (f'{base}<g stroke="{CHIPS["DA"]}" stroke-width="{pattern_lines}" '
+        return (f'{base}<g stroke="#000" stroke-width="{pattern_lines}" '
                 f'transform="rotate(45 9 6)">'
                 + "".join(f'<line x1="{x}" y1="-8" x2="{x}" y2="20"/>'
                           for x in range(-8, 27, 6)) + "</g>")
@@ -227,10 +248,10 @@ def main(argv: list[str] | None = None) -> int:
       <b>Safe</b>&nbsp;≥90% ({called['solid']})</span>
     <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px">
       <svg width="18" height="12">{key_swatch(1.6)}</svg>
-      <b>Strongly leaning</b>&nbsp;75–90%, stripes in the challenger's colour ({called['strong']})</span>
+      <b>Strongly leaning</b>&nbsp;75–90% ({called['strong']})</span>
     <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px">
       <svg width="18" height="12">{key_swatch(3.2)}</svg>
-      <b>Leaning</b>&nbsp;60–75%, bolder stripes ({called['lean']})</span>
+      <b>Leaning</b>&nbsp;60–75% ({called['lean']})</span>
     <span style="display:inline-flex;align-items:center;gap:6px">
       <svg width="18" height="12"><rect width="18" height="12" rx="2" fill="{GREY}"/></svg>
       <b>Toss-up</b>&nbsp;under 60% ({called['grey']})</span>"""
@@ -254,11 +275,9 @@ def main(argv: list[str] | None = None) -> int:
       <figcaption style="display:flex;flex-direction:column;gap:6px">
         <span>{tier_key}</span>
         <span>{party_sw}</span>
-        <span>North points up-right so Soweto sits in the south-west, where it belongs. Touch or
-        hover any ward to see every party's chance of winning it. A ward needs no majority —
-        highest total wins. And it is not only the big two: look for the IFP's safe ward 65, the
-        PA's ward 7, the EFF's ward 60, and the MK–IFP fight inside grey ward 61. Colours
-        identify parties only.</span>
+        <span>Touch or hover any ward to see a party's chance of winning it. A ward needs no
+        majority — highest total wins. Smaller map shows final seats when combined with the
+        Party Proportional Representation ballot.</span>
       </figcaption>
     </figure>
     <script>
