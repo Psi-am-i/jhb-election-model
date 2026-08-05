@@ -49,7 +49,7 @@ DISTRICTS = [
     ("Orange Farm", 27.860, -26.478),
 ]
 
-W = 720.0
+W = 840.0
 COS = 0.898   # cos(latitude) lon->km correction for Johannesburg
 ANG = math.radians(40)  # map rotated 40° clockwise: north up-right, Soweto SW
 
@@ -75,22 +75,32 @@ def main(argv: list[str] | None = None) -> int:
     gdf["geometry"] = gdf.geometry.simplify(args.simplify, preserve_topology=True)
 
     minx, miny, maxx, maxy = gdf.total_bounds
-    espan = (maxx - minx) * COS
-    nspan = (maxy - miny)
     ca, sa = math.cos(ANG), math.sin(ANG)
-    width = espan * ca + nspan * sa
-    height = espan * sa + nspan * ca
-    scale = W / width
-    H = height * scale
 
-    def xy(x, y):
-        # rotate the map ANG clockwise: north points up-right, Soweto sits
-        # bottom-left where a local expects it (chirality preserved).
+    def rot(x, y):
+        # rotate ANG clockwise: north up-right, Soweto bottom-left (no mirror)
         e = (x - minx) * COS
         n = (y - miny)
-        sx = e * ca + n * sa
-        sy = e * sa - n * ca + nspan * ca
-        return (sx * scale, sy * scale)
+        return (e * ca + n * sa, e * sa - n * ca)
+
+    # Fit the viewBox to the CITY's rotated extent, not the rotated bounding
+    # rectangle — Johannesburg lies diagonally, so the rectangle bound left
+    # the shape floating in dead margin (user screenshot, 2026-08-06).
+    rxs, rys = [], []
+    for geom in gdf.geometry:
+        gs = geom.geoms if geom.geom_type == "MultiPolygon" else [geom]
+        for g in gs:
+            for x, y in g.exterior.coords:
+                rx, ry = rot(x, y)
+                rxs.append(rx); rys.append(ry)
+    rminx, rmaxx, rminy, rmaxy = min(rxs), max(rxs), min(rys), max(rys)
+    PAD = 8.0
+    scale = (W - 2 * PAD) / (rmaxx - rminx)
+    H = (rmaxy - rminy) * scale + 2 * PAD
+
+    def xy(x, y):
+        rx, ry = rot(x, y)
+        return ((rx - rminx) * scale + PAD, (ry - rminy) * scale + PAD)
 
     paths, hatches, called = [], [], {"solid": 0, "strong": 0, "lean": 0, "grey": 0}
     for _, row in gdf.iterrows():
