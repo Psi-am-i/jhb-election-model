@@ -107,7 +107,10 @@
   .row{display:grid;grid-template-columns:104px 1fr 92px;align-items:center;gap:12px;
     padding:5px 0;}
   .pname{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:550;}
-  .bloc{font-size:8.5px;color:var(--ink-3);line-height:1;}
+  .bloc{width:9px;height:9px;border-radius:50%;flex:none;}
+  .bloc.anc{background:var(--ink-3);}
+  .bloc.da{border:1.5px solid var(--ink-3);}
+  .lgd{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:-1px;}
   .chip{width:9px;height:9px;border-radius:2px;flex:none;
     box-shadow:0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent);}
   .track{position:relative;height:20px;}
@@ -237,8 +240,9 @@
       </div>
       <figcaption>Bars show the middle 90% of 5,000 simulations; the vertical mark is the midpoint.
       Bars are drawn in a single neutral tone — the colour chip is party identification only.
-      <b>▲ = moves with the ANC bloc</b> (ANC, EFF, MK) · <b>▼ = moves with the DA bloc</b>
-      (DA, ActionSA). A “bloc” here isn't a party's loyal voters — it is the set of parties
+      <b><span class="lgd" style="background:var(--ink-3)"></span> = moves with the ANC bloc</b>
+      (ANC, EFF, MK) · <b><span class="lgd" style="border:1.5px solid var(--ink-3)"></span> =
+      moves with the DA bloc</b> (DA, ActionSA). A “bloc” here isn't a party's loyal voters — it is the set of parties
       fishing in the same voter pool, so when one rises in a simulation the others in its bloc
       tend to fall, and the simulations move them together. Everyone else is drawn
       independently. “New entrant” is a party that does not exist yet: one appeared before each
@@ -549,12 +553,12 @@ document.getElementById("tiles").innerHTML = GEN.tiles.map(t => `
   </div>`).join("");
 
 const MAX = 125;
-const BLOC = {"ANC":"\u25B2","EFF":"\u25B2","MK Party":"\u25B2",
-              "DA":"\u25BC","ActionSA":"\u25BC"};
+const BLOC = {"ANC":"anc","EFF":"anc","MK Party":"anc",
+              "DA":"da","ActionSA":"da"};
 document.getElementById("seats").innerHTML = GEN.parties.map(p => `
   <div class="row">
     <div class="pname"><span class="chip" style="background:${p.chip}"></span>${p.name}${
-      BLOC[p.name] ? `<span class="bloc">${BLOC[p.name]}</span>` : ""}</div>
+      BLOC[p.name] ? `<span class="bloc ${BLOC[p.name]}"></span>` : ""}</div>
     <div class="track">
       <span class="band" style="left:${p.lo/MAX*100}%;width:${(p.hi-p.lo)/MAX*100}%"></span>
       <span class="med" style="left:calc(${p.med/MAX*100}% - 1.5px)"></span>
