@@ -144,9 +144,10 @@ DEFAULTS: dict = {
     # honoured, excess ward wins not); "deduct" = third reading (audit
     # 2026-08-05): overhang party keeps its wards, council stays 270, the
     # OTHER parties' entitlements are re-allocated over the remaining seats,
-    # threshold stays 136. The audit showed cap/expand do NOT bracket deduct
-    # for the non-bloc-field rows. Unverified against an IEC worked example.
-    "overhang_rule": "expand",
+    # threshold stays 136. RESOLVED 2026-08-05 (MODEL-LOG 1.17): "deduct" is
+    # the law — Amendment Act 3 of 2021, Schedule 1 item 16(3)-(9), applied by
+    # the IEC in Laingsburg 2021. "expand" kept as labelled counterfactual.
+    "overhang_rule": "deduct",
 
     # Audit 2026-08-05: ward winners were deterministic given a citywide draw,
     # overstating P(overhang) confidence. Lognormal noise (log-sd) applied to

@@ -520,6 +520,51 @@ magnitude small; fix anyway for cleanliness.
 **Not yet adopted into published numbers** — defaults unchanged pending a
 decision on how the site should present the overhang-reading range.
 
+### 1.17 Overhang RESOLVED: the statute says "deduct", and the IEC has applied it ✅ *task #20 closed by archive*
+
+The archive hunt (2026-08-05) answered task #20 without waiting for the IEC.
+
+**The law.** Schedule 1 item 16 ("Excessive seats") as it stood pre-2021 said
+only that the excessive party "must not be allocated any seats from its list"
+and "the seats of ward candidates are not affected" — silent on the overflow.
+The **Municipal Structures Amendment Act 3 of 2021** (commenced 1 Nov 2021)
+added subitems (3)–(9), verbatim:
+
+> (3) A new quota of votes for a seat must be determined in accordance with
+> the following formula (fractions to be disregarded): (A − B) / (C − (D + E)) + 1
+> — where A = total valid votes for all parties; B = total votes for the party
+> with excessive seats (party vote and ward candidates); **C = the number of
+> seats in the council**; D = seats awarded to the party with excessive seats;
+> E = independent ward councillors elected.
+> (4)(a) The total number of valid votes cast for each party … excluding the
+> party that has excessive seats, must be divided by the quota … (6) … the
+> Commission must deduct … the number of ward candidates … declared elected.
+
+**The precedent.** Laingsburg WC051, LGE 2021: DA won 3 of 4 wards on 23.06%
+(entitlement 2). The IEC's published Seat Calculation Detail carries an
+"Excessive Seat Calculation" block: DA's votes excluded, new quota
+(6,453−1,530)/(7−3)+1 = 1,231, DA gets 3 ward + 0 PR, the remaining 4 seats
+re-run among the others — **council stays 7**; the Karoo Democratic Force lost
+the seat an "expand" reading would have preserved. (~65 Seat Calculation
+Detail reports scanned across 2011/2016/2021; Laingsburg is the only
+excessive-seat case found. Portal quirk: KZN path segment is `KN`.)
+
+**Consequences.** (1) `overhang_rule="deduct"` — implemented from the audit —
+matches the statutory formula (iterative exclusion, fixed council) and becomes
+the DEFAULT; "expand" survives as a labelled counterfactual. (2) The majority
+threshold is 136, full stop; the published "council grows to ~281, bar rises
+to ~141" narrative is wrong law and must be corrected site-wide. (3) From the
+audit suite: P(ANC+DA) rises ~86→91%, DA-minority-via-abstention falls
+~62→53%, majority-without-the-ANC-bloc falls to ~97%. (4) The ANC's ward
+strength still matters enormously — wins ≥ entitlement zero its list seats
+and floor its total at its ward count — but it squeezes *other* parties
+within 270 rather than raising the bar. (5) The IEC letter stands as
+confirmation; the archive answered first.
+
+Sources: francesbaard.gov.za consolidated Structures Act PDF; PMG
+Act 3 of 2021 PDF; results.elections.org.za LGEPublicReports/1091/Seat
+Calculation Detail/WP/WC051.pdf; copies in the session scratchpad.
+
 ## 2. Obstacles and how they were handled
 
 | # | Obstacle | Resolution | Status |
