@@ -20,6 +20,8 @@ import argparse
 import csv
 from pathlib import Path
 
+import math
+
 import geopandas as gpd
 
 CHIPS = {
@@ -47,8 +49,9 @@ DISTRICTS = [
     ("Orange Farm", 27.860, -26.478),
 ]
 
-W = 820.0
-COS = 0.898  # cos(latitude) lon->km correction for Johannesburg
+W = 720.0
+COS = 0.898   # cos(latitude) lon->km correction for Johannesburg
+ANG = math.radians(40)  # map rotated 40° clockwise: north up-right, Soweto SW
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -72,12 +75,22 @@ def main(argv: list[str] | None = None) -> int:
     gdf["geometry"] = gdf.geometry.simplify(args.simplify, preserve_topology=True)
 
     minx, miny, maxx, maxy = gdf.total_bounds
-    scale = W / (maxy - miny)          # rotated: page-x spans latitude
-    H = (maxx - minx) * COS * scale    # page-y spans corrected longitude
+    espan = (maxx - minx) * COS
+    nspan = (maxy - miny)
+    ca, sa = math.cos(ANG), math.sin(ANG)
+    width = espan * ca + nspan * sa
+    height = espan * sa + nspan * ca
+    scale = W / width
+    H = height * scale
 
     def xy(x, y):
-        # rotate 90° clockwise: north -> right, west -> top (chirality kept)
-        return ((y - miny) * scale, (x - minx) * COS * scale)
+        # rotate the map ANG clockwise: north points up-right, Soweto sits
+        # bottom-left where a local expects it (chirality preserved).
+        e = (x - minx) * COS
+        n = (y - miny)
+        sx = e * ca + n * sa
+        sy = e * sa - n * ca + nspan * ca
+        return (sx * scale, sy * scale)
 
     paths, hatches, called = [], [], {"solid": 0, "strong": 0, "lean": 0, "grey": 0}
     for _, row in gdf.iterrows():
@@ -117,10 +130,10 @@ def main(argv: list[str] | None = None) -> int:
         paths.append(f'<path d="{d}" fill="{fill}" stroke="var(--paper)" '
                      f'stroke-width="0.8" data-tip="{tip}"></path>')
         if cls == "strong":
-            hatches.append(f'<path d="{d}" fill="url(#hatchfine)" '
+            hatches.append(f'<path d="{d}" fill="url(#hatchheavy)" '
                            f'pointer-events="none"></path>')
         elif cls == "lean":
-            hatches.append(f'<path d="{d}" fill="url(#hatchheavy)" '
+            hatches.append(f'<path d="{d}" fill="url(#hatchfine)" '
                            f'pointer-events="none"></path>')
 
     labels = []
@@ -135,7 +148,7 @@ def main(argv: list[str] | None = None) -> int:
     labels.append(
         f'<text x="{W - 14:.0f}" y="20" text-anchor="end" '
         f'style="font:600 11px ui-monospace,monospace;fill:var(--ink-3);'
-        f'pointer-events:none">N →</text>')
+        f'pointer-events:none">N ↗</text>')
 
     party_sw = " ".join(
         f'<span style="display:inline-flex;align-items:center;gap:5px;margin-right:11px">'
@@ -155,10 +168,10 @@ def main(argv: list[str] | None = None) -> int:
       <svg width="18" height="12">{key_swatch(None)}</svg>
       <b>Safe</b>&nbsp;≥90% ({called['solid']})</span>
     <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px">
-      <svg width="18" height="12">{key_swatch(1.4)}</svg>
+      <svg width="18" height="12">{key_swatch(3.0)}</svg>
       <b>Strongly leaning</b>&nbsp;75–90% ({called['strong']})</span>
     <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px">
-      <svg width="18" height="12">{key_swatch(3.0)}</svg>
+      <svg width="18" height="12">{key_swatch(1.4)}</svg>
       <b>Leaning</b>&nbsp;60–75% ({called['lean']})</span>
     <span style="display:inline-flex;align-items:center;gap:6px">
       <svg width="18" height="12"><rect width="18" height="12" rx="2" fill="{GREY}"/></svg>
@@ -190,9 +203,11 @@ def main(argv: list[str] | None = None) -> int:
       <figcaption style="display:flex;flex-direction:column;gap:6px">
         <span>{tier_key}</span>
         <span>{party_sw}</span>
-        <span>The city is drawn with north to the right so it fits the page. Touch or hover any
-        ward to see every party's chance of winning it. A ward needs no majority — highest total
-        wins. Colours identify parties only.</span>
+        <span>North points up-right so Soweto sits in the south-west, where it belongs. Touch or
+        hover any ward to see every party's chance of winning it. A ward needs no majority —
+        highest total wins. And it is not only the big two: look for the IFP's safe ward 65, the
+        PA's ward 7, the EFF's ward 60, and the MK–IFP fight inside grey ward 61. Colours
+        identify parties only.</span>
       </figcaption>
     </figure>
     <script>
