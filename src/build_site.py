@@ -135,7 +135,6 @@ NAV_ITEMS = [
     ("interactive", "interactive"),
     ("methodology", "methodology"),
     ("review", "review"),
-    ("model-log", "log"),
     ("sources", "sources"),
     ("plan", "plan"),
     ("documents", "all documents"),
@@ -211,13 +210,6 @@ DOCS = {
         "elected, how the simulation runs, what is validated — and what can "
         "only be stated honestly.",
     ),
-    "MODEL-LOG.md": (
-        "model-log.html",
-        "Engineering log & risk register",
-        "The running record: findings that changed the model, obstacles, "
-        "silent data traps, the assumption register, and the decisions taken — "
-        "including the review that falsified the first forecast.",
-    ),
     "docs-public/review.md": (
         "review.html",
         "The review",
@@ -262,9 +254,11 @@ CARDS = [
     ("review.html", "Implementation review", "document",
      "The audit that found six errors in the first build — including a false "
      "headline claim — and the same-day resolution of all of them."),
-    ("model-log.html", "Model log", "document",
-     "Findings, obstacles, silent data traps, the assumption register, and "
-     "every decision with its rationale."),
+    ("https://github.com/Psi-am-i/jhb-election-model/blob/main/MODEL-LOG.md",
+     "Engineering log", "github",
+     "The day-by-day build record — every finding, obstacle, decision and "
+     "risk, in full technical detail. Lives on GitHub, for those who want "
+     "all of it."),
     ("sources", "Data sources", "document",
      "Every number traces to a public record — where each lives, and how "
      "hard public records actually are to reach. Technical recipes on GitHub."),
