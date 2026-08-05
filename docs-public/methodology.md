@@ -151,8 +151,9 @@ the published model.
   unknown newcomer, but that is an honest patch, not foresight.
 - **Overhang's legal fine print is untested in court or precedent.** The
   electoral commission has never published a worked example of a metro
-  overhang calculation, and with overhang now the *likely* outcome, obtaining
-  one is the model's most urgent open item. Until then the forecast carries
+  overhang calculation, and with overhang now the *likely* outcome, we put the
+  question to the Commission on 5 August 2026 and are awaiting its answer.
+  Until then the forecast carries
   the alternative readings of the law and reports how much they matter.
 - **Arithmetic is not politics.** The model says which governments are
   numerically possible. Whether people who dislike each other will sit in

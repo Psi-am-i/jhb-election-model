@@ -693,11 +693,7 @@ confirms was wise.
 
 ## 6. What still needs a person
 
-- **Task #16** — request Census 2022 Small Area Layer from Stats SA
-  (`info@statssa.gov.za`, +27 12 310 8600).
-- **Task #18** — request historic VD boundaries from the IEC Delimitation
-  Directorate. Would convert R1 from mitigated to resolved.
-- **Task #20** — ask the IEC (or MDB legal) for a worked example of Schedule 1
-  overhang in a metro. P(overhang) is now ~87–90%, so the expansion rule is
-  no longer fine print — it moves the majority threshold in most draws.
+- **Task #16** — Census 2022 Small Area Layer: **requested from Stats SA 2026-08-05** (email sent), awaiting reply.
+- **Task #18** — historic VD boundaries: **requested from the IEC Delimitation Directorate 2026-08-05** (email sent), awaiting reply. Would convert R1 from mitigated to resolved.
+- **Task #20** — Schedule 1 overhang worked example: **four-question request sent to the IEC 2026-08-05**, awaiting reply. In parallel, an archive hunt for a real historical overhang municipality is running. P(overhang) ~72–96% across readings; the answer moves P(ANC+DA) across 72–91% (§1.16).
 - **External** — 2026 registration-weekend figures, when published.
