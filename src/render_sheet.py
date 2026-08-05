@@ -102,7 +102,7 @@ def main(argv: list[str] | None = None) -> int:
         "minority_da_2021": round(da_minority, 4),
         "meta": {"threshold_median": thr_med,
                  "council_median": int(np.median(council)),
-                 "p_overhang": round(p_overhang, 4)},
+                 "p_excessive_anc": round(p_excessive, 4)},
     }
 
     html = args.sheet.read_text(encoding="utf-8")
