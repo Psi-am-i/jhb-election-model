@@ -75,12 +75,12 @@ def main(argv: list[str] | None = None) -> int:
             {"n": f"{anc_da['p']:.0%}", "hero": True,
              "l": "Chance an ANC–DA coalition clears the majority — the only pairing that reliably can"},
             {"n": f"{p_excessive:.0%}",
-             "l": "Simulations where the ANC wins more wards than its vote entitles it to — "
-                  "it keeps them all, gets zero list seats, and other parties absorb the squeeze"},
+             "l": "Chance the ANC triggers the excessive-seats clause — keeping every ward it "
+                  "wins, taking zero list seats, the shortfall falling on every other party"},
             {"n": f"{da_minority:.0%}",
-             "l": "A DA minority government is viable if only the ANC votes against (the 2021 pattern)"},
+             "l": "Chance a DA minority government is viable, if only the ANC votes against it (the 2021 pattern)"},
             {"n": f"{p_da_largest:.0%}",
-             "l": "Simulations in which the DA is the largest single party"},
+             "l": "Chance the DA is the largest single party"},
         ],
         "parties": [
             {"name": NAMES[p], "chip": CHIPS[p],

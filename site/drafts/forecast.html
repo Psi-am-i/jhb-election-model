@@ -180,11 +180,14 @@
   <header class="masthead">
     <div class="kicker">Forecast · City of Johannesburg · 4 November 2026</div>
     <h1>Nobody wins Johannesburg — and the ANC's wards can't be taken away.</h1>
-    <p class="standfirst">5,000 simulations of the November vote, on a new voting-district model of
-    the city, find the DA finishing first more often than not — but never with a majority. And a
-    rarely-used clause of the seat law hands the shrinking ANC an unbreakable floor: it keeps
-    every stronghold ward it wins, pays with its list seats, and the shortfall comes out of
-    everyone else's.</p>
+    <p class="standfirst">5,000 simulations of the November vote, using a new voting-district
+    model of the city, find the DA finishing first 54% of the time — but never with a majority.
+    And a rarely-used clause in our voting laws hands the shrinking ANC an unbreakable floor: it
+    will keep its seat in every stronghold ward it wins, even though this is more than its
+    proportional allowance — and the shortfall in seats will fall on every other party.</p>
+    <p class="standfirst" style="font-size:15px;color:var(--ink-3)">The model reproduces the
+    official 2011, 2016 and 2021 Johannesburg council results exactly, seat for seat — and, shown
+    only the citywide totals, called 129 of 135 ward winners in 2021.</p>
     <div class="dateline">
       <span><b>Issued</b> 4 August 2026 (rev 2)</span>
       <span><b>Method</b> 5,000 simulations · 865 voting districts · both ballots · ward winners &amp; overhang</span>
@@ -560,9 +563,9 @@ const GEN = {
 };
 // __GEN_END__
 
-GEN.tiles[0].l = "of simulations give an ANC\u2013DA pairing a majority \u2014 the only two-party combination that reliably clears the bar";
-GEN.tiles[1].l = "of simulations see the ANC win more wards than its vote entitles it to \u2014 it keeps them all, gets zero list seats, and everyone else absorbs the squeeze";
-GEN.tiles[2].l = "of simulations leave a DA minority government workable \u2014 governing alone, if only the ANC votes against it and the rest abstain, as happened in 2021";
+GEN.tiles[0].l = "Chance an ANC\u2013DA pairing reaches a majority \u2014 the only two-party combination that reliably can";
+GEN.tiles[1].l = "Chance the ANC triggers the excessive-seats clause \u2014 keeping every ward it wins, taking zero list seats, the shortfall falling on every other party";
+GEN.tiles[2].l = "Chance a DA minority government is workable \u2014 governing alone if only the ANC votes against it and the rest abstain, as happened in 2021";
 GEN.tiles[3].l = "of simulations make the DA the largest single party \u2014 in most of the rest, the ANC's overhang seats put it first";
 document.getElementById("tiles").innerHTML = GEN.tiles.map(t => `
   <div class="stat${t.hero ? " hero" : ""}">
