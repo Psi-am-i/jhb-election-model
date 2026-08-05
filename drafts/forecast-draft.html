@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Johannesburg 2026: Council Forecast</title>
+
+<style>
+  :root{
+    /* Cool paper, not cream. Neutrals carry a slight blue bias toward the ink. */
+    --paper:#fbfbfa;
+    --paper-2:#f2f3f1;
+    --rule:#d9dbd6;
+    --rule-soft:#e7e8e4;
+    --ink:#1a1d1b;
+    --ink-2:#4a4f4b;
+    --ink-3:#767b76;
+    /* One accent, spent on the majority threshold — the sheet's whole argument. */
+    --accent:#a8621f;
+    --accent-soft:#f0e2d5;
+    /* Data marks: neutral graphite, deliberately apolitical. */
+    --mark:#3b423e;
+    --mark-band:#c9cec9;
+    --good:#2f6d4a;
+
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
+      --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
+      --accent:#d9954f; --accent-soft:#3a2a1a;
+      --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
+    --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
+    --accent:#d9954f; --accent-soft:#3a2a1a;
+    --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a;
+  }
+  :root[data-theme="light"]{
+    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
+    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
+    --accent:#a8621f; --accent-soft:#f0e2d5;
+    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a;
+  }
+
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:15px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sheet{max-width:860px;margin:0 auto;padding:28px 24px 64px;}
+  .page{display:flex;flex-direction:column;gap:24px;}
+  .page + .page{margin-top:34px;padding-top:30px;border-top:1px solid var(--rule);}
+
+  /* ---- masthead ---- */
+  .masthead{display:flex;flex-direction:column;gap:10px;}
+  .kicker{
+    font-family:var(--sans); font-size:11px; font-weight:650;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--accent);
+  }
+  h1{
+    font-family:var(--serif); font-weight:600; font-size:clamp(30px,5.2vw,46px);
+    line-height:1.06; letter-spacing:-.012em; text-wrap:balance; margin:0;
+  }
+  .standfirst{
+    font-family:var(--serif); font-size:clamp(17px,2.4vw,20px); line-height:1.45;
+    color:var(--ink-2); text-wrap:pretty;
+  }
+  .dateline{
+    display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;
+    font-family:var(--mono); font-size:11.5px; color:var(--ink-3);
+    border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+    padding:9px 0;
+  }
+  .dateline b{color:var(--ink-2);font-weight:600;}
+
+  h2{
+    font-family:var(--serif); font-weight:600; font-size:22px; line-height:1.2;
+    margin:0; letter-spacing:-.006em;
+  }
+  .eyebrow{
+    font-family:var(--sans); font-size:10.5px; font-weight:650;
+    letter-spacing:.15em; text-transform:uppercase; color:var(--ink-3);
+  }
+  section{display:flex;flex-direction:column;gap:14px;}
+  p{margin:0;}
+  .lede{font-size:16px;}
+
+  /* ---- headline stats ---- */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:1px;
+    background:var(--rule-soft);border:1px solid var(--rule-soft);}
+  .stat{background:var(--paper);padding:14px 16px;display:flex;flex-direction:column;gap:3px;}
+  .stat .n{font-family:var(--mono);font-size:29px;font-weight:600;letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;line-height:1;}
+  .stat .l{font-size:12.5px;color:var(--ink-2);line-height:1.35;}
+  .stat.hero .n{color:var(--accent);}
+
+  /* ---- range chart ---- */
+  figure{margin:0;display:flex;flex-direction:column;gap:10px;}
+  figcaption{font-size:12.5px;color:var(--ink-3);}
+  .chart{display:flex;flex-direction:column;gap:2px;}
+  .row{display:grid;grid-template-columns:104px 1fr 92px;align-items:center;gap:12px;
+    padding:5px 0;}
+  .pname{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:550;}
+  .chip{width:9px;height:9px;border-radius:2px;flex:none;
+    box-shadow:0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent);}
+  .track{position:relative;height:20px;}
+  .track::before{content:"";position:absolute;inset:9px 0 auto 0;height:1px;background:var(--rule-soft);}
+  .band{position:absolute;top:6px;height:8px;border-radius:4px;background:var(--mark-band);}
+  .med{position:absolute;top:2px;width:3px;height:16px;border-radius:1.5px;background:var(--mark);
+    box-shadow:0 0 0 2px var(--paper);}
+  .val{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums;
+    color:var(--ink-2);text-align:right;}
+  .val b{color:var(--ink);font-weight:600;}
+  .scale{display:grid;grid-template-columns:104px 1fr 92px;gap:12px;
+    font-family:var(--mono);font-size:10.5px;color:var(--ink-3);}
+  .scale .ticks{display:flex;justify-content:space-between;}
+
+  /* ---- coalition table ---- */
+  .tablewrap{overflow-x:auto;}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px;}
+  th{font-family:var(--sans);font-size:10.5px;font-weight:650;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--ink-3);text-align:left;
+    padding:0 10px 7px 0;border-bottom:1px solid var(--rule);}
+  th.num,td.num{text-align:right;padding-right:0;}
+  th.num:not(:last-child),td.num:not(:last-child){padding-right:18px;}
+  td{padding:9px 10px 9px 0;border-bottom:1px solid var(--rule-soft);vertical-align:middle;}
+  td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;}
+  tr.key td{background:var(--accent-soft);}
+  tr.key td:first-child{font-weight:650;}
+  .pbar{position:relative;height:6px;background:var(--rule-soft);border-radius:3px;
+    min-width:70px;overflow:hidden;}
+  .pbar i{position:absolute;inset:0 auto 0 0;background:var(--mark);border-radius:3px;}
+  tr.key .pbar i{background:var(--accent);}
+
+  /* ---- notes ---- */
+  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px;}
+  .cols.two{grid-template-columns:repeat(2,minmax(0,1fr));}
+  @media (max-width:640px){.cols.two{grid-template-columns:1fr;}}
+  .note{border-left:2px solid var(--rule);padding-left:14px;display:flex;flex-direction:column;gap:6px;}
+  .note h3{font-family:var(--sans);font-size:12px;font-weight:650;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--ink-2);margin:0;}
+  .note p{font-size:13.5px;color:var(--ink-2);}
+  ul{margin:0;padding-left:17px;display:flex;flex-direction:column;gap:5px;
+    font-size:13.5px;color:var(--ink-2);}
+  .caveat{background:var(--paper-2);border:1px solid var(--rule-soft);padding:16px 18px;
+    display:flex;flex-direction:column;gap:9px;}
+  .colophon{font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:12px;}
+
+  @media print{
+    body{background:#fff;color:#000;font-size:10.5pt;}
+    .sheet{max-width:none;padding:0;}
+    .page{break-after:page;}
+    .page:last-child{break-after:auto;}
+    .page + .page{margin-top:0;border-top:none;padding-top:0;}
+  }
+  @media (max-width:560px){
+    .row,.scale{grid-template-columns:82px 1fr 78px;gap:8px;}
+    .pname{font-size:12.5px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet">
+
+<!-- ============================ PAGE 1 ============================ -->
+<div class="page">
+
+  <header class="masthead">
+    <div class="kicker">Forecast · City of Johannesburg · 4 November 2026</div>
+    <h1>Nobody wins Johannesburg — and the bar for governing it is moving.</h1>
+    <p class="standfirst">A voting-district model of the city finds the DA finishing first most of
+    the time — but the ANC's shrinking vote and unbeatable stronghold wards trigger a quirk of the
+    seat law that makes the council <em>bigger</em> and a majority <em>harder</em> for everyone.
+    Only one pairing reliably clears the higher bar. This page explains the quirk first, then
+    shows the numbers.</p>
+    <div class="dateline">
+      <span><b>Issued</b> 4 August 2026 (rev 2)</span>
+      <span><b>Method</b> 5,000 simulations · 865 voting districts · both ballots · ward winners &amp; overhang</span>
+      <span><b>Baseline</b> 2024 provincial ballot + 15 by-elections</span>
+      <span><b>Council</b> 270 seats + overhang · threshold moves</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="eyebrow">Before the numbers</div>
+    <h2>How to read this page</h2>
+    <p class="lede">This forecast is not one prediction — it is <b>5,000 simulations</b> of the
+    election, each drawing a plausible 2026 within the bounds of everything observed since 2006.
+    Every percentage on this page means the same thing: <b>the share of those 5,000 simulations in
+    which something happens</b>. "89%" never means a vote share or a poll number — it means the
+    thing occurred in about 4,450 of the 5,000 runs. The ranges beside each seat count are where
+    the middle 90% of simulations landed.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">The rule that shapes everything</div>
+    <h2>Wards, lists — and why the council is about to grow</h2>
+    <p class="lede">Johannesburg votes on two ballots at once: one elects a ward councillor, race
+    by race, and one is for a party. It seems like they elect two separate halves of the council,
+    but they don't — the two ballots are <em>added together</em>, and that combined share sets
+    the <b>total</b> seats each party is entitled to. Winning a ward doesn't add a seat; it fills
+    one the party was already owed, and the party lists top everyone up to their entitlement.</p>
+    <p class="lede">The quirk: a party with tightly concentrated support can win <em>more</em>
+    wards than its overall share entitles it to. Nobody unseats a ward winner — the party keeps
+    them all, and the council simply <b>grows</b> by the extra seats so everyone else still gets
+    their due. That is called <b>overhang</b>, and it is now the ANC's normal condition: a
+    citywide vote in the mid-twenties, but stronghold wards that still win — roughly 73 wards
+    against a 65-seat entitlement. The extra seats push the council past 270, and the majority
+    line from 136 to about <b>141</b>. Every coalition anyone might form has to climb the higher
+    bar the ANC's geography creates.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">The headline numbers — each one is a share of the 5,000 simulations</div>
+    <h2>What the simulations say</h2>
+    <section class="stats" id="tiles"></section>
+  </section>
+
+  <section>
+    <div class="eyebrow">Projected seats</div>
+    <h2>Where the parties land</h2>
+    <figure>
+      <div class="chart" id="seats"></div>
+      <div class="scale">
+        <span></span>
+        <span class="ticks"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span><span>125</span></span>
+        <span></span>
+      </div>
+      <figcaption>Bars show the middle 90% of 5,000 simulations; the vertical mark is the midpoint.
+      Bars are drawn in a single neutral tone — the colour chip is party identification only.
+      “New entrant” is a party that does not exist yet: one appeared before each of the last three
+      elections, so the forecast carries the possibility rather than footnoting it.</figcaption>
+    </figure>
+  </section>
+
+</div>
+
+<!-- ============================ PAGE 2 ============================ -->
+<div class="page">
+
+  <section>
+    <div class="eyebrow">The arithmetic that decides it — every combination checked</div>
+    <h2>Which coalitions can actually govern</h2>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Combination</th>
+            <th class="num">Seats (mid)</th>
+            <th class="num">Range</th>
+            <th style="width:26%">Chance of majority</th>
+            <th class="num"></th>
+          </tr>
+        </thead>
+        <tbody id="coalitions"></tbody>
+      </table>
+    </div>
+    <figcaption style="font-size:12.5px;color:var(--ink-3)">Range is the middle 90% of simulations;
+    majority is judged against each simulation's own threshold. Every pair and triple of parties was
+    enumerated — these are the strongest, plus the reference cases. “Eight-party alliance” is
+    DA + ActionSA + PA + IFP + VF+ + ACDP + Rise + Al Jama-ah.</figcaption>
+  </section>
+
+  <section>
+    <div class="eyebrow">The third way to govern</div>
+    <h2>A minority government, resting on abstention</h2>
+    <p class="lede">No coalition table shows it, but the mayor is elected by councillors
+    <em>present and voting</em>, so abstention installs minority governments — it is how the DA
+    took this mayoralty in 2021. If only the ANC votes against, a DA minority administration is
+    arithmetically viable in <b id="minorityP">—</b> of simulations. The realistic outcomes are
+    three: a grand coalition, a DA-led minority resting on abstention, or a DA arrangement with
+    one of the parties it has ruled out.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Design choices</div>
+    <h2>Why the model is built the way it is</h2>
+    <div class="cols two">
+      <div class="note">
+        <h3>Seats, not vote shares</h3>
+        <p>The council follows a statutory formula, not a percentage. The model's allocator
+        reproduces the real 2011, 2016 and 2021 councils exactly — quota, vote totals, every
+        party's seats — so the formula layer is not an assumption.</p>
+      </div>
+      <div class="note">
+        <h3>Geography is the anchor</h3>
+        <p>Tested across election cycles: <em>where</em> a party's support sits transfers almost
+        perfectly; <em>how much</em> support it has does not. So the model fits the geography once
+        and treats each party's level as an explicit, bounded scenario — the honest shape of the
+        uncertainty.</p>
+      </div>
+      <div class="note">
+        <h3>Parties move in blocs</h3>
+        <p>The DA and ActionSA fight over the same voters, as do the ANC, EFF and MK. Drawing blocs
+        first and splitting within them is why DA+ActionSA's combined range is far tighter than
+        ActionSA's own 10–50: their errors offset. Ignoring that correlation produces impossible
+        scenarios.</p>
+      </div>
+      <div class="note">
+        <h3>Turnout was tested — and demoted</h3>
+        <p>The model was built expecting differential turnout to decide the city. Measured
+        directly, a ten-point swing across thirty wards moves about two seats — one, under the
+        stricter marginal-voter test. The gap to a majority is over thirty. Persuasion, not
+        mobilisation, is the only route.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Validation</div>
+    <h2>How it was checked — and how you can</h2>
+    <div class="cols two">
+    <div class="note">
+      <h3>How it was checked</h3>
+      <p>Shown only 2021's citywide totals — nothing about where the votes sat — the model placed
+      them well enough to call 129 of 135 ward winners. Fully blind, its seat error quintuples: the
+      spatial machinery is validated, the citywide ranges are judgements. That split is why the
+      output is a distribution.</p>
+    </div>
+    <div class="note">
+      <h3>Explore it yourself</h3>
+      <p>Every assumption in this sheet is a slider on the companion page
+      <b>forecast-interactive.html</b> — at its default, bounded by observed history. Drag the
+      by-election weight to zero, collapse MK, repeat 2021's turnout: see which conclusions bend
+      and which refuse.</p>
+    </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Limits</div>
+    <h2>What this forecast cannot tell you</h2>
+    <div class="caveat">
+    <ul>
+      <li><b>Viability is not intent.</b> The 87% for ANC+DA is arithmetic, not a prediction that
+      it happens. The model says which deals are available; it says nothing about whether people
+      who dislike each other will sit in the same room.</li>
+      <li><b>It cannot see a party that does not yet exist.</b> ActionSA went from absent to 44
+      seats in one cycle. The entrant slot in the simulations is an honest patch, not a fix.</li>
+      <li><b>The ranges are the output.</b> A single seat number quoted from this sheet without its
+      range is a misuse of it. The probabilities are exactly as good as the stated assumptions —
+      which are all adjustable, above.</li>
+      <li><b>The overhang rule awaits a worked example.</b> Council expansion follows the
+      Municipal Structures Act as read; the IEC has never published a metro overhang calculation.
+      With overhang now the modal outcome, this is the forecast's largest single legal
+      uncertainty.</li>
+      <li><b>It is not a poll.</b> No voters were surveyed. This is arithmetic on results,
+      registration, and fifteen by-elections.</li>
+    </ul>
+    </div>
+  </section>
+
+  <div class="colophon">
+    Sources: Electoral Commission of South Africa — voting-district results for the 2011, 2016 and
+    2021 municipal elections, the 2014, 2019 and 2024 national and provincial elections, and all 15
+    CoJ by-elections 2021–2026 (weighted within-ward deltas, an input to the central scenario).
+    Municipal Demarcation Board — 2026 ward and voting-district boundaries. Statistics South
+    Africa — Census 2022 ward estimates. Polling (SRF, Ipsos) spans the scenario lever only.<br>
+    Seat allocation follows Schedule 1 of the Municipal Structures Act; overhang expands the
+    council per the plan's reading (unverified against an IEC worked example — flagged, bounded,
+    and adjustable). Figures on this sheet are generated directly from the model outputs by
+    src/render_sheet.py; methodology, validation, review history and the interactive companion are
+    in the project repository.<br>
+    Figures generated 4 August 2026, seed 20261104.
+  </div>
+
+</div>
+
+</div><!-- /sheet -->
+
+<script>
+// __GEN_START__  (this block is written by src/render_sheet.py — do not edit by hand)
+const GEN = {
+ "tiles": [
+  {
+   "n": "86%",
+   "hero": true,
+   "l": "Chance an ANC\u2013DA coalition clears the majority \u2014 the only pairing that reliably can"
+  },
+  {
+   "n": "89%",
+   "l": "Simulations where overhang expands the council \u2014 median threshold 141, not 136"
+  },
+  {
+   "n": "61%",
+   "l": "A DA minority government is viable if only the ANC votes against (the 2021 pattern)"
+  },
+  {
+   "n": "63%",
+   "l": "Simulations in which the DA is the largest single party"
+  }
+ ],
+ "parties": [
+  {
+   "name": "DA",
+   "chip": "#1B5EA8",
+   "med": 81,
+   "lo": 55,
+   "hi": 103
+  },
+  {
+   "name": "ANC",
+   "chip": "#1B7A3D",
+   "med": 75,
+   "lo": 58,
+   "hi": 86
+  },
+  {
+   "name": "EFF",
+   "chip": "#B3202B",
+   "med": 28,
+   "lo": 18,
+   "hi": 40
+  },
+  {
+   "name": "ActionSA",
+   "chip": "#2FA79B",
+   "med": 26,
+   "lo": 10,
+   "hi": 50
+  },
+  {
+   "name": "MK Party",
+   "chip": "#5B6E22",
+   "med": 20,
+   "lo": 12,
+   "hi": 29
+  },
+  {
+   "name": "PA",
+   "chip": "#E0A419",
+   "med": 14,
+   "lo": 10,
+   "hi": 17
+  },
+  {
+   "name": "IFP",
+   "chip": "#C8442A",
+   "med": 6,
+   "lo": 4,
+   "hi": 7
+  },
+  {
+   "name": "Rise Mzansi",
+   "chip": "#7A6BA8",
+   "med": 4,
+   "lo": 2,
+   "hi": 5
+  },
+  {
+   "name": "Al Jama-ah",
+   "chip": "#2E8B72",
+   "med": 4,
+   "lo": 3,
+   "hi": 6
+  },
+  {
+   "name": "New entrant",
+   "chip": "#b9b9b9",
+   "med": 0,
+   "lo": 0,
+   "hi": 19
+  },
+  {
+   "name": "Others",
+   "chip": "#8b918b",
+   "med": 6,
+   "lo": 5,
+   "hi": 16
+  }
+ ],
+ "coalitions": [
+  {
+   "name": "ANC + DA",
+   "key": true,
+   "p": 0.865,
+   "med": 156,
+   "lo": 136,
+   "hi": 170
+  },
+  {
+   "name": "Eight-party alliance (no ANC, EFF or MK)",
+   "key": true,
+   "p": 0.5346,
+   "med": 141,
+   "lo": 127,
+   "hi": 154
+  },
+  {
+   "name": "DA + EFF + ActionSA",
+   "p": 0.3424,
+   "med": 137,
+   "lo": 121,
+   "hi": 152
+  },
+  {
+   "name": "DA + EFF + MK",
+   "p": 0.263,
+   "med": 130,
+   "lo": 101,
+   "hi": 154
+  },
+  {
+   "name": "ANC + EFF + MK",
+   "p": 0.0062,
+   "med": 124,
+   "lo": 106,
+   "hi": 137
+  },
+  {
+   "name": "DA + ActionSA",
+   "p": 0.0,
+   "med": 108,
+   "lo": 95,
+   "hi": 120
+  }
+ ],
+ "minority_da_2021": 0.6104,
+ "meta": {
+  "threshold_median": 141,
+  "council_median": 281,
+  "p_overhang": 0.8892
+ }
+};
+// __GEN_END__
+
+GEN.tiles[0].l = "of simulations give an ANC\u2013DA pairing a majority \u2014 the only two-party combination that reliably clears the bar";
+GEN.tiles[1].l = "of simulations see the ANC win more wards than its vote entitles it to (overhang) \u2014 the council grows and the majority bar rises to about 141";
+GEN.tiles[2].l = "of simulations leave a DA minority government workable \u2014 governing alone, if only the ANC votes against it and the rest abstain, as happened in 2021";
+GEN.tiles[3].l = "of simulations make the DA the largest single party \u2014 in most of the rest, the ANC's overhang seats put it first";
+document.getElementById("tiles").innerHTML = GEN.tiles.map(t => `
+  <div class="stat${t.hero ? " hero" : ""}">
+    <div class="n">${t.n}</div>
+    <div class="l">${t.l}</div>
+  </div>`).join("");
+
+const MAX = 125;
+document.getElementById("seats").innerHTML = GEN.parties.map(p => `
+  <div class="row">
+    <div class="pname"><span class="chip" style="background:${p.chip}"></span>${p.name}</div>
+    <div class="track">
+      <span class="band" style="left:${p.lo/MAX*100}%;width:${(p.hi-p.lo)/MAX*100}%"></span>
+      <span class="med" style="left:calc(${p.med/MAX*100}% - 1.5px)"></span>
+    </div>
+    <div class="val"><b>${p.med}</b> <span style="color:var(--ink-3)">${p.lo}–${p.hi}</span></div>
+  </div>`).join("");
+
+const pct = v => v >= 0.995 ? "99%+" : v < 0.0005 ? "under 0.1%" :
+  v >= 0.095 ? (v*100).toFixed(0) + "%" : (v*100).toFixed(1) + "%";
+document.getElementById("coalitions").innerHTML = GEN.coalitions.map(c => `
+  <tr class="${c.key ? "key" : ""}">
+    <td>${c.name}</td>
+    <td class="num">${c.med}</td>
+    <td class="num" style="color:var(--ink-3)">${c.lo}–${c.hi}</td>
+    <td><div class="pbar"><i style="width:${Math.max(c.p*100,0.6)}%"></i></div></td>
+    <td class="num">${pct(c.p)}</td>
+  </tr>`).join("");
+
+document.getElementById("minorityP").textContent = pct(GEN.minority_da_2021);
+</script>
+</body>
+</html>
