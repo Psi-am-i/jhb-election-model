@@ -110,7 +110,7 @@ def main(argv: list[str] | None = None) -> int:
         segs = ""
         for nm, n, col in items:
             if n <= 0: continue
-            segs += (f'<div title="{nm} — {n} seats" style="width:{n/total*100:.2f}%;'
+            segs += (f'<div data-tip="{nm} — {n} seats" title="{nm} — {n} seats" style="width:{n/total*100:.2f}%;'
                      f'background:{col}"></div>')
         return (f'<div style="display:flex;flex-direction:column;gap:4px">'
                 f'<div style="font:650 10.5px var(--sans, sans-serif);letter-spacing:.1em;'

@@ -146,13 +146,17 @@ def main(argv: list[str] | None = None) -> int:
         if p is not None and cls in ("strong", "lean") and challengers:
             cols = [CHIPS.get(c, GREY) for c in challengers]
             pid = f"h_{cls}_" + "_".join(c.lstrip("#") for c in cols)
+            shares = [v for c, v in main if c != winner][:2]
+            ratio = (shares[1] / shares[0]) if len(shares) > 1 and shares[0] > 0 else 0
+            pid += f"_r{int(ratio*10)}"
             if pid not in patterns:
                 width = 3.2 if cls == "lean" else 1.6   # bolder = more contested
                 step = 7.0
                 lines = f'<line x1="0" y1="0" x2="0" y2="{step}" stroke="{cols[0]}" stroke-width="{width}"/>'
-                if len(cols) > 1:   # three-way ward: alternate both challengers
+                if len(cols) > 1:   # second challenger: stripe width in proportion
+                    w2 = max(width * ratio, 0.7)
                     lines += (f'<line x1="{step/2}" y1="0" x2="{step/2}" y2="{step}" '
-                              f'stroke="{cols[1]}" stroke-width="{width}"/>')
+                              f'stroke="{cols[1]}" stroke-width="{w2:.1f}"/>')
                 patterns[pid] = (f'<pattern id="{pid}" width="{step}" height="{step}" '
                                  f'patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'
                                  f'{lines}</pattern>')
@@ -244,16 +248,16 @@ def main(argv: list[str] | None = None) -> int:
                 + "".join(f'<line x1="{x}" y1="-8" x2="{x}" y2="20"/>'
                           for x in range(-8, 27, 6)) + "</g>")
 
-    tier_key = f"""<span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px">
+    tier_key = f"""<span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
       <svg width="18" height="12">{key_swatch(None)}</svg>
       <b>Safe</b>&nbsp;≥90% ({called['solid']})</span>
-    <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px">
+    <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
       <svg width="18" height="12">{key_swatch(1.6)}</svg>
       <b>Strongly leaning</b>&nbsp;75–90% ({called['strong']})</span>
-    <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px">
+    <br><span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
       <svg width="18" height="12">{key_swatch(3.2)}</svg>
       <b>Leaning</b>&nbsp;60–75% ({called['lean']})</span>
-    <span style="display:inline-flex;align-items:center;gap:6px">
+    <span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
       <svg width="18" height="12"><rect width="18" height="12" rx="2" fill="{GREY}"/></svg>
       <b>Toss-up</b>&nbsp;under 60% ({called['grey']})</span>"""
 
@@ -284,7 +288,7 @@ def main(argv: list[str] | None = None) -> int:
     <script>
     (function() {{
       var tip = document.getElementById('maptip');
-      var map = document.getElementById('wardmap');
+      var map = document;
       map.addEventListener('mousemove', function(e) {{
         var t = e.target.getAttribute && e.target.getAttribute('data-tip');
         if (t) {{ tip.textContent = t; tip.style.display = 'block';
