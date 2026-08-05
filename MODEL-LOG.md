@@ -483,6 +483,43 @@ argument.
 
 ---
 
+### 1.16 Blind math audit (2026-08-05): core verified; the overhang *reading* is the dominant uncertainty 🟡
+
+An independent agent audited all mathematics blind (code before prose;
+`model-review.html` addendum pending). Verified correct against known answers:
+Schedule 1 allocator, Banzhaf/Shapley, IPF, samplers, turnout corrections,
+leverage arithmetic. Safe fixes landed same night (JS seed reproducibility,
+export means, percentile rounding, doc drifts 86.6→86.5 / 41.7→41.9).
+
+Three material findings were implemented as knobs (`overhang_rule=deduct`,
+`ward_noise_sd`, `level_floor`) and measured at 3,000 draws each:
+
+| configuration | P(ANC+DA) | threshold | DA minority (2021 pattern) | majority w/o ANC bloc |
+|---|---|---|---|---|
+| **expand** (published) | 86.3% | 141 | 61.7% | 99.3% |
+| **deduct** (3rd statutory reading) | **90.7%** | 136 | 53.0% | **97.0%** |
+| **cap** (counterfactual) | 72.4% | 136 | 80.9% | 100.0% |
+| ward noise σ=0.10 | 86.5% | 140 | 62.5% | 99.6% |
+| ward noise σ=0.20 | 84.3% | 139 | 65.5% | 99.7% |
+| level-floor fix | 85.6% | 141 | 63.8% | 99.5% |
+
+**Conclusions.** (1) The audit's bracketing claim is confirmed in the numbers:
+deduct falls *outside* [cap, expand] on the non-bloc-field row (97.0 vs
+99.3–100). (2) The statutory overhang reading swings P(ANC+DA) across
+**72–91%** and DA-minority across **53–81%** — it is the forecast's dominant
+uncertainty, dwarfing every modelling knob; task #20 (IEC worked example) is
+now the single most important open item. (3) The **qualitative** findings
+survive every configuration: ANC+DA is the only reliable two-party majority in
+all three rules, ward-wins-exceed-entitlement occurs in ~72–96% of draws
+regardless of treatment, and the three-outcomes frame holds. (4) Ward noise
+softens P(overhang) (89→83% at σ=0.10) without moving headlines — adopt once
+σ is fold-calibrated. (5) The level-floor artefact, measured, is immaterial to
+the structural rows (99.5 vs 99.3) — the auditor's mechanism was real but its
+magnitude small; fix anyway for cleanliness.
+
+**Not yet adopted into published numbers** — defaults unchanged pending a
+decision on how the site should present the overhang-reading range.
+
 ## 2. Obstacles and how they were handled
 
 | # | Obstacle | Resolution | Status |
