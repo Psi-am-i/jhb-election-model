@@ -83,7 +83,7 @@ The corrected forecast is meaningfully different from the one first computed:
 Honesty about the repairs requires honesty about the remainder. A party that
 does not yet exist cannot be forecast, only allowed for. The legal fine print
 of overhang has never been demonstrated in a published calculation by the
-electoral commission — we have asked. And the range of possible 2026 outcomes
+electoral commission — obtaining one is now the top open item. And the range of possible 2026 outcomes
 is judgement that no amount of testing can turn into fact: bounded by twenty
 years of observed swings, tilted by current evidence, and fully exposed as
 adjustable dials on the [interactive page](interactive).
