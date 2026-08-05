@@ -5,12 +5,11 @@ Reads ward_winner_probs.csv (written by every Monte Carlo run) and the MDB
 __MAP_START__/__MAP_END__ markers of forecast-sheet.html and
 drafts/forecast-draft.html.
 
-Presentation (user review 2026-08-06): the city is drawn ROTATED 90° so its
-long north–south axis runs across the page (north points right — marked);
-major districts are labelled; the 70–90% tier is HATCHED rather than faded
-(opacity was invisible on dark backgrounds); a three-tier key explains
-solid / hatched / grey; tooltips are JS-driven because native SVG titles are
-unreliable across browsers.
+Presentation (user reviews 2026-08-06): rotated 90° (north right, marked);
+districts labelled; four confidence tiers — Safe >=90% solid, Strongly
+leaning 75-90% finely hatched, Leaning 60-75% heavily hatched, Toss-up <60%
+grey — with a swatch key; JS tooltips list every party winning >=5% of a
+ward's simulations plus an "other" remainder.
 
 Usage:  python src/render_map.py
 """
@@ -80,7 +79,7 @@ def main(argv: list[str] | None = None) -> int:
         # rotate 90° clockwise: north -> right, west -> top (chirality kept)
         return ((y - miny) * scale, (x - minx) * COS * scale)
 
-    paths, hatches, called = [], [], {"solid": 0, "hatch": 0, "grey": 0}
+    paths, hatches, called = [], [], {"solid": 0, "strong": 0, "lean": 0, "grey": 0}
     for _, row in gdf.iterrows():
         p = probs.get(row["wardno"])
         geoms = row.geometry.geoms if row.geometry.geom_type == "MultiPolygon" \
@@ -98,23 +97,30 @@ def main(argv: list[str] | None = None) -> int:
             pw = float(p["p_win"])
             winner = p["winner"]
             name = NAMES.get(winner, winner.title())
-            runner = (f" · next: {NAMES.get(p['runner_up'], p['runner_up'].title())} "
-                      f"{float(p['p_runner_up']):.0%}")
+            entries = [(c.split(":")[0], float(c.split(":")[1]))
+                       for c in p["dist"].split("|")]
+            main = [(c, v) for c, v in entries if v >= 0.05]
+            other = sum(v for c, v in entries if v < 0.05)
+            share = " · ".join(f"{NAMES.get(c, c.title())} {v:.0%}" for c, v in main)
+            if other >= 0.005:
+                share += f" · other {other:.0%}"
             if pw >= 0.90:
-                fill, cls = CHIPS.get(winner, GREY), "solid"
-                tip = f"Ward {row['wardno']} · {name} wins in {pw:.0%} of simulations"
-            elif pw >= 0.70:
-                fill, cls = CHIPS.get(winner, GREY), "hatch"
-                tip = f"Ward {row['wardno']} · leaning {name} ({pw:.0%}){runner}"
+                fill, cls, verdict = CHIPS.get(winner, GREY), "solid", f"safe {name}"
+            elif pw >= 0.75:
+                fill, cls, verdict = CHIPS.get(winner, GREY), "strong", f"strongly leaning {name}"
+            elif pw >= 0.60:
+                fill, cls, verdict = CHIPS.get(winner, GREY), "lean", f"leaning {name}"
             else:
-                fill, cls = GREY, "grey"
-                tip = (f"Ward {row['wardno']} · too close to call — {name} {pw:.0%}"
-                       f"{runner}")
+                fill, cls, verdict = GREY, "grey", "too close to call"
+            tip = f"Ward {row['wardno']} · {verdict} — {share}"
         called[cls] += 1
         paths.append(f'<path d="{d}" fill="{fill}" stroke="var(--paper)" '
                      f'stroke-width="0.8" data-tip="{tip}"></path>')
-        if cls == "hatch":
-            hatches.append(f'<path d="{d}" fill="url(#maphatch)" '
+        if cls == "strong":
+            hatches.append(f'<path d="{d}" fill="url(#hatchfine)" '
+                           f'pointer-events="none"></path>')
+        elif cls == "lean":
+            hatches.append(f'<path d="{d}" fill="url(#hatchheavy)" '
                            f'pointer-events="none"></path>')
 
     labels = []
@@ -136,15 +142,27 @@ def main(argv: list[str] | None = None) -> int:
         f'<span style="width:10px;height:10px;border-radius:2px;background:{CHIPS[c]};'
         f'display:inline-block"></span>{NAMES[c]}</span>'
         for c in ("ANC", "DA", "EFF", "ASA", "PA", "IFP", "ALJAMAAH"))
-    tier_key = f"""<span style="display:inline-flex;align-items:center;gap:6px;margin-right:14px">
-      <svg width="18" height="12"><rect width="18" height="12" rx="2" fill="{CHIPS['ANC']}"/></svg>
-      <b>Safe</b>&nbsp;— won in ≥90% of simulations ({called['solid']} wards)</span>
-    <span style="display:inline-flex;align-items:center;gap:6px;margin-right:14px">
-      <svg width="18" height="12"><defs><pattern id="kh" width="5" height="5" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="{CHIPS['ANC']}"/><line x1="0" y1="0" x2="0" y2="5" stroke="var(--paper)" stroke-width="2.4"/></pattern></defs><rect width="18" height="12" rx="2" fill="url(#kh)"/></svg>
-      <b>Leaning</b>&nbsp;— 70–90% ({called['hatch']} wards)</span>
+    def key_swatch(pattern_lines: float | None) -> str:
+        base = f'<rect width="18" height="12" rx="2" fill="{CHIPS["ANC"]}"/>'
+        if pattern_lines is None:
+            return base
+        return (f'{base}<g stroke="var(--paper)" stroke-width="{pattern_lines}" '
+                f'transform="rotate(45 9 6)">'
+                + "".join(f'<line x1="{x}" y1="-8" x2="{x}" y2="20"/>'
+                          for x in range(-8, 27, 5)) + "</g>")
+
+    tier_key = f"""<span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px">
+      <svg width="18" height="12">{key_swatch(None)}</svg>
+      <b>Safe</b>&nbsp;≥90% ({called['solid']})</span>
+    <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px">
+      <svg width="18" height="12">{key_swatch(1.4)}</svg>
+      <b>Strongly leaning</b>&nbsp;75–90% ({called['strong']})</span>
+    <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px">
+      <svg width="18" height="12">{key_swatch(3.0)}</svg>
+      <b>Leaning</b>&nbsp;60–75% ({called['lean']})</span>
     <span style="display:inline-flex;align-items:center;gap:6px">
       <svg width="18" height="12"><rect width="18" height="12" rx="2" fill="{GREY}"/></svg>
-      <b>Toss-up</b>&nbsp;— under 70% ({called['grey']} wards)</span>"""
+      <b>Toss-up</b>&nbsp;under 60% ({called['grey']})</span>"""
 
     snippet = f"""{MARK_START}
   <section>
@@ -155,9 +173,14 @@ def main(argv: list[str] | None = None) -> int:
       <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardmap"
            aria-label="Johannesburg ward map, rotated with north to the right, coloured by predicted winning party"
            style="width:100%;height:auto;display:block">
-        <defs><pattern id="maphatch" width="6" height="6" patternTransform="rotate(45)"
-          patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6"
-          stroke="var(--paper)" stroke-width="2.6"/></pattern></defs>
+        <defs>
+          <pattern id="hatchfine" width="7" height="7" patternTransform="rotate(45)"
+            patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="7"
+            stroke="var(--paper)" stroke-width="1.4"/></pattern>
+          <pattern id="hatchheavy" width="6" height="6" patternTransform="rotate(45)"
+            patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6"
+            stroke="var(--paper)" stroke-width="3.0"/></pattern>
+        </defs>
         {''.join(paths)}{''.join(hatches)}{''.join(labels)}
       </svg>
       <div id="maptip" style="position:fixed;display:none;pointer-events:none;z-index:9;
@@ -168,7 +191,8 @@ def main(argv: list[str] | None = None) -> int:
         <span>{tier_key}</span>
         <span>{party_sw}</span>
         <span>The city is drawn with north to the right so it fits the page. Touch or hover any
-        ward for its numbers. Colours identify parties only.</span>
+        ward to see every party's chance of winning it. A ward needs no majority — highest total
+        wins. Colours identify parties only.</span>
       </figcaption>
     </figure>
     <script>

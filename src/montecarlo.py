@@ -652,13 +652,15 @@ def main(argv: list[str] | None = None) -> int:
     ww_out = args.processed / "ward_winner_probs.csv"
     with ww_out.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
-        writer.writerow(["ward", "winner", "p_win", "runner_up", "p_runner_up"])
+        writer.writerow(["ward", "winner", "p_win", "dist"])
         for wi, w in enumerate(wards):
             order = np.argsort(-ward_winner_counts[wi])
+            dist = "|".join(
+                f"{universe[i]}:{ward_winner_counts[wi, i] / draws:.4f}"
+                for i in order if ward_winner_counts[wi, i] > 0)
             writer.writerow([
-                w, universe[order[0]], f"{ward_winner_counts[wi, order[0]] / draws:.4f}",
-                universe[order[1]], f"{ward_winner_counts[wi, order[1]] / draws:.4f}",
-            ])
+                w, universe[order[0]],
+                f"{ward_winner_counts[wi, order[0]] / draws:.4f}", dist])
 
     seats_out = args.processed / "seat_draws.csv"
     top = ranked[:13]
