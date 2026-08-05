@@ -1,4 +1,8 @@
-# Model log — findings, obstacles, decisions, mitigations
+# Johannesburg Election Model
+
+A voting-district model of the City of Johannesburg — 5,000 simulations over 865 voting districts, both ballots, the statutory seat formula, and the coalition arithmetic it permits. The forecast, the machinery, and the full warts-and-all record of how it was built, reviewed, broken and corrected.
+
+# Log — findings, obstacles, decisions, mitigations
 
 A running record of what was built, what got in the way, what was decided and
 why. Two purposes: to feed the eventual description of the model, and to keep an
