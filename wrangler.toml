@@ -17,7 +17,9 @@ workers_dev = true
 # NOTE: routes must sit ABOVE any [table] header or it becomes e.g.
 # assets.routes and is silently ignored (that happened; see git history).
 routes = [
-  { pattern = "joburg.whysoserious.city", custom_domain = true }
+  { pattern = "joburg.whysoserious.city", custom_domain = true },
+  { pattern = "whysoserious.city", custom_domain = true },
+  { pattern = "www.whysoserious.city", custom_domain = true }
 ]
 
 [assets]
