@@ -536,6 +536,7 @@ def main(argv: list[str] | None = None) -> int:
     council_sizes = np.zeros(draws, dtype=int)
     overhang_count: defaultdict[str, int] = defaultdict(int)
     ward_win_sum: defaultdict[str, int] = defaultdict(int)
+    ward_winner_counts = np.zeros((len(wards), npar), dtype=np.int32)
     bounds_violations: defaultdict[str, int] = defaultdict(int)
     bounds_checked = 0
 
@@ -579,6 +580,7 @@ def main(argv: list[str] | None = None) -> int:
             ward_tally = ward_tally * np.exp(
                 rng.normal(0.0, scenario["ward_noise_sd"], ward_tally.shape))
         winners = ward_tally.argmax(axis=1)
+        ward_winner_counts[np.arange(len(wards)), winners] += 1
         wins: defaultdict[str, int] = defaultdict(int)
         for w in winners:
             wins[universe[w]] += 1
@@ -647,6 +649,17 @@ def main(argv: list[str] | None = None) -> int:
     coalitions.write_outputs(results, args.processed)
 
     # --- outputs --------------------------------------------------------------
+    ww_out = args.processed / "ward_winner_probs.csv"
+    with ww_out.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["ward", "winner", "p_win", "runner_up", "p_runner_up"])
+        for wi, w in enumerate(wards):
+            order = np.argsort(-ward_winner_counts[wi])
+            writer.writerow([
+                w, universe[order[0]], f"{ward_winner_counts[wi, order[0]] / draws:.4f}",
+                universe[order[1]], f"{ward_winner_counts[wi, order[1]] / draws:.4f}",
+            ])
+
     seats_out = args.processed / "seat_draws.csv"
     top = ranked[:13]
     with seats_out.open("w", encoding="utf-8", newline="") as handle:
