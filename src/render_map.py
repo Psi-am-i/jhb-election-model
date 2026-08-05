@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 from pathlib import Path
 
 import math
@@ -103,6 +104,7 @@ def main(argv: list[str] | None = None) -> int:
         return ((rx - rminx) * scale + PAD, (ry - rminy) * scale + PAD)
 
     paths, hatches, called = [], [], {"solid": 0, "strong": 0, "lean": 0, "grey": 0}
+    patterns: dict[str, str] = {}
     for _, row in gdf.iterrows():
         p = probs.get(row["wardno"])
         geoms = row.geometry.geoms if row.geometry.geom_type == "MultiPolygon" \
@@ -127,6 +129,7 @@ def main(argv: list[str] | None = None) -> int:
             share = " · ".join(f"{NAMES.get(c, c.title())} {v:.0%}" for c, v in main)
             if other >= 0.005:
                 share += f" · other {other:.0%}"
+            challengers = [c for c, v in main if c != winner][:2]
             if pw >= 0.90:
                 fill, cls, verdict = CHIPS.get(winner, GREY), "solid", f"safe {name}"
             elif pw >= 0.75:
@@ -139,11 +142,20 @@ def main(argv: list[str] | None = None) -> int:
         called[cls] += 1
         paths.append(f'<path d="{d}" fill="{fill}" stroke="var(--paper)" '
                      f'stroke-width="0.8" data-tip="{tip}"></path>')
-        if cls == "strong":
-            hatches.append(f'<path d="{d}" fill="url(#hatchheavy)" '
-                           f'pointer-events="none"></path>')
-        elif cls == "lean":
-            hatches.append(f'<path d="{d}" fill="url(#hatchfine)" '
+        if p is not None and cls in ("strong", "lean") and challengers:
+            cols = [CHIPS.get(c, GREY) for c in challengers]
+            pid = f"h_{cls}_" + "_".join(c.lstrip("#") for c in cols)
+            if pid not in patterns:
+                width = 3.2 if cls == "lean" else 1.6   # bolder = more contested
+                step = 7.0
+                lines = f'<line x1="0" y1="0" x2="0" y2="{step}" stroke="{cols[0]}" stroke-width="{width}"/>'
+                if len(cols) > 1:   # three-way ward: alternate both challengers
+                    lines += (f'<line x1="{step/2}" y1="0" x2="{step/2}" y2="{step}" '
+                              f'stroke="{cols[1]}" stroke-width="{width}"/>')
+                patterns[pid] = (f'<pattern id="{pid}" width="{step}" height="{step}" '
+                                 f'patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'
+                                 f'{lines}</pattern>')
+            hatches.append(f'<path d="{d}" fill="url(#{pid})" '
                            f'pointer-events="none"></path>')
 
     labels = []
@@ -160,6 +172,42 @@ def main(argv: list[str] | None = None) -> int:
         f'style="font:600 11px ui-monospace,monospace;fill:var(--ink-3);'
         f'pointer-events:none">N ↗</text>')
 
+    # council inset: the city silhouette filled with banded seat proportions
+    summary = json.loads(Path("data/processed/forecast_summary.json").read_text())
+    seats = sorted(((k, round(v["median"])) for k, v in summary["parties"].items()
+                    if round(v["median"]) >= 1), key=lambda kv: -kv[1])
+    named_total = sum(n for _, n in seats)
+    if named_total < 270:
+        seats.append(("OTHER", 270 - named_total))
+    outline = gdf.geometry.union_all().simplify(0.0012)
+    od = ""
+    for g in (outline.geoms if outline.geom_type == "MultiPolygon" else [outline]):
+        pts = [xy(x, y) for x, y in g.exterior.coords]
+        od += "M" + "L".join(f"{x:.1f} {y:.1f}" for x, y in pts) + "Z"
+    MINI_W = 236.0
+    ms = MINI_W / W
+    mini_h = H * ms
+    mx, my = W - MINI_W - 4, H - mini_h - 4   # bottom-right blank corner
+    bands, cursor = [], 0.0
+    for party, n in seats:
+        wdt = W * n / 270.0
+        col = CHIPS.get(party, GREY)
+        nm = NAMES.get(party, "Others" if party == "OTHER" else party.title())
+        bands.append(f'<rect x="{cursor:.1f}" y="0" width="{wdt:.1f}" height="{H:.0f}" '
+                     f'fill="{col}" data-tip="{nm} — {n} of 270 seats (median)"/>')
+        cursor += wdt
+    inset = f"""<g transform="translate({mx:.0f},{my:.0f}) scale({ms:.4f})">
+      <clipPath id="cityclip"><path d="{od}"/></clipPath>
+      <g clip-path="url(#cityclip)">{''.join(bands)}</g>
+      <path d="{od}" fill="none" stroke="var(--ink-3)" stroke-width="2"/>
+    </g>
+    <text x="{mx + MINI_W:.0f}" y="{my - 8:.0f}" text-anchor="end"
+      style="font:650 10.5px ui-sans-serif,system-ui;letter-spacing:.1em;
+      text-transform:uppercase;fill:var(--ink-3);pointer-events:none">The full council — 270 seats, proportional</text>
+    <text x="8" y="16"
+      style="font:650 10.5px ui-sans-serif,system-ui;letter-spacing:.1em;
+      text-transform:uppercase;fill:var(--ink-3);pointer-events:none">Ward races — 135 seats, first past the post</text>"""
+
     party_sw = " ".join(
         f'<span style="display:inline-flex;align-items:center;gap:5px;margin-right:11px">'
         f'<span style="width:10px;height:10px;border-radius:2px;background:{CHIPS[c]};'
@@ -169,20 +217,20 @@ def main(argv: list[str] | None = None) -> int:
         base = f'<rect width="18" height="12" rx="2" fill="{CHIPS["ANC"]}"/>'
         if pattern_lines is None:
             return base
-        return (f'{base}<g stroke="var(--paper)" stroke-width="{pattern_lines}" '
+        return (f'{base}<g stroke="{CHIPS["DA"]}" stroke-width="{pattern_lines}" '
                 f'transform="rotate(45 9 6)">'
                 + "".join(f'<line x1="{x}" y1="-8" x2="{x}" y2="20"/>'
-                          for x in range(-8, 27, 5)) + "</g>")
+                          for x in range(-8, 27, 6)) + "</g>")
 
     tier_key = f"""<span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px">
       <svg width="18" height="12">{key_swatch(None)}</svg>
       <b>Safe</b>&nbsp;≥90% ({called['solid']})</span>
     <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px">
-      <svg width="18" height="12">{key_swatch(3.0)}</svg>
-      <b>Strongly leaning</b>&nbsp;75–90% ({called['strong']})</span>
+      <svg width="18" height="12">{key_swatch(1.6)}</svg>
+      <b>Strongly leaning</b>&nbsp;75–90%, stripes in the challenger's colour ({called['strong']})</span>
     <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px">
-      <svg width="18" height="12">{key_swatch(1.4)}</svg>
-      <b>Leaning</b>&nbsp;60–75% ({called['lean']})</span>
+      <svg width="18" height="12">{key_swatch(3.2)}</svg>
+      <b>Leaning</b>&nbsp;60–75%, bolder stripes ({called['lean']})</span>
     <span style="display:inline-flex;align-items:center;gap:6px">
       <svg width="18" height="12"><rect width="18" height="12" rx="2" fill="{GREY}"/></svg>
       <b>Toss-up</b>&nbsp;under 60% ({called['grey']})</span>"""
@@ -196,15 +244,8 @@ def main(argv: list[str] | None = None) -> int:
       <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardmap"
            aria-label="Johannesburg ward map, rotated with north to the right, coloured by predicted winning party"
            style="width:100%;height:auto;display:block">
-        <defs>
-          <pattern id="hatchfine" width="7" height="7" patternTransform="rotate(45)"
-            patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="7"
-            stroke="var(--paper)" stroke-width="1.4"/></pattern>
-          <pattern id="hatchheavy" width="6" height="6" patternTransform="rotate(45)"
-            patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6"
-            stroke="var(--paper)" stroke-width="3.0"/></pattern>
-        </defs>
-        {''.join(paths)}{''.join(hatches)}{''.join(labels)}
+        <defs>{''.join(patterns.values())}</defs>
+        {''.join(paths)}{''.join(hatches)}{''.join(labels)}{inset}
       </svg>
       <div id="maptip" style="position:fixed;display:none;pointer-events:none;z-index:9;
         font:12px/1.4 ui-sans-serif,system-ui;background:var(--ink);color:var(--paper);
