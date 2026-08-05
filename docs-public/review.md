@@ -65,9 +65,11 @@ registration counts that had quietly poisoned the turnout projections.
 
 The corrected forecast is meaningfully different from the one first computed:
 
-- **Overhang went from invisible to the headline.** In roughly nine
-  simulations in ten, the ANC wins more wards than its shrunken vote entitles
-  it to, the council grows past 270, and the majority bar rises to about 141.
+- **The excessive-seats clause went from invisible to the headline.** In
+  roughly six of seven simulations, the ANC wins more wards than its shrunken
+  vote entitles it to — and (as we later confirmed from the statute and a real
+  2021 precedent) it keeps them all, gets zero list seats, and the shortfall
+  comes out of everyone else's list seats, inside a fixed 270.
 - **The DA's dominance shrank.** Largest party in 63% of simulations, not
   86% — the ANC's overhang seats close the gap.
 - **A kingmaker verdict flipped.** The first sheet asserted the Patriotic

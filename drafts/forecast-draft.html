@@ -179,12 +179,12 @@
 
   <header class="masthead">
     <div class="kicker">Forecast · City of Johannesburg · 4 November 2026</div>
-    <h1>Nobody wins Johannesburg — and the bar for governing it is moving.</h1>
-    <p class="standfirst">A voting-district model of the city finds the DA finishing first most of
-    the time — but the ANC's shrinking vote and unbeatable stronghold wards trigger a quirk of the
-    seat law that makes the council <em>bigger</em> and a majority <em>harder</em> for everyone.
-    Only one pairing reliably clears the higher bar. This page explains the quirk first, then
-    shows the numbers.</p>
+    <h1>Nobody wins Johannesburg — and the ANC's wards can't be taken away.</h1>
+    <p class="standfirst">5,000 simulations of the November vote, on a new voting-district model of
+    the city, find the DA finishing first more often than not — but never with a majority. And a
+    rarely-used clause of the seat law hands the shrinking ANC an unbreakable floor: it keeps
+    every stronghold ward it wins, pays with its list seats, and the shortfall comes out of
+    everyone else's.</p>
     <div class="dateline">
       <span><b>Issued</b> 4 August 2026 (rev 2)</span>
       <span><b>Method</b> 5,000 simulations · 865 voting districts · both ballots · ward winners &amp; overhang</span>
@@ -206,20 +206,21 @@
 
   <section>
     <div class="eyebrow">The rule that shapes everything</div>
-    <h2>Wards, lists — and why the council is about to grow</h2>
+    <h2>Wards, lists — and the clause that fires in November</h2>
     <p class="lede">Johannesburg votes on two ballots at once: one elects a ward councillor, race
     by race, and one is for a party. It seems like they elect two separate halves of the council,
     but they don't — the two ballots are <em>added together</em>, and that combined share sets
     the <b>total</b> seats each party is entitled to. Winning a ward doesn't add a seat; it fills
     one the party was already owed, and the party lists top everyone up to their entitlement.</p>
     <p class="lede">The quirk: a party with tightly concentrated support can win <em>more</em>
-    wards than its overall share entitles it to. Nobody unseats a ward winner — the party keeps
-    them all, and the council simply <b>grows</b> by the extra seats so everyone else still gets
-    their due. That is called <b>overhang</b>, and it is now the ANC's normal condition: a
-    citywide vote in the mid-twenties, but stronghold wards that still win — roughly 73 wards
-    against a 65-seat entitlement. The extra seats push the council past 270, and the majority
-    line from 136 to about <b>141</b>. Every coalition anyone might form has to climb the higher
-    bar the ANC's geography creates.</p>
+    wards than its overall share entitles it to. Nobody unseats a ward winner — the seat law's
+    "excessive seats" clause (Schedule 1, item 16, completed by a 2021 amendment) settles it: the
+    winner keeps every ward, receives <b>no list seats at all</b>, and the other parties' list
+    seats are recalculated over what remains. The council stays at 270 and the majority at 136 —
+    we found the Electoral Commission applying exactly this in Laingsburg in 2021. It is now the
+    ANC's normal condition: roughly 73 stronghold wards on a 65-seat entitlement, in six of every
+    seven simulations. Its ward count is an unbreakable floor — and the parties squeezed to pay
+    for it are everyone else.</p>
   </section>
 
   <section>
@@ -543,7 +544,7 @@ const GEN = {
 // __GEN_END__
 
 GEN.tiles[0].l = "of simulations give an ANC\u2013DA pairing a majority \u2014 the only two-party combination that reliably clears the bar";
-GEN.tiles[1].l = "of simulations see the ANC win more wards than its vote entitles it to (overhang) \u2014 the council grows and the majority bar rises to about 141";
+GEN.tiles[1].l = "of simulations see the ANC win more wards than its vote entitles it to \u2014 it keeps them all, gets zero list seats, and everyone else absorbs the squeeze";
 GEN.tiles[2].l = "of simulations leave a DA minority government workable \u2014 governing alone, if only the ANC votes against it and the rest abstain, as happened in 2021";
 GEN.tiles[3].l = "of simulations make the DA the largest single party \u2014 in most of the rest, the ANC's overhang seats put it first";
 document.getElementById("tiles").innerHTML = GEN.tiles.map(t => `

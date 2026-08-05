@@ -666,6 +666,9 @@ def main(argv: list[str] | None = None) -> int:
             for p in ranked if series(p).mean() >= 0.4
         },
         "p_overhang": p_overhang,
+        "p_excessive_by_party": {p: overhang_count[p] / draws
+                                 for p in sorted(overhang_count,
+                                                 key=lambda q: -overhang_count[q])},
         "threshold_median": int(np.median(thresholds)),
         "structural": results["structural"],
         "pairs_triples": results["pairs_triples"][:40],

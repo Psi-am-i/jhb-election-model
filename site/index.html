@@ -204,15 +204,17 @@
 
   <header class="masthead">
     <div class="kicker">Forecast · City of Johannesburg · 4 November 2026</div>
-    <h1>Nobody wins Johannesburg — and the bar for governing it is moving.</h1>
-    <p class="standfirst">A voting-district model of the city finds the DA finishing first in about
-    six simulations in ten — while the ANC's stronghold wards push the council past 270 seats in
-    nine in ten, raising the majority bar for everyone. Only one pairing reliably clears it.</p>
+    <h1>Nobody wins Johannesburg — and the ANC's wards can't be taken away.</h1>
+    <p class="standfirst">5,000 simulations of the November vote, on a new voting-district model of
+    the city, find the DA finishing first more often than not — but never with a majority. And a
+    rarely-used clause of the seat law hands the shrinking ANC an unbreakable floor: it keeps
+    every stronghold ward it wins, pays with its list seats, and the shortfall comes out of
+    everyone else's.</p>
     <div class="dateline">
-      <span><b>Issued</b> 4 August 2026 (rev 2)</span>
+      <span><b>Issued</b> 5 August 2026 (rev 3 — corrected excessive-seat law)</span>
       <span><b>Method</b> 5,000 simulations · 865 voting districts · both ballots · ward winners &amp; overhang</span>
       <span><b>Baseline</b> 2024 provincial ballot + 15 by-elections</span>
-      <span><b>Council</b> 270 seats + overhang · threshold moves</span>
+      <span><b>Council</b> 270 seats · majority 136 · Schedule 1 item 16 applied</span>
     </div>
   </header>
 
@@ -238,12 +240,14 @@
   <section>
     <p class="lede">The mechanism underneath the numbers: Johannesburg elects half its council in
     ward races and half from party lists, and a party's total entitlement follows <em>both ballots
-    added together</em> — winning a ward doesn't add a seat, it fills one. But a party that wins
-    <em>more</em> wards than its entitlement keeps them, and the council grows. That is now the
-    ANC's normal condition: its citywide vote has fallen to the mid-twenties while its stronghold
-    wards hold against a splintered opposition, so it wins roughly 73 wards on a 65-seat
-    entitlement. The extra seats push the majority line from 136 to about 141 — and every possible
-    coalition has to climb the higher bar the ANC's geography creates.</p>
+    added together</em> — winning a ward doesn't add a seat, it fills one. But when a party wins
+    <em>more</em> wards than its entitlement, Schedule 1's "excessive seats" clause fires: the
+    winner keeps every ward, receives <b>no list seats at all</b>, and the other parties'
+    list seats are recalculated over what remains — the council stays at 270 and the majority
+    at 136. We found the Electoral Commission applying exactly this in Laingsburg in 2021, and it
+    is now the ANC's normal condition: roughly 73 stronghold wards on a 65-seat entitlement, in
+    six of every seven simulations. The ANC's geography gives it an unbreakable floor — and the
+    parties squeezed to pay for it are everyone else.</p>
   </section>
 
 </div>
@@ -390,20 +394,20 @@
 const GEN = {
  "tiles": [
   {
-   "n": "86%",
+   "n": "91%",
    "hero": true,
    "l": "Chance an ANC\u2013DA coalition clears the majority \u2014 the only pairing that reliably can"
   },
   {
-   "n": "89%",
-   "l": "Simulations where overhang expands the council \u2014 median threshold 141, not 136"
+   "n": "0%",
+   "l": "Simulations where overhang expands the council \u2014 median threshold 136, not 136"
   },
   {
-   "n": "61%",
+   "n": "52%",
    "l": "A DA minority government is viable if only the ANC votes against (the 2021 pattern)"
   },
   {
-   "n": "63%",
+   "n": "54%",
    "l": "Simulations in which the DA is the largest single party"
   }
  ],
@@ -411,56 +415,56 @@ const GEN = {
   {
    "name": "DA",
    "chip": "#1B5EA8",
-   "med": 81,
-   "lo": 55,
+   "med": 77,
+   "lo": 50,
    "hi": 103
   },
   {
    "name": "ANC",
    "chip": "#1B7A3D",
    "med": 75,
-   "lo": 58,
+   "lo": 57,
    "hi": 86
   },
   {
    "name": "EFF",
    "chip": "#B3202B",
-   "med": 28,
-   "lo": 18,
-   "hi": 40
+   "med": 27,
+   "lo": 17,
+   "hi": 38
   },
   {
    "name": "ActionSA",
    "chip": "#2FA79B",
-   "med": 26,
+   "med": 25,
    "lo": 10,
-   "hi": 50
+   "hi": 46
   },
   {
    "name": "MK Party",
    "chip": "#5B6E22",
-   "med": 20,
+   "med": 19,
    "lo": 12,
-   "hi": 29
+   "hi": 28
   },
   {
    "name": "PA",
    "chip": "#E0A419",
-   "med": 14,
+   "med": 13,
    "lo": 10,
-   "hi": 17
+   "hi": 16
   },
   {
    "name": "IFP",
    "chip": "#C8442A",
-   "med": 6,
+   "med": 5,
    "lo": 4,
    "hi": 7
   },
   {
    "name": "Rise Mzansi",
    "chip": "#7A6BA8",
-   "med": 4,
+   "med": 3,
    "lo": 2,
    "hi": 5
   },
@@ -476,67 +480,67 @@ const GEN = {
    "chip": "#b9b9b9",
    "med": 0,
    "lo": 0,
-   "hi": 19
+   "hi": 18
   },
   {
    "name": "Others",
    "chip": "#8b918b",
    "med": 6,
-   "lo": 5,
-   "hi": 16
+   "lo": 4,
+   "hi": 15
   }
  ],
  "coalitions": [
   {
    "name": "ANC + DA",
    "key": true,
-   "p": 0.865,
-   "med": 156,
-   "lo": 136,
+   "p": 0.9124,
+   "med": 152,
+   "lo": 132,
    "hi": 170
   },
   {
    "name": "Eight-party alliance (no ANC, EFF or MK)",
    "key": true,
-   "p": 0.5346,
-   "med": 141,
-   "lo": 127,
-   "hi": 154
-  },
-  {
-   "name": "DA + EFF + ActionSA",
-   "p": 0.3424,
-   "med": 137,
-   "lo": 121,
+   "p": 0.439,
+   "med": 134,
+   "lo": 118,
    "hi": 152
   },
   {
-   "name": "DA + EFF + MK",
-   "p": 0.263,
+   "name": "DA + EFF + ActionSA",
+   "p": 0.2678,
    "med": 130,
-   "lo": 101,
-   "hi": 154
+   "lo": 113,
+   "hi": 148
+  },
+  {
+   "name": "DA + EFF + MK",
+   "p": 0.234,
+   "med": 123,
+   "lo": 93,
+   "hi": 153
   },
   {
    "name": "ANC + EFF + MK",
-   "p": 0.0062,
-   "med": 124,
-   "lo": 106,
-   "hi": 137
+   "p": 0.0212,
+   "med": 121,
+   "lo": 105,
+   "hi": 133
   },
   {
    "name": "DA + ActionSA",
-   "p": 0.0,
-   "med": 108,
-   "lo": 95,
-   "hi": 120
+   "p": 0.006,
+   "med": 103,
+   "lo": 88,
+   "hi": 118
   }
  ],
- "minority_da_2021": 0.6104,
+ "minority_da_2021": 0.522,
  "meta": {
-  "threshold_median": 141,
-  "council_median": 281,
-  "p_overhang": 0.8892
+  "threshold_median": 136,
+  "council_median": 270,
+  "p_overhang": 0.0
  }
 };
 // __GEN_END__

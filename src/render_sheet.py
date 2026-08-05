@@ -64,7 +64,7 @@ def main(argv: list[str] | None = None) -> int:
     largest = stack.argmax(axis=0)
     p_da_largest = float((np.array(parties)[largest] == "DA").mean())
 
-    p_overhang = summary["p_overhang"]
+    p_excessive = summary.get("p_excessive_by_party", {}).get("ANC", 0.0)
     thr_med = int(np.median(thr))
     minority = {m["scenario"]: m["p_viable"] for m in summary["minority"]}
     da_minority = minority.get("DA minority, only ANC opposes (2021 pattern)", 0.0)
@@ -74,8 +74,9 @@ def main(argv: list[str] | None = None) -> int:
         "tiles": [
             {"n": f"{anc_da['p']:.0%}", "hero": True,
              "l": "Chance an ANC–DA coalition clears the majority — the only pairing that reliably can"},
-            {"n": f"{p_overhang:.0%}",
-             "l": f"Simulations where overhang expands the council — median threshold {thr_med}, not 136"},
+            {"n": f"{p_excessive:.0%}",
+             "l": "Simulations where the ANC wins more wards than its vote entitles it to — "
+                  "it keeps them all, gets zero list seats, and other parties absorb the squeeze"},
             {"n": f"{da_minority:.0%}",
              "l": "A DA minority government is viable if only the ANC votes against (the 2021 pattern)"},
             {"n": f"{p_da_largest:.0%}",

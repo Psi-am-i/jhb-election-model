@@ -25,22 +25,24 @@ voters split their tickets the difference is worth real seats.)
 The niggle is that a party can win *more* wards than its combined share
 entitles it to. Say a small party's support is tightly concentrated: it wins
 3 wards outright, but its overall share of both ballots entitles it to only
-2 seats. Nobody unseats a ward winner — the party keeps all 3. And rather
-than take a seat away from someone else to make room, the council simply
-*grows* by the extra seat, so every other party still receives its full
-entitlement. That is called overhang. Note carefully what it does and does
-not fix: everyone *else* stays proportional, while the overhanging party ends
-up slightly **over**-represented — its reward for efficiently concentrated
-support.
+2 seats. Nobody unseats a ward winner — the party keeps all 3, and the seat
+law's "excessive seats" clause (Schedule 1, item 16, completed by a 2021
+amendment) settles the overflow: the winner receives **no list seats at
+all**, and the other parties' list seats are recalculated over the seats
+that remain. The council does not grow. We did not take this on trust — we
+found the Electoral Commission's own published calculation applying exactly
+this in Laingsburg in 2021, where the DA won 3 of 4 wards on 23% of the
+vote. The over-winner stays slightly over-represented; the cost falls on
+everyone else.
 
 Two consequences shape everything on this site. First, the council is always
 close to proportional, so a fragmented vote produces a fragmented council.
-Second, overhang — and our forecast finds it is now the ANC's normal
-condition: a citywide vote in the mid-twenties, but stronghold wards that
-still win, roughly 73 wards against a 65-seat entitlement. The extra seats
-push the council past 270 and the majority line from 136 to roughly 141 —
-and every possible coalition has to clear the higher bar the ANC's geography
-creates.
+Second, the excessive-seats clause — and our forecast finds it is now the
+ANC's normal condition: a citywide vote in the mid-twenties, but stronghold
+wards that still win, roughly 73 wards against a 65-seat entitlement, in six
+of every seven simulations. Its ward count becomes an unbreakable floor, its
+list seats go to zero, and the squeeze lands on every other party's list
+seats — inside a council fixed at 270, with the majority fixed at 136.
 
 ## The machinery of prediction
 
