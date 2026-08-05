@@ -95,13 +95,14 @@ def main(argv: list[str] | None = None) -> int:
                 rx, ry = rot(x, y)
                 rxs.append(rx); rys.append(ry)
     rminx, rmaxx, rminy, rmaxy = min(rxs), max(rxs), min(rys), max(rys)
-    PAD = 8.0
-    scale = (W - 2 * PAD) / (rmaxx - rminx)
-    H = (rmaxy - rminy) * scale + 2 * PAD
+    PAD_X, PAD_TOP = 8.0, 2.0
+    scale = (W - 2 * PAD_X) / (rmaxx - rminx)
+    MAP_H = (rmaxy - rminy) * scale + PAD_TOP
+    H = MAP_H + 30.0   # dedicated strip so the inset + its title never overlap the city
 
     def xy(x, y):
         rx, ry = rot(x, y)
-        return ((rx - rminx) * scale + PAD, (ry - rminy) * scale + PAD)
+        return ((rx - rminx) * scale + PAD_X, (ry - rminy) * scale + PAD_TOP)
 
     paths, hatches, called = [], [], {"solid": 0, "strong": 0, "lean": 0, "grey": 0}
     patterns: dict[str, str] = {}
@@ -187,7 +188,7 @@ def main(argv: list[str] | None = None) -> int:
     MINI_W = 300.0
     ms = MINI_W / W
     mini_h = H * ms
-    mx, my = W - MINI_W - 4, H - mini_h - 6   # bottom-right blank corner
+    mx, my = W - MINI_W - 4, H - mini_h - 24  # bottom-right, clear of the city
 
     # Area-proportional bands: equal-width strips under-sold whichever party
     # sat at a narrow end of the silhouette (user review: DA looked small).
@@ -221,7 +222,7 @@ def main(argv: list[str] | None = None) -> int:
       <g clip-path="url(#cityclip)">{''.join(bands)}</g>
       <path d="{od}" fill="none" stroke="var(--ink-3)" stroke-width="2"/>
     </g>
-    <text x="{mx + MINI_W:.0f}" y="{my - 8:.0f}" text-anchor="end"
+    <text x="{mx + MINI_W:.0f}" y="{my + mini_h + 16:.0f}" text-anchor="end"
       style="font:650 10.5px ui-sans-serif,system-ui;letter-spacing:.1em;
       text-transform:uppercase;fill:var(--ink-3);pointer-events:none">The full council — 270 seats, proportional</text>
     <text x="8" y="16"
