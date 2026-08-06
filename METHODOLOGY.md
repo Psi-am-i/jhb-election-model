@@ -452,11 +452,14 @@ judgements instead of silent defaults: MK (list party, no ward machinery)
 **6. Ward winners, seats, overhang.** The ward-ballot prediction is aggregated
 into the 135 2026 wards and FPTP winners taken. Ward and PR votes are added
 and run through Schedule 1 — the same code validated against three published
-councils in §2.3. A party keeps every ward it wins: if wins exceed
-entitlement, the council expands by the excess and the majority threshold
-moves off 136 (review E3; the plan §3.7 reading of Schedule 1 — the statutory
-fine print is unverified against a worked example, and a fixed-270
-counterfactual toggle bounds its effect).
+councils in §2.3. A party keeps every ward it wins: if its wins are equal to
+or greater than its entitlement, the amended Schedule 1 item 16(1),(3)–(9)
+(Structures Amendment Act 3 of 2021) applies as the IEC ran it in Laingsburg
+2021 — the excessive party keeps its wards and takes no list seats, the quota
+is recomputed for everyone else over the remaining seats, and the council
+stays at 270 with the majority threshold fixed at 136 (MODEL-LOG 1.17, 1.19;
+review E3). The pre-research council-expansion reading survives only as a
+legacy counterfactual toggle.
 
 Repeated 5,000 times, the output is a distribution over coalition arithmetic —
 fully enumerated: every subset, minimal winning coalitions, Banzhaf and
@@ -472,39 +475,40 @@ model's actual assumptions and whose scenario JSON round-trips to
 section rested on a pre-filtered coalition list and is superseded; see
 `model-review.html` and MODEL-LOG §1.14–1.15.)*
 
-**Seats** (median, 5th–95th percentile, 5,000 draws, seed 20261104): DA 81
-(55–103), ANC 75 (58–86), EFF 28 (18–40), ActionSA 26 (10–50), MK 20 (12–29),
-PA 14 (10–17), generic new entrant 0 (0–19). The DA is the largest single
-party in most draws; the ANC's seat count includes its overhang wards.
+**Seats** (median, 5th–95th percentile, 5,000 draws, seed 20261104): DA 79
+(52–100), ANC 74 (64–83), EFF 27 (18–39), ActionSA 25 (9–48), MK 19 (12–28),
+PA 13 (10–16), generic new entrant 0 (0–17). The DA is the largest single
+party in most draws; the ANC's seat count is almost entirely its ward wins.
 
-**Overhang is the norm, not the edge case.** In ~90% of draws a party — almost
-always the ANC — wins more wards (~73 of 135) than its entitlement, because
-its citywide share is in the mid-20s while its stronghold wards hold against a
-fragmented opposition. The council expands to a median of ~281 and the
-majority threshold moves to ~141. Every probability below is judged against
-each draw's own threshold. Caveat: the expansion rule is §3.7's reading of
-Schedule 1, unverified against an IEC worked example (task #20); a fixed-270
-counterfactual toggle bounds its effect.
+**The excessive-seats clause is the norm, not the edge case.** In 96% of
+draws a party — almost always the ANC — wins at least as many wards (~74 of
+135) as its entitlement, because its citywide share is in the mid-20s while
+its stronghold wards hold against a fragmented opposition. Under the amended
+Schedule 1 (Act 3/2021, the IEC's Laingsburg 2021 practice — MODEL-LOG 1.17)
+the excessive party keeps its wards and takes no list seats, everyone else is
+re-allocated over the remaining seats, and the council stays at 270: the
+majority threshold is fixed at 136 in every draw. Equality with entitlement
+triggers the clause, per item 16(1)'s "equal to or greater" (MODEL-LOG 1.19).
 
 **Coalition arithmetic, fully enumerated:**
 
 | Finding | Value |
 |---|---|
-| **ANC + DA** (the dominant minimal winning coalition) | **86.5%**, median 156 |
-| DA + EFF + ActionSA | 34% |
-| DA + EFF + MK | 26% |
-| DA + ActionSA | ~0%, median 108 |
-| **DA minority via abstention, 2021 pattern (only the ANC votes against)** | **61%** |
+| **ANC + DA** (the dominant minimal winning coalition) | **87.6%**, median 152 |
+| DA + EFF + ActionSA | 32% |
+| DA + EFF + MK | 25% |
+| DA + ActionSA | ~0%, median 104 |
+| **DA minority via abstention, 2021 pattern (only the ANC votes against)** | **60%** |
 | ANC minority (only the DA votes against) | 38% |
-| Some majority without ANC, EFF and MK together | 99.2% — but at median 157 vs threshold ~141, it needs close to the whole non-bloc field |
+| Some majority without ANC, EFF and MK together | 99.2% — but at median 149 vs the fixed 136 threshold, it needs close to the whole non-bloc field |
 
-**Power indices** (Banzhaf, median across draws): DA 29%, ANC 24%, EFF 11%,
+**Power indices** (Banzhaf, median across draws): DA 28%, ANC 25%, EFF 12%,
 ActionSA 11%, MK 8%, PA 5%. ActionSA out-ranks the PA as kingmaker — the
 earlier sheet asserted the reverse without computing it.
 
 The politically operative summary: the only reliable *majority* route is
 ANC+DA; the realistic alternatives are a DA-led minority administration
-resting on abstention (viable in 61% of draws under the 2021 pattern), or a
+resting on abstention (viable in 60% of draws under the 2021 pattern), or a
 DA arrangement with one of EFF/MK — arithmetic the model reports and politics
 the model deliberately does not judge.
 
@@ -530,8 +534,8 @@ blend of their VD and the citywide mix, every leverage magnitude roughly
 the rankings are unchanged. A5 is not doing load-bearing work — if anything it
 flattered turnout.
 
-**These two results agree.** The gap from DA+ActionSA's ~108 to the ~141
-overhang-adjusted threshold is over thirty seats, and a large differential
+**These two results agree.** The gap from DA+ActionSA's ~104 to the fixed
+136-seat threshold is over thirty seats, and a large differential
 turnout swing is worth about two under A5, one under the blend. The plan's
 conclusion that the DA's path runs through ANC-inclined voters staying home
 does not survive any version of the test — on this arithmetic the gap can only
@@ -551,7 +555,7 @@ fold finding that θ dominates turnout for forecast accuracy.
 | G | Two-cycle inference | Several parameters rest on two observed NPE→LGE transitions, one Covid-affected. Treat 2021-derived values as scenario levers |
 | H | Concordance leakage | 0.21–0.45% of votes per election sit in VDs that no longer exist; recorded, not dropped |
 | I | By-election selection bias (plan A4) | By-elections enter only as within-ward deltas, ρ-weighted, clamped to §3.5's ranges, at weight w_bye 0.40. ActionSA is the party the blend moves most (centre 9.3%→13.1%) — set w_bye to 0 to see the forecast without it |
-| J | Overhang mechanics | The council-expansion reading of Schedule 1 is unverified against an IEC worked example, and with P(overhang) ≈ 90% it now matters (task #20). The fixed-270 counterfactual toggle bounds its effect |
+| J | Excessive-seats mechanics | **Resolved** (task #20 closed). Structures Amendment Act 3 of 2021 wrote the fixed-270 deduct rule into Schedule 1 item 16(3)–(9), and the IEC's published Laingsburg 2021 seat calculation applies it (MODEL-LOG 1.17). Equality with entitlement triggers per item 16(1)'s "equal to or greater" (MODEL-LOG 1.19). The council-expansion reading survives only as a legacy counterfactual toggle |
 | K | Marginal-voter composition (plan A5) | **Tested.** Under the 50/50 blend, leverage magnitudes halve and rankings hold; the turnout conclusion strengthens |
 
 **Limitation C is now the most important outstanding item.** It is also the

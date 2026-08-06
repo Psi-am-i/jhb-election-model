@@ -6,7 +6,7 @@ Swept 2026-08-05. Anchors the polling lever endpoints; never fed in raw
 | Pollster / wave | Fieldwork | Geography | n / method | Numbers |
 |---|---|---|---|---|
 | Ipsos Khayabus W2-2025 | Dec 25–Jan 26 | National LGE | 3,600 CAPI ±1.9% | ANC 38, DA 22, MK 13–14, EFF 12–13, ASA 4; 43–49% "politically homeless" |
-| Ipsos same wave, metros | Q1 2026 | All-metro | subsample | ANC 35, DA 25, MK 14, EFF 13, ASA 4 (no 2026 Gauteng cut) |
+| Ipsos same wave, metros | Q1 2026 | All-metro | subsample | ANC 35, DA 25, MK 14, EFF 13, ASA 4, PA 4, IFP 2 (no 2026 Gauteng cut; PA/IFP from the same Ipsos release's minor-party table, carried in `polls.json` so the blend doesn't zero them) |
 | SRF Q1-2026 national | 16 Feb–6 Mar | National LV (56% TO model) | 2,222 CATI | ANC 39, DA 28, MK 10, EFF 6, ASA 3 |
 | SRF Q1-2026 **CoJ** | same | CoJ metro | ~503 | **DA 39, ANC 30, ASA 10, MK 8, EFF 4** |
 | SRF Q1-2026 Gauteng | same | Gauteng | subsample | DA 37, ANC 31, ASA 7, EFF 5 (confirms prior anchor) |
