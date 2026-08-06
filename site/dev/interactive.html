@@ -869,13 +869,12 @@ function analyse(res){
   const ancda=maskOf(["ANC","DA"]);
   const thrQ=quantiles(Float64Array.from(thr));
   const largest=new Map();
-  let daLargest=0,ancLargest=0,noDa=0,noAnc=0;
-  for(let d=0;d<nDraws;d++){let bi=0,bv=-1,tot=0;
-    for(let i=0;i<N;i++){const v=seatsAll[d*N+i];tot+=v;if(v>bv){bv=v;bi=i;}}
+  let daLargest=0,ancLargest=0,anyAlone=0;
+  for(let d=0;d<nDraws;d++){let bi=0,bv=-1;
+    for(let i=0;i<N;i++){const v=seatsAll[d*N+i];if(v>bv){bv=v;bi=i;}}
     if(bi===idx.DA)daLargest++;
     if(bi===idx.ANC)ancLargest++;
-    if(tot-seatsAll[d*N+idx.DA]>=thr[d])noDa++;
-    if(tot-seatsAll[d*N+idx.ANC]>=thr[d])noAnc++;
+    if(bv>=thr[d])anyAlone++;
     largest.set(bi,(largest.get(bi)||0)+1);}
   const largestArr=[...largest.entries()].sort((a,b)=>b[1]-a[1]);
 
@@ -885,7 +884,7 @@ function analyse(res){
     pOverAnc:res.overhangBy[idx.ANC]/nDraws,
     largestName:NAME[largestArr[0][0]],largestP:largestArr[0][1]/nDraws,
     pDaLargest:daLargest/nDraws,pAncLargest:ancLargest/nDraws,
-    pNoDa:noDa/nDraws,pNoAnc:noAnc/nDraws,
+    pAlone:anyAlone/nDraws,
     pNoBloc:fw/nDraws};
 }
 
@@ -899,9 +898,7 @@ function render(a,cfg){
     {n:fmtP(a.pAncLargest),l:"Chance the ANC is the largest single party"},
     {n:a.thrMed.toFixed(0),l:"Majority threshold \u2014 fixed: the excessive-seats law keeps the council at 270"},
     {n:fmtP(a.pOverAnc),l:"Chance the ANC triggers the excessive-seats clause \u2014 keeps every ward, zero list seats, everyone else squeezed"},
-    {n:fmtP(a.pNoAnc),l:"Chance a majority exists without the ANC \u2014 every other party combined, politics aside"},
-    {n:fmtP(a.pNoDa),l:"Chance a majority exists without the DA \u2014 every other party combined, politics aside"},
-    {n:fmtP(a.pNoBloc),l:"Chance a majority exists without the ANC, EFF and MK together"},
+    {n:fmtP(a.pAlone),l:"Chance any party governs alone \u2014 a single party reaching the 136-seat majority by itself"},
     {n:fmtP(a.minority[0].p),l:"Chance a DA minority government is viable \u2014 if only the ANC votes against, as in 2021"},
   ];
   document.getElementById("tiles").innerHTML=tiles.map(t=>
