@@ -316,7 +316,10 @@
     government is": they say only how often the combination <em>has the numbers</em> across your
     simulations. <b>Cushion</b> = median seats beyond the 136 needed, voting united. Every listed
     partner is essential by construction; where a departed partner could be <em>replaced</em> to
-    keep the majority, the replacement is named.</p>
+    keep the majority, the replacement is named. The cushion is also a <b>dissent budget</b>: a
+    coalition at +16 can have 16 of its own councillors rebel on any vote and still carry it —
+    and when the budget exceeds a junior partner's whole caucus, that partner can vote no en
+    bloc without sinking a motion.</p>
     <div class="tablewrap"><table>
       <thead><tr><th>Combination</th><th class="num">Seats (mid)</th><th class="num">Cushion</th>
         <th style="width:22%">Has the numbers in…</th><th class="num">of your sims</th></tr></thead>
@@ -790,7 +793,7 @@ function analyse(res){
               samePool:BLOC_OF[top[j].i]!==undefined&&BLOC_OF[top[j].i]===BLOC_OF[top[pi].i]};
         }
       }
-      r.walk.push({name:top[pi].name,surv,rescue});
+      r.walk.push({name:top[pi].name,med:top[pi].med,surv,rescue});
       mm^=low;
     }
     r.cushion=r.med-136;
@@ -900,6 +903,14 @@ function render(a,cfg){
       if(w.rescue)return `if ${w.name} walks: ${w.rescue.name} could replace them${w.rescue.samePool?" (same pool)":""}`;
       return `if ${w.name} walks: <b>broken</b>`;
     });
+    if(r.cushion>0&&r.walk.length){
+      const big=r.walk.reduce((x,y)=>y.med>x.med?y:x);
+      const small=r.walk.reduce((x,y)=>y.med<x.med?y:x);
+      let d=`dissent budget: ${r.cushion.toFixed(0)} rebel votes (${(r.cushion/big.med*100).toFixed(0)}% of ${big.name}'s caucus)`;
+      if(r.walk.length>1&&r.cushion>=small.med)
+        d+=` — ${small.name} alone can't sink a motion`;
+      bits.unshift(d);
+    }
     return `<div style="font-size:11.5px;color:var(--ink-3);margin-top:3px">${bits.join(" · ")}</div>`;
   };
   document.getElementById("coalitions").innerHTML=a.rows.map(r=>`
