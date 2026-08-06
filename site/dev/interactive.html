@@ -302,10 +302,11 @@
 
   <section>
     <div class="eyebrow">Coalition arithmetic — fully enumerated</div>
-    <h2>What can govern</h2>
+    <h2>Who can govern</h2>
     <p class="small"><b>These are mathematically possible majorities only</b> — every combination
     is checked with no judgement about how politically likely any deal is, or who would actually
-    sit in a room with whom.</p>
+    sit in a room with whom. Combinations that only win because they contain a smaller winning
+    pair are left out: every partner listed here adds something.</p>
     <div class="tablewrap"><table>
       <thead><tr><th>Combination</th><th class="num">Seats (mid)</th><th class="num">Range</th>
         <th style="width:24%">Chance of majority</th><th class="num"></th></tr></thead>
@@ -736,7 +737,14 @@ function analyse(res){
   const found=[];
   for(let k=2;k<=3;k++){
     const combo=(start,left,m)=>{if(left===0){const p=winP(m);
-        if(p>0.03&&!seen.has(m))found.push({label:label(m),m,p,...maskStats(m)});return;}
+        if(p>0.03&&!seen.has(m)){
+          // passenger check: if any subset short one member wins nearly as
+          // often, the extra member adds nothing - skip the superset row
+          let passenger=false,mm=m;
+          while(mm){const low=mm&-mm;
+            if(winP(m^low)>=p-0.02){passenger=true;break;}mm^=low;}
+          if(!passenger)found.push({label:label(m),m,p,...maskStats(m)});
+        }return;}
       for(let i=start;i<nT;i++)combo(i+1,left-1,m|(1<<i));};
     combo(0,k,0);
   }
