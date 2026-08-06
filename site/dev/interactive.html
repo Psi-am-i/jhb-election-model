@@ -175,15 +175,17 @@
       <button data-preset="asafall" title="ActionSA keeps fading as it did 2021→2024, and its by-election bright spots are ignored.">ActionSA fades</button>
       <button data-preset="asaup" title="ActionSA's by-election bright spots are the real signal — that dial up, retention near the top of its range.">ActionSA excels</button>
       <button data-preset="paup" title="The Patriotic Alliance outruns its record — retention at the top of its range and a full candidate slate.">The PA excels</button>
-      <button data-preset="pafall" title="The PA's momentum doesn't materialise — retention at the bottom of its range, no contestation bonus.">The PA fades</button>
+      <button data-preset="pafall" title="The PA's momentum doesn't materialise — retention at the bottom of its range, and the wider slate spreads it thin.">The PA fades</button>
     </div>
   </div>
 
   <div class="cgroup">
     <h3>Party levels</h3>
-    <div class="why">How much of each party's national-election support survives a local election —
-    1.00 means unchanged. You can't push a slider past what has actually happened in twenty
-    years of national-to-local swings; that is the point of the ranges.
+    <div class="why">Each dial sets how much of that party's <b>2024 national-election vote</b>
+    survives a local election — ×1.00 means all of it, ×0.75 means three-quarters. The readout
+    translates that into a citywide vote share, so the different ranges compare directly. The
+    ranges themselves are the outer limits of twenty years of national-to-local swings; you
+    can't push past what has actually happened.
     <b>●</b> = the ANC bloc, <b>○</b> = the DA bloc — parties fishing in the same voter pool,
     moved together (see "Voting blocs" below).</div>
     <div class="ctl"><div class="lab"><span>ANC ●</span><span class="v" id="v-thetaANC"></span></div>
@@ -238,34 +240,53 @@
     <div class="why">Since 2006, blocs barely leak into each other: in the ANC bloc's record 2021
     collapse it shed <b>587,000 votes</b> — and the DA bloc captured none of them (its own count
     fell). Declines go to the couch, not across the aisle.<br><br>
-    The dial below is your bet on whether 2026 breaks that pattern — slide right for ANC-bloc
-    losses crossing to the DA side, slide left for the DA bloc's voters moving to the ANC side
-    instead.</div>
+    This dial is your bet on whether 2026 breaks that pattern. It is deliberately uncalibrated —
+    history says <b>0</b>, and there is no data for anything else. What it applies:<br>
+    <b>At 0</b> — when the ANC bloc shrinks (each run draws it 3–22 points below its national
+    level), the lost voters stay home. Nobody inherits them.<br>
+    <b>Slide right</b> — that percentage of the bloc's simulated losses cross and are cast for
+    DA-bloc parties instead of abstaining. At <b>100%</b>, every vote the ANC bloc loses becomes
+    a DA-bloc vote — none stay home.<br>
+    <b>Slide left</b> — the opposite bet: that share of the DA bloc's usual local-election bounce
+    (5–14 points) flows back to the ANC bloc instead — redirected votes, not new ones.</div>
     <div class="ctl"><div class="lab"><span>Trend-break: voters crossing between blocs</span><span class="v" id="v-blocLeak"></span></div>
       <input type="range" id="blocLeak" min="-1" max="1" step="0.05" value="0"></div>
   </div>
 
   <div class="cgroup">
-    <h3>No local track record</h3>
-    <div class="why">Two judgements no history can settle. MK has never fought a local election:
-    at <b>1.0</b> its ward-ballot vote matches its list vote; below, its voters back it on the
-    list but drift elsewhere in ward races. The PA stood in only 52 of 135 wards in 2021: at
-    <b>1.0</b> the same footprint, above it the party captures more ward votes by standing more
-    widely.</div>
-    <div class="ctl"><div class="lab"><span>MK on the ward ballot (1.0 = matches its list vote)</span><span class="v" id="v-mkRatio"></span></div>
+    <h3>Judgement calls with no history</h3>
+    <div class="why">Two judgements no election record can settle.<br>
+    <b>MK</b> has never fought a local election. At <b>1.0</b> it performs as well on the ward
+    ballot as on its list vote; above 1.0 it excels in ward races; below, its voters back the
+    list but drift elsewhere in ward contests.<br>
+    <b>The PA</b> stood in only 52 of 135 wards in 2021 and is standing in more this time. At
+    <b>1.0</b> it does as well as last time; higher, the wider slate captures more ward votes;
+    lower, the push backfires — spread thin, it wins fewer.</div>
+    <div class="ctl"><div class="lab"><span>MK's ward ballot: collapses ← → excels</span><span class="v" id="v-mkRatio"></span></div>
       <input type="range" id="mkRatio" min="0.50" max="1.20" step="0.05" value="0.80"></div>
-    <div class="ctl"><div class="lab"><span>PA's new-ward push (1.0 = 2021 footprint)</span><span class="v" id="v-paUplift"></span></div>
-      <input type="range" id="paUplift" min="1.00" max="2.00" step="0.05" value="1.25"></div>
+    <div class="ctl"><div class="lab"><span>PA's wider slate: backfires ← → expands</span><span class="v" id="v-paUplift"></span></div>
+      <input type="range" id="paUplift" min="0.70" max="2.00" step="0.05" value="1.25"></div>
   </div>
 
   <div class="cgroup">
     <h3>Turnout</h3>
-    <div class="why">A famous intuition, tested and demoted: overall turnout cannot move a single
-    seat (the seat formula scales with it), and even big differences <em>between</em> districts
-    shift only a couple. Drag these to see for yourself.</div>
+    <div class="why">Our elections are proportional, so the turnout <em>level</em> cannot move a
+    single seat — double everyone's turnout and every party's votes double with it; the seat
+    formula cancels it exactly. Turnout only matters when <b>some voters show up more than
+    others</b>. We built this model expecting exactly that to decide the city. It doesn't — and
+    these dials let you check us.<br><br>
+    What they do: every simulation gives each ward its own turnout, so ANC strongholds and DA
+    strongholds already rise and fall separately — and because turnout geography <em>is</em>
+    party geography here, that is differential turnout by bloc, not a universal tide.
+    <b>Turnout map</b> picks whose geography: left, the model's projection from the 2006–2024
+    record; right, an exact repeat of the record-low 2021 map — the election in which the
+    turnout gap, not vote-switching, produced the opposition's share surge. <b>Ward
+    surprise</b> scatters every ward around that map afresh each run.<br><br>
+    The tested answer: even a ten-point turnout swing pushed across thirty ANC-leaning wards
+    moves about <b>two seats</b>. Persuasion moves this city; mobilisation barely does.</div>
     <div class="ctl"><div class="lab"><span>Turnout map: model's projection ← → repeat of 2021</span><span class="v" id="v-turnoutBlend"></span></div>
       <input type="range" id="turnoutBlend" min="0" max="1" step="0.05" value="0.5"></div>
-    <div class="ctl"><div class="lab"><span>Local turnout unpredictability</span><span class="v" id="v-turnoutNoise"></span></div>
+    <div class="ctl"><div class="lab"><span>Ward surprise — run-to-run turnout scatter</span><span class="v" id="v-turnoutNoise"></span></div>
       <input type="range" id="turnoutNoise" min="0" max="0.20" step="0.01" value="0.08"></div>
   </div>
 
@@ -507,7 +528,7 @@ const PRESETS={
   asafall:{thetaASA:0.95,wBye:0.15},
   asaup:{thetaASA:2.50,wBye:0.60},
   paup:{thetaPA:2.00,paUplift:1.75},
-  pafall:{thetaPA:1.00,paUplift:1.00},
+  pafall:{thetaPA:1.00,paUplift:0.85},
 };
 function readCfg(){const c={};ctlIds.forEach(id=>c[id]=parseFloat(document.getElementById(id).value));
   c.pollPick=document.getElementById("pollPick").value;return c;}
@@ -517,7 +538,13 @@ function setCfg(c){ctlIds.forEach(id=>{if(id in c)document.getElementById(id).va
 function showVals(){
   const alphaWord=(v,min,max)=>{const p=(v-min)/(max-min);
     return p<0.25?"loose — big reshuffles":p<0.7?"steady":"tight — near the expected split";};
+  const share=code=>v=>"×"+v.toFixed(2)+" ≈ "+(base[idx[code]]*v*100).toFixed(0)+"% citywide";
   const fmt={wBye:v=>v.toFixed(2),pollWeight:v=>(v*100).toFixed(0)+"%",
+    thetaANC:share("ANC"),thetaDA:share("DA"),thetaEFF:share("EFF"),
+    thetaMK:share("MK"),thetaASA:share("ASA"),thetaPA:share("PA"),
+    mkRatio:v=>v.toFixed(2)+(v<0.75?" — collapses":v>1.0?" — excels":""),
+    paUplift:v=>"×"+v.toFixed(2)+(v<1.0?" — backfires":v>1.0?" — expands":" — 2021 footprint"),
+    turnoutBlend:v=>v<=0?"model projection":v>=1?"repeat of 2021":(v*100).toFixed(0)+"% toward 2021",
     blocLeak:v=>v===0?"0 — history":v>0?(v*100).toFixed(0)+"% ANC→DA":(-v*100).toFixed(0)+"% DA→ANC",
     alphaANC:v=>alphaWord(v,10,150),alphaDA:v=>alphaWord(v,4,60),
     turnoutNoise:v=>"σ "+v.toFixed(2),entrantProb:v=>(v*100).toFixed(0)+"%",
