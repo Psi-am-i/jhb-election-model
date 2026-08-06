@@ -28,6 +28,7 @@
     font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;}
   .sheet{max-width:1060px;margin:0 auto;padding:28px 22px 72px;display:flex;
     flex-direction:column;gap:30px;}
+  @media (max-width:560px){.sheet{padding:20px 12px 48px;}h1{text-wrap:pretty;}}
 
   .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);}
   h1{font-family:var(--serif);font-weight:600;font-size:clamp(27px,4.4vw,38px);line-height:1.1;letter-spacing:-.012em;text-wrap:balance;}
@@ -152,11 +153,6 @@
   real assumption from the published model, set to its published value. Move one — or pick a
   preset — and 1,500 fresh simulations of the November election run in about a second. Watch
   which conclusions bend, and which refuse to.</p>
-  <div class="dateline">
-    <span><b>Engine</b> 865 voting districts · the real seat law, excessive-seats clause included</span>
-    <span><b>Baseline</b> 2024 provincial ballot, 865 VDs → 135 wards</span>
-    <span><b>Issued</b> 4 August 2026</span>
-  </div>
 </header>
 
 <div class="layout">
@@ -268,13 +264,24 @@
     moves about <b>two seats</b>. Persuasion moves this city; mobilisation barely does.<br><br>
     <b>The claim on the record:</b> 490,000 DA votes on both ballots deliver an outright
     majority (<a href="https://www.businessday.co.za/politics/2026-03-01-da-needs-490000-voters-to-win-outright-majority-in-joburg-says-zille/"
-    target="_blank" rel="noopener">Helen Zille, March 2026</a>). That number is almost exactly
-    half of the expected total poll — about 985,000 votes at the record-low turnout this model
-    projects — and that is the trick in it: votes cast count in the total, so every extra DA
-    voter lifts the majority line by half a vote. We tested it. With <em>every</em> DA-leaning
-    ward voting at national-election turnout, the DA polls roughly 400,000 votes of a
-    now-bigger poll and reaches about <b>85 of the 136 seats needed</b>. The claim is
-    arithmetically short by fifty seats — press the button.</div>
+    target="_blank" rel="noopener">Helen Zille, March 2026</a>). We tested it. The claim is
+    arithmetically short by fifty seats, and it fails in three specific steps:<br>
+    <b>1 — it is half of the wrong number.</b> 490,000 is almost exactly half of the ~985,000
+    votes expected if turnout stays at its record low. But seats follow the poll that actually
+    happens, and the only way the DA finds 170,000 extra votes is higher turnout — which grows
+    the poll and moves the majority line up with it. At national-election turnout in every
+    DA-leaning ward the poll is ~1.1 million, and half of it is ~555,000.<br>
+    <b>2 — "all our voters" delivers about 400,000, not 490,000.</b> Nearly a quarter of DA
+    support lives outside DA-leaning wards and gains nothing from the surge — and inside those
+    wards, higher turnout also casts more votes for everyone else who lives there. The DA's
+    haul climbs from ~320,000 to ~400,000: about <b>36%</b> of the bigger poll, nowhere near
+    half of anything.<br>
+    <b>3 — and 36% doesn't even buy 36% of the seats.</b> Proportionally that would be ~97 of
+    270. But the excessive-seats law hands the ANC every stronghold ward it wins — ~74 seats on
+    ~22% of the vote, roughly fourteen more than its share — and that surplus is deducted from
+    everyone else's column, the biggest slice from the biggest party. The DA's median lands on
+    <b>85 of the 136 needed</b> (and its luckiest run in 5,000 reaches 105).<br>
+    Press the button and watch each step happen.</div>
     <div class="ctl"><div class="lab"><span>Voters in ANC-leaning wards: stay home ← as usual → all turn out</span><span class="v" id="v-turnoutANC"></span></div>
       <input type="range" id="turnoutANC" min="-1" max="1" step="0.05" value="0"></div>
     <div class="ctl"><div class="lab"><span>Voters in DA-leaning wards: stay home ← as usual → all turn out</span><span class="v" id="v-turnoutDA"></span></div>
@@ -458,6 +465,12 @@
     citywide seat arithmetic is exact; ward winners approximate the 865-district model, reference
     figures from the Python run are shown in the status line. Full methodology, validation and
     review history in the project repository. Free to reproduce with attribution.
+  </div>
+
+  <div class="dateline">
+    <span><b>Engine</b> 865 voting districts · the real seat law, excessive-seats clause included</span>
+    <span><b>Baseline</b> 2024 provincial ballot, 865 VDs → 135 wards</span>
+    <span><b>Issued</b> 4 August 2026</span>
   </div>
 
 </div><!-- /results -->
