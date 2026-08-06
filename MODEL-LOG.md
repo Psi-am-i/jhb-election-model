@@ -657,6 +657,46 @@ zero-vote branch divergence from Python (needs vote totals below the seat
 count); combined votes from drawn targets vs converged IPF output (bounded by
 IPF tolerance); `POLLING_SPAN`/`_leanSign` dead code in the JS engine.
 
+### 1.20 Who-turns-out tilts: turnout as people, not parameters ✅
+
+**The interactive's turnout dials were parameter-shaped** ("50% toward 2021",
+"σ 0.08") while the question readers bring is people-shaped — the DA's own
+campaign line is that ~490,000 DA votes on both ballots deliver an outright
+majority (Zille, Business Day 2026-03-01; 500,000 in later coverage).
+Replaced with two sliders — voters in ANC-leaning wards and in DA-leaning
+wards each move between **stay home** (that area's worst local-election
+turnout on record) and **all turn out** (its 2024 national-election turnout,
+which is what "all our voters" means in practice) — plus presets "Every DA
+voter turns out" and "The ANC machine delivers". Anchors are computed per VD
+from `turnout.csv` (2024 NPE; min of 2011/2016/2021 LGE) and carried to the
+ward pack as `v24`/`vlo`; citywide they are 60.5% and 42.5% against a ~42%
+baseline — the "stay home" floor nearly coincides with the forecast baseline
+because the model already assumes near-record-low turnout. New scenario keys
+`turnout_tilt_anc`/`turnout_tilt_da` ∈ [−1, 1], default 0 (published forecast
+unchanged); VD/ward lean = which bloc's 2024 base share leads.
+
+**The tilt is compositional by design.** First implementation applied the
+tilt to the IPF weights — and the calibration absorbed it (citywide shares
+are pinned to the drawn targets, so a DA-ward surge just deflated DA's
+within-ward shares; the "test" answered itself). Correct construction:
+within-area shares stay as the scenario calibrated them (IPF runs on the
+untilted weights) and the tilt changes who casts votes, so the citywide
+result moves mechanically. Python: `weight_cal` (untilted) for
+`solve_and_predict`, tilted `weight` for vote aggregation. JS: per-party
+shift = tilted/untilted ward-geography overlap applied to the combined vote.
+
+**Measured (JS engine, 1,500 draws, defaults otherwise):** every DA-leaning
+ward at national-election turnout lifts the DA 79 → 84 seats and P(largest)
+66 → 76% — and P(any party governs alone) stays 0.0%: the claim fails by
+roughly fifty seats. Adding "ANC areas stay home" changes nothing (their
+baseline already is the record low). The mirror surge lifts the ANC only
++1 seat — it is seat-capped at its ward wins by the excessive-seats law —
+while its bloc partners gain and the DA falls to 70. Python-engine
+confirmation run alongside; page controls regrouped (who-shows-up sliders
+headline the Turnout group; split-predictability, by-election weight and the
+old map/scatter dials under a collapsed Fine-tuning; MK/PA judgement calls
+collapsible).
+
 ## 2. Obstacles and how they were handled
 
 | # | Obstacle | Resolution | Status |
