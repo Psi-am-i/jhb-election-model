@@ -252,7 +252,7 @@ def main(argv: list[str] | None = None) -> int:
 
     tier_key = f"""<span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
       <svg width="18" height="12">{key_swatch(None)}</svg>
-      <b>Safe</b>&nbsp;≥90% ({called['solid']})</span>
+      <b>Safe</b>&nbsp;wins in ≥90% of simulations ({called['solid']})</span>
     <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
       <svg width="18" height="12">{key_swatch(1.6)}</svg>
       <b>Strongly leaning</b>&nbsp;75–90% ({called['strong']})</span>
@@ -264,9 +264,9 @@ def main(argv: list[str] | None = None) -> int:
       <b>Toss-up</b>&nbsp;under 60% ({called['grey']})</span>"""
 
     snippet = f"""{MARK_START}
-  <section>
-    <div class="eyebrow">The map — every ward, called using 5,000 simulations</div>
-    <h2>Who wins where</h2>
+  <details class="rollup" data-band="forecast" open>
+    <summary><span class="eyebrow">The map — every ward, called using 5,000 simulations</span>
+    <h2>Who wins where</h2></summary>
     <figure>
       <div style="position:relative">
       <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardmap"
@@ -282,9 +282,9 @@ def main(argv: list[str] | None = None) -> int:
       <figcaption style="display:flex;flex-direction:column;gap:6px">
         <span>{tier_key}</span>
         <span>{party_sw}</span>
-        <span>Touch or hover any ward to see a party's chance of winning it. A ward needs no
-        majority — highest total wins. Smaller map shows final seats when combined with the
-        Party Proportional Representation ballot.</span>
+        <span>Stripes take the challenger's colour. Touch or hover any ward for its numbers.
+        A ward needs no majority — highest total wins. Smaller map shows final seats when
+        combined with the Party Proportional Representation ballot.</span>
       </figcaption>
     </figure>
     <script>
@@ -305,7 +305,7 @@ def main(argv: list[str] | None = None) -> int:
       }});
     }})();
     </script>
-  </section>
+  </details>
   {MARK_END}"""
 
     import json as _json

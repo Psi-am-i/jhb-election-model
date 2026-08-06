@@ -124,10 +124,12 @@ DEFAULTS: dict = {
     # Trend-break dial (2026-08-06, from the bloc-leakage measurement in
     # MODEL-LOG 1.18). Signed, [-1, 1]. History says ~0 (the 2021 collapse
     # shed 587k votes and the DA bloc captured none).
-    #   > 0: that share of the ANC bloc's drawn decline CROSSES to the DA
-    #        bloc instead of staying home (ANC→DA conversion).
-    #   < 0: that share of the DA bloc's drawn LGE gain fails and flows to
-    #        the ANC bloc instead (DA→ANC; the bounce was ANC-leaning).
+    #   > 0: that share of the ANC bloc's drawn losses (local share below its
+    #        national base) CROSSES to the DA bloc instead of staying home.
+    #   < 0: the mirror — that share of DA-bloc losses crosses to the ANC
+    #        bloc. Symmetric by construction; the DA bloc's observed range
+    #        never dips below base, so this side only fires when user-set
+    #        levels push it there.
     "bloc_leak": 0.0,
 
     # A1: ward/PR split-ticket ratios are measured from 2021 per party;
@@ -144,10 +146,10 @@ DEFAULTS: dict = {
     "turnout_pattern_blend": 0.5,
     "turnout_blend_jitter": 0.25,
     "turnout_noise_sd": 0.08,
-    # who-turns-out tilts, in [-1, 1] per bloc-leaning VD group: 0 = as the
-    # draw says; +1 = those VDs vote at their 2024 national-election turnout
-    # ("all turn out"); -1 = at their worst local-election turnout on record
-    # ("stay home"). Applied after blend and noise, before the clip.
+    # who-turns-out tilts, in [-1, 1] per bloc: 0 = as the draw says; +1 =
+    # that bloc's supporters vote at their area's highest turnout on record
+    # ("all turn out"); -1 = at its worst local-election turnout on record
+    # ("stay home"). Supporter-selective and compositional.
     "turnout_tilt_anc": 0.0,
     "turnout_tilt_da": 0.0,
 
@@ -354,12 +356,15 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         leak = scenario["bloc_leak"]
         a_total = a_base + a_shift
         d_total = d_base + d_shift
-        if leak > 0:      # ANC-bloc decline crosses to the DA bloc
+        # symmetric lost-votes crossover: each direction moves a share of the
+        # SOURCE bloc's losses (its local share falling below its national
+        # base) to the other bloc instead of the couch. The DA bloc's observed
+        # range never goes below base, so leak < 0 only fires when user-set
+        # levels push d_shift negative — "if there are none, there are none".
+        if leak > 0:      # ANC-bloc losses cross to the DA bloc
             d_total += leak * max(0.0, -a_shift)
-        elif leak < 0:    # DA-bloc gain flows back to the ANC bloc
-            xfer = -leak * max(0.0, d_shift)
-            d_total -= xfer
-            a_total += xfer
+        elif leak < 0:    # DA-bloc losses cross to the ANC bloc
+            a_total += -leak * max(0.0, -d_shift)
         for idx, total, props, alpha in ((a_idx, a_total, a_props, a_alpha),
                                          (d_idx, d_total, d_props, d_alpha)):
             split = rng.dirichlet(np.maximum(props * alpha, 0.05))
@@ -504,7 +509,7 @@ def main(argv: list[str] | None = None) -> int:
 
     ratio_pattern: dict[str, float] = {}
     level_pattern: dict[str, float] = {}
-    t24_pattern: dict[str, float] = {}
+    thi_pattern: dict[str, float] = {}
     tlo_pattern: dict[str, float] = {}
     with (args.processed / "turnout.csv").open(encoding="utf-8", newline="") as fh:
         for row in csv.DictReader(fh):
@@ -513,9 +518,11 @@ def main(argv: list[str] | None = None) -> int:
                 ratio_pattern[vd] = float(row["turnout_2026_projected"])
             if row.get("turnout_2021") and row["turnout_2021"] != "nan":
                 level_pattern[vd] = min(float(row["turnout_2021"]), 1.0)
-            t24 = row.get("turnout_2024")
-            if t24 and t24 != "nan":
-                t24_pattern[vd] = min(float(t24), 1.0)
+            hi = [row.get(f"turnout_{y}") for y in (2011, 2014, 2016, 2019,
+                                                    2021, 2024)]
+            hi_vals = [float(x) for x in hi if x and x != "nan"]
+            if hi_vals:
+                thi_pattern[vd] = min(max(hi_vals), 1.0)
             lge = [row.get(f"turnout_{y}") for y in (2011, 2016, 2021)]
             vals = [float(x) for x in lge if x and x != "nan"]
             if vals:
@@ -531,11 +538,11 @@ def main(argv: list[str] | None = None) -> int:
     # from λ̂ either way (MODEL-LOG 1.2); only the *pattern* differs.
     t_level = np.where(np.isnan(t_level), mean_level, t_level) * (mean_ratio / mean_level)
 
-    # who-turns-out anchors per VD (2024 national turnout; worst LGE turnout
-    # on record) and each VD's bloc lean, for the turnout_tilt_* dials
-    t_24 = np.array([t24_pattern.get(v, np.nan) for v in vds])
-    m24 = np.nansum(t_24 * reg) / np.nansum(np.where(np.isnan(t_24), 0, reg))
-    t_24 = np.where(np.isnan(t_24), m24, t_24)
+    # who-turns-out anchors per VD (highest turnout on record; worst LGE
+    # turnout on record), for the turnout_tilt_* dials
+    t_hi = np.array([thi_pattern.get(v, np.nan) for v in vds])
+    mhi = np.nansum(t_hi * reg) / np.nansum(np.where(np.isnan(t_hi), 0, reg))
+    t_hi = np.where(np.isnan(t_hi), mhi, t_hi)
     t_lo = np.array([tlo_pattern.get(v, np.nan) for v in vds])
     mlo = np.nansum(t_lo * reg) / np.nansum(np.where(np.isnan(t_lo), 0, reg))
     t_lo = np.where(np.isnan(t_lo), mlo, t_lo)
@@ -647,8 +654,8 @@ def main(argv: list[str] | None = None) -> int:
         # who-turns-out tilts are PARTY-SELECTIVE and compositional: the
         # scenario's within-VD shares are calibrated on the untilted weights,
         # then the tilt scales the target BLOC'S SUPPORTERS — wherever they
-        # live — between the draw's turnout and the anchor (2024 national
-        # turnout up, worst LGE on record down). Their neighbours' votes are
+        # live — between the draw's turnout and the anchor (highest turnout
+        # on record up, worst LGE on record down). Neighbours' votes are
         # untouched: one camp's machine outworking the other, not a ward-wide
         # tide (which would mobilise the other camp's voters too).
         weight_cal = reg * t_draw
@@ -661,7 +668,7 @@ def main(argv: list[str] | None = None) -> int:
                 # "all turn out" can only add votes; "stay home" can only
                 # remove them (the worst-ever anchor can sit a hair above the
                 # baseline, which must not make staying home a gain)
-                anchor = t_24 if t >= 0 else t_lo
+                anchor = t_hi if t >= 0 else t_lo
                 raw = 1.0 + abs(t) * (anchor / t_draw - 1.0)
                 return (np.clip(raw, 1.0, 4.0) if t >= 0
                         else np.clip(raw, 0.25, 1.0))

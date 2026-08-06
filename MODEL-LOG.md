@@ -600,8 +600,8 @@ the interactive's Voting-blocs explainer.
 
 ### 1.19 Equality triggers the clause: "equal to or greater" taken at its word; audit round-2 repairs ✅
 
-**A second-round audit (background agent, 2026-08-06, full report in the
-session archive) verified the deduct machinery — 0 mismatches in 4,000
+**A second-round audit (background agent, 2026-08-06, full report at
+`audits/model-audit-2026-08-06-second-round.md`) verified the deduct machinery — 0 mismatches in 4,000
 randomised trials against a direct implementation of the (A−B)/(C−(D+E))+1
 formula, JS↔Python parity inside the disclosed ward-resolution gap — and
 found one place the code measurably parted ways with the statute's wording.**
@@ -768,6 +768,48 @@ wins÷share division suggests — largest-remainder covers the wards earlier.
 Coda on the page: Germany abolished overhang outright in 2023 (unfunded
 constituency winners simply are not seated), a reading no South African
 lawyer has yet proposed.
+
+### 1.23 Site redesign round: bands and roll-ups, hi-anchor turnout, symmetric crossover, four-regime table ✅ *supersedes 1.21's claim numbers*
+
+**Model changes (user-resolved 2026-08-07):**
+- *Turnout "all turn out" anchor* moved from each area's 2024 national
+  turnout to its **highest turnout on record** (max over 2011–2024, national
+  and local; per VD/ward `t_hi`/`vhi`). "Stay home" unchanged (worst LGE on
+  record). Clamps unchanged (up only adds, down only removes).
+- *Voter cross-over goes symmetric lost-votes*: left now mirrors right — a
+  share of the DA bloc's losses (local share below its national base)
+  crossing to the ANC bloc — replacing the old redirect-the-bounce transfer.
+  Honest consequence, stated on the page: the DA-bloc shift range observed
+  2006–2024 is +5…+14 points and bounds every simulation, so the left side
+  currently moves nothing. It exists for symmetry, and for the day the
+  record changes. VF+ stays outside the DA bloc (user-confirmed).
+- *Fourth regime published*: the `cap` rule is Germany-2023 (fixed 270,
+  wins not seated beyond entitlement); `overhang_regimes.py` runs it and the
+  forecast's table is now four columns — SA law 270/136 · Germany 2000
+  279/140 · Germany 2015 308/155 · Germany 2023 270/136 (ANC at its pure
+  proportional share).
+
+**Superseding claim measurements (1,500 draws, hi-anchor):** every DA-camp
+voter at the record anchor now *does* clear Zille's number — ~524,000 DA
+votes (F_DA ×1.64) — and the claim still fails: the poll swells to ~1.29 m,
+the majority line moves to ~644,000, the DA's 41% buys a median **97 of 136
+[68–131]** after the ANC's ward floor (~62 wards on an entitlement near 49)
+is deducted. Short by 39; the luckiest simulation in 5,000 is still five
+short. Claims section rewritten accordingly (step 2 is now "even reaching
+the number doesn't make it half").
+
+**Presentation:** both pages restructured into roll-up sections (forecast:
+The forecast / Commentary / About-the-model bands with expand-collapse-all;
+interactive: presets as an always-visible strip, left bar retitled "Change
+the variables" with Party levels → Turnout → Poll weighting → Judgement
+calls → Wildcard entrants → Bloc shifts → Fine-tuning, forecast-position
+notches on every slider, values in accent below); stat boxes redesigned
+(orange %-plus-"Chance" line, six boxes ending in a 270·136 info box; DA-
+minority tile retired to its section); the interactive gained the live
+135+135=270 strip; map keys speak in Safe/strongly leaning/leaning/toss-up;
+headline split with a smaller second sentence; "simulation" replaces "run",
+"slider" replaces "dial"; wide-screen width tier added; party colour chips
+in the regime table.
 
 ## 2. Obstacles and how they were handled
 

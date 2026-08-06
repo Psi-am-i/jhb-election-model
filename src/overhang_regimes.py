@@ -10,6 +10,8 @@ proportional share):
   project's pre-research reading: the council grows by the excess.
 * ``level`` — the modern-Germany answer (Ausgleichsmandate): the council
   grows until every ward winner is covered proportionally; nobody pays.
+* ``cap`` — the Germany-2023 answer: pure proportionality at a fixed 270;
+  a ward winner beyond its party's entitlement is simply not seated.
 
 Each counterfactual is a full run at the published seed, so the table on the
 forecast sheet compares the SAME 5,000 simulated elections under different
@@ -33,7 +35,7 @@ PROCESSED = Path("data/processed")
 
 
 def main() -> int:
-    for rule in ("expand", "level"):
+    for rule in ("expand", "level", "cap"):
         print(f"\n=== overhang_rule={rule} ===")
         montecarlo.main(["--set", f"overhang_rule={rule}"])
         shutil.copy(PROCESSED / "forecast_summary.json",

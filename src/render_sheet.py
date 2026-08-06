@@ -65,8 +65,7 @@ def main(argv: list[str] | None = None) -> int:
     p_da_largest = float((np.array(parties)[largest] == "DA").mean())
     p_anc_largest = float((np.array(parties)[largest] == "ANC").mean())
     p_alone = float((stack.max(axis=0) >= thr).mean())
-    alone_str = (f"{p_alone:.0%}" if p_alone >= 0.001
-                 else "<0.1%" if p_alone > 0 else "0%")
+    alone_str = f"{p_alone:.0%}" if p_alone >= 0.001 else "&lt;0.1%"
 
     p_excessive = summary.get("p_excessive_by_party", {}).get("ANC", 0.0)
     thr_med = int(np.median(thr))
@@ -76,20 +75,22 @@ def main(argv: list[str] | None = None) -> int:
 
     gen = {
         "tiles": [
-            {"n": f"{anc_da['p']:.0%}", "hero": True,
-             "l": "Chance an ANC–DA coalition clears the majority — the only pairing that reliably can"},
-            {"n": f"{p_excessive:.0%}",
-             "l": "Chance the ANC triggers the excessive-seats clause — keeping every ward it "
-                  "wins, taking zero list seats, the shortfall falling on every other party"},
-            {"n": f"{da_minority:.0%}",
-             "l": "Chance a DA minority government is viable, if only the ANC votes against it (the 2021 pattern)"},
-            {"n": f"{p_da_largest:.0%}",
-             "l": "Chance the DA is the largest single party"},
-            {"n": f"{p_anc_largest:.0%}",
-             "l": "Chance the ANC is the largest single party"},
-            {"n": alone_str,
-             "l": "Chance any party governs alone — a single party reaching the 136-seat "
-                  "majority by itself"},
+            {"n": alone_str, "chance": True,
+             "l": "One party reaches a majority alone"},
+            {"n": f"{anc_da['p']:.0%}", "chance": True,
+             "l": "ANC + DA have a majority — the only two-party combination "
+                  "that reliably reaches one"},
+            {"n": f"{p_da_largest:.0%}", "chance": True,
+             "l": "The DA is the largest single party"},
+            {"n": f"{p_anc_largest:.0%}", "chance": True,
+             "l": "The ANC is the largest single party"},
+            {"n": f"{p_excessive:.0%}", "chance": True,
+             "l": "The ANC triggers the excessive-seats clause",
+             "sub": "Keeps every ward it wins, takes zero list seats — "
+                    "everyone else squeezed"},
+            {"n": "270 · 136", "chance": False,
+             "l": "Total seats · majority threshold",
+             "sub": "The excessive-seats law keeps the council at 270"},
         ],
         "parties": [
             {"name": NAMES[p], "chip": CHIPS[p],
@@ -173,16 +174,16 @@ def main(argv: list[str] | None = None) -> int:
                        "broad support but no stronghold wards, lives almost wholly on the "
                        "list. Two opposite ways of turning votes into seats, in one city.")
     strip = f"""<!-- __BALLOTS_START__ -->
-  <section>
-    <div class="eyebrow">The arithmetic — two ballots, one council</div>
-    <h2>135 wards + 135 list seats = 270</h2>
+  <details class="rollup" data-band="forecast" open>
+    <summary><span class="eyebrow">The arithmetic — two ballots, one council</span>
+    <h2>135 wards + 135 list seats = 270</h2></summary>
     <div style="display:flex;flex-direction:column;gap:14px">
       {bar(wardsb, 135, "Ward seats — won race by race")}
       {bar(listb, 135, "+ List seats — topping parties up to their share")}
       {bar(totb, 270, "= The council")}
     </div>
     <figcaption>{ballots_caption}</figcaption>
-  </section>
+  </details>
   <!-- __BALLOTS_END__ -->"""
     for tgt in (Path("forecast-sheet.html"), Path("drafts/forecast-draft.html")):
         s = tgt.read_text(encoding="utf-8")
@@ -197,9 +198,11 @@ def main(argv: list[str] | None = None) -> int:
     REG_PARTIES = ["DA", "ANC", "EFF", "ASA", "MK", "PA", "IFP", "ALJAMAAH"]
     regimes = []
     for key, label, note in (
-            ("deduct", "South African law", "fixed 270, others squeezed"),
-            ("expand", "Old Germany", "council grows by the excess"),
-            ("level", "Modern Germany", "levelled to proportionality")):
+            ("deduct", "South African law", "fixed 270 — others squeezed"),
+            ("expand", "Germany 2000", "council grows"),
+            ("level", "Germany 2015", "council grows &amp; levelled"),
+            ("cap", "Germany 2023",
+             "fixed 270 — wins not seated if not proportional")):
         if key == "deduct":
             summ = summary
             sd = rows
@@ -225,7 +228,9 @@ def main(argv: list[str] | None = None) -> int:
                                     for _ in regimes)
         body = ""
         for p in REG_PARTIES + ["__OTH__"]:
-            nm = "Smaller parties" if p == "__OTH__" else NAMES[p]
+            chip = "#8b918b" if p == "__OTH__" else CHIPS[p]
+            nm = (f'<span class="chip" style="background:{chip}"></span>'
+                  f'{"Smaller parties" if p == "__OTH__" else NAMES[p]}')
             cells = ""
             for lab, note, meds, cm, tm in regimes:
                 n = (max(cm - sum(meds.get(q, 0) for q in REG_PARTIES), 0)

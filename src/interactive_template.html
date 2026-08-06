@@ -32,6 +32,7 @@
   a:hover{color:var(--accent);}
   .sheet{max-width:1060px;margin:0 auto;padding:28px 22px 72px;display:flex;
     flex-direction:column;gap:30px;}
+  @media (min-width:1440px){.sheet{max-width:1240px;}}
   @media (max-width:560px){.sheet{padding:20px 12px 48px;}h1{text-wrap:pretty;}}
 
   .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);}
@@ -74,12 +75,29 @@
     background:var(--rule-soft);border:1px solid var(--rule-soft);}
   .stat{background:var(--paper);padding:12px 14px;display:flex;flex-direction:column;gap:2px;}
   .stat .n{font-family:var(--mono);font-size:25px;font-weight:600;letter-spacing:-.02em;
-    font-variant-numeric:tabular-nums;line-height:1.1;}
-  .stat .l{font-size:11.5px;color:var(--ink-2);line-height:1.35;}
-  .stat.hero .n{color:var(--accent);}
+    font-variant-numeric:tabular-nums;line-height:1.1;color:var(--accent);}
+  .stat .n .chancew{font-size:.5em;font-weight:650;letter-spacing:.04em;}
+  .stat .l{font-size:13px;color:var(--ink);line-height:1.4;}
+  .stat .l .sub{display:block;font-size:11px;color:var(--ink-2);margin-top:2px;}
   .delta{font:600 11px var(--mono);margin-left:6px;vertical-align:3px;white-space:nowrap;}
   .delta.up{color:#177245;}
   .delta.down{color:#a8231d;}
+  /* roll-up sections, forecast notches, value-below sliders */
+  details.rollup>summary{cursor:pointer;list-style:none;position:relative;
+    display:flex;flex-direction:column;gap:6px;padding-right:24px;}
+  details.rollup>summary::-webkit-details-marker{display:none;}
+  details.rollup>summary::after{content:"–";position:absolute;right:2px;top:0;
+    font-family:var(--mono);font-size:16px;line-height:1;color:var(--ink-3);}
+  details.rollup:not([open])>summary::after{content:"+";}
+  details.rollup>*:not(summary){margin-top:12px;}
+  details.rollup>summary h2{margin:0;}
+  .sheet>nav.topnav{margin-bottom:-12px;}
+  .ctl .lab span:first-child{color:var(--ink);font-weight:600;}
+  .sliderwrap{position:relative;display:block;}
+  .fctick{position:absolute;top:2px;bottom:2px;width:2px;background:var(--ink-3);
+    opacity:.55;pointer-events:none;transform:translateX(-1px);}
+  .ctl .v.vbelow{display:block;color:var(--accent);font-family:var(--mono);
+    font-size:12px;margin-top:3px;}
   #stickybar{position:fixed;top:0;left:0;right:0;z-index:9;background:var(--paper);
     border-bottom:1px solid var(--rule);font:600 11.5px var(--mono);color:var(--ink-2);
     padding:7px 14px;white-space:nowrap;overflow-x:auto;}
@@ -159,35 +177,42 @@
   which conclusions bend, and which refuse to.</p>
 </header>
 
+<div class="cgroup" id="presetStrip">
+  <div class="presets">
+      <button data-preset="default" class="primary" title="Every slider at the setting we published — the forecast on the front page.">Our published forecast</button>
+      <button data-preset="nobye" title="Mutes 2026 evidence: no by-elections, no polls. Only the 2006–2024 record speaks.">History only</button>
+      <button data-preset="srf" title="Believes SRF, July 2026: DA 42%, ANC 18% in Joburg. One reading, both edges — the DA's ceiling is the ANC's floor.">The DA's best poll — the ANC's worst</button>
+      <button data-preset="ipsos" title="Believes Ipsos, Dec 2025–Jan 2026 metros: ANC 35%, DA 25%. Its face-to-face method keeps more ANC-leaning voters in — the ANC's kindest credible read is also the DA's harshest.">The ANC's best poll — the DA's worst</button>
+      <button data-preset="mkfall" title="MK's national surge fails to translate locally — its slider to the historical floor.">MK collapses</button>
+      <button data-preset="mkhold" title="MK's 2024 national vote carries fully into the local ballot — its slider at the top of the observed range.">MK holds its vote</button>
+      <button data-preset="asafall" title="ActionSA keeps fading as it did 2021→2024, and its by-election bright spots are ignored.">ActionSA fades</button>
+      <button data-preset="asaup" title="ActionSA's by-election bright spots are the real signal — that slider up, retention near the top of its range.">ActionSA excels</button>
+      <button data-preset="paup" title="The Patriotic Alliance outruns its record — retention at the top of its range and a full candidate slate.">The PA excels</button>
+      <button data-preset="pafall" title="The PA's momentum doesn't materialise — retention at the bottom of its range, and the wider slate spreads it thin.">The PA fades</button>
+      <button data-preset="davote" title="The DA's own claim, testable: every voter in its camp at the highest turnout its areas have recorded, everyone else as usual.">Every DA voter turns out</button>
+      <button data-preset="ancmachine" title="The mirror: the ANC machine delivers — its camp at its areas' record turnout, everyone else as usual.">The ANC machine delivers</button>
+  </div>
+</div>
+
 <div class="layout">
 
 <!-- ============ CONTROLS ============ -->
 <div class="controls">
   <div class="cgroup">
-    <h3>Presets</h3>
-    <div class="presets">
-      <button data-preset="default" class="primary" title="Every dial at the setting we published — the forecast on the front page.">Our published forecast</button>
-      <button data-preset="nobye" title="Mutes 2026 evidence: no by-elections, no polls. Only the 2006–2024 record speaks.">History only</button>
-      <button data-preset="srf" title="Believes SRF, July 2026: DA 42%, ANC 18% in Joburg. One reading, both edges — the DA's ceiling is the ANC's floor.">The DA's best poll — the ANC's worst</button>
-      <button data-preset="ipsos" title="Believes Ipsos, Dec 2025–Jan 2026 metros: ANC 35%, DA 25%. Its face-to-face method keeps more ANC-leaning voters in — the ANC's kindest credible read is also the DA's harshest.">The ANC's best poll — the DA's worst</button>
-      <button data-preset="mkfall" title="MK's national surge fails to translate locally — its dial to the historical floor.">MK collapses</button>
-      <button data-preset="mkhold" title="MK's 2024 national vote carries fully into the local ballot — its dial at the top of the observed range.">MK holds its vote</button>
-      <button data-preset="asafall" title="ActionSA keeps fading as it did 2021→2024, and its by-election bright spots are ignored.">ActionSA fades</button>
-      <button data-preset="asaup" title="ActionSA's by-election bright spots are the real signal — that dial up, retention near the top of its range.">ActionSA excels</button>
-      <button data-preset="paup" title="The Patriotic Alliance outruns its record — retention at the top of its range and a full candidate slate.">The PA excels</button>
-      <button data-preset="pafall" title="The PA's momentum doesn't materialise — retention at the bottom of its range, and the wider slate spreads it thin.">The PA fades</button>
-    </div>
+    <h3>Change the variables</h3>
+    <div class="why"><b>How to use:</b> drag left = lower · drag right = higher. The notch under
+    each slider marks our published forecast's setting; the orange readout below it is yours.</div>
   </div>
 
   <div class="cgroup">
     <h3>Party levels</h3>
-    <div class="why">Each dial sets how much of that party's <b>2024 national-election vote</b>
-    survives a local election — ×1.00 means all of it, ×0.75 means three-quarters. The readout
-    translates that into a citywide vote share, so the different ranges compare directly. The
-    ranges themselves are the outer limits of twenty years of national-to-local swings; you
-    can't push past what has actually happened.
-    <b>●</b> = the ANC bloc, <b>○</b> = the DA bloc — parties fishing in the same voter pool,
-    moved together (see "Voting blocs" below).</div>
+    <div class="why">How close the vote is to each party's result in the <b>2024 national
+    election</b> — the readout translates it into a citywide vote share. The available ranges
+    are the outer limits of twenty years of national-to-local swings: you can't push past what
+    has actually happened. These are retention ratios, not growth caps — ×0.75 means the party
+    keeps three-quarters of its 2024 national share.<br>
+    <b>●</b> = ANC bloc, <b>○</b> = DA bloc&nbsp;|&nbsp;blocs are parties fishing in the same
+    voter pool, and they are bound together (see "Bloc shifts" below).</div>
     <div class="ctl"><div class="lab"><span>ANC ●</span><span class="v" id="v-thetaANC"></span></div>
       <input type="range" id="thetaANC" min="0.65" max="0.90" step="0.01" value="0.75"></div>
     <div class="ctl"><div class="lab"><span>DA ○</span><span class="v" id="v-thetaDA"></span></div>
@@ -203,11 +228,32 @@
   </div>
 
   <div class="cgroup">
-    <h3>Evidence weights</h3>
-    <div class="why">Fifteen real by-elections since 2021 nudge each party's central level — never
-    beyond the ranges above (their influence dial sits under Fine-tuning; default 0.40). Polls
-    are opt-in: pick one, say how much you believe it, and the party levels tilt toward its
-    numbers. Every poll is linked to its source, with its health warning attached.</div>
+    <h3>Turnout — who shows up</h3>
+    <div class="why">Turnout only matters when <b>some voters show up more than others</b> —
+    under proportional representation the level alone cannot move a seat. We built this model
+    expecting a party's turnout machine to be decisive; after thousands of simulations, we
+    concluded it is not. These sliders let you check us, and test the parties' own claims (the
+    front page's "The parties' claims — tested" runs on them).<br><br>
+    Each slider moves that bloc's <b>supporters</b> — wherever in the city they live — between
+    two real anchors. Full left: the bloc votes at the worst turnout on its historical record.
+    Full right: at the highest turnout its areas have ever recorded (2011–2024, national
+    elections included). Local turnout always runs far below national, so maxing it is
+    fantasy — but go ahead and see how much it helps. Neighbours are untouched: one camp's
+    machine outworking the other, not a rising tide for all. Parties outside the two blocs
+    (PA, IFP, the rest) are unaffected.<br><br>
+    The tested answer: even a ten-point turnout swing pushed across thirty ANC-leaning wards
+    moves about <b>two seats</b>. Persuasion moves this city; mobilisation barely does.</div>
+    <div class="ctl"><div class="lab"><span>● ANC-bloc turnout (ANC · EFF · MK)</span><span class="v" id="v-turnoutANC"></span></div>
+      <input type="range" id="turnoutANC" min="-1" max="1" step="0.05" value="0"></div>
+    <div class="ctl"><div class="lab"><span>○ DA-bloc turnout (DA · ActionSA)</span><span class="v" id="v-turnoutDA"></span></div>
+      <input type="range" id="turnoutDA" min="-1" max="1" step="0.05" value="0"></div>
+  </div>
+
+  <div class="cgroup">
+    <h3>Poll weighting</h3>
+    <div class="why">Polls are opt-in. Pick one, say how much you believe it, and the party
+    levels tilt toward its numbers. Every poll is linked to its source, with its health
+    warning attached.</div>
     <div class="ctl"><div class="lab"><span>Poll</span></div>
       <select id="pollPick" style="width:100%"><option value="">No poll — history and by-elections only</option></select></div>
     <div class="ctl" id="pollWeightRow" style="display:none">
@@ -216,103 +262,75 @@
     <div class="why" id="pollInfo" style="display:none;margin-top:-4px"></div>
   </div>
 
-  <div class="cgroup">
-    <h3>Bloc change</h3>
-    <div class="why">A <b>bloc</b> is a set of parties fishing in the same pool of voters, so
-    one's gain is partly another's loss:<br>
-    <b>●&nbsp;the ANC bloc</b> (ANC, EFF, MK)<br>
-    <b>○&nbsp;the DA bloc</b> (DA, ActionSA, plus tiny BOSA).<br>
-    Since 2006, blocs barely leak into each other: in the ANC bloc's record 2021
-    collapse it shed <b>587,000 votes</b> — and the DA bloc captured none of them (its own count
-    fell). Declines go to the couch, not across the aisle.<br><br>
-    This dial is your bet on whether 2026 breaks that pattern. It is deliberately uncalibrated —
-    history says <b>0</b>, and there is no data for anything else. What it applies:<br>
-    <b>At 0</b> — when the ANC bloc shrinks (each run draws it 3–22 points below its national
-    level), the lost voters stay home. Nobody inherits them.<br>
-    <b>Slide right</b> — that percentage of the bloc's simulated losses cross and are cast for
-    DA-bloc parties instead of abstaining. At <b>100%</b>, every vote the ANC bloc loses becomes
-    a DA-bloc vote — none stay home.<br>
-    <b>Slide left</b> — the opposite bet: that share of the DA bloc's usual local-election bounce
-    (5–14 points) flows back to the ANC bloc instead — redirected votes, not new ones.</div>
-    <div class="ctl"><div class="lab"><span>Trend-break: voters crossing between blocs</span><span class="v" id="v-blocLeak"></span></div>
-      <input type="range" id="blocLeak" min="-1" max="1" step="0.05" value="0"></div>
-  </div>
-
   <details class="cgroup">
-    <summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Judgement calls with no history</h3></summary>
-    <div class="why">Two judgements no election record can settle.<br>
-    <b>MK</b> has never fought a local election. At <b>1.0</b> it performs as well on the ward
-    ballot as on its list vote; above 1.0 it excels in ward races; below, its voters back the
-    list but drift elsewhere in ward contests.<br>
-    <b>The PA</b> stood in only 52 of 135 wards in 2021 and is standing in more this time. At
-    <b>1.0</b> it does as well as last time; higher, the wider slate captures more ward votes;
-    lower, the push backfires — spread thin, it wins fewer.</div>
-    <div class="ctl"><div class="lab"><span>MK's ward ballot: collapses ← → excels</span><span class="v" id="v-mkRatio"></span></div>
+    <summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Judgement calls</h3></summary>
+    <div class="why">Two judgement calls that no record can settle.<br>
+    <b>MK</b> has never fought a local election. At <b>1.0</b> it does the same on the ward
+    ballot as its list vote; above 1.0 it excels in ward races; below, its voters back the
+    list but increasingly go elsewhere in ward contests.<br>
+    <b>The PA</b> stood in only 52 of 135 wards in 2021 and is standing in more this time.
+    <b>1.0</b> means it does the same as last time; over 1.0 the wider slate captures more
+    ward votes; under 1.0 the push backfires — spread thin, it wins fewer.</div>
+    <div class="ctl"><div class="lab"><span>MK's ward performance</span><span class="v" id="v-mkRatio"></span></div>
       <input type="range" id="mkRatio" min="0.50" max="1.20" step="0.05" value="0.80"></div>
-    <div class="ctl"><div class="lab"><span>PA's wider slate: backfires ← → expands</span><span class="v" id="v-paUplift"></span></div>
+    <div class="ctl"><div class="lab"><span>PA's wider slate</span><span class="v" id="v-paUplift"></span></div>
       <input type="range" id="paUplift" min="0.70" max="2.00" step="0.05" value="1.25"></div>
   </details>
 
-  <div class="cgroup">
-    <h3>Turnout — who shows up</h3>
-    <div class="why">Our elections are proportional, so the turnout <em>level</em> cannot move a
-    single seat — double everyone's turnout and every party's votes double with it; the seat
-    formula cancels it exactly. Turnout only matters when <b>some voters show up more than
-    others</b>. We built this model expecting exactly that to decide the city. It doesn't — and
-    these sliders let you check us, and test the parties' own claims (see “The parties'
-    claims — tested” in the results).<br><br>
-    Each slider moves that bloc's <b>supporters</b> — wherever in the city they live — between
-    two real anchors. <b>Stay home</b> = their area's worst local-election turnout on record.
-    <b>All turn out</b> = its 2024 national-election turnout, which is what "all our voters"
-    means in practice; local turnout always runs far below it. Their neighbours are untouched:
-    this is one camp's machine outworking the other, not a ward-wide tide. Parties outside the
-    two blocs (PA, IFP, the rest) are unaffected by these dials.<br><br>
-    The tested answer: even a ten-point turnout swing pushed across thirty ANC-leaning wards
-    moves about <b>two seats</b>. Persuasion moves this city; mobilisation barely does.</div>
-    <div class="ctl"><div class="lab"><span>● ANC-bloc voters (ANC · EFF · MK): stay home ← as usual → all turn out</span><span class="v" id="v-turnoutANC"></span></div>
-      <input type="range" id="turnoutANC" min="-1" max="1" step="0.05" value="0"></div>
-    <div class="ctl"><div class="lab"><span>○ DA-bloc voters (DA · ActionSA): stay home ← as usual → all turn out</span><span class="v" id="v-turnoutDA"></span></div>
-      <input type="range" id="turnoutDA" min="-1" max="1" step="0.05" value="0"></div>
-    <div class="presets" style="margin-top:6px">
-      <button data-preset="davote" title="The DA's own claim, testable: every voter in its camp votes at 2024 national-election turnout, everyone else as usual.">Every DA voter turns out</button>
-      <button data-preset="ancmachine" title="The mirror: the ANC machine delivers — its camp at 2024 national-election turnout, everyone else as usual.">The ANC machine delivers</button>
-    </div>
-  </div>
-
   <details class="cgroup">
-    <summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Fine-tuning</h3></summary>
-    <div class="why">The statistical dials behind the headline controls. Each simulation draws a
-    bloc's total first, then splits it between members; the <b>split predictability</b> dials
-    set how tightly that split hugs the expected shares (right = tight, left = wild reshuffles,
-    same total). <b>By-elections' influence</b> is how hard the fifteen real by-elections since
-    2021 pull the party levels. <b>Turnout map</b> picks whose geography the baseline turnout
-    follows — the model's 2006–2024 projection or an exact repeat of the record-low 2021 map —
-    and <b>ward surprise</b> scatters every ward around it afresh each run.</div>
-    <div class="ctl"><div class="lab"><span>● ANC bloc — split predictability</span><span class="v" id="v-alphaANC"></span></div>
-      <input type="range" id="alphaANC" min="10" max="150" step="5" value="60"></div>
-    <div class="ctl"><div class="lab"><span>○ DA bloc — split predictability</span><span class="v" id="v-alphaDA"></span></div>
-      <input type="range" id="alphaDA" min="4" max="60" step="2" value="12"></div>
-    <div class="ctl"><div class="lab"><span>By-elections' influence (skews toward their results)</span><span class="v" id="v-wBye"></span></div>
-      <input type="range" id="wBye" min="0" max="1" step="0.05" value="0.40"></div>
-    <div class="ctl"><div class="lab"><span>Turnout map: model's projection ← → repeat of 2021</span><span class="v" id="v-turnoutBlend"></span></div>
-      <input type="range" id="turnoutBlend" min="0" max="1" step="0.05" value="0.5"></div>
-    <div class="ctl"><div class="lab"><span>Ward surprise — run-to-run turnout scatter</span><span class="v" id="v-turnoutNoise"></span></div>
-      <input type="range" id="turnoutNoise" min="0" max="0.20" step="0.01" value="0.08"></div>
-  </details>
-
-  <div class="cgroup">
-    <h3>Wildcards &amp; rules</h3>
-    <div class="why">Before each of the last three elections, a party that did not yet exist
-    appeared and took 11–18%. When a party wins more wards than its share allows, the
-    excessive-seats law applies exactly as the IEC ran it in Laingsburg in 2021: it keeps the
-    wards, gets no list seats, and the council stays at 270. (Other democracies answer the
-    same arithmetic differently — the <a href="/">front page</a> compares our law with both
-    German answers.)</div>
+    <summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Wildcard entrants</h3></summary>
+    <div class="why">Before each of the last three elections, a party that did not exist before
+    appeared and took 11–18% of the vote. Will that happen this year?</div>
     <div class="ctl"><div class="lab"><span>Chance a brand-new party appears</span><span class="v" id="v-entrantProb"></span></div>
       <input type="range" id="entrantProb" min="0" max="1" step="0.05" value="0.25"></div>
     <div class="ctl"><div class="lab"><span>Its typical vote share if it does</span><span class="v" id="v-entrantMode"></span></div>
       <input type="range" id="entrantMode" min="0.01" max="0.12" step="0.005" value="0.04"></div>
+  </details>
+
+  <div class="cgroup">
+    <h3>Bloc shifts</h3>
+    <div class="why">A <b>bloc</b> is a set of parties fishing in the same pool of voters.<br>
+    <b>●&nbsp;the ANC bloc</b> (ANC, EFF, MK)<br>
+    <b>○&nbsp;the DA bloc</b> (DA, ActionSA, plus tiny BOSA)<br>
+    Voters tend to stay in their bloc and not cross to the other. In the ANC bloc's record
+    2021 collapse it shed <b>587,000 votes</b> — and the DA bloc captured none of them (its
+    own count fell). Declines go to the couch, not across the aisle.<br><br>
+    This slider is your bet on whether 2026 breaks that pattern. History says <b>0</b>, and
+    there is no data for anything else. At 0, lost voters stay home; nobody inherits them.
+    Slide right to move a percentage of the ANC bloc's lost votes to the DA bloc. Slide left
+    to move a percentage of the DA bloc's lost votes to the ANC bloc. At <b>100%</b>, every
+    vote lost is the other bloc's gain. (One honest asymmetry: in twenty years of observed
+    swings — which bound every simulation — the DA bloc's local share has never fallen below
+    its national base. It has no losses to move, so today the left side changes nothing. It
+    is there for symmetry, and for the day the record changes.)</div>
+    <div class="ctl"><div class="lab"><span>Voter cross-over</span><span class="v" id="v-blocLeak"></span></div>
+      <input type="range" id="blocLeak" min="-1" max="1" step="0.05" value="0"></div>
   </div>
+
+  <details class="cgroup">
+    <summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Fine-tuning</h3></summary>
+    <div class="why">The statistical sliders behind the headline controls. Each simulation
+    draws a bloc's total first, then splits it between members.<br>
+    <b>Within-bloc vote shifts</b> — how tightly the split between a bloc's members sticks to
+    history. Left = sticks to history; right = wild reshuffles, same total.<br>
+    <b>By-elections' influence</b> — how hard the fifteen real by-elections since 2021 pull
+    the party levels. Left = no influence; right = the levels match what the by-elections
+    imply.<br>
+    <b>Turnout map</b> — the baseline turnout geography: the model's 2006–2024 projection, or
+    an exact repeat of the record-low 2021 map.<br>
+    <b>Ward surprise</b> — how much every ward's turnout is scattered around that map in each
+    simulation: at 0.20, a ward's turnout typically varies by about ±20%.</div>
+    <div class="ctl"><div class="lab"><span>● ANC bloc — within-bloc vote shifts: history ← → wild</span><span class="v" id="v-alphaANC"></span></div>
+      <input type="range" id="alphaANC" min="10" max="150" step="5" value="60" style="direction:rtl"></div>
+    <div class="ctl"><div class="lab"><span>○ DA bloc — within-bloc vote shifts: history ← → wild</span><span class="v" id="v-alphaDA"></span></div>
+      <input type="range" id="alphaDA" min="4" max="60" step="2" value="12" style="direction:rtl"></div>
+    <div class="ctl"><div class="lab"><span>By-elections' influence</span><span class="v" id="v-wBye"></span></div>
+      <input type="range" id="wBye" min="0" max="1" step="0.05" value="0.40"></div>
+    <div class="ctl"><div class="lab"><span>Turnout map: model's projection ← → repeat of 2021</span><span class="v" id="v-turnoutBlend"></span></div>
+      <input type="range" id="turnoutBlend" min="0" max="1" step="0.05" value="0.5"></div>
+    <div class="ctl"><div class="lab"><span>Ward surprise — simulation-to-simulation turnout scatter</span><span class="v" id="v-turnoutNoise"></span></div>
+      <input type="range" id="turnoutNoise" min="0" max="0.20" step="0.01" value="0.08"></div>
+  </details>
 
   <div class="cgroup">
     <div class="runrow">
@@ -331,26 +349,9 @@
 <!-- ============ RESULTS ============ -->
 <div class="results">
 
-  <section class="stats" id="tiles"></section>
-
-  <section>
-    <div class="eyebrow">Projected seats</div>
-    <h2>Where the parties land</h2>
-    <figure>
-      <div class="chart" id="seats"></div>
-      <div class="scale">
-        <span></span>
-        <span class="ticks"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span><span>125</span></span>
-        <span></span>
-      </div>
-      <figcaption>Bars are the middle 90% of simulations, marks are medians. Colour chips are
-      party identification only. “Others” is the residual micro-party tail modelled as one list.</figcaption>
-    </figure>
-  </section>
-
-  <section>
-    <div class="eyebrow">Your map</div>
-    <h2>Who wins each ward — under your settings</h2>
+  <details class="rollup" open>
+    <summary><span class="eyebrow">Your map</span>
+    <h2>Who wins each ward — under your settings</h2></summary>
     <figure>
       <svg id="usermap" role="img" aria-label="Ward map under your scenario"
         style="width:100%;height:auto;display:block"></svg>
@@ -359,11 +360,43 @@
         padding:6px 10px;border-radius:4px;max-width:300px"></div>
       <figcaption id="usermapcap"></figcaption>
     </figure>
-  </section>
+  </details>
 
-  <section>
-    <div class="eyebrow">Coalition arithmetic — fully enumerated</div>
-    <h2>Who can govern</h2>
+  <details class="rollup" open>
+    <summary><span class="eyebrow">The arithmetic — two ballots, one council</span>
+    <h2>135 wards + 135 list seats = 270</h2></summary>
+    <div id="arith" style="display:flex;flex-direction:column;gap:14px"></div>
+    <figcaption>Ward seats are won race by race; list seats top each party up to its
+    proportional share — recomputed from your current settings each time you run. Hover a
+    segment for its seats.</figcaption>
+  </details>
+
+  <details class="rollup" open>
+    <summary><span class="eyebrow">The headline numbers — each one is a share of your simulations</span>
+    <h2>What the simulations say</h2></summary>
+    <section class="stats" id="tiles"></section>
+  </details>
+
+  <details class="rollup" open>
+    <summary><span class="eyebrow">Projected seats</span>
+    <h2>Where the parties land</h2></summary>
+    <figure>
+      <div class="chart" id="seats"></div>
+      <div class="scale">
+        <span></span>
+        <span class="ticks"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span><span>125</span></span>
+        <span></span>
+      </div>
+      <figcaption>Grey bars and numbers show the range of 90% of the
+      simulations. White marks and numbers are the median of that range. Colour chips are
+      party identification only. “Others” is the residual micro-party tail modelled as one
+      list.</figcaption>
+    </figure>
+  </details>
+
+  <details class="rollup" open>
+    <summary><span class="eyebrow">Mathematical coalitions &amp; stability</span>
+    <h2>Who can govern</h2></summary>
     <p class="small"><b>Mathematically possible majorities only</b> — no judgement about who
     would sit in a room with whom. Only combinations that hold a majority in most of your
     simulations are shown, pairs first. <b>Cushion</b> = median seats beyond the 136 needed.
@@ -378,65 +411,37 @@
       <tbody id="coalitions"></tbody>
     </table></div>
     <figcaption id="coalitionNote"></figcaption>
-  </section>
+  </details>
 
-  <section class="cols2">
-    <div class="note">
-      <h3>Coalitions with no passengers</h3>
-      <p class="small">Winning combinations where losing any one member breaks the majority — the
-      deals in which every partner holds real power.</p>
-      <div class="tablewrap"><table style="min-width:0"><tbody id="mwc"></tbody></table></div>
-    </div>
-    <div class="note">
-      <h3>Who can play kingmaker</h3>
+  <details class="rollup" open>
+    <summary><span class="eyebrow">Bargaining power</span>
+    <h2>Who can play kingmaker</h2></summary>
+
       <p class="small">Read each bar as: <b>this party's share of the power to break winning
       deals</b> — count every case where one party's walk-out would collapse a possible majority,
       and the bar is the share of those break-points this party holds. ActionSA at 10% holds one
       in ten of them — real bargaining power no vote share reveals. (For the technically minded:
       the normalised Banzhaf index, averaged across simulations.)</p>
       <div class="tablewrap"><table style="min-width:0"><tbody id="power"></tbody></table></div>
-    </div>
-  </section>
+  </details>
 
-  <section>
-    <div class="eyebrow">The third way to govern</div>
-    <h2>Minority administrations</h2>
+  <details class="rollup">
+    <summary><span class="eyebrow">Every partner necessary</span>
+    <h2>Coalitions with no passengers</h2></summary>
+
+      <p class="small">Winning combinations where losing any one member breaks the majority — the
+      deals in which every partner holds real power.</p>
+      <div class="tablewrap"><table style="min-width:0"><tbody id="mwc"></tbody></table></div>
+  </details>
+
+  <details class="rollup">
+    <summary><span class="eyebrow">The third way to govern</span>
+    <h2>Minority administrations</h2></summary>
     <p class="small"><b>Arithmetic viability only, again</b> — the mayor is elected by councillors
     <em>present and voting</em>, so abstention installs minority governments, as it did here after
     2021. Whether a party would in fact abstain is politics, deliberately not modelled.</p>
     <div class="tablewrap"><table style="min-width:0"><tbody id="minority"></tbody></table></div>
-  </section>
-
-  <section>
-    <div class="eyebrow">The campaign arithmetic</div>
-    <h2>The parties' claims — tested</h2>
-    <p class="small"><b>“490,000 DA votes on both ballots deliver an outright majority”</b>
-    (<a href="https://www.businessday.co.za/politics/2026-03-01-da-needs-490000-voters-to-win-outright-majority-in-joburg-says-zille/"
-    target="_blank" rel="noopener">Helen Zille, March 2026</a>). Tested against the full model,
-    the claim falls short by <b>46 seats</b> — in three specific steps:</p>
-    <p class="small"><b>1 — It is half of the wrong number.</b> 490,000 is almost exactly half
-    of the ~985,000 votes expected if turnout stays at its record low. But seats follow the
-    poll that actually happens, and the only way the DA finds 170,000 extra votes is turnout —
-    which grows the poll and moves the majority line up with it. At full DA-camp turnout the
-    poll is ~1.16&nbsp;million, and half of it is ~579,000.</p>
-    <p class="small"><b>2 — “All our voters” delivers about 436,000, not 490,000.</b> Put every
-    DA and ActionSA supporter in the city at their 2024 national-election turnout — over a
-    third more votes than the baseline expects of them — and the DA polls ~436,000: about
-    <b>38%</b> of the bigger poll, nowhere near half of anything.</p>
-    <p class="small"><b>3 — And 38% doesn't buy 38% of the seats.</b> Proportionally that would
-    be ~102 of 270. But the excessive-seats law hands the ANC every stronghold ward it holds —
-    more wards than its ~21% share entitles it to — and the surplus is deducted from everyone
-    else's column, the biggest slice from the biggest party. The DA's median lands on
-    <b>90 of the 136 needed</b>; its luckiest run in 5,000 reaches 118, still eighteen
-    short.</p>
-    <p class="small">The mirror is its own story: the ANC is seat-capped at its ward wins by
-    the same law, so even its perfect machine lifts it barely at all — the gains flow to the
-    EFF and MK.</p>
-    <div class="presets">
-      <button data-preset="davote" title="Every voter in the DA's camp at 2024 national-election turnout, everyone else as usual.">Run it: every DA voter turns out</button>
-      <button data-preset="ancmachine" title="The ANC's camp at 2024 national-election turnout, everyone else as usual.">The mirror: the ANC machine delivers</button>
-    </div>
-  </section>
+  </details>
 
   <details style="border-top:1px solid var(--rule-soft);padding-top:10px">
     <summary style="cursor:pointer;font-size:12.5px;color:var(--ink-3)">For researchers: this
@@ -451,27 +456,27 @@
   <div class="believe">
     <h2>Why believe any of this — and why not</h2>
     <div class="grid">
-      <div class="cell"><h4><span class="tick">✓</span> The seat law is exact</h4>
-        <p>The allocator reproduces the real 2011, 2016 and 2021 councils to the seat — quota,
+      <div class="cell"><h4><span class="tick">✓</span> It predicts historical elections accurately</h4>
+        <p>The model reproduces the real 2011, 2016 and 2021 councils to the seat — quota,
         vote totals, every party — from raw voting-district files.</p></div>
-      <div class="cell"><h4><span class="tick">✓</span> Geography is the anchor</h4>
-        <p>Where a party's support sits barely moves between elections even when its level swings
-        wildly. Tested across cycles: geography transferred, levels did not. So the model fits
-        geography and treats levels as the sliders you are holding.</p></div>
       <div class="cell"><h4><span class="tick">✓</span> Blind test: 129 of 135</h4>
-        <p>Shown only 2021's citywide totals, the model placed them well enough to call 129 of 135
-        ward winners.</p></div>
+        <p>Shown only 2021's citywide totals, the model placed them well enough to call 129 of
+        135 ward winners.</p></div>
+      <div class="cell"><h4><span class="tick">✓</span> Geography is the anchor</h4>
+        <p>Where a party's support sits barely moves between elections, even when its level
+        swings wildly. Tested across cycles: geography transferred, levels did not. So the
+        model fits geography and treats levels as the sliders you are holding.</p></div>
       <div class="cell"><h4><span class="tick">✓</span> Turnout was tested, and demoted</h4>
-        <p>Built expecting turnout to decide the city, the model reversed itself: a ten-point swing
-        across thirty wards moves about two seats. Try the turnout sliders — that finding is why
-        they barely matter.</p></div>
+        <p>Built expecting turnout to decide the city, the model reversed itself: a ten-point
+        swing across thirty wards moves about two seats. Try the turnout sliders — that
+        finding is why they barely matter.</p></div>
       <div class="cell"><h4><span class="cross">✗</span> It cannot see a party that does not exist</h4>
-        <p>ActionSA went from absent to 44 seats in one cycle. The entrant slider is an honest
-        patch, not a fix.</p></div>
-      <div class="cell"><h4><span class="cross">✗</span> The ranges are judgements</h4>
-        <p>History bounds the sliders, but no backtest can validate a 2026 range. The probabilities
-        are exactly as good as the assumptions you set — which is the point of letting you set
-        them.</p></div>
+        <p>ActionSA went from absent to 44 seats in one cycle. The Wildcard Entrant slider is
+        an honest patch, not a fix.</p></div>
+      <div class="cell"><h4><span class="cross">✗</span> The ranges you can play with are judgements</h4>
+        <p>History bounds the sliders, but no backtest can validate a 2026 range. The
+        probabilities are exactly as good as the assumptions you set — which is the point of
+        letting you set them.</p></div>
     </div>
   </div>
 
@@ -483,7 +488,7 @@
     verified against the IEC's Laingsburg 2021 worked example. This page runs the model at ward
     resolution —
     citywide seat arithmetic is exact; ward winners approximate the 865-district model, reference
-    figures from the Python run are shown in the status line. Full methodology, validation and
+    figures from the full Python model are shown in the status line. Full methodology, validation and
     review history in the project repository. Free to reproduce with attribution.
   </div>
 
@@ -551,7 +556,7 @@ P.forEach((p,i)=>{if(p.pr2021>0.001)ratioBase[i]=Math.min(Math.max(p.ward2021/p.
 const W=DATA.wards.length;
 const dev=new Float64Array(W*N);
 const wardVR=new Float64Array(W), wardVL=new Float64Array(W);
-const wardV24=new Float64Array(W), wardVLo=new Float64Array(W);
+const wardVHi=new Float64Array(W), wardVLo=new Float64Array(W);
 const wardAncLean=new Uint8Array(W);
 const _aBloc=["ANC","EFF","MK"].map(c=>idx[c]).filter(i=>i!==undefined);
 const _dBloc=["DA","ASA","BOSA"].map(c=>idx[c]).filter(i=>i!==undefined);
@@ -559,7 +564,7 @@ const blocTag=new Int8Array(N);
 _aBloc.forEach(i=>blocTag[i]=1);_dBloc.forEach(i=>blocTag[i]=2);
 DATA.wards.forEach((w,wi)=>{
   wardVR[wi]=w.vr; wardVL[wi]=w.vl;
-  wardV24[wi]=w.v24??w.vl; wardVLo[wi]=w.vlo??w.vl;
+  wardVHi[wi]=w.vhi??w.vl; wardVLo[wi]=w.vlo??w.vl;
   for(let i=0;i<=CODES.length;i++){
     const s=w.s[i]??0;
     dev[wi*N+i]=logit(s)-logit(base[i]);
@@ -579,7 +584,7 @@ const DEFAULT_CFG={thetaANC:0.75,thetaDA:1.30,thetaEFF:0.85,thetaMK:0.60,thetaAS
 const _blocF=idxs=>{let u=0,h=0,l=0;
   for(let w=0;w<W;w++){let sb=0;idxs.forEach(i=>sb+=DATA.wards[w].s[i]??0);
     const usual=(wardVR[w]+wardVL[w])/2;
-    u+=usual*sb;h+=wardV24[w]*sb;l+=wardVLo[w]*sb;}
+    u+=usual*sb;h+=wardVHi[w]*sb;l+=wardVLo[w]*sb;}
   return {hi:h/u,lo:l/u};};
 const TO_BLOC={anc:_blocF(_aBloc),da:_blocF(_dBloc)};
 const tiltFmt=g=>v=>{
@@ -611,7 +616,7 @@ function setCfg(c){ctlIds.forEach(id=>{if(id in c)document.getElementById(id).va
   pollUi();showVals();}
 function showVals(){
   const alphaWord=(v,min,max)=>{const p=(v-min)/(max-min);
-    return p<0.25?"loose — big reshuffles":p<0.7?"steady":"tight — near the expected split";};
+    return p<0.25?"wild reshuffles":p<0.7?"steady":"sticks to history";};
   const share=code=>v=>"×"+v.toFixed(2)+" ≈ "+(base[idx[code]]*v*100).toFixed(0)+"% citywide";
   const fmt={wBye:v=>v.toFixed(2),pollWeight:v=>(v*100).toFixed(0)+"%",
     thetaANC:share("ANC"),thetaDA:share("DA"),thetaEFF:share("EFF"),
@@ -746,8 +751,11 @@ function run(cfg,nDraws,seed){
       const aShift=triangular(rng,A.lo,A.mode,A.hi)/100;
       const dShift=triangular(rng,D.lo,D.mode,D.hi)/100;
       let aTot=A.baseTot+aShift, dTot=D.baseTot+dShift;
+      // symmetric lost-votes crossover: each direction moves a share of the
+      // SOURCE bloc's losses (local share below its national base) to the
+      // other bloc instead of the couch
       if(cfg.blocLeak>0)dTot+=cfg.blocLeak*Math.max(0,-aShift);
-      else if(cfg.blocLeak<0){const x=-cfg.blocLeak*Math.max(0,dShift);dTot-=x;aTot+=x;}
+      else if(cfg.blocLeak<0)aTot+=-cfg.blocLeak*Math.max(0,-dShift);
       [[A,aTot],[D,dTot]].forEach(([b,tot])=>{
         const split=dirichlet(rng,b.alphas);
         b.ids.forEach((i,k)=>target[i]=Math.max(tot,0.005)*split[k]);
@@ -781,7 +789,7 @@ function run(cfg,nDraws,seed){
       if(anyTilt){
         const cur=wardVotes[w];
         const sc=t=>{if(!t)return 1;
-          const r=1+Math.abs(t)*(((t>0?wardV24[w]:wardVLo[w])/cur)-1);
+          const r=1+Math.abs(t)*(((t>0?wardVHi[w]:wardVLo[w])/cur)-1);
           return t>0?Math.min(Math.max(r,1),4):Math.min(Math.max(r,0.25),1);};
         scA[w]=sc(tA);scD[w]=sc(tD);
       }
@@ -1022,6 +1030,7 @@ function analyse(res){
 
   return {perParty:perParty.sort((a,b)=>b.mean-a.mean),rows,mwc,power,minority,
     wardWinCounts:res.wardWinCounts,nDraws,
+    winsMean:Array.from(res.winsSum,x=>x/nDraws),
     pAncDa:winP(ancda),thrMed:thrQ.med,pOver:res.overhangDraws/nDraws,
     pOverAnc:res.overhangBy[idx.ANC]/nDraws,
     largestName:NAME[largestArr[0][0]],largestP:largestArr[0][1]/nDraws,
@@ -1044,23 +1053,23 @@ function dBadge(cur,key,v,kind){
   if(!(Math.abs(d)>=min))return"";
   const mag=kind==="pct"?(Math.abs(d)<1?Math.abs(d).toFixed(1):Math.abs(d).toFixed(0)):Math.abs(d).toFixed(0);
   const unit=kind==="pct"?"pt":"";
-  return `<span class="delta ${d>0?"up":"down"}" title="change since your previous run">`+
+  return `<span class="delta ${d>0?"up":"down"}" title="change since your previous simulation set">`+
     `${d>0?"\u25b2+":"\u25bc\u2212"}${mag}${unit}</span>`;
 }
 
 function render(a,cfg){
   const cur={};
   const tiles=[
-    {n:fmtP(a.pAncDa),b:dBadge(cur,"pAncDa",a.pAncDa,"pct"),l:"Chance an ANC\u2013DA pairing reaches a majority \u2014 the only two-party combination that reliably can",hero:true},
-    {n:fmtP(a.pDaLargest),b:dBadge(cur,"pDaLargest",a.pDaLargest,"pct"),l:"Chance the DA is the largest single party"},
-    {n:fmtP(a.pAncLargest),b:dBadge(cur,"pAncLargest",a.pAncLargest,"pct"),l:"Chance the ANC is the largest single party"},
-    {n:a.thrMed.toFixed(0),b:"",l:"Majority threshold \u2014 fixed: the excessive-seats law keeps the council at 270"},
-    {n:fmtP(a.pOverAnc),b:dBadge(cur,"pOverAnc",a.pOverAnc,"pct"),l:"Chance the ANC triggers the excessive-seats clause \u2014 keeps every ward, zero list seats, everyone else squeezed"},
-    {n:fmtP(a.pAlone),b:dBadge(cur,"pAlone",a.pAlone,"pct"),l:"Chance any party governs alone \u2014 a single party reaching the 136-seat majority by itself"},
-    {n:fmtP(a.minority[0].p),b:dBadge(cur,"minority",a.minority[0].p,"pct"),l:"Chance a DA minority government is viable \u2014 if only the ANC votes against, as in 2021"},
+    {n:fmtP(a.pAlone),c:1,b:dBadge(cur,"pAlone",a.pAlone,"pct"),l:"One party reaches a majority alone"},
+    {n:fmtP(a.pAncDa),c:1,b:dBadge(cur,"pAncDa",a.pAncDa,"pct"),l:"ANC + DA have a majority \u2014 the only two-party combination that reliably reaches one"},
+    {n:fmtP(a.pDaLargest),c:1,b:dBadge(cur,"pDaLargest",a.pDaLargest,"pct"),l:"The DA is the largest single party"},
+    {n:fmtP(a.pAncLargest),c:1,b:dBadge(cur,"pAncLargest",a.pAncLargest,"pct"),l:"The ANC is the largest single party"},
+    {n:fmtP(a.pOverAnc),c:1,b:dBadge(cur,"pOverAnc",a.pOverAnc,"pct"),l:"The ANC triggers the excessive-seats clause",s:"Keeps every ward it wins, takes zero list seats \u2014 everyone else squeezed"},
+    {n:"270 \u00b7 "+a.thrMed.toFixed(0),c:0,b:"",l:"Total seats \u00b7 majority threshold",s:"The excessive-seats law keeps the council at 270"},
   ];
   document.getElementById("tiles").innerHTML=tiles.map(t=>
-    `<div class="stat${t.hero?" hero":""}"><div class="n">${t.n}${t.b}</div><div class="l">${t.l}</div></div>`).join("");
+    `<div class="stat"><div class="n">${t.n}${t.c?'<span class="chancew"> Chance</span>':""}${t.b}</div>`+
+    `<div class="l">${t.l}${t.s?`<span class="sub">${t.s}</span>`:""}</div></div>`).join("");
 
   const MAX=125;
   document.getElementById("seats").innerHTML=a.perParty.filter(p=>p.mean>=0.4||p.i===I_ENTRANT&&p.hi>0).map(p=>`
@@ -1163,6 +1172,38 @@ function updateStickyBar(a,cur){
   el.innerHTML=parts.join(" · ");
 }
 
+function renderArith(a){
+  const el=document.getElementById("arith");if(!el)return;
+  const items=a.perParty.filter(p=>p.med>=3);
+  const rt=(raw,total)=>{
+    const fl=raw.map(v=>Math.floor(v));
+    let rem=total-fl.reduce((x,y)=>x+y,0);
+    const order=raw.map((v,i)=>i).sort((i,j)=>(raw[j]-Math.floor(raw[j]))-(raw[i]-Math.floor(raw[i])));
+    for(let k=0;k<Math.max(rem,0);k++)fl[order[k%order.length]]++;
+    return fl;};
+  const wardRaw=items.map(p=>a.winsMean[p.i]);
+  const totRaw=items.map(p=>p.med);
+  wardRaw.push(Math.max(135-wardRaw.reduce((x,y)=>x+y,0),0));
+  totRaw.push(Math.max(270-totRaw.reduce((x,y)=>x+y,0),0));
+  const wardN=rt(wardRaw,135),totN=rt(totRaw,270);
+  const listN=totN.map((t,ix)=>Math.max(t-wardN[ix],0));
+  const dl=135-listN.reduce((x,y)=>x+y,0);
+  listN[listN.length-1]=Math.max(listN[listN.length-1]+dl,0);
+  const nameOf=ix=>ix<items.length?NAME[items[ix].i]:"Smaller parties";
+  const chipOf=ix=>ix<items.length?CHIP[items[ix].i]:"#8b918b";
+  const bar=(vals,total,label)=>{
+    let segs="";
+    vals.forEach((n,ix)=>{if(n<=0)return;
+      segs+=`<div data-tip="${nameOf(ix)} — ${n} seats" title="${nameOf(ix)} — ${n} seats" `+
+        `style="width:${(n/total*100).toFixed(2)}%;background:${chipOf(ix)}"></div>`;});
+    return `<div style="display:flex;flex-direction:column;gap:4px">`+
+      `<div style="font:650 10.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)">${label}</div>`+
+      `<div style="display:flex;height:26px;border-radius:3px;overflow:hidden">${segs}</div></div>`;};
+  el.innerHTML=bar(wardN,135,"Ward seats — won race by race")+
+    bar(listN,135,"+ List seats — topping parties up to their share")+
+    bar(totN,270,"= The council");
+}
+
 function drawUserMap(a){
   const mp=DATA.ward_map; const el=document.getElementById("usermap");
   if(!mp||!el)return;
@@ -1197,7 +1238,7 @@ function drawUserMap(a){
   const labels=mp.labels.map(l=>`<text x="${l.x}" y="${l.y}" text-anchor="middle" style="font:650 11px ui-sans-serif,system-ui;letter-spacing:.08em;text-transform:uppercase;fill:var(--ink);stroke:var(--paper);stroke-width:3px;paint-order:stroke;pointer-events:none">${l.t}</text>`).join("");
   el.innerHTML=`<defs>${defs}</defs>${body}${labels}`;
   document.getElementById("usermapcap").textContent=
-    `Solid = won in ≥90% of your simulations (${tiers.solid} wards) · fine stripes = 75–90% (${tiers.strong}) · bold stripes = 60–75% (${tiers.lean}) · grey = toss-up (${tiers.grey}). Stripes take the challenger's colour. Hover a ward for its numbers.`;
+    `Safe = wins in ≥90% of your simulations (${tiers.solid} wards) · strongly leaning = wins in 75–90% (${tiers.strong}) · leaning = wins in 60–75% (${tiers.lean}) · grey = toss-up, wins in less than 60% (${tiers.grey}). Stripes take the challenger's colour. Hover a ward for its numbers.`;
 }
 (function(){
   const tip=document.getElementById("ivtip");
@@ -1225,6 +1266,7 @@ function go(){
       const a=analyse(res);
       render(a,cfg);
       drawUserMap(a);
+      renderArith(a);
       document.getElementById("status").textContent=
         nDraws.toLocaleString()+" simulations in "+((performance.now()-t0)/1000).toFixed(1)+"s";
     }catch(e){
@@ -1247,6 +1289,24 @@ function pollUi(){
       `<a href="${poll.url}" target="_blank" rel="noopener">source</a><br>${poll.caveat}`;
   } else info.style.display="none";
 }
+// heading above, orange value below, forecast-position notch on every slider
+ctlIds.forEach(id=>{
+  const el=document.getElementById(id);
+  if(!el||el.type!=="range")return;
+  const ctl=el.closest(".ctl"), v=document.getElementById("v-"+id);
+  const wrap=document.createElement("div");wrap.className="sliderwrap";
+  el.parentNode.insertBefore(wrap,el);wrap.appendChild(el);
+  const d=DEFAULT_CFG[id];
+  if(d!==undefined){
+    const mn=parseFloat(el.min),mx=parseFloat(el.max);
+    let p=(d-mn)/(mx-mn);
+    if((el.getAttribute("style")||"").indexOf("rtl")>=0)p=1-p;
+    const t=document.createElement("span");t.className="fctick";
+    t.style.left=(p*100).toFixed(1)+"%";t.title="our published forecast";
+    wrap.appendChild(t);
+  }
+  if(v&&ctl){v.classList.add("vbelow");ctl.appendChild(v);}
+});
 document.getElementById("pollPick").addEventListener("change",()=>{pollUi();go();});
 document.getElementById("run").addEventListener("click",go);
 // sticky summary bar: visible only while the result tiles are off-screen
