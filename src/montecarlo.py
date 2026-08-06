@@ -121,6 +121,13 @@ DEFAULTS: dict = {
     "poll_id": None,        # e.g. "srf-2026q2-coj" — see polls.json
     "poll_weight": 0.0,
 
+    # Trend-break dial (2026-08-06, from the bloc-leakage measurement in
+    # MODEL-LOG 1.18): share of the ANC bloc's drawn decline that CROSSES to
+    # the DA bloc instead of staying home. History says ~0 (the 2021 collapse
+    # shed 587k votes and the DA bloc captured none); >0 is an explicit bet
+    # that 2026 breaks the reservoir pattern.
+    "bloc_leak": 0.0,
+
     # A1: ward/PR split-ticket ratios are measured from 2021 per party;
     # overrides for parties without a 2021 measurement or with a changed
     # footprint. MK: list party, no ward machinery — 0.80 is a judgement
@@ -332,8 +339,16 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
 
     def draw():
         target = np.zeros(n)
-        for idx, base_total, shift_spec, centre_props, alpha in bloc_spec.values():
-            shifted = max(base_total + triangular(rng, shift_spec) / 100.0, 0.005)
+        anc_decline = 0.0
+        for bloc_name in ("ANC_BLOC", "DA_BLOC"):
+            idx, base_total, shift_spec, centre_props, alpha = bloc_spec[bloc_name]
+            shift = triangular(rng, shift_spec) / 100.0
+            if bloc_name == "ANC_BLOC":
+                anc_decline = max(0.0, -shift)
+                shifted = max(base_total + shift, 0.005)
+            else:
+                shifted = max(base_total + shift
+                              + scenario["bloc_leak"] * anc_decline, 0.005)
             split = rng.dirichlet(np.maximum(centre_props * alpha, 0.05))
             target[idx] = shifted * split
         for i, spec in individual:
