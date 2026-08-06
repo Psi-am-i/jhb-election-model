@@ -802,6 +802,22 @@ simulation" — the tail above it exists and occasionally clears 136; the
 page now says "about 3 in 100". Claims section rewritten accordingly
 (step 2 is "even reaching the number doesn't make it half").
 
+**Steelman (user-requested, 2026-08-07).** Zille's exact words (Business Day
+2026-03-01: "We need 490,000 registered DA voters to go vote DA, if they do
+that we win an outright majority") name no denominator. Most charitable
+reading: against 2021's per-ballot poll (A/2 = 1,834,260/2 ≈ 917k), 490k is
+53.4% — internally coherent ONLY if the poll stays frozen while the DA
+doubles, i.e. every other party combined sheds ~190k votes (−28% vs 2021).
+No mechanism in the record. Sharper still: votes-majority ≠ seats-majority
+under the amended Schedule 1 — allocator experiment (surge composition, ANC
+wall fixed at 62 wards): DA at 50% of the vote → 123 seats; 54% → 131;
+solving, ~57% needed for 136. Confirmed in the draws: the 47/1,500 surge
+simulations where the DA reaches 136 are those where its turnout surge flips
+ANC stronghold wards (ANC median 47 seats there vs 66 elsewhere). The
+claim's only true worlds are an evidence-free frozen poll, or breaking the
+ANC's ward wall — which is a persuasion story, not a turnout story.
+Published as "Could she still be right?" in the claims section.
+
 **Presentation:** both pages restructured into roll-up sections (forecast:
 The forecast / Commentary / About-the-model bands with expand-collapse-all;
 interactive: presets as an always-visible strip, left bar retitled "Change
