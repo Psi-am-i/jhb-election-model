@@ -240,8 +240,9 @@
       <input type="range" id="entrantProb" min="0" max="1" step="0.05" value="0.25"></div>
     <div class="ctl"><div class="lab"><span>Entrant central share</span><span class="v" id="v-entrantMode"></span></div>
       <input type="range" id="entrantMode" min="0.01" max="0.12" step="0.005" value="0.04"></div>
-    <div class="toggle"><input type="checkbox" id="overhangExpand" checked>
-      <label for="overhangExpand">Overhang expands the council (threshold moves off 136)</label></div>
+    <div class="toggle"><input type="checkbox" id="overhangExpand">
+      <label for="overhangExpand">Use the older "council expands" reading (pre-2021 ambiguity;
+      the default is the law as the IEC applied it in Laingsburg 2021)</label></div>
   </div>
 
   <div class="cgroup">
@@ -291,9 +292,9 @@
 
   <section class="cols2">
     <div class="note">
-      <h3>Minimal winning coalitions</h3>
-      <p class="small">Winning combinations where every member is necessary — the deals in which
-      each partner holds real leverage.</p>
+      <h3>Coalitions with no passengers</h3>
+      <p class="small">Winning combinations where losing any one member breaks the majority — the
+      deals in which every partner holds real power.</p>
       <div class="tablewrap"><table style="min-width:0"><tbody id="mwc"></tbody></table></div>
     </div>
     <div class="note">
@@ -390,7 +391,7 @@ function dirichlet(rng,alphas){const g=alphas.map(a=>gammaSample(rng,Math.max(a,
 
 /* ---------- model setup ---------- */
 const FLOOR=0.002;
-const logit=p=>{p=Math.min(Math.max(p,FLOOR),1-FLOOR);return Math.log(p/(1-p));};
+const logit=(p,f=FLOOR)=>{p=Math.min(Math.max(p,f),1-FLOOR);return Math.log(p/(1-p));};
 const expit=x=>1/(1+Math.exp(-x));
 
 const P=DATA.parties;                 // 12 individual parties
@@ -432,7 +433,7 @@ const ctlIds=["thetaANC","thetaDA","thetaEFF","thetaMK","thetaASA","wBye","polli
   "entrantProb","entrantMode"];
 const DEFAULT_CFG={thetaANC:0.75,thetaDA:1.30,thetaEFF:0.85,thetaMK:0.60,thetaASA:1.50,
   wBye:0.40,pollingLean:0,alphaANC:60,alphaDA:12,mkRatio:0.80,paUplift:1.25,
-  turnoutBlend:0.5,turnoutNoise:0.08,entrantProb:0.25,entrantMode:0.04,overhangExpand:true};
+  turnoutBlend:0.5,turnoutNoise:0.08,entrantProb:0.25,entrantMode:0.04,overhangExpand:false};
 const PRESETS={
   default:{},
   nobye:{wBye:0,pollingLean:0},
@@ -590,7 +591,7 @@ function run(cfg,nDraws,seed){
       for(let w=0;w<W;w++){
         let rs=0;const off=w*N;
         for(let i=0;i<N;i++){
-          const v=theta[i]>0?expit(logit(base[i]*theta[i])+gammaW[i]*dev[off+i]):0;
+          const v=theta[i]>0?expit(logit(base[i]*theta[i],1e-6)+gammaW[i]*dev[off+i]):0;
           pred[off+i]=v;rs+=v;
         }
         const wv=wardVotes[w]/rs;
@@ -603,11 +604,15 @@ function run(cfg,nDraws,seed){
       }
       if(worst<1e-5)break;
     }
-    // winners
+    // winners (with the model's ward-level noise, sigma 0.10 — local
+    // candidate effects; without it winners are deterministic per draw)
     winsArr.fill(0);
     for(let w=0;w<W;w++){
       const off=w*N;let best=0,bi=0;
-      for(let i=0;i<N;i++)if(pred[off+i]>best){best=pred[off+i];bi=i;}
+      for(let i=0;i<N;i++){
+        const v=pred[off+i]*Math.exp(normal(rng)*0.10-0.005);
+        if(v>best){best=v;bi=i;}
+      }
       winsArr[bi]++;
     }
 
@@ -621,9 +626,25 @@ function run(cfg,nDraws,seed){
       overhangDraws++;
       for(let i=0;i<N;i++)if(winsArr[i]>seats[i])overhangBy[i]++;
       if(cfg.overhangExpand){
+        // legacy pre-2021 reading: council grows, threshold moves
         for(let i=0;i<N;i++)if(winsArr[i]>seats[i])seats[i]=winsArr[i];
         cSize=0;for(let i=0;i<N;i++)cSize+=seats[i];
         th=Math.floor(cSize/2)+1;
+      } else {
+        // Schedule 1 item 16(3)-(9), as applied in Laingsburg 2021: the
+        // excessive party keeps its wards and gets no list seats; everyone
+        // else is re-allocated over the remaining seats. Council stays 270.
+        const isFixed=new Uint8Array(N);
+        const v2=Float64Array.from(votesInt);
+        let pool=270, s2=seats;
+        for(;;){
+          let newly=false;
+          for(let i=0;i<N;i++)if(!isFixed[i]&&winsArr[i]>s2[i]){
+            isFixed[i]=1;v2[i]=0;pool-=winsArr[i];newly=true;}
+          if(!newly)break;
+          s2=allocate(v2,pool).seats;
+        }
+        for(let i=0;i<N;i++)seats[i]=isFixed[i]?winsArr[i]:s2[i];
       }
     }
     for(let i=0;i<N;i++){seatsAll[d*N+i]=seats[i];winsSum[i]+=winsArr[i];}
@@ -755,12 +776,12 @@ const fmtP=v=>v>=0.995?"99%+":v<0.0005?"<0.1%":v>=0.1?(v*100).toFixed(0)+"%":(v*
 
 function render(a,cfg){
   const tiles=[
-    {n:fmtP(a.pAncDa),l:"ANC + DA reach a majority — the only reliable two-party route",hero:true},
-    {n:fmtP(a.largestP),l:`${a.largestName} finishes as the largest party`},
-    {n:a.thrMed.toFixed(0),l:"Median majority threshold"+(cfg.overhangExpand?" (overhang moves it off 136)":" (fixed at 136)")},
-    {n:fmtP(a.pOver),l:"Draws where a party wins more wards than its entitlement (overhang)"},
-    {n:fmtP(a.pNoBloc),l:"A majority exists without the ANC, EFF and MK together"},
-    {n:fmtP(a.minority[0].p),l:"A DA minority government is arithmetically viable (2021 abstention pattern)"},
+    {n:fmtP(a.pAncDa),l:"Chance an ANC\u2013DA pairing reaches a majority \u2014 the only two-party combination that reliably can",hero:true},
+    {n:fmtP(a.largestP),l:`Chance ${a.largestName} is the largest single party`},
+    {n:a.thrMed.toFixed(0),l:"Majority threshold"+(cfg.overhangExpand?" (median \u2014 the legacy reading grows the council)":" \u2014 fixed: the excessive-seats law keeps the council at 270")},
+    {n:fmtP(a.pOver),l:"Chance the ANC triggers the excessive-seats clause \u2014 keeps every ward, zero list seats, everyone else squeezed"},
+    {n:fmtP(a.pNoBloc),l:"Chance a majority exists without the ANC, EFF and MK together"},
+    {n:fmtP(a.minority[0].p),l:"Chance a DA minority government is viable \u2014 if only the ANC votes against, as in 2021"},
   ];
   document.getElementById("tiles").innerHTML=tiles.map(t=>
     `<div class="stat${t.hero?" hero":""}"><div class="n">${t.n}</div><div class="l">${t.l}</div></div>`).join("");
@@ -808,7 +829,7 @@ function render(a,cfg){
     pa_contestation_uplift:cfg.paUplift,
     turnout_pattern_blend:cfg.turnoutBlend,turnout_noise_sd:cfg.turnoutNoise,
     entrant_prob:cfg.entrantProb,entrant_share:[0.01,cfg.entrantMode,0.12],
-    overhang_rule:cfg.overhangExpand?"expand":"cap",
+    overhang_rule:cfg.overhangExpand?"expand":"deduct",
   };
   document.getElementById("scenarioJson").value=JSON.stringify(scen,null,1);
 
