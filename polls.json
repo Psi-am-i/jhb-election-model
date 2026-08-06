@@ -1,0 +1,44 @@
+{
+  "polls": [
+    {
+      "id": "srf-2026q2-coj",
+      "label": "SRF · Johannesburg · July 2026",
+      "pollster": "Social Research Foundation (fieldwork: Victory Research)",
+      "fieldwork": "8–31 July 2026",
+      "geography": "City of Johannesburg, likely voters (53% turnout model)",
+      "url": "https://www.thecommonsense.co.za/Politics/anc-support-collapses-johannesburg",
+      "numbers": {"DA": 0.42, "ANC": 0.18, "MK": 0.13, "ASA": 0.10, "EFF": 0.08},
+      "caveat": "~500-person metro subsample (±4.4%); single house; its likely-voter screen filters out low-propensity, disproportionately ANC-leaning voters. ANC 18 sits below even the DA's own internal polling."
+    },
+    {
+      "id": "da-internal-2026aug",
+      "label": "DA internal · Johannesburg · reported Aug 2026",
+      "pollster": "DA internal polling, reported by Helen Zille via News24",
+      "fieldwork": "reported 1 August 2026",
+      "geography": "City of Johannesburg",
+      "url": "https://www.news24.com/politics/internal-polls-show-da-leading-in-johannesburg-says-helen-zille-20260801-0799",
+      "numbers": {"DA": 0.40, "ANC": 0.27},
+      "caveat": "Party-internal, method undisclosed, only two numbers released — and a party has every incentive to publish its best case."
+    },
+    {
+      "id": "srf-2026q1-coj",
+      "label": "SRF · Johannesburg · Feb–Mar 2026",
+      "pollster": "Social Research Foundation",
+      "fieldwork": "16 February – 6 March 2026",
+      "geography": "City of Johannesburg, likely voters",
+      "url": "https://www.thecommonsense.co.za/politics/anc-faces-wipeout-gauteng-metros-lge",
+      "numbers": {"DA": 0.39, "ANC": 0.30, "ASA": 0.10, "MK": 0.08, "EFF": 0.04},
+      "caveat": "~503-person metro subsample; same house and turnout model as the July wave."
+    },
+    {
+      "id": "ipsos-w2-2025-metros",
+      "label": "Ipsos Khayabus · all metros · Dec 2025–Jan 2026",
+      "pollster": "Ipsos (Pulse of the People W2-2025)",
+      "fieldwork": "December 2025 – January 2026",
+      "geography": "All-metro aggregate — no Johannesburg-only cut published",
+      "url": "https://www.ipsos.com/en-za/nearly-half-south-africans-feel-politically-homeless-ahead-local-elections",
+      "numbers": {"ANC": 0.35, "DA": 0.25, "MK": 0.14, "EFF": 0.13, "PA": 0.04, "ASA": 0.04, "IFP": 0.02},
+      "caveat": "Face-to-face, registered voters, ~43–49% undecided largely unallocated — the methodological opposite of SRF, and the kindest credible read for the ANC. Applies all-metro numbers to Joburg."
+    }
+  ]
+}

@@ -186,13 +186,17 @@
   <div class="cgroup">
     <h3>Evidence weights</h3>
     <div class="why">Fifteen real by-elections since 2021 nudge each party's central level — never
-    beyond the ranges above. The polling lever spans the two poll houses' disagreement: pull
-    right for the SRF's July world (DA 42, ANC 18 in Joburg), left for Ipsos's much kinder
-    ANC picture. At zero, neither is believed over the other.</div>
+    beyond the ranges above. Polls are opt-in: pick one, say how much you believe it, and the
+    party levels tilt toward its numbers. Every poll is linked to its source, with its health
+    warning attached.</div>
     <div class="ctl"><div class="lab"><span>By-election weight (w_bye)</span><span class="v" id="v-wBye"></span></div>
       <input type="range" id="wBye" min="0" max="1" step="0.05" value="0.40"></div>
-    <div class="ctl"><div class="lab"><span>Polling lean (Ipsos ← 0 → SRF)</span><span class="v" id="v-pollingLean"></span></div>
-      <input type="range" id="pollingLean" min="-1" max="1" step="0.1" value="0"></div>
+    <div class="ctl"><div class="lab"><span>Poll</span></div>
+      <select id="pollPick" style="width:100%"><option value="">No poll — history and by-elections only</option></select></div>
+    <div class="ctl" id="pollWeightRow" style="display:none">
+      <div class="lab"><span>How much do you believe it?</span><span class="v" id="v-pollWeight"></span></div>
+      <input type="range" id="pollWeight" min="0" max="1" step="0.05" value="0.50"></div>
+    <div class="why" id="pollInfo" style="display:none;margin-top:-4px"></div>
   </div>
 
   <div class="cgroup">
@@ -425,26 +429,27 @@ DATA.wards.forEach((w,wi)=>{
 });
 
 /* ---------- controls ---------- */
-const ctlIds=["thetaANC","thetaDA","thetaEFF","thetaMK","thetaASA","wBye","pollingLean",
+const ctlIds=["thetaANC","thetaDA","thetaEFF","thetaMK","thetaASA","wBye","pollWeight",
   "alphaANC","alphaDA","mkRatio","paUplift","turnoutBlend","turnoutNoise",
   "entrantProb","entrantMode"];
 const DEFAULT_CFG={thetaANC:0.75,thetaDA:1.30,thetaEFF:0.85,thetaMK:0.60,thetaASA:1.50,
-  wBye:0.40,pollingLean:0,alphaANC:60,alphaDA:12,mkRatio:0.80,paUplift:1.25,
+  wBye:0.40,pollPick:"",pollWeight:0.5,alphaANC:60,alphaDA:12,mkRatio:0.80,paUplift:1.25,
   turnoutBlend:0.5,turnoutNoise:0.08,entrantProb:0.25,entrantMode:0.04};
 const PRESETS={
   default:{},
-  nobye:{wBye:0,pollingLean:0},
-  srf:{pollingLean:1},
-  ipsos:{pollingLean:-1},
+  nobye:{wBye:0,pollPick:"",pollWeight:0.5},
+  srf:{pollPick:"srf-2026q2-coj",pollWeight:0.6},
+  ipsos:{pollPick:"ipsos-w2-2025-metros",pollWeight:0.6},
   mkfall:{thetaMK:0.35},
   asafall:{thetaASA:0.95,wBye:0.15},
 };
 function readCfg(){const c={};ctlIds.forEach(id=>c[id]=parseFloat(document.getElementById(id).value));
-  return c;}
+  c.pollPick=document.getElementById("pollPick").value;return c;}
 function setCfg(c){ctlIds.forEach(id=>{if(id in c)document.getElementById(id).value=c[id];});
-  showVals();}
+  if("pollPick" in c)document.getElementById("pollPick").value=c.pollPick;
+  pollUi();showVals();}
 function showVals(){
-  const fmt={wBye:v=>v.toFixed(2),pollingLean:v=>(v>0?"+":"")+v.toFixed(1),
+  const fmt={wBye:v=>v.toFixed(2),pollWeight:v=>(v*100).toFixed(0)+"%",
     alphaANC:v=>v.toFixed(0),alphaDA:v=>v.toFixed(0),
     turnoutNoise:v=>"σ "+v.toFixed(2),entrantProb:v=>(v*100).toFixed(0)+"%",
     entrantMode:v=>(v*100).toFixed(1)+"%"};
@@ -480,18 +485,27 @@ function centres(cfg){
     }
     out[i]=c;
   });
+  if(cfg.pollPick&&cfg.pollWeight>0){
+    const poll=(DATA.polls||[]).find(q=>q.id===cfg.pollPick);
+    if(poll)P.forEach((pt,i)=>{
+      const share=poll.numbers[pt.code];
+      if(share===undefined)return;
+      const b=BOUNDS[pt.code];
+      const clamped=b?Math.min(Math.max(share,b[0]*base[i]),b[1]*base[i]):share;
+      out[i]=(1-cfg.pollWeight)*out[i]+cfg.pollWeight*clamped;
+    });
+  }
   out[I_OTHER]=base[I_OTHER]*F_OTHER[1];
   out[I_ENTRANT]=0;
   return out;
 }
 
 function blocSpec(cfg,cent){
-  const lean=cfg.pollingLean*POLLING_SPAN;
-  function spec(members,range,leanSign,alpha){
+  function spec(members,range,_leanSign,alpha){
     const ids=members.map(c=>idx[c]);
     const baseTot=ids.reduce((s,i)=>s+base[i],0);
     const centTot=ids.reduce((s,i)=>s+cent[i],0);
-    let mode=(centTot-baseTot)*100+leanSign*lean;
+    let mode=(centTot-baseTot)*100;
     mode=Math.min(Math.max(mode,range[0]),range[1]);
     const props=ids.map(i=>cent[i]);
     const ps=props.reduce((a,b)=>a+b,0);
@@ -814,7 +828,7 @@ function render(a,cfg){
   // scenario JSON for the Python model
   const scen={
     theta_mode:{ANC:cfg.thetaANC,EFF:cfg.thetaEFF,MK:cfg.thetaMK,DA:cfg.thetaDA,ASA:cfg.thetaASA,BOSA:THETA_BOSA},
-    w_bye:cfg.wBye,polling_lean:cfg.pollingLean,
+    w_bye:cfg.wBye,poll_id:cfg.pollPick||null,poll_weight:cfg.pollPick?cfg.pollWeight:0,
     alpha_anc:cfg.alphaANC,alpha_da:cfg.alphaDA,
     ward_pr_ratio_overrides:{MK:cfg.mkRatio,ENTRANT:0.8},
     pa_contestation_uplift:cfg.paUplift,
@@ -854,6 +868,21 @@ function go(){
     running=false;
   },30);
 }
+(DATA.polls||[]).forEach(q=>{
+  const o=document.createElement("option");o.value=q.id;o.textContent=q.label;
+  document.getElementById("pollPick").appendChild(o);});
+function pollUi(){
+  const id=document.getElementById("pollPick").value;
+  const poll=(DATA.polls||[]).find(q=>q.id===id);
+  document.getElementById("pollWeightRow").style.display=poll?"":"none";
+  const info=document.getElementById("pollInfo");
+  if(poll){
+    info.style.display="";
+    info.innerHTML=`<b>${poll.pollster}</b> · fieldwork ${poll.fieldwork} · ${poll.geography} · `+
+      `<a href="${poll.url}" target="_blank" rel="noopener">source</a><br>${poll.caveat}`;
+  } else info.style.display="none";
+}
+document.getElementById("pollPick").addEventListener("change",()=>{pollUi();go();});
 document.getElementById("run").addEventListener("click",go);
 ctlIds.forEach(id=>{const el=document.getElementById(id);
   el.addEventListener("input",showVals);

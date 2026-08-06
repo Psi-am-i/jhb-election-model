@@ -112,12 +112,14 @@ DEFAULTS: dict = {
     },
     "f_other": [0.70, 1.30, 2.00],   # residual bucket only, no seat-winner left in it
 
-    # E4: by-election blend weight (§3.5 w_bye, range 0–1) and the polling
-    # lever: −1 = Ipsos endpoint, +1 = SRF endpoint, 0 = neither. ±1 moves
-    # the two bloc modes by ∓/±`polling_span` points before clamping.
+    # E4: by-election blend weight (§3.5 w_bye, range 0–1). Polls: pick one
+    # from polls.json by id and weight it — replaces the old two-endpoint
+    # polling_lean lever (kept for compatibility, no longer surfaced).
     "w_bye": 0.40,
     "polling_lean": 0.0,
-    "polling_span": 8.0,  # re-anchored 2026-08-06: lean +1 ~= SRF-Jul CoJ (DA 42/ANC 18), -1 ~= Ipsos-style; POLLING.md
+    "polling_span": 8.0,
+    "poll_id": None,        # e.g. "srf-2026q2-coj" — see polls.json
+    "poll_weight": 0.0,
 
     # A1: ward/PR split-ticket ratios are measured from 2021 per party;
     # overrides for parties without a 2021 measurement or with a changed
@@ -507,6 +509,18 @@ def main(argv: list[str] | None = None) -> int:
                 bye[row["party"]] = (float(row["weight_sum"]),
                                     float(row["weighted_delta"]))
     centres, notes = blended_centres(scenario, base_city_d, share_2021, bye)
+    if scenario.get("poll_id") and scenario.get("poll_weight", 0) > 0:
+        polls = {q["id"]: q for q in json.loads(
+            Path("polls.json").read_text(encoding="utf-8"))["polls"]}
+        poll = polls[scenario["poll_id"]]
+        wp = scenario["poll_weight"]
+        for party, share in poll["numbers"].items():
+            if party in centres and party in base_city_d:
+                low, high = PLAN_BOUNDS.get(party, (0.0, float("inf")))
+                clamped = min(max(share, low * base_city_d[party]),
+                              high * base_city_d[party])
+                centres[party] = (1 - wp) * centres[party] + wp * clamped
+                notes[party] = notes.get(party, "") +                     f" | poll {poll['id']} @ {wp}: → {centres[party]:.1%}"
     if "ENTRANT" in index:
         centres["ENTRANT"] = 0.0
 

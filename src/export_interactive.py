@@ -170,8 +170,11 @@ def main(argv: list[str] | None = None) -> int:
             "bye": bye.get(code),
         })
 
+    polls = json.loads(Path("polls.json").read_text(encoding="utf-8"))["polls"]
+
     pack = {
         "generated_from": "src/export_interactive.py",
+        "polls": polls,
         "parties": parties_out,
         "other_base2024": round(other_base, 5),
         "wards": wards_out,
