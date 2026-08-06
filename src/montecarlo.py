@@ -407,6 +407,18 @@ def allocate_with_overhang(
     seats = dict(alloc.seats)
     if rule == "cap" or not over:
         return seats, COUNCIL, COUNCIL // 2 + 1, over
+    if rule == "level":
+        # modern-Germany counterfactual (Ausgleichsmandate): grow the council
+        # until every ward winner's seats are covered by its proportional
+        # share — nobody is squeezed, the chamber pays instead
+        total = COUNCIL
+        while True:
+            sub = allocate(combined, total_seats=total)
+            deficit = sum(max(0, w - sub.seats.get(p, 0))
+                          for p, w in ward_wins.items())
+            if deficit == 0:
+                return dict(sub.seats), total, total // 2 + 1, over
+            total += deficit
     if rule == "deduct":
         fixed: dict[str, int] = {}
         votes = dict(combined)

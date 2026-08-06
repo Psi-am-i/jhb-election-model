@@ -191,6 +191,68 @@ def main(argv: list[str] | None = None) -> int:
             b2 = s.index("<!-- __BALLOTS_END__ -->") + len("<!-- __BALLOTS_END__ -->")
             tgt.write_text(s[:a] + strip + s[b2:], encoding="utf-8")
 
+    # --- excessive-seats regime comparison (regenerate via ------------------
+    # src/overhang_regimes.py, which runs the expand and level counterfactuals
+    # and restores the reference outputs)
+    REG_PARTIES = ["DA", "ANC", "EFF", "ASA", "MK", "PA", "IFP", "ALJAMAAH"]
+    regimes = []
+    for key, label, note in (
+            ("deduct", "South African law", "fixed 270, others squeezed"),
+            ("expand", "Old Germany", "council grows by the excess"),
+            ("level", "Modern Germany", "levelled to proportionality")):
+        if key == "deduct":
+            summ = summary
+            sd = rows
+        else:
+            sp = args.processed / f"regime_{key}_summary.json"
+            dp = args.processed / f"regime_{key}_seat_draws.csv"
+            if not (sp.exists() and dp.exists()):
+                regimes = []
+                break
+            summ = json.loads(sp.read_text(encoding="utf-8"))
+            with dp.open(encoding="utf-8", newline="") as fh:
+                sd = list(csv.DictReader(fh))
+        council_med = int(np.median([int(r["council_size"]) for r in sd]))
+        thr_med = int(np.median([int(r["threshold"]) for r in sd]))
+        meds = {p: int(round(v["median"])) for p, v in summ["parties"].items()}
+        regimes.append((label, note, meds, council_med, thr_med))
+
+    if regimes:
+        head = "".join(f'<th colspan="2" style="text-align:center">{lab}'
+                       f'<br><span style="font-weight:400;color:var(--ink-3)">{note}</span></th>'
+                       for lab, note, *_ in regimes)
+        sub = "<th></th>" + "".join('<th class="num">seats</th><th class="num">share</th>'
+                                    for _ in regimes)
+        body = ""
+        for p in REG_PARTIES + ["__OTH__"]:
+            nm = "Smaller parties" if p == "__OTH__" else NAMES[p]
+            cells = ""
+            for lab, note, meds, cm, tm in regimes:
+                n = (max(cm - sum(meds.get(q, 0) for q in REG_PARTIES), 0)
+                     if p == "__OTH__" else meds.get(p, 0))
+                cells += (f'<td class="num">{n}</td>'
+                          f'<td class="num" style="color:var(--ink-3)">{n / cm:.1%}</td>')
+            body += f"<tr><td>{nm}</td>{cells}</tr>"
+        for row_lab, pick in (("Council size", 3), ("Majority line", 4)):
+            cells = "".join(f'<td class="num" colspan="2"><b>{r[pick]}</b></td>'
+                            for r in regimes)
+            body += (f'<tr style="border-top:1px solid var(--rule)">'
+                     f"<td><b>{row_lab}</b></td>{cells}</tr>")
+        regimes_html = (
+            "<!-- __REGIMES_START__ -->\n"
+            '    <div class="tablewrap"><table>'
+            f'<thead><tr><th></th>{head}</tr><tr>{sub}</tr></thead>'
+            f"<tbody>{body}</tbody></table></div>\n"
+            "    <!-- __REGIMES_END__ -->")
+        for tgt in (Path("forecast-sheet.html"), Path("drafts/forecast-draft.html")):
+            s = tgt.read_text(encoding="utf-8")
+            if "__REGIMES_START__" in s:
+                a = s.index("<!-- __REGIMES_START__ -->")
+                b2 = s.index("<!-- __REGIMES_END__ -->") + len("<!-- __REGIMES_END__ -->")
+                tgt.write_text(s[:a] + regimes_html + s[b2:], encoding="utf-8")
+        print("regimes table:", " · ".join(
+            f"{lab}: council {cm}, thr {tm}" for lab, _, _, cm, tm in regimes))
+
     html = args.sheet.read_text(encoding="utf-8")
     start = html.index("// __GEN_START__")
     start = html.index("\n", start) + 1
