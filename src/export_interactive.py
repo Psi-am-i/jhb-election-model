@@ -171,10 +171,13 @@ def main(argv: list[str] | None = None) -> int:
         })
 
     polls = json.loads(Path("polls.json").read_text(encoding="utf-8"))["polls"]
+    wp_path = args.processed / "ward_paths.json"
+    ward_map = json.loads(wp_path.read_text(encoding="utf-8")) if wp_path.exists() else None
 
     pack = {
         "generated_from": "src/export_interactive.py",
         "polls": polls,
+        "ward_map": ward_map,
         "parties": parties_out,
         "other_base2024": round(other_base, 5),
         "wards": wards_out,

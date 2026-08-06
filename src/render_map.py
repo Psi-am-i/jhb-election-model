@@ -106,6 +106,7 @@ def main(argv: list[str] | None = None) -> int:
 
     paths, hatches, called = [], [], {"solid": 0, "strong": 0, "lean": 0, "grey": 0}
     patterns: dict[str, str] = {}
+    path_data: list = []
     for _, row in gdf.iterrows():
         p = probs.get(row["wardno"])
         geoms = row.geometry.geoms if row.geometry.geom_type == "MultiPolygon" \
@@ -141,6 +142,7 @@ def main(argv: list[str] | None = None) -> int:
                 fill, cls, verdict = GREY, "grey", "too close to call"
             tip = f"Ward {row['wardno']} · {verdict} — {share}"
         called[cls] += 1
+        path_data.append((row, d))
         paths.append(f'<path d="{d}" fill="{fill}" stroke="var(--paper)" '
                      f'stroke-width="0.8" data-tip="{tip}"></path>')
         if p is not None and cls in ("strong", "lean") and challengers:
@@ -305,6 +307,15 @@ def main(argv: list[str] | None = None) -> int:
     </script>
   </section>
   {MARK_END}"""
+
+    import json as _json
+    Path("data/processed/ward_paths.json").write_text(_json.dumps({
+        "W": W, "H": H,
+        "paths": {row["wardno"]: d for row, d in path_data},
+        "labels": [{"t": name, "x": round(xy(lx, ly)[0]), "y": round(xy(lx, ly)[1])}
+                   for name, lx, ly in DISTRICTS
+                   if -10 <= xy(lx, ly)[0] <= W + 10 and -10 <= xy(lx, ly)[1] <= H + 10],
+    }, separators=(",", ":")), encoding="utf-8")
 
     for target in (Path("forecast-sheet.html"), Path("drafts/forecast-draft.html")):
         t = target.read_text(encoding="utf-8")

@@ -170,17 +170,21 @@
     <h3>Party levels</h3>
     <div class="why">How much of each party's national-election support survives a local election —
     1.00 means unchanged. You can't push a slider past what has actually happened in twenty
-    years of national-to-local swings; that is the point of the ranges.</div>
-    <div class="ctl"><div class="lab"><span>ANC</span><span class="v" id="v-thetaANC"></span></div>
+    years of national-to-local swings; that is the point of the ranges.
+    <b>●</b> = the ANC bloc, <b>○</b> = the DA bloc — parties fishing in the same voter pool,
+    moved together (see "Voting blocs" below).</div>
+    <div class="ctl"><div class="lab"><span>ANC ●</span><span class="v" id="v-thetaANC"></span></div>
       <input type="range" id="thetaANC" min="0.65" max="0.90" step="0.01" value="0.75"></div>
-    <div class="ctl"><div class="lab"><span>DA</span><span class="v" id="v-thetaDA"></span></div>
+    <div class="ctl"><div class="lab"><span>DA ○</span><span class="v" id="v-thetaDA"></span></div>
       <input type="range" id="thetaDA" min="1.05" max="1.60" step="0.01" value="1.30"></div>
-    <div class="ctl"><div class="lab"><span>EFF</span><span class="v" id="v-thetaEFF"></span></div>
+    <div class="ctl"><div class="lab"><span>EFF ●</span><span class="v" id="v-thetaEFF"></span></div>
       <input type="range" id="thetaEFF" min="0.55" max="1.10" step="0.01" value="0.85"></div>
-    <div class="ctl"><div class="lab"><span>MK</span><span class="v" id="v-thetaMK"></span></div>
+    <div class="ctl"><div class="lab"><span>MK ●</span><span class="v" id="v-thetaMK"></span></div>
       <input type="range" id="thetaMK" min="0.30" max="1.00" step="0.01" value="0.60"></div>
-    <div class="ctl"><div class="lab"><span>ActionSA</span><span class="v" id="v-thetaASA"></span></div>
+    <div class="ctl"><div class="lab"><span>ActionSA ○</span><span class="v" id="v-thetaASA"></span></div>
       <input type="range" id="thetaASA" min="0.90" max="3.00" step="0.05" value="1.50"></div>
+    <div class="ctl"><div class="lab"><span>PA</span><span class="v" id="v-thetaPA"></span></div>
+      <input type="range" id="thetaPA" min="1.00" max="2.20" step="0.05" value="1.40"></div>
   </div>
 
   <div class="cgroup">
@@ -189,7 +193,7 @@
     beyond the ranges above. Polls are opt-in: pick one, say how much you believe it, and the
     party levels tilt toward its numbers. Every poll is linked to its source, with its health
     warning attached.</div>
-    <div class="ctl"><div class="lab"><span>Trust in the fifteen by-elections</span><span class="v" id="v-wBye"></span></div>
+    <div class="ctl"><div class="lab"><span>By-elections' influence (skews toward their results)</span><span class="v" id="v-wBye"></span></div>
       <input type="range" id="wBye" min="0" max="1" step="0.05" value="0.40"></div>
     <div class="ctl"><div class="lab"><span>Poll</span></div>
       <select id="pollPick" style="width:100%"><option value="">No poll — history and by-elections only</option></select></div>
@@ -200,26 +204,29 @@
   </div>
 
   <div class="cgroup">
-    <h3>Shared voter pools</h3>
-    <div class="why">The DA and ActionSA fish in one pool of voters; the ANC, EFF and MK in
-    another. One's gain is partly another's loss, so the simulations move each pool together
-    and then split it. Lower the dial and the split gets wilder. This is why DA+ActionSA's
-    combined seats are far more predictable than ActionSA's own.</div>
-    <div class="ctl"><div class="lab"><span>How predictably the ANC camp splits</span><span class="v" id="v-alphaANC"></span></div>
+    <h3>Voting blocs</h3>
+    <div class="why">A <b>bloc</b> is a set of parties fishing in the same pool of voters, so
+    one's gain is partly another's loss: <b>●&nbsp;the ANC bloc</b> (ANC, EFF, MK) and
+    <b>○&nbsp;the DA bloc</b> (DA, ActionSA, plus tiny BOSA). Each simulation draws a bloc's
+    total first, then splits it. These dials set how <em>predictable</em> the split is — a
+    judgement, not a measurement, which is exactly why you can move it. Looser = wilder
+    reshuffles inside the bloc.</div>
+    <div class="ctl"><div class="lab"><span>● ANC bloc — split predictability</span><span class="v" id="v-alphaANC"></span></div>
       <input type="range" id="alphaANC" min="10" max="150" step="5" value="60"></div>
-    <div class="ctl"><div class="lab"><span>How predictably the DA camp splits</span><span class="v" id="v-alphaDA"></span></div>
+    <div class="ctl"><div class="lab"><span>○ DA bloc — split predictability</span><span class="v" id="v-alphaDA"></span></div>
       <input type="range" id="alphaDA" min="4" max="60" step="2" value="12"></div>
   </div>
 
   <div class="cgroup">
-    <h3>The two ballots</h3>
-    <div class="why">Seats follow ward and list votes added together, and voters split their
-    tickets. Most parties' split is measured from 2021 — these two need a judgement call: MK
-    never contested a local election, and the PA plans to stand in far more wards than
-    before.</div>
-    <div class="ctl"><div class="lab"><span>MK's strength on the ward ballot</span><span class="v" id="v-mkRatio"></span></div>
+    <h3>No local track record</h3>
+    <div class="why">Two judgements no history can settle. MK has never fought a local election:
+    at <b>1.0</b> its ward-ballot vote matches its list vote; below, its voters back it on the
+    list but drift elsewhere in ward races. The PA stood in only 52 of 135 wards in 2021: at
+    <b>1.0</b> the same footprint, above it the party captures more ward votes by standing more
+    widely.</div>
+    <div class="ctl"><div class="lab"><span>MK on the ward ballot (1.0 = matches its list vote)</span><span class="v" id="v-mkRatio"></span></div>
       <input type="range" id="mkRatio" min="0.50" max="1.20" step="0.05" value="0.80"></div>
-    <div class="ctl"><div class="lab"><span>PA stands in more wards than 2021</span><span class="v" id="v-paUplift"></span></div>
+    <div class="ctl"><div class="lab"><span>PA's new-ward push (1.0 = 2021 footprint)</span><span class="v" id="v-paUplift"></span></div>
       <input type="range" id="paUplift" min="1.00" max="2.00" step="0.05" value="1.25"></div>
   </div>
 
@@ -281,6 +288,19 @@
   </section>
 
   <section>
+    <div class="eyebrow">Your map</div>
+    <h2>Who wins each ward — under your settings</h2>
+    <figure>
+      <svg id="usermap" role="img" aria-label="Ward map under your scenario"
+        style="width:100%;height:auto;display:block"></svg>
+      <div id="ivtip" style="position:fixed;display:none;pointer-events:none;z-index:9;
+        font:12px/1.4 ui-sans-serif,system-ui;background:var(--ink);color:var(--paper);
+        padding:6px 10px;border-radius:4px;max-width:300px"></div>
+      <figcaption id="usermapcap"></figcaption>
+    </figure>
+  </section>
+
+  <section>
     <div class="eyebrow">Coalition arithmetic — fully enumerated</div>
     <h2>What can govern</h2>
     <div class="tablewrap"><table>
@@ -300,9 +320,10 @@
     </div>
     <div class="note">
       <h3>Who can play kingmaker</h3>
-      <p class="small">How often a party's walking out would break a winning coalition — the real
-      measure of bargaining power, and why a 10% party is not a 10% actor. (For the technically
-      minded: the Banzhaf index.)</p>
+      <p class="small">Read each bar as: <b>of all the winning deals your simulations allow, the
+      share that collapse if this party walks out</b>. ActionSA at 10% means one winning deal in
+      ten needs it — real bargaining power no vote share reveals. (For the technically minded:
+      the Banzhaf index, averaged across simulations.)</p>
       <div class="tablewrap"><table style="min-width:0"><tbody id="power"></tbody></table></div>
     </div>
   </section>
@@ -430,10 +451,10 @@ DATA.wards.forEach((w,wi)=>{
 });
 
 /* ---------- controls ---------- */
-const ctlIds=["thetaANC","thetaDA","thetaEFF","thetaMK","thetaASA","wBye","pollWeight",
+const ctlIds=["thetaANC","thetaDA","thetaEFF","thetaMK","thetaASA","thetaPA","wBye","pollWeight",
   "alphaANC","alphaDA","mkRatio","paUplift","turnoutBlend","turnoutNoise",
   "entrantProb","entrantMode"];
-const DEFAULT_CFG={thetaANC:0.75,thetaDA:1.30,thetaEFF:0.85,thetaMK:0.60,thetaASA:1.50,
+const DEFAULT_CFG={thetaANC:0.75,thetaDA:1.30,thetaEFF:0.85,thetaMK:0.60,thetaASA:1.50,thetaPA:1.40,
   wBye:0.40,pollPick:"",pollWeight:0.5,alphaANC:60,alphaDA:12,mkRatio:0.80,paUplift:1.25,
   turnoutBlend:0.5,turnoutNoise:0.08,entrantProb:0.25,entrantMode:0.04};
 const PRESETS={
@@ -470,7 +491,7 @@ const THETA_BOSA=0.80;
 
 function centres(cfg){
   const modes={ANC:cfg.thetaANC,DA:cfg.thetaDA,EFF:cfg.thetaEFF,MK:cfg.thetaMK,
-    ASA:cfg.thetaASA,BOSA:THETA_BOSA};
+    ASA:cfg.thetaASA,BOSA:THETA_BOSA,PA:cfg.thetaPA};
   const out=new Float64Array(N);
   P.forEach((p,i)=>{
     let m;
@@ -556,6 +577,7 @@ function run(cfg,nDraws,seed){
   }
 
   const seatsAll=new Int32Array(nDraws*N);
+  const wardWinCounts=new Int32Array(W*N);
   const thr=new Int32Array(nDraws), council=new Int32Array(nDraws);
   const winsSum=new Float64Array(N); let overhangDraws=0; const overhangBy=new Float64Array(N);
 
@@ -625,6 +647,7 @@ function run(cfg,nDraws,seed){
         if(v>best){best=v;bi=i;}
       }
       winsArr[bi]++;
+      wardWinCounts[w*N+bi]++;
     }
 
     // --- seats: combined share = mean of the two ballot targets (exact) ---
@@ -656,7 +679,7 @@ function run(cfg,nDraws,seed){
     for(let i=0;i<N;i++){seatsAll[d*N+i]=seats[i];winsSum[i]+=winsArr[i];}
     thr[d]=th;council[d]=cSize;
   }
-  return {seatsAll,thr,council,winsSum,overhangDraws,overhangBy,nDraws};
+  return {seatsAll,thr,council,winsSum,overhangDraws,overhangBy,nDraws,wardWinCounts};
 }
 
 /* ---------- analysis ---------- */
@@ -772,6 +795,7 @@ function analyse(res){
   const largestArr=[...largest.entries()].sort((a,b)=>b[1]-a[1]);
 
   return {perParty:perParty.sort((a,b)=>b.mean-a.mean),rows,mwc,power,minority,
+    wardWinCounts:res.wardWinCounts,nDraws,
     pAncDa:winP(ancda),thrMed:thrQ.med,pOver:res.overhangDraws/nDraws,
     largestName:NAME[largestArr[0][0]],largestP:largestArr[0][1]/nDraws,
     pNoBloc:fw/nDraws};
@@ -826,18 +850,6 @@ function render(a,cfg){
       <td style="width:30%"><div class="pbar"><i style="width:${Math.max(r.p*100,0.6)}%"></i></div></td>
       <td class="num">${fmtP(r.p)}</td></tr>`).join("");
 
-  // scenario JSON for the Python model
-  const scen={
-    theta_mode:{ANC:cfg.thetaANC,EFF:cfg.thetaEFF,MK:cfg.thetaMK,DA:cfg.thetaDA,ASA:cfg.thetaASA,BOSA:THETA_BOSA},
-    w_bye:cfg.wBye,poll_id:cfg.pollPick||null,poll_weight:cfg.pollPick?cfg.pollWeight:0,
-    alpha_anc:cfg.alphaANC,alpha_da:cfg.alphaDA,
-    ward_pr_ratio_overrides:{MK:cfg.mkRatio,ENTRANT:0.8},
-    pa_contestation_uplift:cfg.paUplift,
-    turnout_pattern_blend:cfg.turnoutBlend,turnout_noise_sd:cfg.turnoutNoise,
-    entrant_prob:cfg.entrantProb,entrant_share:[0.01,cfg.entrantMode,0.12],
-    overhang_rule:"deduct",
-  };
-  document.getElementById("scenarioJson").value=JSON.stringify(scen,null,1);
 
   // derived read-out
   const cent=centres(cfg),blocs=blocSpec(cfg,cent);
@@ -849,6 +861,51 @@ function render(a,cfg){
     (REF?`<br>Python reference at defaults (5,000 draws): DA ${REF.parties.DA.median}, ANC ${REF.parties.ANC.median}, `+
     `ASA ${REF.parties.ASA.median}, threshold ${REF.threshold_median}, P(ANC+DA) ${(REF.structural["P(ANC+DA is winning)"]*100).toFixed(0)}%`:"");
 }
+
+function drawUserMap(a){
+  const mp=DATA.ward_map; const el=document.getElementById("usermap");
+  if(!mp||!el)return;
+  el.setAttribute("viewBox",`0 0 ${mp.W} ${mp.H}`);
+  const wardIdx={}; DATA.wards.forEach((w,i)=>wardIdx[w.w]=i);
+  const tiers={solid:0,strong:0,lean:0,grey:0};
+  let defs="",body="";const seen={};
+  for(const [wno,d] of Object.entries(mp.paths)){
+    const wi=wardIdx[wno];
+    if(wi===undefined){body+=`<path d="${d}" fill="#9aa09a" stroke="var(--paper)" stroke-width="0.8"></path>`;continue;}
+    const counts=[];let tot=0;
+    for(let i=0;i<N;i++){const c=a.wardWinCounts[wi*N+i];if(c>0){counts.push([i,c]);tot+=c;}}
+    counts.sort((x,y)=>y[1]-x[1]);
+    const [bi,bc]=counts[0];const pw=bc/tot;
+    const share=counts.filter(([i,c])=>c/tot>=0.05)
+      .map(([i,c])=>`${NAME[i]} ${(c/tot*100).toFixed(0)}%`).join(" · ");
+    const other=counts.filter(([i,c])=>c/tot<0.05).reduce((s,[i,c])=>s+c,0)/tot;
+    const tip=`Ward ${wno} — ${share}${other>=0.005?` · other ${(other*100).toFixed(0)}%`:""}`;
+    let fill=CHIP[bi],cls="solid";
+    if(pw<0.60){fill="#9aa09a";cls="grey";}
+    else if(pw<0.75)cls="lean"; else if(pw<0.90)cls="strong";
+    tiers[cls]++;
+    body+=`<path d="${d}" fill="${fill}" stroke="var(--paper)" stroke-width="0.8" data-tip="${tip}"></path>`;
+    if(cls==="strong"||cls==="lean"){
+      const ch=counts[1]?CHIP[counts[1][0]]:"#9aa09a";
+      const pid=`uh_${cls}_${ch.replace("#","")}`;
+      if(!seen[pid]){seen[pid]=1;
+        defs+=`<pattern id="${pid}" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6" stroke="${ch}" stroke-width="${cls==="lean"?3.0:1.6}"/></pattern>`;}
+      body+=`<path d="${d}" fill="url(#${pid})" pointer-events="none"></path>`;
+    }
+  }
+  const labels=mp.labels.map(l=>`<text x="${l.x}" y="${l.y}" text-anchor="middle" style="font:650 11px ui-sans-serif,system-ui;letter-spacing:.08em;text-transform:uppercase;fill:var(--ink);stroke:var(--paper);stroke-width:3px;paint-order:stroke;pointer-events:none">${l.t}</text>`).join("");
+  el.innerHTML=`<defs>${defs}</defs>${body}${labels}`;
+  document.getElementById("usermapcap").textContent=
+    `Solid = won in ≥90% of your simulations (${tiers.solid} wards) · fine stripes = 75–90% (${tiers.strong}) · bold stripes = 60–75% (${tiers.lean}) · grey = toss-up (${tiers.grey}). Stripes take the challenger's colour. Hover a ward for its numbers.`;
+}
+(function(){
+  const tip=document.getElementById("ivtip");
+  if(tip)document.addEventListener("mousemove",function(e){
+    const s=e.target.getAttribute&&e.target.getAttribute("data-tip");
+    if(s){tip.textContent=s;tip.style.display="block";
+      tip.style.left=(e.clientX+14)+"px";tip.style.top=(e.clientY+14)+"px";}
+    else tip.style.display="none";});
+})();
 
 /* ---------- wiring ---------- */
 let running=false;
@@ -863,6 +920,7 @@ function go(){
     const res=run(cfg,nDraws,20261104);
     const a=analyse(res);
     render(a,cfg);
+    drawUserMap(a);
     document.getElementById("status").textContent=
       nDraws.toLocaleString()+" simulations in "+((performance.now()-t0)/1000).toFixed(1)+"s";
     running=false;
