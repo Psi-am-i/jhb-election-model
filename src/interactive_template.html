@@ -323,7 +323,8 @@
     <b>Stability</b> = how much internal dissent the coalition can bear: the share of all its
     councillors who could defect on a vote without sinking it, with each partner's own ceiling
     beneath — at 100%, that partner can vote no en bloc and change nothing. <b>Survives</b> =
-    departures the coalition can absorb, with replacements named where they exist.</p>
+    each partner's exit, called: survivable outright, survivable with the named replacement
+    stepping in, or fatal — “breaks it”.</p>
     <div class="tablewrap"><table>
       <thead><tr><th>Combination</th><th class="num">Seats (mid)</th><th class="num">Cushion</th>
         <th>Stability</th><th>Survives</th></tr></thead>
@@ -341,10 +342,11 @@
     </div>
     <div class="note">
       <h3>Who can play kingmaker</h3>
-      <p class="small">Read each bar as: <b>of all the winning deals your simulations allow, the
-      share that collapse if this party walks out</b>. ActionSA at 10% means one winning deal in
-      ten needs it — real bargaining power no vote share reveals. (For the technically minded:
-      the Banzhaf index, averaged across simulations.)</p>
+      <p class="small">Read each bar as: <b>this party's share of the power to break winning
+      deals</b> — count every case where one party's walk-out would collapse a possible majority,
+      and the bar is the share of those break-points this party holds. ActionSA at 10% holds one
+      in ten of them — real bargaining power no vote share reveals. (For the technically minded:
+      the normalised Banzhaf index, averaged across simulations.)</p>
       <div class="tablewrap"><table style="min-width:0"><tbody id="power"></tbody></table></div>
     </div>
   </section>
@@ -395,20 +397,13 @@
     </div>
   </div>
 
-  <section>
-    <div class="eyebrow">Reproduce this exactly</div>
-    <h2>Scenario file</h2>
-    <p class="small">This JSON reproduces your current sliders in the full 865-district Python
-    model: <code style="font-family:var(--mono)">python src/montecarlo.py --config scenario.json</code></p>
-    <textarea id="scenarioJson" readonly></textarea>
-  </section>
-
   <div class="colophon" id="colophon">
     Sources: IEC voting-district results (2011–2024 elections, 2021–2026 by-elections, 15 CoJ
     contests weighted per plan §3.6); Municipal Demarcation Board 2026 boundaries; Stats SA Census
     2022 ward estimates (turnout sub-model only). Seat allocation per Municipal Structures Act
-    Schedule 1; overhang treatment per plan §3.7, statutory fine print unverified against an IEC
-    worked example (toggle bounds its effect). This page runs the model at ward resolution —
+    Schedule 1 as amended by Act 3 of 2021 — the excessive-seats rule keeps the council at 270,
+    verified against the IEC's Laingsburg 2021 worked example. This page runs the model at ward
+    resolution —
     citywide seat arithmetic is exact; ward winners approximate the 865-district model, reference
     figures from the Python run are shown in the status line. Full methodology, validation and
     review history in the project repository. Free to reproduce with attribution.
@@ -693,26 +688,28 @@ function run(cfg,nDraws,seed){
     for(let i=0;i<N;i++)votesInt[i]=Math.round((target[i]+wardT[i])*totalV); // ×2 votes /2 share
     const {seats}=allocate(votesInt,270);
     let over=0;
-    for(let i=0;i<N;i++)if(winsArr[i]>seats[i])over+=winsArr[i]-seats[i];
+    for(let i=0;i<N;i++)if(winsArr[i]>0&&winsArr[i]>=seats[i])over++;
     let cSize=270,th=136;
     if(over>0){
       overhangDraws++;
-      for(let i=0;i<N;i++)if(winsArr[i]>seats[i])overhangBy[i]++;
       {
-        // Schedule 1 item 16(3)-(9), as applied in Laingsburg 2021: the
-        // excessive party keeps its wards and gets no list seats; everyone
-        // else is re-allocated over the remaining seats. Council stays 270.
+        // Schedule 1 item 16(1),(3)-(9) as amended by Act 3/2021, as the IEC
+        // applied it in Laingsburg 2021: a party whose ward wins equal or
+        // exceed its entitlement keeps its wards and gets no list seats;
+        // everyone else is re-allocated over the remaining seats. Council
+        // stays 270. Equality triggers per 16(1) "equal to or greater"
+        // (MODEL-LOG 1.19); cascade rounds count as excessive too.
         const isFixed=new Uint8Array(N);
         const v2=Float64Array.from(votesInt);
         let pool=270, s2=seats;
         for(;;){
           let newly=false;
-          for(let i=0;i<N;i++)if(!isFixed[i]&&winsArr[i]>s2[i]){
+          for(let i=0;i<N;i++)if(!isFixed[i]&&winsArr[i]>0&&winsArr[i]>=s2[i]){
             isFixed[i]=1;v2[i]=0;pool-=winsArr[i];newly=true;}
           if(!newly)break;
           s2=allocate(v2,pool).seats;
         }
-        for(let i=0;i<N;i++)seats[i]=isFixed[i]?winsArr[i]:s2[i];
+        for(let i=0;i<N;i++){seats[i]=isFixed[i]?winsArr[i]:s2[i];if(isFixed[i])overhangBy[i]++;}
       }
     }
     for(let i=0;i<N;i++){seatsAll[d*N+i]=seats[i];winsSum[i]+=winsArr[i];}
@@ -788,7 +785,7 @@ function analyse(res){
       const low=mm&-mm;const pi=31-Math.clz32(low);
       const surv=winP(r.m^low);
       let rescue=null;
-      if(surv<0.10){
+      if(surv<0.5){
         for(let j=0;j<nT;j++){
           if(r.m&(1<<j))continue;
           const restore=winP((r.m^low)|(1<<j));
@@ -872,6 +869,7 @@ function analyse(res){
   return {perParty:perParty.sort((a,b)=>b.mean-a.mean),rows,mwc,power,minority,
     wardWinCounts:res.wardWinCounts,nDraws,
     pAncDa:winP(ancda),thrMed:thrQ.med,pOver:res.overhangDraws/nDraws,
+    pOverAnc:res.overhangBy[idx.ANC]/nDraws,
     largestName:NAME[largestArr[0][0]],largestP:largestArr[0][1]/nDraws,
     pNoBloc:fw/nDraws};
 }
@@ -884,7 +882,7 @@ function render(a,cfg){
     {n:fmtP(a.pAncDa),l:"Chance an ANC\u2013DA pairing reaches a majority \u2014 the only two-party combination that reliably can",hero:true},
     {n:fmtP(a.largestP),l:`Chance ${a.largestName} is the largest single party`},
     {n:a.thrMed.toFixed(0),l:"Majority threshold \u2014 fixed: the excessive-seats law keeps the council at 270"},
-    {n:fmtP(a.pOver),l:"Chance the ANC triggers the excessive-seats clause \u2014 keeps every ward, zero list seats, everyone else squeezed"},
+    {n:fmtP(a.pOverAnc),l:"Chance the ANC triggers the excessive-seats clause \u2014 keeps every ward, zero list seats, everyone else squeezed"},
     {n:fmtP(a.pNoBloc),l:"Chance a majority exists without the ANC, EFF and MK together"},
     {n:fmtP(a.minority[0].p),l:"Chance a DA minority government is viable \u2014 if only the ANC votes against, as in 2021"},
   ];
@@ -915,9 +913,10 @@ function render(a,cfg){
   };
   const survives=r=>{
     if(!r.walk)return "—";
-    const parts=r.walk.filter(w=>w.surv>=0.5||w.rescue).map(w=>
-      w.surv>=0.5?`${w.name} exit`:`${w.name} exit (${w.rescue.name} steps in)`);
-    return parts.length?parts.join("; "):"none";
+    return r.walk.map(w=>
+      w.surv>=0.5?`${w.name} exit`:
+      w.rescue?`${w.name} exit (${w.rescue.name} steps in)`:
+      `${w.name} exit breaks it`).join("; ");
   };
   document.getElementById("coalitions").innerHTML=shown.map(r=>`
     <tr class="${r.key?"key":""}"><td>${r.label}</td>
@@ -926,13 +925,14 @@ function render(a,cfg){
       <td style="font-size:12px">${stability(r)}</td>
       <td style="font-size:12px">${survives(r)}</td></tr>`).join("");
   const near=a.rows.filter(r=>r.p<0.5&&r.p>0.05).sort((x,y)=>y.p-x.p).slice(0,5);
-  document.getElementById("coalitionNote").textContent=near.length?
-    "Checked but short of the numbers in most of your simulations: "+
-    near.map(r=>`${r.label} (median ${r.med.toFixed(0)})`).join(" · ")+".":
-    "Every other combination checked falls short of a majority in most of your simulations.";
   document.getElementById("coalitionNote").textContent=
     "Every pair and triple was checked — the rows above are the named references plus the "+
-    "strongest discovered combinations. Majority is judged against each simulation's own threshold.";
+    "strongest discovered combinations. "+
+    (near.length?
+      "Checked but short of the numbers in most of your simulations: "+
+      near.map(r=>`${r.label} (median ${r.med.toFixed(0)})`).join(" · ")+". ":"")+
+    "“Others” and “New entrant” stand in for many small lists, not one "+
+    "signable partner.";
 
   document.getElementById("mwc").innerHTML=a.mwc.map(r=>`
     <tr><td style="font-size:12.5px">${r.label}</td><td class="num">${fmtP(r.p)}</td></tr>`).join("");
