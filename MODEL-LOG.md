@@ -569,6 +569,35 @@ Sources: francesbaard.gov.za consolidated Structures Act PDF; PMG
 Act 3 of 2021 PDF; results.elections.org.za LGEPublicReports/1091/Seat
 Calculation Detail/WP/WC051.pdf; copies in the session scratchpad.
 
+### 1.18 Audit defaults adopted; blocs shown to be reservoirs, not pipes ✅
+
+**Defaults adopted (2026-08-06),** per the audit suite in §1.16: `ward_noise_sd`
+0.10 (winner-calling was deterministic per draw), `level_floor` 1e-6 (micro
+floor artefact), and the deduct statute per §1.17. Poll evidence moved from the
+two-endpoint `polling_lean` to a register (`polls.json`) consumed by both the
+model (`poll_id`/`poll_weight`) and the interactive's poll picker, every poll
+carrying source URL and caveat. Current published run: DA 79 (53–100), ANC 75,
+ASA 25, MK 19–20, PA 13; threshold 136 fixed; P(ANC+DA) 86.5%; DA largest 61%;
+DA ward wins soften ~57→49 under noise (its leads are narrow where the ANC's
+are deep).
+
+**Bloc leakage measured (2026-08-06), now a headline on the site.** Per-VD
+bloc vote-count changes across transitions:
+
+| transition | ANC-bloc Δ votes | DA-bloc Δ votes | capture of shed votes | VD-level r |
+|---|---|---|---|---|
+| 2019 NPE → 2021 LGE | −586,775 | −51,587 | **−8.8%** (negative!) | −0.39 |
+| 2021 LGE → 2024 NPE | +399,253 | +54,190 | n/a (ANC regained) | +0.07 |
+
+In the ANC bloc's record collapse, the DA bloc captured **none** of the
+587k shed votes — its own count fell despite ActionSA's arrival at 18%. The
+opposition's share surge was pure turnout composition. Supports the model's
+watertight-bloc structure (levels drawn per bloc, no cross-flow mechanism);
+caveat: Ward 130 (ASA 22.7% in a stronghold at 32% turnout) and SRF-July's
+ANC 18 would require genuine crossing — 2026 may be the first real test.
+Published as "When the ANC falls, nobody catches the votes" (forecast) and in
+the interactive's Voting-blocs explainer.
+
 ## 2. Obstacles and how they were handled
 
 | # | Obstacle | Resolution | Status |
