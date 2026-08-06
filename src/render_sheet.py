@@ -117,20 +117,49 @@ def main(argv: list[str] | None = None) -> int:
                 f'text-transform:uppercase;color:var(--ink-3)">{label}</div>'
                 f'<div style="display:flex;height:26px;border-radius:3px;overflow:hidden">{segs}</div></div>')
 
-    wardsb, listb, totb = [], [], []
-    other_w = other_l = other_t = 0
-    for pty, v in sorted(summary["parties"].items(), key=lambda kv: -kv[1]["median"]):
-        med = round(v["median"]); wins = round(v.get("ward_wins_mean", 0))
-        lst = max(med - wins, 0)
-        nm = NAMES.get(pty); col = CHIPS.get(pty)
-        if nm and col and med >= 3:
-            if wins: wardsb.append((nm, wins, col))
-            if lst: listb.append((nm, lst, col))
-            totb.append((nm, med, col))
-        else:
-            other_w += wins; other_l += lst; other_t += med
-    for arr, n in ((wardsb, other_w), (listb, other_l), (totb, other_t)):
-        if n: arr.append(("Smaller parties", n, "#8b918b"))
+    # Bars must sum exactly as the headline claims (135 + 135 = 270): named
+    # parties plus a "Smaller parties" bucket are rounded with largest
+    # remainder to the exact bar totals, and list = council − wards so the
+    # three bars are mutually consistent by construction.
+    def round_to_total(vals: dict[str, float], total: int) -> dict[str, int]:
+        floors = {k: int(v) for k, v in vals.items()}
+        rem = total - sum(floors.values())
+        for k in sorted(vals, key=lambda q: floors[q] - vals[q])[:max(rem, 0)]:
+            floors[k] += 1
+        return floors
+
+    OTHER = "__other__"
+    named = [(pty, v) for pty, v in sorted(summary["parties"].items(),
+                                           key=lambda kv: -kv[1]["median"])
+             if NAMES.get(pty) and CHIPS.get(pty) and round(v["median"]) >= 3]
+    ward_raw = {pty: float(v.get("ward_wins_mean", 0.0)) for pty, v in named}
+    tot_raw = {pty: float(v["median"]) for pty, v in named}
+    ward_raw[OTHER] = max(135.0 - sum(ward_raw.values()), 0.0)
+    tot_raw[OTHER] = max(270.0 - sum(tot_raw.values()), 0.0)
+    ward_n = round_to_total(ward_raw, 135)
+    tot_n = round_to_total(tot_raw, 270)
+    list_n = {k: max(tot_n[k] - ward_n[k], 0) for k in tot_n}
+    list_n[OTHER] = max(list_n[OTHER] + 135 - sum(list_n.values()), 0)
+
+    def seg(k):
+        return ("Smaller parties", "#8b918b") if k == OTHER else (NAMES[k], CHIPS[k])
+    order = [pty for pty, _ in named] + [OTHER]
+    wardsb = [(seg(k)[0], ward_n[k], seg(k)[1]) for k in order if ward_n.get(k, 0) > 0]
+    listb = [(seg(k)[0], list_n[k], seg(k)[1]) for k in order if list_n.get(k, 0) > 0]
+    totb = [(seg(k)[0], tot_n[k], seg(k)[1]) for k in order if tot_n.get(k, 0) > 0]
+
+    anc_list = list_n.get("ANC", 0)
+    if anc_list == 0:
+        anc_note = ("Note the ANC's list bar: <b>zero</b>. Its ward wins meet its full "
+                    "proportional share, so the excessive-seats clause strips its list seats "
+                    "entirely and everyone else's shrink to fit")
+    else:
+        n_word = "a single seat" if anc_list == 1 else f"just {anc_list} seats"
+        anc_note = (f"Note the ANC's list bar: <b>{n_word}</b>. Its ward wins soak up nearly "
+                    "its whole proportional share, leaving next to nothing to come off the list")
+    ballots_caption = (f"Hover a segment for its seats. {anc_note} — while ActionSA, with "
+                       "broad support but no stronghold wards, lives almost wholly on the "
+                       "list. Two opposite ways of turning votes into seats, in one city.")
     strip = f"""<!-- __BALLOTS_START__ -->
   <section>
     <div class="eyebrow">The arithmetic — two ballots, one council</div>
@@ -140,11 +169,7 @@ def main(argv: list[str] | None = None) -> int:
       {bar(listb, 135, "+ List seats — topping parties up to their share")}
       {bar(totb, 270, "= The council")}
     </div>
-    <figcaption>Hover a segment for its seats. Note the ANC's list bar: <b>zero</b>. Its ward
-    wins exceed its proportional share, so the excessive-seats clause strips its list seats
-    entirely and everyone else's shrink to fit — while ActionSA, with broad support but no
-    stronghold wards, lives almost wholly on the list. Two opposite ways of turning votes into
-    seats, in one city.</figcaption>
+    <figcaption>{ballots_caption}</figcaption>
   </section>
   <!-- __BALLOTS_END__ -->"""
     for tgt in (Path("forecast-sheet.html"), Path("drafts/forecast-draft.html")):
