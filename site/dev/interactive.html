@@ -895,13 +895,11 @@ function render(a,cfg){
 
   const walkLine=r=>{
     if(!r.walk||r.p<0.15)return "";
-    const optional=r.walk.filter(w=>w.surv>=0.5).map(w=>w.name);
-    const rescues=r.walk.filter(w=>w.rescue).map(w=>
-      `if ${w.name} walks, ${w.rescue.name} could replace them${w.rescue.samePool?" (same pool)":""}`);
-    const bits=[];
-    if(optional.length)bits.push(`${optional.join(" and ")} not strictly needed`);
-    if(rescues.length)bits.push(rescues.join(" · "));
-    if(!bits.length)bits.push("every partner is essential — any walk-out ends it");
+    const bits=r.walk.map(w=>{
+      if(w.surv>=0.5)return `if ${w.name} walks: still stands`;
+      if(w.rescue)return `if ${w.name} walks: ${w.rescue.name} could replace them${w.rescue.samePool?" (same pool)":""}`;
+      return `if ${w.name} walks: <b>broken</b>`;
+    });
     return `<div style="font-size:11.5px;color:var(--ink-3);margin-top:3px">${bits.join(" · ")}</div>`;
   };
   document.getElementById("coalitions").innerHTML=a.rows.map(r=>`
