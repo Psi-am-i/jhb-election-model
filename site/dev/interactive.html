@@ -311,18 +311,15 @@
   <section>
     <div class="eyebrow">Coalition arithmetic — fully enumerated</div>
     <h2>Who can govern</h2>
-    <p class="small"><b>These are mathematically possible majorities only</b> — no judgement about
-    who would actually sit in a room with whom, and the percentages are not "how likely this
-    government is": they say only how often the combination <em>has the numbers</em> across your
-    simulations. <b>Cushion</b> = median seats beyond the 136 needed, voting united. Every listed
-    partner is essential by construction; where a departed partner could be <em>replaced</em> to
-    keep the majority, the replacement is named. The cushion is also a <b>dissent budget</b>: a
-    coalition at +16 can have 16 of its own councillors rebel on any vote and still carry it —
-    and when the budget exceeds a junior partner's whole caucus, that partner can vote no en
-    bloc without sinking a motion.</p>
+    <p class="small"><b>Mathematically possible majorities only</b> — no judgement about who would
+    sit in a room with whom. Only combinations that hold a majority in most of your simulations
+    are shown; pairs first. <b>Cushion</b> = median seats beyond the 136 needed. <b>Dissent</b> =
+    the share of each partner's own councillors who could rebel on a vote without sinking it
+    (at 100%, that partner can vote no en bloc and change nothing). <b>Survives</b> = departures
+    the coalition can absorb, with the replacement named where one exists.</p>
     <div class="tablewrap"><table>
       <thead><tr><th>Combination</th><th class="num">Seats (mid)</th><th class="num">Cushion</th>
-        <th style="width:22%">Has the numbers in…</th><th class="num">of your sims</th></tr></thead>
+        <th>Dissent each partner can absorb</th><th>Survives</th></tr></thead>
       <tbody id="coalitions"></tbody>
     </table></div>
     <figcaption id="coalitionNote"></figcaption>
@@ -805,7 +802,9 @@ function analyse(res){
   for(let d=0;d<nDraws;d++){let s=0;
     for(let i=0;i<N;i++)if(!blocIdx.includes(i))s+=seatsAll[d*N+i];field[d]=s;}
   let fw=0;for(let d=0;d<nDraws;d++)if(field[d]>=thr[d])fw++;
-  rows.push({label:"Everything except ANC, EFF & MK",p:fw/nDraws,...quantiles(field),key:true});
+  const fieldRow={label:"Everything except ANC, EFF & MK",p:fw/nDraws,...quantiles(field),key:true};
+  fieldRow.cushion=fieldRow.med-136;
+  rows.push(fieldRow);
   rows.sort((a,b)=>b.p-a.p);
 
   // MWC on a subsample
@@ -896,29 +895,33 @@ function render(a,cfg){
       <div class="val"><b>${p.med.toFixed(0)}</b> <span style="color:var(--ink-3)">${p.lo.toFixed(0)}–${p.hi.toFixed(0)}</span></div>
     </div>`).join("");
 
-  const walkLine=r=>{
-    if(!r.walk||r.p<0.15)return "";
-    const bits=r.walk.map(w=>{
-      if(w.surv>=0.5)return `if ${w.name} walks: still stands`;
-      if(w.rescue)return `if ${w.name} walks: ${w.rescue.name} could replace them${w.rescue.samePool?" (same pool)":""}`;
-      return `if ${w.name} walks: <b>broken</b>`;
-    });
-    if(r.cushion>0&&r.walk.length){
-      const big=r.walk.reduce((x,y)=>y.med>x.med?y:x);
-      const small=r.walk.reduce((x,y)=>y.med<x.med?y:x);
-      let d=`dissent budget: ${r.cushion.toFixed(0)} rebel votes (${(r.cushion/big.med*100).toFixed(0)}% of ${big.name}'s caucus)`;
-      if(r.walk.length>1&&r.cushion>=small.med)
-        d+=` — ${small.name} alone can't sink a motion`;
-      bits.unshift(d);
-    }
-    return `<div style="font-size:11.5px;color:var(--ink-3);margin-top:3px">${bits.join(" · ")}</div>`;
+  const size=r=>r.m===undefined?99:((m)=>{let c=0;while(m){m&=m-1;c++;}return c;})(r.m);
+  const shown=a.rows.filter(r=>r.p>=0.5)
+    .sort((x,y)=>size(x)-size(y)||y.p-x.p);
+  const dissent=r=>{
+    if(!r.walk||r.cushion===undefined||r.cushion<=0)return "—";
+    return r.walk.map(w=>{
+      const pct=Math.min(100,r.cushion/w.med*100);
+      return `${w.name}&nbsp;${pct.toFixed(0)}%`;
+    }).join(" · ");
   };
-  document.getElementById("coalitions").innerHTML=a.rows.map(r=>`
-    <tr class="${r.key?"key":""}"><td>${r.label}${walkLine(r)}</td>
+  const survives=r=>{
+    if(!r.walk)return "—";
+    const parts=r.walk.filter(w=>w.surv>=0.5||w.rescue).map(w=>
+      w.surv>=0.5?`a ${w.name} exit`:`a ${w.name} exit (${w.rescue.name} steps in)`);
+    return parts.length?parts.join("; "):"no departures";
+  };
+  document.getElementById("coalitions").innerHTML=shown.map(r=>`
+    <tr class="${r.key?"key":""}"><td>${r.label}</td>
       <td class="num">${r.med.toFixed(0)}</td>
       <td class="num">${r.cushion!==undefined?(r.cushion>0?"+":"")+r.cushion.toFixed(0):"—"}</td>
-      <td><div class="pbar"><i style="width:${Math.max(r.p*100,0.6)}%"></i></div></td>
-      <td class="num">${fmtP(r.p)}</td></tr>`).join("");
+      <td style="font-size:12px">${dissent(r)}</td>
+      <td style="font-size:12px">${survives(r)}</td></tr>`).join("");
+  const near=a.rows.filter(r=>r.p<0.5&&r.p>0.05).sort((x,y)=>y.p-x.p).slice(0,5);
+  document.getElementById("coalitionNote").textContent=near.length?
+    "Checked but short of the numbers in most of your simulations: "+
+    near.map(r=>`${r.label} (median ${r.med.toFixed(0)})`).join(" · ")+".":
+    "Every other combination checked falls short of a majority in most of your simulations.";
   document.getElementById("coalitionNote").textContent=
     "Every pair and triple was checked — the rows above are the named references plus the "+
     "strongest discovered combinations. Majority is judged against each simulation's own threshold.";
