@@ -101,6 +101,7 @@
   th{font-size:10.5px;font-weight:650;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);
     text-align:left;padding:0 10px 6px 0;border-bottom:1px solid var(--rule);}
   th.num,td.num{text-align:right;padding-right:0;}
+  th.num:not(:last-child),td.num:not(:last-child){padding-right:18px;}
   td{padding:7px 10px 7px 0;border-bottom:1px solid var(--rule-soft);}
   td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;}
   tr.key td{background:var(--accent-soft);}
@@ -319,7 +320,7 @@
     the coalition can absorb, with the replacement named where one exists.</p>
     <div class="tablewrap"><table>
       <thead><tr><th>Combination</th><th class="num">Seats (mid)</th><th class="num">Cushion</th>
-        <th>Dissent each partner can absorb</th><th>Survives</th></tr></thead>
+        <th>Stability</th><th>Survives</th></tr></thead>
       <tbody id="coalitions"></tbody>
     </table></div>
     <figcaption id="coalitionNote"></figcaption>
@@ -898,24 +899,25 @@ function render(a,cfg){
   const size=r=>r.m===undefined?99:((m)=>{let c=0;while(m){m&=m-1;c++;}return c;})(r.m);
   const shown=a.rows.filter(r=>r.p>=0.5)
     .sort((x,y)=>size(x)-size(y)||y.p-x.p);
-  const dissent=r=>{
+  const stability=r=>{
     if(!r.walk||r.cushion===undefined||r.cushion<=0)return "—";
-    return r.walk.map(w=>{
-      const pct=Math.min(100,r.cushion/w.med*100);
-      return `${w.name}&nbsp;${pct.toFixed(0)}%`;
-    }).join(" · ");
+    const overall=Math.min(100,r.cushion/r.med*100);
+    const per=r.walk.map(w=>
+      `${w.name}&nbsp;${Math.min(100,r.cushion/w.med*100).toFixed(0)}%`).join(" · ");
+    return `<b>${overall.toFixed(0)}%</b> of its councillors can defect`+
+      `<div style="font-size:11px;color:var(--ink-3);margin-top:2px">${per}</div>`;
   };
   const survives=r=>{
     if(!r.walk)return "—";
     const parts=r.walk.filter(w=>w.surv>=0.5||w.rescue).map(w=>
-      w.surv>=0.5?`a ${w.name} exit`:`a ${w.name} exit (${w.rescue.name} steps in)`);
-    return parts.length?parts.join("; "):"no departures";
+      w.surv>=0.5?`${w.name} exit`:`${w.name} exit (${w.rescue.name} steps in)`);
+    return parts.length?parts.join("; "):"none";
   };
   document.getElementById("coalitions").innerHTML=shown.map(r=>`
     <tr class="${r.key?"key":""}"><td>${r.label}</td>
       <td class="num">${r.med.toFixed(0)}</td>
       <td class="num">${r.cushion!==undefined?(r.cushion>0?"+":"")+r.cushion.toFixed(0):"—"}</td>
-      <td style="font-size:12px">${dissent(r)}</td>
+      <td style="font-size:12px">${stability(r)}</td>
       <td style="font-size:12px">${survives(r)}</td></tr>`).join("");
   const near=a.rows.filter(r=>r.p<0.5&&r.p>0.05).sort((x,y)=>y.p-x.p).slice(0,5);
   document.getElementById("coalitionNote").textContent=near.length?
