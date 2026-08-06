@@ -205,11 +205,9 @@
   <div class="cgroup">
     <h3>Evidence weights</h3>
     <div class="why">Fifteen real by-elections since 2021 nudge each party's central level — never
-    beyond the ranges above. Polls are opt-in: pick one, say how much you believe it, and the
-    party levels tilt toward its numbers. Every poll is linked to its source, with its health
-    warning attached.</div>
-    <div class="ctl"><div class="lab"><span>By-elections' influence (skews toward their results)</span><span class="v" id="v-wBye"></span></div>
-      <input type="range" id="wBye" min="0" max="1" step="0.05" value="0.40"></div>
+    beyond the ranges above (their influence dial sits under Fine-tuning; default 0.40). Polls
+    are opt-in: pick one, say how much you believe it, and the party levels tilt toward its
+    numbers. Every poll is linked to its source, with its health warning attached.</div>
     <div class="ctl"><div class="lab"><span>Poll</span></div>
       <select id="pollPick" style="width:100%"><option value="">No poll — history and by-elections only</option></select></div>
     <div class="ctl" id="pollWeightRow" style="display:none">
@@ -219,25 +217,12 @@
   </div>
 
   <div class="cgroup">
-    <h3>Voting blocs</h3>
+    <h3>Bloc change</h3>
     <div class="why">A <b>bloc</b> is a set of parties fishing in the same pool of voters, so
     one's gain is partly another's loss:<br>
     <b>●&nbsp;the ANC bloc</b> (ANC, EFF, MK)<br>
     <b>○&nbsp;the DA bloc</b> (DA, ActionSA, plus tiny BOSA).<br>
-    Each simulation draws a bloc's total first, then splits it. These dials set how predictable
-    the split within the bloc is — a judgement, not a measurement, which is exactly why you can
-    move it. <b>Right</b> = the split stays close to the expected shares (the recent record, as
-    adjusted by your dials above). <b>Left</b> = wild reshuffles between the bloc's members,
-    same total.</div>
-    <div class="ctl"><div class="lab"><span>● ANC bloc — split predictability</span><span class="v" id="v-alphaANC"></span></div>
-      <input type="range" id="alphaANC" min="10" max="150" step="5" value="60"></div>
-    <div class="ctl"><div class="lab"><span>○ DA bloc — split predictability</span><span class="v" id="v-alphaDA"></span></div>
-      <input type="range" id="alphaDA" min="4" max="60" step="2" value="12"></div>
-  </div>
-
-  <div class="cgroup">
-    <h3>Bloc change</h3>
-    <div class="why">Since 2006, blocs barely leak into each other: in the ANC bloc's record 2021
+    Since 2006, blocs barely leak into each other: in the ANC bloc's record 2021
     collapse it shed <b>587,000 votes</b> — and the DA bloc captured none of them (its own count
     fell). Declines go to the couch, not across the aisle.<br><br>
     This dial is your bet on whether 2026 breaks that pattern. It is deliberately uncalibrated —
@@ -253,8 +238,8 @@
       <input type="range" id="blocLeak" min="-1" max="1" step="0.05" value="0"></div>
   </div>
 
-  <div class="cgroup">
-    <h3>Judgement calls with no history</h3>
+  <details class="cgroup">
+    <summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Judgement calls with no history</h3></summary>
     <div class="why">Two judgements no election record can settle.<br>
     <b>MK</b> has never fought a local election. At <b>1.0</b> it performs as well on the ward
     ballot as on its list vote; above 1.0 it excels in ward races; below, its voters back the
@@ -266,29 +251,51 @@
       <input type="range" id="mkRatio" min="0.50" max="1.20" step="0.05" value="0.80"></div>
     <div class="ctl"><div class="lab"><span>PA's wider slate: backfires ← → expands</span><span class="v" id="v-paUplift"></span></div>
       <input type="range" id="paUplift" min="0.70" max="2.00" step="0.05" value="1.25"></div>
-  </div>
+  </details>
 
   <div class="cgroup">
-    <h3>Turnout</h3>
+    <h3>Turnout — who shows up</h3>
     <div class="why">Our elections are proportional, so the turnout <em>level</em> cannot move a
     single seat — double everyone's turnout and every party's votes double with it; the seat
     formula cancels it exactly. Turnout only matters when <b>some voters show up more than
     others</b>. We built this model expecting exactly that to decide the city. It doesn't — and
-    these dials let you check us.<br><br>
-    What they do: every simulation gives each ward its own turnout, so ANC strongholds and DA
-    strongholds already rise and fall separately — and because turnout geography <em>is</em>
-    party geography here, that is differential turnout by bloc, not a universal tide.
-    <b>Turnout map</b> picks whose geography: left, the model's projection from the 2006–2024
-    record; right, an exact repeat of the record-low 2021 map — the election in which the
-    turnout gap, not vote-switching, produced the opposition's share surge. <b>Ward
-    surprise</b> scatters every ward around that map afresh each run.<br><br>
+    these sliders let you check us, and test the parties' own claims.<br><br>
+    Each slider moves its group of wards between two real anchors. <b>Stay home</b> = that
+    ward's worst local-election turnout on record. <b>All turn out</b> = its 2024
+    national-election turnout — which is what "all our voters" means in practice; local
+    turnout always runs far below it. Everyone else stays as usual.<br><br>
     The tested answer: even a ten-point turnout swing pushed across thirty ANC-leaning wards
     moves about <b>two seats</b>. Persuasion moves this city; mobilisation barely does.</div>
+    <div class="ctl"><div class="lab"><span>Voters in ANC-leaning wards: stay home ← as usual → all turn out</span><span class="v" id="v-turnoutANC"></span></div>
+      <input type="range" id="turnoutANC" min="-1" max="1" step="0.05" value="0"></div>
+    <div class="ctl"><div class="lab"><span>Voters in DA-leaning wards: stay home ← as usual → all turn out</span><span class="v" id="v-turnoutDA"></span></div>
+      <input type="range" id="turnoutDA" min="-1" max="1" step="0.05" value="0"></div>
+    <div class="presets" style="margin-top:6px">
+      <button data-preset="davote" title="The DA's own claim, testable: every DA voter turns out — DA-leaning wards at their 2024 national-election turnout, everyone else as usual.">Every DA voter turns out</button>
+      <button data-preset="ancmachine" title="The mirror: the ANC machine delivers — ANC-leaning wards at their 2024 national-election turnout, everyone else as usual.">The ANC machine delivers</button>
+    </div>
+  </div>
+
+  <details class="cgroup">
+    <summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Fine-tuning</h3></summary>
+    <div class="why">The statistical dials behind the headline controls. Each simulation draws a
+    bloc's total first, then splits it between members; the <b>split predictability</b> dials
+    set how tightly that split hugs the expected shares (right = tight, left = wild reshuffles,
+    same total). <b>By-elections' influence</b> is how hard the fifteen real by-elections since
+    2021 pull the party levels. <b>Turnout map</b> picks whose geography the baseline turnout
+    follows — the model's 2006–2024 projection or an exact repeat of the record-low 2021 map —
+    and <b>ward surprise</b> scatters every ward around it afresh each run.</div>
+    <div class="ctl"><div class="lab"><span>● ANC bloc — split predictability</span><span class="v" id="v-alphaANC"></span></div>
+      <input type="range" id="alphaANC" min="10" max="150" step="5" value="60"></div>
+    <div class="ctl"><div class="lab"><span>○ DA bloc — split predictability</span><span class="v" id="v-alphaDA"></span></div>
+      <input type="range" id="alphaDA" min="4" max="60" step="2" value="12"></div>
+    <div class="ctl"><div class="lab"><span>By-elections' influence (skews toward their results)</span><span class="v" id="v-wBye"></span></div>
+      <input type="range" id="wBye" min="0" max="1" step="0.05" value="0.40"></div>
     <div class="ctl"><div class="lab"><span>Turnout map: model's projection ← → repeat of 2021</span><span class="v" id="v-turnoutBlend"></span></div>
       <input type="range" id="turnoutBlend" min="0" max="1" step="0.05" value="0.5"></div>
     <div class="ctl"><div class="lab"><span>Ward surprise — run-to-run turnout scatter</span><span class="v" id="v-turnoutNoise"></span></div>
       <input type="range" id="turnoutNoise" min="0" max="0.20" step="0.01" value="0.08"></div>
-  </div>
+  </details>
 
   <div class="cgroup">
     <h3>Wildcards &amp; rules</h3>
@@ -502,8 +509,15 @@ P.forEach((p,i)=>{if(p.pr2021>0.001)ratioBase[i]=Math.min(Math.max(p.ward2021/p.
 const W=DATA.wards.length;
 const dev=new Float64Array(W*N);
 const wardVR=new Float64Array(W), wardVL=new Float64Array(W);
+const wardV24=new Float64Array(W), wardVLo=new Float64Array(W);
+const wardAncLean=new Uint8Array(W);
+const _aBloc=["ANC","EFF","MK"].map(c=>idx[c]).filter(i=>i!==undefined);
+const _dBloc=["DA","ASA","BOSA"].map(c=>idx[c]).filter(i=>i!==undefined);
 DATA.wards.forEach((w,wi)=>{
   wardVR[wi]=w.vr; wardVL[wi]=w.vl;
+  wardV24[wi]=w.v24??w.vl; wardVLo[wi]=w.vlo??w.vl;
+  let sa=0,sd=0;_aBloc.forEach(i=>sa+=w.s[i]??0);_dBloc.forEach(i=>sd+=w.s[i]??0);
+  wardAncLean[wi]=sa>=sd?1:0;
   for(let i=0;i<=CODES.length;i++){
     const s=w.s[i]??0;
     dev[wi*N+i]=logit(s)-logit(base[i]);
@@ -513,11 +527,23 @@ DATA.wards.forEach((w,wi)=>{
 
 /* ---------- controls ---------- */
 const ctlIds=["thetaANC","thetaDA","thetaEFF","thetaMK","thetaASA","thetaPA","wBye","pollWeight","blocLeak",
-  "alphaANC","alphaDA","mkRatio","paUplift","turnoutBlend","turnoutNoise",
+  "alphaANC","alphaDA","mkRatio","paUplift","turnoutANC","turnoutDA","turnoutBlend","turnoutNoise",
   "entrantProb","entrantMode"];
 const DEFAULT_CFG={thetaANC:0.75,thetaDA:1.30,thetaEFF:0.85,thetaMK:0.60,thetaASA:1.50,thetaPA:1.40,
   wBye:0.40,blocLeak:0,pollPick:"",pollWeight:0.5,alphaANC:60,alphaDA:12,mkRatio:0.80,paUplift:1.25,
-  turnoutBlend:0.5,turnoutNoise:0.08,entrantProb:0.25,entrantMode:0.04};
+  turnoutANC:0,turnoutDA:0,turnoutBlend:0.5,turnoutNoise:0.08,entrantProb:0.25,entrantMode:0.04};
+
+// registration-weighted group turnout rates for the who-shows-up readouts
+const _grp=(lean,arr)=>{let v=0,r=0;for(let w=0;w<W;w++)if(wardAncLean[w]===lean){v+=arr[w];r+=DATA.wards[w].reg;}return r?v/r:0;};
+const TO_GRP={
+  1:{usual:(_grp(1,wardVR)+_grp(1,wardVL))/2,hi:_grp(1,wardV24),lo:_grp(1,wardVLo)},
+  0:{usual:(_grp(0,wardVR)+_grp(0,wardVL))/2,hi:_grp(0,wardV24),lo:_grp(0,wardVLo)},
+};
+const tiltFmt=g=>v=>{
+  if(v===0)return "as usual ≈ "+(g.usual*100).toFixed(0)+"% turnout";
+  const t=v>0?g.usual+v*(g.hi-g.usual):g.usual+(-v)*(g.lo-g.usual);
+  return "≈ "+(t*100).toFixed(0)+"% turnout"+(v>=1?" — all turn out":v<=-1?" — stay home":"");
+};
 const PRESETS={
   default:{},
   nobye:{wBye:0,pollPick:"",pollWeight:0.5},
@@ -529,6 +555,8 @@ const PRESETS={
   asaup:{thetaASA:2.50,wBye:0.60},
   paup:{thetaPA:2.00,paUplift:1.75},
   pafall:{thetaPA:1.00,paUplift:0.85},
+  davote:{turnoutDA:1},
+  ancmachine:{turnoutANC:1},
 };
 function readCfg(){const c={};ctlIds.forEach(id=>c[id]=parseFloat(document.getElementById(id).value));
   c.pollPick=document.getElementById("pollPick").value;return c;}
@@ -543,6 +571,7 @@ function showVals(){
     thetaANC:share("ANC"),thetaDA:share("DA"),thetaEFF:share("EFF"),
     thetaMK:share("MK"),thetaASA:share("ASA"),thetaPA:share("PA"),
     mkRatio:v=>v.toFixed(2)+(v<0.75?" — collapses":v>1.0?" — excels":""),
+    turnoutANC:tiltFmt(TO_GRP[1]),turnoutDA:tiltFmt(TO_GRP[0]),
     paUplift:v=>"×"+v.toFixed(2)+(v<1.0?" — backfires":v>1.0?" — expands":" — 2021 footprint"),
     turnoutBlend:v=>v<=0?"model projection":v>=1?"repeat of 2021":(v*100).toFixed(0)+"% toward 2021",
     blocLeak:v=>v===0?"0 — history":v>0?(v*100).toFixed(0)+"% ANC→DA":(-v*100).toFixed(0)+"% DA→ANC",
@@ -658,7 +687,9 @@ function run(cfg,nDraws,seed){
   const target=new Float64Array(N), wardT=new Float64Array(N),
         theta=new Float64Array(N), pred=new Float64Array(W*N),
         wardVotes=new Float64Array(W), votesInt=new Float64Array(N),
-        winsArr=new Int32Array(N);
+        winsArr=new Int32Array(N),
+        wardTilt=new Float64Array(W), tiltShift=new Float64Array(N);
+  const anyTilt=cfg.turnoutANC!==0||cfg.turnoutDA!==0;
 
   for(let d=0;d<nDraws;d++){
     // --- citywide target ---
@@ -695,6 +726,13 @@ function run(cfg,nDraws,seed){
     for(let w=0;w<W;w++){
       const noise=Math.exp(normal(rng)*cfg.turnoutNoise-cfg.turnoutNoise*cfg.turnoutNoise/2);
       wardVotes[w]=((1-blend)*wardVR[w]+blend*wardVL[w])*noise;
+      // who-turns-out tilt is COMPOSITIONAL: within-ward shares stay as the
+      // scenario calibrated them (IPF below runs on the untilted weights);
+      // the tilt changes who casts votes, so the citywide result moves
+      let tv=wardVotes[w];
+      const tw=wardAncLean[w]?cfg.turnoutANC:cfg.turnoutDA;
+      if(tw)tv+=Math.abs(tw)*((tw>0?wardV24[w]:wardVLo[w])-tv);
+      wardTilt[w]=tv;
       totalV+=wardVotes[w];
     }
 
@@ -732,7 +770,12 @@ function run(cfg,nDraws,seed){
     }
 
     // --- seats: combined share = mean of the two ballot targets (exact) ---
-    for(let i=0;i<N;i++)votesInt[i]=Math.round((target[i]+wardT[i])*totalV); // ×2 votes /2 share
+    // under a turnout tilt, each party's combined vote is shifted by how its
+    // ward geography overlaps the surge/stay-home wards
+    if(anyTilt)for(let i=0;i<N;i++){let b=0,t=0;
+      for(let w=0;w<W;w++){const s=pred[w*N+i];b+=wardVotes[w]*s;t+=wardTilt[w]*s;}
+      tiltShift[i]=b>1e-9?t/b:1;}
+    for(let i=0;i<N;i++)votesInt[i]=Math.round((target[i]+wardT[i])*(anyTilt?tiltShift[i]:1)*totalV); // ×2 votes /2 share
     const {seats}=allocate(votesInt,270);
     let over=0;
     for(let i=0;i<N;i++)if(winsArr[i]>0&&winsArr[i]>=seats[i])over++;
@@ -1030,6 +1073,7 @@ function render(a,cfg){
     ward_pr_ratio_overrides:{MK:cfg.mkRatio,ENTRANT:0.8},
     pa_contestation_uplift:cfg.paUplift,
     turnout_pattern_blend:cfg.turnoutBlend,turnout_noise_sd:cfg.turnoutNoise,
+    turnout_tilt_anc:cfg.turnoutANC,turnout_tilt_da:cfg.turnoutDA,
     entrant_prob:cfg.entrantProb,entrant_share:[0.01,cfg.entrantMode,0.12],
     overhang_rule:"deduct",
   };

@@ -144,6 +144,12 @@ DEFAULTS: dict = {
     "turnout_pattern_blend": 0.5,
     "turnout_blend_jitter": 0.25,
     "turnout_noise_sd": 0.08,
+    # who-turns-out tilts, in [-1, 1] per bloc-leaning VD group: 0 = as the
+    # draw says; +1 = those VDs vote at their 2024 national-election turnout
+    # ("all turn out"); -1 = at their worst local-election turnout on record
+    # ("stay home"). Applied after blend and noise, before the clip.
+    "turnout_tilt_anc": 0.0,
+    "turnout_tilt_da": 0.0,
 
     # A6: generic-entrant slot. Off by setting probability to 0.
     "entrant_prob": 0.25,
@@ -486,6 +492,8 @@ def main(argv: list[str] | None = None) -> int:
 
     ratio_pattern: dict[str, float] = {}
     level_pattern: dict[str, float] = {}
+    t24_pattern: dict[str, float] = {}
+    tlo_pattern: dict[str, float] = {}
     with (args.processed / "turnout.csv").open(encoding="utf-8", newline="") as fh:
         for row in csv.DictReader(fh):
             vd = row["VD_Number"]
@@ -493,6 +501,13 @@ def main(argv: list[str] | None = None) -> int:
                 ratio_pattern[vd] = float(row["turnout_2026_projected"])
             if row.get("turnout_2021") and row["turnout_2021"] != "nan":
                 level_pattern[vd] = min(float(row["turnout_2021"]), 1.0)
+            t24 = row.get("turnout_2024")
+            if t24 and t24 != "nan":
+                t24_pattern[vd] = min(float(t24), 1.0)
+            lge = [row.get(f"turnout_{y}") for y in (2011, 2016, 2021)]
+            vals = [float(x) for x in lge if x and x != "nan"]
+            if vals:
+                tlo_pattern[vd] = min(min(vals), 1.0)
 
     reg = np.array([registered.get(v, 0) for v in vds], dtype=float)
     t_ratio = np.array([ratio_pattern.get(v, np.nan) for v in vds])
@@ -503,6 +518,18 @@ def main(argv: list[str] | None = None) -> int:
     # Rescale the 2021-level pattern to the λ̂ citywide level: the level comes
     # from λ̂ either way (MODEL-LOG 1.2); only the *pattern* differs.
     t_level = np.where(np.isnan(t_level), mean_level, t_level) * (mean_ratio / mean_level)
+
+    # who-turns-out anchors per VD (2024 national turnout; worst LGE turnout
+    # on record) and each VD's bloc lean, for the turnout_tilt_* dials
+    t_24 = np.array([t24_pattern.get(v, np.nan) for v in vds])
+    m24 = np.nansum(t_24 * reg) / np.nansum(np.where(np.isnan(t_24), 0, reg))
+    t_24 = np.where(np.isnan(t_24), m24, t_24)
+    t_lo = np.array([tlo_pattern.get(v, np.nan) for v in vds])
+    mlo = np.nansum(t_lo * reg) / np.nansum(np.where(np.isnan(t_lo), 0, reg))
+    t_lo = np.where(np.isnan(t_lo), mlo, t_lo)
+    anc_ids = [index[p] for p in BLOCS["ANC_BLOC"] if p in index]
+    da_ids = [index[p] for p in BLOCS["DA_BLOC"] if p in index]
+    anc_lean = local[:, anc_ids].sum(axis=1) >= local[:, da_ids].sum(axis=1)
 
     # --- ward structure (E3) -------------------------------------------------
     vd_index = {v: i for i, v in enumerate(vds)}
@@ -606,12 +633,24 @@ def main(argv: list[str] | None = None) -> int:
         t_draw = np.clip(((1 - blend) * t_ratio + blend * t_level)
                          * np.exp(noise - scenario["turnout_noise_sd"] ** 2 / 2),
                          0.02, 0.95)
+        # who-turns-out tilts are COMPOSITIONAL: the scenario's within-VD
+        # shares stay put (calibrated on the untilted weights below), and the
+        # tilt changes who casts votes — so a surge in one bloc's areas moves
+        # the citywide result mechanically instead of being re-absorbed by
+        # the IPF calibration.
+        weight_cal = reg * t_draw
+        tilt_a = scenario["turnout_tilt_anc"]
+        tilt_d = scenario["turnout_tilt_da"]
+        if tilt_a or tilt_d:
+            tilt = np.where(anc_lean, tilt_a, tilt_d)
+            anchor = np.where(tilt >= 0, t_24, t_lo)
+            t_draw = np.clip(t_draw + np.abs(tilt) * (anchor - t_draw), 0.02, 0.95)
         weight = reg * t_draw
 
         floor = scenario["level_floor"]
-        pr = solve_and_predict(dev, base_city, pr_target, gamma["PR"], weight,
+        pr = solve_and_predict(dev, base_city, pr_target, gamma["PR"], weight_cal,
                                level_floor=floor)
-        wd = solve_and_predict(dev, base_city, ward_target, gamma["Ward"], weight,
+        wd = solve_and_predict(dev, base_city, ward_target, gamma["Ward"], weight_cal,
                                level_floor=floor)
 
         pr_votes = weight @ pr

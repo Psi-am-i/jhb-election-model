@@ -106,24 +106,41 @@ def main(argv: list[str] | None = None) -> int:
                  for r in csv.DictReader(fh)]
 
     ratio_pattern, level_pattern = {}, {}
+    t24_pattern, tlo_pattern = {}, {}
     with (args.processed / "turnout.csv").open(encoding="utf-8", newline="") as fh:
         for row in csv.DictReader(fh):
+            vd = row["VD_Number"]
             if row["turnout_2026_projected"]:
-                ratio_pattern[row["VD_Number"]] = float(row["turnout_2026_projected"])
+                ratio_pattern[vd] = float(row["turnout_2026_projected"])
             if row.get("turnout_2026_level"):
-                level_pattern[row["VD_Number"]] = float(row["turnout_2026_level"])
+                level_pattern[vd] = float(row["turnout_2026_level"])
+            # anchors for the who-turns-out sliders: the VD's 2024
+            # national-election turnout ("all turn out") and its worst
+            # local-election turnout on record ("stay home")
+            t24 = row.get("turnout_2024")
+            if t24 and t24 != "nan":
+                t24_pattern[vd] = min(float(t24), 1.0)
+            lge = [row.get(f"turnout_{y}") for y in (2011, 2016, 2021)]
+            vals = [float(x) for x in lge if x and x != "nan"]
+            if vals:
+                tlo_pattern[vd] = min(min(vals), 1.0)
 
     total_reg = sum(reg for _, _, reg in parts)
     reg_with_ratio = sum(reg for vd, _, reg in parts if vd in ratio_pattern) or 1
     reg_with_level = sum(reg for vd, _, reg in parts if vd in level_pattern) or 1
     mean_ratio = sum(ratio_pattern.get(vd, 0) * reg for vd, _, reg in parts) / reg_with_ratio
     mean_level = sum(level_pattern.get(vd, 0) * reg for vd, _, reg in parts) / reg_with_level
+    reg_with_t24 = sum(reg for vd, _, reg in parts if vd in t24_pattern) or 1
+    reg_with_tlo = sum(reg for vd, _, reg in parts if vd in tlo_pattern) or 1
+    mean_t24 = sum(t24_pattern.get(vd, 0) * reg for vd, _, reg in parts) / reg_with_t24
+    mean_tlo = sum(tlo_pattern.get(vd, 0) * reg for vd, _, reg in parts) / reg_with_tlo
 
     ward_rows: dict[str, dict] = {}
     for vd, ward, reg in parts:
         row = ward_rows.setdefault(ward, {
             "ward": ward, "registered": 0,
             "votes_ratio": 0.0, "votes_level": 0.0,
+            "votes_t24": 0.0, "votes_tlo": 0.0,
             "tallies": defaultdict(float), "tally_weight": 0.0,
         })
         row["registered"] += reg
@@ -131,6 +148,8 @@ def main(argv: list[str] | None = None) -> int:
         t_l = level_pattern.get(vd, mean_level)
         row["votes_ratio"] += reg * t_r
         row["votes_level"] += reg * t_l
+        row["votes_t24"] += reg * t24_pattern.get(vd, mean_t24)
+        row["votes_tlo"] += reg * tlo_pattern.get(vd, mean_tlo)
         local = base_share.get(vd)
         if local:
             w = reg * t_r
@@ -150,6 +169,8 @@ def main(argv: list[str] | None = None) -> int:
             "reg": row["registered"],
             "vr": round(row["votes_ratio"]),
             "vl": round(row["votes_level"]),
+            "v24": round(row["votes_t24"]),
+            "vlo": round(row["votes_tlo"]),
             "s": [round(row["tallies"][c] / tw, 5) for c in codes]
                  + [round(row["tallies"]["OTHER"] / tw, 5)],
         })
