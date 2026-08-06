@@ -691,6 +691,16 @@ def main(argv: list[str] | None = None) -> int:
         (field >= thresholds).mean())
     results["structural"]["P(some majority without the ANC)"] = float(
         (no_anc >= thresholds).mean())
+    no_da = np.array([sum(v for p, v in s.items() if p != "DA")
+                      for s in seat_draws])
+    results["structural"]["P(some majority without the DA)"] = float(
+        (no_da >= thresholds).mean())
+    seat_matrix = np.stack([series(p) for p in ranked])
+    largest_names = np.array(ranked)[seat_matrix.argmax(axis=0)]
+    results["structural"]["P(DA is the largest single party)"] = float(
+        (largest_names == "DA").mean())
+    results["structural"]["P(ANC is the largest single party)"] = float(
+        (largest_names == "ANC").mean())
     results["structural"]["non-bloc field median seats"] = float(np.median(field))
     coalitions.report(results, "(per-draw threshold, overhang-adjusted)")
     coalitions.write_outputs(results, args.processed)

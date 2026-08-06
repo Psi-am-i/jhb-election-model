@@ -59,10 +59,17 @@ def main(argv: list[str] | None = None) -> int:
         return {"p": round(float((total >= thr).mean()), 4),
                 "med": med, "lo": lo, "hi": hi}
 
-    # largest party
+    # largest party, and majorities without each of the two big parties
     stack = np.stack([S[p] for p in parties])
     largest = stack.argmax(axis=0)
     p_da_largest = float((np.array(parties)[largest] == "DA").mean())
+    p_anc_largest = float((np.array(parties)[largest] == "ANC").mean())
+    total = stack.sum(axis=0)
+    p_no_da = float(((total - S["DA"]) >= thr).mean())
+    p_no_anc = float(((total - S["ANC"]) >= thr).mean())
+
+    def pct(v):
+        return "99%+" if v >= 0.995 else f"{v:.0%}"
 
     p_excessive = summary.get("p_excessive_by_party", {}).get("ANC", 0.0)
     thr_med = int(np.median(thr))
@@ -81,6 +88,14 @@ def main(argv: list[str] | None = None) -> int:
              "l": "Chance a DA minority government is viable, if only the ANC votes against it (the 2021 pattern)"},
             {"n": f"{p_da_largest:.0%}",
              "l": "Chance the DA is the largest single party"},
+            {"n": f"{p_anc_largest:.0%}",
+             "l": "Chance the ANC is the largest single party"},
+            {"n": pct(p_no_anc),
+             "l": "Chance a majority exists without the ANC — every other party combined "
+                  "clearing 136, politics aside"},
+            {"n": pct(p_no_da),
+             "l": "Chance a majority exists without the DA — every other party combined "
+                  "clearing 136, politics aside"},
         ],
         "parties": [
             {"name": NAMES[p], "chip": CHIPS[p],
