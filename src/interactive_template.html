@@ -72,6 +72,13 @@
     font-variant-numeric:tabular-nums;line-height:1.1;}
   .stat .l{font-size:11.5px;color:var(--ink-2);line-height:1.35;}
   .stat.hero .n{color:var(--accent);}
+  .delta{font:600 11px var(--mono);margin-left:6px;vertical-align:3px;white-space:nowrap;}
+  .delta.up{color:#177245;}
+  .delta.down{color:#a8231d;}
+  #stickybar{position:fixed;top:0;left:0;right:0;z-index:9;background:var(--paper);
+    border-bottom:1px solid var(--rule);font:600 11.5px var(--mono);color:var(--ink-2);
+    padding:7px 14px;white-space:nowrap;overflow-x:auto;}
+  #stickybar .delta{vertical-align:0;}
   .stat .d{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);}
 
   .eyebrow{font-size:10.5px;font-weight:650;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);}
@@ -135,6 +142,7 @@
 </style>
 </head>
 <body>
+<div id="stickybar" hidden><span id="sb-content"></span></div>
 <div class="sheet">
 
 <header class="masthead">
@@ -216,7 +224,9 @@
     <b>○&nbsp;the DA bloc</b> (DA, ActionSA, plus tiny BOSA).<br>
     Each simulation draws a bloc's total first, then splits it. These dials set how predictable
     the split within the bloc is — a judgement, not a measurement, which is exactly why you can
-    move it. Looser = wilder reshuffles inside the bloc.</div>
+    move it. <b>Right</b> = the split stays close to the expected shares (the recent record, as
+    adjusted by your dials above). <b>Left</b> = wild reshuffles between the bloc's members,
+    same total.</div>
     <div class="ctl"><div class="lab"><span>● ANC bloc — split predictability</span><span class="v" id="v-alphaANC"></span></div>
       <input type="range" id="alphaANC" min="10" max="150" step="5" value="60"></div>
     <div class="ctl"><div class="lab"><span>○ DA bloc — split predictability</span><span class="v" id="v-alphaDA"></span></div>
@@ -326,12 +336,12 @@
     simulations are shown, pairs first. <b>Cushion</b> = median seats beyond the 136 needed.
     <b>Stability</b> = how much internal dissent the coalition can bear: the share of all its
     councillors who could defect on a vote without sinking it, with each partner's own ceiling
-    beneath — at 100%, that partner can vote no en bloc and change nothing. <b>Survives</b> =
-    each partner's exit, called: survivable outright, survivable with the named replacement
-    stepping in, or fatal — “breaks it”.</p>
+    beneath — at 100%, that partner can vote no en bloc and change nothing.
+    <b>Survivability</b> = what each partner walking out would do: “survives X exit”,
+    survivable only if the named replacement steps in, or “breaks it”.</p>
     <div class="tablewrap"><table>
       <thead><tr><th>Combination</th><th class="num">Seats (mid)</th><th class="num">Cushion</th>
-        <th>Stability</th><th>Survives</th></tr></thead>
+        <th>Stability</th><th>Survivability</th></tr></thead>
       <tbody id="coalitions"></tbody>
     </table></div>
     <figcaption id="coalitionNote"></figcaption>
@@ -505,9 +515,11 @@ function setCfg(c){ctlIds.forEach(id=>{if(id in c)document.getElementById(id).va
   if("pollPick" in c)document.getElementById("pollPick").value=c.pollPick;
   pollUi();showVals();}
 function showVals(){
+  const alphaWord=(v,min,max)=>{const p=(v-min)/(max-min);
+    return p<0.25?"loose — big reshuffles":p<0.7?"steady":"tight — near the expected split";};
   const fmt={wBye:v=>v.toFixed(2),pollWeight:v=>(v*100).toFixed(0)+"%",
     blocLeak:v=>v===0?"0 — history":v>0?(v*100).toFixed(0)+"% ANC→DA":(-v*100).toFixed(0)+"% DA→ANC",
-    alphaANC:v=>v.toFixed(0),alphaDA:v=>v.toFixed(0),
+    alphaANC:v=>alphaWord(v,10,150),alphaDA:v=>alphaWord(v,4,60),
     turnoutNoise:v=>"σ "+v.toFixed(2),entrantProb:v=>(v*100).toFixed(0)+"%",
     entrantMode:v=>(v*100).toFixed(1)+"%"};
   ctlIds.forEach(id=>{const v=parseFloat(document.getElementById(id).value);
@@ -763,7 +775,7 @@ function analyse(res){
   ];
   const rows=[];const seen=new Set();
   for(const nm of named){const m=maskOf(nm.codes);if(!m)continue;seen.add(m);
-    rows.push({label:label(m),m,p:winP(m),...maskStats(m),key:nm.key});}
+    rows.push({label:nm.name||label(m),m,p:winP(m),...maskStats(m),key:nm.key});}
   const found=[];
   for(let k=2;k<=3;k++){
     const combo=(start,left,m)=>{if(left===0){const p=winP(m);
@@ -808,15 +820,19 @@ function analyse(res){
     r.cushion=r.med-136;
   }
 
-  // "everything except the ANC bloc"
-  const blocIdx=["ANC","EFF","MK"].map(c=>idx[c]);
-  const field=new Float64Array(nDraws);
-  for(let d=0;d<nDraws;d++){let s=0;
-    for(let i=0;i<N;i++)if(!blocIdx.includes(i))s+=seatsAll[d*N+i];field[d]=s;}
-  let fw=0;for(let d=0;d<nDraws;d++)if(field[d]>=thr[d])fw++;
-  const fieldRow={label:"Everything except ANC, EFF & MK",p:fw/nDraws,...quantiles(field),key:true};
-  fieldRow.cushion=fieldRow.med-136;
+  // "everything except ..." — each bloc's mirror-image field, counted over
+  // every seat-holder including Others and a new entrant
+  const fieldRowOf=(codes,lab)=>{
+    const ex=codes.map(c=>idx[c]);
+    const f=new Float64Array(nDraws);
+    for(let d=0;d<nDraws;d++){let s=0;
+      for(let i=0;i<N;i++)if(!ex.includes(i))s+=seatsAll[d*N+i];f[d]=s;}
+    let w=0;for(let d=0;d<nDraws;d++)if(f[d]>=thr[d])w++;
+    const r={label:lab,p:w/nDraws,...quantiles(f),key:true};
+    r.cushion=r.med-136;return r;};
+  const fieldRow=fieldRowOf(["ANC","EFF","MK"],"Everything except ANC, EFF & MK");
   rows.push(fieldRow);
+  rows.push(fieldRowOf(["DA","ASA"],"Everything except DA & ActionSA"));
   rows.sort((a,b)=>b.p-a.p);
 
   // MWC on a subsample
@@ -885,24 +901,40 @@ function analyse(res){
     largestName:NAME[largestArr[0][0]],largestP:largestArr[0][1]/nDraws,
     pDaLargest:daLargest/nDraws,pAncLargest:ancLargest/nDraws,
     pAlone:anyAlone/nDraws,
-    pNoBloc:fw/nDraws};
+    pNoBloc:fieldRow.p};
 }
 
 /* ---------- render ---------- */
 const fmtP=v=>v>=0.995?"99%+":v<0.0005?"<0.1%":v>=0.1?(v*100).toFixed(0)+"%":(v*100).toFixed(1)+"%";
 
+// change-since-last-run badges: every run remembers its headline numbers so
+// the next one can show what your adjustment actually did
+let prevRun=null;
+function dBadge(cur,key,v,kind){
+  cur[key]=v;
+  if(!prevRun||!(key in prevRun))return"";
+  const d=kind==="pct"?(v-prevRun[key])*100:v-prevRun[key];
+  const min=kind==="pct"?0.05:0.5;
+  if(!(Math.abs(d)>=min))return"";
+  const mag=kind==="pct"?(Math.abs(d)<1?Math.abs(d).toFixed(1):Math.abs(d).toFixed(0)):Math.abs(d).toFixed(0);
+  const unit=kind==="pct"?"pt":"";
+  return `<span class="delta ${d>0?"up":"down"}" title="change since your previous run">`+
+    `${d>0?"\u25b2+":"\u25bc\u2212"}${mag}${unit}</span>`;
+}
+
 function render(a,cfg){
+  const cur={};
   const tiles=[
-    {n:fmtP(a.pAncDa),l:"Chance an ANC\u2013DA pairing reaches a majority \u2014 the only two-party combination that reliably can",hero:true},
-    {n:fmtP(a.pDaLargest),l:"Chance the DA is the largest single party"},
-    {n:fmtP(a.pAncLargest),l:"Chance the ANC is the largest single party"},
-    {n:a.thrMed.toFixed(0),l:"Majority threshold \u2014 fixed: the excessive-seats law keeps the council at 270"},
-    {n:fmtP(a.pOverAnc),l:"Chance the ANC triggers the excessive-seats clause \u2014 keeps every ward, zero list seats, everyone else squeezed"},
-    {n:fmtP(a.pAlone),l:"Chance any party governs alone \u2014 a single party reaching the 136-seat majority by itself"},
-    {n:fmtP(a.minority[0].p),l:"Chance a DA minority government is viable \u2014 if only the ANC votes against, as in 2021"},
+    {n:fmtP(a.pAncDa),b:dBadge(cur,"pAncDa",a.pAncDa,"pct"),l:"Chance an ANC\u2013DA pairing reaches a majority \u2014 the only two-party combination that reliably can",hero:true},
+    {n:fmtP(a.pDaLargest),b:dBadge(cur,"pDaLargest",a.pDaLargest,"pct"),l:"Chance the DA is the largest single party"},
+    {n:fmtP(a.pAncLargest),b:dBadge(cur,"pAncLargest",a.pAncLargest,"pct"),l:"Chance the ANC is the largest single party"},
+    {n:a.thrMed.toFixed(0),b:"",l:"Majority threshold \u2014 fixed: the excessive-seats law keeps the council at 270"},
+    {n:fmtP(a.pOverAnc),b:dBadge(cur,"pOverAnc",a.pOverAnc,"pct"),l:"Chance the ANC triggers the excessive-seats clause \u2014 keeps every ward, zero list seats, everyone else squeezed"},
+    {n:fmtP(a.pAlone),b:dBadge(cur,"pAlone",a.pAlone,"pct"),l:"Chance any party governs alone \u2014 a single party reaching the 136-seat majority by itself"},
+    {n:fmtP(a.minority[0].p),b:dBadge(cur,"minority",a.minority[0].p,"pct"),l:"Chance a DA minority government is viable \u2014 if only the ANC votes against, as in 2021"},
   ];
   document.getElementById("tiles").innerHTML=tiles.map(t=>
-    `<div class="stat${t.hero?" hero":""}"><div class="n">${t.n}</div><div class="l">${t.l}</div></div>`).join("");
+    `<div class="stat${t.hero?" hero":""}"><div class="n">${t.n}${t.b}</div><div class="l">${t.l}</div></div>`).join("");
 
   const MAX=125;
   document.getElementById("seats").innerHTML=a.perParty.filter(p=>p.mean>=0.4||p.i===I_ENTRANT&&p.hi>0).map(p=>`
@@ -912,7 +944,7 @@ function render(a,cfg){
         <span class="band" style="left:${Math.min(p.lo/MAX*100,100)}%;width:${Math.min((p.hi-p.lo)/MAX*100,100)}%"></span>
         <span class="med" style="left:calc(${Math.min(p.med/MAX*100,100)}% - 1.5px)"></span>
       </div>
-      <div class="val"><b>${p.med.toFixed(0)}</b> <span style="color:var(--ink-3)">${p.lo.toFixed(0)}–${p.hi.toFixed(0)}</span></div>
+      <div class="val"><b>${p.med.toFixed(0)}</b>${dBadge(cur,"seat:"+p.name,p.med,"seats")} <span style="color:var(--ink-3)">${p.lo.toFixed(0)}–${p.hi.toFixed(0)}</span></div>
     </div>`).join("");
 
   const size=r=>r.m===undefined?99:((m)=>{let c=0;while(m){m&=m-1;c++;}return c;})(r.m);
@@ -929,8 +961,8 @@ function render(a,cfg){
   const survives=r=>{
     if(!r.walk)return "—";
     return r.walk.map(w=>
-      w.surv>=0.5?`${w.name} exit`:
-      w.rescue?`${w.name} exit (${w.rescue.name} steps in)`:
+      w.surv>=0.5?`survives ${w.name} exit`:
+      w.rescue?`${w.name} exit survivable only if ${w.rescue.name} steps in`:
       `${w.name} exit breaks it`).join("; ");
   };
   document.getElementById("coalitions").innerHTML=shown.map(r=>`
@@ -980,12 +1012,28 @@ function render(a,cfg){
   // derived read-out
   const cent=centres(cfg),blocs=blocSpec(cfg,cent);
   document.getElementById("derived").innerHTML=
-    `Your settings centre the citywide vote at: DA ${(cent[idx.DA]*100).toFixed(0)}% · `+
+    `Your settings centre the citywide <b>party-ballot (list) vote</b> at: DA ${(cent[idx.DA]*100).toFixed(0)}% · `+
     `ANC ${(cent[idx.ANC]*100).toFixed(0)}% · EFF ${(cent[idx.EFF]*100).toFixed(0)}% · `+
-    `MK ${(cent[idx.MK]*100).toFixed(0)}% · ActionSA ${(cent[idx.ASA]*100).toFixed(0)}% `+
-    `(each simulation then draws around these, within the historical ranges)`+
+    `MK ${(cent[idx.MK]*100).toFixed(0)}% · ActionSA ${(cent[idx.ASA]*100).toFixed(0)}%. `+
+    `The ward ballot follows via each party's measured 2021 split-ticket ratio; seats are `+
+    `allocated on the two ballots combined, and each simulation draws around these centres `+
+    `within the historical ranges.`+
     (REF?`<br>Python reference at defaults (5,000 draws): DA ${REF.parties.DA.median}, ANC ${REF.parties.ANC.median}, `+
     `ASA ${REF.parties.ASA.median}, threshold ${REF.threshold_median}, P(ANC+DA) ${(REF.structural["P(ANC+DA is winning)"]*100).toFixed(0)}%`:"");
+
+  updateStickyBar(a,cur);
+  prevRun=cur; // badges and the sticky bar on the NEXT run compare against this one
+}
+
+function updateStickyBar(a,cur){
+  const el=document.getElementById("sb-content");if(!el)return;
+  const parts=["ANC+DA "+fmtP(a.pAncDa)+dBadge(cur,"pAncDa",a.pAncDa,"pct")];
+  ["DA","ANC","ActionSA"].forEach(nm=>{
+    const p=a.perParty.find(q=>q.name===nm);
+    if(p)parts.push((nm==="ActionSA"?"ASA":nm)+" "+p.med.toFixed(0)+
+      dBadge(cur,"seat:"+p.name,p.med,"seats"));});
+  parts.push(a.nDraws.toLocaleString()+" sims");
+  el.innerHTML=parts.join(" · ");
 }
 
 function drawUserMap(a){
@@ -1040,16 +1088,22 @@ function go(){
   const cfg=readCfg();
   const nDraws=parseInt(document.getElementById("draws").value);
   document.getElementById("status").textContent="running "+nDraws.toLocaleString()+" simulations…";
+  const sb=document.getElementById("sb-content");
+  if(sb&&sb.innerHTML)sb.innerHTML="running "+nDraws.toLocaleString()+" simulations…";
   setTimeout(()=>{
-    _spare=null; // reset Box-Muller cache: same seed must give the same stream
-    const t0=performance.now();
-    const res=run(cfg,nDraws,20261104);
-    const a=analyse(res);
-    render(a,cfg);
-    drawUserMap(a);
-    document.getElementById("status").textContent=
-      nDraws.toLocaleString()+" simulations in "+((performance.now()-t0)/1000).toFixed(1)+"s";
-    running=false;
+    try{
+      _spare=null; // reset Box-Muller cache: same seed must give the same stream
+      const t0=performance.now();
+      const res=run(cfg,nDraws,20261104);
+      const a=analyse(res);
+      render(a,cfg);
+      drawUserMap(a);
+      document.getElementById("status").textContent=
+        nDraws.toLocaleString()+" simulations in "+((performance.now()-t0)/1000).toFixed(1)+"s";
+    }catch(e){
+      document.getElementById("status").textContent="error — "+e.message+" (try fewer simulations)";
+      console.error(e);
+    }finally{running=false;}
   },30);
 }
 (DATA.polls||[]).forEach(q=>{
@@ -1068,6 +1122,14 @@ function pollUi(){
 }
 document.getElementById("pollPick").addEventListener("change",()=>{pollUi();go();});
 document.getElementById("run").addEventListener("click",go);
+// sticky summary bar: visible only while the result tiles are off-screen
+(function(){
+  const sbar=document.getElementById("stickybar"),tilesEl=document.getElementById("tiles");
+  if(sbar&&tilesEl&&"IntersectionObserver" in window)
+    new IntersectionObserver(es=>{
+      sbar.hidden=es[0].isIntersecting||!document.getElementById("sb-content").innerHTML;
+    }).observe(tilesEl);
+})();
 ctlIds.forEach(id=>{const el=document.getElementById(id);
   el.addEventListener("input",showVals);
   el.addEventListener("change",go);});
