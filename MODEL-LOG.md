@@ -598,6 +598,65 @@ ANC 18 would require genuine crossing — 2026 may be the first real test.
 Published as "When the ANC falls, nobody catches the votes" (forecast) and in
 the interactive's Voting-blocs explainer.
 
+### 1.19 Equality triggers the clause: "equal to or greater" taken at its word; audit round-2 repairs ✅
+
+**A second-round audit (background agent, 2026-08-06, full report in the
+session archive) verified the deduct machinery — 0 mismatches in 4,000
+randomised trials against a direct implementation of the (A−B)/(C−(D+E))+1
+formula, JS↔Python parity inside the disclosed ward-resolution gap — and
+found one place the code measurably parted ways with the statute's wording.**
+
+**The ruling.** Amended item 16(1) triggers the excessive-seats machinery for
+a party whose ward seats are *"equal to or greater than"* its entitlement;
+both engines fired only on strictly-greater. Excluding an exactly-at-quota
+party is not a no-op: it recomputes the quota for everyone else (the audit
+brute-forced 166k forced-equality cases; 4.2% shift a seat between the other
+parties). Laingsburg (3 wins vs 2 entitlement) cannot arbitrate the equality
+case, and the text is arguably ambiguous about whether an exactly-equal party
+"has excessive seats" — we adopt the plain reading, and both engines now
+trigger on ≥ (guarded to parties with at least one ward). Parties fixed in
+cascade re-allocation rounds now also count as excessive (they previously
+went unrecorded).
+
+**Effect (seed 20261104, 5,000 draws).** P(any party excessive) 95.2% →
+96.3% (ANC 96.3%, Al Jama-ah 0.1%, DA 0.06%, IFP 0.04%); ANC median 75 → 74
+— the ANC sat exactly on the 74/75 largest-remainder boundary, so the small
+quota recomputations tip the printed median while the mean barely moves;
+P(ANC+DA) 88.5% → 87.6%; DA 79 and all other medians unchanged; council 270
+and threshold 136 in every draw. **Correction to §1.18:** it quoted "P(ANC+DA)
+86.5%" — that was the pre-adoption expand-rule figure; the adopted deduct run
+gave 88.5%, and the ≥ trigger now gives 87.6%.
+
+**`p_overhang` retired.** The summary's `p_overhang` was `(council>270)`,
+structurally 0.0 under deduct, printed beside per-party excessive rates —
+a self-contradiction waiting for a downstream consumer. Replaced by
+`p_excessive_any` (share of draws in which any party triggers item 16);
+`forecast_summary.json` schema and consumers updated.
+
+**Page furniture repaired (the audit's promotion blockers).** Dev
+interactive: duplicate `scenarioJson` id removed (the bottom "Reproduce this
+exactly" section rendered a permanently empty textarea); the near-miss
+footnote was computed then unconditionally overwritten — dead since the
+coalition-table redesign, now rendered; walk-out column no longer silently
+drops partners with 10–50% survival — rescues are searched for every exit
+below 50% and fatal exits are named ("X exit breaks it"); the excessive-seats
+tile now shows the ANC's own rate rather than the any-party rate; the
+kingmaker caption describes the normalised Banzhaf index it actually plots;
+"Others"/"New entrant" are flagged as synthetic partners in the coalition
+footnote; the colophon cites the amended statute instead of "§3.7 fine print
+unverified". Sheet: the two-ballots strip now sums exactly 135 + 135 = 270
+(largest-remainder rounding with an explicit Smaller-parties bucket; list =
+council − wards by construction) and the ANC-list figcaption is computed from
+the data (currently zero: 74 = 74). METHODOLOGY.md §5A/§5B/item J rewritten
+to the deduct statute and current run; POLLING.md now carries the Ipsos
+PA 4 / IFP 2 minor-party provenance. The draft page's GEN block, stale since
+the defaults adoption, is regenerated alongside the sheet's.
+
+**Acknowledged, not fixed (unreachable or second-order):** JS `allocate`'s
+zero-vote branch divergence from Python (needs vote totals below the seat
+count); combined votes from drawn targets vs converged IPF output (bounded by
+IPF tolerance); `POLLING_SPAN`/`_leanSign` dead code in the JS engine.
+
 ## 2. Obstacles and how they were handled
 
 | # | Obstacle | Resolution | Status |
