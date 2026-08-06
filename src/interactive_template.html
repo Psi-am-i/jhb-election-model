@@ -160,10 +160,13 @@
     <div class="presets">
       <button data-preset="default" class="primary" title="Every dial at the setting we published — the forecast on the front page.">Our published forecast</button>
       <button data-preset="nobye" title="Mutes 2026 evidence: no by-elections, no polls. Only the 2006–2024 record speaks.">History only</button>
-      <button data-preset="srf" title="Believes the DA's best poll — SRF, July 2026: DA 42%, ANC 18% in Joburg.">The DA's best poll</button>
-      <button data-preset="ipsos" title="Believes the poll kindest to the ANC — Ipsos, whose method keeps more ANC-leaning voters in.">The ANC's best poll</button>
+      <button data-preset="srf" title="Believes SRF, July 2026: DA 42%, ANC 18% in Joburg. One reading, both edges — the DA's ceiling is the ANC's floor.">The DA's best poll — the ANC's worst</button>
+      <button data-preset="ipsos" title="Believes Ipsos, Dec 2025–Jan 2026 metros: ANC 35%, DA 25%. Its face-to-face method keeps more ANC-leaning voters in — the ANC's kindest credible read is also the DA's harshest.">The ANC's best poll — the DA's worst</button>
       <button data-preset="mkfall" title="MK's national surge fails to translate locally — its dial to the historical floor.">MK collapses</button>
+      <button data-preset="mkhold" title="MK's 2024 national vote carries fully into the local ballot — its dial at the top of the observed range.">MK holds its vote</button>
       <button data-preset="asafall" title="ActionSA keeps fading as it did 2021→2024, and its by-election bright spots are ignored.">ActionSA fades</button>
+      <button data-preset="paup" title="The Patriotic Alliance outruns its record — retention at the top of its range and a full candidate slate.">The PA excels</button>
+      <button data-preset="pafall" title="The PA's momentum doesn't materialise — retention at the bottom of its range, no contestation bonus.">The PA fades</button>
     </div>
   </div>
 
@@ -489,7 +492,10 @@ const PRESETS={
   srf:{pollPick:"srf-2026q2-coj",pollWeight:0.6},
   ipsos:{pollPick:"ipsos-w2-2025-metros",pollWeight:0.6},
   mkfall:{thetaMK:0.35},
+  mkhold:{thetaMK:1.00},
   asafall:{thetaASA:0.95,wBye:0.15},
+  paup:{thetaPA:2.00,paUplift:1.75},
+  pafall:{thetaPA:1.00,paUplift:1.00},
 };
 function readCfg(){const c={};ctlIds.forEach(id=>c[id]=parseFloat(document.getElementById(id).value));
   c.pollPick=document.getElementById("pollPick").value;return c;}
@@ -861,8 +867,13 @@ function analyse(res){
   const ancda=maskOf(["ANC","DA"]);
   const thrQ=quantiles(Float64Array.from(thr));
   const largest=new Map();
-  for(let d=0;d<nDraws;d++){let bi=0,bv=-1;
-    for(let i=0;i<N;i++){const v=seatsAll[d*N+i];if(v>bv){bv=v;bi=i;}}
+  let daLargest=0,ancLargest=0,noDa=0,noAnc=0;
+  for(let d=0;d<nDraws;d++){let bi=0,bv=-1,tot=0;
+    for(let i=0;i<N;i++){const v=seatsAll[d*N+i];tot+=v;if(v>bv){bv=v;bi=i;}}
+    if(bi===idx.DA)daLargest++;
+    if(bi===idx.ANC)ancLargest++;
+    if(tot-seatsAll[d*N+idx.DA]>=thr[d])noDa++;
+    if(tot-seatsAll[d*N+idx.ANC]>=thr[d])noAnc++;
     largest.set(bi,(largest.get(bi)||0)+1);}
   const largestArr=[...largest.entries()].sort((a,b)=>b[1]-a[1]);
 
@@ -871,6 +882,8 @@ function analyse(res){
     pAncDa:winP(ancda),thrMed:thrQ.med,pOver:res.overhangDraws/nDraws,
     pOverAnc:res.overhangBy[idx.ANC]/nDraws,
     largestName:NAME[largestArr[0][0]],largestP:largestArr[0][1]/nDraws,
+    pDaLargest:daLargest/nDraws,pAncLargest:ancLargest/nDraws,
+    pNoDa:noDa/nDraws,pNoAnc:noAnc/nDraws,
     pNoBloc:fw/nDraws};
 }
 
@@ -880,9 +893,12 @@ const fmtP=v=>v>=0.995?"99%+":v<0.0005?"<0.1%":v>=0.1?(v*100).toFixed(0)+"%":(v*
 function render(a,cfg){
   const tiles=[
     {n:fmtP(a.pAncDa),l:"Chance an ANC\u2013DA pairing reaches a majority \u2014 the only two-party combination that reliably can",hero:true},
-    {n:fmtP(a.largestP),l:`Chance ${a.largestName} is the largest single party`},
+    {n:fmtP(a.pDaLargest),l:"Chance the DA is the largest single party"},
+    {n:fmtP(a.pAncLargest),l:"Chance the ANC is the largest single party"},
     {n:a.thrMed.toFixed(0),l:"Majority threshold \u2014 fixed: the excessive-seats law keeps the council at 270"},
     {n:fmtP(a.pOverAnc),l:"Chance the ANC triggers the excessive-seats clause \u2014 keeps every ward, zero list seats, everyone else squeezed"},
+    {n:fmtP(a.pNoAnc),l:"Chance a majority exists without the ANC \u2014 every other party combined, politics aside"},
+    {n:fmtP(a.pNoDa),l:"Chance a majority exists without the DA \u2014 every other party combined, politics aside"},
     {n:fmtP(a.pNoBloc),l:"Chance a majority exists without the ANC, EFF and MK together"},
     {n:fmtP(a.minority[0].p),l:"Chance a DA minority government is viable \u2014 if only the ANC votes against, as in 2021"},
   ];
