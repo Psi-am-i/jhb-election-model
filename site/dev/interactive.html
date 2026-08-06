@@ -144,7 +144,7 @@
   preset — and 1,500 fresh simulations of the November election run in about a second. Watch
   which conclusions bend, and which refuse to.</p>
   <div class="dateline">
-    <span><b>Model</b> voting-district share model · Schedule 1 seat allocation · overhang-aware</span>
+    <span><b>Engine</b> 865 voting districts · the real seat law, excessive-seats clause included</span>
     <span><b>Baseline</b> 2024 provincial ballot, 865 VDs → 135 wards</span>
     <span><b>Issued</b> 4 August 2026</span>
   </div>
@@ -189,7 +189,7 @@
     beyond the ranges above. Polls are opt-in: pick one, say how much you believe it, and the
     party levels tilt toward its numbers. Every poll is linked to its source, with its health
     warning attached.</div>
-    <div class="ctl"><div class="lab"><span>By-election weight (w_bye)</span><span class="v" id="v-wBye"></span></div>
+    <div class="ctl"><div class="lab"><span>Trust in the fifteen by-elections</span><span class="v" id="v-wBye"></span></div>
       <input type="range" id="wBye" min="0" max="1" step="0.05" value="0.40"></div>
     <div class="ctl"><div class="lab"><span>Poll</span></div>
       <select id="pollPick" style="width:100%"><option value="">No poll — history and by-elections only</option></select></div>
@@ -205,9 +205,9 @@
     another. One's gain is partly another's loss, so the simulations move each pool together
     and then split it. Lower the dial and the split gets wilder. This is why DA+ActionSA's
     combined seats are far more predictable than ActionSA's own.</div>
-    <div class="ctl"><div class="lab"><span>ANC-bloc split concentration</span><span class="v" id="v-alphaANC"></span></div>
+    <div class="ctl"><div class="lab"><span>How predictably the ANC camp splits</span><span class="v" id="v-alphaANC"></span></div>
       <input type="range" id="alphaANC" min="10" max="150" step="5" value="60"></div>
-    <div class="ctl"><div class="lab"><span>DA-bloc split concentration</span><span class="v" id="v-alphaDA"></span></div>
+    <div class="ctl"><div class="lab"><span>How predictably the DA camp splits</span><span class="v" id="v-alphaDA"></span></div>
       <input type="range" id="alphaDA" min="4" max="60" step="2" value="12"></div>
   </div>
 
@@ -217,9 +217,9 @@
     tickets. Most parties' split is measured from 2021 — these two need a judgement call: MK
     never contested a local election, and the PA plans to stand in far more wards than
     before.</div>
-    <div class="ctl"><div class="lab"><span>MK ward/list ratio</span><span class="v" id="v-mkRatio"></span></div>
+    <div class="ctl"><div class="lab"><span>MK's strength on the ward ballot</span><span class="v" id="v-mkRatio"></span></div>
       <input type="range" id="mkRatio" min="0.50" max="1.20" step="0.05" value="0.80"></div>
-    <div class="ctl"><div class="lab"><span>PA ward contestation uplift</span><span class="v" id="v-paUplift"></span></div>
+    <div class="ctl"><div class="lab"><span>PA stands in more wards than 2021</span><span class="v" id="v-paUplift"></span></div>
       <input type="range" id="paUplift" min="1.00" max="2.00" step="0.05" value="1.25"></div>
   </div>
 
@@ -228,9 +228,9 @@
     <div class="why">A famous intuition, tested and demoted: overall turnout cannot move a single
     seat (the seat formula scales with it), and even big differences <em>between</em> districts
     shift only a couple. Drag these to see for yourself.</div>
-    <div class="ctl"><div class="lab"><span>Pattern: λ̂ form ← → 2021 pattern</span><span class="v" id="v-turnoutBlend"></span></div>
+    <div class="ctl"><div class="lab"><span>Turnout map: model's projection ← → repeat of 2021</span><span class="v" id="v-turnoutBlend"></span></div>
       <input type="range" id="turnoutBlend" min="0" max="1" step="0.05" value="0.5"></div>
-    <div class="ctl"><div class="lab"><span>District-level turnout noise σ</span><span class="v" id="v-turnoutNoise"></span></div>
+    <div class="ctl"><div class="lab"><span>Local turnout unpredictability</span><span class="v" id="v-turnoutNoise"></span></div>
       <input type="range" id="turnoutNoise" min="0" max="0.20" step="0.01" value="0.08"></div>
   </div>
 
@@ -240,9 +240,9 @@
     appeared and took 11–18%. When a party wins more wards than its share allows, the
     excessive-seats law applies exactly as the IEC ran it in Laingsburg in 2021: it keeps the
     wards, gets no list seats, and the council stays at 270.</div>
-    <div class="ctl"><div class="lab"><span>P(new entrant appears)</span><span class="v" id="v-entrantProb"></span></div>
+    <div class="ctl"><div class="lab"><span>Chance a brand-new party appears</span><span class="v" id="v-entrantProb"></span></div>
       <input type="range" id="entrantProb" min="0" max="1" step="0.05" value="0.25"></div>
-    <div class="ctl"><div class="lab"><span>Entrant central share</span><span class="v" id="v-entrantMode"></span></div>
+    <div class="ctl"><div class="lab"><span>Its typical vote share if it does</span><span class="v" id="v-entrantMode"></span></div>
       <input type="range" id="entrantMode" min="0.01" max="0.12" step="0.005" value="0.04"></div>
   </div>
 
@@ -250,9 +250,9 @@
     <div class="runrow">
       <button class="primary" id="run">Run</button>
       <select id="draws">
-        <option value="600">600 draws (fast)</option>
-        <option value="1500" selected>1,500 draws</option>
-        <option value="4000">4,000 draws (slow)</option>
+        <option value="600">600 simulations (fast)</option>
+        <option value="1500" selected>1,500 simulations</option>
+        <option value="4000">4,000 simulations (thorough)</option>
       </select>
       <span class="status" id="status"></span>
     </div>
@@ -299,9 +299,10 @@
       <div class="tablewrap"><table style="min-width:0"><tbody id="mwc"></tbody></table></div>
     </div>
     <div class="note">
-      <h3>Kingmaker index (Banzhaf)</h3>
-      <p class="small">The share of winning coalitions in which a party's exit breaks the majority.
-      Why a 10% party is not a 10% actor.</p>
+      <h3>Who can play kingmaker</h3>
+      <p class="small">How often a party's walking out would break a winning coalition — the real
+      measure of bargaining power, and why a 10% party is not a 10% actor. (For the technically
+      minded: the Banzhaf index.)</p>
       <div class="tablewrap"><table style="min-width:0"><tbody id="power"></tbody></table></div>
     </div>
   </section>
@@ -841,11 +842,10 @@ function render(a,cfg){
   // derived read-out
   const cent=centres(cfg),blocs=blocSpec(cfg,cent);
   document.getElementById("derived").innerHTML=
-    `derived bloc shifts: ANC-bloc ${blocs[0].mode.toFixed(1)}pts (range ${blocs[0].lo}…${blocs[0].hi}) · `+
-    `DA-bloc +${blocs[1].mode.toFixed(1)}pts (range +${blocs[1].lo}…+${blocs[1].hi})<br>`+
-    `central levels: ANC ${(cent[idx.ANC]*100).toFixed(1)}% · DA ${(cent[idx.DA]*100).toFixed(1)}% · `+
-    `EFF ${(cent[idx.EFF]*100).toFixed(1)}% · MK ${(cent[idx.MK]*100).toFixed(1)}% · `+
-    `ASA ${(cent[idx.ASA]*100).toFixed(1)}%`+
+    `Your settings centre the citywide vote at: DA ${(cent[idx.DA]*100).toFixed(0)}% · `+
+    `ANC ${(cent[idx.ANC]*100).toFixed(0)}% · EFF ${(cent[idx.EFF]*100).toFixed(0)}% · `+
+    `MK ${(cent[idx.MK]*100).toFixed(0)}% · ActionSA ${(cent[idx.ASA]*100).toFixed(0)}% `+
+    `(each simulation then draws around these, within the historical ranges)`+
     (REF?`<br>Python reference at defaults (5,000 draws): DA ${REF.parties.DA.median}, ANC ${REF.parties.ANC.median}, `+
     `ASA ${REF.parties.ASA.median}, threshold ${REF.threshold_median}, P(ANC+DA) ${(REF.structural["P(ANC+DA is winning)"]*100).toFixed(0)}%`:"");
 }
@@ -856,7 +856,7 @@ function go(){
   if(running)return;running=true;
   const cfg=readCfg();
   const nDraws=parseInt(document.getElementById("draws").value);
-  document.getElementById("status").textContent="running "+nDraws.toLocaleString()+" draws…";
+  document.getElementById("status").textContent="running "+nDraws.toLocaleString()+" simulations…";
   setTimeout(()=>{
     _spare=null; // reset Box-Muller cache: same seed must give the same stream
     const t0=performance.now();
@@ -864,7 +864,7 @@ function go(){
     const a=analyse(res);
     render(a,cfg);
     document.getElementById("status").textContent=
-      nDraws.toLocaleString()+" draws in "+((performance.now()-t0)/1000).toFixed(1)+"s";
+      nDraws.toLocaleString()+" simulations in "+((performance.now()-t0)/1000).toFixed(1)+"s";
     running=false;
   },30);
 }
