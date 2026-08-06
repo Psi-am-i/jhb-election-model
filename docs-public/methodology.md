@@ -154,9 +154,9 @@ the published model.
 - **Overhang's legal fine print is untested in court or precedent.** The
   electoral commission has never published a worked example of a metro
   overhang calculation, and with overhang now the *likely* outcome, we put the
-  question to the Commission on 5 August 2026 and are awaiting its answer.
-  Until then the forecast carries
-  the alternative readings of the law and reports how much they matter.
+  question to the Commission on 5 August 2026 and are awaiting its answer —
+  but a 2021 amendment to the law and the Commission's own published handling
+  of Laingsburg 2021 settle the arithmetic, and the forecast applies it.
 - **Arithmetic is not politics.** The model says which governments are
   numerically possible. Whether people who dislike each other will sit in
   the same room is not a modelling question.
