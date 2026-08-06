@@ -309,13 +309,14 @@
   <section>
     <div class="eyebrow">Coalition arithmetic — fully enumerated</div>
     <h2>Who can govern</h2>
-    <p class="small"><b>These are mathematically possible majorities only</b> — every combination
-    is checked with no judgement about how politically likely any deal is, or who would actually
-    sit in a room with whom. Combinations that only win because they contain a smaller winning
-    pair are left out: every partner listed here adds something.</p>
+    <p class="small"><b>These are mathematically possible majorities only</b> — no judgement about
+    who would actually sit in a room with whom. For each: its <b>cushion</b> (median seats beyond
+    the 136 needed — its strength voting united) and what happens <b>if one partner walks out</b>:
+    ✕ the deal dies · ◐ coin flip · ● usually survives. Where a walk-out is fatal but another
+    party from the same voter pool could restore the numbers, it is named.</p>
     <div class="tablewrap"><table>
-      <thead><tr><th>Combination</th><th class="num">Seats (mid)</th><th class="num">Range</th>
-        <th style="width:24%">Chance of majority</th><th class="num"></th></tr></thead>
+      <thead><tr><th>Combination</th><th class="num">Seats (mid)</th><th class="num">Cushion</th>
+        <th style="width:22%">Chance of majority</th><th class="num"></th></tr></thead>
       <tbody id="coalitions"></tbody>
     </table></div>
     <figcaption id="coalitionNote"></figcaption>
@@ -763,6 +764,33 @@ function analyse(res){
   found.sort((a,b)=>b.p-a.p);
   rows.push(...found.slice(0,7));
 
+  // walk-outs: for each row with a mask, per-member survival if they leave,
+  // and a same-pool rescue candidate where the exit is fatal
+  const BLOC_OF={};["ANC","EFF","MK"].forEach(c=>BLOC_OF[idx[c]]="anc");
+  ["DA","ASA"].forEach(c=>BLOC_OF[idx[c]]="da");
+  for(const r of rows){
+    if(r.m===undefined)continue;
+    r.walk=[];
+    let mm=r.m;
+    while(mm){
+      const low=mm&-mm;const pi=31-Math.clz32(low);
+      const surv=winP(r.m^low);
+      let rescue=null;
+      if(surv<0.10){
+        for(let j=0;j<nT;j++){
+          if(r.m&(1<<j))continue;
+          const restore=winP((r.m^low)|(1<<j));
+          if(restore>=0.5&&(!rescue||restore>rescue.p))
+            rescue={name:top[j].name,p:restore,
+              samePool:BLOC_OF[top[j].i]!==undefined&&BLOC_OF[top[j].i]===BLOC_OF[top[pi].i]};
+        }
+      }
+      r.walk.push({name:top[pi].name,surv,rescue});
+      mm^=low;
+    }
+    r.cushion=r.med-136;
+  }
+
   // "everything except the ANC bloc"
   const blocIdx=["ANC","EFF","MK"].map(c=>idx[c]);
   const field=new Float64Array(nDraws);
@@ -860,10 +888,19 @@ function render(a,cfg){
       <div class="val"><b>${p.med.toFixed(0)}</b> <span style="color:var(--ink-3)">${p.lo.toFixed(0)}–${p.hi.toFixed(0)}</span></div>
     </div>`).join("");
 
+  const walkLine=r=>{
+    if(!r.walk)return "";
+    const bits=r.walk.map(w=>{
+      const sym=w.surv<0.10?"✕":w.surv<0.50?"◐":"●";
+      const resc=w.rescue?` <span style="color:var(--ink-3)">(${w.rescue.name} could step in${w.rescue.samePool?", same pool":""})</span>`:"";
+      return `${w.name}&nbsp;${sym}${resc}`;
+    }).join(" · ");
+    return `<div style="font-size:11.5px;color:var(--ink-3);margin-top:3px">if one walks: ${bits}</div>`;
+  };
   document.getElementById("coalitions").innerHTML=a.rows.map(r=>`
-    <tr class="${r.key?"key":""}"><td>${r.label}</td>
+    <tr class="${r.key?"key":""}"><td>${r.label}${walkLine(r)}</td>
       <td class="num">${r.med.toFixed(0)}</td>
-      <td class="num" style="color:var(--ink-3)">${r.lo.toFixed(0)}–${r.hi.toFixed(0)}</td>
+      <td class="num">${r.cushion!==undefined?(r.cushion>0?"+":"")+r.cushion.toFixed(0):"—"}</td>
       <td><div class="pbar"><i style="width:${Math.max(r.p*100,0.6)}%"></i></div></td>
       <td class="num">${fmtP(r.p)}</td></tr>`).join("");
   document.getElementById("coalitionNote").textContent=
