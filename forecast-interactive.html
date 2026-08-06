@@ -233,16 +233,13 @@
   <div class="cgroup">
     <h3>Wildcards &amp; rules</h3>
     <div class="why">Before each of the last three elections, a party that did not yet exist
-    appeared and took 11–18%. The excessive-seats toggle switches between the law as the IEC
-    applied it in Laingsburg 2021 (fixed 270 council — the default) and the older
-    council-expands reading.</div>
+    appeared and took 11–18%. When a party wins more wards than its share allows, the
+    excessive-seats law applies exactly as the IEC ran it in Laingsburg in 2021: it keeps the
+    wards, gets no list seats, and the council stays at 270.</div>
     <div class="ctl"><div class="lab"><span>P(new entrant appears)</span><span class="v" id="v-entrantProb"></span></div>
       <input type="range" id="entrantProb" min="0" max="1" step="0.05" value="0.25"></div>
     <div class="ctl"><div class="lab"><span>Entrant central share</span><span class="v" id="v-entrantMode"></span></div>
       <input type="range" id="entrantMode" min="0.01" max="0.12" step="0.005" value="0.04"></div>
-    <div class="toggle"><input type="checkbox" id="overhangExpand">
-      <label for="overhangExpand">Use the older "council expands" reading (pre-2021 ambiguity;
-      the default is the law as the IEC applied it in Laingsburg 2021)</label></div>
   </div>
 
   <div class="cgroup">
@@ -433,7 +430,7 @@ const ctlIds=["thetaANC","thetaDA","thetaEFF","thetaMK","thetaASA","wBye","polli
   "entrantProb","entrantMode"];
 const DEFAULT_CFG={thetaANC:0.75,thetaDA:1.30,thetaEFF:0.85,thetaMK:0.60,thetaASA:1.50,
   wBye:0.40,pollingLean:0,alphaANC:60,alphaDA:12,mkRatio:0.80,paUplift:1.25,
-  turnoutBlend:0.5,turnoutNoise:0.08,entrantProb:0.25,entrantMode:0.04,overhangExpand:false};
+  turnoutBlend:0.5,turnoutNoise:0.08,entrantProb:0.25,entrantMode:0.04};
 const PRESETS={
   default:{},
   nobye:{wBye:0,pollingLean:0},
@@ -443,9 +440,8 @@ const PRESETS={
   asafall:{thetaASA:0.95,wBye:0.15},
 };
 function readCfg(){const c={};ctlIds.forEach(id=>c[id]=parseFloat(document.getElementById(id).value));
-  c.overhangExpand=document.getElementById("overhangExpand").checked;return c;}
+  return c;}
 function setCfg(c){ctlIds.forEach(id=>{if(id in c)document.getElementById(id).value=c[id];});
-  if("overhangExpand" in c)document.getElementById("overhangExpand").checked=c.overhangExpand;
   showVals();}
 function showVals(){
   const fmt={wBye:v=>v.toFixed(2),pollingLean:v=>(v>0?"+":"")+v.toFixed(1),
@@ -625,12 +621,7 @@ function run(cfg,nDraws,seed){
     if(over>0){
       overhangDraws++;
       for(let i=0;i<N;i++)if(winsArr[i]>seats[i])overhangBy[i]++;
-      if(cfg.overhangExpand){
-        // legacy pre-2021 reading: council grows, threshold moves
-        for(let i=0;i<N;i++)if(winsArr[i]>seats[i])seats[i]=winsArr[i];
-        cSize=0;for(let i=0;i<N;i++)cSize+=seats[i];
-        th=Math.floor(cSize/2)+1;
-      } else {
+      {
         // Schedule 1 item 16(3)-(9), as applied in Laingsburg 2021: the
         // excessive party keeps its wards and gets no list seats; everyone
         // else is re-allocated over the remaining seats. Council stays 270.
@@ -778,7 +769,7 @@ function render(a,cfg){
   const tiles=[
     {n:fmtP(a.pAncDa),l:"Chance an ANC\u2013DA pairing reaches a majority \u2014 the only two-party combination that reliably can",hero:true},
     {n:fmtP(a.largestP),l:`Chance ${a.largestName} is the largest single party`},
-    {n:a.thrMed.toFixed(0),l:"Majority threshold"+(cfg.overhangExpand?" (median \u2014 the legacy reading grows the council)":" \u2014 fixed: the excessive-seats law keeps the council at 270")},
+    {n:a.thrMed.toFixed(0),l:"Majority threshold \u2014 fixed: the excessive-seats law keeps the council at 270"},
     {n:fmtP(a.pOver),l:"Chance the ANC triggers the excessive-seats clause \u2014 keeps every ward, zero list seats, everyone else squeezed"},
     {n:fmtP(a.pNoBloc),l:"Chance a majority exists without the ANC, EFF and MK together"},
     {n:fmtP(a.minority[0].p),l:"Chance a DA minority government is viable \u2014 if only the ANC votes against, as in 2021"},
@@ -829,7 +820,7 @@ function render(a,cfg){
     pa_contestation_uplift:cfg.paUplift,
     turnout_pattern_blend:cfg.turnoutBlend,turnout_noise_sd:cfg.turnoutNoise,
     entrant_prob:cfg.entrantProb,entrant_share:[0.01,cfg.entrantMode,0.12],
-    overhang_rule:cfg.overhangExpand?"expand":"deduct",
+    overhang_rule:"deduct",
   };
   document.getElementById("scenarioJson").value=JSON.stringify(scen,null,1);
 
@@ -867,7 +858,6 @@ document.getElementById("run").addEventListener("click",go);
 ctlIds.forEach(id=>{const el=document.getElementById(id);
   el.addEventListener("input",showVals);
   el.addEventListener("change",go);});
-document.getElementById("overhangExpand").addEventListener("change",go);
 document.getElementById("draws").addEventListener("change",go);
 document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll("[data-preset]").forEach(x=>x.classList.remove("primary"));
