@@ -312,13 +312,14 @@
     <div class="eyebrow">Coalition arithmetic — fully enumerated</div>
     <h2>Who can govern</h2>
     <p class="small"><b>These are mathematically possible majorities only</b> — no judgement about
-    who would actually sit in a room with whom. For each: its <b>cushion</b> (median seats beyond
-    the 136 needed — its strength voting united) and what happens <b>if one partner walks out</b>:
-    ✕ the deal dies · ◐ coin flip · ● usually survives. Where a walk-out is fatal but another
-    party from the same voter pool could restore the numbers, it is named.</p>
+    who would actually sit in a room with whom, and the percentages are not "how likely this
+    government is": they say only how often the combination <em>has the numbers</em> across your
+    simulations. <b>Cushion</b> = median seats beyond the 136 needed, voting united. Every listed
+    partner is essential by construction; where a departed partner could be <em>replaced</em> to
+    keep the majority, the replacement is named.</p>
     <div class="tablewrap"><table>
       <thead><tr><th>Combination</th><th class="num">Seats (mid)</th><th class="num">Cushion</th>
-        <th style="width:22%">Chance of majority</th><th class="num"></th></tr></thead>
+        <th style="width:22%">Has the numbers in…</th><th class="num">of your sims</th></tr></thead>
       <tbody id="coalitions"></tbody>
     </table></div>
     <figcaption id="coalitionNote"></figcaption>
@@ -893,13 +894,15 @@ function render(a,cfg){
     </div>`).join("");
 
   const walkLine=r=>{
-    if(!r.walk)return "";
-    const bits=r.walk.map(w=>{
-      const sym=w.surv<0.10?"✕":w.surv<0.50?"◐":"●";
-      const resc=w.rescue?` <span style="color:var(--ink-3)">(${w.rescue.name} could step in${w.rescue.samePool?", same pool":""})</span>`:"";
-      return `${w.name}&nbsp;${sym}${resc}`;
-    }).join(" · ");
-    return `<div style="font-size:11.5px;color:var(--ink-3);margin-top:3px">if one walks: ${bits}</div>`;
+    if(!r.walk||r.p<0.15)return "";
+    const optional=r.walk.filter(w=>w.surv>=0.5).map(w=>w.name);
+    const rescues=r.walk.filter(w=>w.rescue).map(w=>
+      `if ${w.name} walks, ${w.rescue.name} could replace them${w.rescue.samePool?" (same pool)":""}`);
+    const bits=[];
+    if(optional.length)bits.push(`${optional.join(" and ")} not strictly needed`);
+    if(rescues.length)bits.push(rescues.join(" · "));
+    if(!bits.length)bits.push("every partner is essential — any walk-out ends it");
+    return `<div style="font-size:11.5px;color:var(--ink-3);margin-top:3px">${bits.join(" · ")}</div>`;
   };
   document.getElementById("coalitions").innerHTML=a.rows.map(r=>`
     <tr class="${r.key?"key":""}"><td>${r.label}${walkLine(r)}</td>
