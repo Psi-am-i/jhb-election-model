@@ -793,10 +793,14 @@ lawyer has yet proposed.
 voter at the record anchor now *does* clear Zille's number — ~524,000 DA
 votes (F_DA ×1.64) — and the claim still fails: the poll swells to ~1.29 m,
 the majority line moves to ~644,000, the DA's 41% buys a median **97 of 136
-[68–131]** after the ANC's ward floor (~62 wards on an entitlement near 49)
-is deducted. Short by 39; the luckiest simulation in 5,000 is still five
-short. Claims section rewritten accordingly (step 2 is now "even reaching
-the number doesn't make it half").
+[68–131]** after the ANC's ward floor (still firing in 90% of surge draws:
+~62 wards on an entitlement of about 50) is deducted. Short by 39 at the
+median; the surge hands the DA an outright majority in only ~3% of
+simulations (47/1,500; max draw 155). Triple-check correction 2026-08-07:
+an earlier wording called the 95th percentile (131) "the luckiest
+simulation" — the tail above it exists and occasionally clears 136; the
+page now says "about 3 in 100". Claims section rewritten accordingly
+(step 2 is "even reaching the number doesn't make it half").
 
 **Presentation:** both pages restructured into roll-up sections (forecast:
 The forecast / Commentary / About-the-model bands with expand-collapse-all;
