@@ -207,21 +207,26 @@
   <div class="cgroup">
     <h3>Voting blocs</h3>
     <div class="why">A <b>bloc</b> is a set of parties fishing in the same pool of voters, so
-    one's gain is partly another's loss: <b>●&nbsp;the ANC bloc</b> (ANC, EFF, MK) and
-    <b>○&nbsp;the DA bloc</b> (DA, ActionSA, plus tiny BOSA). Each simulation draws a bloc's
-    total first, then splits it. These dials set how <em>predictable</em> the split is — a
-    judgement, not a measurement, which is exactly why you can move it. Looser = wilder
-    reshuffles inside the bloc. <b>And blocs barely leak into each other:</b> in the ANC bloc's
-    record 2021 collapse it shed <b>587,000 votes</b> here — and the DA bloc captured none of
-    them (its own count fell). Declines go to the couch, not across the aisle — which is why an
-    ANC fall does not automatically make someone else win. The dial below is your bet on
-    whether 2026 breaks that pattern — slide right for ANC-bloc losses crossing to the DA side,
-    left for the DA bloc's usual local-election bounce failing and flowing to the ANC side
-    instead.</div>
+    one's gain is partly another's loss:<br>
+    <b>●&nbsp;the ANC bloc</b> (ANC, EFF, MK)<br>
+    <b>○&nbsp;the DA bloc</b> (DA, ActionSA, plus tiny BOSA).<br>
+    Each simulation draws a bloc's total first, then splits it. These dials set how predictable
+    the split within the bloc is — a judgement, not a measurement, which is exactly why you can
+    move it. Looser = wilder reshuffles inside the bloc.</div>
     <div class="ctl"><div class="lab"><span>● ANC bloc — split predictability</span><span class="v" id="v-alphaANC"></span></div>
       <input type="range" id="alphaANC" min="10" max="150" step="5" value="60"></div>
     <div class="ctl"><div class="lab"><span>○ DA bloc — split predictability</span><span class="v" id="v-alphaDA"></span></div>
       <input type="range" id="alphaDA" min="4" max="60" step="2" value="12"></div>
+  </div>
+
+  <div class="cgroup">
+    <h3>Bloc change</h3>
+    <div class="why">Since 2006, blocs barely leak into each other: in the ANC bloc's record 2021
+    collapse it shed <b>587,000 votes</b> — and the DA bloc captured none of them (its own count
+    fell). Declines go to the couch, not across the aisle.<br><br>
+    The dial below is your bet on whether 2026 breaks that pattern — slide right for ANC-bloc
+    losses crossing to the DA side, slide left for the DA bloc's voters moving to the ANC side
+    instead.</div>
     <div class="ctl"><div class="lab"><span>Trend-break: voters crossing between blocs</span><span class="v" id="v-blocLeak"></span></div>
       <input type="range" id="blocLeak" min="-1" max="1" step="0.05" value="0"></div>
   </div>
