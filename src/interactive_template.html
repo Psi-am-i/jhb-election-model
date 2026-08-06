@@ -903,9 +903,9 @@ function render(a,cfg){
     if(!r.walk||r.cushion===undefined||r.cushion<=0)return "—";
     const overall=Math.min(100,r.cushion/r.med*100);
     const per=r.walk.map(w=>
-      `${w.name}&nbsp;${Math.min(100,r.cushion/w.med*100).toFixed(0)}%`).join(" · ");
-    return `<b>${overall.toFixed(0)}%</b> of its councillors can defect`+
-      `<div style="font-size:11px;color:var(--ink-3);margin-top:2px">${per}</div>`;
+      `${Math.min(100,r.cushion/w.med*100).toFixed(0)}%&nbsp;of&nbsp;${w.name}`).join(", ");
+    return `<b>${overall.toFixed(0)}%</b> of all councillors can defect`+
+      `<div style="font-size:11px;color:var(--ink-3);margin-top:2px">survives defection of ${per}</div>`;
   };
   const survives=r=>{
     if(!r.walk)return "—";
