@@ -122,10 +122,12 @@ DEFAULTS: dict = {
     "poll_weight": 0.0,
 
     # Trend-break dial (2026-08-06, from the bloc-leakage measurement in
-    # MODEL-LOG 1.18): share of the ANC bloc's drawn decline that CROSSES to
-    # the DA bloc instead of staying home. History says ~0 (the 2021 collapse
-    # shed 587k votes and the DA bloc captured none); >0 is an explicit bet
-    # that 2026 breaks the reservoir pattern.
+    # MODEL-LOG 1.18). Signed, [-1, 1]. History says ~0 (the 2021 collapse
+    # shed 587k votes and the DA bloc captured none).
+    #   > 0: that share of the ANC bloc's drawn decline CROSSES to the DA
+    #        bloc instead of staying home (ANC→DA conversion).
+    #   < 0: that share of the DA bloc's drawn LGE gain fails and flows to
+    #        the ANC bloc instead (DA→ANC; the bounce was ANC-leaning).
     "bloc_leak": 0.0,
 
     # A1: ward/PR split-ticket ratios are measured from 2021 per party;
@@ -339,18 +341,23 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
 
     def draw():
         target = np.zeros(n)
-        anc_decline = 0.0
-        for bloc_name in ("ANC_BLOC", "DA_BLOC"):
-            idx, base_total, shift_spec, centre_props, alpha = bloc_spec[bloc_name]
-            shift = triangular(rng, shift_spec) / 100.0
-            if bloc_name == "ANC_BLOC":
-                anc_decline = max(0.0, -shift)
-                shifted = max(base_total + shift, 0.005)
-            else:
-                shifted = max(base_total + shift
-                              + scenario["bloc_leak"] * anc_decline, 0.005)
-            split = rng.dirichlet(np.maximum(centre_props * alpha, 0.05))
-            target[idx] = shifted * split
+        a_idx, a_base, a_spec, a_props, a_alpha = bloc_spec["ANC_BLOC"]
+        d_idx, d_base, d_spec, d_props, d_alpha = bloc_spec["DA_BLOC"]
+        a_shift = triangular(rng, a_spec) / 100.0
+        d_shift = triangular(rng, d_spec) / 100.0
+        leak = scenario["bloc_leak"]
+        a_total = a_base + a_shift
+        d_total = d_base + d_shift
+        if leak > 0:      # ANC-bloc decline crosses to the DA bloc
+            d_total += leak * max(0.0, -a_shift)
+        elif leak < 0:    # DA-bloc gain flows back to the ANC bloc
+            xfer = -leak * max(0.0, d_shift)
+            d_total -= xfer
+            a_total += xfer
+        for idx, total, props, alpha in ((a_idx, a_total, a_props, a_alpha),
+                                         (d_idx, d_total, d_props, d_alpha)):
+            split = rng.dirichlet(np.maximum(props * alpha, 0.05))
+            target[idx] = max(total, 0.005) * split
         for i, spec in individual:
             target[i] = base_city[i] * triangular(rng, spec)
         target = target / target.sum()

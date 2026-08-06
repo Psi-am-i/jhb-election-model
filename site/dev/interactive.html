@@ -214,13 +214,15 @@
     record 2021 collapse it shed <b>587,000 votes</b> here — and the DA bloc captured none of
     them (its own count fell). Declines go to the couch, not across the aisle — which is why an
     ANC fall does not automatically make someone else win. The dial below is your bet on
-    whether 2026 finally breaks that pattern.</div>
+    whether 2026 breaks that pattern — slide right for ANC-bloc losses crossing to the DA side,
+    left for the DA bloc's usual local-election bounce failing and flowing to the ANC side
+    instead.</div>
     <div class="ctl"><div class="lab"><span>● ANC bloc — split predictability</span><span class="v" id="v-alphaANC"></span></div>
       <input type="range" id="alphaANC" min="10" max="150" step="5" value="60"></div>
     <div class="ctl"><div class="lab"><span>○ DA bloc — split predictability</span><span class="v" id="v-alphaDA"></span></div>
       <input type="range" id="alphaDA" min="4" max="60" step="2" value="12"></div>
-    <div class="ctl"><div class="lab"><span>Trend-break: ANC losses crossing to the DA bloc</span><span class="v" id="v-blocLeak"></span></div>
-      <input type="range" id="blocLeak" min="0" max="1" step="0.05" value="0"></div>
+    <div class="ctl"><div class="lab"><span>Trend-break: voters crossing between blocs</span><span class="v" id="v-blocLeak"></span></div>
+      <input type="range" id="blocLeak" min="-1" max="1" step="0.05" value="0"></div>
   </div>
 
   <div class="cgroup">
@@ -493,7 +495,7 @@ function setCfg(c){ctlIds.forEach(id=>{if(id in c)document.getElementById(id).va
   pollUi();showVals();}
 function showVals(){
   const fmt={wBye:v=>v.toFixed(2),pollWeight:v=>(v*100).toFixed(0)+"%",
-    blocLeak:v=>v===0?"0 — history":(v*100).toFixed(0)+"% cross",
+    blocLeak:v=>v===0?"0 — history":v>0?(v*100).toFixed(0)+"% ANC→DA":(-v*100).toFixed(0)+"% DA→ANC",
     alphaANC:v=>v.toFixed(0),alphaDA:v=>v.toFixed(0),
     turnoutNoise:v=>"σ "+v.toFixed(2),entrantProb:v=>(v*100).toFixed(0)+"%",
     entrantMode:v=>(v*100).toFixed(1)+"%"};
@@ -611,15 +613,17 @@ function run(cfg,nDraws,seed){
   for(let d=0;d<nDraws;d++){
     // --- citywide target ---
     target.fill(0);
-    let ancDecline=0;
-    for(let bi2=0;bi2<blocs.length;bi2++){
-      const b=blocs[bi2];
-      const shift=triangular(rng,b.lo,b.mode,b.hi)/100;
-      let shifted;
-      if(bi2===0){ancDecline=Math.max(0,-shift);shifted=Math.max(b.baseTot+shift,0.005);}
-      else shifted=Math.max(b.baseTot+shift+cfg.blocLeak*ancDecline,0.005);
-      const split=dirichlet(rng,b.alphas);
-      b.ids.forEach((i,k)=>target[i]=shifted*split[k]);
+    {
+      const A=blocs[0],D=blocs[1];
+      const aShift=triangular(rng,A.lo,A.mode,A.hi)/100;
+      const dShift=triangular(rng,D.lo,D.mode,D.hi)/100;
+      let aTot=A.baseTot+aShift, dTot=D.baseTot+dShift;
+      if(cfg.blocLeak>0)dTot+=cfg.blocLeak*Math.max(0,-aShift);
+      else if(cfg.blocLeak<0){const x=-cfg.blocLeak*Math.max(0,dShift);dTot-=x;aTot+=x;}
+      [[A,aTot],[D,dTot]].forEach(([b,tot])=>{
+        const split=dirichlet(rng,b.alphas);
+        b.ids.forEach((i,k)=>target[i]=Math.max(tot,0.005)*split[k]);
+      });
     }
     for(const [i,lo,m,hi] of individual)target[i]=base[i]*triangular(rng,lo,m,hi);
     target[I_OTHER]=base[I_OTHER]*triangular(rng,F_OTHER[0],F_OTHER[1],F_OTHER[2]);
