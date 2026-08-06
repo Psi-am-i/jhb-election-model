@@ -88,6 +88,7 @@
     letter-spacing:.15em; text-transform:uppercase; color:var(--ink-3);
   }
   section{display:flex;flex-direction:column;gap:14px;}
+  a{color:var(--good);text-decoration-thickness:1px;text-underline-offset:2px;}
   .sheet a{color:var(--good);text-decoration-thickness:1px;text-underline-offset:2px;}
   .sheet a:hover{color:var(--accent);}
   p{margin:0;}
@@ -183,12 +184,12 @@
 
   <header class="masthead">
     <div class="kicker">Forecast · City of Johannesburg · 4 November 2026</div>
-    <h1>Nobody wins Johannesburg — and the ANC will take more seats than expected, thanks to an obscure part of our voting law. Get ready for squabbles.</h1>
-    <p class="standfirst">5,000 simulations of the November vote, using a new voting-district
-    model of the city, find the DA finishing first 54% of the time — but never with a majority.
-    And a rarely-used clause in our voting laws hands the shrinking ANC an unbreakable floor: it
-    will keep its seat in every stronghold ward it wins, even though this is more than its
-    proportional allowance — and the shortfall in seats will fall on every other party.</p>
+    <h1>Nobody will win Johannesburg — and an obscure voting law will give the ANC more seats than expected. Get ready for squabbles.</h1>
+    <p class="standfirst">5,000 simulations using a new voting-district model of the city find
+    the DA finishing first 54% of the time — but never with a majority. A rarely-used clause in
+    our voting laws will hand the shrinking ANC an unbreakable floor: it will keep its ward
+    seats, even though this is more than its proportional allowance — and the shortfall will be
+    taken from every other party.</p>
   </header>
 <!-- __MAP_START__ -->
   <section>
@@ -458,6 +459,33 @@
       <li><b>This is not a poll.</b> No voters were surveyed. This is arithmetic on results, registration, and fifteen by-elections, with polling introduced as it happens but only as levers bounded by history.</li>
     </ul>
     </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">The campaign arithmetic</div>
+    <h2>The parties' claims — tested</h2>
+    <p class="lede"><b>“490,000 DA votes on both ballots deliver an outright majority”</b>
+    (<a href="https://www.businessday.co.za/politics/2026-03-01-da-needs-490000-voters-to-win-outright-majority-in-joburg-says-zille/"
+    target="_blank" rel="noopener">Helen Zille, March 2026</a>). We put the claim through the
+    full model. It falls short by <b>46 seats</b>, and it fails in three specific steps.</p>
+    <p class="lede"><b>1 — It is half of the wrong number.</b> 490,000 is almost exactly half
+    of the ~985,000 votes expected in Johannesburg if turnout stays at its record low. But
+    seats follow the poll that actually happens, and the only way the DA finds 170,000 extra
+    votes is turnout — which grows the poll and moves the majority line up with it. At full
+    DA-camp turnout the poll is ~1.16&nbsp;million, and half of it is ~579,000.</p>
+    <p class="lede"><b>2 — “All our voters” delivers about 436,000, not 490,000.</b> Put every
+    DA and ActionSA supporter in the city at their 2024 national-election turnout — over a
+    third more votes than the baseline expects of them — and the DA polls ~436,000: about
+    <b>38%</b> of the bigger poll, nowhere near half of anything.</p>
+    <p class="lede"><b>3 — And 38% doesn't buy 38% of the seats.</b> Proportionally that would
+    be ~102 of 270. But the excessive-seats law hands the ANC every stronghold ward it holds —
+    more wards than its ~21% share entitles it to — and the surplus is deducted from everyone
+    else's column, the biggest slice from the biggest party. The DA's median lands on
+    <b>90 of the 136 needed</b>; its luckiest run in 5,000 reaches 118, still eighteen short.</p>
+    <p class="lede">The mirror is its own story: the ANC is seat-capped at its ward wins by the
+    same law, so even a perfectly delivering ANC machine lifts the party barely at all — the
+    gains flow to the EFF and MK. Both experiments are one click on the
+    <a href="interactive">interactive simulator</a>.</p>
   </section>
 
   <section>

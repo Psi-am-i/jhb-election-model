@@ -529,7 +529,6 @@ def main(argv: list[str] | None = None) -> int:
     t_lo = np.where(np.isnan(t_lo), mlo, t_lo)
     anc_ids = [index[p] for p in BLOCS["ANC_BLOC"] if p in index]
     da_ids = [index[p] for p in BLOCS["DA_BLOC"] if p in index]
-    anc_lean = local[:, anc_ids].sum(axis=1) >= local[:, da_ids].sum(axis=1)
 
     # --- ward structure (E3) -------------------------------------------------
     vd_index = {v: i for i, v in enumerate(vds)}
@@ -633,19 +632,32 @@ def main(argv: list[str] | None = None) -> int:
         t_draw = np.clip(((1 - blend) * t_ratio + blend * t_level)
                          * np.exp(noise - scenario["turnout_noise_sd"] ** 2 / 2),
                          0.02, 0.95)
-        # who-turns-out tilts are COMPOSITIONAL: the scenario's within-VD
-        # shares stay put (calibrated on the untilted weights below), and the
-        # tilt changes who casts votes — so a surge in one bloc's areas moves
-        # the citywide result mechanically instead of being re-absorbed by
-        # the IPF calibration.
+        # who-turns-out tilts are PARTY-SELECTIVE and compositional: the
+        # scenario's within-VD shares are calibrated on the untilted weights,
+        # then the tilt scales the target BLOC'S SUPPORTERS — wherever they
+        # live — between the draw's turnout and the anchor (2024 national
+        # turnout up, worst LGE on record down). Their neighbours' votes are
+        # untouched: one camp's machine outworking the other, not a ward-wide
+        # tide (which would mobilise the other camp's voters too).
         weight_cal = reg * t_draw
+        weight = weight_cal
         tilt_a = scenario["turnout_tilt_anc"]
         tilt_d = scenario["turnout_tilt_da"]
+        tilt_scale = None
         if tilt_a or tilt_d:
-            tilt = np.where(anc_lean, tilt_a, tilt_d)
-            anchor = np.where(tilt >= 0, t_24, t_lo)
-            t_draw = np.clip(t_draw + np.abs(tilt) * (anchor - t_draw), 0.02, 0.95)
-        weight = reg * t_draw
+            def _bloc_scale(t):
+                # "all turn out" can only add votes; "stay home" can only
+                # remove them (the worst-ever anchor can sit a hair above the
+                # baseline, which must not make staying home a gain)
+                anchor = t_24 if t >= 0 else t_lo
+                raw = 1.0 + abs(t) * (anchor / t_draw - 1.0)
+                return (np.clip(raw, 1.0, 4.0) if t >= 0
+                        else np.clip(raw, 0.25, 1.0))
+            tilt_scale = np.ones((nvd, npar))
+            if tilt_a:
+                tilt_scale[:, anc_ids] = _bloc_scale(tilt_a)[:, None]
+            if tilt_d:
+                tilt_scale[:, da_ids] = _bloc_scale(tilt_d)[:, None]
 
         floor = scenario["level_floor"]
         pr = solve_and_predict(dev, base_city, pr_target, gamma["PR"], weight_cal,
@@ -653,13 +665,15 @@ def main(argv: list[str] | None = None) -> int:
         wd = solve_and_predict(dev, base_city, ward_target, gamma["Ward"], weight_cal,
                                level_floor=floor)
 
-        pr_votes = weight @ pr
-        ward_votes = weight @ wd
+        pr_eff = pr if tilt_scale is None else pr * tilt_scale
+        wd_eff = wd if tilt_scale is None else wd * tilt_scale
+        pr_votes = weight @ pr_eff
+        ward_votes = weight @ wd_eff
 
         # E3: ward winners from the ward ballot, at 2026-ward level.
         part_cast = part_reg * t_draw[part_vd]
         ward_tally = np.zeros((len(wards), npar))
-        np.add.at(ward_tally, part_ward, part_cast[:, None] * wd[part_vd])
+        np.add.at(ward_tally, part_ward, part_cast[:, None] * wd_eff[part_vd])
         if scenario["ward_noise_sd"] > 0:
             ward_tally = ward_tally * np.exp(
                 rng.normal(0.0, scenario["ward_noise_sd"], ward_tally.shape))

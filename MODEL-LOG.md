@@ -697,6 +697,52 @@ headline the Turnout group; split-predictability, by-election weight and the
 old map/scatter dials under a collapsed Fine-tuning; MK/PA judgement calls
 collapsible).
 
+### 1.21 Turnout tilts made party-selective; the 490k claim gets its own section ✅ *supersedes 1.20's measured numbers*
+
+**User critique, accepted:** the 1.20 tilt was a *ward-level* tide — raising a
+DA-leaning ward's turnout also cast more votes for the ANC voters living in
+it, which contradicts the story being tested ("one bloc's voters turn out").
+Reworked in both engines: the tilt now scales the target **bloc's
+supporters** — wherever in the city they live — between the draw's turnout
+and the anchors, leaving their neighbours untouched. Mechanically: within-VD
+shares stay as the scenario calibrated them (IPF on untilted weights); per-VD
+per-party scale `1 + |t|·(anchor/t_draw − 1)` applied to the bloc's columns
+at vote aggregation and in the ward-winner tallies (so a mobilised camp can
+now flip wards, which the ward-tide version could not do honestly). Direction
+clamps: "all turn out" can only add votes, "stay home" only remove them —
+needed because the worst-LGE anchor (42.5% citywide) sits a hair *above* the
+forecast baseline (41.9%): the model already assumes near-record-low turnout,
+so "their voters stay home" is not a scenario, it is the baseline. Sliders
+relabelled "ANC-bloc voters (ANC · EFF · MK)" / "DA-bloc voters (DA ·
+ActionSA)"; readouts report the change in that bloc's cast votes (+49% / +38%
+at the all-out anchors). Non-bloc parties are untouched by the dials, said on
+the page.
+
+**Superseding measurements (1,500 draws each, both engines agree):**
+- *Every DA-camp voter at 2024 national turnout:* DA polls ~436,000 of a
+  ~1.16 m poll (~38%) — note it still does not reach the claim's own 490,000
+  — and takes a median **90 seats [62–118]**; P(largest) 85%; P(governs
+  alone) ~0.1–0.3%. The 490k claim falls 46 seats short, and even the
+  luckiest run in 5,000 is 18 short. Adding "ANC-bloc voters stay home"
+  changes nothing (see the clamp note above).
+- *The ANC machine delivers:* ANC 74 → **81 [66–97]** — more responsive than
+  the ward-tide version because its supporters' surge now defends and takes
+  wards — but the larger gains still flow to the EFF (27 → 35) and MK
+  (19 → 25), with the DA down to 67 and P(ANC+DA) at 74%.
+
+**Publication changes:** the 490k verdict moved out of the sidebar into a
+"The parties' claims — tested" section on both the forecast page and the
+interactive results column (three numbered steps: half-of-the-wrong-number /
+436k-not-490k / 38%-of-votes-buys-fewer-seats, with the run-it-yourself
+presets); headline and standfirst reworded (rev 4: "Nobody will win
+Johannesburg — and an obscure voting law will give the ANC more seats than
+expected"); dateline strip moved below the colophon on all pages; mobile
+width fixed (h1 `text-wrap:balance` was shortening lines; ≤560px padding
+tightened); base `a{color}` element rule added to every stylesheet so no
+future link can fall back to unreadable browser-default blue. Change-badge
+system from earlier today (▲/▼ vs previous run + sticky summary bar) applies
+to all of these experiments.
+
 ## 2. Obstacles and how they were handled
 
 | # | Obstacle | Resolution | Status |
