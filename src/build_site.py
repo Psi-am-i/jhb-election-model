@@ -172,6 +172,19 @@ NAV_CSS = """<style>
 
 
 
+OG_META = """<meta property="og:site_name" content="Johannesburg 2026 Election Model">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Who governs Johannesburg after 4 November 2026?">
+<meta property="og:description" content="5,000 simulations of the November vote. Nobody wins — and an obscure clause of the seat law hands the shrinking ANC an unbreakable floor. Explore every ward, every coalition, every assumption.">
+<meta property="og:url" content="https://whysoserious.city/">
+<meta property="og:image" content="https://whysoserious.city/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Hillbrow Tower silhouetted against a Johannesburg sunset">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://whysoserious.city/share.jpg">
+"""
+
 FOOTER = """<footer class="sitefooter">
   <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
   <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">source &amp; data on GitHub</a></div>
@@ -190,7 +203,7 @@ NAV_CSS = NAV_CSS.replace("{FOOTER_CSS_PLACEHOLDER}", FOOTER_CSS)
 def inject_nav(html: str, active_href: str) -> str:
     """Give an artefact page the site navigation: CSS into <head>, nav bar
     at the top of its content container so it aligns with the content."""
-    html = html.replace("</head>", NAV_CSS + "\n</head>", 1)
+    html = html.replace("</head>", OG_META + NAV_CSS + "\n</head>", 1)
     marker = '<div class="sheet">'
     html = html.replace(marker, marker + "\n" + nav_for(active_href), 1)
     # Footer goes at the end of the content container so it aligns with it.
@@ -275,7 +288,7 @@ def shell(title: str, kicker: str, masthead: str, body: str, generated_note: str
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-<style>{STYLE}</style>
+{OG_META}<style>{STYLE}</style>
 </head>
 <body>
 <div class="page">
@@ -383,7 +396,8 @@ def main(argv: list[str] | None = None) -> int:
     # deployed site, 2026-08-04). All assets here are HTML, so a blanket
     # header is safe; revisit if non-HTML assets are ever added.
     (args.out / "_headers").write_text(
-        "/*\n  Content-Type: text/html; charset=utf-8\n", encoding="utf-8"
+        "/*\n  Content-Type: text/html; charset=utf-8\n"
+        "/share.jpg\n  ! Content-Type\n  Content-Type: image/jpeg\n", encoding="utf-8"
     )
     print("  wrote    _headers (utf-8 content type)")
 
