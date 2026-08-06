@@ -378,20 +378,26 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
 def allocate_with_overhang(
     combined: dict[str, int], ward_wins: dict[str, int], rule: str = "expand"
 ) -> tuple[dict[str, int], int, int, dict[str, int]]:
-    """Schedule 1 allocation with the plan §3.7 overhang treatment.
+    """Schedule 1 allocation with the excessive-seats treatment.
 
-    A party keeps every ward it wins. If wins exceed entitlement the council
-    expands by the excess and the majority threshold moves (plan §0/§3.7 —
-    the statutory fine print on how the residue redistributes differs in
-    detail; if P(overhang) becomes material, verify against an IEC worked
-    example before publishing an overhang-conditional number).
+    A party keeps every ward it wins. Default rule "deduct" is the amended
+    Act 3/2021 Schedule 1 item 16(1),(3)-(9), as the IEC applied it in
+    Laingsburg 2021 (MODEL-LOG 1.17): a party whose wins are *equal to or
+    greater than* its entitlement keeps its wards and gets no list seats;
+    the quota is recomputed for everyone else over the remaining seats, and
+    the council stays at 270. The equality trigger follows 16(1)'s "equal to
+    or greater" wording (MODEL-LOG 1.19) — excluding an exactly-at-quota
+    party is not a no-op for the others. "expand" (council grows by the
+    excess) is kept as the legacy pre-research toggle; "cap" ignores wins.
 
-    Returns (seats, council_size, threshold, overhang_by_party).
+    Returns (seats, council_size, threshold, excessive_by_party) — the dict
+    maps each party that triggered item 16 (in any re-allocation round) to
+    its excess at the round it was fixed (0 for an exactly-equal party).
     """
     alloc = allocate(combined, total_seats=COUNCIL)
     over = {p: ward_wins[p] - alloc.seats.get(p, 0)
             for p in ward_wins
-            if ward_wins[p] > alloc.seats.get(p, 0)}
+            if ward_wins[p] > 0 and ward_wins[p] >= alloc.seats.get(p, 0)}
     seats = dict(alloc.seats)
     if rule == "cap" or not over:
         return seats, COUNCIL, COUNCIL // 2 + 1, over
@@ -401,10 +407,12 @@ def allocate_with_overhang(
         while True:
             sub = allocate(votes, total_seats=COUNCIL - sum(fixed.values()))
             newly = {p: ward_wins[p] for p in list(votes)
-                     if ward_wins.get(p, 0) > sub.seats.get(p, 0)}
+                     if ward_wins.get(p, 0) > 0
+                     and ward_wins.get(p, 0) >= sub.seats.get(p, 0)}
             if not newly:
                 return {**sub.seats, **fixed}, COUNCIL, COUNCIL // 2 + 1, over
             for party, wins in newly.items():
+                over.setdefault(party, wins - sub.seats.get(party, 0))
                 fixed[party] = wins
                 votes.pop(party)
     for party, excess in over.items():
@@ -571,6 +579,7 @@ def main(argv: list[str] | None = None) -> int:
     thresholds = np.zeros(draws, dtype=int)
     council_sizes = np.zeros(draws, dtype=int)
     overhang_count: defaultdict[str, int] = defaultdict(int)
+    excessive_draws = 0
     ward_win_sum: defaultdict[str, int] = defaultdict(int)
     ward_winner_counts = np.zeros((len(wards), npar), dtype=np.int32)
     bounds_violations: defaultdict[str, int] = defaultdict(int)
@@ -632,6 +641,8 @@ def main(argv: list[str] | None = None) -> int:
         council_sizes[d] = council
         for p in over:
             overhang_count[p] += 1
+        if over:
+            excessive_draws += 1
         for p, w in wins.items():
             ward_win_sum[p] += w
         if (d + 1) % 1000 == 0:
@@ -654,8 +665,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"\ncouncil size: median {int(np.median(council_sizes))}, "
           f"max {council_sizes.max()}   ·   majority threshold: median "
           f"{int(np.median(thresholds))}, max {thresholds.max()}")
-    p_overhang = float((council_sizes > COUNCIL).mean())
-    print(f"P(any overhang): {p_overhang:.1%}" + (
+    p_excessive_any = excessive_draws / draws
+    print(f"P(any party excessive): {p_excessive_any:.1%}" + (
         "   by party: " + ", ".join(
             f"{p} {overhang_count[p] / draws:.1%}"
             for p in sorted(overhang_count, key=lambda q: -overhang_count[q]))
@@ -716,7 +727,7 @@ def main(argv: list[str] | None = None) -> int:
                 "ward_wins_mean": ward_win_sum[p] / draws}
             for p in ranked if series(p).mean() >= 0.4
         },
-        "p_overhang": p_overhang,
+        "p_excessive_any": p_excessive_any,
         "p_excessive_by_party": {p: overhang_count[p] / draws
                                  for p in sorted(overhang_count,
                                                  key=lambda q: -overhang_count[q])},

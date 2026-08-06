@@ -36,7 +36,7 @@ def main(argv: list[str] | None = None) -> int:
                         for p, v in summary["parties"].items()
                         if p in ("DA", "ANC", "EFF", "MK", "ASA", "PA")},
             "threshold_median": summary["threshold_median"],
-            "p_overhang": summary["p_overhang"],
+            "p_excessive_any": summary["p_excessive_any"],
             "structural": summary["structural"],
         }
 
