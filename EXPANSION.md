@@ -306,19 +306,26 @@ which is the story.
 | 1 · City config spine + `derive_city.py` | **done** — Joburg config generated from the constants; byte-identical run |
 | 2 · Generated JS constants / sliders | **done** — engine-diffed across four scenarios |
 | 3 · Content split + claims as data | **done** — map chrome to config, claims.toml; per-city copy fragments still to come with the first non-Joburg page |
-| 4 · Portal + Worker routing (+ staging) | not started |
+| 4 · Portal + Worker routing | **done** — portal live at the apex, hostname routing, per-city canonical URLs, `build_all.py`; staging still outstanding |
 | 5 · Per-city newsdesk | not started |
-| Pilot · Tshwane | config skeleton + map block only; pipeline paths still Joburg-shaped |
+| Pilot · Tshwane | config + map block done; **pipeline paths now city-agnostic**, so the blocker is the judgement review and the launch gate |
 
 **Standing rule, held at every step so far:** Johannesburg's forecast has not
 moved — byte-identical `forecast_summary.json`, byte-identical map, and the
 browser engine returns identical results across four scenarios.
 
-**Known remaining blocker for a second city:** the ingest chain
-(`ingest_lge`, `ingest_npe`, `build_crosswalk`, `build_concordance`,
-`turnout`, `fold`) still carries `_JHB_` filename literals and CoJ-only
-validation tables. That is mechanical work, and it is what actually stands
-between the framework and a Tshwane page.
+**Platform gotchas found while wiring the Worker**, both worth remembering:
+with an assets binding the platform serves a matching asset *before* the
+Worker runs, so hostname routing needs `run_worker_first = true`; and
+fetching `/portal.html` triggers the extension-stripping 307, which moves
+the visitor off the apex URL — request the clean path. Each new city needs
+its own `custom_domain` route entry and DNS record; a wildcard route would
+not get a certificate.
+
+**What now stands between the framework and a Tshwane page** is no longer
+code: it is the judgement review (`cities/tshwane.toml` still carries
+Johannesburg placeholders), `validate_seats` proving the 214-seat council,
+and `landscape.md` — the three conditions of the launch gate.
 
 Recorded in `MODEL-LOG.md` §1.24. Data acquisition for all eight metros is
 already complete — see `SOURCES.md`, "All-metro sweep".
