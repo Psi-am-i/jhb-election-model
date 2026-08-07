@@ -178,7 +178,7 @@ def _span(text: str, entry: dict, name: str, live_str: str | None) -> str:
     tip = (tip.replace("&", "&amp;").replace("<", "&lt;")
               .replace(">", "&gt;").replace('"', "&quot;"))
     live_attr = f' data-live="{live_str}"' if live_str is not None else ""
-    return (f'<span class="stat" data-mode="{mode}" data-token="{name}"'
+    return (f'<span class="mstat" data-mode="{mode}" data-token="{name}"'
             f' data-when="{when}"{live_attr} title="{tip}">{text}</span>')
 
 
@@ -240,6 +240,9 @@ def drift_report(rows: list[dict]) -> str:
 
 
 # The CSS/markup a page needs so pinned figures reveal their provenance.
-STAT_CSS = """
-  .stat[data-mode="fixed"]{border-bottom:1px dotted var(--ink-3);cursor:help;}
+# Injected into every page that renders tokens. `mstat` (model stat), NOT
+# `stat` — that class is already the headline tiles, whose flex-column
+# display turned every inline figure into its own block.
+STAT_CSS = """  .mstat{display:inline;}
+  .mstat[data-mode="fixed"]{border-bottom:1px dotted var(--ink-3);cursor:help;}
 """

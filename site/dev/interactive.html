@@ -180,6 +180,8 @@
   .colophon{font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--ink-3);
     border-top:1px solid var(--rule);padding-top:12px;}
   .derived{font-family:var(--mono);font-size:11px;color:var(--ink-3);line-height:1.7;}
+  .mstat{display:inline;}
+  .mstat[data-mode="fixed"]{border-bottom:1px dotted var(--ink-3);cursor:help;}
 </style>
 </head>
 <body>
@@ -324,7 +326,7 @@
     <a class="morelink" data-more="m-bloc">more…</a></div>
     <dialog class="morepop" id="m-bloc"><button class="popclose">✕</button>
       <h3>Bloc shifts — voter cross-over</h3>
-      <p>In the ANC bloc's record 2021 collapse it shed <b><span class="stat" data-mode="fixed" data-token="bloc_leak_votes" data-when="2026-08-06" title="Pinned 2026-08-06 · source: external:MODEL-LOG 1.18 — ANC-bloc vote loss 2019 NPE to 2021 LGE">587,000</span> votes</b> — and the DA bloc
+      <p>In the ANC bloc's record 2021 collapse it shed <b><span class="mstat" data-mode="fixed" data-token="bloc_leak_votes" data-when="2026-08-06" title="Pinned 2026-08-06 · source: external:MODEL-LOG 1.18 — ANC-bloc vote loss 2019 NPE to 2021 LGE">587,000</span> votes</b> — and the DA bloc
       captured none of them (its own count fell). Declines go to the couch, not across the
       aisle. There is no data for anything else, so the slider is deliberately uncalibrated.</p>
       <p>At 0, lost voters stay home; nobody inherits them. Slide right to move a percentage
@@ -348,7 +350,7 @@
       <p>Each simulation draws a bloc's total first, then splits it between members.</p>
       <p><b>Within-bloc vote shifts</b> — how tightly the split between a bloc's members
       sticks to history. Left = sticks to history; right = wild reshuffles, same total.</p>
-      <p><b>By-elections' influence</b> — how hard the <span class="stat" data-mode="fixed" data-token="byelection_count" data-when="2026-08-05" title="Pinned 2026-08-05 · source: external:IEC by-election records, CoJ 2021-2026">15</span> real by-elections since 2021
+      <p><b>By-elections' influence</b> — how hard the <span class="mstat" data-mode="fixed" data-token="byelection_count" data-when="2026-08-05" title="Pinned 2026-08-05 · source: external:IEC by-election records, CoJ 2021-2026">15</span> real by-elections since 2021
       pull the party levels. Left = no influence; right = the levels match what the
       by-elections imply.</p>
       <p><b>Turnout map</b> — the baseline turnout geography: the model's 2006–2024
@@ -494,8 +496,8 @@
       <div class="cell"><h4><span class="tick">✓</span> It predicts historical elections accurately</h4>
         <p>The model reproduces the real 2011, 2016 and 2021 councils to the seat — quota,
         vote totals, every party — from raw voting-district files.</p></div>
-      <div class="cell"><h4><span class="tick">✓</span> Blind test: <span class="stat" data-mode="fixed" data-token="blind_test_called" data-when="2026-08-04" title="Pinned 2026-08-04 · source: external:fold-2 blind validation (MODEL-LOG 1.9)">129</span> of <span class="stat" data-mode="fixed" data-token="blind_test_of" data-when="2026-08-04" title="Pinned 2026-08-04 · source: external:ward count at the 2021 delimitation">135</span></h4>
-        <p>Shown only 2021's citywide totals, the model placed them well enough to call <span class="stat" data-mode="fixed" data-token="blind_test_called" data-when="2026-08-04" title="Pinned 2026-08-04 · source: external:fold-2 blind validation (MODEL-LOG 1.9)">129</span> of <span class="stat" data-mode="fixed" data-token="blind_test_of" data-when="2026-08-04" title="Pinned 2026-08-04 · source: external:ward count at the 2021 delimitation">135</span> ward winners.</p></div>
+      <div class="cell"><h4><span class="tick">✓</span> Blind test: <span class="mstat" data-mode="fixed" data-token="blind_test_called" data-when="2026-08-04" title="Pinned 2026-08-04 · source: external:fold-2 blind validation (MODEL-LOG 1.9)">129</span> of <span class="mstat" data-mode="fixed" data-token="blind_test_of" data-when="2026-08-04" title="Pinned 2026-08-04 · source: external:ward count at the 2021 delimitation">135</span></h4>
+        <p>Shown only 2021's citywide totals, the model placed them well enough to call <span class="mstat" data-mode="fixed" data-token="blind_test_called" data-when="2026-08-04" title="Pinned 2026-08-04 · source: external:fold-2 blind validation (MODEL-LOG 1.9)">129</span> of <span class="mstat" data-mode="fixed" data-token="blind_test_of" data-when="2026-08-04" title="Pinned 2026-08-04 · source: external:ward count at the 2021 delimitation">135</span> ward winners.</p></div>
       <div class="cell"><h4><span class="tick">✓</span> Geography is the anchor</h4>
         <p>Where a party's support sits barely moves between elections, even when its level
         swings wildly. Tested across cycles: geography transferred, levels did not. So the
@@ -505,7 +507,7 @@
         swing across thirty wards moves about two seats. Try the turnout sliders — that
         finding is why they barely matter.</p></div>
       <div class="cell"><h4><span class="cross">✗</span> It cannot see a party that does not exist</h4>
-        <p>ActionSA went from absent to <span class="stat" data-mode="fixed" data-token="asa_2021_seats" data-when="2026-08-04" title="Pinned 2026-08-04 · source: external:IEC 2021 CoJ result — ActionSA's first election">44</span> seats in one cycle. The Wildcard Entrant slider is
+        <p>ActionSA went from absent to <span class="mstat" data-mode="fixed" data-token="asa_2021_seats" data-when="2026-08-04" title="Pinned 2026-08-04 · source: external:IEC 2021 CoJ result — ActionSA's first election">44</span> seats in one cycle. The Wildcard Entrant slider is
         an honest patch, not a fix.</p></div>
       <div class="cell"><h4><span class="cross">✗</span> The ranges you can play with are judgements</h4>
         <p>History bounds the sliders, but no backtest can validate a 2026 range. The
