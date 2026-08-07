@@ -118,6 +118,142 @@ def main(argv: list[str] | None = None) -> int:
                  "p_excessive_anc": round(p_excessive, 4)},
     }
 
+    # --- "Who can govern": the interactive's full analysis, computed from ---
+    # the published 5,000-draw run (discovered combinations, passenger
+    # filter, cushion, stability, survivability) so the forecast page shows
+    # the same table the simulator builds live.
+    means = {p: float(S[p].mean()) for p in parties}
+    top = [p for p in sorted(parties, key=lambda q: -means[q])
+           if means[p] >= 0.4][:12]
+    nT = len(top)
+    med_of = {p: int(round(np.median(S[p]))) for p in parties}
+    _sum_cache: dict[int, np.ndarray] = {}
+
+    def msum(m):
+        if m not in _sum_cache:
+            tot = None
+            for k in range(nT):
+                if m & (1 << k):
+                    tot = S[top[k]] if tot is None else tot + S[top[k]]
+            _sum_cache[m] = tot
+        return _sum_cache[m]
+
+    def wp(m):
+        return float((msum(m) >= thr).mean())
+
+    def chip_of(p, extra=""):
+        c = CHIPS.get(p, "#8b918b")
+        return (f'<span class="chip" style="background:{c};display:inline-block;'
+                f'width:8px;height:8px;border-radius:2px;margin-right:4px">'
+                f'</span>{extra or NAMES.get(p, p)}')
+
+    def glabel(m):
+        return " + ".join(chip_of(top[k]) for k in range(nT) if m & (1 << k))
+
+    def mask_of(codes):
+        m = 0
+        for c in codes:
+            if c in top:
+                m |= 1 << top.index(c)
+        return m
+
+    g_rows = []
+    seen = set()
+    for codes, key in ((("ANC", "DA"), True), (("DA", "ASA"), False),
+                       (("ANC", "EFF", "MK"), False)):
+        m = mask_of(codes)
+        if not m:
+            continue
+        seen.add(m)
+        g_rows.append({"m": m, "key": key, "label": glabel(m), "p": wp(m),
+                       "med": int(round(np.median(msum(m))))})
+    found = []
+    from itertools import combinations
+    for k in (2, 3):
+        for combo in combinations(range(nT), k):
+            m = 0
+            for i in combo:
+                m |= 1 << i
+            if m in seen:
+                continue
+            p = wp(m)
+            if p <= 0.03:
+                continue
+            passenger = False
+            for i in combo:
+                if wp(m ^ (1 << i)) >= p - 0.02:
+                    passenger = True
+                    break
+            if not passenger:
+                found.append({"m": m, "key": False, "label": glabel(m), "p": p,
+                              "med": int(round(np.median(msum(m))))})
+    found.sort(key=lambda r: -r["p"])
+    g_rows += found[:7]
+
+    total_all = stack.sum(axis=0)
+    for codes, names_x in ((("ANC", "EFF", "MK"), ("ANC", "EFF", "MK Party")),
+                           (("DA", "ASA"), ("DA", "ActionSA"))):
+        f = total_all - sum(S[c] for c in codes)
+        lab = "Everything except " + ", ".join(
+            chip_of(c, names_x[i]) for i, c in enumerate(codes))
+        g_rows.append({"m": None, "key": True, "label": lab,
+                       "p": float((f >= thr).mean()),
+                       "med": int(round(np.median(f)))})
+
+    def size_of(r):
+        return bin(r["m"]).count("1") if r["m"] else 99
+
+    shown = sorted([r for r in g_rows if r["p"] >= 0.5],
+                   key=lambda r: (size_of(r), -r["p"]))
+    out_rows = []
+    for r in shown:
+        cushion = r["med"] - 136
+        if r["m"] is None or cushion <= 0:
+            stab = "—"
+            surv = "—"
+        else:
+            members = [top[k] for k in range(nT) if r["m"] & (1 << k)]
+            overall = min(100.0, cushion / r["med"] * 100)
+            per = ", ".join(
+                f"{min(100.0, cushion / max(med_of[p], 1) * 100):.0f}%&nbsp;of&nbsp;"
+                f"{NAMES.get(p, p)}" for p in members)
+            stab = (f"<b>{overall:.0f}%</b> of all councillors can defect"
+                    f'<div style="font-size:11px;color:var(--ink-3);margin-top:2px">'
+                    f"survives defection of {per}</div>")
+            bits = []
+            for p in members:
+                low = 1 << top.index(p)
+                sv = wp(r["m"] ^ low)
+                if sv >= 0.5:
+                    bits.append(f"survives {NAMES.get(p, p)} exit")
+                    continue
+                rescue = None
+                for j in range(nT):
+                    if r["m"] & (1 << j):
+                        continue
+                    restore = wp((r["m"] ^ low) | (1 << j))
+                    if restore >= 0.5 and (rescue is None or restore > rescue[1]):
+                        rescue = (top[j], restore)
+                if rescue:
+                    bits.append(f"{NAMES.get(p, p)} exit survivable only if "
+                                f"{NAMES.get(rescue[0], rescue[0])} steps in")
+                else:
+                    bits.append(f"{NAMES.get(p, p)} exit breaks it")
+            surv = "; ".join(bits)
+        out_rows.append({"key": r["key"], "label": r["label"], "med": r["med"],
+                         "cushion": f"{'+' if cushion > 0 else ''}{cushion}",
+                         "stab": stab, "surv": surv})
+    near = sorted([r for r in g_rows if 0.05 < r["p"] < 0.5],
+                  key=lambda r: -r["p"])[:5]
+    import re as _re
+    note = ("Every pair and triple was checked — the rows above are the named "
+            "references plus the strongest discovered combinations. ")
+    if near:
+        note += ("Checked but short of the numbers in most simulations: "
+                 + " · ".join(f"{_re.sub('<[^>]+>', '', r['label'])} "
+                              f"(median {r['med']})" for r in near) + ".")
+    gen["govern"] = {"rows": out_rows, "note": note}
+
     # two-ballots arithmetic strip: 135 wards + 135 list = 270
     def bar(items, total, label):
         segs = ""

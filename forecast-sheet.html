@@ -345,24 +345,26 @@
     <h2>Who can govern</h2></summary>
     <p style="font-size:13px;color:var(--ink-3)"><b>Mathematically possible majorities only</b> —
     every combination is checked with no judgement about how politically likely any deal is.</p>
+    <p style="font-size:13px;color:var(--ink-3)"><b>Cushion</b> = median seats beyond the 136
+    needed. <b>Stability</b> = the share of the coalition's councillors who could defect on a
+    vote without sinking it, with each partner's own ceiling beneath — at 100%, that partner
+    can vote no en bloc and change nothing. <b>Survivability</b> = what each partner walking
+    out would do.</p>
     <div class="tablewrap">
       <table>
         <thead>
           <tr>
             <th>Combination</th>
             <th class="num">Seats (mid)</th>
-            <th class="num">Range</th>
-            <th style="width:26%">Chance of majority</th>
-            <th class="num"></th>
+            <th class="num">Cushion</th>
+            <th>Stability</th>
+            <th>Survivability</th>
           </tr>
         </thead>
         <tbody id="coalitions"></tbody>
       </table>
     </div>
-    <figcaption style="font-size:12.5px;color:var(--ink-3)">Range is the middle 90% of simulations;
-    majority is judged against each simulation's own threshold. Every pair and triple of parties was
-    enumerated — these are the strongest, plus the reference cases. “Eight-party alliance” is
-    DA + ActionSA + PA + IFP + VF+ + ACDP + Rise + Al Jama-ah.</figcaption>
+    <figcaption style="font-size:12.5px;color:var(--ink-3)" id="coalitionNoteS"></figcaption>
   </details>
 
   <div class="bandhead"><span class="bandtitle">Commentary</span><button type="button" class="bandbtn" data-band="commentary">collapse all</button></div>
@@ -804,6 +806,91 @@ const GEN = {
   "threshold_median": 136,
   "council_median": 270,
   "p_excessive_anc": 0.9634
+ },
+ "govern": {
+  "rows": [
+   {
+    "key": true,
+    "label": "<span class=\"chip\" style=\"background:#1B5EA8;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>DA + <span class=\"chip\" style=\"background:#1B7A3D;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>ANC",
+    "med": 152,
+    "cushion": "+16",
+    "stab": "<b>11%</b> of all councillors can defect<div style=\"font-size:11px;color:var(--ink-3);margin-top:2px\">survives defection of 20%&nbsp;of&nbsp;DA, 22%&nbsp;of&nbsp;ANC</div>",
+    "surv": "DA exit breaks it; ANC exit breaks it"
+   },
+   {
+    "key": false,
+    "label": "<span class=\"chip\" style=\"background:#1B5EA8;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>DA + <span class=\"chip\" style=\"background:#1B7A3D;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>ANC + <span class=\"chip\" style=\"background:#2FA79B;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>ActionSA",
+    "med": 179,
+    "cushion": "+43",
+    "stab": "<b>24%</b> of all councillors can defect<div style=\"font-size:11px;color:var(--ink-3);margin-top:2px\">survives defection of 54%&nbsp;of&nbsp;DA, 58%&nbsp;of&nbsp;ANC, 100%&nbsp;of&nbsp;ActionSA</div>",
+    "surv": "DA exit breaks it; ANC exit breaks it; survives ActionSA exit"
+   },
+   {
+    "key": false,
+    "label": "<span class=\"chip\" style=\"background:#1B5EA8;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>DA + <span class=\"chip\" style=\"background:#1B7A3D;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>ANC + <span class=\"chip\" style=\"background:#B3202B;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>EFF",
+    "med": 180,
+    "cushion": "+44",
+    "stab": "<b>24%</b> of all councillors can defect<div style=\"font-size:11px;color:var(--ink-3);margin-top:2px\">survives defection of 56%&nbsp;of&nbsp;DA, 59%&nbsp;of&nbsp;ANC, 100%&nbsp;of&nbsp;EFF</div>",
+    "surv": "DA exit breaks it; ANC exit breaks it; survives EFF exit"
+   },
+   {
+    "key": false,
+    "label": "<span class=\"chip\" style=\"background:#1B5EA8;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>DA + <span class=\"chip\" style=\"background:#1B7A3D;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>ANC + <span class=\"chip\" style=\"background:#5B6E22;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>MK Party",
+    "med": 172,
+    "cushion": "+36",
+    "stab": "<b>21%</b> of all councillors can defect<div style=\"font-size:11px;color:var(--ink-3);margin-top:2px\">survives defection of 46%&nbsp;of&nbsp;DA, 49%&nbsp;of&nbsp;ANC, 100%&nbsp;of&nbsp;MK Party</div>",
+    "surv": "DA exit breaks it; ANC exit breaks it; survives MK Party exit"
+   },
+   {
+    "key": false,
+    "label": "<span class=\"chip\" style=\"background:#1B5EA8;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>DA + <span class=\"chip\" style=\"background:#1B7A3D;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>ANC + <span class=\"chip\" style=\"background:#E0A419;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>PA",
+    "med": 166,
+    "cushion": "+30",
+    "stab": "<b>18%</b> of all councillors can defect<div style=\"font-size:11px;color:var(--ink-3);margin-top:2px\">survives defection of 38%&nbsp;of&nbsp;DA, 41%&nbsp;of&nbsp;ANC, 100%&nbsp;of&nbsp;PA</div>",
+    "surv": "DA exit breaks it; ANC exit breaks it; survives PA exit"
+   },
+   {
+    "key": false,
+    "label": "<span class=\"chip\" style=\"background:#1B5EA8;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>DA + <span class=\"chip\" style=\"background:#1B7A3D;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>ANC + <span class=\"chip\" style=\"background:#C8442A;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>IFP",
+    "med": 158,
+    "cushion": "+22",
+    "stab": "<b>14%</b> of all councillors can defect<div style=\"font-size:11px;color:var(--ink-3);margin-top:2px\">survives defection of 28%&nbsp;of&nbsp;DA, 30%&nbsp;of&nbsp;ANC, 100%&nbsp;of&nbsp;IFP</div>",
+    "surv": "DA exit breaks it; ANC exit breaks it; survives IFP exit"
+   },
+   {
+    "key": false,
+    "label": "<span class=\"chip\" style=\"background:#1B5EA8;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>DA + <span class=\"chip\" style=\"background:#1B7A3D;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>ANC + <span class=\"chip\" style=\"background:#2E8B72;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>Al Jama-ah",
+    "med": 157,
+    "cushion": "+21",
+    "stab": "<b>13%</b> of all councillors can defect<div style=\"font-size:11px;color:var(--ink-3);margin-top:2px\">survives defection of 27%&nbsp;of&nbsp;DA, 28%&nbsp;of&nbsp;ANC, 100%&nbsp;of&nbsp;Al Jama-ah</div>",
+    "surv": "DA exit breaks it; ANC exit breaks it; survives Al Jama-ah exit"
+   },
+   {
+    "key": false,
+    "label": "<span class=\"chip\" style=\"background:#1B5EA8;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>DA + <span class=\"chip\" style=\"background:#1B7A3D;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>ANC + <span class=\"chip\" style=\"background:#7A6BA8;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>Rise Mzansi",
+    "med": 156,
+    "cushion": "+20",
+    "stab": "<b>13%</b> of all councillors can defect<div style=\"font-size:11px;color:var(--ink-3);margin-top:2px\">survives defection of 25%&nbsp;of&nbsp;DA, 27%&nbsp;of&nbsp;ANC, 100%&nbsp;of&nbsp;Rise Mzansi</div>",
+    "surv": "DA exit breaks it; ANC exit breaks it; survives Rise Mzansi exit"
+   },
+   {
+    "key": true,
+    "label": "Everything except <span class=\"chip\" style=\"background:#1B5EA8;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>DA, <span class=\"chip\" style=\"background:#2FA79B;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>ActionSA",
+    "med": 157,
+    "cushion": "+21",
+    "stab": "\u2014",
+    "surv": "\u2014"
+   },
+   {
+    "key": true,
+    "label": "Everything except <span class=\"chip\" style=\"background:#1B7A3D;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>ANC, <span class=\"chip\" style=\"background:#B3202B;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>EFF, <span class=\"chip\" style=\"background:#5B6E22;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px\"></span>MK Party",
+    "med": 141,
+    "cushion": "+5",
+    "stab": "\u2014",
+    "surv": "\u2014"
+   }
+  ],
+  "note": "Every pair and triple was checked \u2014 the rows above are the named references plus the strongest discovered combinations. "
  }
 };
 // __GEN_END__
@@ -830,14 +917,15 @@ document.getElementById("seats").innerHTML = GEN.parties.map(p => `
 
 const pct = v => v >= 0.995 ? "99%+" : v < 0.0005 ? "under 0.1%" :
   v >= 0.095 ? (v*100).toFixed(0) + "%" : (v*100).toFixed(1) + "%";
-document.getElementById("coalitions").innerHTML = GEN.coalitions.map(c => `
-  <tr class="${c.key ? "key" : ""}">
-    <td>${c.name}</td>
-    <td class="num">${c.med}</td>
-    <td class="num" style="color:var(--ink-3)">${c.lo}–${c.hi}</td>
-    <td><div class="pbar"><i style="width:${Math.max(c.p*100,0.6)}%"></i></div></td>
-    <td class="num">${pct(c.p)}</td>
+document.getElementById("coalitions").innerHTML = GEN.govern.rows.map(r => `
+  <tr class="${r.key ? "key" : ""}">
+    <td>${r.label}</td>
+    <td class="num">${r.med}</td>
+    <td class="num">${r.cushion}</td>
+    <td style="font-size:12px">${r.stab}</td>
+    <td style="font-size:12px">${r.surv}</td>
   </tr>`).join("");
+document.getElementById("coalitionNoteS").textContent = GEN.govern.note;
 
 document.getElementById("minorityP").textContent = pct(GEN.minority_da_2021);
 </script>
