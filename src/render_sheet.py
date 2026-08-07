@@ -14,9 +14,18 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
+import tomllib
 from pathlib import Path
 
 import numpy as np
+
+import cityconfig
+
+
+def _md(text: str) -> str:
+    """The only markup claims.toml needs: **bold**."""
+    return re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
 
 CHIPS = {
     "DA": "#1B5EA8", "ANC": "#1B7A3D", "EFF": "#B3202B", "MK": "#5B6E22",
@@ -39,6 +48,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--processed", type=Path, default=Path("data/processed"))
     parser.add_argument("--sheet", type=Path, default=Path("forecast-sheet.html"))
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
 
     with (args.processed / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
@@ -253,6 +263,41 @@ def main(argv: list[str] | None = None) -> int:
                  + " · ".join(f"{_re.sub('<[^>]+>', '', r['label'])} "
                               f"(median {r['med']})" for r in near) + ".")
     gen["govern"] = {"rows": out_rows, "note": note}
+
+    # --- claims tested: rendered from content/<city>/claims.toml ----------
+    # Claims are data so the newsdesk can propose one as a diff. Verdicts
+    # stay human — they require a model run.
+    claims_path = Path("content") / args.city / "claims.toml"
+    if claims_path.exists():
+        with claims_path.open("rb") as fh:
+            claims = tomllib.load(fh).get("claim", [])
+        boxes = []
+        for c in claims:
+            steps = "".join(f"<li>{_md(step)}</li>" for step in c.get("steps", []))
+            vclass = "vtrue" if c["verdict"].upper() == "TRUE" else "vfalse"
+            link = (f'<a href="{c["url"]}" target="_blank" rel="noopener">'
+                    f'{c["outlet"]}</a>') if c.get("url") else c.get("outlet", "")
+            boxes.append(
+                f'<div class="claimbox" data-party="{c["party"]}">'
+                f'<div class="claimbox-head">'
+                f'<span class="chip" style="background:{c["chip"]}"></span>'
+                f'{c["party"]}</div>'
+                f'<h3 class="claimq">\u201c{c["quote"]}\u201d</h3>'
+                f'<div class="claimattrib">\u2014 {c["speaker"]} \u00b7 {link}</div>'
+                f'<p class="lede">{_md(c["intro"])}</p>'
+                f'<ol class="claimsteps">{steps}</ol>'
+                f'<div class="verdict {vclass}">Verdict: '
+                f'<b>{c["verdict"].upper()}</b></div></div>')
+        claims_html = ("<!-- __CLAIMS_START__ -->\n    "
+                       + "\n    ".join(boxes)
+                       + "\n    <!-- __CLAIMS_END__ -->")
+        for tgt in (Path("forecast-sheet.html"), Path("drafts/forecast-draft.html")):
+            t = tgt.read_text(encoding="utf-8")
+            if "__CLAIMS_START__" in t:
+                a = t.index("<!-- __CLAIMS_START__ -->")
+                b2 = t.index("<!-- __CLAIMS_END__ -->") + len("<!-- __CLAIMS_END__ -->")
+                tgt.write_text(t[:a] + claims_html + t[b2:], encoding="utf-8")
+        print(f"claims: {len(claims)} box(es) rendered from {claims_path}")
 
     # two-ballots arithmetic strip: 135 wards + 135 list = 270
     def bar(items, total, label):
