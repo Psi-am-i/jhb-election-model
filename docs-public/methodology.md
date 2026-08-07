@@ -7,6 +7,34 @@ only stated honestly. The full technical version, with every parameter and
 validation table, is
 [`METHODOLOGY.md` on GitHub](https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md).
 
+## How accurate is it?
+
+It calls the official 2011, 2016 and 2021 Johannesburg council results exactly, seat for seat — and, shown only the citywide totals, calls {{blind_test_called}} of {{blind_test_of}} ward winners in 2021. How it was tested — and where it fell short — is set out in [how it was broken and fixed](review); the inputs are listed in [where the data comes from](sources).
+
+
+## Why the model is built the way it is
+
+**Seats, not vote shares**
+
+The council follows a statutory formula, not a percentage. The model's allocator reproduces the real 2011, 2016 and 2021 councils exactly — quota, vote totals, every party's seats — so the formula layer is not an assumption.
+
+**Geography is the anchor**
+
+Tested across election cycles: *where* a party's support sits transfers almost perfectly; *how much* support it has does not. So the model fits the geography once and treats each party's level as an explicit, bounded scenario — the honest shape of the uncertainty.
+
+**Parties move in blocs**
+
+The DA and ActionSA fight over the same voters, as do the ANC, EFF and MK. Drawing blocs first and splitting within them is why DA+ActionSA's combined range is far tighter than ActionSA's own 10–50: their errors offset. Ignoring that correlation produces impossible scenarios.
+
+**Turnout was tested — and demoted**
+
+The model was built expecting differential turnout to decide the city. Measured directly, a ten-point swing across thirty wards moves about two seats — one, under the stricter marginal-voter test. The gap to a majority is over thirty. Persuasion, not mobilisation, is the only route.
+
+**Why simulations, not a single prediction**
+
+A single forecast number would hide exactly what matters here. Johannesburg's politics runs on thresholds — a coalition either reaches 136 seats or it does not; a party's ward wins either cross its entitlement and trigger the excessive-seats clause or they do not — and near a threshold, small uncertainties have large, lopsided consequences that no error bar can carry. Simulation is the honest way through: draw every uncertain quantity from its historically observed range, run the full statutory arithmetic end to end, repeat 5,000 times, and report how often each outcome happens. It also keeps the model falsifiable: every assumption is a slider you can move, and the alternatives — a poll taken as gospel, a uniform national swing, a pundit's single scenario — are all special cases you can set the sliders to, and test.
+
+
 ## How Johannesburg's council elections actually work
 
 Johannesburg's council is elected on two ballots at once. On the first, 135

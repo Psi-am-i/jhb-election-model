@@ -4,6 +4,7 @@
 
 [[claim]]
 party = "DA"
+party_name = "Democratic Alliance"
 chip = "#1B5EA8"
 logo = "DA"
 quote = """We need 490,000 registered DA voters to go vote DA, if they do that we win an outright majority"""

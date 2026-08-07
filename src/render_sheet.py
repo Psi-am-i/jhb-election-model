@@ -274,23 +274,26 @@ def main(argv: list[str] | None = None) -> int:
             claims = tomllib.load(fh).get("claim", [])
         boxes = []
         for c in claims:
-            steps = "".join(f"<li>{_md(step)}</li>" for step in c.get("steps", []))
+            steps = "".join(
+                f'<li><div class="stepbody">{_md(step)}</div></li>'
+                for step in c.get("steps", []))
             vclass = "vtrue" if c["verdict"].upper() == "TRUE" else "vfalse"
             link = (f'<a href="{c["url"]}" target="_blank" rel="noopener">'
                     f'{c["outlet"]}</a>') if c.get("url") else c.get("outlet", "")
+            badge = (f'<span class="verdict {vclass}">'
+                     f'{c["verdict"].upper()}</span>')
+            ident = (f'<img class="plogo" src="logos/{c["logo"]}.png" alt="" '
+                     f'width="44" height="44">' if c.get("logo") else
+                     f'<span class="chip" style="background:{c["chip"]}"></span>')
             boxes.append(
-                f'<div class="claimbox" data-party="{c["party"]}">'
-                f'<div class="claimbox-head">'
-                + (f'<img class="plogo" src="logos/{c["logo"]}.png" alt="" '
-                   f'width="28" height="28">' if c.get("logo") else
-                   f'<span class="chip" style="background:{c["chip"]}"></span>')
-                + f'{c["party"]}</div>'
-                f'<h3 class="claimq">\u201c{c["quote"]}\u201d</h3>'
-                f'<div class="claimattrib">\u2014 {c["speaker"]} \u00b7 {link}</div>'
-                f'<p class="lede">{_md(c["intro"])}</p>'
-                f'<ol class="claimsteps">{steps}</ol>'
-                f'<div class="verdict {vclass}">Verdict: '
-                f'<b>{c["verdict"].upper()}</b></div></div>')
+                f'<article class="claim" data-party="{c["party"]}">'
+                f'<div class="claim-top">{ident}'
+                f'<div class="claim-who"><b>{c.get("party_name", c["party"])}'
+                f'</b><span>{c["speaker"]} \u00b7 {link}</span></div>'
+                f'{badge}</div>'
+                f'<blockquote class="claim-quote">{c["quote"]}</blockquote>'
+                f'<p class="claim-intro">{_md(c["intro"])}</p>'
+                f'<ol class="claimsteps">{steps}</ol></article>')
         claims_html = ("<!-- __CLAIMS_START__ -->\n    "
                        + "\n    ".join(boxes)
                        + "\n    <!-- __CLAIMS_END__ -->")
