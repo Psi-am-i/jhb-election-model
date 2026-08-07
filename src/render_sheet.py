@@ -281,8 +281,10 @@ def main(argv: list[str] | None = None) -> int:
             boxes.append(
                 f'<div class="claimbox" data-party="{c["party"]}">'
                 f'<div class="claimbox-head">'
-                f'<span class="chip" style="background:{c["chip"]}"></span>'
-                f'{c["party"]}</div>'
+                + (f'<img class="plogo" src="logos/{c["logo"]}.png" alt="" '
+                   f'width="28" height="28">' if c.get("logo") else
+                   f'<span class="chip" style="background:{c["chip"]}"></span>')
+                + f'{c["party"]}</div>'
                 f'<h3 class="claimq">\u201c{c["quote"]}\u201d</h3>'
                 f'<div class="claimattrib">\u2014 {c["speaker"]} \u00b7 {link}</div>'
                 f'<p class="lede">{_md(c["intro"])}</p>'
