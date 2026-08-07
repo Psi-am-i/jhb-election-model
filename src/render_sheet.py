@@ -226,17 +226,38 @@ def main(argv: list[str] | None = None) -> int:
                        for lab, note, *_ in regimes)
         sub = "<th></th>" + "".join('<th class="num">seats</th><th class="num">share</th>'
                                     for _ in regimes)
+        cols = ('<colgroup><col style="width:16%">'
+                + '<col style="width:5.7%"><col style="width:15.3%">' * 4
+                + "</colgroup>")
+
+        def _n_for(p, meds, cm):
+            return (max(cm - sum(meds.get(q, 0) for q in REG_PARTIES), 0)
+                    if p == "__OTH__" else meds.get(p, 0))
+
+        def _delta(val, base, unit=""):
+            d = val - base
+            if abs(d) < (0.05 if unit else 0.5):
+                return ""
+            cls = "up" if d > 0 else "dn"
+            mag = f"{abs(d):.1f}" if unit else f"{abs(d):.0f}"
+            return f'<span class="rd {cls}">{"+" if d > 0 else "−"}{mag}{unit}</span>'
+
+        base_meds, base_cm = regimes[0][2], regimes[0][3]
         body = ""
         for p in REG_PARTIES + ["__OTH__"]:
             chip = "#8b918b" if p == "__OTH__" else CHIPS[p]
-            nm = (f'<span class="chip" style="background:{chip}"></span>'
+            nm = (f'<span class="chip" style="background:{chip};display:inline-block;'
+                  f'width:9px;height:9px;border-radius:2px;margin-right:6px"></span>'
                   f'{"Smaller parties" if p == "__OTH__" else NAMES[p]}')
+            n0 = _n_for(p, base_meds, base_cm)
+            s0 = n0 / base_cm * 100
             cells = ""
-            for lab, note, meds, cm, tm in regimes:
-                n = (max(cm - sum(meds.get(q, 0) for q in REG_PARTIES), 0)
-                     if p == "__OTH__" else meds.get(p, 0))
-                cells += (f'<td class="num">{n}</td>'
-                          f'<td class="num" style="color:var(--ink-3)">{n / cm:.1%}</td>')
+            for k, (lab, note, meds, cm, tm) in enumerate(regimes):
+                n = _n_for(p, meds, cm)
+                ds = "" if k == 0 else _delta(n, n0)
+                dp = "" if k == 0 else _delta(n / cm * 100, s0, "pt")
+                cells += (f'<td class="num">{n}{ds}</td>'
+                          f'<td class="num" style="color:var(--ink-3)">{n / cm:.1%}{dp}</td>')
             body += f"<tr><td>{nm}</td>{cells}</tr>"
         for row_lab, pick in (("Council size", 3), ("Majority line", 4)):
             cells = "".join(f'<td class="num" colspan="2"><b>{r[pick]}</b></td>'
@@ -245,7 +266,8 @@ def main(argv: list[str] | None = None) -> int:
                      f"<td><b>{row_lab}</b></td>{cells}</tr>")
         regimes_html = (
             "<!-- __REGIMES_START__ -->\n"
-            '    <div class="tablewrap"><table>'
+            '    <div class="tablewrap"><table style="table-layout:fixed;min-width:820px">'
+            f"{cols}"
             f'<thead><tr><th></th>{head}</tr><tr>{sub}</tr></thead>'
             f"<tbody>{body}</tbody></table></div>\n"
             "    <!-- __REGIMES_END__ -->")

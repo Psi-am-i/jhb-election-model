@@ -53,7 +53,8 @@
     display:flex;flex-direction:column;gap:11px;}
   .cgroup h3{font-size:11px;font-weight:650;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-2);}
   .cgroup .why{font-size:11.5px;color:var(--ink-3);line-height:1.45;margin-top:-6px;}
-  .ctl{display:flex;flex-direction:column;gap:2px;}
+  .ctl{display:flex;flex-direction:column;gap:1px;margin-bottom:13px;}
+  .ctl:last-child{margin-bottom:0;}
   .ctl .lab{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;}
   .ctl .lab .v{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:600;}
   input[type=range]{width:100%;accent-color:var(--accent);height:20px;}
@@ -74,8 +75,8 @@
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
     background:var(--rule-soft);border:1px solid var(--rule-soft);}
   .stat{background:var(--paper);padding:12px 14px;display:flex;flex-direction:column;gap:2px;}
-  .stat .n{font-family:var(--mono);font-size:25px;font-weight:600;letter-spacing:-.02em;
-    font-variant-numeric:tabular-nums;line-height:1.1;color:var(--accent);}
+  .stat .n{font-family:var(--mono);font-size:21px;font-weight:600;letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;line-height:1.1;color:var(--accent);white-space:nowrap;}
   .stat .n .chancew{font-size:.5em;font-weight:650;letter-spacing:.04em;}
   .stat .l{font-size:13px;color:var(--ink);line-height:1.4;}
   .stat .l .sub{display:block;font-size:11px;color:var(--ink-2);margin-top:2px;}
@@ -97,10 +98,11 @@
   .fctick{position:absolute;top:2px;bottom:2px;width:2px;background:var(--ink-3);
     opacity:.55;pointer-events:none;transform:translateX(-1px);}
   .ctl .v.vbelow{display:block;color:var(--accent);font-family:var(--mono);
-    font-size:12px;margin-top:3px;}
+    font-size:12px;margin-top:-2px;}
   #stickybar{position:fixed;top:0;left:0;right:0;z-index:9;background:var(--paper);
     border-bottom:1px solid var(--rule);font:600 11.5px var(--mono);color:var(--ink-2);
-    padding:7px 14px;white-space:nowrap;overflow-x:auto;}
+    padding:8px 16px;white-space:nowrap;overflow-x:auto;}
+  #stickybar+.sheet{padding-top:58px;}
   #stickybar .delta{vertical-align:0;}
   .stat .d{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);}
 
@@ -626,20 +628,19 @@ const DEFAULT_CFG={thetaANC:0.75,thetaDA:1.30,thetaEFF:0.85,thetaMK:0.60,thetaAS
   wBye:0.40,blocLeak:0,pollPick:"",pollWeight:0.5,alphaANC:60,alphaDA:12,mkRatio:0.80,paUplift:1.25,
   turnoutANC:0,turnoutDA:0,turnoutBlend:0.5,turnoutNoise:0.08,entrantProb:0.25,entrantMode:0.04};
 
-// how much each bloc's cast votes would change at the anchors, for readouts
-const _blocF=idxs=>{let u=0,h=0,l=0;
+// each bloc's supporters' implied turnout rate at the anchors, for readouts
+const _blocF=idxs=>{let u=0,h=0,l=0,r=0;
   for(let w=0;w<W;w++){let sb=0;idxs.forEach(i=>sb+=DATA.wards[w].s[i]??0);
     const usual=(wardVR[w]+wardVL[w])/2;
-    u+=usual*sb;h+=wardVHi[w]*sb;l+=wardVLo[w]*sb;}
-  return {hi:h/u,lo:l/u};};
+    u+=usual*sb;h+=wardVHi[w]*sb;l+=wardVLo[w]*sb;r+=DATA.wards[w].reg*sb;}
+  return {u:u/r,hi:h/r,lo:Math.min(l/r,u/r)};};
 const TO_BLOC={anc:_blocF(_aBloc),da:_blocF(_dBloc)};
 const tiltFmt=g=>v=>{
-  if(v===0)return "as usual";
-  const f=v>0?Math.max(1+v*(g.hi-1),1):Math.min(1+(-v)*(g.lo-1),1);
-  const pct=(f-1)*100;
-  if(v<0&&pct>=-0.5)return "as usual — they already vote at the record low";
-  return (pct>=0?"+":"−")+Math.abs(pct).toFixed(0)+"% of their votes"+
-    (v>=1?" — all turn out":v<=-1?" — stay home":"");
+  if(v===0)return "as usual ≈ "+(g.u*100).toFixed(0)+"% turnout";
+  if(v<0&&(g.u-g.lo)*100<0.5)return "as usual — they already vote at the record low";
+  const t=v>0?g.u+v*(g.hi-g.u):g.u+(-v)*(g.lo-g.u);
+  return "≈ "+(t*100).toFixed(0)+"% turnout"+
+    (v>=1?" — their record high":v<=-1?" — their record low":"");
 };
 const PRESETS={
   default:{},
@@ -1209,13 +1210,16 @@ function render(a,cfg){
 
 function updateStickyBar(a,cur){
   const el=document.getElementById("sb-content");if(!el)return;
+  const chip=i=>`<span class="chip" style="background:${CHIP[i]};display:inline-block;`+
+    `width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:baseline"></span>`;
   const parts=["ANC+DA "+fmtP(a.pAncDa)+dBadge(cur,"pAncDa",a.pAncDa,"pct")];
-  ["DA","ANC","ActionSA"].forEach(nm=>{
-    const p=a.perParty.find(q=>q.name===nm);
-    if(p)parts.push((nm==="ActionSA"?"ASA":nm)+" "+p.med.toFixed(0)+
-      dBadge(cur,"seat:"+p.name,p.med,"seats"));});
+  a.perParty.filter(p=>p.med>=3).forEach(p=>{
+    const code=p.i<CODES.length?CODES[p.i]:(p.i===I_OTHER?"OTH":"NEW");
+    parts.push(chip(p.i)+code+" "+p.med.toFixed(0)+dBadge(cur,"seat:"+p.name,p.med,"seats"));});
+  parts.push("alone "+fmtP(a.pAlone));
   parts.push(a.nDraws.toLocaleString()+" sims");
   el.innerHTML=parts.join(" · ");
+  document.getElementById("stickybar").hidden=false;
 }
 
 function renderArith(a){
@@ -1355,14 +1359,7 @@ ctlIds.forEach(id=>{
 });
 document.getElementById("pollPick").addEventListener("change",()=>{pollUi();go();});
 document.getElementById("run").addEventListener("click",go);
-// sticky summary bar: visible only while the result tiles are off-screen
-(function(){
-  const sbar=document.getElementById("stickybar"),tilesEl=document.getElementById("tiles");
-  if(sbar&&tilesEl&&"IntersectionObserver" in window)
-    new IntersectionObserver(es=>{
-      sbar.hidden=es[0].isIntersecting||!document.getElementById("sb-content").innerHTML;
-    }).observe(tilesEl);
-})();
+// the ticker is permanent once the first simulation set lands
 ctlIds.forEach(id=>{const el=document.getElementById(id);
   el.addEventListener("input",showVals);
   el.addEventListener("change",go);});
