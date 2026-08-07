@@ -22,6 +22,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
+
+import cityconfig
 import csv
 from collections import defaultdict
 from pathlib import Path
@@ -102,7 +104,9 @@ def main(argv: list[str] | None = None) -> int:
         default="all",
         help="keep only this ballot type; 'all' keeps both (default)",
     )
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
 
     ballot = None if args.ballot == "all" else args.ballot
     rows = read_municipality(args.source, args.muni_code, ballot)
@@ -110,7 +114,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"no rows for {args.muni_code!r} in {args.source}")
         return 1
 
-    destination = args.out_dir / f"lge{args.year}_JHB_vd_party_clean.csv"
+    destination = args.out_dir / f"lge{args.year}_{cityconfig.active().code}_vd_party_clean.csv"
     write_csv(destination, COLUMNS, rows)
     print(f"{args.year} -> {destination}  ({len(rows):,} rows)")
 

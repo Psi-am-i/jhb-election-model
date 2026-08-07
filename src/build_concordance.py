@@ -61,6 +61,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
+
+import cityconfig
 import csv
 import re
 from collections import defaultdict
@@ -70,12 +72,12 @@ import geopandas as gpd
 
 # Each election, its file, and the ballot to read for VD membership.
 ELECTIONS = {
-    "2011": ("lge2011_JHB_vd_party_clean.csv", "PR"),
-    "2014": ("npe2014_JHB_vd_party.csv", None),
-    "2016": ("lge2016_JHB_vd_party_clean.csv", "PR"),
-    "2019": ("npe2019_JHB_vd_party.csv", None),
-    "2021": ("lge2021_JHB_vd_party_clean.csv", "PR"),
-    "2024": ("npe2024_JHB_vd_party.csv", None),
+    "2011": ("lge2011_{CODE}_vd_party_clean.csv", "PR"),
+    "2014": ("npe2014_{CODE}_vd_party.csv", None),
+    "2016": ("lge2016_{CODE}_vd_party_clean.csv", "PR"),
+    "2019": ("npe2019_{CODE}_vd_party.csv", None),
+    "2021": ("lge2021_{CODE}_vd_party_clean.csv", "PR"),
+    "2024": ("npe2024_{CODE}_vd_party.csv", None),
 }
 
 
@@ -96,7 +98,7 @@ def read_vd_votes(path: Path, ballot: str | None) -> dict[str, tuple[str, int, i
     names: dict[str, str] = {}
     registered: dict[str, int] = {}
     votes: defaultdict[str, int] = defaultdict(int)
-    with path.open(encoding="utf-8", newline="") as handle:
+    with cityconfig.resolve_path(path).open(encoding="utf-8", newline="") as handle:
         for row in csv.DictReader(handle):
             if ballot and row.get("BallotType", "").upper() != ballot.upper():
                 continue
@@ -174,9 +176,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--geo-dir", type=Path, default=Path("data/raw/geo"))
     parser.add_argument("--elections-dir", type=Path, default=Path("data/raw/elections"))
     parser.add_argument("--out-dir", type=Path, default=Path("data/processed"))
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
 
-    vds = gpd.read_file(args.geo_dir / "vds2026_JHB.geojson")
+    vds = gpd.read_file(args.geo_dir / "vds2026_{CODE}.geojson")
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
     # --- Step 5: VD -> 2026 ward, registration weighted -----------------------

@@ -56,16 +56,18 @@ ANG = math.radians(float(_MAP.get("rotate_deg", 40)))
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--geo", type=Path, default=Path("data/raw/geo/wards2026_JHB.geojson"))
+    parser.add_argument("--geo", type=Path, default=Path("data/raw/geo/wards2026_{CODE}.geojson"))
     parser.add_argument("--probs", type=Path,
                         default=Path("data/processed/ward_winner_probs.csv"))
     parser.add_argument("--simplify", type=float, default=0.0006)
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
 
     with args.probs.open(encoding="utf-8", newline="") as fh:
         probs = {r["ward"]: r for r in csv.DictReader(fh)}
 
-    gdf = gpd.read_file(args.geo)
+    gdf = gpd.read_file(cityconfig.resolve_path(args.geo))
     ward_col = next(c for c in ("WardNo", "WARD_NO", "WardID", "WARD_ID", "Ward")
                     if c in gdf.columns)
     gdf["wardno"] = gdf[ward_col].astype(str).str.lstrip("0").str.strip()

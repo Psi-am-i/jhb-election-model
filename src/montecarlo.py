@@ -489,7 +489,7 @@ def main(argv: list[str] | None = None) -> int:
     rng = np.random.default_rng(scenario["seed"])
 
     # --- baseline ------------------------------------------------------------
-    base_votes, _ = load(args.data_dir / "npe2024_JHB_vd_party.csv", None)
+    base_votes, _ = load(args.data_dir / "npe2024_{CODE}_vd_party.csv", None)
     base_share_d, base_city_d = shares(base_votes), citywide(base_votes)
     universe = sorted(p for p in base_city_d if p != INDEPENDENT and p != "IND")
     if scenario["entrant_prob"] > 0:
@@ -587,8 +587,8 @@ def main(argv: list[str] | None = None) -> int:
                          if r["VD_Number"] in vd_index], dtype=float)
 
     # --- ward/PR split-ticket ratios (A1) ------------------------------------
-    ward21, _ = load(args.data_dir / "lge2021_JHB_vd_party_clean.csv", "Ward")
-    pr21, _ = load(args.data_dir / "lge2021_JHB_vd_party_clean.csv", "PR")
+    ward21, _ = load(args.data_dir / "lge2021_{CODE}_vd_party_clean.csv", "Ward")
+    pr21, _ = load(args.data_dir / "lge2021_{CODE}_vd_party_clean.csv", "PR")
     wc, pc = citywide(ward21), citywide(pr21)
     share_2021 = pc
     ratio = np.ones(npar)

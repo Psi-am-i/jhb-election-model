@@ -53,6 +53,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
+
+import cityconfig
 import csv
 from collections import defaultdict
 from pathlib import Path
@@ -195,9 +197,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
     parser.add_argument("--processed", type=Path, default=Path("data/processed"))
     parser.add_argument("--top", type=int, default=15)
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
 
-    base_votes, _ = load(args.data_dir / "npe2024_JHB_vd_party.csv", None)
+    base_votes, _ = load(args.data_dir / "npe2024_{CODE}_vd_party.csv", None)
     base_share, base_city = shares(base_votes), citywide(base_votes)
     params = load_parameters(args.processed / "fold1_parameters.csv")
     target_city = scenario_citywide(base_city)

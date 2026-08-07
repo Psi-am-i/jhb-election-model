@@ -147,6 +147,42 @@ def load(slug: str | None = None, cities_dir: Path | None = None) -> City:
                 site=raw.get("site", {}))
 
 
+# --------------------------------------------------------------------------
+# the active city
+#
+# The ingest chain names its inputs by municipality code
+# ("lge2021_JHB_vd_party_clean.csv"). Rather than thread a city object
+# through every reader, those literals become "{CODE}" templates and are
+# resolved at the file-open boundary against whichever city is active.
+# --------------------------------------------------------------------------
+
+_ACTIVE: City | None = None
+
+
+def use(slug: str | None) -> City:
+    """Set the active city for this process."""
+    global _ACTIVE
+    _ACTIVE = load(slug)
+    return _ACTIVE
+
+
+def active() -> City:
+    global _ACTIVE
+    if _ACTIVE is None:
+        _ACTIVE = load()
+    return _ACTIVE
+
+
+def resolve_path(path):
+    """Substitute {CODE}/{SLUG} in a path or filename."""
+    from pathlib import Path as _P
+    text = str(path)
+    if "{CODE}" in text or "{SLUG}" in text:
+        city = active()
+        text = text.replace("{CODE}", city.code).replace("{SLUG}", city.slug)
+    return _P(text)
+
+
 def add_city_argument(parser) -> None:
     """Standard ``--city`` flag; every script defaults to Johannesburg so
     existing commands keep working unchanged."""

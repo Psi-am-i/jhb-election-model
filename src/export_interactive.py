@@ -28,6 +28,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
+
+import cityconfig
 import csv
 import json
 from collections import defaultdict
@@ -60,18 +62,20 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--processed", type=Path, default=Path("data/processed"))
     parser.add_argument("--out", type=Path,
                         default=Path("data/processed/interactive_data.json"))
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
 
     codes = [c for c, _, _ in PAGE_PARTIES]
 
     # --- citywide bases -------------------------------------------------------
-    base_votes, _ = load(args.data_dir / "npe2024_JHB_vd_party.csv", None)
+    base_votes, _ = load(args.data_dir / "npe2024_{CODE}_vd_party.csv", None)
     base_share, base_city = shares(base_votes), citywide(base_votes)
     other_base = 1.0 - sum(base_city.get(c, 0.0) for c in codes) \
         - base_city.get("IND", 0.0)
 
-    ward21, _ = load(args.data_dir / "lge2021_JHB_vd_party_clean.csv", "Ward")
-    pr21, _ = load(args.data_dir / "lge2021_JHB_vd_party_clean.csv", "PR")
+    ward21, _ = load(args.data_dir / "lge2021_{CODE}_vd_party_clean.csv", "Ward")
+    pr21, _ = load(args.data_dir / "lge2021_{CODE}_vd_party_clean.csv", "PR")
     wc, pc = citywide(ward21), citywide(pr21)
 
     # --- gamma: fold 1, then 2021→2024, then 1.0 (as montecarlo resolves) -----

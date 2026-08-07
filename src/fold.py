@@ -34,6 +34,8 @@ from __future__ import annotations
 
 import argparse
 import csv
+
+import cityconfig
 import math
 from collections import defaultdict
 from pathlib import Path
@@ -45,16 +47,16 @@ from seats import allocate, eligible_parties
 
 FOLDS = {
     1: {
-        "base": ("npe2014_JHB_vd_party.csv", None),
-        "target": ("lge2016_JHB_vd_party_clean.csv", True),
+        "base": ("npe2014_{CODE}_vd_party.csv", None),
+        "target": ("lge2016_{CODE}_vd_party_clean.csv", True),
         "prior_lge": "2011",
         # λ for the *previous* cycle would need the 2009 NPE, which is not held,
         # so fold 1 cannot exercise the ratio turnout specification.
         "lambda_pair": None,
     },
     2: {
-        "base": ("npe2019_JHB_vd_party.csv", None),
-        "target": ("lge2021_JHB_vd_party_clean.csv", True),
+        "base": ("npe2019_{CODE}_vd_party.csv", None),
+        "target": ("lge2021_{CODE}_vd_party_clean.csv", True),
         "prior_lge": "2016",
         "lambda_pair": ("2014", "2016"),
     },
@@ -72,6 +74,7 @@ def load(path: Path, ballot: str | None) -> tuple[dict[str, dict[str, int]], dic
     """Return VD -> canonical party -> votes, and VD -> ward."""
     votes: defaultdict[str, defaultdict[str, int]] = defaultdict(lambda: defaultdict(int))
     ward: dict[str, str] = {}
+    path = cityconfig.resolve_path(path)   # "{CODE}" -> this city's IEC code
     with path.open(encoding="utf-8", newline="") as handle:
         for row in csv.DictReader(handle):
             if ballot and row.get("BallotType", "").upper() != ballot.upper():
@@ -343,7 +346,9 @@ def main(argv: list[str] | None = None) -> int:
         help="seed a party absent from the baseline with a citywide share, "
              "e.g. ASA=0.1812. Multiplicative θ cannot create a party from zero.",
     )
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
 
     entrants = {}
     for item in args.entrant:

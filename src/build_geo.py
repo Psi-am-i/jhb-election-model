@@ -19,6 +19,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
+
+import cityconfig
 import csv
 from pathlib import Path
 
@@ -79,7 +81,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--elections-dir", type=Path, default=Path("data/raw/elections")
     )
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
 
     failures: list[str] = []
 
@@ -119,7 +123,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # How much of the 2024 VD universe survives into 2026 -- this is the size of
     # the concordance problem in plan §2 step 2.
-    npe2024 = args.elections_dir / "npe2024_JHB_vd_party.csv"
+    npe2024 = args.elections_dir / "npe2024_{CODE}_vd_party.csv"
     if npe2024.exists():
         with npe2024.open(encoding="utf-8", newline="") as handle:
             old = {row["VD_Number"] for row in csv.DictReader(handle)}

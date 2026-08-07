@@ -18,6 +18,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
+
+import cityconfig
 import csv
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -25,12 +27,12 @@ from pathlib import Path
 import parties as P
 
 ELECTIONS = {
-    "2011 LGE": "lge2011_JHB_vd_party_clean.csv",
-    "2014 NPE": "npe2014_JHB_vd_party.csv",
-    "2016 LGE": "lge2016_JHB_vd_party_clean.csv",
-    "2019 NPE": "npe2019_JHB_vd_party.csv",
-    "2021 LGE": "lge2021_JHB_vd_party_clean.csv",
-    "2024 NPE": "npe2024_JHB_vd_party.csv",
+    "2011 LGE": "lge2011_{CODE}_vd_party_clean.csv",
+    "2014 NPE": "npe2014_{CODE}_vd_party.csv",
+    "2016 LGE": "lge2016_{CODE}_vd_party_clean.csv",
+    "2019 NPE": "npe2019_{CODE}_vd_party.csv",
+    "2021 LGE": "lge2021_{CODE}_vd_party_clean.csv",
+    "2024 NPE": "npe2024_{CODE}_vd_party.csv",
 }
 
 # Parties that took CoJ seats in 2016 or 2021. Each must resolve to a
@@ -50,7 +52,7 @@ def read_votes(path: Path, ballot: str | None = None) -> Counter[str]:
     single ballot and ignore it.
     """
     totals: Counter[str] = Counter()
-    with path.open(encoding="utf-8", newline="") as handle:
+    with cityconfig.resolve_path(path).open(encoding="utf-8", newline="") as handle:
         for row in csv.DictReader(handle):
             if ballot and row.get("BallotType", ballot).upper() != ballot.upper():
                 continue
@@ -69,7 +71,7 @@ def bloc_shares(totals: Counter[str]) -> dict[str, float]:
 def read_byelection_names(path: Path) -> set[str]:
     if not path.exists():
         return set()
-    with path.open(encoding="utf-8", newline="") as handle:
+    with cityconfig.resolve_path(path).open(encoding="utf-8", newline="") as handle:
         return {
             row["PartyFullName"].strip()
             for row in csv.DictReader(handle)
@@ -83,7 +85,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--byelections", type=Path,
                         default=Path("data/raw/byelections/byelections_Gauteng_vd_party.csv"))
     parser.add_argument("--out", type=Path, default=Path("data/processed/party_crosswalk.csv"))
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
 
     sources: defaultdict[str, set[str]] = defaultdict(set)
     peak: defaultdict[str, float] = defaultdict(float)

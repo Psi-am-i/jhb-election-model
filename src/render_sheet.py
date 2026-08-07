@@ -50,6 +50,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--sheet", type=Path, default=Path("forecast-sheet.html"))
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
 
     with (args.processed / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
         rows = list(csv.DictReader(fh))

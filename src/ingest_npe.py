@@ -26,6 +26,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
+
+import cityconfig
 import csv
 import sys
 from collections import defaultdict
@@ -184,14 +186,16 @@ def main(argv: list[str] | None = None) -> int:
         default="PROVINCIAL",
         help="ballot to keep from a combined file (2014 only)",
     )
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
 
     rows = read_municipality(args.source, args.muni_code, args.event)
     if not rows:
         print(f"no rows for {args.muni_code!r} in {args.source}", file=sys.stderr)
         return 1
 
-    destination = args.out_dir / f"npe{args.year}_JHB_vd_party.csv"
+    destination = args.out_dir / f"npe{args.year}_{cityconfig.active().code}_vd_party.csv"
     write_csv(destination, COLUMNS, rows)
     print(f"{args.year} -> {destination}  ({len(rows):,} rows)")
     print(summarise(rows))

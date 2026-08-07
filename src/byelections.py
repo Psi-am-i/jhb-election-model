@@ -41,6 +41,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
+
+import cityconfig
 import csv
 import math
 import statistics
@@ -57,7 +59,7 @@ JHB_PREFIX = "798"
 def load_byelections(path: Path) -> dict[tuple[str, str], dict]:
     """Return (date, ward) -> {party: votes} for CoJ contests."""
     contests: dict[tuple[str, str], dict[str, int]] = defaultdict(dict)
-    with path.open(encoding="utf-8", newline="") as handle:
+    with cityconfig.resolve_path(path).open(encoding="utf-8", newline="") as handle:
         for row in csv.DictReader(handle):
             ward = row["WardID"]
             if not ward.startswith(JHB_PREFIX):
@@ -72,7 +74,7 @@ def ward_2021(path: Path) -> tuple[dict[str, dict[str, int]], dict[str, int]]:
     """2021 ward-ballot votes per ward, and registered voters per ward."""
     votes: dict[str, defaultdict[str, int]] = defaultdict(lambda: defaultdict(int))
     registered_vd: dict[tuple[str, str], int] = {}
-    with path.open(encoding="utf-8", newline="") as handle:
+    with cityconfig.resolve_path(path).open(encoding="utf-8", newline="") as handle:
         for row in csv.DictReader(handle):
             if row["BallotType"].upper() != "WARD":
                 continue
@@ -104,13 +106,15 @@ def main(argv: list[str] | None = None) -> int:
                         help="recency half-life in months (plan §3.5, range 6-36)")
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw"))
     parser.add_argument("--processed", type=Path, default=Path("data/processed"))
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
 
     contests = load_byelections(
         args.data_dir / "byelections" / "byelections_Gauteng_vd_party.csv"
     )
     votes21, registered21 = ward_2021(
-        args.data_dir / "elections" / "lge2021_JHB_vd_party_clean.csv"
+        args.data_dir / "elections" / "lge2021_{CODE}_vd_party_clean.csv"
     )
 
     city_totals: defaultdict[str, int] = defaultdict(int)
@@ -167,7 +171,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"{len(turnout_rows)} CoJ by-elections, τ = {args.tau} months\n")
     print(f"  {'party':<10s} {'contests':>8s} {'Σweight':>9s} {'weighted Δ':>11s}")
     summary = []
-    for party in sorted(weighted, key=lambda p: -weight_sum[p]):
+    # secondary key on the name: weight_sum ties otherwise leave row order
+    # at the mercy of dict insertion, which made diffs noisy for no reason
+    for party in sorted(weighted, key=lambda p: (-weight_sum[p], p)):
         n = sum(1 for r in delta_rows if r["party"] == party)
         mean_delta = weighted[party] / weight_sum[party]
         summary.append({"party": party, "contests": n,

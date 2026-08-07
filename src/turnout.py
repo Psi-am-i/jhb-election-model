@@ -30,6 +30,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
+
+import cityconfig
 import csv
 import statistics
 from collections import defaultdict
@@ -37,12 +39,12 @@ from pathlib import Path
 
 # election -> (filename, is an LGE with two ballots)
 ELECTIONS = {
-    "2011": ("lge2011_JHB_vd_party_clean.csv", True),
-    "2014": ("npe2014_JHB_vd_party.csv", False),
-    "2016": ("lge2016_JHB_vd_party_clean.csv", True),
-    "2019": ("npe2019_JHB_vd_party.csv", False),
-    "2021": ("lge2021_JHB_vd_party_clean.csv", True),
-    "2024": ("npe2024_JHB_vd_party.csv", False),
+    "2011": ("lge2011_{CODE}_vd_party_clean.csv", True),
+    "2014": ("npe2014_{CODE}_vd_party.csv", False),
+    "2016": ("lge2016_{CODE}_vd_party_clean.csv", True),
+    "2019": ("npe2019_{CODE}_vd_party.csv", False),
+    "2021": ("lge2021_{CODE}_vd_party_clean.csv", True),
+    "2024": ("npe2024_{CODE}_vd_party.csv", False),
 }
 
 # The λ pairs: each LGE against the national election that preceded it.
@@ -60,7 +62,7 @@ def read_turnout(path: Path, two_ballot: bool) -> dict[str, tuple[int, int]]:
     valid: defaultdict[tuple[str, str], int] = defaultdict(int)
     spoilt: dict[tuple[str, str], int] = {}
 
-    with path.open(encoding="utf-8", newline="") as handle:
+    with cityconfig.resolve_path(path).open(encoding="utf-8", newline="") as handle:
         for row in csv.DictReader(handle):
             vd = row["VD_Number"]
             ballot = row.get("BallotType", "") if two_ballot else ""
@@ -126,7 +128,9 @@ def main(argv: list[str] | None = None) -> int:
              "differential enthusiasm. Weighted modestly per the plan: it "
              "shares assumption A4's selection bias.",
     )
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
 
     series = turnout_series(args.data_dir)
 
@@ -238,7 +242,8 @@ def main(argv: list[str] | None = None) -> int:
                 if prior is None or row["date"] > prior[0]:
                     ward_ratio[row["ward"]] = (row["date"], ratio)
         vd_ward_2021: dict[str, str] = {}
-        with (args.data_dir / ELECTIONS["2021"][0]).open(encoding="utf-8", newline="") as handle:
+        _p21 = cityconfig.resolve_path(args.data_dir / ELECTIONS["2021"][0])
+        with _p21.open(encoding="utf-8", newline="") as handle:
             for row in csv.DictReader(handle):
                 vd_ward_2021.setdefault(row["VD_Number"], row["Ward"])
         for vd, ward in vd_ward_2021.items():

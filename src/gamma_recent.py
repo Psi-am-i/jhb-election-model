@@ -28,6 +28,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
+
+import cityconfig
 import csv
 from pathlib import Path
 
@@ -41,10 +43,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
     parser.add_argument("--out", type=Path, default=Path("data/processed/gamma_recent.csv"))
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
 
-    base_votes, _ = load(args.data_dir / "lge2021_JHB_vd_party_clean.csv", "PR")
-    target_votes, _ = load(args.data_dir / "npe2024_JHB_vd_party.csv", None)
+    base_votes, _ = load(args.data_dir / "lge2021_{CODE}_vd_party_clean.csv", "PR")
+    target_votes, _ = load(args.data_dir / "npe2024_{CODE}_vd_party.csv", None)
 
     base_share, base_city = shares(base_votes), citywide(base_votes)
     target_share, target_city = shares(target_votes), citywide(target_votes)

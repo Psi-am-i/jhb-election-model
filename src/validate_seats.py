@@ -12,6 +12,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
+
+import cityconfig
 import csv
 from collections import Counter
 from pathlib import Path
@@ -79,9 +81,11 @@ def main(argv: list[str] | None = None) -> int:
         default=270,
         help="council size; CoJ was 260 under the 2011 delimitation",
     )
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
 
-    path = args.data_dir / f"lge{args.year}_JHB_vd_party_clean.csv"
+    path = args.data_dir / f"lge{args.year}_{cityconfig.active().code}_vd_party_clean.csv"
     ward, pr = load_votes(path)
     combined = eligible_parties(ward, pr)
     wins = ward_winners(path)
