@@ -302,13 +302,23 @@ which is the story.
 
 | Step | State |
 |---|---|
-| 0 · Stat registry (free/fixed + drift report) | not started |
-| 1 · City config spine + `derive_city.py` | not started |
-| 2 · Generated JS constants / sliders | not started |
-| 3 · Content split + claims as data | not started |
-| 4 · Portal + Worker routing | not started |
+| 0 · Stat registry (free/fixed + drift report) | **done** — 39 tokens, drift + unresolved gates tested |
+| 1 · City config spine + `derive_city.py` | **done** — Joburg config generated from the constants; byte-identical run |
+| 2 · Generated JS constants / sliders | **done** — engine-diffed across four scenarios |
+| 3 · Content split + claims as data | **done** — map chrome to config, claims.toml; per-city copy fragments still to come with the first non-Joburg page |
+| 4 · Portal + Worker routing (+ staging) | not started |
 | 5 · Per-city newsdesk | not started |
-| Pilot · Tshwane | not started |
+| Pilot · Tshwane | config skeleton + map block only; pipeline paths still Joburg-shaped |
+
+**Standing rule, held at every step so far:** Johannesburg's forecast has not
+moved — byte-identical `forecast_summary.json`, byte-identical map, and the
+browser engine returns identical results across four scenarios.
+
+**Known remaining blocker for a second city:** the ingest chain
+(`ingest_lge`, `ingest_npe`, `build_crosswalk`, `build_concordance`,
+`turnout`, `fold`) still carries `_JHB_` filename literals and CoJ-only
+validation tables. That is mechanical work, and it is what actually stands
+between the framework and a Tshwane page.
 
 Recorded in `MODEL-LOG.md` §1.24. Data acquisition for all eight metros is
 already complete — see `SOURCES.md`, "All-metro sweep".
