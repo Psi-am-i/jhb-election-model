@@ -21,6 +21,17 @@ routes = [
   { pattern = "whysoserious.city", custom_domain = true },
   { pattern = "www.whysoserious.city", custom_domain = true }
 ]
+# Each new city needs its own custom_domain entry here AND a DNS record;
+# a wildcard route would not get a certificate on a custom domain.
+
+# A Worker (not assets-only) so hostnames can be routed to per-city
+# directories — static assets cannot rewrite by host. See src/worker.js.
+main = "src/worker.js"
 
 [assets]
 directory = "./site"
+binding = "ASSETS"
+# Without this the platform serves a matching asset BEFORE the Worker runs,
+# so "/" resolves straight to index.html and the hostname routing never
+# executes. Found the hard way: the apex kept serving the Joburg forecast.
+run_worker_first = true

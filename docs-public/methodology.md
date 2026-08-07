@@ -9,7 +9,7 @@ validation table, is
 
 ## How accurate is it?
 
-It calls the official 2011, 2016 and 2021 Johannesburg council results exactly, seat for seat — and, shown only the citywide totals, calls {{blind_test_called}} of {{blind_test_of}} ward winners in 2021. How it was tested — and where it fell short — is set out in [how it was broken and fixed](review); the inputs are listed in [where the data comes from](sources).
+It calls the official 2011, 2016 and 2021 Johannesburg council results exactly, seat for seat — and, shown only the citywide totals, calls {{blind_test_called}} of {{blind_test_of}} ward winners in 2021. How it was tested — and where it fell short — is set out in the [review](review); the inputs are listed in [sources](sources).
 
 
 ## Why the model is built the way it is

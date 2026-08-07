@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Who governs your city? · South African metro election models</title>
+<meta property="og:site_name" content="whysoserious.city">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Who governs your city?">
+<meta property="og:description" content="Voting-district models of South
+ Africa's metros for the 4 November 2026 local government election: thousands of
+ simulated elections, the real seat law, every assumption a slider.">
+<meta property="og:url" content="https://whysoserious.city/">
+<style>
+  :root{
+    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
+    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
+    --accent:#a8621f; --accent-soft:#f0e2d5; --good:#2f6d4a;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
+      --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
+      --accent:#d9954f; --accent-soft:#3a2a1a; --good:#6fb98a;
+    }
+  }
+  *{box-sizing:border-box;margin:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased;}
+  .page{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
+
+  .topnav{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;
+    justify-content:space-between;font-family:var(--mono);font-size:14px;color:var(--ink-3);
+    border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:26px;}
+  .topnav a{color:var(--ink-3);text-decoration:none;}
+  .topnav a:hover{color:var(--accent);}
+  .topnav a.home{color:var(--accent);font-weight:600;}
+  .topnav a.active{color:var(--accent);}
+
+  .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:10px;}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,40px);
+    line-height:1.12;letter-spacing:-.012em;text-wrap:balance;margin:0 0 10px;}
+  .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;
+    color:var(--ink-2);text-wrap:pretty;margin-bottom:6px;}
+  .dateline{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);
+    font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);padding:9px 0;margin:14px 0 8px;}
+  .dateline b{color:var(--ink-2);font-weight:600;}
+
+  h2{font-family:var(--serif);font-weight:600;font-size:24px;line-height:1.2;
+    letter-spacing:-.006em;margin:42px 0 4px;padding-top:18px;
+    border-top:1px solid var(--rule);}
+  h3{font-family:var(--serif);font-weight:600;font-size:18px;line-height:1.3;margin:28px 0 2px;}
+  h4{font-size:14px;font-weight:650;margin:20px 0 2px;}
+  p{margin:10px 0;}
+  ul,ol{margin:10px 0;padding-left:20px;
+    display:flex;flex-direction:column;gap:5px;}
+  strong{font-weight:650;}
+  hr{border:none;border-top:1px solid var(--rule-soft);margin:26px 0;}
+  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
+
+  code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);
+    border:1px solid var(--rule-soft);border-radius:3px;padding:.08em .34em;}
+  pre{background:var(--paper-2);border:1px solid var(--rule-soft);border-radius:5px;
+    padding:13px 15px;overflow-x:auto;margin:14px 0;line-height:1.5;}
+  pre code{background:none;border:none;padding:0;font-size:12.5px;color:var(--ink-2);}
+
+  .tablewrap{overflow-x:auto;margin:14px 0;}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;}
+  th{font-family:var(--sans);font-size:10.5px;font-weight:650;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-3);text-align:left;
+    padding:0 12px 7px 0;border-bottom:1px solid var(--rule);vertical-align:bottom;}
+  td{padding:8px 12px 8px 0;border-bottom:1px solid var(--rule-soft);
+    vertical-align:top;color:var(--ink-2);}
+  td:first-child{color:var(--ink);}
+
+  blockquote{border-left:2px solid var(--accent);background:var(--paper-2);
+    padding:10px 16px;margin:14px 0;color:var(--ink-2);}
+  blockquote p{margin:6px 0;}
+  blockquote h3,blockquote h4{margin-top:8px;}
+
+  .colophon{font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:12px;margin-top:48px;}
+  .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:14px;margin-top:20px;}
+  .sitefooter a{color:var(--ink-3);}
+  .sitefooter a:hover{color:var(--accent);}
+
+  /* index cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:14px;margin:22px 0;}
+  .card{display:flex;flex-direction:column;gap:6px;border:1px solid var(--rule-soft);
+    background:var(--paper-2);padding:16px 18px;text-decoration:none;color:var(--ink);
+    transition:border-color .15s;}
+  .card:hover{border-color:var(--accent);}
+  .card.hero{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent);}
+  .card .t{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.25;}
+  .card .d{font-size:13px;color:var(--ink-2);line-height:1.45;}
+  .card .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);}
+
+  @media print{
+    body{background:#fff;color:#000;font-size:10pt;}
+    .page{max-width:none;padding:0;}
+    .topnav{display:none;}
+    h2,h3{break-after:avoid;} table,blockquote,pre{break-inside:avoid;}
+  }
+
+  .portal{display:flex;flex-direction:column;gap:26px;}
+  .pmast{display:flex;flex-direction:column;gap:10px;}
+  .pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:14px;}
+  .pcard{display:flex;flex-direction:column;gap:7px;padding:20px 20px 18px;
+    border:1px solid var(--rule);border-top:3px solid var(--city);
+    background:var(--paper-2);text-decoration:none;color:var(--ink);
+    transition:border-color .15s,transform .15s;}
+  a.pcard:hover{border-color:var(--city);transform:translateY(-2px);}
+  .pcard-soon{opacity:.72;}
+  .pc-name{font-family:var(--serif);font-weight:600;font-size:20px;}
+  .pc-num{font-family:var(--mono);font-size:34px;font-weight:600;
+    letter-spacing:-.02em;line-height:1;color:var(--city);}
+  .pc-num span{font-size:15px;color:var(--ink-3);}
+  .pc-num.pc-soon{color:var(--ink-3);}
+  .pc-sub{font-size:12.5px;color:var(--ink-2);line-height:1.45;}
+  .pc-cta{font-family:var(--mono);font-size:11.5px;color:var(--city);
+    margin-top:4px;}
+  .pcard-soon .pc-cta{color:var(--ink-3);}
+  .pfoot{font-size:12.5px;color:var(--ink-3);line-height:1.6;max-width:70ch;}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="portal">
+  <header class="pmast">
+    <div class="kicker">South African local government · 4 November 2026</div>
+    <h1>Who governs your city?</h1>
+    <p class="standfirst">A voting-district model of each metro: thousands of
+    simulated elections, the real seat law, and every assumption a slider you
+    can move. No party is barracked for; nothing is hand-typed. Pick a city.</p>
+  </header>
+  <div class="pcards"><a class="pcard" href="https://joburg.whysoserious.city" style="--city:#a8621f"><div class="pc-name">City of Johannesburg</div><div class="pc-num">79<span>/270</span></div><div class="pc-sub">DA leads on the median simulation, ANC on 74 — 136 needed to govern</div><div class="pc-cta">Open the forecast →</div></a><div class="pcard pcard-soon" style="--city:#6b4fa8"><div class="pc-name">City of Tshwane</div><div class="pc-num pc-soon">214<span> seats</span></div><div class="pc-sub">107 wards. Not modelled yet — no numbers, and we would rather say so.</div><div class="pc-cta">In preparation</div></div></div>
+  <p class="pfoot">Each city is modelled from the Electoral Commission's own
+  voting-district results. A city appears here with numbers only once its
+  allocator reproduces that city's published 2011, 2016 and 2021 councils
+  exactly — until then it says "in preparation", because a plausible-looking
+  wrong forecast is worse than none.</p>
+</div>
+<footer class="sitefooter">
+  <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
+  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">source &amp; data on GitHub</a></div>
+</footer>
+</div>
+</body>
+</html>
