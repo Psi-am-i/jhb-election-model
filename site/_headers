@@ -3,3 +3,7 @@
 /share.jpg
   ! Content-Type
   Content-Type: image/jpeg
+/dev/*
+  X-Robots-Tag: noindex, nofollow
+/drafts/*
+  X-Robots-Tag: noindex, nofollow

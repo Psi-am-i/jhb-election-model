@@ -215,7 +215,7 @@
       <span class="h1-sub">— and an obscure voting law will give the ANC more seats than
       expected. Get ready for squabbles.</span></h1>
     <p class="standfirst">5,000 simulations using a new voting-district model of the city find
-    the DA finishing first 54% of the time — but never with a majority. A rarely-used clause in
+    the DA finishing first {{p_da_largest}} of the time — but never with a majority. A rarely-used clause in
     our voting laws will hand the shrinking ANC an unbreakable floor: it will keep its ward
     seats, even though this is more than its proportional allowance — and the shortfall will be
     taken from every other party.</p>
@@ -383,8 +383,8 @@
     winner keeps every ward, receives <b>no list seats at all</b>, and the other parties' list
     seats are recalculated over what remains. The council stays at 270 and the majority at 136 —
     we found the Electoral Commission applying exactly this in Laingsburg in 2021. It is now the
-    ANC's normal condition: roughly 73 stronghold wards on a 65-seat entitlement, in six of every
-    seven simulations. Its ward count is an unbreakable floor — and the parties squeezed to pay
+    ANC's normal condition: roughly {{anc_ward_median}} stronghold wards on a {{anc_entitlement}}-seat
+    entitlement, in {{p_excessive_anc}} of simulations. Its ward count is an unbreakable floor — and the parties squeezed to pay
     for it are everyone else.</p>
   </details>
 
@@ -398,7 +398,8 @@
     its votes were set aside and a fresh quota computed for everyone else over the four seats that
     remained; and the small Karoo Democratic Force lost the seat it would otherwise have held. The
     council stayed at seven. Scale that up thirty-eight-fold and you have this forecast's central
-    case: the ANC winning roughly 73 of Johannesburg's wards on a 65-seat entitlement — keeping
+    case: the ANC winning roughly {{anc_ward_median}} of Johannesburg's wards on a
+    {{anc_entitlement}}-seat entitlement — keeping
     every one, taking zero list seats, the squeeze recalculated onto everyone else inside a
     council fixed at 270. A quirk that has fired once, in one small town, is about to govern the
     country's biggest metro.</p>
@@ -432,7 +433,7 @@
     <h2>When the ANC falls, nobody catches the votes</h2></summary>
     <p class="lede">Most voters assume the ANC's decline must hand victory to someone else. The
     record says otherwise. Between 2019 and 2021 — the ANC bloc's biggest collapse ever — it shed
-    <b>587,000 votes</b> across Johannesburg's voting districts. The opposition captured
+    <b>{{bloc_leak_votes}} votes</b> across Johannesburg's voting districts. The opposition captured
     essentially <b>none</b> of them: the DA's bloc actually lost 52,000 votes of its own over the
     same stretch, even with ActionSA arriving from nowhere to take 18%. The opposition's share
     surged only because ANC voters stayed home and the total shrank. The voting blocs behave like
@@ -452,24 +453,24 @@
     <div class="claimattrib">— Helen Zille, DA ·
       <a href="https://www.businessday.co.za/politics/2026-03-01-da-needs-490000-voters-to-win-outright-majority-in-joburg-says-zille/"
       target="_blank" rel="noopener">Business Day, March 2026</a></div>
-    <p class="lede">We put the claim through the full model. It falls short by <b>39 seats</b>
+    <p class="lede">We put the claim through the full model. It falls short by <b>{{claim_short_by}} seats</b>
     at the median, and it fails in three specific steps.</p>
     <p class="lede"><b>1 — It is half of the wrong number.</b> 490,000 is almost exactly half
-    of the ~985,000 votes expected in Johannesburg if turnout stays at its record low. But
+    of the ~{{claim_poll_base}} votes expected in Johannesburg if turnout stays at its record low. But
     seats follow the poll that actually happens, and the only way the DA finds extra votes is
     turnout — which grows the poll and moves the majority line up with it. At full DA-camp
-    turnout the poll swells to ~1.29&nbsp;million, and half of it is ~644,000.</p>
+    turnout the poll swells to ~{{claim_poll_surged}}, and half of it is ~{{claim_half_surged}}.</p>
     <p class="lede"><b>2 — Even reaching the number doesn't make it half.</b> Push every DA
     and ActionSA supporter to the <em>highest turnout their areas have ever recorded</em> — a
     75%-turnout fantasy at a local election — and the DA does clear the target, polling about
-    524,000 votes. But by then the number means nothing: 524,000 is <b>41%</b> of the swollen
+    {{claim_da_votes_surge}} votes. But by then the number means nothing: {{claim_da_votes_surge}} is <b>{{claim_da_share_surged}}%</b> of the swollen
     poll, nowhere near half of anything.</p>
-    <p class="lede"><b>3 — And 41% doesn't buy 41% of the seats.</b> Proportionally that would
+    <p class="lede"><b>3 — And {{claim_da_share_surged}}% doesn't buy {{claim_da_share_surged}}% of the seats.</b> Proportionally that would
     be ~110 of 270. But the excessive-seats law still fires in nine simulations out of ten,
     handing the ANC every stronghold ward it holds — about 62 wards on an entitlement of about
     50 — and the surplus is deducted from everyone else's column, the biggest slice from the
-    biggest party. The DA's median lands on <b>97 of the 136 needed</b>; even in this fantasy,
-    only about 3 in 100 simulations hand it a majority.</p>
+    biggest party. The DA's median lands on <b>{{claim_da_median}} of the {{majority}} needed</b>; even in this fantasy,
+    only about {{claim_p_da_alone}} in 100 simulations hand it a majority.</p>
     <p class="lede"><b>Could she still be right?</b> We looked for a reading that works. Her
     exact words — “We need 490,000 registered DA voters to go vote DA, if they do that we win
     an outright majority” — name no total poll. Against 2021's poll of ~917,000 ballots,
@@ -477,9 +478,9 @@
     vote while every other party combined sheds about 190,000 votes, keeping the poll frozen
     at its record low. Nothing in twenty years of turnout records produces that world. And
     even inside it, a majority of votes is not a majority of seats: while the ANC holds its
-    ~62-ward wall, the excessive-seats law means the DA needs about <b>57%</b> of the vote to
+    ~{{claim_anc_wards_surged}}-ward wall, the excessive-seats law means the DA needs about <b>{{claim_vote_share_needed}}%</b> of the vote to
     reach 136. The few simulations where the DA does govern alone are the ones where its surge
-    breaks the wall itself, flipping stronghold wards — in those draws the ANC falls to ~47
+    breaks the wall itself, flipping stronghold wards — in those draws the ANC falls to ~{{claim_anc_collapse_seats}}
     seats.</p>
     <p class="lede">The mirror is its own story: the ANC is seat-capped at its ward wins by the
     same law, so even a perfectly delivering ANC machine lifts the party barely at all — the
@@ -505,7 +506,7 @@
     <summary><span class="eyebrow">How accurate is this?</span>
     <h2>About this model</h2></summary>
     <p class="lede">It calls the official 2011, 2016 and 2021 Johannesburg council results
-    exactly, seat for seat — and, shown only the citywide totals, calls 129 of 135 ward winners
+    exactly, seat for seat — and, shown only the citywide totals, calls {{blind_test_called}} of {{blind_test_of}} ward winners
     in 2021. If you would like to know how it works, start with
     <a href="methodology"><b>How the model works</b></a>, then
     <a href="review">how it was broken — and fixed</a> and
@@ -578,7 +579,7 @@
       <li><b>Viability is not intent.</b> The 87% for ANC+DA is arithmetic, not a prediction that
       it happens. The model says which deals are available; it says nothing about whether people
       who dislike each other will sit in the same room.</li>
-      <li><b>It cannot see a party that does not yet exist.</b> ActionSA went from absent to 44
+      <li><b>It cannot see a party that does not yet exist.</b> ActionSA went from absent to {{asa_2021_seats}}
       seats in one cycle. The entrant slot in the simulations is an honest patch, not a fix.</li>
       <li><b>The ranges are the output.</b> A single seat number quoted from this sheet without its
       range is a misuse of it. The probabilities are exactly as good as the stated assumptions —
@@ -587,7 +588,7 @@
       both the 2021 amendment that completes Schedule 1 and the Electoral Commission's own
       Laingsburg 2021 calculation applying it; the Commission has been asked to confirm our
       reading.</li>
-      <li><b>This is not a poll.</b> No voters were surveyed. This is arithmetic on results, registration, and fifteen by-elections, with polling introduced as it happens but only as levers bounded by history.</li>
+      <li><b>This is not a poll.</b> No voters were surveyed. This is arithmetic on results, registration, and {{byelection_count}} by-elections, with polling introduced as it happens but only as levers bounded by history.</li>
     </ul>
     </div>
   </details>

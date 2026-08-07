@@ -1,0 +1,7 @@
+# The published pages are meant to be indexed. Working copies are
+# not: /dev/ is the pre-release build and /drafts/ holds
+# side-by-side rewrites, both of which duplicate live content.
+User-agent: *
+Disallow: /dev/
+Disallow: /drafts/
+Allow: /

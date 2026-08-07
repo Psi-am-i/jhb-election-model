@@ -30,6 +30,8 @@ from pathlib import Path
 
 import markdown
 
+import stats as statlib
+
 STYLE = """
   :root{
     --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
@@ -375,23 +377,53 @@ trusting.</p>"""
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=Path("site"))
+    parser.add_argument("--stats", type=Path,
+                        default=Path("content/joburg/stats.toml"))
+    parser.add_argument("--processed", type=Path, default=Path("data/processed"))
+    parser.add_argument("--strict-drift", action="store_true",
+                        help="treat pinned-stat drift as an error, not a warning")
     args = parser.parse_args(argv)
 
     args.out.mkdir(exist_ok=True)
+    registry = statlib.load_registry(args.stats) if args.stats.exists() else {}
+    ctx = statlib.load_context(args.processed)
+    all_drift: list[dict] = []
+    unresolved_all: list[str] = []
+
     for source, spec in DOCS.items():
         output, kicker, standfirst = spec[:3]
         tech = spec[3] if len(spec) > 3 else None
         page = render_doc(Path(source), kicker, standfirst, output, tech)
+        page, drift, unresolved = statlib.render(page, registry, ctx)
+        all_drift += drift
+        unresolved_all += [f"{source}: {u}" for u in unresolved]
         (args.out / output).write_text(page, encoding="utf-8")
         print(f"  rendered {source:<28s} -> site/{output}")
+
     for source, output in ARTEFACTS.items():
         href = "./" if output == "index.html" else output.removesuffix(".html")
         html = inject_nav(Path(source).read_text(encoding="utf-8"), href)
+        html, drift, unresolved = statlib.render(html, registry, ctx)
+        all_drift += drift
+        unresolved_all += [f"{source}: {u}" for u in unresolved]
         (args.out / output).write_text(html, encoding="utf-8")
         print(f"  nav+copy {source:<28s} -> site/{output}")
     stale = args.out / "forecast.html"
     if stale.exists():
         stale.unlink()  # superseded: the forecast is index.html now
+
+    # --- stat provenance: unresolved tokens are fatal, drift only warns ---
+    if unresolved_all:
+        print("\nUNRESOLVED STATS — refusing to publish a silent blank:")
+        for item in sorted(set(unresolved_all)):
+            print(f"  ✗ {item}")
+        raise SystemExit(1)
+    n_pinned = sum(1 for e in registry.values() if e.get("mode") == "fixed")
+    n_free = len(registry) - n_pinned
+    print(f"\nstats: {n_free} free tokens resolved live · {n_pinned} pinned")
+    print(statlib.drift_report(all_drift))
+    if all_drift and args.strict_drift:
+        raise SystemExit(1)
 
     # Serve everything as UTF-8 regardless of meta tags — the sheet originally
     # shipped without a <head> and mojibake'd every em-dash (review of the
@@ -399,9 +431,20 @@ def main(argv: list[str] | None = None) -> int:
     # header is safe; revisit if non-HTML assets are ever added.
     (args.out / "_headers").write_text(
         "/*\n  Content-Type: text/html; charset=utf-8\n"
-        "/share.jpg\n  ! Content-Type\n  Content-Type: image/jpeg\n", encoding="utf-8"
-    )
-    print("  wrote    _headers (utf-8 content type)")
+        "/share.jpg\n  ! Content-Type\n  Content-Type: image/jpeg\n"
+        # working copies: reachable for review, never indexed
+        "/dev/*\n  X-Robots-Tag: noindex, nofollow\n"
+        "/drafts/*\n  X-Robots-Tag: noindex, nofollow\n",
+        encoding="utf-8")
+    (args.out / "robots.txt").write_text(
+        "# The published pages are meant to be indexed. Working copies are\n"
+        "# not: /dev/ is the pre-release build and /drafts/ holds\n"
+        "# side-by-side rewrites, both of which duplicate live content.\n"
+        "User-agent: *\n"
+        "Disallow: /dev/\n"
+        "Disallow: /drafts/\n"
+        "Allow: /\n", encoding="utf-8")
+    print("  wrote    _headers + robots.txt (utf-8; /dev and /drafts noindex)")
 
     total = sum(f.stat().st_size for f in args.out.glob("*.html"))
     print(f"site: {len(list(args.out.glob('*.html')))} pages, {total / 1024:.0f} KB total")

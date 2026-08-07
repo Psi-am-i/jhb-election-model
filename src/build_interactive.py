@@ -13,6 +13,8 @@ import argparse
 import json
 from pathlib import Path
 
+import stats as statlib
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -26,6 +28,16 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     html = args.template.read_text(encoding="utf-8")
+    registry_path = Path("content/joburg/stats.toml")
+    if registry_path.exists():
+        registry = statlib.load_registry(registry_path)
+        ctx = statlib.load_context(args.data.parent)
+        html, drift, unresolved = statlib.render(html, registry, ctx)
+        if unresolved:
+            raise SystemExit("unresolved stats in the interactive template: "
+                             + ", ".join(sorted(set(unresolved))))
+        if drift:
+            print(statlib.drift_report(drift))
     data = json.loads(args.data.read_text(encoding="utf-8"))
 
     reference = None

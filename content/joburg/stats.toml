@@ -1,0 +1,257 @@
+# The Johannesburg stat registry — see src/stats.py for the contract.
+#
+#   mode = "free"   recomputed from the current model outputs every build
+#   mode = "fixed"  pinned to the run that produced it, because it sits
+#                   inside a dated argument; the build reports drift
+#
+# Every entry carries its source and the date it entered the prose.
+# An unresolved token fails the build. Drift only warns.
+
+# ---------------------------------------------------------------------------
+# free — what the model says now
+# ---------------------------------------------------------------------------
+
+[p_da_largest]
+mode = "free"
+source = "model:structural.P(DA is the largest single party)"
+format = "pct0"
+inserted = "2026-08-07"
+used_in = "standfirst; headline numbers"
+
+[p_anc_largest]
+mode = "free"
+source = "model:structural.P(ANC is the largest single party)"
+format = "pct0"
+inserted = "2026-08-07"
+
+[p_anc_da]
+mode = "free"
+source = "model:structural.P(ANC+DA is winning)"
+format = "pct0"
+inserted = "2026-08-07"
+
+[p_excessive_anc]
+mode = "free"
+source = "model:p_excessive_by_party.ANC"
+format = "pct0"
+inserted = "2026-08-07"
+used_in = "the November surprise; headline numbers"
+
+[anc_ward_median]
+mode = "free"
+source = "model:parties.ANC.ward_wins_mean"
+format = "int"
+inserted = "2026-08-07"
+used_in = "the November surprise (×2), methodology"
+
+[anc_entitlement]
+mode = "free"
+# the pure-proportional counterfactual IS the entitlement: Germany-2023 rule
+source = "regime:cap:parties.ANC.median"
+format = "int"
+inserted = "2026-08-07"
+used_in = "the November surprise (×2), methodology"
+
+[da_median]
+mode = "free"
+source = "model:parties.DA.median"
+format = "int"
+inserted = "2026-08-07"
+
+[anc_median]
+mode = "free"
+source = "model:parties.ANC.median"
+format = "int"
+inserted = "2026-08-07"
+
+[asa_median]
+mode = "free"
+source = "model:parties.ASA.median"
+format = "int"
+inserted = "2026-08-07"
+
+[asa_p5]
+mode = "free"
+source = "model:parties.ASA.p5"
+format = "int"
+inserted = "2026-08-07"
+used_in = "why-built: ActionSA's own 10-50 range"
+
+[asa_p95]
+mode = "free"
+source = "model:parties.ASA.p95"
+format = "int"
+inserted = "2026-08-07"
+
+[n_draws]
+mode = "free"
+source = "derived:n_draws"
+format = "comma"
+inserted = "2026-08-07"
+used_in = "eyebrows, colophons, methodology — restated 5+ times"
+
+[council_size]
+mode = "free"
+source = "derived:council_size"
+format = "int"
+inserted = "2026-08-07"
+
+[majority]
+mode = "free"
+source = "derived:majority"
+format = "int"
+inserted = "2026-08-07"
+
+[p_alone]
+mode = "free"
+source = "derived:p_alone"
+format = "pct0"
+inserted = "2026-08-07"
+
+# ---------------------------------------------------------------------------
+# fixed — pinned inside dated arguments; drift is reported, not applied
+# ---------------------------------------------------------------------------
+
+[headline_overhang_party]
+mode = "fixed"
+value = "the ANC"
+source = "model:p_excessive_by_party (largest)"
+captured = "2026-08-06"
+tolerance = "exact"
+used_in = "headline and standfirst — if another party started overhanging, both are wrong"
+
+[claim_short_by]
+mode = "fixed"
+value = 39
+source = "run:turnout_tilt_da=1 — 136 minus DA median"
+captured = "2026-08-07"
+run = "seed=20261104 draws=1500"
+tolerance = 3
+used_in = "claims/zille-490k — the headline verdict"
+
+[claim_da_median]
+mode = "fixed"
+value = 97
+source = "run:turnout_tilt_da=1 parties.DA.median"
+captured = "2026-08-07"
+run = "seed=20261104 draws=1500"
+tolerance = 3
+used_in = "claims/zille-490k step 3 — 'lands on 97 of the 136 needed'"
+
+[claim_da_votes_surge]
+mode = "fixed"
+value = 524000
+source = "run:turnout_tilt_da=1 — DA votes at the record-turnout anchor"
+captured = "2026-08-07"
+format = "comma"
+tolerance = 15000
+used_in = "claims/zille-490k step 2"
+
+[claim_poll_base]
+mode = "fixed"
+value = 985000
+source = "derived: registered x blended turnout, default scenario"
+captured = "2026-08-07"
+format = "comma"
+tolerance = 15000
+used_in = "claims/zille-490k step 1"
+
+[claim_poll_surged]
+mode = "fixed"
+value = 1290000
+source = "run:turnout_tilt_da=1 — total votes cast"
+captured = "2026-08-07"
+format = "comma"
+tolerance = 30000
+used_in = "claims/zille-490k step 1"
+
+[claim_half_surged]
+mode = "fixed"
+value = 644000
+source = "run:turnout_tilt_da=1 — half the surged poll"
+captured = "2026-08-07"
+format = "comma"
+tolerance = 15000
+used_in = "claims/zille-490k step 1"
+
+[claim_da_share_surged]
+mode = "fixed"
+value = 41
+source = "run:turnout_tilt_da=1 — DA share of the surged poll"
+captured = "2026-08-07"
+tolerance = 2
+used_in = "claims/zille-490k steps 2 and 3"
+
+[claim_anc_wards_surged]
+mode = "fixed"
+value = 62
+source = "run:turnout_tilt_da=1 parties.ANC.ward_wins_mean"
+captured = "2026-08-07"
+tolerance = 3
+used_in = "claims/zille-490k step 3 — the ward wall"
+
+[claim_p_da_alone]
+mode = "fixed"
+value = 3
+source = "run:turnout_tilt_da=1 — share of draws with DA >= 136, in 100"
+captured = "2026-08-07"
+tolerance = 2
+used_in = "claims/zille-490k step 3 — 'about 3 in 100'"
+
+[claim_anc_collapse_seats]
+mode = "fixed"
+value = 47
+source = "run:turnout_tilt_da=1 — ANC median in the draws where the DA reaches 136"
+captured = "2026-08-07"
+tolerance = 4
+used_in = "claims/zille-490k steelman — where the ward wall breaks"
+
+[claim_vote_share_needed]
+mode = "fixed"
+value = 57
+source = "allocator experiment: DA share needed for 136 with the ANC on 62 wards"
+captured = "2026-08-07"
+tolerance = 2
+used_in = "claims/zille-490k steelman — votes-majority is not seats-majority"
+
+[bloc_leak_votes]
+mode = "fixed"
+value = 587000
+source = "external:MODEL-LOG 1.18 — ANC-bloc vote loss 2019 NPE to 2021 LGE"
+captured = "2026-08-06"
+format = "comma"
+used_in = "the reservoir finding (forecast + interactive) — a measurement of the past, restated 3x"
+
+[blind_test_called]
+mode = "fixed"
+value = 129
+source = "external:fold-2 blind validation (MODEL-LOG 1.9)"
+captured = "2026-08-04"
+used_in = "why-believe (forecast + interactive), methodology — restated 3x"
+
+[blind_test_of]
+mode = "fixed"
+value = 135
+source = "external:ward count at the 2021 delimitation"
+captured = "2026-08-04"
+
+[asa_2021_seats]
+mode = "fixed"
+value = 44
+source = "external:IEC 2021 CoJ result — ActionSA's first election"
+captured = "2026-08-04"
+used_in = "new-entrant blindness, restated 3x"
+
+[byelection_count]
+mode = "fixed"
+value = 15
+source = "external:IEC by-election records, CoJ 2021-2026"
+captured = "2026-08-05"
+used_in = "colophons, sources, evidence weights — restated 3x"
+
+[turnout_seats_moved]
+mode = "fixed"
+value = 2
+source = "external:leverage.py — ten-point swing across thirty wards"
+captured = "2026-08-05"
+used_in = "turnout sections (forecast + interactive), why-believe — restated 2x"

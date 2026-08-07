@@ -160,6 +160,31 @@ multi-city; a live-bug fix for Joburg.
 - `python src/build_all.py --city tshwane` = ingest → model → renders →
   site, one command.
 
+### Staging (decided 2026-08-07)
+
+A **separate staging site, not merely a `[env.staging]`**. With a portal plus
+per-city subdomains served by one Worker doing hostname routing, an
+environment would need a parallel set of hostnames
+(`joburg-staging.`, `tshwane-staging.`…) to exercise that routing at all; one
+separate staging Worker serving the same `site/` build tests the routing in
+one place, and gives the strict-token build and the drift report somewhere
+real to fail before the public sees anything.
+
+*Trap to remember*: wrangler environment config is **not** fully inherited —
+top-level `[assets]`, `routes` and `vars` must be restated under the env
+block. That is the same class of quiet failure as the routes-above-`[table]`
+bug already in this repo's git history. Cloudflare *versions/preview URLs*
+are useful for eyeballing but awkward on a custom-domain Worker.
+
+Staging sends `X-Robots-Tag: noindex` via the existing `_headers` file. The
+current `/dev/` convention on the live Worker is zero-config and useful but
+publicly reachable and crawlable — it gets a `robots.txt` disallow now, and
+is retired or protected once staging exists.
+
+**Domains**: `whysoserious.city` (portal) and `whysoserious.club` are ours on
+this Cloudflare account. `whysoserious.org` sits on GoDaddy nameservers and
+is **not** ours to use — do not wire anything to it.
+
 ## Step 5 — Per-city newsdesk
 
 Clone `joburg-daily-newsdesk` (trig_01HaFqN6HCtCDRycukFxsJJ2) per city via
