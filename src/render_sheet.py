@@ -291,7 +291,8 @@ def main(argv: list[str] | None = None) -> int:
                 f'<div class="claim-who"><b>{c.get("party_name", c["party"])}'
                 f'</b><span>{c["speaker"]} \u00b7 {link}</span></div>'
                 f'{badge}</div>'
-                f'<blockquote class="claim-quote">{c["quote"]}</blockquote>'
+                f'<blockquote class="claim-quote">{c["quote"]}'
+                f'<span class="q-close">\u201d</span></blockquote>'
                 f'<p class="claim-intro">{_md(c["intro"])}</p>'
                 f'<ol class="claimsteps">{steps}</ol></article>')
         claims_html = ("<!-- __CLAIMS_START__ -->\n    "
