@@ -21,7 +21,9 @@ import csv
 import json
 from pathlib import Path
 
+import cityconfig
 import math
+import os
 
 import geopandas as gpd
 
@@ -37,22 +39,19 @@ MARK_START = "<!-- __MAP_START__ -->"
 MARK_END = "<!-- __MAP_END__ -->"
 
 # (label, lon, lat) — approximate district centroids for orientation
-DISTRICTS = [
-    ("Midrand", 28.128, -25.995),
-    ("Diepsloot", 28.012, -25.937),
-    ("Sandton", 28.057, -26.107),
-    ("Randburg", 27.950, -26.094),
-    ("Alexandra", 28.100, -26.103),
-    ("Roodepoort", 27.865, -26.160),
-    ("CBD", 28.043, -26.204),
-    ("Soweto", 27.870, -26.260),
-    ("Lenasia", 27.830, -26.328),
-    ("Orange Farm", 27.860, -26.478),
-]
+# Map chrome is per-city: which places to label, the cos-latitude correction
+# for lon->km, and how far to rotate so the city sits well in a wide figure.
+# All three live in cities/<slug>.toml [map]; the first is editorial, the
+# second is derivable from the centroid, the third is an aesthetic call.
+_CITY = cityconfig.load(os.environ.get("CITY_SLUG") or None)
+_MAP = _CITY.raw.get("map", {})
 
-W = 840.0
-COS = 0.898   # cos(latitude) lon->km correction for Johannesburg
-ANG = math.radians(40)  # map rotated 40° clockwise: north up-right, Soweto SW
+DISTRICTS = [(d["name"], float(d["lon"]), float(d["lat"]))
+             for d in _MAP.get("labels", [])]
+
+W = float(_MAP.get("width", 840.0))
+COS = float(_MAP.get("cos_lat", 0.898))   # lon->km correction at this latitude
+ANG = math.radians(float(_MAP.get("rotate_deg", 40)))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -270,7 +269,7 @@ def main(argv: list[str] | None = None) -> int:
     <figure>
       <div style="position:relative">
       <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardmap"
-           aria-label="Johannesburg ward map, rotated with north to the right, coloured by predicted winning party"
+           aria-label="{_CITY.name} ward map, rotated with north to the right, coloured by predicted winning party"
            style="width:100%;height:auto;display:block">
         <defs>{''.join(patterns.values())}</defs>
         {''.join(paths)}{''.join(hatches)}{''.join(labels)}{inset}

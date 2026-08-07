@@ -31,6 +31,27 @@ accent_soft = "#f0e2d5"
 accent_dark = "#d9954f"
 accent_soft_dark = "#3a2a1a"
 
+[map]
+# Chrome for render_map.py. rotate_deg is aesthetic (Johannesburg lies
+# diagonally, so 40 degrees clockwise puts Soweto bottom-left and north to
+# the upper right); cos_lat is the lon->km correction at this latitude.
+width = 840.0
+cos_lat = 0.898
+rotate_deg = 40
+
+labels = [
+  { name = "Midrand",     lon = 28.128, lat = -25.995 },
+  { name = "Diepsloot",   lon = 28.012, lat = -25.937 },
+  { name = "Sandton",     lon = 28.057, lat = -26.107 },
+  { name = "Randburg",    lon = 27.950, lat = -26.094 },
+  { name = "Alexandra",   lon = 28.100, lat = -26.103 },
+  { name = "Roodepoort",  lon = 27.865, lat = -26.160 },
+  { name = "CBD",         lon = 28.043, lat = -26.204 },
+  { name = "Soweto",      lon = 27.870, lat = -26.260 },
+  { name = "Lenasia",     lon = 27.830, lat = -26.328 },
+  { name = "Orange Farm", lon = 27.860, lat = -26.478 },
+]
+
 [judgements]
 # The per-city calls. Applied blind to another metro these do not crash —
 # they produce plausible, wrong output. Each carries its evidence.

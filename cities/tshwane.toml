@@ -62,6 +62,27 @@ accent_soft_dark = "#2b2440"
 #   Cilliers Brink (the mayor it lost in 2024) to take it back. EFF's
 #   candidate is Omphile Maotwe.
 
+[map]
+# STARTING POINT — rotate_deg needs eyeballing once the first map renders.
+# Tshwane sprawls north-south (Hammanskraal to Centurion) and far east
+# (Bronkhorstspruit), so it may want little or no rotation, unlike Joburg's
+# diagonal. cos_lat is cos(25.75 deg), the metro's rough centre latitude.
+width = 840.0
+cos_lat = 0.901
+rotate_deg = 0
+
+labels = [
+  { name = "Pretoria CBD",  lon = 28.188, lat = -25.746 },
+  { name = "Centurion",     lon = 28.188, lat = -25.858 },
+  { name = "Soshanguve",    lon = 28.108, lat = -25.520 },
+  { name = "Mamelodi",      lon = 28.400, lat = -25.716 },
+  { name = "Atteridgeville",lon = 28.078, lat = -25.770 },
+  { name = "Hammanskraal",  lon = 28.283, lat = -25.400 },
+  { name = "Menlyn",        lon = 28.277, lat = -25.784 },
+  { name = "Akasia",        lon = 28.107, lat = -25.665 },
+  { name = "Cullinan",      lon = 28.523, lat = -25.673 },
+]
+
 [judgements]
 blocs_note = "PLACEHOLDER — copied from CoJ. VF+ placement is the open question."
 [judgements.blocs]
