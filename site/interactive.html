@@ -281,17 +281,17 @@
       simulation draws each bloc's total first, then splits it (see Bloc shifts and
       Fine-tuning).</p></dialog>
     <div class="ctl"><div class="lab"><span>ANC ●</span><span class="v" id="v-thetaANC"></span></div>
-      <input type="range" id="thetaANC" min="0.65" max="0.90" step="0.01" value="0.75"></div>
+      <input type="range" id="thetaANC" min="0.65" max="0.9" step="0.01" value="0.75"></div>
     <div class="ctl"><div class="lab"><span>DA ○</span><span class="v" id="v-thetaDA"></span></div>
-      <input type="range" id="thetaDA" min="1.05" max="1.60" step="0.01" value="1.30"></div>
+      <input type="range" id="thetaDA" min="1.05" max="1.6" step="0.01" value="1.3"></div>
     <div class="ctl"><div class="lab"><span>EFF ●</span><span class="v" id="v-thetaEFF"></span></div>
-      <input type="range" id="thetaEFF" min="0.55" max="1.10" step="0.01" value="0.85"></div>
+      <input type="range" id="thetaEFF" min="0.55" max="1.1" step="0.01" value="0.85"></div>
     <div class="ctl"><div class="lab"><span>MK ●</span><span class="v" id="v-thetaMK"></span></div>
-      <input type="range" id="thetaMK" min="0.30" max="1.00" step="0.01" value="0.60"></div>
+      <input type="range" id="thetaMK" min="0.3" max="1" step="0.01" value="0.6"></div>
     <div class="ctl"><div class="lab"><span>ActionSA ○</span><span class="v" id="v-thetaASA"></span></div>
-      <input type="range" id="thetaASA" min="0.90" max="3.00" step="0.05" value="1.50"></div>
+      <input type="range" id="thetaASA" min="0.9" max="3" step="0.05" value="1.5"></div>
     <div class="ctl"><div class="lab"><span>PA</span><span class="v" id="v-thetaPA"></span></div>
-      <input type="range" id="thetaPA" min="1.00" max="2.20" step="0.05" value="1.40"></div>
+      <input type="range" id="thetaPA" min="1" max="2.2" step="0.05" value="1.4"></div>
   </details>
 
   <details class="cgroup" open>
@@ -327,7 +327,7 @@
       <select id="pollPick" style="width:100%"><option value="">No poll — history and by-elections only</option></select></div>
     <div class="ctl" id="pollWeightRow" style="display:none">
       <div class="lab"><span>How much do you believe it?</span><span class="v" id="v-pollWeight"></span></div>
-      <input type="range" id="pollWeight" min="0" max="1" step="0.05" value="0.50"></div>
+      <input type="range" id="pollWeight" min="0" max="1" step="0.05" value="0.5"></div>
     <div class="why" id="pollInfo" style="display:none;margin-top:-4px"></div>
   </details>
 
@@ -345,7 +345,7 @@
       time. <b>1.0</b> means it does the same as last time; over 1.0 the wider slate captures
       more ward votes; under 1.0 the push backfires — spread thin, it wins fewer.</p></dialog>
     <div class="ctl"><div class="lab"><span>MK's ward performance</span><span class="v" id="v-mkRatio"></span></div>
-      <input type="range" id="mkRatio" min="0.50" max="1.20" step="0.05" value="0.80"></div>
+      <input type="range" id="mkRatio" min="0.50" max="1.20" step="0.05" value="0.8"></div>
     <div class="ctl"><div class="lab"><span>PA's wider slate</span><span class="v" id="v-paUplift"></span></div>
       <input type="range" id="paUplift" min="0.70" max="2.00" step="0.05" value="1.25"></div>
   </details>
@@ -404,7 +404,7 @@
     <div class="ctl"><div class="lab"><span>○ DA bloc — within-bloc vote shifts: history ← → wild</span><span class="v" id="v-alphaDA"></span></div>
       <input type="range" id="alphaDA" min="4" max="60" step="2" value="12" style="direction:rtl"></div>
     <div class="ctl"><div class="lab"><span>By-elections' influence</span><span class="v" id="v-wBye"></span></div>
-      <input type="range" id="wBye" min="0" max="1" step="0.05" value="0.40"></div>
+      <input type="range" id="wBye" min="0" max="1" step="0.05" value="0.4"></div>
     <div class="ctl"><div class="lab"><span>Turnout map: model's projection ← → repeat of 2021</span><span class="v" id="v-turnoutBlend"></span></div>
       <input type="range" id="turnoutBlend" min="0" max="1" step="0.05" value="0.5"></div>
     <div class="ctl"><div class="lab"><span>Ward surprise — simulation-to-simulation turnout scatter</span><span class="v" id="v-turnoutNoise"></span></div>
@@ -658,9 +658,7 @@ DATA.wards.forEach((w,wi)=>{
 const ctlIds=["thetaANC","thetaDA","thetaEFF","thetaMK","thetaASA","thetaPA","wBye","pollWeight","blocLeak",
   "alphaANC","alphaDA","mkRatio","paUplift","turnoutANC","turnoutDA","turnoutBlend","turnoutNoise",
   "entrantProb","entrantMode"];
-const DEFAULT_CFG={thetaANC:0.75,thetaDA:1.30,thetaEFF:0.85,thetaMK:0.60,thetaASA:1.50,thetaPA:1.40,
-  wBye:0.40,blocLeak:0,pollPick:"",pollWeight:0.5,alphaANC:60,alphaDA:12,mkRatio:0.80,paUplift:1.25,
-  turnoutANC:0,turnoutDA:0,turnoutBlend:0.5,turnoutNoise:0.08,entrantProb:0.25,entrantMode:0.04};
+const DEFAULT_CFG={"thetaANC": 0.75, "thetaDA": 1.3, "thetaEFF": 0.85, "thetaMK": 0.6, "thetaASA": 1.5, "thetaPA": 1.4, "wBye": 0.4, "blocLeak": 0.0, "pollPick": "", "pollWeight": 0.5, "alphaANC": 60.0, "alphaDA": 12.0, "mkRatio": 0.8, "paUplift": 1.25, "turnoutANC": 0.0, "turnoutDA": 0.0, "turnoutBlend": 0.5, "turnoutNoise": 0.08, "entrantProb": 0.25, "entrantMode": 0.04};
 
 // each bloc's supporters' implied turnout rate at the anchors, for readouts
 const _blocF=idxs=>{let u=0,h=0,l=0,r=0;
@@ -715,14 +713,13 @@ function showVals(){
 }
 
 /* ---------- scenario construction (mirror of montecarlo.py) ---------- */
-const BOUNDS={ANC:[0.65,0.90],DA:[1.05,1.60],EFF:[0.55,1.10],ASA:[0.90,3.00],
-  MK:[0.30,1.00],PA:[1.00,2.20],ALJAMAAH:[0.80,3.00]};
-const IND_THETA={PA:[1.00,1.40,2.20],ALJAMAAH:[0.80,1.50,3.00],IFP:[0.80,1.40,2.20],
-  VFPLUS:[0.70,1.20,2.20],ACDP:[0.60,1.20,2.00],RISE:[0.30,0.80,1.50]};
-const F_OTHER=[0.70,1.30,2.00];
-const ANC_SHIFT=[-22,-3], DA_SHIFT=[5,14], POLLING_SPAN=4;
-const BLOC_ANC=["ANC","EFF","MK"], BLOC_DA=["DA","ASA","BOSA"];
-const THETA_BOSA=0.80;
+// GENERATED from cities/joburg.toml — do not hand-edit
+const BOUNDS={"ANC": [0.65, 0.9], "DA": [1.05, 1.6], "EFF": [0.55, 1.1], "ASA": [0.9, 3.0], "MK": [0.3, 1.0], "PA": [1.0, 2.2], "ALJAMAAH": [0.8, 3.0]};
+const IND_THETA={"PA": [1.0, 1.4, 2.2], "ALJAMAAH": [0.8, 1.5, 3.0], "IFP": [0.8, 1.4, 2.2], "VFPLUS": [0.7, 1.2, 2.2], "ACDP": [0.6, 1.2, 2.0], "RISE": [0.3, 0.8, 1.5]};
+const F_OTHER=[0.7, 1.3, 2.0];
+const ANC_SHIFT=[-22,-3], DA_SHIFT=[5,14];
+const BLOC_ANC=["ANC", "EFF", "MK"], BLOC_DA=["DA", "ASA", "BOSA"];
+const THETA_BOSA=0.8;
 
 function centres(cfg){
   const modes={ANC:cfg.thetaANC,DA:cfg.thetaDA,EFF:cfg.thetaEFF,MK:cfg.thetaMK,

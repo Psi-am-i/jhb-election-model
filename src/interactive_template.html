@@ -612,9 +612,7 @@ DATA.wards.forEach((w,wi)=>{
 const ctlIds=["thetaANC","thetaDA","thetaEFF","thetaMK","thetaASA","thetaPA","wBye","pollWeight","blocLeak",
   "alphaANC","alphaDA","mkRatio","paUplift","turnoutANC","turnoutDA","turnoutBlend","turnoutNoise",
   "entrantProb","entrantMode"];
-const DEFAULT_CFG={thetaANC:0.75,thetaDA:1.30,thetaEFF:0.85,thetaMK:0.60,thetaASA:1.50,thetaPA:1.40,
-  wBye:0.40,blocLeak:0,pollPick:"",pollWeight:0.5,alphaANC:60,alphaDA:12,mkRatio:0.80,paUplift:1.25,
-  turnoutANC:0,turnoutDA:0,turnoutBlend:0.5,turnoutNoise:0.08,entrantProb:0.25,entrantMode:0.04};
+const DEFAULT_CFG=/*__DEFAULT_CFG__*/null;
 
 // each bloc's supporters' implied turnout rate at the anchors, for readouts
 const _blocF=idxs=>{let u=0,h=0,l=0,r=0;
@@ -669,14 +667,7 @@ function showVals(){
 }
 
 /* ---------- scenario construction (mirror of montecarlo.py) ---------- */
-const BOUNDS={ANC:[0.65,0.90],DA:[1.05,1.60],EFF:[0.55,1.10],ASA:[0.90,3.00],
-  MK:[0.30,1.00],PA:[1.00,2.20],ALJAMAAH:[0.80,3.00]};
-const IND_THETA={PA:[1.00,1.40,2.20],ALJAMAAH:[0.80,1.50,3.00],IFP:[0.80,1.40,2.20],
-  VFPLUS:[0.70,1.20,2.20],ACDP:[0.60,1.20,2.00],RISE:[0.30,0.80,1.50]};
-const F_OTHER=[0.70,1.30,2.00];
-const ANC_SHIFT=[-22,-3], DA_SHIFT=[5,14], POLLING_SPAN=4;
-const BLOC_ANC=["ANC","EFF","MK"], BLOC_DA=["DA","ASA","BOSA"];
-const THETA_BOSA=0.80;
+/*__CITY_CONSTS__*/
 
 function centres(cfg){
   const modes={ANC:cfg.thetaANC,DA:cfg.thetaDA,EFF:cfg.thetaEFF,MK:cfg.thetaMK,
