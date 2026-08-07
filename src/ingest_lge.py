@@ -29,7 +29,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from iec_csv import (
-    MUNI_CODE,
+    active_muni_code,
     muni_code,
     normalise_header,
     sniff_encoding,
@@ -54,9 +54,10 @@ COLUMNS = [
 
 
 def read_municipality(
-    src: Path, code: str = MUNI_CODE, ballot: str | None = None
+    src: Path, code: str | None = None, ballot: str | None = None
 ) -> list[dict[str, str]]:
     """Return the rows of ``src`` for one municipality, with canonical columns."""
+    code = code or active_muni_code()
     with src.open(encoding=sniff_encoding(src), newline="") as handle:
         reader = csv.reader(handle)
         header = [normalise_header(cell) for cell in next(reader)]
@@ -98,7 +99,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("source", type=Path)
     parser.add_argument("year")
     parser.add_argument("--out-dir", type=Path, default=Path("data/raw/elections"))
-    parser.add_argument("--muni-code", default=MUNI_CODE)
+    parser.add_argument("--muni-code", default=None,
+                        help="override the active city's IEC code")
     parser.add_argument(
         "--ballot",
         default="all",

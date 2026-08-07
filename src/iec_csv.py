@@ -25,7 +25,12 @@ BOMS = (
 
 # Municipalities are written "JHB - City of Johannesburg" in some files and
 # "JHB - CITY OF JOHANNESBURG [JOHANNESBURG]" in others, so match on the code.
-MUNI_CODE = "JHB"
+def active_muni_code() -> str:
+    """The active city's IEC municipality code — the row filter for every
+    national file. Was hard-coded to JHB; that made every ingest silently
+    return zero rows for any other metro."""
+    import cityconfig
+    return cityconfig.active().code
 
 
 def sniff_encoding(src: Path) -> str:

@@ -34,7 +34,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from iec_csv import (
-    MUNI_CODE,
+    active_muni_code,
     is_int,
     muni_code,
     normalise_header,
@@ -116,7 +116,7 @@ def parse_bulk_row(row: dict[str, str]) -> dict[str, str]:
 
 
 def read_municipality(
-    src: Path, code: str = MUNI_CODE, event: str | None = None
+    src: Path, code: str | None = None, event: str | None = None
 ) -> list[dict[str, str]]:
     """Return the rows of ``src`` for one municipality, with canonical columns.
 
@@ -124,6 +124,7 @@ def read_municipality(
     ``PROVINCIAL``); it is ignored by the results-portal layout, whose files
     already contain a single ballot.
     """
+    code = code or active_muni_code()
     with src.open(encoding=sniff_encoding(src), newline="") as handle:
         reader = csv.reader(handle)
         header = [normalise_header(cell) for cell in next(reader)]
@@ -180,7 +181,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("source", type=Path, help="unzipped national CSV")
     parser.add_argument("year", help="election year, used in the output filename")
     parser.add_argument("--out-dir", type=Path, default=Path("data/raw/elections"))
-    parser.add_argument("--muni-code", default=MUNI_CODE)
+    parser.add_argument("--muni-code", default=None,
+                        help="override the active city's IEC code")
     parser.add_argument(
         "--event",
         default="PROVINCIAL",
