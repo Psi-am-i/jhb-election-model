@@ -357,13 +357,18 @@ def main(argv: list[str] | None = None) -> int:
         regimes.append((label, note, meds, council_med, thr_med))
 
     if regimes:
-        head = "".join(f'<th colspan="2" style="text-align:center">{lab}'
-                       f'<br><span style="font-weight:400;color:var(--ink-3)">{note}</span></th>'
-                       for lab, note, *_ in regimes)
-        sub = "<th></th>" + "".join('<th class="num">seats</th><th class="num">share</th>'
-                                    for _ in regimes)
-        cols = ('<colgroup><col style="width:16%">'
-                + '<col style="width:5.7%"><col style="width:15.3%">' * 4
+        head = "".join(
+            f'<th colspan="2" style="text-align:center'
+            + (';border-left:1px solid var(--rule-soft)' if k else "")
+            + f'">{lab}<br><span style="font-weight:400;color:var(--ink-3)">{note}</span></th>'
+            for k, (lab, note, *_) in enumerate(regimes))
+        sub = "<th></th>" + "".join(
+            f'<th class="num"'
+            + (f' style="border-left:1px solid var(--rule-soft)"' if k else "")
+            + '>seats</th><th class="num">share</th>'
+            for k in range(len(regimes)))
+        cols = ('<colgroup><col style="width:15%">'
+                + '<col style="width:9.5%"><col style="width:11.75%">' * 4
                 + "</colgroup>")
 
         def _n_for(p, meds, cm):
@@ -392,12 +397,17 @@ def main(argv: list[str] | None = None) -> int:
                 n = _n_for(p, meds, cm)
                 ds = "" if k == 0 else _delta(n, n0)
                 dp = "" if k == 0 else _delta(n / cm * 100, s0, "pt")
-                cells += (f'<td class="num">{n}{ds}</td>'
-                          f'<td class="num" style="color:var(--ink-3)">{n / cm:.1%}{dp}</td>')
+                gl = ';border-left:1px solid var(--rule-soft)' if k else ""
+                cells += (f'<td class="num" style="white-space:nowrap{gl}">{n}{ds}</td>'
+                          f'<td class="num" style="color:var(--ink-3);white-space:nowrap">'
+                          f'{n / cm:.1%}{dp}</td>')
             body += f"<tr><td>{nm}</td>{cells}</tr>"
         for row_lab, pick in (("Council size", 3), ("Majority line", 4)):
-            cells = "".join(f'<td class="num" colspan="2"><b>{r[pick]}</b></td>'
-                            for r in regimes)
+            cells = "".join(
+                f'<td class="num" colspan="2"'
+                + (' style="border-left:1px solid var(--rule-soft)"' if k else "")
+                + f'><b>{rr[pick]}</b></td>'
+                for k, rr in enumerate(regimes))
             body += (f'<tr style="border-top:1px solid var(--rule)">'
                      f"<td><b>{row_lab}</b></td>{cells}</tr>")
         regimes_html = (
