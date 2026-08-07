@@ -100,12 +100,12 @@
   details.cgroup:not([open])>summary::after{content:"+";}
   details.cgroup>summary h3{display:inline-block;margin:0;}
   .morelink{font-family:var(--mono);font-size:11px;white-space:nowrap;cursor:pointer;}
-  dialog.morepop{max-width:540px;width:calc(100vw - 48px);background:var(--paper);
-    color:var(--ink-2);border:1px solid var(--rule);border-radius:6px;padding:20px 22px;
-    font-size:13.5px;line-height:1.55;}
-  dialog.morepop::backdrop{background:rgba(0,0,0,.55);}
-  dialog.morepop h3{margin:0 0 8px;color:var(--ink);}
-  dialog.morepop p{margin:8px 0;}
+  dialog.morepop{position:fixed;margin:0;max-width:380px;width:min(380px,calc(100vw - 24px));
+    background:var(--paper);color:var(--ink-2);border:1px solid var(--rule);border-radius:6px;
+    padding:13px 15px;font-size:12.5px;line-height:1.5;z-index:30;
+    box-shadow:0 10px 32px rgba(0,0,0,.45);}
+  dialog.morepop h3{margin:0 0 6px;font-size:13px;color:var(--ink);}
+  dialog.morepop p{margin:7px 0;}
   .popclose{float:right;border:none;background:none;color:var(--ink-3);cursor:pointer;
     font-size:14px;padding:2px 4px;margin:-6px -8px 0 8px;}
   .ctl .lab span:first-child{color:var(--ink);font-weight:600;}
@@ -1396,17 +1396,25 @@ ctlIds.forEach(id=>{
 document.getElementById("pollPick").addEventListener("change",()=>{pollUi();go();});
 document.getElementById("run").addEventListener("click",go);
 // the ticker is permanent once the first simulation set lands
-// "more…" popovers
+// "more…" popovers — anchored by the cursor, to the right of the control column
 document.querySelectorAll(".morelink").forEach(a=>a.addEventListener("click",e=>{
-  e.preventDefault();
-  const d=document.getElementById(a.dataset.more);
-  if(d&&d.showModal)d.showModal();
+  e.preventDefault();e.stopPropagation();
+  document.querySelectorAll("dialog.morepop[open]").forEach(x=>x.close());
+  const d=document.getElementById(a.dataset.more);if(!d)return;
+  d.show();
+  const ctrl=document.querySelector(".controls").getBoundingClientRect();
+  const narrow=window.innerWidth<840;
+  const left=narrow?12:Math.min(ctrl.right+14,window.innerWidth-d.offsetWidth-12);
+  let top=e.clientY-24;
+  top=Math.max(12,Math.min(top,window.innerHeight-d.offsetHeight-12));
+  d.style.left=left+"px";d.style.top=top+"px";
 }));
-document.querySelectorAll("dialog.morepop").forEach(d=>{
-  d.addEventListener("click",e=>{if(e.target===d)d.close();});
-  const c=d.querySelector(".popclose");
-  if(c)c.addEventListener("click",()=>d.close());
+document.addEventListener("click",e=>{
+  document.querySelectorAll("dialog.morepop[open]").forEach(d=>{
+    if(!d.contains(e.target)&&!e.target.classList.contains("morelink"))d.close();});
 });
+document.querySelectorAll("dialog.morepop .popclose").forEach(c=>
+  c.addEventListener("click",()=>c.closest("dialog").close()));
 ctlIds.forEach(id=>{const el=document.getElementById(id);
   el.addEventListener("input",showVals);
   el.addEventListener("change",go);});
