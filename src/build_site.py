@@ -180,13 +180,14 @@ OG_META = """<meta property="og:site_name" content="Johannesburg 2026 Election M
 <meta property="og:type" content="website">
 <meta property="og:title" content="Who governs Johannesburg after 4 November 2026?">
 <meta property="og:description" content="5,000 simulations of the November vote. Nobody wins — and an obscure clause of the seat law hands the shrinking ANC an unbreakable floor. Explore every ward, every coalition, every assumption.">
-<meta property="og:url" content="https://whysoserious.city/">
-<meta property="og:image" content="https://whysoserious.city/share.jpg">
+<meta property="og:url" content="https://joburg.whysoserious.city/">
+<link rel="canonical" href="https://joburg.whysoserious.city/">
+<meta property="og:image" content="https://joburg.whysoserious.city/share.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="The Hillbrow Tower silhouetted against a Johannesburg sunset">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://whysoserious.city/share.jpg">
+<meta name="twitter:image" content="https://joburg.whysoserious.city/share.jpg">
 """
 
 FOOTER = """<footer class="sitefooter">
