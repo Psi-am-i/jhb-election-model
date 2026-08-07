@@ -202,6 +202,20 @@
   }
   .mstat{display:inline;}
   .mstat[data-mode="fixed"]{border-bottom:1px dotted var(--ink-3);cursor:help;}
+  .claimbox{border:1px solid var(--rule);border-radius:6px;padding:16px 18px;
+    background:var(--paper-2);display:flex;flex-direction:column;gap:10px;}
+  .claimbox + .claimbox{margin-top:16px;}
+  .claimbox-head{display:flex;align-items:center;gap:7px;font-family:var(--sans);
+    font-size:11px;font-weight:750;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-2);}
+  .claimsteps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;
+    font-size:14.5px;line-height:1.55;}
+  .claimsteps li{padding-left:2px;}
+  .verdict{align-self:flex-start;font-family:var(--sans);font-size:11.5px;
+    font-weight:650;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;
+    border-radius:3px;}
+  .verdict.vfalse{background:var(--bad);color:var(--paper);}
+  .verdict.vtrue{background:var(--good);color:var(--paper);}
 </style>
 </head>
 <body>
@@ -449,45 +463,61 @@
   <details class="rollup" data-band="commentary" open>
     <summary><span class="eyebrow">The campaign arithmetic</span>
     <h2>The parties' claims — tested</h2></summary>
-    <div class="claim">
-    <h3 class="claimq">“490,000 votes on both ballots deliver an outright majority”
-      <span class="badge bfalse">FALSE</span></h3>
-    <div class="claimattrib">— Helen Zille, DA ·
-      <a href="https://www.businessday.co.za/politics/2026-03-01-da-needs-490000-voters-to-win-outright-majority-in-joburg-says-zille/"
-      target="_blank" rel="noopener">Business Day, March 2026</a></div>
-    <p class="lede">We put the claim through the full model. It falls short by <b>{{claim_short_by}} seats</b>
-    at the median, and it fails in three specific steps.</p>
-    <p class="lede"><b>1 — It is half of the wrong number.</b> 490,000 is almost exactly half
-    of the ~{{claim_poll_base}} votes expected in Johannesburg if turnout stays at its record low. But
-    seats follow the poll that actually happens, and the only way the DA finds extra votes is
-    turnout — which grows the poll and moves the majority line up with it. At full DA-camp
-    turnout the poll swells to ~{{claim_poll_surged}}, and half of it is ~{{claim_half_surged}}.</p>
-    <p class="lede"><b>2 — Even reaching the number doesn't make it half.</b> Push every DA
-    and ActionSA supporter to the <em>highest turnout their areas have ever recorded</em> — a
-    75%-turnout fantasy at a local election — and the DA does clear the target, polling about
-    {{claim_da_votes_surge}} votes. But by then the number means nothing: {{claim_da_votes_surge}} is <b>{{claim_da_share_surged}}%</b> of the swollen
-    poll, nowhere near half of anything.</p>
-    <p class="lede"><b>3 — And {{claim_da_share_surged}}% doesn't buy {{claim_da_share_surged}}% of the seats.</b> Proportionally that would
-    be ~110 of 270. But the excessive-seats law still fires in nine simulations out of ten,
-    handing the ANC every stronghold ward it holds — about 62 wards on an entitlement of about
-    50 — and the surplus is deducted from everyone else's column, the biggest slice from the
-    biggest party. The DA's median lands on <b>{{claim_da_median}} of the {{majority}} needed</b>; even in this fantasy,
-    only about {{claim_p_da_alone}} in 100 simulations hand it a majority.</p>
-    <p class="lede"><b>Could she still be right?</b> We looked for a reading that works. Her
-    exact words — “We need 490,000 registered DA voters to go vote DA, if they do that we win
-    an outright majority” — name no total poll. Against 2021's poll of ~917,000 ballots,
-    490,000 really would be 53%. So the claim is true in exactly one world: the DA doubles its
-    vote while every other party combined sheds about 190,000 votes, keeping the poll frozen
-    at its record low. Nothing in twenty years of turnout records produces that world. And
-    even inside it, a majority of votes is not a majority of seats: while the ANC holds its
-    ~{{claim_anc_wards_surged}}-ward wall, the excessive-seats law means the DA needs about <b>{{claim_vote_share_needed}}%</b> of the vote to
-    reach 136. The few simulations where the DA does govern alone are the ones where its surge
-    breaks the wall itself, flipping stronghold wards — in those draws the ANC falls to ~{{claim_anc_collapse_seats}}
-    seats.</p>
-    <p class="lede">The mirror is its own story: the ANC is seat-capped at its ward wins by the
-    same law, so even a perfectly delivering ANC machine lifts the party barely at all — the
-    gains flow to the EFF and MK. Both experiments are one click on the
-    <a href="interactive">interactive simulator</a>.</p>
+    <p style="font-size:13px;color:var(--ink-3)">Public, checkable claims about the November
+    result, each run through the full model. One box per party.</p>
+
+    <div class="claimbox" data-party="DA">
+      <div class="claimbox-head"><span class="chip" style="background:#1B5EA8"></span>DA</div>
+
+      <h3 class="claimq">“We need 490,000 registered DA voters to go vote DA, if they do that
+      we win an outright majority”</h3>
+      <div class="claimattrib">— Helen Zille, DA ·
+        <a href="https://www.businessday.co.za/politics/2026-03-01-da-needs-490000-voters-to-win-outright-majority-in-joburg-says-zille/"
+        target="_blank" rel="noopener">Business Day, March 2026</a></div>
+
+      <p class="lede">We put the claim through the full model and it falls short by
+      {{claim_short_by}} seats at the median. It also falls at its use of arithmetic.</p>
+
+      <ol class="claimsteps">
+        <li><b>It is half of the wrong number.</b> 490,000 is almost exactly half of the
+        ~{{claim_poll_base}} votes expected in Johannesburg if turnout stays at its record low.
+        At first glance it looks plausible, until you realise that if there are more voters,
+        you need half of a bigger number. If all DA members did what Helen wanted, the total
+        number of voters would be ~{{claim_poll_surged}}, and half of that is
+        {{claim_half_surged}} — not 490,000.</li>
+
+        <li><b>They can't reach the higher number.</b> Push every DA and ActionSA supporter to
+        the highest turnout their areas have ever recorded — {{claim_hi_turnout}}%, a turnout
+        fantasy at a local election — and the DA does clear the wrong original target, polling
+        ~{{claim_da_votes_surge}}. But that is still well short of {{claim_half_surged}}.</li>
+
+        <li><b>Even {{claim_da_share_surged}}% of the vote doesn't buy
+        {{claim_da_share_surged}}% of the seats.</b> {{claim_da_share_surged}}% would be
+        {{claim_prop_seats}} seats of {{council_size}}. But the excessive-seats law still fires
+        in nine simulations out of ten, handing the ANC every stronghold ward it holds — about
+        {{claim_anc_wards_surged}} wards on an entitlement of about
+        {{claim_anc_entitlement_surged}}. The surplus is deducted from everyone else's column,
+        the biggest slice from the biggest party. So the DA's median actually lands on
+        {{claim_da_median}} of the {{majority}} needed.</li>
+
+        <li><b>Could she still be right?</b> We looked for a reading that works. Her exact
+        words — “We need 490,000 registered DA voters to go vote DA, if they do that we win an
+        outright majority” — never say what total she is measuring against. Against 2021's poll
+        of ~{{claim_poll_2021}} ballots, 490,000 would be {{claim_490k_of_2021}}%. So the claim
+        is true in exactly one world: the DA doubles its vote while every other party combined
+        sheds about {{claim_others_shed}} votes, keeping the voter numbers frozen at the record
+        low. If that happened, is Helen right? Nothing in twenty years of turnout records
+        produces that world — but even assuming it exists, while the ANC holds its
+        ~{{claim_anc_wards_surged}}-ward wall the excessive-seats law means the DA needs about
+        {{claim_vote_share_needed}}% of the vote to reach {{majority}}. So even in a special
+        universe with never-before-seen events, it is false. The few simulations where the DA
+        does govern alone are the ones where its surge breaks the wall itself, flipping
+        stronghold wards — in those draws the ANC falls to ~{{claim_anc_collapse_seats}} seats.
+        To do that, the DA needs to do more than turn out its existing supporters. It needs new
+        ones.</li>
+      </ol>
+
+      <div class="verdict vfalse">Verdict: <b>FALSE</b></div>
     </div>
   </details>
 

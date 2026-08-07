@@ -255,3 +255,54 @@ value = 2
 source = "external:leverage.py — ten-point swing across thirty wards"
 captured = "2026-08-05"
 used_in = "turnout sections (forecast + interactive), why-believe — restated 2x"
+
+# --- added with the party-box rework of the claims section (2026-08-07) ---
+
+[claim_hi_turnout]
+mode = "fixed"
+value = 75
+source = "derived: registration-weighted highest turnout on record, all VDs"
+captured = "2026-08-07"
+tolerance = 2
+used_in = "claims/zille-490k step 2 — the turnout fantasy"
+
+[claim_prop_seats]
+mode = "fixed"
+value = 110
+source = "arithmetic: 41% of a 270-seat council"
+captured = "2026-08-07"
+tolerance = 3
+used_in = "claims/zille-490k step 3 — what proportionality would give"
+
+[claim_anc_entitlement_surged]
+mode = "fixed"
+value = 50
+source = "run:turnout_tilt_da=1 — ANC proportional entitlement in the surged poll"
+captured = "2026-08-07"
+tolerance = 3
+used_in = "claims/zille-490k step 3 — the wall versus the entitlement"
+
+[claim_poll_2021]
+mode = "fixed"
+value = 917000
+source = "external:IEC 2021 CoJ Seat Calculation Detail — A/2, ballots per paper"
+captured = "2026-08-07"
+format = "comma"
+used_in = "claims/zille-490k step 4 — the only denominator that makes 490k a majority"
+
+[claim_490k_of_2021]
+mode = "fixed"
+value = 53
+source = "arithmetic: 490,000 as a share of the 2021 poll"
+captured = "2026-08-07"
+tolerance = 1
+used_in = "claims/zille-490k step 4"
+
+[claim_others_shed]
+mode = "fixed"
+value = 190000
+source = "arithmetic: votes every other party must lose to freeze the poll"
+captured = "2026-08-07"
+format = "comma"
+tolerance = 20000
+used_in = "claims/zille-490k step 4 — what the frozen-poll world requires"
