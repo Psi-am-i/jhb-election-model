@@ -185,6 +185,47 @@ is retired or protected once staging exists.
 this Cloudflare account. `whysoserious.org` sits on GoDaddy nameservers and
 is **not** ours to use — do not wire anything to it.
 
+## The three standing policies (decided 2026-08-07)
+
+**1. Findings are re-run per city, never transferred.** "Turnout is
+second-order — persuasion, not mobilisation" and "blocs don't leak (587,000
+votes went to the couch)" are *measured Johannesburg results*. Each city
+publishes only what was measured there, which costs a real analysis pass per
+city (the leverage test, the bloc-leakage measurement) and is the only
+version that cannot be wrong. If Tshwane's answer differs from Joburg's,
+that difference is itself the story. Components transfer; conclusions do not.
+
+**2. The launch gate is hard.** A city page goes public only when all three
+hold:
+
+* `validate_seats.py` reproduces that city's published 2011, 2016 and 2021
+  councils exactly — quota, vote totals, every party;
+* every judgement in its config has been reviewed and carries a `note`, with
+  **no inherited Johannesburg placeholders left**;
+* `content/<city>/landscape.md` is written.
+
+Claims tested and city-specific presets may follow after launch; those three
+may not.
+
+**3. Core sections at launch; the rest earn their place.** Every city ships
+with the map, the arithmetic strip, the headline numbers, where the parties
+land, who can govern, plus the shared seat-law explainer and how-to-read /
+about. The story sections — a "surprise", claims tested, a reservoir-style
+finding — appear only when that city actually has one worth telling. No
+filler written to fill a slot.
+
+### What is shared vs per-city
+
+| Shared, rendered once | Per city |
+|---|---|
+| Seat law, excessive-seats clause, Laingsburg precedent | Headline and standfirst |
+| The four-regime German comparison | The city's "surprise", if it has one |
+| Why simulations, how to read this page | Party universe, blocs, chips |
+| Blind-test methodology, model limits | Coalition landscape and named rows |
+| The stat-provenance mechanism itself | Claims tested, scenario presets |
+| | Map chrome, palette, landscape.md |
+| | Every measured finding (see policy 1) |
+
 ## Step 3b — Universal vs city-specific, and the city's own narrative
 
 Two editorial questions the code cannot answer, both needed before a city
