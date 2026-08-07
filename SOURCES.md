@@ -185,3 +185,29 @@ validation in this repo was run against.
 * **2026 registration figures** — the IEC page shows the position as at
   1 Aug 2026 at municipality level; §3.2 wants the registration-weekend deltas,
   which are not published yet.
+
+## All-metro sweep (2026-08-07, phase 2 groundwork)
+
+One pass collected everything the other seven metros need, so the well never
+has to be revisited for results:
+
+* **IEC LGE reports, all 8 metros** — `data/raw/elections/_reports/` now holds
+  the 2011/2016/2021 Downloadable Party Results (VD level), Detailed Results,
+  Seat Calculation Detail (pdf+xls) and Voter Turnout for JHB, TSH, EKU, ETH,
+  CPT, MAN, NMA and BUF. Portal code traps: Nelson Mandela Bay is **NMA** (not
+  NMB), and the IEC's province path segments are **WP** for Western Cape and
+  **KN** for KwaZulu-Natal. `python src/fetch_iec.py --muni TSH --province GP`
+  et al.
+* **By-elections, whole country** — `byelections_SA_vd_party.csv`: 9,163 VD×
+  party rows across 311 ward contests in every province
+  (`fetch_byelections.py --province ""`); the CoJ subset reconciles with the
+  15 contests already used by the model.
+* **Boundaries, all metros** — 2026 ward, VD and voting-station GeoJSON
+  extracts per metro (`fetch_boundaries.py --muni TSH` …); the 2011 and 2016
+  ward geodatabases were already national.
+* **Census 2022 ward product** is national (all ~4,470 wards), so no further
+  Stats SA request is needed per metro.
+
+NPE 2014/2019/2024 and LGE 2016 were already held as national zips in
+`_source/`. Remaining phase-2 work per metro is pipeline parameterisation,
+not acquisition.
