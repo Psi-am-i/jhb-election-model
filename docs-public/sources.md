@@ -1,10 +1,9 @@
 # Where the data comes from — and what it took to get it
 
-Every number in this model traces back to a public record: election results,
-maps of voting districts and wards, by-election returns, census tables. This
-page says where each one lives, what state it was in when we found it, and —
-because it turned out to matter — how hard South Africa's public records
-actually are to reach. The full technical recipes, file by file, are in
+Election results at voting-district level, boundary maps of wards and voting
+districts, by-election returns, census tables — this page tracks each to its
+origin and records the state it was in when we found it. The full technical
+recipes, file by file, are in
 [`SOURCES.md` on GitHub](https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md).
 
 ## Public records, deliberately hard to reach
