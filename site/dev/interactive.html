@@ -93,6 +93,21 @@
   details.rollup>*:not(summary){margin-top:12px;}
   details.rollup>summary h2{margin:0;}
   .sheet>nav.topnav{margin-bottom:-12px;}
+  details.cgroup>summary{cursor:pointer;list-style:none;position:relative;padding-right:20px;}
+  details.cgroup>summary::-webkit-details-marker{display:none;}
+  details.cgroup>summary::after{content:"–";position:absolute;right:0;top:0;
+    font-family:var(--mono);font-size:15px;line-height:1.2;color:var(--ink-3);}
+  details.cgroup:not([open])>summary::after{content:"+";}
+  details.cgroup>summary h3{display:inline-block;margin:0;}
+  .morelink{font-family:var(--mono);font-size:11px;white-space:nowrap;cursor:pointer;}
+  dialog.morepop{max-width:540px;width:calc(100vw - 48px);background:var(--paper);
+    color:var(--ink-2);border:1px solid var(--rule);border-radius:6px;padding:20px 22px;
+    font-size:13.5px;line-height:1.55;}
+  dialog.morepop::backdrop{background:rgba(0,0,0,.55);}
+  dialog.morepop h3{margin:0 0 8px;color:var(--ink);}
+  dialog.morepop p{margin:8px 0;}
+  .popclose{float:right;border:none;background:none;color:var(--ink-3);cursor:pointer;
+    font-size:14px;padding:2px 4px;margin:-6px -8px 0 8px;}
   .ctl .lab span:first-child{color:var(--ink);font-weight:600;}
   .sliderwrap{position:relative;display:block;}
   .fctick{position:absolute;top:2px;bottom:2px;width:2px;background:var(--ink-3);
@@ -203,18 +218,23 @@
   <div class="cgroup">
     <h3>Change the variables</h3>
     <div class="why"><b>How to use:</b> drag left = lower · drag right = higher. The notch under
-    each slider marks our published forecast's setting; the orange readout below it is yours.</div>
+    each slider marks our published forecast; the orange readout is your setting.</div>
   </div>
 
-  <div class="cgroup">
-    <h3>Party levels</h3>
+  <details class="cgroup" open>
+    <summary><h3>Party levels</h3></summary>
     <div class="why">How close the vote is to each party's result in the <b>2024 national
-    election</b> — the readout translates it into a citywide vote share. The available ranges
-    are the outer limits of twenty years of national-to-local swings: you can't push past what
-    has actually happened. These are retention ratios, not growth caps — ×0.75 means the party
-    keeps three-quarters of its 2024 national share.<br>
-    <b>●</b> = ANC bloc, <b>○</b> = DA bloc&nbsp;|&nbsp;blocs are parties fishing in the same
-    voter pool, and they are bound together (see "Bloc shifts" below).</div>
+    election</b>, shown as a citywide vote share. The ranges are the outer limits of twenty
+    years of national-to-local swings.<br><b>●</b> = ANC bloc, <b>○</b> = DA bloc.
+    <a class="morelink" data-more="m-levels">more…</a></div>
+    <dialog class="morepop" id="m-levels"><button class="popclose">✕</button>
+      <h3>Party levels</h3>
+      <p>These are retention ratios, not growth caps: ×0.75 means the party keeps
+      three-quarters of its 2024 national share at the local election; ×1.30 means it runs 30%
+      above it. You can't push past anything that hasn't actually happened in 2006–2024.</p>
+      <p>Blocs are parties fishing in the same voter pool, and they are bound together — the
+      simulation draws each bloc's total first, then splits it (see Bloc shifts and
+      Fine-tuning).</p></dialog>
     <div class="ctl"><div class="lab"><span>ANC ●</span><span class="v" id="v-thetaANC"></span></div>
       <input type="range" id="thetaANC" min="0.65" max="0.90" step="0.01" value="0.75"></div>
     <div class="ctl"><div class="lab"><span>DA ○</span><span class="v" id="v-thetaDA"></span></div>
@@ -227,32 +247,34 @@
       <input type="range" id="thetaASA" min="0.90" max="3.00" step="0.05" value="1.50"></div>
     <div class="ctl"><div class="lab"><span>PA</span><span class="v" id="v-thetaPA"></span></div>
       <input type="range" id="thetaPA" min="1.00" max="2.20" step="0.05" value="1.40"></div>
-  </div>
+  </details>
 
-  <div class="cgroup">
-    <h3>Turnout — who shows up</h3>
-    <div class="why">Turnout only matters when <b>some voters show up more than others</b> —
-    under proportional representation the level alone cannot move a seat. We built this model
-    expecting a party's turnout machine to be decisive; after thousands of simulations, we
-    concluded it is not. These sliders let you check us, and test the parties' own claims (the
-    front page's "The parties' claims — tested" runs on them).<br><br>
-    Each slider moves that bloc's <b>supporters</b> — wherever in the city they live — between
-    two real anchors. Full left: the bloc votes at the worst turnout on its historical record.
-    Full right: at the highest turnout its areas have ever recorded (2011–2024, national
-    elections included). Local turnout always runs far below national, so maxing it is
-    fantasy — but go ahead and see how much it helps. Neighbours are untouched: one camp's
-    machine outworking the other, not a rising tide for all. Parties outside the two blocs
-    (PA, IFP, the rest) are unaffected.<br><br>
-    The tested answer: even a ten-point turnout swing pushed across thirty ANC-leaning wards
-    moves about <b>two seats</b>. Persuasion moves this city; mobilisation barely does.</div>
+  <details class="cgroup" open>
+    <summary><h3>Turnout — who shows up</h3></summary>
+    <div class="why">Turnout only matters when some voters show up more than others. We built
+    this model expecting that high voter turnout for a party would be decisive. In fact, after
+    thousands of simulations, we have concluded it is not. These sliders let you check us, and
+    test the parties' own claims.
+    <a class="morelink" data-more="m-turnout">more…</a></div>
+    <dialog class="morepop" id="m-turnout"><button class="popclose">✕</button>
+      <h3>Turnout — who shows up</h3>
+      <p>Each slider moves that bloc's supporters — wherever in the city they live — between
+      two real anchors. This is one camp's machine outworking the other, not a rising tide for
+      all. Slide full left and turnout will be the worst on historical record, applied to that
+      bloc. Slide full right and the highest election turnout on record (since 2011) is
+      applied to that bloc. Local election turnout always runs far below national election
+      turnout, so maxing it is fantasy. But go ahead and see how much it helps. Parties
+      outside the two blocs (PA, IFP, the rest) are unaffected by these sliders.</p>
+      <p>The tested answer: even a ten-point turnout swing pushed across thirty ANC-leaning
+      wards moves about two seats. Persuasion moves this city; mobilisation barely does.</p></dialog>
     <div class="ctl"><div class="lab"><span>● ANC-bloc turnout (ANC · EFF · MK)</span><span class="v" id="v-turnoutANC"></span></div>
       <input type="range" id="turnoutANC" min="-1" max="1" step="0.05" value="0"></div>
     <div class="ctl"><div class="lab"><span>○ DA-bloc turnout (DA · ActionSA)</span><span class="v" id="v-turnoutDA"></span></div>
       <input type="range" id="turnoutDA" min="-1" max="1" step="0.05" value="0"></div>
-  </div>
+  </details>
 
-  <div class="cgroup">
-    <h3>Poll weighting</h3>
+  <details class="cgroup" open>
+    <summary><h3>Poll weighting</h3></summary>
     <div class="why">Polls are opt-in. Pick one, say how much you believe it, and the party
     levels tilt toward its numbers. Every poll is linked to its source, with its health
     warning attached.</div>
@@ -262,17 +284,21 @@
       <div class="lab"><span>How much do you believe it?</span><span class="v" id="v-pollWeight"></span></div>
       <input type="range" id="pollWeight" min="0" max="1" step="0.05" value="0.50"></div>
     <div class="why" id="pollInfo" style="display:none;margin-top:-4px"></div>
-  </div>
+  </details>
 
   <details class="cgroup">
-    <summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Judgement calls</h3></summary>
-    <div class="why">Two judgement calls that no record can settle.<br>
-    <b>MK</b> has never fought a local election. At <b>1.0</b> it does the same on the ward
-    ballot as its list vote; above 1.0 it excels in ward races; below, its voters back the
-    list but increasingly go elsewhere in ward contests.<br>
-    <b>The PA</b> stood in only 52 of 135 wards in 2021 and is standing in more this time.
-    <b>1.0</b> means it does the same as last time; over 1.0 the wider slate captures more
-    ward votes; under 1.0 the push backfires — spread thin, it wins fewer.</div>
+    <summary><h3>Judgement calls</h3></summary>
+    <div class="why">Two judgement calls that no record can settle: MK's ward-ballot
+    performance, and whether the PA's wider slate pays off.
+    <a class="morelink" data-more="m-judge">more…</a></div>
+    <dialog class="morepop" id="m-judge"><button class="popclose">✕</button>
+      <h3>Judgement calls</h3>
+      <p><b>MK</b> has never fought a local election. At <b>1.0</b> it does the same on the
+      ward ballot as its list vote; above 1.0 it excels in ward races; below, its voters back
+      the list but increasingly go elsewhere in ward contests.</p>
+      <p><b>The PA</b> stood in only 52 of 135 wards in 2021 and is standing in more this
+      time. <b>1.0</b> means it does the same as last time; over 1.0 the wider slate captures
+      more ward votes; under 1.0 the push backfires — spread thin, it wins fewer.</p></dialog>
     <div class="ctl"><div class="lab"><span>MK's ward performance</span><span class="v" id="v-mkRatio"></span></div>
       <input type="range" id="mkRatio" min="0.50" max="1.20" step="0.05" value="0.80"></div>
     <div class="ctl"><div class="lab"><span>PA's wider slate</span><span class="v" id="v-paUplift"></span></div>
@@ -280,48 +306,54 @@
   </details>
 
   <details class="cgroup">
-    <summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Wildcard entrants</h3></summary>
-    <div class="why">Before each of the last three elections, a party that did not exist before
-    appeared and took 11–18% of the vote. Will that happen this year?</div>
+    <summary><h3>Wildcard entrants</h3></summary>
+    <div class="why">Before each of the last three elections, a party that did not exist
+    before appeared and took 11–18% of the vote. Will that happen this year?</div>
     <div class="ctl"><div class="lab"><span>Chance a brand-new party appears</span><span class="v" id="v-entrantProb"></span></div>
       <input type="range" id="entrantProb" min="0" max="1" step="0.05" value="0.25"></div>
     <div class="ctl"><div class="lab"><span>Its typical vote share if it does</span><span class="v" id="v-entrantMode"></span></div>
       <input type="range" id="entrantMode" min="0.01" max="0.12" step="0.005" value="0.04"></div>
   </details>
 
-  <div class="cgroup">
-    <h3>Bloc shifts</h3>
-    <div class="why">A <b>bloc</b> is a set of parties fishing in the same pool of voters.<br>
-    <b>●&nbsp;the ANC bloc</b> (ANC, EFF, MK)<br>
-    <b>○&nbsp;the DA bloc</b> (DA, ActionSA, plus tiny BOSA)<br>
-    Voters tend to stay in their bloc and not cross to the other. In the ANC bloc's record
-    2021 collapse it shed <b>587,000 votes</b> — and the DA bloc captured none of them (its
-    own count fell). Declines go to the couch, not across the aisle.<br><br>
-    This slider is your bet on whether 2026 breaks that pattern. History says <b>0</b>, and
-    there is no data for anything else. At 0, lost voters stay home; nobody inherits them.
-    Slide right to move a percentage of the ANC bloc's lost votes to the DA bloc. Slide left
-    to move a percentage of the DA bloc's lost votes to the ANC bloc. At <b>100%</b>, every
-    vote lost is the other bloc's gain. (One honest asymmetry: in twenty years of observed
-    swings — which bound every simulation — the DA bloc's local share has never fallen below
-    its national base. It has no losses to move, so today the left side changes nothing. It
-    is there for symmetry, and for the day the record changes.)</div>
+  <details class="cgroup" open>
+    <summary><h3>Bloc shifts</h3></summary>
+    <div class="why">Voters tend to stay in their bloc — <b>●</b> ANC, EFF, MK ·
+    <b>○</b> DA, ActionSA, plus tiny BOSA — and not cross to the other. This slider is your
+    bet on whether 2026 breaks that pattern. History says <b>0</b>.
+    <a class="morelink" data-more="m-bloc">more…</a></div>
+    <dialog class="morepop" id="m-bloc"><button class="popclose">✕</button>
+      <h3>Bloc shifts — voter cross-over</h3>
+      <p>In the ANC bloc's record 2021 collapse it shed <b>587,000 votes</b> — and the DA bloc
+      captured none of them (its own count fell). Declines go to the couch, not across the
+      aisle. There is no data for anything else, so the slider is deliberately uncalibrated.</p>
+      <p>At 0, lost voters stay home; nobody inherits them. Slide right to move a percentage
+      of the ANC bloc's lost votes to the DA bloc. Slide left to move a percentage of the DA
+      bloc's lost votes to the ANC bloc. At <b>100%</b>, every vote lost is the other bloc's
+      gain.</p>
+      <p>One honest asymmetry: in the observed record — which bounds every simulation — the DA
+      bloc's local share never falls below its national base. It has no losses to move, so
+      today the left side changes nothing. It is there for symmetry, and for the day the
+      record changes.</p></dialog>
     <div class="ctl"><div class="lab"><span>Voter cross-over</span><span class="v" id="v-blocLeak"></span></div>
       <input type="range" id="blocLeak" min="-1" max="1" step="0.05" value="0"></div>
-  </div>
+  </details>
 
   <details class="cgroup">
-    <summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Fine-tuning</h3></summary>
-    <div class="why">The statistical sliders behind the headline controls. Each simulation
-    draws a bloc's total first, then splits it between members.<br>
-    <b>Within-bloc vote shifts</b> — how tightly the split between a bloc's members sticks to
-    history. Left = sticks to history; right = wild reshuffles, same total.<br>
-    <b>By-elections' influence</b> — how hard the fifteen real by-elections since 2021 pull
-    the party levels. Left = no influence; right = the levels match what the by-elections
-    imply.<br>
-    <b>Turnout map</b> — the baseline turnout geography: the model's 2006–2024 projection, or
-    an exact repeat of the record-low 2021 map.<br>
-    <b>Ward surprise</b> — how much every ward's turnout is scattered around that map in each
-    simulation: at 0.20, a ward's turnout typically varies by about ±20%.</div>
+    <summary><h3>Fine-tuning</h3></summary>
+    <div class="why">The statistical sliders behind the headline controls.
+    <a class="morelink" data-more="m-fine">more…</a></div>
+    <dialog class="morepop" id="m-fine"><button class="popclose">✕</button>
+      <h3>Fine-tuning</h3>
+      <p>Each simulation draws a bloc's total first, then splits it between members.</p>
+      <p><b>Within-bloc vote shifts</b> — how tightly the split between a bloc's members
+      sticks to history. Left = sticks to history; right = wild reshuffles, same total.</p>
+      <p><b>By-elections' influence</b> — how hard the fifteen real by-elections since 2021
+      pull the party levels. Left = no influence; right = the levels match what the
+      by-elections imply.</p>
+      <p><b>Turnout map</b> — the baseline turnout geography: the model's 2006–2024
+      projection, or an exact repeat of the record-low 2021 map.</p>
+      <p><b>Ward surprise</b> — how much every ward's turnout is scattered around that map in
+      each simulation: at 0.20, a ward's turnout typically varies by about ±20%.</p></dialog>
     <div class="ctl"><div class="lab"><span>● ANC bloc — within-bloc vote shifts: history ← → wild</span><span class="v" id="v-alphaANC"></span></div>
       <input type="range" id="alphaANC" min="10" max="150" step="5" value="60" style="direction:rtl"></div>
     <div class="ctl"><div class="lab"><span>○ DA bloc — within-bloc vote shifts: history ← → wild</span><span class="v" id="v-alphaDA"></span></div>
@@ -900,7 +932,9 @@ function analyse(res){
   const maskStats=m=>{const o=m*nDraws,a=new Float64Array(nDraws);
     for(let d=0;d<nDraws;d++)a[d]=sums[o+d];return quantiles(a);};
   const maskOf=codes=>{let m=0;codes.forEach(c=>{const t=top.findIndex(p=>p.i===idx[c]);if(t>=0)m|=1<<t;});return m;};
-  const label=m=>top.filter((_,k)=>m&(1<<k)).map(p=>p.name).join(" + ");
+  const chipDot=i=>`<span class="chip" style="background:${CHIP[i]};display:inline-block;`+
+    `width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:baseline"></span>`;
+  const label=m=>top.filter((_,k)=>m&(1<<k)).map(p=>chipDot(p.i)+p.name).join(" + ");
 
   // named + discovered pairs/triples
   const named=[
@@ -965,9 +999,11 @@ function analyse(res){
     let w=0;for(let d=0;d<nDraws;d++)if(f[d]>=thr[d])w++;
     const r={label:lab,p:w/nDraws,...quantiles(f),key:true};
     r.cushion=r.med-136;return r;};
-  const fieldRow=fieldRowOf(["ANC","EFF","MK"],"Everything except ANC, EFF & MK");
+  const exLab=(codes,names)=>"Everything except "+
+    codes.map((c,k)=>chipDot(idx[c])+names[k]).join(", ");
+  const fieldRow=fieldRowOf(["ANC","EFF","MK"],exLab(["ANC","EFF","MK"],["ANC","EFF","MK Party"]));
   rows.push(fieldRow);
-  rows.push(fieldRowOf(["DA","ASA"],"Everything except DA & ActionSA"));
+  rows.push(fieldRowOf(["DA","ASA"],exLab(["DA","ASA"],["DA","ActionSA"])));
   rows.sort((a,b)=>b.p-a.p);
 
   // MWC on a subsample
@@ -1314,6 +1350,17 @@ ctlIds.forEach(id=>{
 document.getElementById("pollPick").addEventListener("change",()=>{pollUi();go();});
 document.getElementById("run").addEventListener("click",go);
 // the ticker is permanent once the first simulation set lands
+// "more…" popovers
+document.querySelectorAll(".morelink").forEach(a=>a.addEventListener("click",e=>{
+  e.preventDefault();
+  const d=document.getElementById(a.dataset.more);
+  if(d&&d.showModal)d.showModal();
+}));
+document.querySelectorAll("dialog.morepop").forEach(d=>{
+  d.addEventListener("click",e=>{if(e.target===d)d.close();});
+  const c=d.querySelector(".popclose");
+  if(c)c.addEventListener("click",()=>d.close());
+});
 ctlIds.forEach(id=>{const el=document.getElementById(id);
   el.addEventListener("input",showVals);
   el.addEventListener("change",go);});
