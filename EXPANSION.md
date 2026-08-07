@@ -185,6 +185,41 @@ is retired or protected once staging exists.
 this Cloudflare account. `whysoserious.org` sits on GoDaddy nameservers and
 is **not** ours to use — do not wire anything to it.
 
+## Step 3b — Universal vs city-specific, and the city's own narrative
+
+Two editorial questions the code cannot answer, both needed before a city
+launches.
+
+**What transfers?** An explicit audit splits the site into *universal*
+components (the seat law and the excessive-seats clause, the German
+comparison, why-simulations, how-to-read, the blind-test methodology — these
+render once and are shared) and *city-specific* ones (headline, the city's
+"surprise", party universe and blocs, coalition landscape, claims, map
+chrome, palette). The trap to avoid is **transferring findings, not just
+copy**: "persuasion, not mobilisation" is a *measured Johannesburg result*.
+It must be re-run for each city, never asserted.
+
+**What does the city believe?** `content/<city>/landscape.md`, from a
+research pass: who governs and how, live coalition tensions, mayoral
+candidates, and the dominant public narrative — then which parts of it are
+testable against the model. This drives three things: the claims section,
+the newsdesk search terms, and *which scenario presets the interactive
+offers*. Joburg's "Every DA voter turns out" has no Tshwane analogue; the
+Tshwane equivalents are likelier "the ActionSA coalition holds" versus
+"Brink takes it back".
+
+**Social listening** — worth having, but the access is genuinely
+constrained, so it gets a feasibility spike rather than a promise. X's API
+has been paid-only since 2023 and even the Basic tier is rate-limited;
+Instagram's Graph API only reaches accounts you own; Nitter mirrors are
+largely dead; scraping either breaches terms and gets blocked. Cheapest
+options to test first: `site:x.com` WebSearch queries from the newsdesk
+agent (catches indexed, high-engagement posts); SA outlets' own reporting
+*of* viral political posts; Reddit's free JSON API (r/southafrica,
+r/Johannesburg — genuinely open and genuinely political); the YouTube Data
+API's free tier for political-channel comments. Only if those prove thin,
+and only if the site ever finds funding, consider paying X.
+
 ## Step 5 — Per-city newsdesk
 
 Clone `joburg-daily-newsdesk` (trig_01HaFqN6HCtCDRycukFxsJJ2) per city via
