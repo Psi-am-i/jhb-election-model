@@ -62,6 +62,7 @@ from pathlib import Path
 
 import numpy as np
 
+import cityconfig
 import coalitions
 from fold import citywide, load, load_parameters, shares
 from seats import INDEPENDENT, allocate
@@ -229,6 +230,28 @@ def parse_set(pairs: list[str], scenario: dict) -> None:
             scenario[key] = json.loads(value)
         except json.JSONDecodeError:
             scenario[key] = value
+
+
+def apply_city(city) -> None:
+    """Point the module's constants at this city.
+
+    Johannesburg's config was generated from these very constants when the
+    spine was introduced, so for CoJ this is a no-op by construction — which
+    is what lets the refactor happen without the forecast moving.
+    """
+    global COUNCIL, BLOCS, ANC_BLOC_PARTIES, PLAN_BOUNDS
+    COUNCIL = city.council
+    BLOCS = city.blocs
+    ANC_BLOC_PARTIES = BLOCS["ANC_BLOC"]
+    PLAN_BOUNDS = city.plan_bounds
+    j = city.judgements
+    for key in ("theta_mode", "individual_theta", "ward_pr_ratio_overrides"):
+        if key in j:
+            DEFAULTS[key] = dict(j[key])
+    for key, value in j.get("scalars", {}).items():
+        if key.endswith("_note"):
+            continue
+        DEFAULTS[key] = value
 
 
 def load_scenario(args) -> dict:
@@ -450,6 +473,7 @@ def allocate_with_overhang(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    cityconfig.add_city_argument(parser)
     parser.add_argument("--draws", type=int)
     parser.add_argument("--seed", type=int)
     parser.add_argument("--config", type=Path, help="scenario JSON overriding DEFAULTS")
@@ -458,6 +482,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
     parser.add_argument("--processed", type=Path, default=Path("data/processed"))
     args = parser.parse_args(argv)
+    city = cityconfig.load(getattr(args, "city", None))
+    apply_city(city)
     scenario = load_scenario(args)
 
     rng = np.random.default_rng(scenario["seed"])

@@ -1,0 +1,126 @@
+# Tshwane — the pilot for the multi-city framework.
+#
+# STATUS: SKELETON. Structure is derived from Tshwane's own IEC files
+# (src/derive_city.py --code TSH --slug tshwane). The judgements below are
+# COPIED FROM JOHANNESBURG AS PLACEHOLDERS and are NOT yet defensible for
+# this city — see the TODO block. Nothing may be published from this config
+# until each one has been reviewed against Tshwane's own history.
+
+legacy_processed_root = false     # -> data/processed/tshwane/
+
+[identity]
+code = "TSH"
+slug = "tshwane"
+name = "Tshwane"
+formal_name = "City of Tshwane"
+province = "GP"
+province_name = "Gauteng"
+ward_prefix = "799"               # Joburg is 798
+subdomain = "tshwane.whysoserious.city"
+
+[structure]
+# Derived 2026-08-07 from lge2021_TSH_downloadable_party_results.csv.
+# Council = wards x2; confirm against the Seat Calculation Detail before use.
+council = 214
+wards = 107
+list_seats = 107
+vds = 778
+registered = 1526585
+election_date = "2026-11-04"
+# For the record, the trajectory derive_city printed:
+#   2011: 105 wards ·  616 VDs · 1,326,427 registered
+#   2016: 107 wards ·  732 VDs · 1,512,524 registered
+#   2021: 107 wards ·  778 VDs · 1,526,585 registered
+
+[site]
+accent = "#6b4fa8"                # jacaranda purple — Pretoria in October
+accent_soft = "#e8e2f2"
+accent_dark = "#a98fd6"
+accent_soft_dark = "#2b2440"
+
+# ---------------------------------------------------------------------------
+# TODO before Tshwane can be published — the judgement review
+# ---------------------------------------------------------------------------
+# 2021 PR ballot, Tshwane's actual party universe:
+#   ANC 34.8% · DA 31.8% · EFF 10.4% · ActionSA 9.3% · VF+ 7.8%
+#   ACDP 0.9% · AIC 0.8% · Defenders of the People 0.5% · PA 0.5%
+#
+# Differences from Johannesburg that the judgements must reflect:
+#   1. VF+ is FIRST-CLASS here (7.8%, vs marginal in CoJ) — it needs its own
+#      dial, chip and theta range, not the shared minor-party treatment.
+#   2. The PA is marginal (0.5%) — the CoJ contestation-uplift judgement
+#      (built on its 52-of-135 ward slate there) does not transfer.
+#   3. Bloc membership needs re-deciding: is VF+ in the DA bloc here, or an
+#      independent pool? Its 2021 surge looks like a distinct constituency.
+#   4. The ANC/DA shift ranges below are CoJ's four transitions. Tshwane's
+#      own NPE->LGE history must be measured before they are believed.
+#   5. Local formations (Defenders of the People) may need carrying.
+#
+# Political context to fold into the site copy and the newsdesk terms:
+#   ActionSA's Nasiphi Moya governs in coalition with the ANC and EFF; that
+#   coalition is publicly strained ahead of November. The DA has positioned
+#   Cilliers Brink (the mayor it lost in 2024) to take it back. EFF's
+#   candidate is Omphile Maotwe.
+
+[judgements]
+blocs_note = "PLACEHOLDER — copied from CoJ. VF+ placement is the open question."
+[judgements.blocs]
+ANC_BLOC = ["ANC", "EFF", "MK"]
+DA_BLOC = ["DA", "ASA"]
+
+[judgements.plan_bounds]
+# PLACEHOLDER — CoJ ranges. Re-derive from Tshwane's transitions.
+ANC = [0.65, 0.9]
+DA = [1.05, 1.6]
+EFF = [0.55, 1.1]
+ASA = [0.9, 3.0]
+MK = [0.3, 1.0]
+VFPLUS = [0.7, 2.2]
+
+[judgements.theta_mode]
+ANC = 0.75
+EFF = 0.85
+MK = 0.6
+DA = 1.3
+ASA = 1.5
+
+[judgements.individual_theta]
+VFPLUS = [0.7, 1.2, 2.2]
+ACDP = [0.6, 1.2, 2.0]
+PA = [1.0, 1.4, 2.2]
+IFP = [0.8, 1.4, 2.2]
+
+[judgements.ward_pr_ratio_overrides]
+MK = 0.8
+ENTRANT = 0.8
+
+[judgements.scalars]
+anc_bloc_shift = [-22.0, -9.0, -3.0]      # PLACEHOLDER: CoJ's transitions
+da_bloc_shift = [5.0, 9.0, 14.0]          # PLACEHOLDER: CoJ's transitions
+alpha_anc = 60.0
+alpha_da = 12.0
+f_other = [0.7, 1.3, 2.0]
+w_bye = 0.4
+polling_lean = 0.0
+polling_span = 8.0
+poll_weight = 0.0
+bloc_leak = 0.0
+pa_contestation_uplift = 1.0              # the CoJ slate judgement does not transfer
+turnout_pattern_blend = 0.5
+turnout_blend_jitter = 0.25
+turnout_noise_sd = 0.08
+turnout_tilt_anc = 0.0
+turnout_tilt_da = 0.0
+entrant_prob = 0.25
+entrant_share = [0.01, 0.04, 0.12]
+ward_noise_sd = 0.1
+level_floor = 1e-06
+overhang_rule = "deduct"
+draws = 5000
+seed = 20261104
+
+[newsdesk]
+parties = ["ActionSA/Moya", "DA/Brink", "ANC", "EFF/Maotwe", "MK", "VF+"]
+outlets = ["Pretoria News", "Rekord", "News24", "Daily Maverick", "EWN", "The Citizen", "IOL", "Mail & Guardian", "SABC"]
+pollsters = ["Social Research Foundation", "Victory Research", "Ipsos", "Brenthurst"]
+name_variants = ["City of Tshwane", "Tshwane", "Pretoria"]

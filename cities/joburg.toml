@@ -1,0 +1,104 @@
+# Johannesburg — the reference city.
+#
+# GENERATED from the live constants when the config spine was introduced
+# (2026-08-07), so the forecast could not move during the refactor. Edit
+# freely from here on; this is now the source of truth.
+
+legacy_processed_root = true  # CoJ keeps data/processed/ (not /joburg/)
+
+[identity]
+code = "JHB"
+slug = "joburg"
+name = "Johannesburg"
+formal_name = "City of Johannesburg"
+province = "GP"              # IEC path segment (traps: WP for WC, KN for KZN)
+province_name = "Gauteng"
+ward_prefix = "798"          # picks CoJ out of national by-election files
+subdomain = "joburg.whysoserious.city"
+
+[structure]
+# Derived from the IEC files by derive_city.py — never typed by hand.
+council = 270
+wards = 135
+list_seats = 135
+vds = 865
+registered = 2348781
+election_date = "2026-11-04"
+
+[site]
+accent = "#a8621f"           # Joburg sunset amber
+accent_soft = "#f0e2d5"
+accent_dark = "#d9954f"
+accent_soft_dark = "#3a2a1a"
+
+[judgements]
+# The per-city calls. Applied blind to another metro these do not crash —
+# they produce plausible, wrong output. Each carries its evidence.
+
+blocs_note = "Parties fishing in the same voter pool; measured 2006-2024."
+[judgements.blocs]
+ANC_BLOC = ["ANC", "EFF", "MK"]
+DA_BLOC = ["DA", "ASA", "BOSA"]
+
+[judgements.plan_bounds]
+# Plan §3.5 sanity ranges on raw national-to-local retention ratios.
+ANC = [0.65, 0.9]
+DA = [1.05, 1.6]
+EFF = [0.55, 1.1]
+ASA = [0.9, 3.0]
+MK = [0.3, 1.0]
+PA = [1.0, 2.2]
+ALJAMAAH = [0.8, 3.0]
+
+[judgements.theta_mode]
+ANC = 0.75
+EFF = 0.85
+MK = 0.6
+DA = 1.3
+ASA = 1.5
+BOSA = 0.8
+
+[judgements.individual_theta]
+# (low, mode, high) for parties drawn outside the blocs.
+PA = [1.0, 1.4, 2.2]
+ALJAMAAH = [0.8, 1.5, 3.0]
+IFP = [0.8, 1.4, 2.2]
+VFPLUS = [0.7, 1.2, 2.2]
+ACDP = [0.6, 1.2, 2.0]
+RISE = [0.3, 0.8, 1.5]
+
+[judgements.ward_pr_ratio_overrides]
+MK = 0.8
+ENTRANT = 0.8
+
+[judgements.scalars]
+anc_bloc_shift_note = "Four observed NPE->LGE transitions in CoJ, in points on the 2024 base."
+anc_bloc_shift = [-22.0, -9.0, -3.0]
+da_bloc_shift = [5.0, 9.0, 14.0]
+alpha_anc = 60.0
+alpha_da = 12.0
+f_other = [0.7, 1.3, 2.0]
+w_bye = 0.4
+polling_lean = 0.0
+polling_span = 8.0
+poll_weight = 0.0
+bloc_leak = 0.0
+pa_contestation_uplift = 1.25
+turnout_pattern_blend = 0.5
+turnout_blend_jitter = 0.25
+turnout_noise_sd = 0.08
+turnout_tilt_anc = 0.0
+turnout_tilt_da = 0.0
+entrant_prob = 0.25
+entrant_share = [0.01, 0.04, 0.12]
+ward_noise_sd = 0.1
+level_floor = 1e-06
+overhang_rule = "deduct"
+draws = 5000
+seed = 20261104
+
+[newsdesk]
+parties = ["DA/Zille", "ANC/Mbalula", "ANC/Lesufi", "ActionSA/Mashaba", "EFF/Malema", "MK", "PA"]
+outlets = ["News24", "Daily Maverick", "EWN", "TimesLIVE", "Mail & Guardian", "IOL", "The Citizen", "SABC", "eNCA", "702", "GroundUp", "The Common Sense"]
+pollsters = ["Social Research Foundation", "Victory Research", "Ipsos", "Brenthurst"]
+name_variants = ["City of Johannesburg", "Joburg", "Jo'burg", "CoJ"]
