@@ -831,6 +831,58 @@ headline split with a smaller second sentence; "simulation" replaces "run",
 "slider" replaces "dial"; wide-screen width tier added; party colour chips
 in the regime table.
 
+### 1.24 Phase 2 approved: one engine, many cities — and the stat-provenance layer it needs ✅ *plan filed as `EXPANSION.md`*
+
+`whysoserious.city` becomes a portal to per-city models. Planning that
+exposed a defect that is already live in Johannesburg, and it is the more
+important half of the work.
+
+**Model results are typed into prose by hand, so they go stale silently.**
+A full inventory found ~40 restatements of model quantities outside the
+generated blocks, many duplicated across files (587,000 ×3, "129 of 135"
+×3, "73 wards / 65 entitlement" ×3, "865 VDs" ×6, "5,000 simulations" ×5) —
+and four that are simply **wrong on the published site**: the standfirst's
+"DA finishing first 54%" (model: 62%), "roughly 73 wards on a 65-seat
+entitlement in six of every seven simulations" (model: ~74 wards, ~59
+entitlement, 96%), the portal dateline's pre-rev-3 "majority bar to ~141"
+(the council is fixed at 270), and `review.md`'s "largest party in 63%",
+which contradicts the sheet's own 54%.
+
+**The fix is not simply to auto-update them.** A number inside a dated
+argument must not move underneath the argument: "short by 39 seats" is only
+true while the DA's median is 97. So every reused stat is tagged:
+
+- **`free`** — recomputed each build; a statement of what the model says now.
+- **`fixed`** — pinned to the moment it was written, with the run that
+  produced it; the build reports **drift** when the live model moves away
+  from the pin (per-token tolerance), so a human re-pins or rewrites the
+  argument. Drift warns, never blocks.
+
+Both modes carry source and insertion timestamp. The registry is per-city
+YAML covering **numbers and strings** — the headline's "the ANC" is a model
+result too, and would be wrong if another party started overhanging.
+Rendered tokens carry their provenance in data-attributes: pinned figures
+read plainly but reveal "pinned 7 Aug 2026 · model now says 103" on hover.
+
+**Also found, to be fixed by the same refactor:** the interactive template
+hand-mirrors `montecarlo.DEFAULTS` in three places (JS constants, 19 slider
+attribute triples, `DEFAULT_CFG`) with a fourth copy in `leverage.py` — and
+they have already drifted (`POLLING_SPAN` is 4 in the JS, 8.0 in Python).
+Four parallel copies of the party chips/names exist across the renderers.
+`build_interactive.py` will generate all of it from the city config.
+
+**Structure of the expansion** (decisions with the user, 2026-08-07): one
+repo, one Worker, `cities/<code>.toml` configs, `site/<slug>/` builds, a
+newsdesk routine per city, a place-derived palette per city, and **Tshwane
+as the pilot** — 107 wards, 778 VDs, a genuinely different party universe
+(VF+ 7.8% first-class, PA marginal) and a live ActionSA-led coalition under
+strain. Data for all eight metros is already in hand (`SOURCES.md`).
+
+**Standing rule for the refactor: Johannesburg's forecast may not move.**
+Every step re-runs Joburg and asserts `forecast_summary.json` is unchanged
+(DA 79 / ANC 74, P(ANC+DA) 87.6%, P(excessive) 96.3%). The engine gets
+generalised; the numbers do not.
+
 ## 2. Obstacles and how they were handled
 
 | # | Obstacle | Resolution | Status |
