@@ -211,3 +211,11 @@ has to be revisited for results:
 NPE 2014/2019/2024 and LGE 2016 were already held as national zips in
 `_source/`. Remaining phase-2 work per metro is pipeline parameterisation,
 not acquisition.
+
+## Data quality issues
+
+Defects found in the published record — encoding drift, silently mislabelled
+columns, impossible turnout values, a seat report that reassigns its own
+formula letters between years — are logged in
+[`DATA-QUALITY.md`](DATA-QUALITY.md), written so they can be reported to the
+IEC, MDB and Stats SA rather than only worked around here.
