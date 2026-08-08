@@ -154,6 +154,20 @@ group) is downloadable and is what this model uses instead.
 
 ---
 
+## Before submitting: re-verify
+
+**Re-run every check against a freshly downloaded file first.** Two reasons.
+Layouts and encodings may have been fixed since we hit them, and reporting a
+defect that no longer exists costs credibility. And at least one figure here
+cannot be re-derived from the working data: the 87 impossible-turnout
+district-years were counted *before* the pipeline drops them, so
+`data/processed/turnout.csv` now shows none — that number must be
+re-measured from the raw result and registration files, not quoted from here.
+
+A short verification pass before sending: re-download one file per issue,
+confirm the defect still reproduces, note the download date beside each item,
+and drop anything that has been fixed.
+
 ## How to reproduce any of these
 
 Each item names the file and the code that works around it. The whole
