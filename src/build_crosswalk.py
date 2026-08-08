@@ -38,10 +38,24 @@ ELECTIONS = {
 # Parties that took CoJ seats in 2016 or 2021. Each must resolve to a
 # hand-maintained code -- a name-derived fallback would be fragile for something
 # the seat allocator depends on.
-SEAT_WINNERS = {
-    "ANC", "DA", "ASA", "EFF", "PA", "IFP", "VFPLUS", "ACDP", "ALJAMAAH",
-    "AIC", "COPE", "UDM", "PAC", "APC", "AZAPO", "NFP", "AHC", "ATM", "OKM",
-}
+def seat_winners(city) -> set[str]:
+    """Parties that actually won a seat in this city, from the IEC's own
+    reports rather than a hand-kept list.
+
+    The list used to be Johannesburg's, so building any other metro failed on
+    a CoJ micro-party that had never contested there.
+    """
+    import official_seats
+    from parties import canonical
+    found: set[str] = set()
+    for year in (2011, 2016, 2021):
+        official = official_seats.read(city.code, year)
+        if not official:
+            continue
+        for name, row in official["parties"].items():
+            if row["seats"] > 0:
+                found.add(canonical(name))
+    return found
 
 
 def read_votes(path: Path, ballot: str | None = None) -> Counter[str]:
@@ -139,7 +153,7 @@ def main(argv: list[str] | None = None) -> int:
 
     failures = []
     tracked = set(P.PARTIES) | set(P.MINOR_ALIASES.values())
-    for code in sorted(SEAT_WINNERS):
+    for code in sorted(seat_winners(cityconfig.active())):
         if code not in codes:
             failures.append(f"seat-winning party {code} never appears in the data")
         elif code not in tracked:

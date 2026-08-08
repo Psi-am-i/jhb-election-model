@@ -82,6 +82,12 @@ MINOR_ALIASES: dict[str, str] = {
     "NATIONAL FREEDOM PARTY": "NFP",
     "RISE MZANSI": "RISE",
     "GOOD": "GOOD",
+    # Seat-winners surfaced when the crosswalk began deriving its list from
+    # the IEC's own reports instead of a hand-kept Johannesburg one. Mapped
+    # explicitly because a derived code can collide or drift between years.
+    "UNITED INDEPENDENT MOVEMENT": "UIM",          # CoJ, 1 seat 2021
+    "DEFENDERS OF THE PEOPLE": "DOP",              # Tshwane
+    "REPUBLICAN CONFERENCE OF TSHWANE": "RCT",     # Tshwane
     "AGANG SOUTH AFRICA": "AGANG",
     "AFRICAN HEART CONGRESS": "AHC",
     "OPERATION KHANYISA MOVEMENT": "OKM",
