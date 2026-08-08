@@ -185,6 +185,38 @@ wards that still win, roughly 73 wards against a 65-seat entitlement, in six
 of every seven simulations. Its ward count becomes an unbreakable floor, its
 list seats go to zero, and the squeeze lands on every other party&rsquo;s list
 seats — inside a council fixed at 270, with the majority fixed at 136.</p>
+<h2>What a &ldquo;bloc&rdquo; is — and what it is not</h2>
+<p>A bloc in this model is <strong>not a political alliance</strong>. It is not a coalition,
+not a pact, not a claim that these parties like each other or would govern
+together. Several of the parties grouped together here are each other&rsquo;s
+bitterest rivals, and some have ruled out working with one another entirely.</p>
+<p>A bloc is a statement about <strong>voters, not parties</strong>: a set of parties
+competing for the same people. When someone stops voting ANC, the realistic
+alternatives are usually the EFF, MK, or staying home — not the DA. When a DA
+voter defects, ActionSA is a likelier destination than the ANC. Those pools
+barely leak into each other: in the ANC bloc&rsquo;s record 2021 collapse it shed
+<span class="mstat" data-mode="fixed" data-token="bloc_leak_votes" data-when="2026-08-06" title="Pinned 2026-08-06 · source: external:MODEL-LOG 1.18 — ANC-bloc vote loss 2019 NPE to 2021 LGE">587,000</span> votes and the DA bloc captured none of them.</p>
+<p><strong>Why the model needs the idea at all.</strong> A forecast has to put uncertainty
+somewhere. If each party&rsquo;s support were drawn independently, the simulations
+would contain impossible worlds — every left-of-centre party surging at once,
+with no one losing the votes they gained. Drawing the <em>pool</em> first and then
+splitting it inside the pool keeps the arithmetic honest: one party&rsquo;s good
+night is partly another&rsquo;s bad one. It is why DA + ActionSA&rsquo;s combined range
+is far tighter than ActionSA&rsquo;s own, even though ActionSA alone is the most
+volatile party on the board.</p>
+<p><strong>How membership is decided, and how confident we are.</strong> Two things are
+measurable from the voting-district results: whether parties draw support
+from the same places, and whether their combined total is steadier than its
+parts. Both are computed per city (<code>src/bloc_signature.py</code>) rather than
+carried over from Johannesburg — the same test can give different answers in
+different cities, and does.</p>
+<p>We publish the awkward result too. In Johannesburg the ANC and EFF share
+geography strongly, exactly as the bloc idea predicts. The DA and ActionSA
+barely do — their district-level correlation is close to zero — so their
+grouping rests on the argument about where defectors go rather than on where
+the parties are strong. That is a judgement, it is visible in the
+<a href="interactive">interactive model</a> as a slider you can move, and if you think
+it is wrong you can set the bloc-crossing dial and see what changes.</p>
 <h2>The machinery of prediction</h2>
 <p>The forecast comes from running 5,000 simulations of the same pipeline:</p>
 <ol>
