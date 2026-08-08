@@ -21,6 +21,9 @@ subdomain = "tshwane.whysoserious.city"
 [structure]
 # Derived 2026-08-07 from lge2021_TSH_downloadable_party_results.csv.
 # Council = wards x2; confirm against the Seat Calculation Detail before use.
+# Confirmed against the IEC Seat Calculation Detail: quota 6,244, A 1,336,006,
+# 214 seats. The council was 210 in 2011 — council size is not constant even
+# within a city, which is why nothing here is typed from memory.
 council = 214
 wards = 107
 list_seats = 107
@@ -28,7 +31,7 @@ vds = 778
 registered = 1526585
 election_date = "2026-11-04"
 # For the record, the trajectory derive_city printed:
-#   2011: 105 wards ·  616 VDs · 1,326,427 registered
+#   2011: 105 wards ·  616 VDs · 1,326,427 registered  (210-seat council)
 #   2016: 107 wards ·  732 VDs · 1,512,524 registered
 #   2021: 107 wards ·  778 VDs · 1,526,585 registered
 

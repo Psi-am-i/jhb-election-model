@@ -14,38 +14,17 @@ from __future__ import annotations
 import argparse
 
 import cityconfig
+import official_seats
 import csv
 from collections import Counter
 from pathlib import Path
 
 from seats import INDEPENDENT, allocate, eligible_parties
 
-# Published by the IEC for CoJ 2021, keyed by combined ward+PR votes because the
-# report's party names wrap across lines in the PDF and vote totals are unique.
-OFFICIAL_2021 = {
-    620_289: ("AFRICAN NATIONAL CONGRESS", 91),
-    482_653: ("DEMOCRATIC ALLIANCE", 71),
-    296_345: ("ACTIONSA", 44),
-    196_163: ("ECONOMIC FREEDOM FIGHTERS", 29),
-    54_176: ("PATRIOTIC ALLIANCE", 8),
-    43_544: ("INKATHA FREEDOM PARTY", 7),
-    24_671: ("VRYHEIDSFRONT PLUS", 4),
-    19_468: ("AFRICAN CHRISTIAN DEMOCRATIC PARTY", 3),
-    17_608: ("AL JAMA-AH", 3),
-    10_960: ("AFRICAN INDEPENDENT CONGRESS", 2),
-}
-OFFICIAL_QUOTA_2021 = 6_794
-OFFICIAL_A_2021 = 1_834_260
-
-# Quota and total-valid-votes as published on each year's Seat Calculation
-# Detail report, so every year self-asserts rather than leaving a reviewer to
-# check figures by eye. 2011 ran on a 260-seat council.
-OFFICIAL_HEADLINE = {
-    "2011": {"quota": 8_319, "A": 2_162_768, "seats": 260},
-    "2016": {"quota": 9_247, "A": 2_496_617, "seats": 270},
-    "2021": {"quota": 6_794, "A": 1_834_260, "seats": 270},
-}
-
+# The expected figures come from the IEC's own Seat Calculation Detail for
+# whichever city is being validated (official_seats.py). They used to be
+# hand-typed Johannesburg tables, which meant any other metro was silently
+# checked against Joburg's published council.
 
 def load_votes(path: Path) -> tuple[dict[str, int], dict[str, int]]:
     """Return (ward votes, PR votes) by party from a cleaned LGE file."""
@@ -76,16 +55,24 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--year", default="2021")
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
     parser.add_argument(
-        "--seats",
-        type=int,
-        default=270,
-        help="council size; CoJ was 260 under the 2011 delimitation",
+        "--seats", type=int, default=None,
+        help="council size; defaults to the IEC's published figure for that "
+             "year, which is not constant even within a city",
     )
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
     cityconfig.use(getattr(args, "city", None))
 
-    path = args.data_dir / f"lge{args.year}_{cityconfig.active().code}_vd_party_clean.csv"
+    city = cityconfig.active()
+    official = official_seats.read(city.code, int(args.year))
+    if official is None:
+        raise SystemExit(
+            f"no Seat Calculation Detail for {city.code} {args.year} — fetch it "
+            f"with: python src/fetch_iec.py --muni {city.code} "
+            f"--province {city.province}")
+    seats_total = args.seats or official["seats"]
+
+    path = args.data_dir / f"lge{args.year}_{city.code}_vd_party_clean.csv"
     ward, pr = load_votes(path)
     combined = eligible_parties(ward, pr)
     wins = ward_winners(path)
@@ -98,55 +85,46 @@ def main(argv: list[str] | None = None) -> int:
 
     result = allocate(
         combined,
-        total_seats=args.seats,
+        total_seats=seats_total,
         independent_wards=independent_wards,
         no_pr_list_wards=no_pr_list_wards,
     )
 
-    print(f"CoJ {args.year}")
+    print(f"{city.name} {args.year}  (source: {Path(official['path']).name})")
     print(f"  A (total valid votes, both ballots, eligible parties) = {result.total_votes:,}")
     print(f"  C (independent ward councillors) = {independent_wards}")
     print(f"  D (ward seats, parties with no PR list) = {no_pr_list_wards}")
     print(f"  quota Q = {result.quota:,}   seats allocated = {sum(result.seats.values()):,}")
-    print(f"  excluded from A: {[p for p in excluded if p not in combined]}")
     print(f"  wards won: {sum(wins.values())} across {len(wins)} parties")
 
-    headline = OFFICIAL_HEADLINE.get(args.year)
-    if headline:
-        ok_quota = result.quota == headline["quota"]
-        ok_a = result.total_votes == headline["A"]
-        ok_seats = sum(result.seats.values()) == headline["seats"]
-        print(
-            f"\n  vs IEC published: quota {headline['quota']:,}"
-            f" {'MATCH' if ok_quota else 'MISMATCH'}"
-            f" | A {headline['A']:,} {'MATCH' if ok_a else 'MISMATCH'}"
-            f" | seats {headline['seats']} {'MATCH' if ok_seats else 'MISMATCH'}"
-        )
+    ok_quota = result.quota == official["quota"]
+    ok_a = result.total_votes == official["A"]
+    ok_seats = sum(result.seats.values()) == official["seats"]
+    print(f"\n  vs IEC published: quota {official['quota']:,} "
+          f"{'MATCH' if ok_quota else 'MISMATCH'} | A {official['A']:,} "
+          f"{'MATCH' if ok_a else 'MISMATCH'} | seats {official['seats']} "
+          f"{'MATCH' if ok_seats else 'MISMATCH'}")
 
-    if args.year != "2021":
-        for party, count in result.top():
-            print(f"    {party:<45s} {count:>3d}")
-        if headline and not (ok_quota and ok_a and ok_seats):
-            print("\n  FAIL: does not reproduce the published headline figures")
-            return 1
-        print("\n  PASS: reproduces the published quota, total valid votes and council size")
-        return 0
+    # per-party: the official table is keyed on the IEC's own party names
+    bad = 0
+    rows = sorted(official["parties"].items(), key=lambda kv: -kv[1]["seats"])
+    for name, want in rows:
+        if want["seats"] == 0:
+            continue
+        got = result.seats.get(name)
+        flag = "ok " if got == want["seats"] else "BAD"
+        if flag == "BAD":
+            bad += 1
+        print(f"    {flag} {name[:42]:42s} {want['votes']:>9,}  "
+              f"expected {want['seats']:>3d}  got {got if got is not None else '-'}")
 
-    print(f"\n  vs IEC published (quota {OFFICIAL_QUOTA_2021:,}, A {OFFICIAL_A_2021:,}):")
-    ok = result.quota == OFFICIAL_QUOTA_2021 and result.total_votes == OFFICIAL_A_2021
-    print(f"    quota {'MATCH' if result.quota == OFFICIAL_QUOTA_2021 else 'MISMATCH'}"
-          f"   A {'MATCH' if result.total_votes == OFFICIAL_A_2021 else 'MISMATCH'}")
-
-    by_votes = {votes: party for party, votes in combined.items()}
-    for votes, (name, expected) in sorted(OFFICIAL_2021.items(), reverse=True):
-        party = by_votes.get(votes)
-        got = result.seats.get(party) if party else None
-        flag = "ok " if got == expected else "BAD"
-        ok &= got == expected
-        print(f"    {flag} {name:<42s} {votes:>9,}  expected {expected:>3d}  got {got}")
-
-    print(f"\n  {'PASS' if ok else 'FAIL'}: allocator reproduces the published council")
-    return 0 if ok else 1
+    if bad or not (ok_quota and ok_a and ok_seats):
+        print(f"\n  FAIL: {bad} party mismatch(es); the allocator does not "
+              f"reproduce {city.name}'s published council")
+        return 1
+    print(f"\n  PASS: reproduces {city.name}'s published quota, valid votes, "
+          f"council size and every party's seats")
+    return 0
 
 
 if __name__ == "__main__":

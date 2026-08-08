@@ -23,12 +23,16 @@ import pandas as pd
 
 REPORTS = Path("data/raw/elections/_reports")
 
+# The IEC changed both the wording AND the letter scheme between elections.
+# 2021 labels the valid-vote total explicitly; 2011 does not, and reuses (A)
+# for the seat count that 2021 leaves unlettered. Match on wording, never on
+# the letters, and derive anything the older layout omits.
 LABELS = {
-    "quota": "Quota",
-    "A": "Total Valid Votes",
-    "seats": "Total Seats Available",
-    "independents": "Independent Ward Council",
-    "no_list": "Ward Councillors Seats f",
+    "quota": ("Quota",),
+    "A": ("Total Valid Votes",),
+    "seats": ("Total Seats Available",),
+    "independents": ("Independent Ward Council", "Independent Seats Won"),
+    "no_list": ("Ward Councillors Seats f", "Ward Councillors from Parties"),
 }
 
 
@@ -40,10 +44,10 @@ def read(code: str, year: int, reports: Path = REPORTS) -> dict | None:
     frame = pd.read_excel(path, header=None)
 
     out: dict = {"path": str(path), "parties": {}}
-    for key, label in LABELS.items():
+    for key, labels in LABELS.items():
         for _, row in frame.iterrows():
             first = str(row.iloc[0])
-            if first.startswith(label):
+            if any(first.startswith(l) for l in labels):
                 nums = [v for v in row[1:] if isinstance(v, (int, float))
                         and not pd.isna(v)]
                 if nums:
@@ -60,6 +64,7 @@ def read(code: str, year: int, reports: Path = REPORTS) -> dict | None:
     if start is None:
         return out
 
+
     for _, row in frame.iloc[start:].iterrows():
         name = str(row.iloc[0]).strip()
         if not name or name == "nan" or name.lower().startswith("total"):
@@ -69,6 +74,12 @@ def read(code: str, year: int, reports: Path = REPORTS) -> dict | None:
             continue
         out["parties"][name.upper()] = {"votes": int(nums[0]),
                                         "seats": int(nums[-1])}
+
+    if "A" not in out and out["parties"]:
+        # the 2011 layout omits the valid-vote total; it is the sum of the
+        # party rows the quota was computed over
+        out["A"] = sum(p["votes"] for p in out["parties"].values())
+        out["A_derived"] = True
     return out
 
 
