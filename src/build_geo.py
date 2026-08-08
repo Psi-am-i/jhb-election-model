@@ -26,8 +26,9 @@ from pathlib import Path
 
 import geopandas as gpd
 
-EXPECTED_WARDS = 135
-MUNI_CODE = "JHB"
+# Both come from the active city's config. The ward count is a deliberate
+# fail-loud check — it caught Tshwane's 107 against Joburg's 135 rather than
+# quietly writing the wrong geography.
 
 # Whole-country geodatabases -> (layer, output name, election(s) they apply to)
 GDB_LAYERS = {
@@ -77,13 +78,22 @@ def clip_gdb(path: Path, layer: str, out: Path, muni: str) -> gpd.GeoDataFrame:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--geo-dir", type=Path, default=Path("data/raw/geo"))
-    parser.add_argument("--muni", default=MUNI_CODE)
+    parser.add_argument("--muni", default=None,
+                        help="IEC code; defaults to the active city")
     parser.add_argument(
         "--elections-dir", type=Path, default=Path("data/raw/elections")
     )
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
-    cityconfig.use(getattr(args, "city", None))
+    city = cityconfig.use(getattr(args, "city", None))
+    if not args.muni:
+        args.muni = city.code
+    elif args.muni != city.code:
+        # --muni without --city is how the metros were bulk-fetched; honour it
+        city = cityconfig.use(
+            next((p.stem for p in Path("cities").glob("*.toml")
+                  if cityconfig.load(p.stem).code == args.muni), city.slug))
+    expected_wards = city.wards
 
     failures: list[str] = []
 
@@ -102,9 +112,9 @@ def main(argv: list[str] | None = None) -> int:
     vds2026 = gpd.read_file(args.geo_dir / f"vds2026_{args.muni}.geojson")
 
     # Plan §0: confirm the 2026 ward list is exactly 135, and fail loudly if not.
-    print(f"2026 wards: {len(wards2026)} (expected {EXPECTED_WARDS})")
-    if len(wards2026) != EXPECTED_WARDS:
-        failures.append(f"2026 ward count is {len(wards2026)}, expected {EXPECTED_WARDS}")
+    print(f"2026 wards: {len(wards2026)} (expected {expected_wards})")
+    if len(wards2026) != expected_wards:
+        failures.append(f"2026 ward count is {len(wards2026)}, expected {expected_wards}")
     print(f"2021 wards: {len(wards2020)}")
 
     # VD polygons outnumber VDs because a VD straddling a ward boundary is stored
@@ -123,7 +133,8 @@ def main(argv: list[str] | None = None) -> int:
 
     # How much of the 2024 VD universe survives into 2026 -- this is the size of
     # the concordance problem in plan §2 step 2.
-    npe2024 = args.elections_dir / "npe2024_{CODE}_vd_party.csv"
+    npe2024 = cityconfig.resolve_path(
+        args.elections_dir / "npe2024_{CODE}_vd_party.csv")
     if npe2024.exists():
         with npe2024.open(encoding="utf-8", newline="") as handle:
             old = {row["VD_Number"] for row in csv.DictReader(handle)}
