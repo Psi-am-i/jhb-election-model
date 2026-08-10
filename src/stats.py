@@ -227,6 +227,130 @@ def render(text: str, registry: dict, ctx: dict, *, wrap: bool = True):
     return TOKEN.sub(_one, text), drift, unresolved
 
 
+# --------------------------------------------------------------------------
+# the audit: what got past the registry
+# --------------------------------------------------------------------------
+# A token carries its provenance to the reader. Anything typed straight into
+# prose carries none, and cannot drift-check — which is exactly how four
+# figures went stale on the live site and the standfirst came to claim the DA
+# finished first 54% of the time when the model said 62%.
+#
+# Numbers are the obvious case. Sentences are the dangerous one: "the DA is the
+# largest party" is a model result stated in words, it goes stale the same way,
+# and nothing in the build has ever looked at it. If the model moves and the ANC
+# leads, that sentence is simply false and no drift report fires.
+
+SOURCED = re.compile(r'<span[^>]*data-token="[^"]*".*?</span>', re.S)
+TAGS = re.compile(r"<[^>]+>")
+SCRIPTS = re.compile(r"<(script|style)[^>]*>.*?</\1>", re.S)
+
+# Figures that are structural rather than modelled: statute, geography, dates.
+# A number here is not a forecast and never goes stale.
+STRUCTURAL = {
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
+    "50", "100", "135", "136", "270",
+    "1994", "1999", "2000", "2004", "2006", "2009", "2011", "2014", "2016",
+    "2019", "2021", "2024", "2026",
+}
+
+# Phrases that assert a model outcome. Each must be tokenised or whitelisted.
+CLAIM_PATTERNS = (
+    r"largest (?:single )?party",
+    r"finish(?:es|ed)? first",
+    r"wins? (?:the )?most",
+    r"(?:no|without an?) (?:overall |outright )?majority",
+    r"short of (?:an? )?majority",
+    r"on course (?:to|for)",
+    r"is (?:now )?(?:ahead|behind) of",
+    r"(?:more|less) likely than not",
+    r"(?:will|would) (?:win|lose|govern|hold)",
+    r"nobody will win",
+)
+
+
+def _visible(text: str) -> str:
+    """Reader-visible prose, with already-sourced spans removed."""
+    body = SCRIPTS.sub(" ", text)
+    body = SOURCED.sub(" ", body)
+    return TAGS.sub(" ", body)
+
+
+def audit(text: str, *, allow=(), claim_patterns=CLAIM_PATTERNS,
+          ) -> tuple[list[str], list[str]]:
+    """Model figures and model claims that reach the reader unsourced.
+
+    ``allow`` is a list of *context substrings*, not bare values. Whitelisting
+    the number 23 would excuse every 23 on the site; whitelisting "Laingsburg"
+    excuses the one figure that is a matter of record. Three things legitimately
+    need it, and none of them can drift:
+
+    * **historical fact** — "ActionSA went from nothing to 44 seats" is what
+      happened in 2021, not what the model says will happen;
+    * **the rules** — "a ward needs no majority, highest total wins" describes
+      the electoral system;
+    * **reviewed prose** a human has decided should stay static.
+
+    Everything else should be a token, because a token carries its source to
+    the reader and reports drift when the model moves under it.
+
+    Returns ``(numbers, claims)``.
+    """
+    prose = re.sub(r"\s+", " ", _visible(text))
+    allow_lower = [a.lower() for a in allow if a]
+
+    def excused(context: str) -> bool:
+        low = context.lower()
+        return any(a in low for a in allow_lower)
+
+    numbers: list[str] = []
+    for match in re.finditer(r"(?<![\w.])(\d{1,3}(?:[.,]\d+)?\s?%|\d+\s+seats?)",
+                             prose):
+        token = match.group(1)
+        bare = token.replace("%", "").replace("seats", "").replace("seat", "").strip()
+        if bare in STRUCTURAL:
+            continue
+        context = prose[max(0, match.start() - 60):match.end() + 30].strip()
+        if excused(context):
+            continue
+        numbers.append(f"{token.strip()!r}  …{context}…")
+
+    lowered = prose.lower()
+    claims: list[str] = []
+    for pattern in claim_patterns:
+        for match in re.finditer(pattern, lowered):
+            context = prose[max(0, match.start() - 60):match.end() + 40].strip()
+            if excused(context):
+                continue
+            claims.append(f"{match.group(0)!r}  …{context}…")
+    return numbers, claims
+
+
+def load_audit_config(registry: dict) -> dict:
+    """The ``[audit]`` block of the stats registry, if it has one."""
+    block = registry.get("audit") or {}
+    return {"allow": tuple(block.get("allow", ())),
+            "claim_patterns": tuple(block.get("claim_patterns", CLAIM_PATTERNS))}
+
+
+def audit_report(numbers: list[str], claims: list[str], *, limit: int = 8) -> str:
+    if not numbers and not claims:
+        return "  every model figure and claim on the page is sourced"
+    out = []
+    if numbers:
+        out.append(f"  {len(numbers)} model figure(s) typed into prose, unsourced:")
+        out += [f"      {n}" for n in numbers[:limit]]
+        if len(numbers) > limit:
+            out.append(f"      … and {len(numbers) - limit} more")
+    if claims:
+        out.append(f"  {len(claims)} model claim(s) stated in words, unsourced:")
+        out += [f"      {c}" for c in claims[:limit]]
+        if len(claims) > limit:
+            out.append(f"      … and {len(claims) - limit} more")
+    out.append("  Register each as a {{token}}, or whitelist it in the "
+               "[audit] block of the stats registry if it is structural.")
+    return "\n".join(out)
+
+
 def drift_report(rows: list[dict]) -> str:
     if not rows:
         return "  no drift — every pinned stat is within tolerance"

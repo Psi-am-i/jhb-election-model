@@ -43,9 +43,17 @@ Everything is pure: no I/O, no globals, no model imports.
 
 from __future__ import annotations
 
+from collections import defaultdict
 from collections.abc import Mapping, Sequence
 
 import numpy as np
+
+# A party's column is scored when it won a seat, or when this forecaster gives
+# it one in at least this fraction of draws. Below that the "forecast" is a
+# rounding artefact, and including it hands out free coverage hits — see
+# :func:`seat_matrix`. Deliberately low: the point is to exclude noise, not to
+# excuse a forecaster from a claim it genuinely made.
+MATERIAL_FRACTION = 0.10
 
 # ---------------------------------------------------------------------------
 # turning a list of {party: seats} draws into arrays
@@ -114,8 +122,24 @@ def seat_matrix(
     forecast and the outcome, not of the company it is scored in.
     """
     if entrant_actual:
-        draws = [{(entrant_actual if k == "ENTRANT" else k): v for k, v in d.items()}
-                 for d in draws]
+        # SUM, do not overwrite. A dict comprehension keyed on a rename keeps
+        # the LAST colliding value, and ``universe`` is sorted with "ENTRANT"
+        # appended, so ENTRANT was always last and always won — silently
+        # deleting the model's own forecast for the named party whenever it
+        # forecast one. Measured: with ActionSA declared in judgements/, the
+        # model produced a median of 43 seats against an actual 44, and this
+        # line scored it as 0 with a CRPS of 37.30. The repository's founding
+        # story, that the model gave ActionSA nothing, was in part an artefact
+        # of this line. ``backtest.relabel_entrant`` has always merged the ward
+        # probabilities correctly; the two paths disagreed about the same
+        # operation.
+        merged = []
+        for draw in draws:
+            row: dict[str, float] = defaultdict(float)
+            for key, value in draw.items():
+                row[entrant_actual if key == "ENTRANT" else key] += value
+            merged.append(dict(row))
+        draws = merged
     if parties is not None:
         universe = list(parties)
     else:
@@ -128,8 +152,29 @@ def seat_matrix(
     truth = np.array([float(actual.get(p, 0)) for p in universe], dtype=float)
     if keep_all:
         return universe, samples, truth
+    # MATERIALITY, not mere presence. Keeping a column because *one* draw in
+    # five hundred gave a party a seat sounds conservative — spurious mass is
+    # penalised rather than filtered — and it is, for CRPS, which that column
+    # barely moves. It is ruinous for coverage and PIT: truth 0 against a
+    # forecast that is 0 in 498 of 500 draws is an interval [0, 0] containing
+    # 0, a free hit at 50, 80 and 90 alike, and a PIT value drawn from very
+    # nearly U(0,1), which flattens the histogram towards the shape it exists
+    # to test for.
+    #
+    # Measured on this model at 2021: 37 of 55 kept columns were parties that
+    # won nothing and were forecast nothing. Printed coverage read 73/89/93
+    # against a real 17/67/78, and at 2016 the printed verdict was
+    # "over-dispersed, the model is hedging" when the truth was the opposite.
+    # The diagnosis was not optimistic; it was inverted, and every tuning
+    # decision taken against it was taken against a broken instrument.
+    #
+    # So a column earns its place by mattering to one side or the other: the
+    # party won a seat, or this forecaster gives it one often enough that the
+    # claim is a real claim.
+    material = MATERIAL_FRACTION
     keep = [i for i, _ in enumerate(universe)
-            if truth[i] > 0 or (samples.shape[0] and samples[:, i].max() > 0)]
+            if truth[i] > 0
+            or (samples.shape[0] and (samples[:, i] > 0).mean() >= material)]
     return [universe[i] for i in keep], samples[:, keep], truth[keep]
 
 
@@ -585,15 +630,44 @@ def score_seats(draws: Sequence[Mapping[str, int]], actual: Mapping[str, int],
     empty = np.full(samples.shape[1], float("nan"))
     pits = pit_values(samples, truth, seed=seed) if samples.shape[0] else empty
     median = np.median(samples, axis=0) if samples.shape[0] else empty
+
+    # DIFFERENT RULES NEED DIFFERENT DENOMINATORS, and conflating them is what
+    # made this harness report the opposite of the truth.
+    #
+    # CRPS and the joint scores are computed over every material column,
+    # because spurious predicted mass is a real error and must be paid for.
+    #
+    # Coverage and PIT are computed over the parties that actually WON A SEAT,
+    # because on a party that won nothing an interval containing zero is a hit
+    # for almost any forecaster, and a PIT value against a zero outcome is
+    # nearly uniform by construction. Those columns do not test calibration;
+    # they dilute it towards whatever answer the analyst hoped for. Measured on
+    # this model at 2021, 36 of 54 scored columns were parties that won
+    # nothing: printed coverage read 73/89/93 against a real 17/67/78, and at
+    # 2016 the printed verdict was "over-dispersed, the model is hedging" when
+    # the truth was the exact opposite. Both numbers are still reported, but
+    # the one that leads is the one that means something.
+    won = truth > 0
+    s_won = samples[:, won] if samples.shape[0] else samples
+    t_won = truth[won]
+    pits_won = pits[won] if samples.shape[0] else empty[won]
+
     return {
         "parties": parties,
         "n_draws": int(samples.shape[0]),
         "actual": {p: int(truth[j]) for j, p in enumerate(parties)},
         "median": {p: float(median[j]) for j, p in enumerate(parties)},
         "crps": crps_by_party(samples, truth, parties),
-        "pit": pit_histogram(pits, bins=bins),
+        # headline: parties that won a seat
+        "pit": pit_histogram(pits_won, bins=bins),
+        "coverage": coverage(s_won, t_won, levels),
+        "n_scored_calibration": int(won.sum()),
+        # the full-column figures, kept and labelled so the difference is
+        # visible rather than a matter of trust
+        "pit_all": pit_histogram(pits, bins=bins),
+        "coverage_all": coverage(samples, truth, levels),
+        "n_scored_all": int(samples.shape[1]),
         "pit_values": {p: float(pits[j]) for j, p in enumerate(parties)},
-        "coverage": coverage(samples, truth, levels),
         "energy": energy_score(samples, truth, seed=seed),
         "variogram": variogram_score(samples, truth),
         # kept so the new numbers can be read against the harness's old ones
@@ -623,7 +697,13 @@ def format_report(seats: Mapping | None = None, wards: Mapping | None = None,
                    f"variogram(0.5) {seats['variogram']:.2f}   [lower better]")
         cov = "  ".join(f"{r['level']:.0%}: {r['inside']}/{r['counted']}"
                         f" = {r['empirical']:.0%}" for r in seats["coverage"])
-        out.append(f"  coverage   {cov}   [should match the nominal level]")
+        out.append(f"  coverage   {cov}   [on the {seats.get('n_scored_calibration', '?')} "
+                   f"parties that won a seat — should match the nominal level]")
+        if "coverage_all" in seats:
+            cov_all = "  ".join(f"{r['level']:.0%}: {r['inside']}/{r['counted']}"
+                                f" = {r['empirical']:.0%}" for r in seats["coverage_all"])
+            out.append(f"  (all {seats.get('n_scored_all','?')} scored columns: "
+                       f"{cov_all} — inflated by parties that won nothing)")
         out.append(f"  PIT {seats['pit']['counts']}  χ²={seats['pit']['chi2']:.1f} "
                    f"(5% crit {seats['pit']['chi2_crit_95']})")
         out.append(f"      {seats['pit']['verdict']}")

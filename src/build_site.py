@@ -243,13 +243,12 @@ DOCS = {
         "each one lives, what state it was in, and how hard South Africa's "
         "public records actually are to reach.",
     ),
-    "joburg-prediction-model-plan-v2.md": (
-        "plan.html",
-        "The original plan (rev 2, annotated)",
-        "The build plan the model was constructed against — kept as written, "
-        "including the parts implementation later proved wrong, with its "
-        "correction boxes.",
-    ),
+    # The plan is no longer published as a page of its own: it is Appendix A
+    # of MODEL-LOG.md, where it belongs. It is the model's starting point and
+    # every numbered finding in that log is a delta from it, so the two only
+    # make sense read together. As a standalone page it also carried 55 model
+    # figures with no provenance — historical assertions the sourcing audit
+    # cannot tell from live claims, and which nobody was maintaining.
 }
 
 # already-styled artefacts copied verbatim under stable public names
@@ -280,9 +279,11 @@ CARDS = [
     ("sources", "Data sources", "document",
      "Every number traces to a public record — where each lives, and how "
      "hard public records actually are to reach. Technical recipes on GitHub."),
-    ("plan.html", "The original plan", "document",
-     "The rev-2 plan as written — including what the build later proved "
-     "wrong. Kept because the divergence is part of the record."),
+    ("https://github.com/Psi-am-i/jhb-election-model/blob/main/MODEL-LOG.md#appendix-a--the-original-plan-rev-2-as-written",
+     "The original plan", "github",
+     "The rev-2 plan as written, including what the build later proved wrong. "
+     "Appendix A of the engineering log — the divergence between the two is "
+     "the record."),
 ]
 
 
@@ -378,6 +379,9 @@ trusting.</p>"""
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=Path("site"))
+    parser.add_argument("--strict", action="store_true",
+                        help="fail the build on unsourced model figures or "
+                             "claims, not just on unresolved tokens")
     parser.add_argument("--stats", type=Path,
                         default=Path("content/joburg/stats.toml"))
     parser.add_argument("--processed", type=Path, default=Path("data/processed"))
@@ -388,8 +392,10 @@ def main(argv: list[str] | None = None) -> int:
     args.out.mkdir(exist_ok=True)
     registry = statlib.load_registry(args.stats) if args.stats.exists() else {}
     ctx = statlib.load_context(args.processed)
+    audit_cfg = statlib.load_audit_config(registry)
     all_drift: list[dict] = []
     unresolved_all: list[str] = []
+    audits: dict[str, tuple[list[str], list[str]]] = {}
 
     for source, spec in DOCS.items():
         output, kicker, standfirst = spec[:3]
@@ -398,6 +404,7 @@ def main(argv: list[str] | None = None) -> int:
         page, drift, unresolved = statlib.render(page, registry, ctx)
         all_drift += drift
         unresolved_all += [f"{source}: {u}" for u in unresolved]
+        audits[output] = statlib.audit(page, **audit_cfg)
         (args.out / output).write_text(page, encoding="utf-8")
         print(f"  rendered {source:<28s} -> site/{output}")
 
@@ -407,6 +414,7 @@ def main(argv: list[str] | None = None) -> int:
         html, drift, unresolved = statlib.render(html, registry, ctx)
         all_drift += drift
         unresolved_all += [f"{source}: {u}" for u in unresolved]
+        audits[output] = statlib.audit(html, **audit_cfg)
         (args.out / output).write_text(html, encoding="utf-8")
         print(f"  nav+copy {source:<28s} -> site/{output}")
     stale = args.out / "forecast.html"
@@ -425,6 +433,28 @@ def main(argv: list[str] | None = None) -> int:
     print(statlib.drift_report(all_drift))
     if all_drift and args.strict_drift:
         raise SystemExit(1)
+
+    # --- the audit: what reached the reader without provenance -------------
+    # A token carries its source to the reader and drift-checks itself. A
+    # figure typed into prose does neither, which is how four went stale and
+    # the standfirst claimed 54% while the model said 62%. Strings are audited
+    # for the same reason: "the DA is the largest party" is a model result in
+    # words and goes stale exactly as quietly.
+    total_n = sum(len(n) for n, _ in audits.values())
+    total_c = sum(len(c) for _, c in audits.values())
+    print(f"\nsourcing audit: {total_n} unsourced figure(s), "
+          f"{total_c} unsourced claim(s) across {len(audits)} page(s)")
+    for page in sorted(audits):
+        numbers, claims = audits[page]
+        if numbers or claims:
+            print(f"  --- {page}")
+            print(statlib.audit_report(numbers, claims, limit=6))
+    if (total_n or total_c) and args.strict:
+        raise SystemExit(
+            "refusing to publish: model figures or claims reach the reader "
+            "with no source. Register each as a {{token}}, or add its context "
+            "to [audit].allow in the stats registry if it is historical fact, "
+            "a statement of the rules, or reviewed static prose.")
 
     # Serve everything as UTF-8 regardless of meta tags — the sheet originally
     # shipped without a <head> and mojibake'd every em-dash (review of the

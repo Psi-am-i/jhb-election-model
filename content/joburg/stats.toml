@@ -306,3 +306,23 @@ captured = "2026-08-07"
 format = "comma"
 tolerance = 20000
 used_in = "claims/zille-490k step 4 — what the frozen-poll world requires"
+
+# --- build-time audit -------------------------------------------------------
+# Every model figure and every model claim must either be a {{token}}, so its
+# provenance travels to the reader and drift is reported, or be excused here.
+# `allow` entries are CONTEXT SUBSTRINGS, not values: whitelisting "23" would
+# excuse every 23 on the site, whitelisting "Laingsburg" excuses the one figure
+# that is a matter of record.
+#
+# Only three things belong here, and none of them can go stale:
+#   historical fact   what happened, from the IEC record
+#   the rules         how the electoral system works
+#   reviewed prose    a human decided it should stay static
+[audit]
+allow = [
+  "Laingsburg",                    # 2021 result, IEC record
+  "ActionSA went from nothing",    # 2021 result, IEC record
+  "needs no majority",             # describes the ward rule
+  "no majority needed",            # ditto
+  "would govern together",         # explicitly a disclaimer, not a forecast
+]
