@@ -108,6 +108,66 @@ is richer than the PDF (voting-district level, all parties, candidate names).
 
 **Fix:** expose the same static JSON from the downloads page.
 
+### 10a. 🔴 Vote counts carry thousands separators, so the biggest numbers are the ones that break
+*Files: pre-2011 bulk exports (1999/2004/2009 NPE, 2000/2006 LGE), in
+`VALID VOTES` / `Valid Votes  Cast`.*
+
+Counts below a thousand are plain digits; counts of a thousand or more are
+written `"1,656"`. Both forms appear in the same column of the same file.
+CSV parsing succeeds — the field is quoted — and the failure lands on
+`int()`, which is where a reader is most likely to skip the row rather than
+stop.
+
+The damage is severe *because* it is selective: only cells with four or more
+digits are affected, which is precisely the large parties in the busy voting
+districts. Measured on Johannesburg's 2009 provincial ballot, dropping the
+unparseable cells loses **606 of 15,180 rows — 4.0% of rows but 68.4% of
+votes** (1,014,620 of 1,483,848). The ANC reads 35.87% instead of 62.35%;
+COPE reads 29.90% instead of 9.61%. Nothing errors, and the result is
+plausible enough to publish.
+
+We strip separators and count every rejected cell, reporting the count
+(`src/ingest_historic.py`); the write is gated on a separate reconciliation
+check that party votes sum to each district's valid total.
+
+**Fix:** publish raw integers. Failing that, use one format per column.
+
+### 10b. 🔴 A comma in a *party's own name* shifts every later column
+*File: 2006 LGE bulk export.*
+
+Entry 2 records this for voting-station names. It also happens in the party
+field: `SUNRISE PARK, PROTEA CITY AND GREENSIDE RESIDENTS' ASSOCIATION`
+is written unquoted, so the name splits across two fields and every
+subsequent column moves one place right. The ballot-type cell then holds a
+fragment of the party name, the registration cell holds the registered count
+and the turnout percentage run together (`311100.00%`), and the party's votes
+end up in the spoilt-votes position.
+
+In Johannesburg this hits all six voting districts of ward 79400053 and
+erases **469 ward-ballot votes** for that residents' association — a party
+that simply vanishes from any straightforward read of the file. It is
+detectable (the ballot-type cell is not a ballot type) and the recovered
+votes close each district's shortfall exactly, which is how we verified the
+repair (`src/ingest_historic.py`).
+
+**Fix:** quote all fields.
+
+### 10c. 🟠 Five elections are published only at an unlinked URL
+*Files: 1999/2004/2009 NPE and 2000/2006 LGE bulk exports.*
+
+Entry 9 notes 2014 missing from the portal. The pre-2011 elections are
+further out of reach: they are absent from the downloads page, absent from
+the portal's report routes (the shape that serves 2019 and 2024 returns 404
+for election id 169, the 2009 provincial vote), and reachable only at
+
+    www.elections.org.za/content/uploadedfiles/{YYYY}%20{NPE|LGE}.zip
+
+which nothing links to. The data is complete and good once found — our 2009
+Johannesburg extraction reconciles to the Commission's own published report
+to the vote — but a researcher has no way to discover it exists.
+
+**Fix:** link these from the downloads page alongside 2014 onward.
+
 ### 11. 🟡 Municipality and province codes are not the obvious ones
 Nelson Mandela Bay is `NMA`, not NMB. Western Cape is `WP`, not WC.
 KwaZulu-Natal is `KN`, not KZN. Undocumented, and a wrong guess returns an

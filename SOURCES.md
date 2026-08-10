@@ -33,8 +33,30 @@ the `MainContent_ddlElections` dropdown after selecting the election type:
 | 2024 | 1334 | **1335** |
 | 2019 | 699 | **827** |
 | 2014 | 291 | **292** |
+| 2009 | 146 | **169** |
+| 2004 | 45 | **50** |
+| 1999 | 1 | **42** |
+| 1994 | 61 | **62** |
 
-LGE ids: **1091** = 2021, **402** = 2016.
+LGE ids: **1091** = 2021, **402** = 2016, **197** = 2011.
+
+The pre-2014 ids were read off the same dropdown on 2026-08-09. They are worth
+having even though the report routes mostly 404 for them (below), because the
+id is the only way to address an old election at all.
+
+**The 2009 report route has one less path segment than the modern one.** For
+2019 and later a municipality report is
+`/{id}/{report}/{PROVINCE}/{MUNI}/{MUNI}.pdf`; for 2009 it is
+`/{id}/{report}/{PROVINCE}/{MUNI}.pdf`, and the province-level report is
+`/{id}/{report}/{PROVINCE}.pdf`. Guessing the modern shape returns 404 and
+looks like "the data does not exist", which is how this was nearly missed:
+
+```
+results.elections.org.za/home/NPEPublicReports/169/Detailed%20Results/GP/JHB.pdf
+```
+
+is Johannesburg's full 2009 provincial result, and is the control the bulk
+ingest is validated against (it reconciles to the vote).
 
 ## National & provincial elections (VD-level, provincial ballot)
 
@@ -75,6 +97,51 @@ Also confirmed working: turnout PDFs at
 
 Run `src/fetch_iec.py` to sweep every LGE report that is served directly
 (party CSV, detailed results, seat calculation, turnout) for 2011, 2016 and 2021.
+
+## The pre-2011 archive — a national bulk export nothing links to
+
+Every election from 1999 is published as a single zipped national CSV under a
+path that appears on no page of either site, is absent from the downloads
+portal, and 404s on the portal's report routes:
+
+```
+https://www.elections.org.za/content/uploadedfiles/{YYYY}%20{NPE|LGE}.zip
+```
+
+Confirmed and archived to `data/raw/elections/_source/` on 2026-08-09/10:
+
+| File | Bytes | SHA-256 (first 16) |
+|---|---|---|
+| `npe2009_national_and_provincial.zip` | 5,550,741 | `75c6cf58647e7e89` |
+| `2004_npe.zip` | 4,012,589 | `c6a5cb39f3c4316a` |
+| `1999_npe.zip` | 2,945,157 | `985ac3bfba844851` |
+| `2006_lge.zip` | 2,866,931 | `42785a46247f1bad` |
+| `2000_lge.zip` | 1,712,579 | `179d7258d66730d0` |
+| `2011_lge.zip` | 3,544,022 | `19e54362f18b270d` |
+
+`2016 LGE`, `2014/2019/2024 NPE` are **not** at this path — those years were
+already held as national zips from their own routes.
+
+Each archive holds one CSV covering the whole country, both electoral events
+where applicable, keyed by a municipality string that changes every year
+(`JHB -`, `JOHANNESBURG -`, `Johannesburg -`, and five separate metropolitan
+local councils in 1999, before the metro existed). `src/ingest_historic.py`
+converts them to the project's canonical VD files, describing each layout
+explicitly rather than sniffing it, and refuses to write a file when more than
+2% of its VD-ballots fail to reconcile -- party votes summing to that
+district's valid total, within `--tolerance` (default 0.1%). All five
+archives reconcile at 100%, worst drift 0.00%.
+
+**Read DATA-QUALITY 10a and 10b before touching these files.** The vote column
+mixes plain integers with thousands-separated ones in the same column, and a
+naive reader silently discards 68.4% of Johannesburg's 2009 votes while
+dropping only 4.0% of its rows. An unquoted comma inside a party's own name
+shifts every later column in six 2006 districts.
+
+**Caveat on 1999:** the City of Johannesburg did not exist until the December
+2000 election. The 1999 file is aggregated from the five metropolitan local
+councils that became it and is written as `npe1999_approx_*`; the footprint is
+approximate and it must not be used for ward-level work.
 
 ## Boundaries — MDB Spatial Knowledge Hub
 
