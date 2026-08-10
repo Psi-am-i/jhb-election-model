@@ -435,6 +435,25 @@ def pool_spec(scenario, base_city_d, centres, index, lean):
         # median 0.88; white-side n=24, 1.09-1.79, median 1.29 -- the
         # differential local-election turnout, in one number.
         low, mode, high = cfg["ratio"]
+        # A pool that can only grow, or only shrink, is nonsense. Both of the
+        # ranges this engine replaces were exactly that: the ANC bloc's
+        # [-22,-9,-3] points is a ratio of 0.61-0.95 and could never grow, the
+        # DA bloc's [+5,+9,+14] is 1.16-1.43 and could never shrink. Neither is
+        # a fact about elections; both came of writing a range from a few
+        # same-signed observations. A sample without a decline in it is a limit
+        # of the sample, never evidence that decline cannot happen -- which is
+        # precisely what the white-side range showed when 2021 was added and
+        # its floor moved from 1.09 to 0.87. So every pool must admit both
+        # directions, and a range that does not is widened to the nearest one
+        # that does rather than silently forbidding half the outcomes.
+        if not (low < 1.0 < high):
+            widened = (min(low, 1.0 / high if high > 0 else low),
+                       mode,
+                       max(high, 1.0 / low if low > 0 else high))
+            print(f"  ! pool {name}: ratio range {low:.2f}-{high:.2f} is one-sided "
+                  f"(cannot {'shrink' if low >= 1 else 'grow'}); widened to "
+                  f"{widened[0]:.2f}-{widened[2]:.2f} by reflection")
+            low, mode, high = widened
         evidence_mode = (centre_total / base_total) if base_total > 0 else mode
         # the polling lever is in points on the base; convert to a ratio
         evidence_mode += (lean * float(cfg.get("lean_sign", 0)) / 100.0
