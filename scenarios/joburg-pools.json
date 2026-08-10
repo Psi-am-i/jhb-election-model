@@ -1,0 +1,192 @@
+{
+ "pools": {
+  "ZULU": {
+   "members": {
+    "MK": 0.6931,
+    "IFP": 1.0,
+    "ANC": 0.1961,
+    "EFF": 0.049
+   },
+   "alpha": 40.0,
+   "lean_sign": -1,
+   "ratio": [
+    0.68,
+    0.88,
+    1.01
+   ]
+  },
+  "XHOSA": {
+   "members": {
+    "ANC": 0.2549,
+    "EFF": 0.2941,
+    "MK": 0.099,
+    "ASA": 0.1978
+   },
+   "alpha": 60.0,
+   "lean_sign": -1,
+   "tie": "AFRICAN",
+   "ratio": [
+    0.68,
+    0.88,
+    1.01
+   ]
+  },
+  "SOTHO": {
+   "members": {
+    "ANC": 0.2353,
+    "EFF": 0.2745,
+    "MK": 0.0792,
+    "ASA": 0.1758
+   },
+   "alpha": 60.0,
+   "lean_sign": -1,
+   "tie": "AFRICAN",
+   "ratio": [
+    0.68,
+    0.88,
+    1.01
+   ]
+  },
+  "TSWANA": {
+   "members": {
+    "ANC": 0.1176,
+    "EFF": 0.1373,
+    "MK": 0.0396,
+    "ASA": 0.0989
+   },
+   "alpha": 60.0,
+   "lean_sign": -1,
+   "tie": "AFRICAN",
+   "ratio": [
+    0.68,
+    0.88,
+    1.01
+   ]
+  },
+  "PEDI": {
+   "members": {
+    "ANC": 0.098,
+    "EFF": 0.1176,
+    "MK": 0.0396,
+    "ASA": 0.0769
+   },
+   "alpha": 60.0,
+   "lean_sign": -1,
+   "tie": "AFRICAN",
+   "ratio": [
+    0.68,
+    0.88,
+    1.01
+   ]
+  },
+  "TSONGA": {
+   "members": {
+    "ANC": 0.049,
+    "EFF": 0.0686,
+    "MK": 0.0198,
+    "ASA": 0.033
+   },
+   "alpha": 60.0,
+   "lean_sign": -1,
+   "tie": "AFRICAN",
+   "ratio": [
+    0.68,
+    0.88,
+    1.01
+   ]
+  },
+  "VENDA": {
+   "members": {
+    "ANC": 0.0294,
+    "EFF": 0.0392,
+    "MK": 0.0198,
+    "ASA": 0.022
+   },
+   "alpha": 60.0,
+   "lean_sign": -1,
+   "tie": "AFRICAN",
+   "ratio": [
+    0.68,
+    0.88,
+    1.01
+   ]
+  },
+  "NDEBELE": {
+   "members": {
+    "ANC": 0.0196,
+    "EFF": 0.0196,
+    "MK": 0.0099,
+    "ASA": 0.011
+   },
+   "alpha": 60.0,
+   "lean_sign": -1,
+   "tie": "AFRICAN",
+   "ratio": [
+    0.68,
+    0.88,
+    1.01
+   ]
+  },
+  "ENGLISH": {
+   "members": {
+    "DA": 0.55,
+    "ASA": 0.1648,
+    "BOSA": 0.6667,
+    "ACDP": 0.25
+   },
+   "alpha": 40.0,
+   "lean_sign": 1,
+   "tie": "WHITE",
+   "ratio": [
+    0.87,
+    1.22,
+    1.79
+   ]
+  },
+  "AFRIKAANS": {
+   "members": {
+    "DA": 0.25,
+    "VFPLUS": 1.0,
+    "BOSA": 0.3333,
+    "ACDP": 0.25
+   },
+   "alpha": 40.0,
+   "lean_sign": 1,
+   "tie": "WHITE",
+   "ratio": [
+    0.87,
+    1.22,
+    1.79
+   ]
+  },
+  "COLOURED": {
+   "members": {
+    "PA": 1.0,
+    "ACDP": 0.5,
+    "DA": 0.08,
+    "ALJAMAAH": 0.1
+   },
+   "alpha": 30.0,
+   "lean_sign": 0,
+   "ratio": [
+    0.79,
+    0.83,
+    1.2
+   ]
+  },
+  "INDIAN": {
+   "members": {
+    "ALJAMAAH": 0.9,
+    "DA": 0.12,
+    "ASA": 0.2198
+   },
+   "alpha": 30.0,
+   "lean_sign": 0,
+   "ratio": [
+    0.5,
+    0.95,
+    1.5
+   ]
+  }
+ }
+}

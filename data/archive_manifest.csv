@@ -6,6 +6,14 @@ data/raw/covariates/Ward Product_Locked spreadsheets/PP_Population Group_27-10-2
 data/raw/covariates/Ward Product_Locked spreadsheets/PP_Sex_27-10-2025.xlsx,286724,31cd98ab24d862fa93133f8e7b73111909ba8b4495536c669dec3d07a7ae8761,2025-10-27T10:09:32Z,unpacked from statssa.gov.za Ward-Product_Locked-spreadsheets.zip
 data/raw/covariates/Ward-Product_Locked-spreadsheets.zip,1865768,d8eae4732557228d08fdf1d2ff2f5077ee55454185d489931213b1896a0a617a,2026-08-01T22:05:34Z,statssa.gov.za Ward-level Small Area Population Estimates 2022
 data/raw/covariates/Ward-statistical-product-technical-note.pdf,519560,1af54aa87826af9ffb6348547559777d1d60eb441c0a68eacf2d0b8acaaf527f,2026-08-01T22:05:34Z,statssa.gov.za ward product technical note
+data/raw/elections/_metros/lge2021_BUF_vd_party.csv,2143452,7413b07222ae64076c81302d9a1a4606d40174ebf20ba0104e2c16ba1806ddd5,2026-08-10T07:37:14Z,UNRECORDED -- add to src/archive.py
+data/raw/elections/_metros/lge2021_CPT_vd_party.csv,9894016,2fbc2cf33a6bab2aa37c671faac720a143bd5d3f45f864ace131a0b037ce5b6b,2026-08-10T07:37:13Z,UNRECORDED -- add to src/archive.py
+data/raw/elections/_metros/lge2021_EKU_vd_party.csv,5222603,89f240e3f25c33f3a64fac0fd64740f1b8271cad20081ef050ca89d37a09b898,2026-08-10T07:37:13Z,UNRECORDED -- add to src/archive.py
+data/raw/elections/_metros/lge2021_ETH_vd_party.csv,10713476,51657391e9844d44f82026a70675bb03f12b34abe995bb09d49cea3529e4fc03,2026-08-10T07:37:14Z,UNRECORDED -- add to src/archive.py
+data/raw/elections/_metros/lge2021_JHB_vd_party.csv,10295882,c5d62e45e0f15b933475d6d26c85f50db6b7561abe1c07642db71256bbcc0302,2026-08-10T07:37:13Z,UNRECORDED -- add to src/archive.py
+data/raw/elections/_metros/lge2021_MAN_vd_party.csv,1965193,be9f502fadfb015c67ff58b73863990f686818dd7c30ec5f1b0c8272cb169e99,2026-08-10T07:37:14Z,UNRECORDED -- add to src/archive.py
+data/raw/elections/_metros/lge2021_NMA_vd_party.csv,1849140,c8c283808cb719ef58cea3e6649f1e0704f8ff503949070458aef2b44e9164ee,2026-08-10T07:37:14Z,UNRECORDED -- add to src/archive.py
+data/raw/elections/_metros/lge2021_TSH_vd_party.csv,7857185,570b22b71ca8b287d4333776904b46ef27599589571ed5dccd1a3308f2d3979c,2026-08-10T07:37:13Z,UNRECORDED -- add to src/archive.py
 data/raw/elections/_reports/lge2011_BUF_detailed_results.pdf,39015,714dbaa1d59db27b950be82e2da24bcc2728ad7666c96ce9076ff59bd900f8b2,2026-08-07T08:37:37Z,"results.elections.org.za LGEPublicReports/{402,1091,197}, via src/fetch_iec.py"
 data/raw/elections/_reports/lge2011_BUF_downloadable_party_results.csv,1528272,6edc163187baed34d76129ba851cbb0aede6fb90097c1caaab132ede5825b459,2026-08-07T08:37:36Z,"results.elections.org.za LGEPublicReports/{402,1091,197}, via src/fetch_iec.py"
 data/raw/elections/_reports/lge2011_BUF_seat_calculation_detail.pdf,39840,7590787bd538c3baf92bde0dcbb2ec1daf2cda4f669628e3c8b28579bd157ab5,2026-08-07T08:37:37Z,"results.elections.org.za LGEPublicReports/{402,1091,197}, via src/fetch_iec.py"
@@ -200,16 +208,16 @@ data/raw/geo/wards2026_TSH.geojson,1055921,b606f458f3e2b6e2dbac3cd091cf96618d4d0
 data/processed/byelection_contest_detail.csv,5591,ceeebb4bd090c794d8543e20cbaaa635fc15cedf94a23dd4842ddd2c775a10f9,2026-08-07T18:50:45Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/byelection_party_deltas.csv,831,cd44e6acb15c49f9f227eb3e70505fb0b83bc05b26d498c1928ff59404373e93,2026-08-07T18:50:45Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/byelection_turnout.csv,879,648fa22e48c2e18c555298d1c4e420b3f5f858b03085c5d967a8537a22553882,2026-08-07T18:50:45Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
-data/processed/coalition_minority.csv,249,9a10cf713fa0c2678e9415ff013e91f85376302e973ced06da677d047c254d86,2026-08-10T00:50:16Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
-data/processed/coalition_mwc.csv,64076,ca4019ad8656929eb4c3c6fb994bd91d1a689e5031131074c2eef71f26561aee,2026-08-10T00:50:16Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
-data/processed/coalition_pairs_triples.csv,2186,d622d2f281998f31e8321af0d7b1bca88797f289dfeb4ca82fd78c3e98e24746,2026-08-10T00:50:16Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
-data/processed/coalition_power.csv,658,44e02f5279f6c0e042e9fc6aeae688aa4269f486635196ede870c5980ad801d6,2026-08-10T00:50:16Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
-data/processed/coalition_viability.csv,290,6616e574a32dc6dfaddcab505909a930e7623b85eca53c8754234644a761c0a4,2026-08-10T00:50:16Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
-data/processed/fold1_from2_parameters.csv,3115,f32f26dc4b93005498c1747447a3b8c18cc6f5b956945ea1a40a9d859e4344a9,2026-08-09T22:09:06Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
+data/processed/coalition_minority.csv,249,9a10cf713fa0c2678e9415ff013e91f85376302e973ced06da677d047c254d86,2026-08-10T07:39:47Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
+data/processed/coalition_mwc.csv,64076,ca4019ad8656929eb4c3c6fb994bd91d1a689e5031131074c2eef71f26561aee,2026-08-10T07:39:47Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
+data/processed/coalition_pairs_triples.csv,2186,d622d2f281998f31e8321af0d7b1bca88797f289dfeb4ca82fd78c3e98e24746,2026-08-10T07:39:47Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
+data/processed/coalition_power.csv,658,44e02f5279f6c0e042e9fc6aeae688aa4269f486635196ede870c5980ad801d6,2026-08-10T07:39:47Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
+data/processed/coalition_viability.csv,290,6616e574a32dc6dfaddcab505909a930e7623b85eca53c8754234644a761c0a4,2026-08-10T07:39:47Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
+data/processed/fold1_from2_parameters.csv,3115,f32f26dc4b93005498c1747447a3b8c18cc6f5b956945ea1a40a9d859e4344a9,2026-08-10T01:52:52Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/fold1_from3_parameters.csv,3111,96a9a00115da52b7c6d347959be0098a281d9695c99fafbd221b08154d0b73d3,2026-08-09T22:09:07Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/fold1_from4_parameters.csv,3111,fea168a378f21d8d923c464f180d44075af042a8afe02004501f059e5ecf236f,2026-08-09T22:09:08Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
-data/processed/fold1_parameters.csv,3111,8d237f9bcb19cef1f1cf564ecd74d639453c743644ba6933d56d4d2c22ad5a11,2026-08-09T22:08:52Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
-data/processed/fold2_from1_parameters.csv,6243,7a98a353d3d67a5a43eaea0a70482ea339b45262b43c678ea31892a2ffa507a4,2026-08-10T00:47:15Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
+data/processed/fold1_parameters.csv,3111,8d237f9bcb19cef1f1cf564ecd74d639453c743644ba6933d56d4d2c22ad5a11,2026-08-10T02:01:51Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
+data/processed/fold2_from1_parameters.csv,6242,eb504e5814c9b255c096d41ad77180c85461c1c8d668ab78141afda1ddd1b8d5,2026-08-10T01:53:35Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/fold2_from3_parameters.csv,6242,ee84a1bb6f3a2670297bd374013b544e4de0d81fdcacf5cb6c9de9b1cfedb2d5,2026-08-09T22:09:04Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/fold2_from4_parameters.csv,6242,3b2c2d3236cd4e8b166ef3b61b78238cb507f0e8c2cf4edf171bfa6cb5047c68,2026-08-09T22:09:05Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/fold2_parameters.csv,6246,4113c956105f0392f221c408e02c86f67c91cba755c923b5f8786d33c5824c58,2026-08-09T22:58:16Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
@@ -220,9 +228,9 @@ data/processed/fold3_parameters.csv,2693,9dc123d661270ac340193b39cd9f95a9c03c378
 data/processed/fold4_from1_parameters.csv,2217,aaa831ab6990ed5e6cc06c19a9d6d1cfceea790ef87ce31eeb80269585837aba,2026-08-09T22:09:10Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/fold4_from2_parameters.csv,2217,882a6f0a297dcaf320b19a6bfdd807ebad3b9a1fffa858fdf17e2648720df9fc,2026-08-09T22:09:11Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/fold4_from3_parameters.csv,2217,91f41706b79b287de4339f5412710e86c315a3e6f4c0a6e5d36ed56c6089ce01,2026-08-09T22:09:11Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
-data/processed/fold4_parameters.csv,2217,d78104d5b0a4ecf08d153fd14e8ef87da07898e77eb6197195c5af9b34d18cb7,2026-08-09T22:09:01Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
-data/processed/fold5_parameters.csv,1691,55a2d59214f7e72ff06eea879585e950570078eda784835c9b494bf7b0183868,2026-08-09T22:11:22Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
-data/processed/forecast_summary.json,14656,3fd0d7f446868bedcec7be4194c0e5b8a1e4f7351a42fda89856e044e0e46ab3,2026-08-10T00:50:16Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
+data/processed/fold4_parameters.csv,2217,d78104d5b0a4ecf08d153fd14e8ef87da07898e77eb6197195c5af9b34d18cb7,2026-08-10T01:54:28Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
+data/processed/fold5_parameters.csv,1691,55a2d59214f7e72ff06eea879585e950570078eda784835c9b494bf7b0183868,2026-08-10T01:52:13Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
+data/processed/forecast_summary.json,14656,3fd0d7f446868bedcec7be4194c0e5b8a1e4f7351a42fda89856e044e0e46ab3,2026-08-10T07:39:47Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/gamma_recent.csv,317,d05462310c8bd48d3f05673b0a4c1a191bf1ff908673d29949a81339fab3a7a1,2026-08-07T18:48:55Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/interactive_data.json,71655,571f5aeafe9156b52f2a44f551a26d0e68d42461101e2193a97161c293af304a,2026-08-07T22:42:00Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/leverage_blend.log,2705,75971a552c976f41336f7834117c15366f4774cb3d0d248a18eb51b0784d5e85,2026-08-04T01:41:44Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
@@ -235,11 +243,12 @@ data/processed/regime_expand_seat_draws.csv,230315,bce76aee8ae353b202ee863115209
 data/processed/regime_expand_summary.json,14580,dedb2dbafd6972066e85f71e6b85d9dd0c3aad9352c6e625e8db479ced3a5808,2026-08-06T22:47:46Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/regime_level_seat_draws.csv,231846,838c4dfa95f3f9d050824cb543484ce60f60393ced6309c2283002aba473e5ab,2026-08-06T22:48:50Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/regime_level_summary.json,14845,d63b1cc9351b0c0541526c9c41331e2f81c62ccf97cc7ccd4db72f0637c7bad9,2026-08-06T22:48:50Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
-data/processed/seat_draws.csv,229913,7266e7ffffebb2408564f452a90133dbdaddbf5ab234cd82dc391e9e2f79a58c,2026-08-10T00:50:16Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
+data/processed/seat_draws.csv,229913,7266e7ffffebb2408564f452a90133dbdaddbf5ab234cd82dc391e9e2f79a58c,2026-08-10T07:39:47Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
+data/processed/tshwane/fold1_parameters.csv,2602,505700de9cbba1f5b878da30aa213e463f93940227583a3b3ffa670d413f8866,2026-08-10T01:52:23Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/tshwane/fold2_parameters.csv,5701,3b3e1dc0b32e54fda716a4965078781271bae3485ae88050df0599a3aeff79a3,2026-08-08T21:04:14Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
-data/processed/turnout.csv,84292,4081a9a498ec5bdfbe4dbd1c3b1cccbf9e2e34a566ad0eaef1eeb22067244578,2026-08-07T18:48:39Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
+data/processed/turnout.csv,114001,513060bed430cbb629a96db52b4eec05fa7ebb7329fa03ad6e5f7f6788932f66,2026-08-10T02:01:53Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/vd_concordance.csv,342620,6164f32086b5fab826909ab0ba29e629ae39d942d27c8a6abcfb77128263dfe2,2026-08-01T23:36:46Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/vd_ward_2026.csv,45344,46ca06b7e57eefc836fa2c10198b4972bfe55178057b5dd0d6bf4af644efed2b,2026-08-01T23:36:45Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/ward_leverage.csv,6878,b46c60831d77b52a8718db605d22ea2904c2062b9306e89bd2adcc0a40695497,2026-08-05T21:39:20Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
 data/processed/ward_paths.json,42243,340ed282bb486c3165290c7b2831a87ad5700efb2c77cd84af3bb46809abfdba,2026-08-07T22:42:01Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
-data/processed/ward_winner_probs.csv,6253,1b32abcbdbd6f14588a7dfef732e118097b8daa372253df68214953b2a7eeaa4,2026-08-10T00:50:16Z,"derived: src/build_concordance.py, src/build_crosswalk.py"
+data/processed/ward_winner_probs.csv,6253,1b32abcbdbd6f14588a7dfef732e118097b8daa372253df68214953b2a7eeaa4,2026-08-10T07:39:47Z,"derived: src/build_concordance.py, src/build_crosswalk.py"

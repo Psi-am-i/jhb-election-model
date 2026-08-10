@@ -166,6 +166,14 @@ DEFAULTS: dict = {
     # θ varied far less across cities than it did between parties.
     "splinter": {},
 
+    # §1.29 weighted pools. Empty keeps the two-bloc engine, so the published
+    # forecast is unchanged. Each pool: members {party: weight of that
+    # party's support drawn from this pool}, a shift triangular in points on
+    # the base, an alpha, and lean_sign for the polling lever (+1 receives a
+    # positive lean, -1 the mirror, 0 none). Weights of 1.0 with two pools
+    # reproduce the bloc engine exactly -- that equivalence is the test.
+    "pools": {},
+
     # A1: ward/PR split-ticket ratios are measured from 2021 per party;
     # overrides for parties without a 2021 measurement or with a changed
     # footprint. MK: list party, no ward machinery — 0.80 is a judgement
@@ -387,6 +395,59 @@ def blended_centres(
 # the draw
 # --------------------------------------------------------------------------
 
+def pool_spec(scenario, base_city_d, centres, index, lean):
+    """Build the per-pool draw specification for the weighted engine (§1.29).
+
+    A pool is a body of voters choosing between the same parties, and a party
+    may draw from more than one. That last point is not a refinement for
+    awkward entrants -- it is what the ANC has needed all along. MK took 71% of
+    its Johannesburg vote out of the ANC (flow −0.712 per point) while standing
+    on IFP ground (+0.50), and the IFP lost nothing: 1.47% to 1.41%. So the ANC
+    was holding voters from at least two pools, invisibly, because nobody was
+    contesting the second one. No partition can express that.
+
+    Each pool gets ``members`` (party -> the weight of that party's support
+    drawn from this pool, weights summing to 1 across pools per party), a
+    ``shift`` triangular in points on the base, and an ``alpha``. Weight 1.0
+    everywhere reduces this exactly to the two-bloc engine, which is the
+    regression test.
+    """
+    spec = {}
+    for name, cfg in scenario["pools"].items():
+        members = {p: float(w) for p, w in cfg["members"].items()
+                   if p in index and float(w) > 0}
+        if not members:
+            continue
+        idx = [index[p] for p in members]
+        weights = np.array([members[p] for p in members])
+        # A pool's base and centre are its members' weighted contributions, so
+        # a party sitting half in one pool brings half its vote to each.
+        base_total = float(sum(members[p] * base_city_d.get(p, 0.0) for p in members))
+        centre_total = float(sum(members[p] * centres.get(p, 0.0) for p in members))
+        # Pool movement is a RATIO, not a shift in points. Points only ever
+        # worked because there were exactly two pools of roughly fixed size:
+        # "-22 points" is meaningless for a pool holding 1.1% of the vote, and
+        # applying it to one produces the nonsense that showed up the first
+        # time this engine ran. A ratio scales with the pool, which is how θ
+        # already works everywhere else in the model.
+        # Measured across eight metros and three transitions (PR ballot,
+        # LGE total / preceding NPE total): African-side n=24, 0.82-1.01,
+        # median 0.88; white-side n=24, 1.09-1.79, median 1.29 -- the
+        # differential local-election turnout, in one number.
+        low, mode, high = cfg["ratio"]
+        evidence_mode = (centre_total / base_total) if base_total > 0 else mode
+        # the polling lever is in points on the base; convert to a ratio
+        evidence_mode += (lean * float(cfg.get("lean_sign", 0)) / 100.0
+                          / base_total) if base_total > 0 else 0.0
+        props = np.array([members[p] * centres.get(p, 0.0) for p in members])
+        if props.sum() <= 0:
+            props = weights
+        props = props / props.sum()
+        spec[name] = (idx, base_total, (low, min(max(evidence_mode, low), high), high),
+                      props, float(cfg["alpha"]))
+    return spec
+
+
 def make_drawer(scenario, base_city_d, centres, index, rng):
     """Return a function drawing one citywide PR target vector."""
     n = len(index)
@@ -395,6 +456,8 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         base_city[i] = base_city_d.get(party, SHARE_FLOOR)
 
     lean = scenario["polling_lean"] * scenario["polling_span"]
+    pools = pool_spec(scenario, base_city_d, centres, index, lean) \
+        if scenario.get("pools") else None
     bloc_spec = {}
     for bloc, members in BLOCS.items():
         idx = [index[p] for p in members if p in index]
@@ -455,7 +518,9 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             "holds": tuple(rule["holds"]),
         })
 
-    handled = {p for members in BLOCS.values() for p in members if p in index}
+    handled = ({p for cfg in scenario["pools"].values() for p in cfg["members"]
+                if p in index} if pools
+               else {p for members in BLOCS.values() for p in members if p in index})
     individual = []
     for party, i in index.items():
         if party in handled or party == "ENTRANT":
@@ -469,6 +534,57 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             individual.append((i, tuple(scenario["f_other"])))
 
     entrant_index = index.get("ENTRANT")
+
+    # Pools sharing a `tie` draw ONE shock between them, apportioned by base.
+    # This matters more than it looks. South Africa's African electorate is not
+    # one pool -- Zulu, Xhosa, Sotho, Pedi, Tswana, Tsonga, Venda, Ndebele and
+    # Swati are distinct, and the ANC's long decline is partly the Zulu share
+    # leaving it. We should carry all of them in the structure. But declaring
+    # nine pools and drawing them independently would make the model *more*
+    # confident, not less: nine independent shocks aggregate to a third of the
+    # variance of one. Tying them shares a single shock, so a group behaves as
+    # one pool in aggregate while remaining separately addressable the moment
+    # census language data lets us untie it. English and Afrikaans are tied for
+    # the same reason -- VF+ and the DA share ground (+0.61 Johannesburg, +0.86
+    # Tshwane), so nothing yet justifies letting them move apart.
+    ties: defaultdict[str, list[str]] = defaultdict(list)
+    for name in (pools or {}):
+        ties[scenario["pools"][name].get("tie") or name].append(name)
+
+    def draw_pools():
+        """Weighted N-pool draw. Each pool's total is drawn against history,
+        split among its contenders, and a party collects its winnings from
+        every pool it draws from."""
+        target = np.zeros(n)
+        totals = {}
+        for group, names in ties.items():
+            if len(names) == 1:
+                name = names[0]
+                totals[name] = pools[name][1] * triangular(rng, pools[name][2])
+                continue
+            # one shock for the group, shared out in proportion to base, so the
+            # group's total moves exactly as a single pool of that size would
+            # one RATIO for the group: every tied pool moves by the same
+            # factor, so the group behaves exactly as a single pool of its
+            # combined size whatever the split between its members.
+            lo = sum(pools[nm][2][0] for nm in names) / len(names)
+            md = sum(pools[nm][2][1] for nm in names) / len(names)
+            hi = sum(pools[nm][2][2] for nm in names) / len(names)
+            shock = triangular(rng, (lo, md, hi))
+            for nm in names:
+                totals[nm] = pools[nm][1] * shock
+        for name, (idx, base, spec, props, alpha) in pools.items():
+            split = rng.dirichlet(np.maximum(props * alpha, 0.05))
+            np.add.at(target, idx, max(totals[name], 0.005) * split)
+        for i, spec in individual:
+            target[i] = base_city[i] * triangular(rng, spec)
+        target = target / target.sum()
+        if entrant_index is not None:
+            share = (triangular(rng, scenario["entrant_share"])
+                     if rng.random() < scenario["entrant_prob"] else 0.0)
+            target *= (1.0 - share)
+            target[entrant_index] = share
+        return target
 
     def draw():
         target = np.zeros(n)
@@ -514,7 +630,7 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             target[entrant_index] = share
         return target
 
-    return draw
+    return draw_pools if pools else draw
 
 
 # --------------------------------------------------------------------------
