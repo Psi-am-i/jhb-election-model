@@ -214,6 +214,64 @@ group) is downloadable and is what this model uses instead.
 
 ---
 
+## 11. More registered voters than adults, in one population group
+
+**Where:** Stats SA *Ward Statistical Product 2022* (population group and age
+tables) read against the IEC's registered totals for LGE 2021, City of
+Johannesburg, 135 wards.
+
+Splitting each ward's published registration across population groups — one
+rate per group, fitted across wards, then scaled so every ward matches its own
+published total — gives:
+
+| group | people | aged 20+ | registered | registered / adults |
+|---|---|---|---|---|
+| Black African | 4,053,803 | 2,867,723 | 1,438,596 | 50% |
+| Coloured | 229,528 | 148,214 | 122,572 | 83% |
+| Indian/Asian | 167,363 | 118,062 | 99,326 | 84% |
+| **White** | 333,651 | 300,374 | **560,217** | **187%** |
+
+560,217 registered white voters against 300,374 white adults. The city totals
+reconcile (3.43M adults, 2.22M registered, 64.7%); only the split does not.
+
+**Why it matters:** any model that sizes voter groups from the census inherits
+this. Ours did, invisibly, until the levels were separated — a single
+votes-per-person figure had the error folded into it and still reproduced the
+correct total vote, because the aggregate was fitted rather than derived.
+
+**It is not a simple undercount, and that is the point.** Census 2022's
+Post-Enumeration Survey measured a **62% undercount for the white group and 72%
+for the Indian group** against a 31% national figure — the highest the UN
+Population Division has recorded, about 10 percentage points above the previous
+worst. But the published figures are already adjusted for that, and the
+demographers who reviewed them argue the adjustment **overshot**: the census
+sits **14% above independent projections for the white group and 24% above for
+the Indian group** (Dorrington et al., *S. Afr. J. Sci.* 2024). If the
+published white population is if anything too high, the true adult count is
+lower than 300,374 — roughly 263,000 — and the ratio above rises from 187% to
+about **213%**. The census problem does not explain this gap; it widens it.
+
+**Candidate causes**, not mutually exclusive and not separable from published
+data alone:
+1. **ward-level allocation.** The same review reports "several significant
+   anomalies in the sub-provincial data". These are modelled small-area
+   estimates, so the provincial total can be right while the ward split is not.
+2. **voters registered where they do not live** — registration is by voting
+   district, and registering at a property or family address is common.
+3. the ecological assumption that one registration rate applies to a group
+   across all wards.
+
+**Fix:** publish registration by population group, or by voting district
+alongside small-area census counts, so the split does not have to be inferred.
+Failing that, publish the ward-level post-enumeration adjustment factors so
+users can see where coverage was weakest.
+
+**Reproduce:** `python src/pools.py --city joburg --target 2026`, which prints
+the violation, or call `pools.pool_counts(city, "2021", cfg)` and read
+`.violations`.
+
+---
+
 ## Before submitting: re-verify
 
 **Re-run every check against a freshly downloaded file first.** Two reasons.
@@ -235,4 +293,4 @@ pipeline is public: <https://github.com/Psi-am-i/jhb-election-model>. The
 acquisition recipes, including the exact URLs and election IDs, are in
 `SOURCES.md`.
 
-*Maintained as issues are found. Last updated 2026-08-08.*
+*Maintained as issues are found. Last updated 2026-08-10.*

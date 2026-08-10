@@ -11,8 +11,11 @@
 # home language slot in the same way the day the data exists.
 #
 # role
-#   base   the dimension whose categories are the pools themselves. Weights are
-#          rates within each category, floored so nothing can reach zero.
+#   base   the dimension whose categories are the pools themselves. Each pool
+#          is a set of people and three nested subsets of it — of voting age,
+#          registered, voted — and a party's rate is its share of the last.
+#          Rates are at least zero because votes cannot be negative, and a
+#          pool's rates sum to one because every voter votes for someone.
 #   tilt   entered as a deviation from the city mean, so it cannot re-describe
 #          the base dimension's variation. Coefficients are unconstrained.
 #
@@ -48,7 +51,19 @@ extrapolation_max_years = 8
 name = "population_group"
 role = "base"
 admitted = true
-categories = ["Black African", "Coloured", "Indian/Asian", "White", "Other"]
+# The census's "Other" column is NOT carried as a pool. It is the residual
+# category for people who fit none of the four (~0.5% of the population), and
+# treating it as a pool asserts a distinct constituency that nothing supports:
+# no party's rate in it was ever identified, it was the only pool whose ratio
+# range came out one-sided, it carried the lowest concentration, and fitted
+# across all eight metros its turnout rate collapsed to the floor — 0.2 voters
+# nationally against 6,673 in Johannesburg alone — which then made the vote
+# margins infeasible, because no votes can pass through a pool with no voters.
+# Excluding the column renormalises the other four, which distributes those
+# residents across their own ward's pools. That assumes they vote like their
+# neighbours; for half a percent of the population that is a smaller claim than
+# inventing a constituency for them.
+categories = ["Black African", "Coloured", "Indian/Asian", "White"]
 
   [[dimension.census]]
   year = 2022
@@ -56,8 +71,8 @@ categories = ["Black African", "Coloured", "Indian/Asian", "White", "Other"]
   source = "PP_Population Group_27-10-2025.xlsx"
   sheet = "Wards"
   code_column = 0
-  total_column = 6
-  columns = [1, 2, 3, 4, 5]
+  total_column = -1        # the four listed groups, not the published total
+  columns = [1, 2, 3, 4]
 
   # [[dimension.census]]
   # year = 2011
@@ -126,14 +141,11 @@ evidence here is not evidence of absence, and the note is the point."""
 # income/class   expect the same collinearity problem age has. The gate decides.
 # education      ditto.
 
-[fit]
-# Shrinkage target is "this party appeals to every pool at its citywide rate".
-# The fit moves away from that null only where the wards insist, and a floor
-# keeps any rate from collapsing to exactly zero — the ANC's white support is
-# small, not absent, and a corner solution is not a measurement.
-floor_rate = 0.002
-ridge_folds = 5
-ridge_grid = [0.0, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0]
+# The [fit] section is gone. It carried floor_rate, ridge_grid and ridge_folds
+# for a per-party ridge chosen by cross-validation. That whole apparatus was
+# replaced: the fit is now joint across parties and constrained, so the floor
+# is zero because votes cannot be negative, and identification comes from the
+# adding-up constraints rather than from shrinkage.
 
 [gate]
 # A dimension earns its place by out-of-sample gain, tested across cities.

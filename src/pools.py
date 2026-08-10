@@ -8,27 +8,16 @@ which each party is described by the rate at which it wins them.
 Three things this module is careful about, each because getting them wrong
 produces output that looks right.
 
-**Nothing is zero.** Non-negative least squares puts small weights on the
-boundary and reports them as ``0.0%``. That is a corner of the feasible set, not
-a measurement: read literally it says the ANC has no white supporters. So the
-fit is bounded below by what the arithmetic can prove rather than by zero.
-:func:`bounds` computes the Duncan-Davis interval — pooled over the eight
-metros the ANC's rate among Coloured voters is provably at least 0.4% and among
-Indian voters at least 0.7% — and :func:`_solve` projects every estimate into
-that box each iteration. Without the projection the fit answered 0.2% for a
-quantity it had itself proven to be above 0.4%.
-
-**The data is often uninformative, and says so.** Ecological inference can only
-pin down a group's behaviour where wards differ a lot in that group's share.
-Johannesburg holds one ward that is majority-Indian and three majority-Coloured,
-so those rates are unidentifiable *in the city* and the regularisation, not the
-evidence, would decide them. :func:`fit_national` therefore fits all eight
-metros together — eThekwini has fifteen majority-Indian wards, Cape Town
-forty-eight majority-Coloured — and the city fit shrinks toward that national
-shape rescaled to the city's own level, because direction transfers between
-cities and magnitude does not. Where even the pooled bound stays wide (the ANC
-among white voters, 0-20.4%) the estimate is flagged unidentified, and that gap
-is where the human judgement layer belongs.
+**Every party is fitted at once, subject to what must be true.** Fitting each
+party on its own is not a model of an election: it let two parties both claim
+most of a pool while a third went negative to balance, and nothing noticed —
+the white pool came out assigned 111.4% of its voters and the Coloured pool
+90.4%, with 106.1% of the vote existing in total. :func:`fit_joint` imposes the
+two facts that must hold, that no party can win negative votes and that every
+voter votes for someone, and :func:`balance_margins` then matches both known
+totals exactly. Those constraints are also what identifies the small parties: a
+pool that must add to one says something about every party in it that no
+single-party regression can see.
 
 **A dimension must earn its place.** The design takes n dimensions — race, age,
 sex, and income, education or home language the day we hold them. Every one of
@@ -71,6 +60,11 @@ import cityconfig
 import parties as P
 
 CONFIG = Path("config/dimensions.toml")
+
+# Convergence tolerance on the projected-gradient map in :func:`_solve`,
+# relative to the size of the fitted vector. Rates live in [0, 1] and the
+# weighted objective is normalised, so this is a genuinely tight stop.
+SOLVE_TOL = 1e-9
 
 
 # --------------------------------------------------------------------------
@@ -177,6 +171,294 @@ def read_census(dim: Dimension, census: Census, cfg: Config) -> dict[str, np.nda
             # are of the *modelled* population, not of everybody.
             out[code] = vec / vec.sum()
     return out
+
+
+def read_census_population(dim: Dimension, census: Census,
+                           cfg: Config) -> dict[str, float]:
+    """Ward -> the population this dimension's categories are counted over.
+
+    :func:`read_census` normalises each ward to shares and throws the head count
+    away, which is fine for composition and wrong for everything else: a pool's
+    size in the *electorate* is population times turnout, and without the
+    denominator neither term is available.
+    """
+    import openpyxl
+
+    path = cfg.covariate_root / census.source
+    book = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    rows = book[census.sheet].iter_rows(values_only=True)
+    next(rows)
+
+    def cell(row, spec) -> float:
+        ix = spec if isinstance(spec, (list, tuple)) else (spec,)
+        return sum(float(row[i] or 0.0) for i in ix)
+
+    out: dict[str, float] = {}
+    for row in rows:
+        code = str(row[census.code_column]).strip()
+        if census.total_column >= 0:
+            total = float(row[census.total_column] or 0.0)
+        else:
+            total = sum(cell(row, c) for c in census.columns)
+        if total > 0:
+            out[code] = total
+    return out
+
+
+@dataclass
+class PoolCounts:
+    """A pool is a set of people, and three nested subsets of it.
+
+    ``people ⊇ voting_age ⊇ registered ⊇ voted``, each a wards x pools count.
+    Collapsing these into one votes-per-head number, which is what this module
+    did first, throws away three separate processes and hides which of them is
+    doing the work. Measured on Johannesburg 2021 the composite spans four to
+    one across pools, and almost none of that is turnout::
+
+        pool             adult   registration   turnout   votes/person
+        Black African    69.9%       43%         35.9%       0.107
+        Coloured         63.8%       77%         55.4%       0.272
+        Indian/Asian     69.6%       78%         44.0%       0.237
+        White            90.5%      173%         52.9%       0.830
+
+    Turnout — the thing "voting percentage" normally means — spans only about
+    1.5 to 1. The spread is mostly registration, and the white pool's 173% is
+    impossible, so the composite leaned hardest on its least trustworthy part.
+
+    The levels also behave differently over time, which is the forecasting
+    reason to keep them apart: ageing is near-deterministic and moves in one
+    direction (South Africa's Black African pool is much younger, so its
+    eligible share grows every cycle), registration drifts slowly, and turnout
+    swings — the 2021 ANC collapse was 587k abstentions, not switches.
+    """
+
+    wards: list[str]
+    categories: tuple[str, ...]
+    people: np.ndarray
+    voting_age: np.ndarray
+    registered: np.ndarray
+    voted: np.ndarray
+    rates: dict[str, np.ndarray] = field(default_factory=dict)
+    violations: list[str] = field(default_factory=list)
+
+    def composition(self, level: str = "voted") -> np.ndarray:
+        counts = getattr(self, level)
+        total = counts.sum(axis=1, keepdims=True)
+        return np.divide(counts, total, out=np.zeros_like(counts), where=total > 0)
+
+    def totals(self, level: str = "voted") -> np.ndarray:
+        return getattr(self, level).sum(axis=0)
+
+
+def _nest(parent: np.ndarray, observed: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Split an observed ward total across pools, in proportion to the parent.
+
+    One rate per pool is fitted across wards (``observed_w ~ sum_g parent_wg
+    r_g``), applied, then each ward is scaled so its pools sum to what was
+    actually observed there. The rate carries the between-ward information; the
+    scaling makes every ward agree with the published count.
+    """
+    rate = _nnls(parent, observed)
+    child = parent * rate[None, :]
+    row = child.sum(axis=1)
+    scale = np.divide(observed, row, out=np.ones_like(row), where=row > 0)
+    return child * scale[:, None], rate
+
+
+def _nnls(A: np.ndarray, b: np.ndarray, iters: int = 40000) -> np.ndarray:
+    x = np.full(A.shape[1], b.sum() / max(A.sum(), 1e-9))
+    lipschitz = float(np.linalg.norm(A, 2) ** 2)
+    if lipschitz <= 0:
+        return x
+    for _ in range(iters):
+        x = np.maximum(x - (A.T @ (A @ x - b)) / lipschitz, 0.0)
+    return x
+
+
+def ward_totals(city: cityconfig.City, year: str,
+                ballot: str = "PR") -> tuple[dict[str, float], dict[str, float]]:
+    """Ward -> registered voters, and ward -> votes cast. Both published."""
+    template = cityconfig.CALENDAR[year].results
+    path = city.path("raw", "elections", template) if template else None
+    if not path or not path.exists():
+        raise SystemExit(f"no result file for {city.slug} {year}: {path}")
+    # The results-portal NPE layout (2019, 2024) carries no Ward column at all,
+    # so those files land with it blank. A national election has no ward
+    # contest, but its voting districts still sit inside wards, and the LGE
+    # under the same delimitation says which. Without this the registration
+    # series loses two of its five cycles.
+    fallback: dict[str, str] = {}
+
+    reg: dict[str, float] = defaultdict(float)
+    votes: dict[str, float] = defaultdict(float)
+    seen: set[str] = set()
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        reader = csv.DictReader(fh)
+        # National elections have one ballot and no BallotType column; local
+        # ones have two. Filtering on a column that is not there silently
+        # dropped every NPE row, which cost the series five of its cycles.
+        has_ballot = "BallotType" in (reader.fieldnames or [])
+        for row in reader:
+            if has_ballot and row.get("BallotType") != ballot:
+                continue
+            vd = row["VD_Number"].strip()
+            ward = (row.get("Ward") or "").strip()
+            if not ward:
+                if not fallback:
+                    lge = max((y for y in cityconfig.CALENDAR
+                               if int(y) <= int(year)
+                               and cityconfig.CALENDAR[y].kind == "LGE"
+                               and cityconfig.CALENDAR[y].results),
+                              key=int, default=None)
+                    if lge:
+                        try:
+                            fallback = vd_map(city, lge)[0]
+                        except SystemExit:
+                            fallback = {}
+                ward = fallback.get(vd, "")
+            if vd not in seen:            # registration is per VD, not per row
+                seen.add(vd)
+                reg[ward] += float(row.get("Registered_Population") or 0)
+            votes[ward] += int(float(row.get("Party_Votes") or 0))
+    return dict(reg), dict(votes)
+
+
+def pool_counts(city: cityconfig.City, year: str, cfg: Config) -> PoolCounts:
+    """Build the four nested levels for one city and election.
+
+    Three of the four are observed rather than modelled: the census publishes
+    people and the 20+ count per ward, and the IEC publishes registered voters
+    and votes cast per voting district. Only the *split of each across pools*
+    is estimated, and each level is anchored to its published ward total.
+
+    Nesting violations are reported, not clamped. Johannesburg's white pool
+    comes out with more registered voters than adults, which cannot be true;
+    silently capping it would bury a defect in the public record (Census 2022's
+    ward-level undercount, or voters registered where they do not live) inside
+    our own numbers.
+    """
+    base = cfg.base()
+    when = polling_decimal_year(year, city)
+    reg_by_ward, votes_by_ward = ward_totals(city, year)
+    codes = set(reg_by_ward)
+
+    comp_by_ward, _ = composition_at(base, cfg, when, codes,
+                                     city=city, election_year=year)
+    people_by_ward = read_census_population(base, base.censuses[-1], cfg)
+    age = next((d for d in cfg.dimensions if d.name == "age"), None)
+    adults_by_ward = (read_census_population(age, age.censuses[-1], cfg)
+                      if age else {})
+
+    wards = sorted(w for w in codes
+                   if w in comp_by_ward and w in people_by_ward
+                   and reg_by_ward.get(w, 0) > 0)
+    if not wards:
+        raise SystemExit(f"{city.slug} {year}: no ward joined the census")
+
+    comp = np.array([comp_by_ward[w] for w in wards])
+    people = comp * np.array([people_by_ward[w] for w in wards])[:, None]
+
+    rates: dict[str, np.ndarray] = {}
+    if adults_by_ward:
+        observed_adults = np.array([adults_by_ward.get(w, 0.0) for w in wards])
+        voting_age, rates["adult_share"] = _nest(people, observed_adults)
+    else:
+        # No age table: every pool assumed equally adult, which is false and
+        # said out loud rather than assumed silently.
+        voting_age = people.copy()
+        rates["adult_share"] = np.ones(people.shape[1])
+
+    registered, rates["registration"] = _nest(
+        voting_age, np.array([reg_by_ward[w] for w in wards]))
+    voted, rates["turnout"] = _nest(
+        registered, np.array([votes_by_ward.get(w, 0.0) for w in wards]))
+
+    # How wrong the census would have to be for this to hold. Registration is
+    # counted; ward population is a modelled small-area estimate, and for the
+    # 2022 census the estimates for exactly these groups are the disputed ones.
+    # So this ratio is reported as a property of the census, not of the model.
+    implied = registered.sum(axis=0) / np.maximum(voting_age.sum(axis=0), 1e-9)
+    rates["census_correction"] = np.maximum(implied, 1.0)
+
+    violations = []
+    for name, child, parent in (("registered", registered, voting_age),
+                                ("voted", voted, registered)):
+        over = child.sum(axis=0) / np.maximum(parent.sum(axis=0), 1e-9)
+        for g, ratio in enumerate(over):
+            if ratio > 1.0:
+                violations.append(
+                    f"{base.categories[g]}: {name} is {ratio:.0%} of the level "
+                    f"above it, which is impossible. Do NOT read this as a "
+                    f"census undercount: the published Census 2022 figures for "
+                    f"the white and Indian groups are argued to be too HIGH, "
+                    f"not too low (over-adjustment for a 62%/72% "
+                    f"post-enumeration undercount, leaving them 14%/24% above "
+                    f"projections), which makes this gap wider rather than "
+                    f"narrower. See DATA-QUALITY.md item 11.")
+
+    return PoolCounts(wards=wards, categories=base.categories, people=people,
+                      voting_age=voting_age, registered=registered, voted=voted,
+                      rates=rates, violations=violations)
+
+
+def registration_series(city: cityconfig.City, cfg: Config,
+                        before: str | None = None) -> dict[str, np.ndarray]:
+    """Each pool's share of the registered roll, at every election on disk.
+
+    This is the series the model should lean on, and the census is the junior
+    partner. Registration is *counted*, published per voting district, and we
+    hold ten cycles of it for Johannesburg (2000 through 2024) plus the roll
+    for the target. The census offers one usable ward-level observation, and
+    for the groups that matter most it is the disputed one: Census 2022 has
+    Johannesburg's white population falling by 211,000 in eleven years, from
+    12.3% to 7.0%, while the 2021 roll carries ~560,000 registered white
+    voters — a figure consistent with the 2011 count and not with the 2022 one.
+
+    Two things this buys. The trend in a pool's share of the roll is measured
+    over many cycles rather than inferred from two censuses. And each series
+    checks the other: where the census implies a change the roll does not show,
+    the roll wins and the run says so.
+
+    ``before`` restricts to elections strictly before that year, so a backtest
+    cannot see its own target's roll.
+    """
+    out: dict[str, np.ndarray] = {}
+    for year in cityconfig.CALENDAR:
+        if before is not None and int(year) >= int(before):
+            continue
+        if cityconfig.CALENDAR[year].results is None:
+            continue
+        try:
+            counts = pool_counts(city, year, cfg)
+        except SystemExit:
+            continue           # that election is not on disk for this city
+        total = counts.totals("registered")
+        if total.sum() > 0:
+            out[year] = total / total.sum()
+    return out
+
+
+def projected_pool_shares(series: dict[str, np.ndarray], target: str,
+                          damping: float = 0.6) -> tuple[np.ndarray, str]:
+    """Carry each pool's share of the roll forward to the target election.
+
+    A straight line through the last two observations, damped, which is the
+    same treatment :func:`composition_at` gives census composition — and for
+    the same reason: a trend measured over one interval, extended, claims more
+    than the data supports.
+    """
+    years = sorted(series)
+    if not years:
+        raise SystemExit("no registration series: cannot size the pools")
+    if len(years) == 1:
+        return series[years[0]], f"{years[0]} roll held flat"
+    a, b = years[-2], years[-1]
+    span = int(b) - int(a)
+    step = (int(target) - int(b)) / span if span else 0.0
+    trend = series[b] - series[a]
+    shares = np.maximum(series[b] + damping * step * trend, 1e-6)
+    return shares / shares.sum(), (
+        f"{b} roll carried to {target} on the {a}-{b} trend, damped x{damping:g}")
 
 
 def vd_map(city: cityconfig.City, year: str) -> tuple[dict[str, str], dict[str, float]]:
@@ -338,6 +620,28 @@ def composition_at(dim: Dimension, cfg: Config, when: float,
     return out, "; ".join(notes + [how])
 
 
+def polling_decimal_year(year: str, city: cityconfig.City | None = None) -> float:
+    """Polling day as a decimal year, without demanding council structure.
+
+    ``cityconfig.Target`` refuses a year with no ``[structure.by_year]`` entry,
+    which is right for a forecast — you cannot allocate seats in a council
+    whose size you do not know — and wrong here. A national election does not
+    elect a council, so requiring one silently dropped 2014, 2019 and 2024 from
+    the registration series, which is most of it.
+    """
+    date = cityconfig.CALENDAR[year].date
+    if city is not None:
+        try:
+            own = city.structure_for(year).get("election_date")
+            if own and str(_date.fromisoformat(str(own)).year) == year:
+                date = _date.fromisoformat(str(own))
+        except SystemExit:
+            pass
+    start = _date(date.year, 1, 1).toordinal()
+    end = _date(date.year + 1, 1, 1).toordinal()
+    return date.year + (date.toordinal() - start) / (end - start)
+
+
 def election_decimal_year(target: cityconfig.Target) -> float:
     """Polling day as a decimal year, so a November poll is not treated as
     January's composition."""
@@ -391,12 +695,11 @@ class PartyFit:
     rates: np.ndarray                     # appeal rate within each pool
     tilts: dict[str, np.ndarray] = field(default_factory=dict)
     r2: float = float("nan")
-    lam: float = float("nan")
     bounds: np.ndarray | None = None      # (n_pools, 2) Duncan-Davis interval
 
-    def composition(self, pool_electorate: np.ndarray) -> np.ndarray:
+    def composition(self, pool_votes: np.ndarray) -> np.ndarray:
         """Where the party's votes come from — shares summing to 1."""
-        got = self.rates * pool_electorate
+        got = self.rates * pool_votes
         return got / got.sum() if got.sum() > 0 else got
 
     def identified(self, floor: float = 0.002) -> np.ndarray:
@@ -415,41 +718,128 @@ class PartyFit:
         return narrow & (self.rates > floor * 1.5)
 
 
-def _solve(X: np.ndarray, y: np.ndarray, w_votes: np.ndarray, *,
-           n_base: int, prior_base: np.ndarray, lam: float, floor: float,
-           box: np.ndarray | None = None, iters: int = 4000) -> np.ndarray:
-    """Weighted ridge toward a prior, with a floor on the base rates.
+def _project_simplex(rows: np.ndarray) -> np.ndarray:
+    """Euclidean projection of each row onto the probability simplex.
 
-    ``prior_base`` is where the fit sits when the wards say nothing. A flat
-    prior ("wins every pool at its citywide rate") is the honest starting point
-    for a party nothing is known about, but for a city it is a bad one: the
-    minority rates a single metro cannot identify then get decided by the
-    regularisation rather than by evidence, and they collapse to the floor.
-    Passing the national fit instead means an unidentified rate falls back on
-    what other cities measured. Tilt coefficients shrink toward zero, since
-    their null is "no tilt".
-
-    ``box`` is the Duncan-Davis interval per pool, and the base rates are
-    projected into it every iteration. Without it the fit will happily return a
-    rate the arithmetic has already ruled out — pooled over the eight metros
-    the ANC's support among Coloured voters is provably at least 0.4%, and the
-    unconstrained fit answered 0.2%. A number below its own proven floor is not
-    an estimate.
+    Duchi et al.'s sort-and-threshold: the closest point with non-negative
+    entries summing to one.
     """
-    sw = np.sqrt(w_votes)
-    Xw, yw = X * sw[:, None], y * sw
-    prior = np.zeros(X.shape[1])
-    prior[:n_base] = prior_base
+    n = rows.shape[1]
+    srt = np.sort(rows, axis=1)[:, ::-1]
+    cs = np.cumsum(srt, axis=1) - 1.0
+    idx = np.arange(1, n + 1)
+    cond = srt - cs / idx > 0
+    rho = n - 1 - np.argmax(cond[:, ::-1], axis=1)
+    theta = cs[np.arange(rows.shape[0]), rho] / (rho + 1.0)
+    return np.maximum(rows - theta[:, None], 0.0)
 
-    beta = prior.copy()
-    step = 1.0 / (np.linalg.norm(Xw, 2) ** 2 + lam + 1e-12)
+
+def fit_joint(E: np.ndarray, Y: np.ndarray, votes: np.ndarray, *,
+              iters: int = 20000) -> np.ndarray:
+    """Fit every party's pool rates at once, subject to what must be true.
+
+    Fitting each party on its own is not a model of an election. It lets two
+    parties both claim most of a pool while a third is pushed negative to
+    balance the books, and nothing notices: measured on Johannesburg 2021 the
+    independent fits assigned the white pool **111.4%** of its voters and the
+    Coloured pool **90.4%**, claiming 106.1% of the vote in total, with Al
+    Jama-ah at −1.9% ± 0.3 among white voters and the PA at −3.5% among Indian
+    voters. Those negatives are tight, not noisy, which makes them
+    misspecification rather than a lack of data.
+
+    Two things must hold, and imposing them is also what identifies the small
+    parties — a pool that must add to one says something about every party in
+    it that no single-party regression can see:
+
+    * **no negative votes**, so every rate is at least zero — the real floor,
+      not the 0.2% fudge that used to stand in for one; and
+    * **every voter votes for someone**, so each pool's rates sum to one.
+
+    ``E`` is wards x pools (each ward's electorate composition), ``Y`` is
+    wards x parties (vote shares), and the returned ``R`` is pools x parties.
+    The projection onto the simplex enforces both constraints exactly at every
+    iteration, so the answer satisfies them by construction rather than
+    approximately.
+    """
+    sw = np.sqrt(votes / max(votes.sum(), 1e-12))
+    Ew, Yw = E * sw[:, None], Y * sw[:, None]
+    lipschitz = float(np.linalg.norm(Ew, 2) ** 2)
+    if lipschitz <= 0:
+        return np.full((E.shape[1], Y.shape[1]), 1.0 / Y.shape[1])
+    step = 1.0 / lipschitz
+
+    R = np.full((E.shape[1], Y.shape[1]), 1.0 / Y.shape[1])
+    Z, t = R.copy(), 1.0
     for _ in range(iters):
-        grad = Xw.T @ (Xw @ beta - yw) + lam * (beta - prior)
-        beta = beta - step * grad
-        beta[:n_base] = np.maximum(beta[:n_base], floor)
-        if box is not None:
-            beta[:n_base] = np.clip(beta[:n_base], box[:, 0], box[:, 1])
-    return beta
+        nxt = _project_simplex(Z - step * (Ew.T @ (Ew @ Z - Yw)))
+        t_next = 0.5 * (1.0 + np.sqrt(1.0 + 4.0 * t * t))
+        if float(((Z - nxt) * (nxt - R)).sum()) > 0:
+            Z, t_next = nxt.copy(), 1.0
+        else:
+            Z = nxt + ((t - 1.0) / t_next) * (nxt - R)
+        R, t = nxt, t_next
+
+    gmap = lipschitz * (R - _project_simplex(R - step * (Ew.T @ (Ew @ R - Yw))))
+    if float(np.abs(gmap).max()) > SOLVE_TOL * max(1.0, float(np.abs(R).max())):
+        raise RuntimeError(
+            f"joint pool fit did not converge in {iters} iterations: projected "
+            f"gradient {np.abs(gmap).max():.3e}")
+    return R
+
+
+def balance_margins(R: np.ndarray, electorate: np.ndarray,
+                    party_votes: np.ndarray, iters: int = 2000,
+                    tol: float = 1e-12) -> np.ndarray:
+    """Force both margins of the party x pool vote matrix to their known totals.
+
+    Two totals are known exactly and neither is a modelling choice: each pool
+    contains a known number of voters, and each party won a known number of
+    votes. The constrained fit gets the first right by construction and the
+    second only approximately — Al Jama-ah came out implying 1.3% of the vote
+    against an actual 0.8%, the PA 3.7% against 3.0% — because a least-squares
+    surface has no reason to respect a margin nobody told it about.
+
+    Iterative proportional fitting scales rows and columns alternately until
+    both hold. It preserves non-negativity and every zero, and lands on the
+    matrix closest to the starting one in KL divergence, so it adjusts the fit
+    rather than replacing it. It is the same procedure ``solve_and_predict``
+    uses to calibrate voting districts to a citywide target.
+    """
+    counts = R * electorate[:, None]
+    target_rows = electorate.astype(float)
+    target_cols = party_votes.astype(float)
+
+    # A party the fit zeroed in every pool can never be scaled back up — IPF
+    # multiplies, and nothing times anything is nothing — so its votes stay
+    # permanently unplaced and the margins never close. Three micro-parties did
+    # this at national scale (Free Democrats 111 votes, Eastern Cape Movement
+    # 98, Civic Independent 73), and the balancing stalled at exactly the
+    # largest of them. Seed any such column proportionally to the pools: for a
+    # party with no spatial signal at all, "its voters look like the electorate"
+    # is the maximum-entropy answer, and IPF moves it from there.
+    empty = (counts.sum(axis=0) <= 0) & (target_cols > 0)
+    if empty.any():
+        counts[:, empty] = (target_rows[:, None] / target_rows.sum()) * \
+            target_cols[empty][None, :]
+    # The margins must agree on the grand total or no solution exists.
+    scale = target_rows.sum() / max(target_cols.sum(), 1e-12)
+    target_cols = target_cols * scale
+
+    for _ in range(iters):
+        col = counts.sum(axis=0)
+        counts *= np.divide(target_cols, col, out=np.ones_like(col),
+                            where=col > 0)[None, :]
+        row = counts.sum(axis=1)
+        counts *= np.divide(target_rows, row, out=np.ones_like(row),
+                            where=row > 0)[:, None]
+        if (np.abs(counts.sum(axis=0) - target_cols).max() < tol * target_rows.sum()
+                and np.abs(counts.sum(axis=1) - target_rows).max()
+                < tol * target_rows.sum()):
+            break
+    else:
+        raise RuntimeError("margin balancing did not converge")
+
+    return counts / np.maximum(electorate, 1e-12)[:, None]
 
 
 def _r2(y: np.ndarray, pred: np.ndarray, w: np.ndarray) -> float:
@@ -465,9 +855,9 @@ def bounds(y: np.ndarray, comp: np.ndarray, votes: np.ndarray) -> np.ndarray:
     (its votes minus everyone outside g) and at most (its votes, or all of g).
     Summing those over wards gives a hard interval on the citywide rate.
 
-    Assumes turnout does not differ by pool, which it does — the interval is
-    indicative rather than exact, but its *width* is the honest signal: where it
-    spans most of the unit interval, ward data cannot see that pool at all.
+    Computed on the pools' *voters* rather than their population, so it no
+    longer assumes pools vote at the same rate. Its *width* is the signal:
+    where it spans most of the unit interval, ward data cannot see that pool.
     """
     n_pools = comp.shape[1]
     out = np.zeros((n_pools, 2))
@@ -484,106 +874,69 @@ def bounds(y: np.ndarray, comp: np.ndarray, votes: np.ndarray) -> np.ndarray:
 def fit_city(city: cityconfig.City, year: str, cfg: Config, *,
              admitted_only: bool = True,
              extra_tilts: list[Dimension] | None = None,
-             party_list: list[str] | None = None,
-             national: dict[str, PartyFit] | None = None):
+             party_list: list[str] | None = None):
     """Fit every party's pool vector from one city's ward results.
 
     Composition is taken as at that election's polling day, not as at whichever
     census happens to be lying around.
     """
     shares, votes = ward_party_shares(city, year)
-    when = election_decimal_year(cityconfig.Target(city=city, year=year))
-    codes = set(shares)
+
+    # The pool is a set of people and three nested subsets of it; the party
+    # rates act on the innermost one, the people who actually voted.
+    counts = pool_counts(city, year, cfg)
+    for violation in counts.violations:
+        print(f"  ! {violation}")
 
     base = cfg.base()
-    comp_by_ward, provenance = composition_at(base, cfg, when, codes,
-                                              city=city, election_year=year)
     tilt_dims = list(cfg.tilts(admitted_only=admitted_only))
     if extra_tilts:
         tilt_dims += [d for d in extra_tilts if d.name not in {t.name for t in tilt_dims}]
-    tilt_by_ward = {}
-    for d in tilt_dims:
-        tilt_by_ward[d.name], _ = composition_at(d, cfg, when, codes,
-                                                 city=city, election_year=year)
 
-    wards = sorted(w for w in shares
-                   if w in comp_by_ward
-                   and all(w in tilt_by_ward[d.name] for d in tilt_dims))
+    wards = [w for w in counts.wards if w in shares]
+    keep = [i for i, w in enumerate(counts.wards) if w in shares]
     if not wards:
         raise SystemExit(f"{city.slug} {year}: no ward joined the covariates")
-
-    comp = np.array([comp_by_ward[w] for w in wards])
+    comp = counts.composition("voted")[keep]
     vote = np.array([votes[w] for w in wards])
-    blocks = [comp]
-    for d in tilt_dims:
-        m = np.array([tilt_by_ward[d.name][w] for w in wards])
-        blocks.append(m - np.average(m, axis=0, weights=vote))
-    X = np.hstack(blocks)
-    n_base = comp.shape[1]
+    provenance = f"nested pool counts from {year}"
 
-    floor = float(cfg.fit.get("floor_rate", 0.002))
-    grid = list(cfg.fit.get("ridge_grid", [0.0]))
-    folds = int(cfg.fit.get("ridge_folds", 5))
+    if tilt_dims:
+        raise SystemExit(
+            f"the joint fit does not carry tilt dimensions yet "
+            f"({', '.join(d.name for d in tilt_dims)}). No tilt is admitted, so "
+            f"this is unreachable in production; it is a refusal rather than a "
+            f"silent single-dimension fit.")
+
     universe = party_list or sorted({p for w in wards for p in shares[w]})
+    universe = [p for p in universe
+                if any(shares[w].get(p, 0.0) > 0 for w in wards)]
+    Y = np.array([[shares[w].get(p, 0.0) for p in universe] for w in wards])
 
-    pool_share = (comp * vote[:, None]).sum(axis=0)
-    pool_share = pool_share / pool_share.sum()
+    # Every party at once, subject to what must be true: no negative votes, and
+    # each pool's rates summing to one because every voter voted for someone.
+    R = fit_joint(comp, Y, vote)
+    pool_votes = (comp * vote[:, None]).sum(axis=0)
+    party_votes = (Y * vote[:, None]).sum(axis=0)
+    R = balance_margins(R, pool_votes, party_votes)
 
     fits: dict[str, PartyFit] = {}
-    for party in universe:
-        y = np.array([shares[w].get(party, 0.0) for w in wards])
-        if y.sum() <= 0:
-            continue
-        null = float(np.average(y, weights=vote))
-
-        # The prior is the national shape, rescaled to this city's level —
-        # direction transfers between cities, magnitude does not (Al Jama-ah is
-        # Indian-shaped in both metros at 0.8% and 0.1%). Where there is no
-        # national fit for a party, fall back to the flat null.
-        box = bounds(y, comp, vote)
-        box[:, 0] = np.maximum(box[:, 0], floor)
-        box[:, 1] = np.maximum(box[:, 1], box[:, 0])
-
-        prior_base = np.full(n_base, null)
-        nat = (national or {}).get(party)
-        if nat is not None:
-            implied = float(nat.rates @ pool_share)
-            if implied > 1e-9:
-                prior_base = nat.rates * (null / implied)
-
-        # λ by k-fold cross-validation over wards: how much to trust the wards
-        # over the null is itself a question the wards can answer.
-        best, best_lam = float("inf"), grid[0]
-        if len(grid) > 1 and len(wards) >= folds:
-            assign = np.arange(len(wards)) % folds
-            for lam in grid:
-                err = 0.0
-                for k in range(folds):
-                    tr, te = assign != k, assign == k
-                    beta = _solve(X[tr], y[tr], vote[tr], n_base=n_base,
-                                  prior_base=prior_base, lam=lam, floor=floor,
-                                  box=box)
-                    err += (((X[te] @ beta - y[te]) ** 2) * vote[te]).sum()
-                if err < best:
-                    best, best_lam = err, lam
-
-        beta = _solve(X, y, vote, n_base=n_base, prior_base=prior_base,
-                      lam=best_lam, floor=floor, box=box)
-        offset, tilts = n_base, {}
-        for d in tilt_dims:
-            k = len(d.categories)
-            tilts[d.name] = beta[offset:offset + k]
-            offset += k
+    for i, party in enumerate(universe):
+        y = Y[:, i]
         fits[party] = PartyFit(
-            party=party, citywide=null, rates=beta[:n_base], tilts=tilts,
-            r2=_r2(y, X @ beta, vote), lam=best_lam, bounds=box,
+            party=party,
+            citywide=float(np.average(y, weights=vote)),
+            rates=R[:, i],
+            r2=_r2(y, comp @ R[:, i], vote),
+            bounds=bounds(y, comp, vote),
         )
 
-    pool_electorate = (comp * vote[:, None]).sum(axis=0)
-    return fits, {"wards": wards, "comp": comp, "votes": vote, "X": X,
-                  "n_base": n_base, "shares": shares, "tilt_dims": tilt_dims,
-                  "pool_electorate": pool_electorate, "categories": base.categories,
-                  "provenance": provenance, "when": when, "year": year}
+    pool_votes = (comp * vote[:, None]).sum(axis=0)
+    return fits, {"wards": wards, "comp": comp, "votes": vote,
+                  "shares": shares, "tilt_dims": tilt_dims, "counts": counts,
+                  "pool_votes": pool_votes, "categories": base.categories,
+                  "provenance": provenance, "year": year,
+                  "rates": counts.rates}
 
 
 # --------------------------------------------------------------------------
@@ -639,63 +992,6 @@ def metro_ward_shares(code: str, year: str, ballot: str = "PR"
     return shares, votes
 
 
-def fit_national(cfg: Config, year: str = "2021", codes=METRO_CODES,
-                 ) -> tuple[dict[str, PartyFit], np.ndarray, list[str]]:
-    """Fit pool vectors on every metro at once.
-
-    This exists because a single city cannot identify the pools it has no
-    homogeneous wards for. Johannesburg holds one ward that is majority-Indian
-    and three that are majority-Coloured; across the eight metros there are
-    seventeen and sixty-three, because eThekwini and Cape Town have them. The
-    rates the city cannot see are measurable in the country, and a national
-    rate is a far better prior for Johannesburg than "appeals to everyone
-    equally" — which is what was driving every minority estimate to the floor.
-
-    What this does NOT assume is that a party performs identically everywhere.
-    The national vector supplies the *shape*; :func:`fit_city` rescales it to
-    the city's own level and lets the city's wards move it from there.
-    """
-    base = cfg.base()
-    census = base.censuses[-1]
-    comp_all = read_census(base, census, cfg)
-
-    wards, comp_rows, vote_rows, share_rows = [], [], [], []
-    for code in codes:
-        shares, votes = metro_ward_shares(code, year)
-        for ward in shares:
-            if ward in comp_all:
-                wards.append(f"{code}:{ward}")
-                comp_rows.append(comp_all[ward])
-                vote_rows.append(votes[ward])
-                share_rows.append(shares[ward])
-    if not wards:
-        raise SystemExit("national fit: no metro ward joined the census")
-
-    comp = np.array(comp_rows)
-    vote = np.array(vote_rows)
-    floor = float(cfg.fit.get("floor_rate", 0.002))
-    grid = list(cfg.fit.get("ridge_grid", [0.0]))
-    universe = sorted({p for s in share_rows for p in s})
-
-    fits: dict[str, PartyFit] = {}
-    for party in universe:
-        y = np.array([s.get(party, 0.0) for s in share_rows])
-        if y.sum() <= 0:
-            continue
-        null = float(np.average(y, weights=vote))
-        prior = np.full(comp.shape[1], null)
-        box = bounds(y, comp, vote)
-        box[:, 0] = np.maximum(box[:, 0], floor)
-        box[:, 1] = np.maximum(box[:, 1], box[:, 0])
-        beta = _solve(comp, y, vote, n_base=comp.shape[1], prior_base=prior,
-                      lam=grid[len(grid) // 2] if len(grid) > 1 else 0.0,
-                      floor=floor, box=box)
-        fits[party] = PartyFit(party=party, citywide=null, rates=beta,
-                               r2=_r2(y, comp @ beta, vote), bounds=box)
-    pool_electorate = (comp * vote[:, None]).sum(axis=0)
-    return fits, pool_electorate, list(base.categories)
-
-
 def pool_totals(composition: dict[str, np.ndarray], shares: dict[str, float],
                 n_pools: int) -> np.ndarray:
     """Each pool's share of the total vote.
@@ -710,8 +1006,23 @@ def pool_totals(composition: dict[str, np.ndarray], shares: dict[str, float],
     return total
 
 
+def lge_transitions(before: str | None = None) -> tuple[tuple[str, str], ...]:
+    """Consecutive local-election pairs, optionally ending before a target.
+
+    A range measured on the transition it is about to predict is not a prior.
+    These were hard-coded, so a 2021 backtest measured its pool ratios partly
+    on 2016->2021 — the target itself.
+    """
+    years = sorted((y for y, e in cityconfig.CALENDAR.items()
+                    if e.kind == "LGE" and e.results), key=int)
+    pairs = tuple(zip(years, years[1:]))
+    if before is None:
+        return pairs
+    return tuple(p for p in pairs if int(p[1]) < int(before))
+
+
 def measure_pool_ratios(composition: dict[str, np.ndarray], n_pools: int,
-                        transitions=(("2011", "2016"), ("2016", "2021")),
+                        transitions=None,
                         codes=METRO_CODES) -> list[list[float]]:
     """How much a pool's vote total moves between elections, across all metros.
 
@@ -721,6 +1032,8 @@ def measure_pool_ratios(composition: dict[str, np.ndarray], n_pools: int,
     make-up at one census, so the *definition* of each pool is fixed and what
     is being measured is the movement of its vote.
     """
+    if transitions is None:
+        transitions = lge_transitions()
     ratios: list[list[float]] = [[] for _ in range(n_pools)]
     for code in codes:
         for before, after in transitions:
@@ -838,12 +1151,17 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     decided trade with each other.
     """
     year = from_year or target.previous_lge or target.year
-    national, _, _ = fit_national(cfg, year)
-    fits, ctx = fit_city(city, year, cfg, national=national)
+    fits, ctx = fit_city(city, year, cfg)
     cats = list(ctx["categories"])
     n = len(cats)
 
-    composition = {p: f.composition(ctx["pool_electorate"]) for p, f in fits.items()}
+    # Size the pools as they will be at the TARGET, not as they were at the
+    # election the rates were fitted on. The roll is counted every cycle and
+    # the census is not, so the trend comes from the roll; `before` keeps a
+    # backtest from seeing its own target's registration.
+    series = registration_series(city, cfg, before=target.year)
+    target_shares, roll_note = projected_pool_shares(series, target.year)
+    composition = {p: f.composition(target_shares) for p, f in fits.items()}
 
     # --- parties with no measured vector -------------------------------------
     # The baseline is the election the forecast starts from; the pool vectors
@@ -894,12 +1212,14 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     template = write_lineage_template(city, target, newcomers, lineage,
                                       list(ctx["categories"]))
 
-    ratios = measure_pool_ratios(composition, n)
+    transitions = lge_transitions(before=target.year)
+    ratios = measure_pool_ratios(composition, n, transitions=transitions)
 
     # Each pool's internal split, per metro-year, for the concentration.
     splits: list[list[np.ndarray]] = [[] for _ in range(n)]
+    split_years = sorted({y for pair in transitions for y in pair}, key=int)
     for code in METRO_CODES:
-        for y in ("2011", "2016", "2021"):
+        for y in split_years:
             shares = metro_citywide(code, y)
             if not shares:
                 continue
@@ -927,7 +1247,9 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             "observations": len(obs),
             "derived_from": f"pool vectors fitted on {city.slug} {year}; ratios "
                             f"from {len(obs)} metro transitions across "
-                            f"{len(METRO_CODES)} metros",
+                            f"{len(METRO_CODES)} metros, all ending before "
+                            f"{target.year}: "
+                            f"{', '.join(a + '->' + b for a, b in transitions)}",
             # Which members' weights the ward data actually pins down. The rest
             # are the model's guesses and are where a judgement belongs. A
             # party with no measured vector at all (it did not contest the
@@ -937,7 +1259,10 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
                                  if p in fits and fits[p].identified()[g]),
         }
     return {"pools": out, "fitted_on": year, "target": target.year,
-            "provenance": ctx["provenance"], "categories": cats,
+            "provenance": f"{ctx['provenance']}; pools sized by {roll_note}",
+            "pool_shares_at_target": target_shares.tolist(),
+            "registration_series": {y: v.tolist() for y, v in series.items()},
+            "categories": cats,
             "no_measured_vector": inherited,
             "judgement_file": str(template)}
 
@@ -1063,8 +1388,7 @@ def main() -> None:
         return
 
     year = args.from_year or target.previous_lge or target.year
-    national, _, _ = fit_national(cfg, year)
-    fits, ctx = fit_city(city, year, cfg, national=national)
+    fits, ctx = fit_city(city, year, cfg)
     _report(fits, ctx, f"{city.name} — pool vectors fitted on {year} "
                        f"(for target {target.year})")
     print(f"  composition: {ctx['provenance']}")
@@ -1073,7 +1397,7 @@ def main() -> None:
     cats = ctx["categories"]
     print(f"  {'party':10s}" + "".join(f"{c[:11]:>13s}" for c in cats))
     for party in sorted(fits, key=lambda p: -fits[p].citywide)[:8]:
-        comp = fits[party].composition(ctx["pool_electorate"])
+        comp = fits[party].composition(ctx["pool_votes"])
         print(f"  {party:10s}" + "".join(f"{x:>13.1%}" for x in comp))
 
 
