@@ -35,6 +35,33 @@ election_date = "2026-11-04"
 #   2016: 107 wards ·  732 VDs · 1,512,524 registered
 #   2021: 107 wards ·  778 VDs · 1,526,585 registered
 
+# Council sizes READ FROM the IEC's own Seat Calculation Detail
+# (data/raw/elections/_reports/lge<year>_TSH_seat_calculation_detail.xls, via
+# src/official_seats.py). Note 2016 was ALREADY 214, not 210 — the expansion
+# came with the 2016 delimitation (105 wards -> 107), not with 2021.
+# Wards and VDs counted from the cleaned VD result files.
+
+[structure.by_year.2011]
+council = 210
+wards = 105
+list_seats = 105
+vds = 616
+registered = 1326427
+
+[structure.by_year.2016]
+council = 214
+wards = 107
+list_seats = 107
+vds = 732
+registered = 1512524
+
+[structure.by_year.2021]
+council = 214
+wards = 107
+list_seats = 107
+vds = 778
+registered = 1526585
+
 [site]
 accent = "#6b4fa8"                # jacaranda purple — Pretoria in October
 accent_soft = "#e8e2f2"

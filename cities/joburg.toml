@@ -18,12 +18,40 @@ subdomain = "joburg.whysoserious.city"
 
 [structure]
 # Derived from the IEC files by derive_city.py — never typed by hand.
+# These describe the TARGET election (2026); earlier ones are in by_year
+# below, because council size is not constant within a city.
 council = 270
 wards = 135
 list_seats = 135
 vds = 865
 registered = 2348781
 election_date = "2026-11-04"
+
+# Council sizes READ FROM the IEC's own Seat Calculation Detail
+# (data/raw/elections/_reports/lge<year>_JHB_seat_calculation_detail.xls, via
+# src/official_seats.py — "Total Seats Available", which the party rows sum to
+# in all three years). Wards and VDs counted from the cleaned VD result files.
+# There is no by_year entry for 2000 or 2006: the IEC published no seat
+# calculation for them, so their council size is not on disk and structure_for()
+# will refuse the target rather than inherit 2026's 270.
+
+[structure.by_year.2011]
+council = 260
+wards = 130
+list_seats = 130
+vds = 797
+
+[structure.by_year.2016]
+council = 270
+wards = 135
+list_seats = 135
+vds = 842
+
+[structure.by_year.2021]
+council = 270
+wards = 135
+list_seats = 135
+vds = 867
 
 [site]
 accent = "#a8621f"           # Joburg sunset amber
