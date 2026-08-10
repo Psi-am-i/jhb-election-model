@@ -1355,11 +1355,38 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # vector. Taken from the roster, not the baseline: a genuine entrant is
     # absent from the baseline entirely, so looking there could never find one
     # — which is exactly how ActionSA stayed at zero into a 44-seat miss.
-    newcomers = {p for p in contesting_parties(city, target.year)
+    # Who needs a vector, and who needs a LEVEL, are two different questions,
+    # and conflating them broke both halves.
+    #
+    # `composition` holds a pool vector for every party that contested the
+    # fitting election. A party missing from it needs one — that is `no_vector`.
+    # MK is in that set for a 2026 target, because it did not exist in 2021.
+    #
+    # But MK is NOT a party with no level: it holds 12.22% of the 2024 baseline.
+    # Seeding it as though it were added a second copy of a split that is
+    # already in the baseline numbers — MK started at 12.22% + 15.98% = 28.20%
+    # while the ANC was debited to 15.98%, half its measured share, which is
+    # why this code produced ANC 36 / MK 68. A seed is for a party with NO
+    # baseline; everyone else already has their level from the baseline itself.
+    roster = contesting_parties(city, target.year)
+    if not roster:
+        # A target that has not happened has no result file and therefore no
+        # roster. Falling through with an empty set silently deleted every seed
+        # from the 2026 spec — the live forecast — while the backtests, which do
+        # have a roster, looked fine. Fall back to the baseline plus anyone
+        # already carrying a pool vector, and say so.
+        roster = set(baseline) | set(composition)
+        print(f"  ! no published roster for {target.year} (it has not been "
+              f"held): newcomers taken from the {target.previous_npe} baseline "
+              f"instead. Nomination lists would be better and are public "
+              f"before polling day.")
+    no_vector = {p for p in roster
                  if p not in composition and p not in ("IND", "ENTRANT")}
+    # A seed is only for a party with no level to start from.
+    newcomers = {p for p in no_vector if baseline.get(p, 0.0) <= 0.0}
     lineage = load_lineage(city, target)
     inherited: dict[str, str] = {}
-    for party in sorted(newcomers):
+    for party in sorted(no_vector):
         rule = lineage.get(party, {})
         weights = rule.get("weights")
         parent = (rule.get("parent") or "").strip().upper()
