@@ -659,8 +659,29 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  {p:<10s} {a:>7d} {b:>10d} {b - a:>+5d}")
     print(f"\n  seat MAE: {np.mean(seat_errors):.2f}   total absolute seat error: {sum(seat_errors)}")
 
+    # Only a DEFAULT fit may claim the canonical filename. Every option below
+    # changes the fitted values, and the live forecast reads
+    # fold1_parameters.csv for γ -- so a `--turnout ratio` experiment used to
+    # replace the parameters the published forecast depends on, silently. It
+    # did: on 2026-08-10 a diagnostic run moved 55 of the forecast's 555
+    # values, and the only reason anyone noticed was an unrelated check.
+    # Anything non-default now writes beside it instead of over it.
     suffix = "" if not args.fit_from else f"_from{args.fit_from}"
-    out = cityconfig.active().processed / f"fold{args.fold}{suffix}_parameters.csv"
+    variant = "".join(
+        f"__{name}-{value}"
+        for name, value, default in (
+            ("turnout", args.turnout, "level"),
+            ("stability", args.stability, "all"),
+            ("transfer", args.transfer, "all"),
+            ("wsplit", args.w_split, 0.6),
+        )
+        if value != default
+    )
+    if args.entrant:
+        variant += "__entrant-" + "_".join(sorted(e.replace("=", "-").replace(":", "-")
+                                                  for e in args.entrant))
+    out = (cityconfig.active().processed
+           / f"fold{args.fold}{suffix}_parameters{variant}.csv")
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)

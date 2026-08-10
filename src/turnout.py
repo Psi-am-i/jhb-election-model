@@ -129,7 +129,11 @@ def citywide(counts: dict[str, tuple[int, int]]) -> float:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
-    parser.add_argument("--out", type=Path, default=Path("data/processed/turnout.csv"))
+    # Defaults to the ACTIVE CITY's processed directory, resolved after
+    # --city is parsed. It used to default to data/processed/turnout.csv
+    # whatever --city said, so a Tshwane run overwrote Johannesburg's
+    # published turnout file -- which montecarlo.py then read.
+    parser.add_argument("--out", type=Path, default=None)
     parser.add_argument(
         "--w-recency",
         type=float,
@@ -150,6 +154,9 @@ def main(argv: list[str] | None = None) -> int:
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
     cityconfig.use(getattr(args, "city", None))
+
+    if args.out is None:
+        args.out = cityconfig.active().processed / "turnout.csv"
 
     series = turnout_series(args.data_dir)
     # The elections this city actually holds, in ELECTIONS order. Everything
