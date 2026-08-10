@@ -1466,6 +1466,14 @@ confirms was wise.
 - **Task #16** — Census 2022 Small Area Layer: **requested from Stats SA 2026-08-05** (email sent), awaiting reply.
 - **Task #18** — historic VD boundaries: **requested from the IEC Delimitation Directorate 2026-08-05** (email sent), awaiting reply. Would convert R1 from mitigated to resolved.
 - **Task #20** — Schedule 1 overhang worked example: **four-question request sent to the IEC 2026-08-05**, awaiting reply. In parallel, an archive hunt for a real historical overhang municipality is running. P(overhang) ~72–96% across readings; the answer moves P(ANC+DA) across 72–91% (§1.16).
+- **Task #21 (new, 2026-08-10)** — **Census 2022 home language by ward**, from
+  Stats SA. Now the binding constraint on the model's structure, ahead of the
+  SAL: population group cannot distinguish pools that are linguistically
+  rather than racially sorted, and two measurements say that distinction is
+  real (ANC vs IFP correlate −0.14 despite both being African-supported; DA
+  and VF+ correlate +0.61 to +0.86 despite differing in language). It would
+  also bound MK demographically instead of by judgement. Draft request at
+  `drafts/statssa-request-language.md`, **not yet sent**.
 - **External** — 2026 registration-weekend figures, when published.
 
 ### Open from the 2026-08-09/10 splinter work (§1.26, §1.27), ranked

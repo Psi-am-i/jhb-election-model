@@ -239,6 +239,16 @@ validation in this repo was run against.
 
 ## Still to acquire — needs a human
 
+* **Census 2022 home language, by ward** — the single most valuable missing
+  input. The Ward Statistical Product carries only population group, age and
+  sex, and population group is too coarse to describe how voters are grouped:
+  the ANC and IFP are both overwhelmingly African-supported and stand on
+  entirely separate ground (district correlation −0.14), while the DA and VF+
+  differ in language and share ground (+0.61 in Johannesburg, +0.86 in
+  Tshwane). Language would settle how many voter pools a city has and put a
+  demographic bound on MK, which took 71% of its Johannesburg vote from the
+  ANC while standing on IFP ground. Requested — draft at
+  `drafts/statssa-request-language.md`.
 * **Census 2022 Small Area Layer (SAL)** — plan §1.3 C1 asks for income,
   dwelling type and employment at small-area level. Stats SA does **not**
   publish the SAL for download; it is supplied on request only
