@@ -525,6 +525,18 @@ def reproject(comp: dict[str, np.ndarray], city: cityconfig.City,
 _LOG_FLOOR = 1e-6
 
 
+def delimitation_for(year: str) -> int:
+    """Which delimitation an election was fought on.
+
+    Wards are redrawn for each local election and stand until the next one, so
+    the delimitation is the most recent LGE at or before the year: the 2019
+    national election used the 2016 wards, the 2024 national the 2021 wards.
+    """
+    lge = [int(y) for y, e in cityconfig.CALENDAR.items()
+           if e.kind == "LGE" and int(y) <= int(year)]
+    return max(lge) if lge else int(year)
+
+
 def composition_at(dim: Dimension, cfg: Config, when: float,
                    ward_codes: set[str] | None = None,
                    city: cityconfig.City | None = None,
@@ -546,7 +558,13 @@ def composition_at(dim: Dimension, cfg: Config, when: float,
     frames, notes = [], []
     for census in dim.censuses:
         comp = read_census(dim, census, cfg)
-        on_delimitation = ward_codes is None or set(comp) >= ward_codes
+        # Ward codes are contiguous and REUSED, so a subset test always passes
+        # and the old guard never fired — Census 2022's codes "match" the 2011
+        # election's 130 wards perfectly, every one a different polygon. Compare
+        # delimitations instead, which is the thing that actually differs.
+        on_delimitation = (
+            ward_codes is None or election_year is None
+            or census.delimitation == delimitation_for(election_year))
         if not on_delimitation:
             # Published on a different delimitation. Ward codes would still
             # join — wrongly — so go through voting districts instead.
@@ -572,11 +590,16 @@ def composition_at(dim: Dimension, cfg: Config, when: float,
         census, comp = frames[0]
         gap = when - census.year
         if abs(gap) > cfg.max_extrapolation:
-            raise SystemExit(
-                f"{dim.name}: only Census {census.year} is available and the "
-                f"target is {gap:+.1f} years from it, beyond the "
-                f"{cfg.max_extrapolation:g}-year limit. A second census is "
-                f"needed to establish a trend.")
+            # A NOTE, NOT A BLOCKER. The census supplies composition only —
+            # which pool a ward's people belong to. The *level* of every pool
+            # comes from the registered roll, which is counted at every
+            # election. So a distant census degrades the split, it does not
+            # invalidate the count, and refusing to run cost us the only two
+            # other targets we could have scored.
+            notes.append(
+                f"Census {census.year} used {abs(gap):.1f}y from the target, "
+                f"past the {cfg.max_extrapolation:g}y guide — composition only, "
+                f"pool sizes still come from the roll")
         how = (f"Census {census.year} held flat ({gap:+.1f}y; no second census "
                f"to establish a trend)")
         return comp, "; ".join(notes + [how])
@@ -1075,6 +1098,72 @@ def dirichlet_alpha(splits: list[np.ndarray], min_share: float = 0.01) -> float:
     return float(np.clip(np.average(est, weights=m[usable]), 1.0, 200.0))
 
 
+def entrant_record(transitions, codes=METRO_CODES) -> list[float]:
+    """Every share won by a party that was not there at the previous election.
+
+    The record, not a judgement. A party arriving from nothing is the single
+    largest error the model makes — ActionSA won 44 of Johannesburg's 270 seats
+    in 2021 and the model gave it zero, because it held 0.0000% of the 2019
+    baseline and multiplicative growth cannot lift a party off zero. The same
+    happened to the PA's 8 seats. Between them that is the whole of the model's
+    112-seat absolute error at that target.
+    """
+    seen: list[float] = []
+    for code in codes:
+        for before, after in transitions:
+            a, b = metro_citywide(code, before), metro_citywide(code, after)
+            if not a or not b:
+                continue
+            for party, share in b.items():
+                if a.get(party, 0.0) <= 1e-4 < share:
+                    seen.append(share)
+    return sorted(seen)
+
+
+def default_seeds(newcomers: dict[str, float], lineage: dict[str, dict],
+                  baseline: dict[str, float], record: list[float],
+                  ) -> tuple[dict[str, float], dict[str, str]]:
+    """A starting share for every party with no baseline, and a note for each.
+
+    Neither default is a forecast; both exist so that "nobody wrote a
+    judgement" does not silently mean "this party wins nothing".
+
+    * **A splinter takes its share out of its parent**, an even split of the
+      parent's vote by default, capped at the largest entry the record shows.
+      Its parent is debited the same amount, because those votes moved rather
+      than appeared.
+    * **An entrant** takes the median of the record.
+
+    Both are bounded by what entrants have actually managed, so neither can
+    invent a party larger than any that has ever arrived.
+    """
+    if not record:
+        return {}, {}
+    cap = record[-1]
+    typical = float(np.median(record))
+
+    seeds: dict[str, float] = {}
+    notes: dict[str, str] = {}
+    for party in sorted(newcomers, key=lambda p: -newcomers[p]):
+        rule = lineage.get(party, {})
+        parent = (rule.get("parent") or "").strip().upper()
+        if "seed" in rule:
+            seeds[party] = float(rule["seed"])
+            notes[party] = "declared in judgements/"
+        elif parent and baseline.get(parent, 0.0) > 0:
+            available = baseline[parent] - seeds.get(parent, 0.0)
+            take = min(0.5 * available, cap)
+            seeds[party] = take
+            seeds[parent] = seeds.get(parent, 0.0) - take
+            notes[party] = (f"splinter: half of {parent}'s {available:.1%}, "
+                            f"capped at the record's largest entrant {cap:.1%}")
+        else:
+            seeds[party] = min(typical, cap)
+            notes[party] = (f"entrant: median of {len(record)} arrivals on "
+                            f"record ({typical:.2%})")
+    return seeds, notes
+
+
 def lineage_path(city: cityconfig.City, target: cityconfig.Target) -> Path:
     return Path("judgements") / f"{city.slug}-{target.year}.toml"
 
@@ -1209,6 +1298,8 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
                                    if parent else ""))
         composition[party] = vec
 
+    record = entrant_record(transitions_for_seed := lge_transitions(before=target.year))
+    seeds, seed_notes = default_seeds(newcomers, lineage, baseline, record)
     template = write_lineage_template(city, target, newcomers, lineage,
                                       list(ctx["categories"]))
 
@@ -1259,6 +1350,9 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
                                  if p in fits and fits[p].identified()[g]),
         }
     return {"pools": out, "fitted_on": year, "target": target.year,
+            "seeds": {p: v for p, v in seeds.items() if abs(v) > 1e-9},
+            "seed_notes": seed_notes,
+            "entrant_record": record,
             "provenance": f"{ctx['provenance']}; pools sized by {roll_note}",
             "pool_shares_at_target": target_shares.tolist(),
             "registration_series": {y: v.tolist() for y, v in series.items()},

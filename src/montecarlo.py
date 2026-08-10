@@ -826,6 +826,8 @@ def run_model(target, scenario: dict,
         if spec_path.exists():
             spec = json.loads(spec_path.read_text())
             scenario["pools"] = spec["pools"]
+            scenario["pool_seeds"] = spec.get("seeds", {})
+            scenario["pool_seed_notes"] = spec.get("seed_notes", {})
             if verbose:
                 print(f"  pools: {len(spec['pools'])} measured from "
                       f"{spec['fitted_on']} ({spec['provenance']})")
@@ -846,6 +848,24 @@ def run_model(target, scenario: dict,
     # --- baseline: the last national election before the target --------------
     base_votes, _ = load(data_dir / target.results(target.previous_npe), None)
     base_share_d, base_city_d = shares(base_votes), citywide(base_votes)
+
+    # A party with no baseline cannot be grown into existence: theta multiplies,
+    # and anything times zero is zero. ActionSA held 0.0000% of the 2019
+    # national vote and won 44 of Johannesburg's 270 seats in 2021; the model
+    # scored it at zero, and those seats reappeared as ANC +17 and DA +20.
+    # pools.default_seeds gives every such party a starting share — a splinter
+    # takes half its parent's vote, an entrant the median arrival on record,
+    # both capped at the largest entry ever observed — and debits the parent
+    # where there is one, because those votes moved rather than appeared.
+    seeds = scenario.get("pool_seeds") or {}
+    if seeds:
+        notes_by_party = scenario.get("pool_seed_notes") or {}
+        for party, seed in seeds.items():
+            base_city_d[party] = max(base_city_d.get(party, 0.0) + seed, 0.0)
+        if verbose:
+            for party in sorted(seeds, key=lambda p: -abs(seeds[p]))[:6]:
+                why = notes_by_party.get(party, "parent debited")
+                print(f"  seed {party:<10} {seeds[party]:+.2%}  {why}")
     universe = sorted(p for p in base_city_d if p != INDEPENDENT and p != "IND")
     if scenario["entrant_prob"] > 0:
         universe.append("ENTRANT")
