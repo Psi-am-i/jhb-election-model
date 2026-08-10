@@ -462,8 +462,10 @@ def pool_spec(scenario, base_city_d, centres, index, lean):
         if props.sum() <= 0:
             props = weights
         props = props / props.sum()
+        levels = np.array([members[p] * centres.get(p, 0.0) for p in members])
         spec[name] = (idx, base_total, (low, min(max(evidence_mode, low), high), high),
-                      props, float(cfg["alpha"]))
+                      props, float(cfg["alpha"]), list(members), levels,
+                      {p: members[p] for p in members})
     return spec
 
 
@@ -529,6 +531,7 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         splinter_levels.setdefault(
             home, np.array([centres[p] for p in present]))
         splinters.append({
+            "party": party,
             "bloc": home,
             "slot": present.index(party),
             "base": base_city_d.get(party, 0.0),
@@ -575,6 +578,11 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         split among its contenders, and a party collects its winnings from
         every pool it draws from."""
         target = np.zeros(n)
+        branch_theta = {}
+        for rule in splinters:
+            branch = (rule["collapse"] if rng.random() < rule["p_fracture"]
+                      else rule["holds"])
+            branch_theta[rule["party"]] = triangular(rng, branch)
         totals = {}
         for group, names in ties.items():
             if len(names) == 1:
@@ -592,7 +600,19 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             shock = triangular(rng, (lo, md, hi))
             for nm in names:
                 totals[nm] = pools[nm][1] * shock
-        for name, (idx, base, spec, props, alpha) in pools.items():
+        for name, (idx, base, spec, props, alpha, names, levels, wts) in pools.items():
+            # A splinter's branch draw changes its level, so it must change its
+            # share of every pool it draws from -- not just one. The theta is
+            # drawn ONCE per party (above) and applied wherever that party sits.
+            if branch_theta:
+                hit = [q for q in names if q in branch_theta]
+                if hit:
+                    lv = levels.copy()
+                    for q in hit:
+                        lv[names.index(q)] = (wts[q] * base_city_d.get(q, 0.0)
+                                              * branch_theta[q])
+                    if lv.sum() > 0:
+                        props = lv / lv.sum()
             split = rng.dirichlet(np.maximum(props * alpha, 0.05))
             np.add.at(target, idx, max(totals[name], 0.005) * split)
         for i, spec in individual:
