@@ -110,6 +110,29 @@ the parties are strong. That is a judgement, it is visible in the
 [interactive model](interactive) as a slider you can move, and if you think
 it is wrong you can set the bloc-crossing dial and see what changes.
 
+**We also tested whether it helps, and the test came out a draw.** Grouping
+parties is only worth doing if it predicts better, so we ran the model
+against the two past elections it can be checked on — measuring how a bloc
+moved in one election, then using that, blind, to predict the next. Carrying
+a *bloc's* movement and splitting it between members did better once and
+worse once: predicting 2016 it called two more wards right out of 135,
+predicting 2021 it called one more ward wrong. On every other measure the
+two approaches were indistinguishable.
+
+The reason is worth stating, because it limits what anyone can honestly
+claim here. There are only two usable transitions, and they disagree. Going
+into 2021 the ANC and the EFF moved almost identically — within 2% of each
+other — which is exactly what a shared pool of voters looks like. Going into
+2016 they moved in opposite directions, the ANC down and the EFF up. One
+observation each way is not a finding, and no better test exists until more
+elections have happened.
+
+So the honest position is that the bloc structure is unproven rather than
+vindicated: it is a reasoned judgement about where defecting voters go,
+supported by the geography and by 2021, contradicted by 2016, and left in
+your hands as a slider. It is not a fitted parameter and we do not present
+it as one.
+
 ## The machinery of prediction
 
 The forecast comes from running 5,000 simulations of the same pipeline:

@@ -883,6 +883,395 @@ Every step re-runs Joburg and asserts `forecast_summary.json` is unchanged
 (DA 79 / ANC 74, P(ANC+DA) 87.6%, P(excessive) 96.3%). The engine gets
 generalised; the numbers do not.
 
+### 1.25 Blocs tested out of sample: the structure is not a predictive win ✅
+
+The bloc grouping had been argued for from spatial evidence (§1.18) but never
+tested against the thing it exists to do — predict. `fold.py` gained a third
+transfer mode, `--transfer bloc`, which carries the *bloc's* share-weighted θ
+and applies it to every member, instead of carrying each party's own θ. The
+default is unchanged, so **the published forecast is untouched**; this is a
+diagnostic, not a model change.
+
+**Result: the two folds disagree, and neither is decisive.** VD MAE is the
+PR ballot; both parameter files were refit from scratch immediately before
+these runs (see the defect below, which is why that sentence is here).
+
+| Fold | per-party θ | bloc θ |
+|---|---|---|
+| 2019→2021 (θ from 2014→2016) | seat error 126, wards 127/135, VD MAE 0.83pp | 126, **126/135** (worse), 0.84pp |
+| 2014→2016 (θ from 2019→2021) | seat error 94, wards 131/135, VD MAE 1.18pp | 94, **133/135** (better), 1.19pp |
+
+Four things had to be understood before those numbers meant anything:
+
+1. **Total seat error cannot see this test at all.** A bloc transfer conserves
+   the bloc's total and only changes the split, so a gain in one member is
+   paid for by the other, and the total is identical by construction in both
+   folds. Predicting 2021, going bloc-wise moved the ANC from +15 to +24 seats
+   and the EFF from +13 to +4 — the same 28, redistributed. Predicting 2016 it
+   moved the ANC from −13 to −8 and the EFF from −8 to −13 — the same 21. The
+   only metrics with any power here are ward winners and VD MAE.
+2. **The 2019→2021 fold is dominated by a problem that is not bloc structure.**
+   44 of its 126 seat error is ActionSA, which did not exist in 2019 and is
+   therefore predicted at zero; the ANC and DA overshoots are largely that 18%
+   of the vote being redistributed to whoever was on the ballot. That fold
+   measures new-entrant blindness (R7), and bloc structure only faintly.
+3. **The folds point opposite ways, and by small margins.** Predicting 2021,
+   the bloc transfer calls one more ward wrong; predicting 2016, it calls two
+   more ward *right*. VD MAE is worse under the bloc transfer in both folds,
+   by 0.01pp — which is to say, by nothing.
+4. **The DA/ActionSA pair yields no observation.** ActionSA's θ of 1.0 is the
+   default for a party with no prior election, not a measurement, so the
+   test's second bloc is inert in both folds.
+
+On the substantive question — do bloc members move together? — the two
+transitions genuinely disagree. Measured as the citywide LGE/NPE ratio (raw
+θ), into 2021 the ANC was 0.670 and the EFF 0.681, 1.7% apart: they moved
+together, as a shared pool of voters predicts. Into 2016 the ANC was 0.859
+and the EFF 1.079, 25.6% apart and in opposite directions. One observation
+each way.
+
+**Conclusion, stated as weakly as the evidence deserves.** The bloc structure
+is not shown to improve prediction, and is not shown to harm it. With two
+usable transitions split one-all it *cannot* be, and no amount of care with
+the harness will fix a sample of two. This is precisely why the grouping
+remains a documented judgement exposed as a slider (§1.4, A7) rather than a
+fitted parameter — and it is now a judgement with a published null result
+behind it rather than an untested assumption. `--transfer bloc` stays in the
+tree so the test re-runs for free on any new city or any new election.
+
+**A defect found while running this, and a second left open.** The first draft
+of this entry reported the 2014→2016 fold as *identical to two decimals* under
+both transfer modes — seat error 60, 134/135 wards. That was wrong, and the
+way it was wrong is worth recording. `fold.py` wrote its fitted parameters to
+`data/processed/fold{N}_parameters.csv` with no city in the path, and read
+`--fit-from` back from the same place, so **any Tshwane fold run silently
+overwrote Johannesburg's fitted parameters** — and `fold1_parameters.csv` is
+what `montecarlo.py`, `export_interactive.py` and `leverage.py` read to build
+the live forecast. The file on disk was months-stale relative to the pipeline
+that produced the rest of the run. Both call sites now use `City.processed`
+(O11), which keeps Johannesburg on the legacy path and puts every other city
+under `data/processed/<slug>/`; verified by running Tshwane's fold 2 and
+confirming Joburg's file was untouched, and the whole Monte Carlo was re-run
+afterwards to confirm `forecast_summary.json` is byte-identical to the
+published one. The published forecast was never contaminated — only this
+diagnostic was — but it was one `--city tshwane --fold 1` away from being so.
+
+The second defect is **open**. The bloc transfer averages *calibrated* θ,
+which is what `load_parameters` returns, and fold 2's calibrated θ sits 4–7×
+below its raw θ (ANC raw 0.670 → calibrated 0.129; DA 0.859 → 0.116; EFF
+0.681 → 0.166) while fold 1's calibrated θ tracks its raw θ closely (ANC
+0.859 → 0.832). Fold 2's in-sample fit still reproduces citywide shares to
++0.00pp, so the calibration converged — but a solution that far from raw
+suggests the calibrated θ vector is only weakly identified once the universe
+holds 68 parties and an 18% party with a zero base, because within-VD
+renormalisation absorbs much of a uniform rescaling. If so, *transferring*
+calibrated θ across folds depends on which solution the solver happened to
+land on, and every `--fit-from` result inherits that. This does not affect the
+live forecast, which never transfers θ. Registered as R8; until it is
+settled, `--fit-from` numbers should be treated as indicative, not exact.
+
+### 1.26 The splinter question: how a judgement became a measurement 🟡 *2026-08-09/10*
+
+This entry is deliberately a narrative rather than a result. It records a
+single line of enquiry that started as a check on §1.25 and ended by
+overturning a published claim, a bloc assignment and three of my own
+intermediate conclusions. The false steps are kept because the sequence is
+the point: each wrong answer came from too small a sample, and each was
+corrected by getting more data rather than by thinking harder.
+
+**Where it started: verifying §1.25 instead of trusting it.** Re-running the
+bloc test's own numbers reproduced fold 2 exactly and fold 1 not at all. The
+cause was a defect, not a mistake in the arithmetic: `fold.py` wrote and read
+fitted parameters at a path with no city in it, so a Tshwane run silently
+overwrote Johannesburg's — and `fold1_parameters.csv` is what the live
+forecast reads (O11). §1.25's second fold had been written up from a stale
+file. Corrected, the bloc transfer is *better* on that fold (133/135 wards
+against 131) and worse on the other, which is what §1.25 now says.
+
+**The question that opened everything.** The forecast's treatment of MK rests
+on θ_MK = 0.60 — how much of its 2024 national vote it keeps at a local
+election — with a hard cap of 1.00. Where does 0.60 come from? Nowhere
+measurable. So: what has actually happened to parties formed by a defector
+facing their first local election?
+
+**Sample of one, and a wrong conclusion.** Johannesburg had exactly one clean
+precedent, the EFF: 10.13% in 2014 → 11.09% in 2016, θ = 1.09, contesting all
+135 wards. On that basis I argued MK's 0.60 was indefensible and should rise
+to ~0.95. That was wrong, and it was wrong because n=1.
+
+**Sample of four, and a different wrong conclusion.** COPE was the obvious
+adversarial case — a defector-led party that fielded a full slate (130/130)
+and still fell to 1.15%. Testing it needed the 2009 NPE, which the project did
+not hold and which is on none of the documented routes. It turned out the IEC
+publishes every election from 1999 at an unlinked URL
+(`/content/uploadedfiles/{YYYY} {NPE|LGE}.zip`, DATA-QUALITY 10c). With 2009
+in hand COPE reads θ = **0.12** — a ninefold difference from the EFF at
+almost identical debut size and identical contestation. Four observations
+then showed 0.04, 0.12, 1.09, 1.20 and I called the distribution bimodal.
+
+**Sample of six, and the bimodality dissolved.** Ingesting the rest of the
+tail added UDM (0.29) and ID (0.85), filling the gap. Bimodality withdrawn.
+
+**Sample of twenty-four, and it came back for a good reason.** The archives
+are national, so the same splinter can be measured in all eight metros. Two
+things then became visible that no single city could show:
+
+| splinter | JHB | TSH | EKU | CPT | ETH | NMA | MAN | BUF | range |
+|---|---|---|---|---|---|---|---|---|---|
+| COPE 09→11 | 0.12 | 0.12 | 0.18 | 0.16 | 0.19 | 0.28 | 0.24 | 0.22 | **0.12–0.28** |
+| ID 04→06 | 0.86 | 0.73 | 0.99 | 1.37 | 1.17 | 1.22 | 0.80 | 0.65 | **0.65–1.37** |
+| EFF 14→16 | 1.08 | 1.01 | 1.05 | 1.24 | 1.49 | 1.21 | 1.03 | 1.50 | **1.01–1.50** |
+
+Within a party θ barely moves across eight cities; between parties it moves by
+a factor of ten. **The branch is a national property of the party, not a local
+one** — which is what makes it a single judgement rather than one per city.
+The middle (0.29–0.64) is empty in 24 observations. The two earlier samples
+were too small and too polluted by parties of noise size (AGANG 8,124 votes,
+GOOD 4,677) to show either fact.
+
+**What is now rule and what is still judgement.**
+
+* Contestation is a **ceiling, not a predictor**: under ~20% of wards, θ never
+  exceeded 0.29; above ~70%, it ranges the full 0.12–1.50.
+* Debut size matters within the surviving branch: the EFF's four largest-base
+  metros landed at 1.01, 1.03, 1.05, 1.08 — mean reversion, and the relevant
+  comparator for MK, which debuts at 12.2% of Johannesburg.
+* The one free parameter left is whether the leadership holds together, which
+  is not measurable in advance. `montecarlo.py` gained a `splinter` scenario
+  key implementing exactly this: draw a branch, then draw θ from that branch's
+  measured range. Default is empty, so the published forecast is unchanged.
+
+At `fracture_prob` 0.33 (the base rate: one of three meaningful splinters
+fractured) MK's 90% interval widens from 12–28 seats to 3–37, P(MK ≤ 5) goes
+from 0.0% to 14.8% and P(MK ≥ 30) from 3.5% to 20.0%. The current model
+assigns almost no probability to either of the two things that actually
+happen to splinters.
+
+**Then ActionSA broke the other half of the rule.** The natural companion
+judgement was that the splinter takes votes from the party its leader left.
+The EFF and COPE both support it — measured NPE to NPE, the ANC loses 0.757pp
+per point of EFF and 0.851pp per point of COPE, and the DA loses little or
+gains. ActionSA is a DA splinter and does the opposite. Per point of
+ActionSA in 2021: **ANC −0.381pp, EFF −0.262pp, DA +0.199pp**. Controlling for
+turnout by measuring vote *retention* rather than share, the DA's retention is
+uncorrelated with ActionSA's local strength (−0.043) while the ANC's
+(−0.290) and the EFF's (−0.264) fall away.
+
+So the origin of the leader does not determine who pays. Two further
+measurements say what did:
+
+* **The DA's own retention has a racial gradient and ActionSA's vote has
+  none.** The DA kept 56.6% of its 2019 vote in wards under 40% Black African
+  and 36.1% in wards over 80% — correlation −0.631 with ward population group
+  (Stats SA 2022 ward product, already held in `data/raw/covariates`).
+* Every significant party in Johannesburg is racially sorted; ActionSA alone
+  is not. Correlation of 2021 PR share with a ward's Black African share:
+  **ANC +0.911, EFF +0.850, VF+ −0.554, DA −0.884, ActionSA +0.022.** It
+  polled 17.6% / 20.0% / 17.7% across the three ward types.
+
+That is a single candidate with genuinely cross-racial reach, which is rare
+enough in this electorate to be treated as a property of the case rather than
+a generalisable rule. It is also the mechanism the model has no way to
+represent: the grouping of ActionSA with the DA (`DA_BLOC`) means the
+forecast funds ActionSA's gains out of DA losses inside a conserved bloc
+total, when the measurement says they came from the ANC. The published
+methodology already conceded that the DA/ActionSA grouping has no shared
+geography and rests instead "on the argument about where defectors go" —
+that argument is now contradicted by the defectors' own voters. **This
+requires a methodology correction, not only a config change**, and it is
+load-bearing: pinning the DA-bloc split alone moves P(ANC+DA majority) from
+87.6% to 98.4%.
+
+**A third self-correction.** From ActionSA taking ANC votes I inferred that
+the model's spatially flat generic entrant (A6) must be wrong, and that an
+entrant should inherit the geography of whoever it recruits from. Measuring
+it killed that too: ActionSA's coefficient of variation across voting
+districts is **0.44**, the flattest of any significant party (DA 1.04, EFF
+0.75, ANC 0.67). The flat-entrant assumption is the closest available match
+to the only entrant on record. Who funds a new party and where it is strong
+are separate questions, and conflating them was my error.
+
+**One hypothesis left open, and it is testable before the election.** COPE's
+debut was flat (CV 0.45) and it collapsed; the EFF's was concentrated (CV
+0.69) and it held. If a defined heartland predicts survival, that converts
+the leadership judgement into a measurement — and MK's spatial concentration
+can be computed from the eight by-elections it has contested since 2024. With
+two observations this is a hypothesis, not a finding.
+
+**What the exercise cost and returned.** Five archives ingested
+(`src/ingest_historic.py`), all reconciling to the vote, with 2009 checked
+against the IEC's own published Johannesburg report. Folds went from two to
+five and blind cross-fold validation from two predictions to twelve — which
+immediately showed that **2019→2021 transfers worst to every other cycle**
+(mean seat error 94 against 2014→2016's 67), a live concern because
+`w_recency` weights 2021 at 0.70 and γ falls back to the 2021→2024 fit. Three
+data defects were documented (DATA-QUALITY 10a–10c), one of which — thousands
+separators in the vote column — silently discards 68.4% of Johannesburg's
+2009 votes while dropping only 4.0% of its rows.
+
+### 1.27 Cross-appeal: where a new party's votes land, measured ✅ *2026-08-10*
+
+§1.26 established *how much* a splinter keeps. This is the other half — *where*
+it puts it — and unlike the branch question it turned out to be measurable
+rather than judged, including for MK.
+
+**The model's assumption, stated.** Prediction is `expit(level + γ·dev)`, so a
+party's geography *is* its `dev` column: its deviation from its own citywide
+mean, district by district. A party with no baseline has no `dev`, so
+`montecarlo.py` set it to zero — a new party lands evenly across the city.
+That was never argued for; it was what falls out of having nothing to put
+there.
+
+**How I got this wrong twice, and what fixed it.** From the ActionSA finding
+(§1.26) I concluded a flat entrant must be wrong and that an entrant should
+inherit the geography of whoever it recruits from. I then reversed on the
+grounds that ActionSA's coefficient of variation across districts is 0.44, the
+flattest of any significant party — so flat looked like the best available
+match. Both steps were wrong, and the second was wrong in an instructive way:
+**coefficient of variation measures dispersion, and the claim was about
+inheritance.** How spread out a party is says nothing about whose map it
+copied. The right statistic is the entrant against the parent's map.
+
+**The coefficient.** Take each party's district share over its citywide share,
+so the index has mean 1, and fit
+
+    entrant_index(i) = (1 − k) · parent_index(i) + k
+
+`k = 0` is the parent's geography exactly; `k = 1` is spread evenly, no
+inheritance. Fitted across every entrant the project holds:
+
+| entrant | debut | parent map | corr | slope | **k** | |
+|---|---|---|---|---|---|---|
+| MK | 2024 | ANC 2019 | +0.568 | 0.97 | **0.03** | inherits |
+| EFF | 2014 | ANC 2009 | +0.698 | 0.95 | **0.05** | inherits |
+| ActionSA | 2021 | DA 2019 | −0.005 | −0.00 | **1.00** | ignores it entirely |
+| COPE | 2009 | ANC 2004 | −0.160 | −0.16 | 1.16 | ignores it |
+| UDM | 1999 | ANC 1999 | −0.238 | −0.40 | 1.40 | *unreliable* |
+| ID | 2004 | PAC 1999 | −0.337 | −0.71 | 1.71 | *unreliable* |
+
+The last two are marked unreliable and should not be quoted: 1999 is the
+earliest election held, so the UDM is measured against a *contemporaneous*
+parent rather than a prior one, and the PAC's 0.69% makes its map mostly
+noise.
+
+**The result that matters for 2026: MK's k is 0.03.** MK debuted at an NPE, so
+its map already exists and it is the ANC's map. Where MK's votes sit is not a
+judgement in this forecast — it is a measurement, and it says the ANC's
+geography, almost exactly. The same is true of the EFF at 0.05.
+
+**Validated out of sample.** Fold 2 predicts 2021 with ActionSA seeded at its
+true 18.12%, so only placement is being tested:
+
+| placement | VD MAE (PR) | total seat error |
+|---|---|---|
+| no entrant at all | — | **126** |
+| flat (the old default) | 0.52pp | 56 |
+| DA's map, k = 0.00 | 0.67pp | 48 |
+| DA's map, k = 0.50 | 0.56pp | 46 |
+| DA's map, k = 1.00 | **0.52pp** | 56 |
+
+VD-level MAE — the metric that matches how k is defined — improves
+monotonically to k = 1.0, independently reproducing the fitted k = 1.00.
+Seat error prefers k ≈ 0.25–0.5, but seat allocation is lumpy and that is
+threshold behaviour, not better placement. `k = 1.0` reproduces the flat
+result exactly, which is the implementation's own check.
+
+**The largest single lesson is not about k at all.** Merely *representing* the
+entrant takes 2021's seat error from 126 to 56. New-entrant blindness (R7) is
+the dominant error in that fold by a wide margin, and the geography dial moves
+it by a further ten.
+
+**Why ActionSA is the exception, and why it is not a rule.** ActionSA is the
+only party in Johannesburg whose vote carries no racial gradient. Correlation
+of 2021 PR ward share with a ward's Black African share (Stats SA 2022 ward
+product, all 135 wards):
+
+    ANC +0.911 · EFF +0.850 · IFP +0.270 · ALJAMAAH −0.154
+    PA −0.280 · ACDP −0.297 · VF+ −0.554 · DA −0.884 · ActionSA +0.022
+
+It polled 17.6% / 20.0% / 17.7% across wards that are under 40%, 40-80% and
+over 80% Black African (27, 23 and 85 wards). The
+mirror of that is the DA's own retention, which was strongly graded: it kept
+56.6% of its 2019 vote in wards under 40% Black African and 36.1% in wards
+over 80%, correlation −0.631. A single candidate with genuinely cross-racial
+reach is rare enough in this electorate that k = 1 should be treated as a
+property of that case, not a default.
+
+**Implemented, both places, default unchanged.**
+
+* `fold.py` — `--entrant CODE=SHARE[:PARENT:K]`, weighted so the citywide
+  total holds for any k. The bare `CODE=SHARE` form is unchanged and flat.
+* `montecarlo.py` — scenario key `entrant_geography`, applied as
+  `dev[:, ENTRANT] = (1 − k) · dev[:, parent]`, which is the same
+  interpolation expressed directly in logit space. Default `{}` leaves the
+  forecast untouched: re-running the published scenario changes **0 of 555
+  values** and adds no summary keys.
+
+For 2026 the generic entrant is a party nobody has seen, and the observed k
+spans 0.03 to 1.16 — genuinely unknown. Flat stays the default, but it is now
+a stated choice with a measured range behind it rather than an artefact of
+having nothing to put in the column.
+
+**Open.** Whether spatial concentration at debut predicts survival — COPE was
+flat (CV 0.45) and collapsed, the EFF concentrated (CV 0.69) and held. Two
+observations, so a hypothesis only; MK's concentration is computable from the
+eight by-elections it has contested since 2024, which would make the §1.26
+branch judgement measurable too.
+
+### 1.28 By-elections now move the ward they happened in ✅ *2026-08-10*
+
+**The defect.** E4 turns each by-election into a *citywide* per-party delta and
+applies it to that party's citywide centre. The ward identity is used to
+compute the delta and then discarded, so a contest in ward 82 moved ward 82's
+forecast exactly as much as it moved ward 1's. Worse, ρ — how typical a ward
+is of the city — *down-weights* atypical wards, which is right for estimating
+a citywide level and precisely backwards for using a ward's own result on
+itself. Ward winners are 135 separate first-past-the-post races, and this is
+the one place where local evidence is strongest.
+
+The cost was concrete: the model gave **DA 64%** in a ward the PA won in April
+2025, and **ANC 94%** in one the PA won that October.
+
+**The term.** Each contest shifts its own voting districts by the logit
+movement it actually showed,
+
+    shift(p) = w · exp(−age/τ) · clamp[ logit(share_bye) − logit(share_2021) ]
+
+with three deliberate choices: ρ is *not* applied (no generalisation is being
+asked for); the shift lands on the contest's **voting districts** rather than
+its ward, because by-elections sit on 2021 boundaries and the forecast on 2026
+ones while VDs carry across both; and ward and PR carry separate weights,
+because a by-election is a ward contest whose evidence about list voting in
+the same ward is real but weaker, and says nothing about list voting anywhere
+else. Tested at ward 0.75 / PR 0.35, cap 1.5 logit (which binds on 11 of the 65 party-contest rows that have a share on
+both sides, spread across 9 of them), τ 18 months as the citywide term uses.
+
+**Result — surgical.** Of 135 ward calls, exactly **one** changes:
+
+| ward | by-election winner | model now | with the term |
+|---|---|---|---|
+| 82 | PA 42% | DA 64% | **PA 68%** ← flips |
+| 29 | PA 30% | ANC 94% | ANC 77% |
+| 59 | ANC 57% | ANC 65% | ANC 75% |
+| 9 | ALJAMAAH 60% | ALJAMAAH 47% | ALJAMAAH 53% |
+| 130 | ANC 34% | ANC 99% | ANC 95% |
+| 87/89/90/99/102 | DA 83–98% | DA 100% | DA 100% |
+
+Every ward moves toward its own observed result; the DA strongholds, where the
+by-elections confirmed the DA, do not move at all. Seats barely notice: ANC
+median +1, every other party unchanged, P(ANC+DA majority) +0.0pp.
+
+**A containment limit, stated rather than hidden.** Shares renormalise within
+each VD and the citywide total is pinned by calibration, so lifting a party in
+ward 82 shaves a vanishing amount off it elsewhere. That is a property of any
+model that fixes citywide totals — measured here at well under a seat — not a
+leak in this term.
+
+**Not enabled.** `w_bye_local_ward` and `w_bye_local_pr` default to 0, so the
+published forecast is unchanged (0 of 555 values). Per the standing decision
+of 2026-08-10, nothing ships to the public forecast until everything
+outstanding is tested and the harness can predict previous elections.
+
 ## 2. Obstacles and how they were handled
 
 | # | Obstacle | Resolution | Status |
@@ -896,6 +1285,7 @@ generalised; the numbers do not.
 | O7 | Census 2022 Small Area Layer (income, dwelling, employment) not downloadable | Stats SA supplies on request only. Ward-level product acquired as partial substitute — age/sex/population group, no income or employment. | 🔴 task #16 |
 | O8 | IEC publishes registration by age/sex only to municipality level, server-rendered, no API | VD-level registration *totals* come from the result files and the VD layer. Ward-level age/sex substituted from the census product. | 🟡 |
 | O9 | 2026 registration-weekend deltas not published | Nothing to do but wait; §3.2 feeds them in when available. | 🔴 external |
+| O11 | `fold.py` wrote and read fitted parameters at `data/processed/fold{N}_parameters.csv` with no city in the path, so a Tshwane run overwrote Johannesburg's — and `fold1_parameters.csv` feeds the live forecast | Both call sites use `City.processed`: Joburg keeps the legacy path, other cities go to `data/processed/<slug>/`. Caught only because a stale file made §1.25's second fold report numbers that could not be reproduced. | ✅ |
 | O10 | Sources disappear — the MDB has already retired the per-municipality shapefile downloads its old site served | `src/archive.py` records every file with SHA-256 and provenance; the manifest is committed even though `data/` is gitignored. `--verify` detects drift. | ✅ |
 
 ---
@@ -1024,6 +1414,23 @@ scenario lever, not an estimate. §4.3's conclusion — that the honest output i
 distribution over coalition viability rather than a seat forecast — is the right
 response to this, and fold 1 supports it.
 
+### R8 — Calibrated θ may be only weakly identified 🔴 *affects `--fit-from` only*
+
+Fold 2's calibrated θ sits 4–7× below its raw θ (ANC raw 0.670 → calibrated
+0.129, DA 0.859 → 0.116, EFF 0.681 → 0.166) while fold 1's tracks raw closely
+(ANC 0.859 → 0.832). Both folds reproduce citywide shares in-sample to
++0.00pp, so the solver converged either way — which is the concern: with 68
+parties and an 18% party holding a zero base, within-VD renormalisation
+absorbs much of a uniform rescaling of θ, so many θ vectors may fit equally
+well. Anything that *transfers* calibrated θ between folds then inherits
+whichever solution the solver reached, and a stale parameter file (O11)
+showed exactly that sensitivity: the same fold scored 60 seat error under one
+file and 94 under a freshly-fitted one. **No effect on the live forecast**,
+which fits θ in place and never transfers it. To settle it: check whether
+`calibrate_theta` has a unique solution under the current universe, and if
+not, pin the gauge (e.g. constrain the vote-weighted mean of θ) before any
+`--fit-from` result is quoted as exact.
+
 ### R6 — Single-cycle inference 🟡
 
 Several parameters rest on two observed NPE→LGE transitions, one of which (2021)
@@ -1060,3 +1467,60 @@ confirms was wise.
 - **Task #18** — historic VD boundaries: **requested from the IEC Delimitation Directorate 2026-08-05** (email sent), awaiting reply. Would convert R1 from mitigated to resolved.
 - **Task #20** — Schedule 1 overhang worked example: **four-question request sent to the IEC 2026-08-05**, awaiting reply. In parallel, an archive hunt for a real historical overhang municipality is running. P(overhang) ~72–96% across readings; the answer moves P(ANC+DA) across 72–91% (§1.16).
 - **External** — 2026 registration-weekend figures, when published.
+
+### Open from the 2026-08-09/10 splinter work (§1.26, §1.27), ranked
+
+1. **`DA_BLOC` membership is contradicted by measurement.** ActionSA's gains
+   were funded by the ANC and the EFF, not the DA (per point of ActionSA:
+   ANC −0.381pp, EFF −0.262pp, DA **+0.199pp**; DA vote retention uncorrelated
+   with ActionSA's local strength at −0.043). The model funds ActionSA out of
+   DA losses inside a conserved bloc total. **Load-bearing** — pinning the
+   DA-bloc split alone moves P(ANC+DA majority) from 87.6% to 98.4%. Needs a
+   config change *and* a rewrite of the published methodology paragraph, which
+   currently defends the grouping on "the argument about where defectors go".
+2. **The "fivefold" claim is live and wrong.** `docs-public/methodology.md`
+   says the fully blind seat error "grows fivefold". Measured today: 96 → 126,
+   a factor of 1.3. On the like-for-like metric — parties that actually won
+   seats, excluding ActionSA, which cannot be represented at all — it is
+   10 → 71, sevenfold. The claim understates the limitation but cannot be
+   reproduced from any number the model prints. Rewrite naming its metric and
+   **register it as a stat token**; it was typed prose, which is exactly what
+   `stats.py` exists to prevent.
+3. ~~**The by-election ward-local term was never built.**~~ ✅ *built
+   2026-08-10, §1.28* — but **not enabled**: `w_bye_local_ward` and
+   `w_bye_local_pr` default to 0, pending the standing decision that nothing
+   ships to the public forecast until the outstanding items are tested and the
+   harness can predict previous elections. At the tested weights it flips
+   exactly one of 135 ward calls, the one the PA actually won.
+4. **Phantom seats from the share floor.** `SHARE_FLOOR` (0.002 per VD across
+   865 VDs) is worth about two seats on its own. In fold 2 it hands 42 seats to
+   21 parties that won nothing — the whole of that fold's headline error. The
+   live forecast carries a smaller version: `ARISE_SOUTH_AFRICA`,
+   `UNITED_AFRICANS_TRANSFORMATION` and `ALLIED_MOVEMENT_FOR_CHANGE` each hold
+   a median seat.
+5. ~~**`archive.py` manifest is missing six hashes**~~ ✅ *done 2026-08-10* —
+   the 1999/2004/2009 NPE and 2000/2006/2011 LGE archives are documented in
+   `SOURCES.md` and fingerprinted in the manifest, which now covers 244 files
+   and verifies clean (`src/archive.py --verify`: 0 differences). It had never
+   been tracked at all, despite O10 saying it was, so it is force-added.
+6. **`fold.py` overwrites the live forecast's γ whatever diagnostic you ran.**
+   It writes `fold{N}_parameters.csv` regardless of `--turnout`, so a
+   `--turnout ratio` experiment silently replaces the default-fitted γ that
+   `montecarlo.py` reads. This bit us on 2026-08-10: a diagnostic run moved 55
+   of the forecast's 555 values before anyone noticed, and regenerating with
+   defaults restored them exactly. Same class as O11, keyed on the turnout
+   method rather than the city. The parameter file should carry the method in
+   its name, or the forecast should read a pinned copy.
+7. **`turnout.py --out` ignores the active city.** It defaults to
+   `data/processed/turnout.csv` whatever `--city` says, so a Tshwane run
+   overwrites Johannesburg's published turnout file. The three consumers
+   (`montecarlo.py`, `export_interactive.py`, `leverage.py`) all default their
+   `--processed` to the same place, so the writer and readers have to move
+   together — found 2026-08-10 while making `turnout.py` city-safe.
+8. **`fold.py --city tshwane --fold 3/4/5`** dies with a bare
+   `FileNotFoundError` on the base election file rather than saying the fold
+   does not exist for that city. Only Johannesburg has the pre-2011 ingest.
+9. **The Monte Carlo is not year-parameterised**, so the *distributional*
+   forecast still cannot be scored against a past election — only the
+   deterministic core can, via the folds. Realistic scorable targets are 2011,
+   2016 and 2021; pre-2011 wards predate two delimitations.
