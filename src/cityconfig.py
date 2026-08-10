@@ -2,7 +2,7 @@
 
 Phase 1 hard-coded Johannesburg into every script: municipality codes,
 council size, the party universe, and — most dangerously — a set of
-*judgements* (bloc membership, θ ranges, national-to-local shift ranges)
+*judgements* (θ ranges, national-to-local shift ranges)
 that were derived from CoJ history. Applied blind to another metro those
 judgements do not crash; they produce plausible, wrong output. So they live
 in a config file where they can be seen, sourced and argued with.
@@ -44,7 +44,6 @@ Usage::
     city = load("joburg")
     city.council            # 270
     city.path("elections", "lge2021_{CODE}_vd_party_clean.csv")
-    city.blocs              # {"ANC_BLOC": (...), "DA_BLOC": (...)}
 
     import cityconfig
     cityconfig.use("joburg")
@@ -196,10 +195,6 @@ class City:
 
     # --- judgements -----------------------------------------------------
     @property
-    def blocs(self) -> dict[str, tuple[str, ...]]:
-        return {k: tuple(v) for k, v in self.judgements["blocs"].items()}
-
-    @property
     def plan_bounds(self) -> dict[str, tuple[float, float]]:
         return {k: (float(v[0]), float(v[1]))
                 for k, v in self.judgements["plan_bounds"].items()}
@@ -207,7 +202,6 @@ class City:
     def scenario_defaults(self) -> dict:
         """The judgement block in the shape montecarlo.DEFAULTS expects."""
         j = dict(self.judgements)
-        j.pop("blocs", None)
         j.pop("plan_bounds", None)
         return {k: v for k, v in j.items() if not k.endswith("_note")}
 

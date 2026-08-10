@@ -1,0 +1,144 @@
+# Voter-pool dimensions — the registry of things a party can "talk to".
+#
+# A pool is a *characteristic of voters*, measured from the census, and a party
+# is described by the rate at which it wins each one. Nothing about which
+# parties are friends is asserted anywhere — that was the old grouping, and it
+# could not be checked against anything.
+#
+# The design is n-dimensional on purpose. Race is the only dimension that has
+# so far earned a place; age and sex are carried here, fitted, and *rejected*
+# by the gate below rather than being quietly left out. Income, education and
+# home language slot in the same way the day the data exists.
+#
+# role
+#   base   the dimension whose categories are the pools themselves. Weights are
+#          rates within each category, floored so nothing can reach zero.
+#   tilt   entered as a deviation from the city mean, so it cannot re-describe
+#          the base dimension's variation. Coefficients are unconstrained.
+#
+# admitted
+#   Set by `python src/pools.py --gate`, not by hand. A dimension is admitted
+#   only if it improves out-of-sample fit when the vectors are fitted on one
+#   city and tested on another. In-sample gain is not evidence; every dimension
+#   here shows in-sample gain, and two of them are noise.
+#
+# census / delimitation
+#   Censuses are a decade apart (SA: 1996, 2001, 2011, 2022) and elections fall
+#   between them, so a dimension carries *every* census we hold and composition
+#   is interpolated to polling day — the 2016 election sits 5 years past one
+#   census and 6 short of the next, and neither endpoint describes it.
+#
+#   Interpolation is ward-to-ward, which is only valid while the delimitation
+#   holds. `delimitation` records which one each census was published on. Ward
+#   codes are contiguous and reused, so a cross-delimitation join *succeeds*
+#   and silently pairs different polygons: Census 2022's 135 Johannesburg codes
+#   match the 2011 election's 130 wards at 130/130, all wrong. The loader
+#   refuses rather than joins, and says what would be needed instead.
+#
+#   Beyond the last census the trend is extrapolated with damping — the 2026
+#   forecast is four years past Census 2022 and Johannesburg's composition
+#   moves. Damping below 1.0 because a decade of ward-level trend extended
+#   linearly is a stronger claim than the data supports.
+
+covariate_root = "data/raw/covariates/Ward Product_Locked spreadsheets"
+extrapolation_damping = 0.6
+extrapolation_max_years = 8
+
+[[dimension]]
+name = "population_group"
+role = "base"
+admitted = true
+categories = ["Black African", "Coloured", "Indian/Asian", "White", "Other"]
+
+  [[dimension.census]]
+  year = 2022
+  delimitation = 2021
+  source = "PP_Population Group_27-10-2025.xlsx"
+  sheet = "Wards"
+  code_column = 0
+  total_column = 6
+  columns = [1, 2, 3, 4, 5]
+
+  # [[dimension.census]]
+  # year = 2011
+  # delimitation = 2011
+  # source = "<not held — see below>"
+  # Without this entry there is nothing to interpolate between, so every
+  # target is served by extrapolation from a single point and the 2011/2016
+  # backtests cannot be fitted at all. Obtaining Census 2011 ward tables on
+  # the 2011 delimitation is the highest-value outstanding data request after
+  # home language.
+
+note = """Census 2022 ward totals. The only dimension that transfers between
+cities: vectors fitted on Johannesburg predict Tshwane ward shares at R2 0.80
+(ANC), 0.93 (DA), 0.74 (EFF). Not a claim that race causes the vote — it is the
+characteristic our data can resolve, and it stands in for the ethno-linguistic
+sorting we cannot yet see. Al Jama-ah and the VF+ do NOT transfer (see
+`level_transfers = false` below): direction carries between cities, magnitude
+does not."""
+
+[[dimension]]
+name = "age"
+role = "tilt"
+admitted = false
+categories = ["20-29", "30-44", "45-59", "60+"]
+
+  [[dimension.census]]
+  year = 2022
+  delimitation = 2021
+  source = "PP_Age Group_27-10-2025.xlsx"
+  sheet = "Age_group"
+  code_column = 0
+  total_column = -1                   # renormalise over the listed columns
+  columns = [[5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15, 16, 17, 18]]
+
+note = """Rejected by the gate. Gains +0.03 to +0.06 R2 in-sample and ~0.00 out
+of sample, because it is mostly re-describing the base dimension: ward %Black
+African correlates +0.75 with %aged 20-29 and -0.72 with %60+. Under-20 bands
+are dropped as below voting age; 15-19 straddles and is excluded rather than
+apportioned."""
+
+[[dimension]]
+name = "sex"
+role = "tilt"
+admitted = false
+categories = ["Male", "Female"]
+
+  [[dimension.census]]
+  year = 2022
+  delimitation = 2021
+  source = "PP_Sex_27-10-2025.xlsx"
+  sheet = "Wards_Sex"
+  code_column = 0
+  total_column = 3
+  columns = [1, 2]
+
+note = """Rejected by the gate. Sex composition barely varies between wards, so
+there is almost no cross-ward leverage to identify a coefficient from — a real
+political effect would still be invisible to an ecological fit. Absence of
+evidence here is not evidence of absence, and the note is the point."""
+
+# --- not yet held ----------------------------------------------------------
+# home_language  the dimension the model actually wants. Population group
+#                cannot separate the ANC from the IFP (both fit as ~100% Black
+#                African) which is precisely the distinction MK turns on.
+#                Requested from Stats SA; see drafts/statssa-request-language.md
+# income/class   expect the same collinearity problem age has. The gate decides.
+# education      ditto.
+
+[fit]
+# Shrinkage target is "this party appeals to every pool at its citywide rate".
+# The fit moves away from that null only where the wards insist, and a floor
+# keeps any rate from collapsing to exactly zero — the ANC's white support is
+# small, not absent, and a corner solution is not a measurement.
+floor_rate = 0.002
+ridge_folds = 5
+ridge_grid = [0.0, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0]
+
+[gate]
+# A dimension earns its place by out-of-sample gain, tested across cities.
+min_oos_gain = 0.01
+gate_parties = ["ANC", "DA", "EFF"]
+gate_note = """Gated on the three parties large enough for ward-level ecological
+inference to say anything. Small parties' vectors do not transfer between cities
+at all and would make the gate a coin toss."""

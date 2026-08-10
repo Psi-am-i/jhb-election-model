@@ -80,10 +80,10 @@ accent_soft_dark = "#2b2440"
 #      dial, chip and theta range, not the shared minor-party treatment.
 #   2. The PA is marginal (0.5%) — the CoJ contestation-uplift judgement
 #      (built on its 52-of-135 ward slate there) does not transfer.
-#   3. Bloc membership needs re-deciding: is VF+ in the DA bloc here, or an
-#      independent pool? Its 2021 surge looks like a distinct constituency.
-#   4. The ANC/DA shift ranges below are CoJ's four transitions. Tshwane's
-#      own NPE->LGE history must be measured before they are believed.
+#   3. Pool vectors are fitted per city (`python src/pools.py --city tshwane
+#      --target <year> --emit`), so VF+'s distinct 2021 constituency is
+#      measured here rather than inherited from CoJ: it fits at 85% White
+#      against Johannesburg's 79%.
 #   5. Local formations (Defenders of the People) may need carrying.
 #
 # Political context to fold into the site copy and the newsdesk terms:
@@ -114,11 +114,6 @@ labels = [
 ]
 
 [judgements]
-blocs_note = "PLACEHOLDER — copied from CoJ. VF+ placement is the open question."
-[judgements.blocs]
-ANC_BLOC = ["ANC", "EFF", "MK"]
-DA_BLOC = ["DA", "ASA"]
-
 [judgements.plan_bounds]
 # PLACEHOLDER — CoJ ranges. Re-derive from Tshwane's transitions.
 ANC = [0.65, 0.9]
@@ -146,22 +141,15 @@ MK = 0.8
 ENTRANT = 0.8
 
 [judgements.scalars]
-anc_bloc_shift = [-22.0, -9.0, -3.0]      # PLACEHOLDER: CoJ's transitions
-da_bloc_shift = [5.0, 9.0, 14.0]          # PLACEHOLDER: CoJ's transitions
-alpha_anc = 60.0
-alpha_da = 12.0
 f_other = [0.7, 1.3, 2.0]
 w_bye = 0.4
 polling_lean = 0.0
 polling_span = 8.0
 poll_weight = 0.0
-bloc_leak = 0.0
 pa_contestation_uplift = 1.0              # the CoJ slate judgement does not transfer
 turnout_pattern_blend = 0.5
 turnout_blend_jitter = 0.25
 turnout_noise_sd = 0.08
-turnout_tilt_anc = 0.0
-turnout_tilt_da = 0.0
 entrant_prob = 0.25
 entrant_share = [0.01, 0.04, 0.12]
 ward_noise_sd = 0.1

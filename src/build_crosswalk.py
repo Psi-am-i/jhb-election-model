@@ -1,7 +1,7 @@
 """Build and check the party crosswalk across every source file.
 
 Emits ``data/processed/party_crosswalk.csv`` -- one row per distinct raw party
-string, with its canonical code, bloc and the elections it appears in -- and
+string, with its canonical code and the elections it appears in -- and
 runs the checks that matter:
 
 * every canonical code that won seats is one we track deliberately, not a
@@ -9,7 +9,6 @@ runs the checks that matter:
 * no two raw strings for the same real party map to different codes (caught by
   eyeballing the ``sources`` column: a party present in six elections should
   appear on one row, not several);
-* the bloc shares reproduce the §8 anchor table.
 
 Usage:
     python src/build_crosswalk.py
@@ -74,14 +73,6 @@ def read_votes(path: Path, ballot: str | None = None) -> Counter[str]:
     return totals
 
 
-def bloc_shares(totals: Counter[str]) -> dict[str, float]:
-    cast = sum(totals.values())
-    share: Counter[str] = Counter()
-    for raw, votes in totals.items():
-        share[P.bloc(P.canonical(raw))] += votes
-    return {b: v / cast for b, v in share.items()}
-
-
 def read_byelection_names(path: Path) -> set[str]:
     if not path.exists():
         return set()
@@ -126,7 +117,6 @@ def main(argv: list[str] | None = None) -> int:
                 "raw_name": raw,
                 "canonical": code,
                 "display_name": P.display_name(code),
-                "bloc": P.bloc(code),
                 "has_theta": "Y" if P.is_modelled(code) else "",
                 "peak_share": f"{peak.get(raw, 0):.5f}",
                 "sources": "; ".join(sorted(sources[raw])),
@@ -165,30 +155,11 @@ def main(argv: list[str] | None = None) -> int:
         if len(names) > 1 and code not in tracked:
             failures.append(f"derived code {code} collides across {names}")
 
-    # Bloc shares feed Δ_ANCbloc and Δ_DAbloc in plan §3.5. LGE years are shown
-    # on the PR ballot, which is what compares like-for-like against an NPE's
-    # single ballot; the combined ward+PR column is the seat-determining
-    # quantity per §0 and is what the model must ultimately predict.
-    blocs = [P.ANC_BLOC, P.DA_BLOC, "PA", "ALJAMAAH", P.OTHER]
-    print("\nbloc shares -- LGE on the PR ballot, comparable with NPE:")
-    print(f"  {'election':<10s}" + "".join(f"{b:>12s}" for b in blocs))
-    pr_shares = {}
-    for label, filename in ELECTIONS.items():
-        totals = read_votes(args.data_dir / filename, ballot="PR" if "LGE" in label else None)
-        pr_shares[label] = bloc_shares(totals)
-        print(f"  {label:<10s}" + "".join(f"{pr_shares[label].get(b, 0):>11.2%} " for b in blocs))
-
-    print("\n  NPE -> LGE bloc transitions (the basis for Δ_ANCbloc / Δ_DAbloc):")
-    for before, after in (("2014 NPE", "2016 LGE"), ("2019 NPE", "2021 LGE")):
-        anc = (pr_shares[after][P.ANC_BLOC] - pr_shares[before][P.ANC_BLOC]) * 100
-        da = (pr_shares[after][P.DA_BLOC] - pr_shares[before][P.DA_BLOC]) * 100
-        print(f"    {before} -> {after}:  ANC bloc {anc:+.1f} pts,  DA bloc {da:+.1f} pts")
-
-    print("\nbloc shares -- combined ward+PR, the seat-determining quantity (§0):")
-    print(f"  {'election':<10s}" + "".join(f"{b:>12s}" for b in blocs))
-    for label, totals in per_election.items():
-        share = bloc_shares(totals)
-        print(f"  {label:<10s}" + "".join(f"{share.get(b, 0):>11.2%} " for b in blocs))
+    # A grouped-share anchor table stood here, rolling parties into a handful
+    # of buckets someone had chosen and reporting the swing of each. The model
+    # no longer groups parties by judgement: it fits each one's voter pools from
+    # ward demographics. `python src/pools.py --city <city> --target <year>`
+    # prints the measured equivalent.
 
     if failures:
         print("\nFAIL:")

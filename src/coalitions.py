@@ -197,13 +197,15 @@ def analyse(
     power_rows.sort(key=lambda r: -r["banzhaf_median"])
 
     # --- structural probabilities the narrative needs -------------------------
-    anc_bloc = [p for p in ("ANC", "EFF", "MK") if p in ranked]
+    # Named parties, not a grouping: this asks one specific coalition
+    # question, and does not assert that these three move together.
+    anc_side = [p for p in ("ANC", "EFF", "MK") if p in ranked]
     idx = {p: i for i, p in enumerate(ranked)}
     without_anc = sum(1 << i for p, i in idx.items() if p != "ANC")
-    without_bloc = sum(1 << i for p, i in idx.items() if p not in anc_bloc)
+    without_three = sum(1 << i for p, i in idx.items() if p not in anc_side)
     structural = {
         "P(some majority without the ANC)": float(win[without_anc].mean()),
-        "P(some majority without ANC, EFF and MK)": float(win[without_bloc].mean()),
+        "P(some majority without ANC, EFF and MK)": float(win[without_three].mean()),
         "P(ANC+DA is winning)": float(win[(1 << idx["ANC"]) | (1 << idx["DA"])].mean())
         if "ANC" in idx and "DA" in idx else float("nan"),
     }
@@ -212,7 +214,7 @@ def analyse(
     # Editable scenarios: candidate vs the parties assumed to actively vote
     # against, everyone else abstaining. The 2021 precedent is the first row.
     minority_scenarios = [
-        ("DA minority, ANC bloc opposes", "DA", ("ANC", "EFF", "MK")),
+        ("DA minority, ANC+EFF+MK oppose", "DA", ("ANC", "EFF", "MK")),
         ("DA minority, only ANC opposes (2021 pattern)", "DA", ("ANC",)),
         ("ANC minority, only DA opposes", "ANC", ("DA",)),
         ("ANC minority, DA+ASA oppose", "ANC", ("DA", "ASA")),

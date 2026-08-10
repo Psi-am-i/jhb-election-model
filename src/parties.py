@@ -1,4 +1,4 @@
-"""Party name normalisation and the bloc structure the model draws on.
+"""Party name normalisation: many ballot spellings, one code per party.
 
 Party names are written differently in every IEC export -- the DA is
 ``DEMOCRATIC ALLIANCE/DEMOKRATIESE ALLIANSIE`` in 2011 and ``DEMOCRATIC
@@ -11,37 +11,33 @@ Two separate ideas, deliberately kept apart:
 * **Canonical code.** Every party keeps its own identity, however small. Seat
   allocation needs this: the IFP, VF+, ACDP and AIC all won CoJ seats in 2021,
   so collapsing them into an ``OTHER`` bucket would corrupt the council.
-* **Bloc.** The modelling grouping from plan §3.4(a)/§3.5. Swings are drawn at
-  bloc level and split within the bloc, so a party's bloc decides which Δ it
-  moves with. ``OTHER`` here means "not separately modelled", not "discarded".
-
-Rev 2 of the plan promoted the PA and Al Jama-ah out of ``OTHER`` into blocs of
-their own, and gives θ parameters to the ANC, DA, EFF, ActionSA, MK and PA.
+This module deliberately carries **no** grouping of parties. Which voters a
+party draws on is measured per city and per election in ``src/pools.py``, so
+nothing here needs to assert it, and this file stays what it should be: a
+crosswalk from the many spellings on a ballot to one code per party, carrying
+no knowledge of any outcome.
 """
 
 from __future__ import annotations
 
 import re
 
-# Bloc labels. ANC/DA blocs move together under Δ_ANCbloc and Δ_DAbloc; the PA
-# and Al Jama-ah are modelled individually; OTHER is the residual bucket that
-# f_other scales.
-ANC_BLOC = "ANC_BLOC"
-DA_BLOC = "DA_BLOC"
+# OTHER is the residual bucket that f_other scales; INDEPENDENT is excluded
+# from PR seat allocation by statute.
 OTHER = "OTHER"
 INDEPENDENT = "INDEPENDENT"
 
-# canonical code -> (display name, bloc, has its own theta parameter)
-PARTIES: dict[str, tuple[str, str, bool]] = {
-    "ANC": ("African National Congress", ANC_BLOC, True),
-    "EFF": ("Economic Freedom Fighters", ANC_BLOC, True),
-    "MK": ("uMkhonto weSizwe", ANC_BLOC, True),
-    "DA": ("Democratic Alliance", DA_BLOC, True),
-    "ASA": ("ActionSA", DA_BLOC, True),
-    "BOSA": ("Build One South Africa", DA_BLOC, False),
-    "PA": ("Patriotic Alliance", "PA", True),
-    "ALJAMAAH": ("Al Jama-ah", "ALJAMAAH", False),
-    "IND": ("Independents", INDEPENDENT, False),
+# canonical code -> (display name, has its own theta parameter)
+PARTIES: dict[str, tuple[str, bool]] = {
+    "ANC": ("African National Congress", True),
+    "EFF": ("Economic Freedom Fighters", True),
+    "MK": ("uMkhonto weSizwe", True),
+    "DA": ("Democratic Alliance", True),
+    "ASA": ("ActionSA", True),
+    "BOSA": ("Build One South Africa", False),
+    "PA": ("Patriotic Alliance", True),
+    "ALJAMAAH": ("Al Jama-ah", False),
+    "IND": ("Independents", False),
 }
 
 # Normalised raw string -> canonical code. Only entries that need it: anything
@@ -139,15 +135,10 @@ def canonical(raw: str) -> str:
     return _derived_code(name)
 
 
-def bloc(code: str) -> str:
-    """Return the modelling bloc for a canonical code."""
-    return PARTIES.get(code, ("", OTHER, False))[1]
-
-
 def display_name(code: str) -> str:
-    return PARTIES.get(code, (code.replace("_", " ").title(), OTHER, False))[0]
+    return PARTIES.get(code, (code.replace("_", " ").title(), False))[0]
 
 
 def is_modelled(code: str) -> bool:
     """True if the party carries its own theta parameter in plan §3.5."""
-    return PARTIES.get(code, ("", OTHER, False))[2]
+    return PARTIES.get(code, ("", False))[1]

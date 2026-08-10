@@ -21,7 +21,7 @@ This is a rewrite of the first implementation, fixing the review findings:
 * **E1** — coalition arithmetic is fully enumerated (`coalitions.py`): every
   subset, minimal winning coalitions, Banzhaf/Shapley–Shubik, and the
   minority-government class. No pre-filtering on political plausibility.
-* **E2** — the within-bloc split is centred on the plan's §3.5 θ modes (its
+* **E2** — the within-pool split is centred on the plan's §3.5 θ modes (its
   deliberate per-party views: MK 0.60, ANC 0.75), not on 2024 proportions,
   which silently discarded them. Implied per-party θ is checked against
   §3.5's ranges and the violation rate reported — the "sanity bounds" the
@@ -33,7 +33,7 @@ This is a rewrite of the first implementation, fixing the review findings:
   party's central level at weight ``w_bye``, clamped to §3.5's ranges so a
   concentrated party's stronghold deltas cannot claim an absurd citywide
   level (the A4 selection caveat, enforced numerically). A polling lever
-  spans the SRF↔Ipsos disagreement (§8.3): ±1 moves the bloc modes ±4 points,
+  spans the SRF↔Ipsos disagreement (§8.3): ±1 moves the pool modes ±4 points,
   the modes stay clamped to their historical ranges.
 * **E6** — minor parties draw *independent* θ from ranges set around their
   observed NPE→LGE ratios (fold 1 and fold 2), not one shared f_other draw
@@ -84,8 +84,11 @@ from seats import INDEPENDENT, allocate
 SHARE_FLOOR = 0.002
 COUNCIL = 270
 
-BLOCS = {"ANC_BLOC": ("ANC", "EFF", "MK"), "DA_BLOC": ("DA", "ASA", "BOSA")}
-ANC_BLOC_PARTIES = ("ANC", "EFF", "MK")
+# Blocs are gone. They were two hand-drawn lists of parties assumed to trade
+# votes with each other — a claim about parties, made by a person, that no
+# measurement could check. Parties are now described by the voter pools they
+# draw from (``src/pools.py``), which is a claim about the electorate and can
+# be measured, bounded and falsified. See MACHINERY.md §0.
 
 # §3.5 raw-θ ranges: the plan's sanity bounds on any derived per-party value,
 # and the clamp on what by-election or polling evidence may claim.
@@ -99,21 +102,13 @@ DEFAULTS: dict = {
     "draws": 5000,
     "seed": 20261104,
 
-    # NPE→LGE bloc shifts in points on the 2024 base (§3.4a, four observed
-    # transitions). The *mode* is recentred by evidence (θ modes, by-elections,
-    # polling) but always clamped to the historical (low, high).
-    "anc_bloc_shift": [-22.0, -9.0, -3.0],
-    "da_bloc_shift": [5.0, 9.0, 14.0],
-    "alpha_anc": 60.0,       # within-bloc Dirichlet concentration (§3.5 α_split)
-    "alpha_da": 12.0,        # low: the ActionSA outcome is genuinely bimodal
-
     # §3.5 central θ modes — the plan's per-party views. E2: these centre the
-    # within-bloc split. BOSA has no plan θ; 0.80 is a documented judgement
+    # within-pool split. BOSA has no plan θ; 0.80 is a documented judgement
     # (suburbs NPE party at its first LGE).
     "theta_mode": {"ANC": 0.75, "EFF": 0.85, "MK": 0.60,
                    "DA": 1.30, "ASA": 1.50, "BOSA": 0.80},
 
-    # E6: individual (low, mode, high) raw θ for parties outside the blocs,
+    # E6: individual (low, mode, high) raw θ for parties outside the pools,
     # drawn independently. Ranges bracket the observed fold-1/fold-2 raw
     # ratios: IFP 1.34→1.97, VF+ 0.81→1.65, ACDP 0.58→1.82, Al Jama-ah 3.12
     # in 2021. Rise has no LGE history: judgement, wide, collapse risk real.
@@ -154,37 +149,14 @@ DEFAULTS: dict = {
     "poll_id": None,        # e.g. "srf-2026q2-coj" — see polls.json
     "poll_weight": 0.0,
 
-    # Trend-break dial (2026-08-06, from the bloc-leakage measurement in
-    # MODEL-LOG 1.18). Signed, [-1, 1]. History says ~0 (the 2021 collapse
-    # shed 587k votes and the DA bloc captured none).
-    #   > 0: that share of the ANC bloc's drawn losses (local share below its
-    #        national base) CROSSES to the DA bloc instead of staying home.
-    #   < 0: the mirror — that share of DA-bloc losses crosses to the ANC
-    #        bloc. Symmetric by construction; the DA bloc's observed range
-    #        never dips below base, so this side only fires when user-set
-    #        levels push it there.
-    "bloc_leak": 0.0,
-
-    # Splinter branch rule (§1.26, measured 2026-08-10 across eight metros).
-    # Empty by default so the published forecast is unchanged until this is
-    # deliberately switched on. Ranges are (low, mode, high) triangulars taken
-    # from the record, not judged:
-    #   collapse -- COPE 2009->2011 in all eight metros: 0.12 .. 0.28, mean 0.19
-    #   holds    -- ID 2004->2006 and EFF 2014->2016, sixteen metros: 0.65 ..
-    #               1.50; the mode is 1.04 because MK debuts on a large base
-    #               (12.2% of Johannesburg) and the EFF's four large-base
-    #               metros landed at 1.01, 1.03, 1.05, 1.08.
-    # fracture_prob is the one genuine judgement left -- whether the leadership
-    # holds together -- and it is a single national number per party, because
-    # θ varied far less across cities than it did between parties.
-    "splinter": {},
-
-    # §1.29 weighted pools. Empty keeps the two-bloc engine, so the published
-    # forecast is unchanged. Each pool: members {party: weight of that
-    # party's support drawn from this pool}, a shift triangular in points on
-    # the base, an alpha, and lean_sign for the polling lever (+1 receives a
-    # positive lean, -1 the mirror, 0 none). Weights of 1.0 with two pools
-    # reproduce the bloc engine exactly -- that equivalence is the test.
+    # §1.29 weighted pools — the engine. Each pool: members {party: the share
+    # of that party's vote drawn from this pool, summing to 1 across pools per
+    # party}, a `ratio` triangular on the base, and an `alpha`. Left empty here
+    # because it is not a judgement to be typed: `run_model` loads the measured
+    # spec that `python src/pools.py --emit` writes, and refuses to run without
+    # one. Splinter and entrant lineage is settled there too — a splinter
+    # inherits its parent's pool vector, an entrant defaults to an even share
+    # of every pool, and both are overridable in judgements/{city}-{target}.toml.
     "pools": {},
 
     # A1: ward/PR split-ticket ratios are measured from 2021 per party;
@@ -201,12 +173,6 @@ DEFAULTS: dict = {
     "turnout_pattern_blend": 0.5,
     "turnout_blend_jitter": 0.25,
     "turnout_noise_sd": 0.08,
-    # who-turns-out tilts, in [-1, 1] per bloc: 0 = as the draw says; +1 =
-    # that bloc's supporters vote at their area's highest turnout on record
-    # ("all turn out"); -1 = at its worst local-election turnout on record
-    # ("stay home"). Supporter-selective and compositional.
-    "turnout_tilt_anc": 0.0,
-    "turnout_tilt_da": 0.0,
 
     # A6: generic-entrant slot. Off by setting probability to 0.
     "entrant_prob": 0.25,
@@ -400,10 +366,8 @@ def apply_city(city) -> None:
     spine was introduced, so for CoJ this is a no-op by construction — which
     is what lets the refactor happen without the forecast moving.
     """
-    global COUNCIL, BLOCS, ANC_BLOC_PARTIES, PLAN_BOUNDS
+    global COUNCIL, PLAN_BOUNDS
     COUNCIL = city.council
-    BLOCS = city.blocs
-    ANC_BLOC_PARTIES = BLOCS["ANC_BLOC"]
     PLAN_BOUNDS = city.plan_bounds
     j = city.judgements
     for key in ("theta_mode", "individual_theta", "ward_pr_ratio_overrides"):
@@ -539,7 +503,7 @@ def pool_spec(scenario, base_city_d, centres, index, lean):
     Each pool gets ``members`` (party -> the weight of that party's support
     drawn from this pool, weights summing to 1 across pools per party), a
     ``shift`` triangular in points on the base, and an ``alpha``. Weight 1.0
-    everywhere reduces this exactly to the two-bloc engine, which is the
+    everywhere reduces this to a plain per-group draw, which is the
     regression test.
     """
     spec = {}
@@ -566,9 +530,9 @@ def pool_spec(scenario, base_city_d, centres, index, lean):
         # differential local-election turnout, in one number.
         low, mode, high = cfg["ratio"]
         # A pool that can only grow, or only shrink, is nonsense. Both of the
-        # ranges this engine replaces were exactly that: the ANC bloc's
-        # [-22,-9,-3] points is a ratio of 0.61-0.95 and could never grow, the
-        # DA bloc's [+5,+9,+14] is 1.16-1.43 and could never shrink. Neither is
+        # ranges this engine replaced were exactly that: [-22,-9,-3] points is
+        # a ratio of 0.61-0.95 and could never grow, and [+5,+9,+14] is
+        # 1.16-1.43 and could never shrink. Neither is
         # a fact about elections; both came of writing a range from a few
         # same-signed observations. A sample without a decline in it is a limit
         # of the sample, never evidence that decline cannot happen -- which is
@@ -607,72 +571,34 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         base_city[i] = base_city_d.get(party, SHARE_FLOOR)
 
     lean = scenario["polling_lean"] * scenario["polling_span"]
-    pools = pool_spec(scenario, base_city_d, centres, index, lean) \
-        if scenario.get("pools") else None
-    bloc_spec = {}
-    for bloc, members in BLOCS.items():
-        idx = [index[p] for p in members if p in index]
-        base_total = sum(base_city_d.get(p, 0.0) for p in members if p in index)
-        centre_total = sum(centres.get(p, 0.0) for p in members if p in index)
-        low, mode, high = (scenario["anc_bloc_shift"] if bloc == "ANC_BLOC"
-                           else scenario["da_bloc_shift"])
-        # Evidence recentres the mode; history bounds it. Polling lever pushes
-        # the DA bloc up and the ANC bloc down (SRF) or the reverse (Ipsos).
-        evidence_mode = (centre_total - base_total) * 100.0
-        evidence_mode += lean if bloc == "DA_BLOC" else -lean
-        clamped_mode = min(max(evidence_mode, low), high)
-        centre_props = np.array([centres[p] for p in members if p in index])
-        centre_props = centre_props / centre_props.sum()
-        alpha = scenario["alpha_anc"] if bloc == "ANC_BLOC" else scenario["alpha_da"]
-        bloc_spec[bloc] = (idx, base_total, (low, clamped_mode, high),
-                          centre_props, alpha)
+    if not scenario.get("pools"):
+        raise SystemExit(
+            "no pools: the model draws from measured voter pools, and there is "
+            "nothing to fall back on. Run:\n"
+            "  python src/pools.py --city <city> --target <year> --emit")
+    pools = pool_spec(scenario, base_city_d, centres, index, lean)
 
-    # --- splinter branch (§1.26) ---------------------------------------------
-    # A party formed by a defector facing its first local election does not
-    # land on a central case: measured across eight metros, COPE collapsed to
-    # θ 0.12-0.28 everywhere and the EFF held at 1.01-1.50 everywhere, with
-    # 0.29-0.64 empty in 24 observations. Drawing such a party from a single
-    # triangular centres it on the one outcome the record never produces, so
-    # each configured splinter instead draws a branch first, then a θ from that
-    # branch, and its share of the bloc's Dirichlet centre is rebuilt for the
-    # draw. The bloc total is untouched -- the splinter's gain comes out of its
-    # own bloc, which is what happened to the ANC in every observed case.
-    # Two splinters can share a bloc -- MK and the EFF both sit inside
-    # ANC_BLOC -- and they have to compose: each redraws its own slot of ONE
-    # per-bloc level vector, which is renormalised once, after every rule has
-    # had its say. Rebuilding the vector per rule and replacing the bloc's
-    # proportions wholesale let the last rule win and threw the earlier draws
-    # away, so a two-splinter scenario quietly ran as a one-splinter scenario.
-    splinters = []
-    splinter_levels: dict[str, np.ndarray] = {}
-    for party, rule in (scenario.get("splinter") or {}).items():
-        if party not in index:
-            continue
-        home = next((bloc for bloc, members in BLOCS.items()
-                     if party in members), None)
-        if home is None:
-            # Falling through to the individual-θ path here would produce a run
-            # that looks configured and isn't; the same refusal entrant_geography
-            # gives an unknown parent.
-            raise SystemExit(f"splinter party {party!r} belongs to no bloc, so it "
-                             f"has no bloc split to redraw (blocs: "
-                             f"{', '.join(sorted(BLOCS))})")
-        present = [p for p in BLOCS[home] if p in index]
-        splinter_levels.setdefault(
-            home, np.array([centres[p] for p in present]))
-        splinters.append({
-            "party": party,
-            "bloc": home,
-            "slot": present.index(party),
-            "base": base_city_d.get(party, 0.0),
-            "p_fracture": rule["fracture_prob"],
-            "collapse": tuple(rule["collapse"]),
-            "holds": tuple(rule["holds"]),
-        })
+    # Lineage belongs to the pool fit, not here. A splinter inherits its
+    # parent's pool vector, an entrant takes an even share of every pool, and
+    # both are overridable per target in judgements/. See `pools.emit_pools`.
+    # The rule can therefore act on a party that did not previously exist,
+    # which the old branch could not (`if party not in index: continue`).
 
-    handled = ({p for cfg in scenario["pools"].values() for p in cfg["members"]
-                if p in index} if pools
-               else {p for members in BLOCS.values() for p in members if p in index})
+    handled = {p for cfg in scenario["pools"].values() for p in cfg["members"]
+               if p in index}
+    # A party in the baseline that reached no pool would fall to the residual
+    # bucket and be drawn against a range meant for minor parties — which is
+    # what happened to MK, 12.2% of the 2024 base, at mode 1.30 against a
+    # theta_mode of 0.60. pools.emit_pools gives every baseline party a vector,
+    # so this should be empty; say so loudly if it is not.
+    orphans = {p: base_city_d.get(p, 0.0) for p in index
+               if p not in handled and p != "ENTRANT"
+               and base_city_d.get(p, 0.0) >= 0.01}
+    if orphans:
+        listed = ", ".join(f"{p} {s:.1%}" for p, s in
+                           sorted(orphans.items(), key=lambda kv: -kv[1]))
+        print(f"  ! in no pool, drawn from the residual range: {listed}. "
+              f"Re-emit pools, or declare lineage in judgements/.")
     individual = []
     for party, i in index.items():
         if party in handled or party == "ENTRANT":
@@ -708,11 +634,6 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         split among its contenders, and a party collects its winnings from
         every pool it draws from."""
         target = np.zeros(n)
-        branch_theta = {}
-        for rule in splinters:
-            branch = (rule["collapse"] if rng.random() < rule["p_fracture"]
-                      else rule["holds"])
-            branch_theta[rule["party"]] = triangular(rng, branch)
         totals = {}
         for group, names in ties.items():
             if len(names) == 1:
@@ -731,18 +652,6 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             for nm in names:
                 totals[nm] = pools[nm][1] * shock
         for name, (idx, base, spec, props, alpha, names, levels, wts) in pools.items():
-            # A splinter's branch draw changes its level, so it must change its
-            # share of every pool it draws from -- not just one. The theta is
-            # drawn ONCE per party (above) and applied wherever that party sits.
-            if branch_theta:
-                hit = [q for q in names if q in branch_theta]
-                if hit:
-                    lv = levels.copy()
-                    for q in hit:
-                        lv[names.index(q)] = (wts[q] * base_city_d.get(q, 0.0)
-                                              * branch_theta[q])
-                    if lv.sum() > 0:
-                        props = lv / lv.sum()
             split = rng.dirichlet(np.maximum(props * alpha, 0.05))
             np.add.at(target, idx, max(totals[name], 0.005) * split)
         for i, spec in individual:
@@ -755,51 +664,7 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             target[entrant_index] = share
         return target
 
-    def draw():
-        target = np.zeros(n)
-        a_idx, a_base, a_spec, a_props, a_alpha = bloc_spec["ANC_BLOC"]
-        d_idx, d_base, d_spec, d_props, d_alpha = bloc_spec["DA_BLOC"]
-        a_shift = triangular(rng, a_spec) / 100.0
-        d_shift = triangular(rng, d_spec) / 100.0
-        leak = scenario["bloc_leak"]
-        a_total = a_base + a_shift
-        d_total = d_base + d_shift
-        # symmetric lost-votes crossover: each direction moves a share of the
-        # SOURCE bloc's losses (its local share falling below its national
-        # base) to the other bloc instead of the couch. The DA bloc's observed
-        # range never goes below base, so leak < 0 only fires when user-set
-        # levels push d_shift negative — "if there are none, there are none".
-        if leak > 0:      # ANC-bloc losses cross to the DA bloc
-            d_total += leak * max(0.0, -a_shift)
-        elif leak < 0:    # DA-bloc losses cross to the ANC bloc
-            a_total += -leak * max(0.0, -d_shift)
-        props_by_bloc = {"ANC_BLOC": a_props, "DA_BLOC": d_props}
-        if splinters:
-            levels_by_bloc = {b: v.copy() for b, v in splinter_levels.items()}
-            for rule in splinters:
-                branch = (rule["collapse"] if rng.random() < rule["p_fracture"]
-                          else rule["holds"])
-                levels_by_bloc[rule["bloc"]][rule["slot"]] = (
-                    rule["base"] * triangular(rng, branch))
-            for bloc, levels in levels_by_bloc.items():
-                total_level = levels.sum()
-                if total_level > 0:
-                    props_by_bloc[bloc] = levels / total_level
-        for idx, total, props, alpha in ((a_idx, a_total, props_by_bloc["ANC_BLOC"], a_alpha),
-                                         (d_idx, d_total, props_by_bloc["DA_BLOC"], d_alpha)):
-            split = rng.dirichlet(np.maximum(props * alpha, 0.05))
-            target[idx] = max(total, 0.005) * split
-        for i, spec in individual:
-            target[i] = base_city[i] * triangular(rng, spec)
-        target = target / target.sum()
-        if entrant_index is not None:
-            share = (triangular(rng, scenario["entrant_share"])
-                     if rng.random() < scenario["entrant_prob"] else 0.0)
-            target *= (1.0 - share)
-            target[entrant_index] = share
-        return target
-
-    return draw_pools if pools else draw
+    return draw_pools
 
 
 # --------------------------------------------------------------------------
@@ -950,6 +815,31 @@ def run_model(target, scenario: dict,
     global COUNCIL
     COUNCIL = target.council
     processed = target.processed if processed is None else processed
+
+    # --- pools: the parties' measured constituencies -------------------------
+    # A pool is a body of voters, measured from the census, and a party's
+    # membership of it is the share of its vote that demonstrably comes from
+    # there. Emitted by `python src/pools.py --emit`. There is no alternative
+    # engine, so a missing spec is an error rather than a quiet substitution.
+    if not scenario.get("pools"):
+        spec_path = target.city.processed / f"pools_{target.year}.json"
+        if spec_path.exists():
+            spec = json.loads(spec_path.read_text())
+            scenario["pools"] = spec["pools"]
+            if verbose:
+                print(f"  pools: {len(spec['pools'])} measured from "
+                      f"{spec['fitted_on']} ({spec['provenance']})")
+                unidentified = [n for n, c in spec["pools"].items()
+                                if not c.get("identified")]
+                if unidentified:
+                    print(f"  ! pools with no member weight identified by ward "
+                          f"data: {', '.join(unidentified)} — these are "
+                          f"judgements, not measurements")
+        else:
+            raise SystemExit(
+                f"no pool spec at {spec_path}. The model has no other engine. "
+                f"Run:\n  python src/pools.py --city {target.city.slug} "
+                f"--target {target.year} --emit")
 
     rng = np.random.default_rng(scenario["seed"])
 
@@ -1174,8 +1064,6 @@ def run_model(target, scenario: dict,
     t_lo = np.array([tlo_pattern.get(v, np.nan) for v in vds])
     mlo = np.nansum(t_lo * reg) / np.nansum(np.where(np.isnan(t_lo), 0, reg))
     t_lo = np.where(np.isnan(t_lo), mlo, t_lo)
-    anc_ids = [index[p] for p in BLOCS["ANC_BLOC"] if p in index]
-    da_ids = [index[p] for p in BLOCS["DA_BLOC"] if p in index]
 
     # --- ward structure (E3) -------------------------------------------------
     # A ward is only forecastable if at least one of its VD parts is in the
@@ -1304,32 +1192,18 @@ def run_model(target, scenario: dict,
         t_draw = np.clip(((1 - blend) * t_ratio + blend * t_level)
                          * np.exp(noise - scenario["turnout_noise_sd"] ** 2 / 2),
                          0.02, 0.95)
-        # who-turns-out tilts are PARTY-SELECTIVE and compositional: the
-        # scenario's within-VD shares are calibrated on the untilted weights,
-        # then the tilt scales the target BLOC'S SUPPORTERS — wherever they
-        # live — between the draw's turnout and the anchor (highest turnout
-        # on record up, worst LGE on record down). Neighbours' votes are
-        # untouched: one camp's machine outworking the other, not a ward-wide
-        # tide (which would mobilise the other camp's voters too).
+        # The who-turns-out tilt used to sit here. It selected supporters by
+        # a hand-drawn party grouping, and it was applied AFTER
+        # solve_and_predict had already calibrated shares to the drawn target,
+        # so rows stopped summing to one and the realised citywide share was no
+        # longer the one drawn. It was off by default and never measured.
+        # Differential turnout by pool is real and belongs in the model, but it
+        # has to enter the weights the calibration sees, not be multiplied on
+        # afterwards — and it should key on voter pools, which is where the
+        # turnout data can actually be attached.
         weight_cal = reg * t_draw
         weight = weight_cal
-        tilt_a = scenario["turnout_tilt_anc"]
-        tilt_d = scenario["turnout_tilt_da"]
         tilt_scale = None
-        if tilt_a or tilt_d:
-            def _bloc_scale(t):
-                # "all turn out" can only add votes; "stay home" can only
-                # remove them (the worst-ever anchor can sit a hair above the
-                # baseline, which must not make staying home a gain)
-                anchor = t_hi if t >= 0 else t_lo
-                raw = 1.0 + abs(t) * (anchor / t_draw - 1.0)
-                return (np.clip(raw, 1.0, 4.0) if t >= 0
-                        else np.clip(raw, 0.25, 1.0))
-            tilt_scale = np.ones((nvd, npar))
-            if tilt_a:
-                tilt_scale[:, anc_ids] = _bloc_scale(tilt_a)[:, None]
-            if tilt_d:
-                tilt_scale[:, da_ids] = _bloc_scale(tilt_d)[:, None]
 
         floor = scenario["level_floor"]
         pr = solve_and_predict(dev_pr, base_city, pr_target, gamma["PR"], weight_cal,
@@ -1455,7 +1329,10 @@ def main(argv: list[str] | None = None) -> int:
     # The "widest field" structural rows must count every seat-holding party,
     # not just the top twelve the enumeration works over — the micro-party
     # tail holds ~8 seats and its omission understates the field materially.
-    field = np.array([sum(v for p, v in s.items() if p not in ANC_BLOC_PARTIES)
+    # Named explicitly: this is one specific coalition arithmetic ("can a
+    # majority form without these three"), not a claim that they move together.
+    WITHOUT = ("ANC", "EFF", "MK")
+    field = np.array([sum(v for p, v in s.items() if p not in WITHOUT)
                       for s in seat_draws])
     no_anc = np.array([sum(v for p, v in s.items() if p != "ANC")
                        for s in seat_draws])
@@ -1473,7 +1350,8 @@ def main(argv: list[str] | None = None) -> int:
         (largest_names == "DA").mean())
     results["structural"]["P(ANC is the largest single party)"] = float(
         (largest_names == "ANC").mean())
-    results["structural"]["non-bloc field median seats"] = float(np.median(field))
+    results["structural"]["field without ANC, EFF and MK: median seats"] = float(
+        np.median(field))
     coalitions.report(results, "(per-draw threshold, overhang-adjusted)")
     coalitions.write_outputs(results, processed)
 

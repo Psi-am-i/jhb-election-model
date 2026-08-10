@@ -18,6 +18,25 @@ import cityconfig
 import stats as statlib
 
 
+# --- NOT YET PORTED TO POOLS ------------------------------------------------
+# This page carries its own drawer, reimplemented in JavaScript so the reader
+# can move the dials in the browser. That drawer is the two-bloc engine, which
+# the model no longer has: it takes two membership lists and two shift
+# triangulars, and there is nothing left to feed it.
+#
+# Porting it means handing the JS the emitted pool spec — N pools, each with
+# members {party: weight}, a ratio triangular and an alpha — and replacing the
+# two hard-coded dials with one per pool. Until then this refuses, rather than
+# publishing a page whose arithmetic disagrees with the model's.
+raise SystemExit(
+    "the interactive page has not been ported to voter pools: its in-browser "
+    "drawer is the old two-bloc engine and there is nothing left to feed it. "
+    "See the note at the top of this file. The published page stays frozen "
+    "in the meantime."
+)
+
+
+
 def city_constants(city) -> str:
     """The JS mirror of the model's constants, generated from the config.
 

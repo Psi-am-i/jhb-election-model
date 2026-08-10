@@ -2,7 +2,7 @@
 
 ``fold.py`` validates the deterministic core -- the share model, γ, the ballot
 split and the seat allocator. What it cannot touch is the *distributional*
-layer, which is where every judgement in this project lives: bloc and pool
+layer, which is where every judgement in this project lives: pool
 ranges, the Dirichlet concentrations, the splinter branch, entrant geography,
 turnout uncertainty, the by-election terms. This harness runs the model at a
 past election and scores the distribution it produced against what actually
@@ -36,7 +36,7 @@ than omissions: by-election evidence (only the post-2021 window is scraped) and
 split-VD apportionment (see ``montecarlo.ward_parts``).
 
 **The priors have read the answer, and the harness says so.** ``DEFAULTS``
-was fitted on these very elections — the bloc shifts on "four observed
+was fitted on these very elections — the pool ratios on "sixteen observed
 transitions" that include 2019→2021, ``individual_theta`` on the fold-1 and
 fold-2 raw ratios, ``alpha_da`` on the ActionSA outcome, the ward/PR ratios and
 the PA uplift on 2021 — so a default run against 2021 is an in-sample fit
@@ -178,13 +178,11 @@ TARGETS = _Targets()
 # does not finish strictly before the target, which is the one part of this
 # problem the code can enforce instead of announce.
 FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
-    "anc_bloc_shift": (
-        ("2006", "2011", "2016", "2021"),
-        "§3.4a: the four observed NPE→LGE bloc transitions "
-        "(2004→2006, 2009→2011, 2014→2016, 2019→2021)"),
-    "da_bloc_shift": (
-        ("2006", "2011", "2016", "2021"),
-        "§3.4a: the same four observed transitions"),
+    "pools": (
+        ("2011", "2016", "2021"),
+        "pool ratio ranges measured across 16 metro transitions, and the "
+        "composition fitted from Census 2022 — both post-date any target "
+        "before 2026"),
     "theta_mode": (
         ("2016", "2021"),
         "§3.5's per-party views, formed on the record through 2021"),

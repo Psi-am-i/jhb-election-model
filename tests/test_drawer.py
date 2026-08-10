@@ -8,52 +8,29 @@ so a change in its distribution moves every number the site publishes.
 **This file records what the code does. It does not claim that what it does is
 right.** Some of these assertions pin behaviour that is known to be wrong.
 
-``draw()`` distorts the configured bloc bands in TWO separate places, and they
-are easy to confuse because they act on the same numbers one after the other.
-Measured on 2026-08-10 with the shipped Johannesburg configuration, seed
-20261104, 2000 draws (the ``--decompose`` mode below reproduces every figure):
+``draw_pools()`` distorts the configured pool bands in TWO separate places,
+and they are easy to confuse because they act on the same numbers one after the
+other. Re-record with ``--decompose`` to reproduce the current figures.
 
-  stage                         ANC bloc p5-p95     DA bloc p5-p95
-  A  as configured              37.66% - 50.65%     39.23% - 45.99%
-  B  after renormalisation      38.74% - 46.58%     38.70% - 45.42%
-  C  after the entrant rescale  37.67% - 46.45%     37.48% - 45.12%
+* **Plan item 3.1, OPEN — renormalisation.** ``draw_pools()`` builds each
+  pool's total from its configured ratio triangular, fills in the individual
+  parties, and then divides the whole vector by its own sum. Because the pieces
+  are drawn independently and generally sum to more than one, that division
+  pulls the realised distribution IN — from **both** ends, not one. The
+  forecast is therefore more confident than any documented judgement supports,
+  and most of that confidence is a low ceiling.
 
-Stage A is the exact triangular quantile; B and C are 2000-draw sample
-quantiles. Sampling the shift triangular instead gives A = 37.69%-50.76% and
-39.22%-46.02%, so read a tenth of a point of noise into every A-to-B figure
-below. It changes none of the conclusions.
-
-* **Plan item 3.1, OPEN — renormalisation (A to B).** ``draw()`` builds the two
-  bloc totals from the configured triangular shift ranges, fills in the
-  individual parties, and then divides the whole vector by its own sum
-  (``montecarlo.py:620`` in the pooled engine, ``:664`` in the bloc engine).
-  Because the pieces are drawn independently and generally sum to more than
-  one, that division pulls the realised distribution IN — from **both** ends,
-  not one. The ANC bloc's p95 falls 4.07 points while its p5 *rises* 1.08
-  points; the DA bloc loses about half a point at each end. The forecast is
-  therefore more confident about the ANC bloc than any documented judgement
-  supports, and most of that confidence is a low ceiling.
-
-* **The entrant rescale (B to C).** Separately, and *after* renormalisation,
-  ``target *= (1.0 - share)`` (``montecarlo.py:665-669``, and ``:621-625`` in
-  the pooled engine) scales every established party down to make room for the
-  hypothetical new entrant. Since the entrant draws a positive share on 25% of
-  draws, this shifts every bloc DOWN — about 1.1 points off each bloc's p5.
-  That, not renormalisation, is the whole of the DA bloc's 1.75-point drop
-  below its configured p5. Whether it is a defect at all is a modelling
-  judgement (an entrant's votes must come from somewhere), but it is a
+* **The entrant rescale.** Separately, and *after* renormalisation,
+  ``target *= (1.0 - share)`` scales every established party down to make room
+  for the hypothetical new entrant. Since the entrant draws a positive share on
+  25% of draws, this shifts every pool DOWN. Whether it is a defect at all is a
+  modelling judgement (an entrant's votes must come from somewhere), but it is a
   different step with a different fix, and attributing it to 3.1 would send
   whoever fixes 3.1 after a defect that is not there.
 
-``test_renormalisation_narrows_the_anc_bloc_from_both_sides`` asserts that the
-first gap is there. **When 3.1 is fixed that test must fail**, loudly and
-deliberately, and it should then be deleted along with the GOLDEN values below,
-which will also move.
-``test_da_bloc_lower_tail_gap_is_the_entrant_rescale_not_renormalisation``
-asserts the second, and must NOT be affected by fixing 3.1 — if fixing 3.1
-moves it, the two steps were not as separable as measured here. That is the
-intended failure: this file's job is to make sure the prior cannot change by
-accident, only on purpose.
+``test_renormalisation_narrows_the_largest_pool_from_both_sides`` asserts that
+the first gap is there. **When 3.1 is fixed that test must fail**, loudly and
+deliberately, and it should then be deleted along with the GOLDEN values below.
 
 Re-record after a deliberate change with:
     ./.venv/bin/python tests/test_drawer.py --record
@@ -69,6 +46,7 @@ Run:
 from __future__ import annotations
 
 import copy
+import json
 import csv
 import math
 import sys
@@ -89,38 +67,40 @@ DRAWS = 2000             # enough for a stable p5/p95, ~0.2s to produce
 
 # Percentage points. The draw is bit-for-bit reproducible for a given numpy
 # version, so this is slack for a float difference, not for a real change in
-# the prior. Measured sensitivity at this threshold: moving the ANC bloc's
-# configured upper shift by one point shows up as 0.18pp, dropping the DA
-# bloc's Dirichlet concentration from 12 to 8 as 0.18pp, nudging the ANC's
-# blended centre by 0.5% as 0.06pp, and the PA's by 1% as 0.015pp. A numpy
-# UPGRADE can legitimately move these figures (the RNG stream is versioned);
-# that is a re-record, and it should be noted as one.
+# the prior: re-emitting the pools, or nudging a party's blended centre, moves
+# these values well clear of it. A numpy UPGRADE can legitimately move them too
+# (the RNG stream is versioned); that is a re-record, and should be noted as
+# one in MODEL-LOG.md.
+DOMINANT_P5_DROP_MIN = 5.0   # measured -10.65pp on 2026-08-10
 TOL = 0.01
 
 ELECTIONS = ROOT / "data" / "raw" / "elections"
 PROCESSED = ROOT / "data" / "processed"
 
-# Recorded 2026-08-10 from the shipped cities/joburg.toml, seed 20261104,
+# Recorded 2026-08-10 from data/processed/pools_2026.json, seed 20261104,
 # 2000 draws, numpy 2.5.1. Values are percentages: (mean, p5, p95).
 #
-# For the record, alongside these: neither realised bloc band is the configured
-# one, and two separate steps are responsible. See the A/B/C table in the module
+# For the record, alongside these: no realised pool band is the configured one,
+# and two separate steps are responsible. See the A/B/C table in the module
 # docstring — renormalisation for A-to-B (plan item 3.1), the entrant rescale
 # for B-to-C.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (23.7716, 18.8248, 28.8967),
-    "DA": (29.4637, 19.5417, 37.7167),
-    "EFF": (10.1638, 6.5377, 14.4417),
-    "ASA": (11.2653, 3.7965, 20.6735),
-    "MK": (8.2488, 4.8483, 12.2410),
-    "PA": (4.5594, 3.3534, 5.6536),
-    "VFPLUS": (1.0673, 0.6834, 1.5090),
-    "ALJAMAAH": (1.4298, 0.8823, 2.0748),
-    "ENTRANT": (1.5090, 0.0000, 8.1594),
+    "ANC": (23.0233, 11.2925, 35.8260),
+    "DA": (25.0130, 18.2232, 34.3880),
+    "EFF": (9.9461, 2.5001, 20.6624),
+    "ASA": (11.2052, 4.0182, 21.4021),
+    "MK": (7.9555, 1.6171, 17.3734),
+    "PA": (4.5502, 2.6168, 6.8627),
+    "VFPLUS": (0.8216, 0.0180, 2.8141),
+    "ALJAMAAH": (0.9984, 0.1222, 2.4268),
+    "ENTRANT": (1.3825, 0.0000, 7.8237),
 }
-GOLDEN_BLOCS: dict[str, tuple[float, float, float]] = {
-    "ANC_BLOC": (42.1842, 37.6683, 46.4480),
-    "DA_BLOC": (41.3759, 37.4787, 45.1182),
+GOLDEN_POOLS: dict[str, tuple[float, float, float]] = {
+    "Black African": (60.7231, 51.6717, 68.3049),
+    "Coloured": (8.4497, 6.2749, 11.1983),
+    "Indian/Asian": (6.5996, 4.9599, 8.6632),
+    "Other": (1.9602, 0.9976, 3.5148),
+    "White": (20.8837, 16.5222, 26.6799),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")
@@ -162,6 +142,15 @@ def build_inputs():
             for row in csv.DictReader(handle):
                 bye[row["party"]] = (float(row["weight_sum"]),
                                      float(row["weighted_delta"]))
+
+    # The drawer has no engine without pools, so the fixture must load the
+    # measured spec exactly as run_model does — otherwise this file would test
+    # a configuration the forecast never runs.
+    spec_path = city.processed / "pools_2026.json"
+    if not spec_path.exists():
+        skip(f"no pool spec at {spec_path} — run: python src/pools.py "
+             f"--city {CITY} --target 2026 --emit")
+    scenario["pools"] = json.loads(spec_path.read_text())["pools"]
 
     centres, _ = mc.blended_centres(scenario, base_city_d, share_2021, bye)
     if "ENTRANT" in index:
@@ -206,33 +195,24 @@ def triangular_quantile(low: float, mode: float, high: float, p: float) -> float
     return high - math.sqrt((1 - p) * (high - low) * (high - mode))
 
 
-def configured_bloc_band(bloc: str, scenario, base_city_d, centres, index):
-    """Stage A: the 5th-95th percentile the bloc's own configuration implies.
-
-    Base share plus the configured shift triangular, before renormalisation and
-    before the entrant rescale. Computed from the exact triangular quantile, so
-    it carries no sampling noise of its own -- but it is being compared against
-    sampled stages, and at 2000 draws that comparison is good to roughly a
-    tenth of a point, which is why the thresholds below are whole points.
-
-    The mode must be derived exactly as ``make_drawer`` derives it
-    (montecarlo.py:479-493), including the polling lean, or this is a band the
-    sampler was never asked to produce.
-    """
-    members = [p for p in mc.BLOCS[bloc] if p in index]
-    base = sum(base_city_d.get(p, 0.0) for p in members)
-    centre_total = sum(centres.get(p, 0.0) for p in members)
-    low, _, high = (scenario["anc_bloc_shift"] if bloc == "ANC_BLOC"
-                    else scenario["da_bloc_shift"])
-    # montecarlo.py:479 -- `polling_lean * polling_span`, with no halving.
-    # Inert while polling_lean is 0, but a half-sized lean here would silently
-    # measure the wrong band the moment the lever is used.
+def _pools(scenario, base_city_d, centres, index):
     lean = scenario["polling_lean"] * scenario["polling_span"]
-    evidence_mode = (centre_total - base) * 100.0
-    evidence_mode += lean if bloc == "DA_BLOC" else -lean
-    mode = min(max(evidence_mode, low), high)
-    p5 = base * 100 + triangular_quantile(low, mode, high, 0.05)
-    p95 = base * 100 + triangular_quantile(low, mode, high, 0.95)
+    return mc.pool_spec(scenario, base_city_d, centres, index, lean)
+
+
+def configured_pool_band(name, scenario, base_city_d, centres, index):
+    """Stage A: the 5th-95th percentile this pool's own configuration implies.
+
+    A pool moves by a RATIO on its base, not by a shift in points, so the band
+    is base x the ratio triangular's quantiles. Taken from ``mc.pool_spec`` so
+    the mode is the one the sampler was actually asked for, including the
+    one-sided-range reflection it applies.
+    """
+    spec = _pools(scenario, base_city_d, centres, index)
+    _idx, base, ratio, _props, _alpha, _names, _levels, _wts = spec[name]
+    low, mode, high = ratio
+    p5 = base * 100 * triangular_quantile(low, mode, high, 0.05)
+    p95 = base * 100 * triangular_quantile(low, mode, high, 0.95)
     return p5, p95, (low, mode, high)
 
 
@@ -256,21 +236,34 @@ def before_entrant_rescale(matrix: np.ndarray, index: dict) -> np.ndarray:
     return out
 
 
-def bloc_band(matrix: np.ndarray, index: dict, bloc: str) -> tuple[float, float]:
-    """(p5, p95) of a bloc's total share, in percentage points."""
-    ids = [index[p] for p in mc.BLOCS[bloc] if p in index]
-    total = matrix[:, ids].sum(axis=1)
+def pool_total(matrix: np.ndarray, index: dict, scenario, name: str) -> np.ndarray:
+    """A pool's share of the vote, per draw.
+
+    A party contributes to a pool in proportion to the share of its vote that
+    comes from there, so this is the weighted sum -- not a membership count.
+    """
+    members = scenario["pools"][name]["members"]
+    total = np.zeros(matrix.shape[0])
+    for party, weight in members.items():
+        if party in index:
+            total += float(weight) * matrix[:, index[party]]
+    return total
+
+
+def pool_band(matrix, index, scenario, name: str) -> tuple[float, float]:
+    total = pool_total(matrix, index, scenario, name)
     return (float(np.percentile(total, 5) * 100),
             float(np.percentile(total, 95) * 100))
 
 
-def stages(bloc: str):
-    """(A, B, C) bands for one bloc, plus the bloc's shift triangular."""
+def stages(name: str):
+    """(A, B, C) bands for one pool, plus its ratio triangular."""
     matrix, index, scenario, base_city_d, centres = draw_matrix()
-    a_p5, a_p95, spec = configured_bloc_band(
-        bloc, scenario, base_city_d, centres, index)
-    b_p5, b_p95 = bloc_band(before_entrant_rescale(matrix, index), index, bloc)
-    c_p5, c_p95 = bloc_band(matrix, index, bloc)
+    a_p5, a_p95, spec = configured_pool_band(
+        name, scenario, base_city_d, centres, index)
+    b_p5, b_p95 = pool_band(before_entrant_rescale(matrix, index), index,
+                            scenario, name)
+    c_p5, c_p95 = pool_band(matrix, index, scenario, name)
     return (a_p5, a_p95), (b_p5, b_p95), (c_p5, c_p95), spec
 
 
@@ -310,104 +303,108 @@ def test_party_marginals_match_recorded():
           "MODEL-LOG.md. If it was not, something changed the forecast.")
 
 
-def test_bloc_marginals_match_recorded():
-    if not GOLDEN_BLOCS:
-        skip("no GOLDEN_BLOCS recorded — run: "
+def test_pool_marginals_match_recorded():
+    if not GOLDEN_POOLS:
+        skip("no GOLDEN_POOLS recorded — run: "
              "./.venv/bin/python tests/test_drawer.py --record")
-    matrix, index, _, _, _ = draw_matrix()
+    matrix, index, scenario, _, _ = draw_matrix()
     drift = []
-    for bloc, want in sorted(GOLDEN_BLOCS.items()):
-        ids = [index[p] for p in mc.BLOCS[bloc] if p in index]
-        got = marginals(matrix[:, ids].sum(axis=1))
+    for name, want in sorted(GOLDEN_POOLS.items()):
+        assert name in scenario["pools"], (
+            f"pool {name} has left the spec; the prior has changed shape, not "
+            f"just scale. Re-emit and re-record deliberately.")
+        got = marginals(pool_total(matrix, index, scenario, name))
         for label, a, b in zip(("mean", "p5", "p95"), got, want):
             if abs(a - b) > TOL:
-                drift.append(f"{bloc} {label}: recorded {b:.4f}%, now {a:.4f}% "
+                drift.append(f"{name} {label}: recorded {b:.4f}%, now {a:.4f}% "
                              f"({a - b:+.4f}pp)")
-    assert not drift, ("bloc totals have moved from their recorded behaviour:\n  "
+    assert not drift, ("pool totals have moved from their recorded behaviour:\n  "
                        + "\n  ".join(drift))
 
 
-def test_renormalisation_narrows_the_anc_bloc_from_both_sides():
+def _largest_pool(scenario, base_city_d, centres, index) -> str:
+    spec = _pools(scenario, base_city_d, centres, index)
+    return max(spec, key=lambda name: spec[name][1])
+
+
+def test_the_realised_pool_prior_is_not_the_configured_one():
     """DOCUMENTS A KNOWN DEFECT (plan item 3.1) — delete this when 3.1 is fixed.
 
-    Renormalisation is stage A -> stage B: the configured shift band against
-    the draws as they stand *before* the entrant rescale. Isolating it that way
-    matters. The naive comparison — configured band against the final output —
-    mixes in the entrant rescale, and that mixture reads as a one-sided
-    compression of the ANC bloc's upper tail. It is not one-sided. Dividing the
-    assembled vector by its own sum pulls BOTH tails in: the p95 falls about
-    4.2 points and the p5 RISES about 1.0. The final p5 only looks untouched
-    because the entrant rescale then pushes it back down by about the same
-    amount, which is a coincidence of this configuration, not a property of the
-    defect.
+    Renormalisation is stage A -> stage B: the configured ratio band against
+    the draws as they stand *before* the entrant rescale.
+
+    Under the two-bloc engine this compressed both tails inward. Under N pools
+    it does something different, and worse. The pools are drawn independently
+    and their sum varies, so dividing by that sum redistributes between them:
+    the dominant pool absorbs the variance downward while the small pools widen
+    upward. Measured 2026-08-10, seed 20261104, 2000 draws:
+
+      pool            configured p5-p95     realised (stage B)
+      Black African   63.63 - 68.69         52.98 - 68.59      p5 -10.65
+      Indian/Asian     4.86 -  5.93          5.01 -  8.72      p95 +2.79
+      Other            0.83 -  1.75          1.01 -  3.55      p95 +1.80
+
+    Indian/Asian realises nearly three times the width it was configured with.
+    Nobody chose that: it is an artefact of normalising after the fact. The
+    fix is to draw the composition jointly, or to draw the residual as one
+    quantity with an explicit total, so the sum is one by construction.
 
     This test asserts the gap EXISTS, so that fixing 3.1 fails the suite
     instead of passing it silently. When that happens: delete this test and
-    re-record GOLDEN_PARTIES/GOLDEN_BLOCS.
+    re-record GOLDEN_PARTIES/GOLDEN_POOLS.
     """
-    (a_p5, a_p95), (b_p5, b_p95), _, spec = stages("ANC_BLOC")
+    _m, index, scenario, base_city_d, centres = draw_matrix()
+    name = _largest_pool(scenario, base_city_d, centres, index)
+    (a_p5, a_p95), (b_p5, b_p95), _, spec = stages(name)
 
-    assert a_p95 - b_p95 > 2.0, (
-        f"renormalisation no longer pulls the ANC bloc's upper tail in: "
-        f"configured p95 {a_p95:.2f}%, post-renormalisation p95 {b_p95:.2f}% "
-        f"(shift triangular {spec}). Either plan item 3.1 (post-hoc "
-        f"renormalisation at montecarlo.py:620/:664) has been fixed — in which "
-        f"case DELETE this test and re-record the golden values — or the "
-        f"configuration changed. Do not 'fix' this by loosening the threshold.")
-    assert b_p5 - a_p5 > 0.5, (
-        f"renormalisation no longer lifts the ANC bloc's LOWER tail: "
-        f"configured p5 {a_p5:.2f}%, post-renormalisation p5 {b_p5:.2f}%. "
-        f"Measured on 2026-08-10 the lift was +1.08pp — the compression is "
-        f"two-sided, and this half of it is the half that is easy to miss "
-        f"because the entrant rescale hides it in the final output. If this "
-        f"half has gone but the upper tail above has not, 3.1 has changed "
-        f"shape rather than being fixed, and the module docstring's A/B/C "
-        f"table needs re-measuring (`--decompose`).")
+    assert a_p5 - b_p5 > DOMINANT_P5_DROP_MIN, (
+        f"renormalisation no longer drags pool {name!r}'s lower tail down: "
+        f"configured p5 {a_p5:.2f}%, post-renormalisation p5 {b_p5:.2f}% "
+        f"(ratio triangular {spec}). Either plan item 3.1 (post-hoc "
+        f"renormalisation in draw_pools) has been fixed — in which case DELETE "
+        f"this test and re-record the golden values — or the pools were "
+        f"re-emitted and the arithmetic changed. Do not 'fix' this by "
+        f"loosening the threshold.")
+
+    widened = []
+    for other in scenario["pools"]:
+        if other == name:
+            continue
+        (o_a5, o_a95), (o_b5, o_b95), _, _ = stages(other)
+        if (o_b95 - o_b5) > (o_a95 - o_a5) * 1.2:
+            widened.append(other)
+    assert widened, (
+        "no pool realises a materially wider band than it was configured "
+        "with. Under the measurement this file records, the small pools widen "
+        "as the dominant one is dragged down — that is the same defect seen "
+        "from the other end. If it has gone, 3.1 may be fixed: re-measure "
+        "with `--decompose` and rewrite this file's docstring.")
 
 
-def test_da_bloc_lower_tail_gap_is_the_entrant_rescale_not_renormalisation():
+def test_entrant_rescale_pushes_every_pool_down():
     """ATTRIBUTION GUARD — this one must survive the fix for plan item 3.1.
 
-    The DA bloc's realised p5 sits about 1.75 points below the p5 its
-    configuration implies. Read off the final output alone that looks like the
-    same renormalisation defect as the ANC bloc's, pointing outward instead of
-    inward. It is not. Renormalisation costs the DA bloc about half a point at
-    the p5 (stage A -> B, inward, like everything else it touches); the
-    remaining ~1.2 points are the entrant rescale (stage B -> C), which scales
-    every established party by ``1 - share`` on the 25% of draws where the
-    hypothetical entrant takes a share.
-
-    So the entrant rescale, not renormalisation, is the larger part of the gap,
-    and it moves the band the OTHER way. Fixing 3.1 will not close it. This
-    test exists so that the next person to read this file is not sent after a
-    defect that does not exist.
+    Renormalisation pulls a band inward. The entrant rescale is a separate,
+    later step that scales every established party by ``1 - share`` on the
+    draws where the hypothetical entrant takes one, so it moves every pool
+    DOWN. Read off the final output alone the two are indistinguishable, and
+    fixing 3.1 will not close the part this step causes. This test exists so
+    that the next person to read this file is not sent after a defect that is
+    not there.
     """
-    (a_p5, _), (b_p5, _), (c_p5, _), spec = stages("DA_BLOC")
-    renorm = b_p5 - a_p5
-    rescale = c_p5 - b_p5
-
-    assert renorm < 0, (
-        f"renormalisation now moves the DA bloc's p5 UP ({renorm:+.2f}pp: "
-        f"configured {a_p5:.2f}% -> post-renormalisation {b_p5:.2f}%, shift "
-        f"triangular {spec}). Every measurement to date has renormalisation "
-        f"pulling a band inward; if it is pushing this one out, the A/B/C "
-        f"table in the module docstring is stale — re-measure with "
-        f"`./.venv/bin/python tests/test_drawer.py --decompose`.")
-    assert rescale < -0.5, (
-        f"the entrant rescale barely moves the DA bloc's p5 any more "
-        f"({rescale:+.2f}pp: post-renormalisation {b_p5:.2f}% -> final "
-        f"{c_p5:.2f}%). Measured on 2026-08-10 it was -1.22pp, and it — not "
-        f"renormalisation — is what puts the realised p5 below the configured "
-        f"one. If entrant_prob or entrant_share changed, this is expected and "
-        f"the docstring's A/B/C table should be re-measured; if they did not, "
-        f"montecarlo.py:665-669 has changed behaviour.")
-    assert abs(rescale) > abs(renorm), (
-        f"the DA bloc's lower-tail gap is no longer dominated by the entrant "
-        f"rescale: renormalisation {renorm:+.2f}pp vs rescale {rescale:+.2f}pp "
-        f"(configured p5 {a_p5:.2f}% -> {b_p5:.2f}% -> {c_p5:.2f}%). The "
-        f"attribution this file documents has changed; re-measure with "
-        f"`--decompose` and rewrite the module docstring before touching "
-        f"either step.")
+    _m, index, scenario, base_city_d, centres = draw_matrix()
+    offenders = []
+    for name in scenario["pools"]:
+        (_a5, _a95), (b_p5, _b95), (c_p5, _c95), _spec = stages(name)
+        if c_p5 - b_p5 >= 0:
+            offenders.append(f"{name}: p5 moved {c_p5 - b_p5:+.3f}pp "
+                             f"({b_p5:.2f}% -> {c_p5:.2f}%)")
+    assert not offenders, (
+        "the entrant rescale no longer pushes these pools' lower tails down:\n  "
+        + "\n  ".join(offenders)
+        + "\n\nIf entrant_prob or entrant_share changed this is expected and "
+          "the docstring should be re-measured (`--decompose`); if they did "
+          "not, the rescale step has changed behaviour.")
 
 
 def test_drawer_is_deterministic_for_a_fixed_seed():
@@ -433,11 +430,10 @@ def record() -> None:
         m, lo, hi = marginals(matrix[:, index[party]])
         print(f'    "{party}": ({m:.4f}, {lo:.4f}, {hi:.4f}),')
     print("}")
-    print("GOLDEN_BLOCS = {")
-    for bloc in mc.BLOCS:
-        ids = [index[p] for p in mc.BLOCS[bloc] if p in index]
-        m, lo, hi = marginals(matrix[:, ids].sum(axis=1))
-        print(f'    "{bloc}": ({m:.4f}, {lo:.4f}, {hi:.4f}),')
+    print("GOLDEN_POOLS = {")
+    for name in scenario["pools"]:
+        m, lo, hi = marginals(pool_total(matrix, index, scenario, name))
+        print(f'    "{name}": ({m:.4f}, {lo:.4f}, {hi:.4f}),')
     print("}")
     decompose()
 
@@ -445,9 +441,10 @@ def record() -> None:
 def decompose() -> None:
     """Print the A/B/C table in the module docstring, with the step deltas."""
     print(f"# decomposed from seed {SEED}, {DRAWS} draws, numpy {np.__version__}")
-    for bloc in mc.BLOCS:
-        (a5, a95), (b5, b95), (c5, c95), spec = stages(bloc)
-        print(f"# {bloc}  (shift triangular {spec})")
+    _m, _i, scenario, _b, _c = draw_matrix()
+    for name in scenario["pools"]:
+        (a5, a95), (b5, b95), (c5, c95), spec = stages(name)
+        print(f"# {name}  (ratio triangular {spec})")
         print(f"#   A as configured             {a5:7.4f} - {a95:7.4f}")
         print(f"#   B after renormalisation     {b5:7.4f} - {b95:7.4f}"
               f"   (p5 {b5 - a5:+.4f}, p95 {b95 - a95:+.4f})")

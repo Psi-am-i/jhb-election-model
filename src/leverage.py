@@ -65,7 +65,7 @@ import parties as P
 from fold import calibrate_theta, citywide, load, load_parameters, predict, shares
 from seats import allocate, eligible_parties
 
-DA_BLOC_COALITION = ("DA", "ASA")
+DA_LED_COALITION = ("DA", "ASA")
 
 # Central θ defaults from plan §3.5, applied to each party's 2024 CoJ share to
 # give a citywide target for 2026. f_other = 1.30 covers everything unlisted.
@@ -254,7 +254,7 @@ def main(argv: list[str] | None = None) -> int:
 
     baseline, _ = council(parts, turnout, predicted)
     total = sum(baseline.values())
-    coalition_base = sum(baseline.get(p, 0) for p in DA_BLOC_COALITION)
+    coalition_base = sum(baseline.get(p, 0) for p in DA_LED_COALITION)
     print(f"baseline council ({total} seats):")
     for party, seats in sorted(baseline.items(), key=lambda kv: -kv[1])[:8]:
         print(f"  {party:<10s} {seats:>3d}")
@@ -274,8 +274,8 @@ def main(argv: list[str] | None = None) -> int:
         # party is lost by another and would otherwise be counted twice.
         moved = sum(abs(up.get(p, 0.0) - down.get(p, 0.0)) for p in set(up) | set(down)) / 2
         coalition_swing = (
-            sum(up.get(p, 0.0) for p in DA_BLOC_COALITION)
-            - sum(down.get(p, 0.0) for p in DA_BLOC_COALITION)
+            sum(up.get(p, 0.0) for p in DA_LED_COALITION)
+            - sum(down.get(p, 0.0) for p in DA_LED_COALITION)
         )
         seats_moved_int = sum(
             abs(up_seats.get(p, 0) - down_seats.get(p, 0))
@@ -363,7 +363,7 @@ def main(argv: list[str] | None = None) -> int:
     # several points and reallocates a dozen seats." One ward cannot do that;
     # test the cluster.
     print(f"\n{'':-<66}")
-    print("cluster test: perturb a whole bloc of wards together by ±5 points")
+    print("cluster test: perturb a whole cluster of wards together by ±5 points")
     print("(§5's claim is about Soweto as a cluster, not any single ward)\n")
 
     by_anc = sorted(anc_share, key=lambda w: -anc_share[w])
@@ -382,8 +382,8 @@ def main(argv: list[str] | None = None) -> int:
             for p in set(up_seats) | set(down_seats)
         ) // 2
         swing = (
-            sum(up.get(p, 0.0) for p in DA_BLOC_COALITION)
-            - sum(down.get(p, 0.0) for p in DA_BLOC_COALITION)
+            sum(up.get(p, 0.0) for p in DA_LED_COALITION)
+            - sum(down.get(p, 0.0) for p in DA_LED_COALITION)
         )
         print(f"  {label:<48s} {seats_moved:>11d} {swing:>+8.2f}")
 

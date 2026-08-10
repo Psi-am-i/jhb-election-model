@@ -368,10 +368,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--transfer",
-        choices=("all", "gamma", "bloc"),
+        choices=("all", "gamma"),
         default="all",
-        help="'all' transfers each party's θ and γ; 'gamma' transfers only γ; "
-             "'bloc' transfers the bloc's θ and splits it by prior shares",
+        help="'all' transfers each party's θ and γ; 'gamma' transfers only γ",
     )
     parser.add_argument(
         "--stability",
@@ -538,37 +537,16 @@ def main(argv: list[str] | None = None) -> int:
             if model_base_city.get(p, 0) > 0 else 1.0
             for p in universe
         }
-        if source and ballot in source and args.transfer in ("all", "bloc"):
+        if source and ballot in source and args.transfer == "all":
             # Fully out-of-sample: the other fold's θ too, so nothing about this
             # transition's outcome is used. Parties it never saw get 1.0.
+            #
+            # Worth adding: a `--transfer pool` mode carrying a whole pool's θ
+            # and splitting it by prior shares, which tests out of sample
+            # whether a pool's members really do trade votes — the forecast's
+            # central bet. It must read data/processed/{city}/pools_{target}.json
+            # rather than any typed list of parties.
             theta = {p: source[ballot]["theta"].get(p, 1.0) for p in universe}
-            if args.transfer == "bloc":
-                # Carry the BLOC's level shift rather than each party's own.
-                # This is the forecast's actual bet — that members trade votes
-                # inside a pool — tested out of sample: if it is right, blind
-                # seat error should fall against the per-party transfer.
-                # Blocs come from the city config, not parties.py's hardcoded
-                # table: the config is what the forecast pools by, and the two
-                # disagree outside Johannesburg (parties.py puts BOSA in the DA
-                # bloc; Tshwane's config does not). Reading the wrong one would
-                # not fail — it would quietly test a bloc structure the forecast
-                # never uses.
-                groups: dict[str, list[str]] = {
-                    label: [p for p in members if p in universe]
-                    for label, members in cityconfig.active().blocs.items()
-                }
-                for label, members in groups.items():
-                    if len(members) < 2:
-                        continue
-                    weight_sum = sum(model_base_city.get(m, 0.0) for m in members)
-                    if weight_sum <= 0:
-                        continue
-                    # share-weighted mean θ across the bloc; applying it to every
-                    # member preserves their relative split from the base election
-                    bloc_theta = sum(model_base_city.get(m, 0.0) * theta[m]
-                                     for m in members) / weight_sum
-                    for m in members:
-                        theta[m] = bloc_theta
         else:
             theta = calibrate_theta(
                 model_base_share, model_base_city, target_city, gamma,
