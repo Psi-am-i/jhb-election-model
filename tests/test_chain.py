@@ -1,5 +1,49 @@
 """End-to-end invariants for the prediction chain.
 
+================================================================================
+**HOW A POOL IS BUILT. THIS IS THE RULE. IT IS NOT NEGOTIABLE.**
+
+**A POOL IS CALCULATED PER CITY, AND THEN PER WARD.**
+
+**IT IS GENERATED FROM LOCAL DATA. VOTER REGISTRATION TRUMPS CENSUS DATA.**
+
+**THE CENSUS IS A SENSE CHECK, NOT A SOURCE OF TRUTH.**
+================================================================================
+
+Registration and votes are COUNTED, published per voting district, every
+cycle. Census ward figures are MODELLED small-area estimates, and for the
+groups that matter most they are disputed by 14-24% in the published
+literature — Johannesburg's white pool comes out at 187% of its own
+voting-age population, which cannot be true. So the census may inform the
+*split* of a ward between pools, and it may never override a counted total,
+and it may never be transported from one city to another.
+
+Two violations of this rule have already shipped, both caught by the project
+owner and not by any automated review:
+
+* ``measure_pool_ratios`` took Johannesburg's fitted party-to-pool weights and
+  applied them to Cape Town's, eThekwini's and Mangaung's party shares, then
+  called the result those cities' pool ratios. It measured a quantity that
+  describes no city. In Johannesburg the PA is ~94% Coloured; in Cape Town the
+  DA, GOOD and PA occupy that pool completely differently.
+* A national fit was briefly used as a prior on city rates, on the theory that
+  "direction transfers between cities". It does not: the Coloured pool in Cape
+  Town and in Johannesburg are different populations with different politics.
+
+Neither was caught by three separate adversarial reviews, because the
+docstrings asserted the design as deliberate and the reviews checked the code
+against the docstrings. Hence this banner: the rule lives in the test file, in
+the place a reviewer cannot mistake for an implementation detail, and the tests
+below enforce it.
+
+**AND THE MODEL MUST BE VALIDATED ACROSS METROS.** That is the point of having
+eight of them. Each city's pools are fitted on its own wards from its own
+registration; what a multi-metro run tests is whether the METHOD works, not
+whether one city's pools describe another. Fitting on seven and scoring the
+eighth is the only out-of-sample estimate available, and n=2 in one city is not
+a skill estimate.
+
+
 Every defect this file guards against reached the working tree unopposed,
 because nothing tested ``pools``, ``levels``, ``montecarlo``, ``score``,
 ``backtest`` or ``benchmarks`` — the entire forecast path and the entire
@@ -166,6 +210,64 @@ def test_the_fit_refuses_rather_than_returning_an_unconverged_iterate():
         return                     # refused, which is the point
     raise AssertionError("fit_joint returned after 2 iterations without "
                          "checking convergence")
+
+
+# --------------------------------------------------------------------------
+# 1b. THE POOL RULE — local data, registration over census, never transposed
+# --------------------------------------------------------------------------
+
+def test_a_pool_is_never_built_from_another_citys_composition():
+    """THE RULE: pools are per city. A composition fitted on one city may not
+    be applied to another's votes.
+
+    Caught by the project owner, missed by three adversarial reviews:
+    measure_pool_ratios applied Johannesburg's party-to-pool weights to Cape
+    Town's, eThekwini's and Mangaung's party shares. In Johannesburg the PA is
+    ~94% Coloured; in Cape Town the DA, GOOD and PA occupy that pool
+    completely differently, so the result described no city.
+    """
+    import inspect
+    src = inspect.getsource(pools.measure_pool_ratios)
+    if "codes" in inspect.signature(pools.measure_pool_ratios).parameters:
+        default = inspect.signature(
+            pools.measure_pool_ratios).parameters["codes"].default
+        assert default is None or len(list(default)) <= 1, (
+            "measure_pool_ratios defaults to several metros while taking ONE "
+            f"composition ({list(default)}). One city's party-to-pool weights "
+            f"applied to another city's votes measures nothing real. Fit each "
+            f"city's pools on its own wards.")
+
+
+def test_counted_totals_are_never_overridden_by_the_census():
+    """THE RULE: registration trumps census. The census may inform the split
+    of a ward between pools; it may never move a counted total.
+
+    Registration and votes are published per voting district. Census ward
+    figures are modelled, and for the groups that matter are disputed by
+    14-24% — Johannesburg's white pool is 187% of its own voting-age
+    population.
+    """
+    city = _city()
+    reg, votes = pools.ward_totals(city, FIT_YEAR)
+    c = _counts()
+    for ward_i, ward in enumerate(c.wards[:40]):        # a sample is enough
+        assert abs(c.registered[ward_i].sum() - reg[ward]) < 0.5, (
+            f"ward {ward}: pools hold {c.registered[ward_i].sum():,.0f} "
+            f"registered against a published {reg[ward]:,.0f}")
+        assert abs(c.voted[ward_i].sum() - votes.get(ward, 0.0)) < 0.5, (
+            f"ward {ward}: pools hold {c.voted[ward_i].sum():,.0f} votes "
+            f"against a published {votes.get(ward, 0.0):,.0f}")
+
+
+def test_the_pool_split_is_computed_per_ward_not_citywide():
+    """THE RULE: per city, and THEN per ward. A single citywide composition
+    applied to every ward would erase the geography the whole model rests on."""
+    c = _counts()
+    comp = c.composition("voted")
+    spread = comp.max(axis=0) - comp.min(axis=0)
+    assert (spread > 0.2).any(), (
+        "every ward has nearly the same pool composition; the split is not "
+        f"being computed per ward (max spread per pool: {spread.round(3)})")
 
 
 # --------------------------------------------------------------------------

@@ -1045,18 +1045,35 @@ def lge_transitions(before: str | None = None) -> tuple[tuple[str, str], ...]:
 
 
 def measure_pool_ratios(composition: dict[str, np.ndarray], n_pools: int,
-                        transitions=None,
-                        codes=METRO_CODES) -> list[list[float]]:
-    """How much a pool's vote total moves between elections, across all metros.
+                        transitions=None, codes=None) -> list[list[float]]:
+    """How much a pool's vote total moves between elections, IN ONE CITY.
 
-    Sixteen metro-transitions rather than Johannesburg's two, because a range
-    fitted on the city it will be used to predict is not a prior. Composition
-    is held at its fitted value throughout: we can only see the electorate's
-    make-up at one census, so the *definition* of each pool is fixed and what
-    is being measured is the movement of its vote.
+    ``codes`` defaults to nothing and the caller must name the city, because
+    this function takes ONE ``composition`` — one city's fitted party-to-pool
+    weights — and an earlier version defaulted to all eight metros. That
+    applied Johannesburg's mapping to Cape Town's, eThekwini's and Mangaung's
+    party shares and called the result those cities' pool ratios. It measured a
+    quantity that describes no city: in Johannesburg the PA draws ~94% of its
+    vote from the Coloured pool, while in Cape Town the DA, GOOD and the PA
+    occupy that pool completely differently.
+
+    The transposed ranges were also WIDER on three of four pools (Black African
+    0.87-1.01 against Johannesburg's own 0.94-1.01), so the model was importing
+    volatility from cities whose pool structure it then ignored.
+
+    A pool is local. Its composition comes from that city's wards, its size
+    from that city's registration roll, and its movement from that city's own
+    history. Restricting to one city costs sample size — two transitions rather
+    than sixteen — and the honest answer to a thin sample is a wider interval,
+    not a borrowed one.
     """
     if transitions is None:
         transitions = lge_transitions()
+    if not codes:
+        raise ValueError(
+            "measure_pool_ratios needs the city whose composition it was given. "
+            "Passing several metros applies one city's party-to-pool weights to "
+            "another city's votes, which measures nothing real.")
     ratios: list[list[float]] = [[] for _ in range(n_pools)]
     for code in codes:
         for before, after in transitions:
@@ -1369,6 +1386,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # why this code produced ANC 36 / MK 68. A seed is for a party with NO
     # baseline; everyone else already has their level from the baseline itself.
     roster = contesting_parties(city, target.year)
+    roster_is_real = bool(roster)
     if not roster:
         # A target that has not happened has no result file and therefore no
         # roster. Falling through with an empty set silently deleted every seed
@@ -1377,9 +1395,12 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
         # already carrying a pool vector, and say so.
         roster = set(baseline) | set(composition)
         print(f"  ! no published roster for {target.year} (it has not been "
-              f"held): newcomers taken from the {target.previous_npe} baseline "
-              f"instead. Nomination lists would be better and are public "
-              f"before polling day.")
+              f"held). Parties in the {target.previous_npe} baseline still get "
+              f"a pool vector, but NO GENUINE ENTRANT CAN BE FOUND: a party "
+              f"contesting {target.year} with no {target.previous_npe} vote is "
+              f"invisible here, and ActionSA in 2021 was exactly that. Declare "
+              f"one in {lineage_path(city, target)}, or point this at the "
+              f"published nomination list.")
     no_vector = {p for p in roster
                  if p not in composition and p not in ("IND", "ENTRANT")}
     # A seed is only for a party with no level to start from.
@@ -1412,12 +1433,19 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     record = entrant_record(lge_transitions(before=target.year))
     seeds, seed_bands, seed_notes = default_seeds(
         newcomers, lineage, baseline, record, splinter_record(city))
+    # no_vector, NOT newcomers: the file exists to ask a human which parent a
+    # party with no measured vector belongs to, and MK is the case it was built
+    # for. Passing the seed set generated an EMPTY template for 2026, so a
+    # regenerated file would have silently dropped MK's declared parent.
     template = write_lineage_template(
-        city, target, {p: baseline.get(p, 0.0) for p in newcomers},
+        city, target, {p: baseline.get(p, 0.0) for p in no_vector},
         lineage, list(ctx["categories"]))
 
     transitions = lge_transitions(before=target.year)
-    ratios = measure_pool_ratios(composition, n, transitions=transitions)
+    # This city only. See the function's docstring for what happened when it
+    # defaulted to all eight metros.
+    ratios = measure_pool_ratios(composition, n, transitions=transitions,
+                                 codes=(city.code,))
 
     # Each pool's internal split, per metro-year, for the concentration.
     splits: list[list[np.ndarray]] = [[] for _ in range(n)]

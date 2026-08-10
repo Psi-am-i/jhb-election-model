@@ -48,12 +48,20 @@ from collections.abc import Mapping, Sequence
 
 import numpy as np
 
-# A party's column is scored when it won a seat, or when this forecaster gives
-# it one in at least this fraction of draws. Below that the "forecast" is a
-# rounding artefact, and including it hands out free coverage hits — see
-# :func:`seat_matrix`. Deliberately low: the point is to exclude noise, not to
-# excuse a forecaster from a claim it genuinely made.
-MATERIAL_FRACTION = 0.10
+# Calibration is scored on the seats a forecaster actually CLAIMS: columns
+# where it gives a seat in at least this fraction of its draws. Selecting on
+# the forecast keeps PIT uniform under calibration; selecting on the outcome
+# does not. See :func:`seat_matrix`.
+CLAIM_FRACTION = 0.50
+
+# There is deliberately NO materiality threshold on the scored column set. One
+# was tried at 0.10 and it made the joint score improper: because
+# :func:`variogram_score` sums over d(d-1)/2 pairs, dropping columns drops
+# pairs, and a forecaster could shade 36 near-threshold claims below the cliff
+# — conserving total seats, changing nothing it believed — and improve its
+# variogram 4.2x. It bought 0.02 of CRPS and cost the property the whole module
+# exists for. Spurious mass is penalised by being scored, not excused by being
+# filtered.
 
 # ---------------------------------------------------------------------------
 # turning a list of {party: seats} draws into arrays
@@ -96,9 +104,17 @@ def seat_matrix(
     total miss would answer a question nobody asked.
 
     Parties are kept when they won a seat *or* this forecaster's own draws gave
-    them one, so spurious predicted mass is penalised rather than filtered away.
-    ``keep_all=True`` keeps the full universe, including parties that are zero
-    everywhere and therefore contribute nothing but dilution.
+    them one, so spurious predicted mass is penalised by being scored rather
+    than excused by being filtered. There is deliberately no materiality cliff
+    here: one was tried and it made the variogram improper, because dropping a
+    column drops pairs and a forecaster could shade its claims below the
+    threshold to improve its own score. ``keep_all=True`` keeps the full
+    universe, including parties that are zero everywhere and contribute nothing
+    but dilution.
+
+    WHICH COLUMNS TEST CALIBRATION is a separate question, answered in
+    :func:`score_seats`, and answered on the forecast side — see there for why
+    selecting on the outcome is not neutral.
 
     **The scored column set depends only on this forecaster and the result.**
     That is the property the rules below need and it is easy to lose. An earlier
@@ -171,10 +187,8 @@ def seat_matrix(
     # So a column earns its place by mattering to one side or the other: the
     # party won a seat, or this forecaster gives it one often enough that the
     # claim is a real claim.
-    material = MATERIAL_FRACTION
     keep = [i for i, _ in enumerate(universe)
-            if truth[i] > 0
-            or (samples.shape[0] and (samples[:, i] > 0).mean() >= material)]
+            if truth[i] > 0 or (samples.shape[0] and samples[:, i].max() > 0)]
     return [universe[i] for i in keep], samples[:, keep], truth[keep]
 
 
@@ -188,8 +202,8 @@ def relevant_parties(forecasts: Sequence[Sequence[Mapping[str, int]]],
     fix the column order across a comparison.
 
     It does **not** equalise the scored denominators, and must not be used to
-    try: :func:`seat_matrix` drops the columns where a given forecaster and the
-    truth are both zero, precisely so that no forecaster's score can move when a
+    try: :func:`seat_matrix` keeps only the columns this forecaster or the truth
+    made non-zero, precisely so that no forecaster's score can move when a
     different forecaster joins the run. See that function for what went wrong
     when this list *was* the scored set.
     """
@@ -351,7 +365,9 @@ def pit_histogram(pits: np.ndarray, bins: int = 10) -> dict:
 
 def coverage(samples: np.ndarray, actual: np.ndarray,
              levels: Sequence[float] = (0.5, 0.8, 0.9)) -> list[dict]:
-    """Empirical coverage of central intervals. **Match the nominal level.**
+    """Empirical coverage of central intervals. **Match the nominal level** —
+    provided the columns were chosen without looking at the outcome, which is
+    what :func:`score_seats` is careful about.
 
     Not a proper score -- an interval can be right for the wrong reason, and a
     forecaster can game coverage by widening everything -- but it is the number
@@ -602,7 +618,15 @@ def variogram_score(samples: np.ndarray, actual: np.ndarray, order: float = 0.5,
     truth = np.abs(y[:, None] - y[None, :]) ** order
     w = np.ones((d, d)) if weights is None else np.asarray(weights, dtype=float)
     iu = np.triu_indices(d, 1)
-    return float((w[iu] * (truth[iu] - expected[iu]) ** 2).sum())
+    # MEAN over pairs, not a sum. A sum scales as d(d-1)/2, so a forecaster
+    # scored over 55 columns and one scored over 19 are not comparable: 2226
+    # against 690 was a dimension artefact, not a difference in skill. Scheuerer
+    # and Hamill specify weights precisely because an unweighted sum is not
+    # meaningful across different d.
+    npairs = len(iu[0])
+    if not npairs:
+        return 0.0
+    return float((w[iu] * (truth[iu] - expected[iu]) ** 2).sum() / npairs)
 
 
 # ---------------------------------------------------------------------------
@@ -621,6 +645,11 @@ def score_seats(draws: Sequence[Mapping[str, int]], actual: Mapping[str, int],
     fixes the column order and cannot change any number, because the scored
     columns are always this forecaster's own non-zero ones plus the ones the
     result made non-zero. Nothing here depends on what else is in the run.
+
+    Coverage and PIT are reported twice: the headline pair over the seats this
+    forecaster CLAIMS (a seat in at least ``CLAIM_FRACTION`` of its draws), and
+    ``coverage_all`` / ``pit_all`` over every scored column. The first is the
+    calibration test; the second is kept so the difference is visible.
     """
     parties, samples, truth = seat_matrix(draws, actual, entrant_actual,
                                           parties=parties)
@@ -631,26 +660,33 @@ def score_seats(draws: Sequence[Mapping[str, int]], actual: Mapping[str, int],
     pits = pit_values(samples, truth, seed=seed) if samples.shape[0] else empty
     median = np.median(samples, axis=0) if samples.shape[0] else empty
 
-    # DIFFERENT RULES NEED DIFFERENT DENOMINATORS, and conflating them is what
-    # made this harness report the opposite of the truth.
+    # WHICH COLUMNS TEST CALIBRATION, and the answer must not depend on the
+    # answer. Two wrong rules have shipped here; this is the third.
     #
-    # CRPS and the joint scores are computed over every material column,
-    # because spurious predicted mass is a real error and must be paid for.
+    # Scoring every column is wrong because a party that won nothing, forecast
+    # near nothing, is an interval [0, 0] containing 0 — a free hit at every
+    # level and a near-uniform PIT. 36 of 54 columns at 2021 were exactly that.
     #
-    # Coverage and PIT are computed over the parties that actually WON A SEAT,
-    # because on a party that won nothing an interval containing zero is a hit
-    # for almost any forecaster, and a PIT value against a zero outcome is
-    # nearly uniform by construction. Those columns do not test calibration;
-    # they dilute it towards whatever answer the analyst hoped for. Measured on
-    # this model at 2021, 36 of 54 scored columns were parties that won
-    # nothing: printed coverage read 73/89/93 against a real 17/67/78, and at
-    # 2016 the printed verdict was "over-dispersed, the model is hedging" when
-    # the truth was the exact opposite. Both numbers are still reported, but
-    # the one that leads is the one that means something.
-    won = truth > 0
-    s_won = samples[:, won] if samples.shape[0] else samples
-    t_won = truth[won]
-    pits_won = pits[won] if samples.shape[0] else empty[won]
+    # Selecting on the OUTCOME (truth > 0) is also wrong, and worse, because it
+    # is not a neutral restriction: zero is the minimum of the support, so
+    # PIT|y=0 lies in [0, F(0)] — the smallest values there are. Dropping those
+    # events truncates the low tail, and under perfect calibration the survivors
+    # are U(p0, 1), not uniform. Simulated at this model's own p0 vector, 93% of
+    # PERFECTLY CALIBRATED replicates print "U-shaped, under-dispersed, widen
+    # it", and the 2016 "mean PIT 0.73, under-predicts" reproduces its null of
+    # 0.721 to three decimals. It is an instrument that manufactures its own
+    # conclusion.
+    #
+    # Selecting on the FORECAST is neutral: the criterion depends on F alone, so
+    # PIT uniformity survives it. A calibrated forecaster simulated under this
+    # rule returns mean PIT 0.503. The question it asks is the right one — "of
+    # the seats this forecaster claims, how well calibrated is it?" — and a
+    # forecaster is answerable for its own claims whatever the outcome.
+    claimed = ((samples > 0).mean(axis=0) >= CLAIM_FRACTION
+               if samples.shape[0] else np.zeros(samples.shape[1], dtype=bool))
+    s_won = samples[:, claimed] if samples.shape[0] else samples
+    t_won = truth[claimed]
+    pits_won = pits[claimed] if samples.shape[0] else empty[claimed]
 
     return {
         "parties": parties,
@@ -661,7 +697,7 @@ def score_seats(draws: Sequence[Mapping[str, int]], actual: Mapping[str, int],
         # headline: parties that won a seat
         "pit": pit_histogram(pits_won, bins=bins),
         "coverage": coverage(s_won, t_won, levels),
-        "n_scored_calibration": int(won.sum()),
+        "n_scored_calibration": int(claimed.sum()),
         # the full-column figures, kept and labelled so the difference is
         # visible rather than a matter of trust
         "pit_all": pit_histogram(pits, bins=bins),
@@ -698,12 +734,12 @@ def format_report(seats: Mapping | None = None, wards: Mapping | None = None,
         cov = "  ".join(f"{r['level']:.0%}: {r['inside']}/{r['counted']}"
                         f" = {r['empirical']:.0%}" for r in seats["coverage"])
         out.append(f"  coverage   {cov}   [on the {seats.get('n_scored_calibration', '?')} "
-                   f"parties that won a seat — should match the nominal level]")
+                   f"seats this forecaster CLAIMS — should match the nominal level]")
         if "coverage_all" in seats:
             cov_all = "  ".join(f"{r['level']:.0%}: {r['inside']}/{r['counted']}"
                                 f" = {r['empirical']:.0%}" for r in seats["coverage_all"])
             out.append(f"  (all {seats.get('n_scored_all','?')} scored columns: "
-                       f"{cov_all} — inflated by parties that won nothing)")
+                       f"{cov_all} — inflated by parties nobody claimed)")
         out.append(f"  PIT {seats['pit']['counts']}  χ²={seats['pit']['chi2']:.1f} "
                    f"(5% crit {seats['pit']['chi2_crit_95']})")
         out.append(f"      {seats['pit']['verdict']}")
