@@ -58,6 +58,7 @@ import copy
 import csv
 import json
 from collections import defaultdict
+from datetime import date
 from pathlib import Path
 
 import numpy as np
@@ -117,6 +118,24 @@ DEFAULTS: dict = {
     # from polls.json by id and weight it — replaces the old two-endpoint
     # polling_lean lever (kept for compatibility, no longer surfaced).
     "w_bye": 0.40,
+    # §1.28 ward-local by-election term. Both weights default to 0, so the
+    # published forecast is untouched until this is deliberately switched on.
+    # The ward ballot carries most of the signal because a by-election IS a
+    # ward contest; the same ward's list vote gets roughly half, because the
+    # evidence about list voting is real but weaker; and no ward but the one
+    # that held the contest is touched. The cap is in logit units and is a
+    # working constraint on the largest movers, not a freak guard: measured on
+    # byelection_contest_detail.csv, 1.5 binds on 11 of the 65 party-contest
+    # rows that have a share on both sides, spread across 9 of the 15 contests
+    # -- among them the DA at +2.83 in ward 99, +2.69 in ward 90 and +2.47 in
+    # ward 89. A by-election routinely turns a ward's own baseline over that
+    # hard, so this dial decides how much of a real landslide the forecast is
+    # allowed to believe, and raising it is a substantive change rather than
+    # slack. τ is the same recency half-life the citywide term uses.
+    "w_bye_local_ward": 0.0,     # 0.75 is the value tested
+    "w_bye_local_pr": 0.0,       # 0.35 is the value tested
+    "bye_local_cap": 1.5,
+    "bye_tau_months": 18.0,
     "polling_lean": 0.0,
     "polling_span": 8.0,
     "poll_id": None,        # e.g. "srf-2026q2-coj" — see polls.json
@@ -132,6 +151,20 @@ DEFAULTS: dict = {
     #        never dips below base, so this side only fires when user-set
     #        levels push it there.
     "bloc_leak": 0.0,
+
+    # Splinter branch rule (§1.26, measured 2026-08-10 across eight metros).
+    # Empty by default so the published forecast is unchanged until this is
+    # deliberately switched on. Ranges are (low, mode, high) triangulars taken
+    # from the record, not judged:
+    #   collapse -- COPE 2009->2011 in all eight metros: 0.12 .. 0.28, mean 0.19
+    #   holds    -- ID 2004->2006 and EFF 2014->2016, sixteen metros: 0.65 ..
+    #               1.50; the mode is 1.04 because MK debuts on a large base
+    #               (12.2% of Johannesburg) and the EFF's four large-base
+    #               metros landed at 1.01, 1.03, 1.05, 1.08.
+    # fracture_prob is the one genuine judgement left -- whether the leadership
+    # holds together -- and it is a single national number per party, because
+    # θ varied far less across cities than it did between parties.
+    "splinter": {},
 
     # A1: ward/PR split-ticket ratios are measured from 2021 per party;
     # overrides for parties without a 2021 measurement or with a changed
@@ -157,6 +190,13 @@ DEFAULTS: dict = {
     # A6: generic-entrant slot. Off by setting probability to 0.
     "entrant_prob": 0.25,
     "entrant_share": [0.01, 0.04, 0.12],
+    # Whose map does the 2026 entrant inherit, and how far does it depart from
+    # it (§1.27)? Empty keeps the flat default. {"parent": "ANC", "k": 0.05}
+    # would place it like the EFF placed itself in 2014. Observed k across the
+    # entrants on record spans 0.03 to 1.16, so for a party nobody has seen yet
+    # this is genuinely unknown — the honest default is flat, stated as a
+    # choice rather than left implicit.
+    "entrant_geography": {},
 
     # E3: what to do when a party wins more wards than its entitlement.
     # "expand" = the plan §3.7 reading (council grows, threshold moves);
@@ -194,6 +234,24 @@ def expit(x):
 def triangular(rng, spec, size=None):
     low, mode, high = spec
     return rng.triangular(low, min(max(mode, low), high), high, size)
+
+
+ELECTION_DAY = date(2026, 11, 4)
+
+
+def months_before_election(stamp: str) -> float:
+    """How long before election day a by-election was held, in months.
+
+    Feeds the same exp(-age/τ) recency decay ``byelections.py`` uses for the
+    citywide term, so a contest is weighted identically whichever term reads
+    it. A date the file cannot parse returns a large age, which decays the
+    contest to nothing rather than letting it count at full strength.
+    """
+    try:
+        held = date.fromisoformat(stamp.strip())
+    except ValueError:
+        return 1e6
+    return (ELECTION_DAY - held).days / 30.44
 
 
 def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6,
@@ -355,6 +413,48 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         bloc_spec[bloc] = (idx, base_total, (low, clamped_mode, high),
                           centre_props, alpha)
 
+    # --- splinter branch (§1.26) ---------------------------------------------
+    # A party formed by a defector facing its first local election does not
+    # land on a central case: measured across eight metros, COPE collapsed to
+    # θ 0.12-0.28 everywhere and the EFF held at 1.01-1.50 everywhere, with
+    # 0.29-0.64 empty in 24 observations. Drawing such a party from a single
+    # triangular centres it on the one outcome the record never produces, so
+    # each configured splinter instead draws a branch first, then a θ from that
+    # branch, and its share of the bloc's Dirichlet centre is rebuilt for the
+    # draw. The bloc total is untouched -- the splinter's gain comes out of its
+    # own bloc, which is what happened to the ANC in every observed case.
+    # Two splinters can share a bloc -- MK and the EFF both sit inside
+    # ANC_BLOC -- and they have to compose: each redraws its own slot of ONE
+    # per-bloc level vector, which is renormalised once, after every rule has
+    # had its say. Rebuilding the vector per rule and replacing the bloc's
+    # proportions wholesale let the last rule win and threw the earlier draws
+    # away, so a two-splinter scenario quietly ran as a one-splinter scenario.
+    splinters = []
+    splinter_levels: dict[str, np.ndarray] = {}
+    for party, rule in (scenario.get("splinter") or {}).items():
+        if party not in index:
+            continue
+        home = next((bloc for bloc, members in BLOCS.items()
+                     if party in members), None)
+        if home is None:
+            # Falling through to the individual-θ path here would produce a run
+            # that looks configured and isn't; the same refusal entrant_geography
+            # gives an unknown parent.
+            raise SystemExit(f"splinter party {party!r} belongs to no bloc, so it "
+                             f"has no bloc split to redraw (blocs: "
+                             f"{', '.join(sorted(BLOCS))})")
+        present = [p for p in BLOCS[home] if p in index]
+        splinter_levels.setdefault(
+            home, np.array([centres[p] for p in present]))
+        splinters.append({
+            "bloc": home,
+            "slot": present.index(party),
+            "base": base_city_d.get(party, 0.0),
+            "p_fracture": rule["fracture_prob"],
+            "collapse": tuple(rule["collapse"]),
+            "holds": tuple(rule["holds"]),
+        })
+
     handled = {p for members in BLOCS.values() for p in members if p in index}
     individual = []
     for party, i in index.items():
@@ -388,8 +488,20 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             d_total += leak * max(0.0, -a_shift)
         elif leak < 0:    # DA-bloc losses cross to the ANC bloc
             a_total += -leak * max(0.0, -d_shift)
-        for idx, total, props, alpha in ((a_idx, a_total, a_props, a_alpha),
-                                         (d_idx, d_total, d_props, d_alpha)):
+        props_by_bloc = {"ANC_BLOC": a_props, "DA_BLOC": d_props}
+        if splinters:
+            levels_by_bloc = {b: v.copy() for b, v in splinter_levels.items()}
+            for rule in splinters:
+                branch = (rule["collapse"] if rng.random() < rule["p_fracture"]
+                          else rule["holds"])
+                levels_by_bloc[rule["bloc"]][rule["slot"]] = (
+                    rule["base"] * triangular(rng, branch))
+            for bloc, levels in levels_by_bloc.items():
+                total_level = levels.sum()
+                if total_level > 0:
+                    props_by_bloc[bloc] = levels / total_level
+        for idx, total, props, alpha in ((a_idx, a_total, props_by_bloc["ANC_BLOC"], a_alpha),
+                                         (d_idx, d_total, props_by_bloc["DA_BLOC"], d_alpha)):
             split = rng.dirichlet(np.maximum(props * alpha, 0.05))
             target[idx] = max(total, 0.005) * split
         for i, spec in individual:
@@ -501,8 +613,117 @@ def main(argv: list[str] | None = None) -> int:
     base_city = np.array([base_city_d.get(p, SHARE_FLOOR) for p in universe])
     local = np.array([[base_share_d[v].get(p, 0.0) for p in universe] for v in vds])
     if "ENTRANT" in index:
-        local[:, index["ENTRANT"]] = SHARE_FLOOR  # spatially flat by construction
+        local[:, index["ENTRANT"]] = SHARE_FLOOR  # flat unless given a map below
     dev = logit(local) - logit(base_city)[None, :]
+
+    # --- where does a new party's vote sit? (§1.27) --------------------------
+    # Prediction is expit(level + γ·dev), so a party's geography *is* its dev
+    # column. An entrant has no baseline, so dev is zero and it lands evenly
+    # across the city. Measured against the six entrants on record that is
+    # right for exactly one of them: fitting
+    #     entrant_index(i) = (1-k)·parent_index(i) + k
+    # gives k = 0.03 for MK on the ANC and 0.05 for the EFF on the ANC -- they
+    # inherit the parent's map almost exactly -- against k = 1.00 for ActionSA
+    # on the DA, which ignored it completely. Scaling the parent's dev by
+    # (1-k) reproduces that interpolation directly in logit space, and k = 1
+    # returns the flat default unchanged.
+    ent = scenario.get("entrant_geography") or {}
+    if "ENTRANT" in index and ent.get("parent"):
+        parent = ent["parent"]
+        if parent not in index:
+            raise SystemExit(f"entrant_geography parent {parent!r} is not in the "
+                             f"baseline, so it has no map to inherit")
+        k = float(ent.get("k", 1.0))
+        dev[:, index["ENTRANT"]] = (1.0 - k) * dev[:, index[parent]]
+        print(f"entrant geography: {parent}'s map at k={k} "
+              f"({'flat' if k >= 1 else 'inherited' if k <= 0 else 'partial'})")
+
+    # --- by-elections move the ward they happened in (§1.28) -----------------
+    # E4 turns each contest into a *citywide* per-party delta and applies it to
+    # the party's citywide centre, so a by-election in ward 82 moves ward 82's
+    # forecast exactly as much as it moves ward 1's. The ward identity is used
+    # to compute the delta and then discarded. That is right for estimating a
+    # citywide level and wrong for the 135 separate first-past-the-post races,
+    # where a recent result in *this* ward is the strongest local evidence
+    # available: the model currently says DA 64% in a ward the PA won in April
+    # 2025 and ANC 94% in one the PA won that October.
+    #
+    # The local term shifts that ward's own voting districts by the logit
+    # movement the contest actually showed,
+    #     shift(p) = w · decay · [logit(share_bye) − logit(share_2021)]
+    # damped by w, decayed by the same τ the citywide term uses, and clamped.
+    # Three deliberate choices, all reversible via the scenario:
+    #   * ρ (how typical the ward is of the city) is NOT applied. ρ exists to
+    #     judge whether a contest generalises citywide; using a ward's own
+    #     result on itself needs no such discount.
+    #   * The shift is applied to the contest's VOTING DISTRICTS, not its ward.
+    #     By-elections sit on 2021 ward boundaries and the forecast on 2026
+    #     ones; voting districts carry across both, so this sidesteps
+    #     re-delimitation entirely.
+    #   * Ward and PR get separate weights, because a by-election is a ward
+    #     contest. Its evidence about list voting in the same ward is real but
+    #     weaker, and it says nothing about list voting anywhere else.
+    # Note the containment limit: shares are renormalised within each VD, and
+    # the citywide total is pinned by calibration, so lifting a party here
+    # shaves a vanishing amount off it elsewhere. That is a property of a model
+    # that fixes citywide totals, not a leak in this term.
+    dev_pr, dev_ward = dev, dev
+    w_ward = scenario.get("w_bye_local_ward", 0.0)
+    w_pr = scenario.get("w_bye_local_pr", 0.0)
+    if (w_ward or w_pr) and (args.processed / "byelection_contest_detail.csv").exists():
+        # By-election wards are on the 2021 delimitation, so the ward -> VD map
+        # comes from the 2021 result file rather than vd_ward_2026.csv.
+        ward_of_vd: dict[str, str] = {}
+        with cityconfig.resolve_path(
+                args.data_dir / "lge2021_{CODE}_vd_party_clean.csv"
+        ).open(encoding="utf-8", newline="") as fh:
+            for row in csv.DictReader(fh):
+                ward_of_vd.setdefault(row["VD_Number"], row["Ward"].strip())
+        vd_of_ward: defaultdict[str, list[int]] = defaultdict(list)
+        for i, vd in enumerate(vds):
+            ward = ward_of_vd.get(vd)
+            if ward:
+                vd_of_ward[ward].append(i)
+        cap = scenario.get("bye_local_cap", 1.5)
+        tau = scenario.get("bye_tau_months", 18.0)
+        # A ward that has voted twice has shown one ward twice over, not two
+        # separate movements to be stacked. Ward 102 went to the polls in 2023
+        # and again in 2026 and the DA landed within a point of itself both
+        # times; adding the two shifts claimed half again the movement either
+        # contest on its own supports. So each (VD, party) accumulates a
+        # recency-weighted numerator and its weight and divides at the end --
+        # the same mean the citywide term takes in byelections.py -- which
+        # averages repeat contests towards the most recent instead of
+        # compounding them. One contest divides by its own weight, so the
+        # single-contest case is exactly the formula stated above.
+        moved_num = np.zeros_like(dev)
+        moved_weight = np.zeros_like(dev)
+        applied = 0
+        with (args.processed / "byelection_contest_detail.csv").open(encoding="utf-8", newline="") as fh:
+            for row in csv.DictReader(fh):
+                party, ward = row["party"], row["ward"]
+                if party not in index or ward not in vd_of_ward:
+                    continue
+                before, after = float(row["share_2021"]), float(row["share_bye"])
+                if before <= 0 or after <= 0:
+                    continue          # a party arriving from nothing is a level
+                age = months_before_election(row["date"])
+                decay = np.exp(-age / tau)
+                move = np.clip(np.log(after / (1 - after)) - np.log(before / (1 - before)),
+                               -cap, cap) * decay
+                moved_num[vd_of_ward[ward], index[party]] += decay * move
+                moved_weight[vd_of_ward[ward], index[party]] += decay
+                applied += 1
+        shift = np.divide(moved_num, moved_weight, out=np.zeros_like(moved_num),
+                          where=moved_weight > 0)
+        if applied:
+            dev_ward = dev + w_ward * shift
+            dev_pr = dev + w_pr * shift
+            moved = int((shift != 0).any(axis=1).sum())
+            print(f"by-election local term: {applied} party-contests applied to "
+                  f"{moved} voting districts (ward w={w_ward}, PR w={w_pr}, "
+                  f"cap {cap} logit, τ {tau}m)")
+
 
     # --- γ: fold 1, then the 2021→2024 fit, then 1.0 (A4) --------------------
     params = load_parameters(args.processed / "fold1_parameters.csv")
@@ -705,9 +926,9 @@ def main(argv: list[str] | None = None) -> int:
                 tilt_scale[:, da_ids] = _bloc_scale(tilt_d)[:, None]
 
         floor = scenario["level_floor"]
-        pr = solve_and_predict(dev, base_city, pr_target, gamma["PR"], weight_cal,
+        pr = solve_and_predict(dev_pr, base_city, pr_target, gamma["PR"], weight_cal,
                                level_floor=floor)
-        wd = solve_and_predict(dev, base_city, ward_target, gamma["Ward"], weight_cal,
+        wd = solve_and_predict(dev_ward, base_city, ward_target, gamma["Ward"], weight_cal,
                                level_floor=floor)
 
         pr_eff = pr if tilt_scale is None else pr * tilt_scale
