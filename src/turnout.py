@@ -39,6 +39,13 @@ from pathlib import Path
 
 # election -> (filename, is an LGE with two ballots)
 ELECTIONS = {
+    # Pre-2011 entries come from the archives ingested by ingest_historic.py
+    # on 2026-08-09. 1999 is the approximate pre-metro footprint.
+    "1999": ("npe1999_approx_{CODE}_vd_party.csv", False),
+    "2000": ("lge2000_{CODE}_vd_party_clean.csv", True),
+    "2004": ("npe2004_{CODE}_vd_party.csv", False),
+    "2006": ("lge2006_{CODE}_vd_party_clean.csv", True),
+    "2009": ("npe2009_{CODE}_vd_party.csv", False),
     "2011": ("lge2011_{CODE}_vd_party_clean.csv", True),
     "2014": ("npe2014_{CODE}_vd_party.csv", False),
     "2016": ("lge2016_{CODE}_vd_party_clean.csv", True),
@@ -48,7 +55,9 @@ ELECTIONS = {
 }
 
 # The λ pairs: each LGE against the national election that preceded it.
-LAMBDA_PAIRS = {"2016": ("2014", "2016"), "2021": ("2019", "2021")}
+LAMBDA_PAIRS = {"2000": ("1999", "2000"), "2006": ("2004", "2006"),
+                "2011": ("2009", "2011"), "2016": ("2014", "2016"),
+                "2021": ("2019", "2021")}
 
 
 def read_turnout(path: Path, two_ballot: bool) -> dict[str, tuple[int, int]]:
@@ -84,9 +93,19 @@ def turnout_series(data_dir: Path) -> dict[str, dict[str, float]]:
     which poisons its λ and projected a 9.9% 2026 turnout before this guard.
     Such VD-years are dropped; downstream blends fall back to the other cycle
     or the citywide mean.
+
+    Not every city holds every election in ELECTIONS: the pre-2011 archives
+    were only ingested for Johannesburg. A missing file is a gap in the record
+    rather than an error, so the election is skipped and the caller works from
+    whichever years came back — see ``years`` in main().
     """
     series: dict[str, dict[str, float]] = {}
     for year, (filename, two_ballot) in ELECTIONS.items():
+        path = cityconfig.resolve_path(data_dir / filename)
+        if not path.exists():
+            print(f"  ! {year}: no file for {cityconfig.active().name} "
+                  f"({path.name}) — election skipped")
+            continue
         counts = read_turnout(data_dir / filename, two_ballot)
         dropped = [vd for vd, (r, c) in counts.items() if r > 0 and c / r > 1.05]
         if dropped:
@@ -133,9 +152,13 @@ def main(argv: list[str] | None = None) -> int:
     cityconfig.use(getattr(args, "city", None))
 
     series = turnout_series(args.data_dir)
+    # The elections this city actually holds, in ELECTIONS order. Everything
+    # below iterates this rather than ELECTIONS, so a city whose archive starts
+    # late reports on what it has instead of failing on what it does not.
+    years = [year for year in ELECTIONS if year in series]
 
     print("citywide turnout (votes cast / registered, higher ballot at an LGE):")
-    for year in ELECTIONS:
+    for year in years:
         counts = series[f"_counts_{year}"]  # type: ignore[index]
         registered = sum(r for r, _ in counts.values())
         print(f"  {year}  {citywide(counts):>7.2%}   {len(counts):>3d} VDs, {registered:>9,} registered")
@@ -143,6 +166,14 @@ def main(argv: list[str] | None = None) -> int:
     # --- λ per VD ------------------------------------------------------------
     lambdas: dict[str, dict[str, float]] = {}
     for label, (before, after) in LAMBDA_PAIRS.items():
+        # λ needs both endpoints. A pair straddling the start of this city's
+        # archive simply cannot be measured, and an unmeasurable λ is silence,
+        # not a zero — the blend below falls back to the cycle it does have.
+        if before not in series or after not in series:
+            print(f"\nλ_{label} = T_{after}/T_{before}: not measurable for "
+                  f"{cityconfig.active().name} (missing "
+                  f"{', '.join(y for y in (before, after) if y not in series)})")
+            continue
         common = set(series[before]) & set(series[after])
         lambdas[label] = {
             vd: series[after][vd] / series[before][vd]
@@ -150,6 +181,9 @@ def main(argv: list[str] | None = None) -> int:
             if series[before][vd] > 0.05  # ignore near-empty VDs; ratios explode
         }
         values = sorted(lambdas[label].values())
+        if not values:
+            print(f"\nλ_{label} = T_{after}/T_{before}: no VD measurable in both")
+            continue
         print(
             f"\nλ_{label} = T_{after}/T_{before} across {len(values)} VDs:"
             f"  p10 {values[len(values)//10]:.3f}"
@@ -232,7 +266,11 @@ def main(argv: list[str] | None = None) -> int:
     # ward (2021 delimitation) -> most recent contest's turnout ratio vs the
     # citywide median ratio. VD membership comes from the 2021 result file.
     bye_tilt: dict[str, float] = {}
-    bye_path = Path("data/processed/byelection_turnout.csv")
+    # Per-city: the hardcoded path handed Tshwane Johannesburg's by-elections.
+    # Ward IDs do not collide across metros so nothing was mis-tilted, but the
+    # match rate was zero for a reason that looked like "no by-elections held".
+    # Johannesburg keeps the legacy path via City.processed.
+    bye_path = cityconfig.active().processed / "byelection_turnout.csv"
     if args.kappa_bye > 0 and bye_path.exists():
         ward_ratio: dict[str, tuple[str, float]] = {}
         with bye_path.open(encoding="utf-8", newline="") as handle:
@@ -249,10 +287,13 @@ def main(argv: list[str] | None = None) -> int:
         for vd, ward in vd_ward_2021.items():
             if ward in ward_ratio:
                 bye_tilt[vd] = 1.0 + args.kappa_bye * (ward_ratio[ward][1] - 1.0)
+        # No overlap means no tilt at all, which is a reportable state rather
+        # than a range over an empty set.
+        span = (f"(range ×{min(bye_tilt.values()):.2f}–×{max(bye_tilt.values()):.2f})"
+                if bye_tilt else "(no ward matched a 2021 VD; no tilt applied)")
         print(
             f"\n§3.3 by-election turnout covariate: κ={args.kappa_bye}, "
-            f"{len(ward_ratio)} wards, {len(bye_tilt)} VDs tilted "
-            f"(range ×{min(bye_tilt.values()):.2f}–×{max(bye_tilt.values()):.2f})"
+            f"{len(ward_ratio)} wards, {len(bye_tilt)} VDs tilted {span}"
         )
 
     # --- blended λ̂ and the 2026 projection ------------------------------------
@@ -279,7 +320,7 @@ def main(argv: list[str] | None = None) -> int:
             {
                 "VD_Number": vd,
                 "registered_2024": str(registered),
-                **{f"turnout_{y}": f"{series[y].get(vd, float('nan')):.5f}" for y in ELECTIONS},
+                **{f"turnout_{y}": f"{series[y].get(vd, float('nan')):.5f}" for y in years},
                 "lambda_2016": f"{l16:.5f}" if l16 is not None else "",
                 "lambda_2021": f"{l21:.5f}" if l21 is not None else "",
                 "lambda_hat": f"{blended:.5f}",

@@ -54,6 +54,19 @@ ALIASES: dict[str, str] = {
     "MK": "MK",
     "DEMOCRATIC ALLIANCE": "DA",
     "DEMOCRATIC ALLIANCE/DEMOKRATIESE ALLIANSIE": "DA",
+    # The Democratic Party *renamed* itself the Democratic Alliance for the
+    # December 2000 election, so this is continuity, not a merger, and the DP
+    # appears in no election after 1999. Treating them as separate parties
+    # made the DA look like a new entrant in the 1999->2000 fold.
+    #
+    # The New National Party and the Federal Alliance are deliberately NOT
+    # mapped here even though both sat inside the DA in 2000: the NNP left in
+    # 2001 and contested 2004 separately (0.81% in Johannesburg) before
+    # dissolving into the ANC, so a global alias would misattribute its later
+    # votes. The consequence is that the 1999->2000 fold under-credits the
+    # DA's predecessor by the NNP's 3.05% and the FA's 0.50%, which is a known
+    # and documented shortfall rather than a hidden one.
+    "DEMOCRATIC PARTY": "DA",
     "ACTIONSA": "ASA",
     "ACTION SA": "ASA",
     "BUILD ONE SOUTH AFRICA WITH MMUSI MAIMANE": "BOSA",

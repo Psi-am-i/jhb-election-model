@@ -50,15 +50,43 @@ FOLDS = {
         "base": ("npe2014_{CODE}_vd_party.csv", None),
         "target": ("lge2016_{CODE}_vd_party_clean.csv", True),
         "prior_lge": "2011",
-        # λ for the *previous* cycle would need the 2009 NPE, which is not held,
-        # so fold 1 cannot exercise the ratio turnout specification.
-        "lambda_pair": None,
+        # The 2009 NPE was acquired on 2026-08-09 (ingest_historic.py), so this
+        # fold can now exercise the ratio turnout specification it could not
+        # before.
+        "lambda_pair": ("2009", "2011"),
     },
     2: {
         "base": ("npe2019_{CODE}_vd_party.csv", None),
         "target": ("lge2021_{CODE}_vd_party_clean.csv", True),
         "prior_lge": "2016",
         "lambda_pair": ("2014", "2016"),
+    },
+    # Folds 3-5 come from the pre-2011 archives ingested on 2026-08-09. They
+    # take the validated NPE->LGE transitions from two to five, which is the
+    # single biggest thing available against R6 (single-cycle inference).
+    # Voting-district identifiers are stable back to 1999, so these run at VD
+    # level unchanged; *ward* identifiers are not, but a fold only ever
+    # compares a base to its own target, so that does not bite.
+    3: {
+        "base": ("npe2009_{CODE}_vd_party.csv", None),
+        "target": ("lge2011_{CODE}_vd_party_clean.csv", True),
+        "prior_lge": "2006",
+        "lambda_pair": ("2004", "2006"),
+    },
+    4: {
+        "base": ("npe2004_{CODE}_vd_party.csv", None),
+        "target": ("lge2006_{CODE}_vd_party_clean.csv", True),
+        "prior_lge": "2000",
+        "lambda_pair": ("1999", "2000"),
+    },
+    # 1999 predates the metro: the base is the five metropolitan local councils
+    # that became Johannesburg, so this fold's geography is approximate and its
+    # result should be read as indicative. There is no prior LGE before it.
+    5: {
+        "base": ("npe1999_approx_{CODE}_vd_party.csv", None),
+        "target": ("lge2000_{CODE}_vd_party_clean.csv", True),
+        "prior_lge": None,
+        "lambda_pair": None,
     },
 }
 
@@ -249,6 +277,18 @@ def turnout_weights(
         filename, two_ballot = TURNOUT_FILES[year]
         return read_turnout(data_dir / filename, two_ballot)
 
+    def have(year: str | None) -> bool:
+        """Is that election on disk for the active city?
+
+        A specification can need an election this fold or this city does not
+        hold -- fold 5 has no LGE before it, and Tshwane's archive starts at
+        2011 where Johannesburg's starts at 1999. That is a gap in the record,
+        not a bug, so it is reported rather than raised.
+        """
+        return bool(year) and cityconfig.resolve_path(
+            data_dir / TURNOUT_FILES[year][0]
+        ).exists()
+
     base_year = spec["base"][0][3:7]
     target_year = spec["target"][0][3:7]
     target = series(target_year)
@@ -262,6 +302,10 @@ def turnout_weights(
         raw = {vd: float(cast) for vd, (_, cast) in base.items()}
         label = f"{base_year} votes cast (assumes turnout pattern unchanged)"
     elif method == "level":
+        if not spec["prior_lge"]:
+            return {}, "unavailable for this fold"
+        if not have(spec["prior_lge"]):
+            return {}, f"unavailable for this city (no {spec['prior_lge']} file)"
         prior = series(spec["prior_lge"])
         prior_turnout = {vd: c / r for vd, (r, c) in prior.items() if r}
         raw = {
@@ -274,6 +318,9 @@ def turnout_weights(
         if not spec["lambda_pair"]:
             return {}, "unavailable for this fold"
         before, after = spec["lambda_pair"]
+        absent = [year for year in (before, after) if not have(year)]
+        if absent:
+            return {}, f"unavailable for this city (no {', '.join(absent)} file)"
         s_before, s_after, s_base = series(before), series(after), series(base_year)
         lam = {
             vd: (s_after[vd][1] / s_after[vd][0]) / (s_before[vd][1] / s_before[vd][0])
@@ -321,9 +368,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--transfer",
-        choices=("all", "gamma"),
+        choices=("all", "gamma", "bloc"),
         default="all",
-        help="'all' transfers θ and γ; 'gamma' transfers only γ and recalibrates θ",
+        help="'all' transfers each party's θ and γ; 'gamma' transfers only γ; "
+             "'bloc' transfers the bloc's θ and splits it by prior shares",
     )
     parser.add_argument(
         "--stability",
@@ -342,18 +390,33 @@ def main(argv: list[str] | None = None) -> int:
         "--entrant",
         action="append",
         default=[],
-        metavar="CODE=SHARE",
+        metavar="CODE=SHARE[:PARENT:K]",
         help="seed a party absent from the baseline with a citywide share, "
-             "e.g. ASA=0.1812. Multiplicative θ cannot create a party from zero.",
+             "e.g. ASA=0.1812. Multiplicative θ cannot create a party from zero. "
+             "Optionally give the geography it inherits and how far it departs "
+             "from it: ASA=0.1812:DA:0.0 places it exactly on the DA's map, "
+             ":DA:1.0 spreads it evenly (the old behaviour). k is the "
+             "cross-appeal coefficient of MODEL-LOG 1.27 -- measured 0.03 for "
+             "MK on the ANC, 0.05 for the EFF on the ANC, 1.00 for ActionSA on "
+             "the DA.",
     )
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
     cityconfig.use(getattr(args, "city", None))
 
-    entrants = {}
+    # CODE=SHARE, or CODE=SHARE:PARENT:K to give the entrant a geography.
+    entrants: dict[str, float] = {}
+    entrant_map: dict[str, tuple[str, float]] = {}
     for item in args.entrant:
         code, _, value = item.partition("=")
-        entrants[code.strip()] = float(value)
+        parts = value.split(":")
+        code = code.strip()
+        entrants[code] = float(parts[0])
+        if len(parts) == 3:
+            entrant_map[code] = (parts[1].strip(), float(parts[2]))
+        elif len(parts) != 1:
+            raise SystemExit(f"--entrant {item!r}: expected CODE=SHARE or "
+                             f"CODE=SHARE:PARENT:K")
 
     spec = FOLDS[args.fold]
     base_votes, _ = load(args.data_dir / spec["base"][0], spec["base"][1])
@@ -386,7 +449,12 @@ def main(argv: list[str] | None = None) -> int:
 
     source = None
     if args.fit_from:
-        source = load_parameters(Path("data/processed") / f"fold{args.fit_from}_parameters.csv")
+        # Per-city, or a Tshwane run silently overwrites Joburg's fitted
+        # parameters -- and fold1_parameters.csv is what the live forecast
+        # reads. Johannesburg keeps the legacy path via City.processed.
+        source = load_parameters(
+            cityconfig.active().processed / f"fold{args.fit_from}_parameters.csv"
+        )
 
     print(f"fold {args.fold}: {spec['base'][0]} -> {spec['target'][0]}")
     print(
@@ -415,12 +483,36 @@ def main(argv: list[str] | None = None) -> int:
         model_base_city = dict(base_city)
         model_base_share = base_share
         if entrants:
-            model_base_city = {p: v * (1 - sum(entrants.values())) for p, v in base_city.items()}
+            # Where do the entrant's votes go? The default is spatially flat,
+            # which is only right for a party with no inherited geography. An
+            # entrant given PARENT:K is placed on
+            #     share(i) = S * [ (1-k) * parent_index(i) + k ]
+            # where parent_index is the parent's VD share over its citywide
+            # share, so the weighted mean is 1 and the entrant still totals S
+            # whatever k is. k=0 is the parent's map exactly, k=1 is flat.
+            total_w = sum(base_weight.values())
+
+            def placed(code: str) -> dict[str, float]:
+                share = entrants[code]
+                if code not in entrant_map:
+                    return {vd: share for vd in base_share}
+                parent, k = entrant_map[code]
+                pc = sum(base_share[vd].get(parent, 0.0) * base_weight[vd]
+                         for vd in base_share) / total_w
+                if pc <= 0:
+                    raise SystemExit(f"--entrant {code}: parent {parent!r} has "
+                                     f"no vote in the baseline, so it has no map")
+                return {vd: share * ((1 - k) * (base_share[vd].get(parent, 0.0) / pc) + k)
+                        for vd in base_share}
+
+            local_entrants = {code: placed(code) for code in entrants}
+            scale = 1 - sum(entrants.values())
+            model_base_city = {p: v * scale for p, v in base_city.items()}
             model_base_city.update(entrants)
             model_base_share = {
                 vd: {
-                    **{p: v * (1 - sum(entrants.values())) for p, v in local.items()},
-                    **entrants,
+                    **{p: v * scale for p, v in local.items()},
+                    **{code: local_entrants[code][vd] for code in entrants},
                 }
                 for vd, local in base_share.items()
             }
@@ -446,10 +538,37 @@ def main(argv: list[str] | None = None) -> int:
             if model_base_city.get(p, 0) > 0 else 1.0
             for p in universe
         }
-        if source and ballot in source and args.transfer == "all":
+        if source and ballot in source and args.transfer in ("all", "bloc"):
             # Fully out-of-sample: the other fold's θ too, so nothing about this
             # transition's outcome is used. Parties it never saw get 1.0.
             theta = {p: source[ballot]["theta"].get(p, 1.0) for p in universe}
+            if args.transfer == "bloc":
+                # Carry the BLOC's level shift rather than each party's own.
+                # This is the forecast's actual bet — that members trade votes
+                # inside a pool — tested out of sample: if it is right, blind
+                # seat error should fall against the per-party transfer.
+                # Blocs come from the city config, not parties.py's hardcoded
+                # table: the config is what the forecast pools by, and the two
+                # disagree outside Johannesburg (parties.py puts BOSA in the DA
+                # bloc; Tshwane's config does not). Reading the wrong one would
+                # not fail — it would quietly test a bloc structure the forecast
+                # never uses.
+                groups: dict[str, list[str]] = {
+                    label: [p for p in members if p in universe]
+                    for label, members in cityconfig.active().blocs.items()
+                }
+                for label, members in groups.items():
+                    if len(members) < 2:
+                        continue
+                    weight_sum = sum(model_base_city.get(m, 0.0) for m in members)
+                    if weight_sum <= 0:
+                        continue
+                    # share-weighted mean θ across the bloc; applying it to every
+                    # member preserves their relative split from the base election
+                    bloc_theta = sum(model_base_city.get(m, 0.0) * theta[m]
+                                     for m in members) / weight_sum
+                    for m in members:
+                        theta[m] = bloc_theta
         else:
             theta = calibrate_theta(
                 model_base_share, model_base_city, target_city, gamma,
@@ -541,7 +660,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"\n  seat MAE: {np.mean(seat_errors):.2f}   total absolute seat error: {sum(seat_errors)}")
 
     suffix = "" if not args.fit_from else f"_from{args.fit_from}"
-    out = Path("data/processed") / f"fold{args.fold}{suffix}_parameters.csv"
+    out = cityconfig.active().processed / f"fold{args.fold}{suffix}_parameters.csv"
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
