@@ -1,46 +1,63 @@
-"""Run the full Monte Carlo against an election that has already happened.
+"""Score the forecast model against an election that has already happened.
 
 ``fold.py`` validates the deterministic core -- the share model, γ, the ballot
-split and the seat allocator -- and does it well: five transitions, twelve
-blind predictions. What it cannot touch is the *distributional* layer, which is
-where every judgement in this project lives: pool membership and ratios, the
-Dirichlet concentrations, the splinter branch, entrant geography, the
-by-election terms. Those have never been scored against a real outcome,
-because ``montecarlo.py`` can only ever produce 2026.
-
-This harness runs the same machinery at a past election and compares the
-distribution it produced against what actually happened, so two model variants
-can be put side by side on evidence rather than argument::
+split and the seat allocator. What it cannot touch is the *distributional*
+layer, which is where every judgement in this project lives: bloc and pool
+ranges, the Dirichlet concentrations, the splinter branch, entrant geography,
+turnout uncertainty, the by-election terms. This harness runs the model at a
+past election and scores the distribution it produced against what actually
+happened::
 
     python src/backtest.py --target 2021
-    python src/backtest.py --target 2021 --config scenarios/joburg-pools.json
-    python src/backtest.py --target 2021 --a scenarios/old.json --b scenarios/new.json
+    python src/backtest.py --target 2016 --config scenarios/joburg-pools.json
+    python src/backtest.py --target 2011 --a scenarios/old.json --b scenarios/new.json
 
-**What "honest" means here, enforced rather than promised.** A backtest is
-worthless if it can see the answer, so every input is restricted to what was
-knowable before polling day:
+**It runs the model itself.** ``montecarlo.run_model`` is called with a
+:class:`cityconfig.Target` for the past year; there is no second implementation
+here. Until 2026-08-10 there was one -- a ``run_one`` that reproduced about
+two-thirds of the model -- and the numbers it produced were quietly the scores
+of a different, simpler forecaster: no per-draw turnout variation, no turnout
+tilts, no ward noise (its ward winners were a bare argmax, deterministic given
+a draw, which is the defect a 2026-08-05 audit had already fixed in the live
+model), no PA contestation uplift, no poll term, no γ_recent fallback, no
+by-election path at all despite a docstring that said contests were date
+filtered, and every split voting district assigned whole to one ward. This file
+now assembles a target, calls the one model, and compares.
 
-* **Boundaries and registration** come from the target's own result file. That
-  is legitimate -- ward delimitation and the voters' roll are published months
-  ahead -- and it is the only thing taken from that file besides the actual
-  result used for scoring.
-* **Turnout patterns** use only elections strictly before the target.
-* **γ** comes from a fold whose own target precedes this one, never from a
-  fold that has seen it.
-* **Ward/PR split ratios** come from the previous local election.
-* **By-elections** are filtered to contests held before the target's polling
-  day.
+**What "honest" means here, enforced by where the model reads from.** For a
+past target ``run_model`` resolves every input off the target: the baseline is
+the NPE before it, ratios and by-election geography come from the LGE before
+it, γ from a fold that finished before it, turnout from ``turnout.py --target
+<year>``, and the council is the one that city had in that year. Boundaries and
+the roll come from the target's own result file, which is legitimate -- both
+are published months ahead -- and the votes in that file are used only for
+scoring. Two things a past target does not get, both gaps in the record rather
+than omissions: by-election evidence (only the post-2021 window is scraped) and
+split-VD apportionment (see ``montecarlo.ward_parts``).
 
-The one thing this harness cannot enforce is the scenario itself. If a pool
-range or an α was fitted on data including the target year, the test is
-circular and will flatter the model. Fit leaving the target out, or the number
-this prints is worth nothing.
+**The priors have read the answer, and the harness says so.** ``DEFAULTS``
+was fitted on these very elections — the bloc shifts on "four observed
+transitions" that include 2019→2021, ``individual_theta`` on the fold-1 and
+fold-2 raw ratios, ``alpha_da`` on the ActionSA outcome, the ward/PR ratios and
+the PA uplift on 2021 — so a default run against 2021 is an in-sample fit
+statistic wearing a forecast's clothes. Every run therefore prints an IN-SAMPLE
+banner naming the constants implicated for that target (see :data:`FITTED_ON`),
+and it prints by default, because a caveat that lives only in a docstring is a
+caveat nobody reads next to the number.
 
-**What it reports.** Seat error against the real council, ward winners called,
-and -- the point of the exercise -- calibration: whether the actual outcome
-lands inside the predicted interval as often as the interval claims. A model
-whose 90% band contains the truth 40% of the time is not slightly wrong, it is
-differently wrong from one whose median is off.
+A scenario file can declare itself clean with a top-level ``"derived_from"``:
+the list of elections its numbers were fitted on. Any entry at or after the
+target and the run refuses. Entries all before it and the banner is downgraded
+to a one-line note — for the keys that file actually sets. Everything it leaves
+alone still comes from ``DEFAULTS`` and is still called out, because inheriting
+a 2021-fitted constant is no less circular for being inherited. The declaration
+is the author's word: nothing here can verify it, and it is not evidence.
+
+**What it reports**, all of it through ``score.py`` so the model and the
+``benchmarks.py`` baselines are scored by identical code: per-party CRPS, the
+PIT histogram, coverage at 50/80/90, the energy and variogram scores on the
+joint seat vector, and -- the highest-power test available -- the ward-winner
+Brier score with its reliability table, ~135 genuine events per target.
 """
 
 from __future__ import annotations
@@ -48,52 +65,251 @@ from __future__ import annotations
 import argparse
 import copy
 import csv
-import json
-from collections import defaultdict
-from datetime import date
+from collections import Counter, defaultdict
+from collections.abc import Mapping
 from pathlib import Path
-
-import numpy as np
 
 import cityconfig
 import montecarlo as M
-from fold import citywide, load, load_parameters, shares
-from seats import allocate
+import official_seats
+import parties as P
+import score as S
+from fold import citywide, load
+from seats import allocate, eligible_parties
 
-# Each target names only things knowable before its polling day, plus the
-# actual result, which is used for scoring and nothing else.
-TARGETS = {
-    2021: {
-        "base": "npe2019_{CODE}_vd_party.csv",
-        "actual": "lge2021_{CODE}_vd_party_clean.csv",
-        "prior_lge": "lge2016_{CODE}_vd_party_clean.csv",
-        "election_day": date(2021, 11, 1),
-        "turnout_years": (1999, 2000, 2004, 2006, 2009, 2011, 2014, 2016, 2019),
-        "lge_years": (2000, 2006, 2011, 2016),
-        "gamma_fold": 1,          # 2014->2016, precedes the target
-        "council": 270,
-    },
-    2016: {
-        "base": "npe2014_{CODE}_vd_party.csv",
-        "actual": "lge2016_{CODE}_vd_party_clean.csv",
-        "prior_lge": "lge2011_{CODE}_vd_party_clean.csv",
-        "election_day": date(2016, 8, 3),
-        "turnout_years": (1999, 2000, 2004, 2006, 2009, 2011, 2014),
-        "lge_years": (2000, 2006, 2011),
-        "gamma_fold": 3,          # 2009->2011
-        "council": 270,
-    },
-    2011: {
-        "base": "npe2009_{CODE}_vd_party.csv",
-        "actual": "lge2011_{CODE}_vd_party_clean.csv",
-        "prior_lge": "lge2006_{CODE}_vd_party_clean.csv",
-        "election_day": date(2011, 5, 18),
-        "turnout_years": (1999, 2000, 2004, 2006, 2009),
-        "lge_years": (2000, 2006),
-        "gamma_fold": 4,          # 2004->2006
-        "council": 260,
-    },
+def runnable_targets(city=None) -> tuple[str, ...]:
+    """Past local elections this harness can actually run, for one city.
+
+    "An LGE with a result file" is not the test, and advertising that set as
+    ``--target``'s choices offered 2000 and 2006, both of which die on the
+    first thing they touch: no ``[structure.by_year.2006]`` in the city config
+    (so no council size), and no ``montecarlo.GAMMA_FOLD`` entry (so no γ).
+    A CLI that offers a value it cannot run is a bug report waiting to be
+    filed, so the set is *derived* from what each requirement can supply:
+
+    * an LGE, strictly in the past, with a VD-level result file;
+    * a previous LGE and a previous NPE, both with result files, because the
+      baseline, the ward/PR ratios and the ward geography come from them;
+    * a council size for that year in ``cities/<slug>.toml``;
+    * a γ fold that finished strictly before it.
+
+    It is per city because the answers are: Johannesburg's councils were
+    260/270/270 where Tshwane's were 210/214/214, and a city whose archive
+    starts later has fewer runnable targets. Files on disk are deliberately not
+    checked here — a missing file is a loud error with a fetch command
+    attached, not a reason to hide a target from ``--help``.
+    """
+    city = city or cityconfig.active()
+    out: list[str] = []
+    for year, election in sorted(cityconfig.CALENDAR.items()):
+        if election.kind != "LGE" or not election.results:
+            continue
+        target = cityconfig.Target(city=city, year=year)
+        if not target.previous_lge or not target.previous_npe:
+            continue
+        try:
+            target.results(target.previous_lge)
+            target.results(target.previous_npe)
+            target.council                  # [structure.by_year.<year>]
+            M.gamma_fold_for(target)        # a γ fold that precedes it
+        except SystemExit:
+            continue
+        out.append(year)
+    return tuple(out)
+
+
+class _Targets(Mapping):
+    """Per-target filenames and council size, resolved from the active city.
+
+    ``backtest`` itself no longer needs a table -- it asks ``cityconfig``. This
+    exists because ``benchmarks.py`` imports it for the same filenames, and it
+    is derived rather than typed so that the council size is the *right city's*.
+    The literal table it replaces carried 260/270/270, which are Johannesburg's
+    councils; Tshwane's were 210/214/214, so a Tshwane backtest allocated a
+    chamber that never existed. Resolution happens on access because the active
+    city is not known at import time -- which is also why ``YEARS`` is a
+    property over :func:`runnable_targets` rather than the ``(2011, 2016,
+    2021)`` literal it used to be, in a class whose own docstring claimed to be
+    derived rather than typed.
+    """
+
+    @property
+    def YEARS(self) -> tuple[int, ...]:
+        return tuple(int(y) for y in runnable_targets())
+
+    def __getitem__(self, year):
+        if int(year) not in self.YEARS:
+            raise KeyError(year)
+        t = cityconfig.Target(city=cityconfig.active(), year=str(int(year)))
+        return {
+            "base": t.results(t.previous_npe),
+            "actual": t.results(t.year),
+            "prior_lge": t.results(t.previous_lge),
+            "election_day": t.date,
+            "council": t.council,
+            "gamma_fold": M.gamma_fold_for(t),
+        }
+
+    def __iter__(self):
+        return iter(self.YEARS)
+
+    def __len__(self):
+        return len(self.YEARS)
+
+
+TARGETS = _Targets()
+
+
+# ---------------------------------------------------------------------------
+# in-sample accounting
+# ---------------------------------------------------------------------------
+
+# Which elections each ``montecarlo.DEFAULTS`` constant read, taken from the
+# constants' own comments rather than from a fresh judgement -- if a comment
+# says a number came from an election, that election is listed here. The years
+# are the LGEs whose *results* the number saw, so a target at or before a listed
+# year means the prior has read the answer.
+#
+# Not listed, because they are not fitted on any election's result: the turnout
+# dials (A2 judgements), the by-election weights (no evidence exists for a past
+# target -- see ``montecarlo.run_model``), ``ward_noise_sd`` and ``level_floor``
+# (both audit findings about the machinery, not about a party), the overhang
+# rule (law), and γ itself -- ``gamma_fold_for`` already refuses a fold that
+# does not finish strictly before the target, which is the one part of this
+# problem the code can enforce instead of announce.
+FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
+    "anc_bloc_shift": (
+        ("2006", "2011", "2016", "2021"),
+        "§3.4a: the four observed NPE→LGE bloc transitions "
+        "(2004→2006, 2009→2011, 2014→2016, 2019→2021)"),
+    "da_bloc_shift": (
+        ("2006", "2011", "2016", "2021"),
+        "§3.4a: the same four observed transitions"),
+    "theta_mode": (
+        ("2016", "2021"),
+        "§3.5's per-party views, formed on the record through 2021"),
+    "individual_theta": (
+        ("2016", "2021"),
+        "ranges bracket the observed fold-1 (2014→2016) and fold-2 "
+        "(2019→2021) raw ratios — Al Jama-ah's 3.12 is a 2021 number"),
+    "alpha_da": (
+        ("2021",),
+        "12.0 is low because \"the ActionSA outcome is genuinely bimodal\" — "
+        "ActionSA's outcome is 2021's"),
+    "ward_pr_ratio_overrides": (
+        ("2021",),
+        "ward/PR ratios are measured from 2021; MK's 0.80 is \"bounded by "
+        "ActionSA's observed 0.77\""),
+    "pa_contestation_uplift": (
+        ("2021",),
+        "calibrated against the 52 wards the PA contested in 2021"),
+    "splinter": (
+        ("2006", "2011", "2016"),
+        "triangulars taken from COPE 2009→2011, ID 2004→2006 and EFF "
+        "2014→2016 (empty by default)"),
+    "entrant_geography": (
+        ("2006", "2011", "2016", "2021"),
+        "k measured across the six entrants on record (empty by default)"),
 }
+
+
+def contaminated(target_year: str, declared_clean: set[str]) -> list[str]:
+    """``FITTED_ON`` keys that read this target or later, minus declared ones.
+
+    ``declared_clean`` is the set of keys a scenario file actually sets while
+    declaring a ``derived_from`` that predates the target. Everything else is
+    still whatever ``DEFAULTS`` says, and an inherited 2021-fitted constant is
+    exactly as circular as one written out.
+    """
+    return sorted(k for k, (years, _why) in FITTED_ON.items()
+                  if k not in declared_clean
+                  and any(y >= str(target_year) for y in years))
+
+
+def check_derived_from(declared, target_year: str, label: str) -> list[str]:
+    """Validate a scenario's ``derived_from`` list; return it as strings."""
+    if not isinstance(declared, list) or not all(
+            isinstance(y, (str, int)) for y in declared):
+        raise SystemExit(f"{label}: \"derived_from\" must be a list of election "
+                         f"years, e.g. [\"2011\", \"2016\"]")
+    years = [str(y) for y in declared]
+    unknown = [y for y in years if y not in cityconfig.CALENDAR]
+    if unknown:
+        raise SystemExit(f"{label}: \"derived_from\" names elections that are "
+                         f"not in the calendar: {unknown}")
+    peeking = sorted(y for y in years if y >= str(target_year))
+    if peeking:
+        raise SystemExit(
+            f"{label} declares derived_from {years}, which includes "
+            f"{peeking} — at or after the target {target_year}. A scenario "
+            f"fitted on the election it is being scored against cannot be "
+            f"scored against it; refit leaving {target_year} out, or run it "
+            f"at a later target.")
+    return years
+
+
+def in_sample_banner(target_year: str, label: str, scenario_keys: set[str],
+                     declared) -> str:
+    """The warning (or the all-clear) for one scenario at one target.
+
+    Printed on every run, before the numbers, because the alternative is a
+    reader taking a seat MAE of 114 for an out-of-sample result.
+    """
+    clean = set(scenario_keys) if declared is not None else set()
+    dirty = contaminated(target_year, clean)
+    if not dirty:
+        return (f"  out-of-sample (DECLARED, not verified): {label} says its "
+                f"numbers derive from {', '.join(str(y) for y in declared)}, "
+                f"all before {target_year}, and it sets every constant this "
+                f"harness knows to have read {target_year} or later.")
+
+    rule = "  " + "!" * 74
+    lines = [rule,
+             "  !! IN-SAMPLE — THESE ARE NOT OUT-OF-SAMPLE SCORES",
+             rule,
+             f"  Scenario {label!r} scores target {target_year} using priors "
+             f"fitted on {target_year} or later.",
+             "  The scores below measure fit, not forecasting skill; read them "
+             "as an upper bound."]
+    if declared is not None:
+        lines.append(f"  Its derived_from ({', '.join(str(y) for y in declared)})"
+                     f" covers only the keys it sets; these are inherited from "
+                     f"montecarlo.DEFAULTS:")
+    else:
+        lines.append("  No \"derived_from\" declared, so nothing is claimed to "
+                     "be clean. Implicated constants:")
+    for key in dirty:
+        years, why = FITTED_ON[key]
+        saw = ", ".join(y for y in years if y >= str(target_year))
+        lines.append(f"    {key:<24s} read {saw} — {why}")
+    lines.append("  Declare a clean scenario with a top-level \"derived_from\": "
+                 "[\"2011\", ...] naming every")
+    lines.append("  election its numbers were fitted on; a run refuses if any "
+                 "entry reaches the target.")
+    lines.append(rule)
+    return "\n".join(lines)
+
+
+def relabel_entrant(ward_probs: Mapping[str, Mapping[str, float]],
+                    entrant: str | None) -> dict[str, dict[str, float]]:
+    """Rename the generic ``ENTRANT`` to the party that actually arrived.
+
+    ``score_seats`` has taken ``entrant_actual`` since it was written; ward
+    scoring did not, so a draw was credited for ActionSA's *seats* and debited
+    for ENTRANT's *ward wins* — the model punished for the one thing the
+    entrant machinery exists to get right. Harmless only while the entrant is
+    flat and never tops a ward; the moment ``entrant_geography`` is set it
+    bites, in exactly the comparison this module exists to make.
+    """
+    if not entrant:
+        return {w: dict(p) for w, p in ward_probs.items()}
+    out: dict[str, dict[str, float]] = {}
+    for ward, probs in ward_probs.items():
+        merged: defaultdict[str, float] = defaultdict(float)
+        for party, p in probs.items():
+            merged[entrant if party == "ENTRANT" else party] += p
+        out[ward] = dict(merged)
+    return out
 
 
 def ward_structure(path: Path):
@@ -101,7 +317,8 @@ def ward_structure(path: Path):
 
     Boundaries and the roll are public before polling day, so taking them from
     the result file is not peeking; the votes in the same file are used only
-    for scoring.
+    for scoring. Kept here because ``benchmarks.py`` builds its baselines from
+    it; the model reaches the same data through ``montecarlo.ward_parts``.
     """
     ward_of: dict[str, str] = {}
     registered: dict[str, int] = {}
@@ -115,187 +332,169 @@ def ward_structure(path: Path):
     return ward_of, registered
 
 
-def actual_result(path: Path, council: int):
-    """The real council: seats by party from the combined ballots (§0)."""
-    votes, _ = load(path, None)
-    totals: defaultdict[str, int] = defaultdict(int)
-    for counts in votes.values():
-        for party, n in counts.items():
-            totals[party] += n
-    seats = allocate(dict(totals), total_seats=council).seats
+def _year_from(path: Path) -> int:
+    """The election year in a result filename: ``lge2021_JHB_...`` -> 2021."""
+    stem = Path(path).name
+    digits = "".join(c for c in stem[:8] if c.isdigit())
+    if len(digits) != 4:
+        raise ValueError(f"cannot read an election year from {stem!r}")
+    return int(digits)
+
+
+def actual_result(path: Path, council: int, year: int | None = None,
+                  code: str | None = None):
+    """The real council and the real ward winners, checked against the IEC.
+
+    Seats follow the *combined* ward and PR ballots (§0), over the parties the
+    quota is computed on -- which is ``seats.eligible_parties``: independents
+    and parties that contested a ward with no PR list are handled through
+    Schedule 1's C and D terms rather than by earning an entitlement. Running
+    ``allocate`` over every party instead, as this function did until
+    2026-08-10, both mis-states the answer and invents seats no forecaster
+    could win: ActionSA came out at 43 against the 44 the IEC published, the
+    2016 ANC at 120 against 121, the 2011 ANC at 152 against 153, and
+    independents were handed 1-2 list seats they cannot hold. ``fold.py`` has
+    always done this correctly; this now matches it.
+
+    The reconstruction is then checked party by party against the IEC's own
+    Seat Calculation Detail and raises on any disagreement. A ground truth that
+    is only *probably* right is not a ground truth.
+    """
     ward_votes, ward_of = load(path, "Ward")
-    winners: dict[str, str] = {}
-    per_ward: defaultdict[str, defaultdict[str, int]] = defaultdict(lambda: defaultdict(int))
+    pr_votes, _ = load(path, "PR")
+
+    def totals(votes) -> dict[str, int]:
+        out: defaultdict[str, int] = defaultdict(int)
+        for counts in votes.values():
+            for party, n in counts.items():
+                out[party] += n
+        return dict(out)
+
+    combined = eligible_parties(totals(ward_votes), totals(pr_votes))
+
+    per_ward: defaultdict[str, defaultdict[str, int]] = defaultdict(
+        lambda: defaultdict(int))
     for vd, counts in ward_votes.items():
         w = ward_of.get(vd)
         if not w:
             continue
         for party, n in counts.items():
             per_ward[w][party] += n
-    for w, counts in per_ward.items():
-        winners[w] = max(counts, key=counts.get)
-    return {p: s for p, s in seats.items() if s > 0}, winners
+    winners = {w: max(counts, key=counts.get) for w, counts in per_ward.items()}
+
+    # C and D: seats that leave the entitlement pool with the councillor.
+    wins = Counter(winners.values())
+    outside = {party: n for party, n in wins.items()
+               if party == "IND" or party not in combined}
+    independent_wards = outside.get("IND", 0)
+    no_pr_list_wards = sum(n for party, n in outside.items() if party != "IND")
+
+    seats = allocate(combined, total_seats=council,
+                     independent_wards=independent_wards,
+                     no_pr_list_wards=no_pr_list_wards).seats
+    seats = {p: s for p, s in seats.items() if s > 0}
+
+    year = year or _year_from(path)
+    code = code or cityconfig.active().code
+    official = official_seats.read(code, int(year))
+    if official is None:
+        print(f"  !! no Seat Calculation Detail for {code} {year}: the "
+              f"reconstructed council is UNVERIFIED. Fetch it with "
+              f"python src/fetch_iec.py --muni {code} "
+              f"--province {cityconfig.active().province}")
+    else:
+        want: Counter[str] = Counter()
+        for name, row in official["parties"].items():
+            want[P.canonical(name)] += row["seats"]
+        # The IEC's table is the whole chamber; ``seats`` is the entitlement
+        # pool only. ``allocate`` was asked for ``council - C - D`` seats, so
+        # the ward seats that left the pool with an independent or a party
+        # without a PR list have to be added back before the totals can be
+        # compared, and subtracted from that party's IEC row before the
+        # per-party comparison. Comparing the pool against the chamber was
+        # latent while C = D = 0 in every city-year on disk; it would have
+        # blocked the first metro with an independent ward win — which is the
+        # case this reconstruction most needs to get right.
+        want = {p: n - outside.get(p, 0) for p, n in want.items()}
+        want = {p: n for p, n in want.items() if n > 0}
+        rebuilt_total = sum(seats.values()) + sum(outside.values())
+        if want != seats or rebuilt_total != official["seats"]:
+            bad = sorted(set(want) | set(seats),
+                         key=lambda p: -abs(want.get(p, 0) - seats.get(p, 0)))
+            detail = ", ".join(f"{p}: IEC {want.get(p, 0)} vs rebuilt "
+                               f"{seats.get(p, 0)}" for p in bad
+                               if want.get(p, 0) != seats.get(p, 0))
+            raise SystemExit(
+                f"the reconstructed {year} council does not match the IEC's "
+                f"published seat calculation ({Path(official['path']).name}): "
+                f"{detail or 'totals differ'}. Everything scored against it "
+                f"would be scored against the wrong answer.")
+    return seats, winners
 
 
-def score(draws: list[dict[str, int]], actual_seats: dict[str, int],
-          entrant_actual: str | None = None):
-    """Seat error, and whether the truth landed inside the claimed interval.
+def entrant_actual_for(actual_seats: Mapping[str, int],
+                       base_city: Mapping[str, float]) -> str | None:
+    """Which party actually arrived from nothing, if any.
 
     The model draws a *generic* entrant -- it cannot know a new party's name --
-    so scoring compares ENTRANT against whichever party actually arrived from
-    nothing. Anything else would score the machinery as a total miss even when
-    it sized the newcomer correctly, which is the interesting question.
+    so scoring maps ENTRANT onto whichever seat-winning party had no baseline
+    at all. Anything else scores the machinery as a total miss even when it
+    sized the newcomer correctly, which is the interesting question.
     """
-    if entrant_actual:
-        draws = [{(entrant_actual if k == "ENTRANT" else k): v for k, v in d.items()}
-                 for d in draws]
-    parties = sorted(set().union(*[set(d) for d in draws]) | set(actual_seats))
-    rows = []
-    inside = 0
-    counted = 0
-    for p in parties:
-        series = np.array([d.get(p, 0) for d in draws], dtype=float)
-        med = float(np.median(series))
-        lo, hi = np.percentile(series, [5, 95])
-        act = actual_seats.get(p, 0)
-        if act > 0 or med > 0:
-            counted += 1
-            if lo <= act <= hi:
-                inside += 1
-            rows.append((p, act, med, lo, hi, abs(med - act)))
-    total_err = sum(r[5] for r in rows)
-    return rows, total_err, inside, counted
-
-
-def run_one(args, city, spec, scenario) -> list[dict[str, int]]:
-    """Assemble one target's inputs and run the draws. Nothing here may read
-    the target's votes -- only its boundaries and roll, which were public."""
-    base_votes, _ = load(args.data_dir / spec["base"], None)
-    base_share_d, base_city_d = shares(base_votes), citywide(base_votes)
-    ward_of, registered = ward_structure(args.data_dir / spec["actual"])
-
-    vds = sorted(set(base_share_d) & set(ward_of))
-    universe = sorted(p for p in base_city_d if p not in ("IND",))
-    if scenario["entrant_prob"] > 0:
-        universe.append("ENTRANT")
-    index = {p: i for i, p in enumerate(universe)}
-    npar = len(universe)
-
-    base_city = np.array([base_city_d.get(p, M.SHARE_FLOOR) for p in universe])
-    local = np.array([[base_share_d[v].get(p, 0.0) for p in universe] for v in vds])
-    if "ENTRANT" in index:
-        local[:, index["ENTRANT"]] = M.SHARE_FLOOR
-    dev = M.logit(local) - M.logit(base_city)[None, :]
-
-    ent = scenario.get("entrant_geography") or {}
-    if "ENTRANT" in index and ent.get("parent") in index:
-        dev[:, index["ENTRANT"]] = (1.0 - float(ent.get("k", 1.0))) * dev[:, index[ent["parent"]]]
-
-    # γ from a fold whose own target precedes this one
-    params = load_parameters(args.processed / f"fold{spec['gamma_fold']}_parameters.csv")
-    gamma = {}
-    for ballot in ("PR", "Ward"):
-        vals = np.ones(npar)
-        for p, i in index.items():
-            if p in params.get(ballot, {}).get("gamma", {}):
-                vals[i] = params[ballot]["gamma"][p]
-        gamma[ballot] = vals
-
-    # ward/PR split from the PREVIOUS local election, never this one
-    pw, _ = load(args.data_dir / spec["prior_lge"], "Ward")
-    pp, _ = load(args.data_dir / spec["prior_lge"], "PR")
-    wc, pc = citywide(pw), citywide(pp)
-    ratio = np.ones(npar)
-    for p, i in index.items():
-        if pc.get(p, 0) > 0.001:
-            ratio[i] = float(np.clip(wc.get(p, 0.0) / pc[p], 0.5, 2.0))
-    for p, v in scenario["ward_pr_ratio_overrides"].items():
-        if p in index:
-            ratio[index[p]] = v
-
-    # VD weight: the roll, times the previous local election's turnout there.
-    prior_all, _ = load(args.data_dir / spec["prior_lge"], "PR")
-    prior_cast = {v: sum(c.values()) for v, c in prior_all.items()}
-    reg = np.array([registered.get(v, 0) for v in vds], dtype=float)
-    prior_t = np.array([prior_cast.get(v, np.nan) / registered[v]
-                        if registered.get(v) else np.nan for v in vds])
-    typical = np.nanmedian(prior_t[np.isfinite(prior_t)]) if np.isfinite(prior_t).any() else 0.4
-    prior_t = np.where(np.isfinite(prior_t), prior_t, typical)
-    weight = np.clip(reg * prior_t, 1.0, None)
-
-    centres, _ = M.blended_centres(scenario, base_city_d, {}, {})
-    if "ENTRANT" in index:
-        centres["ENTRANT"] = 0.0
-    rng = np.random.default_rng(scenario["seed"])
-    draw_target = M.make_drawer(scenario, base_city_d, centres, index, rng)
-
-    ward_list = sorted({ward_of[v] for v in vds})
-    ward_index = {w: i for i, w in enumerate(ward_list)}
-    vd_ward = np.array([ward_index[ward_of[v]] for v in vds])
-
-    out: list[dict[str, int]] = []
-    for _ in range(scenario["draws"]):
-        pr_target = draw_target()
-        ward_target = pr_target * ratio
-        ward_target = ward_target / ward_target.sum()
-        pr = M.solve_and_predict(dev, base_city, pr_target, gamma["PR"], weight,
-                                 level_floor=scenario["level_floor"])
-        wd = M.solve_and_predict(dev, base_city, ward_target, gamma["Ward"], weight,
-                                 level_floor=scenario["level_floor"])
-        pr_votes = pr * weight[:, None]
-        wd_votes = wd * weight[:, None]
-        per_ward = np.zeros((len(ward_list), npar))
-        np.add.at(per_ward, vd_ward, wd_votes)
-        winners = per_ward.argmax(axis=1)
-        ward_wins: defaultdict[str, int] = defaultdict(int)
-        for w in winners:
-            ward_wins[universe[w]] += 1
-        # the allocator works in whole votes, as the statute does
-        combined = {universe[i]: int(round(pr_votes[:, i].sum() + wd_votes[:, i].sum()))
-                    for i in range(npar)}
-        seats, _council, _thr, _over = M.allocate_with_overhang(
-            combined, dict(ward_wins), rule=scenario["overhang_rule"])
-        out.append({p: s for p, s in seats.items() if s > 0})
-    return out
+    newcomers = {p: s for p, s in actual_seats.items() if p not in base_city}
+    return max(newcomers, key=newcomers.get) if newcomers else None
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     cityconfig.add_city_argument(ap)
-    ap.add_argument("--target", type=int, choices=sorted(TARGETS), default=2021)
+    # No `choices=`: the runnable set is per city (see runnable_targets) and
+    # --city has not been parsed yet. Validated below, once the city is known.
+    ap.add_argument("--target", default="2021", metavar="YEAR",
+                    help="past local election to score against (default 2021); "
+                         "runnable targets are derived per city — pass a bad "
+                         "one to be told this city's set")
     ap.add_argument("--config", type=Path, help="scenario json (model to test)")
     ap.add_argument("--a", type=Path, help="A/B: first scenario")
     ap.add_argument("--b", type=Path, help="A/B: second scenario")
     ap.add_argument("--draws", type=int, default=2000)
     ap.add_argument("--seed", type=int, default=20211101)
     ap.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
-    ap.add_argument("--processed", type=Path, default=Path("data/processed"))
+    ap.add_argument("--processed", type=Path, default=None,
+                    help="target inputs (default: the target's own directory)")
     args = ap.parse_args(argv)
 
     city = cityconfig.use(args.city)
-    M.apply_city(city)
-    spec = TARGETS[args.target]
-    M.COUNCIL = spec["council"]
+    runnable = runnable_targets(city)
+    if args.target not in runnable:
+        raise SystemExit(
+            f"--target {args.target} cannot be scored for {city.name}; "
+            f"runnable targets are {', '.join(runnable)}. A past LGE also "
+            f"needs a council size in cities/{city.slug}.toml, a γ fold that "
+            f"precedes it, and a previous LGE and NPE with result files.")
+    target = cityconfig.use_target(args.target)
+    M.apply_city(city)                    # after use_target: council is per-year
+    processed = args.processed or target.processed
 
-    print(f"backtest: {city.name} {args.target}  "
-          f"(base {spec['base'].format(CODE=city.code)}, "
-          f"γ from fold {spec['gamma_fold']}, council {spec['council']})")
-
+    actual_path = args.data_dir / target.results(target.year)
     actual_seats, actual_winners = actual_result(
-        args.data_dir / spec["actual"], spec["council"])
-    # who actually arrived from nothing? the biggest party with no baseline
-    base_votes, _ = load(args.data_dir / spec["base"], None)
-    base_parties = set(citywide(base_votes))
-    newcomers = {p: s for p, s in actual_seats.items() if p not in base_parties}
-    entrant_actual = max(newcomers, key=newcomers.get) if newcomers else None
-    if entrant_actual:
-        print(f"  party arriving from nothing: {entrant_actual} "
-              f"({newcomers[entrant_actual]} seats) -- scored against ENTRANT")
-    print(f"  actual council: {sum(actual_seats.values())} seats to "
-          f"{len(actual_seats)} parties; {len(actual_winners)} wards")
+        actual_path, target.council, int(target.year), city.code)
 
-    configs = []
+    base_votes, _ = load(args.data_dir / target.results(target.previous_npe), None)
+    base_city = citywide(base_votes)
+    entrant = entrant_actual_for(actual_seats, base_city)
+
+    print(f"backtest: {city.name} {target.year} ({target.date}) "
+          f"— council {target.council}, γ fold {M.gamma_fold_for(target)}, "
+          f"inputs from {processed}")
+    if entrant:
+        print(f"  party arriving from nothing: {entrant} "
+              f"({actual_seats[entrant]} seats) — scored against ENTRANT")
+    print(f"  actual council: {sum(actual_seats.values())} seats to "
+          f"{len(actual_seats)} parties (matches the IEC's published "
+          f"calculation); {len(actual_winners)} wards")
+
     if args.a and args.b:
         configs = [("A", args.a), ("B", args.b)]
     elif args.config:
@@ -303,36 +502,53 @@ def main(argv: list[str] | None = None) -> int:
     else:
         configs = [("defaults", None)]
 
-    results = {}
+    summary = []
     for label, path in configs:
         scenario = copy.deepcopy(M.DEFAULTS)
+        overrides: dict = {}
+        declared = None
         if path:
-            overrides = json.loads(Path(path).read_text(encoding="utf-8"))
-            for k, v in overrides.items():
-                if isinstance(scenario.get(k), dict) and isinstance(v, dict):
-                    scenario[k].update(v)
-                else:
-                    scenario[k] = v
+            # Same validation montecarlo.load_scenario applies: an unknown key
+            # used to be dropped in silence here, so a typo produced a run that
+            # reported itself as the config under test while scoring DEFAULTS,
+            # and an A/B table printed two identical rows as if they were two
+            # models.
+            overrides, metadata = M.read_scenario_file(path)
+            M.apply_overrides(scenario, overrides)
+            if "derived_from" in metadata:
+                declared = check_derived_from(metadata["derived_from"],
+                                              target.year, str(path))
         scenario["draws"] = args.draws
         scenario["seed"] = args.seed
-        draws = run_one(args, city, spec, scenario)
-        rows, err, inside, counted = score(draws, actual_seats, entrant_actual)
-        results[label] = (rows, err, inside, counted)
 
-    for label, (rows, err, inside, counted) in results.items():
-        print(f"\n=== {label} ===")
-        print(f"  {'party':10s}{'actual':>8s}{'median':>8s}{'5th':>7s}{'95th':>7s}{'err':>6s}")
-        for p, act, med, lo, hi, e in sorted(rows, key=lambda r: -r[1])[:12]:
-            flag = "" if lo <= act <= hi else "  <-- outside"
-            print(f"  {p[:10]:10s}{act:>8d}{med:>8.0f}{lo:>7.0f}{hi:>7.0f}{e:>6.0f}{flag}")
-        print(f"  total absolute seat error: {err:.0f}")
-        print(f"  calibration: actual inside the 90% band for {inside}/{counted} "
-              f"parties ({inside/counted:.0%}; a calibrated model gives ~90%)")
+        in_sample = bool(contaminated(
+            target.year, set(overrides) if declared is not None else set()))
+        print()
+        print(in_sample_banner(target.year, label, set(overrides), declared))
 
-    if len(results) == 2:
-        (_, ea, ia, ca), (_, eb, ib, cb) = results["A"], results["B"]
-        print(f"\nA/B on {args.target}:  seat error A {ea:.0f} vs B {eb:.0f}   "
-              f"calibration A {ia/ca:.0%} vs B {ib/cb:.0%}")
+        run = M.run_model(target, scenario, args.data_dir, processed)
+        seats = S.score_seats(run.seat_draws, actual_seats, entrant, seed=args.seed)
+        wards = S.score_wards(
+            relabel_entrant(run.ward_probabilities(), entrant), actual_winners)
+        print()
+        print(S.format_report(seats, wards, label=label))
+        summary.append((label, seats, wards, in_sample))
+
+    if len(summary) > 1:
+        print(f"\n  {'scenario':18s}{'CRPS':>9s}{'energy':>9s}{'seatMAE':>9s}"
+              f"{'BrierMC':>9s}{'90% coverage':>15s}")
+        for label, seats, wards, in_sample in summary:
+            cov90 = next(r for r in seats["coverage"] if r["level"] == 0.9)
+            cov = f"{cov90['inside']}/{cov90['counted']} = {cov90['empirical']:.0%}"
+            print(f"  {label:18s}{seats['crps']['total']:>9.2f}"
+                  f"{seats['energy']:>9.2f}{seats['seat_mae_median']:>9.0f}"
+                  f"{wards['brier_multicategory']:>9.4f}{cov:>15s}"
+                  f"{'  IN-SAMPLE' if in_sample else '':>12s}")
+        if any(row[3] for row in summary):
+            print("  IN-SAMPLE rows carry priors fitted on the target election; "
+                  "they are not comparable to a")
+            print("  declared out-of-sample row, and neither is comparable to a "
+                  "benchmarks.py baseline.")
     return 0
 
 

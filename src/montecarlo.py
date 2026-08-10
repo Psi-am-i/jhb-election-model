@@ -1,9 +1,20 @@
-"""Monte Carlo forecast of the 2026 CoJ council (plan §3.4–§3.8, review fixes).
+"""Monte Carlo forecast of a metro council (plan §3.4–§3.8, review fixes).
 
-Draws a 2026 scenario, runs it through the share model at VD level, aggregates
+Draws a scenario, runs it through the share model at VD level, aggregates
 both ballots, predicts ward winners, allocates seats under Schedule 1 with the
 overhang check, and reports the full coalition arithmetic. The deliverable is
 a distribution over coalition viability, never a point forecast (§4.3).
+
+**The target election is a parameter.** ``--target`` selects it and everything
+that depends on when it is — the baseline NPE, the previous local election, the
+council's size, the polling day the by-election decay counts back from, which
+γ fold may be read, where the outputs land — resolves off
+``cityconfig.Target`` rather than off constants written into this file. That is
+what lets ``backtest.py`` score *this* model at 2011, 2016 or 2021 instead of a
+second, reduced reimplementation of it: the model function below is the only
+one there is. See :func:`run_model` for what a past target can and cannot be
+given (by-election evidence and split-VD apportionment are the two gaps, and
+both are gaps in the record rather than omissions here).
 
 This is a rewrite of the first implementation, fixing the review findings:
 
@@ -49,6 +60,7 @@ forecast page exposes, so a slider position there is reproducible here.
 Usage:
     python src/montecarlo.py [--draws 5000] [--seed 20261104]
                              [--config file.json] [--set w_bye=0.0] ...
+    python src/montecarlo.py --target 2021    # the same model, built for 2021
 """
 
 from __future__ import annotations
@@ -58,6 +70,7 @@ import copy
 import csv
 import json
 from collections import defaultdict
+from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
@@ -65,7 +78,7 @@ import numpy as np
 
 import cityconfig
 import coalitions
-from fold import citywide, load, load_parameters, shares
+from fold import FOLDS, citywide, load, load_parameters, shares
 from seats import INDEPENDENT, allocate
 
 SHARE_FLOOR = 0.002
@@ -244,22 +257,104 @@ def triangular(rng, spec, size=None):
     return rng.triangular(low, min(max(mode, low), high), high, size)
 
 
-ELECTION_DAY = date(2026, 11, 4)
-
-
-def months_before_election(stamp: str) -> float:
+def months_before_election(stamp: str, election_day: date) -> float:
     """How long before election day a by-election was held, in months.
 
     Feeds the same exp(-age/τ) recency decay ``byelections.py`` uses for the
     citywide term, so a contest is weighted identically whichever term reads
     it. A date the file cannot parse returns a large age, which decays the
     contest to nothing rather than letting it count at full strength.
+
+    ``election_day`` was a module constant (2026-11-04) until the target became
+    a parameter; it is now the target's own polling day, so a backtest counts
+    back from the election it is forecasting rather than from 2026.
     """
     try:
         held = date.fromisoformat(stamp.strip())
     except ValueError:
         return 1e6
-    return (ELECTION_DAY - held).days / 30.44
+    return (election_day - held).days / 30.44
+
+
+# Which fold's fitted γ each target may read. γ is fitted once and transferred
+# across cycles (MODEL-LOG 1.7), and the fold it comes from must have finished
+# strictly before the target or the forecast has read its own answer —
+# ``gamma_fold_for`` asserts exactly that rather than trusting this table.
+#
+# The table exists because for 2026 the constraint alone does not pick one.
+# Both fold 1 (2014→2016) and fold 2 (2019→2021) precede 2026, and the
+# published forecast uses fold 1: §4.1's discipline is fit on fold 1, validate
+# on fold 2, and a forecast fitted on both has nothing left to validate it.
+# For every other target the entry is simply the most recent qualifying fold.
+GAMMA_FOLD = {"2026": 1, "2021": 1, "2016": 3, "2011": 4}
+
+
+def fold_target_year(fold: int) -> str:
+    """The year of the LGE a fold predicts, read off its target filename."""
+    return FOLDS[fold]["target"][0][3:7]
+
+
+def gamma_fold_for(target) -> int:
+    """The fold supplying γ for this target, checked to precede it."""
+    fold = GAMMA_FOLD.get(target.year)
+    if fold is None:
+        raise SystemExit(
+            f"no γ fold recorded for target {target.year}; add one to "
+            f"montecarlo.GAMMA_FOLD (have: {', '.join(sorted(GAMMA_FOLD))})")
+    if fold_target_year(fold) >= target.year:
+        raise SystemExit(
+            f"fold {fold} targets {fold_target_year(fold)}, which does not "
+            f"precede {target.year}: its γ has seen the answer")
+    return fold
+
+
+def ward_parts(target, data_dir: Path, processed: Path) -> tuple[list[tuple[str, str, int]], str]:
+    """VD → ward parts and their registration: ``[(vd, ward, registered), ...]``.
+
+    Two sources, because the two cases genuinely differ.
+
+    **A target not yet held** has a delimitation newer than any result file, so
+    the crosswalk ``vd_ward_<year>.csv`` (built by ``build_crosswalk.py``) is
+    the only thing that knows it. A voting district straddling two new wards
+    appears there once per ward with its registration split by
+    ``part_registered`` — 181 of Johannesburg's 865 VDs in 2026 — and that
+    apportionment is what puts the right number of voters in each ward.
+
+    **A past target** ran under the delimitation its own result file records,
+    and boundaries and the roll are published months before polling day, so
+    reading them there is not peeking (the votes in the same file are used only
+    for scoring). What that file cannot carry is a split: it names exactly one
+    ward per VD — checked for Johannesburg 2011, 2016 and 2021, where no VD
+    carries two ward IDs — and the registration on the row is the whole VD's.
+    So for a past target every VD is assigned whole. That is a limit of the
+    published record, not a modelling choice: if a historic VD *was* split
+    between wards, no file in this repository says so, and inventing an
+    apportionment would be inventing data. The consequence is confined to ward
+    winners in a handful of wards; citywide totals are unaffected either way.
+    """
+    crosswalk = processed / f"vd_ward_{target.year}.csv"
+    if crosswalk.exists():
+        with crosswalk.open(encoding="utf-8", newline="") as fh:
+            rows = list(csv.DictReader(fh))
+        column = f"Ward_{target.year}"
+        parts = [(r["VD_Number"], r[column], int(r["part_registered"]))
+                 for r in rows]
+        split = len({r["VD_Number"] for r in rows if r.get("is_split") == "Y"})
+        return parts, (f"{crosswalk.name} ({len(parts)} parts over "
+                       f"{len({r['VD_Number'] for r in rows})} VDs, {split} split)")
+
+    path = data_dir / target.results(target.year)
+    seen: dict[str, tuple[str, int]] = {}
+    with cityconfig.resolve_path(path).open(encoding="utf-8", newline="") as fh:
+        for row in csv.DictReader(fh):
+            vd = row["VD_Number"]
+            if vd in seen or not row.get("Ward"):
+                continue
+            registered = int(float(row.get("Registered_Population") or 0))
+            seen[vd] = (row["Ward"].strip(), registered)
+    parts = [(vd, ward, registered) for vd, (ward, registered) in seen.items()]
+    return parts, (f"{cityconfig.resolve_path(path).name} "
+                   f"(boundaries and roll only; {len(parts)} VDs, none split)")
 
 
 def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6,
@@ -320,19 +415,54 @@ def apply_city(city) -> None:
         DEFAULTS[key] = value
 
 
+# Top-level keys a scenario file may carry that are *not* model parameters.
+# They are about the scenario rather than in it, so they are split off before
+# the unknown-key check rather than being added to DEFAULTS (a metadata key in
+# DEFAULTS would travel into every run's reported configuration).
+#
+#   derived_from -- the elections whose results the scenario's numbers were
+#       fitted on, as a list of years. ``backtest.py`` uses it to decide
+#       whether a run against a past target is out-of-sample; see
+#       ``backtest.FITTED_ON``. Undeclared means "assume in-sample".
+SCENARIO_METADATA = ("derived_from",)
+
+
+def read_scenario_file(path) -> tuple[dict, dict]:
+    """``(overrides, metadata)`` from a scenario JSON, unknown keys rejected.
+
+    One reader for every consumer. ``backtest.py`` used to apply a scenario
+    file with its own loop and no validation at all, so a typo'd key was
+    dropped in silence and the run reported itself as the config under test
+    while actually scoring DEFAULTS — two identical rows in an A/B table with
+    nothing to say they were the same model twice.
+    """
+    with open(path, encoding="utf-8") as handle:
+        overrides = json.load(handle)
+    if not isinstance(overrides, dict):
+        raise SystemExit(f"{path}: a scenario file must be a JSON object")
+    metadata = {k: overrides.pop(k) for k in SCENARIO_METADATA if k in overrides}
+    unknown = set(overrides) - set(DEFAULTS)
+    if unknown:
+        raise SystemExit(f"unknown scenario keys in {path}: {sorted(unknown)} "
+                         f"(scenario metadata: {', '.join(SCENARIO_METADATA)})")
+    return overrides, metadata
+
+
+def apply_overrides(scenario: dict, overrides: dict) -> dict:
+    """Merge a validated override dict into a scenario, dicts key by key."""
+    for key, value in overrides.items():
+        if isinstance(scenario.get(key), dict) and isinstance(value, dict):
+            scenario[key].update(value)
+        else:
+            scenario[key] = value
+    return scenario
+
+
 def load_scenario(args) -> dict:
     scenario = copy.deepcopy(DEFAULTS)
     if args.config:
-        with open(args.config, encoding="utf-8") as handle:
-            overrides = json.load(handle)
-        unknown = set(overrides) - set(scenario)
-        if unknown:
-            raise SystemExit(f"unknown scenario keys in {args.config}: {sorted(unknown)}")
-        for key, value in overrides.items():
-            if isinstance(scenario[key], dict) and isinstance(value, dict):
-                scenario[key].update(value)
-            else:
-                scenario[key] = value
+        overrides, _metadata = read_scenario_file(args.config)
+        apply_overrides(scenario, overrides)
     parse_set(args.set or [], scenario)
     if args.draws:
         scenario["draws"] = args.draws
@@ -348,16 +478,16 @@ def load_scenario(args) -> dict:
 def blended_centres(
     scenario: dict,
     base_city: dict[str, float],
-    share_2021: dict[str, float],
+    prior_pr_share: dict[str, float],
     bye: dict[str, tuple[float, float]],
 ) -> tuple[dict[str, float], dict[str, str]]:
-    """Central citywide 2026 level per party, from θ modes tilted by evidence.
+    """Central citywide level per party at the target, from θ modes tilted by evidence.
 
-    Start from the §3.5 θ-mode view (base_2024 × mode). For parties with
-    meaningful by-election weight, the implied level (2021 share + weighted
-    delta) is clamped to §3.5's range — a concentrated party's stronghold
-    swing cannot claim an absurd citywide level — and blended in at w_bye.
-    Returns the centres and a note per adjusted party for the report.
+    Start from the §3.5 θ-mode view (the baseline NPE share × mode). For parties
+    with meaningful by-election weight, the implied level (the previous LGE's PR
+    share + weighted delta) is clamped to §3.5's range — a concentrated party's
+    stronghold swing cannot claim an absurd citywide level — and blended in at
+    w_bye. Returns the centres and a note per adjusted party for the report.
     """
     w = scenario["w_bye"]
     notes: dict[str, str] = {}
@@ -377,7 +507,7 @@ def blended_centres(
         if party in bye and w > 0:
             weight_sum, delta = bye[party]
             if weight_sum >= 30:  # enough contests to mean anything
-                implied = share_2021.get(party, 0.0) + delta
+                implied = prior_pr_share.get(party, 0.0) + delta
                 low, high = PLAN_BOUNDS.get(party, (0.0, float("inf")))
                 clamped = min(max(implied, low * base), high * base)
                 centre = (1 - w) * mode_level + w * clamped
@@ -735,28 +865,96 @@ def allocate_with_overhang(
 
 
 # --------------------------------------------------------------------------
-# main
+# the model
 # --------------------------------------------------------------------------
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    cityconfig.add_city_argument(parser)
-    parser.add_argument("--draws", type=int)
-    parser.add_argument("--seed", type=int)
-    parser.add_argument("--config", type=Path, help="scenario JSON overriding DEFAULTS")
-    parser.add_argument("--set", action="append", metavar="KEY=VALUE",
-                        help="override one scenario key, e.g. --set w_bye=0")
-    parser.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
-    parser.add_argument("--processed", type=Path, default=Path("data/processed"))
-    args = parser.parse_args(argv)
-    city = cityconfig.load(getattr(args, "city", None))
-    apply_city(city)
-    scenario = load_scenario(args)
+@dataclass
+class ModelRun:
+    """Everything one set of draws produced, and nothing derived from it.
+
+    ``main`` reports and writes from this; ``backtest`` scores from it.
+
+    Ward winners are kept as ``ward_winner_counts`` — a (wards × parties)
+    tally — and *not* per draw. A ``(draws, wards)`` int16 array of per-draw
+    winners lived here until 2026-08-10, justified as "the highest-power
+    calibration evidence available"; nothing ever read it. Every consumer
+    (``ward_probabilities`` here, the Brier score and the reliability table in
+    ``score.py``, the published ``ward_winner_probs.csv``) is marginal, one
+    ward at a time, and marginals come out of the counts. So the array was
+    allocated and filled on every run — 5000 × 135 on the published 2026 one —
+    to be thrown away. It is deleted rather than kept against a future need,
+    because a claim this repository cannot point at a consumer for is a claim
+    it does not get to make. A joint scorer (a variogram over the ward vector,
+    a correlated-error test) would need the per-draw array back; restore it
+    *with* that scorer, in the same change.
+    """
+
+    target: object
+    scenario: dict
+    universe: list[str]
+    index: dict[str, int]
+    wards: list[str]
+    seat_draws: list[dict[str, int]] = field(default_factory=list)
+    thresholds: np.ndarray | None = None
+    council_sizes: np.ndarray | None = None
+    ward_winner_counts: np.ndarray | None = None  # (wards, parties)
+    ward_win_sum: dict[str, int] = field(default_factory=dict)
+    overhang_count: dict[str, int] = field(default_factory=dict)
+    excessive_draws: int = 0
+    bounds_violations: dict[str, int] = field(default_factory=dict)
+    bounds_checked: int = 0
+    notes: dict[str, str] = field(default_factory=dict)
+    gamma_source: dict[str, str] = field(default_factory=dict)
+    ratio: np.ndarray | None = None
+    n_vd: int = 0
+
+    @property
+    def draws(self) -> int:
+        return len(self.seat_draws)
+
+    def ward_probabilities(self) -> dict[str, dict[str, float]]:
+        """``{ward: {party: P(win)}}`` — the shape ``score.score_wards`` takes."""
+        out: dict[str, dict[str, float]] = {}
+        for i, w in enumerate(self.wards):
+            counts = self.ward_winner_counts[i]
+            out[w] = {self.universe[j]: float(counts[j]) / self.draws
+                      for j in np.nonzero(counts)[0]}
+        return out
+
+
+def run_model(target, scenario: dict,
+              data_dir: Path = Path("data/raw/elections"),
+              processed: Path | None = None,
+              verbose: bool = True) -> ModelRun:
+    """Run the forecast for one target election. Writes nothing.
+
+    Every input is resolved from ``target``: the baseline is the NPE preceding
+    it, the ward/PR split ratios and the local by-election geography come from
+    the LGE preceding it, γ from a fold that finished before it, turnout from
+    ``turnout.py`` run for this same target, and the council is the one that
+    city had in that year. Nothing here opens the target's own votes; the ward
+    layer and the roll are read from its result file only when no delimitation
+    crosswalk exists (see :func:`ward_parts`), and both are public months
+    ahead.
+
+    Two inputs a past target simply does not have, stated because their absence
+    is silent rather than loud:
+
+    * **By-elections.** ``byelection_*.csv`` is scraped for the window since the
+      last LGE (2022-2026 as this is written), so for a past target the files
+      are not in its processed directory, ``bye`` stays empty and ``w_bye`` and
+      the local ward terms have nothing to act on. The code path is the same
+      one; the evidence does not exist.
+    * **Split voting districts.** See :func:`ward_parts`.
+    """
+    global COUNCIL
+    COUNCIL = target.council
+    processed = target.processed if processed is None else processed
 
     rng = np.random.default_rng(scenario["seed"])
 
-    # --- baseline ------------------------------------------------------------
-    base_votes, _ = load(args.data_dir / "npe2024_{CODE}_vd_party.csv", None)
+    # --- baseline: the last national election before the target --------------
+    base_votes, _ = load(data_dir / target.results(target.previous_npe), None)
     base_share_d, base_city_d = shares(base_votes), citywide(base_votes)
     universe = sorted(p for p in base_city_d if p != INDEPENDENT and p != "IND")
     if scenario["entrant_prob"] > 0:
@@ -790,8 +988,9 @@ def main(argv: list[str] | None = None) -> int:
                              f"baseline, so it has no map to inherit")
         k = float(ent.get("k", 1.0))
         dev[:, index["ENTRANT"]] = (1.0 - k) * dev[:, index[parent]]
-        print(f"entrant geography: {parent}'s map at k={k} "
-              f"({'flat' if k >= 1 else 'inherited' if k <= 0 else 'partial'})")
+        if verbose:
+            print(f"entrant geography: {parent}'s map at k={k} "
+                  f"({'flat' if k >= 1 else 'inherited' if k <= 0 else 'partial'})")
 
     # --- by-elections move the ward they happened in (§1.28) -----------------
     # E4 turns each contest into a *citywide* per-party delta and applies it to
@@ -812,9 +1011,9 @@ def main(argv: list[str] | None = None) -> int:
     #     judge whether a contest generalises citywide; using a ward's own
     #     result on itself needs no such discount.
     #   * The shift is applied to the contest's VOTING DISTRICTS, not its ward.
-    #     By-elections sit on 2021 ward boundaries and the forecast on 2026
-    #     ones; voting districts carry across both, so this sidesteps
-    #     re-delimitation entirely.
+    #     By-elections sit on the PREVIOUS LGE's ward boundaries and the
+    #     forecast on the target's; voting districts carry across both, so this
+    #     sidesteps re-delimitation entirely.
     #   * Ward and PR get separate weights, because a by-election is a ward
     #     contest. Its evidence about list voting in the same ward is real but
     #     weaker, and it says nothing about list voting anywhere else.
@@ -825,12 +1024,13 @@ def main(argv: list[str] | None = None) -> int:
     dev_pr, dev_ward = dev, dev
     w_ward = scenario.get("w_bye_local_ward", 0.0)
     w_pr = scenario.get("w_bye_local_pr", 0.0)
-    if (w_ward or w_pr) and (args.processed / "byelection_contest_detail.csv").exists():
-        # By-election wards are on the 2021 delimitation, so the ward -> VD map
-        # comes from the 2021 result file rather than vd_ward_2026.csv.
+    if (w_ward or w_pr) and (processed / "byelection_contest_detail.csv").exists():
+        # By-election wards are on the previous LGE's delimitation, so the
+        # ward -> VD map comes from that election's result file rather than
+        # from the target's ward crosswalk.
         ward_of_vd: dict[str, str] = {}
         with cityconfig.resolve_path(
-                args.data_dir / "lge2021_{CODE}_vd_party_clean.csv"
+                data_dir / target.results(target.previous_lge)
         ).open(encoding="utf-8", newline="") as fh:
             for row in csv.DictReader(fh):
                 ward_of_vd.setdefault(row["VD_Number"], row["Ward"].strip())
@@ -854,7 +1054,7 @@ def main(argv: list[str] | None = None) -> int:
         moved_num = np.zeros_like(dev)
         moved_weight = np.zeros_like(dev)
         applied = 0
-        with (args.processed / "byelection_contest_detail.csv").open(encoding="utf-8", newline="") as fh:
+        with (processed / "byelection_contest_detail.csv").open(encoding="utf-8", newline="") as fh:
             for row in csv.DictReader(fh):
                 party, ward = row["party"], row["ward"]
                 if party not in index or ward not in vd_of_ward:
@@ -862,7 +1062,7 @@ def main(argv: list[str] | None = None) -> int:
                 before, after = float(row["share_2021"]), float(row["share_bye"])
                 if before <= 0 or after <= 0:
                     continue          # a party arriving from nothing is a level
-                age = months_before_election(row["date"])
+                age = months_before_election(row["date"], target.date)
                 decay = np.exp(-age / tau)
                 move = np.clip(np.log(after / (1 - after)) - np.log(before / (1 - before)),
                                -cap, cap) * decay
@@ -875,18 +1075,27 @@ def main(argv: list[str] | None = None) -> int:
             dev_ward = dev + w_ward * shift
             dev_pr = dev + w_pr * shift
             moved = int((shift != 0).any(axis=1).sum())
-            print(f"by-election local term: {applied} party-contests applied to "
-                  f"{moved} voting districts (ward w={w_ward}, PR w={w_pr}, "
-                  f"cap {cap} logit, τ {tau}m)")
+            if verbose:
+                print(f"by-election local term: {applied} party-contests applied "
+                      f"to {moved} voting districts (ward w={w_ward}, PR "
+                      f"w={w_pr}, cap {cap} logit, τ {tau}m)")
 
-
-    # --- γ: fold 1, then the 2021→2024 fit, then 1.0 (A4) --------------------
-    params = load_parameters(args.processed / "fold1_parameters.csv")
+    # --- γ: the fold, then the previous LGE→NPE fit, then 1.0 (A4) -----------
+    # Fold parameters are a CITY-level artefact -- fold 3 is the 2009→2011
+    # transition whichever election is being built -- so they are read from the
+    # city's processed root, where fold.py writes them, not from the target's
+    # own directory. Everything else here (turnout, γ_recent, by-elections, the
+    # ward crosswalk) is per-target and comes from `processed`. For Johannesburg
+    # 2026 the two are the same directory, which is why this looks redundant.
+    fold = gamma_fold_for(target)
+    params = load_parameters(
+        cityconfig.active().processed / f"fold{fold}_parameters.csv")
     recent: dict[str, float] = {}
-    recent_path = args.processed / "gamma_recent.csv"
+    recent_path = processed / "gamma_recent.csv"
     if recent_path.exists():
         with recent_path.open(encoding="utf-8", newline="") as fh:
             recent = {r["party"]: float(r["gamma"]) for r in csv.DictReader(fh)}
+    recent_label = f"{target.previous_lge}→{target.previous_npe}"
     gamma = {}
     gamma_source = {}
     for ballot in ("PR", "Ward"):
@@ -894,38 +1103,55 @@ def main(argv: list[str] | None = None) -> int:
         for p, i in index.items():
             if p in params[ballot]["gamma"]:
                 values[i] = params[ballot]["gamma"][p]
-                gamma_source[p] = "fold1"
+                gamma_source[p] = f"fold{fold}"
             elif p in recent:
                 values[i] = recent[p]
-                gamma_source.setdefault(p, "2021→2024")
+                gamma_source.setdefault(p, recent_label)
             else:
                 gamma_source.setdefault(p, "default 1.0")
         gamma[ballot] = values
 
-    # --- turnout patterns (A2) ----------------------------------------------
-    with (args.processed / "vd_ward_2026.csv").open(encoding="utf-8", newline="") as fh:
-        part_rows = list(csv.DictReader(fh))
+    # --- ward parts and registration ----------------------------------------
+    part_rows, parts_source = ward_parts(target, data_dir, processed)
     registered: defaultdict[str, int] = defaultdict(int)
-    for row in part_rows:
-        registered[row["VD_Number"]] += int(row["part_registered"])
+    for vd, _ward, part_registered in part_rows:
+        registered[vd] += part_registered
+
+    # --- turnout patterns (A2) ----------------------------------------------
+    # The "on record" anchors for the turnout tilts read the elections from
+    # 2011 on, which is what the published 2026 forecast does. That floor is
+    # kept rather than widened to the whole archive: it is where the current
+    # registration record and VD footprint settle down. A target early enough
+    # to have nothing at or after 2011 uses everything it does have, because
+    # an empty anchor is a division by zero, not a conservative choice.
+    prior_years = [y for y in target.before if y >= "2011"] or list(target.before)
+    hi_years = prior_years
+    lge_years = [y for y in prior_years if cityconfig.CALENDAR[y].kind == "LGE"]
+    projected_col = f"turnout_{target.year}_projected"
+    level_col = f"turnout_{target.previous_lge}"
 
     ratio_pattern: dict[str, float] = {}
     level_pattern: dict[str, float] = {}
     thi_pattern: dict[str, float] = {}
     tlo_pattern: dict[str, float] = {}
-    with (args.processed / "turnout.csv").open(encoding="utf-8", newline="") as fh:
+    turnout_path = processed / "turnout.csv"
+    if not turnout_path.exists():
+        raise SystemExit(
+            f"{turnout_path} is missing: build it with "
+            f"`python src/turnout.py --city {cityconfig.active().slug} "
+            f"--target {target.year}`")
+    with turnout_path.open(encoding="utf-8", newline="") as fh:
         for row in csv.DictReader(fh):
             vd = row["VD_Number"]
-            if row["turnout_2026_projected"]:
-                ratio_pattern[vd] = float(row["turnout_2026_projected"])
-            if row.get("turnout_2021") and row["turnout_2021"] != "nan":
-                level_pattern[vd] = min(float(row["turnout_2021"]), 1.0)
-            hi = [row.get(f"turnout_{y}") for y in (2011, 2014, 2016, 2019,
-                                                    2021, 2024)]
+            if row[projected_col]:
+                ratio_pattern[vd] = float(row[projected_col])
+            if row.get(level_col) and row[level_col] != "nan":
+                level_pattern[vd] = min(float(row[level_col]), 1.0)
+            hi = [row.get(f"turnout_{y}") for y in hi_years]
             hi_vals = [float(x) for x in hi if x and x != "nan"]
             if hi_vals:
                 thi_pattern[vd] = min(max(hi_vals), 1.0)
-            lge = [row.get(f"turnout_{y}") for y in (2011, 2016, 2021)]
+            lge = [row.get(f"turnout_{y}") for y in lge_years]
             vals = [float(x) for x in lge if x and x != "nan"]
             if vals:
                 tlo_pattern[vd] = min(min(vals), 1.0)
@@ -936,8 +1162,8 @@ def main(argv: list[str] | None = None) -> int:
     mean_ratio = np.nansum(t_ratio * reg) / np.nansum(np.where(np.isnan(t_ratio), 0, reg))
     t_ratio = np.where(np.isnan(t_ratio), mean_ratio, t_ratio)
     mean_level = np.nansum(t_level * reg) / np.nansum(np.where(np.isnan(t_level), 0, reg))
-    # Rescale the 2021-level pattern to the λ̂ citywide level: the level comes
-    # from λ̂ either way (MODEL-LOG 1.2); only the *pattern* differs.
+    # Rescale the previous-LGE-level pattern to the λ̂ citywide level: the level
+    # comes from λ̂ either way (MODEL-LOG 1.2); only the *pattern* differs.
     t_level = np.where(np.isnan(t_level), mean_level, t_level) * (mean_ratio / mean_level)
 
     # who-turns-out anchors per VD (highest turnout on record; worst LGE
@@ -952,21 +1178,38 @@ def main(argv: list[str] | None = None) -> int:
     da_ids = [index[p] for p in BLOCS["DA_BLOC"] if p in index]
 
     # --- ward structure (E3) -------------------------------------------------
+    # A ward is only forecastable if at least one of its VD parts is in the
+    # baseline NPE (``vd_index``) *and* carries registered voters: the ward
+    # tally is built from those parts alone. A ward with none of them keeps an
+    # all-zero row in ``ward_tally``, and ``argmax`` on all-zero returns index
+    # 0 — so the alphabetically-first party in ``universe`` would "win" it with
+    # p = 1.00 in every draw, feeding both the ward Brier score and the seat
+    # allocation with a winner nothing measured. Excluding it loses that ward's
+    # seat from the draw's ward wins, which is the honest cost: the model has
+    # no evidence about who holds it, and inventing a certainty is worse than
+    # admitting a gap. Johannesburg 2011/2016/2021/2026 lose none.
     vd_index = {v: i for i, v in enumerate(vds)}
-    wards = sorted({row["Ward_2026"] for row in part_rows}, key=int)
+    all_wards = sorted({ward for _vd, ward, _reg in part_rows}, key=int)
+    usable = [(vd, w, r) for vd, w, r in part_rows if vd in vd_index and r > 0]
+    wards = sorted({w for _vd, w, _r in usable}, key=int)
+    dropped = [w for w in all_wards if w not in set(wards)]
+    if dropped:
+        print(f"  !! {len(dropped)} ward(s) have no voting district in the "
+              f"{target.previous_npe} baseline with registered voters and are "
+              f"EXCLUDED from the forecast: {', '.join(dropped)}. They win no "
+              f"ward seat in any draw and appear in no ward probability; "
+              f"{len(wards)} of {len(all_wards)} wards are forecast.")
     ward_index = {w: i for i, w in enumerate(wards)}
-    part_vd = np.array([vd_index[r["VD_Number"]] for r in part_rows
-                        if r["VD_Number"] in vd_index])
-    part_ward = np.array([ward_index[r["Ward_2026"]] for r in part_rows
-                          if r["VD_Number"] in vd_index])
-    part_reg = np.array([int(r["part_registered"]) for r in part_rows
-                         if r["VD_Number"] in vd_index], dtype=float)
+    part_vd = np.array([vd_index[vd] for vd, _w, _r in usable])
+    part_ward = np.array([ward_index[w] for _vd, w, _r in usable])
+    part_reg = np.array([r for _vd, _w, r in usable], dtype=float)
 
     # --- ward/PR split-ticket ratios (A1) ------------------------------------
-    ward21, _ = load(args.data_dir / "lge2021_{CODE}_vd_party_clean.csv", "Ward")
-    pr21, _ = load(args.data_dir / "lge2021_{CODE}_vd_party_clean.csv", "PR")
-    wc, pc = citywide(ward21), citywide(pr21)
-    share_2021 = pc
+    prior_lge_file = data_dir / target.results(target.previous_lge)
+    prior_ward, _ = load(prior_lge_file, "Ward")
+    prior_pr, _ = load(prior_lge_file, "PR")
+    wc, pc = citywide(prior_ward), citywide(prior_pr)
+    prior_pr_share = pc
     ratio = np.ones(npar)
     for p, i in index.items():
         if pc.get(p, 0) > 0.001:
@@ -979,13 +1222,13 @@ def main(argv: list[str] | None = None) -> int:
 
     # --- by-election evidence (E4) -------------------------------------------
     bye: dict[str, tuple[float, float]] = {}
-    bye_path = args.processed / "byelection_party_deltas.csv"
+    bye_path = processed / "byelection_party_deltas.csv"
     if bye_path.exists():
         with bye_path.open(encoding="utf-8", newline="") as fh:
             for row in csv.DictReader(fh):
                 bye[row["party"]] = (float(row["weight_sum"]),
                                     float(row["weighted_delta"]))
-    centres, notes = blended_centres(scenario, base_city_d, share_2021, bye)
+    centres, notes = blended_centres(scenario, base_city_d, prior_pr_share, bye)
     if scenario.get("poll_id") and scenario.get("poll_weight", 0) > 0:
         polls = {q["id"]: q for q in json.loads(
             Path("polls.json").read_text(encoding="utf-8"))["polls"]}
@@ -1004,21 +1247,29 @@ def main(argv: list[str] | None = None) -> int:
     draw_target = make_drawer(scenario, base_city_d, centres, index, rng)
 
     # --- report configuration -------------------------------------------------
-    print(f"{scenario['draws']:,} draws, seed {scenario['seed']}, {nvd} VDs, "
-          f"{npar} parties, {len(wards)} wards")
-    print(f"w_bye {scenario['w_bye']}, polling lean {scenario['polling_lean']:+.2f}, "
-          f"turnout blend {scenario['turnout_pattern_blend']} "
-          f"± {scenario['turnout_blend_jitter']} (σ {scenario['turnout_noise_sd']}), "
-          f"entrant P {scenario['entrant_prob']}")
-    if notes:
-        print("\nby-election tilts (clamped to §3.5 ranges):")
-        for party, note in sorted(notes.items()):
-            print(f"  {party:<10s} {note}")
-    print("\nγ sources: " + ", ".join(
-        f"{p}={gamma_source[p]}" for p in ("ASA", "MK", "PA") if p in gamma_source))
-    print(f"ward/PR ratios: MK {ratio[index['MK']]:.2f} (override), "
-          f"ASA {ratio[index['ASA']]:.2f}, PA {ratio[index['PA']]:.2f} "
-          f"(uplift ×{scenario['pa_contestation_uplift']})\n")
+    if verbose:
+        print(f"{scenario['draws']:,} draws, seed {scenario['seed']}, {nvd} VDs, "
+              f"{npar} parties, {len(wards)} wards")
+        print(f"target {target.year} ({target.date}), council {target.council}, "
+              f"base {cityconfig.resolve_path(target.results(target.previous_npe)).name}, "
+              f"γ fold {fold}, wards from {parts_source}")
+        print(f"w_bye {scenario['w_bye']}, polling lean {scenario['polling_lean']:+.2f}, "
+              f"turnout blend {scenario['turnout_pattern_blend']} "
+              f"± {scenario['turnout_blend_jitter']} (σ {scenario['turnout_noise_sd']}), "
+              f"entrant P {scenario['entrant_prob']}")
+        if notes:
+            print("\nby-election tilts (clamped to §3.5 ranges):")
+            for party, note in sorted(notes.items()):
+                print(f"  {party:<10s} {note}")
+        shown = [p for p in ("ASA", "MK", "PA") if p in gamma_source]
+        if shown:
+            print("\nγ sources: " + ", ".join(f"{p}={gamma_source[p]}" for p in shown))
+        shown = [p for p in ("MK", "ASA", "PA") if p in index]
+        if shown:
+            print("ward/PR ratios: " + ", ".join(
+                f"{p} {ratio[index[p]]:.2f}" for p in shown)
+                + f" (PA uplift ×{scenario['pa_contestation_uplift']})")
+        print()
 
     # --- the loop -------------------------------------------------------------
     draws = scenario["draws"]
@@ -1091,7 +1342,7 @@ def main(argv: list[str] | None = None) -> int:
         pr_votes = weight @ pr_eff
         ward_votes = weight @ wd_eff
 
-        # E3: ward winners from the ward ballot, at 2026-ward level.
+        # E3: ward winners from the ward ballot, on the target's own wards.
         part_cast = part_reg * t_draw[part_vd]
         ward_tally = np.zeros((len(wards), npar))
         np.add.at(ward_tally, part_ward, part_cast[:, None] * wd_eff[part_vd])
@@ -1119,8 +1370,55 @@ def main(argv: list[str] | None = None) -> int:
             excessive_draws += 1
         for p, w in wins.items():
             ward_win_sum[p] += w
-        if (d + 1) % 1000 == 0:
+        if verbose and (d + 1) % 1000 == 0:
             print(f"  {d + 1:,} draws")
+
+    return ModelRun(
+        target=target, scenario=scenario, universe=universe, index=index,
+        wards=wards, seat_draws=seat_draws, thresholds=thresholds,
+        council_sizes=council_sizes,
+        ward_winner_counts=ward_winner_counts, ward_win_sum=dict(ward_win_sum),
+        overhang_count=dict(overhang_count), excessive_draws=excessive_draws,
+        bounds_violations=dict(bounds_violations), bounds_checked=bounds_checked,
+        notes=notes, gamma_source=gamma_source, ratio=ratio, n_vd=nvd)
+
+
+# --------------------------------------------------------------------------
+# main: run the model for one target and write the published outputs
+# --------------------------------------------------------------------------
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    cityconfig.add_city_argument(parser)
+    cityconfig.add_target_argument(parser)
+    parser.add_argument("--draws", type=int)
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--config", type=Path, help="scenario JSON overriding DEFAULTS")
+    parser.add_argument("--set", action="append", metavar="KEY=VALUE",
+                        help="override one scenario key, e.g. --set w_bye=0")
+    parser.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
+    parser.add_argument("--processed", type=Path, default=None,
+                        help="where inputs are read and outputs written "
+                             "(default: the target's own processed directory)")
+    args = parser.parse_args(argv)
+    # use(), not load(): fold.load() and the other readers resolve "{CODE}"
+    # against the ACTIVE city, so loading a city without activating it read
+    # Johannesburg's files under another city's name.
+    city = cityconfig.use(getattr(args, "city", None))
+    target = cityconfig.use_target(getattr(args, "target", None))
+    apply_city(city)          # after use_target: council size is per-year
+    scenario = load_scenario(args)
+    processed = args.processed or target.processed
+    processed.mkdir(parents=True, exist_ok=True)
+
+    run = run_model(target, scenario, args.data_dir, processed)
+
+    universe, wards, index = run.universe, run.wards, run.index
+    seat_draws, thresholds = run.seat_draws, run.thresholds
+    council_sizes, ward_win_sum = run.council_sizes, run.ward_win_sum
+    ward_winner_counts, overhang_count = run.ward_winner_counts, run.overhang_count
+    excessive_draws, draws = run.excessive_draws, run.draws
+    npar = len(universe)
 
     # --- report ---------------------------------------------------------------
     def series(party: str) -> np.ndarray:
@@ -1132,7 +1430,7 @@ def main(argv: list[str] | None = None) -> int:
         s = series(party)
         if s.mean() < 0.4:
             continue
-        wins_med = ward_win_sum[party] / draws
+        wins_med = ward_win_sum.get(party, 0) / draws
         print(f"  {party:<10s} {np.median(s):>5.0f}  [{np.percentile(s, 5):>3.0f} – "
               f"{np.percentile(s, 95):>3.0f}]   ward wins ≈ {wins_med:>5.1f}")
 
@@ -1146,10 +1444,10 @@ def main(argv: list[str] | None = None) -> int:
             for p in sorted(overhang_count, key=lambda q: -overhang_count[q]))
         if overhang_count else ""))
 
-    if bounds_violations:
+    if run.bounds_violations:
         print("\nimplied θ outside §3.5 sanity ranges (share of draws):")
-        for p in sorted(bounds_violations, key=lambda q: -bounds_violations[q]):
-            print(f"  {p:<10s} {bounds_violations[p] / bounds_checked:>6.1%}")
+        for p in sorted(run.bounds_violations, key=lambda q: -run.bounds_violations[q]):
+            print(f"  {p:<10s} {run.bounds_violations[p] / run.bounds_checked:>6.1%}")
 
     # E1: the full coalition arithmetic, per-draw thresholds.
     seats_by_party = {p: series(p) for p in ranked if series(p).mean() >= 0.4}
@@ -1177,10 +1475,10 @@ def main(argv: list[str] | None = None) -> int:
         (largest_names == "ANC").mean())
     results["structural"]["non-bloc field median seats"] = float(np.median(field))
     coalitions.report(results, "(per-draw threshold, overhang-adjusted)")
-    coalitions.write_outputs(results, args.processed)
+    coalitions.write_outputs(results, processed)
 
     # --- outputs --------------------------------------------------------------
-    ww_out = args.processed / "ward_winner_probs.csv"
+    ww_out = processed / "ward_winner_probs.csv"
     with ww_out.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow(["ward", "winner", "p_win", "dist"])
@@ -1193,7 +1491,7 @@ def main(argv: list[str] | None = None) -> int:
                 w, universe[order[0]],
                 f"{ward_winner_counts[wi, order[0]] / draws:.4f}", dist])
 
-    seats_out = args.processed / "seat_draws.csv"
+    seats_out = processed / "seat_draws.csv"
     top = ranked[:13]
     with seats_out.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
@@ -1208,7 +1506,7 @@ def main(argv: list[str] | None = None) -> int:
             p: {"median": float(np.median(series(p))),
                 "p5": float(np.percentile(series(p), 5)),
                 "p95": float(np.percentile(series(p), 95)),
-                "ward_wins_mean": ward_win_sum[p] / draws}
+                "ward_wins_mean": ward_win_sum.get(p, 0) / draws}
             for p in ranked if series(p).mean() >= 0.4
         },
         "p_excessive_any": p_excessive_any,
@@ -1222,7 +1520,7 @@ def main(argv: list[str] | None = None) -> int:
         "power": results["power"],
         "minority": results["minority"],
     }
-    summary_out = args.processed / "forecast_summary.json"
+    summary_out = processed / "forecast_summary.json"
     with summary_out.open("w", encoding="utf-8") as handle:
         json.dump(summary, handle, indent=1)
 

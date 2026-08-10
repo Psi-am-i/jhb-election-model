@@ -6,9 +6,9 @@ nothing in the repository has established that any of it beats the sentence
 "assume the last local election happens again". A model that cannot beat that
 sentence is not a model; it is an expensive way of restating history. So this
 module implements the sentence, and two slightly less naive versions of it, in
-the *same output shape* as ``backtest.run_one`` -- a list of ``{party: seats}``
-dicts -- so ``score.py`` scores them with the identical code path and no
-special cases.
+the *same output shape* the model produces -- a list of ``{party: seats}``
+dicts, one per draw, plus a matching list of ``{ward: winner}`` -- so
+``score.py`` scores them with the identical code path and no special cases.
 
 Three baselines, in increasing order of how much they are allowed to know:
 
@@ -63,20 +63,29 @@ import score as S
 from fold import citywide, load, shares
 from seats import eligible_parties  # allocate itself is reached via montecarlo
 
-# Files each baseline needs that the backtest's TARGETS table does not name.
-# ``prior_npe`` is the national election preceding ``prior_lge``; together with
-# the target's own ``base`` NPE it brackets the local election being carried
-# forward, which is what makes a uniform swing computable without seeing the
-# target. ``earlier_lge`` is the local election before ``prior_lge``, used only
-# to measure how much parties typically move over one local cycle.
-SOURCES = {
-    2021: {"prior_npe": "npe2014_{CODE}_vd_party.csv",
-           "earlier_lge": "lge2011_{CODE}_vd_party_clean.csv"},
-    2016: {"prior_npe": "npe2009_{CODE}_vd_party.csv",
-           "earlier_lge": "lge2006_{CODE}_vd_party_clean.csv"},
-    2011: {"prior_npe": "npe2004_{CODE}_vd_party.csv",
-           "earlier_lge": "lge2000_{CODE}_vd_party_clean.csv"},
-}
+def sources_for(target: int) -> dict[str, str | None]:
+    """Files each baseline needs that the backtest's TARGETS table does not name.
+
+    ``prior_npe`` is the national election preceding ``prior_lge``; together
+    with the target's own ``base`` NPE it brackets the local election being
+    carried forward, which is what makes a uniform swing computable without
+    seeing the target. ``earlier_lge`` is the local election before
+    ``prior_lge``, used only to measure how much parties typically move over
+    one local cycle.
+
+    Walked off ``cityconfig.CALENDAR`` rather than typed as a per-target table:
+    the table it replaces listed only 2011/2016/2021, so a target ``backtest``
+    was willing to run and this module was not would have died on a ``KeyError``
+    with nothing to say which of the two was wrong. ``None`` means the calendar
+    has no such election, which the callers report as "this baseline is not
+    computable for this target" rather than crashing.
+    """
+    prior_lge = cityconfig.preceding(target, "LGE")
+    prior_npe = cityconfig.preceding(prior_lge, "NPE") if prior_lge else None
+    earlier_lge = cityconfig.preceding(prior_lge, "LGE") if prior_lge else None
+    return {"prior_npe": cityconfig.CALENDAR[prior_npe].results if prior_npe else None,
+            "earlier_lge": (cityconfig.CALENDAR[earlier_lge].results
+                            if earlier_lge else None)}
 
 SHARE_FLOOR = M.SHARE_FLOOR
 NEW_PARTY_SIGMA = 1.0   # logit spread for a party with no previous cycle to measure
@@ -133,7 +142,7 @@ def _fill(vd_shares: dict[str, dict[str, float]], city: dict[str, float],
     return np.divide(out, total, out=np.zeros_like(out), where=total > 0)
 
 
-def council_size(target: int, override: int | None = None) -> int:
+def council_size(target: int) -> int:
     """Seats in the target's council, from the city config's per-year structure.
 
     ``backtest.TARGETS`` carries a hard-coded ``council`` of 260/270/270. Those
@@ -154,23 +163,29 @@ def council_size(target: int, override: int | None = None) -> int:
 
     ``structure_for`` raises rather than falling back for a year it has no entry
     for: inheriting the wrong chamber silently is the failure this replaces.
+
+    There is deliberately no override. A ``--council`` flag lived on the CLI
+    until 2026-08-10, by which time it could not do anything: the size it set
+    was passed on to ``backtest.actual_result``, which reconstructs the real
+    council and asserts it against the IEC's published seat calculation, so any
+    value other than the published one aborted the run before a single baseline
+    was scored, and the value equal to it was a no-op. Council size is a fact
+    about a city-year, not a dial; a counterfactual chamber belongs in
+    ``overhang_regimes.py``, where the counterfactual is the point.
     """
-    if override:
-        return override
     return int(cityconfig.active().structure_for(str(target))["council"])
 
 
 def build_context(target: int, data_dir: Path = Path("data/raw/elections"),
-                  overhang_rule: str | None = None,
-                  council: int | None = None) -> Context:
+                  overhang_rule: str | None = None) -> Context:
     """Gather every pre-election input the baselines need.
 
     Reads the target's result file for **boundaries and the roll only** -- the
     same exemption ``backtest.ward_structure`` documents -- and its votes never.
     """
     spec = B.TARGETS[target]
-    src = SOURCES[target]
-    council = council_size(target, council)
+    src = sources_for(target)
+    council = council_size(target)
 
     ward_of, registered = B.ward_structure(data_dir / spec["actual"])
 
@@ -183,12 +198,16 @@ def build_context(target: int, data_dir: Path = Path("data/raw/elections"),
     pr_city_d = citywide(prior_pr_votes)
 
     base_npe_city = _city_shares(data_dir / spec["base"], None)
+    # A missing file and a calendar with no such election are the same thing to
+    # a baseline: it cannot be computed, and the ones that need it say so.
     try:
-        prior_npe_city = _city_shares(data_dir / src["prior_npe"], None)
+        prior_npe_city = (_city_shares(data_dir / src["prior_npe"], None)
+                          if src["prior_npe"] else {})
     except FileNotFoundError:
         prior_npe_city = {}
     try:
-        earlier_lge_city = _city_shares(data_dir / src["earlier_lge"], None)
+        earlier_lge_city = (_city_shares(data_dir / src["earlier_lge"], None)
+                            if src["earlier_lge"] else {})
     except FileNotFoundError:
         earlier_lge_city = {}
 
@@ -206,8 +225,8 @@ def build_context(target: int, data_dir: Path = Path("data/raw/elections"),
     vd_ward = np.array([ward_index[ward_of[v]] for v in vds])
 
     # VD weight: the target's roll times the previous local election's turnout
-    # there -- identical to backtest.run_one, so a baseline and the model are
-    # weighting the same city.
+    # there -- the same weighting montecarlo.run_model applies, so a baseline
+    # and the model are weighting the same city.
     prior_cast = {v: sum(c.values()) for v, c in prior_pr_votes.items()}
     reg = np.array([registered.get(v, 0) for v in vds], dtype=float)
     turnout = np.array([prior_cast.get(v, np.nan) / registered[v]
@@ -337,8 +356,8 @@ def uniform_swing(ctx: Context, draws: int = 1, seed: int | None = None):
     """
     if not ctx.prior_npe_city:
         raise SystemExit(
-            f"uniform-swing needs {SOURCES[ctx.target]['prior_npe']}, which is "
-            f"not on disk for this city — that file is the only legitimate "
+            f"uniform-swing needs {sources_for(ctx.target)['prior_npe']}, which "
+            f"is not on disk for this city — that file is the only legitimate "
             f"source of an aggregate shift for target {ctx.target}")
     swing = np.array([ctx.base_npe_city.get(p, 0.0) - ctx.prior_npe_city.get(p, 0.0)
                       for p in ctx.universe])
@@ -378,7 +397,7 @@ def prior_lge_noise(ctx: Context, draws: int = 2000, seed: int | None = 20211101
     """
     if not ctx.earlier_lge_city:
         raise SystemExit(
-            f"prior-lge-noise needs {SOURCES[ctx.target]['earlier_lge']} to "
+            f"prior-lge-noise needs {sources_for(ctx.target)['earlier_lge']} to "
             f"calibrate its spread; it is not on disk for this city")
     sigma = np.array([_sigma_for(p, ctx) for p in ctx.universe]) * scale
     rng = np.random.default_rng(seed)
@@ -431,7 +450,7 @@ BENCHMARKS = {
 
 def run_one(name: str, ctx: Context, draws: int = 2000,
             seed: int | None = 20211101) -> list[dict[str, int]]:
-    """Seat draws only -- the exact shape ``backtest.run_one`` returns."""
+    """Seat draws only -- the shape ``score.score_seats`` takes."""
     return run_with_wards(name, ctx, draws, seed)[0]
 
 
@@ -440,9 +459,9 @@ def run_with_wards(name: str, ctx: Context, draws: int = 2000,
     """``(seat_draws, ward_winner_draws)``.
 
     The second half is what makes the Brier score computable: 135 contests per
-    target rather than 10 party seat counts. ``backtest.run_one`` computes ward
-    winners internally and discards them, so the model cannot currently be
-    scored on its highest-power calibration test.
+    target rather than 10 party seat counts. The model reaches the same shape
+    through ``montecarlo.ModelRun.ward_probabilities``, so a baseline and the
+    model arrive at ``score.score_wards`` on identical terms.
     """
     if name not in BENCHMARKS:
         raise SystemExit(f"unknown benchmark {name!r}; have {sorted(BENCHMARKS)}")
@@ -469,22 +488,28 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     cityconfig.add_city_argument(ap)
-    ap.add_argument("--target", type=int, choices=sorted(B.TARGETS), default=2021)
+    # Same set as backtest.py's --target, from the same derivation, and for the
+    # same reason: --city is not parsed yet, so it is validated below rather
+    # than frozen into `choices` against whichever city happened to be default.
+    ap.add_argument("--target", type=int, default=2021, metavar="YEAR",
+                    help="past local election to score against (default 2021); "
+                         "runnable targets are derived per city")
     ap.add_argument("--benchmark", default="all",
                     choices=sorted(BENCHMARKS) + ["all"])
     ap.add_argument("--draws", type=int, default=2000)
     ap.add_argument("--seed", type=int, default=20211101)
     ap.add_argument("--overhang-rule", default=None)
-    ap.add_argument("--council", type=int, default=None,
-                    help="override the council size (default: the IEC's own "
-                         "[structure.by_year] figure for this city-year)")
     ap.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
     args = ap.parse_args(argv)
 
     city = cityconfig.use(args.city)
+    runnable = B.runnable_targets(city)
+    if str(args.target) not in runnable:
+        raise SystemExit(
+            f"--target {args.target} cannot be scored for {city.name}; "
+            f"runnable targets are {', '.join(runnable)}.")
     M.apply_city(city)
-    ctx = build_context(args.target, args.data_dir, args.overhang_rule,
-                        args.council)
+    ctx = build_context(args.target, args.data_dir, args.overhang_rule)
 
     actual_seats, actual_winners = B.actual_result(
         args.data_dir / ctx.spec["actual"], ctx.council)
@@ -492,10 +517,6 @@ def main(argv: list[str] | None = None) -> int:
     print(f"benchmarks: {city.name} {args.target}  "
           f"(prior LGE {ctx.spec['prior_lge'].format(CODE=city.code)}, "
           f"council {ctx.council}, overhang rule {ctx.overhang_rule})")
-    if ctx.council != ctx.spec["council"]:
-        print(f"  note: backtest.TARGETS says {ctx.spec['council']} seats — that "
-              f"is Johannesburg's council, not {city.name}'s; using "
-              f"cities/{city.slug}.toml's {ctx.council}")
     print(f"  actual: {sum(actual_seats.values())} seats to "
           f"{len(actual_seats)} parties; {len(actual_winners)} wards")
 
