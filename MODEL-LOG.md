@@ -1543,6 +1543,95 @@ confirms was wise.
    2016 and 2021; pre-2011 wards predate two delimitations.
 
 
+
+---
+
+## 2. External evaluation against forecasting best practice (2026-08-11)
+
+An independent review researched published practice and then judged this model
+against it. Kept here because the recommendations should outlive the session
+they were made in, and because several of them contradict claims this log made
+earlier.
+
+**The headline claim does not survive.** Aggregated over the two scorable
+targets the model has CRPS 119.3 against uniform swing's 152.0 — 21%
+distributional skill — but **seat MAE 164 against 152, which is *negative*
+point-forecast skill**. Both runs print the in-sample banner, so there are
+currently zero declared out-of-sample scores. The defensible statement is: *the
+intervals add value over a point forecast; the central estimate does not yet
+beat uniform swing.*
+
+**The under-dispersion is structural, not a tuning problem.** The only citywide
+level shock for any significant party is its pool's ratio triangular — Black
+African 2021 is [0.890, 0.956, 1.009], sd about 2.4%, with probability exactly
+zero outside it. That ratio is computed as a fixed-composition weighted average
+of some sixty parties' swings, so *its variance is smaller than any individual
+party's by construction*. Compounding it: `tie` is None in every emitted pool,
+so four pools draw four independent shocks; and `turnout_noise_sd = 0.08` is
+i.i.d. over 855 voting districts, so its citywide effect is 0.003 — there is
+effectively no aggregate turnout uncertainty in a model whose own documentation
+says 2021 was decided by 587,000 abstentions.
+
+**On the ecological inference:** the estimator is better than Goodman
+regression, the uncertainty treatment worse than any modern EI method. The
+joint fit with non-negativity and a per-pool simplex is the right structure;
+IPF to both known margins is standard and sound; reporting Duncan-Davis bounds
+and flagging unidentified rates is better than most published work. But
+`fit_joint` returns a point estimate treated as known thereafter — Freedman's
+criticism of King's EI in stronger form, since we have no standard errors at
+all — and the constant-rate-across-wards assumption is the exact one that fails
+when group behaviour correlates with group share. A Black African voter in
+Sandton and one in Diepsloot are not the same voter, and nothing here tests it.
+
+**On the pools:** population group is a defensible proxy, and the admission
+gate — out-of-sample cross-city, with in-sample gain explicitly rejected as
+evidence — is better than standard practice. But the gate can only test
+dimensions you can *add*; it cannot tell you the base dimension is
+insufficient. Four pools for sixty-nine parties is coarse, and the Dirichlet
+split within a pool is doing almost all the work.
+
+**On benchmarking:** persistence is a floor, not a bar. The standard is the most
+accurate available naive reference, and specifically the optimal convex
+combination of persistence and climatology (Murphy 1992). All three of our
+baselines are persistence variants.
+
+### Recommendations, in the order given
+
+1. Fix the scoring denominators first — every tuning decision is made against
+   this instrument. *(done, 2026-08-11)*
+2. Connect the measured `sd(log theta)` to the draw and replace bounded
+   triangulars with unbounded heavy-tailed distributions. Bounded supports
+   assign probability zero to events that happened: Al Jama-ah won a seat in
+   2016 with 0 of 500 draws non-zero, an infinite log score.
+3. Add a single correlated citywide turnout shock.
+4. Rebuild entrants as a group total then a split — arrival probability near 1
+   for an event seen in 5 of 5 transitions, support including the observed
+   16.05%, funded from measured donors rather than proportionally from
+   everyone (ActionSA drew ANC -0.381 and EFF -0.262 per point while the DA
+   *gained* +0.199).
+5. Ingest polls. The literature is unanimous that a party with no electoral
+   history can only be forecast from polls; pre-2021 polls had ActionSA near
+   6%, roughly sixty times closer than our default.
+6. Replace the point-estimate rates matrix with posterior draws — hierarchical
+   multinomial-Dirichlet with ward-varying rates (Rosen, Jiang, King & Tanner
+   2001; `eiPack`).
+7. Add climatology and national-swing benchmarks, and their convex combination.
+8. Leave-one-metro-out across all eight metros: turns n=2 into about sixteen
+   scorable city-years, and is the only way to demonstrate skill rather than
+   assert it.
+9. Test the constant-rate-across-wards assumption by re-fitting on ward strata.
+10. Fix the variogram score — normalise by pair count, fixed common party set.
+
+Also named as missing and not on that list: a **sensitivity decomposition**
+attributing forecast variance to each source, which is why the `levels.py`
+disconnection went unnoticed for as long as it did.
+
+Sources are recorded in the task descriptions; the principal ones are Gneiting,
+Balabdaoui & Raftery (JRSS-B 2007) on calibration and sharpness, Murphy (W&F
+1992) on standards of reference, Freedman et al. on solutions to the ecological
+inference problem, Rosen/Jiang/King/Tanner (2001) on the RxC case, and
+Stoetzer/Neunhoeffer et al. (Political Analysis 2019) on multi-party forecasting.
+
 ---
 
 # Appendix A — the original plan (rev 2), as written
