@@ -1120,48 +1120,128 @@ def entrant_record(transitions, codes=METRO_CODES) -> list[float]:
     return sorted(seen)
 
 
-def default_seeds(newcomers: dict[str, float], lineage: dict[str, dict],
+def splinter_record(city: cityconfig.City,
+                    pairs=(("COPE", "ANC", "2004", "2009"),
+                           ("EFF", "ANC", "2009", "2014"),
+                           ("MK", "ANC", "2019", "2024"))) -> list[float]:
+    """What share of its parent's vote each known splinter took, measured.
+
+    The three splits this city has on record, each as the splinter's first
+    result over the parent's previous one::
+
+        COPE from the ANC   9.61% against 68.56%   0.140
+        EFF  from the ANC  10.13% against 62.35%   0.162
+        MK   from the ANC  12.22% against 49.62%   0.246
+
+    Which party split from which is a judgement and is declared here with its
+    evidence; how much it took is not, and is measured. An earlier version of
+    this used one half, which was invented and three times too large.
+    """
+    out = []
+    for splinter, parent, before, after in pairs:
+        a, b = metro_citywide(city.code, before), metro_citywide(city.code, after)
+        if not a or not b:
+            a = a or _npe_citywide(city, before)
+            b = b or _npe_citywide(city, after)
+        if a.get(parent, 0) > 0 and b.get(splinter, 0) > 0:
+            out.append(b[splinter] / a[parent])
+    return sorted(out)
+
+
+def _npe_citywide(city: cityconfig.City, year: str) -> dict[str, float]:
+    template = cityconfig.CALENDAR[year].results
+    path = city.path("raw", "elections", template) if template else None
+    if not path or not path.exists():
+        return {}
+    counts: dict[str, int] = defaultdict(int)
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            if row.get("BallotType") in (None, "", "PR"):
+                counts[P.canonical(row["sPartyName"])] += int(
+                    float(row.get("Party_Votes") or 0))
+    total = sum(counts.values())
+    return {k: v / total for k, v in counts.items()} if total else {}
+
+
+def contesting_parties(city: cityconfig.City, year: str) -> set[str]:
+    """Who is on the ballot at the target. Names only, never votes.
+
+    Nomination lists close and are published weeks before polling day, so the
+    roster is available to a forecaster; the results are not. Taking the names
+    from the result file is therefore legitimate, and taking anything else from
+    it would not be.
+
+    Without this a genuine entrant can never be seeded, because it is absent
+    from the baseline entirely and the earlier code looked for newcomers among
+    baseline parties. ActionSA held no 2019 national vote at all, so it never
+    reached the seeding logic and stayed at zero all the way to a 44-seat miss.
+    """
+    template = cityconfig.CALENDAR[year].results
+    path = city.path("raw", "elections", template) if template else None
+    if not path or not path.exists():
+        return set()
+    out = set()
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            out.add(P.canonical(row["sPartyName"]))
+    return out
+
+
+def default_seeds(newcomers: set[str], lineage: dict[str, dict],
                   baseline: dict[str, float], record: list[float],
-                  ) -> tuple[dict[str, float], dict[str, str]]:
-    """A starting share for every party with no baseline, and a note for each.
+                  splinter_fractions: list[float],
+                  ) -> tuple[dict[str, float], dict[str, tuple], dict[str, str]]:
+    """A starting share and a band for every party with no baseline.
 
-    Neither default is a forecast; both exist so that "nobody wrote a
-    judgement" does not silently mean "this party wins nothing".
+    Neither is a forecast. Both exist so that "nobody wrote a judgement" cannot
+    silently mean "this party wins nothing" — which is what produced the single
+    largest error the model makes.
 
-    * **A splinter takes its share out of its parent**, an even split of the
-      parent's vote by default, capped at the largest entry the record shows.
-      Its parent is debited the same amount, because those votes moved rather
-      than appeared.
-    * **An entrant** takes the median of the record.
+    * A **splinter** takes a share of its parent, measured: the three splits on
+      record took 0.140, 0.162 and 0.246 of the parent's previous vote. Its
+      band is that range; its parent is debited the central value, because
+      those votes moved rather than appeared.
+    * An **entrant** gets the band of what entrants have actually achieved,
+      centred on the median arrival. Nothing outside the record is proposed,
+      and the record is wide because arrivals genuinely are.
 
-    Both are bounded by what entrants have actually managed, so neither can
-    invent a party larger than any that has ever arrived.
+    Returns the central seed, the (low, mode, high) band as a multiple of that
+    seed, and a note per party.
     """
     if not record:
-        return {}, {}
+        return {}, {}, {}
+    lo_e, mid_e, hi_e = (float(np.quantile(record, 0.10)),
+                         float(np.median(record)),
+                         float(np.quantile(record, 0.95)))
     cap = record[-1]
-    typical = float(np.median(record))
+    f_lo, f_mid, f_hi = ((min(splinter_fractions), float(np.median(splinter_fractions)),
+                          max(splinter_fractions)) if splinter_fractions
+                         else (lo_e, mid_e, hi_e))
 
     seeds: dict[str, float] = {}
+    bands: dict[str, tuple] = {}
     notes: dict[str, str] = {}
-    for party in sorted(newcomers, key=lambda p: -newcomers[p]):
+    for party in sorted(newcomers):
         rule = lineage.get(party, {})
         parent = (rule.get("parent") or "").strip().upper()
         if "seed" in rule:
             seeds[party] = float(rule["seed"])
+            bands[party] = tuple(rule.get("band", (0.5, 1.0, 2.0)))
             notes[party] = "declared in judgements/"
         elif parent and baseline.get(parent, 0.0) > 0:
-            available = baseline[parent] - seeds.get(parent, 0.0)
-            take = min(0.5 * available, cap)
-            seeds[party] = take
-            seeds[parent] = seeds.get(parent, 0.0) - take
-            notes[party] = (f"splinter: half of {parent}'s {available:.1%}, "
-                            f"capped at the record's largest entrant {cap:.1%}")
+            available = baseline[parent]
+            centre = min(f_mid * available, cap)
+            seeds[party] = centre
+            seeds[parent] = seeds.get(parent, 0.0) - centre
+            bands[party] = (f_lo / f_mid, 1.0, min(f_hi / f_mid, cap / max(centre, 1e-9)))
+            notes[party] = (f"splinter of {parent}: {f_mid:.1%} of its {available:.1%}, "
+                            f"band {f_lo:.1%}-{f_hi:.1%} from COPE/EFF/MK")
         else:
-            seeds[party] = min(typical, cap)
-            notes[party] = (f"entrant: median of {len(record)} arrivals on "
-                            f"record ({typical:.2%})")
-    return seeds, notes
+            seeds[party] = mid_e
+            bands[party] = (lo_e / mid_e, 1.0, hi_e / mid_e)
+            notes[party] = (f"entrant: median of {len(record)} arrivals "
+                            f"({mid_e:.2%}), band {lo_e:.2%}-{hi_e:.2%}")
+    return seeds, bands, notes
 
 
 def lineage_path(city: cityconfig.City, target: cityconfig.Target) -> Path:
@@ -1271,11 +1351,15 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             total = sum(counts.values())
             baseline = {p: c / total for p, c in counts.items()} if total else {}
 
-    newcomers = {p: s for p, s in baseline.items()
-                 if p not in composition and s > 0 and p not in ("IND",)}
+    # Who is on the ballot at the target, minus who already has a measured
+    # vector. Taken from the roster, not the baseline: a genuine entrant is
+    # absent from the baseline entirely, so looking there could never find one
+    # — which is exactly how ActionSA stayed at zero into a 44-seat miss.
+    newcomers = {p for p in contesting_parties(city, target.year)
+                 if p not in composition and p not in ("IND", "ENTRANT")}
     lineage = load_lineage(city, target)
     inherited: dict[str, str] = {}
-    for party, share in newcomers.items():
+    for party in sorted(newcomers):
         rule = lineage.get(party, {})
         weights = rule.get("weights")
         parent = (rule.get("parent") or "").strip().upper()
@@ -1298,10 +1382,12 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
                                    if parent else ""))
         composition[party] = vec
 
-    record = entrant_record(transitions_for_seed := lge_transitions(before=target.year))
-    seeds, seed_notes = default_seeds(newcomers, lineage, baseline, record)
-    template = write_lineage_template(city, target, newcomers, lineage,
-                                      list(ctx["categories"]))
+    record = entrant_record(lge_transitions(before=target.year))
+    seeds, seed_bands, seed_notes = default_seeds(
+        newcomers, lineage, baseline, record, splinter_record(city))
+    template = write_lineage_template(
+        city, target, {p: baseline.get(p, 0.0) for p in newcomers},
+        lineage, list(ctx["categories"]))
 
     transitions = lge_transitions(before=target.year)
     ratios = measure_pool_ratios(composition, n, transitions=transitions)
@@ -1351,6 +1437,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
         }
     return {"pools": out, "fitted_on": year, "target": target.year,
             "seeds": {p: v for p, v in seeds.items() if abs(v) > 1e-9},
+            "seed_bands": {p: list(v) for p, v in seed_bands.items()},
             "seed_notes": seed_notes,
             "entrant_record": record,
             "provenance": f"{ctx['provenance']}; pools sized by {roll_note}",

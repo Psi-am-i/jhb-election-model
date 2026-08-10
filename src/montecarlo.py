@@ -456,11 +456,16 @@ def blended_centres(
     w = scenario["w_bye"]
     notes: dict[str, str] = {}
     centres: dict[str, float] = {}
+    prior = scenario.get("theta_prior") or {}
     theta_mode = scenario["theta_mode"]
     individual = scenario["individual_theta"]
 
     for party, base in base_city.items():
-        if party in theta_mode:
+        if party in prior:
+            # Measured: the party's own retention history shrunk toward its
+            # size group's, replacing theta_mode / individual_theta / f_other.
+            mode_level = base * prior[party][1]
+        elif party in theta_mode:
             mode_level = base * theta_mode[party]
         elif party in individual:
             mode_level = base * individual[party][1]
@@ -472,7 +477,10 @@ def blended_centres(
             weight_sum, delta = bye[party]
             if weight_sum >= 30:  # enough contests to mean anything
                 implied = prior_pr_share.get(party, 0.0) + delta
-                low, high = PLAN_BOUNDS.get(party, (0.0, float("inf")))
+                if party in prior:
+                    low, high = prior[party][0], prior[party][2]
+                else:
+                    low, high = PLAN_BOUNDS.get(party, (0.0, float("inf")))
                 clamped = min(max(implied, low * base), high * base)
                 centre = (1 - w) * mode_level + w * clamped
                 notes[party] = (
@@ -586,6 +594,14 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
 
     handled = {p for cfg in scenario["pools"].values() for p in cfg["members"]
                if p in index}
+    # NOTE: seeded parties are deliberately left INSIDE the pool draw. Moving
+    # them to the individual path so their band applied made things far worse —
+    # 39 arrivals each drawing a triangular with a high tail averaged ~32x their
+    # seed and collectively ate the ballot, taking CRPS from 84 to 172 and the
+    # DA from 89 seats to 47. The band is per-party but the constraint that
+    # matters is on arrivals AS A GROUP: historically they take about 20% of a
+    # metro between them. Until that total is drawn and split, a per-party band
+    # is not safe to apply.
     # A party in the baseline that reached no pool would fall to the residual
     # bucket and be drawn against a range meant for minor parties — which is
     # what happened to MK, 12.2% of the 2024 base, at mode 1.30 against a
@@ -603,13 +619,15 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     for party, i in index.items():
         if party in handled or party == "ENTRANT":
             continue
-        spec = scenario["individual_theta"].get(party)
+        spec = (scenario.get("theta_prior") or {}).get(party) \
+            or scenario["individual_theta"].get(party)
         if spec is not None:
             low, _, high = spec
             mode = min(max(centres[party] / max(base_city[i], 1e-9), low), high)
             individual.append((i, (low, mode, high)))
         else:
-            individual.append((i, tuple(scenario["f_other"])))
+            group = (scenario.get("theta_prior") or {}).get("__small__")
+            individual.append((i, tuple(group or scenario["f_other"])))
 
     entrant_index = index.get("ENTRANT")
 
@@ -827,7 +845,22 @@ def run_model(target, scenario: dict,
             spec = json.loads(spec_path.read_text())
             scenario["pools"] = spec["pools"]
             scenario["pool_seeds"] = spec.get("seeds", {})
+            scenario["pool_seed_bands"] = spec.get("seed_bands", {})
             scenario["pool_seed_notes"] = spec.get("seed_notes", {})
+            try:
+                import pools as _pools
+                _cfg = _pools.load_config()
+                _counts = _pools.pool_counts(target.city, spec["fitted_on"], _cfg)
+                _comp = _counts.composition("voted")
+                _by_ward = {w: dict(zip(_counts.categories, _comp[i]))
+                            for i, w in enumerate(_counts.wards)}
+                _ward_of, _ = _pools.vd_map(target.city, spec["fitted_on"])
+                scenario["_vd_pool_composition"] = {
+                    vd: _by_ward[w] for vd, w in _ward_of.items() if w in _by_ward}
+            except Exception as exc:            # geography is a bonus, not a gate
+                if verbose:
+                    print(f"  ! no VD pool composition ({exc}); seeded parties "
+                          f"will have a citywide level but no geography")
             if verbose:
                 print(f"  pools: {len(spec['pools'])} measured from "
                       f"{spec['fitted_on']} ({spec['provenance']})")
@@ -857,15 +890,85 @@ def run_model(target, scenario: dict,
     # takes half its parent's vote, an entrant the median arrival on record,
     # both capped at the largest entry ever observed — and debits the parent
     # where there is one, because those votes moved rather than appeared.
+    # Levels are measured from transitions strictly before the target, which
+    # is what takes theta_mode, individual_theta, f_other and PLAN_BOUNDS out
+    # of the in-sample list. f_other in particular had every minor party
+    # growing 30% into a local election; the record says they retain 0.79.
+    try:
+        import levels as _levels
+        _prior, _groups = _levels.theta_prior(target, base_city_d)
+        if _prior:
+            small = _groups.get("small", {})
+            med, sd = small.get("median", 0.8), small.get("sd_log", 0.8)
+            _prior["__small__"] = (med * float(np.exp(-1.2816 * sd)), med,
+                                   med * float(np.exp(1.2816 * sd)))
+            scenario["theta_prior"] = _prior
+            if verbose:
+                centre, spread = _groups["centre"], _groups["spread"]
+                print(f"  levels: {centre['n']} transitions before "
+                      f"{target.year}, common centre {centre['median']:.2f}; "
+                      f"sd(log θ) {spread['at_40%']:.2f} at 40% of the vote "
+                      f"rising to {spread['at_0.1%']:.2f} at 0.1%")
+        _ratios, _fallback = _levels.ward_pr_ratios(target, target.city)
+        if _ratios:
+            scenario["_ward_pr_measured"] = _ratios
+            scenario["_ward_pr_fallback"] = _fallback
+        _contest = _levels.contestation(target, target.city)
+        if _contest:
+            scenario["_contestation"] = _contest
+            if verbose:
+                vals = sorted(_contest.values())
+                print(f"  contestation: {len(_contest)} parties, median "
+                      f"{vals[len(vals) // 2]:.0%} of wards (was: all parties "
+                      f"in all wards, with one uplift for the PA)")
+    except FileNotFoundError as _exc:
+        # Missing data is a legitimate reason to fall back; a bug is not. This
+        # used to be a bare `except Exception`, and a stale key in the progress
+        # line above was being swallowed by it — so the run reported falling
+        # back to the hand-typed constants while actually using the measured
+        # ones, or the reverse, depending only on whether verbose was set.
+        print(f"  ! level priors unavailable ({_exc}); falling back to the "
+              f"hand-typed constants, WHICH SAW THE TARGET")
+
     seeds = scenario.get("pool_seeds") or {}
     if seeds:
         notes_by_party = scenario.get("pool_seed_notes") or {}
         for party, seed in seeds.items():
             base_city_d[party] = max(base_city_d.get(party, 0.0) + seed, 0.0)
+
+        # A citywide level is not enough. The voting-district solve places a
+        # party by its deviation from its own baseline, so a party with no
+        # baseline has no geography and stays at zero in every district however
+        # large its citywide seed — which is why ActionSA was still scoring
+        # nothing after being seeded. Its pool vector is exactly the missing
+        # information: put it where its pools live. This is the one place the
+        # pools do work the old baseline-deviation model cannot do at all.
+        members_by_party: dict[str, dict[str, float]] = defaultdict(dict)
+        for pool_name, cfg in scenario["pools"].items():
+            for party, weight in cfg["members"].items():
+                members_by_party[party][pool_name] = float(weight)
+        vd_pool = scenario.get("_vd_pool_composition") or {}
+        if vd_pool:
+            for party in seeds:
+                weights = members_by_party.get(party)
+                if not weights or base_city_d.get(party, 0.0) <= 0:
+                    continue
+                for vd, comp in vd_pool.items():
+                    place = sum(weights.get(name, 0.0) * comp.get(name, 0.0)
+                                for name in comp)
+                    if place > 0:
+                        base_share_d.setdefault(vd, {})[party] = max(
+                            place * base_city_d[party], SHARE_FLOOR)
+        # The band is what the record says an arrival can be worth, and it is
+        # wide because arrivals genuinely are. Carrying it as this party's own
+        # theta range is what stops a seeded party being pinned to its seed.
+        for party, band in (scenario.get("pool_seed_bands") or {}).items():
+            if seeds.get(party, 0.0) > 0:
+                scenario["individual_theta"][party] = list(band)
         if verbose:
-            for party in sorted(seeds, key=lambda p: -abs(seeds[p]))[:6]:
+            for party in sorted(seeds, key=lambda p: -abs(seeds[p]))[:8]:
                 why = notes_by_party.get(party, "parent debited")
-                print(f"  seed {party:<10} {seeds[party]:+.2%}  {why}")
+                print(f"  seed {party:<12} {seeds[party]:+.2%}  {why}")
     universe = sorted(p for p in base_city_d if p != INDEPENDENT and p != "IND")
     if scenario["entrant_prob"] > 0:
         universe.append("ENTRANT")
@@ -1122,11 +1225,34 @@ def run_model(target, scenario: dict,
     for p, i in index.items():
         if pc.get(p, 0) > 0.001:
             ratio[i] = np.clip(wc.get(p, 0.0) / pc[p], 0.5, 2.0)
+    # A party with no ward history at the previous LGE gets the median of the
+    # parties that have one — a rule that applies to whoever turns up next,
+    # rather than the two hand-set numbers this replaces (MK 0.80 "bounded by
+    # ActionSA's observed 0.77", ENTRANT 0.80), both of which were read off the
+    # target.
+    fallback = scenario.get("_ward_pr_fallback")
+    if fallback:
+        for p, i in index.items():
+            if pc.get(p, 0) <= 0.001:
+                ratio[i] = fallback
     for p, value in scenario["ward_pr_ratio_overrides"].items():
-        if p in index:
+        if p in index and not fallback:
             ratio[index[p]] = value
-    if "PA" in index:
-        ratio[index["PA"]] = min(ratio[index["PA"]] * scenario["pa_contestation_uplift"], 1.5)
+
+    # Contestation, for every party rather than one. pa_contestation_uplift was
+    # 1.25 applied to the PA alone, because it fought 52 of 135 wards in 2021
+    # while the model assumed all 135. The median party contests 36% of wards,
+    # so the same correction is owed to everyone, and nomination lists are
+    # published before polling day so it can be measured instead of chosen.
+    contest = scenario.get("_contestation") or {}
+    if contest:
+        for p, i in index.items():
+            share = contest.get(p)
+            if share is not None:
+                ratio[i] = float(np.clip(ratio[i] * share, 0.0, 2.0))
+    elif "PA" in index:
+        ratio[index["PA"]] = min(
+            ratio[index["PA"]] * scenario["pa_contestation_uplift"], 1.5)
 
     # --- by-election evidence (E4) -------------------------------------------
     bye: dict[str, tuple[float, float]] = {}
@@ -1144,7 +1270,10 @@ def run_model(target, scenario: dict,
         wp = scenario["poll_weight"]
         for party, share in poll["numbers"].items():
             if party in centres and party in base_city_d:
-                low, high = PLAN_BOUNDS.get(party, (0.0, float("inf")))
+                if party in prior:
+                    low, high = prior[party][0], prior[party][2]
+                else:
+                    low, high = PLAN_BOUNDS.get(party, (0.0, float("inf")))
                 clamped = min(max(share, low * base_city_d[party]),
                               high * base_city_d[party])
                 centres[party] = (1 - wp) * centres[party] + wp * clamped

@@ -180,27 +180,17 @@ TARGETS = _Targets()
 FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
     "pools": (
         ("2011", "2016", "2021"),
-        "pool ratio ranges measured across 16 metro transitions, and the "
-        "composition fitted from Census 2022 — both post-date any target "
-        "before 2026"),
-    "theta_mode": (
-        ("2016", "2021"),
-        "§3.5's per-party views, formed on the record through 2021"),
-    "individual_theta": (
-        ("2016", "2021"),
-        "ranges bracket the observed fold-1 (2014→2016) and fold-2 "
-        "(2019→2021) raw ratios — Al Jama-ah's 3.12 is a 2021 number"),
-    "alpha_da": (
-        ("2021",),
-        "12.0 is low because \"the ActionSA outcome is genuinely bimodal\" — "
-        "ActionSA's outcome is 2021's"),
-    "ward_pr_ratio_overrides": (
-        ("2021",),
-        "ward/PR ratios are measured from 2021; MK's 0.80 is \"bounded by "
-        "ActionSA's observed 0.77\""),
-    "pa_contestation_uplift": (
-        ("2021",),
-        "calibrated against the 52 wards the PA contested in 2021"),
+        "pool COMPOSITION comes from Census 2022, which post-dates any target "
+        "before 2026. The ratio ranges no longer do — they derive from "
+        "transitions strictly before the target. A census is a covariate, not "
+        "an outcome: it says who lives in a ward, not how they voted."),
+    # theta_mode, individual_theta, f_other, PLAN_BOUNDS, alpha_da,
+    # ward_pr_ratio_overrides and pa_contestation_uplift have left this list
+    # because they are no longer read. src/levels.py measures the retention
+    # ratio, the ward/PR split and contestation from transitions strictly
+    # before the target; alpha is measured per pool by src/pools.py. They are
+    # still present in DEFAULTS as an emergency fallback, and run_model says so
+    # loudly if it ever uses them.
     "splinter": (
         ("2006", "2011", "2016"),
         "triangulars taken from COPE 2009→2011, ID 2004→2006 and EFF "
