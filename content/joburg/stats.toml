@@ -326,4 +326,11 @@ allow = [
   "no majority needed",            # ditto
   "would govern together",         # explicitly a disclaimer, not a forecast
   "will govern with whom",         # ditto — methodology, defining what a pool is NOT
+  # Published election results and published poll numbers are external facts,
+  # not model outputs. The audit cannot tell them apart, and tokenising them
+  # would imply this model produced them.
+  "it polled",                     # ActionSA's own 2021 result, IEC record
+  "nationally in 2024",            # and its own 2024 national result, IEC record
+  "one house had",                 # SRF and Ipsos published poll numbers, POLLING.md
+  "another had the ANC on",        # ditto, the second house in the same sentence
 ]

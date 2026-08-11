@@ -1598,6 +1598,78 @@ confirms was wise.
 
 ## 6. What still needs a person
 
+### THE TWO GAPS BETWEEN HERE AND A LIVE SITE (2026-08-12)
+
+Both are structural, both are open, and the second is on a clock.
+
+- **Task #22 — the model runs national→local, which is half the story.**
+  Every party's level is built from the last NATIONAL result and converted
+  downward by θ. That is the right spine for a nationally-organised party and
+  the wrong one for a party whose evidence is local, and the model has no way
+  to tell them apart. **Measured on 2021**: predicting each party's local
+  share from the previous national result × θ beats using the previous local
+  result directly for ANC, DA, VF+, ACDP and AIC — and loses for EFF, PA, IFP
+  and Al Jama-ah. Five to four. Neither route dominates and the model uses one
+  of them unconditionally.
+
+  ActionSA is the extreme case, and it is why this surfaced. Its national
+  result is the *weakest* thing we know about it: 18.12% locally in 2021
+  against 6.22% nationally in 2024, a local premium of **2.91**, and the
+  forecast is built on the 6.22% and then discounts it by a group average of
+  0.88. It has no θ of its own because θ is only ever measured national→local
+  and ActionSA had no national vote before its first local one. The same holds
+  for the PA, and for every local formation the model cannot really carry:
+  Defenders of the People in Tshwane, the Cape Coloured Congress, the Northern
+  Alliance in Nelson Mandela Bay, the ratepayer associations.
+
+  *The partial fix* is to measure θ in both directions — a local→national pair
+  inverted is the same quantity, and it would recover ActionSA's 2.91 as its
+  own evidence, moving it from θ 0.88 to about 1.3. Worth doing and not a
+  cure: it is a patch on the same pipe.
+
+  *The real fix* is that a party's level should come from BOTH its previous
+  local and its previous national result, weighted by which has historically
+  been more informative for a party like it. The weights are measurable — the
+  five-to-four table above is that experiment, run on one city and nine
+  parties; it should be run across eight metros and several cycles before any
+  weight is chosen. Two honest constraints on the design: the local result is
+  five years stale by polling day where the national is two, so recency is a
+  real argument for the current spine and the blend must price it; and this
+  changes the published forecast materially, so it lands before a deploy, not
+  after.
+
+- **Task #23 — we have no stated view on how to read a poll, and the polls
+  have started.** The machinery exists (`poll_id`, `poll_weight`, a register
+  in `POLLING.md`, a `polls.json`) and `poll_weight` is **0**: no poll touches
+  the forecast today. That was defensible while there was nothing to read. It
+  is not defensible into an election, and the gap is not "turn the dial up" —
+  it is that we have no policy, and the raw material is worse than it looks:
+
+  1. **They disagree by more than the thing being forecast.** The SRF Q2 CoJ
+     wave has DA 42 / ANC 18; the Ipsos metro subsample has ANC 35 / DA 25.
+     That is a thirty-point spread on the ANC between two houses in the same
+     year. Averaging them is a decision, not a neutral act.
+  2. **There is almost no metro-level track record to weight them by**, and
+     what there is is bad: pre-2021 polling missed ActionSA by about ten
+     points in this city.
+  3. **A cutoff filter is not currently expressible.** `polls.json` carries
+     `fieldwork` as free text ("8–31 July 2026"), so a backtest cannot
+     mechanically exclude a poll taken after its target. Any poll term added
+     before that is fixed is a temporal leak waiting to happen, and this
+     repository has just spent a week removing those.
+  4. **A poll and the model's own level prior estimate the same quantity.**
+     The model now measures θ per party from that city's own transitions. A
+     poll is a competing estimate of the same number, not extra information to
+     be added on top, and the blend has to say which it trusts where — with
+     the answer bounded by evidence rather than chosen.
+
+  What is needed is a written policy — which houses and geographies are
+  admitted, how fieldwork dates are parsed and filtered, how house effects and
+  herding are handled, how a poll is reconciled against the measured prior
+  rather than averaged with it — and then the dial. The policy is the work;
+  the dial is an afternoon.
+
+
 - **Task #16** — Census 2022 Small Area Layer: **requested from Stats SA 2026-08-05** (email sent), awaiting reply.
 - **Task #18** — historic VD boundaries: **requested from the IEC Delimitation Directorate 2026-08-05** (email sent), awaiting reply. Would convert R1 from mitigated to resolved.
 - **Task #20** — Schedule 1 overhang worked example: **four-question request sent to the IEC 2026-08-05**, awaiting reply. In parallel, an archive hunt for a real historical overhang municipality is running. P(overhang) ~72–96% across readings; the answer moves P(ANC+DA) across 72–91% (§1.16).
@@ -1613,7 +1685,9 @@ confirms was wise.
 
 ### Open from the 2026-08-09/10 splinter work (§1.26, §1.27), ranked
 
-1. **`DA_BLOC` membership is contradicted by measurement.** ActionSA's gains
+1. ✅ **RESOLVED BY DELETION.** `DA_BLOC` membership was contradicted by
+   measurement — and blocs no longer exist (87806a7); the model draws from
+   voter pools fitted per city. Kept for the record: ActionSA's gains
    were funded by the ANC and the EFF, not the DA (per point of ActionSA:
    ANC −0.381pp, EFF −0.262pp, DA **+0.199pp**; DA vote retention uncorrelated
    with ActionSA's local strength at −0.043). The model funds ActionSA out of
@@ -1621,7 +1695,8 @@ confirms was wise.
    DA-bloc split alone moves P(ANC+DA majority) from 87.6% to 98.4%. Needs a
    config change *and* a rewrite of the published methodology paragraph, which
    currently defends the grouping on "the argument about where defectors go".
-2. **The "fivefold" claim is live and wrong.** `docs-public/methodology.md`
+2. ✅ **RESOLVED 2026-08-11.** The claim is gone: `docs-public/methodology.md`
+   was rewritten for pools and no longer contains it. Kept for the record: `docs-public/methodology.md`
    says the fully blind seat error "grows fivefold". Measured today: 96 → 126,
    a factor of 1.3. On the like-for-like metric — parties that actually won
    seats, excluding ActionSA, which cannot be represented at all — it is

@@ -250,6 +250,25 @@ against three baselines that need no model at all. The results are on the
   on 5 August 2026 and are awaiting an answer; a 2021 amendment and the
   Commission's own handling of Laingsburg 2021 settle the arithmetic, and the
   forecast applies it.
+- **The model runs from national results downward, and that is half the
+  story.** Every party's starting level comes from the last *national*
+  election, converted down to local. That is the right way round for a
+  nationally organised party and the wrong way round for one whose support is
+  local — and tested on 2021 the two routes are close to even, five parties to
+  four. ActionSA is the sharpest case: it polled 18.12% in this city's 2021
+  local election and 6.22% nationally in 2024, and the forecast is built on
+  the smaller, less relevant number. Local formations — a ratepayers'
+  association, a party that exists in one metro — are carried poorly for the
+  same reason. Fixing it means drawing a party's level from its local and
+  national records together, weighted by which has actually been more
+  informative for a party like it. It is the largest open item on the model.
+- **No poll is currently used at all.** The weight is set to zero. The polls
+  that exist disagree with each other by more than the quantity being
+  forecast — one house had the DA on 42% and the ANC on 18% in the same year
+  another had the ANC on 35% and the DA on 25% — and metro-level polling has
+  almost no track record here to weight them by; pre-2021 polling missed
+  ActionSA in this city by about ten points. We would rather use nothing than
+  use them badly, and we will publish the rule before we use them at all.
 - **Arithmetic is not politics.** The model says which governments are
   numerically possible. Whether people who dislike each other will sit in the
   same room is not a modelling question.
