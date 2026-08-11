@@ -1330,10 +1330,29 @@ def entrant_record(transitions, codes=METRO_CODES) -> list[float]:
             a, b = metro_citywide(code, before), metro_citywide(code, after)
             if not a or not b:
                 continue
+            reach = _ward_reach(code, after)
             for party, share in b.items():
                 if a.get(party, 0.0) <= 1e-4 < share:
-                    seen.append(share)
+                    seen.append((share, reach.get(party, 1.0)))
     return sorted(seen)
+
+
+def _ward_reach(code: str, year: str) -> dict[str, float]:
+    """Fraction of wards each party fielded a ward candidate in."""
+    from ingest_lge import read_municipality
+    path = metro_file(code, year)
+    if path is None:
+        return {}
+    wards: dict[str, set] = defaultdict(set)
+    seen: set = set()
+    for row in read_municipality(path, code, "Ward"):
+        ward = (row.get("Ward") or "").strip()
+        if not ward:
+            continue
+        seen.add(ward)
+        if int(float(row.get("Party_Votes") or 0)) > 0:
+            wards[P.canonical(row["sPartyName"])].add(ward)
+    return {p: len(w) / len(seen) for p, w in wards.items()} if seen else {}
 
 
 def splinter_record(city: cityconfig.City,
@@ -1403,61 +1422,162 @@ def contesting_parties(city: cityconfig.City, year: str) -> set[str]:
     return out
 
 
-def default_seeds(newcomers: set[str], lineage: dict[str, dict],
-                  baseline: dict[str, float], record: list[float],
-                  splinter_fractions: list[float],
-                  ) -> tuple[dict[str, float], dict[str, tuple], dict[str, str]]:
-    """A starting share and a band for every party with no baseline.
+def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
+                  rates: np.ndarray, universe: list[str], categories,
+                  record: list[tuple[float, float]],
+                  splinter_fractions: list[float], pool_size: np.ndarray,
+                  contestation: dict[str, float] | None = None,
+                  ) -> tuple[dict[str, dict], dict[str, str]]:
+    """How a party that was not here last time takes its votes.
 
-    Neither is a forecast. Both exist so that "nobody wrote a judgement" cannot
-    silently mean "this party wins nothing" — which is what produced the single
-    largest error the model makes.
+    **A splinter takes votes out of POOLS, not out of a named party.** It
+    inherits its parent's pool weights — that is what makes it a splinter — and
+    captures a share of each pool its parent draws on. Everyone holding that
+    pool then loses in proportion to the weight they hold there, which falls
+    out of the simplex constraint for free: the pool's rates must sum to one,
+    so inserting a party at rate ``r`` scales every other party by ``1 - r``.
 
-    * A **splinter** takes a share of its parent, measured: the three splits on
-      record took 0.140, 0.162 and 0.246 of the parent's previous vote. Its
-      band is that range; its parent is debited the central value, because
-      those votes moved rather than appeared.
-    * An **entrant** gets the band of what entrants have actually achieved,
-      centred on the median arrival. Nothing outside the record is proposed,
-      and the record is wide because arrivals genuinely are.
+    The parent loses most because it holds most, but it is never named and
+    never singled out. If MK takes Black African votes, every party with Black
+    African votes gives some up, in proportion. The previous version debited
+    the parent by name for the whole amount, which is a claim about two parties
+    rather than about an electorate, and it is not how a defection works.
 
-    Returns the central seed, the (low, mode, high) band as a multiple of that
-    seed, and a note per party.
+    Capture size comes from the record — the three splits this city has seen
+    took 0.140, 0.162 and 0.246 of their parent's vote — and is a band, not a
+    point, because the user is expected to have a view. MK draining the ANC's
+    Zulu support was obvious to any observer in 2024 and invisible to this
+    model; when home-language pools exist the same mechanism will express it by
+    leaning the inherited weights, which is a judgement and is meant to be.
+
+    **An entrant has no parent, so it has no pool weights, and the default —
+    an even share of every pool — is almost certainly wrong.** It is deliberate:
+    the flat default makes the absence of a judgement visible instead of
+    convenient, and the question the user must answer is a specific one, which
+    ``judgements/`` now asks in as many words: *which pools does this party pull
+    from, and how much support do you expect?* Its size defaults inside the
+    range other arrivals have managed, scaled by how much of the city it
+    actually contests — a party fielding candidates in a third of the wards
+    cannot win what one fielding everywhere can.
+
+    Returns, per party, a dict of ``pool -> capture rate`` plus the band on the
+    whole thing, and a note explaining where each number came from.
     """
     if not record:
-        return {}, {}, {}
-    lo_e, mid_e, hi_e = (float(np.quantile(record, 0.10)),
-                         float(np.median(record)),
-                         float(np.quantile(record, 0.95)))
-    cap = record[-1]
-    f_lo, f_mid, f_hi = ((min(splinter_fractions), float(np.median(splinter_fractions)),
+        return {}, {}
+    # AN ARRIVAL'S SIZE SCALES WITH HOW MUCH OF THE CITY IT CONTESTS. The
+    # record is dominated by parties that fielded candidates in a handful of
+    # wards, so its raw median (0.08%) describes a micro-party, not a serious
+    # entrant. Measuring yield PER WARD CONTESTED and multiplying by the new
+    # party's own reach is what separates ActionSA, on 99% of wards, from a
+    # party on 5% of them.
+    yields = [share / reach for share, reach in record if reach > 0.01]
+    if not yields:
+        yields = [share for share, _ in record]
+    lo_e, mid_e, hi_e = (float(np.quantile(yields, 0.10)),
+                         float(np.median(yields)),
+                         float(np.quantile(yields, 0.95)))
+    f_lo, f_mid, f_hi = ((min(splinter_fractions),
+                          float(np.median(splinter_fractions)),
                           max(splinter_fractions)) if splinter_fractions
                          else (lo_e, mid_e, hi_e))
+    index = {p: i for i, p in enumerate(universe)}
+    n_pools = len(categories)
 
-    seeds: dict[str, float] = {}
-    bands: dict[str, tuple] = {}
+    rules: dict[str, dict] = {}
     notes: dict[str, str] = {}
     for party in sorted(newcomers):
-        rule = lineage.get(party, {})
-        parent = (rule.get("parent") or "").strip().upper()
-        if "seed" in rule:
-            seeds[party] = float(rule["seed"])
-            bands[party] = tuple(rule.get("band", (0.5, 1.0, 2.0)))
-            notes[party] = "declared in judgements/"
-        elif parent and baseline.get(parent, 0.0) > 0:
-            available = baseline[parent]
-            centre = min(f_mid * available, cap)
-            seeds[party] = centre
-            seeds[parent] = seeds.get(parent, 0.0) - centre
-            bands[party] = (f_lo / f_mid, 1.0, min(f_hi / f_mid, cap / max(centre, 1e-9)))
-            notes[party] = (f"splinter of {parent}: {f_mid:.1%} of its {available:.1%}, "
-                            f"band {f_lo:.1%}-{f_hi:.1%} from COPE/EFF/MK")
+        declared = lineage.get(party, {})
+        parent = (declared.get("parent") or "").strip().upper()
+        weights = declared.get("weights")
+        reach = (contestation or {}).get(party)
+
+        if weights:
+            vec = np.array([float(w) for w in weights], dtype=float)
+            vec = vec / vec.sum() if vec.sum() > 0 else np.full(n_pools, 1.0 / n_pools)
+            size = float(declared.get("support", mid_e))
+            capture = _capture_from_share(vec, size, pool_size)
+            why = "pools and support declared in judgements/"
+        elif parent and parent in index:
+            # The parent's own rates ARE its pool weights. Capturing f of each
+            # is what "inherits the parent's split" means, and the pool
+            # renormalisation does the rest.
+            capture = {categories[g]: float(f_mid * rates[g, index[parent]])
+                       for g in range(n_pools) if rates[g, index[parent]] > 0}
+            why = (f"splinter: takes {f_mid:.1%} of {parent}'s share of each "
+                   f"pool it draws on, band {f_lo:.1%}-{f_hi:.1%} from the "
+                   f"COPE/EFF/MK record. Every party in those pools gives up "
+                   f"the same proportion; none is named.")
         else:
-            seeds[party] = mid_e
-            bands[party] = (lo_e / mid_e, 1.0, hi_e / mid_e)
-            notes[party] = (f"entrant: median of {len(record)} arrivals "
-                            f"({mid_e:.2%}), band {lo_e:.2%}-{hi_e:.2%}")
-    return seeds, bands, notes
+            vec = np.full(n_pools, 1.0 / n_pools)
+            reach_used = reach if reach is not None else 1.0
+            size = mid_e * reach_used
+            capture = _capture_from_share(vec, size, pool_size)
+            why = (f"entrant: even share of every pool. Arrivals yield a "
+                   f"median {mid_e:.2%} of the city per ward contested "
+                   f"(band {lo_e:.2%}-{hi_e:.2%})"
+                   + (f"; this one contests {reach:.0%} of wards, so {size:.2%}"
+                      if reach is not None else "")
+                   + ". THE EVEN SPREAD IS A PLACEHOLDER: declare which pools "
+                     "it pulls from and what support you expect.")
+        rules[party] = {"capture": capture,
+                        "band": [f_lo / f_mid, 1.0, f_hi / f_mid] if parent
+                                else [lo_e / mid_e, 1.0, hi_e / mid_e]}
+        notes[party] = why
+    return rules, notes
+
+
+def _capture_from_share(weights: np.ndarray, share: float,
+                        pool_size: np.ndarray) -> dict:
+    """Turn "x% of the city, spread across pools like this" into a rate per pool.
+
+    To win ``share`` of the city with its votes distributed as ``weights``, a
+    party needs ``share * w_g * total`` votes out of pool ``g``, which is a rate
+    of that over the pool's own size. A pool holding 4% of the electorate must
+    give up far more of itself than one holding 65% to yield the same citywide
+    number, which is exactly why a flat pool spread is such a strong assumption.
+    """
+    total = weights.sum()
+    if total <= 0 or pool_size.sum() <= 0:
+        return {}
+    weights = weights / total
+    electorate = pool_size.sum()
+    out = {}
+    for g, w in enumerate(weights):
+        if w > 0 and pool_size[g] > 0:
+            out[g] = float(min(share * w * electorate / pool_size[g], 0.9))
+    return out
+
+
+def apply_arrivals(rates: np.ndarray, universe: list[str], rules: dict[str, dict],
+                   scale: float = 1.0) -> tuple[np.ndarray, list[str]]:
+    """Insert each arrival into the pools it captures from.
+
+    THE MECHANISM, in one line: a party entering pool ``g`` at rate ``r`` leaves
+    ``1 - r`` for everyone already there, shared out in proportion to what each
+    already held. Nobody is named and nobody is singled out; the parent loses
+    most only because it held most.
+
+    ``scale`` multiplies every capture, which is how a draw expresses "this
+    arrival did better or worse than the central case" without changing who it
+    takes from.
+    """
+    if not rules:
+        return rates, universe
+    out = rates.copy()
+    names = list(universe)
+    for party, rule in rules.items():
+        column = np.zeros(out.shape[0])
+        for g, r in rule["capture"].items():
+            g = int(g)
+            take = float(np.clip(r * scale, 0.0, 0.95))
+            if take <= 0:
+                continue
+            out[g, :] *= (1.0 - take)      # everyone in the pool, in proportion
+            column[g] = take
+        out = np.hstack([out, column[:, None]])
+        names.append(party)
+    return out, names
 
 
 def lineage_path(city: cityconfig.City, target: cityconfig.Target) -> Path:
@@ -1498,21 +1618,35 @@ def write_lineage_template(city: cityconfig.City, target: cityconfig.Target,
     lines = [
         f"# Judgements for {city.name}, target {target.year}.",
         "#",
-        "# These parties are in the baseline but did not contest the election the",
-        "# pool vectors were fitted on, so nothing measurable says which voters",
-        "# they talk to. Set `parent` to inherit that party's pool vector (a",
-        "# splinter, defined identically to its parent until the numbers say",
-        "# otherwise). Leave `parent` empty to treat it as an entrant, drawing an",
-        "# even share of every pool.",
+        "# These parties will be on the ballot and did not contest the election",
+        "# the pool weights were fitted on, so nothing measured says who votes",
+        "# for them. THE MODEL CANNOT ANSWER THIS. You can.",
         "#",
-        "# `weights` overrides the inherited vector outright, when you know",
-        "# something the data cannot: order is",
-        f"#   {', '.join(pools_named)}",
-        "# and the values are normalised, so [0, 0, 0, 1, 0] means 'entirely the",
-        "# last pool'. Delete the line to keep the default.",
+        "# TWO QUESTIONS PER PARTY:",
         "#",
-        "# Every override here is recorded in the run's provenance and should be",
-        "# deleted once the election has been held and the vector measured.",
+        "#   1. WHICH POOLS DOES IT PULL FROM?",
+        "#      Set `parent` and it inherits that party's pool weights — which",
+        "#      is what a splinter is. It then takes its votes OUT OF THOSE",
+        "#      POOLS, and every party holding them gives up the same",
+        "#      proportion of what it held. No party is singled out: the parent",
+        "#      loses most only because it holds most.",
+        "#      Or set `weights` directly, in the order",
+        f"#        {', '.join(pools_named)}",
+        "#      normalised, so [0, 0, 0, 1] means 'entirely the last pool'.",
+        "#      Leave both unset and it takes an even share of every pool,",
+        "#      which is almost certainly wrong and is meant to look wrong.",
+        "#",
+        "#   2. HOW MUCH SUPPORT DO YOU EXPECT?",
+        "#      `support` is its share of the city. The default is what",
+        "#      arrivals have historically won per ward contested, times the",
+        "#      wards this one is contesting — so it rises with reach and falls",
+        "#      without it. Override when you know something the record does",
+        "#      not: ActionSA in 2021 was led by a popular former mayor of this",
+        "#      city and took 18.12%, against a default near a third of one per",
+        "#      cent. Nothing measurable could have said so; a person could.",
+        "#",
+        "# Every override is recorded in the run's provenance, and should be",
+        "# deleted once the election has been held and the weights measured.",
         "",
     ]
     for party, share in sorted(newcomers.items(), key=lambda kv: -kv[1]):
@@ -1629,18 +1763,6 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
                                    if parent else ""))
         composition[party] = vec
 
-    record = entrant_record(lge_transitions(before=target.year))
-    seeds, seed_bands, seed_notes = default_seeds(
-        newcomers, lineage, baseline, record, splinter_record(city))
-    # no_vector, NOT newcomers: the file exists to ask a human which parent a
-    # party with no measured vector belongs to, and MK is the case it was built
-    # for. Passing the seed set generated an EMPTY template for 2026, so a
-    # regenerated file would have silently dropped MK's declared parent.
-    template = write_lineage_template(
-        city, target, {p: baseline.get(p, 0.0) for p in no_vector},
-        lineage, list(ctx["categories"]))
-
-    transitions = lge_transitions(before=target.year)
     # A pool's size at the target is COUNTED, not drawn: the published roll,
     # split by each ward's own composition. What is uncertain is turnout, and
     # that is measured from this city's own local elections. The pool "ratio"
@@ -1651,6 +1773,37 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     record = turnout_record(city, cfg, before=target.year)
     turnout = turnout_band(record, n)
     limits = turnout_limits(record, registered)
+
+    record = entrant_record(lge_transitions(before=target.year))
+    rates_matrix = np.array([[fits[p].rates[g] if p in fits else 0.0
+                              for p in sorted(fits)] for g in range(n)])
+    universe_fitted = sorted(fits)
+    # Who contests how much of the city. Nomination lists are public before
+    # polling day; for a target already held the roster stands in.
+    reach = _ward_reach(city.code, target.year) or _ward_reach(city.code, year)
+    arrivals, seed_notes = arrival_rules(
+        newcomers, lineage, rates_matrix, universe_fitted, cats, record,
+        splinter_record(city), registered, contestation=reach)
+    # An arrival's composition follows from where it captures, so it does not
+    # need a separate vector: the pools it takes from ARE its pool weights.
+    for party, rule in arrivals.items():
+        vec = np.zeros(n)
+        for g, r in rule["capture"].items():
+            vec[int(g)] = r * registered[int(g)]
+        composition[party] = vec / vec.sum() if vec.sum() > 0 else np.full(n, 1.0 / n)
+    seeds = {p: float(sum(r * registered[int(g)] for g, r in rule["capture"].items())
+                      / max(registered.sum(), 1e-9))
+             for p, rule in arrivals.items()}
+    seed_bands = {p: rule["band"] for p, rule in arrivals.items()}
+    # no_vector, NOT newcomers: the file exists to ask a human which parent a
+    # party with no measured vector belongs to, and MK is the case it was built
+    # for. Passing the seed set generated an EMPTY template for 2026, so a
+    # regenerated file would have silently dropped MK's declared parent.
+    template = write_lineage_template(
+        city, target, {p: baseline.get(p, 0.0) for p in no_vector},
+        lineage, list(ctx["categories"]))
+
+    transitions = lge_transitions(before=target.year)
 
     # Each pool's internal split, per metro-year, for the concentration.
     splits: list[list[np.ndarray]] = [[] for _ in range(n)]
@@ -1694,7 +1847,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             "seeds": {p: v for p, v in seeds.items() if abs(v) > 1e-9},
             "seed_bands": {p: list(v) for p, v in seed_bands.items()},
             "seed_notes": seed_notes,
-            "entrant_record": [float(x) for x in record],
+            "entrant_record": [[float(share), float(reach)] for share, reach in record],
             "provenance": f"{ctx['provenance']}; pools sized by {roll_note}",
             "pool_shares_at_target": target_shares.tolist(),
             "registration_series": {y: v.tolist() for y, v in series.items()},

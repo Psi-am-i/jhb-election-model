@@ -1,20 +1,34 @@
 # Judgements for Johannesburg, target 2021.
 #
-# These parties are in the baseline but did not contest the election the
-# pool vectors were fitted on, so nothing measurable says which voters
-# they talk to. Set `parent` to inherit that party's pool vector (a
-# splinter, defined identically to its parent until the numbers say
-# otherwise). Leave `parent` empty to treat it as an entrant, drawing an
-# even share of every pool.
+# These parties will be on the ballot and did not contest the election
+# the pool weights were fitted on, so nothing measured says who votes
+# for them. THE MODEL CANNOT ANSWER THIS. You can.
 #
-# `weights` overrides the inherited vector outright, when you know
-# something the data cannot: order is
-#   Black African, Coloured, Indian/Asian, White
-# and the values are normalised, so [0, 0, 0, 1, 0] means 'entirely the
-# last pool'. Delete the line to keep the default.
+# TWO QUESTIONS PER PARTY:
 #
-# Every override here is recorded in the run's provenance and should be
-# deleted once the election has been held and the vector measured.
+#   1. WHICH POOLS DOES IT PULL FROM?
+#      Set `parent` and it inherits that party's pool weights — which
+#      is what a splinter is. It then takes its votes OUT OF THOSE
+#      POOLS, and every party holding them gives up the same
+#      proportion of what it held. No party is singled out: the parent
+#      loses most only because it holds most.
+#      Or set `weights` directly, in the order
+#        Black African, Coloured, Indian/Asian, White
+#      normalised, so [0, 0, 0, 1] means 'entirely the last pool'.
+#      Leave both unset and it takes an even share of every pool,
+#      which is almost certainly wrong and is meant to look wrong.
+#
+#   2. HOW MUCH SUPPORT DO YOU EXPECT?
+#      `support` is its share of the city. The default is what
+#      arrivals have historically won per ward contested, times the
+#      wards this one is contesting — so it rises with reach and falls
+#      without it. Override when you know something the record does
+#      not: ActionSA in 2021 was led by a popular former mayor of this
+#      city and took 18.12%, against a default near a third of one per
+#      cent. Nothing measurable could have said so; a person could.
+#
+# Every override is recorded in the run's provenance, and should be
+# deleted once the election has been held and the weights measured.
 
 [party.GOOD]
 baseline_share = 0.0031
@@ -31,33 +45,8 @@ baseline_share = 0.0018
 parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
 # weights = [0.0, 0.0, 0.0, 0.0]
 
-[party.SOCIALIST_REVOLUTIONARY_WORKERS_PARTY]
-baseline_share = 0.0011
-parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
-# weights = [0.0, 0.0, 0.0, 0.0]
-
 [party.NFP]
 baseline_share = 0.0009
-parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
-# weights = [0.0, 0.0, 0.0, 0.0]
-
-[party.WOMEN_FORWARD]
-baseline_share = 0.0007
-parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
-# weights = [0.0, 0.0, 0.0, 0.0]
-
-[party.INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA]
-baseline_share = 0.0006
-parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
-# weights = [0.0, 0.0, 0.0, 0.0]
-
-[party.ALLIANCE_FOR_TRANSFORMATION_FOR_ALL]
-baseline_share = 0.0005
-parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
-# weights = [0.0, 0.0, 0.0, 0.0]
-
-[party.AFRICAN_CONTENT_MOVEMENT]
-baseline_share = 0.0003
 parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
 # weights = [0.0, 0.0, 0.0, 0.0]
 
@@ -76,42 +65,162 @@ baseline_share = 0.0003
 parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
 # weights = [0.0, 0.0, 0.0, 0.0]
 
-[party.AFRICAN_DEMOCRATIC_CHANGE]
-baseline_share = 0.0003
+[party.AFRICAN_PEOPLE_S_MOVEMENT]
+baseline_share = 0.0000
 parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
 # weights = [0.0, 0.0, 0.0, 0.0]
 
-[party.AFRICAN_RENAISSANCE_UNITY]
-baseline_share = 0.0002
+[party.PEOPLE_S_FREEDOM_PARTY]
+baseline_share = 0.0000
 parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
 # weights = [0.0, 0.0, 0.0, 0.0]
 
-[party.GAZANKULU_LIBERATION_CONGRESS]
-baseline_share = 0.0001
+[party.ABANTU_BATHO_CONGRESS]
+baseline_share = 0.0000
 parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
 # weights = [0.0, 0.0, 0.0, 0.0]
 
-[party.SOUTH_AFRICAN_NATIONAL_CONGRESS_OF_TRADITIONAL_AUTHORITIES]
-baseline_share = 0.0001
+[party.US_THE_PEOPLE]
+baseline_share = 0.0000
 parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
 # weights = [0.0, 0.0, 0.0, 0.0]
 
-[party.BETTER_RESIDENTS_ASSOCIATION]
-baseline_share = 0.0001
+[party.DOP]
+baseline_share = 0.0000
 parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
 # weights = [0.0, 0.0, 0.0, 0.0]
 
-[party.LAND_PARTY]
-baseline_share = 0.0001
+[party.ROYAL_LOYAL_PROGRESS]
+baseline_share = 0.0000
 parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
 # weights = [0.0, 0.0, 0.0, 0.0]
 
-[party.POWER_OF_AFRICANS_UNITY]
-baseline_share = 0.0001
+[party.DEMOCRATIC_ARTISTS_PARTY]
+baseline_share = 0.0000
 parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
 # weights = [0.0, 0.0, 0.0, 0.0]
 
-[party.ZENZELENI_PROGRESSIVE_MOVEMENT]
+[party.AGENCY_FOR_NEW_AGENDA]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.UNITED_CULTURAL_MOVEMENT]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.AFRICAN_FREEDOM_REVOLUTION]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.BLACK_AND_WHITE_PARTY]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.AFRICAN_AMBASSADORS_OF_SOUTH_AFRICA]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.AFRICA_RESTORATION_ALLIANCE]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.AFRICAN_SECURITY_CONGRESS]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.SHOSHOLOZA_PROGRESSIVE_PARTY]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.SAKHISIZWE_CONVENTION]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.INTERNATIONAL_PARTY]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.FORUM_4_SERVICE_DELIVERY]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.AHC]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.PARTY_OF_ACTION]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.CIVIC_MOVEMENT_OF_SOUTH_AFRICA]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.COMMUNITY_SOLIDARITY_ASSOCIATION]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.UIM]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.AMALGAMATED_RAINBOW_MOVEMENT]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.ASA]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.THE_ORGANIC_HUMANITY_MOVEMENT]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.JUSTICE_AND_EMPLOYMENT_PARTY]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.ABAHLALY_BAAHI]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.CHANGE]
+baseline_share = 0.0000
+parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
+# weights = [0.0, 0.0, 0.0, 0.0]
+
+[party.DISRUPT_PARTY]
 baseline_share = 0.0000
 parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
 # weights = [0.0, 0.0, 0.0, 0.0]
