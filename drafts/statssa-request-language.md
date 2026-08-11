@@ -1,6 +1,8 @@
 # Data request to Stats SA — home language by ward, and a follow-up on the SAL
 
-**Status:** draft, not sent. To go to `info@statssa.gov.za` (+27 12 310 8600).
+**Status:** **drafted in Gmail 2026-08-11, addressed to
+`info@statssa.gov.za` (+27 12 310 8600), NOT YET SENT** — it needs a name,
+affiliation and contact line at the bottom before it goes.
 A first request for the Small Area Layer was sent **2026-08-05** and has not
 been answered; this both follows that up and adds a second, probably easier
 ask.

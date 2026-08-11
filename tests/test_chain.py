@@ -592,6 +592,36 @@ def test_the_bloc_identifies_the_party_that_located_it():
         f"best census pool; the bloc is not locating it")
 
 
+def test_the_reader_simulation_spec_is_not_what_the_forecast_reads():
+    """The vote-located bloc is for the reader simulation and not for the
+    published forecast: its location is measured, its size is a judgement.
+
+    Separation by FILENAME rather than by a flag inside one spec, because an
+    un-namespaced write has reached a live forecast in this repository before
+    (a Tshwane run overwriting Johannesburg's fold parameters). A flag can be
+    read wrongly; a path the forecast never opens cannot.
+    """
+    source = (ROOT / "src" / "montecarlo.py").read_text()
+    assert 'f"pools_{target.year}.json"' in source, \
+        "the model no longer loads the spec by that name; this test is stale"
+    assert "_simulation" not in source, \
+        ("montecarlo mentions the simulation spec. The forecast must not be "
+         "able to load it by any path.")
+
+    plain = _spec(TARGET)
+    assert "simulation_only" not in plain, \
+        "the published spec is carrying the simulation marker"
+    sim = pools.emit_pools(_city(), cityconfig.Target(city=_city(), year=TARGET),
+                           _cfg(), split_bloc=pools.SIMULATION_BLOC)
+    assert sim.get("simulation_only"), \
+        "a spec with a vote-located bloc does not declare itself"
+    assert len(sim["pools"]) == len(plain["pools"]) + 1, \
+        (f"the simulation spec has {len(sim['pools'])} pools and the published "
+         f"one {len(plain['pools'])}; the bloc is not being added")
+    assert set(plain["pools"]) < set(sim["pools"]), \
+        "the simulation spec is not a superset of the published pools"
+
+
 def test_a_splinter_is_never_sized_on_a_split_that_had_not_happened_yet():
     """``splinter_record``'s three pairs had their years hardcoded, and the
     caller passed no target, so every run measured the MK split of 2024 —

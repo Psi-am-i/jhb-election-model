@@ -250,6 +250,14 @@ class PoolCounts:
         return getattr(self, level).sum(axis=0)
 
 
+# The one bloc currently defined this way, kept beside the function that
+# builds it so there is a single place to change it — and deliberately NOT in
+# cities/*.toml, where it would sit next to settings the published forecast
+# reads and would be one edit away from becoming one.
+SIMULATION_BLOC = {"parent": "Black African", "name": "IFP-located",
+                   "indicator": "IFP", "within_rate": 0.90}
+
+
 def vote_located_bloc(city: cityconfig.City, before_year: str,
                       indicator: str = "IFP", within_rate: float = 0.90,
                       ward_of: dict[str, str] | None = None,
@@ -546,7 +554,8 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
 
 
 def registration_series(city: cityconfig.City, cfg: Config,
-                        before: str | None = None) -> dict[str, np.ndarray]:
+                        before: str | None = None,
+                        split_bloc: dict | None = None) -> dict[str, np.ndarray]:
     """Each pool's share of the registered roll, at every election on disk.
 
     This is the series the model should lean on, and the census is the junior
@@ -573,7 +582,7 @@ def registration_series(city: cityconfig.City, cfg: Config,
         if cityconfig.CALENDAR[year].results is None:
             continue
         try:
-            counts = pool_counts(city, year, cfg)
+            counts = pool_counts(city, year, cfg, split_bloc=split_bloc)
         except SystemExit:
             continue           # that election is not on disk for this city
         total = counts.totals("registered")
@@ -1168,6 +1177,7 @@ def metro_ward_shares(code: str, year: str, ballot: str = "PR"
 
 
 def turnout_record(city: cityconfig.City, cfg: Config, before: str | None = None,
+                   split_bloc: dict | None = None,
                    kind: str = "LGE") -> dict[str, np.ndarray]:
     """Turnout per pool at every prior election of one kind.
 
@@ -1194,7 +1204,8 @@ def turnout_record(city: cityconfig.City, cfg: Config, before: str | None = None
         if before is not None and int(year) >= int(before):
             continue
         try:
-            out[year] = pool_counts(city, year, cfg).rates["turnout"]
+            out[year] = pool_counts(city, year, cfg,
+                                    split_bloc=split_bloc).rates["turnout"]
         except SystemExit:
             continue
     return out
@@ -1300,7 +1311,8 @@ def constrain_pool_turnout(pool_turnout: np.ndarray, registered: np.ndarray,
 
 
 def registered_at_target(city: cityconfig.City, target: cityconfig.Target,
-                         cfg: Config, fitted_on: str) -> np.ndarray:
+                         cfg: Config, fitted_on: str,
+                         split_bloc: dict | None = None) -> np.ndarray:
     """How many registered voters each pool holds at the target.
 
     Not a forecast. The roll is published per voting district before polling
@@ -1315,7 +1327,7 @@ def registered_at_target(city: cityconfig.City, target: cityconfig.Target,
     to have any sample at all. None of that is necessary: two of the three
     terms are known, and the third (turnout) is measured separately and drawn.
     """
-    counts = pool_counts(city, fitted_on, cfg)
+    counts = pool_counts(city, fitted_on, cfg, split_bloc=split_bloc)
     composition = counts.composition("registered")
     by_ward = {w: composition[i] for i, w in enumerate(counts.wards)}
 
@@ -1953,7 +1965,8 @@ def write_lineage_template(city: cityconfig.City, target: cityconfig.Target,
 
 
 def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
-               *, from_year: str | None = None) -> dict:
+               *, from_year: str | None = None,
+               split_bloc: dict | None = None) -> dict:
     """Build the ``scenario["pools"]`` structure from measurement.
 
     A pool is a body of voters, and a party's membership of it is the measured
@@ -1961,7 +1974,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     decided trade with each other.
     """
     year = from_year or target.previous_lge or target.year
-    fits, ctx = fit_city(city, year, cfg)
+    fits, ctx = fit_city(city, year, cfg, split_bloc=split_bloc)
     cats = list(ctx["categories"])
     n = len(cats)
 
@@ -1969,7 +1982,8 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # election the rates were fitted on. The roll is counted every cycle and
     # the census is not, so the trend comes from the roll; `before` keeps a
     # backtest from seeing its own target's registration.
-    series = registration_series(city, cfg, before=target.year)
+    series = registration_series(city, cfg, before=target.year,
+                                 split_bloc=split_bloc)
     target_shares, roll_note = projected_pool_shares(series, target.year)
     composition = {p: f.composition(target_shares) for p, f in fits.items()}
 
@@ -2060,8 +2074,10 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # this replaces was a triangular standing in for population change,
     # registration change and turnout change at once, fitted to two
     # transitions.
-    registered = registered_at_target(city, target, cfg, year)
-    record = turnout_record(city, cfg, before=target.year)
+    registered = registered_at_target(city, target, cfg, year,
+                                      split_bloc=split_bloc)
+    record = turnout_record(city, cfg, before=target.year,
+                            split_bloc=split_bloc)
     turnout = turnout_band(record, n)
     limits = turnout_limits(record, registered)
 
@@ -2153,7 +2169,22 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             "identified": sorted(p for p in members
                                  if p in fits and fits[p].identified()[g]),
         }
+    # A spec carrying a vote-located bloc says so IN THE SPEC, not only in the
+    # filename it happened to be written to. Anything downstream that loads a
+    # dict can then refuse it, or label it, without having to know where it
+    # came from — and a spec that quietly reached the published forecast would
+    # still be identifiable after the fact.
+    marker = {}
+    if split_bloc:
+        marker["simulation_only"] = (
+            f"Carries the {split_bloc.get('name')} pool, located by the "
+            f"{split_bloc.get('indicator')}'s own ward geography rather than "
+            f"by the census. Its LOCATION is measured; its SIZE rests on "
+            f"within_rate={split_bloc.get('within_rate')}, a judgement. For "
+            f"the reader simulation only — the published forecast reads "
+            f"pools_{target.year}.json.")
     return {"pools": out, "fitted_on": year, "target": target.year,
+            **marker,
             "turnout_limits": limits,
             "seeds": {p: v for p, v in seeds.items() if abs(v) > 1e-9},
             "first_local_election": first_lge,
@@ -2253,6 +2284,26 @@ def main() -> None:
     ap.add_argument("--from-year", default=None,
                     help="election to fit the vectors on (default: the target's "
                          "preceding LGE)")
+    # The reader simulation may carry structure the published forecast does
+    # not. The IFP-located bloc is the first such case: its LOCATION is well
+    # evidenced (the IFP's ward geography is stable at +0.985 across 2016-2021
+    # and predicts MK's 2024 arrival at +0.65 with African share removed) and
+    # its SIZE rests on a judgement, `vote_located_bloc`'s `within_rate` —
+    # which the fit itself flags, reporting the bloc's registration at 112% of
+    # the level above it. Good enough to let a reader explore; not good enough
+    # to publish a seat count from.
+    #
+    # So it emits to a DIFFERENT FILE. Not a flag inside the same spec, not a
+    # config default someone can flip by accident: the published path reads
+    # pools_{year}.json and this writes pools_{year}_simulation.json, so the
+    # forecast cannot pick it up however the two are invoked. An
+    # un-namespaced write has reached a live forecast in this repository
+    # before, and the fix then was the same one — separate the paths, do not
+    # rely on remembering.
+    ap.add_argument("--simulation", action="store_true",
+                    help="emit the reader-simulation spec, which carries the "
+                         "vote-located bloc, to pools_{target}_simulation.json. "
+                         "NEVER read by the published forecast.")
     args = ap.parse_args()
 
     cfg = load_config()
@@ -2272,11 +2323,17 @@ def main() -> None:
 
     if args.emit:
         import json
-        spec = emit_pools(city, target, cfg, from_year=args.from_year)
-        out = city.processed / f"pools_{target.year}.json"
+        bloc = SIMULATION_BLOC if args.simulation else None
+        spec = emit_pools(city, target, cfg, from_year=args.from_year,
+                          split_bloc=bloc)
+        suffix = "_simulation" if args.simulation else ""
+        out = city.processed / f"pools_{target.year}{suffix}.json"
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(spec, indent=2, sort_keys=True))
         print(f"{city.name} {target.year}: {len(spec['pools'])} pools -> {out}")
+        if bloc:
+            print(f"  SIMULATION SPEC — not the published forecast. "
+                  f"{spec['simulation_only']}")
         for name, cfgp in spec["pools"].items():
             top = sorted(cfgp["members"].items(), key=lambda kv: -kv[1])[:4]
             share = ", ".join(f"{p} {w:.0%}" for p, w in top)
