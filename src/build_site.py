@@ -139,7 +139,11 @@ NAV_ITEMS = [
     ("methodology", "methodology"),
     ("review", "review"),
     ("sources", "sources"),
-    ("plan", "plan"),
+    # "plan" was removed from DOCS when the plan became Appendix A of
+    # MODEL-LOG.md, but the nav link stayed. Every page on the site therefore
+    # linked to site/plan.html — a file no build touches any more, describing
+    # the two-bloc engine that was deleted in 87806a7. A dead link to a live
+    # page is one thing; a live link to a dead model is another.
     ("https://github.com/Psi-am-i/jhb-election-model", "source-code"),
 ]
 
