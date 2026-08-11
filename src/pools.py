@@ -1471,12 +1471,32 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
     # entrant. Measuring yield PER WARD CONTESTED and multiplying by the new
     # party's own reach is what separates ActionSA, on 99% of wards, from a
     # party on 5% of them.
-    yields = [share / reach for share, reach in record if reach > 0.01]
-    if not yields:
-        yields = [share for share, _ in record]
-    lo_e, mid_e, hi_e = (float(np.quantile(yields, 0.10)),
-                         float(np.median(yields)),
-                         float(np.quantile(yields, 0.95)))
+    # CONTESTATION MOVES YOU UP THE BAND. Measured across eight metros: an
+    # arrival contesting under a tenth of the wards sits at the 23rd percentile
+    # of all arrivals, one contesting over 90% at the 86th. Correlation on logs
+    # +0.44. Every wide-contesting arrival that mattered is in that top group —
+    # ActionSA 18.1% in Johannesburg, the EFF 11.6/11.1/10.9% across three
+    # metros, GOOD 3.7% in Cape Town.
+    #
+    # But it does not separate a serious party from a shell. Of the 45 arrivals
+    # on more than 90% of wards, only about fourteen cleared 1%; the rest are
+    # vanity registrations that field candidates everywhere and win nothing,
+    # which is why that group's median is only 0.49%. So the default places a
+    # party by its reach and no further, and the judgement layer is where
+    # "this one is real" gets said.
+    #
+    # Note what is NOT here: a declining party. COPE contested 96-100% of wards
+    # in several metros while falling 1.11% to 0.21%, and never appears in this
+    # record at all, because it always held a prior share. Contestation predicts
+    # ARRIVAL, not survival.
+    all_shares = [s for s, _ in record]
+
+    def comparators(reach: float | None) -> list[float]:
+        """Arrivals that contested about as much of the city as this one."""
+        if reach is None:
+            return all_shares
+        near = [s for s, r in record if abs(r - reach) < 0.25]
+        return near if len(near) >= 8 else all_shares
     f_lo, f_mid, f_hi = ((min(splinter_fractions),
                           float(np.median(splinter_fractions)),
                           max(splinter_fractions)) if splinter_fractions
@@ -1510,21 +1530,42 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                    f"the same proportion; none is named.")
         else:
             vec = np.full(n_pools, 1.0 / n_pools)
-            reach_used = reach if reach is not None else 1.0
-            size = mid_e * reach_used
+            reach_used = reach if reach is not None else 0.5
+            # Reach chooses the PLACE in the band, not a multiplier on it: a
+            # party on 99% of wards is placed near the top of what arrivals
+            # like it have managed, one on 10% near the bottom.
+            peers = comparators(reach)
+            place = float(np.clip(reach_used, 0.05, 0.95))
+            size = float(np.quantile(peers, place))
+            lo_e = float(np.quantile(peers, 0.25))
+            hi_e = float(np.quantile(peers, 0.95))
+            # A judgement may say this one is unlike its comparators. Mashaba
+            # had been mayor of this city and was widely liked; nothing
+            # measurable said so, and doubling the default would have put
+            # ActionSA at 18.4% against an actual 18.12%.
+            size *= float(declared.get("overperform", 1.0))
             capture = _capture_from_share(vec, size, pool_size)
-            why = (f"entrant: even share of every pool. Arrivals yield a "
-                   f"median {mid_e:.2%} of the city per ward contested "
-                   f"(band {lo_e:.2%}-{hi_e:.2%})"
-                   + (f"; this one contests {reach:.0%} of wards, so {size:.2%}"
-                      if reach is not None else "")
+            mult = float(declared.get("overperform", 1.0))
+            why = (f"entrant: even share of every pool. Placed at the "
+                   f"{place:.0%} mark of comparable arrivals "
+                   f"({lo_e:.2%}-{hi_e:.2%}) because it contests "
+                   f"{reach_used:.0%} of wards, giving {size:.2%}"
+                   + (f" after a x{mult:g} judgement" if mult != 1.0 else "")
                    + ". THE EVEN SPREAD IS A PLACEHOLDER: declare which pools "
                      "it pulls from and what support you expect.")
+        centre = max(size, 1e-9) if not parent else 1.0
         rules[party] = {"capture": capture,
                         "band": [f_lo / f_mid, 1.0, f_hi / f_mid] if parent
-                                else [lo_e / mid_e, 1.0, hi_e / mid_e]}
+                                else [lo_e / centre, 1.0, hi_e / centre]}
         notes[party] = why
     return rules, notes
+
+
+def _reach_of(contestation) -> float:
+    """The reach this arrival has, when one is known."""
+    if isinstance(contestation, (int, float)):
+        return float(contestation)
+    return 1.0
 
 
 def _capture_from_share(weights: np.ndarray, share: float,
