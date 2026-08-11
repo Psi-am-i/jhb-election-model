@@ -1478,8 +1478,59 @@ def dirichlet_alpha(splits: list[np.ndarray], min_share: float = 0.01) -> float:
     return float(np.clip(np.average(est, weights=m[usable]), 1.0, 200.0))
 
 
-def entrant_record(transitions, codes=METRO_CODES) -> list[float]:
-    """Every share won by a party that was not there at the previous election.
+# Parties that arrived as a SPLIT rather than from nothing: a known figure
+# left a known party and took a share of it with them. Declared here with
+# their evidence, exactly as `splinter_record`'s pairs are, because which
+# party someone split from is a judgement and cannot be read off a result
+# file.
+#
+# They are removed from the entrant record because they are not entrants and
+# because leaving them in makes it describe nobody. Measured across eight
+# metros before 2021, the arrivals contesting more than 90% of wards are: the
+# EFF eight times (3.12% to 11.64%), the AIC once at 1.51% — and twelve
+# vanity registrations, none above 0.43%, of which the largest is the
+# Democratic Liberal Congress. The 95th percentile of that mixture is 11.10%,
+# and it IS the EFF. Sizing the Nationalist Coloured Party of South Africa by
+# it is how Cape Town came to assign 155% of its electorate to newcomers.
+# ---------------------------------------------------------------------------
+# THE RULE, because three places used to answer this question and disagree.
+#
+# A party is a SPLIT if a NAMED person left a NAMED party and took a share of
+# its vote with them. That claim needs a person, a party and a date, and it is
+# a judgement — no result file records it. Everything else is an ENTRANT.
+#
+# The two are sized by different machinery and it is not a matter of degree:
+#   split   -> a FRACTION OF ITS PARENT (`splinter_record`: COPE took 0.140 of
+#              the ANC, the EFF 0.162, MK 0.246) and it inherits the parent's
+#              pool vector, because that is what splitting means.
+#   entrant -> the TYPICAL result of arrivals that contested as much of a city,
+#              spread evenly over the pools as a stated placeholder.
+#
+# This dict is now the single source of truth. It was three: this list, the
+# `pairs` in `splinter_record`, and a `parent` field in each city's judgement
+# file — and they disagreed. ActionSA was in the first, absent from the
+# second, and blank in the third, so it was removed from the entrant record
+# for being a split AND sized as an entrant for having no parent, arriving at
+# 0.1% against an actual 18.12%. `splinter_record`'s pairs stay separate
+# because they answer a different question (how much a split took, measured
+# off two national elections) and not every split has a pair to measure.
+SPLIT_ARRIVALS = {
+    "EFF":  {"parent": "ANC",
+             "why": "Malema and the ANC Youth League leadership, expelled "
+                    "from the ANC 2012-13"},
+    "COPE": {"parent": "ANC",
+             "why": "Lekota and Shilowa, after the ANC's 2008 Polokwane split"},
+    "MK":   {"parent": "ANC",
+             "why": "Zuma, a former ANC president, 2023"},
+    "ASA":  {"parent": "DA",
+             "why": "Mashaba, the DA's own mayor of Johannesburg, who "
+                    "resigned the party in October 2019"},
+}
+
+
+def entrant_record(transitions, codes=METRO_CODES,
+                   exclude=frozenset(SPLIT_ARRIVALS)) -> list[float]:
+    """Every share won by a party that arrived FROM NOTHING.
 
     The record, not a judgement. A party arriving from nothing is the single
     largest error the model makes — ActionSA won 44 of Johannesburg's 270 seats
@@ -1487,6 +1538,15 @@ def entrant_record(transitions, codes=METRO_CODES) -> list[float]:
     baseline and multiplicative growth cannot lift a party off zero. The same
     happened to the PA's 8 seats. Between them that is the whole of the model's
     112-seat absolute error at that target.
+
+    **A split is not an entrant and is excluded.** Both are absent from the
+    previous result, so the arithmetic cannot tell them apart, but nothing
+    else about them is alike: a split starts with a leader, a machine and a
+    share of a known party's vote, and is sized by `splinter_record` as a
+    fraction of that parent. An entrant starts with a name on a ballot. Mixing
+    them gave one distribution whose upper half is the EFF and whose lower
+    half is everybody else, and then handed the EFF's number to everybody
+    else.
     """
     seen: list[float] = []
     for code in codes:
@@ -1496,6 +1556,8 @@ def entrant_record(transitions, codes=METRO_CODES) -> list[float]:
                 continue
             reach = _ward_reach(code, after)
             for party, share in b.items():
+                if party in exclude:
+                    continue
                 if a.get(party, 0.0) <= 1e-4 < share:
                     seen.append((share, reach.get(party, 1.0)))
     return sorted(seen)
@@ -1704,9 +1766,24 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
     notes: dict[str, str] = {}
     for party in sorted(newcomers):
         declared = lineage.get(party, {})
+        # The judgement file wins if it says anything; otherwise a party on
+        # the declared split list brings its own parent. Before this, a split
+        # whose city had not filled in a lineage file was silently demoted to
+        # an entrant and sized as one.
         parent = (declared.get("parent") or "").strip().upper()
+        if not parent and party in SPLIT_ARRIVALS:
+            parent = SPLIT_ARRIVALS[party]["parent"]
         weights = declared.get("weights")
         reach = (contestation or {}).get(party)
+
+        # ONE decision about which machinery sizes this party, used by the
+        # branch AND by the band below. They used to be decided separately —
+        # the branch on `parent and parent in index and f_mid is not None`,
+        # the band on `parent` alone — so a declared split in a city with no
+        # splinter record of its own took the entrant branch and then divided
+        # None by None building its band. Tshwane, Ekurhuleni and eThekwini
+        # all hit it the moment ActionSA got a parent.
+        as_split = bool(parent and parent in index and f_mid is not None)
 
         if weights:
             vec = np.array([float(w) for w in weights], dtype=float)
@@ -1714,11 +1791,19 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             size = float(declared.get("support", default_support))
             capture = _capture_from_share(vec, size, pool_size)
             why = "pools and support declared in judgements/"
-        elif parent and parent in index and f_mid is not None:
+        elif as_split:
             # The parent's own rates ARE its pool weights. Capturing f of each
             # is what "inherits the parent's split" means, and the pool
             # renormalisation does the rest.
-            capture = {categories[g]: float(f_mid * rates[g, index[parent]])
+            # Keyed by pool INDEX, like `_capture_from_share`, because that is
+            # what emit_pools consumes: `vec[int(g)] = r * registered[int(g)]`.
+            # This branch keyed by pool NAME and therefore crashed with
+            # `invalid literal for int() with base 10: 'Black African'` the
+            # moment any party was routed to it. Which is why every lineage
+            # file in the repository has `parent = ""`: declaring a parent —
+            # the whole point of the file — took the model down, so nobody
+            # ever did, so the splinter path was never exercised at all.
+            capture = {g: float(f_mid * rates[g, index[parent]])
                        for g in range(n_pools) if rates[g, index[parent]] > 0}
             why = (f"splinter: takes {f_mid:.1%} of {parent}'s share of each "
                    f"pool it draws on, band {f_lo:.1%}-{f_hi:.1%} from the "
@@ -1727,12 +1812,27 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         else:
             vec = np.full(n_pools, 1.0 / n_pools)
             reach_used = reach if reach is not None else 0.5
-            # Reach chooses the PLACE in the band, not a multiplier on it: a
-            # party on 99% of wards is placed near the top of what arrivals
-            # like it have managed, one on 10% near the bottom.
+            # REACH CHOOSES THE COMPARATORS. IT DOES NOT CHOOSE THE PLACE.
+            #
+            # It used to do both: `place = clip(reach, 0.05, 0.95)` was passed
+            # straight to `np.quantile`, so a party fielding candidates
+            # everywhere was handed the 95th percentile of its band. On the
+            # pre-2021 record that percentile is 11.10% and the 12 arrivals
+            # that earned it are 8 EFF results plus 4 others; the median of
+            # the same band is 0.28%. Every shell party that managed to file
+            # nomination papers in every ward — and filing is cheap — was
+            # therefore modelled as the EFF. Cape Town seeded 155% of its
+            # electorate that way, eThekwini 136%.
+            #
+            # Contesting widely is a precondition for winning widely and not
+            # evidence of it. So the central estimate is what a party like
+            # this TYPICALLY manages, the band still reaches up to what the
+            # best of them managed, and a party that is genuinely unlike its
+            # comparators is raised by the judgement layer below — which is
+            # where "this one is led by a former mayor" belongs, because
+            # nothing in a result file says it.
             peers = comparators(reach)
-            place = float(np.clip(reach_used, 0.05, 0.95))
-            size = float(np.quantile(peers, place))
+            size = float(np.median(peers))
             lo_e = float(np.quantile(peers, 0.25))
             hi_e = float(np.quantile(peers, 0.95))
             # A judgement may say this one is unlike its comparators. Mashaba
@@ -1742,16 +1842,16 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             size *= float(declared.get("overperform", 1.0))
             capture = _capture_from_share(vec, size, pool_size)
             mult = float(declared.get("overperform", 1.0))
-            why = (f"entrant: even share of every pool. Placed at the "
-                   f"{place:.0%} mark of comparable arrivals "
-                   f"({lo_e:.2%}-{hi_e:.2%}) because it contests "
-                   f"{reach_used:.0%} of wards, giving {size:.2%}"
+            why = (f"entrant from nothing: even share of every pool. Sized at "
+                   f"the TYPICAL result for the {len(peers)} arrivals that "
+                   f"contested about as much of a city ({reach_used:.0%} of "
+                   f"wards), band {lo_e:.2%}-{hi_e:.2%}, giving {size:.2%}"
                    + (f" after a x{mult:g} judgement" if mult != 1.0 else "")
                    + ". THE EVEN SPREAD IS A PLACEHOLDER: declare which pools "
                      "it pulls from and what support you expect.")
-        centre = max(size, 1e-9) if not parent else 1.0
+        centre = max(size, 1e-9) if not as_split else 1.0
         rules[party] = {"capture": capture,
-                        "band": [f_lo / f_mid, 1.0, f_hi / f_mid] if parent
+                        "band": [f_lo / f_mid, 1.0, f_hi / f_mid] if as_split
                                 else [lo_e / centre, 1.0, hi_e / centre]}
         notes[party] = why
     return rules, notes
