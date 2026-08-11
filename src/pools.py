@@ -1524,26 +1524,67 @@ class Split:
                       ActionSA never contested a national election before its
                       first local one, so it contributes no measurement and
                       is sized from the ones that do.
+    ``home``          the metro code where the leader's own following is, or
+                      None. **This is the single largest thing about a split
+                      and the model was blind to it.**
     ``why``           the person, the party and the date. This is the whole
                       evidence for the classification and it is required.
+
+    HOW MUCH A SPLIT TAKES DEPENDS ALMOST ENTIRELY ON WHETHER IT IS AT HOME.
+    Measured as a fraction of the parent's previous vote, in each metro:
+
+        split          leader's city   at home   median elsewhere   ratio
+        GOOD 2019      Cape Town         0.056        0.006          x8.7
+        ActionSA 2021  Johannesburg      0.611        0.103          x5.9
+        MK 2024        eThekwini         0.885        0.024         x36.7
+
+    Three splits, three cities, the same direction every time. It is not the
+    leader's fame: Patricia de Lille was at least as well known nationally in
+    2019 as Julius Malema was in 2014, and GOOD took 0.9% of the DA's vote in
+    Johannesburg against 5.6% in Cape Town. What travels is not a reputation,
+    it is a constituency.
+
+    WHY THIS MATTERED. The record used to size every split — COPE 0.140, EFF
+    0.162, MK 0.246 — is measured in JOHANNESBURG, and none of those three
+    leaders was based there. They are AWAY figures, and they were being
+    applied to ActionSA, whose leader had been the mayor of the city it was
+    contesting. The home cases run 0.056 to 0.885; the away cases sit around
+    0.02 to 0.25. Sizing a home split from away numbers is why ActionSA came
+    out at 5.08% against an actual 16.1%.
     """
 
     parent: str
     measured_from: tuple[str, str] | None
     why: str
+    home: str | None = None
 
+
+# How many home-city splits must be on record before they are used to size
+# one. Two is the smallest number that is an average rather than an
+# anecdote; at target 2021 there is one and the model says so.
+MIN_HOME_SPLITS = 2
 
 SPLITS: dict[str, Split] = {
     "COPE": Split("ANC", ("2004", "2009"),
-                  "Lekota and Shilowa, after the ANC's 2008 Polokwane split"),
+                  "Lekota and Shilowa, after the ANC's 2008 Polokwane split",
+                  home=None),          # national figures, no one metro base
     "EFF":  Split("ANC", ("2009", "2014"),
                   "Malema and the ANC Youth League leadership, expelled from "
-                  "the ANC 2012-13"),
+                  "the ANC 2012-13",
+                  home=None),          # Limpopo roots, no metro base
+    "NFP":  Split("IFP", ("2009", "2014"),
+                  "Magwaza-Msibi, the IFP's National Chairperson, 2011",
+                  home="ETH"),         # KZN
+    "GOOD": Split("DA", ("2014", "2019"),
+                  "De Lille, the DA's own mayor of Cape Town, who left in 2018",
+                  home="CPT"),
     "MK":   Split("ANC", ("2019", "2024"),
-                  "Zuma, a former ANC president, 2023"),
+                  "Zuma, a former State President, 2023",
+                  home="ETH"),         # KZN: 0.885 there against 0.246 in JHB
     "ASA":  Split("DA", None,
                   "Mashaba, the DA's own mayor of Johannesburg, who resigned "
-                  "the party in October 2019"),
+                  "the party in October 2019",
+                  home="JHB"),
 }
 
 
@@ -1647,7 +1688,8 @@ def _ward_reach(code: str, year: str) -> dict[str, float]:
 
 
 def splinter_record(city: cityconfig.City, before_year: str | None = None,
-                    splits: dict | None = None) -> list[float]:
+                    splits: dict | None = None,
+                    at_home: bool = False) -> list[float]:
     """What share of its parent's vote each known splinter took, measured.
 
     The three splits this city has on record, each as the splinter's first
@@ -1678,13 +1720,44 @@ def splinter_record(city: cityconfig.City, before_year: str | None = None,
         parent, (before, after) = split.parent, split.measured_from
         if before_year and int(after) >= int(before_year):
             continue
-        a, b = metro_citywide(city.code, before), metro_citywide(city.code, after)
+        # MEASURE EACH SPLIT WHERE ITS LEADER ACTUALLY WAS. `at_home` asks for
+        # the fractions a split takes in its leader's OWN city; the default
+        # asks for what it takes in a city where the leader has no following.
+        # They are different quantities by an order of magnitude (Split's
+        # docstring has the three cases), and reading one as the other is why
+        # a home-city split was being sized from away numbers.
+        code = split.home if at_home else city.code
+        if code is None or (at_home and split.home is None):
+            continue          # no home on record; it contributes to neither
+        if not at_home and split.home == city.code:
+            continue          # this city IS its home; not an away observation
+        a, b = metro_citywide(code, before), metro_citywide(code, after)
         if not a or not b:
-            a = a or _npe_citywide(city, before)
-            b = b or _npe_citywide(city, after)
+            a = a or _npe_citywide_for(code, before)
+            b = b or _npe_citywide_for(code, after)
         if a.get(parent, 0) > 0 and b.get(splinter, 0) > 0:
             out.append(b[splinter] / a[parent])
     return sorted(out)
+
+
+def _npe_citywide_for(code: str, year: str) -> dict[str, float]:
+    """One metro's NPE shares by IEC code, for reading a split where it lived."""
+    template = cityconfig.CALENDAR[year].results
+    if not template:
+        return {}
+    path = Path(str(template).replace("{CODE}", code))
+    if not path.exists():
+        path = Path("data/raw/elections") / path.name
+    if not path.exists():
+        return {}
+    counts: dict[str, int] = defaultdict(int)
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            if row.get("BallotType") in (None, "", "PR"):
+                counts[P.canonical(row["sPartyName"])] += int(
+                    float(row.get("Party_Votes") or 0))
+    total = sum(counts.values())
+    return {k: v / total for k, v in counts.items()} if total else {}
 
 
 def _npe_citywide(city: cityconfig.City, year: str) -> dict[str, float]:
@@ -1731,6 +1804,8 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                   record: list[tuple[float, float]],
                   splinter_fractions: list[float], pool_size: np.ndarray,
                   contestation: dict[str, float] | None = None,
+                  splinter_home: list[float] | None = None,
+                  city_code: str | None = None,
                   ) -> tuple[dict[str, dict], dict[str, str]]:
     """How a party that was not here last time takes its votes.
 
@@ -1813,11 +1888,33 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
     # borrowing one for the other is a unit error, not a conservative default.
     # So a splinter with no record is sized as what it is without one — an
     # arrival — and the note says so.
-    f_lo = f_mid = f_hi = None
-    if splinter_fractions:
-        f_lo, f_mid, f_hi = (min(splinter_fractions),
-                             float(np.median(splinter_fractions)),
-                             max(splinter_fractions))
+    def band_for(party: str):
+        """The splinter record that describes THIS party in THIS city.
+
+        A split in its leader's own city is a different animal from the same
+        split anywhere else — 0.611 against 0.103 for ActionSA, 0.885 against
+        0.024 for MK — so it is sized from the home record when it is at home
+        and the away record when it is not. Returns (lo, mid, hi, which).
+        """
+        at_home = (city_code is not None
+                   and (SPLITS.get(party).home if party in SPLITS else None)
+                   == city_code)
+        record = (splinter_home or []) if at_home else splinter_fractions
+        label = "home" if at_home else "away"
+        # A HOME RECORD OF ONE IS NOT A RECORD. The home/away distinction is
+        # real and large — see Split — but before 2021 exactly one home split
+        # had happened anywhere, GOOD in Cape Town, and it flopped at 0.056.
+        # Sizing ActionSA from it alone gave 1.87% against an actual 16.1% and
+        # cost Johannesburg 18 seats of MAE, worse than the blended record it
+        # replaced. So the split is applied only once there is something to
+        # average, and until then the run says which record it fell back to.
+        if at_home and len(record) < MIN_HOME_SPLITS:
+            record = splinter_fractions
+            label = (f"all splits — only {len(splinter_home or [])} home "
+                     f"observation(s), too few to size from")
+        if not record:
+            return None, None, None, "none"
+        return (min(record), float(np.median(record)), max(record), label)
     default_support = float(np.median(all_shares)) if all_shares else 0.0
     index = {p: i for i, p in enumerate(universe)}
     n_pools = len(categories)
@@ -1841,6 +1938,7 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         # splinter record of its own took the entrant branch and then divided
         # None by None building its band. Tshwane, Ekurhuleni and eThekwini
         # all hit it the moment ActionSA got a parent.
+        f_lo, f_mid, f_hi, f_kind = band_for(party)
         as_split = bool(parent and parent in index and f_mid is not None)
 
         if weights:
@@ -1865,9 +1963,9 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                        for g in range(n_pools) if rates[g, index[parent]] > 0}
             why = (f"SPLIT from {parent} ({lineage_why}): takes {f_mid:.1%} "
                    f"of {parent}'s share of each pool it draws on, band "
-                   f"{f_lo:.1%}-{f_hi:.1%} from the measured record. Every "
-                   f"party in those pools gives up the same proportion; none "
-                   f"is named.")
+                   f"{f_lo:.1%}-{f_hi:.1%} from the {f_kind} splinter record. "
+                   f"Every party in those pools gives up the same proportion; "
+                   f"none is named.")
         else:
             vec = np.full(n_pools, 1.0 / n_pools)
             reach_used = reach if reach is not None else 0.5
@@ -2263,7 +2361,9 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     reach = _ward_reach(city.code, target.year) or _ward_reach(city.code, year)
     arrivals, seed_notes = arrival_rules(
         newcomers, lineage, rates_matrix, universe_fitted, cats, record,
-        splinter_record(city, target.year), registered, contestation=reach)
+        splinter_record(city, target.year), registered, contestation=reach,
+        splinter_home=splinter_record(city, target.year, at_home=True),
+        city_code=city.code)
     # An arrival's composition follows from where it captures, so it does not
     # need a separate vector: the pools it takes from ARE its pool weights.
     for party, rule in arrivals.items():
