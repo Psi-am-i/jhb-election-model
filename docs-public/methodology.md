@@ -46,12 +46,12 @@ everyone else.
 
 Two consequences shape everything on this site. First, the council is always
 close to proportional, so a fragmented vote produces a fragmented council.
-Second, the excessive-seats clause — and our forecast finds it is now the
-ANC's normal condition: a citywide vote in the mid-twenties, but stronghold
-wards that still win. Its ward count becomes an unbreakable floor, its list
-seats go to zero, and the squeeze lands on every other party's list seats —
-inside a council fixed at {{council_size}}, with the majority fixed at
-{{majority}}.
+Second, the excessive-seats clause, which the model expects to catch the ANC
+in {{p_excessive_anc}} of simulations: a citywide vote in the mid-twenties,
+but stronghold wards that still win. Where it fires, the party's ward count
+becomes an unbreakable floor, its list seats go to zero, and the squeeze lands
+on every other party's list seats — inside a council fixed at
+{{council_size}}, with the majority fixed at {{majority}}.
 
 ## The model, step by step
 
@@ -69,8 +69,17 @@ on.
 ### 2. Sort those voters into pools
 
 A **pool** is a group of voters who are choosing between the same parties —
-people with a shared shortlist. Johannesburg has four: Black African,
-Coloured, Indian/Asian and White.
+people with a shared shortlist.
+
+**Where the categories come from.** Johannesburg currently has four pools, and
+they are not our invention: they are Statistics South Africa's own population
+group categories, in Stats SA's own words — *Black African, Coloured,
+Indian/Asian, White* — taken per ward from the Census 2022 Ward Statistical
+Product. We use their terms rather than substituting our own so that anyone
+can check the input against the published source. A fifth Stats SA category,
+"Other", is not carried: it is about half a percent of the population, no
+party's rate in it could be identified, and inventing a constituency for it
+would assert something the data does not support.
 
 That is an uncomfortable thing to model and we should say why we do it. It is
 not a claim that people vote according to their race, or that anyone must. It
@@ -81,6 +90,18 @@ themselves behave as though this were true. Al Jama-ah takes about a fifth of
 one pool and essentially nothing anywhere else. The Patriotic Alliance takes
 about two-fifths of another and nothing at all in the other three. Those are
 measurements, not opinions.
+
+**These categories are too coarse, and we intend to replace them.** Population
+group is the only ward-level characteristic Stats SA publishes, and it plainly
+does not describe how voters actually group: the ANC and the IFP both draw
+overwhelmingly from the same population group and stand on entirely separate
+ground, which is a linguistic and regional division rather than a racial one.
+The right input is **home language by ward**, which Stats SA holds but does not
+publish in the ward product; we have requested it. Income, employment and
+dwelling type would help too, and are also request-only. Until those arrive we
+carry one extra pool that the census cannot see, identified instead from a
+party's own geography — the constituency the IFP stands on — and we label it
+for what was measured rather than what we suspect it is.
 
 **How big is each pool?** Each ward's registered voters, split by that ward's
 own composition, added up across all 135 wards. The census tells us the
