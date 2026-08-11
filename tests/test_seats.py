@@ -142,11 +142,26 @@ def check_city_year(code: str, year: int, has_votes: bool, has_official: bool) -
     # accounted for through C and D instead.
     combined = eligible_parties(ward, pr)
     wins = ward_winners(path)
-    independent_wards = wins.get(INDEPENDENT, 0)
+    inferred_independent_wards = wins.get(INDEPENDENT, 0)
     no_pr_list_wards = sum(
         count for party, count in wins.items()
         if party not in combined and party != INDEPENDENT
     )
+
+    # C IS READ FROM THE IEC, NOT INFERRED. It cannot be inferred: the IEC
+    # merges every independent candidate in a voting district into ONE row
+    # named "INDEPENDENT", with no candidate column anywhere in the published
+    # data, so a ward with several independents shows their SUM. Buffalo City
+    # ward 29200044 reads INDEPENDENT 1,899 against the ANC's 1,714 while the
+    # IEC records C = 0 for that municipality: several stood, the largest
+    # polled under 1,714, the ANC won the ward. The bloc total is an upper
+    # bound on any single candidate and nothing in the data narrows it.
+    #
+    # So this test asks the question that CAN be answered — does the allocator
+    # reproduce Schedule 1 given the correct inputs — and the inferred figure
+    # is checked below as the bound it is, rather than as an answer.
+    # See DATA-QUALITY.md item 12 and MODEL-LOG O13.
+    independent_wards = official.get("independents", inferred_independent_wards)
 
     result = allocate(
         combined,
@@ -177,11 +192,16 @@ def check_city_year(code: str, year: int, has_votes: bool, has_official: bool) -
     # handed total_seats=official["seats"] and always distributes exactly
     # total_seats - C - D, so that identity holds whatever C and D are.)
     if "independents" in official:
-        assert independent_wards == official["independents"], (
-            f"{code} {year}: counted {independent_wards} ward(s) won by an "
-            f"independent, the IEC published C = {official['independents']}. "
-            f"C comes out of the seat pool before the quota is struck, so "
-            f"getting it wrong moves the quota and every party's entitlement.")
+        # Merging can only ever ADD apparent wins, never remove them, so the
+        # inferred count is an upper bound. If it ever comes out BELOW the
+        # published C the explanation above is wrong and this stops being a
+        # data limit and becomes a bug.
+        assert inferred_independent_wards >= official["independents"], (
+            f"{code} {year}: inferred {inferred_independent_wards} independent "
+            f"ward win(s) but the IEC published C = {official['independents']}. "
+            f"Merged independents can only inflate the count, so a figure "
+            f"below the published one means the ward-winner rule is wrong "
+            f"rather than merely imprecise.")
     if "no_list" in official:
         assert no_pr_list_wards == official["no_list"], (
             f"{code} {year}: counted {no_pr_list_wards} ward(s) won by a party "

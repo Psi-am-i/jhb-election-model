@@ -463,20 +463,42 @@ def actual_result(path: Path, council: int, year: int | None = None,
     winners = {w: max(counts, key=counts.get) for w, counts in per_ward.items()}
 
     # C and D: seats that leave the entitlement pool with the councillor.
+    year = year or _year_from(path)
+    code = code or cityconfig.active().code
+    official = official_seats.read(code, int(year))
+
     wins = Counter(winners.values())
     outside = {party: n for party, n in wins.items()
                if party == "IND" or party not in combined}
-    independent_wards = outside.get("IND", 0)
     no_pr_list_wards = sum(n for party, n in outside.items() if party != "IND")
+
+    # C IS TAKEN FROM THE IEC WHEREVER THE REPORT EXISTS, because it cannot be
+    # counted from the published votes. Every independent in a voting district
+    # arrives merged into one row named IND, so a ward contested by several of
+    # them shows their SUM: Buffalo City ward 29200044 reads IND 1,899 against
+    # the ANC's 1,714, while the IEC records C = 0 for that municipality — the
+    # largest single independent polled under 1,714 and the ANC won the ward.
+    # Counting the bloc as a winner deducted a seat that was never deducted,
+    # and since C leaves the pool BEFORE the quota is struck it moved the
+    # quota and every party's entitlement with it. See DATA-QUALITY.md item 12.
+    #
+    # The inferred figure is kept and reported: it is an upper bound, and the
+    # gap between it and C is the size of the problem in that city.
+    inferred_independent_wards = outside.get("IND", 0)
+    independent_wards = (official["independents"]
+                         if official and "independents" in official
+                         else inferred_independent_wards)
+    if independent_wards != inferred_independent_wards:
+        print(f"  ! independent ward wins: counted {inferred_independent_wards} "
+              f"from merged IND rows, using the IEC's published C = "
+              f"{independent_wards}. They cannot be told apart in the data; "
+              f"the counted figure is an upper bound (DATA-QUALITY.md item 12).")
+        outside["IND"] = independent_wards
 
     seats = allocate(combined, total_seats=council,
                      independent_wards=independent_wards,
                      no_pr_list_wards=no_pr_list_wards).seats
     seats = {p: s for p, s in seats.items() if s > 0}
-
-    year = year or _year_from(path)
-    code = code or cityconfig.active().code
-    official = official_seats.read(code, int(year))
     if official is None:
         print(f"  !! no Seat Calculation Detail for {code} {year}: the "
               f"reconstructed council is UNVERIFIED. Fetch it with "

@@ -272,6 +272,72 @@ the violation, or call `pools.pool_counts(city, "2021", cfg)` and read
 
 ---
 
+---
+
+## 12. Every independent candidate is published under one name
+
+**Where:** every IEC municipal product we hold — the VD-level party results
+CSV, the Detailed Results PDF and the Seat Calculation Detail — for every
+metro and every year from 2011 to 2021.
+
+Independent candidates are not identified. All of them in a voting district
+appear as a single row named `INDEPENDENT`, and no candidate column exists at
+that level in any published file: Buffalo City 2021 has exactly one such row
+per (ward, voting district, ballot), 89 of 89 cases. The Detailed Results PDF
+carries the same single merged line for the whole municipality (`INDEPENDENT
+8,383 ward votes, no PR votes`), and `fetch_iec.py`'s five report types are
+all the IEC publishes for a municipal election.
+
+**Why it matters:** a ward contested by several independents shows their
+*sum*, so the bloc can top the poll when no individual did. Buffalo City ward
+29200044:
+
+| | ward votes |
+|---|---|
+| INDEPENDENT (merged) | 1,899 |
+| African National Congress | 1,714 |
+| Democratic Alliance | 735 |
+
+The IEC records **C = 0** independent ward councillors for Buffalo City 2021.
+Both facts are true: several independents stood, their votes are merged into
+that 1,899, the largest polled under 1,714, and the ANC won the ward.
+
+**The effect is not confined to that ward.** C leaves the seat pool *before*
+the quota is struck — Schedule 1 gives `Q = (A / (B − C − D)) + 1` — so one
+phantom ward win removes a seat from the divisor and moves the quota, and with
+it every party's entitlement:
+
+| | inferred C | published C | seats available | our quota | IEC quota |
+|---|---|---|---|---|---|
+| Buffalo City 2021 | 1 | 0 | 99 vs 100 | 3,555 | 3,519 |
+| eThekwini 2016 | 5 | 4 | 214 vs 215 | 9,964 | 9,918 |
+
+About 1% high in both, enough that the reconstructed council did not match the
+IEC's and `backtest.py` refused to score either city. `A` itself is exactly
+right in both (351,899 and 2,132,173, to the vote), so the votes and the
+eligibility rule are sound — only the attribution of ward wins is not.
+
+**What we do about it:** C is now *read from the IEC's Seat Calculation
+Detail* rather than counted from the votes, in both `backtest.py` and the seat
+tests, because it cannot be counted from data that has already been merged. A
+run says so out loud when the two differ. The counted figure is kept as what
+it is — an upper bound, since merging can only ever add apparent wins — and a
+test asserts it never falls *below* the published C, which would mean the
+ward-winner rule was wrong rather than merely imprecise.
+
+**What it costs:** the model can no longer claim to derive the whole council
+from votes alone for a city with contested independent wards; it takes one
+structural input from the IEC. That is a real reduction in what the backtest
+proves, and it is the honest one — the alternative was scoring two cities
+against a council we had reconstructed wrongly. It does not affect a forecast,
+which must predict independent performance rather than reconstruct it.
+
+**Fixable by:** candidate-level results, which the IEC does not appear to
+publish for municipal elections. Worth an enquiry to the Electoral Commission
+alongside the outstanding Stats SA requests.
+
+---
+
 ## Before submitting: re-verify
 
 **Re-run every check against a freshly downloaded file first.** Two reasons.
@@ -293,4 +359,4 @@ pipeline is public: <https://github.com/Psi-am-i/jhb-election-model>. The
 acquisition recipes, including the exact URLs and election IDs, are in
 `SOURCES.md`.
 
-*Maintained as issues are found. Last updated 2026-08-10.*
+*Maintained as issues are found. Last updated 2026-08-11.*
