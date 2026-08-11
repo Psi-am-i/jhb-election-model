@@ -278,6 +278,42 @@ def constructed_case() -> tuple[dict[str, int], int, int]:
     return combined, independent_wards, no_pr_list_wards
 
 
+def test_an_independent_never_takes_a_pr_vote_in_any_file_we_hold():
+    """An independent contests a WARD. It gets the ward or it gets nothing.
+
+    It cannot appear on the proportional ballot, so it takes no part in the
+    quota pool — which is why ``eligible_parties`` requires ``pr_votes > 0``
+    rather than naming independents specially. That is the statute, and this
+    checks the data agrees with it across every city-year on disk, because
+    the rule is enforced by a condition that would silently stop working if a
+    file ever carried a PR line for one.
+
+    It also documents the limit that stops two councils being reproduced: the
+    IEC merges every independent in a voting district into ONE row, so the
+    ward-ballot side of this cannot be attributed to a candidate at all. See
+    MODEL-LOG O13.
+    """
+    offenders = []
+    checked = 0
+    for code, year, has_votes, _official in CITY_YEARS:
+        if not has_votes:
+            continue
+        path = ELECTIONS / f"lge{year}_{code}_vd_party_clean.csv"
+        ward, pr = load_votes(path)
+        checked += 1
+        for name, votes in pr.items():
+            if name.strip().upper() in ("INDEPENDENT", "INDEPENDENTS", "IND") and votes:
+                offenders.append(f"{code} {year}: {name!r} holds {votes:,} PR votes")
+        combined = eligible_parties(ward, pr)
+        for name in combined:
+            if name.strip().upper() in ("INDEPENDENT", "INDEPENDENTS", "IND"):
+                offenders.append(f"{code} {year}: {name!r} entered the quota pool")
+    assert checked, "no city-year had votes on disk; this test checked nothing"
+    assert not offenders, (
+        "independents are contesting the proportional ballot, or reaching the "
+        "pool the quota is struck over:\n  " + "\n  ".join(offenders))
+
+
 def test_constructed_eligibility_excludes_independents_and_listless_parties():
     combined, independent_wards, no_pr_list_wards = constructed_case()
     assert combined == {"BIG": 10000, "MID": 5000, "SMALL": 3000}, (
