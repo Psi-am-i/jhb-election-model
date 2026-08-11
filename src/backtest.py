@@ -184,34 +184,78 @@ FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
         "before 2026. The ratio ranges no longer do — they derive from "
         "transitions strictly before the target. A census is a covariate, not "
         "an outcome: it says who lives in a ward, not how they voted."),
-    # theta_mode, individual_theta, f_other, PLAN_BOUNDS, alpha_da,
-    # ward_pr_ratio_overrides and pa_contestation_uplift have left this list
-    # because they are no longer read. src/levels.py measures the retention
-    # ratio, the ward/PR split and contestation from transitions strictly
-    # before the target; alpha is measured per pool by src/pools.py. They are
-    # still present in DEFAULTS as an emergency fallback, and run_model says so
-    # loudly if it ever uses them.
-    "splinter": (
-        ("2006", "2011", "2016"),
-        "triangulars taken from COPE 2009→2011, ID 2004→2006 and EFF "
-        "2014→2016 (empty by default)"),
+    # The four below were removed from this list on the grounds that
+    # src/levels.py measures θ, the ward/PR split and contestation from
+    # transitions strictly before the target, so the hand-typed constants are
+    # "no longer read". That is true per party and false in general: the
+    # measurement covers the parties the record covers, and a party the record
+    # cannot reach still falls back to the plan's number. Measured on target
+    # 2021, ActionSA — 11% of that baseline, and a party whose ONLY local
+    # result is the target — took its 1.50 from theta_mode, and 31 parties
+    # took bands from individual_theta. Both went unnamed while the banner
+    # discussed pools. So they are listed again, and `montecarlo.note_constant`
+    # records which ones a run actually consumed: the banner reports the
+    # measurement, and a run that genuinely never touches them still prints
+    # the all-clear.
+    "theta_mode": (
+        ("2006", "2011", "2016", "2021"),
+        "the plan's per-party θ views, written with the whole record in "
+        "hand. ASA 1.50 is the sharpest case: ActionSA has exactly one local "
+        "result and it is the 2021 target"),
+    "individual_theta": (
+        ("2016", "2021"),
+        "the bands say so themselves — \"ranges bracket the observed "
+        "fold-1/fold-2 raw ratios: IFP 1.34→1.97, VF+ 0.81→1.65, ACDP "
+        "0.58→1.82, Al Jama-ah 3.12 in 2021\""),
+    "f_other": (
+        ("2006", "2011", "2016", "2021"),
+        "the residual bucket's triangular, a judgement made against the same "
+        "record; the measured retention it replaces is 0.79, not 1.30"),
+    "plan_bounds": (
+        ("2006", "2011", "2016", "2021"),
+        "per-party level bounds from the plan (MK [0.3, 1.0] and the rest), "
+        "chosen knowing every result up to 2021"),
+    "ward_pr_ratio_overrides": (
+        ("2021",),
+        "MK 0.80 is \"bounded by ActionSA's observed 0.77\", which is a 2021 "
+        "measurement. Only read when the measured ward/PR ratio has no "
+        "fallback to offer"),
+    "pa_contestation_uplift": (
+        ("2021",),
+        "1.25 because the PA fought 52 of 135 wards in 2021. Only read when "
+        "measured contestation is unavailable"),
+    # "splinter" is gone from this list: `pools.splinter_record` now takes the
+    # target and drops any split that had not happened yet, so the code
+    # enforces what the key used to announce. It was also unclearable — no
+    # scenario sets a key by that name, so every target it named was reported
+    # in-sample forever, on the strength of a constant that did not exist.
     "entrant_geography": (
         ("2006", "2011", "2016", "2021"),
         "k measured across the six entrants on record (empty by default)"),
 }
 
 
-def contaminated(target_year: str, declared_clean: set[str]) -> list[str]:
+def contaminated(target_year: str, declared_clean: set[str],
+                 read: Mapping[str, list[str]] | None = None) -> list[str]:
     """``FITTED_ON`` keys that read this target or later, minus declared ones.
 
     ``declared_clean`` is the set of keys a scenario file actually sets while
     declaring a ``derived_from`` that predates the target. Everything else is
     still whatever ``DEFAULTS`` says, and an inherited 2021-fitted constant is
     exactly as circular as one written out.
+
+    ``read`` is ``montecarlo``'s record of the constants the run actually
+    consumed. Given it, a key is only implicated if the run touched it — which
+    is the difference between a warning and a measurement, and the difference
+    between a target that can print an all-clear and one that cannot. Two keys
+    here default to empty and are read by nothing until somebody fills them
+    in, so before this every target from 2011 to 2016 was reported in-sample
+    on the strength of two constants that had no value at all.
     """
-    return sorted(k for k, (years, _why) in FITTED_ON.items()
+    keys = set(FITTED_ON) if read is None else set(read) & set(FITTED_ON)
+    return sorted(k for k in keys
                   if k not in declared_clean
-                  and any(y >= str(target_year) for y in years))
+                  and any(y >= str(target_year) for y in FITTED_ON[k][0]))
 
 
 def check_derived_from(declared, target_year: str, label: str) -> list[str]:
@@ -237,19 +281,36 @@ def check_derived_from(declared, target_year: str, label: str) -> list[str]:
 
 
 def in_sample_banner(target_year: str, label: str, scenario_keys: set[str],
-                     declared) -> str:
+                     declared, read: Mapping[str, list[str]] | None = None
+                     ) -> str:
     """The warning (or the all-clear) for one scenario at one target.
 
     Printed on every run, before the numbers, because the alternative is a
     reader taking a seat MAE of 114 for an out-of-sample result.
+
+    ``read`` is what the run actually consumed (``ModelRun.constants_read``).
+    Passing it is what makes this a measurement; without it the banner falls
+    back to naming every constant that COULD be implicated, which is the
+    conservative reading and the one to use if the run has not happened yet.
     """
     clean = set(scenario_keys) if declared is not None else set()
-    dirty = contaminated(target_year, clean)
+    dirty = contaminated(target_year, clean, read)
     if not dirty:
-        return (f"  out-of-sample (DECLARED, not verified): {label} says its "
-                f"numbers derive from {', '.join(str(y) for y in declared)}, "
-                f"all before {target_year}, and it sets every constant this "
-                f"harness knows to have read {target_year} or later.")
+        if read is None:
+            return (f"  out-of-sample (DECLARED, not verified): {label} says "
+                    f"its numbers derive from "
+                    f"{', '.join(str(y) for y in declared)}, all before "
+                    f"{target_year}, and it sets every constant this harness "
+                    f"knows to have read {target_year} or later.")
+        touched = sorted(set(read) & set(FITTED_ON))
+        provenance = (f" It read {', '.join(touched)}, none of which reaches "
+                      f"{target_year}." if touched else
+                      " It read none of the constants this harness tracks.")
+        declaration = (f"{label} declares derived_from "
+                       f"{', '.join(str(y) for y in declared)}. "
+                       if declared is not None else "")
+        return (f"  OUT-OF-SAMPLE (MEASURED): {declaration}Nothing this run "
+                f"consumed was fitted on {target_year} or later.{provenance}")
 
     rule = "  " + "!" * 74
     lines = [rule,
@@ -263,6 +324,9 @@ def in_sample_banner(target_year: str, label: str, scenario_keys: set[str],
         lines.append(f"  Its derived_from ({', '.join(str(y) for y in declared)})"
                      f" covers only the keys it sets; these are inherited from "
                      f"montecarlo.DEFAULTS:")
+    elif read is not None:
+        lines.append("  No \"derived_from\" declared. These constants were "
+                     "READ BY THIS RUN, with what read them:")
     else:
         lines.append("  No \"derived_from\" declared, so nothing is claimed to "
                      "be clean. Implicated constants:")
@@ -270,6 +334,11 @@ def in_sample_banner(target_year: str, label: str, scenario_keys: set[str],
         years, why = FITTED_ON[key]
         saw = ", ".join(y for y in years if y >= str(target_year))
         lines.append(f"    {key:<24s} read {saw} — {why}")
+        users = list((read or {}).get(key) or [])
+        if users:
+            shown = ", ".join(users[:8])
+            more = f" (+{len(users) - 8} more)" if len(users) > 8 else ""
+            lines.append(f"      consumed by: {shown}{more}")
     lines.append("  Declare a clean scenario with a top-level \"derived_from\": "
                  "[\"2011\", ...] naming every")
     lines.append("  election its numbers were fitted on; a run refuses if any "
@@ -509,12 +578,22 @@ def main(argv: list[str] | None = None) -> int:
         scenario["draws"] = args.draws
         scenario["seed"] = args.seed
 
-        in_sample = bool(contaminated(
-            target.year, set(overrides) if declared is not None else set()))
-        print()
-        print(in_sample_banner(target.year, label, set(overrides), declared))
-
+        # The banner used to print here, before the run, and could therefore
+        # only list what MIGHT be contaminated. Two of its keys are empty by
+        # default and read by nothing, so every target from 2011 to 2016 was
+        # declared in-sample on their account and no run could ever come back
+        # clean — while theta_mode, which target 2021 really does read, was
+        # not on the list at all. It now prints after the run and reports what
+        # the run actually consumed. It is still above the numbers, which is
+        # what matters: nobody reads a seat MAE and then checks the provenance.
         run = M.run_model(target, scenario, args.data_dir, processed)
+        read = run.constants_read
+        in_sample = bool(contaminated(
+            target.year, set(overrides) if declared is not None else set(),
+            read))
+        print()
+        print(in_sample_banner(target.year, label, set(overrides), declared,
+                               read))
         seats = S.score_seats(run.seat_draws, actual_seats, entrant, seed=args.seed)
         wards = S.score_wards(
             relabel_entrant(run.ward_probabilities(), entrant), actual_winners)

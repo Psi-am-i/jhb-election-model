@@ -509,6 +509,70 @@ def test_the_level_prior_reads_no_election_at_or_after_its_target():
 # 5. scoring — the instrument every decision is made against
 # --------------------------------------------------------------------------
 
+def test_a_splinter_is_never_sized_on_a_split_that_had_not_happened_yet():
+    """``splinter_record``'s three pairs had their years hardcoded, and the
+    caller passed no target, so every run measured the MK split of 2024 —
+    including a backtest at 2016, sizing its splinters on an event eight years
+    in its own future. ``backtest.FITTED_ON`` carried a "splinter" key
+    announcing this rather than a cutoff preventing it."""
+    city = _city()
+    full = pools.splinter_record(city)
+    assert len(full) >= 2, \
+        f"only {len(full)} splits on record; this test's premise has changed"
+    for year in ("2011", "2016", "2021"):
+        with election_files_read() as reads:
+            record = pools.splinter_record(city, year)
+        late = sorted({(y, kind) for y, kind, _ in reads if int(y) >= int(year)})
+        assert not late, \
+            f"the splinter record for {year} read {late}"
+        assert len(record) < len(full) or year == "2021", \
+            (f"target {year} kept all {len(full)} splits; the cutoff is not "
+             f"being applied")
+
+
+def test_every_constant_the_model_falls_back_to_says_when_it_was_fitted():
+    """Each hand-typed constant a run can fall back to must declare which
+    elections it read, and each declaration must name a constant a run can
+    actually reach.
+
+    Both halves failed at once. ``theta_mode`` was dropped from ``FITTED_ON``
+    on the grounds that levels.py measures θ instead — true for the parties
+    the record covers, and target 2021 still took ActionSA's 1.50 from it,
+    unnamed. In the other direction ``FITTED_ON`` carried "splinter", which is
+    not a constant at all and which no scenario could ever declare clean, so
+    2011 and 2016 were reported in-sample forever on account of it.
+    """
+    import re
+
+    import backtest as B
+    source = (ROOT / "src" / "montecarlo.py").read_text()
+    noted = set(re.findall(r'note_constant\(\s*scenario,\s*"([^"]+)"', source))
+    assert noted, "no note_constant calls found; the accounting has moved"
+    undeclared = sorted(noted - set(B.FITTED_ON))
+    assert not undeclared, (
+        f"the model falls back to {undeclared} and FITTED_ON does not say "
+        f"which elections they read, so a backtest reports itself clean while "
+        f"using them")
+    phantom = sorted(set(B.FITTED_ON) - noted)
+    assert not phantom, (
+        f"FITTED_ON declares {phantom}, which no run records reading. A key "
+        f"nothing can read is a permanent in-sample verdict no scenario can "
+        f"clear — either wire it into note_constant or enforce its cutoff in "
+        f"code and drop it")
+
+
+def test_the_in_sample_verdict_is_about_the_run_not_about_the_defaults():
+    """A constant nothing read cannot contaminate anything."""
+    import backtest as B
+    assert B.contaminated("2016", set(), {}) == [], \
+        "a run that read no tracked constant was still called in-sample"
+    read = {"theta_mode": ["ASA"]}
+    assert B.contaminated("2021", set(), read) == ["theta_mode"], \
+        "a constant the run did read was not reported"
+    assert B.contaminated("2026", set(), read) == [], \
+        "theta_mode was reported against a target it predates"
+
+
 def test_the_entrant_relabel_sums_and_does_not_overwrite():
     """Caught: a dict comprehension keyed on the rename kept the LAST colliding
     value, and ENTRANT sorts last, so it deleted the model's own forecast for

@@ -1362,7 +1362,7 @@ def _ward_reach(code: str, year: str) -> dict[str, float]:
     return {p: len(w) / len(seen) for p, w in wards.items()} if seen else {}
 
 
-def splinter_record(city: cityconfig.City,
+def splinter_record(city: cityconfig.City, before_year: str | None = None,
                     pairs=(("COPE", "ANC", "2004", "2009"),
                            ("EFF", "ANC", "2009", "2014"),
                            ("MK", "ANC", "2019", "2024"))) -> list[float]:
@@ -1378,9 +1378,20 @@ def splinter_record(city: cityconfig.City,
     Which party split from which is a judgement and is declared here with its
     evidence; how much it took is not, and is measured. An earlier version of
     this used one half, which was invented and three times too large.
+
+    ``before_year`` drops any split that had not happened yet, which is the
+    difference between a measurement and a leak: the MK pair reads 2024, so a
+    backtest at 2016 was sizing its splinters on a split eight years in its
+    own future. The years were hardcoded and the caller passed no target, so
+    nothing could have noticed. ``backtest.FITTED_ON`` used to carry a
+    "splinter" key announcing this instead — an announcement no scenario could
+    ever clear, so no target before 2021 could print an all-clear, whether or
+    not it was owed one. Enforcing it here is the same trade γ already makes.
     """
     out = []
     for splinter, parent, before, after in pairs:
+        if before_year and int(after) >= int(before_year):
+            continue
         a, b = metro_citywide(city.code, before), metro_citywide(city.code, after)
         if not a or not b:
             a = a or _npe_citywide(city, before)
@@ -1911,7 +1922,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     reach = _ward_reach(city.code, target.year) or _ward_reach(city.code, year)
     arrivals, seed_notes = arrival_rules(
         newcomers, lineage, rates_matrix, universe_fitted, cats, record,
-        splinter_record(city), registered, contestation=reach)
+        splinter_record(city, target.year), registered, contestation=reach)
     # An arrival's composition follows from where it captures, so it does not
     # need a separate vector: the pools it takes from ARE its pool weights.
     for party, rule in arrivals.items():

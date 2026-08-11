@@ -391,6 +391,29 @@ def apply_city(city) -> None:
 SCENARIO_METADATA = ("derived_from",)
 
 
+def note_constant(scenario: dict, constant: str, party: str | None = None) -> None:
+    """Record that a hand-typed constant was actually consumed by this run.
+
+    Whether a plan judgement contaminates a backtest depends on the target,
+    not on the constant: ``levels.py`` measures θ per party from transitions
+    strictly before the target, and only a party the record cannot cover falls
+    back to the number somebody typed. So ``DEFAULTS`` alone cannot say what a
+    run read, and the in-sample accounting in ``backtest.py`` was asserting
+    that ``theta_mode`` "is no longer read" while target 2021 quietly took
+    ActionSA's 1.50 from it — a party worth 11% of that baseline, and one
+    whose only local result IS the target.
+
+    The run therefore measures its own reads and ``backtest.in_sample_banner``
+    reports those. Kept on the scenario (like ``_ward_pr_measured``) so it
+    travels into ``forecast_summary.json`` with everything else: values are
+    plain lists, because that file is JSON.
+    """
+    users = scenario.setdefault("_constants_read", {}).setdefault(constant, [])
+    who = party or "(all)"
+    if who not in users:
+        users.append(who)
+
+
 def read_scenario_file(path) -> tuple[dict, dict]:
     """``(overrides, metadata)`` from a scenario JSON, unknown keys rejected.
 
@@ -467,10 +490,13 @@ def blended_centres(
             mode_level = base * prior[party][1]
         elif party in theta_mode:
             mode_level = base * theta_mode[party]
+            note_constant(scenario, "theta_mode", party)
         elif party in individual:
             mode_level = base * individual[party][1]
+            note_constant(scenario, "individual_theta", party)
         else:
             mode_level = base * scenario["f_other"][1]
+            note_constant(scenario, "f_other", party)
 
         centre = mode_level
         if party in bye and w > 0:
@@ -481,6 +507,8 @@ def blended_centres(
                     low, high = prior[party][0], prior[party][2]
                 else:
                     low, high = PLAN_BOUNDS.get(party, (0.0, float("inf")))
+                    if party in PLAN_BOUNDS:
+                        note_constant(scenario, "plan_bounds", party)
                 clamped = min(max(implied, low * base), high * base)
                 centre = (1 - w) * mode_level + w * clamped
                 notes[party] = (
@@ -606,14 +634,18 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     for party, i in index.items():
         if party in handled or party == "ENTRANT":
             continue
-        spec = (scenario.get("theta_prior") or {}).get(party) \
-            or scenario["individual_theta"].get(party)
+        measured = (scenario.get("theta_prior") or {}).get(party)
+        spec = measured or scenario["individual_theta"].get(party)
         if spec is not None:
+            if measured is None:
+                note_constant(scenario, "individual_theta", party)
             low, _, high = spec
             mode = min(max(centres[party] / max(base_city[i], 1e-9), low), high)
             individual.append((i, (low, mode, high)))
         else:
             group = (scenario.get("theta_prior") or {}).get("__small__")
+            if not group:
+                note_constant(scenario, "f_other", party)
             individual.append((i, tuple(group or scenario["f_other"])))
 
     entrant_index = index.get("ENTRANT")
@@ -790,6 +822,16 @@ class ModelRun:
     def draws(self) -> int:
         return len(self.seat_draws)
 
+    @property
+    def constants_read(self) -> dict[str, list[str]]:
+        """Hand-typed constants this run consumed, and what consumed them.
+
+        Filled by :func:`note_constant`. ``backtest.in_sample_banner`` reports
+        it, so the in-sample verdict is a measurement of the run rather than a
+        statement about ``DEFAULTS``.
+        """
+        return dict(self.scenario.get("_constants_read") or {})
+
     def ward_probabilities(self) -> dict[str, dict[str, float]]:
         """``{ward: {party: P(win)}}`` — the shape ``score.score_wards`` takes."""
         out: dict[str, dict[str, float]] = {}
@@ -838,6 +880,7 @@ def run_model(target, scenario: dict,
         spec_path = target.city.processed / f"pools_{target.year}.json"
         if spec_path.exists():
             spec = json.loads(spec_path.read_text())
+            note_constant(scenario, "pools", f"fitted on {spec['fitted_on']}")
             scenario["pools"] = spec["pools"]
             scenario["pool_seeds"] = spec.get("seeds", {})
             scenario["pool_seed_bands"] = spec.get("seed_bands", {})
@@ -995,6 +1038,7 @@ def run_model(target, scenario: dict,
             raise SystemExit(f"entrant_geography parent {parent!r} is not in the "
                              f"baseline, so it has no map to inherit")
         k = float(ent.get("k", 1.0))
+        note_constant(scenario, "entrant_geography", parent)
         dev[:, index["ENTRANT"]] = (1.0 - k) * dev[:, index[parent]]
         if verbose:
             print(f"entrant geography: {parent}'s map at k={k} "
@@ -1233,6 +1277,7 @@ def run_model(target, scenario: dict,
     for p, value in scenario["ward_pr_ratio_overrides"].items():
         if p in index and not fallback:
             ratio[index[p]] = value
+            note_constant(scenario, "ward_pr_ratio_overrides", p)
 
     # Contestation, for every party rather than one. pa_contestation_uplift was
     # 1.25 applied to the PA alone, because it fought 52 of 135 wards in 2021
@@ -1248,6 +1293,7 @@ def run_model(target, scenario: dict,
     elif "PA" in index:
         ratio[index["PA"]] = min(
             ratio[index["PA"]] * scenario["pa_contestation_uplift"], 1.5)
+        note_constant(scenario, "pa_contestation_uplift", "PA")
 
     # --- by-election evidence (E4) -------------------------------------------
     bye: dict[str, tuple[float, float]] = {}
@@ -1269,6 +1315,8 @@ def run_model(target, scenario: dict,
                     low, high = prior[party][0], prior[party][2]
                 else:
                     low, high = PLAN_BOUNDS.get(party, (0.0, float("inf")))
+                    if party in PLAN_BOUNDS:
+                        note_constant(scenario, "plan_bounds", party)
                 clamped = min(max(share, low * base_city_d[party]),
                               high * base_city_d[party])
                 centres[party] = (1 - wp) * centres[party] + wp * clamped
