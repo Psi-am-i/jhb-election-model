@@ -213,6 +213,18 @@ def contestation(target: cityconfig.Target, city: cityconfig.City,
     wards in 2021 and the model assumed every party contested all of them. The
     same correction is owed to every party, and measured rather than chosen:
     the median party contests well under half the wards.
+
+    **Presence on the ballot, never a vote.** The justification above is a
+    statement about nomination lists, and the code used to count a ward only
+    where the party had ``Party_Votes > 0`` — which is not who stood, it is
+    who scored, and it is exactly the outcome a backtest is meant to be
+    predicting. The IEC publishes a row per party per voting district *where
+    that party is on the ballot* (20 to 34 parties per VD in Johannesburg
+    2021, not a cross-product of every party), so the row's existence is the
+    nomination fact and reading it does not touch the result. It matters most
+    where the model is weakest: Royal Loyal Progress stood in all 135 wards
+    and scored in 79, so the old rule called a full slate 59% of a slate, and
+    contestation multiplies through to an arrival's size.
     """
     template = cityconfig.CALENDAR[target.year].results
     path = city.path("raw", "elections", template) if template else None
@@ -228,7 +240,6 @@ def contestation(target: cityconfig.Target, city: cityconfig.City,
             if not ward:
                 continue
             seen.add(ward)
-            if int(float(row.get("Party_Votes") or 0)) > 0:
-                wards[P.canonical(row["sPartyName"])].add(ward)
+            wards[P.canonical(row["sPartyName"])].add(ward)
     n = len(seen)
     return {p: len(w) / n for p, w in wards.items()} if n else {}

@@ -232,6 +232,18 @@ FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
     "entrant_geography": (
         ("2006", "2011", "2016", "2021"),
         "k measured across the six entrants on record (empty by default)"),
+    # An entry with no years reads no RESULT, and so can never contaminate a
+    # target; it is here to be reported rather than to be scored. Contestation
+    # comes out of the target's own file, which looks alarming and is not: the
+    # quantity is which parties appear on each ward's ballot, published when
+    # nominations close and available to any forecaster weeks before polling
+    # day. It used to count only the wards where a party WON votes, which is
+    # not the ballot but the result, and that was a genuine leak.
+    "contestation": (
+        (),
+        "ward-ballot PRESENCE at the target, taken from the target's own "
+        "file. Nomination lists are public before polling day; no vote is "
+        "read"),
 }
 
 
@@ -339,6 +351,17 @@ def in_sample_banner(target_year: str, label: str, scenario_keys: set[str],
             shown = ", ".join(users[:8])
             more = f" (+{len(users) - 8} more)" if len(users) > 8 else ""
             lines.append(f"      consumed by: {shown}{more}")
+    # The clean reads are printed too. A banner that lists only what is wrong
+    # invites the reading that everything else was measured from nothing, and
+    # the interesting cases here are the ones that touch the target's own file
+    # legitimately — contestation takes the ward ballot and no vote on it.
+    clean_reads = sorted((set(read or {}) & set(FITTED_ON)) - set(dirty))
+    if clean_reads:
+        lines.append("  Also read, and clean at this target:")
+        for key in clean_reads:
+            years, why = FITTED_ON[key]
+            when = ", ".join(years) if years else "no result"
+            lines.append(f"    {key:<24s} read {when} — {why}")
     lines.append("  Declare a clean scenario with a top-level \"derived_from\": "
                  "[\"2011\", ...] naming every")
     lines.append("  election its numbers were fitted on; a run refuses if any "

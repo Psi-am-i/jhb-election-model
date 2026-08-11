@@ -954,6 +954,8 @@ def run_model(target, scenario: dict,
         _contest = _levels.contestation(target, target.city)
         if _contest:
             scenario["_contestation"] = _contest
+            note_constant(scenario, "contestation",
+                          f"{target.year} ward ballot, {len(_contest)} parties")
             if verbose:
                 vals = sorted(_contest.values())
                 print(f"  contestation: {len(_contest)} parties, median "

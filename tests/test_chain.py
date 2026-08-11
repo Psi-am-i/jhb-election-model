@@ -90,6 +90,7 @@ from __future__ import annotations
 
 import json
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -528,6 +529,77 @@ def test_a_splinter_is_never_sized_on_a_split_that_had_not_happened_yet():
         assert len(record) < len(full) or year == "2021", \
             (f"target {year} kept all {len(full)} splits; the cutoff is not "
              f"being applied")
+
+
+@contextmanager
+def _votes_erased():
+    """Every ``Party_Votes`` reads 0 inside the block; the rows stay.
+
+    The one honest way to ask "does this read the result?". Anything that
+    counts votes collapses to nothing; anything that counts ballot lines is
+    untouched. No reimplementation of the rule in the test, so nothing can
+    drift apart from what production runs.
+    """
+    import csv
+
+    import ingest_lge
+    real_reader, real_muni = csv.DictReader, ingest_lge.read_municipality
+
+    def blind_reader(*args, **kwargs):
+        for row in real_reader(*args, **kwargs):
+            if "Party_Votes" in row:
+                row["Party_Votes"] = "0"
+            yield row
+
+    def blind_muni(*args, **kwargs):
+        rows = real_muni(*args, **kwargs)
+        for row in rows:
+            if "Party_Votes" in row:
+                row["Party_Votes"] = "0"
+        return rows
+
+    csv.DictReader = blind_reader
+    ingest_lge.read_municipality = blind_muni
+    try:
+        yield
+    finally:
+        csv.DictReader = real_reader
+        ingest_lge.read_municipality = real_muni
+
+
+def test_contestation_counts_the_ballot_and_not_the_votes():
+    """How much of the city a party contests is a NOMINATION fact, published
+    when lists close and available to a forecaster weeks before polling day.
+    Both readers took it from the target's result file and counted only the
+    wards where the party WON votes, which is the outcome the forecast is
+    being scored against. It reaches the drawer as a multiplier on the
+    ward/PR ratio and the record as an arrival's size, so it is not a footnote.
+
+    Royal Loyal Progress stood in all 135 Johannesburg wards in 2021 and
+    scored in 79: the old rule called a full slate 59% of a slate.
+    """
+    city = _city()
+    target = cityconfig.Target(city=city, year=FIT_YEAR)
+
+    measured = levels.contestation(target, city)
+    reach = pools._ward_reach(city.code, FIT_YEAR)
+    assert measured and reach, \
+        "nothing measured; this test cannot say anything"
+
+    with _votes_erased():
+        blind = levels.contestation(target, city)
+        blind_reach = pools._ward_reach(city.code, FIT_YEAR)
+
+    assert blind == measured, (
+        "contestation changed when every vote was erased, so it is reading "
+        "the result: "
+        + str(sorted(p for p in set(blind) | set(measured)
+                     if blind.get(p) != measured.get(p))[:6]))
+    assert blind_reach == reach, (
+        "ward reach changed when every vote was erased, so it is reading the "
+        "result: "
+        + str(sorted(p for p in set(blind_reach) | set(reach)
+                     if blind_reach.get(p) != reach.get(p))[:6]))
 
 
 def test_every_constant_the_model_falls_back_to_says_when_it_was_fitted():

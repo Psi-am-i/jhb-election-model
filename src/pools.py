@@ -1345,7 +1345,15 @@ def entrant_record(transitions, codes=METRO_CODES) -> list[float]:
 
 
 def _ward_reach(code: str, year: str) -> dict[str, float]:
-    """Fraction of wards each party fielded a ward candidate in."""
+    """Fraction of wards each party fielded a ward candidate in.
+
+    Presence on the ward ballot, not votes on it — see
+    ``levels.contestation``, which measures the same quantity for the drawer
+    and carries the argument. A party is listed in a voting district's rows
+    because it stood there, so counting the rows is a nomination fact a
+    forecaster has before polling day; counting only the rows that scored
+    would read the result this feeds a forecast of.
+    """
     from ingest_lge import read_municipality
     path = metro_file(code, year)
     if path is None:
@@ -1357,8 +1365,7 @@ def _ward_reach(code: str, year: str) -> dict[str, float]:
         if not ward:
             continue
         seen.add(ward)
-        if int(float(row.get("Party_Votes") or 0)) > 0:
-            wards[P.canonical(row["sPartyName"])].add(ward)
+        wards[P.canonical(row["sPartyName"])].add(ward)
     return {p: len(w) / len(seen) for p, w in wards.items()} if seen else {}
 
 
