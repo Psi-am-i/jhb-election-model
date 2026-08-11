@@ -84,21 +84,21 @@ PROCESSED = ROOT / "data" / "processed"
 # docstring — renormalisation for A-to-B (plan item 3.1), the entrant rescale
 # for B-to-C.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (23.9246, 13.2915, 35.6811),
-    "DA": (26.8418, 20.5264, 33.5978),
-    "EFF": (10.1966, 3.2030, 20.3026),
-    "ASA": (11.9589, 4.9533, 21.6141),
-    "MK": (8.3194, 2.3015, 17.0418),
-    "PA": (3.1993, 2.1872, 4.3326),
-    "VFPLUS": (0.8176, 0.0123, 2.8601),
-    "ALJAMAAH": (0.8119, 0.2570, 1.6012),
+    "ANC": (23.3263, 13.1275, 35.0969),
+    "DA": (27.6912, 20.8267, 35.1028),
+    "EFF": (9.9397, 3.1452, 19.8305),
+    "ASA": (11.8706, 4.9809, 21.3505),
+    "MK": (8.1057, 2.2356, 16.5172),
+    "PA": (3.4930, 2.3186, 4.8637),
+    "VFPLUS": (0.8462, 0.0129, 2.8997),
+    "ALJAMAAH": (0.8518, 0.2634, 1.7181),
     "ENTRANT": (1.4785, 0.0000, 7.7611),
 }
 GOLDEN_POOLS: dict[str, tuple[float, float, float]] = {
-    "Black African": (54.7379, 47.2781, 61.0837),
-    "Coloured": (7.7291, 6.0944, 9.9794),
-    "Indian/Asian": (6.1011, 4.7324, 7.9164),
-    "White": (29.9534, 25.1173, 35.2691),
+    "Black African": (53.6396, 45.9767, 60.6896),
+    "Coloured": (8.0704, 6.3274, 10.4193),
+    "Indian/Asian": (6.1910, 4.7652, 7.9851),
+    "White": (30.6205, 25.1832, 36.5088),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")

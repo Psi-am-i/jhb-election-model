@@ -1050,24 +1050,101 @@ def turnout_record(city: cityconfig.City, cfg: Config, before: str | None = None
 
 def turnout_band(record: dict[str, np.ndarray], n_pools: int,
                  ) -> list[tuple[float, float, float]]:
-    """(low, mode, high) turnout per pool, from that city's own record.
+    """(low, mode, high) turnout per pool: last election, widened by history.
 
-    The mode is the mean of the log observations — turnout is a rate and moves
-    multiplicatively — and the band is +/- 1.28 sd, so it spans the 10th to
-    90th percentile of a lognormal. With three local elections this is thin,
-    and thin is answered with width rather than with a borrowed number.
+    Two things the record has to be read carefully for.
+
+    **Turnout is strongly serially correlated**, so the last local election is
+    a far better centre than the mean of all of them. Johannesburg's Black
+    African pool ran 50.8%, 50.2%, then 36.4% — centring on 45.8% would forecast
+    a recovery nobody has evidence for.
+
+    **But 2021 is the LOWEST on record for every pool**, so taking the
+    historical minimum as the floor would make the band one-sided: turnout
+    could rise and never fall. A sample without a further decline in it is a
+    limit of the sample, not evidence that decline cannot happen — the same
+    error that gave the old bloc ranges a floor they could never cross. So the
+    WIDTH comes from history and the CENTRE from the last election: the band is
+    the last election's turnout times the historical log-range either way, with
+    the top capped at the highest turnout the city has actually recorded.
     """
     if not record:
         return [(0.30, 0.50, 0.70)] * n_pools
-    arr = np.array(list(record.values()))
+    years = sorted(record)
+    arr = np.array([record[y] for y in years])
+    previous = arr[-1]
     bands = []
     for g in range(n_pools):
-        logs = np.log(np.maximum(arr[:, g], 1e-6))
-        mu = float(logs.mean())
-        sd = float(logs.std(ddof=1)) if len(logs) > 1 else 0.20
-        bands.append((float(np.exp(mu - 1.2816 * sd)), float(np.exp(mu)),
-                      float(np.exp(mu + 1.2816 * sd))))
+        column = np.maximum(arr[:, g], 1e-6)
+        centre = float(previous[g])
+        # half the observed log-range: the width history supports, symmetric
+        # so a further decline is never assigned probability zero
+        spread = float(np.log(column.max() / column.min())) if len(column) > 1 else 0.30
+        low = centre * float(np.exp(-spread))
+        high = min(centre * float(np.exp(spread)), float(column.max()))
+        bands.append((low, centre, max(high, centre * 1.001)))
     return bands
+
+
+def turnout_limits(record: dict[str, np.ndarray], registered: np.ndarray,
+                   margin: float = 0.10) -> dict:
+    """What a reader may set turnout to, and the rule tying the two sliders.
+
+    The interactive offers a citywide turnout slider and a per-pool one. Both
+    are bounded by what the city has actually done, plus a ``margin`` either
+    way — a reader may explore a turnout ten per cent below the worst on record
+    or ten per cent above the best, and no further, because beyond that they
+    are not adjusting this model's assumption but inventing a different city.
+
+    The two must agree. Per-pool turnouts imply a citywide figure — the
+    registration-weighted mean — and a reader who moves every pool to its
+    ceiling has implicitly moved the citywide slider too. So the pool sliders
+    are constrained to combinations whose weighted mean lies inside the
+    citywide range; :func:`constrain_pool_turnout` performs that projection.
+    """
+    if not record or registered.sum() <= 0:
+        return {}
+    years = sorted(record)
+    arr = np.array([record[y] for y in years])
+    citywide = (arr * registered[None, :]).sum(axis=1) / registered.sum()
+    return {
+        "city": {"low": float(citywide.min() * (1 - margin)),
+                 "high": float(citywide.max() * (1 + margin)),
+                 "observed_low": float(citywide.min()),
+                 "observed_high": float(citywide.max()),
+                 "previous": float(citywide[-1])},
+        "pool": [{"low": float(arr[:, g].min() * (1 - margin)),
+                  "high": float(arr[:, g].max() * (1 + margin)),
+                  "observed_low": float(arr[:, g].min()),
+                  "observed_high": float(arr[:, g].max()),
+                  "previous": float(arr[-1, g])}
+                 for g in range(arr.shape[1])],
+        "margin": margin,
+    }
+
+
+def constrain_pool_turnout(pool_turnout: np.ndarray, registered: np.ndarray,
+                           limits: dict) -> tuple[np.ndarray, str]:
+    """Project a reader's per-pool turnouts back inside the citywide range.
+
+    Moving every pool to its ceiling implies a citywide turnout above anything
+    the city has recorded, which the citywide slider does not permit — so the
+    per-pool sliders must not be a way around it. When the implied citywide
+    figure falls outside the allowed range the whole vector is scaled onto the
+    nearest edge, which preserves the reader's *relative* judgement about which
+    pools turn out and only overrides the level they did not mean to set.
+    """
+    if not limits or registered.sum() <= 0:
+        return pool_turnout, ""
+    implied = float((pool_turnout * registered).sum() / registered.sum())
+    low, high = limits["city"]["low"], limits["city"]["high"]
+    if low <= implied <= high:
+        return pool_turnout, ""
+    edge = low if implied < low else high
+    scaled = pool_turnout * (edge / implied)
+    return scaled, (f"pool turnouts implied a citywide {implied:.1%}, outside "
+                    f"the permitted {low:.1%}-{high:.1%}; scaled to {edge:.1%} "
+                    f"keeping their relative pattern")
 
 
 def registered_at_target(city: cityconfig.City, target: cityconfig.Target,
@@ -1571,7 +1648,9 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # registration change and turnout change at once, fitted to two
     # transitions.
     registered = registered_at_target(city, target, cfg, year)
-    turnout = turnout_band(turnout_record(city, cfg, before=target.year), n)
+    record = turnout_record(city, cfg, before=target.year)
+    turnout = turnout_band(record, n)
+    limits = turnout_limits(record, registered)
 
     # Each pool's internal split, per metro-year, for the concentration.
     splits: list[list[np.ndarray]] = [[] for _ in range(n)]
@@ -1611,10 +1690,11 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
                                  if p in fits and fits[p].identified()[g]),
         }
     return {"pools": out, "fitted_on": year, "target": target.year,
+            "turnout_limits": limits,
             "seeds": {p: v for p, v in seeds.items() if abs(v) > 1e-9},
             "seed_bands": {p: list(v) for p, v in seed_bands.items()},
             "seed_notes": seed_notes,
-            "entrant_record": record,
+            "entrant_record": [float(x) for x in record],
             "provenance": f"{ctx['provenance']}; pools sized by {roll_note}",
             "pool_shares_at_target": target_shares.tolist(),
             "registration_series": {y: v.tolist() for y, v in series.items()},
