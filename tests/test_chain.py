@@ -514,6 +514,59 @@ BLOC = {"parent": "Black African", "name": "IFP-located", "indicator": "IFP",
         "within_rate": 0.90}
 
 
+def test_split_or_entrant_is_decided_in_exactly_one_place():
+    """The classification lived in three places and they disagreed.
+
+    ``SPLITS``, the ``pairs`` argument of ``splinter_record`` and a ``parent``
+    field in every city's judgement file each answered "is this a split, and
+    of what". ActionSA was named in the first, missing from the second and
+    blank in the third, so it was dropped from the entrant record for being a
+    split and then sized as an entrant for having no parent — 0.1% against an
+    actual 18.12%. This fails if the pieces drift apart again.
+    """
+    splits = pools.SPLITS
+    assert splits, "no splits declared at all"
+
+    # Every declaration carries its evidence: a person, a party, a date.
+    for party, split in splits.items():
+        assert split.parent, f"{party} is a split of nothing"
+        assert len(split.why) > 20, \
+            f"{party} has no evidence for being called a split: {split.why!r}"
+        if split.measured_from is not None:
+            for year in split.measured_from:
+                assert year in cityconfig.CALENDAR, \
+                    f"{party} is measured across {year}, not in the calendar"
+
+    # The classifier is the only route, and it agrees with the declaration.
+    for party, split in splits.items():
+        parent, why = pools.classify_arrival(party)
+        assert parent == split.parent, \
+            f"classify_arrival says {party} splits from {parent}, not {split.parent}"
+        assert why == split.why
+    assert pools.classify_arrival("A_PARTY_NOBODY_HAS_HEARD_OF") == (
+        None, "no lineage on record: arrived from nothing")
+    assert pools.classify_arrival("EFF", "SOMEONE_ELSE")[0] == "SOMEONE_ELSE", \
+        "a city's judgement file must be able to override the default lineage"
+
+    # The two records derive from it rather than restating it.
+    city = _city()
+    measured = {p for p, s in splits.items() if s.measured_from}
+    assert measured, "no split has a pair to measure its fraction across"
+    assert len(pools.splinter_record(city)) <= len(measured), \
+        "splinter_record measured more splits than are declared"
+    transitions = pools.lge_transitions(before=TARGET)
+    kept = pools.entrant_record(transitions)
+    everything = pools.entrant_record(transitions, exclude=frozenset())
+    assert kept, "no entrant record at all"
+    assert len(kept) < len(everything), \
+        "excluding the declared splits removed nothing from the entrant record"
+    # The point of excluding them: the top of the record was the EFF, and
+    # every shell party contesting widely was being sized by it.
+    assert max(s for s, _ in kept) < max(s for s, _ in everything), \
+        ("the biggest 'arrival' on record is the same with the splits removed, "
+         "so the record is still describing a split")
+
+
 def test_a_vote_located_bloc_is_carved_out_of_its_parent_not_added_on_top():
     """Its members are already counted in the parent pool, so a ward's
     composition must still sum to 1 and the parent must shrink by exactly what

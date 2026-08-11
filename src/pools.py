@@ -1514,22 +1514,80 @@ def dirichlet_alpha(splits: list[np.ndarray], min_share: float = 0.01) -> float:
 # 0.1% against an actual 18.12%. `splinter_record`'s pairs stay separate
 # because they answer a different question (how much a split took, measured
 # off two national elections) and not every split has a pair to measure.
-SPLIT_ARRIVALS = {
-    "EFF":  {"parent": "ANC",
-             "why": "Malema and the ANC Youth League leadership, expelled "
-                    "from the ANC 2012-13"},
-    "COPE": {"parent": "ANC",
-             "why": "Lekota and Shilowa, after the ANC's 2008 Polokwane split"},
-    "MK":   {"parent": "ANC",
-             "why": "Zuma, a former ANC president, 2023"},
-    "ASA":  {"parent": "DA",
-             "why": "Mashaba, the DA's own mayor of Johannesburg, who "
-                    "resigned the party in October 2019"},
+@dataclass(frozen=True)
+class Split:
+    """One party that broke off another.
+
+    ``parent``        the party it left, whose pool vector it inherits.
+    ``measured_from`` the (NPE before, NPE after) pair its share of the parent
+                      is measured across, or None where no such pair exists —
+                      ActionSA never contested a national election before its
+                      first local one, so it contributes no measurement and
+                      is sized from the ones that do.
+    ``why``           the person, the party and the date. This is the whole
+                      evidence for the classification and it is required.
+    """
+
+    parent: str
+    measured_from: tuple[str, str] | None
+    why: str
+
+
+SPLITS: dict[str, Split] = {
+    "COPE": Split("ANC", ("2004", "2009"),
+                  "Lekota and Shilowa, after the ANC's 2008 Polokwane split"),
+    "EFF":  Split("ANC", ("2009", "2014"),
+                  "Malema and the ANC Youth League leadership, expelled from "
+                  "the ANC 2012-13"),
+    "MK":   Split("ANC", ("2019", "2024"),
+                  "Zuma, a former ANC president, 2023"),
+    "ASA":  Split("DA", None,
+                  "Mashaba, the DA's own mayor of Johannesburg, who resigned "
+                  "the party in October 2019"),
 }
 
 
+def classify_arrival(party: str, declared_parent: str | None = None
+                     ) -> tuple[str | None, str]:
+    """SPLIT OR ENTRANT — the definition, and the only place that decides.
+
+    Returns ``(parent, why)``; a parent of None means entrant.
+
+    A party is a **split** if a NAMED person left a NAMED party and took a
+    share of its vote with them. That claim needs a person, a party and a
+    date, no result file records any of it, so it is declared in
+    :data:`SPLITS` with its evidence — or, for a case only one city knows
+    about, in that city's judgement file, which wins when it says anything.
+
+    Everything else is an **entrant**: a name on a ballot, with no machine and
+    no inherited vote.
+
+    The two are sized by different machinery and it is not a matter of degree.
+    A split takes a fraction of its PARENT and inherits the parent's pool
+    vector, because that is what splitting means. An entrant is sized at the
+    typical result of arrivals that contested as much of a city.
+
+    THIS FUNCTION EXISTS BECAUSE THE ANSWER USED TO LIVE IN THREE PLACES —
+    this list, the ``pairs`` argument of :func:`splinter_record`, and a
+    ``parent`` field in every city's judgement file — and they disagreed.
+    ActionSA was named in the first, missing from the second and blank in the
+    third, so it was excluded from the entrant record for being a split and
+    then sized as an entrant for having no parent, arriving at 0.1% against an
+    actual 18.12%. Both other callers now derive from :data:`SPLITS`:
+    ``splinter_record`` builds its pairs from it, ``entrant_record`` excludes
+    it, and a test fails if any of them drift apart.
+    """
+    declared = (declared_parent or "").strip().upper()
+    if declared:
+        return declared, "declared in this city's judgement file"
+    split = SPLITS.get(party)
+    if split is not None:
+        return split.parent, split.why
+    return None, "no lineage on record: arrived from nothing"
+
+
 def entrant_record(transitions, codes=METRO_CODES,
-                   exclude=frozenset(SPLIT_ARRIVALS)) -> list[float]:
+                   exclude=frozenset(SPLITS)) -> list[float]:
     """Every share won by a party that arrived FROM NOTHING.
 
     The record, not a judgement. A party arriving from nothing is the single
@@ -1589,9 +1647,7 @@ def _ward_reach(code: str, year: str) -> dict[str, float]:
 
 
 def splinter_record(city: cityconfig.City, before_year: str | None = None,
-                    pairs=(("COPE", "ANC", "2004", "2009"),
-                           ("EFF", "ANC", "2009", "2014"),
-                           ("MK", "ANC", "2019", "2024"))) -> list[float]:
+                    splits: dict | None = None) -> list[float]:
     """What share of its parent's vote each known splinter took, measured.
 
     The three splits this city has on record, each as the splinter's first
@@ -1615,7 +1671,11 @@ def splinter_record(city: cityconfig.City, before_year: str | None = None,
     not it was owed one. Enforcing it here is the same trade γ already makes.
     """
     out = []
-    for splinter, parent, before, after in pairs:
+    for splinter, split in sorted((splits if splits is not None
+                                   else SPLITS).items()):
+        if split.measured_from is None:
+            continue          # a split with no national pair to measure across
+        parent, (before, after) = split.parent, split.measured_from
         if before_year and int(after) >= int(before_year):
             continue
         a, b = metro_citywide(city.code, before), metro_citywide(city.code, after)
@@ -1766,13 +1826,11 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
     notes: dict[str, str] = {}
     for party in sorted(newcomers):
         declared = lineage.get(party, {})
-        # The judgement file wins if it says anything; otherwise a party on
-        # the declared split list brings its own parent. Before this, a split
-        # whose city had not filled in a lineage file was silently demoted to
-        # an entrant and sized as one.
-        parent = (declared.get("parent") or "").strip().upper()
-        if not parent and party in SPLIT_ARRIVALS:
-            parent = SPLIT_ARRIVALS[party]["parent"]
+        # Split or entrant is decided in exactly one place, and this is the
+        # call to it. `lineage_why` carries the evidence into the run's notes
+        # so a reader can see WHY a party was sized the way it was.
+        parent, lineage_why = classify_arrival(party, declared.get("parent"))
+        parent = parent or ""
         weights = declared.get("weights")
         reach = (contestation or {}).get(party)
 
@@ -1805,10 +1863,11 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # ever did, so the splinter path was never exercised at all.
             capture = {g: float(f_mid * rates[g, index[parent]])
                        for g in range(n_pools) if rates[g, index[parent]] > 0}
-            why = (f"splinter: takes {f_mid:.1%} of {parent}'s share of each "
-                   f"pool it draws on, band {f_lo:.1%}-{f_hi:.1%} from the "
-                   f"COPE/EFF/MK record. Every party in those pools gives up "
-                   f"the same proportion; none is named.")
+            why = (f"SPLIT from {parent} ({lineage_why}): takes {f_mid:.1%} "
+                   f"of {parent}'s share of each pool it draws on, band "
+                   f"{f_lo:.1%}-{f_hi:.1%} from the measured record. Every "
+                   f"party in those pools gives up the same proportion; none "
+                   f"is named.")
         else:
             vec = np.full(n_pools, 1.0 / n_pools)
             reach_used = reach if reach is not None else 0.5
