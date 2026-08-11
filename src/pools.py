@@ -1679,10 +1679,24 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             return all_shares
         near = [s for s, r in record if abs(r - reach) < 0.25]
         return near if len(near) >= 8 else all_shares
-    f_lo, f_mid, f_hi = ((min(splinter_fractions),
-                          float(np.median(splinter_fractions)),
-                          max(splinter_fractions)) if splinter_fractions
-                         else (lo_e, mid_e, hi_e))
+    # A city with no splinter record of its own cannot size a splinter. The
+    # fallback here used to be `(lo_e, mid_e, hi_e)` — three variables defined
+    # LATER, per party, inside the loop below, so this raised UnboundLocalError
+    # the moment it was reached. Johannesburg never reached it (COPE 2009 and
+    # EFF 2014 are always on its record), and the first run on another metro
+    # died here: Ekurhuleni has no NPE file before 2019, so no pair resolves.
+    #
+    # There is no honest number to put in its place. A splinter fraction is a
+    # share OF THE PARENT and the arrival record is a share OF THE CITY, so
+    # borrowing one for the other is a unit error, not a conservative default.
+    # So a splinter with no record is sized as what it is without one — an
+    # arrival — and the note says so.
+    f_lo = f_mid = f_hi = None
+    if splinter_fractions:
+        f_lo, f_mid, f_hi = (min(splinter_fractions),
+                             float(np.median(splinter_fractions)),
+                             max(splinter_fractions))
+    default_support = float(np.median(all_shares)) if all_shares else 0.0
     index = {p: i for i, p in enumerate(universe)}
     n_pools = len(categories)
 
@@ -1697,10 +1711,10 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         if weights:
             vec = np.array([float(w) for w in weights], dtype=float)
             vec = vec / vec.sum() if vec.sum() > 0 else np.full(n_pools, 1.0 / n_pools)
-            size = float(declared.get("support", mid_e))
+            size = float(declared.get("support", default_support))
             capture = _capture_from_share(vec, size, pool_size)
             why = "pools and support declared in judgements/"
-        elif parent and parent in index:
+        elif parent and parent in index and f_mid is not None:
             # The parent's own rates ARE its pool weights. Capturing f of each
             # is what "inherits the parent's split" means, and the pool
             # renormalisation does the rest.

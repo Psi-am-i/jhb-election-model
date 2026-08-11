@@ -196,8 +196,23 @@ class City:
     # --- judgements -----------------------------------------------------
     @property
     def plan_bounds(self) -> dict[str, tuple[float, float]]:
+        """Hand-typed per-party level bounds, or none at all.
+
+        Absent is a legitimate state and is now the preferred one. These
+        bounds are read only when a party is missing from the measured θ
+        prior, and since ``levels.theta_prior`` covers every party with a
+        national share — and arrivals are routed to the arrival record
+        instead — nothing reaches them on a city with its own history. A
+        validation config carries no judgements at all on purpose: copying
+        Johannesburg's ranges into another metro would make an
+        out-of-sample test into a test of Johannesburg's opinions.
+
+        This used to raise ``KeyError`` on any config without the block,
+        which is what a missing judgement looked like before the judgements
+        became measurements.
+        """
         return {k: (float(v[0]), float(v[1]))
-                for k, v in self.judgements["plan_bounds"].items()}
+                for k, v in (self.judgements.get("plan_bounds") or {}).items()}
 
     def scenario_defaults(self) -> dict:
         """The judgement block in the shape montecarlo.DEFAULTS expects."""

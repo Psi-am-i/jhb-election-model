@@ -104,6 +104,26 @@ SPECS = {
         "spoilt": "Spoilt Votes", "cast": "Total Votes  Cast",
         "reg": "Registered Voters", "ballot": "Ballot  Type",
     },
+    # The 2011 archive is the sixth layout. Its headers carry EMBEDDED
+    # NEWLINES ("Voting \nDistrict", not the double space 2006 uses), and it
+    # has both a "MEC7\nVotes" column and a "Valid Votes \nCast" one. The
+    # party's vote is the LATTER: summed per (VD, ballot) it reconciles to
+    # Total Votes Cast minus Spoilt Votes on 308 of 308 Buffalo City voting
+    # districts, while MEC7 sums to about 30 votes a district and is a
+    # different quantity entirely. Picking the wrong one would not error --
+    # it would publish a city where every party had roughly the same tiny
+    # vote, which is exactly the silent-corruption class DATA-QUALITY.md
+    # exists to catalogue.
+    "lge2011": {
+        "zip": "2011_lge.zip", "member": "2011 LGE.csv", "kind": "lge",
+        "event": "Electoral Event", "prefer_event": None,
+        # The reader normalises embedded newlines to spaces before matching,
+        # so these are the double-space forms it actually sees.
+        "muni": "Municipality", "vd": "Voting  District", "ward": "Ward",
+        "party": "Party", "votes": "Valid Votes  Cast",
+        "spoilt": "Spoilt Votes", "cast": "Total Votes  Cast",
+        "reg": "Registered Voters", "ballot": "Ballot  Type",
+    },
     "lge2006": {
         "zip": "2006_lge.zip", "member": "2006 LGE.csv", "kind": "lge",
         "event": "Electoral Event", "prefer_event": None,
@@ -174,6 +194,24 @@ def matches_city(value: str, city, spec: dict) -> bool:
     text = (value or "").upper()
     if spec.get("muni_match"):
         return any(m.upper() in text for m in spec["muni_match"])
+
+    # Prefer the IEC code, which these files carry as a prefix ("BUF - Buffalo
+    # City Metropolitan Municipality [East London]"). The name fallback below
+    # matches on the LAST WORD, which is fine for Johannesburg and silently
+    # catastrophic for a city called "Buffalo City": "CITY" also matches "City
+    # of Cape Town", "City of Johannesburg", "Mogale City" and "Merafong
+    # City". Ingesting Buffalo City's 2011 election that way produced 2,087
+    # voting districts and 5.1 million votes for a metro with about 350 VDs
+    # and 420,000 — and it passed the reconciliation gate, because the rows it
+    # collected were individually valid. Only the seat test caught it, by
+    # failing to reproduce a published council.
+    # When the file carries a code prefix, the code is the WHOLE answer and
+    # the name fallback must not run: "BUF" correctly fails to match "CPT -
+    # CITY OF CAPE TOWN", and then "CITY" matches it anyway.
+    code = (getattr(city, "code", "") or "").upper()
+    head = text.split(" - ", 1)[0].strip() if " - " in text else ""
+    if head:
+        return bool(code) and head == code
     return city.name.split()[-1].upper() in text
 
 
