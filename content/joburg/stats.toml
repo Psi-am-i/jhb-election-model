@@ -325,4 +325,5 @@ allow = [
   "needs no majority",             # describes the ward rule
   "no majority needed",            # ditto
   "would govern together",         # explicitly a disclaimer, not a forecast
+  "will govern with whom",         # ditto — methodology, defining what a pool is NOT
 ]

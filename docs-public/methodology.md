@@ -1,39 +1,20 @@
 # How the model works
 
-This page explains the machinery behind the forecast in plain language: what
-is actually being predicted, how the simulation runs, how we know the parts of
-it that *can* be tested actually work — and which parts can never be tested,
-only stated honestly. The full technical version, with every parameter and
-validation table, is
-[`METHODOLOGY.md` on GitHub](https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md).
+This page explains the machinery in plain language: what is actually being
+predicted, how the simulation runs step by step, how we know the parts that
+*can* be tested work — and which parts can only be stated honestly. If you
+want the full technical record, every file and every workaround is in the
+[public repository](https://github.com/Psi-am-i/jhb-election-model), and the
+scoring is on the [about the model](about) page.
 
 ## How accurate is it?
 
-It calls the official 2011, 2016 and 2021 Johannesburg council results exactly, seat for seat — and, shown only the citywide totals, calls {{blind_test_called}} of {{blind_test_of}} ward winners in 2021. How it was tested — and where it fell short — is set out in the [review](review); the inputs are listed in [sources](sources).
-
-
-## Why the model is built the way it is
-
-**Seats, not vote shares**
-
-The council follows a statutory formula, not a percentage. The model's allocator reproduces the real 2011, 2016 and 2021 councils exactly — quota, vote totals, every party's seats — so the formula layer is not an assumption.
-
-**Geography is the anchor**
-
-Tested across election cycles: *where* a party's support sits transfers almost perfectly; *how much* support it has does not. So the model fits the geography once and treats each party's level as an explicit, bounded scenario — the honest shape of the uncertainty.
-
-**Parties move in blocs**
-
-The DA and ActionSA fight over the same voters, as do the ANC, EFF and MK. Drawing blocs first and splitting within them is why DA+ActionSA's combined range is far tighter than ActionSA's own 10–50: their errors offset. Ignoring that correlation produces impossible scenarios.
-
-**Turnout was tested — and demoted**
-
-The model was built expecting differential turnout to decide the city. Measured directly, a ten-point swing across thirty wards moves about two seats — one, under the stricter marginal-voter test. The gap to a majority is over thirty. Persuasion, not mobilisation, is the only route.
-
-**Why simulations, not a single prediction**
-
-A single forecast number would hide exactly what matters here. Johannesburg's politics runs on thresholds — a coalition either reaches 136 seats or it does not; a party's ward wins either cross its entitlement and trigger the excessive-seats clause or they do not — and near a threshold, small uncertainties have large, lopsided consequences that no error bar can carry. Simulation is the honest way through: draw every uncertain quantity from its historically observed range, run the full statutory arithmetic end to end, repeat 5,000 times, and report how often each outcome happens. It also keeps the model falsifiable: every assumption is a slider you can move, and the alternatives — a poll taken as gospel, a uniform national swing, a pundit's single scenario — are all special cases you can set the sliders to, and test.
-
+The model has been run against an election that has already happened — the
+2021 municipal election — in **eight cities**, and scored against what
+actually occurred and against three deliberately simple alternatives. It beats
+all of them in seven of the eight. The full scoring, city by city and party by
+party, with our forecast beside the real result, is on the
+[about the model](about) page.
 
 ## How Johannesburg's council elections actually work
 
@@ -67,144 +48,190 @@ Two consequences shape everything on this site. First, the council is always
 close to proportional, so a fragmented vote produces a fragmented council.
 Second, the excessive-seats clause — and our forecast finds it is now the
 ANC's normal condition: a citywide vote in the mid-twenties, but stronghold
-wards that still win, roughly 73 wards against a 65-seat entitlement, in six
-of every seven simulations. Its ward count becomes an unbreakable floor, its
-list seats go to zero, and the squeeze lands on every other party's list
-seats — inside a council fixed at 270, with the majority fixed at 136.
+wards that still win. Its ward count becomes an unbreakable floor, its list
+seats go to zero, and the squeeze lands on every other party's list seats —
+inside a council fixed at {{council_size}}, with the majority fixed at
+{{majority}}.
 
-## What a "bloc" is — and what it is not
+## The model, step by step
 
-A bloc in this model is **not a political alliance**. It is not a coalition,
-not a pact, not a claim that these parties like each other or would govern
-together. Several of the parties grouped together here are each other's
-bitterest rivals, and some have ruled out working with one another entirely.
+Here is the whole thing in order. Nothing below is more complicated than it
+looks.
 
-A bloc is a statement about **voters, not parties**: a set of parties
-competing for the same people. When someone stops voting ANC, the realistic
-alternatives are usually the EFF, MK, or staying home — not the DA. When a DA
-voter defects, ActionSA is a likelier destination than the ANC. Those pools
-barely leak into each other: in the ANC bloc's record 2021 collapse it shed
-{{bloc_leak_votes}} votes and the DA bloc captured none of them.
+### 1. Start by counting who can vote, and where
 
-**Why the model needs the idea at all.** A forecast has to put uncertainty
-somewhere. If each party's support were drawn independently, the simulations
-would contain impossible worlds — every left-of-centre party surging at once,
-with no one losing the votes they gained. Drawing the *pool* first and then
-splitting it inside the pool keeps the arithmetic honest: one party's good
-night is partly another's bad one. It is why DA + ActionSA's combined range
-is far tighter than ActionSA's own, even though ActionSA alone is the most
-volatile party on the board.
+Before any modelling, the Electoral Commission publishes how many people are
+registered to vote in each of Johannesburg's roughly 865 voting districts. We
+take that count. It is not estimated, projected or adjusted — it is the roll,
+published before polling day, and it is the foundation everything else sits
+on.
 
-**How membership is decided, and how confident we are.** Two things are
-measurable from the voting-district results: whether parties draw support
-from the same places, and whether their combined total is steadier than its
-parts. Both are computed per city (`src/bloc_signature.py`) rather than
-carried over from Johannesburg — the same test can give different answers in
-different cities, and does.
+### 2. Sort those voters into pools
 
-We publish the awkward result too. In Johannesburg the ANC and EFF share
-geography strongly, exactly as the bloc idea predicts. The DA and ActionSA
-barely do — their district-level correlation is close to zero — so their
-grouping rests on the argument about where defectors go rather than on where
-the parties are strong. That is a judgement, it is visible in the
-[interactive model](interactive) as a slider you can move, and if you think
-it is wrong you can set the bloc-crossing dial and see what changes.
+A **pool** is a group of voters who are choosing between the same parties —
+people with a shared shortlist. Johannesburg has four: Black African,
+Coloured, Indian/Asian and White.
 
-**We also tested whether it helps, and the test came out a draw.** Grouping
-parties is only worth doing if it predicts better, so we ran the model
-against the two past elections it can be checked on — measuring how a bloc
-moved in one election, then using that, blind, to predict the next. Carrying
-a *bloc's* movement and splitting it between members did better once and
-worse once: predicting 2016 it called two more wards right out of 135,
-predicting 2021 it called one more ward wrong. On every other measure the
-two approaches were indistinguishable.
+That is an uncomfortable thing to model and we should say why we do it. It is
+not a claim that people vote according to their race, or that anyone must. It
+is that South African cities are still physically laid out by apartheid
+planning, so a voting district is one of the few things in the data that
+actually distinguishes one group of voters from another — and the parties
+themselves behave as though this were true. Al Jama-ah takes about a fifth of
+one pool and essentially nothing anywhere else. The Patriotic Alliance takes
+about two-fifths of another and nothing at all in the other three. Those are
+measurements, not opinions.
 
-The reason is worth stating, because it limits what anyone can honestly
-claim here. There are only two usable transitions, and they disagree. Going
-into 2021 the ANC and the EFF moved almost identically — within 2% of each
-other — which is exactly what a shared pool of voters looks like. Going into
-2016 they moved in opposite directions, the ANC down and the EFF up. One
-observation each way is not a finding, and no better test exists until more
-elections have happened.
+**How big is each pool?** Each ward's registered voters, split by that ward's
+own composition, added up across all 135 wards. The census tells us the
+*proportions* within a ward; the roll tells us the *number*, and where the two
+disagree the roll wins. It disagrees a lot: the census implies about 300,000
+white adults in Johannesburg while the roll carries roughly 560,000 registered
+white voters. We publish that gap rather than absorbing it.
 
-So the honest position is that the bloc structure is unproven rather than
-vindicated: it is a reasoned judgement about where defecting voters go,
-supported by the geography and by 2021, contradicted by 2016, and left in
-your hands as a slider. It is not a fitted parameter and we do not present
-it as one.
+### 3. Measure how each party does in each pool
 
-## The machinery of prediction
+Now the only real statistics in the model. We know how every ward voted, and
+we know roughly what each ward is made of. From 135 wards at once we can work
+backwards to how each party performs with each pool — the same way you can
+work out the price of apples and oranges from a stack of shopping receipts
+without ever seeing inside a bag.
 
-The forecast comes from running 5,000 simulations of the same pipeline:
+This is done for every party simultaneously, under two rules that must hold:
+no party can win a negative number of votes, and everyone's votes in a pool
+must add up to that pool's voters. Fitting parties one at a time breaks both —
+an early version had a party winning a *negative* share of one pool, which is
+not a small error but an impossible one.
 
-1. **Start from the most recent full map.** The 2024 provincial ballot,
-   counted in all 865 of Johannesburg's voting districts, is the baseline —
-   the last complete picture of where every party's support sits.
-2. **Draw a scenario for 2026.** Each run picks a citywide outcome: how far
-   the ANC's camp falls, how much the opposition's rises, how the vote splits
-   within each camp. Parties that share voters are drawn *together* — the DA
-   and ActionSA compete for the same pool, so one's gain is partly the
-   other's loss, and the same holds for the ANC, EFF and MK, who fight over a
-   pool of their own. The draws are centred on the evidence we have (fifteen
-   by-elections, the published polls) and bounded by every national-to-local
-   swing actually observed since 2006. When evidence implies something
-   history has never produced, history wins: our by-elections implied the
-   Patriotic Alliance's citywide vote multiplying roughly sevenfold — but
-   by-elections happened to fall in its strongholds, and strongholds are not
-   the city. The model pulls that claim back to the top of its supportable
-   range, a little more than doubling.
-3. **Paint the scenario onto the map.** The citywide outcome is distributed
-   across the 865 districts using each party's own geography — where its
-   votes really were cast before. This is the model's best-tested idea:
-   *where* a party's support sits barely moves between elections, even when
-   *how much* support it has swings wildly. The geography is measured once
-   and reused; the levels are the uncertain part.
-4. **Turn out the voters.** Each district's turnout is projected with its own
-   uncertainty, bounded by how much turnout has actually shifted there
-   before. One finding worth knowing: the citywide turnout *level* cannot
-   change a single seat, because the seat formula scales with it. Only
-   *relative* differences between districts matter — and contrary to what
-   you have probably heard, even large turnout shifts between districts,
-   tested directly, move a couple of seats at most.
-5. **Count both ballots.** The ward ballot differs from the party-list
-   ballot — voters split their tickets, and we measured each party's split
-   from 2021. Ward winners are called race by race; list votes are tallied
-   citywide.
-6. **Apply the law.** The statutory seat formula — the same arithmetic the
-   electoral commission uses — allocates all seats, overhang included. Then
-   every possible coalition is checked against that simulation's own majority
-   line: every pair of parties, every tripartite alliance, every combination
-   of the parties that won seats — with no judgement applied about who
-   *would* work with whom.
+### 4. Work out what might change
 
-Repeat 5,000 times, each run drawing fresh values within every variable's
-bounds, and the output is not a single prediction but a distribution: how
-often each seat count occurs, how often each coalition clears the bar — the
-probability of each scenario, not a guess at one.
+Steps 1–3 describe the last election. This step is the forecast, and it is the
+part that is genuinely uncertain, so instead of picking one answer we draw
+thousands.
 
-## How we know it works — and what that does not cover
+Two things get drawn:
 
-Three checks matter, in increasing order of difficulty:
+- **How each party's support moves.** Parties usually do worse locally than
+  nationally, and we measure how much from every previous national-to-local
+  transition on record for that party — not a guess, and not the same number
+  for everyone.
+- **Turnout, per pool.** This is the only genuinely unknown quantity, and it
+  is drawn from what turnout has actually done in that city before. In 2021
+  every pool's turnout was the lowest on record, which is why the range has to
+  allow falls as well as rises.
 
-**The seat law is exact.** Our implementation of the seat formula reproduces
-the real, published 2011, 2016 and 2021 Johannesburg councils to the seat —
-quota, vote totals, every party — from the raw voting-district files. The
-legal arithmetic is not an assumption.
+### 5. Handle parties that were not there last time
 
-**The geography transfers.** Fitted on one election cycle and tested on the
-next, the map-painting step holds up: shown only the 2021 citywide totals —
-nothing about where the votes sat — the model placed them well enough to call
-129 of 135 ward winners.
+This is the hardest part of forecasting an election and where models usually
+fail. There are two kinds of new party and they behave nothing alike:
 
-**But the citywide ranges cannot be validated.** When the model is tested
-fully blind — told nothing about 2021 at all — its seat error grows fivefold.
-That is the honest boundary: the machinery that turns a citywide outcome into
-seats is validated; the range of citywide outcomes for 2026 is informed
-judgement, bounded by history and tilted by evidence, but judgement all the
-same. It is why the output is a distribution, why the probabilities are only
-as good as the stated assumptions — and why every one of those assumptions is
-a slider on the [interactive page](interactive), so you can test how much any
-conclusion depends on them.
+- A **split** is when a known person leaves a known party and takes some of
+  its vote with them: Zuma leaving the ANC for MK, Malema for the EFF, Mashaba
+  leaving the DA for ActionSA. A split starts with a leader, a machine and a
+  share of somebody's existing vote. We size it as a fraction of its parent,
+  from what previous splits actually took.
+- An **entrant** is a name on a ballot with none of that. Most new parties are
+  this, and most of them get almost nothing.
+
+Telling them apart matters more than anything else in the model. Before we
+did, every party that managed to file candidates everywhere was being sized as
+though it were the EFF's 2016 breakthrough — filing papers is cheap, and in
+Cape Town that put more than the entire electorate into the hands of parties
+that did not exist. Separating the two fixed it.
+
+One further thing we found, which surprised us: how much a split takes depends
+overwhelmingly on **whether the leader's own following is in this city**, not
+on how famous they are. Patricia de Lille was at least as well known
+nationally in 2019 as Julius Malema was in 2014; her party took about
+one-eighteenth as much of the DA's vote in Johannesburg as it did in her own
+Cape Town. A reputation does not travel. A constituency does not move.
+
+### 6. Paint the result back onto the map
+
+Each drawn outcome is spread back across all 865 voting districts using each
+party's own geography — where its votes actually were last time. This is the
+best-tested idea in the model: *where* a party's support sits barely moves
+between elections even when *how much* it has swings wildly.
+
+### 7. Count both ballots and apply the law
+
+Voters split their tickets, so the ward ballot and the party ballot are
+counted separately, each party's split measured from its own past behaviour.
+Ward winners are called race by race. Then the statutory formula — the same
+arithmetic the Electoral Commission uses — allocates every seat, excessive
+seats included.
+
+### 8. Do it {{n_draws}} times
+
+Each run draws fresh values within every bound. The output is not a
+prediction but a distribution: how often each seat count happens, how often
+each coalition clears the line. Every possible combination of parties is
+checked against that run's own majority line, with no judgement about who
+would work with whom.
+
+Why simulate at all, rather than publish one number? Because Johannesburg's
+politics runs on thresholds — a coalition either reaches {{majority}} seats or
+it does not — and near a threshold small uncertainties have large, lopsided
+consequences that no error bar can carry.
+
+## What a pool is — and what it is not
+
+A pool is **not** an alliance, a coalition, or a prediction about who will
+govern with whom. It is a statement about voters, not parties: a set of
+parties competing for the same people. The DA and ActionSA drawing from the
+same pool means that when one rises the other tends to fall in the same
+places — which is why their *combined* range is much tighter than either
+party's own, and why ignoring it produces impossible scenarios where both
+surge at once out of nowhere.
+
+It is also not a claim about why anyone votes as they do. We can measure that
+a pool of voters moved; we cannot measure why, and aggregate data can never
+tell you. Any sentence on this site that appears to explain a voter's
+reasoning is overreach, and we would like to know about it.
+
+## How we know it works
+
+Three checks, in increasing order of difficulty.
+
+**The seat law is exact.** Our implementation reproduces the published
+councils to the seat — quota, vote totals, every party — for eight
+municipalities across three elections, from the raw voting-district files. The
+legal arithmetic is not an assumption. One exception is documented: the
+Commission publishes every independent candidate under a single name, so where
+several stand in one ward they cannot be told apart, and we take the
+Commission's own count of independent ward councillors rather than inferring
+it.
+
+**The geography transfers.** Shown only citywide totals for 2021 — nothing
+about where the votes sat — the model placed them well enough to call
+{{blind_test_called}} of {{blind_test_of}} ward winners.
+
+**The whole thing beats the simple alternatives, in cities it was never built
+for.** This is the test that matters, and the one most forecasts skip. A model
+tuned on one city can look superb there and have learned nothing but that
+city. So the entire pipeline is run independently in eight metros — each
+fitted only on its own wards, its own roll, its own history — and scored
+against three baselines that need no model at all. The results are on the
+[about the model](about) page, including the city where the model *loses*.
+
+## What this does not cover
+
+- **A party that does not exist yet is still the hardest case.** We now
+  separate splits from entrants and size each from the record, which is a
+  large improvement, but a genuinely new formation with a popular leader
+  remains the biggest single source of error.
+- **Two inputs could not be confined to the period before the test election**,
+  and every run prints them above its own results: the ward-level census
+  (2022, the only one we hold) and the record of how much breakaway parties
+  take. Both are declared on the [about the model](about) page.
+- **Overhang's legal fine print is untested in court.** The Commission has
+  never published a worked metro overhang example. We put the question to it
+  on 5 August 2026 and are awaiting an answer; a 2021 amendment and the
+  Commission's own handling of Laingsburg 2021 settle the arithmetic, and the
+  forecast applies it.
+- **Arithmetic is not politics.** The model says which governments are
+  numerically possible. Whether people who dislike each other will sit in the
+  same room is not a modelling question.
 
 ## Corrections and review
 
@@ -224,28 +251,15 @@ thing they describe. They do not arrive fully formed — and a model that hides
 its mistakes, or hides from them, is refusing the chance to be better, and
 should not be trusted.
 
-## The dials you can turn
+## Going deeper
 
-Every scenario assumption sits at a documented default, bounded by observed
-history, and adjustable on the [interactive page](interactive): how far each
-party's national support carries into a local election, how much weight the
-by-elections get, which poll you believe, how the two ballots differ, what
-turnout does, whether a brand-new party appears — and what happens to the
-council when overhang strikes. The page re-runs the full simulation in your
-browser and emits a scenario file that reproduces your settings exactly in
-the published model.
+Everything above is a simplification of something you can read in full. The
+code, the data recipes, the running log of findings and mistakes, and the
+known defects in the public records we depend on are all published:
 
-## Limits worth knowing
-
-- **A party that does not exist yet is invisible.** ActionSA went from
-  nothing to 44 seats in one cycle. The simulations carry a slot for an
-  unknown newcomer, but that is an honest patch, not foresight.
-- **Overhang's legal fine print is untested in court or precedent.** The
-  electoral commission has never published a worked example of a metro
-  overhang calculation, and with overhang now the *likely* outcome, we put the
-  question to the Commission on 5 August 2026 and are awaiting its answer —
-  but a 2021 amendment to the law and the Commission's own published handling
-  of Laingsburg 2021 settle the arithmetic, and the forecast applies it.
-- **Arithmetic is not politics.** The model says which governments are
-  numerically possible. Whether people who dislike each other will sit in
-  the same room is not a modelling question.
+- [the repository](https://github.com/Psi-am-i/jhb-election-model) — all of it
+- `MODEL-LOG.md` — every finding, obstacle and decision, in order, including
+  the ones that went badly
+- `DATA-QUALITY.md` — defects in the official published records, with the ward
+  and the arithmetic for each
+- `SOURCES.md` — where every input came from and how to fetch it again
