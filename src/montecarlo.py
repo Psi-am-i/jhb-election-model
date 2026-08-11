@@ -483,10 +483,32 @@ def blended_centres(
     theta_mode = scenario["theta_mode"]
     individual = scenario["individual_theta"]
 
+    # Two paths, and every party takes exactly one of them.
+    #
+    # WITHOUT HISTORY. A party with no national share has no θ, because θ is
+    # the ratio of a local share to a national one and there is nothing to
+    # divide by. That is not a gap to be filled with a judgement — it is a
+    # different question, and ``pools.arrival_rules`` has already answered it
+    # from the arrival record, seeding the party and handing back a band whose
+    # mode is 1.0 (the seed IS the estimate). This branch exists because the
+    # code used to fall through to ``theta_mode`` instead: ActionSA arrived in
+    # 2021 with no 2019 vote, was correctly seeded at 11.07% by the arrival
+    # rules, and then had that LOCAL estimate multiplied by 1.50 — a
+    # NATIONAL-to-local conversion factor, applied to something already local,
+    # and one chosen knowing what ActionSA went on to do. It reached the
+    # drawer at 16.61%.
+    #
+    # WITH HISTORY. Everything ``levels.theta_prior`` covers: the party's own
+    # retention record weighted by what it is worth and shrunk toward the
+    # common centre, or the centre itself for a party holding a national vote
+    # that has not yet faced a local election (MK in 2026).
+    seeded = scenario.get("pool_seeds") or {}
+    bands = scenario.get("pool_seed_bands") or {}
     for party, base in base_city.items():
-        if party in prior:
-            # Measured: the party's own retention history shrunk toward its
-            # size group's, replacing theta_mode / individual_theta / f_other.
+        if seeded.get(party, 0.0) > 0:
+            band = bands.get(party)
+            mode_level = base * (float(band[1]) if band else 1.0)
+        elif party in prior:
             mode_level = base * prior[party][1]
         elif party in theta_mode:
             mode_level = base * theta_mode[party]
@@ -634,7 +656,12 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     for party, i in index.items():
         if party in handled or party == "ENTRANT":
             continue
-        measured = (scenario.get("theta_prior") or {}).get(party)
+        # Same two paths as blended_centres, in the same order: a seeded
+        # arrival is drawn against the arrival record's band, never against a
+        # retention prior it has no history to have earned.
+        seed_band = (scenario.get("pool_seed_bands") or {}).get(party) \
+            if (scenario.get("pool_seeds") or {}).get(party, 0.0) > 0 else None
+        measured = seed_band or (scenario.get("theta_prior") or {}).get(party)
         spec = measured or scenario["individual_theta"].get(party)
         if spec is not None:
             if measured is None:

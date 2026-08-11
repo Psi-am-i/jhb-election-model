@@ -66,6 +66,11 @@ SD_FLOOR, SD_CEILING = 0.15, 1.20
 # because a party has at most three and the group has dozens.
 SHRINK = 2.0
 
+# The national share at which one observed ratio is worth half of a large
+# party's. Set to the hard cut it replaces, so the same evidence is being
+# discounted — continuously, and without denying any party a measured θ.
+RELIABILITY_HALF = 0.002
+
 
 def _citywide(path) -> dict[str, float]:
     counts: dict[str, int] = defaultdict(int)
@@ -82,16 +87,30 @@ def _citywide(path) -> dict[str, float]:
 
 
 def theta_record(target: cityconfig.Target,
-                 codes=("JHB", "TSH")) -> dict[str, list[float]]:
+                 codes=("JHB", "TSH")) -> dict[str, list[tuple[float, float]]]:
     """Every observed national-to-local retention ratio before the target.
 
-    One entry per party per metro per transition. Parties below 0.2% of the
-    national vote are dropped: their ratio is dominated by rounding, and a
-    party that went from 30 votes to 90 is not evidence that parties triple.
+    One entry per party per metro per transition, as ``(ratio, share)`` where
+    ``share`` is the national share the ratio was measured off.
+
+    **There is no minimum share.** Parties below 0.2% of the national vote used
+    to be dropped here, on the grounds that a party going from 30 votes to 90
+    is not evidence that parties triple. That reasoning is right about the
+    NUMBER and wrong about the PARTY: dropping it did not stop the model
+    forming a view of that party, it just meant the view came from a constant
+    somebody typed instead of from the party's own record. A hard cut also has
+    a cliff at 0.2% that nothing in the data puts there.
+
+    So every party with any history at all keeps its ratios, and ``share``
+    travels with them so :func:`theta_prior` can weight by how much the ratio
+    is worth. A party measured off 0.02% of the vote lands on the group centre
+    because its own observations carry almost no weight — which is what the
+    cut was reaching for, without the cliff and without handing the party to a
+    judgement.
     """
     lge = sorted((y for y, e in cityconfig.CALENDAR.items()
                   if e.kind == "LGE" and e.results), key=int)
-    out: dict[str, list[float]] = defaultdict(list)
+    out: dict[str, list[tuple[float, float]]] = defaultdict(list)
     for year in lge:
         if int(year) >= int(target.year):
             continue                      # strictly before the target
@@ -103,9 +122,22 @@ def theta_record(target: cityconfig.Target,
             after = _citywide(
                 f"data/raw/elections/lge{year}_{code}_vd_party_clean.csv")
             for party in set(before) & set(after):
-                if before[party] > 0.002:
-                    out[party].append(after[party] / before[party])
+                if before[party] > 0:
+                    out[party].append((after[party] / before[party],
+                                       before[party]))
     return dict(out)
+
+
+def _reliability(share: float) -> float:
+    """How much one observed ratio is worth, on 0-1, from what it was measured off.
+
+    ``share / (share + RELIABILITY_HALF)``: an observation taken off the old
+    0.2% cut is worth half of one taken off a large party, 2% is worth 0.91,
+    0.02% is worth 0.09. Continuous, so nothing changes character at a
+    threshold, and monotone in the only thing that governs the noise — how
+    many votes the ratio was computed from.
+    """
+    return float(share) / (float(share) + RELIABILITY_HALF)
 
 
 def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
@@ -122,8 +154,15 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
         return {}, {}
 
     # One common centre: the record says the trend does not vary with size.
-    everything = [r for ratios in record.values() for r in ratios]
-    mu_all = float(np.mean(np.log(everything)))
+    # Weighted by what each observation is worth, which is what replaced the
+    # 0.2% cut — an unweighted mean over every ratio would let a party that
+    # went from 30 votes to 90 move the centre as far as the ANC does.
+    everything = [obs for ratios in record.values() for obs in ratios]
+    ratios_all = np.array([r for r, _ in everything])
+    weights_all = np.array([_reliability(s) for _, s in everything])
+    if weights_all.sum() <= 0:
+        return {}, {}
+    mu_all = float(np.average(np.log(ratios_all), weights=weights_all))
 
     # Dispersion IS a function of size, so fit it as one — against the COMMON
     # centre, not each party's own. Two earlier attempts used within-party
@@ -138,7 +177,7 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
         size = baseline.get(party, 0.0)
         if size <= 0:
             continue
-        for r in ratios:
+        for r, _share in ratios:
             xs.append(np.log(size))
             ys.append((np.log(r) - mu_all) ** 2)
     if len(xs) >= 6:
@@ -149,25 +188,41 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
             return float(np.clip(np.exp(0.5 * (intercept + slope * x)),
                                  SD_FLOOR, SD_CEILING))
     else:
-        pooled = float(np.std(np.log(everything), ddof=1))
+        pooled = float(np.std(np.log(ratios_all), ddof=1))
 
         def sd_for(size: float) -> float:
             return float(np.clip(pooled, SD_FLOOR, SD_CEILING))
 
+    # PATH ONE — a party WITH history. Its own log-mean, shrunk toward the
+    # common centre by how much that history is worth rather than by how many
+    # rows of it there are: three ratios measured off 0.02% of the vote are
+    # three weak statements, not three strong ones, and the party ends up on
+    # the group centre. A party with no ratios of its own but a baseline to
+    # apply θ to (MK in 2026 — a national vote, no local election yet) IS this
+    # path, sitting at the centre with the group's spread.
+    #
+    # PATH TWO — a party with NO baseline at all is not here and cannot be:
+    # θ converts a national share into a local one and there is no national
+    # share to convert. It is an arrival, and ``pools.arrival_rules`` sizes it
+    # from the arrival record. ``montecarlo.blended_centres`` routes it there.
     priors: dict[str, tuple] = {}
     for party in set(record) | set(baseline):
         size = baseline.get(party, 0.0)
         sd = sd_for(size)
         own = record.get(party, [])
         if own:
-            weight = len(own) / (len(own) + SHRINK)
-            mu = weight * float(np.mean(np.log(own))) + (1 - weight) * mu_all
+            worth = sum(_reliability(s) for _, s in own)
+            weight = worth / (worth + SHRINK)
+            own_mu = float(np.average([np.log(r) for r, _ in own],
+                                      weights=[_reliability(s) for _, s in own]))
+            mu = weight * own_mu + (1 - weight) * mu_all
         else:
             mu = mu_all
         priors[party] = (float(np.exp(mu - 1.2816 * sd)), float(np.exp(mu)),
                          float(np.exp(mu + 1.2816 * sd)))
     return priors, {
-        "centre": {"n": len(everything), "median": float(np.exp(mu_all))},
+        "centre": {"n": len(everything), "median": float(np.exp(mu_all)),
+                   "effective_n": float(weights_all.sum())},
         "spread": {"at_0.1%": sd_for(0.001), "at_1%": sd_for(0.01),
                    "at_10%": sd_for(0.10), "at_40%": sd_for(0.40)},
     }
