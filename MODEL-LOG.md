@@ -1281,6 +1281,129 @@ published forecast is unchanged (0 of 555 values). Per the standing decision
 of 2026-08-10, nothing ships to the public forecast until everything
 outstanding is tested and the harness can predict previous elections.
 
+### 1.29 Making the measurement trustworthy: toothless tests, a banner that reports the run, and two temporal leaks ✅ *2026-08-11*
+
+Nothing here changes the forecast. It changes what the model's own instruments
+are worth, which was the precondition for changing anything else: a review had
+found **6 of 18 chain tests do not fail when the defect they name is put back**,
+and the in-sample banner — the thing that decides whether a backtest score may
+be read as skill — was wrong in both directions at once.
+
+**Method: every claim below was verified by reinstating the defect.** A test
+that passes is not evidence; a test that fails when, and only when, the thing
+it names is broken is. Fourteen mutations were applied to `src/` and the named
+tests run against each.
+
+**The three pool-fit tests certified IPF, not the fit.** `fit_city` runs
+`raw = fit_joint(...)` then `R = balance_margins(raw, ...)`, and IPF forces
+both margins exactly whatever it is handed — so "no negative rate" and "each
+pool allocates one vote", asserted on the finished matrix, were statements
+about one line of `balance_margins`. Replacing `fit_joint` with uniform 1/n
+leaves all three green. They now assert on the raw fit, which `fit_city`
+returns rather than the test refitting (the universe filter is easy to miss,
+and a test that fitted a different problem would certify the answer).
+
+**And both constraints are enforced by construction**, inside
+`_project_simplex`, so a fit that never looked at the data still satisfies
+them. The test that catches that is new and is not a magnitude: giving every
+pool the citywide shares is a *feasible point* of the problem `fit_joint`
+minimises, so a minimiser must return a strictly lower objective. Uniform 1/n
+fails it by 4x.
+
+**A temporal test that asserted against the calendar.**
+`test_the_level_prior_reads_no_election_at_or_after_its_target` checked that
+the CALENDAR contains an LGE before 2016 — true with `theta_record`'s cutoff
+deleted, and not a statement about the level prior at all. Temporal tests now
+watch the file opens (`_support.election_files_read`): every result file is
+named for its election, so a θ record for 2016 that touches `lge2021_...` has
+read its answer and says which file.
+
+**Three spec tests certified a file, not the code.** They read
+`pools_2026.json` off disk, so a regression in the emit path was invisible
+until someone re-emitted — which is exactly when nobody is looking. They now
+build the spec through `emit_pools`, which returns it and writes nothing.
+One of them also counted the wrong thing: with the empty-roster fallback
+removed the spec still carried 40-odd fitted parties, because the defect
+deletes only the parties that arrived *after* the fitting election. It now
+requires anything above 0.5% of the baseline to reach the spec by some route,
+and loses MK when the fallback goes.
+
+**FITTED_ON was wrong both ways.** `theta_mode`, `individual_theta`,
+`f_other`, `PLAN_BOUNDS`, `ward_pr_ratio_overrides` and
+`pa_contestation_uplift` had been removed from the in-sample list on the
+grounds that `levels.py` measures θ from transitions strictly before the
+target. True per party, false in general — the measurement covers the parties
+the record covers, and one it cannot reach falls back to the typed number.
+Measured at target 2021:
+
+| route | parties | of the baseline | worst case |
+|---|---|---|---|
+| measured θ prior | 36 | 100% | — |
+| `theta_mode` | 1 | 11.07% | **ASA 1.50** — ActionSA's only local result IS the target |
+| `individual_theta` | 31 | 40.21% | bands whose docstring cites "Al Jama-ah 3.12 in 2021" |
+
+In the other direction the list carried `splinter`, which is not a scenario
+key at all, so `contaminated()` could never drop it and every target from 2011
+to 2016 was reported in-sample on the strength of a constant that does not
+exist; `entrant_geography` is empty by default and read by nothing, and was
+flagged the same way. **No target could print an all-clear whether or not one
+was owed.**
+
+The fix is to stop asserting and start measuring: `montecarlo.note_constant`
+records each hand-typed constant a run actually consumes and what consumed it,
+`ModelRun.constants_read` exposes it, and the banner reports that. It moved to
+after the run for the same reason — before it, only a guess is available. Two
+tests keep the ledger honest: every `note_constant` name must be declared in
+FITTED_ON (else a fallback goes unnamed) and every FITTED_ON key must be
+reachable by a run (else it is a verdict no scenario can clear).
+
+**Leak 1 — the splinter record hardcoded 2024.** `splinter_record`'s three
+pairs (COPE 2009, EFF 2014, MK 2024) had their years fixed in the signature
+and the caller passed no target, so a backtest at 2016 sized its splinters on
+a split eight years in its own future. It now takes the target and drops
+splits that had not happened — which retires the FITTED_ON key entirely, the
+same trade γ already makes, where the code enforces what the key announced.
+
+**Leak 2 — contestation was read off the result.** `levels.contestation` and
+`pools._ward_reach` both justify reading the target's own file on the grounds
+that nomination lists close and are published before polling day. Sound, and
+not what the code did: both counted a ward only where the party had
+`Party_Votes > 0` — not who stood but who scored. The IEC publishes a row per
+party per voting district *where that party is on the ballot* (20-34 parties
+per VD in Johannesburg 2021, not a cross-product), so the row's existence is
+the nomination fact, and 40% of ward-ballot rows carry no votes. Counting rows
+reads no result and moves 27 parties: **Royal Loyal Progress stood in all 135
+wards and scored in 79**, so a full slate was being called 59% of a slate. It
+is not a footnote — contestation multiplies the ward/PR ratio in the drawer
+and sets an arrival's size in the record.
+
+**The live 2026 forecast does not move**, checked by re-emitting and diffing:
+2026 has no result file, so the arrival rules fall back to 2021 reach, and
+every party those rules touch is one that did not stand in 2021. All 21
+`first_local_election` entries identical, seeds unchanged, drawer goldens
+green. The movement is confined to the backtests, which is where the leak was.
+
+**What the banner now says at 2021** — and why it still cannot print an
+all-clear:
+
+    IN-SAMPLE — THESE ARE NOT OUT-OF-SAMPLE SCORES
+      individual_theta  read 2021 — the bands say so themselves ...
+        consumed by: ABAHLALY_BAAHI, ... (+23 more)
+      pools             read 2021 — Census 2022 post-dates the target ...
+      theta_mode        read 2021 — ASA 1.50 ...
+        consumed by: ASA
+    Also read, and clean at this target:
+      contestation      read no result — ward-ballot PRESENCE ...
+
+Three things stand between this and a clean 2021 banner, all now named rather
+than assumed: pool composition comes from Census 2022, which post-dates the
+target; ActionSA has no measurable θ because 2021 is its only local election;
+and 31 minor parties have no retention record to measure. The first is
+fixable with the 2011 census, the second is not fixable at all and belongs in
+a declared scenario, the third is the micro-party band problem already open.
+
+Suite: 9 seats + 6 drawer + 4 temporal + **26** chain, all green.
+
 ## 2. Obstacles and how they were handled
 
 | # | Obstacle | Resolution | Status |
@@ -1295,6 +1418,7 @@ outstanding is tested and the harness can predict previous elections.
 | O8 | IEC publishes registration by age/sex only to municipality level, server-rendered, no API | VD-level registration *totals* come from the result files and the VD layer. Ward-level age/sex substituted from the census product. | 🟡 |
 | O9 | 2026 registration-weekend deltas not published | Nothing to do but wait; §3.2 feeds them in when available. | 🔴 external |
 | O11 | `fold.py` wrote and read fitted parameters at `data/processed/fold{N}_parameters.csv` with no city in the path, so a Tshwane run overwrote Johannesburg's — and `fold1_parameters.csv` feeds the live forecast | Both call sites use `City.processed`: Joburg keeps the legacy path, other cities go to `data/processed/<slug>/`. Caught only because a stale file made §1.25's second fold report numbers that could not be reproduced. | ✅ |
+| O12 | Backtests cannot run at 2011 or 2016: `pools_2011.json` does not exist and `pools_2016.json` predates the counted-pool rebuild, so it has no `registered` key and `pool_spec` dies on a `KeyError`. Only 2021 and 2026 are runnable, which means the in-sample banner's clean case is currently untestable end to end. | Re-emit both specs (`python src/pools.py --city joburg --target {2011,2016} --emit`) before the next backtest round. Not done here: emitting rewrites files the forecast path reads, and this session's remit was the instruments, not the outputs. | 🔴 |
 | O10 | Sources disappear — the MDB has already retired the per-municipality shapefile downloads its old site served | `src/archive.py` records every file with SHA-256 and provenance; the manifest is committed even though `data/` is gitignored. `--verify` detects drift. | ✅ |
 
 ---
