@@ -908,6 +908,11 @@ def run_model(target, scenario: dict,
         if spec_path.exists():
             spec = json.loads(spec_path.read_text())
             note_constant(scenario, "pools", f"fitted on {spec['fitted_on']}")
+            home = spec.get("splinter_home")
+            if home:
+                note_constant(scenario, "splinter_home",
+                              f"{', '.join(sorted(home['fractions']))} "
+                              f"measured at {', '.join(home['measured_at'])}")
             scenario["pools"] = spec["pools"]
             scenario["pool_seeds"] = spec.get("seeds", {})
             scenario["pool_seed_bands"] = spec.get("seed_bands", {})

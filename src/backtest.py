@@ -239,6 +239,19 @@ FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
     # nominations close and available to any forecaster weeks before polling
     # day. It used to count only the wards where a party WON votes, which is
     # not the ballot but the result, and that was a genuine leak.
+    # Deliberately retrospective, at the project owner's direction and with
+    # the reasoning recorded: only one home-city split had happened before
+    # 2021, and one observation is not a sample — sizing ActionSA from it
+    # alone gave 1.87% against an actual 16.1%. Using the whole record gives
+    # 15.78%, from GOOD and MK, neither of which is ActionSA. A target at or
+    # before the latest split used is therefore IN-SAMPLE and says so here,
+    # which is the difference between a declared choice and a leak.
+    "splinter_home": (
+        ("2019", "2024"),
+        "home-city splinter fractions (GOOD in Cape Town 2019, MK in "
+        "eThekwini 2024). A split takes far more where its leader's own "
+        "following is, and the effect is only measurable across elections "
+        "either side of most targets"),
     "contestation": (
         (),
         "ward-ballot PRESENCE at the target, taken from the target's own "

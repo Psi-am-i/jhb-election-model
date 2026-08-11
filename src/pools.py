@@ -1687,6 +1687,42 @@ def _ward_reach(code: str, year: str) -> dict[str, float]:
     return {p: len(w) / len(seen) for p, w in wards.items()} if seen else {}
 
 
+def home_splinter_record(exclude: str | None = None) -> dict[str, float]:
+    """What each split took OF ITS PARENT, measured in its leader's own city.
+
+    Returns ``{party: fraction}``. Deliberately IGNORES the target cutoff that
+    every other record in this module respects, and the caller must declare
+    that — see ``backtest.FITTED_ON["splinter_home"]``, which makes any target
+    at or before the latest split used report itself in-sample.
+
+    THE REASONING, WHICH IS THE PROJECT OWNER'S. The home/away effect is large
+    and consistent (Split's docstring: x8.7, x5.9, x36.7 across three cities)
+    but only one home split had happened before 2021, and one observation is
+    not a sample — sizing ActionSA from De Lille's 0.056 alone put it at 1.87%
+    against an actual 16.1%. The choice is between a structure we have
+    measured and cannot populate in period, and a number we know is wrong. So
+    the whole record is used, the run says so out loud, and the score it
+    produces at 2021 is read as what it is: an estimate of what this rule is
+    worth, not an out-of-sample forecast.
+
+    ``exclude`` drops one party, and every caller passes the party it is
+    sizing. Retrospective is one thing; letting ActionSA's own 0.611 set
+    ActionSA's expectation is another, and it would make the rule look good by
+    construction. With it excluded the sample for ActionSA is GOOD's 0.056 and
+    MK's 0.885 — two splits, neither of them the one being predicted.
+    """
+    out: dict[str, float] = {}
+    for party, split in sorted(SPLITS.items()):
+        if party == exclude or split.home is None or split.measured_from is None:
+            continue
+        before, after = split.measured_from
+        a = metro_citywide(split.home, before) or _npe_citywide_for(split.home, before)
+        b = metro_citywide(split.home, after) or _npe_citywide_for(split.home, after)
+        if a.get(split.parent, 0) > 0 and b.get(party, 0) > 0:
+            out[party] = b[party] / a[split.parent]
+    return out
+
+
 def splinter_record(city: cityconfig.City, before_year: str | None = None,
                     splits: dict | None = None,
                     at_home: bool = False) -> list[float]:
@@ -1804,7 +1840,7 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                   record: list[tuple[float, float]],
                   splinter_fractions: list[float], pool_size: np.ndarray,
                   contestation: dict[str, float] | None = None,
-                  splinter_home: list[float] | None = None,
+                  splinter_home: dict[str, float] | None = None,
                   city_code: str | None = None,
                   ) -> tuple[dict[str, dict], dict[str, str]]:
     """How a party that was not here last time takes its votes.
@@ -1899,7 +1935,8 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         at_home = (city_code is not None
                    and (SPLITS.get(party).home if party in SPLITS else None)
                    == city_code)
-        record = (splinter_home or []) if at_home else splinter_fractions
+        home_pool = {q: f for q, f in (splinter_home or {}).items() if q != party}
+        record = sorted(home_pool.values()) if at_home else splinter_fractions
         label = "home" if at_home else "away"
         # A HOME RECORD OF ONE IS NOT A RECORD. The home/away distinction is
         # real and large — see Split — but before 2021 exactly one home split
@@ -1910,8 +1947,12 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         # average, and until then the run says which record it fell back to.
         if at_home and len(record) < MIN_HOME_SPLITS:
             record = splinter_fractions
-            label = (f"all splits — only {len(splinter_home or [])} home "
-                     f"observation(s), too few to size from")
+            label = (f"all splits — only {len(home_pool)} home "
+                     f"observation(s) once {party} itself is excluded, too "
+                     f"few to size from")
+        elif at_home:
+            label = (f"home-city splits ({', '.join(sorted(home_pool))}), "
+                     f"RETROSPECTIVE: not all precede this target")
         if not record:
             return None, None, None, "none"
         return (min(record), float(np.median(record)), max(record), label)
@@ -2362,8 +2403,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     arrivals, seed_notes = arrival_rules(
         newcomers, lineage, rates_matrix, universe_fitted, cats, record,
         splinter_record(city, target.year), registered, contestation=reach,
-        splinter_home=splinter_record(city, target.year, at_home=True),
-        city_code=city.code)
+        splinter_home=home_splinter_record(), city_code=city.code)
     # An arrival's composition follows from where it captures, so it does not
     # need a separate vector: the pools it takes from ARE its pool weights.
     for party, rule in arrivals.items():
@@ -2448,6 +2488,18 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # came from — and a spec that quietly reached the published forecast would
     # still be identifiable after the fact.
     marker = {}
+    # The home-city splinter record ignores the target cutoff by design, so the
+    # spec records WHICH splits it used and WHEN they happened. run_model turns
+    # that into a note_constant, and backtest's banner reports any target that
+    # is at or before one of them as in-sample. A retrospective input that does
+    # not announce itself is the exact defect this repository spent the day
+    # removing; this one announces itself through the machinery built for it.
+    home_used = home_splinter_record()
+    if home_used:
+        marker["splinter_home"] = {
+            "fractions": {k: round(v, 4) for k, v in home_used.items()},
+            "measured_at": sorted(SPLITS[k].measured_from[1] for k in home_used),
+        }
     if split_bloc:
         marker["simulation_only"] = (
             f"Carries the {split_bloc.get('name')} pool, located by the "
