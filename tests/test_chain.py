@@ -510,6 +510,88 @@ def test_the_level_prior_reads_no_election_at_or_after_its_target():
 # 5. scoring — the instrument every decision is made against
 # --------------------------------------------------------------------------
 
+BLOC = {"parent": "Black African", "name": "IFP-located", "indicator": "IFP",
+        "within_rate": 0.90}
+
+
+def test_a_vote_located_bloc_is_carved_out_of_its_parent_not_added_on_top():
+    """Its members are already counted in the parent pool, so a ward's
+    composition must still sum to 1 and the parent must shrink by exactly what
+    the bloc took. Adding a fifth column on top would invent voters, inflate
+    the electorate and quietly break the vote margins the fit is constrained
+    by — the same failure the retired "Other" pool caused."""
+    city = _city()
+    plain = pools.pool_counts(city, FIT_YEAR, _cfg())
+    split = pools.pool_counts(city, FIT_YEAR, _cfg(), split_bloc=BLOC)
+    assert len(split.categories) == len(plain.categories) + 1
+    assert split.categories[-1] == "IFP-located"
+
+    for level in ("people", "voting_age", "registered", "voted"):
+        before = getattr(plain, level)
+        after = getattr(split, level)
+        assert abs(after.sum() - before.sum()) < 1.0, \
+            f"{level}: the split changed the electorate by " \
+            f"{after.sum() - before.sum():,.0f}"
+        rows = split.composition(level).sum(axis=1)
+        assert np.allclose(rows[rows > 0], 1.0, atol=1e-9), \
+            f"{level}: a ward's composition no longer sums to 1"
+
+    # The carve itself is exact, but every level is then re-fitted across the
+    # new set of pools, so the other pools move a little as the least-squares
+    # answer shifts. What must hold is that the bloc's voters come out of its
+    # PARENT: adding a column on top instead would leave the parent untouched.
+    cats = list(plain.categories)
+    g = cats.index("Black African")
+    lost = plain.voted[:, g].sum() - split.voted[:, g].sum()
+    gained = split.voted[:, -1].sum()
+    assert lost > 0.9 * gained, \
+        f"the bloc holds {gained:,.0f} voters but its parent only gave up " \
+        f"{lost:,.0f}; it is not being carved out of the parent"
+    for i, name in enumerate(cats):
+        if i == g:
+            continue
+        moved = abs(split.voted[:, i].sum() - plain.voted[:, i].sum())
+        assert moved < 0.05 * plain.voted[:, i].sum(), \
+            f"{name} moved {moved:,.0f} voters ({moved / plain.voted[:, i].sum():.1%}) " \
+            f"when a bloc was carved out of {cats[g]}"
+
+
+def test_the_bloc_is_located_only_by_elections_before_the_target():
+    """The bloc is defined by a party's own past geography, so a run that read
+    the target's result would be locating it with the answer. Watched at the
+    file, not asserted from the loop's own condition."""
+    city = _city()
+    for year in ("2016", "2021"):
+        with election_files_read() as reads:
+            located, prov = pools.vote_located_bloc(city, year)
+        assert located, f"no bloc located before {year}"
+        late = sorted({(y, k) for y, k, _ in reads if int(y) >= int(year)})
+        assert not late, f"the bloc for {year} was located using {late}"
+        assert all(int(y) < int(year) for y in prov["elections"]), \
+            f"provenance claims {prov['elections']} for target {year}"
+
+
+def test_the_bloc_identifies_the_party_that_located_it():
+    """The justification, as a property rather than a number: if the indicator
+    party's rate in its own bloc is not higher than in every census pool, the
+    column is not finding a constituency and should not be carried.
+
+    Caught nothing yet — it exists because the alternative to this test is
+    keeping a fifth pool on the strength of a story. With the census pools
+    alone the IFP fits at r2 0.082, which is no fit at all."""
+    fits, ctx = pools.fit_city(_city(), FIT_YEAR, _cfg(), split_bloc=BLOC)
+    cats = list(ctx["categories"])
+    assert cats[-1] == "IFP-located"
+    ifp = fits.get("IFP")
+    if ifp is None:
+        skip("the IFP did not contest the fitting election")
+    inside = ifp.rates[-1]
+    outside = ifp.rates[:-1].max()
+    assert inside > outside, (
+        f"the IFP wins {inside:.3f} of its own bloc and {outside:.3f} of the "
+        f"best census pool; the bloc is not locating it")
+
+
 def test_a_splinter_is_never_sized_on_a_split_that_had_not_happened_yet():
     """``splinter_record``'s three pairs had their years hardcoded, and the
     caller passed no target, so every run measured the MK split of 2024 —

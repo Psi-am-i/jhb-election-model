@@ -250,6 +250,125 @@ class PoolCounts:
         return getattr(self, level).sum(axis=0)
 
 
+def vote_located_bloc(city: cityconfig.City, before_year: str,
+                      indicator: str = "IFP", within_rate: float = 0.90,
+                      ward_of: dict[str, str] | None = None,
+                      ) -> tuple[dict[str, float], dict]:
+    """Locate a voter bloc the census cannot see, using a party that only it votes for.
+
+    ================================================================
+    THIS IS A PROXY. IT IS MEANT TO BE REPLACED.
+    ================================================================
+
+    The pools are population groups because that is the only ward-level
+    characteristic Stats SA publishes. It is too coarse, and the model knows
+    it: the ANC and the IFP are both overwhelmingly African-supported and
+    stand on entirely separate ground (district correlation −0.14). South
+    Africa's African electorate is not one electorate — Zulu, Xhosa, Sotho,
+    Pedi, Tswana, Tsonga, Venda, Ndebele and Swati are distinct — and the
+    right way to carry that is **Census 2022 home language by ward**, which we
+    do not hold. The request is drafted at
+    ``drafts/statssa-request-language.md`` and had not been sent as of
+    2026-08-11. When it lands, this function should be replaced by it, or at
+    the very least validated against it and demoted to a covariate.
+
+    Until then: a party with a narrow, well-understood constituency is an
+    *indicator* for a bloc no table describes. Three are already visible in
+    the fit, each near-zero in every pool but one — the PA locates the
+    Coloured pool (0.412 ± 0.017), Al Jama-ah the Indian/Muslim one (0.190 ±
+    0.019), and the IFP a bloc inside "Black African" that has no column of
+    its own.
+
+    WHY THE IFP AND WHY THE PEAK. Measured on Johannesburg's 135 wards:
+
+    * The IFP's ward geography is almost perfectly stable — 2016 against 2021
+      correlates **+0.985**, and +0.986 once Black African share is removed.
+      It is a real, sharply-located, persistent constituency.
+    * MK, which did not exist until December 2023, arrived **on top of it**.
+      Correlation of MK's 2024 ward share with the IFP's, after removing Black
+      African share from both sides: +0.65. Over the same wards the ANC's and
+      the EFF's associations with MK *invert* (−0.24, −0.28). So MK's map is
+      not "where African voters are", it is "where the IFP is".
+    * The bloc SWITCHES, which is why this takes the peak across the record
+      rather than the most recent election. Against MK 2024, the older IFP
+      geography predicts better than the newer: 2011 +0.684, 2006 +0.682,
+      2000 +0.675, against 2021's +0.646, and the peak beats all of them at
+      **+0.687**. Removing the 2021 IFP vote as well, MK still correlates
+      +0.325 with IFP 2011 — there are wards the bloc left, voting ANC in the
+      middle years and MK in 2024, and only the old vote finds them.
+
+    WHAT THIS IS NOT. It does not identify Zulu voters. It identifies the bloc
+    the IFP stands on, which we have external reason to believe is largely
+    Zulu — exactly the kind of naming-from-outside-knowledge the census does
+    when it labels a fitted factor. Calling the result "Zulu" would be a claim
+    the data does not make, so the pool is named for what was measured.
+
+    It also does not claim MK belongs to this bloc. It does not: in wards
+    79800046/51/52 MK took 33-34% where the IFP has never exceeded 5.2% in
+    twenty-four years. That is ANC defection, not a bloc switching, and the
+    joint fit is left to split MK between this pool and the general African
+    one rather than being told the answer.
+
+    THE ONE JUDGEMENT, stated so it can be argued with. An indicator party's
+    vote share is not the bloc's population share; the bloc has to vote for it
+    at some rate, and that rate is ``within_rate``. 0.90 is anchored on ward
+    79800065, where the IFP peaked at 77.7% of a ward that is 88.2% Black
+    African — a rate much below 0.9 would make the bloc larger than the pool
+    it sits inside. It is a judgement and it scales the pool's SIZE; it does
+    not affect which wards the bloc is found in, which is what the +0.985
+    stability above is about.
+
+    ``before_year`` keeps this honest in a backtest: only elections strictly
+    before the target are read, so the bloc for a 2016 target is located with
+    2000-2011 and cannot borrow the geography of the election being forecast.
+
+    Returns ``({ward: bloc share of that ward's people}, provenance)``.
+    """
+    years = sorted((y for y, e in cityconfig.CALENDAR.items()
+                    if e.kind == "LGE" and e.results and int(y) < int(before_year)),
+                   key=int)
+    if not years:
+        return {}, {"indicator": indicator, "elections": [],
+                    "within_rate": within_rate, "before": before_year}
+    # The VD-to-ward map comes from the CALLER, because the caller's wards are
+    # the ones the result has to be keyed by and it is already reading that
+    # election. Building it here from ``before_year`` read the target's own
+    # file — boundaries only, never votes, but a temporal test cannot tell
+    # those apart at the file and should not have to. Standing alone, fall
+    # back to the last election strictly before the target.
+    if ward_of is None:
+        ward_of, _ = vd_map(city, years[-1])
+    peak: dict[str, float] = defaultdict(float)
+    used: list[str] = []
+    for year in years:
+        template = cityconfig.CALENDAR[year].results
+        path = city.path("raw", "elections", template) if template else None
+        if not path or not path.exists():
+            continue
+        votes: dict[str, float] = defaultdict(float)
+        total: dict[str, float] = defaultdict(float)
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            for row in csv.DictReader(fh):
+                if row.get("BallotType") not in (None, "", "PR"):
+                    continue
+                ward = ward_of.get((row.get("VD_Number") or "").strip())
+                if not ward:
+                    continue
+                v = float(row.get("Party_Votes") or 0)
+                total[ward] += v
+                if P.canonical(row["sPartyName"]) == indicator:
+                    votes[ward] += v
+        if not total:
+            continue
+        used.append(year)
+        for ward, tot in total.items():
+            if tot > 0:
+                peak[ward] = max(peak[ward], votes.get(ward, 0.0) / tot)
+    return ({w: min(s / within_rate, 1.0) for w, s in peak.items()},
+            {"indicator": indicator, "elections": used,
+             "within_rate": within_rate, "before": before_year})
+
+
 def _nest(parent: np.ndarray, observed: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Split an observed ward total across pools, in proportion to the parent.
 
@@ -323,7 +442,8 @@ def ward_totals(city: cityconfig.City, year: str,
     return dict(reg), dict(votes)
 
 
-def pool_counts(city: cityconfig.City, year: str, cfg: Config) -> PoolCounts:
+def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
+                split_bloc: dict | None = None) -> PoolCounts:
     """Build the four nested levels for one city and election.
 
     Three of the four are observed rather than modelled: the census publishes
@@ -356,6 +476,30 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config) -> PoolCounts:
         raise SystemExit(f"{city.slug} {year}: no ward joined the census")
 
     comp = np.array([comp_by_ward[w] for w in wards])
+    categories = base.categories
+
+    # A pool the census cannot see, carved out of the one it is hiding inside.
+    # Opt-in and off by default: adding a column changes the shape of every
+    # downstream artefact (turnout dials, the emitted spec, the reader's pool
+    # controls), so it is measured before it is adopted. See
+    # :func:`vote_located_bloc` for what this is and why it is a placeholder.
+    if split_bloc:
+        parent = split_bloc.get("parent", "Black African")
+        bloc_name = split_bloc.get("name", "IFP-located")
+        shares_by_ward, _prov = vote_located_bloc(
+            city, split_bloc.get("before") or year,
+            indicator=split_bloc.get("indicator", "IFP"),
+            within_rate=float(split_bloc.get("within_rate", 0.90)),
+            ward_of=vd_map(city, year)[0])
+        g = categories.index(parent)
+        carved = np.array([min(shares_by_ward.get(w, 0.0), comp[i, g])
+                           for i, w in enumerate(wards)])
+        # Taken OUT of the parent, never added on top: the bloc's members are
+        # already counted there, and a ward's composition must still sum to 1.
+        comp = np.column_stack([comp, carved])
+        comp[:, g] -= carved
+        categories = categories + (bloc_name,)
+
     people = comp * np.array([people_by_ward[w] for w in wards])[:, None]
 
     rates: dict[str, np.ndarray] = {}
@@ -387,7 +531,7 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config) -> PoolCounts:
         for g, ratio in enumerate(over):
             if ratio > 1.0:
                 violations.append(
-                    f"{base.categories[g]}: {name} is {ratio:.0%} of the level "
+                    f"{categories[g]}: {name} is {ratio:.0%} of the level "
                     f"above it, which is impossible. Do NOT read this as a "
                     f"census undercount: the published Census 2022 figures for "
                     f"the white and Indian groups are argued to be too HIGH, "
@@ -396,7 +540,7 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config) -> PoolCounts:
                     f"projections), which makes this gap wider rather than "
                     f"narrower. See DATA-QUALITY.md item 11.")
 
-    return PoolCounts(wards=wards, categories=base.categories, people=people,
+    return PoolCounts(wards=wards, categories=categories, people=people,
                       voting_age=voting_age, registered=registered, voted=voted,
                       rates=rates, violations=violations)
 
@@ -897,7 +1041,8 @@ def bounds(y: np.ndarray, comp: np.ndarray, votes: np.ndarray) -> np.ndarray:
 def fit_city(city: cityconfig.City, year: str, cfg: Config, *,
              admitted_only: bool = True,
              extra_tilts: list[Dimension] | None = None,
-             party_list: list[str] | None = None):
+             party_list: list[str] | None = None,
+             split_bloc: dict | None = None):
     """Fit every party's pool vector from one city's ward results.
 
     Composition is taken as at that election's polling day, not as at whichever
@@ -907,7 +1052,7 @@ def fit_city(city: cityconfig.City, year: str, cfg: Config, *,
 
     # The pool is a set of people and three nested subsets of it; the party
     # rates act on the innermost one, the people who actually voted.
-    counts = pool_counts(city, year, cfg)
+    counts = pool_counts(city, year, cfg, split_bloc=split_bloc)
     for violation in counts.violations:
         print(f"  ! {violation}")
 
@@ -963,7 +1108,7 @@ def fit_city(city: cityconfig.City, year: str, cfg: Config, *,
     # about a matrix production never used.
     return fits, {"wards": wards, "comp": comp, "votes": vote,
                   "shares": shares, "tilt_dims": tilt_dims, "counts": counts,
-                  "pool_votes": pool_votes, "categories": base.categories,
+                  "pool_votes": pool_votes, "categories": counts.categories,
                   "provenance": provenance, "year": year,
                   "rates": counts.rates, "raw_rates": raw, "parties": universe,
                   "Y": Y}
