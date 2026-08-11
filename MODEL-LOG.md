@@ -1627,6 +1627,48 @@ Both are structural, both are open, and the second is on a clock.
   own evidence, moving it from θ 0.88 to about 1.3. Worth doing and not a
   cure: it is a patch on the same pipe.
 
+  **WHAT THE SLIDING SCALE IS NOT — two negative results, 2026-08-12.** The
+  obvious design is to score each party on how *local* it is and weight its
+  local record accordingly. Measured, that does not work:
+
+  * *Geographic concentration does not predict the local premium.* Scoring
+    each party by the share of its metro vote in its single best metro
+    (NCC 100% Cape Town, IFP 72% eThekwini, MK 62% eThekwini, ActionSA 52%
+    Johannesburg, EFF 26% — exactly the "perfectly even" value) and
+    correlating that against its 2019→2021 local premium gives **r = −0.09
+    over 13 parties.** No relationship.
+  * *The premium is not concentrated at home either.* Comparing each party's
+    local premium in its strongest metro against the median elsewhere: the
+    **median ratio is 0.93, and only 3 of 10 parties exceed 1.** An
+    established party converts national support to local support at about the
+    same rate wherever it stands.
+
+  So "local party" is not a geographic property and should not be modelled as
+  one. What distinguishes ActionSA is not *where* its vote is but *which
+  election it is built for* — and the only measurable signature of that is the
+  party's own local-to-national ratio, which needs one observed pair of both
+  election types. ActionSA has exactly one. That makes the both-directions θ
+  fix above the *whole* of the measurable answer, not a stopgap, and it
+  removes the case for a separate "local party" class.
+
+  **PRECEDENT (2026-08-12).** Reif and Schmitt's second-order election model
+  (1980) is the frame and it predicts what this model already measures:
+  in second-order elections — explicitly including municipal ones — turnout
+  falls, nationally governing parties lose vote share, and small, new and
+  opposition parties gain. Our measured θ *is* the second-order effect (ANC
+  0.77–0.84, small parties above 1), which is worth stating on the
+  methodology page because it means the structure is not ad hoc.
+  The local-party literature offers two further mechanisms, and only one
+  survives contact with our data:
+  * *Local parties win where national parties field no candidate.* Real
+    elsewhere, **not operative in a South African metro**: tested on
+    Johannesburg 2021, the ANC, DA and EFF each field a ward candidate in
+    **135 of 135 wards**. Dead here.
+  * *Local parties with governing experience survive better*, against the
+    cost-of-ruling thesis that holds for national parties. This is live and
+    directly relevant — ActionSA now governs Tshwane in coalition — and 2026
+    is its first test. Nothing in our record can settle it beforehand.
+
   *The real fix* is that a party's level should come from BOTH its previous
   local and its previous national result, weighted by which has historically
   been more informative for a party like it. The weights are measurable — the
