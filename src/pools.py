@@ -938,10 +938,10 @@ def fit_city(city: cityconfig.City, year: str, cfg: Config, *,
 
     # Every party at once, subject to what must be true: no negative votes, and
     # each pool's rates summing to one because every voter voted for someone.
-    R = fit_joint(comp, Y, vote)
+    raw = fit_joint(comp, Y, vote)
     pool_votes = (comp * vote[:, None]).sum(axis=0)
     party_votes = (Y * vote[:, None]).sum(axis=0)
-    R = balance_margins(R, pool_votes, party_votes)
+    R = balance_margins(raw, pool_votes, party_votes)
 
     fits: dict[str, PartyFit] = {}
     for i, party in enumerate(universe):
@@ -955,11 +955,18 @@ def fit_city(city: cityconfig.City, year: str, cfg: Config, *,
         )
 
     pool_votes = (comp * vote[:, None]).sum(axis=0)
+    # ``raw`` and ``Y`` are returned so a test can assert on the FIT rather than
+    # on the balanced product. IPF forces both margins whatever it is handed, so
+    # every constraint checked after ``balance_margins`` is a statement about
+    # ``balance_margins``; reconstructing the fit in the test instead would let
+    # the two drift (the universe filter below is easy to miss) and would assert
+    # about a matrix production never used.
     return fits, {"wards": wards, "comp": comp, "votes": vote,
                   "shares": shares, "tilt_dims": tilt_dims, "counts": counts,
                   "pool_votes": pool_votes, "categories": base.categories,
                   "provenance": provenance, "year": year,
-                  "rates": counts.rates}
+                  "rates": counts.rates, "raw_rates": raw, "parties": universe,
+                  "Y": Y}
 
 
 # --------------------------------------------------------------------------

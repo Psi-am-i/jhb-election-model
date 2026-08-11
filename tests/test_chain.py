@@ -95,7 +95,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import numpy as np                                              # noqa: E402
-from _support import ROOT, run_module, skip                     # noqa: E402
+from _support import (ROOT, election_files_read, run_module,    # noqa: E402
+                      skip)
 
 import cityconfig                                               # noqa: E402
 import levels                                                   # noqa: E402
@@ -139,14 +140,27 @@ def _counts():
 
 
 def _spec(target: str):
-    """The emitted pool spec for a target, from disk."""
+    """The pool spec for a target, BUILT HERE by the code under test.
+
+    It used to be read from ``data/processed/pools_{target}.json``, and that
+    made every test below a statement about a file rather than about the code
+    that writes it: a mutation making ``contesting_parties`` return an empty
+    roster for an unheld target — the exact defect that once deleted every
+    newcomer from the live forecast — left the three spec tests green, because
+    the stale JSON on disk still had the parties in it. They would only have
+    noticed after someone re-emitted, which is precisely when nobody is
+    looking.
+
+    ``emit_pools`` returns the structure and writes nothing, so calling it
+    cannot overwrite the spec the live forecast reads (a real hazard here: an
+    un-namespaced write from one city has reached another city's forecast
+    before).
+    """
     key = f"spec{target}"
     if key not in _CACHE:
-        path = _city().processed / f"pools_{target}.json"
-        if not path.exists():
-            skip(f"no {path.name}; run: python src/pools.py --city {CITY} "
-                 f"--target {target} --emit")
-        _CACHE[key] = json.loads(path.read_text())
+        city = _city()
+        _CACHE[key] = pools.emit_pools(
+            city, cityconfig.Target(city=city, year=target), _cfg())
     return _CACHE[key]
 
 
@@ -154,41 +168,99 @@ def _spec(target: str):
 # 1. the constrained fit — what must be true of any election
 # --------------------------------------------------------------------------
 
-def test_pool_rates_are_never_negative():
-    """No party wins a negative number of votes.
+def _raw_joint_fit():
+    """``fit_joint``'s OWN output, before ``balance_margins`` touches it.
+
+    This distinction is the whole point of the next four tests. ``fit_city``
+    runs ``raw = fit_joint(...)`` and then ``R = balance_margins(raw, ...)``,
+    and IPF forces both margins exactly whatever it was handed — so asserting
+    on the finished product certifies one line of ``balance_margins`` and says
+    NOTHING about the fit. Proven by a review: replacing ``fit_joint`` with
+    uniform random noise left all three assertions green.
+
+    ``raw`` comes back from ``fit_city`` rather than being refitted here, so
+    what is asserted about is the matrix the production run actually computed.
+    Refitting in the test would quietly diverge — ``fit_city`` drops parties
+    that polled zero in every ward from its universe, and a test that missed
+    that would be fitting a different problem and certifying the answer.
+    """
+    if "raw" not in _CACHE:
+        _, ctx = _fit()
+        _CACHE["raw"] = (ctx["raw_rates"], ctx["parties"])
+    return _CACHE["raw"]
+
+
+def test_the_fit_itself_never_returns_a_negative_rate():
+    """No party wins a negative number of votes — asserted on FIT_JOINT.
 
     Caught: independent per-party fits put Al Jama-ah at -1.9% +/- 0.3 among
     white voters and the PA at -3.5% among Indian voters. Tight negatives are
     misspecification, not noise.
     """
-    fits, _ = _fit()
-    worst = min((f.rates.min(), p) for p, f in fits.items())
-    assert worst[0] >= 0.0, f"{worst[1]} has a negative rate: {worst[0]}"
+    R, universe = _raw_joint_fit()
+    worst = float(R.min())
+    where = universe[int(np.argmin(R.min(axis=0)))]
+    assert worst >= -1e-12, f"fit_joint returned {worst} (worst party {where})"
 
 
-def test_each_pool_allocates_exactly_one_vote():
-    """Every voter votes for someone, so a pool's rates sum to 1.
+def test_the_fit_itself_allocates_exactly_one_vote_per_pool():
+    """Every voter votes for someone — asserted on FIT_JOINT, not on IPF.
 
     Caught: the white pool was assigned 111.4% of its voters and the Coloured
     pool 90.4%, with 106.1% of the vote existing in total.
     """
-    fits, ctx = _fit()
-    rates = np.array([f.rates for f in fits.values()])
-    sums = rates.sum(axis=0)
+    R, _ = _raw_joint_fit()
+    sums = R.sum(axis=1)
     assert np.allclose(sums, 1.0, atol=1e-6), \
-        f"pool rates sum to {sums} across {len(ctx['categories'])} pools, not 1"
+        f"fit_joint's pool rates sum to {sums}, not 1"
 
 
-def test_party_totals_match_the_votes_actually_cast():
-    """Each party's implied vote equals what it won: the other known margin."""
+def test_the_fit_beats_the_only_answer_it_is_allowed_to_fall_back_to():
+    """The fit must explain the wards better than "every ward votes alike".
+
+    The two constraint tests above are necessary and jointly worthless as a
+    check on the FIT: ``_project_simplex`` enforces both by construction, so a
+    ``fit_joint`` that ignored the data entirely and returned any feasible
+    matrix — the uniform 1/n it starts from, or noise projected onto the
+    simplex — passes them. What no such matrix passes is this.
+
+    Giving every pool the city's own shares is a feasible point of exactly the
+    problem ``fit_joint`` minimises (it is non-negative and sums to one), and
+    it is the answer that says pools do not differ. A minimiser must therefore
+    come back with a strictly lower objective than it. That is not a magnitude
+    to re-record; it is arithmetic that only fails if the solver stopped
+    early, ran backwards, or never looked at ``Y``.
+    """
+    R, _ = _raw_joint_fit()
+    _, ctx = _fit()
+    E, Y, votes = ctx["comp"], ctx["Y"], ctx["votes"]
+
+    def objective(rates):
+        sw = np.sqrt(votes / votes.sum())[:, None]
+        return float((((E @ rates - Y) * sw) ** 2).sum())
+
+    citywide = np.average(Y, axis=0, weights=votes)
+    null = np.tile(citywide, (E.shape[1], 1))
+    assert abs(null.sum(axis=1) - 1.0).max() < 1e-9, \
+        "the null is not a feasible point; this test's premise has changed"
+    fitted, flat = objective(R), objective(null)
+    assert fitted < flat, (
+        f"the joint fit ({fitted:.6e}) explains the wards no better than "
+        f"giving every pool the citywide shares ({flat:.6e}) — it is not "
+        f"minimising anything")
+
+
+def test_balancing_hits_both_known_margins():
+    """IPF's own postcondition, asserted separately from the fit's."""
     fits, ctx = _fit()
     electorate = ctx["pool_votes"]
     total = electorate.sum()
-    worst = 0.0
-    for party, fit in fits.items():
-        implied = float(fit.rates @ electorate) / total
-        worst = max(worst, abs(implied - fit.citywide))
-    assert worst < 1e-6, f"worst party-total error {worst:.2e}"
+    worst = max(abs(float(f.rates @ electorate) / total - f.citywide)
+                for f in fits.values())
+    assert worst < 1e-6, f"worst party-total error after balancing {worst:.2e}"
+    rates = np.array([f.rates for f in fits.values()])
+    assert np.allclose(rates.sum(axis=0), 1.0, atol=1e-6), \
+        "pool rates do not sum to 1 after balancing"
 
 
 def test_the_fit_refuses_rather_than_returning_an_unconverged_iterate():
@@ -315,6 +387,29 @@ def test_every_level_is_anchored_to_its_published_ward_total():
 # 3. seeds — a vector and a level are different questions
 # --------------------------------------------------------------------------
 
+def _baseline_shares(target: str = TARGET) -> dict[str, float]:
+    """Each party's share of the target's baseline election, from the file."""
+    key = f"baseline{target}"
+    if key not in _CACHE:
+        import csv
+        from collections import defaultdict
+
+        import parties as P
+        city = _city()
+        year = cityconfig.Target(city=city, year=target).previous_npe
+        path = city.path("raw", "elections", cityconfig.CALENDAR[year].results)
+        if not path.exists():
+            skip(f"no baseline at {path}")
+        counts: dict = defaultdict(int)
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            for row in csv.DictReader(fh):
+                counts[P.canonical(row["sPartyName"])] += int(
+                    float(row.get("Party_Votes") or 0))
+        total = sum(counts.values())
+        _CACHE[key] = {p: v / total for p, v in counts.items()} if total else {}
+    return _CACHE[key]
+
+
 def test_a_party_with_a_baseline_is_never_seeded():
     """Caught: MK held 12.22% of the 2024 baseline AND got a +15.98% seed, so
     a split already present in the baseline was applied twice — MK started at
@@ -322,22 +417,9 @@ def test_a_party_with_a_baseline_is_never_seeded():
     produced ANC 36 / MK 68."""
     spec = _spec(TARGET)
     seeds = spec.get("seeds", {})
-    target = cityconfig.Target(city=_city(), year=TARGET)
-    path = _city().path("raw", "elections",
-                        cityconfig.CALENDAR[target.previous_npe].results)
-    if not path.exists():
-        skip(f"no baseline at {path}")
-    import csv
-    import parties as P
-    from collections import defaultdict
-    counts: dict = defaultdict(int)
-    with open(path, encoding="utf-8", errors="replace") as fh:
-        for row in csv.DictReader(fh):
-            counts[P.canonical(row["sPartyName"])] += int(
-                float(row.get("Party_Votes") or 0))
-    total = sum(counts.values())
+    baseline = _baseline_shares()
     offenders = [p for p, v in seeds.items()
-                 if v > 0 and counts.get(p, 0) / total > 1e-6]
+                 if v > 0 and baseline.get(p, 0.0) > 1e-6]
     assert not offenders, \
         f"seeded despite already holding a baseline share: {offenders}"
 
@@ -357,15 +439,35 @@ def test_every_baseline_party_reaches_a_pool():
 def test_emitting_for_an_unheld_target_does_not_silently_empty_the_spec():
     """Caught: contesting_parties() reads the target's result file, which does
     not exist before the election, so the roster came back empty and every
-    newcomer vanished from the LIVE forecast while the backtests looked fine."""
+    newcomer vanished from the LIVE forecast while the backtests looked fine.
+
+    What the defect deletes is the parties with NO vector from the fitting
+    election — everyone who contested it keeps theirs either way. So counting
+    pool members could not see it: with the fallback removed the spec still
+    carried 40-odd fitted parties and this test stayed green. It now asks the
+    question the defect answers wrongly, which is whether the parties that
+    arrived AFTER the fitting election are still in the spec at all.
+    """
     city = _city()
     assert not pools.contesting_parties(city, TARGET), \
         "an unheld target now has a roster; this test's premise has changed"
     spec = _spec(TARGET)
     members = {p for cfg in spec["pools"].values() for p in cfg["members"]}
+    carried = members | set(spec.get("seeds") or {}) \
+        | set(spec.get("no_measured_vector") or {})
+    # Anything material in the baseline must reach the spec by one of those
+    # three routes, whether or not it existed at the fitting election. MK is
+    # the live case: 12.22% of 2024, absent from 2021.
+    dropped = sorted(p for p, share in _baseline_shares().items()
+                     if share > 0.005 and p not in carried)
+    assert not dropped, (
+        f"parties holding over 0.5% of the baseline are in the {TARGET} spec "
+        f"nowhere — not as pool members, seeds or declared vectorless: "
+        f"{dropped}. The roster fallback has stopped working, and the live "
+        f"forecast is the run that loses them.")
     assert len(members) > 10, \
         (f"only {len(members)} parties carry a pool vector for {TARGET}; the "
-         f"roster fallback has stopped working")
+         f"fit itself has emptied")
 
 
 # --------------------------------------------------------------------------
@@ -380,16 +482,27 @@ def test_pool_ratios_are_measured_only_before_the_target():
 
 
 def test_the_level_prior_reads_no_election_at_or_after_its_target():
-    """levels.theta_record must stop strictly before the target."""
+    """``levels.theta_record`` must stop strictly before the target.
+
+    Caught nothing for as long as it existed. The first version asserted that
+    the CALENDAR contains an LGE before 2016 and that the record is non-empty
+    — both true with ``theta_record``'s ``continue`` deleted, because neither
+    statement is about what the function read. It now watches the file opens:
+    a θ record for 2016 that touches ``lge2021_...`` or ``npe2019_...`` has
+    read its own answer, and says so with the filename.
+    """
     city = _city()
     for year in ("2016", "2021"):
         target = cityconfig.Target(city=city, year=year)
-        record = levels.theta_record(target)
+        with election_files_read() as reads:
+            record = levels.theta_record(target)
         assert record, f"no theta record before {year}"
-        # every contributing LGE must be strictly earlier
-        contributing = [y for y, e in cityconfig.CALENDAR.items()
-                        if e.kind == "LGE" and e.results and int(y) < int(year)]
-        assert contributing, f"no prior LGE for {year}"
+        assert reads, (f"the θ record for {year} opened no election file at "
+                       f"all; the spy is watching the wrong thing")
+        late = sorted({(y, kind) for y, kind, _ in reads if int(y) >= int(year)})
+        assert not late, (
+            f"the θ prior for target {year} read {late} — a retention ratio "
+            f"measured across the election being forecast")
 
 
 # --------------------------------------------------------------------------

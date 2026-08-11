@@ -21,9 +21,12 @@ runners see the same tests, including the ones generated per city-year in
 
 from __future__ import annotations
 
+import builtins
 import os
+import re
 import sys
 import traceback
+from contextlib import contextmanager
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -87,6 +90,74 @@ def skip(reason: str):
     raise SkipTest(reason)
 
 
+_ELECTION_FILE = re.compile(r"\b(npe|lge)(\d{4})", re.IGNORECASE)
+
+
+@contextmanager
+def election_files_read():
+    """Record every election result file opened inside the block.
+
+    A temporal-validity test has one hard problem: it is trying to prove a
+    negative, and the obvious way to write it is to re-state the production
+    loop's own guard ("every LGE in the calendar before the target is earlier
+    than the target") — which is true of the calendar no matter what the code
+    reads, and passes with the guard deleted. That is how
+    ``test_the_level_prior_reads_no_election_at_or_after_its_target`` came to
+    assert nothing at all about the level prior.
+
+    So watch the reads instead. Every result file this repository consumes is
+    named for its election (``npe2019_JHB_vd_party.csv``,
+    ``lge2021_JHB_vd_party_clean.csv``), so a leak is visible in the filename:
+    if a fit for target 2016 opens ``lge2021_...``, it has read the future,
+    whatever the loop believed. This catches the defect rather than the
+    guard — including leaks through helpers nobody thought to check.
+
+    Yields a list of ``(year, kind, path)``, filled as the block runs.
+
+    It sees ``open``, ``Path.open`` and ``pandas.read_csv``, which is every
+    route ``src/`` currently uses. A module that reads by some other means is
+    invisible to it, so a test using this must also assert that the files it
+    DID expect were seen — "no late file" is only evidence when something was
+    read at all.
+    """
+    seen: list[tuple[str, str, str]] = []
+    real_open, real_path_open = builtins.open, Path.open
+    try:
+        import pandas as _pd
+        real_read_csv = _pd.read_csv
+    except ImportError:  # pragma: no cover - pandas is a hard dep of src/
+        _pd = real_read_csv = None
+
+    def note(target):
+        match = _ELECTION_FILE.search(str(target))
+        if match:
+            seen.append((match.group(2), match.group(1).upper(), str(target)))
+
+    def spy_open(file, *args, **kwargs):
+        note(file)
+        return real_open(file, *args, **kwargs)
+
+    def spy_path_open(self, *args, **kwargs):
+        note(self)
+        return real_path_open(self, *args, **kwargs)
+
+    def spy_read_csv(filepath_or_buffer, *args, **kwargs):
+        note(filepath_or_buffer)
+        return real_read_csv(filepath_or_buffer, *args, **kwargs)
+
+    builtins.open = spy_open
+    Path.open = spy_path_open
+    if _pd is not None:
+        _pd.read_csv = spy_read_csv
+    try:
+        yield seen
+    finally:
+        builtins.open = real_open
+        Path.open = real_path_open
+        if _pd is not None:
+            _pd.read_csv = real_read_csv
+
+
 def run_module(namespace: dict) -> int:
     """Run every ``test_*`` callable in ``namespace``. Returns an exit code."""
     names = sorted(
@@ -101,6 +172,17 @@ def run_module(namespace: dict) -> int:
         except SKIP_EXCEPTIONS as exc:
             skipped += 1
             print(f"SKIP {name}: {exc}")
+        except SystemExit:
+            # SystemExit is a BaseException, so `except Exception` misses it —
+            # and every module in src/ raises SystemExit for a missing input
+            # (grep: 9 in montecarlo.py, 12 in pools.py). Without this the
+            # first missing file killed the whole run mid-file: four tests
+            # never executed, no summary printed, and exit 1 looked like an
+            # ordinary failure. A missing input is one failing test, not a
+            # truncated suite that reports nothing.
+            failed += 1
+            failures.append(f"FAIL {name}\n{traceback.format_exc()}")
+            print(f"FAIL {name} (SystemExit)")
         except Exception:  # noqa: BLE001 - a test runner reports everything
             failed += 1
             failures.append(f"FAIL {name}\n{traceback.format_exc()}")
