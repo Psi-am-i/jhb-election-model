@@ -1561,6 +1561,86 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
     return rules, notes
 
 
+def first_local_election(city: cityconfig.City, target: cityconfig.Target,
+                         baseline: dict[str, float], parent: str,
+                         party: str, reach: float | None,
+                         coherence: float | None) -> tuple[float, str]:
+    """The level for a party facing its FIRST local election on a national base.
+
+    A splinter special case, and the one that governs MK in 2026. Such a party
+    is not an arrival — it has a national baseline — and it is not established,
+    because nothing it has done has been tested at a local election, where a
+    different and much smaller electorate turns out. Its pools are inherited
+    from its parent like any splinter; its LEVEL is its national baseline moved
+    by three things::
+
+        national baseline
+          x  the parent's own national-to-local change    measured
+          x  the share of wards it contests                measured
+          x  leadership coherence                          JUDGED
+
+    The two cases on record, both contesting every ward, so the whole
+    difference is the third term::
+
+        party  NPE base  parent theta  expected  actual  coherence
+        COPE     9.61%       0.95        9.14%    1.11%    0.12
+        EFF     10.13%       0.86        8.70%   10.93%    1.26
+
+    Ten-fold, and nothing in between: COPE's leadership split in public and the
+    party never recovered — 1.11%, then 0.52, 0.21, 0.22, 0.19. The EFF's held
+    and it grew. No measurement available before either election distinguishes
+    them, and a forecaster watching the news could have. So coherence defaults
+    to 1.0 — the party holds together — and the default is announced rather
+    than assumed, because it is the largest single lever on that party's result
+    and the record contains a case where it was worth 0.12.
+    """
+    base = baseline.get(party, 0.0)
+    if base <= 0:
+        return 0.0, ""
+    # The most recent COMPLETED national-to-local pair, which is not the
+    # target's own two neighbours: for a 2026 target the previous NPE is 2024
+    # and the previous LGE is 2021, so pairing them measures the change
+    # backwards in time and returned a RISE for MK where the record shows a
+    # fall. The last finished transition is 2019 -> 2021.
+    lge_years = sorted((y for y, e in cityconfig.CALENDAR.items()
+                        if e.kind == "LGE" and e.results and int(y) < int(target.year)),
+                       key=int)
+    prior_lge = lge_years[-1] if lge_years else None
+    prior_npe = cityconfig.preceding(prior_lge, "NPE") if prior_lge else None
+
+    parent_theta = None
+    note_theta = ""
+    if parent and prior_npe and prior_lge:
+        before = _npe_citywide(city, prior_npe)
+        after = metro_citywide(city.code, prior_lge)
+        if before.get(parent, 0) > 0 and after.get(parent, 0) > 0:
+            parent_theta = after[parent] / before[parent]
+            note_theta = (f"{parent} moved {parent_theta:.2f} from the "
+                          f"{prior_npe} national to the {prior_lge} local")
+    if parent_theta is None:
+        # No parent declared: everyone still faces the national-to-local drop,
+        # so fall back to what the whole field did rather than to 1.0, which
+        # would forecast a party holding its national share at a local
+        # election — something no party in the record has managed.
+        before = _npe_citywide(city, prior_npe) if prior_npe else {}
+        after = metro_citywide(city.code, prior_lge) if prior_lge else {}
+        ratios = [after[q] / before[q] for q in set(before) & set(after)
+                  if before[q] > 0.002 and after.get(q, 0) > 0]
+        parent_theta = float(np.median(ratios)) if ratios else 1.0
+        note_theta = (f"no parent declared, so the median party's "
+                      f"{prior_npe}->{prior_lge} move of {parent_theta:.2f}")
+    reach_used = reach if reach is not None else 1.0
+    coh = 1.0 if coherence is None else float(coherence)
+    level = base * parent_theta * reach_used * coh
+    why = (f"first local election on a {base:.2%} national base: x{parent_theta:.2f} "
+           f"({note_theta}), x{reach_used:.0%} for wards contested, "
+           f"x{coh:g} leadership coherence"
+           + ("" if coherence is not None else
+              " (DEFAULT — the record holds COPE at 0.12 after its leadership "
+              "split and the EFF at 1.26; set `coherence` in judgements/)"))
+    return level, why
+
+
 def _reach_of(contestation) -> float:
     """The reach this arrival has, when one is known."""
     if isinstance(contestation, (int, float)):
@@ -1835,6 +1915,26 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     seeds = {p: float(sum(r * registered[int(g)] for g, r in rule["capture"].items())
                       / max(registered.sum(), 1e-9))
              for p, rule in arrivals.items()}
+
+    # A party with a national baseline facing its FIRST local election is
+    # neither an arrival nor established. Its pools are inherited; its level is
+    # its national base moved by the parent's national-to-local change, by the
+    # wards it contests, and by whether its leadership held. MK in 2026 is
+    # exactly this, and the model would otherwise centre it on an ordinary
+    # theta — the one outcome COPE and the EFF between them never produced.
+    first_lge: dict[str, float] = {}
+    for party in sorted(no_vector):
+        if baseline.get(party, 0.0) <= 0:
+            continue                      # an arrival, handled above
+        rule = lineage.get(party, {})
+        level, why = first_local_election(
+            city, target, baseline, (rule.get("parent") or "").strip().upper(),
+            party, reach.get(party), rule.get("coherence"))
+        if level > 0:
+            first_lge[party] = level
+            seed_notes[party] = why
+            print(f"  first local election: {party} {baseline[party]:.2%} -> "
+                  f"{level:.2%}")
     seed_bands = {p: rule["band"] for p, rule in arrivals.items()}
     # no_vector, NOT newcomers: the file exists to ask a human which parent a
     # party with no measured vector belongs to, and MK is the case it was built
@@ -1886,6 +1986,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     return {"pools": out, "fitted_on": year, "target": target.year,
             "turnout_limits": limits,
             "seeds": {p: v for p, v in seeds.items() if abs(v) > 1e-9},
+            "first_local_election": first_lge,
             "seed_bands": {p: list(v) for p, v in seed_bands.items()},
             "seed_notes": seed_notes,
             "entrant_record": [[float(share), float(reach)] for share, reach in record],
