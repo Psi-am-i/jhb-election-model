@@ -84,21 +84,21 @@ PROCESSED = ROOT / "data" / "processed"
 # docstring — renormalisation for A-to-B (plan item 3.1), the entrant rescale
 # for B-to-C.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (23.7003, 13.2348, 35.5600),
-    "DA": (26.3750, 19.3971, 33.7807),
-    "EFF": (10.0400, 3.1998, 20.0178),
-    "ASA": (11.9063, 5.0249, 21.3517),
-    "MK": (8.2344, 2.2834, 16.7937),
-    "PA": (3.8218, 2.3530, 5.5737),
-    "VFPLUS": (0.7856, 0.0122, 2.7009),
-    "ALJAMAAH": (1.0342, 0.3176, 2.0843),
+    "ANC": (23.9246, 13.2915, 35.6811),
+    "DA": (26.8418, 20.5264, 33.5978),
+    "EFF": (10.1966, 3.2030, 20.3026),
+    "ASA": (11.9589, 4.9533, 21.6141),
+    "MK": (8.3194, 2.3015, 17.0418),
+    "PA": (3.1993, 2.1872, 4.3326),
+    "VFPLUS": (0.8176, 0.0123, 2.8601),
+    "ALJAMAAH": (0.8119, 0.2570, 1.6012),
     "ENTRANT": (1.4785, 0.0000, 7.7611),
 }
 GOLDEN_POOLS: dict[str, tuple[float, float, float]] = {
-    "Black African": (54.2620, 46.3661, 61.4960),
-    "Coloured": (8.3800, 6.3887, 10.9236),
-    "Indian/Asian": (6.3209, 4.8323, 8.2101),
-    "White": (29.5586, 23.8964, 35.5184),
+    "Black African": (54.7379, 47.2781, 61.0837),
+    "Coloured": (7.7291, 6.0944, 9.9794),
+    "Indian/Asian": (6.1011, 4.7324, 7.9164),
+    "White": (29.9534, 25.1173, 35.2691),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")
@@ -207,11 +207,25 @@ def configured_pool_band(name, scenario, base_city_d, centres, index):
     one-sided-range reflection it applies.
     """
     spec = _pools(scenario, base_city_d, centres, index)
-    _idx, base, ratio, _props, _alpha, _names, _levels, _wts = spec[name]
-    low, mode, high = ratio
-    p5 = base * 100 * triangular_quantile(low, mode, high, 0.05)
-    p95 = base * 100 * triangular_quantile(low, mode, high, 0.95)
-    return p5, p95, (low, mode, high)
+    _idx, registered, turnout, _props, _alpha, _names, _levels, _wts = spec[name]
+    low, mode, high = turnout
+
+    # A pool's SHARE, not its vote count. Registration is counted and turnout
+    # is drawn, so the pool's share of the city is
+    #     reg_g * t_g / sum_h(reg_h * t_h)
+    # and the denominator moves with every pool. The band below holds the other
+    # pools at their modal turnout and moves this one, which is the like-for-
+    # like comparison against a sampled share. An earlier version multiplied a
+    # registration count by a turnout quantile and reported a band of 59
+    # million, having been written when the pool's base was a vote share.
+    others = sum(spec[nm][1] * spec[nm][2][1] for nm in spec if nm != name)
+
+    def share_at(quantile: float) -> float:
+        t = triangular_quantile(low, mode, high, quantile)
+        mine = registered * t
+        return 100.0 * mine / (mine + others) if mine + others else 0.0
+
+    return share_at(0.05), share_at(0.95), (low, mode, high)
 
 
 def before_entrant_rescale(matrix: np.ndarray, index: dict) -> np.ndarray:

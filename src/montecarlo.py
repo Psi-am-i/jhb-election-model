@@ -536,36 +536,23 @@ def pool_spec(scenario, base_city_d, centres, index, lean):
         # LGE total / preceding NPE total): African-side n=24, 0.82-1.01,
         # median 0.88; white-side n=24, 1.09-1.79, median 1.29 -- the
         # differential local-election turnout, in one number.
-        low, mode, high = cfg["ratio"]
-        # A pool that can only grow, or only shrink, is nonsense. Both of the
-        # ranges this engine replaced were exactly that: [-22,-9,-3] points is
-        # a ratio of 0.61-0.95 and could never grow, and [+5,+9,+14] is
-        # 1.16-1.43 and could never shrink. Neither is
-        # a fact about elections; both came of writing a range from a few
-        # same-signed observations. A sample without a decline in it is a limit
-        # of the sample, never evidence that decline cannot happen -- which is
-        # precisely what the white-side range showed when 2021 was added and
-        # its floor moved from 1.09 to 0.87. So every pool must admit both
-        # directions, and a range that does not is widened to the nearest one
-        # that does rather than silently forbidding half the outcomes.
-        if not (low < 1.0 < high):
-            widened = (min(low, 1.0 / high if high > 0 else low),
-                       mode,
-                       max(high, 1.0 / low if low > 0 else high))
-            print(f"  ! pool {name}: ratio range {low:.2f}-{high:.2f} is one-sided "
-                  f"(cannot {'shrink' if low >= 1 else 'grow'}); widened to "
-                  f"{widened[0]:.2f}-{widened[2]:.2f} by reflection")
-            low, mode, high = widened
-        evidence_mode = (centre_total / base_total) if base_total > 0 else mode
-        # the polling lever is in points on the base; convert to a ratio
-        evidence_mode += (lean * float(cfg.get("lean_sign", 0)) / 100.0
-                          / base_total) if base_total > 0 else 0.0
+        # A POOL'S SIZE IS COUNTED, NOT DRAWN. The published roll, split by
+        # each ward's own composition, gives how many voters the pool holds.
+        # The only uncertain term is turnout, and turnout is an ASSUMPTION
+        # rather than a model output: no CoJ poll publishes one, so it defaults
+        # to this city's own local-election record and can be overridden in
+        # judgements/. The "ratio" this replaces was a single triangular
+        # standing in for population change, registration change and turnout
+        # change at once, fitted to two transitions and, for a while, borrowed
+        # from other cities.
+        registered = float(cfg["registered"])
+        low, mode, high = cfg["turnout"]
         props = np.array([members[p] * centres.get(p, 0.0) for p in members])
         if props.sum() <= 0:
             props = weights
         props = props / props.sum()
         levels = np.array([members[p] * centres.get(p, 0.0) for p in members])
-        spec[name] = (idx, base_total, (low, min(max(evidence_mode, low), high), high),
+        spec[name] = (idx, registered, (low, mode, high),
                       props, float(cfg["alpha"]), list(members), levels,
                       {p: members[p] for p in members})
     return spec
@@ -648,14 +635,17 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         ties[scenario["pools"][name].get("tie") or name].append(name)
 
     def draw_pools():
-        """Weighted N-pool draw. Each pool's total is drawn against history,
-        split among its contenders, and a party collects its winnings from
-        every pool it draws from."""
+        """One draw. Each pool's VOTES are its counted registration times a
+        drawn turnout; the pool's share of the city follows from the votes,
+        and its members split it. Turnout is the only quantity here that is
+        not counted, which is the whole point: it is the assumption, and it is
+        the correlated shock 2021 delivered when every pool fell at once."""
         target = np.zeros(n)
         totals = {}
         for group, names in ties.items():
             if len(names) == 1:
                 name = names[0]
+                # registration (counted) x turnout (drawn) = votes
                 totals[name] = pools[name][1] * triangular(rng, pools[name][2])
                 continue
             # one shock for the group, shared out in proportion to base, so the
@@ -669,12 +659,17 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             shock = triangular(rng, (lo, md, hi))
             for nm in names:
                 totals[nm] = pools[nm][1] * shock
-        for name, (idx, base, spec, props, alpha, names, levels, wts) in pools.items():
+        # Shares follow from votes, so the pool side sums to one by
+        # construction rather than by a later division.
+        cast = sum(totals.values())
+        for name, (idx, reg, spec, props, alpha, names, levels, wts) in pools.items():
             split = rng.dirichlet(np.maximum(props * alpha, 0.05))
-            np.add.at(target, idx, max(totals[name], 0.005) * split)
+            np.add.at(target, idx, (totals[name] / cast if cast > 0 else 0.0) * split)
         for i, spec in individual:
             target[i] = base_city[i] * triangular(rng, spec)
-        target = target / target.sum()
+        total = target.sum()
+        if total > 0:
+            target = target / total
         if entrant_index is not None:
             share = (triangular(rng, scenario["entrant_share"])
                      if rng.random() < scenario["entrant_prob"] else 0.0)

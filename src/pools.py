@@ -1015,6 +1015,128 @@ def metro_ward_shares(code: str, year: str, ballot: str = "PR"
     return shares, votes
 
 
+def turnout_record(city: cityconfig.City, cfg: Config, before: str | None = None,
+                   kind: str = "LGE") -> dict[str, np.ndarray]:
+    """Turnout per pool at every prior election of one kind.
+
+    This is the quantity that decides how big a pool is on the day, and it is
+    measured, not inferred. Johannesburg, per pool::
+
+        year  kind   Black Afr  Coloured  Indian  White   overall
+        2011  LGE      50.8%     60.3%    45.2%   63.6%    54.2%
+        2016  LGE      50.2%     64.7%    58.7%   69.3%    56.0%
+        2021  LGE      36.4%     54.3%    40.8%   52.7%    41.6%
+        2014  NPE      70.4%     75.0%    62.6%   77.6%    71.9%
+        2024  NPE      56.5%     63.4%    62.8%   69.2%    60.2%
+
+    Local elections run fifteen to twenty points below national ones, which is
+    why ``kind`` filters: a local forecast learns nothing useful from national
+    turnout levels. Black African turnout is consistently the lowest and white
+    the highest, and 2021 was a collapse across every pool at once — which is
+    the correlated shock the model has never had.
+    """
+    out: dict[str, np.ndarray] = {}
+    for year, election in sorted(cityconfig.CALENDAR.items()):
+        if election.kind != kind or not election.results:
+            continue
+        if before is not None and int(year) >= int(before):
+            continue
+        try:
+            out[year] = pool_counts(city, year, cfg).rates["turnout"]
+        except SystemExit:
+            continue
+    return out
+
+
+def turnout_band(record: dict[str, np.ndarray], n_pools: int,
+                 ) -> list[tuple[float, float, float]]:
+    """(low, mode, high) turnout per pool, from that city's own record.
+
+    The mode is the mean of the log observations — turnout is a rate and moves
+    multiplicatively — and the band is +/- 1.28 sd, so it spans the 10th to
+    90th percentile of a lognormal. With three local elections this is thin,
+    and thin is answered with width rather than with a borrowed number.
+    """
+    if not record:
+        return [(0.30, 0.50, 0.70)] * n_pools
+    arr = np.array(list(record.values()))
+    bands = []
+    for g in range(n_pools):
+        logs = np.log(np.maximum(arr[:, g], 1e-6))
+        mu = float(logs.mean())
+        sd = float(logs.std(ddof=1)) if len(logs) > 1 else 0.20
+        bands.append((float(np.exp(mu - 1.2816 * sd)), float(np.exp(mu)),
+                      float(np.exp(mu + 1.2816 * sd))))
+    return bands
+
+
+def registered_at_target(city: cityconfig.City, target: cityconfig.Target,
+                         cfg: Config, fitted_on: str) -> np.ndarray:
+    """How many registered voters each pool holds at the target.
+
+    Not a forecast. The roll is published per voting district before polling
+    day, and each ward's pool composition comes from that ward's own data, so
+    a pool's size is *counted* rather than drawn::
+
+        registered at target  x  that ward's pool composition  =  pool size
+
+    This replaces the pool "ratio" — a triangular fitted to two historical
+    transitions that stood in for population change, registration change and
+    turnout change all at once, and that had to be borrowed from other cities
+    to have any sample at all. None of that is necessary: two of the three
+    terms are known, and the third (turnout) is measured separately and drawn.
+    """
+    counts = pool_counts(city, fitted_on, cfg)
+    composition = counts.composition("registered")
+    by_ward = {w: composition[i] for i, w in enumerate(counts.wards)}
+
+    roll = _target_roll(city, target)
+    if not roll:
+        # No published roll yet: fall back to the fitting election's own, and
+        # say so. Better a stated stand-in than a silent one.
+        print(f"  ! no {target.year} roll on disk; pool sizes taken from "
+              f"{fitted_on}'s roll instead")
+        return counts.totals("registered")
+
+    total = np.zeros(len(counts.categories))
+    unmatched = 0.0
+    for ward, registered in roll.items():
+        if ward in by_ward:
+            total += by_ward[ward] * registered
+        else:
+            unmatched += registered
+    if unmatched > 0.01 * sum(roll.values()):
+        print(f"  ! {unmatched / sum(roll.values()):.1%} of the {target.year} "
+              f"roll is in wards with no measured composition")
+    return total
+
+
+def _target_roll(city: cityconfig.City, target: cityconfig.Target,
+                 ) -> dict[str, float]:
+    """Ward -> registered voters at the target, from whichever roll exists."""
+    if cityconfig.CALENDAR[target.year].results:
+        try:
+            return ward_totals(city, target.year)[0]
+        except SystemExit:
+            pass
+    path = target.processed / f"vd_ward_{target.year}.csv"
+    if not path.exists():
+        path = Path("data/processed") / f"vd_ward_{target.year}.csv"
+    if not path.exists():
+        return {}
+    roll: dict[str, float] = defaultdict(float)
+    seen: set[str] = set()
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            vd = (row.get("VD_Number") or "").strip()
+            ward = (row.get("WardID_" + target.year) or row.get("Ward") or "").strip()
+            if not vd or not ward or vd in seen:
+                continue
+            seen.add(vd)
+            roll[ward] += float(row.get("vd_registered") or 0)
+    return dict(roll)
+
+
 def pool_totals(composition: dict[str, np.ndarray], shares: dict[str, float],
                 n_pools: int) -> np.ndarray:
     """Each pool's share of the total vote.
@@ -1442,10 +1564,14 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
         lineage, list(ctx["categories"]))
 
     transitions = lge_transitions(before=target.year)
-    # This city only. See the function's docstring for what happened when it
-    # defaulted to all eight metros.
-    ratios = measure_pool_ratios(composition, n, transitions=transitions,
-                                 codes=(city.code,))
+    # A pool's size at the target is COUNTED, not drawn: the published roll,
+    # split by each ward's own composition. What is uncertain is turnout, and
+    # that is measured from this city's own local elections. The pool "ratio"
+    # this replaces was a triangular standing in for population change,
+    # registration change and turnout change at once, fitted to two
+    # transitions.
+    registered = registered_at_target(city, target, cfg, year)
+    turnout = turnout_band(turnout_record(city, cfg, before=target.year), n)
 
     # Each pool's internal split, per metro-year, for the concentration.
     splits: list[list[np.ndarray]] = [[] for _ in range(n)]
@@ -1466,22 +1592,16 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
         members = {p: float(w[g]) for p, w in composition.items() if w[g] > 1e-4}
         if not members:
             continue
-        obs = sorted(ratios[g])
-        if len(obs) >= 4:
-            lo, mid, hi = (float(np.quantile(obs, 0.05)), float(np.median(obs)),
-                           float(np.quantile(obs, 0.95)))
-        else:
-            lo, mid, hi = 0.7, 1.0, 1.4
+        lo, mid, hi = turnout[g]
         out[name] = {
             "members": members,
-            "ratio": [lo, mid, hi],
+            "registered": float(registered[g]),
+            "turnout": [lo, mid, hi],
             "alpha": dirichlet_alpha(splits[g]),
-            "observations": len(obs),
-            "derived_from": f"pool vectors fitted on {city.slug} {year}; ratios "
-                            f"from {len(obs)} metro transitions across "
-                            f"{len(METRO_CODES)} metros, all ending before "
-                            f"{target.year}: "
-                            f"{', '.join(a + '->' + b for a, b in transitions)}",
+            "derived_from": f"pool vectors fitted on {city.slug} {year}; size "
+                            f"from the {target.year} roll split by each ward's "
+                            f"own composition; turnout from {city.slug}'s local "
+                            f"elections before {target.year}",
             # Which members' weights the ward data actually pins down. The rest
             # are the model's guesses and are where a judgement belongs. A
             # party with no measured vector at all (it did not contest the
@@ -1615,9 +1735,10 @@ def main() -> None:
         for name, cfgp in spec["pools"].items():
             top = sorted(cfgp["members"].items(), key=lambda kv: -kv[1])[:4]
             share = ", ".join(f"{p} {w:.0%}" for p, w in top)
-            print(f"  {name:16s} ratio {cfgp['ratio'][0]:.2f}/"
-                  f"{cfgp['ratio'][1]:.2f}/{cfgp['ratio'][2]:.2f}  "
-                  f"alpha {cfgp['alpha']:5.1f}  n={cfgp['observations']:2d}  {share}")
+            lo, mid, hi = cfgp["turnout"]
+            print(f"  {name:16s} {cfgp['registered']:>9,.0f} registered  "
+                  f"turnout {lo:.0%}/{mid:.0%}/{hi:.0%}  "
+                  f"alpha {cfgp['alpha']:5.1f}  {share}")
             if not cfgp["identified"]:
                 print(f"  {'':16s} !! no member's weight is identified by ward "
                       f"data; every one is a judgement")
