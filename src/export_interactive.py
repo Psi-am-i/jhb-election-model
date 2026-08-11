@@ -39,22 +39,18 @@ from fold import citywide, load, load_parameters, shares
 from montecarlo import DEFAULTS, PLAN_BOUNDS
 
 
-# --- NOT YET PORTED TO POOLS ------------------------------------------------
-# This page carries its own drawer, reimplemented in JavaScript so the reader
-# can move the dials in the browser. That drawer is the two-bloc engine, which
-# the model no longer has: it takes two membership lists and two shift
-# triangulars, and there is nothing left to feed it.
+# --- THE DATA SIDE OF THE POOL PORT -----------------------------------------
+# The interactive carries its own drawer, reimplemented in JavaScript so the
+# reader can move the dials in the browser. That drawer is still the two-bloc
+# engine and is not ported yet, so `build_interactive.py` — which writes the
+# page — still refuses.
 #
-# Porting it means handing the JS the emitted pool spec — N pools, each with
-# members {party: weight}, a ratio triangular and an alpha — and replacing the
-# two hard-coded dials with one per pool. Until then this refuses, rather than
-# publishing a page whose arithmetic disagrees with the model's.
-raise SystemExit(
-    "the interactive page has not been ported to voter pools: its in-browser "
-    "drawer is the old two-bloc engine and there is nothing left to feed it. "
-    "See the note at the top of this file. The published page stays frozen "
-    "in the meantime."
-)
+# THIS module only prepares data, and it prepares the right data now: the pool
+# spec exactly as `pools.py --emit` wrote it, N pools each with its own
+# registered count, turnout band, concentration and member weights. Exporting
+# it is what makes the rest of the port testable, because the JS can be
+# written and checked against a real payload before the page is unfrozen. The
+# refusal stays where the risk is: on the thing that publishes.
 
 
 # Parties carried individually to the page; the rest is OTHER. Order fixes
@@ -200,13 +196,48 @@ def main(argv: list[str] | None = None) -> int:
                  + [round(row["tallies"]["OTHER"] / tw, 5)],
         })
 
+    # --- the pools the browser will draw from ---------------------------------
+    # Straight from the spec `pools.py --emit` writes, because the page must
+    # draw from the same numbers the published forecast does. The old payload
+    # carried a per-party "bloc" label and two hard-coded groups; a pool has
+    # its own registered count, its own turnout band and its own
+    # concentration, and there can be any number of them.
+    spec_path = cityconfig.active().processed / "pools_2026.json"
+    if not spec_path.exists():
+        raise SystemExit(
+            f"no pool spec at {spec_path}. The interactive must draw from the "
+            f"same spec as the forecast; build it with\n"
+            f"  python src/pools.py --city {cityconfig.active().slug} "
+            f"--target 2026 --emit")
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    pools_out = []
+    for pool_name, cfg in spec["pools"].items():
+        pools_out.append({
+            "name": pool_name,
+            "registered": round(float(cfg["registered"])),
+            "turnout": [round(float(x), 4) for x in cfg["turnout"]],
+            "alpha": round(float(cfg["alpha"]), 2),
+            "tie": cfg.get("tie") or pool_name,
+            "identified": bool(cfg.get("identified", True)),
+            # each member's share of ITS OWN vote drawn from this pool
+            "members": {q: round(float(w), 5)
+                        for q, w in cfg["members"].items() if w > 0},
+        })
+    pool_of: dict[str, tuple[str, float]] = {}
+    for pool in pools_out:
+        for party, weight in pool["members"].items():
+            if weight > pool_of.get(party, ("", 0.0))[1]:
+                pool_of[party] = (pool["name"], weight)
+
     # --- assemble -------------------------------------------------------------
-    blocs = {p: b for b, members in BLOCS.items() for p in members}
     parties_out = []
     for code, name, chip in PAGE_PARTIES:
         parties_out.append({
             "code": code, "name": name, "chip": chip,
-            "bloc": blocs.get(code, "IND"),
+            # where most of this party's vote comes from, and how much of it —
+            # a label for the reader, not a partition of the parties
+            "mainPool": pool_of.get(code, ("none", 0.0))[0],
+            "mainPoolShare": round(pool_of.get(code, ("none", 0.0))[1], 3),
             "base2024": round(base_city.get(code, 0.0), 5),
             "pr2021": round(pc.get(code, 0.0), 5),
             "ward2021": round(wc.get(code, 0.0), 5),
@@ -225,6 +256,9 @@ def main(argv: list[str] | None = None) -> int:
         "polls": polls,
         "ward_map": ward_map,
         "parties": parties_out,
+        "pools": pools_out,
+        "pool_spec_fitted_on": spec.get("fitted_on"),
+        "turnout_limits": spec.get("turnout_limits"),
         "other_base2024": round(other_base, 5),
         "wards": wards_out,
         "defaults": DEFAULTS,
