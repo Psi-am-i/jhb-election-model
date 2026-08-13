@@ -79,26 +79,38 @@ PROCESSED = ROOT / "data" / "processed"
 # Recorded 2026-08-10 from data/processed/pools_2026.json, seed 20261104,
 # 2000 draws, numpy 2.5.1. Values are percentages: (mean, p5, p95).
 #
+# RE-RECORDED 2026-08-13, deliberately, for three changes to the draw:
+#   * a per-party level shock connected to the measured sd(log θ), drawn from a
+#     Student-t rather than a bounded triangular (montecarlo.log_shock);
+#   * one correlated citywide turnout factor across pools, ρ = 0.63 measured
+#     (montecarlo.TURNOUT_CORRELATION);
+#   * turnout bands built in logit space, so they are two-sided everywhere
+#     (pools.turnout_band).
+# The prior moved as intended and by little: ANC mean 23.33% -> 23.15%, DA
+# 27.69% -> 27.79%, EFF 9.94% -> 10.27%. The pool p5/p95 tightened at the White
+# pool (25.18-36.51 -> 25.65-35.75) and loosened at Black African, which is the
+# correlated turnout factor doing what it was added to do.
+#
 # For the record, alongside these: no realised pool band is the configured one,
 # and two separate steps are responsible. See the A/B/C table in the module
 # docstring — renormalisation for A-to-B (plan item 3.1), the entrant rescale
 # for B-to-C.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (23.3263, 13.1275, 35.0969),
-    "DA": (27.6912, 20.8267, 35.1028),
-    "EFF": (9.9397, 3.1452, 19.8305),
-    "ASA": (11.8706, 4.9809, 21.3505),
-    "MK": (8.1057, 2.2356, 16.5172),
-    "PA": (3.4930, 2.3186, 4.8637),
-    "VFPLUS": (0.8462, 0.0129, 2.8997),
-    "ALJAMAAH": (0.8518, 0.2634, 1.7181),
-    "ENTRANT": (1.4785, 0.0000, 7.7611),
+    "ANC": (23.1513, 12.7812, 34.7449),
+    "DA": (27.7919, 21.2187, 34.7480),
+    "EFF": (10.2745, 3.4773, 19.6961),
+    "ASA": (11.6717, 4.7547, 21.1789),
+    "MK": (8.1683, 2.0484, 16.8382),
+    "PA": (3.5227, 2.3640, 4.7755),
+    "VFPLUS": (0.7884, 0.0097, 2.9621),
+    "ALJAMAAH": (0.8365, 0.2790, 1.6276),
+    "ENTRANT": (1.5042, 0.0000, 7.8337),
 }
 GOLDEN_POOLS: dict[str, tuple[float, float, float]] = {
-    "Black African": (53.6396, 45.9767, 60.6896),
-    "Coloured": (8.0704, 6.3274, 10.4193),
-    "Indian/Asian": (6.1910, 4.7652, 7.9851),
-    "White": (30.6205, 25.1832, 36.5088),
+    "Black African": (53.5913, 46.2636, 60.0886),
+    "Coloured": (8.1105, 6.3735, 10.3526),
+    "Indian/Asian": (6.1703, 4.8139, 7.9311),
+    "White": (30.6238, 25.6488, 35.7547),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")

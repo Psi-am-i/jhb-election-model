@@ -257,6 +257,19 @@ FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
         "ward-ballot PRESENCE at the target, taken from the target's own "
         "file. Nomination lists are public before polling day; no vote is "
         "read"),
+    # No years, for the same reason as `contestation` and with the same
+    # obligation to say so. `levels.spine` weighs a party's national route
+    # against its own previous local result; both records are filtered to
+    # elections strictly before the target inside `theta_record` and
+    # `local_record`, and the blend weight k is a single constant fitted by
+    # leave-one-metro-out over transitions that are themselves all pre-target.
+    # It is listed because a fallback the banner cannot name is exactly what
+    # this registry exists to prevent — not because it reads a result.
+    "spine": (
+        (),
+        "the national-and-local level blend (task #22). Both records are "
+        "filtered to elections strictly before the target; k=1.0 is fitted "
+        "across metros on pre-target transitions only"),
 }
 
 
