@@ -609,11 +609,33 @@ def blended_centres(
                 implied = prior_pr_share.get(party, 0.0) + delta
                 if party in prior:
                     low, high = prior[party][0], prior[party][2]
+                    mid = prior[party][1] or 1.0
                 else:
                     low, high = PLAN_BOUNDS.get(party, (0.0, float("inf")))
+                    mid = 1.0
                     if party in PLAN_BOUNDS:
                         note_constant(scenario, "plan_bounds", party)
-                clamped = min(max(implied, low * base), high * base)
+                # THE CLAMP IS ANCHORED ON THE LEVEL THE MODEL BELIEVES, not on
+                # the national baseline. θ's band is a band on the NATIONAL
+                # route; multiplying it by `base` bounds the by-election
+                # evidence to what a party's national share could become, which
+                # is precisely the assumption task #22 exists to abandon.
+                #
+                # ActionSA 2026 is the case. The spine puts it at 15.2% from its
+                # own 2021 local result; the by-elections independently imply
+                # 18.7%; and the clamp, computed as high × 5.99% national, cut
+                # that to 7.5% and dragged the blended centre DOWN to 12.1%. Two
+                # pieces of evidence agreeing that the party is larger than its
+                # national share were overruled by a bound derived from the
+                # national share. The PA was clamped from 21.9% to 7.1% the same
+                # way.
+                #
+                # The band is therefore applied as a RELATIVE spread — low/mode
+                # and high/mode, which is what θ's dispersion actually measures —
+                # around whatever central level the spine settled on.
+                anchor = mode_level if mode_level > 0 else base
+                clamped = min(max(implied, (low / mid) * anchor),
+                              (high / mid) * anchor)
                 centre = (1 - w) * mode_level + w * clamped
                 notes[party] = (
                     f"θ-mode {mode_level:.1%} → {centre:.1%} "
