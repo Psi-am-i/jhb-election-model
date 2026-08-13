@@ -1228,8 +1228,49 @@ def turnout_band(record: dict[str, np.ndarray], n_pools: int,
     limit of the sample, not evidence that decline cannot happen — the same
     error that gave the old bloc ranges a floor they could never cross. So the
     WIDTH comes from history and the CENTRE from the last election: the band is
-    the last election's turnout times the historical log-range either way, with
-    the top capped at the highest turnout the city has actually recorded.
+    the last election's turnout times the historical log-range either way.
+
+    **The same argument applies to the top, and used not to be applied there.**
+    The band was additionally capped at the highest turnout the city had ever
+    recorded, which is the identical error the paragraph above rejects, pointing
+    the other way. It bound almost everywhere it could:
+
+        target 2016   4 of 4 pools had high == mode, in every metro
+        target 2021   3 or 4 of 4 pools, in every metro
+        target 2026   0 of 4 — because 2021 was the lowest on record
+
+    A mode equal to the high is a triangular that cannot rise at all. So every
+    historical backtest this repository has ever run was scored with turnout
+    forbidden from increasing, while the live forecast — the one case where the
+    cap does not bind — was fine. That is the worst possible arrangement: the
+    instrument was biased in exactly the runs used to judge the model, and not
+    in the run being judged. Turnout has risen at a South African local
+    election before (2000 → 2006), so the cap was not even describing the
+    record it claimed to come from.
+
+    **THE BAND IS BUILT IN LOGIT SPACE, and that is the whole mechanism.** The
+    constraint wanted here is "turnout does not change by more than it has been
+    seen to change", which is a statement about the CHANGE; a cap on the LEVEL
+    is a different statement that happens to sometimes imply it. Working in log
+    space needed a cap because ``centre × exp(spread)`` can exceed 1, and a
+    turnout above 100% is not a bold forecast but a broken one — the first
+    version of this capped at the observed maximum, the second at 1.0, and both
+    are levels standing in for a constraint on change.
+
+    A turnout is a proportion, so the natural scale for it is the logit, which
+    is what proportions are modelled on generally and what every serious
+    treatment of turnout uses. Then::
+
+        spread = max observed |logit(t_i) - logit(t_j)|
+        band   = expit(logit(previous) ∓ spread)
+
+    reads exactly as the sentence intended, is symmetric in the scale the
+    quantity actually lives on, and **cannot leave (0, 1) for any spread
+    whatever**, so there is no cap anywhere and none of the pinning above can
+    recur. It also fixes the artefact the log-space version left behind:
+    Tshwane's Indian/Asian pool is small and noisy, its observed log-range is
+    wide, and the log band ran to a 100% turnout ceiling. In logit space the
+    same evidence gives a wide but finite band.
     """
     if not record:
         return [(0.30, 0.50, 0.70)] * n_pools
@@ -1237,14 +1278,24 @@ def turnout_band(record: dict[str, np.ndarray], n_pools: int,
     arr = np.array([record[y] for y in years])
     previous = arr[-1]
     bands = []
+    def _logit(x):
+        x = np.clip(x, 1e-4, 1 - 1e-4)
+        return np.log(x / (1 - x))
+
+    def _expit(x):
+        return 1.0 / (1.0 + np.exp(-x))
+
     for g in range(n_pools):
-        column = np.maximum(arr[:, g], 1e-6)
-        centre = float(previous[g])
-        # half the observed log-range: the width history supports, symmetric
-        # so a further decline is never assigned probability zero
-        spread = float(np.log(column.max() / column.min())) if len(column) > 1 else 0.30
-        low = centre * float(np.exp(-spread))
-        high = min(centre * float(np.exp(spread)), float(column.max()))
+        column = np.clip(arr[:, g], 1e-4, 1 - 1e-4)
+        centre = float(np.clip(previous[g], 1e-4, 1 - 1e-4))
+        # The observed range of CHANGE, on the scale a proportion lives on.
+        # One observation supports no statement about change, so it falls back
+        # to 0.30 logits — the same default the log version used, now in the
+        # units it is actually applied in.
+        lg = _logit(column)
+        spread = float(lg.max() - lg.min()) if len(column) > 1 else 0.30
+        low = float(_expit(_logit(centre) - spread))
+        high = float(_expit(_logit(centre) + spread))
         bands.append((low, centre, max(high, centre * 1.001)))
     return bands
 
@@ -1723,9 +1774,10 @@ def home_splinter_record(exclude: str | None = None) -> dict[str, float]:
     return out
 
 
-def splinter_record(city: cityconfig.City, before_year: str | None = None,
+def splinter_record(city: cityconfig.City | None, before_year: str | None = None,
                     splits: dict | None = None,
-                    at_home: bool = False) -> list[float]:
+                    at_home: bool = False,
+                    city_code: str | None = None) -> list[float]:
     """What share of its parent's vote each known splinter took, measured.
 
     The three splits this city has on record, each as the splinter's first
@@ -1748,6 +1800,7 @@ def splinter_record(city: cityconfig.City, before_year: str | None = None,
     ever clear, so no target before 2021 could print an all-clear, whether or
     not it was owed one. Enforcing it here is the same trade γ already makes.
     """
+    here = city_code or (city.code if city is not None else None)
     out = []
     for splinter, split in sorted((splits if splits is not None
                                    else SPLITS).items()):
@@ -1762,10 +1815,10 @@ def splinter_record(city: cityconfig.City, before_year: str | None = None,
         # They are different quantities by an order of magnitude (Split's
         # docstring has the three cases), and reading one as the other is why
         # a home-city split was being sized from away numbers.
-        code = split.home if at_home else city.code
+        code = split.home if at_home else here
         if code is None or (at_home and split.home is None):
             continue          # no home on record; it contributes to neither
-        if not at_home and split.home == city.code:
+        if not at_home and split.home == here:
             continue          # this city IS its home; not an away observation
         a, b = metro_citywide(code, before), metro_citywide(code, after)
         if not a or not b:
@@ -1774,6 +1827,70 @@ def splinter_record(city: cityconfig.City, before_year: str | None = None,
         if a.get(parent, 0) > 0 and b.get(splinter, 0) > 0:
             out.append(b[splinter] / a[parent])
     return sorted(out)
+
+
+# The narrowest a splinter band may be, in log units. A record of one
+# observation has no spread of its own, and (min, median, max) of a single
+# number is a band of ZERO WIDTH — a triangular that puts probability 1 on a
+# point and probability 0 on everything else.
+#
+# That is not a corner case here, it is the normal state: at target 2021 SEVEN
+# of the eight metros have an away-splinter record of exactly one observation
+# (Johannesburg alone has four). So for seven metros the model was asserting
+# that an arrival's size was known exactly. ActionSA then took 19 of Tshwane's
+# 214 seats against a band of 0.4%-0.4%, an outcome the forecast had ruled out
+# entirely rather than merely thought unlikely.
+#
+# 0.90 is the log-spread of the pooled cross-metro record itself, so a thin
+# record inherits the spread the full record shows rather than a typed one; it
+# is a floor, and a city with a richer record than that keeps its own.
+SPLIT_SD_FLOOR = 0.90
+
+
+def pooled_splinter_record(before_year: str | None = None) -> list[float]:
+    """Every away-splinter fraction observed in any metro, for the spread.
+
+    A single city's record is usually one number (see SPLIT_SD_FLOOR). How much
+    splinters VARY is a question the whole record can answer even when one
+    city's cannot, and it is the same borrowing the pool vectors already do:
+    direction from the city, magnitude from everyone.
+    """
+    out: list[float] = []
+    for code in METRO_CODES:
+        out.extend(splinter_record(None, before_year, city_code=code))
+    return sorted(out)
+
+
+def _band_from(record: list[float], label: str, pooled: list[float] | None
+               ) -> tuple[float, float, float, str]:
+    """(lo, mid, hi) for a splinter fraction, never degenerate.
+
+    The centre is this city's own record; the WIDTH comes from whichever of the
+    city's record and the pooled cross-metro record says more, floored at
+    SPLIT_SD_FLOOR. Built in log space, so the band is 10th-to-90th percentile
+    of a lognormal rather than the min and max of however many observations
+    happened to exist — which is what made a record of one collapse.
+    """
+    mid = float(np.median(record))
+    if mid <= 0:
+        return min(record), mid, max(record), label
+    spreads = []
+    for sample in (record, pooled or []):
+        vals = [v for v in sample if v > 0]
+        if len(vals) >= 2:
+            spreads.append(float(np.std(np.log(vals), ddof=1)))
+    sd = max(spreads) if spreads else SPLIT_SD_FLOOR
+    sd = max(sd, SPLIT_SD_FLOOR)
+    lo = float(mid * np.exp(-1.2816 * sd))
+    # A splinter takes a share OF ITS PARENT, so 1.0 is the whole of it and
+    # there is nothing above that to draw. Johannesburg's own record is wide
+    # enough that the lognormal top came out at 1.17 — a party taking 117% of
+    # the vote its parent had, which is not a bold forecast but an arithmetic
+    # impossibility.
+    hi = float(min(mid * np.exp(1.2816 * sd), 1.0))
+    if len(record) < 2:
+        label += f", widened from the pooled record (n={len(pooled or [])})"
+    return lo, mid, hi, label
 
 
 def _npe_citywide_for(code: str, year: str) -> dict[str, float]:
@@ -1842,6 +1959,7 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                   contestation: dict[str, float] | None = None,
                   splinter_home: dict[str, float] | None = None,
                   city_code: str | None = None,
+                  pooled_splits: list[float] | None = None,
                   ) -> tuple[dict[str, dict], dict[str, str]]:
     """How a party that was not here last time takes its votes.
 
@@ -1955,7 +2073,7 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                      f"RETROSPECTIVE: not all precede this target")
         if not record:
             return None, None, None, "none"
-        return (min(record), float(np.median(record)), max(record), label)
+        return _band_from(record, label, pooled_splits)
     default_support = float(np.median(all_shares)) if all_shares else 0.0
     index = {p: i for i, p in enumerate(universe)}
     n_pools = len(categories)
@@ -2403,7 +2521,8 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     arrivals, seed_notes = arrival_rules(
         newcomers, lineage, rates_matrix, universe_fitted, cats, record,
         splinter_record(city, target.year), registered, contestation=reach,
-        splinter_home=home_splinter_record(), city_code=city.code)
+        splinter_home=home_splinter_record(), city_code=city.code,
+        pooled_splits=pooled_splinter_record(target.year))
     # An arrival's composition follows from where it captures, so it does not
     # need a separate vector: the pools it takes from ARE its pool weights.
     for party, rule in arrivals.items():
