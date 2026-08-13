@@ -195,11 +195,20 @@ def main(argv: list[str] | None = None) -> int:
              "assumed), 'blend' = 50/50 VD and citywide mix (the §5 sensitivity)",
     )
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
-    parser.add_argument("--processed", type=Path, default=Path("data/processed"))
+    # None, resolved from the target AFTER --city is parsed. A literal
+    # data/processed was Johannesburg's directory whatever --city said, so a
+    # Tshwane run read Johannesburg's turnout, γ and ward parts and reported
+    # the answer under Tshwane's name. Same class as turnout.py's --out, which
+    # was fixed on the writer side while these two readers were left behind.
+    parser.add_argument("--processed", type=Path, default=None,
+                        help="where inputs are read and outputs written "
+                             "(default: the target's own processed directory)")
     parser.add_argument("--top", type=int, default=15)
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
     cityconfig.use(getattr(args, "city", None))
+    args.processed = args.processed or cityconfig.use_target(
+        getattr(args, "target", None)).processed
 
     base_votes, _ = load(args.data_dir / "npe2024_{CODE}_vd_party.csv", None)
     base_share, base_city = shares(base_votes), citywide(base_votes)

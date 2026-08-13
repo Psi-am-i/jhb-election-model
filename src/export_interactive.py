@@ -74,12 +74,20 @@ PAGE_PARTIES = [
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
-    parser.add_argument("--processed", type=Path, default=Path("data/processed"))
-    parser.add_argument("--out", type=Path,
-                        default=Path("data/processed/interactive_data.json"))
+    # Both resolved from the target after --city is parsed. Hard-coding
+    # data/processed made every non-Johannesburg run read Johannesburg's
+    # turnout, γ and ward parts, and then WRITE its interactive_data.json over
+    # Johannesburg's — the file the published forecast page loads.
+    parser.add_argument("--processed", type=Path, default=None,
+                        help="input directory (default: the target's own)")
+    parser.add_argument("--out", type=Path, default=None,
+                        help="output json (default: <processed>/interactive_data.json)")
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
     cityconfig.use(getattr(args, "city", None))
+    args.processed = args.processed or cityconfig.use_target(
+        getattr(args, "target", None)).processed
+    args.out = args.out or args.processed / "interactive_data.json"
 
     codes = [c for c, _, _ in PAGE_PARTIES]
 

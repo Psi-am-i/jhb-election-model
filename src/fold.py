@@ -92,9 +92,23 @@ FOLDS = {
 
 SHARE_FLOOR = 0.002  # plan §3.4(b): keep zero-vote VDs finite under the logit
 
+# The same floor applied to the LEVEL term is not a numerical guard, it is a
+# claim: that no party can be smaller than 0.2% of the city anywhere. Johannesburg
+# seats cost about 0.37% of the vote, so that claim is worth half a seat to every
+# party in the universe that holds one — and the universe has sixty-nine parties
+# in it. Measured on fold 2: 42 seats went to 21 parties that won nothing, which
+# was the whole of that fold's headline error, because no θ the calibration could
+# choose can push logit(city × θ) below logit(0.002).
+#
+# So the two floors are separated, exactly as montecarlo.py separated them on
+# 2026-08-06 (its ``level_floor``, 1e-6). The deviation term keeps 0.002, which
+# is what §3.4(b) asked for and what keeps a zero-vote VD finite; the level term
+# is freed to represent a party that really is one voter in a thousand.
+LEVEL_FLOOR = 1e-6
 
-def logit(p: float) -> float:
-    p = min(max(p, SHARE_FLOOR), 1 - SHARE_FLOOR)
+
+def logit(p: float, floor: float = SHARE_FLOOR) -> float:
+    p = min(max(p, floor), 1 - SHARE_FLOOR)
     return math.log(p / (1 - p))
 
 
@@ -183,7 +197,7 @@ def predict(
     for vd, local in base.items():
         provisional = {}
         for party, city in base_city.items():
-            level = logit(city * theta.get(party, 1.0))
+            level = logit(city * theta.get(party, 1.0), floor=LEVEL_FLOOR)
             deviation = logit(local.get(party, 0.0)) - logit(city)
             score = level + gamma.get(party, 1.0) * deviation + delta.get(party, 0.0)
             provisional[party] = expit(score)
@@ -223,6 +237,38 @@ def calibrate_theta(
         p: (target_city.get(p, 0.0) / base_city[p]) if base_city.get(p, 0) > 0 else 1.0
         for p in universe
     }
+
+    def _rescale(theta: dict[str, float]) -> None:
+        """Pin the overall scale of θ. THE ITERATION IS OTHERWISE DEGENERATE.
+
+        ``predict`` renormalises within each VD, so multiplying every θ by a
+        constant leaves the prediction unchanged wherever ``expit`` is in its
+        exponential tail — and once the levels are low enough, that is every
+        party at once. The ratio update then has nothing pulling the common
+        factor back, and it wanders.
+
+        It did. On fold 2 the iteration drove the whole vector down by four
+        orders of magnitude: the ANC ended at θ = 0.0001, a level of −10.2, and
+        the twenty-odd parties pinned at the level floor sat only 3.6 logits
+        below it — one thirty-seventh of the ANC rather than the one
+        five-thousandth they deserved. Renormalised, that is 0.67% of the vote
+        each, just over the 6,838-vote quota, and **21 parties that won nothing
+        were allocated 2 seats apiece: 42 of that fold's 96 seat errors.**
+
+        MODEL-LOG blamed SHARE_FLOOR for those seats. The floor is where the
+        damage surfaced, not where it came from — lowering it from 0.002 to
+        1e-6 moves the compression point and changes the seat totals not at
+        all, which is how this was found.
+
+        The constraint is the one the quantity already implies: predicted
+        citywide shares are shares, so Σ base·θ = 1.
+        """
+        total = sum(base_city.get(p, 0.0) * theta.get(p, 1.0) for p in universe)
+        if total > 0:
+            for p in universe:
+                theta[p] /= total
+
+    _rescale(theta)
     for _ in range(rounds):
         got = predicted_citywide(predict(base, base_city, theta, gamma), weights, universe)
         worst = 0.0
@@ -231,6 +277,7 @@ def calibrate_theta(
             if got.get(p, 0.0) > 1e-9 and want > 1e-9:
                 theta[p] *= want / got[p]
                 worst = max(worst, abs(got[p] - want))
+        _rescale(theta)
         if worst < 1e-6:
             break
     return theta
@@ -418,6 +465,28 @@ def main(argv: list[str] | None = None) -> int:
                              f"CODE=SHARE:PARENT:K")
 
     spec = FOLDS[args.fold]
+    # A fold exists nationally; its FILES exist per city. Only Johannesburg has
+    # the pre-2011 ingest, so folds 3-5 die on any other city — and they used to
+    # die on a bare FileNotFoundError naming a path, which reads as a broken
+    # install rather than as "that fold does not exist for this city". Say which
+    # folds this city can actually run, since that is the next thing anyone
+    # hitting this needs to know.
+    city = cityconfig.active()
+
+    def _file(template: str) -> Path:
+        return args.data_dir / template.replace("{CODE}", city.code)
+
+    for role in ("base", "target"):
+        path = _file(spec[role][0])
+        if not path.exists():
+            runnable = [n for n, s in sorted(FOLDS.items())
+                        if all(_file(s[r][0]).exists() for r in ("base", "target"))]
+            raise SystemExit(
+                f"fold {args.fold} needs {path.name}, which {city.name} does "
+                f"not have: the pre-2011 archives were only ingested for "
+                f"Johannesburg.\n"
+                f"  folds runnable for {city.name}: "
+                f"{', '.join(str(n) for n in runnable) or 'none'}")
     base_votes, _ = load(args.data_dir / spec["base"][0], spec["base"][1])
     base_share, base_city = shares(base_votes), citywide(base_votes)
     base_weight = {vd: sum(counts.values()) for vd, counts in base_votes.items()}
