@@ -82,13 +82,62 @@ def main(argv: list[str] | None = None) -> int:
     idx = run_.index
     name = cityconfig.active().name
 
+    # ENTRANT IS RELABELLED, exactly as backtest.relabel_entrant and
+    # score.seat_matrix do it. The model draws a GENERIC entrant because it
+    # cannot know a new party's name, so scoring maps it onto whichever
+    # seat-winning party had no baseline at all.
+    #
+    # Not doing this made the first version of this report double-count, and in
+    # the most misleading possible direction. At Johannesburg 2016 it showed the
+    # AIC at 0.00% predicted against 1.62% actual -- a total miss -- and ENTRANT
+    # at 1.46% against 0.00% actual -- pure phantom mass. They are the SAME
+    # FORECAST. The model said "a party will arrive at about 1.5%" and the AIC
+    # arrived at 1.62%, which is close, and the table called it two separate
+    # failures worth 3pp between them.
+    # The newcomer test is against the model's BASELINE -- the preceding
+    # national election -- not against its index. A party can be in the index
+    # (the pool fit gave it a vector) and still have no baseline to grow from,
+    # which is exactly the AIC in 2016: present in the index, absent from the
+    # 2014 NPE, and therefore the party the generic entrant stands for.
+    base_prev = citywide(load(args.data_dir / target.results(target.previous_npe),
+                              None)[0])
+    arrived = B.entrant_actual_for(actual_seats, base_prev)
+    relabelled_from_entrant = False
+    if arrived and "ENTRANT" in idx:
+        e = idx["ENTRANT"]
+        if arrived in idx:
+            run_.pr_share_draws[:, idx[arrived]] += run_.pr_share_draws[:, e]
+            run_.ward_share_draws[:, idx[arrived]] += run_.ward_share_draws[:, e]
+        else:
+            # Not in the index at all, so the ENTRANT column IS its whole
+            # forecast. Point the lookup at that column rather than reporting
+            # the party as a flat zero, which is a missing row masquerading as
+            # a prediction of nothing.
+            idx[arrived] = e
+            e = None
+        if e is not None:
+            run_.pr_share_draws[:, e] = 0.0
+            run_.ward_share_draws[:, e] = 0.0
+        # Whichever branch ran, ENTRANT must not also be printed as a party in
+        # its own right: its mass now belongs to `arrived` and showing both
+        # counts the same forecast twice.
+        relabelled_from_entrant = True
+        run_.seat_draws = [
+            {**{k: v for k, v in d.items() if k != "ENTRANT"},
+             arrived: d.get(arrived, 0) + d.get("ENTRANT", 0)}
+            for d in run_.seat_draws]
+        print(f"\n  (ENTRANT relabelled onto {arrived}, which arrived from "
+              f"nothing and won {actual_seats.get(arrived, 0)} seats — the "
+              f"model's generic-entrant slot IS its forecast for it)")
+
     # ---- 1. citywide vote ------------------------------------------------
     print(f"\n{'=' * 78}\n{name} {target.year} — council {target.council}, "
           f"{len(run_.wards)} wards, {run_.draws} draws\n{'=' * 78}")
     print("\n1. CITYWIDE VOTE  (model = mean over draws; err in percentage points)\n")
     print(f"  {'party':<14}{'PR model':>10}{'PR actual':>11}{'err':>8}"
           f"{'ward model':>12}{'ward actual':>12}{'err':>8}")
-    universe = sorted(set(actual_pr) | set(idx),
+    universe = sorted((set(actual_pr) | set(idx)) - {"ENTRANT"}
+                      if arrived else set(actual_pr) | set(idx),
                       key=lambda p: -actual_pr.get(p, 0.0))
     pr_err_total = wd_err_total = 0.0
     for p in universe:
