@@ -1780,12 +1780,142 @@ Both are structural, both are open, and the second is on a clock.
 8. **`fold.py --city tshwane --fold 3/4/5`** dies with a bare
    `FileNotFoundError` on the base election file rather than saying the fold
    does not exist for that city. Only Johannesburg has the pre-2011 ingest.
-9. **The Monte Carlo is not year-parameterised**, so the *distributional*
-   forecast still cannot be scored against a past election — only the
-   deterministic core can, via the folds. Realistic scorable targets are 2011,
-   2016 and 2021; pre-2011 wards predate two delimitations.
+9. ✅ **RESOLVED.** The Monte Carlo *is* year-parameterised — `run_model` takes
+   a target and `backtest.runnable_targets` derives the set per city, so the
+   distributional forecast scores against 2016 and 2021 today. Kept for the
+   record as written: it used not to be, and only the deterministic core could
+   be scored, via the folds.
 
+---
 
+## 1.30 The spine, the calibration, and what nine city-years actually show (2026-08-13)
+
+### Task #22 is closed, but not by the fix the log proposed
+
+**The proposed partial fix is measurably worse than doing nothing.** §6 proposed
+measuring θ in both directions, on the reasoning that a local→national pair
+inverted is the same quantity and would give ActionSA a θ of its own. Held out a
+metro at a time over 180 party-city-years, pooling reverse observations into the
+θ record gives RMSE(log) **0.292 against forward-only 0.275**, and every adaptive
+blend built on it is worse than the same blend on forward θ. The reason is in the
+pairs: a reverse observation divides a local result by a *later* national one, so
+the party's secular trend enters with the opposite sign. The PA, growing,
+measures 1.90 forward and 0.60 reverse; the ANC, declining, 0.85 and 1.05. They
+are not the same quantity, and pooling them averages a party's trend into its
+local premium. **Rejected.**
+
+**What works is a blend keyed on EVIDENCE, not on geography.** A party's level
+now comes from both its previous national result (× θ) and its previous local
+result (× ρ, the measured LGE-to-LGE retention), weighted `k/(worth+k)` toward
+the local route, where `worth` is what that party's own θ record is worth. The
+banding is unambiguous:
+
+| θ evidence | n | RMSE national | RMSE local | best weight on local |
+|---|---|---|---|---|
+| 0 – 2 | 60 | 1.53 | 0.72 | 1.00 |
+| 2 – 5 | 55 | 0.089 | 0.24 | 0.10 |
+| 5 – 20 | 65 | 0.20 | 0.41 | 0.10 |
+
+**It is not party size in disguise.** Within *every* size band the flip survives:
+among parties under 0.5% of the vote, those with θ evidence want the national
+route (best w 0.00) and those without want the local one (best w 1.00). Keying
+the same rule on size is worse (0.2377 against 0.2358). Held out by metro:
+**0.236 against the national spine's 0.275, a 14% gain**, winning on four metros
+of eight by count and on the pooled vote-weighted error because the wins land
+where the national route fails worst (Buffalo City 0.320 → 0.111) and the losses
+where it was already accurate (Mangaung 0.077 → 0.094). This also closes §6's
+"the local result is five years stale" concern without a term: each route is
+corrected by a ratio fitted over its own gap, and w was fitted on local results
+that were themselves five years stale.
+
+For Johannesburg 2026 the spine moves ActionSA from **5.98% to 15.23%** (w=1.00
+— it has no forward θ at all), the PA from 5.51% to 6.63%, and the ANC and DA by
+under half a point each, which is the shape a correct fix should have.
+
+### Calibration (external review §2)
+
+* **sd(log θ) now reaches the draw** (item 2). It was measured and discarded: a
+  pooled party had no level uncertainty of its own at all, because the pool's
+  turnout moved every member together and the Dirichlet only redistributed
+  between them. Draws are Student-t in log space, df 4 — unbounded support, so
+  nothing that has happened has probability zero.
+* **One correlated citywide turnout factor** (item 3), ρ = **0.63 MEASURED**
+  over 14 metro-transitions. Black African, Coloured and White move almost as
+  one (+0.86 to +0.91); Indian/Asian is the loose one (+0.21 to +0.47). Four
+  independent pools put the citywide sd at 0.50 of a single pool's; the record
+  says 0.82. So aggregate turnout uncertainty was understated by 1.64×.
+  Implemented as a Gaussian copula, so every pool keeps exactly the marginal
+  band measured for it and only the dependence changes.
+
+### Four faults the nine-city sweep found (`src/sweep.py`, new)
+
+1. **The fold's θ calibration had an unidentified scale, and it drifted.**
+   `predict` renormalises within each VD, so multiplying every θ by a constant
+   changes nothing once the levels are low enough — and the IPF wandered four
+   orders of magnitude down. The ANC ended fold 2 at θ = 0.0001, a level of
+   −10.2, with the parties pinned at the level floor only 3.6 logits below it:
+   0.67% of the vote each, just over the quota, and **21 parties that won
+   nothing took 2 seats apiece — 42 of that fold's 96 seat errors.** Pinning
+   Σ base·θ = 1 removes all 42. **This log blamed SHARE_FLOOR for those seats
+   (§1.26 item 4) and that was wrong**: lowering the floor from 0.002 to 1e-6
+   changes the seat totals *not at all*, which is how the real cause was found.
+   Fold 2's error is now honestly composed — 44 of it is ActionSA, and the big
+   parties inherit those seats.
+2. **Every historical backtest ran with turnout forbidden to rise.**
+   `turnout_band` capped the top at the highest turnout the city had recorded —
+   the identical error its own docstring rejects for the bottom. It bound at
+   **4 of 4 pools for every metro at target 2016 and 3–4 of 4 at 2021**, and at
+   **0 of 4 for 2026**, because 2021 was the lowest on record. The instrument
+   was biased in exactly the runs used to judge the model and not in the run
+   being judged. Now built in **logit space**: the constraint is on the
+   *change* ("no more than has been observed"), which is what was wanted, and a
+   proportion on its natural scale cannot leave (0,1), so there is no cap
+   anywhere — neither the observed maximum nor the 1.0 that briefly replaced it.
+3. **A splinter band of one observation was a band of zero width.** At target
+   2021 **seven of the eight metros** have an away-splinter record of exactly
+   one observation, so `(min, median, max)` gave low == high: a triangular
+   asserting the arrival's size was known exactly. ActionSA then took 19 of
+   Tshwane's 214 seats against a band of 0.4%–0.4% — an outcome the forecast had
+   *ruled out*, not merely thought unlikely. Bands are now lognormal with the
+   width borrowed from the pooled cross-metro record, floored, and capped at
+   1.0 of the parent (Johannesburg's own record implied 1.17, which is not a
+   bold forecast but an arithmetic impossibility).
+4. **Two readers still pointed at the un-namespaced processed directory.**
+   `turnout.py --out` was fixed on the writer side; `export_interactive.py` and
+   `leverage.py` still defaulted `--processed` to `data/processed`, which is
+   *Johannesburg's*. A Tshwane run read Johannesburg's turnout, γ and ward parts
+   and then wrote its `interactive_data.json` over the file the published page
+   loads. (§1.26 items 6 and 7 were already fixed on the writer side; item 8,
+   `fold.py`'s bare `FileNotFoundError`, now names the folds the city can run.)
+
+### The largest error in the record is new parties, and tuning will not fix it
+
+Across nine city-years the dominant anomaly is one class: **a party that won
+seats with a median of zero, eleven times.** The PA in four metros, ActionSA in
+Tshwane and eThekwini, the Cape Coloured Congress, the Northern Alliance, the
+AIC twice. Measured, ActionSA took **0.611, 0.315, 0.289 and 0.103 of the DA's
+vote** in the four metros it contested and nothing in the four it did not; the
+away-splinter record it was sized from (COPE and EFF) tops out at **0.017**. It
+is 30–70× larger than anything on record, so no widening of the arrival band
+reaches it and none should — the record genuinely does not contain a party like
+this. Ward contestation gates arrival (0.00 where ActionSA did not stand) but
+does not predict magnitude (r = +0.12 across the four it did).
+
+That is the strongest available argument for **task #23**: for a party with no
+electoral history, polls are the only pre-election evidence that exists, and
+pre-2021 polls had ActionSA near 6% against the model's 0.17% in Tshwane.
+
+### Two things this did NOT do
+
+* **The point-estimate rates matrix is still a point estimate** (review item 6).
+  Hierarchical multinomial-Dirichlet with ward-varying rates is a substantial
+  piece of work and is untouched.
+* **The by-election ward-local term (#3) still cannot be tested.** It is not
+  waiting on the harness. `byelection_*.csv` covers 2022-06-01 to 2026-02-25 —
+  the window since the last LGE — so no historical target has by-election data
+  at all, and `w_bye` (0.40) is equally inert in every backtest above. The term
+  is **untestable with the data held**, not merely untested, and the only way to
+  change that is to scrape the 2011–2021 by-election windows.
 
 ---
 
