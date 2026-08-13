@@ -69,6 +69,7 @@ import argparse
 import copy
 import csv
 import json
+import math
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date
@@ -221,6 +222,78 @@ def expit(x):
 def triangular(rng, spec, size=None):
     low, mode, high = spec
     return rng.triangular(low, min(max(mode, low), high), high, size)
+
+
+# Degrees of freedom for the level shock. A bounded triangular assigns
+# probability EXACTLY ZERO outside its support, and this model kept doing that
+# to outcomes that had already happened — Al Jama-ah won a Johannesburg seat in
+# 2016 with 0 of 500 draws non-zero, which is an infinite log score for an event
+# in the record. Student-t in log space has unbounded support and a tail heavy
+# enough that a party trebling is unlikely rather than impossible. Four degrees
+# of freedom keeps the variance finite (so the measured sd still means what it
+# says) while putting roughly 2% of the mass beyond 3.7 sd, against a normal's
+# 0.02% — two orders of magnitude more room for the surprise this model has
+# repeatedly been surprised by.
+LEVEL_DF = 4.0
+
+
+def log_shock(rng, sd, size=None, df: float = LEVEL_DF):
+    """exp of a Student-t scaled to have log-sd exactly ``sd``. Median 1.
+
+    Standardised by sqrt((df-2)/df) so that ``sd`` is the realised log standard
+    deviation rather than the t's own, which would be 41% larger at df=4. The
+    measured sd(log θ) can then be handed straight in and mean what levels.py
+    measured it to mean.
+    """
+    scale = np.sqrt((df - 2.0) / df)
+    return np.exp(np.asarray(sd) * scale * rng.standard_t(df, size=size))
+
+
+# How much of a pool's turnout move is shared with the other pools. MEASURED,
+# 2026-08-13, over 14 metro-transitions (eight metros, 2011→2016 and
+# 2016→2021): the mean off-diagonal correlation between pools' log turnout
+# changes is +0.63. Black African, Coloured and White move almost as one
+# (+0.86 to +0.91); Indian/Asian, the smallest and by far the noisiest pool
+# (sd 0.63 against 0.16-0.22), is the loose one at +0.21 to +0.47.
+#
+# It matters because it sets how variable the CITY's turnout is, which is the
+# thing 2021 actually moved. Four independent pools put the citywide sd at 0.50
+# of a single pool's; the record puts it at 0.82. So drawing them independently
+# understated aggregate turnout uncertainty by a factor of 1.64 in a model
+# whose own documentation says the last election was decided by 587,000
+# abstentions.
+TURNOUT_CORRELATION = 0.63
+
+
+def _tri_ppf(u, spec):
+    """Inverse CDF of a triangular. Used to drive correlated draws."""
+    a, c, b = spec
+    c = min(max(c, a), b)
+    if b <= a:
+        return a
+    split = (c - a) / (b - a)
+    if u < split:
+        return a + np.sqrt(u * (b - a) * (c - a))
+    return b - np.sqrt((1.0 - u) * (b - a) * (b - c))
+
+
+def correlated_triangular(rng, spec, z_common: float, rho: float):
+    """A triangular draw pushed by a shared standard normal.
+
+    A Gaussian copula: the pool's own normal is ``sqrt(rho)*z_common +
+    sqrt(1-rho)*z_own``, which is standard normal with correlation ``rho`` to
+    every other pool drawn against the same ``z_common``, and it is mapped
+    through the triangular's inverse CDF. The MARGINAL is therefore exactly the
+    triangular ``pools.turnout_band`` measured — this changes how the pools move
+    together and nothing about how far any one of them can move.
+    """
+    if rho <= 0:
+        return triangular(rng, spec)
+    rho = min(rho, 1.0)
+    z = np.sqrt(rho) * z_common + np.sqrt(1.0 - rho) * rng.standard_normal()
+    # Φ(z) without scipy: the normal CDF from the error function.
+    u = 0.5 * (1.0 + math.erf(z / np.sqrt(2.0)))
+    return _tri_ppf(min(max(u, 1e-9), 1 - 1e-9), spec)
 
 
 def months_before_election(stamp: str, election_day: date) -> float:
@@ -504,10 +577,19 @@ def blended_centres(
     # that has not yet faced a local election (MK in 2026).
     seeded = scenario.get("pool_seeds") or {}
     bands = scenario.get("pool_seed_bands") or {}
+    # THE SPINE (task #22). Where ``levels.spine`` has a level for a party, it
+    # is the answer: it already weighed the party's national route against its
+    # own last local result by how much θ evidence the party has, and returned
+    # the blend. The θ-only branch below is what runs for a party the spine
+    # cannot reach — and for a seeded arrival, which has neither record and is
+    # sized from the arrival record instead.
+    spine_level = scenario.get("spine_level") or {}
     for party, base in base_city.items():
         if seeded.get(party, 0.0) > 0:
             band = bands.get(party)
             mode_level = base * (float(band[1]) if band else 1.0)
+        elif party in spine_level:
+            mode_level = spine_level[party]
         elif party in prior:
             mode_level = base * prior[party][1]
         elif party in theta_mode:
@@ -652,6 +734,19 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
                            sorted(orphans.items(), key=lambda kv: -kv[1]))
         print(f"  ! in no pool, drawn from the residual range: {listed}. "
               f"Re-emit pools, or declare lineage in judgements/.")
+    # How wide each party's level is, in log units, straight off the measured
+    # size-dispersion line. This is the connection the external review found
+    # missing: levels.py has been measuring sd(log θ) — 0.26 at 40% of the vote
+    # rising to 0.72 at 0.1% — and the draw was ignoring it, taking its spread
+    # instead from the 10th and 90th percentiles of that same lognormal squeezed
+    # back into a bounded triangular. The measurement now reaches the draw
+    # directly, and unbounded (see LEVEL_DF).
+    sd_measured = (scenario.get("_theta_sd") or {})
+    sd_default = float(scenario.get("level_sd_default", 0.45))
+
+    def sd_for_party(party: str) -> float:
+        return float(sd_measured.get(party, sd_default))
+
     individual = []
     for party, i in index.items():
         if party in handled or party == "ENTRANT":
@@ -661,19 +756,25 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         # retention prior it has no history to have earned.
         seed_band = (scenario.get("pool_seed_bands") or {}).get(party) \
             if (scenario.get("pool_seeds") or {}).get(party, 0.0) > 0 else None
-        measured = seed_band or (scenario.get("theta_prior") or {}).get(party)
-        spec = measured or scenario["individual_theta"].get(party)
-        if spec is not None:
-            if measured is None:
-                note_constant(scenario, "individual_theta", party)
-            low, _, high = spec
+        if seed_band is not None:
+            # An arrival's band IS the estimate, so it keeps its triangular:
+            # the arrival record is a set of observed entry sizes, not a
+            # dispersion around a centre, and widening it with a t-tail would
+            # be inventing evidence the record does not contain.
+            low, _, high = seed_band
             mode = min(max(centres[party] / max(base_city[i], 1e-9), low), high)
-            individual.append((i, (low, mode, high)))
-        else:
-            group = (scenario.get("theta_prior") or {}).get("__small__")
-            if not group:
-                note_constant(scenario, "f_other", party)
-            individual.append((i, tuple(group or scenario["f_other"])))
+            individual.append((i, (low, mode, high), None))
+            continue
+        if party not in (scenario.get("theta_prior") or {}) \
+                and party not in scenario["individual_theta"]:
+            note_constant(scenario, "f_other", party)
+        # The CENTRE is the spine's, and it is no longer clamped into the θ
+        # band. That clamp existed when the centre and the band came from the
+        # same θ; now they do not, and it was silently undoing task #22 — it
+        # would have pulled ActionSA's 15.2% blended level back to about 11%
+        # because the ratio it implies against a 6.2% national base sits above
+        # the top of a band measured on parties that have a θ at all.
+        individual.append((i, None, (centres[party], sd_for_party(party))))
 
     entrant_index = index.get("ENTRANT")
 
@@ -693,19 +794,44 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     for name in (pools or {}):
         ties[scenario["pools"][name].get("tie") or name].append(name)
 
+    # Each pooled party's own level spread, looked up once rather than per draw.
+    # A seeded arrival is excluded (its band, not a dispersion, is the estimate)
+    # by giving it zero: its size comes from the arrival record and the pool
+    # split, and a t-shock on top would double-count the uncertainty the band
+    # already carries.
+    seeded_set = {p for p, s in (scenario.get("pool_seeds") or {}).items() if s > 0}
+    pool_sd_shock = {p: (0.0 if p in seeded_set else sd_for_party(p))
+                     for cfg in scenario["pools"].values() for p in cfg["members"]}
+
+    rho_t = float(scenario.get("turnout_correlation", TURNOUT_CORRELATION))
+
     def draw_pools():
         """One draw. Each pool's VOTES are its counted registration times a
         drawn turnout; the pool's share of the city follows from the votes,
         and its members split it. Turnout is the only quantity here that is
         not counted, which is the whole point: it is the assumption, and it is
-        the correlated shock 2021 delivered when every pool fell at once."""
+        the correlated shock 2021 delivered when every pool fell at once.
+
+        That last sentence was aspirational until now. Every pool drew its own
+        independent turnout, so the citywide total came out half as variable as
+        a single pool when the record says 0.82 as variable (see
+        TURNOUT_CORRELATION). The pools are now tied together by a common
+        factor, which is the review's "single correlated citywide turnout
+        shock" — implemented as a copula so that each pool keeps EXACTLY the
+        marginal turnout band ``pools.turnout_band`` measured for it, and only
+        the dependence between them changes.
+        """
         target = np.zeros(n)
         totals = {}
+        # One standard normal for the whole city, per draw. Every pool's
+        # turnout is pushed by it in proportion to sqrt(rho).
+        z_common = rng.standard_normal()
         for group, names in ties.items():
             if len(names) == 1:
                 name = names[0]
                 # registration (counted) x turnout (drawn) = votes
-                totals[name] = pools[name][1] * triangular(rng, pools[name][2])
+                totals[name] = pools[name][1] * correlated_triangular(
+                    rng, pools[name][2], z_common, rho_t)
                 continue
             # one shock for the group, shared out in proportion to base, so the
             # group's total moves exactly as a single pool of that size would
@@ -715,17 +841,33 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             lo = sum(pools[nm][2][0] for nm in names) / len(names)
             md = sum(pools[nm][2][1] for nm in names) / len(names)
             hi = sum(pools[nm][2][2] for nm in names) / len(names)
-            shock = triangular(rng, (lo, md, hi))
+            shock = correlated_triangular(rng, (lo, md, hi), z_common, rho_t)
             for nm in names:
                 totals[nm] = pools[nm][1] * shock
         # Shares follow from votes, so the pool side sums to one by
         # construction rather than by a later division.
         cast = sum(totals.values())
         for name, (idx, reg, spec, props, alpha, names, levels, wts) in pools.items():
-            split = rng.dirichlet(np.maximum(props * alpha, 0.05))
+            # A PARTY'S OWN LEVEL MOVES, not just its pool's total and its
+            # share of the split. Before this, a pooled party had no level
+            # uncertainty of its own at all: the pool's turnout moved every
+            # member together and the Dirichlet redistributed between them, so
+            # the measured sd(log θ) — the one quantity in the model that says
+            # how wrong a party's level can be — never entered the draw for any
+            # party large enough to be in a pool. That is the under-dispersion
+            # the review called structural, and this is where it lived.
+            shocks = np.array([pool_sd_shock[p] for p in names])
+            moved = props * log_shock(rng, shocks)
+            s = moved.sum()
+            moved = moved / s if s > 0 else props
+            split = rng.dirichlet(np.maximum(moved * alpha, 0.05))
             np.add.at(target, idx, (totals[name] / cast if cast > 0 else 0.0) * split)
-        for i, spec in individual:
-            target[i] = base_city[i] * triangular(rng, spec)
+        for i, tri, level in individual:
+            if tri is not None:
+                target[i] = base_city[i] * triangular(rng, tri)
+            else:
+                centre, sd = level
+                target[i] = centre * log_shock(rng, sd)
         total = target.sum()
         if total > 0:
             target = target / total
@@ -973,6 +1115,10 @@ def run_model(target, scenario: dict,
             _prior["__small__"] = (med * float(np.exp(-1.2816 * sd)), med,
                                    med * float(np.exp(1.2816 * sd)))
             scenario["theta_prior"] = _prior
+            # The measured log-spread per party, carried to the draw. See
+            # make_drawer: this is the number the draw was not using.
+            scenario["_theta_sd"] = _groups.get("sd", {})
+            scenario["_theta_worth"] = _groups.get("worth", {})
             if verbose:
                 centre, spread = _groups["centre"], _groups["spread"]
                 print(f"  levels: {centre['n']} transitions before "
@@ -1337,6 +1483,38 @@ def run_model(target, scenario: dict,
             for row in csv.DictReader(fh):
                 bye[row["party"]] = (float(row["weight_sum"]),
                                     float(row["weighted_delta"]))
+    # --- the spine: both records, weighted by which one the party has (#22) ---
+    # Computed here rather than beside theta_prior because it needs the previous
+    # LOCAL election's citywide shares, which are read a few lines up. Both
+    # inputs are strictly before the target.
+    try:
+        import levels as _levels
+        _spine, _spine_info = _levels.spine(target, base_city_d, prior_pr_share)
+        if _spine:
+            scenario["spine_level"] = _spine
+            scenario["_spine_info"] = _spine_info
+            note_constant(scenario, "spine",
+                          f"k={_spine_info['k']}, {_spine_info['n_theta']} θ and "
+                          f"{_spine_info['n_rho']} ρ observations before "
+                          f"{target.year}")
+            if verbose:
+                d = _spine_info["detail"]
+                moved = sorted((p for p in d if base_city_d.get(p, 0) >= 0.005),
+                               key=lambda p: -abs(d[p]["local"] - d[p]["national"]))
+                print(f"  spine: {_spine_info['n_theta']} θ and "
+                      f"{_spine_info['n_rho']} ρ observations before "
+                      f"{target.year}; θ centre "
+                      f"{_spine_info['theta_centre']:.2f}, ρ centre "
+                      f"{_spine_info['rho_centre']:.2f}")
+                for p in moved[:6]:
+                    print(f"    {p:<12} w_local {d[p]['w_local']:.2f} "
+                          f"(θ worth {d[p]['worth']:.1f})  national "
+                          f"{d[p]['national']:.2%} / local {d[p]['local']:.2%} "
+                          f"-> {_spine[p]:.2%}")
+    except FileNotFoundError as _exc:
+        print(f"  ! spine unavailable ({_exc}); levels fall back to the "
+              f"national route alone")
+
     centres, notes = blended_centres(scenario, base_city_d, prior_pr_share, bye)
     if scenario.get("poll_id") and scenario.get("poll_weight", 0) > 0:
         polls = {q["id"]: q for q in json.loads(

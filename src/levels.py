@@ -40,6 +40,67 @@ doing to outcomes that had already happened.
 
 Everything here is filtered to transitions strictly before the target, so a
 backtest cannot read its own result.
+
+THE SPINE (2026-08-13, MODEL-LOG task #22)
+------------------------------------------
+
+θ alone is only half a forecast. It converts a party's last NATIONAL share into
+a local one, which is the right spine for a nationally-organised party and the
+wrong one for a party whose evidence is local — and until now the model used it
+unconditionally. ActionSA is the case that forced this: 18.12% locally in 2021
+against 6.22% nationally in 2024, and no θ of its own, so the forecast built it
+from the 6.22% and discounted it to about 6%.
+
+There is a second route. A party's previous LOCAL result, moved by the measured
+local-to-local retention ρ, estimates the same quantity from different evidence.
+Measured over 180 party-city-years across eight metros and three transitions,
+neither route dominates — but **which one wins is predictable, and the thing
+that predicts it is how much θ evidence the party has**:
+
+    θ evidence (Σ reliability)    n    RMSE(log) national    local    best weight on local
+    0     – 2                    60          1.53            0.72            1.00
+    2     – 5                    55          0.089           0.24            0.10
+    5     – 20                   65          0.20            0.41            0.10
+
+That is not party size wearing a disguise. Within *every* size band the flip
+survives: among parties under 0.5% of the vote, those with θ evidence want the
+national route (best w 0.00) and those without want the local one (best w 1.00);
+the same holds in the 0.5–5% band. Keying the same rule on size instead of
+evidence is measurably worse (0.2377 against 0.2358 held out by metro).
+
+So the weight on the local route is ``k / (worth + k)``: all local for a party
+whose θ is nothing but the group centre, almost all national for a party with a
+long retention record. One parameter, and it is a statement about *evidence*
+rather than about which parties are "local" — which matters, because the two
+things that sound like they should identify a local party do not (geographic
+concentration correlates with the local premium at r = −0.09, and the premium is
+no larger at home than away; MODEL-LOG §6).
+
+Held out one metro at a time, refitting both routes without it: pooled
+vote-weighted RMSE(log) 0.236 against the national spine's 0.275, a 14% gain.
+It wins on four metros of eight by count and on the pooled error because the
+wins land where the national route fails worst (Buffalo City 0.320 → 0.111,
+Johannesburg 0.559 → 0.480) and the losses where it was already accurate
+(Mangaung 0.077 → 0.094).
+
+**Recency is priced by construction, not by a term.** The local result is five
+years stale at polling day where the national is two. Each route is corrected by
+a ratio fitted over its own gap — ρ over five-year LGE-to-LGE pairs, θ over
+roughly two-year NPE-to-LGE ones — and the blend weight was fitted on local
+results that were themselves five years stale. Nothing further is owed.
+
+**Rejected: measuring θ in both directions.** MODEL-LOG proposed this as the
+partial fix — a local→national pair inverted is nominally the same ratio, and it
+would give ActionSA a θ of its own. Measured, it makes the forecast worse:
+pooled held-out RMSE(log) 0.292 against forward-only 0.275, and every adaptive
+blend built on it is worse than the same blend on forward θ. The reason is
+visible in the pairs. A reverse observation divides a local result by a *later*
+national one, so a party's secular trend enters with the opposite sign: the PA,
+growing, measures 1.90 forward and 0.60 reverse; the ANC, declining, 0.85
+forward and 1.05 reverse. The two numbers are not the same quantity, and pooling
+them averages a party's trend into its local premium. The blend above solves
+ActionSA's case directly and better, so the inversion is not needed for it
+either.
 """
 
 from __future__ import annotations
@@ -71,8 +132,39 @@ SHRINK = 2.0
 # discounted — continuously, and without denying any party a measured θ.
 RELIABILITY_HALF = 0.002
 
+# How much θ evidence a party needs before the national spine is trusted over
+# its own last local result. The weight on the LOCAL route is k / (worth + k),
+# so at worth = k the two routes are equal. Fitted by leave-one-metro-out over
+# 180 party-city-years: the curve is flat between 0.5 and 1.5 (0.2377, 0.2358,
+# 0.2387) and degrades either side, so 1.0 is the middle of a plateau rather
+# than a point estimate. See the module docstring.
+SPINE_K = 1.0
+
+
+# Every metro with a VD-level archive. The retention record is a national fact
+# about how parties behave between election types, not a Johannesburg one, and
+# reading it off eight cities instead of two is what makes ρ measurable at all:
+# two metros give four LGE-to-LGE pairs, eight give sixteen. Nothing here is
+# ever read at or after the target, so a wider evidence base is more evidence,
+# not more leakage. A city whose archive does not go back simply contributes
+# nothing — _citywide returns empty on a missing file.
+METRO_CODES = ("JHB", "TSH", "CPT", "ETH", "EKU", "MAN", "NMA", "BUF")
 
 def _citywide(path) -> dict[str, float]:
+    """One election's citywide PR shares. **Deliberately not cached.**
+
+    Widening the record from two metros to eight multiplied the file reads, and
+    a path-keyed memo is the obvious fix. It was written, and it broke
+    ``test_the_level_prior_reads_no_election_at_or_after_its_target`` — the
+    guard that spies on file opens to prove the θ record never touches an
+    election at or after its target. A memo makes the second target's reads
+    invisible to it, so the leak test passes by seeing nothing rather than by
+    seeing only clean files.
+
+    That trade is the wrong way round in this repository. The temporal guards
+    are the reason any score here can be believed, and the cost being bought
+    with them is a few seconds of CSV parsing per run.
+    """
     counts: dict[str, int] = defaultdict(int)
     try:
         with open(path, encoding="utf-8", errors="replace") as fh:
@@ -87,7 +179,7 @@ def _citywide(path) -> dict[str, float]:
 
 
 def theta_record(target: cityconfig.Target,
-                 codes=("JHB", "TSH")) -> dict[str, list[tuple[float, float]]]:
+                 codes=METRO_CODES) -> dict[str, list[tuple[float, float]]]:
     """Every observed national-to-local retention ratio before the target.
 
     One entry per party per metro per transition, as ``(ratio, share)`` where
@@ -128,6 +220,37 @@ def theta_record(target: cityconfig.Target,
     return dict(out)
 
 
+def local_record(target: cityconfig.Target,
+                 codes=METRO_CODES) -> dict[str, list[tuple[float, float]]]:
+    """Every observed LOCAL-to-LOCAL retention ratio before the target.
+
+    ρ is θ's opposite number: a party's share at one local election over its
+    share at the local election before it, as ``(ratio, share)`` where ``share``
+    is the earlier local share the ratio was measured off. It is what moves a
+    party's *own* last local result forward five years, and it is the second of
+    the two routes :func:`spine` weighs against each other.
+
+    Consecutive LGE pairs only, both strictly before the target — pairing 2011
+    with 2021 would measure ten years of drift and call it five.
+    """
+    lge = sorted((y for y, e in cityconfig.CALENDAR.items()
+                  if e.kind == "LGE" and e.results), key=int)
+    out: dict[str, list[tuple[float, float]]] = defaultdict(list)
+    for earlier, later in zip(lge, lge[1:]):
+        if int(later) >= int(target.year):
+            continue                      # strictly before the target
+        for code in codes:
+            before = _citywide(
+                f"data/raw/elections/lge{earlier}_{code}_vd_party_clean.csv")
+            after = _citywide(
+                f"data/raw/elections/lge{later}_{code}_vd_party_clean.csv")
+            for party in set(before) & set(after):
+                if before[party] > 0:
+                    out[party].append((after[party] / before[party],
+                                       before[party]))
+    return dict(out)
+
+
 def _reliability(share: float) -> float:
     """How much one observed ratio is worth, on 0-1, from what it was measured off.
 
@@ -141,7 +264,7 @@ def _reliability(share: float) -> float:
 
 
 def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
-                codes=("JHB", "TSH")) -> tuple[dict[str, tuple], dict]:
+                codes=METRO_CODES) -> tuple[dict[str, tuple], dict]:
     """Per-party (low, mode, high) on θ, and the groups they were drawn from.
 
     A party's own log-mean is shrunk toward its group's by ``n / (n + SHRINK)``,
@@ -225,6 +348,107 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
                    "effective_n": float(weights_all.sum())},
         "spread": {"at_0.1%": sd_for(0.001), "at_1%": sd_for(0.01),
                    "at_10%": sd_for(0.10), "at_40%": sd_for(0.40)},
+        # What each party's own θ record is WORTH, on the same 0-1-per-
+        # observation scale the shrinkage uses. This is the quantity the spine
+        # blend is keyed on, and it is reported rather than recomputed so the
+        # weight and the shrinkage can never be keyed on different numbers.
+        "worth": {party: float(sum(_reliability(s) for _, s in obs))
+                  for party, obs in record.items()},
+        # Per-party log-spread, so the draw can use the width that was measured
+        # instead of a triangular fitted to the same band's endpoints.
+        "sd": {party: float(sd_for(baseline.get(party, 0.0)))
+               for party in priors},
+    }
+
+
+def _shrunk(record: dict[str, list[tuple[float, float]]],
+            ) -> tuple[dict[str, float], float, dict[str, float]]:
+    """Per-party log-mean shrunk to the weighted common centre, and the worth.
+
+    The estimator :func:`theta_prior` uses on θ, extracted so ρ gets exactly the
+    same treatment. If the two routes were shrunk differently, the comparison
+    between them in :func:`spine` would be measuring the estimators rather than
+    the evidence.
+    """
+    everything = [obs for obs in (o for v in record.values() for o in v)]
+    if not everything:
+        return {}, 0.0, {}
+    ratios = np.array([r for r, _ in everything])
+    weights = np.array([_reliability(s) for _, s in everything])
+    if weights.sum() <= 0:
+        return {}, 0.0, {}
+    mu_all = float(np.average(np.log(ratios), weights=weights))
+    mus: dict[str, float] = {}
+    worth: dict[str, float] = {}
+    for party, obs in record.items():
+        w = [_reliability(s) for _, s in obs]
+        worth[party] = float(sum(w))
+        weight = worth[party] / (worth[party] + SHRINK)
+        own = float(np.average([np.log(r) for r, _ in obs], weights=w))
+        mus[party] = weight * own + (1 - weight) * mu_all
+    return mus, mu_all, worth
+
+
+def spine(target: cityconfig.Target, baseline: dict[str, float],
+          prev_local: dict[str, float], codes=METRO_CODES,
+          k: float = SPINE_K) -> tuple[dict[str, float], dict]:
+    """Each party's central level at the target, from BOTH of its records.
+
+    ``baseline`` is the preceding national election's citywide shares;
+    ``prev_local`` the preceding local election's. Returns the blended central
+    share per party and a diagnostic block naming, for every party, which route
+    it came from and why — because the whole point of task #22 is that the model
+    could not previously say.
+
+    Three cases, and every party is in exactly one:
+
+    * **Both records.** The blend, weighted ``k / (worth + k)`` toward the local
+      route, where ``worth`` is what the party's own θ record is worth. A party
+      with a long retention history sits on the national spine; a party whose θ
+      is nothing but the group centre sits on its own last local result.
+    * **National only.** A party facing its first local election — MK in 2026.
+      Weight 0: there is no local result to blend, and inventing one from the
+      group would be worse than using the national route the party does have.
+    * **Local only.** A party that contested locally and then did not contest
+      nationally, or was not yet national when it did. Weight 1 by necessity.
+
+    A party with neither is an arrival and is not here at all;
+    ``pools.arrival_rules`` sizes it from the arrival record.
+    """
+    theta_obs = theta_record(target, codes)
+    rho_obs = local_record(target, codes)
+    mu_t, c_t, worth_t = _shrunk(theta_obs)
+    mu_r, c_r, _worth_r = _shrunk(rho_obs)
+    if not mu_t and not mu_r:
+        return {}, {}
+
+    levels: dict[str, float] = {}
+    detail: dict[str, dict] = {}
+    for party in set(baseline) | set(prev_local):
+        national = float(baseline.get(party, 0.0))
+        local = float(prev_local.get(party, 0.0))
+        worth = float(worth_t.get(party, 0.0))
+        nat_level = national * float(np.exp(mu_t.get(party, c_t))) if national > 0 else 0.0
+        loc_level = local * float(np.exp(mu_r.get(party, c_r))) if local > 0 else 0.0
+        if national > 0 and local > 0:
+            w = k / (worth + k)
+            level = float(np.exp(w * np.log(loc_level) + (1 - w) * np.log(nat_level)))
+            route = "blend"
+        elif national > 0:
+            w, level, route = 0.0, nat_level, "national only (first local election)"
+        elif local > 0:
+            w, level, route = 1.0, loc_level, "local only (no national record)"
+        else:
+            continue
+        levels[party] = level
+        detail[party] = {"w_local": w, "worth": worth, "route": route,
+                         "national": nat_level, "local": loc_level}
+    return levels, {
+        "k": k,
+        "n_theta": sum(len(v) for v in theta_obs.values()),
+        "n_rho": sum(len(v) for v in rho_obs.values()),
+        "theta_centre": float(np.exp(c_t)), "rho_centre": float(np.exp(c_r)),
+        "detail": detail,
     }
 
 
