@@ -1905,6 +1905,65 @@ That is the strongest available argument for **task #23**: for a party with no
 electoral history, polls are the only pre-election evidence that exists, and
 pre-2021 polls had ActionSA near 6% against the model's 0.17% in Tshwane.
 
+### Scored against the baselines, honestly
+
+Nine city-years, total absolute seat error, model against the naive references:
+
+| city-year | model | last-lge | uniform-swing | prior-lge-noise |
+|---|---|---|---|---|
+| Johannesburg 2016 | 62 | 92 | **26** | 91 |
+| Johannesburg 2021 | **65** | 134 | 126 | 125 |
+| Tshwane 2021 | **54** | 80 | 60 | 77 |
+| Ekurhuleni 2021 | 54 | 72 | **48** | 66 |
+| eThekwini 2021 | 42 | 82 | **36** | 76 |
+| Cape Town 2021 | 43 | 68 | **38** | 63 |
+| Mangaung 2021 | 11 | 24 | **8** | 20 |
+| Nelson Mandela Bay 2021 | **18** | 28 | 22 | 27 |
+| Buffalo City 2021 | 14 | 14 | **12** | 15 |
+
+**The model beats uniform swing in three of nine and loses six.** It beats
+last-lge and prior-lge-noise almost everywhere, which is a much weaker claim —
+those are pure persistence. Uniform swing is the one baseline that carries any
+information about which way the country is moving, and it is the one the model
+does not reliably beat. That is Murphy's point about standards of reference
+restated in this repository's own numbers, and it is unchanged by everything
+above.
+
+**A note on the published-run comparison, because it is easy to get wrong.**
+`validation_2021.json` lists only the top TWELVE parties, while these targets
+have 15 to 24 actual seat-winners, so its seat error is truncated and is not
+comparable to a figure summed over the whole ballot. On the same twelve parties
+the current model is better in five of eight (eThekwini 25 against 35, Cape Town
+26 against 37, Nelson Mandela Bay 12 against 16, Mangaung 9 against 11,
+Ekurhuleni level) and worse in three (Johannesburg 59 against 56, Tshwane 51
+against 44, Buffalo City 14 against 10).
+
+### The two Johannesburg failures are not the same failure
+
+`src/diagnose.py` decomposes one city-year into citywide vote, ward seats, list
+seats, and every ward called wrong. It says the two Johannesburg errors, 62 and
+65, have almost nothing in common:
+
+* **2016 is ONE NUMBER.** The ANC is +8.83pp on the PR ballot, and the DA
+  (−5.90) and EFF (−3.73) are its mirror image. The geography is fine — 126 of
+  135 wards called correctly, and **not one of the nine misses gave the actual
+  winner under 2%**, so every one was a close contest lost rather than a fault.
+  The ANC alone is 25 of the 62 seats. The cause is honest rather than a bug:
+  the only θ evidence available before 2016 puts the ANC's local retention near
+  0.95, and in 2016 it was 0.80. Uniform swing beats the model here precisely
+  because the 2009→2014 national movement carried that decline and θ did not.
+* **2021 is arrivals and the tail.** ActionSA −14, the PA −8, and fourteen
+  parties one or two seats short each. The ANC's **ward seats are exactly right,
+  87 against 87** — its entire seat error is in LIST seats, 15 against 4, driven
+  by a +3.02pp citywide vote error. Geography right, level wrong, and the two
+  are cleanly separable. Three of the seven wrong ward calls gave the actual
+  winner **under 2%** (Al Jama-ah in ward 79800009, the PA in 79800017 and
+  79800018) — those are faults, not bad luck.
+
+So "Johannesburg got worse with more data" is not what happened: 62 and 65 are
+different diseases, and the 2016 one is a single level miss the record could not
+have warned about.
+
 ### Two things this did NOT do
 
 * **The point-estimate rates matrix is still a point estimate** (review item 6).
