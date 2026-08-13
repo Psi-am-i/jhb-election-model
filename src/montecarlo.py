@@ -986,6 +986,15 @@ class ModelRun:
     gamma_source: dict[str, str] = field(default_factory=dict)
     ratio: np.ndarray | None = None
     n_vd: int = 0
+    # Citywide shares per draw, (draws, parties), one array per ballot. The
+    # model has always computed these -- they are what the seats are allocated
+    # from -- and always thrown them away, so every comparison against a real
+    # election could talk about seats and not about VOTES. Seats are a step
+    # function of votes through a quota, so a forecast can be several seats out
+    # while being a tenth of a point out on the ballot, or the reverse, and
+    # reporting only the seat error hides which of those is happening.
+    pr_share_draws: np.ndarray | None = None
+    ward_share_draws: np.ndarray | None = None
 
     @property
     def draws(self) -> int:
@@ -1574,6 +1583,8 @@ def run_model(target, scenario: dict,
     ward_winner_counts = np.zeros((len(wards), npar), dtype=np.int32)
     bounds_violations: defaultdict[str, int] = defaultdict(int)
     bounds_checked = 0
+    pr_share_draws = np.zeros((draws, npar))
+    ward_share_draws = np.zeros((draws, npar))
 
     for d in range(draws):
         pr_target = draw_target()
@@ -1619,6 +1630,8 @@ def run_model(target, scenario: dict,
         wd_eff = wd if tilt_scale is None else wd * tilt_scale
         pr_votes = weight @ pr_eff
         ward_votes = weight @ wd_eff
+        pr_share_draws[d] = pr_votes / max(pr_votes.sum(), 1e-12)
+        ward_share_draws[d] = ward_votes / max(ward_votes.sum(), 1e-12)
 
         # E3: ward winners from the ward ballot, on the target's own wards.
         part_cast = part_reg * t_draw[part_vd]
@@ -1658,7 +1671,8 @@ def run_model(target, scenario: dict,
         ward_winner_counts=ward_winner_counts, ward_win_sum=dict(ward_win_sum),
         overhang_count=dict(overhang_count), excessive_draws=excessive_draws,
         bounds_violations=dict(bounds_violations), bounds_checked=bounds_checked,
-        notes=notes, gamma_source=gamma_source, ratio=ratio, n_vd=nvd)
+        notes=notes, gamma_source=gamma_source, ratio=ratio, n_vd=nvd,
+        pr_share_draws=pr_share_draws, ward_share_draws=ward_share_draws)
 
 
 # --------------------------------------------------------------------------
