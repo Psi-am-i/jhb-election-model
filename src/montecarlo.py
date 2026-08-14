@@ -85,6 +85,12 @@ from seats import INDEPENDENT, allocate
 SHARE_FLOOR = 0.002
 COUNCIL = 270
 
+# Keeps every Dirichlet concentration strictly positive, which is all numpy
+# needs and all this is for. See the note at its use site in make_drawer: the
+# previous value, 0.05, was a claim rather than a guard and was manufacturing
+# several points of citywide vote for parties the model itself puts near zero.
+DIRICHLET_FLOOR = 1e-4
+
 # Blocs are gone. They were two hand-drawn lists of parties assumed to trade
 # votes with each other — a claim about parties, made by a person, that no
 # measurement could check. Parties are now described by the voter pools they
@@ -206,6 +212,15 @@ DEFAULTS: dict = {
     # citywide shares below ~0.2% unattainable, inflating the micro-party
     # tail. Lowering this floor (e.g. 1e-6) frees the level while keeping the
     # 0.002 floor on deviation inputs. Default keeps published behaviour.
+    # See DIRICHLET_FLOOR. A scenario key so the sweep that chose it is
+    # reproducible and so a reader can put the old behaviour back.
+    "dirichlet_floor": DIRICHLET_FLOOR,
+    # How much θ evidence a party needs before the national spine is trusted
+    # over its own last local result; the weight on the LOCAL route is
+    # k/(worth+k). A scenario key rather than only a module constant, so it can
+    # be swept -- levels.SPINE_K is a DEFAULT ARGUMENT and rebinding the module
+    # attribute after import silently does nothing, which cost one experiment.
+    "spine_k": None,
     "level_floor": 0.000001,  # adopted 2026-08-06: frees sub-0.2% targets; structural rows barely move
 }
 
@@ -826,6 +841,23 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
                      for cfg in scenario["pools"].values() for p in cfg["members"]}
 
     rho_t = float(scenario.get("turnout_correlation", TURNOUT_CORRELATION))
+    # The ONLY job of this floor is to keep every Dirichlet concentration
+    # strictly positive, which numpy requires. It was 0.05, which is not a
+    # numerical guard but a claim — and a large one.
+    #
+    # A Dirichlet's mean share is alpha_i / Σalpha, so raising a small party's
+    # alpha to 0.05 raises its expected vote to whatever 0.05 is worth against
+    # the pool's total concentration. Measured on Johannesburg 2021 with the
+    # real levels in place, 44 of the Black African pool's 52 members were
+    # floored, and their collective share went from the 1.59% the model believed
+    # to 8.41% — a 6.82pp transfer, taken proportionally from every other member
+    # of that pool. Across the four pools it is of the order of 5pp of the
+    # citywide vote handed to parties the model itself puts near zero.
+    #
+    # That is the missing half of the mid-ballot squeeze. Over nine city-years
+    # ranks 13+ came out +18.65pp and ranks 4-12 -56.36pp, and this floor is
+    # where the tail's share was manufactured.
+    dirichlet_floor = float(scenario.get("dirichlet_floor", DIRICHLET_FLOOR))
 
     def draw_pools():
         """One draw. Each pool's VOTES are its counted registration times a
@@ -882,7 +914,7 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             moved = props * log_shock(rng, shocks)
             s = moved.sum()
             moved = moved / s if s > 0 else props
-            split = rng.dirichlet(np.maximum(moved * alpha, 0.05))
+            split = rng.dirichlet(np.maximum(moved * alpha, dirichlet_floor))
             np.add.at(target, idx, (totals[name] / cast if cast > 0 else 0.0) * split)
         for i, tri, level in individual:
             if tri is not None:
@@ -1572,7 +1604,9 @@ def run_model(target, scenario: dict,
     # inputs are strictly before the target.
     try:
         import levels as _levels
-        _spine, _spine_info = _levels.spine(target, base_city_d, prior_pr_share)
+        _spine, _spine_info = _levels.spine(
+            target, base_city_d, prior_pr_share,
+            k=float(scenario.get('spine_k') or _levels.SPINE_K))
         if _spine:
             scenario["spine_level"] = _spine
             scenario["_spine_info"] = _spine_info
