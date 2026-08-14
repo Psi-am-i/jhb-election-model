@@ -1552,16 +1552,40 @@ def run_model(target, scenario: dict,
             Path("polls.json").read_text(encoding="utf-8"))["polls"]}
         poll = polls[scenario["poll_id"]]
         wp = scenario["poll_weight"]
+        # `prior` is a LOCAL OF blended_centres. Referring to it here raised
+        # NameError, so this whole branch crashed the instant `poll_weight`
+        # went above zero — which is to say the polling channel has never once
+        # executed. It reads as merely unused because the default weight is 0
+        # and nothing exercises it; the first person to turn the dial up gets a
+        # traceback, not a forecast. That is the channel MODEL-LOG task #23
+        # depends on and that the external review calls the only pre-election
+        # evidence for a party with no electoral history.
+        prior = scenario.get("theta_prior") or {}
         for party, share in poll["numbers"].items():
             if party in centres and party in base_city_d:
                 if party in prior:
                     low, high = prior[party][0], prior[party][2]
+                    mid = prior[party][1] or 1.0
                 else:
                     low, high = PLAN_BOUNDS.get(party, (0.0, float("inf")))
+                    mid = 1.0
                     if party in PLAN_BOUNDS:
                         note_constant(scenario, "plan_bounds", party)
-                clamped = min(max(share, low * base_city_d[party]),
-                              high * base_city_d[party])
+                # Anchored on the level the model believes, not on the national
+                # baseline — the same correction the by-election clamp needed,
+                # at the third site carrying it.
+                #
+                # It matters MORE here than there. A poll exists precisely to
+                # say something about a party whose history cannot: one with no
+                # θ record and a small or absent national base. Clamping a poll
+                # to [low × national, high × national] throws away the poll for
+                # exactly that party and keeps it only where it was least
+                # needed. Pre-2021 polls had ActionSA near 6% against a model
+                # estimate of 0.17% in Tshwane; this clamp would have discarded
+                # the 6% and kept the 0.17%.
+                anchor = centres.get(party) or base_city_d[party]
+                clamped = min(max(share, (low / mid) * anchor),
+                              (high / mid) * anchor)
                 centres[party] = (1 - wp) * centres[party] + wp * clamped
                 notes[party] = notes.get(party, "") +                     f" | poll {poll['id']} @ {wp}: → {centres[party]:.1%}"
     if "ENTRANT" in index:
