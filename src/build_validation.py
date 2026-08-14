@@ -116,7 +116,12 @@ def collect(target: str, draws: int) -> dict:
         print(f"  {name} ...", flush=True)
         run([sys.executable, "src/pools.py", "--city", slug,
              "--target", target, "--emit"])
-        model = parse_backtest(run([sys.executable, "src/backtest.py", "--city", slug,
+        # --all-parties, ALWAYS. Without it this function stores whatever the
+        # terminal table happened to show -- twelve rows -- and every seat error
+        # later computed from validation_<year>.json is truncated. See
+        # score.format_report.
+        model = parse_backtest(run([sys.executable, "src/backtest.py",
+                                    "--all-parties", "--city", slug,
                                     "--target", target, "--draws", str(draws)]))
         if model is None:
             print(f"    !! {name} did not produce a scored result; skipped")

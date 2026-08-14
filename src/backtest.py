@@ -591,6 +591,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
     ap.add_argument("--processed", type=Path, default=None,
                     help="target inputs (default: the target's own directory)")
+    ap.add_argument("--all-parties", action="store_true",
+                    help="print every scored party, not the top 12. REQUIRED by "
+                         "anything that turns this output back into data: the 12 "
+                         "is a terminal-width limit, and these targets have 15 to "
+                         "24 actual seat-winners, so a truncated table stored as "
+                         "JSON gives a truncated seat error that is not comparable "
+                         "to one summed over the whole ballot")
     args = ap.parse_args(argv)
 
     city = cityconfig.use(args.city)
@@ -669,7 +676,8 @@ def main(argv: list[str] | None = None) -> int:
         wards = S.score_wards(
             relabel_entrant(run.ward_probabilities(), entrant), actual_winners)
         print()
-        print(S.format_report(seats, wards, label=label))
+        print(S.format_report(seats, wards, label=label,
+                              top=None if args.all_parties else 12))
         summary.append((label, seats, wards, in_sample))
 
     if len(summary) > 1:

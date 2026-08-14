@@ -712,15 +712,32 @@ def score_seats(draws: Sequence[Mapping[str, int]], actual: Mapping[str, int],
 
 
 def format_report(seats: Mapping | None = None, wards: Mapping | None = None,
-                  label: str = "", top: int = 12) -> str:
-    """Human-readable block for a :func:`score_seats` / :func:`score_wards` pair."""
+                  label: str = "", top: int | None = 12) -> str:
+    """Human-readable block for a :func:`score_seats` / :func:`score_wards` pair.
+
+    ``top`` truncates the party table to fit a terminal. **None prints every
+    scored party**, and anything that turns this output back into data must pass
+    None.
+
+    That is not a style note. ``build_validation.py`` builds
+    ``validation_<year>.json`` by regex-parsing this block, so the display cap
+    silently became the *stored* party set: twelve rows, for targets with
+    fifteen to twenty-four actual seat-winners. Every seat error computed off
+    that file is therefore truncated, and it was compared against errors summed
+    over the whole ballot — which is not a like-for-like comparison and made a
+    later iteration look worse than an earlier one. A display limit leaking into
+    a data artefact is exactly the denominator drift this module's own
+    ``seat_matrix`` docstring warns about, arriving through the back door.
+    """
     out: list[str] = []
     if label:
         out.append(f"=== {label} ===")
     if seats:
         parties = seats["parties"]
         crps = seats["crps"]["per_party"]
-        order = sorted(parties, key=lambda p: -seats["actual"][p])[:top]
+        order = sorted(parties, key=lambda p: -seats["actual"][p])
+        if top is not None:
+            order = order[:top]
         out.append(f"  {'party':12s}{'actual':>8s}{'median':>8s}{'CRPS':>8s}{'PIT':>7s}")
         for p in order:
             out.append(f"  {p[:12]:12s}{seats['actual'][p]:>8d}"
