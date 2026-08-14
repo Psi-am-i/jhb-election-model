@@ -1738,35 +1738,62 @@ def _ward_reach(code: str, year: str) -> dict[str, float]:
     return {p: len(w) / len(seen) for p, w in wards.items()} if seen else {}
 
 
-def home_splinter_record(exclude: str | None = None) -> dict[str, float]:
+def home_splinter_record(exclude: str | None = None,
+                         before_year: str | None = None) -> dict[str, float]:
     """What each split took OF ITS PARENT, measured in its leader's own city.
 
-    Returns ``{party: fraction}``. Deliberately IGNORES the target cutoff that
-    every other record in this module respects, and the caller must declare
-    that — see ``backtest.FITTED_ON["splinter_home"]``, which makes any target
-    at or before the latest split used report itself in-sample.
+    Returns ``{party: fraction}``. ``before_year`` drops any split that had not
+    happened yet, exactly as :func:`splinter_record` does, and **every caller
+    that is building a forecast passes the target's year.**
 
-    THE REASONING, WHICH IS THE PROJECT OWNER'S. The home/away effect is large
-    and consistent (Split's docstring: x8.7, x5.9, x36.7 across three cities)
-    but only one home split had happened before 2021, and one observation is
-    not a sample — sizing ActionSA from De Lille's 0.056 alone put it at 1.87%
-    against an actual 16.1%. The choice is between a structure we have
-    measured and cannot populate in period, and a number we know is wrong. So
-    the whole record is used, the run says so out loud, and the score it
-    produces at 2021 is read as what it is: an estimate of what this rule is
-    worth, not an out-of-sample forecast.
+    THE HISTORY, BECAUSE THE DEFAULT USED TO BE THE OTHER WAY. This record
+    ignored the target cutoff on purpose, declared through
+    ``backtest.FITTED_ON["splinter_home"]`` and printed in the in-sample
+    banner. The reasoning, which is the project owner's: the home/away effect
+    is large and consistent (Split's docstring: x8.7, x5.9, x36.7 across three
+    cities) but only one home split had happened before 2021, and one
+    observation is not a sample — sizing ActionSA from De Lille's 0.056 alone
+    put it at 1.87% against an actual 16.1%. The choice was between a structure
+    we have measured and cannot populate in period, and a number we know is
+    wrong.
+
+    WHAT NOBODY DID WAS PRICE IT, and an independent audit did (2026-08-14).
+    ``pools_2021.json`` carried the home record as GOOD 0.0558 (2019) and MK
+    0.8853 (**2024**), so MK's eThekwini result four years after the target was
+    what sized ActionSA in the 2021 backtest::
+
+        Johannesburg 2021      seat error   CRPS    ASA predicted (actual 18.12%)
+        as it stood                    65   47.4    12.24%
+        home record honest            102   79.6     4.76%
+        uniform-swing                 126  126.0    —
+
+    Johannesburg 2021 is one of the three city-years the model wins and it is
+    the city being published, and **57% of its margin over uniform swing was a
+    2024 result**. Across nine city-years the honest figures are CRPS 303.6
+    (was 271.4) and seat error 400 (was 363) against uniform swing's 376/376.
+
+    So the default is now filtered, per ITERATING.md: a historical score has to
+    be honest before anything measured against it means anything. The old
+    behaviour is still reachable — ``--retrospective-home`` — because the
+    question it answers ("what is this rule worth once the record exists?") is
+    a real one; it is just not a forecast.
+
+    **The filter is also the right answer for 2026 with no special case.** MK's
+    2024 split genuinely precedes a 2026 target, so it is included there and
+    excluded at 2021 by the same rule.
 
     ``exclude`` drops one party, and every caller passes the party it is
     sizing. Retrospective is one thing; letting ActionSA's own 0.611 set
     ActionSA's expectation is another, and it would make the rule look good by
-    construction. With it excluded the sample for ActionSA is GOOD's 0.056 and
-    MK's 0.885 — two splits, neither of them the one being predicted.
+    construction.
     """
     out: dict[str, float] = {}
     for party, split in sorted(SPLITS.items()):
         if party == exclude or split.home is None or split.measured_from is None:
             continue
         before, after = split.measured_from
+        if before_year and int(after) >= int(before_year):
+            continue                      # had not happened yet at the target
         a = metro_citywide(split.home, before) or _npe_citywide_for(split.home, before)
         b = metro_citywide(split.home, after) or _npe_citywide_for(split.home, after)
         if a.get(split.parent, 0) > 0 and b.get(party, 0) > 0:
@@ -2396,13 +2423,21 @@ def write_lineage_template(city: cityconfig.City, target: cityconfig.Target,
 
 def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
                *, from_year: str | None = None,
-               split_bloc: dict | None = None) -> dict:
+               split_bloc: dict | None = None,
+               retrospective_home: bool = False) -> dict:
     """Build the ``scenario["pools"]`` structure from measurement.
 
     A pool is a body of voters, and a party's membership of it is the measured
     share of its vote that comes from there — not a list of parties someone
     decided trade with each other.
+
+    ``retrospective_home`` restores the old unfiltered home-splinter record.
+    It answers "what is this rule worth once the record exists?", which is a
+    real question and not a forecast; see :func:`home_splinter_record`.
     """
+    # None means "no cutoff" — the retrospective mode. Otherwise the target's
+    # own year, so a split that had not happened yet cannot size an arrival.
+    home_cutoff = None if retrospective_home else target.year
     year = from_year or target.previous_lge or target.year
     fits, ctx = fit_city(city, year, cfg, split_bloc=split_bloc)
     cats = list(ctx["categories"])
@@ -2521,7 +2556,8 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     arrivals, seed_notes = arrival_rules(
         newcomers, lineage, rates_matrix, universe_fitted, cats, record,
         splinter_record(city, target.year), registered, contestation=reach,
-        splinter_home=home_splinter_record(), city_code=city.code,
+        splinter_home=home_splinter_record(before_year=home_cutoff),
+        city_code=city.code,
         pooled_splits=pooled_splinter_record(target.year))
     # An arrival's composition follows from where it captures, so it does not
     # need a separate vector: the pools it takes from ARE its pool weights.
@@ -2613,7 +2649,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # is at or before one of them as in-sample. A retrospective input that does
     # not announce itself is the exact defect this repository spent the day
     # removing; this one announces itself through the machinery built for it.
-    home_used = home_splinter_record()
+    home_used = home_splinter_record(before_year=home_cutoff)
     if home_used:
         marker["splinter_home"] = {
             "fractions": {k: round(v, 4) for k, v in home_used.items()},
@@ -2744,6 +2780,13 @@ def main() -> None:
     # un-namespaced write has reached a live forecast in this repository
     # before, and the fix then was the same one — separate the paths, do not
     # rely on remembering.
+    ap.add_argument("--retrospective-home", action="store_true",
+                    help="use the UNFILTERED home-splinter record, ignoring the "
+                         "target cutoff. Answers 'what is this rule worth once "
+                         "the record exists?' and is NOT a forecast: at target "
+                         "2021 it lets MK's 2024 eThekwini split size ActionSA, "
+                         "which is worth 37 seats of error and 57%% of the "
+                         "margin over uniform swing. See pools.home_splinter_record")
     ap.add_argument("--simulation", action="store_true",
                     help="emit the reader-simulation spec, which carries the "
                          "vote-located bloc, to pools_{target}_simulation.json. "
@@ -2769,6 +2812,7 @@ def main() -> None:
         import json
         bloc = SIMULATION_BLOC if args.simulation else None
         spec = emit_pools(city, target, cfg, from_year=args.from_year,
+                          retrospective_home=args.retrospective_home,
                           split_bloc=bloc)
         suffix = "_simulation" if args.simulation else ""
         out = city.processed / f"pools_{target.year}{suffix}.json"
