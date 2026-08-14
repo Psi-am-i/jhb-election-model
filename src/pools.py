@@ -1952,6 +1952,105 @@ def _npe_citywide(city: cityconfig.City, year: str) -> dict[str, float]:
     return {k: v / total for k, v in counts.items()} if total else {}
 
 
+def arrival_group_record(before_year: str | None = None
+                         ) -> list[tuple[float, float]]:
+    """What ARRIVALS TAKE AS A GROUP in a metro, and how concentrated it is.
+
+    One entry per metro-year strictly before the target, as
+    ``(group total share, implied Dirichlet concentration)``.
+
+    THE REASON THIS EXISTS. The model sizes each arrival on its own, through a
+    single generic entrant slot with a 25% probability. Scored across nine
+    city-years (``src/arrivals.py``), that gives a median seat to **one of the
+    thirty-two parties that arrived and won one**, 14 seats against 130. The six
+    it sizes anywhere near right are the six that received the entrant slot, and
+    there is exactly one of those per city; the other twenty-six get about
+    0.07% each because nothing is left to give them.
+
+    The quantity that behaves regularly is the GROUP TOTAL. Over sixteen
+    metro-years it runs 0.31% to 19.99%, median 3.11%, and it is rising —
+    2016 spans 0.31-4.74% against 2021's 1.53-19.99%. Drawing that and splitting
+    it is a far smaller claim than sizing thirty parties independently, and it
+    is the external review's item 4.
+
+    The concentration matters as much as the total, because the split is not
+    even: the largest arrival took 91% of the group in Johannesburg 2021 and 20%
+    in Cape Town 2016. The implied symmetric-Dirichlet α ranges 0.22 to 20.66
+    with a median of 4.85, so the draw has to be able to produce both "one party
+    takes almost all of it" and "thirty parties share it".
+    """
+    out: list[tuple[float, float]] = []
+    lge = sorted((y for y, e in cityconfig.CALENDAR.items()
+                  if e.kind == "LGE" and e.results), key=int)
+    for year in lge:
+        if before_year and int(year) >= int(before_year):
+            continue
+        prev = cityconfig.preceding(year, "NPE")
+        if not prev:
+            continue
+        for code in METRO_CODES:
+            local = metro_citywide(code, year)
+            natl = _npe_citywide_for(code, prev)
+            if not local or not natl:
+                continue
+            arr = {p: s for p, s in local.items()
+                   if p != "IND" and s > 0 and natl.get(p, 0.0) <= 0}
+            if len(arr) < 3:
+                continue
+            total = float(sum(arr.values()))
+            shares = np.array(list(arr.values())) / total
+            n = len(shares)
+            var = float(shares.var())
+            mean = 1.0 / n
+            alpha = max((mean * (1 - mean) / max(var, 1e-9)) - 1.0, 0.01)
+            out.append((total, float(alpha)))
+    return out
+
+
+def arrival_group_spec(before_year: str | None, reach: dict[str, float],
+                       parties: list[str]) -> dict | None:
+    """The group total to draw, and how to split it between named arrivals.
+
+    Split weights are each arrival's WARD REACH, because that is what predicts
+    an arrival's size and nothing else measured does. Over 258 arrivals across
+    eight metros and two elections:
+
+        corr(ward reach, log vote share)      +0.393
+        corr(metros contested, log vote)      +0.145
+        geographic concentration of the vote  -0.09  (task #22, established parties)
+
+    Arrivals that took 0.5% or more — the ones that win seats — have a **median
+    ward reach of 99% against 33% for the rest**, and among those contesting
+    60-100% of wards 16% clear 0.5% against 0-3% everywhere else. Expected vote
+    is close to proportional to reach above about 5% of wards, so reach is used
+    directly as the weight rather than through a fitted curve.
+
+    Ward reach is a nomination fact, published weeks before polling day, so this
+    is a forecast input and not hindsight — the same justification
+    ``levels.contestation`` runs on.
+
+    Returns None when there is no roster to split between, which is every target
+    that has not been held. **The 2026 forecast therefore still depends on the
+    generic entrant slot until nomination lists close.**
+    """
+    record = arrival_group_record(before_year)
+    if not record or not parties:
+        return None
+    totals = np.array([t for t, _ in record])
+    alphas = np.array([a for _, a in record])
+    logs = np.log(totals)
+    weights = {p: max(float(reach.get(p, 0.0)), 0.02) for p in parties}
+    return {
+        "total_log_median": float(np.mean(logs)),
+        "total_log_sd": float(np.std(logs, ddof=1)) if len(logs) > 1 else 0.8,
+        "alpha": float(np.median(alphas)),
+        "weights": weights,
+        "n_observations": len(record),
+        "derived_from": (f"{len(record)} metro-years before {before_year}; "
+                         f"split by ward reach (corr +0.393 on log vote)"),
+    }
+
+
 def contesting_parties(city: cityconfig.City, year: str) -> set[str]:
     """Who is on the ballot at the target. Names only, never votes.
 
@@ -2673,6 +2772,11 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             "seed_bands": {p: list(v) for p, v in seed_bands.items()},
             "seed_notes": seed_notes,
             "entrant_record": [[float(share), float(reach)] for share, reach in record],
+            # Arrivals as a GROUP, drawn once and split by ward reach, rather
+            # than thirty independent seeds and one generic slot. None where
+            # there is no nomination list to split between.
+            "arrival_group": arrival_group_spec(
+                target.year, reach, sorted(arrivals)) if roster_is_real else None,
             "provenance": f"{ctx['provenance']}; pools sized by {roll_note}",
             "pool_shares_at_target": target_shares.tolist(),
             "registration_series": {y: v.tolist() for y, v in series.items()},

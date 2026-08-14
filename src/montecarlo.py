@@ -815,6 +815,53 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
 
     entrant_index = index.get("ENTRANT")
 
+    # ARRIVALS AS A GROUP — BUILT, MEASURED, AND NOT ADOPTED.
+    #
+    # The design is the external review's item 4 and it is well motivated: the
+    # single generic slot gives a median seat to ONE of the thirty-two arrivals
+    # that won one (src/arrivals.py), and it cannot do better, because reality
+    # delivers 11 to 32 arrivals per metro and the slot holds one. The group
+    # TOTAL is the quantity that behaves regularly — 0.31% to 19.99% over
+    # sixteen metro-years — and ward reach predicts the split (corr +0.393 on
+    # log vote, against +0.145 for metros contested and -0.09 for geographic
+    # concentration). Seat-winning arrivals have a median ward reach of 99%
+    # against 33% for the rest.
+    #
+    # It scores WORSE, and by a lot:
+    #
+    #   Johannesburg 2021   CRPS 85.9 -> 109.9   seat MAE 113 -> 134
+    #   Johannesburg 2016   CRPS 45.0 ->  45.7   seat MAE  61 ->  62
+    #
+    # WHY, and it is not a bug. At target 2021 the group total may only be fitted
+    # on 2016, whose metro-years run 0.31%-4.74% with a median of 1.57%. 2021
+    # came in at 19.99%. No honest draw from that record reaches it — the model's
+    # 90% band is 0.41%-5.93% — so the mechanism correctly forecasts what the
+    # record says and the record was superseded. Meanwhile the slot it replaces
+    # was scoring well for a reason that is not skill: it is relabelled onto the
+    # LARGEST arrival, so a single lump of mass lands on exactly the right party
+    # after the fact.
+    #
+    # So this is off by default. It is kept, with its measurement, because the
+    # reasoning survives its own result: by 2026 the record includes 2021 and
+    # the group total centres near 7% instead of 1.6%. Retry it then, against a
+    # target whose prior cycle is not a regime change.
+    # DEFAULT OFF. Measured on Johannesburg and rejected -- see the note below
+    # and MODEL-LOG. The spec is still emitted and the draw still implemented,
+    # because the measurement is worth keeping and the mechanism should be
+    # retried when the group total has more than one prior cycle behind it.
+    group = (scenario.get("arrival_group") or None) \
+        if scenario.get("arrival_group_draw") else None
+    group_idx, group_w, group_alpha = None, None, None
+    if group and group.get("weights"):
+        members = [p for p in group["weights"] if p in index]
+        if members:
+            group_idx = np.array([index[p] for p in members])
+            w = np.array([float(group["weights"][p]) for p in members])
+            group_w = w / w.sum()
+            group_alpha = float(group.get("alpha", 4.0))
+            group_ln = (float(group["total_log_median"]),
+                        float(group["total_log_sd"]))
+
     # Pools sharing a `tie` draw ONE shock between them, apportioned by base.
     # This matters more than it looks. South Africa's African electorate is not
     # one pool -- Zulu, Xhosa, Sotho, Pedi, Tswana, Tsonga, Venda, Ndebele and
@@ -925,7 +972,28 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         total = target.sum()
         if total > 0:
             target = target / total
-        if entrant_index is not None:
+        if group_idx is not None:
+            # One lognormal draw for what all arrivals take between them, then a
+            # reach-weighted Dirichlet for who takes it. The concentration is
+            # measured (median 4.85 across sixteen metro-years) and is what lets
+            # a single party take most of the group, as ActionSA took 91% of
+            # Johannesburg's in 2021.
+            total = float(np.exp(rng.normal(group_ln[0], group_ln[1])))
+            total = min(total, 0.45)          # arithmetic guard, never binding
+            # group_alpha is the TOTAL concentration, not per-component: the
+            # method of moments in pools.arrival_group_record solves
+            # A = m(1-m)/var - 1 with m = 1/n, and A is nα. Multiplying by n
+            # again forced an even split and buried the big arrival, which is
+            # the opposite of what the record shows — the largest arrival took
+            # 91% of the group in Johannesburg 2021 (A = 0.22).
+            split = rng.dirichlet(np.maximum(group_w * group_alpha,
+                                             dirichlet_floor))
+            target[group_idx] = 0.0
+            s_all = target.sum()
+            if s_all > 0:
+                target *= (1.0 - total) / s_all
+            target[group_idx] = total * split
+        elif entrant_index is not None:
             share = (triangular(rng, scenario["entrant_share"])
                      if rng.random() < scenario["entrant_prob"] else 0.0)
             target *= (1.0 - share)
@@ -1122,6 +1190,7 @@ def run_model(target, scenario: dict,
             scenario["pool_seeds"] = spec.get("seeds", {})
             scenario["pool_seed_bands"] = spec.get("seed_bands", {})
             scenario["pool_seed_notes"] = spec.get("seed_notes", {})
+            scenario["arrival_group"] = spec.get("arrival_group")
             try:
                 import pools as _pools
                 _cfg = _pools.load_config()
