@@ -818,13 +818,6 @@ def polling_decimal_year(year: str, city: cityconfig.City | None = None) -> floa
     return date.year + (date.toordinal() - start) / (end - start)
 
 
-def election_decimal_year(target: cityconfig.Target) -> float:
-    """Polling day as a decimal year, so a November poll is not treated as
-    January's composition."""
-    d = target.date
-    start = _date(d.year, 1, 1).toordinal()
-    end = _date(d.year + 1, 1, 1).toordinal()
-    return d.year + (d.toordinal() - start) / (end - start)
 
 
 # --------------------------------------------------------------------------
@@ -1154,26 +1147,6 @@ def metro_citywide(code: str, year: str, ballot: str = "PR") -> dict[str, float]
     return {p: c / total for p, c in counts.items()} if total else {}
 
 
-def metro_ward_shares(code: str, year: str, ballot: str = "PR"
-                      ) -> tuple[dict[str, dict[str, float]], dict[str, float]]:
-    """One metro's ward-level party shares and votes cast."""
-    from ingest_lge import read_municipality
-
-    path = metro_file(code, year)
-    if path is None:
-        return {}, {}
-    tally: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
-    for row in read_municipality(path, code, ballot):
-        ward = (row["Ward"] or "").strip()
-        if ward:
-            tally[ward][P.canonical(row["sPartyName"])] += int(row["Party_Votes"] or 0)
-    shares, votes = {}, {}
-    for ward, counts in tally.items():
-        total = sum(counts.values())
-        if total > 0:
-            votes[ward] = float(total)
-            shares[ward] = {p: c / total for p, c in counts.items()}
-    return shares, votes
 
 
 def turnout_record(city: cityconfig.City, cfg: Config, before: str | None = None,
@@ -1397,8 +1370,32 @@ def registered_at_target(city: cityconfig.City, target: cityconfig.Target,
             total += by_ward[ward] * registered
         else:
             unmatched += registered
-    if unmatched > 0.01 * sum(roll.values()):
-        print(f"  ! {unmatched / sum(roll.values()):.1%} of the {target.year} "
+    share_unmatched = unmatched / sum(roll.values()) if sum(roll.values()) else 1.0
+    if share_unmatched > 0.5 or total.sum() <= 0:
+        # A WARNING IS NOT ENOUGH WHEN NOTHING MATCHED. Tshwane 2026 printed
+        # "100.0% of the 2026 roll is in wards with no measured composition" and
+        # then emitted a spec in which EVERY POOL HELD ZERO REGISTERED VOTERS.
+        # A pool's votes are its registration times a drawn turnout, so a spec
+        # like that forecasts an election in which nobody votes, and it sat on
+        # disk looking like any other artefact — it was found only because a
+        # regression test asserted on a key it happened to be missing.
+        #
+        # This is a ward-code join failure, not a data gap: the roll's ward
+        # identifiers do not match the ones the composition is keyed on, which
+        # is what a delimitation change does. Joining across one silently pairs
+        # different polygons, which is why `dimensions.toml` refuses that join
+        # elsewhere rather than performing it.
+        raise SystemExit(
+            f"{city.name} {target.year}: {share_unmatched:.1%} of the roll is in "
+            f"wards with no measured composition, and the pools would hold "
+            f"{total.sum():,.0f} registered voters between them. That is a "
+            f"ward-code mismatch between the {target.year} roll and the "
+            f"composition fitted on {fitted_on} — almost certainly a "
+            f"delimitation boundary. Refusing to emit a spec whose pools are "
+            f"empty; fix the crosswalk or fit the composition on a year whose "
+            f"wards match.")
+    if share_unmatched > 0.01:
+        print(f"  ! {share_unmatched:.1%} of the {target.year} "
               f"roll is in wards with no measured composition")
     return total
 
@@ -2309,35 +2306,6 @@ def _capture_from_share(weights: np.ndarray, share: float,
     return out
 
 
-def apply_arrivals(rates: np.ndarray, universe: list[str], rules: dict[str, dict],
-                   scale: float = 1.0) -> tuple[np.ndarray, list[str]]:
-    """Insert each arrival into the pools it captures from.
-
-    THE MECHANISM, in one line: a party entering pool ``g`` at rate ``r`` leaves
-    ``1 - r`` for everyone already there, shared out in proportion to what each
-    already held. Nobody is named and nobody is singled out; the parent loses
-    most only because it held most.
-
-    ``scale`` multiplies every capture, which is how a draw expresses "this
-    arrival did better or worse than the central case" without changing who it
-    takes from.
-    """
-    if not rules:
-        return rates, universe
-    out = rates.copy()
-    names = list(universe)
-    for party, rule in rules.items():
-        column = np.zeros(out.shape[0])
-        for g, r in rule["capture"].items():
-            g = int(g)
-            take = float(np.clip(r * scale, 0.0, 0.95))
-            if take <= 0:
-                continue
-            out[g, :] *= (1.0 - take)      # everyone in the pool, in proportion
-            column[g] = take
-        out = np.hstack([out, column[:, None]])
-        names.append(party)
-    return out, names
 
 
 def lineage_path(city: cityconfig.City, target: cityconfig.Target) -> Path:
@@ -2504,6 +2472,40 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
               f"invisible here, and ActionSA in 2021 was exactly that. Declare "
               f"one in {lineage_path(city, target)}, or point this at the "
               f"published nomination list.")
+    # THE ROSTER CUTS BOTH WAYS. It was only ever used to ADD parties — to find
+    # a genuine entrant absent from the baseline — and never to remove one. So a
+    # party that contested the last national election and is NOT on this
+    # ballot kept a pool vector and drew votes anyway.
+    #
+    # Measured over the whole ballot, the model was putting 2.38% to 2.94% of a
+    # city's vote on parties that were not standing (Johannesburg 2021: 16
+    # parties, 2.52%; Tshwane: 20 parties, 2.38%; Cape Town: 19 parties, 2.94%).
+    # Under largest remainder about 0.4% is a seat, so that is several seats
+    # invented from nothing — and it is funded out of the parties ranked 4th to
+    # 12th, which are exactly the ones that win marginal seats and which the
+    # model under-predicts in 66 of 75 party-city-years.
+    #
+    # Dropping them from the composition is the whole fix: a pool's members are
+    # renormalised when it is drawn, so the vote a non-contestant was holding
+    # goes to the parties drawing on the SAME POOLS, which is where it should
+    # have gone in the first place. Nothing is redistributed by hand.
+    #
+    # Only when the roster is real. A target that has not been held has no
+    # nomination list, and the fallback roster above is the baseline itself, so
+    # this would be a no-op there in any case.
+    if roster_is_real:
+        absent = sorted(p for p in composition
+                        if p not in roster and p not in ("IND", "ENTRANT"))
+        if absent:
+            held = sum(baseline.get(p, 0.0) for p in absent)
+            for party in absent:
+                composition.pop(party, None)
+            print(f"  not on the {target.year} ballot, dropped from the pools: "
+                  f"{len(absent)} parties holding {held:.2%} of the "
+                  f"{target.previous_npe} baseline between them "
+                  f"({', '.join(absent[:6])}"
+                  f"{', …' if len(absent) > 6 else ''})")
+
     no_vector = {p for p in roster
                  if p not in composition and p not in ("IND", "ENTRANT")}
     # A seed is only for a party with no level to start from.

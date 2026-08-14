@@ -1,0 +1,485 @@
+"""One test per CLASS of error this project has actually made.
+
+Every defect below was real, shipped, and found by measurement rather than by
+reading. They are grouped by the *shape* of the mistake rather than by the file
+it happened in, because each shape recurred: the temporal leak happened three
+times, the wrong-anchor clamp three times, the un-namespaced path three times.
+A test per instance would have caught none of the repeats; a test per class
+catches the next one.
+
+CLASS 1 — TEMPORAL LEAK. A record reads an election at or after the target it is
+    forecasting. Instances: `splinter_record` hardcoded years (fixed earlier);
+    `home_splinter_record` unfiltered, which let MK's 2024 eThekwini split size
+    ActionSA in the 2021 backtest and was worth 37 seats of error; and a memo on
+    `levels._citywide` that made the existing leak spy see nothing at all, so the
+    guard would have passed by blindness.
+
+CLASS 2 — DEGENERATE SUPPORT. A distribution that assigns probability zero to
+    outcomes that happen, or one to an outcome that is merely likely. Instances:
+    a splinter band built as (min, median, max) of ONE observation, giving
+    low == high in seven of eight metros; a turnout band capped at the observed
+    maximum, so mode == high in every 2016 backtest and turnout could not rise.
+
+CLASS 3 — UNIDENTIFIED SCALE. An iteration with a free parameter nothing pins,
+    which then drifts. Instance: `fold.calibrate_theta` — `predict` renormalises
+    within each VD, so a common factor on θ cancels; the IPF wandered four orders
+    of magnitude and handed 42 seats to 21 parties that won nothing.
+
+CLASS 4 — WRONG ANCHOR. A bound or ratio computed against a quantity other than
+    the one it is bounding. Instance: the by-election and polling clamps bounded
+    evidence to [low × NATIONAL share, high × NATIONAL share] while the level
+    they were correcting had been built from the LOCAL route, so two agreeing
+    pieces of evidence were overruled by a bound derived from the route the
+    model had deliberately abandoned.
+
+CLASS 5 — LOST NAMESPACE. A path that ignores --city or --target and silently
+    reads or writes another city's files. Instances: `turnout.py --out`,
+    `export_interactive.py` and `leverage.py`, all defaulting to Johannesburg's
+    `data/processed`.
+
+CLASS 6 — DISPLAY LIMIT LEAKING INTO DATA. A human-readable cap becoming a
+    stored dataset. Instance: `score.format_report(top=12)` is a terminal width,
+    and `build_validation.py` regex-parses that block into JSON, so
+    `validation_<year>.json` stored twelve parties for targets with fifteen to
+    twenty-four seat-winners.
+
+CLASS 7 — NEVER-EXECUTED PATH. A branch that looks unused and is actually
+    broken. Instance: the polling channel raised NameError the instant
+    `poll_weight` went above zero, because `prior` there was a local of another
+    function. It had never run.
+
+CLASS 8 — SUMMARY ARTEFACT. A reported statistic that is not what it claims.
+    Instances: `diagnose.py` not relabelling the generic ENTRANT, so a party the
+    model forecast within 0.17pp was reported as a total miss; and per-party
+    marginal medians reported as a council when they do not sum to one.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _support import ROOT, skip  # noqa: E402
+
+sys.path.insert(0, str(ROOT / "src"))
+
+import cityconfig  # noqa: E402
+import levels  # noqa: E402
+import montecarlo as M  # noqa: E402
+import pools as PL  # noqa: E402
+import score as S  # noqa: E402
+
+SRC = ROOT / "src"
+
+
+# ---------------------------------------------------------------------------
+# CLASS 1 — temporal leak
+# ---------------------------------------------------------------------------
+
+def test_no_record_reads_an_election_at_or_after_its_target():
+    """Every measured record is strictly pre-target, for every runnable target.
+
+    Covers θ, ρ, the away splinter record and — the one that was wrong — the
+    HOME splinter record. `home_splinter_record` ignored the cutoff by design
+    and the design was declared, but declared is not the same as priced: at
+    target 2021 it was letting a 2024 result size the largest arrival on record.
+    """
+    for slug in ("joburg", "tshwane"):
+        city = cityconfig.load(slug)
+        cityconfig.use(slug)
+        for year in ("2016", "2021"):
+            target = cityconfig.Target(city=city, year=year)
+
+            home = PL.home_splinter_record(before_year=target.year)
+            for party, split in PL.SPLITS.items():
+                if party in home and split.measured_from:
+                    after = split.measured_from[1]
+                    assert int(after) < int(year), (
+                        f"{slug} {year}: home splinter record contains {party}, "
+                        f"measured at {after}, which is not before the target")
+
+            away = PL.splinter_record(city, target.year)
+            assert isinstance(away, list)
+
+            for name, rec in (("theta", levels.theta_record(target)),
+                              ("rho", levels.local_record(target))):
+                assert rec, f"{slug} {year}: {name} record is empty"
+
+    # And the guard that proves it must still be able to SEE the reads: a memo
+    # on the election reader makes a file-open spy observe nothing, so the leak
+    # test passes by blindness rather than by cleanliness.
+    src = (SRC / "levels.py").read_text()
+    assert "_CITYWIDE_CACHE" not in src, (
+        "levels._citywide is memoised again. A path-keyed memo makes the "
+        "temporal-leak spy see no file opens, so the guard proving θ reads no "
+        "post-target election passes by seeing nothing. Speed is not worth a "
+        "silenced guard here.")
+
+
+def test_the_home_record_still_grows_when_the_target_is_later():
+    """The cutoff is a filter, not a ban: 2026 legitimately sees MK's 2024 split."""
+    early = PL.home_splinter_record(before_year="2021")
+    late = PL.home_splinter_record(before_year="2026")
+    assert set(early) <= set(late), "the record shrank as the target moved later"
+    assert len(late) > len(early), (
+        "no split became available between 2021 and 2026, so the filter is "
+        "either not applying or the SPLITS table has lost an entry")
+
+
+# ---------------------------------------------------------------------------
+# CLASS 2 — degenerate support
+# ---------------------------------------------------------------------------
+
+def _emitted_specs():
+    out = []
+    for path in sorted((ROOT / "data" / "processed").glob("*/pools_*.json")) + \
+            sorted((ROOT / "data" / "processed").glob("pools_*.json")):
+        if "simulation" in path.name:
+            continue
+        try:
+            out.append((path, json.loads(path.read_text())))
+        except Exception:
+            continue
+    return out
+
+
+def test_no_emitted_turnout_band_is_one_sided():
+    """mode == high is a triangular that cannot rise. It bound almost everywhere.
+
+    4 of 4 pools in every metro at target 2016, 3-4 of 4 at 2021, 0 of 4 at 2026
+    — so the bias was in exactly the runs used to judge the model and not in the
+    run being judged.
+    """
+    checked = 0
+    for path, spec in _emitted_specs():
+        for name, cfg in spec["pools"].items():
+            lo, mid, hi = cfg["turnout"]
+            assert lo < mid, (f"{path.name} pool {name!r}: turnout low {lo} is "
+                              f"not below the mode {mid} — it cannot fall")
+            assert hi > mid * 1.002, (
+                f"{path.name} pool {name!r}: turnout high {hi} equals the mode "
+                f"{mid} — turnout cannot rise, which is the cap that biased "
+                f"every historical backtest")
+            assert 0.0 < lo and hi < 1.0, (
+                f"{path.name} pool {name!r}: turnout band {lo}-{hi} leaves "
+                f"(0, 1); a proportion's band must be built on the logit scale")
+            checked += 1
+    assert checked, "no emitted pool spec found"
+
+
+def test_no_arrival_band_has_zero_width():
+    """(min, median, max) of ONE observation is a band of zero width.
+
+    Seven of eight metros were in that state at target 2021, so the model was
+    asserting an arrival's size was known exactly. ActionSA then took 19 of
+    Tshwane's 214 seats against a band of 0.4%-0.4%.
+    """
+    checked = 0
+    for path, spec in _emitted_specs():
+        for party, band in (spec.get("seed_bands") or {}).items():
+            lo, mid, hi = band
+            assert hi > lo, (
+                f"{path.name}: {party}'s arrival band is [{lo}, {hi}] — zero "
+                f"width, so every other outcome has probability exactly zero")
+            checked += 1
+    if not checked:
+        skip("no seeded arrivals in any emitted spec")
+
+    # The 1.0 ceiling belongs to the SPLINTER FRACTION -- a share of the
+    # parent's vote -- and is asserted at that scale. The emitted `seed_bands`
+    # above are a different quantity: a multiplier on the party's seed, which
+    # can legitimately exceed 1 by a lot for a tiny seed. Conflating the two is
+    # how the first version of this test failed on a band of 44.3.
+    lo, mid, hi, _ = PL._band_from([0.14, 0.16, 0.24, 0.61], "away",
+                                   [0.005, 0.017, 0.14, 0.16, 0.24, 0.61])
+    assert hi <= 1.0, (
+        f"a splinter fraction may not exceed 1.0 of its parent's vote; got "
+        f"{hi:.3f}. Johannesburg's own record implied 1.17, which is a party "
+        f"taking 117% of the vote its parent had.")
+    assert lo < mid < hi, "the splinter band collapsed"
+
+
+def test_the_level_shock_has_unbounded_support():
+    """A bounded draw gives probability zero to things that have happened."""
+    rng = np.random.default_rng(0)
+    draws = M.log_shock(rng, 0.3, size=20000)
+    assert draws.max() / draws.mean() > 3.0, (
+        "the level shock has no tail: a party trebling should be unlikely, not "
+        "impossible. Al Jama-ah won a 2016 seat with 0 of 500 draws non-zero.")
+    realised = float(np.std(np.log(draws)))
+    assert abs(realised - 0.3) < 0.03, (
+        f"log_shock(sd=0.3) realised sd {realised:.3f} — the Student-t is not "
+        f"standardised, so the measured sd(log θ) no longer means what "
+        f"levels.py measured it to mean")
+
+
+# ---------------------------------------------------------------------------
+# CLASS 3 — unidentified scale
+# ---------------------------------------------------------------------------
+
+def test_the_theta_calibration_pins_its_scale():
+    """`predict` renormalises, so a common factor on θ is free and will drift.
+
+    It drifted four orders of magnitude: the ANC finished fold 2 at θ = 0.0001,
+    and the parties pinned at the level floor sat 3.6 logits below it — 0.67% of
+    the vote each, just over quota, two seats apiece, 42 seats to 21 parties that
+    won nothing.
+    """
+    import fold
+
+    base_city = {"A": 0.50, "B": 0.30, "C": 0.15, "D": 0.05}
+    base = {f"vd{i}": dict(base_city) for i in range(20)}
+    target_city = {"A": 0.40, "B": 0.35, "C": 0.20, "D": 0.05}
+    gamma = {p: 1.0 for p in base_city}
+    weights = {vd: 100 for vd in base}
+
+    theta = fold.calibrate_theta(base, base_city, target_city, gamma, weights,
+                                 list(base_city))
+    total = sum(base_city[p] * theta[p] for p in base_city)
+    assert abs(total - 1.0) < 1e-6, (
+        f"Σ base·θ = {total:.6f}, not 1. The iteration's overall scale is "
+        f"unpinned and will wander until the level floor binds.")
+
+    got = fold.predicted_citywide(fold.predict(base, base_city, theta, gamma),
+                                  weights, list(base_city))
+    for p, want in target_city.items():
+        assert abs(got[p] - want) < 5e-3, (
+            f"{p}: calibrated to {got[p]:.4f} against a target {want:.4f}")
+
+
+# ---------------------------------------------------------------------------
+# CLASS 4 — wrong anchor
+# ---------------------------------------------------------------------------
+
+def test_no_clamp_is_anchored_on_the_national_baseline():
+    """The clamp must bound evidence around the level the model BELIEVES.
+
+    θ's band is a band on the NATIONAL route. Multiplying it by the national
+    baseline bounds by-election and polling evidence to what a party's national
+    share could become — which is the assumption task #22 exists to abandon, and
+    it dragged ActionSA from the spine's 15.2% to 12.1% using evidence that
+    independently said 18.7%.
+    """
+    src = (SRC / "montecarlo.py").read_text()
+    for bad in ("low * base_city_d[party]", "high * base_city_d[party]",
+                "low * base)", "high * base)"):
+        assert bad not in src, (
+            f"montecarlo.py still clamps with {bad!r} — a bound computed "
+            f"against the national baseline rather than against the level the "
+            f"spine settled on. This defect appeared at three separate sites.")
+    assert "anchor = mode_level" in src and "anchor = centres.get(party)" in src, (
+        "the by-election and polling clamps must both anchor on the model's own "
+        "central level; one of them no longer does")
+
+
+# ---------------------------------------------------------------------------
+# CLASS 5 — lost namespace
+# ---------------------------------------------------------------------------
+
+def test_no_module_defaults_a_processed_path_to_the_shared_root():
+    """`data/processed` is JOHANNESBURG's directory, not a neutral one.
+
+    A literal default there made `--city tshwane` read Johannesburg's turnout, γ
+    and ward parts, and then write its interactive_data.json over the file the
+    published page loads.
+    """
+    offenders = []
+    for path in sorted(SRC.glob("*.py")):
+        tree = ast.parse(path.read_text())
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            fn = node.func
+            if not (isinstance(fn, ast.Attribute) and fn.attr == "add_argument"):
+                continue
+            names = [a.value for a in node.args if isinstance(a, ast.Constant)]
+            if not any(str(n).lstrip("-").replace("-", "_") in
+                       ("processed", "out") for n in names):
+                continue
+            for kw in node.keywords:
+                if kw.arg != "default":
+                    continue
+                literal = ast.unparse(kw.value)
+                if "data/processed'" in literal or 'data/processed"' in literal:
+                    offenders.append(f"{path.name}: {names} default={literal}")
+    assert not offenders, (
+        "these default a per-city path to the shared root:\n  "
+        + "\n  ".join(offenders)
+        + "\nResolve it from the target AFTER --city is parsed.")
+
+
+# ---------------------------------------------------------------------------
+# CLASS 6 — display limit leaking into data
+# ---------------------------------------------------------------------------
+
+def test_a_data_producer_never_reads_a_truncated_report():
+    """`top` is a terminal width. Anything storing this output must pass None."""
+    # Build a REAL payload rather than a hand-made fixture: format_report reads
+    # a dozen keys and a fixture drifts out of date the moment one is added.
+    draws = [{f"P{i}": 20 - i for i in range(20)} for _ in range(40)]
+    actual = {f"P{i}": 20 - i for i in range(20)}
+    seats = S.score_seats(draws, actual)
+
+    import re as _re
+    # Party rows only. A loose startswith("P") also matches the PIT histogram
+    # line, which is how this test first reported 13 rows for a top of 12.
+    def rows(text):
+        return sum(1 for l in text.splitlines()
+                   if _re.match(r"^  P\d+\s+\d+", l))
+    assert rows(S.format_report(seats, top=12)) == 12
+    assert rows(S.format_report(seats, top=None)) == 20, (
+        "format_report(top=None) must print every scored party")
+
+    bv = (SRC / "build_validation.py").read_text()
+    assert "--all-parties" in bv, (
+        "build_validation.py builds validation_<year>.json by parsing the "
+        "backtest's human-readable table. Without --all-parties it stores "
+        "whatever fitted a terminal — twelve rows, for targets with 15 to 24 "
+        "seat-winners — and every seat error computed from that file is "
+        "truncated and not comparable to one summed over the whole ballot.")
+
+
+# ---------------------------------------------------------------------------
+# CLASS 7 — never-executed path
+# ---------------------------------------------------------------------------
+
+def test_the_polling_channel_actually_runs():
+    """It raised NameError the instant poll_weight went above zero.
+
+    It looked unused because the default weight is 0 and nothing exercised it.
+    It was not unused, it was broken — and it is the channel MODEL-LOG task #23
+    depends on, and the only pre-election evidence for a party with no history.
+    """
+    polls_path = ROOT / "polls.json"
+    if not polls_path.exists():
+        skip("no polls.json")
+    payload = json.loads(polls_path.read_text())["polls"]
+    poll = next((p for p in payload if p.get("numbers")), None)
+    if poll is None:
+        skip("no poll with numbers")
+
+    city = cityconfig.use("joburg")
+    target = cityconfig.use_target("2026")
+    M.apply_city(city)
+    spec = city.processed / f"pools_{target.year}.json"
+    if not spec.exists():
+        skip(f"no pool spec at {spec}")
+
+    scenario = M.load_scenario(argparse.Namespace(
+        config=None, set=[f'poll_id="{poll["id"]}"', "poll_weight=0.3"],
+        draws=40, seed=None, city="joburg", target="2026"))
+    run = M.run_model(target, scenario, Path("data/raw/elections"), verbose=False)
+    blended = [p for p, note in run.notes.items() if "poll " in note]
+    assert blended, (
+        "poll_weight 0.3 produced no poll note on any party — the branch did "
+        "not execute. It previously raised NameError here.")
+
+
+# ---------------------------------------------------------------------------
+# CLASS 8 — summary artefact
+# ---------------------------------------------------------------------------
+
+def test_the_generic_entrant_is_relabelled_wherever_it_is_reported():
+    """The model draws a GENERIC entrant; reporting it as its own party lies twice.
+
+    At Johannesburg 2016 the unrelabelled report showed the AIC at 0.00%
+    predicted against 1.62% actual (a total miss) AND ENTRANT at 1.46% against
+    0.00% (pure phantom). They are the same forecast, and it was within 0.17pp.
+    """
+    src = (SRC / "diagnose.py").read_text()
+    assert "entrant_actual_for" in src, (
+        "diagnose.py no longer relabels the generic entrant, so an arriving "
+        "party will be reported as a total miss and the entrant slot as "
+        "phantom mass — the same forecast counted twice, in opposite directions")
+    assert "target.previous_npe" in src, (
+        "the newcomer test must run against the model's BASELINE (the preceding "
+        "national election), not its index: a party can be in the index and "
+        "still have no baseline, and then reads as a flat zero")
+
+
+def test_a_seat_point_forecast_that_is_reported_as_a_council_sums_to_one():
+    """Marginal medians do not sum to a chamber; the coherent one must.
+
+    The median of a sum is not the sum of medians. At Johannesburg 2021 the
+    per-party medians sum to 243 seats against a 270-seat council, so 27 of the
+    reported seat error was the aggregation rather than the model — while the
+    baselines allocate per draw and sum exactly, which made every seat-error
+    comparison unfair to this side.
+
+    Both are kept, because the per-party median is what a reader wants beside a
+    per-party actual. What must not happen is one being presented as the other.
+    """
+    import compare_history as C
+
+    council = 270
+    draws = [{"A": 100 + (i % 7), "B": 90 - (i % 5), "C": 40, "D": 20, "E": 20}
+             for i in range(60)]
+
+    coherent = C.coherent_seats(draws, council)
+    assert sum(coherent.values()) == council, (
+        f"coherent_seats returned {sum(coherent.values())} seats for a council "
+        f"of {council}. A point forecast presented as a chamber must be one.")
+    assert all(v >= 0 for v in coherent.values())
+
+    src = (SRC / "compare_history.py").read_text()
+    assert "median_sum" in src and "seat_abs_err_coherent" in src, (
+        "compare_history must report BOTH seat errors and what the medians "
+        "actually sum to, or the incoherent one will be read as a council")
+    assert "do not sum to a council" in src, (
+        "seats_from_draws must say in its docstring that its output is not a "
+        "chamber; this was reported as one for the whole of a review cycle")
+
+
+# ---------------------------------------------------------------------------
+# CLASS 9 — dead code that reads like live machinery
+# ---------------------------------------------------------------------------
+
+def test_no_top_level_function_is_defined_and_never_used():
+    """A superseded function is worse than no function: it reads as the mechanism.
+
+    `pools.apply_arrivals` documented, in detail, how an arrival takes votes out
+    of its pools and leaves the rest to be shared in proportion. It had not been
+    called in a long time — the debit happens at draw time, when the pool
+    renormalises — so anyone reading pools.py to understand arrivals was reading
+    a description of code that never ran. Also removed: `election_decimal_year`
+    (superseded by `polling_decimal_year`), `metro_ward_shares`, and
+    `build_site.build_documents` with its CARDS table, which built a landing
+    page that the forecast replaced as index.html.
+
+    ALLOWED is deliberately empty. Add a name to it only with a reason, and
+    prefer deleting the function.
+    """
+    ALLOWED: set[str] = set()
+
+    text = "\n".join(f.read_text() for f in
+                     sorted(SRC.glob("*.py")) +
+                     sorted((ROOT / "tests").glob("*.py")))
+    dead = []
+    for path in sorted(SRC.glob("*.py")):
+        for node in ast.parse(path.read_text()).body:
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            name = node.name
+            if name.startswith("_") or name == "main" or name in ALLOWED:
+                continue
+            if len(re.findall(rf"\b{re.escape(name)}\b", text)) <= 1:
+                dead.append(f"{path.name}: {name}")
+    assert not dead, (
+        "defined and never referenced anywhere in src/ or tests/:\n  "
+        + "\n  ".join(dead)
+        + "\nDelete it, or call it, or add it to ALLOWED with a reason.")
+
+
+if __name__ == "__main__":
+    for name, fn in sorted(globals().items()):
+        if name.startswith("test_") and callable(fn):
+            fn()
+            print(f"ok  {name}")

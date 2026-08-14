@@ -86,7 +86,16 @@ PROCESSED = ROOT / "data" / "processed"
 #     (montecarlo.TURNOUT_CORRELATION);
 #   * turnout bands built in logit space, so they are two-sided everywhere
 #     (pools.turnout_band).
-# RE-RECORDED AGAIN 2026-08-14 for the by-election clamp fix: the clamp was
+# RE-RECORDED AGAIN 2026-08-14 (third time today) for two changes:
+#   * parties NOT ON THE BALLOT are dropped at baseline-load time, before θ,
+#     ρ, the spine or the pool fit see them. A party that is not standing
+#     cannot take votes, and its share is not reapportioned by hand -- the
+#     pools renormalise when drawn, so it goes to the parties drawing on the
+#     same pools. (At 2026 there is no published nomination list yet, so this
+#     is a no-op for the live spec and moves only the backtests.)
+#   * the home splinter record is filtered to the target, so MK's 2024 split
+#     no longer sizes an arrival at 2021. 2026 legitimately still sees it.
+# And previously, for the by-election clamp fix: the clamp was
 # anchored on the NATIONAL baseline, so it dragged ActionSA from the spine's
 # 15.2% down to 12.1% using a bound derived from the very route task #22
 # abandoned. Anchored on the spine level instead, ActionSA's central level
@@ -102,21 +111,21 @@ PROCESSED = ROOT / "data" / "processed"
 # docstring — renormalisation for A-to-B (plan item 3.1), the entrant rescale
 # for B-to-C.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (22.7612, 12.4265, 34.3101),
-    "DA": (28.0014, 21.7384, 34.8677),
-    "EFF": (10.6947, 3.5914, 20.9961),
-    "ASA": (11.9830, 5.1620, 22.1520),
-    "MK": (7.2920, 1.7657, 16.1065),
-    "PA": (3.8133, 2.6047, 5.0852),
-    "VFPLUS": (0.8416, 0.0115, 2.9977),
-    "ALJAMAAH": (0.8625, 0.2761, 1.6460),
+    "ANC": (22.8320, 12.4892, 34.4340),
+    "DA": (27.8234, 21.5207, 34.8629),
+    "EFF": (10.7253, 3.6007, 21.0538),
+    "ASA": (11.9837, 5.1655, 22.1601),
+    "MK": (7.3145, 1.7626, 16.1840),
+    "PA": (3.8547, 2.6247, 5.2082),
+    "VFPLUS": (0.8359, 0.0115, 2.9855),
+    "ALJAMAAH": (0.8585, 0.2705, 1.6379),
     "ENTRANT": (1.3691, 0.0000, 7.8254),
 }
 GOLDEN_POOLS: dict[str, tuple[float, float, float]] = {
-    "Black African": (53.1482, 46.3115, 59.3468),
-    "Coloured": (8.3781, 6.6389, 10.6176),
-    "Indian/Asian": (6.2040, 4.8521, 7.9503),
-    "White": (30.9005, 26.1609, 36.2251),
+    "Black African": (53.2716, 46.2505, 59.6830),
+    "Coloured": (8.4137, 6.6667, 10.6985),
+    "Indian/Asian": (6.1891, 4.8346, 7.9488),
+    "White": (30.7565, 25.8636, 36.1682),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")

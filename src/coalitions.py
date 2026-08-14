@@ -31,6 +31,8 @@ Usage (post-hoc over a saved run):
 from __future__ import annotations
 
 import argparse
+
+import cityconfig
 import csv
 from itertools import combinations
 from math import factorial
@@ -291,8 +293,15 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--draws-file", type=Path,
                         default=Path("data/processed/seat_draws.csv"))
-    parser.add_argument("--processed", type=Path, default=Path("data/processed"))
+    parser.add_argument("--processed", type=Path, default=None,
+                        help="where inputs are read (default: the target's own processed "
+                             "directory). A literal data/processed is "
+                             "JOHANNESBURG's, whatever --city says")
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
+    args.processed = args.processed or cityconfig.use_target(
+        getattr(args, "target", None)).processed
 
     with args.draws_file.open(encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))

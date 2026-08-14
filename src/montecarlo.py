@@ -1125,6 +1125,58 @@ def run_model(target, scenario: dict,
     base_votes, _ = load(data_dir / target.results(target.previous_npe), None)
     base_share_d, base_city_d = shares(base_votes), citywide(base_votes)
 
+    # A PARTY THAT IS NOT ON THE BALLOT CANNOT TAKE VOTES, and it is removed
+    # HERE — before θ, ρ, the spine, the pool fit or the seeds have seen it —
+    # rather than having its votes reapportioned afterwards. A party that is not
+    # standing never had the votes to reapportion.
+    #
+    # The universe used to be built from the national baseline alone, so every
+    # party that contested the last NATIONAL election kept a share at the local
+    # one whether or not it stood. Johannesburg 2021: 13 parties in the 2019
+    # baseline were not on the 2021 ballot, holding 0.42% of it between them.
+    # About 0.4% of the vote is a seat under largest remainder, so that is of
+    # the order of one invented seat, and it is funded out of the parties ranked
+    # 4th to 12th — the ones that win marginal seats and that this model
+    # under-predicts almost everywhere.
+    #
+    # (0.42% is the honest figure. A larger number quoted during review, ~2.5%,
+    # was mostly the generic ENTRANT slot, which is a different thing: at a past
+    # target where a party really did arrive, ENTRANT IS the forecast for it and
+    # `backtest.relabel_entrant` maps it across. Do not conflate the two.)
+    #
+    # Removing them redistributes nothing by hand: the pools renormalise when
+    # drawn, so whatever a pool holds is split between the parties actually
+    # drawing on it.
+    #
+    # Reading the roster from the target's result file is legitimate and is the
+    # same justification `levels.contestation` already runs on: nomination lists
+    # close and are published weeks before polling day, so WHO IS ON THE BALLOT
+    # is available to a forecaster. Their votes are not, and none are read here.
+    # A target not yet held has no roster and is left alone.
+    try:
+        import pools as _pools
+        _roster = _pools.contesting_parties(target.city, target.year)
+    except Exception:
+        _roster = set()
+    if _roster:
+        _absent = sorted(p for p in base_city_d
+                         if p not in _roster and p not in (INDEPENDENT, "IND")
+                         and base_city_d.get(p, 0.0) > 0)
+        if _absent:
+            _held = sum(base_city_d[p] for p in _absent)
+            for p in _absent:
+                base_city_d.pop(p, None)
+            for _vd in base_share_d.values():
+                for p in _absent:
+                    _vd.pop(p, None)
+            if verbose:
+                print(f"  not on the {target.year} ballot: dropped {len(_absent)} "
+                      f"parties holding {_held:.2%} of the "
+                      f"{target.previous_npe} baseline "
+                      f"({', '.join(_absent[:5])}"
+                      f"{', …' if len(_absent) > 5 else ''})")
+
+
     # A party with no baseline cannot be grown into existence: theta multiplies,
     # and anything times zero is zero. ActionSA held 0.0000% of the 2019
     # national vote and won 44 of Johannesburg's 270 seats in 2021; the model

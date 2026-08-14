@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _support import ROOT, run_module  # noqa: E402
 
 MODULES = ["test_seats", "test_drawer", "test_temporal", "test_chain",
-           "test_pool_conservation"]
+           "test_pool_conservation", "test_regressions"]
 
 
 def main() -> int:

@@ -46,11 +46,16 @@ ALLIANCE_8 = ("DA", "ASA", "PA", "IFP", "VFPLUS", "ACDP", "RISE", "ALJAMAAH")
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--processed", type=Path, default=Path("data/processed"))
+    parser.add_argument("--processed", type=Path, default=None,
+                        help="where inputs are read (default: the target's own processed "
+                             "directory). A literal data/processed is "
+                             "JOHANNESBURG's, whatever --city says")
     parser.add_argument("--sheet", type=Path, default=Path("forecast-sheet.html"))
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
     cityconfig.use(getattr(args, "city", None))
+    args.processed = args.processed or cityconfig.use_target(
+        getattr(args, "target", None)).processed
 
     with (args.processed / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
         rows = list(csv.DictReader(fh))

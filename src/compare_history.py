@@ -123,9 +123,46 @@ def vote_mae(run, actual, ballot="pr", weighted=True, stat="mean") -> float:
 
 
 def seats_from_draws(draws):
-    """Median seats per party over a list of {party: seats} dicts."""
+    """Median seats per party over a list of {party: seats} dicts.
+
+    **These are MARGINAL medians and they do not sum to a council.** The median
+    of a sum is not the sum of medians, and with many parties the shortfall is
+    large: at Johannesburg 2021 this returns 243 seats against a 270-seat
+    chamber, so 27 of the reported seat error is the aggregation rather than the
+    model. The baselines in ``benchmarks.py`` allocate per draw and sum exactly,
+    which makes any seat-error comparison against them unfair to this side.
+
+    Kept, because the per-party median is what a reader wants to see next to a
+    per-party actual. :func:`coherent_seats` is the summable counterpart, and
+    :func:`render` prints both totals so the gap is never invisible.
+    """
     parties = sorted({p for d in draws for p in d})
     return {p: int(np.median([d.get(p, 0) for d in draws])) for p in parties}
+
+
+def coherent_seats(draws, council: int):
+    """A point forecast that IS a council: largest remainder on the mean vector.
+
+    The mean seat vector sums to the council up to rounding (every draw does),
+    so apportioning it by largest remainder gives a chamber rather than a set of
+    unrelated marginals. Use this for any seat-error comparison against the
+    baselines; use the median for the per-party table a reader reads.
+    """
+    parties = sorted({p for d in draws for p in d})
+    if not parties or council <= 0:
+        return {}
+    mean = np.array([np.mean([d.get(p, 0) for d in draws]) for p in parties])
+    total = mean.sum()
+    if total <= 0:
+        return {p: 0 for p in parties}
+    exact = mean * (council / total)
+    base = np.floor(exact).astype(int)
+    short = council - int(base.sum())
+    if short > 0:
+        order = np.argsort(-(exact - base))
+        for i in order[:short]:
+            base[i] += 1
+    return {p: int(n) for p, n in zip(parties, base)}
 
 
 def published_for(city_slug: str, year: str) -> dict | None:
@@ -153,6 +190,7 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path) -> dict
     actual_seats, entrant_actual = _actual_seats(target, data_dir, run)
 
     model_seats = seats_from_draws(run.seat_draws)
+    coherent = coherent_seats(run.seat_draws, target.council)
     out = {
         "city": city.name, "slug": city_slug, "year": year,
         "council": target.council,
@@ -165,6 +203,10 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path) -> dict
                   for p in sorted(set(actual_seats) | set(model_seats))},
         "seat_abs_err": sum(abs(actual_seats.get(p, 0) - model_seats.get(p, 0))
                             for p in set(actual_seats) | set(model_seats)),
+        "seat_abs_err_coherent": sum(
+            abs(actual_seats.get(p, 0) - coherent.get(p, 0))
+            for p in set(actual_seats) | set(coherent)),
+        "median_sum": sum(model_seats.values()),
         "opponents": {},
     }
     scored = S.score_seats(run.seat_draws, actual_seats,
@@ -231,9 +273,9 @@ def render(results: list[dict]) -> str:
         f"model column is the median over draws.\n")
 
     add("## Headline\n")
-    add("| city-year | council | list MAE (mean) | list MAE (median) | "
-        "ward MAE (mean) | seat error | CRPS | last-lge | uniform-swing | "
-        "prior-lge-noise | published |")
+    add("| city-year | council | list MAE | ward MAE | seat err (median) | "
+        "medians sum to | seat err (coherent) | CRPS | last-lge | "
+        "uniform-swing | prior-lge-noise |")
     add("|---|---|---|---|---|---|---|---|---|---|---|")
     for r in results:
         o = r["opponents"]
@@ -243,15 +285,18 @@ def render(results: list[dict]) -> str:
                 return "—"
             return f"{v[field]:.0f}" if field == "seat_abs_err" else f"{v[field]:.1f}"
         add(f"| {r['city']} {r['year']} | {r['council']} | "
-            f"{r['pr_mae']:.2f}pp | {r['pr_mae_median']:.2f}pp | "
-            f"{r['ward_mae']:.2f}pp | "
-            f"{r['seat_abs_err']} | {r['crps']:.1f} | "
+            f"{r['pr_mae']:.2f}pp | {r['ward_mae']:.2f}pp | "
+            f"{r['seat_abs_err']} | {r['median_sum']} | "
+            f"{r['seat_abs_err_coherent']} | {r['crps']:.1f} | "
             f"{cell('last-lge')} | {cell('uniform-swing')} | "
-            f"{cell('prior-lge-noise')} | {cell('published')} |")
-    add("\nSeat error is the total absolute seat error over all parties; the "
-        "four right-hand columns are the same measure for each opponent, so "
-        "lower is better and the model is beating an opponent when its number "
-        "is smaller.\n")
+            f"{cell('prior-lge-noise')} |")
+    add("\n**Read the two seat-error columns together.** *seat err (median)* "
+        "uses the per-party marginal median, which is what the per-party tables "
+        "below show and which **does not sum to a council** — the *medians sum "
+        "to* column says by how much. *seat err (coherent)* apportions the mean "
+        "seat vector by largest remainder, so it IS a chamber and is the only "
+        "one comparable to the baselines, which allocate per draw and sum "
+        "exactly. Lower is better throughout.\n")
 
     for r in results:
         add(f"\n## {r['city']} {r['year']}\n")
