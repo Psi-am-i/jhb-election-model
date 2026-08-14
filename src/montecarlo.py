@@ -91,6 +91,14 @@ COUNCIL = 270
 # several points of citywide vote for parties the model itself puts near zero.
 DIRICHLET_FLOOR = 1e-4
 
+# How much θ evidence a party needs before a poll stops being the answer and
+# becomes one more reading. The weight on the poll is m/(worth+m), the same
+# shape the spine uses for the same reason and keyed on the same quantity, so
+# the two layers cannot disagree about how much history a party has. At worth 0
+# — a party with no electoral record at all — the poll carries its full
+# configured weight; the ANC's worth of about 19 leaves it a twentieth.
+POLL_K = 1.0
+
 # Blocs are gone. They were two hand-drawn lists of parties assumed to trade
 # votes with each other — a claim about parties, made by a person, that no
 # measurement could check. Parties are now described by the voter pools they
@@ -155,6 +163,7 @@ DEFAULTS: dict = {
     "polling_span": 8.0,
     "poll_id": None,        # e.g. "srf-2026q2-coj" — see polls.json
     "poll_weight": 0.0,
+    "poll_k": POLL_K,
 
     # §1.29 weighted pools — the engine. Each pool: members {party: the share
     # of that party's vote drawn from this pool, summing to 1 across pools per
@@ -599,8 +608,13 @@ def blended_centres(
     # cannot reach — and for a seeded arrival, which has neither record and is
     # sized from the arrival record instead.
     spine_level = scenario.get("spine_level") or {}
+    poll_levels = scenario.get("poll_levels") or {}
     for party, base in base_city.items():
-        if seeded.get(party, 0.0) > 0:
+        if party in poll_levels:
+            # A poll outranks the arrival record for a party with no record.
+            mode_level = float(poll_levels[party])
+            notes[party] = f"level from poll: {mode_level:.2%}"
+        elif seeded.get(party, 0.0) > 0:
             band = bands.get(party)
             mode_level = base * (float(band[1]) if band else 1.0)
         elif party in spine_level:
@@ -1332,6 +1346,14 @@ def run_model(target, scenario: dict,
         print(f"  ! level priors unavailable ({_exc}); falling back to the "
               f"hand-typed constants, WHICH SAW THE TARGET")
 
+    # The baseline AS THE ELECTION LEFT IT, before any seed is added. "Has a
+    # record" has to mean the party took votes at the preceding national
+    # election, not that this model handed it a starting share five lines ago —
+    # and the seed loop below mutates base_city_d in place, so ActionSA looked
+    # like an established party to every later test.
+    baseline_before_seeds = dict(base_city_d)
+    scenario["_baseline_before_seeds"] = baseline_before_seeds
+
     seeds = scenario.get("pool_seeds") or {}
     if seeds:
         notes_by_party = scenario.get("pool_seed_notes") or {}
@@ -1667,6 +1689,48 @@ def run_model(target, scenario: dict,
             for row in csv.DictReader(fh):
                 bye[row["party"]] = (float(row["weight_sum"]),
                                     float(row["weighted_delta"]))
+    # --- polls, for the parties nothing else can see (task #23) ------------
+    # ONLY arrivals. An established party has a record and the spine uses it;
+    # a poll is a competing estimate of the same quantity there and blending
+    # the two is a policy question this does not answer. A party with NO
+    # baseline has nothing else at all, and that is the case the model gets
+    # wrong 31 times in 32 (src/arrivals.py).
+    #
+    # The number is a national poll share divided by the share of the national
+    # vote sitting in the municipalities the party actually contests -- both
+    # public before polling day. See src/polling.py for the arithmetic and what
+    # it does and does not buy.
+    try:
+        import polling as _polling
+        import pools as _pl
+        _usable = [q for q in _polling.usable_for(target)
+                   if q.get("scope") == "national"]
+        if _usable:
+            _votes = _polling.votes_by_metro(target.year)
+            _rosters = {c: _pl.contesting_parties(
+                cityconfig.by_code(c) if hasattr(cityconfig, "by_code") else target.city, target.year)
+                for c in [target.city.code]}
+            _poll = _usable[-1]
+            for _party in (_poll.get("numbers") or {}):
+                if baseline_before_seeds.get(_party, 0.0) > 0:
+                    continue                      # has a record; the spine has it
+                if _party not in (_roster or set()):
+                    continue                      # not on this city's ballot
+                _stood = [c for c in _pl.METRO_CODES
+                          if _pl.metro_citywide(c, target.year).get(_party, 0.0) > 0]
+                _est = _polling.metro_estimate(_poll, _party, _stood,
+                                               target.year, _votes)
+                if not _est:
+                    continue
+                scenario.setdefault("poll_levels", {})[_party] = _est["share"]
+                note_constant(scenario, "poll_level",
+                              f"{_party} from {_est['poll']}")
+                if verbose:
+                    print(f"  poll: {_party} -> {_est['share']:.2%}  ({_est['basis']})")
+    except Exception as _exc:
+        if verbose:
+            print(f"  ! polls unavailable ({type(_exc).__name__}: {_exc})")
+
     # --- the spine: both records, weighted by which one the party has (#22) ---
     # Computed here rather than beside theta_prior because it needs the previous
     # LOCAL election's citywide shares, which are read a few lines up. Both
@@ -1716,6 +1780,19 @@ def run_model(target, scenario: dict,
         # depends on and that the external review calls the only pre-election
         # evidence for a party with no electoral history.
         prior = scenario.get("theta_prior") or {}
+        # HOW MUCH A POLL IS TRUSTED DEPENDS ON WHAT ELSE THE PARTY HAS.
+        # A party with no electoral record has nothing to weigh the poll
+        # against, so the poll is very nearly the whole estimate. A party with
+        # a long retention record has a competing measurement of the same
+        # quantity, and the poll is one more reading rather than the answer.
+        #
+        # Keyed on the SAME `worth` the spine uses -- the sum of what that
+        # party's own θ observations are worth -- so the two layers cannot end
+        # up disagreeing about how much history a party has. w = m/(worth+m),
+        # the same shape as the spine's blend: worth 0 gives the poll full
+        # weight, the ANC's worth of about 19 gives it a twentieth.
+        _worth = scenario.get("_theta_worth") or {}
+        _m = float(scenario.get("poll_k", POLL_K))
         for party, share in poll["numbers"].items():
             if party in centres and party in base_city_d:
                 if party in prior:
@@ -1741,8 +1818,12 @@ def run_model(target, scenario: dict,
                 anchor = centres.get(party) or base_city_d[party]
                 clamped = min(max(share, (low / mid) * anchor),
                               (high / mid) * anchor)
-                centres[party] = (1 - wp) * centres[party] + wp * clamped
-                notes[party] = notes.get(party, "") +                     f" | poll {poll['id']} @ {wp}: → {centres[party]:.1%}"
+                w_party = wp * (_m / (float(_worth.get(party, 0.0)) + _m))
+                centres[party] = (1 - w_party) * centres[party] + w_party * clamped
+                notes[party] = notes.get(party, "") + (
+                    f" | poll {poll['id']} @ {w_party:.2f} "
+                    f"(θ evidence {float(_worth.get(party, 0.0)):.1f}): "
+                    f"→ {centres[party]:.1%}")
     if "ENTRANT" in index:
         centres["ENTRANT"] = 0.0
 

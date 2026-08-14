@@ -270,6 +270,19 @@ FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
         "the national-and-local level blend (task #22). Both records are "
         "filtered to elections strictly before the target; k=1.0 is fitted "
         "across metros on pre-target transitions only"),
+    # No years, and the reason is enforced in code rather than asserted here:
+    # polling.usable_for admits a poll only when its machine-readable
+    # fieldwork_end falls strictly before the target's polling day, and refuses
+    # any poll it cannot date. Party-commissioned polls are excluded by default.
+    # The conversion's other inputs — which municipalities a party contests, and
+    # their share of the national vote — are nomination and roll facts published
+    # weeks ahead.
+    "poll_level": (
+        (),
+        "an arrival's level taken from a national poll, converted by the share "
+        "of the national vote in the municipalities it contests (task #23). "
+        "Only for parties with NO record at the preceding national election; "
+        "fieldwork must end before polling day or the poll is refused"),
 }
 
 

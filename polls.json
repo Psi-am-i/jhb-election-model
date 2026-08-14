@@ -7,8 +7,17 @@
       "fieldwork": "8–31 July 2026",
       "geography": "City of Johannesburg, likely voters (53% turnout model)",
       "url": "https://www.thecommonsense.co.za/Politics/anc-support-collapses-johannesburg",
-      "numbers": {"DA": 0.42, "ANC": 0.18, "MK": 0.13, "ASA": 0.10, "EFF": 0.08},
-      "caveat": "~500-person metro subsample (±4.4%); single house; its likely-voter screen filters out low-propensity, disproportionately ANC-leaning voters. ANC 18 sits below even the DA's own internal polling."
+      "numbers": {
+        "DA": 0.42,
+        "ANC": 0.18,
+        "MK": 0.13,
+        "ASA": 0.1,
+        "EFF": 0.08
+      },
+      "caveat": "~500-person metro subsample (±4.4%); single house; its likely-voter screen filters out low-propensity, disproportionately ANC-leaning voters. ANC 18 sits below even the DA's own internal polling.",
+      "fieldwork_start": "2026-07-08",
+      "fieldwork_end": "2026-07-31",
+      "scope": "metro"
     },
     {
       "id": "da-internal-2026aug",
@@ -17,8 +26,15 @@
       "fieldwork": "reported 1 August 2026",
       "geography": "City of Johannesburg",
       "url": "https://www.news24.com/politics/internal-polls-show-da-leading-in-johannesburg-says-helen-zille-20260801-0799",
-      "numbers": {"DA": 0.40, "ANC": 0.27},
-      "caveat": "Party-internal, method undisclosed, only two numbers released — and a party has every incentive to publish its best case."
+      "numbers": {
+        "DA": 0.4,
+        "ANC": 0.27
+      },
+      "caveat": "Party-internal, method undisclosed, only two numbers released — and a party has every incentive to publish its best case.",
+      "fieldwork_start": "2026-08-01",
+      "fieldwork_end": "2026-08-01",
+      "scope": "metro",
+      "commissioned_by": "Democratic Alliance"
     },
     {
       "id": "srf-2026q1-coj",
@@ -27,8 +43,17 @@
       "fieldwork": "16 February – 6 March 2026",
       "geography": "City of Johannesburg, likely voters",
       "url": "https://www.thecommonsense.co.za/politics/anc-faces-wipeout-gauteng-metros-lge",
-      "numbers": {"DA": 0.39, "ANC": 0.30, "ASA": 0.10, "MK": 0.08, "EFF": 0.04},
-      "caveat": "~503-person metro subsample; same house and turnout model as the July wave."
+      "numbers": {
+        "DA": 0.39,
+        "ANC": 0.3,
+        "ASA": 0.1,
+        "MK": 0.08,
+        "EFF": 0.04
+      },
+      "caveat": "~503-person metro subsample; same house and turnout model as the July wave.",
+      "fieldwork_start": "2026-02-16",
+      "fieldwork_end": "2026-03-06",
+      "scope": "metro"
     },
     {
       "id": "ipsos-w2-2025-metros",
@@ -37,8 +62,56 @@
       "fieldwork": "December 2025 – January 2026",
       "geography": "All-metro aggregate — no Johannesburg-only cut published",
       "url": "https://www.ipsos.com/en-za/nearly-half-south-africans-feel-politically-homeless-ahead-local-elections",
-      "numbers": {"ANC": 0.35, "DA": 0.25, "MK": 0.14, "EFF": 0.13, "PA": 0.04, "ASA": 0.04, "IFP": 0.02},
-      "caveat": "Face-to-face, registered voters, ~43–49% undecided largely unallocated — the methodological opposite of SRF, and the kindest credible read for the ANC. Applies all-metro numbers to Joburg."
+      "numbers": {
+        "ANC": 0.35,
+        "DA": 0.25,
+        "MK": 0.14,
+        "EFF": 0.13,
+        "PA": 0.04,
+        "ASA": 0.04,
+        "IFP": 0.02
+      },
+      "caveat": "Face-to-face, registered voters, ~43–49% undecided largely unallocated — the methodological opposite of SRF, and the kindest credible read for the ANC. Applies all-metro numbers to Joburg.",
+      "fieldwork_start": "2025-12-01",
+      "fieldwork_end": "2026-01-31",
+      "scope": "metro"
+    },
+    {
+      "id": "ipsos-2021-lge-national",
+      "house": "Ipsos",
+      "fieldwork": "16-20 August 2021",
+      "fieldwork_start": "2021-08-16",
+      "fieldwork_end": "2021-08-20",
+      "scope": "national",
+      "geography": "South Africa, registered voters",
+      "n": 1501,
+      "method": "CATI, registered voters",
+      "target": "2021",
+      "numbers": {
+        "ANC": 0.493,
+        "DA": 0.179,
+        "EFF": 0.145,
+        "ASA": 0.015,
+        "IFP": 0.014,
+        "VFPLUS": 0.012,
+        "ACDP": 0.015
+      },
+      "note": "The only INDEPENDENT pre-election poll published for the 2021 local elections. ActionSA's actual national result was 2.34%, so this was low by a factor of 1.6 -- against a model out by 3 in Johannesburg and 6 in Tshwane. Entered so the conversion in src/polling.py can be scored on a target that has happened.",
+      "source": "IEC-reported result and poll table, Wikipedia '2021 South African municipal elections'; Ipsos South Africa releases"
+    },
+    {
+      "id": "actionsa-internal-2021",
+      "house": "commissioned by ActionSA",
+      "fieldwork": "October 2021",
+      "fieldwork_start": "2021-10-01",
+      "fieldwork_end": "2021-10-21",
+      "scope": "metro",
+      "geography": "City of Johannesburg",
+      "target": "2021",
+      "commissioned_by": "ActionSA",
+      "numbers": {},
+      "note": "Reported ActionSA 'on course to win Joburg'. It finished THIRD on 16.05%. Recorded WITHOUT numbers and flagged commissioned_by so it is excluded by default: it is the evidence for the exclusion rule, not evidence about the election.",
+      "source": "thesouthafrican.com, 2021 local elections coverage"
     }
   ]
 }
