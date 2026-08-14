@@ -96,6 +96,32 @@ def vote_table(run, actual_pr, actual_ward, top=12):
     return rows
 
 
+def rank_bands(run, actual_pr, actual_seats):
+    """Error by where a party sits on the ballot, which is where it fails.
+
+    A single headline hides the shape of this model's error completely. Ranks
+    1-3 are over-predicted and everything below is short, and the parties that
+    matter for marginal seats are ranks 4-12: big enough to win one, small
+    enough that a fraction of a point decides it. Reported as SIGNED total
+    error, because the sign is the finding — an unsigned figure would say the
+    top and the middle are both "wrong" and hide that one is eating the other.
+    """
+    order = sorted(actual_pr, key=lambda p: -actual_pr[p])
+    bands = {"1-3": order[:3], "4-12": order[3:12], "13+": order[12:]}
+    out = {}
+    for label, parties in bands.items():
+        signed = won = missed = 0.0
+        seats_short = 0
+        for party in parties:
+            i = run.index.get(party)
+            pred = float(run.pr_share_draws[:, i].mean()) if i is not None else 0.0
+            signed += pred - actual_pr[party]
+            won += actual_seats.get(party, 0)
+        out[label] = {"n": len(parties), "signed_pp": 100 * signed,
+                      "seats_at_stake": won}
+    return out
+
+
 def vote_mae(run, actual, ballot="pr", weighted=True, stat="mean") -> float:
     """Mean absolute error on citywide share, in percentage points.
 
@@ -199,6 +225,7 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path) -> dict
         "ward_mae": vote_mae(run, actual_ward, "ward", stat="mean"),
         "pr_mae_median": vote_mae(run, actual_pr, "pr", stat="median"),
         "ward_mae_median": vote_mae(run, actual_ward, "ward", stat="median"),
+        "bands": rank_bands(run, actual_pr, actual_seats),
         "seats": {p: (actual_seats.get(p, 0), model_seats.get(p, 0))
                   for p in sorted(set(actual_seats) | set(model_seats))},
         "seat_abs_err": sum(abs(actual_seats.get(p, 0) - model_seats.get(p, 0))
@@ -297,6 +324,22 @@ def render(results: list[dict]) -> str:
         "seat vector by largest remainder, so it IS a chamber and is the only "
         "one comparable to the baselines, which allocate per draw and sum "
         "exactly. Lower is better throughout.\n")
+
+    add("\n## Where the vote error sits on the ballot\n")
+    add("Signed total error in points, so a positive number means the model gave "
+        "that band MORE than it won. The bands are by actual rank.\n")
+    add("| city-year | ranks 1-3 | ranks 4-12 | ranks 13+ | seats at stake in 4-12 |")
+    add("|---|---|---|---|---|")
+    for r in results:
+        b = r["bands"]
+        add(f"| {r['city']} {r['year']} | {b['1-3']['signed_pp']:+.2f}pp | "
+            f"**{b['4-12']['signed_pp']:+.2f}pp** | {b['13+']['signed_pp']:+.2f}pp | "
+            f"{b['4-12']['seats_at_stake']:.0f} |")
+    tot = {k: sum(r["bands"][k]["signed_pp"] for r in results)
+           for k in ("1-3", "4-12", "13+")}
+    add(f"\n**Totals:** ranks 1-3 {tot['1-3']:+.2f}pp, ranks 4-12 "
+        f"{tot['4-12']:+.2f}pp, ranks 13+ {tot['13+']:+.2f}pp across "
+        f"{len(results)} city-years.\n")
 
     for r in results:
         add(f"\n## {r['city']} {r['year']}\n")
