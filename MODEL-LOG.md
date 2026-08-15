@@ -2016,6 +2016,44 @@ Three consequences.
    because the thing debiting it is too small. Every point of improvement on
    arrivals buys most of a point on the DA for free.
 
+### CONFIRMED OPEN: the splinter branch reports a blend it does not use (2026-08-15)
+
+An independent review claimed the splinter path never executes. Checked, and it
+is **half right, in the half that matters for credibility**.
+
+`emit_pools` writes ActionSA's seed note as
+
+    SPLIT from DA (Mashaba, the DA's own mayor of Johannesburg...): takes 15.1%
+    of a vector that is 35% DA's pool rates and 65% the city's own composition
+
+while `no_measured_vector` records, for the same party,
+
+    ASA: entrant, even share of every pool
+
+All 39 parties with no measured vector get "entrant"; not one gets "splinter of".
+The two sites disagree because `arrival_rules` routes ActionSA through
+`classify_arrival` (which resolves the parent from `SPLITS`) while the
+composition-vector loop reads the raw `parent` field from
+`judgements/<city>-<target>.toml`, and every one of those is `""`.
+
+**The emitted vector is nonetheless the blended one** — it comes from the
+`arrival_rules` capture, which is why ActionSA's Black African weight moves
+0.856 / 0.599 / 0.194 as `SPLINTER_PARENT_WEIGHT` goes 0.0 / 0.35 / 0.9. So the
+model is not using an even split. But it *reports* two incompatible provenances
+for the same party, and one of them is wrong.
+
+That is the kind of thing a hostile reader finds first, and this repository's own
+`JUDGEMENT-CALLS.md` standard says a reviewer who finds one advertised constant
+that does not do what it says will not trust the measured ones. **Fix before
+publication**: route the composition loop through `classify_arrival` so both
+sites agree, or drop the second message.
+
+Related and still open: the review measures the top three parties' realised
+`sd(log)` at 0.078 against a measured 0.26. With the centres now binding, the
+model is accurate and overconfident rather than inaccurate and overconfident.
+The level shock is applied inside the pool and then renormalised away for a
+dominant member, so it must move to the centres — before the IPF — to transmit.
+
 ### Two things this did NOT do
 
 * **The point-estimate rates matrix is still a point estimate** (review item 6).
