@@ -1612,6 +1612,13 @@ class Split:
 # anecdote; at target 2021 there is one and the model says so.
 MIN_HOME_SPLITS = 2
 
+# How much of a splinter's starting pool vector is its PARENT's, the rest being
+# the city's own composition. MEASURED: fitting each splinter's vector at its
+# first election and regressing on (parent, city average) over 22 metro-cases
+# gives a median of 0.35 — EFF 0.89, GOOD 0.28, ActionSA about 0.02. Pure
+# inheritance was the assumption and it is wrong for two of the three.
+SPLINTER_PARENT_WEIGHT = 0.35
+
 SPLITS: dict[str, Split] = {
     "COPE": Split("ANC", ("2004", "2009"),
                   "Lekota and Shilowa, after the ANC's 2008 Polokwane split",
@@ -2241,13 +2248,40 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # file in the repository has `parent = ""`: declaring a parent —
             # the whole point of the file — took the model down, so nobody
             # ever did, so the splinter path was never exercised at all.
-            capture = {g: float(f_mid * rates[g, index[parent]])
-                       for g in range(n_pools) if rates[g, index[parent]] > 0}
-            why = (f"SPLIT from {parent} ({lineage_why}): takes {f_mid:.1%} "
-                   f"of {parent}'s share of each pool it draws on, band "
-                   f"{f_lo:.1%}-{f_hi:.1%} from the {f_kind} splinter record. "
-                   f"Every party in those pools gives up the same proportion; "
-                   f"none is named.")
+            # A SPLINTER IS NOT ITS PARENT. Taking f of the parent's rate in
+            # every pool and nothing anywhere else says the leavers recruit only
+            # among people the parent already had. Measured, that is wrong for
+            # most splits: fitting each splinter's own vector at its first
+            # election and regressing it on (parent, city average) over 22
+            # metro-cases gives a median weight on the parent of 0.35 --
+            # EFF 0.89, GOOD 0.28, ActionSA about 0.02, whose vector was very
+            # nearly the CITY'S OWN composition.
+            #
+            # It is the failure that cost the 2021 forecast most. Pure
+            # inheritance put ActionSA at 67.2% White when it measured 55.6%
+            # Black African, so the debit for its 18% landed on the DA when it
+            # should have landed on the ANC.
+            #
+            # The remainder goes to the city average, not to a named opponent:
+            # the record says a splinter reaches beyond its parent, and does not
+            # say whose voters it reaches instead.
+            alpha = float(SPLINTER_PARENT_WEIGHT)
+            size = np.asarray(pool_size, dtype=float)
+            mix = size / size.sum() if size.sum() > 0 else np.full(n_pools, 1.0 / n_pools)
+            parent_rate = np.array([rates[g, index[parent]] for g in range(n_pools)])
+            # Scale the city half onto the parent's own footing so alpha is a
+            # weight between two comparable things rather than between a rate
+            # and a proportion.
+            scale = float(parent_rate @ mix) / max(float(mix @ mix), 1e-12)
+            blended = alpha * parent_rate + (1.0 - alpha) * scale * mix
+            capture = {g: float(f_mid * blended[g])
+                       for g in range(n_pools) if blended[g] > 0}
+            why = (f"SPLIT from {parent} ({lineage_why}): takes {f_mid:.1%} of a "
+                   f"vector that is {alpha:.0%} {parent}'s pool rates and "
+                   f"{1 - alpha:.0%} the city's own composition — measured, "
+                   f"median over 22 splinter-metro cases. Band {f_lo:.1%}-"
+                   f"{f_hi:.1%} from the {f_kind} splinter record. Every party "
+                   f"in those pools gives up the same proportion; none is named.")
         else:
             vec = np.full(n_pools, 1.0 / n_pools)
             reach_used = reach if reach is not None else 0.5
@@ -2620,10 +2654,41 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             vec = vec / vec.sum() if vec.sum() > 0 else np.full(n, 1.0 / n)
             inherited[party] = "judged weights"
         elif parent and parent in composition:
-            # A splinter is defined identically to its parent until the numbers
-            # say otherwise.
-            vec = composition[parent].copy()
-            inherited[party] = f"splinter of {parent}"
+            # A SPLINTER IS NOT ITS PARENT. Leaving a party to start one means
+            # competing for people the parent never had, and the record says so
+            # loudly. Fitting each splinter's own vector at its first election
+            # and regressing it on (parent, city average) gives the weight the
+            # parent actually deserves:
+            #
+            #   EFF from the ANC    alpha 0.75-1.08, median 0.89   cos to parent 0.998-1.000
+            #   GOOD from the DA    alpha -0.02-0.58, median 0.28
+            #   ActionSA from DA    alpha -1.07-0.56, median ~0.02  cos to CITY 0.69-0.999
+            #
+            # 22 cases across eight metros; median alpha 0.35. So the EFF stayed
+            # inside the ANC's constituency and pure inheritance was right for
+            # it, while ActionSA's vector was very nearly the CITY'S OWN
+            # composition — a broad-appeal municipal party, not a faction. Pure
+            # inheritance (alpha 1.0) was wrong for two of the three, and wrong
+            # in the direction that cost the 2021 forecast most: it put ActionSA
+            # at 67.2% White when it measured 55.6% Black African, so the debit
+            # for its 18% fell on the DA when it should have fallen on the ANC.
+            #
+            # The remainder goes to the CITY AVERAGE rather than to any named
+            # opponent. That is the weaker and more honest claim: the record says
+            # a splinter reaches beyond its parent, and does not say whose voters
+            # it reaches instead.
+            alpha = float(SPLINTER_PARENT_WEIGHT)
+            # The city's own pool composition AT THE FITTING YEAR, which is the
+            # basis the vectors themselves are fitted on, so the two halves of
+            # the blend are on the same footing.
+            _pv = np.asarray(ctx.get("pool_votes"), dtype=float) \
+                if ctx.get("pool_votes") is not None else None
+            city_mix = (_pv / _pv.sum()) if _pv is not None and _pv.sum() > 0 \
+                else np.full(n, 1.0 / n)
+            vec = alpha * composition[parent] + (1.0 - alpha) * city_mix
+            vec = vec / vec.sum() if vec.sum() > 0 else np.full(n, 1.0 / n)
+            inherited[party] = (f"splinter of {parent}, {alpha:.0%} its vector "
+                                f"and {1 - alpha:.0%} the city average")
         else:
             # An entrant draws an even share of every pool. Almost certainly
             # wrong, and deliberately so: it is the assumption that makes the
