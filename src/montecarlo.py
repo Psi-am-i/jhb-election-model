@@ -715,7 +715,7 @@ def blended_centres(
 # the draw
 # --------------------------------------------------------------------------
 
-def pool_spec(scenario, base_city_d, centres, index, lean):
+def pool_spec(scenario, base_city_d, centres, index, lean, ipf_out=None):
     """Build the per-pool draw specification for the weighted engine (§1.29).
 
     A pool is a body of voters choosing between the same parties, and a party
@@ -790,12 +790,16 @@ def pool_spec(scenario, base_city_d, centres, index, lean):
     # applying a party's level shock inside the pool and renormalising there
     # cancels it for a dominant member, which left the top three drawing a
     # realised sd(log) of 0.078 against a measured 0.26.
-    # Stashed on the SCENARIO, not returned in the spec. `spec` is a dict of
-    # pools that several callers iterate expecting every value to be a pool
-    # tuple; a metadata key in it is a landmine, and it took out
-    # tests/test_drawer.py the moment it was added.
-    scenario["_ipf"] = {"R0": R.copy(), "pool_votes": pool_votes,
-                        "parties": parties, "pidx": pidx, "names": names}
+    # Written into a caller-supplied box, NOT into the spec and NOT onto the
+    # scenario. `spec` is a dict of pools that several callers iterate expecting
+    # every value to be a pool tuple, so a metadata key in it took out
+    # tests/test_drawer.py; and the scenario is SERIALISED into
+    # forecast_summary.json, so a numpy array on it produced malformed JSON that
+    # broke the site build. Two ways to leak the same object, both found by
+    # something downstream rather than by reading.
+    if ipf_out is not None:
+        ipf_out.update({"R0": R.copy(), "pool_votes": pool_votes,
+                        "parties": parties, "pidx": pidx, "names": names})
 
     spec = {}
     for g, name in enumerate(names):
@@ -834,8 +838,9 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             "no pools: the model draws from measured voter pools, and there is "
             "nothing to fall back on. Run:\n"
             "  python src/pools.py --city <city> --target <year> --emit")
-    pools = pool_spec(scenario, base_city_d, centres, index, lean)
-    ipf = scenario.get("_ipf")
+    ipf_box: dict = {}
+    pools = pool_spec(scenario, base_city_d, centres, index, lean, ipf_box)
+    ipf = ipf_box or None
 
     # Lineage belongs to the pool fit, not here. A splinter inherits its
     # parent's pool vector, an entrant takes an even share of every pool, and

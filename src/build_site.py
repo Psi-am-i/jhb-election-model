@@ -8,7 +8,7 @@ Two kinds of page:
 * **Rendered documents** — the four Markdown records (methodology, model log,
   sources, the original plan) converted to house-styled HTML. The Markdown
   stays canonical; regenerate rather than editing the HTML.
-* **Copied artefacts** — forecast-sheet.html, forecast-interactive.html and
+* **Copied artefacts** — forecast-sheet.html and
   model-review.html are already house-styled deliverables and are copied
   verbatim under stable public names.
 
@@ -136,7 +136,9 @@ STYLE = """
 
 NAV_ITEMS = [
     ("./", "forecast"),
-    ("interactive", "interactive"),
+    # "interactive" removed with the page itself — see ARTEFACTS. The comment
+    # below records what happened the LAST time a nav entry outlived its page:
+    # every page linked to plan.html for weeks after no build produced it.
     ("about", "about the model"),
     ("methodology", "methodology"),
     ("review", "review"),
@@ -268,9 +270,17 @@ DOCS = {
 
 # already-styled artefacts copied verbatim under stable public names
 # already-styled artefacts, nav-injected; the forecast IS the landing page
+# THE INTERACTIVE IS WITHHELD until it works. Its sliders write to
+# montecarlo.DEFAULTS' schema, and this session has changed that schema
+# substantially: the pool draw now balances both margins by IPF, the level
+# shock moved to the centres, polls blend by inverse variance, and several
+# keys the sliders bind to no longer mean what they meant. A slider that
+# silently sets a key the engine no longer reads is worse than no slider, so
+# the page is not published until it has been rebuilt against the current
+# schema. `interactive.html` is therefore absent from the site rather than
+# broken on it, and the nav entry goes with it.
 ARTEFACTS = {
     "forecast-sheet.html": "index.html",
-    "forecast-interactive.html": "interactive.html",
 }
 
 
@@ -408,9 +418,18 @@ def main(argv: list[str] | None = None) -> int:
         audits[output] = statlib.audit(html, **audit_cfg)
         (args.out / output).write_text(html, encoding="utf-8")
         print(f"  nav+copy {source:<28s} -> site/{output}")
-    stale = args.out / "forecast.html"
-    if stale.exists():
-        stale.unlink()  # superseded: the forecast is index.html now
+    # EVERY PAGE THIS BUILD NO LONGER PRODUCES IS REMOVED, not just the one
+    # somebody remembered. A single hard-coded `forecast.html` unlink stood here
+    # for months while `plan.html` and, the moment the interactive was withheld,
+    # `interactive.html` both stayed on the site — served, linked from nothing,
+    # and describing a model that had moved on. A page nobody rebuilds is worse
+    # than a missing one: it looks current and cannot be.
+    produced = {"index.html"} | {spec[0] for spec in DOCS.values()} \
+        | set(ARTEFACTS.values()) | {"portal.html"}
+    for page in sorted(args.out.glob("*.html")):
+        if page.name not in produced:
+            page.unlink()
+            print(f"  removed  site/{page.name} (no longer produced by this build)")
 
     # --- stat provenance: unresolved tokens are fatal, drift only warns ---
     if unresolved_all:

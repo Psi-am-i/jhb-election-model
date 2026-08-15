@@ -1,0 +1,926 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Johannesburg 2026 — How we know the model works</title>
+<meta property="og:site_name" content="Johannesburg 2026 Election Model">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Who governs Johannesburg after 4 November 2026?">
+<meta property="og:description" content="5,000 simulations of the November vote. Nobody wins — and an obscure clause of the seat law hands the shrinking ANC an unbreakable floor. Explore every ward, every coalition, every assumption.">
+<meta property="og:url" content="https://joburg.whysoserious.city/">
+<link rel="canonical" href="https://joburg.whysoserious.city/">
+<meta property="og:image" content="https://joburg.whysoserious.city/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Hillbrow Tower silhouetted against a Johannesburg sunset">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://joburg.whysoserious.city/share.jpg">
+<style>
+  :root{
+    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
+    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
+    --accent:#a8621f; --accent-soft:#f0e2d5; --good:#2f6d4a;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
+      --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
+      --accent:#d9954f; --accent-soft:#3a2a1a; --good:#6fb98a;
+    }
+  }
+  *{box-sizing:border-box;margin:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased;}
+  .page{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
+
+  .topnav{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;
+    justify-content:space-between;font-family:var(--mono);font-size:14px;color:var(--ink-3);
+    border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:26px;}
+  .topnav a{color:var(--ink-3);text-decoration:none;}
+  .topnav a:hover{color:var(--accent);}
+  .topnav a.home{color:var(--accent);font-weight:600;}
+  .topnav a.active{color:var(--accent);}
+
+  .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:10px;}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,40px);
+    line-height:1.12;letter-spacing:-.012em;text-wrap:balance;margin:0 0 10px;}
+  .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;
+    color:var(--ink-2);text-wrap:pretty;margin-bottom:6px;}
+  .dateline{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);
+    font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);padding:9px 0;margin:14px 0 8px;}
+  .dateline b{color:var(--ink-2);font-weight:600;}
+
+  h2{font-family:var(--serif);font-weight:600;font-size:24px;line-height:1.2;
+    letter-spacing:-.006em;margin:42px 0 4px;padding-top:18px;
+    border-top:1px solid var(--rule);}
+  h3{font-family:var(--serif);font-weight:600;font-size:18px;line-height:1.3;margin:28px 0 2px;}
+  h4{font-size:14px;font-weight:650;margin:20px 0 2px;}
+  p{margin:10px 0;}
+  ul,ol{margin:10px 0;padding-left:20px;
+    display:flex;flex-direction:column;gap:5px;}
+  strong{font-weight:650;}
+  hr{border:none;border-top:1px solid var(--rule-soft);margin:26px 0;}
+  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
+
+  code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);
+    border:1px solid var(--rule-soft);border-radius:3px;padding:.08em .34em;}
+  pre{background:var(--paper-2);border:1px solid var(--rule-soft);border-radius:5px;
+    padding:13px 15px;overflow-x:auto;margin:14px 0;line-height:1.5;}
+  pre code{background:none;border:none;padding:0;font-size:12.5px;color:var(--ink-2);}
+
+  .tablewrap{overflow-x:auto;margin:14px 0;}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;}
+  th{font-family:var(--sans);font-size:10.5px;font-weight:650;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-3);text-align:left;
+    padding:0 12px 7px 0;border-bottom:1px solid var(--rule);vertical-align:bottom;}
+  td{padding:8px 12px 8px 0;border-bottom:1px solid var(--rule-soft);
+    vertical-align:top;color:var(--ink-2);}
+  td:first-child{color:var(--ink);}
+
+  blockquote{border-left:2px solid var(--accent);background:var(--paper-2);
+    padding:10px 16px;margin:14px 0;color:var(--ink-2);}
+  blockquote p{margin:6px 0;}
+  blockquote h3,blockquote h4{margin-top:8px;}
+
+  .colophon{font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:12px;margin-top:48px;}
+  .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:14px;margin-top:20px;}
+  .sitefooter a{color:var(--ink-3);}
+  .sitefooter a:hover{color:var(--accent);}
+
+  /* index cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:14px;margin:22px 0;}
+  .card{display:flex;flex-direction:column;gap:6px;border:1px solid var(--rule-soft);
+    background:var(--paper-2);padding:16px 18px;text-decoration:none;color:var(--ink);
+    transition:border-color .15s;}
+  .card:hover{border-color:var(--accent);}
+  .card.hero{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent);}
+  .card .t{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.25;}
+  .card .d{font-size:13px;color:var(--ink-2);line-height:1.45;}
+  .card .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);}
+
+  @media print{
+    body{background:#fff;color:#000;font-size:10pt;}
+    .page{max-width:none;padding:0;}
+    .topnav{display:none;}
+    h2,h3{break-after:avoid;} table,blockquote,pre{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+<nav class="topnav">
+  <a class="home" href="./">joburg.whysoserious.city</a>
+  <a href="./">forecast</a>
+  <a class="active" href="about">about the model</a>
+  <a href="methodology">methodology</a>
+  <a href="review">review</a>
+  <a href="sources">sources</a>
+  <a href="https://github.com/Psi-am-i/jhb-election-model">source-code</a>
+</nav>
+<header>
+  <div class="kicker">About the model</div>
+  <h1>How we know the model works</h1>
+  <p class="standfirst">A forecast that has never been scored is an opinion. This is the scoring: run against an election that already happened, in eight cities, against what occurred and against three deliberately stupid alternatives.</p>
+</header>
+<h2>What this page is</h2>
+<p>A forecast that has never been scored is an opinion. This page is the scoring: the model was run against an election that has already happened, in eight cities, and compared with what actually occurred and with three deliberately stupid alternatives.</p>
+<p>Everything here is generated from the run itself. No number on this page was typed by a person.</p>
+<h2>How it was tested</h2>
+<p>The model was pointed at the <strong>2021 municipal election</strong> and asked to forecast it, using only what a forecaster could have had before polling day: the previous local election for its geography, the national election before it for each party&rsquo;s starting level, and the voters&rsquo; roll. It was then scored against the real council.</p>
+<p>It was done in <strong>eight metros, not one</strong>. A model tuned on a single city can look excellent there and mean nothing — it has learned that city rather than how elections work. Each city is fitted only on its own wards, its own registration and its own history; nothing is carried across from Johannesburg. Seven of the eight are cities the model was never designed against.</p>
+<h3>The three alternatives it has to beat</h3>
+<p>A forecast is only as good as the simplest thing that would have done the same job. So the same scoring is applied to three baselines that require no model at all:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>baseline</th>
+<th>what it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>last result repeats</strong></td>
+<td>assume the previous local election happens again, unchanged</td>
+</tr>
+<tr>
+<td><strong>uniform swing</strong></td>
+<td>take the national swing since the last election and apply it equally everywhere</td>
+</tr>
+<tr>
+<td><strong>last result plus noise</strong></td>
+<td>the previous result, with uncertainty added around it</td>
+</tr>
+</tbody>
+</table></div>
+<p>&ldquo;Uniform swing&rdquo; in particular is the standard against which election models are judged everywhere in the world, and it is much harder to beat than it sounds. <strong>Best baseline</strong> below means whichever of the three did best in that city — the model is compared against the toughest one each time, not the easiest.</p>
+<h2>The result, city by city</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>city</th>
+<th>seats</th>
+<th>our error</th>
+<th>best baseline&rsquo;s error</th>
+<th>better by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Johannesburg</td>
+<td>270</td>
+<td><strong>45.6</strong></td>
+<td>114.1 (last result plus noise)</td>
+<td><strong>+60%</strong></td>
+</tr>
+<tr>
+<td>Tshwane</td>
+<td>214</td>
+<td><strong>35.6</strong></td>
+<td>60.0 (uniform swing)</td>
+<td><strong>+41%</strong></td>
+</tr>
+<tr>
+<td>Ekurhuleni</td>
+<td>224</td>
+<td><strong>38.7</strong></td>
+<td>48.0 (uniform swing)</td>
+<td><strong>+19%</strong></td>
+</tr>
+<tr>
+<td>eThekwini</td>
+<td>222</td>
+<td><strong>31.1</strong></td>
+<td>36.0 (uniform swing)</td>
+<td><strong>+14%</strong></td>
+</tr>
+<tr>
+<td>Cape Town</td>
+<td>231</td>
+<td><strong>31.2</strong></td>
+<td>38.0 (uniform swing)</td>
+<td><strong>+18%</strong></td>
+</tr>
+<tr>
+<td>Mangaung</td>
+<td>101</td>
+<td><strong>9.5</strong></td>
+<td>8.0 (uniform swing)</td>
+<td>-19%</td>
+</tr>
+<tr>
+<td>Nelson Mandela Bay</td>
+<td>120</td>
+<td><strong>14.3</strong></td>
+<td>22.0 (uniform swing)</td>
+<td><strong>+35%</strong></td>
+</tr>
+<tr>
+<td>Buffalo City</td>
+<td>100</td>
+<td><strong>7.9</strong></td>
+<td>11.3 (last result plus noise)</td>
+<td><strong>+30%</strong></td>
+</tr>
+<tr>
+<td><strong>all eight</strong></td>
+<td></td>
+<td><strong>213.9</strong></td>
+<td>337.4</td>
+<td><strong>+37%</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>The model beats the best available baseline in <strong>7 of 8</strong> cities. Across all eight its total error is <strong>37% lower</strong>.</p>
+<p>On the simpler measure of how many council seats it got wrong, it misses <strong>289</strong> seats across all eight councils against the baselines&rsquo; <strong>353</strong> — 18% better. That figure is lower than the headline because it only compares the single most likely outcome, and throws away everything the model says about how uncertain it is.</p>
+<p>It calls the winner correctly in <strong>721 of 742 wards</strong>.</p>
+<h2>What it forecast, against what happened</h2>
+<p>Every party that won a seat, in every city. Our figure is the middle of the range the model produced, not its best case.</p>
+<h3>Johannesburg — 270 seats</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANC</td>
+<td>91</td>
+<td>106</td>
+<td>+15</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>71</td>
+<td>73</td>
+<td>+2</td>
+</tr>
+<tr>
+<td>ActionSA</td>
+<td>44</td>
+<td>34</td>
+<td>-10</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>29</td>
+<td>32</td>
+<td>+3</td>
+</tr>
+<tr>
+<td>PA</td>
+<td>8</td>
+<td>0</td>
+<td>-8</td>
+</tr>
+<tr>
+<td>IFP</td>
+<td>7</td>
+<td>1</td>
+<td>-6</td>
+</tr>
+<tr>
+<td>VF+</td>
+<td>4</td>
+<td>1</td>
+<td>-3</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>3</td>
+<td>1</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>Al Jama-ah</td>
+<td>3</td>
+<td>0</td>
+<td>-3</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>African Heart Congress</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>APC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>62 seats out in total.</em></p>
+<h3>Tshwane — 214 seats</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANC</td>
+<td>75</td>
+<td>78</td>
+<td>+3</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>69</td>
+<td>78</td>
+<td>+9</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>23</td>
+<td>26</td>
+<td>+3</td>
+</tr>
+<tr>
+<td>ActionSA</td>
+<td>19</td>
+<td>1</td>
+<td>-18</td>
+</tr>
+<tr>
+<td>VF+</td>
+<td>17</td>
+<td>13</td>
+<td>-4</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>2</td>
+<td>1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>ATM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>COPE</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Dop</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>GOOD</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>IFP</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>47 seats out in total.</em></p>
+<h3>Ekurhuleni — 224 seats</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANC</td>
+<td>86</td>
+<td>102</td>
+<td>+16</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>65</td>
+<td>67</td>
+<td>+2</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>31</td>
+<td>29</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>ActionSA</td>
+<td>15</td>
+<td>1</td>
+<td>-14</td>
+</tr>
+<tr>
+<td>VF+</td>
+<td>8</td>
+<td>6</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>PA</td>
+<td>4</td>
+<td>0</td>
+<td>-4</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>3</td>
+<td>0</td>
+<td>-3</td>
+</tr>
+<tr>
+<td>IFP</td>
+<td>3</td>
+<td>1</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>2</td>
+<td>1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>ATM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>COPE</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Independent</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>53 seats out in total.</em></p>
+<h3>eThekwini — 222 seats</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANC</td>
+<td>96</td>
+<td>107</td>
+<td>+11</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>59</td>
+<td>56</td>
+<td>-3</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>24</td>
+<td>22</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>IFP</td>
+<td>16</td>
+<td>10</td>
+<td>-6</td>
+</tr>
+<tr>
+<td>ActionSA</td>
+<td>4</td>
+<td>1</td>
+<td>-3</td>
+</tr>
+<tr>
+<td>Abantu Batho</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>2</td>
+<td>1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Active Citiz</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>African Demo</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>African Peop</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Al Jama-ah</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>45 seats out in total.</em></p>
+<h3>Cape Town — 231 seats</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DA</td>
+<td>135</td>
+<td>138</td>
+<td>+3</td>
+</tr>
+<tr>
+<td>ANC</td>
+<td>43</td>
+<td>51</td>
+<td>+8</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>10</td>
+<td>9</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>GOOD</td>
+<td>9</td>
+<td>6</td>
+<td>-3</td>
+</tr>
+<tr>
+<td>Cape Coloure</td>
+<td>7</td>
+<td>0</td>
+<td>-7</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>6</td>
+<td>4</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>PA</td>
+<td>4</td>
+<td>0</td>
+<td>-4</td>
+</tr>
+<tr>
+<td>VF+</td>
+<td>4</td>
+<td>1</td>
+<td>-3</td>
+</tr>
+<tr>
+<td>Al Jama-ah</td>
+<td>3</td>
+<td>2</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Africa Resto</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>Cape Indepen</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>43 seats out in total.</em></p>
+<h3>Mangaung — 101 seats</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANC</td>
+<td>51</td>
+<td>53</td>
+<td>+2</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>26</td>
+<td>24</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>12</td>
+<td>12</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>VF+</td>
+<td>5</td>
+<td>4</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Afrikan Alli</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>PA</td>
+<td>2</td>
+<td>1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>ATM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>11 seats out in total.</em></p>
+<h3>Nelson Mandela Bay — 120 seats</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANC</td>
+<td>48</td>
+<td>49</td>
+<td>+1</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>48</td>
+<td>51</td>
+<td>+3</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>8</td>
+<td>8</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>Northern All</td>
+<td>3</td>
+<td>0</td>
+<td>-3</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>2</td>
+<td>1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Dop</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>PA</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>VF+</td>
+<td>2</td>
+<td>1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Abantu Integ</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>GOOD</td>
+<td>1</td>
+<td>1</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>PAC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>18 seats out in total.</em></p>
+<h3>Buffalo City — 100 seats</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANC</td>
+<td>61</td>
+<td>61</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>20</td>
+<td>22</td>
+<td>+2</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>13</td>
+<td>10</td>
+<td>-3</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>1</td>
+<td>1</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>ATM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>PAC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>UDM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>VF+</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>10 seats out in total.</em></p>
+<h2>The technical measures, in plain language</h2>
+<p>Three numbers appear above. They measure different things and it is worth knowing which.</p>
+<p><strong>Seats out</strong> is the obvious one: add up how many seats we got wrong for each party. It is easy to understand and it throws away most of what a forecast says, because it only looks at the single most likely outcome and ignores the range around it.</p>
+<p><strong>CRPS</strong> — the continuous ranked probability score — is the number in the comparison table. It scores the <em>whole range</em> a forecast gives, not just its midpoint. Saying &ldquo;between 85 and 95 seats&rdquo; and being right scores better than saying &ldquo;exactly 90&rdquo; and being right, because the first was honest about what it did not know; and a confident wrong answer is punished harder than a hedged one. Lower is better, and zero is perfect. It is in the same units as seats: a CRPS of 45 across a 270-seat council is a small error.</p>
+<p><strong>Calling the ward</strong> is the hardest test and the most direct: 135 separate first-past-the-post contests in Johannesburg alone, each won outright by one party. Getting the council roughly right while misreading which streets vote which way would show up here.</p>
+<p>One caveat on the comparison. Two of the three baselines produce a single number rather than a range, so CRPS is unavoidably kind to a model that gives ranges. That is why the seats-out figure is quoted alongside it: it is the like-for-like comparison, it is less flattering, and it is still in the model&rsquo;s favour.</p>
+<h2>What this does not prove</h2>
+<p><strong>These are not fully out-of-sample scores, and the model says so on every run.</strong> Two inputs could not be confined to the period before the election:</p>
+<ul>
+<li><strong>The census.</strong> Ward-level population figures come from the 2022 census, which was taken after the 2021 election. It is the only census we hold. A census records who lives in a ward, not how they voted, so it cannot leak a result — but it is information from after the fact and it is declared as such.</li>
+<li><strong>How much a breakaway party takes.</strong> When a well-known figure leaves a party and starts their own, how much of the old party&rsquo;s vote follows them depends enormously on whether that figure&rsquo;s support is in <em>this</em> city. Only one such split had happened anywhere before 2021, and one example is not a pattern, so the model uses all of them — including two from after 2021. This is a deliberate choice, recorded, and it is the single largest reason the Johannesburg figure improves.</li>
+</ul>
+<p>Every run prints these above its results. The honest reading is that this is a strong estimate of what the machinery is worth, not a sealed prediction made in 2021.</p>
+<p><strong>One city is worse than doing nothing.</strong> The model loses to uniform swing in Mangaung, the smallest council in the set. It is reported rather than dropped.</p>
+<p><strong>The past is not the future.</strong> Scoring well against 2021 does not guarantee 2026. Every party in this table existed in 2021; the hardest thing a forecast does is a party that has never stood before, and the record on those is the model&rsquo;s weakest area.</p>
+<hr />
+<p><em>Generated 2026-08-11 by <code>src/build_validation.py</code> from a 400-draw run per city against the 2021 result. The underlying figures are in <code>data/processed/validation_2021.json</code>; the code that produced them is public.</em></p>
+<div class="colophon">
+  Reader edition, generated from docs-public/about-the-model.md on 2026-08-15. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/ABOUT-THE-MODEL.md">ABOUT-THE-MODEL.md on GitHub</a>.
+</div>
+<footer class="sitefooter">
+  <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
+  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">source &amp; data on GitHub</a></div>
+</footer>
+</div>
+</body>
+</html>

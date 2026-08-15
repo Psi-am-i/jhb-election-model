@@ -153,7 +153,59 @@ def load_context(processed: Path) -> dict:
 
 def load_registry(path: Path) -> dict:
     with path.open("rb") as fh:
-        return tomllib.load(fh)
+        registry = tomllib.load(fh)
+    orphaned_scenario_claims(registry)
+    return registry
+
+
+def orphaned_scenario_claims(registry: dict) -> list[tuple[str, str]]:
+    """Claims pinned to a scenario key the model no longer has. Warns loudly.
+
+    A ``fixed`` token records a number captured from a named run, e.g.
+    ``source = "run:turnout_tilt_da=1 parties.DA.median"``. The drift report
+    cannot check one: re-deriving it means re-running that scenario, so a fixed
+    token is trusted by construction. That is fine while the scenario exists and
+    a silent lie the moment it does not — the number stays on the page, the
+    audit keeps reporting no drift, and nothing anywhere says the mechanism it
+    describes has been deleted.
+
+    It had happened. TEN claims on the published forecast page were pinned to
+    ``turnout_tilt_da``, a differential-turnout lever removed from
+    ``montecarlo.run_model`` because it was applied after the citywide
+    calibration and was never measured. The page still carried its numbers —
+    "the DA reaches 97 seats if its turnout surges" and nine others — describing
+    a lever the model had not had for weeks.
+
+    This cannot detect a scenario key whose MEANING changed, only one that is
+    gone. That is the cheap half; the expensive half is still a person's job.
+    """
+    try:
+        import montecarlo as _mc
+        known = set(_mc.DEFAULTS)
+    except Exception:
+        return []
+    orphans: list[tuple[str, str]] = []
+    for name, entry in (registry.get("stat") or registry).items():
+        if not isinstance(entry, dict):
+            continue
+        source = str(entry.get("source", ""))
+        if not source.startswith("run:"):
+            continue
+        spec = source[4:].split()[0]
+        if "=" not in spec:
+            continue
+        key = spec.split("=")[0]
+        if key and key not in known:
+            orphans.append((name, key))
+    if orphans:
+        keys = sorted({k for _, k in orphans})
+        print(f"  !! {len(orphans)} pinned claim(s) describe a scenario this "
+              f"model no longer has: {', '.join(keys)}")
+        for name, key in orphans:
+            print(f"     {name}  (source key {key!r})")
+        print("     These cannot drift because they cannot be re-derived. "
+              "Re-capture them under a mechanism that exists, or cut the claim.")
+    return orphans
 
 
 # --------------------------------------------------------------------------
