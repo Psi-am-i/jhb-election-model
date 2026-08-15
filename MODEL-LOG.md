@@ -1964,6 +1964,58 @@ So "Johannesburg got worse with more data" is not what happened: 62 and 65 are
 different diseases, and the 2016 one is a single level miss the record could not
 have warned about.
 
+### The DA over-prediction and the ActionSA miss are ONE error (2026-08-15)
+
+Asked what the DA's voter pools are and whether they amount to a third of the
+city. They do not, and answering it properly found that two of the model's
+largest errors are the same error.
+
+**The DA's pools, Johannesburg 2021.** Its vector is White 64.3%, Coloured
+14.7%, Black African 11.3%, Indian/Asian 9.6% — so 88.7% of its vote comes from
+pools holding **42.0% of the votes cast** (35.0% of the roll; they turn out well
+above the city average). A DA on 33% of the city therefore is not "33% of the
+population": it requires taking
+
+    Black African 6%   Coloured 74%   Indian/Asian 86%   White 67%
+
+**Those rates are not impossible, and that is the point.** The ecological fit on
+2016 measured the DA at Black African 6.2%, Coloured 77.9%, Indian/Asian 71.2%,
+White 87.5%, and every pool's rates sum to 100% across parties by construction.
+So the drawn 33% is consistent with the DA holding its 2016 position. The actual
+25.45% needs White ~52%. **The DA's rate in the White pool collapsed from 87.5%
+to about 52% between 2016 and 2021**, and the model carries 2016 forward.
+
+**Where it went is in the pool vectors.** ActionSA is a DA splinter and inherits
+its parent's vector: **ASA is 67.2% White against the DA's 64.3%**. They compete
+for the same voters, and the pool renormalisation is supposed to debit the DA
+when ActionSA takes them.
+
+Tested by forcing ActionSA to its actual 18.12% and changing nothing else:
+
+    party      actual    as-is    ASA forced correct
+    DA         25.45%   33.00%          27.11%
+    ASA        18.12%    5.75%          14.38%
+    ANC        33.22%   39.99%          38.47%
+    EFF        10.11%   14.09%          13.36%
+    DA seats       71       90              75
+
+**The DA's error falls from +7.55pp to +1.66pp, and its seat error from +19 to
++4, with no change to the DA's own machinery.** The ANC barely moves, because it
+draws from a different pool — which is the pool structure doing exactly what it
+was built to do, and is the strongest evidence yet that the pool layer is sound.
+
+Three consequences.
+
+1. **A claim made earlier in this session was wrong.** "ANC 40.0 + DA 33.0 = 73%
+   is an established-party level error that no arrival work touches" is false for
+   the DA half. Most of the DA's error IS the arrival error, arriving through the
+   shared pool.
+2. **The residual is the ANC**, +5.25pp even with ActionSA corrected, in the
+   Black African pool. That is the genuinely separate problem.
+3. **Nothing here needs a new mechanism.** The debit already works; it is starved
+   because the thing debiting it is too small. Every point of improvement on
+   arrivals buys most of a point on the DA for free.
+
 ### Two things this did NOT do
 
 * **The point-estimate rates matrix is still a point estimate** (review item 6).
