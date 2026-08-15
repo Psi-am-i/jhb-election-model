@@ -248,7 +248,31 @@ def triangular(rng, spec, size=None):
     return rng.triangular(low, min(max(mode, low), high), high, size)
 
 
-# Degrees of freedom for the level shock. A bounded triangular assigns
+# Degrees of freedom for the level shock.
+#
+# WAS 4.0, AND 4.0 IS INDEFENSIBLE. exp(c·t_v) has an INFINITE MEAN whenever
+# v <= 2/c² is false in the wrong direction — concretely, the t₄ density's |t|⁻⁵
+# tail loses to the exponential and no moment exists. Measured over 400,000
+# draws at df=4:
+#
+#     sd handed in   median   sample mean       p99.9        max
+#     0.26            1.000        46,591        3.71    1.9e+10
+#     0.72            1.001           859       39.33    3.4e+08
+#     1.20            0.998     4,709,109      429.33    1.9e+12
+#
+# The median is perfect and the mean is nonsense, which is exactly the failure
+# mode that hides: every summary this repository reports as a "mean" — the vote
+# tables in compare_history, the arrival sizes in arrivals.py, and above all the
+# MEAN SEAT VECTOR that coherent_seats apportions by largest remainder — was
+# being computed on a statistic that does not exist. It is also why small
+# parties showed mean/median ratios of 6x to 10x where a lognormal of the same
+# sd gives about 2x.
+#
+# At df=7 the same draws give means of 1.03, 1.35 and 2.93. Support is still
+# unbounded and the tail is still far heavier than a normal's, so the reason the
+# shock exists at all is intact.
+#
+# A bounded triangular assigns
 # probability EXACTLY ZERO outside its support, and this model kept doing that
 # to outcomes that had already happened — Al Jama-ah won a Johannesburg seat in
 # 2016 with 0 of 500 draws non-zero, which is an infinite log score for an event
@@ -258,7 +282,7 @@ def triangular(rng, spec, size=None):
 # says) while putting roughly 2% of the mass beyond 3.7 sd, against a normal's
 # 0.02% — two orders of magnitude more room for the surprise this model has
 # repeatedly been surprised by.
-LEVEL_DF = 4.0
+LEVEL_DF = 7.0
 
 
 def log_shock(rng, sd, size=None, df: float = LEVEL_DF):
