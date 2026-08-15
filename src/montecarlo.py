@@ -778,14 +778,62 @@ def pool_spec(scenario, base_city_d, centres, index, lean, ipf_out=None):
     # actually carry — an individually-drawn party is not in this system and
     # must not be given pool votes.
     want = np.array([max(centres.get(p, 0.0), 0.0) for p in parties])
+    # FEASIBILITY FIRST. IPF can only satisfy two margins that CAN both hold. A
+    # party can take at most all of the pools it belongs to, so its ceiling is
+    # the share of the city those pools hold; asking for more is unsatisfiable
+    # and the iteration runs to its cap and raises.
+    #
+    # It did, at Nelson Mandela Bay, where seven parties carry a centre and
+    # belong to no pool at all. The failure was caught and the run continued
+    # with the centres NOT binding — so that city was silently forecast by the
+    # old, worse mechanism while the other eight used the new one, and its
+    # small-party seats came out at 9 against an actual 16.
+    ceiling = np.array([
+        float((pool_votes * np.array([
+            1.0 if float(scenario["pools"][nm]["members"].get(pp, 0.0)) > 0 else 0.0
+            for nm in names])).sum() / max(pool_votes.sum(), 1e-9))
+        for pp in parties])
+    clipped = np.minimum(want, ceiling)
+    if (want - clipped).sum() > 1e-9:
+        lost = float((want - clipped).sum())
+        over = [parties[j] for j in np.argsort(-(want - clipped))[:4]
+                if want[j] - clipped[j] > 1e-9]
+        print(f"  ! {lost:.2%} of the citywide level asked for more than a "
+              f"party's own pools can supply and was clipped "
+              f"({', '.join(over)}). Those parties belong to fewer pools than "
+              f"their level implies; check their vectors.")
+    want = clipped
     if want.sum() > 0:
         want = want / want.sum()
     try:
         import pools as _pl
         R = _pl.balance_margins(R, pool_votes, want * pool_votes.sum())
     except Exception as exc:
-        print(f"  ! could not balance pool margins ({exc}); centres will not "
-              f"bind and large parties will be over-forecast")
+        # THE TWO MARGINS CAN GENUINELY CONFLICT, and when they do the POOL
+        # margin wins: a pool's voters vote for somebody, whereas a party's
+        # centre is the model's belief. Nelson Mandela Bay is the case — its
+        # Indian/Asian pool holds 2.3% of the city's votes and its sixteen
+        # members' centres do not add to that between them, so no matrix
+        # satisfies both and `balance_margins` runs to its cap and raises.
+        #
+        # Abandoning the balance entirely was worse than a partial one: it
+        # dropped that city back to the un-bound centres while the other eight
+        # used the new mechanism, and its small-party seats came out at 9
+        # against an actual 16. A bounded alternating scaling that ENDS on the
+        # row pass gets most of the way and leaves every pool exactly allocated.
+        C = R * pool_votes[:, None]
+        col_target = want * pool_votes.sum()
+        for _ in range(200):
+            cs = C.sum(axis=0)
+            C *= np.divide(col_target, cs, out=np.ones_like(cs),
+                           where=cs > 0)[None, :]
+            rs = C.sum(axis=1, keepdims=True)
+            C *= np.divide(pool_votes[:, None], rs,
+                           out=np.ones_like(rs), where=rs > 0)
+        R = C / np.maximum(C.sum(axis=1, keepdims=True), 1e-12)
+        print(f"  ! pool and party margins are not jointly satisfiable "
+              f"({exc}); used a partial balance that keeps every pool exactly "
+              f"allocated and gets the party levels as close as it can")
     # Kept so the draw can re-balance against SHOCKED centres. See draw_pools:
     # applying a party's level shock inside the pool and renormalising there
     # cancels it for a dominant member, which left the top three drawing a
