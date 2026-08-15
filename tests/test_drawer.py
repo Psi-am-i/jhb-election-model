@@ -28,9 +28,15 @@ other. Re-record with ``--decompose`` to reproduce the current figures.
   different step with a different fix, and attributing it to 3.1 would send
   whoever fixes 3.1 after a defect that is not there.
 
-``test_renormalisation_narrows_the_largest_pool_from_both_sides`` asserts that
-the first gap is there. **When 3.1 is fixed that test must fail**, loudly and
-deliberately, and it should then be deleted along with the GOLDEN values below.
+**PLAN ITEM 3.1 IS RESOLVED, 2026-08-15.** The test that asserted the
+narrowing — ``test_the_realised_pool_prior_is_not_the_configured_one`` — failed
+as it was designed to, and has been deleted per its own instruction rather than
+loosened. The Black African pool's configured band is 50.87-63.08% and its
+realised band 48.75-61.31%: a width of 12.21 points against 12.56, so the
+distribution is no longer pulled in. The fix was not aimed at 3.1 — it is the
+Gaussian copula in ``montecarlo.correlated_triangular``, which preserves each
+pool's marginal exactly by construction, plus the per-party level shocks. The
+entrant rescale below still shifts the pools down and is a separate thing.
 
 Re-record after a deliberate change with:
     ./.venv/bin/python tests/test_drawer.py --record
@@ -116,21 +122,21 @@ PROCESSED = ROOT / "data" / "processed"
 # docstring — renormalisation for A-to-B (plan item 3.1), the entrant rescale
 # for B-to-C.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (24.1094, 13.2948, 36.1040),
-    "DA": (28.8254, 22.0170, 36.3467),
-    "EFF": (11.4776, 3.8073, 21.3914),
-    "ASA": (12.7571, 5.5069, 22.0863),
-    "MK": (7.5433, 1.8292, 16.5473),
-    "PA": (3.9675, 2.7302, 5.2494),
-    "VFPLUS": (0.8537, 0.0102, 3.1813),
-    "ALJAMAAH": (0.8579, 0.2953, 1.5777),
-    "ENTRANT": (1.4945, 0.0000, 8.0052),
+    "ANC": (24.1688, 13.1285, 35.9870),
+    "DA": (28.5613, 21.9999, 35.8214),
+    "EFF": (11.4383, 3.8063, 21.0157),
+    "ASA": (12.6181, 5.1538, 22.1865),
+    "MK": (7.8561, 1.7835, 17.3169),
+    "PA": (3.9969, 2.7479, 5.3030),
+    "VFPLUS": (0.8618, 0.0129, 3.1734),
+    "ALJAMAAH": (0.8556, 0.2856, 1.6521),
+    "ENTRANT": (1.4648, 0.0000, 7.7450),
 }
 GOLDEN_POOLS: dict[str, tuple[float, float, float]] = {
-    "Black African": (54.3245, 47.1358, 60.7552),
-    "Coloured": (7.6267, 6.1612, 9.3457),
-    "Indian/Asian": (5.5146, 4.4106, 6.8284),
-    "White": (31.0398, 25.7594, 36.9016),
+    "Black African": (54.5683, 47.7311, 60.8068),
+    "Coloured": (7.6590, 6.1670, 9.4600),
+    "Indian/Asian": (5.4945, 4.4517, 6.8340),
+    "White": (30.8134, 25.6556, 36.3147),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")
@@ -371,65 +377,6 @@ def _largest_pool(scenario, base_city_d, centres, index) -> str:
     return max(spec, key=lambda name: spec[name][1])
 
 
-def test_the_realised_pool_prior_is_not_the_configured_one():
-    """DOCUMENTS A KNOWN DEFECT (plan item 3.1) — delete this when 3.1 is fixed.
-
-    Renormalisation is stage A -> stage B: the configured ratio band against
-    the draws as they stand *before* the entrant rescale.
-
-    Under the two-bloc engine this compressed both tails inward. Under N pools
-    it does something different, and worse. The pools are drawn independently
-    and their sum varies, so dividing by that sum redistributes between them:
-    the dominant pool absorbs the variance downward while the small pools widen
-    upward. Measured 2026-08-10, seed 20261104, 2000 draws:
-
-      pool            configured p5-p95     realised (stage B)
-      Black African   63.63 - 68.69         52.98 - 68.59      p5 -10.65
-      Indian/Asian     4.86 -  5.93          5.01 -  8.72      p95 +2.79
-      Other            0.83 -  1.75          1.01 -  3.55      p95 +1.80
-
-    Indian/Asian realises nearly three times the width it was configured with.
-    Nobody chose that: it is an artefact of normalising after the fact. The
-    fix is to draw the composition jointly, or to draw the residual as one
-    quantity with an explicit total, so the sum is one by construction.
-
-    This test asserts the gap EXISTS, so that fixing 3.1 fails the suite
-    instead of passing it silently. When that happens: delete this test and
-    re-record GOLDEN_PARTIES/GOLDEN_POOLS.
-    """
-    _m, index, scenario, base_city_d, centres = draw_matrix()
-    name = _largest_pool(scenario, base_city_d, centres, index)
-    (a_p5, a_p95), (b_p5, b_p95), _, spec = stages(name)
-
-    # The PROPERTY, not a magnitude in points. An earlier version demanded the
-    # dominant pool's p5 fall by more than five points, which held while the
-    # pool ratio was a narrow [0.89, 0.96, 1.01] and stopped holding the moment
-    # the ratio widened to [0.70, 0.91, 1.40] — not because renormalisation had
-    # been fixed, but because the same distortion is smaller relative to a wider
-    # band. A test that fails on a legitimate re-fit trains people to re-record
-    # without reading, and then catches nothing.
-    width_a, width_b = a_p95 - a_p5, b_p95 - b_p5
-    assert abs(width_b - width_a) > 0.05 * width_a, (
-        f"renormalisation no longer changes pool {name!r}'s band: configured "
-        f"{a_p5:.2f}-{a_p95:.2f}%, realised {b_p5:.2f}-{b_p95:.2f}% "
-        f"(ratio triangular {spec}). Either plan item 3.1 (post-hoc "
-        f"renormalisation in draw_pools) has been fixed — in which case DELETE "
-        f"this test and re-record the golden values — or the arithmetic "
-        f"changed. Do not 'fix' this by loosening the threshold.")
-
-    widened = []
-    for other in scenario["pools"]:
-        if other == name:
-            continue
-        (o_a5, o_a95), (o_b5, o_b95), _, _ = stages(other)
-        if (o_b95 - o_b5) > (o_a95 - o_a5) * 1.2:
-            widened.append(other)
-    assert widened, (
-        "no pool realises a materially wider band than it was configured "
-        "with. Under the measurement this file records, the small pools widen "
-        "as the dominant one is dragged down — that is the same defect seen "
-        "from the other end. If it has gone, 3.1 may be fixed: re-measure "
-        "with `--decompose` and rewrite this file's docstring.")
 
 
 def test_entrant_rescale_pushes_every_pool_down():

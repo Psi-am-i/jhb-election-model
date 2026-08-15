@@ -277,6 +277,14 @@ FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
     # The conversion's other inputs — which municipalities a party contests, and
     # their share of the national vote — are nomination and roll facts published
     # weeks ahead.
+    # A metro poll of the target's own city, admitted only when its fieldwork
+    # ended before polling day AND it declares this election as its target.
+    # Blended by inverse variance against the model's own spread, so it is
+    # weighted by precision rather than by how much history a party has.
+    "metro_poll": (
+        (),
+        "a poll of this city, taken before polling day and declared for this "
+        "election, blended by inverse variance (task #23). Reads no result"),
     "poll_level": (
         (),
         "an arrival's level taken from a national poll, converted by the share "

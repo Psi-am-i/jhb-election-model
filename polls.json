@@ -112,6 +112,82 @@
       "numbers": {},
       "note": "Reported ActionSA 'on course to win Joburg'. It finished THIRD on 16.05%. Recorded WITHOUT numbers and flagged commissioned_by so it is excluded by default: it is the evidence for the exclusion rule, not evidence about the election.",
       "source": "thesouthafrican.com, 2021 local elections coverage"
+    },
+    {
+      "house": "Ipsos",
+      "fieldwork": "17 June - 18 July 2016, final release 1 August",
+      "fieldwork_start": "2016-06-17",
+      "fieldwork_end": "2016-08-01",
+      "target": "2016",
+      "method": "RDD panel, registered voters",
+      "source": "Ipsos/eNCA election polls; metro figures as tabulated by businesstech.co.za, 'the predictions vs the outcome', Aug 2016",
+      "id": "ipsos-2016-lge-national",
+      "scope": "national",
+      "n": 3142,
+      "geography": "South Africa, registered voters",
+      "numbers": {
+        "ANC": 0.54,
+        "DA": 0.26,
+        "EFF": 0.08
+      },
+      "note": "Actual national: ANC 53.91, DA 26.90, EFF 8.19. Every party inside the stated margin."
+    },
+    {
+      "house": "Ipsos",
+      "fieldwork": "17 June - 18 July 2016, final release 1 August",
+      "fieldwork_start": "2016-06-17",
+      "fieldwork_end": "2016-08-01",
+      "target": "2016",
+      "method": "RDD panel, registered voters",
+      "source": "Ipsos/eNCA election polls; metro figures as tabulated by businesstech.co.za, 'the predictions vs the outcome', Aug 2016",
+      "id": "ipsos-2016-lge-joburg",
+      "scope": "metro",
+      "city": "joburg",
+      "geography": "City of Johannesburg",
+      "numbers": {
+        "ANC": 0.46,
+        "DA": 0.41,
+        "EFF": 0.08
+      },
+      "note": "Actual 44.6/38.4/11.1. THE MODEL'S WORST CITY-YEAR HAD AN ACCURATE METRO POLL: the model puts the ANC at 53.8 against this poll's 46.0 and an actual 44.6."
+    },
+    {
+      "house": "Ipsos",
+      "fieldwork": "17 June - 18 July 2016, final release 1 August",
+      "fieldwork_start": "2016-06-17",
+      "fieldwork_end": "2016-08-01",
+      "target": "2016",
+      "method": "RDD panel, registered voters",
+      "source": "Ipsos/eNCA election polls; metro figures as tabulated by businesstech.co.za, 'the predictions vs the outcome', Aug 2016",
+      "id": "ipsos-2016-lge-tshwane",
+      "scope": "metro",
+      "city": "tshwane",
+      "geography": "City of Tshwane",
+      "numbers": {
+        "ANC": 0.47,
+        "DA": 0.43,
+        "EFF": 0.09
+      },
+      "note": "Actual 41.2/43.1/11.7."
+    },
+    {
+      "house": "Ipsos",
+      "fieldwork": "17 June - 18 July 2016, final release 1 August",
+      "fieldwork_start": "2016-06-17",
+      "fieldwork_end": "2016-08-01",
+      "target": "2016",
+      "method": "RDD panel, registered voters",
+      "source": "Ipsos/eNCA election polls; metro figures as tabulated by businesstech.co.za, 'the predictions vs the outcome', Aug 2016",
+      "id": "ipsos-2016-lge-nmb",
+      "scope": "metro",
+      "city": "nelsonmandelabay",
+      "geography": "Nelson Mandela Bay",
+      "numbers": {
+        "ANC": 0.37,
+        "DA": 0.44,
+        "EFF": 0.06
+      },
+      "note": "Actual 40.9/46.7/5.1."
     }
   ]
 }

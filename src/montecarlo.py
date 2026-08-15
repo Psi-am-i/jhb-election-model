@@ -1790,6 +1790,41 @@ def run_model(target, scenario: dict,
               f"national route alone")
 
     centres, notes = blended_centres(scenario, base_city_d, prior_pr_share, bye)
+
+    # --- metro polls, blended by PRECISION not by party history --------------
+    # A poll of THIS city is a direct reading of the quantity being forecast, so
+    # it applies to every party it names rather than only to arrivals. How much
+    # it counts is inverse-variance: see polling.blend_weight. The measured
+    # house error is 3.0pp (polling.POLL_RMS_ERROR) against model intervals that
+    # are far wider for a large party, so an accurate metro poll is not thrown
+    # away because the party happens to have a long record — which is what a
+    # weight keyed on observation counts would have done.
+    try:
+        import polling as _pg
+        _sd = scenario.get("_theta_sd") or {}
+        _default_sd = float(scenario.get("level_sd_default", 0.45))
+        for _poll in _pg.usable_for(target):
+            if _poll.get("scope") != "metro":
+                continue
+            if _poll.get("city") and _poll["city"] != target.city.slug:
+                continue
+            for _party, _share in (_poll.get("numbers") or {}).items():
+                if _party not in centres:
+                    continue
+                _mu = float(centres[_party])
+                if _mu <= 0:
+                    continue
+                # The model's spread in POINTS, so the two are comparable.
+                _msd = float(_sd.get(_party, _default_sd)) * _mu
+                _w = _pg.blend_weight(_pg.POLL_RMS_ERROR, _msd)
+                centres[_party] = (1 - _w) * _mu + _w * float(_share)
+                notes[_party] = notes.get(_party, "") + (
+                    f" | {_poll['house']} {_poll['fieldwork_end']} "
+                    f"{_share:.1%} @ w={_w:.2f}: → {centres[_party]:.1%}")
+            note_constant(scenario, "metro_poll", _poll["id"])
+    except Exception as _exc:
+        print(f"  ! metro polls unavailable ({type(_exc).__name__}: {_exc})")
+
     if scenario.get("poll_id") and scenario.get("poll_weight", 0) > 0:
         polls = {q["id"]: q for q in json.loads(
             Path("polls.json").read_text(encoding="utf-8"))["polls"]}

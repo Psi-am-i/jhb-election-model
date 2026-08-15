@@ -75,6 +75,49 @@ import cityconfig
 
 REGISTER = Path("polls.json")
 
+# A METRO POLL'S TOTAL ERROR, in points, measured rather than taken from the
+# sampling formula. Nominal margin of error is the smaller half of the problem:
+# it prices sampling and nothing else — not the likely-voter screen, not house
+# effects, not late movement. Ipsos's three metro polls at 2016 (Johannesburg,
+# Tshwane, Nelson Mandela Bay; ANC, DA and EFF in each) missed by
+#
+#     1.4  2.6  3.1   5.8  0.1  2.7   3.9  2.7  0.9
+#
+# giving an RMS of 3.03pp against a nominal margin nearer 1.5. So 3.0 is the
+# number a forecaster should carry, and it is a TRACK RECORD rather than a
+# formula — the standard the pollster brief asks for.
+POLL_RMS_ERROR = 0.030
+
+# How long before polling day a poll may still be describing the same election,
+# when it does not say which one it was taken for. Eighteen months covers a
+# local-election campaign and the registration weekends either side of it, and
+# excludes the previous cycle outright.
+CAMPAIGN_WINDOW_DAYS = 550
+
+
+def blend_weight(poll_sd: float, model_sd: float) -> float:
+    """Inverse-variance weight on the poll. The professional mechanism.
+
+    Two estimates of the same quantity are combined in proportion to their
+    precision: ``w = (1/s_p²) / (1/s_p² + 1/s_m²)``. This is what poll
+    aggregation does and it is the right answer to "how much should a poll
+    count", replacing a weight keyed on how much electoral history a party
+    happens to have.
+
+    It also REPRODUCES the rule it replaces, without being told to. A party with
+    no record has an enormous model spread — ``levels.SD_CEILING`` is 1.20 in log
+    units — so the poll takes nearly all the weight. A party with a long
+    retention record has a tight prior and the poll is one reading among
+    several. The difference is that the weight now follows from how uncertain
+    the two estimates ARE, rather than from a count of observations, so an
+    accurate metro poll of a well-known party is not thrown away: at Johannesburg
+    2016 the model's own ANC interval was some 11 points wide against a poll
+    error of 3, and the poll was right.
+    """
+    vp = max(float(poll_sd), 1e-6) ** 2
+    vm = max(float(model_sd), 1e-6) ** 2
+    return float((1.0 / vp) / ((1.0 / vp) + (1.0 / vm)))
+
 # Registered voters nationally, per local election. Needed as the denominator of
 # the contested-area conversion and NOT derivable from anything on disk: the
 # archive holds eight metros, not the country. Sourced from the IEC's published
@@ -120,6 +163,17 @@ def usable_for(target: cityconfig.Target, polls: list[dict] | None = None,
         if when >= target.date:
             continue
         if poll.get("commissioned_by") and not allow_commissioned:
+            continue
+        # A POLL IS ABOUT AN ELECTION, not merely before one. Filtering on
+        # "fieldwork ended before polling day" alone let the 2016 Johannesburg
+        # poll inform the 2021 forecast: five years stale, taken about a
+        # different contest, and measurably harmful (Johannesburg 2021 CRPS 77.0
+        # -> 86.2). A poll declares which election it was taken for; where it
+        # does not, it must at least fall inside the campaign window.
+        declared = str(poll.get("target") or "")
+        if declared and declared != str(target.year):
+            continue
+        if not declared and (target.date - when).days > CAMPAIGN_WINDOW_DAYS:
             continue
         out.append(poll)
     return out
