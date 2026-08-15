@@ -294,7 +294,18 @@ def log_shock(rng, sd, size=None, df: float = LEVEL_DF):
     measured it to mean.
     """
     scale = np.sqrt((df - 2.0) / df)
-    return np.exp(np.asarray(sd) * scale * rng.standard_t(df, size=size))
+    sd = np.asarray(sd)
+    # SIZE DEFAULTS TO THE SHAPE OF sd. Passing an array of per-party spreads
+    # with size=None gave every party the SAME t draw — one scalar broadcast
+    # across the vector — so the shocks were perfectly correlated. A common
+    # multiplicative shock cancels exactly under the normalisation that follows,
+    # which is why the ANC and DA realised sd(log) 0.08 against a measured 0.21
+    # while a small party, whose share barely moves the normaliser, realised its
+    # own. The level shock existed and did nothing for precisely the parties it
+    # was added for.
+    if size is None and sd.ndim > 0:
+        size = sd.shape
+    return np.exp(sd * scale * rng.standard_t(df, size=size))
 
 
 # How much of a pool's turnout move is shared with the other pools. MEASURED,
@@ -775,6 +786,16 @@ def pool_spec(scenario, base_city_d, centres, index, lean):
     except Exception as exc:
         print(f"  ! could not balance pool margins ({exc}); centres will not "
               f"bind and large parties will be over-forecast")
+    # Kept so the draw can re-balance against SHOCKED centres. See draw_pools:
+    # applying a party's level shock inside the pool and renormalising there
+    # cancels it for a dominant member, which left the top three drawing a
+    # realised sd(log) of 0.078 against a measured 0.26.
+    # Stashed on the SCENARIO, not returned in the spec. `spec` is a dict of
+    # pools that several callers iterate expecting every value to be a pool
+    # tuple; a metadata key in it is a landmine, and it took out
+    # tests/test_drawer.py the moment it was added.
+    scenario["_ipf"] = {"R0": R.copy(), "pool_votes": pool_votes,
+                        "parties": parties, "pidx": pidx, "names": names}
 
     spec = {}
     for g, name in enumerate(names):
@@ -795,6 +816,11 @@ def pool_spec(scenario, base_city_d, centres, index, lean):
     return spec
 
 
+def _balance(R, electorate, party_votes):
+    import pools as _pl
+    return _pl.balance_margins(R, electorate, party_votes)
+
+
 def make_drawer(scenario, base_city_d, centres, index, rng):
     """Return a function drawing one citywide PR target vector."""
     n = len(index)
@@ -809,6 +835,7 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             "nothing to fall back on. Run:\n"
             "  python src/pools.py --city <city> --target <year> --emit")
     pools = pool_spec(scenario, base_city_d, centres, index, lean)
+    ipf = scenario.get("_ipf")
 
     # Lineage belongs to the pool fit, not here. A splinter inherits its
     # parent's pool vector, an entrant takes an even share of every pool, and
@@ -1016,7 +1043,50 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         # Shares follow from votes, so the pool side sums to one by
         # construction rather than by a later division.
         cast = sum(totals.values())
+        # THE LEVEL SHOCK MOVES TO THE CENTRES, BEFORE THE BALANCE.
+        #
+        # Applying it inside the pool and renormalising there cancels it for a
+        # dominant member — the normaliser falls with the party — so the top
+        # three drew a realised sd(log) of 0.078 against the 0.26 levels.py
+        # measures for their size band. Binding the centres by IPF fixed the
+        # CENTRE and left that dispersion untouched, which made the model
+        # accurate and overconfident rather than inaccurate and overconfident.
+        #
+        # Shocking the centres and re-balancing means the whole shock survives:
+        # the IPF forces each party's expected citywide share onto its SHOCKED
+        # centre, so a draw in which the ANC is 8% lower is a draw in which the
+        # ANC really is 8% lower. It costs 0.15 ms a draw.
+        pool_props = {name: p[3] for name, p in pools.items()}
+        if ipf is not None and ipf["parties"]:
+            base_c = np.array([max(centres.get(q, 0.0), 1e-12)
+                               for q in ipf["parties"]])
+            share = base_c / base_c.sum()
+            # NO COMPOSITIONAL INFLATION. One was added when the top parties
+            # were realising a third of their measured spread, on the theory
+            # that normalising a share vector eats a large party's own move.
+            # The real cause was that every party was being handed the SAME t
+            # draw (see log_shock), and with genuinely independent shocks the
+            # normaliser is an average over many parties and barely moves — so
+            # the correction became a 1.4x over-shoot. Measured both ways.
+            sds = np.array([pool_sd_shock.get(q, 0.0) for q in ipf["parties"]])
+            shocked = base_c * log_shock(rng, sds)
+            if shocked.sum() > 0:
+                shocked = shocked / shocked.sum()
+                try:
+                    Rd = _balance(ipf["R0"], ipf["pool_votes"],
+                                  shocked * ipf["pool_votes"].sum())
+                    for gi, nm in enumerate(ipf["names"]):
+                        if nm not in pools:
+                            continue
+                        members = pools[nm][5]
+                        v = np.array([Rd[gi, ipf["pidx"][q]] if q in ipf["pidx"]
+                                      else 0.0 for q in members])
+                        if v.sum() > 0:
+                            pool_props[nm] = v / v.sum()
+                except Exception:
+                    pass
         for name, (idx, reg, spec, props, alpha, names, levels, wts) in pools.items():
+            props = pool_props.get(name, props)
             # A PARTY'S OWN LEVEL MOVES, not just its pool's total and its
             # share of the split. Before this, a pooled party had no level
             # uncertainty of its own at all: the pool's turnout moved every
@@ -1025,8 +1095,9 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             # how wrong a party's level can be — never entered the draw for any
             # party large enough to be in a pool. That is the under-dispersion
             # the review called structural, and this is where it lived.
-            shocks = np.array([pool_sd_shock[p] for p in names])
-            moved = props * log_shock(rng, shocks)
+            # The shock has already been applied to the centres above and
+            # balanced through, so it must NOT be applied again here.
+            moved = props
             # FLOOR THE MEAN, NOT THE CONCENTRATION. A Dirichlet's component
             # mean is alpha_i / Σalpha, so clipping alpha_i injects mass no
             # centre asked for -- a conservation violation rather than a tuning

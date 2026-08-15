@@ -2648,7 +2648,18 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     for party in sorted(no_vector):
         rule = lineage.get(party, {})
         weights = rule.get("weights")
-        parent = (rule.get("parent") or "").strip().upper()
+        # THROUGH classify_arrival, not off the raw field. Every `parent` in
+        # every judgements/*.toml is "" -- the file exists to be filled in and
+        # nobody has -- so reading it directly meant this loop called ActionSA
+        # an entrant and gave it an even share of every pool, while
+        # `arrival_rules` (which DOES go through classify_arrival) called it a
+        # split from the DA and blended its vector. The emitted vector came from
+        # the second, so the draw was right; but the run reported both, and one
+        # of the two provenance strings was false. A reader who finds one
+        # advertised constant that does not do what it says stops trusting the
+        # measured ones, which is this repository's own stated standard.
+        parent, _why = classify_arrival(party, rule.get("parent"))
+        parent = (parent or "").strip().upper()
         if weights:
             vec = np.array([float(w) for w in weights], dtype=float)
             vec = vec / vec.sum() if vec.sum() > 0 else np.full(n, 1.0 / n)
