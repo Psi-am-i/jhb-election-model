@@ -721,47 +721,77 @@ def pool_spec(scenario, base_city_d, centres, index, lean):
     everywhere reduces this to a plain per-group draw, which is the
     regression test.
     """
+    # THE CENTRES MUST BIND, and until now they did not.
+    #
+    # A pool's votes are its registration times a drawn turnout, and its members
+    # split it by a Dirichlet whose mean is `props`. `props` was
+    # members x centre, normalised WITHIN the pool — so a party's realised
+    # citywide share was (pool's share of the city) x (its share of that pool),
+    # and its centre only ever moved the second factor. For a party that already
+    # holds most of its pool that is almost no leverage at all: cutting the
+    # ANC's centre by 15% moves its normalised share of the Black African pool
+    # by about a tenth of that, because the normaliser falls with it.
+    #
+    # It is why the model's largest parties sit +36.6pp over nine city-years
+    # while ranks 4-12 sit -43.4pp, and why blending an accurate metro poll into
+    # the ANC's centre at weight 0.92 moved its realised share by half a point.
+    # The level layer was writing to a variable the draw barely read.
+    #
+    # Two margins are known and neither is a modelling choice: each pool holds a
+    # counted number of voters, and each party's citywide level is what the
+    # spine, the by-elections and the polls have just agreed on. Iterative
+    # proportional fitting is the standard way to impose both, it preserves
+    # non-negativity and every structural zero, and it lands on the matrix
+    # closest to the starting one in KL divergence — so it ADJUSTS the measured
+    # pool vectors rather than replacing them. `pools.balance_margins` already
+    # does exactly this for the ecological fit; this is the same procedure
+    # applied to the same object one stage later.
+    names = list(scenario["pools"])
+    parties = sorted({p for cfg in scenario["pools"].values()
+                      for p in cfg["members"] if p in index})
+    if not names or not parties:
+        return {}
+    pidx = {p: j for j, p in enumerate(parties)}
+    R = np.zeros((len(names), len(parties)))
+    pool_votes = np.zeros(len(names))
+    for g, name in enumerate(names):
+        cfg = scenario["pools"][name]
+        pool_votes[g] = float(cfg["registered"]) * float(cfg["turnout"][1])
+        for p, w in cfg["members"].items():
+            if p in pidx and float(w) > 0:
+                R[g, pidx[p]] = float(w) * max(centres.get(p, 0.0), 1e-9)
+    rows = R.sum(axis=1, keepdims=True)
+    R = np.divide(R, rows, out=np.zeros_like(R), where=rows > 0)
+
+    # The party margin is the centres, renormalised over the parties the pools
+    # actually carry — an individually-drawn party is not in this system and
+    # must not be given pool votes.
+    want = np.array([max(centres.get(p, 0.0), 0.0) for p in parties])
+    if want.sum() > 0:
+        want = want / want.sum()
+    try:
+        import pools as _pl
+        R = _pl.balance_margins(R, pool_votes, want * pool_votes.sum())
+    except Exception as exc:
+        print(f"  ! could not balance pool margins ({exc}); centres will not "
+              f"bind and large parties will be over-forecast")
+
     spec = {}
-    for name, cfg in scenario["pools"].items():
+    for g, name in enumerate(names):
+        cfg = scenario["pools"][name]
         members = {p: float(w) for p, w in cfg["members"].items()
                    if p in index and float(w) > 0}
         if not members:
             continue
         idx = [index[p] for p in members]
-        weights = np.array([members[p] for p in members])
-        # A pool's base and centre are its members' weighted contributions, so
-        # a party sitting half in one pool brings half its vote to each.
-        base_total = float(sum(members[p] * base_city_d.get(p, 0.0) for p in members))
-        centre_total = float(sum(members[p] * centres.get(p, 0.0) for p in members))
-        # Pool movement is a RATIO, not a shift in points. Points only ever
-        # worked because there were exactly two pools of roughly fixed size:
-        # "-22 points" is meaningless for a pool holding 1.1% of the vote, and
-        # applying it to one produces the nonsense that showed up the first
-        # time this engine ran. A ratio scales with the pool, which is how θ
-        # already works everywhere else in the model.
-        # Measured across eight metros and three transitions (PR ballot,
-        # LGE total / preceding NPE total): African-side n=24, 0.82-1.01,
-        # median 0.88; white-side n=24, 1.09-1.79, median 1.29 -- the
-        # differential local-election turnout, in one number.
-        # A POOL'S SIZE IS COUNTED, NOT DRAWN. The published roll, split by
-        # each ward's own composition, gives how many voters the pool holds.
-        # The only uncertain term is turnout, and turnout is an ASSUMPTION
-        # rather than a model output: no CoJ poll publishes one, so it defaults
-        # to this city's own local-election record and can be overridden in
-        # judgements/. The "ratio" this replaces was a single triangular
-        # standing in for population change, registration change and turnout
-        # change at once, fitted to two transitions and, for a while, borrowed
-        # from other cities.
-        registered = float(cfg["registered"])
-        low, mode, high = cfg["turnout"]
-        props = np.array([members[p] * centres.get(p, 0.0) for p in members])
+        props = np.array([R[g, pidx[p]] if p in pidx else 0.0 for p in members])
         if props.sum() <= 0:
-            props = weights
+            props = np.array([members[p] for p in members])
         props = props / props.sum()
         levels = np.array([members[p] * centres.get(p, 0.0) for p in members])
-        spec[name] = (idx, registered, (low, mode, high),
-                      props, float(cfg["alpha"]), list(members), levels,
-                      {p: members[p] for p in members})
+        spec[name] = (idx, float(cfg["registered"]),
+                      tuple(cfg["turnout"]), props, float(cfg["alpha"]),
+                      list(members), levels, dict(members))
     return spec
 
 
