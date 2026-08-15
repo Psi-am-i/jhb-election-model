@@ -177,6 +177,14 @@ def coherent_seats(draws, council: int):
     parties = sorted({p for d in draws for p in d})
     if not parties or council <= 0:
         return {}
+    # THE UNTRIMMED MEAN, and it was tested against the alternative. A review
+    # proposed trimming, on the reasoning that a micro-party's seat draws are
+    # zero in almost every draw and occasionally large, so its mean is tail-
+    # driven and largest remainder rewards exactly that. The reasoning is sound
+    # and the result is the other way: a 5%/95% trim took the nine-city coherent
+    # seat error from 338 to 384. Trimming strips the small parties' mass, which
+    # is where it genuinely lives, and hands it to the top three, which this
+    # model already over-forecasts. Kept untrimmed, with the measurement.
     mean = np.array([np.mean([d.get(p, 0) for d in draws]) for p in parties])
     total = mean.sum()
     if total <= 0:

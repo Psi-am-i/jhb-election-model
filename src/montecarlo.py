@@ -972,7 +972,7 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     # That is the missing half of the mid-ballot squeeze. Over nine city-years
     # ranks 13+ came out +18.65pp and ranks 4-12 -56.36pp, and this floor is
     # where the tail's share was manufactured.
-    dirichlet_floor = float(scenario.get("dirichlet_floor", DIRICHLET_FLOOR))
+    mean_floor = float(scenario.get("dirichlet_floor", DIRICHLET_FLOOR))
 
     def draw_pools():
         """One draw. Each pool's VOTES are its counted registration times a
@@ -1027,9 +1027,24 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             # the review called structural, and this is where it lived.
             shocks = np.array([pool_sd_shock[p] for p in names])
             moved = props * log_shock(rng, shocks)
-            s = moved.sum()
-            moved = moved / s if s > 0 else props
-            split = rng.dirichlet(np.maximum(moved * alpha, dirichlet_floor))
+            # FLOOR THE MEAN, NOT THE CONCENTRATION. A Dirichlet's component
+            # mean is alpha_i / Σalpha, so clipping alpha_i injects mass no
+            # centre asked for -- a conservation violation rather than a tuning
+            # knob. It was doing so at both settings tried: 0.05 manufactured
+            # about 5pp of citywide vote for parties the model puts near zero,
+            # and 1e-4 left components with concentration far below one, which
+            # is a spike at zero with a rare large chunk (PAC in Buffalo City
+            # read median 0.001% against mean 0.250%, a ratio of 416).
+            #
+            # Flooring the MEAN and normalising afterwards makes E[X] exactly
+            # the vector asked for, and alpha_i = mean_i x alpha is then
+            # strictly positive without any clip. A party whose share is small
+            # enough that its concentration is still under one keeps its spike
+            # at zero -- which is an honest statement that it may win nothing --
+            # but it no longer gets mass it was never given.
+            moved = np.maximum(moved, mean_floor)
+            moved = moved / moved.sum()
+            split = rng.dirichlet(moved * alpha)
             np.add.at(target, idx, (totals[name] / cast if cast > 0 else 0.0) * split)
         for i, tri, level in individual:
             if tri is not None:
