@@ -2405,6 +2405,11 @@ predicts: the best CRPS of any value tried (267.7) and two more seats of error
 (316 against 314). Across 0.25 → 0.40 the seat error moves by 2 in 314 and the
 CRPS by 2 in 268 — the whole range is inside the noise.
 
+That the whole range is noise is not an assertion. The same committed 0.25 run
+at **1500** draws instead of 1200 returns **316**, not 314 — so the draw noise on
+this measure is itself ±2 seats, which is the entire spread across 0.25, 0.35 and
+0.40. Nothing in that range is distinguishable from anything else in it.
+
 So the verdict is: **leave `entrant_prob` at 0.25.** The derivation brackets the
 incumbent, the empirical optimum is indistinguishable from it, and the only value
 that clearly *is* different (0.55) is clearly worse. If it is ever moved it
