@@ -2054,6 +2054,40 @@ model is accurate and overconfident rather than inaccurate and overconfident.
 The level shock is applied inside the pool and then renormalised away for a
 dominant member, so it must move to the centres — before the IPF — to transmit.
 
+### The dividing line is a NATIONAL RECORD, not novelty (2026-08-16)
+
+Scored the first-local-election path on its own — a party with a national
+baseline that has never faced a local election, sized as
+``national base x parent theta x ward reach x coherence``. 45 cases across nine
+city-years:
+
+    median model/actual ratio   0.85      (1.00 = unbiased)
+    geometric mean              0.83
+    within a factor of two      78%
+    median |log ratio|          0.27
+
+Against arrivals — parties with **no national record at all** — at **22%** within
+a factor of two, 7 of 32.
+
+**So the model is good at new parties and bad at unknown ones, and the line
+between them is whether a national election has already measured them.** That is
+a much more useful statement than "the model is bad at new parties", which is
+what every summary so far has said, and it changes what the remaining work is:
+the arrival machinery is the problem, and the first-local path is not.
+
+It matters most for what it says about **2026**. MK is on the good path, not the
+bad one — it holds 12.2% of Johannesburg's 2024 national vote and is seeded at
+8.18%. The concern recorded earlier in this log, that "MK 2026 is an
+ActionSA-class event in the category with a measured record of 1 in 32", is
+**wrong**: ActionSA in 2021 had no national vote at all and was an arrival, while
+MK has one and is not. RISE (1.70%) and BOSA (1.11%) are on the same path.
+
+The 15% under-bias is measured on 45 cases and is a candidate correction, but it
+is **not testable historically**: 44 of the 45 fall at 2021, so a backtest at
+2021 has one prior case to fit on. It is available to the live forecast and
+untestable by the harness, which is the same position as `w_bye` — argued, not
+tested, and it should be labelled that way if it is ever applied.
+
 ### Two things this did NOT do
 
 * **The point-estimate rates matrix is still a point estimate** (review item 6).
