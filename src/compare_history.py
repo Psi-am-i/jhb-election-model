@@ -211,17 +211,25 @@ def published_for(city_slug: str, year: str) -> dict | None:
     return entry
 
 
-def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path) -> dict:
+def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
+                  overrides: list[str] | None = None) -> dict:
     city = cityconfig.use(city_slug)
     target = cityconfig.use_target(year)
     M.apply_city(city)
+    # `set` AFTER apply_city, which is the whole point: apply_city writes the
+    # city toml's scalars over DEFAULTS, so a --set is the only override that
+    # survives it. See the --set help text.
     scenario = M.load_scenario(argparse.Namespace(
-        config=None, set=None, draws=draws, seed=None, city=city_slug,
-        target=year))
+        config=None, set=list(overrides or []), draws=draws, seed=None,
+        city=city_slug, target=year))
     run = M.run_model(target, scenario, data_dir, verbose=False)
 
     actual_pr, actual_ward = actual_shares(target, data_dir)
     actual_seats, entrant_actual = _actual_seats(target, data_dir, run)
+    # Before ANY of the tables below. entrant_actual used to reach score_seats
+    # and nothing else, so votes, rank bands and both seat errors all scored the
+    # arrival machinery as a total miss plus a phantom. See backtest.relabel_run.
+    run = B.relabel_run(run, entrant_actual)
 
     model_seats = seats_from_draws(run.seat_draws)
     coherent = coherent_seats(run.seat_draws, target.council)
@@ -375,6 +383,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
     ap.add_argument("--md", type=Path, default=Path("data/processed/history.md"))
     ap.add_argument("--json", type=Path, default=Path("data/processed/history.json"))
+    ap.add_argument("--set", action="append", metavar="KEY=VALUE",
+                    help="override a scenario key for EVERY city-year, e.g. "
+                         "--set entrant_prob=0.5. This is the only honest way to "
+                         "sweep a constant here: editing montecarlo.DEFAULTS does "
+                         "NOT reach a run, because apply_city writes cities/"
+                         "<city>.toml's scalars over DEFAULTS afterwards — and "
+                         "leaves them there for every city that follows. A sweep "
+                         "of DEFAULTS returns byte-identical rows and reads as "
+                         "'this constant does nothing'.")
     args = ap.parse_args(argv)
 
     results = []
@@ -385,7 +402,8 @@ def main(argv: list[str] | None = None) -> int:
                 continue
             print(f"  {slug} {year} ...", flush=True)
             try:
-                results.append(run_city_year(slug, year, args.draws, args.data_dir))
+                results.append(run_city_year(slug, year, args.draws, args.data_dir,
+                                         args.set))
             except Exception as exc:
                 print(f"    failed: {type(exc).__name__}: {exc}")
     if not results:

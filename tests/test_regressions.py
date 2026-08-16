@@ -52,6 +52,15 @@ CLASS 8 — SUMMARY ARTEFACT. A reported statistic that is not what it claims.
     Instances: `diagnose.py` not relabelling the generic ENTRANT, so a party the
     model forecast within 0.17pp was reported as a total miss; and per-party
     marginal medians reported as a council when they do not sum to one.
+
+CLASS 11 — A CONSTANT THAT CANNOT BE SWEPT. A tunable whose value, changed at
+    the place it is declared, does not reach the run. Sweeping it returns
+    identical rows, which reads as "this constant does nothing" when the truth
+    is "you did not change it". `montecarlo.DEFAULTS["entrant_prob"]` is the
+    instance: `apply_city` copies `cities/<city>.toml`'s scalars over DEFAULTS
+    afterwards, so the edit is overwritten — and, because DEFAULTS is a module
+    global that is never reset, Johannesburg's scalars then apply to every city
+    that follows it in a multi-city run.
 """
 
 from __future__ import annotations
@@ -393,16 +402,65 @@ def test_the_generic_entrant_is_relabelled_wherever_it_is_reported():
     At Johannesburg 2016 the unrelabelled report showed the AIC at 0.00%
     predicted against 1.62% actual (a total miss) AND ENTRANT at 1.46% against
     0.00% (pure phantom). They are the same forecast, and it was within 0.17pp.
+
+    This test used to grep diagnose.py for a function name and stop there. It
+    passed all the way through 2026-08-16 while `compare_history` — the module
+    that produces the actual scoreboard — relabelled nothing outside `score_seats`,
+    costing 8 seats of error per city-year with an arrival (MODEL-LOG §1.31). A
+    source grep on one file is not a test of the behaviour. So: assert the
+    behaviour, and assert it of EVERY module that computes an entrant.
     """
-    src = (SRC / "diagnose.py").read_text()
-    assert "entrant_actual_for" in src, (
-        "diagnose.py no longer relabels the generic entrant, so an arriving "
-        "party will be reported as a total miss and the entrant slot as "
-        "phantom mass — the same forecast counted twice, in opposite directions")
-    assert "target.previous_npe" in src, (
-        "the newcomer test must run against the model's BASELINE (the preceding "
-        "national election), not its index: a party can be in the index and "
-        "still have no baseline, and then reads as a flat zero")
+    import numpy as np
+    import backtest as B
+
+    # 1. The relabel itself moves everything, not just the seat draws.
+    class _Run:
+        pass
+    run = _Run()
+    run.universe = ["ANC", "DA", "ENTRANT"]
+    run.index = {"ANC": 0, "DA": 1, "ENTRANT": 2}
+    run.seat_draws = [{"ANC": 5, "ENTRANT": 3}, {"ANC": 6, "ENTRANT": 2}]
+    run.ward_win_sum = {"ANC": 10, "ENTRANT": 4}
+    run.overhang_count = {"ENTRANT": 1}
+    run.notes = {"ENTRANT": "generic"}
+    run.pr_share_draws = np.array([[0.5, 0.3, 0.2], [0.5, 0.3, 0.2]])
+    run.ward_share_draws = None
+    run.ward_winner_counts = None
+
+    B.relabel_run(run, "ACTIONSA")
+    assert "ENTRANT" not in run.index and "ACTIONSA" in run.index, (
+        "relabel_run left ENTRANT in the index, so every table keyed on the "
+        "index still reports a phantom party and a total miss")
+    assert all("ENTRANT" not in d for d in run.seat_draws), \
+        "seat draws still carry ENTRANT — it will score as a phantom"
+    assert run.seat_draws[0]["ACTIONSA"] == 3
+    assert "ENTRANT" not in run.ward_win_sum and run.ward_win_sum["ACTIONSA"] == 4
+    assert "ENTRANT" not in run.overhang_count
+    # The share column is keyed by index, so renaming the index is enough; the
+    # column itself must NOT be zeroed or the arrival's vote disappears.
+    assert run.pr_share_draws[0, run.index["ACTIONSA"]] == 0.2
+
+    # 2. No party arrived: the entrant is NOT relabelled away, because the model
+    #    should pay for predicting an arrival that did not happen.
+    run2 = _Run()
+    run2.universe = ["ANC", "ENTRANT"]
+    run2.index = {"ANC": 0, "ENTRANT": 1}
+    run2.seat_draws = [{"ENTRANT": 3}]
+    B.relabel_run(run2, None)
+    assert run2.seat_draws[0].get("ENTRANT") == 3, (
+        "an entrant drawn where no party arrived must stay visible as error")
+
+    # 3. Every module that works out WHICH party arrived must then apply it to
+    #    the run, not to one call site. This is the fault that got through.
+    for module in ("compare_history.py", "diagnose.py"):
+        src = (SRC / module).read_text()
+        if "entrant_actual_for" not in src:
+            continue
+        assert "relabel_run" in src or "relabel_entrant" in src, (
+            f"{module} computes which party arrived but never applies it to the "
+            f"run. Every table it builds — votes, rank bands, seat error — will "
+            f"then count the arrival machinery as a total miss AND a phantom, "
+            f"which is the same forecast scored twice in opposite directions.")
 
 
 def test_a_seat_point_forecast_that_is_reported_as_a_council_sums_to_one():
@@ -525,6 +583,75 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         + "\n  ".join(missing)
         + "\nRegister each with its value, its evidence and its status, or add "
           "it to EXEMPT with a reason if it is operational.")
+
+
+# ---------------------------------------------------------------------------
+# CLASS 11 — a constant that cannot be swept
+# ---------------------------------------------------------------------------
+
+def test_a_scenario_override_survives_apply_city():
+    """A sweep must reach the run, or its flat result is a lie about the model.
+
+    `entrant_prob` was swept over the nine city-years at 0.25 and 0.55 by editing
+    `montecarlo.DEFAULTS`, and both rows came back identical to the decimal —
+    CRPS 269.9, 314 seats, ranks 4-12 -37.4pp. The reading "this constant is
+    inert" was wrong: `apply_city` writes `cities/joburg.toml`'s scalars over
+    DEFAULTS *after* the edit, and `entrant_prob` is one of the sixteen it sets.
+    Swept honestly through `--set`, the same constant moves Johannesburg 2016's
+    ranks 4-12 from -0.92pp to +2.87pp. See MODEL-LOG §1.31.
+    """
+    city = cityconfig.use("joburg")
+    M.apply_city(city)
+    sc = M.load_scenario(argparse.Namespace(
+        config=None, set=["entrant_prob=0.99"], draws=10, seed=None,
+        city="joburg", target="2016"))
+    assert sc["entrant_prob"] == 0.99, (
+        "a --set override did not survive apply_city, so every sweep run "
+        "through this path silently measures the committed value instead")
+
+    # And the harness must expose that override, or there is no honest way to
+    # sweep anything from the command line — which is how the flat rows happened.
+    src = (SRC / "compare_history.py").read_text()
+    assert '"--set"' in src, (
+        "compare_history has no --set, so the only way to sweep a constant is "
+        "to edit DEFAULTS, which apply_city overwrites. Every such sweep returns "
+        "identical rows and reads as a dead constant.")
+    assert "set=list(overrides" in src or "set=overrides" in src, (
+        "compare_history parses --set but hardcodes set=None when it builds the "
+        "scenario, so the flag is accepted and discarded")
+
+
+def test_apply_city_does_not_leak_one_citys_scalars_into_the_next():
+    """DEFAULTS is a module global and apply_city never resets it.
+
+    joburg.toml sets sixteen scalars; six of the eight metro configs set none.
+    So in a multi-city run every city after Johannesburg inherits Johannesburg's
+    judgement values. Harmless *today* only because those sixteen currently equal
+    DEFAULTS — the config was generated from them. That is a coincidence the
+    code does not enforce, and it is exactly the coincidence that will be broken
+    by the next per-city tuning. This test fails when it is.
+    """
+    import copy
+    import tomllib
+    pristine = copy.deepcopy(M.DEFAULTS)
+    try:
+        with open(ROOT / "cities" / "joburg.toml", "rb") as fh:
+            raw = tomllib.load(fh)
+        scalars = ((raw.get("judgements") or raw).get("scalars")
+                   or raw.get("scalars") or {})
+        differing = {k: (v, pristine.get(k)) for k, v in scalars.items()
+                     if not k.endswith("_note")
+                     and k in pristine and v != pristine[k]}
+        assert not differing, (
+            "cities/joburg.toml now disagrees with montecarlo.DEFAULTS on "
+            f"{sorted(differing)}. apply_city writes these into the module "
+            "global and never resets it, so every city that follows Johannesburg "
+            "in a multi-city run will silently inherit Johannesburg's value. "
+            "Either give apply_city a reset, or restate the key in every city's "
+            "toml so no city is running on another's judgement.")
+    finally:
+        M.DEFAULTS.clear()
+        M.DEFAULTS.update(pristine)
 
 
 if __name__ == "__main__":

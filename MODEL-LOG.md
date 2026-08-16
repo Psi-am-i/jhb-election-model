@@ -2175,6 +2175,274 @@ parent" without silently reallocating that share elsewhere.
 
 ---
 
+## 1.31 The arrival channel was working and the scoreboard could not see it (2026-08-16)
+
+The question asked was whether any *defensible judgement call* would improve the
+backtests. `entrant_prob` was the obvious candidate: §A of `JUDGEMENT-CALLS.md`
+already called it "the most quotable undefended constant in the model", it is
+typed at **0.25**, and the base rate is measurable — **an arrival won at least one
+seat in 7 of the 9 backtested city-years (78%), median 3 arrivals apiece**:
+
+| city-year | arrivals winning seats |
+|---|---|
+| Johannesburg 2016 | 2 |
+| Johannesburg 2021 | 3 |
+| Tshwane 2021 | 3 |
+| Ekurhuleni 2021 | 3 |
+| eThekwini 2021 | 10 |
+| Cape Town 2021 | 7 |
+| Mangaung 2021 | 0 |
+| Nelson Mandela Bay 2021 | 4 |
+| Buffalo City 2021 | 0 |
+
+So it was swept over the nine city-years at 0.25 and 0.55. The two rows came back
+**byte-identical** — CRPS 269.9, coherent-seat error 336, ranks 4-12 −42.9pp, at
+both values.
+
+### Why: a scoring fault, not a model fault
+
+The instrumented run says the machinery works. On Johannesburg 2016, where the
+**AIC arrived and took 1.62% of the list vote and 4 seats**, the generic slot drew:
+
+| `entrant_prob` | ENTRANT mean list share | ENTRANT mean seats |
+|---|---|---|
+| 0.25 | **1.39%** | **3.82** |
+| 0.99 | 5.43% | 14.98 |
+
+At the committed 0.25 the model sized the arrival **almost exactly right**. The
+scoreboard then threw the answer away. `compare_history.run_city_year` computed
+`entrant_actual` and passed it to `score_seats` **and to nothing else** — not to
+`vote_table`, not to `rank_bands`, not to `seats_from_draws`, not to
+`coherent_seats`. So for that city-year the record read:
+
+* AIC list mean **`NaN`**, flagged *"missed entirely — won seats, median zero"*;
+* 4 seats of error for the AIC seats not forecast;
+* **plus** 4 more for the phantom `ENTRANT` seats, since `ENTRANT` is a key in
+  `coherent` and not in `actual_seats`;
+* and ranks 4-12 short by the 1.39pp the model had actually put there —
+  in the band this model is already most short in.
+
+Eight seats of error on a forecast that was right, in every city-year where a
+party arrived, which is seven of nine.
+
+This is the **same class of fault as the turnout band capped at the observed
+maximum**: not the model being wrong, the *instrument* being wrong, in exactly
+the runs used to judge the model. `backtest.relabel_entrant` had already fixed
+this once, for ward probabilities, and its docstring says why — *"the model
+punished for the one thing the entrant machinery exists to get right"*. The fix
+did not generalise because it was applied at one call site instead of at the run.
+
+### The fix
+
+`backtest.relabel_run(run, entrant)` renames the generic column **on the run
+itself**, once, immediately after `entrant_actual` is known and before any table
+is built, so every downstream helper inherits it. It merges rather than renames
+if the arrived party somehow already holds a column.
+
+On Johannesburg 2016 alone, at 400 draws:
+
+| | before | after |
+|---|---|---|
+| AIC list mean vs actual 1.62% | `NaN` | **1.35%** |
+| AIC ward mean vs actual 1.40% | `NaN` | **1.41%** |
+| ranks 4-12 signed error | −2.34pp | **−0.92pp** |
+
+Note what the fix does **not** do: in a city-year where no party arrived,
+`entrant_actual` is `None`, the relabel is a no-op, and the entrant's phantom
+seats are still counted as error. That is correct — the model should pay for
+predicting an arrival that did not happen. It is also what makes `entrant_prob` a
+real trade-off for the first time: raising it helps the seven city-years with an
+arrival and hurts the two without.
+
+### And then it still would not sweep — the second fault
+
+With the relabel in, `entrant_prob` was swept again over the nine city-years,
+0.25 against 0.50, by editing `montecarlo.DEFAULTS`. **The rows came back
+byte-identical a second time.** The AIC's predicted mean was 1.42280805013110%
+at both values, to sixteen figures.
+
+`montecarlo.DEFAULTS` is not what a city-year runs on. `compare_history` calls
+`apply_city` before `load_scenario`, and `apply_city` copies
+`cities/<city>.toml`'s scalars *over* DEFAULTS. `cities/joburg.toml` sets
+**sixteen** of them, `entrant_prob = 0.25` among them, so the edit was reverted
+before it could be read.
+
+And DEFAULTS is a module global that `apply_city` never resets. Six of the eight
+metro configs set no scalars at all. So in a multi-city run **every city after
+Johannesburg inherits Johannesburg's sixteen judgement values** — its `w_bye`,
+its `f_other`, its `pa_contestation_uplift`, its turnout constants. That is
+harmless today, and only for a reason the code does not enforce: those sixteen
+currently equal DEFAULTS, because joburg.toml was generated from them. The next
+per-city tuning breaks it silently.
+
+`compare_history` gained `--set KEY=VALUE`, threaded through `run_city_year` and
+applied *after* `apply_city`, which is the only override that survives. Swept
+honestly, `entrant_prob` is emphatically not inert — at 0.99 on Johannesburg
+2016 the entrant lands at **5.35% against the AIC's actual 1.62%** and takes 14
+seats against 4, and ranks 4-12 flips from −0.92pp to **+2.87pp**.
+
+**So the answer to the question that started this is no.** `entrant_prob` was
+the strongest candidate for a defensible upward revision — a typed 0.25 against
+a measured 78% base rate — and once it could be measured at all, the typed value
+turned out to be close to right and raising it makes the forecast worse. The
+base rate answers "how often does *an* arrival win a seat", which is not the
+question the constant asks; the constant asks how big *the largest* arrival is,
+and at 0.25 × E[triangular(1%, 4%, 12%)] = 1.42% it is already sized on that.
+
+Both faults are now covered by **CLASS 11 — a constant that cannot be swept**, in
+`tests/test_regressions.py`, along with a test that fails the moment
+`cities/joburg.toml` and `DEFAULTS` disagree on any key.
+
+### What the fix left behind, measured
+
+With the instrument corrected the nine city-years read:
+
+| | before | after |
+|---|---|---|
+| coherent seat error, 9 city-years | 336 | **314** (uniform swing 376, last-LGE 594) |
+| beats uniform swing | 4/9 | **6/9** |
+| ranks 1-3 | +35.5pp | +35.8pp |
+| ranks 4-12 | −42.9pp | **−37.4pp** |
+| ranks 13+ | −6.0pp | −4.6pp |
+
+Per city-year, model against uniform swing: Johannesburg 2016 **22/26 W**, 2021
+**104/126 W**, Tshwane **42/60 W**, Ekurhuleni **30/48 W**, eThekwini 36/36 L,
+Cape Town 42/38 L, Mangaung 10/8 L, Nelson Mandela Bay **20/22 W**, Buffalo City
+**8/12 W**. The three losses are narrow; the wins are not.
+
+**The remaining −37.4pp is not an arrivals problem and cannot be tuned away.**
+Of it, only **−0.69pp** is parties the model never carried at all, so extra
+entrant slots would buy essentially nothing — a negative result worth the space,
+because "give the model more entrant slots" is the obvious next move and it is
+wrong. 97% is parties the model *does* carry and under-forecasts.
+
+Nor is it a dispersion problem. The fitted `sd_for(size)` was checked against the
+realised spread of each party's own θ record at Johannesburg 2021:
+
+| | model sd | measured sd |
+|---|---|---|
+| ANC (56% of baseline) | 0.150 | 0.053 |
+| DA (30%) | 0.159 | 0.103 |
+| IFP (1.8%) | 0.281 | 0.337 |
+| VF+ (0.9%) | 0.320 | 0.391 |
+| PA (0.07%) | 0.540 | 0.952 |
+
+Median model/measured ratio **0.96** over 14 parties. The level spread is
+calibrated — slightly wide at the top, slightly narrow at the very bottom.
+Widening it to chase the misses below would break the calibration everywhere.
+
+### Where it actually is: parties carried at a token value
+
+Ranking the 79 parties in the 4-12 band across the nine city-years by how far
+the model was under:
+
+| city-year | party | predicted | actual | |
+|---|---|---|---|---|
+| Cape Town 2021 | Cape Coloured Congress | 0.07% | 2.83% | **39.6×** |
+| Johannesburg 2021 | PA | 0.08% | 2.96% | **39.4×** |
+| Nelson Mandela Bay 2021 | Northern Alliance | 0.12% | 2.09% | 17.2× |
+| Nelson Mandela Bay 2021 | DOP | 0.10% | 1.38% | 13.3× |
+| Cape Town 2021 | Africa Restoration Alliance | 0.06% | 0.64% | 11.1× |
+| Ekurhuleni 2021 | PA | 0.17% | 1.87% | 11.1× |
+| eThekwini 2021 | Active Citizens Coalition | 0.09% | 0.81% | 8.5× |
+
+The median party in the band is under by 1.64×; **16 of 79 are under by more
+than 5×, and those 16 alone carry +16.4pp of the −37.4pp.** Every one of them is
+predicted at **0.05–0.17%** — a token value — and every one is a locally
+organised party standing seriously in that metro for the first time.
+
+They are *effectively* arrivals, and the model does not treat them as such,
+because the arrival test is "no baseline at all" and each of these had a trace
+in the preceding national election in that metro. So each is routed through
+θ × (a baseline of ~0.1%), and θ near 0.9 keeps it there. The model already
+knows those records are worthless — `RELIABILITY_HALF = 0.002` gives a 0.07%
+baseline a reliability of 0.26, so its θ is mostly the group centre — and then
+applies the group centre to a number that means nothing anyway.
+
+**The arrival record for these same city-years says a typical arrival takes
+1.64% (IQR 1.43–2.29%, n=9 before 2021).** That is close to what these parties
+actually got. So the identified change is: **move the arrival boundary from "no
+baseline" to "no *usable* baseline"**, with the threshold taken from the
+reliability function already in the code rather than invented. Expected reach:
+up to ~16pp of the ranks 4-12 deficit. NOT YET BUILT, and not a constant that
+can be swept — it is a change to which machinery sizes a party.
+
+### The sweep, done honestly — and the difference between "better" and "defensible"
+
+Through `--set`, over the nine city-years at 1200 draws:
+
+| `entrant_prob` | CRPS | coherent-seat error | beats uniform swing | ranks 1-3 | ranks 4-12 | ranks 13+ |
+|---|---|---|---|---|---|---|
+| **0.25** (committed) | 269.9 | **314** | **6/9** | +35.8 | −37.4 | −4.6 |
+| 0.35 (derived, below) | **267.7** | 316 | **6/9** | +30.7 | −35.1 | −4.0 |
+| 0.40 | 268.1 | **314** | **6/9** | +29.0 | −34.9 | −4.0 |
+| 0.55 | 274.0 | 322 | 5/9 | +21.9 | **−31.8** | −3.2 |
+
+The bands improve monotonically — the entrant is filling the mid-ballot, which
+is the band the model is short in — but CRPS and seat error turn at about 0.40
+and are clearly worse by 0.55. So there is an optimum near 0.40.
+
+**And taking it would not be defensible.** 0.40 is better on these nine
+city-years *because it was chosen on these nine city-years*. Nothing outside
+them picks it, and the seat error does not move at all (314 either way): the
+gain is CRPS 1.8 and 2.5pp of band, redistributed rather than won — Cape Town
+improves 42→38, Johannesburg 2016 worsens 22→24, eThekwini 36→38. Adopting it
+would be fitting the constant to the scoreboard, which is the one thing this
+register exists to catch.
+
+There **is** a derivation available, and it is out-of-sample. The arrival record
+for these city-years — the observed entry sizes of parties that arrived *before*
+each target — has median 1.641% and mean 1.998%. The model's expected entrant
+share is `entrant_prob × E[triangular(1%, 4%, 12%)]` = `entrant_prob × 5.667%`.
+Matching the record gives:
+
+* **0.290** to match its median
+* **0.353** to match its mean
+
+The committed 0.25 sits just below that range and the empirical optimum just
+above it. **0.35 was then measured on its own account** and lands where that
+predicts: the best CRPS of any value tried (267.7) and two more seats of error
+(316 against 314). Across 0.25 → 0.40 the seat error moves by 2 in 314 and the
+CRPS by 2 in 268 — the whole range is inside the noise.
+
+So the verdict is: **leave `entrant_prob` at 0.25.** The derivation brackets the
+incumbent, the empirical optimum is indistinguishable from it, and the only value
+that clearly *is* different (0.55) is clearly worse. If it is ever moved it
+should be moved to ~0.35 with the arrival record cited, never to 0.40 with the
+backtest cited — and the change would be cosmetic either way.
+
+### One open observation, not chased
+
+The suite emits, on the current tree:
+
+    ! 0.60% of the citywide level asked for more than a party's own pools can
+      supply and was clipped (PA). Those parties belong to fewer pools than
+      their level implies; check their vectors.
+
+PA again, and from the opposite direction to the backtest misses above: in the
+2026 configuration its level *exceeds* what its pool membership can supply, so
+it is clipped. Both symptoms point at the same thing — PA's pool vector is the
+one the model is least able to represent — but they are not the same defect and
+this one is untested by any backtest. Recorded so it is not rediscovered.
+
+### The general lesson, which is the third instance of it
+
+Three times now the thing that looked like a modelling deficiency was a
+measurement deficiency:
+
+1. the turnout band capped at the observed maximum, bound at 4/4 pools for 2016;
+2. `home_splinter_record` reading a 2024 result at target 2021;
+3. this.
+
+All three made the model look **worse** than it was, which is the direction that
+does not get caught by wanting the number to be good. The guard that generalises
+is not another test of a constant — it is: **before tuning a constant, sweep it
+to a value that must change the answer, and confirm the answer changes.** A
+constant whose extreme value changes nothing is not calibrated, it is
+disconnected. That check is cheap and it is what found this.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

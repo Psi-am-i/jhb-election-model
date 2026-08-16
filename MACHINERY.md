@@ -237,6 +237,17 @@ PA and PAC — a degenerate solution reported as converged.
 | Brier + reliability on ward winners | `score.py` | — |
 | Ground truth | `backtest.actual_result`, asserted against `official_seats` | ✅ |
 | Benchmarks (last-LGE, uniform swing, prior-LGE-noise) | `benchmarks.py` | pre-target only ✅ |
+| Generic `ENTRANT` renamed to the party that arrived | `backtest.relabel_run`, once on the run before any table | ✅ |
+
+The model draws a *generic* entrant — it cannot know a new party's name — so
+every comparison against a real election has to map that column onto whichever
+seat-winning party had no baseline (`backtest.entrant_actual_for`). **This must
+happen on the run, not per call site.** Until 2026-08-16 it happened inside
+`score_seats` only, so votes, rank bands and both seat errors scored the arrival
+machinery as a total miss *plus* a phantom — 8 seats of error on Johannesburg
+2016, where the entrant slot had drawn 1.39% and 3.82 seats against the AIC's
+actual 1.62% and 4. See MODEL-LOG §1.31. When no party arrived, the relabel is a
+no-op and the entrant's seats are counted as error, which is correct.
 
 ---
 

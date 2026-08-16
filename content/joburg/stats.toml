@@ -6,6 +6,26 @@
 #
 # Every entry carries its source and the date it entered the prose.
 # An unresolved token fails the build. Drift only warns.
+#
+# ⚠️ ORPHANED, 2026-08-17 — TEN TOKENS BELOW CANNOT BE REPRODUCED.
+#
+#   claim_short_by · claim_da_median · claim_da_votes_surge · claim_poll_surged
+#   claim_half_surged · claim_da_share_surged · claim_anc_wards_surged
+#   claim_p_da_alone · claim_anc_collapse_seats · claim_anc_entitlement_surged
+#
+# All are `mode = "fixed"`, captured 2026-08-07, and every one names
+# `run:turnout_tilt_da=1` as its source. `run_model` has no such lever any
+# more. Because they are fixed, the build resolves them from the pinned value
+# and the drift report says nothing — a fixed token cannot drift, which is
+# exactly the failure mode CLAUDE.md warns about. They currently sit on the
+# live front page (the Zille 490k claim).
+#
+# They are not wrong; they are unauditable, which for this project is the same
+# thing. Before the next publish, EITHER express the same scenario in machinery
+# that exists — the turnout band per pool can carry "the DA's pools turn out at
+# the top of their range" — and re-derive them as `free`, OR retire the claim
+# section. Do not simply re-pin them to a new run: the argument they support was
+# built on a lever whose behaviour nothing now reproduces.
 
 # ---------------------------------------------------------------------------
 # free — what the model says now

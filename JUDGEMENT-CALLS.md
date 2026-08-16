@@ -13,8 +13,21 @@ Status: 🔴 wants a second opinion · 🟡 defensible, bounded by evidence ·
 🟢 forced by arithmetic or by an identity
 
 Verified against the working tree on `splinter-rule-and-historical-tail`,
-2026-08-14. Every line number and every claim below was re-checked by running
+2026-08-16. Every line number and every claim below was re-checked by running
 the code, not copied from a session narrative.
+
+The 2026-08-14 pass said the same sentence and had already gone stale by the
+16th: `LEVEL_DF` had moved 4.0 → 7.0, the Dirichlet floor 0.05 → 1e-4, and every
+line number in §A was 10–190 lines out — and §A and §F contradicted each other on
+two of them, because §F was written later and §A was never revisited. A register
+that names the wrong line is worse than one that names none, because it is
+checked and passes.
+
+`test_every_tunable_constant_is_in_the_judgement_register` catches a constant
+that is *missing*. It does not catch a row that is *wrong*, which is what
+happened here — so re-read the cited line before quoting any row:
+
+    grep -n 'LEVEL_DF\|DIRICHLET_FLOOR\|entrant_prob' src/*.py
 
 ---
 
@@ -24,17 +37,19 @@ These have no measurement behind them. They are the ones to attack first.
 
 | call | value | where | what it does | status |
 |---|---|---|---|---|
-| **`entrant_prob`** | **0.25** | `montecarlo.py:179` | The probability that a party arrives from nothing. **A party arrived and won seats in 3 of the last 3 Johannesburg elections** — NFP 2 seats (2011), AIC 4 (2016), ActionSA 44 (2021). At 0.25 the model is silent in 75% of draws, so its *median* seat forecast for an arriving party is **0 whatever its vote share**. This single constant produces most of the "seat-winner missed entirely" anomalies. | 🔴 |
-| `entrant_share` | `[0.01, 0.04, 0.12]` | `montecarlo.py:180` | The arriving party's size. With `entrant_prob` it puts an expected **1.42%** of the vote on a generic newcomer in every run — which matched the AIC's actual 1.62% in 2016 almost exactly, and was 30× short of ActionSA. | 🟡 |
-| **`LEVEL_DF`** | **4.0** | `montecarlo.py:237` | Degrees of freedom of the Student-t level shock. Sets how heavy every party's level tail is. **Nothing was measured**; 3 or 6 are equally arguable. | 🔴 |
-| **`level_sd_default`** | **0.45** | `montecarlo.py:745` | The level spread for a party with no measured `sd(log θ)`. Typed, **and not a `DEFAULTS` key**, so it will not appear in a scenario dump or the in-sample provenance banner. Either measure it or promote it. | 🔴 |
-| Dirichlet floor | `0.05` | `montecarlo.py:863` | `np.maximum(moved * alpha, 0.05)`. Invented. It is why a small party's within-pool share is a spike near zero with a long tail, and therefore why **median and mean diverge ~5×** for small parties (AIC 2021: median 0.11%, mean 0.58%, actual 0.69%). 22 of 214 member slots are floored at even props; far more in practice. | 🔴 |
-| turnout spread with one observation | `0.30` logits | `pools.py:1296` | When a city has only one prior local election, the turnout band's width is typed. **This is every 2016 target.** | 🟡 |
-| `w_bye` | 0.40 | `montecarlo.py:129` | By-election blend weight. **Inert in every backtest** — `byelection_*.csv` only covers 2022-06-01 → 2026-02-25 — but live in the 2026 forecast, so it is untested by anything here. | 🔴 |
-| `w_bye_local_ward` / `_pr` | 0.0 / 0.0 | `montecarlo.py:143-144` | Built, disabled. Untestable for the same reason. | 🟡 |
-| `ward_noise_sd` | 0.10 | `montecarlo.py:203` | Lognormal noise on each ward×party tally before calling winners. Adopted on an audit, not measured. | 🟡 |
-| `turnout_pattern_blend` / `_jitter` / `_noise_sd` | 0.5 / 0.25 / 0.08 | `montecarlo.py:174-176` | The per-VD turnout pattern. The review found `0.08` i.i.d. over 855 VDs contributes ~0.003 citywide, i.e. nothing. | 🟡 |
-| `MIN_HOME_SPLITS` + binary home/away | 2 | `pools.py:1616` | A splinter is either "at home" or "away", nothing between. ActionSA's fraction of the DA ran **0.611 / 0.315 / 0.289 / 0.103** across four metros — a gradient modelled as two buckets. This is why Tshwane's seed was 0.17% against an actual 9.28%. | 🔴 |
+| **`entrant_prob`** | **0.25** | `montecarlo.py:194` | The probability that a party arrives from nothing. **A party arrived and won seats in 3 of the last 3 Johannesburg elections** — NFP 2 seats (2011), AIC 4 (2016), ActionSA 44 (2021), and in **7 of the 9 backtested city-years**, median 3 arrivals apiece. At 0.25 the model is silent in 75% of draws, so its *median* seat forecast for an arriving party is **0 whatever its vote share** — but the *mean*, which is what `coherent_seats` uses, is 0.25 × E[triangular(1%, 4%, 12%)] = **1.42%**. Until 2026-08-17 this constant was **unmeasurable twice over** (§1.31): the scoring never relabelled the generic slot onto the party that arrived, and `apply_city` overwrote any edit to `DEFAULTS`. Now measurable, and **the typed value survives the measurement**: on Johannesburg 2016 it drew 1.39% and 3.82 seats against the AIC's actual 1.62% and 4, and at 0.99 it overshoots to 5.35% and 14 seats. The 78% base rate answers a different question — how often *an* arrival wins a seat, not how big *the largest* one is. Downgraded 🔴 → 🟡: still typed, but now tested. | 🟡 |
+| `entrant_share` | `[0.01, 0.04, 0.12]` | `montecarlo.py:195` | The arriving party's size. With `entrant_prob` it puts an expected **1.42%** of the vote on a generic newcomer in every run — which matched the AIC's actual 1.62% in 2016 almost exactly (measured: 1.39% drawn, 3.82 seats, against 1.62% and 4), and was 30× short of ActionSA. | 🟡 |
+| **`LEVEL_DF`** | **7.0** | `montecarlo.py:285` | Degrees of freedom of the Student-t level shock. Sets how heavy every party's level tail is. **Nothing was measured**; it was 4.0 until this branch, and 3 or 6 are equally arguable. Moved to 7 because `exp(t₄)` has no finite mean and the seat allocator takes a mean. | 🔴 |
+| **`level_sd_default`** | **0.45** | `montecarlo.py:930, 1987` | The level spread for a party with no measured `sd(log θ)`. Typed, **and not a `DEFAULTS` key**, so it will not appear in a scenario dump or the in-sample provenance banner. Narrower than it looks: `levels.theta_prior` gives every party in the baseline an `sd`, so this binds only on parties outside it. Either measure it or promote it. | 🟡 |
+| Dirichlet floor | `1e-4` | `montecarlo.py:92` (`DIRICHLET_FLOOR`), applied at `1055` | Was `0.05`, which was not a numerical guard but a claim: on Johannesburg 2021, 44 of the Black African pool's 52 members were floored and their collective share went from the 1.59% the model believed to **8.41%** — ~5pp of the citywide vote manufactured for parties the model itself puts near zero. Now floors only to keep the concentration positive, which is all numpy requires. **The register said `0.05` at `:863` for two days after the change.** | 🟢 |
+| turnout spread with one observation | `0.30` logits | `pools.py:1269` | When a city has only one prior local election, the turnout band's width is typed. **This is every 2016 target.** | 🟡 |
+| `w_bye` | 0.40 | `montecarlo.py:143` | By-election blend weight. **Inert in every backtest** — `byelection_*.csv` only covers 2022-06-01 → 2026-02-25 — but live in the 2026 forecast, so it is untested by anything here. | 🔴 |
+| `w_bye_local_ward` / `_pr` | 0.0 / 0.0 | `montecarlo.py:158-159` | Built, disabled. Untestable for the same reason. | 🟡 |
+| `ward_noise_sd` | 0.10 | `montecarlo.py:218` | Lognormal noise on each ward×party tally before calling winners. Adopted on an audit, not measured. | 🟡 |
+| `turnout_pattern_blend` / `_jitter` / `_noise_sd` | 0.5 / 0.25 / 0.08 | `montecarlo.py:189-191` | The per-VD turnout pattern. The review found `0.08` i.i.d. over 855 VDs contributes ~0.003 citywide, i.e. nothing. | 🟡 |
+| **the arrival boundary** | "no baseline at all" | `montecarlo`, by omission | Which parties reach `pools.arrival_rules` rather than θ × baseline. A party with a *trace* in the preceding national election — 0.05–0.17% in that metro — is treated as a retention case, and θ near 0.9 pins it there. **16 of the 79 parties in ranks 4-12 are in this position and are under-forecast by more than 5×, carrying +16.4pp of the −37.4pp band deficit** (§1.31). The code already knows those records are worthless: `RELIABILITY_HALF = 0.002` gives a 0.07% baseline a reliability of 0.26. The arrival record for the same city-years says a typical arrival takes 1.64% (IQR 1.43–2.29%), which is close to what they got. **A boundary nobody chose is still a judgement call.** | 🔴 |
+| **`apply_city` never resets `DEFAULTS`** | — | `montecarlo.py:494` | Six of the eight metro configs set no scalars, `cities/joburg.toml` sets sixteen, and `DEFAULTS` is a module global. So every city after Johannesburg in a multi-city run inherits Johannesburg's judgement values. Harmless **only** because those sixteen currently equal `DEFAULTS`. Guarded by `test_apply_city_does_not_leak_one_citys_scalars_into_the_next`, which fails the moment they diverge. | 🔴 |
+| `MIN_HOME_SPLITS` + binary home/away | 2 | `pools.py:1613` | A splinter is either "at home" or "away", nothing between. ActionSA's fraction of the DA ran **0.611 / 0.315 / 0.289 / 0.103** across four metros — a gradient modelled as two buckets. This is why Tshwane's seed was 0.17% against an actual 9.28%. | 🔴 |
 
 ## B. Measured, but the form or the selection was chosen
 
@@ -43,14 +58,14 @@ picked it, did not.
 
 | call | where | the choice | status |
 |---|---|---|---|
-| **`SPINE_K = 1.0`, reciprocal form** | `levels.py:141` | Fitted by leave-one-metro-out, and the curve is flat 0.5–1.5. But a **step function at `worth < 1.0` scored better out of sample (0.2300 against 0.2358)** and was rejected on structural grounds — a smooth weight was preferred to a cliff the data does not place anywhere. A better score overridden by an argument should not be self-certified. | 🔴 |
+| **`SPINE_K = 1.0`, reciprocal form** | `levels.py:154` | Fitted by leave-one-metro-out, and the curve is flat 0.5–1.5. But a **step function at `worth < 1.0` scored better out of sample (0.2300 against 0.2358)** and was rejected on structural grounds — a smooth weight was preferred to a cliff the data does not place anywhere. A better score overridden by an argument should not be self-certified. | 🔴 |
 | **Vote-weighted RMSE as the criterion** | the #22 fit | The spine's 14% gain is on **vote-weighted** RMSE(log). Unweighted it is roughly a wash (0.7092 against 0.7083). The weighting chose the winner, and should be stated whenever the 14% is quoted. | 🔴 |
-| **`SPLIT_SD_FLOOR = 0.90`** | `pools.py:1847` | Floors the splinter band's log-spread. **Verified to override the measurement at target 2016** (pooled log-sd 0.286); it does not bind at 2021 (1.599) or 2026 (1.492). So the floor does real work in the one fold where it is least justified. | 🔴 |
-| `TURNOUT_CORRELATION = 0.63` | `montecarlo.py:265` | Measured over 14 metro-transitions — but applied as **one constant to every city and every pool pair**, when the measurement itself shows +0.86…+0.91 among three pools and +0.21…+0.47 for the fourth. | 🟡 |
+| **`SPLIT_SD_FLOOR = 0.90`** | `pools.py:1878` | Floors the splinter band's log-spread. **Verified to override the measurement at target 2016** (pooled log-sd 0.286); it does not bind at 2021 (1.599) or 2026 (1.492). So the floor does real work in the one fold where it is least justified. | 🔴 |
+| `TURNOUT_CORRELATION = 0.63` | `montecarlo.py:324` | Measured over 14 metro-transitions — but applied as **one constant to every city and every pool pair**, when the measurement itself shows +0.86…+0.91 among three pools and +0.21…+0.47 for the fourth. | 🟡 |
 | Gaussian copula for pool turnout | `montecarlo.py:_tri_ppf` | The measurement gives a correlation; it does not give a dependence structure. A Gaussian copula is the conventional choice and has no tail dependence, which is a substantive assumption about whether pools collapse together. | 🟡 |
-| `METRO_CODES` widened 2 → 8 | `levels.py:151` | θ and ρ are now read off eight metros rather than Johannesburg and Tshwane. More evidence, no leakage — but it changes θ itself, so it is **confounded with the spine** in any before/after backtest delta. | 🟡 |
-| `SHRINK = 2.0`, `RELIABILITY_HALF = 0.002`, `SD_FLOOR/CEILING = 0.15/1.20` | `levels.py:124-133` | Pre-existing shrinkage constants. `RELIABILITY_HALF` is explicitly set to the hard 0.2% cut it replaced. | 🟡 |
-| `alpha` per pool | `pools.dirichlet_alpha` | Fitted from historical within-pool concentration, then floored per party at 0.05 (§A). | 🟡 |
+| `METRO_CODES` widened 2 → 8 | `levels.py:164` | θ and ρ are now read off eight metros rather than Johannesburg and Tshwane. More evidence, no leakage — but it changes θ itself, so it is **confounded with the spine** in any before/after backtest delta. | 🟡 |
+| `SHRINK = 2.0`, `RELIABILITY_HALF = 0.002`, `SD_FLOOR/CEILING = 0.15/1.20` | `levels.py:137-146` | Pre-existing shrinkage constants. `RELIABILITY_HALF` is explicitly set to the hard 0.2% cut it replaced. | 🟡 |
+| `alpha` per pool | `pools.dirichlet_alpha` | Fitted from historical within-pool concentration, then floored per party at `DIRICHLET_FLOOR` = 1e-4 (§A). Was 0.05, which was a claim rather than a guard. | 🟡 |
 
 ## C. Forced by arithmetic or identity — not judgement
 

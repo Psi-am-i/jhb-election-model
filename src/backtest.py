@@ -594,6 +594,59 @@ def entrant_actual_for(actual_seats: Mapping[str, int],
     return max(newcomers, key=newcomers.get) if newcomers else None
 
 
+def relabel_run(run, entrant: str | None):
+    """Rename the generic ``ENTRANT`` **on the run itself**, once, in place.
+
+    :func:`relabel_entrant` fixed ward probabilities and ``score_seats`` has
+    taken ``entrant_actual`` since it was written, but every *other* consumer
+    read the raw run — and so scored the arrival machinery as a double error.
+    Measured on Johannesburg 2016, where the AIC arrived and took 1.62% and 4
+    seats: the generic entrant drew **1.39% and 3.82 seats**, which is close to
+    right, and ``compare_history`` recorded the AIC's vote as ``NaN`` ("missed
+    entirely"), *and* counted 4 phantom ENTRANT seats — 8 seats of error on a
+    forecast that was correct. The rank bands lost the 1.39pp too, all of it out
+    of ranks 4-12, which is the band this model is already short in.
+
+    This is the same class of fault as the turnout band capped at the observed
+    maximum: not the model being wrong, the *instrument* being wrong, in exactly
+    the runs used to judge the model. So the relabel happens once, at the source,
+    and every downstream helper inherits it rather than each remembering.
+
+    Merges rather than renames when the arrived party somehow already holds a
+    column (a seeded splinter that also had no baseline), because two columns
+    for one party would double-count it.
+    """
+    if not entrant or "ENTRANT" not in run.index:
+        return run
+    src = run.index["ENTRANT"]
+    dst = run.index.get(entrant)
+
+    if dst is None:                                   # the usual case: rename
+        run.index = {(entrant if p == "ENTRANT" else p): i
+                     for p, i in run.index.items()}
+        run.universe = [entrant if p == "ENTRANT" else p for p in run.universe]
+    else:                                             # merge into the column it has
+        for arr in (run.pr_share_draws, run.ward_share_draws):
+            if arr is not None:
+                arr[:, dst] += arr[:, src]
+                arr[:, src] = 0.0
+        if run.ward_winner_counts is not None:
+            run.ward_winner_counts[:, dst] += run.ward_winner_counts[:, src]
+            run.ward_winner_counts[:, src] = 0
+
+    for d in run.seat_draws:
+        n = d.pop("ENTRANT", 0)
+        if n:
+            d[entrant] = d.get(entrant, 0) + n
+    for book in (run.ward_win_sum, run.overhang_count):
+        n = book.pop("ENTRANT", 0)
+        if n:
+            book[entrant] = book.get(entrant, 0) + n
+    run.notes[entrant] = (run.notes.pop("ENTRANT", "")
+                          + " | generic entrant, relabelled for scoring").strip(" |")
+    return run
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)

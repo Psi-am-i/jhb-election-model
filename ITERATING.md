@@ -52,6 +52,23 @@ it is newer, better argued, or built from more measurements.
    the file what changed and why.
 5. **The live site is downstream of all of this.** Nothing is republished until
    the model that produced it has beaten the previous iteration on history.
+6. **Before tuning a constant, sweep it to a value that MUST change the answer,
+   and confirm the answer changes.** A constant whose extreme value moves nothing
+   is not calibrated, it is disconnected — and a flat sweep reads as "this lever
+   does nothing" when the truth is "you did not pull it". `entrant_prob` returned
+   byte-identical rows twice for two different reasons (MODEL-LOG §1.31), and the
+   first reading of that was that the arrival machinery was inert. It was not: it
+   was sizing the AIC to within 0.2pp and the scoreboard was discarding the
+   answer. Sweep through `compare_history.py --set KEY=VALUE`, which lands after
+   `apply_city`; editing `montecarlo.DEFAULTS` does **not** reach a run.
+7. **"Improves the backtest" and "defensible" are different claims, and only the
+   second one ships.** A constant chosen because it scores best on the nine
+   city-years has been fitted to the scoreboard. `entrant_prob` has a clear
+   empirical optimum near 0.40 and it was **not** adopted, because nothing
+   outside those nine picks it; the arrival record independently gives 0.29–0.35,
+   and that is the only number worth quoting. When a change improves the score,
+   say *what evidence outside the score chose it* — and if the answer is "the
+   score", say so and leave the constant alone.
 
 ## Where the record lives
 
