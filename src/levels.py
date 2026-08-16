@@ -29,11 +29,24 @@ before it. Binned by party size, the record says something specific::
     5%   – 15%        4     0.85       0.25
     15%  – 100%      12     0.93       0.26
 
-The centre hardly moves. The spread collapses. So **size predicts how uncertain
-a party is, not how it trends** — and it does so smoothly, with no threshold
-anywhere (the correlation between log size and |log θ| is -0.37). A party's
-prior is therefore one common centre, shrunk toward its own history where it
-has any, with a width read off a fitted size-dispersion line. A small or
+**That table was measured on TWO metros, n=51, and its conclusion is wrong.**
+It said the centre hardly moves and only the spread does, so size predicts how
+uncertain a party is and not how it trends. On eight metros, n=235::
+
+    national size before    n    median θ   geometric mean
+    < 0.2%                 75      1.31         1.53
+    0.2 - 0.5%             57      1.03         0.98
+    0.5 - 2%               44      1.04         0.90
+    2 - 10%                18      1.05         0.90
+    > 10%                  41      0.94         0.95
+
+Small parties GAIN going into a local election and large ones lose — Reif and
+Schmitt's second-order effect, in this archive's own numbers. A single common
+centre erases it, and erases it against the parties the model already
+under-forecasts: they were being handed the large-party number. ``size_centre``
+now fits ``log θ = a + b·log(size)`` and each party shrinks toward the centre
+for a party ITS SIZE. The spread still collapses with size as the table always
+said, so both terms now depend on it. A small or
 unfamiliar party gets a wide interval automatically rather than one typed for
 it, and nothing has probability zero — which is what the old triangulars kept
 doing to outcomes that had already happened.
@@ -361,6 +374,53 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
     }
 
 
+def size_centre(record: dict[str, list[tuple[float, float]]]):
+    """The centre θ shrinks TOWARD, as a function of how big the party is.
+
+    ``levels.py`` has said since it was written that "size predicts how
+    UNCERTAIN a party is, not how it trends — the centre hardly moves (0.84 to
+    0.93 across every band)". That was measured on TWO metros, n=51. On eight
+    metros, n=235, it is not true::
+
+        national size before    n    median θ   geometric mean
+        < 0.2%                 75      1.31         1.53
+        0.2 - 0.5%             57      1.03         0.98
+        0.5 - 2%               44      1.04         0.90
+        2 - 10%                18      1.05         0.90
+        > 10%                  41      0.94         0.95
+
+    Small parties GAIN going into a local election and large ones lose, which is
+    Reif and Schmitt's second-order effect stated in this archive's own numbers,
+    and which a single common centre erases. The model was applying 0.83 to 0.96
+    to every party at once, so the parties it under-forecasts most were being
+    handed the large-party number.
+
+    Fitted as ``log θ = a + b·log(size)`` on the same reliability weights the
+    shrinkage uses — correlation −0.27, and a gradient from about 1.10 at a
+    twentieth of a per cent to 0.89 at thirty. The R² is 0.04, which is the
+    honest figure: this moves the CENTRE by a quarter across the ballot and
+    explains almost none of the variance around it. Both facts matter, and the
+    second is why the dispersion stays where it is.
+
+    Returns ``(a, b)``; ``centre(size) = exp(a + b·log(size))``.
+    """
+    obs = [(np.log(max(sz, 1e-6)), np.log(r), _reliability(sz))
+           for v in record.values() for r, sz in v if r > 0 and sz > 0]
+    if len(obs) < 20:
+        return None
+    x = np.array([o[0] for o in obs])
+    y = np.array([o[1] for o in obs])
+    w = np.sqrt(np.array([o[2] for o in obs]))
+    # UNWEIGHTED. The reliability weight exists to stop a party that went from
+    # 30 votes to 90 moving a party's OWN mean, and it is right for that. Here
+    # it is wrong: the quantity being fitted is how the centre varies WITH SIZE,
+    # and down-weighting the small end removes the observations that identify
+    # it. Weighted, the gradient runs 1.10 to 0.89; unweighted, 1.31 to 0.94,
+    # which is what the size bands actually show.
+    b, a = np.polyfit(x, y, 1)
+    return float(a), float(b)
+
+
 def _shrunk(record: dict[str, list[tuple[float, float]]],
             ) -> tuple[dict[str, float], float, dict[str, float]]:
     """Per-party log-mean shrunk to the weighted common centre, and the worth.
@@ -378,6 +438,7 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
     if weights.sum() <= 0:
         return {}, 0.0, {}
     mu_all = float(np.average(np.log(ratios), weights=weights))
+    fit = size_centre(record)
     mus: dict[str, float] = {}
     worth: dict[str, float] = {}
     for party, obs in record.items():
@@ -385,7 +446,13 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
         worth[party] = float(sum(w))
         weight = worth[party] / (worth[party] + SHRINK)
         own = float(np.average([np.log(r) for r, _ in obs], weights=w))
-        mus[party] = weight * own + (1 - weight) * mu_all
+        # Shrink toward the centre for a party THIS SIZE, not toward one number
+        # for the whole ballot. See size_centre: the size of the party is the
+        # single thing that moves the centre, and a party with little history of
+        # its own is almost entirely this term.
+        size = float(np.average([sz for _, sz in obs], weights=w))
+        target = (fit[0] + fit[1] * np.log(max(size, 1e-6))) if fit else mu_all
+        mus[party] = weight * own + (1 - weight) * target
     return mus, mu_all, worth
 
 
