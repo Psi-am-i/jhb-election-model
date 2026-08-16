@@ -107,6 +107,8 @@ touched.
 | by-election deltas | `byelections.py` | MEASURED, contests before the target | **inert in every backtest** — the scrape covers 2022-06 to 2026-02 only |
 | `w_bye` = 0.40 | DEFAULTS | **JUDGED** | live in 2026, untestable historically |
 | **Metro polls** | `polling.py` | MEASURED + inverse-variance blend | σ_poll = 3.03pp, a TRACK RECORD not a nominal margin |
+| Several waves | `polling.aggregate` | recency-weighted, 120-day half-life | combined ONCE; applying them in sequence let the oldest win |
+| Admission | `polling.usable_for` | rules, not judgement | must be dated, must declare its election (or fall inside 550 days), must NAME ITS CITY, and party-commissioned polls are excluded |
 | **National polls → metro** | `polling.metro_estimate` | MEASURED conversion | national share ÷ contested area's share of the national vote |
 
 **The spine.** A party's level comes from BOTH its previous national result (× θ)
@@ -115,6 +117,16 @@ and its previous local result (× ρ), weighted toward the local route by
 with no θ history sits on its own last local result; one with a long record sits
 on the national route. Held out one metro at a time: RMSE(log) 0.236 against the
 national spine's 0.275.
+
+**A metro poll must name its city.** `ipsos-w2-2025-metros` is an eight-metro
+average with no Johannesburg cut published and was being applied to Johannesburg
+as a reading of it, importing Cape Town's DA and eThekwini's MK. Its scope is
+`metro-aggregate` and it is admitted nowhere.
+
+**House effects and herding are NOT corrected.** With two houses and four waves
+they are not estimable, and both waves admitted for Johannesburg 2026 are the
+same house (SRF). That is the single largest weakness in the 2026 poll input and
+it is a data problem, not a code one.
 
 **Polls are blended by PRECISION, not by how much history a party has.**
 `w = (1/σ_poll²)/(1/σ_poll² + 1/σ_model²)`. At Johannesburg 2016 that gives the

@@ -478,8 +478,59 @@ def test_no_top_level_function_is_defined_and_never_used():
         + "\nDelete it, or call it, or add it to ALLOWED with a reason.")
 
 
+# ---------------------------------------------------------------------------
+# CLASS 10 — the registers drifting away from the code
+# ---------------------------------------------------------------------------
+
+def test_every_tunable_constant_is_in_the_judgement_register():
+    """CLAUDE.md says the record changes in the same commit. This enforces it.
+
+    A number that the data did not force must appear in JUDGEMENT-CALLS.md, or
+    it will be mistaken for one that is measured -- and then none of them are
+    trusted, which is that file's own stated reason for existing.
+
+    It drifted immediately. Within an hour of writing the rule down, a commit
+    added `POLL_HALF_LIFE_DAYS` and a recency-weighted aggregation and updated
+    neither register; an audit then found 27 constants missing from one or both.
+
+    OPERATIONAL names are exempt and listed explicitly: they control how the
+    computation runs, not what it believes. Everything else must be registered,
+    and adding a name to EXEMPT is itself a judgement someone has to write down.
+    """
+    EXEMPT = {
+        "SOLVE_TOL", "draws", "seed", "COUNCIL",      # run control, not belief
+        "SD_FLOOR", "SD_CEILING",                     # bounds on a MEASURED fit
+        "MIN_HOME_SPLITS",                            # registered under its own name
+    }
+    reg = (ROOT / "JUDGEMENT-CALLS.md").read_text()
+    names = set()
+    for path in sorted(SRC.glob("*.py")):
+        for node in ast.parse(path.read_text()).body:
+            if isinstance(node, ast.Assign) and len(node.targets) == 1:
+                t = node.targets[0]
+                if isinstance(t, ast.Name) and t.id.isupper() and not t.id.startswith("_"):
+                    try:
+                        v = ast.literal_eval(node.value)
+                    except Exception:
+                        continue
+                    if isinstance(v, (int, float)) and not isinstance(v, bool):
+                        names.add(t.id)
+    import montecarlo as _mc
+    for k, v in _mc.DEFAULTS.items():
+        if isinstance(v, (int, float)) and not isinstance(v, bool):
+            names.add(k)
+    missing = sorted(n for n in names - EXEMPT if n not in reg)
+    assert not missing, (
+        "these tunable constants are not named in JUDGEMENT-CALLS.md:\n  "
+        + "\n  ".join(missing)
+        + "\nRegister each with its value, its evidence and its status, or add "
+          "it to EXEMPT with a reason if it is operational.")
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
             fn()
             print(f"ok  {name}")
+
+

@@ -75,6 +75,38 @@ These shape what a reader concludes and are easy to mistake for findings.
 | seat error summed over all parties | `compare_history.py` | The model's own figure spans all 69 parties; it contributes **0** from parties that won nothing, so the wider denominator does not inflate it. |
 | modal ward winner = "the model's call" | `diagnose.py` | A defensible reading of a probabilistic forecast, but it is a reading. |
 
+## F. The rest of the tunable constants
+
+Added 2026-08-16 after an audit found **27 constants named in neither register**,
+one hour after CLAUDE.md said the record changes in the same commit as the code.
+`tests/test_regressions.py::test_every_tunable_constant_is_in_the_judgement_register`
+now fails the build if any is missing, which is the only version of that rule
+that survives contact with a long session.
+
+| constant | value | what it is | status |
+|---|---|---|---|
+| `DIRICHLET_FLOOR` | 1e-4 | floor on the Dirichlet MEAN vector, so `E[X]` is exactly the vector asked for. Was 0.05, which manufactured ~5pp of citywide vote | 🟢 |
+| `POLL_RMS_ERROR` | 0.030 | a metro poll's total error. A TRACK RECORD — Ipsos's nine 2016 metro readings — not a nominal margin, which was nearer 1.5pp | 🟡 |
+| `POLL_HALF_LIFE_DAYS` | 120 | recency half-life for aggregating several waves. **No SA metro series is long enough to fit this**; declared, not measured | 🔴 |
+| `CAMPAIGN_WINDOW_DAYS` | 550 | how long before polling day an undated poll may still describe the same election | 🟡 |
+| `POLL_K` | 1.0 | legacy evidence-count poll weight, superseded by inverse variance on the metro path | 🟡 |
+| `SPLINTER_PARENT_WEIGHT` | 0.35 | share of a splinter's starting vector taken from its parent; measured over 22 splinter-metro cases | 🔴 |
+| `LEVEL_DF` | 7.0 | degrees of freedom of the level shock. Was 4.0, which has no finite mean | 🟡 |
+| `TURNOUT_CORRELATION` | 0.63 | measured over 14 metro-transitions; applied as ONE constant to every city and pool pair | 🟡 |
+| `SPINE_K` | 1.0 | see §B | 🔴 |
+| `SHRINK`, `RELIABILITY_HALF` | 2.0, 0.002 | shrinkage constants; `RELIABILITY_HALF` is set to the hard cut it replaced | 🟡 |
+| `level_floor` | 1e-6 | separates the level floor from the deviation floor | 🟢 |
+| `dirichlet_floor`, `poll_k`, `spine_k` | — | scenario keys mirroring the constants above, so a sweep is reproducible | 🟢 |
+| `turnout_noise_sd`, `turnout_blend_jitter` | 0.08, 0.25 | per-VD turnout pattern; the review measured `0.08` i.i.d. over 855 VDs as contributing ~0.003 citywide, i.e. nothing | 🟡 |
+| `bye_local_cap`, `bye_tau_months` | 1.5, 18 | by-election ward-local term; **inert in every backtest** | 🔴 |
+| `w_bye_local_ward`, `w_bye_local_pr` | 0.0, 0.0 | the ward-local by-election term: built, disabled, and untestable because no past target has by-election data at all | 🟡 |
+| `polling_lean`, `polling_span` | 0.0, 8.0 | superseded by the poll paths; still wired | 🟡 |
+| `pa_contestation_uplift` | 1.25 | one-party constant, only read when measured contestation is unavailable | 🟡 |
+| `MAX_SIGMA`, `MIN_SIGMA`, `NEW_PARTY_SIGMA` | 2.0, 0.15, 1.0 | spread bounds for the `prior-lge-noise` BASELINE, not the model. A party with no earlier result gets 1.0 because a party that did not exist last cycle is the least predictable thing on the ballot | 🟡 |
+| `MIN_SHARE`, `CLAIM_FRACTION`, `F_OTHER` | — | reporting and residual-bucket constants in `stats.py` / `benchmarks.py` | 🟡 |
+| `poll_weight` | 0.0 | the MANUAL poll dial. Metro polls now blend automatically and do not read it; it remains for a one-off override by `poll_id` | 🟡 |
+| `PAGE_SIZE`, `REG_DRIFT_TOLERANCE` | — | pagination and the tolerance on a pinned stat before the site build warns. Reporting, not belief | 🟢 |
+
 ## E. What is genuinely from the record
 
 For contrast, and because the list above is not the whole model: θ and ρ and

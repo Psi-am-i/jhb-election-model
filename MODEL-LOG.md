@@ -2131,6 +2131,36 @@ splinter path is ever rebuilt. `parent` should mean who left; a donor
 specification, signed, should mean whose voters — and the repo already has the
 flows for one party.
 
+### Correction: the "DA +0.199" figure is ward-level and has been over-quoted (2026-08-16)
+
+§1.26 records that per point of ActionSA in 2021 the **ANC −0.381pp, EFF
+−0.262pp, DA +0.199pp**, and that figure has been quoted repeatedly since — this
+session used it four times to argue that a non-negative composition vector
+cannot represent a parent that GAINS.
+
+Re-measured across the eight metros, it does not reproduce with that sign:
+
+    regression of each party's change on ActionSA's share, 8 metros
+    NPE 2019 -> LGE 2021    ANC -0.530   EFF -0.255   DA -0.309
+    LGE 2016 -> LGE 2021    ANC -0.404   EFF -0.230   DA -0.502
+
+The original is a **ward-level regression inside Johannesburg**, not a
+cross-metro one — a different unit of analysis, and confounded in the obvious
+way: ActionSA and the DA are strong in the same wards, so a positive share
+correlation between them does not mean the DA gained from ActionSA.
+
+**The defensible sentence is the one §1.26 itself gives two lines later**, on
+retention rather than share: *"the DA's retention is uncorrelated with
+ActionSA's local strength (−0.043) while the ANC's (−0.290) and the EFF's
+(−0.264) fall away."* That still makes the point that matters — a splinter of
+the DA did not take DA votes — without claiming the DA gained.
+
+Quote the −0.043 retention figure, not the +0.199 share figure. The argument
+about signed donor vectors survives: the DA's donation is approximately ZERO
+where its lineage says it should be the whole of it, and a composition vector
+normalised to one still cannot express "this party took nothing from its
+parent" without silently reallocating that share elsewhere.
+
 ### Two things this did NOT do
 
 * **The point-estimate rates matrix is still a point estimate** (review item 6).
