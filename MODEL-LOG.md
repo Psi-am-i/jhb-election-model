@@ -2448,6 +2448,83 @@ disconnected. That check is cheap and it is what found this.
 
 ---
 
+## 1.32 The arrival machinery: the total was right by luck and the split was wrong (2026-08-17)
+
+The task named at the end of §1.30 — "fix the arrival machinery, which is half
+the missing small-party seats" — done, after two wrong turns worth recording
+because each was measured.
+
+### What was actually broken
+
+`pools.arrival_rules` sized an entrant at `np.median(peers)`, the median of the
+arrivals that contested about as much of the city. The band around it ran
+`[q25, median, q95]`, typically **17–24× the seed** at the top. That band could
+never do anything, because `pool_spec` balances both margins by IPF and **IPF
+pins each party's mean to its centre**. Measured on eThekwini 2021, Active
+Citizens drew p50 0.0083% and p95 0.3613% — a 44× spread, correctly shaped —
+around a mean of 0.0798%, against an actual 0.81%.
+
+So the right tail survived only as spread about a centre four times too low.
+
+### Wrong turn one: seed at the mean
+
+Arrival sizes are violently right-skewed. Over the 77 arrivals on record before
+2021 the median is 0.0498% and the **mean 0.2378%**, a ratio of 4.78; among
+wide-reach arrivals, 0.0798% against **0.3398%**, 4.26. Since IPF pins the mean,
+whatever goes in `centres` *is* the expected value, so it should be the
+expectation. Applied, re-emitted, scored:
+
+| | seat error | beats u-swing | 1-3 | 4-12 | 13+ |
+|---|---|---|---|---|---|
+| median seed (committed) | 316 | 6/9 | +35.5 | −37.1 | −4.6 |
+| **mean seed** | **322** | **5/9** | +10.2 | −37.3 | **+19.4** |
+
+**Worse.** The mean is right per party and wrong per city, because a city fields
+twenty to forty arrivals: 30 × 0.34% is a **10.2% arrival total** against a
+record whose median is 1.64% and whose maximum over sixteen metro-years is
+4.74%. The over-allocation landed exactly where it was put — ranks 13+ went from
+−4.6pp to +19.4pp — and ranks 4-12 did not move at all.
+
+The median seed had been getting the group total right **by luck**: 30 × 0.08%
+≈ 1.6%, which is the record. Nobody chose that; it fell out.
+
+### What shipped: hold the total, split by reach
+
+The group TOTAL is the quantity that behaves regularly (§1.24's finding, and the
+reason `arrival_group_record` exists). The SPLIT is what ward reach predicts —
+arrivals contesting 60–90% of wards clear 0.5% at **27.3%** against 7–8% in
+every other reach band. So: take the reach-matched **mean** for the relative
+weighting, where it carries the reach signal, and **rescale the whole entrant
+group to the arrival-total record** (`_arrival_total_prior`, median of city-years
+strictly before the target). Splitters are untouched — ActionSA in Johannesburg
+is a splinter and stays at 5.08%; the thirty-one entrants around it now sum to
+exactly 1.64%.
+
+| | seat error | beats u-swing | 1-3 | 4-12 | 13+ |
+|---|---|---|---|---|---|
+| median seed (was committed) | 316 | 6/9 | +35.5 | −37.1 | −4.6 |
+| mean seed | 322 | 5/9 | +10.2 | −37.3 | +19.4 |
+| **group total, reach split** | **312** | **7/9** | +32.4 | −37.3 | **−1.7** |
+
+eThekwini flips from a loss to a win (36 → 34). Both numbers are measured on
+transitions strictly before the target and neither is fitted to a backtest score.
+
+### What it does NOT fix, and this is the honest limit
+
+**Ranks 4-12 did not move: −37.1 → −37.3pp.** All three variants leave it
+untouched. The mechanism can redistribute the arrival group and get its total
+right; it cannot say *which* arrival will be the big one. Cape Town 2021's
+arrivals totalled 4.74% with the Cape Coloured Congress alone taking 2.83%, and
+nothing in a nomination list distinguishes it from the twenty other parties on
+the same ballot with the same ward reach.
+
+That is the same wall as §1.30's: the model is good at parties a national
+election has already measured and bad at unknown ones. It is now good at the
+*aggregate* of the unknown ones too. The individual remains out of reach, and
+the honest thing is to say so on the site rather than keep tuning at it.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

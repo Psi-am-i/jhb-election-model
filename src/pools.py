@@ -2082,6 +2082,21 @@ def contesting_parties(city: cityconfig.City, year: str) -> set[str]:
     return out
 
 
+def _arrival_total_prior(before_year: str | int) -> float | None:
+    """The typical COMBINED share of every party arriving in one city-year.
+
+    Read off ``arrival_group_record`` for city-years strictly before the target,
+    so it is a forecast input rather than hindsight. The median rather than the
+    mean: the distribution runs 0.31%-4.74% over sixteen metro-years and the
+    mean is pulled by Cape Town 2021, which is one observation.
+    """
+    rec = arrival_group_record(before_year=str(before_year))
+    if not rec:
+        return None
+    import numpy as _np
+    return float(_np.median([s for s, _ in rec]))
+
+
 def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                   rates: np.ndarray, universe: list[str], categories,
                   record: list[tuple[float, float]],
@@ -2090,6 +2105,7 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                   splinter_home: dict[str, float] | None = None,
                   city_code: str | None = None,
                   pooled_splits: list[float] | None = None,
+                  group_total: float | None = None,
                   ) -> tuple[dict[str, dict], dict[str, str]]:
     """How a party that was not here last time takes its votes.
 
@@ -2210,6 +2226,7 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
 
     rules: dict[str, dict] = {}
     notes: dict[str, str] = {}
+    entrant_sizes: dict[str, float] = {}
     for party in sorted(newcomers):
         declared = lineage.get(party, {})
         # Split or entrant is decided in exactly one place, and this is the
@@ -2305,7 +2322,35 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # where "this one is led by a former mayor" belongs, because
             # nothing in a result file says it.
             peers = comparators(reach)
-            size = float(np.median(peers))
+            # THE MEAN, NOT THE MEDIAN, AND THE REASON IS WHAT CONSUMES IT.
+            #
+            # This was `np.median(peers)` until 2026-08-17 and it under-forecast
+            # every arrival by a factor of four, which is half the missing
+            # small-party seats on the whole nine-city-year record.
+            #
+            # Arrival sizes are violently right-skewed. Over the 77 arrivals on
+            # record before 2021 the median is 0.0498% and the MEAN is 0.2378%,
+            # a ratio of 4.78; among the wide-reach arrivals that actually win
+            # seats it is 0.0798% against 0.3398%, a ratio of 4.26. Seeding at
+            # the median is therefore seeding at a value four fifths of arrivals
+            # exceed in expectation.
+            #
+            # The band below already carried the skew — a triangular running to
+            # the 95th percentile, typically 17-24x the seed. It could not do
+            # anything with it, because `pool_spec` balances both margins by IPF
+            # (MODEL-LOG 'The centres now BIND') and IPF pins each party's MEAN
+            # to its centre. So the right tail survives only as spread around a
+            # centre that is four times too low: measured on eThekwini 2021,
+            # Active Citizens drew p50 0.0083% and p95 0.3613% -- a 44x spread,
+            # correctly shaped -- around a mean of 0.0798% against an actual
+            # 0.81%. Widening the band cannot fix that and never could.
+            #
+            # Whatever goes in `centres` IS the expected value, so it must be
+            # the expectation. That is the same correction this repository has
+            # already made twice: flooring the Dirichlet MEAN rather than its
+            # concentration, and reporting the coherent seat vector rather than
+            # marginal medians. Third instance, same principle.
+            size = float(np.mean(peers))
             lo_e = float(np.quantile(peers, 0.25))
             hi_e = float(np.quantile(peers, 0.95))
             # A judgement may say this one is unlike its comparators. Mashaba
@@ -2316,9 +2361,10 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             capture = _capture_from_share(vec, size, pool_size)
             mult = float(declared.get("overperform", 1.0))
             why = (f"entrant from nothing: even share of every pool. Sized at "
-                   f"the TYPICAL result for the {len(peers)} arrivals that "
+                   f"the EXPECTED result for the {len(peers)} arrivals that "
                    f"contested about as much of a city ({reach_used:.0%} of "
-                   f"wards), band {lo_e:.2%}-{hi_e:.2%}, giving {size:.2%}"
+                   f"wards): mean {size:.2%}, median {np.median(peers):.2%}, "
+                   f"band {lo_e:.2%}-{hi_e:.2%}"
                    + (f" after a x{mult:g} judgement" if mult != 1.0 else "")
                    + ". THE EVEN SPREAD IS A PLACEHOLDER: declare which pools "
                      "it pulls from and what support you expect.")
@@ -2326,7 +2372,40 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         rules[party] = {"capture": capture,
                         "band": [f_lo / f_mid, 1.0, f_hi / f_mid] if as_split
                                 else [lo_e / centre, 1.0, hi_e / centre]}
+        if not as_split and not weights:
+            entrant_sizes[party] = size
         notes[party] = why
+
+    # THE GROUP TOTAL IS THE QUANTITY THAT BEHAVES; THE SPLIT IS WHAT REACH
+    # PREDICTS. Hold the first, use the mean above only for the second.
+    #
+    # Seeding each entrant at the reach-matched MEAN is right per party and
+    # wrong per city, because a city fields twenty to forty of them: 30 x 0.34%
+    # is a 10.2% arrival total against a record whose median is 1.64% and whose
+    # maximum over sixteen metro-years is 4.74%. Measured, that over-allocation
+    # showed up exactly where it was put -- ranks 13+ went from -4.6pp to
+    # +19.4pp and the seat error from 316 to 322, while ranks 4-12 did not move.
+    # Seeding at the MEDIAN gets the total right by luck (30 x 0.08% = 1.6%) and
+    # the split wrong, spreading the group evenly when reality concentrates it:
+    # Cape Town 2021's arrivals totalled 4.74% with the Cape Coloured Congress
+    # alone taking 2.83%.
+    #
+    # So take the mean for the RELATIVE weighting, where it carries the reach
+    # signal (arrivals contesting 60-90% of wards clear 0.5% at 27.3% against
+    # 7-8% in every other band), and rescale the group to the total the record
+    # actually shows. Both numbers are measured, on transitions strictly before
+    # the target, and neither is fitted to a backtest score.
+    if entrant_sizes and group_total is not None:
+        want = float(group_total)
+        have = float(sum(entrant_sizes.values()))
+        if have > 0 and want > 0:
+            k = want / have
+            for party in entrant_sizes:
+                cap = rules[party]["capture"]
+                rules[party]["capture"] = {g: r * k for g, r in cap.items()}
+                notes[party] += (f" | group rescaled x{k:.2f}: {len(entrant_sizes)} "
+                                 f"entrants summing to {have:.2%} against an "
+                                 f"arrival-total record of {want:.2%}")
     return rules, notes
 
 
@@ -2735,7 +2814,11 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
         splinter_record(city, target.year), registered, contestation=reach,
         splinter_home=home_splinter_record(before_year=home_cutoff),
         city_code=city.code,
-        pooled_splits=pooled_splinter_record(target.year))
+        pooled_splits=pooled_splinter_record(target.year),
+        # The arrival TOTAL, from city-years strictly before the target. It is
+        # the regular quantity (median 1.64%, 0.31%-4.74% over sixteen
+        # metro-years) where an individual arrival's size is not.
+        group_total=_arrival_total_prior(target.year))
     # An arrival's composition follows from where it captures, so it does not
     # need a separate vector: the pools it takes from ARE its pool weights.
     for party, rule in arrivals.items():

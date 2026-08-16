@@ -152,7 +152,19 @@ party**.
 | class | definition | how it is sized | how well it works |
 |---|---|---|---|
 | **First local election** | has a national baseline, never faced an LGE | `pools.first_local_election`: national base × parent θ × ward reach × coherence | **78% within a factor of two**, 45 cases, median ratio 0.85 |
-| **Arrival** | no national vote at all | `pools.arrival_rules`: the arrival record, or a splinter fraction of its parent | **22% within a factor of two**, 7 of 32 |
+| **Arrival** | no national vote at all | `pools.arrival_rules`: the entrant GROUP is rescaled to the arrival-total record (`_arrival_total_prior`, median of prior city-years), and split between entrants by reach-matched mean. A splinter takes a fraction of its parent instead and is not rescaled. | **22% within a factor of two** individually, 7 of 32 — but the group TOTAL is now held to the record |
+
+**Why the group and not the party (2026-08-17, MODEL-LOG §1.32).** Sizing each
+entrant at its own reach-matched mean is right per party and wrong per city: a
+city fields 20–40 arrivals, so 30 × 0.34% is a 10.2% arrival total against a
+record whose median is 1.64%. Measured, that put +19.4pp into ranks 13+ and cost
+6 seats. Sizing at the median gets the total right by accident (30 × 0.08% ≈
+1.6%) and the split wrong. So the mean sets the *relative* weights, where ward
+reach carries real signal — arrivals contesting 60–90% of wards clear 0.5% at
+27.3% against 7–8% elsewhere — and the group total is held to the record.
+**This fixes the aggregate and not the individual:** ranks 4-12 did not move
+(−37.1 → −37.3pp) under any variant, because nothing on a nomination list says
+which of twenty equally-wide-reaching parties will be the one that takes 2.83%.
 
 **So the model is good at NEW parties and bad at UNKNOWN ones.** MK in 2026 is
 in the first class (12.2% of Johannesburg's 2024 national vote, seeded at 8.18%),
