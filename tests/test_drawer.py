@@ -92,7 +92,11 @@ PROCESSED = ROOT / "data" / "processed"
 #     (montecarlo.TURNOUT_CORRELATION);
 #   * turnout bands built in logit space, so they are two-sided everywhere
 #     (pools.turnout_band).
-# RE-RECORDED 2026-08-15 (III): the level shock now TRANSMITS. log_shock was
+# RE-RECORDED 2026-08-16: THE METRO POLLS NOW ACTUALLY FIRE FOR 2026. They had
+# never run there -- a KeyError on 'house' was swallowed by a bare except, in
+# the one channel with demonstrated skill and the one case it was built for.
+# Two SRF waves are now aggregated by recency and blended once, moving the DA
+# to 37.7%, the ANC to 23.3% and ActionSA to 13.4%. And earlier: the level shock now TRANSMITS. log_shock was
 # handing every party the same t draw (size=None against an array of sds), so
 # the shocks were perfectly correlated and cancelled under normalisation --
 # the ANC realised sd(log) 0.08 against a measured 0.21. It is now applied to

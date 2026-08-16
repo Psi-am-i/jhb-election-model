@@ -1963,36 +1963,42 @@ def run_model(target, scenario: dict,
     # --- metro polls, blended by PRECISION not by party history --------------
     # A poll of THIS city is a direct reading of the quantity being forecast, so
     # it applies to every party it names rather than only to arrivals. How much
-    # it counts is inverse-variance: see polling.blend_weight. The measured
-    # house error is 3.0pp (polling.POLL_RMS_ERROR) against model intervals that
-    # are far wider for a large party, so an accurate metro poll is not thrown
-    # away because the party happens to have a long record — which is what a
-    # weight keyed on observation counts would have done.
-    try:
-        import polling as _pg
+    # it counts is inverse-variance (polling.blend_weight): the measured house
+    # error is 3.0pp against model intervals that are far wider for a large
+    # party, so an accurate metro poll is not thrown away because the party has
+    # a long record — which a weight keyed on observation counts would do.
+    #
+    # SEVERAL POLLS ARE AGGREGATED FIRST, once, by recency. Applying them one
+    # after another is not aggregation, it is the last one applied winning, and
+    # the order was the register's — so Johannesburg 2026 was having its OLDEST
+    # wave applied last and dominating.
+    #
+    # NO BARE EXCEPT. This block previously swallowed anything into a one-line
+    # warning, and it swallowed a KeyError on 'house' for the whole of the 2026
+    # forecast: the one channel with demonstrated skill silently did nothing in
+    # the one case it was built for, and the warning scrolled past. A failure
+    # here now says exactly what broke.
+    import polling as _pg
+    _metro = [q for q in _pg.usable_for(target)
+              if q.get("scope") == "metro" and q.get("city") == target.city.slug]
+    _agg = _pg.aggregate(_metro) if _metro else None
+    if _agg:
         _sd = scenario.get("_theta_sd") or {}
         _default_sd = float(scenario.get("level_sd_default", 0.45))
-        for _poll in _pg.usable_for(target):
-            if _poll.get("scope") != "metro":
+        for _party, _share in sorted(_agg.items(), key=lambda kv: -kv[1]):
+            _mu = float(centres.get(_party, 0.0))
+            if _mu <= 0:
                 continue
-            if _poll.get("city") and _poll["city"] != target.city.slug:
-                continue
-            for _party, _share in (_poll.get("numbers") or {}).items():
-                if _party not in centres:
-                    continue
-                _mu = float(centres[_party])
-                if _mu <= 0:
-                    continue
-                # The model's spread in POINTS, so the two are comparable.
-                _msd = float(_sd.get(_party, _default_sd)) * _mu
-                _w = _pg.blend_weight(_pg.POLL_RMS_ERROR, _msd)
-                centres[_party] = (1 - _w) * _mu + _w * float(_share)
-                notes[_party] = notes.get(_party, "") + (
-                    f" | {_poll['house']} {_poll['fieldwork_end']} "
-                    f"{_share:.1%} @ w={_w:.2f}: → {centres[_party]:.1%}")
-            note_constant(scenario, "metro_poll", _poll["id"])
-    except Exception as _exc:
-        print(f"  ! metro polls unavailable ({type(_exc).__name__}: {_exc})")
+            _msd = float(_sd.get(_party, _default_sd)) * _mu
+            _w = _pg.blend_weight(_pg.POLL_RMS_ERROR, _msd)
+            centres[_party] = (1 - _w) * _mu + _w * float(_share)
+            notes[_party] = notes.get(_party, "") + (
+                f" | polls {_share:.1%} @ w={_w:.2f}: → {centres[_party]:.1%}")
+        note_constant(scenario, "metro_poll",
+                      ", ".join(q["id"] for q in _metro))
+        if verbose:
+            print(f"  polls: {len(_metro)} metro wave(s) aggregated by recency "
+                  f"({', '.join(q['id'] for q in _metro)})")
 
     if scenario.get("poll_id") and scenario.get("poll_weight", 0) > 0:
         polls = {q["id"]: q for q in json.loads(

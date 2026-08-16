@@ -17,7 +17,10 @@
       "caveat": "~500-person metro subsample (±4.4%); single house; its likely-voter screen filters out low-propensity, disproportionately ANC-leaning voters. ANC 18 sits below even the DA's own internal polling.",
       "fieldwork_start": "2026-07-08",
       "fieldwork_end": "2026-07-31",
-      "scope": "metro"
+      "scope": "metro",
+      "house": "SRF/Victory Research",
+      "city": "joburg",
+      "n": 504
     },
     {
       "id": "da-internal-2026aug",
@@ -34,7 +37,9 @@
       "fieldwork_start": "2026-08-01",
       "fieldwork_end": "2026-08-01",
       "scope": "metro",
-      "commissioned_by": "Democratic Alliance"
+      "commissioned_by": "Democratic Alliance",
+      "house": "DA internal",
+      "city": "joburg"
     },
     {
       "id": "srf-2026q1-coj",
@@ -53,7 +58,10 @@
       "caveat": "~503-person metro subsample; same house and turnout model as the July wave.",
       "fieldwork_start": "2026-02-16",
       "fieldwork_end": "2026-03-06",
-      "scope": "metro"
+      "scope": "metro",
+      "house": "SRF/Victory Research",
+      "city": "joburg",
+      "n": 503
     },
     {
       "id": "ipsos-w2-2025-metros",
@@ -74,7 +82,9 @@
       "caveat": "Face-to-face, registered voters, ~43–49% undecided largely unallocated — the methodological opposite of SRF, and the kindest credible read for the ANC. Applies all-metro numbers to Joburg.",
       "fieldwork_start": "2025-12-01",
       "fieldwork_end": "2026-01-31",
-      "scope": "metro"
+      "scope": "metro-aggregate",
+      "house": "Ipsos",
+      "note": "ALL-METRO AGGREGATE with no Johannesburg cut published. Scope is 'metro-aggregate' so it is NOT applied as a city poll: eight metros averaged is not a reading of one of them, and using it as one would import Cape Town's DA and eThekwini's MK into Johannesburg."
     },
     {
       "id": "ipsos-2021-lge-national",

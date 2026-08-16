@@ -69,6 +69,8 @@ from __future__ import annotations
 
 import json
 from datetime import date
+
+import numpy as np
 from pathlib import Path
 
 import cityconfig
@@ -164,6 +166,15 @@ def usable_for(target: cityconfig.Target, polls: list[dict] | None = None,
             continue
         if poll.get("commissioned_by") and not allow_commissioned:
             continue
+        # A METRO POLL MUST NAME ITS CITY. `ipsos-w2-2025-metros` is an
+        # eight-metro AVERAGE with no Johannesburg cut published, and it was
+        # being applied to Johannesburg as though it were a reading of it —
+        # importing Cape Town's DA and eThekwini's MK into this city. Eight
+        # metros averaged is not a reading of one of them, so its scope is
+        # `metro-aggregate` and it is admitted nowhere until someone publishes
+        # the cut.
+        if poll.get("scope") == "metro" and not poll.get("city"):
+            continue
         # A POLL IS ABOUT AN ELECTION, not merely before one. Filtering on
         # "fieldwork ended before polling day" alone let the 2016 Johannesburg
         # poll inform the 2021 forecast: five years stale, taken about a
@@ -177,6 +188,41 @@ def usable_for(target: cityconfig.Target, polls: list[dict] | None = None,
             continue
         out.append(poll)
     return out
+
+
+def aggregate(polls: list[dict], half_life_days: float = 120.0,
+              asof: date | None = None) -> dict[str, float] | None:
+    """One set of numbers from several polls, weighted by recency.
+
+    Applying polls one after another, as this module first did, is not
+    aggregation — it is the LAST one applied winning, and the order was the
+    register's, so Johannesburg 2026 was having its oldest poll applied last and
+    dominating. Three CoJ waves spanning six months were being read as though
+    only the January one existed.
+
+    Weight is ``exp(-age / tau)`` with tau set from a 120-day half-life: a poll
+    six months stale counts about a quarter of a fresh one. That is a judgement
+    about how fast a metro's opinion moves and it is declared as one — there is
+    no South African metro polling series long enough to fit it.
+
+    Herding and house effects are NOT corrected here. With two houses and four
+    waves they are not estimable, and pretending otherwise would be worse than
+    the gap. Note it wherever the blend is quoted.
+    """
+    dated = [(p, date.fromisoformat(str(p["fieldwork_end"])))
+             for p in polls if p.get("fieldwork_end") and p.get("numbers")]
+    if not dated:
+        return None
+    asof = asof or max(d for _, d in dated)
+    tau = float(half_life_days) / np.log(2.0)
+    out: dict[str, float] = {}
+    total: dict[str, float] = {}
+    for poll, when in dated:
+        w = float(np.exp(-max((asof - when).days, 0) / tau))
+        for party, share in (poll.get("numbers") or {}).items():
+            out[party] = out.get(party, 0.0) + w * float(share)
+            total[party] = total.get(party, 0.0) + w
+    return {p: out[p] / total[p] for p in out if total[p] > 0}
 
 
 def contested_share(codes: list[str], year: str,
