@@ -2088,6 +2088,49 @@ is **not testable historically**: 44 of the 45 fall at 2021, so a backtest at
 untestable by the harness, which is the same position as `w_bye` — argued, not
 tested, and it should be labelled that way if it is ever applied.
 
+### Does it matter which party a splinter is classed as leaving? (2026-08-16)
+
+Put to the repository that ActionSA is recorded as a DA splinter while the data
+say its support pools are nothing like the DA's. Both halves are true, and the
+test is what the classification actually buys.
+
+`parent` controls three things: the splinter FRACTION is a share of the parent's
+own vote, the starting VECTOR is 35% the parent's, and `home` travels with the
+Split record. For ActionSA at Johannesburg 2021:
+
+    if parent were   its 2019 JHB share   seed = f x share   inherited vector (BA/White)
+    DA                        29.63%             4.48%           0.417 / 0.431
+    ANC                       49.62%             7.51%           0.703 / 0.219
+    ACTUAL                                      18.12%           0.556 / 0.344
+
+**The truth is between the two parents on both quantities**, and closer to
+neither. Scored end to end, the classification is worth almost nothing:
+Johannesburg 2021 CRPS **73.07 as a DA splinter against 72.68 as an ANC
+splinter**. The seed moves 5.08% to 7.38% and both are a third of the answer.
+
+Two conclusions.
+
+**The model conflates two different things under one field.** LINEAGE is a fact —
+Mashaba was the DA's mayor and resigned from the DA — and it is the right basis
+for `home` (his base is Johannesburg) and arguably for the splinter fraction,
+which is a statement about how much of a leader's old party follows them. The
+DONOR POOL is an empirical question with a different answer: measured, ActionSA
+drew **ANC −0.381 and EFF −0.262 per point while the DA GAINED +0.199**. A
+non-negative inherited vector cannot represent a parent that gains, which is why
+the fitted blend lands between the two parents rather than on either.
+
+**It only ever matters for a party's FIRST election.** After that the vector is
+fitted from ward data. ActionSA's 2026 vector is 61.5% Black African and
+ward-identified, against the 12.1% it was *given* in 2021 — so the 2026 forecast
+does not rest on the inheritance guess at all. The classification is a one-cycle
+bootstrap, and the evidence that it is wrong arrives at the same moment it stops
+being used.
+
+So: not worth re-classing ActionSA, and worth separating the two meanings if the
+splinter path is ever rebuilt. `parent` should mean who left; a donor
+specification, signed, should mean whose voters — and the repo already has the
+flows for one party.
+
 ### Two things this did NOT do
 
 * **The point-estimate rates matrix is still a point estimate** (review item 6).
