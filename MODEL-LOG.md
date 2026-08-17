@@ -4482,6 +4482,170 @@ only candidate with an out-of-sample gain.
 
 ---
 
+## 1.44 The mid-ballot deficit is a vector too widely spread, and one smooth shrink closes most of it (2026-08-17)
+
+§1.43 established that θ cannot be estimated better and that the remaining lever
+is the systematic level bias. This is that lever, and it is the largest single
+improvement this model has had.
+
+### The reframing that made it tractable
+
+Seven attempts had treated the mid-ballot as an estimation problem for the
+parties in ranks 4-12. It is not. Across nine city-years the two bands are
+**+32.30pp** (ranks 1-3, over-forecast) against **−36.20pp** (ranks 4-12,
+under-forecast), and ranks 13+ sit at **+0.78pp**. Two nearly equal and opposite
+numbers are not two faults; they are one.
+
+(Those three figures are measured on the cached mean vectors described below, at
+400 draws over the full party list. `compare_history`'s own band table gives
++32.50 and −36.88pp on the same populations. The small gap is draw count and
+nothing else — it is quoted here so the two instruments are not mistaken for a
+disagreement.) The forecast's **share vector is too
+widely spread**, and the standard remedy for a vector of noisy estimates is to
+shrink it toward its centre.
+
+### Screening the candidates without paying for a run each
+
+Coherent seats are largest remainder on a **mean** vector, and summed absolute
+PR error needs only a mean vector too. So the nine city-years' full mean
+predicted vectors were cached once and every candidate transform fitted offline.
+The screen was validated before it was trusted: rebuilding coherent seats from a
+combined ward+PR entitlement reproduces the runs' own figures at **306 against
+308**, one city-year off by two. Four one-parameter families,
+leave-one-city-year-out, against a 148.55pp baseline:
+
+| form | PR error | vs base | improved | seats |
+|---|---|---|---|---|
+| baseline | 148.55pp | — | — | 306 |
+| threshold λ (the review's form) | 138.08 | −10.47 | 5/9 | 284 |
+| power α (`q ∝ p^α`) | 138.52 | −10.03 | 7/9 | 278 |
+| **smooth ramp** | **137.12** | **−11.43** | **7/9** | **276** |
+| linear in size | 149.62 | +1.07 | 7/9 | 298 |
+
+The ramp keeps `1 − c·s/(s+h)` of each level and gives the mass back by
+renormalising. **`h` is a scale, not a tuned constant**: swept twenty-fold from
+0.02 to 0.40 the gain runs −11.7, −13.6, −13.0, −11.4, −9.6, −9.3, −7.6, −5.6pp
+and improves 7 of 9 at every value. There is no cliff, which is the whole
+argument against the review's threshold — that one is knife-edged, giving −13.2%
+at 5%, −5.6% at 8% and −0.8% at 15%.
+
+### Why this is not scoreboard-fitting (ITERATING.md rule 10)
+
+**The parameter is fitted on one city-year from a different cycle and transfers
+to eight metros in the next one.** Fitted on Johannesburg 2016 alone it comes out
+at **0.375**; applied to the eight 2021 metros — seven of them different cities,
+none seen by the fit — it improves 6 of 8 and takes reconstructed seat error from
+284 to 258. Leave-one-city-year-out across all nine chooses **0.350 in every one
+of the nine folds**. A constant that lands in the same place from one city-year,
+from nine, and across a cycle boundary is a property of the model, not of the
+scoreboard.
+
+**What rule 10 still has against it, stated plainly:** the *family* was chosen by
+screening four candidates against these same nine city-years. The direction and
+magnitude are corroborated out of sample; the choice of functional form is not.
+
+### Scored in the model
+
+Committed at `level_shrink = 0.35`, `level_shrink_scale = 0.04`, nine city-years,
+at the protocol 1500 draws and again at 600 for the paired per-city-year detail:
+
+| draws | | coherent seat error | beats u-swing | CRPS |
+|---|---|---|---|---|
+| **1500** | baseline | 312 | 6/9 | 264.8 |
+| **1500** | level shrink | **264** | **8/9** | **236.4** |
+| 600 | baseline | 308 | 7/9 | 265.0 |
+| 600 | level shrink | 268 | 8/9 | 235.2 |
+
+The two draw counts agree on direction and very nearly on size, which is the
+point of running both: −48 and −40 against a draw noise of ±2 to ±4.
+
+Per city-year at 1500 draws it improves seven, ties one and loses one:
+
+| | JHB16 | JHB21 | TSH | EKU | ETH | CPT | MAN | NMB | BCM | total |
+|---|---|---|---|---|---|---|---|---|---|---|
+| baseline | 20 | 106 | 42 | 30 | 38 | 40 | 8 | 20 | 8 | 312 |
+| shrink | 18 | 94 | 32 | 20 | 32 | 32 | 8 | 18 | 10 | **264** |
+
+The only loss is **Buffalo City, 8 → 10**, and the only tie is Mangaung — the
+two smallest councils, at 100 and 101 seats, which is where the offline screen
+predicted the cost would fall. At 600 draws Mangaung was a loss too (6 → 10), so
+that one is partly draw noise and is not evidence of anything. Draw noise is ±2
+to ±4; −48 is not in it.
+
+### The band the whole exercise was aimed at
+
+From the committed artefact, regenerated at 1500 draws — signed and absolute,
+because a signed total is not an error total (rule 7):
+
+| band | signed before | signed after | absolute before | absolute after |
+|---|---|---|---|---|
+| ranks 1-3 | +31.95pp | **+10.62pp** | 72.07pp | **61.09pp** |
+| ranks 4-12 | −36.88pp | **−22.76pp** | 56.63pp | **48.42pp** |
+| ranks 13+ | −1.55pp | **+5.60pp** | 14.57pp | 16.89pp |
+| phantom | +6.48pp | +6.54pp | — | — |
+
+**The −36.88pp that seven attempts could not move is −22.76pp**, a 38%
+reduction, and ranks 1-3 fall by 67%. The absolute columns fall with the signed
+ones in both bands, which is the test that matters: mass was moved to the right
+parties, not merely cancelled between them. The three signed bands plus the
+phantom still balance exactly — +10.62, +5.60 and +6.54 against −22.76 — because
+shares sum to one and always did.
+
+### The corroboration that matters most
+
+`c` was fitted on summed absolute PR error. It was never fitted on calibration —
+so the PIT is an independent statistic, and it moves the same way:
+
+| band | mean PIT, baseline | mean PIT, shrink | (0.50 is right) |
+|---|---|---|---|
+| ranks 1-3 | 0.425 | **0.464** | over-forecast, corrected |
+| ranks 4-12 | 0.750 | **0.680** | under-forecast, reduced |
+
+(1500 draws. At 600 the same pair reads 0.425 → 0.464 and 0.750 → 0.675.)
+
+Both bands move toward centre, and the per-city-year signed band errors fall
+almost everywhere: eThekwini +2.82/−1.97 → +0.09/−0.23, Ekurhuleni +5.53/−5.49 →
++3.10/−3.94, Tshwane +7.88/−9.11 → +5.23/−7.08.
+
+### The cost, which is real
+
+The freed mass is returned by uniform renormalisation — a multiplicative boost
+with many micro-parties to receive it. In the offline screen ranks 13+ go from
+**+0.78pp to +8.68pp**: a band that was unbiased becomes an over-forecast one.
+**In the model the damage is much smaller** — under 1pp per city-year — because
+the pool constraints and the IPF absorb most of it, but the sign is the same and
+it is the first thing to attack if this is revisited.
+
+Three targeted redistributions were measured and all three **scored worse** on
+both summed absolute error and seats, while balancing the bands better:
+
+| redistribution | PR error | seats | bands 1-3 / 4-12 / 13+ |
+|---|---|---|---|
+| uniform renormalise (committed) | 134.91 | 272 | +6.63 / −20.21 / +8.68 |
+| to predicted ranks 4-12 | 139.32 | 284 | −0.57 / −9.01 / +4.01 |
+| to everything below the top 3 | 137.12 | 280 | −0.98 / −12.84 / +8.53 |
+| below top 3, weighted by room | 142.58 | 288 | +16.37 / −22.33 / +1.71 |
+
+That is a genuine conflict between a signed-bias criterion and an absolute-error
+one, and it is recorded rather than resolved by preference.
+
+### Two things it does NOT break
+
+**The pool-capacity guard does not reopen.** The shrink lifts small parties, and
+the PA is the party whose 2026 level was asking about 102% of the Coloured pool,
+so this was the obvious way for the change to do damage. Measured at 2026, 300
+draws, lever off against on: the PA goes 0.0635 → 0.0668, still under its 0.0689
+arithmetic ceiling, and `cap_moved` and `cap_undershoots` are **zero in both
+arms** — the Duncan-Davis enforcement of §1.42 had already closed that hole and
+the shrink does not force it back open.
+
+**The published 2026 forecast does move**, and materially: the DA goes 0.328 →
+0.310 on the PR ballot with the ANC flat at 0.201 → 0.202 (the ANC is smaller in
+2026, so the size-dependent pull takes less from it). That is a forecast change
+to be republished deliberately, not a side effect to be discovered later.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

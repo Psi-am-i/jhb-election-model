@@ -238,22 +238,40 @@ PROCESSED = ROOT / "data" / "processed"
 # and two separate steps are responsible. See the A/B/C table in the module
 # docstring — renormalisation for A-to-B (plan item 3.1), the entrant rescale
 # for B-to-C.
+# RE-RECORDED 2026-08-18, deliberately: THE LEVEL SHRINK IS ON.
+# `montecarlo.compress_levels` now runs on the finished centre vector, pulling
+# each party's central level down by its own size and giving the mass back by
+# renormalising. This is the change of MODEL-LOG §1.44 and it is the largest
+# single improvement this model has had: at nine city-years and 1500 draws,
+# coherent seat error 312 -> 264, CRPS 264.8 -> 236.4, beats-uniform-swing
+# 6/9 -> 8/9.
+#
+# The prior therefore MUST move, and it moves in the direction the mechanism
+# claims: the big come down and the small go up. ANC mean 21.71% -> 20.72%
+# (p5 6.59 -> 5.66, p95 40.46 -> 39.35), Al Jama-ah 1.25% -> 1.55% (p95
+# 2.65 -> 3.20). A re-record where the ANC rose or Al Jama-ah fell would mean
+# the shrink was wired backwards, so these signs are the guard, not noise.
+#
+# What is NOT a change: `level_shrink = 0.0` is exactly the identity in
+# `compress_levels`, asserted by
+# `test_the_level_shrink_is_exactly_the_identity_when_it_is_off`, so the
+# previous prior is recoverable by that one override.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (21.7145, 6.5905, 40.4551),
-    "DA": (30.4701, 14.7476, 50.6451),
-    "EFF": (10.5141, 1.5158, 23.1993),
-    "ASA": (12.4689, 2.5455, 26.6073),
-    "MK": (6.9132, 0.7360, 17.6265),
-    "PA": (5.7200, 2.0785, 11.2645),
-    "VFPLUS": (0.8929, 0.0023, 3.3370),
-    "ALJAMAAH": (1.2511, 0.2812, 2.6506),
-    "ENTRANT": (1.4780, 0.0000, 7.7926),
+    "ANC": (20.7179, 5.6565, 39.3470),
+    "DA": (27.9457, 12.5094, 46.8977),
+    "EFF": (10.3408, 1.4564, 23.9809),
+    "ASA": (12.4755, 2.6907, 27.6160),
+    "MK": (7.2496, 0.9323, 18.1610),
+    "PA": (6.1821, 2.3026, 12.7229),
+    "VFPLUS": (1.1192, 0.0071, 3.8129),
+    "ALJAMAAH": (1.5450, 0.3688, 3.2011),
+    "ENTRANT": (1.3961, 0.0000, 7.9095),
 }
 GOLDEN_POOLS = {
-    "Black African": (47.3555, 31.8639, 60.8170),
-    "Coloured": (10.5535, 6.6953, 16.1547),
-    "Indian/Asian": (5.5481, 3.9923, 7.5498),
-    "White": (35.0649, 23.4710, 49.4711),
+    "Black African": (47.7773, 33.6657, 60.8548),
+    "Coloured": (11.2775, 7.1991, 17.6997),
+    "Indian/Asian": (5.9688, 4.1357, 8.1545),
+    "White": (33.5804, 22.0052, 46.9403),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")

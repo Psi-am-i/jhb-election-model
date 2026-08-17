@@ -211,6 +211,29 @@ correlated turnout copula and a within-pool Dirichlet.
 against spine centre: ANC 0.950, DA 0.942, VF Plus 0.956. The forecast is decided
 at the blend.
 
+### The level shrink — the last step before the draw
+
+`compress_levels` runs on the finished centre vector, after every route and
+after the by-election blend, so it reaches arrivals and poll-led parties as well
+as spine ones. Each party keeps
+
+    1 - level_shrink * s / (s + level_shrink_scale)
+
+of its central level `s`, and the freed mass is returned by renormalising to the
+original total. The pull is smooth and monotone in size — near zero for a
+micro-party, near `level_shrink` for a dominant one.
+
+It exists because the model's error is a **share vector too widely spread**, not
+a level error in any one party: ranks 1-3 come out +32.30pp signed against ranks
+4-12 at −36.20pp, almost exactly offsetting. Shrinking a vector of noisy
+estimates toward its centre is the standard remedy, and the correction is
+applied here rather than inside the spine precisely because the spine cannot see
+arrivals, and a good part of ranks 4-12 are arrivals.
+
+The parameter was **not** chosen on the nine city-years it is scored against —
+see `MODEL-LOG` §1.44 for the forward test that picked it and for the cost,
+which is a tail band that was unbiased and is now slightly over-forecast.
+
 ### Known divergence, unresolved
 
 `theta_prior` and `_shrunk` are **two different estimators of the same quantity**.
@@ -581,6 +604,13 @@ mismatch across a delimitation produced for Tshwane 2026.
 `entrant_prob` · `entrant_share` · `MIN_HOME_SPLITS` ·
 `SPLIT_SD_FLOOR` · `LEVEL_DF` · `level_sd_default` · `w_bye` ·
 `pa_contestation_uplift` — and note it is consumed at **2026 only** (`run.constants_read`), so it cannot contaminate any backtest. `ward_pr_ratio_overrides` was here until 2026-08-17 and is **deleted**: consumed at no target at all.
+
+`level_shrink` belongs here with a distinction that matters. Its **value** did
+not see the targets: 0.35 comes from a fit on Johannesburg 2016 alone, which
+independently gives 0.375, and from a leave-one-city-year-out fit that gives
+0.350 in all nine folds. Its **functional form** did — four families were
+screened against the same nine city-years the change is scored on, and the ramp
+won that screen. So the number is out-of-sample and the shape is not.
 
 `theta_mode`, `PLAN_BOUNDS`, `individual_theta` and `f_other` have LEFT this
 list as live constants — the spine measures the level from transitions strictly

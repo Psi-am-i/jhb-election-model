@@ -900,6 +900,53 @@ def test_the_model_refuses_to_run_without_a_pool_spec():
     raise AssertionError("run_model produced a forecast with no pool spec")
 
 
+def test_the_level_shrink_is_exactly_the_identity_when_it_is_off():
+    """Off must mean untouched, not nearly untouched.
+
+    ``level_shrink`` ships at 0.0, so every committed forecast and every golden
+    test runs through ``compress_levels``. If the off path returned a
+    renormalised copy rather than its input, the whole model would move by a
+    rounding error the moment this landed, and the golden prior would have to be
+    re-recorded for a change that is supposed to do nothing.
+    """
+    centres = {"ANC": 0.40, "DA": 0.25, "EFF": 0.10, "TINY": 0.0004, "ZERO": 0.0}
+    for scenario in ({"level_shrink": 0.0, "level_shrink_scale": 0.04},
+                     {"level_shrink": 0.0, "level_shrink_scale": 0.0},
+                     {}):
+        out = mc.compress_levels(centres, scenario)
+        assert out == centres, f"the off path moved the centres: {scenario}"
+
+
+def test_the_level_shrink_takes_from_the_big_and_gives_to_the_small():
+    """The mechanism's whole claim, as an ordering rather than a number.
+
+    The fault is ranks 1-3 over-forecast and ranks 4-12 under-forecast, so the
+    correction must be monotone in size: strictly shrinking the largest party,
+    strictly lifting the smallest, preserving the total, and never reordering
+    anybody. A form that merely lowered the total would score better on a
+    signed statistic while being wrong.
+    """
+    centres = {"ANC": 0.40, "DA": 0.25, "EFF": 0.10, "SMALL": 0.01,
+               "TINY": 0.0004}
+    out = mc.compress_levels(centres, {"level_shrink": 0.35,
+                                       "level_shrink_scale": 0.04})
+
+    assert abs(sum(out.values()) - sum(centres.values())) < 1e-12, \
+        "the shrink must return the mass it takes, not delete it"
+
+    ratio = {p: out[p] / centres[p] for p in centres}
+    order = sorted(centres, key=lambda p: -centres[p])
+    for big, small in zip(order, order[1:]):
+        assert ratio[big] < ratio[small], (
+            f"{big} ({centres[big]:.2%}) must be pulled down harder than "
+            f"{small} ({centres[small]:.2%}); got {ratio[big]:.4f} vs "
+            f"{ratio[small]:.4f}")
+    assert ratio[order[0]] < 1.0, "the largest party must lose share"
+    assert ratio[order[-1]] > 1.0, "the smallest party must gain share"
+    assert [p for p in sorted(out, key=lambda p: -out[p])] == order, \
+        "the shrink must not reorder the ballot"
+
+
 class _Args:
     """The shape ``montecarlo.load_scenario`` expects from argparse."""
 

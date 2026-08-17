@@ -226,6 +226,15 @@ PERTURB: dict[str, object] = {
     "spine_k": 40.0,
     "level_floor": 0.02,
     "turnout_correlation": -0.9,
+    # The level shrink, added 2026-08-17 and ADOPTED at 0.35 the next day.
+    # PERTURBED TO 0.0, WHICH IS THE POINT: 0.0 is exactly the identity in
+    # `compress_levels`, so this sweep asks whether the committed shrink is
+    # doing anything at all, and a null here would mean the largest scored
+    # improvement this model has had is not reaching the forecast. Perturbing
+    # it to 0.35 -- as this entry did for a few minutes -- perturbs it to its
+    # own default and is guaranteed to report a lever that cannot move.
+    "level_shrink": 0.0,
+    "level_shrink_scale": 0.40,
     # Added 2026-08-17 after the enumeration test below found that PERTURB
     # covered 13 of 27 DEFAULTS keys and nobody had noticed.
     "entrant_share": [0.20, 0.30, 0.45],
