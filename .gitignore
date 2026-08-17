@@ -5,6 +5,25 @@
 data/**
 !data/**/
 !**/.gitkeep
+
+# ...EXCEPT the scoreboard, which is a REFERENCE and not an output.
+#
+# Every calibration figure in this repository is quoted as "the committed
+# data/processed/history.json". It was never committed. It is overwritten by
+# every run, so nothing could diff it, no test could compare a document against
+# it, and three separate reviews rediscovered the same class of staleness --
+# ranks 4-12 written up as n=26 / PIT 0.750 / 46% four minutes after the file on
+# disk said n=28 / 0.757 / 43%. A reference artefact that cannot be diffed is
+# not a reference.
+#
+# history.json is the machine-readable one and is what
+# tests/test_calibration_report.py checks the documents against. history.md is
+# tracked with it because it is the human-readable rendering of the same run and
+# a diff of the two together shows what moved and what it means. Both are
+# written by src/compare_history.py with json.dumps(indent=2), so the diff is
+# line-oriented and readable.
+!data/processed/history.json
+!data/processed/history.md
 __pycache__/
 *.pyc
 .DS_Store

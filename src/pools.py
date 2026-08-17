@@ -1077,6 +1077,26 @@ def balance_within_bounds(R: np.ndarray, electorate: np.ndarray,
     sum on the known total, which is a Bregman projection onto a convex set
     exactly as the unbounded half-step is. Both margins still hold exactly.
 
+    **The unbounded answer is tried first, and kept when it is already legal.**
+    This is not an optimisation; it is the difference between enforcing a
+    constraint and replacing a solver. The seeding below fires on a condition
+    that has nothing to do with the bounds — see its comment — so the bounded
+    path moves fits that never violated anything, and it moves them the wrong
+    way. Measured across the ten production fits, the bounded path costs ward
+    SSE at every one, worst at Nelson Mandela Bay 2016 (+3.71%) and Buffalo
+    City 2016 (+2.02%); at **Ekurhuleni 2016 it cost +0.61% with zero
+    violations to fix**, taking the DA's Indian/Asian rate from 1.00 to 0.90
+    and spreading Al Jama-ah from two pools across all four. Five of the ten
+    fits — joburg 2011, joburg 2016, tshwane 2016, ekurhuleni 2016, mangaung
+    2016 — have no violation at all, and ``balance_margins``' answer at each is
+    both a strictly better ward fit and a fixed point of the iteration below
+    (at Ekurhuleni, one full sweep moves it by 2.8e-12). Running it anyway
+    bought nothing and paid for it.
+
+    So: balance the margins; if every rate already lies inside its interval,
+    that IS the answer and it is returned untouched. Only a fit the arithmetic
+    can actually refute pays for the projection.
+
     ``lo`` and ``hi`` are pools x parties rate matrices from :func:`bounds`.
     """
     counts = R * electorate[:, None]
@@ -1095,22 +1115,6 @@ def balance_within_bounds(R: np.ndarray, electorate: np.ndarray,
     lo_c = lo * electorate[:, None]
     hi_c = hi * electorate[:, None]
 
-    # THE SAME ARGUMENT, ONE CELL AT A TIME — and without it this does not
-    # converge at all. A corner solution is full of exact zeros, and a
-    # multiplicative step cannot move one: anything times nothing is nothing. So
-    # the PA, capped at the Coloured pool's ceiling of 27,183 votes and zeroed
-    # everywhere else, can only ever account for 27,183 of its 27,346 votes and
-    # the party margin never closes. Those zeros are not a measurement —
-    # ``PartyFit.identified`` says as much of any rate sitting on a boundary —
-    # they are where least squares stopped. Seed each of them with the pool's
-    # share of the votes the fit failed to place, which is the maximum-entropy
-    # answer for a cell nothing is known about, and let the iteration move it.
-    unplaced = np.maximum(target_cols - np.minimum(counts, hi_c).sum(axis=0), 0.0)
-    blank = counts <= 0
-    room = np.where(blank, target_rows[:, None], 0.0)
-    room /= np.maximum(room.sum(axis=0), 1e-12)[None, :]
-    counts = np.where(blank, np.minimum(room * unplaced[None, :], hi_c), counts)
-
     # Feasibility, stated rather than discovered. The bounds and the margins are
     # arithmetic on the SAME ward table, so the true cross-tabulation satisfies
     # all of it and an infeasible system means one of the two inputs is not what
@@ -1128,6 +1132,71 @@ def balance_within_bounds(R: np.ndarray, electorate: np.ndarray,
     if trouble:
         raise RuntimeError("the method of bounds and the known margins "
                            "disagree: " + "; ".join(trouble))
+
+    # THE UNBOUNDED ANSWER FIRST, KEPT IF IT IS ALREADY LEGAL. The tolerance is
+    # three orders tighter than the one the bounds test asserts at (1e-9), so
+    # nothing passes through here that a reader would call a violation.
+    #
+    # ``balance_margins`` is left exactly as it is — ``montecarlo`` runs it once
+    # per draw and its output must not move — so the two adjustments it needs
+    # for this use are made here, at the call.
+    #
+    # First, a tighter stop. Its criterion is relative to the GRAND TOTAL, so at
+    # the shipped 1e-12 a small party's column can still be off by a microvote,
+    # which is 1e-12 of that party's citywide share; the bounded iteration below
+    # lands the same quantity at 2e-16. IPF converges geometrically and both
+    # margins are simultaneously satisfiable at the fixed point, so 1e-15 costs
+    # a handful of extra sweeps — measured at under a millisecond on every fit,
+    # inside the shipped 2000-iteration cap — and takes the share error to 9e-16
+    # and the pool margin to 1e-16.
+    #
+    # Second, one exact column rescale. Its loop ends on a ROW half-step, which
+    # leaves the residual on the party margin; the bounded iteration ends on a
+    # COLUMN half-step and has the opposite profile. Rescaling once puts the
+    # party margin exactly on its total, which is why the tighter stop has to
+    # come first: the correction is then ~1e-15, small enough that a cell
+    # already pinned AT its Duncan-Davis ceiling is not pushed through it. It is
+    # applied BEFORE the bound check, so the matrix checked is the matrix
+    # returned.
+    try:
+        unbounded = balance_margins(R, electorate, party_votes, tol=1e-15)
+    except RuntimeError:
+        unbounded = None          # it did not converge; the bounded path may
+    if unbounded is not None:
+        c = unbounded * electorate[:, None]
+        col = c.sum(axis=0)
+        c = c * np.divide(target_cols, col, out=np.ones_like(col),
+                          where=col > 0)[None, :]
+        unbounded = c / np.maximum(electorate, 1e-12)[:, None]
+        if bool((unbounded >= lo - 1e-12).all()
+                and (unbounded <= hi + 1e-12).all()):
+            return unbounded
+
+    # THE SAME ARGUMENT, ONE CELL AT A TIME — and without it this does not
+    # converge at all. A corner solution is full of exact zeros, and a
+    # multiplicative step cannot move one: anything times nothing is nothing. So
+    # the PA, capped at the Coloured pool's ceiling of 27,183 votes and zeroed
+    # everywhere else, can only ever account for 27,183 of its 27,346 votes and
+    # the party margin never closes. Those zeros are not a measurement —
+    # ``PartyFit.identified`` says as much of any rate sitting on a boundary —
+    # they are where least squares stopped. Seed each of them with the pool's
+    # share of the votes the fit failed to place, which is the maximum-entropy
+    # answer for a cell nothing is known about, and let the iteration move it.
+    #
+    # READ THE TRIGGER CAREFULLY — IT IS NOT THE BOUND. ``unplaced`` compares a
+    # party's known total against its CLIPPED RAW FIT column, and the raw fit is
+    # NNLS on the ward table: nothing ever asked it to reproduce a party total,
+    # so it does not. At Ekurhuleni 2016 with the box removed entirely
+    # (lo=0, hi=1, so the clip is inert) 15 of 25 parties are still seeded and
+    # 3,716 votes — 0.41% of the city — are still "unplaced", with no bound
+    # binding anywhere. A ceiling that clips a cell can ENLARGE the shortfall;
+    # it is not what creates it. That is why this whole block now runs only
+    # after the unbounded answer has been shown to be illegal.
+    unplaced = np.maximum(target_cols - np.minimum(counts, hi_c).sum(axis=0), 0.0)
+    blank = counts <= 0
+    room = np.where(blank, target_rows[:, None], 0.0)
+    room /= np.maximum(room.sum(axis=0), 1e-12)[None, :]
+    counts = np.where(blank, np.minimum(room * unplaced[None, :], hi_c), counts)
 
     for _ in range(iters):
         counts = _scale_into_box(counts, lo_c, hi_c, target_rows)
@@ -1226,6 +1295,14 @@ def fit_city(city: cityconfig.City, year: str, cfg: Config, *,
     # emitted anyway — see :func:`balance_within_bounds`. Every fitted rate is
     # now held inside its own interval while both known margins are matched, so
     # the three things known about the election hold together.
+    #
+    # ENFORCING a constraint is not the same as REPLACING the solver. Five of
+    # the ten production fits — joburg 2011, joburg 2016, tshwane 2016,
+    # ekurhuleni 2016, mangaung 2016 — violate no bound at all, and for those
+    # the unbounded balance is returned as it stands. It has to be: at
+    # Ekurhuleni 2016 the bounded path cost 0.61% of ward SSE with nothing to
+    # correct, purely through seeding that fires on a condition the bounds have
+    # no part in.
     dd = [bounds(Y[:, i], comp, vote) for i in range(len(universe))]
     lo = np.column_stack([b[:, 0] for b in dd])
     hi = np.column_stack([b[:, 1] for b in dd])
@@ -1496,13 +1573,16 @@ def registered_at_target(city: cityconfig.City, target: cityconfig.Target,
     composition = counts.composition("registered")
     by_ward = {w: composition[i] for i, w in enumerate(counts.wards)}
 
+    # A missing roll used to stand in the fitting election's own and print a
+    # warning. That branch is gone with the wrong-city fallback that made it
+    # reachable: :func:`_target_roll` now refuses and names the file, because
+    # the two cases it was covering are both worse served by a stand-in. A
+    # future target with no roll is a data-acquisition gap that should be
+    # stated once, loudly, rather than absorbed into pool sizes five years out
+    # of date; and the case that actually reached it in practice was not a
+    # missing roll at all — it was another city's roll being loaded and its
+    # ward codes failing to join.
     roll = _target_roll(city, target)
-    if not roll:
-        # No published roll yet: fall back to the fitting election's own, and
-        # say so. Better a stated stand-in than a silent one.
-        print(f"  ! no {target.year} roll on disk; pool sizes taken from "
-              f"{fitted_on}'s roll instead")
-        return counts.totals("registered")
 
     total = np.zeros(len(counts.categories))
     unmatched = 0.0
@@ -1521,20 +1601,30 @@ def registered_at_target(city: cityconfig.City, target: cityconfig.Target,
         # disk looking like any other artefact — it was found only because a
         # regression test asserted on a key it happened to be missing.
         #
-        # This is a ward-code join failure, not a data gap: the roll's ward
-        # identifiers do not match the ones the composition is keyed on, which
-        # is what a delimitation change does. Joining across one silently pairs
-        # different polygons, which is why `dimensions.toml` refuses that join
-        # elsewhere rather than performing it.
+        # This is a ward-code join failure. WHAT IT IS NOT, ANY MORE, IS A
+        # WRONG-FILE BUG — and that is the only cause it has ever actually had.
+        # The message here used to say "almost certainly a delimitation
+        # boundary", and it was published saying so, while the real cause was
+        # `_target_roll` loading Johannesburg's roll for every other city. Read
+        # the sample codes below before reaching for geography: if they are
+        # another city's prefix, the roll is the wrong file, not the wrong
+        # vintage.
+        sample = sorted(w for w in roll if w not in by_ward)[:3]
+        known = sorted(by_ward)[:3]
         raise SystemExit(
             f"{city.name} {target.year}: {share_unmatched:.1%} of the roll is in "
             f"wards with no measured composition, and the pools would hold "
-            f"{total.sum():,.0f} registered voters between them. That is a "
-            f"ward-code mismatch between the {target.year} roll and the "
-            f"composition fitted on {fitted_on} — almost certainly a "
-            f"delimitation boundary. Refusing to emit a spec whose pools are "
-            f"empty; fix the crosswalk or fit the composition on a year whose "
-            f"wards match.")
+            f"{total.sum():,.0f} registered voters between them. Refusing to "
+            f"emit a spec whose pools are empty.\n"
+            f"  unmatched ward codes in the {target.year} roll: "
+            f"{', '.join(sample) or '(none)'}\n"
+            f"  ward codes the composition fitted on {fitted_on} is keyed on: "
+            f"{', '.join(known) or '(none)'}\n"
+            f"  If those two share a prefix, it is a delimitation change and "
+            f"the crosswalk needs fixing (or fit the composition on a year "
+            f"whose wards match). If they do NOT share a prefix, the roll "
+            f"belongs to a different city and the bug is upstream of this "
+            f"check.")
     if share_unmatched > 0.01:
         print(f"  ! {share_unmatched:.1%} of the {target.year} "
               f"roll is in wards with no measured composition")
@@ -1543,7 +1633,39 @@ def registered_at_target(city: cityconfig.City, target: cityconfig.Target,
 
 def _target_roll(city: cityconfig.City, target: cityconfig.Target,
                  ) -> dict[str, float]:
-    """Ward -> registered voters at the target, from whichever roll exists."""
+    """Ward -> registered voters at the target, from THIS CITY'S roll.
+
+    An election that has been held publishes its own roll inside the result
+    file, so that is read first. Only a future target — 2026 is the single year
+    in ``CALENDAR`` with no results — needs the separately published
+    pre-election roll, and that lands in the city's own processed directory.
+
+    THERE IS NO FALLBACK TO ANOTHER DIRECTORY, AND THERE MUST NOT BE. This
+    function used to end::
+
+        path = target.processed / f"vd_ward_{target.year}.csv"
+        if not path.exists():
+            path = Path("data/processed") / f"vd_ward_{target.year}.csv"
+
+    and ``data/processed/`` is not a shared root: it is *Johannesburg's* own
+    directory, because ``cities/joburg.toml`` is the one config carrying
+    ``legacy_processed_root`` (see :meth:`cityconfig.City.processed`). So the
+    second line handed **every other city Johannesburg's ward roll**. The
+    2026 file's first data row is ward 79800094; Johannesburg's wards are
+    798000xx and Tshwane's are 799000xx, so 100% of the codes then failed to
+    join — and the caller reported that as *"almost certainly a delimitation
+    boundary"*, a geographic diagnosis of a wrong-file bug. That refusal was
+    published. It blocked the whole multi-city expansion behind an imaginary
+    delimitation problem for as long as it stood.
+
+    Note the fallback could never have helped even the city it stole from:
+    Johannesburg's 2026 target IS the default target, so ``target.processed``
+    already resolves to the bare ``data/processed/`` and the first line finds
+    the file. The branch was reachable only by a city it could only mislead.
+
+    A missing roll is therefore a refusal naming the file it wanted, never a
+    silent substitution.
+    """
     if cityconfig.CALENDAR[target.year].results:
         try:
             return ward_totals(city, target.year)[0]
@@ -1551,9 +1673,16 @@ def _target_roll(city: cityconfig.City, target: cityconfig.Target,
             pass
     path = target.processed / f"vd_ward_{target.year}.csv"
     if not path.exists():
-        path = Path("data/processed") / f"vd_ward_{target.year}.csv"
-    if not path.exists():
-        return {}
+        raise SystemExit(
+            f"{city.name} {target.year}: no ward roll for this city. Wanted "
+            f"{path}, which does not exist.\n"
+            f"  This is a missing input, not a modelling problem: the "
+            f"{target.year} roll is published per voting district and has to "
+            f"be acquired and cleaned into that path for {city.slug} the same "
+            f"way data/processed/vd_ward_2026.csv was for joburg. Every "
+            f"non-Johannesburg city needs its own; there is no shared one, and "
+            f"reading another city's is how this used to report a delimitation "
+            f"boundary that was never there.")
     roll: dict[str, float] = defaultdict(float)
     seen: set[str] = set()
     with open(path, encoding="utf-8", errors="replace") as fh:
@@ -2676,7 +2805,46 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     series = registration_series(city, cfg, before=target.year,
                                  split_bloc=split_bloc)
     target_shares, roll_note = projected_pool_shares(series, target.year)
-    composition = {p: f.composition(target_shares) for p, f in fits.items()}
+
+    # THE COMPOSITION IS NORMALISED ON VOTES CAST, NOT ON A PROJECTED ROLL.
+    #
+    # `PartyFit.composition(pool_votes)` says what it wants in its own signature
+    # and docstring — "where the party's votes come from" — and the rates it
+    # multiplies were fitted against `pool_votes = (comp * vote).sum(axis=0)`.
+    # Until 2026-08-17 the production call handed it `target_shares`, a
+    # projected REGISTRATION-share vector, while `montecarlo.pool_spec` sized
+    # the same pools from the counted roll times turnout. Two denominators for
+    # one quantity, and a category error against the function's own contract —
+    # the arrival branch below already used the counted roll, so the two sat in
+    # the same emitted dict.
+    #
+    # It made emitted compositions ARITHMETICALLY IMPOSSIBLE. Over nine
+    # city-years, 5 of 339 party-pairs claimed a pool weight above
+    # `poolshare / actual_share` — the ceiling of taking 100% of that pool.
+    # Worst: Mangaung 2021, the ANC drawing a claimed 15.68% of its vote from an
+    # Indian/Asian pool casting 1.54% of the ballots, 5.2x the arithmetic
+    # maximum. Every violation was on the smallest pool. Re-normalised on votes
+    # cast, 0 of 339 remain.
+    #
+    # Two things went wrong together. `projected_pool_shares` extrapolates the
+    # last interval by `damping x step` = 0.6 x 2.5 = 1.5, so the "damping"
+    # AMPLIFIES; Mangaung's Indian/Asian series is 2011: 0.0, 2014: 0.0, 2016:
+    # 0.0524 — absent before 2016 — so it reads a spurious trend and lands on
+    # 0.1311. And at Nelson Mandela Bay the same extrapolator sends that pool to
+    # -0.0027, clipped to 1e-6, i.e. EXACTLY ZERO: every fitted party got no
+    # weight at all in a pool holding 9,596 registered voters at 86.5% turnout.
+    # That collapsed pool is the failure `pool_spec`'s own comment blames for
+    # the per-draw capacity guard existing. THE DEFECT THE GUARD WAS BUILT FOR
+    # WAS THIS ONE. See MODEL-LOG §1.42.
+    registered = registered_at_target(city, target, cfg, year,
+                                      split_bloc=split_bloc)
+    record = turnout_record(city, cfg, before=target.year,
+                            split_bloc=split_bloc)
+    turnout = turnout_band(record, n)
+    pool_votes_at_target = registered * np.array(
+        [float(turnout[g][1]) for g in range(n)])
+    composition = {p: f.composition(pool_votes_at_target)
+                   for p, f in fits.items()}
 
     # --- parties with no measured vector -------------------------------------
     # The baseline is the election the forecast starts from; the pool vectors
@@ -2841,11 +3009,6 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # this replaces was a triangular standing in for population change,
     # registration change and turnout change at once, fitted to two
     # transitions.
-    registered = registered_at_target(city, target, cfg, year,
-                                      split_bloc=split_bloc)
-    record = turnout_record(city, cfg, before=target.year,
-                            split_bloc=split_bloc)
-    turnout = turnout_band(record, n)
     limits = turnout_limits(record, registered)
 
     record = entrant_record(lge_transitions(before=target.year))

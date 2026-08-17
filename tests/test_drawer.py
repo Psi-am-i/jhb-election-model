@@ -121,6 +121,45 @@ PROCESSED = ROOT / "data" / "processed"
 #     (montecarlo.TURNOUT_CORRELATION);
 #   * turnout bands built in logit space, so they are two-sided everywhere
 #     (pools.turnout_band).
+# RE-RECORDED 2026-08-17 (fourth and last today): THE COMPOSITION IS NORMALISED
+# ON VOTES CAST. `PartyFit.composition(pool_votes)` was being handed a projected
+# REGISTRATION-share vector while `montecarlo.pool_spec` sized the same pools
+# from the counted roll times turnout — two denominators for one quantity, and a
+# category error against the function's own signature. It made 5 of 339 emitted
+# party-pool weights ARITHMETICALLY IMPOSSIBLE (Mangaung's ANC claimed 15.68% of
+# its vote from a pool casting 1.54% of the ballots, 5.2x the maximum); 0 remain.
+# At Nelson Mandela Bay the projected share of the Indian/Asian pool came out
+# NEGATIVE and clipped to zero, so a pool of 9,596 registered voters at 86.5%
+# turnout had no fitted members at all — the collapse the per-draw capacity
+# guard was built for. It now carries 26 members, 2 identified. MODEL-LOG §1.42.
+#
+# Nine city-years: 312 -> 310, i.e. NOTHING. IPF pins the citywide levels
+# whatever the seed composition says, so this moves only the ward and seat
+# layer, and it nets to noise. It is a correctness fix and is not claimed as an
+# improvement.
+# RE-RECORDED 2026-08-17 (third time today): THE WEIGHT-AWARE CEILING WAS TRIED
+# AND REVERTED. It scored 306 -> 486 over nine city-years (Mangaung 10 -> 112),
+# because it bounds a composition the draw does not hold still. So these numbers
+# are back where the second re-record left them, plus the pool-fit pass-through
+# of MODEL-LOG 1.40, which does not move the 2026 artefact at all. The ceiling
+# defect below is REAL and UNFIXED -- read it as an open problem, not a change.
+#
+# WHAT WAS TRIED: THE POOL-CAPACITY CEILING IS WEIGHT-AWARE. It was an INDICATOR — a membership of 0.00019 counted
+# like one of 1.0 — so once `balance_within_bounds` began seeding every zeroed
+# cell, 74 of 75 parties had a ceiling of exactly 1.0 at 2026 and the capacity
+# guard could no longer fire for anyone. Its silence was reported as evidence
+# the projection had removed the problem. It had not. MODEL-LOG 1.41.
+#
+# The movement here is the PA going back UNDER a bound it should always have
+# been under: its true ceiling is 0.0689 of votes cast (it takes 99.18% of its
+# vote from a pool casting 6.73% of the ballots) against a 2026 centre asking
+# about 109% of that. The previous re-record, six hours earlier, celebrated the
+# PA's p95 rising 7.24% -> 11.79% as "coming off a ceiling it should never have
+# been on". Half of that was real — the corner solution was an artefact — and
+# half was the guard going blind. This record puts the arithmetic bound back.
+#
+# The pool-fit pass-through (MODEL-LOG 1.40) does NOT move these numbers:
+# pools_2026.json is byte-identical under it.
 # RE-RECORDED 2026-08-17 (second time today), deliberately: THE DUNCAN-DAVIS
 # BOUNDS ARE NOW ENFORCED. `fit_city` balances through `balance_within_bounds`,
 # so no emitted rate sits outside the interval the ward arithmetic proves. The
@@ -200,21 +239,21 @@ PROCESSED = ROOT / "data" / "processed"
 # docstring — renormalisation for A-to-B (plan item 3.1), the entrant rescale
 # for B-to-C.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (21.3048, 6.3764, 40.1474),
-    "DA": (30.6753, 14.7243, 51.3199),
-    "EFF": (10.5906, 1.5420, 23.7633),
-    "ASA": (12.2732, 2.4945, 26.1223),
-    "MK": (7.0389, 0.9031, 17.3470),
-    "PA": (5.7613, 2.0058, 11.7891),
-    "VFPLUS": (0.9786, 0.0033, 3.5956),
-    "ALJAMAAH": (1.2863, 0.3018, 2.6775),
-    "ENTRANT": (1.3310, 0.0000, 7.5057),
+    "ANC": (21.7145, 6.5905, 40.4551),
+    "DA": (30.4701, 14.7476, 50.6451),
+    "EFF": (10.5141, 1.5158, 23.1993),
+    "ASA": (12.4689, 2.5455, 26.6073),
+    "MK": (6.9132, 0.7360, 17.6265),
+    "PA": (5.7200, 2.0785, 11.2645),
+    "VFPLUS": (0.8929, 0.0023, 3.3370),
+    "ALJAMAAH": (1.2511, 0.2812, 2.6506),
+    "ENTRANT": (1.4780, 0.0000, 7.7926),
 }
 GOLDEN_POOLS = {
-    "Black African": (48.9658, 32.9452, 62.4367),
-    "Coloured": (10.0224, 6.0616, 16.0779),
-    "Indian/Asian": (6.2043, 4.4594, 8.2893),
-    "White": (33.4766, 21.6827, 47.8104),
+    "Black African": (47.3555, 31.8639, 60.8170),
+    "Coloured": (10.5535, 6.6953, 16.1547),
+    "Indian/Asian": (5.5481, 3.9923, 7.5498),
+    "White": (35.0649, 23.4710, 49.4711),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")

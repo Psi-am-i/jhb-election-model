@@ -81,41 +81,132 @@ it is newer, better argued, or built from more measurements.
    `compare_history` took `crps.total` and dropped the rest. Both are now in the
    standard report (`compare_history.py`, MODEL-LOG §1.34). When a statistic
    says the model is fine, check what it is capable of saying.
-8. **Width and level are different faults with opposite remedies — and this
-   model's answer to both DIFFERS BY RANK BAND, so a pooled figure answers
-   neither.** Keep the first half of that sentence: coverage says whether the
-   intervals are the right WIDTH, the PIT mean says whether they are in the
-   right PLACE, and a change that improves one while wrecking the other has not
-   improved the model. What must go is the idea that either has one answer.
-   Pooled over the nine city-years the claimed columns give a mean PIT of 0.588,
-   which reads as a mild uniform under-forecast. Split by actual PR rank (nine
-   city-years, 1500 draws — quote the draw count or quote neither) it is:
+8. **Width and level are different faults with opposite remedies, and NEITHER
+   can be read off a coverage number.** This rule has now been wrong twice in
+   two days, in opposite directions, and both times because a width verdict was
+   taken from coverage at a single nominal level. Read the paragraph after the
+   table before proposing anything.
 
-   | claimed columns | n | mean PIT | 95% CI | nominal 50% covers |
-   |---|---|---|---|---|
-   | ranks 1-3 | 27 | **0.431** | [0.380, 0.479] | 70% — too WIDE |
-   | ranks 4-12 | 26 | **0.750** | [0.674, 0.810] | 27% — too NARROW |
-   | pooled | 53 | 0.588 | — | 58% |
+   The LEVEL genuinely differs by rank band, and that part has never been in
+   doubt. The WIDTH does not: **both bands are too wide, by almost exactly the
+   same factor.**
 
-   **0.588 is the average of a −0.069 and a +0.250**, and the two CIs exclude
-   0.50 in opposite directions. The model **over**-forecasts the top three and
-   **under**-forecasts the middle, which is exactly what the signed vote bands
-   (+32.50pp at ranks 1-3, −37.34pp at 4-12) have said all along; the two
-   instruments never disagreed, only one of them was disaggregated. The
-   50%-coverage column is the discreteness-corrected one — `score.coverage`
-   reads 46% at ranks 4-12 because an integer interval must include whole
-   endpoints, and the randomised PIT removes that.
+   <!-- CHECKED-AGAINST-ARTEFACT: data/processed/history.json, claimed columns.
+        tests/test_calibration_report.py::test_the_documented_figures_match_the_committed_artefact
+        parses the two tables below and fails the build if they and the artefact
+        disagree. Do not hand-edit a cell; re-run compare_history.py, commit the
+        artefact, and paste what the report printed. -->
 
-   So: **before proposing a dispersion or a level change, read the per-band
-   table, not the pooled row.** "Widening would be the wrong fix" remains true
-   at ranks 1-3, where the intervals are already too wide and the centres too
-   high. It is false at ranks 4-12, where a nominal 50% interval covers 27% and
-   the centres are too low. A single change that moves the whole distribution
-   cannot fix both, and the pooled statistic will report progress for a change
-   that makes one band worse and the other better by the same amount — which is
-   the same arithmetic that let a signed error sum hide a 26.50pp band error.
-   `sweep.py`'s ten "the truth is above the whole forecast" anomalies and zero
-   below are consistent with this: they are ranks 4-12 parties.
+   | claimed columns | n | mean PIT | 50% (PIT) | 80% (PIT) | 90% (PIT) | probit-SD |
+   |---|---|---|---|---|---|---|
+   | ranks 1-3 | 27 | 0.432 | 70% | 93% | 96% | 0.829 |
+   | ranks 4-12 | 29 | 0.749 | 31% | 86% | 93% | 0.724 |
+
+   | nine-city-year vote error | signed | absolute |
+   |---|---|---|
+   | ranks 1-3 | +31.95pp | 72.07pp |
+   | ranks 4-12 | -36.88pp | 56.63pp |
+   | ranks 13+ | -1.55pp | 14.57pp |
+   | phantom (parties that did not stand) | +6.48pp | — |
+
+   **On level.** The pooled claimed mean PIT is 0.598 and it is the average of
+   0.434 and 0.757 — an over-forecast averaged with an under-forecast, both
+   cluster-bootstrap CIs excluding 0.50 in opposite directions. The model
+   **over**-forecasts the top three and **under**-forecasts the middle, exactly
+   as the signed vote bands say. **That gap is a zero-sum transfer, not two
+   independent faults**: shares sum to one, so the +32.52pp at ranks 1-3 and the
+   +6.36pp of phantom mass are the same points as the −37.18pp at 4-12 and the
+   −1.70pp at 13+. A level fix must MOVE mass; adding it anywhere takes it from
+   somewhere.
+
+   **On width — and this is the part that was wrong.** Yesterday this rule said
+   ranks 4-12 were "too NARROW — widen them", on the strength of the 50% column
+   alone (32%). **A forecast whose intervals are too narrow under-covers at
+   EVERY level.** These over-cover at 80% (89%) and at 90% (96%). What actually
+   produces a low 50% with a high 80 and 90 is a forecast that is *shifted* —
+   it has vacated the middle of its own interval — sitting inside intervals that
+   are *too wide*.
+
+   That is not an argument, it is a fixture, and it is in the suite. The rows
+   below come from `tests/test_calibration_report.py::_shift_scale_results(4242,
+   12, width_mult=W, shift=S)` — nine small parties on a mean of 4 seats, the
+   real band's scale — run through this repository's own `calibration_columns`:
+
+   | ranks 4-12 fixture | mean PIT | 50% | 80% | 90% | PIT var | probit-SD | sd(z) |
+   |---|---|---|---|---|---|---|---|
+   | correct width, no shift | 0.552 | 0.454 | 0.824 | 0.880 | 0.0829 | 1.021 | 1.000 |
+   | correct width, **+2 shift** | 0.794 | 0.269 | **0.556** | **0.759** | 0.0450 | 0.917 | 1.000 |
+   | correct width, +3 shift | 0.876 | 0.167 | 0.361 | 0.509 | 0.0240 | 0.953 | 1.000 |
+   | **1.6× too wide, +2 shift** | 0.740 | 0.435 | **0.861** | **0.935** | 0.0270 | 0.571 | 0.650 |
+   | **the model, ranks 4-12** | **0.757** | **0.321** | **0.893** | **0.964** | 0.0388 | **0.734** | — |
+
+   A shift takes coverage away at every level. **Only excess width puts it back
+   at 80 and 90**, and the model's row sits with the too-wide arm at both.
+
+   The statistics that settle it are in the report's *"Is it the right WIDTH?"*
+   table, which divides the level out: **probit-SD is 0.740 at ranks 1-3 and
+   0.734 at ranks 4-12** — 1.00 being right, below 1.00 too wide. The two bands
+   are dispersed almost identically, both about **1.35× wider** than the errors
+   they cover. Note `sd(z)` in the table above: exactly 1.000 at every shift
+   when the width is right. That is the column to prefer once the artefact
+   carries it; the artefact quoted here predates it.
+
+   **So the corollary that "no single change can fix both bands" is also
+   wrong.** Both bands want the same thing on width — narrowing — and the level
+   difference is one transfer. A change that narrows the seat distribution and
+   moves mass from the top three to the middle is a single coherent proposal,
+   not two contradictory ones. It still has to beat the baselines on history
+   before it ships.
+
+   **Statistics that do NOT answer the width question, and were each used to:**
+   - *Coverage at one nominal level.* Confounded with the level. This is the
+     mistake, twice.
+   - *PIT variance against 1/12.* Claimed as "shift-invariant, therefore
+     clean". It is not shift-invariant — a PIT is bounded, so a shift piles mass
+     against an endpoint and the variance falls whatever the width is. On the
+     correct-width fixture above it reads **0.0829, 0.0450 and 0.0240** at
+     shifts of 0, +2 and +3 seats against a nominal 0.0833: a pure level error
+     reading as a 3.5× under-dispersion. So the model's 0.0388 is not evidence
+     of narrowness — and neither are its empty tails (0 columns below PIT 0.05,
+     1 above 0.95), since a shift evacuates one tail and excess width evacuates
+     both.
+   - *Recentring the PIT about its own mean and re-reading coverage.* Same
+     boundary problem; on that fixture it reads 0.55, 0.85, 0.94 at shifts of 0,
+     +2, +3 — it does not remove the shift, it reports it.
+   - *`score.pit_histogram`'s shape verdict.* It tests the two END bins, so a
+     monotone-increasing histogram scores as U-shaped. On ranks 4-12 it reads
+     `[1, 1, 1, 11, 14]` — 25 of 28 columns in the top two bins, nothing at the
+     bottom — and prints *"U-shaped … under-dispersed, widen it"*.
+
+   **And read the intervals — none of these coverage cells is strong evidence
+   on its own.** Coverage rows are now printed with cluster-bootstrap intervals
+   (ranks 4-12 at 50%: 32% [19–50], which includes nominal). Taken one at a
+   time, against nominal, on a binomial test that ignores clustering and so
+   flatters every one of them:
+
+   | | ranks 1-3 | ranks 4-12 |
+   |---|---|---|
+   | 50% (PIT) | 19/27, p = 0.026 | 9/28, p = 0.044 |
+   | 80% (PIT) | 25/27, p = 0.072 | 25/28, p = 0.16 |
+   | 90% (PIT) | 26/27, p = 0.23 | 27/28, p = 0.22 |
+   | probit-SD vs 1.0 | 0.740, p = 0.030 | 0.734, p = 0.025 |
+   | **probit-SD, both bands** | | **p = 0.003** |
+
+   So the 80% and 90% over-coverage this rule argues from is **not individually
+   significant**, and it should not be quoted as though it were. What it does is
+   rule out the narrow reading — a narrow forecast cannot over-cover at all —
+   while the weight of the evidence sits in the level-free dispersion statistic,
+   which uses all 55 columns at once and rejects correct dispersion at
+   p ≈ 0.003. Two caveats in opposite directions: columns cluster within
+   city-year, so the true p is larger than any figure above; and the probit-SD
+   is attenuated by the shift, so the true excess width is larger than 1.35×.
+
+   The discreteness correction is thinner still. What turned "about right" (43%
+   raw) into "far too narrow" (32% PIT-corrected) at ranks 4-12, and carried
+   §1.36's whole width argument, is **three discordant columns** out of 28 — a
+   one-sided sign test at p = 0.125. At ranks 1-3 it is two, p = 0.25. The
+   correction is real and the direction is right; it is not a result you can
+   build a conclusion on by itself, and it was.
 9. **Quote the pooled calibration figure, never a city-year's — and never the
    pooled figure alone.** Pool over CITY-YEARS: per city-year it is four to
    fifteen scored columns, Johannesburg 2021 reads 12/62/75 against nominal

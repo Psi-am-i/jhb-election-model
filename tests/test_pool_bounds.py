@@ -185,6 +185,111 @@ def test_a_zero_cell_can_still_be_reached():
         "a pool stopped adding to one voter per voter"
 
 
+def test_a_legal_unbounded_answer_is_returned_untouched():
+    """Enforcing a constraint is not the same as replacing the solver.
+
+    Half of what ``balance_within_bounds`` does is seeding, and the seeding
+    fires on a condition the bounds have NO part in: ``unplaced`` compares a
+    party's known total against its raw NNLS column, and NNLS was never asked
+    to reproduce a party total. Measured at Ekurhuleni 2016 with the box
+    removed entirely (lo=0, hi=1, so the clip is inert), 15 of 25 parties are
+    still seeded and 3,716 votes — 0.41% of the city — are still unplaced,
+    with no bound binding anywhere.
+
+    So the bounded path used to move fits that had no violation to move, and it
+    moved them the wrong way: Ekurhuleni 2016 has ZERO violations, and paid
+    +0.61% of ward SSE, taking the DA's Indian/Asian rate from 1.00 to 0.90.
+    ``balance_margins``' answer there is feasible, is a strictly better ward
+    fit, AND is a fixed point of the bounded iteration (one full sweep moves it
+    by 2.8e-12) — the iteration only left it because the seeding moved the
+    starting point.
+
+    This asserts the rule that fixes it, on the case that motivated it: where
+    the unbounded balance already satisfies every Duncan-Davis bound, that is
+    the answer. Five of the ten production fits take this path.
+    """
+    unchanged, moved = [], []
+    for slug, year in FITS:
+        fits, ctx = _fit(slug, year)
+        parties = ctx["parties"]
+        pool_votes = ctx["pool_votes"]
+        raw = ctx["raw_rates"]
+        R = np.column_stack([fits[p].rates for p in parties])
+        party_votes = (ctx["Y"] * ctx["votes"][:, None]).sum(axis=0)
+        lo = np.column_stack([fits[p].bounds[:, 0] for p in parties])
+        hi = np.column_stack([fits[p].bounds[:, 1] for p in parties])
+
+        plain = pools.balance_margins(raw.copy(), pool_votes, party_votes)
+        legal = bool((plain >= lo - 1e-9).all() and (plain <= hi + 1e-9).all())
+        drift = float(np.abs(R - plain).max())
+        if legal:
+            # Not bit-identical: the pass-through stops IPF at 1e-15 rather
+            # than 1e-12 and rescales the party margin exactly once, which is
+            # how it keeps BOTH margins at least as tight as the bounded path.
+            # Anything above float noise means the projection ran anyway.
+            unchanged.append((slug, year, drift))
+            assert drift < 1e-9, (
+                f"{slug} {year}: the unbounded balance violates no bound, yet "
+                f"the emitted fit differs from it by {drift:.2e}. The bounded "
+                f"path is running on a fit with nothing to correct, and it is "
+                f"not free — it cost Ekurhuleni 2016 0.61% of ward SSE")
+        else:
+            moved.append((slug, year, drift))
+
+    assert unchanged, (
+        "no fit passed through unchanged, which cannot be right: five of the "
+        "ten have no violation at all")
+    assert moved, (
+        "every fit passed through unchanged, so the projection is now dead "
+        "code — joburg 2021, ethekwini/capetown/nelsonmandelabay/buffalocity "
+        "2016 all have rates the ward arithmetic forbids")
+    print(f"  {len(unchanged)} fits pass through untouched "
+          f"({', '.join(s + ' ' + y for s, y, _ in unchanged)}); "
+          f"{len(moved)} are projected")
+
+
+def test_the_seeding_is_not_triggered_by_the_bounds():
+    """The record said otherwise, and the record was wrong.
+
+    MODEL-LOG §1.38 claimed *"the bound is what creates unplaced votes; the
+    seed is only what lets a multiplicative iteration place them"*, and
+    JUDGEMENT-CALLS gave the trigger as *"when the Duncan-Davis ceiling stops a
+    cell absorbing a party's whole total"*. Neither is the code. Two separate
+    conditions fire two separate mechanisms:
+
+    * **seeding** fires when the raw NNLS fit's column does not reach the
+      party's known total — which it generally does not, because nothing in
+      the least-squares problem ties a column sum to a party total;
+    * **the box** binds when a cell would leave its Duncan-Davis interval.
+
+    A ceiling can enlarge the first by clipping a cell before the comparison.
+    It is not what creates it. This test states that separately, so nobody
+    re-derives the wrong causal story from the code.
+    """
+    slug, year = "ekurhuleni", "2016"
+    _, ctx = _fit(slug, year)
+    raw, pv = ctx["raw_rates"], ctx["pool_votes"]
+    qv = (ctx["Y"] * ctx["votes"][:, None]).sum(axis=0)
+
+    counts = raw * pv[:, None]
+    target_cols = qv.astype(float) * (pv.sum() / qv.sum())
+    # The box removed entirely: hi = 1 means the clip cannot bite.
+    open_hi = pv[:, None] * np.ones_like(counts)
+    unplaced = np.maximum(
+        target_cols - np.minimum(counts, open_hi).sum(axis=0), 0.0)
+
+    assert (counts > open_hi + 1e-9).sum() == 0, \
+        "the open box clipped something; then this measures nothing"
+    assert (unplaced > 0).sum() > 0, (
+        "with no bound anywhere, no party's votes are unplaced — then §1.38's "
+        "causal claim would have been right and this test should be deleted")
+    print(f"  {slug} {year}: with lo=0, hi=1, "
+          f"{int((unplaced > 0).sum())} of {counts.shape[1]} parties are still "
+          f"seeded and {unplaced.sum():,.0f} votes "
+          f"({100 * unplaced.sum() / pv.sum():.2f}% of the city) unplaced — "
+          f"no bound binds anywhere")
+
+
 def test_an_infeasible_system_is_refused_rather_than_approximated():
     """Bounds and margins that cannot both hold mean an input is not what it
     claims to be. Saying so beats iterating to a cap and returning a matrix
@@ -210,3 +315,79 @@ if __name__ == "__main__":
         if name.startswith("test_") and callable(fn):
             fn()
             print(f"ok  {name}")
+
+
+def test_no_emitted_composition_weight_is_arithmetically_impossible():
+    """A party cannot draw more from a pool than the pool casts.
+
+    `w_pg <= poolshare_g / s_p` is the ceiling of a party taking **100%** of pool
+    g, so a weight above it describes an election that cannot happen. Until
+    2026-08-17 five of 339 party-pairs across the nine city-years were above it,
+    worst the ANC at Mangaung 2021 claiming 15.68% of its vote from a pool
+    casting 1.54% of the ballots — **5.2x the maximum**.
+
+    The cause was two denominators for one quantity: `PartyFit.composition` was
+    handed a projected REGISTRATION-share vector while `montecarlo.pool_spec`
+    sized the same pools from the counted roll times turnout (MODEL-LOG §1.42).
+
+    Nothing caught it because everything downstream absorbed it — IPF forced the
+    pool margin every draw so the levels came out right, `identified()` reported
+    the one wholly-collapsed pool as merely unmeasured, and the capacity guard's
+    failure at Nelson Mandela Bay was attributed to a row-side infeasibility
+    rather than to its cause. **This test needs no backtest and no draw:** it is
+    arithmetic on the emitted artefact.
+    """
+    import json
+
+    # (city, target) -> the emitted artefact, which is what the model reads.
+    targets = [("joburg", "2016"), ("joburg", "2021"),
+               ("tshwane", "2021"), ("ekurhuleni", "2021"),
+               ("ethekwini", "2021"), ("capetown", "2021"),
+               ("mangaung", "2021"), ("nelsonmandelabay", "2021"),
+               ("buffalocity", "2021")]
+    hist_path = ROOT / "data/processed/history.json"
+    if not hist_path.exists():
+        skip("no data/processed/history.json — run compare_history first")
+    hist = {r["slug"] + str(r["year"]): r for r in json.loads(hist_path.read_text())}
+
+    bad = []
+    for slug, year in targets:
+        city = cityconfig.load(slug)
+        spec_path = city.processed / f"pools_{year}.json"
+        if not spec_path.exists() or (slug + year) not in hist:
+            continue
+        spec = json.loads(spec_path.read_text())
+        actual = {p: a for p, _md, _mn, a, *_ in hist[slug + year]["votes"]
+                  if a == a and a > 0}
+        pools_ = spec["pools"]
+        names = list(pools_)
+        votes = {nm: pools_[nm].get("registered", 0.0)
+                 * float((pools_[nm].get("turnout") or [0, 1, 0])[1])
+                 for nm in names}
+        total = sum(votes.values())
+        if total <= 0:
+            continue
+        share = {nm: votes[nm] / total for nm in names}
+        for party, s_p in actual.items():
+            if s_p <= 0:
+                continue
+            w = {nm: float((pools_[nm].get("members") or {}).get(party, 0.0))
+                 for nm in names}
+            wsum = sum(w.values())
+            if wsum <= 0:
+                continue
+            for nm in names:
+                if w[nm] <= 0:
+                    continue
+                ratio = (w[nm] / wsum) / (share[nm] / s_p)
+                if ratio > 1.0 + 1e-9:
+                    bad.append(f"{slug} {year} {party} in {nm}: weight "
+                               f"{w[nm]/wsum:.4f} against a maximum of "
+                               f"{share[nm]/s_p:.4f} ({ratio:.2f}x)")
+    assert not bad, (
+        "these emitted pool weights describe an election that cannot happen — "
+        "the party is drawing more from the pool than the pool casts:\n  "
+        + "\n  ".join(bad)
+        + "\nCheck that `PartyFit.composition` is being handed VOTES CAST "
+          "(registered x turnout), the same vector `montecarlo.pool_spec` "
+          "builds, and not a registration or projected-share vector.")

@@ -70,6 +70,7 @@ See MODEL-LOG §1.34 and §1.36.
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 from pathlib import Path
@@ -77,7 +78,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _support import ROOT  # noqa: E402
+from _support import ROOT, skip  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -834,6 +835,443 @@ def test_the_vote_bands_and_the_calibration_bands_are_the_same_partition():
         assert label == membership[party], (
             f"{party} is band {label} in the calibration block and "
             f"{membership[party]} in rank_band_of")
+
+
+# ---------------------------------------------------------------------------
+# CLASS 8, YET AGAIN — a WIDTH verdict taken from a statistic that measures LEVEL
+#
+# Twice in two days this repository read a width fault off a coverage number.
+# First "roughly the right width, do not widen"; then, from the 50% column
+# alone, "ranks 4-12 are too narrow, widen them" — into ITERATING.md rule 8.
+# Both wrong, in opposite directions, because coverage moves with the level as
+# well as with the width and neither reading looked at more than one level.
+#
+# The fixtures below are the discriminating ones. A forecast whose width is
+# EXACTLY right and whose truth is purely shifted loses coverage at every level;
+# a forecast that is too wide gains it at 80 and 90 while still losing it at 50.
+# The model reads low at 50 and HIGH at 80 and 90, which only the second can do.
+# ---------------------------------------------------------------------------
+
+def _shift_scale_results(seed, n_city_years, width_mult, shift, lam=4.0,
+                         per_band=9, draws=400):
+    """City-years whose ranks 4-12 have a KNOWN width and a KNOWN level error.
+
+    ``width_mult`` rescales the forecast about its own mean without touching the
+    truth, so 1.0 is a perfectly dispersed forecast and 1.6 is one whose
+    intervals are 1.6x too wide. ``shift`` moves the truth and nothing else.
+    Width and level are therefore controlled independently, which is the whole
+    point: every statistic in this report has to be asked whether it responds to
+    one, the other, or both.
+
+    Three big parties are carried so that ranks 1-3 exist and the nine small
+    ones land in the 4-12 band under ``rank_band_of``, exactly as on the real
+    ballot.
+    """
+    rng = np.random.default_rng(seed)
+    results = []
+    for k in range(n_city_years):
+        small = [f"s{k}_{j}" for j in range(per_band)]
+        big = [f"B{k}_{j}" for j in range(3)]
+        seat_draws = [{} for _ in range(draws)]
+        actual = {}
+        for party in small:
+            raw = rng.poisson(lam, size=draws).astype(float)
+            column = np.clip(np.round(lam + width_mult * (raw - lam)), 0,
+                             None).astype(int)
+            for d, value in zip(seat_draws, column):
+                d[party] = int(value)
+            actual[party] = max(int(round(rng.poisson(lam) + shift)), 0)
+        for party in big:
+            column = rng.poisson(60, size=draws)
+            for d, value in zip(seat_draws, column):
+                d[party] = int(value)
+            actual[party] = int(rng.poisson(60))
+        parties = big + small
+        actual_pr = {p: 1.0 - 0.01 * i for i, p in enumerate(parties)}
+        results.append({
+            "city": f"Width{k}", "year": "2021",
+            "calibration": C.calibration_columns(seat_draws, actual, None,
+                                                 seed=70_000 + k,
+                                                 actual_pr=actual_pr),
+        })
+    return results
+
+
+_WIDTH_KEYS = ("pit_dispersion", "dispersion", "z_bias", "pit_var")
+
+
+def _band(results, band="4-12", pop="claimed"):
+    """The pooled band block, with the width statistics asserted present.
+
+    Asserted here rather than left to a ``KeyError`` at the point of use: a
+    missing statistic is the defect these tests exist for, and "KeyError:
+    'dispersion'" does not tell the next reader that the report has no
+    level-free width statistic and will therefore answer the width question
+    from a coverage column again.
+    """
+    blk = C.pooled_calibration(results)[pop]["by_band"][band]
+    missing = [k for k in _WIDTH_KEYS if k not in blk]
+    assert not missing, (
+        f"pooled_by_band reports no {', '.join(missing)} for ranks {band}. "
+        f"Width and level are different faults and coverage measures both at "
+        f"once: reading it at a single nominal level gave this project two "
+        f"OPPOSITE wrong answers about ranks 4-12 in two days (MODEL-LOG "
+        f"§1.34, §1.36, §1.39). The width verdict needs a statistic with the "
+        f"level divided out.")
+    return blk
+
+
+def _at(block, key, level):
+    return [r for r in block[key] if r["level"] == level][0]["empirical"]
+
+
+def test_pit_variance_is_not_a_width_statistic():
+    """"Variance is shift-invariant, so it is a clean dispersion statistic." No.
+
+    This was proposed on this project as the fix for the coverage confound, and
+    it has the same defect one step along. A PIT lives on ``[0, 1]``. Push the
+    forecast off centre and its mass piles against an endpoint, and the variance
+    falls whatever the width is — so a pure LEVEL error reads as
+    under-dispersion, which is exactly the wrong diagnosis with exactly the
+    wrong remedy.
+
+    The fixture is a forecast of perfect width whose truth is shifted +2 seats.
+    Its PIT variance must come out far below the nominal ``1/12`` while the
+    level-free statistics still say the width is right.
+    """
+    right = _band(_shift_scale_results(4242, 12, width_mult=1.0, shift=2.0))
+    nominal = 1.0 / 12.0
+
+    assert right["pit_var"] < 0.75 * nominal, (
+        f"the fixture is meant to reproduce the trap and did not: PIT variance "
+        f"{right['pit_var']:.4f} against a nominal {nominal:.4f} on a forecast "
+        f"of exactly correct width shifted +2 seats. Fix the fixture, not the "
+        f"assertion — the point is a case where the variance says 'too narrow' "
+        f"and the width is right.")
+
+    assert abs(right["dispersion"] - 1.0) < 0.20, (
+        f"the exact level-free dispersion reads {right['dispersion']:.3f} on a "
+        f"forecast whose width is right by construction. It is the statistic "
+        f"the width verdict now rests on; if it cannot pass this null, nothing "
+        f"downstream of it can be quoted.")
+    assert abs(right["pit_dispersion"] - 1.0) < 0.20, (
+        f"the probit-SD reads {right['pit_dispersion']:.3f} on a correct-width "
+        f"forecast shifted +2 seats. It is the fallback for artefacts that "
+        f"carry only a PIT, and a fallback that fails the null is worse than "
+        f"none.")
+
+    # And it must still SEE a real width fault, or it is merely insensitive.
+    wide = _band(_shift_scale_results(4242, 12, width_mult=1.6, shift=2.0))
+    assert wide["dispersion"] < 0.85 * right["dispersion"], (
+        f"a forecast widened by 1.6x reads {wide['dispersion']:.3f} against "
+        f"{right['dispersion']:.3f} for the correct one. The statistic is "
+        f"level-free and also fault-free, which makes it decoration.")
+    assert wide["pit_dispersion"] < 0.85 * right["pit_dispersion"], (
+        f"probit-SD {wide['pit_dispersion']:.3f} against "
+        f"{right['pit_dispersion']:.3f}: it does not respond to a 1.6x "
+        f"widening")
+
+
+def test_coverage_at_one_level_cannot_tell_too_wide_from_merely_shifted():
+    """The mistake itself, as a fixture: two forecasts, same 50%, opposite width.
+
+    Both are shifted. One has exactly the right width; the other is 1.6x too
+    wide. Their 50% coverages are close, because at the 50% level the shift
+    dominates — **which is why reading that column alone got the answer wrong
+    twice, in opposite directions.** What separates them is the 80% and the 90%,
+    where excess width pushes coverage ABOVE nominal and correct width does not,
+    and the level-free dispersion statistic, which separates them outright.
+
+    The model's own ranks 4-12 read 32/89/96 against a nominal 50/80/90: down at
+    50 and up at 80 and 90. Only the too-wide arm of this fixture does that.
+    """
+    right = _band(_shift_scale_results(909, 14, width_mult=1.0, shift=2.0))
+    wide = _band(_shift_scale_results(909, 14, width_mult=1.6, shift=3.0))
+
+    for label, blk in (("correct width", right), ("1.6x too wide", wide)):
+        assert _at(blk, "pit_coverage", 0.5) < 0.5, (
+            f"{label}: 50% PIT coverage {_at(blk, 'pit_coverage', 0.5):.3f}. "
+            f"Both arms are shifted and both must lose the middle of their own "
+            f"interval, or the fixture does not reproduce the confound.")
+
+    # THE TRAP: the 50% column does not separate them.
+    gap50 = abs(_at(right, "pit_coverage", 0.5) - _at(wide, "pit_coverage", 0.5))
+    assert gap50 < 0.20, (
+        f"the two arms differ by {gap50:.3f} at the 50% level, so this fixture "
+        f"no longer demonstrates that the 50% column is uninformative about "
+        f"width. Rebuild it rather than relaxing the claim — the claim is the "
+        f"reason rule 8 was rewritten.")
+
+    # WHAT ACTUALLY SEPARATES THEM, first: the upper levels.
+    for level in (0.8, 0.9):
+        assert _at(right, "pit_coverage", level) < level + 0.02, (
+            f"a forecast of exactly correct width, shifted, covers "
+            f"{_at(right, 'pit_coverage', level):.3f} at a nominal {level:.0%}. "
+            f"A shift can only REMOVE coverage; if this arm over-covers, the "
+            f"inference 'over-covering at 80 and 90 implies excess width' does "
+            f"not hold and rule 8 must be rewritten again.")
+        assert _at(wide, "pit_coverage", level) > _at(right, "pit_coverage", level), (
+            f"at the {level:.0%} level the too-wide arm covers "
+            f"{_at(wide, 'pit_coverage', level):.3f} and the correct-width arm "
+            f"{_at(right, 'pit_coverage', level):.3f}. Excess width must lift "
+            f"the upper levels or there is no statistic here at all.")
+
+    # And second, decisively: the level-free dispersion.
+    assert wide["dispersion"] < 0.85 < right["dispersion"], (
+        f"level-free dispersion {wide['dispersion']:.3f} (too wide) against "
+        f"{right['dispersion']:.3f} (correct). This is the column the width "
+        f"verdict is taken from and it must separate the two cases cleanly, "
+        f"because the 50% coverage does not.")
+
+
+def test_the_report_prints_a_level_free_width_statistic():
+    """Computed and not printed is not computed. Third time this file says so.
+
+    `rank_bands` returned the absolute band error before the report printed it;
+    the pooled PIT was computed before it was split. Both were acted on wrongly
+    for months because the published table did not carry the number. The width
+    statistic must therefore appear in the rendered report, and be found there
+    by its VALUE rather than by a heading.
+    """
+    results = _shift_scale_results(555, 10, width_mult=1.6, shift=2.0)
+    text = C.render_calibration(results)
+    blk = _band(results)
+
+    for key in ("pit_dispersion", "dispersion"):
+        value = blk[key]
+        assert value == value, f"{key} is nan on a fixture built to exercise it"
+        assert f"{value:.3f}" in text, (
+            f"the report does not print {key} ({value:.3f}). It is the only "
+            f"statistic here that separates width from level, and without it "
+            f"the width question gets answered from a coverage column again.")
+
+    assert f"{blk['z_bias']:+.3f}" in text, (
+        f"the standardised bias ({blk['z_bias']:+.3f}) is not printed. It is "
+        f"the LEVEL half of the same decomposition and it is what keeps the "
+        f"dispersion column from being read as one.")
+
+    assert "1/12" in text and "not" in text.lower(), (
+        "the report does not warn about PIT variance against 1/12. It was "
+        "proposed as the clean width statistic, it is not shift-invariant, and "
+        "the only defence against it being rediscovered is that the report says "
+        "so where it prints it.")
+
+
+def test_coverage_rows_carry_an_interval():
+    """A bare coverage figure is not quotable, and every conclusion used one.
+
+    The whole width argument turned on 27% vs 50% at ranks 4-12 — a difference
+    of three discordant columns out of 28, one-sided McNemar p = 0.125. The mean
+    PIT had a cluster-bootstrap CI from the day it was added; the coverage rows
+    beside it had nothing, and were read as though they had.
+    """
+    results = _shift_scale_results(77, 9, width_mult=1.0, shift=1.0)
+    blk = C.pooled_calibration(results)["claimed"]["by_band"]["4-12"]
+
+    for key in ("coverage", "pit_coverage"):
+        for row in blk[key]:
+            assert "ci" in row, (
+                f"{key} at the {row['level']:.0%} level is reported as "
+                f"{row['inside']}/{row['counted']} with no interval. On the "
+                f"real data the numbers being argued over differ by two or "
+                f"three columns.")
+            lo, hi = row["ci"]
+            assert lo == lo and lo <= row["empirical"] <= hi, (
+                f"{key} at {row['level']:.0%}: point estimate "
+                f"{row['empirical']:.3f} outside its own interval "
+                f"[{lo:.3f}, {hi:.3f}]")
+            assert hi - lo > 0.02, (
+                f"{key} at {row['level']:.0%} has interval [{lo:.3f}, "
+                f"{hi:.3f}] on {row['counted']} columns clustered in "
+                f"{len(results)} city-years. That is too tight to have "
+                f"resampled city-years, and a column bootstrap here would be "
+                f"the same error the mean PIT's CI exists to avoid.")
+
+    text = C.render_calibration(results)
+    row = [r for r in blk["pit_coverage"] if r["level"] == 0.5][0]
+    lo, hi = row["ci"]
+    assert f"[{100 * lo:.0f}–{100 * hi:.0f}]" in text, (
+        f"the rendered report prints the 50% PIT coverage without its interval "
+        f"[{100 * lo:.0f}–{100 * hi:.0f}]. That column is the one two reviews "
+        f"and this project drew a width conclusion from.")
+
+
+# ---------------------------------------------------------------------------
+# CLASS 8 — the reference artefact nothing could diff
+# ---------------------------------------------------------------------------
+
+# The rows this test checks, and NOTHING ELSE. Named here rather than discovered,
+# because a test that parses every document for every figure is a research
+# project and would be turned off the first time it was noisy. These are the
+# figures that steer the next iteration: they are what rule 8 tells a reader to
+# act on. Everything else in the documents is unguarded and that is a known,
+# stated limit — see the docstring below.
+_CHECKED_TABLE = "ITERATING.md"
+_CALIB_ROWS = ("ranks 1-3", "ranks 4-12")
+_VOTE_ROWS = ("ranks 1-3", "ranks 4-12", "ranks 13+")
+# Checked with the bands because rule 8's claim that the level gap is a ZERO-SUM
+# transfer is only true once the phantom mass is counted: the three bands alone
+# sum to a negative number, and the missing points are exactly this row.
+_PHANTOM_ROW = "phantom (parties that did not stand)"
+
+
+def _artefact():
+    path = ROOT / "data" / "processed" / "history.json"
+    if not path.exists():
+        skip(f"{path} is not on disk; run src/compare_history.py")
+    return json.loads(path.read_text())
+
+
+def _documented_rows():
+    """The marked tables in ITERATING.md, as ``{label: [cells]}`` per shape."""
+    text = (ROOT / _CHECKED_TABLE).read_text()
+    marker = "CHECKED-AGAINST-ARTEFACT"
+    assert marker in text, (
+        f"{_CHECKED_TABLE} no longer carries the {marker} marker. The marker is "
+        f"how a reader knows which figures are guarded; a guarded table that "
+        f"does not say so gets copied into an unguarded one.")
+    calib, votes = {}, {}
+    for line in text[text.index(marker):].splitlines():
+        if not line.strip().startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        label = cells[0]
+        if label in _CALIB_ROWS and len(cells) == 7:
+            calib[label] = cells[1:]
+        elif label in (*_VOTE_ROWS, _PHANTOM_ROW) and len(cells) == 3:
+            votes[label] = cells[1:]
+    return calib, votes
+
+
+def test_the_documented_figures_match_the_committed_artefact():
+    """The guard that was missing, and the reason three reviews found the same rot.
+
+    `data/processed/history.json` is quoted throughout this repository as "the
+    committed artefact". **It was excluded by `.gitignore:5` (`data/**`) and had
+    never been committed.** Every run overwrote it, so no diff could show it
+    moving and no test could hold a document against it. The consequence was
+    realised rather than theoretical: within one commit the record said ranks
+    4-12 were n=26, mean PIT 0.750, coverage 46% while the file on disk said
+    n=28, 0.757, 43%, and ranks 1-3 absolute was written as 71.12pp against an
+    actual 69.59pp.
+
+    So the artefact is now tracked and this test holds the load-bearing figures
+    against it.
+
+    **WHAT THIS COVERS:** the two marked tables in `ITERATING.md` rule 8 — the
+    per-band n, mean PIT, PIT coverage at all three levels and the level-free
+    probit-SD, and the nine-city-year signed and absolute vote error per band.
+    Those are the figures rule 8 instructs the next iteration to act on.
+
+    **WHAT IT DOES NOT COVER, and deliberately:** prose anywhere, `MODEL-LOG.md`
+    (which is an append-only historical record and whose figures are correct AS
+    OF their entry — rewriting them would destroy the record), the docstrings in
+    `src/`, and any figure not in the marked tables. A test that parsed every
+    document for every number would be unmaintainable and would be disabled the
+    first week. The rule that covers the rest is the one in `CLAUDE.md`: the
+    record changes in the same commit as the model.
+
+    **When this fails after a legitimate re-run**, the artefact is right and the
+    document is stale: paste the values from the failure message into the marked
+    table and commit the artefact with them, in the same commit.
+    """
+    results = _artefact()
+    calib_doc, votes_doc = _documented_rows()
+    assert calib_doc and votes_doc, (
+        "no marked rows parsed out of ITERATING.md. Either the tables were "
+        "reshaped or the marker moved; a guard that silently checks nothing is "
+        "worse than no guard.")
+
+    bands = C.pooled_calibration(results)["claimed"]["by_band"]
+    for label in _CALIB_ROWS:
+        key = label.replace("ranks ", "")
+        blk, cells = bands[key], calib_doc[label]
+        pit_cov = {row["level"]: row["empirical"] for row in blk["pit_coverage"]}
+        actual = [str(blk["n"]), f"{blk['mean_pit']:.3f}",
+                  *(f"{100 * pit_cov[level]:.0f}%" for level in C.LEVELS),
+                  f"{blk['pit_dispersion']:.3f}"]
+        names = ("n", "mean PIT", "50% (PIT)", "80% (PIT)", "90% (PIT)",
+                 "probit-SD")
+        for name, said, is_ in zip(names, cells, actual):
+            ok = (said == is_ if name == "n" else
+                  abs(_number(said) - _number(is_))
+                  <= (2.0 if said.endswith("%") else 0.012))
+            assert ok, (
+                f"ITERATING.md rule 8 says {label} {name} = {said}; "
+                f"data/processed/history.json says {is_}.\n"
+                f"The correct row is:  | {label} | " + " | ".join(actual)
+                + " |\nA figure quoted from an artefact that disagrees with it "
+                  "is how this repository has been wrong three times.")
+
+    signed = {k: sum(r["bands"][k]["signed_pp"] for r in results)
+              for k in C.BAND_LABELS}
+    absolute = {k: sum(r["bands"][k]["abs_pp"] for r in results)
+                for k in C.BAND_LABELS}
+    for label in _VOTE_ROWS:
+        key = label.replace("ranks ", "")
+        said_signed, said_abs = votes_doc[label]
+        for name, said, is_ in (("signed", said_signed, signed[key]),
+                                ("absolute", said_abs, absolute[key])):
+            assert abs(_number(said) - is_) <= 0.5, (
+                f"ITERATING.md rule 8 says {label} {name} = {said}; the "
+                f"artefact sums to {is_:+.2f}pp over "
+                f"{len(results)} city-years.\nThe correct row is:  | {label} | "
+                f"{signed[key]:+.2f}pp | {absolute[key]:.2f}pp |")
+
+    # The zero-sum claim, asserted rather than asserted-about. Rule 8 says the
+    # level gap between the bands is a TRANSFER, which is only true because
+    # shares sum to one over the model's own universe. If the four rows stop
+    # summing to zero, either the phantom figure is stale or the identity has
+    # broken, and both make the paragraph above them false.
+    phantom = sum((r["bands"].get("phantom") or {}).get("pp", 0.0)
+                  for r in results)
+    said_phantom = _number(votes_doc[_PHANTOM_ROW][0])
+    assert abs(said_phantom - phantom) <= 0.5, (
+        f"ITERATING.md rule 8 says phantom mass = {said_phantom:+.2f}pp; the "
+        f"artefact gives {phantom:+.2f}pp.\nThe correct row is:  "
+        f"| {_PHANTOM_ROW} | {phantom:+.2f}pp | — |")
+    residual = sum(signed.values()) + phantom
+    assert abs(residual) < 0.01, (
+        f"the three signed bands and the phantom mass sum to {residual:+.4f}pp "
+        f"rather than to zero. Rule 8 calls the level gap a ZERO-SUM transfer "
+        f"and that sentence depends on this identity; if shares no longer sum "
+        f"to one over the model's universe, the transfer reading is wrong.")
+
+
+def test_the_scoreboard_artefact_is_tracked_by_git():
+    """`.gitignore` excluded the very file every figure is attributed to.
+
+    Checked against `.gitignore` itself rather than by shelling out to git, so
+    it runs in a source tree without a `.git` directory. The negation must come
+    AFTER the `data/**` line or it does nothing, which is the kind of detail
+    that is silently wrong for months.
+    """
+    lines = [line.strip() for line in
+             (ROOT / ".gitignore").read_text().splitlines()]
+    try:
+        blanket = lines.index("data/**")
+    except ValueError:
+        return          # the blanket exclusion is gone; nothing to un-ignore
+    for target in ("data/processed/history.json", "data/processed/history.md"):
+        rule = f"!{target}"
+        assert rule in lines, (
+            f"{target} is excluded by `data/**` and never re-included, so it "
+            f"cannot be committed. Every calibration figure in this repository "
+            f"is quoted as coming from the committed artefact; for months there "
+            f"was no committed artefact, nothing could diff it, and "
+            f"test_the_documented_figures_match_the_committed_artefact has "
+            f"nothing to compare against.")
+        assert lines.index(rule) > blanket, (
+            f"`{rule}` appears before `data/**` in .gitignore, so the blanket "
+            f"exclusion wins and the file is still ignored. Order matters here "
+            f"and the failure is silent.")
+
+
+def _number(cell: str) -> float:
+    """The first signed decimal in a table cell, ``%`` and ``pp`` stripped."""
+    match = re.search(r"[-+−]?\d+(?:\.\d+)?", cell.replace("−", "-"))
+    assert match, f"no number in table cell {cell!r}"
+    return float(match.group())
 
 
 if __name__ == "__main__":

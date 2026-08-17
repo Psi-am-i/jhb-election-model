@@ -85,18 +85,35 @@ _SUPERSEDED_BY_SPINE = (
     "`backtest.FITTED_ON` still names it as a 2021 contamination source it can "
     "no longer be; that entry should be retired.")
 _INDIVIDUAL_THETA = (
-    "dead as a USER-FACING DEFAULT and live as an INTERNAL CHANNEL. The "
-    "DEFAULTS value is only read in the superseded `blended_centres` branch, so "
-    "perturbing it does nothing — but `montecarlo.py:1842` WRITES into the same "
-    "key to carry a seeded arrival's band, and that path is live. One key doing "
-    "two jobs; the test can only see the first.")
+    "DEAD IN BOTH ITS SUPPOSED JOBS. This entry used to claim it was 'live as "
+    "an internal channel' because `montecarlo.py:1842` writes seeded arrivals' "
+    "bands into the key. That write is a DEAD STORE: `blended_centres` and "
+    "`make_drawer` both read `pool_seed_bands` directly and short-circuit "
+    "before the membership test. Confirmed three ways — multiplying every "
+    "written band by 100 across 32 parties, setting the whole dict to "
+    "[50,80,99], and deleting all 32 seeded keys — all byte-identical. "
+    "Consumed at zero of ten runnable targets, which is the identical evidence "
+    "that got `ward_pr_ratio_overrides` and `first_local_election` DELETED the "
+    "same day. Three keys, one standard, three dispositions: see MODEL-LOG "
+    "§1.41, where the inconsistency is recorded as an open decision.")
 _LEGACY_POLL = (
-    "the LEGACY poll path, gated on `poll_id` (None by default) at "
-    "`montecarlo.py:2217`. The live path is the metro-poll inverse-variance "
-    "blend, which is consumed at 2026 (`constants_read` shows `metro_poll`) and "
-    "does not read `poll_k`. Verified directly: poll_k 1.0 vs 40.0 at 2026 "
-    "moves the DA, ANC, ASA, MK and EFF by exactly 0.0000pp. Reachable, so not "
-    "dead — but the whole legacy path is a deletion candidate.")
+    "RETRACTED 2026-08-17 and kept only as a warning. This entry used to say "
+    "'verified directly: poll_k 1.0 vs 40.0 at 2026 moves the DA, ANC, ASA, MK "
+    "and EFF by exactly 0.0000pp'. That null was measured WITH THE GATE SHUT — "
+    "`poll_id` is None by default, so the branch never ran. It is ITERATING.md "
+    "rule 6's exact fault, committed inside the commit that automated rule 6. "
+    "Open the gate and poll_k 1.0 -> 1000 moves the DA 33.26 -> 36.67pp and "
+    "89.8 -> 99.2 seats, live at 2016, 2021 AND 2026. The lever is not inert; "
+    "it is CONDITIONAL, and a conditional lever has to be perturbed together "
+    "with its condition — which `_PAIRED` below now does.")
+
+# Levers that do nothing alone and something together. A conditional lever
+# perturbed without its gate reads as dead, which is how the poll path was
+# wrongly certified inert. Each entry names the keys that must move as a set.
+PAIRED: dict[str, dict[str, object]] = {
+    "the legacy poll path": {"poll_id": "ipsos-2021-lge-national",
+                             "poll_weight": 0.9, "poll_k": 40.0},
+}
 _WARD_LOCAL_BYE = (
     "parameters of the §1.28 ward-local by-election term, which is gated on "
     "`w_bye_local_ward` / `w_bye_local_pr`, both 0.0 by design so the published "
@@ -201,7 +218,7 @@ PERTURB: dict[str, object] = {
     "poll_k": 40.0,
     "bye_local_cap": 40.0,
     "bye_tau_months": 400.0,
-    "entrant_geography": {"k": 0.9},
+    "entrant_geography": {"parent": "ANC", "k": 1.0},
     "overhang_rule": "expand",
 }
 
@@ -250,9 +267,30 @@ def _moves(base, other) -> float:
     return max(100 * share, float(wins), float(seats))
 
 
+def _sweep_paired(year: str, base) -> list[str]:
+    """Perturb a conditional lever TOGETHER WITH ITS GATE.
+
+    A lever behind a gate reads as dead when the gate is shut, and that is not a
+    fact about the lever. `poll_k` was certified inert on exactly that mistake —
+    measured with `poll_id=None`, so the branch never ran — and the null was
+    written into this file and into MODEL-LOG. Opened, the same lever moves the
+    DA by 3.4pp and nine seats.
+    """
+    dead = []
+    for label, keys in sorted(PAIRED.items()):
+        if not all(k in M.DEFAULTS for k in keys):
+            dead.append(f"{label}: {sorted(set(keys) - set(M.DEFAULTS))} not in DEFAULTS")
+            continue
+        overrides = [f"{k}={json.dumps(v)}" for k, v in keys.items()]
+        if _moves(base, _run(year, overrides)) < 1e-9:
+            dead.append(f"{label} at {year} (perturbed {sorted(keys)} together, "
+                        f"nothing moved)")
+    return dead
+
+
 def _sweep_target(year: str) -> list[str]:
     base = _run(year, [])
-    dead = []
+    dead = _sweep_paired(year, base)
     for key, value in sorted(PERTURB.items()):
         if key not in M.DEFAULTS:
             continue

@@ -1163,12 +1163,14 @@ function render(a,cfg){
   const scen={
     theta_mode:{ANC:cfg.thetaANC,EFF:cfg.thetaEFF,MK:cfg.thetaMK,DA:cfg.thetaDA,ASA:cfg.thetaASA,BOSA:THETA_BOSA},
     individual_theta:{PA:[1.0,cfg.thetaPA,2.2]},
-    w_bye:cfg.wBye,bloc_leak:cfg.blocLeak,poll_id:cfg.pollPick||null,poll_weight:cfg.pollPick?cfg.pollWeight:0,
-    alpha_anc:cfg.alphaANC,alpha_da:cfg.alphaDA,
-    ward_pr_ratio_overrides:{MK:cfg.mkRatio,ENTRANT:0.8},
+    w_bye:cfg.wBye,poll_id:cfg.pollPick||null,poll_weight:cfg.pollPick?cfg.pollWeight:0,
     pa_contestation_uplift:cfg.paUplift,
     turnout_pattern_blend:cfg.turnoutBlend,turnout_noise_sd:cfg.turnoutNoise,
-    turnout_tilt_anc:cfg.turnoutANC,turnout_tilt_da:cfg.turnoutDA,
+    /* Removed 2026-08-17: bloc_leak, alpha_anc, alpha_da, ward_pr_ratio_overrides,
+       turnout_tilt_anc, turnout_tilt_da. None is a DEFAULTS key any more, and
+       `montecarlo.read_scenario_file` hard-exits on an unknown key — so this
+       block, which exists to be pasted into `--config`, produced a scenario the
+       model refuses to load. Latent only because the page is withheld. */
     entrant_prob:cfg.entrantProb,entrant_share:[0.01,cfg.entrantMode,0.12],
     overhang_rule:"deduct",
   };

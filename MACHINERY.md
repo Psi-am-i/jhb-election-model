@@ -62,7 +62,7 @@ one place, `PoolFit.identified`, where a narrow bound set a display flag. No rat
 was clipped to it, at any stage.
 
 `fit_city` now balances through **`balance_within_bounds`** rather than
-`balance_margins`. Each half-step scales a row or column by the factor that lands
+`balance_margins` — but tries the unbounded answer first and **returns it unchanged where every rate is already inside its Duncan-Davis interval**. Five of the ten production fits take that pass-through, which matters because the projection is not free: at Ekurhuleni 2016, which had **zero** violations, the old unconditional path cost 0.61% of the ward fit it exists to minimise and moved the DA's Indian/Asian rate 1.00 → 0.90 for nothing. Each half-step scales a row or column by the factor that lands
 its *clipped* sum on the known total — a Bregman projection onto a convex set,
 the same object as the unbounded half-step — so the fit satisfies the arithmetic
 bounds **and** both known margins at once. Across the ten (city, fitting-year)
@@ -97,7 +97,7 @@ held in any draw.
 non-Coloured share reaches 0.58%, not the ~5.7% its ward geography suggests,
 because Duncan-Davis cannot exclude that all 1,173 of its votes in wards under
 2% Coloured came from those wards' own 6,674 Coloured voters. Arithmetic forces
-only 163 votes out of the pool. Reaching 6% would require a model, and the model
+only about 159 votes out of the pool. Reaching 6% would require a model, and the model
 that does it fits the ward table 20× worse (MODEL-LOG §1.38). The PA at **Cape
 Town 2016 is still Coloured 1.0000**, and nothing in that ward table forbids it.
 
@@ -332,7 +332,6 @@ PA and PAC — a degenerate solution reported as converged.
 | Piece | Where | Source | Saw |
 |---|---|---|---|
 | Ward/PR split ratio | previous LGE, per party | MEASURED | ✅ |
-| `ward_pr_ratio_overrides` | DEFAULTS | **JUDGED** | MK 0.80 "bounded by ActionSA's observed 0.77" — 2021 |
 | `pa_contestation_uplift` = 1.25 | DEFAULTS | **JUDGED** | PA's 2021 ward count |
 | Ward contestation | **MEASURED** since §1.29 | `levels.contestation`, from nomination lists; applied to the ward/PR ratio at `montecarlo.py:2080-2085` | 55 parties at 2021, median party contests 39% of wards. This row said "not modelled — all parties contest all wards" until 2026-08-17, contradicting §3 of this same document, which correctly listed it as MEASURED. |
 | `ward_noise_sd` = 0.10 | DEFAULTS | JUDGED | applied to ward tallies, not to shares |
@@ -360,17 +359,32 @@ PIT over the claimed columns is 0.588 — and it is the average of **0.431 at ra
 (it under-forecasts the middle), with both cluster-bootstrap CIs excluding 0.50 in
 opposite directions. A signed average across bands with opposite errors is not a
 measure of bias, for the same reason a signed sum is not a measure of error, and
-this project shipped both faults two days apart. The width verdict is
-band-dependent too: a nominal 50% interval covers **70%** at ranks 1-3 and **27%**
-at ranks 4-12 on the PIT-corrected measure — so widening is the wrong fix at the
-top and the right one in the middle.
+this project shipped both faults two days apart. The width verdict is **not** band-dependent, and reading it off coverage is what
+made this rule wrong twice (§1.39). Coverage moves with the LEVEL as well as the
+width, so a purely shifted forecast of exactly the right width under-covers at
+50% and over-covers at 80% and 90% — which is what this model does.
 
-Two coverage statistics are printed and they differ legitimately.
-`score.coverage`'s empirical quantile interval gives 0.462 for that same band,
-because on integer seats it must include whole endpoints and over-covers by 19
-points where parties hold one to ten seats. They agree exactly (0.704) at ranks
-1-3, where the distributions are tens of seats wide. The PIT-corrected figure is
-the width verdict.
+The level-free statistic is `compare_history.pit_dispersion`, the standard
+deviation of the probit-transformed PIT, which **translates** under a shift where
+the PIT's own variance **compresses**. It reads **0.740 at ranks 1-3 and 0.734 at
+ranks 4-12** against 1.00 for a correctly-dispersed forecast. So both bands'
+intervals are about **1.35× too wide**, they are near-identical in dispersion, and
+they differ only in level (probit-mean −0.143 against +0.789). Since shares sum to
+one, that level difference is a single zero-sum transfer.
+
+**Two statistics that look like width evidence and are not**, both refuted on a
+fixture with width held exactly right and only the level moved: the PIT's own
+variance (0.0829 → 0.0450 → 0.0240 at shifts of 0/+2/+3 against a nominal 0.0833
+— a pure level error reads as 3.5× under-dispersion), and empty PIT tails. Neither
+says anything about width. `score.pit_histogram`'s shape verdict must not be
+quoted about width either: it tests the end bins, so ranks 4-12's monotone
+`[1,1,1,11,14]` scores as "U-shaped, widen it" while the same function calls the
+pooled population "over-dispersed, the model is hedging".
+
+**On significance:** the 80% and 90% over-coverage that the argument leans on is
+not individually significant (p = 0.16 and 0.22). The weight sits in the
+dispersion statistic — probit-SD against 1.0 gives p = 0.030 and 0.025 per band,
+**p = 0.003 across both.**
 
 The `all` population is **not** neutral: `score.py` admits a column if the party
 won a seat, regardless of the forecast, so it is a mixture of a neutral set and an

@@ -3299,6 +3299,8 @@ measurement must establish is that it measured something.**
 
 ### CLASS 12 covered 13 of 27 tunables, and a deletion silently removed coverage
 
+*(The denominator moved to 26 in this same commit, when `ward_pr_ratio_overrides` was deleted. The figures below are as measured before that deletion; a count that goes stale inside the commit that staled it is the reason the enumeration test compares sets rather than quoting a number.)*
+
 `PERTURB` was a hand-maintained allowlist. Hand-maintained allowlists rot, and
 this one rotted within a day of being written:
 
@@ -3327,11 +3329,18 @@ Non-judgement keys (`draws`, `seed`, `pools`, `poll_id`) are named in
 | `bye_local_cap`, `bye_tau_months` | parameters of the ward-local by-election term, gated shut at 0.0 |
 | `entrant_geography` | empty by default |
 
-Each is now in `EXPECTED_INERT` with a checkable reason. **`theta_mode`'s
-asymmetry is the interesting one and nobody designed it**: the constant that
-gave ActionSA 1.50 *fitted on the 2021 target* is inert at every scoreable
-target and still live in the forecast. That is the best possible arrangement and
-it happened by accident.
+Each is now in `EXPECTED_INERT` with a checkable reason. **`theta_mode`'s asymmetry — RETRACTED the same day.** This section originally
+read: *"the constant that gave ActionSA 1.50 fitted on the 2021 target is inert
+at every scoreable target and still live in the forecast. That is the best
+possible arrangement and it happened by accident."* It was measured while another
+worker was re-emitting `pools_*.json`, so the baseline moved under the sweep. On
+a settled tree `theta_mode` is consumed at **zero of ten** runnable targets —
+2026 included — which `run.constants_read` and the in-sample banner both confirm.
+
+There is no asymmetry and there was no happy accident. `theta_mode`, `f_other`
+and `individual_theta` are simply **dead**, on the identical evidence that got
+`ward_pr_ratio_overrides` and `first_local_election` deleted the same day. One
+standard of evidence, three dispositions — see §1.41.
 
 ### `ward_pr_ratio_overrides` deleted — consumed at no target
 
@@ -3598,6 +3607,721 @@ split of that fixed amount is chosen. For micro-parties whose entire column is
 blank it is the whole answer — up to 0.37 of composition for DISRUPT_PARTY — but
 those are exactly the parties `identified()` already reports as unmeasured, and
 the choice is the one the surrounding code already made.
+
+---
+
+## 1.39 Rule 8 was wrong twice in two days, in opposite directions, from the same mistake (2026-08-17)
+
+**No forecast moved.** Nothing in this entry touches what is drawn; it changes
+what is reported and what the record says about it. `src/pools.py`,
+`src/montecarlo.py`, `src/score.py` and `src/backtest.py` are untouched.
+
+### The short version
+
+`ITERATING.md` rule 8 has now given the next iteration a *wrong instruction on
+dispersion twice inside forty-eight hours*, and the two instructions were
+opposites:
+
+| when | rule 8 said | evidence it rested on |
+|---|---|---|
+| §1.34 | "roughly the right WIDTH; do not widen" | pooled 90% coverage, 87% vs 90% |
+| §1.36 | ranks 4-12 "too NARROW — widen them" | the 50% PIT column alone, 27% vs 50% |
+| now | **both bands are ~1.35× too WIDE**; they differ only in LEVEL | probit-SD 0.740 / 0.734, and all three coverage levels read together |
+
+Each time the fault was identical in form: **a width verdict taken from a
+statistic that also moves with the level**, read at one nominal level, with no
+interval on it. The second reading was worse than the first, because it was
+confident and it was published as an instruction.
+
+### The evidence that settles it
+
+The committed artefact, `claimed` columns, ranks 4-12:
+
+    50% covers 32%     80% covers 89%     90% covers 96%
+    (nominal 50)       (nominal 80)       (nominal 90)
+
+**A forecast whose intervals are too narrow under-covers at EVERY level. That is
+what narrow means.** This one over-covers at 80 and at 90. The reading that
+sent the next iteration to widen the band used the 50% cell and ignored the two
+cells that contradict it.
+
+What produces a low 50% with a high 80 and 90 is a forecast that is *shifted* —
+it has vacated the middle of its own interval — sitting inside intervals that
+are *too wide*.
+
+That is not an argument, it is a fixture, and it is in the suite. Nine small
+parties on a mean of 4 seats (the real band's scale), forecast width and truth
+shift controlled independently, run through this repository's own
+`calibration_columns`. Reproduce with
+`tests/test_calibration_report.py::_shift_scale_results(4242, 12, width_mult=W,
+shift=S)`:
+
+| ranks 4-12 fixture | mean PIT | 50% | 80% | 90% | PIT var | probit-SD | sd(z) |
+|---|---|---|---|---|---|---|---|
+| correct width, no shift | 0.552 | 0.454 | 0.824 | 0.880 | 0.0829 | 1.021 | 1.000 |
+| correct width, **+2 shift** | 0.794 | 0.269 | **0.556** | **0.759** | 0.0450 | 0.917 | 1.000 |
+| correct width, +3 shift | 0.876 | 0.167 | 0.361 | 0.509 | 0.0240 | 0.953 | 1.000 |
+| **1.6× too wide, +2 shift** | 0.740 | 0.435 | **0.861** | **0.935** | 0.0270 | 0.571 | 0.650 |
+| **the model, ranks 4-12** | **0.757** | **0.321** | **0.893** | **0.964** | 0.0388 | **0.734** | — |
+
+A shift takes coverage away at every level. **Only excess width puts it back at
+80 and 90**, and at 80 and 90 the model's row sits with the too-wide arm, not
+with the correct-width one. Read the `sd(z)` column too: exactly 1.000 at every
+shift when the width is right, and 0.650 when the forecast is widened by 1.6×.
+That is what a width statistic looks like.
+
+### The statistic that answers it, and three that do not
+
+Nothing above is a *measurement* of width — it is an argument from the shape of
+three numbers. So the report now carries a statistic with the level divided out.
+
+**`pit_dispersion` = `sd(Φ⁻¹(u))`.** Under a location shift of a roughly normal
+forecast, `Φ⁻¹(u)` translates: the shift lands in the mean and leaves the spread
+alone. 1.00 is right; below 1.00 too wide. On the committed artefact:
+
+| claimed columns | n | mean PIT | probit-mean (level) | **probit-SD (width)** |
+|---|---|---|---|---|
+| ranks 1-3 | 27 | 0.434 | −0.143 | **0.740** |
+| ranks 4-12 | 28 | 0.757 | +0.789 | **0.734** |
+
+**The two bands are dispersed almost identically** — both about 1/0.74 ≈ 1.35×
+wider than the errors they cover — and differ only in level. That is the correct
+reading, and it is the opposite of what rule 8 said yesterday for one band and
+the same as what it said for the other, which is why reading one band at a time
+kept producing half-right answers.
+
+`dispersion_ratio` is the exact version: `z = (truth − forecast mean) / forecast
+sd` per column, centred, whose sd is invariant to a shift by construction. It
+needs per-column mean and sd, which `calibration_columns` now stores as `z`, so
+it reads `—` on the artefact written before this change. **It needs a canonical
+re-run to be quoted; the probit-SD above does not.**
+
+**Three statistics were used or proposed for this and are not fit for it. Each
+is now printed with its own refutation, or labelled unreliable in place.**
+
+1. **Coverage at one nominal level.** Confounded with the level. The mistake,
+   twice.
+2. **PIT variance against 1/12** — proposed in this very review as
+   "shift-invariant, therefore a clean dispersion statistic". **It is not
+   shift-invariant.** A PIT is bounded on [0, 1], so a shift piles mass against
+   an endpoint and the variance falls whatever the width is. On the
+   correct-width fixture above it reads **0.0829, 0.0450, 0.0240** at shifts of
+   0, +2 and +3 seats against a nominal 0.0833 — a pure level error reading as a
+   3.5× under-dispersion. It is printed in the width table specifically so that
+   the next reader meets it already refuted. Corollary: the artefact's 0.0388 at
+   ranks 4-12 is **not** evidence of narrowness, and neither is the emptiness of
+   its tails (0 columns below PIT 0.05, 1 above 0.95) — a shifted forecast
+   evacuates one tail and a wide one evacuates both.
+3. **Recentring the PIT about its own mean and re-reading coverage** (the
+   "shift-corrected central-50" figure of 0.93). Same boundary problem: on the
+   correct-width fixture it reads 0.55, 0.85, 0.94 at shifts of 0, +2, +3. It
+   does not remove the shift; it reports it.
+4. **`score.pit_histogram`'s shape verdict.** It tests the two END bins, so a
+   *monotone increasing* histogram scores as U-shaped. On ranks 4-12 it reads
+   `[1, 1, 1, 11, 14]` — 25 of 28 columns in the top two bins, nothing at the
+   bottom — and prints *"U-shaped … under-dispersed, widen it"*, while calling
+   the pooled population *"hump-shaped — over-dispersed, hedging"*. **The report
+   contradicted itself and both halves were quoted.** `score.py` is deliberately
+   **not** changed — the heuristic is serviceable for what it is for, and what
+   was wrong was quoting it about width. The report now says so where it prints
+   it.
+
+### The corollary that was also wrong
+
+Rule 8 concluded that "no single change can fix both bands", because one wanted
+widening and the other narrowing. **Both want narrowing.** They differ in level,
+and since shares sum to one that difference is a single **zero-sum transfer**:
++32.52pp at ranks 1-3 and +6.36pp of phantom mass against −37.18pp at 4-12 and
+−1.70pp at 13+, summing to zero by construction. So "narrow the seat
+distribution and move mass from the top three to the middle" is one coherent
+proposal rather than two contradictory ones. It still has to beat the baselines
+on history before it ships; nothing here says it will.
+
+### And the coverage rows were never significant
+
+`_cluster_bootstrap_ci` was applied to `mean_pit` and to nothing else, so every
+coverage figure in the report was a bare point estimate — and the entire width
+argument turned on one. Coverage rows now print with cluster-bootstrap intervals
+(ranks 4-12 at 50%: **32% [19–50]**, which includes nominal). Against nominal,
+on a binomial test that ignores clustering and therefore flatters every cell:
+
+| | ranks 1-3 | ranks 4-12 |
+|---|---|---|
+| 50% (PIT) | 19/27, p = 0.026 | 9/28, p = 0.044 |
+| 80% (PIT) | 25/27, p = 0.072 | 25/28, p = 0.16 |
+| 90% (PIT) | 26/27, p = 0.23 | 27/28, p = 0.22 |
+| probit-SD vs 1.0 | 0.740, p = 0.030 | 0.734, p = 0.025 |
+| **probit-SD, both bands pooled** | | **p = 0.003** |
+
+**Said plainly: the 80% and 90% over-coverage this entry argues from is not
+individually significant.** What it does is rule out the narrow reading — a
+narrow forecast cannot over-cover at any level — while the weight of the
+evidence sits in the level-free dispersion statistic, which uses all 55 columns
+at once. Two caveats pushing opposite ways: columns cluster within city-year, so
+every p above is optimistic; and the probit-SD is attenuated by the shift, so
+1.35× understates the excess width.
+
+And the discreteness correction is thinner than anything it was used to support.
+What turned "about right" (43% raw) into "far too narrow" (27–32%
+PIT-corrected), and carried §1.36's entire width argument, is **three discordant
+columns out of 28** — a one-sided sign test at p = 0.125; at ranks 1-3 it is two
+columns, p = 0.25. The correction is real and points the right way. It is not a
+result a conclusion can be built on alone, and one was.
+
+### Root cause: there was no committed artefact to check anything against
+
+`.gitignore:5` is `data/**`. **`data/processed/history.json` had never been
+committed**, and is overwritten by every run. Yet `compare_history.rank_bands`
+stated *"EVERY FIGURE ABOVE IS THE COMMITTED `data/processed/history.json` AT
+1500 DRAWS"*, and `pooled_by_band`, `calibration_columns`, §1.33 and §1.36 all
+cite it as an authority. Nothing could diff it; no test could hold a document
+against it.
+
+The consequence is not hypothetical. Artefact on disk against the record written
+minutes later:
+
+| | the record said | the artefact says |
+|---|---|---|
+| ranks 1-3 | n=27, PIT 0.431, cov 70% | n=27, **0.434**, **78%** (quantile) / 70% (PIT) |
+| ranks 4-12 | n=**26**, PIT 0.750, cov **46%** | n=**28**, **0.757**, **43%** |
+| ranks 1-3 absolute | 71.12pp | **69.59pp** |
+| coherent seat error | 312 (§1.36) | **306** |
+| CRPS total | 268.3 (§1.36) | **266.1** |
+
+Three reviews have now rediscovered this class of rot and each time it was
+written up as carelessness. It is not carelessness; it is a missing guard.
+
+**What was done.** `data/processed/history.json` and `history.md` are
+un-ignored and tracked, with the reasoning in `.gitignore` itself.
+`ITERATING.md` rule 8 carries two tables behind a `CHECKED-AGAINST-ARTEFACT`
+marker, and
+`tests/test_calibration_report.py::test_the_documented_figures_match_the_committed_artefact`
+parses them and fails the build when they and `history.json` disagree, printing
+the corrected row in the failure message. A second test asserts the `.gitignore`
+negation exists **and sits after the `data/**` line**, because before it the
+negation does nothing and the failure is silent.
+
+**What that guard does not cover, stated so nobody assumes otherwise:** prose
+anywhere; `MODEL-LOG.md`, which is append-only and whose figures are correct *as
+of* their entry — rewriting them would destroy the record; the docstrings in
+`src/`; and any figure not in the marked tables. A test that parsed every
+document for every number would be unmaintainable and switched off within a
+week. `rank_bands`' docstring no longer types a nine-city-year total at all; it
+points at the checked table.
+
+### The lesson, which is not "check the aggregation"
+
+§1.36 closed by saying the lesson was not "check the aggregation" but that we
+had learned that rule, written it down, and then failed to apply it to code
+written in the same breath. This entry says something narrower and more
+uncomfortable: **the same team, in the same file, on consecutive days, answered
+one question — is this forecast too wide? — three times, and got two different
+wrong answers before getting a right one.** Every wrong answer was argued from
+real numbers computed by this repository's own code. What was missing each time
+was not diligence but a statistic capable of separating the two things being
+confused, and an interval saying whether the difference was there at all.
+
+The reviewer who found this fault also proposed PIT variance as the fix, and
+that proposal is wrong in the same family as the fault. Three of the numbers
+offered as corroboration — the variance, the empty tails, the shift-corrected
+central-50 — are all confounded by the shift they were meant to control for.
+**Being right about the diagnosis is not the same as being right about the
+instrument**, and the instrument is what the next iteration will use.
+
+---
+
+## 1.40 Half of `balance_within_bounds` was never about the bounds, and a wrong-city file was published as a delimitation problem (2026-08-17)
+
+Two faults found by an independent review of §1.38 and of the multi-city
+blocker. They are unrelated except in kind: **in both, a mechanism was given a
+causal story it does not have, and the story was written into the record and
+acted on.**
+
+---
+
+### Part A — the seeding fires on a condition the bounds have no part in
+
+§1.38 stated, as a measured conclusion: *"The bound is what creates unplaced
+votes; the seed is only what lets a multiplicative iteration place them."*
+`JUDGEMENT-CALLS.md` recorded the trigger as *"when the Duncan-Davis ceiling
+stops a cell absorbing a party's whole total"*. **Neither is what the code
+does.** Read the line:
+
+```python
+unplaced = np.maximum(target_cols - np.minimum(counts, hi_c).sum(axis=0), 0.0)
+```
+
+`counts` is the **raw NNLS fit**. Nothing in a least-squares problem ties a
+column sum to a party's vote total, so the raw fit does not reproduce party
+totals and `unplaced` is positive whether or not any bound exists. Measured at
+Ekurhuleni 2016 **with the box removed entirely** (`lo=0`, `hi=1`, so the clip
+is provably inert — zero cells exceed `hi_c`):
+
+| | with lo=0, hi=1 | with the real box |
+|---|---|---|
+| parties seeded | **15 of 25** | 21 of 25 |
+| votes unplaced | **3,716 (0.41% of the city)** | 3,716 |
+| cells clipped by a ceiling | **0** | 8 |
+
+So there are **two independent triggers**, and the record conflated them:
+
+* **seeding** fires when the raw NNLS column falls short of the party's known
+  total — a property of least squares, present at every fit;
+* **the box** binds when a cell would leave its Duncan-Davis interval — present
+  at five of the ten fits.
+
+A ceiling that clips a cell *enlarges* the shortfall it is compared against. It
+does not create it. §1.38's "seeding without the bounds changes nothing"
+experiment was real, but it measured the *outcome* at Johannesburg 2021, not the
+trigger, and the causal sentence drawn from it was wrong.
+
+#### What that cost: the bounded path ran on fits with nothing to correct
+
+Ward SSE, weighted by votes, against `balance_margins` at each of the ten
+production fits. §1.38 quoted Johannesburg's **+0.33%** as the price of the fix.
+It is **the fourth smallest of ten**:
+
+| fit | violations | ward SSE cost | cost with the box removed |
+|---|---|---|---|
+| nelsonmandelabay 2016 | 1 | **+3.71%** | +0.00% |
+| buffalocity 2016 | 2 | **+2.02%** | +0.02% |
+| **ekurhuleni 2016** | **0** | **+0.61%** | **+0.61% — all of it seeding** |
+| joburg 2021 | 3 | +0.33% | +0.18% |
+| ethekwini 2016 | 4 | +0.23% | +0.10% |
+| capetown 2016 | 1 | +0.15% | +0.13% |
+| joburg 2011 | 0 | +0.01% | +0.01% |
+| mangaung 2016 | 0 | +0.01% | +0.01% |
+| tshwane 2016 | 0 | +0.00% | +0.00% |
+| joburg 2016 | 0 | +0.00% | −0.00% |
+
+**Ekurhuleni 2016 had zero violations and paid 0.61% anyway**, every point of it
+from seeding. Worse, `balance_margins`' answer there is not merely feasible — it
+is a **fixed point of the bounded iteration** (one full sweep moves it by
+2.8e-12) *and* a strictly better ward fit. The iteration only left it because
+the seeding moved the starting point before the first sweep. The cost was real:
+the DA's Indian/Asian rate went 1.00 → 0.90, and Al Jama-ah went from 82.9%
+Black African / 17.1% Coloured to a four-pool vector with 32.1% White — a large
+composition change at a city where the ward arithmetic refuted nothing.
+
+#### The fix
+
+Balance the margins first; if every rate already lies inside its Duncan-Davis
+interval, **that is the answer and it is returned untouched**. Only a fit the
+arithmetic can actually refute pays for the projection. Enforcing a constraint
+is not the same as replacing a solver.
+
+| | before | after |
+|---|---|---|
+| Duncan-Davis violations, all ten fits | 0 | **0** |
+| fits passing through untouched | 0 | **5 of 10** — joburg 2011, joburg 2016, tshwane 2016, ekurhuleni 2016, mangaung 2016 |
+| worst pool-margin error (rates sum to 1) | 4.33e-12 | **4.33e-12** |
+| worst implied citywide share error | 2.22e-16 | **2.22e-16** |
+| Ekurhuleni ward SSE cost | +0.61% | **+0.00%** |
+
+Both margins are held at least as tightly as before. That took two adjustments
+**at the call site**, because `montecarlo` runs `balance_margins` once per draw
+and its output must not move: its stop is tightened from 1e-12 to 1e-15 (a
+relative-to-grand-total criterion, so at 1e-12 a small party's share can still
+be off by 1e-12; measured at under a millisecond per fit, inside the shipped
+2000-iteration cap), and one exact column rescale then lands the party margin
+exactly. The tighter stop has to come first, or the rescale is large enough to
+push a cell already sitting **at** its ceiling straight through it — which was
+measured, and put Ekurhuleni back to +0.61%.
+
+#### What did NOT change, and it matters
+
+`pools_2026.json` is **byte-identical** (sha256 dfc97a61e4301363 before and
+after). Johannesburg 2021 — the fit the live forecast is built on — has three
+violations, still takes the projection, and its rate matrix is unchanged to
+0.0e+00. Five of the eleven emitted artefacts move (`pools_2016.json`,
+`pools_2021.json`, and tshwane/ekurhuleni/mangaung at 2021) and they are all
+**backtest inputs**. This is a correctness fix to the historical fits; it does
+not touch the published forecast.
+
+#### The rejected alternative stands, and its justification was overstated
+
+**Variant B — redistributing the truncated excess by headroom — remains
+rejected.** It moves Al Jama-ah from 99.4% to 64.2% Indian/Asian on no evidence,
+its bounds requiring nothing of the kind, and that is sufficient.
+
+But **the "+0.33% vs +6.6%" comparison used to justify it was a one-city
+measurement presented as the method's price.** Both numbers are Johannesburg
+2021 only, and +0.33% is the **fourth smallest of the ten** — it is
+Johannesburg's number, not the projection's. The honest statement of the
+projection's cost is a **range across the ten fits: +0.00% to +3.71%**, and
+after this fix +0.00% to +3.71% over the five fits that need it and exactly
++0.00% over the five that do not.
+Variant B was never measured at the other nine. Quoting the most favourable of
+ten as though it characterised the method is the same error as §1.36's, and it
+happened in the write-up of the fix for §1.38.
+
+---
+
+### Part B — "almost certainly a delimitation boundary" was a wrong-city file
+
+Emitting any non-Johannesburg city at 2026 refused with:
+
+> *"100.0% of the roll is in wards with no measured composition… a ward-code
+> mismatch between the 2026 roll and the composition fitted on 2021 — almost
+> certainly a delimitation boundary."*
+
+**That diagnosis was false, and it was published.** `_target_roll` ended:
+
+```python
+path = target.processed / f"vd_ward_{target.year}.csv"
+if not path.exists():
+    path = Path("data/processed") / f"vd_ward_{target.year}.csv"
+```
+
+`data/processed/` is not a shared root. It is **Johannesburg's own directory**,
+because `cities/joburg.toml` is the one config carrying
+`legacy_processed_root`. So every other city silently loaded **Johannesburg's
+ward roll**, whose codes are `798000xx` against Tshwane's `799000xx` — a 100%
+join failure, reported as geography. This is the un-namespaced-outputs hazard
+already on file for this project, firing for real.
+
+The branch could never have helped even the city it stole from: Johannesburg's
+2026 target **is** its default target, so `target.processed` already resolves to
+the bare `data/processed/` and the first line finds the file. **It was
+reachable only by a city it could only mislead.**
+
+Fixed: the fallback is deleted, a missing roll is a refusal naming the file it
+wanted, and the join-failure message now prints the unmatched and the known ward
+codes side by side so the next reader can tell a delimitation change (shared
+prefix) from a wrong file (different prefix) without guessing.
+
+    Tshwane 2026: no ward roll for this city. Wanted
+    data/processed/tshwane/2026/vd_ward_2026.csv, which does not exist.
+
+A **stated stand-in was removed with it.** `registered_at_target` used to fall
+back to the fitting election's roll and print a warning; with the wrong-city
+fallback gone, the only way to reach it was a genuinely missing roll, and
+absorbing that into pool sizes five years out of date is worse than refusing.
+
+#### The blocker was never delimitation, and the scoping answer is small
+
+The 2026 VD layer is **already on disk for all eight metros**
+(`data/raw/geo/vds2026_{CODE}.geojson`), and every one carries the five fields
+`build_concordance.ward_parts` needs. Building each city's roll from it and
+joining the result to that city's 2021-fitted composition:
+
+| city | VDs | 2026 wards | registered | unmatched roll |
+|---|---|---|---|---|
+| joburg | 865 | 135 | 2,348,781 | 0.0% |
+| tshwane | 774 | 107 | 1,619,402 | **0.0%** |
+| ekurhuleni | 642 | 112 | 1,666,980 | **0.0%** |
+| mangaung | 382 | 51 | 429,098 | **0.0%** |
+| nelsonmandelabay | 253 | 60 | 601,715 | **0.0%** |
+| buffalocity | 366 | 50 | 428,729 | **0.0%** |
+| ethekwini | 858 | 112 | 1,982,217 | 0.8% |
+| capetown | 802 | 118 | 2,100,405 | 1.8% |
+
+**There is no delimitation blocker anywhere.** Five of the seven join perfectly.
+eThekwini's 0.8% and Cape Town's 1.8% are one and two genuinely new wards
+(`59500112`; `19100117`, `19100118`) created by 2026 ward-count growth — same
+prefix, sequential numbers — both far below the 50% refusal threshold, and
+eThekwini below even the 1% warning.
+
+**What actually blocks it is two lines in `build_concordance.py`**, which I do
+not own and have not touched:
+
+1. `gpd.read_file(args.geo_dir / "vds2026_{CODE}.geojson")` never substitutes
+   `{CODE}` (it does not go through `cityconfig.resolve_path`), so **the script
+   is broken for every city, Johannesburg included** — the committed
+   `data/processed/vd_ward_2026.csv` cannot currently be regenerated by the code
+   that claims to produce it;
+2. `--out-dir` defaults to a hard-coded `data/processed`, so even once (1) is
+   fixed, `build_concordance.py --city tshwane` would **overwrite Johannesburg's
+   roll**. The same hazard as Part A, one script upstream, still live.
+
+---
+
+## 1.41 The fix disabled the guard, and the silence was the evidence (2026-08-17)
+
+A third independent review of the same day's work. The headline is a regression
+this project introduced and then cited as proof the change had worked.
+
+### The capacity guard went blind and its silence was read as success
+
+`montecarlo.py` computed a party's pool ceiling from an **indicator**:
+
+    1.0 if float(scenario["pools"][nm]["members"].get(pp, 0.0)) > 0 else 0.0
+
+A membership of 0.00019 counted exactly like one of 1.0, so a party's ceiling was
+the size of every pool it *touched at all* rather than of the pools it draws
+from. That was survivable only while the fit emitted hard zeros. §1.38's
+Duncan-Davis projection ended that: it seeds every zeroed cell, so the PA's 159
+displaced votes flipped three indicator bits and its declared ceiling went from
+the Coloured pool alone to **1.0000**.
+
+Measured on the emitted artefacts:
+
+| | ceiling exactly 1.0, 2026 | mean ceiling | the PA |
+|---|---|---|---|
+| indicator (as shipped) | **74 of 75** | 0.994 | 1.0000 |
+| weight-aware | 0 of 75 | 0.447 | **0.0689** |
+
+The PA draws **99.18% of its vote from a pool casting 6.73% of the ballots**, and
+its 2026 centre asks for about **109% of that pool**. The guard could not see it.
+
+**And the silence became the evidence.** §1.38 reported *"a guard with nothing to
+guard against on this target"*, and this project reported to its owner that the
+run showed *"0 fell back, nothing held in any draw"* — presenting a blind
+detector's quiet as proof the constraint was satisfied. It was not satisfied; it
+was unmeasurable. That is the sixth instrument failure in three days and the
+second time a fix and its own refutation shipped together.
+
+### The obvious repair is arithmetically sound and empirically a disaster
+
+The fix proposed by the review, and adopted here before being measured, was the
+largest citywide share a party can reach while holding its own weight vector with
+every pool rate at most one:
+
+    min over pools g with w_g > 0 of  poolshare_g / w_g
+
+It is correct as arithmetic. On the artefacts it does exactly what it claims:
+parties at a ceiling of 1.0 go from 74 of 75 to **0 of 75**, the mean ceiling
+from 0.994 to 0.447, and the PA from 1.0000 to **0.0689** — bounding it near the
+6.73% pool it takes 99.18% of its vote from.
+
+**Nine city-years: coherent seat error 306 → 486.** Isolated by reverting this
+one expression and nothing else, Mangaung alone goes **10 → 112**.
+
+**Why, and the first version of this paragraph was too weak.** It said the bound
+"assumes a party's pool composition is fixed… the draw varies each pool's
+turnout, so the realised composition moves". True, but it makes this sound like
+a variance problem you could out-sample. It is not.
+
+`balance_margins` is **plain IPF**. IPF multiplies rows and columns, so it
+preserves zeros and can scale any *positive* cell arbitrarily. The exact
+single-party feasibility condition is therefore about the **support**, not the
+magnitudes:
+
+    want_p  <=  sum of poolshare_g over pools where R[g,p] > 0
+
+**That is the indicator ceiling.** `min_g poolshare_g / w_g` is strictly tighter
+and is **not a necessary condition** — it bounds a quantity IPF exists to move.
+Demonstrated directly on Mangaung 2021: the ANC's weight-aware ceiling is 0.0983
+and its actual share 0.5151, so the new cap rejects it by 5.2×; hand the same
+matrix to IPF and it **converges, delivering 0.5151 exactly**, by relocating the
+party — emitted composition `[0.8166 0.0214 0.1568 0.0052]`, realised
+`[0.9638 0.0152 0.0167 0.0043]`.
+
+So the composition is not jittered by the draw. It is **re-fitted
+deterministically by IPF on every draw**, and the ceiling bounded the seed rather
+than the outcome.
+
+**Reverted, and the indicator ceiling is not a placeholder — it is the exact
+bound.** Its job is to catch a ceiling near zero, a party in no usable pool at
+all, and it still does that. What no cap can do is flag *implausibility*: the PA
+drawing 99.18% of its vote from a 6.73% pool while its centre asks 109% of that
+pool is a real disagreement and **not an infeasibility**, because IPF will
+satisfy it by relocating the party wholesale.
+
+The two jobs should be split. Keep the indicator as the hard gate, and add a
+**displacement diagnostic** — `KL(realised ‖ emitted)` computed once at mid
+turnout, so it is draw-invariant by construction and reports rather than clips.
+It reads correctly on the case at hand, firing on exactly the parties whose
+emitted weights are infeasible and going quiet once §1.42's denominator is fixed:
+
+| | KL as emitted | after §1.42 |
+|---|---|---|
+| Mangaung 2021 ANC | 0.1163 | 0.0059 |
+| Mangaung 2021 DA | 0.1005 | 0.0416 |
+| Buffalo City DA | 0.0791 | 0.0064 |
+| Johannesburg 2021 DA | 0.0358 | 0.0146 |
+
+**Not yet built.** `ITERATING.md`: worse does not ship, and "arithmetically
+defensible" is not a measurement — but note the refutation here is *analytic*,
+not empirical. The 306 → 486 was the symptom; the IPF support argument is the
+cause, and it would have been findable without a backtest.
+
+This is the fourth time in three days that a proposed fix had to be measured
+before it could be believed, and the second where the argument for it was
+airtight and the number was not.
+
+### The scoreboard was not reproducible run to run
+
+`backtest.entrant_actual_for` broke a newcomer tie with
+`max(newcomers, key=newcomers.get)`, which returns the first maximum in
+**iteration order**. Three identical `compare_history` runs at 120 draws produced
+three different JSON hashes and a ranks-13+ absolute band of **15.2164 / 15.2164
+/ 15.3080**. Every A/B this project ran — including the ones that measured these
+very fixes — carried that on top of seed noise.
+
+Now `key=lambda p: (newcomers[p], p)`. **This makes the answer stable, not
+right:** where two arrivals genuinely tie, one takes the ENTRANT relabel and the
+other scores as missed entirely whichever way it falls. What the relabel *should*
+do with a real tie is open.
+
+*(The review's specific instance was wrong — eThekwini 2021 has ASA winning
+outright on 4 seats, no tie. The reproducibility failure is real and was
+reproduced here before being fixed; the example was not.)*
+
+### Three excuses in `EXPECTED_INERT` that were not true
+
+* **`poll_k`** was certified inert on a null measured **with the gate shut**
+  (`poll_id` is None by default, so the branch never ran). Opened, `poll_k`
+  1.0 → 1000 moves the DA **33.26 → 36.67pp and 89.8 → 99.2 seats**, live at
+  2016, 2021 and 2026. This is `ITERATING.md` rule 6's exact fault, committed
+  inside the commit that automated rule 6. A `PAIRED` sweep now perturbs a
+  conditional lever together with its condition.
+* **`individual_theta`** was excused as "dead as a default, live as an internal
+  channel". The internal write is a **dead store** — confirmed three ways.
+* **`entrant_geography`** was excused on a perturbation that supplied no
+  `parent`. That is a fact about the sweep, not the model.
+
+### A disposition inconsistency, left open on purpose
+
+`theta_mode`, `f_other` and `individual_theta` are consumed at **zero of ten**
+runnable targets — the identical evidence on which `ward_pr_ratio_overrides` and
+`first_local_election` were deleted the same day. They have not been deleted,
+because `theta_mode` is a declared contamination source in `backtest.FITTED_ON`
+and removing it changes what the in-sample banner asserts. **One standard of
+evidence, three dispositions.** That needs a decision rather than a default, and
+recording it is not the same as resolving it.
+
+### Smaller, and each the same shape
+
+* The `capped_targets` counters' comment claimed two readers that **did not
+  exist** — written in the commit arguing that a computed-and-never-read quantity
+  is a defect. They were also module-level and never reset, so they accumulated
+  across the nine city-years of one invocation. Reset per run and carried on
+  `ModelRun`.
+* `MACHINERY.md` still carried a `ward_pr_ratio_overrides` row while another line
+  of the same document said the key was deleted — and that row was listed among
+  the "six wrong rows fixed". **Fifth time a row has survived a pass written to
+  fix it.**
+* §1.37's `theta_mode` "inert at 2021, live at 2026" reading is **retracted**: it
+  was measured while another worker re-emitted `pools_*.json`, so the baseline
+  moved under the sweep. There is no asymmetry and no happy accident.
+* "163 votes" was **159** — a typed figure disagreeing with the weight quoted in
+  its own row.
+* `interactive_template.html` emitted **six keys that no longer exist** into a
+  block whose purpose is to be pasted into `--config`, which hard-exits on an
+  unknown key. Latent only because the page is withheld.
+* **Registered at 🔴, pre-existing and undocumented anywhere:** the run prints
+  `implied θ outside §3.5 sanity ranges` and reports **ANC 57.7%, EFF 53.2%,
+  Al Jama-ah 47.7%, PA 34.0%** on the shipped forecast. Over half the ANC's draws
+  fall outside the model's own declared range for its retention, and no document
+  mentions it. A diagnostic the model prints against itself, passed over.
+
+### One review finding that does not reproduce
+
+`ward_noise_sd` was reported *"live at 0.60 but fully inert at 0.1001 and below"*.
+Measured against 0.10 on ward wins: **0.0 → 66 wards change, 0.05 → 15, 0.1001 →
+0, 0.15 → 25, 0.60 → 423.** Monotone and live throughout. **The reviewer
+re-derived it and withdrew the finding**, on two grounds better than the ones
+given here: the zero is **symmetric** (0.0999 is as inert as 0.1001, whereas a
+real dead zone "at 0.1001 and below" would be one-sided), and it **closes with
+draws** — the same ±0.1% perturbations give 1 change at 400 draws and 1–2 at
+1500. Resolution, not a dead zone. No change made.
+
+One incidental worth keeping: at `ward_noise_sd = 0` the `rng.normal(...)` call
+is **skipped entirely**, so the RNG stream desynchronises for every draw after
+it. The 66 wards at `sd = 0` are a stream shift plus a noise removal, not a
+clean measurement. **`sd = 0` is not a usable control point** for this or any
+other lever whose guard skips a draw.
+
+### The process lesson, now in `CLAUDE.md`
+
+Partitioning parallel work by *file* is not enough. `pools.py` and
+`compare_history.py` do not overlap as files and collide completely as work,
+because both depend on `pools_*.json`. One writer owns the artefacts; nobody else
+measures while it writes; the canonical run happens once, at the end, on a
+settled tree. **A number measured against a moving artefact is not a
+measurement, and it reads exactly like one.**
+
+---
+
+## 1.42 Two denominators for one quantity, and the pool collapse that built a guard (2026-08-17)
+
+Found by chasing *why* §1.41's ceiling regressed rather than accepting *that* it
+did. The ceiling was wrong. What it collided with is a separate and larger
+defect, and this is its entry.
+
+### The emitted compositions were arithmetically impossible
+
+`PartyFit.composition(pool_votes)` names what it wants in its own signature and
+docstring — *"where the party's votes come from"* — and the rates it multiplies
+were fitted against `pool_votes = (comp * vote).sum(axis=0)`. The production call
+handed it **`target_shares`, a projected REGISTRATION-share vector**, while
+`montecarlo.pool_spec` sized the same pools from the **counted roll times
+turnout**. Two denominators for one quantity, and a category error against the
+function's own contract. The arrival branch three hundred lines below already
+used the counted roll, so both sat in the same emitted dict.
+
+Testing every emitted weight against `poolshare_g / actual_share_p` — the
+ceiling of a party taking **100%** of that pool:
+
+| normalised on | infeasible party-pairs, nine city-years |
+|---|---|
+| `pool_shares_at_target` (as shipped) | **5 of 339** |
+| counted registration | 4 of 339 |
+| **votes cast (registered × turnout)** | **0 of 339** |
+
+Worst: **Mangaung 2021, the ANC claiming 15.68% of its vote from an Indian/Asian
+pool casting 1.54% of the ballots — 5.2× the arithmetic maximum.** Then the DA at
+Mangaung 2.28×, Buffalo City 2.12×, Ekurhuleni 1.64×, Johannesburg 2016 1.12×.
+**Every violation is on the smallest pool**, and the last of them closes only
+when turnout enters — registration alone leaves four.
+
+### Two failures compounded
+
+**The extrapolator amplifies.** `projected_pool_shares` extends the last interval
+by `damping × step` = 0.6 × 2.5 = **1.5**, so the "damping" makes the step
+*larger*. Mangaung's Indian/Asian series is `2011: 0.0, 2014: 0.0, 2016: 0.0524`
+— the category is simply absent before 2016 — so it reads a spurious trend and
+lands on `0.0524 × 2.5 = 0.1311`, 2.5× the counted share.
+
+**And at Nelson Mandela Bay it went negative.** The same extrapolator sends that
+pool to `0.01730 + 1.5 × (−0.01332) = −0.0027`, clipped to `1e-6` — **exactly
+zero**. So every *fitted* party received no weight at all in a pool holding
+**9,596 registered voters at 86.5% turnout, 2.28% of ballots cast**. Its emitted
+membership was sixteen parties, every one of them `no_measured_vector`, with
+`identified: []`.
+
+**That collapsed pool is the failure the per-draw capacity guard was built for.**
+`pool_spec`'s own comment blames it in as many words — *"its Indian/Asian pool
+holds 2.3% of the city's votes and its sixteen members' centres do not add to
+that between them, so no matrix"*. §1.33 measured that site at a 12.7% per-draw
+failure rate and called it a *row*-side infeasibility that no column cap could
+fix. It was neither: **it was this.**
+
+### The fix, and what it is not
+
+One line, plus hoisting two blocks: pass `registered × turnout[g][1]` — the
+vector `pool_spec` itself builds — instead of `target_shares`.
+
+* **5 infeasible party-pairs → 0.**
+* Nelson Mandela Bay's Indian/Asian pool goes from **16 members, 0 identified**
+  to **26 members, 2 identified**. The pool repopulates.
+* Mangaung's ANC: Indian/Asian weight **0.1568 → 0.0205**, under its 0.0299 max.
+
+**Nine city-years: 312 → 310.** That is nothing, and it is nothing for a reason
+worth stating: **IPF pins the citywide levels whatever the seed composition
+says** — measured identical to five decimals under the emitted and the corrected
+seed. The composition is a KL anchor, not a claim the level layer acts on. So
+this moves only the ward and seat layer, and there it nets to noise (NMB −2,
+Mangaung −2, Ekurhuleni −2, Tshwane +2, Buffalo City +2).
+
+**It is a correctness fix and the 2 seats are not claimed.** The case for it is
+that the model was emitting compositions that cannot exist, that IPF was silently
+repairing them every draw, and that one whole pool had been extrapolated out of
+existence.
+
+### Why nothing caught it
+
+Because everything downstream absorbed it. IPF forced the pool margin on every
+draw, so the levels came out right; `identified()` reported the collapsed pool as
+unmeasured, which read as a known limitation rather than a bug; and the capacity
+guard's per-draw failure at NMB was attributed to a row-side infeasibility in
+§1.33 rather than to its cause. **Three separate mechanisms each turned the
+defect into something that looked like ordinary weakness.**
+
+The measurement that would have found it needs no backtest: for every emitted
+weight, is `w_pg ≤ poolshare_g / s_p`? That is arithmetic on the artefact, and it
+now belongs in the test suite.
 
 ---
 

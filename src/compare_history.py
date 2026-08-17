@@ -28,12 +28,20 @@ noise (seven to fifteen scored columns), which is why they were never worth
 printing and therefore never printed; pooled over nine they are ~130 columns and
 they say something the rest of this report cannot: whether the intervals are the
 right WIDTH and whether they are in the right PLACE. Those are different faults
-with different remedies, and **this model's answer to both differs by rank
-band** — over-forecast and too wide at ranks 1-3, under-forecast and far too
-narrow at ranks 4-12 — so the calibration is reported split by actual PR rank as
-well as pooled. The pooled figure alone is the average of two opposite biases
-and describes neither. See :func:`render_calibration`, :func:`pooled_by_band`
-and MODEL-LOG §1.34, §1.36.
+with different remedies, and **this model's LEVEL differs by rank band while its
+WIDTH does not** — over-forecast at ranks 1-3, under-forecast at ranks 4-12, and
+intervals about 1.35x too wide in both — so the calibration is reported split by
+actual PR rank as well as pooled. The pooled LEVEL is the average of two
+opposite biases and describes neither.
+
+**Width and level must be measured by different statistics, and this report was
+twice wrong because they were not.** Coverage at one nominal level cannot tell a
+narrow forecast from a shifted one; PIT variance against 1/12 cannot either, and
+is not shift-invariant however often it is claimed to be. The width verdict here
+comes from :func:`pit_dispersion` and :func:`dispersion_ratio`, which divide the
+level out, corroborated by coverage read at all three levels at once. See
+:func:`render_calibration`, :func:`pooled_by_band` and MODEL-LOG §1.34, §1.36,
+§1.39.
 
 Usage::
 
@@ -145,29 +153,32 @@ def rank_bands(run, actual_pr, actual_seats):
     statistic shipped signed-only and hid the model's largest single failure:
     at **Johannesburg 2021 ranks 1-3 read +1.32pp signed against 26.50pp
     absolute**, because the ANC (+6.52) and the DA (+7.39) cancelled against
-    ActionSA (−12.59). That city-year is the model's WORST on seats (104 of
-    error) and read second-best on this table. Across the nine city-years the
-    signed total for ranks 1-3 is +32.50pp against 71.12pp absolute — an
-    understatement of 2.2×.
+    ActionSA (−12.59). That city-year is the model's WORST on seats and read
+    second-best on this table. Across the nine city-years the signed total for
+    ranks 1-3 understates the absolute one by more than 2×.
 
-    **EVERY FIGURE ABOVE IS THE COMMITTED ``data/processed/history.json`` AT
-    1500 DRAWS, and none of them may be quoted without that.** This is a Monte
-    Carlo statistic and it moves in the second decimal with the draw count and
-    the seed. Three different values of the ranks 1-3 nine-city-year total
-    shipped inside one commit — +32.67/72.06 in this docstring, +32.42/71.65 in
-    MODEL-LOG §1.34's table, +32.50/71.12 in the committed ``history.json`` —
-    all the same statistic at different draw counts, and a reader had no way to
-    tell a re-run from a regression. **Quote the draw count with the number, or
-    quote neither.** See MODEL-LOG §1.34 and §1.36.
+    **NO NINE-CITY-YEAR FIGURE IS TYPED HERE, AND THAT IS DELIBERATE.** This is
+    a Monte Carlo statistic that moves in the second decimal with the draw count
+    and the seed, and it went stale in prose three times over. Three different
+    values of the ranks 1-3 total once shipped inside a single commit —
+    +32.67/72.06 in this docstring, +32.42/71.65 in MODEL-LOG §1.34's table,
+    +32.50/71.12 in the artefact — all the same statistic at different draw
+    counts, with no way for a reader to tell a re-run from a regression. The
+    current values live in ONE place, the checked table in ``ITERATING.md``
+    under rule 8, and
+    ``tests/test_calibration_report.py::test_the_documented_figures_match_the_committed_artefact``
+    fails the build when that table and ``data/processed/history.json`` disagree.
+    Quote them from there. See MODEL-LOG §1.34, §1.36 and §1.39.
 
     **PHANTOM MASS.** The bands iterate the parties that actually stood, so any
     share the model gives to a party that did not stand at all is invisible to
     every band. It is reported separately rather than left out: the citywide
     share vector sums to one over the model's own universe, so the phantom total
-    is exactly why the three bands sum to −6.53pp rather than to zero across the
-    nine city-years (committed ``history.json``, 1500 draws). It includes the
-    generic ``ENTRANT`` column in a city-year where no party arrived, which is a
-    real error and should be visible as one.
+    is exactly why the three signed bands sum to a negative number rather than
+    to zero. It includes the generic ``ENTRANT`` column in a city-year where no
+    party arrived, which is a real error and should be visible as one — and it
+    is why the level gap between the bands is a **zero-sum transfer**: what
+    ranks 1-3 and the phantom columns are given is what ranks 4-12 and 13+ lose.
 
     The band membership comes from :func:`rank_band_of`, which
     :func:`calibration_columns` also uses, so the vote table and the calibration
@@ -207,6 +218,120 @@ LEVELS = (0.5, 0.8, 0.9)
 # The difference between them IS the finding, so all three are reported and each
 # is labelled with what selects it. See :func:`calibration_columns`.
 POPULATIONS = ("claimed", "seat_holders", "all")
+
+# Acklam's rational approximation to the inverse normal CDF, to about seven
+# significant figures. Here to avoid a scipy dependency for the one transform
+# that turns a PIT into a statistic a LEVEL SHIFT cannot fake -- see
+# :func:`pit_dispersion`, which is the whole reason it exists.
+_ACK_A = (-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02,
+          1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00)
+_ACK_B = (-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02,
+          6.680131188771972e+01, -1.328068155288572e+01)
+_ACK_C = (-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00,
+          -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00)
+_ACK_D = (7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00,
+          3.754408661907416e+00)
+
+
+def _probit(u):
+    """``Phi^-1(u)``, vectorised, clipped away from 0 and 1.
+
+    The clip matters: a randomised PIT can land exactly on 1.0 (five real
+    columns do — parties given zero seats in every draw that nonetheless won
+    one), and an infinity would make every statistic downstream ``nan``.
+
+    **It is not load-bearing for the figure this report quotes, and that was
+    checked rather than assumed.** The ``claimed`` population carries no PIT at
+    0 or 1 (its range on the committed artefact is 0.052 to 0.997), and the
+    per-band probit-SD is 0.7399 / 0.7338 at ``1e-4``, ``1e-6`` and ``1e-8``
+    alike — unchanged to four decimals across four orders of magnitude. It IS
+    load-bearing for the ``all`` population, which has three columns at exactly
+    1.0; that population is already labelled untrustworthy for other reasons
+    (see :func:`calibration_columns`) and its width figure should not be quoted
+    either.
+    """
+    p = np.clip(np.asarray(u, dtype=float), 1e-6, 1 - 1e-6)
+    out = np.empty_like(p)
+    lo, hi = p < 0.02425, p > 1 - 0.02425
+    mid = ~(lo | hi)
+    q = np.sqrt(-2 * np.log(p[lo]))
+    out[lo] = ((((((_ACK_C[0] * q + _ACK_C[1]) * q + _ACK_C[2]) * q + _ACK_C[3])
+                 * q + _ACK_C[4]) * q + _ACK_C[5])
+               / ((((_ACK_D[0] * q + _ACK_D[1]) * q + _ACK_D[2]) * q
+                   + _ACK_D[3]) * q + 1))
+    q = np.sqrt(-2 * np.log(1 - p[hi]))
+    out[hi] = -((((((_ACK_C[0] * q + _ACK_C[1]) * q + _ACK_C[2]) * q + _ACK_C[3])
+                  * q + _ACK_C[4]) * q + _ACK_C[5])
+                / ((((_ACK_D[0] * q + _ACK_D[1]) * q + _ACK_D[2]) * q
+                    + _ACK_D[3]) * q + 1))
+    q = p[mid] - 0.5
+    r = q * q
+    out[mid] = (((((_ACK_A[0] * r + _ACK_A[1]) * r + _ACK_A[2]) * r + _ACK_A[3])
+                 * r + _ACK_A[4]) * r + _ACK_A[5]) * q / (
+        ((((_ACK_B[0] * r + _ACK_B[1]) * r + _ACK_B[2]) * r + _ACK_B[3]) * r
+         + _ACK_B[4]) * r + 1)
+    return out
+
+
+def pit_dispersion(pits) -> float:
+    """Width, with the LEVEL divided out: ``sd(Phi^-1(u))``. **1.0 is right.**
+
+    Below 1.0 the intervals are too WIDE; above 1.0 too narrow. The ratio is
+    read directly: 0.73 means the intervals are about ``1/0.73 = 1.4x`` wider
+    than the errors they are meant to cover.
+
+    **This exists because the obvious dispersion statistic is not one.** PIT
+    variance against a nominal ``1/12`` was proposed three times on this project
+    as "shift-invariant, so a clean width statistic". It is not shift-invariant
+    and it is not clean. A PIT lives on ``[0, 1]``; move the forecast off centre
+    and its mass piles against a boundary, and the variance falls whatever the
+    width is. On the suite's own fixture — ``_shift_scale_results(4242, 12,
+    width_mult=1.0, shift=S)`` in ``tests/test_calibration_report.py``, whose
+    forecast width is EXACTLY right — PIT variance reads **0.0829, 0.0450 and
+    0.0240** at shifts of 0, +2 and +3 seats against the nominal 0.0833: a pure
+    level error reading as a 3.5x under-dispersion.
+    ``test_pit_variance_is_not_a_width_statistic`` holds that fixture.
+
+    The probit transform is the fix, because under a location shift of a roughly
+    normal forecast ``Phi^-1(u)`` TRANSLATES: the shift lands in the mean and
+    leaves the spread alone. On the same three runs the probit sd reads 1.021,
+    0.917 and 0.953 against a true 1.000 — attenuated by a few points at a large
+    shift, against a factor of 3.5 for the variance.
+
+    It is not exact, and the residual attenuation is conservative in the
+    direction that matters here: a band that is both shifted and too wide will
+    read slightly LESS wide than it is, so an over-width verdict from this
+    statistic understates rather than manufactures the fault.
+
+    :func:`dispersion_ratio` is the exact version and needs the draws.
+    """
+    u = np.asarray(pits, dtype=float)
+    if u.size < 2:
+        return float("nan")
+    return float(_probit(u).std(ddof=1))
+
+
+def dispersion_ratio(z) -> float:
+    """The exact level-free width statistic: ``sd`` of the standardised error.
+
+    ``z_i = (truth_i - mean_i) / sd_i`` per column, from the draws themselves.
+    Its **standard deviation** is the ratio of the errors' spread to the spread
+    the forecast claimed: 1.0 is right, above 1.0 too narrow, below 1.0 too
+    wide. Subtracting the mean is what makes it exactly invariant to a level
+    shift — the mean is the level statistic and is reported next to it, not
+    inside it.
+
+    Exact where :func:`pit_dispersion` is approximate: on the fixture above it
+    reads **1.000 at shifts of 0, +2 and +3 seats** — unmoved to the third
+    decimal — and 0.650 when the forecast is widened by 1.6x, which is 1/1.54.
+    Requires ``z`` in the artefact, which :func:`calibration_columns`
+    stores; an artefact written before that returns ``nan`` rather than a wrong
+    number.
+    """
+    v = np.asarray([x for x in z if x is not None and x == x], dtype=float)
+    if v.size < 2:
+        return float("nan")
+    return float(v.std(ddof=1))
 
 
 def _pit_seed(city_slug: str, year: str, base: int = 20211101) -> int:
@@ -301,6 +426,18 @@ def calibration_columns(seat_draws, actual_seats, entrant_actual, seed,
     hits = [[int(row["inside"])
              for row in S.coverage(samples[:, [j]], truth[[j]], LEVELS)]
             for j in range(n_cols)]
+    # The standardised error per column, ``(truth - mean) / sd`` of the draws.
+    # Stored because it is the ONLY statistic here that separates width from
+    # level exactly (:func:`dispersion_ratio`), and it cannot be recovered from
+    # the PIT afterwards -- which is how the width question came to be answered
+    # three times from statistics that could not answer it. A column whose draws
+    # are all identical has no scale and stores ``None`` rather than an
+    # infinity.
+    z_cols: list[float | None] = []
+    for j in range(n_cols):
+        col = samples[:, j].astype(float)
+        sd = float(col.std(ddof=1)) if col.size > 1 else 0.0
+        z_cols.append(float((truth[j] - col.mean()) / sd) if sd > 0 else None)
     out = {}
     for name in POPULATIONS:
         mask = masks[name]
@@ -308,6 +445,7 @@ def calibration_columns(seat_draws, actual_seats, entrant_actual, seed,
             "n": int(mask.sum()),
             "parties": [p for p, keep in zip(parties, mask) if keep],
             "pit": [float(v) for v in np.asarray(pits)[mask]],
+            "z": [v for v, keep in zip(z_cols, mask) if keep],
             # ``off-ballot`` is a column with no actual PR rank: a party the
             # model gave seats to that contested nothing. It is the calibration
             # counterpart of rank_bands' phantom mass and is kept out of the
@@ -383,20 +521,25 @@ def _cluster_bootstrap_ci(groups, level=0.95, draws=20_000, seed=20260817):
 
     Returns ``(lo, hi, draws)``, or ``(nan, nan, draws)`` when fewer than two
     clusters carry any value.
+
+    The replicate mean is computed from per-cluster SUMS and SIZES rather than
+    by concatenating the clusters, which is the same number — the mean of a
+    concatenation is the total over the count — and turns 20,000 Python-level
+    concatenations into two array reductions. That matters now: intervals are
+    put on every coverage row as well as on the mean PIT, so this is called
+    about sixty times per report rather than three.
     """
     groups = [np.asarray(g, dtype=float) for g in groups if len(g)]
     if len(groups) < 2:
         return float("nan"), float("nan"), draws
     rng = np.random.default_rng(seed)
     k = len(groups)
-    means = np.empty(draws, dtype=float)
-    kept = 0
-    for pick in rng.integers(0, k, size=(draws, k)):
-        sample = np.concatenate([groups[i] for i in pick])
-        means[kept] = sample.mean()
-        kept += 1
-    lo, hi = np.percentile(means[:kept], [100 * (1 - level) / 2,
-                                          100 * (1 + level) / 2])
+    sums = np.array([g.sum() for g in groups], dtype=float)
+    sizes = np.array([g.size for g in groups], dtype=float)
+    pick = rng.integers(0, k, size=(draws, k))
+    means = sums[pick].sum(axis=1) / sizes[pick].sum(axis=1)
+    lo, hi = np.percentile(means, [100 * (1 - level) / 2,
+                                   100 * (1 + level) / 2])
     return float(lo), float(hi), draws
 
 
@@ -411,43 +554,61 @@ def pooled_by_band(results, pop) -> dict:
     argument that condemned :func:`rank_bands`' signed sum one day earlier, and
     the pooled PIT shipped in the same commit with the same defect.
 
-    On this model's ``claimed`` population (committed ``history.json``, 1500
-    draws) the pooled mean is 0.587 and the split is:
+    On this model's ``claimed`` population (committed ``history.json``) the
+    pooled mean is 0.598 and the split is:
 
-        ranks 1-3    n=27  mean PIT 0.431   50% coverage 0.70
-        ranks 4-12   n=26  mean PIT 0.750   50% coverage 0.27
+        ranks 1-3    n=27  mean PIT 0.434
+        ranks 4-12   n=28  mean PIT 0.757
 
     Two biases in opposite directions, both cluster-bootstrap CIs excluding
     0.50, and the pooled figure is their average. The model **over**-forecasts
     the top three and **under**-forecasts the middle — which is exactly what the
-    signed vote bands (+32.50pp at ranks 1-3, −37.34pp at 4-12) had been saying
+    signed vote bands (+32.52pp at ranks 1-3, −37.18pp at 4-12) had been saying
     all along. The two instruments never disagreed; only one of them was
     disaggregated.
 
-    Width splits the same way, and **the two coverage measures disagree in one
-    band and not the other, which is itself the finding.** ``score.coverage``
-    reads the empirical quantile interval, which on integer seats has to include
-    whole endpoints and therefore over-covers; the randomised PIT corrects for
-    exactly that, so the fraction of columns whose PIT falls in the central
-    ``level`` is the discreteness-corrected version of the same number. At a
-    nominal 50%:
+    **WIDTH DOES NOT SPLIT THE SAME WAY, AND THIS PROJECT GOT THAT BACKWARDS
+    TWICE IN TWO DAYS.** First it read "roughly the right width, do not widen".
+    Then it read the 50% column alone, saw 0.27 at ranks 4-12, and concluded
+    "too narrow, widen the middle" — into ``ITERATING.md`` rule 8. Both are
+    wrong, and in opposite directions. What the artefact actually says at ranks
+    4-12, PIT-corrected:
 
-        ranks 1-3    interval 0.70   PIT-corrected 0.70   -> too WIDE
-        ranks 4-12   interval 0.46   PIT-corrected 0.27   -> too NARROW
+        50% covers 0.32     80% covers 0.89     90% covers 0.96
 
-    Ranks 1-3 are big parties whose forecast distributions are tens of seats
-    wide, so one endpoint is a negligible share of the interval and the two
-    measures come out equal. Ranks 4-12 are parties on one to ten seats, where a
-    single endpoint is a large fraction of the interval and the raw coverage is
-    inflated by 19 points.
-    So "the bands are roughly the right width" is true at the top of the ballot,
-    approximately true in the middle if you read the uncorrected number, and
-    false in the middle once you correct for discreteness. Both columns are
-    printed; the PIT-corrected one is the one that answers the question.
+    **A forecast that is too narrow under-covers at EVERY level.** This one
+    over-covers at 80 and at 90, by 9 and 6 points. The low 50% is not a width
+    reading at all: with a mean PIT of 0.757 the whole distribution has been
+    pushed off centre, and a shifted forecast vacates the middle of its own
+    interval however wide it is. On the suite's fixture with EXACTLY correct
+    width and a pure +2-seat shift the same code returns 0.27 / **0.56** /
+    **0.76** — the 50% falls, and the 80 and 90 fall WITH it. Widen that same
+    forecast by 1.6x and it returns 0.44 / **0.86** / **0.94**, which is where
+    the model sits. Only excess width lifts 80 and 90 above nominal. See
+    ``tests/test_calibration_report.py`` and MODEL-LOG §1.39 for the table.
+
+    The level-free statistics settle it and they are the ones to read.
+    ``pit_dispersion`` (1.0 is right, below 1.0 too wide) is **0.74 at ranks 1-3
+    and 0.73 at ranks 4-12** — the two bands are dispersed almost identically,
+    both about 1.35x wider than the errors they cover. They differ in LEVEL
+    (probit-mean −0.14 against +0.79), not in width. So the correct instruction
+    is the same for both bands — narrow them — plus a level transfer, and since
+    shares sum to one that transfer is zero-sum: ranks 1-3 are +32.52pp and the
+    phantom columns +6.36pp against −37.18pp at 4-12 and −1.70pp at 13+.
+
+    The two coverage measures still disagree by band and that is still real:
+    ``score.coverage`` reads the empirical quantile interval, which on integer
+    seats must include whole endpoints and therefore over-covers, and the
+    randomised PIT carries no such inflation. At a nominal 50% ranks 1-3 read
+    0.78 raw against 0.70 PIT-corrected and ranks 4-12 read 0.43 against 0.32.
+    Read the PIT columns. But read all three LEVELS of them, not the 50% alone:
+    reading one level is how the width verdict was wrong twice.
     """
     out = {}
     for band in (*BAND_LABELS, "off-ballot"):
         per_city: list[list[float]] = []
+        per_city_hits: dict[float, list[list[int]]] = {lv: [] for lv in LEVELS}
+        z_all: list[float] = []
         cov = {level: {"inside": 0, "counted": 0} for level in LEVELS}
         for r in results:
             block = (r.get("calibration") or {}).get(pop)
@@ -456,27 +617,63 @@ def pooled_by_band(results, pop) -> dict:
             labels = block["band"]
             here = [float(u) for u, b in zip(block["pit"], labels) if b == band]
             per_city.append(here)
+            z_all.extend(v for v, b in zip(block.get("z") or [], labels)
+                         if b == band and v is not None)
+            city_hits = {level: [] for level in LEVELS}
             for hit, b in zip(block.get("hits") or [], labels):
                 if b != band:
                     continue
                 for level, inside in zip(LEVELS, hit):
                     cov[level]["inside"] += int(inside)
                     cov[level]["counted"] += 1
+                    city_hits[level].append(int(inside))
+            for level in LEVELS:
+                per_city_hits[level].append(city_hits[level])
         pits = [u for g in per_city for u in g]
         if not pits:
             continue
         lo, hi, boot_draws = _cluster_bootstrap_ci(per_city)
         u = np.asarray(pits, dtype=float)
+
+        def _cov_rows(hit_groups, inside, counted):
+            """A coverage row WITH an interval on it.
+
+            The interval is the point of this helper. Coverage was quoted bare
+            for as long as it existed, and the numbers being argued over are
+            three discordant columns out of 28 — a one-sided McNemar p of 0.125,
+            which is not a finding. Same cluster bootstrap as the mean PIT: the
+            city-year is the unit, because columns inside one share a turnout
+            draw.
+            """
+            clo, chi, _ = _cluster_bootstrap_ci(hit_groups)
+            return {"inside": inside, "counted": counted,
+                    "empirical": (inside / counted if counted else float("nan")),
+                    "ci": [clo, chi]}
+
+        pit_hit_groups = {
+            level: [[int((1 - level) / 2 <= v <= (1 + level) / 2) for v in g]
+                    for g in per_city]
+            for level in LEVELS}
         out[band] = {
             "n": len(pits),
             "mean_pit": float(np.mean(pits)),
             "ci": [lo, hi],
             "ci_replicates": int(boot_draws),
+            # Width with the level divided out. ``pit_dispersion`` needs only
+            # the PIT, so it can be read off any artefact ever written;
+            # ``dispersion`` is exact and needs the ``z`` column, so it is
+            # ``nan`` on an artefact written before that existed. Both are
+            # reported: 1.0 is right, below 1.0 too WIDE, above 1.0 too narrow.
+            # PIT VARIANCE IS DELIBERATELY NOT THE HEADLINE -- it is reported
+            # only so the report can show it failing. See :func:`pit_dispersion`.
+            "pit_dispersion": pit_dispersion(u),
+            "dispersion": dispersion_ratio(z_all),
+            "z_bias": (float(np.mean(z_all)) if len(z_all) else float("nan")),
+            "pit_var": (float(u.var(ddof=1)) if u.size > 1 else float("nan")),
             "coverage": [
-                {"level": level, "inside": acc["inside"],
-                 "counted": acc["counted"],
-                 "empirical": (acc["inside"] / acc["counted"]
-                               if acc["counted"] else float("nan"))}
+                {"level": level,
+                 **_cov_rows(per_city_hits[level], acc["inside"],
+                             acc["counted"])}
                 for level, acc in cov.items()],
             # The same coverage question asked of the randomised PIT, which is
             # continuous by construction and so carries no discreteness
@@ -485,11 +682,10 @@ def pooled_by_band(results, pop) -> dict:
             # interval — and THIS is the number to read.
             "pit_coverage": [
                 {"level": level,
-                 "inside": int(((u >= (1 - level) / 2)
-                                & (u <= (1 + level) / 2)).sum()),
-                 "counted": int(u.size),
-                 "empirical": float(((u >= (1 - level) / 2)
-                                     & (u <= (1 + level) / 2)).mean())}
+                 **_cov_rows(pit_hit_groups[level],
+                             int(((u >= (1 - level) / 2)
+                                  & (u <= (1 + level) / 2)).sum()),
+                             int(u.size))}
                 for level in LEVELS],
         }
     return out
@@ -701,15 +897,24 @@ _BAND_LABEL = {
 def render_calibration(results: list[dict], bins: int = 10) -> str:
     """The calibration block: pooled over city-years, SPLIT BY RANK BAND.
 
-    Coverage says whether the intervals are the right WIDTH; the PIT mean says
-    whether they are in the right PLACE. **Both answers are band-dependent here,
-    and a single pooled number gives the wrong one for both.** On the claimed
-    columns (committed ``history.json``, 1500 draws) ranks 1-3 come out at mean
-    PIT 0.431 with a nominal 50% interval covering 70%, and ranks 4-12 at 0.750
-    covering 27% once discreteness is corrected for: over-forecast and too wide
-    at the top, under-forecast and too narrow in the middle. Pooled they average
-    to 0.588 and "58% at a nominal 50%", which is neither band's answer and is
-    not a description of any part of this model.
+    The PIT mean says whether the intervals are in the right PLACE, and that
+    answer **is** band-dependent: on the claimed columns of the committed
+    ``history.json`` ranks 1-3 come out at 0.434 and ranks 4-12 at 0.757, which
+    pool to 0.598 — a figure that is neither band's answer.
+
+    **Coverage at one level does NOT say whether the intervals are the right
+    width, and printing it as though it did is what made this report wrong
+    twice.** Coverage responds to level and to width at once. A shifted forecast
+    vacates the centre of its own interval, so its 50% coverage collapses
+    whatever its width; only excess width lifts the 80% and 90% coverages ABOVE
+    nominal, and only a genuinely narrow forecast pushes all three below. This
+    model's ranks 4-12 read 32/89/96 against 50/80/90 — down at 50 and UP at 80
+    and 90, which is the shifted-and-too-wide signature and not the narrow one.
+
+    So the width verdict is taken from statistics with the level divided out —
+    ``pit_dispersion`` and ``dispersion_ratio``, 1.0 being right — and coverage
+    is printed at all three levels together, never one alone. Both bands come
+    out near 0.73: **the same width fault, not opposite ones.**
     """
     pooled = pooled_calibration(results, bins=bins)
     lines: list[str] = []
@@ -745,11 +950,21 @@ def render_calibration(results: list[dict], bins: int = 10) -> str:
         add(f"* **{pop}** (n={block['n']}) PIT histogram "
             f"{block['pit']['counts']} — {block['pit']['verdict']}")
     add("\nThe verdict at the end of each line is `score.pit_histogram`'s shape "
-        "heuristic, which reads the end mass and the mean; **the χ² column is "
-        "the test.** They can disagree — a histogram can be sloped rather than "
-        "U-shaped, print 'approximately flat' and still be far past the "
-        "critical value, which is what a level bias looks like when it is "
-        "spread over the upper half rather than piled in the last bin.")
+        "heuristic, which reads the end mass and the mean. **DO NOT ACT ON IT "
+        "AS A WIDTH VERDICT — it is not reliable as one, and on this model it "
+        "is demonstrably wrong.** The heuristic tests the mass in the two END "
+        "bins against flat, so a histogram that is monotone increasing scores "
+        "as U-shaped: a shifted forecast piles mass in the top bin and gets "
+        "called under-dispersed. On the ranks 4-12 columns it reads the "
+        "histogram `[1, 1, 1, 11, 14]` — 25 of 28 in the top two bins, "
+        "monotone, nothing at the bottom — and prints *\"U-shaped … "
+        "under-dispersed, widen it\"*, while calling the pooled population "
+        "*\"hump-shaped — over-dispersed, hedging\"*. The two verdicts "
+        "contradict each other and the band one contradicts the level-free "
+        "width table below, which is the one that is right. `score.py` is not "
+        "changed here — the heuristic is fine for its own purpose and what is "
+        "wrong is quoting it about width. **The χ² column is the test of "
+        "uniformity; the level-free dispersion table is the test of width.**")
     add("\nThe three populations differ by which columns they count, and the "
         "difference is itself the finding. `claimed` selects on the FORECAST, "
         "which leaves PIT uniform under calibration, so it is the honest test "
@@ -777,20 +992,40 @@ def render_calibration(results: list[dict], bins: int = 10) -> str:
         "50% (PIT) | 80% (PIT) | 90% (PIT) |")
     add("|---|---|---|---|---|---|---|---|---|---|")
     band_block = pooled["claimed"]["by_band"]
+
+    def _cell(row):
+        """A coverage cell WITH its interval. Bare coverage is not quotable.
+
+        These are counts in the twenties and the differences argued over are
+        two or three columns. The discreteness correction at ranks 4-12 — the
+        step from "about right" to "far too narrow" that carried a whole width
+        argument — is **three discordant columns out of 28**, a one-sided sign
+        test at p = 0.125; at ranks 1-3 it is two, p = 0.25. The 80% and 90%
+        over-coverages are not individually significant either. Printing a
+        point estimate alone invites a conclusion the count cannot support, and
+        did, twice. See MODEL-LOG §1.39.
+        """
+        if row is None:
+            return "—"
+        lo, hi = row.get("ci", [float("nan"), float("nan")])
+        pct = f"{100 * row['empirical']:.0f}%"
+        if lo != lo:
+            return pct
+        return f"{pct} [{100 * lo:.0f}–{100 * hi:.0f}]"
+
     for band in (*BAND_LABELS, "off-ballot"):
         blk = band_block.get(band)
         if not blk:
             continue
-        cov = {row["level"]: row["empirical"] for row in blk["coverage"]}
-        pit_cov = {row["level"]: row["empirical"] for row in blk["pit_coverage"]}
+        cov = {row["level"]: row for row in blk["coverage"]}
+        pit_cov = {row["level"]: row for row in blk["pit_coverage"]}
         lo, hi = blk["ci"]
         ci = ("—" if lo != lo else f"[{lo:.3f}, {hi:.3f}]")
         add(f"| {_BAND_LABEL[band]} | {blk['n']} | {blk['mean_pit']:.3f} | {ci} | "
-            + " | ".join(f"{100 * cov.get(level, float('nan')):.0f}%"
-                         for level in LEVELS) + " | "
-            + " | ".join(f"{100 * pit_cov.get(level, float('nan')):.0f}%"
-                         for level in LEVELS) + " |")
+            + " | ".join(_cell(cov.get(level)) for level in LEVELS) + " | "
+            + " | ".join(_cell(pit_cov.get(level)) for level in LEVELS) + " |")
     add("")
+
     replicates = max((blk.get("ci_replicates", 0)
                       for blk in band_block.values()), default=0)
     add("The CI resamples CITY-YEARS, not columns: columns inside one city-year "
@@ -804,16 +1039,73 @@ def render_calibration(results: list[dict], bins: int = 10) -> str:
         "central interval, which carries no such inflation. They agree at ranks "
         "1-3, where parties hold tens of seats and one endpoint is worth "
         "nothing, and diverge at ranks 4-12, where parties hold one to ten and "
-        "an endpoint is a large part of the interval. **Read the PIT columns for "
-        "the width verdict.**\n")
-    add("**Read the sign and the width together, per band.** A mean PIT below "
-        "0.50 with coverage ABOVE the nominal level is a band the model forecasts "
-        "too high with intervals too wide. A mean above 0.50 with coverage BELOW "
-        "the nominal level is a band forecast too low with intervals too narrow. "
-        "This model has one of each, which is why no single sentence about its "
-        "width or its level is true of the whole ballot — and why the rank-band "
-        "vote table above (top three over, middle short) and this table are the "
-        "same finding measured twice.\n")
+        "an endpoint is a large part of the interval. **Read the PIT columns "
+        "whenever the two are compared** — but neither triple is the width "
+        "verdict on its own; that is the table below.\n")
+    add("**Read all three coverage levels together, never one of them.** A "
+        "forecast whose intervals are too NARROW under-covers at EVERY level — "
+        "that is what narrow means. A forecast that is merely SHIFTED loses "
+        "coverage at the 50% level first and hardest, because it has vacated "
+        "the middle of its own interval, and its 80% and 90% coverages fall "
+        "too. Only intervals that are too WIDE push the 80% and 90% coverages "
+        "above nominal. So a band that reads LOW at 50% and HIGH at 80 and 90 "
+        "is shifted and too wide, and reading its 50% column alone gives "
+        "exactly the opposite instruction. **That mistake has been made twice "
+        "on this report, in opposite directions, and rule 8 of `ITERATING.md` "
+        "carried each of them.** The width verdict belongs to the level-free "
+        "table above; the coverage rows corroborate it or they do not.\n")
+    add("The rank-band vote table further up and the mean-PIT column here are "
+        "the same LEVEL finding measured twice — top three over, middle short. "
+        "Because shares sum to one that gap is a zero-sum transfer, not two "
+        "independent faults, so a level fix has to move mass rather than add "
+        "it.\n")
+
+    add("### Is it the right WIDTH? — the level divided out\n")
+    add("**This table, not the coverage rows, is the width verdict.** Coverage "
+        "moves with the level as well as the width: a forecast pushed off "
+        "centre vacates the middle of its own interval, so its 50% coverage "
+        "falls however wide it is. Read at one level, coverage says 'too "
+        "narrow' for a forecast that is merely shifted. The columns below "
+        "divide the level out. **1.00 is right; below 1.00 the intervals are "
+        "too WIDE; above 1.00 too narrow.** `1/ratio` is roughly the factor "
+        "they are out by.\n")
+    add("| band | n | probit-SD (level-free) | exact SD of z | standardised "
+        "bias (mean z) | PIT variance vs 1/12 |")
+    add("|---|---|---|---|---|---|")
+    for band in (*BAND_LABELS, "off-ballot"):
+        blk = band_block.get(band)
+        if not blk:
+            continue
+
+        def num(key, fmt="{:.3f}", blk=blk):
+            v = blk.get(key)
+            return "—" if v is None or v != v else fmt.format(v)
+
+        add(f"| {_BAND_LABEL[band]} | {blk['n']} | {num('pit_dispersion')} | "
+            f"{num('dispersion')} | {num('z_bias', '{:+.3f}')} | "
+            f"{num('pit_var', '{:.4f}')} vs {1 / 12:.4f} |")
+    add("")
+    add("**`probit-SD` is the one to quote when only a PIT is available.** It "
+        "is `sd(Φ⁻¹(u))`, and under a location shift of a roughly normal "
+        "forecast `Φ⁻¹(u)` translates — the shift lands in the mean, not the "
+        "spread. `exact SD of z` is `(truth − forecast mean) / forecast sd` per "
+        "column, centred, which is invariant to a shift by construction; it "
+        "reads `—` on an artefact written before `calibration_columns` stored "
+        "the `z` column, and it is the number to prefer when it is there. The "
+        "standardised bias is the LEVEL, kept in its own column so that it can "
+        "never be read as width again.\n")
+    add("**The last column is printed to show it failing.** PIT variance "
+        "against a nominal 1/12 has been proposed on this project as "
+        "\"shift-invariant, therefore a clean width statistic\". **It is "
+        "neither.** A PIT lives on [0, 1]; move the forecast off centre and its "
+        "mass piles against a boundary and the variance falls whatever the "
+        "width is. On the suite's fixture whose width is exactly right "
+        "(`tests/test_calibration_report.py::_shift_scale_results`) it reads "
+        "0.0829, 0.0450 and 0.0240 at truth shifts of 0, +2 and +3 seats "
+        "against a nominal 0.0833 — a pure level error reading as a 3.5× "
+        "under-dispersion, which is the wrong diagnosis with the wrong remedy. "
+        "Do not quote it as a width statistic; it is here so that nobody "
+        "rediscovers it as one.\n")
 
     add("Per city-year, for provenance only — **every n below is too small to "
         "read, and none of these rows is evidence of anything on its own.**\n")

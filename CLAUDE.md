@@ -50,6 +50,29 @@ is whether the current model predicts PAST elections better than the previous
 iteration and better than the naive baselines. If it does not, it does not ship,
 however well argued. Worse does not ship.
 
+## Shared artefacts: one writer, and nobody measures while it writes
+
+`data/processed/pools_*.json` is **precomputed**. Changing `src/pools.py` does
+nothing until you re-emit it, and re-emitting it changes the baseline of every
+measurement anyone else is taking at that moment.
+
+This has cost twice. A lever sweep returned **different answers on two identical
+runs** because another worker was re-emitting the artefacts underneath it; two
+`EXPECTED_INERT` reasons were written from those unstable readings and had to be
+retracted. Partitioning work by *file* is not enough — `pools.py` and
+`compare_history.py` do not overlap as files and collide completely as work.
+
+So, when more than one worker is active:
+
+* **Exactly one** may re-emit `pools_*.json`, and it owns them for the duration.
+* **Nobody else runs the model, `compare_history`, or any sweep** while that is
+  true. Verify at unit level instead, and say so.
+* The re-emit and the canonical measurement happen **once, at the end, on a
+  settled tree** — and every number quoted anywhere must come from that run.
+
+A number measured against a moving artefact is not a measurement. It reads
+exactly like one.
+
 ## Running things
 
 Use `.venv/bin/python`, never bare `python` — numpy is not on the system

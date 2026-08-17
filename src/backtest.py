@@ -592,7 +592,22 @@ def entrant_actual_for(actual_seats: Mapping[str, int],
     sized the newcomer correctly, which is the interesting question.
     """
     newcomers = {p: s for p, s in actual_seats.items() if p not in base_city}
-    return max(newcomers, key=newcomers.get) if newcomers else None
+    # DETERMINISTIC TIE-BREAK. `max(newcomers, key=newcomers.get)` returns the
+    # first maximum in ITERATION ORDER, which for a dict built from a file scan
+    # depends on insertion order and, where keys collide, on PYTHONHASHSEED. Two
+    # identical `compare_history` runs produced three different JSON hashes and
+    # a ranks-13+ absolute band of 15.2164 / 15.2164 / 15.3080 — so the
+    # nine-city-year scoreboard that decides what ships was not reproducible
+    # run to run, and every A/B measured against it carried an unquantified
+    # floor on top of the seed noise.
+    #
+    # Sorting by (seats, name) makes the choice a stated rule instead of an
+    # accident. It does not make the choice RIGHT: where two arrivals genuinely
+    # tie, the generic ENTRANT column is relabelled onto one of them and the
+    # other scores as missed entirely, whichever way the tie falls. What the
+    # relabel should do with a real tie is an open question (MODEL-LOG §1.41);
+    # this only stops the answer changing between runs.
+    return max(newcomers, key=lambda p: (newcomers[p], p)) if newcomers else None
 
 
 def relabel_run(run, entrant: str | None):

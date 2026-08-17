@@ -441,11 +441,26 @@ def capped_targets(target: np.ndarray, cap: np.ndarray) -> np.ndarray:
 PARTIAL_BALANCE_PASSES = 200
 
 
-# Times `capped_targets` hit the branch that cannot keep both invariants. Read
-# by `run_model`'s report and asserted on in tests/test_ipf_feasibility.py. A
-# non-zero value here means the pool capacities no longer cover the city and the
-# cap is returning vectors above their own caps -- see the docstring.
+# Times `capped_targets` hit the branch that cannot keep both invariants, and the
+# total mass its redistribution rule moved sideways.
+#
+# THE COMMENT HERE USED TO CLAIM these were "read by `run_model`'s report and
+# asserted on in tests/test_ipf_feasibility.py". Neither was true: grep found
+# only the increments and these initialisations. That was written in the commit
+# whose entire thesis is that a quantity computed and never read is a defect,
+# and a comment naming a reader that does not exist is worse than no comment,
+# because the next reader trusts it. See MODEL-LOG §1.41.
+#
+# They are module-level and therefore accumulate across every run in a process —
+# nine city-years in one `compare_history` invocation share them — so `reset()`
+# exists and `run_model` calls it. Read them per run, never as a global.
 capped_targets.undershoots = 0
+
+
+def _reset_cap_counters() -> None:
+    """Zero the `capped_targets` counters. Called once per `run_model`."""
+    capped_targets.undershoots = 0
+    capped_targets.moved = 0.0
 # Total mass moved sideways by the redistribution rule, in the units the caller
 # passed in. Reported so the rule's cost is visible rather than inferred.
 capped_targets.moved = 0.0
@@ -977,11 +992,68 @@ def pool_spec(scenario, centres, index, ipf_out=None):
     # narrow or a level too high — is not settled here and is not settled by
     # this clip. The clip only makes the disagreement SAFE and VISIBLE instead
     # of silent. See MODEL-LOG §1.33.
+    # THE CEILING IS WEIGHT-AWARE. It was an INDICATOR until 2026-08-17 —
+    # `1.0 if members.get(pp, 0.0) > 0 else 0.0` — so a membership of 0.00019
+    # counted exactly like one of 1.0, and a party's ceiling was the size of
+    # every pool it touched at all rather than the size of the pools it
+    # actually draws from.
+    #
+    # That was survivable while the fit emitted hard zeros. It stopped being
+    # survivable the moment `pools.balance_within_bounds` began seeding every
+    # zeroed cell (§1.38): the Duncan-Davis projection moved 159 of the PA's
+    # 27,346 Johannesburg votes into its three other pools, flipping three
+    # indicator bits, and its declared ceiling went from the Coloured pool
+    # alone (0.0673 of votes cast) to 1.0000. Across the fits, parties sitting
+    # at a ceiling of exactly 1.0 went from 6 of 54 to 53 of 54 at Johannesburg
+    # 2021, and the mean ceiling from 0.622 to 0.992. THE GUARD SHIPPED FOR F1
+    # WENT BLIND, and its silence — "0 fell back, nothing held" — was reported
+    # as evidence the projection had removed the problem. It had not: the PA
+    # still draws 99.18% of its vote from a pool casting 6.73% of the ballots
+    # and its 2026 centre still asks for about 109% of that pool.
+    #
+    # The right ceiling is the largest citywide share a party can reach while
+    # holding its own weight vector with every pool rate at most 1:
+    #
+    #     min over pools g with w_g > 0 of  poolshare_g / w_g
+    #
+    # A party spread evenly over everything keeps a ceiling near 1; a party
+    # that draws 99% of its vote from a 7% pool is bounded near 7%, which is
+    # the arithmetic truth about it. See MODEL-LOG §1.41.
+    # THE CEILING IS AN INDICATOR, AND THE WEIGHT-AWARE VERSION WAS TRIED AND
+    # REJECTED ON MEASUREMENT (2026-08-17, MODEL-LOG §1.41).
+    #
+    # The defect is real and is not fixed here: a membership of 0.00019 counts
+    # like one of 1.0, so once `pools.balance_within_bounds` began seeding every
+    # zeroed cell, 74 of 75 parties had a ceiling of exactly 1.0 at 2026 and the
+    # capacity guard could no longer fire for anybody. Its silence was reported
+    # as evidence the projection had removed the problem.
+    #
+    # The obvious repair — `min over pools g with w_g > 0 of poolshare_g / w_g`,
+    # the largest citywide share a party can reach holding its weight vector
+    # with every pool rate at most one — is ARITHMETICALLY SOUND AND EMPIRICALLY
+    # A DISASTER. Nine city-years: coherent seat error 306 -> 486, and Mangaung
+    # alone 10 -> 112 with everything else held (measured by reverting this line
+    # and nothing else).
+    #
+    # WHY, and it is the interesting part. The bound assumes a party's pool
+    # composition is FIXED. It is not: the draw varies each pool's turnout and
+    # each party's within-pool rate, so the realised composition moves. After
+    # seeding, every party carries a small weight in every pool -- and for a
+    # SMALL weight in a SMALL pool, `poolshare / w` collapses below the party's
+    # own actual share. A 0.02 weight on a pool holding 0.005 of the vote caps
+    # the party at 25% of the city however it actually votes. The formula bounds
+    # a quantity the model does not hold still.
+    #
+    # So the guard needs a bound that is invariant to the draw, not a tighter
+    # one. Left as an indicator, with the defect stated, rather than shipping a
+    # constraint that is wrong in a different direction. ITERATING.md: worse
+    # does not ship, and "arithmetically defensible" is not a measurement.
     ceiling = np.array([
         float((pool_votes * np.array([
             1.0 if float(scenario["pools"][nm]["members"].get(pp, 0.0)) > 0 else 0.0
             for nm in names])).sum() / max(pool_votes.sum(), 1e-9))
         for pp in parties])
+
     if want.sum() > 0:
         want = want / want.sum()
     # Normalise BEFORE capping, not after. The old order clipped at the ceiling
@@ -1566,6 +1638,11 @@ class ModelRun:
     # away from being clipped, which is what nobody could see before.
     ipf_balances: int = 0
     ipf_failures: int = 0
+    # `capped_targets`' counters, snapshotted per run. See the note beside
+    # their definition: they are module-level and would otherwise accumulate
+    # across the nine city-years of one `compare_history` invocation.
+    cap_undershoots: int = 0
+    cap_moved: float = 0.0
     ipf_clipped: dict[str, int] = field(default_factory=dict)
     ipf_worst: dict[str, float] = field(default_factory=dict)
     ipf_headroom: dict[str, float] = field(default_factory=dict)
@@ -1632,6 +1709,8 @@ def run_model(target, scenario: dict,
       one; the evidence does not exist.
     * **Split voting districts.** See :func:`ward_parts`.
     """
+
+    _reset_cap_counters()
     global COUNCIL
     COUNCIL = target.council
     processed = target.processed if processed is None else processed
@@ -2461,6 +2540,8 @@ def run_model(target, scenario: dict,
         bounds_violations=dict(bounds_violations), bounds_checked=bounds_checked,
         ipf_balances=int(_ipf_stats.get("balances", 0)),
         ipf_failures=int(_ipf_stats.get("failures", 0)),
+        cap_undershoots=int(capped_targets.undershoots),
+        cap_moved=float(capped_targets.moved),
         ipf_clipped=dict(_ipf_stats.get("clipped") or {}),
         ipf_worst=dict(_ipf_stats.get("worst") or {}),
         ipf_headroom=dict(_ipf_stats.get("headroom") or {}),
