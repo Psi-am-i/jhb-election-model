@@ -107,7 +107,12 @@ SHARE_FLOOR = 0.002  # plan §3.4(b): keep zero-vote VDs finite under the logit
 LEVEL_FLOOR = 1e-6
 
 
-def logit(p: float, floor: float = SHARE_FLOOR) -> float:
+def logit(p: float, floor: float | None = None) -> float:
+    # RESOLVED AT CALL TIME, not captured in the signature. See
+    # `montecarlo.log_shock` and MODEL-LOG §1.33: a module constant written as a
+    # default argument is evaluated once at import, so setting `fold.SHARE_FLOOR`
+    # afterwards changes nothing and a sweep of it returns identical rows.
+    floor = SHARE_FLOOR if floor is None else floor
     p = min(max(p, floor), 1 - SHARE_FLOOR)
     return math.log(p / (1 - p))
 

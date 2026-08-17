@@ -132,7 +132,7 @@ def collect(target: str, draws: int) -> dict:
     return results
 
 
-def markdown(target: str, draws: int, results: dict) -> str:
+def markdown(target: str, results: dict) -> str:
     total_m = sum(r["model"]["crps"] for r in results.values())
     total_mae = sum(r["model"]["seat_mae"] for r in results.values())
     best = {s: min(r["baselines"].items(), key=lambda kv: kv[1]["crps"])
@@ -330,7 +330,7 @@ def main(argv: list[str] | None = None) -> int:
     out_json.parent.mkdir(parents=True, exist_ok=True)
     out_json.write_text(json.dumps(record, indent=2))
 
-    body = markdown(args.target, args.draws, results)
+    body = markdown(args.target, results)
     body += (f"\n---\n\n*Generated {record['generated']} by "
              f"`src/build_validation.py` from a {args.draws}-draw run per city "
              f"against the {args.target} result. The underlying figures are in "

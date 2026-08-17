@@ -138,8 +138,11 @@ DEFAULTS: dict = {
     "f_other": [0.70, 1.30, 2.00],   # residual bucket only, no seat-winner left in it
 
     # E4: by-election blend weight (§3.5 w_bye, range 0–1). Polls: pick one
-    # from polls.json by id and weight it — replaces the old two-endpoint
-    # polling_lean lever (kept for compatibility, no longer surfaced).
+    # from polls.json by id and weight it — this replaced the old two-endpoint
+    # polling_lean lever, which was kept "for compatibility" and deleted
+    # 2026-08-17 once CLASS 12 showed it was computed, passed to `pool_spec`
+    # as an argument that function never read, and printed. Three appearances,
+    # no effect. See MODEL-LOG §1.35.
     "w_bye": 0.40,
     # §1.28 ward-local by-election term. Both weights default to 0, so the
     # published forecast is untouched until this is deliberately switched on.
@@ -159,8 +162,6 @@ DEFAULTS: dict = {
     "w_bye_local_pr": 0.0,       # 0.35 is the value tested
     "bye_local_cap": 1.5,
     "bye_tau_months": 18.0,
-    "polling_lean": 0.0,
-    "polling_span": 8.0,
     "poll_id": None,        # e.g. "srf-2026q2-coj" — see polls.json
     "poll_weight": 0.0,
     "poll_k": POLL_K,
@@ -234,7 +235,9 @@ DEFAULTS: dict = {
 }
 
 
-def logit(p, floor=SHARE_FLOOR):
+def logit(p, floor=None):
+    # Resolved at call time; see `log_shock` and MODEL-LOG §1.33.
+    floor = SHARE_FLOOR if floor is None else floor
     p = np.clip(p, floor, 1 - SHARE_FLOOR)
     return np.log(p / (1 - p))
 
@@ -285,14 +288,23 @@ def triangular(rng, spec, size=None):
 LEVEL_DF = 7.0
 
 
-def log_shock(rng, sd, size=None, df: float = LEVEL_DF):
+def log_shock(rng, sd, size=None, df: float | None = None):
     """exp of a Student-t scaled to have log-sd exactly ``sd``. Median 1.
 
     Standardised by sqrt((df-2)/df) so that ``sd`` is the realised log standard
     deviation rather than the t's own, which would be 41% larger at df=4. The
     measured sd(log θ) can then be handed straight in and mean what levels.py
     measured it to mean.
+
+    ``df`` RESOLVES ``LEVEL_DF`` AT CALL TIME, and it must. It was written
+    ``df: float = LEVEL_DF``, which Python evaluates once at import: setting
+    ``montecarlo.LEVEL_DF`` afterwards changed nothing at all, and the constant
+    was swept at 2.5, 4, 7, 30, 200 and 1000 for byte-identical output every
+    time. That reads as "the tail does nothing" when the truth is "you did not
+    change the tail" — the exact trap ITERATING.md rule 6 exists for, and the
+    same class of defect as `entrant_prob` in MODEL-LOG §1.31. See §1.33.
     """
+    df = LEVEL_DF if df is None else float(df)
     scale = np.sqrt((df - 2.0) / df)
     sd = np.asarray(sd)
     # SIZE DEFAULTS TO THE SHAPE OF sd. Passing an array of per-party spreads
@@ -306,6 +318,122 @@ def log_shock(rng, sd, size=None, df: float = LEVEL_DF):
     if size is None and sd.ndim > 0:
         size = sd.shape
     return np.exp(sd * scale * rng.standard_t(df, size=size))
+
+
+# How close to a party's own pool capacity the IPF is allowed to be asked to
+# go. A party can take at most every vote cast in the pools it belongs to, so
+# asking for more is not a hard problem but an IMPOSSIBLE one, and
+# `pools.balance_margins` runs to its iteration cap and raises. Asking for
+# exactly the capacity is only marginally better: IPF approaches a boundary
+# solution geometrically, so the last percent costs more iterations than the
+# whole rest of the fit. The margin buys the fit somewhere to converge to.
+#
+# 0.98 is typed. Swept on the 2026 forecast at 600 draws, the per-draw failure
+# rate is 41.5% at margin 1.0000, 41.5% at 0.9999, 39.8% at 0.995, 37.0% at
+# 0.991 — and 0.0% at 0.990 and at 0.980. That is a cliff, not a slope: inside
+# about 1% of the boundary, `balance_margins`' 2000 iterations cannot reach its
+# 1e-12 tolerance, so the last percent is a convergence-rate problem and the
+# safe margin is a function of the iteration cap. 0.98 keeps a full step in
+# hand. Its cost is that a party pinned at capacity is forecast 2% below the
+# level the centres asked for — the correct direction (the level is
+# unreachable) but not a measured amount. See MODEL-LOG §1.33.
+POOL_CAPACITY_MARGIN = 0.98
+
+
+def capped_targets(target: np.ndarray, cap: np.ndarray) -> np.ndarray:
+    """Hold every column target under its cap WITHOUT changing the total.
+
+    Water-filling. Clip the columns above their cap, then hand the freed mass
+    to the columns that still have room, in proportion to what they already
+    hold, and repeat until nothing is over. Each pass fixes at least one more
+    column at its cap, so it terminates.
+
+    A NAIVE CLIP DOES NOT WORK, and both of the places that would have taken
+    one immediately undo it:
+
+    * ``pool_spec`` clipped at the ceiling and then wrote ``want = want /
+      want.sum()`` — and after a clip that sum is below one, so the divide
+      scales the clipped party straight back over its own ceiling;
+    * ``pools.balance_margins`` opens with ``target_cols *= target_rows.sum() /
+      target_cols.sum()``, because IPF has no solution unless the two margins
+      agree on the grand total. Hand it column targets that sum to less than
+      the pool votes and it restores exactly the mass the clip removed.
+
+    So the invariant this function keeps is the one both of them need: the sum
+    is preserved to floating point, and no element exceeds its cap. See
+    MODEL-LOG §1.33.
+    """
+    t = np.array(target, dtype=float)
+    cap = np.asarray(cap, dtype=float)
+    total = float(t.sum())
+    if total <= 0:
+        return t
+    if float(cap.sum()) <= total:
+        # Every party at its own capacity still does not fill the city. The two
+        # margins cannot both hold at any allocation, so there is nothing to
+        # redistribute to; hand back the caps in proportion and let the
+        # caller's fallback report it.
+        return cap * (total / max(float(cap.sum()), 1e-12))
+    for _ in range(len(t) + 2):
+        over = t > cap
+        if not over.any():
+            return t
+        excess = float((t[over] - cap[over]).sum())
+        t[over] = cap[over]
+        free = ~over & (t < cap)
+        room = float(t[free].sum())
+        if room > 0:
+            t[free] += excess * t[free] / room
+        else:
+            # Nothing under its cap carries any mass yet — spread by headroom
+            # instead, which is the only proportion available.
+            head = np.where(free, cap - t, 0.0)
+            if head.sum() <= 0:
+                break
+            t = t + excess * head / head.sum()
+    return t
+
+
+# How many alternating row/column passes the partial balance takes when the two
+# margins cannot both hold. Operational: a convergence budget, not a belief —
+# but not a large one either, because the sequence converges slowly by nature
+# (it is converging to the boundary of an infeasible problem, so it does not
+# converge at all in the limit; it just moves less and less). Measured at Nelson
+# Mandela Bay 2021, against the 200-pass matrix: 30 passes differ by 186 votes,
+# 60 by 45.6, 100 by 16.7, on a city of 364,000. 200 is kept because it costs
+# nothing at this size (4 pools × ~90 parties) and because the number the
+# committed model used was 200 — changing it would move that city's forecast
+# for no stated reason.
+PARTIAL_BALANCE_PASSES = 200
+
+
+def partial_balance(R: np.ndarray, pool_votes: np.ndarray,
+                    col_target: np.ndarray,
+                    passes: int | None = None) -> np.ndarray:
+    """Alternating scaling for margins that CANNOT both hold. Ends on the rows.
+
+    When no matrix satisfies both margins, the POOL margin wins: a pool's
+    voters vote for somebody, whereas a party's centre is the model's belief.
+    Ending on the row pass is what enforces that — every pool comes out exactly
+    allocated and the party levels land as close as the arithmetic permits.
+
+    Two conditions have to hold for IPF to converge at all, and the model can
+    break either. A COLUMN can ask for more than the pools it belongs to hold
+    (the PA at Johannesburg 2026, 102% of the Coloured pool); a ROW can hold
+    more votes than its members' targets add up to (Nelson Mandela Bay 2021's
+    Indian/Asian pool, 8,303 votes against 8,168 asked of its sixteen members).
+    ``capped_targets`` removes the first. The second cannot be removed by
+    moving the party margin without violating the first, so it is handled here
+    — and counted, so a run says how often it happened.
+    """
+    passes = PARTIAL_BALANCE_PASSES if passes is None else int(passes)
+    C = R * pool_votes[:, None]
+    for _ in range(passes):
+        cs = C.sum(axis=0)
+        C *= np.divide(col_target, cs, out=np.ones_like(cs), where=cs > 0)[None, :]
+        rs = C.sum(axis=1, keepdims=True)
+        C *= np.divide(pool_votes[:, None], rs, out=np.ones_like(rs), where=rs > 0)
+    return C / np.maximum(C.sum(axis=1, keepdims=True), 1e-12)
 
 
 # How much of a pool's turnout move is shared with the other pools. MEASURED,
@@ -456,8 +584,13 @@ def ward_parts(target, data_dir: Path, processed: Path) -> tuple[list[tuple[str,
 
 
 def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6,
-                      level_floor=SHARE_FLOOR):
-    """Solve for θ reaching `target` citywide through the model; return VD shares."""
+                      level_floor=None):
+    """Solve for θ reaching `target` citywide through the model; return VD shares.
+
+    ``level_floor`` resolves ``SHARE_FLOOR`` at call time; see `log_shock` and
+    MODEL-LOG §1.33 for why no module constant may be a default argument here.
+    """
+    level_floor = SHARE_FLOOR if level_floor is None else level_floor
     theta = np.where(base_city > 0, target / np.maximum(base_city, 1e-12), 1.0)
     weights = weight / weight.sum()
     for _ in range(rounds):
@@ -715,7 +848,7 @@ def blended_centres(
 # the draw
 # --------------------------------------------------------------------------
 
-def pool_spec(scenario, base_city_d, centres, index, lean, ipf_out=None):
+def pool_spec(scenario, centres, index, ipf_out=None):
     """Build the per-pool draw specification for the weighted engine (§1.29).
 
     A pool is a body of voters choosing between the same parties, and a party
@@ -788,23 +921,48 @@ def pool_spec(scenario, base_city_d, centres, index, lean, ipf_out=None):
     # with the centres NOT binding — so that city was silently forecast by the
     # old, worse mechanism while the other eight used the new one, and its
     # small-party seats came out at 9 against an actual 16.
+    #
+    # THIS IS A CLIP ON A SYMPTOM, NOT A FIX. What it reports is that the level
+    # layer and the pool layer disagree, and neither knows about the other. The
+    # PA at Johannesburg 2026 is the standing case: it belongs to exactly one
+    # pool (Coloured, weight 1.0, and at 2026 that weight is `identified=False`
+    # — a bound-limited artefact, not a measurement), that pool casts about
+    # 66,700 votes, and the spine plus the by-election blend plus
+    # `pa_contestation_uplift` between them ask for about 68,000. That is 102%
+    # of every Coloured vote in the city. Which side is wrong — a vector too
+    # narrow or a level too high — is not settled here and is not settled by
+    # this clip. The clip only makes the disagreement SAFE and VISIBLE instead
+    # of silent. See MODEL-LOG §1.33.
     ceiling = np.array([
         float((pool_votes * np.array([
             1.0 if float(scenario["pools"][nm]["members"].get(pp, 0.0)) > 0 else 0.0
             for nm in names])).sum() / max(pool_votes.sum(), 1e-9))
         for pp in parties])
-    clipped = np.minimum(want, ceiling)
-    if (want - clipped).sum() > 1e-9:
-        lost = float((want - clipped).sum())
-        over = [parties[j] for j in np.argsort(-(want - clipped))[:4]
-                if want[j] - clipped[j] > 1e-9]
-        print(f"  ! {lost:.2%} of the citywide level asked for more than a "
-              f"party's own pools can supply and was clipped "
-              f"({', '.join(over)}). Those parties belong to fewer pools than "
-              f"their level implies; check their vectors.")
-    want = clipped
     if want.sum() > 0:
         want = want / want.sum()
+    # Normalise BEFORE capping, not after. The old order clipped at the ceiling
+    # and then divided by the new sum, which — the sum having just fallen —
+    # scaled the clipped party straight back over the ceiling it was clipped
+    # to. `capped_targets` keeps the total instead of restoring it to the
+    # offender.
+    cap = POOL_CAPACITY_MARGIN * ceiling
+    asked = want.copy()
+    want = capped_targets(want, cap)
+    headroom = {p: (float(asked[j]) / float(cap[j]) if cap[j] > 0 else float("inf"))
+                for j, p in enumerate(parties)}
+    moved = float(np.maximum(asked - cap, 0.0).sum())
+    if moved > 1e-9:
+        over = [f"{parties[j]} {headroom[parties[j]]:.0%} of capacity"
+                for j in np.argsort(-(asked - cap))[:4]
+                if asked[j] - cap[j] > 1e-9]
+        print(f"  ! {moved:.2%} of the citywide level asked for more than a "
+              f"party's own pools can supply and was moved to the parties that "
+              f"can hold it ({'; '.join(over)}). Those parties belong to fewer "
+              f"pools than their level implies; the level and the pool vectors "
+              f"disagree and this clip does not settle which is wrong.")
+    if ipf_out is not None:
+        ipf_out["headroom"] = headroom
+        ipf_out["cap_votes"] = cap * float(pool_votes.sum())
     try:
         import pools as _pl
         R = _pl.balance_margins(R, pool_votes, want * pool_votes.sum())
@@ -821,16 +979,7 @@ def pool_spec(scenario, base_city_d, centres, index, lean, ipf_out=None):
         # used the new mechanism, and its small-party seats came out at 9
         # against an actual 16. A bounded alternating scaling that ENDS on the
         # row pass gets most of the way and leaves every pool exactly allocated.
-        C = R * pool_votes[:, None]
-        col_target = want * pool_votes.sum()
-        for _ in range(200):
-            cs = C.sum(axis=0)
-            C *= np.divide(col_target, cs, out=np.ones_like(cs),
-                           where=cs > 0)[None, :]
-            rs = C.sum(axis=1, keepdims=True)
-            C *= np.divide(pool_votes[:, None], rs,
-                           out=np.ones_like(rs), where=rs > 0)
-        R = C / np.maximum(C.sum(axis=1, keepdims=True), 1e-12)
+        R = partial_balance(R, pool_votes, want * pool_votes.sum())
         print(f"  ! pool and party margins are not jointly satisfiable "
               f"({exc}); used a partial balance that keeps every pool exactly "
               f"allocated and gets the party levels as close as it can")
@@ -874,21 +1023,29 @@ def _balance(R, electorate, party_votes):
 
 
 def make_drawer(scenario, base_city_d, centres, index, rng):
-    """Return a function drawing one citywide PR target vector."""
+    """Return a function drawing one citywide PR target vector.
+
+    The returned closure carries an ``ipf_stats`` attribute — how many per-draw
+    balances were attempted, how many fell back, and which parties were pinned
+    at their pool capacity and by how much. ``run_model`` reads it onto the
+    ``ModelRun`` so the fallback rate can be asserted in a test and printed in
+    the run report, rather than being swallowed. See MODEL-LOG §1.33.
+    """
     n = len(index)
     base_city = np.zeros(n)
     for party, i in index.items():
         base_city[i] = base_city_d.get(party, SHARE_FLOOR)
 
-    lean = scenario["polling_lean"] * scenario["polling_span"]
     if not scenario.get("pools"):
         raise SystemExit(
             "no pools: the model draws from measured voter pools, and there is "
             "nothing to fall back on. Run:\n"
             "  python src/pools.py --city <city> --target <year> --emit")
     ipf_box: dict = {}
-    pools = pool_spec(scenario, base_city_d, centres, index, lean, ipf_box)
+    pools = pool_spec(scenario, centres, index, ipf_box)
     ipf = ipf_box or None
+    ipf_stats: dict = {"balances": 0, "failures": 0, "clipped": {}, "worst": {},
+                       "headroom": dict(ipf_box.get("headroom") or {})}
 
     # Lineage belongs to the pool fit, not here. A splinter inherits its
     # parent's pool vector, an entrant takes an even share of every pool, and
@@ -1125,19 +1282,61 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             shocked = base_c * log_shock(rng, sds)
             if shocked.sum() > 0:
                 shocked = shocked / shocked.sum()
+                # THE SHOCK CAN ASK FOR MORE THAN THE POOLS HOLD, and until
+                # 2026-08-17 that was the end of the mechanism for the whole
+                # draw. `balance_margins` raised, the bare `except: pass` below
+                # kept the UNSHOCKED props, and the level shock was discarded
+                # for EVERY party in that draw — not just the offender — in
+                # 42.7% of the live 2026 forecast's draws and 12.7% of Nelson
+                # Mandela Bay 2021's. It fired preferentially on the draws where
+                # the shock was largest, which is the worst possible selection.
+                # No backtest could see it: across the nine city-years the rate
+                # was 1.4%, and forcing it to zero left the output identical.
+                #
+                # The column targets are now water-filled under each party's own
+                # pool capacity BEFORE the balance, which is feasible by
+                # construction. Note that a plain clip would not survive:
+                # `balance_margins` rescales the column margin back up to the
+                # row total on entry. See `capped_targets`.
+                col_target = capped_targets(
+                    shocked * ipf["pool_votes"].sum(), ipf["cap_votes"])
+                if ipf_stats is not None:
+                    ipf_stats["balances"] += 1
+                    for j, q in enumerate(ipf["parties"]):
+                        capj = float(ipf["cap_votes"][j])
+                        askj = float(shocked[j] * ipf["pool_votes"].sum())
+                        if capj > 0 and askj > capj * (1.0 + 1e-9):
+                            ipf_stats["clipped"][q] = \
+                                ipf_stats["clipped"].get(q, 0) + 1
+                            ipf_stats["worst"][q] = max(
+                                ipf_stats["worst"].get(q, 0.0), askj / capj)
+                        elif capj <= 0 and askj > 0:
+                            ipf_stats["clipped"][q] = \
+                                ipf_stats["clipped"].get(q, 0) + 1
+                            ipf_stats["worst"][q] = float("inf")
                 try:
-                    Rd = _balance(ipf["R0"], ipf["pool_votes"],
-                                  shocked * ipf["pool_votes"].sum())
-                    for gi, nm in enumerate(ipf["names"]):
-                        if nm not in pools:
-                            continue
-                        members = pools[nm][5]
-                        v = np.array([Rd[gi, ipf["pidx"][q]] if q in ipf["pidx"]
-                                      else 0.0 for q in members])
-                        if v.sum() > 0:
-                            pool_props[nm] = v / v.sum()
-                except Exception:
-                    pass
+                    Rd = _balance(ipf["R0"], ipf["pool_votes"], col_target)
+                except Exception as exc:            # noqa: BLE001 — counted
+                    # NEVER SILENT, AND NEVER `pass`. The old branch kept the
+                    # UNSHOCKED proportions, which threw the level shock away
+                    # for every party in the draw. It now falls back to the same
+                    # partial balance `pool_spec` uses one stage earlier — every
+                    # pool exactly allocated, the party levels as close as the
+                    # arithmetic permits — so the shock is degraded rather than
+                    # deleted. `run_model` carries the count onto `ModelRun` and
+                    # `main` prints it, the same way `bounds_violations` is.
+                    if ipf_stats is not None:
+                        ipf_stats["failures"] += 1
+                        ipf_stats.setdefault("first_error", str(exc))
+                    Rd = partial_balance(ipf["R0"], ipf["pool_votes"], col_target)
+                for gi, nm in enumerate(ipf["names"]):
+                    if nm not in pools:
+                        continue
+                    members = pools[nm][5]
+                    v = np.array([Rd[gi, ipf["pidx"][q]] if q in ipf["pidx"]
+                                  else 0.0 for q in members])
+                    if v.sum() > 0:
+                        pool_props[nm] = v / v.sum()
         for name, (idx, reg, spec, props, alpha, names, levels, wts) in pools.items():
             props = pool_props.get(name, props)
             # A PARTY'S OWN LEVEL MOVES, not just its pool's total and its
@@ -1207,6 +1406,7 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             target[entrant_index] = share
         return target
 
+    draw_pools.ipf_stats = ipf_stats
     return draw_pools
 
 
@@ -1311,6 +1511,20 @@ class ModelRun:
     excessive_draws: int = 0
     bounds_violations: dict[str, int] = field(default_factory=dict)
     bounds_checked: int = 0
+    # The per-draw IPF that binds the SHOCKED centres, and what it cost.
+    # ``ipf_balances`` counts the attempts, ``ipf_failures`` the draws that fell
+    # back to the unshocked pool proportions — which discards the level shock
+    # for every party in that draw, so a non-zero count is a report that the
+    # model's central mechanism did not run. ``ipf_clipped`` maps each party
+    # held at its pool capacity to the number of draws it was held, and
+    # ``ipf_worst`` to the largest fraction of that capacity it asked for.
+    # ``ipf_headroom`` is the pre-draw ratio — a party near 1.0 is one shock
+    # away from being clipped, which is what nobody could see before.
+    ipf_balances: int = 0
+    ipf_failures: int = 0
+    ipf_clipped: dict[str, int] = field(default_factory=dict)
+    ipf_worst: dict[str, float] = field(default_factory=dict)
+    ipf_headroom: dict[str, float] = field(default_factory=dict)
     notes: dict[str, str] = field(default_factory=dict)
     gamma_source: dict[str, str] = field(default_factory=dict)
     ratio: np.ndarray | None = None
@@ -2062,15 +2276,26 @@ def run_model(target, scenario: dict,
         centres["ENTRANT"] = 0.0
 
     draw_target = make_drawer(scenario, base_city_d, centres, index, rng)
+    _ipf_stats = getattr(draw_target, "ipf_stats", {})
 
     # --- report configuration -------------------------------------------------
+    if verbose:
+        # A party near its pool capacity BEFORE any shock is one draw away from
+        # being clipped, and until 2026-08-17 nobody found out until the balance
+        # raised — silently. Say it up front instead.
+        tight = sorted(((p, h) for p, h in (_ipf_stats.get("headroom") or {}).items()
+                        if h >= 0.90), key=lambda kv: -kv[1])
+        if tight:
+            print("  ! at or near their pools' capacity before any shock "
+                  "(centre ÷ 0.98 × capacity): "
+                  + ", ".join(f"{p} {h:.0%}" for p, h in tight[:6]))
     if verbose:
         print(f"{scenario['draws']:,} draws, seed {scenario['seed']}, {nvd} VDs, "
               f"{npar} parties, {len(wards)} wards")
         print(f"target {target.year} ({target.date}), council {target.council}, "
               f"base {cityconfig.resolve_path(target.results(target.previous_npe)).name}, "
               f"γ fold {fold}, wards from {parts_source}")
-        print(f"w_bye {scenario['w_bye']}, polling lean {scenario['polling_lean']:+.2f}, "
+        print(f"w_bye {scenario['w_bye']}, "
               f"turnout blend {scenario['turnout_pattern_blend']} "
               f"± {scenario['turnout_blend_jitter']} (σ {scenario['turnout_noise_sd']}), "
               f"entrant P {scenario['entrant_prob']}")
@@ -2187,6 +2412,11 @@ def run_model(target, scenario: dict,
         ward_winner_counts=ward_winner_counts, ward_win_sum=dict(ward_win_sum),
         overhang_count=dict(overhang_count), excessive_draws=excessive_draws,
         bounds_violations=dict(bounds_violations), bounds_checked=bounds_checked,
+        ipf_balances=int(_ipf_stats.get("balances", 0)),
+        ipf_failures=int(_ipf_stats.get("failures", 0)),
+        ipf_clipped=dict(_ipf_stats.get("clipped") or {}),
+        ipf_worst=dict(_ipf_stats.get("worst") or {}),
+        ipf_headroom=dict(_ipf_stats.get("headroom") or {}),
         notes=notes, gamma_source=gamma_source, ratio=ratio, n_vd=nvd,
         pr_share_draws=pr_share_draws, ward_share_draws=ward_share_draws)
 
@@ -2251,6 +2481,22 @@ def main(argv: list[str] | None = None) -> int:
             f"{p} {overhang_count[p] / draws:.1%}"
             for p in sorted(overhang_count, key=lambda q: -overhang_count[q]))
         if overhang_count else ""))
+
+    # The per-draw balance that binds the shocked centres. A fallback here means
+    # the level shock was thrown away for EVERY party in that draw, so the rate
+    # is reported whether it is zero or not — it was 42.7% of the 2026 forecast
+    # and invisible until 2026-08-17. See MODEL-LOG §1.33.
+    if run.ipf_balances:
+        rate = run.ipf_failures / run.ipf_balances
+        print(f"\nper-draw centre balance: {run.ipf_balances:,} attempted, "
+              f"{run.ipf_failures:,} fell back ({rate:.1%})"
+              + ("   ← the level shock was DISCARDED for every party in those "
+                 "draws" if run.ipf_failures else ""))
+        if run.ipf_clipped:
+            print("  held at their pools' capacity (share of draws, worst ask):")
+            for p in sorted(run.ipf_clipped, key=lambda q: -run.ipf_clipped[q])[:6]:
+                print(f"    {p:<10s} {run.ipf_clipped[p] / run.ipf_balances:>6.1%}"
+                      f"   worst {run.ipf_worst.get(p, 0.0):.0%} of capacity")
 
     if run.bounds_violations:
         print("\nimplied θ outside §3.5 sanity ranges (share of draws):")

@@ -85,6 +85,30 @@ PROCESSED = ROOT / "data" / "processed"
 # Recorded 2026-08-10 from data/processed/pools_2026.json, seed 20261104,
 # 2000 draws, numpy 2.5.1. Values are percentages: (mean, p5, p95).
 #
+# RE-RECORDED 2026-08-17, deliberately: THE LEVEL SHOCK NOW SURVIVES THE
+# BALANCE, IN EVERY DRAW. `draw_pools` shocked the centres, re-balanced them by
+# IPF and wrapped the balance in `except Exception: pass`. The balance RAISED in
+# 41.8% of this configuration's draws — the PA is a member of exactly one pool
+# and its shocked centre asked for up to 254% of every Coloured vote cast in
+# Johannesburg — and on every one of those draws the level shock was discarded
+# for EVERY party, not just for the PA. It failed preferentially on the draws
+# where the shock was largest. Nothing reported it. The shocked column targets
+# are now water-filled under each party's own pool capacity before balancing
+# (`montecarlo.capped_targets`, POOL_CAPACITY_MARGIN 0.98), which takes the rate
+# to 0.0%, and the remaining fallback is counted onto ModelRun and printed.
+# Nine city-years: eight bit-identical, Nelson Mandela Bay 2021 coherent seat
+# error 20 -> 16, total 312 -> 308. MODEL-LOG 1.33.
+#
+# So these numbers move because a mechanism that was absent from two draws in
+# five is now present in all of them: the top parties widen (DA p5 16.38 ->
+# 14.72, p95 49.68 -> 49.14; ANC p5 8.04 -> 6.74, p95 39.33 -> 41.44) and the PA
+# falls back toward what its pool can actually hold (mean 4.83 -> 5.03 here,
+# 5.75% -> 6.02% of the PR ballot in the 600-draw forecast). The DA's realised
+# sd(log) over the run goes 0.168 -> 0.189 against a measured 0.15-0.35.
+# In the same change, `montecarlo.LEVEL_DF` stopped being inert: it was a
+# default argument, evaluated once at import, so every sweep of it had measured
+# 7.0 whatever value was set. That does NOT move these values (7.0 is unchanged)
+# but it is why they can now be moved by it at all.
 # RE-RECORDED 2026-08-13, deliberately, for three changes to the draw:
 #   * a per-party level shock connected to the measured sd(log θ), drawn from a
 #     Student-t rather than a bounded triangular (montecarlo.log_shock);
@@ -152,21 +176,21 @@ PROCESSED = ROOT / "data" / "processed"
 # docstring — renormalisation for A-to-B (plan item 3.1), the entrant rescale
 # for B-to-C.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (22.0298, 8.0366, 39.3278),
-    "DA": (31.4286, 16.3775, 49.6807),
-    "EFF": (10.0936, 1.9588, 22.1436),
-    "ASA": (12.5654, 3.2959, 25.7791),
-    "MK": (6.9746, 1.0350, 16.8831),
-    "PA": (4.8301, 2.1790, 6.7574),
-    "VFPLUS": (0.9219, 0.0043, 3.2997),
-    "ALJAMAAH": (1.1863, 0.2838, 2.4742),
-    "ENTRANT": (1.4212, 0.0000, 7.9236),
+    "ANC": (21.6825, 6.7394, 41.4421),
+    "DA": (30.5327, 14.7172, 49.1399),
+    "EFF": (10.4318, 1.7260, 22.9335),
+    "ASA": (12.6960, 2.8452, 27.1443),
+    "MK": (7.2116, 0.7886, 17.8433),
+    "PA": (5.0263, 1.9949, 7.2431),
+    "VFPLUS": (0.9617, 0.0031, 3.3041),
+    "ALJAMAAH": (1.2437, 0.2546, 2.7578),
+    "ENTRANT": (1.3984, 0.0000, 7.6308),
 }
 GOLDEN_POOLS = {
-    "Black African": (48.9160, 34.4488, 61.9918),
-    "Coloured": (9.0193, 6.2365, 11.5316),
-    "Indian/Asian": (6.1962, 4.5826, 8.1607),
-    "White": (34.4473, 23.6615, 47.9176),
+    "Black African": (49.2771, 35.1126, 62.3582),
+    "Coloured": (9.2214, 5.9823, 12.1626),
+    "Indian/Asian": (6.2316, 4.5434, 8.3169),
+    "White": (33.8715, 22.4430, 47.2296),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")
@@ -262,8 +286,7 @@ def triangular_quantile(low: float, mode: float, high: float, p: float) -> float
 
 
 def _pools(scenario, base_city_d, centres, index):
-    lean = scenario["polling_lean"] * scenario["polling_span"]
-    return mc.pool_spec(scenario, base_city_d, centres, index, lean)
+    return mc.pool_spec(scenario, centres, index)
 
 
 def configured_pool_band(name, scenario, base_city_d, centres, index):

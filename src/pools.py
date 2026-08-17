@@ -173,7 +173,7 @@ def read_census(dim: Dimension, census: Census, cfg: Config) -> dict[str, np.nda
     return out
 
 
-def read_census_population(dim: Dimension, census: Census,
+def read_census_population(census: Census,
                            cfg: Config) -> dict[str, float]:
     """Ward -> the population this dimension's categories are counted over.
 
@@ -472,9 +472,9 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
 
     comp_by_ward, _ = composition_at(base, cfg, when, codes,
                                      city=city, election_year=year)
-    people_by_ward = read_census_population(base, base.censuses[-1], cfg)
+    people_by_ward = read_census_population(base.censuses[-1], cfg)
     age = next((d for d in cfg.dimensions if d.name == "age"), None)
-    adults_by_ward = (read_census_population(age, age.censuses[-1], cfg)
+    adults_by_ward = (read_census_population(age.censuses[-1], cfg)
                       if age else {})
 
     wards = sorted(w for w in codes
@@ -2533,7 +2533,7 @@ def load_lineage(city: cityconfig.City, target: cityconfig.Target) -> dict[str, 
 
 
 def write_lineage_template(city: cityconfig.City, target: cityconfig.Target,
-                           newcomers: dict[str, float], existing: dict[str, dict],
+                           newcomers: dict[str, float],
                            pools_named: list[str]) -> Path:
     """Ask for the judgements the model cannot make, with defaults filled in.
 
@@ -2856,7 +2856,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # regenerated file would have silently dropped MK's declared parent.
     template = write_lineage_template(
         city, target, {p: baseline.get(p, 0.0) for p in no_vector},
-        lineage, list(ctx["categories"]))
+        list(ctx["categories"]))
 
     transitions = lge_transitions(before=target.year)
 

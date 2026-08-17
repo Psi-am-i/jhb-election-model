@@ -458,7 +458,7 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
 
 def spine(target: cityconfig.Target, baseline: dict[str, float],
           prev_local: dict[str, float], codes=METRO_CODES,
-          k: float = SPINE_K) -> tuple[dict[str, float], dict]:
+          k: float | None = None) -> tuple[dict[str, float], dict]:
     """Each party's central level at the target, from BOTH of its records.
 
     ``baseline`` is the preceding national election's citywide shares;
@@ -482,6 +482,12 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
     A party with neither is an arrival and is not here at all;
     ``pools.arrival_rules`` sizes it from the arrival record.
     """
+    # RESOLVED AT CALL TIME. `k: float = SPINE_K` would freeze the constant at
+    # import, so setting `levels.SPINE_K` afterwards would change nothing and a
+    # sweep of it would return identical rows — the trap ITERATING.md rule 6
+    # exists for, and the one `montecarlo.LEVEL_DF` was actually in until
+    # 2026-08-17. See MODEL-LOG §1.33.
+    k = SPINE_K if k is None else float(k)
     theta_obs = theta_record(target, codes)
     rho_obs = local_record(target, codes)
     mu_t, c_t, worth_t = _shrunk(theta_obs)

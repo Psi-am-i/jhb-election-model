@@ -55,12 +55,29 @@ rescaled to the city's own level, because direction transfers between cities and
 magnitude does not (Al Jama-ah is Indian-shaped in both metros, at 0.8% and
 0.1%).
 
-**Why nothing is zero.** Every estimate is projected into its Duncan-Davis
-interval. Pooled over the metros the ANC's rate among Coloured voters is
-provably ≥ 0.4% and among Indian voters ≥ 0.7%; the unconstrained fit answered
-0.2% for both — below its own proven floor. Where the bound stays wide (ANC
-among white voters, 0–20.4%) the rate is flagged unidentified and is a judgement,
-not a finding.
+**The Duncan-Davis bounds are COMPUTED AND NOT ENFORCED. Corrected 2026-08-17.**
+This paragraph said "every estimate is projected into its Duncan-Davis interval"
+from the day it was written, and nothing projects: `pools.bounds` is read at
+exactly one place, `PoolFit.identified` (`pools.py:884-887`), where a narrow
+bound sets a display flag. No rate is clipped to it, at any stage.
+
+The bounds themselves are real and are arithmetic: pooled over the metros the
+ANC's rate among Coloured voters is provably ≥ 0.4% and among Indian voters
+≥ 0.7%, and the unconstrained fit answers 0.2% for both — below its own proven
+floor, and left there. Where the bound stays wide (ANC among white voters,
+0–20.4%) the rate is flagged unidentified and is a judgement, not a finding.
+
+**This is not a documentation defect; it is the cause of a live one.** The PA's
+Johannesburg 2021 fit is a corner solution — 0.5149 on Coloured, exactly 0.0000
+on the other three pools, which is FISTA's simplex projection sitting on the
+non-negativity boundary — and 0.5149 is **10.5pp above the PA's own Duncan-Davis
+ceiling of 0.410**. Implied, that corner gives the PA 34,170 Johannesburg votes
+against an actual 27,346, and the ward geography refutes it directly: binning
+all 135 wards by Coloured share, 28.1% of the PA's vote arises in wards under
+30% Coloured (18.2% in 10–30%, 9.9% under 10%). The emitted "Coloured 1.0000"
+vector is that corner, and it is what makes the PA's 2026 level unrepresentable
+by the pool layer — see §2 and MODEL-LOG §1.33. Projecting the fit into its
+bounds is open work with its own measurement to do; it has not been done.
 
 **Time and geography.** Censuses are a decade apart, so composition is
 interpolated to polling day in log-share space and damped-extrapolated beyond
@@ -140,6 +157,48 @@ be dated is refused.
 centre. Before this the centre only set a party's share of its own pool, which
 for a dominant party is almost no leverage — the ANC's centre could move 15% and
 its realised share barely at all.
+
+### The balance runs TWICE: once per run, and once per draw
+
+The per-draw one is the mechanism the layer is named for, and it had no row in
+this document until 2026-08-17. Both are in `montecarlo.py`.
+
+| step | where | what it does |
+|---|---|---|
+| pool capacity ceiling | `pool_spec`, `montecarlo.py:929-946` | a party can take at most every vote cast in the pools it belongs to. Its centre is water-filled under `POOL_CAPACITY_MARGIN × capacity` (`capped_targets`), and the excess goes to the parties that can hold it |
+| run-level balance | `pool_spec` → `pools.balance_margins` | fixes each party's expected citywide share at its centre, once, on the unshocked centres |
+| **per-draw balance** | `draw_pools`, `montecarlo.py:1290-1335` | the level shock is applied to the CENTRES and the matrix re-balanced against the shocked column margin, so the whole shock survives into the draw. Costs ~0.15 ms a draw |
+| per-draw capacity clip | `draw_pools` → `capped_targets` | the shocked centres are water-filled under the same capacity before the balance, because a shock can ask for far more than the run-level centre did — at Johannesburg 2026 the PA has asked for up to **254%** of the Coloured pool |
+| fallback | `partial_balance` (both sites) | when the two margins cannot both hold, alternating row/column scaling ENDING ON THE ROW pass: every pool exactly allocated, the party levels as close as the arithmetic permits. **Counted, not swallowed** — `ModelRun.ipf_failures` / `.ipf_balances`, printed by `main` |
+
+**Why water-filling and not a clip.** Two places rescale the column margin and
+would undo a plain clip: `pool_spec`'s own normalisation, and
+`pools.balance_margins`, which opens with
+`target_cols *= target_rows.sum() / target_cols.sum()` because IPF has no
+solution unless the margins agree on the grand total. So `capped_targets`
+preserves the total and moves mass sideways instead of removing it.
+
+**Two ways for the margins to conflict, and only one of them is fixable here.**
+A COLUMN can ask for more than its pools hold — the PA at Johannesburg 2026,
+102% of every Coloured vote cast in the city — and the capacity clip removes
+that case. A ROW can hold more votes than its members' targets add up to —
+Nelson Mandela Bay 2021's Indian/Asian pool, 8,303 votes against 8,168 asked of
+its sixteen members — and that cannot be removed by moving the party margin
+without re-creating the first case. It goes to `partial_balance` and is counted.
+
+**The capacity clip is a GUARD, not a cure.** What it reports is that the level
+layer and the pool layer disagree and neither knows about the other. The cause
+of the standing case is upstream, in the ecological fit: the PA's fitted vector
+is a corner solution — 0.5149 on Coloured and exactly 0.0000 on the other three
+pools — and 0.5149 is 10.5pp above the PA's own Duncan-Davis ceiling of 0.410,
+which this code computes and then uses only as a display flag. §0 of this
+document says "every estimate is projected into its Duncan-Davis interval".
+**Nothing projects.** See MODEL-LOG §1.33; it is open work, not fixed work.
+
+Before any draw is taken, `run_model` prints every party whose centre is at 90%
+or more of its own pool capacity — Johannesburg 2026 reads `PA 98%`. That line
+exists because until 2026-08-17 nobody found out until the balance raised, and
+the raise was silent.
 
 ---
 
@@ -247,6 +306,8 @@ PA and PAC — a degenerate solution reported as converged.
 |---|---|---|
 | CRPS, PIT, coverage, energy, variogram | `score.py` | — |
 | Brier + reliability on ward winners | `score.py` | — |
+| Rank bands, SIGNED and ABSOLUTE, plus phantom mass | `compare_history.rank_bands` | — |
+| Pooled coverage + pooled randomised PIT, three populations | `compare_history.calibration_columns` / `.pooled_calibration` | — |
 | Ground truth | `backtest.actual_result`, asserted against `official_seats` | ✅ |
 | Benchmarks (last-LGE, uniform swing, prior-LGE-noise) | `benchmarks.py` | pre-target only ✅ |
 | Generic `ENTRANT` renamed to the party that arrived | `backtest.relabel_run`, once on the run before any table | ✅ |
@@ -260,6 +321,55 @@ machinery as a total miss *plus* a phantom — 8 seats of error on Johannesburg
 2016, where the entrant slot had drawn 1.39% and 3.82 seats against the AIC's
 actual 1.62% and 4. See MODEL-LOG §1.31. When no party arrived, the relabel is a
 no-op and the entrant's seats are counted as error, which is correct.
+
+### The rank bands report two numbers per band, not one
+
+`compare_history.rank_bands` reports the SIGNED net error in each band and the
+ABSOLUTE per-party error in the same band. The sign is a real finding — it is
+what shows ranks 1-3 eating ranks 4-12 — but a signed sum is not a measure of
+error, because two parties wrong in opposite directions cancel. Signed-only was
+what shipped until 2026-08-17, and it hid the model's largest single failure:
+Johannesburg 2021's ranks 1-3 read **+1.36pp signed against 26.69pp absolute**
+(ANC +6.53, DA +7.39, ActionSA −12.59), so the worst city-year on seats was the
+second-best row of the band table. Both columns are printed; neither is a
+substitute for the other. MODEL-LOG §1.34.
+
+The same function also reports **phantom mass** — share the model puts on
+parties that did not stand at all, including the generic `ENTRANT` in a
+city-year where nobody arrived. The bands iterate the parties that DID stand, so
+no band can see it, and it is exactly why the three signed bands sum to
+−6.48pp rather than to zero.
+
+### Calibration is pooled across city-years, and reported over three populations
+
+`score.py` has computed coverage and the randomised PIT per run since it was
+written; `compare_history` took `crps.total` and discarded the rest, so the
+nine-city-year scoreboard reported no calibration statistic at all. It now does,
+through `calibration_columns` (per city-year, unpooled, reusing
+`score.seat_matrix` / `pit_values` / `coverage`) and `pooled_calibration`
+(coverage by summing hits and columns, PIT by concatenation).
+
+**Pooled is the only readable version.** Per city-year there are four to fifteen
+scored columns — Johannesburg 2021 reads 12/62/75 against nominal 50/80/90 on
+n=8 — and nothing at that size distinguishes a 50% interval from an 80% one. The
+report prints the per-city-year rows for provenance and labels them as noise.
+
+Three populations, because which columns you count changes the answer:
+
+| population | selected on | what it is for |
+|---|---|---|
+| `claimed` | the FORECAST (`score.CLAIM_FRACTION`) | the neutral test — selection depends on F alone, so PIT stays uniform under calibration |
+| `seat_holders` | the OUTCOME (won a seat) | INFLATED by construction — zero is the bottom of the support, so a perfect forecaster reads high here too. Reported because it is the population a reader assumes |
+| `all` | nothing | neutral but diluted: most columns are parties correctly at zero on both sides, each a free interval hit |
+
+The PIT randomisation is per city-year seeded (`_pit_seed`, derived from the
+city-year name) rather than left on `score.pit_values`'s module default, which
+would give every city-year's k-th column the same uniform and leave nine draws
+doing the work of a hundred and thirty.
+
+**Coverage says whether the bands are the right WIDTH; the PIT mean says whether
+they are in the right PLACE.** They are different faults with opposite remedies,
+and this model has the second one — see MODEL-LOG §1.34.
 
 ---
 

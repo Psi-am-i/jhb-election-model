@@ -22,6 +22,15 @@ is scored by different code:
                       where one exists -- the model as it stood then, so a
                       change can be read as a change rather than asserted
 
+It also reports **pooled calibration** -- coverage at 50/80/90 and the
+randomised PIT histogram, summed over every city-year. Per city-year those are
+noise (seven to fifteen scored columns), which is why they were never worth
+printing and therefore never printed; pooled over nine they are ~130 columns and
+they say something the rest of this report cannot: whether the intervals are the
+right WIDTH and whether they are in the right PLACE. Those are different faults
+with different remedies, and this model has the second one. See
+:func:`render_calibration` and MODEL-LOG §1.34.
+
 Usage::
 
     python src/compare_history.py                    # everything runnable
@@ -34,6 +43,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import zlib
 from pathlib import Path
 
 import numpy as np
@@ -102,23 +112,163 @@ def rank_bands(run, actual_pr, actual_seats):
     A single headline hides the shape of this model's error completely. Ranks
     1-3 are over-predicted and everything below is short, and the parties that
     matter for marginal seats are ranks 4-12: big enough to win one, small
-    enough that a fraction of a point decides it. Reported as SIGNED total
-    error, because the sign is the finding — an unsigned figure would say the
-    top and the middle are both "wrong" and hide that one is eating the other.
+    enough that a fraction of a point decides it.
+
+    **SIGNED AND ABSOLUTE, and neither one alone.** The sign is a finding — it
+    says one band is eating the other, which an unsigned figure cannot — but a
+    signed sum is not a measure of error, because errors in opposite directions
+    inside the same band cancel and the band then reports as accurate. This
+    statistic shipped signed-only and hid the model's largest single failure:
+    at **Johannesburg 2021 ranks 1-3 read +1.36pp signed against 26.69pp
+    absolute**, because the ANC (+6.53) and the DA (+7.39) cancelled against
+    ActionSA (−12.59). That city-year is the model's WORST on seats (104 of
+    error) and read second-best on this table. Across the nine city-years the
+    signed total for ranks 1-3 is +32.67pp against 72.06pp absolute — an
+    understatement of 2.2×. See MODEL-LOG §1.34.
+
+    **PHANTOM MASS.** The bands iterate the parties that actually stood, so any
+    share the model gives to a party that did not stand at all is invisible to
+    every band. It is reported separately rather than left out: the citywide
+    share vector sums to one over the model's own universe, so the phantom total
+    is exactly why the three bands sum to −6.48pp rather than to zero across the
+    nine city-years. It includes the generic ``ENTRANT`` column in a city-year
+    where no party arrived, which is a real error and should be visible as one.
     """
     order = sorted(actual_pr, key=lambda p: -actual_pr[p])
     bands = {"1-3": order[:3], "4-12": order[3:12], "13+": order[12:]}
     out = {}
     for label, parties in bands.items():
-        signed = won = missed = 0.0
-        seats_short = 0
+        signed = absolute = won = 0.0
         for party in parties:
             i = run.index.get(party)
             pred = float(run.pr_share_draws[:, i].mean()) if i is not None else 0.0
             signed += pred - actual_pr[party]
+            absolute += abs(pred - actual_pr[party])
             won += actual_seats.get(party, 0)
         out[label] = {"n": len(parties), "signed_pp": 100 * signed,
-                      "seats_at_stake": won}
+                      "abs_pp": 100 * absolute, "seats_at_stake": won}
+    ghosts = {}
+    for party, i in (run.index.items() if run.pr_share_draws is not None else ()):
+        if party in actual_pr:
+            continue
+        pred = float(run.pr_share_draws[:, i].mean())
+        if pred > 0:
+            ghosts[party] = 100 * pred
+    out["phantom"] = {"n": len(ghosts), "pp": float(sum(ghosts.values())),
+                      "top": sorted(ghosts.items(), key=lambda kv: -kv[1])[:5]}
+    return out
+
+
+# The nominal interval levels calibration is reported at. Three, not one:
+# a model can be right at 90% and wrong at 50%, and one number cannot show it.
+LEVELS = (0.5, 0.8, 0.9)
+
+# The populations calibration is measured over, in the order they are printed.
+# The difference between them IS the finding, so all three are reported and each
+# is labelled with what selects it. See :func:`calibration_columns`.
+POPULATIONS = ("claimed", "seat_holders", "all")
+
+
+def _pit_seed(city_slug: str, year: str, base: int = 20211101) -> int:
+    """A per-city-year seed for the PIT randomisation, derived deterministically.
+
+    ``score.pit_values`` draws one uniform per column from a fresh generator, so
+    with the module default every city-year gives its k-th column the SAME
+    uniform. Nine city-years pooled would then share nine draws rather than
+    carry ~130 independent ones, and a single unlucky value would tilt the
+    pooled histogram. Varying the seed per city-year removes that; deriving it
+    from the name rather than a counter keeps the report reproducible and
+    independent of which cities were run.
+    """
+    return base + zlib.crc32(f"{city_slug}:{year}".encode()) % 100_000
+
+
+def calibration_columns(seat_draws, actual_seats, entrant_actual, seed):
+    """Per-column PIT values and interval hits, UNPOOLED, for one city-year.
+
+    Kept unpooled because per city-year these numbers are noise and pooling them
+    is the whole point: Johannesburg 2021 reads 12/62/75 against nominal
+    50/80/90 on n=8 columns and Cape Town 2021 reads 57/100/100 on n=7. Neither
+    says anything. Summed over nine city-years (n≈132 seat-holding columns) they
+    say the model under-forecasts, which is a real and previously unreported
+    finding — see :func:`pooled_calibration` and MODEL-LOG §1.34.
+
+    Three populations, because which columns you count changes the answer and
+    the difference between them is itself informative:
+
+    ``claimed``       columns this forecaster gives a seat in at least
+                      ``score.CLAIM_FRACTION`` of its draws. Selection depends on
+                      the FORECAST alone, so PIT uniformity survives it; this is
+                      the neutral test and the one to quote.
+    ``seat_holders``  columns that actually won a seat. Selection depends on the
+                      OUTCOME, and zero is the bottom of the support, so under
+                      perfect calibration the survivors are U(p₀, 1) rather than
+                      uniform — this population reads high even for a flawless
+                      forecaster and is INFLATED by construction. Reported
+                      because it is the population a reader assumes, and because
+                      it is what an outside reviewer computed.
+    ``all``           every scored column. Neutral, but diluted by the ~200
+                      parties that are correctly zero on both sides, each of
+                      which is a free interval hit and a near-uniform PIT.
+
+    Nothing here is reimplemented: the matrix, the randomised PIT and the
+    coverage all come from ``score.py``, so the pooled figures and a single
+    run's report cannot drift apart.
+    """
+    parties, samples, truth = S.seat_matrix(seat_draws, actual_seats,
+                                            entrant_actual)
+    pits = S.pit_values(samples, truth, seed=seed)
+    n_cols = samples.shape[1] if samples.ndim == 2 else 0
+    claimed = ((samples > 0).mean(axis=0) >= S.CLAIM_FRACTION
+               if samples.shape[0] else np.zeros(n_cols, dtype=bool))
+    masks = {"claimed": claimed,
+             "seat_holders": truth > 0,
+             "all": np.ones(n_cols, dtype=bool)}
+    out = {}
+    for name in POPULATIONS:
+        mask = masks[name]
+        out[name] = {
+            "n": int(mask.sum()),
+            "parties": [p for p, keep in zip(parties, mask) if keep],
+            "pit": [float(v) for v in np.asarray(pits)[mask]],
+            "coverage": S.coverage(samples[:, mask], truth[mask], LEVELS),
+        }
+    return out
+
+
+def pooled_calibration(results, bins: int = 10) -> dict:
+    """Coverage and PIT summed over every city-year. **This is the one to read.**
+
+    Coverage pools by adding hits and columns; PIT pools by concatenating the
+    values, because each column is one draw from what should be U(0,1) whatever
+    city-year it came from. A per-city-year figure on seven to fifteen columns
+    cannot separate 50% from 80%; the pooled one on ~130 can, and it is what
+    exposed a systematic level bias the harness had never reported.
+    """
+    out = {}
+    for pop in POPULATIONS:
+        pits: list[float] = []
+        cov: dict[float, dict] = {}
+        for r in results:
+            block = (r.get("calibration") or {}).get(pop)
+            if not block:
+                continue
+            pits.extend(block["pit"])
+            for row in block["coverage"]:
+                acc = cov.setdefault(float(row["level"]),
+                                     {"inside": 0, "counted": 0})
+                acc["inside"] += int(row["inside"])
+                acc["counted"] += int(row["counted"])
+        out[pop] = {
+            "n": len(pits),
+            "pit": S.pit_histogram(np.array(pits, dtype=float), bins=bins),
+            "coverage": [
+                {"level": level, "inside": acc["inside"],
+                 "counted": acc["counted"],
+                 "empirical": (acc["inside"] / acc["counted"]
+                               if acc["counted"] else float("nan"))}
+                for level, acc in sorted(cov.items())],
+        }
     return out
 
 
@@ -250,6 +400,9 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
             abs(actual_seats.get(p, 0) - coherent.get(p, 0))
             for p in set(actual_seats) | set(coherent)),
         "median_sum": sum(model_seats.values()),
+        "calibration": calibration_columns(
+            run.seat_draws, actual_seats, entrant_actual,
+            _pit_seed(city_slug, year)),
         "opponents": {},
     }
     scored = S.score_seats(run.seat_draws, actual_seats,
@@ -308,6 +461,83 @@ def _actual_seats(target, data_dir: Path, run):
     return seats, B.entrant_actual_for(seats, base)
 
 
+_POP_LABEL = {
+    "claimed": "claimed by the model (forecast-selected — the neutral test)",
+    "seat_holders": "won a seat (outcome-selected — INFLATED by construction)",
+    "all": "every scored column (neutral, but diluted by correct zeros)",
+}
+
+
+def render_calibration(results: list[dict], bins: int = 10) -> str:
+    """The pooled calibration block. **Pooled is the only readable version.**
+
+    Coverage says whether the intervals are the right WIDTH; the PIT mean says
+    whether they are in the right PLACE. They can disagree, and here they do:
+    a model whose 90% band covers 87% and whose PIT mean is far above 0.5 is not
+    too narrow, it is too low. That distinction decides what to fix, and until
+    this block existed the harness produced neither number.
+    """
+    pooled = pooled_calibration(results, bins=bins)
+    lines: list[str] = []
+    add = lines.append
+    add("\n## Calibration — pooled across every city-year\n")
+    add("**Read the pooled row, not a city-year.** Seven to fifteen scored "
+        "columns per city-year cannot distinguish a 50% interval from an 80% "
+        "one; the pooled ~130 can. Coverage should match the nominal level. PIT "
+        "should be flat with mean 0.50 — a mean ABOVE 0.50 means the truth keeps "
+        "landing high in the forecast distribution, i.e. the model under-"
+        "forecasts.\n")
+    add("| population | n | 50% | 80% | 90% | mean PIT | χ² vs flat (5% crit) |")
+    add("|---|---|---|---|---|---|---|")
+    for pop in POPULATIONS:
+        block = pooled[pop]
+        cov = {row["level"]: row["empirical"] for row in block["coverage"]}
+        hist = block["pit"]
+        crit = hist.get("chi2_crit_95")
+        add(f"| {_POP_LABEL[pop]} | {block['n']} | "
+            + " | ".join(f"{100 * cov.get(level, float('nan')):.0f}%"
+                         for level in LEVELS)
+            + f" | {hist['mean']:.3f} | {hist['chi2']:.1f} "
+              f"({crit if crit is not None else '—'}) |")
+    add("")
+    for pop in POPULATIONS:
+        block = pooled[pop]
+        add(f"* **{pop}** (n={block['n']}) PIT histogram "
+            f"{block['pit']['counts']} — {block['pit']['verdict']}")
+    add("\nThe verdict at the end of each line is `score.pit_histogram`'s shape "
+        "heuristic, which reads the end mass and the mean; **the χ² column is "
+        "the test.** They can disagree — a histogram can be sloped rather than "
+        "U-shaped, print 'approximately flat' and still be far past the "
+        "critical value, which is what a level bias looks like when it is "
+        "spread over the upper half rather than piled in the last bin.")
+    add("\nThe three populations differ by which columns they count, and the "
+        "difference is itself the finding. `claimed` selects on the FORECAST, "
+        "which leaves PIT uniform under calibration, so it is the honest test. "
+        "`seat_holders` selects on the OUTCOME: zero is the bottom of the "
+        "support, so winning a seat selects over-performers and the population "
+        "reads high even for a perfect forecaster — it is quoted because it is "
+        "the population a reader assumes, not because it is neutral. `all` is "
+        "neutral and diluted: most of its columns are parties correctly at zero "
+        "on both sides, each a free interval hit and a near-uniform PIT.\n")
+
+    add("Per city-year, for provenance only — **every n below is too small to "
+        "read, and none of these rows is evidence of anything on its own.**\n")
+    add("| city-year | n claimed | 50% | 80% | 90% | mean PIT (claimed) |")
+    add("|---|---|---|---|---|---|")
+    for r in results:
+        block = (r.get("calibration") or {}).get("claimed")
+        if not block:
+            continue
+        cov = {row["level"]: row["empirical"] for row in block["coverage"]}
+        pit = np.array(block["pit"], dtype=float)
+        cells = " | ".join(f"{100 * cov.get(level, float('nan')):.0f}%"
+                           for level in LEVELS) if pit.size else "— | — | —"
+        mean = f"{pit.mean():.3f}" if pit.size else "—"
+        add(f"| {r['city']} {r['year']} | {block['n']} | {cells} | {mean} |")
+    add("")
+    return "\n".join(lines)
+
+
 def render(results: list[dict]) -> str:
     lines: list[str] = []
     add = lines.append
@@ -342,20 +572,43 @@ def render(results: list[dict]) -> str:
         "exactly. Lower is better throughout.\n")
 
     add("\n## Where the vote error sits on the ballot\n")
-    add("Signed total error in points, so a positive number means the model gave "
-        "that band MORE than it won. The bands are by actual rank.\n")
-    add("| city-year | ranks 1-3 | ranks 4-12 | ranks 13+ | seats at stake in 4-12 |")
-    add("|---|---|---|---|---|")
+    add("**Two columns per band, and they answer different questions.** *signed* "
+        "is the net error in points — positive means the model gave that band "
+        "MORE than it won — and it is what shows one band eating another. *abs* "
+        "sums the per-party error without cancelling, and it is the only one of "
+        "the two that is a measure of error at all. Where they diverge, the band "
+        "is wrong about individual parties in both directions at once: "
+        "Johannesburg 2021's ranks 1-3 are the case that motivated the column "
+        "(ANC and DA over, ActionSA far under). The bands are by actual rank.\n")
+    add("| city-year | 1-3 signed | 1-3 abs | 4-12 signed | 4-12 abs | "
+        "13+ signed | 13+ abs | phantom | seats at stake in 4-12 |")
+    add("|---|---|---|---|---|---|---|---|---|")
     for r in results:
         b = r["bands"]
+        ph = b.get("phantom", {"pp": float("nan"), "n": 0})
         add(f"| {r['city']} {r['year']} | {b['1-3']['signed_pp']:+.2f}pp | "
-            f"**{b['4-12']['signed_pp']:+.2f}pp** | {b['13+']['signed_pp']:+.2f}pp | "
+            f"{b['1-3']['abs_pp']:.2f}pp | "
+            f"**{b['4-12']['signed_pp']:+.2f}pp** | {b['4-12']['abs_pp']:.2f}pp | "
+            f"{b['13+']['signed_pp']:+.2f}pp | {b['13+']['abs_pp']:.2f}pp | "
+            f"{ph['pp']:.2f}pp ({ph['n']}) | "
             f"{b['4-12']['seats_at_stake']:.0f} |")
     tot = {k: sum(r["bands"][k]["signed_pp"] for r in results)
            for k in ("1-3", "4-12", "13+")}
-    add(f"\n**Totals:** ranks 1-3 {tot['1-3']:+.2f}pp, ranks 4-12 "
-        f"{tot['4-12']:+.2f}pp, ranks 13+ {tot['13+']:+.2f}pp across "
-        f"{len(results)} city-years.\n")
+    tot_abs = {k: sum(r["bands"][k]["abs_pp"] for r in results)
+               for k in ("1-3", "4-12", "13+")}
+    phantom = sum((r["bands"].get("phantom") or {}).get("pp", 0.0)
+                  for r in results)
+    add(f"\n**Totals across {len(results)} city-years:** ranks 1-3 "
+        f"{tot['1-3']:+.2f}pp signed / {tot_abs['1-3']:.2f}pp absolute, ranks "
+        f"4-12 {tot['4-12']:+.2f}pp / {tot_abs['4-12']:.2f}pp, ranks 13+ "
+        f"{tot['13+']:+.2f}pp / {tot_abs['13+']:.2f}pp.")
+    add(f"\n**Phantom mass: {phantom:.2f}pp** on parties that did not stand at "
+        f"all — including the generic `ENTRANT` column where no party arrived. "
+        f"The bands iterate the parties that DID stand, so none of them can see "
+        f"it; it is exactly why the three signed bands sum to "
+        f"{sum(tot.values()):+.2f}pp rather than to zero.\n")
+
+    add(render_calibration(results))
 
     for r in results:
         add(f"\n## {r['city']} {r['year']}\n")

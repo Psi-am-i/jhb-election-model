@@ -2525,6 +2525,494 @@ the honest thing is to say so on the site rather than keep tuning at it.
 
 ---
 
+## 1.33 The centres did not bind in two draws out of five, and nothing said so (2026-08-17)
+
+Two defects from an independent review, both of the same shape: a piece of
+machinery that does not run, reports nothing when it does not run, and therefore
+reads as working.
+
+### F1 — `except Exception: pass` around the mechanism the whole layer is named for
+
+`draw_pools` shocks the pool × party centres, re-balances them by IPF so the
+shock survives into the draw (§1.30), and wrapped the balance in
+`except Exception: pass`. When `pools.balance_margins` raised, `pool_props` kept
+the **unshocked** values — so the level shock was discarded **for every party in
+that draw**, not just for the party that made the problem infeasible.
+
+Measured, 300 draws per city-year, before the fix:
+
+| city-year | balances | raised | rate |
+|---|---|---|---|
+| **Johannesburg 2026 (the live forecast)** | 300 | 128 | **42.7%** |
+| Nelson Mandela Bay 2021 | 300 | 38 | **12.7%** |
+| Johannesburg 2016, Johannesburg 2021, Tshwane, Ekurhuleni, eThekwini, Cape Town, Mangaung, Buffalo City (all 2021) | 300 each | 0 | 0.0% |
+
+Two things about that table matter more than the headline. **It fires almost
+entirely in the forecast nobody can score** — over the nine backtested
+city-years the rate is 1.4%, and the review found that forcing it to zero left
+the backtest output bit-identical, so no amount of backtesting could have found
+it. And **it fires preferentially on the draws where the shock is largest**,
+because that is what makes the problem infeasible — the mechanism was absent
+exactly where it mattered most.
+
+(The review checked five of the nine and reported 0.0% for all of them. Nelson
+Mandela Bay was not among the five and is the second site; it is here because it
+was measured, not because it was expected.)
+
+**It is not slow convergence.** 20,000 iterations at tol 1e-9 gives 38.9%
+against 40.9% — essentially no change. It is genuine infeasibility: a party
+asking for more votes than exist in the pools it belongs to. IPF preserves
+structural zeros, so a party's ceiling is the votes cast in its own pools, and
+above that no matrix satisfies both margins at all.
+
+**The party is the PA and the number is 102%.** It is a member of exactly one
+pool at Johannesburg 2026 — Coloured, weight 1.0000, and at 2026 that weight is
+flagged `identified=False`, a bound-limited artefact rather than a measurement.
+The pool holds 122,771 registered voters (5.2% of the roll) at a modal turnout
+of 0.543, so it casts about 66,700 votes. The spine gives the PA 6.65% of the
+city, the by-election blend takes it to 7.4% — about 68,000 votes. That is 102%
+of every Coloured vote cast in Johannesburg before any shock is applied, and the
+shock has asked for as much as 254% of it. The run already printed
+`! 0.60% of the citywide level asked for more than a party's own pools can
+supply and was clipped (PA)` and nobody connected the two lines.
+
+#### The cause is upstream, and this change does NOT fix it
+
+The chain, measured rather than argued:
+
+1. **`fit_joint` returns a corner solution.** The PA's Johannesburg 2021 rates
+   are `Coloured 0.5149` and **exactly 0.0000** on Black African, Indian/Asian
+   and White — FISTA's simplex projection sitting on the non-negativity
+   boundary. The emitted "Coloured 1.0000" vector *is* that corner.
+2. **0.5149 is 10.5pp above the PA's own Duncan-Davis ceiling of 0.410**, which
+   this code computes and then uses only to set a display flag. `MACHINERY.md`
+   §0 claimed "every estimate is projected into its Duncan-Davis interval";
+   `pools.bounds` is read at exactly one place, `PoolFit.identified`, and
+   nothing projects. That sentence has been corrected rather than deleted, with
+   the reason, in the same commit.
+3. **The ward geography refutes the corner directly.** Binning all 135
+   Johannesburg wards by Coloured share, 71.9% of the PA's vote arises in wards
+   over 30% Coloured — but **28.1% arises below that**: 18.2% in 10–30% wards
+   and 9.9% in wards under 10% Coloured. A 100/0 vector is not what the data
+   says. Implied citywide, the corner gives the PA 34,170 votes against an
+   actual 27,346.
+4. Hence a single-pool vector; hence a 2026 level the pool layer cannot express;
+   hence a per-draw IPF that fails in two draws out of five; hence a silent
+   `pass`.
+
+**Everything below is a guard on step 4.** Whether the vector is too narrow or
+the level too high is contested and needs its own measurement, and nothing here
+settles it. The value of the guard is that the disagreement is now safe and
+visible instead of silent.
+
+#### What was done
+
+* **A pool-capacity ceiling, water-filled.** The shocked column targets are held
+  under `POOL_CAPACITY_MARGIN = 0.98 ×` each party's own pool capacity before
+  the balance (`montecarlo.capped_targets`, applied in both `pool_spec` and
+  `draw_pools`). Johannesburg 2026: **42.7% → 0.0%**.
+* **The `pass` is gone.** The fallback is now the same bounded alternating
+  scaling `pool_spec` has always used one stage earlier
+  (`montecarlo.partial_balance`), so a failure degrades the shock instead of
+  deleting it; and it is counted onto `ModelRun.ipf_failures` /
+  `.ipf_balances` / `.ipf_clipped` / `.ipf_worst` / `.ipf_headroom`, the way
+  `bounds_violations` already was, and printed by `main`.
+* **The report names the party and the ratio.** Before any draw:
+  `! at or near their pools' capacity before any shock: PA 98%`. After:
+  `per-draw centre balance: 600 attempted, 0 fell back (0.0%)` and
+  `PA 39.2% worst 204% of capacity`. "125 balance failures" would not have found
+  this; "PA, asked 204% of its pools' capacity, in 39% of draws" would have
+  found it in one run.
+
+#### A NAIVE CLIP DOES NOT WORK — measured, and this is the trap
+
+Two sites rescale the column margin and would undo it:
+
+* `pool_spec` clipped at the ceiling and then wrote `want = want / want.sum()`;
+  after a clip that sum is below one, so the divide put the clipped party
+  straight back over its own ceiling. **The order was also wrong**: the clip was
+  applied to the raw centres and the normalisation afterwards, when the quantity
+  that has to be feasible is the normalised one. Normalise first, then cap.
+* `pools.balance_margins` opens with
+  `target_cols *= target_rows.sum() / target_cols.sum()`, because IPF has no
+  solution unless the two margins agree on the grand total. Hand it column
+  targets that sum short and it restores exactly the mass the clip removed —
+  to the offender included.
+
+So `capped_targets` preserves the total to floating point and moves the excess
+sideways, in proportion to what the remaining columns already hold, iterating
+until nothing is over its cap. `tests/test_ipf_feasibility.py::
+test_capped_targets_preserves_the_total_it_is_given` pins that invariant over
+200 random cases, because it is the one a future edit would break.
+
+#### There are TWO ways for the margins to conflict and the clip fixes ONE
+
+A **column** can ask for more than its pools hold. That is the PA, and the cap
+removes it.
+
+A **row** can hold more votes than its members' targets add up to. That is
+Nelson Mandela Bay 2021's Indian/Asian pool: 8,303.3 votes against 8,168.5 asked
+of its sixteen members between them. It cannot be removed by moving the party
+margin without re-creating the column case, so **the cap does nothing for NMB**:
+no party there is within half of its capacity (maximum headroom 0.48, and
+`ipf_clipped` is empty for the whole run), and with the cap in place and the
+fallback still `pass` the city's backtest output is bit-identical to the
+committed one. The row conflict goes to `partial_balance` and is counted: 38 of
+300 draws (12.67%) before, 42 of 300 (14.00%) after. **That difference is not a
+change in the failure mechanism** — `rng.dirichlet` consumes a
+value-dependent number of variates through its rejection sampler, so the moment
+one draw's pool proportions differ the stream diverges and the counts are two
+samples of the same rate rather than a before and an after.
+
+#### Results
+
+**Johannesburg 2026, 600 draws** (mean citywide PR share):
+
+| | before | after |
+|---|---|---|
+| per-draw balance fallback rate | **41.8%** | **0.0%** |
+| DA | 32.81% | 32.66% |
+| ANC | 20.01% | 20.21% |
+| ASA | 12.02% | 11.82% |
+| MK | 10.26% | 10.55% |
+| EFF | 9.10% | 8.51% |
+| PA | 5.75% | **6.02%** |
+| DA realised sd(log) | 0.168 | **0.189** |
+
+Seat medians are unchanged to within a seat (DA 88→87, ANC 61→62, ASA 26→26,
+MK 24→24, EFF 23→21, PA 17→18); the bands widen at the top, which is the point —
+DA 67–116 → 64–118, MK 8–56 → 8–59. The DA's realised sd(log) moving 0.168 →
+0.189 against a measured 0.15–0.35 is the mechanism arriving in the 42% of draws
+it had been absent from.
+
+**The nine city-years, 400 draws.** Eight of nine are **bit-identical**. Only
+Nelson Mandela Bay 2021 moves, and every one of its numbers improves:
+
+| | before | after |
+|---|---|---|
+| list MAE | 2.73pp | 2.34pp |
+| ward MAE | 3.24pp | 2.83pp |
+| seat error (median) | 24 | 22 |
+| **seat error (coherent)** | **20** | **16** |
+| CRPS | 18.1 | 17.8 |
+| ranks 1-3 abs | 7.67pp | 6.44pp |
+| ranks 4-12 abs | 6.55pp | 6.18pp |
+
+Nine-city-year totals: **coherent seat error 312 → 308**, beats uniform swing
+**7/9 → 7/9**, bands 1-3 +32.67 → +32.59pp signed (72.06 → 70.83pp absolute),
+4-12 −37.01 → −36.96pp (56.32 → 55.95pp), 13+ −2.14 → −2.10pp. Draw noise on the
+seat error is ±2, so 312 → 308 would not on its own be a result — but eight of
+the nine did not move by a single count, so the whole of it is attributable to
+the one city-year where the mechanism changed, and there it is 20 → 16.
+
+**Attribution, because two things changed at once.** Re-running Nelson Mandela
+Bay with the cap in place and the fallback restored to `pass` reproduces the old
+numbers exactly (2.73pp / 3.24pp / 24 / 20 / 18.1). So **the cap contributes
+nothing to the backtest and the whole 312 → 308 is the fallback**, and
+conversely the whole 42.7% → 0.0% at 2026 is the cap. They are independent and
+were measured separately.
+
+#### What did not work
+
+* **A plain `np.minimum(target, ceiling)`.** Undone by both rescale sites above;
+  `balance_margins` restores the removed mass on its first line. This is not a
+  hypothetical — it is the shape the first attempt took.
+* **More iterations.** 20,000 at tol 1e-9 moved the 2026 failure rate 40.9% →
+  38.9%. Infeasibility does not converge.
+* **A tighter margin than 0.98.** Swept on the 2026 forecast, 600 draws:
+  `POOL_CAPACITY_MARGIN` at 1.0000 leaves the rate at **41.5%**, 0.9999 at
+  41.5%, 0.9975 at 41.0%, 0.995 at 39.8%, 0.992 at 37.0%, 0.991 at 37.0% — and
+  then **0.990 and 0.980 both give exactly 0.0%**. A cliff, not a slope, which
+  says the last percent is a CONVERGENCE-RATE problem rather than a feasibility
+  one: `balance_margins` stops at a relative tolerance of 1e-12, IPF approaches
+  a boundary solution geometrically, and inside about 1% of the boundary 2,000
+  iterations are not enough. (The review reported 40.1% at 1.00 and 22.4% at
+  0.999 for the same sweep; 22.4% does not reproduce here and 41.5% / 41.5%
+  does. The disagreement does not change the choice — everything at or below
+  0.99 is zero — but the 0.999 figure should not be quoted.) 0.98 is kept rather
+  than 0.99 because it is a round number one full step clear of a cliff edge
+  whose position is a function of the iteration cap, not of the model.
+* **60 passes instead of 200 in the per-draw fallback**, to save time. Measured
+  at Nelson Mandela Bay against the 200-pass matrix: 30 passes differ by 186
+  votes, 60 by 45.6, 100 by 16.7, on a city of 364,000. The saving was not worth
+  a number that differs from the committed one for no stated reason, so
+  `PARTIAL_BALANCE_PASSES` stays at 200 at both sites.
+
+### F6 — `LEVEL_DF` was inert at every value
+
+```python
+def log_shock(rng, sd, size=None, df: float = LEVEL_DF):
+```
+
+Python evaluates a default argument **once, at import**. Setting
+`montecarlo.LEVEL_DF` afterwards changed nothing, and the review swept it at
+2.5, 4, 7, 30, 200 and 1000 for **byte-identical output every time**.
+`JUDGEMENT-CALLS.md` carried it at 🔴 — one of the numbers most in need of
+attack in the register — and it did nothing at any value. This is `ITERATING.md`
+rule 6 live: *before tuning a constant, sweep it to a value that MUST change the
+answer, and confirm the answer changes.*
+
+It is the same class as §1.31's `entrant_prob`, reached by a different route
+(there, `apply_city` overwrote the edit; here, the binding froze it). Both look
+identical from the outside: a sweep that returns identical rows.
+
+`df` now resolves `LEVEL_DF` in the function body from a `None` sentinel.
+**The value is unchanged at 7.0.**
+
+#### The sweep, now that it is possible
+
+Johannesburg 2026, 3,000 draws, same seed:
+
+| df | MK p99 | MK p99.9 | MK max | ALJAMAAH max | DA sd(log) | MK sd(log) |
+|---|---|---|---|---|---|---|
+| 3 | 24.95% | 32.66% | **46.23%** | 4.85% | **0.2395** | 0.6339 |
+| **7** | 26.14% | 33.69% | **37.53%** | 2.99% | **0.1886** | 0.6041 |
+| 1000 | 25.23% | 30.49% | **33.78%** | 3.49% | **0.1835** | 0.5985 |
+
+So the constant does what it claims to do — it is a **tail** parameter, and at
+df=3 it inflates the largest party's realised dispersion by 27% over the normal
+limit — and it does not do what it was suspected of doing. **MK's wide seat band
+is not the Student-t tail**: at 600 draws MK's 5th–95th seat band is 8–53 at
+df=2.5 and 8–57 at df=1000, essentially unmoved across a factor of 400 in tail
+weight. That band is the within-pool Dirichlet plus the correlated turnout
+copula, and anyone who goes after it through `LEVEL_DF` will spend a day for
+nothing. Recorded here so they do not.
+
+The nine city-years, 400 draws — the first honest sweep of this constant:
+
+| df | coherent seat error | beats uniform swing | ranks 1-3 abs | ranks 4-12 abs |
+|---|---|---|---|---|
+| 3 | 316 | 6/9 | 72.07pp | 58.09pp |
+| **7 (committed)** | **308** | **7/9** | **70.83pp** | **55.95pp** |
+| 30 | 308 | 6/9 | 72.23pp | 56.54pp |
+
+**The typed value survives its first measurement.** It ties df=30 on seat error
+and beats it on beats-uniform-swing and on both absolute bands, and beats df=3
+on everything. That is thin evidence — 308 against 308 is inside draw noise —
+but it is evidence where there was none, and `LEVEL_DF` is demoted 🔴 → 🟡 on
+the same terms `entrant_prob` was in §1.31: still typed, now swept.
+
+### Four more constants were frozen the same way
+
+An AST walk of `src/` found the same binding at four other sites, all numeric,
+all invisible to a sweep:
+
+| site | constant |
+|---|---|
+| `fold.logit` | `SHARE_FLOOR` |
+| `montecarlo.logit` | `SHARE_FLOOR` |
+| `montecarlo.solve_and_predict` | `SHARE_FLOOR` (as `level_floor`) |
+| `levels.spine` | `SPINE_K` |
+
+`SPINE_K` is at 🔴 in the register with a rejected step-function alternative
+recorded against it — a constant nobody could have swept. All four now resolve
+in the body. Five further sites capture module-level *containers* or *paths*
+(`METRO_CODES` ×4, `REPORTS`, `REGISTER`, `CONFIG`, `CLAIM_PATTERNS`); they have
+the same hazard in principle but nothing sweeps them and mutating them in place
+does reach the default, so they are exempted **by name** in the test rather than
+silently.
+
+### The tests
+
+New file `tests/test_ipf_feasibility.py`, five tests, and **all five fail on the
+pre-fix code**:
+
+| test | failure message on the old code |
+|---|---|
+| `test_the_balance_is_never_asked_for_more_than_the_pools_can_hold` | *the per-draw IPF was handed a column target above that party's own pool capacity (254% of it) — draw 55, column 34: capacity 66,684.8 votes, asked 169,241.8* |
+| `test_a_failed_balance_is_counted_and_reported_rather_than_passed` | *make_drawer's closure carries no ipf_stats, so run_model has no way to learn that the per-draw balance failed and no test can assert on it* |
+| `test_capped_targets_preserves_the_total_it_is_given` | *module 'montecarlo' has no attribute 'capped_targets'* |
+| `test_level_df_reaches_the_draw` | *log_shock returned the same draws at LEVEL_DF 2.5 and 1000, which differ by two orders of magnitude in tail weight* |
+| `test_no_numeric_module_constant_is_a_default_argument` | names all five sites: `fold.py:110 logit(... = SHARE_FLOOR)`, `levels.py:459 spine(... = SPINE_K)`, `montecarlo.py:237 logit(... = SHARE_FLOOR)`, `montecarlo.py:288 log_shock(... = LEVEL_DF)`, `montecarlo.py:458 solve_and_predict(... = SHARE_FLOOR)` |
+
+The first asserts on the **numbers the balance was handed**, not on the source
+text, because a clip written into the code and undone by a later rescale would
+pass a source check and fail this one — which is exactly the failure mode the
+first attempt had. The last is the generalising one: it is what stops the class
+rather than the instance.
+
+`tests/test_drawer.py`'s golden prior was re-recorded, deliberately, with the
+reason and the before/after in the file.
+
+### Open, and named so it is not mistaken for closed
+
+* **The ecological fit is not projected into its own bounds.** Steps 1–3 above.
+  This is the cause; everything in F1 is a guard on the symptom.
+* **The PA's 2026 level and its pool vector disagree by 2%** even after the
+  clip, and the clip resolves that against the level. Whether that is right is
+  not settled here.
+* **`POOL_CAPACITY_MARGIN = 0.98` is typed**, chosen as the largest round number
+  that takes the failure rate to zero. It is in the register at 🔴.
+* **Nelson Mandela Bay 2021 still falls back on 13-14% of draws**, for the row
+  reason, which no column cap can fix. It is now counted and printed instead of
+  silent, and the fallback is a partial balance rather than nothing — worth 4
+  coherent seats — but the underlying conflict stands.
+
+---
+
+## 1.34 The scoreboard could not see the model's largest error, and one of its statistics was hiding it (2026-08-17)
+
+**No forecast moved. Only what the scoreboard reports.** Every seat error and
+every CRPS in `data/processed/history.json` is unchanged: at 1500 draws the
+coherent seat error is **312** across the nine city-years, it beats uniform swing
+**7/9**, and the signed bands are 1-3 **+32.42pp**, 4-12 **−37.30pp**, 13+
+**−1.65pp** — the committed figures to the digit. Two before/after runs at 400
+draws are identical on `seat_abs_err`, `seat_abs_err_coherent` and `crps` in all
+nine city-years, and differ in the tenth significant figure of `pr_mae` for
+eThekwini alone, which is float-reduction noise.
+
+Both defects were found by an outside review. Both are instrument faults, which
+is the reason they survived: nothing they touched ever looked wrong.
+
+### F2 — a signed band total is not a measure of error
+
+`compare_history.rank_bands` reported a SIGNED sum of per-party error inside each
+rank band, and its docstring defended the choice ("the sign is the finding").
+The sign IS a finding — it is what shows ranks 1-3 eating ranks 4-12 — but
+reported alone it nets out offsetting errors, and the band then reports as
+accurate when it is nothing of the kind.
+
+Recomputed with absolute per-party error inside the same bands (1500 draws):
+
+| city-year | 1-3 signed | 1-3 ABS | 4-12 signed | 4-12 ABS | coherent seat error |
+|---|---|---|---|---|---|
+| Johannesburg 2016 | +0.46 | 5.55 | −0.81 | 1.60 | 22 |
+| **Johannesburg 2021** | **+1.32** | **26.50** | −2.40 | 10.00 | **106** |
+| Tshwane 2021 | +7.78 | 7.78 | −8.99 | 8.99 | 40 |
+| Ekurhuleni 2021 | +5.84 | 5.84 | −5.84 | 7.82 | 30 |
+| eThekwini 2021 | +2.54 | 3.87 | −1.73 | 8.60 | 34 |
+| Cape Town 2021 | +7.84 | 7.84 | −6.87 | 6.87 | 42 |
+| Mangaung 2021 | +1.12 | 1.25 | −3.10 | 3.72 | 10 |
+| Nelson Mandela Bay 2021 | +6.15 | 8.13 | −6.16 | 6.30 | 20 |
+| Buffalo City 2021 | −0.63 | 4.89 | −1.39 | 1.90 | 8 |
+| **TOTAL** | **+32.42** | **71.65** | −37.30 | 55.81 | **312** |
+
+**Johannesburg 2021 read +1.32pp on the published statistic and is 26.50pp
+wrong.** ANC +6.52 and DA +7.39 cancel against ActionSA −12.59 (39.75% forecast
+against 33.22% actual, 32.84 against 25.45, 5.53 against 18.12). It is the
+model's WORST city-year on seats — 106 of 312, a third of the total error from
+one of nine city-years — and it was the SECOND-BEST row of the headline band
+table. The signed nine-city-year total understates the top-of-ballot error by
+**2.2×**. (The review measured +1.36 / 26.69 and a total of +32.67 / 72.06 at a
+different draw count; the reading is not sensitive to it.)
+
+Note also what the absolute column does to the reading of the whole table.
+Signed, ranks 1-3 (+32.42) and ranks 4-12 (−37.30) look like one story: the top
+is eating the middle, roughly point for point. Absolute, ranks 1-3 (71.65) is
+*larger* than ranks 4-12 (55.81), so the top of the ballot is not a
+well-forecast band that has been handed someone else's votes; it is the worse of
+the two. Every "the model over-predicts the top three and under-predicts the
+middle" sentence in this log is true of the net and incomplete about the size.
+
+**Both columns are now printed, and neither replaces the other.** Where they
+agree (Tshwane +7.78/7.78, Cape Town +7.84/7.84) every party in the band errs
+the same way, and that is itself worth seeing.
+
+### F2b — mass on parties that never stood was reported nowhere
+
+`rank_bands` iterates the parties that actually stood, so any share the model
+assigns to a party that contested nothing falls outside all three bands. It is
+**6.53pp across the nine city-years**, and it is exactly why the three signed
+bands summed to −6.53pp rather than to zero — a discrepancy visible in the
+printed totals for months and explained nowhere. It includes the generic
+`ENTRANT` column in a city-year where nobody arrived, which is a real error the
+model should pay for — at Johannesburg 2021 the phantom is 1.49pp and **1.44pp
+of it is `ENTRANT`**: ActionSA is declared with a seed and therefore has a
+baseline, so no party qualifies as having arrived from nothing, the relabel is a
+no-op, and the generic entrant column stands as pure invented vote. That is the
+correct treatment and it had no home in any statistic. Now a column
+(`phantom`) and a total, with the
+identity `Σ bands + phantom = 0` asserted by a test.
+
+### F3 — the harness computed no calibration statistic at all
+
+This is the finding F2 was hiding. `score.py` has produced coverage and a
+randomised PIT per run since it was written; `compare_history` — the
+nine-city-year scoreboard everything is judged on — pulled `crps.total` out of
+it and dropped the rest. So the model's largest *systematic* property was
+unmeasured by the thing that measures the model, and an outside reviewer had to
+compute it by hand.
+
+Pooled over the nine city-years, at 1500 draws:
+
+| population | n | 50% | 80% | 90% | mean PIT | χ² vs flat (9 df, 5% crit 16.92) |
+|---|---|---|---|---|---|---|
+| claimed by the model (forecast-selected — neutral) | 53 | 58% | 89% | 96% | **0.587** | 23.4 |
+| won a seat (outcome-selected — inflated) | 132 | **42%** | **73%** | **87%** | **0.760** | 148.9 |
+| every scored column (neutral, diluted) | 331 | 77% | 89% | 95% | **0.559** | 22.0 |
+
+**All three reject uniformity and all three skew the same way: the model
+under-forecasts.** Independent confirmation from `src/sweep.py`, which flags the
+truth falling outside the 90% band: **ten anomalies of "interval excludes the
+truth (below) — won N, above the whole forecast", and zero of the opposite
+kind.** Ten out of ten in one direction.
+
+The interpretation matters and is easy to get backwards:
+
+* `seat_holders` **conditions on the outcome.** Zero is the bottom of the seat
+  support, so winning a seat selects over-performers and this population reads
+  high even for a perfect forecaster — `score.py`'s own docstring records
+  simulating 93% of perfectly-calibrated replicates printing "under-dispersed,
+  widen it" under exactly this rule. It is quoted because it is the population a
+  reader assumes, and it is labelled inflated wherever it is quoted.
+* `all` does **not** condition on the outcome, but ~200 of its 331 columns are
+  parties correctly at zero on both sides: a free interval hit at every level
+  and a near-uniform PIT. It is diluted towards flat, and it *still* comes out
+  at 0.559 with χ² past the critical value.
+* `claimed` selects on the FORECAST alone, which is the one rule under which PIT
+  uniformity survives selection. **It is the honest test and it agrees: mean
+  0.587, χ² 23.4 against a critical 16.92.** This is stronger than the reviewer's
+  version of the finding, which rested on the two populations that can be
+  argued with.
+
+**This is a LEVEL finding, not a DISPERSION finding, and the distinction decides
+the remedy.** The 90% band covers 87% of seat-holding outcomes and the 80%
+covers 73%: the bands are roughly the right WIDTH. On the columns the model
+actually claims they are, if anything, too wide (58/89/96 against 50/80/90). What
+is wrong is where they are CENTRED. Widening the intervals would improve
+coverage on the outcome-selected population, cost sharpness everywhere, and fix
+nothing — and it is precisely what `score.pit_histogram`'s shape verdict advises,
+because a sloped histogram with mass in the last bins trips its U-shape test. The
+report now prints the χ² next to the verdict and says in as many words that the
+verdict is a shape heuristic and the χ² is the test.
+
+### What was added, and what was deliberately not
+
+`compare_history.calibration_columns` (per city-year, unpooled) and
+`pooled_calibration` (the figure to quote), both built on `score.seat_matrix`,
+`score.pit_values` and `score.coverage` — **nothing reimplemented**, so a single
+run's report and the pooled report cannot drift apart. `score.py` was not
+modified.
+
+Per city-year figures are printed for provenance and **labelled as noise**,
+because they are: Johannesburg 2021 reads 12/62/75 on n=8 claimed columns and
+Cape Town reads 43/100/100 on n=7. Nothing at that size distinguishes a 50%
+interval from an 80% one, and a reader quoting one of those rows is quoting
+nothing. Only the pooled row means anything.
+
+The PIT randomisation is seeded per city-year (`_pit_seed`, CRC32 of the
+city-year name) rather than on `score.pit_values`'s single module default, which
+would give every city-year's k-th column the same uniform — nine draws doing the
+work of 130, and one unlucky value tilting the pooled histogram. It cannot change
+a conclusion, only the noise on one.
+
+`tests/test_calibration_report.py` is new and every test in it fails on the
+pre-fix code (verified against a clean `git archive` of HEAD). It asserts on
+computed numbers rather than on source text — including that a PERFECTLY
+calibrated synthetic forecast reads as calibrated, which is the null `score.py`
+records having failed twice before, and that the same data transformed WITHOUT
+the randomisation fails it, so the randomisation is genuinely being tested rather
+than a kind seed.
+
+### What this does not do
+
+It does not fix the bias. It makes it visible, in the standard report, next to
+the number that decides whether an iteration ships. The next question — whether
+the level shortfall at the top of the ballot and the arrival/small-party
+shortfall in ranks 4-12 are one fault or two — is now measurable and was not.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

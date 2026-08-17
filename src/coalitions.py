@@ -56,7 +56,7 @@ def subset_totals(seats: np.ndarray) -> np.ndarray:
 
 
 def minimal_winning(
-    totals: np.ndarray, threshold: np.ndarray, n: int
+    totals: np.ndarray, threshold: np.ndarray
 ) -> dict[int, np.ndarray]:
     """Mask -> boolean per draw: is this subset a *minimal* winning coalition.
 
@@ -168,7 +168,7 @@ def analyse(
     small.sort(key=lambda r: -r["probability"])
 
     # --- minimal winning coalitions ------------------------------------------
-    mwc = minimal_winning(totals, threshold, n)
+    mwc = minimal_winning(totals, threshold)
     mwc_rows = [
         {
             "coalition": mask_label(mask, ranked),

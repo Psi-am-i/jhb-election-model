@@ -99,7 +99,7 @@ def parse(text: str) -> dict:
     return out
 
 
-def anomalies(res: dict, city: str, year: str) -> list[str]:
+def anomalies(res: dict) -> list[str]:
     found = []
     parties = res.get("parties", [])
     if not parties:
@@ -154,7 +154,7 @@ def main(argv: list[str] | None = None) -> int:
             res = parse(proc.stdout)
             res["stderr_tail"] = proc.stderr.strip().splitlines()[-3:]
             res["returncode"] = proc.returncode
-            res["anomalies"] = anomalies(res, city, year)
+            res["anomalies"] = anomalies(res)
             if not res.get("parties"):
                 print(f"    did not score: "
                       f"{' | '.join(res['stderr_tail']) or 'no output'}")

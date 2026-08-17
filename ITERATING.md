@@ -61,7 +61,42 @@ it is newer, better argued, or built from more measurements.
    was sizing the AIC to within 0.2pp and the scoreboard was discarding the
    answer. Sweep through `compare_history.py --set KEY=VALUE`, which lands after
    `apply_city`; editing `montecarlo.DEFAULTS` does **not** reach a run.
-7. **"Improves the backtest" and "defensible" are different claims, and only the
+   **A MODULE CONSTANT HAS ITS OWN VERSION OF THIS, and setting the module
+   attribute is not enough on its own.** `def f(..., df=LEVEL_DF)` evaluates the
+   constant once at import, so `montecarlo.LEVEL_DF = 30` reaches nothing:
+   `LEVEL_DF` was swept at 2.5, 4, 7, 30, 200 and 1000 for byte-identical output
+   at every value while sitting at 🔴 in the register, and `SHARE_FLOOR` and
+   `SPINE_K` were frozen at four more sites (MODEL-LOG §1.33). Every constant in
+   `src/` now resolves in the function body, and
+   `tests/test_ipf_feasibility.py::test_no_numeric_module_constant_is_a_default_argument`
+   fails the build if a new one is frozen — but the rule stands whatever the
+   test says: **the first thing a sweep must prove is that it swept something.**
+7. **A signed error total is not an error total, and a statistic that reports no
+   fault is not evidence there is none.** Both of this project's scoreboards
+   failed that way at once and neither failure moved a forecast. The rank bands
+   reported a SIGNED sum, so Johannesburg 2021's ranks 1-3 read +1.36pp while
+   being 26.69pp wrong — the model's worst city-year on seats was the band
+   table's second-best row. And the harness computed **no calibration statistic
+   at all**: `score.py` had produced coverage and PIT per run for months and
+   `compare_history` took `crps.total` and dropped the rest. Both are now in the
+   standard report (`compare_history.py`, MODEL-LOG §1.34). When a statistic
+   says the model is fine, check what it is capable of saying.
+8. **Width and level are different faults with opposite remedies, and the
+   harness now separates them.** Pooled over the nine city-years the seat-holding
+   columns cover close to the nominal rate at 90% — the bands are roughly the
+   right WIDTH — while the pooled PIT mean sits far above 0.5: the model
+   under-forecasts, systematically and in one direction, and `sweep.py` says the
+   same from the other side (ten anomalies of "the truth is above the whole
+   forecast", none below). **Widening the bands would score better on coverage
+   and be the wrong fix**, and it would cost sharpness for nothing. Before
+   proposing a dispersion change, read the pooled PIT mean; before proposing a
+   level change, read the pooled coverage. A change that improves one and
+   wrecks the other has not improved the model.
+9. **Quote the pooled calibration figure, never a city-year's.** Per city-year it
+   is four to fifteen scored columns — Johannesburg 2021 reads 12/62/75 against
+   nominal 50/80/90 on n=8, Cape Town 57/100/100 on n=7 — and neither says
+   anything. The report prints them for provenance and labels them as noise.
+10. **"Improves the backtest" and "defensible" are different claims, and only the
    second one ships.** A constant chosen because it scores best on the nine
    city-years has been fitted to the scoreboard. `entrant_prob` has a clear
    empirical optimum near 0.40 and it was **not** adopted, because nothing
