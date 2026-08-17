@@ -81,21 +81,49 @@ it is newer, better argued, or built from more measurements.
    `compare_history` took `crps.total` and dropped the rest. Both are now in the
    standard report (`compare_history.py`, MODEL-LOG §1.34). When a statistic
    says the model is fine, check what it is capable of saying.
-8. **Width and level are different faults with opposite remedies, and the
-   harness now separates them.** Pooled over the nine city-years the seat-holding
-   columns cover close to the nominal rate at 90% — the bands are roughly the
-   right WIDTH — while the pooled PIT mean sits far above 0.5: the model
-   under-forecasts, systematically and in one direction, and `sweep.py` says the
-   same from the other side (ten anomalies of "the truth is above the whole
-   forecast", none below). **Widening the bands would score better on coverage
-   and be the wrong fix**, and it would cost sharpness for nothing. Before
-   proposing a dispersion change, read the pooled PIT mean; before proposing a
-   level change, read the pooled coverage. A change that improves one and
-   wrecks the other has not improved the model.
-9. **Quote the pooled calibration figure, never a city-year's.** Per city-year it
-   is four to fifteen scored columns — Johannesburg 2021 reads 12/62/75 against
-   nominal 50/80/90 on n=8, Cape Town 57/100/100 on n=7 — and neither says
-   anything. The report prints them for provenance and labels them as noise.
+8. **Width and level are different faults with opposite remedies — and this
+   model's answer to both DIFFERS BY RANK BAND, so a pooled figure answers
+   neither.** Keep the first half of that sentence: coverage says whether the
+   intervals are the right WIDTH, the PIT mean says whether they are in the
+   right PLACE, and a change that improves one while wrecking the other has not
+   improved the model. What must go is the idea that either has one answer.
+   Pooled over the nine city-years the claimed columns give a mean PIT of 0.588,
+   which reads as a mild uniform under-forecast. Split by actual PR rank (nine
+   city-years, 1500 draws — quote the draw count or quote neither) it is:
+
+   | claimed columns | n | mean PIT | 95% CI | nominal 50% covers |
+   |---|---|---|---|---|
+   | ranks 1-3 | 27 | **0.431** | [0.380, 0.479] | 70% — too WIDE |
+   | ranks 4-12 | 26 | **0.750** | [0.674, 0.810] | 27% — too NARROW |
+   | pooled | 53 | 0.588 | — | 58% |
+
+   **0.588 is the average of a −0.069 and a +0.250**, and the two CIs exclude
+   0.50 in opposite directions. The model **over**-forecasts the top three and
+   **under**-forecasts the middle, which is exactly what the signed vote bands
+   (+32.50pp at ranks 1-3, −37.34pp at 4-12) have said all along; the two
+   instruments never disagreed, only one of them was disaggregated. The
+   50%-coverage column is the discreteness-corrected one — `score.coverage`
+   reads 46% at ranks 4-12 because an integer interval must include whole
+   endpoints, and the randomised PIT removes that.
+
+   So: **before proposing a dispersion or a level change, read the per-band
+   table, not the pooled row.** "Widening would be the wrong fix" remains true
+   at ranks 1-3, where the intervals are already too wide and the centres too
+   high. It is false at ranks 4-12, where a nominal 50% interval covers 27% and
+   the centres are too low. A single change that moves the whole distribution
+   cannot fix both, and the pooled statistic will report progress for a change
+   that makes one band worse and the other better by the same amount — which is
+   the same arithmetic that let a signed error sum hide a 26.50pp band error.
+   `sweep.py`'s ten "the truth is above the whole forecast" anomalies and zero
+   below are consistent with this: they are ranks 4-12 parties.
+9. **Quote the pooled calibration figure, never a city-year's — and never the
+   pooled figure alone.** Pool over CITY-YEARS: per city-year it is four to
+   fifteen scored columns, Johannesburg 2021 reads 12/62/75 against nominal
+   50/80/90 on n=8 and Cape Town 43/100/100 on n=7, and neither says anything.
+   Do NOT pool over RANK BANDS: that is rule 8, and it is where the pooled
+   number stops being an estimate of anything. The report prints the city-years
+   for provenance and labels them as noise, and prints the band split next to
+   the pool.
 10. **"Improves the backtest" and "defensible" are different claims, and only the
    second one ships.** A constant chosen because it scores best on the nine
    city-years has been fitted to the scoreboard. `entrant_prob` has a clear

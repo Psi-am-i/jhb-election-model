@@ -82,7 +82,12 @@ def default_cfg(city) -> str:
         "wBye": sc.get("w_bye"), "blocLeak": sc.get("bloc_leak"),
         "pollPick": "", "pollWeight": 0.5,
         "alphaANC": sc.get("alpha_anc"), "alphaDA": sc.get("alpha_da"),
-        "mkRatio": j.get("ward_pr_ratio_overrides", {}).get("MK"),
+        # "mkRatio" was here, surfacing `ward_pr_ratio_overrides` as a
+        # slider. The lever was deleted 2026-08-17 (consumed at no
+        # target — MODEL-LOG §1.37), so the control moved a number that
+        # changed nothing. `interactive_template.html:1168` still reads
+        # `cfg.mkRatio`; that goes when the interactive is rebuilt, and
+        # is harmless meanwhile because the page is withheld.
         "paUplift": sc.get("pa_contestation_uplift"),
         "turnoutANC": sc.get("turnout_tilt_anc"),
         "turnoutDA": sc.get("turnout_tilt_da"),

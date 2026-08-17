@@ -215,11 +215,12 @@ FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
         ("2006", "2011", "2016", "2021"),
         "per-party level bounds from the plan (MK [0.3, 1.0] and the rest), "
         "chosen knowing every result up to 2021"),
-    "ward_pr_ratio_overrides": (
-        ("2021",),
-        "MK 0.80 is \"bounded by ActionSA's observed 0.77\", which is a 2021 "
-        "measurement. Only read when the measured ward/PR ratio has no "
-        "fallback to offer"),
+    # "ward_pr_ratio_overrides" was here. The key is gone (2026-08-17): it was
+    # consumed at no target, because the measured ward/PR fallback is available
+    # at all of them. Removed from FITTED_ON too, since a contamination entry
+    # for a constant that cannot be read reports a risk that does not exist --
+    # which is the same fault, in the other direction, as the phantom keys
+    # MODEL-LOG 1.29 removed from this list.
     "pa_contestation_uplift": (
         ("2021",),
         "1.25 because the PA fought 52 of 135 wards in 2021. Only read when "

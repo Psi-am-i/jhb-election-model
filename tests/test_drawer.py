@@ -96,8 +96,13 @@ PROCESSED = ROOT / "data" / "processed"
 # are now water-filled under each party's own pool capacity before balancing
 # (`montecarlo.capped_targets`, POOL_CAPACITY_MARGIN 0.98), which takes the rate
 # to 0.0%, and the remaining fallback is counted onto ModelRun and printed.
-# Nine city-years: eight bit-identical, Nelson Mandela Bay 2021 coherent seat
-# error 20 -> 16, total 312 -> 308. MODEL-LOG 1.33.
+# Nine city-years: NO BACKTEST CHANGE. The original note here claimed Nelson
+# Mandela Bay 20 -> 16 and a total of 312 -> 308; that was measured at 400 draws
+# and is draw noise. At 1500 draws, five seeds per arm, the two arms are 18.8 and
+# 19.2 with a seed-to-seed spread of 2 in both, and the committed history.json
+# gives NMB 20 and a total of 312. The re-record below is therefore justified by
+# the 2026 forecast alone, where the mechanism was absent from 42.7% of draws and
+# is now present in all of them. Corrected in MODEL-LOG 1.33 the same day.
 #
 # So these numbers move because a mechanism that was absent from two draws in
 # five is now present in all of them: the top parties widen (DA p5 16.38 ->
@@ -116,6 +121,25 @@ PROCESSED = ROOT / "data" / "processed"
 #     (montecarlo.TURNOUT_CORRELATION);
 #   * turnout bands built in logit space, so they are two-sided everywhere
 #     (pools.turnout_band).
+# RE-RECORDED 2026-08-17 (second time today), deliberately: THE DUNCAN-DAVIS
+# BOUNDS ARE NOW ENFORCED. `fit_city` balances through `balance_within_bounds`,
+# so no emitted rate sits outside the interval the ward arithmetic proves. The
+# old code emitted ELEVEN forbidden rates across the ten (city, fitting-year)
+# pairs a production emit uses — the worst being the DA at Nelson Mandela Bay
+# 2016, Black African 0.0059 against a proven floor of 0.0312, with the
+# difference parked in the White pool. MODEL-LOG 1.38.
+#
+# The movement here is the PA coming off a ceiling it should never have been on.
+# Its Johannesburg fit was a corner solution (Coloured 0.5149, exactly 0.0000 on
+# the other three pools) 10.5pp above its own arithmetic ceiling, which emitted
+# as a single-pool vector and made its 2026 level unrepresentable: the party was
+# held at its pool capacity in 39.2% of draws, worst ask 204% of capacity. After
+# the fix NOTHING is held in any draw, and the PA's mean rises 5.03% -> 5.76%
+# with its p95 7.24% -> 11.79%. The Coloured pool follows it (p95 12.16% ->
+# 16.08%) and the top of the ballot gives a little back.
+#
+# Nine city-years: 312 -> 306 coherent seat error, which is INSIDE the +/-2 to 4
+# draw noise and is NOT claimed as an improvement.
 # RE-RECORDED 2026-08-17, deliberately: THE ARRIVAL GROUP TOTAL IS NOW HELD TO
 # ITS RECORD. `pools.arrival_rules` sized each entrant at the MEDIAN of its
 # reach-matched comparators and wrapped it in a band running to the 95th
@@ -176,21 +200,21 @@ PROCESSED = ROOT / "data" / "processed"
 # docstring — renormalisation for A-to-B (plan item 3.1), the entrant rescale
 # for B-to-C.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (21.6825, 6.7394, 41.4421),
-    "DA": (30.5327, 14.7172, 49.1399),
-    "EFF": (10.4318, 1.7260, 22.9335),
-    "ASA": (12.6960, 2.8452, 27.1443),
-    "MK": (7.2116, 0.7886, 17.8433),
-    "PA": (5.0263, 1.9949, 7.2431),
-    "VFPLUS": (0.9617, 0.0031, 3.3041),
-    "ALJAMAAH": (1.2437, 0.2546, 2.7578),
-    "ENTRANT": (1.3984, 0.0000, 7.6308),
+    "ANC": (21.3048, 6.3764, 40.1474),
+    "DA": (30.6753, 14.7243, 51.3199),
+    "EFF": (10.5906, 1.5420, 23.7633),
+    "ASA": (12.2732, 2.4945, 26.1223),
+    "MK": (7.0389, 0.9031, 17.3470),
+    "PA": (5.7613, 2.0058, 11.7891),
+    "VFPLUS": (0.9786, 0.0033, 3.5956),
+    "ALJAMAAH": (1.2863, 0.3018, 2.6775),
+    "ENTRANT": (1.3310, 0.0000, 7.5057),
 }
 GOLDEN_POOLS = {
-    "Black African": (49.2771, 35.1126, 62.3582),
-    "Coloured": (9.2214, 5.9823, 12.1626),
-    "Indian/Asian": (6.2316, 4.5434, 8.3169),
-    "White": (33.8715, 22.4430, 47.2296),
+    "Black African": (48.9658, 32.9452, 62.4367),
+    "Coloured": (10.0224, 6.0616, 16.0779),
+    "Indian/Asian": (6.2043, 4.4594, 8.2893),
+    "White": (33.4766, 21.6827, 47.8104),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")

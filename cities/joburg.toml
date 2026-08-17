@@ -111,10 +111,6 @@ VFPLUS = [0.7, 1.2, 2.2]
 ACDP = [0.6, 1.2, 2.0]
 RISE = [0.3, 0.8, 1.5]
 
-[judgements.ward_pr_ratio_overrides]
-MK = 0.8
-ENTRANT = 0.8
-
 [judgements.scalars]
 f_other = [0.7, 1.3, 2.0]
 w_bye = 0.4

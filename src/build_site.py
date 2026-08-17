@@ -369,6 +369,12 @@ def main(argv: list[str] | None = None) -> int:
                              "JOHANNESBURG's, whatever --city says")
     parser.add_argument("--strict-drift", action="store_true",
                         help="treat pinned-stat drift as an error, not a warning")
+    parser.add_argument("--allow-orphans", action="store_true",
+                        help="publish even when a pinned claim is tied to a "
+                             "scenario key the model no longer has. Staging "
+                             "escape hatch only — the claim is a number on the "
+                             "page that cannot be re-derived or drift-checked, "
+                             "so say why in the commit if you use it.")
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
     cityconfig.use(getattr(args, "city", None))
@@ -436,6 +442,27 @@ def main(argv: list[str] | None = None) -> int:
         print("\nUNRESOLVED STATS — refusing to publish a silent blank:")
         for item in sorted(set(unresolved_all)):
             print(f"  ✗ {item}")
+        raise SystemExit(1)
+
+    # ORPHANED PINNED CLAIMS ARE FATAL TOO, since 2026-08-17. They were detected
+    # and PRINTED, which is a comment rather than an audit: ten front-page claims
+    # sat pinned to `turnout_tilt_da` — a lever `run_model` no longer has — for
+    # weeks, through two independent reviews that both named them, because
+    # nothing stopped the build. An unresolved token is fatal because it would
+    # publish a blank; an orphan is worse, because it publishes a NUMBER that
+    # reads as current and cannot be re-derived or drift-checked. Nothing in the
+    # pipeline could ever tell the reader it was stale.
+    #
+    # `--allow-orphans` exists so the fix can be staged: re-derive the claims
+    # under a mechanism that exists, or cut them. It should not survive that.
+    orphans = statlib.orphaned_scenario_claims(registry)
+    if orphans and not args.allow_orphans:
+        print("\nORPHANED PINNED CLAIMS — refusing to publish a number whose "
+              "mechanism the model no longer has:")
+        for name, key in orphans:
+            print(f"  ✗ {name}  (pinned to scenario key {key!r})")
+        print("  Re-capture each under a mechanism that exists, or cut the "
+              "claim. Pass --allow-orphans to publish anyway and say why.")
         raise SystemExit(1)
     n_pinned = sum(1 for e in registry.values() if e.get("mode") == "fixed")
     n_free = len(registry) - n_pinned

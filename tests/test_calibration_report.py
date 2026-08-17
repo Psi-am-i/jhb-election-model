@@ -40,11 +40,32 @@ CLASS 12 — AN ERROR THE HARNESS PRODUCES NO STATISTIC FOR. Not a wrong number:
     different remedy. A harness that reports neither number cannot tell the two
     apart, and a reviewer had to compute them by hand to find it.
 
-Both are tested here against COMPUTED NUMBERS rather than against the source
+CLASS 8, FOURTH INSTANCE — AND IT SHIPPED IN THE COMMIT THAT FIXED THE THIRD.
+    The pooled PIT mean added above is itself a signed average, one level up. It
+    runs over every claimed column at once, so a model that forecasts the top of
+    the ballot too HIGH and the middle too LOW has the two cancel and reports a
+    figure near 0.50. That is not a hypothetical: on the nine city-years the
+    claimed population pools to **0.588** and splits into **0.431 at ranks 1-3**
+    and **0.750 at ranks 4-12** (n=27 and n=26, cluster-bootstrap CIs [0.380,
+    0.479] and [0.674, 0.810], both excluding 0.50 in opposite directions). The
+    same rank ordering the band table already used was eleven lines away.
+
+    Width splits too, and the two coverage measures disagree where discreteness
+    bites: a nominal 50% interval covers 70% at ranks 1-3 and 46% at ranks 4-12
+    by `score.coverage`, but 27% at ranks 4-12 once the randomised PIT removes
+    the whole-endpoint inflation. So "the bands are the right width, do not
+    widen them" is right at the top of the ballot and wrong in the middle.
+
+    Tested here by a synthetic city-year set biased UP at ranks 1-3 and DOWN at
+    ranks 4-12 by equal amounts: the pooled mean PIT reads 0.485 and the
+    pre-fix report calls it "U-shaped — under-dispersed, widen it", which is the
+    wrong remedy for both bands at once.
+
+All of these are tested against COMPUTED NUMBERS rather than against the source
 text, because a grep for a column name is not a test that the column is right —
 which is the mistake `test_regressions.py` records at CLASS 8 itself.
 
-See MODEL-LOG §1.34.
+See MODEL-LOG §1.34 and §1.36.
 """
 
 from __future__ import annotations
@@ -113,6 +134,43 @@ def _synthetic_results(rng, n_city_years, parties_per, lam_forecast, lam_truth):
             "city": f"Synthetic{k}", "year": "2021",
             "calibration": C.calibration_columns(seat_draws, actual, None,
                                                  seed=10_000 + k),
+        })
+    return results
+
+
+def _banded_results(rng, n_city_years, lam_forecast, lam_truth_top,
+                    lam_truth_mid, per_band=3):
+    """City-years whose TOP of the ballot and MIDDLE are biased opposite ways.
+
+    ``per_band`` parties at ranks 1-3 and ``per_band`` at ranks 4-12, with the
+    truth drawn BELOW the forecast at the top and ABOVE it in the middle. Equal
+    band sizes and symmetric shifts, so the pooled mean PIT comes out at
+    ~0.50 — a forecast that reads perfectly centred and is not centred anywhere.
+
+    That is this model's own shape (claimed columns, committed history.json at
+    1500 draws: ranks 1-3 mean PIT 0.431, ranks 4-12 0.750, pooled 0.587) and it
+    is the case the pooled statistic shipped unable to see.
+
+    ``actual_pr`` is what supplies the ranking, and the shares are descending by
+    construction so party index is rank.
+    """
+    results = []
+    for k in range(n_city_years):
+        top = [f"T{k}_{j}" for j in range(per_band)]
+        mid = [f"M{k}_{j}" for j in range(per_band)]
+        d_top, a_top = _poisson_forecast(rng, top, lam_forecast, lam_truth_top)
+        d_mid, a_mid = _poisson_forecast(rng, mid, lam_forecast, lam_truth_mid)
+        seat_draws = [{**x, **y} for x, y in zip(d_top, d_mid)]
+        actual = {**a_top, **a_mid}
+        # descending shares: the ``top`` parties rank 1..per_band, the ``mid``
+        # parties rank per_band+1.. -- so with per_band=3 they land exactly on
+        # the 1-3 / 4-12 boundary the vote table already uses.
+        parties = top + mid
+        actual_pr = {p: 1.0 - 0.01 * i for i, p in enumerate(parties)}
+        results.append({
+            "city": f"Banded{k}", "year": "2021",
+            "calibration": C.calibration_columns(
+                seat_draws, actual, None, seed=30_000 + k, actual_pr=actual_pr),
         })
     return results
 
@@ -467,6 +525,315 @@ def test_the_report_prints_the_pooled_calibration_numbers():
             f"whether the bands are the right WIDTH; PIT says whether they are "
             f"in the right PLACE. One without the other cannot separate a level "
             f"fault from a dispersion fault.")
+
+
+# ---------------------------------------------------------------------------
+# CLASS 8 again — a pooled mean over two opposite biases is not a measure of bias
+# ---------------------------------------------------------------------------
+
+def test_pooled_pit_is_split_by_rank_band_and_the_bands_disagree():
+    """The fault that shipped one day after the identical fault was fixed.
+
+    ``rank_bands`` reported a SIGNED SUM inside a band, so two parties wrong in
+    opposite directions cancelled and the band read accurate. That was fixed.
+    In the same commit the pooled PIT mean shipped doing the same thing one
+    level up: it averages over ALL claimed columns, and if the top of the ballot
+    is forecast too high while the middle is forecast too low, the mean sits
+    between them and reports a well-centred forecast.
+
+    The fixture makes that explicit and unarguable. Equal band sizes, equal and
+    opposite shifts, so the POOLED mean PIT is ~0.50 — indistinguishable from a
+    perfectly centred forecast — while ranks 1-3 are far below 0.50 and ranks
+    4-12 far above it. A statistic that cannot separate these two cases cannot
+    be quoted about direction at all, and it was being quoted about direction in
+    ``ITERATING.md`` rule 8.
+
+    The model's own figures (claimed columns, committed history.json, 1500
+    draws): pooled 0.587, ranks 1-3 0.431, ranks 4-12 0.750.
+    """
+    rng = np.random.default_rng(31337)
+    results = _banded_results(rng, n_city_years=9, lam_forecast=40.0,
+                              lam_truth_top=32.0, lam_truth_mid=48.0)
+    pooled = C.pooled_calibration(results)
+    block = pooled["claimed"]
+
+    assert "by_band" in block, (
+        "pooled_calibration reports no split by rank band. The pooled mean PIT "
+        "is an average over every claimed column, and this fixture is biased "
+        "UP at ranks 1-3 and DOWN at ranks 4-12 by the same amount — so the "
+        "pooled figure reads ~0.50 and the forecast is not centred anywhere. "
+        "That is the same defect as a signed error sum inside a rank band, and "
+        "it shipped in the same commit that fixed one.")
+
+    bands = block["by_band"]
+    for label in ("1-3", "4-12"):
+        assert label in bands, (
+            f"no pooled calibration for ranks {label}. The rank ordering is "
+            f"already computed by rank_band_of and used by the vote table; the "
+            f"calibration must split on the same one or the two instruments "
+            f"cannot be read against each other.")
+
+    pooled_mean = block["pit"]["mean"]
+    assert abs(pooled_mean - 0.5) < 0.05, (
+        f"the fixture is meant to pool to ~0.50 and pooled to {pooled_mean:.3f}; "
+        f"fix the fixture, not the assertion — the whole point is a case the "
+        f"pooled statistic calls unbiased")
+
+    top, mid = bands["1-3"]["mean_pit"], bands["4-12"]["mean_pit"]
+    assert top < 0.40, (
+        f"ranks 1-3 pooled to mean PIT {top:.3f} on a band whose truth is a "
+        f"standard deviation BELOW the forecast. The band statistic is not "
+        f"seeing an over-forecast it is being handed.")
+    assert mid > 0.60, (
+        f"ranks 4-12 pooled to mean PIT {mid:.3f} on a band whose truth is a "
+        f"standard deviation ABOVE the forecast")
+    assert (top - 0.5) * (mid - 0.5) < 0, (
+        f"ranks 1-3 ({top:.3f}) and ranks 4-12 ({mid:.3f}) come out on the same "
+        f"side of 0.50. The two bands are not being separated at all, so the "
+        f"split reports the pooled answer twice.")
+
+    # And the split must distinguish this from a forecast that really IS
+    # unbiased everywhere — otherwise the new columns are decoration.
+    calibrated = C.pooled_calibration(
+        _banded_results(np.random.default_rng(31337), 9, 40.0, 40.0, 40.0)
+    )["claimed"]["by_band"]
+    spread = abs(top - mid)
+    null_spread = abs(calibrated["1-3"]["mean_pit"] - calibrated["4-12"]["mean_pit"])
+    assert spread > null_spread + 0.25, (
+        f"the biased fixture separates its bands by {spread:.3f} and an "
+        f"unbiased one by {null_spread:.3f}. The split is not measuring the "
+        f"thing it was added for.")
+
+    # The CIs are what turn "the bands differ" into a claim. Both must exclude
+    # 0.50, in opposite directions -- which is what the model's own claimed
+    # population does: [0.380, 0.480] and [0.673, 0.810].
+    lo_top, hi_top = bands["1-3"]["ci"]
+    lo_mid, hi_mid = bands["4-12"]["ci"]
+    assert hi_top < 0.5 < lo_mid, (
+        f"cluster-bootstrap CIs [{lo_top:.3f}, {hi_top:.3f}] and "
+        f"[{lo_mid:.3f}, {hi_mid:.3f}] do not straddle 0.50 in opposite "
+        f"directions. Without that the two band means are a difference anyone "
+        f"can call noise.")
+
+
+def test_band_coverage_pools_the_same_columns_the_population_does():
+    """Split coverage must be the population's coverage, partitioned.
+
+    Coverage is reported per band as well as pooled, and the pooled figure comes
+    from ``score.coverage`` over the whole population while the band figures
+    come from per-column hits. If those two paths ever disagree, one of them is
+    counting columns the other is not and every band row is unreadable. The
+    bands plus ``off-ballot`` are a partition of the population, so both the
+    numerators and the denominators must add up exactly.
+    """
+    rng = np.random.default_rng(99)
+    results = _banded_results(rng, n_city_years=6, lam_forecast=12.0,
+                              lam_truth_top=9.0, lam_truth_mid=15.0)
+    pooled = C.pooled_calibration(results)["claimed"]
+
+    band_n = sum(b["n"] for b in pooled["by_band"].values())
+    assert band_n == pooled["n"], (
+        f"the bands hold {band_n} columns and the population {pooled['n']}. "
+        f"The rank bands plus off-ballot are a partition; if they are not, some "
+        f"columns are counted twice or dropped and the band means are averages "
+        f"over an unknown set.")
+
+    for row in pooled["coverage"]:
+        level = row["level"]
+        inside = counted = 0
+        for block in pooled["by_band"].values():
+            hit = [r for r in block["coverage"] if r["level"] == level][0]
+            inside += hit["inside"]
+            counted += hit["counted"]
+        assert (inside, counted) == (row["inside"], row["counted"]), (
+            f"at the {level:.0%} level the bands sum to {inside}/{counted} and "
+            f"score.coverage over the whole population gives "
+            f"{row['inside']}/{row['counted']}. The per-column hits and the "
+            f"pooled coverage are not the same measurement.")
+
+
+def test_the_width_verdict_is_reported_free_of_discreteness_inflation():
+    """The reviewer's 27% and the harness's 46% are two different statistics.
+
+    `score.coverage` reads the empirical quantile interval, which on integer
+    seats has to include whole endpoints and so over-covers — its own docstring
+    says as much. The randomised PIT does not. On the real ranks 4-12 the gap is
+    19 points (interval 0.46, PIT-corrected 0.27) and it decides the width
+    verdict; on the real ranks 1-3, whose forecast distributions are tens of
+    seats wide, one endpoint is a negligible share of the interval and the two
+    measures come out equal (0.704 both ways).
+
+    So the fixture puts one band on a forecast so wide that discreteness cannot
+    matter and one on a forecast two seats wide, both PERFECTLY calibrated, and
+    asserts that the gap appears where discreteness is and not where it is not.
+    A report printing only the quantile coverage would call the small band's
+    intervals adequate — which is exactly the mistake available on ranks 4-12.
+    """
+    # 20 city-years, so the null is asserted on ~60 and ~180 columns rather than
+    # on 27, where a perfectly calibrated band sits two standard errors from
+    # nominal often enough to make the test a coin toss.
+    rng = np.random.default_rng(808)
+    results = []
+    for k in range(20):
+        big = [f"B{k}_{j}" for j in range(3)]     # ranks 1-3, tens of seats
+        small = [f"S{k}_{j}" for j in range(9)]   # ranks 4-12, two or three
+        d_big, a_big = _poisson_forecast(rng, big, 4000.0, 4000.0)
+        d_small, a_small = _poisson_forecast(rng, small, 2.0, 2.0)
+        seat_draws = [{**x, **y} for x, y in zip(d_big, d_small)]
+        parties = big + small
+        results.append({
+            "city": f"Discrete{k}", "year": "2021",
+            "calibration": C.calibration_columns(
+                seat_draws, {**a_big, **a_small}, None, seed=50_000 + k,
+                actual_pr={p: 1.0 - 0.01 * i for i, p in enumerate(parties)}),
+        })
+    bands = C.pooled_calibration(results)["all"]["by_band"]
+
+    def at(block, key, level):
+        return [r for r in block[key] if r["level"] == level][0]["empirical"]
+
+    big_gap = at(bands["1-3"], "coverage", 0.5) - at(bands["1-3"], "pit_coverage", 0.5)
+    small_gap = at(bands["4-12"], "coverage", 0.5) - at(bands["4-12"], "pit_coverage", 0.5)
+
+    assert abs(big_gap) < 0.05, (
+        f"a band whose forecast spans ~130 integers shows a {big_gap:+.3f} gap "
+        f"between quantile coverage and PIT coverage. There is nothing for "
+        f"discreteness to inflate at that scale, so the two statistics are not "
+        f"measuring the same thing at all.")
+    assert small_gap > 0.10, (
+        f"a band of parties on ~2 seats shows only a {small_gap:+.3f} gap. On "
+        f"the real ranks 4-12 it is 0.19, and it is the whole reason the raw "
+        f"coverage there reads adequate while the model's intervals are not.")
+    assert at(bands["4-12"], "pit_coverage", 0.5) > 0.40, (
+        f"the PIT coverage of a PERFECTLY calibrated small-party band is "
+        f"{at(bands['4-12'], 'pit_coverage', 0.5):.3f} against a nominal 0.50. "
+        f"The corrected statistic must pass the null, or its verdict on the "
+        f"model's 0.27 is unreadable.")
+
+
+def test_the_report_prints_the_per_band_calibration_and_not_only_the_pool():
+    """Computed and not printed is the same as not computed.
+
+    This is the lesson `rank_bands` had already taught: the absolute band error
+    could have been returned by the function for months and the published table
+    still showed one number per band. So assert on the rendered text, by the
+    NUMBERS it must contain rather than by a heading.
+    """
+    rng = np.random.default_rng(606)
+    results = _banded_results(rng, n_city_years=9, lam_forecast=40.0,
+                              lam_truth_top=32.0, lam_truth_mid=48.0)
+    text = C.render_calibration(results)
+    bands = C.pooled_calibration(results)["claimed"]["by_band"]
+
+    for label in ("1-3", "4-12"):
+        mean = f"{bands[label]['mean_pit']:.3f}"
+        assert mean in text, (
+            f"the report does not print the mean PIT for ranks {label} "
+            f"({mean}). The pooled figure it does print is the average of this "
+            f"one and its opposite, and a reader acting on it would reach the "
+            f"wrong conclusion about both bands.")
+        assert str(bands[label]["n"]) in text, (
+            f"no denominator printed for ranks {label} (n={bands[label]['n']})")
+        for key in ("coverage", "pit_coverage"):
+            for row in bands[label][key]:
+                assert f"{100 * row['empirical']:.0f}%" in text, (
+                    f"ranks {label}: {key} at the {row['level']:.0%} level "
+                    f"({row['inside']}/{row['counted']}) is not printed. Width "
+                    f"is band-dependent here — a nominal 50% interval covers "
+                    f"70% at ranks 1-3 and 27% at ranks 4-12 on the real data "
+                    f"once discreteness is corrected for — so a single pooled "
+                    f"coverage row answers the width question wrongly for both.")
+
+    assert "under-forecasts" not in text or "over" in text, (
+        "the calibration prose still says a high pooled mean means 'the model "
+        "under-forecasts' with nothing beside it. That is false of this model: "
+        "it over-forecasts ranks 1-3 and under-forecasts ranks 4-12.")
+
+
+def test_the_all_population_is_selected_on_the_outcome_and_says_so():
+    """`all` was documented as neutral. `score.seat_matrix` makes it a mixture.
+
+    A column is admitted when ``truth[i] > 0 or samples[:, i].max() > 0``. The
+    second clause selects on the forecast, which is neutral; the FIRST selects on
+    the outcome — a party is in the population because it WON. On the real nine
+    city-years five of the 331 ``all`` columns carry PIT exactly 1.0: parties
+    given zero seats in every single draw, present only because they won one.
+
+    Asserted by construction rather than by reading the docstring: a party the
+    forecast never gives a seat to, which nevertheless wins seats, must appear in
+    ``all``, must NOT appear in ``claimed``, and must carry PIT 1.0. `score.py`
+    is deliberately not changed — the rule is right for CRPS, which is what it
+    is for. What was wrong was the label.
+    """
+    rng = np.random.default_rng(5)
+    parties = [f"Z{j}" for j in range(6)]
+    seat_draws, actual = _poisson_forecast(rng, parties, 8.0, 8.0)
+    # a party the model is certain gets nothing, and which wins four seats
+    for d in seat_draws:
+        d["GHOST"] = 0
+    actual["GHOST"] = 4
+    actual_pr = {p: 1.0 - 0.01 * i for i, p in enumerate(parties + ["GHOST"])}
+
+    blocks = C.calibration_columns(seat_draws, actual, None, seed=1,
+                                   actual_pr=actual_pr)
+    assert "GHOST" in blocks["all"]["parties"], (
+        "a party with a zero forecast in every draw and four actual seats is "
+        "not in the `all` population, so the admission rule is not what "
+        "score.seat_matrix documents")
+    assert "GHOST" not in blocks["claimed"]["parties"], (
+        "`claimed` admitted a party the forecast never gives a seat to — then "
+        "it is not forecast-selected either and nothing in this report is a "
+        "neutral test")
+    pit = blocks["all"]["pit"][blocks["all"]["parties"].index("GHOST")]
+    assert pit == 1.0, (
+        f"the outcome-admitted column has PIT {pit:.3f} rather than exactly "
+        f"1.0. It is the extreme value the population can take and five real "
+        f"columns sit on it; if it no longer does, the mechanism that makes "
+        f"`all` non-neutral has changed and the labelling must be rechecked.")
+
+    label = C._POP_LABEL["all"]
+    assert "outcome" in label.lower(), (
+        f"`all` is labelled {label!r}, which does not tell the reader that some "
+        f"of its columns are there because the party WON. A population "
+        f"described as neutral gets quoted as the honest test; this one is a "
+        f"mixture and `claimed` is the honest test.")
+
+
+def test_the_vote_bands_and_the_calibration_bands_are_the_same_partition():
+    """Two instruments, one ballot. They must be split on the same rule.
+
+    The whole force of the finding is that the signed vote bands (+32.50pp at
+    ranks 1-3, −37.34pp at 4-12, committed history.json at 1500 draws) and the
+    per-band PIT (0.431 / 0.750) are the SAME statement measured twice. That
+    only holds if "ranks 1-3" means the same parties in both tables — so both
+    go through ``rank_band_of`` and this test asserts they agree party by party.
+    """
+    actual_pr = {"ANC": 0.3322, "DA": 0.2545, "ASA": 0.1812, "EFF": 0.1011,
+                 "PA": 0.0296, "IFP": 0.0236, "VFPLUS": 0.0133,
+                 "ACDP": 0.0103, "ALJAMAAH": 0.0083, "AIC": 0.0069,
+                 "AHC": 0.0043, "GOOD": 0.0033, "SMALL": 0.0011}
+    membership = C.rank_band_of(actual_pr)
+    assert membership["ANC"] == membership["DA"] == membership["ASA"] == "1-3"
+    assert membership["EFF"] == membership["GOOD"] == "4-12"
+    assert membership["SMALL"] == "13+"
+
+    run = _Run({p: s for p, s in actual_pr.items()})
+    bands = C.rank_bands(run, actual_pr, {})
+    for label in ("1-3", "4-12", "13+"):
+        expected = sum(1 for b in membership.values() if b == label)
+        assert bands[label]["n"] == expected, (
+            f"rank_bands counts {bands[label]['n']} parties in band {label} and "
+            f"rank_band_of {expected}. The vote table and the calibration table "
+            f"would then be splitting the ballot differently while using the "
+            f"same band names, which is worse than not splitting it at all.")
+
+    seat_draws = [{p: 1 for p in actual_pr} for _ in range(20)]
+    blocks = C.calibration_columns(seat_draws, {p: 1 for p in actual_pr}, None,
+                                   seed=1, actual_pr=actual_pr)
+    for party, label in zip(blocks["all"]["parties"], blocks["all"]["band"]):
+        assert label == membership[party], (
+            f"{party} is band {label} in the calibration block and "
+            f"{membership[party]} in rank_band_of")
 
 
 if __name__ == "__main__":

@@ -29,7 +29,7 @@ be.
 | Dimension registry (n-dimensional) | `config/dimensions.toml` | — | — |
 | Base dimension = population group | Census 2022 ward tables | MEASURED | census pre-dates the 2026 target ✅ |
 | Tilt dimensions (age, sex) | same | MEASURED and **REJECTED** by the gate | — |
-| Party pool vectors | `pools.fit_city`, shrunk toward `pools.fit_national` | MEASURED, 742 wards / 8 metros | the fitting election only ✅ |
+| Party pool vectors | `pools.fit_city`, balanced by **`balance_within_bounds`** | MEASURED, 742 wards / 8 metros | the fitting election only ✅ |
 | Lower/upper bounds per rate | `pools.bounds` (Duncan-Davis) | MEASURED, arithmetic only | ✅ |
 | Pool ratio ranges | `pools.measure_pool_ratios` | MEASURED, 16 metro transitions | 2011→2016, 2016→2021 |
 | Pool α | `pools.dirichlet_alpha` | MEASURED, method of moments, size-weighted | ditto |
@@ -55,29 +55,51 @@ rescaled to the city's own level, because direction transfers between cities and
 magnitude does not (Al Jama-ah is Indian-shaped in both metros, at 0.8% and
 0.1%).
 
-**The Duncan-Davis bounds are COMPUTED AND NOT ENFORCED. Corrected 2026-08-17.**
-This paragraph said "every estimate is projected into its Duncan-Davis interval"
-from the day it was written, and nothing projects: `pools.bounds` is read at
-exactly one place, `PoolFit.identified` (`pools.py:884-887`), where a narrow
-bound sets a display flag. No rate is clipped to it, at any stage.
+**The Duncan-Davis bounds are now ENFORCED, since 2026-08-17.** For most of this
+document's life this paragraph claimed "every estimate is projected into its
+Duncan-Davis interval" and nothing projected: `pools.bounds` was read at exactly
+one place, `PoolFit.identified`, where a narrow bound set a display flag. No rate
+was clipped to it, at any stage.
 
-The bounds themselves are real and are arithmetic: pooled over the metros the
-ANC's rate among Coloured voters is provably ≥ 0.4% and among Indian voters
-≥ 0.7%, and the unconstrained fit answers 0.2% for both — below its own proven
-floor, and left there. Where the bound stays wide (ANC among white voters,
-0–20.4%) the rate is flagged unidentified and is a judgement, not a finding.
+`fit_city` now balances through **`balance_within_bounds`** rather than
+`balance_margins`. Each half-step scales a row or column by the factor that lands
+its *clipped* sum on the known total — a Bregman projection onto a convex set,
+the same object as the unbounded half-step — so the fit satisfies the arithmetic
+bounds **and** both known margins at once. Across the ten (city, fitting-year)
+pairs a production emit uses, the old code emitted **11 forbidden rates**; it now
+emits none, with rows exact to 1e-9 and the worst citywide share off by 5.6e-17.
 
-**This is not a documentation defect; it is the cause of a live one.** The PA's
-Johannesburg 2021 fit is a corner solution — 0.5149 on Coloured, exactly 0.0000
-on the other three pools, which is FISTA's simplex projection sitting on the
-non-negativity boundary — and 0.5149 is **10.5pp above the PA's own Duncan-Davis
-ceiling of 0.410**. Implied, that corner gives the PA 34,170 Johannesburg votes
-against an actual 27,346, and the ward geography refutes it directly: binning
-all 135 wards by Coloured share, 28.1% of the PA's vote arises in wards under
-30% Coloured (18.2% in 10–30%, 9.9% under 10%). The emitted "Coloured 1.0000"
-vector is that corner, and it is what makes the PA's 2026 level unrepresentable
-by the pool layer — see §2 and MODEL-LOG §1.33. Projecting the fit into its
-bounds is open work with its own measurement to do; it has not been done.
+**Both halves are necessary and neither is sufficient**, which is the part worth
+remembering. IPF is multiplicative, so a cell at exactly zero is a fixed point:
+no iteration can move it, which is why `balance_margins` could never repair a
+corner solution. Bounds alone therefore do not converge — a PA capped at 27,183
+votes and zeroed elsewhere cannot account for its own 27,346. Seeding alone
+leaves the corner untouched, because with no ceiling the Coloured cell absorbs
+the whole total by scaling and no votes are ever unplaced. **The bound is what
+creates unplaced votes; the seed is only what lets a multiplicative iteration
+place them.**
+
+**It was never only the PA.** The worst violation on record is the **DA at Nelson
+Mandela Bay 2016: Black African 0.0059 against a proven floor of 0.0312** — 5.3×
+below what the ward arithmetic shows it won, with the difference parked in the
+White pool. The DA sits below its Black African floor in **four** cities. The PA
+case was simply the one whose downstream consequence was loud enough to notice:
+its Johannesburg 2021 corner (0.5149 Coloured, exactly 0.0000 on the other three)
+implied 34,170 votes against an actual 27,346, and produced the "Coloured 1.0000"
+vector that made its 2026 level unrepresentable by the pool layer.
+
+**What it fixed downstream.** The per-draw capacity cap (§2) existed to guard
+exactly this. It is now **inert on Johannesburg 2026**: the PA was held at
+capacity in 39.2% of draws with a worst ask of 204%, and after the fix nothing is
+held in any draw.
+
+**The honest limit.** Projection removes only *refutable* corners. The PA's
+non-Coloured share reaches 0.58%, not the ~5.7% its ward geography suggests,
+because Duncan-Davis cannot exclude that all 1,173 of its votes in wards under
+2% Coloured came from those wards' own 6,674 Coloured voters. Arithmetic forces
+only 163 votes out of the pool. Reaching 6% would require a model, and the model
+that does it fits the ward table 20× worse (MODEL-LOG §1.38). The PA at **Cape
+Town 2016 is still Coloured 1.0000**, and nothing in that ward table forbids it.
 
 **Time and geography.** Censuses are a decade apart, so composition is
 interpolated to polling day in log-share space and damped-extrapolated beyond
@@ -116,7 +138,7 @@ touched.
 
 | Piece | Where | Source | Notes |
 |---|---|---|---|
-| **θ** national→local retention | `levels.theta_record` | MEASURED, 8 metros, strictly pre-target | 235 observations at 2026 |
+| **θ** national→local retention | `levels.theta_record` | MEASURED, 8 metros, strictly pre-target | **257** observations at 2026 (ρ: 229). The 235 quoted here until 2026-08-17 was the *n* of a different table in `levels.py`; the run prints the real figure. |
 | **ρ** local→local retention | `levels.local_record` | MEASURED, consecutive LGE pairs | the second route |
 | **The spine** — blend of the two | `levels.spine` | MEASURED, `k = 1.0` fitted leave-one-metro-out | weight on the LOCAL route is `k/(worth+k)` |
 | Size-dependent centre | `levels.size_centre` | MEASURED, `log θ = a + b·log(size)` | small parties gain locally (1.31 at <0.2%), large lose (0.94 at >10%) |
@@ -210,7 +232,7 @@ party**.
 
 | class | definition | how it is sized | how well it works |
 |---|---|---|---|
-| **First local election** | has a national baseline, never faced an LGE | `pools.first_local_election`: national base × parent θ × ward reach × coherence | **78% within a factor of two**, 45 cases, median ratio 0.85 |
+| **First local election** | has a national baseline, never faced an LGE | **`levels.spine`**, like every other party with a national record — the national and local routes blended by how much θ evidence the party has. There is no separate first-local mechanism; `pools.first_local_election` was deleted 2026-08-17 (MODEL-LOG §1.35) having never been read by any forecast. | **76% within a factor of two**, 45 cases, median ratio 0.78 |
 | **Arrival** | no national vote at all | `pools.arrival_rules`: the entrant GROUP is rescaled to the arrival-total record (`_arrival_total_prior`, median of prior city-years), and split between entrants by reach-matched mean. A splinter takes a fraction of its parent instead and is not rescaled. | **22% within a factor of two** individually, 7 of 32 — but the group TOTAL is now held to the record |
 
 **Why the group and not the party (2026-08-17, MODEL-LOG §1.32).** Sizing each
@@ -225,6 +247,28 @@ reach carries real signal — arrivals contesting 60–90% of wards clear 0.5% a
 (−37.1 → −37.3pp) under any variant, because nothing on a nomination list says
 which of twenty equally-wide-reaching parties will be the one that takes 2.83%.
 
+**Correction, 2026-08-17 — this row credited the wrong mechanism for two weeks.**
+It named `pools.first_local_election` and quoted "78% within a factor of two, 45
+cases, median ratio 0.85". That function is computed, written to the emitted
+spec, and **read by nothing**; `run_model` never loads its key. The 78% figure
+reproduces for **the spine**, to within one case in 45 — because the instrument
+that produced it, `src/arrivals.py`, scores `run.pr_share_draws`, i.e. whatever
+actually ran. Confirmed by reproducing the entry's companion figure (`arrivals:
+7/32`) exactly.
+
+Measured properly across 46 parties on this path and nine city-years, the spine
+beats the dead function on all three statistics — MAE 0.176 vs 0.224pp, median
+ratio 0.78 vs 0.59, within-2× 76% vs 62% — winning **8 of 9 city-years**
+(clustered sign test p ≈ 0.039; the unclustered 36/46 at p = 0.00016 is
+optimistic because parties share city-years). No rescale or blend recovers it.
+The function is being deleted; MODEL-LOG §1.35 carries the measurement.
+
+**The finding of this section survives intact. Only the mechanism credited with
+it was fictional** — which is worse than a wrong number, because a reader
+checking the claim would have found the function, read its docstring, and been
+satisfied. MK's forecast rests on the spine's 11.76%, not on the 8.18% that
+function emits.
+
 **So the model is good at NEW parties and bad at UNKNOWN ones.** MK in 2026 is
 in the first class (12.2% of Johannesburg's 2024 national vote, seeded at 8.18%),
 as are RISE and BOSA. ActionSA in 2021 was in the second (no 2019 national vote
@@ -237,7 +281,6 @@ at all) and the model gave it 6.9% against 18.12%.
 | Slots | **one** generic ENTRANT | — | reality delivers 11 to 32 arrivals per metro |
 | `SPLINTER_PARENT_WEIGHT` = 0.35 | `pools.py` | MEASURED, 22 splinter-metro cases | a splinter's vector is 35% its parent's and 65% the city average |
 | `MIN_HOME_SPLITS` = 2 | `pools.py` | **JUDGED** | binary home/away where ActionSA shows a gradient (0.611/0.315/0.289/0.103) |
-| `coherence` | `judgements/` | **JUDGED**, default 1.0 | the largest single lever: COPE 0.12 against the EFF 1.26, and nothing measurable separated them beforehand |
 | `SPLIT_SD_FLOOR` = 0.90 | `pools.py` | **JUDGED floor** on a measured spread | binds at target 2016 where the pooled record's log-sd is 0.286 |
 | Ward reach | `levels.contestation` | MEASURED, nomination lists | corr(reach, log vote) = **+0.393** for arrivals; seat-winners have median reach 99% against 33% |
 | Arrivals as a group | `pools.arrival_group_spec` | MEASURED | **BUILT AND NOT ADOPTED** — scored worse; see MODEL-LOG |
@@ -291,7 +334,7 @@ PA and PAC — a degenerate solution reported as converged.
 | Ward/PR split ratio | previous LGE, per party | MEASURED | ✅ |
 | `ward_pr_ratio_overrides` | DEFAULTS | **JUDGED** | MK 0.80 "bounded by ActionSA's observed 0.77" — 2021 |
 | `pa_contestation_uplift` = 1.25 | DEFAULTS | **JUDGED** | PA's 2021 ward count |
-| Ward contestation | **not modelled** | — | all parties contest all wards; reality is a median of 26 of 54 |
+| Ward contestation | **MEASURED** since §1.29 | `levels.contestation`, from nomination lists; applied to the ward/PR ratio at `montecarlo.py:2080-2085` | 55 parties at 2021, median party contests 39% of wards. This row said "not modelled — all parties contest all wards" until 2026-08-17, contradicting §3 of this same document, which correctly listed it as MEASURED. |
 | `ward_noise_sd` = 0.10 | DEFAULTS | JUDGED | applied to ward tallies, not to shares |
 | Schedule 1 quota + largest remainder | `seats.py` | STATUTE | ✅ verified against the IEC, 6 city-years |
 | `eligible_parties` (C/D exclusions) | `seats.py` | STATUTE | ✅ |
@@ -305,11 +348,34 @@ PA and PAC — a degenerate solution reported as converged.
 | Piece | Where | Source |
 |---|---|---|
 | CRPS, PIT, coverage, energy, variogram | `score.py` | — |
+| Pooled calibration **split by rank band** | `compare_history.pooled_by_band`, sharing `rank_band_of` with the band table so the two cannot mean different sets of parties | — |
 | Brier + reliability on ward winners | `score.py` | — |
 | Rank bands, SIGNED and ABSOLUTE, plus phantom mass | `compare_history.rank_bands` | — |
 | Pooled coverage + pooled randomised PIT, three populations | `compare_history.calibration_columns` / `.pooled_calibration` | — |
 | Ground truth | `backtest.actual_result`, asserted against `official_seats` | ✅ |
 | Benchmarks (last-LGE, uniform swing, prior-LGE-noise) | `benchmarks.py` | pre-target only ✅ |
+**Read the bands, not the pool (2026-08-17, MODEL-LOG §1.36).** The pooled mean
+PIT over the claimed columns is 0.588 — and it is the average of **0.431 at ranks
+1-3** (the model over-forecasts the top of the ballot) and **0.750 at ranks 4-12**
+(it under-forecasts the middle), with both cluster-bootstrap CIs excluding 0.50 in
+opposite directions. A signed average across bands with opposite errors is not a
+measure of bias, for the same reason a signed sum is not a measure of error, and
+this project shipped both faults two days apart. The width verdict is
+band-dependent too: a nominal 50% interval covers **70%** at ranks 1-3 and **27%**
+at ranks 4-12 on the PIT-corrected measure — so widening is the wrong fix at the
+top and the right one in the middle.
+
+Two coverage statistics are printed and they differ legitimately.
+`score.coverage`'s empirical quantile interval gives 0.462 for that same band,
+because on integer seats it must include whole endpoints and over-covers by 19
+points where parties hold one to ten seats. They agree exactly (0.704) at ranks
+1-3, where the distributions are tens of seats wide. The PIT-corrected figure is
+the width verdict.
+
+The `all` population is **not** neutral: `score.py` admits a column if the party
+won a seat, regardless of the forecast, so it is a mixture of a neutral set and an
+outcome-selected one and is labelled that way.
+
 | Generic `ENTRANT` renamed to the party that arrived | `backtest.relabel_run`, once on the run before any table | ✅ |
 
 The model draws a *generic* entrant — it cannot know a new party's name — so
@@ -375,7 +441,7 @@ and this model has the second one — see MODEL-LOG §1.34.
 
 ## Summary of what is switched off
 
-`entrant_geography` · `w_bye_local_*` · `arrival_group_draw` · `polling_lean`
+`entrant_geography` · `w_bye_local_*` · `arrival_group_draw` — and the legacy `poll_id`/`poll_weight`/`poll_k` path, superseded by the metro-poll inverse-variance blend and reachable only by setting `poll_id`. `polling_lean`/`polling_span` were listed here as *switched off*; they are **deleted** (2026-08-17), having been computed, passed to `pool_spec` as an argument it never read, and printed. "Switched off" and "deleted" are different claims and this line made the wrong one for one commit.
 
 `poll_weight` has LEFT this list: metro polls now blend automatically for any
 target that has one, and `polls.json` carries machine-readable fieldwork dates.
@@ -385,7 +451,7 @@ scored worse, for a reason recorded in MODEL-LOG rather than guessed at.
 Two things are switched ON but cannot be exercised by any backtest, and must be
 labelled as argued rather than tested wherever they are quoted: `w_bye` (the
 by-election scrape covers 2022-06 to 2026-02, so no past target has any) and the
-15% under-bias correction on the first-local-election path (44 of its 45 cases
+15% under-bias correction on the first-local-election path (**42** of its 45 cases
 fall at 2021, so a backtest there has one prior case to fit on) — the latter
 identified but NOT applied.
 
@@ -399,9 +465,9 @@ mismatch across a delimitation produced for Tshwane 2026.
 
 ## Summary of what is judged and saw the targets
 
-`entrant_prob` · `entrant_share` · `coherence` · `MIN_HOME_SPLITS` ·
+`entrant_prob` · `entrant_share` · `MIN_HOME_SPLITS` ·
 `SPLIT_SD_FLOOR` · `LEVEL_DF` · `level_sd_default` · `w_bye` ·
-`ward_pr_ratio_overrides` · `pa_contestation_uplift`
+`pa_contestation_uplift` — and note it is consumed at **2026 only** (`run.constants_read`), so it cannot contaminate any backtest. `ward_pr_ratio_overrides` was here until 2026-08-17 and is **deleted**: consumed at no target at all.
 
 `theta_mode`, `PLAN_BOUNDS`, `individual_theta` and `f_other` have LEFT this
 list as live constants — the spine measures the level from transitions strictly

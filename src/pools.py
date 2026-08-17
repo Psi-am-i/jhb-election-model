@@ -1011,6 +1011,138 @@ def balance_margins(R: np.ndarray, electorate: np.ndarray,
     return counts / np.maximum(electorate, 1e-12)[:, None]
 
 
+def _scale_into_box(x: np.ndarray, lo: np.ndarray, hi: np.ndarray,
+                    target: np.ndarray, steps: int = 100) -> np.ndarray:
+    """Rescale each ROW by one factor so its clipped sum lands on ``target``.
+
+    This is the box-constrained version of a single IPF half-step. Plain IPF
+    multiplies a row by ``target / rowsum``; that is exactly the factor found
+    here when nothing binds, and when a cell hits a wall the factor keeps
+    growing so the row still reaches its total out of the cells that can still
+    move. ``sum(clip(f*row, lo, hi))`` is continuous and non-decreasing in
+    ``f``, so bisection finds it — and a cell fixed at ``lo`` (a party the
+    arithmetic says *must* draw from this pool) is reached even from a hard
+    zero, which no multiplicative step can do.
+
+    ``target`` is clipped into ``[sum(lo), sum(hi)]`` first, because nothing
+    outside that is reachable at any factor; the caller checks feasibility and
+    reports, so this clip is a guard rather than a silent repair.
+    """
+    want = np.clip(target, lo.sum(axis=1), hi.sum(axis=1))
+    f_lo = np.zeros_like(want)
+    f_hi = np.ones_like(want)
+    for _ in range(200):
+        short = np.clip(x * f_hi[:, None], lo, hi).sum(axis=1) < want
+        if not short.any():
+            break
+        # Capped, not unbounded: an all-zero row can never reach its target by
+        # scaling, and letting the bracket run to inf turns 0 * inf into nan.
+        f_hi = np.where(short, np.minimum(f_hi * 4.0, 1e30), f_hi)
+    for _ in range(steps):
+        mid = 0.5 * (f_lo + f_hi)
+        below = np.clip(x * mid[:, None], lo, hi).sum(axis=1) < want
+        f_lo = np.where(below, mid, f_lo)
+        f_hi = np.where(below, f_hi, mid)
+    return np.clip(x * (0.5 * (f_lo + f_hi))[:, None], lo, hi)
+
+
+def balance_within_bounds(R: np.ndarray, electorate: np.ndarray,
+                          party_votes: np.ndarray, lo: np.ndarray,
+                          hi: np.ndarray, iters: int = 4000,
+                          tol: float = 1e-12) -> np.ndarray:
+    """:func:`balance_margins`, with the method of bounds as a third truth.
+
+    Three things about a real election are known before any model runs. Each
+    pool holds a counted number of voters; each party won a counted number of
+    votes; and :func:`bounds` says, from the ward arithmetic alone, the
+    narrowest interval each rate can possibly lie in. ``fit_joint`` respects
+    the first, ``balance_margins`` adds the second — and NOTHING enforced the
+    third, which was computed, stored on every :class:`PartyFit`, and read at
+    exactly one place, to set a display flag.
+
+    What that cost, measured at Johannesburg 2021. The joint fit put the PA at
+    **51.49%** of the Coloured pool against a Duncan-Davis ceiling of 40.97%,
+    and zero in all three other pools — a corner solution, and not an artefact
+    of this optimiser (plain NNLS lands on 54.21% and the same three zeros).
+    IPF then walked it to 41.21%, still outside, and the emitted vector was
+    Coloured **1.0000**. At the 2026 target that party's level is about 102% of
+    every vote the Coloured pool casts, which is not a number an election can
+    produce, and the per-draw balance could not solve it.
+
+    Adding the bounds is not a repair applied afterwards. A projection followed
+    by a rescale is not a projection — clipping and then running IPF puts the
+    rate straight back outside, which is precisely how 51.49% became 41.21%
+    rather than 40.97%. So the box enters the iteration itself: each half-step
+    scales a row (or a column) by the single factor that lands its *clipped*
+    sum on the known total, which is a Bregman projection onto a convex set
+    exactly as the unbounded half-step is. Both margins still hold exactly.
+
+    ``lo`` and ``hi`` are pools x parties rate matrices from :func:`bounds`.
+    """
+    counts = R * electorate[:, None]
+    target_rows = electorate.astype(float)
+    target_cols = party_votes.astype(float)
+    # Same reason as in :func:`balance_margins`: a party the fit zeroed in every
+    # pool cannot be scaled back up, so seed it proportionally to the pools —
+    # "its voters look like the electorate" is the maximum-entropy answer for a
+    # party with no spatial signal at all, and the iteration moves it from there.
+    empty = (counts.sum(axis=0) <= 0) & (target_cols > 0)
+    if empty.any():
+        counts[:, empty] = (target_rows[:, None] / target_rows.sum()) * \
+            target_cols[empty][None, :]
+    scale = target_rows.sum() / max(target_cols.sum(), 1e-12)
+    target_cols = target_cols * scale
+    lo_c = lo * electorate[:, None]
+    hi_c = hi * electorate[:, None]
+
+    # THE SAME ARGUMENT, ONE CELL AT A TIME — and without it this does not
+    # converge at all. A corner solution is full of exact zeros, and a
+    # multiplicative step cannot move one: anything times nothing is nothing. So
+    # the PA, capped at the Coloured pool's ceiling of 27,183 votes and zeroed
+    # everywhere else, can only ever account for 27,183 of its 27,346 votes and
+    # the party margin never closes. Those zeros are not a measurement —
+    # ``PartyFit.identified`` says as much of any rate sitting on a boundary —
+    # they are where least squares stopped. Seed each of them with the pool's
+    # share of the votes the fit failed to place, which is the maximum-entropy
+    # answer for a cell nothing is known about, and let the iteration move it.
+    unplaced = np.maximum(target_cols - np.minimum(counts, hi_c).sum(axis=0), 0.0)
+    blank = counts <= 0
+    room = np.where(blank, target_rows[:, None], 0.0)
+    room /= np.maximum(room.sum(axis=0), 1e-12)[None, :]
+    counts = np.where(blank, np.minimum(room * unplaced[None, :], hi_c), counts)
+
+    # Feasibility, stated rather than discovered. The bounds and the margins are
+    # arithmetic on the SAME ward table, so the true cross-tabulation satisfies
+    # all of it and an infeasible system means one of the two inputs is not what
+    # it claims to be. Saying so beats iterating to a cap and returning a matrix
+    # that quietly satisfies neither.
+    trouble = []
+    if (lo_c.sum(axis=1) > target_rows + 1e-6).any():
+        trouble.append("a pool's lower bounds already exceed its voters")
+    if (hi_c.sum(axis=1) < target_rows - 1e-6).any():
+        trouble.append("a pool's upper bounds cannot cover its voters")
+    if (lo_c.sum(axis=0) > target_cols + 1e-6).any():
+        trouble.append("a party's lower bounds already exceed its votes")
+    if (hi_c.sum(axis=0) < target_cols - 1e-6).any():
+        trouble.append("a party's upper bounds cannot cover its votes")
+    if trouble:
+        raise RuntimeError("the method of bounds and the known margins "
+                           "disagree: " + "; ".join(trouble))
+
+    for _ in range(iters):
+        counts = _scale_into_box(counts, lo_c, hi_c, target_rows)
+        counts = _scale_into_box(counts.T, lo_c.T, hi_c.T, target_cols).T
+        if (np.abs(counts.sum(axis=1) - target_rows).max()
+                < tol * target_rows.sum()
+                and np.abs(counts.sum(axis=0) - target_cols).max()
+                < tol * target_rows.sum()):
+            break
+    else:
+        raise RuntimeError("bounded margin balancing did not converge")
+
+    return counts / np.maximum(electorate, 1e-12)[:, None]
+
+
 def _r2(y: np.ndarray, pred: np.ndarray, w: np.ndarray) -> float:
     mean = np.average(y, weights=w)
     denom = (((y - mean) ** 2) * w).sum()
@@ -1088,7 +1220,16 @@ def fit_city(city: cityconfig.City, year: str, cfg: Config, *,
     raw = fit_joint(comp, Y, vote)
     pool_votes = (comp * vote[:, None]).sum(axis=0)
     party_votes = (Y * vote[:, None]).sum(axis=0)
-    R = balance_margins(raw, pool_votes, party_votes)
+
+    # The method of bounds is data, not diagnostics. It was computed here and
+    # read only to set a display flag, so a rate the ward arithmetic forbids was
+    # emitted anyway — see :func:`balance_within_bounds`. Every fitted rate is
+    # now held inside its own interval while both known margins are matched, so
+    # the three things known about the election hold together.
+    dd = [bounds(Y[:, i], comp, vote) for i in range(len(universe))]
+    lo = np.column_stack([b[:, 0] for b in dd])
+    hi = np.column_stack([b[:, 1] for b in dd])
+    R = balance_within_bounds(raw, pool_votes, party_votes, lo, hi)
 
     fits: dict[str, PartyFit] = {}
     for i, party in enumerate(universe):
@@ -1098,7 +1239,7 @@ def fit_city(city: cityconfig.City, year: str, cfg: Config, *,
             citywide=float(np.average(y, weights=vote)),
             rates=R[:, i],
             r2=_r2(y, comp @ R[:, i], vote),
-            bounds=bounds(y, comp, vote),
+            bounds=dd[i],
         )
 
     pool_votes = (comp * vote[:, None]).sum(axis=0)
@@ -1944,21 +2085,6 @@ def _npe_citywide_for(code: str, year: str) -> dict[str, float]:
     return {k: v / total for k, v in counts.items()} if total else {}
 
 
-def _npe_citywide(city: cityconfig.City, year: str) -> dict[str, float]:
-    template = cityconfig.CALENDAR[year].results
-    path = city.path("raw", "elections", template) if template else None
-    if not path or not path.exists():
-        return {}
-    counts: dict[str, int] = defaultdict(int)
-    with open(path, encoding="utf-8", errors="replace") as fh:
-        for row in csv.DictReader(fh):
-            if row.get("BallotType") in (None, "", "PR"):
-                counts[P.canonical(row["sPartyName"])] += int(
-                    float(row.get("Party_Votes") or 0))
-    total = sum(counts.values())
-    return {k: v / total for k, v in counts.items()} if total else {}
-
-
 def arrival_group_record(before_year: str | None = None
                          ) -> list[tuple[float, float]]:
     """What ARRIVALS TAKE AS A GROUP in a metro, and how concentrated it is.
@@ -2409,86 +2535,6 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
     return rules, notes
 
 
-def first_local_election(city: cityconfig.City, target: cityconfig.Target,
-                         baseline: dict[str, float], parent: str,
-                         party: str, reach: float | None,
-                         coherence: float | None) -> tuple[float, str]:
-    """The level for a party facing its FIRST local election on a national base.
-
-    A splinter special case, and the one that governs MK in 2026. Such a party
-    is not an arrival — it has a national baseline — and it is not established,
-    because nothing it has done has been tested at a local election, where a
-    different and much smaller electorate turns out. Its pools are inherited
-    from its parent like any splinter; its LEVEL is its national baseline moved
-    by three things::
-
-        national baseline
-          x  the parent's own national-to-local change    measured
-          x  the share of wards it contests                measured
-          x  leadership coherence                          JUDGED
-
-    The two cases on record, both contesting every ward, so the whole
-    difference is the third term::
-
-        party  NPE base  parent theta  expected  actual  coherence
-        COPE     9.61%       0.95        9.14%    1.11%    0.12
-        EFF     10.13%       0.86        8.70%   10.93%    1.26
-
-    Ten-fold, and nothing in between: COPE's leadership split in public and the
-    party never recovered — 1.11%, then 0.52, 0.21, 0.22, 0.19. The EFF's held
-    and it grew. No measurement available before either election distinguishes
-    them, and a forecaster watching the news could have. So coherence defaults
-    to 1.0 — the party holds together — and the default is announced rather
-    than assumed, because it is the largest single lever on that party's result
-    and the record contains a case where it was worth 0.12.
-    """
-    base = baseline.get(party, 0.0)
-    if base <= 0:
-        return 0.0, ""
-    # The most recent COMPLETED national-to-local pair, which is not the
-    # target's own two neighbours: for a 2026 target the previous NPE is 2024
-    # and the previous LGE is 2021, so pairing them measures the change
-    # backwards in time and returned a RISE for MK where the record shows a
-    # fall. The last finished transition is 2019 -> 2021.
-    lge_years = sorted((y for y, e in cityconfig.CALENDAR.items()
-                        if e.kind == "LGE" and e.results and int(y) < int(target.year)),
-                       key=int)
-    prior_lge = lge_years[-1] if lge_years else None
-    prior_npe = cityconfig.preceding(prior_lge, "NPE") if prior_lge else None
-
-    parent_theta = None
-    note_theta = ""
-    if parent and prior_npe and prior_lge:
-        before = _npe_citywide(city, prior_npe)
-        after = metro_citywide(city.code, prior_lge)
-        if before.get(parent, 0) > 0 and after.get(parent, 0) > 0:
-            parent_theta = after[parent] / before[parent]
-            note_theta = (f"{parent} moved {parent_theta:.2f} from the "
-                          f"{prior_npe} national to the {prior_lge} local")
-    if parent_theta is None:
-        # No parent declared: everyone still faces the national-to-local drop,
-        # so fall back to what the whole field did rather than to 1.0, which
-        # would forecast a party holding its national share at a local
-        # election — something no party in the record has managed.
-        before = _npe_citywide(city, prior_npe) if prior_npe else {}
-        after = metro_citywide(city.code, prior_lge) if prior_lge else {}
-        ratios = [after[q] / before[q] for q in set(before) & set(after)
-                  if before[q] > 0.002 and after.get(q, 0) > 0]
-        parent_theta = float(np.median(ratios)) if ratios else 1.0
-        note_theta = (f"no parent declared, so the median party's "
-                      f"{prior_npe}->{prior_lge} move of {parent_theta:.2f}")
-    reach_used = reach if reach is not None else 1.0
-    coh = 1.0 if coherence is None else float(coherence)
-    level = base * parent_theta * reach_used * coh
-    why = (f"first local election on a {base:.2%} national base: x{parent_theta:.2f} "
-           f"({note_theta}), x{reach_used:.0%} for wards contested, "
-           f"x{coh:g} leadership coherence"
-           + ("" if coherence is not None else
-              " (DEFAULT — the record holds COPE at 0.12 after its leadership "
-              "split and the EFF at 1.26; set `coherence` in judgements/)"))
-    return level, why
-
-
 def _reach_of(contestation) -> float:
     """The reach this arrival has, when one is known."""
     if isinstance(contestation, (int, float)):
@@ -2830,25 +2876,6 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
                       / max(registered.sum(), 1e-9))
              for p, rule in arrivals.items()}
 
-    # A party with a national baseline facing its FIRST local election is
-    # neither an arrival nor established. Its pools are inherited; its level is
-    # its national base moved by the parent's national-to-local change, by the
-    # wards it contests, and by whether its leadership held. MK in 2026 is
-    # exactly this, and the model would otherwise centre it on an ordinary
-    # theta — the one outcome COPE and the EFF between them never produced.
-    first_lge: dict[str, float] = {}
-    for party in sorted(no_vector):
-        if baseline.get(party, 0.0) <= 0:
-            continue                      # an arrival, handled above
-        rule = lineage.get(party, {})
-        level, why = first_local_election(
-            city, target, baseline, (rule.get("parent") or "").strip().upper(),
-            party, reach.get(party), rule.get("coherence"))
-        if level > 0:
-            first_lge[party] = level
-            seed_notes[party] = why
-            print(f"  first local election: {party} {baseline[party]:.2%} -> "
-                  f"{level:.2%}")
     seed_bands = {p: rule["band"] for p, rule in arrivals.items()}
     # no_vector, NOT newcomers: the file exists to ask a human which parent a
     # party with no measured vector belongs to, and MK is the case it was built
@@ -2927,7 +2954,6 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             **marker,
             "turnout_limits": limits,
             "seeds": {p: v for p, v in seeds.items() if abs(v) > 1e-9},
-            "first_local_election": first_lge,
             "seed_bands": {p: list(v) for p, v in seed_bands.items()},
             "seed_notes": seed_notes,
             "entrant_record": [[float(share), float(reach)] for share, reach in record],

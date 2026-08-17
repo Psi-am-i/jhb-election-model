@@ -136,10 +136,6 @@ ACDP = [0.6, 1.2, 2.0]
 PA = [1.0, 1.4, 2.2]
 IFP = [0.8, 1.4, 2.2]
 
-[judgements.ward_pr_ratio_overrides]
-MK = 0.8
-ENTRANT = 0.8
-
 [judgements.scalars]
 f_other = [0.7, 1.3, 2.0]
 w_bye = 0.4

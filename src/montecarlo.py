@@ -181,7 +181,6 @@ DEFAULTS: dict = {
     # footprint. MK: list party, no ward machinery — 0.80 is a judgement
     # bounded by ActionSA's observed 0.77. PA uplift: fielding more wards
     # than 2021's 52 raises its ward-ballot capture.
-    "ward_pr_ratio_overrides": {"MK": 0.80, "ENTRANT": 0.80},
     "pa_contestation_uplift": 1.25,
 
     # A2: turnout pattern per draw. blend 0 = pure λ̂ ratio form, 1 = pure
@@ -362,6 +361,18 @@ def capped_targets(target: np.ndarray, cap: np.ndarray) -> np.ndarray:
     So the invariant this function keeps is the one both of them need: the sum
     is preserved to floating point, and no element exceeds its cap. See
     MODEL-LOG §1.33.
+
+    THE ONE BRANCH THAT CANNOT KEEP BOTH is when every party at its own capacity
+    still does not fill the city (``cap.sum() <= total``). Then no allocation
+    satisfies the caps and the total at once, and something has to give. It
+    gives the caps, because the caller needs the total — but that means the
+    function returns a vector with EVERY element above its cap, which is the
+    opposite of what its name promises. It cannot fire in this model, since
+    parties belong to several pools and the capacities sum far above one. It is
+    counted anyway, on ``_capacity_undershoot``, because an uncounted branch
+    that silently does the opposite of its docstring is precisely the defect
+    this whole function was written to remove (§1.33), and "it cannot happen"
+    is what was said about the balance failure too.
     """
     t = np.array(target, dtype=float)
     cap = np.asarray(cap, dtype=float)
@@ -371,8 +382,9 @@ def capped_targets(target: np.ndarray, cap: np.ndarray) -> np.ndarray:
     if float(cap.sum()) <= total:
         # Every party at its own capacity still does not fill the city. The two
         # margins cannot both hold at any allocation, so there is nothing to
-        # redistribute to; hand back the caps in proportion and let the
-        # caller's fallback report it.
+        # redistribute to; hand back the caps in proportion, COUNT IT, and let
+        # the caller's fallback report the infeasibility.
+        capped_targets.undershoots += 1
         return cap * (total / max(float(cap.sum()), 1e-12))
     for _ in range(len(t) + 2):
         over = t > cap
@@ -383,7 +395,29 @@ def capped_targets(target: np.ndarray, cap: np.ndarray) -> np.ndarray:
         free = ~over & (t < cap)
         room = float(t[free].sum())
         if room > 0:
+            # PROPORTIONAL TO WHAT EACH PARTY ALREADY HOLDS -- a judgement, and
+            # the larger of the two in this function. The margin (0.98) decides
+            # how much moves; this decides WHERE IT GOES, and the register
+            # argued only the first until 2026-08-17.
+            #
+            # Measured on the live 2026 forecast, 600 draws: the rule moves a
+            # mean 0.445% of the city sideways (median 0.000%, p90 1.462%, max
+            # 6.933%), firing in 39.2% of draws and averaging 1.136% over those.
+            # Proportional-to-mass means the DA collects roughly a third of it
+            # and the ANC a fifth -- so the guard systematically transfers the
+            # PA's truncated upside to the TOP of the ballot, which is the band
+            # already measured to be over-forecast (ranks 1-3 mean PIT 0.431,
+            # signed +32.50pp). It also correlates the DA's upside with the size
+            # of the PA's level shock, which is a dependency nobody asked for.
+            #
+            # Two alternatives are equally defensible and neither has been
+            # measured: proportional to HEADROOM (cap - t), which spreads toward
+            # parties with room rather than parties with votes; and proportional
+            # to POOL OVERLAP with the offender, which is the only one of the
+            # three that respects where the displaced votes could actually have
+            # gone. See JUDGEMENT-CALLS.md §A and MODEL-LOG §1.33.
             t[free] += excess * t[free] / room
+            capped_targets.moved += excess
         else:
             # Nothing under its cap carries any mass yet — spread by headroom
             # instead, which is the only proportion available.
@@ -405,6 +439,16 @@ def capped_targets(target: np.ndarray, cap: np.ndarray) -> np.ndarray:
 # committed model used was 200 — changing it would move that city's forecast
 # for no stated reason.
 PARTIAL_BALANCE_PASSES = 200
+
+
+# Times `capped_targets` hit the branch that cannot keep both invariants. Read
+# by `run_model`'s report and asserted on in tests/test_ipf_feasibility.py. A
+# non-zero value here means the pool capacities no longer cover the city and the
+# cap is returning vectors above their own caps -- see the docstring.
+capped_targets.undershoots = 0
+# Total mass moved sideways by the redistribution rule, in the units the caller
+# passed in. Reported so the rule's cost is visible rather than inferred.
+capped_targets.moved = 0.0
 
 
 def partial_balance(R: np.ndarray, pool_votes: np.ndarray,
@@ -635,7 +679,7 @@ def apply_city(city) -> None:
     COUNCIL = city.council
     PLAN_BOUNDS = city.plan_bounds
     j = city.judgements
-    for key in ("theta_mode", "individual_theta", "ward_pr_ratio_overrides"):
+    for key in ("theta_mode", "individual_theta"):
         if key in j:
             DEFAULTS[key] = dict(j[key])
     for key, value in j.get("scalars", {}).items():
@@ -2067,10 +2111,13 @@ def run_model(target, scenario: dict,
         for p, i in index.items():
             if pc.get(p, 0) <= 0.001:
                 ratio[i] = fallback
-    for p, value in scenario["ward_pr_ratio_overrides"].items():
-        if p in index and not fallback:
-            ratio[index[p]] = value
-            note_constant(scenario, "ward_pr_ratio_overrides", p)
+    # `ward_pr_ratio_overrides` (MK 0.80, ENTRANT 0.80) lived here, gated on
+    # `not fallback`. DELETED 2026-08-17: `run.constants_read` reports it
+    # CONSUMED AT NO TARGET -- 2016, 2021 and 2026 alike -- because
+    # `levels.ward_pr_ratios` returns a fallback at every one of them, which is
+    # what the comment above already says it does. A judgement nobody could
+    # reach, carried in DEFAULTS, in apply_city's per-city list, in two city
+    # tomls, in backtest.FITTED_ON and in the register. MODEL-LOG 1.37.
 
     # Contestation, for every party rather than one. pa_contestation_uplift was
     # 1.25 applied to the PA alone, because it fought 52 of 135 wards in 2021
