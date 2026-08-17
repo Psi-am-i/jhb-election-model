@@ -127,6 +127,105 @@ not held, so pools cannot be fitted for the 2011 or 2016 backtests.
 
 ---
 
+## 2a. How a party's level is actually arrived at — the full chain
+
+Written 2026-08-17 after tracing it end to end (MODEL-LOG §1.43). Worked example
+throughout: **VF Plus at Tshwane 2021**, which the model put at 4.28% against an
+actual 7.79%.
+
+### The two records
+
+`levels.theta_record` and `levels.local_record` each return
+`{party: [(ratio, size), ...]}`, pooled over the eight metros and every election
+strictly before the target.
+
+* **θ** — `LGE_share(year) / NPE_share(preceding NPE)`, `size` = the NPE share.
+  National → local retention. 264 observations at target 2026.
+* **ρ** — `LGE_share(later) / LGE_share(earlier)`, `size` = the earlier share.
+  Local → local retention. 229 observations.
+
+**The observation is a two-tuple: the metro and the year are discarded.** That is
+a real loss — the year explains 8.7% of the residual variance after each party's
+own mean is removed, against the metro's 2.5% — and §1.43 measured that
+recovering it makes forward prediction **worse**. The loss is now a documented
+choice rather than an accident.
+
+### What one observation is worth
+
+`_reliability(share) = share / (share + RELIABILITY_HALF)`, `RELIABILITY_HALF =
+0.002` — the old hard 0.2% cut, now a continuous half-point. An observation off
+2% of the vote is worth 0.91; off 0.2%, 0.50; off 0.02%, 0.09. A party's
+**`worth`** is the sum over its observations. *Three ratios measured off 0.02% of
+the vote are three weak statements, not three strong ones.*
+
+### Shrinkage, and what it shrinks toward
+
+`levels._shrunk` is a James–Stein estimator, unnamed in the code:
+
+    weight = worth / (worth + SHRINK)                       SHRINK = 2.0
+    mu     = weight * own_weighted_mean + (1 - weight) * target
+    target = size_centre(size) = a + b * log(size)
+
+**Both halves are load-bearing and both are measured.** Forward validation:
+adding the party term takes RMSE(log θ) from 0.8045 to **0.7150**, so a party's
+own record carries real signal; but **unpooled** party dummies score **1.0308**,
+worse than having no party term at all. And `SHRINK = 2.0` — never fitted until
+§1.43 — is **optimal**: 1.0 scores 314 seat error against 312, 5/9 against 6/9.
+
+`size_centre` fits `log θ = a + b·log(size)` **unweighted** — deliberately, since
+the reliability weight would remove the small-party observations that identify
+the slope. At target 2021: `a = −0.2466, b = −0.0231`, giving a centre of θ 0.93
+at 0.05% of the vote and 0.80 at 45%. **The slope is nearly flat and R² ≈ 0.04**:
+it moves the centre by about a quarter across the whole ballot and explains
+almost none of the variance around it.
+
+For VF Plus (worth 6.46, weight 0.763): own 0.785, centre 0.868, **result 0.804**.
+
+### The blend
+
+`levels.spine` converts each record into a level and interpolates:
+
+    nat_level = national_share * exp(mu_theta)     6.268% x 0.804 -> 5.040%
+    loc_level = local_share    * exp(mu_rho)       1.970% x 1.091 -> 2.149%
+    w         = k / (worth_theta + k)              k = SPINE_K = 1.0  ->  0.134
+    level     = exp(w*log(loc_level) + (1-w)*log(nat_level))  ->  4.495%
+
+**This is a geometric interpolation, so the result is mathematically confined
+between its two legs.** VF Plus's actual 7.79% was above both, and no weight
+reaches it. That is the structural limit of the spine and it is worth stating
+plainly.
+
+**The weight is keyed on θ evidence alone**, and `_worth_r` from the ρ record is
+deliberately discarded. Making it symmetric was tried and is much worse — seat
+error 338 against 312, CRPS 280.8 against 264.8 (§1.43).
+
+### From centre to reported number
+
+The level becomes `centres[party]` in `montecarlo.blended_centres`, whose
+precedence is `poll_levels` → seeded arrival → `spine_level` → `theta_prior` →
+(four dead branches). `pool_spec` then runs IPF so a party's **expected** citywide
+share *is* its centre, and each draw applies a Student-t level shock, the
+correlated turnout copula and a within-pool Dirichlet.
+
+**The draw adds spread, not information.** Measured at Tshwane 2021, drawn mean
+against spine centre: ANC 0.950, DA 0.942, VF Plus 0.956. The forecast is decided
+at the blend.
+
+### Known divergence, unresolved
+
+`theta_prior` and `_shrunk` are **two different estimators of the same quantity**.
+`_shrunk` shrinks toward `size_centre`; `theta_prior` shrinks toward the flat
+`mu_all` and ignores `size_centre`. They disagree by construction — ANC 0.869
+against 0.862, PA 1.115 against 1.197 — and the drawer uses one while the spine
+uses the other. At least one is wrong.
+
+### The ceiling
+
+Forward validation puts the best achievable RMSE(log θ) at **0.715** — a typical
+error of about **2×** on retention. That is the ceiling given four cycles and
+eight metros, and the estimator is at it. The mid-ballot deficit is therefore not
+an estimation failure and cannot be closed by enriching this layer.
+
 ## 2. Level — how big each party will be
 
 Rewritten 2026-08-16. The hand-typed layer this section used to describe —

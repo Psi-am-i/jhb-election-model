@@ -4325,6 +4325,163 @@ now belongs in the test suite.
 
 ---
 
+## 1.43 The θ estimator is at its ceiling, measured four ways (2026-08-17)
+
+The mid-ballot deficit — ranks 4-12 at **−36.88pp**, 71 of 81 party-slots in one
+direction, 130 seats — has been attacked seven times and has moved once. The
+obvious remaining suspect was the retention estimator, which throws away most of
+what it is shown. **It is not the cause.** Four things were tried and three are
+negative results; recording them is the point of this entry.
+
+### The suspicion, and why it looked strong
+
+`levels.theta_record` builds an observation as `(ratio, size)` and **discards the
+metro and the year** at the moment of append. So VF Plus's seventeen θ
+observations collapse into one scalar:
+
+    2016:  CPT 1.220  EKU 0.966  ETH 0.918  JHB 0.811  MAN 0.779  NMA 0.427  TSH 0.793   gm 0.811
+    2021:  BUF 1.376  CPT 1.509  EKU 1.031  ETH 1.195  JHB 1.347  MAN 1.095  NMA 1.131  TSH 1.243   gm 1.232
+
+2021 is high in **all eight metros at once** — a year effect, and the estimator
+cannot express it. A variance decomposition agreed: after removing each party's
+own mean, **year explains 8.7%** of residual variance against metro's **2.5%**,
+with a fragmentation signature (ANC 0.915 → 0.951 → 0.864 → 0.781 against IFP
+0.904 → 0.675 → 0.949 → 1.771).
+
+### NEGATIVE 1 — the year effect does not forecast
+
+The decomposition is in-sample and **conditions on the party effect already being
+removed**, so it measures the year's share of the residual, not its forecasting
+value. Forward validation — predict each LGE from strictly earlier cycles only,
+which is what forecasting does:
+
+| specification | forward RMSE(log θ) |
+|---|---|
+| intercept only | 0.8153 |
+| + size (today's centre) | 0.8045 |
+| + size + party dummies, **no pooling** | **1.0308** |
+| + size + party, ridge 2 (≈ `SHRINK`) | **0.7150** ← best |
+| + size + year-trend | 0.8281 |
+| + size + trend + size×year | 0.9159 |
+| + size + trend + interaction + party, ridge 2 | 0.7879 |
+
+The year term **hurts alone**, the fragmentation interaction **hurts badly**, and
+both hurt on top of the party term. Exactly what §1.7 recorded — *"θ is political
+weather"* — now measured on the full panel rather than one fold.
+
+**The trap worth naming: 8.7% of residual variance explained is not forecasting
+skill.** This project has now hit that shape three times — the signed rank bands,
+the pooled PIT, and this.
+
+### POSITIVE — what the same experiment vindicates
+
+* **The party term is the single biggest win**, 0.8045 → 0.7150, and θ is
+  autocorrelated at **+0.623** per cycle (OLS slope +0.394, so heavily
+  mean-reverting — which is why §1.7's slope-1 transfer failed and why the pure
+  centre is also wrong; the optimum is interior, and it is where the model sits).
+* **Shrinkage is essential, not incidental.** Unpooled party dummies score
+  **1.0308** — worse than using no party term at all.
+
+### NEGATIVE 2 — `SHRINK = 2.0` is already optimal
+
+Never fitted or swept in this project's history. Forward RMSE against the ridge:
+
+    ridge   1.0    2.0    3.0    4.0    8.0   20.0
+    unwtd  .7216  .7149  .7184  .7238  .7430  .7697
+    v-wtd  .2200  .2311  .2436  .2537  .2780  .3033
+
+The two criteria disagree — the same 🔴 already registered against the spine's
+fitting criterion. Scored on the model itself, **`SHRINK = 1.0` is worse on all
+three measures**: coherent seat error **314 against 312**, beats-uniform-swing
+**5/9 against 6/9**, CRPS **268.3 against 264.8**. The conflict resolves in favour
+of the unweighted result and the committed value. Register upgraded from
+"pre-existing" to measured.
+
+### NEGATIVE 3 — the blend is right to ignore the ρ record's evidence
+
+`spine` computes `_worth_r` and discards it with an underscore; the blend weight
+`w = k/(worth_θ + k)` is keyed on θ evidence alone. That looked like an oversight
+— a party with a rich local record and thin θ is still pushed onto the national
+route. Made symmetric, `w = (worth_ρ + k)/(worth_ρ + worth_θ + 2k)`:
+
+| | seat error | beats u-swing | CRPS | ranks 4-12 |
+|---|---|---|---|---|
+| committed | **312** | **6/9** | **264.8** | −37.2 |
+| both-worth blend | 338 | 4/9 | 280.8 | −40.98 |
+
+Worse on everything. **The asymmetry is correct and is now documented as
+deliberate rather than accidental.**
+
+### THE ONE FIX THAT SHIPPED — a swallowed file error
+
+`theta_record` built its paths with `f"data/raw/elections/npe{npe}_{code}_vd_party.csv"`
+instead of the calendar template. The 1999 national election is on disk as
+`npe1999_approx_JHB_vd_party.csv`, so the open failed, `_citywide` swallowed the
+`FileNotFoundError` and returned `{}`, and the **entire NPE1999 → LGE2000
+transition contributed nothing** while `lge2000_JHB_vd_party_clean.csv` sat
+beside it. Resolved through the calendar: θ observations go **119 → 126** at
+target 2021 and **257 → 264** at 2026.
+
+Coherent seat error **310 → 312**, inside the ±2–4 draw noise, which is expected:
+the recovered transition is Johannesburg-only. **Kept because a swallowed file
+error is indistinguishable from a deliberate exclusion**, not because it scored.
+
+**A side effect worth recording, because it looked like a regression.** The fix
+changes θ, therefore the draws, and the CLASS 12 lever sweep immediately reported
+`overhang_rule` inert. It is not broken. `allocate_with_overhang` returns
+immediately on `rule == "cap" or not over`, so when no party's ward wins exceed
+its proportional entitlement, all four rules — `cap`, `level`, `deduct`,
+`expand` — return the same allocation. Measured at 200 draws, an excessive-seats
+party appears in **1 draw of 200 at Johannesburg 2021 against 120 of 200 at
+2026**. The lever is live at 2026, worth 52 seats of movement; the sweep's 40
+draws simply stopped catching 2021's half-percent case.
+
+It is now in `EXPECTED_INERT` for 2021 alone, and the entry says plainly that
+this excuse is **weaker than `w_bye`'s**: that one is inert by construction, this
+one only because a rare clause misses under this seed and draw count. Raise
+`DRAWS` and the test's own `elif` will fail the entry as a stale register claim,
+which is the intended behaviour. The sweep's failure message also gained the
+**year** — without it, a lever inert at one target reads identically to one dead
+at every target, and that omission cost a diagnosis here.
+
+### Also found, not fixed
+
+`theta_prior` and `_shrunk` are **two different estimators for the same
+quantity**. `_shrunk` shrinks toward `size_centre`; `theta_prior` shrinks toward
+the flat `mu_all` and ignores `size_centre` entirely. They disagree by
+construction — ANC 0.869 against 0.862, PA 1.115 against 1.197 — and the drawer
+uses one while the spine uses the other. At least one is wrong. Undocumented
+until now.
+
+**`SD_FLOOR` sets the level spread of the largest parties, and nothing else.**
+Found while re-registering the constants this section disturbed. `sd_for` fits
+dispersion against size and then clips it to `[0.15, 1.20]`; the fit reaches the
+floor at about 15% share (`at_10%` = 0.163, `at_40%` = 0.150). So at
+Johannesburg the floor binds on **ANC 49.6%, DA 29.6% and EFF 14.9% at 2021, and
+ANC 32.0% and DA 25.0% at 2026** — and on nobody else. The ceiling binds only on
+parties at 0.00% baseline share (10 of 46 at 2021, none at 2026).
+
+Two things follow. First, **the top of the ballot's uncertainty is a typed
+constant**, not a measurement, which is not what §3.5 or the spread table imply.
+Second, the floor holds those parties *wider* than the fit asks for — and ranks
+1-3 is exactly the band this model over-forecasts (+32.50pp signed, mean PIT
+0.431) while both neutral coverage populations say the forecast is **too wide**
+(58/89/96 and 77/89/95 against nominal 50/80/90). That makes `SD_FLOOR` a live
+suspect for the excess width at the top of the ballot. **It has never been
+swept.** Registered 🔴; not tested here, because it is a separate change and this
+section's thesis is about the θ centre.
+
+### What this means for the mid-ballot
+
+**Best-case forward RMSE is 0.715 in log — a typical error of about 2× on θ.**
+That is the ceiling given four cycles and eight metros, and the model is at it.
+The mid-ballot deficit is therefore **not an estimation failure**, and no
+enrichment of the θ centre will close it. The remaining lever is correcting the
+systematic level bias downstream, where an independent review has measured the
+only candidate with an out-of-sample gain.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

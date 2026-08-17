@@ -222,10 +222,24 @@ def theta_record(target: cityconfig.Target,
         npe = cityconfig.preceding(year, "NPE")
         if not npe:
             continue
+        # THE TEMPLATES COME FROM THE CALENDAR, not from a format string built
+        # here. Until 2026-08-17 this line was
+        # `f"data/raw/elections/npe{npe}_{code}_vd_party.csv"`, and the 1999
+        # national election is on disk as `npe1999_approx_JHB_vd_party.csv` —
+        # so the open failed, `_citywide` swallowed the FileNotFoundError and
+        # returned {}, and the whole NPE1999 -> LGE2000 transition contributed
+        # ZERO observations while `lge2000_JHB_vd_party_clean.csv` sat there.
+        # A swallowed file error is indistinguishable from a deliberate
+        # exclusion, which is why it survived. See MODEL-LOG §1.43.
+        npe_tpl = cityconfig.CALENDAR[npe].results
+        lge_tpl = cityconfig.CALENDAR[year].results
+        if not npe_tpl or not lge_tpl:
+            continue
         for code in codes:
-            before = _citywide(f"data/raw/elections/npe{npe}_{code}_vd_party.csv")
-            after = _citywide(
-                f"data/raw/elections/lge{year}_{code}_vd_party_clean.csv")
+            before = _citywide("data/raw/elections/"
+                               + npe_tpl.replace("{CODE}", code))
+            after = _citywide("data/raw/elections/"
+                              + lge_tpl.replace("{CODE}", code))
             for party in set(before) & set(after):
                 if before[party] > 0:
                     out[party].append((after[party] / before[party],

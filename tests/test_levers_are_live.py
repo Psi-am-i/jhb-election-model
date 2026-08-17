@@ -158,6 +158,23 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
     ("bye_tau_months", "2026"): _WARD_LOCAL_BYE,
     ("entrant_geography", "2021"): _ENTRANT_GEOGRAPHY,
     ("entrant_geography", "2026"): _ENTRANT_GEOGRAPHY,
+    ("overhang_rule", "2021"):
+        "the rule only does anything when a party's ward wins EXCEED its "
+        "proportional entitlement -- `allocate_with_overhang` returns "
+        "immediately on `rule == 'cap' or not over`, so with nothing over, "
+        "`cap`/`level`/`deduct`/`expand` all return the same allocation. "
+        "MEASURED at 200 draws: an excessive-seats party appears in 1 draw of "
+        "200 at joburg 2021 against 120 of 200 at 2026. It is live at 2026 "
+        "(52 seats of movement) and this entry excuses ONLY 2021. "
+        "NOTE THE WEAKNESS OF THIS EXCUSE: unlike `w_bye`, this is not inert "
+        "by construction -- it is inert because a 0.5%-probability clause does "
+        "not fire in this test's 40 draws under this seed. Raise DRAWS or "
+        "change the seed and it may become live, at which point the `elif` "
+        "above will fail this entry as a stale register claim. That is the "
+        "intended behaviour: the register self-corrects rather than "
+        "suppressing. It became inert here on 2026-08-17, when fixing the "
+        "swallowed NPE1999 file (MODEL-LOG §1.43) changed theta and therefore "
+        "the draws; it was live at 2021 before that.",
     ("pa_contestation_uplift", "2021"):
         "an `elif` on measured contestation being empty. Contestation is "
         "non-empty at 2011/2016/2021 and empty at 2026, so this fires ONLY in "
@@ -302,7 +319,11 @@ def _sweep_target(year: str) -> list[str]:
         moved = _moves(base, _run(year, [f"{key}={json.dumps(value)}"]))
         why = EXPECTED_INERT.get((key, year))
         if moved < 1e-9 and why is None:
-            dead.append(f"{key} (perturbed to {value}, nothing moved)")
+            # Name the year. Without it a key that is inert at one target and
+            # live at the other reports identically to one that is dead
+            # everywhere, and the reader cannot tell which -- that cost a
+            # diagnosis when `overhang_rule` went inert at 2021 alone.
+            dead.append(f"{key} at {year} (perturbed to {value}, nothing moved)")
         elif moved >= 1e-9 and why is not None:
             dead.append(f"{key} IS live at {year} but EXPECTED_INERT claims it is "
                         f"not: {why!r} — the register is now wrong, delete the entry")
