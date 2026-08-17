@@ -92,6 +92,20 @@ PROCESSED = ROOT / "data" / "processed"
 #     (montecarlo.TURNOUT_CORRELATION);
 #   * turnout bands built in logit space, so they are two-sided everywhere
 #     (pools.turnout_band).
+# RE-RECORDED 2026-08-17, deliberately: THE ARRIVAL GROUP TOTAL IS NOW HELD TO
+# ITS RECORD. `pools.arrival_rules` sized each entrant at the MEDIAN of its
+# reach-matched comparators and wrapped it in a band running to the 95th
+# percentile -- a band `pool_spec`'s IPF then nullified, because IPF pins each
+# party's mean to its centre. Entrants are now weighted by the reach-matched
+# MEAN, where the reach signal lives, and the group is rescaled to the
+# arrival-total record (median 1.64% over city-years before the target).
+# Splitters are untouched. Nine city-years: coherent seat error 316 -> 312,
+# beats-uniform-swing 6/9 -> 7/9, ranks 13+ -4.6pp -> -1.7pp. MODEL-LOG 1.32.
+#
+# The 2026 drift is SMALL and in the expected direction -- ANC mean -0.39pp,
+# DA +0.21pp, ASA p95 +0.67pp -- because `pools_2026.json` carries no entrant
+# seeds at all (no nomination roster exists yet), so what moved 2026 is the
+# re-emit, not the mechanism. The mechanism is what moved the backtests.
 # RE-RECORDED 2026-08-16: THE METRO POLLS NOW ACTUALLY FIRE FOR 2026. They had
 # never run there -- a KeyError on 'house' was swallowed by a bare except, in
 # the one channel with demonstrated skill and the one case it was built for.
@@ -138,21 +152,21 @@ PROCESSED = ROOT / "data" / "processed"
 # docstring — renormalisation for A-to-B (plan item 3.1), the entrant rescale
 # for B-to-C.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (22.4227, 8.0268, 39.2823),
-    "DA": (31.2176, 16.6955, 48.9028),
-    "EFF": (10.0571, 1.9240, 22.4943),
-    "ASA": (12.6049, 3.3773, 25.1092),
-    "MK": (7.1195, 0.7597, 17.1460),
-    "PA": (4.8047, 2.0126, 6.8194),
-    "VFPLUS": (0.8661, 0.0057, 3.1472),
-    "ALJAMAAH": (1.1868, 0.2873, 2.4800),
-    "ENTRANT": (1.3628, 0.0000, 7.6020),
+    "ANC": (22.0298, 8.0366, 39.3278),
+    "DA": (31.4286, 16.3775, 49.6807),
+    "EFF": (10.0936, 1.9588, 22.1436),
+    "ASA": (12.5654, 3.2959, 25.7791),
+    "MK": (6.9746, 1.0350, 16.8831),
+    "PA": (4.8301, 2.1790, 6.7574),
+    "VFPLUS": (0.9219, 0.0043, 3.2997),
+    "ALJAMAAH": (1.1863, 0.2838, 2.4742),
+    "ENTRANT": (1.4212, 0.0000, 7.9236),
 }
-GOLDEN_POOLS: dict[str, tuple[float, float, float]] = {
-    "Black African": (50.9080, 37.2650, 63.9701),
-    "Coloured": (8.7232, 5.7036, 11.3446),
-    "Indian/Asian": (6.0623, 4.4154, 7.8915),
-    "White": (32.9437, 21.9317, 45.8622),
+GOLDEN_POOLS = {
+    "Black African": (48.9160, 34.4488, 61.9918),
+    "Coloured": (9.0193, 6.2365, 11.5316),
+    "Indian/Asian": (6.1962, 4.5826, 8.1607),
+    "White": (34.4473, 23.6615, 47.9176),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")
