@@ -1,14 +1,22 @@
-# Making the model auditable: a graph structure, proposed
+# Making the model cheaper to audit
 
 **Status: a proposal for discussion. Nothing here has been built.** It exists
-because reviews of this model now cost more than the changes they review, and
-that curve gets worse, not better.
+because reviews of this model now cost more than the changes they review.
+
+**It began as a proposal to restructure the model as an explicit graph. After
+working the argument through, most of that is not recommended.** The diagnosis
+below stands; the remedy changed. The short version:
+
+> The expensive part of a review is not that the code is one function. It is
+> that you cannot see an intermediate without re-running fifty minutes of
+> simulation, and that the artefacts underneath a measurement can move while you
+> take it. Both are fixable with instruments. Neither needs a refactor.
 
 ---
 
 ## 1. Why auditing costs what it does — measured, not asserted
 
-These are the numbers, taken from the current tree:
+From the current tree:
 
 | | |
 |---|---|
@@ -17,220 +25,165 @@ These are the numbers, taken from the current tree:
 | writes into the shared `scenario` dict inside it | **16** |
 | **function-local imports** inside it | **7**, at lines 1812, 1875, 1911, 2310, 2311, 2345, 2394 |
 | `run_model` call sites in the suite | 11, across 5 of 10 test files |
+| intermediate-inspection facilities | 15 `if verbose:` prints, one end-of-run JSON summary |
 | full-suite wall clock | ~35 minutes |
-| a single `compare_history` run | ~50 minutes at 1500 draws |
+| one `compare_history` at 1500 draws | ~50 minutes |
 
-Four consequences follow directly, and each one has already cost this project
-real time:
+Four consequences, each of which has already cost real time:
 
-**There are no small units, so every check is a whole-model check.** Every
-intermediate quantity in the level chain — the θ record, the shrunk estimator,
-the spine blend, the by-election clamp, the capacity guard — exists only as a
-local inside those 863 lines. To see one, you run all of it. That is why the
-lever sweep runs about fifty full models to answer a question that is really
-"which parameters does this constant reach".
+**You cannot see an intermediate without re-running everything.** Every quantity
+in the level chain — the θ record, the shrunk estimator, the spine blend, the
+by-election clamp, the capacity guard — exists only as a local inside those 863
+lines. To look at one you add a print and re-run. **This is the single largest
+tax on troubleshooting and it is nearly free to remove.**
 
 **The dependency graph is invisible.** `levels.spine` is called at line 2345,
-`levels.theta_prior` at 1911, `pools.contesting_parties` at 1875 — all through
+`levels.theta_prior` at 1911, `pools.contesting_parties` at 1875 — through
 imports written *inside the function body*. Nothing at the top of the file says
-`montecarlo` depends on `levels` or `pools` at all. The order of the level chain
-is not declared anywhere; it is wherever those lines happen to sit.
+`montecarlo` depends on `levels` or `pools` at all.
 
 **The input is also the scratchpad.** `scenario` is passed in and then written
-to sixteen times. That is why `apply_city` silently overwriting `DEFAULTS` was
-so hard to see, and why `--set` has to be applied *after* `apply_city` with a
-comment explaining that it is the only override that survives.
+to sixteen times. That is why `apply_city` silently overwriting `DEFAULTS` was so
+hard to see, and why `--set` must be applied *after* `apply_city`.
 
-**The biggest edge in the system is a file.** `montecarlo` and `pools` are
-joined by `data/processed/pools_*.json`, which is precomputed. Changing
+**The biggest edge in the system is an untyped file.** `montecarlo` and `pools`
+are joined by `data/processed/pools_*.json`, which is precomputed. Changing
 `pools.py` does nothing until it is re-emitted, and re-emitting it changes the
-baseline of every measurement anyone else is taking. `CLAUDE.md` carries a
-whole section — *"one writer, and nobody measures while it writes"* — whose only
-job is to compensate, by human discipline, for an edge that is untyped,
-unversioned and unchecked. It has already failed twice: a lever sweep returned
-different answers on two identical runs, and two `EXPECTED_INERT` reasons were
-written from those unstable readings and had to be retracted.
+baseline of every measurement in flight. `CLAUDE.md` carries a whole section —
+*"one writer, and nobody measures while it writes"* — whose only job is to
+compensate by human discipline for an edge nothing checks. **It has already
+failed twice**: a lever sweep returned different answers on two identical runs,
+and two `EXPECTED_INERT` reasons were written from those unstable readings and
+had to be retracted.
 
-**The pattern in the defects.** Look at what actually went wrong recently: a
-ceiling that went blind and reported silence as success; a wrong-city ward roll
-loaded by fallback; an arrival total read from the wrong aggregate; `theta_mode`
-reading live because artefacts moved underneath the measurement; a `{CODE}`
-template never substituted. **Not one of these is a modelling error.** Every one
-is a boundary error — data crossing between stages without anything checking
-what crossed. That is precisely the class of defect an explicit graph removes,
-and precisely the class that more end-to-end testing does not.
+### The pattern in the defects
 
----
-
-## 2. The five primitives, mapped onto this model
-
-Using the document's vocabulary — NODE, EDGE, STATE, ROUTER, GATE — against
-what already exists.
-
-### The nodes are already there; only the boundaries are missing
-
-The model is not a tangle. It is a fairly clean pipeline wearing a monolith:
-
-```
-  baseline (preceding NPE citywide shares)
-      |
-      +-- theta record ---+
-      |                   +--> shrunk estimator --> SPINE --+
-      +-- rho record -----+                                 |
-                                                            +--> ROUTER: which
-  by-election evidence ---------------------------------->  |    route does this
-  poll evidence ------------------------------------------> |    party take?
-  arrival record (seeding) -------------------------------> +
-                                                            |
-                                                    compress_levels
-                                                            |
-  pool fit (ecological inference) --> Duncan-Davis bounds --+--> pool_spec / IPF
-                                                            |
-  turnout model ------------------------------------------> +
-                                                            |
-                                                        THE DRAW
-                                            (level shock, copula, Dirichlet)
-                                                            |
-                                              ward allocation --> seats + overhang
-                                                            |
-                                                    scoring / calibration
-```
-
-Almost every box is already a function. What is missing is that a box has no
-**contract** — no declared input, no structured output, no failure state — so
-nothing can be checked at its edge, swapped behind it, or run without the rest.
-
-### The router already exists and is the most-audited code in the repository
-
-`blended_centres` chooses each party's level route by an `if/elif` chain: poll →
-seeded arrival → spine → `theta_prior` → `theta_mode` → `individual_theta` →
-`f_other`. That *is* a router. It is also where four dead branches have been
-sitting, where `note_constant` was bolted on to find out which branch fired, and
-where the in-sample provenance banner gets its content.
-
-The question "why did this party take this route?" is asked constantly and
-currently answered by instrumenting the code and re-running it. A router that
-records its decision with the state that produced it answers it from the run
-record, for every party, for free.
-
-### The gates exist too, but as scattered assertions
-
-The Duncan–Davis bound check, the pool-capacity guard, the IPF feasibility
-refusal, the temporal-leak tests, the doc-vs-artefact test. These are gates. The
-weakness is that each one decides locally what to do on failure, and the answer
-has historically been `except Exception: pass` — which fired on 41.8% of the
-published forecast's draws without anything reporting it.
-
-### State is the part this model hides, exactly as the document warns
-
-Right now state is: 223 function locals, one mutable `scenario` dict, and a set
-of JSON artefacts with no version, no provenance and no hash.
+Of the defects found this month — the pool ceiling going blind, a wrong-city ward
+roll loaded by fallback, an arrival total read from the wrong aggregate,
+`theta_mode` reading live because artefacts moved underneath the measurement, a
+`{CODE}` template never substituted — **not one is a modelling error.** They are
+boundary and instrument errors. That is what the remedy has to target, and it is
+not the same thing as more end-to-end testing.
 
 ---
 
-## 3. What I would actually propose — staged, cheapest first
+## 2. What I recommend, smallest first
 
-Each stage is useful alone, and none of the later ones is required to bank the
-earlier one.
+None of items 1–4 requires freezing the model, and together they are most of the
+available benefit.
 
-### Stage 0 — the run manifest. No refactor at all.
+### 1. Dump every intermediate by default
 
-Emit, from every run, a record of what each stage read and produced: input
-hashes, output hashes, parameters consumed, routing decisions taken, gates
-fired. The pieces already half-exist — `constants_read`, `notes`,
-`cap_moved`, `overhang_count`, `bounds_violations`.
+Write each stage's output to a run directory instead of discarding it. Then
+"what did the spine give ActionSA before the by-election blend?" is a file read,
+not a fifty-minute re-run with an added print.
 
-This is a few days of work, changes no numbers, and would have caught **every
-one of the boundary defects listed above**. It is the highest
-value-per-unit-risk item on this list by a wide margin, and I would do it first
-regardless of whether the rest ever happens.
+Highest troubleshooting gain per unit of risk on this list, and it requires **no
+restructuring whatsoever** — `run_model` keeps its shape and gains write calls.
 
-### Stage 1 — give the level chain real contracts.
+### 2. Content-address the artefacts
 
-Extract the chain from `baseline` through `compress_levels` into nodes with
-declared inputs and outputs. Reasons to start here and not elsewhere: it is
-already a chain conceptually, `MACHINERY.md` §2a already documents it as one, it
-is the most frequently audited area of the model, and it is where the last two
-substantive changes landed. `run_model` becomes an orchestrator over it rather
-than the place it lives.
+Key `pools_*.json` by city, target, code version and config hash. A stale
+artefact becomes *detectable* rather than prevented by a rule people must
+remember, and a measurement taken across a change of hash can be refused instead
+of silently believed.
 
-### Stage 2 — kill the artefact edge.
+This is the item that retires a discipline tax paid every session, on a failure
+mode that has already cost twice. It is also the precondition for item 3.
 
-Make `pools_*.json` content-addressed: keyed by city, target, code version and
-config hash. A stale artefact then becomes *detectable* instead of being
-prevented by a rule in `CLAUDE.md` that humans have to remember. This directly
-retires the "one writer" protocol, which is a discipline tax on every session
-and has already failed twice.
+### 3. Parallelise the nine city-years
 
-### Stage 3 — fan out the city-years.
+They are genuinely independent and currently run as a ~50-minute serial loop.
+This is the largest wall-clock win available, and it is *blocked* on item 2:
+they can only run concurrently once each owns its artefacts.
 
-The nine city-years are genuinely independent — a textbook diamond, and
-currently a serial loop costing ~50 minutes. This is the single biggest
-wall-clock win available, and it is *blocked* on Stage 2: they can only run
-concurrently once each owns its artefacts. Note the ordering — parallelism is a
-consequence of fixing the edge, not an alternative to it.
+### 4. Build more fast, validated screens
 
-### Stage 4 — node-level tests displace some end-to-end tests.
+**The largest efficiency gain of the last week was not structural.** Caching the
+nine city-years' mean vectors turned "one fifty-minute scored run per candidate"
+into seconds per candidate, and made it possible to compare four functional forms
+and sweep two parameters in an afternoon. It was validated before it was trusted
+— reconstructed coherent seats reproduced the runs' own at **306 against 308**.
 
-"Which levers does this constant reach?" becomes a question answered from the
-manifest rather than by fifty model runs. The end-to-end tests stay — they are
-the guard on the whole — but they stop being the *only* instrument.
+That is roughly a hundredfold on iteration speed from a seventy-line script, with
+no refactor and nothing to undo. **If the goal is cheaper review, better
+instruments beat better architecture**, and they are cheap to try and reversible
+if they fail. The discipline that makes them safe is the one used here: validate
+the screen against the real thing, and say so, before believing any of it.
 
----
+### 5. Node extraction — defer
 
-## 4. Where the graph idea is the wrong answer here, honestly
-
-The document is written for **agent** systems, and most of its value does not
-transfer:
-
-- **Our nodes are deterministic functions, not model calls.** Routers over
-  probabilistic judgement, verifiers that check an LLM's claims, and
-  cycles-until-convergence are the parts of that document that solve problems we
-  do not have. What transfers is narrower and duller: contracts, declared
-  edges, durable state, local failure policy, parallel fan-out.
-- **Do not build a graph engine.** The failure mode is spending weeks on a
-  scheduler and ending with the same defects plus a framework. The value is in
-  the contracts and the manifest; the orchestrator can stay a plain function
-  calling nodes in order.
-- **Some things must not be split.** The draw loop is a per-draw IPF over 1500
-  draws sharing arrays for performance. That is one node, not 1500. Node
-  boundaries belong where *data crosses a conceptual boundary*, not wherever a
-  loop exists.
-- **The document's own last check applies: "is the graph simpler than the
-  problem it solves?"** For nine city-years and one pipeline, a 40-node graph
-  would not be. I would expect roughly 12–16 nodes.
+Give stages declared inputs and outputs only when a specific pain demands it, and
+**do not build a graph engine**.
 
 ---
 
-## 5. The constraint that governs all of it
+## 3. Why the graph framing is not recommended
+
+The original proposal was to restructure the model as NODE / EDGE / STATE /
+ROUTER / GATE. Working it through, most of it does not fit:
+
+**This is a pipeline with one router, not a graph.** Real branching is almost
+absent — the only genuine router is the route-precedence chain in
+`blended_centres` (poll → seeded arrival → spine → prior → dead branches).
+Adopting graph vocabulary invites building routers, gates and a scheduler for a
+problem that is about ninety per cent linear, and then we own a framework's bugs
+on top of the model's.
+
+**Node extraction improves auditability more than clarity, and I first conflated
+the two.** The model is not hard to follow because it is one function. It is
+hard because the domain is intricate: θ, ρ, ecological inference, IPF,
+Duncan–Davis bounds, largest-remainder allocation. Splitting 863 lines into
+fourteen 60-line functions does not reduce the number of concepts, and it can
+make data flow *harder* to trace — sequential locals read quite well, and
+cross-node plumbing adds indirection and "where was this set?". That is trading
+one kind of opacity for another, and it was presented as pure gain.
+
+**Most of that document is written for agent systems.** Routers over
+probabilistic judgement, verifiers that check a model's claims, and
+cycles-until-convergence solve problems we do not have; our nodes are
+deterministic functions. What transfers is narrower and duller: declared inputs,
+durable intermediates, checked edges, parallel fan-out. Those are items 1–3.
+
+**Some things must not be split.** The draw loop is a per-draw IPF over 1500
+draws sharing arrays for performance. That is one unit, not 1500.
+
+### Two things a manifest will not do
+
+An earlier draft claimed a run manifest would have caught every boundary defect
+above. That is wrong, and the check is worth keeping:
+
+| defect | caught by a manifest? |
+|---|---|
+| wrong-city ward roll loaded by fallback | **yes** — a Tshwane run recording Johannesburg input paths is visible at a glance |
+| `theta_mode` reading live off moving artefacts | **yes** — differencing runs with different artefact hashes is detectably invalid |
+| `{CODE}` never substituted | **probably** — an output path containing a literal `{CODE}` stands out |
+| the pool ceiling going blind (74 of 75 at exactly 1.0) | **no** — it records the fact; nobody reads a passive record. This needed a GATE asserting an invariant |
+| the arrival total read as a per-party figure | **no** — the quantity was recorded correctly and misunderstood. That is naming, not plumbing |
+
+Three of five. **A manifest makes defects findable; it does not find them.** What
+finds them is a gate asserting an invariant — and the manifest's real value is
+that it makes such gates cheap to write, because the quantity is already exposed.
+
+**And it does not replace the lever sweep.** `individual_theta` was a *dead
+store*: written, read, and then the reader short-circuited before using it. Only
+an end-to-end perturbation catches that, so CLASS 12's fifty model runs stay.
+
+---
+
+## 4. The constraint that governs any refactor
 
 **A refactor cannot improve prediction, so by `ITERATING.md` it can only be
 neutral or bad.** Every number must be unchanged, and the golden prior is the
 instrument that proves it — which means the goldens must **not** be re-recorded
-at any point during the refactor. A re-record during a refactor destroys the
-only evidence that the refactor was safe.
+at any point during it. A re-record during a refactor destroys the only evidence
+that the refactor was safe.
 
-That argues for sequencing: **land the modelling work first, let the goldens
-settle, then refactor against frozen numbers.** Doing both at once means the
-goldens move for modelling reasons and the refactor's guarantee evaporates.
+That argues for sequencing, and against starting now. The model went from 336 to
+264 coherent seat error in a week; the open work on the width budget and
+`SD_FLOOR` will move the numbers again. **Land the modelling work, let the
+goldens settle, then restructure against frozen numbers** — if by then anything
+still argues for it.
 
-We are well placed for this: 124 tests, a golden prior on the drawer, a
-nine-city-year scoreboard, and a committed artefact. That is an unusually good
-harness to refactor behind — but only while it is holding still.
-
----
-
-## 6. What I would want to agree before building anything
-
-1. **Stage 0 alone, first?** It is cheap, safe, and independently valuable. I
-   would recommend committing to it and deciding the rest afterwards, on
-   evidence from it.
-2. **Is wall-clock or auditability the real pain?** They point at different
-   stages — 2 and 3 for wall clock, 0 and 1 for auditability. My reading is
-   that auditability is the binding constraint and slowness is a symptom, but
-   that is your call to make.
-3. **How much behaviour change is acceptable?** My assumption is *none* — bit
-   identical, goldens untouched. If some drift is acceptable the work gets much
-   cheaper and much less safe.
-4. **When?** I would not start while the level shrink's follow-ups (the tail,
-   `SD_FLOOR`) are still moving the numbers.
+Items 1–4 are exempt from this, which is most of why they are the recommendation:
+none of them changes a forecast.
