@@ -627,6 +627,31 @@ Every one of these is listed with its evidence, its status and how to check it
 in **`JUDGEMENT-CALLS.md`**, which is the register; this is the map. The
 backtest prints an in-sample banner naming the ones a run actually consumed.
 
+## Where the forecast's width comes from
+
+Measured by ablation, Johannesburg 2021, five seeds (`src/width_budget.py`).
+Share of drawn variance in each party's citywide PR share that disappears when
+the source is switched off:
+
+| source | ANC | DA | mid-ballot and below |
+|---|---|---|---|
+| within-pool Dirichlet | 0.67 | 0.39 | **0.83 – 0.98** |
+| θ level shock | 0.37 | 0.54 | 0.07 – 0.44 |
+| pool turnout copula | ~0 | 0.03 | ≤ 0.11, mostly noise |
+| ward noise | ~0 | 0.07 | ≤ 0.06 |
+| per-VD turnout noise, blend jitter | **0.00** | **0.00** | **0.00** |
+| entrant slot | ~0 | 0.04 | ≤ 0.07 |
+
+**The Dirichlet is the width layer**, and was not thought to be — it is
+registered as a concentration guard. θ matters at the top of the ballot and
+little below it. Three registered constants (`turnout_noise_sd`,
+`turnout_blend_jitter`, `TURNOUT_CORRELATION`) move citywide party width
+essentially not at all.
+
+Read the harness's printed noise floor before reading its table: switching a
+source off shifts the random stream as well, so a single-seed ablation cannot
+tell contribution from stream movement. See MODEL-LOG §1.48.
+
 ## Running the nine city-years
 
 `compare_history` runs them in parallel processes by default — one per

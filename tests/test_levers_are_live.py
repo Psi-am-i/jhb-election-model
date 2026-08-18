@@ -187,6 +187,16 @@ DELIBERATELY_UNUSED: dict[str, str] = {
         "absolute seat error, which matters when reading 'the model beats it "
         "8/9 on CRPS': a point forecast is maximally penalised by CRPS.",
     "benchmarks.py:uniform_swing(seed)": "same uniform dispatch, same reason",
+    "width_budget.py:_no_pool_turnout(rng)":
+        "an ABLATION STUB. `src/width_budget.py` measures what each variance source contributes by replacing it with a version that has none, and a replacement must present the signature of the thing it replaces or `montecarlo` cannot call it. Ignoring this argument IS the measurement. MODEL-LOG §1.48.",
+    "width_budget.py:_no_pool_turnout(z_common)":
+        "an ABLATION STUB. `src/width_budget.py` measures what each variance source contributes by replacing it with a version that has none, and a replacement must present the signature of the thing it replaces or `montecarlo` cannot call it. Ignoring this argument IS the measurement. MODEL-LOG §1.48.",
+    "width_budget.py:_no_pool_turnout(rho)":
+        "an ABLATION STUB. `src/width_budget.py` measures what each variance source contributes by replacing it with a version that has none, and a replacement must present the signature of the thing it replaces or `montecarlo` cannot call it. Ignoring this argument IS the measurement. MODEL-LOG §1.48.",
+    "width_budget.py:_no_shock(rng)":
+        "the same, for the theta level shock, which returns 1.0. NOTE that it therefore consumes no randomness -- which is exactly why the harness averages five seeds: an ablation that skips a draw shifts every later draw, and the first run of it reported negative variance contributions because of that.",
+    "width_budget.py:_no_shock(df)":
+        "the same, for the theta level shock, which returns 1.0. NOTE that it therefore consumes no randomness -- which is exactly why the harness averages five seeds: an ablation that skips a draw shifts every later draw, and the first run of it reported negative variance contributions because of that.",
     "levels.py:sd_for(size)":
         "the POOLED fallback branch, taken when fewer than 6 observations "
         "support a size fit. The fitted branch two lines above does use size. "

@@ -4971,6 +4971,90 @@ was worth, and it was worth it in a direction nothing could check.
 
 ---
 
+## 1.48 The width budget: the within-pool Dirichlet supplies the spread, not θ (2026-08-18)
+
+§1.45 left `SD_FLOOR` stuck between two sound measurements pointing opposite
+ways, and said the next move was to decompose realised width by source rather
+than tune the constant. This is that decomposition. `src/width_budget.py` runs
+it.
+
+### Method, and the defect in the obvious version of it
+
+Disable one variance source at a time; measure how much of the DRAWN spread
+disappears, as `sd(log citywide PR share)` per party across draws. That quantity
+needs no outcome, so it can be measured on the live target as well as a
+backtest.
+
+**Switching a source off also changes how many random numbers the draw
+consumes**, so every later draw shifts. A single-seed ablation therefore mixes
+"this source contributed variance" with "the stream moved" — and the first run
+reported *negative* contributions for ward noise, i.e. removing a noise source
+appearing to make the forecast wider. That is impossible, and it was the
+giveaway. The harness now averages five seeds and prints the full model's own
+seed-to-seed spread as a floor: 0.02–0.08, so nothing under about 0.15 is a
+finding.
+
+### The budget — Johannesburg 2021, 300 draws, mean of five seeds
+
+Share of drawn variance removed, `1 − var_without / var_full`:
+
+| source removed | ANC | DA | EFF | ASA | IFP | VF+ | PA | AlJam | ACDP | COPE |
+|---|---|---|---|---|---|---|---|---|---|---|
+| θ level shock | 0.37 | 0.54 | 0.20 | 0.07 | 0.21 | 0.19 | 0.24 | 0.44 | 0.28 | 0.07 |
+| pool turnout copula | −0.02 | 0.03 | 0.03 | 0.03 | −0.02 | −0.12 | 0.06 | 0.02 | 0.11 | 0.01 |
+| **within-pool Dirichlet** | **0.67** | **0.39** | **0.84** | **0.97** | **0.97** | **0.93** | **0.93** | **0.83** | **0.97** | **0.98** |
+| ward noise | −0.02 | 0.07 | −0.03 | 0.05 | −0.09 | −0.01 | 0.06 | 0.06 | 0.01 | 0.01 |
+| per-VD turnout noise | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| turnout blend jitter | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| entrant slot | −0.01 | 0.04 | 0.06 | 0.01 | −0.02 | −0.03 | 0.07 | −0.07 | 0.06 | −0.01 |
+| everything except θ | 0.67 | 0.41 | 0.84 | 0.97 | 0.97 | 0.94 | 0.93 | 0.84 | 0.97 | 0.98 |
+
+Four things follow, and the first was not expected.
+
+**1. The within-pool Dirichlet is the dominant source of width for almost every
+party** — 83% to 98% for everyone except the ANC (67%) and the DA (39%). It has
+never been treated as a width lever; `DIRICHLET_FLOOR` sits in the register as a
+guard against a degenerate concentration, not as the thing that decides how wide
+the forecast is.
+
+**2. θ and the Dirichlet are very nearly the whole budget, and roughly additive
+in variance** (ANC 0.37 + 0.67 = 1.04, EFF 0.20 + 0.84 = 1.04, DA 0.54 + 0.39 =
+0.93), which is what two independent multiplicative shocks should give. The
+"everything except θ" row reproduces the Dirichlet row almost exactly, so the
+remaining sources really are negligible rather than merely small.
+
+**3. Three registered constants do nothing to citywide width.** `turnout_noise_sd`
+and `turnout_blend_jitter` remove **exactly 0.00** at every party — confirming,
+independently, the register's note that 0.08 i.i.d. over 855 VDs contributes
+~0.003 citywide. And the **pool turnout copula contributes essentially nothing**
+(≤0.11, mostly inside the noise floor), which is a live question for
+`TURNOUT_CORRELATION = 0.63`: it changes how pools move together, and citywide
+party width barely notices.
+
+**4. It answers §1.45.** The θ record for parties ≥15% gives sd(log θ) = 0.227
+against the fit's 0.111–0.148, and §1.45 could not say whether the layer was too
+narrow or the forecast too wide. Now it can: **θ carries 37% (ANC) and 54% (DA)
+of the variance, and the Dirichlet independently supplies most of the rest.** A
+layer that is one term of a sum should not be asked to reproduce the marginal
+record of the whole. Raising θ dispersion to 0.227 would multiply θ's variance by
+about 2.3 and take the DA's total to ~1.7× — when realised ranks 1-3 `sd(z)` is
+already **0.855**, i.e. the forecast is about 17% too wide *now*.
+
+### What this means for `SD_FLOOR`
+
+**It should come down, not up** — the opposite of what the θ record alone
+suggests, and the same direction the width statistic said in §1.45. With the
+floor off, ranks 1-3 `sd(z)` goes 0.842 → 0.948 against a nominal 1.0.
+
+The obstacle is unchanged and is not a width question: removing the floor cost 4
+coherent seats and 2.9 CRPS, because extra width hedges the residual LEVEL bias
+that survives (ranks 1-3 mean PIT is 0.483, not 0.500). That is `ITERATING.md`
+rule 8's pathology exactly, and the order of operations follows from it —
+**close the residual level bias first, then drop the floor**, rather than paying
+for a better-calibrated width with a worse score.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model
