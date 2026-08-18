@@ -73,6 +73,21 @@ So, when more than one worker is active:
 A number measured against a moving artefact is not a measurement. It reads
 exactly like one.
 
+**Since 2026-08-18 the artefacts say what built them.** Every `pools_*.json`
+carries an `artefact_key` — city, target, a hash of `config/dimensions.toml`,
+and a hash of `pools.py`'s code with comments and docstrings ignored — and a run
+prints a named reason when it does not match. That does not replace the rule
+above: it stops a stale result being *believed afterwards*, it does not stop the
+artefacts moving under a measurement in progress. Re-emit with:
+
+    .venv/bin/python src/pools.py --city <city> --target <year> --emit
+
+Emission is deterministic — re-emitting all eleven specs changed nothing but the
+key — so the hazard is re-emitting *while someone measures*, not re-emitting.
+
+**The specs are not tracked by git.** They have no version history, which is why
+the key exists.
+
 ## Running things
 
 Use `.venv/bin/python`, never bare `python` — numpy is not on the system

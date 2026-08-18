@@ -628,6 +628,26 @@ Every one of these is listed with its evidence, its status and how to check it
 in **`JUDGEMENT-CALLS.md`**, which is the register; this is the map. The
 backtest prints an in-sample banner naming the ones a run actually consumed.
 
+## Knowing whether the pool spec is stale
+
+Every `pools_*.json` carries an `artefact_key`:
+
+| field | what it pins |
+|---|---|
+| `city`, `target` | which city-year it was built for |
+| `config_sha` | `config/dimensions.toml` |
+| `pools_sha` | `pools.py`'s **code**, hashed over its syntax tree with docstrings stripped, so changing a comment does not fire it |
+
+`run_model` compares it against what the current code would produce and prints a
+named reason when it differs. The check is a **report, not a refusal** — an
+unreadable spec should not take the forecast down — and it is held up by two
+tests: every committed spec must be current, and a perturbed key must actually
+be reported.
+
+It does not replace `CLAUDE.md`'s one-writer rule. It stops a stale result being
+believed afterwards; it does not stop the artefacts moving under a measurement
+in progress.
+
 ## Reading a run without re-running it
 
 `run_model(..., run_dir=...)` — or `--run-dir` on `montecarlo.py` and

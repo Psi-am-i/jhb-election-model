@@ -4773,6 +4773,81 @@ wrong.
 
 ---
 
+## 1.46 The artefacts now carry a key, and the model is not bit-reproducible across processes (2026-08-18)
+
+Two findings from the same afternoon, the second found by accident while
+checking the first.
+
+### `pools_*.json` now says what built it
+
+The specs are precomputed, so `pools.py` can change without them changing, and a
+measurement taken across that gap is not a measurement. The only protection was
+`CLAUDE.md`'s *"one writer, and nobody measures while it writes"* — a rule a
+person has to remember — and **it has already failed twice**: a lever sweep
+returned different answers on two identical runs, and two `EXPECTED_INERT`
+reasons written from those readings had to be retracted.
+
+Each spec now carries an `artefact_key`: the city, the target, a hash of the
+config, and a hash of `pools.py`. `run_model` checks it and prints a named
+reason when it does not match. Two tests hold it up — one that every committed
+spec is current, one that a perturbed key is actually *reported*, because a
+staleness check that cannot detect staleness is the blind pool ceiling again.
+
+**The code hash ignores comments and docstrings**, deliberately. This project
+requires the documentation to change in the same commit as the model, so a
+whole-file hash would fire on every improved comment — and a guard that cries
+wolf is a guard everyone learns to ignore. It hashes the parsed syntax tree with
+docstrings stripped: verified that a rewritten docstring plus a new comment
+leaves the hash unchanged, and that `SPLIT_SD_FLOOR` 0.90 → 0.91 moves it.
+
+All eleven specs were re-emitted to carry keys. **Emission is deterministic: the
+only difference from the pre-key versions, in all eleven, is the key itself** —
+no value changed, which is both the safety check for the re-emit and evidence
+that re-emitting is not the hazard the protocol treats it as. The hazard is
+re-emitting *while someone is measuring*, which is a different thing.
+
+Worth recording alongside: **the pool specs are not tracked by git.** The
+artefacts the entire model depends on have no version history at all, which is
+part of why staleness was invisible.
+
+### The model is bit-reproducible within a process, not across one
+
+Found while verifying the re-emit had moved nothing: two runs at the same seed
+in different processes hash differently. At first reading that looks like the
+re-emit having moved the model. It is not, and the check that separated them is
+worth keeping — current code against the pre-key artefact and against the
+re-emitted one, in one process, gave the same answer for both.
+
+The cause is `levels.theta_record`, which iterates `set(before) & set(after)` at
+`levels.py:243` and `:274` and appends each party's observations in that order.
+Set iteration order over strings varies with `PYTHONHASHSEED`, and floating
+point addition is not associative, so the sums differ in their last bits.
+
+**The size of it is 5.6e-17** — the last bit of a float64, on the ANC's mean PR
+share, with 43 of 56 parties differing at all. Five separate processes give
+**identical** scored results at Johannesburg 2021, 600 draws: coherent seat
+error 92, CRPS 68.716, list MAE 5.7793, every digit.
+
+So this is not a correctness problem and nothing measured in this repository is
+in question. It is an **instrument** problem, and it has two consequences worth
+writing down:
+
+* `test_drawer.py` claimed the draw is "bit-for-bit reproducible for a given
+  numpy version". True within a process, false across one; the comment is
+  corrected.
+* **A bit-level hash is not a valid cross-process instrument**, so the
+  acceptance test for parallelising the nine city-years cannot be "identical bit
+  for bit" — it must be "identical scored metrics". That criterion had already
+  been written the wrong way and would have sent someone chasing a phantom.
+
+Setting `PYTHONHASHSEED` in the harness would make runs bit-comparable and is
+worth doing on its own account. Sorting the two iterations would fix the cause
+outright and is a one-line change, but it moves every number in the last bits
+and therefore wants its own deliberate golden re-record rather than being
+smuggled in here.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

@@ -900,6 +900,67 @@ def test_the_model_refuses_to_run_without_a_pool_spec():
     raise AssertionError("run_model produced a forecast with no pool spec")
 
 
+def test_every_emitted_pool_spec_carries_a_current_artefact_key():
+    """The committed artefacts must match the code that is committed with them.
+
+    `pools_*.json` is precomputed, so `pools.py` can change without it changing,
+    and a measurement taken across that gap is not a measurement. That has
+    already cost twice: a lever sweep returned different answers on two
+    identical runs, and two `EXPECTED_INERT` reasons written from those unstable
+    readings had to be retracted. `CLAUDE.md`'s "one writer" rule is the human
+    compensation; this is the check.
+
+    **If this fails, the fix is to re-emit, not to loosen the test** — and to
+    check what re-emitting moves, because that is exactly the question the
+    failure is asking.
+    """
+    stale = []
+    for path in sorted(ROOT.glob("data/processed/**/pools_*.json")):
+        spec = json.loads(path.read_text())
+        slug = path.parent.name if path.parent.name != "processed" else "joburg"
+        city = cityconfig.load(slug)
+        year = spec.get("target")
+        why = pools.stale_reason(spec, city, _Target(year))
+        if why:
+            stale.append(f"{path.relative_to(ROOT)}: {why}")
+    assert not stale, (
+        "these emitted pool specs no longer match the code that reads them:\n  "
+        + "\n  ".join(stale) +
+        "\nRe-emit with `python src/pools.py --city <city> --target <year> "
+        "--emit`, and say in the commit what re-emitting changed besides the "
+        "artefact key.")
+
+
+def test_a_pool_spec_from_different_code_is_reported_as_stale():
+    """The guard has to FIRE, not merely exist.
+
+    A staleness check that cannot detect staleness is the pool ceiling all over
+    again: a guard whose silence gets read as evidence. This perturbs the key
+    the way a real code change would and requires a reason to come back.
+    """
+    city = cityconfig.load(CITY)
+    good = pools.artefact_key(city, _Target("2021"))
+    assert pools.stale_reason({"artefact_key": good}, city, _Target("2021")) is None
+
+    moved = dict(good, pools_sha="0" * 16)
+    why = pools.stale_reason({"artefact_key": moved}, city, _Target("2021"))
+    assert why and "pools.py" in why, f"a changed code hash was not reported: {why!r}"
+
+    wrong_city = dict(good, city="tshwane")
+    why = pools.stale_reason({"artefact_key": wrong_city}, city, _Target("2021"))
+    assert why and "tshwane" in why, f"a wrong-city spec was not reported: {why!r}"
+
+    assert pools.stale_reason({}, city, _Target("2021")), \
+        "a spec with no key at all must not pass silently"
+
+
+class _Target:
+    """The two attributes `pools.artefact_key` reads off a target."""
+
+    def __init__(self, year):
+        self.year = year
+
+
 def test_the_trace_is_inert_without_a_run_directory():
     """A diagnostic that changes the forecast is not a diagnostic.
 

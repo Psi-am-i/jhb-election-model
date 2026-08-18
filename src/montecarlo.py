@@ -1925,6 +1925,25 @@ def run_model(target, scenario: dict,
         spec_path = target.city.processed / f"pools_{target.year}.json"
         if spec_path.exists():
             spec = json.loads(spec_path.read_text())
+            # IS THIS SPEC STILL THE ONE THIS CODE WOULD PRODUCE? The artefact
+            # is precomputed, so `pools.py` can change without it changing, and
+            # a measurement taken across that gap is not a measurement. This
+            # has already cost twice; see `pools.artefact_key`.
+            try:
+                import pools as _pools_key
+                _stale = _pools_key.stale_reason(spec, target.city, target)
+            except Exception:                       # never fail a run over this
+                _stale = None
+            if _stale:
+                print(f"  ! pools_{target.year}.json is STALE: {_stale}")
+            scenario["_pools_stale"] = _stale
+            scenario["_pools_artefact_key"] = spec.get("artefact_key")
+            trace.put("02_pools_artefact", {
+                "path": str(spec_path),
+                "artefact_key": spec.get("artefact_key"),
+                "stale_reason": _stale,
+                "fitted_on": spec.get("fitted_on"),
+            })
             note_constant(scenario, "pools", f"fitted on {spec['fitted_on']}")
             home = spec.get("splinter_home")
             if home:

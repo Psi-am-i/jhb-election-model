@@ -47,7 +47,9 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import ast
 import csv
+import hashlib
 import tomllib
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -110,6 +112,109 @@ class Config:
     def tilts(self, *, admitted_only: bool = True) -> list[Dimension]:
         return [d for d in self.dimensions
                 if d.role == "tilt" and (d.admitted or not admitted_only)]
+
+
+def _sha(path: Path) -> str:
+    """Short content hash of a file, or a marker when it is not there."""
+    try:
+        return hashlib.sha256(Path(path).read_bytes()).hexdigest()[:16]
+    except OSError:
+        return "missing"
+
+
+def _code_sha(path: Path) -> str:
+    """Hash what the module DOES, ignoring comments and docstrings.
+
+    A whole-file hash would be wrong here, and wrong in the specific way that
+    makes a guard useless. `CLAUDE.md` requires the documentation to change in
+    the same commit as the model, so this file's docstrings move constantly —
+    and a staleness warning that fires every time someone improves a comment is
+    a warning everyone learns to ignore. Then the one that matters is ignored
+    too.
+
+    So the hash is taken over the parsed syntax tree with docstrings stripped:
+    any change to what the code computes moves it, and no change to how the code
+    is explained does.
+
+    Falls back to the byte hash if the file will not parse, which is the safe
+    direction — an unparseable module should look changed.
+
+    One caveat worth knowing: `ast.dump` output is not guaranteed stable across
+    Python versions, so a interpreter upgrade will mark every spec stale. That
+    is a re-emit worth doing anyway, for the same reason a numpy upgrade is a
+    deliberate golden re-record.
+    """
+    try:
+        tree = ast.parse(Path(path).read_text())
+    except (OSError, SyntaxError):
+        return _sha(path)
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.Module, ast.FunctionDef,
+                                 ast.AsyncFunctionDef, ast.ClassDef)):
+            continue
+        body = getattr(node, "body", None)
+        if (body and isinstance(body[0], ast.Expr)
+                and isinstance(body[0].value, ast.Constant)
+                and isinstance(body[0].value.value, str)):
+            body.pop(0)
+    return hashlib.sha256(
+        ast.dump(tree, annotate_fields=False).encode()).hexdigest()[:16]
+
+
+def artefact_key(city, target, config_path: Path = CONFIG) -> dict:
+    """What an emitted spec was built FROM, so staleness can be detected.
+
+    `pools_*.json` is precomputed. Changing this file does nothing until the
+    spec is re-emitted, and re-emitting it changes the baseline of every
+    measurement in flight. Until now the only protection was a rule in
+    `CLAUDE.md` — *"one writer, and nobody measures while it writes"* — that a
+    person had to remember, and **it has already failed twice**: a lever sweep
+    returned different answers on two identical runs, and two `EXPECTED_INERT`
+    reasons written from those unstable readings had to be retracted.
+
+    A hash of the code and the config that produced a spec turns that from
+    something you must remember into something a run can check. It does not stop
+    anyone re-emitting; it stops the result being believed afterwards.
+
+    **Deliberately not a hash of the inputs.** The census and roll files are
+    large and numerous, and hashing them on every run would cost more than it
+    catches; the code and the config are what change when someone is working.
+    A wrong-city INPUT is a different failure and is caught by refusing the
+    fallback, which is where `pools.py` now refuses by name.
+    """
+    return {
+        "schema": 1,
+        "city": getattr(city, "slug", str(city)),
+        "target": getattr(target, "year", str(target)),
+        "pools_sha": _code_sha(Path(__file__)),
+        "config_sha": _sha(config_path),
+    }
+
+
+def stale_reason(spec: dict, city, target, config_path: Path = CONFIG) -> str | None:
+    """Why this spec should not be trusted for this run, or None.
+
+    Returns a sentence, not a boolean, because the caller prints it and the
+    useful part is *which* thing moved.
+    """
+    key = spec.get("artefact_key")
+    if not key:
+        return ("emitted before artefact keys existed, so nothing can say "
+                "whether it matches the current pools.py — re-emit to check")
+    now = artefact_key(city, target, config_path)
+    if key.get("city") != now["city"] or key.get("target") != now["target"]:
+        return (f"built for {key.get('city')} {key.get('target')}, "
+                f"not {now['city']} {now['target']}")
+    moved = [name for name in ("pools_sha", "config_sha")
+             if key.get(name) != now[name]]
+    if moved:
+        which = " and ".join(
+            {"pools_sha": "src/pools.py", "config_sha": str(config_path)}[m]
+            for m in moved)
+        return (f"{which} changed since this spec was emitted "
+                f"({', '.join(f'{m} {key.get(m)} -> {now[m]}' for m in moved)}); "
+                f"re-emit before believing any measurement taken against it")
+    return None
 
 
 def load_config(path: Path = CONFIG) -> Config:
@@ -3114,6 +3219,10 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             f"the reader simulation only — the published forecast reads "
             f"pools_{target.year}.json.")
     return {"pools": out, "fitted_on": year, "target": target.year,
+            # What this spec was built FROM, so a run can tell whether the code
+            # has moved under it. `provenance` below is the prose account for a
+            # reader; this is the machine-checkable one. See `artefact_key`.
+            "artefact_key": artefact_key(city, target),
             **marker,
             "turnout_limits": limits,
             "seeds": {p: v for p, v in seeds.items() if abs(v) > 1e-9},

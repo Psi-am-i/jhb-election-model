@@ -71,12 +71,22 @@ CITY = "joburg"
 SEED = 20261104          # the shipped seed; the drawer is exercised as configured
 DRAWS = 2000             # enough for a stable p5/p95, ~0.2s to produce
 
-# Percentage points. The draw is bit-for-bit reproducible for a given numpy
-# version, so this is slack for a float difference, not for a real change in
-# the prior: re-emitting the pools, or nudging a party's blended centre, moves
+# Percentage points. This is slack for a float difference, not for a real change
+# in the prior: re-emitting the pools, or nudging a party's blended centre, moves
 # these values well clear of it. A numpy UPGRADE can legitimately move them too
-# (the RNG stream is versioned); that is a re-record, and should be noted as
-# one in MODEL-LOG.md.
+# (the RNG stream is versioned); that is a re-record, and should be noted as one
+# in MODEL-LOG.md.
+#
+# THE DRAW IS BIT-FOR-BIT REPRODUCIBLE WITHIN A PROCESS, NOT ACROSS ONE. This
+# comment used to claim the stronger thing. `levels.theta_record` iterates
+# `set(before) & set(after)` and appends each party's observations in that
+# order, so PYTHONHASHSEED changes the summation order and float addition is not
+# associative. Measured 2026-08-18: three processes at one seed give three
+# different hashes over `pr_share_draws`, and the largest difference in any
+# party's mean share is 5.6e-17 — the last bit of a float64. Every scored metric
+# is identical (five processes: coherent 92, CRPS 68.716, pr_mae 5.7793). So the
+# tolerance below is doing real work, and a bit-level hash is not a valid
+# instrument across processes. See MODEL-LOG §1.46.
 TOL = 0.01
 
 ELECTIONS = ROOT / "data" / "raw" / "elections"
