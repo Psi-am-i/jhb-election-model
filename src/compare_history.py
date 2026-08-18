@@ -53,6 +53,8 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import os
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import json
 import sys
 import zlib
@@ -780,6 +782,24 @@ def published_for(city_slug: str, year: str) -> dict | None:
     return entry
 
 
+def _run_one(job):
+    """One city-year, as a picklable unit of work for a worker process.
+
+    Module level and taking a single tuple because `ProcessPoolExecutor` uses
+    the *spawn* start method on macOS: the callable is pickled by qualified
+    name and the child re-imports this module from scratch.
+
+    PROCESSES, NOT THREADS, and the reason is specific. `montecarlo.apply_city`
+    writes into the module-level `DEFAULTS`, and `levels.SD_FLOOR` is set by
+    sweeps; threads would share both and city-years would corrupt each other's
+    configuration mid-run. A process per city-year gets its own module state,
+    which is also what makes the parallel result equal the serial one.
+    """
+    slug, year, draws, data_dir, overrides, run_dir = job
+    return run_city_year(slug, year, draws, Path(data_dir), overrides,
+                         run_dir=Path(run_dir) if run_dir else None)
+
+
 def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
                   overrides: list[str] | None = None,
                   run_dir: Path | None = None) -> dict:
@@ -1228,6 +1248,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
     ap.add_argument("--md", type=Path, default=Path("data/processed/history.md"))
     ap.add_argument("--json", type=Path, default=Path("data/processed/history.json"))
+    ap.add_argument("--jobs", type=int, default=0, metavar="N",
+                    help="run the city-years in N parallel PROCESSES. 0 (the "
+                         "default) picks one per city-year up to the machine's "
+                         "cores less one; 1 forces the serial loop. The "
+                         "city-years are independent -- each reads its own "
+                         "pools spec and derives its own PIT seed from its "
+                         "name -- so this changes no number, and a run that "
+                         "disagrees with the serial one is a bug rather than a "
+                         "speedup.")
     ap.add_argument("--run-dir", type=Path, default=None,
                     help="write a TRACE per city-year here: every stage's "
                          "output as JSON, so an intermediate can be read "
@@ -1244,17 +1273,44 @@ def main(argv: list[str] | None = None) -> int:
                          "'this constant does nothing'.")
     args = ap.parse_args(argv)
 
-    results = []
+    jobs_list = []
     for slug in ([args.city] if args.city else CITIES):
         city = cityconfig.load(slug)
         for year in runnable(city):
             if args.target and year != args.target:
                 continue
+            jobs_list.append((slug, year, args.draws, str(args.data_dir),
+                              args.set, str(args.run_dir) if args.run_dir else None))
+
+    workers = args.jobs
+    if workers == 0:
+        workers = max(1, min(len(jobs_list), (os.cpu_count() or 2) - 1))
+    results = []
+    if workers > 1 and len(jobs_list) > 1:
+        # Order is preserved by index, not by completion, so the report and the
+        # artefact read the same however the work finishes.
+        print(f"  running {len(jobs_list)} city-years across {workers} processes",
+              flush=True)
+        done = [None] * len(jobs_list)
+        with ProcessPoolExecutor(max_workers=workers) as pool:
+            futures = {pool.submit(_run_one, job): i
+                       for i, job in enumerate(jobs_list)}
+            for fut in as_completed(futures):
+                i = futures[fut]
+                slug, year = jobs_list[i][0], jobs_list[i][1]
+                try:
+                    done[i] = fut.result()
+                    print(f"  {slug} {year} done", flush=True)
+                except Exception as exc:
+                    print(f"  {slug} {year} failed: {type(exc).__name__}: {exc}")
+        results = [r for r in done if r is not None]
+    else:
+        for slug, year, draws, data_dir, overrides, run_dir in jobs_list:
             print(f"  {slug} {year} ...", flush=True)
             try:
-                results.append(run_city_year(slug, year, args.draws,
-                                             args.data_dir, args.set,
-                                             run_dir=args.run_dir))
+                results.append(run_city_year(slug, year, draws, Path(data_dir),
+                                             overrides,
+                                             run_dir=Path(run_dir) if run_dir else None))
             except Exception as exc:
                 print(f"    failed: {type(exc).__name__}: {exc}")
     if not results:

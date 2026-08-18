@@ -1722,8 +1722,8 @@ class Trace:
 
     THE PROBLEM THIS SOLVES. Every intermediate in ``run_model`` lives as one of
     223 locals inside an 863-line function, so the only way to see one has been
-    to add a print and re-run — about fifty minutes for a nine-city-year
-    comparison. That cost is paid on every investigation, and it is why several
+    to add a print and re-run the whole comparison.
+ That cost is paid on every investigation, and it is why several
     findings this month were argued from a single expensive reading rather than
     checked cheaply against a second.
 

@@ -8,9 +8,9 @@ working the argument through, most of that is not recommended.** The diagnosis
 below stands; the remedy changed. The short version:
 
 > The expensive part of a review is not that the code is one function. It is
-> that you cannot see an intermediate without re-running fifty minutes of
-> simulation, and that the artefacts underneath a measurement can move while you
-> take it. Both are fixable with instruments. Neither needs a refactor.
+> that you cannot see an intermediate without re-running the whole simulation,
+> and that the artefacts underneath a measurement can move while you take it.
+> Both are fixable with instruments. Neither needs a refactor.
 
 ---
 
@@ -27,7 +27,7 @@ From the current tree:
 | `run_model` call sites in the suite | 11, across 5 of 10 test files |
 | intermediate-inspection facilities | 15 `if verbose:` prints, one end-of-run JSON summary |
 | full-suite wall clock | ~35 minutes |
-| one `compare_history` at 1500 draws | ~50 minutes |
+| one `compare_history` at 1500 draws | 499s serial, 169s parallel (measured 2026-08-18; an earlier draft of this table said ~50 minutes, which was guessed from polling intervals while other jobs competed, and was wrong) |
 
 Four consequences, each of which has already cost real time:
 
@@ -76,7 +76,7 @@ available benefit.
 
 Write each stage's output to a run directory instead of discarding it. Then
 "what did the spine give ActionSA before the by-election blend?" is a file read,
-not a fifty-minute re-run with an added print.
+not a whole-comparison re-run with an added print.
 
 Highest troubleshooting gain per unit of risk on this list, and it requires **no
 restructuring whatsoever** — `run_model` keeps its shape and gains write calls.
@@ -91,17 +91,27 @@ of silently believed.
 This is the item that retires a discipline tax paid every session, on a failure
 mode that has already cost twice. It is also the precondition for item 3.
 
-### 3. Parallelise the nine city-years
+### 3. Parallelise the nine city-years — **DONE 2026-08-18**
 
-They are genuinely independent and currently run as a ~50-minute serial loop.
-This is the largest wall-clock win available, and it is *blocked* on item 2:
-they can only run concurrently once each owns its artefacts.
+They are genuinely independent, and `compare_history` now runs them in parallel
+processes by default. **499s serial against 169s parallel at 1500 draws, a 2.96×
+speedup** — worth having, and a good deal less than the core count suggests,
+because numpy already threads inside a single run.
+
+Coherent seat error, CRPS, raw seat error and the medians-sum come out
+bit-identical; the MAE columns agree to 6.7e-15, which is float summation order
+(§1.46) and not a behavioural difference.
+
+It depended on item 2 less than expected and on something else more: `apply_city`
+wrote each city's scalars over `DEFAULTS` and never restored them, so a city
+inherited whatever ran before it and the serial loop and a parallel one were
+different programs. That had to be fixed first (§1.47).
 
 ### 4. Build more fast, validated screens
 
 **The largest efficiency gain of the last week was not structural.** Caching the
-nine city-years' mean vectors turned "one fifty-minute scored run per candidate"
-into seconds per candidate, and made it possible to compare four functional forms
+nine city-years' mean vectors turned "one full scored run per candidate" into
+seconds per candidate, and made it possible to compare four functional forms
 and sweep two parameters in an afternoon. It was validated before it was trusted
 — reconstructed coherent seats reproduced the runs' own at **306 against 308**.
 

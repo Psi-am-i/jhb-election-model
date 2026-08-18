@@ -900,6 +900,45 @@ def test_the_model_refuses_to_run_without_a_pool_spec():
     raise AssertionError("run_model produced a forecast with no pool spec")
 
 
+def test_applying_a_city_does_not_inherit_the_previous_city_s_judgements():
+    """`apply_city` must start from the module's defaults, not from whatever ran.
+
+    It used to write each city's scalars over `DEFAULTS` and never restore them,
+    so in a nine-city-year loop a city inherited whatever the cities before it
+    happened to declare. Only two of the eight metros declare scalars at all, so
+    the other six were running on Johannesburg's or Tshwane's values — and WHICH
+    ONE depended on the order the loop happened to visit them in.
+
+    Exactly one key differed at the time (`pa_contestation_uplift`, since
+    deleted) and it was consumed at no backtested target, so no score moved.
+    That was luck. This test is what makes it not luck, and it is also what
+    makes a parallel `compare_history` run equal a serial one: with the reset,
+    a fresh process and a re-used one see the same configuration.
+    """
+    pristine = dict(mc.DEFAULTS)
+
+    tsh = cityconfig.load("tshwane")
+    mc.apply_city(tsh)
+    after_tshwane = dict(mc.DEFAULTS)
+
+    # A city that declares no scalars of its own must land back on the defaults.
+    plain = cityconfig.load("capetown")
+    mc.apply_city(plain)
+    leaked = {k: (after_tshwane.get(k), mc.DEFAULTS.get(k))
+              for k in mc.DEFAULTS
+              if mc.DEFAULTS.get(k) != pristine.get(k)}
+    assert not leaked, (
+        "apply_city left another city's judgements in DEFAULTS: " + repr(leaked))
+
+    # And applying the same city twice is idempotent.
+    mc.apply_city(tsh)
+    once = dict(mc.DEFAULTS)
+    mc.apply_city(tsh)
+    assert dict(mc.DEFAULTS) == once, "apply_city is not idempotent"
+
+    mc.apply_city(cityconfig.load(CITY))     # leave the module where we found it
+
+
 def test_every_emitted_pool_spec_carries_a_current_artefact_key():
     """The committed artefacts must match the code that is committed with them.
 

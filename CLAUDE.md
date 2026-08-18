@@ -88,6 +88,15 @@ key — so the hazard is re-emitting *while someone measures*, not re-emitting.
 **The specs are not tracked by git.** They have no version history, which is why
 the key exists.
 
+**`compare_history` runs its nine city-years in parallel processes** (since
+2026-08-18), which is safe because they only READ the specs — the rule above is
+about who WRITES them, and that is still one worker at a time. Measured at 1500
+draws: 499s serial against 169s parallel, a 2.96x speedup, with
+`seat_abs_err_coherent`, `crps`, `seat_abs_err` and `median_sum` bit-identical
+and the MAE columns agreeing to 6.7e-15 (float summation order, MODEL-LOG
+§1.46). Processes rather than threads because `apply_city` and `levels.SD_FLOOR`
+are module state.
+
 ## Running things
 
 Use `.venv/bin/python`, never bare `python` — numpy is not on the system
@@ -95,6 +104,7 @@ interpreter.
 
     .venv/bin/python tests/run_all.py                  # the suite
     .venv/bin/python src/compare_history.py            # votes and seats vs actual, 9 city-years
+                                                       #   runs in parallel by default; --jobs 1 forces serial
     .venv/bin/python src/diagnose.py --city joburg --target 2021 --wards 0
     .venv/bin/python src/arrivals.py                   # the arrival machinery, scored alone
     .venv/bin/python src/sweep.py                      # obvious-fault sweep
@@ -112,8 +122,9 @@ you can read without running anything again. It is **opt-in and changes no
 number**: with no `--run-dir` the run is byte-identical, and `test_chain.py`
 asserts it.
 
-This exists because the alternative was a fifty-minute re-run with a print added,
-and that cost was being paid on every investigation. It is a *record*, not a
+This exists because the alternative was re-running the whole comparison with a
+print added — 499s serial, 169s parallel at 1500 draws — and that cost was being
+paid on every investigation. It is a *record*, not a
 check: it will happily record a guard that has gone blind. What catches those is
 an assertion — and the trace is what makes assertions cheap to write, because
 the quantity is already on disk.

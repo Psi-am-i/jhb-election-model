@@ -627,6 +627,24 @@ Every one of these is listed with its evidence, its status and how to check it
 in **`JUDGEMENT-CALLS.md`**, which is the register; this is the map. The
 backtest prints an in-sample banner naming the ones a run actually consumed.
 
+## Running the nine city-years
+
+`compare_history` runs them in parallel processes by default — one per
+city-year, capped at the machine's cores less one. `--jobs 1` forces the serial
+loop, `--jobs N` fixes the count.
+
+They are independent by construction: each reads its own pool spec, derives its
+PIT seed from its own name (`_pit_seed`, deliberately not from a counter), and
+since 2026-08-18 `apply_city` restores `DEFAULTS` before applying a city's
+scalars, so no city inherits another's judgements. Processes rather than threads
+because that module state is shared and would corrupt across city-years.
+
+**Measured at 1500 draws: 499s serial, 169s parallel — 2.96x.** Not the order of
+magnitude the core count suggests, because numpy already threads inside a single
+run. Coherent seat error, CRPS, raw seat error and the medians-sum are
+bit-identical between the two; the MAE columns agree to 6.7e-15, which is
+floating-point summation order and not a behavioural difference (§1.46).
+
 ## Knowing whether the pool spec is stale
 
 Every `pools_*.json` carries an `artefact_key`:
