@@ -296,3 +296,61 @@ columns, impossible turnout values, a seat report that reassigns its own
 formula letters between years — are logged in
 [`DATA-QUALITY.md`](DATA-QUALITY.md), written so they can be reported to the
 IEC, MDB and Stats SA rather than only worked around here.
+
+## Cross-references — read against, never read from
+
+**Nothing in `src/` opens anything in this section**, and that is the point of
+separating it. A source listed beside the IEC exports would be taken for an
+input; these are places to check our readings against somebody else's, which is
+a different job and carries different risks. If one of them ever becomes an
+input it moves up the file and acquires a provenance note like everything else.
+
+### Inside Politics — 2026/7 election resources (added 2026-08-18)
+
+<https://inside-politics.org/election-2026-7-resources/>
+
+An independent analyst's index for the 2026 LGE, and it is **large — roughly 230
+linked pages**, not a summary page. (A first survey of it recorded here called it
+a handful of graphics with "notable gaps"; that was read off a compressed
+summary and was wrong. Enumerated properly, the structure is below.)
+
+| section | what | grain |
+|---|---|---|
+| Analysis | 18 numbered pieces | metro and ward |
+| 1–2. Party performance | ANC, DA, EFF, FF+ vote share, plus ANC-vs-DA, ANC-vs-EFF, DA-vs-FF+ | national + 8 metros |
+| 3–4. Turnout | overall, and ANC/DA turnout differentials | national + metros |
+| 5–6. ANC and DA turnout | one page per metro plus an all-metros page | **by ward** |
+| 7. ANC–DA trade-offs | one page per metro plus all-metros | **by ward** |
+| 8.1 Heat maps, national | ANC, DA, IFP, FF+, EFF, GOOD, PA, ASA, MK, other, leading party, second party, turnout | municipality **and ward** |
+| 8.2 Heat maps, provinces | the same set, all nine provinces | municipality **and ward** |
+| 8.3 Heat maps, metros | the same set for each of the 8 metros | **by ward** |
+| 9. Cumulative turnout tracks | 2000, 2006, 2011, 2016, 2021 | **by ward**, per metro |
+
+**What is worth checking ours against, in order of value to this model:**
+
+1. **Cumulative ANC–DA turnout tracks by ward, 2000–2021.** These are the same
+   transitions the θ and ρ records are built from. Closest external check we
+   have on the level layer's inputs.
+2. **ANC and DA turnout by ward, per metro.** The turnout sub-model's own
+   quantity, independently rendered.
+3. **PA, ASA, MK, GOOD and IFP heat maps by ward.** Directly relevant to the
+   pool vectors — the PA's Coloured concentration, and the ANC/IFP separation
+   `MACHINERY.md` §0 records that population group *cannot* make.
+4. **"Fragmentation: the most powerful force in Gauteng"** — the effect §1.43
+   measured and then found does not forecast.
+5. **"A brief history of the voters' roll"** — bears on `DATA-QUALITY.md` item
+   11, registration against census.
+6. **"How many votes the DA needs for 50% in JHB" (parts I and II)** and the
+   **"Zille vs Mashaba methodology"** page — an independent quantitative
+   treatment of our exact target, with its method stated.
+
+**Provenance and limits.** Derived from the same IEC results this repository
+ingests, so it is **not an independent measurement of the same quantity** — it
+is an independent *reading* of it. Good for catching a mis-ingest, a wrong-city
+file or a delimitation mismatch on our side; no use at all as corroboration that
+a shared upstream figure is correct. Presented as graphics rather than
+downloadable tables, so a check against it is by eye.
+
+**What it does not carry**, checked because we want them: no raw voter roll, no
+nomination lists, no by-election series, no quantitative metro seat forecast.
+Our own gaps in those (see *Still to acquire*) are not closed by it.
