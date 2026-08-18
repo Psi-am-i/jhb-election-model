@@ -4471,6 +4471,12 @@ suspect for the excess width at the top of the ballot. **It has never been
 swept.** Registered 🔴; not tested here, because it is a separate change and this
 section's thesis is about the θ centre.
 
+**Superseded the next day by §1.45, which swept it.** Two claims in the
+paragraph above need correcting there: the floor does not merely hold those
+parties wider than the fit asks, it flattens all three to one identical number;
+and it is not simply excess width, because the θ record for that band says
+0.227 — wider than either the fit or the floor. Read §1.45, not this.
+
 ### What this means for the mid-ballot
 
 **Best-case forward RMSE is 0.715 in log — a typical error of about 2× on θ.**
@@ -4643,6 +4649,127 @@ the shrink does not force it back open.
 0.310 on the PR ballot with the ANC flat at 0.201 → 0.202 (the ANC is smaller in
 2026, so the size-dependent pull takes less from it). That is a forecast change
 to be republished deliberately, not a side effect to be discovered later.
+
+---
+
+## 1.45 `SD_FLOOR` swept: it is not an error, and it is buying seats with width (2026-08-18)
+
+§1.44 registered `SD_FLOOR` at 🔴 as a live suspect and never-swept. Swept now,
+nine city-years, 600 draws.
+
+### What the floor actually does
+
+It does not merely clamp the largest party. The size fit produces a real,
+monotone gradient across the top of the ballot, and **the floor flattens it to a
+single number**. At Johannesburg 2021, `theta_prior`'s emitted `sd(log θ)`:
+
+| `SD_FLOOR` | ANC (49.6%) | DA (29.6%) | EFF (14.9%) |
+|---|---|---|---|
+| 0.05 or 0.10 — floor never binds | 0.1110 | 0.1257 | 0.1484 |
+| **0.15, committed** | **0.1500** | **0.1500** | **0.1500** |
+| 0.30 | 0.3000 | 0.3000 | 0.3000 |
+
+So at the committed value the three largest parties are given **identical**
+level spreads, and the size-dependence that `sd_for` exists to provide is
+switched off for exactly the parties that hold most of the council.
+
+### The scoreboard says the floor earns its place
+
+| `SD_FLOOR` | coherent seats | CRPS | beats u-swing |
+|---|---|---|---|
+| off (0.05 / 0.10) | 272 | 238.0 | 8/9 |
+| **0.15, committed** | **268** | **235.1** | 8/9 |
+| 0.22 | 276 | 242.1 | 8/9 |
+| 0.30 | 272 | 256.6 | 8/9 |
+
+0.15 is the optimum of those tested on both. **So it is not an obvious error and
+it is not removed.** Note the seat column honestly: 268 against 272 is 4 seats
+at 600 draws, where draw noise is ±2–4, so the seat result is at the edge of
+noise. CRPS is the firmer signal, and it agrees.
+
+### But the width statistic says the opposite, and that is the finding
+
+`dispersion` is the exact `sd(z)`, where **1.0 is correct width**:
+
+| `SD_FLOOR` | ranks 1-3 sd(z) | ranks 4-12 sd(z) |
+|---|---|---|
+| off | **0.948** | **0.684** |
+| 0.15, committed | 0.842 | 0.628 |
+| 0.22 | 0.818 | 0.662 |
+| 0.30 | 0.786 | 0.682 |
+
+**With the floor off, the top of the ballot is very nearly the right width
+(0.948 against a nominal 1.0). The committed floor makes it too wide (0.842),
+and it makes ranks 4-12 worse as well.** Every step up from "off" is a step away
+from correct width, in both bands.
+
+### Is 0.15 a judgement or a derived number? A judgement — and the fit under it is the real problem
+
+**Typed, not derived.** No derivation of 0.15 is recorded anywhere. The comment
+directly above the constant argues that there is no large-party *threshold* —
+which is a different claim, about shape, not about this value — and the value
+has simply stood since.
+
+But measuring the quantity it clamps changes the story. Direct binned
+`sd(log θ)`, eight metros, all transitions strictly before 2026, n=264:
+
+| baseline share | n | median θ | sd(log θ) |
+|---|---|---|---|
+| 0 – 0.2% | 79 | 1.310 | 0.925 |
+| 0.2 – 0.5% | 63 | 1.028 | 0.815 |
+| 0.5 – 2% | 51 | 1.015 | 0.659 |
+| 2 – 10% | 24 | 0.881 | 0.638 |
+| 10 – 15% | 8 | 0.976 | 0.147 |
+| **≥ 15% — where the floor binds** | **39** | 0.922 | **0.227** |
+
+**The record says those parties move by 0.227 in log. The size fit gives them
+0.111 to 0.148. The typed floor of 0.150 is still 34% below the measurement.**
+
+So the floor is not a hedge bolted on top of a good estimate. It is a partial,
+undeclared correction toward a dispersion the fit **under-produces at the top of
+the ballot** — and it does not correct far enough. The defect is in `sd_for`,
+which fits `log(residual²)` linearly in `log(size)` across a population whose
+variance is dominated by the 142 observations under 0.5%, and then extrapolates
+that line out to 50% share. The direct estimate for the band (n=39) is the more
+trustworthy number for large parties, and the fit disagrees with it by 2×.
+
+### The tension this leaves, unresolved
+
+Two sound measurements point opposite ways:
+
+* The **θ record** says large-party dispersion is 0.227, so both the fit and the
+  floor are too narrow.
+* The **realised forecast error** says the opposite: with the floor off,
+  ranks 1-3 width is already nearly correct (sd(z) 0.948), and raising θ
+  dispersion makes the whole forecast too wide (0.842 at 0.15, 0.786 at 0.30).
+
+The most likely reconciliation is **double counting**: θ is not the only source
+of level spread in a draw — the turnout copula, the pool Dirichlet and the ward
+noise all contribute — so a forecast carrying the full historical θ dispersion
+*plus* those would be wider than the errors it actually makes. If that is right,
+the θ-dispersion layer should not be asked to reproduce the marginal record on
+its own, and the honest statement is that **no part of this model currently owns
+the total-width budget**. Nobody has decomposed realised width by source, and
+until someone does, tuning `SD_FLOOR` is tuning one term of a sum nobody has
+written down.
+
+### Disposition
+
+**Kept at 0.15.** It is optimal among the values tested on both scored metrics,
+and worse does not ship. Register moves 🔴 → 🟡: measured, best of those tried,
+but **still a typed number, still not derived, and now known to sit between a
+fit that is too narrow and a record that is wider than the forecast can afford.**
+
+The next move is not to tune this constant. It is to decompose realised forecast
+width by source and find out which layer is over-contributing — at which point
+this floor should be re-swept, and may well want to move in either direction.
+
+### A note on sweeping it
+
+0.05 and 0.10 are byte-identical because the fit never goes below 0.111, so
+neither binds. A sweep of this constant has exactly one "off" arm however many
+low values are tried, and reading two identical rows as a dead lever would be
+wrong.
 
 ---
 
