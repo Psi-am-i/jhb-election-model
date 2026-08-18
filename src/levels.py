@@ -136,6 +136,40 @@ import parties as P
 # and put the difference in the median where it belongs in the spread.
 SD_FLOOR, SD_CEILING = 0.15, 1.20
 
+# WHY THE DISPERSION FIT IS NOT BIAS-CORRECTED, AND WHY SD_FLOOR IS RIGHT.
+#
+# `sd_for` recovers a dispersion from a least-squares line through
+# log(residual^2), and that is biased downwards by a KNOWN factor: if
+# r ~ N(0, s^2) then r^2/s^2 is chi-square with one degree of freedom, and
+# E[log chi2_1] = psi(1/2) + log 2 = -1.270363. So the line estimates log(s^2)
+# MINUS 1.270363, and exponentiating half of it returns 0.5298 of the true s.
+# The correction would be exp(1.270363 / 2) = 1.887365 — derived, not fitted.
+#
+# It is real, and it checks out to three decimals against the record it fits:
+# the binned sd(log theta) for parties at or above 15% of the vote is 0.227 over
+# 39 observations, the uncorrected fit gives 0.120, and 0.120 x 1.8874 = 0.2265.
+#
+# APPLYING IT MAKES THE MODEL WORSE, measured over nine city-years at 600 draws:
+# coherent seat error 258 -> 268, CRPS 231.9 -> 246.8, beats-uniform-swing 7/9 ->
+# 6/9, and ranks 4-12 sd(z) 0.856 -> 0.522, i.e. from nearly correct width to
+# badly over-wide.
+#
+# The reason is the whole point of MODEL-LOG §1.48's width budget. The binned
+# record is a MARGINAL dispersion — everything that moved a party's local share
+# against its national one — while this layer is CONDITIONAL: the within-pool
+# Dirichlet independently supplies 39-98% of the drawn variance, and the turnout
+# and ward layers a little more. Asking theta to reproduce the marginal record
+# counts the same uncertainty twice.
+#
+# So SD_FLOOR = 0.15 is not the hedge against a level bias it was read as in
+# §1.45. It is approximately the CONDITIONAL dispersion this layer should carry,
+# sitting between the raw fit (0.120, too narrow because of the bias above) and
+# the marginal record (0.227, too wide because it belongs to the whole model).
+# That is a much better reason to keep it than "it scored best", and it is why
+# the derived quantity CANNOT simply replace it: the derived quantity answers a
+# different question. MODEL-LOG §1.50.
+LOG_CHI2_BIAS = 1.8873652674492816   # documented, deliberately unused
+
 # How many of a party's own observations are worth one group observation. Low,
 # because a party has at most three and the group has dozens.
 SHRINK = 2.0
@@ -303,10 +337,17 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
     if not record:
         return {}, {}
 
-    # One common centre: the record says the trend does not vary with size.
-    # Weighted by what each observation is worth, which is what replaced the
-    # 0.2% cut — an unweighted mean over every ratio would let a party that
-    # went from 30 votes to 90 move the centre as far as the ANC does.
+    # The weighted common centre. Weighted by what each observation is worth,
+    # which is what replaced the 0.2% cut — an unweighted mean over every ratio
+    # would let a party that went from 30 votes to 90 move the centre as far as
+    # the ANC does.
+    #
+    # THIS COMMENT USED TO OPEN "the record says the trend does not vary with
+    # size", and that claim is false: on eight metros the median θ runs 1.31
+    # below 0.2% of the vote against 0.94 above 15%. `size_centre` exists
+    # because of it. `mu_all` is kept as the fallback for when the size fit
+    # cannot be made, and as the reported group figure; the shrink target below
+    # is the size centre, as it is in `_shrunk`.
     everything = [obs for ratios in record.values() for obs in ratios]
     ratios_all = np.array([r for r, _ in everything])
     weights_all = np.array([_reliability(s) for _, s in everything])
@@ -335,12 +376,16 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
 
         def sd_for(size: float) -> float:
             x = np.log(max(size, 1e-5))
+            # NOT corrected by LOG_CHI2_BIAS, deliberately — see the constant.
             return float(np.clip(np.exp(0.5 * (intercept + slope * x)),
                                  SD_FLOOR, SD_CEILING))
     else:
         pooled = float(np.std(np.log(ratios_all), ddof=1))
 
         def sd_for(size: float) -> float:
+            # No correction here: `pooled` is sd(log ratios) computed directly,
+            # not recovered from a fit to squared residuals, so it carries no
+            # log-chi-square bias.
             return float(np.clip(pooled, SD_FLOOR, SD_CEILING))
 
     # PATH ONE — a party WITH history. Its own log-mean, shrunk toward the
@@ -355,6 +400,32 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
     # θ converts a national share into a local one and there is no national
     # share to convert. It is an arrival, and ``pools.arrival_rules`` sizes it
     # from the arrival record. ``montecarlo.blended_centres`` routes it there.
+    # ONE ESTIMATOR, NOT TWO. Until 2026-08-18 this shrank toward the flat
+    # `mu_all` while `_shrunk` — the estimator the spine uses for the same
+    # quantity — shrank toward `size_centre`. They disagreed by construction
+    # (ANC 0.869 against 0.862, PA 1.115 against 1.197) and the register carried
+    # that at 🔴 as "at least one is wrong".
+    #
+    # The flat one was the wrong one, and for a reason that matters: a common
+    # centre hands every party the same retention, when the record says small
+    # parties GAIN going into a local election and large ones lose. Erasing that
+    # works against exactly the mid-ballot parties this model under-forecasts.
+    #
+    # Changing it moves NOTHING, which is why it could be done as a correctness
+    # fix rather than a scored change: the mode this function returns is
+    # consumed at no runnable target. The `blended_centres` branch that reads it
+    # is the one for parties the spine cannot reach, and the spine reaches every
+    # party at every target measured; the by-election clamp reads the band as
+    # `low/mid` and `high/mid`, so a shift in the centre cancels out of it.
+    # Verified by shifting the whole band ×3 at 2021 and 2026: byte-identical
+    # seat draws at both. MODEL-LOG §1.49.
+    fit = size_centre(record)
+
+    def _centre_for(size: float) -> float:
+        if not fit:
+            return mu_all
+        return float(fit[0] + fit[1] * np.log(max(size, 1e-6)))
+
     priors: dict[str, tuple] = {}
     for party in set(record) | set(baseline):
         size = baseline.get(party, 0.0)
@@ -365,9 +436,14 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
             weight = worth / (worth + SHRINK)
             own_mu = float(np.average([np.log(r) for r, _ in own],
                                       weights=[_reliability(s) for _, s in own]))
-            mu = weight * own_mu + (1 - weight) * mu_all
+            # The size the shrink target is taken at is the party's own
+            # observed size, weighted the same way `_shrunk` weights it, so the
+            # two estimators agree party-for-party rather than merely in form.
+            w = [_reliability(s) for _, s in own]
+            obs_size = float(np.average([sz for _, sz in own], weights=w))
+            mu = weight * own_mu + (1 - weight) * _centre_for(obs_size)
         else:
-            mu = mu_all
+            mu = _centre_for(size)
         priors[party] = (float(np.exp(mu - 1.2816 * sd)), float(np.exp(mu)),
                          float(np.exp(mu + 1.2816 * sd)))
     return priors, {

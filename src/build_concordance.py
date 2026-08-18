@@ -175,17 +175,39 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--geo-dir", type=Path, default=Path("data/raw/geo"))
     parser.add_argument("--elections-dir", type=Path, default=Path("data/raw/elections"))
-    parser.add_argument("--out-dir", type=Path, default=Path("data/processed"))
+    parser.add_argument("--out-dir", type=Path, default=None,
+                        help="where to write (default: the city's own "
+                             "processed directory)")
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
-    cityconfig.use(getattr(args, "city", None))
+    city = cityconfig.use(getattr(args, "city", None))
 
-    vds = gpd.read_file(args.geo_dir / "vds2026_{CODE}.geojson")
-    args.out_dir.mkdir(parents=True, exist_ok=True)
+    # {CODE} IS SUBSTITUTED, and was not until 2026-08-18: this read the literal
+    # string "vds2026_{CODE}.geojson", which exists for no city, so the script
+    # could not be run for any of the eight metros -- including Johannesburg,
+    # whose file is `vds2026_JHB.geojson`. `cityconfig.resolve_path` is the
+    # helper that already existed for this.
+    geo = cityconfig.resolve_path(args.geo_dir / "vds2026_{CODE}.geojson")
+    if not geo.exists():
+        raise SystemExit(
+            f"no 2026 VD layer for {city.name}: {geo}\n"
+            f"  Download it from the MDB Spatial Knowledge Hub -- see SOURCES.md, "
+            f"'Boundaries'. A missing per-city input REFUSES here rather than "
+            f"falling back to another city's, which is the fault MODEL-LOG "
+            f"§1.40 records shipping.")
+    vds = gpd.read_file(geo)
+
+    # PER CITY, and it was not: --out-dir defaulted to `data/processed` for
+    # every city, so a Tshwane run would overwrite Johannesburg's concordance
+    # under a name that does not say whose it is. `city.processed` is the
+    # per-city directory the rest of the pipeline already reads.
+    out_dir = args.out_dir if args.out_dir is not None else city.processed
+    out_dir = cityconfig.resolve_path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     # --- Step 5: VD -> 2026 ward, registration weighted -----------------------
     parts = ward_parts(vds)
-    destination = args.out_dir / "vd_ward_2026.csv"
+    destination = out_dir / "vd_ward_2026.csv"
     with destination.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(parts[0]))
         writer.writeheader()
@@ -207,6 +229,8 @@ def main(argv: list[str] | None = None) -> int:
     # last one has nothing to compare against and is stable by construction.
     years = list(ELECTIONS)
     loaded = {
+        # `read_vd_votes` resolves {CODE} itself (see its first line), so the
+        # template is passed through rather than substituted twice.
         year: read_vd_votes(args.elections_dir / filename, ballot)
         for year, (filename, ballot) in ELECTIONS.items()
     }
@@ -256,7 +280,7 @@ def main(argv: list[str] | None = None) -> int:
             f"  {lost_votes / cast:>9.2%}"
         )
 
-    destination = args.out_dir / "vd_concordance.csv"
+    destination = out_dir / "vd_concordance.csv"
     with destination.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(concordance[0]))
         writer.writeheader()

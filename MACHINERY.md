@@ -652,6 +652,18 @@ Read the harness's printed noise floor before reading its table: switching a
 source off shifts the random stream as well, so a single-seed ablation cannot
 tell contribution from stream movement. See MODEL-LOG §1.48.
 
+**Each layer carries a CONDITIONAL share, not its own marginal record.** This is
+the practical consequence and it has been measured (§1.50). The binned
+`sd(log θ)` record is a marginal dispersion — everything that moved a party's
+local share against its national one — so making the θ layer reproduce it counts
+the Dirichlet's contribution twice. Done deliberately, with a derived and
+correct bias correction, it takes coherent seat error 258 → 268 and ranks 4-12
+`sd(z)` from 0.856 to 0.522. `SD_FLOOR = 0.15` is approximately the conditional
+share, between the raw fit's 0.120 and the marginal record's 0.227.
+
+Anything that reads a layer's own historical spread and sets that layer's
+parameter from it is making this mistake.
+
 ## Running the nine city-years
 
 `compare_history` runs them in parallel processes by default — one per

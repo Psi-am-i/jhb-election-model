@@ -5055,6 +5055,156 @@ for a better-calibrated width with a worse score.
 
 ---
 
+## 1.49 One estimator, not two — and the divergence never reached a forecast (2026-08-18)
+
+`theta_prior` and `_shrunk` estimate the same quantity and disagreed by
+construction: `_shrunk` shrank a party toward `size_centre`, `theta_prior`
+toward the flat `mu_all`. ANC 0.869 against 0.862, PA 1.115 against 1.197. The
+register carried it at 🔴 as *"at least one is wrong"*, and it was picked up here
+because it looked like the most likely remaining source of a **size-dependent
+level bias** — the fault the level shrink was built to correct.
+
+### The flat centre was the wrong one
+
+`theta_prior`'s comment opened *"One common centre: the record says the trend
+does not vary with size."* **That claim is false**, and `size_centre` exists
+because it is: on eight metros the median θ runs **1.31 below 0.2% of the vote
+against 0.94 above 15%** — small parties gain going into a local election and
+large ones lose (§1.30's Reif–Schmitt second-order effect). A common centre
+erases that, and erases it against exactly the mid-ballot parties the model
+under-forecasts.
+
+### But it reached nothing, and that is the finding
+
+The divergent quantity is the **mode**. Two places read it, and neither is live:
+
+* The `blended_centres` branch for parties **the spine cannot reach** — and the
+  spine reaches every party at every target measured (Johannesburg 2021 46 of
+  46, 2026 76 of 69, Tshwane, Ekurhuleni and Cape Town likewise; **zero parties
+  and 0.0000% of the baseline** take the fallback).
+* The **by-election clamp**, which reads the band as `low/mid` and `high/mid` —
+  relative spreads, from which a shift in the centre cancels exactly.
+
+Confirmed by perturbation rather than by reading: shifting the whole band ×3 —
+which is what a change of centre does — gives **byte-identical seat draws at
+2021 and at 2026**.
+
+**A wrong perturbation first said otherwise, and it is worth recording why.**
+Multiplying only the *mode* by 3 moved the 2026 forecast, and that looked like
+proof the centre was live. It was not: tripling the mode alone breaks the
+`low/mid` ratio, which is not something a change of centre can do. What that
+run actually demonstrated is that **the by-election clamp is live at 2026 and
+sensitive to the band's SPREAD** — a real fact about a different quantity.
+`ITERATING.md` rule 6 says perturb to a value that must change the answer; it is
+equally necessary that the perturbation be one the real quantity could produce.
+
+### Disposition
+
+`theta_prior` now shrinks toward `size_centre`, at the party's own weighted
+observed size, exactly as `_shrunk` does. The two agree to **1e-16** across 26
+parties at 2021 and 42 at 2026. Four city-years at 400 draws are **identical to
+every digit** before and after, so this is a correctness fix and is not claimed
+as an improvement.
+
+The register moves 🔴 → ⚪. What remains true and is worth keeping in view: the
+quantity `theta_prior` *does* supply to the forecast is the **`sd`**, not the
+mode — and that is the `SD_FLOOR` path of §1.45 and §1.48, which is still open.
+
+---
+
+## 1.50 `SD_FLOOR` is not a hedge — it is roughly the right conditional dispersion (2026-08-18)
+
+§1.45 registered `SD_FLOOR` as a typed number that scored best without anyone
+knowing why, and read it as width hedging a level bias. §1.48's width budget
+said it should come down. Both readings are now superseded, and the constant
+stays — for a reason, which is the difference that matters.
+
+### The level bias was closed twice, and the floor did not come free
+
+§1.45's plan was: close the residual level bias, then drop the floor. The level
+shrink (§1.44) and the contestation correction (§1.47) both did that. Re-swept
+on the current model, nine city-years, 600 draws:
+
+| `SD_FLOOR` | coherent seats | CRPS | beats u-swing |
+|---|---|---|---|
+| off (0.05 / 0.10) | 268 | 234.5 | 7/9 |
+| **0.15, committed** | **258** | **231.9** | 7/9 |
+| 0.22 | 266 | 239.2 | 6/9 |
+
+**The gap widened rather than closed** — 4 seats before, 10 now. So the
+"hedging a level bias" reading is refuted: two changes that measurably reduced
+the level bias left the floor more valuable, not less.
+
+### The two bands want opposite things
+
+| `SD_FLOOR` | ranks 1-3 sd(z) | ranks 4-12 sd(z) |
+|---|---|---|
+| off | **0.952** | 0.786 |
+| 0.15 | 0.844 | **0.856** |
+| 0.22 | 0.826 | 0.876 |
+
+`sd(z) = 1.0` is correct width. **Ranks 1-3 want the floor off; ranks 4-12 want
+it on**, and 0.15 is where the trade balances. A floor that binds on two or
+three parties moves the mid-ballot's width because shares sum to one — so this
+is not a "top of the ballot" constant at all, it is a lever on the *relative*
+width of top against middle.
+
+### A real statistical bug in the fit, and correcting it makes the model worse
+
+The dispersion fit is 2.5× to 3.8× narrower than the binned record at every
+size. That is not a modelling choice; it is a **known bias**. `sd_for` recovers
+a dispersion from a least-squares line through `log(residual²)`, and if
+`r ~ N(0, σ²)` then `r²/σ²` is chi-square with one degree of freedom, so
+`E[log χ²₁] = ψ(½) + log 2 = −1.270363`. The line therefore estimates
+`log σ² − 1.270363`, and exponentiating half of it returns **0.5298 σ**. The
+correction is `exp(1.270363/2) = 1.887365` — derived, not fitted.
+
+It checks out to three decimals against the record it is fitting: the binned
+`sd(log θ)` for parties at or above 15% of the vote is **0.227** over 39
+observations, the uncorrected fit gives **0.120**, and 0.120 × 1.8874 =
+**0.2265**.
+
+**Applied, it makes the model worse on everything:**
+
+| | coherent seats | CRPS | beats u-swing | ranks 4-12 sd(z) |
+|---|---|---|---|---|
+| uncorrected, floor 0.15 | **258** | **231.9** | **7/9** | **0.856** |
+| chi-square corrected | 268 | 246.8 | 6/9 | 0.522 |
+
+(With the correction the floor stops binding at all — the corrected fit never
+goes below 0.15 — which is why all three floor values give one row.)
+
+### Why, and what the floor actually is
+
+This is §1.48's width budget stated as a measurement rather than an argument.
+**The binned record is a MARGINAL dispersion** — everything that moved a party's
+local share against its national one — while **this layer is CONDITIONAL**: the
+within-pool Dirichlet independently supplies 39–98% of drawn variance, and the
+turnout and ward layers a little more. Asking θ to reproduce the marginal record
+counts the same uncertainty twice, and the forecast goes from nearly correct
+width (0.856) to badly over-wide (0.522).
+
+So **`SD_FLOOR = 0.15` is approximately the conditional dispersion this layer
+should carry**, sitting between the raw fit (0.120, too narrow because of the
+bias above) and the marginal record (0.227, too wide because it belongs to the
+whole model). That is a far better reason to keep it than "it scored best", and
+it is the reason the derived quantity **cannot replace it**: the derived
+quantity answers a different question.
+
+`LOG_CHI2_BIAS` is left in `levels.py` as a documented, deliberately unused
+constant, because the next person to notice the fit is too narrow will
+rediscover it in an afternoon, and this is the measurement that says what
+happens next.
+
+### What would replace it honestly
+
+Not a better θ dispersion. A **joint** calibration: fit the layers together
+against realised width so that the total is right, instead of fitting each
+against its own marginal and hoping. That needs the width budget of §1.48 as its
+instrument and is a larger piece of work than a constant.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

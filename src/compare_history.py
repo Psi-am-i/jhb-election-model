@@ -1282,7 +1282,24 @@ def main(argv: list[str] | None = None) -> int:
             jobs_list.append((slug, year, args.draws, str(args.data_dir),
                               args.set, str(args.run_dir) if args.run_dir else None))
 
+    # A MODULE CONSTANT SET IN THIS PROCESS DOES NOT REACH A WORKER.
+    # `ProcessPoolExecutor` spawns children that re-import `levels` fresh, so a
+    # sweep that sets `levels.SD_FLOOR` here and then fans out would measure the
+    # DEFAULT at every value and report a flat sweep — "this constant does
+    # nothing" — which is `ITERATING.md` rule 6's fault exactly, and the one
+    # `LEVEL_DF` was in for weeks. Refuse rather than mislead.
+    import levels as _levels
+    _moved = [name for name, default in
+              (("SD_FLOOR", 0.15), ("SD_CEILING", 1.20), ("SHRINK", 2.0),
+               ("RELIABILITY_HALF", 0.002), ("SPINE_K", 1.0))
+              if getattr(_levels, name, default) != default]
     workers = args.jobs
+    if _moved and workers != 1:
+        print(f"  ! {', '.join(_moved)} differ(s) from the module default, and a "
+              f"module constant does not cross a process boundary — running "
+              f"SERIALLY so the sweep measures what it set. Pass --jobs 1 to "
+              f"silence this.")
+        workers = 1
     if workers == 0:
         workers = max(1, min(len(jobs_list), (os.cpu_count() or 2) - 1))
     results = []
