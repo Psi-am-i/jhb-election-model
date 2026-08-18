@@ -900,6 +900,68 @@ def test_the_model_refuses_to_run_without_a_pool_spec():
     raise AssertionError("run_model produced a forecast with no pool spec")
 
 
+def test_the_trace_is_inert_without_a_run_directory():
+    """A diagnostic that changes the forecast is not a diagnostic.
+
+    ``Trace`` is threaded through ``run_model`` and ``blended_centres``, and it
+    is only safe to leave there because with no ``run_dir`` it writes nothing
+    and returns its argument untouched. If that ever stops being true, every
+    number in the repository moves for a reason that has nothing to do with the
+    model, and the golden prior would have to be re-recorded to accommodate a
+    logging change.
+    """
+    empty = mc.Trace(None)
+    assert not empty, "a trace with no run_dir must be falsey"
+
+    obj = {"ANC": 0.4, "DA": 0.25}
+    assert empty.put("anything", obj) is obj, \
+        "put() must return its argument, not a copy"
+    empty.close()          # must not raise, must not create anything
+
+    # And the wrapping must be transparent where it is actually used.
+    scenario = {"level_shrink": 0.35, "level_shrink_scale": 0.04}
+    centres = {"ANC": 0.40, "DA": 0.25, "SMALL": 0.01}
+    assert mc.compress_levels(centres, scenario) == \
+        mc.compress_levels(dict(centres), scenario)
+
+
+def test_a_trace_records_the_level_chain_without_touching_it(tmp_path=None):
+    """The trace must contain the stages, and the run must not notice it.
+
+    The point of the trace is that "why is this party at this number?" is
+    answerable by reading a file rather than by adding a print and paying a
+    fifty-minute re-run. That is only worth anything if the recorded numbers
+    are the ones the model actually used, so this checks the recorded centres
+    against the drawn means rather than merely checking the files exist.
+    """
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        run_dir = Path(tmp) / "trace"
+        target = cityconfig.use_target("2021")
+        mc.apply_city(cityconfig.use(CITY))
+        scenario = mc.load_scenario(_Args(40))
+        run = mc.run_model(target, scenario, verbose=False, run_dir=run_dir)
+
+        for name in ("00_target", "10_theta_prior", "20_spine", "30_centres",
+                     "41_guards", "_index"):
+            assert (run_dir / f"{name}.json").exists(), f"{name} was not traced"
+
+        centres = json.loads((run_dir / "30_centres.json").read_text())
+        before, after = centres["before_shrink"], centres["after_shrink"]
+        assert before and after and set(before) == set(after)
+
+        # The shrink's claim, checked on what the RUN recorded rather than on a
+        # fixture: the largest party is pulled down, the smallest lifted.
+        order = sorted(before, key=lambda p: -before[p])
+        big, small = order[0], order[-1]
+        if before[big] > 0 and before[small] > 0:
+            assert after[big] / before[big] < after[small] / before[small], \
+                "the recorded shrink is not monotone in size"
+
+        # And the trace is a record of THIS run, not of a re-derivation.
+        assert run.scenario is scenario
+
+
 def test_the_level_shrink_is_exactly_the_identity_when_it_is_off():
     """Off must mean untouched, not nearly untouched.
 

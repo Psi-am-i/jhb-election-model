@@ -801,6 +801,7 @@ def blended_centres(
     base_city: dict[str, float],
     prior_pr_share: dict[str, float],
     bye: dict[str, tuple[float, float]],
+    trace: "Trace | None" = None,
 ) -> tuple[dict[str, float], dict[str, str]]:
     """Central citywide level per party at the target, from θ modes tilted by evidence.
 
@@ -910,7 +911,22 @@ def blended_centres(
                     + f", w_bye {w})"
                 )
         centres[party] = centre
+    before = dict(centres)
     centres = compress_levels(centres, scenario)
+    if trace:
+        # Before and after, per party, plus the ratio. The shrink's whole claim
+        # is an ORDERING -- the big come down, the small go up, monotonically in
+        # size -- and that is checkable at a glance from this file rather than
+        # by reasoning about the formula. MODEL-LOG §1.44.
+        trace.put("30_centres", {
+            "before_shrink": before,
+            "after_shrink": centres,
+            "ratio": {p: (centres[p] / before[p]) if before.get(p) else None
+                      for p in before},
+            "level_shrink": scenario.get("level_shrink"),
+            "level_shrink_scale": scenario.get("level_shrink_scale"),
+            "route_notes": notes,
+        })
     return centres, notes
 
 
@@ -1662,6 +1678,94 @@ def allocate_with_overhang(
 
 
 # --------------------------------------------------------------------------
+# the trace
+# --------------------------------------------------------------------------
+
+def _jsonable(obj):
+    """numpy scalars and arrays are not JSON; everything here might be either."""
+    if isinstance(obj, (np.floating, np.integer)):
+        return obj.item()
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, (set, frozenset)):
+        return sorted(obj, key=str)
+    if isinstance(obj, Path):
+        return str(obj)
+    if isinstance(obj, date):
+        return obj.isoformat()
+    return str(obj)
+
+
+class Trace:
+    """Writes each stage's output to a run directory, so it can be READ.
+
+    THE PROBLEM THIS SOLVES. Every intermediate in ``run_model`` lives as one of
+    223 locals inside an 863-line function, so the only way to see one has been
+    to add a print and re-run — about fifty minutes for a nine-city-year
+    comparison. That cost is paid on every investigation, and it is why several
+    findings this month were argued from a single expensive reading rather than
+    checked cheaply against a second.
+
+    INERT BY DEFAULT. With no ``run_dir`` every method returns its argument
+    untouched and writes nothing, so a run that does not ask for a trace is
+    byte-identical to one from before this existed. That is asserted by
+    ``tests/test_chain.py::test_the_trace_is_inert_without_a_run_directory``.
+
+    ``put`` RETURNS WHAT IT IS GIVEN, which is the point: a stage can be
+    recorded by wrapping the expression that produces it, without moving code
+    or introducing a branch::
+
+        centres = trace.put("centres", blended_centres(...))
+
+    NOT A MANIFEST, AND NOT A SUBSTITUTE FOR A GATE. This records what happened;
+    it does not check it. The pool ceiling that went blind would appear here as
+    74 of 75 parties at exactly 1.0 and nobody would have looked. What catches
+    that is an assertion, and the value of this class is that it makes such
+    assertions cheap to write because the quantity is already exposed. See
+    ARCHITECTURE-PROPOSAL.md §2.
+    """
+
+    def __init__(self, run_dir: Path | str | None = None, detail: bool = False):
+        self.dir = Path(run_dir) if run_dir else None
+        self.detail = detail
+        self.written: list[str] = []
+        if self.dir is not None:
+            self.dir.mkdir(parents=True, exist_ok=True)
+
+    def __bool__(self) -> bool:
+        return self.dir is not None
+
+    def put(self, name: str, obj, detail: bool = False):
+        """Record ``obj`` under ``name`` and return it unchanged.
+
+        ``detail=True`` marks a per-draw quantity — large, and useful only when
+        chasing something specific — which is written only when the trace was
+        opened with ``detail``. Per-draw arrays over 1500 draws are tens of
+        megabytes and would make tracing too expensive to leave on.
+        """
+        if self.dir is None or (detail and not self.detail):
+            return obj
+        path = self.dir / f"{name}.json"
+        try:
+            with path.open("w") as handle:
+                json.dump(obj, handle, indent=1, default=_jsonable,
+                          sort_keys=True)
+            self.written.append(name)
+        except (TypeError, ValueError, OSError) as exc:
+            # A trace that raises would turn a diagnostic into an outage, and
+            # this runs inside the forecast. Record the failure and continue.
+            with path.open("w") as handle:
+                json.dump({"__unserialisable__": repr(exc)}, handle)
+            self.written.append(f"{name} (FAILED: {exc})")
+        return obj
+
+    def close(self, **summary) -> None:
+        if self.dir is None:
+            return
+        self.put("_index", {"written": sorted(self.written), **summary})
+
+
+# --------------------------------------------------------------------------
 # the model
 # --------------------------------------------------------------------------
 
@@ -1760,8 +1864,16 @@ class ModelRun:
 def run_model(target, scenario: dict,
               data_dir: Path = Path("data/raw/elections"),
               processed: Path | None = None,
-              verbose: bool = True) -> ModelRun:
-    """Run the forecast for one target election. Writes nothing.
+              verbose: bool = True,
+              run_dir: Path | str | None = None,
+              trace_detail: bool = False) -> ModelRun:
+    """Run the forecast for one target election.
+
+    **Writes nothing unless ``run_dir`` is given**, and then it writes only a
+    trace: each stage's output as JSON, so an intermediate can be read instead
+    of re-derived by adding a print and running again. The trace never feeds
+    back into the forecast — with ``run_dir`` unset the run is byte-identical
+    to one from before tracing existed, which a test asserts. See :class:`Trace`.
 
     Every input is resolved from ``target``: the baseline is the NPE preceding
     it, the ward/PR split ratios and the local by-election geography come from
@@ -1784,9 +1896,25 @@ def run_model(target, scenario: dict,
     """
 
     _reset_cap_counters()
+    # A LOCAL, deliberately, not a module global. Module-level mutable state is
+    # what makes this file unsafe to run city-years through concurrently, and
+    # adding more of it would work against exactly the parallelism the trace is
+    # meant to enable.
+    trace = Trace(run_dir, detail=trace_detail)
     global COUNCIL
     COUNCIL = target.council
     processed = target.processed if processed is None else processed
+    trace.put("00_target", {
+        # `target.city` is the whole City object and repr()s to 4kB of config;
+        # the slug is the identifying thing and the config is already on disk.
+        "city": getattr(getattr(target, "city", None), "slug", None),
+        "year": getattr(target, "year", None),
+        "council": target.council,
+        "draws": scenario.get("draws"),
+        "seed": scenario.get("seed"),
+    })
+    trace.put("01_scenario_in", {k: v for k, v in scenario.items()
+                                 if not k.startswith("_")})
 
     # --- pools: the parties' measured constituencies -------------------------
     # A pool is a body of voters, measured from the census, and a party's
@@ -1920,6 +2048,22 @@ def run_model(target, scenario: dict,
             # make_drawer: this is the number the draw was not using.
             scenario["_theta_sd"] = _groups.get("sd", {})
             scenario["_theta_worth"] = _groups.get("worth", {})
+            # The width layer, exposed. `SD_FLOOR` binds on two or three
+            # parties holding most of the ballot and FLATTENS them to one
+            # number; that is visible here without instrumenting anything.
+            # MODEL-LOG §1.45.
+            trace.put("10_theta_prior", {
+                "prior": _prior,
+                "sd": _groups.get("sd", {}),
+                "worth": _groups.get("worth", {}),
+                "centre": _groups.get("centre"),
+                "spread": _groups.get("spread"),
+                "sd_floor": _levels.SD_FLOOR,
+                "sd_ceiling": _levels.SD_CEILING,
+                "at_the_floor": sorted(
+                    p for p, v in (_groups.get("sd") or {}).items()
+                    if abs(v - _levels.SD_FLOOR) < 1e-12),
+            })
             if verbose:
                 centre, spread = _groups["centre"], _groups["spread"]
                 print(f"  levels: {centre['n']} transitions before "
@@ -2349,6 +2493,19 @@ def run_model(target, scenario: dict,
         if _spine:
             scenario["spine_level"] = _spine
             scenario["_spine_info"] = _spine_info
+            # Per party: which route it took, what each route said, and what
+            # the blend weight was. This is the question the level chain gets
+            # asked most often -- "why is this party at this number?" -- and it
+            # has been answered by re-running with prints every time.
+            trace.put("20_spine", {
+                "level": _spine,
+                "k": _spine_info.get("k"),
+                "n_theta": _spine_info.get("n_theta"),
+                "n_rho": _spine_info.get("n_rho"),
+                "theta_centre": _spine_info.get("theta_centre"),
+                "rho_centre": _spine_info.get("rho_centre"),
+                "detail": _spine_info.get("detail"),
+            })
             note_constant(scenario, "spine",
                           f"k={_spine_info['k']}, {_spine_info['n_theta']} θ and "
                           f"{_spine_info['n_rho']} ρ observations before "
@@ -2371,7 +2528,8 @@ def run_model(target, scenario: dict,
         print(f"  ! spine unavailable ({_exc}); levels fall back to the "
               f"national route alone")
 
-    centres, notes = blended_centres(scenario, base_city_d, prior_pr_share, bye)
+    centres, notes = blended_centres(scenario, base_city_d, prior_pr_share, bye,
+                                     trace=trace)
 
     # --- metro polls, blended by PRECISION not by party history --------------
     # A poll of THIS city is a direct reading of the quantity being forecast, so
@@ -2604,6 +2762,41 @@ def run_model(target, scenario: dict,
         if verbose and (d + 1) % 1000 == 0:
             print(f"  {d + 1:,} draws")
 
+    # THE OUTCOME AND THE GUARDS THAT FIRED. Everything below was previously
+    # visible only as a printed line or not at all; `cap_moved` and
+    # `ipf_failures` in particular are the counters whose SILENCE was read as
+    # success for two days (MODEL-LOG §1.41), and a silence is much harder to
+    # misread when it sits in a file next to the run that produced it.
+    trace.put("40_draws", {
+        "pr_mean": {universe[i]: float(pr_share_draws[:, i].mean())
+                    for i in range(npar)},
+        "pr_p5": {universe[i]: float(np.percentile(pr_share_draws[:, i], 5))
+                  for i in range(npar)},
+        "pr_p95": {universe[i]: float(np.percentile(pr_share_draws[:, i], 95))
+                   for i in range(npar)},
+        "ward_mean": {universe[i]: float(ward_share_draws[:, i].mean())
+                      for i in range(npar)},
+        "ward_win_sum": dict(ward_win_sum),
+        "seat_mean": {p: float(np.mean([s.get(p, 0) for s in seat_draws]))
+                      for p in {q for s in seat_draws for q in s}},
+    })
+    trace.put("41_guards", {
+        "ipf_balances": int(_ipf_stats.get("balances", 0)),
+        "ipf_failures": int(_ipf_stats.get("failures", 0)),
+        "cap_undershoots": int(capped_targets.undershoots),
+        "cap_moved": float(capped_targets.moved),
+        "ipf_clipped": dict(_ipf_stats.get("clipped") or {}),
+        "ipf_headroom": dict(_ipf_stats.get("headroom") or {}),
+        "bounds_violations": dict(bounds_violations),
+        "bounds_checked": bounds_checked,
+        "excessive_draws": excessive_draws,
+        "overhang_count": dict(overhang_count),
+    })
+    trace.put("42_pr_share_draws", pr_share_draws, detail=True)
+    trace.put("43_ward_share_draws", ward_share_draws, detail=True)
+    trace.put("44_seat_draws", seat_draws, detail=True)
+    trace.close(constants_read=sorted((scenario.get("_constants_read") or {})))
+
     return ModelRun(
         target=target, scenario=scenario, universe=universe, index=index,
         wards=wards, seat_draws=seat_draws, thresholds=thresholds,
@@ -2639,6 +2832,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--processed", type=Path, default=None,
                         help="where inputs are read and outputs written "
                              "(default: the target's own processed directory)")
+    parser.add_argument("--run-dir", type=Path, default=None,
+                        help="write a TRACE here: every stage's output as JSON, "
+                             "so an intermediate can be read instead of "
+                             "re-derived by adding a print and running again. "
+                             "Changes no forecast.")
+    parser.add_argument("--trace-detail", action="store_true",
+                        help="include per-draw arrays in the trace. Large: tens "
+                             "of megabytes at 1500 draws.")
     args = parser.parse_args(argv)
     # use(), not load(): fold.load() and the other readers resolve "{CODE}"
     # against the ACTIVE city, so loading a city without activating it read
@@ -2650,7 +2851,8 @@ def main(argv: list[str] | None = None) -> int:
     processed = args.processed or target.processed
     processed.mkdir(parents=True, exist_ok=True)
 
-    run = run_model(target, scenario, args.data_dir, processed)
+    run = run_model(target, scenario, args.data_dir, processed,
+                    run_dir=args.run_dir, trace_detail=args.trace_detail)
 
     universe, wards, index = run.universe, run.wards, run.index
     seat_draws, thresholds = run.seat_draws, run.thresholds

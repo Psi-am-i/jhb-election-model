@@ -781,7 +781,8 @@ def published_for(city_slug: str, year: str) -> dict | None:
 
 
 def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
-                  overrides: list[str] | None = None) -> dict:
+                  overrides: list[str] | None = None,
+                  run_dir: Path | None = None) -> dict:
     city = cityconfig.use(city_slug)
     target = cityconfig.use_target(year)
     M.apply_city(city)
@@ -791,7 +792,11 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
     scenario = M.load_scenario(argparse.Namespace(
         config=None, set=list(overrides or []), draws=draws, seed=None,
         city=city_slug, target=year))
-    run = M.run_model(target, scenario, data_dir, verbose=False)
+    # One trace per city-year, so a backtest leaves its own intermediates
+    # behind. Chasing "why is ActionSA low at Tshwane 2021?" used to mean
+    # re-running the whole comparison with a print added.
+    run = M.run_model(target, scenario, data_dir, verbose=False,
+                      run_dir=(run_dir / f"{city_slug}-{year}") if run_dir else None)
 
     actual_pr, actual_ward = actual_shares(target, data_dir)
     actual_seats, entrant_actual = _actual_seats(target, data_dir, run)
@@ -1223,6 +1228,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
     ap.add_argument("--md", type=Path, default=Path("data/processed/history.md"))
     ap.add_argument("--json", type=Path, default=Path("data/processed/history.json"))
+    ap.add_argument("--run-dir", type=Path, default=None,
+                    help="write a TRACE per city-year here: every stage's "
+                         "output as JSON, so an intermediate can be read "
+                         "instead of re-derived by re-running. Changes no "
+                         "number in the comparison.")
     ap.add_argument("--set", action="append", metavar="KEY=VALUE",
                     help="override a scenario key for EVERY city-year, e.g. "
                          "--set entrant_prob=0.5. This is the only honest way to "
@@ -1242,8 +1252,9 @@ def main(argv: list[str] | None = None) -> int:
                 continue
             print(f"  {slug} {year} ...", flush=True)
             try:
-                results.append(run_city_year(slug, year, args.draws, args.data_dir,
-                                         args.set))
+                results.append(run_city_year(slug, year, args.draws,
+                                             args.data_dir, args.set,
+                                             run_dir=args.run_dir))
             except Exception as exc:
                 print(f"    failed: {type(exc).__name__}: {exc}")
     if not results:

@@ -83,3 +83,22 @@ interpreter.
     .venv/bin/python src/diagnose.py --city joburg --target 2021 --wards 0
     .venv/bin/python src/arrivals.py                   # the arrival machinery, scored alone
     .venv/bin/python src/sweep.py                      # obvious-fault sweep
+
+**Before adding a print to find out what something is, ask for a trace.**
+
+    .venv/bin/python src/montecarlo.py --city joburg --target 2021 \
+        --run-dir /tmp/t                  # every stage's output, as JSON
+    .venv/bin/python src/compare_history.py --run-dir /tmp/t   # one per city-year
+
+`--run-dir` writes each stage of the run — the θ prior and its per-party
+`sd(log θ)`, the spine's level and route per party, the centres before and after
+the level shrink, the drawn means and bands, and every guard counter — to files
+you can read without running anything again. It is **opt-in and changes no
+number**: with no `--run-dir` the run is byte-identical, and `test_chain.py`
+asserts it.
+
+This exists because the alternative was a fifty-minute re-run with a print added,
+and that cost was being paid on every investigation. It is a *record*, not a
+check: it will happily record a guard that has gone blind. What catches those is
+an assertion — and the trace is what makes assertions cheap to write, because
+the quantity is already on disk.

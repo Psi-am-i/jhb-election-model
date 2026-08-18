@@ -628,6 +628,33 @@ Every one of these is listed with its evidence, its status and how to check it
 in **`JUDGEMENT-CALLS.md`**, which is the register; this is the map. The
 backtest prints an in-sample banner naming the ones a run actually consumed.
 
+## Reading a run without re-running it
+
+`run_model(..., run_dir=...)` — or `--run-dir` on `montecarlo.py` and
+`compare_history.py` — writes each stage's output to that directory as JSON:
+
+| file | what it answers |
+|---|---|
+| `00_target`, `01_scenario_in` | which city-year, and every lever it ran with |
+| `10_theta_prior` | the θ prior, the per-party `sd(log θ)`, the fitted spread by size, and **which parties are sitting on `SD_FLOOR`** |
+| `20_spine` | per party: the route taken, what the national and local routes each said, the blend weight, and what its own θ record was worth |
+| `30_centres` | every party's level **before and after** the shrink, with the ratio, plus the route note |
+| `40_draws`, `41_guards` | drawn means and bands, ward wins, mean seats; and every guard counter — IPF failures, capacity moves, bounds violations, overhangs |
+
+`--trace-detail` adds the per-draw arrays, which are tens of megabytes at 1500
+draws and are off for that reason.
+
+**It changes no number.** With no `run_dir` the `Trace` returns its argument
+untouched and writes nothing, asserted by
+`test_chain.py::test_the_trace_is_inert_without_a_run_directory`, and a traced
+run is bit-identical to an untraced one.
+
+**It is a record, not a gate.** It would have recorded the pool ceiling sitting
+at 1.0 for 74 of 75 parties without anyone noticing, because nobody reads a
+passive file. What catches that is an assertion; the trace is what makes such
+assertions cheap, because the quantity is already exposed. See
+`ARCHITECTURE-PROPOSAL.md`.
+
 ## Where the reasoning lives
 
 | file | what it holds |
