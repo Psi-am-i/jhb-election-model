@@ -4848,6 +4848,129 @@ smuggled in here.
 
 ---
 
+## 1.47 Deleting a one-party constant exposed a double count in the mechanism meant to replace it (2026-08-18)
+
+The project owner asked for `pa_contestation_uplift` to go: *"a single party
+fiddle must go."* Removing it turned out to uncover two larger things.
+
+### The constant
+
+1.25, applied to the PA's ward/PR ratio alone, because the PA fought 52 of 135
+Johannesburg wards in 2021 while the model assumed every party fought all of
+them. It lived in the `elif` for when the target's nomination lists are not
+published — **which is every live forecast and no backtest**. The register
+carried that as a disclosure ("consumed at 2026 only, so it cannot contaminate a
+backtest"). It reads better the other way round: **the one place it was live was
+the one place nothing could test it.**
+
+`levels.contestation`'s own docstring had said it *"replaces
+`pa_contestation_uplift`"* for weeks while the constant went on firing.
+
+### First finding: 2026 was the only target running without contestation at all
+
+Because the constant held that branch, the live forecast applied **no**
+contestation to anybody, while every backtest applied it to everybody. The
+backtests were validating a different model from the one being published. That
+is the more serious half of what the constant was hiding.
+
+### Second finding: the mechanism itself double-counts
+
+Generalising the fallback made the branch testable for the first time — suppress
+2021's own lists, fall back to 2016's, and score it. Four metros at 2021, 400
+draws:
+
+| | coherent seats | CRPS | ward MAE |
+|---|---|---|---|
+| oracle — the target's own lists | 176 | 150.3 | 10.79 |
+| fallback — the previous LGE's lists | 178 | 150.3 | 9.64 |
+| **no contestation at all** | **174** | **148.1** | **8.90** |
+
+The fallback is a sound substitute for the oracle, which was the question asked.
+But **both are worse than not applying contestation at all**, and worst on ward
+MAE, the metric the mechanism directly targets.
+
+The cause is a double count. `ward_pr_ratios` measures each party's ward-over-PR
+ratio from the **previous LGE's actual votes**, and a party that stood in 38% of
+wards banked ward votes in only those wards — so the measured ratio has already
+been discounted by that party's contestation. Multiplying by the contested share
+again applies the same discount twice. Measured at Johannesburg:
+
+* correlation between the measured ratio and the contested share: **+0.699**
+* mean ratio for parties contesting under 25% of wards: **0.512** (n=13)
+* mean ratio for parties contesting over 75%: **1.075** (n=10)
+* divide the ratio through by contestation and the correlation flips to
+  **−0.499** — an over-correction, which is what a second application is.
+
+### The fix: contestation is a CHANGE, not a level
+
+What the measured ratio cannot know is how a party's slate has changed *since*
+the election it was measured at. So the multiplier is now
+`contest_target / contest_previous_lge`, against the same LGE `ward_pr_ratios`
+reads. Four metros at 2021, 400 draws:
+
+| | coherent seats | CRPS | ward MAE |
+|---|---|---|---|
+| as a level (what shipped) | 176 | 150.3 | 10.79 |
+| none | 174 | 148.1 | 8.90 |
+| **as a change** | **170** | **146.7** | **8.53** |
+
+Best on all three, and it resolves the live-forecast branch by construction:
+with no nomination lists the ratio is 1.0, so **2026 correctly gets no
+adjustment** — which is what it was accidentally doing before, for the wrong
+reason and with one party excepted.
+
+Scored on the full panel, nine city-years at the protocol 1500 draws:
+
+| | coherent seats | beats u-swing | CRPS |
+|---|---|---|---|
+| committed (contestation as a level) | 264 | 8/9 | 236.3 |
+| **as a change** | **254** | 8/9 | **232.8** |
+
+Per city-year, against the committed run: 18→16, 94→86, 32→30, 20→18, 32→32,
+32→34, 8→10, 18→18, 10→10. **Four improve, two worsen by two apiece (Cape Town
+and Mangaung), three are level** — so the −10 is carried mostly by Johannesburg
+2021, and that is worth saying rather than quoting the total alone.
+
+The ward MAE column moves much further than the seat column, which is where a
+**ward-ballot** correction should show: Johannesburg 2021 5.29 → 4.59pp, Cape
+Town 2.27 → 1.41pp, eThekwini 1.24 → 0.78pp, Tshwane 1.78 → 1.33pp. Draw noise
+is ±2 to ±4 on seats and −10 is outside it, but the ward column is the one that
+carries the argument.
+
+**This is the mechanism being made correct, not tuned.** No constant was fitted:
+the form follows from noticing that `ward_pr_ratios` already contains the thing
+being multiplied in again.
+
+### A register entry retired itself
+
+`overhang_rule` was excused as inert at 2021 on 2026-08-17, and that entry
+recorded its own weakness: the overhang clause fired in 1 draw of 200 there, so
+the lever was inert only because a rare clause missed under one seed and draw
+count, and *"raise DRAWS or change the seed and it may become live, at which
+point the `elif` above will fail this entry as a stale register claim."*
+
+Changing the ward wins is exactly what this correction does. The clause now
+fires at 2021, the sweep reported the entry as stale, and it is deleted. **The
+excuse expired on its own terms, one day after it was written**, which is the
+behaviour the register was built for — an excuse that cannot go stale is a
+suppression.
+
+### What it does to the published forecast
+
+Removing the constant is not cosmetic. Johannesburg 2026, 400 draws, ward share
+and mean seats before and after:
+
+| | ANC | DA | EFF | ASA | MK | PA |
+|---|---|---|---|---|---|---|
+| before, ward share | 20.28% | 32.09% | 9.61% | 8.50% | 8.87% | **8.07%** |
+| after | 21.68% | 34.31% | 10.26% | 9.02% | 9.49% | **2.67%** |
+| seats before → after | 59.0 → 60.4 | 83.2 → 86.4 | 24.8 → 25.6 | 25.9 → 26.6 | 24.6 → 25.4 | **19.5 → 12.4** |
+
+The PA loses about seven seats. That is the whole of what the one-party constant
+was worth, and it was worth it in a direction nothing could check.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

@@ -158,28 +158,21 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
     ("bye_tau_months", "2026"): _WARD_LOCAL_BYE,
     ("entrant_geography", "2021"): _ENTRANT_GEOGRAPHY,
     ("entrant_geography", "2026"): _ENTRANT_GEOGRAPHY,
-    ("overhang_rule", "2021"):
-        "the rule only does anything when a party's ward wins EXCEED its "
-        "proportional entitlement -- `allocate_with_overhang` returns "
-        "immediately on `rule == 'cap' or not over`, so with nothing over, "
-        "`cap`/`level`/`deduct`/`expand` all return the same allocation. "
-        "MEASURED at 200 draws: an excessive-seats party appears in 1 draw of "
-        "200 at joburg 2021 against 120 of 200 at 2026. It is live at 2026 "
-        "(52 seats of movement) and this entry excuses ONLY 2021. "
-        "NOTE THE WEAKNESS OF THIS EXCUSE: unlike `w_bye`, this is not inert "
-        "by construction -- it is inert because a 0.5%-probability clause does "
-        "not fire in this test's 40 draws under this seed. Raise DRAWS or "
-        "change the seed and it may become live, at which point the `elif` "
-        "above will fail this entry as a stale register claim. That is the "
-        "intended behaviour: the register self-corrects rather than "
-        "suppressing. It became inert here on 2026-08-17, when fixing the "
-        "swallowed NPE1999 file (MODEL-LOG §1.43) changed theta and therefore "
-        "the draws; it was live at 2021 before that.",
-    ("pa_contestation_uplift", "2021"):
-        "an `elif` on measured contestation being empty. Contestation is "
-        "non-empty at 2011/2016/2021 and empty at 2026, so this fires ONLY in "
-        "the live forecast and in no backtest — which is a stronger disclosure "
-        "than the register's 'saw the targets', not a weaker one.",
+    # ("overhang_rule", "2021") was excused here from 2026-08-17 to 2026-08-18.
+    # THE ENTRY RETIRED ITSELF, exactly as it said it would. It recorded that
+    # its own excuse was weak -- the overhang clause fired in 1 draw of 200 at
+    # that target, so the lever was inert only because a rare clause missed
+    # under this seed and draw count -- and it predicted that any change to the
+    # draws would make it live and fail the entry as a stale register claim.
+    # The contestation correction (MODEL-LOG §1.47) changed the ward wins, the
+    # clause now fires, and the `elif` in `_sweep_target` duly reported it.
+    # Deleted rather than re-argued: the lever is live at both targets.
+    # `pa_contestation_uplift` was excused here until 2026-08-18, on the
+    # grounds that it fired only where no backtest could reach it. That was a
+    # true statement and the wrong conclusion: a lever live ONLY in the live
+    # forecast is not a lever to excuse, it is one to delete. It is gone, and
+    # the branch it held now falls back to the previous local election's
+    # measured contestation for EVERY party. MODEL-LOG §1.47.
 }
 
 # An argument may be accepted and ignored for a REASON. Each entry is that
@@ -222,7 +215,6 @@ PERTURB: dict[str, object] = {
     "w_bye_local_ward": 0.90,
     "w_bye_local_pr": 0.90,
     "poll_weight": 1.0,
-    "pa_contestation_uplift": 3.0,
     "spine_k": 40.0,
     "level_floor": 0.02,
     "turnout_correlation": -0.9,

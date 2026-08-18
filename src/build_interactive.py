@@ -88,7 +88,6 @@ def default_cfg(city) -> str:
         # changed nothing. `interactive_template.html:1168` still reads
         # `cfg.mkRatio`; that goes when the interactive is rebuilt, and
         # is harmless meanwhile because the page is withheld.
-        "paUplift": sc.get("pa_contestation_uplift"),
         "turnoutANC": sc.get("turnout_tilt_anc"),
         "turnoutDA": sc.get("turnout_tilt_da"),
         "turnoutBlend": sc.get("turnout_pattern_blend"),

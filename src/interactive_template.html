@@ -304,8 +304,6 @@
       more ward votes; under 1.0 the push backfires — spread thin, it wins fewer.</p></dialog>
     <div class="ctl"><div class="lab"><span>MK's ward performance</span><span class="v" id="v-mkRatio"></span></div>
       <input type="range" id="mkRatio" min="0.50" max="1.20" step="0.05" value="0.80"></div>
-    <div class="ctl"><div class="lab"><span>PA's wider slate</span><span class="v" id="v-paUplift"></span></div>
-      <input type="range" id="paUplift" min="0.70" max="2.00" step="0.05" value="1.25"></div>
   </details>
 
   <details class="cgroup">
@@ -610,7 +608,7 @@ DATA.wards.forEach((w,wi)=>{
 
 /* ---------- controls ---------- */
 const ctlIds=["thetaANC","thetaDA","thetaEFF","thetaMK","thetaASA","thetaPA","wBye","pollWeight","blocLeak",
-  "alphaANC","alphaDA","mkRatio","paUplift","turnoutANC","turnoutDA","turnoutBlend","turnoutNoise",
+  "alphaANC","alphaDA","mkRatio","turnoutANC","turnoutDA","turnoutBlend","turnoutNoise",
   "entrantProb","entrantMode"];
 const DEFAULT_CFG=/*__DEFAULT_CFG__*/null;
 
@@ -637,8 +635,8 @@ const PRESETS={
   mkhold:{thetaMK:1.00},
   asafall:{thetaASA:0.95,wBye:0.15},
   asaup:{thetaASA:2.50,wBye:0.60},
-  paup:{thetaPA:2.00,paUplift:1.75},
-  pafall:{thetaPA:1.00,paUplift:0.85},
+  paup:{thetaPA:2.00},
+  pafall:{thetaPA:1.00},
   davote:{turnoutDA:1},
   ancmachine:{turnoutANC:1},
 };
@@ -656,8 +654,7 @@ function showVals(){
     thetaMK:share("MK"),thetaASA:share("ASA"),thetaPA:share("PA"),
     mkRatio:v=>v.toFixed(2)+(v<0.75?" — collapses":v>1.0?" — excels":""),
     turnoutANC:tiltFmt(TO_BLOC.anc),turnoutDA:tiltFmt(TO_BLOC.da),
-    paUplift:v=>"×"+v.toFixed(2)+(v<1.0?" — backfires":v>1.0?" — expands":" — 2021 footprint"),
-    turnoutBlend:v=>v<=0?"model projection":v>=1?"repeat of 2021":(v*100).toFixed(0)+"% toward 2021",
+      turnoutBlend:v=>v<=0?"model projection":v>=1?"repeat of 2021":(v*100).toFixed(0)+"% toward 2021",
     blocLeak:v=>v===0?"0 — history":v>0?(v*100).toFixed(0)+"% ANC→DA":(-v*100).toFixed(0)+"% DA→ANC",
     alphaANC:v=>alphaWord(v,10,150),alphaDA:v=>alphaWord(v,4,60),
     turnoutNoise:v=>"σ "+v.toFixed(2),entrantProb:v=>(v*100).toFixed(0)+"%",
@@ -745,7 +742,6 @@ function run(cfg,nDraws,seed){
   const ratio=Float64Array.from(ratioBase);
   ratio[idx.MK]=cfg.mkRatio;
   ratio[I_ENTRANT]=0.8;
-  ratio[idx.PA]=Math.min(ratioBase[idx.PA]*cfg.paUplift,1.5);
 
   const individual=[];
   for(let i=0;i<CODES.length;i++){
@@ -1164,7 +1160,6 @@ function render(a,cfg){
     theta_mode:{ANC:cfg.thetaANC,EFF:cfg.thetaEFF,MK:cfg.thetaMK,DA:cfg.thetaDA,ASA:cfg.thetaASA,BOSA:THETA_BOSA},
     individual_theta:{PA:[1.0,cfg.thetaPA,2.2]},
     w_bye:cfg.wBye,poll_id:cfg.pollPick||null,poll_weight:cfg.pollPick?cfg.pollWeight:0,
-    pa_contestation_uplift:cfg.paUplift,
     turnout_pattern_blend:cfg.turnoutBlend,turnout_noise_sd:cfg.turnoutNoise,
     /* Removed 2026-08-17: bloc_leak, alpha_anc, alpha_da, ward_pr_ratio_overrides,
        turnout_tilt_anc, turnout_tilt_da. None is a DEFAULTS key any more, and

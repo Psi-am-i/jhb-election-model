@@ -99,8 +99,8 @@ it is newer, better argued, or built from more measurements.
 
    | claimed columns | n | mean PIT | 50% (PIT) | 80% (PIT) | 90% (PIT) | probit-SD |
    |---|---|---|---|---|---|---|
-   | ranks 1-3 | 27 | 0.464 | 81% | 96% | 96% | 0.692 |
-   | ranks 4-12 | 35 | 0.680 | 51% | 91% | 94% | 0.626 |
+   | ranks 1-3 | 27 | 0.483 | 81% | 96% | 96% | 0.685 |
+   | ranks 4-12 | 37 | 0.676 | 59% | 89% | 92% | 0.695 |
 
    | nine-city-year vote error | signed | absolute |
    |---|---|---|
@@ -114,8 +114,10 @@ it is newer, better argued, or built from more measurements.
    and has not changed shape: ranks 1-3 signed error falls from +31.95pp to
    +10.62pp and ranks 4-12 from −36.88pp to −22.76pp, with the absolute columns
    falling too (72.07 → 61.09 and 56.63 → 48.42), so this is mass moved to the
-   right places and not merely cancelled. Mean PIT moves 0.432 → 0.464 and
-   0.749 → 0.680, both toward 0.50 from opposite sides.
+   right places and not merely cancelled. Mean PIT moved 0.432 → 0.464 and
+   0.749 → 0.680 with the shrink, and the contestation correction of §1.47 took
+   it further to **0.483 and 0.676** — both bands toward 0.50 from opposite
+   sides, twice, from two changes that touched the level and never the width.
 
    **The tail is the new cost and it is in the table.** Ranks 13+ go from
    −1.55pp to **+5.60pp**: a band that was very nearly unbiased is now
@@ -124,12 +126,12 @@ it is newer, better argued, or built from more measurements.
    known, measured trade recorded in §1.44, not a surprise — and it is the
    first thing to attack next.
 
-   **On level.** The pooled claimed mean PIT is 0.581 and it is the average of
-   0.464 and 0.680 — an over-forecast averaged with an under-forecast. The model
+   **On level.** The pooled claimed mean PIT is 0.589 and it is the average of
+   0.483 and 0.676 — an over-forecast averaged with an under-forecast. The model
    still **over**-forecasts the top three and **under**-forecasts the middle,
    exactly as the signed vote bands say, but by much less than it did, and only
    the ranks 4-12 cluster-bootstrap CI now excludes 0.50: ranks 1-3 sit at
-   [0.413, 0.510], which no longer separates from centred.
+   [0.431, 0.531], which no longer separates from centred.
 
    **That gap is a zero-sum transfer, not two independent faults**: shares sum
    to one, so the +10.62pp at ranks 1-3, the +5.60pp at 13+ and the +6.54pp of
@@ -148,8 +150,14 @@ it is newer, better argued, or built from more measurements.
 
    The level shrink is the direct evidence for that reading, because it moved
    the level and nothing else: the 50% (PIT) column for ranks 4-12 went from
-   **31% to 51%** without a single interval being widened or narrowed. A width
-   fix could not have done that.
+   **31% to 51%** without a single interval being widened or narrowed, and the
+   contestation correction of §1.47 took it on to **59%** the same way. A width
+   fix could not have done either.
+
+   Both also moved the level-free width statistic toward correct without
+   touching a width constant: ranks 4-12 `sd(z)` was **0.628** before the level
+   shrink and is **0.823** now, against a nominal 1.0. That is what it looks
+   like when a LEVEL fault stops masquerading as a width one.
 
    That is not an argument, it is a fixture, and it is in the suite. The rows
    below come from `tests/test_calibration_report.py::_shift_scale_results(4242,

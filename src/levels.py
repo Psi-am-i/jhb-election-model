@@ -574,11 +574,19 @@ def contestation(target: cityconfig.Target, city: cityconfig.City,
     """The fraction of wards each party fields a ward candidate in.
 
     Nomination lists close and are published before polling day, so this is
-    available to a forecaster. It replaces ``pa_contestation_uplift`` — a
+    available to a forecaster. It replaced ``pa_contestation_uplift`` — a
     one-party constant of 1.25 that existed because the PA contested 52 of 135
     wards in 2021 and the model assumed every party contested all of them. The
     same correction is owed to every party, and measured rather than chosen:
     the median party contests well under half the wards.
+
+    **This docstring said "replaces" for weeks while the constant went on
+    firing**, because it only replaced it where the target's own lists exist —
+    every backtest — and the constant held the branch where they do not, which
+    is every live forecast. So the one place it was live was the one place
+    nothing could check it. Since 2026-08-18 that branch falls back to the
+    PREVIOUS local election's measured shares instead, and the constant is
+    deleted. MODEL-LOG §1.47.
 
     **Presence on the ballot, never a vote.** The justification above is a
     statement about nomination lists, and the code used to count a ward only

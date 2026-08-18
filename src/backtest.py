@@ -221,10 +221,9 @@ FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
     # for a constant that cannot be read reports a risk that does not exist --
     # which is the same fault, in the other direction, as the phantom keys
     # MODEL-LOG 1.29 removed from this list.
-    "pa_contestation_uplift": (
-        ("2021",),
-        "1.25 because the PA fought 52 of 135 wards in 2021. Only read when "
-        "measured contestation is unavailable"),
+    # "pa_contestation_uplift" was here until 2026-08-18 and is DELETED with
+    # the constant itself. A one-party fiddle, live only where no backtest could
+    # reach it; the contestation fallback is measured for every party now.
     # "splinter" is gone from this list: `pools.splinter_record` now takes the
     # target and drops any split that had not happened yet, so the code
     # enforces what the key used to announce. It was also unclearable — no

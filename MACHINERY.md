@@ -454,8 +454,7 @@ PA and PAC — a degenerate solution reported as converged.
 | Piece | Where | Source | Saw |
 |---|---|---|---|
 | Ward/PR split ratio | previous LGE, per party | MEASURED | ✅ |
-| `pa_contestation_uplift` = 1.25 | DEFAULTS | **JUDGED** | PA's 2021 ward count |
-| Ward contestation | **MEASURED** since §1.29 | `levels.contestation`, from nomination lists; applied to the ward/PR ratio at `montecarlo.py:2080-2085` | 55 parties at 2021, median party contests 39% of wards. This row said "not modelled — all parties contest all wards" until 2026-08-17, contradicting §3 of this same document, which correctly listed it as MEASURED. |
+| Ward contestation | **MEASURED**, for every party | `levels.contestation`, from nomination lists; where the target's lists are not published yet, the PREVIOUS local election's measured shares | 55 parties at 2021, median party contests 39% of wards. Until 2026-08-18 the not-yet-published branch instead applied `pa_contestation_uplift`, a 1.25 for one named party — deleted, §1.47. This row said "not modelled — all parties contest all wards" until 2026-08-17, contradicting §3 of this same document, which correctly listed it as MEASURED. |
 | `ward_noise_sd` = 0.10 | DEFAULTS | JUDGED | applied to ward tallies, not to shares |
 | Schedule 1 quota + largest remainder | `seats.py` | STATUTE | ✅ verified against the IEC, 6 city-years |
 | `eligible_parties` (C/D exclusions) | `seats.py` | STATUTE | ✅ |
@@ -603,7 +602,7 @@ mismatch across a delimitation produced for Tshwane 2026.
 
 `entrant_prob` · `entrant_share` · `MIN_HOME_SPLITS` ·
 `SPLIT_SD_FLOOR` · `LEVEL_DF` · `level_sd_default` · `w_bye` ·
-`pa_contestation_uplift` — and note it is consumed at **2026 only** (`run.constants_read`), so it cannot contaminate any backtest. `ward_pr_ratio_overrides` was here until 2026-08-17 and is **deleted**: consumed at no target at all.
+`ward_pr_ratio_overrides` was here until 2026-08-17 and is **deleted**: consumed at no target at all. `pa_contestation_uplift` was here until 2026-08-18 and is **deleted** too — it was consumed at 2026 only, which was offered as a reason it could not contaminate a backtest, and is better read as the reason nothing could test it.
 
 `level_shrink` belongs here with a distinction that matters. Its **value** did
 not see the targets: 0.35 comes from a fit on Johannesburg 2016 alone, which

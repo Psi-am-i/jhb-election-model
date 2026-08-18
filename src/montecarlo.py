@@ -176,13 +176,6 @@ DEFAULTS: dict = {
     # of every pool, and both are overridable in judgements/{city}-{target}.toml.
     "pools": {},
 
-    # A1: ward/PR split-ticket ratios are measured from 2021 per party;
-    # overrides for parties without a 2021 measurement or with a changed
-    # footprint. MK: list party, no ward machinery — 0.80 is a judgement
-    # bounded by ActionSA's observed 0.77. PA uplift: fielding more wards
-    # than 2021's 52 raises its ward-ballot capture.
-    "pa_contestation_uplift": 1.25,
-
     # A2: turnout pattern per draw. blend 0 = pure λ̂ ratio form, 1 = pure
     # 2021-LGE-level pattern; the draw jitters the blend ±jitter and applies
     # per-VD lognormal noise (σ in log units ≈ the unexplained λ dispersion).
@@ -242,6 +235,11 @@ DEFAULTS: dict = {
     "level_shrink": 0.35,
     "level_shrink_scale": 0.04,
 }
+
+# What DEFAULTS looked like before any city touched it. `apply_city` restores
+# from this, so a city never inherits the previous city's judgements and the
+# scoreboard cannot depend on the order the cities were looped in.
+_PRISTINE_DEFAULTS = copy.deepcopy(DEFAULTS)
 
 
 def logit(p, floor=None):
@@ -694,13 +692,35 @@ def parse_set(pairs: list[str], scenario: dict) -> None:
 
 
 def apply_city(city) -> None:
-    """Point the module's constants at this city.
+    """Point the module's constants at this city, from a CLEAN baseline.
 
     Johannesburg's config was generated from these very constants when the
     spine was introduced, so for CoJ this is a no-op by construction — which
     is what lets the refactor happen without the forecast moving.
+
+    **THE RESET IS THE POINT, and it was missing until 2026-08-18.** This wrote
+    each city's scalars over ``DEFAULTS`` and never put back what the previous
+    city had written, so in a nine-city-year loop a city inherited whatever the
+    cities before it happened to declare. Only two of the eight metros declare
+    scalars at all, so the six that declare none were running on Johannesburg's
+    or Tshwane's values rather than on ``DEFAULTS`` — **and which one depended
+    on iteration order**.
+
+    Exactly one key actually differs between them today —
+    ``pa_contestation_uplift``, 1.25 for Johannesburg against 1.0 for Tshwane —
+    and it is consumed at 2026 and at no backtested target, so no score in this
+    repository moved because of it. That is luck, not design: a second differing
+    key, or a 2026 city-year entering the panel, would have made the scoreboard
+    depend on the order the cities were looped in.
+
+    It also made the serial loop and a parallel one different programs, which is
+    why this is fixed here rather than worked around in `compare_history`.
     """
     global COUNCIL, PLAN_BOUNDS
+    # Restore the module's own defaults before applying this city's, so a run
+    # never inherits the previous city's judgements.
+    DEFAULTS.clear()
+    DEFAULTS.update(copy.deepcopy(_PRISTINE_DEFAULTS))
     COUNCIL = city.council
     PLAN_BOUNDS = city.plan_bounds
     j = city.judgements
@@ -1075,8 +1095,9 @@ def pool_spec(scenario, centres, index, ipf_out=None):
     # PA at Johannesburg 2026 is the standing case: it belongs to exactly one
     # pool (Coloured, weight 1.0, and at 2026 that weight is `identified=False`
     # — a bound-limited artefact, not a measurement), that pool casts about
-    # 66,700 votes, and the spine plus the by-election blend plus
-    # `pa_contestation_uplift` between them ask for about 68,000. That is 102%
+    # 66,700 votes, and the spine plus the by-election blend between them ask
+    # for about 68,000 (until 2026-08-18 `pa_contestation_uplift` was a third
+    # contributor; it is deleted, and its share of this is gone). That is 102%
     # of every Coloured vote in the city. Which side is wrong — a vector too
     # narrow or a level too high — is not settled here and is not settled by
     # this clip. The clip only makes the disagreement SAFE and VISIBLE instead
@@ -2093,11 +2114,25 @@ def run_model(target, scenario: dict,
         if _ratios:
             scenario["_ward_pr_measured"] = _ratios
             scenario["_ward_pr_fallback"] = _fallback
+        # CONTESTATION IS A CHANGE, NOT A LEVEL. See where it is applied.
+        # `_contestation` is who stands at the TARGET; `_contestation_prev` is
+        # who stood at the election the ward/PR ratio was measured from, which
+        # is `target.previous_lge` — the same one `ward_pr_ratios` reads.
         _contest = _levels.contestation(target, target.city)
+        _prev_lge = target.previous_lge
+        _contest_prev = {}
+        if _prev_lge:
+            _contest_prev = _levels.contestation(
+                cityconfig.use_target(_prev_lge), target.city)
+            cityconfig.use_target(target.year)   # restore the active target
         if _contest:
             scenario["_contestation"] = _contest
+        if _contest_prev:
+            scenario["_contestation_prev"] = _contest_prev
+        if _contest and _contest_prev:
             note_constant(scenario, "contestation",
-                          f"{target.year} ward ballot, {len(_contest)} parties")
+                          f"{target.year} against {_prev_lge}, "
+                          f"{len(_contest)} parties")
             if verbose:
                 vals = sorted(_contest.values())
                 print(f"  contestation: {len(_contest)} parties, median "
@@ -2434,21 +2469,49 @@ def run_model(target, scenario: dict,
     # reach, carried in DEFAULTS, in apply_city's per-city list, in two city
     # tomls, in backtest.FITTED_ON and in the register. MODEL-LOG 1.37.
 
-    # Contestation, for every party rather than one. pa_contestation_uplift was
-    # 1.25 applied to the PA alone, because it fought 52 of 135 wards in 2021
-    # while the model assumed all 135. The median party contests 36% of wards,
-    # so the same correction is owed to everyone, and nomination lists are
-    # published before polling day so it can be measured instead of chosen.
+    # Contestation, for every party rather than one.
+    #
+    # `pa_contestation_uplift` -- 1.25 applied to the PA alone, because it
+    # fought 52 of 135 wards in 2021 while the model assumed all 135 -- was
+    # DELETED on 2026-08-18. The observation behind it was sound and the remedy
+    # was not: the median party contests well under half the wards, so the same
+    # correction is owed to everyone, and it is measurable rather than chosen.
+    # `levels.contestation`'s own docstring had said it "replaces
+    # pa_contestation_uplift" for weeks while the constant went on firing,
+    # because it fired in the `elif` for when the target's nomination lists do
+    # not exist yet -- which is every live forecast, and no backtest. So the one
+    # place it was live was the one place nothing could check it.
+    #
+    # It now falls back to the previous local election's measured shares (see
+    # where `_contestation` is set), so there is no branch here that treats one
+    # party differently from the rest.
+    # AND IT IS APPLIED AS A CHANGE, NOT AS A LEVEL — corrected 2026-08-18.
+    #
+    # The multiplier used to be the target's contested share outright, and that
+    # DOUBLE-COUNTED. `ward_pr_ratios` measures each party's ward-over-PR ratio
+    # from the previous LGE's actual votes, and a party that stood in 38% of
+    # wards banked ward votes in only those wards — so its measured ratio has
+    # already been discounted by its contestation. Multiplying by the share
+    # again applies the same discount twice.
+    #
+    # Measured: the correlation between the measured ratio and the contested
+    # share is +0.699, parties contesting under 25% of wards average a ratio of
+    # 0.512 against 1.075 for those above 75%, and dividing the ratio through by
+    # contestation flips the correlation to -0.499 (over-correction). The
+    # scoreboard says the same thing — at 2021 over four metros, applying the
+    # level made ward MAE 10.79 against 8.90 with no adjustment at all.
+    #
+    # What the ratio does NOT know is how a party's slate has CHANGED since
+    # then, so that is what is applied. It is 1.0 when the target's nomination
+    # lists are not published — the live forecast's case — which is why 2026
+    # correctly gets no adjustment rather than a constant for one party.
     contest = scenario.get("_contestation") or {}
-    if contest:
+    prev = scenario.get("_contestation_prev") or {}
+    if contest and prev:
         for p, i in index.items():
-            share = contest.get(p)
-            if share is not None:
-                ratio[i] = float(np.clip(ratio[i] * share, 0.0, 2.0))
-    elif "PA" in index:
-        ratio[index["PA"]] = min(
-            ratio[index["PA"]] * scenario["pa_contestation_uplift"], 1.5)
-        note_constant(scenario, "pa_contestation_uplift", "PA")
+            now, was = contest.get(p), prev.get(p)
+            if now is not None and was:
+                ratio[i] = float(np.clip(ratio[i] * (now / was), 0.0, 2.0))
 
     # --- by-election evidence (E4) -------------------------------------------
     bye: dict[str, tuple[float, float]] = {}
@@ -2685,8 +2748,7 @@ def run_model(target, scenario: dict,
         shown = [p for p in ("MK", "ASA", "PA") if p in index]
         if shown:
             print("ward/PR ratios: " + ", ".join(
-                f"{p} {ratio[index[p]]:.2f}" for p in shown)
-                + f" (PA uplift ×{scenario['pa_contestation_uplift']})")
+                f"{p} {ratio[index[p]]:.2f}" for p in shown))
         print()
 
     # --- the loop -------------------------------------------------------------
