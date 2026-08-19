@@ -81,6 +81,17 @@ it is newer, better argued, or built from more measurements.
    `compare_history` took `crps.total` and dropped the rest. Both are now in the
    standard report (`compare_history.py`, MODEL-LOG §1.34). When a statistic
    says the model is fine, check what it is capable of saying.
+
+   **AND A NULL IS ONLY AS BROAD AS THE OUTPUT IT WAS MEASURED ON**, which has
+   now bitten twice. CLASS 12 compared list shares only and called
+   `ward_noise_sd` and `pa_contestation_uplift` dead; both are live on the ward
+   side (§1.37). The width budget looked at citywide share only and called the
+   turnout knobs zero; they move 46 ward wins (§1.48, §1.51). Before writing "no
+   effect", say which output you looked at, and check the one the mechanism
+   claims to act on. Two companions to it: never quote a contribution smaller
+   than the noise floor printed beside it (§1.48 did, and was corrected), and a
+   null measured with a gate shut is a statement about the gate — which is how
+   `poll_k` was wrongly certified inert.
 8. **Width and level are different faults with opposite remedies, and NEITHER
    can be read off a coverage number.** This rule has now been wrong twice in
    two days, in opposite directions, and both times because a width verdict was

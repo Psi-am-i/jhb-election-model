@@ -5285,6 +5285,86 @@ instrument and is a larger piece of work than a constant.
 
 ---
 
+## 1.51 Audit: every "it has no effect" this project has acted on (2026-08-19)
+
+Prompted by the project owner asking whether the near-zero width rows meant the
+mechanisms were broken, and then the sharper follow-up: **have we removed things
+on a no-effect measurement that was itself wrong?** There is precedent —
+`poll_k` was certified inert on a null measured with its gate shut, and had to
+be retracted — so the question was worth answering properly rather than
+reassuringly.
+
+### What was removed, and what the removal rested on
+
+| removed | evidence it rested on | is that evidence sound? |
+|---|---|---|
+| `polling_lean`, `polling_span` | **static**: computed, passed to `pool_spec`, and the body never references the parameter | yes — not a measurement at all, so no measurement to be wrong |
+| `pool_spec(base_city_d)` | same, an unread argument | yes |
+| `first_local_election` | measured **worse** than the spine: 36/46 paired, p = 0.00016, and it carries strictly less information (sd(log) 1.19 vs 0.74) | yes — a "worse" claim, not a "no effect" claim, and the two have different failure modes |
+| `turnout_tilt_da` | removed as **broken**: applied after `solve_and_predict` had calibrated, so rows stopped summing to one | yes |
+| `pa_contestation_uplift` | removed as a one-party rule, not for inertness — and generalising it exposed a double count (§1.47) | yes, and productive |
+| **`ward_pr_ratio_overrides`** | **consumption**: `run.constants_read` says read at no target, because it is gated on `not fallback` and the fallback is always present | **this is the gate-shut pattern**, and it is the one to check |
+
+### The gate-shut ones, re-checked today at every runnable target
+
+`ward_pr_ratio_overrides` and the `theta_mode` / `f_other` pair were both retired
+on "consumed at no target", which is exactly the shape of reasoning that made
+`poll_k`'s null wrong. Re-measured across all ten runnable city-years:
+
+* **`ward_pr_ratios` returns a fallback at every one of them**, so the override
+  could never have fired. The deletion holds.
+* **The spine misses zero parties at every one of them**, so `theta_prior`'s
+  fallback branch — the only consumer of `theta_mode` and `f_other` — is
+  unreachable. Those entries hold.
+
+The residual risk is stated rather than dismissed: both are inert **because a
+gate is shut at every target the harness can run**, not by construction. A city
+or target with no preceding LGE file would open the first gate, and the override
+is gone. The code's own comment says the fallback replaces it by design, so that
+is a deliberate position — but it is a position, not an arithmetic fact.
+
+### The false-negative channel that was real
+
+§1.37 records it: **CLASS 12 compared list shares only**, and on that evidence
+called `ward_noise_sd` and `pa_contestation_uplift` dead. Both are live on the
+ward side. The sweep now compares list ballot, ward ballot, ward wins **and**
+seats, which is why the same class of error surfaced immediately this week when
+the width budget's citywide-only view called the turnout knobs zero.
+
+**That is the general lesson, and it has now bitten twice: a null is only as
+broad as the output it was measured on.**
+
+### What continuous enforcement exists
+
+`test_every_tunable_lever_actually_moves_the_forecast` fails in **both**
+directions — a lever that should move and does not, and **a lever that moves
+while `EXPECTED_INERT` claims it does not**. So every inertness claim in this
+repository is re-checked on every suite run rather than standing on the day it
+was written. `overhang_rule` retired its own excuse that way, one day after it
+was written (§1.47).
+
+Two gaps that enforcement does not close, recorded so they are not mistaken for
+covered:
+
+* it runs at **40 draws** and two targets, so a lever that fires rarely can read
+  inert — which is precisely what happened to `overhang_rule`, whose clause fires
+  in 1 draw of 200;
+* **`entrant_geography`'s mechanism is untested.** The entry is honest that the
+  perturbation supplies no `parent` and therefore tests only that the EMPTY
+  default is inert. Nothing has ever exercised the mechanism itself.
+
+### And the one this audit started from
+
+The register says `turnout_noise_sd` contributes "~0.003 citywide, **i.e.
+nothing**". Checked on the scored metrics rather than on citywide share: across
+jitter 0 → 0.60 and noise 0 → 0.30, coherent seat error and ward MAE are
+unchanged and CRPS moves by **0.016%** (91.6695 → 91.6839 over two city-years).
+So "nothing" is defensible for scoring. It moves 46 ward wins, which is real and
+was not in the record; it does not propagate, because coherent seats apportions
+the **mean** seat vector and per-draw flips average out.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model
