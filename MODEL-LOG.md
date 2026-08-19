@@ -5092,6 +5092,34 @@ at `TURNOUT_CORRELATION = 0.0` against +0.050 at 0.63, unchanged. So the
 correlation constant is not what makes the effect small, and **why 4–12% rather
 than more is still unexplained.**
 
+### Why the copula's effect is bounded — mostly answered
+
+The remaining puzzle was why a mechanism that swings pool turnout from 0.486 to
+0.740 supplies only 4–12% of a party's drawn variance. The answer is that **the
+IPF pins the expectation**, so pool turnout cannot move a party's level — only
+the split around it.
+
+Measured from a run's own trace, drawn mean against the centre it was given,
+Johannesburg 2021 at 400 draws: **mean ratio 1.0012 across the 14 parties above
+0.2%**. The level is where the centre put it.
+
+Two qualifications, both real:
+
+* **The pinning is tight in aggregate and loose per party** (sd 0.0763). The
+  pattern is systematic rather than random — ANC 0.921, DA 0.930, EFF 0.914
+  against AIC 1.125 — the top of the ballot drawn 7–9% *below* its centre and
+  small parties above. That is the entrant rescale (`target *= (1 − share)`)
+  and the arrival slot taking mass, which `test_drawer.py` documents as a known
+  and separate effect.
+* Correlations between a pool's drawn turnout and a party's share run **+0.02 to
+  +0.15**, and the DA's is ~+0.12 against *every* pool, which is a common-turnout
+  signature rather than a differential-composition one. So the residual is not
+  purely the differential either.
+
+So: level pinned, split free, residual small. That is enough to stop treating
+the copula's size as evidence of anything about `TURNOUT_CORRELATION`, and not
+enough to call the mechanism fully explained.
+
 ### What this means for `SD_FLOOR`
 
 **It should come down, not up** — the opposite of what the θ record alone
