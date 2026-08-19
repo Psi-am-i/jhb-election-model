@@ -91,12 +91,6 @@ _WARD_LOCAL_BYE = (
     "forecast is untouched until it is deliberately switched on. Inert with "
     "their gate shut, and untestable in any backtest even open, because the "
     "by-election window is 2022-06 to 2026-02.")
-_ENTRANT_GEOGRAPHY = (
-    "empty by default and listed in MACHINERY.md's 'switched off' summary. "
-    "`montecarlo.py:1871` reads it as `scenario.get(...) or {}` and the branch "
-    "needs a declared `parent`; the perturbation used here supplies none, so "
-    "this entry records that the EMPTY default is inert, not that the mechanism "
-    "is dead.")
 
 # A lever may be inert at a target for a REASON. Each entry is that reason, and
 # each is a claim about the model that a reader can check — not a suppression.
@@ -127,8 +121,6 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
     ("bye_local_cap", "2026"): _WARD_LOCAL_BYE,
     ("bye_tau_months", "2021"): _WARD_LOCAL_BYE,
     ("bye_tau_months", "2026"): _WARD_LOCAL_BYE,
-    ("entrant_geography", "2021"): _ENTRANT_GEOGRAPHY,
-    ("entrant_geography", "2026"): _ENTRANT_GEOGRAPHY,
     # ("overhang_rule", "2021") was excused here from 2026-08-17 to 2026-08-18.
     # THE ENTRY RETIRED ITSELF, exactly as it said it would. It recorded that
     # its own excuse was weak -- the overhang clause fired in 1 draw of 200 at
@@ -214,7 +206,14 @@ PERTURB: dict[str, object] = {
     "poll_k": 40.0,
     "bye_local_cap": 40.0,
     "bye_tau_months": 400.0,
-    "entrant_geography": {"parent": "ANC", "k": 1.0},
+    # k = 0.0, NOT 1.0. `dev[ENTRANT] = (1-k) * dev[parent]`, so k=1 is flat by
+    # construction and is exactly what the empty default already does -- the
+    # value this entry carried until 2026-08-20 was the IDENTITY, and the
+    # EXPECTED_INERT entry that excused the resulting null blamed a missing
+    # `parent` when a parent was in fact supplied. Two wrong explanations of one
+    # non-perturbation. At k=0 the slot inherits the parent's per-VD map and the
+    # forecast moves at both targets. MODEL-LOG §1.53.
+    "entrant_geography": {"parent": "ANC", "k": 0.0},
     "overhang_rule": "expand",
 }
 

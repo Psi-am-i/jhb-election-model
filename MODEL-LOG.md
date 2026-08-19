@@ -5464,6 +5464,59 @@ or re-banner-ing a published artefact is the owner's call.
 
 ---
 
+## 1.53 `entrant_geography` was never dead — the perturbation was the identity (2026-08-20)
+
+§1.51's audit named this as the one inertness claim whose *mechanism* had never
+been exercised. Exercised now, and it is live at both targets.
+
+### The mechanism
+
+`dev[:, ENTRANT] = (1 − k) · dev[:, parent]` — the generic arrival slot inherits
+a named parent's per-voting-district map, scaled. It is off by default because
+`entrant_geography` is `{}` and the branch needs a `parent`.
+
+Supplying one, Johannesburg, 200 draws, hashing PR shares, ward shares and seat
+draws together:
+
+| | result |
+|---|---|
+| default `{}` (no parent) | baseline |
+| `parent ANC, k = 0.0` | **moves** |
+| `parent ANC, k = 1.0` | **byte-identical** |
+| `parent DA, k = 0.0` | moves, and differently from ANC |
+
+The `k = 1.0` row is the useful one: it is flat *by construction*, so a
+perturbation that moves at k=0 and not at k=1 is demonstrably reaching the code
+rather than merely differing from it.
+
+### Two wrong explanations of one non-perturbation
+
+`PERTURB` carried `{"parent": "ANC", "k": 1.0}` — **the identity**. So the sweep
+had been perturbing this lever to a value that cannot change anything, which is
+`ITERATING.md` rule 6's fault outright.
+
+And the `EXPECTED_INERT` entry that excused the resulting null gave the wrong
+reason for it. It said *"the branch needs a declared `parent`; the perturbation
+used here supplies none"*. A parent **was** supplied. The null came from the k,
+not from the parent — so the entry was honest in tone, precise in wording, and
+wrong on the fact. It read as a careful disclosure, which is exactly why it
+survived §1.51's audit with only a note that the mechanism was untested.
+
+Fixed to `k = 0.0`, and the `EXPECTED_INERT` entries are deleted: the lever is
+live at 2021 and 2026 and belongs in the ordinary sweep.
+
+### What this does not change
+
+Nothing in any forecast. `entrant_geography` remains `{}` by default and no
+committed run supplies a parent, so this is a test that now tests something and
+a register that now says something true. The mechanism itself is still
+**argued, not tested** in the sense that matters — no backtest has ever scored
+an arrival against an inherited map versus a flat one, and the k values quoted
+in the code (0.03 for MK on the ANC, 0.05 for the EFF on the ANC, 1.00 for
+ActionSA on the DA) come from a fit that predates this sweep.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model
