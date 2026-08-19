@@ -123,6 +123,21 @@ def build_inputs():
              f"--city {CITY} --target {TARGET} --emit")
     scenario["pools"] = json.loads(spec_path.read_text())["pools"]
 
+    # THE LEVEL LAYER, as `run_model` builds it. This fixture had the same
+    # defect `test_drawer.py` did: it loaded the pool spec and stopped, so every
+    # party fell through the precedence chain to constants the forecast never
+    # reaches. Deleting those constants (§1.52) surfaced both. Two fixtures
+    # were characterising a configuration the model does not run.
+    import levels as _levels
+    _target = cityconfig.use_target("2026")
+    _prior, _groups = _levels.theta_prior(_target, base_city_d)
+    if _prior:
+        scenario["theta_prior"] = _prior
+        scenario["_theta_sd"] = _groups.get("sd", {})
+    _spine, _ = _levels.spine(_target, base_city_d, share_2021)
+    if _spine:
+        scenario["spine_level"] = _spine
+
     centres, _ = M.blended_centres(scenario, base_city_d, share_2021, bye)
     if "ENTRANT" in index:
         centres["ENTRANT"] = 0.0

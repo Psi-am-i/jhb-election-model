@@ -184,33 +184,22 @@ FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
         "before 2026. The ratio ranges no longer do — they derive from "
         "transitions strictly before the target. A census is a covariate, not "
         "an outcome: it says who lives in a ward, not how they voted."),
-    # The four below were removed from this list on the grounds that
-    # src/levels.py measures θ, the ward/PR split and contestation from
-    # transitions strictly before the target, so the hand-typed constants are
-    # "no longer read". That is true per party and false in general: the
-    # measurement covers the parties the record covers, and a party the record
-    # cannot reach still falls back to the plan's number. Measured on target
-    # 2021, ActionSA — 11% of that baseline, and a party whose ONLY local
-    # result is the target — took its 1.50 from theta_mode, and 31 parties
-    # took bands from individual_theta. Both went unnamed while the banner
-    # discussed pools. So they are listed again, and `montecarlo.note_constant`
-    # records which ones a run actually consumed: the banner reports the
-    # measurement, and a run that genuinely never touches them still prints
-    # the all-clear.
-    "theta_mode": (
-        ("2006", "2011", "2016", "2021"),
-        "the plan's per-party θ views, written with the whole record in "
-        "hand. ASA 1.50 is the sharpest case: ActionSA has exactly one local "
-        "result and it is the 2021 target"),
-    "individual_theta": (
-        ("2016", "2021"),
-        "the bands say so themselves — \"ranges bracket the observed "
-        "fold-1/fold-2 raw ratios: IFP 1.34→1.97, VF+ 0.81→1.65, ACDP "
-        "0.58→1.82, Al Jama-ah 3.12 in 2021\""),
-    "f_other": (
-        ("2006", "2011", "2016", "2021"),
-        "the residual bucket's triangular, a judgement made against the same "
-        "record; the measured retention it replaces is 0.79, not 1.30"),
+    # theta_mode, individual_theta and f_other were listed here until
+    # 2026-08-19 and are DELETED with the constants themselves (§1.52).
+    #
+    # The comment they replaced is worth keeping in outline, because it was
+    # RIGHT at the time and stopped being right for a reason. It said the
+    # three had been dropped from this list on the grounds that levels.py
+    # measures theta from transitions strictly before the target, and that
+    # this was 'true per party and false in general' -- a party the record
+    # could not reach still fell back to the plan's number, and at target
+    # 2021 ActionSA took its 1.50 from theta_mode while 31 parties took bands
+    # from individual_theta. So they were listed again.
+    #
+    # What changed is the general case: since the spine, the record reaches
+    # EVERY party at every runnable target, the fallback branches were dead,
+    # and they are now gone. A contamination entry for a key nothing can read
+    # is a permanent in-sample verdict no scenario can clear.
     "plan_bounds": (
         ("2006", "2011", "2016", "2021"),
         "per-party level bounds from the plan (MK [0.3, 1.0] and the rest), "

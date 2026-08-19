@@ -803,11 +803,15 @@ def test_the_in_sample_verdict_is_about_the_run_not_about_the_defaults():
     import backtest as B
     assert B.contaminated("2016", set(), {}) == [], \
         "a run that read no tracked constant was still called in-sample"
-    read = {"theta_mode": ["ASA"]}
-    assert B.contaminated("2021", set(), read) == ["theta_mode"], \
+    # `plan_bounds`, not `theta_mode`: the latter was this test's example key
+    # until 2026-08-19 and no longer exists (§1.52). The mechanism under test is
+    # unchanged — a tracked key is reported only for the targets it saw, and
+    # only when a run actually read it.
+    read = {"plan_bounds": ["ASA"]}
+    assert B.contaminated("2021", set(), read) == ["plan_bounds"], \
         "a constant the run did read was not reported"
     assert B.contaminated("2026", set(), read) == [], \
-        "theta_mode was reported against a target it predates"
+        "plan_bounds was reported against a target it predates"
 
 
 def test_the_entrant_relabel_sums_and_does_not_overwrite():

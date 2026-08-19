@@ -5365,6 +5365,105 @@ the **mean** seat vector and per-draw flips average out.
 
 ---
 
+## 1.52 The party-specific constants are gone, two days after they should have been (2026-08-19)
+
+The project owner, seeing `pa_contestation_uplift` in the §1.51 audit table:
+*"Twice we have removed all party-specific rules like this. How can it still be
+in the code, let alone live?"*
+
+### What was actually still there
+
+`pa_contestation_uplift` was **not** in the code — deleted 2026-08-18 (§1.47),
+and the sightings were historical comments plus a frozen HTML artefact. But the
+question was the right one to ask, because a scan of the forecast path for
+hard-coded party names found **twelve party-specific numbers still sitting in
+`DEFAULTS`**:
+
+* `theta_mode` — ANC 0.75, EFF 0.85, MK 0.60, DA 1.30, ASA 1.50, BOSA 0.80
+* `individual_theta` — PA, Al Jama-ah, IFP, VF+, ACDP, RISE, each a
+  (low, mode, high) band
+* `f_other` — the residual bucket those two fell through to
+
+All three were **certified dead at every runnable target** and carried anyway:
+in `DEFAULTS`, in `apply_city`, in two city tomls, in `EXPECTED_INERT` and in
+the register. Their disposition was written up in §1.41 as *"an open decision"*.
+
+**It was not open.** The owner had already given it, twice, and it is on the
+record: *"If something is dead and no longer used, why would we want to keep it
+around — unless it should not be dead."* Keeping them was not caution, it was a
+failure to act on an instruction, and it is the third time this project has
+found a deleted-or-dead lever still sitting in a place someone reads.
+
+### Deleted, and it moves nothing
+
+Both dead precedence branches in `blended_centres`, the dead-store write of
+seeded arrivals' bands into `individual_theta`, the `apply_city` copy, the two
+city tomls, the register rows and the `EXPECTED_INERT` entries. The
+`f_other` branch is replaced by an **explicit `raise`**: a party with a national
+baseline, no spine level, no θ prior and no seed is a combination the branches
+above make impossible, and if it ever happens it should be loud rather than
+absorbed by a typed number for whichever parties someone named in 2026.
+
+Johannesburg, Tshwane and Cape Town 2021 at 400 draws are **identical to every
+digit** before and after — 86/65.470, 30/25.970, 32/30.656. They were dead, as
+certified.
+
+### What party-specific material remains, and why
+
+The same scan is the way to check this claim rather than trust it. What is left
+in the forecast path:
+
+| what | verdict |
+|---|---|
+| `PLAN_BOUNDS` — per-party θ sanity ranges | **live**, read in the by-election clamp for a party with no θ prior. Already 🔴, and already recorded as a diagnostic the model prints against itself and ignores. Not touched here |
+| `pools.Split(...)` — COPE from ANC, EFF from ANC, NFP from IFP, GOOD from DA, MK from ANC, ASA from DA | **historical fact**, not a rule: who actually split from whom. Party-specific because the world is |
+| `WITHOUT = ("ANC", "EFF", "MK")` | a **reported statistic** — "can a majority form without these three" — not a modelling rule, and the code says so |
+| `gate_parties = ["ANC", "DA", "EFF"]` | the dimension-admission test set, methodology rather than forecast |
+| `indicator = "IFP"` | simulation-only bloc, not the published spec |
+
+### And deleting them exposed a golden test that was guarding nothing
+
+`tests/test_drawer.py`'s fixture loaded the pool spec and stopped. It never ran
+the spine and never built a θ prior, so every party reached `blended_centres`
+with neither, fell through the precedence chain, and took its centre from
+`theta_mode`, `individual_theta` or `f_other`. Deleting those three is what
+exposed it — the golden prior turned out to be **anchored on the dead
+constants, and on nothing the forecast uses.**
+
+It also explains a silence that had been read as evidence. When §1.49 changed
+what `theta_prior` shrinks toward, these values did not move, and that was taken
+as confirming the change was inert. It confirmed nothing: **the fixture was not
+calling `theta_prior` at all.**
+
+The fixture now builds the level the way `run_model` does, and the prior moves a
+long way — ANC 21.71 → 21.28 on a much tighter band (6.59–40.46 → 10.19–34.53),
+DA 27.95 → 24.51, ASA 12.48 → 14.12, MK 7.25 → 10.12. That is a **different code
+path, not a changed model**: the spine's levels are better informed than a
+residual bucket of 1.30, so the bands narrow. Re-recorded with the reason in the
+file.
+
+**The nine city-years are unaffected and were not re-run for it.** They go
+through `run_model`, which has always built the level this way. What changed is
+only what the golden test characterises — which is now the thing that ships.
+
+### The frozen artefact, which is what was actually seen
+
+`forecast-interactive.html` and `site/dev/interactive.html` are **tracked** and
+still carry a "PA's wider slate" slider, because they were built on 7–8 August
+and `build_interactive.py` now **refuses to rebuild them**: the interactive was
+never ported to voter pools, its in-browser drawer is the old two-bloc engine,
+and the page is deliberately frozen.
+
+So a reader opening either file sees a control for a constant the model deleted,
+driving an engine the model replaced. That is not a stale figure, it is a stale
+*program*, and it is the same shape as `site/plan.html` being served for weeks
+after no build produced it. **Nothing in the model reads them**, but they are
+tracked, and a tracked file that looks current is exactly the trap this
+repository keeps setting for itself. Flagged rather than fixed, because deleting
+or re-banner-ing a published artefact is the owner's call.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

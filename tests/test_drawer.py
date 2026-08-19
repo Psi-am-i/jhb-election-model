@@ -266,22 +266,48 @@ PROCESSED = ROOT / "data" / "processed"
 # `compress_levels`, asserted by
 # `test_the_level_shrink_is_exactly_the_identity_when_it_is_off`, so the
 # previous prior is recoverable by that one override.
+# RE-RECORDED 2026-08-19, deliberately, and this one is different in kind from
+# the others above: THE FIXTURE WAS TESTING A LEVEL CONFIGURATION THE FORECAST
+# NEVER RUNS.
+#
+# `build_inputs` loaded the pool spec and stopped. It never ran the spine and
+# never built a theta prior, so every party reached `blended_centres` with
+# neither, fell through the precedence chain, and took its centre from
+# `theta_mode`, `individual_theta` or `f_other`. Those three were deleted on
+# 2026-08-19 (§1.52) as dead — dead in the FORECAST, where the spine reaches
+# every party at every target — and deleting them is what exposed this: the
+# golden prior had been anchored on them, and on nothing the model uses.
+#
+# It also explains a silence. When §1.49 changed what `theta_prior` shrinks
+# toward, these values did not move, and that was read as confirmation the
+# change was inert. It was not confirmation: the fixture was not calling
+# `theta_prior` at all.
+#
+# The fixture now builds the level the way `run_model` does. The prior moves a
+# long way because it is a different code path, not because the model changed:
+# ANC 21.71 -> 21.28 with a much tighter band (6.59-40.46 -> 10.19-34.53), DA
+# 27.95 -> 24.51, ASA 12.48 -> 14.12, MK 7.25 -> 10.12. The spine's levels are
+# better informed than a residual bucket of 1.30, so the bands narrow.
+#
+# The nine-city-year backtest is UNAFFECTED and was not re-run for this: it goes
+# through `run_model`, which always built the level this way. This changes only
+# what the golden test characterises.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (20.7179, 5.6565, 39.3470),
-    "DA": (27.9457, 12.5094, 46.8977),
-    "EFF": (10.3408, 1.4564, 23.9809),
-    "ASA": (12.4755, 2.6907, 27.6160),
-    "MK": (7.2496, 0.9323, 18.1610),
-    "PA": (6.1821, 2.3026, 12.7229),
-    "VFPLUS": (1.1192, 0.0071, 3.8129),
-    "ALJAMAAH": (1.5450, 0.3688, 3.2011),
-    "ENTRANT": (1.3961, 0.0000, 7.9095),
+    "ANC": (21.2800, 10.1873, 34.5316),
+    "DA": (24.5055, 16.6591, 32.9911),
+    "EFF": (10.4154, 2.7009, 21.3169),
+    "ASA": (14.1215, 5.5321, 25.2932),
+    "MK": (10.1171, 2.8513, 20.1790),
+    "PA": (6.7955, 4.3527, 10.7880),
+    "VFPLUS": (0.9693, 0.0089, 3.3413),
+    "ALJAMAAH": (0.9357, 0.2982, 1.8663),
+    "ENTRANT": (1.4279, 0.0000, 7.9150),
 }
 GOLDEN_POOLS = {
-    "Black African": (47.7773, 33.6657, 60.8548),
-    "Coloured": (11.2775, 7.1991, 17.6997),
-    "Indian/Asian": (5.9688, 4.1357, 8.1545),
-    "White": (33.5804, 22.0052, 46.9403),
+    "Black African": (50.2932, 42.1598, 57.9341),
+    "Coloured": (11.5360, 8.9557, 15.5882),
+    "Indian/Asian": (5.2448, 3.9950, 6.8759),
+    "White": (31.4981, 25.4307, 38.0449),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")
@@ -332,6 +358,30 @@ def build_inputs():
         skip(f"no pool spec at {spec_path} — run: python src/pools.py "
              f"--city {CITY} --target 2026 --emit")
     scenario["pools"] = json.loads(spec_path.read_text())["pools"]
+
+    # THE LEVEL LAYER, as `run_model` builds it — added 2026-08-19.
+    #
+    # Until then this fixture loaded the pools and stopped, so every party
+    # reached `blended_centres` with no spine level and no theta prior and fell
+    # through to `theta_mode`, `individual_theta` and `f_other`. **The golden
+    # prior was therefore characterising a level configuration the forecast
+    # never runs** — the spine reaches every party at every real target — and it
+    # was anchored on the three constants deleted in §1.52. It is also why the
+    # goldens did not move when §1.49 changed `theta_prior`: they were not
+    # using it.
+    #
+    # The comment ten lines above says this fixture must load the spec "exactly
+    # as run_model does — otherwise this file would test a configuration the
+    # forecast never runs". That was true of the pools and false of the level.
+    import levels as _levels
+    _target = cityconfig.use_target("2026")
+    _prior, _groups = _levels.theta_prior(_target, base_city_d)
+    if _prior:
+        scenario["theta_prior"] = _prior
+        scenario["_theta_sd"] = _groups.get("sd", {})
+    _spine, _ = _levels.spine(_target, base_city_d, share_2021)
+    if _spine:
+        scenario["spine_level"] = _spine
 
     centres, _ = mc.blended_centres(scenario, base_city_d, share_2021, bye)
     if "ENTRANT" in index:

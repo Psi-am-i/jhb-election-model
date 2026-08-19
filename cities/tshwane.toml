@@ -123,21 +123,7 @@ ASA = [0.9, 3.0]
 MK = [0.3, 1.0]
 VFPLUS = [0.7, 2.2]
 
-[judgements.theta_mode]
-ANC = 0.75
-EFF = 0.85
-MK = 0.6
-DA = 1.3
-ASA = 1.5
-
-[judgements.individual_theta]
-VFPLUS = [0.7, 1.2, 2.2]
-ACDP = [0.6, 1.2, 2.0]
-PA = [1.0, 1.4, 2.2]
-IFP = [0.8, 1.4, 2.2]
-
 [judgements.scalars]
-f_other = [0.7, 1.3, 2.0]
 w_bye = 0.4
 poll_weight = 0.0
 turnout_pattern_blend = 0.5

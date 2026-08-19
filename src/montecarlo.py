@@ -117,25 +117,7 @@ DEFAULTS: dict = {
     "draws": 5000,
     "seed": 20261104,
 
-    # §3.5 central θ modes — the plan's per-party views. E2: these centre the
-    # within-pool split. BOSA has no plan θ; 0.80 is a documented judgement
-    # (suburbs NPE party at its first LGE).
-    "theta_mode": {"ANC": 0.75, "EFF": 0.85, "MK": 0.60,
-                   "DA": 1.30, "ASA": 1.50, "BOSA": 0.80},
 
-    # E6: individual (low, mode, high) raw θ for parties outside the pools,
-    # drawn independently. Ranges bracket the observed fold-1/fold-2 raw
-    # ratios: IFP 1.34→1.97, VF+ 0.81→1.65, ACDP 0.58→1.82, Al Jama-ah 3.12
-    # in 2021. Rise has no LGE history: judgement, wide, collapse risk real.
-    "individual_theta": {
-        "PA": [1.00, 1.40, 2.20],
-        "ALJAMAAH": [0.80, 1.50, 3.00],
-        "IFP": [0.80, 1.40, 2.20],
-        "VFPLUS": [0.70, 1.20, 2.20],
-        "ACDP": [0.60, 1.20, 2.00],
-        "RISE": [0.30, 0.80, 1.50],
-    },
-    "f_other": [0.70, 1.30, 2.00],   # residual bucket only, no seat-winner left in it
 
     # E4: by-election blend weight (§3.5 w_bye, range 0–1). Polls: pick one
     # from polls.json by id and weight it — this replaced the old two-endpoint
@@ -724,9 +706,9 @@ def apply_city(city) -> None:
     COUNCIL = city.council
     PLAN_BOUNDS = city.plan_bounds
     j = city.judgements
-    for key in ("theta_mode", "individual_theta"):
-        if key in j:
-            DEFAULTS[key] = dict(j[key])
+    # `theta_mode` and `individual_theta` were copied from the city toml here
+    # until 2026-08-19. Both are deleted; a city file that still carries them
+    # is carrying a dead key, and nothing reads it.
     for key, value in j.get("scalars", {}).items():
         if key.endswith("_note"):
             continue
@@ -835,8 +817,6 @@ def blended_centres(
     notes: dict[str, str] = {}
     centres: dict[str, float] = {}
     prior = scenario.get("theta_prior") or {}
-    theta_mode = scenario["theta_mode"]
-    individual = scenario["individual_theta"]
 
     # Two paths, and every party takes exactly one of them.
     #
@@ -879,15 +859,25 @@ def blended_centres(
             mode_level = spine_level[party]
         elif party in prior:
             mode_level = base * prior[party][1]
-        elif party in theta_mode:
-            mode_level = base * theta_mode[party]
-            note_constant(scenario, "theta_mode", party)
-        elif party in individual:
-            mode_level = base * individual[party][1]
-            note_constant(scenario, "individual_theta", party)
         else:
-            mode_level = base * scenario["f_other"][1]
-            note_constant(scenario, "f_other", party)
+            # NO PARTY-SPECIFIC FALLBACK. Until 2026-08-19 three more branches
+            # sat here -- `theta_mode` (six named parties), `individual_theta`
+            # (six more) and `f_other` -- and all three were dead: the spine
+            # reaches every party at every runnable target, so `spine_level`
+            # above always answers first. They were carried in DEFAULTS,
+            # `apply_city`, two city tomls and the register for weeks after
+            # being certified inert.
+            #
+            # A party that reaches here has a national baseline, no spine
+            # level, no theta prior and no seed, which the three branches
+            # above make impossible. If that ever changes it must be a loud
+            # failure rather than a typed number for whichever parties someone
+            # happened to name in 2026. MODEL-LOG §1.52.
+            raise AssertionError(
+                f"{party} has a national baseline but no spine level, no theta "
+                f"prior and no arrival seed. That combination was previously "
+                f"absorbed by a per-party constant; there is no longer one. "
+                f"See MODEL-LOG §1.52.")
 
         centre = mode_level
         if party in bye and w > 0:
@@ -1333,9 +1323,6 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             mode = min(max(centres[party] / max(base_city[i], 1e-9), low), high)
             individual.append((i, (low, mode, high), None))
             continue
-        if party not in (scenario.get("theta_prior") or {}) \
-                and party not in scenario["individual_theta"]:
-            note_constant(scenario, "f_other", party)
         # The CENTRE is the spine's, and it is no longer clamped into the θ
         # band. That clamp existed when the centre and the band came from the
         # same θ; now they do not, and it was silently undoing task #22 — it
@@ -2187,9 +2174,13 @@ def run_model(target, scenario: dict,
         # The band is what the record says an arrival can be worth, and it is
         # wide because arrivals genuinely are. Carrying it as this party's own
         # theta range is what stops a seeded party being pinned to its seed.
-        for party, band in (scenario.get("pool_seed_bands") or {}).items():
-            if seeds.get(party, 0.0) > 0:
-                scenario["individual_theta"][party] = list(band)
+        # A DEAD STORE, REMOVED 2026-08-19. This wrote each seeded arrival's
+        # band into `individual_theta`, and nothing read it back:
+        # `blended_centres` and `make_drawer` both take `pool_seed_bands`
+        # directly and short-circuit before any membership test. Confirmed
+        # three ways in §1.41 -- multiplying every written band by 100,
+        # setting the whole dict to [50,80,99], and deleting all 32 keys, all
+        # byte-identical. The key it wrote into no longer exists.
         if verbose:
             for party in sorted(seeds, key=lambda p: -abs(seeds[p]))[:8]:
                 why = notes_by_party.get(party, "parent debited")

@@ -67,35 +67,6 @@ _MODULE_LEVEL = {"turnout_correlation"}
 
 # Reasons shared by several EXPECTED_INERT entries. Each is a claim about the
 # model that a reader can check, not a suppression.
-_SUPERSEDED_BY_SPINE = (
-    "read only in `blended_centres`' branch for parties the SPINE cannot reach, "
-    "and since task #22 the spine reaches every party with either record at "
-    "the BACKTESTED targets. "
-    "`run.constants_read` confirms it: consumed at NO target, 2016, 2021 or "
-    "2026. This is the same condition that condemned `ward_pr_ratio_overrides`, "
-    "and it is also what makes the in-sample banner honest — `theta_mode` is "
-    "the constant that gave ActionSA 1.50 fitted ON the 2021 target, so its "
-    "deadness is what makes the in-sample banner honest. "
-    "A CAUTION ABOUT MEASURING THIS: it read as LIVE at 2026 for part of "
-    "2026-08-17, and that was an artefact — another agent was re-emitting "
-    "`pools_*.json` at the time, so the baseline this test differences against "
-    "was moving under it. On a settled tree it is inert at every target. When "
-    "agents share precomputed artefacts, partitioning them by FILE is not "
-    "enough; the sweep must run on a quiet tree. "
-    "`backtest.FITTED_ON` still names it as a 2021 contamination source it can "
-    "no longer be; that entry should be retired.")
-_INDIVIDUAL_THETA = (
-    "DEAD IN BOTH ITS SUPPOSED JOBS. This entry used to claim it was 'live as "
-    "an internal channel' because `montecarlo.py:1842` writes seeded arrivals' "
-    "bands into the key. That write is a DEAD STORE: `blended_centres` and "
-    "`make_drawer` both read `pool_seed_bands` directly and short-circuit "
-    "before the membership test. Confirmed three ways — multiplying every "
-    "written band by 100 across 32 parties, setting the whole dict to "
-    "[50,80,99], and deleting all 32 seeded keys — all byte-identical. "
-    "Consumed at zero of ten runnable targets, which is the identical evidence "
-    "that got `ward_pr_ratio_overrides` and `first_local_election` DELETED the "
-    "same day. Three keys, one standard, three dispositions: see MODEL-LOG "
-    "§1.41, where the inconsistency is recorded as an open decision.")
 _LEGACY_POLL = (
     "RETRACTED 2026-08-17 and kept only as a warning. This entry used to say "
     "'verified directly: poll_k 1.0 vs 40.0 at 2026 moves the DA, ANC, ASA, MK "
@@ -129,6 +100,12 @@ _ENTRANT_GEOGRAPHY = (
 
 # A lever may be inert at a target for a REASON. Each entry is that reason, and
 # each is a claim about the model that a reader can check — not a suppression.
+# theta_mode, individual_theta and f_other were excused here from 2026-08-17
+# until 2026-08-19, when they were DELETED. Three keys carrying twelve
+# party-specific numbers between them, certified dead at every runnable target
+# and then kept anyway for two days because their disposition was recorded as
+# "an open decision". The decision had already been made -- twice -- by the
+# project owner. MODEL-LOG §1.52.
 EXPECTED_INERT: dict[tuple[str, str], str] = {
     ("w_bye", "2021"):
         "by-election data covers 2022-06 to 2026-02 only, so no past target has "
@@ -144,12 +121,6 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
     # --- added 2026-08-17, when the enumeration test raised PERTURB from 13 of
     # --- 27 DEFAULTS keys to 23 and seven more levers turned out not to move.
     # Each is inert for a DIFFERENT reason and every reason is checkable.
-    ("theta_mode", "2021"): _SUPERSEDED_BY_SPINE,
-    ("theta_mode", "2026"): _SUPERSEDED_BY_SPINE,
-    ("f_other", "2021"): _SUPERSEDED_BY_SPINE,
-    ("f_other", "2026"): _SUPERSEDED_BY_SPINE,
-    ("individual_theta", "2021"): _INDIVIDUAL_THETA,
-    ("individual_theta", "2026"): _INDIVIDUAL_THETA,
     ("poll_k", "2021"): _LEGACY_POLL,
     ("poll_k", "2026"): _LEGACY_POLL,
     ("bye_local_cap", "2021"): _WARD_LOCAL_BYE,
@@ -240,9 +211,6 @@ PERTURB: dict[str, object] = {
     # Added 2026-08-17 after the enumeration test below found that PERTURB
     # covered 13 of 27 DEFAULTS keys and nobody had noticed.
     "entrant_share": [0.20, 0.30, 0.45],
-    "f_other": [3.0, 4.0, 5.0],
-    "theta_mode": {"ANC": 3.0, "DA": 3.0},
-    "individual_theta": {"PA": [3.0, 4.0, 5.0]},
     "poll_k": 40.0,
     "bye_local_cap": 40.0,
     "bye_tau_months": 400.0,
