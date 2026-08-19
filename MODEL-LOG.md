@@ -5023,13 +5023,12 @@ in variance** (ANC 0.37 + 0.67 = 1.04, EFF 0.20 + 0.84 = 1.04, DA 0.54 + 0.39 =
 "everything except θ" row reproduces the Dirichlet row almost exactly, so the
 remaining sources really are negligible rather than merely small.
 
-**3. Three registered constants do nothing to citywide width.** `turnout_noise_sd`
-and `turnout_blend_jitter` remove **exactly 0.00** at every party — confirming,
-independently, the register's note that 0.08 i.i.d. over 855 VDs contributes
-~0.003 citywide. And the **pool turnout copula contributes essentially nothing**
-(≤0.11, mostly inside the noise floor), which is a live question for
-`TURNOUT_CORRELATION = 0.63`: it changes how pools move together, and citywide
-party width barely notices.
+**3. Two constants do nothing to citywide width — and that is a statement about
+citywide width only.** `turnout_noise_sd` and `turnout_blend_jitter` remove
+**exactly 0.00** at every party, confirming the register's note that 0.08 i.i.d.
+over 855 VDs contributes ~0.003 citywide. **The copula's ≤0.11 is a weaker
+claim** and was over-stated in the first draft of this section — see the
+verification below.
 
 **4. It answers §1.45.** The θ record for parties ≥15% gives sd(log θ) = 0.227
 against the fit's 0.111–0.148, and §1.45 could not say whether the layer was too
@@ -5039,6 +5038,59 @@ layer that is one term of a sum should not be asked to reproduce the marginal
 record of the whole. Raising θ dispersion to 0.227 would multiply θ's variance by
 about 2.3 and take the DA's total to ~1.7× — when realised ranks 1-3 `sd(z)` is
 already **0.855**, i.e. the forecast is about 17% too wide *now*.
+
+### Verified against the obvious objection: are these mechanisms even running?
+
+A source that removes **exactly** 0.00 looks more like a broken mechanism than a
+small one, and this repository has shipped that mistake before. So each was
+checked rather than argued.
+
+**They run, and they vary.** Instrumented over one run: the copula is called 240
+times returning pool turnouts from **0.486 to 0.740** (sd 0.075), the level
+shock 60 times returning 0.943 to 1.363, the Dirichlet 240 times. The ablation
+patches are reached — the copula's replacement was called 5,000 times across the
+five-seed measurement.
+
+**The turnout knobs are LIVE, and they act on the ward layer, not on citywide
+dispersion.** Perturbed at Johannesburg 2021, 250 draws:
+
+| setting | ANC citywide sd | ward wins moved | |
+|---|---|---|---|
+| noise 0, jitter 0 | 0.073329 | — | baseline |
+| noise 0.08 (committed) | 0.073329 | **46** | |
+| noise 0.8 | 0.073329 | **418** | |
+| jitter 0.25 (committed) | 0.073329 | **14** | |
+| jitter 1.0 | 0.073329 | **32** | |
+
+Citywide dispersion is identical to six decimals across a tenfold change, while
+ward wins move by hundreds. Every output — PR shares, ward shares, ward wins,
+seat draws — differs at every setting. **These are ward-allocation levers that
+average out citywide, which is what i.i.d. noise over 855 voting districts
+should do.** They are not broken, and "0.00" here means "not a source of
+citywide width", not "does nothing".
+
+**The copula claim was over-stated and is corrected here.** The table above
+reports −0.02 for the ANC; three seeds at 250 draws give **+0.050**, and the
+noise floor is 0.04. So "essentially nothing" was wrong. Measured across parties
+of different pool concentration, the shape is coherent:
+
+| party | pool concentration | variance the copula supplies |
+|---|---|---|
+| **PA** | ~94% Coloured | **+0.124** |
+| ANC | broad | +0.050 |
+| DA | broad | +0.044 |
+| Al Jama-ah | narrow but tiny | −0.070 (its own sd is 0.945; this is noise) |
+
+**The copula supplies roughly 4–12% of drawn variance, most for the party most
+concentrated in a single pool** — which is exactly what a pool-turnout mechanism
+should do, and is the evidence that it works rather than merely runs.
+
+One hypothesis was tested and **refuted**: that it cancels because a *common*
+turnout factor divides out of a share. If that were the mechanism, decorrelating
+the pools would make the copula bite. It does not — the contribution is +0.055
+at `TURNOUT_CORRELATION = 0.0` against +0.050 at 0.63, unchanged. So the
+correlation constant is not what makes the effect small, and **why 4–12% rather
+than more is still unexplained.**
 
 ### What this means for `SD_FLOOR`
 

@@ -640,6 +640,14 @@ the source is switched off:
 | pool turnout copula | ~0 | 0.03 | ≤ 0.11, mostly noise |
 | ward noise | ~0 | 0.07 | ≤ 0.06 |
 | per-VD turnout noise, blend jitter | **0.00** | **0.00** | **0.00** |
+
+**"0.00" means "not a source of CITYWIDE width", not "does nothing".** Both
+turnout knobs are live and act on the **ward** layer: at Johannesburg 2021 the
+committed `turnout_noise_sd = 0.08` moves 46 ward wins and `turnout_blend_jitter
+= 0.25` moves 14, while citywide dispersion is identical to six decimals across
+a tenfold change in either. That is what i.i.d. noise over 855 voting districts
+should do. The copula's row is the least certain in this table — 0 to 5%, inside
+the noise floor, and not explained (§1.48).
 | entrant slot | ~0 | 0.04 | ≤ 0.07 |
 
 **The Dirichlet is the width layer**, and was not thought to be — it is
