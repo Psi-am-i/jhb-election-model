@@ -238,6 +238,60 @@ fragmentation trend, (b) house effects, or (c) the size of an unknown arrival.
 Those three are the model's real uncertainty and **none of them is in the
 intervals.**
 
+## 5c. Forecasting before the nomination lists are final
+
+The lists are the one input the live forecast does not have, and they land on
+**16 September 2026** — nominations closed 28 August, polling is 4 November. We
+are not waiting for them. Two stages, and the discipline is that stage 1 must be
+frozen before stage 2 exists, or the revision is indistinguishable from a fit.
+
+### Stage 1 — now, and it already runs
+
+The model does not need the lists to produce a forecast. Where they are absent it
+projects each party's slate forward from 2021 (`contestation_expand`, §1.60) and
+sizes any unknown newcomer through the generic `ENTRANT` slot. That is a
+forecast, not a placeholder.
+
+**Publish it, hash it, and never edit it.** Timestamped, `artefact_key` recorded,
+scoring code frozen beside it — publication gate item 3. A forecast issued before
+the lists is the only one that can later be shown to have been a forecast.
+
+### The list-dependence is measurable NOW, and should be published with it
+
+We can say in advance how much the lists can move the answer, because the
+channel they act through is a declared lever. Johannesburg 2026, 1200 draws,
+median seats across the defensible range of `contestation_expand` (§1.60: the
+record's pooled median is 0.220, the most recent cycle alone about 0.5):
+
+| | 0.0 *(slates unchanged)* | **0.220** *(shipped)* | 0.5 *(last cycle's rate)* |
+|---|---|---|---|
+| DA | 83 | 81.5 | 80 |
+| ANC | 62 | 61 | 60 |
+| **PA** | **17** | **19** | **22** |
+| ASA | 25 | 24 | 24 |
+
+So the honest statement to publish is: **the nomination lists are worth about
+±3 seats to the PA and about ∓2 to the DA, and essentially nothing to anyone
+else.** A reader who is told that in August cannot be surprised in September.
+
+### What actually changes on 16 September
+
+| channel | what the lists do | expected movement |
+|---|---|---|
+| contestation | real slates replace the projection; `contestation_expand` goes inert | the table above, resolved to one column |
+| arrival-group spec | `pools.arrival_group_spec` gains a roster and emits for 2026 | **none** — the mechanism is measured worse and stays off (§1.63) |
+| phantom entrant mass | we learn who is actually standing, so mass on parties that filed nothing can be withdrawn | unquantified; 11.6 seats across the nine backtest city-years |
+| a party we have never seen | a filed newcomer with no baseline | already covered by the generic slot, but by name rather than generically |
+
+### The rule for the revision
+
+Publish stage 2 as a **labelled revision beside stage 1, not over it**: both
+visible, both dated, with the difference attributed to the channel that caused
+it. If the revision is larger than the band published in August, say so and say
+why — that is a finding about the projection, and it is the only out-of-sample
+test `contestation_expand` will ever get (it is inert at every backtestable
+target, §1.60).
+
 ## 6. Order of work
 
 1. **Close the model list.** The successor to §1.55 — a band-dependent

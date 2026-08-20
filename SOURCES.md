@@ -354,3 +354,44 @@ downloadable tables, so a check against it is by eye.
 **What it does not carry**, checked because we want them: no raw voter roll, no
 nomination lists, no by-election series, no quantitative metro seat forecast.
 Our own gaps in those (see *Still to acquire*) are not closed by it.
+
+#### CHECKED 2026-08-21, and the ingest passes exactly
+
+The survey above says a check against it "is by eye" because the resources are
+graphics. That is right about the heat maps and **wrong about the essays**, which
+carry figures in prose. *"Action South Africa's prospects in JHB"* (17 Feb 2026)
+gave enough to check numerically, and it was:
+
+| Johannesburg 2021 | theirs | ours |
+|---|---|---|
+| ASA PR votes | 167,359 | **167,359** |
+| ASA ward votes | 128,986 | **128,986** |
+| ASA citywide PR share | 18.12% | **18.12%** |
+| ASA PR share by ward, 135 wards, six bands | 1 / 19 / 16 / 50 / 33 / 16 | **1 / 19 / 16 / 50 / 33 / 16** |
+
+Exact on all of it, including the ward distribution — which tests the VD→ward
+mapping and the delimitation, not just a citywide sum. This is the first check of
+this repository's ingest against a party outside it. It also resolves an
+ambiguity in their write-up: those bands are the **PR** ballot (the ward ballot
+gives 6 / 27 / 48 / 40 / 10 / 4).
+
+The limit stated above still holds and is why this is not corroboration of the
+IEC itself: same upstream source, independent reading. It catches a mis-ingest,
+a wrong-city file or a delimitation mismatch, and it did not find one.
+MODEL-LOG §1.64.
+
+#### Two inputs they have and we do not
+
+Neither is an ingest gap; both are quantities the model has no channel for.
+
+* **Announced contestation, months before nomination lists.** They report ASA
+  contesting about **42 municipalities** in 2026, from the party's own
+  statements, in February. `levels.contestation` reads FILED lists and
+  `contestation_expand` (§1.60) projects from 2021 — neither can see stated
+  intent. Soft data, and it bears directly on the one input the live forecast
+  lacks until 16 September.
+* **The mayoral candidate.** Helen Zille is the DA's Johannesburg candidate and
+  their argument is that she suppresses ASA specifically. **The model has no
+  candidate term.** Not obviously fixable: one ASA local election is on record,
+  so a candidate effect cannot be estimated here, and inventing one would be the
+  party-specific constant deleted twice (§1.47). Recorded as a blind spot.

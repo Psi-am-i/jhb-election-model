@@ -6457,6 +6457,86 @@ this entry argues for.
 
 ---
 
+## 1.64 The ingest is externally validated to the vote, and the two things we cannot see (2026-08-21)
+
+`inside-politics.org` — Gareth van Onselen's series on Election 2026/7 — is the
+closest thing to a competitor working the same ground. **It is not a forecasting
+model**: it publishes ward-level choropleths, turnout tracks and qualitative
+analysis, and it makes no seat projection and no probabilistic forecast. So there
+is no forecast to score against. What it does publish is hard numbers computed
+independently from the same IEC source, and those are a better check than a rival
+forecast would be, because a disagreement would be a fact about the DATA rather
+than about two sets of assumptions.
+
+### Checked, and it matches to the individual vote
+
+Johannesburg 2021, from *"Action South Africa's prospects in JHB"* (17 Feb 2026):
+
+| | theirs | ours |
+|---|---|---|
+| ASA PR votes | 167,359 | **167,359** |
+| ASA ward votes | 128,986 | **128,986** |
+| PR excess | +38,373 | **+38,373** |
+| as a share of PR | 23% | 22.9% |
+| ASA citywide PR share | 18.12% | **18.12%** |
+
+And the ward-level distribution, which tests the VD→ward mapping rather than a
+citywide total — ASA's PR share in each of the 135 wards:
+
+| | 0-5% | 5-10% | 10-15% | 15-20% | 20-25% | 25%+ |
+|---|---|---|---|---|---|---|
+| theirs | 1 | 19 | 16 | 50 | 33 | 16 |
+| **ours** | **1** | **19** | **16** | **50** | **33** | **16** |
+
+Exact in all six bands. It also settles an ambiguity in their write-up: the
+distribution is the **PR** ballot, not the ward ballot (the ward ballot gives 6 /
+27 / 48 / 40 / 10 / 4).
+
+`DATA-QUALITY.md` records the traps that corrupt an IEC ingest silently. This is
+the first check of the ingest against a party outside this project, and it
+passes.
+
+### It also incidentally clears a suspected defect
+
+Their figures imply ASA's true 2021 ward/PR ratio is **0.7707**, and the run at
+target 2021 prints **0.81**. That is not an error: ASA is an ARRIVAL at 2021 with
+no prior local record, so 0.81 is the fallback and the model cannot know 0.77
+without reading its own answer. At target **2026**, where 2021 is history, the
+run prints **0.77** — the measured value. Both targets are doing the right thing.
+
+### The two things they have that the model cannot see
+
+Neither is a data-ingest gap. Both are inputs with no channel in the model at
+all, and they are recorded here so that "we have everything they have" is not
+quoted without them.
+
+1. **Announced contestation, ahead of nomination lists.** They report ASA
+   standing in about **42 municipalities** in 2026, gathered from the party's own
+   statements months before nominations closed. The model has no path for
+   announced-but-not-filed intent; `levels.contestation` reads filed lists, and
+   §1.60's `contestation_expand` projects from 2021 rather than from what parties
+   have said. This is soft data and it is not obvious it should be ingested — but
+   it is data, it bears on the one input the live forecast is missing, and it was
+   available in February.
+
+2. **Who the mayoral candidate is.** Helen Zille is the DA's Johannesburg
+   candidate, and their argument is specific: she suppresses ASA in particular,
+   by neutralising Mashaba's appeal among potential DA voters. **The model has no
+   candidate term of any kind.** The effect is measurable in principle and partly
+   already in our inputs — ASA's +38,373 PR excess is 23% of its PR vote and runs
+   the OPPOSITE way to the ANC's and DA's, whose differentials favour the ward
+   ballot, which is what a party carried by its mayoral candidate looks like.
+   `levels.ward_pr_ratios` already carries that number per party (ASA 0.77). What
+   is missing is any reason for it to CHANGE when the candidate changes, and
+   nothing in four cycles identifies that.
+
+Recorded as a named blind spot rather than a task: with one ASA local election on
+record, a candidate effect cannot be estimated from this archive, and inventing
+one would be a party-specific constant of exactly the kind deleted twice
+(§1.47).
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model
