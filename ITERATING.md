@@ -388,6 +388,80 @@ it is newer, better argued, or built from more measurements.
     smaller than two effective clusters can resolve is "undetermined", not
     "adopted"**.
 
+## When to stop — written 2026-08-21, because "keep iterating" is not a plan
+
+The only question this file asks is whether the model predicts past elections
+better than the last version and better than the baselines. It does: **254
+coherent seat error against uniform swing's 376**, and uniform swing is measured
+to be the strongest member of the naive family (§1.57). What follows is the
+other half of the question, which this file never answered: **when is it done?**
+
+### The panel has a floor, and the model is close to it
+
+Three separate measurements, none of which were taken to answer this:
+
+* **The scoreboard carries about two effective clusters.** Nine city-years, eight
+  of them one cycle (rule 11). The forecasting rule of thumb is ~30 independent
+  observations per fitted parameter. **This panel supports approximately zero
+  parameters chosen on it**, which is why rule 10 has been right every time.
+* **θ is at its estimation ceiling.** Forward validation puts the floor at
+  RMSE(log θ) = 0.715 — a typical error of about 2× on a party's retention —
+  and every enrichment tried (year, metro, fragmentation, party dummies
+  unpooled) scored *worse* out of sample (§1.43).
+* **A third of the error is one party in one city.** Johannesburg 2021 is 86 of
+  the 254, and ASA is the largest single party term at 47 of 290 on the median
+  vector — an arrival with one prior local election. Its miss mechanically
+  generates the ANC, DA and EFF over-forecasts, because shares sum to one.
+
+### And there is no remaining change that improves seat accuracy
+
+Everything with a measurement behind it has now been tried:
+
+| candidate | result | measured at |
+|---|---|---|
+| `sd_for` refit, two forms | **refuted** — loses held-out NLL | §1.62 |
+| arrival-group draw | **refuted** — 254 → 348 | §1.63 |
+| chi-square bias correction | **refuted** — worse on everything | §1.50, §1.59 |
+| tail soft-floor | **refuted** — costs 14–22 seats | §1.54 |
+| symmetric spine blend | **refuted** — 312 → 338 | register |
+| `dirichlet_scale` narrowing | **a trade, not a win** — fixes ranks 1-3 width and costs 4 seats at 1.4, 8 at 2.0 | §1.55, §1.58 |
+
+The last row is the only one with a live case, and it is a trade: ranks 1-3 are
+about 1.47× too wide (probit-SD 0.682, unattenuated) and narrowing fixes it **at
+the cost of coherent seats**. *Worse does not ship* decides that, and rule 10
+decides it again, since the method-of-moments fit names 1.0.
+
+### So the remaining work is not modelling
+
+**Stop opening new modelling fronts.** What is left that is worth doing:
+
+1. **Publish.** The forecast is the point, the published page is an output of an
+   earlier version, and the pre-nomination window closes on 16 September. This is
+   the only time-critical item and its value decays to zero.
+2. **A4, on 16 September.** Dated and certain: real nomination lists make the
+   contestation correction live, retire `contestation_expand`, and cut phantom
+   entrant mass. Mechanical, not a modelling bet.
+3. **Disclosure, which is cheap and forecloses the strongest criticisms** —
+   already largely done: the Gauteng split (§A7), calibration on a fixed
+   population (§1.56), and the stated failure mode the publication gate asks for.
+
+**What to stop:** any constant fitted on these nine city-years. A3's
+fragmentation-dependent shrink is the clearest example — its per-city-year
+optimum really does span 0.00 to 0.65, and that heterogeneity cannot be
+distinguished from the 2021 shock with two effective clusters. It is the same bet
+§1.62 just lost.
+
+### What would license restarting
+
+Not an idea. **More independent clusters.** Concretely: the pre-2011 archive
+ingested for the seven metros that only have Johannesburg before 2011, which
+would roughly double the θ record's cycles; or the 2026 result itself, which adds
+a genuinely independent cycle and is the first honest out-of-sample test this
+model will ever get.
+
+Until one of those exists, a change that improves the nine city-years is
+evidence about the nine city-years.
+
 ## Where the record lives
 
 * `MODEL-LOG.md` — findings, obstacles, decisions, mitigations. Append, never
