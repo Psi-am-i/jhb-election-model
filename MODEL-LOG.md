@@ -5517,6 +5517,63 @@ ActionSA on the DA) come from a fit that predates this sweep.
 
 ---
 
+## 1.54 The tail's over-forecast is not worth fixing, and the obvious fix makes it worse (2026-08-20)
+
+§1.44 shipped the level shrink with a cost recorded openly: the freed mass is
+returned by uniform renormalisation, which is a multiplicative boost with many
+micro-parties to collect it, so **ranks 13+ went from very nearly unbiased to
+over-forecast**. Three targeted redistributions were measured then and all
+scored worse — but each had re-fitted its own `c`, so the comparison was
+confounded, and the question was left open.
+
+Reopened properly. A **soft receiver floor** was built as a lever: a party's
+share of the freed mass weighted by `q/(q + floor)`, which is ~1 above about a
+percent and falls smoothly to zero for a micro-party. Soft rather than a cut-off
+so nothing turns on where a line falls. Four metros at 2021, 600 draws, `c` and
+`h` held at their committed values so only the destination varies:
+
+| `level_shrink_floor` | coherent seats | CRPS | ranks 1-3 | ranks 4-12 | ranks 13+ |
+|---|---|---|---|---|---|
+| **0.0 — uniform, shipped** | **168** | **147.4** | +12.94 | **−17.79** | +1.52 |
+| 0.001 | 182 | 153.6 | +15.53 | −18.26 | −0.53 |
+| 0.002 | 182 | 154.1 | +16.00 | −18.41 | −0.95 |
+| 0.005 | 190 | 157.8 | +17.93 | −19.65 | −1.33 |
+
+**It closes the tail and costs 14 to 22 seats to do it.**
+
+### The hypothesis that motivated it is refuted
+
+The reason to try was arithmetic: the tail is over by some amount and ranks 4-12
+are under by more, so mass withheld from the tail might land in the middle. **It
+does not.** Ranks 4-12 get *worse* at every floor, and ranks 1-3 worse still —
++12.94 to +17.93. The receiver weight `q²/(q+floor)` favours large `q` by
+construction, so withholding from the tail sends the mass **to the top of the
+ballot**, which is the band already over-forecast. The fix feeds the fault it
+was meant to relieve.
+
+### And the tail is small
+
+From the committed artefact, seats at stake across nine city-years: ranks 1-3
+**1,464**, ranks 4-12 **257**, ranks 13+ **31**. The tail is **1.8%** of what is
+being contested. Its +5.60pp signed error is a real bias on a band that decides
+almost nothing.
+
+### Disposition
+
+**Not fixed, and the lever is deleted** rather than left in `DEFAULTS` at an
+inert default — the same treatment `first_local_election` got, for the same
+reason: a mechanism measured worse is a negative result, not an option. Uniform
+renormalisation stays, and it is now the *measured* choice rather than the
+unexamined one.
+
+What would still be worth trying, and is not this: a redistribution whose
+weights favour the **middle** rather than the top — the band that is actually
+short. Every form tried so far is monotone in size, which cannot do that. That
+needs the joint width calibration's machinery (task #10) rather than another
+one-parameter reweighting.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

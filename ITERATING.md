@@ -130,12 +130,18 @@ it is newer, better argued, or built from more measurements.
    it further to **0.483 and 0.676** — both bands toward 0.50 from opposite
    sides, twice, from two changes that touched the level and never the width.
 
-   **The tail is the new cost and it is in the table.** Ranks 13+ go from
+   **The tail is the cost, it was attacked, and it stays.** Ranks 13+ go from
    −1.55pp to **+5.60pp**: a band that was very nearly unbiased is now
    over-forecast, because the shrink returns its freed mass by uniform
-   renormalisation and there are many micro-parties to receive it. That is a
-   known, measured trade recorded in §1.44, not a surprise — and it is the
-   first thing to attack next.
+   renormalisation and there are many micro-parties to receive it. §1.54 built
+   the obvious fix — a soft floor on the receiving side — and measured it:
+   it closes the tail and **costs 14 to 22 coherent seats**, while making ranks
+   1-3 and 4-12 *both worse*. The mass withheld from the tail goes to the TOP,
+   not the middle, because every weight tried is monotone in size. And the tail
+   is 31 of 1,752 seats at stake — **1.8%** of what is being contested.
+
+   So this is a bias the project has decided to carry, on the record, rather
+   than an outstanding defect.
 
    **On level.** The pooled claimed mean PIT is 0.589 and it is the average of
    0.483 and 0.676 — an over-forecast averaged with an under-forecast. The model
