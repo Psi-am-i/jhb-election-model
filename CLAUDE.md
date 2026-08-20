@@ -42,6 +42,14 @@ belongs there with its number, so nobody spends a day rediscovering it.
 - **Re-record a golden test deliberately and say why in the file.** A silent
   re-record destroys the only guard on the prior.
 
+## Two backlogs, and they do not mix
+
+`PUBLISHING-BACKLOG.md` holds the presentation layer — the interactive, the live
+page, the stat tokens. **This repository's working list is the model's ability to
+predict, and nothing else.** The owner's standing position is that the page gets
+rebuilt when the model is ready, so presentation work is not a competing
+priority and is never a reason to change a forecast.
+
 ## Iterating, not publishing
 
 Read `ITERATING.md` first. The published forecast is a recent output of an
