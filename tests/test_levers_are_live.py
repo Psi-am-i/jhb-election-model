@@ -43,6 +43,7 @@ than a thing nobody noticed.
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import sys
 from pathlib import Path
@@ -56,6 +57,8 @@ sys.path.insert(0, str(ROOT / "src"))
 
 import cityconfig  # noqa: E402
 import montecarlo as M  # noqa: E402
+
+SRC = ROOT / "src"
 
 DRAWS = 40
 DATA = ROOT / "data/raw/elections"
@@ -105,6 +108,38 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
         "by-election data covers 2022-06 to 2026-02 only, so no past target has "
         "any. Inert in every backtest by construction; live in 2026. This is why "
         "JUDGEMENT-CALLS.md §A carries it at 🔴 as argued-not-tested.",
+    ("level_sd_default", "2021"):
+        "the fallback level spread for a party with no measured sd(log theta), "
+        "and `levels.theta_prior` returns an `sd` for EVERY party in the "
+        "baseline — so `sd_for_party` takes the measured branch every time and "
+        "the default never binds. JUDGEMENT-CALLS.md predicted exactly this "
+        "('binds only on parties outside it') before there was a test to show "
+        "it. **It was also not a DEFAULTS key at all until 2026-08-20**, so it "
+        "was frozen at 0.45 and unreachable; the register's own instruction was "
+        "'either measure it or promote it', and it is now promoted. Inert is "
+        "the honest reading and not a defect: a fallback that never fires is "
+        "what you want, and the value only matters if the baseline ever stops "
+        "covering the ballot. MODEL-LOG §1.63.",
+    ("level_sd_default", "2026"): "same reason as at 2021 — theta_prior covers "
+        "every party in the baseline, so the fallback never binds",
+    ("arrival_group_draw", "2026"):
+        "GATED ON DATA THAT DOES NOT EXIST YET, and the gate is three deep. "
+        "`pools.arrival_group_spec` returns None unless the target has a real "
+        "ROSTER — it splits the group total by each named arrival's ward reach, "
+        "and there are no named arrivals until nomination lists close. Its own "
+        "docstring says so: 'the 2026 forecast therefore still depends on the "
+        "generic entrant slot until nomination lists close.' Confirmed in the "
+        "emitted specs: `arrival_group` is present in pools_2021.json (32 "
+        "members) and ABSENT from pools_2026.json and pools_2016.json. The IEC "
+        "publishes the final 2026 candidate list on **16 September 2026** "
+        "(nominations closed 28 August; polling 4 November), so this is inert "
+        "at 2026 until task A4 ingests them and cannot be made live by any code "
+        "change. Two further layers were fixed on 2026-08-20 to get this far: "
+        "the key was in no DEFAULTS so the mechanism was UNREACHABLE rather "
+        "than off, and the branch raised `NameError: dirichlet_floor` the first "
+        "time anything reached it. Measured where it CAN fire — the eight 2021 "
+        "metros — it is much worse: coherent 254 -> 348, CRPS 232.9 -> 296.0. "
+        "MODEL-LOG §1.63.",
     ("contestation_expand", "2021"):
         "SUPERSEDED BY DATA, which is the point. It projects a ward slate for a "
         "target whose nomination lists are not published, and `levels."
@@ -199,6 +234,23 @@ OPERATIONAL: dict[str, str] = {
 }
 
 # Perturbations chosen to be large enough that no honest lever could absorb them.
+# Keys `montecarlo` reads out of `scenario` that are INJECTED AT RUNTIME rather
+# than declared: the pool spec writes them, or a stage writes them for a later
+# stage. They are not levers and must not be in `DEFAULTS` — declaring them would
+# invite a user to --set a value the run then overwrites. Anything reachable by a
+# leading underscore is covered by the convention; these are the ones that are
+# not. See `test_no_scenario_key_is_read_without_being_declared`.
+RUNTIME_INJECTED: dict[str, str] = {
+    "theta_prior": "written by run_model from levels.theta_prior",
+    "pool_seeds": "written by the seeding stage for the draw stage",
+    "pool_seed_bands": "the same, the bands beside the seeds",
+    "pool_seed_notes": "the same, the reasons, for the verbose line and the trace",
+    "spine_level": "written by run_model from levels.spine",
+    "poll_levels": "written by the polling stage where a usable poll exists",
+    "arrival_group": "read out of the emitted pool spec; None where the target "
+                     "has no roster, which is every unheld election",
+}
+
 PERTURB: dict[str, object] = {
     "entrant_prob": 0.95,
     "dirichlet_floor": 0.05,
@@ -207,6 +259,9 @@ PERTURB: dict[str, object] = {
     "turnout_blend_jitter": 0.90,
     "turnout_noise_sd": 0.50,
     "w_bye": 0.95,
+    "arrival_group_draw": True,   # the mechanism instead of the generic slot
+    "level_sd_default": 1.60,     # was frozen at 0.45 and unreachable
+    "turnout_correlation": 0.0,   # independent pools; was frozen at 0.63
     "contestation_expand": 1.0,   # every party in every ward
     "w_bye_local_ward": 0.90,
     "w_bye_local_pr": 0.90,
@@ -425,3 +480,72 @@ if __name__ == "__main__":
         if name.startswith("test_") and callable(fn):
             fn()
             print(f"ok   {name}")
+
+
+def test_no_scenario_key_is_read_without_being_declared():
+    """CLASS 11, THE VARIANT NO LEVER GUARD CAN SEE.
+
+    Every other guard in this file iterates `DEFAULTS`. **A key that is read but
+    never declared is invisible to all of them**, and it is not inert — it is
+    frozen at whatever fallback the `scenario.get` call supplies, and it cannot
+    be moved by `--set` or by a config file, because `parse_set` and
+    `read_scenario_file` both reject a key that is not already in the scenario.
+
+    Three live instances on 2026-08-20, all found at once and all pre-existing:
+
+      * `arrival_group_draw` — the whole arrival-group mechanism, which
+        `MACHINERY.md` described as a *switched-off lever* and whose own code
+        comment said "DEFAULT OFF". There was no switch and no default. It was
+        also broken: the branch raised `NameError: dirichlet_floor` the first
+        time anything reached it, and a code comment scheduled a retry "by 2026"
+        against a crash. MODEL-LOG §1.63.
+      * `level_sd_default` — `scenario.get("level_sd_default", 0.45)` at two
+        sites, registered in `JUDGEMENT-CALLS.md` at its own name, and frozen at
+        0.45 for anyone who tried to change it.
+      * `turnout_correlation` — `scenario.get("turnout_correlation",
+        TURNOUT_CORRELATION)`, registered at 🟡 with a note that one constant for
+        every city and pool pair is a judgement, and unsweepable.
+
+    A registered constant that cannot be swept is `LEVEL_DF` again (§1.33), and
+    this is the third form it has taken. The check is static and cheap: parse
+    `montecarlo.py`, collect every literal key passed to `scenario.get`, and
+    require it to be declared, injected at runtime, or underscore-private.
+    """
+    keys: dict[str, int] = {}
+    tree = ast.parse((SRC / "montecarlo.py").read_text())
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "get"
+                and isinstance(node.func.value, ast.Name)
+                and node.func.value.id == "scenario"
+                and node.args
+                and isinstance(node.args[0], ast.Constant)
+                and isinstance(node.args[0].value, str)):
+            continue
+        keys.setdefault(node.args[0].value, node.lineno)
+
+    assert keys, ("no `scenario.get(\"...\")` calls found at all, so this test "
+                  "is checking nothing — the access pattern has changed and the "
+                  "guard must be rewritten, not deleted")
+
+    undeclared = {k: ln for k, ln in keys.items()
+                  if not k.startswith("_")
+                  and k not in M.DEFAULTS
+                  and k not in RUNTIME_INJECTED}
+    assert not undeclared, (
+        "these scenario keys are READ but never DECLARED, so each is frozen at "
+        "the fallback in its own `scenario.get` call and cannot be moved by "
+        "`--set` or by a config file:\n  "
+        + "\n  ".join(f"montecarlo.py:{ln} {k!r}"
+                       for k, ln in sorted(undeclared.items(),
+                                           key=lambda kv: kv[1]))
+        + "\nAdd it to DEFAULTS at the value it is currently frozen at — which "
+          "changes no number and makes it sweepable — or, if the run writes it "
+          "rather than reading a choice, add it to RUNTIME_INJECTED with the "
+          "stage that writes it.")
+
+    stale = sorted(set(RUNTIME_INJECTED) - set(keys))
+    assert not stale, (
+        f"RUNTIME_INJECTED names {stale}, which `montecarlo.py` no longer reads. "
+        f"An excuse for a key that is gone hides the next real one; delete it.")

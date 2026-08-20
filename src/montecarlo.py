@@ -195,6 +195,42 @@ DEFAULTS: dict = {
     "turnout_noise_sd": 0.08,
 
     # A6: generic-entrant slot. Off by setting probability to 0.
+    # THE ARRIVAL-GROUP DRAW, and until 2026-08-20 this key DID NOT EXIST.
+    #
+    # `blended_centres` reads `scenario.get("arrival_group_draw")` to decide
+    # between the arrival-group mechanism — a group total drawn from a fitted
+    # lognormal and split among named arrivals by a Dirichlet — and the generic
+    # `ENTRANT` slot, which is a Bernoulli times a triangular. The comment there
+    # says "DEFAULT OFF" and `MACHINERY.md` lists it among the switched-off
+    # levers. **There was no switch.** The key was in no `DEFAULTS`, so
+    # `scenario.get` returned None on every run; `parse_set` and
+    # `read_scenario_file` both reject a key that is not already in the
+    # scenario, so `--set` and a config file could not create it either. The
+    # mechanism was not off, it was unreachable, and the code comment scheduling
+    # a retry "by 2026" scheduled something that could not be done.
+    #
+    # Same class as `LEVEL_DF` bound as a default argument (§1.33) and
+    # `polling_lean` passed to a function that never read it: a lever that
+    # cannot move. It escaped `test_every_defaults_key_is_swept_or_excused` and
+    # `test_every_tunable_lever_actually_moves_the_forecast` for the one reason
+    # neither can catch — those iterate `DEFAULTS`, and this was not in it.
+    #
+    # Declared here so it is reachable, sweepable and registered. Still False:
+    # what changes is that "off" is now true rather than merely written down.
+    # MODEL-LOG §1.63.
+    "arrival_group_draw": False,
+
+    # TWO MORE KEYS THAT WERE READ AND NEVER DECLARED, found by the same guard
+    # (§1.63). Both were `scenario.get(key, <hardcoded fallback>)`, so both were
+    # frozen at the fallback and unreachable from `--set` or a config file — a
+    # registered constant that cannot be swept is `LEVEL_DF` again.
+    #
+    # Declared at exactly the values they were already frozen at, so nothing
+    # moves. What changes is that they can now be swept, and that the guards can
+    # see them.
+    "level_sd_default": 0.45,
+    "turnout_correlation": 0.63,   # == TURNOUT_CORRELATION, asserted below
+
     "entrant_prob": 0.25,
     "entrant_share": [0.01, 0.04, 0.12],
     # Whose map does the 2026 entrant inherit, and how far does it depart from
@@ -531,6 +567,14 @@ def partial_balance(R: np.ndarray, pool_votes: np.ndarray,
 # whose own documentation says the last election was decided by 587,000
 # abstentions.
 TURNOUT_CORRELATION = 0.63
+
+# The scenario key and the module constant are two copies of one number and
+# this repository's most reliable defect is two copies of one thing drifting.
+# `DEFAULTS` is a literal declared above this line, so it cannot reference the
+# constant; this asserts at import that it did not have to. MODEL-LOG §1.63.
+assert DEFAULTS["turnout_correlation"] == TURNOUT_CORRELATION, (
+    f'DEFAULTS["turnout_correlation"]={DEFAULTS["turnout_correlation"]} but '
+    f'TURNOUT_CORRELATION={TURNOUT_CORRELATION}; they are one number')
 
 
 def _tri_ppf(u, spec):
@@ -1658,8 +1702,13 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             # again forced an even split and buried the big arrival, which is
             # the opposite of what the record shows — the largest arrival took
             # 91% of the group in Johannesburg 2021 (A = 0.22).
+            # `mean_floor`, not `dirichlet_floor`. This line read the latter
+            # until 2026-08-20 and there is no such name in scope — the branch
+            # raised `NameError` the first time anything reached it, which was
+            # the first time anything COULD. See the `arrival_group_draw`
+            # comment in DEFAULTS. MODEL-LOG §1.63.
             split = rng.dirichlet(np.maximum(group_w * group_alpha,
-                                             dirichlet_floor))
+                                             mean_floor))
             target[group_idx] = 0.0
             s_all = target.sum()
             if s_all > 0:

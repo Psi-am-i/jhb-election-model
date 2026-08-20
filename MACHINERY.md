@@ -588,7 +588,9 @@ and this model has the second one — see MODEL-LOG §1.34.
 
 `poll_weight` has LEFT this list: metro polls now blend automatically for any
 target that has one, and `polls.json` carries machine-readable fieldwork dates.
-`arrival_group_draw` is off because it was built, measured and rejected — it
+**`arrival_group_draw` was not off. Until 2026-08-20 it was UNREACHABLE** — the key was in no `DEFAULTS`, and both `parse_set` and `read_scenario_file` reject a key that is not already in the scenario, so neither `--set` nor a config file could create it. The branch was also broken (`NameError: dirichlet_floor`) and would have crashed the first time anything reached it. It is now declared at `False`, repaired, and measured on nine city-years rather than on Johannesburg alone: coherent seat error 254 → 348, CRPS 232.9 → 296.0, worse in six and better in one. At 2026 it is inert for a further reason no code change can fix — `pools.arrival_group_spec` needs a real roster, and the IEC publishes the 2026 candidate list on 16 September. `level_sd_default` and `turnout_correlation` had the identical defect and are now declared too. MODEL-LOG §1.63.
+
+It is off because it was built, measured and rejected — it
 scored worse, for a reason recorded in MODEL-LOG rather than guessed at.
 
 Two things are switched ON but cannot be exercised by any backtest, and must be

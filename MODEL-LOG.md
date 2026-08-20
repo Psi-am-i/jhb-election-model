@@ -6343,6 +6343,120 @@ written down first, it said one-of-two is undetermined, and it decided this.
 
 ---
 
+## 1.63 The arrival-group mechanism was not off. It was unreachable, and broken. (2026-08-20)
+
+The model's largest single error class is arrivals and surges — 130 of 1,752
+seats across the panel, with the model giving a median seat to one arrival in
+thirty-two. There are two mechanisms for it: the generic `ENTRANT` slot, a
+Bernoulli times a triangular, and the ARRIVAL-GROUP draw, a group total from a
+fitted lognormal split among named arrivals by a Dirichlet weighted on ward
+reach. The second is far better motivated, is fully implemented, has an emitted
+spec, and carries a recorded measurement and a scheduled retry.
+
+**None of it could run.** Three separate faults, each hiding the next.
+
+### 1. The switch did not exist
+
+`blended_centres` reads `scenario.get("arrival_group_draw")`. That key was in no
+`DEFAULTS`, so it was always `None`. `parse_set` raises `SystemExit` on a key
+that is not already in the scenario, and `read_scenario_file` rejects unknown
+keys against `DEFAULTS`, so **`--set` and a config file could not create it
+either**. No city toml declares it. The mechanism was unreachable by every
+supported route.
+
+`MACHINERY.md` listed it among the *switched-off* levers, which claims a switch.
+The `DEFAULTS`-adjacent code comment says "DEFAULT OFF", which claims a default.
+There was neither.
+
+This is the same class as `LEVEL_DF` bound as a default argument (§1.33) and
+`polling_lean` passed to a function that never read it. It escaped
+`test_every_defaults_key_is_swept_or_excused` and
+`test_every_tunable_lever_actually_moves_the_forecast` for the one reason
+neither can catch: **both iterate `DEFAULTS`, and this was not in it.** A lever
+guard keyed on the register cannot see a lever missing from the register.
+
+### 2. It was broken
+
+Declared and switched on, the branch raised
+
+    NameError: name 'dirichlet_floor' is not defined
+
+on its first line of real work. The variable in scope is `mean_floor`; the name
+was changed and this branch was not, because nothing could reach it to fail.
+
+Two consequences worth stating. The rejection measurement recorded against this
+mechanism (*"Johannesburg 2021 CRPS 85.9 → 109.9"*) was taken on code that has
+since drifted, so it is a measurement of something that is no longer here. And
+the code comment scheduling a retry — *"by 2026 the record includes 2021 …
+retry it then"* — **scheduled a crash**.
+
+### 3. And at 2026 it is gated on data that does not exist
+
+`pools.arrival_group_spec` returns `None` unless the target has a real roster:
+it splits the group total by each named arrival's ward reach, and there are no
+named arrivals until nomination lists close. Its own docstring says so. Confirmed
+in the emitted specs — `arrival_group` is present in `pools_2021.json` with 32
+members and **absent from `pools_2026.json` and `pools_2016.json`**.
+
+So the retry the comment scheduled for 2026 could not have been run even with
+the other two faults fixed. The IEC publishes the final 2026 candidate list on
+**16 September 2026** (nominations closed 28 August, polling 4 November).
+
+### Measured on nine city-years, which the rejection never was
+
+Declared, repaired, and swept. The original rejection was Johannesburg only:
+
+| city-year | off | ON | delta |
+|---|---|---|---|
+| Johannesburg 2016 | 16 | 16 | — *(no spec)* |
+| Johannesburg 2021 | 86 | 114 | **+28** |
+| Tshwane 2021 | 30 | 56 | **+26** |
+| Ekurhuleni 2021 | 18 | 46 | **+28** |
+| eThekwini 2021 | 32 | 38 | +6 |
+| Cape Town 2021 | 34 | 40 | +6 |
+| Mangaung 2021 | 10 | 8 | −2 |
+| Nelson Mandela Bay 2021 | 18 | 20 | +2 |
+| Buffalo City 2021 | 10 | 10 | — |
+| **total coherent** | **254** | **348** | **+94** |
+| **total CRPS** | **232.9** | **296.0** | **+63.1** |
+
+**The rejection is confirmed and strengthened.** Worse in six city-years, better
+in one, and the effect is far outside draw noise.
+
+It is also the same failure everywhere, which is the original reason generalised:
+the eight scored metros are all 2021, their group total is fitted on 2016 alone
+(metro-years 0.31%–4.74%, median 1.57%), and 2021 came in at 19.99%. No honest
+draw from that record reaches it. The mechanism forecasts what the record says
+and the record was superseded — in every metro, not just Johannesburg.
+
+### Disposition, and what it says about the retry
+
+- `arrival_group_draw` is now **declared in `DEFAULTS` at `False`**, registered,
+  swept, and carried in `EXPECTED_INERT` at 2026 with the data gate as its
+  reason. What changed is that "off" is true rather than merely written down.
+- The `NameError` is fixed. **No live number moves**: the default path is
+  seat-identical to the committed artefact, 254 coherent / CRPS 232.9.
+- **The retry condition as written cannot be tested.** It asks for "a target
+  whose prior cycle is not a regime change", and the only such target is 2026,
+  which is not scorable and has no spec until the lists land. Any 2026 adoption
+  would be a mechanism live exactly where nothing can check it — the
+  `pa_contestation_uplift` and `w_bye` position — and must be labelled that way
+  if it is ever taken.
+- **This raises A4's value.** The 16 September candidate lists unblock three
+  things at once: the contestation correction (currently the identity on the
+  live forecast, §1.56), the projection standing in for it (`contestation_expand`
+  goes inert, §1.60), and this mechanism's 2026 spec.
+
+### The guard that would have caught it
+
+None of the three faults is visible to a lever guard that iterates `DEFAULTS`.
+What is needed is the complement: **every `scenario.get("…")` in `montecarlo.py`
+whose key is not in `DEFAULTS`** — a key read but never declared is either dead
+or a typo, and both are silent. Not built here; recorded as the specific test
+this entry argues for.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model
