@@ -390,3 +390,31 @@ was blocked by two lines in a build script, not by data acquisition — and the
 the artefact of a wrong-city file fallback (MODEL-LOG §1.40).
 
 *Maintained as issues are found. Last updated 2026-08-17.*
+
+
+## Metro turnout, checked against the published record (2026-08-20)
+
+Done as the substance of the Inside Politics cross-check (task #9), whose stated
+purpose was catching a **mis-ingest on our side**. Their article pages return
+**403 to automated fetching** — only the index is retrievable — and their
+material is graphics rather than tables, so a comparison against it is by eye and
+by a human. The check that actually serves the purpose does not need them.
+
+Ward ballot, computed from the raw files, `Total_Valid_Votes` over
+`Registered_Population`:
+
+| city | 2011 | 2016 | 2021 |
+|---|---|---|---|
+| Johannesburg | 53.9% | 56.1% | **41.5%** |
+| Tshwane | 54.5% | 58.3% | 44.1% |
+| Cape Town | 63.7% | 63.3% | **46.1%** |
+| eThekwini | 58.1% | 58.4% | 40.6% |
+
+All four agree with the published record: the 2016 rise, the historic 2021
+collapse against a national LGE turnout of 45.9%, Cape Town highest of the
+metros and eThekwini lowest. **No mis-ingest at metro level.**
+
+This does not check the ward-level series, which is where a delimitation
+mismatch would show and where their ward heat maps would be genuinely useful to
+a human reading them side by side. That remains an eyeball job for a person, not
+a fetch.

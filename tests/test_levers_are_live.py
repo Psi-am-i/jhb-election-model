@@ -200,6 +200,9 @@ PERTURB: dict[str, object] = {
     # own default and is guaranteed to report a lever that cannot move.
     "level_shrink": 0.0,
     "level_shrink_scale": 0.40,
+    # The dominant width lever (§1.48), sweepable since §1.55. 2.0 halves the
+    # within-pool spread and moves everything; 1.0 is the fitted identity.
+    "dirichlet_scale": 2.0,
     # Added 2026-08-17 after the enumeration test below found that PERTURB
     # covered 13 of 27 DEFAULTS keys and nobody had noticed.
     "entrant_share": [0.20, 0.30, 0.45],

@@ -216,6 +216,9 @@ DEFAULTS: dict = {
     # `compress_levels`. See MODEL-LOG §1.44.
     "level_shrink": 0.35,
     "level_shrink_scale": 0.04,
+    # Multiplier on the fitted per-pool Dirichlet concentration; 1.0 is the
+    # fit itself. See `_dirichlet_scale` and MODEL-LOG §1.55.
+    "dirichlet_scale": 1.0,
 }
 
 # What DEFAULTS looked like before any city touched it. `apply_city` restores
@@ -940,6 +943,26 @@ def blended_centres(
     return centres, notes
 
 
+def _dirichlet_scale(scenario: dict) -> float:
+    """Multiplier on every pool's fitted Dirichlet concentration.
+
+    THE MODEL'S DOMINANT WIDTH LEVER, and until 2026-08-20 it had no handle at
+    all. The width budget (§1.48) measured the within-pool Dirichlet supplying
+    **83-98% of drawn variance for every party except the ANC and DA**, while
+    `alpha` sat in the register as a concentration guard fitted by method of
+    moments and was never swept against realised width.
+
+    A Dirichlet's variance falls as its concentration rises, so a scale above
+    1.0 NARROWS the forecast and below 1.0 WIDENS it. 1.0 is exactly the fitted
+    value and is the identity.
+
+    It multiplies rather than replaces because the fit is per pool and carries
+    real information about which pools are volatile; a single replacement value
+    would throw that away to move one number.
+    """
+    return float(scenario.get("dirichlet_scale") or 1.0)
+
+
 def compress_levels(centres: dict[str, float], scenario: dict) -> dict[str, float]:
     """Pull each central level down by its own size, then give the mass back.
 
@@ -1228,7 +1251,8 @@ def pool_spec(scenario, centres, index, ipf_out=None):
         props = props / props.sum()
         levels = np.array([members[p] * centres.get(p, 0.0) for p in members])
         spec[name] = (idx, float(cfg["registered"]),
-                      tuple(cfg["turnout"]), props, float(cfg["alpha"]),
+                      tuple(cfg["turnout"]), props,
+                      float(cfg["alpha"]) * _dirichlet_scale(scenario),
                       list(members), levels, dict(members))
     return spec
 
@@ -1376,7 +1400,7 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             group_idx = np.array([index[p] for p in members])
             w = np.array([float(group["weights"][p]) for p in members])
             group_w = w / w.sum()
-            group_alpha = float(group.get("alpha", 4.0))
+            group_alpha = float(group.get("alpha", 4.0)) * _dirichlet_scale(scenario)
             group_ln = (float(group["total_log_median"]),
                         float(group["total_log_sd"]))
 

@@ -5574,6 +5574,68 @@ one-parameter reweighting.
 
 ---
 
+## 1.55 The dominant width lever is sweepable at last, and a scalar cannot serve both bands (2026-08-20)
+
+§1.48 found the within-pool Dirichlet supplying **83–98% of drawn variance for
+every party except the ANC and DA** — the model's dominant width lever — and
+noted that it sat in the register as a *concentration guard* and had never been
+swept against realised width. It had no handle at all: `alpha` is fitted per
+pool by method of moments and baked into the emitted spec.
+
+`dirichlet_scale` is that handle. It multiplies every pool's fitted
+concentration, so above 1.0 narrows the forecast and below 1.0 widens it, and
+1.0 is exactly the fit. It multiplies rather than replaces because the per-pool
+fit carries real information about which pools are volatile, and a single
+replacement value would throw that away to move one number.
+
+### Nine city-years, 600 draws
+
+| `dirichlet_scale` | coherent seats | CRPS | beats u-swing | ranks 1-3 sd(z) | ranks 4-12 sd(z) |
+|---|---|---|---|---|---|
+| 0.5 — wider | 274 | 256.0 | 7/9 | 0.694 | 0.698 |
+| **1.0 — the fit** | **258** | 231.9 | 7/9 | 0.844 | 0.856 |
+| 2.0 — narrower | 260 | **222.1** | 7/9 | 1.191 | **0.974** |
+
+**The lever works, and it works on everything.** It moves seat error, CRPS and
+both bands' width together, which is what a dominant variance source should do
+and is the confirmation §1.48's ablation was reading something real.
+
+### And it demonstrates the problem it was built to solve
+
+**Ranks 4-12 want 2.0** — `sd(z)` 0.974 against a nominal 1.0, very nearly
+correct, from 0.856. **Ranks 1-3 want about 1.0** — at 2.0 they go from too wide
+(0.844) to too narrow (1.191), roughly equally wrong in the other direction. One
+scalar cannot serve both, which is the same shape as `SD_FLOOR`'s trade in §1.50
+and the reason task #10 exists.
+
+### Not adopted, and the reason is rule 10 rather than the score
+
+CRPS clearly prefers 2.0 (231.9 → 222.1) and the seat difference is 258 → 260,
+inside the ±2–4 draw noise. On the scoreboard alone 2.0 is arguably the better
+setting.
+
+**Nothing outside the scoreboard picks it.** The fitted 1.0 comes from a method
+of moments estimate of historical within-pool concentration — that is the
+external evidence, and it names 1.0. Adopting 2.0 would be choosing a constant
+because it scores well on these nine city-years, which is exactly what
+`ITERATING.md` rule 10 refuses and what `entrant_prob = 0.40` and
+`spine_k = 0.25` were already refused for.
+
+So `dirichlet_scale` ships at **1.0**, as an instrument rather than a tuning: the
+biggest lever in the model now has a handle, a sweep and a register row, and the
+next attempt on width has something to pull.
+
+### What the successor has to be
+
+Not a better scalar. The bands want different concentrations, so the target is a
+**size- or band-dependent** concentration — or a per-pool one fitted against
+realised width rather than against historical within-pool variance. That is a
+genuine joint calibration, it needs `src/width_budget.py` as its instrument, and
+it must be validated the way the level shrink was: fit on one cycle, apply to
+the other, never chosen on the nine.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model
