@@ -6086,6 +6086,84 @@ a fourth instance inside the instrument written to check one of the others.
 
 ---
 
+## 1.60 The live forecast had an unnamed assumption about who stands. It now has a named one. (2026-08-20)
+
+§1.47 replaced `pa_contestation_uplift` with a measured contestation correction
+and recorded a −10 coherent seat gain. §1.56 then confirmed as a code fact what
+that entry did not draw out: `levels.contestation` reads who stood from
+`CALENDAR[target.year].results`, `CALENDAR["2026"].results` is `None`, so the
+correction is **the identity on the published forecast** and the −10 was measured
+with an input the live forecast does not have.
+
+The identity is not "no assumption". It is the assumption that **every party
+fields exactly the slate it fielded five years ago**, made by omission. This
+entry makes it a number someone chose.
+
+### The projection
+
+`levels.projected_contestation`: `now = was + expand · (1 − was)`. Each party
+moves that fraction of the way from its previous slate to a full one, so a party
+that stood in 38% of wards gains far more than one already at 95%. The asymmetry
+is the point — `blended_centres` applies contestation as the CHANGE `now / was`,
+and a uniform multiplier is the same change for everyone and therefore carries no
+information.
+
+### The default is measured, and the alternative reading is why it is a lever
+
+Every consecutive LGE pair on disk, eight metros, parties present at both
+(n=165): the median party moves **+0.220** of the way to a full slate and
+**65.5% expand**. Per-metro medians for the most recent transition alone
+(2016→2021) are +0.46, +0.14, +0.78, +0.59, +0.63, +0.20, +0.71, +0.06 — about
+**+0.5**, which is what a fragmenting party system looks like and which the 2026
+forecast has as much claim to as the pooled figure.
+
+0.220 ships as the conservative reading. That two defensible numbers differ by
+more than a factor of two is exactly why this is exposed rather than typed.
+
+### What it does, and it does it where the mechanism says it should
+
+Johannesburg 2026, 1200 draws, median seats:
+
+| `contestation_expand` | 0.0 (the old identity) | **0.220** | 0.5 |
+|---|---|---|---|
+| DA | 83 | 81.5 | 80 |
+| ANC | 62 | 61 | 60 |
+| **PA** | **17** | **19** | **22** |
+| PA mean ward wins | 4.03 | 6.00 | **8.61** |
+| ASA | 25 | 24 | 24 |
+
+The PA stood in 52 of 135 Johannesburg wards in 2021 — the thin slate on the
+ballot — and it is the party that moves. The parties already near a full slate
+give up a seat or two to it. Nothing else shifts.
+
+### Backtests are bit-identical at any value, and that is the whole hazard
+
+Every backtestable target has published results, so `contestation` returns real
+lists, `projected_contestation` is never called, and the lever cannot move a
+backtest. Verified: nine city-years, 1500 draws, **254 coherent / CRPS 232.9 and
+seat-identical to the committed artefact**.
+
+**This is the same shape as `pa_contestation_uplift`** — a constant live only
+where no backtest reaches, which is how that one survived for weeks. The
+differences are deliberate and they are the reason this is acceptable where that
+was not:
+
+- it is **declared** in `DEFAULTS`, registered at 🔴, and named in the run's
+  `note_constant` output and its verbose line, which now say *which path fired*;
+- its default is **measured against the record**, not chosen for one party;
+- it applies to **every party** by one rule, rather than one party by name;
+- it is **superseded by data**: the moment the IEC publishes 2026 candidate
+  lists and task A4 ingests them, `contestation` returns them, the projection is
+  not called and the lever is inert. `tests/test_levers_are_live.py` carries it
+  in `EXPECTED_INERT` with that reason;
+- and it is **labelled argued-not-tested wherever quoted**, which `CLAUDE.md`
+  requires and which `pa_contestation_uplift` never was.
+
+It stays 🔴 despite the measured default, because no backtest can score it. A
+measured input to an untestable branch is still an untestable branch.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

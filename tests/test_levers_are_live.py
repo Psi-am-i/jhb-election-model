@@ -105,6 +105,23 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
         "by-election data covers 2022-06 to 2026-02 only, so no past target has "
         "any. Inert in every backtest by construction; live in 2026. This is why "
         "JUDGEMENT-CALLS.md §A carries it at 🔴 as argued-not-tested.",
+    ("contestation_expand", "2021"):
+        "SUPERSEDED BY DATA, which is the point. It projects a ward slate for a "
+        "target whose nomination lists are not published, and `levels."
+        "contestation` reads the target's own result file — which exists for "
+        "every backtestable target and for no live forecast. So at 2021 the "
+        "real lists are used, `levels.projected_contestation` is never called, "
+        "and this lever cannot move anything. **That is the same shape as "
+        "`pa_contestation_uplift`, which fired only where nothing could check "
+        "it and survived for weeks** (MODEL-LOG §1.47), so read the difference "
+        "carefully: this one is declared, its default is measured against the "
+        "eight-metro slate record (median +0.220 of the way to a full slate, "
+        "65.5% of parties expanding), it is inert the moment real lists exist, "
+        "and it is at 🔴 in JUDGEMENT-CALLS.md as argued-not-tested. It is a "
+        "named assumption replacing an unnamed one — before it, the live "
+        "forecast silently assumed every party fields exactly last time's "
+        "slate. Verified live at 2026: Johannesburg's PA goes 17 -> 19 -> 22 "
+        "median seats at expand 0.0 / 0.220 / 0.5. MODEL-LOG §1.60.",
     ("w_bye_local_ward", "2021"): "built, disabled, and untestable for the same reason as w_bye",
     ("w_bye_local_pr", "2021"): "built, disabled, and untestable for the same reason as w_bye",
     ("poll_weight", "2026"): "same gate on poll_id",
@@ -190,6 +207,7 @@ PERTURB: dict[str, object] = {
     "turnout_blend_jitter": 0.90,
     "turnout_noise_sd": 0.50,
     "w_bye": 0.95,
+    "contestation_expand": 1.0,   # every party in every ward
     "w_bye_local_ward": 0.90,
     "w_bye_local_pr": 0.90,
     "poll_weight": 1.0,

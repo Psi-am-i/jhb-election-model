@@ -340,6 +340,53 @@ it is newer, better argued, or built from more measurements.
    and that is the only number worth quoting. When a change improves the score,
    say *what evidence outside the score chose it* — and if the answer is "the
    score", say so and leave the constant alone.
+11. **"It was forward validated" does not answer rule 10. Say WHICH LOOP.**
+    Added 2026-08-20 after the claim *"that is a fit to the forward-validated
+    record, not the scoreboard, so rule 10 permits it"* was made about the
+    `sd_for` refit and does not survive contact.
+
+    **`compare_history` IS a forward-validated record** — of the whole model
+    rather than of one layer — and it is computed on the same elections. "The
+    record" and "the scoreboard" are not two datasets. There are three levels,
+    and only one of them is where rule 10 bites:
+
+    | | what happens | leakage? |
+    |---|---|---|
+    | **L0 — estimation** | the model fits its own parameters from data strictly before its target, afresh at every target (`theta_prior` refits `sd_for` per metro-year) | **none.** This is what a model does; rule 10 is not about it |
+    | **L1 — specification** | a person chooses the functional form, the covariate, the bin edges — **once, having looked at every target including the ones L2 scores** | **this is the leak** |
+    | **L2 — evaluation** | the nine city-years | biased by exactly as much as L1 saw |
+
+    Choosing at L1 using data L2 then scores makes L2 optimistically biased.
+    That is the standard nested-cross-validation result and it is the same trap
+    §1.44 already carries: the level shrink's *value* was chosen by
+    leave-one-city-year-out, but its *functional form* was chosen by screening
+    four candidates against all nine.
+
+    **So the defence of a fit is never "it was out of sample". It is the number
+    of INDEPENDENT CLUSTERS the fit had, against the number of free parameters
+    it spent.** On this panel those numbers are brutal:
+
+    - the **scoreboard** has 9 city-years of which **8 share one cycle** — the
+      2021 national swing, ActionSA's arrival, one fragmentation shock. Under
+      any honest clustering the effective sample is **about 2**.
+    - the **θ residual record** (`src/theta_residual.py`) has **n=257 across 18
+      metro-year clusters** spanning four cycles.
+
+    The forecasting literature's rule of thumb is on the order of 30 independent
+    observations per free parameter before a fitted choice is trustworthy. At
+    two effective clusters **the scoreboard supports approximately zero
+    parameters chosen on it**, which is why rule 10 exists and why it has been
+    right every time it has been applied. Eighteen clusters is not thirty, but
+    it is not two either, and the difference is the whole argument.
+
+    **The protocol that follows.** When a specification choice must be made from
+    data, nest it explicitly: choose the form on the earlier targets, apply it
+    unchanged to the later one, and report L2 only on the held-out target — then
+    reverse. With four LGE targets in the θ record that is executable (choose on
+    2006+2011+2016, apply to 2021; then choose on 2006+2011+2021, apply to
+    2016). And say in advance what result would count, because **an effect
+    smaller than two effective clusters can resolve is "undetermined", not
+    "adopted"**.
 
 ## Where the record lives
 

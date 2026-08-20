@@ -281,6 +281,43 @@ def theta_record(target: cityconfig.Target,
     return dict(out)
 
 
+def projected_contestation(previous: dict[str, float],
+                           expand: float) -> dict[str, float]:
+    """A slate for a target whose nomination lists are not published yet.
+
+    ``now = was + expand * (1 - was)`` — every party moves this fraction of the
+    way from the slate it fielded last time to a full one, so a party that stood
+    in 38% of wards gains far more than one that already stood in 95%. That
+    party-specific asymmetry is the whole point: a uniform multiplier would
+    carry no information, because :func:`montecarlo.blended_centres` applies
+    contestation as the CHANGE ``now / was`` and a constant change is the same
+    change for everyone.
+
+    **Why this exists at all.** ``contestation`` reads who stood from the
+    target's own result file. At a live forecast that file does not exist, so
+    the change was silently 1.0 — an unexamined assumption that every party
+    fields exactly the slate it fielded five years ago. It is not obviously
+    wrong, and it is not obviously right: on the eight-metro record the median
+    party expands its slate by 0.220 of the remaining distance and 65.5% expand
+    at all. Now it is a declared number rather than a missing branch.
+
+    **This is superseded, not supplemented, the moment real lists exist.**
+    ``montecarlo`` calls this ONLY when ``contestation`` returned nothing for
+    the target. When the IEC publishes 2026 candidate lists and they are
+    ingested, ``contestation`` returns them, this function is not called, and
+    ``contestation_expand`` becomes inert — which is the correct behaviour for a
+    stand-in and is asserted in ``tests/test_levers_are_live.py``.
+
+    Clipped to [0, 1] because a slate is a fraction of wards. ``expand = 0`` is
+    exactly the previous behaviour.
+    """
+    if not previous:
+        return {}
+    e = float(np.clip(expand, 0.0, 1.0))
+    return {party: float(np.clip(was + e * (1.0 - was), 0.0, 1.0))
+            for party, was in previous.items()}
+
+
 def local_record(target: cityconfig.Target,
                  codes=METRO_CODES) -> dict[str, list[tuple[float, float]]]:
     """Every observed LOCAL-to-LOCAL retention ratio before the target.

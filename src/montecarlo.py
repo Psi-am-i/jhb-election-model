@@ -126,6 +126,35 @@ DEFAULTS: dict = {
     # as an argument that function never read, and printed. Three appearances,
     # no effect. See MODEL-LOG §1.35.
     "w_bye": 0.40,
+
+    # HOW MUCH A PARTY'S WARD SLATE GROWS BETWEEN LOCAL ELECTIONS, used ONLY
+    # where the target's own nomination lists are not published — which is
+    # every live forecast and no backtest. `levels.contestation` reads the
+    # target's result file for who stood; at 2026 that file does not exist, so
+    # until now the contestation correction was silently the IDENTITY, i.e. an
+    # unexamined assumption that every party fields exactly the slate it fielded
+    # five years ago. This makes that assumption a number someone chose.
+    #
+    # The projection is `now = was + expand * (1 - was)`: each party moves this
+    # fraction of the way from its previous slate to a full one. 0.0 restores
+    # the old identity; 1.0 puts every party in every ward.
+    #
+    # MEASURED, not typed. Across the eight metros and every consecutive LGE
+    # pair on disk (n=165 parties present at both), the median party moves
+    # **+0.220** of the way to a full slate and **65.5% expand**. The most
+    # recent transition alone (2016->2021) is much stronger — per-metro medians
+    # of +0.46, +0.14, +0.78, +0.59, +0.63, +0.20, +0.71, +0.06, so about +0.5 —
+    # which is what a fragmenting party system looks like. 0.220 is the
+    # conservative reading and the one shipped; 0.5 is the defensible
+    # alternative and is why this is a lever rather than a constant.
+    #
+    # **ARGUED, NOT TESTED, and live exactly where nothing can check it.** This
+    # is the same position `pa_contestation_uplift` was in, and that constant
+    # survived for weeks because the one branch it fired on was the one branch
+    # no backtest reaches. The difference is that this one is declared, measured
+    # against the record, and inert the moment real nomination lists exist —
+    # see `levels.projected_contestation` and JUDGEMENT-CALLS.md.
+    "contestation_expand": 0.220,
     # §1.28 ward-local by-election term. Both weights default to 0, so the
     # published forecast is untouched until this is deliberately switched on.
     # The ward ballot carries most of the signal because a by-election IS a
@@ -2136,6 +2165,20 @@ def run_model(target, scenario: dict,
             _contest_prev = _levels.contestation(
                 cityconfig.use_target(_prev_lge), target.city)
             cityconfig.use_target(target.year)   # restore the active target
+        # NO TARGET LISTS -> PROJECT THEM, and say so. `contestation` reads who
+        # stood from the target's own result file, which exists for every
+        # backtest and for no live forecast, so this branch is the 2026 case and
+        # only the 2026 case. Until 2026-08-20 it left the correction as the
+        # identity — an assumption that every party fields exactly last time's
+        # slate, made by omission rather than by anyone. `contestation_expand`
+        # replaces it with a measured projection, and REAL LISTS SUPERSEDE IT:
+        # the moment `contestation` returns anything for the target, this does
+        # not run and the lever is inert.
+        _projected = False
+        if not _contest and _contest_prev:
+            _contest = _levels.projected_contestation(
+                _contest_prev, scenario.get("contestation_expand", 0.0))
+            _projected = bool(_contest)
         if _contest:
             scenario["_contestation"] = _contest
         if _contest_prev:
@@ -2143,12 +2186,19 @@ def run_model(target, scenario: dict,
         if _contest and _contest_prev:
             note_constant(scenario, "contestation",
                           f"{target.year} against {_prev_lge}, "
-                          f"{len(_contest)} parties")
+                          f"{len(_contest)} parties"
+                          + (f", PROJECTED at contestation_expand="
+                             f"{scenario.get('contestation_expand')}"
+                             if _projected else ", from published lists"))
             if verbose:
                 vals = sorted(_contest.values())
                 print(f"  contestation: {len(_contest)} parties, median "
-                      f"{vals[len(vals) // 2]:.0%} of wards (was: all parties "
-                      f"in all wards, with one uplift for the PA)")
+                      f"{vals[len(vals) // 2]:.0%} of wards"
+                      + (f" — PROJECTED from {_prev_lge} at "
+                         f"contestation_expand="
+                         f"{scenario.get('contestation_expand')}; no "
+                         f"nomination lists published for {target.year}"
+                         if _projected else " — from published lists"))
     except FileNotFoundError as _exc:
         # Missing data is a legitimate reason to fall back; a bug is not. This
         # used to be a bare `except Exception`, and a stale key in the progress
