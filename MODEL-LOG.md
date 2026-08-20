@@ -6164,6 +6164,97 @@ measured input to an untestable branch is still an untestable branch.
 
 ---
 
+## 1.61 PRE-REGISTRATION — how the `sd_for` refit will be judged, written before it is run (2026-08-20)
+
+Written and committed **before** the measurement exists, because ITERATING rule
+11 says a specification choice must be nested and because §1.58 established that
+the obvious scoreboard statistic will point the wrong way: **CRPS falls
+monotonically as the forecast narrows, all the way to a 16-fold concentration,
+while coherent seat error stays flat.** A wider mid-ballot is what §1.59 says is
+correct and what CRPS will call worse. If the rule is chosen after seeing the
+result, it will be chosen to suit it.
+
+Nothing here is adopted by running it. This entry fixes what would count.
+
+### The question
+
+`levels.sd_for` fits `(log r − mu_all)²` — squared deviation from the COMMON
+centre — and hands the result to a layer whose actual residual is about the
+SHRUNK centre. §1.59 measures the gap: correct at ≥15% of the vote, **1.7× to
+3.5× too narrow in all four bins below it, with the cluster-bootstrap interval
+excluding the model's width in every one**.
+
+Form **A** is the committed estimator. Form **B** refits the same straight line
+on leave-one-out residuals about the shrunk centre — the quantity the layer
+actually faces.
+
+### Stage 1 — selection, offline, and it does not touch the scoreboard
+
+Both forms are fitted on the θ record and scored on **held-out θ residuals**,
+never on seats. The score is the out-of-sample negative log-likelihood of the
+residuals under `N(0, w²)`:
+
+    NLL = Σ [ log w_i + r_i² / (2 w_i²) ]
+
+a proper scoring rule for dispersion, so it cannot be gamed by widening or
+narrowing alone. Lower is better.
+
+Nested, as rule 11 requires:
+
+* fit the form on targets **2006 + 2011 + 2016**, predict **2021**, score;
+* fit on **2006 + 2011 + 2021**, predict **2016**, score;
+* report both, and the per-metro-year split, since the clusters are metro-years.
+
+**Form B proceeds to stage 2 only if it beats form A on held-out NLL in BOTH
+directions.** One-of-two is a coin flip on two folds and is recorded as
+undetermined.
+
+### Stage 2 — scoring, on the scoreboard, and only on the held-out target
+
+If B survives stage 1 it is wired in unchanged and `compare_history` is run.
+**The scoreboard is quoted only for the city-years whose target was held out of
+the fit** — 2021 for the fit that never saw 2021. Quoting all nine would be
+quoting the score on data the form was chosen with, which is the whole of rule
+11.
+
+Reported on the **`reference`** population (§1.56), never `claimed`:
+
+| statistic | what it must do |
+|---|---|
+| `sd(z)`, ranks 4-12 | move **toward 1.0** from 1.940 |
+| `IQR-sd`, ranks 4-12 | move **toward 1.0** from 0.595 |
+| probit-SD, ranks 1-3 | must not fall below **0.60** (it is 0.682 and already too wide) |
+| coherent seats, held-out city-years | must not worsen by more than **6** |
+| CRPS | **reported and explicitly not decisive** — see above |
+| `p_any` for parties that won seats | no party that won a seat may drop below 0.02 |
+
+### What would make this fail, stated now
+
+* **B loses stage 1 in either direction** → the current form is not the fault and
+  §1.59's second finding is about the bins rather than the line. Stop.
+* **B wins stage 1 and the two width statistics move in opposite directions** →
+  the band is mis-shaped rather than mis-scaled (§1.58) and a refitted line
+  cannot fix it either. Record and stop; the object is then A2's mixture.
+* **B wins stage 1, widths improve, and coherent seats worsen by more than 6 on
+  the held-out city-years** → do not ship. Worse does not ship, and a width
+  improvement bought with seats is the trade §1.54 already refused once.
+* **Everything improves** → still not adopted on this entry alone. Two folds on
+  a panel with about two effective cycle clusters (rule 11) can detect a large
+  effect and nothing else. **An improvement smaller than the draw noise the
+  protocol already quotes (±2 to ±4 coherent seats) is UNDETERMINED, not
+  adopted.**
+
+### And the standing caveat
+
+Eight of the nine scoreboard city-years are one cycle. Stage 2 can therefore
+distinguish "this is a better estimator" from "this suits 2021" only weakly, and
+the 2016 direction is a single city. Stage 1 is the load-bearing test — 257
+observations across 18 metro-year clusters — and stage 2 is a check that the
+gain survives contact with the rest of the machinery, not an independent
+confirmation.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model
