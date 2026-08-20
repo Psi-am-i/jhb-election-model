@@ -555,13 +555,21 @@ scored columns — Johannesburg 2021 reads 12/62/75 against nominal 50/80/90 on
 n=8 — and nothing at that size distinguishes a 50% interval from an 80% one. The
 report prints the per-city-year rows for provenance and labels them as noise.
 
-Three populations, because which columns you count changes the answer:
+Four populations, because which columns you count changes the answer:
 
 | population | selected on | what it is for |
 |---|---|---|
-| `claimed` | the FORECAST (`score.CLAIM_FRACTION`) | the neutral test — selection depends on F alone, so PIT stays uniform under calibration |
+| `reference` | the INPUTS (`reference_universe`) | **the only one a BEFORE/AFTER comparison may be quoted on.** Membership is a previous result and a nomination list, so it cannot move when a lever moves — 252 columns at every `dirichlet_scale` setting. Coverage and PIT on it read optimistically by construction and are not calibration figures; the dilution is identical at every setting, which is what makes a DIFFERENCE readable |
+| `claimed` | the FORECAST (`score.CLAIM_FRACTION`) | the answer to "is this model calibrated". Neutral for ONE forecaster — selection depends on F alone, so PIT stays uniform under calibration — and **not neutral across forecasters**: 58 / 67 / 81 columns across a `dirichlet_scale` sweep, and it excludes a party the model gives a seat in fewer than half its draws, which is exactly a party the model is failing on |
 | `seat_holders` | the OUTCOME (won a seat) | INFLATED by construction — zero is the bottom of the support, so a perfect forecaster reads high here too. Reported because it is the population a reader assumes |
-| `all` | nothing | neutral but diluted: most columns are parties correctly at zero on both sides, each a free interval hit |
+| `all` | nothing | mixed and diluted: most columns are parties correctly at zero on both sides, each a free interval hit |
+
+`reference` was added on 2026-08-20 after `claimed` was found to have carried a
+backwards result into `MODEL-LOG` §1.55 — the two largest standardised errors in
+ranks 4-12, Cape Town's Cape Coloured Congress at z = +12.1 and Johannesburg's PA
+at +9.3, are outside `claimed` and inside `reference`, and they are the
+difference between a band that reads 0.823 (too wide) and one that reads 1.940
+(far too narrow). §1.56.
 
 The PIT randomisation is per city-year seeded (`_pit_seed`, derived from the
 city-year name) rather than left on `score.pit_values`'s module default, which

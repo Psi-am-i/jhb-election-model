@@ -1279,3 +1279,104 @@ if __name__ == "__main__":
         if name.startswith("test_") and callable(fn):
             fn()
             print(f"ok  {name}")
+
+
+def test_the_claimed_population_moves_when_the_forecaster_widens():
+    """CLASS 13 — A DENOMINATOR THAT MOVES WITH THE THING BEING MEASURED.
+
+    ``claimed`` selects on the forecast, and :func:`score.score_seats` is right
+    that this keeps PIT uniform under calibration. That argument is about ONE
+    forecaster. A lever sweep is a comparison ACROSS forecasters, and the
+    criterion admits a DIFFERENT SET OF COLUMNS for each of them: on the real
+    nine city-years at 1500 draws the ``claimed`` set is 58, 67 and 81 columns
+    at ``dirichlet_scale`` 0.5, 1.0 and 2.0, of which 30, 37 and 45 are ranks
+    4-12. Both facts about the criterion are true; only the first was written
+    down, and four MODEL-LOG sections were measured against the second.
+
+    **NARROWING admits columns**, which is the direction that surprises: a
+    higher ``dirichlet_scale`` is a higher concentration and a tighter draw, and
+    a party whose mean sits above the claim threshold is then given a seat in
+    nearly every draw instead of in some of them. Widening scatters draws back
+    onto zero and the party drops out of its own scored population. So the
+    criterion rewards confidence with a larger denominator.
+
+    Asserted on two forecasters that differ ONLY in width, so any change in the
+    column count is the criterion moving and nothing else.
+    """
+    rng = np.random.default_rng(11)
+    parties = [f"P{j}" for j in range(30)]
+    actual = {p: int(rng.poisson(3.0)) for p in parties}
+    # same centre, two widths. The narrow one claims a column only where its
+    # mean is comfortably above zero; the wide one claims far more.
+    def forecast(spread):
+        draws = []
+        for _ in range(600):
+            draws.append({p: int(max(0, rng.normal(1.2, spread)))
+                          for p in parties})
+        return draws
+
+    narrow = C.calibration_columns(forecast(0.4), actual, None, seed=3)
+    wide = C.calibration_columns(forecast(3.0), actual, None, seed=3)
+    assert narrow["claimed"]["n"] > wide["claimed"]["n"], (
+        f"two forecasters with the same centre and different widths were "
+        f"scored on {narrow['claimed']['n']} (narrow) and "
+        f"{wide['claimed']['n']} (wide) claimed columns. If those are ever "
+        f"equal this test has stopped exercising the mechanism, not proved the "
+        f"mechanism gone — widen the gap between the two spreads rather than "
+        f"deleting the test.")
+    assert narrow["seat_holders"]["n"] == wide["seat_holders"]["n"], (
+        "`seat_holders` is outcome-selected and must not move between two "
+        "forecasters scored against the same result; if it does, the fault is "
+        "not the one this test is about")
+
+
+def test_the_reference_population_is_fixed_and_keeps_the_worst_columns():
+    """The fix for CLASS 13, and the reason it is worth a fourth population.
+
+    ``reference`` is selected by :func:`compare_history.reference_universe` from
+    inputs alone, so its membership cannot move when a lever moves — measured on
+    the real panel it is 252 columns at every ``dirichlet_scale`` setting, and
+    225 of those carry a defined ``z`` at every setting too.
+
+    The second assertion is the one that matters, and it is a stronger statement
+    than "the denominator moves": the ``claimed`` rule does not merely select a
+    different set, **it selects away from the model's own worst failures.** A
+    party the forecaster gives a seat in fewer than half its draws is exactly a
+    party the forecaster is failing on, and it is excluded from the population
+    that is supposed to be testing the forecaster. On the real panel the two
+    largest standardised errors in ranks 4-12 — Cape Town's Cape Coloured
+    Congress at z = +12.1 and Johannesburg's PA at +9.3 — are both outside
+    ``claimed`` and inside ``reference``, and they are the difference between a
+    band that reads 0.823 (too wide, narrow it) and one that reads 1.940 (far
+    too narrow). See MODEL-LOG §1.56.
+    """
+    rng = np.random.default_rng(12)
+    parties = [f"P{j}" for j in range(6)]
+    seat_draws, actual = _poisson_forecast(rng, parties, 8.0, 8.0)
+    # the surge: on the ballot, forecast almost nothing, wins a pile of seats
+    for d in seat_draws:
+        d["SURGE"] = 0 if rng.random() > 0.05 else 1
+    actual["SURGE"] = 9
+    actual_pr = {p: 1.0 - 0.01 * i
+                 for i, p in enumerate(parties + ["SURGE"])}
+    universe = sorted(actual)
+
+    blocks = C.calibration_columns(seat_draws, actual, None, seed=1,
+                                   actual_pr=actual_pr, reference=universe)
+    assert blocks["reference"]["parties"] == universe, (
+        "`reference` did not score the universe it was handed. It is the one "
+        "population whose columns are an input, and scoring a subset of it "
+        "reintroduces exactly the forecast-dependence it exists to remove")
+    assert "SURGE" not in blocks["claimed"]["parties"], (
+        "the forecaster claims a party it gives a seat in 5% of draws — then "
+        "CLAIM_FRACTION is not doing what this test is about")
+    assert "SURGE" in blocks["reference"]["parties"], (
+        "`reference` dropped the one column the forecaster fails worst on. "
+        "That is the defect, not the fix")
+
+    # and the width statistic must actually see it
+    z = blocks["reference"]["z"][universe.index("SURGE")]
+    assert z is not None and z > 3.0, (
+        f"the surge column carries z={z}, so the failure is in the population "
+        f"but invisible to the width statistic — which is the same hiding "
+        f"place one level down")

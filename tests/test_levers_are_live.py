@@ -150,6 +150,11 @@ DELIBERATELY_UNUSED: dict[str, str] = {
         "absolute seat error, which matters when reading 'the model beats it "
         "8/9 on CRPS': a point forecast is maximally penalised by CRPS.",
     "benchmarks.py:uniform_swing(seed)": "same uniform dispatch, same reason",
+    "benchmarks.py:blended_swing(seed)":
+        "same uniform dispatch, same reason. It is `prev + BLEND_W * swing` and "
+        "BLEND_W is 1.0, so it is currently `uniform-swing` exactly — kept "
+        "runnable so the measurement that put it there stays repeatable, and "
+        "deliberately NOT printed as a fourth baseline column. MODEL-LOG §1.57.",
     "width_budget.py:_no_pool_turnout(rng)":
         "an ABLATION STUB. `src/width_budget.py` measures what each variance source contributes by replacing it with a version that has none, and a replacement must present the signature of the thing it replaces or `montecarlo` cannot call it. Ignoring this argument IS the measurement. MODEL-LOG §1.48.",
     "width_budget.py:_no_pool_turnout(z_common)":

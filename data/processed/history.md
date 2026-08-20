@@ -16,6 +16,15 @@
 | Nelson Mandela Bay 2021 | 120 | 2.91pp | 3.07pp | 22 | 112 | 18 | 16.2 | 28 | 22 | 27 |
 | Buffalo City 2021 | 100 | 3.74pp | 2.61pp | 10 | 92 | 10 | 7.9 | 14 | 12 | 15 |
 
+### The margin is not evenly spread
+
+| | city-years | seat err (coherent) | uniform-swing | margin | CRPS | uniform-swing CRPS | margin |
+|---|---|---|---|---|---|---|---|
+| Gauteng (JHB, TSH, EKU) | 4 | 150 | 260 | 42% | 136.3 | 260.0 | 48% |
+| everywhere else | 5 | 104 | 116 | 10% | 96.6 | 116.0 | 17% |
+
+**The headline margin is a Gauteng result.** Outside Gauteng the model is close to parity with uniform swing on seats and loses at Mangaung. Quote the split, not the pool — and quote the sign count as *"8 of 9 city-years, 8 of which are one election"*, because eight of the nine share the 2021 national swing and under any honest clustering the effective sample is two.
+
 **Read the two seat-error columns together.** *seat err (median)* uses the per-party marginal median, which is what the per-party tables below show and which **does not sum to a council** — the *medians sum to* column says by how much. *seat err (coherent)* apportions the mean seat vector by largest remainder, so it IS a chamber and is the only one comparable to the baselines, which allocate per draw and sum exactly. Lower is better throughout.
 
 
@@ -48,10 +57,12 @@ A mean PIT above 0.50 means the truth keeps landing high in the forecast distrib
 
 | population | n | 50% | 80% | 90% | mean PIT | χ² vs flat (5% crit) |
 |---|---|---|---|---|---|---|
-| claimed by the model (forecast-selected — the neutral test) | 67 | 79% | 93% | 94% | 0.589 | 33.4 (16.92) |
+| reference (INPUT-selected — fixed; the only one to compare on) | 252 | 79% | 93% | 93% | 0.579 | 34.2 (16.92) |
+| claimed by the model (forecast-selected — neutral for ONE model) | 67 | 79% | 93% | 94% | 0.589 | 33.4 (16.92) |
 | won a seat (outcome-selected — INFLATED by construction) | 132 | 59% | 86% | 87% | 0.723 | 89.8 (16.92) |
 | every scored column (MIXED: outcome-selected + neutral, diluted) | 331 | 83% | 95% | 95% | 0.531 | 10.8 (16.92) |
 
+* **reference** (n=252) PIT histogram [18, 15, 16, 20, 22, 29, 22, 47, 30, 33] — approximately flat
 * **claimed** (n=67) PIT histogram [2, 1, 5, 3, 9, 10, 15, 14, 4, 4] — hump-shaped: the truth lands mid-distribution too often — over-dispersed, the model is hedging
 * **seat_holders** (n=132) PIT histogram [1, 1, 5, 3, 9, 12, 19, 32, 21, 29] — approximately flat; mean PIT 0.72 — the model under-predicts seats
 * **all** (n=331) PIT histogram [25, 31, 29, 27, 33, 35, 39, 47, 32, 33] — approximately flat
@@ -87,6 +98,18 @@ The rank-band vote table further up and the mean-PIT column here are the same LE
 | ranks 1-3 | 27 | 0.685 | 0.855 | -0.009 | 0.0354 vs 0.0833 |
 | ranks 4-12 | 37 | 0.695 | 0.823 | +0.305 | 0.0333 vs 0.0833 |
 | ranks 13+ | 3 | 1.106 | 0.540 | -0.350 | 0.1162 vs 0.0833 |
+
+#### The same question on the FIXED population — and it disagrees
+
+**The `n` here is the number of columns the width figure was actually computed on** — columns with a defined `z`. A column whose draws are all identical has no scale, so it carries a PIT and no `z`; the pooled tables above count PIT values and their `n` is larger.
+
+| band | `claimed` n(z) | `claimed` SD of z | `reference` n(z) | `reference` SD of z | `reference` mean z |
+|---|---|---|---|---|---|
+| ranks 1-3 | 27 | 0.855 | 27 | **0.855** | -0.009 |
+| ranks 4-12 | 37 | 0.823 | 74 | **1.940** | +0.796 |
+| ranks 13+ | 3 | 0.540 | 124 | **0.364** | -0.125 |
+
+**Ranks 1-3 are the same columns in both populations** — the top three are always claimed — so that row is a consistency check and the two numbers should agree exactly. **Ranks 4-12 do not agree, and the sign of the verdict reverses.** `claimed` says the band is too WIDE; on the fixed population it is far too NARROW, because the two largest standardised errors in the model — Cape Town's Cape Coloured Congress at z = +12.1 and Johannesburg's PA at +9.3 — are outside `claimed` by construction. Read together with `IQR-sd` (the interquartile range over 1.349, robust to a handful of columns, 0.595 at ranks 4-12) the real fault is **bulk against tail inside one band**: the middle of the band is too wide and its tail is far too thin, which is why no scalar has ever satisfied both. MODEL-LOG §1.56.
 
 **`probit-SD` is the one to quote when only a PIT is available.** It is `sd(Φ⁻¹(u))`, and under a location shift of a roughly normal forecast `Φ⁻¹(u)` translates — the shift lands in the mean, not the spread. `exact SD of z` is `(truth − forecast mean) / forecast sd` per column, centred, which is invariant to a shift by construction; it reads `—` on an artefact written before `calibration_columns` stored the `z` column, and it is the number to prefer when it is there. The standardised bias is the LEVEL, kept in its own column so that it can never be read as width again.
 

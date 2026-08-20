@@ -5576,6 +5576,15 @@ one-parameter reweighting.
 
 ## 1.55 The dominant width lever is sweepable at last, and a scalar cannot serve both bands (2026-08-20)
 
+> **PARTLY SUPERSEDED BY §1.56 the same day — read that first.** The ranks 4-12
+> `sd(z)` column below was measured on the `claimed` population, whose
+> membership moves with the lever (30 / 37 / 45 columns across the three
+> settings) and which excludes the model's worst columns by construction. On a
+> fixed population ranks 4-12 read 1.553 / 1.940 / 2.267, so **"ranks 4-12 want
+> 2.0" is backwards.** The ranks 1-3 column, the lever itself, and the decision
+> to ship at 1.0 are unaffected. Left in place unrewritten because the mistake
+> is the finding.
+
 §1.48 found the within-pool Dirichlet supplying **83–98% of drawn variance for
 every party except the ANC and DA** — the model's dominant width lever — and
 noted that it sat in the register as a *concentration guard* and had never been
@@ -5633,6 +5642,207 @@ realised width rather than against historical within-pool variance. That is a
 genuine joint calibration, it needs `src/width_budget.py` as its instrument, and
 it must be validated the way the level shrink was: fit on one cycle, apply to
 the other, never chosen on the nine.
+
+---
+
+## 1.56 The calibration denominator moved with the lever, and it moved away from the failures (2026-08-20)
+
+An independent pollster review flagged this and it is a real defect in the
+measuring instrument, not in the model. It has been confirmed, and following it
+through says something sharper — and more useful — than the review found.
+
+### The defect
+
+`score.CLAIM_FRACTION` selects the scored `claimed` population as "a seat in at
+least half this forecaster's draws". `score.score_seats`' docstring defends that
+at length and is **right**: selection on the forecast is neutral, PIT uniformity
+survives it, and a forecaster is answerable for its own claims. That argument is
+about ONE forecaster. A lever sweep is a comparison ACROSS forecasters, and
+there the criterion admits a different set of columns to each of them.
+
+Measured, nine city-years, 1500 draws:
+
+| `dirichlet_scale` | `claimed` columns | of which ranks 4-12 | `reference` columns | with defined `z` |
+|---|---|---|---|---|
+| 0.5 — wider | 58 | 30 | 252 | 225 |
+| **1.0 — committed** | 67 | 37 | 252 | 225 |
+| 2.0 — narrower | 81 | 45 | 252 | 225 |
+
+**Narrowing admits columns**, which is the direction that surprises. A tighter
+draw puts a party whose mean is above the threshold into nearly every draw
+instead of into some of them; widening scatters draws back onto zero and the
+party drops out of its own scored population. The criterion rewards confidence
+with a larger denominator.
+
+### The fix
+
+`compare_history.reference_universe` — a fourth population selected from inputs
+alone. A party is in if it took at least `REFERENCE_SHARE = 0.25%` of the
+combined ward+PR vote at the **previous** local election, or stands in at least
+`REFERENCE_SLATE = 25%` of this election's wards. Both are known before polling
+day; neither can move when a lever moves. It is scored through
+`score.seat_matrix(..., keep_all=True, parties=...)`, because a mask over the
+ordinary matrix is not enough — that matrix drops a column that is zero on both
+sides, so the forecast-dependence walks straight back in through the universe
+after being shut out of the mask.
+
+Both constants are **declared, not measured**, and are in `JUDGEMENT-CALLS.md`.
+The slate cut is the weaker one: on a strict reading a party can win a ward seat
+with one ward, so the principled threshold is "on the ballot", which admits 24
+to 57 parties a city-year and reproduces the dilution that makes `all`
+untestable. Sensitivity over the panel: **252 columns at 0.25, 232 at 0.50, 211
+at 0.75.**
+
+### What it says, and it is not what §1.55 said
+
+`sd(z)`, nine city-years, 1500 draws. `IQR-sd` is the interquartile range over
+1.349 — the same statistic robust to a handful of columns:
+
+| scale | band | `claimed` n | `claimed` sd(z) | `reference` n | `reference` sd(z) | `reference` IQR-sd | `reference` \|z\|>3 |
+|---|---|---|---|---|---|---|---|
+| 0.5 | 1-3 | 27 | 0.662 | 27 | 0.662 | 0.303 | 0 |
+| 0.5 | 4-12 | 30 | 0.612 | 74 | **1.553** | 0.395 | 3 |
+| **1.0** | 1-3 | 27 | 0.855 | 27 | 0.855 | 0.421 | 1 |
+| **1.0** | 4-12 | 37 | 0.823 | 74 | **1.940** | 0.595 | 4 |
+| 2.0 | 1-3 | 27 | 1.178 | 27 | 1.178 | 0.480 | 1 |
+| 2.0 | 4-12 | 45 | 0.916 | 74 | **2.267** | 0.715 | 9 |
+
+`n` above is the count of columns with a **defined `z`** — a column whose draws
+are all identical has no scale and stores `None`. The fixed population is 252
+columns of which 225 carry a `z` (27 at ranks 1-3, 74 at 4-12, 124 at 13+), and
+those three counts do not move across the sweep either. The pooled PIT tables
+count PIT values instead and their `n` is larger (76 and 139); `pooled_by_band`
+now stores `n_z` so a width figure can be labelled with the columns it was
+actually computed on.
+
+**Ranks 13+ read `sd(z)` 0.364 with mean z −0.125** on the fixed population —
+intervals about 2.7× too wide on a band that is also over-forecast (+5.60pp,
+§1.54). `claimed` sees three columns there and cannot say anything; `reference`
+sees 124. It does not change §1.54's disposition — every redistribution tried
+scored worse — but it does mean the tail's over-forecast is carried with
+intervals wide enough to hide it, and that is now measurable.
+
+**Ranks 1-3 are identical in both populations at every setting** — the same 27
+columns, because the top three parties are always claimed. §1.55's reading of
+ranks 1-3 stands untouched, and so does its conclusion that they want about 1.0.
+
+**Ranks 4-12 reverse.** `claimed` says 0.823 — too wide, narrow it, and 2.0 gets
+it to 0.974. `reference` says **1.940 — about half as wide as it should be**, and
+narrowing to 2.0 makes it 2.267, further from 1.0 rather than closer. §1.55's
+"ranks 4-12 want 2.0" is therefore not merely unsupported: it is **backwards**,
+and the half of "a scalar cannot serve both bands" that rested on it is
+withdrawn.
+
+### The sharper statement: the rule selects away from the failures
+
+Two columns carry the whole difference — **Cape Town's Cape Coloured Congress at
+z = +12.1 and Johannesburg's PA at +9.3** — and both are outside `claimed` and
+inside `reference`. That is not a coincidence and it is worse than a moving
+denominator:
+
+> A party the forecaster gives a seat in fewer than half its draws is exactly a
+> party the forecaster is failing on. `CLAIM_FRACTION` excludes it from the
+> population that exists to test the forecaster.
+
+The model's six zero-probability columns (§1.54, and the review's list) are
+precisely the columns `claimed` cannot see. The instrument was blind in the one
+direction the model is worst.
+
+### And the real width story is bulk against tail, not band against band
+
+On `reference` ranks 4-12 at the committed setting: `sd(z)` 1.940, `IQR-sd`
+0.595. The bulk of the band is **too wide by about 40%** and the tail is
+catastrophically thin, with four columns beyond \|z\|>3 rising to nine at scale
+2.0. Those are the same two numbers pointing opposite ways, which is why no
+scalar has ever satisfied both and why every scalar sweep has produced a trade
+rather than an optimum.
+
+So the successor §1.55 asked for is still a mixture, but for a **different
+reason than §1.55 gave**: not because two rank bands want different
+concentrations, but because the bulk and the tail of one band do. That is task
+A2, and this population is the instrument it is measured on.
+
+### Why this differs from the review's own numbers
+
+The review reached the fixed-set question by **intersecting** the `claimed` sets
+across settings — 56 common columns — and read ranks 4-12 at 0.964 and 1.189.
+An intersection of forecast-selected sets is still forecast-selected: every
+column in it was claimed by every forecaster in the sweep, so the failures are
+excluded from the intersection by exactly the rule that excluded them from each
+set. The review's diagnosis of the defect is right and its correction is not
+strong enough. Its recommended `dirichlet_scale = 1.4` is **not adopted**, and
+its own second item is why: at 1.4 the seats won by parties outside every draw
+go 19 → 55.
+
+### Disposition
+
+- Reported in `history.md` as a fourth population, printed first and labelled as
+  the only one to compare on. `claimed` stays and stays the answer to "is this
+  model calibrated"; `reference` is the answer to "did that change help".
+- **Coverage and PIT on `reference` read optimistically by construction** and
+  are not calibration figures in absolute terms — a fixed population must carry
+  columns that are zero on both sides, and each is a free interval hit. The
+  dilution is identical at every setting, which is what makes differences
+  readable. `sd(z)` is largely immune: a column with no draw variance stores
+  `None` and leaves the width figure without being selected out of the
+  population.
+- Two tests, `tests/test_calibration_report.py`: one asserts the `claimed`
+  denominator moves between two forecasters differing only in width, one asserts
+  `reference` scores the universe it is handed and keeps the column the
+  forecaster fails worst on.
+- **The change is inert on every existing number.** The committed setting
+  reproduces 254 coherent / CRPS 232.9 exactly.
+
+---
+
+## 1.57 Uniform swing is not a strawman — the optimal blend IS uniform swing (2026-08-20)
+
+**Negative result.** The pollster review's item A6 objected, correctly, that
+`last-lge` (594 coherent seats) and `prior-lge-noise` (561) are not references,
+and that quoting a 3.4× margin over them invites the charge that the baselines
+were chosen to be beaten. The professional answer is Murphy's convex combination
+of the two naive forecasts. It was built and measured, and it does not exist.
+
+### The family collapses to one parameter
+
+    w · (prev + swing) + (1 − w) · prev  ==  prev + w · swing
+
+The convex combination of uniform swing and persistence is **a damped swing**.
+`w = 1` is `uniform-swing`, `w = 0` is `last-lge`, and the whole family is the
+classic swing-damping correction. `benchmarks.blended_swing`, `BLEND_W`.
+
+### The optimum is on the boundary
+
+Coherent-comparable seat error, nine city-years, deterministic:
+
+| `w` | 0.0 | 0.25 | 0.50 | 0.75 | 0.90 | 0.95 | **1.00** | 1.05 | 1.15 | 1.30 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| seat error | 594 | 524 | 456 | 404 | 382 | 376 | **376** | 372 | 372 | 382 |
+
+Monotone decreasing across the entire interval. **No damping helps at all**, and
+the best convex blend is uniform swing itself.
+
+The unconstrained grid optimum is `w = 1.05` at 372 — which is not a blend but an
+*amplified* swing, is worth 4 seats in 376, and sits on a plateau (376 / 376 /
+372 / 374 / 372 / 374 / 376 from 0.95 to 1.25). **It does not survive
+leave-one-out.** Seven of nine folds choose 1.05 and two choose 1.15, and the
+held-out errors total **380 against uniform swing's 376**. A fitted baseline that
+loses to the unfitted one out of sample is not a baseline.
+
+### Disposition
+
+- `blended-swing` stays in `BENCHMARKS` so the check is repeatable, with
+  `BLEND_W = 1.0`. It is **not** printed as a fourth column: a column identical
+  to `uniform-swing` is noise in a table.
+- `ITERATING.md` records this so it is never re-litigated, which was the review's
+  own stated abandon-condition.
+- What it establishes is worth having: **uniform swing is the strongest member of
+  the naive family on this panel**, so the margin quoted over it — 254 against
+  376 — is honest, and the two weak baselines are context rather than the claim.
+- It does **not** answer the harder objection, which stands and is now disclosed
+  separately (§A7, `history.md`): the margin is a Gauteng result. Inside Gauteng
+  the model takes **42%** off uniform swing's seat error; outside it, **10%**,
+  and it loses at Mangaung.
 
 ---
 

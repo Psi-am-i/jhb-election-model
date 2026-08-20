@@ -39,6 +39,20 @@ it is newer, better argued, or built from more measurements.
    references are `last-lge`, `uniform-swing`, `prior-lge-noise` (`benchmarks.py`)
    and the previous iteration's recorded scores. Uniform swing is the one that
    matters — it is the only baseline carrying any information about direction.
+
+   **And it is not a strawman — settled 2026-08-20, do not re-litigate.** The
+   standard objection is that `last-lge` (594) and `prior-lge-noise` (561) are
+   weak, and that the honest reference is Murphy's convex combination of
+   persistence and swing. That combination collapses to a *damped* swing
+   (`prev + w·swing`), it was built as `benchmarks.blended-swing`, and its
+   optimum is **on the boundary at w = 1.0 — uniform swing itself.** Seat error
+   is monotone decreasing across the whole interval (594 at 0.0, 456 at 0.5, 376
+   at 1.0); the unconstrained optimum at w = 1.05 is worth 4 seats in 376, is not
+   a blend, and **loses leave-one-out, 380 against 376.** MODEL-LOG §1.57.
+
+   What is NOT settled, and is the live objection to the headline, is that the
+   margin is a **Gauteng** result: 42% off uniform swing inside Gauteng, 10%
+   outside, and a loss at Mangaung. `history.md` prints the split; quote it.
 2. **A change is not an improvement until it is scored.** Measured, out of
    sample, across as many city-years as the data supports (`src/sweep.py`,
    `src/compare_history.py`, `src/diagnose.py`).
@@ -256,6 +270,42 @@ it is newer, better argued, or built from more measurements.
    one-sided sign test at p = 0.125. At ranks 1-3 it is two, p = 0.25. The
    correction is real and the direction is right; it is not a result you can
    build a conclusion on by itself, and it was.
+
+   **A WIDTH COMPARISON GOES ON `reference`, NEVER ON `claimed` — added
+   2026-08-20, and it changes the ranks 4-12 half of everything above.**
+   `claimed` selects columns from the forecaster's own draws, so two settings of
+   a lever are scored on two different populations: 58, 67 and 81 columns across
+   the `dirichlet_scale` sweep, of which 30, 37 and 45 are ranks 4-12. Worse,
+   the rule selects **away from the failures** — a party the model gives a seat
+   in fewer than half its draws is a party the model is failing on, and Cape
+   Town's Cape Coloured Congress (z = +12.1) and Johannesburg's PA (z = +9.3)
+   are outside `claimed` and inside `reference`.
+
+   On the fixed population ranks 4-12 read `sd(z)` **1.940** — about half as
+   wide as it should be — against `claimed`'s 0.823. Ranks 1-3 are the same 27
+   columns in both and are unchanged at 0.855. So:
+
+   - **Ranks 1-3: too wide, narrow them.** Unaffected by any of this.
+   - **Ranks 4-12: the bulk is too wide and the tail is far too thin.** `sd(z)`
+     1.940 with `IQR-sd` 0.595 on the same columns. Those are the same errors
+     read two ways, and no scalar satisfies both — narrowing to
+     `dirichlet_scale = 2.0` takes the columns beyond \|z\|>3 from four to nine.
+   - The corollary two paragraphs above — "both bands want the same thing on
+     width, narrowing" — is **withdrawn for ranks 4-12**. It was read off
+     `claimed`.
+
+   The multiplier this rule quotes as "about **1.35×** wider" is also stale: it
+   comes from probit-SD figures (0.740 / 0.734) measured before the level
+   shrink. The committed artefact reads 0.685 / 0.695 probit-SD, i.e. 1.17–1.21×
+   on `claimed` — and on `reference` ranks 4-12 the sign reverses entirely.
+   MODEL-LOG §1.56.
+
+   **`reference` coverage and PIT are not calibration figures.** A population
+   fixed on inputs must contain columns that are zero on both sides, each a free
+   interval hit, so it reads optimistically by construction. The dilution is
+   identical at every setting, which is what makes a DIFFERENCE readable.
+   Quote `claimed` for "is this model calibrated"; quote `reference` for "did
+   that change help".
 9. **Quote the pooled calibration figure, never a city-year's — and never the
    pooled figure alone.** Pool over CITY-YEARS: per city-year it is four to
    fifteen scored columns, Johannesburg 2021 reads 12/62/75 against nominal

@@ -180,6 +180,64 @@ are typed and admitted (`w_bye`), and at least one is a known open question
 * the ward-level approximation the page makes against the Python model, measured
   and quoted, as `export_interactive.py`'s docstring already promises.
 
+## 5b. The publication gate — from the pollster review, 2026-08-20
+
+Six blocking items. These are not "would be nice": each is a sentence a hostile
+expert can write after the result if it is missing, and the first one is a
+sentence that ends a public forecast.
+
+1. **No zero-probability outcomes on the live ballot.** Six backtest columns
+   have the truth above every draw, two of them at 7 and 8 seats — Cape Town's
+   Cape Coloured Congress and Johannesburg's PA. Before publishing, produce the
+   list of every 2026 ballot party with `P(≥1 seat) < 0.02` and defend each by
+   name, or widen until it can be defended. *"The model said it was impossible
+   and it happened"* would have been writable twice about 2021. Gated on task
+   A2.
+2. **Calibration quoted on a population fixed before the forecast is made** —
+   done, `reference`, §1.56 — with `sd(z)` per band and an interval on it, and
+   the direction STATED rather than left to be discovered.
+3. **A pre-registered, timestamped, hash-identified forecast** published before
+   polling day and never edited after, with the scoring code frozen beside it.
+   `artefact_key` and the golden tests are the discipline; they need pointing at
+   the public artefact.
+4. **The Gauteng / non-Gauteng split disclosed** — done in `history.md`, task
+   A7 — and the headline written as *"8 of 9 city-years, 8 of which are one
+   election."*
+5. **Every claim regenerated from the current model.** Two changes this week
+   move the Johannesburg 2026 numbers materially (DA 0.328 → 0.310 from the
+   shrink; PA 19.5 → 12.4 seats from deleting `pa_contestation_uplift`).
+   Republishing is a decision to take BEFORE a journalist quotes the old number.
+6. **The poll section written honestly.** The 2026 register carries essentially
+   one independent house (SRF/Victory Research, two waves) with ~500-person
+   metro subsamples and an undisclosed likely-voter screen. A single house is a
+   level, not a house effect; a ~500 metro cut carries the parent design effect
+   on top of its own n. Say how much weight polls carry, on which parties
+   (arrivals only), and that the spread across houses is unestimable with what
+   exists.
+
+Strongly wanted, not blocking:
+
+* **Both remaining "argued, not tested" mechanisms labelled at the point of
+  quotation**, per `CLAUDE.md`. There are now four, not two: `w_bye`, the
+  first-local-election bias correction, the contestation correction (which is
+  the identity at 2026 — task A4), and the poll path (task A8).
+* **A stated failure mode, in the model's own voice.** *"The largest error in
+  the 2021 backtest was ActionSA, forecast at 6.3% against 18.1%. A party with
+  no electoral record cannot be forecast from a record it does not have. If a
+  comparable party emerges in 2026, this forecast will be wrong in the same
+  way."* Already true, already measured, and it buys more credibility than any
+  item on the model list.
+* **Coalition and majority probabilities checked for calibration, not merely
+  produced.** A hung-council probability is the number that gets quoted, and it
+  is a threshold on a sum — it inherits every width fault amplified.
+
+**And what cannot be fixed with the data held, so must be said rather than
+interpolated:** with four cycles, eight metros and one arrival-heavy cycle the
+panel cannot identify (a) whether the level shrink is regularisation or a
+fragmentation trend, (b) house effects, or (c) the size of an unknown arrival.
+Those three are the model's real uncertainty and **none of them is in the
+intervals.**
+
 ## 6. Order of work
 
 1. **Close the model list.** The successor to §1.55 — a band-dependent

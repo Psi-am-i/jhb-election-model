@@ -67,12 +67,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import backtest as B
 import benchmarks as BM
 import cityconfig
+import levels
 import montecarlo as M
 import score as S
 from fold import citywide, load
 
 CITIES = ["joburg", "tshwane", "ekurhuleni", "ethekwini", "capetown",
           "mangaung", "nelsonmandelabay", "buffalocity"]
+
+# The three Gauteng metros. Here for ONE reason: the headline margin over
+# uniform swing is not evenly spread and quoting the pooled figure alone is the
+# strongest available criticism of it. See :func:`_headline_split`.
+GAUTENG = frozenset({"joburg", "tshwane", "ekurhuleni"})
 
 
 def runnable(city) -> list[str]:
@@ -217,9 +223,27 @@ def rank_bands(run, actual_pr, actual_seats):
 LEVELS = (0.5, 0.8, 0.9)
 
 # The populations calibration is measured over, in the order they are printed.
-# The difference between them IS the finding, so all three are reported and each
+# The difference between them IS the finding, so all four are reported and each
 # is labelled with what selects it. See :func:`calibration_columns`.
-POPULATIONS = ("claimed", "seat_holders", "all")
+POPULATIONS = ("reference", "claimed", "seat_holders", "all")
+
+# WHAT PUTS A PARTY IN THE ``reference`` POPULATION. Both are ex-ante facts: a
+# result already published when the forecast is made, and a nomination list that
+# closes before polling day. Neither can move when a lever moves, which is the
+# entire point — see :func:`reference_universe`.
+#
+# Both are DECLARED, not measured, and JUDGEMENT-CALLS.md carries them. The
+# share cut sits below every metro's PR quota (Johannesburg's 270 seats put it
+# near 0.37%), so no party that could take a PR seat on its previous showing is
+# excluded. The slate cut is the weaker of the two and the one to argue with:
+# a party can win a WARD seat with a single ward, so the honest threshold on
+# that logic is "on the ballot at all" — which admits 24 to 57 parties a
+# city-year, most of them zero on both sides, and reproduces exactly the
+# dilution that makes ``all`` untestable. A quarter-slate is a judgement about
+# plausibility, not a derivation. Sensitivity, summed over the nine city-years:
+# 252 columns at 0.25, 232 at 0.50, 211 at 0.75.
+REFERENCE_SHARE = 0.0025
+REFERENCE_SLATE = 0.25
 
 # Acklam's rational approximation to the inverse normal CDF, to about seven
 # significant figures. Here to avoid a scipy dependency for the one transform
@@ -350,8 +374,109 @@ def _pit_seed(city_slug: str, year: str, base: int = 20211101) -> int:
     return base + zlib.crc32(f"{city_slug}:{year}".encode()) % 100_000
 
 
+def reference_universe(target, city, data_dir: Path) -> list[str]:
+    """The calibration population, selected on INPUTS ONLY.
+
+    A party is in if it has a record — at least ``REFERENCE_SHARE`` of the
+    combined ward+PR vote at the PREVIOUS local election — or a slate, standing
+    in at least ``REFERENCE_SLATE`` of this election's wards. Both are known
+    before polling day: the first is a published result, the second is a
+    nomination fact (:func:`levels.contestation` reads row EXISTENCE, not
+    ``Party_Votes``, for exactly this reason).
+
+    **Why a fourth population exists at all.** The other three are each selected
+    by something that moves when the model moves. ``claimed`` is the worst
+    offender and it is the one the project quotes: its membership is
+    ``(samples > 0).mean() >= CLAIM_FRACTION``, a function of the forecaster's
+    own draws, so *narrowing the model admits columns* — a tighter draw puts a
+    party whose mean clears the threshold into nearly every draw instead of
+    into some of them. Measured at 1500 draws across a ``dirichlet_scale``
+    sweep, the ``claimed`` set runs 58 / 67 / 81 columns at 0.5 / 1.0 / 2.0,
+    and 30 / 37 / 45 of those are ranks 4-12. That is not a calibration
+    statistic changing; it is the denominator changing underneath one.
+
+    The consequence was a published conclusion. MODEL-LOG §1.55 read the two
+    rank bands wanting different widths — 4-12 at scale 2.0, 1-3 at 1.0 — and
+    the whole "a scalar cannot serve both bands" finding rests on it. Held
+    fixed, ranks 1-3 are unchanged (the same 27 columns, always claimed) and
+    **ranks 4-12 reverse**: `sd(z)` 1.553 / 1.940 / 2.267 against ``claimed``'s
+    0.612 / 0.823 / 0.916, so the band is far too NARROW and raising the scale
+    makes it worse. §1.56.
+
+    Selection on the forecast is NEUTRAL — the docstring in
+    :func:`score.score_seats` is right that PIT uniformity survives it, and that
+    argument is about ONE forecaster. A lever sweep is a comparison ACROSS
+    forecasters, and there the criterion is not neutral, because the population
+    it admits is not the same population. Both facts are true; only the first
+    was written down.
+
+    **The price is dilution, and it is paid deliberately.** A fixed population
+    must contain columns that are zero on both sides — nobody can know ex ante
+    which parties will matter — and such a column is an interval [0, 0]
+    containing 0: a free coverage hit and a near-uniform PIT. So ``reference``
+    coverage and PIT read optimistically by construction and are NOT the
+    figures to quote for calibration in absolute terms. What it is for is
+    COMPARISON: the dilution is identical at every lever setting, so a
+    difference between two settings is a real difference. Quote ``claimed`` for
+    "is this model calibrated"; quote ``reference`` for "did that change help".
+
+    ``sd(z)`` is the statistic this population was built to serve, and it is
+    largely immune to the dilution above: a column whose draws are all zero has
+    no scale and stores ``None`` rather than an infinity, so it drops out of the
+    width figure without being selected out of the population.
+    """
+    universe: set[str] = set()
+    previous = target.previous_lge
+    if previous:
+        path = data_dir / target.results(previous)
+        if cityconfig.resolve_path(path).exists():
+            for party, share in citywide(load(path, None)[0]).items():
+                if share >= REFERENCE_SHARE:
+                    universe.add(party)
+    for party, fraction in levels.contestation(target, city).items():
+        if fraction >= REFERENCE_SLATE:
+            universe.add(party)
+    return sorted(universe)
+
+
+def _population_block(parties, samples, truth, *, seed, membership) -> dict:
+    """One population's calibration block, computed from its own matrix.
+
+    Only ``reference`` uses this. The other three are masks over a single
+    shared matrix and are computed inline in :func:`calibration_columns`,
+    which duplicates the arithmetic below — deliberately. The randomised PIT
+    consumes one uniform per column from a seeded generator, so computing a
+    population from a SLICED matrix and from a MASK over the full matrix give
+    different values for the same column. Routing the existing three through
+    here would silently re-record every calibration number in the artefact to
+    buy tidiness. Change either and the other is not affected. Both paths are
+    tested: ``test_the_documented_figures_match_the_committed_artefact``
+    covers the inline three against the artefact, and
+    ``test_the_reference_population_is_fixed_and_keeps_the_worst_columns``
+    covers this one.
+    """
+    n_cols = samples.shape[1] if samples.ndim == 2 else 0
+    pits = S.pit_values(samples, truth, seed=seed) if samples.shape[0] else []
+    hits, z_cols = [], []
+    for j in range(n_cols):
+        hits.append([int(row["inside"])
+                     for row in S.coverage(samples[:, [j]], truth[[j]], LEVELS)])
+        col = samples[:, j].astype(float)
+        sd = float(col.std(ddof=1)) if col.size > 1 else 0.0
+        z_cols.append(float((truth[j] - col.mean()) / sd) if sd > 0 else None)
+    return {
+        "n": int(n_cols),
+        "parties": list(parties),
+        "pit": [float(v) for v in pits],
+        "z": z_cols,
+        "band": [membership.get(p, "off-ballot") for p in parties],
+        "hits": hits,
+        "coverage": S.coverage(samples, truth, LEVELS),
+    }
+
+
 def calibration_columns(seat_draws, actual_seats, entrant_actual, seed,
-                        actual_pr=None):
+                        actual_pr=None, reference=None):
     """Per-column PIT values and interval hits, UNPOOLED, for one city-year.
 
     Kept unpooled because per city-year these numbers are noise and pooling them
@@ -420,6 +545,14 @@ def calibration_columns(seat_draws, actual_seats, entrant_actual, seed,
     masks = {"claimed": claimed,
              "seat_holders": truth > 0,
              "all": np.ones(n_cols, dtype=bool)}
+    # ``reference`` is a DIFFERENT MATRIX, not another mask over this one, and
+    # it has to be: the matrix above drops a column that is zero on both sides,
+    # so a mask over it would still be missing every reference party the
+    # forecaster happened to give nothing to — the forecast-dependence coming
+    # straight back in through the universe after being shut out of the mask.
+    # ``keep_all`` with an explicit ``parties`` is the only way to score a
+    # genuinely fixed column set. See :func:`reference_universe`.
+    ref = tuple(reference or ())
     membership = rank_band_of(actual_pr or {})
     # Per-column hits, so a pooled figure can be recomputed over ANY subset of
     # columns later. score.coverage returns aggregates, and an aggregate cannot
@@ -442,6 +575,12 @@ def calibration_columns(seat_draws, actual_seats, entrant_actual, seed,
         z_cols.append(float((truth[j] - col.mean()) / sd) if sd > 0 else None)
     out = {}
     for name in POPULATIONS:
+        if name == "reference":
+            out[name] = _population_block(
+                *S.seat_matrix(seat_draws, actual_seats, entrant_actual,
+                               keep_all=True, parties=ref),
+                seed=seed, membership=membership)
+            continue
         mask = masks[name]
         out[name] = {
             "n": int(mask.sum()),
@@ -670,6 +809,13 @@ def pooled_by_band(results, pop) -> dict:
             # only so the report can show it failing. See :func:`pit_dispersion`.
             "pit_dispersion": pit_dispersion(u),
             "dispersion": dispersion_ratio(z_all),
+            # The count the DISPERSION was computed on, which is not ``n``.
+            # ``n`` counts PIT values; a column whose draws are all identical
+            # has no scale and stores z=None, so it has a PIT and no z. On the
+            # ``reference`` population the gap is wide (ranks 13+: 139 PIT
+            # values, 124 z), and labelling a width figure with the PIT count
+            # says it was measured on columns it was not.
+            "n_z": int(len(z_all)),
             "z_bias": (float(np.mean(z_all)) if len(z_all) else float("nan")),
             "pit_var": (float(u.var(ddof=1)) if u.size > 1 else float("nan")),
             "coverage": [
@@ -846,7 +992,8 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
         "median_sum": sum(model_seats.values()),
         "calibration": calibration_columns(
             run.seat_draws, actual_seats, entrant_actual,
-            _pit_seed(city_slug, year), actual_pr=actual_pr),
+            _pit_seed(city_slug, year), actual_pr=actual_pr,
+            reference=reference_universe(target, city, data_dir)),
         "opponents": {},
     }
     scored = S.score_seats(run.seat_draws, actual_seats,
@@ -906,7 +1053,8 @@ def _actual_seats(target, data_dir: Path, run):
 
 
 _POP_LABEL = {
-    "claimed": "claimed by the model (forecast-selected — the neutral test)",
+    "reference": "reference (INPUT-selected — fixed; the only one to compare on)",
+    "claimed": "claimed by the model (forecast-selected — neutral for ONE model)",
     "seat_holders": "won a seat (outcome-selected — INFLATED by construction)",
     "all": "every scored column (MIXED: outcome-selected + neutral, diluted)",
 }
@@ -917,6 +1065,62 @@ _BAND_LABEL = {
     "13+": "ranks 13+",
     "off-ballot": "off-ballot (no actual PR rank)",
 }
+
+
+def _width_on_reference(pooled: dict) -> list[str]:
+    """The same width verdict on the FIXED population — and it disagrees.
+
+    The table above is `claimed`, whose membership is a function of the
+    forecaster's own draws (58 / 67 / 81 columns across a `dirichlet_scale`
+    sweep) and which therefore **excludes the columns the model fails worst
+    on** — a party given a seat in fewer than half the draws is exactly a party
+    the model is failing on. `MODEL-LOG` §1.55 read "ranks 4-12 want
+    `dirichlet_scale = 2.0`" off it, and on a fixed population that is
+    backwards.
+
+    So both are printed, side by side, and any BEFORE/AFTER comparison is read
+    off the `reference` row. See :func:`reference_universe`.
+    """
+    ref = pooled.get("reference", {}).get("by_band")
+    clm = pooled.get("claimed", {}).get("by_band")
+    if not ref or not clm:
+        return []
+    out = ["#### The same question on the FIXED population — and it disagrees\n",
+           "**The `n` here is the number of columns the width figure was "
+           "actually computed on** — columns with a defined `z`. A column whose "
+           "draws are all identical has no scale, so it carries a PIT and no "
+           "`z`; the pooled tables above count PIT values and their `n` is "
+           "larger.\n",
+           "| band | `claimed` n(z) | `claimed` SD of z | `reference` n(z) | "
+           "`reference` SD of z | `reference` mean z |",
+           "|---|---|---|---|---|---|"]
+    for band in BAND_LABELS:
+        a, b = clm.get(band), ref.get(band)
+        if not a or not b:
+            continue
+
+        def num(blk, key, fmt="{:.3f}"):
+            v = blk.get(key)
+            return "—" if v is None or v != v else fmt.format(v)
+
+        out.append(f"| {_BAND_LABEL[band]} | {a.get('n_z', a['n'])} | "
+                   f"{num(a, 'dispersion')} | {b.get('n_z', b['n'])} | "
+                   f"**{num(b, 'dispersion')}** | "
+                   f"{num(b, 'z_bias', '{:+.3f}')} |")
+    out.append(
+        "\n**Ranks 1-3 are the same columns in both populations** — the top "
+        "three are always claimed — so that row is a consistency check and the "
+        "two numbers should agree exactly. **Ranks 4-12 do not agree, and the "
+        "sign of the verdict reverses.** `claimed` says the band is too WIDE; "
+        "on the fixed population it is far too NARROW, because the two largest "
+        "standardised errors in the model — Cape Town's Cape Coloured Congress "
+        "at z = +12.1 and Johannesburg's PA at +9.3 — are outside `claimed` by "
+        "construction. Read together with `IQR-sd` (the interquartile range "
+        "over 1.349, robust to a handful of columns, 0.595 at ranks 4-12) the "
+        "real fault is **bulk against tail inside one band**: the middle of the "
+        "band is too wide and its tail is far too thin, which is why no scalar "
+        "has ever satisfied both. MODEL-LOG §1.56.\n")
+    return out
 
 
 def render_calibration(results: list[dict], bins: int = 10) -> str:
@@ -1110,6 +1314,8 @@ def render_calibration(results: list[dict], bins: int = 10) -> str:
             f"{num('dispersion')} | {num('z_bias', '{:+.3f}')} | "
             f"{num('pit_var', '{:.4f}')} vs {1 / 12:.4f} |")
     add("")
+    for line in _width_on_reference(pooled):
+        add(line)
     add("**`probit-SD` is the one to quote when only a PIT is available.** It "
         "is `sd(Φ⁻¹(u))`, and under a location shift of a roughly normal "
         "forecast `Φ⁻¹(u)` translates — the shift lands in the mean, not the "
@@ -1150,6 +1356,55 @@ def render_calibration(results: list[dict], bins: int = 10) -> str:
     return "\n".join(lines)
 
 
+def _headline_split(results: list[dict]) -> list[str]:
+    """The headline margin over uniform swing, split Gauteng against the rest.
+
+    **Disclosure, not tuning — this table exists to be quoted against us.** The
+    pooled "beats uniform swing 8 of 9" is true and it is concentrated: inside
+    Gauteng the model takes 42% off uniform swing's seat error, outside it 10%,
+    and it LOSES at Mangaung. For a Johannesburg product that is the reassuring
+    reading — the margin is where the product is. For the multi-city portal it
+    is not, and a reader who computes this for themselves after the fact and
+    finds it undisclosed has a much better story than one who reads it here.
+
+    Also worth saying because eight of the nine city-years are the same
+    election: the panel cannot separate "this model is better" from "this model
+    is better at the 2021 Gauteng fragmentation shock."
+    """
+    groups = [("Gauteng (JHB, TSH, EKU)", lambda r: r["slug"] in GAUTENG),
+              ("everywhere else", lambda r: r["slug"] not in GAUTENG)]
+    out = ["### The margin is not evenly spread\n",
+           "| | city-years | seat err (coherent) | uniform-swing | margin | "
+           "CRPS | uniform-swing CRPS | margin |",
+           "|---|---|---|---|---|---|---|---|"]
+    for label, keep in groups:
+        sel = [r for r in results if keep(r)]
+        if not sel:
+            continue
+        opp = [r["opponents"].get("uniform-swing", {}) for r in sel]
+        if any("error" in o or o.get("seat_abs_err") is None for o in opp):
+            out.append(f"| {label} | {len(sel)} | — | — | — | — | — | — |")
+            continue
+        m = sum(r["seat_abs_err_coherent"] for r in sel)
+        u = sum(o["seat_abs_err"] for o in opp)
+        mc = sum(r["crps"] for r in sel)
+        uc = sum(o["crps"] for o in opp)
+        out.append(
+            f"| {label} | {len(sel)} | {m:.0f} | {u:.0f} | "
+            f"{100 * (1 - m / u):.0f}% | {mc:.1f} | {uc:.1f} | "
+            f"{100 * (1 - mc / uc):.0f}% |" if u and uc else
+            f"| {label} | {len(sel)} | {m:.0f} | {u:.0f} | — | {mc:.1f} | "
+            f"{uc:.1f} | — |")
+    out.append("\n**The headline margin is a Gauteng result.** Outside Gauteng "
+               "the model is close to parity with uniform swing on seats and "
+               "loses at Mangaung. Quote the split, not the pool — and quote "
+               "the sign count as *\"8 of 9 city-years, 8 of which are one "
+               "election\"*, because eight of the nine share the 2021 national "
+               "swing and under any honest clustering the effective sample is "
+               "two.")
+    return out
+
+
 def render(results: list[dict]) -> str:
     lines: list[str] = []
     add = lines.append
@@ -1175,6 +1430,9 @@ def render(results: list[dict]) -> str:
             f"{r['seat_abs_err_coherent']} | {r['crps']:.1f} | "
             f"{cell('last-lge')} | {cell('uniform-swing')} | "
             f"{cell('prior-lge-noise')} |")
+    add("")
+    for line in _headline_split(results):
+        add(line)
     add("\n**Read the two seat-error columns together.** *seat err (median)* "
         "uses the per-party marginal median, which is what the per-party tables "
         "below show and which **does not sum to a council** — the *medians sum "

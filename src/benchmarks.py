@@ -367,6 +367,66 @@ def uniform_swing(ctx: Context, draws: int = 1, seed: int | None = None):
     return _repeat(seats, winners, draws)
 
 
+# How much of the national swing ``blended-swing`` carries. **MEASURED, and the
+# answer is 1.0 — the boundary of the family, which is ``uniform-swing`` itself.**
+# See :func:`blended_swing`; MODEL-LOG §1.57.
+BLEND_W = 1.0
+
+
+def blended_swing(ctx: Context, draws: int = 1, seed: int | None = None):
+    """Uniform swing DAMPED toward persistence — the professional reference.
+
+    ``last-lge`` (594 coherent seats over the panel) and ``prior-lge-noise``
+    (561) are not references, they are strawmen, and quoting a 3.4x margin over
+    them invites the obvious charge that the baselines were picked to be beaten.
+    The standard answer in the forecasting literature is Murphy's convex
+    combination of the two naive forecasts:
+
+        w * (prev + swing) + (1 - w) * prev  ==  prev + w * swing
+
+    which is worth writing out, because it collapses: **the convex combination
+    of uniform swing and persistence is just a DAMPED swing**, and the whole
+    family is one parameter. ``w = 1`` is ``uniform-swing``, ``w = 0`` is
+    ``last-lge``, and anything between is the classic swing-damping correction
+    for the fact that national movement does not transfer one-for-one to local
+    voting.
+
+    ``BLEND_W`` was fitted leave-one-city-year-out on this panel — the one place
+    in this repository where fitting on the scoreboard is the right thing to do,
+    because a reference forecast should be as strong as it honestly can be
+    before the model is measured against it (rule 10 is about constants inside
+    the MODEL).
+
+    **The fit says 1.0, and 1.0 is ``uniform-swing``.** Coherent-comparable seat
+    error over the nine city-years is monotone decreasing in ``w`` across the
+    whole interval — 594 at 0.0, 456 at 0.5, 382 at 0.9, **376 at 1.0** — so the
+    optimum inside the convex family sits exactly on the boundary. The
+    unconstrained grid optimum is ``w = 1.05`` at 372, which is not a blend at
+    all but an AMPLIFIED swing, it is worth 4 seats in 376, the grid is flat
+    either side of it (376 / 376 / 372 / 374 / 372 / 374 / 376 from 0.95 to
+    1.25), and **it does not survive leave-one-out: held out city-year by
+    city-year the fitted blend totals 380 against uniform swing's 376.**
+
+    So this function exists to have been checked, and it is kept runnable so the
+    check is repeatable — but it is NOT reported as a fourth baseline, because a
+    column identical to ``uniform-swing`` is noise. What it establishes is the
+    thing worth establishing: **uniform swing is not a strawman.** It is the
+    strongest member of the naive family on this panel, and the margin quoted
+    over it is honest. MODEL-LOG §1.57.
+    """
+    if not ctx.prior_npe_city:
+        raise SystemExit(
+            f"blended-swing needs {sources_for(ctx.target)['prior_npe']}, which "
+            f"is not on disk for this city — same requirement as uniform-swing")
+    swing = BLEND_W * np.array(
+        [ctx.base_npe_city.get(p, 0.0) - ctx.prior_npe_city.get(p, 0.0)
+         for p in ctx.universe])
+    ward = _renormalise(np.clip(ctx.ward_share + swing[None, :], 0.0, None))
+    pr = _renormalise(np.clip(ctx.pr_share + swing[None, :], 0.0, None))
+    seats, winners = council_from_shares(ctx, ward, pr)
+    return _repeat(seats, winners, draws)
+
+
 def prior_lge_noise(ctx: Context, draws: int = 2000, seed: int | None = 20211101,
                     scale: float = 1.0):
     """``last-lge`` with a spread calibrated on the previous local transition.
@@ -444,6 +504,7 @@ def _shift(vd_share: np.ndarray, city: np.ndarray, z: np.ndarray) -> np.ndarray:
 BENCHMARKS = {
     "last-lge": last_lge,
     "uniform-swing": uniform_swing,
+    "blended-swing": blended_swing,
     "prior-lge-noise": prior_lge_noise,
 }
 
