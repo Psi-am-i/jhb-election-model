@@ -559,6 +559,14 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         "SOLVE_TOL", "draws", "seed", "COUNCIL",      # run control, not belief
         "SD_FLOOR", "SD_CEILING",                     # bounds on a MEASURED fit
         "MIN_HOME_SPLITS",                            # registered under its own name
+        # `theta_residual.py` MEASURES the model; it is not part of it. BOOT is
+        # how many bootstrap replicates the interval is built from and BOOT_SEED
+        # makes that interval reproducible — neither is a claim about an
+        # election, and moving either cannot change a forecast by a seat. They
+        # are here rather than in the register because a register row that says
+        # "4000 replicates" teaches a reader nothing and dilutes the rows that
+        # do. See MODEL-LOG §1.59.
+        "BOOT", "BOOT_SEED",
     }
     reg = (ROOT / "JUDGEMENT-CALLS.md").read_text()
     names = set()

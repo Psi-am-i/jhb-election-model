@@ -115,6 +115,9 @@ interpreter.
                                                        #   runs in parallel by default; --jobs 1 forces serial
     .venv/bin/python src/diagnose.py --city joburg --target 2021 --wards 0
     .venv/bin/python src/arrivals.py                   # the arrival machinery, scored alone
+    .venv/bin/python src/theta_residual.py             # the CONDITIONAL sd(log theta),
+                                                       #   forward validated, against what
+                                                       #   the model actually uses (§1.59)
     .venv/bin/python src/sweep.py                      # obvious-fault sweep
 
 **Before adding a print to find out what something is, ask for a trace.**

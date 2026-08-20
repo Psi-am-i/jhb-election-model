@@ -103,13 +103,17 @@ The rank-band vote table further up and the mean-PIT column here are the same LE
 
 **The `n` here is the number of columns the width figure was actually computed on** — columns with a defined `z`. A column whose draws are all identical has no scale, so it carries a PIT and no `z`; the pooled tables above count PIT values and their `n` is larger.
 
-| band | `claimed` n(z) | `claimed` SD of z | `reference` n(z) | `reference` SD of z | `reference` mean z |
-|---|---|---|---|---|---|
-| ranks 1-3 | 27 | 0.855 | 27 | **0.855** | -0.009 |
-| ranks 4-12 | 37 | 0.823 | 74 | **1.940** | +0.796 |
-| ranks 13+ | 3 | 0.540 | 124 | **0.364** | -0.125 |
+| band | `claimed` n(z) | `claimed` SD of z | `reference` n(z) | `reference` SD of z | `reference` mean z | `reference` probit-SD |
+|---|---|---|---|---|---|---|
+| ranks 1-3 | 27 | 0.855 | 27 | 0.855 | -0.009 | **0.682** |
+| ranks 4-12 | 37 | 0.823 | 74 | 1.940 | +0.796 | **1.020** |
+| ranks 13+ | 3 | 0.540 | 124 | 0.364 | -0.125 | **1.188** |
 
-**Ranks 1-3 are the same columns in both populations** — the top three are always claimed — so that row is a consistency check and the two numbers should agree exactly. **Ranks 4-12 do not agree, and the sign of the verdict reverses.** `claimed` says the band is too WIDE; on the fixed population it is far too NARROW, because the two largest standardised errors in the model — Cape Town's Cape Coloured Congress at z = +12.1 and Johannesburg's PA at +9.3 — are outside `claimed` by construction. Read together with `IQR-sd` (the interquartile range over 1.349, robust to a handful of columns, 0.595 at ranks 4-12) the real fault is **bulk against tail inside one band**: the middle of the band is too wide and its tail is far too thin, which is why no scalar has ever satisfied both. MODEL-LOG §1.56.
+**Read the last column, not the `SD of z` column, on ranks 13+.** `sd(z)` is exact under a level shift and **meaningless on a near-degenerate discrete column**: where the forecast is roughly Bernoulli(p) and the truth is zero, `z = −√(p/(1−p))` exactly, a function of the forecast probability with no room to spread. On the 96 ranks-13+ columns whose truth is zero, observed `z` correlates with that expression at **+0.93**. probit-SD comes from the randomised PIT, which is uniform under calibration whatever the support, and is the one to read there — at the cost of being attenuated by a level shift, so it is a LOWER BOUND wherever `mean z` is far from zero. Neither statistic is right everywhere; the pair is. MODEL-LOG §1.58.
+
+**Ranks 1-3 are the same columns in both populations** — the top three are always claimed — so that row is a consistency check and the two `SD of z` numbers should agree exactly. It is also the band that is genuinely too WIDE (probit-SD 0.682, with `mean z` ≈ 0 so nothing is attenuating it) and the band that responds to `dirichlet_scale`.
+
+**Ranks 4-12 cannot be described by one width, and that is the finding.** On the same columns `sd(z)` says far too narrow, `IQR-sd` (0.595) says too wide, and probit-SD says about right — because the error distribution is a narrow shifted bulk with two enormous outliers, Cape Town's Cape Coloured Congress at z = +12.1 and Johannesburg's PA at +9.3, both of which `claimed` excludes by construction. A distribution that reads too wide, about right and far too narrow depending which moment you take is mis-SHAPED, not mis-scaled, and no scalar fixes it. §1.56, §1.58.
 
 **`probit-SD` is the one to quote when only a PIT is available.** It is `sd(Φ⁻¹(u))`, and under a location shift of a roughly normal forecast `Φ⁻¹(u)` translates — the shift lands in the mean, not the spread. `exact SD of z` is `(truth − forecast mean) / forecast sd` per column, centred, which is invariant to a shift by construction; it reads `—` on an artefact written before `calibration_columns` stored the `z` column, and it is the number to prefer when it is there. The standardised bias is the LEVEL, kept in its own column so that it can never be read as width again.
 

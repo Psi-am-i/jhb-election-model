@@ -680,6 +680,28 @@ share, between the raw fit's 0.120 and the marginal record's 0.227.
 Anything that reads a layer's own historical spread and sets that layer's
 parameter from it is making this mistake.
 
+**Since 2026-08-20 the conditional share is COMPUTED rather than argued** —
+`src/theta_residual.py`, MODEL-LOG §1.59. It forward-validates the residual of
+log θ about the centre `theta_prior` actually used, cluster bootstrapped on
+metro-year, and it says two things:
+
+| national size | measured conditional sd | 95% CI | what the model uses |
+|---|---|---|---|
+| ≥ 15% | **0.138** | [0.084, 0.171] | **0.150** ✓ |
+| 5 – 15% | 0.663 | [0.243, 1.008] | 0.188 |
+| 1 – 5% | 0.448 | [0.274, 0.613] | 0.263 |
+| 0.2 – 1% | 0.737 | [0.565, 0.869] | 0.340 |
+| < 0.2% | 0.915 | [0.683, 1.065] | 0.460 |
+
+The paragraph above is **confirmed at the top of the ballot** — 0.150 is inside
+the interval, while the marginal 0.222 and the chi-square-corrected 0.260 are
+far outside it. It is **refuted everywhere else**: below 15% the interval
+excludes the model's width in every bin, always too narrow, 1.7× to 3.5×.
+`sd_for` is a straight line in log(size) and the measured quantity is not
+monotone (0.915, 0.737, 0.448, 0.663, 0.138), so the line is anchored at the
+ends and wrong in the middle. That middle is the mid-ballot — the band §1.58
+independently measures as too narrow on the seat forecast.
+
 ## Running the nine city-years
 
 `compare_history` runs them in parallel processes by default — one per

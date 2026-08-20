@@ -5715,12 +5715,17 @@ count PIT values instead and their `n` is larger (76 and 139); `pooled_by_band`
 now stores `n_z` so a width figure can be labelled with the columns it was
 actually computed on.
 
-**Ranks 13+ read `sd(z)` 0.364 with mean z −0.125** on the fixed population —
+~~**Ranks 13+ read `sd(z)` 0.364 with mean z −0.125** on the fixed population —
 intervals about 2.7× too wide on a band that is also over-forecast (+5.60pp,
-§1.54). `claimed` sees three columns there and cannot say anything; `reference`
-sees 124. It does not change §1.54's disposition — every redistribution tried
-scored worse — but it does mean the tail's over-forecast is carried with
-intervals wide enough to hide it, and that is now measurable.
+§1.54).~~ **WRONG, corrected the same day in §1.58.** `sd(z)` is not a width
+statistic on a near-degenerate discrete column: where the forecast is
+approximately Bernoulli(p) and the truth is zero, `z = −√(p/(1−p))` exactly —
+a deterministic function of the forecast probability with no room to spread.
+Verified on the 96 ranks-13+ columns where the truth is zero: observed `z`
+correlates with `−√(p/(1−p))` at **+0.93**. So `sd(z)` on that band measures the
+spread of *p* across micro-parties, not calibration. On the discreteness-safe
+statistic ranks 13+ read **probit-SD 1.188** — slightly too NARROW, not 2.7×
+too wide. §1.58.
 
 **Ranks 1-3 are identical in both populations at every setting** — the same 27
 columns, because the top three parties are always claimed. §1.55's reading of
@@ -5843,6 +5848,241 @@ loses to the unfitted one out of sample is not a baseline.
   separately (§A7, `history.md`): the margin is a Gauteng result. Inside Gauteng
   the model takes **42%** off uniform swing's seat error; outside it, **10%**,
   and it loses at Mangaung.
+
+---
+
+## 1.58 The width question, answered per band on a fixed population — and two of this project's three width statistics are invalid where it used them (2026-08-20)
+
+§1.56 fixed the population. This fixes the statistic, and the two together give
+the first reading of this model's width that is not confounded by something.
+**It also corrects §1.56's own ranks 13+ paragraph, written four hours earlier.**
+
+### First: "outside every draw" is not a property of the forecast
+
+The review's item A2 gates on *seats won by parties the truth exceeded in every
+draw*, and reports 19 seats rising to 55 under `dirichlet_scale = 1.4`. That
+statistic depends on the DRAW COUNT as much as on the model. At 600 draws six
+columns carry PIT 1.0; **at 1500 draws it is four columns and four seats**,
+because the PA at Johannesburg 2021 and the Cape Coloured Congress at Cape Town
+fall inside the sample once there are enough draws to reach their tail. Nothing
+about the model changed.
+
+Re-measured at 1500 draws it does not discriminate at all:
+
+| `dirichlet_scale` | 1.0 | 1.4 | 2.0 |
+|---|---|---|---|
+| seats won at `P(≥1 seat) < 0.02` | 4 | 4 | 4 |
+| seats won at `P(≥1 seat) < 0.10` | 4 | 4 | 4 |
+
+So `calibration_columns` now stores **`p_any`** — the fraction of draws giving
+each column at least one seat — and any gate is written on that. It is also
+exactly the quantity the publication gate asks for (`PUBLISHING-BACKLOG.md` §5b
+item 1).
+
+**And the two headline failures are not zero-probability at all.** At the
+committed setting the Cape Coloured Congress has `P(≥1 seat) = 0.118` and won
+seven; the PA at Johannesburg has **0.307** and won eight. The model does not
+say they are impossible. It says they are small, and they were not. That is an
+error of SIZE, and it is a different repair from an error of possibility.
+
+### Second: `z` is not a width statistic on a near-degenerate column
+
+Where a seat column is approximately Bernoulli(p) and the truth is zero,
+
+    z = (0 − p) / √(p(1−p)) = −√(p / (1−p))
+
+exactly — a deterministic function of the forecast probability, with no room to
+spread whatever the intervals are doing. Checked rather than asserted: on the 96
+ranks-13+ columns where the truth is zero, observed `z` correlates with
+`−√(p/(1−p))` at **+0.93**.
+
+So `sd(z)` on ranks 13+ measures the spread of *p* across micro-parties.
+§1.56's *"ranks 13+ read sd(z) 0.364 — intervals about 2.7× too wide"* is
+withdrawn; the entry is annotated in place.
+
+The three statistics have complementary failure modes and the project has now
+been caught by each:
+
+| statistic | exact when | fails when | caught |
+|---|---|---|---|
+| coverage at one level | never alone | confounded with the level | ITERATING rule 8, twice |
+| probit-SD | discrete columns fine — randomised PIT is uniform under calibration whatever the support | **attenuated by a level shift** | §1.36 |
+| `sd(z)` | continuous columns, exact under a shift | **meaningless on a low-`p` discrete column** | here |
+
+### The reading, per band, on the fixed population with the statistic valid there
+
+`dirichlet_scale` swept to 16× — far past anything contemplated — to find the
+ceiling. probit-SD, 1.00 correct, below 1.00 too wide:
+
+| scale | coherent | CRPS | ranks 1-3 | ranks 4-12 | ranks 13+ |
+|---|---|---|---|---|---|
+| 0.5 | 262 | 256.4 | 0.549 | 0.936 | 1.208 |
+| **1.0** | **254** | **232.9** | **0.682** | **1.020** | **1.188** |
+| 1.4 | 258 | 226.5 | 0.775 | 1.111 | 1.184 |
+| 2.0 | 262 | 221.6 | 1.077 | 1.227 | 1.179 |
+| 4.0 | 260 | 217.1 | 1.121 | 1.288 | 1.180 |
+| 8.0 | 262 | 213.9 | 1.161 | 1.529 | 1.186 |
+| 16.0 | 258 | 212.5 | 1.180 | 1.670 | 1.192 |
+
+Three separate findings, and none of them is the one this project has been
+working from.
+
+**1. Ranks 1-3 are the band that is too wide, by about 1.5×** (probit-SD 0.682).
+Its mean `z` is −0.009, so there is no shift to attenuate the statistic and it
+can be read at face value. It is also the band that RESPONDS: 0.682 → 1.077 by
+scale 2.0.
+
+**2. Ranks 4-12 cannot be described by one width, and that is the finding.**
+Three valid-looking statistics on the same 74 columns disagree: `sd(z)` 1.940
+(far too narrow), `IQR-sd` 0.595 (too wide), probit-SD 1.020 (about right, and
+attenuated by a mean `z` of +0.796, so the true value is higher). They disagree
+because the error distribution is a narrow shifted bulk with two enormous
+outliers — the CCC at `z` +12.1 and the PA at +9.3. **A distribution that reads
+"too wide", "about right" and "far too narrow" depending on which moment you
+take is not mis-scaled, it is mis-SHAPED**, and no scalar can fix it. That is
+the real case for A2's mixture, and it is a different case from the one the
+review made.
+
+**3. Ranks 13+ do not move at all, and `dirichlet_scale` is not their lever.**
+probit-SD goes 1.208 → 1.192 across a **32-fold** change in concentration. 124
+of the 225 fixed columns sit in that band. Whatever sets their width, it is not
+the within-pool Dirichlet — the candidates are the θ level shock and `SD_FLOOR`,
+which is task A5's territory. Recorded as a hypothesis, not a finding.
+
+### And the lever cannot reach correct width anywhere
+
+At 16× concentration — 32× the low end — overall `IQR-sd` is 0.766 and ranks 1-3
+probit-SD is 1.180, having crossed 1.00 somewhere near scale 2.0. Meanwhile the
+tail gets steadily worse: max `z` 12.1 → 19.2 and columns beyond \|z\|>3 going
+5 → 14. **CRPS improves monotonically the whole way (232.9 → 212.5) while
+coherent seats stay flat at 254–262**, which is worth stating plainly: CRPS
+wants the forecast narrower than the seat error does, all the way out, and a
+width decision taken on CRPS alone would run to the end of the sweep.
+
+### Disposition
+
+- Nothing retuned. `dirichlet_scale` stays at **1.0**, the method-of-moments
+  fit, for the reason §1.55 gave and this does not disturb.
+- `p_any` is stored, and gates are written on it rather than on "outside every
+  draw".
+- **A2's brief changes.** Not "narrow the bulk and add a realignment component
+  because the tail is thin" — the tail is not thin in the way the review
+  measured, and the band whose bulk is too wide is ranks 1-3, not 4-12. The
+  object is a component structure that lets ranks 1-3 narrow while ranks 4-12
+  keeps its heavy right tail, with `π` still estimated from the archive.
+- **A5 is promoted.** 124 of 225 columns are inert to the model's dominant width
+  lever, and the width question for them has never been asked of the right
+  constant.
+
+---
+
+## 1.59 `SD_FLOOR` is right, and the rest of the θ prior is 1.7 to 3.5× too narrow (2026-08-20)
+
+§1.50 argued that `SD_FLOOR = 0.15` is "approximately the CONDITIONAL dispersion
+this layer should carry", and the review's item A5 objected — correctly — that
+**nothing in the repository computes the conditional dispersion**, so the
+constant sat at 🟡 on the strength of a sentence and two errors that happened to
+cancel. `src/theta_residual.py` computes it.
+
+### What is measured
+
+For every target LGE and every metro, from strictly earlier cycles only:
+
+    residual = log(observed θ) − log(the centre `theta_prior` gave that party)
+
+Both the centre and the width come from `levels.theta_prior` itself, called with
+the real baseline for that metro-year — the preceding national election's
+citywide shares, which is what `montecarlo` passes it. Intervals are cluster
+bootstrapped on metro-year, because every party in one metro-year shares that
+year's shock and an ANC collapse is not eight independent facts.
+
+| national size | n | metro-years | measured | 95% CI (cluster) | width the model uses | ratio |
+|---|---|---|---|---|---|---|
+| < 0.2% | 78 | 17 | 0.915 | [0.683, 1.065] | 0.460 | **1.99×** |
+| 0.2 – 1% | 96 | 18 | 0.737 | [0.565, 0.869] | 0.340 | **2.17×** |
+| 1 – 5% | 32 | 16 | 0.448 | [0.274, 0.613] | 0.263 | **1.70×** |
+| 5 – 15% | 14 | 13 | 0.663 | [0.243, 1.008] | 0.188 | **3.53×** |
+| **≥ 15%** | 37 | 18 | **0.138** | **[0.084, 0.171]** | **0.150** | 0.92× |
+
+### First finding: §1.50 was right, and it is now measured rather than argued
+
+At the top of the ballot the conditional dispersion is **0.138** and the model
+uses **0.150** — inside the interval. The MARGINAL record for the same parties
+is 0.222 and the chi-square-corrected fit would be 0.260; both are far outside
+it. So §1.50's reasoning holds: the layer is conditional, the record is
+marginal, and applying `LOG_CHI2_BIAS` would count the within-pool Dirichlet's
+variance twice. That is why the correction scored worse on everything (§1.50),
+and now there is a number saying why rather than an argument.
+
+`SD_FLOOR` is what puts the width there — it binds on **20 of the 37**
+observations at or above 15%, and never below 5% of the vote. It is a
+top-of-ballot constant that lands on the measurement. Better defended than it
+was; still not derived. **🟡 → 🟢 on the top bin only.**
+
+Note also what this says about §1.50's confounded test, which the review flagged:
+the objection was that applying the correction ALSO stopped the floor binding,
+so two things moved at once. It does not matter to the conclusion. The corrected
+width at the top of the ballot would be 0.260 and the measured quantity is 0.138
+with an upper bound of 0.171 — the correction is refuted on its own, without
+needing the arm to be clean.
+
+### Second finding, and it is the larger one: everywhere else is far too narrow
+
+**In all four bins below 15% the cluster-bootstrap interval excludes the width
+the model uses**, always in the same direction. The best-supported bins (n=96
+and n=78) exclude it comfortably; the largest ratio (5–15%, 3.53×) has the
+fewest observations and the widest interval and should be read as the weakest of
+the four, not the headline.
+
+The cause is visible in the estimator. `sd_for` is a straight line in log(size),
+and the measured conditional dispersion is **not monotone** in size — 0.915,
+0.737, 0.448, 0.663, 0.138. A line cannot be right in the middle and at both
+ends, and this one is anchored at the ends.
+
+**This converges with §1.58 from a completely different direction.** That entry
+measures the mid-ballot SEAT forecast as too narrow on a fixed calibration
+population (`sd(z)` 1.940 at ranks 4-12). This one measures the θ PRIOR as
+1.7–2.2× too narrow across the sizes that produce those seats. Two instruments,
+different data, different statistics, same band, same direction. Neither is
+evidence for the other, but the model's largest unexplained fault now has a
+mechanism-level candidate that is not the within-pool Dirichlet.
+
+### Cross-check
+
+Pooled forward residual sd **0.7335**, against §1.43's independently computed
+forward-validation RMSE of **0.7150** for the same estimator family — two
+different computations agreeing to about 2.5%. §1.43's finding that the θ
+estimator is near its ceiling on the CENTRE is untouched; this is about the
+WIDTH, which §1.43 did not measure.
+
+### And a caught error worth recording
+
+The first version of `theta_residual` rebuilt `levels.sd_for` outside its
+closure, because `sd_for` is defined inside `theta_prior` and cannot be called
+from anywhere else. **It was wrong**: `sd_for` regresses squared deviation on
+`baseline.get(party)` — the party's size at the TARGET — and the rebuild fed it
+each party's historical sizes. Different line: 0.530 against the model's 0.150
+at 0.1% of the vote. `tests/test_levels_dispersion.py` was written before the
+first run and caught it immediately; the module now takes both the centre and
+the width from `theta_prior` and rebuilds nothing. **A second copy of a
+calculation is this repository's most reliable defect** — `MACHINERY.md`
+describing a dead level layer, `build_interactive` reimplementing a replaced
+drawer, the published page driving a deleted lever — and it very nearly produced
+a fourth instance inside the instrument written to check one of the others.
+
+### Disposition
+
+- **Nothing in the model is changed by this entry.** It is a measurement.
+- `SD_FLOOR` moves to 🟢 for parties at or above 15%, with the interval quoted.
+- The register gains the second finding against `sd_for`'s functional form,
+  at 🔴: the fit is outside the measured interval for every size below 15%.
+- **The successor is a refit, not a new constant.** `sd_for` fits deviations
+  from the COMMON centre; the quantity it should estimate is the residual about
+  the SHRUNK centre, which is what this module computes. Fitting it that way is
+  a fit to the RECORD, forward validated, not to the scoreboard — so rule 10
+  permits it. It must be validated fit-one-cycle-apply-the-other, and it will
+  widen the mid-ballot, which on §1.58's reading is the right direction and on
+  the CRPS scoreboard will look like the wrong one.
 
 ---
 

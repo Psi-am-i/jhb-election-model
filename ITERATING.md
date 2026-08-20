@@ -281,18 +281,36 @@ it is newer, better argued, or built from more measurements.
    Town's Cape Coloured Congress (z = +12.1) and Johannesburg's PA (z = +9.3)
    are outside `claimed` and inside `reference`.
 
-   On the fixed population ranks 4-12 read `sd(z)` **1.940** — about half as
-   wide as it should be — against `claimed`'s 0.823. Ranks 1-3 are the same 27
-   columns in both and are unchanged at 0.855. So:
+   On the fixed population ranks 4-12 read `sd(z)` **1.940** against `claimed`'s
+   0.823. Ranks 1-3 are the same 27 columns in both and are unchanged at 0.855.
 
-   - **Ranks 1-3: too wide, narrow them.** Unaffected by any of this.
-   - **Ranks 4-12: the bulk is too wide and the tail is far too thin.** `sd(z)`
-     1.940 with `IQR-sd` 0.595 on the same columns. Those are the same errors
-     read two ways, and no scalar satisfies both — narrowing to
-     `dirichlet_scale = 2.0` takes the columns beyond \|z\|>3 from four to nine.
+   **AND CHOOSE THE STATISTIC BY THE BAND — §1.58, the same day.** `sd(z)`
+   supersedes probit-SD *on continuous columns* and is meaningless on a
+   near-degenerate discrete one: where the forecast is roughly Bernoulli(p) and
+   the truth is zero, `z = −√(p/(1−p))` exactly, and observed `z` on the 96
+   such ranks-13+ columns correlates with that expression at **+0.93**.
+   probit-SD is valid there and is attenuated by a shift, so it is a lower
+   bound wherever `mean z` is far from zero. Neither is right everywhere; the
+   pair is. So:
+
+   - **Ranks 1-3: genuinely too wide, by about 1.5×** (probit-SD 0.682, `mean
+     z` −0.009 so nothing is attenuating it). This is the band that is too wide
+     and the band that responds to `dirichlet_scale`.
+   - **Ranks 4-12: not describable by one width.** On the same 74 columns
+     `sd(z)` says 1.940 (far too narrow), `IQR-sd` says 0.595 (too wide) and
+     probit-SD says 1.020 (about right, attenuated by `mean z` +0.796). They
+     disagree because the distribution is a narrow shifted bulk plus two
+     enormous outliers. **Mis-shaped, not mis-scaled** — no scalar fixes it.
+   - **Ranks 13+: probit-SD 1.188, and INERT** — 1.208 → 1.192 across a 32-fold
+     change in concentration. 124 of the 225 fixed columns. `dirichlet_scale`
+     is not their lever.
    - The corollary two paragraphs above — "both bands want the same thing on
-     width, narrowing" — is **withdrawn for ranks 4-12**. It was read off
-     `claimed`.
+     width, narrowing" — is **withdrawn**. It was read off `claimed`, and on a
+     fixed population only ranks 1-3 wants narrowing.
+   - **CRPS wants the forecast narrower than the seat error does, all the way
+     out**: across `dirichlet_scale` 0.5 → 16 CRPS falls monotonically 256.4 →
+     212.5 while coherent seats stay flat at 254–262. A width decision taken on
+     CRPS alone runs to the end of the sweep. Do not take one.
 
    The multiplier this rule quotes as "about **1.35×** wider" is also stale: it
    comes from probit-SD figures (0.740 / 0.734) measured before the level
