@@ -6255,6 +6255,94 @@ confirmation.
 
 ---
 
+## 1.62 The `sd_for` refit is refuted, and the pre-registration is why that is a result (2026-08-20)
+
+**Negative result. No model change. `levels.sd_for` stands exactly as committed.**
+
+§1.59 measured the committed θ dispersion as 1.7× to 3.5× too narrow below 15%
+of the vote, with the cluster-bootstrap interval excluding it in all four bins.
+§1.61 pre-registered how a refit would be judged, before building one, because
+§1.58 had established that CRPS would call the correct change worse. Stage 1 was
+run. Both refits fail it.
+
+### Stage 1 — held-out NLL, mean per observation, lower is better
+
+Coefficients are fitted from the record strictly before each target, as the
+model does; the score is `Σ[log w + r²/(2w²)]` on that target's realised
+residuals — proper for dispersion, so neither widening nor narrowing alone can
+win it.
+
+| target | n | metro-years | **A** (committed) | **B** (refit, leave-one-observation-out) | **C** (refit, leave-one-cycle-out) |
+|---|---|---|---|---|---|
+| 2016 | 97 | 8 | 1.1929 | 2.0657 | **0.6815** |
+| 2021 | 138 | 8 | **0.1611** | 1.4948 | 0.9822 |
+
+*(2006 and 2011 carry 11 observations from one metro each — the pre-2011 archive
+is Johannesburg only — and `size_centre` needs 20, so neither refit can be
+formed there. The comparison is the two folds §1.61 named.)*
+
+**B loses both folds. C wins one and loses one.** §1.61's rule: *"one-of-two is
+a coin flip on two folds and is recorded as undetermined."* Neither reaches
+stage 2, and the scoreboard was never run.
+
+### Why B failed, which is the reusable part
+
+B fitted dispersions that were **too narrow** — the opposite of the fault it was
+built to fix. Leave-one-observation-out was not leaving out anything much: a
+party's observations cluster by CYCLE, so dropping the ANC's 2016 Johannesburg
+ratio leaves its 2016 ratios in seven other metros, all sharing the 2016 national
+swing, still setting the centre it is scored against. Measured directly:
+
+| | leave-one-observation-out, inside the record | genuine forward residual |
+|---|---|---|
+| 2016 | 0.589 | 0.724 |
+| 2021 | 0.555 | 0.705 |
+
+Understated by **1.23× and 1.27×**, in the same direction both times. This is
+ITERATING rule 11's clustering point one level down: *the unit you leave out has
+to be the unit the shocks arrive in.* C leaves out the cycle and does close most
+of that gap — its 2016 fold is the best number in the table — which confirms the
+diagnosis without rescuing the change.
+
+### What it means for §1.59, and it is not that §1.59 was wrong
+
+§1.59's measurement stands: the committed fit really is 1.7× to 3.5× adrift of
+the conditional dispersion below 15% of the vote. What is now refuted is the
+proposed CAUSE — that it fits the wrong residual. Fitting the right residual, by
+either construction, predicts held-out dispersion no better and usually worse.
+
+The remaining explanation is the one §1.59 named second and this entry promotes
+to first: **the measured conditional dispersion is not monotone in size** —
+0.915, 0.737, 0.448, 0.663, 0.138 — and a straight line in log(size) cannot be
+right in the middle and at both ends whatever it is fitted to. The fault is the
+FORM, not the residual. §1.61 anticipated exactly this and called it: *"the
+current form is not the fault and §1.59's second finding is about the bins rather
+than the line."*
+
+### The trial budget, stated because it is the thing that would go wrong next
+
+Two forms have now been tested on two folds. A third, fourth and fifth would
+eventually produce one that wins both by luck: two folds is roughly a coin flip
+per trial, so a handful of attempts makes a spurious two-of-two likely. **No
+further functional form should be tried against these two folds.** A non-monotone
+form is the obvious next idea and it is precisely the one that must NOT be tried
+here — it has more freedom and fewer constraints, and the panel cannot tell a
+real non-monotonicity from the 14 observations sitting in the 5–15% bin.
+
+What would license another attempt: more folds (the θ record can be extended
+backwards if the pre-2011 archive is ingested for the other seven metros), or a
+mechanism argument that names the shape in advance rather than reading it off
+the bins.
+
+### And the pre-registration earned its keep on the first use
+
+C's 2016 fold is the best single number in the table. Without §1.61 committed
+beforehand, the honest-looking move would have been to quote that fold, describe
+the 2021 fold as noise, and ship a change that is a coin flip. The rule was
+written down first, it said one-of-two is undetermined, and it decided this.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model
