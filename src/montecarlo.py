@@ -173,6 +173,18 @@ DEFAULTS: dict = {
     "w_bye_local_pr": 0.0,       # 0.35 is the value tested
     "bye_local_cap": 1.5,
     "bye_tau_months": 18.0,
+    # WHICH POLL PATHS RUN, so the channel can be scored. There are two live
+    # ones and they answer different questions: "arrivals" is a national poll
+    # converted to a contested area, for parties with NO record at all;
+    # "all" adds the metro-poll inverse-variance blend, which touches every
+    # party a poll of THIS city names.
+    #
+    # It exists because until 2026-08-21 the only way to switch the channel off
+    # was to empty `polls.json` — so the one thing nobody had ever done was
+    # measure what it is worth. `backtest.FITTED_ON` declares both paths
+    # leak-free and neither has ever been scored. MODEL-LOG §1.65.
+    "poll_paths": "all",    # "off" | "arrivals" | "all"
+
     "poll_id": None,        # e.g. "srf-2026q2-coj" — see polls.json
     "poll_weight": 0.0,
     "poll_k": POLL_K,
@@ -2649,8 +2661,10 @@ def run_model(target, scenario: dict,
     try:
         import polling as _polling
         import pools as _pl
-        _usable = [q for q in _polling.usable_for(target)
-                   if q.get("scope") == "national"]
+        _usable = ([q for q in _polling.usable_for(target)
+                    if q.get("scope") == "national"]
+                   if scenario.get("poll_paths", "all") in ("arrivals", "all")
+                   else [])
         if _usable:
             _votes = _polling.votes_by_metro(target.year)
             _rosters = {c: _pl.contesting_parties(
@@ -2662,8 +2676,11 @@ def run_model(target, scenario: dict,
                     continue                      # has a record; the spine has it
                 if _party not in (_roster or set()):
                     continue                      # not on this city's ballot
+                # WHO STOOD, not who scored. `metro_citywide(...) > 0` reads
+                # the result this backtest is predicting; row existence is the
+                # nomination fact. See pools.metro_roster. MODEL-LOG §1.65.
                 _stood = [c for c in _pl.METRO_CODES
-                          if _pl.metro_citywide(c, target.year).get(_party, 0.0) > 0]
+                          if _party in _pl.metro_roster(c, target.year)]
                 _est = _polling.metro_estimate(_poll, _party, _stood,
                                                target.year, _votes)
                 if not _est:
@@ -2746,8 +2763,9 @@ def run_model(target, scenario: dict,
     # the one case it was built for, and the warning scrolled past. A failure
     # here now says exactly what broke.
     import polling as _pg
-    _metro = [q for q in _pg.usable_for(target)
-              if q.get("scope") == "metro" and q.get("city") == target.city.slug]
+    _metro = ([q for q in _pg.usable_for(target)
+               if q.get("scope") == "metro" and q.get("city") == target.city.slug]
+              if scenario.get("poll_paths", "all") == "all" else [])
     _agg = _pg.aggregate(_metro) if _metro else None
     if _agg:
         _sd = scenario.get("_theta_sd") or {}

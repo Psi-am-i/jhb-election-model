@@ -6537,6 +6537,104 @@ one would be a party-specific constant of exactly the kind deleted twice
 
 ---
 
+## 1.65 The poll channel is worth 50 coherent seats, and nobody had ever measured it (2026-08-21)
+
+`src/polling.py` has been in the model since 2026-08-14, is the best-argued
+module in the repository, and **had never been scored**. `sweep.py` contains the
+string "poll" zero times; `compare_history` has no poll column; `backtest`
+declares both paths leak-free with empty year tuples, which is a statement about
+leakage rather than about skill. The one test that touches it asserts the branch
+*runs*, not that it helps.
+
+The obstacle was that there was no way to switch it off short of emptying
+`polls.json`. `poll_paths` is that switch — `"off"` | `"arrivals"` | `"all"` —
+and with it the channel is measurable for the first time.
+
+### Nine city-years, 1500 draws, coherent seat error
+
+| city-year | off | arrivals | all |
+|---|---|---|---|
+| Johannesburg 2016 | 18 | 18 | **16** |
+| Johannesburg 2021 | 90 | **86** | 86 |
+| **Tshwane 2021** | 52 | **30** | 30 |
+| **Ekurhuleni 2021** | 38 | **18** | 18 |
+| eThekwini 2021 | 34 | **32** | 32 |
+| Cape Town 2021 | 34 | 34 | 34 |
+| Mangaung 2021 | 10 | 10 | 10 |
+| Nelson Mandela Bay 2021 | 18 | 18 | 18 |
+| Buffalo City 2021 | 10 | 10 | 10 |
+| **total coherent** | **304** | **256** | **254** |
+| **total CRPS** | **263.7** | **232.7** | **232.9** |
+
+**The arrivals path is worth 48 coherent seats and 31.0 CRPS**, which puts it
+alongside the level shrink (312 → 264, §1.44) as one of the two largest effects
+ever measured here. The metro path adds two more, entirely at Johannesburg 2016,
+the one city-year it fires on. **No city-year is made worse by either.**
+
+### It refutes the prediction made before running it
+
+The plan written that morning said to *"expect Johannesburg 2021 to look like a
+regression"*: `poll_levels` outranks the arrival seed, the seed puts ActionSA at
+11.07%, the contested-area conversion gives ~6.3%, and the actual was 16.05%, so
+replacing a closer number with a further one should cost seats.
+
+It does not. Johannesburg 2021 **improves**, 90 → 86. And the effect is not
+where the argument put it at all — it is at **Tshwane (−22)** and **Ekurhuleni
+(−20)**, where ActionSA's actual was far lower than in Johannesburg and ~6.3% is
+close, while Johannesburg's own gain is the smallest of the four. The prediction
+had the right mechanism and the wrong sign, because it reasoned about the metro
+the model is worst at instead of about the four the path actually touches.
+
+### A temporal leak, found in the path and measured to be inert
+
+`_stood` decided which metros a party contested by asking where it got **votes**
+at the target:
+
+    _stood = [c for c in METRO_CODES
+              if metro_citywide(c, target.year).get(party, 0.0) > 0]
+
+That reads the result the backtest is predicting. Row existence is the
+nomination fact and reading it does not touch the outcome — the argument
+`levels.contestation` already runs on (§1.47) — so `pools.metro_roster` replaces
+it.
+
+**Measured before the change rather than after, so the correction cannot be
+mistaken for a result.** The two definitions agree for every party the poll path
+touches: ActionSA's roster and its vote-presence are the same four metros at 2021
+(JHB, TSH, EKU, ETH) and both empty at 2016. They differ only for Al Jama-ah — a
+row in Ekurhuleni, no votes there — and Al Jama-ah has a baseline, so the path
+skips it. Closing the leak is **seat-identical**: 254 coherent / CRPS 232.9, every
+city-year unchanged.
+
+So the leak was real, and it was inert. The 48 seats are not leakage.
+
+### What this does NOT establish
+
+- **Eight of the nine city-years are one cycle**, and the entire arrivals effect
+  is one party — ActionSA — in four metros of that cycle. Under ITERATING rule
+  11 the effective sample here is close to one. This is a large effect with a
+  clear mechanism, not a well-identified one.
+- **The path is dead at 2026.** `NATIONAL_VOTES` has no `"2026"` key, so
+  `contested_share` returns `None` and the conversion cannot run. **The 48 seats
+  are measured on a channel the live forecast does not currently have** — the
+  same position §1.56 found the contestation correction in, and it must be said
+  wherever this number is quoted.
+- The contested-area denominator still covers only the **eight metros**, not the
+  ~213 municipalities the national poll's denominator spans. That is a known
+  approximation in `polling.metro_estimate` and it is unchanged here.
+
+### Disposition
+
+- `poll_paths` ships at `"all"`, which is the committed behaviour: the run at
+  `"all"` is seat-identical to the committed artefact.
+- The leak is closed. `pools.metro_roster` carries the measurement in its
+  docstring so the next reader does not have to redo it.
+- **This raises the value of a 2026 `NATIONAL_VOTES` entry** — roll × projected
+  turnout — since without it the largest measured contribution in the poll
+  channel is switched off for the election we are actually forecasting.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

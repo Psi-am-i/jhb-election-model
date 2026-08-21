@@ -410,3 +410,66 @@ def test_turnout_for_another_city_writes_only_its_own_directory():
 
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))
+
+
+def test_the_poll_path_asks_who_stood_not_who_scored():
+    """A TEMPORAL LEAK, closed 2026-08-21 — and it must not reopen.
+
+    The contested-area conversion divides a national poll share by the share of
+    the national vote sitting in the municipalities the party contests. Deciding
+    which those are by asking where the party got VOTES at the target reads the
+    result the backtest is predicting:
+
+        _stood = [c for c in METRO_CODES
+                  if metro_citywide(c, target.year).get(party, 0.0) > 0]
+
+    Row existence is the nomination fact and reading it does not touch the
+    outcome — the argument `levels.contestation` already runs on (§1.47) — so
+    `pools.metro_roster` replaces it.
+
+    **The leak was inert and that is exactly why it needs a test.** Measured
+    before the change: the two definitions agree for every party the path
+    touches, so closing it was seat-identical (254 coherent / CRPS 232.9,
+    unchanged). A defect that costs nothing today is the kind that survives,
+    and it would start costing the moment a party stood somewhere and polled
+    zero. MODEL-LOG §1.65.
+
+    Asserted statically, because the behavioural version cannot distinguish the
+    two definitions on the data we have — which is the whole problem.
+    """
+    source = (ROOT / "src" / "montecarlo.py").read_text()
+    block = source[source.index("_stood = ["):]
+    block = block[:block.index("]") + 1]
+    assert "metro_roster" in block, (
+        f"the poll path's `_stood` no longer uses `pools.metro_roster`:\n\n"
+        f"{block}\n\n"
+        f"If it asks `metro_citywide(...) > 0` again it is reading the target's "
+        f"own result to decide who contested, which is a temporal leak at every "
+        f"backtested city-year. See MODEL-LOG §1.65.")
+    assert "metro_citywide" not in block, (
+        f"`_stood` reads `metro_citywide`, which is votes at the target:\n\n"
+        f"{block}")
+
+
+def test_metro_roster_and_vote_presence_still_agree_where_the_poll_path_looks():
+    """The measurement that made closing the leak safe, kept runnable.
+
+    §1.65 justifies the change by showing the leaky and leak-free definitions
+    agree for every party the poll path actually touches — ActionSA at 2021 is
+    the same four metros either way. If that ever stops being true the seat
+    figures in §1.65 were measured under the old definition and need re-reading,
+    so this fails loudly rather than letting the entry go quietly stale.
+    """
+    import pools as P
+
+    year = "2021"
+    for party in ("ASA",):
+        roster = {c for c in P.METRO_CODES if party in P.metro_roster(c, year)}
+        scored = {c for c in P.METRO_CODES
+                  if P.metro_citywide(c, year).get(party, 0.0) > 0}
+        assert roster == scored, (
+            f"{party} at {year}: stood in {sorted(roster)} but scored in "
+            f"{sorted(scored)}. The two definitions of `_stood` have diverged "
+            f"for a party the poll path touches, so §1.65's 48-seat measurement "
+            f"was taken under the other one. Re-measure before quoting it.")
+        assert roster, f"{party} has an empty {year} roster — the archive moved"

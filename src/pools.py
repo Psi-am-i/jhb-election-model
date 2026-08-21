@@ -2418,6 +2418,43 @@ def arrival_group_spec(before_year: str | None, reach: dict[str, float],
     }
 
 
+def metro_roster(code: str, year: str) -> set[str]:
+    """Who stood in ONE metro, by IEC code. Names only, never votes.
+
+    :func:`contesting_parties` is the same fact keyed on a `City`; this is keyed
+    on the bare code, because the caller that needs it — the poll path's
+    contested-area conversion — iterates :data:`METRO_CODES` and has no city
+    objects to hand.
+
+    **It exists to close a temporal leak.** That caller used to ask which metros
+    a party got VOTES in at the target::
+
+        _stood = [c for c in METRO_CODES
+                  if metro_citywide(c, target.year).get(party, 0.0) > 0]
+
+    which reads the result the backtest is predicting. Row existence is the
+    nomination fact and reading it does not touch the outcome — the argument
+    `levels.contestation` already runs on (MODEL-LOG §1.47).
+
+    Measured before the change, so the correction is not mistaken for a result:
+    the two definitions **agree for every party the poll path actually touches**.
+    At 2021 they differ only for Al Jama-ah, which has a row in Ekurhuleni and
+    no votes there — and Al Jama-ah has a baseline, so the path skips it. The
+    48-seat gain in §1.65 is therefore not leakage; the leak was real and inert.
+    """
+    from ingest_lge import read_municipality
+
+    path = metro_file(code, year)
+    if path is None:
+        return set()
+    # Through the same reader `metro_citywide` uses, so the two answers are
+    # like-for-like and the header drift between `_metros/` (`PartyName`) and
+    # the clean files (`sPartyName`) is handled in one place. PR ballot, again
+    # to match, and because that is the ballot a national poll speaks to.
+    return {P.canonical(row["sPartyName"])
+            for row in read_municipality(path, code, "PR")}
+
+
 def contesting_parties(city: cityconfig.City, year: str) -> set[str]:
     """Who is on the ballot at the target. Names only, never votes.
 

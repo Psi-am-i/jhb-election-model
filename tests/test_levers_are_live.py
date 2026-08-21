@@ -260,6 +260,7 @@ PERTURB: dict[str, object] = {
     "turnout_noise_sd": 0.50,
     "w_bye": 0.95,
     "arrival_group_draw": True,   # the mechanism instead of the generic slot
+    "poll_paths": "off",          # both poll paths off; worth 50 coherent seats
     "level_sd_default": 1.60,     # was frozen at 0.45 and unreachable
     "turnout_correlation": 0.0,   # independent pools; was frozen at 0.63
     "contestation_expand": 1.0,   # every party in every ward
