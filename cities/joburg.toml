@@ -96,7 +96,6 @@ ALJAMAAH = [0.8, 3.0]
 
 [judgements.scalars]
 w_bye = 0.4
-poll_weight = 0.0
 turnout_pattern_blend = 0.5
 turnout_blend_jitter = 0.25
 turnout_noise_sd = 0.08

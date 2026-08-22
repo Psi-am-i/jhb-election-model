@@ -255,13 +255,19 @@ def report(results: dict, majority_note: str = "") -> None:
     for row in results["mwc"][:10]:
         print(f"  {row['coalition']:<40s} MWC in {row['p_mwc']:>6.1%} of draws")
 
-    print("\n  power indices (Banzhaf median [5th–95th] · Shapley–Shubik median):")
+    # Both intervals, not one. `shapley_p5`/`shapley_p95` were computed on
+    # every run and printed nowhere while the Banzhaf pair was printed — two
+    # percentile passes over a 5,000-draw array, discarded. An interval for one
+    # power index and a point estimate for the other is not a choice anyone
+    # made. MODEL-LOG §1.69.
+    print("\n  power indices, median [5th–95th] (Banzhaf · Shapley–Shubik):")
     for row in results["power"]:
         if row["banzhaf_p95"] < 0.01:
             continue
         print(f"  {row['party']:<10s} {row['banzhaf_median']:>6.1%} "
               f"[{row['banzhaf_p5']:>5.1%}–{row['banzhaf_p95']:>5.1%}]"
-              f"   ·   {row['shapley_median']:>6.1%}")
+              f"   ·   {row['shapley_median']:>6.1%} "
+              f"[{row['shapley_p5']:>5.1%}–{row['shapley_p95']:>5.1%}]")
 
     print("\n  structural:")
     for label, value in results["structural"].items():

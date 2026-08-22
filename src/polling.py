@@ -89,6 +89,7 @@ from __future__ import annotations
 
 import json
 import math
+from dataclasses import dataclass
 from datetime import date
 
 import numpy as np
@@ -434,8 +435,52 @@ NATIONAL_VOTES = {
     "2016": int(26_333_353 * 0.5794),
     "2021": int(26_204_579 * 0.4579),
     # 2026 is not yet known; registration closes with the voters' roll for the
-    # election. Until then the conversion cannot run for a 2026 target and says
-    # so rather than guessing.
+    # election. See PROJECTED_METRO_SHARE below for what the live forecast uses
+    # instead, and why a national total is not what is missing.
+}
+
+# WHAT THE CONVERSION ACTUALLY NEEDS IS A RATIO, AND BOTH HALVES OF IT ARE
+# VOTES CAST AT THE TARGET ELECTION.
+# ---------------------------------------------------------------------------
+# `contested_share` divides the votes cast in the municipalities a party
+# contests by the votes cast nationally. At a past target both come from the
+# archive. At a LIVE target neither is knowable — `votes_by_metro("2026")`
+# returns `{}` because no 2026 result file exists, and `NATIONAL_VOTES` has no
+# 2026 key. So the arrivals poll path — **the largest single measured effect in
+# the poll channel, 48 coherent seats across nine city-years (§1.65)** — was
+# switched off for the one election this repository is actually forecasting.
+# §1.65 recorded that and asked for a 2026 `NATIONAL_VOTES` entry. That would
+# not have fixed it: it supplies the denominator and the NUMERATOR is missing
+# too.
+#
+# What IS projectable is the ratio itself. Each metro's share of the national
+# vote is a demographic fact that moves slowly, and it is measured:
+#
+#     metro    2016      2021     change
+#     JHB     0.0823    0.0770    -6.4%
+#     CPT     0.0818    0.0761    -7.0%
+#     ETH     0.0724    0.0646   -10.8%
+#     TSH     0.0579    0.0561    -3.1%
+#     EKU     0.0589    0.0559    -5.1%
+#     NMA     0.0249    0.0220   -11.8%
+#     BUF     0.0149    0.0150    +0.2%
+#     MAN     0.0156    0.0147    -5.9%
+#     all 8   0.4088    0.3813    -6.7%
+#
+# **TWO CYCLES IS n = 2, and a trend cannot be told from noise on it.** Every
+# metro fell, which looks like a trend and is exactly what two points always
+# look like. ITERATING rules 10 and 11 apply with full force, so nothing is
+# extrapolated: the projection is the LAST OBSERVED value, and the 2016→2021
+# movement is quoted as the uncertainty on it rather than fitted through.
+# Declared in JUDGEMENT-CALLS.md §A.
+#
+# The backtest is untouched by construction: 2016 and 2021 have real result
+# files, so `votes_by_metro` returns real numbers and this table is never
+# consulted. It fires only where nothing can check it — which is the
+# `contestation_expand` position (§1.60), stated here as it is there.
+PROJECTED_METRO_SHARE = {
+    "JHB": 0.0770, "CPT": 0.0761, "ETH": 0.0646, "TSH": 0.0561,
+    "EKU": 0.0559, "NMA": 0.0220, "BUF": 0.0150, "MAN": 0.0147,
 }
 
 
@@ -445,63 +490,229 @@ def load(path: Path = REGISTER) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8")).get("polls", [])
 
 
+@dataclass(frozen=True)
+class Problem:
+    """Something wrong with a poll record.
+
+    ``severity`` is the whole design. **"error" means malformed** — a typo, a
+    wrong type, a value that cannot be meant — and it is fatal, because a poll
+    we intended to count and silently did not is worse than a run that stops.
+    **"warn" means incomplete but honest**: a real limitation of what the house
+    published, which the arithmetic already handles.
+
+    The distinction was found the hard way: the first version of this validator
+    made a missing ``n`` fatal, and it would have refused the committed register
+    — because Ipsos never published the metro cut sizes for the very nine
+    readings `POLL_HOUSE_SD` is calibrated on. A rule strict enough to reject
+    your own calibration set is measuring your wishes, not the data.
+    """
+    poll_id: str
+    field: str
+    message: str
+    severity: str = "error"
+
+    def __str__(self) -> str:
+        return f"[{self.severity}] {self.poll_id}: {self.field} — {self.message}"
+
+
+@dataclass(frozen=True)
+class Exclusion:
+    """A well-formed poll that this target may not use, and why."""
+    poll_id: str
+    rule: str
+    detail: str
+
+    def __str__(self) -> str:
+        return f"{self.poll_id}: {self.detail} [{self.rule}]"
+
+
+SCOPES = frozenset({"national", "metro", "metro-aggregate", "province"})
+
+
+class PollRegisterError(RuntimeError):
+    """The register is malformed. Raised instead of quietly using less of it."""
+
+
+def validate(polls: list[dict] | None = None, *,
+             min_n: float | None = None) -> list[Problem]:
+    """Every way a poll record is BROKEN, as opposed to inapplicable.
+
+    ``min_n`` is accepted and ignored. **The sample-size floor is a SCREEN, not
+    a validation** — see :func:`screen`'s ``under-min-n`` rule — and the kwarg
+    survives only so that callers written against the older signature keep
+    working. It is in ``DELIBERATELY_UNUSED`` for that reason.
+
+    The distinction is the point. `usable_for` used to express both with the
+    same silent ``continue``, so a poll that could not be used because it was
+    taken after polling day — a fact about the election — was indistinguishable
+    from one that could not be used because someone typed ``"Metro"`` instead of
+    ``"metro"``. The first is correct behaviour; the second is a poll we meant
+    to count and silently did not, and there was no way to tell them apart.
+
+    That is not hypothetical: `ipsos-w2-2025-metros` is dropped by every caller
+    and simultaneously offered as a one-click preset by the interactive.
+
+    It matters more now for two reasons. **Readers will submit polls** to the
+    competition, and a submission that vanishes without explanation is a bug
+    report we never receive. And the 2026 forecast has **one house**: losing one
+    of its two waves to a typo would move a published number and print nothing.
+    """
+    problems: list[Problem] = []
+    for poll in (polls if polls is not None else load()):
+        pid = str(poll.get("id") or "<no id>")
+        if not poll.get("id"):
+            problems.append(Problem(pid, "id", "every poll needs an id; "
+                                    "`montecarlo` indexes on it"))
+        scope = poll.get("scope")
+        if scope not in SCOPES:
+            problems.append(Problem(pid, "scope",
+                                    f"{scope!r} is not one of {sorted(SCOPES)} "
+                                    f"— case matters, 'Metro' is not 'metro'"))
+        if scope == "metro" and poll.get("numbers") and not poll.get("city"):
+            problems.append(Problem(pid, "city", "a metro poll must name its "
+                                    "city, or it gets applied to whichever one "
+                                    "is being forecast"))
+        if scope == "metro-aggregate":
+            problems.append(Problem(
+                pid, "scope", "no caller admits `metro-aggregate` — the metro "
+                "path takes `metro` and the arrivals path takes `national`, so "
+                "this record is recorded and never used. That is correct (eight "
+                "metros averaged is not a reading of one of them) but it should "
+                "be a decision, not a silent drop", severity="warn"))
+        raw = poll.get("fieldwork_end")
+        if not raw:
+            problems.append(Problem(pid, "fieldwork_end",
+                                    "missing; a poll that cannot be dated "
+                                    "cannot be shown to precede the election "
+                                    "it informs"))
+        elif _end(poll) is None:
+            problems.append(Problem(pid, "fieldwork_end",
+                                    f"{raw!r} is not ISO 8601 (YYYY-MM-DD)"))
+        numbers = poll.get("numbers")
+        if numbers:
+            if not poll.get("house"):
+                problems.append(Problem(pid, "house", "missing; the house is "
+                                        "what `effective_houses` counts, and a "
+                                        "KeyError on it once silently killed "
+                                        "the whole 2026 poll path"))
+            total = sum(float(v) for v in numbers.values())
+            if total > 1.001:
+                problems.append(Problem(pid, "numbers",
+                                        f"shares sum to {total:.3f}; they are "
+                                        f"fractions, not percentages"))
+            if any(float(v) < 0 for v in numbers.values()):
+                problems.append(Problem(pid, "numbers", "a negative share"))
+            n = poll.get("n")
+            if n is None:
+                problems.append(Problem(
+                    pid, "n", "no sample size published, so this poll cannot be "
+                    "priced on sampling error and falls back to the house term "
+                    "alone. Honest, not malformed — Ipsos never published the "
+                    "metro cut sizes for the readings POLL_HOUSE_SD is "
+                    "calibrated on", severity="warn"))
+            elif float(n) <= 0:
+                problems.append(Problem(
+                    pid, "n", f"{n} is not a sample size"))
+    return problems
+
+
+def validate_or_die(polls: list[dict] | None = None, *,
+                    min_n: float | None = None) -> list[dict]:
+    """Load and validate, or raise. The entry point everything else uses."""
+    loaded = polls if polls is not None else load()
+    errors = [p for p in validate(loaded, min_n=min_n)
+              if p.severity == "error"]
+    if errors:
+        raise PollRegisterError(
+            f"{len(errors)} malformed poll record(s) in {REGISTER}:\n  "
+            + "\n  ".join(str(p) for p in errors)
+            + "\n\nA malformed record used to be dropped in silence. It is "
+              "fatal instead because a poll we meant to count and silently did "
+              "not is worse than a run that stops. Warnings do not raise: see "
+              "Problem.severity.")
+    return loaded
+
+
+def screen(target: cityconfig.Target, polls: list[dict] | None = None,
+           allow_commissioned: bool = False, *,
+           min_n: float | None = None
+           ) -> tuple[list[dict], list[Exclusion]]:
+    """Admitted polls, and every exclusion WITH ITS REASON.
+
+    Same five rules `usable_for` always applied, plus the sample-size floor.
+    The difference is that a refusal is now a returned object rather than a
+    `continue`, so a run can print what it declined and why.
+
+    **`min_n` lives here and not in `validate`, and that line was drawn in the
+    wrong place once.** §1.68 defined the split as *validate = malformed,
+    fatal; screen = well-formed polls this target may not use* — and then put
+    the floor on the fatal side, so a 504-respondent SRF wave was reported as
+    a *malformed record* rather than as a small one. Two consequences, both
+    real: the shipped register raised `PollRegisterError` the moment the floor
+    was swept above 504, so `test_every_tunable_lever_actually_moves_the_forecast`
+    could not perturb `poll_min_n` at all and the whole run died; and a reader
+    submitting a small poll to the competition would have been told their
+    record was broken when it was merely small. A poll with a published,
+    positive, too-small `n` is the *definition* of well-formed-but-inadmissible.
+    MODEL-LOG §1.69.
+    """
+    floor = float(min_n if min_n is not None else POLL_MIN_N)
+    kept: list[dict] = []
+    out: list[Exclusion] = []
+    for poll in (polls if polls is not None else load()):
+        pid = str(poll.get("id") or "<no id>")
+        n = poll.get("n")
+        if poll.get("numbers") and n is not None and float(n) < floor:
+            out.append(Exclusion(pid, "under-min-n",
+                                 f"n = {n:g}, below the admission floor "
+                                 f"{floor:g}"))
+            continue
+        when = _end(poll)
+        if when is None:
+            out.append(Exclusion(pid, "undated", "no usable fieldwork_end"))
+            continue
+        if when >= target.date:
+            out.append(Exclusion(pid, "after-polling-day",
+                                 f"fieldwork ended {when}, on or after "
+                                 f"{target.date}"))
+            continue
+        if poll.get("commissioned_by") and not allow_commissioned:
+            out.append(Exclusion(pid, "commissioned",
+                                 f"commissioned by {poll['commissioned_by']}"))
+            continue
+        if poll.get("scope") == "metro" and not poll.get("city"):
+            out.append(Exclusion(pid, "metro-without-city",
+                                 "a metro poll that does not name its city"))
+            continue
+        declared = str(poll.get("target") or "")
+        if declared and declared != str(target.year):
+            out.append(Exclusion(pid, "other-election",
+                                 f"declared for {declared}, not {target.year}"))
+            continue
+        if not declared and (target.date - when).days > CAMPAIGN_WINDOW_DAYS:
+            out.append(Exclusion(pid, "outside-window",
+                                 f"{(target.date - when).days} days before "
+                                 f"polling day, over the "
+                                 f"{CAMPAIGN_WINDOW_DAYS}-day window"))
+            continue
+        kept.append(poll)
+    return kept, out
+
+
 def usable_for(target: cityconfig.Target, polls: list[dict] | None = None,
-               allow_commissioned: bool = False) -> list[dict]:
+               allow_commissioned: bool = False, *,
+               min_n: float | None = None) -> list[dict]:
     """Polls whose fieldwork ended before this target's polling day.
 
     Anything without a machine-readable ``fieldwork_end`` is REFUSED rather than
     parsed leniently. A poll that cannot be dated cannot be shown to precede the
     election it is informing, and "probably before" is not a standard this
     repository applies anywhere else.
+
+    Delegates to :func:`screen`, which returns the reasons as well. Callers that
+    want to report what was declined should use that directly.
     """
-    out = []
-    for poll in (polls if polls is not None else load()):
-        end = poll.get("fieldwork_end")
-        if not end:
-            continue
-        try:
-            when = date.fromisoformat(str(end))
-        except ValueError:
-            continue
-        if when >= target.date:
-            continue
-        if poll.get("commissioned_by") and not allow_commissioned:
-            continue
-        # A METRO POLL MUST NAME ITS CITY. `ipsos-w2-2025-metros` is an
-        # eight-metro AVERAGE with no Johannesburg cut published, and it was
-        # being applied to Johannesburg as though it were a reading of it —
-        # importing Cape Town's DA and eThekwini's MK into this city. Eight
-        # metros averaged is not a reading of one of them, so its scope is
-        # `metro-aggregate` and it is admitted nowhere until someone publishes
-        # the cut.
-        if poll.get("scope") == "metro" and not poll.get("city"):
-            continue
-        # A POLL IS ABOUT AN ELECTION, not merely before one. Filtering on
-        # "fieldwork ended before polling day" alone let the 2016 Johannesburg
-        # poll inform the 2021 forecast: five years stale, taken about a
-        # different contest, and measurably harmful (Johannesburg 2021 CRPS 77.0
-        # -> 86.2). A poll declares which election it was taken for; where it
-        # does not, it must at least fall inside the campaign window.
-        #
-        # RE-MEASURED 2026-08-22, because that number appeared in no MODEL-LOG
-        # entry and nothing reproduced it. It holds. The absolute levels moved
-        # — the model has improved and Johannesburg 2021 is now 66.4 rather
-        # than 77.0 — but the effect is the same size, and it costs seats the
-        # original claim did not mention:
-        #
-        #     rule ON  (committed)              CRPS 66.4   coherent 86
-        #     rule OFF (2016 poll admitted)     CRPS 76.4   coherent 94
-        #
-        # so +10.0 CRPS against the +9.2 originally recorded, and +8 coherent
-        # seats. The one poll admitted by dropping the rule is
-        # `ipsos-2016-lge-joburg`. MODEL-LOG §1.66.
-        declared = str(poll.get("target") or "")
-        if declared and declared != str(target.year):
-            continue
-        if not declared and (target.date - when).days > CAMPAIGN_WINDOW_DAYS:
-            continue
-        out.append(poll)
-    return out
+    return screen(target, polls, allow_commissioned, min_n=min_n)[0]
 
 
 def aggregate(polls: list[dict], half_life_days: float = 120.0,
@@ -571,7 +782,7 @@ def aggregate_sd(polls: list[dict], party: str, share: float, *,
     claimed two waves "buy nothing" (4.24 → 4.30); measured, they buy 4.35 →
     3.88, which is a real reduction in the sampling term and nothing at all in
     the house term. The protection is the asymptote, not a flat line — and on
-    top of it :func:`weight_cap` holds a one-house aggregate to 0.42 of the
+    top of it :func:`weight_cap` holds a one-house aggregate to 0.50 at the shipped `poll_house_k` of 1.0 of the
     blend however small σ gets.
     """
     half_life_days = (POLL_HALF_LIFE_DAYS if half_life_days is None
@@ -614,11 +825,17 @@ def contested_share(codes: list[str], year: str,
     testable. Returns None when the national figure for that year is unknown,
     because a conversion with a guessed denominator is worse than none.
     """
-    national = NATIONAL_VOTES.get(str(year))
-    if not national or not codes:
+    if not codes:
         return None
     if roll is None:
         roll = votes_by_metro(year)
+    national = NATIONAL_VOTES.get(str(year))
+    if not roll or not national:
+        # A LIVE TARGET. Neither half of the ratio exists yet — see
+        # PROJECTED_METRO_SHARE. Fall back to the last observed shares, which
+        # is the whole ratio at once and needs no national total.
+        held = sum(PROJECTED_METRO_SHARE.get(c, 0.0) for c in codes)
+        return held if held > 0 else None
     held = sum(roll.get(c, 0.0) for c in codes)
     return (held / national) if held > 0 else None
 

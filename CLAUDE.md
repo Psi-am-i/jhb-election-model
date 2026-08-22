@@ -90,8 +90,28 @@ artefacts moving under a measurement in progress. Re-emit with:
 
     .venv/bin/python src/pools.py --city <city> --target <year> --emit
 
-Emission is deterministic — re-emitting all eleven specs changed nothing but the
-key — so the hazard is re-emitting *while someone measures*, not re-emitting.
+Emission is deterministic — re-emitting every spec changes nothing but the key —
+so the hazard is re-emitting *while someone measures*, not re-emitting. **There
+are eighteen specs since 2026-08-22**, not eleven: the eight 2016 specs are now
+all emitted (§1.69). Re-emit the lot with
+
+    for c in joburg tshwane ekurhuleni ethekwini capetown mangaung \
+             nelsonmandelabay buffalocity; do
+      for y in 2016 2021; do
+        .venv/bin/python src/pools.py --city $c --target $y --emit
+      done
+    done
+    .venv/bin/python src/pools.py --city joburg --target 2026 --emit
+    .venv/bin/python src/pools.py --city joburg --target 2026 --simulation --emit
+
+**A CODE change to `pools.py` invalidates every one of them, and the guard will
+say so.** This caught the §1.69 audit itself: constants were promoted to module
+level, `pools_sha` moved, and a canonical measurement had already been taken
+against the older specs. It was verified number-neutral separately and was in
+fact correct — and "I checked it separately" is precisely the reasoning the key
+exists to stop being sufficient, so everything was re-emitted and re-measured.
+A comment-or-docstring-only change does NOT move the hash; that was confirmed
+in the same session.
 
 **The specs are not tracked by git.** They have no version history, which is why
 the key exists.

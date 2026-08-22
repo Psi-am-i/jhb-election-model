@@ -418,3 +418,112 @@ This does not check the ward-level series, which is where a delimitation
 mismatch would show and where their ward heat maps would be genuinely useful to
 a human reading them side by side. That remains an eyeball job for a person, not
 a fetch.
+
+## 13. The historic ingest was Johannesburg's in everything but its `--city` flag (2026-08-22)
+
+**The worst defect found in this repository's inputs to date, because it wrote
+silently-wrong files that passed every gate.** MODEL-LOG §1.70.
+
+`src/ingest_historic.py` converts the six pre-2011 national IEC archives into
+per-metro VD files. It advertises `--city` and had only ever been run for
+Johannesburg. Run for anything else it failed in two ways at once.
+
+### It wrote Johannesburg's 1999 election into seven other metros' files
+
+`matches_city` returned on `spec["muni_match"]` **without ever looking at
+`city`**, and `npe1999`'s `muni_match` is the two Johannesburg metropolitan
+local councils. So `--city tshwane --year npe1999` collected Johannesburg's rows
+and wrote them to `npe1999_approx_TSH_vd_party.csv`.
+
+Seven such files were produced. Every one was **byte-identical to Johannesburg's
+at 789,426 bytes**: 9,072 party-VD rows, 648 voting districts, 1,361,299 votes,
+for metros ranging from Buffalo City (~370k votes) to Cape Town (~1.5M).
+
+**And they passed the reconciliation gate — 648/648 VD-ballots, worst drift
+0.00%.** They had to: the rows were Johannesburg's real rows, individually
+valid. The gate checks that party votes sum to each VD's valid total. It cannot
+check that the VDs are the right city's, and nothing else did either. This is
+the identical failure the `matches_city` docstring already describes for Buffalo
+City one archive earlier — where matching on the last word put 2,087 VDs and 5.1
+million votes into a 350-VD metro — recurring in a code path that comment did
+not cover. Caught only because the totals were compared across metros and were
+the same number.
+
+All seven were deleted the same hour. No measurement was ever taken against
+them.
+
+### And 2004 matched nothing at all
+
+`npe2004` has no `muni_match`, so it fell to the code/name matcher and found
+nothing for any metro but Johannesburg — then halted the run, which is why
+`lge2006` and `npe2009` were never reached and the pre-2011 gap looked like a
+data-acquisition problem for a fortnight. **It was not.** All eight metros are
+in all four archives. The strings are simply not derivable:
+
+| archive | Tshwane | Ekurhuleni | Mangaung | Buffalo City |
+|---|---|---|---|---|
+| `npe2004` | `PRETORIA - TSHWANE METRO` | `EAST RAND - EKURHULENI` | `FS172 - MANGAUNG` | `EC125 - BUFFALO CITY` |
+| `lge2006` | `TSH - Tshwane Metro` | `EKU - Ekurhuleni` | `FS172 - Mangaung` | `EC125 - Buffalo City` |
+| `npe2009` | `TSH - TSHWANE METRO` | `EKU - EKURHULENI` | `FS172 - MANGAUNG` | `EC125 - BUFFALO CITY` |
+| `lge2000` | `Pretoria - Tshwane Metro` | *absent* | `FS172 - Mangaung` | `EC125 - Buffalo City` |
+
+2004 and 2000 key the Gauteng and Eastern Cape metros on the **place**, and
+every archive keys Mangaung and Buffalo City on their **pre-2011 municipality
+codes** `FS172` and `EC125` rather than `MAN` and `BUF`. No rule recovers that.
+
+### The fix
+
+An explicit `MUNI_HEAD` table — archive → city → municipality head — enumerated
+from the archives themselves, matching this module's stated philosophy of
+describing each layout rather than sniffing it. Matching is on the token **before
+`" - "`**, so a match cannot spread into a neighbouring municipality the way the
+last-word fallback did.
+
+**A missing entry is a REFUSAL, not a fallback.** That is the whole lesson: the
+fallback is what wrote Johannesburg's election into seven other cities. Two
+absences are recorded deliberately — Ekurhuleni and eThekwini in `lge2000`
+(both constituted at that election), and every metro but Johannesburg in
+`npe1999` (which predates them all).
+
+### Verified
+
+* Johannesburg re-ingests **byte-identically** (md5 unchanged), so no existing
+  number moved.
+* 21 new files across seven metros, **every one at 100% reconciliation, worst
+  drift 0.00%**, with distinct and size-plausible totals: Cape Town 1,456,350
+  votes at `lge2006`, Mangaung 301,043, Buffalo City 369,123.
+* γ fold 3 now fits for all eight metros, which is what the 2016 targets need.
+
+### Caveat on the pre-2011 footprint, especially Mangaung and Buffalo City
+
+The eight metros' share of the eight-metro vote is smooth across four cycles,
+which is the check that the new files are the right cities:
+
+| metro | 2006 | 2011 | 2016 | 2021 |
+|---|---|---|---|---|
+| JHB | 19.3% | 19.9% | 20.1% | 20.2% |
+| CPT | 20.3% | 20.4% | 20.0% | 19.9% |
+| ETH | 16.7% | 17.8% | 17.8% | 17.0% |
+| EKU | 14.6% | 14.4% | 14.4% | 14.7% |
+| TSH | 12.0% | 13.3% | 14.1% | 14.7% |
+| NMA | 7.8% | 6.7% | 6.1% | 5.8% |
+| MAN | 4.2% | 3.7% | 3.8% | 3.8% |
+| BUF | 5.1% | 3.9% | 3.7% | 3.9% |
+
+Tshwane's rise and Nelson Mandela Bay's fall are real and continue through
+cycles built from data that was never in question, so they are not artefacts of
+this ingest.
+
+**But `MAN` and `BUF` are keyed on `FS172` and `EC125` before 2011**, which are
+their *pre-demarcation municipality codes*, and the 2011 demarcation moved
+municipal boundaries as well as wards. Buffalo City's 5.1% → 3.9% step is larger
+than any other metro's and is the shape a footprint change makes. So for those
+two, the pre-2011 files describe a **different area** from the post-2011 ones,
+not merely different wards inside the same area.
+
+`ingest_historic.py` already warns that pre-2011 VD and ward identifiers predate
+two delimitations and are usable for citywide party shares but not for spatial
+work until a concordance exists. This is the stronger version of that warning
+for two cities: **their citywide shares are not strictly comparable either.**
+Not chased further, and recorded so a θ ratio computed across the 2006→2011
+transition for Mangaung or Buffalo City is read with it in view.

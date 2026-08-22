@@ -284,9 +284,25 @@ def test_no_clamp_is_anchored_on_the_national_baseline():
             f"montecarlo.py still clamps with {bad!r} — a bound computed "
             f"against the national baseline rather than against the level the "
             f"spine settled on. This defect appeared at three separate sites.")
-    assert "anchor = mode_level" in src and "anchor = centres.get(party)" in src, (
-        "the by-election and polling clamps must both anchor on the model's own "
-        "central level; one of them no longer does")
+    assert "anchor = mode_level" in src, (
+        "the by-election clamp must anchor on the model's own central level "
+        "(`anchor = mode_level`); it no longer does")
+    # The POLLING half of this test used to look for `anchor = centres.get(party)`.
+    # There is no polling clamp any more: §1.68 replaced it with the variance-
+    # weighted blend below, which needs no clamp because the weight itself is
+    # bounded by `weight_cap`. What the test exists to guard is unchanged and
+    # is still checked — that the poll is blended against the level the SPINE
+    # settled on, not against the national baseline. The blend reads
+    # `_mu = float(centres.get(_party, 0.0))`, so that is what is asserted.
+    # Updated deliberately, 2026-08-22, MODEL-LOG §1.69: the old literal went
+    # stale with the mechanism and failed while the property held.
+    assert '_mu = float(centres.get(_party, 0.0))' in src, (
+        "the poll blend must be taken against `centres` — the level the spine "
+        "settled on — and not against the national baseline")
+    assert "_w = min(_pg.blend_weight(_psd, _msd), _cap)" in src, (
+        "the poll weight must stay bounded by `weight_cap`; without the cap "
+        "the blend has no bound and the clamp this test replaced is needed "
+        "again")
 
 
 # ---------------------------------------------------------------------------
@@ -361,19 +377,25 @@ def test_a_data_producer_never_reads_a_truncated_report():
 # ---------------------------------------------------------------------------
 
 def test_the_polling_channel_actually_runs():
-    """It raised NameError the instant poll_weight went above zero.
+    """It raised NameError the instant the channel was switched on.
 
-    It looked unused because the default weight is 0 and nothing exercised it.
-    It was not unused, it was broken — and it is the channel MODEL-LOG task #23
-    depends on, and the only pre-election evidence for a party with no history.
+    It looked unused because the default weight was 0 and nothing exercised it.
+    It was not unused, it was broken — and it is the only pre-election evidence
+    that exists for a party with no history.
+
+    **Rewritten 2026-08-22 (MODEL-LOG §1.69).** The test used to open the
+    channel with `--set poll_id=... poll_weight=0.3`, and §1.68 deleted all
+    three legacy keys, so it failed with `SystemExit: unknown scenario key:
+    'poll_id'` — a stale test, not a broken model. It now drives the LIVE path
+    the 2026 forecast actually uses (`poll_paths`, the register, `screen`),
+    which makes it a stronger guard than the one it replaces: it checks both
+    that the channel runs when switched on AND that switching it off silences
+    it. A channel that cannot be switched off cannot be measured, which is the
+    whole reason `poll_paths` exists (§1.65).
     """
     polls_path = ROOT / "polls.json"
     if not polls_path.exists():
         skip("no polls.json")
-    payload = json.loads(polls_path.read_text())["polls"]
-    poll = next((p for p in payload if p.get("numbers")), None)
-    if poll is None:
-        skip("no poll with numbers")
 
     city = cityconfig.use("joburg")
     target = cityconfig.use_target("2026")
@@ -382,14 +404,23 @@ def test_the_polling_channel_actually_runs():
     if not spec.exists():
         skip(f"no pool spec at {spec}")
 
-    scenario = M.load_scenario(argparse.Namespace(
-        config=None, set=[f'poll_id="{poll["id"]}"', "poll_weight=0.3"],
-        draws=40, seed=None, city="joburg", target="2026"))
-    run = M.run_model(target, scenario, Path("data/raw/elections"), verbose=False)
-    blended = [p for p, note in run.notes.items() if "poll " in note]
-    assert blended, (
-        "poll_weight 0.3 produced no poll note on any party — the branch did "
+    def notes_with_polls(setting):
+        scenario = M.load_scenario(argparse.Namespace(
+            config=None, set=[f"poll_paths={setting}"],
+            draws=40, seed=None, city="joburg", target="2026"))
+        run = M.run_model(target, scenario, Path("data/raw/elections"),
+                          verbose=False)
+        return [p for p, note in run.notes.items() if "polls " in note]
+
+    on = notes_with_polls("all")
+    assert on, (
+        "poll_paths=all produced no poll note on any party — the branch did "
         "not execute. It previously raised NameError here.")
+    off = notes_with_polls("off")
+    assert not off, (
+        f"poll_paths=off still blended polls into {off} — the switch does not "
+        f"switch the channel off, so the 48 coherent seats of MODEL-LOG §1.65 "
+        f"were measured against a baseline that still had polls in it.")
 
 
 # ---------------------------------------------------------------------------
@@ -669,3 +700,37 @@ if __name__ == "__main__":
             print(f"ok  {name}")
 
 
+
+
+def test_no_ward_is_published_at_probability_one():
+    """A Monte Carlo estimate of 1.000 is a claim the draw count cannot support.
+
+    25 of Johannesburg's 135 wards were published at `p_win = 1.0000` on the
+    2026 forecast, every one of them DA, and the map's tooltip rendered that as
+    "DA — DA 100%". That asserts P(anyone else wins) is exactly zero.
+
+    **Measured against Johannesburg 2021**, the wards this model called certain
+    were right 31 times in 32 — ward 7 was PA at p = 1.000 and went ANC. An
+    outcome at probability zero that then happens is an infinite log score.
+
+    The estimator is now the Jeffreys posterior mean `(k + 1/2)/(N + 1)`, which
+    cannot reach 0 or 1 from a finite sample. This test fails if anything
+    reintroduces the raw fraction. MODEL-LOG §1.71.
+    """
+    path = ROOT / "data/processed/ward_winner_probs.csv"
+    if not path.exists():
+        skip("no ward_winner_probs.csv; run the model first")
+    import csv as _csv
+    with path.open(encoding="utf-8", newline="") as fh:
+        rows = list(_csv.DictReader(fh))
+    if not rows:
+        skip("ward_winner_probs.csv is empty")
+    certain = [r for r in rows if float(r["p_win"]) >= 1.0]
+    assert not certain, (
+        f"{len(certain)} ward(s) published at p_win = 1.000, e.g. ward "
+        f"{certain[0]['ward']} ({certain[0]['winner']}). A probability of one "
+        f"is not something 1,500 draws can establish; use the Jeffreys mean "
+        f"(k + 1/2)/(N + 1). MODEL-LOG §1.71.")
+    zero = [r for r in rows for kv in r["dist"].split("|")
+            if kv and float(kv.split(":")[1]) <= 0.0]
+    assert not zero, "a party is published at exactly p = 0 in a ward's dist"

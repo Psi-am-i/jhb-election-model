@@ -91,13 +91,11 @@ COUNCIL = 270
 # several points of citywide vote for parties the model itself puts near zero.
 DIRICHLET_FLOOR = 1e-4
 
-# How much θ evidence a party needs before a poll stops being the answer and
-# becomes one more reading. The weight on the poll is m/(worth+m), the same
-# shape the spine uses for the same reason and keyed on the same quantity, so
-# the two layers cannot disagree about how much history a party has. At worth 0
-# — a party with no electoral record at all — the poll carries its full
-# configured weight; the ANC's worth of about 19 leaves it a twentieth.
-POLL_K = 1.0
+# POLL_K WAS DELETED HERE, 2026-08-22 (MODEL-LOG §1.68), with the legacy poll
+# path it served. It keyed a poll's weight on how much θ HISTORY a party had —
+# m/(worth+m) — which §1.67 replaced with how PRECISE the two estimates are.
+# The shape survives: `poll_house_k` uses the same m/(k+m) form, keyed on how
+# many independent HOUSES stand behind a poll rather than on the party.
 
 # Blocs are gone. They were two hand-drawn lists of parties assumed to trade
 # votes with each other — a claim about parties, made by a person, that no
@@ -200,6 +198,7 @@ DEFAULTS: dict = {
     "poll_deff_subsample": 1.6,
     "poll_screen_sd": 0.020,
     "poll_drift_per_root_day": 0.0010,
+    "poll_min_n": 300,      # below this a poll is recorded, never admitted
 
     # RECENCY HALF-LIFE for combining poll waves. It was registered in
     # JUDGEMENT-CALLS.md at 120 and DID NOT EXIST — a default argument on
@@ -208,9 +207,6 @@ DEFAULTS: dict = {
     # asserted equal to `polling.POLL_HALF_LIFE_DAYS` at import. §1.67.
     "poll_half_life_days": 120.0,
 
-    "poll_id": None,        # e.g. "srf-2026q2-coj" — see polls.json
-    "poll_weight": 0.0,
-    "poll_k": POLL_K,
 
     # §1.29 weighted pools — the engine. Each pool: members {party: the share
     # of that party's vote drawn from this pool, summing to 1 across pools per
@@ -377,6 +373,31 @@ def triangular(rng, spec, size=None):
 # says) while putting roughly 2% of the mass beyond 3.7 sd, against a normal's
 # 0.02% — two orders of magnitude more room for the surprise this model has
 # repeatedly been surprised by.
+# THE ADMISSION GATE ON THE WHOLE BY-ELECTION CHANNEL, promoted from an
+# inline literal 2026-08-22 (MODEL-LOG §1.69). `w_bye` = 0.40 is registered at
+# 🔴 as "live in the 2026 forecast, untested by anything here" — and the
+# threshold deciding whether it fires for a given party was a bare `30` in the
+# function body, in the same untestable branch and with the same reach into the
+# published forecast. Below this many weighted contests the by-election
+# evidence is discarded in silence.
+BYE_MIN_WEIGHT = 30.0
+
+# FLOOR AND CEILING ON PER-VD TURNOUT IN EVERY DRAW. Promoted from inline
+# literals in the same pass. Note that JUDGEMENT-CALLS §C describes the turnout
+# band as one that "REMOVES caps rather than adding one — no observed-maximum
+# cap, no 1.0 cap". These two are caps, they are applied per draw, and the
+# register did not know they existed.
+TURNOUT_DRAW_FLOOR = 0.02
+TURNOUT_DRAW_CEILING = 0.95
+
+# CLIP ON THE WARD/PR SPLIT-TICKET RATIO, which multiplies the PR target to
+# make the ward target and therefore drives ward wins and overhang.
+# JUDGEMENT-CALLS §E lists "ward/PR split ratios" as coming FROM THE RECORD;
+# this is the clip that overrides the record when it disagrees, and it was
+# undeclared.
+WARD_PR_RATIO_MIN = 0.5
+WARD_PR_RATIO_MAX = 2.0
+
 LEVEL_DF = 7.0
 
 
@@ -827,10 +848,32 @@ def apply_city(city) -> None:
     # `theta_mode` and `individual_theta` were copied from the city toml here
     # until 2026-08-19. Both are deleted; a city file that still carries them
     # is carrying a dead key, and nothing reads it.
+    unknown = []
     for key, value in j.get("scalars", {}).items():
         if key.endswith("_note"):
             continue
+        # A CITY TOML MAY NOT INVENT A LEVER, and until 2026-08-22 it could.
+        # `read_scenario_file` has always rejected an unknown key; this path
+        # accepted anything and wrote it straight into DEFAULTS. So when §1.68
+        # deleted `poll_weight`, `cities/joburg.toml` and `cities/tshwane.toml`
+        # went on carrying it and `apply_city` faithfully put it back — a key
+        # nothing reads, sitting in the model's parameter dict, which
+        # `read_scenario_file` would then ACCEPT from a scenario file and
+        # silently ignore. That is the half-finished-deletion failure the sweep
+        # guard caught inside §1.68 itself, one layer down and pointing the
+        # other way: the guard checks DEFAULTS against PERTURB, and this route
+        # adds to DEFAULTS after the guard has looked. MODEL-LOG §1.69.
+        if key not in _PRISTINE_DEFAULTS:
+            unknown.append(key)
+            continue
         DEFAULTS[key] = value
+    if unknown:
+        raise SystemExit(
+            f"cities/{city.slug}.toml declares [judgements.scalars] key(s) "
+            f"that are not model levers: {', '.join(sorted(unknown))}.\n"
+            f"Either the lever was deleted and the city file was not updated, "
+            f"or the key is a typo. A city file may not invent a lever: "
+            f"`DEFAULTS` is the register of what exists.")
 
 
 # Top-level keys a scenario file may carry that are *not* model parameters.
@@ -1000,7 +1043,7 @@ def blended_centres(
         centre = mode_level
         if party in bye and w > 0:
             weight_sum, delta = bye[party]
-            if weight_sum >= 30:  # enough contests to mean anything
+            if weight_sum >= BYE_MIN_WEIGHT:  # enough to mean anything
                 implied = prior_pr_share.get(party, 0.0) + delta
                 if party in prior:
                     low, high = prior[party][0], prior[party][2]
@@ -2606,7 +2649,8 @@ def run_model(target, scenario: dict,
     ratio = np.ones(npar)
     for p, i in index.items():
         if pc.get(p, 0) > 0.001:
-            ratio[i] = np.clip(wc.get(p, 0.0) / pc[p], 0.5, 2.0)
+            ratio[i] = np.clip(wc.get(p, 0.0) / pc[p],
+                               WARD_PR_RATIO_MIN, WARD_PR_RATIO_MAX)
     # A party with no ward history at the previous LGE gets the median of the
     # parties that have one — a rule that applies to whoever turns up next,
     # rather than the two hand-set numbers this replaces (MK 0.80 "bounded by
@@ -2688,18 +2732,28 @@ def run_model(target, scenario: dict,
     # vote sitting in the municipalities the party actually contests -- both
     # public before polling day. See src/polling.py for the arithmetic and what
     # it does and does not buy.
+    import polling as _polling
+    import pools as _pl
+    # `validate_or_die` is deliberately OUTSIDE the try below. §1.68 made a
+    # malformed register fatal because "a poll we meant to count and silently
+    # did not is worse than a run that stops" — and it was then called from
+    # inside a bare `except Exception`, which silently un-fatalled it on this
+    # path. MODEL-LOG §1.69.
+    _polling.validate_or_die()
     try:
-        import polling as _polling
-        import pools as _pl
-        _usable = ([q for q in _polling.usable_for(target)
+        _min_n = float(scenario.get("poll_min_n", 300))
+        _usable = ([q for q in _polling.screen(target, min_n=_min_n)[0]
                     if q.get("scope") == "national"]
                    if scenario.get("poll_paths", "all") in ("arrivals", "all")
                    else [])
         if _usable:
             _votes = _polling.votes_by_metro(target.year)
-            _rosters = {c: _pl.contesting_parties(
-                cityconfig.by_code(c) if hasattr(cityconfig, "by_code") else target.city, target.year)
-                for c in [target.city.code]}
+            # `_rosters` was built here and never read — the loop below reads
+            # `_roster`, a DIFFERENT name bound far above. It re-read a whole
+            # VD result file to duplicate work already done, and its
+            # `cityconfig.by_code` branch was permanently dead because that
+            # function does not exist. Deleted 2026-08-22, MODEL-LOG §1.69;
+            # number-neutral, because nothing consumed it.
             _poll = _usable[-1]
             for _party in (_poll.get("numbers") or {}):
                 if baseline_before_seeds.get(_party, 0.0) > 0:
@@ -2720,7 +2774,15 @@ def run_model(target, scenario: dict,
                               f"{_party} from {_est['poll']}")
                 if verbose:
                     print(f"  poll: {_party} -> {_est['share']:.2%}  ({_est['basis']})")
-    except Exception as _exc:
+    except (FileNotFoundError, KeyError, ValueError) as _exc:
+        # NARROWED 2026-08-22 (MODEL-LOG §1.69). This was `except Exception`,
+        # wrapped around the arrivals poll path — the largest single measured
+        # effect in the poll channel, 48 coherent seats (§1.65). A NameError or
+        # an AttributeError in here would have disabled all 48 of them and
+        # printed a verbose-only warning, which is precisely how the legacy
+        # poll path stayed broken and unnoticed (§1.68). Missing data is
+        # expected and is caught; a programming error is not, and now
+        # propagates.
         if verbose:
             print(f"  ! polls unavailable ({type(_exc).__name__}: {_exc})")
 
@@ -2793,9 +2855,22 @@ def run_model(target, scenario: dict,
     # the one case it was built for, and the warning scrolled past. A failure
     # here now says exactly what broke.
     import polling as _pg
-    _metro = ([q for q in _pg.usable_for(target)
+    # A MALFORMED REGISTER STOPS THE RUN. Every admission rule below used to be
+    # a silent `continue`, so a `scope` of "Metro" or a typo'd `city` dropped a
+    # poll with no warning — and with one house behind the 2026 forecast, losing
+    # one of its two waves that way would move a published number and print
+    # nothing. Warnings (a house that never published its sample size) do not
+    # raise. MODEL-LOG §1.68.
+    _pg.validate_or_die()
+    _screened, _declined = _pg.screen(
+        target, min_n=float(scenario.get("poll_min_n", 300)))
+    _metro = ([q for q in _screened
                if q.get("scope") == "metro" and q.get("city") == target.city.slug]
               if scenario.get("poll_paths", "all") == "all" else [])
+    if verbose and _declined:
+        print(f"  polls declined ({len(_declined)}):")
+        for _x in _declined:
+            print(f"      {_x}")
     _agg = _pg.aggregate(_metro) if _metro else None
     if _agg:
         _sd = scenario.get("_theta_sd") or {}
@@ -2809,7 +2884,9 @@ def run_model(target, scenario: dict,
         # IT. Inverse variance is only correct if both estimates are unbiased,
         # and one house with an undisclosed screen is exactly where the bias
         # term is unbounded. Both admitted 2026 polls are the same house, so
-        # H_eff is 1.0 and the cap is 0.42 however many waves it publishes.
+        # H_eff is 1.0 and the cap is 0.50 however many waves it publishes
+        # (`poll_house_k` ships at 1.0; 0.42 was the K = 1.4 value measured
+        # on the way to it and never shipped — MODEL-LOG §1.67, §1.69).
         _asof = target.date
         _pk = {"screen_sd": float(scenario.get("poll_screen_sd", 0.020)),
                "drift_rate": float(scenario.get("poll_drift_per_root_day",
@@ -2844,64 +2921,27 @@ def run_model(target, scenario: dict,
             print(f"  polls: {len(_metro)} metro wave(s) aggregated by recency "
                   f"({', '.join(q['id'] for q in _metro)})")
 
-    if scenario.get("poll_id") and scenario.get("poll_weight", 0) > 0:
-        polls = {q["id"]: q for q in json.loads(
-            Path("polls.json").read_text(encoding="utf-8"))["polls"]}
-        poll = polls[scenario["poll_id"]]
-        wp = scenario["poll_weight"]
-        # `prior` is a LOCAL OF blended_centres. Referring to it here raised
-        # NameError, so this whole branch crashed the instant `poll_weight`
-        # went above zero — which is to say the polling channel has never once
-        # executed. It reads as merely unused because the default weight is 0
-        # and nothing exercises it; the first person to turn the dial up gets a
-        # traceback, not a forecast. That is the channel MODEL-LOG task #23
-        # depends on and that the external review calls the only pre-election
-        # evidence for a party with no electoral history.
-        prior = scenario.get("theta_prior") or {}
-        # HOW MUCH A POLL IS TRUSTED DEPENDS ON WHAT ELSE THE PARTY HAS.
-        # A party with no electoral record has nothing to weigh the poll
-        # against, so the poll is very nearly the whole estimate. A party with
-        # a long retention record has a competing measurement of the same
-        # quantity, and the poll is one more reading rather than the answer.
-        #
-        # Keyed on the SAME `worth` the spine uses -- the sum of what that
-        # party's own θ observations are worth -- so the two layers cannot end
-        # up disagreeing about how much history a party has. w = m/(worth+m),
-        # the same shape as the spine's blend: worth 0 gives the poll full
-        # weight, the ANC's worth of about 19 gives it a twentieth.
-        _worth = scenario.get("_theta_worth") or {}
-        _m = float(scenario.get("poll_k", POLL_K))
-        for party, share in poll["numbers"].items():
-            if party in centres and party in base_city_d:
-                if party in prior:
-                    low, high = prior[party][0], prior[party][2]
-                    mid = prior[party][1] or 1.0
-                else:
-                    low, high = PLAN_BOUNDS.get(party, (0.0, float("inf")))
-                    mid = 1.0
-                    if party in PLAN_BOUNDS:
-                        note_constant(scenario, "plan_bounds", party)
-                # Anchored on the level the model believes, not on the national
-                # baseline — the same correction the by-election clamp needed,
-                # at the third site carrying it.
-                #
-                # It matters MORE here than there. A poll exists precisely to
-                # say something about a party whose history cannot: one with no
-                # θ record and a small or absent national base. Clamping a poll
-                # to [low × national, high × national] throws away the poll for
-                # exactly that party and keeps it only where it was least
-                # needed. Pre-2021 polls had ActionSA near 6% against a model
-                # estimate of 0.17% in Tshwane; this clamp would have discarded
-                # the 6% and kept the 0.17%.
-                anchor = centres.get(party) or base_city_d[party]
-                clamped = min(max(share, (low / mid) * anchor),
-                              (high / mid) * anchor)
-                w_party = wp * (_m / (float(_worth.get(party, 0.0)) + _m))
-                centres[party] = (1 - w_party) * centres[party] + w_party * clamped
-                notes[party] = notes.get(party, "") + (
-                    f" | poll {poll['id']} @ {w_party:.2f} "
-                    f"(θ evidence {float(_worth.get(party, 0.0)):.1f}): "
-                    f"→ {centres[party]:.1%}")
+    # THE LEGACY POLL PATH WAS DELETED HERE, 2026-08-22 (MODEL-LOG §1.68).
+    #
+    # `poll_id` / `poll_weight` / `poll_k` re-read `polls.json` directly and
+    # applied whatever they found, **bypassing `polling.usable_for` entirely**:
+    # no fieldwork-date check, no party-commissioned exclusion, no scope or city
+    # check, no election-declaration rule. `--set poll_id="da-internal-2026aug"`
+    # admitted the DA's own internal poll; `--set poll_id="ipsos-2016-lge-joburg"`
+    # at target 2021 admitted a five-year-stale one, which §1.66 measured at
+    # +10.0 CRPS and +8 coherent seats.
+    #
+    # It had also never executed: it referred to `prior`, a local of
+    # `blended_centres`, so it raised NameError the instant `poll_weight` went
+    # above zero. Its weight was keyed on how much θ history a party had, which
+    # §1.67 replaced with precision — so it was a second poll-weighting
+    # implementation sitting beside the live one and disagreeing with it.
+    #
+    # Nothing is lost. What it existed to do — let a poll speak for a party the
+    # record cannot see — is the arrivals path, measured at 48 coherent seats
+    # (§1.65). What it did in addition, applying an unscreened poll to every
+    # party, is the metro path with admission rules (§1.67).
+
     if "ENTRANT" in index:
         centres["ENTRANT"] = 0.0
 
@@ -2976,7 +3016,7 @@ def run_model(target, scenario: dict,
         noise = rng.normal(0.0, scenario["turnout_noise_sd"], nvd)
         t_draw = np.clip(((1 - blend) * t_ratio + blend * t_level)
                          * np.exp(noise - scenario["turnout_noise_sd"] ** 2 / 2),
-                         0.02, 0.95)
+                         TURNOUT_DRAW_FLOOR, TURNOUT_DRAW_CEILING)
         # The who-turns-out tilt used to sit here. It selected supporters by
         # a hand-drawn party grouping, and it was applied AFTER
         # solve_and_predict had already calibrated shares to the drawn target,
@@ -3173,6 +3213,18 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"    {p:<10s} {run.ipf_clipped[p] / run.ipf_balances:>6.1%}"
                       f"   worst {run.ipf_worst.get(p, 0.0):.0%} of capacity")
 
+    # THE CAPACITY CAP, reported whether it fired or not. `cap_undershoots` and
+    # `cap_moved` are named in the comment above the trace as "the counters
+    # whose SILENCE was read as success for two days (MODEL-LOG §1.41)" — and
+    # they were still, on 2026-08-22, incremented by nothing that printed them
+    # and asserted on by nothing. They reached the opt-in trace alone, and
+    # CLAUDE.md's own warning about the trace is that it "will happily record a
+    # guard that has gone blind". A guard nobody reads is not a guard. §1.69.
+    print(f"\ncapacity cap: {run.cap_undershoots:,} target(s) could not be met "
+          f"from their own pools; {run.cap_moved:.4%} of the citywide vote was "
+          f"redistributed"
+          + ("" if run.cap_undershoots else "   (the cap did not bind)"))
+
     if run.bounds_violations:
         print("\nimplied θ outside §3.5 sanity ranges (share of draws):")
         for p in sorted(run.bounds_violations, key=lambda q: -run.bounds_violations[q]):
@@ -3211,6 +3263,45 @@ def main(argv: list[str] | None = None) -> int:
     coalitions.write_outputs(results, processed)
 
     # --- outputs --------------------------------------------------------------
+    # A MONTE CARLO ESTIMATE OF 1.000 IS A STATEMENT ABOUT THE DRAW COUNT, NOT
+    # ABOUT THE ELECTION, and reporting it as certainty is indefensible.
+    # ---------------------------------------------------------------------
+    # Until 2026-08-22 this wrote `count / draws`, so a party that won a ward
+    # in every draw was published at **p = 1.000** — the map's tooltip said
+    # "DA — DA 100%" for 25 of Johannesburg's 135 wards on the 2026 forecast,
+    # every one of them DA. That asserts P(anyone else wins) is exactly zero,
+    # which is the bounded-support fault: an outcome at probability zero that
+    # then happens carries an infinite log score and cannot be defended.
+    #
+    # **And it is not hypothetical here — it is measured.** Backtested on
+    # Johannesburg 2021 at 1500 draws, the wards this model called certain were
+    # right **31 times in 32, not 32** (ward 7: PA at p = 1.000, actual ANC).
+    # Every other band is calibrated or conservative (0.90-0.99 -> 93% against
+    # a nominal 94%; 0.75-0.90 -> 95% against 82%); the top band is the only
+    # one that overclaims, and it overclaims a probability of one.
+    #
+    # Two separate things follow, and only the first is fixed here.
+    #
+    # 1. **The ESTIMATOR must not report more precision than the sample holds.**
+    #    Seeing k = N wins in N draws bounds the loss probability near 1/N; it
+    #    does not establish zero. The Jeffreys posterior mean, (k + 1/2)/(N + 1),
+    #    is the standard correction and at N = 1500 it reports 0.9997 rather
+    #    than 1.0000 — the honest reading of "won every draw we took". It moves
+    #    nothing else: no seat, no median, no coherent vector, and no band below
+    #    the top is shifted by more than 1/(2N).
+    # 2. **The MODEL is still over-confident at the top, and this does not fix
+    #    that.** 97% observed against a corrected 99.97% claimed is a real
+    #    miscalibration and its cause is that the ward draw carries no mechanism
+    #    for a local upset — candidate quality, a defection, a strong
+    #    independent. `universe` excludes independents outright, which is
+    #    defensible for Johannesburg (they won no ward in 2016 or 2021) and is
+    #    an assumption elsewhere. Fixing THAT is a modelling change and needs
+    #    measuring; it is written up rather than attempted here.
+    #    MODEL-LOG §1.71, DATA-QUALITY item 12.
+    def _p_win(count: int) -> float:
+        """Jeffreys posterior mean. Never exactly 0 or 1 from a finite sample."""
+        return (count + 0.5) / (draws + 1.0)
+
     ww_out = processed / "ward_winner_probs.csv"
     with ww_out.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
@@ -3218,11 +3309,11 @@ def main(argv: list[str] | None = None) -> int:
         for wi, w in enumerate(wards):
             order = np.argsort(-ward_winner_counts[wi])
             dist = "|".join(
-                f"{universe[i]}:{ward_winner_counts[wi, i] / draws:.4f}"
+                f"{universe[i]}:{_p_win(ward_winner_counts[wi, i]):.4f}"
                 for i in order if ward_winner_counts[wi, i] > 0)
             writer.writerow([
                 w, universe[order[0]],
-                f"{ward_winner_counts[wi, order[0]] / draws:.4f}", dist])
+                f"{_p_win(ward_winner_counts[wi, order[0]]):.4f}", dist])
 
     seats_out = processed / "seat_draws.csv"
     top = ranked[:13]

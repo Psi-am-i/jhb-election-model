@@ -70,6 +70,9 @@ _MODULE_LEVEL = {"turnout_correlation"}
 
 # Reasons shared by several EXPECTED_INERT entries. Each is a claim about the
 # model that a reader can check, not a suppression.
+# Kept after the path it described was deleted, because the lesson is about
+# measurement rather than about that lever: a null measured with the gate shut
+# is not a null. §1.68.
 _LEGACY_POLL = (
     "RETRACTED 2026-08-17 and kept only as a warning. This entry used to say "
     "'verified directly: poll_k 1.0 vs 40.0 at 2026 moves the DA, ANC, ASA, MK "
@@ -85,8 +88,15 @@ _LEGACY_POLL = (
 # perturbed without its gate reads as dead, which is how the poll path was
 # wrongly certified inert. Each entry names the keys that must move as a set.
 PAIRED: dict[str, dict[str, object]] = {
-    "the legacy poll path": {"poll_id": "ipsos-2021-lge-national",
-                             "poll_weight": 0.9, "poll_k": 40.0},
+    # The legacy poll path lived here — `poll_id` + `poll_weight` + `poll_k`,
+    # perturbed as a set because a conditional lever moved alone reads as dead.
+    # **All three were DELETED on 2026-08-22 (MODEL-LOG §1.68)**, so the entry
+    # goes with them; leaving it would name keys that are not in DEFAULTS, which
+    # the sweep silently skips while reporting success — the exact failure
+    # `test_every_defaults_key_is_swept_or_excused` exists to catch, and it did.
+    #
+    # The lesson the entry carried is kept in `_LEGACY_POLL` below, because it
+    # is about how to measure a lever and not about that lever.
 }
 _WARD_LOCAL_BYE = (
     "parameters of the §1.28 ward-local by-election term, which is gated on "
@@ -141,6 +151,7 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
     ("poll_screen_sd", "2021"): _NO_METRO_POLL,
     ("poll_drift_per_root_day", "2021"): _NO_METRO_POLL,
     ("poll_half_life_days", "2021"): _NO_METRO_POLL,
+    ("poll_min_n", "2021"): _NO_METRO_POLL,
     ("arrival_group_draw", "2026"):
         "GATED ON DATA THAT DOES NOT EXIST YET, and the gate is three deep. "
         "`pools.arrival_group_spec` returns None unless the target has a real "
@@ -178,16 +189,9 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
         "median seats at expand 0.0 / 0.220 / 0.5. MODEL-LOG §1.60.",
     ("w_bye_local_ward", "2021"): "built, disabled, and untestable for the same reason as w_bye",
     ("w_bye_local_pr", "2021"): "built, disabled, and untestable for the same reason as w_bye",
-    ("poll_weight", "2026"): "same gate on poll_id",
-    ("poll_weight", "2021"):
-        "gated on `poll_id` as well, at montecarlo.py:2217. Perturbing the "
-        "weight alone cannot do anything because no poll is selected; the pair "
-        "has to move together. Not dead — conditional.",
     # --- added 2026-08-17, when the enumeration test raised PERTURB from 13 of
     # --- 27 DEFAULTS keys to 23 and seven more levers turned out not to move.
     # Each is inert for a DIFFERENT reason and every reason is checkable.
-    ("poll_k", "2021"): _LEGACY_POLL,
-    ("poll_k", "2026"): _LEGACY_POLL,
     ("bye_local_cap", "2021"): _WARD_LOCAL_BYE,
     ("bye_local_cap", "2026"): _WARD_LOCAL_BYE,
     ("bye_tau_months", "2021"): _WARD_LOCAL_BYE,
@@ -236,6 +240,12 @@ DELIBERATELY_UNUSED: dict[str, str] = {
         "the same, for the theta level shock, which returns 1.0. NOTE that it therefore consumes no randomness -- which is exactly why the harness averages five seeds: an ablation that skips a draw shifts every later draw, and the first run of it reported negative variance contributions because of that.",
     "width_budget.py:_no_shock(df)":
         "the same, for the theta level shock, which returns 1.0. NOTE that it therefore consumes no randomness -- which is exactly why the harness averages five seeds: an ablation that skips a draw shifts every later draw, and the first run of it reported negative variance contributions because of that.",
+    "polling.py:validate(min_n)":
+        "accepted and ignored since 2026-08-22. The sample-size floor is a "
+        "SCREEN rule, not a validation — see `polling.screen`'s `under-min-n` "
+        "and MODEL-LOG §1.69 — and the kwarg survives so that callers written "
+        "against the older signature keep working rather than raising. "
+        "Removing it would be the right cleanup once nothing passes it.",
     "levels.py:sd_for(size)":
         "the POOLED fallback branch, taken when fewer than 6 observations "
         "support a size fit. The fitted branch two lines above does use size. "
@@ -249,7 +259,6 @@ OPERATIONAL: dict[str, str] = {
     "draws": "how many samples to take; not a claim about the world",
     "seed": "reproducibility, not a model parameter",
     "pools": "the emitted pool spec itself, loaded from pools_<year>.json",
-    "poll_id": "selects WHICH poll; `poll_weight` is the lever and is swept",
 }
 
 # Perturbations chosen to be large enough that no honest lever could absorb them.
@@ -284,13 +293,13 @@ PERTURB: dict[str, object] = {
     "poll_deff_subsample": 4.0,   # a subsample worth a quarter of its headline n
     "poll_screen_sd": 0.12,       # an undisclosed screen priced as ruinous
     "poll_drift_per_root_day": 0.02,   # opinion moving very fast
+    "poll_min_n": 5000,           # admits nothing under 5,000 respondents
     "poll_half_life_days": 5.0,   # only the freshest wave counts
     "level_sd_default": 1.60,     # was frozen at 0.45 and unreachable
     "turnout_correlation": 0.0,   # independent pools; was frozen at 0.63
     "contestation_expand": 1.0,   # every party in every ward
     "w_bye_local_ward": 0.90,
     "w_bye_local_pr": 0.90,
-    "poll_weight": 1.0,
     "spine_k": 40.0,
     "level_floor": 0.02,
     "turnout_correlation": -0.9,
@@ -309,7 +318,6 @@ PERTURB: dict[str, object] = {
     # Added 2026-08-17 after the enumeration test below found that PERTURB
     # covered 13 of 27 DEFAULTS keys and nobody had noticed.
     "entrant_share": [0.20, 0.30, 0.45],
-    "poll_k": 40.0,
     "bye_local_cap": 40.0,
     "bye_tau_months": 400.0,
     # k = 0.0, NOT 1.0. `dev[ENTRANT] = (1-k) * dev[parent]`, so k=1 is flat by

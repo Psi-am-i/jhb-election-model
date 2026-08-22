@@ -47,6 +47,16 @@ def main(argv: list[str] | None = None) -> int:
     print(f"building {city.name} ({city.code}) — council {city.council}, "
           f"majority {city.majority}, {city.wards} wards")
 
+    # STEP 0: THE POLL REGISTER, BEFORE ANYTHING IS PUBLISHED. A malformed
+    # record used to be dropped in silence, so a `scope` of "Metro" or a typo'd
+    # `city` could take a poll out of the forecast and out of the published page
+    # with no warning anywhere. Cheap, and it runs before the slow steps so a
+    # bad record costs a second rather than a full build. MODEL-LOG §1.68.
+    run("poll register", [py, "-c",
+                          "import sys; sys.path.insert(0, 'src'); "
+                          "import polling; polling.validate_or_die(); "
+                          "print('  polls.json: no malformed records')"])
+
     if args.model:
         run("Monte Carlo", [py, "src/montecarlo.py", *c])
     if args.regimes:

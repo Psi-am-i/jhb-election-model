@@ -336,8 +336,18 @@ it is newer, better argued, or built from more measurements.
    second one ships.** A constant chosen because it scores best on the nine
    city-years has been fitted to the scoreboard. `entrant_prob` has a clear
    empirical optimum near 0.40 and it was **not** adopted, because nothing
-   outside those nine picks it; the arrival record independently gives 0.29–0.35,
-   and that is the only number worth quoting. When a change improves the score,
+   outside those nine picks it; the arrival record independently gives 0.29–0.35.
+   **That advice is WITHDRAWN as of 2026-08-22 (MODEL-LOG §1.69), and the
+   withdrawal is instructive.** Both derived values were measured on the nine
+   city-years at 1500 draws and both are worse, monotonically: 254 coherent at
+   the committed 0.25, **262 at 0.290 and 264 at 0.353**, with CRPS 232.7 /
+   234.3 / 236.1. *Worse does not ship.* Note this is not a constant chosen ON
+   the scoreboard — 0.25 is the incumbent and the scoreboard was used to REJECT
+   a change, which is the one thing it is unambiguously for. And §1.31's finding
+   that "the whole range is inside the noise" **has expired**: the same sweep
+   moved 2 seats then and moves 10 now, because the level shrink, the
+   contestation correction and the poll paths all landed in between. A null is a
+   statement about the model that measured it. When a change improves the score,
    say *what evidence outside the score chose it* — and if the answer is "the
    score", say so and leave the constant alone.
 11. **"It was forward validated" does not answer rule 10. Say WHICH LOOP.**
@@ -461,6 +471,40 @@ model will ever get.
 
 Until one of those exists, a change that improves the nine city-years is
 evidence about the nine city-years.
+
+### And the panel was smaller than the archive for a second reason nobody had found
+
+**Added 2026-08-22 after an outside audit — MODEL-LOG §1.69.** The paragraph
+above is right that the pre-2011 archive is the thing to get. It was wrong about
+what stood between here and a bigger panel, in a way that made the ceiling look
+lower than it is.
+
+`backtest.runnable_targets` reports what the ARCHIVE supports: 2011, 2016 and
+2021 **for all eight metros — twenty-four city-years.** `compare_history.runnable`
+reported nine. The gap was never stated anywhere, and it had two independent
+causes that looked identical from outside because both produced a silent absence:
+
+1. **No emitted pool spec.** Seven of the eight metros had `pools_2021.json` and
+   nothing else. This needed **no new data at all** — the `lge2011_*` and
+   `npe2014_*` files have been on disk throughout — and it has been fixed: all
+   eight 2016 specs are now emitted.
+2. **No γ fold.** A 2016 target needs a γ fold strictly preceding it, which is
+   fold 3 (2009 NPE → 2011 LGE), which needs `npe2009` and `lge2006`. **Those
+   exist for Johannesburg and for no other metro.** There is no way round it:
+   fold 1 targets 2016 itself, so borrowing its γ reads the answer.
+
+So the second blocker IS the pre-2011 ingest this file already named — and the
+first one was a separate, invisible, entirely mechanical limit sitting in front
+of it. **That changes the value of the ingest, not the verdict.** The pre-2011
+archive for seven metros now buys **seven city-years and a second full electoral
+cycle immediately**, because the other half of the work is done and committed.
+It is no longer "roughly double the θ record's cycles, eventually"; it is the
+single remaining step.
+
+`compare_history` now PRINTS what the archive supports and this harness cannot
+run, with the reason, on every invocation. The number of city-years is the
+denominator of every claim this file makes, and it must not be able to shrink
+quietly again.
 
 ## Where the record lives
 

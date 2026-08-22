@@ -225,6 +225,41 @@ def _citywide(path) -> dict[str, float]:
     return {k: v / total for k, v in counts.items()} if total else {}
 
 
+# LGE YEARS WHOSE TRANSITION IS EXCLUDED FROM THE θ RECORD.
+# ---------------------------------------------------------------------------
+# **AN EXPERIMENT HARNESS, NOT A LEVER, AND EMPTY BY DEFAULT** — with this empty
+# the record is exactly what it was and no number moves.
+#
+# It exists to run one specific test (MODEL-LOG §1.74). §1.70 measured that
+# ingesting the pre-2011 archive for seven metros cost **26 coherent seats** on
+# the original nine city-years, and §1.72 identified the mechanism as the
+# 2009→2011 transition, which carries COPE's collapse, the NFP's split from the
+# IFP and the Independent Democrats merging into the DA. γ fold 3 IS
+# `npe2009 → lge2011`, so the ingest imported seven metros' worth of that one
+# transition into the retention prior at once.
+#
+# The narrow test this enables: drop 2011 from the θ RECORD while leaving γ fold
+# 3 intact, so the sixteen city-years still run, and see whether the nine return
+# toward 254. One flag, one run, and it discriminates — if the nine recover AND
+# the sixteen hold, the panel doubling is bought without the regression.
+#
+# **Read via the environment, deliberately.** `compare_history` fans out over
+# `ProcessPoolExecutor`, and a module constant set in the parent DOES NOT REACH
+# A WORKER — children re-import `levels` fresh. That defect has bitten this
+# repository before (`levels.SD_FLOOR`, MODEL-LOG §1.33) and `compare_history`
+# now refuses a run that would hit it. An environment variable is inherited by
+# every child, so the sweep is honest.
+#
+#     THETA_EXCLUDE_TARGETS=2011 .venv/bin/python src/compare_history.py
+#
+# If this test succeeds it must be PROMOTED to a declared `DEFAULTS` lever with
+# a register row before anything ships on it. An env var is how you run an
+# experiment, not how you carry a judgement.
+import os as _os
+THETA_EXCLUDE_TARGETS = frozenset(
+    y for y in _os.environ.get("THETA_EXCLUDE_TARGETS", "").split(",") if y)
+
+
 def theta_record(target: cityconfig.Target,
                  codes=METRO_CODES) -> dict[str, list[tuple[float, float]]]:
     """Every observed national-to-local retention ratio before the target.
@@ -253,6 +288,8 @@ def theta_record(target: cityconfig.Target,
     for year in lge:
         if int(year) >= int(target.year):
             continue                      # strictly before the target
+        if year in THETA_EXCLUDE_TARGETS:
+            continue                      # see THETA_EXCLUDE_TARGETS
         npe = cityconfig.preceding(year, "NPE")
         if not npe:
             continue

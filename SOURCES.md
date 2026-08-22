@@ -239,6 +239,78 @@ validation in this repo was run against.
 
 ## Still to acquire — needs a human
 
+* **Defector counts per split, and ideally per metro** — added 2026-08-22
+  (MODEL-LOG §1.73). **We do not have this data in any form.** The comparative
+  literature's best predictor of how a split divides the vote is *membership
+  strength and the share of legislators who defected*, and `pools.Split` records
+  `parent`, `measured_from`, `home` and `why` — no counts. What would be needed,
+  per split (COPE 2008, NFP 2011, EFF 2013, GOOD 2018, ActionSA 2019, MK 2023):
+  how many of the parent's public representatives left with the founder, and —
+  the part that would actually earn its keep — **how many in each metro**.
+
+  Why the per-metro version matters more than the national one: the register
+  already carries `MIN_HOME_SPLITS + binary home/away` at 🔴 because a splinter
+  is modelled as either at home or away with nothing between, while ActionSA's
+  fraction of the DA ran **0.611 / 0.315 / 0.289 / 0.103** across four metros —
+  a gradient bucketed into two, and the reason Tshwane's seed was 0.17% against
+  an actual 9.28%. A single national defector share is one number per split and
+  cannot produce a gradient across metros. A *per-metro* defector share can, and
+  it is the local analogue of the international finding rather than an import of
+  it.
+
+  **A possible route, and its limits.** Floor-crossing was abolished in 2009, so
+  a councillor who defects vacates the seat and a by-election follows — which
+  means defections are in principle observable as by-elections. The IEC's
+  by-election notices state the reason for the vacancy (death, resignation,
+  removal). **This repository's by-election data does not capture it**:
+  `data/processed/byelection_contest_detail.csv` carries ward, date, party,
+  shares, delta, weight and rho across 89 contests, and no cause field.
+  `byelections.py`'s own docstring names the selection ("resign or defect,
+  skewing toward unstable wards") without recording which. So the cause is a
+  scrape that has not been done.
+
+  **Its limit is severe and should be stated before anyone starts.** The scraped
+  by-election window is 2022-06 to 2026-02, so this route can only characterise
+  defections into MK (2023) and anything after. **COPE, the NFP, the EFF, GOOD
+  and ActionSA are all outside it**, and those are the five splits the record is
+  actually built from. For them the counts would have to come from council
+  minutes and contemporaneous reporting, one at a time.
+
+* **A NATIONAL poll declared for 2026** — added 2026-08-22, MODEL-LOG §1.69, and
+  it is now the **highest-value acquisition on this list** measured in seats. The
+  arrivals poll path converts a national poll share into a metro one through the
+  contested-area arithmetic, and it is worth **48 coherent seats across nine
+  city-years** (§1.65) — the largest single measured effect in the poll channel.
+  §1.69 fixed the geographic half that blocked it at a live target
+  (`polling.PROJECTED_METRO_SHARE`), so the code is ready and **the only
+  remaining blocker is that no national poll declared for 2026 is in
+  `polls.json`.** The three admitted 2026 records are two SRF metro waves and one
+  metro-aggregate:
+
+      admitted at 2026: srf-2026q2-coj (metro), srf-2026q1-coj (metro),
+                        ipsos-w2-2025-metros (metro-aggregate)
+      national among them: []
+
+  Ipsos, SRF and the Social Research Foundation all publish national voting
+  intention; what is needed is one with a **machine-readable `fieldwork_end`**
+  and a party-share breakdown, entered as `scope = "national"`. Note that
+  `metro-aggregate` does not substitute — eight metros averaged is not a reading
+  of the country, and `polling.validate` says so as a warning on
+  `ipsos-w2-2025-metros`.
+
+* **The pre-2011 archive for the seven non-Johannesburg metros** (`npe2009_*`,
+  `lge2006_*`) — promoted here 2026-08-22 because §1.69 established what it is
+  worth. It is the ONLY remaining blocker on seven more backtest city-years:
+  their 2016 pool specs are emitted and committed, and the sole thing stopping
+  those targets running is γ fold 3 (2009 NPE → 2011 LGE), which needs these two
+  files. That takes the panel from nine city-years to sixteen and from one
+  effective electoral cycle to two — which `ITERATING.md` names as the one thing
+  that would license reopening modelling work at all. See §101, "The pre-2011
+  archive — a national bulk export nothing links to". **Not** worth attempting
+  for 2011 targets: `pools.py --city joburg --target 2011 --emit` fails with
+  *"no ward joined the census"* because the 2006 ward geography predates the
+  delimitation the census is joined on.
+
 * **Census 2022 home language, by ward** — the single most valuable missing
   input. The Ward Statistical Product carries only population group, age and
   sex, and population group is too coarse to describe how voters are grouped:
@@ -424,3 +496,55 @@ Neither is an ingest gap; both are quantities the model has no channel for.
   candidate term.** Not obviously fixable: one ASA local election is on record,
   so a candidate effect cannot be estimated here, and inventing one would be the
   party-specific constant deleted twice (§1.47). Recorded as a blind spot.
+
+## Comparative political-science literature (added 2026-08-22)
+
+The first evidence in this repository that is **not South African electoral
+data**. Imported for one purpose — sizing party-lifecycle events, which the
+record cannot do because each event happens once — and recorded here with its
+provenance because an unsourced claim about another country's elections is worse
+than no claim. The argument that uses them is MODEL-LOG §1.72 and §1.73.
+
+**Read the third block before using any of it.** One of these findings has the
+opposite sign in South Africa, for a reason that is itself the finding.
+
+### The decomposition that motivates all of it
+
+| source | what it gives us |
+|---|---|
+| Powell, E. N. & Tucker, J. A. (2014), "Revisiting Electoral Volatility in Post-Communist Countries", *BJPS* 44(1) — <http://www.eleanorneffpowell.com/uploads/8/3/9/3/8393347/powell_tucker_2014_bjps.pdf> | **Type A** volatility (party entry and exit) against **Type B** (vote switching among existing parties), and the argument that pooling them makes the aggregate meaningless. What we actually use is their **coding rules**: the classification is a documented fact about a party, not an inference from its votes, which is what makes §1.72's exclusion non-circular |
+| "Rethinking Electoral Volatility", Good Authority — <https://goodauthority.org/news/rethinking-electoral-volatility/> | plain-language account of the Pedersen index and the A/B split |
+
+### Splits — transfers well, and is better than the constant we ship
+
+| source | what it gives us |
+|---|---|
+| "Electoral Competition after Party Splits", *PSRM* — <https://eprints.soton.ac.uk/407531/1/splits_el_conseq.pdf> | **200+ splits across 25 European countries** post-war. Rump and splinter first-election shares are predicted by **membership strength and the share of legislators who defected** — both observable before polling day. `pools.SPLINTER_PARENT_WEIGHT = 0.35` is a flat fraction identical for every split; this names the covariate that should replace it |
+
+### Leader death — DOES NOT TRANSFER. The sign reverses.
+
+| source | what it gives us |
+|---|---|
+| "Berlinguer, I Love You (Still)", *Political Behavior* (2025) — <https://link.springer.com/article/10.1007/s11109-025-10095-7> | the PCI **gained** after Berlinguer's death in 1984, in that election and in later ones |
+| "The Effects of Political Martyrdom on Election Results: The Assassination of Abe" — <https://arxiv.org/pdf/2305.18004> | the LDP estimated at **~6% more seats** after Abe's assassination |
+| So, F., "The Consequences of Party Leadership Change on Democratic Elections" — <http://www.scpi.politicaldata.org/SCPII/Florence%20So.pdf> | leadership change *short of death*: parties with new leaders lose about **3.5%** of their vote on average. This one does transfer |
+
+**The warning.** Both death findings are sympathy-vote results and this model's
+own observation runs the other way — the Minority Front at **θ = 0.193** after
+Amichand Rajbansi died in 2011. Both are correct, and the moderator is
+**institutionalisation**: a leader's death helps a party that outlives him and
+destroys one that *is* him. Nearly every party this model must handle is a
+personal vehicle — MK/Zuma, ActionSA/Mashaba, GOOD/De Lille, EFF/Malema,
+Agang/Ramphele, Minority Front/Rajbansi, PA/McKenzie, COPE/Lekota. **Importing
+the sympathy-vote prior without that moderator would be actively harmful**, and
+it would have looked well-sourced.
+
+### Context on the size question
+
+| source | what it gives us |
+|---|---|
+| "Simulating Party Shares", *Political Analysis* — <https://www.cambridge.org/core/journals/political-analysis/article/simulating-party-shares/C391F0D44529EE6E73F904F2D1E1050F> | uniform against proportional swing. θ is a **ratio**, so this model sits at the proportional end; `benchmarks.uniform_swing` is the additive one. "Large parties move less than proportionally" is the contested middle, and §1.72 measures it on our own record |
+
+**Not yet used by any code.** Every row above is argument, not measurement, and
+nothing in `src/` reads any of it. Under CLAUDE.md's rule that anything the
+harness cannot test is labelled argued-not-tested, these are argued.

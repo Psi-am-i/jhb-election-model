@@ -6802,8 +6802,21 @@ DA"*.
 
 ### Measured
 
-**The backtest does not move: 254 coherent, identical city-year by city-year,
-CRPS 232.9 → 232.8.** And the reason is worth stating rather than celebrating —
+**The backtest barely moves: 254 coherent, unchanged city-year by city-year;
+CRPS 232.93 → 232.73, entirely at Johannesburg 2016** (18.93 → 18.73), the one
+city-year the metro path fires on. Seat counts there are identical; the
+distribution tightens slightly.
+
+> **A stale figure, caught and corrected the next day.** This paragraph first
+> read "CRPS 232.9 → 232.8, identical city-year by city-year". That measurement
+> was taken at `poll_house_k = 1.4`, and the entry then shipped **1.0** — so the
+> number quoted was for a configuration that was never committed. Found by
+> §1.68 asking why a supposedly inert change had moved CRPS, and isolated by
+> re-running with `--set poll_house_k=1.4`, which reproduces 232.82
+> **seat-identically**. Measure the thing you ship, not the thing you measured
+> on the way to it.
+
+And the reason the movement is so small is worth stating rather than celebrating —
 **the only poll any backtest sees is Johannesburg 2016's, which IS the
 calibration poll**: full sample, disclosed method, two days out. The
 decomposition is inert there by construction. So this change is live exactly
@@ -6890,6 +6903,1180 @@ the_judgement_register` only checks code → register, so a register row naming 
 non-existent constant passed. It is now a module constant mirrored in `DEFAULTS`
 with the two asserted equal at import — and it is the second instance this week
 of the register being right about a thing that was not there.
+
+---
+
+## 1.68 The legacy poll path is deleted, and the register stops losing records in silence (2026-08-22)
+
+Two changes, both about a poll being used or refused **for a reason someone can
+read**. Neither moves the backtest.
+
+### The legacy path, deleted
+
+`poll_id` / `poll_weight` / `poll_k` re-read `polls.json` directly and applied
+whatever they found, **bypassing `polling.usable_for` entirely**: no
+fieldwork-date check, no party-commissioned exclusion, no scope or city check,
+no election-declaration rule. So
+
+* `--set poll_id="da-internal-2026aug"` admitted the DA's own internal poll —
+  the record whose own note calls it *"the evidence for the exclusion rule, not
+  evidence about the election"*;
+* `--set poll_id="ipsos-2016-lge-joburg"` at target 2021 admitted a five-year-
+  stale poll, which §1.66 measured at **+10.0 CRPS and +8 coherent seats**.
+
+It had also **never executed**: it referred to `prior`, a local of
+`blended_centres`, so it raised `NameError` the instant `poll_weight` went above
+zero. And its weight was keyed on how much θ history a party had — a second
+poll-weighting implementation sitting beside the live one and disagreeing with
+it, which is this repository's most reliable defect.
+
+**Nothing is lost.** What it existed to do — let a poll speak for a party the
+record cannot see — is the arrivals path, measured at 48 coherent seats (§1.65).
+What it did in addition, applying an unscreened poll to every party, is the
+metro path with admission rules (§1.67).
+
+*A correction to the reasoning, not the conclusion.* An earlier statement of
+this said the path had to go because **the interactive drives it**. That is
+wrong: nothing in the model reads the interactive — the only channel out of that
+page is a textarea a human pastes into `--config`, and `PUBLISHING-BACKLOG.md`
+§1 already recorded it as inert. The three reasons above are internal to the
+Python model and each is sufficient on its own.
+
+### The register stops losing records in silence
+
+`usable_for` expressed two entirely different things with the same `continue`:
+*"this poll is about a different election"*, which is correct behaviour, and
+*"someone typed `Metro` instead of `metro`"*, which is a poll we meant to count
+and silently did not. Both printed nothing.
+
+Not hypothetical: `ipsos-w2-2025-metros` is dropped by every caller **and
+offered as a one-click preset by the interactive**. And the 2026 forecast rests
+on one house's two waves — losing one to a typo would move a published number
+and say nothing.
+
+So the two ideas are separated:
+
+* **`validate` / `validate_or_die`** — malformed records. Fatal. Called from
+  `run_model` before the poll section, from `tests/test_polling_register.py`,
+  and from `build_all.py` as step 0 so a bad record costs a second rather than
+  a full build.
+* **`screen`** — well-formed polls this target may not use, each returned as an
+  `Exclusion` with its rule and detail. `usable_for` is now a thin wrapper, and
+  a verbose run prints what it declined:
+
+```
+  polls declined (7):
+      da-internal-2026aug: commissioned by Democratic Alliance [commissioned]
+      ipsos-2021-lge-national: declared for 2021, not 2026 [other-election]
+      ...
+```
+
+### The line between them was drawn the hard way
+
+The first validator made a **missing sample size fatal** — and it refused the
+committed register, because **Ipsos never published the metro cut sizes for the
+nine 2016 readings `POLL_HOUSE_SD` is calibrated on**. A rule strict enough to
+reject its own calibration set is measuring the author's wishes rather than the
+data.
+
+So `Problem` carries a severity. **"error" is malformed** — a `scope` of
+`"Metro"`, shares summing to 60 because someone typed percentages, `n` below
+`poll_min_n`, a metro poll with numbers and no city. **"warn" is incomplete but
+honest** — a house that never published its sample size, which the arithmetic
+already handles by falling back to the house term. The committed register has
+**0 errors and 6 warnings**, and every warning names a real limitation.
+
+### And the sweep guard caught the deletion halfway done
+
+Removing the three keys from `DEFAULTS` left them in `PERTURB`, and
+`test_every_defaults_key_is_swept_or_excused` failed with exactly the right
+words: *"these PERTURB entries are not DEFAULTS keys, so the sweep SILENTLY
+SKIPS them and reports success"*. A half-finished deletion reads as a passing
+sweep, which is the failure that guard exists for. `_LEGACY_POLL`'s text is kept
+even though its lever is gone, because the lesson it carries — **a null measured
+with the gate shut is not a null** — is about how to measure a lever rather than
+about that lever.
+
+### Measured
+
+Backtest **unchanged, and demonstrated rather than assumed**: the deleted path
+never executed, and the validation refuses nothing the screen was not already
+dropping. Verified by re-running the whole panel at `--set poll_house_k=1.4` —
+the value §1.67 was measured at — which reproduces that run's 254 coherent /
+CRPS 232.82 **seat-identically across all nine city-years**. So every difference
+between this commit and that measurement is the `poll_house_k` change, and none
+of it is this one.
+
+That check is also how §1.67's stale CRPS figure was found: the entry quoted a
+number taken at K = 1.4 and shipped K = 1.0. Corrected in place there.
+
+`poll_min_n` joins the four judgement calls of §1.67 as a settable `DEFAULTS`
+key.
+
+---
+
+## 1.69 An outside audit finds a red suite, a register that lies, and a panel half the size of the archive (2026-08-22)
+
+An independent review was run from the forecaster's standpoint — instrument
+first, then baseline, then where the error is, then calibration, then structure.
+It is written up here because **three of its findings are defects in this
+repository's own guards**, and a guard that passes while the thing it guards is
+wrong is worse than no guard: it converts an absence of evidence into a claim.
+
+### The suite was red, and every failure was the uncommitted §1.68 work
+
+Four distinct failures, on a working tree whose model was being quoted at 254
+coherent seats. `tests/test_regressions.py` is not in that diff, and
+`git show HEAD:src/montecarlo.py` confirms both broken anchors existed at HEAD,
+so these are regressions introduced by §1.68 and not pre-existing.
+
+| test | cause |
+|---|---|
+| `test_no_clamp_is_anchored_on_the_national_baseline` | the clamp refactor removed `anchor = centres.get(party)` |
+| `test_the_polling_channel_actually_runs` | still opened the channel with the deleted `poll_id` |
+| `test_every_defaults_key_is_swept_or_excused` | `poll_weight` re-injected into `DEFAULTS` |
+| `test_every_tunable_lever_actually_moves_the_forecast` | `poll_min_n` cannot be swept — see below |
+
+The first two are stale tests and are rewritten. The rewrite of
+`test_the_polling_channel_actually_runs` is deliberately **stronger** than what
+it replaces: it drives the live path (`poll_paths`, the register, `screen`) and
+asserts both that the channel runs when switched on and that switching it off
+silences it. A channel that cannot be switched off cannot be measured, which is
+the entire reason `poll_paths` exists (§1.65), and nothing tested that.
+
+### `poll_min_n` was on the wrong side of the line §1.68 had just drawn
+
+§1.68 defined the split precisely — **validate = malformed, fatal; screen =
+well-formed polls this target may not use** — and then put the sample-size floor
+on the fatal side. So:
+
+* sweeping `poll_min_n` above 504, which the lever guard is *required* to do,
+  raised `PollRegisterError` and killed the run. The lever could not be
+  perturbed at all, and a lever that cannot be perturbed is one nobody has
+  measured;
+* a reader submitting a small poll to the competition would have been told
+  their record was **malformed** when it was merely **small**.
+
+A poll with a published, positive, too-small `n` is the definition of
+well-formed-but-inadmissible. The floor moves to `screen` as an `under-min-n`
+`Exclusion`, so it now prints its refusal with a reason like every other screen
+rule. `validate` keeps the `min_n` kwarg, accepted and ignored, and is in
+`DELIBERATELY_UNUSED` saying so.
+
+Measured: at `poll_min_n=5000` the run no longer dies — it declines 9 polls
+instead of 7 and forecasts without them, which is the behaviour the sweep needs.
+
+### A city toml could invent a lever, and one had been doing so since §1.68
+
+`read_scenario_file` has always rejected an unknown key. `apply_city` accepted
+anything in `[judgements.scalars]` and wrote it straight into `DEFAULTS`. So
+when §1.68 deleted `poll_weight`, `cities/joburg.toml` and `cities/tshwane.toml`
+went on carrying it and `apply_city` faithfully put it back — **demonstrated,
+not inferred**:
+
+    >>> before = set(M.DEFAULTS); M.apply_city(cityconfig.use("joburg"))
+    >>> sorted(set(M.DEFAULTS) - before)
+    ['poll_weight']
+
+A key nothing reads, sitting in the model's parameter dict, which
+`read_scenario_file` would then *accept* from a scenario file and silently
+ignore. That is the half-finished-deletion failure §1.68 caught inside itself,
+one layer down and pointing the other way: the sweep guard checks `DEFAULTS`
+against `PERTURB`, and this route adds to `DEFAULTS` *after* the guard has
+looked. `apply_city` now raises on an unknown scalar, and the two dead lines are
+gone.
+
+### The register was making false claims, and the guard could not see them
+
+`test_every_tunable_constant_is_in_the_judgement_register` checks **code →
+register**. Nothing checked **register → code**, and that is the direction that
+failed:
+
+* **`polling_lean` / `polling_span`** sat in §F marked *"superseded by the poll
+  paths; still wired"*. They are not wired. They do not exist. The only trace of
+  them in `src/` is the comments recording their deletion. This is the exact
+  failure the `poll_half_life_days` row already confesses to — *"this row
+  previously named a constant that did not exist"* — repeated.
+* **`POLL_RMS_ERROR = 0.030`** is declared live in §F and is read by nothing.
+* **`MIN_SHARE` and `F_OTHER`** are filed under `stats.py` / `benchmarks.py`.
+  They live in `gamma_recent.py` and `leverage.py`. That row had already been
+  corrected once, for `CLAIM_FRACTION`, without checking the other two.
+* **Every one of the 24 line citations in §A was wrong**, by 34 to 375 lines,
+  several pointing at blank lines — six days after the preamble was rewritten to
+  say *"every line number and every claim below was re-checked by running the
+  code"*, and directly under its own warning that *"a register that names the
+  wrong line is worse than one that names none, because it is checked and
+  passes."*
+
+**The line numbers are not corrected; they are removed.** Correcting 24 numbers
+fixes 24 instances of a defect that recurs on a timescale of hours and decays
+invisibly — this register has now gone stale on line numbers twice in six days.
+A name does not drift. Every row cites the module and the symbol, and
+`tests/test_register_matches_code.py` enforces both directions:
+`test_every_symbol_the_register_names_exists` and
+`test_the_register_cites_no_line_numbers`. Deleted levers are listed explicitly
+in a `DELETED` map with the entry that removed each, so "this name is not in the
+code" is a decision rather than a gap.
+
+Writing that guard immediately found three more register defects nobody had
+looked for: `_pr`, `_jitter` and `_noise_sd` — rows abbreviating
+`w_bye_local_pr`, `turnout_blend_jitter` and `turnout_noise_sd` into strings
+that cannot be grepped. Spelled out.
+
+
+### What actually changed in the code, in full
+
+Recorded here because §1.69's narrative above is about *why*, and a reader
+auditing the diff needs the *what*. Every item is number-neutral unless it says
+otherwise, and that was verified at Johannesburg 2016 to every seat and CRPS
+figure before anything else was measured.
+
+**Dead instruments removed or wired up** (found by an exhaustive sweep; the
+project's own `EXPECTED_INERT` register already covered the levers, so these are
+what it does not reach):
+
+| what | where | disposition |
+|---|---|---|
+| `_rosters` | `montecarlo`, arrivals poll path | **deleted.** Written and never read — the loop seven lines below reads `_roster`, a *different* name bound far above. It re-read an entire VD result file to duplicate work already done, and its `cityconfig.by_code` branch was permanently dead because that function does not exist |
+| the bare `except Exception` around the arrivals poll path | `montecarlo` | **narrowed** to `(FileNotFoundError, KeyError, ValueError)`. It wrapped the 48-coherent-seat channel of §1.65, so a `NameError` in there would have disabled all 48 and printed a verbose-only warning — which is precisely how the legacy poll path stayed broken (§1.68) |
+| `validate_or_die` inside that same try | `montecarlo` | **lifted out.** §1.68 made a malformed register fatal and then called it from inside a bare except, silently un-fatalling it on that path |
+| `pit_all` | `score` | **deleted.** A second full PIT histogram over every scored column, computed on every scoring call and read by nothing. Its sibling `coverage_all` *is* read, which is what made it look deliberate |
+| `shapley_p5` / `shapley_p95` | `coalitions` | **now printed.** Two percentile passes over a 5,000-draw array per run, discarded, while the Banzhaf pair was printed. An interval for one power index and a point estimate for the other is not a choice anyone made |
+| `cap_undershoots` / `cap_moved` | `montecarlo` | **now printed.** Named in the code as "the counters whose SILENCE was read as success for two days (§1.41)" and still, on 2026-08-22, printed by nothing and asserted on by nothing. They reached the opt-in trace alone, and CLAUDE.md's own warning is that the trace "will happily record a guard that has gone blind" |
+| `turnout_limits["pool"]` | `pools` | **documented, not deleted.** Computed and emitted; only `limits["city"]` ever binds. `export_interactive` consumes the emitted block, so the name is corrected in place rather than removed |
+| `render_methodology.py`, `build_compare.py` | `src/` | **deleted.** Two orphan renderers, no importer and no reference in any doc. `render_methodology` was superseded by `build_site.render_doc`; this is the `site/plan.html` failure mode CLAUDE.md names, one step earlier in the pipeline |
+
+**Constants promoted from inline literals to named module constants**, resolved
+in the function body rather than as default arguments (the §1.33 freezing trap),
+so that `test_every_tunable_constant_is_in_the_judgement_register` can see them
+at all — it reads module-level assignments and `DEFAULTS`, and none of these was
+either:
+
+| constant | value | what it governs |
+|---|---|---|
+| `ALPHA_MIN_SHARE`, `ALPHA_FLOOR`, `ALPHA_CEILING`, `ALPHA_FALLBACK` | 0.01, 1.0, 200.0, 12.0 | the selection rule feeding `pools.dirichlet_alpha` — §B calls the per-pool concentration the model's **dominant width lever** (83–98% of drawn variance). `dirichlet_scale` multiplies this function's OUTPUT and has been swept for weeks; the four numbers deciding its INPUT were untracked |
+| `ARRIVAL_BAND_LO`, `ARRIVAL_BAND_HI` | 0.25, 0.95 | the triangular support of every seeded arrival |
+| `BYE_MIN_WEIGHT` | 30.0 | the admission gate on the **whole by-election channel**, sitting beside `w_bye` (registered 🔴) and itself unregistered |
+| `TURNOUT_DRAW_FLOOR`, `TURNOUT_DRAW_CEILING` | 0.02, 0.95 | floor and ceiling on per-VD turnout in every draw — note §C describes that band as one that "removes caps rather than adding one" |
+| `WARD_PR_RATIO_MIN`, `WARD_PR_RATIO_MAX` | 0.5, 2.0 | the clip on the ward/PR split-ticket ratio, which §E lists as coming *from the record* |
+
+All six are now declared in `JUDGEMENT-CALLS.md` §F at 🔴 and none has ever been
+swept.
+
+### The panel was smaller than the archive, for two reasons, and neither was stated
+
+`backtest.runnable_targets` reports what the archive supports: 2011, 2016 and
+2021 **for all eight metros — twenty-four city-years.** `compare_history.runnable`
+reported nine. Nothing anywhere said why, and the difference had two independent
+causes that were indistinguishable from outside because both produced a silent
+absence:
+
+* **no emitted pool spec** — mechanical, and needing no new data. Seven metros
+  had `pools_2021.json` and nothing else, while the `lge2011_*` and `npe2014_*`
+  files a 2016 target reads have been on disk throughout;
+* **no γ fold** — a 2016 target needs a γ fold strictly preceding it, which is
+  fold 3 (2009 NPE → 2011 LGE), which needs `npe2009` and `lge2006`. **Those
+  exist for Johannesburg and for no other metro.**
+
+This matters more than a denominator usually would, because `ITERATING.md`'s
+"when to stop" section concluded the model was finished **on the strength of that
+number** — nine city-years, eight of them one cycle, therefore ~2 effective
+clusters, therefore a panel supporting approximately zero fitted parameters. Part
+of that ceiling was an artefact of emission.
+
+**Half of it is now cleared and half of it is not, and the honest report is
+both.** All eight 2016 pool specs are emitted (`pools.py --emit`, deterministic;
+the artefact key is unchanged because it ignores comments and this pass changed
+only comments in `pools.py`). The seven non-Johannesburg 2016 targets are still
+blocked, on the γ fold, and there is no way round it: fold 1 targets 2016 itself,
+so borrowing its γ reads the answer the backtest is predicting.
+
+So the pre-2011 ingest `ITERATING.md` already names is confirmed as the single
+remaining step — and it is now worth **more** than that file estimated, because
+the other half of the work is done: the moment `npe2009` and `lge2006` land for
+seven metros, seven city-years and a second full electoral cycle arrive with no
+further work.
+
+**`compare_history` now prints what it cannot run, and why, on every
+invocation:**
+
+```
+panel: 9 city-year(s) scored, 15 the archive supports but this harness cannot:
+    joburg 2011: no pool spec — run `src/pools.py --city joburg --target 2011 --emit`
+    tshwane 2016: no γ fold 3 for this city; it needs the pre-2011 archive, ...
+```
+
+Same shape as `polling.screen` (§1.68): a refusal is a returned reason, not a
+silent `continue`. The number of city-years is the denominator of every claim
+this repository makes and it must not be able to shrink quietly again.
+
+**It also looked like it had found a tenth city-year, and had not.** The report
+says `joburg 2011` is blocked only by the missing spec — Johannesburg *does*
+have fold 4 (2004 NPE → 2006 LGE), which precedes 2011 — so it read as a free
+third electoral cycle. **It is not.** `pools.py --city joburg --target 2011
+--emit` fails with *"joburg 2006: no ward joined the census"*: the 2006 ward
+geography predates the delimitation the census is joined on, so the pool vectors
+cannot be fitted at all. Recorded in the refusal message itself so that nobody
+spends a second afternoon on it.
+
+Which is the same lesson as everything else in this entry, one more time: a
+report that names ONE blocker will be read as naming THE blocker. The refusal
+now says both.
+
+### The published forecast is not the configuration the backtest scores
+
+The headline of this repository is **254 coherent seats against uniform swing's
+376**. That is scored on a configuration the live 2026 forecast does not run,
+and the difference goes in both directions. It is disclosed in
+`EXPECTED_INERT` one lever at a time, which is where a reader will never
+assemble it, so it is assembled here.
+
+**Channels live at 2026 that no backtested target can score:** `w_bye` (the
+by-election window is 2022-06 to 2026-02); `contestation_expand` (superseded by
+real nomination lists wherever a result file exists); and all six poll levers
+(the register holds no metro poll of Johannesburg declared for 2021).
+
+**And the magnitude is not small.** Johannesburg 2026, 600 draws,
+`poll_paths=off` against `poll_paths=all`:
+
+| party | polls off | polls on | Δ |
+|---|---|---|---|
+| DA | 65 | **78** | +13 |
+| ANC | **68** | 63 | −5 |
+| ASA | 31 | 25 | −6 |
+| EFF | 25 | 23 | −2 |
+
+**The lead flips.** The ANC is the largest party without the polls and the DA is
+the largest party with them. `H_eff` prints as **1.0** — the model knows it has
+one effective house — and the DA sits **exactly on the cap**, `w = 0.50`, so the
+influence of the poll on the party it moves most is set by `poll_house_k` and not
+by the σ arithmetic that `poll_house_k` exists to bound.
+
+This is not a defect. It is a dependence, and the pollster's standing rule is
+that you never anchor on a single house because with one house you have a level,
+not a house effect. It is now a row in `JUDGEMENT-CALLS.md` §A at 🔴 rather than
+something a reader has to reconstruct from the inert-lever list.
+
+### The arrivals poll path could not run at a live target, and a national total was not what was missing
+
+§1.65 measured the arrivals path at **48 coherent seats** — the largest single
+effect in the poll channel — and recorded that it was dead at 2026 because
+`NATIONAL_VOTES` has no 2026 key. It then asked for one.
+
+**That would not have fixed it.** `contested_share` is a RATIO: votes cast in the
+municipalities a party contests, over votes cast nationally. Both halves are
+votes cast **at the target election**. `NATIONAL_VOTES["2026"]` supplies the
+denominator; the numerator comes from `votes_by_metro("2026")`, which returns
+`{}` because no 2026 result file exists and none will until after polling day.
+The path was blocked twice and the entry saw one of them.
+
+What is projectable is the ratio itself, and it is measured:
+
+| metro | 2016 | 2021 | change |
+|---|---|---|---|
+| JHB | 0.0823 | 0.0770 | −6.4% |
+| CPT | 0.0818 | 0.0761 | −7.0% |
+| ETH | 0.0724 | 0.0646 | −10.8% |
+| TSH | 0.0579 | 0.0561 | −3.1% |
+| EKU | 0.0589 | 0.0559 | −5.1% |
+| NMA | 0.0249 | 0.0220 | −11.8% |
+| BUF | 0.0149 | 0.0150 | +0.2% |
+| MAN | 0.0156 | 0.0147 | −5.9% |
+| **all eight** | **0.4088** | **0.3813** | **−6.7%** |
+
+Every metro fell, which looks like a trend and is what two points always look
+like. **n = 2**, so nothing is extrapolated: `polling.PROJECTED_METRO_SHARE`
+carries the LAST OBSERVED value and the 2016→2021 movement is quoted as the
+uncertainty on it. Declared in `JUDGEMENT-CALLS.md` §F at 🔴, and it fires only
+where no backtest can check it — the `contestation_expand` position, stated here
+as it is there.
+
+**The backtest is untouched by construction**, and this is checkable rather than
+argued: 2016 and 2021 have real result files, so `votes_by_metro` returns real
+numbers and the projection is never consulted. At 2021 the projection reproduces
+the archive's own answer for JHB+TSH to five decimal places (0.13310 against
+0.13308), which is what it should do, since it IS the 2021 value.
+
+**The path still cannot fire at 2026, and the remaining blocker is data.** There
+is no national poll declared for 2026 in `polls.json` — the three admitted 2026
+records are two SRF metro waves and one metro-aggregate. So the code gap is
+closed and the acquisition gap is not:
+
+    admitted at 2026: srf-2026q2-coj (metro), srf-2026q1-coj (metro),
+                      ipsos-w2-2025-metros (metro-aggregate)
+    national among them: []
+
+**A national poll declared for 2026 is now worth 48 coherent seats of measured
+machinery**, and it is the single highest-value item in `SOURCES.md`.
+
+### `entrant_prob`: the derivation is refuted, the typed value stands, and a null has expired
+
+The audit's objection was sound and is worth stating before the measurement that
+answers it. `ITERATING.md` says *"the arrival record independently gives
+0.29–0.35, and that is the only number worth quoting"*, and the model ships
+**0.25** — outside its own stated evidence range, on the low side. §1.31 derived
+both ends: matching the arrival record's **median** gives 0.290, matching its
+**mean** gives 0.353. It then said that if the constant were ever moved it should
+go to *"~0.35 with the arrival record cited"*.
+
+There is a further argument for the mean specifically. Whatever goes into
+`centres` IS an expected value, and this repository has made that correction
+three times already — flooring the Dirichlet MEAN rather than its concentration,
+reporting the coherent seat vector rather than marginal medians, and taking an
+arrival's centre as the mean of its comparators rather than their median. On that
+principle 0.353 is the derived value and 0.25 is a legacy constant.
+
+**Measured, nine city-years, 1500 draws:**
+
+| city-year | 0.25 | 0.290 | 0.353 |
+|---|---|---|---|
+| Johannesburg 2016 | 16 | 16 | 16 |
+| Johannesburg 2021 | **86** | 88 | 88 |
+| Tshwane 2021 | 30 | 30 | 30 |
+| Ekurhuleni 2021 | **18** | 20 | 20 |
+| eThekwini 2021 | **32** | 34 | 36 |
+| Cape Town 2021 | 34 | **32** | **32** |
+| Mangaung 2021 | **10** | **10** | 12 |
+| Nelson Mandela Bay 2021 | **18** | 20 | **18** |
+| Buffalo City 2021 | **10** | 12 | 12 |
+| **total coherent** | **254** | 262 | 264 |
+| **total CRPS** | **232.7** | 234.3 | 236.1 |
+
+**Both derived values are worse, monotonically, on both scores.** 0.353 costs
+**10 coherent seats and 3.4 CRPS**; 0.290 costs 8 and 1.6. *Worse does not ship*
+decides it and no further argument is needed: **`entrant_prob` stays at 0.25**,
+and `ITERATING.md`'s standing advice to move it to ~0.35 is withdrawn — it was
+written before this was measured and it is now refuted.
+
+Note carefully what this is NOT. It is not a constant chosen on the scoreboard,
+which rule 10 forbids: 0.25 was not selected because it scores best, it is the
+incumbent, and the scoreboard was used to REJECT a proposed change. That is the
+one thing the scoreboard is unambiguously for.
+
+**And a null has expired, which is the finding worth keeping.** §1.31 measured
+this same constant and concluded *"across 0.25 → 0.40 the seat error moves by 2
+in 314 and the CRPS by 2 in 268 — the whole range is inside the noise"*, with the
+draw noise itself at ±2 seats. That is no longer true: the same sweep now moves
+**10 seats**, five times the noise floor it was compared against. The constant
+did not change. The model did — the level shrink (§1.44), the contestation
+correction (§1.47) and the poll paths (§1.65) all landed since — and a lever that
+was genuinely inert on the old model is live on the new one.
+
+So: **a null is a statement about the model that measured it, and it expires when
+that model changes.** This repository already knows that a null measured with a
+gate shut is not a null (`_LEGACY_POLL`) and that a null is only as broad as the
+output it was measured on (rule 7). This is the third member of that family and
+the one nothing guarded against — `EXPECTED_INERT` entries carry a reason but no
+date, and nothing re-tests them when the mechanism around them moves.
+
+### The artefact key caught this entry's own author, which is what it is for
+
+Worth recording because it is the one guard in this repository that worked
+perfectly, unprompted, against the person who was auditing everything else.
+
+The constant promotions above changed `src/pools.py` — real code, not comments —
+so `pools_sha` moved `98ed6eb5dcb92907 → 21a0f7c255997f05` and
+`test_every_emitted_pool_spec_carries_a_current_artefact_key` failed with the
+right words: *"pools_2026.json is STALE: src/pools.py changed since this spec
+was emitted; re-emit before believing any measurement taken against it."*
+
+The order of operations had been wrong. The seven 2016 specs were emitted
+BEFORE the promotions, so a canonical measurement had already been taken against
+specs the code no longer matched. That measurement had been checked
+number-neutral by direct before/after comparison and was in fact correct — but
+*"I checked it separately"* is exactly the reasoning the key exists to stop being
+sufficient, so all **eighteen** specs were re-emitted and the panel re-measured
+from scratch.
+
+Two notes for the next person. Emission is deterministic, so the re-emit changed
+nothing but the key — the same result CLAUDE.md already records. And the earlier
+check that a comment-only edit does NOT move the hash is also confirmed: an
+identical `pools.py` docstring pass earlier in this session left
+`98ed6eb5dcb92907` untouched. The hash ignores comments and docstrings, as
+documented, and notices everything else.
+
+---
+
+## 1.70 The panel doubles, because the blocker was an ingest bug and not the archive (2026-08-22)
+
+§1.69 reported that seven of the eight metros could not run a 2016 target because
+γ fold 3 needs `npe2009` and `lge2006`, and that *"those exist for Johannesburg
+and for no other metro"*. **That was wrong, and it was wrong in the way this
+repository has been wrong before: a fact about what is on disk in derived form
+was stated as a fact about what is available.** The owner asked whether the data
+might not already be held. It was.
+
+`SOURCES.md` has recorded since 2026-08-09 that every pre-2011 election is
+published as a **single zipped NATIONAL CSV**, and that all six were downloaded,
+SHA-256 recorded and archived to `data/raw/elections/_source/`. They cover the
+whole country. `src/ingest_historic.py` already advertises `--city`. The seven
+metros' files did not exist because **the ingest had never been run for them**,
+and — as it turned out — could not have been.
+
+### Running it exposed a silent data-corruption bug
+
+Recorded in full as `DATA-QUALITY.md` item 13; the short form is that
+`matches_city` returned on `spec["muni_match"]` **without ever looking at
+`city`**, and `npe1999`'s `muni_match` is Johannesburg's two metropolitan local
+councils. So `--city tshwane` collected Johannesburg's rows and wrote them to
+`npe1999_approx_TSH_vd_party.csv`.
+
+Seven files, **byte-identical to Johannesburg's at 789,426 bytes** — 9,072 rows,
+648 VDs, 1,361,299 votes — for metros between 370k and 1.5M votes. **They passed
+the reconciliation gate at 648/648 and worst drift 0.00%**, because they were
+Johannesburg's real rows and the gate checks that party votes sum to each VD's
+valid total, not that the VDs belong to the city on the filename.
+
+This is the third instance of one failure. The `matches_city` docstring already
+narrates the Buffalo City case — matching on the last word put 2,087 VDs and 5.1
+million votes into a 350-VD metro, *"and it passed the reconciliation gate,
+because the rows it collected were individually valid. Only the seat test caught
+it."* The fix then was a code-prefix check. It did not cover the `muni_match`
+branch, which sits three lines above it and returns first. **A guard written
+against one route through a function is not a guard on the function.**
+
+All seven were deleted within the hour and no measurement was ever taken against
+them.
+
+### And 2004 matched nothing, which is why this looked like a data gap
+
+`npe2004` has no `muni_match`, fell through to the code/name matcher, found
+nothing, and halted — so `lge2006` and `npe2009` were never reached. The
+municipality strings are not derivable from a city's name or code: 2004 and 2000
+key the Gauteng and Eastern Cape metros on the **place** (`PRETORIA - TSHWANE
+METRO`, `EAST RAND - EKURHULENI`, `PORT ELIZABETH - NELSON MANDELA`), and every
+archive keys Mangaung and Buffalo City on the **pre-2011 municipality codes**
+`FS172` and `EC125`. A table recovers that; no rule does.
+
+`MUNI_HEAD` is that table, enumerated from the archives, matching on the token
+before `" - "` so a match cannot spread into a neighbour. **A missing entry is a
+refusal, not a fallback** — the fallback is the bug. Two absences are recorded
+deliberately: Ekurhuleni and eThekwini in `lge2000`, and every metro but
+Johannesburg in `npe1999`.
+
+### Verified before anything was believed
+
+* Johannesburg re-ingests **byte-identically** (md5 unchanged), so no existing
+  number moved because of the matcher change.
+* **21 files** across seven metros, every one at **100% reconciliation, worst
+  drift 0.00%**, with distinct size-plausible totals — Cape Town 1,456,350 votes
+  at `lge2006`, Mangaung 301,043, Buffalo City 369,123. Byte-identical totals
+  were what exposed the 1999 bug, so distinctness is checked, not assumed.
+* γ fold 3 fits for all eight metros.
+* All **18** pool specs re-emitted afterwards, because the new pre-2011 history
+  feeds the θ record and therefore every city-year — not only the new ones.
+
+### The panel
+
+    panel: 16 city-year(s) scored, 8 the archive supports but this harness cannot
+
+**Nine city-years become sixteen, and one effective electoral cycle becomes
+two.** The eight refusals are the 2011 targets, and those are genuinely blocked:
+`pools.py --target 2011 --emit` fails with *"no ward joined the census"*, because
+the 2006 ward geography predates the delimitation the census is joined on. That
+is a real limit and it is now in the refusal message.
+
+### What this does to "when is the model done"
+
+`ITERATING.md`'s "when to stop" section concluded that the model was finished,
+and the load-bearing argument was the panel: nine city-years, eight of them one
+cycle, therefore about two effective clusters, therefore *"this panel supports
+approximately zero parameters chosen on it"*. That argument was correct given its
+premise. **The premise has changed** — and it was never a fact about South
+African electoral data, it was a fact about which ingest had been run.
+
+Two cautions against over-reading this, both of which apply immediately:
+
+* **Sixteen city-years is not sixteen clusters.** They are two cycles of eight
+  metros, and metros within a cycle share a national swing. The honest effective
+  count is nearer **two cycles** than sixteen observations, which is better than
+  ~2 and is not ~30. Rule 10 is not repealed.
+* **The 2016 cycle is not a free win.** It is a genuinely independent test of
+  every choice made by fitting to 2021, and some of those choices may not
+  survive it. That is the point of having it.
+
+Every number in this repository predating this entry was measured on nine
+city-years and must be re-read on sixteen before it is quoted again.
+
+### The panel doubled and the model got worse, and that is the result
+
+**16 city-years, 1500 draws, on the settled tree:**
+
+| | model | uniform swing | margin | CRPS |
+|---|---|---|---|---|
+| **all 16** | **384** | **530** | **27.5%** | 329.4 |
+| 2016 cycle (8) | 126 | 180 | 30.0% | 108.5 |
+| 2021 cycle (8) | 258 | 350 | 26.3% | 220.9 |
+
+The model beats uniform swing on both cycles, and it beats it by **more** on the
+2016 cycle than on the 2021 one. That is the first genuinely out-of-sample
+statement this repository has ever been able to make: nothing in the model was
+chosen with 2016 metro results in view, because until today they could not be
+run.
+
+**And the same change cost 26 coherent seats on the nine city-years that already
+existed.** Same city-years, same baselines, same code — the only difference is
+that the θ record now contains 2006→2011 transitions for seven more metros:
+
+| city-year | before | after | Δ |
+|---|---|---|---|
+| Johannesburg 2016 | 16 | 22 | **+6** |
+| Johannesburg 2021 | 86 | 90 | +4 |
+| Tshwane 2021 | 30 | 34 | +4 |
+| Ekurhuleni 2021 | 18 | 22 | +4 |
+| eThekwini 2021 | 32 | 36 | +4 |
+| Cape Town 2021 | 34 | 36 | +2 |
+| Buffalo City 2021 | 10 | 12 | +2 |
+| Mangaung 2021 | 10 | 10 | 0 |
+| Nelson Mandela Bay 2021 | 18 | 18 | 0 |
+| **total** | **254** | **280** | **+26** |
+
+**Not one city-year improved.** Seven got worse and two were unchanged. A
+monotone degradation across every affected city-year is not noise — the draw
+noise on this measure is ±2 seats (§1.31) and this is +26.
+
+*Worse does not ship*, so this is not adopted on the strength of the bigger
+panel. It is written up as a finding and a decision that belongs to the owner,
+because the two halves cannot be separated by any means rule 10 permits: the
+2016 targets need γ fold 3, fold 3 needs the pre-2011 ingest, and the ingest is
+what moves the θ record. Excluding the new metro-years from the θ record *while
+keeping them for the fold* would be a choice made on the scoreboard, which is
+the one thing the register exists to catch.
+
+**The first hypothesis to test, and it is a data question rather than a
+modelling one.** `DATA-QUALITY.md` item 13 already records that Mangaung and
+Buffalo City are keyed on `FS172` and `EC125` before 2011 — their
+**pre-demarcation municipality codes** — so their 2006→2011 θ ratios mix a
+boundary change with a political one. Buffalo City's share of the eight-metro
+vote steps 5.1% → 3.9% across exactly that transition, which is the shape a
+footprint change makes and not the shape an election makes. Excluding those two
+metros' pre-2011 transitions from the θ record is a **data-quality exclusion
+with independent justification**, not a fit, so rule 10 permits it — and if it
+recovers most of the 26 seats, the cause is the footprint and not the era.
+
+The second hypothesis, if that fails, is exchangeability: 2006→2011 is COPE's
+arrival and collapse and the DA's consolidation, and pooling it with 2016→2021
+may simply be pooling two different regimes. That would be a real finding about
+how far back the θ record should reach, and it would be worth having.
+
+**Until one of those is settled, the committed position is: the ingest bug is
+fixed, the data is correct and validated, the panel CAN be sixteen — and the
+model that uses all of it scores worse on the nine city-years that could be
+checked before today.**
+
+---
+
+## 1.71 A probability of one, and the transition that should never have been pooled (2026-08-22)
+
+Two changes and one measurement, all of them prompted by the owner reading the
+ward map and asking why so many wards sat at 100%.
+
+### No ward is published at probability one any more
+
+The map's tooltip read **"DA — DA 100%"** for 25 of Johannesburg's 135 wards on
+the 2026 forecast, every one of them DA. The number is P(this party wins the
+ward) across draws, not a vote share — but at 1.000 it asserts that P(anyone
+else wins) is exactly zero, which is the bounded-support fault: an outcome at
+probability zero that then happens carries an infinite log score.
+
+**It is not hypothetical, and it was measured rather than argued.** Backtested
+on Johannesburg 2021 at 1500 draws:
+
+| forecast band | wards | right | hit rate | nominal |
+|---|---|---|---|---|
+| **p = 1.000** | **32** | **31** | **97%** | **100%** |
+| 0.99–0.999 | 2 | 2 | 100% | 100% |
+| 0.90–0.99 | 15 | 14 | 93% | 94% |
+| 0.75–0.90 | 39 | 37 | 95% | 82% |
+| 0.60–0.75 | 23 | 17 | 74% | 69% |
+| < 0.60 | 24 | 10 | 42% | 48% |
+
+Overall 111 of 135 ward winners called correctly. **Every band except the top
+is calibrated or conservative; the top band is the only one that overclaims,
+and what it overclaims is certainty.** Ward 7 was PA at p = 1.000 and returned
+the ANC.
+
+`p_win` is now the Jeffreys posterior mean `(k + ½)/(N + 1)`, which cannot
+reach 0 or 1 from a finite sample: seeing k = N wins in N draws bounds the loss
+probability near 1/N, it does not establish zero. At 1500 draws the maximum
+publishable probability is **0.9997**. Nothing else moves — the tier counts are
+identical (34 at ≥0.99, 49 at ≥0.90) and no seat, median or coherent vector
+changes. `tests/test_regressions.py::test_no_ward_is_published_at_probability_one`
+fails the build if the raw fraction returns.
+
+**This fixes the ESTIMATOR and not the MODEL.** 97% observed against 99.97%
+claimed is still a real over-confidence, and its cause is that the ward draw
+carries no mechanism for a local upset — candidate quality, a defection, a
+strong independent. `universe` excludes independents outright, which is
+defensible for Johannesburg (they won no ward in 2016 or 2021, checked) and is
+an assumption everywhere else. That is a modelling change and is not attempted
+here.
+
+Worth recording separately: **all 25 certainties were DA and none were ANC.**
+The ANC's wards are contested by MK, the EFF, ActionSA and the PA drawing on the
+same pools, so rival mass always exists; the DA's strongholds have no comparable
+challenger in their pool. The owner read that off the map before it was measured.
+
+### The 2009→2011 transition is three party-structural events, and §1.70's regression is made of it
+
+§1.70 recorded that ingesting the pre-2011 archive for seven metros cost **26
+coherent seats** on the original nine city-years, and named two hypotheses. Both
+are now settled, and neither was quite right.
+
+**The Mangaung/Buffalo City footprint exclusion recovers 8 of the 26** — a
+third. Holding out their pre-2011 files (keyed on the pre-demarcation codes
+`FS172` and `EC125`) gives 272 against 280, and 368 against 384 on all sixteen.
+Real, worth doing on its own merits, not the main cause.
+
+**The main cause is one transition, and it is not "the old era".** θ dispersion
+by transition, parties at or above 5% of the national vote:
+
+| transition | n | sd(log θ) |
+|---|---|---|
+| 2004→2006 | 15 | 0.226 |
+| **2009→2011** | **18** | **0.942** |
+| 2014→2016 + 2019→2021 | 46 | 0.200 |
+
+2004→2006 is indistinguishable from the modern era. 2009→2011 is **4.7×** more
+dispersed than either neighbour — and it is precisely the transition the seven
+metros just added, because γ fold 3 is `npe2009 → lge2011`.
+
+Reading the observations shows why immediately:
+
+| party | θ | what happened between the 2009 NPE and the 2011 LGE |
+|---|---|---|
+| COPE, six metros | **0.115 – 0.282** | formed December 2008, 7.4% nationally in 2009, collapsed by 2011 |
+| IFP | 0.465 | the NFP split away in January 2011 |
+| VF+ | 0.420 | — |
+| DA, five metros | **1.378 – 1.577** | the Independent Democrats merged into the DA in 2010 |
+| ANC, six metros | 0.931 – 1.060 | ordinary retention |
+
+**Excluding the collapses and the merger takes the transition's dispersion from
+0.896 to 0.244** — back in line with 0.226 and 0.200. The ANC rows were never
+the problem.
+
+So the record does not contain a volatile *era*. It contains a **collapse, a
+split and a merger**, being fed into θ as though they were retention — and this
+repository already has separate machinery for exactly those events (`SPLITS`,
+`splinter_record`, `home_splinter_record`, the arrivals path). Pooling them into
+θ double-counts them and inflates the common dispersion for every large party,
+which is what widened the top of the ballot and cost the seats.
+
+**This is why a date cutoff is the wrong instrument** and the owner's proposed
+"start at 2016" cannot be built anyway: the record for a target must be strictly
+before it, so a 2016 floor leaves a 2016 target with **no record at all** and a
+2021 target with one transition. (Noted while there: Ramaphosa became ANC
+president in December 2017 and State President in February 2018, so 2016 is the
+ANC's first metro losses, not his accession.) What the measurement supports is a
+**structural-event filter keyed on the tables the model already keeps**, not a
+date.
+
+Not implemented here. It changes the θ prior for every city-year and it is a
+modelling decision, so it is written up with its measurement and left to the
+owner — which is the same disposition §1.70 took and for the same reason.
+
+### And the derived values have not all caught up
+
+The record grew from **n=257 over 18 metro-year clusters** to **n=370 over four
+target LGEs**. Two things were re-measured today and moved:
+
+* forward-validated `sd(log θ)` at ≥15% of the vote: **0.138 [0.084, 0.171] →
+  0.208 [0.114, 0.299]**;
+* `SD_FLOOR = 0.15` binds on **26 of 64** observations there, against 20 of 37
+  before, which is why `test_the_floor_binds_at_the_top_of_the_ballot_and_only_there`
+  fails. The floor is still inside the new interval; the fit has risen past it.
+
+Three constants carry an `n` in the register that the new archive changes and
+have **not** been re-measured:
+
+| constant | measured on | status |
+|---|---|---|
+| `TURNOUT_CORRELATION` = 0.63 | "14 metro-transitions" | more transitions now exist |
+| `SPLINTER_PARENT_WEIGHT` = 0.35 | "22 splinter-metro cases" | more history now exists |
+| `SPLIT_SD_FLOOR` = 0.90 | already known to override its own measurement at 2016 | unchanged, still overriding |
+
+None is re-measured here, because re-measuring them against a θ record that is
+itself under question would bake in the very transition this entry argues should
+be filtered. They are recorded as stale so that nobody quotes their `n` again
+without re-deriving it.
+
+---
+
+## 1.72 The swing curve is monotone once you stop pooling two kinds of volatility (2026-08-22)
+
+Proposed by the owner, from first principles and without seeing the code: *"large
+parties, more voters, so change less as a percentage. Smaller parties need few
+votes to dramatically increase their percentage. I expect there is a 'possible
+swing' curve based on size. Now if you do that as an average of all parties,
+which are the outliers?"*
+
+That is `sd_for` — a size-dependent dispersion, already fitted and already known
+to misbehave. The outlier step is new, and it dissolves a question this log
+closed twice.
+
+### The outliers are not a tail. They are a different population.
+
+Standardised against a size-conditional curve, every observation past |z| ≈ 5 is
+a named party-lifecycle event:
+
+| party | θ | national share | event |
+|---|---|---|---|
+| PA, four metros | **10.9 – 100.3** | 0.01–0.09% | growth off a near-zero base |
+| AGANG, three | **0.059 – 0.090** | 0.3–0.5% | formed 2013, defunct after 2014 |
+| COPE, five | 0.115 – 0.193 | 2.1–9.6% | formed Dec 2008, collapsed by 2011 |
+| AIC / NFP | 5.6 – 9.4 | 0.02–0.6% | growth off a tiny base |
+| MINORITY_FRONT | 0.193 | 2.4% | founder-leader died 2011 |
+| DA, five | 1.378 – 1.577 | 15.8–53.8% | absorbed the Independent Democrats, 2010 |
+
+**Not one is an established party having an unusual election.** Every one is a
+formation, a collapse, a merger, a split or a death — and every one was knowable
+*before* the election it precedes, which is what makes this usable in a forecast
+rather than hindsight.
+
+### The literature already names this split, and names it as the thing not to pool
+
+Powell & Tucker (*BJPS* 2014) decompose the Pedersen volatility index into
+**Type A** — volatility from party *entry and exit* — and **Type B** — vote
+switching *among existing parties*. Their argument is that the two have
+different causes and that pooling them makes the aggregate mean nothing.
+
+This model already agrees in its architecture: θ is a *retention* ratio, which is
+Type B, and Type A has its own machinery — `SPLITS`, `splinter_record`,
+`home_splinter_record`, the arrivals path, the seeded-arrival bands.
+`theta_record` pools them anyway.
+
+### Measured
+
+Same record, n=377, binned as §1.59 bins it. Removing the 79 Type A observations
+(21%):
+
+| size band | pooled — what the model uses | Type B only |
+|---|---|---|
+| <0.2% | 0.860 | **0.573** |
+| 0.2–1% | 0.722 | **0.512** |
+| 1–5% | 0.511 | **0.395** |
+| **5–15%** | **0.817** | **0.221** |
+| ≥15% | 0.282 | **0.211** |
+
+**The curve becomes monotone decreasing in size** — which is the owner's
+prediction, arrived at from the arithmetic of "a small party needs few votes to
+double" and confirmed on the record.
+
+**And the 5–15% anomaly disappears: 0.817 → 0.221.** That anomaly is not a minor
+detail of this log. §1.59 measured it and concluded the *functional form* of
+`sd_for` was wrong — *"the forward-validated conditional dispersion is not
+monotone in size, and a straight line cannot be right in the middle and at both
+ends"*. §1.62 then built two refits against it, lost both folds, and closed the
+question: *"No further functional form may be tried against these two folds."*
+
+**The 5–15% anomaly those entries could not fit is COPE's collapse in four
+metros of one transition, and no straight line was going to fit that.** That is
+the defensible statement and it is worth having on its own.
+
+> **AMENDED THE SAME DAY, BEFORE ANYONE ACTED ON IT.** This paragraph first read
+> *"The form was never the problem. The population was a mixture."* An
+> independent review put three placebo tests against it and that sentence does
+> not survive them.
+>
+> * **The result is not a generic consequence of dropping 21% of the data.**
+>   Removing 5 observations *at random* from the 5–15% bin, 2,000 times, gives a
+>   median sd of **0.828**, a 5th percentile of 0.658 and a minimum of 0.288.
+>   Type A removal gives **0.221 — below the minimum of 2,000 random draws.**
+>   That objection is dead and the finding is real.
+> * **But the Type A LABEL is doing almost no statistical work.** Dropping the
+>   five most extreme `|log θ|` observations *regardless of cause* gives
+>   **0.273**, against Type A's 0.221. Nearly all of the fall from 0.817 is
+>   "remove the five biggest outliers", which is selection on the dependent
+>   variable. **On this evidence the principled rule and the unprincipled one
+>   cannot be told apart.** What Type A adds is *interpretation*, not
+>   identification — and the real case for it is that **the rule is knowable
+>   before the election and outlier-dropping is not**, which is a stronger claim
+>   and is completely untested.
+> * **The bin that carries the claim is one party.** After removal the 5–15%
+>   bin is `EFF 11 · IFP 2 · DA 1 · ID 1 · MINORITY_FRONT 1 · VFPLUS 1`. Eleven
+>   of seventeen are the EFF, sharing a party, a leader, a cycle and a national
+>   swing, so the effective n is **4–6, not 17** — and `ITERATING.md` rule 11
+>   applies to this bin exactly as it applies to the scoreboard. Symmetrically,
+>   the five removed are four COPE observations and one IFP, **all from a single
+>   transition**.
+>
+> So "0.817 → 0.221" is, stated honestly, *one party's collapse observed in four
+> metros of one transition*. Everything this entry needs follows from the
+> amended sentence above; the stronger one is the sentence a reviewer would go
+> after first, and it was written before the placebo was run.
+
+### What follows, and the trap in it
+
+This also explains §1.70. The pre-2011 ingest cost 26 coherent seats because γ
+fold 3 is `npe2009 → lge2011`, and that transition is **made of Type A events** —
+COPE forming and collapsing, the ID merging into the DA, the NFP splitting from
+the IFP. Seven metros' worth of them entered the retention prior at once. The
+fix is therefore **not** the date cutoff of §1.71, and not the Mangaung/Buffalo
+City exclusion that recovered 8 of the 26: it is to route Type A out of θ and
+keep all sixteen city-years.
+
+**The trap, stated before anyone implements this.** Removing Type A from θ must
+NOT mean the model stops forecasting Type A. Those events are the model's worst
+failures — ActionSA is 90 of the 384 — and a retention prior cleaned of every
+collapse and surge is a prior that says collapses and surges do not happen. The
+change is **route them, not drop them**: Type A observations belong to the
+arrivals and splinter machinery, which already exists and is already scored (the
+arrivals poll path at 48 coherent seats, §1.65). Delete without routing and the
+model gets narrower, more confident, and wrong in exactly the direction it is
+already wrong.
+
+Note also that the PA's four observations are Type A *growth* — the same
+phenomenon as ActionSA's arrival — and the PA is currently forecast at 19
+Johannesburg seats for 2026. Whatever handles Type A has to carry that.
+
+### Not implemented
+
+`theta_record` is unchanged. This is a diagnostic measurement, the change moves
+the θ prior for every city-year, and the Type A table above is hand-built from
+named events rather than derived from `SPLITS` — which is where it would have to
+come from before it could ship. Recorded so the next person starts from the
+population question rather than from another functional form.
+
+---
+
+## 1.73 How to tell the two volatilities apart, and what transfers from abroad (2026-08-22)
+
+Two questions from the owner on §1.72: *how do we disentangle the two mechanisms
+per Powell & Tucker?* and *big events' impact is a judgement call but an essential
+one — find historical impacts for founder death, splitting, joining; need not be
+South African, the impact should hold across parties.*
+
+### You do not infer the split from the numbers. You look it up.
+
+This is the part that makes §1.72 usable rather than circular. Powell & Tucker's
+contribution is **coding rules**, not a statistical decomposition: a party-year
+is Type A because a documented formation, merger, split or dissolution happened,
+which is a fact about the party register and the newspapers, not about the vote.
+
+§1.72 *found* its outliers by z-score, which would be circular on its own — every
+large residual is an outlier by construction. What makes them real is that each
+one then **survives a lookup**: COPE formed December 2008 and collapsed by 2011;
+the Independent Democrats merged into the DA in 2010; the NFP split from the IFP
+in January 2011; Agang was formed in 2013 and defunct after 2014; the Minority
+Front's founder died in 2011. Dates, names, causes — none of it read off a result
+file, all of it knowable **before** the election it precedes, which is the only
+thing that makes it usable in a forecast.
+
+So the classifier is a table, and the z-scores are how the table gets audited.
+
+**Where it is genuinely ambiguous, and these must be declared rather than
+resolved:**
+
+* **Both at once.** A party can decline for ordinary unpopularity *and* lose its
+  leader. Nothing in the votes separates the two.
+* **COPE 2009→2011 is the hard case in this record.** Was the collapse Type A —
+  a party failing as an institution — or Type B, voters returning to the ANC?
+  Defensibly both. Powell & Tucker can code it because they work on where the
+  *votes* went, at system level; a per-party retention ratio cannot see that.
+* **Identity across elections.** "Is this the same party?" is Powell & Tucker's
+  own hardest coding problem, and renames, successor parties and electoral
+  alliances all sit in it.
+
+The honest structure is therefore **three-way, not two-way**: clean Type B ·
+known Type A · ambiguous — with ambiguous handled by **widening** rather than by
+exclusion, because an ambiguous case excluded is a case decided.
+
+### What the cross-national record actually says, class by class
+
+The owner's expectation was that these impacts hold across parties and need not
+be South African. That is right for two of the three classes and **wrong, with
+the sign reversed, for the one that looked most obvious.**
+
+**Founder or leader DEATH — DOES NOT TRANSFER, and the naive import would be
+backwards.** The comparative finding is a *sympathy vote*: Berlinguer's death in
+Italy in 1984 raised the PCI's share in that election and in later ones, and
+Abe's assassination in 2022 is estimated to have given the LDP about six per cent
+more seats. This model's own observation runs the other way — the Minority Front
+at **θ = 0.193** after Amichand Rajbansi died in 2011.
+
+Both are right, and the moderator is **institutionalisation**. A death helps a
+party that outlives its leader and destroys one that *is* its leader. That
+distinction is decisive here, because almost every party this model must handle
+is a personal vehicle: MK is Zuma, ActionSA is Mashaba, GOOD is De Lille, the EFF
+is Malema, Agang was Ramphele, the Minority Front was Rajbansi, the PA is
+McKenzie, COPE was Lekota and Shilowa. **Importing the sympathy-vote prior would
+have been actively harmful**, and it is exactly the sort of thing that looks
+well-sourced in a footnote.
+
+Leadership *change* short of death transfers better: parties with new leaders
+lose about 3.5% of their vote on average.
+
+**SPLITS — transfers, and is better than what this model uses.** The largest
+study covers **more than 200 splits across 25 European countries** post-war, and
+finds the first-election vote shares of both the rump and the splinter predicted
+by **membership strength and the share of legislators who defected**. Both are
+knowable before polling day. This model currently uses `SPLINTER_PARENT_WEIGHT =
+0.35` — a flat fraction of the parent, identical for every split — where the
+literature says the defecting-legislator share is the covariate. That is a
+concrete, ex-ante-observable improvement over a typed constant, and it is
+registered at 🔴.
+
+**MERGERS — thinnest of the three.** The literature is mostly about *why* parties
+merge (clearing thresholds, contesting for the largest-party position) rather
+than what the merged vote comes to. The model has no merger machinery at all, and
+the Independent Democrats merging into the DA in 2010 is sitting in the θ record
+as five observations of the DA "retaining" 1.38–1.58 of itself.
+
+### What this changes
+
+`SPLITS` covers **births** — a named person leaving a named party — and it is
+good. It has no representation of a party's **death**, a **merger**, or **what a
+split costs the parent**, and those are where §1.72's outliers actually live. The
+gap is precise and it is the next thing to build.
+
+Nothing implemented. Recorded so that whoever builds the event table starts from
+a three-way classification, uses the defecting-legislator share for splits, and
+does **not** import the sympathy-vote finding for deaths without the
+institutionalisation moderator attached to it.
+
+### Sources
+
+Recorded in full because this entry imports evidence from outside the project
+for the first time, and an unsourced claim about another country's elections is
+worse than no claim. Also filed in `SOURCES.md`.
+
+**The Type A / Type B decomposition**
+* Powell, E. N. & Tucker, J. A. (2014), "Revisiting Electoral Volatility in
+  Post-Communist Countries: New Data, New Results and New Approaches",
+  *British Journal of Political Science* 44(1).
+  <http://www.eleanorneffpowell.com/uploads/8/3/9/3/8393347/powell_tucker_2014_bjps.pdf>
+  — the decomposition itself and, more usefully here, the **coding rules**.
+* "Rethinking Electoral Volatility", Good Authority.
+  <https://goodauthority.org/news/rethinking-electoral-volatility/>
+  — plain-language account of the Pedersen index and what the A/B split is for.
+
+**Party splits — the class that transfers, and beats `SPLINTER_PARENT_WEIGHT`**
+* "Electoral Competition after Party Splits", *Political Science Research and
+  Methods*. <https://eprints.soton.ac.uk/407531/1/splits_el_conseq.pdf>
+  — 200+ splits across 25 European countries post-war. Rump and splinter
+  first-election shares predicted by **membership strength and the share of
+  legislators who defected**, both observable before polling day.
+
+**Leader death — the class that DOES NOT transfer, sign reversed**
+* "Berlinguer, I Love You (Still): The Downstream Effects of Expressive Voting",
+  *Political Behavior* (2025).
+  <https://link.springer.com/article/10.1007/s11109-025-10095-7>
+  — the PCI gained after Berlinguer's death in 1984, in that election and later.
+* "The Effects of Political Martyrdom on Election Results: The Assassination of
+  Abe". <https://arxiv.org/pdf/2305.18004>
+  — the LDP estimated ~6% more seats.
+* So, MF at θ = 0.193 after Rajbansi died in 2011 is not a contradiction of these
+  — it is the personal-vehicle case, and the institutionalisation moderator is
+  the whole content of the finding.
+
+**Leadership change short of death**
+* So, F., "The Consequences of Party Leadership Change on Democratic Elections".
+  <http://www.scpi.politicaldata.org/SCPII/Florence%20So.pdf>
+  — parties with new leaders lose about 3.5% of their vote on average.
+
+**The size-dependence question, for context**
+* "Simulating Party Shares", *Political Analysis*.
+  <https://www.cambridge.org/core/journals/political-analysis/article/simulating-party-shares/C391F0D44529EE6E73F904F2D1E1050F>
+  — uniform against proportional swing. θ is a ratio, so this model sits at the
+  proportional end; `benchmarks.uniform_swing` is the additive one; the owner's
+  "big parties move less than proportionally" is the contested middle.
+
+---
+
+## 1.74 The Type A register, pre-registered (2026-08-22)
+
+**Written and committed BEFORE the measurement, which is the whole point.** §1.72
+built its Type A list partly by looking at which observations had large
+residuals, and an independent review showed why that will not do: dropping the
+five most extreme `|log θ|` observations *regardless of cause* gives sd = 0.273
+against Type A's 0.221, so on that evidence **the principled rule and plain
+outlier-dropping cannot be told apart**. The register below is built from
+documented party events only. No residual was consulted in writing it.
+
+### The rule
+
+Powell & Tucker's Type A is volatility from party **entry and exit**. Most of it
+never reaches `theta_record` at all, because that function requires
+`before[party] > 0` and `party in set(before) & set(after)` — a party that did
+not contest the base election, or does not contest the target, is already
+excluded. **Three kinds of Type A survive that filter**, and they are the whole
+register:
+
+1. **`MERGER_ABSORBED`** — the surviving party's vote at the target includes a
+   party that no longer exists, so its ratio is inflated by an acquisition
+   rather than by retention.
+2. **`SPLIT_PARENT`** — a party that lost a faction *between* the base and the
+   target, so its ratio is depressed by a departure rather than by persuasion.
+   The *child* is already excluded (no base vote); only the parent survives.
+3. **`POST_FORMATION_COLLAPSE`** — a party that contested both elections but
+   whose base reading was a founding surge, so the ratio measures a failure to
+   institutionalise rather than a swing.
+
+A fourth, `LEADER_DEATH`, is included where the party is a personal vehicle,
+because §1.73 establishes that the effect flips sign with institutionalisation
+and is therefore not retention either.
+
+### The register
+
+Every row carries a date and a public event. Nothing here is inferred from a
+vote.
+
+| target LGE | party | event | evidence |
+|---|---|---|---|
+| 2011 | `DA` | `MERGER_ABSORBED` | the Independent Democrats merged into the DA — announced 15 August 2010, completed before the May 2011 LGE. The DA's 2011 vote contains the ID's; its 2009 base does not |
+| 2011 | `IFP` | `SPLIT_PARENT` | the National Freedom Party, founded by Zanele Magwaza-Msibi, the IFP's National Chairperson, in January 2011 — four months before the LGE. Already in `pools.SPLITS` as `NFP → IFP` |
+| 2011 | `COPE` | `POST_FORMATION_COLLAPSE` | formed December 2008, contested the April 2009 NPE at 7.4% nationally as a founding surge, and had fractured into rival leadership factions by 2011 |
+| 2016 | `AGANG` | `POST_FORMATION_COLLAPSE` | Agang SA, founded by Mamphela Ramphele February 2013, contested the 2014 NPE, effectively defunct thereafter |
+| 2016 | `MINORITY_FRONT` | `LEADER_DEATH` | Amichand Rajbansi, founder and sole national figure, died 29 December 2011 — after the 2011 LGE and before 2016. A personal vehicle by §1.73's test |
+| 2021 | `DA` | `SPLIT_PARENT` | Herman Mashaba, the DA's own mayor of Johannesburg, resigned the party October 2019 and founded ActionSA in 2020, between the 2019 NPE base and the 2021 LGE. Already in `pools.SPLITS` as `ASA → DA` |
+
+**Two deliberate exclusions, stated so they are decisions rather than
+oversights.**
+
+* **The PA is NOT in the register**, although it supplies the four largest
+  residuals in the record (θ from 10.9 to 100.3). By Powell & Tucker's rule it is
+  Type B: it existed at both elections and merely grew. Its extreme ratios are a
+  *small-denominator* problem — a party on 0.03% of the vote — and this model
+  already handles that with `_reliability(share)` weighting rather than by
+  exclusion. **Including it would be exactly the residual-driven choice this
+  entry exists to avoid**, and it is the clearest test of whether the register
+  was built honestly.
+* **The EFF is NOT in the register.** It was founded in 2013 and contested the
+  2014 NPE, so by the 2014→2016 transition it exists at both ends and its growth
+  is ordinary Type B. It supplies eleven of the seventeen observations in the
+  5–15% bin, so excluding it would empty the bin that carries §1.72's headline —
+  which is a reason to be careful, not a reason to exclude it.
+
+### The pass condition, fixed in advance
+
+The change ships **only if both** of the following hold. Either alone is
+insufficient, and a result that meets neither is a refutation of §1.72's
+magnitude, not of its mechanism.
+
+1. **Held-out NLL improves on the committed model in BOTH the 2016 and 2021
+   folds** of the §1.61 protocol. This is the bar §1.62's two refits already
+   failed, and it is the bar because a form that wins one fold and loses the
+   other is what §1.61 defines as undetermined.
+2. **Coherent seat error on the sixteen city-years falls below the pre-ingest
+   254**, measured at 1500 draws on a settled tree.
+
+Declared in advance, per the review that set these terms:
+
+* **Improvement in the 5–15% bin alone does not count.** That bin is eleven-
+  seventeenths EFF, sharing a party, a leader, a cycle and a national swing, so
+  its effective n is four to six and `ITERATING.md` rule 11 applies to it exactly
+  as it applies to the scoreboard.
+* **The sixteen city-years are not sixteen clusters.** They are two cycles of
+  eight metros, and any reported improvement must be read at two effective
+  clusters, not sixteen.
+* **The blunt comparison is already on record and does not count as a pass.**
+  Dropping the *entire* 2009→2011 transition — `THETA_EXCLUDE_TARGETS=2011` —
+  gives 256 on the original nine against 280, and 32.9% margin against 27.4% on
+  the fourteen city-years that keep a baseline. That is what the mechanism is
+  worth when applied with a blunt instrument, and it also **destroys the
+  uniform-swing baseline for Mangaung and Buffalo City 2016**, because the
+  benchmark needs the transition the flag removes. The targeted filter must beat
+  the pre-ingest 254 on its own terms, not merely reproduce the blunt result.
 
 ---
 

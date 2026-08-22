@@ -700,7 +700,10 @@ def score_seats(draws: Sequence[Mapping[str, int]], actual: Mapping[str, int],
         "n_scored_calibration": int(claimed.sum()),
         # the full-column figures, kept and labelled so the difference is
         # visible rather than a matter of trust
-        "pit_all": pit_histogram(pits, bins=bins),
+        # `pit_all` was here: a second PIT histogram over every scored
+        # column, computed on every scoring call and READ BY NOWHERE.
+        # `coverage_all` below is read, which is what made this look
+        # deliberate. Deleted 2026-08-22, MODEL-LOG §1.69.
         "coverage_all": coverage(samples, truth, levels),
         "n_scored_all": int(samples.shape[1]),
         "pit_values": {p: float(pits[j]) for j, p in enumerate(parties)},

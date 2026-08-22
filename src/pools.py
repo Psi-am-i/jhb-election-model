@@ -1623,6 +1623,13 @@ def turnout_limits(record: dict[str, np.ndarray], registered: np.ndarray,
                  "observed_low": float(citywide.min()),
                  "observed_high": float(citywide.max()),
                  "previous": float(citywide[-1])},
+        # NOTE: only the "city" band above BINDS. `constrain_pool_turnout`
+        # reads `limits["city"]["low"]/["high"]` and nothing anywhere reads
+        # `limits["pool"]` — grep it. The per-pool bands are emitted for the
+        # interactive and for inspection, and a reader who assumes the name
+        # means the draw is constrained per pool is wrong. Recorded rather
+        # than deleted because `export_interactive` consumes the emitted
+        # block. MODEL-LOG §1.69.
         "pool": [{"low": float(arr[:, g].min() * (1 - margin)),
                   "high": float(arr[:, g].max() * (1 + margin)),
                   "observed_low": float(arr[:, g].min()),
@@ -1875,7 +1882,8 @@ def measure_pool_ratios(composition: dict[str, np.ndarray], n_pools: int,
     return ratios
 
 
-def dirichlet_alpha(splits: list[np.ndarray], min_share: float = 0.01) -> float:
+def dirichlet_alpha(splits: list[np.ndarray],
+                    min_share: float | None = None) -> float:
     """Method of moments: alpha + 1 = m(1-m)/Var, over members that matter.
 
     ``min_share`` is not a tidying detail. A pool has forty-odd members and
@@ -1886,8 +1894,12 @@ def dirichlet_alpha(splits: list[np.ndarray], min_share: float = 0.01) -> float:
     more confident than the evidence warrants — the opposite of what a
     concentration parameter is for.
     """
+    # Resolved in the BODY, never as a default argument: a default is
+    # evaluated once at import, which froze SHARE_FLOOR, SPINE_K and LEVEL_DF
+    # at four sites and made every sweep of them read as flat (§1.33).
+    min_share = ALPHA_MIN_SHARE if min_share is None else min_share
     if len(splits) < 3:
-        return 12.0
+        return ALPHA_FALLBACK
     arr = np.array(splits)
     m = arr.mean(axis=0)
     v = arr.var(axis=0, ddof=1)
@@ -1895,10 +1907,11 @@ def dirichlet_alpha(splits: list[np.ndarray], min_share: float = 0.01) -> float:
     if usable.sum() < 2:
         usable = (v > 1e-12) & (m > 1e-3) & (m < 1 - 1e-4)
     if not usable.any():
-        return 12.0
+        return ALPHA_FALLBACK
     est = (m[usable] * (1 - m[usable]) / v[usable]) - 1.0
     # Weight by member size: the pool's dispersion is what its large members do.
-    return float(np.clip(np.average(est, weights=m[usable]), 1.0, 200.0))
+    return float(np.clip(np.average(est, weights=m[usable]),
+                         ALPHA_FLOOR, ALPHA_CEILING))
 
 
 # Parties that arrived as a SPLIT rather than from nothing: a known figure
@@ -2250,6 +2263,34 @@ def splinter_record(city: cityconfig.City | None, before_year: str | None = None
 # 0.90 is the log-spread of the pooled cross-metro record itself, so a thin
 # record inherits the spread the full record shows rather than a typed one; it
 # is a floor, and a city with a richer record than that keeps its own.
+# THE SELECTION RULE BEHIND THE DOMINANT WIDTH LEVER, promoted from inline
+# literals 2026-08-22 (MODEL-LOG §1.69). `dirichlet_scale` — a multiplier on
+# what `dirichlet_alpha` returns — has been registered and swept for weeks and
+# JUDGEMENT-CALLS.md §B calls the per-pool concentration "the model's dominant
+# width lever (83-98% of drawn variance for every party except ANC and DA)".
+# The rule that decides what goes INTO that fit was four numbers typed in the
+# function body, invisible to
+# `test_every_tunable_constant_is_in_the_judgement_register`, which reads only
+# module-level assignments and DEFAULTS.
+#
+# `dirichlet_alpha`'s own docstring says what is at stake: without the share
+# cut "every pool pinned to the 200 ceiling", i.e. the simulation far more
+# confident than the evidence warrants. A constant that can saturate the
+# dominant width lever is not a tidying detail.
+# THE TRIANGULAR SUPPORT OF EVERY SEEDED ARRIVAL, consumed in `montecarlo`
+# as `low, _, high = seed_band`. The long comment beside the code narrates why
+# the CENTRE moved from median to mean and why a `clip(reach, 0.05, 0.95)` was
+# a disaster — and never mentions that the surviving percentile pair is itself
+# a choice. 25/95 rather than 10/90 or 5/95 sets how wide an ActionSA-class
+# arrival's band is. Promoted 2026-08-22, §1.69.
+ARRIVAL_BAND_LO = 0.25
+ARRIVAL_BAND_HI = 0.95
+
+ALPHA_MIN_SHARE = 0.01     # pool members below this are noise floor, not signal
+ALPHA_FLOOR = 1.0          # a Dirichlet concentration below 1 is a spike
+ALPHA_CEILING = 200.0      # above this the pool is effectively deterministic
+ALPHA_FALLBACK = 12.0      # too few splits to fit; neither confident nor flat
+
 SPLIT_SD_FLOOR = 0.90
 
 
@@ -2748,8 +2789,8 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # concentration, and reporting the coherent seat vector rather than
             # marginal medians. Third instance, same principle.
             size = float(np.mean(peers))
-            lo_e = float(np.quantile(peers, 0.25))
-            hi_e = float(np.quantile(peers, 0.95))
+            lo_e = float(np.quantile(peers, ARRIVAL_BAND_LO))
+            hi_e = float(np.quantile(peers, ARRIVAL_BAND_HI))
             # A judgement may say this one is unlike its comparators. Mashaba
             # had been mayor of this city and was widely liked; nothing
             # measurable said so, and doubling the default would have put

@@ -81,12 +81,52 @@ CITIES = ["joburg", "tshwane", "ekurhuleni", "ethekwini", "capetown",
 GAUTENG = frozenset({"joburg", "tshwane", "ekurhuleni"})
 
 
-def runnable(city) -> list[str]:
-    out = []
+def runnable(city) -> tuple[list[str], list[tuple[str, str]]]:
+    """Targets this city can actually run, AND why each other one cannot.
+
+    **The reason half was added 2026-08-22 (MODEL-LOG §1.69), because the panel
+    had been silently smaller than the archive for months.** `B.runnable_targets`
+    reports what the ARCHIVE supports — 2011, 2016 and 2021 for all eight metros,
+    24 city-years. This function reported nine, and the seven missing 2016
+    targets were absent for TWO different reasons that looked identical from
+    outside: no emitted pool spec, and no γ fold. Neither was stated anywhere.
+    A city-year that quietly fails to appear is indistinguishable from one the
+    archive cannot support, and `ITERATING.md`'s "when to stop" section
+    concluded the model was finished partly on the strength of that number.
+
+    Same shape as `polling.screen` (§1.68): a refusal is a returned reason, not
+    a silent `continue`. The two reasons are very different in cost —
+
+    * **no pool spec** — mechanical. `python src/pools.py --city X --target Y
+      --emit`. This was the state of all seven 2016 targets until §1.69 emitted
+      them, and it needed no new data at all.
+    * **no γ fold** — blocked on the archive. A 2016 target needs a γ fold
+      strictly preceding it, which is fold 3 (2009 NPE → 2011 LGE), which needs
+      `npe2009` and `lge2006`. **Those exist for Johannesburg and for no other
+      metro.** So this is the pre-2011 ingest `ITERATING.md` already names as
+      the thing that would license restarting, and it cannot be worked around:
+      fold 1 targets 2016 itself, so borrowing its γ is reading the answer.
+    """
+    out, refused = [], []
     for year in B.runnable_targets(city):
-        if (city.processed / f"pools_{year}.json").exists():
-            out.append(year)
-    return out
+        if not (city.processed / f"pools_{year}.json").exists():
+            hint = (" (NOTE: 2011 additionally needs the 2006 ward geography "
+                    "to join the census, and it does not — `pools.py --city "
+                    "joburg --target 2011 --emit` fails with 'no ward joined "
+                    "the census'. Checked 2026-08-22, §1.69; do not spend a "
+                    "second afternoon on it)" if year == "2011" else "")
+            refused.append((year, f"no pool spec — run `src/pools.py --city "
+                                  f"{city.slug} --target {year} --emit`{hint}"))
+            continue
+        fold = M.GAMMA_FOLD.get(year)
+        if fold is not None and not (
+                city.processed / f"fold{fold}_parameters.csv").exists():
+            refused.append((year, f"no γ fold {fold} for this city; it needs "
+                                  f"the pre-2011 archive, which exists only "
+                                  f"for Johannesburg"))
+            continue
+        out.append(year)
+    return out, refused
 
 
 def actual_shares(target, data_dir: Path) -> tuple[dict, dict]:
@@ -1572,13 +1612,28 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     jobs_list = []
+    excluded: list[tuple[str, str, str]] = []
     for slug in ([args.city] if args.city else CITIES):
         city = cityconfig.load(slug)
-        for year in runnable(city):
+        years, refused = runnable(city)
+        excluded += [(slug, y, why) for y, why in refused]
+        for year in years:
             if args.target and year != args.target:
                 continue
             jobs_list.append((slug, year, args.draws, str(args.data_dir),
                               args.set, str(args.run_dir) if args.run_dir else None))
+
+    # WHAT THE PANEL IS NOT SCORING, AND WHY. Printed unconditionally, because
+    # the number of city-years is the denominator of every claim this report
+    # makes and it had been quietly smaller than the archive for months. A
+    # panel of nine, when the archive supports twenty-four, is a fact about
+    # emission and ingest — not about the data — and nothing said so.
+    # MODEL-LOG §1.69.
+    if excluded:
+        print(f"panel: {len(jobs_list)} city-year(s) scored, "
+              f"{len(excluded)} the archive supports but this harness cannot:")
+        for slug, year, why in excluded:
+            print(f"    {slug} {year}: {why}")
 
     # A MODULE CONSTANT SET IN THIS PROCESS DOES NOT REACH A WORKER.
     # `ProcessPoolExecutor` spawns children that re-import `levels` fresh, so a

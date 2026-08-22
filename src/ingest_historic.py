@@ -185,6 +185,90 @@ def open_member(spec: dict):
             yield from reader
 
 
+
+# ---------------------------------------------------------------------------
+# THE MUNICIPALITY STRING, PER ARCHIVE, PER CITY — enumerated, never sniffed.
+# ---------------------------------------------------------------------------
+# Added 2026-08-22 (MODEL-LOG §1.70). Before it, this module was Johannesburg's
+# in everything but its `--city` flag, and it failed in the two worst ways at
+# once:
+#
+#  * **`npe1999` matched Johannesburg for EVERY city.** `matches_city` returned
+#    on `spec["muni_match"]` without ever looking at `city`, and that spec is
+#    the two Johannesburg metropolitan local councils. Running
+#    `--city tshwane` wrote **Johannesburg's 1999 votes** to
+#    `npe1999_approx_TSH_vd_party.csv` — 9,072 rows, 648 VDs and 1,361,299
+#    votes, byte-identical to Johannesburg's file — and it PASSED the
+#    reconciliation gate, because the rows it collected were individually
+#    valid. Exactly the failure mode the `matches_city` comment below already
+#    describes for Buffalo City, one archive earlier, undetected. Seven such
+#    files were written and deleted the same hour.
+#  * **`npe2004` matched nothing at all** for any other metro, and halted the
+#    run, which is why 2006 and 2009 were never reached.
+#
+# Neither was a data limitation. **All eight metros are in all four archives**;
+# the strings simply are not derivable from the city name or code:
+#
+#     archive   Tshwane                          Buffalo City
+#     npe2004   PRETORIA - TSHWANE METRO [...]   EC125 - BUFFALO CITY [...]
+#     lge2006   TSH - Tshwane Metro [Pretoria]   EC125 - Buffalo City [...]
+#     npe2009   TSH - TSHWANE METRO [PRETORIA]   EC125 - BUFFALO CITY [...]
+#     lge2000   Pretoria - Tshwane Metro [...]   EC125 - Buffalo City [...]
+#
+# 2004 and 2000 key the Gauteng/Eastern Cape metros on the PLACE
+# ("PRETORIA -", "EAST RAND -", "PORT ELIZABETH -"), and every archive keys
+# Mangaung and Buffalo City on their pre-2011 municipality codes FS172 and
+# EC125 rather than MAN and BUF. No rule recovers that; a table does.
+#
+# Matching is on the string BEFORE " - ", uppercased, so it cannot spread into
+# a neighbouring municipality the way the last-word fallback did.
+MUNI_HEAD = {
+    "npe1999": {
+        # 1999 predates every metro. Johannesburg is reconstructible from the
+        # five MLCs that became it; the others are NOT, and this table refuses
+        # rather than silently handing back somebody else's city.
+        "joburg": ("JOHANNESBURG MLC", "MIDRAND/ RABIE RIDGE/ IVORY PARK MLC"),
+    },
+    "lge2000": {
+        "joburg": ("JOHANNESBURG",), "tshwane": ("PRETORIA",),
+        "capetown": ("CAPE TOWN",), "mangaung": ("FS172",),
+        "nelsonmandelabay": ("PORT ELIZABETH",), "buffalocity": ("EC125",),
+        # Ekurhuleni and eThekwini are absent from the 2000 archive under any
+        # name; both were constituted at that election out of prior structures.
+        # Checked 2026-08-22 — do not add a guess here.
+    },
+    "npe2004": {
+        "joburg": ("JOHANNESBURG",), "tshwane": ("PRETORIA",),
+        "ekurhuleni": ("EAST RAND",), "ethekwini": ("DURBAN",),
+        "capetown": ("CAPE TOWN",), "mangaung": ("FS172",),
+        "nelsonmandelabay": ("PORT ELIZABETH",), "buffalocity": ("EC125",),
+    },
+    "lge2006": {
+        "joburg": ("JHB",), "tshwane": ("TSH",), "ekurhuleni": ("EKU",),
+        "ethekwini": ("ETH",), "capetown": ("CPT",), "mangaung": ("FS172",),
+        "nelsonmandelabay": ("NMA",), "buffalocity": ("EC125",),
+    },
+    "npe2009": {
+        "joburg": ("JHB",), "tshwane": ("TSH",), "ekurhuleni": ("EKU",),
+        "ethekwini": ("ETH",), "capetown": ("CPT",), "mangaung": ("FS172",),
+        "nelsonmandelabay": ("NMA",), "buffalocity": ("EC125",),
+    },
+}
+
+
+def muni_heads(tag: str, city) -> tuple[str, ...] | None:
+    """The municipality-string heads for this archive and city, or None.
+
+    None means "this archive has no entry for this city", which is a REFUSAL,
+    not a fallback. The fallback is what wrote Johannesburg's 1999 election
+    into seven other metros' files.
+    """
+    per_city = MUNI_HEAD.get(tag)
+    if per_city is None:
+        return None
+    return per_city.get(getattr(city, "slug", ""))
+
+
 def matches_city(value: str, city, spec: dict) -> bool:
     """Is this municipality string the target city?
 
@@ -192,8 +276,13 @@ def matches_city(value: str, city, spec: dict) -> bool:
     (``JHB -``, ``JOHANNESBURG -``, ``Johannesburg -``).
     """
     text = (value or "").upper()
-    if spec.get("muni_match"):
-        return any(m.upper() in text for m in spec["muni_match"])
+    heads = spec.get("_heads")
+    if heads:
+        # The head is the token before " - ". Comparing HEADS rather than
+        # substrings is what stops "CITY" reaching "City of Cape Town" and
+        # what stops a Johannesburg MLC reaching Tshwane.
+        head = text.split(" - ", 1)[0].strip() if " - " in text else text.strip()
+        return any(head == h.upper() for h in heads)
 
     # Prefer the IEC code, which these files carry as a prefix ("BUF - Buffalo
     # City Metropolitan Municipality [East London]"). The name fallback below
@@ -216,6 +305,22 @@ def matches_city(value: str, city, spec: dict) -> bool:
 
 
 def ingest(tag: str, spec: dict, city, tolerance: float) -> int:
+    heads = muni_heads(tag, city)
+    if heads is None:
+        raise SystemExit(
+            f"{tag}: no municipality string is recorded for {city.name} "
+            f"({getattr(city, 'slug', '?')}).\n"
+            f"  This is a REFUSAL, not a missing feature. Until 2026-08-22 the "
+            f"fallback here matched on the last word of the city name, or on a "
+            f"hard-coded Johannesburg spec, and wrote another city's votes into "
+            f"this city's file — silently, and past the reconciliation gate, "
+            f"because the rows it collected were individually valid. See "
+            f"MUNI_HEAD and MODEL-LOG §1.70.\n"
+            f"  If this city IS in the archive, add its exact municipality head "
+            f"to MUNI_HEAD[{tag!r}]. If it is not — Ekurhuleni and eThekwini in "
+            f"lge2000, every metro but Johannesburg in npe1999 — then the "
+            f"election predates the municipality and there is nothing to add.")
+    spec = dict(spec, _heads=heads)
     stream = open_member(spec)
     header = next(stream)
     index = {name: i for i, name in enumerate(header)}
