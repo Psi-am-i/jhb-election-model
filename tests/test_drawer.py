@@ -524,7 +524,29 @@ def test_every_draw_is_a_probability_vector():
 
 
 def test_party_marginals_match_recorded():
-    """The realised per-party marginals are what they were when recorded."""
+    """The realised per-party marginals are what they were when recorded.
+
+    **FAILING DELIBERATELY SINCE 2026-08-22, AND NOT TO BE RE-RECORDED YET.**
+
+    The pre-2011 archive was ingested for seven more metros (MODEL-LOG §1.70),
+    which enlarged the θ record from n=257 to n=370 and therefore moved the θ
+    prior for every city-year. These goldens are correctly reporting that
+    movement — that is their entire job, and CLAUDE.md's rule is that a golden
+    is re-recorded *deliberately, with the reason written in the file*.
+
+    **The reason is not yet available, because the movement is a REGRESSION
+    whose disposition is undecided.** The enlarged record costs **26 coherent
+    seats** on the nine city-years that existed before it (254 → 280, §1.70).
+    Two corrections were measured against it and neither cleared its bar: the
+    blunt whole-transition drop (§1.74, recovers to 256 but destroys the
+    uniform-swing baseline for two city-years) and the pre-registered Type A
+    event filter (§1.74, recovers to 260, loses the 2016 NLL fold).
+
+    So re-recording now would freeze a prior that scores worse than its
+    predecessor and erase the only signal that it moved. **Re-record only once
+    the ingest is either kept on a stated basis or reverted**, and say which
+    here when you do.
+    """
     if not GOLDEN_PARTIES:
         skip("no GOLDEN_PARTIES recorded — run: "
              "./.venv/bin/python tests/test_drawer.py --record")
@@ -583,6 +605,12 @@ def test_entrant_rescale_pushes_every_pool_down():
     fixing 3.1 will not close the part this step causes. This test exists so
     that the next person to read this file is not sent after a defect that is
     not there.
+    
+    **FAILING DELIBERATELY SINCE 2026-08-22** for the same reason as
+    `test_party_marginals_match_recorded` above — the pre-2011 ingest moved the
+    θ prior, the movement is a 26-seat regression (§1.70), and no correction has
+    yet cleared its pre-registered bar (§1.74). Do not re-record until the
+    ingest's disposition is settled. Read that docstring first.
     """
     _m, index, scenario, base_city_d, centres = draw_matrix()
     offenders = []

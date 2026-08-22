@@ -8078,6 +8078,90 @@ Declared in advance, per the review that set these terms:
   benchmark needs the transition the flag removes. The targeted filter must beat
   the pre-ingest 254 on its own terms, not merely reproduce the blunt result.
 
+### The result: REFUTED against its own pre-registered bar
+
+Both tests were run with the register exactly as committed above. Neither
+condition is met.
+
+**Condition 1 — held-out NLL must improve in BOTH folds. It does not.**
+
+| target | n | committed (filter off) | Type A filter on | |
+|---|---|---|---|---|
+| 2006 | 66 | −0.5499 | −0.5499 | unchanged |
+| 2011 | 69 | 5.7630 | 5.7630 | unchanged |
+| **2016** | 97 | **0.8900** | **1.0339** | **worse** |
+| **2021** | 138 | **0.2603** | **0.0322** | better |
+
+Wins one fold, loses the other — which is precisely what §1.61 defines as
+**undetermined**, and it is the same verdict §1.62's two refits received. The bar
+was set at both folds for exactly this reason and it was set before the run.
+
+**Condition 2 — seat error on the sixteen must fall below the pre-ingest 254.
+It does not.**
+
+| city-year | pre-ingest | full ingest | **Type A** | blunt drop-2011 |
+|---|---|---|---|---|
+| Johannesburg 2016 | 16 | 22 | **14** | 12 |
+| Johannesburg 2021 | 86 | 90 | 88 | 88 |
+| Tshwane 2021 | 30 | 34 | **30** | 26 |
+| Ekurhuleni 2021 | 18 | 22 | 22 | 20 |
+| eThekwini 2021 | 32 | 36 | 36 | 36 |
+| Cape Town 2021 | 34 | 36 | **34** | 36 |
+| Mangaung 2021 | 10 | 10 | **10** | 8 |
+| Nelson Mandela Bay 2021 | 18 | 18 | **16** | 18 |
+| Buffalo City 2021 | 10 | 12 | **10** | 12 |
+| **original nine** | **254** | **280** | **260** | **256** |
+| **all sixteen** | — | 384 | **352** | 354 |
+| CRPS, all sixteen | — | 329.4 | **318.1** | 318.1 |
+
+**A flaw in the pre-registration, stated rather than exploited.** Condition 2 as
+written compares a sixteen-city-year total against a nine-city-year one, which
+is not like-for-like and is my error. On the comparable subset the answer is the
+same and there is nothing to argue about: **260 against 254.** The filter
+recovers 20 of the 26 seats and does not reach the bar.
+
+**And it does not beat the blunt instrument it was built to improve on.** The
+pre-registration said in advance that reproducing the whole-transition drop
+would not count as a pass. The targeted filter does not even reach it — 260
+against 256 on the nine, 352 against 354 on the sixteen, identical CRPS.
+
+### What was learned, which is more than the verdict
+
+**The mechanism is confirmed and the register is not the way to use it.** Both
+interventions recover most of the regression, from opposite directions, so
+2009→2011 is beyond doubt the source of §1.70's 26 seats. What fails is the
+specific claim that a documented-event exclusion is the right correction.
+
+**The reason is visible in the dispersion table, and §1.72 predicted it in
+writing.** With the filter on, `sd_for` at 5–15% falls **0.203 → 0.150** while
+the measured conditional dispersion stays at **0.839** — so the ratio worsens
+from 4.24× to 5.58×, and the cluster CI excludes the model's value by more than
+it did before. Cleaning the fitting record made the model **narrower**, while the
+evaluation record still contains the events, because the events really happened.
+
+That is the trap §1.72 named before this was run: *"Removing Type A from θ must
+NOT mean the model stops forecasting Type A… Delete without routing and the
+model gets narrower, more confident, and wrong in exactly the direction it is
+already wrong."* It is satisfying to have written that down first and it is the
+reason the entry does not now need re-interpreting.
+
+**So the finding stands and the remedy does not.** Route, do not drop — and this
+result says the routing has to be built before any exclusion is worth trying
+again. An exclusion on its own transfers the volatility from the model's prior
+into the model's error, and the seat count is where it lands.
+
+### Disposition
+
+* `levels.TYPE_A_EVENTS` and `levels.FILTER_TYPE_A` stay in the tree,
+  **off by default**, because the register is a documented artefact worth
+  keeping and the flag is how the next attempt gets measured. Neither is
+  promoted to a `DEFAULTS` lever; §1.74's own terms said promotion required the
+  pass, and there was no pass.
+* `levels.THETA_EXCLUDE_TARGETS` likewise stays as an experiment harness.
+* **The 26-seat regression of §1.70 remains open**, and the tree still carries
+  it: 280 against 254 on the original nine with everything at its default. Under
+  *worse does not ship*, that is unchanged by this entry.
+
 ---
 
 ## 2. External evaluation against forecasting best practice (2026-08-11)

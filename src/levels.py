@@ -260,6 +260,80 @@ THETA_EXCLUDE_TARGETS = frozenset(
     y for y in _os.environ.get("THETA_EXCLUDE_TARGETS", "").split(",") if y)
 
 
+# THE TYPE A EVENT REGISTER — party lifecycle events that are not retention.
+# ---------------------------------------------------------------------------
+# PRE-REGISTERED IN MODEL-LOG §1.74, COMMITTED BEFORE ANY MEASUREMENT. Built
+# from documented party events with dates; no residual was consulted. That
+# matters because an independent review showed that dropping the five most
+# extreme |log θ| observations *regardless of cause* gives sd 0.273 against this
+# register's 0.221 — so a residual-built register cannot be told apart from
+# plain outlier-dropping, and would not survive review.
+#
+# Powell & Tucker (BJPS 2014) call volatility from party ENTRY AND EXIT "Type A"
+# and vote switching among existing parties "Type B". θ is a retention ratio, so
+# it is meant to be Type B; Type A has its own machinery here (`pools.SPLITS`,
+# `splinter_record`, the arrivals path). Most Type A never reaches this record —
+# `theta_record` needs the party in BOTH elections with a positive base — so
+# only three shapes survive that filter, and they are the whole register:
+#
+#   MERGER_ABSORBED         the target vote contains a party that no longer
+#                           exists; the ratio is an acquisition, not retention
+#   SPLIT_PARENT            a faction left between base and target; the ratio is
+#                           a departure, not a failure to persuade
+#   POST_FORMATION_COLLAPSE the base reading was a founding surge; the ratio
+#                           measures a failure to institutionalise
+#   LEADER_DEATH            personal-vehicle only. §1.73: the effect flips sign
+#                           with institutionalisation, so it is not retention
+#
+# NOT IN THE REGISTER, deliberately, and each is a decision:
+#   * the PA, which supplies the four largest residuals in the whole record
+#     (θ 10.9 to 100.3). By Powell & Tucker it is Type B — it existed at both
+#     elections and grew. Its extremes are a SMALL-DENOMINATOR problem (0.03% of
+#     the vote) that `_reliability(share)` already handles. Including it would be
+#     precisely the residual-driven choice §1.74 exists to avoid.
+#   * the EFF, founded 2013 and contesting the 2014 NPE, so Type B by 2016. It
+#     is eleven of the seventeen observations in the 5-15% bin, so excluding it
+#     would empty the bin that carries the headline.
+#
+# Keyed by the TARGET LGE of the transition, because that is what
+# `theta_record`'s loop iterates.
+TYPE_A_EVENTS: dict[str, dict[str, str]] = {
+    "2011": {
+        # Independent Democrats merged into the DA: announced 15 Aug 2010,
+        # complete before the May 2011 LGE. The DA's 2011 vote contains the
+        # ID's; its 2009 base does not.
+        "DA": "MERGER_ABSORBED",
+        # NFP founded by Zanele Magwaza-Msibi, the IFP's National Chairperson,
+        # January 2011 — four months before the LGE. Also in pools.SPLITS.
+        "IFP": "SPLIT_PARENT",
+        # Formed Dec 2008; the April 2009 NPE reading of 7.4% nationally was a
+        # founding surge, and the party had fractured by 2011.
+        "COPE": "POST_FORMATION_COLLAPSE",
+    },
+    "2016": {
+        # Agang SA, founded by Mamphela Ramphele Feb 2013, contested the 2014
+        # NPE, effectively defunct thereafter.
+        "AGANG": "POST_FORMATION_COLLAPSE",
+        # Amichand Rajbansi, founder and sole national figure, died 29 Dec 2011
+        # — after the 2011 LGE, before 2016. A personal vehicle by §1.73.
+        "MINORITY_FRONT": "LEADER_DEATH",
+    },
+    "2021": {
+        # Herman Mashaba, the DA's own mayor of Johannesburg, resigned Oct 2019
+        # and founded ActionSA in 2020 — between the 2019 NPE base and the 2021
+        # LGE. Also in pools.SPLITS.
+        "DA": "SPLIT_PARENT",
+    },
+}
+
+# Off by default: with this False the record is exactly what it was and no
+# number moves. Promoted to a declared lever only if §1.74's pass condition is
+# met. Read via the environment because `compare_history` fans out over
+# processes and a module constant set in the parent does not reach a worker
+# (§1.33).
+FILTER_TYPE_A = _os.environ.get("FILTER_TYPE_A", "").lower() in ("1", "true", "yes")
+
+
 def theta_record(target: cityconfig.Target,
                  codes=METRO_CODES) -> dict[str, list[tuple[float, float]]]:
     """Every observed national-to-local retention ratio before the target.
@@ -311,7 +385,10 @@ def theta_record(target: cityconfig.Target,
                                + npe_tpl.replace("{CODE}", code))
             after = _citywide("data/raw/elections/"
                               + lge_tpl.replace("{CODE}", code))
+            _events = TYPE_A_EVENTS.get(year, {}) if FILTER_TYPE_A else {}
             for party in set(before) & set(after):
+                if party in _events:
+                    continue          # Type A, not retention. See TYPE_A_EVENTS
                 if before[party] > 0:
                     out[party].append((after[party] / before[party],
                                        before[party]))
