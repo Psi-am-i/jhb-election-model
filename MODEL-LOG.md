@@ -6635,6 +6635,264 @@ So the leak was real, and it was inert. The 48 seats are not leakage.
 
 ---
 
+## 1.66 Two poll claims audited: one holds, one is a tautology dressed as a result (2026-08-22)
+
+`src/polling.py` carried two measurements that **no script in the repository
+produced** and that appeared in no MODEL-LOG entry. Both were checked before the
+module is rewritten, because a rewrite would have buried them.
+
+### The stale-poll rule — HOLDS, and costs more than it claimed
+
+`usable_for` refuses a poll declared for a different election. The comment
+justifies it with *"Johannesburg 2021 CRPS 77.0 → 86.2"*. Re-measured by
+removing the declaration filter so `ipsos-2016-lge-joburg` — five years stale —
+can inform the 2021 forecast:
+
+| | CRPS | coherent |
+|---|---|---|
+| rule ON (committed) | **66.4** | **86** |
+| rule OFF, 2016 poll admitted | 76.4 | 94 |
+
+The absolute levels have moved because the model has improved since (the
+baseline really was 77.0 then), but **the effect reproduces almost exactly**:
++10.0 CRPS today against the +9.2 recorded, and **+8 coherent seats the original
+claim did not mention**. The rule is worth more than its own comment says.
+
+### The contested-area table — reproduces exactly, and shows less than it appears to
+
+    2016 (83 arrivals)   raw 1.609   adjusted 0.000
+    2021 (175 arrivals)  raw 1.228   adjusted 0.144
+
+Every figure is right, to three decimals, including the arrival counts —
+`src/contested_area.py` now produces it. Reproducing it turned up three things
+the table does not say.
+
+**1. It is largely a tautology.** A party standing in ONE metro has an estimate
+that is exact *by identity*: its share of its contested area is its share of that
+metro. Such an arrival contributes a hard zero.
+
+| | single-metro arrivals | multi-metro median |
+|---|---|---|
+| 2016 | **46 of 83 (55%)** | 0.234 |
+| 2021 | **67 of 175 (38%)** | **0.431** |
+
+At 2016 the majority are single-metro, so the median *is* one of those zeros —
+which the docstring concedes as "trivially exact", while treating the 2021 figure
+beside it as a real result built from the same material. **On multi-metro
+arrivals, the only cases where the conversion does any work, it is 0.431 — a
+factor of 1.54, three times the 0.144 quoted.**
+
+**2. The two columns use different denominators.** "raw" is the party's share of
+the eight-metro aggregate; "adjusted" runs through `contested_share`, whose
+denominator is national. Against a consistent national denominator raw is 2.504
+and 1.995. So part of the displayed improvement is a change of denominator, not
+the adjustment.
+
+**3. And it does not test the conversion it appears to.** In the table `X` is
+reconstructed from the archive, so the national figure **cancels** and the
+estimate reduces to
+
+    total votes / votes cast in the metros the party stood in
+
+— the party's share of its own contested area, computed entirely inside the
+metro archive. The poll never appears and neither does `NATIONAL_VOTES`. So it
+validates the **geographic** half of the mechanism and not the **conversion**
+half, which is the half that runs in production and the half `NATIONAL_VOTES`
+exists for.
+
+### Disposition
+
+- Both claims corrected in place in `polling.py`; neither deleted, because the
+  measurement that was wrong about its own scope is the more useful record.
+- `src/contested_area.py` is committed so the table cannot drift again.
+- **What actually validates this mechanism is §1.65** — the real poll, the real
+  path, 48 coherent seats over nine city-years. The table is the weaker
+  companion and should be quoted as one.
+- The pattern is now three for three: §1.59's `SD_FLOOR`, §1.63's dead
+  `arrival_group_draw` comment, and this. **A number in a docstring with no
+  script behind it has been wrong or overstated every time it has been checked.**
+  That is the argument for the Phase 3 provenance work, one layer down from the
+  published page.
+
+---
+
+## 1.67 σ_poll becomes a decomposition, and one house is capped at 0.42 (2026-08-22)
+
+§1.65 established that the poll channel is worth 48 coherent seats. This is the
+other half: **how much a poll should count**, rewritten before the first real
+2026 numbers move a published forecast.
+
+### What was wrong
+
+`POLL_RMS_ERROR = 0.030` was applied flat to every poll of every party. It is a
+good number — the RMS of Ipsos's nine 2016 metro readings, a track record rather
+than a nominal margin — and it was measured on **full-sample metro polls, by one
+house, two days before polling day**. Both admitted 2026 polls are ~500-person
+subsamples of a national sample, a different house, an undisclosed likely-voter
+screen, months out. `n` was recorded on every poll and **read by nothing**. And
+there was no cap: ten waves of one house would each have blended at w≈0.9.
+
+### The decomposition, which preserves the measurement rather than discarding it
+
+    σ_poll² = deff·p̂(1−p̂)/n  +  σ_house²  +  σ_screen²  +  (drift·√days)²
+
+`POLL_HOUSE_SD` is not a new guess — it is the 3.03pp track record with the
+sampling term removed, and it is robust to the one thing we do not know:
+
+| assumed n | mean sampling | residual → `POLL_HOUSE_SD` |
+|---|---|---|
+| 500 | 2.13pp | 2.16pp |
+| 800 | 1.68pp | **2.52pp** |
+| 1500 | 1.23pp | 2.77pp |
+
+**Screen and drift are EXCESS terms, and that is the trap in the arithmetic.**
+The 2.5pp residual is the *total* non-sampling error of polls whose method was
+public and which had two days of drift, so their screen error is already inside
+it. Charging every poll a screen term on top counts it twice. Both are therefore
+measured as an excess over the calibration case: zero for a disclosed screen,
+zero at zero days out. The design this was built from added them unconditionally;
+that was caught here rather than shipped.
+
+**The self-consistency check**: run the calibration polls back through and the
+decomposition returns **3.05pp against 3.03pp** — 0.02pp. That is what licenses
+`POLL_HOUSE_SD` as measured, and `tests/test_polling_sd.py` asserts it.
+
+Applied to the July 2026 SRF wave (p̂ 0.42, n 504, deff 1.6, undisclosed screen,
+96 days out): sampling 2.78 · house 2.50 · screen 2.00 · drift 0.98 → **4.35pp**,
+against 3.00pp before. And `n_eff = 504/1.6 = 315`, i.e. ±5.5pp — not the ±4.4pp
+the record's own caveat string claims.
+
+### One house has a floor it cannot publish its way past
+
+House error is a bias every wave of a house shares, so the aggregate shrinks
+sampling with **waves** and house error only with **houses** — `σ_house²/H_eff`,
+where `H_eff` is the Kish effective house count.
+
+| waves of one house | 1 | 2 | 4 | 8 | 20 | 100 |
+|---|---|---|---|---|---|---|
+| σ_aggregate | 4.35 | 3.88 | 3.63 | 3.49 | 3.41 | **3.36pp** |
+
+against an irreducible **3.35pp**. An earlier draft of this argument claimed two
+waves "buy nothing"; measured, they buy 4.35 → 3.88 — a real reduction in the
+sampling term and none at all in the house term. **The protection is the
+asymptote, not a flat line**, and saying so is the difference between an argument
+and a measurement.
+
+### And on top of it, a cap on house diversity
+
+    w_cap(H) = H / (H + poll_house_k)     1 → 0.50   2 → 0.67   3 → 0.75
+
+Because inverse variance is only correct if both estimates are **unbiased**, and
+one house with an undisclosed screen is exactly where the bias term is unbounded
+and no variance formula can express it. The same `m/(k+m)` shape the spine and
+`POLL_K` already use; the asymptote is 1.0 *by argument*, so it costs one
+declared number.
+
+**Where it binds today.** At Johannesburg 2026 the DA's inverse-variance weight
+is 0.560 and it is held to **0.500** — not because of anything about the DA, but
+because `H_eff = 1.0` and only one house has published. The ANC's 0.498 passes
+through untouched. If a second independent house published, `H_eff` rises to
+1.94, the cap loosens to 0.66, and precision binds instead. **The lever that
+unlocks it is real-world, not code.**
+
+Independent corroboration that this is the right risk to price, rather than our
+own suspicion: the Daily Maverick (2026-08-17) notes that SRF's staff and those
+of its service provider Victory Research *"have had close associations with the
+DA"*.
+
+### Measured
+
+**The backtest does not move: 254 coherent, identical city-year by city-year,
+CRPS 232.9 → 232.8.** And the reason is worth stating rather than celebrating —
+**the only poll any backtest sees is Johannesburg 2016's, which IS the
+calibration poll**: full sample, disclosed method, two days out. The
+decomposition is inert there by construction. So this change is live exactly
+where nothing can check it, the `w_bye` and `contestation_expand` position, and
+must be labelled that way wherever quoted.
+
+Where it does act — Johannesburg 2026, 1200 draws, median seats:
+
+| | flat 3.0pp, no cap | decomposed + cap | |
+|---|---|---|---|
+| **DA** | **83** | **77** | **−6** |
+| ANC | 58 | 59 | +1 |
+| ASA | 26 | 27 | +1 |
+| MK | 25 | 26 | +1 |
+| EFF | 25 | 26 | +1 |
+| PA | 20 | 21 | +1 |
+
+Six seats off the DA, because a DA-adjacent house's reading of DA 41.1% was
+taking 0.67 of the blend and now takes 0.42.
+
+### Stress-tested on synthetic polls, because two real ones cannot find a bug
+
+The register holds two admitted 2026 polls: same house, same size, same method.
+Every property the scheme depends on is unexercised by them.
+`tests/test_polling_synthetic.py` drives made-up polls inside plausible metro
+bounds through the real arithmetic and asserts eight properties — a second house
+is worth more than a second wave; a million respondents cannot break the floor
+or the cap; a poll agreeing with the model moves it nothing; a poll disagreeing
+moves it toward and not past; more waves approach the floor and never cross;
+hiding a screen costs something; a stale poll is priced worse; a subsample is
+priced as a subsample.
+
+**These are not only a convenience.** Once readers submit polls to the
+competition the weighting is an untrusted-input surface, and a poll claiming a
+million respondents is an *expected* input. Those assertions are the bound on
+what a reader can do to the published forecast.
+
+### Every judgement call in it is adjustable, and that is not a detail
+
+`poll_house_k`, `poll_deff_subsample`, `poll_screen_sd`,
+`poll_drift_per_root_day` and `poll_half_life_days` are all `DEFAULTS` keys,
+reachable from `--set`, a config file, the sweep and the interactive.
+
+**Because a judgement call nobody can move is indistinguishable from a fact** —
+and this entry contains the proof. `POLL_HOUSE_K` shipped at **1.4**, putting the
+cap at 0.42, for no reason anyone could check; asked why 0.42, there was no
+answer. It is now **1.0**, giving exactly 0.50, on a rule that can be stated in a
+sentence: *a single unreplicated house is never worth more than the model
+itself.* That is not more measured — it is more explicable, and it is the value
+`SPINE_K` and `POLL_K` already carry. `--set poll_house_k=1.4` reproduces the
+old behaviour exactly.
+
+The difference is not cosmetic. At 1.4 the cap overrode the variance arithmetic
+for the ANC as well as the DA — 0.498 and 0.560 both pulled to 0.42. At 1.0 it
+binds only where a poll would otherwise outweigh the model, which is the
+condition a cap should exist for, and the ANC's 0.498 passes through untouched.
+
+A tighter cap is available and deliberately not taken. There is independent
+reason to think this particular house leans one way, but encoding a view about
+one house in a global constant is the party-specific fiddle this project has
+deleted twice. If a house needs discounting, discount that house.
+
+### And the guard caught this entry making the exact mistake it is about
+
+`POLL_HALF_LIFE_DAYS` was written into three signatures as
+`half_life_days: float = POLL_HALF_LIFE_DAYS` — **a module constant captured in
+a default argument, evaluated once at import, frozen thereafter.** That is
+`LEVEL_DF` (§1.33), the defect this repository is most marked by, reintroduced
+in the same commit that promotes the constant out of exactly that shape.
+
+`test_no_numeric_module_constant_is_a_default_argument` failed on all three
+before any of it shipped. Two things worth recording: the guard is worth its
+runtime, and **knowing about a defect in detail is no protection against
+committing it** — which is the argument for behavioural guards over careful
+authors, and it is the third time this week a test has caught the author of the
+entry describing the trap.
+
+### Also fixed
+
+`POLL_HALF_LIFE_DAYS` **did not exist**. It was registered in
+`JUDGEMENT-CALLS.md` at 120 and was a default argument on `polling.aggregate`, so
+no `--set` and no config file could reach it. `test_every_tunable_constant_is_in_
+the_judgement_register` only checks code → register, so a register row naming a
+non-existent constant passed. It is now a module constant mirrored in `DEFAULTS`
+with the two asserted equal at import — and it is the second instance this week
+of the register being right about a thing that was not there.
+
+---
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

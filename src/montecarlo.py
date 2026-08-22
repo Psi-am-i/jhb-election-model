@@ -185,6 +185,29 @@ DEFAULTS: dict = {
     # leak-free and neither has ever been scored. MODEL-LOG §1.65.
     "poll_paths": "all",    # "off" | "arrivals" | "all"
 
+    # THE POLL WEIGHTING'S JUDGEMENT CALLS, every one of them adjustable.
+    # These are DECLARED numbers — none is measured and none can be until a
+    # second house publishes a Johannesburg metro poll — so per the standing
+    # rule they are noted in JUDGEMENT-CALLS.md *and* reachable from `--set`,
+    # a config file, the sweep and the interactive. A judgement call nobody can
+    # move is indistinguishable from a fact, which is how `POLL_HOUSE_K` came
+    # to ship at 1.4 for a day with no reason anyone could check. §1.67.
+    #
+    # `poll_house_k` is the one to argue with: it caps a poll at
+    # H_eff/(H_eff+k), so 1.0 means "a single unreplicated house is never worth
+    # more than the model itself" and 1.4 (the value it shipped at) means 0.42.
+    "poll_house_k": 1.0,
+    "poll_deff_subsample": 1.6,
+    "poll_screen_sd": 0.020,
+    "poll_drift_per_root_day": 0.0010,
+
+    # RECENCY HALF-LIFE for combining poll waves. It was registered in
+    # JUDGEMENT-CALLS.md at 120 and DID NOT EXIST — a default argument on
+    # `polling.aggregate`, so no `--set` and no config file could reach it, and
+    # the register documented a constant that was not there. Mirrored here and
+    # asserted equal to `polling.POLL_HALF_LIFE_DAYS` at import. §1.67.
+    "poll_half_life_days": 120.0,
+
     "poll_id": None,        # e.g. "srf-2026q2-coj" — see polls.json
     "poll_weight": 0.0,
     "poll_k": POLL_K,
@@ -584,6 +607,13 @@ TURNOUT_CORRELATION = 0.63
 # this repository's most reliable defect is two copies of one thing drifting.
 # `DEFAULTS` is a literal declared above this line, so it cannot reference the
 # constant; this asserts at import that it did not have to. MODEL-LOG §1.63.
+import polling as _polling_check
+
+assert DEFAULTS["poll_half_life_days"] == _polling_check.POLL_HALF_LIFE_DAYS, (
+    f'DEFAULTS["poll_half_life_days"]={DEFAULTS["poll_half_life_days"]} but '
+    f'polling.POLL_HALF_LIFE_DAYS={_polling_check.POLL_HALF_LIFE_DAYS}; they are '
+    f'one number. MODEL-LOG §1.67.')
+
 assert DEFAULTS["turnout_correlation"] == TURNOUT_CORRELATION, (
     f'DEFAULTS["turnout_correlation"]={DEFAULTS["turnout_correlation"]} but '
     f'TURNOUT_CORRELATION={TURNOUT_CORRELATION}; they are one number')
@@ -2770,15 +2800,44 @@ def run_model(target, scenario: dict,
     if _agg:
         _sd = scenario.get("_theta_sd") or {}
         _default_sd = float(scenario.get("level_sd_default", 0.45))
+        # σ_poll IS NO LONGER A CONSTANT. It is decomposed per poll per party —
+        # sampling from the achieved sample, a measured house term, and excess
+        # terms for an undisclosed screen and for opinion drift since fieldwork.
+        # See polling.poll_sd; MODEL-LOG §1.67.
+        #
+        # AND THE WEIGHT IS CAPPED BY HOW MANY INDEPENDENT HOUSES STAND BEHIND
+        # IT. Inverse variance is only correct if both estimates are unbiased,
+        # and one house with an undisclosed screen is exactly where the bias
+        # term is unbounded. Both admitted 2026 polls are the same house, so
+        # H_eff is 1.0 and the cap is 0.42 however many waves it publishes.
+        _asof = target.date
+        _pk = {"screen_sd": float(scenario.get("poll_screen_sd", 0.020)),
+               "drift_rate": float(scenario.get("poll_drift_per_root_day",
+                                                0.0010)),
+               "deff_subsample": float(scenario.get("poll_deff_subsample",
+                                                    1.6))}
+        _h_eff = _pg.effective_houses(
+            _metro, half_life_days=float(scenario.get("poll_half_life_days",
+                                                      120.0)), asof=_asof)
+        _cap = _pg.weight_cap(_h_eff,
+                              house_k=float(scenario.get("poll_house_k", 1.0)))
         for _party, _share in sorted(_agg.items(), key=lambda kv: -kv[1]):
             _mu = float(centres.get(_party, 0.0))
             if _mu <= 0:
                 continue
             _msd = float(_sd.get(_party, _default_sd)) * _mu
-            _w = _pg.blend_weight(_pg.POLL_RMS_ERROR, _msd)
+            # The aggregate's own error: sampling shrinks across waves, the
+            # house term shrinks across HOUSES and so does not shrink here.
+            _psd = _pg.aggregate_sd(
+                _metro, _party, _share, asof=_asof,
+                half_life_days=float(scenario.get("poll_half_life_days", 120.0)),
+                **_pk)
+            _w = min(_pg.blend_weight(_psd, _msd), _cap)
             centres[_party] = (1 - _w) * _mu + _w * float(_share)
             notes[_party] = notes.get(_party, "") + (
-                f" | polls {_share:.1%} @ w={_w:.2f}: → {centres[_party]:.1%}")
+                f" | polls {_share:.1%} @ w={_w:.2f}"
+                f" (σp {_psd:.3f}, σm {_msd:.3f}, H_eff {_h_eff:.1f},"
+                f" cap {_cap:.2f}): → {centres[_party]:.1%}")
         note_constant(scenario, "metro_poll",
                       ", ".join(q["id"] for q in _metro))
         if verbose:

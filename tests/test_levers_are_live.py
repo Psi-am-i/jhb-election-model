@@ -103,6 +103,20 @@ _WARD_LOCAL_BYE = (
 # and then kept anyway for two days because their disposition was recorded as
 # "an open decision". The decision had already been made -- twice -- by the
 # project owner. MODEL-LOG §1.52.
+# Every poll-weighting judgement call is inert at 2021 for the same reason, so
+# the reason is written once. It is NOT that the levers are dead: they are inert
+# because the register holds no metro poll of Johannesburg for that target, and
+# the metro path is the only consumer. They are live at 2026, where two SRF
+# waves are admitted — which puts them in the `w_bye` position, live exactly
+# where no backtest can score them, and that is stated wherever they are quoted.
+# MODEL-LOG §1.67.
+_NO_METRO_POLL = (
+    "the metro-poll path is the only consumer of this lever and the register "
+    "holds no metro poll of Johannesburg declared for 2021 — the only admitted "
+    "2021 poll is `ipsos-2021-lge-national`, which drives the ARRIVALS path "
+    "instead. Live at 2026 on the two SRF waves. Inert here by data, not by "
+    "design: add a 2021 Johannesburg metro poll to `polls.json` and this moves.")
+
 EXPECTED_INERT: dict[tuple[str, str], str] = {
     ("w_bye", "2021"):
         "by-election data covers 2022-06 to 2026-02 only, so no past target has "
@@ -122,6 +136,11 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
         "covering the ballot. MODEL-LOG §1.63.",
     ("level_sd_default", "2026"): "same reason as at 2021 — theta_prior covers "
         "every party in the baseline, so the fallback never binds",
+    ("poll_house_k", "2021"): _NO_METRO_POLL,
+    ("poll_deff_subsample", "2021"): _NO_METRO_POLL,
+    ("poll_screen_sd", "2021"): _NO_METRO_POLL,
+    ("poll_drift_per_root_day", "2021"): _NO_METRO_POLL,
+    ("poll_half_life_days", "2021"): _NO_METRO_POLL,
     ("arrival_group_draw", "2026"):
         "GATED ON DATA THAT DOES NOT EXIST YET, and the gate is three deep. "
         "`pools.arrival_group_spec` returns None unless the target has a real "
@@ -261,6 +280,11 @@ PERTURB: dict[str, object] = {
     "w_bye": 0.95,
     "arrival_group_draw": True,   # the mechanism instead of the generic slot
     "poll_paths": "off",          # both poll paths off; worth 50 coherent seats
+    "poll_house_k": 6.0,          # cap 0.86 at one house — near-uncapped
+    "poll_deff_subsample": 4.0,   # a subsample worth a quarter of its headline n
+    "poll_screen_sd": 0.12,       # an undisclosed screen priced as ruinous
+    "poll_drift_per_root_day": 0.02,   # opinion moving very fast
+    "poll_half_life_days": 5.0,   # only the freshest wave counts
     "level_sd_default": 1.60,     # was frozen at 0.45 and unreachable
     "turnout_correlation": 0.0,   # independent pools; was frozen at 0.63
     "contestation_expand": 1.0,   # every party in every ward

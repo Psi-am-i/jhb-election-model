@@ -297,6 +297,35 @@ formula letters between years — are logged in
 [`DATA-QUALITY.md`](DATA-QUALITY.md), written so they can be reported to the
 IEC, MDB and Stats SA rather than only worked around here.
 
+## Polls — searched for, and what does and does not exist (2026-08-22)
+
+`polls.json` is the register and `POLLING.md` the human-readable version;
+neither was referenced here at all until now, which is its own gap.
+
+**Searched for, NOT published — do not look again without new information.**
+Ipsos's pre-election work for the 2021 LGE was run for eNCA (fieldwork 9–14
+October 2021, n = 1,346, CATI) and **publishes no metro-level party splits** —
+only turnout scenarios per metro ("Tshwane and Johannesburg only at 50% in the
+medium scenario"). We hold the national reading as `ipsos-2021-lge-national`.
+This matters because a metro-level Ipsos 2021 Johannesburg poll would be the
+single most valuable addition to the register: it would let the metro path fire
+on the model's **worst** city-year, and give `H_eff > 1` for the first time.
+
+**Houses that publish South African voting intention**, from the coverage of the
+2026 cycle: Ipsos, MarkDATA, the Brenthurst Foundation, the Institute of Race
+Relations, and the Social Research Foundation with Victory Research. Only the
+last has published a Johannesburg metro cut for 2026, which is why `H_eff = 1.0`
+and the weight cap binds at 0.42 (§1.67).
+
+**On the 2026 register's single-house problem, independently.** The Daily
+Maverick's *"Baselines and biases"* (17 August 2026) observes that SRF's leaders
+and staff — and those of its service provider Victory Research — *"have had
+close associations with the DA"*. That is an outside observation of the risk
+`POLL_HOUSE_K` is priced for, and it is worth having on the record as something
+other than our own suspicion. The same piece confirms the July 2026 Johannesburg
+numbers we hold: DA 42, ANC 18, MK 13, ASA 10, EFF 8, n = 504, 8–31 July,
+±4.4pp claimed.
+
 ## Cross-references — read against, never read from
 
 **Nothing in `src/` opens anything in this section**, and that is the point of
