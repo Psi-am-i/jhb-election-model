@@ -504,6 +504,27 @@ requirement to measure.
 
 ## When to stop — written 2026-08-21, because "keep iterating" is not a plan
 
+> ## ⚠️ THIS SECTION IS OBSOLETE (2026-08-23) — READ `PLAN-TO-LIVE.md` INSTEAD
+>
+> **Both of its load-bearing premises have been overturned.**
+>
+> * *"Nine city-years, about two effective clusters."* §1.70 doubled the panel
+>   to **sixteen city-years and two cycles**. The argument that the panel
+>   "supports approximately zero parameters chosen on it" was correct given its
+>   premise, and the premise was never a fact about South African electoral
+>   data — it was a fact about which ingest had been run.
+> * *"There is no remaining change that improves seat accuracy."* Three
+>   candidates now improve CRPS and two improve seats: the Type A filter
+>   (384 → 360, CRPS 320.3), the footprint exclusion (384 → 368, CRPS 324.7),
+>   and the two combined (366). See §1.78, §1.81, §1.82.
+>
+> The section is kept because `MODEL-LOG` reasoning refers to it and because
+> deleting a superseded argument destroys the record of why it was made. **Do
+> not act on it.** The current plan, its freeze date and its abandon-condition
+> are in `PLAN-TO-LIVE.md`; the current acceptance bar is the amendment at the
+> top of this file.
+
+
 The only question this file asks is whether the model predicts past elections
 better than the last version and better than the baselines. It does: **254
 coherent seat error against uniform swing's 376**, and uniform swing is measured
