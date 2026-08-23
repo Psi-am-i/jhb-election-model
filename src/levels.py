@@ -400,6 +400,41 @@ TYPE_A_EVENTS: dict[str, dict[str, str]] = {
 # (§1.33).
 FILTER_TYPE_A = _os.environ.get("FILTER_TYPE_A", "").lower() in ("1", "true", "yes")
 
+# TRANSITIONS THAT CROSS THE 2011 MUNICIPAL DEMARCATION.
+# ---------------------------------------------------------------------------
+# **AN EXPERIMENT HARNESS, OFF BY DEFAULT** — with `EXCLUDE_DEMARCATION_CROSSING`
+# unset the record is exactly what it was and no number moves.
+#
+# It exists to test the FIRST of §1.70's two hypotheses, pre-registered in
+# §1.80. Mangaung and Buffalo City are keyed on their pre-demarcation
+# municipality codes `FS172` and `EC125` before 2011, and the 2011 demarcation
+# moved municipal boundaries as well as wards — so for those two metros a ratio
+# computed ACROSS 2011 divides a share of one area by a share of a different
+# one. `DATA-QUALITY.md` item 13 documents the footprint change and Buffalo
+# City's 5.1% -> 3.9% step, and left it unchased.
+#
+# **Only the crossing pair is listed.** MAN and BUF's 2004->2006 theta and
+# 2000->2006 rho have BOTH endpoints inside the old footprint and are clean by
+# this argument; §1.75's state B removed them too, which is why state B is an
+# over-exclusion and not a test of this hypothesis. Keyed by (metro code, the
+# LGE year the transition lands on) — 2011 for both theta (npe2009 -> lge2011)
+# and rho (lge2006 -> lge2011).
+DEMARCATION_CROSSING: frozenset[tuple[str, str]] = frozenset({
+    ("MAN", "2011"),
+    ("BUF", "2011"),
+})
+
+EXCLUDE_DEMARCATION_CROSSING = _os.environ.get(
+    "EXCLUDE_DEMARCATION_CROSSING", "").lower() in ("1", "true", "yes")
+
+
+def _crosses_demarcation(code: str, lge_year: str) -> bool:
+    """Is this (metro, transition) one the 2011 demarcation makes incomparable?"""
+    return (EXCLUDE_DEMARCATION_CROSSING
+            and (code, str(lge_year)) in DEMARCATION_CROSSING)
+
+
+
 
 def theta_record(target: cityconfig.Target,
                  codes=METRO_CODES) -> dict[str, list[tuple[float, float]]]:
@@ -448,6 +483,8 @@ def theta_record(target: cityconfig.Target,
         if not npe_tpl or not lge_tpl:
             continue
         for code in codes:
+            if _crosses_demarcation(code, year):
+                continue              # see DEMARCATION_CROSSING
             before = _citywide("data/raw/elections/"
                                + npe_tpl.replace("{CODE}", code))
             after = _citywide("data/raw/elections/"
@@ -519,6 +556,8 @@ def local_record(target: cityconfig.Target,
         if int(later) >= int(target.year):
             continue                      # strictly before the target
         for code in codes:
+            if _crosses_demarcation(code, later):
+                continue              # see DEMARCATION_CROSSING
             before = _citywide(
                 f"data/raw/elections/lge{earlier}_{code}_vd_party_clean.csv")
             after = _citywide(

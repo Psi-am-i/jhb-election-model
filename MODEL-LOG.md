@@ -8774,6 +8774,106 @@ ingest and comparing is the cheap way, and it is the technique that settled
 §1.75.
 
 
+---
+
+## 1.80 State C pre-registered: the footprint exclusion, and the direction is already known (2026-08-23)
+
+**Written and committed BEFORE the measurement.** This is §1.70's first
+hypothesis, the last of its two still open, and the one §1.75 showed had never
+been tested.
+
+### The hypothesis, and why the obvious test is not one
+
+§1.70 measured that doubling the panel cost **26 coherent seats on the nine
+city-years that already existed** — 254 → 280, seven worse, two unchanged, none
+better, against draw noise of ±2. It named the footprint as a candidate cause:
+Mangaung and Buffalo City are keyed on `FS172` and `EC125` before 2011, their
+pre-demarcation municipality codes, and the 2011 demarcation moved municipal
+boundaries as well as wards. A ratio computed **across** 2011 for those two
+divides a share of one area by a share of a different one.
+
+§1.75 then found the tree had spent a day in a state where all six of their
+pre-2011 files were missing, and measured it: **368 on the sixteen and 272 on
+the nine, sixteen seats better, monotone, none worse.** That is not this test,
+for the reason recorded there — it was not pre-registered, it left γ fold 3
+fitted from files it removed, and above all **it over-excludes**.
+
+### What state C is, exactly
+
+The exclusion is on **(metro, transition)** pairs and nothing else:
+
+| record | excluded | observations |
+|---|---|---|
+| θ | MAN `npe2009 → lge2011` | 8 |
+| θ | BUF `npe2009 → lge2011` | 8 |
+| ρ | MAN `lge2006 → lge2011` | 6 |
+| ρ | BUF `lge2006 → lge2011` | 5 |
+| | **total** | **27** |
+
+θ 410 → 394, ρ 292 → 281, confirmed against the harness before this was written.
+
+**State B removed 44.** The extra 17 are MAN and BUF's `npe2004 → lge2006` θ
+observations, whose two endpoints sit **both inside the old footprint** and are
+therefore clean by the very argument being tested. (`lge2000` does not exist for
+either metro, so their ρ pre-2011 is only the crossing pair, and there state B
+and state C agree.)
+
+### The bar, fixed in advance
+
+The same bar §1.74 set for the rival Type A hypothesis, so the two are
+comparable, **plus one condition that only this hypothesis can fail.**
+
+**Condition 1 — held-out NLL must improve in BOTH folds (2016 and 2021).**
+One-of-two is "undetermined" under §1.61 — the verdict §1.62's two refits and
+§1.74's Type A both received. The bar exists so a coin flip cannot be reported
+as a win.
+
+**Condition 2 — coherent seat error on §1.70's original nine must fall below the
+pre-ingest 254.** State A is 280. Recovering four seats is not the claim;
+recovering the regression is.
+
+**Condition 3, and it is the discriminating one — state C must be at least as
+good as state B on the sixteen: ≤ 368.**
+
+Condition 3 is the whole point, and it is why knowing state B's number does not
+give this test away. **If the demarcation is the mechanism, removing only the 27
+contaminated observations must do at least as well as removing those 27 plus 17
+clean ones.** State B threw away good data and still gained; if state C — which
+keeps that good data — cannot match it, then what helped was dropping pre-2011
+observations *in general*, and the cause is recency or quantity, not the
+footprint. That is a different finding with a different fix, and §1.75 already
+named it as the leading alternative.
+
+### Stated in advance, because it is true and would otherwise look like hindsight
+
+**The direction is already known.** State B is 16 coherent seats better on the
+sixteen and 8 better on the nine. A bar set after seeing that is not the same
+instrument as one set blind, and pretending otherwise would be worth less than
+saying so. Conditions 1 and 2 were fixed by §1.74 before any of this; condition 3
+is new and is set **against** the known number rather than below it, which is the
+only way a known direction can still be informative.
+
+### Two limitations, recorded now rather than discovered later
+
+* **γ fold 3 is NOT excluded.** For MAN and BUF it is fitted on `npe2009 →
+  lge2011` at VD level — the same crossing. Removing it would refuse both metros'
+  2016 targets and drop the panel from sixteen to fourteen, which is not
+  comparable to anything. §1.70's hypothesis is about the θ record, so this
+  tests that; a γ-level version is a different and broader experiment.
+* **This is an L1 specification choice on the scoreboard.** Rule 10 permits it
+  only because the exclusion has independent justification — `DATA-QUALITY.md`
+  item 13 documented the footprint before any of this was measured, and the rule
+  is keyed on the demarcation date rather than on any residual.
+
+### What each outcome means
+
+| outcome | reading |
+|---|---|
+| all three conditions | the footprint is the mechanism; ship the exclusion as a declared, settable rule |
+| condition 3 fails (state C worse than state B) | **the footprint is refuted**; the gain is from dropping older observations generally, and the question becomes recency weighting |
+| 3 holds, 1 or 2 fails | the mechanism is real but too small to clear a bar set in advance; record and do not ship |
+
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model
