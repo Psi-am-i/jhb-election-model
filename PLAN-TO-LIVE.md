@@ -98,12 +98,54 @@ named at the top of this plan, not only the metro poll: the dark 48-seat channel
 the unreplicated house, and the nine constants live at 2026 that no backtest can
 bound.
 
+**Two more things A2 must publish, both added on review and both blocking:**
+
+* **The half-life band, beside the poll-off/poll-on split.** `poll_half_life_days`
+  is now reachable (§1.84) and nobody has chosen its value — the register calls
+  it DECLARED, *"no SA metro series can fit it"*. And in THIS forecast it is not
+  "how fast opinion drifts": the two admitted polls are two waves of the same
+  house five months apart, with the **ANC falling 30% → 18%**, so the lever is
+  arbitrating a twelve-point intra-house discontinuity with no second house to
+  say which wave is right. At 120 days the model believes roughly 70% July /
+  30% March. **Publish what the polls do AND what our choice about which wave to
+  believe does** — two numbers, not one. A hostile reader will construct the
+  second one otherwise.
+* **The second house we declined.** `ipsos-w2-2025-metros` (ANC 35%, DA 25%)
+  passes `polling.screen` and is discarded by a `scope == "metro"` filter
+  because it is a `metro-aggregate`. Including it moves ANC +2.65pp, DA −3.18pp
+  and takes H_eff from **1.00 to 1.46** (§1.85). Excluding it is defensible; the
+  decision being unregistered is not. **A2 cannot print "one house" without
+  printing the reading it declined and the reason.**
+
 ### A3. Chase one national 2026 poll ★ start now, long lead time
 
 The arrivals poll path is **worth 48 coherent seats** (§1.65) and **cannot fire
 at 2026** — not for want of code, but because no national 2026 poll is in the
 register. One acquisition re-enables the whole channel. This has external lead
 time, so it starts today and runs in parallel with everything else.
+
+**Adding SRF's national wave does NOT reduce one-house exposure — it extends the
+same house into a second channel.** Today SRF sets the metro centre; add its
+national reading and SRF also drives the arrivals path, for the same election,
+from the same fieldwork. The two channels will then agree, and nothing in the
+model records that the agreement is not independent evidence — `effective_houses`
+counts houses *within* a channel and cannot see across them. SRF national is
+DA 27% / ANC 34% against 2024 actual DA 21.81% / ANC 40.18%.
+
+**Still add it** — a dark 48-seat channel is the worse error — but declare the
+shared provenance, and let A2 say the true sentence: *one house sets the metro
+centre, the same house sets the arrivals path, and there is no second house
+anywhere in the 2026 Johannesburg forecast.*
+
+**Do NOT add the Tshwane / eThekwini / Ekurhuleni metro readings before
+November.** They raise H_eff for those metros only, and Johannesburg is the city
+being published. Post-4-November work.
+
+**Reconcile `ipsos-2021-lge-national` BEFORE the 8 September freeze.** The
+register carries n=1,501; Ipsos's October 2021 release is n=1,346. That poll is
+**in the backtest** and drives the arrivals path at 2021, so if the register
+holds the wrong release a panel number moves — and it moves *after* the freeze if
+this is left. It is the only poll-register item with a backtest consequence.
 
 **And pre-register the poll-admission rule NOW, before any new poll exists** —
 which houses are admissible, what `poll_house_k` does at H=2, what happens to the
@@ -167,7 +209,14 @@ found and fixed in the same commit; what follows is what the audits found and th
 fix commit deliberately did **not** do. **C1 and C2 are blocking — they are
 correctness, not tidiness.**
 
-### C1. The register's guard is structurally blind ★ blocking
+### C1. The register's guard is structurally blind ★ blocking, and FIRST in the whole plan
+
+**The reason is not "correctness not tidiness" — it is a dependency.** Key 3 of
+the amended bar computes Derivedness Debt *from the register*. A register blind
+to default arguments, inline literals, argparse defaults and TOML does not
+produce `D`; it produces `D` over 53 of the names that matter. So **C1 blocks
+B2, and B2 is the input to A2's disclosure.** That chain makes this the first
+item in the document, ahead of everything.
 
 `test_every_tunable_constant_is_in_the_judgement_register` inspects **53 names**:
 top-level `ast.Assign`, single target, UPPERCASE, literal int/float. It cannot
@@ -201,14 +250,32 @@ see.
   at 48 coherent seats — including the comparator window `abs(r - reach) < 0.25`
   and the no-record turnout band `(0.30, 0.50, 0.70)`.
 
-### C3. Six of eight metros run with the θ clamp absent
+### C3. Six of eight metros run with the θ clamp absent ★ blocking for DISCLOSURE
+
+Not merely "untested". Four of the sixteen panel city-years (Johannesburg ×2,
+Tshwane ×2) run with the θ clamp **active**; twelve run **without** it. So the
+**384 figure is a mixture of two model configurations.** It invalidates no A/B
+comparison — both arms share it — but it changes what "the model" means, and it
+must be disclosed. Either give all eight cities the same bounds, or record the
+heterogeneity in `history.md`.
 
 `PLAN_BOUNDS` comes from `[judgements.plan_bounds]`, and six metros have no
 `[judgements]` section at all — so `apply_city` sets it to `{}`, the clamp does
 not apply, and the bounds-violation diagnostic reports zero. **The panel cannot
 test that constant and does not say so.**
 
-### C4. Stale artefacts wired to live outputs
+### C4. Stale artefacts wired to live outputs ★ blocking, and it belongs inside A4
+
+**The general rule nobody had stated: `mode = "free"` is NOT a freshness
+guarantee.** `anc_entitlement` is a *free* token — it resolves at build time —
+but its source is `regime:cap:...`, i.e. the frozen `regime_cap_summary.json`.
+A free token whose source is a derived artefact inherits that artefact's date,
+and `stats.py` checks none of them. The drift report correctly reports no drift,
+because a frozen file cannot drift.
+
+The free/fixed distinction is this project's headline provenance claim, and A4 is
+about to rebuild the page and re-derive every free token — producing a page that
+**looks freshly audited and is not.** Sequence it: **C6 → C4 → A4.**
 
 * **`regime_cap_summary.json` feeds a published stat token** (`anc_entitlement`,
   used twice on the front page) and was produced on **7 August by a model that
@@ -216,10 +283,14 @@ test that constant and does not say so.**
   having put ten unauditable claims on the page. `stats.py` applies **no
   freshness check to a source file**: the drift audit catches typed figures and
   cannot see a stale source.
-* **`forecast_summary.json` carries no provenance at all** — no city, target,
-  time or code hash — while `pools_*.json` has had an `artefact_key` since
-  §1.70. Nothing can answer "was this produced by the current tree?"
-* **`gamma_recent.csv` exists for 5 of 20 city-year directories.** Most of the
+* **`forecast_summary.json`'s provenance is partial, not absent.** *(Corrected
+  on review — the first draft said "no provenance at all" and that is wrong.)*
+  Its `scenario` block does carry `_pools_artefact_key`, `_pools_stale` and
+  `_constants_read`. What it lacks is **city, target, timestamp and a code
+  hash**, so nothing can answer "was this produced by the current tree?" The
+  gap is smaller than stated and belongs inside **A1**, whose whole job is to
+  hash and freeze a forecast.
+* **`gamma_recent.csv` exists for 5 of 18 city-year directories.** Most of the
   panel falls silently to γ = 1.0 where Johannesburg takes a measured value —
   a cross-city asymmetry in a model input, not a cosmetic one.
 
@@ -231,7 +302,7 @@ hardcodes Johannesburg's concordance for every city. Joburg 2026 masks all of it
 **This binds the moment the portal runs a second city**, which is what
 `EXPANSION.md` was for.
 
-### C6. `build_all.py` cannot reach `build_site` or `build_portal`
+### C6. `build_all.py` cannot reach `build_site` or `build_portal` ★ blocking A4
 
 `build_interactive.py` raises at module level (deliberately, correctly) and the
 runner treats any non-zero return as fatal, so the documented one-command build

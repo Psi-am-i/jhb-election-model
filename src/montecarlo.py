@@ -2311,7 +2311,15 @@ def run_model(target, scenario: dict,
         _projected = False
         if not _contest and _contest_prev:
             _contest = _levels.projected_contestation(
-                _contest_prev, scenario.get("contestation_expand", 0.0))
+                _contest_prev,
+                # NOT a fresh literal: `0.0` here was the identity while
+                # DEFAULTS declares 0.220, so if the key were ever absent
+                # this path would silently apply no expansion while the
+                # message printed below reported 0.220. Found by
+                # test_every_literal_fallback_equals_the_declared_default,
+                # on the run that introduced it. MODEL-LOG §1.85.
+                scenario.get("contestation_expand",
+                             DEFAULTS["contestation_expand"]))
             _projected = bool(_contest)
         if _contest:
             scenario["_contestation"] = _contest

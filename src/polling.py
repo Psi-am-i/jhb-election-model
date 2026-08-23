@@ -533,14 +533,18 @@ class PollRegisterError(RuntimeError):
     """The register is malformed. Raised instead of quietly using less of it."""
 
 
-def validate(polls: list[dict] | None = None, *,
-             min_n: float | None = None) -> list[Problem]:
+def validate(polls: list[dict] | None = None) -> list[Problem]:
     """Every way a poll record is BROKEN, as opposed to inapplicable.
 
-    ``min_n`` is accepted and ignored. **The sample-size floor is a SCREEN, not
-    a validation** — see :func:`screen`'s ``under-min-n`` rule — and the kwarg
-    survives only so that callers written against the older signature keep
-    working. It is in ``DELIBERATELY_UNUSED`` for that reason.
+    **`min_n` IS GONE, and its removal was overdue.** The sample-size floor is a
+    SCREEN, not a validation — see :func:`screen`'s ``under-min-n`` rule and
+    MODEL-LOG §1.69. The kwarg was accepted and ignored from 2026-08-22, kept
+    for callers written against the older signature, and its own
+    ``DELIBERATELY_UNUSED`` entry said *"removing it would be the right cleanup
+    once nothing passes it"*. On 2026-08-23 nothing passed it, and a widened
+    lever guard flagged the asymmetry — `poll_min_n` reaching `screen` and not
+    the validators. An argument accepted and ignored is a trap, not an API.
+    MODEL-LOG §1.85.
 
     The distinction is the point. `usable_for` used to express both with the
     same silent ``continue``, so a poll that could not be used because it was
@@ -616,11 +620,10 @@ def validate(polls: list[dict] | None = None, *,
     return problems
 
 
-def validate_or_die(polls: list[dict] | None = None, *,
-                    min_n: float | None = None) -> list[dict]:
+def validate_or_die(polls: list[dict] | None = None) -> list[dict]:
     """Load and validate, or raise. The entry point everything else uses."""
     loaded = polls if polls is not None else load()
-    errors = [p for p in validate(loaded, min_n=min_n)
+    errors = [p for p in validate(loaded)
               if p.severity == "error"]
     if errors:
         raise PollRegisterError(

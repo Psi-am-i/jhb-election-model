@@ -9365,6 +9365,111 @@ Each has a row in `archive/README.md` saying what superseded it. Nothing was
 deleted: removing a superseded document destroys the record of why it was made.
 
 
+---
+
+## 1.85 The §1.84 fix was written against the instance, not the class — and the class guard found two more (2026-08-23)
+
+A third independent review of `PLAN-TO-LIVE.md` reproduced §1.84's headline
+finding exactly — ANC 0.1839 / 0.2160 / 0.2317 / 0.2400 across the half-life
+range — and then made a criticism of the **fix** that is correct and is this
+project's own recurring lesson turned back on it.
+
+### The criticism
+
+> *The fix commit converted one of twelve literal fallbacks and left eleven, in
+> the commit whose entire subject was that two paths had resolved one lever
+> differently.*
+
+`montecarlo` writes each lever's value a second time as a literal at the call
+site — `scenario.get("poll_half_life_days", 120.0)`. §1.84 fixed the one call
+that had no key at all and left the pattern everywhere else. Inert today,
+because `scenario` is always built from `DEFAULTS`. **Which is exactly what was
+true of `LEVEL_DF` before it wasn't.**
+
+And the new guard was worse than the pattern it policed: it iterated a
+three-name allowlist `("aggregate", "aggregate_sd", "effective_houses")` over
+one module. `DATA-QUALITY.md` item 13 already says the sentence — *"a guard
+written against one route through a function is not a guard on the function"* —
+and it was written about `matches_city` two days earlier.
+
+### The class guard, and it found two things immediately
+
+`test_every_literal_fallback_equals_the_declared_default` walks every `.py` in
+`src/`, finds every `scenario.get("<key>", <numeric literal>)`, and asserts the
+literal equals `DEFAULTS[key]`. No allowlist, 14 call sites checked, and it
+fails if it ever finds none — a guard that checks nothing must not pass.
+
+**It failed on the run that introduced it:**
+
+    montecarlo.py:2314  scenario.get('contestation_expand', 0.0)
+                        but DEFAULTS['contestation_expand'] = 0.22
+
+The literal is the **identity** — no contestation expansion at all — against a
+declared 0.220. Benign today because the key is always present, and the trap is
+the same shape as the one §1.84 fixed: had it ever fired, the computation would
+have applied no expansion while the message printed eleven lines below reported
+0.220 from the same scenario. Corrected to fall back to `DEFAULTS`.
+
+### Widening the second guard found a third thing, and the answer was a cleanup already owed
+
+With the allowlist replaced by *every public callable in `polling`*, the guard
+reported `poll_min_n` reaching `screen` and not `validate_or_die`. That one is a
+**correct** withholding — §1.69 deliberately moved the sample-size floor from
+validation to screening, because a small poll is well-formed-but-inadmissible
+rather than malformed.
+
+But the reason it could be reported at all is that `validate` and
+`validate_or_die` still *accepted* `min_n` and ignored it. Its own
+`DELIBERATELY_UNUSED` entry said so, and said what to do:
+
+> *"Removing it would be the right cleanup once nothing passes it."*
+
+Nothing passes it — verified across `src/` and `tests/`. So the parameter is
+gone from both signatures and the excuse is deleted. **An argument accepted and
+ignored is a trap, not an API**, and carrying an excuse for one is how it
+survives.
+
+### What is now guarded, and what is honestly not
+
+| guard | covers |
+|---|---|
+| `test_every_literal_fallback_equals_the_declared_default` | the whole class, mechanically, no allowlist |
+| `test_no_lever_is_passed_to_one_consumer_and_withheld_from_another` | every public `polling` callable, with documented-exemption support |
+
+The second still **cannot** see keys forwarded through a `**kwargs` splat,
+forwarded positionally, or consumed outside `polling`. That is written into its
+docstring rather than left for the next reviewer to discover.
+
+### Two corrections to §1.84 and the plan
+
+* **`forecast_summary.json` does NOT have "no provenance at all."** Its
+  `scenario` block carries `_pools_artefact_key`, `_pools_stale` and
+  `_constants_read`. What it lacks is city, target, timestamp and a code hash.
+  The gap is smaller than claimed and belongs inside A1's hash-and-freeze.
+* `gamma_recent.csv` exists for 5 of **18** city-year directories, not 20.
+
+### And one finding four audits and I all missed
+
+**There is a second house's Johannesburg reading in the register, it passes the
+screen, and a scope string discards it.** `ipsos-w2-2025-metros` is admitted by
+`polling.screen`; `montecarlo` then filters `scope == "metro"` and drops it,
+because its scope is `metro-aggregate`. Measured:
+
+| | H_eff | ANC | DA |
+|---|---|---|---|
+| as shipped (SRF only) | **1.00** | 0.2160 | 0.4110 |
+| including the aggregate | **1.46** | 0.2424 | 0.3792 |
+
+**2.65 points of ANC and 3.18 of DA, and the difference between one house and
+1.46.** Excluding a multi-metro aggregate from a single-metro estimate is
+defensible — it is not a Johannesburg reading. What is not defensible is that
+the decision is **unregistered, undocumented, and sits directly on the project's
+single largest declared risk.** A2 cannot honestly print "one house" without
+also printing the second reading it declined and why.
+
+Not changed here. Registered as a decision to be made and published, in the plan.
+
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

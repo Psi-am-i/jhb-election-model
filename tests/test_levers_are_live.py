@@ -243,12 +243,6 @@ DELIBERATELY_UNUSED: dict[str, str] = {
         "the same, for the theta level shock, which returns 1.0. NOTE that it therefore consumes no randomness -- which is exactly why the harness averages five seeds: an ablation that skips a draw shifts every later draw, and the first run of it reported negative variance contributions because of that.",
     "width_budget.py:_no_shock(df)":
         "the same, for the theta level shock, which returns 1.0. NOTE that it therefore consumes no randomness -- which is exactly why the harness averages five seeds: an ablation that skips a draw shifts every later draw, and the first run of it reported negative variance contributions because of that.",
-    "polling.py:validate(min_n)":
-        "accepted and ignored since 2026-08-22. The sample-size floor is a "
-        "SCREEN rule, not a validation — see `polling.screen`'s `under-min-n` "
-        "and MODEL-LOG §1.69 — and the kwarg survives so that callers written "
-        "against the older signature keep working rather than raising. "
-        "Removing it would be the right cleanup once nothing passes it.",
     "levels.py:sd_for(size)":
         "the POOLED fallback branch, taken when fewer than 6 observations "
         "support a size fit. The fitted branch two lines above does use size. "
@@ -579,6 +573,69 @@ def test_no_scenario_key_is_read_without_being_declared():
         f"RUNTIME_INJECTED names {stale}, which `montecarlo.py` no longer reads. "
         f"An excuse for a key that is gone hides the next real one; delete it.")
 
+def test_every_literal_fallback_equals_the_declared_default():
+    """CLASS 18 — THE WHOLE CLASS, NOT THE INSTANCE.
+
+    `scenario.get("poll_half_life_days", 120.0)` writes a lever's value a
+    second time, as a literal, at the call site. Today every such literal
+    happens to equal its `DEFAULTS` entry, because `scenario` is always built
+    from `DEFAULTS` — **which is exactly what was true of `LEVEL_DF` before it
+    wasn't.** The moment `DEFAULTS` moves and a literal does not, the two paths
+    resolve the same lever to two different values and nothing says so.
+
+    This is one assertion over the whole class, with no allowlist, and it is the
+    guard the §1.84 fix should have written instead of editing one call site.
+    An independent review pointed that out: the fix converted ONE of twelve
+    literal fallbacks and left eleven, in the commit whose entire subject was
+    that two paths had resolved one lever differently.
+
+    MODEL-LOG §1.85.
+    """
+    import ast as _ast
+    offenders, checked = [], 0
+    for path in sorted((ROOT / "src").glob("*.py")):
+        try:
+            tree = _ast.parse(path.read_text(encoding="utf-8"))
+        except SyntaxError:                      # not ours to police here
+            continue
+        for node in _ast.walk(tree):
+            if not (isinstance(node, _ast.Call)
+                    and isinstance(node.func, _ast.Attribute)
+                    and node.func.attr == "get"
+                    and isinstance(node.func.value, _ast.Name)
+                    and node.func.value.id == "scenario"
+                    and len(node.args) == 2
+                    and isinstance(node.args[0], _ast.Constant)
+                    and isinstance(node.args[0].value, str)
+                    and isinstance(node.args[1], _ast.Constant)
+                    and isinstance(node.args[1].value, (int, float))
+                    and not isinstance(node.args[1].value, bool)):
+                continue
+            key, literal = node.args[0].value, node.args[1].value
+            if key not in M.DEFAULTS:
+                continue                          # a different test owns that
+            checked += 1
+            declared = M.DEFAULTS[key]
+            if not isinstance(declared, (int, float)) or isinstance(declared, bool):
+                continue
+            if abs(float(literal) - float(declared)) > 1e-12:
+                offenders.append(
+                    f"{path.name}:{node.lineno}  scenario.get({key!r}, {literal!r}) "
+                    f"but DEFAULTS[{key!r}] = {declared!r}")
+
+    assert checked, (
+        "no `scenario.get(key, <literal>)` calls found at all — either the "
+        "pattern changed or this test has stopped looking, and it would then "
+        "pass forever while checking nothing")
+    assert not offenders, (
+        "literal fallbacks that DISAGREE with the declared default:\n  "
+        + "\n  ".join(offenders)
+        + "\n\nTwo values for one lever, resolved by different code paths, is "
+          "how `poll_half_life_days` moved 5.6pp of ANC through a path no sweep "
+          "could reach (§1.84). Use `DEFAULTS[key]` or the module constant as "
+          "the fallback, never a fresh literal.")
+
+
 def test_no_lever_is_passed_to_one_consumer_and_withheld_from_another():
     """CLASS 18 — A LEVER THAT REACHES THE WIDTH AND NOT THE CENTRE.
 
@@ -596,7 +653,13 @@ def test_no_lever_is_passed_to_one_consumer_and_withheld_from_another():
     checks the shape instead — if a scenario key is passed to some calls of a
     module's functions and withheld from others, say so.
 
-    MODEL-LOG §1.84.
+    **WHAT THIS STILL CANNOT SEE**, stated so it is not mistaken for complete:
+    keys forwarded through a `**kwargs` splat, keys forwarded positionally, and
+    consumers outside `polling`. The guard that DOES cover the whole class
+    mechanically is `test_every_literal_fallback_equals_the_declared_default`
+    above; this one is the narrower structural check.
+
+    MODEL-LOG §1.84, widened §1.85.
     """
     import ast as _ast
     src = (ROOT / "src" / "montecarlo.py").read_text(encoding="utf-8")
@@ -629,21 +692,53 @@ def test_no_lever_is_passed_to_one_consumer_and_withheld_from_another():
     # parameter and were called WITHOUT it.
     import polling as _pg
     import inspect as _inspect
+    # EVERY public callable in `polling`, not a three-name allowlist. The first
+    # version of this test hardcoded ("aggregate", "aggregate_sd",
+    # "effective_houses") — which could not see `screen`, whose `min_n` is the
+    # live `poll_min_n` lever. An independent review named it as this project's
+    # own recurring lesson: "a guard written against one route through a
+    # function is not a guard on the function." MODEL-LOG §1.85.
+    candidates = [n for n in dir(_pg)
+                  if not n.startswith("_") and callable(getattr(_pg, n, None))
+                  and getattr(getattr(_pg, n), "__module__", "") == _pg.__name__]
     for key, fns in forwarded.items():
-        param = key.replace("poll_", "") if key.startswith("poll_") else key
-        for cand in ("aggregate", "aggregate_sd", "effective_houses"):
+        # match on the parameter name OR the key, and try the poll_ prefix both
+        # ways, so a lever whose parameter breaks the naming convention is still
+        # compared rather than silently skipped.
+        aliases = {key, key.replace("poll_", ""), "poll_" + key}
+        for cand in candidates:
             f = getattr(_pg, cand, None)
             if f is None:
                 continue
-            sig = _inspect.signature(f)
-            if key not in sig.parameters and param not in sig.parameters:
+            try:
+                sig = _inspect.signature(f)
+            except (TypeError, ValueError):
+                continue
+            if not (aliases & set(sig.parameters)):
+                continue
+            # A consumer that DOCUMENTS the parameter as accepted-and-ignored is
+            # not withholding it — it is declining it, on the record. `validate`
+            # accepts `min_n` and ignores it because §1.69 moved the sample-size
+            # floor from validation to screening: a small poll is
+            # well-formed-but-inadmissible, not malformed. The exemption must be
+            # written in the docstring, so it is discoverable from the code
+            # rather than hidden in this test.
+            doc = (_inspect.getdoc(f) or "").lower()
+            if any(f"``{a}`` is accepted and ignored" in doc
+                   or f"{a} is accepted and ignored" in doc for a in aliases):
                 continue
             for node in _ast.walk(tree):
                 if (isinstance(node, _ast.Call)
                         and isinstance(node.func, _ast.Attribute)
                         and node.func.attr == cand):
                     passed = {k.arg for k in node.keywords}
-                    if not (passed & {key, param}):
+                    # a `**kwargs` splat may carry it; that is invisible here,
+                    # so a splat call is not reported rather than false-flagged.
+                    if any(k.arg is None for k in node.keywords):
+                        continue
+                    if node.args:
+                        continue          # positional forwarding, not inspectable
+                    if not (passed & aliases):
                         withheld.setdefault(key, set()).add(cand)
 
     assert not withheld, (
