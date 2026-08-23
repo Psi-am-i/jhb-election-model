@@ -492,6 +492,15 @@ absences are recorded deliberately — Ekurhuleni and eThekwini in `lge2000`
 * 21 new files across seven metros, **every one at 100% reconciliation, worst
   drift 0.00%**, with distinct and size-plausible totals: Cape Town 1,456,350
   votes at `lge2006`, Mangaung 301,043, Buffalo City 369,123.
+
+  > **Six of those 21 are no longer on disk (2026-08-23, MODEL-LOG §1.75).**
+  > `npe2004`, `lge2006` and `npe2009` for Mangaung and Buffalo City were
+  > ingested, γ fold 3 was fitted from them, the pool specs and the panel were
+  > measured with them present — and they were then removed with nothing
+  > recording it. `levels._citywide` swallows the absence and returns `{}`, so
+  > the θ record simply lost twelve transitions in silence. Re-ingesting
+  > reproduces the two totals above to the vote, so the loss is repairable;
+  > what is not repairable by re-ingesting is that no guard noticed.
 * γ fold 3 now fits for all eight metros, which is what the 2016 targets need.
 
 ### Caveat on the pre-2011 footprint, especially Mangaung and Buffalo City

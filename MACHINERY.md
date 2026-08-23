@@ -140,9 +140,23 @@ actual 7.79%.
 strictly before the target.
 
 * **θ** — `LGE_share(year) / NPE_share(preceding NPE)`, `size` = the NPE share.
-  National → local retention. 264 observations at target 2026.
+  National → local retention. **410 observations at target 2026.**
 * **ρ** — `LGE_share(later) / LGE_share(earlier)`, `size` = the earlier share.
-  Local → local retention. 229 observations.
+  Local → local retention. **292 observations.**
+
+Both counts are as at 2026-08-23, on the tree §1.75 restored. They were 264 and
+229 before §1.70's pre-2011 ingest doubled the panel, and this file was not
+updated at the time — see §1.77, which is the re-read of everything that entry
+invalidated.
+
+**A missing election file is a REFUSAL, not an empty record.** `levels._citywide`
+used to catch `FileNotFoundError` and return `{}`, which the two records cannot
+distinguish from a metro that contested nothing. That is how Mangaung's and
+Buffalo City's entire pre-2011 history left the record without a single guard
+firing (MODEL-LOG §1.75). Absences are now declared in `levels.KNOWN_ABSENT`
+with a reason — currently the 1999→2000 transition for the seven metros other
+than Johannesburg, mirroring a refusal `ingest_historic.MUNI_HEAD` already makes
+— and anything absent and undeclared stops the run by name.
 
 **The observation is a two-tuple: the metro and the year are discarded.** That is
 a real loss — the year explains 8.7% of the residual variance after each party's
@@ -260,7 +274,7 @@ touched.
 
 | Piece | Where | Source | Notes |
 |---|---|---|---|
-| **θ** national→local retention | `levels.theta_record` | MEASURED, 8 metros, strictly pre-target | **257** observations at 2026 (ρ: 229). The 235 quoted here until 2026-08-17 was the *n* of a different table in `levels.py`; the run prints the real figure. |
+| **θ** national→local retention | `levels.theta_record` | MEASURED, 8 metros, strictly pre-target | **410** observations at 2026 (ρ: 292), as at 2026-08-23. It was 257/229 before §1.70's pre-2011 ingest and this row was not updated then (§1.77). The 235 quoted here until 2026-08-17 was the *n* of a different table in `levels.py`; the run prints the real figure. |
 | **ρ** local→local retention | `levels.local_record` | MEASURED, consecutive LGE pairs | the second route |
 | **The spine** — blend of the two | `levels.spine` | MEASURED, `k = 1.0` fitted leave-one-metro-out | weight on the LOCAL route is `k/(worth+k)` |
 | Size-dependent centre | `levels.size_centre` | MEASURED, `log θ = a + b·log(size)` | small parties gain locally (1.31 at <0.2%), large lose (0.94 at >10%) |

@@ -125,7 +125,11 @@ _NO_METRO_POLL = (
     "holds no metro poll of Johannesburg declared for 2021 — the only admitted "
     "2021 poll is `ipsos-2021-lge-national`, which drives the ARRIVALS path "
     "instead. Live at 2026 on the two SRF waves. Inert here by data, not by "
-    "design: add a 2021 Johannesburg metro poll to `polls.json` and this moves.")
+    "design: add a 2021 Johannesburg metro poll to `polls.json` and this moves.\n"
+    "  NOTE (§1.75): this reason is only true of levers the metro path ALONE "
+    "consumes. `poll_min_n` was carried here on it and should never have been — "
+    "the floor sits ahead of every scope test in `polling.screen`, so it gates "
+    "the national poll the arrivals path reads too. Its entry is deleted.")
 
 EXPECTED_INERT: dict[tuple[str, str], str] = {
     ("w_bye", "2021"):
@@ -151,7 +155,6 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
     ("poll_screen_sd", "2021"): _NO_METRO_POLL,
     ("poll_drift_per_root_day", "2021"): _NO_METRO_POLL,
     ("poll_half_life_days", "2021"): _NO_METRO_POLL,
-    ("poll_min_n", "2021"): _NO_METRO_POLL,
     ("arrival_group_draw", "2026"):
         "GATED ON DATA THAT DOES NOT EXIST YET, and the gate is three deep. "
         "`pools.arrival_group_spec` returns None unless the target has a real "
@@ -508,13 +511,6 @@ def test_no_function_argument_is_accepted_and_never_used():
         "not a thing nobody noticed.")
 
 
-if __name__ == "__main__":
-    for name, fn in sorted(globals().items()):
-        if name.startswith("test_") and callable(fn):
-            fn()
-            print(f"ok   {name}")
-
-
 def test_no_scenario_key_is_read_without_being_declared():
     """CLASS 11, THE VARIANT NO LEVER GUARD CAN SEE.
 
@@ -582,3 +578,16 @@ def test_no_scenario_key_is_read_without_being_declared():
     assert not stale, (
         f"RUNTIME_INJECTED names {stale}, which `montecarlo.py` no longer reads. "
         f"An excuse for a key that is gone hides the next real one; delete it.")
+
+if __name__ == "__main__":
+    # AT THE END, AND IT HAS TO BE — see `test_no_test_file_defines_a_test
+    # _after_its_main_block` in tests/test_register_matches_code.py. This block
+    # used to sit above some of the tests in this file, so the standalone
+    # invocation CLAUDE.md documents collected only what was defined ABOVE it
+    # and reported a pass count that looked complete. `run_all.py` reads
+    # `vars()` after import and saw everything, so the suite hid it.
+    # MODEL-LOG §1.75. Append new tests ABOVE this line.
+    for name, fn in sorted(globals().items()):
+        if name.startswith("test_") and callable(fn):
+            fn()
+            print(f"ok   {name}")

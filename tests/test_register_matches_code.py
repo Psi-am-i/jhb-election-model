@@ -34,7 +34,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _support import ROOT  # noqa: E402
+from _support import ROOT, run_module  # noqa: E402
 
 SRC = ROOT / "src"
 TESTS = ROOT / "tests"
@@ -176,3 +176,42 @@ def test_the_register_cites_no_line_numbers():
           "which `test_every_symbol_the_register_names_exists` can then check. "
           "Every line number this register has ever carried has gone stale, "
           "twice, within a week. MODEL-LOG §1.69.")
+
+
+def test_no_test_file_defines_a_test_after_its_main_block():
+    """CLASS 17 — THE SUITE HIDES WHAT THE DOCUMENTED INVOCATION BREAKS.
+
+    `run_all.py` imports each module and reads `vars()` afterwards, so it
+    collects every `test_*` in the file whatever order they are defined in.
+    A file's own `if __name__ == "__main__":` block does NOT: it runs at the
+    point it appears, so any test defined below it is never collected when the
+    file is run directly — the invocation `CLAUDE.md` documents.
+
+    On 2026-08-23 five files were in that state, hiding nine tests between them:
+    `test_temporal` collected 4 of 8, and `test_calibration_report`,
+    `test_levers_are_live`, `test_pool_bounds` and `test_regressions` each hid
+    one or two. Every one of them PASSED under the suite and printed a
+    complete-looking pass count standalone. Found while chasing MODEL-LOG §1.75,
+    which is the same failure one layer down: an absence that looks exactly like
+    a deliberate choice.
+    """
+    offenders = {}
+    for path in sorted((ROOT / "tests").glob("test_*.py")):
+        text = path.read_text(encoding="utf-8")
+        match = re.search(r'^if __name__ == "__main__":', text, re.M)
+        if not match:
+            continue
+        below = re.findall(r"^def (test_\w+)", text[match.end():], re.M)
+        if below:
+            offenders[path.name] = below
+    assert not offenders, (
+        "tests defined below their file's `__main__` block, so running that "
+        "file directly silently skips them:\n  "
+        + "\n  ".join(f"{f}: {', '.join(t)}" for f, t in offenders.items())
+        + "\n\nMove the `__main__` block to the END of the file. It is the "
+          "last thing in every other file here for exactly this reason.")
+
+
+if __name__ == "__main__":
+    # AT THE END — this file holds the test that requires it. Append above.
+    raise SystemExit(run_module(globals()))

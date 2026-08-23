@@ -158,8 +158,21 @@ def election_files_read():
             _pd.read_csv = real_read_csv
 
 
-def run_module(namespace: dict) -> int:
-    """Run every ``test_*`` callable in ``namespace``. Returns an exit code."""
+def run_module(namespace) -> int:
+    """Run every ``test_*`` callable in ``namespace``. Returns an exit code.
+
+    **Takes a module OR its namespace dict, because four files passed the
+    wrong one for weeks and nothing noticed** (MODEL-LOG §1.75).
+    `run_all.py` calls `run_module(vars(module))`; `test_levels_dispersion`,
+    `test_polling_sd`, `test_polling_synthetic` and `test_polling_register` all
+    end with `run_module(sys.modules[__name__])`. Under the suite they ran fine
+    — the suite supplies the dict — and standalone every one of them died on
+    `AttributeError: module '__main__' has no attribute 'items'` before a single
+    test executed. CLAUDE.md documents running these files directly, so the
+    documented invocation was the broken one, and the suite hid it.
+    """
+    if not isinstance(namespace, dict):
+        namespace = vars(namespace)
     names = sorted(
         name for name, value in namespace.items()
         if name.startswith("test_") and callable(value)

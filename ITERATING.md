@@ -124,49 +124,64 @@ it is newer, better argued, or built from more measurements.
 
    | claimed columns | n | mean PIT | 50% (PIT) | 80% (PIT) | 90% (PIT) | probit-SD |
    |---|---|---|---|---|---|---|
-   | ranks 1-3 | 27 | 0.483 | 81% | 96% | 96% | 0.685 |
-   | ranks 4-12 | 37 | 0.676 | 59% | 89% | 92% | 0.695 |
+   | ranks 1-3 | 48 | 0.511 | 83% | 96% | 98% | 0.676 |
+   | ranks 4-12 | 56 | 0.613 | 61% | 91% | 93% | 0.828 |
 
-   | nine-city-year vote error | signed | absolute |
+   | sixteen-city-year vote error | signed | absolute |
    |---|---|---|
-   | ranks 1-3 | +10.62pp | 61.09pp |
-   | ranks 4-12 | -22.76pp | 48.42pp |
-   | ranks 13+ | +5.60pp | 16.89pp |
-   | phantom (parties that did not stand) | +6.54pp | — |
+   | ranks 1-3 | +12.55pp | 94.23pp |
+   | ranks 4-12 | -26.57pp | 72.60pp |
+   | ranks 13+ | +4.42pp | 22.44pp |
+   | phantom (parties that did not stand) | +9.60pp | — |
 
-   **Both tables were re-measured on 2026-08-18, after the level shrink
-   (`MODEL-LOG` §1.44).** The fault this rule describes is smaller than it was
-   and has not changed shape: ranks 1-3 signed error falls from +31.95pp to
-   +10.62pp and ranks 4-12 from −36.88pp to −22.76pp, with the absolute columns
-   falling too (72.07 → 61.09 and 56.63 → 48.42), so this is mass moved to the
-   right places and not merely cancelled. Mean PIT moved 0.432 → 0.464 and
-   0.749 → 0.680 with the shrink, and the contestation correction of §1.47 took
-   it further to **0.483 and 0.676** — both bands toward 0.50 from opposite
-   sides, twice, from two changes that touched the level and never the width.
+   **BOTH TABLES ARE NOW MEASURED ON SIXTEEN CITY-YEARS (2026-08-23,
+   `MODEL-LOG` §1.77).** They were nine until §1.70 doubled the panel, and that
+   entry's own instruction — *"every number in this repository predating this
+   entry was measured on nine city-years and must be re-read on sixteen before
+   it is quoted again"* — was not carried out at the time. This is that re-read
+   for rule 8. **The fault keeps its shape and grows with the panel**: ranks 1-3
+   +10.62pp → **+12.55pp** signed and 61.09 → **94.23pp** absolute, ranks 4-12
+   −22.76 → **−26.57pp** and 48.42 → **72.60pp**. Half the added city-years are
+   a cycle the model had never been scored on, so more absolute error over more
+   columns is expected; what matters is that the SIGNS and the ordering are
+   unchanged.
 
-   **The tail is the cost, it was attacked, and it stays.** Ranks 13+ go from
-   −1.55pp to **+5.60pp**: a band that was very nearly unbiased is now
-   over-forecast, because the shrink returns its freed mass by uniform
-   renormalisation and there are many micro-parties to receive it. §1.54 built
-   the obvious fix — a soft floor on the receiving side — and measured it:
-   it closes the tail and **costs 14 to 22 coherent seats**, while making ranks
-   1-3 and 4-12 *both worse*. The mass withheld from the tail goes to the TOP,
-   not the middle, because every weight tried is monotone in size. And the tail
-   is 31 of 1,752 seats at stake — **1.8%** of what is being contested.
+   Mean PIT moved with it — ranks 1-3 0.483 → **0.511** and ranks 4-12 0.676 →
+   **0.613**, both toward 0.50 — and the width statistic moved the other way:
+   probit-SD 0.685 → **0.676** at the top and 0.695 → **0.828** in the middle.
+   **On sixteen city-years the middle band is not merely mis-levelled, it is
+   measurably wider than it was**, which is the direction §1.59's second finding
+   asked for and is not evidence that anything was fixed — nothing about the
+   width was changed between the two measurements. The panel was.
+
+   **The tail is the cost, it was attacked, and it stays.** Ranks 13+ sit at
+   **+4.42pp** signed (they were −1.55pp before the shrink and +5.60pp on the
+   nine): a band that was very nearly unbiased is over-forecast, because the
+   shrink returns its freed mass by uniform renormalisation and there are many
+   micro-parties to receive it. §1.54 built the obvious fix — a soft floor on
+   the receiving side — and measured it: it closes the tail and **costs 14 to 22
+   coherent seats**, while making ranks 1-3 and 4-12 *both worse*. The mass
+   withheld from the tail goes to the TOP, not the middle, because every weight
+   tried is monotone in size. And the tail is **33 of 2,960 seats** at stake
+   across the sixteen — **1.1%** of what is being contested, a smaller share
+   than the 1.8% it was on the nine.
 
    So this is a bias the project has decided to carry, on the record, rather
    than an outstanding defect.
 
-   **On level.** The pooled claimed mean PIT is 0.589 and it is the average of
-   0.483 and 0.676 — an over-forecast averaged with an under-forecast. The model
-   still **over**-forecasts the top three and **under**-forecasts the middle,
-   exactly as the signed vote bands say, but by much less than it did, and only
-   the ranks 4-12 cluster-bootstrap CI now excludes 0.50: ranks 1-3 sit at
-   [0.431, 0.531], which no longer separates from centred.
+   **On level.** The pooled claimed mean PIT is 0.559 and it sits between 0.511
+   and 0.613 — an over-forecast averaged with an under-forecast. The model still
+   **over**-forecasts the top three and **under**-forecasts the middle, exactly
+   as the signed vote bands say, but by much less than it did, and only the
+   ranks 4-12 cluster-bootstrap CI excludes 0.50 — [0.537, 0.684] on sixteen
+   city-years, against ranks 1-3 at [0.474, 0.544], which does not separate from
+   centred. **That split survived the panel doubling**, which is the first
+   out-of-sample evidence rule 8 has ever had for its central claim: it was
+   measured on one electoral cycle and it holds on two.
 
    **That gap is a zero-sum transfer, not two independent faults**: shares sum
-   to one, so the +10.62pp at ranks 1-3, the +5.60pp at 13+ and the +6.54pp of
-   phantom mass are the same points as the −22.76pp at ranks 4-12 — they balance
+   to one, so the +12.55pp at ranks 1-3, the +4.42pp at 13+ and the +9.60pp of
+   phantom mass are the same points as the −26.57pp at ranks 4-12 — they balance
    to the last decimal. A level fix must MOVE mass; adding it anywhere takes it
    from somewhere, which is exactly why the level shrink had to redistribute
    what it took rather than simply lower the top.

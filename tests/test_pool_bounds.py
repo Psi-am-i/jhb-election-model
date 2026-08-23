@@ -310,13 +310,6 @@ def test_an_infeasible_system_is_refused_rather_than_approximated():
             "neither the bounds nor the margins and nothing would say so")
 
 
-if __name__ == "__main__":
-    for name, fn in sorted(globals().items()):
-        if name.startswith("test_") and callable(fn):
-            fn()
-            print(f"ok  {name}")
-
-
 def test_no_emitted_composition_weight_is_arithmetically_impossible():
     """A party cannot draw more from a pool than the pool casts.
 
@@ -391,3 +384,16 @@ def test_no_emitted_composition_weight_is_arithmetically_impossible():
         + "\nCheck that `PartyFit.composition` is being handed VOTES CAST "
           "(registered x turnout), the same vector `montecarlo.pool_spec` "
           "builds, and not a registration or projected-share vector.")
+
+if __name__ == "__main__":
+    # AT THE END, AND IT HAS TO BE — see `test_no_test_file_defines_a_test
+    # _after_its_main_block` in tests/test_register_matches_code.py. This block
+    # used to sit above some of the tests in this file, so the standalone
+    # invocation CLAUDE.md documents collected only what was defined ABOVE it
+    # and reported a pass count that looked complete. `run_all.py` reads
+    # `vars()` after import and saw everything, so the suite hid it.
+    # MODEL-LOG §1.75. Append new tests ABOVE this line.
+    for name, fn in sorted(globals().items()):
+        if name.startswith("test_") and callable(fn):
+            fn()
+            print(f"ok  {name}")

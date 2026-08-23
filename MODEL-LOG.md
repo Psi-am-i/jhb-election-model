@@ -7462,6 +7462,11 @@ Johannesburg in `npe1999`.
   drift 0.00%**, with distinct size-plausible totals — Cape Town 1,456,350 votes
   at `lge2006`, Mangaung 301,043, Buffalo City 369,123. Byte-identical totals
   were what exposed the 1999 bug, so distinctness is checked, not assumed.
+
+  > **Six of the 21 — Mangaung's and Buffalo City's — are not on disk as of
+  > 2026-08-23, and the numbers below were measured while they were.** See
+  > §1.75. Nothing in this entry is withdrawn; it is the tree that moved, and
+  > it moved without saying so.
 * γ fold 3 fits for all eight metros.
 * All **18** pool specs re-emitted afterwards, because the new pre-2011 history
   feeds the θ record and therefore every city-year — not only the new ones.
@@ -8163,6 +8168,414 @@ into the model's error, and the seat count is where it lands.
   *worse does not ship*, that is unchanged by this entry.
 
 ---
+
+---
+
+## 1.75 Six verified input files left the record between the measurement and the commit, and nothing said so (2026-08-23)
+
+**Not the finding this was looking for.** Task P2c set out to test §1.70's
+footprint hypothesis — that Mangaung and Buffalo City's pre-2011 θ ratios are
+contaminated by the 2011 demarcation and that excluding them recovers the 26
+coherent seats the panel doubling cost. The first step was to establish that the
+hypothesis was testable. It is, and establishing that turned up something worse.
+
+### The record and the archive disagree, and only one of them is checked
+
+Counted out of `levels.theta_record` and `levels.local_record` themselves, per
+metro, at target 2021:
+
+| metro | θ pre-2011 | θ 2011+ | ρ pre-2011 | ρ 2011+ |
+|---|---|---|---|---|
+| JHB | 18 | 24 | 20 | 13 |
+| CPT | 13 | 33 | 12 | 17 |
+| ETH | 12 | 22 | 9 | 11 |
+| TSH | 11 | 26 | 11 | 13 |
+| EKU | 10 | 23 | 12 | 10 |
+| NMA | 9 | 20 | 8 | 10 |
+| **MAN** | **0** | 9 | **0** | 9 |
+| **BUF** | **0** | 9 | **0** | 8 |
+
+**Mangaung and Buffalo City contribute nothing before 2011.** The six files they
+would come from — `npe2004`, `lge2006`, `npe2009` for each — are not in
+`data/raw/elections/`, and `find` returns no copy of them anywhere under
+`data/raw/`.
+
+The obvious reading is that the ingest never ran for those two. It is wrong.
+`MUNI_HEAD` carries `FS172` and `EC125` for all three archives, and running
+`ingest_historic` for both metros today succeeds on every one:
+
+| | rows | VDs | reconciliation | votes |
+|---|---|---|---|---|
+| MAN `npe2004` | 2,639 | 203 | 203/203, drift 0.00% | 269,783 |
+| MAN `lge2006` | 4,041 | 231 | 462/462, drift 0.00% | **301,043** |
+| MAN `npe2009` | 3,346 | 239 | 239/239, drift 0.00% | 288,332 |
+| BUF `npe2004` | 3,354 | 258 | 258/258, drift 0.00% | 291,804 |
+| BUF `lge2006` | 4,009 | 298 | 593/593, drift 0.00% | **369,123** |
+| BUF `npe2009` | 5,134 | 302 | 302/302, drift 0.00% | 308,336 |
+
+301,043 and 369,123 are **the exact figures §1.70 quotes** in its verification
+bullet, alongside its count of *"21 files across seven metros"*. Fifteen files
+across five metros are on disk. So §1.70's verification did run for all seven,
+these six files existed when it was written, and they are gone now.
+
+### They were still there when the derived artefacts were built
+
+The timestamps settle the order, and they rule out the possibility that §1.70
+verified files it never wrote:
+
+| | time (22 Aug) |
+|---|---|
+| pre-2011 ingest, JHB → TSH → EKU → ETH → CPT | 08:56:53 – 08:58:24 |
+| a 29-second gap where **mangaung** runs in config order | 08:58:24 – 08:58:53 |
+| NMA, then nothing further | 08:58:53 – 08:59:04 |
+| `data/processed/mangaung/fold3_parameters.csv` | **09:00:27** |
+| `data/processed/buffalocity/fold3_parameters.csv` | **09:00:31** |
+| pool specs for MAN, BUF at 2016 and 2021 | 09:22 – 09:27 |
+| `history.json` — the panel measurement | 09:43:13 |
+| §1.70 committed (`933183c`) | 15:04 |
+
+**γ fold 3 is the 2009 NPE → 2011 LGE fold.** It cannot be fitted for Mangaung
+without `npe2009_MAN` and `lge2006_MAN`, and it was fitted at 09:00:27. Those two
+fold files are still on disk, still read by every 2016 target, and are **derived
+from inputs that no longer exist.**
+
+So the sequence is: the files were ingested, γ fold 3 was fitted from them, the
+pool specs were emitted with them present, **the panel was measured with them
+present**, and at some point before this session they were removed without a
+line anywhere recording it.
+
+### Which means the current tree does not reproduce the committed numbers
+
+§1.70's headline — 384 coherent on sixteen city-years, CRPS 329.4, and the +26 on
+the original nine — was measured against a θ record containing Mangaung's and
+Buffalo City's 2004→2006 and 2009→2011 transitions. **The tree at HEAD does not
+contain them.** Nothing announces the difference:
+
+* `_citywide` catches `FileNotFoundError` and returns `{}`. Its own comment says
+  why that is dangerous — *"A swallowed file error is indistinguishable from a
+  deliberate exclusion, which is why it survived. See MODEL-LOG §1.43."* §1.43
+  fixed the one template that was then wrong. **The mechanism was left in place,
+  and it has now silently eaten twelve transitions instead of one.**
+* The `artefact_key` guard hashes `config/dimensions.toml` and `pools.py`'s code.
+  It does not hash the election archive, so a pool spec built from six files that
+  have since vanished reports itself current, correctly, and uselessly.
+* No test asserts that every (metro, transition) the CALENDAR names either has
+  its file or is on a declared exclusion list. That is the guard this class of
+  failure needs and there is not one.
+
+### What it does to §1.70's open question
+
+**Hypothesis 1 is not refuted — it is untested, and it is now the only way to
+read the tree.** The current state *is* the exclusion §1.70 proposed, applied by
+accident rather than by rule and applied to the raw files rather than to the
+transitions. That makes the next measurement worth taking and worth taking
+carefully, because three states are in play and only one of them has ever been
+scored:
+
+| state | θ record | γ fold 3 for MAN/BUF | scored |
+|---|---|---|---|
+| A — as §1.70 measured | MAN/BUF pre-2011 **in** | fitted from present files | **384 / 280** |
+| B — HEAD today | MAN/BUF pre-2011 **out** | fitted from **absent** files | never |
+| C — the exclusion done properly | MAN/BUF pre-2011 transitions excluded by a declared rule | refitted consistently | never |
+
+State B is not a hypothesis anybody chose. It is state A with six inputs
+missing and their derived artefacts left behind, which is the worst of the three
+because it looks exactly like the other two from the outside.
+
+### Restored, and the committed numbers reproduce exactly
+
+The ingest is deterministic, so state A was rebuilt rather than reconstructed:
+re-ingest the six files, refit γ fold 3 for both metros, re-emit all eighteen
+specs, re-measure at 1500 draws.
+
+**The refitted fold-3 artefacts are byte-identical to the ones fitted on 22 Aug
+at 09:00** — md5 `f1945ed…` for Mangaung and `faef6d7…` for Buffalo City, matched
+against the files that had been sitting on disk derived from inputs that were
+not. That is the proof that the restored files ARE the deleted ones, and not
+merely files that look like them.
+
+The panel then reproduces the committed scoreboard **exactly**: 384 coherent
+across sixteen city-years, 280 across §1.70's original nine, CRPS 329.4, and
+**no per-city-year difference at all**. §1.70's numbers are sound; the tree that
+produced them is back.
+
+### And state B was worth measuring on the way past
+
+Because the accidental exclusion is, in crude form, the very thing §1.70
+proposed. Measured at 1500 draws before the restore:
+
+| | 16 city-years | §1.70's nine | CRPS |
+|---|---|---|---|
+| **A** — MAN/BUF pre-2011 present (committed) | **384** | **280** | 329.4 |
+| **B** — the six files absent (HEAD as found) | **368** | **272** | 329.0 |
+
+**Sixteen coherent seats better, and monotone** — Johannesburg 2016 and 2021,
+Tshwane 2021, eThekwini 2016, Cape Town 2021, Nelson Mandela Bay 2016 and
+Buffalo City 2016 improve; nine city-years are unchanged; **none is worse**.
+CRPS is flat, which is what a change in the θ centre and not in the widths looks
+like. Draw noise on this measure is ±2 (§1.31), so 16 is not noise.
+
+**This is not the hypothesis passing its test, and it must not be reported as
+one.** Three reasons, all disqualifying on their own:
+
+* **It was not pre-registered.** It was found while checking whether a committed
+  number still reproduced. §1.61's discipline exists precisely so that a result
+  discovered this way is not then dressed up as a prediction, and §1.74's Type A
+  refutation is trustworthy only because that rule was kept.
+* **It over-excludes.** Deleting the raw files removes Mangaung's and Buffalo
+  City's **2004→2006** transition too, and that one crosses no demarcation — both
+  its endpoints are pre-2011. The footprint argument does not reach it. It also
+  strips both metros out of the ρ record, which §1.70's hypothesis never
+  mentioned.
+* **It is internally inconsistent.** γ fold 3 for both metros stayed on disk,
+  fitted from the very files the state removes. No configuration anyone would
+  choose looks like that.
+
+So the honest statement is narrow and it is still worth having: **the θ record's
+pre-2011 Mangaung and Buffalo City observations cost this panel 16 coherent
+seats, and removing them harms nothing.** That is a strong prior in favour of
+§1.70's hypothesis 1 and it is not a measurement of it.
+
+### Two more guards that were quietly not running, found on the way
+
+Neither is the subject of this entry and both are the same shape as it — a thing
+that looks like it is being checked and is not.
+
+**1. Four test files could not be run the way `CLAUDE.md` documents.**
+`tests/_support.run_module` takes a namespace dict; `run_all.py` calls it as
+`run_module(vars(module))`. `test_levels_dispersion`, `test_polling_sd`,
+`test_polling_synthetic` and `test_polling_register` all end with
+`run_module(sys.modules[__name__])` — a module, not a dict — so running any of
+them directly died on `AttributeError: module '__main__' has no attribute
+'items'` **before a single test executed**. Under the suite they passed, because
+the suite supplies the dict. All four are files this project added in the last
+week. `run_module` now accepts either.
+
+**2. Five test files hid nine tests from their own standalone invocation.**
+A file's `if __name__ == "__main__":` block runs at the point it appears, so a
+test defined below it is never collected when the file is run directly.
+`test_temporal` collected **4 of 8** — including, before this session added
+them, the two poll-path guards. `test_calibration_report` hid two,
+`test_levers_are_live`, `test_pool_bounds` and `test_regressions` one each.
+Every one of them passed under the suite and printed a complete-looking pass
+count standalone. The blocks are moved to the end of each file and
+`test_no_test_file_defines_a_test_after_its_main_block` now fails if it happens
+again.
+
+Neither hid a real failure — checked by running all of them. The point is that
+neither COULD have shown one, and the reason both survived is the reason the six
+files survived: the thing that would have complained was the thing that was
+broken.
+
+### Disposition
+
+* **The tree is restored and no committed number moves.** State A is the tree
+  again, verified to the seat.
+* **The hypothesis is now testable as state C** — the demarcation-crossing
+  transitions only, excluded by a declared and settable rule, with fold 3 refit
+  consistently — and its pre-registration must say **in advance and in writing
+  that the direction is already known**, because it is. A bar set after seeing
+  16 seats is not the same instrument as one set blind, and pretending otherwise
+  would be worth less than admitting it.
+* **The guard is the part that generalises.** A missing election file must be a
+  named refusal, the way a missing `MUNI_HEAD` entry already is. §1.43 wrote that
+  lesson and fixed one instance of it; this is the second, and this time it cost
+  a headline number's reproducibility for a day without anything going red.
+
+---
+
+## 1.76 `poll_min_n` was filed as inert at 2021 on a reason that was never true of it (2026-08-23)
+
+Found by the suite, on the baseline run that §1.75's work required before
+anything could be changed. `test_every_tunable_lever_actually_moves_the_forecast`
+failed with the message the register is built to produce:
+
+    poll_min_n IS live at 2021 but EXPECTED_INERT claims it is not
+
+**The register was wrong, and it was wrong because one reason string was reused
+for six levers when it was only true of five.** §1.69 added `_NO_METRO_POLL` —
+*"the metro-poll path is the only consumer of this lever and the register holds
+no metro poll of Johannesburg declared for 2021"* — and attached it to
+`poll_house_k`, `poll_deff_subsample`, `poll_screen_sd`,
+`poll_drift_per_root_day`, `poll_half_life_days` **and `poll_min_n`**. For the
+first five it is exactly right: each is read only where σ_poll is priced for a
+metro poll, and there is no such poll at 2021.
+
+`poll_min_n` is not one of those. The floor is applied in `polling.screen`
+**before every scope test**, so it is not a metro-path lever at all:
+
+    floor = float(min_n if min_n is not None else POLL_MIN_N)
+    for poll in ...:
+        if poll.get("numbers") and n is not None and float(n) < floor:
+            ...decline...          # <- runs for national polls too
+
+and the arrivals path calls the same function:
+
+    _usable = [q for q in _polling.screen(target, min_n=_min_n)[0]
+               if q.get("scope") == "national"]
+
+The sweep perturbs the floor to 5,000. `ipsos-2021-lge-national` has n=1,501, so
+at 5,000 it is declined, the arrivals path loses the only poll it has, and the
+2021 forecast moves. The lever is live at 2021 — through the arrivals path, not
+the metro path. The same is true at 2016, where the national poll is n=3,142.
+
+### Why it survived §1.69
+
+§1.69 is the entry that MOVED the floor from `validate` to `screen`, for good
+reasons recorded there: as a fatal validation rule it killed the whole run the
+moment the floor was swept above the register's smallest poll, so the lever could
+not be perturbed at all. Moving it made the lever sweepable **and live**, and the
+`EXPECTED_INERT` entry written when it was unsweepable was carried across
+unchanged. A register entry is a claim about behaviour; this one described the
+behaviour of the code before the change in the commit that made the change.
+
+### Fixed
+
+* The entry is deleted. `poll_min_n` is live at 2021 and the sweep now sees that.
+* `_NO_METRO_POLL` carries a note saying what it is and is not true of, so the
+  next lever added to the poll block is not filed behind it by reflex.
+* `JUDGEMENT-CALLS.md` named `polling.validate` as the consumer — also left
+  behind by §1.69's move — and is corrected to `polling.screen`, with the point
+  that raising this floor withdraws the national polls the backtest depends on.
+
+**No number moves.** The shipped floor is 300, every admitted poll is above it,
+and the failure was in a claim about the lever rather than in the lever.
+
+
+---
+
+## 1.77 §1.70's instruction, carried out: every quoted number re-read on sixteen city-years (2026-08-23)
+
+§1.70 ended with a standing instruction and nobody had acted on it:
+
+> **Every number in this repository predating this entry was measured on nine
+> city-years and must be re-read on sixteen before it is quoted again.**
+
+Three guards were red at HEAD because of it, and had been for a day. None of
+them was a defect in the model; all three were the record failing to move with
+it, which is the one rule `CLAUDE.md` puts above the others.
+
+### 1. `SD_FLOOR`'s promotion does not survive the panel
+
+§1.59 measured the conditional dispersion of log θ and promoted `SD_FLOOR` from
+🟡 to 🟢 **on the top bin only**, on the strength of two facts: the measured
+dispersion at or above 15% of the vote was 0.138 against a used 0.150 — inside
+the cluster-bootstrap interval — and the floor bound on **20 of 37** such
+observations, a majority. On sixteen city-years:
+
+| ≥15% of the vote | nine city-years (§1.59) | sixteen (now) |
+|---|---|---|
+| observations | 37 | **64** |
+| measured sd | 0.138 | **0.273** |
+| 95% CI (cluster) | [0.084, 0.171] | **[0.136, 0.386]** |
+| width the model uses | 0.150 | **0.158** |
+| ratio | 0.92× | **1.73×** |
+| on the floor | 20 (54%) | **26 (41%)** |
+
+**The used width is still inside the interval, and that is now a much weaker
+statement than it was.** At nine city-years the interval was 0.087 wide and the
+model sat in the middle of it. At sixteen it is 0.250 wide and the model sits
+near the bottom, with a point estimate 1.7× the width in use. Nothing about the
+prior changed between the two measurements — the panel did, and the top of the
+ballot now looks like the other four bins rather than unlike them.
+
+**So the 🟢 comes off.** `SD_FLOOR` is back to 🟡 on the top bin: better defended
+than the sentence §1.50 gave it, not defended by a measurement that lands on it.
+It is not evidence the constant is wrong — 0.158 is inside the interval and the
+floor still binds on two of every five top-of-ballot observations — it is the
+withdrawal of a claim the doubled panel no longer supports. The direction is the
+same as §1.59's second finding, which is now the finding at **every** size: the
+θ prior is too narrow across the ballot, including at the top.
+
+`test_the_floor_binds_at_the_top_of_the_ballot_and_only_there` asserted the
+majority. It now asserts the structural claim its name makes — the floor binds
+at the top, materially, and not in the small-party bands — with the magnitude
+recorded here, next to the measurement that would refute it.
+
+**And its other half found something small and real.** The same test required
+that the floor bind on **nothing** below 5% of the vote, because §1.59's second
+finding is measured against the fit and would be partly measuring the floor
+otherwise. On sixteen city-years exactly one observation sits on it:
+**MINORITY_FRONT at eThekwini, target 2011, at 4.7997% of the vote** — a fifth of
+a point under the bin edge. The next smallest fitted width below 5% is 0.1773,
+well clear.
+
+The cause is worth naming because it is not "the floor is spreading". The
+enlarged record admits a **target 2011** fit at all, and 2011 is the target whose
+`sd_for` line is built on the least history — two prior cycles. It exists only
+because §1.70 ingested the pre-2011 archives. So this is a boundary case in the
+thinnest fold, and the assertion is now split accordingly: **zero** below 1%,
+where 250 of the 314 sub-5% observations live and where the finding actually
+rests, and at most one in fifty between 1% and 5%. Tightened where the claim
+lives, loosened only at the bin edge, and the number is written down so a real
+spread is still a failure.
+
+### 2. Rule 8's two tables were nine-city-year tables
+
+`ITERATING.md` rule 8 is the instruction the next iteration acts on, and its
+figures are held against `data/processed/history.json` by
+`test_the_documented_figures_match_the_committed_artefact` — a guard §1.44 built
+after the same document had been wrong three times. It did its job and named the
+disagreement precisely: *"rule 8 says ranks 1-3 n = 27; history.json says 48."*
+
+| | nine | sixteen |
+|---|---|---|
+| ranks 1-3 | n=27, PIT 0.483, probit-SD 0.685 | **n=48, 0.511, 0.676** |
+| ranks 4-12 | n=37, PIT 0.676, probit-SD 0.695 | **n=56, 0.613, 0.828** |
+| ranks 1-3 vote error | +10.62pp / 61.09pp | **+12.55pp / 94.23pp** |
+| ranks 4-12 vote error | −22.76pp / 48.42pp | **−26.57pp / 72.60pp** |
+| ranks 13+ vote error | +5.60pp / 16.89pp | **+4.42pp / 22.44pp** |
+| phantom | +6.54pp | **+9.60pp** |
+
+**The central claim survives, and this is the first out-of-sample test it has
+had.** Rule 8 says the model over-forecasts the top three and under-forecasts
+the middle, and that this is a zero-sum transfer rather than two faults. Both
+hold on a panel half of which is a cycle the model had never been scored on:
+the signs are unchanged, the ordering is unchanged, and +12.55 + 4.42 + 9.60
+still balances −26.57 exactly.
+
+The width statistic moved the other way and is worth flagging rather than
+burying: probit-SD at ranks 4-12 goes **0.695 → 0.828**. Nothing about the width
+was changed between the measurements, so this is what the middle band's
+dispersion actually looks like over two cycles instead of one — closer to 1.0,
+which is the calibrated value, and further from the "too wide by a factor" story
+the nine city-years told.
+
+### 3. The 2026 golden had been red since 22 August
+
+`test_drawer`'s recorded marginals were last re-recorded 2026-08-17. Two shipped
+changes moved the Johannesburg 2026 forecast after that — the σ_poll rebuild and
+the single-house cap (§1.67–§1.69), and the panel doubling (§1.70) — and neither
+carried the golden. It has been failing ever since, which is the same loss as a
+silent re-record: **a test everyone expects to fail is a test nobody reads.**
+
+Re-recorded deliberately, with the movement and its causes written into the file
+per `CLAUDE.md`. ANC 21.28% → 22.82%, DA 24.51% → 25.79%, ASA 14.12% → 12.54%.
+Exactly one component is isolated — restoring §1.75's six files is worth ANC
++0.39pp, DA +0.33pp, ASA −0.40pp — and the remainder pools the poll rebuild with
+the other five metros' pre-2011 history. Those two were not separated, because
+separating them means withholding archives from `data/raw/elections/` and that
+is the operation §1.75 exists to make hard.
+
+### What this costs and what it buys
+
+**No model change, no lever moved, no score claimed.** The panel is 384 coherent
+and CRPS 329.4 on sixteen city-years, identical to §1.70's, measured on the
+restored tree.
+
+What it buys is that the three instruments this project steers by — the
+dispersion measurement, rule 8's calibration tables, and the golden — now
+describe the model that exists. What it cost is a day in which the published
+scoreboard, the documented rank bands and the recorded 2026 forecast were each
+quoting a model that no longer ran, while the suite reported the fact in a form
+nobody read.
+
+**The general lesson is §1.70's own, and it is worth stating as a rule:** an
+entry that doubles the evidence base must re-measure everything quoted off the
+old one **in its own commit**, or it silently invalidates the record it did not
+touch. Every one of these three was found by a guard that was already there and
+already failing.
+
 
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 

@@ -92,6 +92,34 @@ TOL = 0.01
 ELECTIONS = ROOT / "data" / "raw" / "elections"
 PROCESSED = ROOT / "data" / "processed"
 
+# RE-RECORDED 2026-08-23, deliberately: THIS GOLDEN HAD BEEN RED SINCE 22 AUG
+# AND NOBODY RE-RECORDED IT. Two shipped changes moved the 2026 Johannesburg
+# forecast and neither carried the golden with it, which is the failure
+# CLAUDE.md names — "a silent re-record destroys the only guard on the prior",
+# and leaving it red for a day destroys it just as thoroughly, because a test
+# that is expected to fail is a test nobody reads.
+#
+# The movement, against the 2026-08-17 record:
+#   ANC  mean 21.28% -> 22.82%  (+1.54pp)   ASA  mean 14.12% -> 12.54%  (-1.58pp)
+#   DA   mean 24.51% -> 25.79%  (+1.28pp)   EFF  mean 10.42% -> 10.11%  (-0.31pp)
+#   MK   mean 10.12% ->  9.76%  (-0.35pp)
+#
+# WHAT MOVED IT, and what could not be separated. Exactly one component is
+# isolated, because the tree was measured on both sides of it (MODEL-LOG §1.75):
+# restoring Mangaung's and Buffalo City's six deleted pre-2011 files is worth
+# ANC +0.39pp, DA +0.33pp, ASA -0.40pp of the above. The REMAINDER — about
+# +1.15pp ANC, +0.95pp DA, -1.18pp ASA — pools the sigma_poll rebuild and the
+# single-house weight cap (§1.67-§1.69), which act directly on this forecast
+# through the two SRF waves, with the five other metros' pre-2011 theta history
+# (§1.70). Those two were NOT separated: doing it means running with the five
+# metros' archives withheld, and moving files out of data/raw/elections is the
+# operation §1.75 is about. The limit is stated rather than worked around.
+#
+# Nine/sixteen city-years: NOT AFFECTED BY THE RE-RECORD. The panel is 384
+# coherent / CRPS 329.4 on sixteen and 280 on §1.70's nine, measured at 1500
+# draws on the settled tree, identical to the committed history.json to the
+# seat. This records where the 2026 forecast now is; it does not claim an
+# improvement, and none is claimed.
 # Recorded 2026-08-10 from data/processed/pools_2026.json, seed 20261104,
 # 2000 draws, numpy 2.5.1. Values are percentages: (mean, p5, p95).
 #
@@ -293,21 +321,21 @@ PROCESSED = ROOT / "data" / "processed"
 # through `run_model`, which always built the level this way. This changes only
 # what the golden test characterises.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (21.2800, 10.1873, 34.5316),
-    "DA": (24.5055, 16.6591, 32.9911),
-    "EFF": (10.4154, 2.7009, 21.3169),
-    "ASA": (14.1215, 5.5321, 25.2932),
-    "MK": (10.1171, 2.8513, 20.1790),
-    "PA": (6.7955, 4.3527, 10.7880),
-    "VFPLUS": (0.9693, 0.0089, 3.3413),
-    "ALJAMAAH": (0.9357, 0.2982, 1.8663),
-    "ENTRANT": (1.4279, 0.0000, 7.9150),
+    "ANC": (22.8197, 10.9314, 35.7018),
+    "DA": (25.7851, 17.8486, 35.0579),
+    "EFF": (10.1067, 2.7816, 20.2526),
+    "ASA": (12.5428, 4.6833, 23.0267),
+    "MK": (9.7624, 2.7117, 19.6206),
+    "PA": (6.6652, 4.2248, 10.7982),
+    "VFPLUS": (0.8885, 0.0058, 3.2040),
+    "ALJAMAAH": (0.9028, 0.2801, 1.7427),
+    "ENTRANT": (1.3687, 0.0000, 7.5204),
 }
 GOLDEN_POOLS = {
-    "Black African": (50.2932, 42.1598, 57.9341),
-    "Coloured": (11.5360, 8.9557, 15.5882),
-    "Indian/Asian": (5.2448, 3.9950, 6.8759),
-    "White": (31.4981, 25.4307, 38.0449),
+    "Black African": (50.0080, 41.5603, 57.6262),
+    "Coloured": (11.4798, 8.7879, 15.6118),
+    "Indian/Asian": (5.2052, 3.9804, 6.8071),
+    "White": (31.9383, 25.6930, 38.7253),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")

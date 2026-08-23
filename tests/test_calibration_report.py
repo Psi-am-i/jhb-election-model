@@ -1274,13 +1274,6 @@ def _number(cell: str) -> float:
     return float(match.group())
 
 
-if __name__ == "__main__":
-    for name, fn in sorted(globals().items()):
-        if name.startswith("test_") and callable(fn):
-            fn()
-            print(f"ok  {name}")
-
-
 def test_the_claimed_population_moves_when_the_forecaster_widens():
     """CLASS 13 — A DENOMINATOR THAT MOVES WITH THE THING BEING MEASURED.
 
@@ -1380,3 +1373,16 @@ def test_the_reference_population_is_fixed_and_keeps_the_worst_columns():
         f"the surge column carries z={z}, so the failure is in the population "
         f"but invisible to the width statistic — which is the same hiding "
         f"place one level down")
+
+if __name__ == "__main__":
+    # AT THE END, AND IT HAS TO BE — see `test_no_test_file_defines_a_test
+    # _after_its_main_block` in tests/test_register_matches_code.py. This block
+    # used to sit above some of the tests in this file, so the standalone
+    # invocation CLAUDE.md documents collected only what was defined ABOVE it
+    # and reported a pass count that looked complete. `run_all.py` reads
+    # `vars()` after import and saw everything, so the suite hid it.
+    # MODEL-LOG §1.75. Append new tests ABOVE this line.
+    for name, fn in sorted(globals().items()):
+        if name.startswith("test_") and callable(fn):
+            fn()
+            print(f"ok  {name}")

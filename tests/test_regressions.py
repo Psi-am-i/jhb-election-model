@@ -693,13 +693,6 @@ def test_apply_city_does_not_leak_one_citys_scalars_into_the_next():
         M.DEFAULTS.update(pristine)
 
 
-if __name__ == "__main__":
-    for name, fn in sorted(globals().items()):
-        if name.startswith("test_") and callable(fn):
-            fn()
-            print(f"ok  {name}")
-
-
 
 
 def test_no_ward_is_published_at_probability_one():
@@ -734,3 +727,16 @@ def test_no_ward_is_published_at_probability_one():
     zero = [r for r in rows for kv in r["dist"].split("|")
             if kv and float(kv.split(":")[1]) <= 0.0]
     assert not zero, "a party is published at exactly p = 0 in a ward's dist"
+
+if __name__ == "__main__":
+    # AT THE END, AND IT HAS TO BE — see `test_no_test_file_defines_a_test
+    # _after_its_main_block` in tests/test_register_matches_code.py. This block
+    # used to sit above some of the tests in this file, so the standalone
+    # invocation CLAUDE.md documents collected only what was defined ABOVE it
+    # and reported a pass count that looked complete. `run_all.py` reads
+    # `vars()` after import and saw everything, so the suite hid it.
+    # MODEL-LOG §1.75. Append new tests ABOVE this line.
+    for name, fn in sorted(globals().items()):
+        if name.startswith("test_") and callable(fn):
+            fn()
+            print(f"ok  {name}")

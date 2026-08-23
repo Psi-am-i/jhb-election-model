@@ -120,6 +120,7 @@ from __future__ import annotations
 
 import csv
 from collections import defaultdict
+from pathlib import Path
 
 import numpy as np
 
@@ -220,9 +221,75 @@ def _citywide(path) -> dict[str, float]:
                     counts[P.canonical(row["sPartyName"])] += int(
                         float(row.get("Party_Votes") or 0))
     except FileNotFoundError:
-        return {}
+        return _absent(path)
     total = sum(counts.values())
     return {k: v / total for k, v in counts.items()} if total else {}
+
+
+# ELECTION FILES THIS RECORD IS ALLOWED NOT TO HAVE.
+# ---------------------------------------------------------------------------
+# Keyed (archive tag, metro code) -> why. **A missing file NOT on this list is a
+# refusal, not an empty dict**, which is the whole point of the table.
+#
+# Until 2026-08-23 `_citywide` returned `{}` for any file it could not open. The
+# comment three lines below the call site said exactly what was wrong with that
+# — *"a swallowed file error is indistinguishable from a deliberate exclusion,
+# which is why it survived"* — and §1.43 fixed the one instance then known, a
+# template that did not match `npe1999_approx_JHB`. The MECHANISM was left in,
+# and it went on to eat twelve transitions: Mangaung's and Buffalo City's entire
+# pre-2011 history vanished from `data/raw/elections/` between the run that
+# measured §1.70's headline and the commit that published it, the record lost
+# 16 coherent seats' worth of θ observations, and nothing anywhere went red.
+# MODEL-LOG §1.75.
+#
+# Every absence here is DECLARED, with the reason, and each mirrors a refusal
+# `ingest_historic.MUNI_HEAD` already makes for the same archive.
+KNOWN_ABSENT: dict[tuple[str, str], str] = {
+    **{("npe1999", code):
+       "the 1999 national election predates every metro but Johannesburg, "
+       "which is itself reconstructed from five metropolitan local councils "
+       "and carries the `_approx` tag. `ingest_historic.MUNI_HEAD` declares "
+       "npe1999 for joburg ONLY and refuses the rest rather than guessing — "
+       "this is that refusal, seen from the record's side."
+       for code in ("TSH", "EKU", "ETH", "CPT", "MAN", "NMA", "BUF")},
+    **{("lge2000", code):
+       "the 2000 local election has never been ingested for this metro. "
+       "Ekurhuleni and eThekwini are ABSENT FROM THE ARCHIVE under any name "
+       "(both were constituted at that election) and MUNI_HEAD records that "
+       "deliberately; the others are ingestible and simply have not been done. "
+       "Ingesting them would ADD θ and ρ observations and move every number "
+       "here, so it is a measurement, not a chore — see §1.75."
+       for code in ("TSH", "EKU", "ETH", "CPT", "MAN", "NMA", "BUF")},
+}
+
+
+def _absent(path) -> dict[str, float]:
+    """A missing election file: declared absence, or a named refusal.
+
+    The archive tag and metro code are recovered from the FILENAME rather than
+    passed in, so no caller can forget to ask. Every path this module builds
+    comes from a CALENDAR template of the form ``<tag>_[approx_]<CODE>_vd_...``.
+    """
+    name = Path(path).name
+    parts = name.split("_")
+    tag = parts[0] if parts else ""
+    code = next((x for x in parts if x.isupper() and len(x) == 3), "")
+    if (tag, code) in KNOWN_ABSENT:
+        return {}
+    raise SystemExit(
+        f"levels: no election file at {path}\n"
+        f"  archive {tag!r}, metro {code!r} — and that pair is NOT declared in "
+        f"`levels.KNOWN_ABSENT`.\n"
+        f"  This is a REFUSAL, not a missing feature. An absent input used to "
+        f"return an empty dict here, which the θ and ρ records cannot tell "
+        f"apart from a metro that contested nothing, so the observations "
+        f"simply disappeared and every score moved with no warning. It has "
+        f"happened twice: MODEL-LOG §1.43 and §1.75.\n"
+        f"  Either restore the file — `.venv/bin/python src/ingest_historic.py "
+        f"--city <city> --year {tag}` rebuilds the pre-2011 archives "
+        f"deterministically — or, if the absence is intended, ADD IT TO "
+        f"`KNOWN_ABSENT` WITH ITS REASON so the next reader knows it was a "
+        f"decision.")
 
 
 # LGE YEARS WHOSE TRANSITION IS EXCLUDED FROM THE θ RECORD.

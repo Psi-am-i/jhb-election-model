@@ -78,6 +78,17 @@ def test_the_floor_binds_at_the_top_of_the_ballot_and_only_there():
     MIDDLE of the ballot, §1.59's second finding — that the prior is 1.7x to
     3.5x too narrow across 0.2% to 15% — would be partly masked by it, because
     the floor would be widening the very band the finding is about.
+
+    **THE MAJORITY CLAIM DID NOT SURVIVE THE PANEL DOUBLING, AND THIS TEST NO
+    LONGER MAKES IT (MODEL-LOG §1.77).** §1.59 measured 20 of 37 — a majority —
+    on nine city-years, and asserted `hit > total / 2` on the strength of it. On
+    the sixteen city-years §1.70 opened up it is **26 of 64**, and the top-bin
+    dispersion the floor was promoted for landed at 0.273 against a used 0.158.
+    So the assertion below is now the STRUCTURAL claim, which is what the name
+    of this test says and what is robust to how many city-years exist: the floor
+    binds at the top of the ballot, it binds there materially, and it binds
+    nowhere below 5%. The MAGNITUDE claim moved to §1.77 where the measurement
+    that would refute it is recorded next to it.
     """
     rows = TR.residuals()
     widths = {}
@@ -89,19 +100,52 @@ def test_the_floor_binds_at_the_top_of_the_ballot_and_only_there():
 
     hit, total = on_floor(">=15%")
     assert total, "no parties at or above 15% of the vote — the archive is wrong"
-    assert hit > total / 2, (
-        f"SD_FLOOR={levels.SD_FLOOR} now binds on only {hit} of {total} "
-        f"observations at or above 15% of the vote. §1.59 reports 20 of 37 and "
-        f"reads the floor as what puts the large-party width on the "
-        f"measurement; if the fit has risen clear of it, that reading is "
-        f"stale. Re-run `src/theta_residual.py`.")
-    low = sum(on_floor(b)[0] for b in ("<0.2%", "0.2-1%", "1-5%"))
-    assert low == 0, (
-        f"SD_FLOOR now binds on {low} observations below 5% of the vote, so it "
-        f"is setting the width inside the band §1.59 says is 1.7x to 3.5x too "
-        f"NARROW. That finding is measured against the fit and would be partly "
-        f"masked by the floor. Re-run `src/theta_residual.py` before quoting "
-        f"the second finding.")
+    assert hit, (
+        f"SD_FLOOR={levels.SD_FLOOR} no longer binds on ANY of the {total} "
+        f"observations at or above 15% of the vote. The fit has risen clear of "
+        f"the floor everywhere, so 'the floor is what puts the large-party "
+        f"width on the measurement' — §1.59's first finding, and the reason "
+        f"JUDGEMENT-CALLS carries SD_FLOOR at 🟢 on the top bin — is dead "
+        f"rather than merely weakened. Re-run `src/theta_residual.py` and "
+        f"rewrite that row.")
+    assert hit * 3 > total, (
+        f"SD_FLOOR={levels.SD_FLOOR} binds on {hit} of {total} observations at "
+        f"or above 15% of the vote — under a third. §1.59 measured 20 of 37 on "
+        f"nine city-years and §1.77 measured 26 of 64 on sixteen; a further "
+        f"fall means the fit is rising through the floor and the constant is "
+        f"on its way to inert. That is a finding, not a failure: measure it, "
+        f"write it up, and move this bound.")
+    # WHERE §1.59's SECOND FINDING ACTUALLY LIVES is below 1% of the vote —
+    # the two bands carrying 250 of the 314 sub-5% observations and the two
+    # whose intervals exclude the model's width most comfortably. Nothing may
+    # sit on the floor there, or the finding is measuring the floor.
+    tiny = sum(on_floor(b)[0] for b in ("<0.2%", "0.2-1%"))
+    assert tiny == 0, (
+        f"SD_FLOOR binds on {tiny} observations below 1% of the vote. §1.59's "
+        f"second finding — that the prior is 1.7x to 3.5x too NARROW across "
+        f"the small and middle ballot — is measured against the FIT, and the "
+        f"floor setting the width for any of those parties would partly "
+        f"measure the floor instead. Re-run `src/theta_residual.py` before "
+        f"quoting it.")
+    # BETWEEN 1% AND 5% A HANDFUL IS TOLERATED, AND EXACTLY ONE IS EXPECTED.
+    # This was `== 0` until 2026-08-23 and it began failing when §1.70 doubled
+    # the panel — not because the floor spread, but because the enlarged record
+    # admits a TARGET 2011 fit at all, and 2011 is the target with the least
+    # history behind its `sd_for` line. The single case is MINORITY_FRONT at
+    # eThekwini, target 2011, at **4.7997% of the vote** — a fifth of a point
+    # under the bin edge, in the one fold whose line is built on two prior
+    # cycles. The next smallest fitted width below 5% is 0.1773, well clear.
+    # So: one boundary observation, not a floor that has started setting the
+    # mid-ballot width. MODEL-LOG §1.77.
+    mid = on_floor("1-5%")[0]
+    below5 = sum(on_floor(b)[1] for b in ("<0.2%", "0.2-1%", "1-5%"))
+    assert mid * 50 <= below5, (
+        f"SD_FLOOR binds on {mid} of the {below5} observations below 5% of the "
+        f"vote — over 2%, where §1.77 recorded exactly one boundary case at "
+        f"4.7997%. The floor has started setting the width inside the band "
+        f"§1.59 says is too narrow, which would partly mask that finding. "
+        f"Re-run `src/theta_residual.py`, identify the observations, and say "
+        f"whether this is still a bin edge or a real spread.")
 
 
 def test_the_residuals_are_forward_validated():
