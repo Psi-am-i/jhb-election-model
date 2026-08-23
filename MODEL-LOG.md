@@ -9232,6 +9232,139 @@ amendment was written, the hole would have been visible in one line, because the
 cases were already measured and sitting in §1.82.
 
 
+---
+
+## 1.84 Four parallel audits of the whole tree: a live lever was half-connected, and a city's bounds were leaking (2026-08-23)
+
+The owner asked for the repository to be searched exhaustively — every file,
+recursively, for anything inherited from the original model and for hidden
+constants "sabotaging the new model invisibly", on the grounds that **nobody had
+ever actually looked**. Four read-only audits ran in parallel over disjoint
+scopes: code constants, reachability, root documents and site, and derived
+artefacts. They were right that nobody had looked.
+
+### The one that changes the live forecast: `poll_half_life_days` reached the WIDTH and not the CENTRE
+
+`montecarlo` passed `scenario["poll_half_life_days"]` to `polling.effective_houses`
+and `polling.aggregate_sd`, and passed **nothing** to `polling.aggregate` — which
+is the function that produces the poll-blended **central shares**. So the centre
+used `aggregate`'s hardcoded `half_life_days: float = 120.0` default argument.
+
+**This is the `LEVEL_DF` shape for the third time**, and this instance is the
+worst of the three because it is live at 2026. Measured on the two admitted
+Johannesburg waves:
+
+| half-life | ANC | DA | MK |
+|---|---|---|---|
+| 30 days | 0.1839 | 0.4190 | 0.1284 |
+| **120 days (what was in force)** | **0.2160** | **0.4110** | **0.1150** |
+| 365 days | 0.2317 | 0.4071 | 0.1085 |
+| no decay | 0.2400 | 0.4050 | 0.1050 |
+
+**5.6 points of ANC in the published forecast, across a lever no sweep could
+reach.** And `test_levers_are_live` certified it live at 2026 the entire time —
+correctly, because it *does* move the forecast, through the σ path. That is
+exactly how it hid: the existing guard asks whether a lever moves the forecast
+at all, not whether it reaches every consumer the register implies.
+
+**Fixed and number-neutral at the shipped default.** `aggregate` now takes
+`half_life_days: float | None = None` and resolves to `POLL_HALF_LIFE_DAYS` at
+call time — the shape `aggregate_sd` beside it already had — and the call site
+passes the scenario key. Verified byte-identical to the old behaviour at 120.0,
+and verified the lever now bites at 30.0.
+
+`asof` is deliberately **not** aligned in the same change. The σ path uses
+`target.date` and this uses the newest fieldwork date; aligning them is arguably
+more correct and it *moves the numbers* at float level, so it is a separate
+decision rather than a free rider. Recorded in the call site.
+
+**A new guard, and it is proved not blind.** `test_no_lever_is_passed_to_one
+_consumer_and_withheld_from_another` walks `montecarlo`'s AST, finds every
+scenario key forwarded to a `polling` function, and fails if the same key is
+withheld from another consumer that accepts it. Run against a reconstruction of
+the pre-fix call site it reports `poll_half_life_days → aggregate`; run against
+the fixed tree it passes.
+
+### The second real bug: `export_interactive` published Johannesburg's θ bounds for every city
+
+`apply_city` **rebinds** `montecarlo.PLAN_BOUNDS` (`PLAN_BOUNDS = city.plan_bounds`)
+rather than mutating it — unlike `DEFAULTS`, which is cleared and updated in
+place on the two lines above. `export_interactive.py` did
+`from montecarlo import DEFAULTS, PLAN_BOUNDS`, so the two names on one import
+line behaved differently: `DEFAULTS` tracked the city and `PLAN_BOUNDS` stayed
+pinned to the module literal. Every non-Johannesburg export published
+Johannesburg's θ ranges.
+
+This is the un-namespaced-output hazard the project already has a memory note
+about. Fixed by reading `montecarlo.PLAN_BOUNDS` through the module.
+
+### Guards that could not fire
+
+* **`tests/test_pool_bounds.py` called `skip()` without importing it** — the
+  only undefined name in 69 files. Masked only because `history.json` is
+  committed; on a fresh clone the guard raised `NameError` instead of skipping.
+  It had never once executed.
+* **Five test files used a hand-rolled `for name, fn in globals()` runner** that
+  catches neither `SkipTest` nor `SystemExit`, so the first skip aborted the file
+  and every later test silently never ran — `test_regressions` alone has five
+  `skip(` calls. Under `run_all.py` they were fine, because the suite supplies
+  `run_module`. **The suite hid it**, which is the same sentence this log wrote
+  about two other defects yesterday. All five now use `run_module`.
+
+### What the audits found and this entry does NOT fix
+
+Recorded so they are decisions rather than oversights, and carried into
+`PLAN-TO-LIVE.md`:
+
+* **The register's guard is structurally blind** to numeric default arguments,
+  dataclass fields, dict-valued constants, lowercase constants, inline literals,
+  argparse defaults and every number in a TOML file. It inspects 53 names. That
+  is why everything above was reachable.
+* **Unregistered constants that decide real things**: `overhang_rule` (a legal
+  interpretation that sets council size, string-valued so the guard skips it),
+  `GAMMA_FOLD`, `PLAN_BOUNDS`, `w_recency = 0.70` and `kappa_bye = 0.25`
+  (argparse defaults, verbatim from the original plan, baked into 20 committed
+  `turnout.csv` files that carry no artefact key), `--w-split = 0.6`, three
+  numbers in `config/dimensions.toml` including `min_oos_gain` which decides
+  which census dimensions exist at all, and nine arrival-path selection
+  constants.
+* **Six of eight metros run with `PLAN_BOUNDS` empty**, so the θ clamp is absent
+  and its violation counter reports zero — the panel cannot test that constant
+  and does not say so.
+* **`montecarlo.__small__`**: two typed `0.8`s read off a `"small"` key that does
+  not exist anywhere in `levels.py`, building a fabricated 10th/90th band, into a
+  dict entry nothing reads. Inert; a trap.
+* **`data/processed/regime_cap_summary.json` feeds a live stat token** and was
+  produced on 7 August by a model that still had `turnout_tilt_da` in it — the
+  exact lever `CLAUDE.md` names as having put ten stale claims on the page.
+  `stats.py` applies no freshness check to a source file.
+* **`forecast_summary.json` carries no provenance at all** — no city, no target,
+  no time, no code hash — while `pools_*.json` has had an `artefact_key` since
+  §1.70.
+* **`vd_ward_<year>.csv` and `vd_concordance.csv` are written at city level and
+  read at target level**, so 14 files are unreadable where they sit; and
+  `fold.py` hardcodes Johannesburg's concordance for every city.
+* **`gamma_recent.csv` exists for 5 of 20 city-year directories**, so most of the
+  panel falls silently to γ = 1.0 where Johannesburg takes a measured value.
+* **`build_all.py` cannot reach `build_site` or `build_portal`**, because
+  `build_interactive.py` raises at module level and the runner treats any
+  non-zero return as fatal. The documented one-command build has been severed.
+
+### Cleared out
+
+`archive/` now holds the original plan (`.md` and its 13.6 MB `.pdf`, both
+duplicated verbatim in `MODEL-LOG.md` Appendix A), `METHODOLOGY.md`,
+`EXPANSION.md`, `model-review.html` — which describes the **expand** rule and was
+linked from the live review page as *"the full technical audit"* — the frozen
+interactive, the four served-but-unbuilt `site/drafts/` pages, and
+`scenarios/joburg-pools.json`, a tracked, documented, executable scenario file
+describing the bloc design deleted on 2026-08-10. Eighteen unread derived
+artefacts moved out of `data/processed`. `.wrangler/` untracked and gitignored.
+
+Each has a row in `archive/README.md` saying what superseded it. Nothing was
+deleted: removing a superseded document destroys the record of why it was made.
+
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

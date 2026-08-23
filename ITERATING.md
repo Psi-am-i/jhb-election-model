@@ -563,9 +563,18 @@ requirement to measure.
 
 
 The only question this file asks is whether the model predicts past elections
-better than the last version and better than the baselines. It does: **254
-coherent seat error against uniform swing's 376**, and uniform swing is measured
-to be the strongest member of the naive family (§1.57). What follows is the
+better than the last version and better than the baselines. It does: **384
+coherent seat error against uniform swing's 530 across sixteen city-years, with
+12 wins, 2 losses and 2 ties — 7-1 on the 2016 cycle and 5-1-2 on the 2021 one**,
+and uniform swing is measured to be the strongest member of the naive family
+(§1.57). The sign replicates across two genuinely different elections, which is
+what this file's own amended Key 1 asks of any candidate.
+
+*(Corrected 2026-08-23. This paragraph said "254 against uniform swing's 376" —
+a NINE-city-year figure — for a day after §1.77 re-read rules 1 and 8 onto
+sixteen. §1.77's own instruction was that every number predating §1.70 must be
+re-read before it is quoted again, and the file's own headline verdict was the
+number it missed. The section below is likewise still written on nine.)* What follows is the
 other half of the question, which this file never answered: **when is it done?**
 
 ### The panel has a floor, and the model is close to it

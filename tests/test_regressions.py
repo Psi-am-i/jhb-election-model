@@ -76,7 +76,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _support import ROOT, skip  # noqa: E402
+from _support import ROOT, skip, run_module  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -729,14 +729,12 @@ def test_no_ward_is_published_at_probability_one():
     assert not zero, "a party is published at exactly p = 0 in a ward's dist"
 
 if __name__ == "__main__":
-    # AT THE END, AND IT HAS TO BE — see `test_no_test_file_defines_a_test
-    # _after_its_main_block` in tests/test_register_matches_code.py. This block
-    # used to sit above some of the tests in this file, so the standalone
-    # invocation CLAUDE.md documents collected only what was defined ABOVE it
-    # and reported a pass count that looked complete. `run_all.py` reads
-    # `vars()` after import and saw everything, so the suite hid it.
-    # MODEL-LOG §1.75. Append new tests ABOVE this line.
-    for name, fn in sorted(globals().items()):
-        if name.startswith("test_") and callable(fn):
-            fn()
-            print(f"ok  {name}")
+    # `run_module`, NOT a hand-rolled loop. Until 2026-08-23 this file ended with
+    # `for name, fn in sorted(globals().items()): ... fn()`, which catches
+    # neither `SkipTest` nor `SystemExit` — so the FIRST skip aborted the run and
+    # every later test in the file silently never executed, and no summary was
+    # printed. Five files were in that state; `test_regressions` alone has five
+    # `skip(` calls. Under `run_all.py` they were fine, because the suite calls
+    # `run_module(vars(module))` itself — the suite hid it. MODEL-LOG §1.84.
+    # Append new tests ABOVE this line.
+    raise SystemExit(run_module(globals()))

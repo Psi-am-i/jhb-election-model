@@ -51,7 +51,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _support import ROOT, skip  # noqa: E402
+from _support import ROOT, skip, run_module  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -579,15 +579,93 @@ def test_no_scenario_key_is_read_without_being_declared():
         f"RUNTIME_INJECTED names {stale}, which `montecarlo.py` no longer reads. "
         f"An excuse for a key that is gone hides the next real one; delete it.")
 
+def test_no_lever_is_passed_to_one_consumer_and_withheld_from_another():
+    """CLASS 18 — A LEVER THAT REACHES THE WIDTH AND NOT THE CENTRE.
+
+    `test_every_tunable_lever_actually_moves_the_forecast` asks whether a lever
+    moves the forecast AT ALL. `poll_half_life_days` passed that test at 2026
+    for weeks while being **half** connected: `montecarlo` passed
+    `scenario["poll_half_life_days"]` to `polling.effective_houses` and
+    `polling.aggregate_sd` — the WIDTH — and passed nothing to
+    `polling.aggregate`, the CENTRE, which therefore used a hardcoded `120.0`
+    default argument that no sweep could reach. The ANC's blended share runs
+    18.4% to 24.0% across that lever's range in the live 2026 forecast.
+
+    So the existing test cannot see this: the lever DOES move the forecast, just
+    not through the path anyone reading the register would assume. This one
+    checks the shape instead — if a scenario key is passed to some calls of a
+    module's functions and withheld from others, say so.
+
+    MODEL-LOG §1.84.
+    """
+    import ast as _ast
+    src = (ROOT / "src" / "montecarlo.py").read_text(encoding="utf-8")
+    tree = _ast.parse(src)
+
+    # every keyword= that forwards a scenario.get("<key>") into a call
+    forwarded: dict[str, set[str]] = {}
+    withheld: dict[str, set[str]] = {}
+    for node in _ast.walk(tree):
+        if not isinstance(node, _ast.Call):
+            continue
+        fn = node.func
+        name = (fn.attr if isinstance(fn, _ast.Attribute)
+                else fn.id if isinstance(fn, _ast.Name) else None)
+        if not name:
+            continue
+        for kw in node.keywords:
+            for sub in _ast.walk(kw.value):
+                if (isinstance(sub, _ast.Call)
+                        and isinstance(sub.func, _ast.Attribute)
+                        and sub.func.attr == "get"
+                        and isinstance(sub.func.value, _ast.Name)
+                        and sub.func.value.id == "scenario"
+                        and sub.args
+                        and isinstance(sub.args[0], _ast.Constant)
+                        and isinstance(sub.args[0].value, str)):
+                    forwarded.setdefault(sub.args[0].value, set()).add(name)
+
+    # For each forwarded key, find calls to POLLING functions that take that
+    # parameter and were called WITHOUT it.
+    import polling as _pg
+    import inspect as _inspect
+    for key, fns in forwarded.items():
+        param = key.replace("poll_", "") if key.startswith("poll_") else key
+        for cand in ("aggregate", "aggregate_sd", "effective_houses"):
+            f = getattr(_pg, cand, None)
+            if f is None:
+                continue
+            sig = _inspect.signature(f)
+            if key not in sig.parameters and param not in sig.parameters:
+                continue
+            for node in _ast.walk(tree):
+                if (isinstance(node, _ast.Call)
+                        and isinstance(node.func, _ast.Attribute)
+                        and node.func.attr == cand):
+                    passed = {k.arg for k in node.keywords}
+                    if not (passed & {key, param}):
+                        withheld.setdefault(key, set()).add(cand)
+
+    assert not withheld, (
+        "scenario keys forwarded to some consumers and WITHHELD from others:\n  "
+        + "\n  ".join(f"`{k}` reaches {sorted(forwarded.get(k, ()))} "
+                      f"but is NOT passed to {sorted(v)}"
+                      for k, v in sorted(withheld.items()))
+        + "\n\nA half-connected lever passes "
+          "`test_every_tunable_lever_actually_moves_the_forecast` — it moves the "
+          "forecast through the path it IS wired to — while the register "
+          "describes a value that the other path never sees. That is how "
+          "`poll_half_life_days` moved 5.6pp of ANC unreachably. Pass it, or "
+          "explain in the call why this consumer takes a different value.")
+
+
 if __name__ == "__main__":
-    # AT THE END, AND IT HAS TO BE — see `test_no_test_file_defines_a_test
-    # _after_its_main_block` in tests/test_register_matches_code.py. This block
-    # used to sit above some of the tests in this file, so the standalone
-    # invocation CLAUDE.md documents collected only what was defined ABOVE it
-    # and reported a pass count that looked complete. `run_all.py` reads
-    # `vars()` after import and saw everything, so the suite hid it.
-    # MODEL-LOG §1.75. Append new tests ABOVE this line.
-    for name, fn in sorted(globals().items()):
-        if name.startswith("test_") and callable(fn):
-            fn()
-            print(f"ok   {name}")
+    # `run_module`, NOT a hand-rolled loop. Until 2026-08-23 this file ended with
+    # `for name, fn in sorted(globals().items()): ... fn()`, which catches
+    # neither `SkipTest` nor `SystemExit` — so the FIRST skip aborted the run and
+    # every later test in the file silently never executed, and no summary was
+    # printed. Five files were in that state; `test_regressions` alone has five
+    # `skip(` calls. Under `run_all.py` they were fine, because the suite calls
+    # `run_module(vars(module))` itself — the suite hid it. MODEL-LOG §1.84.
+    # Append new tests ABOVE this line.
+    raise SystemExit(run_module(globals()))

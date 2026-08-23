@@ -40,7 +40,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _support import ROOT  # noqa: E402
+from _support import ROOT, run_module  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -165,7 +165,12 @@ def test_an_arrival_does_not_touch_pools_it_is_not_in():
 
 
 if __name__ == "__main__":
-    for name, fn in sorted(globals().items()):
-        if name.startswith("test_") and callable(fn):
-            fn()
-            print(f"ok  {name}")
+    # `run_module`, NOT a hand-rolled loop. Until 2026-08-23 this file ended with
+    # `for name, fn in sorted(globals().items()): ... fn()`, which catches
+    # neither `SkipTest` nor `SystemExit` — so the FIRST skip aborted the run and
+    # every later test in the file silently never executed, and no summary was
+    # printed. Five files were in that state; `test_regressions` alone has five
+    # `skip(` calls. Under `run_all.py` they were fine, because the suite calls
+    # `run_module(vars(module))` itself — the suite hid it. MODEL-LOG §1.84.
+    # Append new tests ABOVE this line.
+    raise SystemExit(run_module(globals()))

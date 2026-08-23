@@ -88,7 +88,7 @@ of overhang has never been demonstrated in a published calculation by the
 electoral commission — we put the question to the Commission on 5 August 2026 and are awaiting its answer. And the range of possible 2026 outcomes
 is judgement that no amount of testing can turn into fact: bounded by twenty
 years of observed swings, tilted by current evidence, and fully exposed as
-adjustable dials on the [interactive page](interactive).
+adjustable dials on the interactive page.
 
 ## Why publish this at all
 

@@ -36,7 +36,14 @@ from collections import defaultdict
 from pathlib import Path
 
 from fold import citywide, load, load_parameters, shares
-from montecarlo import DEFAULTS, PLAN_BOUNDS
+import montecarlo as _M
+from montecarlo import DEFAULTS
+# PLAN_BOUNDS is READ THROUGH THE MODULE, not imported by name.
+# `apply_city` REBINDS montecarlo.PLAN_BOUNDS (it does not mutate it,
+# unlike DEFAULTS which is cleared and updated in place), so a
+# `from montecarlo import PLAN_BOUNDS` pins this module to the
+# Johannesburg literal and publishes Johannesburg's theta bounds for
+# whatever city is exported. Found 2026-08-23.
 
 
 # --- THE DATA SIDE OF THE POOL PORT -----------------------------------------
@@ -251,7 +258,7 @@ def main(argv: list[str] | None = None) -> int:
             "ward2021": round(wc.get(code, 0.0), 5),
             "gammaPR": round(gamma_for(code, "PR"), 3),
             "gammaWard": round(gamma_for(code, "Ward"), 3),
-            "bounds": PLAN_BOUNDS.get(code),
+            "bounds": _M.PLAN_BOUNDS.get(code),
             "bye": bye.get(code),
         })
 

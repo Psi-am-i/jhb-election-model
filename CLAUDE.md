@@ -58,6 +58,13 @@ is whether the current model predicts PAST elections better than the previous
 iteration and better than the naive baselines. If it does not, it does not ship,
 however well argued. Worse does not ship.
 
+**The bar was AMENDED on 2026-08-23 and is now four keys, not one** — paired and
+cycle-replicated on seats, calibration as an untradeable floor, derivedness
+priced in coherent seats against a budget that never refills, and the estimation
+record's held-out NLL as a second untradeable floor. Read the amendment at the
+top of `ITERATING.md` before judging any change; the single-number version above
+is what it replaced.
+
 ## Shared artefacts: one writer, and nobody measures while it writes
 
 `data/processed/pools_*.json` is **precomputed**. Changing `src/pools.py` does
@@ -116,7 +123,7 @@ in the same session.
 **The specs are not tracked by git.** They have no version history, which is why
 the key exists.
 
-**`compare_history` runs its nine city-years in parallel processes** (since
+**`compare_history` runs its sixteen city-years in parallel processes** (since
 2026-08-18), which is safe because they only READ the specs — the rule above is
 about who WRITES them, and that is still one worker at a time. Measured at 1500
 draws: 499s serial against 169s parallel, a 2.96x speedup, with
@@ -131,7 +138,7 @@ Use `.venv/bin/python`, never bare `python` — numpy is not on the system
 interpreter.
 
     .venv/bin/python tests/run_all.py                  # the suite
-    .venv/bin/python src/compare_history.py            # votes and seats vs actual, 9 city-years
+    .venv/bin/python src/compare_history.py            # votes and seats vs actual, 16 city-years
                                                        #   runs in parallel by default; --jobs 1 forces serial
     .venv/bin/python src/diagnose.py --city joburg --target 2021 --wards 0
     .venv/bin/python src/arrivals.py                   # the arrival machinery, scored alone

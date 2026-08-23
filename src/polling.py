@@ -715,7 +715,7 @@ def usable_for(target: cityconfig.Target, polls: list[dict] | None = None,
     return screen(target, polls, allow_commissioned, min_n=min_n)[0]
 
 
-def aggregate(polls: list[dict], half_life_days: float = 120.0,
+def aggregate(polls: list[dict], half_life_days: float | None = None,
               asof: date | None = None) -> dict[str, float] | None:
     """One set of numbers from several polls, weighted by recency.
 
@@ -733,7 +733,26 @@ def aggregate(polls: list[dict], half_life_days: float = 120.0,
     Herding and house effects are NOT corrected here. With two houses and four
     waves they are not estimable, and pretending otherwise would be worse than
     the gap. Note it wherever the blend is quoted.
+
+    **`half_life_days` RESOLVES AT CALL TIME, and until 2026-08-23 it did not.**
+    It was `half_life_days: float = 120.0` — a numeric default argument, the
+    `LEVEL_DF` shape, and the THIRD instance of it here. This one was the worst,
+    because this function produces the poll-blended **CENTRE**: `montecarlo`
+    passed `scenario["poll_half_life_days"]` to `effective_houses` and
+    `aggregate_sd` and passed **nothing** to this, so the lever moved the poll's
+    WEIGHT and could not touch the poll's NUMBERS.
+
+    Measured on the two admitted Johannesburg 2026 waves, the ANC's blended
+    share runs **18.4% at a 30-day half-life to 24.0% with no decay** — 5.6
+    points in the live forecast, unreachable by any sweep. And
+    `test_levers_are_live` certified the lever live at 2026 throughout, because
+    it does move — through the σ path. That is exactly how it hid.
+
+    A `None` sentinel resolving to `POLL_HALF_LIFE_DAYS` cannot be frozen at
+    import. `aggregate_sd` below already had this shape; this function did not.
     """
+    if half_life_days is None:
+        half_life_days = POLL_HALF_LIFE_DAYS
     dated = [(p, date.fromisoformat(str(p["fieldwork_end"])))
              for p in polls if p.get("fieldwork_end") and p.get("numbers")]
     if not dated:

@@ -9,7 +9,6 @@ past election and scores the distribution it produced against what actually
 happened::
 
     python src/backtest.py --target 2021
-    python src/backtest.py --target 2016 --config scenarios/joburg-pools.json
     python src/backtest.py --target 2011 --a scenarios/old.json --b scenarios/new.json
 
 **It runs the model itself.** ``montecarlo.run_model`` is called with a

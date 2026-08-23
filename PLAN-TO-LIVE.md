@@ -160,6 +160,87 @@ most likely, and the first draft simply stopped at A5. Fix now:
 
 ---
 
+## Track C — the audit's residue (2026-08-23, four parallel audits, §1.84)
+
+The repository was searched exhaustively for the first time. Two live bugs were
+found and fixed in the same commit; what follows is what the audits found and the
+fix commit deliberately did **not** do. **C1 and C2 are blocking — they are
+correctness, not tidiness.**
+
+### C1. The register's guard is structurally blind ★ blocking
+
+`test_every_tunable_constant_is_in_the_judgement_register` inspects **53 names**:
+top-level `ast.Assign`, single target, UPPERCASE, literal int/float. It cannot
+see numeric **default arguments** (the `LEVEL_DF` shape — three instances now,
+the latest costing 5.6pp of ANC in the live forecast), **dataclass fields**,
+**dict-valued** constants, **lowercase** constants, **inline literals**,
+**argparse defaults**, or any number in a **TOML** file.
+
+Everything in C2 was reachable because of this. **Widen the guard before
+registering anything**, or the register will keep certifying a model it cannot
+see.
+
+### C2. Unregistered constants that decide real things ★ blocking
+
+* **`overhang_rule = "deduct"`** — a legal interpretation that sets council size
+  and the majority threshold. Four regimes give four different answers. Skipped
+  by the guard because it is a *string*.
+* **`w_recency = 0.70`, `kappa_bye = 0.25`** (`turnout.py` argparse defaults) and
+  **`--w-split = 0.6`** (`fold.py`) — verbatim from the original plan §3.5, whose
+  own text asks for a fold-2 sensitivity test that `MODEL-LOG` never records.
+  They reach the model through **20 committed `turnout.csv` files with no
+  artefact key**, so changing the constant changes nothing until someone re-runs
+  the script and *nothing announces the mismatch*.
+* **`GAMMA_FOLD`**, **`PLAN_BOUNDS`**, and the γ fallback of `1.0` — which is
+  `np.ones(npar)`, not a literal, so no scan of any kind can see it.
+* **`config/dimensions.toml`**: `extrapolation_damping = 0.6`,
+  `extrapolation_max_years = 8`, and **`min_oos_gain = 0.01`** — the bar that
+  decides which census dimensions exist at all. Age and sex are *rejected* by
+  that number. `dimensions.toml` is not mentioned in the register once.
+* **Nine arrival-path constants** inline in `pools.py`, on the path §1.65 prices
+  at 48 coherent seats — including the comparator window `abs(r - reach) < 0.25`
+  and the no-record turnout band `(0.30, 0.50, 0.70)`.
+
+### C3. Six of eight metros run with the θ clamp absent
+
+`PLAN_BOUNDS` comes from `[judgements.plan_bounds]`, and six metros have no
+`[judgements]` section at all — so `apply_city` sets it to `{}`, the clamp does
+not apply, and the bounds-violation diagnostic reports zero. **The panel cannot
+test that constant and does not say so.**
+
+### C4. Stale artefacts wired to live outputs
+
+* **`regime_cap_summary.json` feeds a published stat token** (`anc_entitlement`,
+  used twice on the front page) and was produced on **7 August by a model that
+  still had `turnout_tilt_da` in it** — the exact lever `CLAUDE.md` names as
+  having put ten unauditable claims on the page. `stats.py` applies **no
+  freshness check to a source file**: the drift audit catches typed figures and
+  cannot see a stale source.
+* **`forecast_summary.json` carries no provenance at all** — no city, target,
+  time or code hash — while `pools_*.json` has had an `artefact_key` since
+  §1.70. Nothing can answer "was this produced by the current tree?"
+* **`gamma_recent.csv` exists for 5 of 20 city-year directories.** Most of the
+  panel falls silently to γ = 1.0 where Johannesburg takes a measured value —
+  a cross-city asymmetry in a model input, not a cosmetic one.
+
+### C5. Latent breaks for any non-Johannesburg run
+
+`vd_ward_<year>.csv` and `vd_concordance.csv` are **written at city level and
+read at target level** — 14 files unreadable where they sit — and `fold.py`
+hardcodes Johannesburg's concordance for every city. Joburg 2026 masks all of it.
+**This binds the moment the portal runs a second city**, which is what
+`EXPANSION.md` was for.
+
+### C6. `build_all.py` cannot reach `build_site` or `build_portal`
+
+`build_interactive.py` raises at module level (deliberately, correctly) and the
+runner treats any non-zero return as fatal, so the documented one-command build
+has been severed — and with it the only path that runs the stat-provenance
+guards. They now execute only when a human invokes `build_site.py` by hand.
+**Fix before A4.**
+
+---
+
 ## Track B — model (all optional, all timeboxed, all behind the freeze)
 
 ### B1. Type A routing — the one modelling item worth opening

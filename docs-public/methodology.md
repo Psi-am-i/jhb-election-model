@@ -262,13 +262,30 @@ against three baselines that need no model at all. The results are on the
   same reason. Fixing it means drawing a party's level from its local and
   national records together, weighted by which has actually been more
   informative for a party like it. It is the largest open item on the model.
-- **No poll is currently used at all.** The weight is set to zero. The polls
-  that exist disagree with each other by more than the quantity being
-  forecast — one house had the DA on 42% and the ANC on 18% in the same year
-  another had the ANC on 35% and the DA on 25% — and metro-level polling has
-  almost no track record here to weight them by; pre-2021 polling missed
-  ActionSA in this city by about ten points. We would rather use nothing than
-  use them badly, and we will publish the rule before we use them at all.
+- **Polls ARE used, and one house currently moves the Johannesburg headline.**
+  *(Corrected 2026-08-23. Until then this page said "no poll is currently used
+  at all" — that stopped being true on 2026-08-22 and the page was not
+  changed. It is the most serious error this site has carried.)*
+
+  The rule, which we said we would publish before using them at all: a poll is
+  priced by a decomposed standard error — sampling, house effect, likely-voter
+  screen and drift since fieldwork — and blended by inverse variance against
+  the model's own centre. **A single unreplicated house is capped at half the
+  blend**, however large its sample, because a house effect is a common bias
+  that publishing more waves cannot average away.
+
+  The cap binds today. Johannesburg's only 2026 metro polling is two waves from
+  one house, so the effective house count is one and the cap is what stands
+  between that house and the published forecast. Turning the poll channel on
+  moved the DA from 83 to 77 seats. **We publish the forecast with polls and
+  without, side by side, for that reason.**
+
+  The caution that motivated the old sentence is unchanged and is why the cap
+  exists: the polls that exist disagree with each other by more than the
+  quantity being forecast — one house had the DA on 42% and the ANC on 18% in
+  the same year another had the ANC on 35% and the DA on 25% — and metro-level
+  polling has little track record here to weight them by; pre-2021 polling
+  missed ActionSA in this city by about ten points.
 - **Arithmetic is not politics.** The model says which governments are
   numerically possible. Whether people who dislike each other will sit in the
   same room is not a modelling question.

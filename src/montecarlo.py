@@ -2871,7 +2871,21 @@ def run_model(target, scenario: dict,
         print(f"  polls declined ({len(_declined)}):")
         for _x in _declined:
             print(f"      {_x}")
-    _agg = _pg.aggregate(_metro) if _metro else None
+    # PASS THE LEVER. Until 2026-08-23 this call took no arguments, so the
+    # poll-blended CENTRE used `aggregate`'s hardcoded 120.0 default while
+    # the two calls below correctly passed the scenario key to the WIDTH.
+    # The centre moved 5.6pp of ANC across the lever's range and no sweep
+    # could reach it. Number-neutral at the shipped default of 120.0.
+    _agg = _pg.aggregate(
+        _metro,
+        half_life_days=float(scenario.get("poll_half_life_days",
+                                          _pg.POLL_HALF_LIFE_DAYS))
+    ) if _metro else None
+    # `asof` is deliberately NOT passed. The sigma path uses target.date and
+    # this uses the newest fieldwork date; aligning them is arguably more
+    # correct but it MOVES THE NUMBERS at float level, so it is a separate
+    # change that needs its own justification rather than a free rider on
+    # this one. Left as it was, and recorded so it is a decision.
     if _agg:
         _sd = scenario.get("_theta_sd") or {}
         _default_sd = float(scenario.get("level_sd_default", 0.45))

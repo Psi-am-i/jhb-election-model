@@ -30,3 +30,10 @@ __pycache__/
 
 # agent worktrees and local claude state
 .claude/
+
+# Build caches, not source. `.wrangler/cache/wrangler-account.json` was TRACKED
+# in this public repository until 2026-08-23 — a Cloudflare account id and an
+# email-derived account name, in a cache directory. Not credentials, and not
+# something a public repo should carry either.
+.wrangler/
+.pytest_cache/
