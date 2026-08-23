@@ -9470,6 +9470,75 @@ also printing the second reading it declined and why.
 Not changed here. Registered as a decision to be made and published, in the plan.
 
 
+---
+
+## 1.86 C1: the register's guard could see 53 names. Widened, it named seventeen more (2026-08-23)
+
+The first item of `PLAN-TO-LIVE.md`'s Track C, and it is first for a reason the
+plan had to be corrected to state: **Key 3 of the amended bar computes
+Derivedness Debt *from* the register**, so a register that cannot see a constant
+prices it at nothing. C1 blocks B2, and B2 feeds A2's disclosure.
+
+### What it could not see
+
+`test_every_tunable_constant_is_in_the_judgement_register` inspected top-level
+`ast.Assign`, single target, UPPERCASE, `literal_eval` to a bare `int`/`float`.
+**53 names.** Structurally blind to:
+
+* **numeric default arguments** — the `LEVEL_DF` shape, three instances, the
+  latest costing 5.6pp of ANC in the live forecast (§1.84);
+* **argparse defaults** — where `w_recency = 0.70` and `kappa_bye = 0.25` have
+  sat since the original plan;
+* **container constants** — `PLAN_BOUNDS`, `GAMMA_FOLD`;
+* **non-numeric `DEFAULTS` values** — `overhang_rule`, a *string*, which sets
+  the council size and the majority threshold;
+* **dataclass fields**, and **every number in a TOML file**.
+
+### Three filters, each a rule rather than a list
+
+Widening it naively surfaces 144 hits, most of them noise. Three principles cut
+that to 26:
+
+1. **run control is not belief** — `draws`, `seed`, `jobs`, `tolerance`;
+2. **a counter initialised to zero is not a claim** — `ModelRun`'s accumulators
+   start at 0 because that is what accumulators do;
+3. **a container is a judgement only if it CONTAINS NUMBERS** — a table of
+   column names or file paths is structure; a table of bounds is belief.
+
+The third is the one that does the work: it takes 56 container constants down to
+10, keeping `PLAN_BOUNDS` and `GAMMA_FOLD` while dropping `COLUMNS`,
+`PROVENANCE`, `ELECTIONS` and the rest of the structural tables. An `EXEMPT`
+list then names the operational residue — HTTP timeouts, the map simplifier, a
+solver's iteration count — each with a reason.
+
+### The seventeen
+
+Registered in `JUDGEMENT-CALLS.md` §H, all 🔴 except one. The ones that matter:
+
+| constant | why it matters |
+|---|---|
+| **`overhang_rule = "deduct"`** | a legal interpretation setting council size and the majority threshold; four regimes give four answers. Invisible because it is a string |
+| **`PLAN_BOUNDS`** | the plan's θ table. **Six of eight metros have no `[judgements]` block**, so the clamp is silently absent — four panel city-years run with it and twelve without, which makes 384 a mixture of two configurations |
+| **`GAMMA_FOLD`** | which fold the live forecast reads; the code concedes *"the constraint alone does not pick one"* for 2026 |
+| **`min_oos_gain = 0.01`** | the bar a census dimension must clear **to exist at all** — age and sex are rejected by it, so it is upstream of every pool. `dimensions.toml` was not mentioned in the register once |
+| **`w_recency = 0.70`, `kappa_bye = 0.25`** | verbatim from the original plan, whose own text asks for a sensitivity test `MODEL-LOG` never records, and reaching the model through 20 `turnout.csv` files with **no artefact key** |
+| **`total_seats = 270`** | Johannesburg's council as a **default argument in the shared allocator**; `leverage.py` omits it and allocates any city into a 270-seat chamber |
+| **`BINS`** | the size bands producing §1.59/§1.77's headline — the "≥15%" cut quoted as natural is a chosen threshold |
+
+### What this does and does not achieve
+
+**It changes no number.** Every constant listed was already in force; the guard
+simply could not see it. What changes is that B2's sweep now has a list, and the
+Derivedness Debt is computed over the constants that exist rather than over the
+53 the old detector happened to match.
+
+**And it is honest about what is still invisible**: inline literals inside
+function bodies are not covered. That is a much larger surface — `pools.py`
+alone has nine arrival-path constants inline — and it needs a different
+instrument, because a bare `0.25` in an expression has no name to register. It is
+recorded as the remaining gap rather than quietly omitted.
+
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

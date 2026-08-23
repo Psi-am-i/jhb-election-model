@@ -306,3 +306,63 @@ target, §1.60).
    known weaknesses on the face of it.
 6. Delete or banner the two frozen artefacts at that point, not before — they
    are the fallback if the port stalls.
+
+---
+
+## 7. The map contradicts the forecast — an equal-area alternative (owner, 2026-08-23)
+
+**The owner's observation, and it is measurably right.** On the geographic ward
+map the DA looks dominant because the wards it wins are large and low-density,
+while ANC and MK wards are small and dense. Wards are *designed* to hold roughly
+equal population, so area carries no information at all — but it is what the eye
+reads.
+
+Measured on the committed `ward_winner_probs.csv` and `ward_paths.json`
+(135 wards):
+
+| party | wards won | % of seats | % of the map's ink | distortion |
+|---|---|---|---|---|
+| **ANC** | 66 | **48.9%** | **30.6%** | 0.63× |
+| **DA** | 51 | **37.8%** | **61.7%** | **1.63×** |
+| MK | 10 | 7.4% | 1.4% | **0.18×** |
+| PA | 6 | 4.4% | 4.7% | 1.07× |
+
+The largest ward has **142×** the bounding-box area of the smallest. The median
+DA ward is **4.2×** the median ANC ward and **6.6×** the median MK ward.
+
+**So the map shows the DA occupying nearly two-thirds of the visual field while
+the forecast has it second on seats.** That is the picture contradicting the
+headline, on the same page.
+
+### Options, in order of how well they fit this specific problem
+
+1. **Hex tile cartogram — one equal hexagon per ward.** ★ recommended.
+   135 hexes, each ward snapped to the nearest free cell on a hex grid by
+   minimising total displacement from its real centroid. Honest by construction
+   here, because **one ward returns exactly one councillor** — equal area is not
+   a distortion of the truth, it *is* the truth about representation. Used by the
+   FT, BBC and Guardian for UK constituencies for the same reason.
+2. **Dorling cartogram** — equal circles (or circles sized by registered voters)
+   repelled apart. Keeps rough position, loses shape and adjacency. Easier than
+   hexes, uglier.
+3. **Contiguous (Gastner–Newman) cartogram** — warp the real boundaries until
+   area ∝ voters. Keeps recognisable geography; hardest to implement and can look
+   grotesque at 135 units.
+4. **Ward strip** — 135 equal tiles sorted by margin, not by geography. Abandons
+   place entirely but shows the competitive middle better than any map.
+
+### The recommendation, and the reason it is not simply "replace the map"
+
+**Show both, side by side or on a toggle, and print the distortion figure
+between them.** Geography answers *where*; the cartogram answers *how many*. A
+reader who only sees the cartogram loses the real fact that the DA's support is
+spatially concentrated in the north — which is true, and interesting, and not a
+distortion.
+
+And the 1.63× / 0.63× table above is **publishable content in its own right**: it
+is a genuinely interesting fact about Johannesburg that most maps of it hide.
+
+**Implementation note.** `src/render_map.py` already computes ward centroids and
+writes an inline SVG between `__MAP_START__`/`__MAP_END__`. A hex layout is an
+assignment problem over those centroids and needs no new data. This is
+presentation work and belongs in this file, not on the model list.

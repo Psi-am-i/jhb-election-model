@@ -578,50 +578,165 @@ def test_every_tunable_constant_is_in_the_judgement_register():
     it will be mistaken for one that is measured -- and then none of them are
     trusted, which is that file's own stated reason for existing.
 
-    It drifted immediately. Within an hour of writing the rule down, a commit
-    added `POLL_HALF_LIFE_DAYS` and a recency-weighted aggregation and updated
-    neither register; an audit then found 27 constants missing from one or both.
+    **WIDENED 2026-08-23 (MODEL-LOG §1.86), because it inspected 53 names and
+    was structurally blind to every shape the failures actually took.** It read
+    only top-level `ast.Assign`, single target, UPPERCASE, literal int/float.
+    It therefore could not see:
 
-    OPERATIONAL names are exempt and listed explicitly: they control how the
-    computation runs, not what it believes. Everything else must be registered,
-    and adding a name to EXEMPT is itself a judgement someone has to write down.
+    * **numeric DEFAULT ARGUMENTS** — the `LEVEL_DF` shape, three instances,
+      the latest costing 5.6pp of ANC in the live forecast (§1.84);
+    * **argparse defaults** — where `w_recency = 0.70` and `kappa_bye = 0.25`
+      have lived since the original plan, unregistered, reaching the model
+      through 20 committed `turnout.csv` files that carry no artefact key;
+    * **container constants** — `PLAN_BOUNDS` (the plan's theta table),
+      `GAMMA_FOLD` (which fold the live forecast uses);
+    * **non-numeric `DEFAULTS` values** — `overhang_rule`, a legal
+      interpretation that sets council size and the majority threshold;
+    * **dataclass fields** — `Config.max_extrapolation`;
+    * **numbers in TOML** — `config/dimensions.toml`'s `min_oos_gain`, which
+      decides which census dimensions exist at all.
+
+    THREE PRINCIPLED FILTERS keep this from drowning in noise, and each is a
+    rule rather than a list:
+
+    1. **run control is not belief** — `draws`, `seed`, `jobs`, `tolerance`;
+    2. **a counter initialised to zero is not a claim** — `ModelRun`'s
+       accumulators start at 0 because that is what accumulators do;
+    3. **a container is a judgement only if it CONTAINS NUMBERS** — a table of
+       column names or file paths is structure; a table of bounds is belief.
+
+    Those three take 144 raw hits down to 26, which is the number a person can
+    actually triage. `EXEMPT` then names what is left and operational, and
+    adding to it is itself a judgement someone has to write down.
     """
     EXEMPT = {
         "SOLVE_TOL", "draws", "seed", "COUNCIL",      # run control, not belief
         "SD_FLOOR", "SD_CEILING",                     # bounds on a MEASURED fit
         "MIN_HOME_SPLITS",                            # registered under its own name
-        # `theta_residual.py` MEASURES the model; it is not part of it. BOOT is
-        # how many bootstrap replicates the interval is built from and BOOT_SEED
-        # makes that interval reproducible — neither is a claim about an
-        # election, and moving either cannot change a forecast by a seat. They
-        # are here rather than in the register because a register row that says
-        # "4000 replicates" teaches a reader nothing and dilutes the rows that
-        # do. See MODEL-LOG §1.59.
+        # `theta_residual.py` MEASURES the model; it is not part of it.
         "BOOT", "BOOT_SEED",
+        # --- operational residue surfaced by the 2026-08-23 widening ---
+        "timeout",        # HTTP timeouts in the three fetch_* tools
+        "steps",          # `_scale_into_box` solver iterations
+        "pad",            # logo whitespace in prep_logos
+        "simplify",       # polygon simplification for the map renderer
+        "min_seats",      # a REPORTING threshold in arrivals.py, not a model input
+        "LEVELS",         # the nominal coverage levels 50/80/90 a report prints
+        "LGE_YEARS", "LGE_ELECTIONS", "FOLDS",        # calendar/route structure
+        "independent_wards", "no_pr_list_wards",      # per-call council facts
     }
+    RUN_CONTROL = {"draws", "seed", "jobs", "n_jobs", "verbose", "tolerance",
+                   "report", "bins", "replicates", "boot", "max_draws",
+                   "chunk", "limit", "width"}
+
+    def _has_number(v):
+        if isinstance(v, bool):
+            return False
+        if isinstance(v, (int, float)):
+            return True
+        if isinstance(v, dict):
+            return any(_has_number(x) for x in v.values()) or any(
+                _has_number(k) for k in v)
+        if isinstance(v, (list, tuple, set, frozenset)):
+            return any(_has_number(x) for x in v)
+        return False
+
     reg = (ROOT / "JUDGEMENT-CALLS.md").read_text()
-    names = set()
+    found: dict[str, str] = {}          # name -> where it was seen
+
     for path in sorted(SRC.glob("*.py")):
-        for node in ast.parse(path.read_text()).body:
-            if isinstance(node, ast.Assign) and len(node.targets) == 1:
-                t = node.targets[0]
-                if isinstance(t, ast.Name) and t.id.isupper() and not t.id.startswith("_"):
-                    try:
-                        v = ast.literal_eval(node.value)
-                    except Exception:
-                        continue
-                    if isinstance(v, (int, float)) and not isinstance(v, bool):
-                        names.add(t.id)
+        tree = ast.parse(path.read_text())
+        for node in ast.walk(tree):
+            # (a) numeric default arguments
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                a = node.args
+                pairs = (list(zip(a.args[-len(a.defaults):], a.defaults))
+                         if a.defaults else [])
+                pairs += [(k, d) for k, d in zip(a.kwonlyargs, a.kw_defaults)
+                          if d is not None]
+                for arg, d in pairs:
+                    if (isinstance(d, ast.Constant)
+                            and isinstance(d.value, (int, float))
+                            and not isinstance(d.value, bool)
+                            and arg.arg not in RUN_CONTROL):
+                        found.setdefault(
+                            arg.arg,
+                            f"{path.name}:{node.lineno} {node.name}({arg.arg}={d.value})")
+            # (b) argparse defaults
+            if (isinstance(node, ast.Call)
+                    and isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "add_argument"):
+                flag = (node.args[0].value
+                        if node.args and isinstance(node.args[0], ast.Constant)
+                        else "")
+                name = str(flag).lstrip("-").replace("-", "_")
+                for kw in node.keywords:
+                    if (kw.arg == "default"
+                            and isinstance(kw.value, ast.Constant)
+                            and isinstance(kw.value.value, (int, float))
+                            and not isinstance(kw.value.value, bool)
+                            and name and name not in RUN_CONTROL):
+                        found.setdefault(
+                            name, f"{path.name}:{node.lineno} {flag}={kw.value.value}")
+        for node in tree.body:
+            # (c) dataclass fields with a NON-ZERO numeric default
+            if isinstance(node, ast.ClassDef):
+                for sub in node.body:
+                    if (isinstance(sub, ast.AnnAssign)
+                            and isinstance(sub.value, ast.Constant)
+                            and isinstance(sub.value.value, (int, float))
+                            and not isinstance(sub.value.value, bool)
+                            and sub.value.value != 0):
+                        found.setdefault(
+                            sub.target.id,
+                            f"{path.name}:{sub.lineno} {node.name}.{sub.target.id}")
+            # (d) module constants: scalars as before, PLUS containers holding numbers
+            if (isinstance(node, ast.Assign) and len(node.targets) == 1
+                    and isinstance(node.targets[0], ast.Name)):
+                n = node.targets[0].id
+                if n.startswith("_") or not n.isupper():
+                    continue
+                try:
+                    v = ast.literal_eval(node.value)
+                except Exception:
+                    continue
+                if isinstance(v, (int, float)) and not isinstance(v, bool):
+                    found.setdefault(n, f"{path.name}:{node.lineno} {n}")
+                elif (isinstance(v, (dict, tuple, list, set, frozenset))
+                        and _has_number(v)):
+                    found.setdefault(n, f"{path.name}:{node.lineno} {n}")
+
+    # (e) EVERY DEFAULTS value, numeric or not. `overhang_rule` is a string and
+    #     it sets the council size.
     import montecarlo as _mc
     for k, v in _mc.DEFAULTS.items():
-        if isinstance(v, (int, float)) and not isinstance(v, bool):
-            names.add(k)
-    missing = sorted(n for n in names - EXEMPT if n not in reg)
+        if isinstance(v, dict) and not v:
+            continue                     # `pools`/`entrant_geography`: data, not a value
+        found.setdefault(k, f"montecarlo.DEFAULTS[{k!r}]")
+
+    # (f) numbers in the TOML the model reads
+    import tomllib
+    for toml in [ROOT / "config" / "dimensions.toml"]:
+        if not toml.exists():
+            continue
+        def _walk(d, prefix=""):
+            for k, v in d.items():
+                if isinstance(v, dict):
+                    _walk(v, f"{prefix}{k}.")
+                elif isinstance(v, (int, float)) and not isinstance(v, bool):
+                    found.setdefault(k, f"{toml.name}:{prefix}{k} = {v}")
+        _walk(tomllib.loads(toml.read_text()))
+
+    missing = sorted(f"{n}   ({where})" for n, where in found.items()
+                     if n not in EXEMPT and n not in reg)
     assert not missing, (
-        "these tunable constants are not named in JUDGEMENT-CALLS.md:\n  "
+        f"{len(missing)} tunable constants are not named in JUDGEMENT-CALLS.md:\n  "
         + "\n  ".join(missing)
-        + "\nRegister each with its value, its evidence and its status, or add "
-          "it to EXEMPT with a reason if it is operational.")
+        + "\n\nRegister each with its value, its evidence and its status, or add "
+          "it to EXEMPT with a reason if it is operational. This test was widened "
+          "on 2026-08-23 and every category above was invisible to it before — "
+          "which is why `poll_half_life_days` could move 5.6pp of the live "
+          "forecast through a default argument nobody could sweep.")
 
 
 # ---------------------------------------------------------------------------

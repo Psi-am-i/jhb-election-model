@@ -300,3 +300,50 @@ size (the published roll); the turnout **centre** (the city's last local
 election); the turnout **correlation** (14 metro-transitions); the splinter
 fractions; the arrival record; contestation (nomination lists); γ (the folds);
 ward/PR split ratios; and the seat allocator, which is statute.
+
+---
+
+## H. The seventeen the register could not see until 2026-08-23
+
+**These were not added because anyone decided to declare them. They were named
+by a guard that could not see them until it was widened** (MODEL-LOG §1.86).
+`test_every_tunable_constant_is_in_the_judgement_register` inspected 53 names —
+top-level `ast.Assign`, single target, UPPERCASE, literal int/float — and was
+structurally blind to numeric default arguments, argparse defaults, dataclass
+fields, container constants, non-numeric `DEFAULTS` values, and every number in
+a TOML file. That blindness is exactly how `poll_half_life_days` moved 5.6pp of
+the live forecast through a default argument no sweep could reach (§1.84).
+
+Every row here is 🔴 — typed, never swept, no interval — unless it says
+otherwise. **None has been measured; several have never been moved at all.**
+
+| constant | value | where | what it decides | status |
+|---|---|---|---|---|
+| **`overhang_rule`** | `"deduct"` | `montecarlo.DEFAULTS` | **A LEGAL INTERPRETATION, and the highest-stakes row here.** Four regimes — `cap` / `level` / `deduct` / `expand` — give different council sizes AND different majority thresholds. Chosen in §1.17. Invisible to the old guard because it is a *string* | 🔴 |
+| **`w_recency`** | 0.70 | `turnout.py --w-recency` | Weight on the 2021 vs 2016 turnout drop-off. **Verbatim from the original plan §3.5**, whose own text asks for a fold-2 sensitivity test that `MODEL-LOG` never records. Reaches the model through 20 committed `turnout.csv` files that carry **no artefact key**, so changing it does nothing until someone re-runs the script and nothing announces the mismatch | 🔴 |
+| **`kappa_bye`** | 0.25 | `turnout.py --kappa-bye` | The by-election tilt in projected turnout. Same provenance and same artefact problem as `w_recency` | 🔴 |
+| **`w_split`** | 0.6 | `fold.py --w-split` | Down-weight applied to VDs flagged as unstable by the concordance. Plan §3.5, "Basis: Judgement". Baked into the fold parameter artefacts | 🔴 |
+| **`PLAN_BOUNDS`** | 7 party ranges | `montecarlo.py` | The plan's θ table, transcribed. Clamps the by-election channel and drives the §3.5 violation counter. **Six of eight metros have no `[judgements]` block at all**, so `apply_city` sets it to `{}` and the clamp is silently absent — four of sixteen panel city-years run with it, twelve without, which makes the 384 figure a mixture of two configurations | 🔴 |
+| **`GAMMA_FOLD`** | `{2026:1, 2021:1, 2016:3, 2011:4}` | `montecarlo.py` | Which γ fold each target may read. The code's own comment concedes that for 2026 *"the constraint alone does not pick one"* — the live forecast uses fold 1, the 2014→2016 fold, over the 2019→2021 one. A contestable choice on the published forecast | 🔴 |
+| **`min_oos_gain`** | 0.01 | `config/dimensions.toml` | **The bar a census dimension must clear to exist at all.** Age and sex are *rejected* by this number, so it is upstream of every pool in the model. `dimensions.toml` was not mentioned in this register once before today | 🔴 |
+| **`extrapolation_damping`** | 0.6 | `config/dimensions.toml` | Damping on ward composition extrapolated past Census 2022 — four years for the 2026 forecast. Typed three more times as a fallback in `pools.py` | 🔴 |
+| **`extrapolation_max_years`** / **`max_extrapolation`** | 8 / 8.0 | `dimensions.toml`, `pools.Config` | How far past the census the projection may reach. **Two copies of one number**, one in TOML and one as a dataclass field | 🔴 |
+| **`total_seats`** | 270 | `seats.allocate` | **Johannesburg's council size as a DEFAULT ARGUMENT in the shared allocator.** Every serious caller passes it explicitly; `leverage.py` does not, so it allocates any city's votes into a 270-seat council. The right fix is to make the argument required — a `TypeError` instead of a silently wrong answer | 🔴 |
+| **`within_rate`** | 0.90 | `pools.SIMULATION_BLOC`, `vote_located_bloc` | What share of a located bloc's vote falls inside its own pool, in the reader simulation. Three copies of one number | 🔴 |
+| **`SIMULATION_BLOC`** | container | `pools.py` | The reader-simulation bloc definition that `within_rate` sits in | 🔴 |
+| **`max_parties`** | 12 | `coalitions.analyse` | The enumeration bound on coalition subsets. Operational in flavour, but it silently truncates the coalition space if a council ever seats more than twelve parties — which the 2026 ballot could | 🔴 |
+| **`beta`** | 1.0 | `score.energy_score` | The energy score's exponent. It is part of **what "better" means**, so `ITERATING.md` is arguably its proper home | 🔴 |
+| **`BINS`** | 5 size bands | `theta_residual.py` | The size bands that produce §1.59/§1.77's headline. **The "≥15% of the vote" cut this register quotes as though it were natural is a chosen threshold** — move it and the measured interval moves | 🔴 |
+| **`THETA_CENTRAL`** | 6 party values | `leverage.py` | The original plan §3.5 *Default* column, verbatim. **`leverage.py` is imported by nothing**, so this does not reach a forecast — but §F lists its sibling `F_OTHER` beside two live constants without saying so | 🟡 not live |
+
+### What this section is for
+
+Not to be read. It is here so that the next audit starts from seventeen known
+gaps rather than from zero, and so that **B2's sweep has a list**: the
+Derivedness Debt in `ITERATING.md`'s Key 3 is computed from this register, and a
+register that cannot see a constant prices it at nothing.
+
+**The order to sweep them in is not the order above.** `overhang_rule` and
+`PLAN_BOUNDS` decide the most and are the least defended; `w_recency` and
+`kappa_bye` are the oldest unexamined inheritance; `min_oos_gain` is upstream of
+everything.
