@@ -8924,9 +8924,21 @@ term anywhere in the level layer, while ρ, the spine and the poll aggregate all
 have one. A transition three cycles back is pooled as the equal of one cycle
 back.
 
-**That is now the leading explanation by elimination**, and both of §1.70's
-named hypotheses are closed against it: Type A refuted (§1.74, re-measured
-§1.78), footprint real but worth 6 seats (here).
+> **BOTH SENTENCES ABOVE ARE WITHDRAWN (2026-08-23, §1.82).**
+>
+> **The comparison is false.** ρ and the spine use the *same*
+> `_reliability(share)`-only weighting θ does — `local_record` feeds `_shrunk`,
+> and the spine's `w = k / (worth + k)` has no time term. `levels.py`'s own
+> docstring states the policy: *"Recency is priced by construction, not by a
+> term."* Only the poll aggregate has a decay, and it is a DECLARED constant.
+>
+> **And "by elimination" does not follow.** A remedy failed a pre-registered
+> ship bar; the diagnosis was not refuted. §1.78 measures the Type A arm at 262
+> on the nine and 360 on the sixteen — 18 of the 26 seats — on this tree.
+>
+> Recency was then tested directly and **refuted**: held-out NLL is
+> *non-monotone* in the age of the record, and older observations repair what
+> the 2009→2011 transition breaks. §1.82.
 
 ### Condition 1 — FAILS
 
@@ -8971,13 +8983,145 @@ be read off this run.
   committed panel is unchanged at 384 / CRPS 329.4.
 * `DEMARCATION_CROSSING` stays in `levels.py` as a declared register with its
   evidence, so the next measurement does not rebuild it.
-* **§1.70's open decision is now closed.** Both hypotheses have been tested and
-  neither accounts for the regression. The next question is recency weighting in
-  the θ record, and §1.75's caution stands: a decay parameter fitted on these
-  city-years is a scoreboard fit under rule 10 unless its form is argued from
-  outside, so the honest first test is whether the record's own forward
-  validation (`src/theta_residual.py`) prefers a decayed fit — evidence
-  independent of the seat score.
+* ~~**§1.70's open decision is now closed.** Both hypotheses have been tested
+  and neither accounts for the regression. The next question is recency
+  weighting in the θ record~~ — **WITHDRAWN, §1.82.** The decision is NOT closed
+  and recency is NOT the next question. Type A accounts for 18 of the 26 seats
+  on this tree (§1.78), and this entry's own measurement shows the footprint and
+  the party events are **competing descriptions of one defect**: applied
+  together they score 366, *worse* than Type A's 360.
+  The caution that did hold is the method one — a decay fitted on these
+  city-years is a scoreboard fit under rule 10 — and following it is what
+  settled the question cheaply. The record's own forward validation was asked
+  first, and it **refused** a decay: held-out NLL is non-monotone in the age of
+  the record. §1.82.
+
+
+---
+
+## 1.82 Recency is refuted before it was fitted, and §1.81's "by elimination" was invalid (2026-08-23)
+
+An independent methodological review was commissioned on the open questions. It
+found two errors in §1.81 and both are conceded here in full. The measurements
+below were run to check it, and they confirm it.
+
+### Correction 1 — the premise for recency was FALSE, and it is in two entries
+
+§1.75 and §1.81 both argue:
+
+> *"`theta_record` weights an observation by `_reliability(share)` and by nothing
+> else. There is no recency term anywhere in the level layer, while ρ, the spine
+> and the poll aggregate all have one."*
+
+**The second half is wrong.** Read out of `src/levels.py`: `local_record` feeds
+`_shrunk`, which weights by `_reliability(s)` and nothing else — the *identical*
+weighting θ uses. The spine's blend is `w = k / (worth + k)` where `worth` is a
+sum of `_reliability` weights, again with no time term. `levels.py`'s own
+module docstring states the policy outright:
+
+> **"Recency is priced by construction, not by a term."** *The local result is
+> five years stale at polling day where the national is two. Each route is
+> corrected by a ratio fitted over its own gap … Nothing further is owed.*
+
+The only genuine decay in the stack is `POLL_HALF_LIFE_DAYS = 120.0`, itself a
+typed constant the register carries as DECLARED. So the argument "everything
+else has a recency term, θ should too" rests on one instance, and that instance
+is undefended. **An asymmetry that does not exist was the stated motivation for
+the next workstream.**
+
+### Correction 2 — "closed by elimination" does not follow, and the arithmetic says so
+
+§1.81 wrote that both of §1.70's hypotheses were closed and elected recency *"by
+elimination"*. **Nothing was eliminated. A remedy failed a pre-registered ship
+bar, which is a different fact.** §1.78 had already re-measured the Type A arm
+on the restored tree at **262 on the nine and 360 on the sixteen, CRPS 320.3** —
+18 of the 26 seats — and §1.74's own text says *"2009→2011 is beyond doubt the
+source of §1.70's 26 seats."* Declining a fix is not refuting a diagnosis, and
+§1.81 should not have stepped from one to the other.
+
+### The forward validation refutes recency directly, and it is not a scoreboard fit
+
+`THETA_WINDOW` was added to `levels.py` — a per-target window keeping only the
+*k* most recent transitions, which `THETA_EXCLUDE_TARGETS` cannot express
+because the same absolute year is the most recent transition for one target and
+three cycles back for another. Held-out NLL, **same held-out observations in
+every arm** (n=97 at 2016, n=138 at 2021), only the fitting record changes:
+
+| window | record at 2026 | 2016 fold | 2021 fold |
+|---|---|---|---|
+| 1 — most recent only | 138 | **0.6487** | **0.0722** |
+| 2 | 235 | 0.9033 | 0.5808 |
+| 3 | 320 | 0.7531 | 0.2419 |
+| unlimited | 410 | 0.7531 | 0.2280 |
+
+**It is not monotone, and that is the whole finding.** If age were the defect,
+NLL would rise with the window. Instead window 2 is the *worst* arm at both
+folds and window 3 partially repairs it. At target 2021, window 2 is
+`{2011, 2016}` and window 1 is `{2016}`: adding the 2009→2011 transition takes
+the fold from 0.0722 to 0.5808, and adding two *older* transitions on top brings
+it back to 0.2419.
+
+**Older observations repair what the 2011 transition breaks.** A decay is
+monotone in age by construction and cannot represent that. This agrees with
+§1.71's dispersion table from the opposite direction — 2004→2006 sd 0.226,
+2014-2021 sd 0.200, **2009→2011 sd 0.942** — where the oldest transition in the
+record is as clean as the newest.
+
+**Recency is refuted, on evidence independent of the seat score, before a
+parameter was fitted to it.** That is the order §1.61 asks for and the reason it
+cost one afternoon instead of a week.
+
+### Four arms, one tree, 1500 draws
+
+| arm | sixteen | nine | CRPS | 2016 cycle | 2021 cycle |
+|---|---|---|---|---|---|
+| A — default | 384 | 280 | 329.4 | — | — |
+| C — footprint (§1.81) | 368 | 274 | 324.7 | −12 | −4 |
+| **Type A (§1.78)** | **360** | **262** | **320.3** | **−10** | **−14** |
+| **both together** | **366** | **268** | **320.5** | **−10** | **−8** |
+
+**The two are not additive. They interfere.** Applying the footprint exclusion
+*on top of* Type A costs 6 seats against Type A alone (366 against 360) and buys
+nothing on CRPS. They overlap by construction — Type A removes COPE, the DA and
+the IFP at the 2011 transition across all eight metros, and the footprint rule
+removes Mangaung's and Buffalo City's entire 2011 transition, which contains
+those same parties. Between them they take out too much of that transition for
+those two metros.
+
+**So the footprint and the party events are competing descriptions of one
+defect, not two defects that sum.** §1.81's reading — that the footprint is real
+and worth 6 seats *in addition* — does not survive this. It is worth 6 seats
+*instead*, and Type A is the better instrument for the same contamination.
+
+### Cycle replication, which is the honest test on two effective clusters
+
+Both arms replicate — the sign holds in both cycles and neither cycle is a net
+loss:
+
+| arm | 2016 cycle | 2021 cycle |
+|---|---|---|
+| state C | 5 better, 0 worse, 3 unchanged | 2 better, 1 worse, 5 unchanged |
+| Type A | 4 better, 3 worse, 1 unchanged | 6 better, 1 worse, 1 unchanged |
+
+A paired bootstrap resampling metros gives state C −16 [−28, −4] on seats,
+−4.64 [−7.94, −1.29] on CRPS and −1.54 [−3.17, −0.34] on vote MAE. **Those
+intervals are anti-conservative and are not quoted as decisive**: eight metros
+inside one cycle share a national swing, so resampling metros treats correlated
+units as independent. The between-cycle replication above is the part that is
+honest, because the two cycles are genuinely different elections.
+
+### What this does to the record
+
+* **Recency (task #36) is closed as a negative result** before any parameter was
+  fitted. `THETA_WINDOW` stays as a declared harness, off by default.
+* **§1.70's regression is substantially accounted for** — the 2009→2011
+  transition, via party-structural events, at 18 of 26 seats measured.
+* **The open item is the one §1.74 already named and nobody built**: *"Route, do
+  not drop."* An exclusion moves the volatility out of the model's prior and
+  into its error; §1.74 measured that failure precisely, with `sd_for` at 5-15%
+  falling 0.203 → 0.150 while the measured dispersion stayed at 0.839.
+* **Nothing is adopted here.** All three flags remain off and the committed panel
+  is unchanged at 384 / CRPS 329.4.
 
 
 ## 2. External evaluation against forecasting best practice (2026-08-11)

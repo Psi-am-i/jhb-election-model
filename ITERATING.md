@@ -33,6 +33,95 @@ If yes, it is a candidate for publication. If no, it does not ship and we keep
 iterating. There is no third outcome in which a worse model is published because
 it is newer, better argued, or built from more measurements.
 
+### AMENDED 2026-08-23 BY THE OWNER — accuracy is necessary, and it is not sufficient
+
+The owner's amendment, in his words: *a model should ideally be better at
+forecasting but it should also be derived as far as possible*, and the bar
+needs to be **more nuanced** than a single seat total.
+
+He is right, and the reason is measurable rather than philosophical. **The
+instrument this section used was underpowered and pointed at the wrong
+quantity.** A cluster bootstrap of the sixteen-city-year coherent seat total
+gives **384 with a 95% interval of [258, 554]** — ±148. Every verdict this file
+has recorded on a 4-to-26 seat difference was read off a number whose own
+sampling uncertainty is thirty times larger. The comparisons are **paired** —
+same city-years, same seeds, same baselines — and the pairing was being thrown
+away. §1.82.
+
+Worse, §1.81's Condition 2 required a candidate's nine-city-year total to fall
+below **254**, a number produced by a model that had *less data*. That demands
+that adding true information never hurt a misspecified model, which is false in
+general and is the very symptom under investigation.
+
+So the bar has three keys. **A change must pass Keys 1 and 2. Key 3 may buy a
+bounded amount of Key 1, and may never buy Key 2.**
+
+**KEY 1 — the paired, cycle-replicated comparison.** For each of the sixteen
+city-years take the paired difference against the incumbent on identical seeds.
+Report the sign count and the sum **split by cycle** (2016: 8 metros; 2021: 8).
+The pass condition is *replication*, not a p-value:
+
+> the sign of the effect is the same in **both** cycles, **no cycle shows a net
+> loss**, and at least one cycle has ≥5 of 8 city-years strictly better.
+
+**Do not quote a p-value from the eight metros inside a cycle.** They share one
+national swing, so the binomial and the metro bootstrap are both
+anti-conservative — a metro-resampled interval of [−28, −4] on a 16-seat effect
+is narrower than the truth. Between-cycle replication is honest because the two
+cycles are genuinely different elections. This is rule 11's language, applied to
+seats for the first time.
+
+This instrument can resolve a consistent moderate effect and cannot resolve a
+small one; on ~2 effective clusters that is a fact about the panel, not a defect
+of the test. **Anything below "most metros, both cycles, same direction" is
+`undetermined`, not `adopted`.**
+
+**KEY 2 — calibration is a floor, not a currency.** CRPS must not worsen beyond
+its noise, and the level-free width statistics on the `reference` population
+must not worsen. **Key 2 is not tradeable.** A worse-calibrated model actively
+misleads a reader, and honest intervals are this project's whole public claim.
+Accuracy can be bought with a good story; calibration cannot.
+
+**KEY 3 — derivedness, priced in the same units as the score.** *"More derived"*
+must be measured or it becomes rhetoric and will be used as such. Define
+**Derivedness Debt**, in coherent seats:
+
+    D = SUM over constants i of  s_i * L_i
+
+where `L_i` is the constant's **leverage** — the range of panel seat error as it
+is swept across its declared defensible range, which `sweep.py` already does —
+and `s_i` is its **undefendedness**: typed with no range 1.0, a point off a
+record with no interval 0.5, bounded only by a sweep on this panel 0.25,
+measured with an interval 0, forced by arithmetic 0. `D` is "how many seats of
+this forecast are decided by numbers nobody can defend", and it is a committed
+harness artefact, never a claim in prose.
+
+**The trade, and the four things that stop it becoming a licence:**
+
+* **A — non-inferiority, not equivalence-with-excuses.** The trade is available
+  only where Key 1 returns `undetermined`. A *replicated* loss fails, whatever
+  `D` does. You may buy past noise; you may not buy past a measurement.
+* **B — a budget that never refills.** **12 coherent seats on the sixteen**,
+  about 3% of 384 and well inside the margin over uniform swing (384 vs 530).
+  Every trade spends from it; it is never topped up. Without this, "derived but
+  slightly worse" is a ratchet that walks the model downhill one defensible step
+  at a time. **This number is DECLARED, not measured** — see
+  `JUDGEMENT-CALLS.md`.
+* **C — the debt must be RETIRED, not relabelled.** A constant counts only when
+  it is deleted from `src/` and its register row is gone. Replacing
+  `X = 0.35` with `X = 0.35  # now justified by a paragraph` retires nothing.
+* **D — pre-register the derivedness claim, not only the score claim.** Before
+  the run: which register rows this retires, what the replacement is estimated
+  from, **how many independent clusters that record has**, and the expected `D`.
+  §1.80 is the template, and it is why §1.81 is a result rather than a
+  rationalisation.
+
+**What does not change.** Rule 10 still forbids choosing the deciding parameter
+on the scoreboard; rule 11 still requires saying which validation loop a fit is
+in; and a change that is *materially* worse still does not ship, however
+elegant. The amendment widens what counts as better — it does not remove the
+requirement to measure.
+
 ## What follows from that
 
 1. **Score against history and against baselines, not against ourselves.** The

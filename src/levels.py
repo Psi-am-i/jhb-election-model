@@ -427,6 +427,25 @@ DEMARCATION_CROSSING: frozenset[tuple[str, str]] = frozenset({
 EXCLUDE_DEMARCATION_CROSSING = _os.environ.get(
     "EXCLUDE_DEMARCATION_CROSSING", "").lower() in ("1", "true", "yes")
 
+# HOW MANY TRANSITIONS BACK THE theta RECORD REACHES.
+# ---------------------------------------------------------------------------
+# **AN EXPERIMENT HARNESS, UNLIMITED BY DEFAULT** — with `THETA_WINDOW` unset
+# the record is exactly what it was and no number moves.
+#
+#     THETA_WINDOW=1 .venv/bin/python src/theta_residual.py
+#
+# `THETA_EXCLUDE_TARGETS` can only name absolute LGE years, which is the wrong
+# shape for a RECENCY question: "keep the last k transitions" is relative to
+# each target, and the same absolute year is the most recent transition for one
+# target and three cycles back for another. That is why this exists separately.
+#
+# The question it was built for (MODEL-LOG §1.82): `theta_record` weights an
+# observation by `_reliability(share)` — how much of the vote it was measured
+# off — and by NOTHING ELSE, while rho, the spine and the poll aggregate all
+# carry a recency term. A transition three cycles back is pooled as the equal
+# of one cycle back.
+THETA_WINDOW = int(_os.environ.get("THETA_WINDOW", "0") or 0)
+
 
 def _crosses_demarcation(code: str, lge_year: str) -> bool:
     """Is this (metro, transition) one the 2011 demarcation makes incomparable?"""
@@ -460,10 +479,19 @@ def theta_record(target: cityconfig.Target,
     """
     lge = sorted((y for y, e in cityconfig.CALENDAR.items()
                   if e.kind == "LGE" and e.results), key=int)
+    # THETA_WINDOW: keep only the k most recent transitions before this target.
+    # Computed per target, which is the whole point — see THETA_WINDOW.
+    if THETA_WINDOW > 0:
+        earlier = [y for y in lge if int(y) < int(target.year)]
+        keep = set(earlier[-THETA_WINDOW:])
+    else:
+        keep = None
     out: dict[str, list[tuple[float, float]]] = defaultdict(list)
     for year in lge:
         if int(year) >= int(target.year):
             continue                      # strictly before the target
+        if keep is not None and year not in keep:
+            continue                      # see THETA_WINDOW
         if year in THETA_EXCLUDE_TARGETS:
             continue                      # see THETA_EXCLUDE_TARGETS
         npe = cityconfig.preceding(year, "NPE")
