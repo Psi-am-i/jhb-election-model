@@ -8874,6 +8874,112 @@ only way a known direction can still be informative.
 | 3 holds, 1 or 2 fails | the mechanism is real but too small to clear a bar set in advance; record and do not ship |
 
 
+---
+
+## 1.81 State C measured against its pre-registered bar: the mechanism is REAL and it is SMALL (2026-08-23)
+
+Measured against §1.80, committed before the run. **Condition 3 passes.
+Conditions 1 and 2 fail.** By §1.80's own outcome table that reads: *the
+mechanism is real but too small to clear a bar set in advance; record and do not
+ship.* Nothing is adopted; `EXCLUDE_DEMARCATION_CROSSING` stays off.
+
+### The measurement, 1500 draws, all three states on the restored tree
+
+| | A — default | B — §1.75's over-exclusion | **C — crossing pairs only** |
+|---|---|---|---|
+| observations removed | 0 | 44 | **27** |
+| **sixteen city-years** | 384 | 368 | **368** |
+| §1.70's original nine | 280 | 272 | **274** |
+| **CRPS** | 329.4 | 329.0 | **324.7** |
+
+Per city-year, A → C: seven better, one worse (eThekwini 2021, +2), eight
+unchanged.
+
+### Condition 3 — PASSES, and it is the informative one
+
+**State C matches state B's 368 exactly, using 17 fewer exclusions, and beats
+both on CRPS by 4.3 and 4.7.**
+
+This is what §1.80 said would identify the mechanism. State B threw away MAN and
+BUF's `npe2004 → lge2006` observations along with the crossing pairs — 17
+observations whose endpoints both sit inside the old footprint and which the
+demarcation argument does not reach. Removing them buys **nothing on seats and
+costs CRPS**. So the crossing pairs carry the entire seat gain and the clean
+observations were doing useful probabilistic work.
+
+**The footprint is a real, correctly identified defect in the record.** That is
+a genuine result and it is the first direct evidence for §1.70's first
+hypothesis.
+
+### Condition 2 — FAILS, and this is the one that matters
+
+The bar was the original nine falling below the **pre-ingest 254**. State C
+reaches **274**. It recovers **6 of the 26 seats** the panel doubling cost.
+
+So the footprint explains **under a quarter** of the regression, and about
+twenty seats of it are something else. §1.75 named the candidate and this
+sharpens it: the record weights an observation by `_reliability(share)` — how
+much of the vote it was measured off — and by nothing else. There is no recency
+term anywhere in the level layer, while ρ, the spine and the poll aggregate all
+have one. A transition three cycles back is pooled as the equal of one cycle
+back.
+
+**That is now the leading explanation by elimination**, and both of §1.70's
+named hypotheses are closed against it: Type A refuted (§1.74, re-measured
+§1.78), footprint real but worth 6 seats (here).
+
+### Condition 1 — FAILS
+
+Held-out NLL, committed estimator, same tree:
+
+| target | state A | state C | |
+|---|---|---|---|
+| 2006 | −0.5555 | −0.5555 | unchanged |
+| 2011 | 5.5915 | 5.5915 | unchanged |
+| 2016 | 0.7531 | **0.9512** | worse |
+| 2021 | 0.2280 | **0.2014** | better |
+
+Wins one fold, loses the other — "undetermined" under §1.61, the same verdict
+§1.62's two refits and §1.74's Type A received. The 2006 and 2011 folds are
+untouched, correctly: a target's fit uses transitions strictly before it, so a
+2011 transition cannot reach them.
+
+### Why it is not shipped, when it is a genuine data-quality defect
+
+Rule 10 permits this exclusion — it has independent justification, documented in
+`DATA-QUALITY.md` item 13 before any of this was measured, and keyed on the
+demarcation date rather than on any residual. So it *could* ship on the argument
+alone.
+
+It does not, for one reason: **the bar was fixed in advance and it was not met.**
+A 16-seat gain on the sixteen with a split NLL and a nine-city-year total still
+20 seats above the pre-ingest baseline is exactly the shape of result this
+project has adopted before and had to retract. §1.80 set three conditions
+precisely so that a real-but-small effect could be told apart from a fix, and it
+did its job. The finding is recorded with its number so nobody rediscovers it.
+
+**What would change this**: the exclusion becomes shippable if the recency
+question is settled first and the footprint correction is then measured *on top*
+of it. If most of the remaining twenty seats is recency, a record that already
+discounts old transitions may make these 27 observations irrelevant — or may
+make the footprint the only thing left. Either is worth knowing, and neither can
+be read off this run.
+
+### Disposition
+
+* Nothing adopted. `EXCLUDE_DEMARCATION_CROSSING` is off by default and the
+  committed panel is unchanged at 384 / CRPS 329.4.
+* `DEMARCATION_CROSSING` stays in `levels.py` as a declared register with its
+  evidence, so the next measurement does not rebuild it.
+* **§1.70's open decision is now closed.** Both hypotheses have been tested and
+  neither accounts for the regression. The next question is recency weighting in
+  the θ record, and §1.75's caution stands: a decay parameter fitted on these
+  city-years is a scoreboard fit under rule 10 unless its form is argued from
+  outside, so the honest first test is whether the record's own forward
+  validation (`src/theta_residual.py`) prefers a decayed fit — evidence
+  independent of the seat score.
+
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model
