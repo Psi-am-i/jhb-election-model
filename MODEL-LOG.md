@@ -8577,6 +8577,203 @@ touch. Every one of these three was found by a guard that was already there and
 already failing.
 
 
+---
+
+## 1.78 The loss is dated to a four-hour window, and everything measured inside it is re-run (2026-08-23)
+
+§1.75 established that six raw inputs left `data/raw/elections` between §1.70's
+measurement and its commit. It could not say **when**, so it could not say what
+else was measured against the damaged record. This does.
+
+### Dating it
+
+`levels._citywide` can be monkeypatched to return `{}` for exactly those six
+paths, which reconstructs the damaged tree **in memory, touching no file**. Run
+`theta_residual` under it:
+
+| | n | at ≥15% | on `SD_FLOOR` | sd at ≥15% |
+|---|---|---|---|---|
+| state A (restored, today) | 403 | 64 | 26 | 0.273 |
+| state B (reconstructed) | **370** | **58** | **16** | **0.206** |
+| **§1.71 as published** | **370** | — | — | **0.208** |
+
+**§1.71 was measured in state B.** Its n=370 is not a rounding difference or a
+different script — `theta_residual.py` has not changed since 20 August — it is
+the damaged record, exactly.
+
+The same technique settles the live forecast. Comparing party medians and 5/95
+intervals for all 22 parties:
+
+| comparison | parties whose statistics differ |
+|---|---|
+| state A run 1 vs run 2 | **0 of 22** |
+| committed `forecast_summary.json` vs state A | **4 of 22** |
+| committed vs reconstructed state B | **0 of 22** |
+
+So `forecast_summary.json`, written **22 Aug 13:32**, was built in state B. And
+`history.json`, written **09:43**, reproduces state A to the seat. **The six
+files left between 09:43 and 13:32 on 22 August**, and everything derived after
+09:43 is suspect.
+
+### A caveat on reproducibility, because the obvious check does not work
+
+Two runs of the same seed, same draw count and same tree are **not**
+byte-identical. 201 leaves differ, all inside `scenario.theta_prior`, at the
+last representable digit (1.0776853790229006 against …008) — floating-point
+summation order, the same effect `CLAUDE.md` records for the parallel
+`compare_history` at 6.7e-15.
+
+**So byte-equality is the wrong instrument for a Monte Carlo artefact here, and
+none of the above rests on it.** A seeded draw stream IS reproducible — that is
+why the golden pins `numpy 2.5.1`, and `test_drawer_is_deterministic_for_a_fixed
+_seed` passes — but the JSON around it is not. What is stable is the party
+statistics, and the table above uses those: run-to-run noise is zero parties, so
+a four-party difference is signal. Bit-equality was used in exactly one place
+where it is the right standard — the γ fold 3 refit (§1.75), a least-squares fit
+rather than a simulation.
+
+### Re-run and re-scored
+
+* **`forecast_summary.json`, `seat_draws.csv`, `coalition_*.csv`,
+  `ward_winner_probs.csv`, `ward_paths.json`** — regenerated at 1500 draws, seed
+  20261104, on the restored tree. **Every median is unchanged** (DA 79, ANC 63,
+  ASA 24, EFF 23, MK 22, PA 19); four interval endpoints move by one seat — DA
+  p95 108→110, MK p95 54→55, PA p95 31→30, ANC p5 25→24. A provenance
+  correction, not a forecast change.
+* **`data/processed/joburg/2021/*`** (written 13:08) — same batch, regenerated.
+* **§1.71's dispersion figures** — corrected in §1.77 and in `JUDGEMENT-CALLS.md`
+  before this entry was written.
+* **The published site is NOT affected.** `site/*.html` is from 17 August, older
+  than the ingest and older than the damage.
+* **`history.json` / `history.md` needed nothing** — state A, verified.
+
+### §1.74's Type A measurement, re-run in state A
+
+§1.74's arm was measured in state B and compared against a baseline of 280 taken
+from §1.70 — a **state-A** number. The comparison was therefore across two
+trees. Re-measured properly, both arms in state A, 1500 draws:
+
+| | no filter | Type A filter | change |
+|---|---|---|---|
+| sixteen city-years | 384 | **360** | **−24** |
+| §1.70's original nine | 280 | **262** | **−18** |
+| CRPS | 329.4 | **320.3** | **−9.1** |
+
+Held-out NLL, same tree:
+
+| target | no filter | Type A | |
+|---|---|---|---|
+| 2006 | −0.5555 | −0.5555 | unchanged |
+| 2011 | 5.5915 | 5.5915 | unchanged |
+| 2016 | 0.7531 | **0.8611** | worse |
+| 2021 | 0.2280 | **0.0036** | better |
+
+**The verdict is unchanged and the numbers are not.** Condition 1 required both
+folds to improve; 2016 still worsens, so it is "undetermined" under §1.61.
+Condition 2 required the nine to fall below the pre-ingest 254; 262 does not.
+**REFUTED stands.**
+
+But §1.74 recorded the filter as worth 20 seats on the nine against a baseline
+from another tree, and it is worth **18 against its own**, with CRPS improving
+9.1 — which §1.74 could not see, because a mixed comparison hides the size of
+what it is comparing. The filter is a closer call than the entry made it look,
+and it still does not clear a bar that was fixed in advance. That is the bar
+working.
+
+
+---
+
+## 1.79 The inventory guard already existed. It was twelve days stale and wired to nothing (2026-08-23)
+
+Asked for a guard that every data file is ingested and in use, the first thing
+to check was whether one existed. **It did.** `src/archive.py` hashes every raw
+input with its provenance into `data/archive_manifest.csv`, and that manifest is
+one of only three files under `data/` that git tracks — deliberately, because
+`data/**` is gitignored and its own docstring says the manifest "goes in git
+even though the bytes do not".
+
+It had been built on **10 August** and not since. It held **none** of the 21
+files §1.70's ingest produced on the 22nd. And **nothing ran it** — no test, no
+script, no hook.
+
+**So it would not have caught the deletion**, and it is worth being exact about
+why rather than claiming a near-miss: `--verify` reports files it knows about,
+and it had never heard of the six. The failure was not that the tool was absent
+or wrong. It was that the tool was **out of date and unwired**, which is the
+same failure as the four blind guards of §1.75 one layer up.
+
+### Why nobody ran it
+
+Two reasons, both fixed.
+
+**It exited 1 every time.** 44 of 393 files had no entry in
+`archive.PROVENANCE` and were labelled `UNRECORDED -- add to src/archive.py`:
+the 28 boundary extracts for the seven metros other than Johannesburg, the eight
+per-metro `_metros/` result files, the six pre-2011 source zips, and Tshwane's
+two clipped ward layers. Every one of them is documented in `SOURCES.md` — the
+all-metro sweep of 2026-08-07 and the unlinked pre-2011 bulk export — so the
+provenance existed and the table simply had per-JHB rows where it needed
+prefixes. Added; it exits 0 on all 393.
+
+**Its output is 90% noise.** The manifest covers `data/processed` as well, and
+those files change on every run, so `--verify` reports ~100 differences that
+mean nothing. The new tests therefore assert over **`data/raw` only** — inputs
+are immutable, which is what makes them assertable — and say so in the file, so
+the next person does not "helpfully" widen it and switch the guard off again.
+
+### `tests/test_data_coverage.py`
+
+Seven checks, three directions, wired into `run_all.py`:
+
+| direction | check |
+|---|---|
+| recorded → present | `test_the_manifest_still_finds_every_raw_input_it_recorded` — **the §1.75 guard.** Existence and size on every run |
+| present → recorded | `test_every_raw_input_on_disk_is_in_the_manifest` — keeps the manifest in date, without which the guard above checks a stale subset |
+| content | `test_raw_input_hashes_match_when_asked` — full SHA-256, opt-in behind `ARCHIVE_VERIFY_HASHES=1` because re-hashing 517MB on every suite run buys little over size. Exercised once here: all 393 clean |
+| expected → present | `test_every_election_the_record_expects_is_present_or_declared_absent` — the CALENDAR walk, moved here from `test_temporal`, which is about temporal leakage |
+| declared → justified | `test_a_declared_absence_carries_a_reason_somebody_can_read` |
+| **held → ingested** | `test_every_archive_the_ingest_can_key_is_ingested_or_declared` — if `ingest_historic.MUNI_HEAD` can key an archive, the file is derivable **today**, so no derived file means data on disk that nothing has ever read |
+| **present → reachable** | `test_no_election_file_on_disk_is_unreachable` — a file no CALENDAR template can name. The mirror of §1.75: there a wanted file was absent; here a present file is invisible |
+
+And, because a guard that only ever passes is indistinguishable from no guard,
+`test_the_missing_input_guard_actually_fires` feeds the manifest check a row for
+a file that is not there and requires it to fail — §1.75 in miniature, on every
+run.
+
+### What the two new directions found immediately
+
+* **Five archives are held and have never been ingested**: `lge2000` for
+  Tshwane, Cape Town, Mangaung, Nelson Mandela Bay and Buffalo City. The
+  national CSV is in `_source/`, `MUNI_HEAD` has the municipality strings, and
+  the ingest is deterministic — this is data the project holds and has not used.
+  All five are declared in `levels.KNOWN_ABSENT`. **Ingesting them adds θ and ρ
+  observations and moves every number here**, so it is a measurement to be run
+  deliberately, not a chore, and it must not be done while §1.70's regression is
+  open (task P2c).
+* **Two files are unreachable and it is deliberate**: `lge2016_JHB_vd_party.csv`
+  and `lge2021_JHB_vd_party.csv`, the original IEC downloads, kept because
+  `data/**` is gitignored and they are the only copy of what was actually
+  fetched. The model reads the parsed `_clean` files beside them, whose columns
+  differ (`VotingDistrict` → `VD_Number`). Declared in `UNREACHED_BY_DESIGN`.
+
+### One open question this raised, left open rather than closed quietly
+
+`lge2011_JHB_vd_party_clean.csv` and `lge2011_TSH_vd_party_clean.csv` **changed
+on 11 August** — 3.96MB → 3.23MB and 2.71MB → 2.18MB, about 19% smaller each —
+between the manifest's build on the 10th and today. Both are 12 days older than
+any current measurement, both reconcile, both carry only `PR` and `Ward` ballots,
+and the model that reads them is green and verified. The commits either side
+concern independents and ballot handling, which is a plausible cause and is not
+evidence.
+
+**The refreshed manifest now blesses the current bytes, and that is recorded
+here rather than left silent**, because a manifest refresh is exactly the kind
+of act that launders an unexplained change into a canonical one. Anyone
+depending on those two files should establish the cause first; re-running the
+ingest and comparing is the cheap way, and it is the technique that settled
+§1.75.
+
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

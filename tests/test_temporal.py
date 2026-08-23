@@ -471,80 +471,10 @@ def test_metro_roster_and_vote_presence_still_agree_where_the_poll_path_looks():
         assert roster, f"{party} has an empty {year} roster — the archive moved"
 
 
-def test_every_election_the_record_expects_is_present_or_declared_absent():
-    """CLASS 17 — AN INPUT CAN LEAVE THE RECORD WITHOUT ANYTHING GOING RED.
+# The two data-coverage tests that lived here from 2026-08-23 moved to
+# tests/test_data_coverage.py, which owns that subject in full. This file
+# is about TEMPORAL leakage. MODEL-LOG §1.78.
 
-    This is the test that did not exist on 2026-08-22, and its absence cost a
-    published headline its reproducibility for a day.
-
-    `levels._citywide` caught `FileNotFoundError` and returned `{}`. The θ and ρ
-    records cannot distinguish that from a metro which contested nothing, so
-    when Mangaung's and Buffalo City's six pre-2011 files left
-    `data/raw/elections/` — after §1.70 had ingested them, verified them at 100%
-    reconciliation, fitted γ fold 3 from them and measured the panel with them
-    present — twelve transitions simply vanished. The committed scoreboard said
-    384 coherent seats; the tree scored 368; the artefact key did not notice,
-    because it hashes `dimensions.toml` and `pools.py` and not the archive; and
-    every test passed. MODEL-LOG §1.75.
-
-    So: walk the CALENDAR the way `theta_record` walks it, and require every
-    file it will open to exist OR to be named in `levels.KNOWN_ABSENT` with a
-    reason. A new absence fails here, in a second, instead of silently moving
-    the forecast.
-    """
-    sys.path.insert(0, str(ROOT / "src"))
-    import cityconfig as CC
-    import levels as L
-
-    elections = ROOT / "data" / "raw" / "elections"
-    undeclared, declared = [], 0
-    for year in sorted((y for y, e in CC.CALENDAR.items()
-                        if e.kind == "LGE" and e.results), key=int):
-        npe = CC.preceding(year, "NPE")
-        if not npe:
-            continue
-        templates = (CC.CALENDAR[npe].results, CC.CALENDAR[year].results)
-        if not all(templates):
-            continue
-        for tag, template in zip((npe, year), templates):
-            for code in L.METRO_CODES:
-                name = template.replace("{CODE}", code)
-                if (elections / name).exists():
-                    continue
-                key = (name.split("_")[0], code)
-                if key in L.KNOWN_ABSENT:
-                    declared += 1
-                else:
-                    undeclared.append(f"{name}  (transition {npe} -> {year})")
-
-    assert not undeclared, (
-        "election files the θ/ρ record expects, which are neither on disk nor "
-        "declared absent:\n  " + "\n  ".join(sorted(undeclared))
-        + "\n\nEither restore them — `.venv/bin/python src/ingest_historic.py "
-          "--city <city> --year <tag>` rebuilds the pre-2011 archives "
-          "deterministically and byte-identically — or add each to "
-          "`levels.KNOWN_ABSENT` with the reason it is meant to be missing.\n"
-          "Do not 'fix' this by adding entries to make it pass: an absence "
-          "declared without a reason is the empty dict this test replaced.")
-    assert declared, (
-        "nothing is declared absent at all, so this test has stopped "
-        "exercising the KNOWN_ABSENT path and would not catch a wrong entry")
-
-
-def test_a_declared_absence_carries_a_reason_somebody_can_read():
-    """`KNOWN_ABSENT` is a register, and §1.68's rule applies to it too."""
-    sys.path.insert(0, str(ROOT / "src"))
-    import levels as L
-
-    assert L.KNOWN_ABSENT, "the declared-absence register is empty"
-    for key, reason in L.KNOWN_ABSENT.items():
-        assert isinstance(key, tuple) and len(key) == 2, (
-            f"{key!r} is not an (archive tag, metro code) pair")
-        assert len(reason.split()) >= 12, (
-            f"{key} is declared absent with the reason {reason!r}. That is not "
-            f"a reason, it is a label. The whole cost of the failure this "
-            f"register exists to stop was that an absence looked deliberate "
-            f"and nobody could tell whether it was.")
 
 if __name__ == "__main__":
     # AT THE END, AND IT HAS TO BE. Until 2026-08-23 this block sat at line 411

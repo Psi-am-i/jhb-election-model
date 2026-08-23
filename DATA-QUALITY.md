@@ -501,6 +501,13 @@ absences are recorded deliberately — Ekurhuleni and eThekwini in `lge2000`
   > the θ record simply lost twelve transitions in silence. Re-ingesting
   > reproduces the two totals above to the vote, so the loss is repairable;
   > what is not repairable by re-ingesting is that no guard noticed.
+  >
+  > **Restored, dated and guarded (§1.78–§1.79).** The files left between
+  > 09:43 and 13:32 on 22 August — `history.json` at 09:43 reproduces the
+  > restored tree exactly, and `forecast_summary.json` at 13:32 matches the
+  > damaged one on all 22 parties. Everything derived after 09:43 has been
+  > re-run. `tests/test_data_coverage.py` now fails if any recorded raw input
+  > goes missing, changes size, or sits on disk without being recorded.
 * γ fold 3 now fits for all eight metros, which is what the 2016 targets need.
 
 ### Caveat on the pre-2011 footprint, especially Mangaung and Buffalo City

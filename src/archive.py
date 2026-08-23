@@ -51,6 +51,28 @@ PROVENANCE = {
     "data/raw/geo/wards2026_JHB": "MDB FeatureServer MDBWards2026, via src/fetch_boundaries.py",
     "data/raw/geo/vds2026_JHB": "MDB FeatureServer VotingDistricts2026_Final, via src/fetch_boundaries.py",
     "data/raw/geo/votingstations2026_JHB": "MDB FeatureServer VotingStations_March2026, via src/fetch_boundaries.py",
+    # THE ALL-METRO SWEEP (2026-08-07, SOURCES.md "All-metro sweep").
+    # Until 2026-08-23 only the Johannesburg entries above existed, so the
+    # seven other metros' boundary extracts — 28 files — carried "UNRECORDED"
+    # and `archive.py` exited 1 every time it was run. That is a large part of
+    # why nobody ran it, and a manifest nobody runs is the tracked record of
+    # `data/**` going stale: it was twelve days out of date when six raw inputs
+    # went missing (MODEL-LOG §1.75). Longest-prefix wins, so the per-JHB rows
+    # above still take precedence.
+    "data/raw/geo/wards2026_": "MDB FeatureServer MDBWards2026, via src/fetch_boundaries.py --muni <CODE>",
+    "data/raw/geo/vds2026_": "MDB FeatureServer VotingDistricts2026_Final, via src/fetch_boundaries.py --muni <CODE>",
+    "data/raw/geo/votingstations2026_": "MDB FeatureServer VotingStations_March2026, via src/fetch_boundaries.py --muni <CODE>",
+    "data/raw/geo/wards2020_": "MDB FeatureServer SA_Wards2020 (2021 LGE delimitation), via src/fetch_boundaries.py --muni <CODE>",
+    "data/raw/geo/wards2011_": "derived: src/build_geo.py, clipped from wards2011_SA",
+    "data/raw/geo/wards2016_": "derived: src/build_geo.py, clipped from wards2016_SA",
+    # Per-metro LGE Downloadable Party Results at VD level. `pools.metro_file`
+    # reads these as its first fallback, so they ARE in use; their header
+    # differs from the `_clean` files (`PartyName`), which pools.py handles.
+    "data/raw/elections/_metros/": "results.elections.org.za LGEPublicReports Downloadable Party Results per metro, via src/fetch_iec.py (all-metro sweep)",
+    # The pre-2011 national bulk export: one zipped national CSV per election,
+    # at a path linked from no page of either IEC site and absent from the
+    # downloads portal — SOURCES.md "The pre-2011 archive". Six files.
+    "data/raw/elections/_source/": "elections.org.za/content/uploadedfiles/{YYYY}%20{NPE|LGE}.zip — unlinked national bulk export, archived 2026-08-09/10",
     "data/raw/byelections/": "results.elections.org.za by-election dashboard MapsJason, via src/fetch_byelections.py",
     "data/raw/covariates/Ward-Product": "statssa.gov.za Ward-level Small Area Population Estimates 2022",
     "data/raw/covariates/Ward Product_Locked spreadsheets/": "unpacked from statssa.gov.za Ward-Product_Locked-spreadsheets.zip",
