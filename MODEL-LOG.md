@@ -9124,6 +9124,114 @@ honest, because the two cycles are genuinely different elections.
   is unchanged at 384 / CRPS 329.4.
 
 
+---
+
+## 1.83 The amended bar had a hole that would have shipped the thing we decided not to ship (2026-08-23)
+
+The independent review was asked to critique `PLAN-TO-LIVE.md`. It found a
+defect in the **bar**, not the plan, and it is the more serious of the two.
+
+### Applying the amendment as written, to the numbers §1.82 had just produced
+
+| | Key 1 — paired, cycle-replicated | Key 2 — calibration floor | verdict |
+|---|---|---|---|
+| state C | 2016 5 better / 0 worse (−12); 2021 2 / 1 (−4) | CRPS 329.4 → **324.7** | **PASSES** |
+| **bare Type A** | 2016 4 / 3 (−10); 2021 6 / 1 (−14) | CRPS 329.4 → **320.3** | **PASSES** |
+
+**The bare Type A filter passes.** It is the one change §1.74, §1.82 and the
+plan all agree must *not* ship — because an exclusion moves volatility out of
+the model's prior and into its error, which §1.74 measured directly.
+
+The old §1.61/§1.74 condition — *held-out NLL must improve in both folds* — was
+the guard against exactly that, and the amendment dropped it while rewriting the
+seat instrument. **Key 2 does not catch it**, and the reason is the diagnostic:
+both rejected exclusions **improve CRPS while worsening the estimator's held-out
+NLL at 2016** (Type A 0.7531 → 0.8611, state C 0.7531 → 0.9512). That divergence
+is the signature of trading accuracy on the parties the model already handles
+against accuracy on the parties it does not.
+
+### KEY 4, added
+
+> **The estimation record is a floor too.** Held-out NLL on `theta_residual`'s
+> folds must not worsen in **either** fold. Not tradeable.
+
+Keys 1 and 2 score the **panel**, where parties undergoing structural events are
+a handful of columns among hundreds, on ~2 effective clusters. Key 4 scores the
+**estimator on those parties**, on 18. It restores rule 11's logic to a bar that
+had lost it.
+
+It is a **floor** (must not worsen), not §1.74's **gate** (must improve in both
+folds). A change may be NLL-neutral and ship on the panel; it may not ship while
+making the estimator worse where the record is thickest.
+
+**State C's disposition, stated rather than left on the floor:** passes Keys 1
+and 2, **fails Key 4**, does not ship. Under the amended bar that is a clean
+verdict rather than §1.81's judgement call — and §1.82's interference result says
+it is a worse description of the same defect, not an independent gain.
+
+### Two stale figures in the canonical artefact, one of them self-reproducing
+
+**`compare_history` was TYPING a model figure into the report it generates.**
+Every `history.md` carried the literal string *"quote the sign count as **8 of 9
+city-years, 8 of which are one election**"* — a nine-city-year claim, still being
+emitted onto a **sixteen**-city-year report, into the artefact every other
+document is audited against, and which `build_site.py` then builds the public
+pages from. `test_the_documented_figures_match_the_committed_artefact` parses
+`ITERATING.md`'s two marked tables and **nothing parses generated prose**, so
+§1.77's re-read could not reach it.
+
+It now **computes** the count. Measured on the committed scoreboard:
+
+> **12 wins, 2 losses, 2 ties across sixteen city-years — 2016: 7W 1L 0T;
+> 2021: 5W 1L 2T.** The sign replicates across cycles.
+
+That is a *better* claim than the one it replaces, and it is the one the amended
+bar's own Key 1 asks of any candidate. The losses are Tshwane 2016 (18 against
+uniform swing's 10) and Mangaung 2021 (10 against 8); eThekwini 2021 and Buffalo
+City 2021 tie.
+
+**And `ITERATING.md` rule 1 still said "42% off uniform swing inside Gauteng, 10%
+outside"** — nine-city-year figures against the artefact's **30% and 24%**.
+Corrected. Same cause: the audit covers rule 8's tables and nothing else.
+
+`CLAUDE.md` says never type a model figure into prose. It was being done inside
+the generator that produces the prose.
+
+### What else the review changed in the plan
+
+* **The plan's central claim was over-broad.** *"The model is good enough to ship
+  today"* is true of a model and not of the 2026 configuration: a 48-seat channel
+  the panel scores is **dark** at 2026 (no national poll in the register), a
+  channel that decides the 2026 headline fires at **one** backtest city-year, and
+  nine typed constants are live at 2026 and inert in every backtest. Rewritten so
+  the configuration difference **leads** the page rather than sitting in a caveat.
+* **B5 was scheduled inside the live window** — between the lists and polling day,
+  on the tree that must produce the published revision, moving every number.
+  Moved to **after 4 November**. §1.75 is the entry about what happens when the
+  archive shifts under a live artefact.
+* **A4 was badly under-scoped.** Eleven `mode="fixed"` tokens on the live front
+  page are sourced to `run:turnout_tilt_da=1`, a lever `run_model` no longer has,
+  and because they are fixed the drift audit is **silent by construction**. It is
+  the only place this project currently publishes numbers it cannot reproduce.
+* **The go/no-go moved from 1 September to 27 August** and is now gated on A1 and
+  A2 being *done*, not on a date.
+* **B1 is gated by an afternoon, not a week**: pre-register, then measure held-out
+  NLL on both folds first — it runs on a fit, not 1500 draws, and on 18 clusters.
+  Bare Type A fails that gate today.
+* **B2 promoted** from chore to risk management: it is the only measurement that
+  says how much of the November forecast is decided by typed constants.
+* **Both B4 code defects confirmed** by reading the source. The `sd_for` covariate
+  one moved into B1 as a prerequisite.
+
+### The lesson, which is the same one twice
+
+An amendment to a bar is a change to the model's acceptance criteria, and it
+needs the same treatment as a change to the model: **state what it would have
+decided about the cases already on the table.** Had that been done when the
+amendment was written, the hole would have been visible in one line, because the
+cases were already measured and sitting in §1.82.
+
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model

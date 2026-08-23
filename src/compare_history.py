@@ -1440,16 +1440,22 @@ def _headline_split(results: list[dict]) -> list[str]:
     """The headline margin over uniform swing, split Gauteng against the rest.
 
     **Disclosure, not tuning — this table exists to be quoted against us.** The
-    pooled "beats uniform swing 8 of 9" is true and it is concentrated: inside
-    Gauteng the model takes 42% off uniform swing's seat error, outside it 10%,
-    and it LOSES at Mangaung. For a Johannesburg product that is the reassuring
-    reading — the margin is where the product is. For the multi-city portal it
-    is not, and a reader who computes this for themselves after the fact and
-    finds it undisclosed has a much better story than one who reads it here.
+    margin is concentrated: inside Gauteng the model takes far more off uniform
+    swing's seat error than outside it, and it LOSES at Mangaung. For a
+    Johannesburg product that is the reassuring reading — the margin is where
+    the product is. For the multi-city portal it is not, and a reader who
+    computes this for themselves after the fact and finds it undisclosed has a
+    much better story than one who reads it here.
 
-    Also worth saying because eight of the nine city-years are the same
-    election: the panel cannot separate "this model is better" from "this model
-    is better at the 2021 Gauteng fragmentation shock."
+    **THE SIGN COUNT IS COMPUTED, NOT TYPED (2026-08-23).** Until then this
+    function ended by printing the literal string *"8 of 9 city-years, 8 of
+    which are one election"* into every generated `history.md` — a
+    nine-city-year figure, still being emitted onto a SIXTEEN-city-year report
+    after §1.70, into the canonical artefact every other document is audited
+    against. §1.77's re-read did not reach it because the audit test parses
+    `ITERATING.md`'s two marked tables and nothing parses generated prose. The
+    percentages in this docstring went the same way and are gone for the same
+    reason. `CLAUDE.md`: never type a model figure into prose.
     """
     groups = [("Gauteng (JHB, TSH, EKU)", lambda r: r["slug"] in GAUTENG),
               ("everywhere else", lambda r: r["slug"] not in GAUTENG)]
@@ -1475,13 +1481,41 @@ def _headline_split(results: list[dict]) -> list[str]:
             f"{100 * (1 - mc / uc):.0f}% |" if u and uc else
             f"| {label} | {len(sel)} | {m:.0f} | {u:.0f} | — | {mc:.1f} | "
             f"{uc:.1f} | — |")
-    out.append("\n**The headline margin is a Gauteng result.** Outside Gauteng "
-               "the model is close to parity with uniform swing on seats and "
-               "loses at Mangaung. Quote the split, not the pool — and quote "
-               "the sign count as *\"8 of 9 city-years, 8 of which are one "
-               "election\"*, because eight of the nine share the 2021 national "
-               "swing and under any honest clustering the effective sample is "
-               "two.")
+    # The sign count, per cycle, computed from these results.
+    def _tally(rows):
+        w = l = t = 0
+        for r in rows:
+            o = r["opponents"].get("uniform-swing", {})
+            u = o.get("seat_abs_err")
+            if u is None:
+                continue
+            m = r["seat_abs_err_coherent"]
+            w, l, t = (w + (m < u), l + (m > u), t + (m == u))
+        return w, l, t
+
+    cycles = sorted({r["year"] for r in results})
+    w, l, t = _tally(results)
+    per = "; ".join(
+        "{}: {}W {}L {}T".format(y, *_tally([r for r in results if r["year"] == y]))
+        for y in cycles)
+    replicates = all(
+        _tally([r for r in results if r["year"] == y])[0]
+        > _tally([r for r in results if r["year"] == y])[1] for y in cycles)
+    out.append(
+        f"\n**The headline margin is a Gauteng result.** Outside Gauteng the "
+        f"model is closer to parity with uniform swing on seats and loses at "
+        f"Mangaung. Quote the split, not the pool.\n\n"
+        f"**Sign count against uniform swing: {w} wins, {l} losses, {t} ties "
+        f"across {len(results)} city-years** — {per}. "
+        + ("The sign REPLICATES across cycles, which is what the amended bar's "
+           "Key 1 asks of any candidate and is the strongest claim this panel "
+           "supports. "
+           if replicates and len(cycles) > 1 else
+           "The sign does NOT replicate across cycles; do not quote the pooled "
+           "count without saying so. ")
+        + f"Metros inside one cycle share a national swing, so {len(results)} "
+        f"city-years is {len(cycles)} effective clusters, not {len(results)} — "
+        f"never quote a p-value off the pooled count.")
     return out
 
 

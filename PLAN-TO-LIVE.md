@@ -24,15 +24,38 @@ since and each moves an item:
 
 ## The single decision this plan turns on
 
-**The model is good enough to ship today.** 384 coherent seats against uniform
-swing's 530 on sixteen city-years, beating it by *more* on the 2016 cycle
-(30.0%) than the 2021 one (26.3%) — the only genuinely out-of-sample statement
-this project has ever been able to make.
+**The model's STRUCTURE is validated. The 2026 CONFIGURATION is not the thing
+that was validated, and the difference must lead the published page.**
+
+The structure is in good shape: **12 wins, 2 losses, 2 ties against uniform
+swing across sixteen city-years — 7-1 on the 2016 cycle, 5-1-2 on the 2021 one.**
+It replicates across two genuinely different elections, which is exactly what
+the amended bar asks of any candidate. (It loses at Tshwane 2016 and Mangaung
+2021; quote the split, not the pool.)
+
+**But 384 is not a statement about the forecast being shipped**, and an earlier
+draft of this plan wrongly treated it as one. The panel scores a configuration
+that differs from the 4 November one in three ways, in both directions, and no
+backtest can score any of them:
+
+* **A 48-seat channel the panel scores is DARK at 2026.** The arrivals poll path
+  — measured at 48 coherent seats (§1.65) — requires a national-scope poll, and
+  the register holds none for 2026. The backtest earned part of its margin from
+  a channel that will be switched off on polling day.
+* **A channel that decides the 2026 headline is UNSCORED by any panel.** The
+  metro poll path fires at exactly one backtest city-year and is worth 2 seats
+  there. Nothing in the panel scores a single unreplicated house deciding a
+  metro — which is what happens at 2026.
+* **Nine typed constants are live at 2026 and inert in every backtest** — the
+  `w_bye` family and five poll levers. `JUDGEMENT-CALLS.md` §G says the panel
+  cannot bound them *even in principle*.
+
+That is not a reason to delay. It is the reason **A2 governs the headline rather
+than sitting in a caveat box.**
 
 So every modelling item below is optional and every publishing item is not.
-**The plan is therefore ordered by deadline, not by interest**, and it carries
-one freeze date: **10 September**. Anything not passing by then does not go into
-the 16 September forecast.
+**The plan is ordered by deadline, not by interest.** Model freeze **8
+September**; documentation and re-scoring freeze **14 September**.
 
 ---
 
@@ -64,8 +87,16 @@ The largest single risk to the November forecast, and it is not in the θ record
 **Publish the poll-off / poll-on split beside the headline.** It is cheap,
 honest, and forecloses the criticism that will otherwise land hardest.
 
-*(Figures above are quoted from the review and the register; verify each against
-a fresh run before it goes on the page.)*
+**Blocking checklist item, not a footnote: every figure above must be RE-DERIVED
+on the settled tree before it goes on a page.** The seat numbers come from a run
+neither this plan nor the review reproduced. The *preconditions* are confirmed —
+four 2026 polls, none national, `montecarlo.py`'s national-scope gate on the
+arrivals path — the seat movements are not.
+
+**And A2 governs the headline.** It covers all three configuration differences
+named at the top of this plan, not only the metro poll: the dark 48-seat channel,
+the unreplicated house, and the nine constants live at 2026 that no backtest can
+bound.
 
 ### A3. Chase one national 2026 poll ★ start now, long lead time
 
@@ -74,11 +105,31 @@ at 2026** — not for want of code, but because no national 2026 poll is in the
 register. One acquisition re-enables the whole channel. This has external lead
 time, so it starts today and runs in parallel with everything else.
 
-### A4. Rebuild the live pages against the current model
+**And pre-register the poll-admission rule NOW, before any new poll exists** —
+which houses are admissible, what `poll_house_k` does at H=2, what happens to the
+cap. Seven weeks of campaign sit between the lists and polling day and SRF will
+publish again. A rule written after seeing the next wave is not a rule.
 
-The site HTML is from 17 August and predates the panel doubling, the poll
-rebuild and every correction since. Ten front-page claim tokens are still pinned
-to `turnout_tilt_da`, a lever `run_model` no longer has.
+### A4. Rebuild the live pages ★ blocking, and badly under-scoped in the first draft
+
+**This is the only place in the project currently publishing numbers it cannot
+reproduce**, and the first draft filed it as routine.
+
+`site/index.html` (17 August) carries a fact-check of Helen Zille's 490,000-voter
+claim in which **eleven `mode="fixed"` stat tokens** — `claim_short_by` 39 seats,
+`claim_da_median` 97, `claim_anc_wards_surged` 62, `claim_poll_surged` 1,290,000
+and the rest — are each sourced to `run:turnout_tilt_da=1`, **a lever `run_model`
+no longer has**. `content/joburg/stats.toml` already carries the warning, dated
+2026-08-17: *"They are not wrong; they are unauditable, which for this project is
+the same thing."* Because the tokens are `fixed`, the drift audit is **silent by
+construction** — it cannot report a token it is told not to recompute.
+
+The fix is a **content decision**, not a build step: either re-express the
+scenario through the per-pool turnout bands, or retire the claim section. It
+cannot be done in the hour before a deploy. **Decide it this week.**
+
+Also: the site is rebuilt *from* `history.md`, so the generator fixes of
+2026-08-23 must land first.
 
 Rule: **never type a model figure into prose** — register it as a stat token and
 let `build_site.py` audit it.
@@ -88,6 +139,24 @@ let `build_site.py` audit it.
 Dated and mechanical. Retires `contestation_expand`, makes contestation live,
 and withdraws the phantom entrant mass. Then re-run, re-score, and publish the
 revision under §5c's stated rule.
+
+**Decide the rollback rule NOW, before the lists land.** §5c predicts the lists
+are worth about ±3 seats to the PA and ∓2 to the DA. If the real lists move the
+forecast by twenty, §5c's reporting rule does not cover it — it assumes the
+movement lands inside the published band. **This is the only genuinely
+out-of-sample test `contestation_expand` will ever get**, and choosing how to
+report it after seeing the result is exactly what pre-registration exists to
+prevent.
+
+### A6. The seven weeks between the lists and polling day ★ missing from the first draft
+
+16 September to 4 November is the window in which an unstructured decision is
+most likely, and the first draft simply stopped at A5. Fix now:
+
+* **an update cadence** — how often the forecast is re-run and republished;
+* **a final-revision cutoff** — the date after which nothing changes but the
+  clock;
+* **the poll-admission rule from A3**, in force and published.
 
 ---
 
@@ -107,21 +176,82 @@ from 4.24× to 5.58×.
 So route the volatility into the **width**, through the splinter and arrivals
 machinery that already exists, instead of letting it vanish.
 
-**This is not backtest-only.** The 2026 prior is fitted on transitions that
-include 2009→2011, and 2026's own party structure is dense with Type A events —
-MK's split from the ANC (Dec 2023), ActionSA, the PA's growth.
+**Half the first draft's live-forecast justification was wrong, and the review
+checked it.** `levels.TYPE_A_EVENTS` has keys `2011`, `2016`, `2021` and **no
+2026 row** — nor should it under the register's own coding rules: the 2026
+transition is 2024 NPE → 2026 LGE, MK contested 2024 so it exists at both ends,
+the ANC schism pre-dates the base, and the PA is explicitly excluded as Type B.
+**Under its own rules the register flags nothing at 2026.** So B1's 2026 benefit
+comes through the *drop* half — a `sd_for` no longer inflated by 2009→2011 — and
+the routing half is inert there unless a 2026 row is added and labelled as a live
+judgement no backtest can score.
 
-Pre-register per §1.80. Judge under the amended bar. **Timebox: freeze 10
-September.**
+### What "route, do not drop" means mechanically
 
-### B2. Sweep the nineteen never-swept constants
+Four components, and the fourth is what makes it work:
+
+1. **Carry the event on the observation.** `theta_record` emits
+   `(ratio, share)`; emit `(ratio, share, event)`. Zero free parameters — the
+   register is exogenous and already written.
+2. **Fit `mu_all`, `size_centre` and `sd_for` on Type B only.** This is the drop,
+   and §1.74 already measured it.
+3. **Estimate the event component from the observations just removed** —
+   `(mu_class, sd_class)` per class, pooled where n is 1–2 **and said so**.
+   §1.71 gives the material: 0.942 with events, 0.244 without. **The CENTRE must
+   move too, not only the width** — `MERGER_ABSORBED` has E[log θ] > 0 (DA
+   1.378–1.577), `SPLIT_PARENT` < 0 (IFP 0.465), `POST_FORMATION_COLLAPSE` ≪ 0
+   (COPE 0.115–0.282). Routing width alone leaves the model unbiased-and-wide on
+   exactly the parties it most needs to be right about. **This is the component
+   most likely to be got wrong.**
+4. **Apply it as a BASE-RATE MIXTURE, not a per-party flag.** Every party draws
+   from the event distribution with probability `p_event` and from Type B
+   otherwise, where `p_event` is the observed rate of Type A party-transitions in
+   the record (to be computed, with an interval). This is the design decision: it
+   means the model **cannot become narrower** — the §1.72-predicted, §1.74-measured
+   failure — it works at 2026 **with no 2026 register row**, it makes the prior
+   heavier-tailed as the external review separately recommends, and it introduces
+   **zero typed constants**, so it is neutral-to-positive on Key 3.
+
+**Prerequisite, not a separate item: fix `sd_for`'s covariate (was B4).** Every
+observation of a party shares one x-value taken at the **target**, while
+`_reliability` weights by the **base** share. COPE at 7.4% of the 2009 base and
+near zero later lands at the small-party end of the size axis where the slope is
+steepest — a plausible mechanism for why one contaminated transition moves the
+whole dispersion curve. Confirmed in the code by the review.
+
+### Gate it with an afternoon, not a week
+
+The sensitive instrument is `theta_residual`'s held-out NLL: it runs on a fit
+rather than 1500 draws, touches no `pools_*.json`, and sits on **18 clusters
+rather than 2**.
+
+> **Pre-register, then measure held-out NLL on both folds FIRST. If it does not
+> improve at both 2016 and 2021, stop.**
+
+Bare Type A fails that gate today (2016: 0.7531 → 0.8611). A correct mixture
+should pass it, because the 2016 fold's held-out set contains AGANG and
+MINORITY_FRONT — precisely the observations a Type-B-only prior assigns near-zero
+density to. **That turns B1 from "a week that might not land" into "an afternoon
+gate, then a week only if it passes."**
+
+Pre-register per §1.80. Judge under the amended bar, Key 4 included. **Model
+freeze 8 September.**
+
+### B2. Sweep the nineteen never-swept constants ★ DO THIS FIRST in Track B
+
+Filed as a chore in the first draft. It is **risk management**, and it belongs
+this week.
+
+It is the only measurement that says **how much of the November forecast is
+decided by typed constants**. With the arrivals poll path dark, 2026's entrant
+handling rests on `entrant_prob = 0.25`, `ARRIVAL_BAND_LO/HI` and the
+never-swept `ALPHA_*` family that feeds *83–98% of drawn variance*. That is the
+second-largest live risk after the poll channel and the first draft did not name
+it as a risk at all.
 
 One afternoon, changes no forecast, and it is the derivedness ledger's first
-entry — it converts nineteen "unknown" register rows into nineteen numbers.
-`ALPHA_*` feed the model's dominant width lever and have never been swept.
-
-This is the cheapest defensibility gain available and it directly serves the
-amended bar's Key 3.
+entry — nineteen "unknown" register rows become nineteen numbers. **Publish the
+result as part of A2.**
 
 ### B3. Separate the width channel from the centre channel
 
@@ -131,25 +261,32 @@ One arm with the new observations feeding the centre and `sd_for` frozen, one
 the reverse. If the width arm carries most of the 26, the fix is in `sd_for`'s
 specification, not in the record's membership.
 
-### B4. Two code-level defects raised by the review — verify, then decide
+### B4. The by-election half-life, confirmed
 
-* **`sd_for`'s covariate may be inconsistent with the record's weighting.**
-  `_reliability(share)` weights by the *base* share; the dispersion fit appears
-  to regress on the party's size *at the target*, one x-value per party. For a
-  party like COPE — 7.4% at the 2009 base, near zero at a later target — that
-  places a contaminated residual at the small-party end where the slope is
-  steepest.
-* **The by-election decay may conflate τ with a half-life.** Inert today
-  (`w_bye_local_*` is 0.0), wrong the day it is switched on.
+`byelections.py` applies `exp(-age/tau)` with `tau = 18.0` and help text calling
+it a *"recency half-life in months"*. That is a **mean lifetime**: the actual
+half-life is 18·ln2 ≈ **12.5 months**. `montecarlo.py` carries the same 18.0 as
+`bye_tau_months`, and `polling.py` does the equivalent conversion correctly.
 
-**Verify both against the code before acting.** Neither is confirmed.
+**Inert today** — `w_bye_local_ward` and `w_bye_local_pr` are both 0.0 — and
+**wrong the day either is switched on**, which is a 2026-live path. Fix the
+naming or the arithmetic, and say which. Cheap.
 
-### B5. Ingest the five held-but-never-ingested `lge2000` archives
+*(The `sd_for` covariate defect that was the other half of this item has moved
+into B1, where it is a prerequisite rather than an option.)*
 
-Data already on disk with `MUNI_HEAD` keys written (§1.79). `ITERATING.md` says
-the only thing licensing a restart is **more independent clusters**, and this is
-exactly that. But it moves every number, so: **after 16 September, on a settled
-tree, once**, under the one-writer rule.
+### B5. Ingest the five held `lge2000` archives — **AFTER 4 NOVEMBER**
+
+Data already on disk with `MUNI_HEAD` keys written (§1.79), and `ITERATING.md`
+says the only thing licensing a restart is **more independent clusters**, which
+this is.
+
+**Moved out of the live window on review.** The first draft scheduled it between
+the lists landing and polling day — on the very tree that must produce the
+published revision, moving every number. §1.79 says it *"moves every number here,
+so it is a measurement to be run deliberately"*, and §1.75 is the entry about
+what happens when the archive shifts under a live artefact. Its value is more
+clusters for the *next* iteration and it has **no November deadline at all.**
 
 ---
 
@@ -172,27 +309,54 @@ tree, once**, under the one-writer rule.
 
 ---
 
-## Sequencing, and the one hard rule
+## Sequencing, and the two hard rules
 
 ```
-now ──────────────► 10 Sep ────────► 16 Sep ──────────────► 4 Nov
- A1 freeze+hash      FREEZE          lists land            polling
- A2 poll caveat      B1 in or out    A5 re-run+revise
- A3 chase a poll                     A4 pages rebuilt
- B2 sweep (cheap)
- B1 routing (timeboxed)
-                                     B5 lge2000 ingest
+now ─────────► 27 Aug ────────► 8 Sep ──────► 14 Sep ──► 16 Sep ────────► 4 Nov ──────►
+ A1 freeze+hash  GO/NO-GO       model         docs        lists land      polling
+ A2 headline     on Track B     freeze        freeze      A5 re-run       A6 cadence
+ A4 decide Zille                                          + rollback rule  in force
+ A3 chase a poll + admission rule
+ B2 sweep (this week)
+ B1 NLL gate ──► B1 build only if the gate passes
+                                                                          B5 lge2000
 ```
 
-**One writer on `pools_*.json`, and nobody measures while it writes.** B1, B5
-and every re-emit touch it. Canonical numbers come from **one settled run at the
-end**, and every figure quoted anywhere comes from that run.
+**Rule 1 — one writer on `pools_*.json`, and nobody measures while it writes.**
+B1, B5 and every re-emit touch it. Canonical numbers come from **one settled run
+at the end**, and every figure quoted anywhere comes from that run.
+
+**Rule 2 — the go/no-go on Track B is 27 August, not 1 September.** The first
+draft checked on 1 September, by which time up to nine days of Track B effort
+would already be spent and B1's timebox would straddle the check. **Gate Track B
+on A1 and A2 being DONE**, not on a date: freeze and hash the stage-1 forecast,
+publish the configuration caveat, then decide.
 
 ---
 
 ## What would make me abandon Track B entirely
 
-If A1, A2 and A4 are not comfortably done by **1 September**, drop Track B. The
-model at 384 already beats every baseline and the marginal seat is worth far
-less than a published, hashed, honest forecast that exists before the lists
-close.
+If **A1, A2 and the A4 content decision** are not done by **27 August**, drop
+Track B. The model already replicates 12-2-2 against uniform swing across two
+cycles, and the marginal seat is worth far less than a published, hashed, honest
+forecast that exists before the lists close.
+
+**A4 is the binding constraint** — it needs a content decision on the Zille
+section plus a rebuild against a model that has moved, and under this plan's own
+rule it blocks Track B.
+
+---
+
+## State C's disposition, stated rather than left on the floor
+
+State C — the footprint exclusion, 384 → 368, CRPS 324.7, replicating 5-0 and
+2-1 across cycles — **passes Keys 1 and 2 and FAILS Key 4** (held-out NLL at 2016
+0.7531 → 0.9512).
+
+**It does not ship.** Under the amended bar that is now a clean verdict rather
+than the §1.81 judgement call it was, and §1.82's interference result says it is
+a *worse description of the same defect* B1 addresses, not an independent gain.
+If B1 does not land by the freeze, C may be revisited as an interim — **but only
+with its NLL result printed beside it.**
+
+An unremarked pass is how the last one got lost.

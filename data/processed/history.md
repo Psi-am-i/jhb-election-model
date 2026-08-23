@@ -30,7 +30,9 @@
 | Gauteng (JHB, TSH, EKU) | 6 | 204 | 292 | 30% | 172.4 | 292.0 | 41% |
 | everywhere else | 10 | 180 | 238 | 24% | 157.0 | 238.0 | 34% |
 
-**The headline margin is a Gauteng result.** Outside Gauteng the model is close to parity with uniform swing on seats and loses at Mangaung. Quote the split, not the pool — and quote the sign count as *"8 of 9 city-years, 8 of which are one election"*, because eight of the nine share the 2021 national swing and under any honest clustering the effective sample is two.
+**The headline margin is a Gauteng result.** Outside Gauteng the model is closer to parity with uniform swing on seats and loses at Mangaung. Quote the split, not the pool.
+
+**Sign count against uniform swing: 12 wins, 2 losses, 2 ties across 16 city-years** — 2016: 7W 1L 0T; 2021: 5W 1L 2T. The sign REPLICATES across cycles, which is what the amended bar's Key 1 asks of any candidate and is the strongest claim this panel supports. Metros inside one cycle share a national swing, so 16 city-years is 2 effective clusters, not 16 — never quote a p-value off the pooled count.
 
 **Read the two seat-error columns together.** *seat err (median)* uses the per-party marginal median, which is what the per-party tables below show and which **does not sum to a council** — the *medians sum to* column says by how much. *seat err (coherent)* apportions the mean seat vector by largest remainder, so it IS a chamber and is the only one comparable to the baselines, which allocate per draw and sum exactly. Lower is better throughout.
 

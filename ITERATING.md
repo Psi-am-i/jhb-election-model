@@ -53,8 +53,8 @@ below **254**, a number produced by a model that had *less data*. That demands
 that adding true information never hurt a misspecified model, which is false in
 general and is the very symptom under investigation.
 
-So the bar has three keys. **A change must pass Keys 1 and 2. Key 3 may buy a
-bounded amount of Key 1, and may never buy Key 2.**
+So the bar has three keys. **A change must pass Keys 1, 2 and 4. Key 3 may buy a
+bounded amount of Key 1, and may never buy Key 2 or Key 4.**
 
 **KEY 1 — the paired, cycle-replicated comparison.** For each of the sixteen
 city-years take the paired difference against the incumbent on identical seeds.
@@ -81,6 +81,33 @@ its noise, and the level-free width statistics on the `reference` population
 must not worsen. **Key 2 is not tradeable.** A worse-calibrated model actively
 misleads a reader, and honest intervals are this project's whole public claim.
 Accuracy can be bought with a good story; calibration cannot.
+
+**KEY 4 — the ESTIMATION RECORD is a floor too, and it is not tradeable.**
+Held-out NLL on `theta_residual`'s folds must not worsen in **either** fold.
+
+**This key exists because the first draft of this amendment did not have it, and
+an independent review showed the bar would then have shipped the bare Type A
+filter** — the one change §1.74, §1.82 and the plan all agree must NOT ship,
+because an exclusion moves volatility out of the model's prior and into its
+error. Checked against §1.82's own table: Type A improves both cycles (−10,
+−14) and improves CRPS (329.4 → 320.3), so it passes Keys 1 and 2 cleanly. The
+old §1.61/§1.74 condition — held-out NLL must improve in both folds — was the
+guard against exactly that, and dropping it opened the hole.
+
+Keys 1 and 2 score the **panel**, where the parties undergoing structural events
+are a handful of columns among hundreds. Key 4 scores **the estimator on those
+parties**. Without it a change can get better at the parties the model already
+handles by getting worse at the parties it does not — and both rejected
+exclusions have precisely that signature: CRPS improves while held-out NLL at
+2016 worsens (Type A 0.7531 → 0.8611, state C 0.7531 → 0.9512).
+
+It also restores rule 11's logic to this bar: Keys 1 and 2 run on ~2 effective
+clusters, Key 4 on 18.
+
+**Note the asymmetry, which is deliberate.** Key 4 is a *floor* (must not
+worsen), not §1.74's *gate* (must improve in both folds). A change may be
+NLL-neutral and ship on the panel; it may not ship while making the estimator
+worse where the record is thickest.
 
 **KEY 3 — derivedness, priced in the same units as the score.** *"More derived"*
 must be measured or it becomes rhetoric and will be used as such. Define
@@ -140,8 +167,18 @@ requirement to measure.
    a blend, and **loses leave-one-out, 380 against 376.** MODEL-LOG §1.57.
 
    What is NOT settled, and is the live objection to the headline, is that the
-   margin is a **Gauteng** result: 42% off uniform swing inside Gauteng, 10%
-   outside, and a loss at Mangaung. `history.md` prints the split; quote it.
+   margin is a **Gauteng** result: **30% off uniform swing inside Gauteng, 24%
+   outside** (16 city-years, 2026-08-23), and a loss at Mangaung. `history.md`
+   prints the split; quote it. *The 42% / 10% this rule carried until 2026-08-23
+   was a nine-city-year figure and was left behind by §1.70 — §1.77's re-read
+   did not reach it because the audit test parses only rule 8's two marked
+   tables.*
+
+   And quote the **sign count**, which is now the strongest thing this project
+   can say: **12 wins, 2 losses, 2 ties against uniform swing across sixteen
+   city-years — 7-1 on the 2016 cycle and 5-1-2 on the 2021 one.** It replicates
+   across two genuinely different elections, which is what the amended bar's own
+   Key 1 asks of any candidate.
 2. **A change is not an improvement until it is scored.** Measured, out of
    sample, across as many city-years as the data supports (`src/sweep.py`,
    `src/compare_history.py`, `src/diagnose.py`).
