@@ -1,7 +1,11 @@
 # Polling register — evidence for the δ/θ levers
 
-Swept 2026-08-05. Anchors the polling lever endpoints; never fed in raw
-(triangulate, do not anchor — plan §8.3). Update this file per wave.
+Swept 2026-08-05. **The title and this line are historical**: `polling_lean`
+and `polling_span`, the "polling lever endpoints" this file was written to
+anchor, were DELETED on 2026-08-17 (§1.69). Metro polls now enter the forecast
+directly through `polling.py`'s inverse-variance blend, not as lever endpoints.
+This file is now the register's provenance and its reading of the historical
+record. Update it per wave.
 
 | Pollster / wave | Fieldwork | Geography | n / method | Numbers |
 |---|---|---|---|---|
@@ -88,11 +92,23 @@ in the metros where the model is currently silent.
 South African municipal elections*, which is where the single national poll is
 tabulated; thesouthafrican.com for the ActionSA-commissioned poll.
 
-## Integration path (agreed design, pending adoption decision)
-1. `polling_lean` endpoints re-anchored to the current spread (Ipsos-style ↔
-   SRF-Jul); default lean stays 0 until a second house corroborates.
-2. CoJ-specific numbers may tilt θ modes via an explicit `w_poll` (clamped to
-   §3.5 ranges, like `w_bye`) — NOT yet implemented; adoption changes
-   published numbers and needs a decision + measured run.
+## Integration path — SUPERSEDED, and this is what shipped instead
+
+**Items 1 and 2 below were never adopted and cannot be: both levers named in
+them were deleted (§1.69), and `w_poll` was not "not yet implemented" but
+overtaken.** Kept as written, because the reasoning is the record.
+
+What actually ships (§1.65–§1.69, §1.87, §1.91): a metro poll of THIS city is
+blended into the centre by precision, `w = σ_model²/(σ_model² + σ_poll²)`, with
+σ_poll the two-term decomposition in `polling._sigma_total`. Admission is a
+rule, not a judgement — `polling.screen`, which now also refuses any poll that
+does not name this city (§1.93). A single house is bounded by
+`polling.house_ceiling`, derived from the σ floor rather than chosen.
+
+~~1. `polling_lean` endpoints re-anchored to the current spread (Ipsos-style ↔
+   SRF-Jul); default lean stays 0 until a second house corroborates.~~
+~~2. CoJ-specific numbers may tilt θ modes via an explicit `w_poll` (clamped to
+   §3.5 ranges, like `w_bye`) — NOT yet implemented.~~
 3. Site: dated "figures as of" strip + changelog per re-run; new polls become
-   interactive presets ("SRF July world").
+   interactive presets ("SRF July world"). **Still outstanding** —
+   PUBLISHING-BACKLOG, and the colophon is currently hand-typed (§1.93).

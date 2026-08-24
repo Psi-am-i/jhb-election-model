@@ -6,9 +6,9 @@
 
 | city-year | council | list MAE | ward MAE | seat err (median) | medians sum to | seat err (coherent) | CRPS | last-lge | uniform-swing | prior-lge-noise |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Johannesburg 2016 | 270 | 0.83pp | 1.31pp | 23 | 259 | 22 | 20.0 | 92 | 26 | 91 |
+| Johannesburg 2016 | 270 | 0.89pp | 1.27pp | 23 | 261 | 22 | 19.8 | 92 | 26 | 91 |
 | Johannesburg 2021 | 270 | 6.23pp | 5.00pp | 96 | 250 | 90 | 70.4 | 134 | 126 | 126 |
-| Tshwane 2016 | 214 | 1.96pp | 1.31pp | 17 | 207 | 18 | 13.6 | 70 | 10 | 69 |
+| Tshwane 2016 | 214 | 1.90pp | 1.26pp | 16 | 206 | 18 | 13.4 | 70 | 10 | 69 |
 | Tshwane 2021 | 214 | 1.63pp | 1.63pp | 33 | 199 | 34 | 26.4 | 80 | 60 | 76 |
 | Ekurhuleni 2016 | 224 | 1.64pp | 2.08pp | 20 | 214 | 18 | 16.6 | 80 | 22 | 76 |
 | Ekurhuleni 2021 | 224 | 1.53pp | 1.25pp | 31 | 207 | 22 | 25.4 | 72 | 48 | 67 |
@@ -18,7 +18,7 @@
 | Cape Town 2021 | 231 | 1.71pp | 1.93pp | 40 | 217 | 36 | 31.5 | 68 | 38 | 64 |
 | Mangaung 2016 | 100 | 0.84pp | 1.46pp | 7 | 95 | 8 | 7.3 | 24 | 12 | 23 |
 | Mangaung 2021 | 101 | 1.95pp | 0.95pp | 9 | 92 | 10 | 9.3 | 24 | 8 | 20 |
-| Nelson Mandela Bay 2016 | 120 | 0.98pp | 0.87pp | 9 | 115 | 10 | 8.1 | 38 | 16 | 39 |
+| Nelson Mandela Bay 2016 | 120 | 0.85pp | 0.73pp | 7 | 115 | 8 | 8.0 | 38 | 16 | 39 |
 | Nelson Mandela Bay 2021 | 120 | 3.06pp | 3.22pp | 23 | 111 | 18 | 16.6 | 28 | 22 | 27 |
 | Buffalo City 2016 | 100 | 1.33pp | 2.43pp | 9 | 93 | 10 | 9.5 | 28 | 14 | 26 |
 | Buffalo City 2021 | 100 | 3.72pp | 2.47pp | 12 | 92 | 12 | 8.2 | 14 | 12 | 15 |
@@ -27,8 +27,8 @@
 
 | | city-years | seat err (coherent) | uniform-swing | margin | CRPS | uniform-swing CRPS | margin |
 |---|---|---|---|---|---|---|---|
-| Gauteng (JHB, TSH, EKU) | 6 | 204 | 292 | 30% | 172.4 | 292.0 | 41% |
-| everywhere else | 10 | 180 | 238 | 24% | 157.0 | 238.0 | 34% |
+| Gauteng (JHB, TSH, EKU) | 6 | 204 | 292 | 30% | 172.1 | 292.0 | 41% |
+| everywhere else | 10 | 178 | 238 | 25% | 156.9 | 238.0 | 34% |
 
 **The headline margin is a Gauteng result.** Outside Gauteng the model is closer to parity with uniform swing on seats and loses at Mangaung. Quote the split, not the pool.
 
@@ -43,9 +43,9 @@
 
 | city-year | 1-3 signed | 1-3 abs | 4-12 signed | 4-12 abs | 13+ signed | 13+ abs | phantom | seats at stake in 4-12 |
 |---|---|---|---|---|---|---|---|---|
-| Johannesburg 2016 | -0.19pp | 3.37pp | **-0.49pp** | 1.70pp | +0.67pp | 1.37pp | 0.00pp (0) | 15 |
+| Johannesburg 2016 | -0.24pp | 3.49pp | **-0.46pp** | 1.64pp | +0.70pp | 1.40pp | 0.00pp (0) | 15 |
 | Johannesburg 2021 | +0.18pp | 24.64pp | **-2.05pp** | 8.96pp | +0.27pp | 1.50pp | 1.60pp (3) | 58 |
-| Tshwane 2016 | -2.80pp | 6.02pp | **+0.81pp** | 1.12pp | +0.44pp | 0.88pp | 1.54pp (2) | 7 |
+| Tshwane 2016 | -2.73pp | 5.75pp | **+0.90pp** | 1.22pp | +0.41pp | 0.85pp | 1.43pp (2) | 7 |
 | Tshwane 2021 | +5.61pp | 5.61pp | **-7.52pp** | 7.59pp | +0.29pp | 1.60pp | 1.63pp (5) | 44 |
 | Ekurhuleni 2016 | -0.12pp | 5.11pp | **+0.10pp** | 1.52pp | +0.02pp | 0.84pp | 0.00pp (0) | 12 |
 | Ekurhuleni 2021 | +3.62pp | 3.78pp | **-4.32pp** | 6.30pp | +0.65pp | 1.37pp | 0.05pp (1) | 38 |
@@ -55,14 +55,14 @@
 | Cape Town 2021 | +5.76pp | 5.76pp | **-5.61pp** | 5.92pp | -0.30pp | 2.02pp | 0.16pp (3) | 38 |
 | Mangaung 2016 | +1.66pp | 2.81pp | **-1.78pp** | 4.37pp | +0.12pp | 0.49pp | 0.00pp (0) | 6 |
 | Mangaung 2021 | -1.78pp | 4.48pp | **-0.86pp** | 3.25pp | +1.22pp | 1.92pp | 1.41pp (1) | 12 |
-| Nelson Mandela Bay 2016 | -0.39pp | 2.69pp | **+0.11pp** | 3.18pp | +0.28pp | 0.78pp | 0.00pp (0) | 7 |
+| Nelson Mandela Bay 2016 | -0.57pp | 2.00pp | **+0.27pp** | 3.09pp | +0.29pp | 0.79pp | 0.00pp (0) | 7 |
 | Nelson Mandela Bay 2021 | +4.34pp | 8.59pp | **-5.02pp** | 5.71pp | +0.68pp | 1.36pp | 0.00pp (0) | 15 |
 | Buffalo City 2016 | -0.65pp | 5.64pp | **-0.79pp** | 5.21pp | +0.00pp | 0.00pp | 1.44pp (1) | 8 |
 | Buffalo City 2021 | -2.89pp | 8.28pp | **+0.16pp** | 1.92pp | +1.13pp | 1.37pp | 1.60pp (2) | 6 |
 
-**Totals across 16 city-years:** ranks 1-3 +12.55pp signed / 94.23pp absolute, ranks 4-12 -26.57pp / 72.60pp, ranks 13+ +4.42pp / 22.44pp.
+**Totals across 16 city-years:** ranks 1-3 +12.38pp signed / 93.38pp absolute, ranks 4-12 -26.29pp / 72.54pp, ranks 13+ +4.42pp / 22.45pp.
 
-**Phantom mass: 9.60pp** on parties that did not stand at all — including the generic `ENTRANT` column where no party arrived. The bands iterate the parties that DID stand, so none of them can see it; it is exactly why the three signed bands sum to -9.60pp rather than to zero.
+**Phantom mass: 9.49pp** on parties that did not stand at all — including the generic `ENTRANT` column where no party arrived. The bands iterate the parties that DID stand, so none of them can see it; it is exactly why the three signed bands sum to -9.49pp rather than to zero.
 
 
 ## Calibration — pooled across every city-year, and split by rank
@@ -73,15 +73,15 @@ A mean PIT above 0.50 means the truth keeps landing high in the forecast distrib
 
 | population | n | 50% | 80% | 90% | mean PIT | χ² vs flat (5% crit) |
 |---|---|---|---|---|---|---|
-| reference (INPUT-selected — fixed; the only one to compare on) | 376 | 82% | 93% | 94% | 0.568 | 36.8 (16.92) |
-| claimed by the model (forecast-selected — neutral for ONE model) | 108 | 81% | 94% | 96% | 0.559 | 45.9 (16.92) |
-| won a seat (outcome-selected — INFLATED by construction) | 199 | 63% | 85% | 88% | 0.700 | 110.2 (16.92) |
-| every scored column (MIXED: outcome-selected + neutral, diluted) | 430 | 83% | 93% | 94% | 0.539 | 17.4 (16.92) |
+| reference (INPUT-selected — fixed; the only one to compare on) | 376 | 82% | 93% | 94% | 0.567 | 36.3 (16.92) |
+| claimed by the model (forecast-selected — neutral for ONE model) | 109 | 82% | 94% | 96% | 0.559 | 44.3 (16.92) |
+| won a seat (outcome-selected — INFLATED by construction) | 199 | 63% | 85% | 88% | 0.699 | 110.1 (16.92) |
+| every scored column (MIXED: outcome-selected + neutral, diluted) | 430 | 83% | 93% | 94% | 0.538 | 17.2 (16.92) |
 
-* **reference** (n=376) PIT histogram [29, 20, 24, 39, 33, 39, 45, 63, 37, 47] — approximately flat
-* **claimed** (n=108) PIT histogram [5, 1, 7, 8, 19, 20, 21, 16, 7, 4] — hump-shaped: the truth lands mid-distribution too often — over-dispersed, the model is hedging
-* **seat_holders** (n=199) PIT histogram [3, 1, 7, 8, 18, 21, 30, 45, 24, 42] — approximately flat; mean PIT 0.70 — the model under-predicts seats
-* **all** (n=430) PIT histogram [35, 35, 35, 35, 45, 45, 54, 61, 38, 47] — approximately flat
+* **reference** (n=376) PIT histogram [29, 21, 23, 39, 33, 40, 44, 63, 37, 47] — approximately flat
+* **claimed** (n=109) PIT histogram [5, 2, 6, 9, 17, 21, 21, 17, 7, 4] — hump-shaped: the truth lands mid-distribution too often — over-dispersed, the model is hedging
+* **seat_holders** (n=199) PIT histogram [3, 2, 6, 8, 17, 22, 30, 45, 24, 42] — approximately flat; mean PIT 0.70 — the model under-predicts seats
+* **all** (n=430) PIT histogram [35, 37, 33, 36, 44, 45, 54, 61, 38, 47] — approximately flat
 
 The verdict at the end of each line is `score.pit_histogram`'s shape heuristic, which reads the end mass and the mean. **DO NOT ACT ON IT AS A WIDTH VERDICT — it is not reliable as one, and on this model it is demonstrably wrong.** The heuristic tests the mass in the two END bins against flat, so a histogram that is monotone increasing scores as U-shaped: a shifted forecast piles mass in the top bin and gets called under-dispersed. On the ranks 4-12 columns it reads the histogram `[1, 1, 1, 11, 14]` — 25 of 28 in the top two bins, monotone, nothing at the bottom — and prints *"U-shaped … under-dispersed, widen it"*, while calling the pooled population *"hump-shaped — over-dispersed, hedging"*. The two verdicts contradict each other and the band one contradicts the level-free width table below, which is the one that is right. `score.py` is not changed here — the heuristic is fine for its own purpose and what is wrong is quoting it about width. **The χ² column is the test of uniformity; the level-free dispersion table is the test of width.**
 
@@ -93,9 +93,9 @@ The three populations differ by which columns they count, and the difference is 
 
 | band | n | mean PIT | 95% CI (cluster bootstrap) | 50% | 80% | 90% | 50% (PIT) | 80% (PIT) | 90% (PIT) |
 |---|---|---|---|---|---|---|---|---|---|
-| ranks 1-3 | 48 | 0.511 | [0.474, 0.544] | 88% [75–98] | 96% [88–100] | 98% [94–100] | 83% [71–94] | 96% [88–100] | 98% [94–100] |
-| ranks 4-12 | 56 | 0.613 | [0.537, 0.684] | 79% [66–92] | 91% [86–96] | 95% [90–100] | 61% [48–76] | 91% [86–96] | 93% [88–98] |
-| ranks 13+ | 4 | 0.381 | [0.082, 0.681] | 50% [0–100] | 100% [100–100] | 100% [100–100] | 50% [0–100] | 50% [0–100] | 100% [100–100] |
+| ranks 1-3 | 48 | 0.510 | [0.474, 0.542] | 88% [75–98] | 96% [88–100] | 98% [94–100] | 85% [73–96] | 96% [88–100] | 98% [94–100] |
+| ranks 4-12 | 57 | 0.613 | [0.536, 0.684] | 79% [67–92] | 91% [87–96] | 95% [90–100] | 61% [48–76] | 91% [87–96] | 93% [88–98] |
+| ranks 13+ | 4 | 0.383 | [0.084, 0.681] | 50% [0–100] | 100% [100–100] | 100% [100–100] | 50% [0–100] | 50% [0–100] | 100% [100–100] |
 
 The CI resamples CITY-YEARS, not columns: columns inside one city-year share a turnout draw, a pool structure and a national swing, so a column bootstrap would give an interval far too tight. 20,000 replicates, fixed seed.
 
@@ -111,9 +111,9 @@ The rank-band vote table further up and the mean-PIT column here are the same LE
 
 | band | n | probit-SD (level-free) | exact SD of z | standardised bias (mean z) | PIT variance vs 1/12 |
 |---|---|---|---|---|---|
-| ranks 1-3 | 48 | 0.676 | 0.737 | +0.036 | 0.0313 vs 0.0833 |
-| ranks 4-12 | 56 | 0.828 | 0.860 | +0.174 | 0.0475 vs 0.0833 |
-| ranks 13+ | 4 | 1.086 | 0.600 | -0.505 | 0.1202 vs 0.0833 |
+| ranks 1-3 | 48 | 0.673 | 0.736 | +0.034 | 0.0307 vs 0.0833 |
+| ranks 4-12 | 57 | 0.825 | 0.855 | +0.165 | 0.0476 vs 0.0833 |
+| ranks 13+ | 4 | 1.075 | 0.601 | -0.501 | 0.1191 vs 0.0833 |
 
 #### The same question on the FIXED population — and it disagrees
 
@@ -121,9 +121,9 @@ The rank-band vote table further up and the mean-PIT column here are the same LE
 
 | band | `claimed` n(z) | `claimed` SD of z | `reference` n(z) | `reference` SD of z | `reference` mean z | `reference` probit-SD |
 |---|---|---|---|---|---|---|
-| ranks 1-3 | 48 | 0.737 | 48 | 0.737 | +0.036 | **0.648** |
-| ranks 4-12 | 56 | 0.860 | 120 | 1.779 | +0.525 | **1.303** |
-| ranks 13+ | 4 | 0.600 | 135 | 0.404 | -0.121 | **1.203** |
+| ranks 1-3 | 48 | 0.736 | 48 | 0.736 | +0.034 | **0.644** |
+| ranks 4-12 | 57 | 0.855 | 120 | 1.780 | +0.523 | **1.306** |
+| ranks 13+ | 4 | 0.601 | 135 | 0.404 | -0.121 | **1.203** |
 
 **Read the last column, not the `SD of z` column, on ranks 13+.** `sd(z)` is exact under a level shift and **meaningless on a near-degenerate discrete column**: where the forecast is roughly Bernoulli(p) and the truth is zero, `z = −√(p/(1−p))` exactly, a function of the forecast probability with no room to spread. On the 96 ranks-13+ columns whose truth is zero, observed `z` correlates with that expression at **+0.93**. probit-SD comes from the randomised PIT, which is uniform under calibration whatever the support, and is the one to read there — at the cost of being attenuated by a level shift, so it is a LOWER BOUND wherever `mean z` is far from zero. Neither statistic is right everywhere; the pair is. MODEL-LOG §1.58.
 
@@ -139,9 +139,9 @@ Per city-year, for provenance only — **every n below is too small to read, and
 
 | city-year | n claimed | 50% | 80% | 90% | mean PIT (claimed) |
 |---|---|---|---|---|---|
-| Johannesburg 2016 | 6 | 83% | 100% | 100% | 0.490 |
+| Johannesburg 2016 | 7 | 86% | 100% | 100% | 0.524 |
 | Johannesburg 2021 | 9 | 33% | 67% | 78% | 0.639 |
-| Tshwane 2016 | 6 | 83% | 100% | 100% | 0.446 |
+| Tshwane 2016 | 6 | 83% | 100% | 100% | 0.439 |
 | Tshwane 2021 | 7 | 71% | 86% | 100% | 0.603 |
 | Ekurhuleni 2016 | 6 | 100% | 100% | 100% | 0.523 |
 | Ekurhuleni 2021 | 9 | 78% | 89% | 89% | 0.688 |
@@ -151,7 +151,7 @@ Per city-year, for provenance only — **every n below is too small to read, and
 | Cape Town 2021 | 7 | 71% | 100% | 100% | 0.544 |
 | Mangaung 2016 | 4 | 100% | 100% | 100% | 0.522 |
 | Mangaung 2021 | 6 | 100% | 100% | 100% | 0.623 |
-| Nelson Mandela Bay 2016 | 7 | 100% | 100% | 100% | 0.490 |
+| Nelson Mandela Bay 2016 | 7 | 100% | 100% | 100% | 0.471 |
 | Nelson Mandela Bay 2021 | 6 | 83% | 100% | 100% | 0.559 |
 | Buffalo City 2016 | 6 | 100% | 100% | 100% | 0.588 |
 | Buffalo City 2021 | 6 | 100% | 100% | 100% | 0.591 |
@@ -161,18 +161,18 @@ Per city-year, for provenance only — **every n below is too small to read, and
 
 | party | list median | list mean | list actual | ward mean | ward actual | seats model | seats actual |
 |---|---|---|---|---|---|---|---|
-| ANC | 44.86% | 44.90% | 44.92% | 44.19% | 44.09% | 120 | 121 |
-| DA | 39.97% | 40.06% | 38.48% | 41.05% | 38.34% | 109 | 104 |
-| EFF | 8.90% | 9.17% | 10.93% | 9.51% | 11.24% | 25 | 30 |
-| IFP | 1.02% | 1.26% | 1.71% | 1.16% | 1.74% | 3 | 5 |
-| AIC | 0.00% | 1.38% | 1.62% | 1.43% | 1.40% | 0 | 4 |
-| ACDP | 0.29% | 0.51% | 0.31% | 0.54% | 0.28% | 1 | 1 |
-| VFPLUS | 0.14% | 0.39% | 0.31% | 0.47% | 0.34% | 0 | 1 |
+| ANC | 44.78% | 44.79% | 44.92% | 44.07% | 44.09% | 120 | 121 |
+| DA | 40.03% | 40.10% | 38.48% | 41.07% | 38.34% | 110 | 104 |
+| EFF | 9.01% | 9.19% | 10.93% | 9.53% | 11.24% | 25 | 30 |
+| IFP | 1.02% | 1.27% | 1.71% | 1.17% | 1.74% | 3 | 5 |
+| AIC | 0.00% | 1.42% | 1.62% | 1.47% | 1.40% | 0 | 4 |
+| ACDP | 0.29% | 0.49% | 0.31% | 0.52% | 0.28% | 1 | 1 |
+| VFPLUS | 0.16% | 0.41% | 0.31% | 0.50% | 0.34% | 1 | 1 |
 | ALJAMAAH | nan% | nan% | 0.31% | nan% | 0.22% | 0 | 1 |
-| UDM | 0.14% | 0.33% | 0.25% | 0.37% | 0.28% | 0 | 1 |
-| COPE | 0.06% | 0.24% | 0.21% | 0.15% | 0.15% | 0 | 1 |
+| UDM | 0.15% | 0.34% | 0.25% | 0.38% | 0.28% | 0 | 1 |
+| COPE | 0.05% | 0.22% | 0.21% | 0.14% | 0.15% | 0 | 1 |
 | PA | 0.01% | 0.08% | 0.17% | 0.08% | 0.13% | 0 | 1 |
-| PAC | 0.16% | 0.39% | 0.17% | 0.09% | 0.09% | 0 | 0 |
+| PAC | 0.17% | 0.38% | 0.17% | 0.09% | 0.09% | 0 | 0 |
 
 **Missed entirely:** AIC — won seats, median zero.
 
@@ -199,18 +199,18 @@ Per city-year, for provenance only — **every n below is too small to read, and
 
 | party | list median | list mean | list actual | ward mean | ward actual | seats model | seats actual |
 |---|---|---|---|---|---|---|---|
-| DA | 40.19% | 40.67% | 43.10% | 41.25% | 43.20% | 87 | 93 |
-| ANC | 43.43% | 43.09% | 41.48% | 41.77% | 41.02% | 92 | 89 |
-| EFF | 9.38% | 9.66% | 11.64% | 10.36% | 11.62% | 21 | 25 |
-| VFPLUS | 2.13% | 2.34% | 1.97% | 2.59% | 2.02% | 5 | 4 |
-| ACDP | 0.45% | 0.66% | 0.47% | 0.77% | 0.52% | 1 | 1 |
-| APC | 0.17% | 0.41% | 0.24% | 0.07% | 0.05% | 0 | 0 |
+| DA | 40.18% | 40.66% | 43.10% | 41.24% | 43.20% | 87 | 93 |
+| ANC | 43.28% | 42.99% | 41.48% | 41.68% | 41.02% | 91 | 89 |
+| EFF | 9.44% | 9.83% | 11.64% | 10.54% | 11.62% | 21 | 25 |
+| VFPLUS | 2.15% | 2.33% | 1.97% | 2.58% | 2.02% | 5 | 4 |
+| ACDP | 0.47% | 0.71% | 0.47% | 0.83% | 0.52% | 1 | 1 |
+| APC | 0.16% | 0.44% | 0.24% | 0.07% | 0.05% | 0 | 0 |
 | COPE | 0.03% | 0.19% | 0.22% | 0.20% | 0.27% | 0 | 1 |
-| PAC | 0.10% | 0.31% | 0.14% | 0.34% | 0.20% | 0 | 1 |
-| UDM | 0.03% | 0.18% | 0.13% | 0.22% | 0.10% | 0 | 0 |
-| IFP | 0.00% | 0.12% | 0.10% | 0.02% | 0.02% | 0 | 0 |
+| PAC | 0.10% | 0.33% | 0.14% | 0.36% | 0.20% | 0 | 1 |
+| UDM | 0.02% | 0.19% | 0.13% | 0.24% | 0.10% | 0 | 0 |
+| IFP | 0.00% | 0.11% | 0.10% | 0.02% | 0.02% | 0 | 0 |
 | AFRICAN_MANDATE_CONGRESS | nan% | nan% | 0.09% | nan% | 0.06% | 0 | 0 |
-| PA | 0.01% | 0.05% | 0.09% | 0.06% | 0.05% | 0 | 0 |
+| PA | 0.01% | 0.05% | 0.09% | 0.05% | 0.05% | 0 | 0 |
 
 ## Tshwane 2021
 
@@ -375,18 +375,18 @@ Per city-year, for provenance only — **every n below is too small to read, and
 
 | party | list median | list mean | list actual | ward mean | ward actual | seats model | seats actual |
 |---|---|---|---|---|---|---|---|
-| DA | 47.76% | 47.82% | 46.66% | 48.26% | 46.75% | 58 | 57 |
-| ANC | 40.51% | 40.57% | 41.50% | 40.15% | 40.34% | 48 | 50 |
-| EFF | 4.08% | 4.42% | 5.03% | 4.60% | 5.21% | 5 | 6 |
-| UDM | 0.88% | 1.18% | 1.83% | 1.16% | 2.00% | 1 | 2 |
-| AIC | 1.02% | 1.26% | 1.61% | 1.31% | 0.28% | 1 | 1 |
-| UNITED_FRONT_OF_THE_EASTERN_CAPE | 0.00% | 1.37% | 0.80% | 1.42% | 1.09% | 0 | 1 |
-| COPE | 0.47% | 0.78% | 0.70% | 0.80% | 0.77% | 1 | 1 |
-| ACDP | 0.31% | 0.52% | 0.35% | 0.60% | 0.37% | 0 | 1 |
+| DA | 47.09% | 47.38% | 46.66% | 47.83% | 46.75% | 57 | 57 |
+| ANC | 40.44% | 40.34% | 41.50% | 39.94% | 40.34% | 48 | 50 |
+| EFF | 4.50% | 4.91% | 5.03% | 5.11% | 5.21% | 6 | 6 |
+| UDM | 0.95% | 1.24% | 1.83% | 1.22% | 2.00% | 1 | 2 |
+| AIC | 1.05% | 1.34% | 1.61% | 1.39% | 0.28% | 1 | 1 |
+| UNITED_FRONT_OF_THE_EASTERN_CAPE | 0.00% | 1.27% | 0.80% | 1.32% | 1.09% | 0 | 1 |
+| COPE | 0.55% | 0.84% | 0.70% | 0.85% | 0.77% | 1 | 1 |
+| ACDP | 0.33% | 0.51% | 0.35% | 0.59% | 0.37% | 0 | 1 |
 | PA | nan% | nan% | 0.29% | nan% | 0.24% | 0 | 1 |
 | ALTERNATIVE_DEMOCRATS | nan% | nan% | 0.25% | nan% | 0.08% | 0 | 0 |
-| VFPLUS | 0.39% | 0.62% | 0.25% | 0.78% | 0.26% | 1 | 0 |
-| PAC | 0.40% | 0.68% | 0.23% | 0.22% | 0.12% | 0 | 0 |
+| VFPLUS | 0.43% | 0.64% | 0.25% | 0.81% | 0.26% | 1 | 0 |
+| PAC | 0.44% | 0.74% | 0.23% | 0.24% | 0.12% | 0 | 0 |
 
 ## Nelson Mandela Bay 2021
 

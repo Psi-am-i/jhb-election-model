@@ -248,8 +248,10 @@ SIGMA_DRIFT_PER_ROOT_DAY = 0.0030 # DECLARED, sourced — band 0.20 (Ellis NZ,
 SIGMA_VOLATILITY = 0.008          # DECLARED, sourced — +0.1pp per 1pp of average
                                   # party swing. South Africa's swings are large.
 
+# ADOPTED AS THE DEFAULT 2026-08-24, by the owner, on §1.88's measurement.
+# Set SIGMA_TWO_TERM=0 to run the retired four-component form for comparison.
 SIGMA_TWO_TERM = _os.environ.get(
-    "SIGMA_TWO_TERM", "").lower() in ("1", "true", "yes")
+    "SIGMA_TWO_TERM", "1").lower() in ("1", "true", "yes")
 
 POLL_HOUSE_K = 1.0                # DECLARED
 
@@ -723,9 +725,25 @@ def screen(target: cityconfig.Target, polls: list[dict] | None = None,
             out.append(Exclusion(pid, "commissioned",
                                  f"commissioned by {poll['commissioned_by']}"))
             continue
-        if poll.get("scope") == "metro" and not poll.get("city"):
-            out.append(Exclusion(pid, "metro-without-city",
-                                 "a metro poll that does not name its city"))
+        scope = str(poll.get("scope") or "")
+        # A POLL MUST NAME THE CITY IT IS A READING OF, and only a national
+        # poll may decline to. This used to match the exact string "metro", so
+        # `ipsos-w2-2025-metros` — scope "metro-aggregate", no city — passed
+        # every rule here and was blended by `aggregate`: DA -3.18pp, ANC
+        # +2.65pp, and PA and IFP conjured into Johannesburg at 4.0% and 2.0%
+        # out of Cape and KZN numbers, exactly as that record's own note warns.
+        # It never reached the forecast because `montecarlo` re-stated the rule
+        # inline and its version was strict — which is the finding, not the
+        # reprieve. MODEL-LOG §1.93.
+        if scope != "national" and not poll.get("city"):
+            out.append(Exclusion(pid, "no-city",
+                                 f"scope {scope!r} names no city; only a "
+                                 f"national poll may omit one"))
+            continue
+        if poll.get("city") and poll["city"] != target.city.slug:
+            out.append(Exclusion(pid, "other-city",
+                                 f"a poll of {poll['city']}, not "
+                                 f"{target.city.slug}"))
             continue
         declared = str(poll.get("target") or "")
         if declared and declared != str(target.year):
@@ -740,6 +758,26 @@ def screen(target: cityconfig.Target, polls: list[dict] | None = None,
             continue
         kept.append(poll)
     return kept, out
+
+
+def metro_polls(target: cityconfig.Target, polls: list[dict] | None = None,
+                **kw) -> list[dict]:
+    """The admitted polls that are a reading OF THIS CITY. One definition.
+
+    `montecarlo` used to spell this filter out inline. It is here so that the
+    layer documenting itself as "admitted polls, and every exclusion with its
+    reason" is the layer that decides, rather than being overruled by a copy in
+    another module that happened to be stricter. MODEL-LOG 1.93.
+    """
+    return [q for q in screen(target, polls, **kw)[0]
+            if q.get("scope") == "metro"]
+
+
+def national_polls(target: cityconfig.Target, polls: list[dict] | None = None,
+                   **kw) -> list[dict]:
+    """The admitted polls that are a reading of the country. See metro_polls."""
+    return [q for q in screen(target, polls, **kw)[0]
+            if q.get("scope") == "national"]
 
 
 def usable_for(target: cityconfig.Target, polls: list[dict] | None = None,
@@ -812,11 +850,61 @@ def aggregate(polls: list[dict], half_life_days: float | None = None,
     return {p: out[p] / total[p] for p in out if total[p] > 0}
 
 
+def _sigma_total(sampling_sq: float, h_eff: float,
+                 screen: float, drift: float) -> float:
+    """The two-term total, in ONE place (MODEL-LOG 1.92).
+
+    :func:`aggregate_sd` computes it from real polls and :func:`sigma_floor`
+    computes its limit; writing the sum twice is how a floor and the thing it
+    bounds drift apart, and this repository has paid for that once already this
+    week in the test helper `_weight`.
+
+    Only ``SIGMA_IDIO`` is divided by ``h_eff``. ``SIGMA_COMMON`` is common to
+    every house by construction and never shrinks — that is what stops a lone
+    house buying the forecast by publishing weekly, now that `weight_cap` is
+    gone. The screen term is a declared surcharge for opacity, not a
+    measurement, and is likewise not averaged away by more houses.
+    """
+    return math.sqrt(sampling_sq
+                     + SIGMA_COMMON ** 2                    # never shrinks
+                     + SIGMA_IDIO ** 2 / max(h_eff, 1e-9)   # only this one
+                     + screen ** 2                          # a policy, declared
+                     + (drift * SIGMA_DRIFT_PER_ROOT_DAY
+                        / max(POLL_DRIFT_PP_PER_ROOT_DAY, 1e-12)) ** 2
+                     + SIGMA_VOLATILITY ** 2)
+
+
+def sigma_floor(polls: list[dict], party: str, share: float, **kw) -> float:
+    """The sigma these polls cannot cross however much fieldwork is added.
+
+    Sampling error goes to zero with sample size and with waves; nothing else
+    in the decomposition does. So this is :func:`aggregate_sd` with the sampling
+    term switched off — the SAME code path, deliberately, so that the bound and
+    the thing it bounds cannot drift apart.
+
+    It is the DERIVED replacement for the retired `weight_cap`: a ceiling that
+    falls out of the decomposition instead of one chosen and imposed on top of
+    it. The screen and drift a house actually carries are included, because a
+    house with an undisclosed screen has a HIGHER floor and should.
+    """
+    return aggregate_sd(polls, party, share, include_sampling=False, **kw)
+
+
+def house_ceiling(polls: list[dict], party: str, share: float,
+                  model_sd: float, **kw) -> float:
+    """The most of the blend these houses can ever take, at any sample size.
+
+    The bound the tests assert against, so that none of them restates it.
+    """
+    return blend_weight(sigma_floor(polls, party, share, **kw), model_sd)
+
+
 def aggregate_sd(polls: list[dict], party: str, share: float, *,
                  half_life_days: float | None = None,
                  asof: date | None = None,
                  screen_sd: float | None = None,
-                 drift_rate: float | None = None, **kw) -> float:
+                 drift_rate: float | None = None,
+                 include_sampling: bool = True, **kw) -> float:
     """Total error on the AGGREGATE's reading of one party.
 
     The hierarchy is the whole point, and it is what makes the single-house
@@ -843,9 +931,10 @@ def aggregate_sd(polls: list[dict], party: str, share: float, *,
     That is the honest form of the single-house argument. An earlier draft of it
     claimed two waves "buy nothing" (4.24 → 4.30); measured, they buy 4.35 →
     3.88, which is a real reduction in the sampling term and nothing at all in
-    the house term. The protection is the asymptote, not a flat line — and on
-    top of it :func:`weight_cap` holds a one-house aggregate to 0.50 at the shipped `poll_house_k` of 1.0 of the
-    blend however small σ gets.
+    the house term. The protection is the ASYMPTOTE, not a flat line, and
+    since MODEL-LOG 1.92 the asymptote is the whole of it: `weight_cap` is
+    retired and :func:`sigma_floor` states the same bound as a consequence
+    of the decomposition rather than as a chosen ceiling.
     """
     half_life_days = (POLL_HALF_LIFE_DAYS if half_life_days is None
                       else half_life_days)
@@ -864,6 +953,9 @@ def aggregate_sd(polls: list[dict], party: str, share: float, *,
         s = math.sqrt(p * (1 - p) / n_eff) if n_eff else POLL_HOUSE_SD
         sampling_sq += (w * s) ** 2
     sampling_sq /= total ** 2
+    if not include_sampling:
+        # :func:`sigma_floor` — the limit of infinite fieldwork.
+        sampling_sq = 0.0
     # house, screen, drift: shrink with HOUSES, not waves
     h_eff = max(effective_houses(usable, half_life_days=half_life_days,
                                  asof=asof), 1e-9)
@@ -876,16 +968,24 @@ def aggregate_sd(polls: list[dict], party: str, share: float, *,
     drift = sum(w * _drift * math.sqrt(_days_out(p, asof))
                 for p, w in zip(usable, weights)) / total
     if SIGMA_TWO_TERM:
-        # THE PRE-REGISTERED REPLACEMENT (§1.87). Two terms, and only ONE of
-        # them may be divided by the number of houses. `screen` is folded into
-        # the common term rather than argued separately, because a decomposition
-        # cannot identify its own components (Dominitz & Manski 2025).
-        return math.sqrt(sampling_sq
-                         + SIGMA_COMMON ** 2                    # never shrinks
-                         + SIGMA_IDIO ** 2 / h_eff              # only this one
-                         + (drift * SIGMA_DRIFT_PER_ROOT_DAY
-                            / max(POLL_DRIFT_PP_PER_ROOT_DAY, 1e-12)) ** 2
-                         + SIGMA_VOLATILITY ** 2)
+        # THE PRE-REGISTERED REPLACEMENT (§1.87). Only ONE term may be divided
+        # by the number of houses; the rest are common and never shrink.
+        #
+        # THE SCREEN TERM IS KEPT, AND KEPT AS A POLICY RATHER THAN A
+        # MEASUREMENT (§1.92). §1.87 folded it into the common term on the
+        # argument that a decomposition cannot identify its own components
+        # (Dominitz & Manski 2025) — which is true, and it silently deleted the
+        # only cost this model imposes for hiding a likely-voter screen. A test
+        # caught it: a poll that publishes its method and one that hides it were
+        # priced identically at 0.0381.
+        #
+        # So it stays, relabelled honestly. It is NOT a claim to have measured
+        # the excess error of an undisclosed screen. It is a declared surcharge
+        # for opacity, and the reason it is defensible where the other three
+        # components were not is that it does not pretend to be a measurement:
+        # a house can remove it at any time by publishing its screen.
+        # Not divided by h_eff — opacity is not averaged away by more houses.
+        return _sigma_total(sampling_sq, h_eff, screen, drift)
     return math.sqrt(sampling_sq
                      + (POLL_HOUSE_SD ** 2 + screen ** 2 + drift ** 2) / h_eff)
 

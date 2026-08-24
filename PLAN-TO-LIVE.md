@@ -80,9 +80,17 @@ The largest single risk to the November forecast, and it is not in the θ record
   metro-aggregate. Effective house count is **1.0**.
 * **One house flips the Johannesburg lead**: polls off gives ANC 68 / DA 65;
   polls on gives DA 78 / ANC 63.
-* The DA sits **exactly on the `poll_house_k` cap** (w = 0.50), so the poll's
-  influence on the party it moves most is set by a declared constant rather
-  than by the σ arithmetic.
+* ~~The DA sits exactly on the `poll_house_k` cap (w = 0.50)~~ — **NO LONGER
+  TRUE from 2026-08-24 (§1.91).** The cap is deleted with the adoption of the
+  two-term σ; `poll_house_k` is inert on the shipped path. What bounds one
+  house now is `polling.house_ceiling`, which is derived rather than chosen.
+  Measured on the shipped register: DA σ **5.057pp** against a floor of
+  **4.595pp**, and the DA's blend weight is **0.484 by arithmetic** where the
+  cap pinned it at exactly 0.500. The 2026 forecast moves about a seat under
+  the change (DA 79 → 78, ANC 63 → 64, ASA 24 → 25), so **the two seat figures
+  above still stand to within a seat** — the dependence on one house is
+  unchanged in magnitude, and what changed is that it is now arguable rather
+  than typed.
 
 **Publish the poll-off / poll-on split beside the headline.** It is cheap,
 honest, and forecloses the criticism that will otherwise land hardest.
@@ -132,6 +140,15 @@ model records that the agreement is not independent evidence — `effective_hous
 counts houses *within* a channel and cannot see across them. SRF national is
 DA 27% / ANC 34% against 2024 actual DA 21.81% / ANC 40.18%.
 
+**CORRECTED 2026-08-24 (§1.91): acquiring a poll is NECESSARY AND NOT
+SUFFICIENT.** The arrivals channel is blocked at 2026 by **two** independent
+gates. The second is that `contesting_parties(joburg, 2026)` returns **zero
+parties** — the roster is the nomination fact and the lists do not exist until
+**16 September**. The loop skips every party against an empty roster, so **the
+48-seat channel cannot fire before the lists land, whatever poll is acquired.**
+Acquire the poll anyway, on its lead time; but book its benefit to 16 September,
+not to the acquisition.
+
 **Still add it** — a dark 48-seat channel is the worse error — but declare the
 shared provenance, and let A2 say the true sentence: *one house sets the metro
 centre, the same house sets the arrivals path, and there is no second house
@@ -148,8 +165,10 @@ holds the wrong release a panel number moves — and it moves *after* the freeze
 this is left. It is the only poll-register item with a backtest consequence.
 
 **And pre-register the poll-admission rule NOW, before any new poll exists** —
-which houses are admissible, what `poll_house_k` does at H=2, what happens to the
-cap. Seven weeks of campaign sit between the lists and polling day and SRF will
+which houses are admissible, and what a second house is worth at H=2 —
+measured under the two-term σ as 0.518 → 0.533 on the synthetic fixture, all of
+it the halving of σ_idio, because σ_common is common (§1.92). `poll_house_k`
+and its cap are retired and are no longer the thing to pre-register. Seven weeks of campaign sit between the lists and polling day and SRF will
 publish again. A rule written after seeing the next wave is not a rule.
 
 ### A4. Rebuild the live pages ★ blocking, and badly under-scoped in the first draft

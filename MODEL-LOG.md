@@ -10015,6 +10015,96 @@ page**: `--into` will splice it at `__HEXMAP_START__`/`__HEXMAP_END__`, and no
 page carries those markers yet.
 
 
+---
+
+## 1.91 The two-term σ adopted; and the arrivals conversion fails on the opposite population to the one suspected (2026-08-24)
+
+### Adopted
+
+`SIGMA_TWO_TERM` is the default on the owner's decision, on §1.88's measurement.
+`SIGMA_TWO_TERM=0` runs the retired four-component form for comparison.
+
+Panel on the settled tree: **384 coherent, CRPS 329.2** against 384 / 329.4. The
+golden is re-recorded with its reason in the file, per `CLAUDE.md`.
+
+It ships on **identifiability, not accuracy** — the panel could not tell the two
+apart, and §1.87 said in advance that it could not. What changed is that σ no
+longer collapses toward certainty as houses are added, and the DA's blend weight
+is 0.484 by arithmetic rather than 0.500 pinned by a cap.
+
+### The arrivals question, and the answer inverts the intuition
+
+The owner asked about the rule that *"looks at national results and tries to
+shoehorn them locally"*, expecting it to fail because **many small arrivals are
+hyper-local**. The mechanism does fail. **It fails on the opposite population.**
+
+`polling.metro_estimate` divides a party's national share by the share of the
+national roll held by the municipalities it contests. For a party standing in
+**one** metro, that denominator *is* that metro — so the conversion is **exact by
+identity**. Measured over every arrival in the eight-metro archive:
+
+| | arrivals | single-metro | multi-metro median \|log ratio\| |
+|---|---|---|---|
+| 2016 | 83 | 46 (55%) | **0.234** |
+| 2021 | 175 | 67 (38%) | **0.431** |
+
+0.431 in log units is a factor of **1.54**. So the hyper-local arrivals — the
+majority at 2016 — are handled exactly right, and the error lives entirely in the
+**widely-contesting** parties.
+
+**Which is worse than the intuition, not better**, because the case the whole
+path was built for is ActionSA — a multi-metro party. Its 9.78% by this route sat
+against actual metro shares of **18.12, 9.28, 7.36 and 2.35**. The function's own
+docstring concedes this; the model applies the number anyway, **with no per-metro
+differentiation of any kind**, because `scenario["poll_levels"][party]` is one
+scalar per party.
+
+So §1.65's 48 coherent seats are earned by a mechanism that is exact where it is
+trivial and out by half where it does the work.
+
+### And a correction to my own claim about task A3
+
+I reported that adding a national 2026 poll would re-enable the 48-seat arrivals
+channel. **That is wrong.** The channel is blocked at 2026 by **two independent
+gates**, and the poll is only one of them:
+
+    contesting_parties(joburg, 2016) -> 28 parties
+    contesting_parties(joburg, 2021) -> 57 parties
+    contesting_parties(joburg, 2026) ->  0 parties
+
+The loop reads `if _party not in (_roster or set()): continue`, so an empty
+roster skips **every** party. The roster is the nomination fact, and **nomination
+lists do not exist until 16 September 2026.**
+
+**The arrivals channel therefore cannot fire before 16 September no matter what
+poll is acquired.** `PLAN-TO-LIVE.md`'s A3 is corrected: acquiring a national
+poll is necessary and not sufficient, and its benefit is dated to the lists
+landing, not to the acquisition.
+
+### What was researched and never built
+
+The owner asked whether the earlier work on party events had been built into the
+model. **It was not, and the record should say so plainly.**
+
+§1.71–§1.73 established the mechanism and imported Powell & Tucker's Type A / Type
+B distinction. §1.74 pre-registered a documented-event register and measured it:
+**refuted**, both conditions missed. §1.78 re-measured it on the restored tree —
+it improves seats (384 → 360) but still fails the pre-registered bar. §1.82 then
+showed it and the footprint exclusion are competing descriptions of one defect.
+
+§1.74's own conclusion was *"route, do not drop"* — an exclusion moves the
+volatility out of the model's prior and into its error, and it measured that
+happening. **The routing has never been built.** It is task #37.
+
+And the arrivals **sizing** — the contested-area conversion, the reach-weighted
+split, the comparator window — has never been rebuilt on external evidence at
+all, unlike the polling layer, which was. The owner's position is that the
+existing method was a best guess and gets no special treatment. That is correct
+and it is now commissioned: a search of how forecasters in other systems size new
+parties, splits, mergers and leadership shocks, on the same terms as the polling
+search that overturned §1.67's structure.
+
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model
@@ -10611,3 +10701,253 @@ The two polls disagree wildly on the ANC-DA gap (SRF: DA +6; Ipsos: ANC +18). Th
 10. Assumption A5 (marginal-voter composition) named in §5.
 11. CoJ overhang "precedent" removed — none verifiable; check retained.
 12. 2011 fold-1 inconsistency resolved (optional, with 130-ward caveat).
+
+## 1.92 The test helper that measured a model we do not run, and the ceiling that replaced a chosen cap (2026-08-24)
+
+**Adopting the two-term σ (§1.91) left four suite failures. Two were the
+adoption doing its job. One was a helper that had quietly stopped mirroring the
+model. The fourth was a question asked wrongly — by me — and the answer is worth
+recording because it looked like a serious regression for an hour.**
+
+### The helper
+
+`tests/test_polling_synthetic.py::_weight` re-implements the model's poll-blend
+decision: σ → `blend_weight` → cap. When `SIGMA_TWO_TERM` became the default the
+model stopped applying `weight_cap`; the helper did not. **Every test in that
+module was therefore measuring a hybrid the model has never run — the NEW σ
+against the OLD cap.** One house pinned at exactly 0.500 from one wave to a
+hundred, which reads as the cap working correctly and was the helper disagreeing
+with the code.
+
+The docstring on `_recency_weights` had already named this exact hazard —
+*"two copies of one calculation is this repository's most reliable defect"* —
+about a different pair of functions, in this same module.
+
+### The question I asked wrongly
+
+With the helper fixed, the guarantee looked broken:
+
+    100 waves of ONE house   -> 0.5755
+      2 waves, TWO houses    -> 0.5652
+    volume beats replication? YES — BAD
+
+That is a hundred polls against two. It measures fieldwork quantity, not
+replication. **Hold volume constant and replication wins at every level:**
+
+    polls    1 house   2 houses   4 houses
+        4     0.5617     0.5798     0.5893
+       20     0.5732     0.5920     0.6019
+      100     0.5755     0.5945     0.6045
+
+### The bound that replaced the cap, and why it is better than the cap
+
+The real question is whether a single house can buy the forecast by publishing
+weekly. It cannot, and **the bound is now structural rather than chosen.**
+`SIGMA_COMMON` is never divided by `h_eff`, so a lone house's weight saturates:
+
+    waves      1        2        5       20      100    1,000   10,000
+    weight  0.5226   0.5480   0.5645   0.5732   0.5755  0.5760  0.5761
+
+Ten thousand waves buy no more than a thousand. **Two houses pass that ceiling
+with four polls** (0.5798). The retired `weight_cap` imposed a ceiling by
+truncation; the decomposition produces one by consequence.
+
+So the bound is now derived and named rather than restated:
+
+* `polling._sigma_total(sampling_sq, h_eff, screen, drift)` — the two-term total
+  in ONE place.
+* `polling.sigma_floor(polls, party, share)` — `aggregate_sd` with
+  `include_sampling=False`. **The same code path**, so the floor and the thing
+  it bounds cannot drift apart.
+* `polling.house_ceiling(...)` — `blend_weight` of that floor.
+
+Three tests that each restated `weight_cap(1.0)` now assert against
+`house_ceiling`, and the floor test's hand-typed `0.03` and `0.015` are gone in
+favour of `sigma_floor`. The ceiling is tight: the flood sits exactly on it
+(0.5761) and a million-respondent single poll just under (0.57606).
+
+### The screen term, kept as a policy and labelled as one
+
+§1.87 folded the screen surcharge into the common term on the argument that a
+decomposition cannot identify its own components (Dominitz & Manski 2025). That
+argument is sound and it silently deleted the only cost this model imposes for
+hiding a likely-voter screen — a disclosed and an undisclosed poll priced
+identically at 0.0381. A test caught it.
+
+It is restored, **relabelled honestly**: not a measurement of the excess error
+of an undisclosed screen, but a declared surcharge for opacity, not divided by
+`h_eff` because opacity is not averaged away by more houses. It is defensible
+where the other three components were not precisely because it does not pretend
+to be measured — a house can remove it at any time by publishing its screen.
+
+## 1.93 Duplicated logic: a repository-wide audit, and the rule it establishes (2026-08-24)
+
+**§1.92's helper was not an isolated slip, and the owner said so: detailed logic
+must not live in two places.** Three read-only audits were run over `src/`,
+`tests/`, and the code/config/docs/site boundary. The full inventory is
+`DUPLICATION-AUDIT.md`; this entry records what it establishes.
+
+### The rule
+
+A second copy is permitted **only** where its independence is the point — `fold.py`
+validating the deterministic core, `test_hex_cartogram.py` restating the
+closed-form hexagon identities. Every such copy says so in its docstring.
+Everything else imports.
+
+### One negative result, and it matters
+
+Every module-level numeric constant and all 33 `DEFAULTS` keys were
+cross-checked against every number quoted beside them in the nine standing
+documents. **Every restated value matches.** `SHRINK`, `SPINE_K`,
+`RELIABILITY_HALF`, `SD_FLOOR`/`SD_CEILING`, `SPLIT_SD_FLOOR`,
+`SPLINTER_PARENT_WEIGHT`, `TURNOUT_CORRELATION`, `LEVEL_DF`, the `ALPHA_*` four,
+`REFERENCE_SHARE`/`SLATE`, `CLAIM_FRACTION`, `DIRICHLET_FLOOR` — all agree.
+
+**The registers are not where the drift is.** The drift is in restated
+*mechanisms*, restated *rules*, and typed *outputs*. That is worth knowing
+because the register discipline is expensive and it is working.
+
+### The clearest case: one rule, two copies, and the strict one is not the
+documented one
+
+`polling.screen` guards with `scope == "metro" and not city` — an exact string
+match. The register holds `ipsos-w2-2025-metros` at `scope: "metro-aggregate"`
+with no `city`, whose own note says using it as a city poll *"would import Cape
+Town's DA and eThekwini's MK into Johannesburg"*. It passes `screen`, and
+`aggregate` blends it: DA −3.18pp, ANC +2.65pp, **PA conjured at 4.00% and IFP
+at 2.00%** in Johannesburg, `H_eff` 1.464 against 1.0.
+
+**It does not reach the forecast**, because `montecarlo:2876` re-states the rule
+inline and its version is strict. That is the finding, not a reprieve: the layer
+documenting itself as *"Admitted polls, and every exclusion WITH ITS REASON"* is
+wrong, and the forecast is saved by a copy of the rule in another module.
+`test_polling_register` asserts `usable_for` and `screen` agree with each other;
+nothing asserted either agrees with what the model uses.
+
+### Already wrong, currently inert
+
+* `montecarlo:2513-2516` applies the by-election decay **twice** — `decay²` over
+  a denominator of `decay` — while the comment above it states the opposite
+  invariant and claims parity with `byelections.py`. Inert only because
+  `w_bye_local_*` ship at 0.0, and `:170-171` names 0.75/0.35 as "the value
+  tested".
+* `fold.py:682,700` call `seats.allocate` without `total_seats`, so **every city
+  is allocated a 270-seat Johannesburg council**.
+* `PERTURB` sets `turnout_correlation` twice (0.0 with its explanation, then
+  −0.9). Python keeps the last; the documented perturbation has never run. It is
+  the only duplicate key in either file, by AST walk.
+* `pools._npe_citywide_for` is a character-identical copy of `levels._citywide`
+  **without** the §1.75 refusal, still returning `{}` for a missing file — the
+  hole §1.75 was written to close, still open one module over.
+
+### Wrong and live
+
+`polling.aggregate` does not call `_recency_weights`, the helper factored out
+*"so the aggregate and `effective_houses` cannot weight the same polls
+differently"*. It re-derives the decay inline and differs three ways: the date
+parser raises where the helper returns `None`, an undated poll is dropped here
+and weighted 0 there, and `asof` defaults over different sets. **The centre is
+the path that moves the published number.**
+
+### On the shipping gate
+
+The θ estimator is written four times — `levels.theta_prior:718-729`,
+`levels._shrunk:819-830`, `theta_residual.form_b` and `form_c`. The amended bar
+makes the held-out NLL an untradeable floor, and that floor is computed from
+forms whose own docstring admits they use a different size argument than
+`theta_prior` passes. **A change to `levels.py` moves the model and leaves the
+gate where it was.** Separately, `theta_prior` falls back to the size centre and
+`_shrunk` to the flat centre, which `theta_prior`'s own comment calls the wrong
+one — and the spine takes `_shrunk`'s. The named case is MK in 2026.
+
+### The record I failed to change in the same commit
+
+§1.91 adopted `SIGMA_TWO_TERM` and did not touch the registers that describe it.
+`JUDGEMENT-CALLS.md:348` still said *"pre-registered and OFF by default"*; four
+further rows described the retired σ, the cap that no longer binds, and
+`POLL_HOUSE_SD` as the live house term. `MACHINERY.md:284` gave the channel as
+`σ_poll = 3.03pp` with no cap. `montecarlo` contradicted itself twenty lines
+apart. **This is `CLAUDE.md`'s own non-negotiable, missed on the most contested
+lever in the model, by the author of the change, on the day of the change.**
+
+### The guard that made another guard vacuous, and said so
+
+Replacing every literal fallback broke
+`test_every_literal_fallback_equals_the_declared_default` — **by finding none
+left to check.** It failed on its own self-check:
+
+> no `scenario.get(key, <literal>)` calls found at all — either the pattern
+> changed or this test has stopped looking, and it would then pass forever
+> while checking nothing
+
+That assertion was added because a test that silently stops looking is worse
+than one that fails, and it earned itself here. An equality check over a set
+that is empty by construction is not a guarantee.
+
+So the guarantee **moved rather than being deleted**. The structural guard
+refuses new literals outright; the equality test was repurposed to the risk that
+survives — a fallback that is a NAMED CONSTANT, which is the good pattern and is
+still two objects. `montecarlo` had an import-time assert linking exactly one of
+the six poll constants to its `DEFAULTS` entry; the other five were unlinked.
+`test_every_named_fallback_resolves_to_the_declared_default` is that assert
+generalised over `src/`, with no allowlist and the same self-check.
+
+### `poll_house_k` is now inert, and is declared rather than deleted
+
+The lever set the cap `H_eff/(H_eff+k)`; the cap is gone, so nothing reads it on
+the shipped path and `test_every_tunable_lever_actually_moves_the_forecast`
+correctly reported it dead at 2026. It is **not** deleted, because the retired σ
+is still reachable at `SIGMA_TWO_TERM=0` for A/B and reads it there. It is in
+`EXPECTED_INERT` with that reason, and struck through in `JUDGEMENT-CALLS.md`.
+§1.68 deleted `POLL_K` outright when its path went; the difference is that that
+path was removed and this one is retained as an escape hatch.
+
+### The de-duplication is number-neutral, and the panel movement is the screen term
+
+**Claiming a refactor moved nothing is worthless unless it is measured, and the
+first measurement said the opposite.** The settled tree scored 382 coherent
+against the committed 384, so either the extractions had moved the model or the
+committed artefact was taken at a different draw count — and `history.json`
+records neither its draws nor its seed, so the artefact could not answer.
+(Logged against task #28: `forecast_summary.json` carries
+`_pools_artefact_key`, `_pools_stale` and `_constants_read`; the panel artefact
+carries no provenance at all.)
+
+Resolved by running the ORIGINAL source at the same draws, which needed
+`SIGMA_TWO_TERM=1` in the environment because the switch is off at `HEAD`.
+Three runs, 1500 draws, sixteen city-years:
+
+| tree | coherent | CRPS | seat abs |
+|---|---|---|---|
+| `HEAD` + `SIGMA_TWO_TERM=1` | **384** | **329.2** | **410** |
+| de-duplicated, screen term removed | **384** | **329.2** | **410** |
+| de-duplicated, screen term restored | 382 | 329.0 | 407 |
+
+**So every extraction in §1.93 is number-neutral to the seat** — `_sigma_total`,
+`sigma_floor`, the `screen` city rule and `metro_polls`/`national_polls`, and
+all fourteen literal-to-`DEFAULTS` replacements. The middle row is the proof:
+identical code to the third, one term removed, and it lands on the baseline
+exactly.
+
+**The entire movement is the screen surcharge restored in §1.92**, and it moves
+all three measures in the right direction. It is NOT reported as an improvement:
+draw noise on coherent seats is ±2 (§1.31), so two seats is inside it. The
+surcharge is kept on the argument in §1.92 — that a model must charge something
+for an undisclosed likely-voter screen — and the measurement's only claim is
+that doing so costs nothing.
+
+A first attempt at this comparison was invalid and is recorded because the
+mistake is easy to repeat: the baseline capture was run WITHOUT the environment
+switch, so it took the retired four-component branch and reported a σ of
+0.040645 where the two-term form gives 0.034015. **A/B against a default that
+the working tree has changed must set the switch explicitly on both sides.**
+
+**Run-to-run reproducibility, measured.** Two runs of identical code on the
+settled tree agree to **1.9e-14** across every scalar metric, and no seat metric
+moves at all. That is the parallel float-summation variation §1.46 documented
+between serial and parallel; the panel is reproducible to the seat, which is the
+resolution any claim here is made at.
+
+`ITERATING.md` rule 8's two tables were re-pasted from the settled run —
+ranks 4-12 n 58 → 57, and the vote-error table to +12.38 / 93.38, −26.29 /
+72.54, +4.42 / 22.45, phantom 9.49pp.

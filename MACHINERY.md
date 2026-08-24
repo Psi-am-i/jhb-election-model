@@ -281,7 +281,7 @@ touched.
 | Per-party spread | `levels.theta_prior` | MEASURED size-dispersion line | 0.19 at 40% of the vote rising to ~0.9 at 0.1% |
 | by-election deltas | `byelections.py` | MEASURED, contests before the target | **inert in every backtest** — the scrape covers 2022-06 to 2026-02 only |
 | `w_bye` = 0.40 | DEFAULTS | **JUDGED** | live in 2026, untestable historically |
-| **Metro polls** | `polling.py` | MEASURED + inverse-variance blend | σ_poll = 3.03pp, a TRACK RECORD not a nominal margin |
+| **Metro polls** | `polling.py` | DECLARED decomposition + inverse-variance blend | σ is `_sigma_total` — sampling + σ_common² + σ_idio²/H_eff + screen² + drift² + σ_volatility², and **only σ_idio shrinks with houses**. Adopted 2026-08-24 (§1.91), replacing the measured 3.03pp Ipsos-2016 track record, which could not say which part of the error more houses would remove |
 | Several waves | `polling.aggregate` | recency-weighted, 120-day half-life | combined ONCE; applying them in sequence let the oldest win |
 | Admission | `polling.usable_for` | rules, not judgement | must be dated, must declare its election (or fall inside 550 days), must NAME ITS CITY, and party-commissioned polls are excluded |
 | **National polls → metro** | `polling.metro_estimate` | MEASURED conversion | national share ÷ contested area's share of the national vote |
@@ -669,7 +669,7 @@ the source is switched off:
 turnout knobs are live and act on the **ward** layer: at Johannesburg 2021 the
 committed `turnout_noise_sd = 0.08` moves 46 ward wins and `turnout_blend_jitter
 = 0.25` moves 14, while citywide dispersion is identical to six decimals across
-a tenfold change in either. That is what i.i.d. noise over 855 voting districts
+a tenfold change in either. That is what i.i.d. noise over 865 voting districts (the review said **855**, which matches no year of this city — 797 in 2011, 842 in 2016, 867 in 2021, 865 in 2026; the count is derived in `cities/joburg.toml` and never typed, §1.93)
 should do. The copula's row is the least certain in this table — 0 to 5%, inside
 the noise floor, and not explained (§1.48).
 | entrant slot | ~0 | 0.04 | ≤ 0.07 |

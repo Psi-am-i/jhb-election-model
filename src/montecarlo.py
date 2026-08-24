@@ -1482,7 +1482,7 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     # back into a bounded triangular. The measurement now reaches the draw
     # directly, and unbounded (see LEVEL_DF).
     sd_measured = (scenario.get("_theta_sd") or {})
-    sd_default = float(scenario.get("level_sd_default", 0.45))
+    sd_default = float(scenario.get("level_sd_default", DEFAULTS["level_sd_default"]))
 
     def sd_for_party(party: str) -> float:
         return float(sd_measured.get(party, sd_default))
@@ -2468,8 +2468,8 @@ def run_model(target, scenario: dict,
     # shaves a vanishing amount off it elsewhere. That is a property of a model
     # that fixes citywide totals, not a leak in this term.
     dev_pr, dev_ward = dev, dev
-    w_ward = scenario.get("w_bye_local_ward", 0.0)
-    w_pr = scenario.get("w_bye_local_pr", 0.0)
+    w_ward = scenario.get("w_bye_local_ward", DEFAULTS["w_bye_local_ward"])
+    w_pr = scenario.get("w_bye_local_pr", DEFAULTS["w_bye_local_pr"])
     if (w_ward or w_pr) and (processed / "byelection_contest_detail.csv").exists():
         # By-election wards are on the previous LGE's delimitation, so the
         # ward -> VD map comes from that election's result file rather than
@@ -2485,8 +2485,8 @@ def run_model(target, scenario: dict,
             ward = ward_of_vd.get(vd)
             if ward:
                 vd_of_ward[ward].append(i)
-        cap = scenario.get("bye_local_cap", 1.5)
-        tau = scenario.get("bye_tau_months", 18.0)
+        cap = scenario.get("bye_local_cap", DEFAULTS["bye_local_cap"])
+        tau = scenario.get("bye_tau_months", DEFAULTS["bye_tau_months"])
         # A ward that has voted twice has shown one ward twice over, not two
         # separate movements to be stacked. Ward 102 went to the polls in 2023
         # and again in 2026 and the DA landed within a point of itself both
@@ -2749,10 +2749,10 @@ def run_model(target, scenario: dict,
     # path. MODEL-LOG §1.69.
     _polling.validate_or_die()
     try:
-        _min_n = float(scenario.get("poll_min_n", 300))
-        _usable = ([q for q in _polling.screen(target, min_n=_min_n)[0]
-                    if q.get("scope") == "national"]
-                   if scenario.get("poll_paths", "all") in ("arrivals", "all")
+        _min_n = float(scenario.get("poll_min_n", DEFAULTS["poll_min_n"]))
+        _usable = (_polling.national_polls(target, min_n=_min_n)
+                   if scenario.get("poll_paths",
+                                   DEFAULTS["poll_paths"]) in ("arrivals", "all")
                    else [])
         if _usable:
             _votes = _polling.votes_by_metro(target.year)
@@ -2871,10 +2871,11 @@ def run_model(target, scenario: dict,
     # raise. MODEL-LOG §1.68.
     _pg.validate_or_die()
     _screened, _declined = _pg.screen(
-        target, min_n=float(scenario.get("poll_min_n", 300)))
-    _metro = ([q for q in _screened
-               if q.get("scope") == "metro" and q.get("city") == target.city.slug]
-              if scenario.get("poll_paths", "all") == "all" else [])
+        target, min_n=float(scenario.get("poll_min_n", DEFAULTS["poll_min_n"])))
+    # The city rule lives in `polling`, not here. See polling.metro_polls.
+    _metro = ([q for q in _screened if q.get("scope") == "metro"]
+              if scenario.get("poll_paths", DEFAULTS["poll_paths"]) == "all"
+              else [])
     if verbose and _declined:
         print(f"  polls declined ({len(_declined)}):")
         for _x in _declined:
@@ -2896,28 +2897,29 @@ def run_model(target, scenario: dict,
     # this one. Left as it was, and recorded so it is a decision.
     if _agg:
         _sd = scenario.get("_theta_sd") or {}
-        _default_sd = float(scenario.get("level_sd_default", 0.45))
+        _default_sd = float(scenario.get("level_sd_default", DEFAULTS["level_sd_default"]))
         # σ_poll IS NO LONGER A CONSTANT. It is decomposed per poll per party —
-        # sampling from the achieved sample, a measured house term, and excess
-        # terms for an undisclosed screen and for opinion drift since fieldwork.
-        # See polling.poll_sd; MODEL-LOG §1.67.
+        # sampling from the achieved sample, a common term no number of houses
+        # removes, an idiosyncratic term that shrinks with houses, a declared
+        # surcharge for an undisclosed screen, and drift since fieldwork.
+        # See polling._sigma_total; MODEL-LOG §1.87, §1.91.
         #
-        # AND THE WEIGHT IS CAPPED BY HOW MANY INDEPENDENT HOUSES STAND BEHIND
-        # IT. Inverse variance is only correct if both estimates are unbiased,
-        # and one house with an undisclosed screen is exactly where the bias
-        # term is unbounded. Both admitted 2026 polls are the same house, so
-        # H_eff is 1.0 and the cap is 0.50 however many waves it publishes
-        # (`poll_house_k` ships at 1.0; 0.42 was the K = 1.4 value measured
-        # on the way to it and never shipped — MODEL-LOG §1.67, §1.69).
+        # AND THE CAP IS GONE — see the `_cap` line below, which is where this
+        # comment used to contradict the code twenty lines beneath it (§1.93).
+        # Inverse variance is only correct if both estimates are unbiased, and
+        # one house with an undisclosed screen is exactly where the bias term
+        # is unbounded; that is still true, and it is now priced by σ_common
+        # never dividing by H_eff rather than by a chosen ceiling. Both
+        # admitted 2026 Johannesburg polls remain the same house, so H_eff is
+        # 1.0 — but a lone house now SATURATES at 0.5761 of the blend on the
+        # synthetic fixture instead of being truncated at 0.50, and two houses
+        # pass that with four polls (§1.92).
         _asof = target.date
-        _pk = {"screen_sd": float(scenario.get("poll_screen_sd", 0.020)),
-               "drift_rate": float(scenario.get("poll_drift_per_root_day",
-                                                0.0010)),
-               "deff_subsample": float(scenario.get("poll_deff_subsample",
-                                                    1.6))}
+        _pk = {"screen_sd": float(scenario.get("poll_screen_sd", DEFAULTS["poll_screen_sd"])),
+               "drift_rate": float(scenario.get("poll_drift_per_root_day", DEFAULTS["poll_drift_per_root_day"])),
+               "deff_subsample": float(scenario.get("poll_deff_subsample", DEFAULTS["poll_deff_subsample"]))}
         _h_eff = _pg.effective_houses(
-            _metro, half_life_days=float(scenario.get("poll_half_life_days",
-                                                      120.0)), asof=_asof)
+            _metro, half_life_days=float(scenario.get("poll_half_life_days", DEFAULTS["poll_half_life_days"])), asof=_asof)
         # THE CAP IS DELETED UNDER THE PRE-REGISTERED REPLACEMENT (§1.87).
         # It moves the DA's weight by 0.023 while 538 prices a house with no
         # track record at +0.66pp of ERROR, not a halving of weight — so it is
@@ -2926,7 +2928,7 @@ def run_model(target, scenario: dict,
         # which is the documented mechanism, and the cap would double-count it.
         _cap = (1.0 if _pg.SIGMA_TWO_TERM else
                 _pg.weight_cap(_h_eff,
-                               house_k=float(scenario.get("poll_house_k", 1.0))))
+                               house_k=float(scenario.get("poll_house_k", DEFAULTS["poll_house_k"]))))
         for _party, _share in sorted(_agg.items(), key=lambda kv: -kv[1]):
             _mu = float(centres.get(_party, 0.0))
             if _mu <= 0:
@@ -2936,7 +2938,7 @@ def run_model(target, scenario: dict,
             # house term shrinks across HOUSES and so does not shrink here.
             _psd = _pg.aggregate_sd(
                 _metro, _party, _share, asof=_asof,
-                half_life_days=float(scenario.get("poll_half_life_days", 120.0)),
+                half_life_days=float(scenario.get("poll_half_life_days", DEFAULTS["poll_half_life_days"])),
                 **_pk)
             _w = min(_pg.blend_weight(_psd, _msd), _cap)
             centres[_party] = (1 - _w) * _mu + _w * float(_share)

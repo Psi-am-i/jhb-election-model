@@ -151,6 +151,19 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
     ("level_sd_default", "2026"): "same reason as at 2021 — theta_prior covers "
         "every party in the baseline, so the fallback never binds",
     ("poll_house_k", "2021"): _NO_METRO_POLL,
+    ("poll_house_k", "2026"):
+        "**THE MECHANISM IT DRIVES IS RETIRED (2026-08-24, §1.91).** It set the "
+        "cap `H_eff/(H_eff+k)` on a poll's weight, and `SIGMA_TWO_TERM` — now "
+        "the DEFAULT — deletes the cap: `montecarlo` sets `_cap = 1.0` under the "
+        "switch, so nothing reads this lever on the shipped path. It is NOT "
+        "deleted, because the retired σ remains reachable with "
+        "`SIGMA_TWO_TERM=0` for A/B and reads it there. Inert by design and "
+        "stated as such in JUDGEMENT-CALLS.md, which now carries the row struck "
+        "through. What bounds a single house instead is `polling.house_ceiling`, "
+        "derived from the σ floor rather than chosen: a lone house saturates at "
+        "0.5761 of the blend however many waves it publishes, and two houses "
+        "pass that with four polls (§1.92). If this lever is ever wanted back, "
+        "the thing to change is the σ, not the cap.",
     ("poll_deff_subsample", "2021"): _NO_METRO_POLL,
     ("poll_screen_sd", "2021"): _NO_METRO_POLL,
     ("poll_drift_per_root_day", "2021"): _NO_METRO_POLL,
@@ -293,13 +306,16 @@ PERTURB: dict[str, object] = {
     "poll_min_n": 5000,           # admits nothing under 5,000 respondents
     "poll_half_life_days": 5.0,   # only the freshest wave counts
     "level_sd_default": 1.60,     # was frozen at 0.45 and unreachable
-    "turnout_correlation": 0.0,   # independent pools; was frozen at 0.63
     "contestation_expand": 1.0,   # every party in every ward
     "w_bye_local_ward": 0.90,
     "w_bye_local_pr": 0.90,
     "spine_k": 40.0,
     "level_floor": 0.02,
-    "turnout_correlation": -0.9,
+    # ONE entry only. This key was set twice — 0.0 here with an explanation
+    # and -0.9 forty lines on — and Python keeps the last, so the documented
+    # perturbation never ran. -0.9 is kept because it is the further from the
+    # 0.63 default and so the stronger test. MODEL-LOG 1.93.
+    "turnout_correlation": -0.9,   # anti-correlated pools; default is 0.63
     # The level shrink, added 2026-08-17 and ADOPTED at 0.35 the next day.
     # PERTURBED TO 0.0, WHICH IS THE POINT: 0.0 is exactly the identity in
     # `compress_levels`, so this sweep asks whether the committed shrink is
@@ -573,30 +589,52 @@ def test_no_scenario_key_is_read_without_being_declared():
         f"RUNTIME_INJECTED names {stale}, which `montecarlo.py` no longer reads. "
         f"An excuse for a key that is gone hides the next real one; delete it.")
 
-def test_every_literal_fallback_equals_the_declared_default():
+def test_every_named_fallback_resolves_to_the_declared_default():
     """CLASS 18 — THE WHOLE CLASS, NOT THE INSTANCE.
 
-    `scenario.get("poll_half_life_days", 120.0)` writes a lever's value a
-    second time, as a literal, at the call site. Today every such literal
-    happens to equal its `DEFAULTS` entry, because `scenario` is always built
-    from `DEFAULTS` — **which is exactly what was true of `LEVEL_DF` before it
-    wasn't.** The moment `DEFAULTS` moves and a literal does not, the two paths
-    resolve the same lever to two different values and nothing says so.
+    **This test used to police LITERAL fallbacks — `scenario.get("k", 120.0)` —
+    and on 2026-08-24 it failed by finding none, which is the correct outcome
+    and the reason its self-check existed.** Every literal fallback in `src/`
+    was replaced by `DEFAULTS[...]`, and the structural guard
+    `test_no_scenario_fallback_is_a_bare_literal` now refuses new ones outright.
+    An equality check over a set that is empty by construction passes forever
+    while checking nothing, so the guarantee moved rather than being deleted.
 
-    This is one assertion over the whole class, with no allowlist, and it is the
-    guard the §1.84 fix should have written instead of editing one call site.
-    An independent review pointed that out: the fix converted ONE of twelve
-    literal fallbacks and left eleven, in the commit whose entire subject was
-    that two paths had resolved one lever differently.
+    What is left to police is the fallback that is a NAMED CONSTANT —
+    `scenario.get("turnout_correlation", TURNOUT_CORRELATION)`. That is the
+    good pattern and it is still two objects: a module constant and a `DEFAULTS`
+    entry. `montecarlo` had an import-time assert linking exactly ONE of the six
+    poll constants to its default; the other five were unlinked. This is that
+    assert, generalised, with no allowlist.
 
-    MODEL-LOG §1.85.
+    MODEL-LOG §1.85, §1.93.
     """
     import ast as _ast
+
+    # every module-level numeric constant in src/, by name
+    constants: dict[str, list[tuple[str, float]]] = {}
+    for path in sorted((ROOT / "src").glob("*.py")):
+        try:
+            tree = _ast.parse(path.read_text(encoding="utf-8"))
+        except SyntaxError:
+            continue
+        for node in tree.body:
+            if not isinstance(node, _ast.Assign) or len(node.targets) != 1:
+                continue
+            tgt = node.targets[0]
+            if not (isinstance(tgt, _ast.Name) and tgt.id.isupper()):
+                continue
+            if not (isinstance(node.value, _ast.Constant)
+                    and isinstance(node.value.value, (int, float))
+                    and not isinstance(node.value.value, bool)):
+                continue
+            constants.setdefault(tgt.id, []).append((path.name, node.value.value))
+
     offenders, checked = [], 0
     for path in sorted((ROOT / "src").glob("*.py")):
         try:
             tree = _ast.parse(path.read_text(encoding="utf-8"))
-        except SyntaxError:                      # not ours to police here
+        except SyntaxError:
             continue
         for node in _ast.walk(tree):
             if not (isinstance(node, _ast.Call)
@@ -606,34 +644,39 @@ def test_every_literal_fallback_equals_the_declared_default():
                     and node.func.value.id == "scenario"
                     and len(node.args) == 2
                     and isinstance(node.args[0], _ast.Constant)
-                    and isinstance(node.args[0].value, str)
-                    and isinstance(node.args[1], _ast.Constant)
-                    and isinstance(node.args[1].value, (int, float))
-                    and not isinstance(node.args[1].value, bool)):
+                    and isinstance(node.args[0].value, str)):
                 continue
-            key, literal = node.args[0].value, node.args[1].value
-            if key not in M.DEFAULTS:
-                continue                          # a different test owns that
-            checked += 1
+            key, fb = node.args[0].value, node.args[1]
+            if isinstance(fb, _ast.Name):
+                name = fb.id
+            elif isinstance(fb, _ast.Attribute):
+                name = fb.attr                    # `_pg.POLL_HALF_LIFE_DAYS`
+            else:
+                continue                          # DEFAULTS[...] and friends
+            if key not in M.DEFAULTS or name not in constants:
+                continue
             declared = M.DEFAULTS[key]
             if not isinstance(declared, (int, float)) or isinstance(declared, bool):
                 continue
-            if abs(float(literal) - float(declared)) > 1e-12:
-                offenders.append(
-                    f"{path.name}:{node.lineno}  scenario.get({key!r}, {literal!r}) "
-                    f"but DEFAULTS[{key!r}] = {declared!r}")
+            for where, value in constants[name]:
+                checked += 1
+                if abs(float(value) - float(declared)) > 1e-12:
+                    offenders.append(
+                        f"{path.name}:{node.lineno}  scenario.get({key!r}, {name}) "
+                        f"-> {where} defines {name} = {value!r}, but "
+                        f"DEFAULTS[{key!r}] = {declared!r}")
 
     assert checked, (
-        "no `scenario.get(key, <literal>)` calls found at all — either the "
+        "no `scenario.get(key, NAMED_CONSTANT)` calls found at all — either the "
         "pattern changed or this test has stopped looking, and it would then "
-        "pass forever while checking nothing")
+        "pass forever while checking nothing. That is exactly how its previous "
+        "form ended: the literals it policed were all removed (§1.93).")
     assert not offenders, (
-        "literal fallbacks that DISAGREE with the declared default:\n  "
-        + "\n  ".join(offenders)
-        + "\n\nTwo values for one lever, resolved by different code paths, is "
-          "how `poll_half_life_days` moved 5.6pp of ANC through a path no sweep "
-          "could reach (§1.84). Use `DEFAULTS[key]` or the module constant as "
-          "the fallback, never a fresh literal.")
+        "a named-constant fallback disagrees with the declared default:\n  "
+        + "\n  ".join(sorted(set(offenders)))
+        + "\n\nTwo values for one lever, resolved by different code paths, is how "
+          "`poll_half_life_days` moved 5.6pp of ANC through a path no sweep could "
+          "reach (§1.84). The constant and the DEFAULTS entry must agree.")
 
 
 def test_no_lever_is_passed_to_one_consumer_and_withheld_from_another():
@@ -752,6 +795,75 @@ def test_no_lever_is_passed_to_one_consumer_and_withheld_from_another():
           "describes a value that the other path never sees. That is how "
           "`poll_half_life_days` moved 5.6pp of ANC unreachably. Pass it, or "
           "explain in the call why this consumer takes a different value.")
+
+
+def test_no_scenario_fallback_is_a_bare_literal():
+    """A declared default must be declared ONCE.
+
+    Twenty `scenario.get(...)` call sites in `montecarlo` carried a bare literal
+    fallback and not one of them read `DEFAULTS`. Every literal happened to
+    equal its declared default, so the equality guard beside this test passed —
+    and that is exactly the state a third copy is born into. `montecarlo` was
+    inconsistent with ITSELF: one call wrote `_pg.POLL_HALF_LIFE_DAYS` and
+    another thirty lines later wrote `120.0`.
+
+    The rule this asserts is structural rather than numerical: a fallback is
+    `DEFAULTS[...]` or a named module constant, never a number typed again.
+    MODEL-LOG 1.93.
+    """
+    import ast as _ast
+    import re as _re
+    text = (ROOT / "src" / "montecarlo.py").read_text()
+    pat = _re.compile(r'scenario\.get\(\s*"([a-z_]+)"\s*,\s*([^()]*?)\s*\)', _re.S)
+    offenders = []
+    for key, fallback in pat.findall(text):
+        fallback = fallback.strip()
+        if fallback.startswith("DEFAULTS["):
+            continue
+        try:
+            _ast.literal_eval(fallback)
+        except Exception:
+            continue                      # a named constant — that is the point
+        offenders.append(f'scenario.get("{key}", {fallback})')
+    assert not offenders, (
+        "a declared default is typed again as a literal at the call site:\n  "
+        + "\n  ".join(sorted(set(offenders)))
+        + "\nUse DEFAULTS[...] or a named module constant. A literal that merely "
+          "HAPPENS to equal the default today is the defect, not the drift that "
+          "follows it.")
+
+
+def test_no_dict_literal_declares_the_same_key_twice():
+    """`PERTURB` set `turnout_correlation` twice and Python kept the last.
+
+    The first entry carried the explanation — "independent pools; was frozen at
+    0.63" — and never ran. A sweep silently testing a different value than its
+    own comment describes is worse than an unswept lever, because it reports a
+    result.
+
+    Cheap, total, and it walks every dict literal in `src/` and `tests/`.
+    MODEL-LOG 1.93.
+    """
+    import ast as _ast
+    from collections import Counter as _Counter
+    bad = []
+    for path in sorted((ROOT / "src").glob("*.py")) + sorted((ROOT / "tests").glob("*.py")):
+        try:
+            tree = _ast.parse(path.read_text())
+        except SyntaxError:
+            continue
+        for node in _ast.walk(tree):
+            if not isinstance(node, _ast.Dict):
+                continue
+            keys = [k.value for k in node.keys
+                    if isinstance(k, _ast.Constant) and isinstance(k.value, str)]
+            for key, n in _Counter(keys).items():
+                if n > 1:
+                    bad.append(f"{path.name}:{node.lineno} declares {key!r} {n} times")
+    assert not bad, (
+        "a dict literal declares one key more than once; every copy but the "
+        "last is dead, along with any comment explaining it:\n  "
+        + "\n  ".join(bad))
 
 
 if __name__ == "__main__":

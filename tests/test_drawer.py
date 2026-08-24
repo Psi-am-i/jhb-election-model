@@ -120,6 +120,18 @@ PROCESSED = ROOT / "data" / "processed"
 # draws on the settled tree, identical to the committed history.json to the
 # seat. This records where the 2026 forecast now is; it does not claim an
 # improvement, and none is claimed.
+# RE-RECORDED 2026-08-24: THE TWO-TERM sigma_poll IS NOW THE DEFAULT.
+# Adopted by the owner on §1.88's measurement — the panel could not tell the
+# difference (384 = 384, CRPS 329.4 -> 329.2, both inside their own intervals)
+# and it ships on identifiability, not accuracy: the retired POLL_HOUSE_SD was
+# a residual of the same nine 2016 readings that are the only metro-poll test
+# cases the backtest has, while every replacement constant is cited.
+#
+# The 2026 forecast moves by about a seat: DA 79 -> 78, ANC 63 -> 64, ASA
+# 24 -> 25. What matters more is invisible here — sigma no longer collapses
+# toward certainty as houses are added (0.40pp -> 3.86pp at a hundred houses),
+# and the DA's blend weight is now 0.484 by arithmetic rather than 0.500 pinned
+# by a cap. MODEL-LOG §1.87, §1.88, §1.91.
 # Recorded 2026-08-10 from data/processed/pools_2026.json, seed 20261104,
 # 2000 draws, numpy 2.5.1. Values are percentages: (mean, p5, p95).
 #

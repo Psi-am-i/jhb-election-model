@@ -22,12 +22,15 @@ model from public records.
 
 | Document | What it is |
 |---|---|
-| [`METHODOLOGY.md`](METHODOLOGY.md) | The review brief: what is predicted, how each stage works, what was validated and what cannot be |
+| [`MACHINERY.md`](MACHINERY.md) | How each stage actually works, and which numbers are measured, argued or declared |
+| [`ITERATING.md`](ITERATING.md) | The four-key bar a change must pass to ship, and why "worse does not ship" is the only rule that matters |
+| [`JUDGEMENT-CALLS.md`](JUDGEMENT-CALLS.md) | Every constant the data did not force, with its status, its evidence and how to check it |
+| [`archive/superseded-docs/METHODOLOGY.md`](archive/superseded-docs/METHODOLOGY.md) | **SUPERSEDED** — the original review brief, archived 2026-08-23. `MACHINERY.md` replaces it |
 | [`MODEL-LOG.md`](MODEL-LOG.md) | The running engineering log: findings, obstacles, silent data traps, the assumption register, every decision with its rationale |
 | [`SOURCES.md`](SOURCES.md) | Acquisition recipes for every input: URLs, the non-obvious election IDs, access workarounds, checksum discipline |
 | [`DATA-QUALITY.md`](DATA-QUALITY.md) | Defects in the official published records, each with the file, the arithmetic and what it cost us — thousands separators that silently drop 68% of a city's vote, a comma inside a party's name, every independent published under one shared name |
-| [`joburg-prediction-model-plan-v2.md`](joburg-prediction-model-plan-v2.md) | The original build plan — kept as written, including the parts the build later proved wrong |
-| [`model-review.html`](model-review.html) | The implementation review that found six errors in the first build, and their same-day resolution |
+| [`archive/original-plan/joburg-prediction-model-plan-v2.md`](archive/original-plan/joburg-prediction-model-plan-v2.md) | The original build plan — kept as written, including the parts the build later proved wrong |
+| [`archive/superseded-pages/model-review.html`](archive/superseded-pages/model-review.html) | The implementation review that found six errors in the first build, and their same-day resolution |
 
 The documents are canonical here; the website renders reader editions of them.
 

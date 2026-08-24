@@ -53,7 +53,7 @@ below **254**, a number produced by a model that had *less data*. That demands
 that adding true information never hurt a misspecified model, which is false in
 general and is the very symptom under investigation.
 
-So the bar has three keys. **A change must pass Keys 1, 2 and 4. Key 3 may buy a
+So the bar has four keys. **A change must pass Keys 1, 2 and 4. Key 3 may buy a
 bounded amount of Key 1, and may never buy Key 2 or Key 4.**
 
 **KEY 1 — the paired, cycle-replicated comparison.** For each of the sixteen
@@ -251,14 +251,14 @@ requirement to measure.
    | claimed columns | n | mean PIT | 50% (PIT) | 80% (PIT) | 90% (PIT) | probit-SD |
    |---|---|---|---|---|---|---|
    | ranks 1-3 | 48 | 0.511 | 83% | 96% | 98% | 0.676 |
-   | ranks 4-12 | 56 | 0.613 | 61% | 91% | 93% | 0.828 |
+   | ranks 4-12 | 57 | 0.613 | 61% | 91% | 93% | 0.825 |
 
    | sixteen-city-year vote error | signed | absolute |
    |---|---|---|
-   | ranks 1-3 | +12.55pp | 94.23pp |
-   | ranks 4-12 | -26.57pp | 72.60pp |
-   | ranks 13+ | +4.42pp | 22.44pp |
-   | phantom (parties that did not stand) | +9.60pp | — |
+   | ranks 1-3 | +12.38pp | 93.38pp |
+   | ranks 4-12 | -26.29pp | 72.54pp |
+   | ranks 13+ | +4.42pp | 22.45pp |
+   | phantom (parties that did not stand) | +9.49pp | — |
 
    **BOTH TABLES ARE NOW MEASURED ON SIXTEEN CITY-YEARS (2026-08-23,
    `MODEL-LOG` §1.77).** They were nine until §1.70 doubled the panel, and that

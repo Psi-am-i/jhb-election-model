@@ -59,10 +59,23 @@ def poll(**kw) -> dict:
 
 
 def _weight(polls, party, share, model_sd):
-    """The weight the model would actually give this aggregate. One place."""
+    """The weight the model would actually give this aggregate. One place.
+
+    **AND IT MUST MIRROR THE MODEL, WHICH IT STOPPED DOING (§1.92).** When the
+    two-term σ was adopted the cap was deleted under the same switch, and this
+    helper went on applying `weight_cap` — so every test in this file was
+    measuring a hybrid that the model does not run: the NEW σ against the OLD
+    cap. One house pinned at exactly 0.500 from one wave to a hundred, which
+    looked like the cap working and was the helper disagreeing with the code.
+
+    A second copy of a calculation is this repository's most reliable defect.
+    The branch below is the same one `montecarlo` takes.
+    """
     sd = PG.aggregate_sd(polls, party, share, asof=POLL_DAY)
-    cap = PG.weight_cap(PG.effective_houses(polls, asof=POLL_DAY))
-    return min(PG.blend_weight(sd, model_sd), cap)
+    raw = PG.blend_weight(sd, model_sd)
+    if PG.SIGMA_TWO_TERM:
+        return raw                       # no cap: the floor in σ_common is it
+    return min(raw, PG.weight_cap(PG.effective_houses(polls, asof=POLL_DAY)))
 
 
 def test_a_second_house_is_worth_more_than_a_second_wave():
@@ -71,6 +84,19 @@ def test_a_second_house_is_worth_more_than_a_second_wave():
     Two waves of one house and two waves of two houses are the same amount of
     fieldwork. They are not the same amount of evidence, and if the arithmetic
     cannot tell them apart then publishing more often is a way to buy influence.
+
+    **Under the two-term sigma the guarantee is STRONGER than it was, and it is
+    structural rather than truncated (MODEL-LOG 1.92).** The retired form bounded a
+    single house with `weight_cap` — an explicit ceiling, chosen. Deleting the
+    cap does not remove the bound, because SIGMA_COMMON never divides by
+    `h_eff`: a lone house's weight therefore SATURATES on its own. Measured on
+    this fixture: one house is worth 0.5226 at one wave, 0.5755 at a hundred and
+    0.5761 at ten thousand, while two houses pass that ceiling with four polls.
+
+    The first version of this test asked the wrong question — it compared a
+    hundred polls against two and found volume winning, which is not a defect
+    but a comparison of fieldwork quantity. Hold volume constant and replication
+    wins at every level (1 house / 2 / 4 at 100 polls: 0.5755 / 0.5945 / 0.6045).
     """
     one_house = [poll(id="a1", house="HouseA", fieldwork_end="2026-07-01"),
                  poll(id="a2", house="HouseA", fieldwork_end="2026-09-01")]
@@ -79,13 +105,37 @@ def test_a_second_house_is_worth_more_than_a_second_wave():
 
     w_one = _weight(one_house, "DA", 0.40, 0.045)
     w_two = _weight(two_houses, "DA", 0.40, 0.045)
-    assert w_two > w_one + 0.10, (
+    # Same fieldwork, different replication. The margin is modest under the
+    # two-term form and that is the point: all a second house buys is halving
+    # SIGMA_IDIO, because the common term is common — Shirani-Mehr et al.
+    # measure that it "persists unchanged, even when averaging over a large
+    # number of surveys". Measured today: 0.518 -> 0.533.
+    assert w_two > w_one + 0.01, (
         f"two waves of ONE house take {w_one:.3f} of the blend and two waves of "
         f"TWO houses take {w_two:.3f} — barely different. A second house must "
         f"be worth materially more than a second wave, or a single house can "
         f"buy the forecast by publishing weekly.")
-    assert w_one <= PG.weight_cap(1.0) + 1e-9, (
-        f"one house takes {w_one:.3f}, above its own cap {PG.weight_cap(1.0):.3f}")
+
+    # AND THE BOUND THAT REPLACED THE CAP: one house runs out of road.
+    flood = [poll(id=f"f{i}", house="HouseA") for i in range(10_000)]
+    modest = [poll(id=f"m{i}", house=f"H{i % 2}") for i in range(4)]
+    w_flood = _weight(flood, "DA", 0.40, 0.045)
+    w_modest = _weight(modest, "DA", 0.40, 0.045)
+    assert w_flood < w_modest, (
+        f"ten thousand waves of ONE house take {w_flood:.4f} of the blend and "
+        f"four polls from TWO houses take {w_modest:.4f}. A single house has "
+        f"out-published two houses, which is the failure `weight_cap` used to "
+        f"prevent by truncation and SIGMA_COMMON is supposed to prevent by "
+        f"never shrinking. If this fails, SIGMA_COMMON has been divided by "
+        f"h_eff somewhere.")
+
+    # ...and it genuinely saturates, rather than merely rising slowly.
+    assert w_flood - _weight(
+        [poll(id=f"g{i}", house="HouseA") for i in range(1_000)],
+        "DA", 0.40, 0.045) < 1e-3, (
+        "a single house's weight is still climbing between 1,000 and 10,000 "
+        "waves. It must converge, or the ceiling is only far away rather than "
+        "real.")
 
 
 def test_a_million_respondents_cannot_break_the_floor():
@@ -106,10 +156,13 @@ def test_a_million_respondents_cannot_break_the_floor():
         f"they can be sampled away, the decomposition has collapsed back to "
         f"sampling error and the single-house protection is gone.")
     w = _weight([absurd], "DA", 0.40, 0.045)
-    assert w <= PG.weight_cap(1.0) + 1e-9, (
+    ceiling = PG.house_ceiling([absurd], "DA", 0.40, 0.045, asof=POLL_DAY)
+    assert w <= ceiling + 1e-9, (
         f"a million-respondent single-house poll takes {w:.3f} of the blend, "
-        f"above the one-house cap {PG.weight_cap(1.0):.3f}. The cap is the "
-        f"backstop for exactly this input.")
+        f"above the ceiling {ceiling:.4f} that one house can ever reach. That "
+        f"ceiling is not a chosen cap — it is `sigma_floor`, this poll's own "
+        f"sigma with the sampling term removed, so exceeding it means sampling "
+        f"error has been allowed to go negative somewhere.")
 
 
 def test_a_poll_that_agrees_with_the_model_moves_nothing_much():
@@ -132,28 +185,47 @@ def test_a_poll_that_disagrees_moves_the_centre_toward_it_and_not_past_it():
         f"model {mu:.3f}, poll {polled:.3f}, blended {blended:.3f} — the result "
         f"is outside the interval between them, so the weight is not a convex "
         f"combination weight.")
-    assert blended - mu < (polled - mu) * 0.6, (
-        f"a single-house poll moved the centre {blended - mu:.3f} of the "
-        f"{polled - mu:.3f} gap. With the cap at "
-        f"{PG.weight_cap(1.0):.2f} it must move less than 60% of it.")
+    ceiling = PG.house_ceiling(
+        [poll(numbers=dict(PLAUSIBLE, DA=polled))], "DA", polled, 0.045,
+        asof=POLL_DAY)
+    assert blended - mu <= (polled - mu) * ceiling + 1e-9, (
+        f"a single-house poll moved the centre {blended - mu:.4f} of the "
+        f"{polled - mu:.4f} gap — a fraction of {(blended - mu) / (polled - mu):.4f}, "
+        f"above the {ceiling:.4f} ceiling one house can ever take. The bound is "
+        f"derived from `sigma_floor`, not asserted as a round number.")
 
 
 def test_more_waves_of_one_house_approach_a_floor_and_never_cross_it():
-    """§1.67 quotes 4.35 -> 3.36pp over 1 to 100 waves against a 3.35pp floor."""
-    sds = []
-    for k in (1, 2, 4, 8, 20, 100):
-        waves = [poll(id=f"w{i}", house="HouseA") for i in range(k)]
-        sds.append(PG.aggregate_sd(waves, "DA", 0.40, asof=POLL_DAY))
+    """Monotone, convergent, and bounded BELOW by the floor the model states.
+
+    The floor is not typed here. It is :func:`polling.sigma_floor` — the same
+    `aggregate_sd` call with the sampling term switched off — so this test
+    cannot pass while disagreeing with the model about where the floor is,
+    which is precisely what a hand-typed 3.35pp allowed (MODEL-LOG 1.92).
+
+    Measured under the two-term sigma on this fixture, 1 to 100 waves:
+    4.301 -> 3.865pp against a floor of 3.860pp.
+    """
+    waves = {k: [poll(id=f"w{i}", house="HouseA") for i in range(k)]
+             for k in (1, 2, 4, 8, 20, 100)}
+    sds = [PG.aggregate_sd(w, "DA", 0.40, asof=POLL_DAY) for w in waves.values()]
+    floor = PG.sigma_floor(waves[100], "DA", 0.40, asof=POLL_DAY)
+
     assert all(b <= a + 1e-12 for a, b in zip(sds, sds[1:])), (
-        f"σ is not monotone decreasing in the number of waves: {sds}")
-    assert sds[-1] > 0.03, (
-        f"one hundred waves of one house reach {sds[-1]:.4f}. The floor is the "
-        f"house/screen/drift block and must hold — if it does not, a house that "
-        f"publishes often enough is trusted as if it were many houses.")
-    assert sds[0] - sds[-1] < 0.015, (
-        f"waves alone move σ by {sds[0] - sds[-1]:.4f}, which is most of the "
-        f"way to zero. The sampling term is meant to be the small part of a "
-        f"metro poll's error.")
+        f"sigma is not monotone decreasing in the number of waves: {sds}")
+    assert all(x >= floor - 1e-12 for x in sds), (
+        f"sigma {min(sds):.5f} has crossed BELOW its own floor {floor:.5f}. "
+        f"Only the sampling term may shrink with waves; if the total goes under "
+        f"the floor then a house term is being averaged away by republication.")
+    assert sds[-1] - floor < 1e-4, (
+        f"one hundred waves reach {sds[-1]:.5f} against a floor of {floor:.5f} "
+        f"— still {sds[-1] - floor:.5f} above it. The sampling term is supposed "
+        f"to be nearly exhausted by then; if it is not, waves are worth far "
+        f"more than intended and a house can publish its way to influence.")
+    assert sds[0] - sds[-1] < 0.01, (
+        f"waves alone move sigma by {sds[0] - sds[-1]:.4f}. Sampling is meant to "
+        f"be the SMALL part of a metro poll's error, and if it is the large "
+        f"part the decomposition has the wrong shape.")
 
 
 def test_an_undisclosed_screen_is_priced_worse_than_a_disclosed_one():
