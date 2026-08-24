@@ -9539,6 +9539,121 @@ instrument, because a bare `0.25` in an expression has no name to register. It i
 recorded as the remaining gap rather than quietly omitted.
 
 
+---
+
+## 1.87 σ_poll pre-registered for replacement: two terms, one of which never shrinks (2026-08-24)
+
+**Written and committed BEFORE the measurement.** The owner said plainly that he
+was not convinced by the poll logic and commissioned a search of how PR-system
+forecasters actually do this. The research came back against us on structure, not
+just on values.
+
+### Why the current form is wrong, and it is not a matter of taste
+
+**1. The decomposition cannot be identified.** Dominitz & Manski, *JASA* 121(553)
+(2025), compute a Total Margin of Error for a 1.4%-response-rate poll: **49.3pp
+with no assumptions about non-respondents**, 4.9pp under a strong one. Every
+number a component decomposition emits is a restatement of the priors put in. Our
+four components multiply priors without adding information. And the model the
+research points to — Shirani-Mehr et al. (2018) — uses **two** terms,
+`σ² = p(1−p)/n + τ²`, with historical averages as the proxy for τ.
+
+**2. We divide the common term by the number of houses. It does not shrink.**
+Verified in our own code — `aggregate_sd` ends:
+
+    return math.sqrt(sampling_sq
+                     + (POLL_HOUSE_SD ** 2 + screen ** 2 + drift ** 2) / h_eff)
+
+Everything but sampling is divided by `h_eff`. Measured on our own register by
+cloning the two SRF waves across synthetic houses:
+
+| houses | 1 | 2 | 4 | 10 | 100 |
+|---|---|---|---|---|---|
+| σ | 4.01pp | 2.83pp | 2.00pp | 1.27pp | **0.40pp** |
+
+**Our model says that with enough pollsters a poll becomes almost certain.** The
+literature says the opposite in three independent places: Jackman (2005) —
+*"if the biases run in the same direction, then the gain in precision from
+pooling results in higher levels of confidence about a biased estimate"*;
+Shirani-Mehr et al. — *"shared election-level poll bias persists unchanged, even
+when averaging over a large number of surveys"*; and The Economist's production
+code carries a 1.3pp bias vector correlated ρ=0.9 that never shrinks.
+
+**3. `POLL_HOUSE_SD` is a residual of one house.** It is defined as
+`√(3.03² − sampling²)` on nine Ipsos 2016 readings — which are also, circularly,
+the only metro-poll test cases the backtest has.
+
+**4. The half-life is four times the longest documented value.** Israel and
+Denmark 2–14 days, New Zealand 30. Ours is 120, worth 3.2 points of ANC.
+
+**5. The cap is doing almost nothing.** It moves the DA's weight by 0.023, while
+538 prices a house with no track record at **+0.66pp of error**, not a halving of
+weight.
+
+### The replacement, with every constant sourced from outside this repository
+
+    σ = sqrt( sampling² / waves          # deff 1.6 kept, declared as a FLOOR
+            + σ_common²                  # 1.5pp — NEVER divided by h_eff
+            + σ_idio² / h_eff            # 1.5pp — the only term that shrinks
+            + (0.30·√days)²              # drift since fieldwork
+            + 0.8² )                     # SA volatility adjustment
+
+and **`weight_cap` is deleted**, replaced by the floor that `σ_common` now
+provides.
+
+| constant | value | where it comes from |
+|---|---|---|
+| `σ_common` | 1.5pp | Finland 1.25, The Economist 1.30, Selb et al. 1.5 (German mean absolute bias, 5,240 polls), SA 2024 1.66 |
+| `σ_idio` | 1.5pp | Stoetzer prior N(0,1); Bon et al. ≈1.0; Jackman phone-only 1–3; SA 2024 1.71 |
+| drift | 0.30 pp/√day | band 0.20 (Ellis NZ, *estimated*) to 0.41 (from Jennings & Wlezien's horizon profile). Current 0.10 is 2–4× too small |
+| volatility | +0.8pp | +0.1pp per 1pp of average party swing |
+| deff | 1.6 **unchanged** | Shirani-Mehr fn.2 measures 1.7, IQR 1.4–2.0. The reviewer retracted its own earlier advice to change this |
+
+### Why the test is better than it looks
+
+The metro poll path fires at exactly three backtest city-years — **Johannesburg
+2016, Tshwane 2016, Nelson Mandela Bay 2016** — and those are *the nine readings
+`POLL_HOUSE_SD` is calibrated on*. Under the current form, testing there is
+circular.
+
+**Under the replacement it is not.** `σ_common` and `σ_idio` are taken from
+Finnish, Danish, German, American and New Zealand evidence, and no longer from
+the 2016 residual. So those three city-years become a genuine held-out test set
+for the first time. That is a real gain independent of which formula scores
+better.
+
+### The bar, fixed in advance
+
+Judged under `ITERATING.md`'s amended four keys.
+
+* **Key 1 — paired, cycle-replicated.** The poll path fires on one cycle only, so
+  cycle replication is unavailable and **Key 1 cannot pass**. It must therefore
+  not *fail*: the change may not make the sixteen-city-year total worse beyond
+  noise.
+* **Key 2 — calibration is a floor.** CRPS must not worsen. **This is the key
+  that should decide it**, because the change is about the WIDTH of the poll's
+  claim, and CRPS is the width-sensitive score. A wider, better-calibrated poll
+  channel should improve CRPS even if seats barely move.
+* **Key 4 — held-out NLL** must not worsen in either fold.
+* **Key 3 — derivedness.** Strongly positive by construction: `POLL_HOUSE_SD`,
+  `POLL_SCREEN_SD_UNDISCLOSED` and `POLL_HOUSE_K` are retired; every replacement
+  constant carries a published citation. This is the first change to earn Key 3
+  rather than spend it.
+
+**Stated in advance so it cannot be claimed afterwards:** three city-years and
+one house cannot settle whether these constants are right. What this measurement
+can establish is whether the new form is *not worse* on the panel, and whether it
+is better calibrated. If it is, it ships on Key 2 and Key 3 — on the argument
+that its constants are sourced and its predecessor's were circular — and **not**
+on a seat improvement it is too small to demonstrate.
+
+### What would refute it
+
+CRPS worsening beyond noise, or held-out NLL worsening in either fold. Either
+means the wider poll channel is buying calibration nowhere and costing accuracy,
+and the current form stays until more houses exist.
+
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model
