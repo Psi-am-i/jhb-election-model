@@ -2918,8 +2918,15 @@ def run_model(target, scenario: dict,
         _h_eff = _pg.effective_houses(
             _metro, half_life_days=float(scenario.get("poll_half_life_days",
                                                       120.0)), asof=_asof)
-        _cap = _pg.weight_cap(_h_eff,
-                              house_k=float(scenario.get("poll_house_k", 1.0)))
+        # THE CAP IS DELETED UNDER THE PRE-REGISTERED REPLACEMENT (§1.87).
+        # It moves the DA's weight by 0.023 while 538 prices a house with no
+        # track record at +0.66pp of ERROR, not a halving of weight — so it is
+        # both non-standard in kind and roughly ten times more punitive in
+        # degree. Under SIGMA_TWO_TERM the protection is the sigma_common FLOOR,
+        # which is the documented mechanism, and the cap would double-count it.
+        _cap = (1.0 if _pg.SIGMA_TWO_TERM else
+                _pg.weight_cap(_h_eff,
+                               house_k=float(scenario.get("poll_house_k", 1.0))))
         for _party, _share in sorted(_agg.items(), key=lambda kv: -kv[1]):
             _mu = float(centres.get(_party, 0.0))
             if _mu <= 0:

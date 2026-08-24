@@ -139,6 +139,12 @@ These shape what a reader concludes and are easy to mistake for findings.
 | `top = 12` parties per table | `compare_history.py` | Cosmetic — but it is also what makes `validation_2021.json` **not comparable**: that file stores only 12 parties while these targets have 15–24 seat-winners, so its seat error is truncated. |
 | seat error summed over all parties | `compare_history.py` | The model's own figure spans all 69 parties; it contributes **0** from parties that won nothing, so the wider denominator does not inflate it. |
 | modal ward winner = "the model's call" | `diagnose.py` | A defensible reading of a probabilistic forecast, but it is a reading. |
+| **`FRESHNESS_GRACE_S`** = 300s | `stats.py`, `freshness_problems` | How far a token's backing file may lag `forecast_summary.json` before the site build refuses to publish. **ARGUED, NOT TESTED — the harness cannot score a publishing guard.** It is not a tolerance for staleness: it exists because `overhang_regimes.py` writes each `regime_<rule>_summary.json` and only then re-runs the default rule to restore the reference, so on a correct build the copies legitimately lag by one Monte Carlo. `overhang_regimes.py` now re-stamps them afterwards, which is what makes a window this small safe; 300s absorbs filesystem timestamp granularity and a hand-run `cp`, and nothing longer. The defect it was written for was **16 days**, and the strong half of the check — extinct scenario keys — catches that one with no window at all. Typed. MODEL-LOG §1.89. | 🟡 |
+| **`CELL_AREA_FACTOR`** = 1.0 | `hex_cartogram.py` | How big each hexagon is, as a multiple of *city area / 135*. At 1.0 the tiles cover the geographic map's own footprint, which is what lets the two maps be toggled between rather than merely shown near each other; the cost is longer displacements, because the grid is as tight as it can be. Measured trade-off on Johannesburg: mean displacement 22.5px at 0.70, 28.1px at 0.85, **36.2px at 1.00**. **ARGUED, NOT TESTED** — the harness cannot score a figure, and the choice is between two goods (footprint fidelity against positional fidelity), not between right and wrong. It touches no forecast. MODEL-LOG §1.90. | 🟡 |
+| **`GRID_MARGIN_CELLS`** = 2 | `hex_cartogram.py` | How far the candidate hex grid extends past the wards' bounding box. It buys the assignment room to push a peripheral ward outward rather than displacing a whole chain inward. Purely operational: at the Johannesburg layout the optimum uses no cell in the outermost ring, so raising it changes nothing and lowering it to 0 would begin to bind. Typed. | 🟢 |
+| **`SAFE` / `STRONG` / `LEAN`** = 0.90 / 0.75 / 0.60 | `hex_cartogram.py` | The four confidence tiers. **These are NOT free here** — they are `render_map.main`'s, re-declared because they are inline in that function and cannot be imported, and `test_the_two_maps_agree_on_the_confidence_tiers` reads `render_map.py`'s source and fails if the two drift apart. The tiers themselves are a presentation call made in the 2026-08-06 user review; this row exists so that the copy is not mistaken for an independent judgement. | 🟢 |
+| **`TIP_FLOOR`** = 0.05 · **`OTHER_FLOOR`** = 0.005 | `hex_cartogram.py` | A party is named in a ward's tooltip at ≥5% of simulations, and the swept-up "other" remainder is shown at ≥0.5%. Same provenance and same drift guard as the tier thresholds above: typed in `render_map.main`, re-declared here, checked against that source. | 🟢 |
+| **`MAX_DISPLACEMENT_RADII`** = 5.0 | `tests/test_hex_cartogram.py` | The bound at which a cartogram has stopped being a map: no hexagon may sit further than five hex radii from its ward's true centroid. In radii rather than pixels so it does not move with the figure's size. Johannesburg's worst ward is at 3.8 under the optimal assignment and **8.8 under the greedy one**, so the bound separates the two — which is what it is for. Typed, and a regression guard rather than a claim. | 🟡 |
 
 ## F. The rest of the tunable constants
 
@@ -335,6 +341,29 @@ otherwise. **None has been measured; several have never been moved at all.**
 | **`beta`** | 1.0 | `score.energy_score` | The energy score's exponent. It is part of **what "better" means**, so `ITERATING.md` is arguably its proper home | 🔴 |
 | **`BINS`** | 5 size bands | `theta_residual.py` | The size bands that produce §1.59/§1.77's headline. **The "≥15% of the vote" cut this register quotes as though it were natural is a chosen threshold** — move it and the measured interval moves | 🔴 |
 | **`THETA_CENTRAL`** | 6 party values | `leverage.py` | The original plan §3.5 *Default* column, verbatim. **`leverage.py` is imported by nothing**, so this does not reach a forecast — but §F lists its sibling `F_OTHER` beside two live constants without saying so | 🟡 not live |
+
+### Added 2026-08-24 — the σ_poll replacement's four constants (§1.87/§1.88)
+
+**Caught by the guard widened in §1.86, within a day of it being widened, on the
+author's own new code.** These are pre-registered and OFF by default
+(`SIGMA_TWO_TERM`); with the switch unset none is read.
+
+Every one is DECLARED **and sourced from outside this repository** — which is the
+whole point of the replacement. The constants they retire (`POLL_HOUSE_SD`,
+`POLL_SCREEN_SD_UNDISCLOSED`, `POLL_HOUSE_K`) were a residual of the same nine
+2016 readings that are also the only metro-poll test cases the backtest has.
+
+| constant | value | what it is | evidence | status |
+|---|---|---|---|---|
+| **`SIGMA_COMMON`** | 1.5pp | The industry-common poll bias. **Never divided by the number of houses** — that is the defect it exists to fix. | Finland 1.25pp; The Economist's production code 1.30pp; Selb et al., *POQ* 87(4) 2023, 5,240 German polls, 1.5pp mean absolute bias; South Africa 2024, 1.66pp | 🔴 declared, sourced |
+| **`SIGMA_IDIO`** | 1.5pp | The house-specific part. The **only** term `h_eff` may divide. | Stoetzer prior N(0,1); Bon et al. ≈1.0; Jackman phone-only 1–3; SA 2024 1.71pp | 🔴 declared, sourced |
+| **`SIGMA_DRIFT_PER_ROOT_DAY`** | 0.30 pp/√day | Opinion movement between fieldwork and polling day. | Band 0.20 (Ellis, NZ — *estimated* in a state-space model) to 0.41 (derived from Jennings & Wlezien's 4 / 3 / <2pp horizon profile). The shipped `POLL_DRIFT_PP_PER_ROOT_DAY = 0.10` is 2–4× too small | 🔴 declared, sourced |
+| **`SIGMA_VOLATILITY`** | 0.8pp | A South Africa adjustment: +0.1pp per 1pp of average party swing. | Survey Methods; independently corroborated by Botten Ada's `kappa` growing with years since the last election | 🔴 declared, sourced |
+
+**Read these with §1.88's caveat.** They are not measured *here* and three
+city-years with one house cannot check them. Their claim over the constants they
+replace is **identifiability**, not accuracy: a residual of one house cannot be
+checked and a citation can.
 
 ### What this section is for
 

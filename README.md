@@ -62,8 +62,16 @@ python src/pools.py --city joburg --target 2026 --emit --simulation   # reader e
 python src/montecarlo.py                 # 5,000 draws; scenario knobs via --config/--set
 python src/leverage.py                   # per-ward turnout elasticity
 python src/render_sheet.py               # regenerate the sheet's figures
-python src/export_interactive.py && python src/build_interactive.py
 python src/build_site.py                 # the public site -> ./site
+python src/build_portal.py               # the multi-city portal
+
+# or all of the above in one command
+python src/build_all.py --city joburg
+
+# The interactive page is NOT built. `build_interactive.py` refuses at
+# import: its in-browser drawer is the old two-bloc engine and has not
+# been ported to voter pools, so running it exits 1 by design. It is
+# behind `build_all.py --interactive`, where its refusal is survivable.
 ```
 
 ## Scoring it against a past election

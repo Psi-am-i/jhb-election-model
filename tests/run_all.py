@@ -27,7 +27,8 @@ MODULES = ["test_seats", "test_drawer", "test_temporal", "test_chain",
            "test_levels_dispersion", "test_polling_sd",
            "test_polling_synthetic", "test_polling_register",
            "test_register_matches_code", "test_data_coverage",
-           "test_levers_are_live"]
+           "test_levers_are_live", "test_build_all", "test_stat_freshness",
+           "test_hex_cartogram"]
 
 
 def main() -> int:

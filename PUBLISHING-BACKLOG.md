@@ -31,6 +31,13 @@ were built 7–8 August, and still carry a "PA's wider slate" slider driving
 > drawer is the old two-bloc engine and there is nothing left to feed it. The
 > published page stays frozen in the meantime.
 
+**Since 2026-08-24 that refusal is survivable.** It was a MANDATORY step in
+`build_all.py`, ahead of `build_site` and `build_portal`, so the one-command
+build died before it reached either — and with them the stat-provenance audits
+that only `build_site.py` runs. The interactive steps are now behind
+`build_all.py --interactive`, off by default, non-fatal and last. MODEL-LOG
+§1.89.
+
 So a reader opening either file sees controls for constants that no longer
 exist, driving an engine that no longer exists. That is not a stale figure, it
 is a **stale program**, and it is the third instance of a pattern `CLAUDE.md`
@@ -322,10 +329,20 @@ Measured on the committed `ward_winner_probs.csv` and `ward_paths.json`
 
 | party | wards won | % of seats | % of the map's ink | distortion |
 |---|---|---|---|---|
-| **ANC** | 66 | **48.9%** | **30.6%** | 0.63× |
-| **DA** | 51 | **37.8%** | **61.7%** | **1.63×** |
-| MK | 10 | 7.4% | 1.4% | **0.18×** |
-| PA | 6 | 4.4% | 4.7% | 1.07× |
+| **ANC** | 66 | **48.9%** | **30.1%** | 0.62× |
+| **DA** | 51 | **37.8%** | **61.9%** | **1.64×** |
+| MK | 10 | 7.4% | 1.2% | **0.16×** |
+| PA | 6 | 4.4% | 5.2% | 1.17× |
+| EFF | 1 | 0.7% | 0.3% | 0.43× |
+| IFP | 1 | 0.7% | 1.3% | 1.78× |
+
+**Corrected 2026-08-24.** The first version of this table read 30.6 / 61.7 /
+1.4 / 4.7 and listed only four parties. Those are each ward's **bounding box**,
+reproduced to the decimal — and a bounding box is not what is drawn. The
+polygon figures are above; the DA is over-drawn slightly more than was stated,
+MK under-drawn slightly more, and the two wards this table used to omit are 1.5%
+of the ink. The conclusion is unchanged and the arithmetic was not. MODEL-LOG
+§1.90.
 
 The largest ward has **142×** the bounding-box area of the smallest. The median
 DA ward is **4.2×** the median ANC ward and **6.6×** the median MK ward.
@@ -336,7 +353,13 @@ headline, on the same page.
 
 ### Options, in order of how well they fit this specific problem
 
-1. **Hex tile cartogram — one equal hexagon per ward.** ★ recommended.
+1. **Hex tile cartogram — one equal hexagon per ward.** ★ **BUILT 2026-08-24 —
+   `src/hex_cartogram.py`, not yet wired into any page.** See MACHINERY.md and
+   MODEL-LOG §1.90. Measured on the emitted figure, every party's ink share now
+   equals its seat share to within 1e-9. It is a second map, not a replacement,
+   exactly as recommended below; the page needs a
+   `__HEXMAP_START__`/`__HEXMAP_END__` marker pair and a toggle, and neither
+   exists yet.
    135 hexes, each ward snapped to the nearest free cell on a hex grid by
    minimising total displacement from its real centroid. Honest by construction
    here, because **one ward returns exactly one councillor** — equal area is not
@@ -366,3 +389,15 @@ is a genuinely interesting fact about Johannesburg that most maps of it hide.
 writes an inline SVG between `__MAP_START__`/`__MAP_END__`. A hex layout is an
 assignment problem over those centroids and needs no new data. This is
 presentation work and belongs in this file, not on the model list.
+
+**Still open on this item**, now that the cartogram itself exists:
+
+* the toggle, and the marker pair on whichever page carries it;
+* the distortion table as **stat tokens** in `content/joburg/stats.toml` — it is
+  publishable content in its own right and must not be typed into prose. There
+  is no emitter for it yet; `hex_cartogram.ink_table` returns the numbers.
+* **`render_map.py`'s party key omits MK**, which wins 10 wards in this
+  forecast. Its swatch list is `("ANC", "DA", "EFF", "ASA", "PA", "IFP",
+  "ALJAMAAH")`. The cartogram's includes MK. One line, for whoever next holds
+  that file — it was left alone because re-running `render_map.py` rewrites
+  `forecast-sheet.html`.

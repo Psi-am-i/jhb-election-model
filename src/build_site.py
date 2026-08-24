@@ -375,6 +375,11 @@ def main(argv: list[str] | None = None) -> int:
                              "escape hatch only — the claim is a number on the "
                              "page that cannot be re-derived or drift-checked, "
                              "so say why in the commit if you use it.")
+    parser.add_argument("--allow-stale-sources", action="store_true",
+                        help="publish even when a token's source FILE is older "
+                             "than the reference run. Staging escape hatch "
+                             "only — the number is live-looking prose fed by a "
+                             "dead model, and nothing downstream can tell.")
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
     cityconfig.use(getattr(args, "city", None))
@@ -455,15 +460,53 @@ def main(argv: list[str] | None = None) -> int:
     #
     # `--allow-orphans` exists so the fix can be staged: re-derive the claims
     # under a mechanism that exists, or cut them. It should not survive that.
+    #
+    # BOTH PROVENANCE REFUSALS ARE REPORTED BEFORE EITHER EXITS. They are
+    # independent faults with independent remedies — one is re-capturing a
+    # pinned claim, the other is re-running `overhang_regimes.py` — and exiting
+    # on the first would hand the builder one of them per build.
     orphans = statlib.orphaned_scenario_claims(registry)
+    refuse = False
     if orphans and not args.allow_orphans:
+        refuse = True
         print("\nORPHANED PINNED CLAIMS — refusing to publish a number whose "
               "mechanism the model no longer has:")
         for name, key in orphans:
             print(f"  ✗ {name}  (pinned to scenario key {key!r})")
         print("  Re-capture each under a mechanism that exists, or cut the "
               "claim. Pass --allow-orphans to publish anyway and say why.")
+    # A STALE BACKING FILE IS FATAL, since 2026-08-24, and for the same reason
+    # the orphan check above is. `mode = "free"` is not a freshness guarantee:
+    # a free token is recomputed every build from a FILE, and if that file is
+    # old the token republishes an old model's number while reading — to the
+    # reader, to a reviewer, and to the drift report — as the model speaking
+    # now. `anc_entitlement` sat twice on the live front page resolving out of
+    # `regime_cap_summary.json`, dated 2026-08-07, whose scenario block still
+    # names `turnout_tilt_da` and twelve other levers `run_model` has not had
+    # for weeks. The drift audit reported no drift, correctly: a frozen file
+    # cannot drift.
+    #
+    # WARN OR REFUSE? Refuse. This repository has already run that experiment:
+    # `orphaned_scenario_claims` PRINTED its finding, and ten front-page claims
+    # survived two independent reviews that both named them, because a print is
+    # a comment and not an audit. This defect is the same class wearing a
+    # better disguise — the orphans at least declared themselves `fixed`.
+    # `--allow-stale-sources` exists so the fix can be staged, exactly as
+    # `--allow-orphans` does, and should not outlive it.
+    stale = statlib.freshness_problems(registry, ctx)
+    if stale and not args.allow_stale_sources:
+        refuse = True
+        print("\nSTALE SOURCE FILES — refusing to publish a live-looking "
+              "number resolved out of a dead model's output:")
+        print(statlib.freshness_report(stale))
+        print("  Re-run the command above, or pass --allow-stale-sources and "
+              "say why.")
+    elif stale:
+        print("\n!! publishing against STALE source files (--allow-stale-sources):")
+        print(statlib.freshness_report(stale))
+    if refuse:
         raise SystemExit(1)
+
     n_pinned = sum(1 for e in registry.values() if e.get("mode") == "fixed")
     n_free = len(registry) - n_pinned
     print(f"\nstats: {n_free} free tokens resolved live · {n_pinned} pinned")

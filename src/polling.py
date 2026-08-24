@@ -87,6 +87,8 @@ worse than having no poll at all.
 
 from __future__ import annotations
 
+import os as _os
+
 import json
 import math
 from dataclasses import dataclass
@@ -211,6 +213,44 @@ POLL_DRIFT_PP_PER_ROOT_DAY = 0.0010
 # sd is directly estimable, and POLL_HOUSE_K follows from equating the cap to
 # the inverse-variance weight computed with that measured sd. One backtest
 # city-year cannot set it, and a sweep over n=1 is not a measurement.
+# ---------------------------------------------------------------------------
+# THE REPLACEMENT sigma, PRE-REGISTERED IN MODEL-LOG §1.87 AND OFF BY DEFAULT.
+#
+#     SIGMA_TWO_TERM=1 .venv/bin/python src/compare_history.py
+#
+# With the switch unset nothing below is read and no number moves.
+#
+# WHY. The four-component form cannot be identified — Dominitz & Manski, JASA
+# 121(553) 2025, put a Total Margin of Error at 49.3pp with no assumption about
+# non-respondents — and, worse, our version divides the COMMON component by the
+# number of houses, so sigma runs 4.01pp -> 0.40pp from one house to a hundred.
+# Jackman (2005), Shirani-Mehr et al. (2018) and The Economist's production code
+# all say the shared component never shrinks. Shirani-Mehr's own model uses two
+# terms, not four.
+#
+# Every constant here is taken from OUTSIDE this repository, which is the point:
+# `POLL_HOUSE_SD` was a residual of the same nine 2016 readings that are also the
+# only metro-poll test cases the backtest has.
+SIGMA_COMMON = 0.015              # DECLARED, sourced — industry-common bias that
+                                  # NEVER shrinks with more houses. Finland 1.25pp,
+                                  # The Economist 1.30pp, Selb et al. (POQ 2023,
+                                  # 5,240 German polls) 1.5pp mean absolute bias,
+                                  # SA 2024 1.66pp.
+SIGMA_IDIO = 0.015                # DECLARED, sourced — the house-specific part,
+                                  # the ONLY term h_eff may divide. Stoetzer prior
+                                  # N(0,1); Bon et al. ~1.0; Jackman phone-only
+                                  # 1-3; SA 2024 1.71pp.
+SIGMA_DRIFT_PER_ROOT_DAY = 0.0030 # DECLARED, sourced — band 0.20 (Ellis NZ,
+                                  # ESTIMATED in a state-space model) to 0.41
+                                  # (derived from Jennings & Wlezien's 4/3/<2pp
+                                  # horizon profile). The shipped 0.0010 is 2-4x
+                                  # too small.
+SIGMA_VOLATILITY = 0.008          # DECLARED, sourced — +0.1pp per 1pp of average
+                                  # party swing. South Africa's swings are large.
+
+SIGMA_TWO_TERM = _os.environ.get(
+    "SIGMA_TWO_TERM", "").lower() in ("1", "true", "yes")
+
 POLL_HOUSE_K = 1.0                # DECLARED
 
 # Below this an entry is recorded and never admitted. It exists because readers
@@ -835,6 +875,17 @@ def aggregate_sd(polls: list[dict], party: str, share: float, *,
                  for p, w in zip(usable, weights)) / total
     drift = sum(w * _drift * math.sqrt(_days_out(p, asof))
                 for p, w in zip(usable, weights)) / total
+    if SIGMA_TWO_TERM:
+        # THE PRE-REGISTERED REPLACEMENT (§1.87). Two terms, and only ONE of
+        # them may be divided by the number of houses. `screen` is folded into
+        # the common term rather than argued separately, because a decomposition
+        # cannot identify its own components (Dominitz & Manski 2025).
+        return math.sqrt(sampling_sq
+                         + SIGMA_COMMON ** 2                    # never shrinks
+                         + SIGMA_IDIO ** 2 / h_eff              # only this one
+                         + (drift * SIGMA_DRIFT_PER_ROOT_DAY
+                            / max(POLL_DRIFT_PP_PER_ROOT_DAY, 1e-12)) ** 2
+                         + SIGMA_VOLATILITY ** 2)
     return math.sqrt(sampling_sq
                      + (POLL_HOUSE_SD ** 2 + screen ** 2 + drift ** 2) / h_eff)
 

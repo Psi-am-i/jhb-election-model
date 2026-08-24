@@ -756,6 +756,54 @@ It does not replace `CLAUDE.md`'s one-writer rule. It stops a stale result being
 believed afterwards; it does not stop the artefacts moving under a measurement
 in progress.
 
+## Knowing whether a published number is stale
+
+The stat registry has two modes, and only one of them was ever checked.
+
+A **fixed** token is pinned to the run that produced it and is checked by the
+drift report and by `orphaned_scenario_claims`. A **free** token is recomputed
+every build — and `mode = "free"` says nothing whatever about *when*. A free
+token resolves out of a FILE, and the file has a date:
+
+| source | file it reads |
+|---|---|
+| `model:` | `forecast_summary.json` — the reference run, by definition current |
+| `derived:` | `seat_draws.csv`, written by the same run |
+| `regime:<rule>:` | `regime_<rule>_summary.json`, written by `overhang_regimes.py`, which is **opt-in** (`build_all.py --regimes`) and therefore lags |
+
+So a `regime:` token republishes its file's number on every build while reading
+as the model speaking now, and the drift report says nothing — correctly, since
+a frozen file cannot drift. `stats.freshness_problems` closes that. It refuses
+the build when a token's backing file fails either test:
+
+| signal | what it is | strength |
+|---|---|---|
+| the file's `scenario` block names scalar keys absent from **both** `montecarlo.DEFAULTS` and the reference run's own scenario | the file says which model wrote it | **strong** — survives any filesystem accident |
+| the file's mtime is more than `FRESHNESS_GRACE_S` behind `forecast_summary.json`'s | the disk says which file is older | **weak** — `cp -p`, a restore, a checkout or a `touch` all move it, and it says nothing about which code ran |
+
+mtime is a fallback, not a design: `forecast_summary.json` carries
+`_pools_artefact_key` and `_constants_read` but **no run time, no target year
+and no code hash**, so there is nothing better on disk. A `_generated` stamp
+written by `montecarlo` alongside the artefact key would replace it outright.
+
+`overhang_regimes.py` re-stamps its six outputs after the reference run is
+restored, because it writes them *before* that run and every correct build would
+otherwise trip the mtime test. A check that fires on a clean pipeline is a check
+somebody switches off.
+
+**Refusal, not a warning.** `orphaned_scenario_claims` printed its finding and
+ten front-page claims pinned to a deleted lever survived two independent reviews
+that both named them. `--allow-stale-sources` stages the fix, as
+`--allow-orphans` does, and should not outlive it.
+
+All three provenance guards — `stats.audit`, `orphaned_scenario_claims`,
+`freshness_problems` — live in `build_site.py` and **nowhere else**, so the
+build has to reach it. Until 2026-08-24 it could not: `build_all.py` ran
+`build_interactive.py` as a mandatory step ahead of `build_site`, and that
+module refuses at import by design, so the one-command build died before every
+audit on every city. The interactive steps are now opt-in
+(`build_all.py --interactive`), non-fatal and last. MODEL-LOG §1.89.
+
 ## Reading a run without re-running it
 
 `run_model(..., run_dir=...)` — or `--run-dir` on `montecarlo.py` and
@@ -782,6 +830,77 @@ at 1.0 for 74 of 75 parties without anyone noticing, because nobody reads a
 passive file. What catches that is an assertion; the trace is what makes such
 assertions cheap, because the quantity is already exposed. See
 `ARCHITECTURE-PROPOSAL.md`.
+
+## The ward cartogram — drawing seats instead of land
+
+`src/render_map.py` draws real ward boundaries. That map is honest about
+*where* and dishonest about *how many*: wards are drawn to hold roughly equal
+population and each returns exactly one councillor, so **ward area carries no
+information**, and Johannesburg's ward areas are unequal in a way that
+correlates with party. Measured on the committed inputs the DA takes 1.64x its
+seat share of the map's ink and MK 0.16x (MODEL-LOG §1.90). `src/hex_cartogram.py`
+draws the same forecast with one equal hexagon per ward, where ink share equals
+seat share by construction.
+
+It is a *second* map, not a replacement. Geography answers where the support
+sits — a real and interesting fact about this city — and the cartogram answers
+how many seats it buys. The intended presentation is both, on a toggle.
+
+**It needs no model run.** Everything it reads is already on disk:
+`data/processed/ward_paths.json` (written by `render_map.py`, holding every ward
+as an SVG path in final screen coordinates) and
+`data/processed/ward_winner_probs.csv` (written by every Monte Carlo).
+
+    .venv/bin/python src/hex_cartogram.py            # preview, layout, distortion table
+    .venv/bin/python src/hex_cartogram.py --into <page.html>
+
+Four stages:
+
+1. **Centroids.** The paths in `ward_paths.json` use only `M`/`L`/`Z` with
+   absolute coordinates, so `parse_path` reads them without a geometry library.
+   `polygon_area_centroid` takes the shoelace area and first moments of every
+   ring, treating the largest ring as the exterior so interior rings subtract.
+2. **The grid.** Pointy-top hexagons on offset rows. The circumradius is set so
+   that `N` hexagons have the **same total area as the city** —
+   `R = sqrt(A_city / N / (3 sqrt3 / 2))` — which puts the cartogram on the
+   geographic map's own footprint, so the two overlay and a toggle between them
+   reads as one object moving rather than two pictures. Candidates cover the
+   wards' bounding box plus a two-cell margin; there are ~3x more cells than
+   wards and unused ones are simply not drawn.
+3. **The assignment.** Minimise total squared displacement between ward
+   centroids and cell centres — a rectangular linear assignment problem.
+   `assign_optimal` is a numpy Jonker–Volgenant (the e-maxx Hungarian
+   formulation, inner loops vectorised over columns, O(n²m)); scipy is not a
+   dependency of this repository and a presentation feature is not the reason to
+   make it one. `assign_greedy` is the cheap alternative — outermost ward first,
+   nearest free cell — kept as the baseline the optimal one has to beat, which
+   it does by 1.6x on mean displacement and 2.3x on the worst ward. Ties break
+   on lowest cell index, so both are deterministic functions of their input.
+4. **The rendering.** One `<polygon id="hexcell">` in `<defs>`, `<use>`d once per
+   ward. Not a size optimisation: 135 separately-emitted polygons with rounded
+   coordinates differ in area, and "every ward is the same size" is the whole
+   claim of the figure, so it must hold by construction rather than to a
+   tolerance. The snippet sits between `__HEXMAP_START__`/`__HEXMAP_END__`,
+   distinct from the geographic map's markers so both can live on one page.
+
+**The two maps share one visual language, and one of the two links is enforced.**
+Party colours, `NAMES` and the toss-up grey are *imported* from `render_map`, so
+they cannot drift. The four confidence tiers (Safe ≥90% solid, Strongly leaning
+75–90% finely hatched, Leaning 60–75% heavily hatched, Toss-up <60% grey) are
+inline in `render_map.main` and cannot be imported; they are re-declared as
+`hex_cartogram.SAFE/STRONG/LEAN` and
+`tests/test_hex_cartogram.py::test_the_two_maps_agree_on_the_confidence_tiers`
+reads `render_map.py`'s source and fails if the two ever disagree.
+
+**The headline test is the distortion measurement itself.** `ink_table` groups
+drawn area by predicted winner and divides by seat share; the same function
+measures both maps, because the point is that one returns 1.00x and the other
+does not. `test_the_cartogram_ink_is_proportional_to_seats` recomputes it from
+the **emitted SVG** rather than the layout object, demands every party inside
+1e-9 of its seat share, and then runs the same instrument over the real ward
+polygons where the DA must exceed 1.4x — so the check cannot pass by measuring
+nothing.
+
 
 ## Where the reasoning lives
 

@@ -25,8 +25,10 @@ Usage:
 
 from __future__ import annotations
 
+import os
 import shutil
 import sys
+import time
 from pathlib import Path
 
 import montecarlo
@@ -44,6 +46,21 @@ def main() -> int:
                     PROCESSED / f"regime_{rule}_seat_draws.csv")
     print("\n=== restoring the reference (default rule) ===")
     montecarlo.main([])
+
+    # RE-DATE THE COUNTERFACTUALS TO THE RESTORE RUN. The copies above are
+    # written BEFORE the reference is restored, so on a perfectly correct run
+    # every regime_<rule>_summary.json is older than forecast_summary.json by
+    # one Monte Carlo — and `stats.freshness_problems`, which refuses to
+    # publish a token whose source file lags the reference, would fire on a
+    # freshly built pipeline every time. A check that cries wolf on day one is
+    # a check somebody switches off. These six files come out of the same
+    # invocation as the reference and are stamped to say so.
+    now = time.time()
+    for rule in ("expand", "level", "cap"):
+        for name in (f"regime_{rule}_summary.json",
+                     f"regime_{rule}_seat_draws.csv"):
+            os.utime(PROCESSED / name, (now, now))
+    print("  re-dated 6 regime artefacts to this run")
     return 0
 
 

@@ -9,7 +9,12 @@ Two modes, and the distinction is the whole point:
 
 * **free** — recomputed from the current model outputs every build. Use for
   statements of what the model says *now* ("the DA is largest in X% of
-  simulations").
+  simulations"). **Free is not a freshness guarantee.** A free token is only
+  as current as the FILE its source names: a ``regime:`` source resolves out
+  of ``regime_<rule>_summary.json``, and if that file is weeks old the token
+  republishes a dead model's number every build while reading as live, with
+  the drift report correctly saying nothing because a frozen file cannot
+  drift. :func:`freshness_problems` is what closes that, and it is fatal.
 * **fixed** — pinned to the run that produced it, because it sits inside a
   dated argument. "Short by 39 seats" is only true while the DA's median is
   97; silently refreshing that number would turn a correct article into
@@ -56,9 +61,30 @@ import csv
 import json
 import re
 import tomllib
+from datetime import datetime
 from pathlib import Path
 
 TOKEN = re.compile(r"\{\{([a-z0-9_]+)\}\}")
+
+# The run every other artefact in data/processed is dated against. A file-backed
+# source older than this one describes an earlier model.
+REFERENCE_ARTEFACT = "forecast_summary.json"
+
+# How far a backing file may lag the reference before it counts as stale.
+# ARGUED, NOT MEASURED (JUDGEMENT-CALLS). It exists because of pipeline order,
+# not tolerance for staleness: `overhang_regimes.py` writes each
+# regime_<rule>_summary.json and only THEN re-runs the default rule to restore
+# forecast_summary.json, so on a correct run the regime copies are legitimately
+# older than the reference by one Monte Carlo. `overhang_regimes.py` now
+# re-stamps them afterwards, which is what makes a window this small safe; the
+# window absorbs filesystem timestamp granularity and a hand-run `cp`, and
+# nothing longer. The defect this check was written for was 16 DAYS.
+FRESHNESS_GRACE_S = 300.0
+
+# What to re-run when a file-backed source has gone stale, by source prefix.
+FRESHNESS_REMEDY = {
+    "regime": "python src/overhang_regimes.py    # ~4 Monte Carlo runs",
+}
 
 
 # --------------------------------------------------------------------------
@@ -136,11 +162,20 @@ def resolve(source: str, ctx: dict):
 
 
 def load_context(processed: Path) -> dict:
-    """Model outputs the resolver reads."""
-    ctx: dict = {"summary": {}, "draws": [], "regimes": {}}
-    summary = processed / "forecast_summary.json"
+    """Model outputs the resolver reads, and the files they came out of.
+
+    ``ctx["files"]`` maps a source prefix (``"regime:cap"``) to the path that
+    backs it, and ``ctx["reference"]`` is ``forecast_summary.json``. Neither is
+    used to resolve anything; they exist so :func:`freshness_problems` can ask
+    how old the file under a *live* token actually is. See its docstring for
+    why that question was not being asked.
+    """
+    ctx: dict = {"summary": {}, "draws": [], "regimes": {},
+                 "files": {}, "reference": None}
+    summary = processed / REFERENCE_ARTEFACT
     if summary.exists():
         ctx["summary"] = json.loads(summary.read_text(encoding="utf-8"))
+        ctx["reference"] = summary
     seat_draws = processed / "seat_draws.csv"
     if seat_draws.exists():
         with seat_draws.open(encoding="utf-8", newline="") as fh:
@@ -148,6 +183,7 @@ def load_context(processed: Path) -> dict:
     for path in processed.glob("regime_*_summary.json"):
         rule = path.stem[len("regime_"):-len("_summary")]
         ctx["regimes"][rule] = json.loads(path.read_text(encoding="utf-8"))
+        ctx["files"][f"regime:{rule}"] = path
     return ctx
 
 
@@ -206,6 +242,141 @@ def orphaned_scenario_claims(registry: dict) -> list[tuple[str, str]]:
         print("     These cannot drift because they cannot be re-derived. "
               "Re-capture them under a mechanism that exists, or cut the claim.")
     return orphans
+
+
+# --------------------------------------------------------------------------
+# freshness: a token is only as live as the file underneath it
+# --------------------------------------------------------------------------
+
+def _stamp(epoch: float) -> str:
+    return datetime.fromtimestamp(epoch).strftime("%Y-%m-%d %H:%M")
+
+
+def _scenario_of(blob) -> dict:
+    block = (blob or {}).get("scenario")
+    return block if isinstance(block, dict) else {}
+
+
+def _extinct_keys(scenario: dict, reference: dict) -> list[str]:
+    """Scalar scenario keys this artefact records that nothing current knows.
+
+    "Current" is deliberately two things: ``montecarlo.DEFAULTS`` (the lever
+    set the model has) and the reference run's own scenario block (facts a run
+    records that were never levers — ``arrival_group`` is one, and comparing
+    against ``DEFAULTS`` alone flags the reference itself).
+
+    Nested blocks are ignored. A regime summary carries ``theta_mode`` and
+    ``individual_theta``; the reference carries ``pools``. Their *presence*
+    says nothing, and a key-by-key comparison inside them would be a schema
+    diff, which is a different job.
+
+    This is the STRONG half of the freshness check, and the half that would
+    still work if every mtime on the disk were destroyed: an artefact whose
+    scenario names ``turnout_tilt_da`` was produced by a model that had
+    ``turnout_tilt_da``, and this one has not had it for weeks.
+    """
+    try:
+        import montecarlo as _mc
+        known = set(_mc.DEFAULTS)
+    except Exception:
+        return []
+    known |= set(reference)
+    return sorted(k for k, v in scenario.items()
+                  if not k.startswith("_") and not isinstance(v, dict)
+                  and k not in known)
+
+
+def freshness_problems(registry: dict, ctx: dict) -> list[dict]:
+    """File-backed sources that are older than the run the site is built from.
+
+    **``mode = "free"`` is not a freshness guarantee, and that is the whole
+    point of this function.** A free token is recomputed every build, so it
+    reads — to a reader, to a reviewer, and to the drift report — as the
+    current model speaking. It is only ever as current as the FILE its source
+    names. ``regime:cap:parties.ANC.median`` resolves out of
+    ``regime_cap_summary.json``; if that file was written weeks ago by a
+    version of the model that still had ``turnout_tilt_da``, the token
+    faithfully republishes a dead model's number every single build, and the
+    drift audit correctly reports no drift, because a frozen file cannot
+    drift. That is exactly the state ``anc_entitlement`` was found in: the
+    regime summaries were dated 2026-08-07 and appeared twice on the live
+    front page.
+
+    Two signals, and they are not equal:
+
+    * **the artefact's scenario block** (:func:`_extinct_keys`) — strong. It
+      identifies the model that produced the file from what the file says
+      about itself.
+    * **modification time** — weak, and only a fallback. mtime is a property
+      of the filesystem, not of the model: `cp -p`, a restore from backup, a
+      checkout or a `touch` all move it or fail to, and it says nothing about
+      *which* code ran. It is used because there is nothing better on disk —
+      ``forecast_summary.json`` carries ``_pools_artefact_key`` and
+      ``_constants_read`` but no run time, no target year and no code hash.
+      **What would be better:** a ``_generated`` stamp written by
+      ``montecarlo`` alongside the artefact key, so every derived file could
+      be dated against the run rather than against the disk.
+
+    Returns one dict per stale FILE (not per token), naming every token that
+    reads it, both dates, and what to re-run.
+    """
+    reference = ctx.get("reference")
+    ref_scenario = _scenario_of(ctx.get("summary"))
+    ref_mtime = reference.stat().st_mtime if reference else None
+
+    users: dict[str, list[str]] = {}
+    for name, entry in (registry.get("stat") or registry).items():
+        if not isinstance(entry, dict):
+            continue
+        source = str(entry.get("source", ""))
+        prefix = ":".join(source.split(":")[:2])
+        if prefix in (ctx.get("files") or {}):
+            users.setdefault(prefix, []).append(name)
+
+    problems: list[dict] = []
+    for prefix in sorted(users):
+        path = ctx["files"][prefix]
+        mtime = path.stat().st_mtime
+        try:
+            blob = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            blob = {}          # unreadable is `resolve`'s problem, not this one
+        extinct = _extinct_keys(_scenario_of(blob), ref_scenario)
+        behind = (ref_mtime is not None
+                  and ref_mtime - mtime > FRESHNESS_GRACE_S)
+        if not extinct and not behind:
+            continue
+        problems.append({
+            "source": prefix,
+            "path": str(path),
+            "file_date": _stamp(mtime),
+            "reference": str(reference) if reference else "(absent)",
+            "reference_date": _stamp(ref_mtime) if ref_mtime else "(absent)",
+            "tokens": sorted(users[prefix]),
+            "extinct": extinct,
+            "behind": behind,
+            "remedy": FRESHNESS_REMEDY.get(prefix.split(":", 1)[0],
+                                           "re-run whatever writes this file"),
+        })
+    return problems
+
+
+def freshness_report(problems: list[dict]) -> str:
+    if not problems:
+        return "  every file-backed source is at least as new as the reference run"
+    out = []
+    for item in problems:
+        out.append(f"  ✗ {item['path']}  ({item['file_date']})")
+        out.append(f"      reference {item['reference']}  "
+                   f"({item['reference_date']})")
+        if item["extinct"]:
+            out.append(f"      records levers this model no longer has: "
+                       f"{', '.join(item['extinct'])}")
+        if item["behind"]:
+            out.append("      and it is older than the reference run")
+        out.append(f"      read by: {', '.join(item['tokens'])}")
+        out.append(f"      re-run:  {item['remedy']}")
+    return "\n".join(out)
 
 
 # --------------------------------------------------------------------------

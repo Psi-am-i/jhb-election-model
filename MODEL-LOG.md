@@ -9654,6 +9654,367 @@ means the wider poll channel is buying calibration nowhere and costing accuracy,
 and the current form stays until more houses exist.
 
 
+---
+
+## 1.88 σ_poll measured against §1.87's bar: the panel cannot tell, which is what was predicted (2026-08-24)
+
+Measured against the bar committed in §1.87 before the run. **It passes, and it
+passes on the two keys the pre-registration nominated — not on a seat gain.**
+
+### The measurement, 1500 draws, both arms on the settled tree
+
+| | current | two-term | change | 95% CI (metro-clustered) |
+|---|---|---|---|---|
+| sixteen city-years, seats | 384 | **384** | **0** | [−6, +6] |
+| sixteen city-years, CRPS | 329.4 | **329.2** | **−0.16** | [−1.41, +1.21] |
+
+**Both are indistinguishable from zero.** Two city-years move and cancel exactly
+— Nelson Mandela Bay 2016 −2, Tshwane 2016 +2.
+
+On the three city-years the metro poll actually fires on:
+
+| | current | two-term |
+|---|---|---|
+| seats | 50 | 50 |
+| CRPS | 41.6 | **41.4** |
+| Johannesburg 2016 | 22 seats, CRPS 20.0 | 22, **19.5** |
+| Nelson Mandela Bay 2016 | 10, 8.1 | **8**, **7.9** |
+| Tshwane 2016 | 18, 13.6 | **20**, 14.1 |
+
+The whole CRPS movement is inside the poll-bearing city-years, which is at least
+coherent — but it is 0.2 on a panel whose own interval is ±1.4.
+
+### Against the bar
+
+* **Key 1 — does not fail.** 384 against 384. As §1.87 stated in advance, Key 1
+  *cannot pass* here: the metro poll path fires on one cycle only, so cycle
+  replication is unavailable.
+* **Key 2 — does not worsen**, and is very slightly better. §1.87 nominated this
+  as the deciding key and said a wider, better-calibrated poll channel should
+  improve CRPS even if seats do not. It did, by an amount the panel cannot
+  resolve.
+* **Key 4 — unaffected by construction.** `theta_residual.py` contains zero
+  references to `polling`, so the poll change cannot move held-out NLL. Verified
+  rather than assumed.
+* **Key 3 — strongly positive.** `POLL_HOUSE_SD`, `POLL_SCREEN_SD_UNDISCLOSED`
+  and `POLL_HOUSE_K` are retired. Every replacement constant carries a published
+  citation from outside this repository. **This is the first change to earn Key 3
+  rather than spend it.**
+
+Neither refutation condition fired: CRPS did not worsen beyond noise, and NLL did
+not move at all.
+
+### What actually changed, and it is not the score
+
+**1. σ no longer collapses toward certainty as houses are added.** The defect
+that motivated the whole exercise:
+
+| houses | 1 | 2 | 4 | 10 | 100 |
+|---|---|---|---|---|---|
+| current | 4.01pp | 2.83pp | 2.00pp | 1.27pp | **0.40pp** |
+| two-term | 4.64pp | 4.27pp | 4.07pp | 3.94pp | **3.86pp** |
+
+The old form said that with enough pollsters a poll becomes almost certain. The
+new one floors at the industry-common term, which is what Jackman, Shirani-Mehr
+and The Economist's production code all describe. **Today, with one house, this
+changes almost nothing. The day a second house appears it changes a great deal**
+— and that day is the one the plan is actively trying to bring about.
+
+**2. The cap's effect is now produced by the arithmetic instead of imposed.**
+
+| | σ | raw weight | cap | used |
+|---|---|---|---|---|
+| current, DA | 4.01pp | 0.558 | 0.500 | **0.500** (truncated) |
+| two-term, DA | 4.64pp | 0.484 | — | **0.484** (arithmetic) |
+
+The cap was approximately right in *effect* and wrong in *mechanism*: it pinned
+the weight at exactly 0.500 regardless of the evidence. The sourced σ lands at
+0.484 on its own and **can now move when the evidence moves.**
+
+**3. The live 2026 forecast barely notices.** DA 79 → 78, ANC 63 → 64, ASA
+24 → 25; one seat each and the intervals shift a point or two.
+
+### A correction I owe on the map figures
+
+The cartogram work re-measured the distortion table I put in
+`PUBLISHING-BACKLOG.md` §7 and found **I had used bounding boxes, not polygon
+areas.** A bounding box is not what is drawn. The polygon truth is ANC 30.1%,
+DA 61.9%, MK 1.2%, PA 5.2% against my 30.6 / 61.7 / 1.4 / 4.7, and I omitted EFF
+and IFP entirely — 1.5% of the ink. The DA is over-drawn slightly *more* than I
+said and MK under-drawn slightly more. **The conclusion survives and the
+arithmetic did not**; §7 is corrected in place and the cartogram's own test now
+recomputes the table from the emitted SVG rather than from any layout object.
+
+### The honest verdict
+
+**Three city-years, one house and one cycle cannot establish that these constants
+are right, and §1.87 said so before the run.** What this measurement shows is
+that the replacement is *not worse* on the panel and is marginally better
+calibrated where it acts.
+
+The case for adopting it is therefore **not** predictive. It is that
+
+* the old form divides a component that the literature says never shrinks;
+* its central constant was a residual of the same nine readings that are the only
+  metro-poll test cases the backtest has — circular by construction;
+* its recency half-life is four times the longest documented value;
+* and its safeguard moved the answer by 0.023 while being credited with the
+  protection.
+
+Every one of those is fixed, and every replacement constant is sourced. **That is
+a Key 3 argument, and the amended bar exists precisely so that a change like this
+can ship on it** — provided it does not cost accuracy, and it does not.
+
+**Recommendation: adopt**, and flip `SIGMA_TWO_TERM` to the default. Left off in
+this commit so the owner decides; nothing in the tree moves until he does.
+
+### Recorded so it is not claimed later
+
+The three retired constants are not *disproved*. `POLL_HOUSE_SD = 2.50pp` may
+well be closer to the truth for SRF in 2026 than the sourced 1.5 + 1.5 split. The
+argument is about **identifiability**, not about which number is nearer: a
+residual of one house cannot be checked, and a citation can.
+
+
+## 1.89 Two publishing guards that could not fire: a free token fed by a dead model, and a build that never reached the audits (2026-08-24)
+
+Two defects, found by separate audits, with the same shape: **a check existed,
+was correct, and was structurally incapable of firing.**
+
+### A. `mode = "free"` is not a freshness guarantee
+
+`content/joburg/stats.toml` carries
+
+    [anc_entitlement]
+    mode = "free"
+    source = "regime:cap:parties.ANC.median"
+
+used twice on the live front page. `stats.load_context` resolves a `regime:`
+source by globbing `data/processed/regime_*_summary.json`. Those files were
+dated **2026-08-07**. Measured on the tree at 2026-08-24, `regime_cap_summary.json`'s
+scenario block still named **thirteen levers `run_model` no longer has**:
+
+    alpha_anc, alpha_da, anc_bloc_shift, bloc_leak, da_bloc_shift, f_other,
+    pa_contestation_uplift, poll_id, poll_weight, polling_lean, polling_span,
+    turnout_tilt_anc, turnout_tilt_da
+
+`forecast_summary.json` on the same tree was dated 2026-08-23 — **sixteen days
+newer**. Every build for sixteen days republished a dead model's entitlement
+figure onto the front page, and the drift audit reported no drift throughout.
+It was right to: a fixed token cannot drift *because it is pinned*, and a free
+token backed by a frozen file cannot drift *because the file is frozen*. The
+one mechanism that could have caught this was structurally incapable of it, and
+`mode = "free"` was doing the reassuring.
+
+**The general rule, which nobody had stated:** a free token is only as current
+as the FILE its source names. `model:` and `derived:` are safe by accident —
+they read the reference run and its own draws. `regime:` is not, because
+`overhang_regimes.py` is opt-in and therefore lags. Any future file-backed
+source prefix inherits the same hazard.
+
+**The fix** is `stats.freshness_problems`, wired into `build_site.main` as a
+**refusal**, with `--allow-stale-sources` to stage the repair. Two signals, and
+they are deliberately unequal:
+
+* **strong — the artefact's own scenario block.** Scalar keys present in the
+  file but absent from *both* `montecarlo.DEFAULTS` and the reference run's
+  scenario. This identifies the model that wrote the file from what the file
+  says about itself, and would survive every mtime on the disk being destroyed.
+  Comparing against `DEFAULTS` alone flags the reference itself — `arrival_group`
+  is recorded by a run and was never a lever — which is why the reference's own
+  keys are part of "current".
+* **weak — mtime**, more than `FRESHNESS_GRACE_S` = 300s behind
+  `forecast_summary.json`. mtime is a property of the filesystem, not of the
+  model: `cp -p`, a restore, a checkout or a `touch` all move it or fail to,
+  and it says nothing about which code ran. **It is used only because there is
+  nothing better on disk** — `forecast_summary.json` carries
+  `_pools_artefact_key`, `_pools_stale` and `_constants_read` but no run time,
+  no city, no target year and no code hash. **What would be better:** a
+  `_generated` stamp written by `montecarlo` alongside the artefact key, so
+  every derived file could be dated against the run rather than against the
+  disk. Not done here — it changes the artefact and needs a model run.
+
+**Refuse or warn? Refuse — and this repository has already run that
+experiment.** `orphaned_scenario_claims` PRINTED its finding, and ten front-page
+claims pinned to `turnout_tilt_da` survived two independent reviews that both
+named them, because a print is a comment and not an audit (`build_site.py` says
+so in its own margin). This defect is the same class in a better disguise: the
+orphans at least declared themselves `fixed`.
+
+`overhang_regimes.py` now `os.utime`s its six outputs after the reference run
+is restored. It writes them *before* that run, so on a perfectly correct
+pipeline every regime copy lags the reference by one Monte Carlo and the mtime
+test would have fired on a clean build every time. **A check that cries wolf on
+day one is a check somebody switches off.**
+
+### B. `build_all.py` could not reach `build_site` or `build_portal`
+
+`src/build_interactive.py` raises `SystemExit` at module level, deliberately and
+correctly: the interactive page's in-browser drawer is the old two-bloc engine
+and has not been ported to voter pools, so it refuses rather than publish
+arithmetic that disagrees with the model. `build_all.py` ran it as a **mandatory**
+step, and its `run()` helper raised on any non-zero exit. Step order was
+
+    export_interactive → render_map → render_sheet → build_interactive
+                                                    → build_site → build_portal
+
+so `build_site` and `build_portal` were **unreachable through `build_all.py`, on
+every city, always**. With them, every stat-provenance guard that only
+`build_site.py` runs: `stats.audit` (a figure typed into prose),
+`orphaned_scenario_claims`, and now `freshness_problems`. The documented
+one-command build never reached a single one; they fired only when a human typed
+`build_site.py` by hand.
+
+Note the interaction. Defect B is why defect A could sit on the front page: the
+one path that audits the site was the path nobody could run.
+
+**The fix.** The step list is now a function (`build_all.plan`) so it can be
+asserted without running anything, steps carry an `optional` flag, and the two
+interactive steps are opt-in (`--interactive`), non-fatal, and **last** — opt-in
+because they are disabled by design, non-fatal so re-enabling them cannot take
+the site down again, last so that a failure mode this script does not model
+still leaves a built site behind. A REQUIRED step's failure still stops the
+build, and a test holds that too.
+
+### Guards
+
+* `tests/test_stat_freshness.py` — 8 tests. Both signals held apart; the
+  reference run not mistaken for a stale file; nested blocks not counted as
+  levers; the pipeline-ordering lag not reported as staleness; the message
+  naming the file, both dates, the tokens and the remedy; and that `build_site`
+  **refuses** rather than warns.
+* `tests/test_build_all.py` — 5 tests. `build_site` and `build_portal` are
+  reached when an optional step exits 1; the interactive steps are optional and
+  last; they are off by default; a required failure still stops the build and
+  does not reach the site.
+
+### Not verified here, and it needs a model run
+
+**The stale artefacts have not been regenerated.** Another worker owned the
+measurement while this was written, so `overhang_regimes.py` was not run. The
+consequence is concrete and the owner should expect it: **`build_site.py` now
+exits 1 on this tree**, naming `regime_cap_summary.json`. That is the guard
+working. Clearing it means
+
+    .venv/bin/python src/overhang_regimes.py     # ~4 Monte Carlo runs
+
+which also re-stamps the six regime artefacts. Until then `--allow-stale-sources`
+publishes anyway and says so. The `os.utime` re-stamping and the freshness
+refusal have been tested on synthetic fixtures but never against a real
+`overhang_regimes.py` run.
+
+
+## 1.90 The map contradicted the forecast by 1.6x, and the published distortion table measured the wrong thing (2026-08-24)
+
+The owner's observation (PUBLISHING-BACKLOG §7) was that the geographic ward
+choropleth makes the DA look dominant. It is right, it is measurable, and the
+measurement is worse than the backlog recorded.
+
+### The defect
+
+Johannesburg's wards are drawn to hold roughly equal population and each returns
+exactly one councillor, so **ward area carries no information at all**. It is
+nevertheless what the eye reads first, and ward areas are wildly unequal in a way
+that correlates with party: the DA's wards are large, low-density and northern,
+the ANC's and MK's are small and dense. Measured on the committed
+`ward_paths.json` and `ward_winner_probs.csv` (135 wards), taking each ward's
+**polygon area in the projected screen coordinates the map actually draws**:
+
+| party | wards | seat % | ink % | distortion |
+|---|---|---|---|---|
+| ANC | 66 | 48.9 | 30.1 | 0.62x |
+| DA | 51 | 37.8 | **61.9** | **1.64x** |
+| MK | 10 | 7.4 | 1.2 | **0.16x** |
+| PA | 6 | 4.4 | 5.2 | 1.17x |
+| EFF | 1 | 0.7 | 0.3 | 0.43x |
+| IFP | 1 | 0.7 | 1.3 | 1.78x |
+
+So the picture gives the DA nearly two-thirds of the visual field while the
+forecast has it second on seats, and gives MK a sixth of what it won.
+
+### The published table measured bounding boxes, not ink
+
+**PUBLISHING-BACKLOG §7's table is 30.6 / 61.7 / 1.4 / 4.7, and those are the
+numbers you get from each ward's BOUNDING BOX, not its polygon** — reproduced to
+the decimal, all four, so this is identification and not coincidence. A bounding
+box is not what is drawn. The polygon figures are 30.1 / 61.9 / 1.2 / 5.2: the
+DA is over-drawn slightly *more* than stated and MK under-drawn slightly *more*,
+so the correction goes against the convenient direction. The backlog's table also
+omits EFF and IFP, whose two wards are 1.5% of the ink. The headline conclusion
+survives unchanged; the arithmetic behind it did not, and it was going to be
+published. §7 has been corrected in place with a note.
+
+### What was built
+
+`src/hex_cartogram.py` — one equal hexagon per ward, placed near the ward's real
+centroid. Ink share then equals seat share **by construction**, and the
+measurement above run over the emitted hexagons returns 1.00x for all six
+parties to within 1e-9.
+
+* **Centroids** come from the SVG paths in `data/processed/ward_paths.json`,
+  which are already projected, rotated and scaled exactly as the geographic map
+  draws them. That grammar is only `M`/`L`/`Z` absolute, so it parses without a
+  geometry library and the cartogram needs no model run and no new data.
+* **Tile size is not free.** The circumradius is set so 135 hexagons have the
+  same total area as the city itself, which puts the cartogram on the
+  geographic map's own footprint. Screenshotted side by side the two register:
+  Diepsloot, Roodepoort, Randburg, Sandton, Soweto, Lenasia and Orange Farm all
+  land on their real positions, which is what makes a toggle between the two
+  legible rather than a jump-cut.
+* **Assignment is optimal, not greedy.** Minimum total squared displacement over
+  a rectangular linear assignment problem, solved with a numpy
+  Jonker-Volgenant/Hungarian written out in `assign_optimal` because scipy is
+  not a dependency here and adding one for a presentation feature is not a trade
+  worth making. Measured against the greedy pass the backlog allowed
+  (outermost ward first, nearest free cell):
+
+  | | mean displacement | median | max |
+  |---|---|---|---|
+  | greedy | 59.4px | 36.2px | 215.3px |
+  | **optimal** | **36.2px** | **33.7px** | **92.6px** |
+
+  A 1.6x improvement on the mean and 2.3x on the worst ward, for ~0.2s. The
+  greedy version's worst ward ends up 8.8 hex radii from its true centroid,
+  which is not a map. Both are kept and both are deterministic; `--assign
+  greedy` selects the loser. Runtime for the whole build is 0.4s.
+* **Same visual language.** The four confidence tiers, the party colours, the
+  challenger-coloured hatch patterns, the district labels and the tooltip text
+  are the geographic map's. The colours are *imported* from `render_map`; the
+  tiers cannot be (they are inline in that module's `main`), so
+  `test_the_two_maps_agree_on_the_confidence_tiers` reads `render_map.py`'s
+  source and fails if they drift. Independent evidence that they agree: both
+  maps report the same tier counts, 49 safe / 39 strongly leaning / 23 leaning /
+  24 toss-up.
+
+### Two things found on the way
+
+**A rounding argument was standing in for the claim.** The first renderer
+emitted 135 separate `<polygon>`s with coordinates rounded to one decimal for
+legibility, which made the tiles differ in area by ~1e-2 px^2 — and
+`test_every_hexagon_is_identical_and_none_overlap` failed on it. Tiny, invisible,
+and exactly the wrong shape of defect: the entire claim of the figure is that
+every ward is drawn the same size, so that must be true by construction and not
+true to a tolerance. The tiles are now `<use>` references to one shared
+`#hexcell` polygon. The test measures the emitted markup rather than the layout
+object, and also refuses a `transform` on any tile, which is the other way a
+`<use>` could be rescaled.
+
+**MK is missing from the published map's party key.** `render_map.py`'s swatch
+list is `("ANC", "DA", "EFF", "ASA", "PA", "IFP", "ALJAMAAH")` — MK is not in it,
+wins 10 wards in this forecast, and has nowhere on the page to be looked up. The
+cartogram's key includes it. `render_map.py` was NOT edited: it cannot be re-run
+without rewriting `forecast-sheet.html`, which another worker owns this session.
+One line, for whoever holds that file next.
+
+### What is not verified
+
+The tooltip JS is checked only for its content, not its behaviour — nothing here
+drives a browser event. The figure was screenshotted headless at 1100px wide and
+read; it has not been seen on a phone. And the cartogram is **not wired into any
+page**: `--into` will splice it at `__HEXMAP_START__`/`__HEXMAP_END__`, and no
+page carries those markers yet.
+
+
 ## 2. External evaluation against forecasting best practice (2026-08-11)
 
 An independent review researched published practice and then judged this model
