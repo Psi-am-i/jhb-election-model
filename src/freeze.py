@@ -47,6 +47,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -83,6 +84,37 @@ def _git(*args: str) -> str:
                               text=True, check=True).stdout.strip()
     except Exception:                                        # noqa: BLE001
         return "<unavailable>"
+
+
+def _dirty_excluding(*ignore: Path) -> bool:
+    """Is anything uncommitted, other than the paths named?
+
+    Used to answer "was the CODE clean when this freeze was taken", which is
+    not the same question as "is the tree clean now": writing the freeze dirties
+    the tree, so the artefact being written must be excluded or a clean freeze
+    could never be taken at all.
+
+    Paths are compared repository-relative, which is how git prints them.
+    """
+    skip = {str(p.resolve().relative_to(REPO)) for p in ignore}
+    out = _git("status", "--porcelain")
+    if out == "<unavailable>":
+        return True                       # cannot tell; assume the worse
+    for line in out.splitlines():
+        # NOT a fixed-column slice. `_git` strips its output, which eats the
+        # leading space of a ' M path' line and shifts every column by one —
+        # the first version read "rc/freeze.py" and reported a clean tree
+        # dirty. Match the status field instead of counting characters.
+        m = re.match(r"^\s*(\S{1,2})\s+(.*)$", line)
+        if not m:
+            continue
+        paths = m.group(2)
+        # A rename prints `old -> new`; both sides count.
+        for path in (p.strip().strip('"')
+                     for p in paths.split(" -> ")):
+            if path and path not in skip:
+                return True
+    return False
 
 
 def resolved_switches() -> dict[str, object]:
@@ -195,7 +227,12 @@ def bundle(city_slug: str, year: str, draws: int, seed: int) -> dict:
         "content_sha256": hashlib.sha256(canonical.encode()).hexdigest(),
         "provenance": {
             "git_commit": _git("rev-parse", "HEAD"),
-            "git_dirty": bool(_git("status", "--porcelain")),
+            # Whether the CODE that produced this was clean — not whether the
+            # artefact it is about to write is present. Writing the freeze
+            # dirties the tree, so counting it would make a clean freeze
+            # impossible to take: the first version of this check could never
+            # pass, which its own test caught immediately.
+            "git_dirty": _dirty_excluding(FROZEN),
             "numpy": np.__version__,
             "python": sys.version.split()[0],
         },
