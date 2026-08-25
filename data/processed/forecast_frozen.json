@@ -744,8 +744,8 @@
  },
  "content_sha256": "67e9641856b9ad04caf88d9295d4655deea1083f8d1da0cbd8e5e855e8b88106",
  "provenance": {
-  "git_commit": "2e710cee35e371deedcaa8747ef4ee39867c57ad",
-  "git_dirty": true,
+  "git_commit": "1a31fb340d6a9366e9cd0249412bb3ae5cae2930",
+  "git_dirty": false,
   "numpy": "2.5.1",
   "python": "3.13.4"
  }
