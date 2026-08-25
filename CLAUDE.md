@@ -52,6 +52,37 @@ priority and is never a reason to change a forecast.
 
 ## Iterating, not publishing
 
+### ⛔ NOTHING THIS MODEL HAS EVER PRODUCED IS A STANDARD OF CORRECTNESS
+
+**Never evaluate work by comparing it to the published forecast, to
+`data/processed/forecast_frozen.json`, to a golden, or to any earlier output of
+this model. The only standard is backtesting against REAL ELECTION RESULTS.**
+
+This rule already existed in the sentence below and was broken anyway, on
+2026-08-25, by the author of this note: `src/freeze.py` was built as a fixed
+reference and "must reproduce the frozen panel to the seat or be reverted" was
+written into the restructure plan as its verification gate. The owner stopped
+it. **We are not benchmarking against a broken implementation we cannot
+evaluate.**
+
+**Why it is not a technicality.** "Reproduce the old numbers or revert"
+**enshrines the current bugs as the definition of correct.** If an extraction
+changes a number it may have *fixed* something — the poll channel was worth −6
+and nobody knew for four days (§1.94), the by-election decay is applied twice,
+`allocate_with_overhang` has no test. A rule that reverts any change to those
+paths protects the defects. Agreement with a previous output is evidence of
+*nothing*, because that output was never known to be right.
+
+**So when a change moves a number, the question is never "does it still match?"
+It is "does the backtest against real results improve?"** — paired,
+cycle-replicated, against the four keys in `ITERATING.md`.
+
+**What the freeze IS for**, and it is not this: recording what we published and
+the exact configuration that produced it, so the forecast can be held to account
+after 4 November; and acting as a **tripwire** that says *go and look* when
+something moved unexpectedly. A tripwire is not a gate. It never decides whether
+a change is right.
+
 Read `ITERATING.md` first. The published forecast is a recent output of an
 earlier version — not a benchmark, not a target, not evidence. The only question
 is whether the current model predicts PAST elections better than the previous

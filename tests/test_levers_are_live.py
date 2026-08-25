@@ -168,6 +168,7 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
     ("poll_screen_sd", "2021"): _NO_METRO_POLL,
     ("poll_drift_per_root_day", "2021"): _NO_METRO_POLL,
     ("poll_half_life_days", "2021"): _NO_METRO_POLL,
+    ("poll_credence", "2021"): _NO_METRO_POLL,
     ("arrival_group_draw", "2026"):
         "GATED ON DATA THAT DOES NOT EXIST YET, and the gate is three deep. "
         "`pools.arrival_group_spec` returns None unless the target has a real "
@@ -298,7 +299,8 @@ PERTURB: dict[str, object] = {
     "turnout_noise_sd": 0.50,
     "w_bye": 0.95,
     "arrival_group_draw": True,   # the mechanism instead of the generic slot
-    "poll_paths": "off",          # both poll paths off; worth 50 coherent seats
+    "poll_paths": "off",          # both poll paths off; worth -6 on sixteen (§1.94)
+    "poll_credence": 0.0,         # believe the metro polls not at all
     "poll_house_k": 6.0,          # cap 0.86 at one house — near-uncapped
     "poll_deff_subsample": 4.0,   # a subsample worth a quarter of its headline n
     "poll_screen_sd": 0.12,       # an undisclosed screen priced as ruinous

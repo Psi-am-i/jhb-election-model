@@ -299,10 +299,36 @@ def test_no_clamp_is_anchored_on_the_national_baseline():
     assert '_mu = float(centres.get(_party, 0.0))' in src, (
         "the poll blend must be taken against `centres` — the level the spine "
         "settled on — and not against the national baseline")
-    assert "_w = min(_pg.blend_weight(_psd, _msd), _cap)" in src, (
-        "the poll weight must stay bounded by `weight_cap`; without the cap "
-        "the blend has no bound and the clamp this test replaced is needed "
-        "again")
+    # REPLACED 2026-08-25 (§1.96). This was a SOURCE-TEXT assertion on the
+    # literal line `_w = min(_pg.blend_weight(_psd, _msd), _cap)`, and it
+    # managed both failure modes of that technique inside one week: it PASSED
+    # for weeks while the property it named ("bounded by weight_cap") was false,
+    # because `_cap` is 1.0 under SIGMA_TWO_TERM; then it FAILED on a variable
+    # rename that changed no behaviour. The arithmetic now has a seam,
+    # `montecarlo.blend_poll_centre`, and the invariant is asserted on VALUES.
+    for mu, share, w_raw in ((0.40, 0.25, 0.50), (0.18, 0.42, 0.90),
+                             (0.05, 0.05, 0.30), (0.60, 0.10, 1.00)):
+        centre, w = M.blend_poll_centre(mu, share, w_raw)
+        assert 0.0 <= w <= 1.0, (
+            f"the poll blend weight is {w}, outside [0, 1]. The blend would "
+            f"not be a convex combination and the centre could overshoot the "
+            f"poll or move away from it.")
+        assert min(mu, share) - 1e-12 <= centre <= max(mu, share) + 1e-12, (
+            f"blending model {mu} with poll {share} gave {centre}, outside the "
+            f"interval between them.")
+        assert M.blend_poll_centre(mu, share, w_raw, 0.0)[0] == mu, (
+            "poll_credence=0 must return the model centre EXACTLY — a reader "
+            "who says they do not believe the polls must get a forecast with "
+            "no poll in it, not one with a little poll in it.")
+        far = M.blend_poll_centre(mu, share, w_raw, 50.0)[0]
+        assert abs(far - share) < 1e-12, (
+            f"an unbounded credence gave {far}, not the poll's own {share}. "
+            f"The weight must clamp at 1, so the most a reader can do is "
+            f"believe the poll entirely.")
+        near = M.blend_poll_centre(mu, share, w_raw, 0.5)[0]
+        assert abs(near - share) >= abs(centre - share) - 1e-12, (
+            "halving credence moved the centre CLOSER to the poll; the blend "
+            "is not monotone in belief.")
 
 
 # ---------------------------------------------------------------------------

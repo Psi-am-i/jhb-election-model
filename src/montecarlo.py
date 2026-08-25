@@ -183,6 +183,33 @@ DEFAULTS: dict = {
     # leak-free and neither has ever been scored. MODEL-LOG §1.65.
     "poll_paths": "all",    # "off" | "arrivals" | "all"
 
+    # HOW MUCH TO BELIEVE THE POLLS, as a continuous dial rather than a switch.
+    #
+    # Multiplies the metro-poll blend weight `w` before it is applied, then
+    # clamps to [0, 1]. **1.0 is the identity and the shipped default**, so
+    # adding this moves no number: it is the sigma arithmetic's own answer,
+    # untouched. 0.0 ignores metro polls entirely (the metro half of
+    # `poll_paths="off"`); above 1.0 leans in.
+    #
+    # WHY A DIAL AND NOT A SWITCH. Polls do three jobs here and the backtest
+    # scores only one of them. As a forecast INPUT the channel currently
+    # measures **−6 coherent seats** on sixteen city-years (§1.94). As an
+    # EXTERNAL CHECK that the model is in the ballpark they are the only
+    # independent reading we have, and that job is unscoreable by construction.
+    # And in the interactive a reader must be able to say how much they believe
+    # a given house. A binary switch cannot express any of that, and −6 is
+    # evidence that the *weighting* is wrong, not that the polls are empty.
+    #
+    # Scoped to the METRO blend deliberately. The arrivals path is a route
+    # precedence in `blended_centres`, not a blend — for a party with no local
+    # record there is no alternative estimate to blend against — so credence has
+    # no meaning there and `poll_paths` remains its switch.
+    #
+    # DECLARED, and pending a paired sweep across the panel to find the value
+    # the backtest supports. Until that lands, 1.0 is the incumbent and not a
+    # recommendation.
+    "poll_credence": 1.0,
+
     # THE POLL WEIGHTING'S JUDGEMENT CALLS, every one of them adjustable.
     # These are DECLARED numbers — none is measured and none can be until a
     # second house publishes a Johannesburg metro poll — so per the standing
@@ -930,6 +957,41 @@ def read_scenario_file(path) -> tuple[dict, dict]:
         raise SystemExit(f"unknown scenario keys in {path}: {sorted(unknown)} "
                          f"(scenario metadata: {', '.join(SCENARIO_METADATA)})")
     return overrides, metadata
+
+
+def blend_poll_centre(mu: float, share: float, w_raw: float,
+                      credence: float = 1.0) -> tuple[float, float]:
+    """Blend a poll reading into a modelled centre. Returns ``(centre, w)``.
+
+    **A seam, added 2026-08-25 because the invariant could not be tested without
+    one.** This arithmetic lived inline in `run_model`, so the only guard on it
+    was `tests/test_regressions.py` asserting that the LITERAL SOURCE LINE
+    ``_w = min(_pg.blend_weight(_psd, _msd), _cap)`` still appeared in the file.
+    That test passed for weeks while the property it claimed to guard — "the
+    poll weight stays bounded by `weight_cap`" — was FALSE, because `_cap` is
+    1.0 under `SIGMA_TWO_TERM`; and then it went red on a variable rename that
+    changed no behaviour at all. A test that fails on cosmetics and passes on
+    defects is worse than none.
+
+    The invariants, now assertable and asserted:
+
+    * `w` is in [0, 1], so the result is a CONVEX combination and lies between
+      `mu` and `share` — it can never overshoot the poll or move away from it;
+    * `credence = 0` returns `mu` exactly: the poll is ignored, not
+      approximately ignored;
+    * the result is monotone in `credence` — believing a poll more moves the
+      centre further toward it, never past it;
+    * a `w_raw` above 1, however it arose, is clamped rather than trusted.
+
+    `credence` is the reader's dial (`poll_credence`, DEFAULTS 1.0 = identity).
+
+    sources:
+        MODEL-LOG 1.95 — poll_credence, and why belief is a dial not a switch
+        MODEL-LOG 1.96 — why the source-text test it replaces was harmful
+        ARCHITECTURE.md, "Order of work" step A
+    """
+    w = min(max(float(w_raw) * float(credence), 0.0), 1.0)
+    return (1.0 - w) * float(mu) + w * float(share), w
 
 
 def apply_overrides(scenario: dict, overrides: dict) -> dict:
@@ -1918,7 +1980,7 @@ class Trace:
     74 of 75 parties at exactly 1.0 and nobody would have looked. What catches
     that is an assertion, and the value of this class is that it makes such
     assertions cheap to write because the quantity is already exposed. See
-    ARCHITECTURE-PROPOSAL.md §2.
+    ARCHITECTURE.md, "Order of work".
     """
 
     def __init__(self, run_dir: Path | str | None = None, detail: bool = False):
@@ -2916,6 +2978,8 @@ def run_model(target, scenario: dict,
         # synthetic fixture instead of being truncated at 0.50, and two houses
         # pass that with four polls (§1.92).
         _asof = target.date
+        _credence = float(scenario.get("poll_credence",
+                                       DEFAULTS["poll_credence"]))
         _pk = {"screen_sd": float(scenario.get("poll_screen_sd", DEFAULTS["poll_screen_sd"])),
                "drift_rate": float(scenario.get("poll_drift_per_root_day", DEFAULTS["poll_drift_per_root_day"])),
                "deff_subsample": float(scenario.get("poll_deff_subsample", DEFAULTS["poll_deff_subsample"]))}
@@ -2941,11 +3005,16 @@ def run_model(target, scenario: dict,
                 _metro, _party, _share, asof=_asof,
                 half_life_days=float(scenario.get("poll_half_life_days", DEFAULTS["poll_half_life_days"])),
                 **_pk)
-            _w = min(_pg.blend_weight(_psd, _msd), _cap)
-            centres[_party] = (1 - _w) * _mu + _w * float(_share)
+            _w_raw = min(_pg.blend_weight(_psd, _msd), _cap)
+            # The blend and the reader's credence dial, in one place that can be
+            # tested. See blend_poll_centre.
+            centres[_party], _w = blend_poll_centre(
+                _mu, _share, _w_raw, _credence)
             notes[_party] = notes.get(_party, "") + (
                 f" | polls {_share:.1%} @ w={_w:.2f}"
-                f" (σp {_psd:.3f}, σm {_msd:.3f}, H_eff {_h_eff:.1f},"
+                + (f" (credence {_credence:.2f} on {_w_raw:.2f})"
+                   if _credence != 1.0 else "")
+                + f" (σp {_psd:.3f}, σm {_msd:.3f}, H_eff {_h_eff:.1f},"
                 f" cap {_cap:.2f}): → {centres[_party]:.1%}")
         note_constant(scenario, "metro_poll",
                       ", ".join(q["id"] for q in _metro))

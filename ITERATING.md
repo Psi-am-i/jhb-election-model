@@ -29,6 +29,15 @@ Specifically, it is **not evidence about anything**:
 > Does the current model predict past elections better than the previous version
 > and better than the naive baselines, on the whole ballot, out of sample?
 
+⛔ **AND NOTHING THIS MODEL HAS PRODUCED IS AN ANSWER TO IT.** Not the published
+forecast, not `data/processed/forecast_frozen.json`, not a golden, not a prior
+run. The standard is **real election results**, and agreement with an earlier
+output is evidence of nothing because that output was never known to be right.
+"Reproduce the old numbers or revert" enshrines the current bugs as correct.
+Stated in full in `CLAUDE.md` — *"Nothing this model has ever produced is a
+standard of correctness"* — and not restated here, because a rule written twice
+is a rule that drifts.
+
 If yes, it is a candidate for publication. If no, it does not ship and we keep
 iterating. There is no third outcome in which a worse model is published because
 it is newer, better argued, or built from more measurements.

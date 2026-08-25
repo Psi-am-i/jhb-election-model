@@ -829,7 +829,8 @@ run is bit-identical to an untraced one.
 at 1.0 for 74 of 75 parties without anyone noticing, because nobody reads a
 passive file. What catches that is an assertion; the trace is what makes such
 assertions cheap, because the quantity is already exposed. See
-`ARCHITECTURE-PROPOSAL.md`.
+`ARCHITECTURE.md` (the rejected earlier proposal is in
+`archive/rejected/`).
 
 ## The ward cartogram — drawing seats instead of land
 

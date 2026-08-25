@@ -11090,3 +11090,122 @@ apportion between them.
    number must be re-read before being quoted. Had that been done when it was
    written, this would have been found four days ago instead of being quoted
    twice more in the interim.
+
+## 1.95 How much do you believe the polls? A dial, and it decides the headline (2026-08-25)
+
+**§1.94 measured the poll channel at −6 coherent seats and the obvious reading
+was "switch it off". That reading is wrong, and the owner said so:**
+
+> we need to incorporate polls as they come in and let users 'believe them' to a
+> more or lesser extent in the interactive. But they are a major check that we
+> are in the ballpark.
+
+**Polls do three jobs here and the backtest scores one of them.**
+
+1. a forecast **input** — scored, currently −6 (§1.94);
+2. an **external check** that the model is in the ballpark — the only
+   independent reading of this election that exists, and **unscoreable by
+   construction**, because a backtest can only compare the model against
+   results, never against a second opinion;
+3. a **reader-facing** exploration.
+
+A binary switch cannot express any of that. And −6 is evidence that the
+*weighting* is wrong, not that the polls are empty.
+
+### `poll_credence`
+
+A lever, default **1.0**, multiplying the metro-poll blend weight `w` before it
+is applied and clamped to [0, 1]. **1.0 is the identity**, so adopting it moved
+no number — verified against `forecast_frozen.json`: seat-draw matrix hash
+identical, every party's median, p5 and p95 identical, the only difference being
+the new key in the frozen scenario. That is what the freeze is for, and it is
+the first change it has adjudicated.
+
+Scoped to the **metro blend** deliberately. The arrivals path is a *route
+precedence* in `blended_centres`, not a blend — for a party with no local record
+there is no alternative estimate to blend against — so credence has no meaning
+there, and `poll_paths` remains its switch.
+
+### It is the largest single driver of the headline
+
+Johannesburg 2026, 400 draws, median seats:
+
+| | credence 0.0 | **1.0 (shipped)** | 2.0 |
+|---|---|---|---|
+| DA | 68 | **77** | 88 |
+| ANC | 68 | **64** | 61 |
+| ASA | 28 | 26 | 24 |
+| EFF | 26 | 24 | 21 |
+
+**At zero belief in the polls the race is a dead heat. At the shipped weighting
+the DA leads by thirteen.** That dependence has been in the model since the
+metro path shipped; what is new is that it is now a number a reader can move
+rather than a consequence of σ arithmetic nobody outside this repository can
+see. §1.65's own register row has said for weeks that "one house, two waves,
+decides the headline" — this is that sentence made operable.
+
+**1.0 is the incumbent, not a recommendation.** The value the backtest supports
+has not been measured; the paired sweep across the panel is pre-registered and
+not yet run. Quote it as unmeasured until it is.
+
+## 1.96 The freeze was being used as a benchmark, which protects the bugs (2026-08-25)
+
+**Corrected by the owner, within hours of the mistake being made, and it is the
+second time this week that a rule already written in `CLAUDE.md` was broken by
+the person who had just read it.**
+
+`src/freeze.py` shipped on 2026-08-25 with a stated purpose of being "a fixed
+reference to diff against", and the restructure plan made *"every commit must
+reproduce the frozen panel to the seat or be reverted"* its verification gate.
+`ARCHITECTURE.md`, three task descriptions and §1.95 all carried the same
+framing.
+
+`CLAUDE.md` has said the opposite since the repository was started:
+
+> The published forecast is a recent output of an earlier version — **not a
+> benchmark, not a target, not evidence.**
+
+The owner's instruction, verbatim: *"do not compare work against the freeze or
+published model. We are not benchmarking against broken implementations we can't
+evaluate. We do everything as well as we can and back test to real elections."*
+
+### Why it is harmful and not merely untidy
+
+**"Reproduce the old numbers or revert" makes the current defects the definition
+of correct.** This model is known to contain, right now: a by-election local
+mean that applies its decay twice; a seat allocator called on every draw with no
+test at all; and, until four days ago, a poll channel believed to be worth +48
+that is worth **−6** (§1.94). A rule that reverts any change touching those
+paths is a rule that **protects them**, and it would have done so silently,
+because "the numbers match" reads as success.
+
+Agreement with an earlier output is evidence of nothing, because **that output
+was never known to be right.** The comparison feels rigorous, which is what
+makes it dangerous.
+
+### What replaces it
+
+When a change moves a number the question is never *"does it still match?"*. It
+is *"does the backtest against real election results improve?"* — on the sixteen
+city-years, paired and cycle-replicated, against the four keys.
+
+A refactor is still **expected** to be number-neutral. The difference is what
+happens when it is not: **investigate, do not revert.** The freeze's role is a
+tripwire that says *go and look*, plus a record of what was published and the
+configuration that produced it, so the forecast can be held to its own numbers
+after 4 November. Neither of those is a judgement.
+
+The same applies to the goldens. They are not re-recorded silently — that
+destroys the record of what changed — but **a golden that disagrees with a
+better model is the golden that is wrong.**
+
+### Where it is now written
+
+`CLAUDE.md` carries it in full, under *"Nothing this model has ever produced is
+a standard of correctness"*. `ITERATING.md` carries a pointer, not a copy,
+because a rule written twice is a rule that drifts (§1.93). `ARCHITECTURE.md`,
+`src/freeze.py`, `tests/test_freeze.py` and tasks A and C are corrected.
+
+**§1.95's number-neutrality check on `poll_credence` stands as a fact** — the
+seat-draw hash was identical and that is worth knowing — but it was not, and is
+not, the reason the lever is acceptable. The reason is that 1.0 is the identity.

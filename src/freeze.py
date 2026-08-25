@@ -1,12 +1,33 @@
 """Freeze a stage-1 forecast, and hash everything that could move it.
 
-**Why this exists.** A restructure is about to move a great deal of code, and
-the only way to know whether it moved a NUMBER is to diff against a fixed
-reference. `data/processed/history.json` could not serve as one: it records
+⛔ **THIS IS NOT A BENCHMARK, AND MUST NEVER BE USED AS ONE.** See `CLAUDE.md`,
+"Nothing this model has ever produced is a standard of correctness". A change is
+judged by backtesting against **real election results**, never by whether it
+still agrees with this file. An earlier version of this docstring, and of the
+restructure plan, said the opposite — *"every commit must reproduce the frozen
+panel to the seat or be reverted"* — and the owner stopped it on 2026-08-25.
+
+**Why that framing was harmful, not merely wrong.** "Reproduce the old numbers
+or revert" makes the current bugs the definition of correct. If a change moves a
+number it may have FIXED something: the poll channel was worth −6 and nobody
+knew for four days (§1.94), the by-election decay is applied twice, and
+`allocate_with_overhang` has no test at all. A rule that reverts any change on
+those paths protects the defects.
+
+**What this IS for**, both of which are records rather than judgements:
+
+1. **Accountability.** What we published, and the exact configuration that
+   produced it, so the forecast can be held to its own numbers after
+   4 November — including the six environment switches that are otherwise
+   invisible.
+2. **A tripwire.** When something moves that you did not expect to move, this
+   says *go and look*. Investigating a surprise is not the same as requiring
+   agreement, and the verdict still comes from the backtest.
+
+It also closes a real provenance gap: `data/processed/history.json` records
 neither its draw count nor its seed, so on 2026-08-24 it took three separate
 panel runs to establish whether a refactor had changed anything or whether the
-committed artefact had simply been produced at a different `--draws`. That is a
-provenance gap, and this module is the answer to it.
+committed artefact had simply been produced at a different `--draws`.
 
 **What is frozen.** Not just the forecast — everything that determines it:
 

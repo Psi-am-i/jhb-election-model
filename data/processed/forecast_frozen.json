@@ -339,6 +339,7 @@
    "level_shrink": 0.35,
    "level_shrink_scale": 0.04,
    "overhang_rule": "deduct",
+   "poll_credence": 1.0,
    "poll_deff_subsample": 1.6,
    "poll_drift_per_root_day": 0.001,
    "poll_half_life_days": 120.0,
@@ -742,10 +743,10 @@
   "seed": 20261104,
   "target": "2026"
  },
- "content_sha256": "67e9641856b9ad04caf88d9295d4655deea1083f8d1da0cbd8e5e855e8b88106",
+ "content_sha256": "3a4bafc56a536e09c02276f44f0e17882bce4e0275fb636a75817e7e91ce7808",
  "provenance": {
-  "git_commit": "1a31fb340d6a9366e9cd0249412bb3ae5cae2930",
-  "git_dirty": false,
+  "git_commit": "623c07c7632a3447baf1decbec9c41899609b2e5",
+  "git_dirty": true,
   "numpy": "2.5.1",
   "python": "3.13.4"
  }

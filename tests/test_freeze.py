@@ -1,10 +1,16 @@
 """CLASS 19 — A REFERENCE THAT CANNOT BE CHECKED IS NOT A REFERENCE.
 
-`data/processed/forecast_frozen.json` is the fixed point the restructure diffs
-against. Everything downstream of it — "this extraction moved nothing", "this
-lever is worth N seats" — is a claim about a difference from it, so if the
-freeze is stale, hand-edited, or internally inconsistent then every one of those
-claims is measured against nothing.
+`data/processed/forecast_frozen.json` records what we published and the exact
+configuration that produced it.
+
+**It is NOT a benchmark and these tests do not make it one** — see `CLAUDE.md`,
+"Nothing this model has ever produced is a standard of correctness". Nothing
+here asserts that the model still agrees with the freeze; a change is judged by
+backtesting against real election results. What these tests check is that the
+RECORD is honest: that its hash covers its content, that it describes the
+configuration the model actually has, and that it names a commit that exists.
+A dishonest record is worthless for accountability and misleading as a
+tripwire.
 
 **These tests are deliberately CHEAP and do not run the model.** The expensive
 check — re-run the forecast and compare — is `python src/freeze.py --verify`,
@@ -15,9 +21,9 @@ that does not match its own content, a freeze taken on a dirty tree, a freeze
 whose recorded commit no longer exists, a lever that has been added to
 `DEFAULTS` since and is therefore unfrozen.
 
-The last of those is the one that will actually fire. A new lever is added, the
-freeze is not retaken, and the "fixed reference" silently stops covering the
-thing that changed.
+The last of those is the one that will actually fire, and it did within the
+hour: `poll_credence` was added to `DEFAULTS` and the freeze stopped describing
+the shipped configuration until it was retaken.
 
 sources:
     MODEL-LOG §1.94 — the freeze, and why its first version could not reproduce
