@@ -200,35 +200,76 @@ none of them changes a forecast.
 
 ---
 
-# AMENDED 2026-08-25 — the deferral condition is met, and §3's argument is adopted
+# AMENDED 2026-08-25 — the deferral condition is met; §3 holds on the scheduler and fails on declarations
 
 **Status change: this is no longer a proposal for discussion. Items 1, 2 and 3
-are built; item 5 is now scheduled, on terms this document set.**
+are built; item 5 is now scheduled — but NOT on the terms this document set,
+because two of its five arguments do not survive examination and a third turns
+out to be about a different artefact. The assessment is below.**
 
 The owner asked, on 2026-08-25: *"Every round we find what sound like large
 errors — and yet they do not affect the score at all more often than not."* Three
-audits were run to answer it. **This document's diagnosis was right, its remedy
-list was right, and its argument against the graph framing survives contact with
-the new evidence.** What has changed is the size of the problem and the fact that
-its own precondition for restructuring has now been satisfied.
+audits were run to answer it. **This document's diagnosis was right and its
+remedy list was right. Its argument against a graph ENGINE survives; its
+argument against DECLARED INTERFACES does not, and an earlier version of this
+amendment accepted the whole of §3 without examining it.** What has also changed
+is the size of the problem, and the fact that its own precondition for
+restructuring is now satisfied.
 
-## What this document got right, and is hereby adopted
+## §3 assessed argument by argument — two survive, three do not
 
-**§3 stands and governs the work.** Specifically:
+An earlier version of this amendment said the argument was "adopted" wholesale.
+That was an over-concession and the owner rejected it. Assessed properly:
 
-* **No graph engine.** A topological runner over a ninety-per-cent-linear
-  pipeline is ceremony, and the first draft of the 2026-08-25 plan proposed
-  exactly that. Declarations are **checked, not scheduled**; the call sequence
-  stays a sequence.
-* **"A manifest makes defects findable; it does not find them."** Scored 3 of 5
-  on the boundary defects, honestly. The manifest's value is that it makes
-  invariant-gates cheap to write, so **the gates are the point and the manifest
-  is the enabler** — not the reverse.
-* **"Give stages declared inputs and outputs only when a specific pain demands
-  it."** Adopted as the extraction test. "Clarity" does not qualify. A stage
-  that cannot be value-tested without a seam does.
-* **§4's sequencing.** *"Land the modelling work, let the goldens settle, then
-  restructure against frozen numbers."*
+**SURVIVES — no scheduler.** *"A pipeline with one router, not a graph."* True,
+and a topological sort over a linear sequence is ceremony. **But this defeats a
+SCHEDULER, not DECLARATIONS.** Declaring what a stage needs and offers is
+orthogonal to whether something orders the calls automatically. The scheduler is
+dropped; the declarations are not.
+
+**SURVIVES — the draw loop stays whole.** A per-draw IPF over 1500 draws sharing
+arrays is one unit, not 1500.
+
+**FAILS — *"sequential locals read quite well; extraction can make data flow
+harder to trace."*** This conflates READING with VERIFYING, and it attacks a
+strawman. Extraction into functions that pass a shared mutable dict does make
+dataflow harder to trace — that is precisely what `run_model` does now with
+`scenario`. Extraction with DECLARED inputs and outputs is the opposite: the
+dataflow stops being inferred and becomes written down. The claim was also made
+of 223 locals; there are now 228 across 74 branches.
+
+**DOES NOT APPLY — the 3-of-5 manifest table.** That table scores a RUN
+MANIFEST — per-run paths and hashes. It is not a test of declared interfaces,
+which are a different artefact addressing a different failure. It remains a good
+argument for having gates as well; it is not evidence against declaration.
+
+**FAILS — §4's *"a refactor cannot improve prediction, so it can only be neutral
+or bad."*** A category error. `ITERATING.md` governs changes to the FORECAST;
+the ability to verify is not a forecast change, and by this reasoning one would
+never write a test either. Empirically false as well: instrumenting is what
+revealed the poll channel is worth −6 (§1.94), which will change the forecast.
+
+## The diagnosis NEITHER document had
+
+**The stages are mostly already functions.** `run_model` calls **ten** of
+`montecarlo`'s own top-level functions and **seventeen** module functions —
+about twenty-seven existing seams. `allocate_with_overhang(combined, wins, rule)`
+has a clean signature and could be value-tested today. **Nothing was blocking
+that test except nobody writing it.** The 2026-08-25 plan claimed extraction was
+what made it possible; that claim was wrong.
+
+So the problem is not "there are no units". It is three separate things, and
+they want three different remedies:
+
+| | remedy | cost |
+|---|---|---|
+| **~9 stages ARE already functions**, with loud signatures — `spine`, `blended_centres`, `solve_and_predict`, `allocate_with_overhang`, `make_drawer`, `ward_parts`, `ward_pr_ratios`, `theta_prior`, `contestation` — and several have no value test | declare them and TEST them | **no refactor at all** |
+| **~14 stages are inline blocks** inside `run_model` — pool load, roster filter, seeding, universe, entrant geography, the by-election ward-local term, turnout, ward structure, the ward/PR split, the arrivals poll path, the metro-poll blend | extraction, genuinely required | the expensive part |
+| **the orchestration between them is the silent layer** — 32 `scenario.get()` reads, 228 locals, absence indistinguishable from the neutral value | the bus | moderate |
+
+**That reorders the work.** The cheapest and highest-value step is declaring and
+testing the seams that already exist — which closes the `allocate_with_overhang`
+gap without touching `run_model` at all. Extraction follows, for the inline half.
 
 ## What has changed since it was written
 
@@ -280,12 +321,30 @@ carry the inter-stage wiring, and `30_centres` is written *before* the
 metro-poll blend mutates `centres` in place — so the centre vector the drawer
 actually receives is recorded nowhere. That is item 1 half-built, not built.
 
-**Item 5, node extraction, is no longer deferred — but it is scoped by §3, not
-by the original graph proposal.** It proceeds stage by stage, each justified by
-a specific pain, each landing with the value test its seam makes possible, and
-each required to reproduce the frozen panel to the seat or be reverted. The
-extraction order follows the **test-coverage gap**, not execution order:
-`allocate_with_overhang` first.
+**The order is now A → B → C, and A is nearly free.**
+
+**A. Declare and test the twenty-seven seams that already exist.** No refactor.
+`allocate_with_overhang` gets its value test — a constructed council where
+`deduct`, `expand` and `cap` give three different answers, all three pinned —
+this week, because nothing was ever blocking it. Same for `levels.spine`,
+`solve_and_predict`, `ward_pr_ratios`. Each gets its `Unit` declaration at the
+same time, so the inventory is built from the parts that are already parts.
+
+**B. Replace the silent orchestration with the bus.** `bus.read(name)` **has no
+`default=` parameter** — that single design decision retires the defect class,
+because the silent fallback becomes unwritable. A name no unit declares as an
+output raises where it is used, and a start-up set-comparison catches an
+unproduced `reads` before the run begins. **No scheduler is required for any of
+this**, which is why §3's argument, though correct about schedulers, never
+touched the thing that actually fixes the problem.
+
+**C. Extract the ~14 inline stages**, each justified by a specific pain, each
+landing with the value test its new seam makes possible, each required to
+reproduce the frozen panel to the seat or be reverted.
+
+An earlier version of this section put extraction first and claimed it was what
+made the `allocate_with_overhang` test possible. That was wrong: the function
+has had a clean signature the whole time.
 
 **§4's warning is honoured literally: the goldens are not re-recorded at any
 point during the extraction.** They are the evidence that it was safe.
