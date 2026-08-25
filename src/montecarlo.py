@@ -1895,8 +1895,9 @@ class Trace:
     """Writes each stage's output to a run directory, so it can be READ.
 
     THE PROBLEM THIS SOLVES. Every intermediate in ``run_model`` lives as one of
-    223 locals inside an 863-line function, so the only way to see one has been
-    to add a print and re-run the whole comparison.
+    **228 locals inside a 1,099-line function** (was 223 in 863 when this class
+    was written on 2026-08-18 — it grew 27% in a week), so the only way to see
+    one has been to add a print and re-run the whole comparison.
  That cost is paid on every investigation, and it is why several
     findings this month were argued from a single expensive reading rather than
     checked cheaply against a second.

@@ -197,3 +197,98 @@ still argues for it.
 
 Items 1–4 are exempt from this, which is most of why they are the recommendation:
 none of them changes a forecast.
+
+---
+
+# AMENDED 2026-08-25 — the deferral condition is met, and §3's argument is adopted
+
+**Status change: this is no longer a proposal for discussion. Items 1, 2 and 3
+are built; item 5 is now scheduled, on terms this document set.**
+
+The owner asked, on 2026-08-25: *"Every round we find what sound like large
+errors — and yet they do not affect the score at all more often than not."* Three
+audits were run to answer it. **This document's diagnosis was right, its remedy
+list was right, and its argument against the graph framing survives contact with
+the new evidence.** What has changed is the size of the problem and the fact that
+its own precondition for restructuring has now been satisfied.
+
+## What this document got right, and is hereby adopted
+
+**§3 stands and governs the work.** Specifically:
+
+* **No graph engine.** A topological runner over a ninety-per-cent-linear
+  pipeline is ceremony, and the first draft of the 2026-08-25 plan proposed
+  exactly that. Declarations are **checked, not scheduled**; the call sequence
+  stays a sequence.
+* **"A manifest makes defects findable; it does not find them."** Scored 3 of 5
+  on the boundary defects, honestly. The manifest's value is that it makes
+  invariant-gates cheap to write, so **the gates are the point and the manifest
+  is the enabler** — not the reverse.
+* **"Give stages declared inputs and outputs only when a specific pain demands
+  it."** Adopted as the extraction test. "Clarity" does not qualify. A stage
+  that cannot be value-tested without a seam does.
+* **§4's sequencing.** *"Land the modelling work, let the goldens settle, then
+  restructure against frozen numbers."*
+
+## What has changed since it was written
+
+**The deferral condition is met.** §4 asked for frozen numbers first.
+`src/freeze.py` and `data/processed/forecast_frozen.json` landed on 2026-08-25:
+content hash `67e9641856b9ad04…`, a hash of the full seat-draw matrix, the
+resolved levers, the six import-time environment switches *as resolved*, the pool
+artefact keys and the commit. `--verify` re-runs and exits 1 on drift. There is
+now a fixed reference to restructure against.
+
+**The function grew 27% while the work was deferred.**
+
+| | this document, 2026-08-18 | now, 2026-08-25 |
+|---|---|---|
+| `run_model` | 863 lines | **1,099** |
+| distinct local names | 223 | **228** |
+| branches (`if`) | not measured | **74** |
+| `return` statements | not measured | **1** |
+
+**And three findings this document could not have had:**
+
+1. **Six of the eight wiring mechanisms fail silently**, and they carry most of
+   the dataflow. The failure is uniform: a stage's input arrives through
+   `dict.get`, and *absence is indistinguishable from the neutral value* —
+   identity, `1.0`, `{}`, `0.0`, `set()`. **That is the answer to the owner's
+   question.** A defect lands in a channel already contributing its neutral
+   value, so it cannot move the score. Three bare `except` blocks sit around
+   wiring steps; one silently empties the roster, which skips *every* party in
+   the arrivals poll path with no message.
+2. **`montecarlo.allocate_with_overhang` has no test.** It is the seat allocator
+   the forecast calls on every draw, implementing Schedule 1 item 16 with four
+   rules. `tests/test_seats.py`'s 24 passing city-year checks exercise
+   `seats.allocate` — a *different function* — and `test_chain` compares
+   `seat_draws` against `council_sizes`, both returned by the same call, so it
+   asserts the function agrees with itself. The suite is not fake (163 of 211
+   tests assert computed values); it is **mis-aimed**, dense at the
+   ecological-inference fit and the scoreboard and thin in the middle, which is
+   where seats are decided.
+3. **The poll channel is worth −6 coherent seats, not +48** (§1.94). One of the
+   two effects that carried ~79% of the model's measured margin reversed when
+   re-read on sixteen city-years — and it was still being quoted from nine three
+   days ago.
+
+## The revised recommendation
+
+Items 1–2 of §2 are done in outline and are extended rather than replaced: the
+trace records **6 of 26 stages** and strips exactly the `_`-prefixed keys that
+carry the inter-stage wiring, and `30_centres` is written *before* the
+metro-poll blend mutates `centres` in place — so the centre vector the drawer
+actually receives is recorded nowhere. That is item 1 half-built, not built.
+
+**Item 5, node extraction, is no longer deferred — but it is scoped by §3, not
+by the original graph proposal.** It proceeds stage by stage, each justified by
+a specific pain, each landing with the value test its seam makes possible, and
+each required to reproduce the frozen panel to the seat or be reverted. The
+extraction order follows the **test-coverage gap**, not execution order:
+`allocate_with_overhang` first.
+
+**§4's warning is honoured literally: the goldens are not re-recorded at any
+point during the extraction.** They are the evidence that it was safe.
+
+*The working plan is `~/.claude/plans/linear-hatching-tarjan.md`; this file is
+the standing architecture record and takes precedence where they differ.*

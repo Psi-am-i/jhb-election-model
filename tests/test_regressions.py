@@ -843,6 +843,35 @@ def test_no_ward_is_published_at_probability_one():
             if kv and float(kv.split(":")[1]) <= 0.0]
     assert not zero, "a party is published at exactly p = 0 in a ward's dist"
 
+def test_every_test_module_is_collected():
+    """A test file the runner does not import reads as coverage and is not.
+
+    `tests/run_all.py` keeps a hand-maintained `MODULES` list. On 2026-08-25
+    `tests/test_freeze.py` was written and committed, the suite reported
+    **201 passed, 0 failed**, and none of its five tests had run — the file was
+    simply not in the list. The freeze it guards is the fixed reference the
+    whole restructure is measured against, so the guard on the reference was
+    itself unguarded.
+
+    This is the same shape as every other defect found this week: a declaration
+    made in one place, a consumer that does not read it, and nothing that can
+    tell. The membership of `MODULES` is not a judgement call — the ORDER is,
+    and that stays hand-written.
+    """
+    import run_all
+    on_disk = {p.stem for p in sorted((ROOT / "tests").glob("test_*.py"))}
+    listed = set(run_all.MODULES)
+    missing = sorted(on_disk - listed)
+    assert not missing, (
+        f"test module(s) on disk but never collected by tests/run_all.py: "
+        f"{missing}\nThe suite will report green without ever running them. "
+        f"Add them to MODULES — position is your choice, membership is not.")
+    stale = sorted(listed - on_disk)
+    assert not stale, (
+        f"tests/run_all.py lists module(s) that do not exist: {stale}\n"
+        f"The suite would die on import; delete them from MODULES.")
+
+
 if __name__ == "__main__":
     # `run_module`, NOT a hand-rolled loop. Until 2026-08-23 this file ended with
     # `for name, fn in sorted(globals().items()): ... fn()`, which catches
