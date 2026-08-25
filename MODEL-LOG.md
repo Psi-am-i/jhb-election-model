@@ -10951,3 +10951,142 @@ resolution any claim here is made at.
 `ITERATING.md` rule 8's two tables were re-pasted from the settled run —
 ranks 4-12 n 58 → 57, and the vote-error table to +12.38 / 93.38, −26.29 /
 72.54, +4.42 / 22.45, phantom 9.49pp.
+
+## 1.94 The two levers that carry the model, re-read on sixteen: one grew, one reversed (2026-08-25)
+
+**§1.70 left a standing instruction and it was never discharged:** *"Every
+number in this repository predating this entry was measured on nine city-years
+and must be re-read on sixteen before it is quoted again."* Two numbers matter
+more than all the others put together. `level_shrink` was measured at **48
+coherent seats** (§1.44) and the poll channel at **48** (§1.65); against a
+122-seat margin over uniform swing they are about **79% of everything the model
+has ever been shown to be worth**. Both were still being quoted from the nine as
+recently as §1.91, yesterday.
+
+They have now been re-read. **One grew. One reversed.**
+
+Method, and it is Key 1's, not a bootstrap: paired per-city-year differences on
+identical seeds against the committed baseline (382 coherent / 329.0 CRPS / 407
+seat_abs, 1500 draws, commit `2742785`), reported as sign count and sum **split
+by cycle**. `ITERATING.md` Key 1 forbids a p-value from the eight metros inside
+a cycle — they share one national swing, so both the binomial and the metro
+bootstrap are anti-conservative.
+
+### `level_shrink` — survives, and grows: +52
+
+| | sum | better | worse | tied |
+|---|---|---|---|---|
+| 2016 seats | **+2** | 1 | 2 | **5** |
+| 2021 seats | **+50** | 6 | 1 | 1 |
+| 2016 CRPS | +9.65 | | | |
+| 2021 CRPS | +30.29 | | | |
+
+**Total worth +52 coherent seats**, against 48 claimed on the nine. Key 1's
+three conditions all hold: same sign in both cycles, no cycle shows a net loss,
+and 6 of 8 strictly better in 2021.
+
+**But it is a 2021 effect, and the honest statement of it says so.** +50 in
+2021 against **+2 in 2016**, where five of eight city-years are exactly tied and
+two are worse. "+2 with five ties" passes the letter of the replication
+condition and is noise around zero on any reading. The lever is confirmed as
+large and not-harmful; it is *not* confirmed as general.
+
+That is mechanistically coherent rather than troubling. The shrink compresses
+levels, and 2021 is the fragmented cycle — ActionSA's arrival — while 2016 is
+not. **It is the first direct evidence for task A3 (`make level_shrink
+fragmentation-dependent`), which until now was an unsupported guess.**
+
+### The poll channel — does not replicate: −6
+
+| | sum | better | worse | tied |
+|---|---|---|---|---|
+| 2016 seats | **−4** | 0 | 2 | 6 |
+| 2021 seats | **−2** | 1 | 2 | 5 |
+| 2016 CRPS | −1.40 | | | |
+| 2021 CRPS | −3.00 | | | |
+
+**Turning the poll channel off makes the model better by 6 coherent seats and
+4.4 CRPS.** It fails two of Key 1's three conditions. The +48 does not
+replicate; it inverts.
+
+**The three-way decomposition is monotone, and monotone the wrong way** — the
+same three configurations §1.65 measured, sixteen city-years, 1500 draws:
+
+| `poll_paths` | coherent | CRPS | | §1.65, nine city-years |
+|---|---|---|---|---|
+| `off` | **376** | **324.6** | | 304 / 263.7 |
+| `arrivals` | 378 | 327.6 | | 256 / 232.7 |
+| `all` (shipped) | 382 | 329.0 | | 254 / 232.9 |
+
+Each path costs on its own. The **metro** path is worth **−4** seats and −1.4
+CRPS, all of it in 2016 — in 2021 all eight city-years are exactly tied, which
+is correct, because the register holds no metro poll declared for 2021. The
+**arrivals** path is worth **−2** seats and −3.0 CRPS.
+
+**The gate was open — this is a measurement, not a null measured with the gate
+shut.** That check is mandatory here because §1.68 was burned by exactly it
+(`_LEGACY_POLL`: *"That null was measured WITH THE GATE SHUT"*). Verified: a
+national poll is admitted at every one of the sixteen city-years and
+`contesting_parties` returns a roster of 16–57 parties at each. The path runs.
+
+**And the tie pattern is fully explained, which is what makes the measurement
+trustworthy.** The arrivals path acts only on a party in the national poll that
+has **no baseline**. In the 2016 cycle the national poll carries ANC, DA and EFF
+and all three have baselines everywhere — **so the arrivals path cannot fire at
+all in 2016**, and the two non-ties there are the metro path at Johannesburg and
+Tshwane. In 2021 it fires on ActionSA, in the four metros where ASA is on the
+roster. Eleven ties, every one accounted for.
+
+### It is not the panel — the control settles it
+
+Restricted to **§1.65's own nine city-years**, the same measurement gives **−4**,
+not +50:
+
+| city-year | §1.65 off/all | worth | now off/all | worth |
+|---|---|---|---|---|
+| Johannesburg 2016 | 18 / 16 | +2 | 20 / 22 | **−2** |
+| Johannesburg 2021 | 90 / 86 | +4 | 86 / 90 | **−4** |
+| **Tshwane 2021** | 52 / 30 | **+22** | 34 / 34 | **0** |
+| **Ekurhuleni 2021** | 38 / 18 | **+20** | 28 / 22 | +6 |
+| eThekwini 2021 | 34 / 32 | +2 | 32 / 36 | **−4** |
+| Cape Town 2021 | 34 / 34 | 0 | 36 / 36 | 0 |
+| Mangaung 2021 | 10 / 10 | 0 | 10 / 10 | 0 |
+| Nelson Mandela Bay 2021 | 18 / 18 | 0 | 18 / 18 | 0 |
+| Buffalo City 2021 | 10 / 10 | 0 | 12 / 12 | 0 |
+| **total** | | **+50** | | **−4** |
+
+So the reversal is **not** an artefact of doubling the panel. On the identical
+nine city-years the effect is gone.
+
+### What actually happened, and it is the more useful finding
+
+Read the two columns for the two city-years that carried §1.65's result. Tshwane
+2021 and Ekurhuleni 2021 supplied **42 of the 50 seats**. In both, the model
+**with** the channel got slightly *worse* (30 → 34; 18 → 22) while the model
+**without** it got dramatically *better* (52 → 34; 38 → 28).
+
+**The poll channel was worth 50 seats because it was patching a hole. The hole
+has since been fixed and the patch now costs 4.** The most likely repair is
+§1.75 — six verified input files restored, which moved the panel 400 → 384 and
+changed the θ and ρ records for every metro — though §1.91's σ adoption and the
+2016 spec emission are in the same window and this entry does not attempt to
+apportion between them.
+
+### Consequences, and none of them is optional
+
+1. **`poll_paths` must not be quoted at 48 seats anywhere.** Every live citation
+   is now wrong: `MODEL-LOG` §1.65 and §1.91, `JUDGEMENT-CALLS.md` §A, and the
+   memory note `live-forecast-is-not-the-backtested-model`.
+2. **The "two 48s carry 79% of the margin" framing is dead.** One of the two is
+   worth −6. The model's measured performance now rests on `level_shrink`, and
+   mostly in one cycle.
+3. **This does not by itself mean switch the channel off at 2026** — and the
+   reason is uncomfortable. §1.65's own §A row records that the 2026 forecast
+   depends on the metro path for its headline, and the backtest cannot score the
+   2026 configuration at all. But a channel that is worth −6 where it *can* be
+   scored has lost the argument that justified keeping it live where it cannot.
+   That is a decision for the owner, pre-registered before it is taken.
+4. **It vindicates the standing instruction.** §1.70 said every nine-city-year
+   number must be re-read before being quoted. Had that been done when it was
+   written, this would have been found four days ago instead of being quoted
+   twice more in the interim.

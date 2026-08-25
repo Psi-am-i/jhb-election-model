@@ -279,7 +279,7 @@ validation in this repo was run against.
 * **A NATIONAL poll declared for 2026** — added 2026-08-22, MODEL-LOG §1.69, and
   it is now the **highest-value acquisition on this list** measured in seats. The
   arrivals poll path converts a national poll share into a metro one through the
-  contested-area arithmetic, and it is worth **48 coherent seats across nine
+  contested-area arithmetic, and **SUPERSEDED 2026-08-25 (§1.94): re-measured on sixteen city-years the poll channel is worth −6 coherent seats, not +48 — turning it OFF is better. The reversal is not the panel: on §1.65's own nine city-years it measures −4. Do not quote 48.** ~~it is worth **48 coherent seats across nine~~
   city-years** (§1.65) — the largest single measured effect in the poll channel.
   §1.69 fixed the geographic half that blocked it at a live target
   (`polling.PROJECTED_METRO_SHARE`), so the code is ready and **the only

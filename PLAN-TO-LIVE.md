@@ -39,7 +39,7 @@ that differs from the 4 November one in three ways, in both directions, and no
 backtest can score any of them:
 
 * **A 48-seat channel the panel scores is DARK at 2026.** The arrivals poll path
-  — measured at 48 coherent seats (§1.65) — requires a national-scope poll, and
+  **SUPERSEDED 2026-08-25 (§1.94): re-measured on sixteen city-years the poll channel is worth −6 coherent seats, not +48 — turning it OFF is better. The reversal is not the panel: on §1.65's own nine city-years it measures −4. Do not quote 48.** ~~— measured at 48 coherent seats (§1.65) — requires~~ a national-scope poll, and
   the register holds none for 2026. The backtest earned part of its margin from
   a channel that will be switched off on polling day.
 * **A channel that decides the 2026 headline is UNSCORED by any panel.** The
@@ -127,7 +127,7 @@ bound.
 
 ### A3. Chase one national 2026 poll ★ start now, long lead time
 
-The arrivals poll path is **worth 48 coherent seats** (§1.65) and **cannot fire
+**SUPERSEDED 2026-08-25 (§1.94): re-measured on sixteen city-years the poll channel is worth −6 coherent seats, not +48 — turning it OFF is better. The reversal is not the panel: on §1.65's own nine city-years it measures −4. Do not quote 48.** ~~The arrivals poll path is **worth 48 coherent seats** (§1.65)~~ and **cannot fire
 at 2026** — not for want of code, but because no national 2026 poll is in the
 register. One acquisition re-enables the whole channel. This has external lead
 time, so it starts today and runs in parallel with everything else.
@@ -266,7 +266,7 @@ see.
   decides which census dimensions exist at all. Age and sex are *rejected* by
   that number. `dimensions.toml` is not mentioned in the register once.
 * **Nine arrival-path constants** inline in `pools.py`, on the path §1.65 prices
-  at 48 coherent seats — including the comparator window `abs(r - reach) < 0.25`
+  **SUPERSEDED 2026-08-25 (§1.94): re-measured on sixteen city-years the poll channel is worth −6 coherent seats, not +48 — turning it OFF is better. The reversal is not the panel: on §1.65's own nine city-years it measures −4. Do not quote 48.** ~~at 48 coherent seats — including the comparator window~~ `abs(r - reach) < 0.25`
   and the no-record turnout band `(0.30, 0.50, 0.70)`.
 
 ### C3. Six of eight metros run with the θ clamp absent ★ blocking for DISCLOSURE
