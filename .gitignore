@@ -24,6 +24,15 @@ data/**
 # line-oriented and readable.
 !data/processed/history.json
 !data/processed/history.md
+
+# ...AND the forecast freeze, for the same reason one level up.
+#
+# `src/freeze.py` writes a stage-1 forecast with a content hash so that a
+# restructure can be diffed against a FIXED reference instead of a moving one.
+# An untracked freeze is not a reference — it is a file on one machine that
+# nothing can compare against and no reviewer can see. It is written once and
+# re-written only deliberately, so it diffs cleanly.
+!data/processed/forecast_frozen.json
 __pycache__/
 *.pyc
 .DS_Store
