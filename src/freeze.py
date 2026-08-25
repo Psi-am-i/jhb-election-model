@@ -170,8 +170,22 @@ def bundle(city_slug: str, year: str, draws: int, seed: int) -> dict:
         "parties": parties,
         "seat_draws_sha256": draw_sha,
         "council_sizes": sorted({int(c) for c in run.council_sizes}),
-        "scenario": {k: v for k, v in sorted(scenario.items())
-                     if not k.startswith("_")},
+        # CONFIGURATION ONLY — the declared levers, which is what `DEFAULTS`
+        # is. The `scenario` dict is not a configuration object: stages inject
+        # their OUTPUTS back into it (`theta_prior`, `spine_level`,
+        # `poll_levels`, `pool_seeds`, …), and those are float-valued and wobble
+        # at ULP level between runs — the parallel summation-order noise of
+        # §1.46. Hashing them made the freeze non-reproducible while the seat
+        # draws were bit-identical, which would have made this instrument
+        # useless on its first day.
+        #
+        # The intermediate state is not lost: it is downstream of the levers and
+        # upstream of `seat_draws_sha256`, both of which ARE hashed, so a change
+        # in it that matters shows up in the draws. That the scenario carries
+        # both kinds of thing at once is exactly the conflation the restructure
+        # separates.
+        "scenario": {k: scenario[k] for k in sorted(M.DEFAULTS)
+                     if k in scenario},
         "env_switches": resolved_switches(),
         "pool_artefact_keys": pool_artefact_keys(city),
     }
