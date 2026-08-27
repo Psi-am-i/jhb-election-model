@@ -50,3 +50,18 @@ __pycache__/
 # The pool-artefact lock (src/pools.py artefact_lock). Runtime coordination,
 # never content — see MODEL-LOG 1.102.
 data/processed/.pools.lock
+
+# The Stats SA inbox folder. `data/**` is already ignored above; this one is
+# untracked only because it sits at the repo ROOT rather than under `data/`,
+# and it was therefore making every freeze report a dirty tree —
+# `freeze._dirty_excluding` counts untracked paths, and the question it says it
+# answers is "was the CODE clean when this freeze was taken".
+#
+# Contents checked before ignoring rather than assumed: two `.inetloc` mail
+# shortcuts and `Languages by Municipalities Census 2022.xls`, which is
+# BYTE-IDENTICAL to the canonical copy at
+# `data/raw/covariates/Languages by Municipalities Census 2022.xls`
+# (sha256 61f5371e78e5…, same size and mtime). So nothing is being hidden that
+# is not already in its proper place. HANDOVER.md said this folder held "no
+# data"; it holds a duplicate of the file the ward-language rake depends on.
+new data from statsSA/
