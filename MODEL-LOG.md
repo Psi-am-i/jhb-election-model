@@ -12484,3 +12484,133 @@ deliberately at orders more. **This is not a defect that is costing seats.** It
 is a mechanism that was mis-described in three places, unmeasured, and capable
 of misleading anyone who later moves the floor — which is exactly the class
 `NULL-RESULTS.md` exists to make visible.
+
+## 1.109 The F-numbers had no index in the repository, and two findings had no number at all (2026-08-27)
+
+§1.97 recorded 44 findings and §1.98 triaged them. **§1.98 quotes fourteen
+F-numbers and never lists the other thirty.** `grep -rn "F44"` over the whole
+tree returns exactly one hit — §1.98's own coupling line. So for thirty of the
+forty-four, the only handle anyone had was a prose paragraph inside a
+12,000-line log, and the map from number to finding survived only in a workflow
+output file under `/private/tmp`, which does not survive a reboot.
+
+That is a defect in the record of record, and this entry is the fix. **Every row
+below was re-verified against the current tree, not copied from the triage** —
+§1.97's line numbers are all stale (`montecarlo.py` findings have moved ~700–800
+lines, `levels.py` ~180).
+
+### ⚠️ Two numbering hazards, before the table
+
+1. **`montecarlo.py:2084` contains the string "THE GUARD SHIPPED FOR F1", and it
+   is a DIFFERENT F1** — from an earlier audit series committed 11 August,
+   unrelated to §1.97's numbering. Anyone grepping `F1` will find it.
+2. **§1.98 misstates F1+F2's scope.** It says *"10 of the parties on the blend
+   route at 2026 have `worth == 0`"*. The triage said 10 of the **seventeen
+   shipped configurations** have at least one such party; **joburg 2026 has
+   five** — `ACTIONSA`, `AFRICA_RESTORATION_ALLIANCE`, `AHC`,
+   `BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA`, `FORUM_4_SERVICE_DELIVERY`. Measured
+   independently. A count of city-years was read as a count of parties.
+
+### Status, verified against HEAD
+
+| | count | which |
+|---|---|---|
+| **already fixed** | 4 | F9, F11, F14, F20 — all §1.99 (`7de0cd8`) |
+| **re-characterised, closed as a repair** | 1 | F12 — see §1.103, §1.105, §1.108 |
+| **still present, number-neutral** | 31 | F3–F7, F13, F15–F19, F21, F22, F24–F27, F30–F32, F34–F44 |
+| **still present, latent** | 4 | F1, F2, F10, F33 |
+| **still present, moving** | 4 | F8, F23, F28, F29 |
+| **newly numbered here** | 2 | **F45**, **F46** |
+
+### The two findings that had no number
+
+**F45 — `scenario["_theta_worth"]` is a dead store.** Written at
+`montecarlo.py:3109`, read by nothing: `grep -rn "_theta_worth" src/ tests/
+site/ content/` returns exactly one hit, the write. 52 parties wide at 2026 and
+published in `forecast_summary.json`. It is `__small__`'s twin (F20, deleted in
+§1.99) and belongs in the same kind of commit.
+
+**F46 — a ward-ballot movement is added to a PR-ballot base, and it is LIVE.**
+`montecarlo.py:1837`:
+
+    implied = prior_pr_share.get(party, 0.0) + delta
+
+`prior_pr_share` is the previous LGE's **PR** ballot. `delta` is built by
+`byelections.py`, whose base is `ward_ballot()` — which filters
+`row["BallotType"].upper() != "WARD"`. So a movement measured on one ballot is
+added to a level measured on the other.
+
+**The two bases are not close.** This log already records the gap at
+`MODEL-LOG.md:67`, for a different purpose: ActionSA at Johannesburg took
+**13.98% on the ward ballot against 18.12% on PR**, a difference it describes as
+*"worth about five seats"*.
+
+**This is live in the published 2026 forecast.** `w_bye = 0.40` (`DEFAULTS`), and
+the block is reached for ASA, ANC, DA, EFF and PA among others. It is **not**
+number-neutral, and **no backtest can adjudicate it**: `bye` is non-empty only at
+joburg 2026, so all sixteen panel city-years skip the branch entirely. It has to
+be argued from the ballots, like F14 was — and like F14, the argument looks
+one-sided.
+
+**It is on the owner's decision list, not fixed here**, because it moves the
+published forecast and the correction has a choice in it (convert the delta onto
+the PR base, or hold the by-election term against a ward-ballot level).
+
+### The couplings that decide sequencing
+
+Twenty-two coupling groups exist; these five change the order of work.
+
+* **F1+F2+F7 — one repair, and it is the unblocking one.** Fixing the
+  `spine_k or SPINE_K` idiom alone makes `k=0` deliverable, and
+  `levels.py:1068` then evaluates `0.0/0.0` and raises `ZeroDivisionError` out
+  of the middle of `run_model` — past the `except FileNotFoundError`, so it
+  propagates as a hard crash mid-sweep. All three are inert at the shipped
+  `k=1.0`, so the group **costs no backtest**, and until it lands no honest
+  sweep of `SPINE_K` exists at the value that matters (§1.30 measured `k=0` at
+  RMSE 0.275 against the blend's 0.236). **F37 must land with them**, or the
+  `k=0` row silently becomes "θ route for every party" rather than "pure
+  national spine", and the configuration the sweep exists to reach is never
+  measured.
+* **F12+F10 is now the live hazard.** §1.108 names `level_floor` as the only
+  remaining move on F12. Measured lower bound on `got` at joburg 2021: **2.06e-8
+  at `level_floor=1e-6`** (safe, 20x above F10's 1e-9 threshold), 2.06e-9 at
+  1e-7, 2.06e-11 at 1e-8. **A floor at or below ~1e-8 turns F10 from latent to
+  live**, and `solve_identity_hits` — shipped in §1.108 and currently 0 — is the
+  instrument that must be watched during any such sweep.
+* **F28 subsumes F29.** Both zero-ratio parties sit at PR shares 4.5e-5 and
+  2.0e-4, far below the 0.001 threshold, so restricting the median to the
+  population `run_model` already trusts removes both. Landing them separately
+  spends two sixteen-city-year backtests on one net change.
+* **F27 without the truthiness change is a no-op that reads as a fix.** If the
+  fallback is delivered unconditionally, `montecarlo.py:3531`'s `if fallback:`
+  must become `if fallback is not None:` in the same commit — F29 establishes
+  that a zero median is representable, and a zero fallback is silently discarded
+  by truthiness, reverting every uncovered party to ratio 1.0.
+* **F39+F43 are one change.** The whitelist and the docstring's rule list must
+  be the same four names, and `level` is in neither. A repairer who whitelists
+  what the docstring documents ships a check that **raises on `level`** and
+  breaks `overhang_regimes.py` and the regime table on the forecast sheet.
+
+### The scheduling fact that matters most
+
+**No remaining finding requires a code change to `src/pools.py`.** F14 was the
+only one and it landed in §1.99 with all eighteen specs re-emitted; F18's fix is
+scoped to leave `pools` out. **So the whole 31-item neutral worklist can proceed
+without a re-emit and without competing for the artefact lock** — which is what
+makes it safe to parallelise at all.
+
+The real collision constraint is different: **`montecarlo.py` is touched by 15
+of the 22 groups.** Partitioning by file does not work. The line ranges are
+widely separated and non-overlapping (`logit` 356-360; `solve_and_predict`
+804-935; `ward_parts` 755-801; `blended_centres` 1752-1900;
+`allocate_with_overhang` 2625-2681; the three `run_model` blocks at 3085-3135,
+3515-3534 and 3660-3722), so the partition is **by region, in separate
+worktrees, merged serially** — not by file.
+
+### One more thing the verification turned up
+
+**F13 has a tail outside `src/`.** `logit`'s ceiling ignores its own `floor`
+argument (`np.clip(p, floor, 1 - SHARE_FLOOR)`, `montecarlo.py:359`) — and the
+same clip is re-implemented at `src/interactive_template.html:566`, with
+`audits/model-audit-2026-08-06-second-round.md:25` certifying the two as
+matching. **Fixing the model alone silently falsifies a standing parity audit.**
