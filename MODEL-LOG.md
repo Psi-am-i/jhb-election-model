@@ -11576,6 +11576,15 @@ instead of 40**, and the returned array is **bit-identical** to the old
 full-budget answer (max abs difference 0.000e+00). On real geography the triage
 measured genuine convergence at ~10 rounds. This runs twice per draw.
 
+> ⛔ **THE SPEEDUP DOES NOT EXIST — see §1.105.** Measured on Johannesburg 2021
+> with the counters from §1.104: `solve_rounds / solve_calls` is **exactly
+> 40.0**, so the `break` has never fired on a real target. The reachable-only
+> gap is 1.37e-5, thirteen times `tol`, because the mass the sub-floor parties
+> are stuck holding is **stolen from every other party through the row
+> renormalisation** — so the reachable parties cannot converge either. The
+> "3 rounds instead of 40" above is a property of a three-party constructed
+> city and does not generalise. The change is inert: harmless, and useless.
+
 **The arithmetic is deliberately untouched.** The floored parties still hold
 ~1e-6 each, that mass is still taken from everyone else through the row
 renormalisation, and the largest party still ends ~1e-5 short of its drawn
@@ -12106,3 +12115,69 @@ from F12 itself: a loop that never converges has no fixed point for two stopping
 points to agree on. §1.103 is corrected in place with a banner. The verdict does
 not change; the reasoning did, and "it is probably float noise" was a guess
 dressed as a finding.
+
+## 1.105 The new counters' first act is to refute the change that added them (2026-08-27)
+
+§1.104's instrumentation was run against a real target the moment it landed.
+Johannesburg 2021, the shipped configuration, 5,000 draws:
+
+```
+excessive_draws                403        8.1% of draws fire overhang
+overhang_count                 {'ANC': 234, 'IFP': 179}
+solve_calls                    10000
+solve_nonconvergent            10000      every single solve
+solve_nonconvergent_reachable  10000      even excluding unreachable parties
+solve_rounds                   400000     exactly 40 per call
+solve_unreachable_parties      27
+solve_worst_gap                1.369e-05
+solve_worst_gap_reachable      1.369e-05  identical to the above
+```
+
+### F12's early stop never fires, and the speedup claimed for it does not exist
+
+`solve_rounds / solve_calls` is **exactly 40.0**. The `break` added in §1.99 has
+never executed on this target.
+
+**The premise was false.** The early stop tests the gap over *reachable* parties
+only, on the argument that a party whose target sits under `level_floor` cannot
+be moved onto it and so should not veto convergence. That is true. What it missed
+is that **the mass those parties are stuck holding is stolen from everyone else
+through the row renormalisation**, and the theft — ~1.4e-5 — is more than ten
+times `tol`. So the reachable parties cannot converge either, and
+`solve_worst_gap_reachable` equals `solve_worst_gap` to every digit printed.
+
+The triage said this in §1.98 and I did not carry it through: *"because the rows
+are renormalised, that stuck mass is stolen from everyone else, so the LARGEST
+party ends 1.19e-5 short of its own drawn target."* The measurement now says
+1.37e-5. The early stop was designed as though only the stuck parties were
+affected.
+
+**Consequence:** the early stop is inert — harmless, and useless. §1.99's *"3
+rounds instead of 40"* and the 4x speedup on the hottest loop were measured on a
+three-party constructed city and **do not generalise**; §1.99 and §1.102 are
+corrected accordingly. This is the third claim in this session taken from a toy
+that did not survive contact with the panel, and the pattern is worth naming:
+**a constructed fixture proves a mechanism, never a magnitude.**
+
+It also means F12 remains genuinely unfixed. Any real repair has to address the
+renormalisation theft, not the convergence test.
+
+### Overhang fires in one draw in twelve, through two parties
+
+`excessive_draws` 403 of 5,000 = **8.1%**, and `overhang_count` names only ANC
+(234) and IFP (179).
+
+§1.104 established that geography reaches the seat score **only** through
+overhang. This measures how wide that channel actually is: **one draw in twelve,
+two parties.** So geography is not entirely invisible to `seat_abs_err_coherent`,
+but it is close, and the effect is concentrated on the two parties that win
+enough wards to trigger item 16.
+
+That confirms rather than softens the case for the ward-winner key: a change to
+geography that improves 135 ward calls will show up in the seat total only where
+it also changes an overhang trigger for ANC or IFP, which is a small and
+arbitrary subset of what was actually improved.
+
+**Every number here comes from counters that did not exist this morning.** The
+instrument's first finding was against the change that shipped it, which is the
+best evidence available that it is pointed at something real.
