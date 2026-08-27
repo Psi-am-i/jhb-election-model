@@ -12556,6 +12556,54 @@ one-sided.
 published forecast and the correction has a choice in it (convert the delta onto
 the PR base, or hold the by-election term against a ward-ballot level).
 
+### ⛔ MAGNITUDE, MEASURED THE NEXT DAY — and the paragraph above overstates it
+
+**Corrected 2026-08-28.** Quoting the 13.98/18.12 gap and its "worth about five
+seats" beside this finding invites the reading that F46 is worth five seats. **It
+is not, and the two are different quantities.** That figure is the ward-vs-PR
+gap in ActionSA's LEVEL. What F46 mis-states is the DELTA, and the delta is a
+*within-ward difference* whose two terms are **both** on the ward ballot — so
+the ward/PR mismatch enters only through the ratio, as `delta x (1/ratio - 1)`.
+
+Measured on the 2026 run, converting each delta onto the PR base with that
+party's own 2021 ward/PR ratio:
+
+| party | ward/PR | delta | centre now | centre fixed | move |
+|---|---|---|---|---|---|
+| DA | 1.054 | +9.34% | 32.46% | 32.27% | **−0.19pp** |
+| ANC | 1.023 | −6.79% | 27.36% | 27.43% | +0.07pp |
+| EFF | 1.101 | +0.69% | 11.64% | 11.62% | −0.02pp |
+| ATM | 1.232 | +0.19% | 0.44% | 0.43% | −0.01pp |
+| AIC, ASA, IFP, PA | — | — | — | — | **0.00pp, ABSORBED** |
+
+**Total absolute movement of the centre: 0.30pp. Largest single party: the DA at
+−0.19pp.**
+
+Two reasons it is so small, and both are the point:
+
+1. **Johannesburg's ward/PR ratios are close to 1** — ANC 1.023, DA 1.054, PA
+   0.982, IFP 0.999. ActionSA is the outlier at **0.772**, and ActionSA's
+   by-election delta is **+0.55%**, so its correction is +0.16pp of implied and
+   **zero** of centre.
+2. **Four of the nine affected parties have the correction eaten entirely by the
+   by-election clamp** — a textbook `ABSORBED` in `NULL-RESULTS.md`'s vocabulary.
+   PA's implied is 21.9% against a clamp at 8.4%; moving implied to 22.2% changes
+   nothing at all.
+
+**So F46 is real in MECHANISM and small in MAGNITUDE**, and it is not the
+forecast-moving decision the entry above implies. This is
+[[fixture-proves-mechanism-not-magnitude]] a fourth time in two days, and in its
+purest form: **a magnitude was borrowed from a different quantity that happened
+to be nearby in the log.** The mechanism was verified in the source; the number
+was not measured until it was challenged.
+
+**Which correction is right is still a judgement, and it is a small one.** The
+delta could be converted onto the PR base by the party's ward/PR ratio — which
+is what the rest of the model does, `ward_pr_ratios` being multiplicative and
+clipped to [0.5, 2.0] — or left alone on the argument that ward and PR shares
+move additively rather than proportionally. The panel cannot settle it: `bye` is
+empty at all sixteen backtest city-years.
+
 ### The couplings that decide sequencing
 
 Twenty-two coupling groups exist; these five change the order of work.
