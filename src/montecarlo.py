@@ -1845,6 +1845,24 @@ def blended_centres(
         if party in bye and w > 0:
             weight_sum, delta = bye[party]
             if weight_sum >= BYE_MIN_WEIGHT:  # enough to mean anything
+                # THE BALLOTS DIFFER HERE ON PURPOSE, AND IT WAS MEASURED
+                # (§1.97 F46, §1.110). `delta` is built by `byelections.py`
+                # against the WARD ballot; `prior_pr_share` is the PR ballot.
+                # That looks like a units error and is not one: the delta is a
+                # within-ward DIFFERENCE whose two terms are both on the ward
+                # ballot, so the mismatch enters only through how the ballots
+                # move relative to each other.
+                #
+                # Tested on 45 party x metro observations across the eight
+                # metros, 2016 -> 2021, where both movements are known:
+                # additive (this line) gives RMSE 1.052pp; converting the delta
+                # by the party's ward/PR ratio gives 1.237pp and is closer on
+                # 24 of 45, a coin flip. The ratio's median is 0.992 with an
+                # IQR of 0.957-1.023, so dividing by it adds noise around a
+                # quantity that is almost always 1.
+                #
+                # DO NOT "FIX" THIS WITHOUT RE-MEASURING. The tidy version
+                # scores worse.
                 implied = prior_pr_share.get(party, 0.0) + delta
                 if party in prior:
                     low, high = prior[party][0], prior[party][2]
@@ -2633,10 +2651,48 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
 # seats with overhang (E3)
 # --------------------------------------------------------------------------
 
+# THE ONLY STRINGS `allocate_with_overhang` ACCEPTS, and the source the
+# docstring's list is derived from rather than re-typed (§1.97 F39, F43).
+#
+# `level` MUST be in here. It is implemented, it is exercised by
+# `src/overhang_regimes.py`, and it appears on the forecast sheet's regime
+# table — but until 2026-08-28 the docstring listed only deduct/expand/cap and
+# mentioned `level` in an inline comment. A whitelist derived from what the
+# docstring documented would have raised on a rule the model actually runs,
+# which is why these two are one change and not two.
+OVERHANG_RULES = ("deduct", "expand", "cap", "level")
+
+# Iteration bounds for the two `while` loops below. NEITHER HAD ONE (§1.97 F41,
+# F44), so a termination defect wedged `tests/run_all.py` as a hang rather than
+# a failure — and a hang in a suite that takes forty minutes reads as slowness.
+#
+# `deduct` fixes at least one party per round and never un-fixes, so it cannot
+# run longer than there are parties; +2 is slack for the final no-op round.
+# `level` grows the council monotonically; 4x is far above the largest council
+# any regime run has produced (396 in data/processed/regime_level_seat_draws.csv
+# against a 270 base). Both are deliberately loose: they are a backstop against
+# non-termination, not a constraint on the arithmetic.
+OVERHANG_DEDUCT_MAX_ROUNDS_SLACK = 2
+OVERHANG_LEVEL_MAX_COUNCIL_MULTIPLE = 4
+
+
 def allocate_with_overhang(
-    combined: dict[str, int], ward_wins: dict[str, int], rule: str = "expand"
+    combined: dict[str, int], ward_wins: dict[str, int], rule: str = "deduct"
 ) -> tuple[dict[str, int], int, int, dict[str, int]]:
     """Schedule 1 allocation with the excessive-seats treatment.
+
+    ``rule`` must be one of :data:`OVERHANG_RULES` — ``deduct``, ``expand``,
+    ``cap``, ``level`` — and anything else raises. It used to fall through to
+    ``expand`` in silence, so ``--set overhang_rule=dedcut`` ran the legacy
+    counterfactual, grew the council and moved the majority threshold without a
+    word (§1.97 F39). Nothing upstream catches it either: ``parse_set``
+    validates that a KEY exists in ``DEFAULTS`` and never looks at the value.
+
+    **The signature default is ``deduct`` since 2026-08-28** (§1.97 F40). It was
+    ``expand`` — disagreeing with this docstring, with ``DEFAULTS`` and with the
+    statute, so a two-argument call written from the prose got the legacy
+    counterfactual. Both production call sites pass ``rule`` explicitly, which
+    is what made the change number-neutral and is asserted below.
 
     A party keeps every ward it wins. Default rule "deduct" is the amended
     Act 3/2021 Schedule 1 item 16(1),(3)-(9), as the IEC applied it in
@@ -2652,6 +2708,29 @@ def allocate_with_overhang(
     maps each party that triggered item 16 (in any re-allocation round) to
     its excess at the round it was fixed (0 for an exactly-equal party).
     """
+    if rule not in OVERHANG_RULES:
+        raise ValueError(
+            f"unknown overhang_rule {rule!r}; expected one of "
+            f"{', '.join(OVERHANG_RULES)}.\n"
+            f"\n"
+            f"  This used to fall through to `expand` in SILENCE, which grows "
+            f"the council and moves the majority threshold — so a typo did not "
+            f"fail, it quietly ran a different law. `parse_set` cannot catch it "
+            f"either: it validates that a KEY exists in DEFAULTS and never "
+            f"looks at the value. MODEL-LOG §1.97 F39.")
+    # A WARD WINNER THAT IS NOT IN `combined` CANNOT BE SEATED (§1.97 F42). It
+    # would be counted excessive here and then never appear in any allocation,
+    # so its seats vanish and the council silently fails to add up. No input in
+    # the archive reaches this; it is a guard against the input that would.
+    ghosts = sorted(p for p, w in ward_wins.items() if w > 0 and p not in combined)
+    if ghosts:
+        raise ValueError(
+            f"ward winner(s) absent from the combined-ballot tally: {ghosts}.\n"
+            f"\n"
+            f"  A party that wins a ward but has no combined-ballot votes would "
+            f"be counted excessive and then seated nowhere. `combined` is "
+            f"`pr_votes + ward_votes`, so this means the two ballots disagree "
+            f"about who stood. MODEL-LOG §1.97 F42.")
     alloc = allocate(combined, total_seats=COUNCIL)
     over = {p: ward_wins[p] - alloc.seats.get(p, 0)
             for p in ward_wins
@@ -2664,17 +2743,31 @@ def allocate_with_overhang(
         # until every ward winner's seats are covered by its proportional
         # share — nobody is squeezed, the chamber pays instead
         total = COUNCIL
-        while True:
+        ceiling = COUNCIL * OVERHANG_LEVEL_MAX_COUNCIL_MULTIPLE
+        while total <= ceiling:
             sub = allocate(combined, total_seats=total)
             deficit = sum(max(0, w - sub.seats.get(p, 0))
                           for p, w in ward_wins.items())
             if deficit == 0:
                 return dict(sub.seats), total, total // 2 + 1, over
             total += deficit
+        raise RuntimeError(
+            f"the `level` rule did not converge: the council grew past "
+            f"{ceiling} seats from a base of {COUNCIL} without covering every "
+            f"ward winner.\n"
+            f"\n"
+            f"  Growing the chamber can only fail to close the deficit if a "
+            f"ward winner is absent from `combined` — which the guard at the "
+            f"top of this function now refuses — or if `allocate` is not "
+            f"monotone in `total_seats`. Before this bound existed the loop "
+            f"simply never returned, and a hang in a forty-minute suite reads "
+            f"as slowness rather than as a failure. MODEL-LOG §1.97 F41, F44.")
     if rule == "deduct":
         fixed: dict[str, int] = {}
         votes = dict(combined)
-        while True:
+        # At least one party is fixed and removed per round, so the loop cannot
+        # outlast the parties; the slack covers the final round that fixes none.
+        for _round in range(len(combined) + OVERHANG_DEDUCT_MAX_ROUNDS_SLACK):
             sub = allocate(votes, total_seats=COUNCIL - sum(fixed.values()))
             newly = {p: ward_wins[p] for p in list(votes)
                      if ward_wins.get(p, 0) > 0
@@ -2685,6 +2778,15 @@ def allocate_with_overhang(
                 over.setdefault(party, wins - sub.seats.get(party, 0))
                 fixed[party] = wins
                 votes.pop(party)
+        raise RuntimeError(
+            f"the `deduct` rule did not settle in {len(combined) + 2} rounds "
+            f"over {len(combined)} parties.\n"
+            f"\n"
+            f"  Each round fixes at least one party and removes it from the "
+            f"pool, so this is unreachable unless a party is being re-fixed — "
+            f"which would mean `votes.pop` is not removing it. Before this "
+            f"bound existed the loop simply never returned. "
+            f"MODEL-LOG §1.97 F41, F44.")
     for party, excess in over.items():
         seats[party] = seats.get(party, 0) + excess
     council = COUNCIL + sum(over.values())
@@ -3117,7 +3219,14 @@ def run_model(target, scenario: dict,
             # The measured log-spread per party, carried to the draw. See
             # make_drawer: this is the number the draw was not using.
             scenario["_theta_sd"] = _groups.get("sd", {})
-            scenario["_theta_worth"] = _groups.get("worth", {})
+            # `scenario["_theta_worth"]` was written here and READ BY NOTHING —
+            # one occurrence in the whole tree, this line (§1.97 F45). Deleted
+            # 2026-08-28. It is `__small__`'s twin (F20, deleted in §1.99): 52
+            # parties wide at 2026 and published in `forecast_summary.json`,
+            # where a reader would reasonably take it for something the model
+            # uses. `_theta_sd` directly above IS read — at `make_drawer` and in
+            # the guards — which is exactly why the dead one beside it was
+            # invisible.
             # The width layer, exposed. `SD_FLOOR` binds on two or three
             # parties holding most of the ballot and FLATTENS them to one
             # number; that is visible here without instrumenting anything.

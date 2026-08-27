@@ -12662,3 +12662,70 @@ argument (`np.clip(p, floor, 1 - SHARE_FLOOR)`, `montecarlo.py:359`) — and the
 same clip is re-implemented at `src/interactive_template.html:566`, with
 `audits/model-audit-2026-08-06-second-round.md:25` certifying the two as
 matching. **Fixing the model alone silently falsifies a standing parity audit.**
+
+## 1.110 F46 measured and CLOSED: the ward/PR conversion makes the model worse, so the "wrong" base stays (2026-08-28)
+
+§1.109 raised F46 — `montecarlo.py:1837` adds a by-election delta measured on
+the **ward** ballot to `prior_pr_share`, a level measured on the **PR** ballot —
+and left it for the owner as a judgement. The owner's answer was the right one:
+*"I do not have a view about what to do with F46 without some evidence to inform
+the choice."* There was none. There is now, and **it says do nothing.**
+
+### The question is empirical, not conceptual
+
+The delta is a *within-ward difference* whose two terms are both on the ward
+ballot. So the mismatch matters only through how the two ballots move relative
+to each other:
+
+* if they move **additively** (same points), `delta_pr = delta_ward` — what the
+  code does, and it is right;
+* if they move **proportionally** (same ratio), `delta_pr = delta_ward / ratio` —
+  and the code is wrong by `delta x (1/ratio - 1)`.
+
+Every LGE reports both ballots, so the 2016 → 2021 transition gives a real
+`(delta_ward, delta_pr)` pair per party per metro. **45 observations** across the
+eight metros, restricted to parties with a base above 0.5% on both ballots so the
+ratio means something.
+
+| model | predicts | RMSE | mean error |
+|---|---|---|---|
+| **additive** (shipped) | `delta_pr = delta_ward` | **1.052pp** | −0.267pp |
+| proportional (the "fix") | `delta_pr = delta_ward / ratio` | **1.237pp** | −0.291pp |
+
+**The proposed correction is WORSE — RMSE 1.237pp against 1.052pp — and closer on
+only 24 of 45 observations, which is a coin flip.**
+
+The reason is in the ratios themselves: across those observations the ward/PR
+ratio has **median 0.992 and an interquartile range of 0.957 to 1.023**. In South
+African metros the two ballots are nearly the same shape, so dividing by the
+ratio adds noise proportional to a quantity that is almost always 1, and the
+noise costs more than the bias it removes.
+
+### The size of the thing, for completeness
+
+Even had the correction been right it would have moved almost nothing: total
+absolute movement of the 2026 centres **0.30pp**, largest party the DA at
+**−0.19pp**, and four of the nine affected parties absorbed entirely by the
+by-election clamp (§1.109's correction).
+
+### Disposition: CLOSED, not fixed
+
+`INERT` in `NULL-RESULTS.md`'s vocabulary — the value arrives, propagates, and
+the alternative is measurably no better. It is recorded here so that the next
+reader who notices a ward-ballot delta meeting a PR-ballot level does not spend
+a day on it: **it was noticed, it was measured, and the tidy-looking correction
+scores worse.**
+
+**A comment is added at the site**, because the code looks wrong and now has to
+say why it is not.
+
+### What this is an instance of
+
+Three separate claims about F46 were made before any of them were measured: that
+it was worth about five seats (borrowed from a different quantity — corrected in
+§1.109), that it was a live defect needing an owner decision (it needed a
+measurement), and implicitly that the ratio conversion was the correct fix (it is
+the worse fix). **The mechanism was verified from the source every time and the
+magnitude was never measured until someone asked for evidence.**
+[[fixture-proves-mechanism-not-magnitude]] again, and `ITERATING.md`'s rule that
+a tidier model is not a better one.

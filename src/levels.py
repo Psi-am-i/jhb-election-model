@@ -895,14 +895,18 @@ def size_centre(record: dict[str, list[tuple[float, float]]]):
 
     Returns ``(a, b)``; ``centre(size) = exp(a + b·log(size))``.
     """
-    obs = [(np.log(max(sz, 1e-6)), np.log(r), _reliability(sz))
+    obs = [(np.log(max(sz, 1e-6)), np.log(r))
            for v in record.values() for r, sz in v if r > 0 and sz > 0]
     if len(obs) < 20:
         return None
     x = np.array([o[0] for o in obs])
     y = np.array([o[1] for o in obs])
-    w = np.sqrt(np.array([o[2] for o in obs]))
-    # UNWEIGHTED. The reliability weight exists to stop a party that went from
+    # UNWEIGHTED, and the weight is not computed at all (§1.97 F25). It used to
+    # be — `w = np.sqrt(...)` sat here and reached nothing, which reads as an
+    # oversight rather than as the decision below. The decision is the comment;
+    # the dead array was only ever evidence that somebody had considered it.
+    #
+    # The reliability weight exists to stop a party that went from
     # 30 votes to 90 moving a party's OWN mean, and it is right for that. Here
     # it is wrong: the quantity being fitted is how the centre varies WITH SIZE,
     # and down-weighting the small end removes the observations that identify
