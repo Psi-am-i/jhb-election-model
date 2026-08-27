@@ -647,6 +647,14 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         "pad",            # logo whitespace in prep_logos
         "simplify",       # polygon simplification for the map renderer
         "min_seats",      # a REPORTING threshold in arrivals.py, not a model input
+        # The delivery-proof recorder (NULL-RESULTS.md §4.1). Both are
+        # OPERATIONAL — they bound the SIZE of a log, not anything the model
+        # computes. DELIVERY_MAX_VALUES caps how many distinct values are kept
+        # per name, because the scenario is serialised into forecast_summary.json
+        # on every run; `depth` bounds the recursion that summarises a value for
+        # the log. Neither can reach a forecast — `note_value` returns its
+        # argument unchanged, proven bit-identical against HEAD.
+        "DELIVERY_MAX_VALUES", "depth",
         "LEVELS",         # the nominal coverage levels 50/80/90 a report prints
         "LGE_YEARS", "LGE_ELECTIONS", "FOLDS",        # calendar/route structure
         "independent_wards", "no_pr_list_wards",      # per-call council facts

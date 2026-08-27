@@ -853,5 +853,161 @@ def test_when_the_measurement_is_unavailable_run_model_falls_back_to_1_0_not_0_8
                                  _StubCity(Path("no-such-file.csv"))) == ({}, 0.8)
 
 
+# --------------------------------------------------------------------------
+# the two boundaries, pinned at the shapes the existing tests do not reach
+#
+# MODEL-LOG §1.97 reports two surviving mutations at this seam. Re-run on
+# 2026-08-27 against the file as committed, BOTH are in fact caught — by
+# `test_a_party_with_no_pr_votes_is_excluded_instead_of_dividing_by_zero` and
+# `test_a_file_with_ward_rows_but_no_ward_votes_misses_instead_of_raising`
+# respectively. The two tests below do not duplicate those. They close the
+# shapes those two do not reach, because in both cases the existing fixture
+# happens to sit on the least demanding version of the boundary:
+#
+#   * the zero-PR party there also has ZERO WARD VOTES, so the mutant divides
+#     0.0 by 0.0. A party that POLLED on the ward ballot and took no PR vote is
+#     the shape that yields a positive numerator over a zero denominator — the
+#     `inf` the task description names, and the one that would survive an
+#     implementation which special-cased a zero numerator or moved to numpy
+#     (where `np.float64(0)/0` is `nan` with a warning, not a raise).
+#   * the empty ward ballot there is spelled as an explicit `0` in
+#     `Party_Votes`. DATA-QUALITY.md's quirks deliver it BLANK, which reaches
+#     the same total through `int(float(row.get("Party_Votes") or 0))`, and
+#     nothing asserted that it does.
+#
+# Both are written so that a ZeroDivisionError becomes a NAMED assertion
+# failure rather than an anonymous crash, and both assert the returned VALUE
+# afterwards, so an implementation that stops raising but starts returning
+# `inf` or `nan` still fails here.
+# --------------------------------------------------------------------------
+
+
+def test_a_zero_pr_denominator_is_excluded_even_when_the_party_polled_on_the_ward_ballot():
+    """`pr[p] > 0` is a strict inequality, and the > / >= boundary is the whole guard.
+
+    MODEL-LOG §1.19 is this repository's "equal to or greater" entry: a boundary
+    written one notch loose, which reads correctly and is not. Here the loose
+    form is `if pr[p] >= 0`, and zero is not a spurious value at this line — it
+    is a value the reader PRODUCES. The IEC publishes a row per party per voting
+    district wherever that party is on the ballot (see `contestation`'s
+    docstring), `pr` is a `defaultdict(int)`, so a party listed on the PR ballot
+    and scoring nothing on it holds a key worth 0 and is inside
+    `set(pr) & set(ward)`.
+
+    What the strict form buys is that the DENOMINATOR of every ratio is a
+    positive PR share. A ratio to a zero PR share is not large, it is undefined:
+    the party gave the previous local election no PR baseline to measure a
+    split-ticket effect against. It must therefore be ABSENT from the map — not
+    present as `inf`, not present as `nan`, because both propagate straight into
+    the median that every party with no ward history inherits
+    (`test_the_fallback_is_the_median_of_the_ratios_it_returned`) and from there
+    into ward win probabilities and seats.
+
+    Constructed so the numerator is POSITIVE, which the zero-PR fixture in
+    `test_a_party_with_no_pr_votes_is_excluded_instead_of_dividing_by_zero` is
+    not — there GHOST takes no ward vote either, so the loose form divides 0.0
+    by 0.0. Every share below is an exact binary fraction, so the arithmetic is
+    exact and no tolerance is needed:
+
+        PR    ALPHA 500  BETA 250  GAMMA 250  GHOST   0   total 1000
+              -> .500       .250      .250       .000
+        ward  ALPHA 250  BETA 500  GAMMA 125  GHOST 125   total 1000
+              -> .250       .500      .125       .125
+        ratio ALPHA .250/.500 = 0.5
+              BETA  .500/.250 = 2.0
+              GAMMA .125/.250 = 0.5
+              GHOST .125/.000 = undefined -> no entry
+        median of (0.5, 2.0, 0.5) = 0.5
+
+    GHOST is the party that most looks like it deserves a ratio — it out-polled
+    GAMMA on the ward ballot — and it is exactly the one that cannot have one.
+    """
+    try:
+        ratios, fallback = _on([
+            ("PR", "ALPHA PARTY", 500), ("PR", "BETA PARTY", 250),
+            ("PR", "GAMMA PARTY", 250), ("PR", "GHOST PARTY", 0),
+            ("Ward", "ALPHA PARTY", 250), ("Ward", "BETA PARTY", 500),
+            ("Ward", "GAMMA PARTY", 125), ("Ward", "GHOST PARTY", 125),
+        ])
+    except ZeroDivisionError as exc:                      # pragma: no cover
+        raise AssertionError(
+            "a party with ward votes and no PR vote reached the division: its "
+            "PR share is the denominator, so the comprehension's guard must be "
+            "`pr[p] > 0` and not `pr[p] >= 0`. `ward_pr_ratios` is called once "
+            "per run inside run_model with no handler (montecarlo.py:2350), so "
+            f"this is a dead forecast, not a bad number: {exc!r}") from exc
+
+    assert "GHOST_PARTY" not in ratios, (
+        f"GHOST PARTY polled 125 ward votes and no PR votes, so its ward/PR "
+        f"ratio has a zero denominator and is undefined; it must not appear in "
+        f"the map at any value, least of all a finite one: {ratios}")
+    assert all(math.isfinite(v) for v in ratios.values()), (
+        f"a non-finite ratio is in the map; it reaches the median and from "
+        f"there every party with no ward history: {ratios}")
+    assert ratios == {"ALPHA_PARTY": 0.5, "BETA_PARTY": 2.0,
+                      "GAMMA_PARTY": 0.5}, ratios
+    assert math.isfinite(fallback) and fallback == 0.5, (
+        f"the fallback must be the median of the three DEFINED ratios, 0.5; "
+        f"got {fallback}. A non-finite value here would be handed to every "
+        f"party under 0.1% of the previous PR vote (montecarlo.py:2730).")
+
+
+def test_the_ward_half_of_the_empty_ballot_guard_is_load_bearing_on_a_blank_column():
+    """`if not pr_total or not ward_total` — the SECOND half, on the IEC's own spelling.
+
+    `ward_total` is the denominator of every ward share, so a result file whose
+    ward ballot carries no votes makes the entire measurement undefined rather
+    than one party's. Drop the `or not ward_total` half and the comprehension
+    divides by a zero ward total on the first party it reaches.
+
+    `test_a_file_with_ward_rows_but_no_ward_votes_misses_instead_of_raising`
+    already pins that with an explicit `0` in `Party_Votes`. This pins the
+    shape DATA-QUALITY.md actually documents: a BLANK cell. The reader spells it
+    `int(float(row.get("Party_Votes") or 0))`, so a blank and a `0` arrive at
+    the same total by two different routes, and only one of them was asserted.
+    The four IEC quirks on record corrupt silently instead of erroring, and a
+    truncated export that keeps the ward rows and loses the ward counts is that
+    failure mode exactly.
+
+    NOT a claim that the miss is the RIGHT answer: what `run_model` does with
+    `({}, 0.8)` is the defect
+    `test_when_the_measurement_is_unavailable_run_model_falls_back_to_1_0_not_0_8`
+    records. The claim is only that an unmeasurable ballot must MISS rather than
+    take the run down with it.
+
+    **On the other half of the same condition, honestly.** Dropping
+    `not pr_total` instead is not distinguishable by any test, and this file
+    does not pretend otherwise. Vote counts read off an IEC export are
+    non-negative, so `pr_total == 0` implies every `pr[p] == 0`, the
+    comprehension's own `pr[p] > 0` guard admits nobody, `ratios` is empty and
+    `fallback` falls to the literal `0.8` — the identical `({}, 0.8)`. Verified
+    2026-08-27 by mutating the source to `if not ward_total:` alone,
+    against this file as it now stands: 19 passed, 0 failed. That half is a cheap early return, not a behavioural guard, and
+    the empty-PR assertion below is a specification pin rather than a mutation
+    kill.
+    """
+    try:
+        blank_ward = _on([("PR", "ALPHA PARTY", 600), ("PR", "BETA PARTY", 400),
+                          ("Ward", "ALPHA PARTY", ""), ("Ward", "BETA PARTY", "")])
+    except (ZeroDivisionError, ValueError) as exc:        # pragma: no cover
+        raise AssertionError(
+            "a ballot file whose ward votes are BLANK rather than zero did not "
+            "take the miss path. If this is a ZeroDivisionError the "
+            "`or not ward_total` half of the guard has gone; if it is a "
+            "ValueError the `or 0` in the reader has gone. Either way "
+            f"run_model calls this with no handler: {exc!r}") from exc
+    assert blank_ward == ({}, 0.8), (
+        f"expected a blank ward-votes column to be an unmeasurable ballot and "
+        f"miss; got {blank_ward}")
+
+    # The PR half of the same condition. True of the real code; see the
+    # docstring for why no mutation of it can be caught here.
+    empty_pr = _on([("PR", "ALPHA PARTY", 0), ("PR", "BETA PARTY", 0),
+                    ("Ward", "ALPHA PARTY", 600), ("Ward", "BETA PARTY", 400)])
+    assert empty_pr == ({}, 0.8), (
+        f"a ballot file with no PR votes at all has no denominator for any "
+        f"ratio and must miss; got {empty_pr}")
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

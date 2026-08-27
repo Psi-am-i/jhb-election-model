@@ -70,6 +70,7 @@ import copy
 import csv
 import json
 import math
+import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date
@@ -972,7 +973,328 @@ def apply_city(city) -> None:
 SCENARIO_METADATA = ("derived_from",)
 
 
-def note_constant(scenario: dict, constant: str, party: str | None = None) -> None:
+# --------------------------------------------------------------------------
+# the delivery proof: a read log that records the VALUE, not just the name
+# --------------------------------------------------------------------------
+#
+# THE PROBLEM. "This change did nothing" and "this change never arrived" are
+# the same observation, and the harness has been reporting both as a null. Of
+# the 48 constants pre-registered for the B2 sweep, 42 carry a blocker and the
+# largest class is undeliverability: a module constant rebound in the parent
+# process does not cross a `ProcessPoolExecutor` boundary, so a sweep fans out
+# to eight workers that re-import the default and comes back with a flat,
+# confident null. `LEVEL_DF` was swept 2.5 -> 1000 for byte-identical output
+# because `df: float = LEVEL_DF` had been bound once at import (MODEL-LOG
+# §1.33); nothing in the run could say so.
+#
+# THE RULE, from NULL-RESULTS.md §4.1: **the swept constant must appear in the
+# read log, at the value that was set. Until it does, a flat result is VOID,
+# NOT NULL.** Four causes of a null -- UNDELIVERED, ABSORBED:<stage>,
+# CANCELLED:<parameter>, INERT -- and only INERT is a result. This log is what
+# separates the first from the other three; nothing here can tell the other
+# three apart, and it does not pretend to.
+#
+# A DECLARATION IS A CLAIM AND THIS IS THE EVIDENCE. `ARCHITECTURE.md`'s list A
+# is what each unit says it reads; this is list C, what a run demonstrably read.
+# `A != C` is a hard failure either way round: the code stopped reading what it
+# says it reads, or it never did.
+#
+# WHAT IT DOES NOT DO. It records; it does not check. A guard that has gone
+# blind will be recorded faithfully as having run. What catches that is an
+# assertion -- which is the point of `assert_delivered` below, and of putting
+# the value on disk where an assertion is cheap to write.
+
+class Undelivered(AssertionError):
+    """A value a measurement set was never consulted, or was consulted changed.
+
+    Raised by :func:`assert_delivered`. An ``AssertionError`` so a test or a
+    sweep treats it as a failure by default: the whole point is that a run
+    which cannot prove delivery must not be allowed to report a null.
+    """
+
+
+# Sentinel for "the caller did not record a value". `None` is a legitimate
+# value for several constants (`spine_k` ships as None), so it cannot be the
+# sentinel -- that confusion is CLASS 13 in tests/test_levers_are_live.py.
+class _Unrecorded:
+    def __repr__(self) -> str:                      # pragma: no cover - display
+        return "<unrecorded>"
+
+
+_UNRECORDED = _Unrecorded()
+
+# How many DISTINCT values of one name the log keeps. A per-party or per-draw
+# site can consult one name at many values, and the log is serialised into
+# `forecast_summary.json` on every run -- an uncapped list would put a
+# megabyte of diagnostics into a published artefact. The count of reads and of
+# dropped distinct values is kept, so truncation is visible rather than silent.
+DELIVERY_MAX_VALUES = 12
+
+
+def _delivery_value(value, depth: int = 0):
+    """A JSON-native, comparable rendering of a value that was consulted.
+
+    `scenario` is dumped with a plain ``json.dump`` and no ``default=`` hook
+    (see :func:`main`), so anything left on it must already be JSON. A numpy
+    array on the scenario produced malformed JSON and broke the site build
+    once already; this is that lesson applied to the read log.
+    """
+    if value is None or isinstance(value, (bool, int, str)):
+        return value
+    if isinstance(value, float):
+        return value if math.isfinite(value) else repr(value)
+    if isinstance(value, np.generic):
+        return _delivery_value(value.item(), depth)
+    if isinstance(value, np.ndarray):
+        flat = value.ravel()
+        if flat.size <= 8 and np.issubdtype(value.dtype, np.number):
+            return [float(x) for x in flat]
+        return {"__array__": list(value.shape),
+                "sum": float(np.nansum(flat)) if flat.size else 0.0}
+    if depth >= 2:
+        return repr(value)[:200]
+    if isinstance(value, (set, frozenset)):
+        return sorted(_delivery_value(v, depth + 1) for v in value)[:16]
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, (list, tuple)):
+        if len(value) > 16:
+            return repr(value)[:200]
+        return [_delivery_value(v, depth + 1) for v in value]
+    if isinstance(value, dict):
+        if len(value) > 16:
+            return {"__dict__": len(value)}
+        return {str(k): _delivery_value(v, depth + 1)
+                for k, v in sorted(value.items(), key=lambda kv: str(kv[0]))}
+    return repr(value)[:200]
+
+
+def note_value(scenario: dict | None, name: str, value, where: str,
+               who: str | None = None, kind: str = "consulted"):
+    """Record that ``name`` was consulted AT ``value``, and return ``value``.
+
+    Returns its argument so a read can be instrumented by wrapping it, the way
+    :meth:`Trace.put` does, without moving code or adding a branch::
+
+        floor = note_value(scenario, "montecarlo.SHARE_FLOOR", SHARE_FLOOR,
+                           where="montecarlo:run_model")
+
+    ``kind`` is the strength of the claim and the distinction matters more than
+    anything else here:
+
+    * ``consulted`` -- recorded AT the site that reads it, so the value
+      demonstrably reached the computation. This is a delivery proof.
+    * ``resolved`` -- the value THIS PROCESS holds for a module-level constant,
+      recorded once per run without reference to any reader. It proves the
+      value crossed the process boundary, which is the single largest cause of
+      an undelivered sweep; it does NOT prove any code read it. §1.68 was burned
+      by exactly this distinction -- *"that null was measured WITH THE GATE
+      SHUT"* -- so a ``resolved`` record must never be reported as evidence
+      that a lever is INERT.
+    * ``not-imported`` / ``missing`` -- written by :func:`note_module_constants`
+      when a declared name is not there to read. A renamed constant shows up as
+      an absence rather than as silence.
+
+    Writing to ``scenario`` (like ``_constants_read`` and ``_ward_pr_measured``)
+    keeps the log travelling with the run into ``forecast_summary.json``, and
+    keeps this function free of module state -- which is what lets it be called
+    inside a worker process and mean something.
+    """
+    if scenario is None:
+        return value
+    log = scenario.setdefault("_delivered", {})
+    rec = log.get(name)
+    if rec is None:
+        rec = log[name] = {"values": [], "where": [], "kinds": [], "who": [],
+                           "reads": 0, "dropped": 0}
+    rec["reads"] += 1
+    for field_name, item in (("where", where), ("kinds", kind),
+                             ("who", who or "(all)")):
+        if item not in rec[field_name] and len(rec[field_name]) < DELIVERY_MAX_VALUES:
+            rec[field_name].append(item)
+    shown = _delivery_value(value)
+    if shown not in rec["values"]:
+        if len(rec["values"]) < DELIVERY_MAX_VALUES:
+            rec["values"].append(shown)
+        else:
+            rec["dropped"] += 1
+    return value
+
+
+# MODULE CONSTANTS, BY MODULE. None of these is in `DEFAULTS`, so none is swept
+# by `test_every_tunable_lever_actually_moves_the_forecast`, and none crosses a
+# `ProcessPoolExecutor` boundary when a sweep rebinds it in the parent. That is
+# the 42-of-48 class. Recording them per run, in the process that ran, is what
+# turns "the sweep did nothing" into "the sweep never arrived".
+#
+# Read from the LIVE module namespace at call time, never bound at import --
+# binding at import is the `LEVEL_DF` defect itself (§1.33) and would make this
+# log agree with the sweep while the model disagreed with both.
+#
+# `levels` and `polling` also carry environment-derived constants
+# (`SIGMA_TWO_TERM`, `FILTER_TYPE_A`, `THETA_WINDOW`, ...). An env var is a
+# class of input nothing in this repository logs at all, and it selects between
+# two entirely different poll models.
+MODULE_CONSTANTS: dict[str, tuple[str, ...]] = {
+    "montecarlo": ("SHARE_FLOOR", "DIRICHLET_FLOOR", "TURNOUT_DRAW_FLOOR",
+                   "TURNOUT_DRAW_CEILING", "LEVEL_DF", "BYE_MIN_WEIGHT",
+                   "WARD_PR_RATIO_MIN", "WARD_PR_RATIO_MAX", "COUNCIL",
+                   "TURNOUT_CORRELATION"),
+    "levels": ("SD_FLOOR", "SD_CEILING", "SHRINK", "RELIABILITY_HALF",
+               "SPINE_K", "FILTER_TYPE_A", "EXCLUDE_DEMARCATION_CROSSING",
+               "THETA_WINDOW", "THETA_EXCLUDE_TARGETS"),
+    "polling": ("SIGMA_COMMON", "SIGMA_IDIO", "SIGMA_DRIFT_PER_ROOT_DAY",
+                "SIGMA_VOLATILITY", "SIGMA_TWO_TERM", "POLL_HOUSE_K",
+                "POLL_HALF_LIFE_DAYS", "POLL_MIN_N", "POLL_RMS_ERROR",
+                "POLL_HOUSE_SD", "CAMPAIGN_WINDOW_DAYS",
+                "POLL_DRIFT_PP_PER_ROOT_DAY", "REGISTER"),
+}
+
+
+def note_module_constants(scenario: dict, where: str) -> None:
+    """Record what THIS PROCESS holds for every declared module constant.
+
+    Call it at the END of a run, not the start: it reads ``sys.modules`` and
+    never imports anything, so a module the run never needed is recorded as
+    ``not-imported`` rather than being dragged in by the instrumentation. An
+    import performed for the sake of a log is a side effect, and instrumentation
+    that has side effects is not instrumentation.
+
+    Every record is ``kind="resolved"``. Read :func:`note_value` on what that
+    is and is not evidence for.
+    """
+    for module_name, names in MODULE_CONSTANTS.items():
+        module = sys.modules.get(module_name)
+        for const in names:
+            full = f"{module_name}.{const}"
+            if module is None:
+                note_value(scenario, full, None, where=where,
+                           kind="not-imported")
+            elif not hasattr(module, const):
+                note_value(scenario, full, None, where=where, kind="missing")
+            else:
+                note_value(scenario, full, getattr(module, const),
+                           where=where, kind="resolved")
+
+
+def delivery_log(source) -> dict:
+    """The value-bearing read log of a run, from whatever holds it.
+
+    Accepts a :class:`ModelRun`, a scenario dict, the log itself, or a
+    ``--run-dir`` path (reading ``45_delivered.json``). One reader, because the
+    alternative is every sweep growing its own and disagreeing about the shape.
+    """
+    if source is None:
+        return {}
+    if isinstance(source, (str, Path)):
+        path = Path(source)
+        if path.is_dir():
+            path = path / "45_delivered.json"
+        if not path.exists():
+            return {}
+        with path.open(encoding="utf-8") as handle:
+            return json.load(handle) or {}
+    scenario = getattr(source, "scenario", None)
+    if isinstance(scenario, dict):
+        return dict(scenario.get("_delivered") or {})
+    if isinstance(source, dict):
+        if "_delivered" in source:
+            return dict(source["_delivered"] or {})
+        return dict(source)
+    raise TypeError(f"delivery_log cannot read a {type(source).__name__}")
+
+
+def _match(recorded, expected, tol: float) -> bool:
+    """Did a recorded value deliver ``expected``? Floats compared with ``tol``."""
+    if isinstance(expected, bool) or isinstance(recorded, bool):
+        return recorded is expected or recorded == expected
+    if isinstance(expected, (int, float)) and isinstance(recorded, (int, float)):
+        if not (math.isfinite(float(expected)) and math.isfinite(float(recorded))):
+            return repr(recorded) == repr(expected)
+        return abs(float(recorded) - float(expected)) <= tol * max(
+            1.0, abs(float(expected)))
+    return recorded == _delivery_value(expected)
+
+
+def assert_delivered(run, name: str, expected=_UNRECORDED, kind: str | None = None,
+                     tol: float = 1e-12) -> dict:
+    """Prove that ``name`` reached the run, at ``expected``. Raise if it did not.
+
+    **This is the assertion NULL-RESULTS.md §4.1 requires on every sweep**, and
+    the error text is the deliverable: a sweep that cannot prove delivery has
+    not measured anything, and must say so in those words rather than reporting
+    a confident zero.
+
+    ``run`` is anything :func:`delivery_log` reads -- a :class:`ModelRun`, a
+    scenario, a ``--run-dir``. ``expected`` omitted asserts presence only.
+    ``kind="consulted"`` demands the strong proof and refuses a ``resolved``
+    record, which says the process held the value and not that anything read it.
+
+    Returns the record, so a caller can report ``reads`` and the sites.
+    """
+    log = delivery_log(run)
+    rec = log.get(name)
+    if rec is None:
+        near = [k for k in sorted(log) if name.split(".")[-1] in k and k != name]
+        raise Undelivered(
+            f"UNDELIVERED: {name}"
+            + (f" was set to {expected!r} for this run" if expected is not _UNRECORDED
+               else " was expected to be read by this run")
+            + f", and the read log records no consultation of it at all.\n"
+            f"\n"
+            f"  THE RESULT OF THIS RUN IS VOID, NOT NULL. \"the change did "
+            f"nothing\" and \"the change never arrived\" are the same "
+            f"observation without a delivery proof, and this is the delivery "
+            f"proof failing. Do not report a flat sweep here as INERT; it is "
+            f"not a measurement of the model at all.\n"
+            f"\n"
+            f"  The usual cause is a module constant rebound in the parent "
+            f"process: it does not cross a ProcessPoolExecutor boundary, so "
+            f"every worker re-imports the default. Set it inside the worker, "
+            f"or force serial (--jobs 1). The next most common is a value "
+            f"bound as a function default at import time, which no later "
+            f"rebinding can move (MODEL-LOG §1.33).\n"
+            f"\n"
+            f"  Third: the site that reads {name} may simply not be "
+            f"instrumented. An absence here is a fact about the LOG, not about "
+            f"the model -- add a note_value call at the read site and run again "
+            f"before concluding anything."
+            + (f"\n\n  Names the log does carry that look related: "
+               f"{', '.join(near[:8])}" if near else "")
+            + f"\n  The log carries {len(log)} name(s) in total.")
+    if kind is not None and kind not in rec.get("kinds", []):
+        raise Undelivered(
+            f"UNDELIVERED at the strength asked for: {name} is in the read log "
+            f"as {rec.get('kinds')}, and {kind!r} was required.\n"
+            f"\n"
+            f"  A 'resolved' record says THIS PROCESS held the value. It does "
+            f"not say any code read it, and a lever behind a shut gate resolves "
+            f"perfectly while doing nothing -- §1.68 measured a null with the "
+            f"gate shut and believed it. Until a 'consulted' record exists at "
+            f"the read site, a flat result is VOID, NOT NULL.")
+    if expected is _UNRECORDED:
+        return rec
+    values = rec.get("values", [])
+    if any(_match(v, expected, tol) for v in values):
+        return rec
+    raise Undelivered(
+        f"UNDELIVERED at the wrong value: {name} was set to {expected!r} and "
+        f"this run consulted it at {values!r}"
+        + (f" (+{rec['dropped']} further distinct value(s), log truncated at "
+           f"{DELIVERY_MAX_VALUES})" if rec.get("dropped") else "")
+        + f", at {', '.join(rec.get('where', [])) or 'an unrecorded site'}.\n"
+        f"\n"
+        f"  THE RESULT OF THIS RUN IS VOID, NOT NULL. The run read something, "
+        f"and it was not what the measurement set, so the measurement did not "
+        f"happen. A flat score here says nothing about whether {name} matters.\n"
+        f"\n"
+        f"  Either the value was overwritten between being set and being read "
+        f"-- a city TOML, `apply_city`, a scenario file, a default argument "
+        f"resolved at import -- or two different things are being logged under "
+        f"one name. Read the sites above and find which.")
+
+def note_constant(scenario: dict, constant: str, party: str | None = None,
+                  value=_UNRECORDED, where: str | None = None) -> None:
     """Record that a hand-typed constant was actually consumed by this run.
 
     Whether a plan judgement contaminates a backtest depends on the target,
@@ -988,11 +1310,23 @@ def note_constant(scenario: dict, constant: str, party: str | None = None) -> No
     reports those. Kept on the scenario (like ``_ward_pr_measured``) so it
     travels into ``forecast_summary.json`` with everything else: values are
     plain lists, because that file is JSON.
+
+    ``value`` IS THE DELIVERY PROOF, and it is optional only because this
+    function predates it. A name in the log says a constant was consulted; it
+    cannot say *at what*, and those are different facts. A sweep that sets
+    ``LEVEL_DF = 1000`` and gets a flat answer has learned nothing at all
+    unless the run recorded reading 1000 — see :func:`note_value` and
+    :func:`assert_delivered`. Passing ``value`` writes the same read into the
+    value-bearing log as well; ``where`` names the site, defaulting to the
+    constant's own name.
     """
     users = scenario.setdefault("_constants_read", {}).setdefault(constant, [])
     who = party or "(all)"
     if who not in users:
         users.append(who)
+    if value is not _UNRECORDED:
+        note_value(scenario, constant, value,
+                   where=where or f"note_constant:{constant}", who=party)
 
 
 def read_scenario_file(path) -> tuple[dict, dict]:
@@ -1171,7 +1505,12 @@ def blended_centres(
                     low, high = PLAN_BOUNDS.get(party, (0.0, float("inf")))
                     mid = 1.0
                     if party in PLAN_BOUNDS:
-                        note_constant(scenario, "plan_bounds", party)
+                        # The BOUND, not just the fact of one: a per-party
+                        # delivery proof, and the shape that shows a value log
+                        # has to be keyed on (name, who) and not on name alone.
+                        note_constant(scenario, "plan_bounds", party,
+                                      value=PLAN_BOUNDS[party],
+                                      where="montecarlo:blended_centres bye clamp")
                 # THE CLAMP IS ANCHORED ON THE LEVEL THE MODEL BELIEVES, not on
                 # the national baseline. θ's band is a band on the NATIONAL
                 # route; multiplying it by `base` bounds the by-election
@@ -1724,6 +2063,19 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     # ranks 13+ came out +18.65pp and ranks 4-12 -56.36pp, and this floor is
     # where the tail's share was manufactured.
     mean_floor = float(scenario.get("dirichlet_floor", DIRICHLET_FLOOR))
+    # DELIVERY PROOF. The EFFECTIVE values, after the scenario has had its say:
+    # a sweep that sets `montecarlo.DIRICHLET_FLOOR` while a city TOML sets
+    # `dirichlet_floor` is overridden here and would otherwise report a null it
+    # never earned. `LEVEL_DF` is recorded because `log_shock(df=None)`
+    # resolves it AT CALL TIME out of this same module namespace, once per
+    # draw, and nothing rebinds it mid-run -- so the value here is the value
+    # every draw below will use, and recording it per draw would buy nothing.
+    note_value(scenario, "turnout_correlation", rho_t,
+               where="montecarlo:make_drawer")
+    note_value(scenario, "dirichlet_floor", mean_floor,
+               where="montecarlo:make_drawer")
+    note_value(scenario, "montecarlo.LEVEL_DF", LEVEL_DF,
+               where="montecarlo:make_drawer -> log_shock(df=None)")
 
     def draw_pools():
         """One draw. Each pool's VOTES are its counted registration times a
@@ -2166,6 +2518,18 @@ class ModelRun:
         """
         return dict(self.scenario.get("_constants_read") or {})
 
+    @property
+    def delivered(self) -> dict[str, dict]:
+        """The value-bearing read log: what this run consulted, AT WHAT VALUE.
+
+        Filled by :func:`note_value`, :func:`note_module_constants` and
+        :func:`note_constant`. :func:`assert_delivered` is what a sweep should
+        read it with; the raw dict is here so a diagnostic can report the sites
+        and the read counts. See the delivery-proof block above ``note_constant``
+        for why a read log without values cannot tell UNDELIVERED from INERT.
+        """
+        return dict(self.scenario.get("_delivered") or {})
+
     def ward_probabilities(self) -> dict[str, dict[str, float]]:
         """``{ward: {party: P(win)}}`` — the shape ``score.score_wards`` takes."""
         out: dict[str, dict[str, float]] = {}
@@ -2259,7 +2623,15 @@ def run_model(target, scenario: dict,
                 "stale_reason": _stale,
                 "fitted_on": spec.get("fitted_on"),
             })
-            note_constant(scenario, "pools", f"fitted on {spec['fitted_on']}")
+            # `artefact_key` is the DELIVERY PROOF for the precomputed-artefact
+            # class: city, target, a hash of config/dimensions.toml and a hash
+            # of pools.py's code. A run that reports "pools were read" says
+            # nothing about WHICH pools; this says which, and a sweep over
+            # `config/dimensions.toml` that does not move this key never
+            # arrived. See CLAUDE.md, "Shared artefacts".
+            note_constant(scenario, "pools", f"fitted on {spec['fitted_on']}",
+                          value=spec.get("artefact_key"),
+                          where=f"montecarlo:run_model <- {spec_path.name}")
             home = spec.get("splinter_home")
             if home:
                 note_constant(scenario, "splinter_home",
@@ -2549,6 +2921,14 @@ def run_model(target, scenario: dict,
     if "ENTRANT" in index:
         local[:, index["ENTRANT"]] = SHARE_FLOOR  # flat unless given a map below
     dev = logit(local) - logit(base_city)[None, :]
+    # DELIVERY PROOF for two classes at once. `SHARE_FLOOR` is a module
+    # constant (not in DEFAULTS, never swept for liveness, does not cross a
+    # process boundary), and `logit(p, floor=None)` resolves that SAME constant
+    # as a FUNCTION DEFAULT -- the shape that made `LEVEL_DF` sweepable in
+    # appearance and frozen in fact (§1.33). Recorded here because `logit` has
+    # no scenario and runs per draw; the value is the module's, read live.
+    note_value(scenario, "montecarlo.SHARE_FLOOR", SHARE_FLOOR,
+               where="montecarlo:run_model baseline fill, logit(floor=None)")
 
     # --- where does a new party's vote sit? (§1.27) --------------------------
     # Prediction is expit(level + γ·dev), so a party's geography *is* its dev
@@ -2747,6 +3127,16 @@ def run_model(target, scenario: dict,
     # Rescale the previous-LGE-level pattern to the λ̂ citywide level: the level
     # comes from λ̂ either way (MODEL-LOG 1.2); only the *pattern* differs.
     t_level = np.where(np.isnan(t_level), mean_level, t_level) * (mean_ratio / mean_level)
+    # DELIVERY PROOF for an artefact that reaches the model WITH NO KEY AT ALL.
+    # Nothing declares `turnout.csv`, nothing sweeps it, and it carries no
+    # artefact key: a stale or rebuilt copy moves every draw in silence. The
+    # citywide levels it delivered are recorded so a run can be asked WHICH
+    # turnout file it was given, not merely whether one existed.
+    note_value(scenario, "artefact:turnout.csv",
+               {"vds": len(ratio_pattern),
+                "mean_ratio": float(mean_ratio), "mean_level": float(mean_level),
+                "projected_col": projected_col, "level_col": level_col},
+               where="montecarlo:run_model")
 
     # who-turns-out anchors per VD (highest turnout on record; worst LGE
     # turnout on record), for the turnout_tilt_* dials
@@ -2955,10 +3345,16 @@ def run_model(target, scenario: dict,
                 "rho_centre": _spine_info.get("rho_centre"),
                 "detail": _spine_info.get("detail"),
             })
+            # `spine_k` is the constant ARCHITECTURE.md records as UNSETTABLE
+            # -- `scenario.get("spine_k") or SPINE_K`, and `0.0 or 1.0` is 1.0.
+            # Recording the k the spine actually ran on is how a sweep of it
+            # finds that out from the run instead of from a code reading.
             note_constant(scenario, "spine",
                           f"k={_spine_info['k']}, {_spine_info['n_theta']} θ and "
                           f"{_spine_info['n_rho']} ρ observations before "
-                          f"{target.year}")
+                          f"{target.year}",
+                          value=_spine_info.get("k"),
+                          where="montecarlo:run_model -> levels.spine")
             if verbose:
                 d = _spine_info["detail"]
                 moved = sorted((p for p in d if base_city_d.get(p, 0) >= 0.005),
@@ -3195,6 +3591,18 @@ def run_model(target, scenario: dict,
         t_draw = np.clip(((1 - blend) * t_ratio + blend * t_level)
                          * np.exp(noise - scenario["turnout_noise_sd"] ** 2 / 2),
                          TURNOUT_DRAW_FLOOR, TURNOUT_DRAW_CEILING)
+        if d == 0:
+            # DELIVERY PROOF, recorded at the read site and once rather than
+            # 5,000 times. These two are caps applied per draw that
+            # JUDGEMENT-CALLS §C did not know existed -- it describes the
+            # turnout band as one that REMOVES caps. A constant the register
+            # cannot see is exactly the constant a sweep reports flat.
+            note_value(scenario, "montecarlo.TURNOUT_DRAW_FLOOR",
+                       TURNOUT_DRAW_FLOOR,
+                       where="montecarlo:run_model per-draw turnout clip")
+            note_value(scenario, "montecarlo.TURNOUT_DRAW_CEILING",
+                       TURNOUT_DRAW_CEILING,
+                       where="montecarlo:run_model per-draw turnout clip")
         # The who-turns-out tilt used to sit here. It selected supporters by
         # a hand-drawn party grouping, and it was applied AFTER
         # solve_and_predict had already calibrated shares to the drawn target,
@@ -3299,7 +3707,16 @@ def run_model(target, scenario: dict,
     trace.put("42_pr_share_draws", pr_share_draws, detail=True)
     trace.put("43_ward_share_draws", ward_share_draws, detail=True)
     trace.put("44_seat_draws", seat_draws, detail=True)
-    trace.close(constants_read=sorted((scenario.get("_constants_read") or {})))
+    # THE DELIVERY PROOF. Written LAST and after `note_module_constants`, which
+    # reads `sys.modules` and imports nothing: by here every module this run
+    # needed has been imported, so a constant recorded `not-imported` really was
+    # not reachable rather than merely not reached yet. `41_guards` says what the
+    # run did; this says what it was given, and NULL-RESULTS.md §4.1 is the
+    # argument for why a null without it is VOID.
+    note_module_constants(scenario, where="montecarlo:run_model")
+    trace.put("45_delivered", delivery_log(scenario))
+    trace.close(constants_read=sorted((scenario.get("_constants_read") or {})),
+                delivered=sorted(scenario.get("_delivered") or {}))
 
     return ModelRun(
         target=target, scenario=scenario, universe=universe, index=index,

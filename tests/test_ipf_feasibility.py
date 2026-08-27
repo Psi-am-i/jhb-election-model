@@ -418,6 +418,15 @@ def test_no_numeric_module_constant_is_a_default_argument():
         "REGISTER",        # the polls register path
         "CONFIG",          # the pools config path
         "CLAIM_PATTERNS",  # regex table for the stat audit
+        # A SENTINEL, not a tunable, and the one case where the remedy this test
+        # prescribes is wrong. `assert_delivered(expected=_UNRECORDED)` must
+        # distinguish "no expectation given" from "expected exactly None", and
+        # None is a legitimate value for a constant to hold — `spine_k` is None
+        # in DEFAULTS. A unique object is the only thing that can carry that
+        # distinction, it is compared by identity and never read as a number, so
+        # rebinding it could not reach a forecast even in principle. Added
+        # 2026-08-27 with the delivery proof (NULL-RESULTS.md §4.1).
+        "_UNRECORDED",
     }
     offenders: list[str] = []
     for path in sorted(SRC.glob("*.py")):

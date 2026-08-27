@@ -321,12 +321,56 @@ validation in this repo was run against.
   demographic bound on MK, which took 71% of its Johannesburg vote from the
   ANC while standing on IFP ground. Requested — draft at
   `drafts/statssa-request-language.md`.
-* **Census 2022 Small Area Layer (SAL)** — plan §1.3 C1 asks for income,
-  dwelling type and employment at small-area level. Stats SA does **not**
-  publish the SAL for download; it is supplied on request only
-  (`info@statssa.gov.za`, +27 12 310 8600). The ward-level product above is the
-  usable substitute in the meantime, but it carries only age/sex/population
-  group — no income or employment. Wazimap-NG (C2) was unreachable when tried.
+* **Census 2022 Small Area Layer (SAL) — ANSWERED 2026-08-27: IT DOES NOT
+  EXIST.** This entry previously said the SAL was *"supplied on request only"*.
+  **That was wrong**, and the correction comes from the division that would have
+  built it. Vishanth Singh, Geography, Stats SA, 2026-08-27:
+
+  > *"Census 2022 was released up to local municipality level, with as you
+  > correctly mention Ward level estimations for certain limited variables being
+  > released as well. As there has not been any planned releases at lower levels,
+  > **no SAL was created for Census 2022**. The latest available SAL currently
+  > remains the SAL from Census 2011."*
+
+  So plan §1.3 C1 — income, dwelling type and employment at small-area level for
+  2022 — **cannot be satisfied at any price**. It is not confidentiality, not a
+  queue, and not a form we failed to fill in. Stop asking; the answer will not
+  change.
+
+  **WHAT THIS FIXES THE CEILING AT.** For Census 2022 the finest geography per
+  variable is now known:
+
+  | variable set | finest geography available |
+  |---|---|
+  | full variable set incl. **home language** | **local municipality** |
+  | population group, age, sex | **ward** (modelled estimates — the Ward Statistical Product) |
+  | anything else | nothing below municipality |
+
+  That closes the language-by-ward question for 2022 in the negative, and makes
+  the rake described below the only route to a 2022 ward-level language estimate.
+
+* **Spatial layers Stats SA WILL supply, geometry only** (same source). No census
+  variables are attached to any of them; they are boundaries you join to.
+  - **Census 2011:** SAL, EA (enumeration area), main place, sub place. UIS can
+    advise which **Census 2011 variables are available at SAL level** — which is
+    the surviving route to income / dwelling type / employment below ward, at
+    2011 vintage.
+  - **Census 2022:** EA, main place, sub place. Geometry only, so they do not
+    carry 2022 demographics — but EA geometry is finer than ward and is what a
+    sub-ward apportionment would be built on.
+
+* **The route to 2022 language by ward, now that the direct ask is closed.**
+  Census **2011** language IS available by electoral ward through SuperWEB2
+  (`superweb.statssa.gov.za/webapi`, Community Profiles → Census 2011 →
+  Descriptive → *South Africa by Electoral Ward*, Language among the indicator
+  groups). Take that ward-level 2011 distribution and rake it to the **2022
+  municipal** language totals in
+  `data/raw/covariates/Languages by Municipalities Census 2022.xls`. `pools.py`
+  already has the IPF machinery (`balance_margins`). Still open with Stats SA:
+  whether a 2022 electoral-ward geography exists in SuperWEB2 at all — that sits
+  with Thanyani Maremba, Electronic Product Development, who has not yet replied.
+
+  Wazimap-NG (C2) was unreachable when tried.
 * **Voters' roll by VD split by age and sex** — plan §1.3 C3. The IEC's
   registration statistics page publishes age/gender bands only down to
   *municipality* level, server-rendered with no API. VD-level registration

@@ -34,6 +34,25 @@ docstring and is named for the defect. They are written against the ACTUAL
 behaviour deliberately, because phase A of ARCHITECTURE.md is "declare and test
 the seams — no refactor"; the fix is not this file's job.
 
+MUTATION COVERAGE OF THE RESULT-FILE BRANCH (re-verified 2026-08-27). §1.97's
+mutation pass left two survivors here, and both are now closed and proved
+closed by applying the mutation to a copy of ``src/montecarlo.py``, running
+this file, and restoring:
+
+* ``if vd in seen or not row.get("Ward")`` → ``if not row.get("Ward")``, which
+  turns first-wins into LAST-wins, is caught by
+  ``test_the_first_row_that_names_a_ward_wins_and_a_later_row_cannot_move_the_vd``;
+* ``row["Ward"].strip()`` → ``row["Ward"]``, which makes a padded ward cell a
+  second phantom ward, is caught by
+  ``test_a_ward_padded_with_whitespace_is_not_counted_as_a_second_ward``.
+
+Both fixtures were widened in the same pass to close the WEAKER form of each
+mutation as well — a de-duplication that only remembers the previous row, and a
+``.strip(" ")`` that normalises spaces but not tabs or carriage returns. Each
+test's docstring says which variant its fixture exists to kill; that is the
+part to preserve if the fixture is ever edited, because the obvious
+simplification of either one re-opens the gap.
+
 Run:
     ./.venv/bin/python tests/test_ward_parts.py
     ./.venv/bin/python -m pytest tests/test_ward_parts.py -q
@@ -322,21 +341,35 @@ def test_the_first_row_that_names_a_ward_wins_and_a_later_row_cannot_move_the_vd
 
     Both halves are asserted: that a disagreeing later row is ignored, and
     that appending further rows to a VD changes nothing at all.
+
+    **The disagreeing rows are deliberately NOT adjacent** (2026-08-27). The
+    first version of this fixture put V1's two rows next to each other, which
+    a de-duplication comparing only against the PREVIOUS row — ``if vd ==
+    last_vd`` rather than ``if vd in seen`` — would have passed. That weaker
+    rule is the plausible one to arrive by accident, because a real IEC file is
+    sorted by VD and the two behave identically on it; it stops being
+    identical the moment a file is sorted by ballot type or by party, which
+    ``lge2021_JHB_vd_party_clean.csv``'s own header order makes a one-sort
+    change away. Interleaving V2 between V1's rows makes the memory, not the
+    adjacency, the thing being tested.
     """
     with city_target("joburg", "2021") as target:
         rows = [
             {"VD_Number": "V1", "Ward": "79800001", "Registered_Population": "111"},
+            {"VD_Number": "V2", "Ward": "79800003", "Registered_Population": "333"},
             {"VD_Number": "V1", "Ward": "79800002", "Registered_Population": "222"},
         ]
+        expected = [("V1", "79800001", 111), ("V2", "79800003", 333)]
         with result_file(target, rows) as (data_dir, processed):
             parts, _ = M.ward_parts(target, data_dir, processed)
-        assert parts == [("V1", "79800001", 111)], (
-            "the first row naming a ward must win, and its roll with it: "
+        assert parts == expected, (
+            "the first row naming a ward must win, and its roll with it, "
+            "however many rows for other VDs sit between the two: "
             + repr(parts))
 
         # Stability: the extra rows a real file carries (one per ballot type
         # per party) must not be able to move the answer.
-        with result_file(target, rows[:1]) as (data_dir, processed):
+        with result_file(target, rows[:2]) as (data_dir, processed):
             alone, _ = M.ward_parts(target, data_dir, processed)
         assert alone == parts, (alone, parts)
 
@@ -358,18 +391,34 @@ def test_a_ward_padded_with_whitespace_is_not_counted_as_a_second_ward():
     delimitation — and ``cities/joburg.toml`` ``[structure.by_year]`` — has
     135, splitting one ward's roll across two phantom entries. ``key=int``
     would not catch it: ``int(" 79800001 ")`` parses happily.
+
+    **Three padding characters, not one** (2026-08-27). The first version of
+    this fixture padded with spaces only, which a ``.strip(" ")`` — a partial
+    normalisation, and a likelier edit than deleting the call outright — would
+    have passed. A leading tab and a trailing carriage return are the two this
+    project has actually met: the recorded IEC CSV traps are CRLF-shaped, and a
+    CR surviving into a field is what a file written on one platform and split
+    on another produces. All three survive the fixture's own ``csv`` round trip
+    intact — checked directly: the writer quotes the CR field and the reader
+    hands it back with the CR still attached — so each is genuinely reaching
+    ``ward_parts`` as padding rather than being cleaned up in transit.
+    ``str.strip()`` with no argument removes all three; anything narrower
+    leaves a phantom ward behind.
     """
     with city_target("joburg", "2021") as target:
         rows = [
             {"VD_Number": "V1", "Ward": " 79800001 ", "Registered_Population": "10"},
-            {"VD_Number": "V2", "Ward": "79800001", "Registered_Population": "20"},
+            {"VD_Number": "V2", "Ward": "\t79800001", "Registered_Population": "20"},
+            {"VD_Number": "V3", "Ward": "79800001\r", "Registered_Population": "30"},
+            {"VD_Number": "V4", "Ward": "79800001", "Registered_Population": "40"},
         ]
         with result_file(target, rows) as (data_dir, processed):
             parts, _ = M.ward_parts(target, data_dir, processed)
 
-    assert parts == [("V1", "79800001", 10), ("V2", "79800001", 20)], parts
+    assert parts == [("V1", "79800001", 10), ("V2", "79800001", 20),
+                     ("V3", "79800001", 30), ("V4", "79800001", 40)], parts
     assert len({w for _vd, w, _r in parts}) == 1, (
-        "one ward written two ways became two wards: "
+        "one ward written several ways became several wards: "
         + repr(sorted({w for _vd, w, _r in parts})))
 
 

@@ -12,6 +12,20 @@ alone hides which. So each table carries:
     ward votes    the ward ballot, citywide share, same
     seats         the combined-ballot council, same
 
+and, since 2026-08-27, a fourth quantity that answers a question none of those
+three can:
+
+    ward winners  of the ~135 contests, how many the model called correctly
+
+**It is here because the seat keys are structurally blind to geography.**
+``solve_and_predict`` pins each party's realised citywide share to the share the
+draw drew, and both ballots are ``weight @ pred`` against those pinned targets,
+so ``dev``, ``gamma``, pool composition and the whole VD layer reach the seat
+error ONLY through an overhang trigger. Any change to those, judged by seats
+alone, is judged by an instrument that cannot see it — and returns a flat,
+confident null that means nothing. See :func:`ward_winner_accuracy` and
+``NULL-RESULTS.md``.
+
 and each is scored against three opponents, all through ``score.py`` so nothing
 is scored by different code:
 
@@ -53,6 +67,8 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import ast
+import functools
 import os
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import json
@@ -69,6 +85,12 @@ import benchmarks as BM
 import cityconfig
 import levels
 import montecarlo as M
+# Imported here rather than only in ``__main__`` (where the artefact lock is
+# taken) so that its module constants are inside the snapshot below: a module
+# that arrives AFTER the snapshot has no recorded default and cannot be
+# guarded. Costs ~50ms and pulls in nothing new — `montecarlo` imports it
+# lazily on every run already.
+import pools  # noqa: F401  (imported for the constant snapshot; see below)
 import score as S
 from fold import citywide, load
 
@@ -982,6 +1004,61 @@ def coherent_seats(draws, council: int):
     return {p: int(n) for p, n in zip(parties, base)}
 
 
+def ward_winner_accuracy(ward_probs, actual_winners) -> dict:
+    """How many ward contests were called right. **THE GEOGRAPHY-SENSITIVE KEY.**
+
+    **WHAT IT IS FOR, and it is not a nicer-looking seat score.** Every other
+    key in this report is structurally blind to geography, and that is a
+    property of the model rather than an oversight:
+
+    * ``solve_and_predict`` exists to force each party's realised citywide share
+      onto the share the draw drew, and it succeeds — reversing the geography,
+      randomising it, or deleting ``gamma`` entirely moves the citywide totals
+      by less than 1e-6 (measured on a constructed city of 200 VDs and six
+      parties, ``NULL-RESULTS.md`` §2; **not** measured at panel scale, which
+      is one of the things this key exists to make measurable);
+    * ``pr_votes`` and ``ward_votes`` are both ``weight @ pred``, so both are
+      pinned to those drawn targets, and ``combined`` is therefore a function of
+      the drawn targets **alone**;
+    * in ``allocate_with_overhang`` a party's ward wins change its seat count
+      only when ``wins >= entitlement``.
+
+    So ``seat_abs_err``, ``seat_abs_err_coherent`` and ``crps`` can see
+    geography — ``dev``, ``gamma``, pool composition, anything at VD level —
+    **only through an overhang trigger.** Judging a change to any of those by
+    seat error is measuring with an instrument that cannot see it, and a flat
+    result from it is `NULL-RESULTS.md`'s cause **B** (ABSORBED by the θ solve),
+    not a finding. This key is the one that can see it: 135 separate contests
+    per city-year, each decided by which party is largest *in that ward*.
+
+    Read the hit rate against the baselines' hit rates in the same row, never
+    on its own — "78% of wards called" means nothing until "last-lge calls 74%"
+    is beside it, because ward calls are dominated by safe seats in every model.
+    ``brier_multicategory`` is the proper score and is what a *confidence*
+    change moves; the hit rate is the modal call and is what a *placement*
+    change moves. They are different questions, as coverage and PIT dispersion
+    are for the seat bands.
+
+    Scored by :func:`score.score_wards`, which `backtest.py` and `benchmarks.py`
+    already call, so the model and every baseline reach one definition.
+    ``wards_matched`` is reported because a ward-key mismatch between the run
+    and the result file would otherwise read as a model that calls nothing
+    right — the same silent-zero this whole document class exists to stop.
+    """
+    if not actual_winners:
+        return {"n_wards": 0, "wards_matched": 0, "called": 0,
+                "hit_rate": float("nan"), "brier_multicategory": float("nan")}
+    ward_probs = ward_probs or {}
+    scored = S.score_wards(ward_probs, actual_winners)
+    return {
+        "n_wards": scored["n_wards"],
+        "wards_matched": sum(1 for w in actual_winners if ward_probs.get(w)),
+        "called": scored["modal_calls_correct"],
+        "hit_rate": scored["modal_hit_rate"],
+        "brier_multicategory": scored["brier_multicategory"],
+    }
+
+
 def published_for(city_slug: str, year: str) -> dict | None:
     path = Path("data/processed") / f"validation_{year}.json"
     if not path.exists():
@@ -1031,7 +1108,8 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
                       run_dir=(run_dir / f"{city_slug}-{year}") if run_dir else None)
 
     actual_pr, actual_ward = actual_shares(target, data_dir)
-    actual_seats, entrant_actual = _actual_seats(target, data_dir, run)
+    actual_seats, entrant_actual, actual_winners = _actual_seats(
+        target, data_dir, run)
     # Before ANY of the tables below. entrant_actual used to reach score_seats
     # and nothing else, so votes, rank bands and both seat errors all scored the
     # arrival machinery as a total miss plus a phantom. See backtest.relabel_run.
@@ -1056,6 +1134,12 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
             abs(actual_seats.get(p, 0) - coherent.get(p, 0))
             for p in set(actual_seats) | set(coherent)),
         "median_sum": sum(model_seats.values()),
+        # AFTER relabel_run, which renames ENTRANT on `ward_winner_counts`
+        # itself — score the arrival machinery's ward calls under the name of
+        # the party that actually arrived, or it is debited twice.
+        "wards": ward_winner_accuracy(run.ward_probabilities()
+                                      if run.ward_winner_counts is not None
+                                      else {}, actual_winners),
         "calibration": calibration_columns(
             run.seat_draws, actual_seats, entrant_actual,
             _pit_seed(city_slug, year), actual_pr=actual_pr,
@@ -1069,7 +1153,14 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
     ctx = BM.build_context(int(year), data_dir)
     for name in ("last-lge", "uniform-swing", "prior-lge-noise"):
         try:
-            seat_draws = BM.run_one(name, ctx, draws=min(draws, 2000))
+            # `run_with_wards` rather than `run_one`, which is a one-line
+            # wrapper that calls it and DISCARDS the ward half. Identical seat
+            # draws — so every existing number is unchanged — and it is the
+            # only way the geography key gets an opponent. A ward hit rate
+            # without a baseline beside it is unreadable: safe wards are called
+            # right by anything, including "last time happens again".
+            seat_draws, ward_draws = BM.run_with_wards(
+                name, ctx, draws=min(draws, 2000))
         except SystemExit as exc:
             out["opponents"][name] = {"error": str(exc)}
             continue
@@ -1079,7 +1170,9 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
                                   entrant_actual=entrant_actual)["crps"]["total"],
             "seat_abs_err": sum(
                 abs(actual_seats.get(p, 0) - bench_seats.get(p, 0))
-                for p in set(actual_seats) | set(bench_seats))}
+                for p in set(actual_seats) | set(bench_seats)),
+            "wards": ward_winner_accuracy(BM.ward_probabilities(ward_draws),
+                                          actual_winners)}
 
     pub = published_for(city_slug, year)
     if pub and pub.get("model"):
@@ -1093,29 +1186,38 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
 
 
 def _actual_seats(target, data_dir: Path, run):
-    """The published council for this target, via the backtest's own reader.
+    """Council, arriving party and WARD WINNERS, via the backtest's own reader.
 
     ``actual_result`` returns more than the seats and its arity has changed
-    before, so the seat map is picked out by shape rather than by position.
+    before, so each map is picked out by shape rather than by position: the
+    seats are ``{party: int}``, the ward winners ``{ward: party}``.
     ``entrant_actual`` needs the model's own BASELINE — which party had no
     national share to grow from — not the target, which is what makes a
     correctly sized newcomer score as a newcomer rather than as a total miss.
+
+    The winners were already being read here and thrown away, which is part of
+    why no geography-sensitive score existed: the ground truth for one was a
+    return value away. See :func:`ward_winner_accuracy`.
     """
     path = data_dir / target.results(target.year)
     actual = B.actual_result(path, target.council, int(target.year))
-    seats = None
+    seats, winners = None, None
     for item in (actual if isinstance(actual, tuple) else (actual,)):
-        if hasattr(item, "seats"):
+        if seats is None and hasattr(item, "seats"):
             seats = item.seats
-            break
-        if isinstance(item, dict) and item and all(
-                isinstance(v, (int, float)) for v in item.values()):
+            continue
+        if not isinstance(item, dict) or not item:
+            continue
+        if seats is None and all(isinstance(v, (int, float))
+                                 and not isinstance(v, bool)
+                                 for v in item.values()):
             seats = item
-            break
+        elif winners is None and all(isinstance(v, str) for v in item.values()):
+            winners = item
     if seats is None:
         raise ValueError(f"actual_result returned no seat map for {target.year}")
     base = {p: 1.0 for p in run.index}
-    return seats, B.entrant_actual_for(seats, base)
+    return seats, B.entrant_actual_for(seats, base), winners or {}
 
 
 _POP_LABEL = {
@@ -1519,6 +1621,72 @@ def _headline_split(results: list[dict]) -> list[str]:
     return out
 
 
+def render_wards(results: list[dict]) -> str:
+    """The ward-winner table — the only key in this report that sees geography.
+
+    Separate section rather than two more headline columns, because it needs
+    the paragraph: read against the seat columns without it, a flat ward score
+    looks like corroboration when it is a different instrument answering a
+    different question. See :func:`ward_winner_accuracy`.
+    """
+    rows = [r for r in results if (r.get("wards") or {}).get("n_wards")]
+    if not rows:
+        return ""
+    lines = ["\n## Ward winners — the geography key\n",
+             "**`seat_abs_err_coherent` cannot see geography and this can.** "
+             "`solve_and_predict` forces every party's citywide share onto the "
+             "share the draw drew, and both ballots are `weight @ pred` against "
+             "those same targets, so `dev`, `gamma`, pool composition and the "
+             "whole VD layer reach the seat score ONLY through an overhang "
+             "trigger. Any change to those is judged here, or it is judged by "
+             "an instrument that is blind to it. Hit rate is the modal call; "
+             "Brier (multi-category, 0 to 2) is the proper score and is what a "
+             "change in CONFIDENCE moves. **Read the model against the "
+             "baselines in its own row** — safe wards are called correctly by "
+             "anything at all.\n",
+             "| city-year | wards | model called | hit rate | Brier MC | "
+             "last-lge | uniform-swing | prior-lge-noise |",
+             "|---|---|---|---|---|---|---|---|"]
+
+    def opponent(r, key):
+        w = ((r["opponents"].get(key) or {}).get("wards") or {})
+        return f"{w['hit_rate']:.1%}" if w.get("n_wards") else "—"
+
+    totals = {"n": 0, "called": 0}
+    opp_totals: dict[str, dict[str, int]] = {}
+    for r in rows:
+        w = r["wards"]
+        totals["n"] += w["n_wards"]
+        totals["called"] += w["called"]
+        for key in ("last-lge", "uniform-swing", "prior-lge-noise"):
+            ow = ((r["opponents"].get(key) or {}).get("wards") or {})
+            if ow.get("n_wards"):
+                slot = opp_totals.setdefault(key, {"n": 0, "called": 0})
+                slot["n"] += ow["n_wards"]
+                slot["called"] += ow["called"]
+        short = (f" (only {w['wards_matched']} matched)"
+                 if w["wards_matched"] < w["n_wards"] else "")
+        lines.append(
+            f"| {r['city']} {r['year']} | {w['n_wards']}{short} | "
+            f"{w['called']} | {w['hit_rate']:.1%} | "
+            f"{w['brier_multicategory']:.3f} | "
+            f"{opponent(r, 'last-lge')} | {opponent(r, 'uniform-swing')} | "
+            f"{opponent(r, 'prior-lge-noise')} |")
+    pooled = totals["called"] / totals["n"] if totals["n"] else float("nan")
+    against = ", ".join(
+        f"{key} {slot['called'] / slot['n']:.1%}"
+        for key, slot in opp_totals.items() if slot["n"])
+    lines.append(f"\n**Pooled over {len(rows)} city-year"
+                 f"{'s' if len(rows) != 1 else ''}: "
+                 f"{totals['called']}/{totals['n']} = {pooled:.1%} of ward "
+                 f"contests called correctly"
+                 + (f", against {against}." if against else ".") +
+                 " A margin over the baselines that is smaller than the seat "
+                 "margin is the model's geography adding less than its citywide "
+                 "machinery, which is a statement the seat columns cannot make.")
+    return "\n".join(lines)
+
+
 def render(results: list[dict]) -> str:
     lines: list[str] = []
     add = lines.append
@@ -1592,6 +1760,8 @@ def render(results: list[dict]) -> str:
         f"it; it is exactly why the three signed bands sum to "
         f"{sum(tot.values()):+.2f}pp rather than to zero.\n")
 
+    add(render_wards(results))
+
     add(render_calibration(results))
 
     for r in results:
@@ -1609,6 +1779,196 @@ def render(results: list[dict]) -> str:
             add(f"\n**Missed entirely:** {', '.join(missed)} — won seats, "
                 f"median zero.")
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# THE SERIAL-FORCING GUARD, and the evidence it runs on
+# ---------------------------------------------------------------------------
+#
+# A MODULE CONSTANT SET IN THIS PROCESS DOES NOT REACH A WORKER.
+# `ProcessPoolExecutor` spawns children that re-import every module fresh, so a
+# sweep that sets `levels.SD_FLOOR` here and then fans out measures the DEFAULT
+# at every value and reports a flat, confident null — "this constant does
+# nothing" — which is `ITERATING.md` rule 6's fault exactly, and cause **A**
+# (UNDELIVERED) of `NULL-RESULTS.md`. Refuse rather than mislead.
+#
+# **UNTIL 2026-08-27 THIS GUARD NAMED THE DEFECT IT WAS BUILT FOR AND DID NOT
+# COVER IT.** Its comment cited "the one `LEVEL_DF` was in for weeks" and it
+# then checked five hand-typed names, all in `levels`: SD_FLOOR, SD_CEILING,
+# SHRINK, RELIABILITY_HALF, SPINE_K. `LEVEL_DF` is `montecarlo.LEVEL_DF`. It
+# was not on the list. Neither was anything in `polling` — the whole `SIGMA_*`
+# family — nor `montecarlo.SHARE_FLOOR`, `DIRICHLET_FLOOR` or
+# `TURNOUT_DRAW_FLOOR/CEILING`. Of the 48 constants pre-registered for the B2
+# sweep, the largest blocked class was exactly this one.
+#
+# **So the list is DERIVED, not maintained.**
+# `test_levers_are_live.test_every_defaults_key_is_swept_or_excused` already
+# records what a hand-maintained allowlist does in this repository — it covered
+# **13 of 27** `DEFAULTS` keys and nobody had noticed — and a sixth name here
+# would have been forgotten the same way. The watched set is instead read out of
+# the modules themselves at import: every UPPERCASE int/float/bool bound at
+# module level in a file under `src/`, compared against the value a fresh import
+# produced. Measured 2026-08-27: **60 constants across 14 modules**, against the
+# five it checked before, and it grows by itself when a constant is added. The
+# printed coverage line is that count, so the claim is checked on every run
+# rather than in this comment.
+#
+# Two things it deliberately does NOT flag:
+#
+#   * a name the module reassigns **itself** from inside a function —
+#     `montecarlo.COUNCIL` and `PLAN_BOUNDS`, which `apply_city` and
+#     `use_target` write on every run. Those are runtime state, not sweep
+#     settings, and flagging them would force serial execution permanently
+#     after the first run in a process. Derived by AST, so it needs no list
+#     either: an UPPERCASE name assigned (or declared `global`) inside a
+#     function body is excluded.
+#   * a non-scalar — `DEFAULTS`, `PLAN_BOUNDS`, `NATIONAL_VOTES`. A sweep of a
+#     scenario key belongs in `--set`, which crosses the boundary because it
+#     travels in the job tuple; that is what the `--set` help text is for.
+#
+# The one hole left, and it is stated rather than papered over: the defaults are
+# snapshotted when THIS module is imported, so a script that mutates a constant
+# *before* importing `compare_history` records the mutated value as the default.
+# `_modules_imported_before_us()` names the modules that could be in that
+# position and the guard prints them, so the coverage claim is checkable rather
+# than assumed.
+
+
+def _project_modules() -> dict[str, object]:
+    """Every module of THIS repository that is currently imported, BY FILE.
+
+    Keyed by the file's own stem rather than by its `sys.modules` name, because
+    one module object routinely holds several names: the file that was run is
+    `__main__`, and `multiprocessing` registers that same object a second time
+    as `__mp_main__` so a spawned child can find it. Keying by name counted
+    this file's constants twice and reported "62 across 15 modules" for a tree
+    with fourteen — a coverage claim that is wrong in the flattering direction,
+    which is the one kind this file may not make.
+    """
+    here = Path(__file__).resolve().parent
+    out: dict[str, object] = {}
+    for mod in list(sys.modules.values()):
+        path = getattr(mod, "__file__", None)
+        if not path:
+            continue
+        try:
+            resolved = Path(path).resolve()
+        except OSError:                       # a synthetic module with a fake path
+            continue
+        if resolved.parent == here:
+            out.setdefault(resolved.stem, mod)
+    return out
+
+
+def _module_constants(mod) -> dict[str, int | float | bool]:
+    """The module's UPPERCASE scalar constants — the sweepable ones.
+
+    `type(v) in (...)` rather than `isinstance`, so a numpy scalar or an IntEnum
+    is left out: those do not compare cleanly and none of them is a lever.
+    """
+    return {name: value for name, value in vars(mod).items()
+            if name.isupper() and not name.startswith("_")
+            and type(value) in (int, float, bool)}
+
+
+@functools.lru_cache(maxsize=None)
+def _reassigned_at_runtime(path: str) -> frozenset[str]:
+    """UPPERCASE names the module assigns from inside one of its own functions.
+
+    `montecarlo.COUNCIL` is the case that matters: `apply_city` and
+    `use_target` set it per city-year, so after one run it differs from its
+    import-time value for a reason that has nothing to do with a sweep. Read
+    off the source with `ast` so no name has to be listed anywhere.
+    """
+    try:
+        tree = ast.parse(Path(path).read_text(encoding="utf-8"))
+    except (OSError, SyntaxError, ValueError):
+        return frozenset()
+
+    def targets(node):
+        if isinstance(node, ast.Name):
+            yield node.id
+        elif isinstance(node, (ast.Tuple, ast.List)):
+            for element in node.elts:
+                yield from targets(element)
+
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        for inner in ast.walk(node):
+            if isinstance(inner, ast.Global):
+                names.update(inner.names)
+            elif isinstance(inner, ast.Assign):
+                for target in inner.targets:
+                    names.update(targets(target))
+            elif isinstance(inner, (ast.AugAssign, ast.AnnAssign, ast.For)):
+                names.update(targets(inner.target))
+    return frozenset(name for name in names if name.isupper())
+
+
+def moved_module_constants() -> tuple[list[str], list[str]]:
+    """``(moved, unwatched)`` — what would not survive a fork, and what is blind.
+
+    ``moved`` names every watched constant whose value differs from the one a
+    fresh import produced, formatted for the operator. ``unwatched`` names the
+    modules that were imported after the snapshot and therefore have no
+    recorded default at all.
+    """
+    moved, unwatched = [], []
+    for label, mod in _project_modules().items():
+        defaults = _IMPORT_TIME_CONSTANTS.get(label)
+        if defaults is None:
+            unwatched.append(label)
+            continue
+        changed = {const: value for const, value in _module_constants(mod).items()
+                   if const in defaults and defaults[const] != value}
+        if not changed:
+            continue
+        own = _reassigned_at_runtime(mod.__file__)
+        for const in sorted(changed):
+            if const in own:
+                continue
+            moved.append(f"{label}.{const} = {changed[const]!r} "
+                         f"(import-time default {defaults[const]!r})")
+    return sorted(moved), sorted(set(unwatched))
+
+
+def _modules_imported_before_us() -> list[str]:
+    """Project modules already in `sys.modules` when this one started executing.
+
+    `sys.modules` is insertion-ordered and a module is registered before its
+    body runs, so anything listed ahead of us was imported by somebody else
+    first — and its constants could already have been changed by the time the
+    snapshot below was taken. That is the guard's one blind spot and this is
+    how it is reported rather than assumed.
+    """
+    names = list(sys.modules)
+    if __name__ not in names:
+        return []
+    ahead = set(names[:names.index(__name__)])
+    here = Path(__file__).resolve()
+    out = set()
+    for name in ahead:
+        mod = sys.modules.get(name)
+        path = getattr(mod, "__file__", None)
+        if not path:
+            continue
+        try:
+            resolved = Path(path).resolve()
+        except OSError:
+            continue
+        if resolved.parent == here.parent and resolved != here:
+            out.add(resolved.stem)
+    return sorted(out)
+
+
+# TAKEN HERE, at the bottom of the module body, so it includes this file's own
+# constants (`REFERENCE_SHARE`, `REFERENCE_SLATE`) — which are read inside the
+# worker by `reference_universe` and so do not cross the boundary either.
+_IMPORT_TIME_CONSTANTS = {label: _module_constants(mod)
+                          for label, mod in _project_modules().items()}
+_IMPORTED_BEFORE_US = _modules_imported_before_us()
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1669,23 +2029,31 @@ def main(argv: list[str] | None = None) -> int:
         for slug, year, why in excluded:
             print(f"    {slug} {year}: {why}")
 
-    # A MODULE CONSTANT SET IN THIS PROCESS DOES NOT REACH A WORKER.
-    # `ProcessPoolExecutor` spawns children that re-import `levels` fresh, so a
-    # sweep that sets `levels.SD_FLOOR` here and then fans out would measure the
-    # DEFAULT at every value and report a flat sweep — "this constant does
-    # nothing" — which is `ITERATING.md` rule 6's fault exactly, and the one
-    # `LEVEL_DF` was in for weeks. Refuse rather than mislead.
-    import levels as _levels
-    _moved = [name for name, default in
-              (("SD_FLOOR", 0.15), ("SD_CEILING", 1.20), ("SHRINK", 2.0),
-               ("RELIABILITY_HALF", 0.002), ("SPINE_K", 1.0))
-              if getattr(_levels, name, default) != default]
+    # THE SERIAL-FORCING GUARD. See the block above `_project_modules` for what
+    # it watches, why the list is derived rather than typed, and what it cannot
+    # see. Its coverage is printed unconditionally: a guard that reports nothing
+    # is indistinguishable from a guard that is not running, and this one spent
+    # weeks in exactly that state.
+    _moved, _unwatched = moved_module_constants()
+    _watched = sum(len(c) for c in _IMPORT_TIME_CONSTANTS.values())
+    print(f"guard: {_watched} module constants across "
+          f"{len(_IMPORT_TIME_CONSTANTS)} modules watched for values that "
+          f"would not survive the fork")
+    if _unwatched:
+        print(f"  ! no import-time default recorded for {', '.join(_unwatched)}"
+              f" — imported after compare_history, so a changed constant there "
+              f"is INVISIBLE to this guard. Import compare_history first.")
+    if _IMPORTED_BEFORE_US:
+        print(f"  ! {', '.join(_IMPORTED_BEFORE_US)} were imported before "
+              f"compare_history, so their recorded 'defaults' are whatever they "
+              f"held at that moment. A constant changed before this import "
+              f"reads as unchanged.")
     workers = args.jobs
     if _moved and workers != 1:
-        print(f"  ! {', '.join(_moved)} differ(s) from the module default, and a "
-              f"module constant does not cross a process boundary — running "
-              f"SERIALLY so the sweep measures what it set. Pass --jobs 1 to "
-              f"silence this.")
+        print(f"  ! {'; '.join(_moved)} — and a module constant does not cross "
+              f"a process boundary, so a worker would re-import the default and "
+              f"the sweep would report a flat, confident null. Running SERIALLY "
+              f"so it measures what it set. Pass --jobs 1 to silence this.")
         workers = 1
     if workers == 0:
         workers = max(1, min(len(jobs_list), (os.cpu_count() or 2) - 1))

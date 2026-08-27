@@ -55,6 +55,18 @@ The rest pins the arithmetic the routes feed into:
   defect. ``scenario["w_bye"]`` is the one read with no default, and the test
   that it raises is here to keep it that way.
 
+* **the two mutations that survived §1.97's pass, closed.** Both live in the
+  by-election clamp and neither was reachable from the tests as first written.
+  ``mid = prior[party][1] or 1.0`` → ``mid = 1.0`` is the neutral-value
+  substitution again, and it turns the clamp from a spread relative to the
+  party's own central θ into an absolute one; it is closed by an INVARIANT —
+  rescaling every end of a band changes no dispersion, so it must move no
+  bound. The announcement's ``clamped != implied`` → ``clamped < implied``
+  moves no number at all: it is a **provenance** defect, and the only one in
+  this file tested purely as such. It silences a clamp that binds UPWARD, so
+  the report shows a by-election implication next to a centre built from a
+  figure the model never used.
+
 **No expected value in this file is taken from what the code returns.** Every
 one is either arithmetic done by hand on a constructed input (all inputs are
 literals; there is no data file within a mile of this file), or an invariant
@@ -687,6 +699,143 @@ def test_a_clamp_that_binds_from_below_is_announced_as_a_clamp():
         f"the floor did not bind: {centres['X']}")
     assert "clamped to 14.0%" in notes["X"], (
         f"the clamp bound from below and the note does not say so: {notes['X']}")
+
+
+def test_the_clamp_band_is_scale_invariant_because_only_the_ratio_is_dispersion():
+    """MUTATION GUARD: ``mid = prior[party][1] or 1.0`` → ``mid = 1.0``.
+
+    ARCHITECTURE.md's headline defect class, in its purest form: a divisor
+    replaced by the neutral value 1.0. The line still reads plausibly, nothing
+    raises, and the clamp goes on clamping — but it stops being a spread
+    RELATIVE to the party's own central θ and becomes an ABSOLUTE one, which is
+    the national-share reasoning the ActionSA 2026 rewrite
+    (``montecarlo.py:1176-1194``) exists to have removed.
+
+    The test is an INVARIANT rather than a second hand-computed number, because
+    the invariant is what the mechanism claims. θ is a ratio — a local share
+    over a national one — so the band ``(low, mid, high)`` carries two separable
+    things: a SCALE (roughly ``mid``, a national-to-local conversion factor) and
+    a DISPERSION (``low/mid`` and ``high/mid``). Only the second is a statement
+    about how far the party might be from its own central estimate. Multiplying
+    all three ends of the band by the same positive constant therefore changes
+    the scale and changes no dispersion at all, so **the admissible interval
+    around the router's level must not move**.
+
+    Here the band is ``(0.60, 1.20, 1.80) × c`` for four values of ``c`` spanning
+    a factor of fourteen. Its dispersion is 0.5 and 1.5 at every ``c``, so on a
+    level of 20% the clamp must admit exactly 10%–30% at every ``c``. With the
+    divisor gone the interval is ``(0.60c, 1.80c) × 20%`` and drags the centre
+    with it — 36% at ``c = 1``, 252% at ``c = 7``, an implied citywide level
+    above 100% of the vote. ``w_bye`` is 1.0 so the clamped value IS the centre
+    and nothing else is in the way.
+    """
+    level, tops, bottoms = 0.20, [], []
+    for c in (0.5, 1.0, 2.0, 7.0):
+        band = (0.60 * c, 1.20 * c, 1.80 * c)
+        for delta, sink in ((0.90, tops), (0.01, bottoms)):
+            with _plan_bounds({}):
+                scenario = _scenario(w_bye=1.0, spine_level={"X": level},
+                                     theta_prior={"X": band})
+                centres, _ = M.blended_centres(scenario, {"X": BASE}, {"X": 0.0},
+                                               {"X": (100.0, delta)})
+            sink.append((c, centres["X"]))
+    for label, got, expected in (("high", tops, 1.5 * level),
+                                 ("low", bottoms, 0.5 * level)):
+        for c, value in got:
+            assert math.isclose(value, expected, rel_tol=1e-12), (
+                f"the {label} end of a band scaled by {c} clamped to {value:.4f}, "
+                f"not {expected:.4f}; the band's SCALE is being read as "
+                f"dispersion — divide it by its own mode")
+        assert len({v for _, v in got}) == 1, (
+            f"the {label} clamp bound moved when the whole band was rescaled: "
+            f"{got}. Rescaling every end of a band changes no dispersion, so it "
+            f"must change no bound")
+
+
+def test_a_theta_mode_of_zero_falls_back_to_a_neutral_divisor_rather_than_raising():
+    """The ``or 1.0`` on the divisor, pinned — and WHY 1.0 looks harmless there.
+
+    This is the companion to the test above and closes nothing that test
+    closes: a mode of exactly zero is the one input for which ``mid = 1.0`` is
+    the RIGHT answer, and its presence one line away is precisely what makes
+    the neutral-value substitution look plausible to a reader. Pinned separately so
+    the two claims cannot be confused: the fallback fires only at zero, and
+    everywhere else the real mode divides.
+
+    Zero is not reachable through ``levels.theta_prior`` today, but it is the
+    value a missing or short band would arrive as, and ``low / 0.0`` raises
+    ``ZeroDivisionError`` from inside a loop over parties — a crash, mid-run,
+    for one party's malformed band. The declared behaviour is that the clamp
+    degrades to the band read absolutely, not that the run dies.
+    """
+    with _plan_bounds({}):
+        scenario = _scenario(w_bye=1.0, spine_level={"X": 0.20},
+                             theta_prior={"X": (0.50, 0.0, 2.00)})
+        centres, _ = M.blended_centres(scenario, {"X": BASE}, {"X": 0.0},
+                                       {"X": (100.0, 0.90)})
+    assert math.isclose(centres["X"], 2.00 * 0.20, rel_tol=1e-12), centres["X"]
+
+
+def test_the_clamp_is_announced_whenever_the_number_used_is_not_the_number_implied():
+    """MUTATION GUARD: ``if clamped != implied`` → ``if clamped < implied``.
+
+    **This is a test about PROVENANCE, not about arithmetic.** No centre moves
+    under this mutation; every number the model reports is unchanged. What
+    changes is the note, and the note is the only thing that tells a reader
+    where a centre came from. ``notes`` is what the run prints as why a party is
+    where it is, and with the comparison flipped a clamp that binds UPWARD — the
+    by-elections implied a collapse and §3.5's range forbade it — goes
+    unannounced: the report then says *"by-elections imply 6.3%"* next to a
+    centre built from 12.5%, a figure the model never used. That is CLAUDE.md's
+    standing complaint in miniature — a record that looks current and cannot be
+    — and it is worth a test for that reason alone, with no number at stake.
+
+    The condition is therefore stated as the thing a reader needs: **announce
+    exactly when the number used is not the number implied**, at either end,
+    and stay silent when it is. Five cases on a band of (0.5, 1.0, 1.5) around
+    a level of 25% — floor 12.5%, ceiling 37.5%, both exact in binary so the
+    two boundary cases are not float noise:
+
+        implied  6.25% → lifted to 12.5%   announced   (dies on ``<``)
+        implied 90%    → cut to 37.5%      announced   (dies on ``>``)
+        implied 25%    → untouched         silent      (dies on a bare ``True``)
+        implied 12.5%  → equals the floor  silent
+        implied 37.5%  → equals the ceiling silent
+
+    Each announcement is also required to carry BOTH figures, so the reader can
+    see the implication and the number that replaced it, and the announced
+    figure is checked against the centre it produced.
+    """
+    level, w, band = 0.25, 0.50, (0.5, 1.0, 1.5)
+    floor, ceiling = 0.125, 0.375
+    cases = [(0.0625, floor, "clamped to 12.5%"),
+             (0.90, ceiling, "clamped to 37.5%"),
+             (0.25, None, None),
+             (floor, None, None),
+             (ceiling, None, None)]
+    for implied, clamped, phrase in cases:
+        with _plan_bounds({}):
+            scenario = _scenario(w_bye=w, spine_level={"X": level},
+                                 theta_prior={"X": band})
+            centres, notes = M.blended_centres(scenario, {"X": BASE}, {"X": 0.0},
+                                               {"X": (100.0, implied)})
+        used = clamped if clamped is not None else implied
+        assert math.isclose(centres["X"], (1 - w) * level + w * used,
+                            rel_tol=1e-12), (
+            f"an implication of {implied:.4f} produced {centres['X']:.4f}, not "
+            f"the {used:.4f} this case is built on")
+        assert f"by-elections imply {implied:.1%}" in notes["X"], notes["X"]
+        if phrase is None:
+            assert "clamped" not in notes["X"], (
+                f"an implication of {implied:.1%} was used unchanged and the "
+                f"note claims it was clamped: {notes['X']}")
+        else:
+            assert phrase in notes["X"], (
+                f"the clamp {'lifted' if clamped > implied else 'cut'} "
+                f"{implied:.1%} to {clamped:.1%} and the note does not say so: "
+                f"{notes['X']}. The announcement condition is 'the number used "
+                f"is not the number implied', at BOTH ends — not 'the "
+                f"implication was too high'")
 
 
 def test_plan_bounds_are_recorded_as_read_when_a_party_has_no_theta_band():

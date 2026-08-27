@@ -38,14 +38,73 @@ lever to a value that MUST change the answer and asserts that the answer changes
 A lever that is legitimately inert at a given target belongs in `EXPECTED_INERT`
 with the reason, so that "does nothing" is a claim someone made on purpose rather
 than a thing nobody noticed.
+
+--------------------------------------------------------------------------
+A NULL HAS FOUR CAUSES AND ONLY ONE OF THEM IS A RESULT
+--------------------------------------------------------------------------
+`NULL-RESULTS.md` §1, adopted here 2026-08-27:
+
+    UNDELIVERED         the value never reached the computation
+    ABSORBED:<stage>    it arrived, and something downstream ate it
+    CANCELLED:<param>   it arrived, and a fitted parameter moved to offset it
+    INERT               it arrived, propagated, and genuinely does not matter
+
+**Only INERT is a result.** UNDELIVERED is a defect report. ABSORBED is a
+structural fact about the model that has to be stated. CANCELLED is a statement
+about identifiability, not about the world.
+
+`EXPECTED_INERT` held eighteen entries of PROSE, and prose cannot tell those
+four apart — which is the entire problem this file now exists to stop.
+`src/pools.py` records that two of these reasons were written from unstable
+readings and had to be retracted, so it is not hypothetical.
+
+**Read against the code on 2026-08-27, all eighteen entries are UNDELIVERED.**
+Not one of them is a lever that arrived, propagated and did not matter. Every
+single one is a gate that was shut — which means the register named for inert
+levers currently contains no inert lever at all, and the word "inert" in it has
+been doing work it never earned.
+
+That is not bookkeeping. A gate-shut null is **VOID, not NULL**: it says nothing
+whatever about the lever. `poll_k` was certified inert on exactly that mistake
+(`_LEGACY_POLL` below) and moved the DA 3.4pp and nine seats once the gate was
+opened. Three more were found the same way on 2026-08-27, by opening the gate
+instead of arguing about it — each was sitting in this register as inert:
+
+  * `bye_local_cap` at 2026 — gate `w_bye_local_ward`/`w_bye_local_pr`, both
+    shipped at 0.0. Opened to 0.9, the lever 1.5 -> 40.0 moves the forecast 2.0.
+  * `bye_tau_months` at 2026 — same gate; 18.0 -> 400.0 moves it 14.0.
+  * `poll_house_k` at 2026 — gate `polling.SIGMA_TWO_TERM`, which the entry
+    itself says leaves the retired path "reachable ... for A/B". Reached, at
+    `SIGMA_TWO_TERM=False`, the lever 1.0 -> 6.0 moves the forecast **226.0**.
+
+(40 draws, Johannesburg, `_moves` in points/wins/seat-draws as everywhere else
+in this file. The magnitudes are recorded as evidence of DELIVERY, not as
+targets: nothing here asserts them, and none of them is a standard of
+correctness.)
+
+So an entry is no longer a string. It is a `Null` record carrying a
+machine-checkable cause code, the gate that was shut, whether that gate is shut
+by DATA / a SWITCH / broken CODE, and the name of a check that PROVES it shut.
+The rules are enforced by `test_every_excuse_carries_a_machine_readable_cause`,
+`test_the_gate_named_by_every_excuse_is_actually_shut` and
+`test_no_undelivered_null_is_excused_without_opening_its_gate`.
+
+`MODULE_PERTURB` extends the liveness sweep past `DEFAULTS` keys to module
+constants — `montecarlo.LEVEL_DF`, `montecarlo.SHARE_FLOOR`, `polling.
+SIGMA_TWO_TERM` and the rest — which `NULL-RESULTS.md` §3 names as the largest
+uncovered class (42 of the 48 constants pre-registered for B2).
 """
 
 from __future__ import annotations
 
 import argparse
 import ast
+import contextlib
 import json
+import shutil
 import sys
+import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -67,6 +126,77 @@ DATA = ROOT / "data/raw/elections"
 # scenario; they are module constants, not DEFAULTS keys, and the sweep reaches
 # them by scenario key of the same lowercase name where one exists.
 _MODULE_LEVEL = {"turnout_correlation"}
+
+# The four causes of a null (NULL-RESULTS.md §1). Only INERT is a result.
+CAUSES = ("UNDELIVERED", "ABSORBED", "CANCELLED", "INERT")
+
+# What holds an UNDELIVERED gate shut, which decides whether the entry is an
+# accepted VOID or an open defect:
+#
+#   DATA    the evidence this gate needs does not exist at this target, and no
+#           code or configuration change here opens it. The lever was never
+#           measured at this target and nothing about it has been learned.
+#   SWITCH  a value we ship shuts the gate, and the harness CAN open it. Then
+#           the harness must, and this file must record what happened when it
+#           did — otherwise "inert" is the poll_k mistake with a new name.
+#   CODE    the wiring is broken: nothing opens it. That is a defect, and a
+#           defect is never an excuse.
+BLOCKERS = ("DATA", "SWITCH", "CODE")
+
+
+@dataclass(frozen=True)
+class Null:
+    """Why a lever did not move the forecast, in a shape a test can check.
+
+    A prose reason cannot distinguish "this lever is genuinely inert here" from
+    "this lever never arrived", and those two have opposite consequences: the
+    first is a property of the model worth writing down, the second is a
+    measurement that did not happen. Every field below exists because a reader
+    could not otherwise tell which one they are looking at.
+
+    ``cause``       one of :data:`CAUSES`.
+    ``where``       the GATE that was shut (UNDELIVERED), the STAGE that ate it
+                    (ABSORBED) or the PARAMETER that offset it (CANCELLED),
+                    named so it can be looked at. Empty only for INERT, which
+                    has nowhere to point.
+    ``blocker``     one of :data:`BLOCKERS`, for UNDELIVERED only.
+    ``gate_check``  the key in :data:`GATES` of a check that PROVES the gate is
+                    shut — the difference between a claim and evidence. An
+                    entry whose gate nothing checks is reopened
+                    (`NULL-RESULTS.md` §4.2), not accepted.
+    ``evidence``    what was actually observed, and when. For an entry whose
+                    gate the harness opened, the number the lever moved when it
+                    was.
+    ``reason``      the prose, kept verbatim from before this record existed.
+                    Where the prose has since been shown to be WRONG the text
+                    stays and ``evidence`` carries the correction, because a
+                    silently rewritten excuse destroys the record of what was
+                    believed — the convention `_LEGACY_POLL` already set.
+    """
+
+    cause: str
+    where: str = ""
+    blocker: str = ""
+    gate_check: str = ""
+    evidence: str = ""
+    reason: str = ""
+
+    @property
+    def code(self) -> str:
+        """``UNDELIVERED:<gate>`` / ``ABSORBED:<stage>`` / ``CANCELLED:<param>``
+        / ``INERT``.
+
+        NULL-RESULTS.md writes UNDELIVERED bare. It is qualified here for the
+        same reason ABSORBED and CANCELLED are: a gate nobody can name is a gate
+        nobody checked, and that is how six of these entries came to share one
+        paragraph.
+        """
+        return f"{self.cause}:{self.where}" if self.where else self.cause
+
+    def __str__(self) -> str:
+        tail = f" [{self.blocker}]" if self.blocker else ""
+        return f"{self.code}{tail} — {self.reason}"
+
 
 # Reasons shared by several EXPECTED_INERT entries. Each is a claim about the
 # model that a reader can check, not a suppression.
@@ -131,12 +261,68 @@ _NO_METRO_POLL = (
     "the floor sits ahead of every scope test in `polling.screen`, so it gates "
     "the national poll the arrivals path reads too. Its entry is deleted.")
 
-EXPECTED_INERT: dict[tuple[str, str], str] = {
-    ("w_bye", "2021"):
+_NO_METRO_POLL_NULL = Null(
+    cause="UNDELIVERED",
+    where="`_metro` is empty, so `_agg` is None and run_model skips the entire "
+          "poll-blend block — no lever inside it is read at all",
+    blocker="DATA",
+    gate_check="no_metro_poll",
+    evidence="`polling.screen(joburg, 2021)` admits exactly one poll, "
+             "`ipsos-2021-lge-national`, whose scope is `national`; the only "
+             "2021 metro poll on file, `actionsa-internal-2021`, is declined by "
+             "the `commissioned` rule. At 2026 the same call admits two metro "
+             "waves and every one of these levers is live. Checked 2026-08-27 "
+             "by `GATES['no_metro_poll']`, which needs no model run.\n"
+             "  NOTE, and it is not in the reason below: the gate is OPEN at "
+             "**2016** — `ipsos-2016-lge-joburg` is admitted as metro — and the "
+             "sweep does not run 2016, so these six levers have a live target "
+             "the harness has never swept them at.",
+    reason=_NO_METRO_POLL)
+
+EXPECTED_INERT: dict[tuple[str, str], Null] = {
+    ("w_bye", "2021"): Null(
+        cause="UNDELIVERED",
+        where="`bye` is empty — run_model fills it from "
+              "`<target.processed>/byelection_party_deltas.csv`, which a past "
+              "target does not have, so `if party in bye and w > 0` never fires "
+              "and `w` multiplies nothing",
+        blocker="DATA",
+        gate_check="bye_deltas_absent",
+        evidence="the file is absent from `data/processed/joburg/2021/` and "
+                 "present for the 2026 target, where the lever is live and the "
+                 "sweep says so. Checked by `GATES['bye_deltas_absent']`, no "
+                 "model run needed. NOTE what this does NOT establish: nothing "
+                 "here shows what `w_bye` is worth, at 2021 or anywhere. It is "
+                 "0.40 on the published forecast and no backtest can score it.",
+        reason=
         "by-election data covers 2022-06 to 2026-02 only, so no past target has "
         "any. Inert in every backtest by construction; live in 2026. This is why "
-        "JUDGEMENT-CALLS.md §A carries it at 🔴 as argued-not-tested.",
-    ("level_sd_default", "2021"):
+        "JUDGEMENT-CALLS.md §A carries it at 🔴 as argued-not-tested."),
+    ("level_sd_default", "2021"): Null(
+        cause="UNDELIVERED",
+        where="`sd_for_party` is never called. `handled` is every party holding "
+              "membership of any pool, `pools.emit_pools` gives every baseline "
+              "party a vector, so the `individual` list the fallback serves is "
+              "EMPTY — the fallback is not merely unused, its consumer does not "
+              "run",
+        blocker="DATA",
+        gate_check="level_sd_fallback_never_binds",
+        evidence="measured 2026-08-27 against the base run and the emitted "
+                 "spec: every party in the run's index is a pool member, at "
+                 "both targets (56 of 56 at 2021, 44 of 44 at 2026), so "
+                 "`individual` is empty at both.\n"
+                 "  **THE REASON BELOW IS WRONG AND IS KEPT AS WRITTEN.** It "
+                 "says `levels.theta_prior` returns an sd for EVERY party in "
+                 "the baseline. At 2021 it does not: 33 of the 56 parties in "
+                 "the index have no measured sd — ActionSA among them — so if "
+                 "the individual path ever ran, this fallback would bind for a "
+                 "third of the ballot at 1.60 instead of 0.45. The null is "
+                 "real; the stated cause of it is not, and the entry has been "
+                 "right by luck since 2026-08-20. Corrected here rather than "
+                 "silently rewritten, per `_LEGACY_POLL`. At 2026 the second "
+                 "consumer (`_sd.get(party, default)` in the poll blend) does "
+                 "run, and every party it reaches has a measured sd.",
+        reason=
         "the fallback level spread for a party with no measured sd(log theta), "
         "and `levels.theta_prior` returns an `sd` for EVERY party in the "
         "baseline — so `sd_for_party` takes the measured branch every time and "
@@ -147,11 +333,40 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
         "'either measure it or promote it', and it is now promoted. Inert is "
         "the honest reading and not a defect: a fallback that never fires is "
         "what you want, and the value only matters if the baseline ever stops "
-        "covering the ballot. MODEL-LOG §1.63.",
-    ("level_sd_default", "2026"): "same reason as at 2021 — theta_prior covers "
-        "every party in the baseline, so the fallback never binds",
-    ("poll_house_k", "2021"): _NO_METRO_POLL,
-    ("poll_house_k", "2026"):
+        "covering the ballot. MODEL-LOG §1.63."),
+    ("level_sd_default", "2026"): Null(
+        cause="UNDELIVERED",
+        where="the same as at 2021: `handled` covers the whole index, so the "
+              "`individual` list `sd_for_party` serves is empty",
+        blocker="DATA",
+        gate_check="level_sd_fallback_never_binds",
+        evidence="44 of 44 index parties are pool members at 2026. The reason "
+                 "below repeats the 2021 claim and inherits its error — see "
+                 "that entry; at 2026 the claim happens to be true (the only "
+                 "index party without a measured sd is ENTRANT, which the "
+                 "fallback's consumers both skip), and it is still not why the "
+                 "lever cannot move.",
+        reason="same reason as at 2021 — theta_prior covers "
+        "every party in the baseline, so the fallback never binds"),
+    ("poll_house_k", "2021"): _NO_METRO_POLL_NULL,
+    ("poll_house_k", "2026"): Null(
+        cause="UNDELIVERED",
+        where="`_cap = 1.0 if polling.SIGMA_TWO_TERM else weight_cap(..., "
+              "house_k=...)` — the shipped switch takes the branch that never "
+              "reads the lever",
+        blocker="SWITCH",
+        gate_check="sigma_two_term_shipped_on",
+        evidence="THE GATE WAS OPENED, because the entry itself says the "
+                 "retired path stays reachable for A/B and an excuse that names "
+                 "its own escape hatch has to use it. With "
+                 "`polling.SIGMA_TWO_TERM = False`, `poll_house_k` 1.0 -> 6.0 "
+                 "moves the 2026 forecast by 226.0 (40 draws, 2026-08-27). The "
+                 "lever is not inert and never was: it is CONDITIONAL, and "
+                 "`CONDITIONAL['poll_house_k@2026']` now perturbs it together "
+                 "with its gate on every run of this file — which is exactly "
+                 "what `_LEGACY_POLL` says was owed to `poll_k` and was not "
+                 "done for eight days.",
+        reason=
         "**THE MECHANISM IT DRIVES IS RETIRED (2026-08-24, §1.91).** It set the "
         "cap `H_eff/(H_eff+k)` on a poll's weight, and `SIGMA_TWO_TERM` — now "
         "the DEFAULT — deletes the cap: `montecarlo` sets `_cap = 1.0` under the "
@@ -163,13 +378,28 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
         "derived from the σ floor rather than chosen: a lone house saturates at "
         "0.5761 of the blend however many waves it publishes, and two houses "
         "pass that with four polls (§1.92). If this lever is ever wanted back, "
-        "the thing to change is the σ, not the cap.",
-    ("poll_deff_subsample", "2021"): _NO_METRO_POLL,
-    ("poll_screen_sd", "2021"): _NO_METRO_POLL,
-    ("poll_drift_per_root_day", "2021"): _NO_METRO_POLL,
-    ("poll_half_life_days", "2021"): _NO_METRO_POLL,
-    ("poll_credence", "2021"): _NO_METRO_POLL,
-    ("arrival_group_draw", "2026"):
+        "the thing to change is the σ, not the cap."),
+    ("poll_deff_subsample", "2021"): _NO_METRO_POLL_NULL,
+    ("poll_screen_sd", "2021"): _NO_METRO_POLL_NULL,
+    ("poll_drift_per_root_day", "2021"): _NO_METRO_POLL_NULL,
+    ("poll_half_life_days", "2021"): _NO_METRO_POLL_NULL,
+    ("poll_credence", "2021"): _NO_METRO_POLL_NULL,
+    ("arrival_group_draw", "2026"): Null(
+        cause="UNDELIVERED",
+        where="`group = scenario.get('arrival_group') or None` — the emitted "
+              "spec carries `arrival_group: null` at this target, so the draw "
+              "the switch selects has nothing to draw",
+        blocker="DATA",
+        gate_check="no_arrival_group_spec",
+        evidence="read straight out of the artefact 2026-08-27: "
+                 "`pools_2026.json` and `pools_2016.json` carry "
+                 "`arrival_group: null`; `pools_2021.json` carries a six-field "
+                 "object. Correction to the reason below, which says the key is "
+                 "ABSENT from the 2026 spec: it is PRESENT and null. The gate "
+                 "is `or None` either way, so the conclusion holds — but a "
+                 "reader checking the claim as written would have found the key "
+                 "there and concluded the entry was stale.",
+        reason=
         "GATED ON DATA THAT DOES NOT EXIST YET, and the gate is three deep. "
         "`pools.arrival_group_spec` returns None unless the target has a real "
         "ROSTER — it splits the group total by each named arrival's ward reach, "
@@ -186,8 +416,22 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
         "than off, and the branch raised `NameError: dirichlet_floor` the first "
         "time anything reached it. Measured where it CAN fire — the eight 2021 "
         "metros — it is much worse: coherent 254 -> 348, CRPS 232.9 -> 296.0. "
-        "MODEL-LOG §1.63.",
-    ("contestation_expand", "2021"):
+        "MODEL-LOG §1.63."),
+    ("contestation_expand", "2021"): Null(
+        cause="UNDELIVERED",
+        where="`if not _contest and _contest_prev` — `levels.contestation` "
+              "reads the target's own result file, so `_contest` is non-empty "
+              "and `levels.projected_contestation`, the lever's only consumer, "
+              "is never called",
+        blocker="DATA",
+        gate_check="real_contestation_lists",
+        evidence="`levels.contestation` returns 55 parties at 2021 and `{}` at "
+                 "2026 (measured 2026-08-27, no model run). That is the gate in "
+                 "both directions, and it is why the lever is live at exactly "
+                 "the one target no backtest can score — stated in the reason "
+                 "below and in JUDGEMENT-CALLS.md, and it does not stop being "
+                 "true because the gate check passes.",
+        reason=
         "SUPERSEDED BY DATA, which is the point. It projects a ward slate for a "
         "target whose nomination lists are not published, and `levels."
         "contestation` reads the target's own result file — which exists for "
@@ -203,16 +447,90 @@ EXPECTED_INERT: dict[tuple[str, str], str] = {
         "named assumption replacing an unnamed one — before it, the live "
         "forecast silently assumed every party fields exactly last time's "
         "slate. Verified live at 2026: Johannesburg's PA goes 17 -> 19 -> 22 "
-        "median seats at expand 0.0 / 0.220 / 0.5. MODEL-LOG §1.60.",
-    ("w_bye_local_ward", "2021"): "built, disabled, and untestable for the same reason as w_bye",
-    ("w_bye_local_pr", "2021"): "built, disabled, and untestable for the same reason as w_bye",
+        "median seats at expand 0.0 / 0.220 / 0.5. MODEL-LOG §1.60."),
+    ("w_bye_local_ward", "2021"): Null(
+        cause="UNDELIVERED",
+        where="`if (w_ward or w_pr) and (processed / "
+              "'byelection_contest_detail.csv').exists()` — the file is not in "
+              "a past target's processed directory, so the ward-local block "
+              "does not run even with the weight opened",
+        blocker="DATA",
+        gate_check="bye_contest_detail_absent",
+        evidence="absent from `data/processed/joburg/2021/`, present for the "
+                 "2026 target (checked 2026-08-27, no model run). At 2026 this "
+                 "lever IS live and the sweep says so, which is why there is no "
+                 "2026 entry. What that means for the pair below matters: at "
+                 "2026 the file exists and only the weights are shut, so their "
+                 "gate is a SWITCH, not data.",
+        reason="built, disabled, and untestable for the same reason as w_bye"),
+    ("w_bye_local_pr", "2021"): Null(
+        cause="UNDELIVERED",
+        where="the same gate as `w_bye_local_ward` at 2021 — no "
+              "`byelection_contest_detail.csv` for a past target",
+        blocker="DATA",
+        gate_check="bye_contest_detail_absent",
+        evidence="as `w_bye_local_ward` at 2021; live at 2026, where the sweep "
+                 "reaches it and no entry is needed.",
+        reason="built, disabled, and untestable for the same reason as w_bye"),
     # --- added 2026-08-17, when the enumeration test raised PERTURB from 13 of
     # --- 27 DEFAULTS keys to 23 and seven more levers turned out not to move.
     # Each is inert for a DIFFERENT reason and every reason is checkable.
-    ("bye_local_cap", "2021"): _WARD_LOCAL_BYE,
-    ("bye_local_cap", "2026"): _WARD_LOCAL_BYE,
-    ("bye_tau_months", "2021"): _WARD_LOCAL_BYE,
-    ("bye_tau_months", "2026"): _WARD_LOCAL_BYE,
+    #
+    # AND TWO OF THE FOUR WERE NOT INERT AT ALL (2026-08-27). At 2026 the file
+    # their block needs EXISTS; the only thing shutting the gate is that
+    # `w_bye_local_ward` and `w_bye_local_pr` ship at 0.0 — a switch this
+    # harness can open, and `_LEGACY_POLL` is four lines of why it then must.
+    # Opened, both levers move the forecast. The entries stay, because the
+    # SHIPPED configuration really does not move; what changes is that they no
+    # longer claim the lever is inert, and `CONDITIONAL` now measures them on
+    # every run.
+    ("bye_local_cap", "2021"): Null(
+        cause="UNDELIVERED",
+        where="two gates, both shut: `byelection_contest_detail.csv` is not in "
+              "a past target's processed directory, and `w_bye_local_ward` / "
+              "`w_bye_local_pr` are 0.0. The file is the one no switch opens",
+        blocker="DATA",
+        gate_check="bye_contest_detail_absent",
+        evidence="the by-election window is 2022-06 to 2026-02, so no past "
+                 "target has a contest detail file at all — opening the weights "
+                 "at 2021 would still not reach this lever. Nothing has been "
+                 "learned about the cap at 2021 and nothing can be.",
+        reason=_WARD_LOCAL_BYE),
+    ("bye_local_cap", "2026"): Null(
+        cause="UNDELIVERED",
+        where="`if (w_ward or w_pr) and ...` — `w_bye_local_ward` and "
+              "`w_bye_local_pr` both ship at 0.0, so the ward-local block never "
+              "runs. The DATA is present at this target; only the switch is off",
+        blocker="SWITCH",
+        gate_check="local_bye_weights_shipped_off",
+        evidence="THE GATE WAS OPENED 2026-08-27. With both weights at 0.9, "
+                 "`bye_local_cap` 1.5 -> 40.0 moves the 2026 forecast by 2.0 "
+                 "(40 draws). The lever is CONDITIONAL, not inert; "
+                 "`CONDITIONAL['bye_local_cap@2026']` perturbs it with its gate "
+                 "on every run of this file. The reason below is true about the "
+                 "shipped forecast and was being read as a statement about the "
+                 "lever, which it never was.",
+        reason=_WARD_LOCAL_BYE),
+    ("bye_tau_months", "2021"): Null(
+        cause="UNDELIVERED",
+        where="the same two gates as `bye_local_cap` at 2021, and the missing "
+              "contest detail file is again the one no switch opens",
+        blocker="DATA",
+        gate_check="bye_contest_detail_absent",
+        evidence="as `bye_local_cap` at 2021.",
+        reason=_WARD_LOCAL_BYE),
+    ("bye_tau_months", "2026"): Null(
+        cause="UNDELIVERED",
+        where="the same shipped-at-0.0 weights as `bye_local_cap` at 2026",
+        blocker="SWITCH",
+        gate_check="local_bye_weights_shipped_off",
+        evidence="THE GATE WAS OPENED 2026-08-27. With both weights at 0.9, "
+                 "`bye_tau_months` 18.0 -> 400.0 moves the 2026 forecast by "
+                 "14.0 (40 draws) — seven times what the cap moves it, which is "
+                 "worth knowing about a decay constant nobody could previously "
+                 "measure. `CONDITIONAL['bye_tau_months@2026']` keeps it "
+                 "measured.",
+        reason=_WARD_LOCAL_BYE),
     # ("overhang_rule", "2021") was excused here from 2026-08-17 to 2026-08-18.
     # THE ENTRY RETIRED ITSELF, exactly as it said it would. It recorded that
     # its own excuse was weak -- the overhang clause fired in 1 draw of 200 at
@@ -257,10 +575,18 @@ DELIBERATELY_UNUSED: dict[str, str] = {
         "the same, for the theta level shock, which returns 1.0. NOTE that it therefore consumes no randomness -- which is exactly why the harness averages five seeds: an ablation that skips a draw shifts every later draw, and the first run of it reported negative variance contributions because of that.",
     "width_budget.py:_no_shock(df)":
         "the same, for the theta level shock, which returns 1.0. NOTE that it therefore consumes no randomness -- which is exactly why the harness averages five seeds: an ablation that skips a draw shifts every later draw, and the first run of it reported negative variance contributions because of that.",
-    "levels.py:sd_for(size)":
+    "levels.py:sd_raw(size)":
         "the POOLED fallback branch, taken when fewer than 6 observations "
         "support a size fit. The fitted branch two lines above does use size. "
-        "Both must present the same signature to their caller.",
+        "Both must present the same signature to their caller.\n"
+        "  KEY RENAMED 2026-08-27, `sd_for` -> `sd_raw`, FOLLOWING THE CODE and "
+        "not to silence it: `levels.sd_for` was split into `sd_raw` plus a "
+        "`clip(sd_raw(size), SD_FLOOR, SD_CEILING)` wrapper so the clamp could "
+        "be counted. `sd_for` now passes `size` on and needs no excuse; the "
+        "pooled `sd_raw` still ignores it, for the reason above, which the new "
+        "code states at the call site as 'SIZE DOES NOT ENTER, and that is this "
+        "branch's absorption'. That is a cause code in prose — ABSORBED, at a "
+        "named stage — and it is the same claim this entry has always made.",
 }
 
 # Keys that are NOT model judgements: how many draws, which seed, where the
@@ -347,14 +673,19 @@ PERTURB: dict[str, object] = {
 }
 
 
-def _run(target_year: str, overrides: list[str]):
+def _run(target_year: str, overrides: list[str], run_dir: Path | None = None):
     city = cityconfig.use("joburg")
     target = cityconfig.use_target(target_year)
     M.apply_city(city)
     scenario = M.load_scenario(argparse.Namespace(
         config=None, set=list(overrides), draws=DRAWS, seed=20261104,
         city="joburg", target=target_year))
-    run = M.run_model(target, scenario, DATA, verbose=False)
+    # `run_dir` is opt-in and changes no number -- asserted by
+    # `test_chain.py::test_the_trace_is_inert_without_a_run_directory` -- and
+    # only `_base` passes one. It is what lets a gate check LOOK at a quantity
+    # (the measured sd(log theta), say) instead of arguing about it: the whole
+    # point of a delivery proof is that somebody can go and see the value.
+    run = M.run_model(target, scenario, DATA, verbose=False, run_dir=run_dir)
     # ALL THREE OUTPUTS, because a lever may touch only one of them and the
     # first version of this test compared the list ballot alone. It therefore
     # reported `ward_noise_sd` and `pa_contestation_uplift` as dead when both
@@ -391,6 +722,80 @@ def _moves(base, other) -> float:
     return max(100 * share, float(wins), float(seats))
 
 
+# --------------------------------------------------------------------------
+# the shipped base run, once per target, with its trace kept
+# --------------------------------------------------------------------------
+# Three tests need the unperturbed run: the sweep, the gate proofs and the
+# module-constant sweep. It is memoised so the file does not pay for it three
+# times, and it is memoised ONLY for the shipped configuration -- `_patched`
+# refuses to let anything be cached while a module constant is held at a value
+# it does not ship at, because a base measured under a patch is the fault this
+# whole file is about, one level up.
+_BASE: dict[str, tuple] = {}
+_TRACE: dict[str, Path] = {}
+_PATCH_DEPTH = 0
+_TRACE_ROOT: Path | None = None
+
+
+def _trace_root() -> Path:
+    global _TRACE_ROOT
+    if _TRACE_ROOT is None:
+        _TRACE_ROOT = Path(tempfile.mkdtemp(prefix="levers-trace-"))
+        import atexit
+        atexit.register(shutil.rmtree, _TRACE_ROOT, True)
+    return _TRACE_ROOT
+
+
+def _base(year: str):
+    """The unperturbed run at `year`, with a trace on disk beside it."""
+    assert _PATCH_DEPTH == 0, (
+        "a base run was requested while a module constant is patched. Cache it "
+        "and every later comparison is against a configuration this project "
+        "does not ship.")
+    if year not in _BASE:
+        run_dir = _trace_root() / year
+        _BASE[year] = _run(year, [], run_dir=run_dir)
+        _TRACE[year] = run_dir
+    return _BASE[year]
+
+
+def _trace(year: str, stage: str) -> dict:
+    """One stage of the base run's trace, as a dict."""
+    _base(year)
+    path = _TRACE[year] / f"{stage}.json"
+    assert path.exists(), (
+        f"the base run at {year} wrote no {stage}.json. A gate check that reads "
+        f"the trace cannot fall back to reasoning -- if the stage has been "
+        f"renamed, the check must be rewritten against the new name, not "
+        f"dropped.")
+    return json.loads(path.read_text())
+
+
+@contextlib.contextmanager
+def _patched(module, name: str, value):
+    """Hold a MODULE constant at `value` for the duration.
+
+    `--set` reaches `DEFAULTS` keys and nothing else, which is why 42 of the 48
+    constants pre-registered for the B2 sweep have never been swept at all
+    (NULL-RESULTS.md §3). In one process a module constant is reachable, and
+    `montecarlo` resolves the ones that matter at CALL time -- `LEVEL_DF` was
+    changed to do exactly that after it spent weeks bound as a default argument
+    and swept 2.5 -> 1000 for byte-identical output.
+
+    Restored in a `finally`, because these are process-global and the suite
+    runs every module in one process.
+    """
+    global _PATCH_DEPTH
+    before = getattr(module, name)
+    _PATCH_DEPTH += 1
+    try:
+        setattr(module, name, value)
+        yield
+    finally:
+        setattr(module, name, before)
+        _PATCH_DEPTH -= 1
+
+
 def _sweep_paired(year: str, base) -> list[str]:
     """Perturb a conditional lever TOGETHER WITH ITS GATE.
 
@@ -413,7 +818,7 @@ def _sweep_paired(year: str, base) -> list[str]:
 
 
 def _sweep_target(year: str) -> list[str]:
-    base = _run(year, [])
+    base = _base(year)
     dead = _sweep_paired(year, base)
     for key, value in sorted(PERTURB.items()):
         if key not in M.DEFAULTS:
@@ -433,7 +838,289 @@ def _sweep_target(year: str) -> list[str]:
             dead.append(f"{key} at {year} (perturbed to {value}, nothing moved)")
         elif moved >= 1e-9 and why is not None:
             dead.append(f"{key} IS live at {year} but EXPECTED_INERT claims it is "
-                        f"not: {why!r} — the register is now wrong, delete the entry")
+                        f"not: {why.code} — {why.reason!r} — the register is now "
+                        f"wrong, delete the entry")
+    return dead
+
+
+# --------------------------------------------------------------------------
+# GATES — the evidence half of a cause code
+# --------------------------------------------------------------------------
+# A declaration of what a thing reads is a CLAIM; a check of what was actually
+# read, at what value, is the EVIDENCE (ARCHITECTURE.md's lists A/B against
+# C/D). Every UNDELIVERED entry above names one of these, and every one of them
+# looks at the same object the model looks at rather than restating the belief.
+#
+# They are deliberately CHEAP. Five of the seven need no model run at all, which
+# is what makes it reasonable to demand one from every entry: an excuse whose
+# gate nobody can check is reopened, not accepted (NULL-RESULTS.md §4.2).
+
+
+def _joburg(year: str):
+    city = cityconfig.use("joburg")
+    return city, cityconfig.use_target(year)
+
+
+def _spec_path(target):
+    # The same expression `run_model` uses to find the emitted spec. If it ever
+    # diverges, the gate check is looking at a file the model does not read.
+    return target.city.processed / f"pools_{target.year}.json"
+
+
+def _gate_bye_deltas_absent(year: str) -> tuple[bool, str]:
+    """`bye` is empty, so `w_bye` multiplies nothing."""
+    _, target = _joburg(year)
+    path = target.processed / "byelection_party_deltas.csv"
+    return not path.exists(), f"{path} {'exists' if path.exists() else 'absent'}"
+
+
+def _gate_bye_contest_detail_absent(year: str) -> tuple[bool, str]:
+    """The ward-local by-election block's input file is not there."""
+    _, target = _joburg(year)
+    path = target.processed / "byelection_contest_detail.csv"
+    return not path.exists(), f"{path} {'exists' if path.exists() else 'absent'}"
+
+
+def _gate_no_metro_poll(year: str) -> tuple[bool, str]:
+    """No admitted metro poll, so `_agg` is None and the poll block is skipped."""
+    import polling as _pg
+    _, target = _joburg(year)
+    screened, _declined = _pg.screen(
+        target, min_n=float(M.DEFAULTS["poll_min_n"]))
+    metro = [q.get("id") for q in screened if q.get("scope") == "metro"]
+    return not metro, (f"polling.screen admits {len(screened)} poll(s) at "
+                       f"{year}; metro among them: {metro or 'none'}")
+
+
+def _gate_no_arrival_group_spec(year: str) -> tuple[bool, str]:
+    """The emitted spec carries no arrival group, so the draw has nothing."""
+    _, target = _joburg(year)
+    path = _spec_path(target)
+    if not path.exists():
+        return True, f"no pool spec at {path}"
+    group = json.loads(path.read_text()).get("arrival_group")
+    return not group, (f"{path.name} arrival_group = "
+                       + ("null" if group is None else
+                          f"{len(group)} fields — THE GATE IS OPEN"))
+
+
+def _gate_real_contestation_lists(year: str) -> tuple[bool, str]:
+    """Real ward lists exist, so the projection the lever drives is not called."""
+    import levels as _levels
+    city, target = _joburg(year)
+    published = _levels.contestation(target, city)
+    return bool(published), (
+        f"levels.contestation returns {len(published)} parties at {year} "
+        + ("(real lists supersede the projection)" if published else
+           "(nothing published — THE PROJECTION RUNS AND THE LEVER IS LIVE)"))
+
+
+def _gate_sigma_two_term_shipped_on(year: str) -> tuple[bool, str]:
+    """The shipped sigma deletes the cap `poll_house_k` sets."""
+    import polling as _pg
+    return bool(_pg.SIGMA_TWO_TERM), (
+        f"polling.SIGMA_TWO_TERM = {_pg.SIGMA_TWO_TERM!r}, so montecarlo takes "
+        f"`_cap = 1.0` and never calls weight_cap(house_k=...)")
+
+
+def _gate_local_bye_weights_shipped_off(year: str) -> tuple[bool, str]:
+    """Both ward-local weights ship at 0.0, so the block they gate never runs."""
+    w = (float(M.DEFAULTS["w_bye_local_ward"]), float(M.DEFAULTS["w_bye_local_pr"]))
+    return not any(w), (f"DEFAULTS w_bye_local_ward={w[0]}, w_bye_local_pr={w[1]}"
+                        + ("" if not any(w) else " — THE GATE IS OPEN"))
+
+
+def _gate_level_sd_fallback_never_binds(year: str) -> tuple[bool, str]:
+    """No party can reach `sd_measured.get(party, sd_default)`'s second argument.
+
+    Two consumers, and the gate must be shut for both: `sd_for_party`, which
+    only sees parties on the `individual` path, and the poll blend's
+    `_sd.get(party, default)`, which only runs where a metro poll is admitted.
+
+    This is the one gate that needs the model. It reads the base run's index and
+    the base run's own trace — the measured sd(log θ) as the run actually had
+    it — rather than recomputing either, because a check that recomputes its
+    subject is checking its own arithmetic.
+    """
+    base = _base(year)
+    index = set(base[4])
+    _, target = _joburg(year)
+    spec = json.loads(_spec_path(target).read_text())
+    members = {p for cfg in spec["pools"].values() for p in cfg["members"]}
+    measured = set(_trace(year, "10_theta_prior").get("sd") or {})
+    # `handled` is exactly this, in make_drawer: a party in any pool.
+    individual = index - members - {"ENTRANT"}
+    exposed = individual - measured
+    detail = (f"{len(index)} parties in the index, {len(index & members)} of "
+              f"them pool members, so the individual path holds "
+              f"{len(individual)}")
+    if _gate_no_metro_poll(year)[0]:
+        detail += "; the poll blend does not run at this target"
+    else:
+        polled = index - {"ENTRANT"} - measured
+        exposed |= polled
+        detail += (f"; the poll blend runs and {len(polled)} of the index has "
+                   f"no measured sd")
+    return not exposed, detail + (f"; EXPOSED TO THE FALLBACK: {sorted(exposed)}"
+                                  if exposed else "")
+
+
+GATES = {
+    "bye_deltas_absent": _gate_bye_deltas_absent,
+    "bye_contest_detail_absent": _gate_bye_contest_detail_absent,
+    "no_metro_poll": _gate_no_metro_poll,
+    "no_arrival_group_spec": _gate_no_arrival_group_spec,
+    "real_contestation_lists": _gate_real_contestation_lists,
+    "sigma_two_term_shipped_on": _gate_sigma_two_term_shipped_on,
+    "local_bye_weights_shipped_off": _gate_local_bye_weights_shipped_off,
+    "level_sd_fallback_never_binds": _gate_level_sd_fallback_never_binds,
+}
+
+
+# --------------------------------------------------------------------------
+# CONDITIONAL — open the gate, then perturb the lever
+# --------------------------------------------------------------------------
+@dataclass(frozen=True)
+class Conditional:
+    """A lever measured with its gate held open.
+
+    `PAIRED` above perturbs a lever AND its gate together and asks whether the
+    pair moves anything. That is not the same question, and on these three it
+    would answer yes for the wrong reason: `w_bye_local_ward` moves the forecast
+    all by itself, so a pair containing it passes however dead the lever is.
+
+    So this holds the gate open in BOTH runs and perturbs only the lever. What
+    it measures is the lever, at a configuration the project does not ship —
+    which is the only honest thing to say about a lever whose gate is shut.
+    """
+
+    key: str
+    year: str
+    value: object
+    opens: str                      # the GATES key this configuration opens
+    gate_scenario: tuple = ()       # ((scenario key, value), ...)
+    gate_module: tuple = ()         # ((module name, CONSTANT, value), ...)
+    why: str = ""
+
+
+CONDITIONAL: dict[str, Conditional] = {
+    "bye_local_cap@2026": Conditional(
+        key="bye_local_cap", year="2026", value=40.0,
+        opens="local_bye_weights_shipped_off",
+        gate_scenario=(("w_bye_local_ward", 0.9), ("w_bye_local_pr", 0.9)),
+        why="the cap on one contest's logit shift. At the shipped 1.5 it binds "
+            "on 11 of the 65 party-contests; the question this asks is whether "
+            "the model can tell the difference between that and no cap at all."),
+    "bye_tau_months@2026": Conditional(
+        key="bye_tau_months", year="2026", value=400.0,
+        opens="local_bye_weights_shipped_off",
+        gate_scenario=(("w_bye_local_ward", 0.9), ("w_bye_local_pr", 0.9)),
+        why="the recency half-life on by-election evidence. 400 months is "
+            "exp(-age/tau) ~ 1 for every contest in the window, i.e. no decay, "
+            "against the shipped 18."),
+    "poll_house_k@2026": Conditional(
+        key="poll_house_k", year="2026", value=6.0,
+        opens="sigma_two_term_shipped_on",
+        gate_module=(("polling", "SIGMA_TWO_TERM", False),),
+        why="the retired weight cap. The EXPECTED_INERT entry keeps the lever "
+            "on the grounds that `SIGMA_TWO_TERM=0` still reads it — so that is "
+            "the configuration it is measured in. If this ever goes dead the "
+            "entry's own justification has gone with it and the lever should "
+            "be deleted."),
+}
+
+
+def _module(name: str):
+    import importlib
+    return importlib.import_module(name)
+
+
+def _sweep_conditional() -> list[str]:
+    """Every gate the harness can open, opened."""
+    dead: list[str] = []
+    gate_base: dict[tuple, tuple] = {}
+    for label, c in sorted(CONDITIONAL.items()):
+        # BEFORE the runs. `parse_set` rejects a key that is not already in the
+        # scenario, so a stale name here would raise from deep inside
+        # `load_scenario` instead of naming itself -- and a deleted lever must
+        # report as a deleted lever, which is the whole of §1.68.
+        absent = [k for k, _ in c.gate_scenario if k not in M.DEFAULTS]
+        if c.key not in M.DEFAULTS or absent:
+            dead.append(f"{label}: not DEFAULTS keys, so nothing was perturbed: "
+                        f"{sorted(set(absent) | ({c.key} - set(M.DEFAULTS)))}")
+            continue
+        overrides = [f"{k}={json.dumps(v)}" for k, v in c.gate_scenario]
+        with contextlib.ExitStack() as stack:
+            for mod, const, value in c.gate_module:
+                stack.enter_context(_patched(_module(mod), const, value))
+            sig = (c.year, tuple(overrides), c.gate_module)
+            if sig not in gate_base:
+                gate_base[sig] = _run(c.year, overrides)
+            moved = _moves(gate_base[sig],
+                           _run(c.year, overrides
+                                + [f"{c.key}={json.dumps(c.value)}"]))
+        if moved < 1e-9:
+            dead.append(f"{label}: gate opened ({c.opens}) and the lever still "
+                        f"did not move at {c.value!r}")
+    return dead
+
+
+# --------------------------------------------------------------------------
+# MODULE_PERTURB — the class `--set` cannot reach
+# --------------------------------------------------------------------------
+# NULL-RESULTS.md §3, gap 1: "Coverage is DEFAULTS keys only. The 42 blocked
+# constants are mostly MODULE constants — montecarlo.LEVEL_DF, SHARE_FLOOR,
+# DIRICHLET_FLOOR, TURNOUT_DRAW_FLOOR/CEILING, the whole polling.SIGMA_* family
+# — none of which is in DEFAULTS, so none is swept for liveness."
+#
+# This is a start on that and not the end of it: five constants, at 2026 only,
+# chosen because each is a judgement someone made and none is reachable from a
+# scenario key. A constant that IS shadowed by a DEFAULTS key (DIRICHLET_FLOOR,
+# TURNOUT_CORRELATION) is already swept through it and is not repeated here.
+#
+# 2026 alone, and the reason is not economy: at 2021 `BYE_MIN_WEIGHT` guards a
+# `bye` dict that is empty, so it would land straight back in EXPECTED_INERT as
+# another UNDELIVERED entry. Sweeping a constant where its evidence exists is
+# the whole lesson of this file.
+MODULE_PERTURB: tuple = (
+    ("montecarlo", "LEVEL_DF", "2026", 2.5,
+     "the t degrees of freedom on the level shock, and this project's founding "
+     "CLASS 12 defect: swept 2.5 -> 1000 for BYTE-IDENTICAL output while bound "
+     "as `def log_shock(..., df=LEVEL_DF)`, evaluated once at import. It now "
+     "resolves at call time, and this is the test that says so."),
+    ("montecarlo", "SHARE_FLOOR", "2026", 0.05,
+     "the floor a share is clipped to before the logit. NULL-RESULTS.md §1 B "
+     "names this clip as an ABSORBER — a party under the floor stops responding "
+     "to theta entirely — so what it does at 25x is worth having measured."),
+    ("montecarlo", "BYE_MIN_WEIGHT", "2026", 1.0,
+     "how much by-election weight a party needs before its evidence is used at "
+     "all. It gates `w_bye`, which is 🔴 argued-not-tested, and nothing has "
+     "ever swept it."),
+    ("montecarlo", "TURNOUT_DRAW_CEILING", "2026", 0.50,
+     "the ceiling on a drawn turnout. A guard that has gone blind reports "
+     "exactly what a guard that never fires reports."),
+    ("polling", "SIGMA_TWO_TERM", "2026", False,
+     "the switch between the shipped two-term sigma and the retired "
+     "four-component one. `poll_house_k`'s whole EXPECTED_INERT entry rests on "
+     "this being reachable; this is the check that it still is."),
+)
+
+
+def _sweep_module_constants() -> list[str]:
+    dead: list[str] = []
+    for mod_name, const, year, value, _why in MODULE_PERTURB:
+        module = _module(mod_name)
+        assert hasattr(module, const), (
+            f"{mod_name}.{const} does not exist. A constant named here and gone "
+            f"from the source is coverage that deleted itself — the fault "
+            f"`test_every_defaults_key_is_swept_or_excused` exists to catch, "
+            f"one namespace over.")
+        base = _base(year)
+        with _patched(module, const, value):
+            moved = _moves(base, _run(year, []))
+        if moved < 1e-9:
+            dead.append(f"{mod_name}.{const} at {year} (set to {value!r}, "
+                        f"nothing moved)")
     return dead
 
 
@@ -866,6 +1553,308 @@ def test_no_dict_literal_declares_the_same_key_twice():
         "a dict literal declares one key more than once; every copy but the "
         "last is dead, along with any comment explaining it:\n  "
         + "\n  ".join(bad))
+
+
+def test_every_excuse_carries_a_machine_readable_cause():
+    """A reason is a claim; a cause code is a claim a test can read.
+
+    `EXPECTED_INERT` was eighteen paragraphs, and a paragraph cannot be checked,
+    cannot be counted, and cannot be told apart from the next one. Six of the
+    eighteen shared a single paragraph — which is how `poll_min_n` came to be
+    excused by a reason that was not true of it (§1.75), and how two entries
+    came to be written from unstable readings and retracted (`pools.py`).
+
+    So the shape is enforced here: four causes and no others, a named gate for
+    anything that claims not to have arrived, a blocker saying whether that gate
+    is shut by data or by us, a registered check that PROVES it shut, and
+    evidence saying what was observed. None of that makes an entry true. It
+    makes an entry falsifiable, which the prose was not.
+    """
+    bad: list[str] = []
+    for (key, year), null in sorted(EXPECTED_INERT.items()):
+        at = f"{key}@{year}"
+        if not isinstance(null, Null):
+            bad.append(f"{at}: {type(null).__name__}, not a Null — a bare string "
+                       f"is the shape this test exists to retire")
+            continue
+        if null.cause not in CAUSES:
+            bad.append(f"{at}: cause {null.cause!r} is not one of {CAUSES}")
+        if null.cause == "INERT":
+            if null.where or null.blocker or null.gate_check:
+                bad.append(f"{at}: INERT means it arrived, propagated and did "
+                           f"not matter — there is no gate, no stage and no "
+                           f"blocker to name")
+            if not null.evidence.startswith("DELIVERED:"):
+                bad.append(
+                    f"{at}: INERT is the ONLY cause that is a result, and it is "
+                    f"a claim that the value REACHED the computation. Its "
+                    f"evidence must open with `DELIVERED:` and say how that was "
+                    f"established. (No entry has ever claimed it, so this rule "
+                    f"has never fired in anger — it is here to make the first "
+                    f"one produce the proof rather than the paragraph.)")
+        else:
+            if not null.where.strip():
+                bad.append(f"{at}: {null.cause} must name where — the gate, the "
+                           f"absorbing stage or the offsetting parameter. A "
+                           f"cause nobody can point at is the prose again")
+        if null.cause == "UNDELIVERED":
+            if null.blocker not in BLOCKERS:
+                bad.append(f"{at}: blocker {null.blocker!r} is not one of "
+                           f"{BLOCKERS}")
+        elif null.blocker:
+            bad.append(f"{at}: blocker is for UNDELIVERED only; {null.cause} "
+                       f"carries {null.blocker!r}")
+        if null.gate_check and null.gate_check not in GATES:
+            bad.append(f"{at}: gate_check {null.gate_check!r} is not in GATES")
+        if not null.reason.strip():
+            bad.append(f"{at}: no reason. The cause code says WHAT; the reason "
+                       f"still has to say why anyone believes it")
+        if not null.evidence.strip():
+            bad.append(f"{at}: no evidence. NULL-RESULTS.md §4.2 — an entry that "
+                       f"cannot produce a delivery proof is reopened")
+    assert not bad, (
+        "EXPECTED_INERT entries that are not machine-checkable:\n  "
+        + "\n  ".join(bad))
+
+
+def test_the_gate_named_by_every_excuse_is_actually_shut():
+    """The claim is that the value never arrived. This goes and looks.
+
+    Every UNDELIVERED entry names a gate. If the gate is OPEN, the value did
+    arrive and the null has some other cause — most likely a real one — and the
+    entry is not merely stale, it is hiding a measurement that did happen.
+
+    This is the check `poll_k` never had. Its entry said "poll_k 1.0 vs 40.0 at
+    2026 moves every party by exactly 0.0000pp", which was true, measured, and
+    meaningless: `poll_id` was None, so the branch never ran. A gate check would
+    have said so in a millisecond.
+    """
+    open_gates, unchecked = [], []
+    for (key, year), null in sorted(EXPECTED_INERT.items()):
+        if null.cause != "UNDELIVERED":
+            continue
+        if not null.gate_check:
+            unchecked.append(f"{key}@{year}: {null.code}")
+            continue
+        shut, detail = GATES[null.gate_check](year)
+        if not shut:
+            open_gates.append(f"{key}@{year} names gate {null.gate_check!r} and "
+                              f"IT IS OPEN: {detail}")
+    assert not open_gates, (
+        "an UNDELIVERED excuse names a gate that is not shut:\n  "
+        + "\n  ".join(open_gates)
+        + "\n\nThe value reached the computation. Either the null has a "
+          "different cause — ABSORBED, CANCELLED or, if it really arrived and "
+          "really did not matter, INERT — or the sweep is now measuring "
+          "something it was not measuring before. Re-measure; do not re-word.")
+    assert not unchecked, (
+        "an UNDELIVERED excuse with no gate check:\n  " + "\n  ".join(unchecked)
+        + "\n\nNULL-RESULTS.md §4.2: an entry that cannot produce a delivery "
+          "proof is reopened.")
+
+    # And the registry does not rot in the other direction either.
+    named = ({n.gate_check for n in EXPECTED_INERT.values() if n.gate_check}
+             | {c.opens for c in CONDITIONAL.values()})
+    stale = sorted(set(GATES) - named)
+    assert not stale, (
+        f"GATES defines {stale}, which nothing names. A check for a gate nobody "
+        f"claims is a check that will be believed for a claim it never made — "
+        f"delete it, or point an entry at it.")
+
+
+def test_no_undelivered_null_is_excused_without_opening_its_gate():
+    """An UNDELIVERED entry is a DEFECT REPORT. Only INERT is an excuse.
+
+    NULL-RESULTS.md §1: only D — arrived, propagated, does not matter — is a
+    result. A is a defect, B is a structural fact, C is a statement about
+    identifiability. `EXPECTED_INERT` accepted all four as though they were D,
+    and today it contains no D at all.
+
+    What this admits, and why it is not a loophole:
+
+      * UNDELIVERED [DATA] — the evidence does not exist at this target and no
+        change here creates it. The entry is accepted as a VOID: it records that
+        NOTHING WAS MEASURED. It must still prove its gate is shut, which
+        `test_the_gate_named_by_every_excuse_is_actually_shut` does.
+      * UNDELIVERED [SWITCH] — we shut the gate, so we can open it, so we must.
+        Accepted only with a `CONDITIONAL` entry that opens exactly that gate
+        and measures the lever behind it on every run. Without one this is the
+        `poll_k` fault verbatim, and it is reported as a defect.
+      * UNDELIVERED [CODE] — nothing opens it. Never an excuse.
+      * ABSORBED / CANCELLED — admitted, because both are real properties of
+        this model (`solve_and_predict` absorbs geography almost perfectly;
+        pool size and fitted rate are jointly identified). Both must name the
+        stage or the parameter, which `test_every_excuse_carries_a_machine_
+        readable_cause` enforces.
+    """
+    defects: list[str] = []
+    for (key, year), null in sorted(EXPECTED_INERT.items()):
+        if null.cause != "UNDELIVERED":
+            continue
+        if null.blocker == "CODE":
+            defects.append(
+                f"{key}@{year} is UNDELIVERED [CODE]: {null.where}. A lever the "
+                f"code cannot deliver is a defect, not an inert lever — wire it "
+                f"up or delete it")
+            continue
+        if null.blocker != "SWITCH":
+            continue
+        c = CONDITIONAL.get(f"{key}@{year}")
+        if c is None:
+            defects.append(
+                f"{key}@{year} is UNDELIVERED [SWITCH]: {null.where}. WE shut "
+                f"that gate, so the harness can open it, and until it does "
+                f"nothing whatever is known about this lever")
+        elif c.opens != null.gate_check:
+            defects.append(
+                f"{key}@{year} is excused by gate {null.gate_check!r} but its "
+                f"CONDITIONAL opens {c.opens!r} — the measurement is behind a "
+                f"different door from the excuse")
+    assert not defects, (
+        "these are defect reports being carried as excuses:\n  "
+        + "\n  ".join(defects)
+        + "\n\nA null measured with the gate shut is VOID, not NULL. See "
+          "_LEGACY_POLL: the same mistake was committed inside the commit that "
+          "automated the rule against it.")
+
+    # The census, in one line, because eighteen entries called EXPECTED_INERT
+    # of which none is inert is the sort of fact that should be impossible to
+    # walk past.
+    print("  EXPECTED_INERT census: " + ", ".join(
+        f"{c}={sum(1 for n in EXPECTED_INERT.values() if n.cause == c)}"
+        for c in CAUSES) + " (blockers: " + ", ".join(
+        f"{b}={sum(1 for n in EXPECTED_INERT.values() if n.blocker == b)}"
+        for b in BLOCKERS) + ")")
+
+
+def test_a_lever_whose_gate_the_harness_can_open_is_measured_with_it_open():
+    """The excuse said the lever was inert. Opened, all three move.
+
+    `bye_local_cap` 2.0, `bye_tau_months` 14.0 and `poll_house_k` 226.0 at 2026
+    on 2026-08-27 — every one of them sitting in `EXPECTED_INERT` at the time,
+    and `poll_house_k`'s entry arguing for its own retention on the grounds that
+    the configuration measured here is still reachable. It is. Nobody had
+    reached it.
+
+    Nothing asserted here is a magnitude: a magnitude is a fact about a
+    configuration this project does not ship, and it is recorded in the entries
+    as evidence of DELIVERY, not as a target. What is asserted is that the lever
+    moves at all once its gate is open — because the day it stops, the excuse
+    that rests on it has to be re-argued from scratch.
+    """
+    if not DATA.exists():
+        skip("data/raw/elections is not present")
+    dead = _sweep_conditional()
+    assert not dead, (
+        "a lever did not move even with its gate held open:\n  "
+        + "\n  ".join(dead)
+        + "\nThat is a much stronger statement than the EXPECTED_INERT entry "
+          "makes, and it means the entry is now wrong in the other direction: "
+          "either this really is INERT — in which case say so, with the "
+          "delivery proof — or the gate is not the one that matters.")
+
+    stale = sorted(set(CONDITIONAL)
+                   - {f"{k}@{y}" for k, y in EXPECTED_INERT})
+    assert not stale, (
+        f"CONDITIONAL measures {stale}, which nothing excuses any more. A "
+        f"conditional sweep whose entry has gone is coverage nobody asked for, "
+        f"and it costs a model run per lever per target — delete it, or say in "
+        f"EXPECTED_INERT why the lever still needs it.")
+
+
+def test_module_constants_are_swept_for_liveness_too():
+    """`--set` reaches DEFAULTS keys. The judgement calls are not all there.
+
+    NULL-RESULTS.md §3: of the 48 constants pre-registered for the B2 sweep, 42
+    carry a blocker, and the largest class is simply that a module constant is
+    not a `DEFAULTS` key, so no liveness sweep has ever touched one. §3 gap 2 is
+    sharper still — the serial-forcing guard in `compare_history` names
+    `LEVEL_DF` as the defect it was built for and then checks five `levels`
+    names, none of which is `montecarlo.LEVEL_DF`.
+
+    In one process a module constant is perturbable, and the ones that matter
+    resolve at call time. This sweeps five of them. It does not sweep all of
+    them: the inventory has to be GENERATED from the register rather than listed
+    here, and that needs a file this test does not own — stated so the five are
+    not mistaken for the forty-two.
+    """
+    if not DATA.exists():
+        skip("data/raw/elections is not present")
+    dead = _sweep_module_constants()
+    assert not dead, (
+        "these module constants did not move the forecast when set to a value "
+        "that must change it:\n  " + "\n  ".join(dead)
+        + "\nA module constant that cannot move is `LEVEL_DF` again — bound "
+          "once at import, argued over for weeks, and worth nothing at any "
+          "value. Give it a cause code and a gate check, wire it up, or delete "
+          "it.")
+
+
+def test_no_numeric_module_constant_is_reachable_only_as_a_default_argument():
+    """CLASS 12's founding shape, made structural.
+
+    `def log_shock(..., df: float = LEVEL_DF)` is evaluated once at import, so
+    setting `montecarlo.LEVEL_DF` afterwards changes nothing — and every sweep
+    of it, at 2.5, 4, 7, 30, 200 and 1000, returned byte-identical output while
+    the constant sat at 🔴 in the register as the most-attacked number in the
+    project. It was found by accident. This finds it by construction: a numeric
+    module constant whose ONLY use in its own module is as a default argument
+    cannot be perturbed by anything, `MODULE_PERTURB` included.
+
+    Non-numeric constants are exempt on purpose. `levels.METRO_CODES`,
+    `pools.CONFIG` and `official_seats.REPORTS` are all in this shape and none
+    of them is a judgement call — they are maps and paths, and a caller passes
+    them explicitly. The class this catches is a NUMBER someone chose.
+    """
+    offenders, seen_defaults = [], 0
+    for path in sorted((ROOT / "src").glob("*.py")):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except SyntaxError:
+            continue
+        numeric = {t.id for node in tree.body
+                   if isinstance(node, ast.Assign) and len(node.targets) == 1
+                   for t in node.targets
+                   if isinstance(t, ast.Name) and t.id.isupper()
+                   and isinstance(node.value, ast.Constant)
+                   and isinstance(node.value.value, (int, float))
+                   and not isinstance(node.value.value, bool)}
+        if not numeric:
+            continue
+        as_default: dict[str, list[str]] = {}
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            for d in (list(node.args.defaults)
+                      + [x for x in node.args.kw_defaults if x is not None]):
+                for n in ast.walk(d):
+                    if isinstance(n, ast.Name):
+                        as_default.setdefault(n.id, []).append(
+                            f"{node.name}():{node.lineno}")
+        seen_defaults += sum(len(v) for v in as_default.values())
+        for name in sorted(numeric & set(as_default)):
+            loads = sum(1 for n in ast.walk(tree)
+                        if isinstance(n, ast.Name) and n.id == name
+                        and isinstance(n.ctx, ast.Load))
+            if loads <= len(as_default[name]):
+                offenders.append(
+                    f"{path.name} {name} is read ONLY as a default argument "
+                    f"({', '.join(as_default[name])})")
+
+    assert seen_defaults, (
+        "no module constant is used as a default argument anywhere in src/, "
+        "which means this scan is looking for a pattern that no longer occurs "
+        "in any form — and it would then pass forever while checking nothing. "
+        "Three benign instances existed on 2026-08-27 (levels.METRO_CODES, "
+        "pools.CONFIG, official_seats.REPORTS); if all three have gone, "
+        "rewrite this guard rather than deleting it.")
+    assert not offenders, (
+        "a numeric module constant is bound once at import and nowhere else:\n  "
+        + "\n  ".join(offenders)
+        + "\nSetting it afterwards changes nothing, so no sweep can reach it "
+          "and every null measured on it is UNDELIVERED. Resolve it at call "
+          "time — `df = LEVEL_DF if df is None else float(df)` is the fix that "
+          "was applied to the original.")
 
 
 if __name__ == "__main__":

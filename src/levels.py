@@ -269,6 +269,21 @@ def _absent(path) -> dict[str, float]:
     The archive tag and metro code are recovered from the FILENAME rather than
     passed in, so no caller can forget to ask. Every path this module builds
     comes from a CALENDAR template of the form ``<tag>_[approx_]<CODE>_vd_...``.
+
+    **THE LARGEST ABSORBER IN THIS MODULE, AND IT IS NOT COUNTED**
+    (NULL-RESULTS.md 4.3). A declared absence returns ``{}``, and an empty
+    citywide dict contributes no θ or ρ observations at all — the twelve
+    transitions §1.75 records disappeared exactly this way, with nothing
+    anywhere going red. The refusal above closes the UNDECLARED case; the
+    DECLARED case is still a silent subtraction from the evidence base, taken
+    on every run, and its size is nowhere reported.
+
+    It is not instrumented, deliberately, because the only home for the count
+    is a parameter on :func:`theta_record` / :func:`local_record`, and
+    ``tests/test_theta_prior.py`` monkeypatches ``theta_record`` with a stub of
+    signature ``(target, codes)`` — an added keyword would be a ``TypeError``
+    inside the test rather than a measurement. The count belongs in the same
+    change that gives those two functions a diagnostic return.
     """
     name = Path(path).name
     parts = name.split("_")
@@ -556,6 +571,17 @@ def projected_contestation(previous: dict[str, float],
 
     Clipped to [0, 1] because a slate is a fraction of wards. ``expand = 0`` is
     exactly the previous behaviour.
+
+    **NOT AN ABSORBER, and provably so** (NULL-RESULTS.md 4.3). The inner clip
+    cannot bind on any input this function is given: for ``was ∈ [0, 1]`` and
+    ``e ∈ [0, 1]``, ``was + e·(1 − was)`` lies in ``[was, 1] ⊆ [0, 1]``, so it
+    is the identity on a well-formed slate and would only fire on a
+    ``previous`` that was already out of range — which would be a defect in
+    ``contestation``, not an absorption here. The OUTER clip on ``expand`` is a
+    real clamp on a declared lever, and it is the one to look at if a sweep of
+    ``contestation_expand`` outside [0, 1] returns a flat null. Neither is
+    counted, because this function returns a bare dict with nowhere to put a
+    count and its callers pin that shape.
     """
     if not previous:
         return {}
@@ -617,6 +643,18 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
     and the width comes from the group's log-spread. The band is the 10th to
     90th percentile of that lognormal, so it is wide where the record is wide
     and nothing sits at probability zero.
+
+    **The second return value carries an ``absorption`` block** (NULL-RESULTS.md
+    4.3) reporting what each absorbing stage here ate: the
+    ``[SD_FLOOR, SD_CEILING]`` clamp, the shrink toward the size centre, and
+    which branch of the dispersion fit and of the centre ran. It is written and
+    never read, so it moves no number; it exists so a null measured downstream
+    of this layer can be labelled ``ABSORBED:<stage>`` instead of ``INERT``.
+
+    **The two early returns absorb everything and report nothing**, by
+    construction: an empty record, or a record whose observations are worth
+    nothing, returns ``({}, {})`` and there is no block to carry a count. The
+    caller's ``if _prior:`` gate is the only thing that sees it.
     """
     record = theta_record(target, codes)
     if not record:
@@ -656,22 +694,39 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
         for r, _share in ratios:
             xs.append(np.log(size))
             ys.append((np.log(r) - mu_all) ** 2)
+    # THE RAW WIDTH AND THE CLAMPED ONE ARE NOW SEPARATE FUNCTIONS, so the
+    # clamp can be COUNTED rather than inferred. `sd_for` is `clip(sd_raw)` and
+    # nothing else, so no value moves; what changes is that the quantity the
+    # clamp ate is observable. Before this, a party pinned to `SD_FLOOR` was
+    # indistinguishable from a party the fit happened to place at 0.15, and the
+    # only account of it was the call site counting `abs(v - SD_FLOOR) < 1e-12`
+    # in `montecarlo`'s `10_theta_prior` trace — which can see the floor, cannot
+    # see the ceiling, and cannot see HOW FAR anything was moved.
     if len(xs) >= 6:
         slope, intercept = np.polyfit(xs, np.log(np.maximum(ys, 1e-6)), 1)
+        sd_route = "size_fit"
 
-        def sd_for(size: float) -> float:
+        def sd_raw(size: float) -> float:
             x = np.log(max(size, 1e-5))
             # NOT corrected by LOG_CHI2_BIAS, deliberately — see the constant.
-            return float(np.clip(np.exp(0.5 * (intercept + slope * x)),
-                                 SD_FLOOR, SD_CEILING))
+            return float(np.exp(0.5 * (intercept + slope * x)))
     else:
         pooled = float(np.std(np.log(ratios_all), ddof=1))
+        sd_route = "pooled"
 
-        def sd_for(size: float) -> float:
+        def sd_raw(size: float) -> float:
             # No correction here: `pooled` is sd(log ratios) computed directly,
             # not recovered from a fit to squared residuals, so it carries no
             # log-chi-square bias.
-            return float(np.clip(pooled, SD_FLOOR, SD_CEILING))
+            #
+            # SIZE DOES NOT ENTER, and that is this branch's absorption: every
+            # party on the ballot is handed one width. `sd_route` reports which
+            # branch ran, because a size sweep against a run in this branch is
+            # a null with a known cause and not a finding.
+            return pooled
+
+    def sd_for(size: float) -> float:
+        return float(np.clip(sd_raw(size), SD_FLOOR, SD_CEILING))
 
     # PATH ONE — a party WITH history. Its own log-mean, shrunk toward the
     # common centre by how much that history is worth rather than by how many
@@ -711,10 +766,48 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
             return mu_all
         return float(fit[0] + fit[1] * np.log(max(size, 1e-6)))
 
+    # ABSORPTION ACCOUNTING (NULL-RESULTS.md 4.3). Two of this function's three
+    # stages are attractors, and until now neither declared how much it ate:
+    #
+    #   * the [SD_FLOOR, SD_CEILING] clamp on the fitted width — §1.59 measured
+    #     that the FLOOR, not the fit, sets the width on most observations, so
+    #     a change to the dispersion fit is absorbed for those parties and a
+    #     sweep of it returns a null with a location rather than a finding;
+    #   * the shrink toward the size centre — a party whose record is worth
+    #     little is pulled almost entirely onto the centre, so a change to its
+    #     own observations does not reach the mode.
+    #
+    # `absorbed / offered` is the attractor strength: at 1.0 the stage ate
+    # everything it was given and is an attractor by definition. NOTHING HERE
+    # IS READ BACK; every counter is write-only, which is what makes the
+    # accounting number-neutral.
+    sd_clip = {"route": sd_route, "n": 0, "at_floor": 0, "at_ceiling": 0,
+               "nonfinite": 0, "mass": 0.0}
+    shrink = {"target": "size_centre" if fit else "flat_common_centre",
+              "n_shrunk": 0, "n_all_centre": 0, "offered": 0.0,
+              "absorbed": 0.0}
+    no_baseline = 0
+
     priors: dict[str, tuple] = {}
     for party in set(record) | set(baseline):
         size = baseline.get(party, 0.0)
         sd = sd_for(size)
+        raw = sd_raw(size)
+        sd_clip["n"] += 1
+        if size <= 0.0:
+            # No national share to be sized off: the width is the fit
+            # extrapolated to `log(1e-5)` and the centre to `log(1e-6)`. Two
+            # different floors for the same missing quantity, which is worth
+            # knowing and is not this change's to alter.
+            no_baseline += 1
+        if not np.isfinite(raw):
+            sd_clip["nonfinite"] += 1
+        elif raw < SD_FLOOR:
+            sd_clip["at_floor"] += 1
+            sd_clip["mass"] += SD_FLOOR - raw
+        elif raw > SD_CEILING:
+            sd_clip["at_ceiling"] += 1
+            sd_clip["mass"] += raw - SD_CEILING
         own = record.get(party, [])
         if own:
             worth = sum(_reliability(s) for _, s in own)
@@ -726,11 +819,23 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
             # two estimators agree party-for-party rather than merely in form.
             w = [_reliability(s) for _, s in own]
             obs_size = float(np.average([sz for _, sz in own], weights=w))
-            mu = weight * own_mu + (1 - weight) * _centre_for(obs_size)
+            centre = _centre_for(obs_size)
+            mu = weight * own_mu + (1 - weight) * centre
+            shrink["n_shrunk"] += 1
+            shrink["offered"] += abs(own_mu - centre)
+            shrink["absorbed"] += (1 - weight) * abs(own_mu - centre)
         else:
             mu = _centre_for(size)
+            # A party with no record of its own is 100% absorbed: its mode IS
+            # the centre. Counted separately because it does not appear in
+            # `offered` at all — there was nothing to offer.
+            shrink["n_all_centre"] += 1
         priors[party] = (float(np.exp(mu - 1.2816 * sd)), float(np.exp(mu)),
                          float(np.exp(mu + 1.2816 * sd)))
+    sd_clip["share"] = ((sd_clip["at_floor"] + sd_clip["at_ceiling"])
+                        / sd_clip["n"]) if sd_clip["n"] else 0.0
+    shrink["share"] = (shrink["absorbed"] / shrink["offered"]
+                       if shrink["offered"] > 0 else 0.0)
     return priors, {
         "centre": {"n": len(everything), "median": float(np.exp(mu_all)),
                    "effective_n": float(weights_all.sum())},
@@ -746,6 +851,17 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
         # instead of a triangular fitted to the same band's endpoints.
         "sd": {party: float(sd_for(baseline.get(party, 0.0)))
                for party in priors},
+        # WHAT THIS FUNCTION ABSORBED. See the block above the priors loop.
+        # `sd_clip.share` is the fraction of parties whose width is set by the
+        # clamp and not by the fit; `shrink.share` is the fraction of the
+        # distance between a party's own mean and its centre that the shrink
+        # took back. A stage at share ≈ 1.0 is an attractor and any null
+        # measured through it is ABSORBED, not INERT.
+        "absorption": {
+            "sd_clip": sd_clip,
+            "shrink": shrink,
+            "no_baseline": no_baseline,
+        },
     }
 
 
@@ -797,6 +913,7 @@ def size_centre(record: dict[str, list[tuple[float, float]]]):
 
 
 def _shrunk(record: dict[str, list[tuple[float, float]]],
+            report: dict | None = None,
             ) -> tuple[dict[str, float], float, dict[str, float]]:
     """Per-party log-mean shrunk to the weighted common centre, and the worth.
 
@@ -804,7 +921,26 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
     same treatment. If the two routes were shrunk differently, the comparison
     between them in :func:`spine` would be measuring the estimators rather than
     the evidence.
+
+    **``report`` is an absorption account, written and never read.** The return
+    is a three-tuple that two test files pin exactly (``({}, 0.0, {})`` on an
+    empty record), so the account cannot travel in it; :func:`spine` passes a
+    dict in and forwards it into its own diagnostic block. Filled with:
+
+    * ``target`` — the centre shrunk toward, ``size_centre`` or, where the
+      record has under twenty usable observations, the flat common mean. The
+      flat fallback absorbs the size signal ENTIRELY, which is the thing
+      `size_centre` was fitted to deny, so it is named rather than inferred.
+    * ``offered`` — Σ |own mean − centre|, how far the parties' own evidence
+      asked to move them off the centre;
+    * ``absorbed`` — Σ (1 − weight)·|own mean − centre|, how much of that the
+      shrink took back, and ``share`` = absorbed / offered. At share ≈ 1 this
+      is an attractor and a change to a party's own observations cannot reach
+      the level.
     """
+    if report is not None:
+        report.update({"n": 0, "target": None, "offered": 0.0,
+                       "absorbed": 0.0, "share": 0.0, "empty": True})
     everything = [obs for obs in (o for v in record.values() for o in v)]
     if not everything:
         return {}, 0.0, {}
@@ -814,6 +950,7 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
         return {}, 0.0, {}
     mu_all = float(np.average(np.log(ratios), weights=weights))
     fit = size_centre(record)
+    offered = absorbed = 0.0
     mus: dict[str, float] = {}
     worth: dict[str, float] = {}
     for party, obs in record.items():
@@ -828,6 +965,16 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
         size = float(np.average([sz for _, sz in obs], weights=w))
         target = (fit[0] + fit[1] * np.log(max(size, 1e-6))) if fit else mu_all
         mus[party] = weight * own + (1 - weight) * target
+        offered += abs(own - target)
+        absorbed += (1 - weight) * abs(own - target)
+    if report is not None:
+        report.update({
+            "n": len(mus),
+            "target": "size_centre" if fit else "flat_common_centre",
+            "offered": float(offered), "absorbed": float(absorbed),
+            "share": float(absorbed / offered) if offered > 0 else 0.0,
+            "empty": False,
+        })
     return mus, mu_all, worth
 
 
@@ -856,6 +1003,16 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
 
     A party with neither is an arrival and is not here at all;
     ``pools.arrival_rules`` sizes it from the arrival record.
+
+    **The diagnostic block carries an ``absorption`` account** (NULL-RESULTS.md
+    4.3): the route census, how much of the two routes' disagreement the blend
+    weight took from each, how many parties fell back to the flat group centre
+    because they have no record of their own, and the shrink account from each
+    call to :func:`_shrunk`. It is write-only and moves nothing. It exists so
+    that "changing the national route did not move the forecast" can be told
+    apart from "the national route was never worth anything here": at
+    ``share_local ≈ 1`` the blend is an attractor and the null is
+    ``ABSORBED:spine``, not ``INERT``.
     """
     # RESOLVED AT CALL TIME. `k: float = SPINE_K` would freeze the constant at
     # import, so setting `levels.SPINE_K` afterwards would change nothing and a
@@ -865,10 +1022,35 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
     k = SPINE_K if k is None else float(k)
     theta_obs = theta_record(target, codes)
     rho_obs = local_record(target, codes)
-    mu_t, c_t, worth_t = _shrunk(theta_obs)
-    mu_r, c_r, _worth_r = _shrunk(rho_obs)
+    # The shrink each route performed, forwarded into the block below. `_shrunk`
+    # cannot return it — its three-tuple is pinned by test_spine and
+    # test_theta_prior — so it fills a dict handed in. See its docstring.
+    theta_shrink: dict = {}
+    rho_shrink: dict = {}
+    mu_t, c_t, worth_t = _shrunk(theta_obs, theta_shrink)
+    mu_r, c_r, _worth_r = _shrunk(rho_obs, rho_shrink)
     if not mu_t and not mu_r:
         return {}, {}
+
+    # ABSORPTION ACCOUNTING (NULL-RESULTS.md 4.3). The blend is the model's
+    # most consequential attractor and had no account of itself: two routes
+    # disagree by |log(local) − log(national)|, and `w` decides how much of
+    # that disagreement survives. `moved_from_national` is the mass the local
+    # route actually won; a change to the national route with
+    # `share_local ≈ 1` is ABSORBED here and is not a null about the world.
+    #
+    # `centre_fallback` counts the OTHER absorber in this function, the one
+    # §1.93 named: `mu_t.get(party, c_t)` hands a party with no retention
+    # record of its own the flat common centre — the size-blind number
+    # `size_centre` exists to replace. MK at 2026 is the case. It is a
+    # fallback-to-neutral, indistinguishable in the output from a party whose
+    # measured retention happens to equal the group's, and it is counted here
+    # so that it stops being.
+    routes = {"blend": 0, "national_only": 0, "local_only": 0, "dropped": 0}
+    blend = {"n": 0, "disagreement": 0.0, "moved_from_national": 0.0,
+             "moved_from_local": 0.0, "at_full_local": 0,
+             "at_full_national": 0, "nonfinite": 0}
+    centre_fallback = {"theta": 0, "rho": 0}
 
     levels: dict[str, float] = {}
     detail: dict[str, dict] = {}
@@ -876,17 +1058,44 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
         national = float(baseline.get(party, 0.0))
         local = float(prev_local.get(party, 0.0))
         worth = float(worth_t.get(party, 0.0))
+        if national > 0 and party not in mu_t:
+            centre_fallback["theta"] += 1
+        if local > 0 and party not in mu_r:
+            centre_fallback["rho"] += 1
         nat_level = national * float(np.exp(mu_t.get(party, c_t))) if national > 0 else 0.0
         loc_level = local * float(np.exp(mu_r.get(party, c_r))) if local > 0 else 0.0
         if national > 0 and local > 0:
             w = k / (worth + k)
-            level = float(np.exp(w * np.log(loc_level) + (1 - w) * np.log(nat_level)))
+            # Hoisted so the accounting below reuses the logs the blend already
+            # took, rather than taking them twice — same values, same warnings.
+            log_loc, log_nat = np.log(loc_level), np.log(nat_level)
+            level = float(np.exp(w * log_loc + (1 - w) * log_nat))
             route = "blend"
+            routes["blend"] += 1
+            gap = abs(float(log_loc) - float(log_nat))
+            if np.isfinite(gap):
+                blend["n"] += 1
+                blend["disagreement"] += gap
+                blend["moved_from_national"] += w * gap
+                blend["moved_from_local"] += (1 - w) * gap
+                if w >= 1.0:
+                    blend["at_full_local"] += 1
+                elif w <= 0.0:
+                    blend["at_full_national"] += 1
+            else:
+                blend["nonfinite"] += 1
         elif national > 0:
             w, level, route = 0.0, nat_level, "national only (first local election)"
+            routes["national_only"] += 1
         elif local > 0:
             w, level, route = 1.0, loc_level, "local only (no national record)"
+            routes["local_only"] += 1
         else:
+            # Present in one of the two inputs at exactly zero, and dropped
+            # entirely — no level, no detail row, no trace. Counted, because a
+            # party that vanishes here reappears downstream as whatever
+            # `blended_centres` finds first.
+            routes["dropped"] += 1
             continue
         levels[party] = level
         detail[party] = {"w_local": w, "worth": worth, "route": route,
@@ -897,6 +1106,16 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
         "n_rho": sum(len(v) for v in rho_obs.values()),
         "theta_centre": float(np.exp(c_t)), "rho_centre": float(np.exp(c_r)),
         "detail": detail,
+        # WHAT THIS FUNCTION ABSORBED, and where. Written, never read.
+        "absorption": {
+            "routes": routes,
+            "blend": dict(blend, share_local=(
+                blend["moved_from_national"] / blend["disagreement"]
+                if blend["disagreement"] > 0 else 0.0)),
+            "centre_fallback": centre_fallback,
+            "theta_shrink": theta_shrink,
+            "rho_shrink": rho_shrink,
+        },
     }
 
 
@@ -908,6 +1127,21 @@ def ward_pr_ratios(target: cityconfig.Target, city: cityconfig.City,
     observed 0.77", ``ENTRANT 0.80``). A party with no ward history gets the
     median of those that have one, which is a rule rather than a per-party
     number and applies to whoever turns up next.
+
+    **THIS FUNCTION DOES NOT ABSORB — IT REPORTS A FALLBACK IT NEVER APPLIES**
+    (NULL-RESULTS.md 4.3). The median, and the ``0.8`` literal behind it, are
+    the SECOND element of the return; every party without a measured ratio is
+    given one by the caller, so the absorption happens at
+    ``montecarlo``'s call site and must be counted there. What happens here is
+    a filter, not a clamp: ``pr[p] > 0`` drops a party that took ward votes and
+    no PR votes, and a party in neither set never appears.
+
+    Two absences ARE decided here and both collapse to the same pair — a
+    missing previous-LGE file and a file with no votes on one ballot both
+    return ``({}, 0.8)``, so the caller cannot tell "not measurable" from
+    "measured at nothing". The literal is unreachable whenever any ratio was
+    computed. There is no seam for a count: the two-tuple is pinned exactly by
+    ``tests/test_ward_pr_ratios.py``, including ``== ({}, 0.8)``.
     """
     year = target.previous_lge
     template = cityconfig.CALENDAR[year].results if year else None
@@ -960,6 +1194,14 @@ def contestation(target: cityconfig.Target, city: cityconfig.City,
     where the model is weakest: Royal Loyal Progress stood in all 135 wards
     and scored in 79, so the old rule called a full slate 59% of a slate, and
     contestation multiplies through to an arrival's size.
+
+    **A missing file returns ``{}``, which the caller cannot tell from "nobody
+    stood"** (NULL-RESULTS.md 4.3). It is not an accident — at a live forecast
+    the target's result file does not exist, and that is what routes
+    ``montecarlo`` to :func:`projected_contestation` — but the branch is taken
+    on an ABSENCE, so a broken path and a live forecast look identical from
+    here. Not counted: the return is a bare dict with no seam, and the caller
+    already separates the two cases by whether the previous LGE's lists exist.
     """
     template = cityconfig.CALENDAR[target.year].results
     path = city.path("raw", "elections", template) if template else None

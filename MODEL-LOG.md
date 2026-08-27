@@ -11986,8 +11986,21 @@ and the sixteen city-years re-measured:
 
 Per city-year, seats / CRPS / `median_sum` are **bit-identical in all sixteen**.
 The only differences anywhere are 26 of 96 (city-year, metric) pairs in `pr_mae`
-and `ward_mae`, every one between **1e-6 and 1e-9** — float summation order, the
-same magnitude §1.46 recorded when `compare_history` went parallel.
+and `ward_mae`, every one between **1e-6 and 1e-9**.
+
+> **CORRECTED 2026-08-27, LATER THE SAME DAY.** The sentence here originally
+> called those differences *"float summation order, the same magnitude §1.46
+> recorded"*. **That was reached for rather than measured, and it is wrong by ten
+> orders of magnitude.** Float-ordering noise in this model was then measured
+> directly — three runs of unmodified HEAD in separate processes under
+> `PYTHONHASHSEED=random` — and it is **3e-16 to 5e-16**, machine epsilon on a
+> double, which is indeed §1.46's phenomenon. The 1e-6 differences are therefore
+> **a real effect of the early stop**: ending the solve at ~10 rounds instead of
+> 40 leaves θ at a genuinely different point, and since the loop never converges
+> there is no fixed point for the two to agree on. Negligible — `pr_mae` is
+> measured in points and the parties concerned hold a median 9.4e-5 of the city —
+> but real, and not noise. The conclusion (F12 is neutral on every scored key) is
+> unaffected; only the explanation was wrong.
 
 ### Where the +4 actually came from
 
@@ -12041,3 +12054,55 @@ this demonstration that it costs nothing anywhere it *can* be scored.
 **The two `test_drawer` goldens may now be re-recorded**, deliberately and with
 this measurement as the reason: they moved 0.02–0.11pp because the 2026 pool
 shares moved, which is the intended effect and the only effect.
+
+## 1.104 The model is not reproducible across processes unless PYTHONHASHSEED is fixed (2026-08-27)
+
+Found while an agent was proving its own instrumentation number-neutral, which is
+the right way for this to surface: it could not get two runs of the **unmodified**
+code to agree until it pinned the hash seed.
+
+**Reproduced on HEAD with every uncommitted change stashed.** One city-year,
+40 draws, seed 20261104, `run_model` called directly:
+
+| | digest of `pr_share_draws` ‖ `ward_share_draws` |
+|---|---|
+| `PYTHONHASHSEED=0`, three runs | `1deae80e…`, `1deae80e…`, `1deae80e…` |
+| `PYTHONHASHSEED=random`, three runs | `4333551f…`, `e5590a26…`, `54dc5fc7…` |
+
+Python randomises `hash()` for `str` per process by default, which reorders
+`set` and `dict` iteration, which reorders a float summation somewhere on the
+path.
+
+**The magnitude is machine epsilon, and that matters as much as the fact.**
+Comparing the arrays rather than their digests: **max 3.1e-16 to 5.0e-16**, mean
+5e-18, across ~92% of cells. Against party shares whose median is 9.4e-5 and
+maximum 0.56. So this is §1.46's phenomenon exactly — *"the MAE columns agreeing
+to 6.7e-15 (float summation order)"* — and nothing more.
+
+### Why it is worth recording anyway
+
+* **`test_the_model_is_reproducible_from_its_seed` runs in ONE process**, so it
+  cannot see this. The claim it appears to make — that the seed determines the
+  answer — holds *within* a process and not *between* them.
+* **`compare_history` fans out to worker processes**, each with its own hash
+  seed. So the sixteen city-years are each computed under a different iteration
+  order, and a re-run reproduces the seat totals but not the last digits.
+* **The freeze is a published artefact.** `forecast_frozen.json` exists so the
+  forecast can be held to account after 4 November, and the honest statement of
+  what it guarantees is *"identical to the last bit under a fixed hash seed;
+  identical to ~1e-16 otherwise"* rather than simply "reproducible".
+
+**The fix is one line and no forecast moves:** set `PYTHONHASHSEED` in the
+runners, or pass it into the worker spawn. Recorded rather than done, because it
+touches files three agents were holding at the time.
+
+### The correction it forced
+
+§1.103 attributed the 1e-6 `pr_mae`/`ward_mae` differences between F12 on and off
+to *"float summation order, the same magnitude §1.46 recorded"*. **Measuring the
+noise floor showed that explanation is wrong by ten orders of magnitude.** Those
+differences are a real, tiny effect of stopping the solve early — which follows
+from F12 itself: a loop that never converges has no fixed point for two stopping
+points to agree on. §1.103 is corrected in place with a banner. The verdict does
+not change; the reasoning did, and "it is probably float noise" was a guess
+dressed as a finding.

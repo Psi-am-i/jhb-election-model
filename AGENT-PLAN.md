@@ -6,6 +6,78 @@ stretch of serial surgery that went badly** (four coupled invariants broken in a
 row inside `pools.py`). The difference between those two experiences is the
 whole content of this document.
 
+## ⭐ THE SPINE: a declaration is a claim, and a read log is the evidence
+
+**This reframes everything below and should be read first.**
+
+The owner, 2026-08-27, on why so many changes produce no visible effect:
+
+> *"In a connected system of adjustments, there should be knock on effects
+> through the system when you change assumptions. To have no change be the
+> normal result IS THE signal to look for."*
+
+and on what it connects to:
+
+> *"everything should declare what it inputs and what it outputs... this is one
+> of the mechanisms that uses that to keep everything trustworthy."*
+
+**He is right, and `ARCHITECTURE.md` already specified the other half without
+anyone connecting the two.** Its four lists are:
+
+| | | status |
+|---|---|---|
+| **A** | every transformation, lever, rule, constant, artefact, with its `reads`/`writes` | a **claim** |
+| **B** | believed live / gated / retired | a **claim** |
+| **C** | **verifiably** exercised | **evidence** |
+| **D** | used **and measured** | **evidence** |
+
+*"A and B are claims; C and D are evidence, and the tests assert the claims
+against the evidence."*
+
+**The null-results work IS the C and D layer.** A unit declaring `reads: ("x",)`
+is a claim that it reads `x`. A run that records *which values were actually
+consulted, and at what value* is the proof. Without C, a declaration is a comment
+that cannot be wrong; with it, `A ≠ C` is a hard failure — either the code stopped
+reading what it says it reads, or it never did.
+
+**And this is why the bus matters after all.** `bus.read(name)` with no
+`default=` makes the silent fallback unwritable — that closes cause **A**
+(undelivered) *structurally* rather than by detection. Phase B was deprioritised
+on the grounds that Phase A had already found the defects. That was wrong: Phase A
+found the ones that had *already bitten*. The bus plus the read log is what stops
+the next class arriving.
+
+### It must span EVERY class of variable, not one
+
+The existing liveness test covers `DEFAULTS` scenario keys **only**, which is
+exactly why 42 of 48 B2 constants slipped past it. The delivery proof must cover
+all of these, and the inventory of them is itself a task:
+
+| class | example | how it is currently missed |
+|---|---|---|
+| scenario keys (`DEFAULTS`) | `poll_credence` | covered today |
+| **module constants** | `montecarlo.LEVEL_DF`, `polling.SIGMA_COMMON` | not in `DEFAULTS`, never swept |
+| **precomputed artefacts** | `pools_*.json`, the 20 `turnout.csv` | reach the model without any key at all |
+| **function default arguments** | `level_floor=None` | CLASS 13; found four times |
+| **derived intermediates** | `scenario["_ward_pr_measured"]` | written, never read — nothing noticed |
+| **config / TOML** | `config/dimensions.toml`, city tomls | only the artefact hash sees them |
+| **inline literals** | the arrival comparator's `0.25` window | not promotable without an edit |
+
+**A read log keyed on `note_constant` calls covers only what somebody remembered
+to instrument, which is the same failure one level up.** The inventory must be
+*generated* from the source, the way `ARCHITECTURE.md` insists A and B are
+generated, not hand-listed.
+
+### The four causes of a null, restated as the acceptance rule
+
+`UNDELIVERED` / `ABSORBED:<stage>` / `CANCELLED:<parameter>` / `INERT`. **Only
+`INERT` is a result.** A flat sweep without a delivery proof is **VOID, not
+NULL** — see `NULL-RESULTS.md` for the full argument, the evidence that all four
+are live today, and the demonstration that geography reaches the seat score only
+through overhang triggers.
+
+---
+
 ## The constraint that shapes everything: CPU, not agents
 
 This machine has **8 cores**, and one `compare_history` at 1500 draws saturates

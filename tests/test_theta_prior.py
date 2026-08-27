@@ -751,7 +751,14 @@ def test_the_groups_block_is_a_diagnostic_and_is_not_a_partition_of_parties():
         priors, groups = levels.theta_prior(TARGET_UNUSED, baseline)
     assert len(calls) == 1
 
-    assert set(groups) == {"centre", "spread", "worth", "sd"}, (
+    # `absorption` ADDED 2026-08-27 and pinned here deliberately. It is the
+    # absorption accounting from NULL-RESULTS.md §4.3 — how much the shrinkage,
+    # the SD clamps and the pooled fallback each SWALLOWED — and it exists
+    # because "no change" was being reported without anyone able to say which
+    # stage ate the change. It is a diagnostic like the other four and no
+    # arithmetic reads it; if that ever stops being true this assertion is the
+    # place it will be noticed.
+    assert set(groups) == {"centre", "spread", "worth", "sd", "absorption"}, (
         f"the diagnostic block's keys are now {sorted(groups)}. Every caller "
         f"reads it with `.get(name, <default>)`, so an added or renamed key is "
         f"invisible until someone notices a typed default in the output — "
