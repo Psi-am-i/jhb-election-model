@@ -28,16 +28,30 @@ right answer is a property rather than a number — ``level``'s final council
 size is a function of the search path, not of any statute — the property is
 asserted and the docstring says so.
 
-THREE DEFECTS ARE DOCUMENTED HERE RATHER THAN FIXED, per the phase-A rule that
-this pass adds tests and changes no source:
+FOUR DEFECTS WERE DOCUMENTED HERE RATHER THAN FIXED, per the phase-A rule that
+that pass added tests and changed no source. **All four were fixed on
+2026-08-28 (§1.97 F39, F40, F41, F42, F43, F44) and the tests that pinned them
+are RE-RECORDED, each saying so in its own docstring** — not deleted, because
+the reproduction is the record of what the defect was:
 
-* an unrecognised rule string silently applies ``expand``
-  (``test_an_unrecognised_rule_string_silently_applies_expand``);
-* the signature default is ``"expand"`` while the docstring says
-  ``deduct`` (``test_no_call_site_relies_on_the_signature_default``);
-* ``level`` is unbounded and dies inside ``seats.allocate`` rather than
-  terminating when a ward winner's votes cannot fill the council it demands
-  (``test_level_raises_instead_of_terminating_when_the_council_outgrows_the_votes``).
+* an unrecognised rule string silently applied ``expand``; it now raises, and
+  the whitelist is ``OVERHANG_RULES``
+  (``test_an_unrecognised_rule_string_raises_instead_of_running_another_law``);
+* the signature default was ``"expand"`` while the docstring and ``DEFAULTS``
+  said ``deduct``; it is now ``deduct``, which is number-neutral because both
+  call sites pass the rule explicitly — asserted from the AST in
+  (``test_no_call_site_relies_on_the_signature_default``);
+* ``level`` was unbounded and died inside ``seats.allocate``; it is now bounded
+  on ROUNDS and re-raises naming the rule that demanded the council
+  (``test_level_raises_instead_of_terminating_when_the_council_outgrows_the_votes``);
+* a ward winner absent from ``combined`` was reported excessive and seated
+  nowhere under ``deduct``, seated twice under ``expand``, and could not
+  terminate under ``level``; all three now refuse
+  (``test_a_ward_winner_absent_from_the_combined_vote_is_refused``).
+
+The last of those is the CONSERVATIVE half of its fix. Taking a no-PR-list ward
+winner's seats out of the pool — the Schedule 1 ``D`` term, which
+``validate_seats`` already does — changes the quota and is a scored change.
 
 Run:
     ./.venv/bin/python tests/test_overhang.py
@@ -602,36 +616,54 @@ def test_no_overhang_means_the_plain_entitlement_under_every_rule():
 
 
 # --------------------------------------------------------------------------
-# three defects, documented here and NOT fixed (phase A adds tests only)
+# four defects, pinned by phase A and FIXED 2026-08-28; tests re-recorded
 # --------------------------------------------------------------------------
 
-def test_an_unrecognised_rule_string_silently_applies_expand():
-    """DEFECT, pinned as it behaves. A typo changes the law and says nothing.
+def test_an_unrecognised_rule_string_raises_instead_of_running_another_law():
+    """RE-RECORDED 2026-08-28, deliberately. The defect below is FIXED.
 
-    The function branches on ``rule`` with no ``else`` and no membership check:
-    ``cap`` and an empty ``over`` return early, ``level`` and ``deduct`` return
-    from their own blocks, and **everything else falls through to the expand
-    block at the bottom**. So ``rule="dedcut"`` does not raise — it grows the
-    council and moves the majority threshold.
+    This test used to be `..._silently_applies_expand` and asserted the defect
+    as it behaved: the function branched on ``rule`` with no ``else``, so
+    ``rule="dedcut"`` fell through to the expand block, grew the council and
+    moved the majority threshold without a word. Its own note said *"the fix is
+    a membership check that raises; when it lands, this test should be
+    rewritten to assert the raise, deliberately and with a note, not deleted."*
+    That is what this is (§1.97 F39).
 
-    Nothing upstream catches it either: ``montecarlo.parse_set`` validates that
-    a ``--set`` KEY exists in ``DEFAULTS`` and never looks at the value, and
-    ``apply_city`` copies city-config scalars in the same way. So
-    ``--set overhang_rule=expend`` runs the pre-research counterfactual under
-    the name of the statute, and the only visible symptom is a council that is
-    not 270 — in a summary that reports the council it was given.
+    Nothing upstream catches a bad value even now: ``montecarlo.parse_set``
+    validates that a ``--set`` KEY exists in ``DEFAULTS`` and never looks at the
+    value, and ``apply_city`` copies city-config scalars the same way. So this
+    raise is the only thing standing between ``--set overhang_rule=expend`` and
+    a run of the pre-research counterfactual under the name of the statute.
 
-    This test asserts the CURRENT behaviour so the defect is on the record with
-    a reproduction. The fix is a membership check that raises; when it lands,
-    this test should be rewritten to assert the raise, deliberately and with a
-    note, not deleted.
+    The whitelist MUST contain ``level``. It is implemented here, exercised by
+    ``src/overhang_regimes.py`` and printed on the forecast sheet's regime
+    table, while the docstring listed only deduct/expand/cap until the same
+    commit — so a whitelist built from what the docstring documented would have
+    raised on a rule the model actually runs.
     """
-    bogus = call(CASCADE_VOTES, CASCADE_WINS, CASCADE_COUNCIL, "dedcut")
-    expanded = call(CASCADE_VOTES, CASCADE_WINS, CASCADE_COUNCIL, "expand")
-    assert bogus == expanded, (
-        "an unrecognised rule is expected (wrongly) to behave as expand")
-    assert bogus[1] == 19 != CASCADE_COUNCIL, (
-        "and the damage is visible: a misspelt 'deduct' grew the council")
+    for typo in ("dedcut", "expend", "", "DEDUCT", "level "):
+        try:
+            call(CASCADE_VOTES, CASCADE_WINS, CASCADE_COUNCIL, typo)
+        except ValueError as exc:
+            assert "unknown overhang_rule" in str(exc), exc
+            assert all(r in str(exc) for r in M.OVERHANG_RULES), (
+                f"the error must name every accepted rule so the reader can "
+                f"see what was expected: {exc}")
+        else:
+            raise AssertionError(
+                f"rule={typo!r} did not raise. An unrecognised rule silently "
+                f"running a different allocation is §1.97 F39, and this is the "
+                f"test that was written to stop it coming back.")
+
+    assert M.OVERHANG_RULES == ("deduct", "expand", "cap", "level"), (
+        f"the accepted rules changed: {M.OVERHANG_RULES}. Every one must be "
+        f"implemented in allocate_with_overhang and listed in its docstring; "
+        f"`level` in particular is run for real by src/overhang_regimes.py.")
+    for rule in M.OVERHANG_RULES:
+        assert rule in M.allocate_with_overhang.__doc__, (
+            f"{rule!r} is accepted but not documented in the docstring — which "
+            f"is how `level` came to be missing from it (§1.97 F43).")
 
 
 def test_no_call_site_relies_on_the_signature_default():
@@ -655,7 +687,7 @@ def test_no_call_site_relies_on_the_signature_default():
     """
     assert M.DEFAULTS["overhang_rule"] == "deduct", (
         "the statute, adopted as the default in MODEL-LOG §1.17")
-    assert M.allocate_with_overhang.__defaults__ == ("expand",), (
+    assert M.allocate_with_overhang.__defaults__ == ("deduct",), (
         "if this has changed, the signature default was edited — re-read the "
         "docstring and this test together rather than just re-recording it")
 
@@ -680,74 +712,90 @@ def test_no_call_site_relies_on_the_signature_default():
 
 
 def test_level_raises_instead_of_terminating_when_the_council_outgrows_the_votes():
-    """DEFECT, pinned as it behaves. ``level``'s loop has no bound and no exit.
+    """RE-RECORDED 2026-08-28. The loop is bounded and the rule names itself.
 
-    ``level`` grows the council by the current deficit until every ward winner
-    is covered. Nothing bounds that. On CASCADE, A holds 4 of 7 wards on 2.6%
-    of the vote, so covering it needs a council of roughly 4 / 0.0264 ≈ 150 —
-    and long before that the council is large relative to the vote total,
-    ``seats.allocate``'s largest-remainder shortfall exceeds the number of
-    parties, and it raises
+    This test used to assert the defect as it behaved: ``level``'s
+    ``while True`` had no bound and no exit, and on CASCADE — where A holds 4 of
+    7 wards on 2.6% of the vote, needing a council of roughly 150 from a base of
+    15 — it died on ``seats.allocate``'s largest-remainder shortfall from inside
+    a per-draw Monte Carlo. Its note said the exception *"names the allocator,
+    not the rule that demanded the council, so the report points at the wrong
+    place"*, and asked for *"a cap on the growth with a named failure, not a
+    wider except"*. Both landed (§1.97 F41, F44).
 
-        ValueError: largest-remainder shortfall 5 exceeds party count 4
-                    — vote totals too small for this council size
+    **The bound is on ROUNDS, not on council size, and the first attempt got
+    that wrong.** A cap of 4x COUNCIL was taken from the largest council a real
+    regime run has produced (396 against a 270 base) and it fired immediately on
+    this 15-seat fixture, where growing to ~150 is legitimate. A magnitude read
+    off the real panel does not transfer to a toy — §1.105 in reverse. Rounds
+    carry no such assumption.
 
-    from inside a loop whose caller is a per-draw Monte Carlo. The exception
-    names the allocator, not the rule that demanded the council, so the report
-    points at the wrong place.
-
-    Two things make this survivable today rather than harmless: ``deduct`` is
-    the default, and a real metro has ~75 parties and ~1.8M votes, where the
-    shortfall stays far below the party count. ``level`` is nonetheless run for
-    real by ``src/overhang_regimes.py`` to build the regime table on the
-    forecast sheet. The honest fix is a cap on the growth with a named failure,
-    not a wider ``except``.
+    So CASCADE still fails, and that is correct: the input genuinely cannot be
+    levelled. What changed is that the failure now says which rule demanded the
+    council, and keeps the allocator's own words for what actually broke.
     """
     try:
         call(CASCADE_VOTES, CASCADE_WINS, CASCADE_COUNCIL, "level")
-    except ValueError as exc:
-        assert "largest-remainder shortfall" in str(exc), exc
+    except RuntimeError as exc:
+        assert "`level` rule" in str(exc), (
+            f"the failure must name the RULE, which is the whole point of the "
+            f"re-raise: {exc}")
+        assert "largest-remainder shortfall" in str(exc), (
+            f"and must keep the allocator's own words for what broke: {exc}")
+        assert isinstance(exc.__cause__, ValueError), (
+            "the allocator's exception must be chained, not swallowed")
     else:
         raise AssertionError(
-            "level no longer dies on this council — if it was given a bound, "
-            "rewrite this test to assert the bound and say so here")
+            "level no longer fails on CASCADE. A party holding 4 of 7 wards on "
+            "2.6% of the vote cannot be levelled into a council the votes can "
+            "fill, so if this now returns, either the fixture or `allocate` "
+            "changed — read both before re-recording.")
 
 
-def test_a_ward_winner_absent_from_the_combined_vote_is_seated_nowhere_under_deduct():
-    """DEFECT, latent. ``over`` names a party that ``deduct`` then never seats.
+def test_a_ward_winner_absent_from_the_combined_vote_is_refused():
+    """RE-RECORDED 2026-08-28. The latent defect is now a named refusal.
 
-    The trigger is computed over ``ward_wins``, but the ``deduct`` loop only
-    ever considers parties present in ``combined`` (``for p in list(votes)``).
-    A ward winner missing from ``combined`` is therefore reported as excessive
-    and given **no seats at all** — it does not appear in the returned dict —
-    while ``expand`` hands it its full ward count and ``level`` cannot
-    terminate at all, because its deficit can never be closed.
+    This test used to be `..._is_seated_nowhere_under_deduct` and pinned the
+    divergence: the trigger is computed over ``ward_wins`` while the ``deduct``
+    loop only considers parties present in ``combined``, so a ward winner
+    missing from ``combined`` was reported excessive and given **no seats at
+    all** — while ``expand`` handed it its full ward count and ``level`` could
+    not terminate, its deficit never closing. Three rules, three answers, and
+    the council still summed, so nothing downstream could notice (§1.97 F42).
 
-    ``montecarlo.run_model`` is safe: its universe excludes independents and a
-    ward winner always has a positive ward tally, so it is always in
-    ``combined``. ``benchmarks.council_from_shares`` is not obviously safe: it
-    builds ``combined`` with ``seats.eligible_parties``, which drops any party
-    with no PR votes, while its ``wins`` are taken unfiltered from the ward
-    argmax. A party that contests wards with no PR list is exactly the
-    Schedule 1 ``D`` term, and the right treatment is to take its ward seats
-    out of the pool — not to report it excessive and seat it nowhere.
+    All three now refuse at the top of the function, before any allocation.
 
-    Pinned as it behaves, so the divergence between the rules is on the record.
+    **The refusal is the conservative half of the fix, not the whole one.**
+    ``montecarlo.run_model`` is safe — its universe excludes independents and a
+    ward winner always has a positive ward tally. ``benchmarks.council_from_
+    shares`` is not obviously safe: it builds ``combined`` with
+    ``seats.eligible_parties``, which drops a party with no PR votes, while its
+    ``wins`` come unfiltered from the ward argmax. A party contesting wards with
+    no PR list is exactly the Schedule 1 ``D`` term, and the RIGHT treatment is
+    to take its ward seats out of the pool the way ``validate_seats`` already
+    does — which changes the quota and is therefore a scored change. Refusing is
+    what can be done today without one; it converts a silent wrong answer into a
+    loud stop.
     """
     ghost_wins = {"Z": 2, "C": 1}
-    deducted, council, _t, over = call(
-        MILD_VOTES, ghost_wins, MILD_COUNCIL, "deduct")
-    assert over == {"Z": 2}, over
-    assert "Z" not in deducted, (
-        f"Z is reported excessive and seated nowhere: {deducted}")
-    assert sum(deducted.values()) == council == MILD_COUNCIL, (
-        "the council still sums, so nothing downstream can notice")
+    for rule in M.OVERHANG_RULES:
+        try:
+            call(MILD_VOTES, ghost_wins, MILD_COUNCIL, rule)
+        except ValueError as exc:
+            assert "absent from the combined-ballot tally" in str(exc), exc
+            assert "'Z'" in str(exc) or '"Z"' in str(exc), (
+                f"the refusal must NAME the party, or the reader cannot act "
+                f"on it: {exc}")
+        else:
+            raise AssertionError(
+                f"rule={rule!r} accepted a ward winner with no combined-ballot "
+                f"votes. Under `deduct` that party is reported excessive and "
+                f"seated nowhere while the council still sums — §1.97 F42.")
 
-    expanded, ex_council, _t2, _o2 = call(
-        MILD_VOTES, ghost_wins, MILD_COUNCIL, "expand")
-    assert expanded["Z"] == 2 and ex_council == 12, (
-        "expand seats the same party twice over, which is the other half of "
-        "the inconsistency")
+    # A ward winner that IS in `combined` must still be allowed through, or the
+    # guard has stopped the ordinary case as well.
+    seats, council, _t, over = call(MILD_VOTES, {"C": 1}, MILD_COUNCIL, "deduct")
+    assert sum(seats.values()) == council == MILD_COUNCIL, (seats, council)
 
 
 if __name__ == "__main__":

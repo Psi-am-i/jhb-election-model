@@ -12729,3 +12729,178 @@ the worse fix). **The mechanism was verified from the source every time and the
 magnitude was never measured until someone asked for evidence.**
 [[fixture-proves-mechanism-not-magnitude]] again, and `ITERATING.md`'s rule that
 a tidier model is not a better one.
+
+## 1.111 The overhang cluster fixed as one change, and a bound taken from the real panel that fired on a toy (2026-08-28)
+
+Six of §1.97's findings in `allocate_with_overhang`, landed together because
+§1.109 established they cannot be split: **F39, F40, F41, F42, F43, F44.** All
+number-neutral, verified by the suite rather than by a backtest.
+
+### They are one change because splitting two of them ships a worse bug
+
+**F39+F43.** The whitelist and the docstring's rule list must be the same four
+names, **and `level` was in neither**. It is implemented, it is run for real by
+`src/overhang_regimes.py`, and it appears on the forecast sheet's regime table —
+while the docstring listed only deduct/expand/cap and mentioned `level` in an
+inline comment. **A repairer who whitelisted what the docstring documented would
+have shipped a check that raises on a rule the model actually runs.** The
+docstring's list is now asserted against `OVERHANG_RULES` by the test.
+
+**F40.** The signature default was `"expand"` while the docstring, `DEFAULTS`
+and the statute all said `deduct`, so a two-argument call written from the prose
+got the legacy counterfactual. Now `deduct`. Number-neutral because both
+production call sites pass `rule` explicitly — which the existing AST test
+asserts, and which is why that test was worth having before the change.
+
+**F41+F44.** Neither `while True:` had a bound. A termination defect therefore
+wedged a forty-minute suite as a **hang**, which reads as slowness rather than
+as a failure.
+
+**F42.** A ward winner absent from `combined` was reported excessive and then
+seated nowhere under `deduct`, seated twice under `expand`, and could not
+terminate at all under `level` — three rules, three answers, **and the council
+still summed, so nothing downstream could notice.** All three now refuse, naming
+the party.
+
+### ⛔ The bound I chose first was wrong, and the way it was wrong is the finding
+
+`level` grows the council by the current deficit each round. I bounded it at
+**4 × COUNCIL**, taken from the largest council a real regime run has produced —
+396 against a 270 base, from `regime_level_seat_draws.csv`.
+
+**It fired immediately on a 15-seat test fixture**, where a party holding 4 of 7
+wards on 2.6% of the vote legitimately needs a council of roughly 150. The bound
+was not too tight for the panel; it was **meaningless off the panel**, because
+`4 ×` encodes an assumption about how large councils are relative to their base
+that a toy does not share.
+
+**This is §1.105's lesson running the other way.** That entry says a magnitude
+measured on a toy does not survive the panel. This says **a magnitude measured
+on the panel does not survive a toy** — and a bound is exactly the kind of
+constant that meets both.
+
+The fix is to bound the quantity that carries no such assumption: **rounds, not
+council size.** Each round adds at least one seat and a converging case takes a
+handful, so `OVERHANG_LEVEL_MAX_ROUNDS = 200` is far above any real path and
+says nothing about how big a council may be. Both bounds are registered in
+`JUDGEMENT-CALLS.md`; the `deduct` one is 🟢 derived (the loop cannot outlast
+the parties), the `level` one 🟡 with the reasoning above.
+
+### The rule now names itself
+
+The old `level` failure came out of `seats.allocate` as *"largest-remainder
+shortfall 5 exceeds party count 4"* — from inside a per-draw Monte Carlo, naming
+the **allocator** rather than the rule that demanded the council. The phase-A
+test's own note made that the complaint. `level` now catches it and re-raises
+with the rule, the base council, the council it had grown to, and the
+allocator's own words chained beneath.
+
+### Four re-recorded tests, each saying so
+
+`test_an_unrecognised_rule_string_silently_applies_expand` →
+`..._raises_instead_of_running_another_law`; the level test; the ghost-ward-winner
+test; and the signature-default assertion. **Re-recorded, not deleted** — the
+reproduction is the record of what the defect was, and the phase-A test that
+pinned F39 had explicitly asked for exactly this: *"when it lands, this test
+should be rewritten to assert the raise, deliberately and with a note."*
+
+### F42's fix is the conservative half
+
+Refusing converts a silent wrong answer into a loud stop. **The right treatment
+is to take a no-PR-list ward winner's seats out of the pool** — the Schedule 1
+`D` term, which `validate_seats.py` already does — and that changes the quota,
+so it is a scored change and is not made here. `benchmarks.council_from_shares`
+is the call site that could reach it: it builds `combined` with
+`seats.eligible_parties`, which drops a party with no PR votes, while its wins
+come unfiltered from the ward argmax.
+
+## 1.112 F13: logit's ceiling now honours its own argument, and the panel says it never mattered (2026-08-28)
+
+`logit(p, floor)` clipped to `[floor, 1 - SHARE_FLOOR]` — the argument moved one
+end of the interval and not the other, so `logit(p, floor=1e-6)` clipped
+asymmetrically at `[1e-6, 0.998]`.
+
+**Number-neutral, and measured rather than assumed.** Instrumented across all
+sixteen backtest city-years: the largest value ever passed to `logit` is
+**0.983** (ethekwini 2016; Johannesburg's worst is 0.932), against a ceiling of
+0.998, and the count of cells above that ceiling is **zero**. Neither form of
+the clip binds at the top on any input this model has. The claim in §1.98 that
+F13 is neutral is therefore confirmed with a number rather than inherited.
+
+### Two copies are deliberately NOT changed, and that is a divergence on the record
+
+`fold.logit` (`fold.py`) and the JS engine (`interactive_template.html:566`,
+`p=Math.min(Math.max(p,f),1-FLOOR)`) carry the identical asymmetry.
+
+* **`fold.logit` feeds precomputed artefacts** — `fold{N}_parameters.csv`,
+  `gamma_recent.csv`. Changing it is inert until those are regenerated and then
+  is not, and its inputs include VD-level shares, where the 0.998 ceiling is far
+  more reachable than it is on the citywide quantities `montecarlo.logit` sees.
+  That is a change that needs its own measurement, not a passing edit.
+* **The JS is certified against Python by a standing audit** —
+  `audits/model-audit-2026-08-06-second-round.md` states *"Level floor
+  `logit(x,1e-6)` matches the adopted `level_floor=1e-6`; dev-deviation floor
+  0.002 matches SHARE_FLOOR."* A one-sided change falsifies an audit claim.
+
+All three are unreachable at the top end, so the divergence costs nothing today.
+It is written down because the alternative is that somebody finds it later and
+cannot tell a deliberate difference from a missed one — which is the whole
+argument of `NULL-RESULTS.md` applied to two implementations of one function.
+
+## 1.113 §1.110 was threshold-dependent and its conclusion inverts on the parties that hold seats (2026-08-28)
+
+§1.110 closed F46 on a single measurement — 45 observations, parties above 0.5%
+on both ballots — and concluded the proportional conversion was worse (RMSE
+1.237pp against 1.052pp) and should not be made. **That conclusion was an
+artefact of the threshold, and it was found by stress-testing it rather than by
+anything going wrong.**
+
+Sweeping the minimum base, same 2016 → 2021 transition across the eight metros:
+
+| min base on both ballots | n | additive (shipped) | proportional | better |
+|---|---|---|---|---|
+| 0.05% | 103 | **0.720pp** | 0.854pp | additive |
+| 0.1% | 87 | **0.783pp** | 0.928pp | additive |
+| 0.2% | 72 | **0.859pp** | 1.011pp | additive |
+| 0.5% | 45 | **1.052pp** | 1.237pp | additive ← §1.110 stopped here |
+| **1%** | 34 | 1.096pp | **0.910pp** | **proportional** |
+| **2%** | 26 | 1.249pp | **1.032pp** | **proportional** |
+| **5%** | 22 | 1.347pp | **1.107pp** | **proportional** |
+
+Weighted by 2016 PR size — which is the weighting that matters, because seats
+follow the large parties — **proportional 1.398pp against additive 1.677pp.**
+
+### Why it inverts, and the mechanism is the useful part
+
+The ratio is `ward_share / pr_share`. For a party at 0.1% those are two small,
+noisy numbers, so their quotient is noisy, and **dividing the delta by a noisy
+ratio amplifies noise faster than it removes bias.** Above about 1% the ratio is
+well estimated and the proportional relationship is the better description.
+
+So both halves of the sweep are real and they are not in conflict: **the ratio
+conversion is right where the ratio can be measured, and wrong where it cannot.**
+
+### What this changes
+
+**§1.110's disposition is withdrawn.** F46 is not `INERT`; it is a small
+improvement available on exactly the population the model already trusts for
+this quantity. `ward_pr_ratios` restricts its own median to parties above
+`pc > 0.001` and clips the result to `[WARD_PR_RATIO_MIN, WARD_PR_RATIO_MAX]` =
+`[0.5, 2.0]` — the same threshold shape this sweep independently arrives at.
+
+The magnitude is unchanged and still small: total absolute movement of the 2026
+centres **0.30pp**, largest party the DA at **−0.19pp**, four of nine parties
+absorbed by the by-election clamp entirely.
+
+**The comment written at the site in §1.110 — "DO NOT 'FIX' THIS WITHOUT
+RE-MEASURING. The tidy version scores worse." — is now itself wrong and is
+corrected in the same commit.** It was written from one threshold.
+
+### The pattern, stated plainly because this is the fifth time in two days
+
+Every previous F46 claim was a mechanism read correctly out of the source with a
+magnitude that was never measured. **This one was measured — and measured once,
+at one threshold, with no check that the threshold was not doing the work.** A
+single measurement is not a robust one, and "I measured it" became the same kind
+of unearned confidence that "it is obviously wrong" was three entries ago. The
+sweep cost one script and inverted the answer.

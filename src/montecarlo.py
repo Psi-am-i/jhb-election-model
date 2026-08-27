@@ -355,8 +355,29 @@ _PRISTINE_DEFAULTS = copy.deepcopy(DEFAULTS)
 
 def logit(p, floor=None):
     # Resolved at call time; see `log_shock` and MODEL-LOG §1.33.
+    #
+    # THE CEILING HONOURS `floor` SINCE 2026-08-28 (§1.97 F13). It was
+    # `1 - SHARE_FLOOR` whatever was passed, so `logit(p, floor=1e-6)` clipped
+    # asymmetrically at [1e-6, 0.998] — the argument moved one end of the
+    # interval and not the other.
+    #
+    # NUMBER-NEUTRAL, MEASURED RATHER THAN ASSUMED: instrumented across all
+    # sixteen backtest city-years, the largest value ever passed here is
+    # **0.983** (ethekwini 2016; joburg's worst is 0.932) against a ceiling of
+    # 0.998, and the count of cells above that ceiling is **zero**. Neither
+    # form of the clip binds at the top on any input this model has.
+    #
+    # `fold.logit` and the JS engine in `interactive_template.html` carry the
+    # SAME asymmetry and are deliberately NOT changed here. `fold.logit` feeds
+    # precomputed artefacts (`fold{N}_parameters.csv`, `gamma_recent.csv`), so
+    # changing it is inert until those are regenerated and then is not; and
+    # `audits/model-audit-2026-08-06-second-round.md` certifies the JS and
+    # Python floors as matching, so a one-sided change there would falsify a
+    # standing audit. All three are unreachable at the top end, so the
+    # divergence costs nothing today — but it is a divergence, and it is
+    # recorded rather than left to be discovered.
     floor = SHARE_FLOOR if floor is None else floor
-    p = np.clip(p, floor, 1 - SHARE_FLOOR)
+    p = np.clip(p, floor, 1 - floor)
     return np.log(p / (1 - p))
 
 
@@ -1853,16 +1874,29 @@ def blended_centres(
                 # ballot, so the mismatch enters only through how the ballots
                 # move relative to each other.
                 #
-                # Tested on 45 party x metro observations across the eight
-                # metros, 2016 -> 2021, where both movements are known:
-                # additive (this line) gives RMSE 1.052pp; converting the delta
-                # by the party's ward/PR ratio gives 1.237pp and is closer on
-                # 24 of 45, a coin flip. The ratio's median is 0.992 with an
-                # IQR of 0.957-1.023, so dividing by it adds noise around a
-                # quantity that is almost always 1.
+                # Tested on the 2016 -> 2021 transition across the eight
+                # metros, where both movements are known. THE ANSWER DEPENDS ON
+                # PARTY SIZE and §1.110 got it wrong by measuring at one
+                # threshold (§1.113 corrects it):
                 #
-                # DO NOT "FIX" THIS WITHOUT RE-MEASURING. The tidy version
-                # scores worse.
+                #   base >= 0.5%   n=45   additive 1.052pp   proportional 1.237
+                #   base >= 1%     n=34   additive 1.096pp   proportional 0.910
+                #   base >= 5%     n=22   additive 1.347pp   proportional 1.107
+                #   weighted by size      additive 1.677pp   proportional 1.398
+                #
+                # The ratio is ward_share/pr_share; for a party at 0.1% that is
+                # a quotient of two noisy numbers, so dividing by it amplifies
+                # noise faster than it removes bias. Above ~1% the ratio is well
+                # estimated and proportional is the better description — which
+                # is the same threshold shape `ward_pr_ratios` already uses
+                # (pc > 0.001, clipped to WARD_PR_RATIO_MIN/MAX).
+                #
+                # SO THIS LINE IS WRONG FOR THE PARTIES THAT HOLD SEATS, and
+                # right for the tail. The correction is worth ~0.30pp across all
+                # 2026 centres (DA -0.19pp, four of nine parties absorbed by the
+                # clamp below), and it is NOT made here pending the owner's call
+                # on whether a 0.2pp change to the published forecast is wanted
+                # now. §1.109, §1.110, §1.113.
                 implied = prior_pr_share.get(party, 0.0) + delta
                 if party in prior:
                     low, high = prior[party][0], prior[party][2]
@@ -2668,12 +2702,17 @@ OVERHANG_RULES = ("deduct", "expand", "cap", "level")
 #
 # `deduct` fixes at least one party per round and never un-fixes, so it cannot
 # run longer than there are parties; +2 is slack for the final no-op round.
-# `level` grows the council monotonically; 4x is far above the largest council
-# any regime run has produced (396 in data/processed/regime_level_seat_draws.csv
-# against a 270 base). Both are deliberately loose: they are a backstop against
-# non-termination, not a constraint on the arithmetic.
+#
+# `level` is bounded on ROUNDS, not on council size, and the first attempt at
+# this got it wrong in a way worth recording: a bound of 4x COUNCIL was taken
+# from the largest council a real regime run has produced (396 against a 270
+# base) and it fired immediately on a 15-seat test fixture, where covering a
+# party holding 4 of 7 wards on 2.6% of the vote legitimately needs ~150 seats.
+# **A magnitude read off the real panel does not transfer to a toy** — the same
+# error as §1.105, in reverse. Rounds carry no such assumption: each round adds
+# at least one seat and a converging case takes a handful.
 OVERHANG_DEDUCT_MAX_ROUNDS_SLACK = 2
-OVERHANG_LEVEL_MAX_COUNCIL_MULTIPLE = 4
+OVERHANG_LEVEL_MAX_ROUNDS = 200
 
 
 def allocate_with_overhang(
@@ -2743,25 +2782,46 @@ def allocate_with_overhang(
         # until every ward winner's seats are covered by its proportional
         # share — nobody is squeezed, the chamber pays instead
         total = COUNCIL
-        ceiling = COUNCIL * OVERHANG_LEVEL_MAX_COUNCIL_MULTIPLE
-        while total <= ceiling:
-            sub = allocate(combined, total_seats=total)
+        for _round in range(OVERHANG_LEVEL_MAX_ROUNDS):
+            try:
+                sub = allocate(combined, total_seats=total)
+            except ValueError as exc:
+                # THE RULE NAMES ITSELF. `allocate` fails when the council has
+                # grown large against the vote total, and its message names the
+                # allocator — so the report pointed at the arithmetic instead of
+                # at the rule that demanded the council. That misdirection is
+                # the complaint in §1.97 F41 and it is what this re-raise fixes;
+                # the allocator's own words are kept because they say what
+                # actually broke.
+                raise RuntimeError(
+                    f"the `level` rule grew the council from {COUNCIL} to "
+                    f"{total} seats covering ward winners, and the allocation "
+                    f"then failed: {exc}\n"
+                    f"\n"
+                    f"  `level` grows the chamber by the current deficit each "
+                    f"round (Ausgleichsmandate). A party holding many wards on "
+                    f"a small vote share demands a council far larger than the "
+                    f"votes can fill, and largest-remainder gives out before it "
+                    f"gets there. This is a property of the INPUT under this "
+                    f"rule, not a defect in `allocate`. MODEL-LOG §1.97 F41."
+                ) from exc
             deficit = sum(max(0, w - sub.seats.get(p, 0))
                           for p, w in ward_wins.items())
             if deficit == 0:
                 return dict(sub.seats), total, total // 2 + 1, over
             total += deficit
         raise RuntimeError(
-            f"the `level` rule did not converge: the council grew past "
-            f"{ceiling} seats from a base of {COUNCIL} without covering every "
-            f"ward winner.\n"
+            f"the `level` rule did not converge in "
+            f"{OVERHANG_LEVEL_MAX_ROUNDS} rounds; the council reached {total} "
+            f"from a base of {COUNCIL} and a ward winner is still short.\n"
             f"\n"
-            f"  Growing the chamber can only fail to close the deficit if a "
-            f"ward winner is absent from `combined` — which the guard at the "
-            f"top of this function now refuses — or if `allocate` is not "
-            f"monotone in `total_seats`. Before this bound existed the loop "
-            f"simply never returned, and a hang in a forty-minute suite reads "
-            f"as slowness rather than as a failure. MODEL-LOG §1.97 F41, F44.")
+            f"  Each round adds at least one seat and a converging case takes a "
+            f"handful, so this means the deficit is not closing — `allocate` is "
+            f"not monotone in `total_seats`, or a ward winner is absent from "
+            f"`combined`, which the guard at the top of this function refuses. "
+            f"Before this bound existed the loop simply never returned, and a "
+            f"hang in a forty-minute suite reads as slowness rather than as a "
+            f"failure. MODEL-LOG §1.97 F41, F44.")
     if rule == "deduct":
         fixed: dict[str, int] = {}
         votes = dict(combined)
