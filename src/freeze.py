@@ -96,6 +96,14 @@ ENV_SWITCHES = (
     "EXCLUDE_DEMARCATION_CROSSING",
     "THETA_WINDOW",
     "CITY_SLUG",
+    # The seventh switch, added 2026-08-27, and the comment above is exactly
+    # why it is here: it was the one input that decided whether this published
+    # artefact is bit-reproducible, and it was recorded NOWHERE -- not in
+    # `forecast_summary.json`, not in a `--run-dir` dump, not here. Two freezes
+    # differing only by it were indistinguishable after the fact, which is the
+    # condition `tests/test_freeze.py` describes as how a baseline was measured
+    # against the RETIRED sigma without anyone noticing. MODEL-LOG §1.104.
+    "PYTHONHASHSEED",
 )
 
 
@@ -147,10 +155,18 @@ def resolved_switches() -> dict[str, object]:
     guards against.
     """
     import levels
+    import montecarlo
     import polling
     return {
         "raw": {k: os.environ.get(k) for k in ENV_SWITCHES},
         "resolved": {
+            # Three states, and only recording both separates them: the seed
+            # this build asks for, and whether hash randomisation is actually
+            # off in the process that wrote the freeze. `fix_hash_seed` runs
+            # from a `__main__` guard, so a freeze produced by an IMPORTING
+            # caller can hold the constant while the interpreter never got it.
+            "montecarlo.HASH_SEED": str(montecarlo.HASH_SEED),
+            "hash_randomization": bool(sys.flags.hash_randomization),
             "polling.SIGMA_TWO_TERM": bool(polling.SIGMA_TWO_TERM),
             "levels.FILTER_TYPE_A": bool(levels.FILTER_TYPE_A),
             "levels.EXCLUDE_DEMARCATION_CROSSING":
@@ -315,4 +331,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    # The freeze is PUBLISHED. A fixed hash seed is what lets its guarantee
+    # be "identical to the last bit" rather than "identical to ~1e-16".
+    M.fix_hash_seed()
     raise SystemExit(main())

@@ -2098,6 +2098,11 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    # FIRST, because it may replace the process -- and re-execing while holding
+    # the artefact lock would hand the child a lock the parent never released.
+    # It also fixes the seed for the sixteen worker processes, which inherit
+    # `os.environ` at spawn: until 2026-08-27 each of them had its own.
+    M.fix_hash_seed()
     # A MEASUREMENT MAY NOT RUN WHILE THE POOL SPECS ARE BEING WRITTEN.
     # Held as a SHARED lock, so several readers may run at once (the sixteen
     # city-years already run in parallel processes) while an emit is excluded.

@@ -191,4 +191,9 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    # `sweep` shells out with `subprocess`, and a child inherits `os.environ`,
+    # so re-execing here fixes the seed for every run it launches too.
+    sys.path.insert(0, "src")
+    import montecarlo as _M
+    _M.fix_hash_seed()
     raise SystemExit(main())

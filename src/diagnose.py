@@ -244,4 +244,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    M.fix_hash_seed()          # may replace the process; see `fix_hash_seed`
     raise SystemExit(main())

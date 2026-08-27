@@ -12181,3 +12181,306 @@ arbitrary subset of what was actually improved.
 **Every number here comes from counters that did not exist this morning.** The
 instrument's first finding was against the change that shipped it, which is the
 best evidence available that it is pointed at something real.
+
+## 1.106 The delivery proof was blind on the entry point it was written for, and half the constants it should declare were the wrong half (2026-08-27)
+
+§1.104's instrument shipped with a table of 32 module constants and no test.
+Four parallel read-only audits — one per module group — were run against it.
+They found the table both **incomplete and wrong in its premises**, and they
+corrected the handover's own priority list.
+
+### The instrument could not see `montecarlo`'s own constants
+
+`note_module_constants` resolves each declared module with
+`sys.modules.get(module_name)`. **A module run as a script is registered under
+`__main__`, not under its own name**, and nothing in `montecarlo`'s import
+closure imports `montecarlo`. So under
+
+    .venv/bin/python src/montecarlo.py --city joburg --target 2021 --run-dir /tmp/t
+
+— the command `CLAUDE.md` documents *for tracing what a run read* — all ten
+declared `montecarlo.*` constants recorded `not-imported`. `compare_history` was
+unaffected, because it does `import montecarlo as M`.
+
+Verified directly rather than argued: executing `src/montecarlo.py` through
+`runpy` leaves `sys.modules["montecarlo"]` absent, while `fold`, `parties`,
+`polling`, `cityconfig` and `seats` are all present.
+
+**This is the shape of defect that survives review: broken exactly where a
+human looks by hand, correct exactly where the panel runs.** Fixed with
+`_module_namespace`, which falls back to `__main__` when that IS the module
+asked for — matched on `__file__`, never on the name alone, because capturing
+the wrong module would be a *false* delivery proof rather than a missing one.
+
+### The handover's top-priority gap was not on the model path at all
+
+The handover named *"`pools.py`'s 15 including the whole `ALPHA_*` family — the
+one `NULL-RESULTS.md` names as feeding 83–98% of drawn variance"* as the largest
+uncovered class. **The variance claim is not in dispute. The route was.**
+
+`ALPHA_MIN_SHARE`, `ALPHA_FLOOR`, `ALPHA_CEILING` and `ALPHA_FALLBACK` are read
+only inside `dirichlet_alpha`, whose sole call site in the repository is
+`emit_pools`. They reach the model **through `pools_*.json`, not through the
+process** — the run consumes a number baked into a JSON file possibly weeks
+earlier. Declaring them would have written a `resolved` record for a value the
+run never consulted, and a sweep could then have passed a presence check while
+being UNDELIVERED in the only sense that matters.
+
+**The delivery proof for that class is `artefact_key` / `pools_sha`, which is
+already recorded: a sweep of any `ALPHA_*` that does not move `pools_sha` never
+arrived.** Eleven of `pools.py`'s sixteen constants are in this position, as are
+both `fold.py` floors and everything in `turnout.py`.
+
+So of the six modules the handover listed as "entirely uncovered", the audits
+recommended declaring **one name from `pools`** and **none from `fold`,
+`turnout` or `benchmarks`.**
+
+### `turnout` is never imported, and `benchmarks` is the opponent
+
+* **`turnout`** is not in `sys.modules` during a run at all. Its only importer
+  anywhere is a function-local `import turnout` inside `fold.turnout_weights`,
+  reached only from `fold.main`. Declaring it would write `not-imported` for
+  every name on every run — worse than silence, because a reader scanning
+  `45_delivered.json` takes presence in the table for relevance.
+* **`benchmarks`** shapes the OPPONENT, not the model. Its constants set the
+  `prior-lge-noise` spread; they move the **bar**, not the forecast. Declared in
+  one flat table beside `LEVEL_DF`, a reader sweeping `NEW_PARTY_SIGMA` would see
+  CRPS move and conclude a model lever is live. **That is a category error that
+  survives a correct delivery proof**, which makes it worse than the VOID-vs-NULL
+  confusion the instrument exists to end.
+
+### What WAS missing, and it was inside the three modules already declared
+
+Twelve on-path constants were undeclared in `montecarlo`, `levels` and
+`polling` — the modules the table claimed to cover. Ranked by how badly the
+omission could distort a sweep:
+
+1. **`levels.METRO_CODES`** — bound as a function default in four signatures
+   (`theta_record`, `local_record`, `theta_prior`, `spine`), and `run_model`
+   passes `codes` to none of them. It defines **the entire evidence set** every
+   party's θ and level is estimated from. Rebinding it — which is what a sweep
+   does — returns a byte-identical answer with no record saying why. This is
+   `LEVEL_DF` §1.33 again, in a module that had already been audited for it.
+2. **`polling.POLL_DEFF_STANDALONE`** — the only one of the four
+   `deff`/`screen`/`drift` constants that a `DEFAULTS` key does *not* shadow at
+   the call site, and therefore the only one a sweep of the module constant can
+   actually move. It was the undeclared one while its three shadowed siblings
+   were all declared: **exactly inverted.**
+3. **`montecarlo.POOL_CAPACITY_MARGIN`** — unconditional on the drawer path. Its
+   *effect* was already instrumented (`capped_targets.moved` in `41_guards`)
+   while its *cause* was not. An instrument that reports the consequence and
+   not the cause is the specific failure `NULL-RESULTS.md` §4.1 is against.
+4. `montecarlo.GAMMA_FOLD`, `PLAN_BOUNDS`, `PARTIAL_BALANCE_PASSES`, `FOLDS`;
+   `levels.TYPE_A_EVENTS`, `DEMARCATION_CROSSING`, `KNOWN_ABSENT`;
+   `polling.NATIONAL_VOTES`, `PROJECTED_METRO_SHARE`.
+
+`FOLDS` is declared under **`montecarlo`, not `fold`**, because `montecarlo.py`
+does `from fold import FOLDS` and resolves the name in its own globals. A record
+keyed `fold.FOLDS` would report a value the model cannot see.
+
+`TYPE_A_EVENTS` and `DEMARCATION_CROSSING` are the **payloads of switches that
+were already declared**: the log recorded *that* a filter ran and nothing about
+what it removed.
+
+### A count is not a value: the digest
+
+`parties.ALIASES` and `parties.MINOR_ALIASES` are read on every raw ballot row
+via `parties.canonical`, **inside `run_model`**. They decide what the model is
+forecasting: adding one merges two ballot strings into a single party for every
+fold, θ and arrival downstream. Nothing tested them, no guard saw them
+(`compare_history`'s serial-forcing guard keeps `int`/`float`/`bool` only), and
+they appeared in no register.
+
+They were also **invisible to the delivery log itself**: `_delivery_value`
+rendered a dict of more than 16 entries as `{"__dict__": 17}`. That is a length.
+Two entirely different alias tables of the same size were the same record, and
+`assert_delivered` would have passed a sweep that changed every mapping in it.
+
+**Every lossy rendering now carries a content digest** (`_delivery_digest`,
+order-stable so it agrees across processes). Confirmed: an edit that changes one
+mapping without changing the length changes the recorded value. The same change
+collapsed `levels.KNOWN_ABSENT` — fourteen entries of prose reason, rendered in
+full under the ≤16-key rule — from kilobytes in every `forecast_summary.json` to
+39 characters plus a digest.
+
+### `resolved-frozen`, a kind of its own
+
+`FROZEN_DEFAULTS` names (module, constant) pairs captured as a function default
+at import, so that rebinding the module attribute moves **the record and not the
+computation**. They are recorded as `resolved-frozen` so the log cannot be
+misread as delivery. `levels.METRO_CODES` is the first entry.
+
+`pools.CONFIG` is in the same position and is **left undeclared** rather than
+declared misleadingly: repairing the freeze means a code change in `pools.py`,
+which invalidates all eighteen pool specs, and that is not a change to make in
+passing.
+
+### Two stale claims corrected in the same commit
+
+* The comment above `MODULE_CONSTANTS` said *"an env var is a class of input
+  nothing in this repository logs at all."* **False, and the table it introduces
+  is what falsifies it**: five env-derived constants are declared there and
+  resolved into `_delivered` on every run. What is true, and kept, is that only
+  the RESOLVED value travels — `THETA_WINDOW=0` and unset are one record.
+* `tests/test_freeze.py` carried the same claim (*"not written to the run
+  trace"*). Corrected in place.
+
+### Coverage
+
+**32 names across 3 modules → 48 across 5.** The larger deliverable is the
+second list: what is deliberately NOT declared, and why, written into the table
+so an empty row reads as a decision rather than an oversight.
+
+**And the table now has a test.** It had none: `grep -rn MODULE_CONSTANTS` over
+`src/` and `tests/` returned hits only inside `montecarlo.py` itself.
+
+## 1.107 PYTHONHASHSEED fixed in the runners, and the freeze was not recording the one thing that made it reproducible (2026-08-27)
+
+§1.104 measured the defect and recorded it rather than fixing it, *"because it
+touches files three agents were holding at the time."* Done now.
+
+`montecarlo.fix_hash_seed` re-execs the process once under `PYTHONHASHSEED=0`,
+called from the `__main__` guard of `montecarlo`, `compare_history`, `backtest`,
+`freeze`, `diagnose`, `sweep` and `tests/run_all.py`. **The seed must be set
+before the interpreter starts** — assigning `os.environ["PYTHONHASHSEED"]` inside
+a running process changes nothing about that process's own `hash()` — so a
+re-exec is the only way to honour it from inside. The child sees the variable
+set and does not re-exec again.
+
+**It fixes the sixteen worker processes for free, and that is the larger half.**
+A `ProcessPoolExecutor` child is a fresh interpreter that inherits `os.environ`
+at spawn, so a parent that has re-exec'd hands the seed to all eight workers
+with nothing passed explicitly. Until today each of the sixteen city-years was
+computed under a different iteration order.
+
+Verified: `hash("ANC")` is now identical across processes
+(`7816490698330913143`) where two unmodified interpreters gave
+`204810180171428902` and `-3864972138334410784`. All six entry points still
+start, and the re-exec terminates.
+
+### The freeze did not record the seed
+
+`freeze.ENV_SWITCHES` names the six environment switches *"because a freeze that
+omitted them would be a freeze of an unknown configuration"*, and its own comment
+says adding a seventh without adding it there should be *"a review question
+rather than a silent omission."*
+
+**`PYTHONHASHSEED` was that seventh switch and it was in no artefact at all** —
+not `forecast_summary.json`, not a `--run-dir` dump, not the freeze. So
+`forecast_frozen.json`, which exists so the forecast can be held to account
+after 4 November, could not support the guarantee it implies. Two freezes
+differing only in the seed were indistinguishable after the fact.
+
+Now recorded, and deliberately as **two** values, because three states must be
+told apart: `montecarlo.HASH_SEED` (the seed this build asks for) and
+`sys.flags.hash_randomization` (whether randomisation is actually off in the
+process that wrote the freeze). `fix_hash_seed` runs from a `__main__` guard, so
+a freeze produced by an *importing* caller holds the constant while the
+interpreter never got it — and that third state is now visible instead of being
+indistinguishable from success.
+
+**The honest statement of what the freeze guarantees is now supportable:**
+*identical to the last bit under a fixed hash seed; identical to ~1e-16
+otherwise.*
+
+## 1.108 F12 is not a stall and not under-iteration: the level floor INJECTS mass, and the amount is now counted (2026-08-27)
+
+§1.105 left F12 *"genuinely unfixed"* and said any real repair *"has to address
+the renormalisation theft, not the convergence test."* This measures the theft,
+identifies its mechanism to 3%, and finds that it is **irreducible at a fixed
+`level_floor`** — so the repair is not a repair at all, it is an absorption that
+has to be declared.
+
+### The experiment that decided it, and it refuted my own first answer
+
+Two mechanisms predicted opposite repairs and the difference is one cheap run:
+
+* **squeeze** — a fixed point needs `got == target`, which is unattainable while
+  floored parties hold mass the targets did not allocate, so `theta` grows every
+  round; rising `theta` lifts the reachable parties relative to the pinned ones
+  and squeezes the floored excess down. If true, the loop is merely
+  **under-iterated** and more rounds is the answer.
+* **floor** — an irreducible injected excess. If true, the gap **plateaus**.
+
+Johannesburg 2021, 100 draws, `solve_worst_gap_reachable`:
+
+| rounds | worst reachable gap | ratio to previous |
+|---|---|---|
+| 40 (shipped) | 9.8379e-06 | — |
+| 200 | 9.8033e-06 | 0.996 |
+| 1000 | 9.6336e-06 | 0.983 |
+
+**Twenty-five times the rounds moves the gap by 2%.** The squeeze exists and is
+negligible. The loop is not under-iterated; it is sitting on a plateau.
+
+*I had written the squeeze hypothesis into a pre-registration as the likely
+answer and argued the injected-mass repair "would make it worse by stopping the
+squeeze". That was wrong, and the run is what said so. Recorded because the
+whole point of pre-registering is that the record shows which way the reasoning
+ran before the number arrived.*
+
+### The mechanism, identified to 3%
+
+The floor does not merely stop a sub-floor party responding to θ. `logit` pins
+its level at `logit(level_floor)`, so after the row renormalisation it **holds
+about `level_floor` of every row whatever its target says** — and that excess is
+taken from every party above the floor in proportion to size.
+
+Johannesburg 2021, 100 draws, 200 solves:
+
+| | |
+|---|---|
+| sub-floor parties | 14.5 (mean) |
+| mass they **hold** | 1.4866e-05 |
+| mass their targets **ask for** | 1.6011e-06 |
+| **injected by the floor** | **1.3265e-05** |
+| largest party's share | 0.4066 |
+| its shortfall vs its drawn target | 5.2612e-06 |
+| predicted by `share x injected` | 5.4284e-06 |
+| **ratio** | **0.969** |
+
+Agreement to 3% between a prediction from the mechanism and the measured
+shortfall is what identifies the cause, rather than merely being consistent with
+it.
+
+### What ships, and what does not
+
+**Ships — absorption accounting, and it moves no number.** `solve_and_predict`
+now reports `floor_injected_mean` / `floor_injected_worst` into `41_guards`,
+which is what `NULL-RESULTS.md` §4.3 requires of an absorbing stage: *"a stage
+that absorbs ~100% of what it is given is an attractor and must be declared as
+one."* Verified in a real trace at 1.3272e-05, against 1.3265e-05 measured
+independently.
+
+Also shipped: **`solve_identity_hits`**, counting θ updates that took the
+identity because `got` had collapsed below 1e-9. §1.98 warns that *"the obvious
+cure for F12 activates F10's identity guard"*, so it is now watched rather than
+assumed. **Measured at 0** on the shipped configuration.
+
+**Does not ship — the `eff` re-targeting repair.** Re-targeting the reachable
+parties onto `(1 - held)` would make the loop converge immediately and the
+counters go green, while **freezing the deviation from the drawn target rather
+than removing it**. It buys a stopping rule, not accuracy, and it changes every
+number at ~1e-5 to do it. It is a scored change and it has not been scored.
+
+**The lever that could actually shrink the injection is `level_floor` itself.**
+It has a range, so by `ITERATING.md` it is a candidate improvement facing the
+full four keys, not a repair. Recorded as the next move on F12 if anyone wants
+one; the baseline it would be measured against now exists.
+
+### Two claims in the source were wrong and are corrected in place
+
+* *"the solve converges in ~10 rounds and then burns 30 more achieving
+  nothing"* — it never converges, and the 30 further rounds are worth 2%.
+* *"repairing it would move numbers without improving the forecast"* — never
+  measured. The truth is stronger and different: at a fixed `level_floor` it is
+  not repairable at all.
+
+### A note on scale, so this is not mistaken for a crisis
+
+The injected mass is 1.3e-05 of citywide share. One seat at Johannesburg is
+~300x larger, and the model injects `ward_noise_sd` and `turnout_noise_sd`
+deliberately at orders more. **This is not a defect that is costing seats.** It
+is a mechanism that was mis-described in three places, unmeasured, and capable
+of misleading anyone who later moves the floor — which is exactly the class
+`NULL-RESULTS.md` exists to make visible.

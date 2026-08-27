@@ -652,9 +652,12 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         # computes. DELIVERY_MAX_VALUES caps how many distinct values are kept
         # per name, because the scenario is serialised into forecast_summary.json
         # on every run; `depth` bounds the recursion that summarises a value for
-        # the log. Neither can reach a forecast — `note_value` returns its
-        # argument unchanged, proven bit-identical against HEAD.
-        "DELIVERY_MAX_VALUES", "depth",
+        # the log; DELIVERY_MAX_CHARS collapses a value that is small by COUNT
+        # and enormous by CONTENT (levels.KNOWN_ABSENT is fourteen entries of
+        # prose reason), replacing it with a count and a digest. None can reach
+        # a forecast — `note_value` returns its argument unchanged, proven
+        # bit-identical against HEAD.
+        "DELIVERY_MAX_VALUES", "DELIVERY_MAX_CHARS", "depth",
         "LEVELS",         # the nominal coverage levels 50/80/90 a report prints
         "LGE_YEARS", "LGE_ELECTIONS", "FOLDS",        # calendar/route structure
         "independent_wards", "no_pr_list_wards",      # per-call council facts

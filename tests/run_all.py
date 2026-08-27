@@ -44,6 +44,7 @@ from _support import ROOT, run_module  # noqa: E402
 # were not reaching it."
 MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            "test_chain",
+           "test_delivery_proof",
            "test_pool_conservation", "test_pool_bounds", "test_regressions",
            "test_calibration_report", "test_ipf_feasibility",
            "test_levels_dispersion", "test_polling_sd",
@@ -73,6 +74,11 @@ if __name__ == "__main__":
     # rewritten reports failures that are an artefact of the race rather than of
     # the code. See pools.artefact_lock.
     sys.path.insert(0, str(ROOT / "src"))
+    # Before the lock, because it may replace the process. A fixed hash seed is
+    # what makes a golden recorded on one run comparable to the next bit for
+    # bit; see `montecarlo.fix_hash_seed` and MODEL-LOG §1.104.
+    import montecarlo as _M
+    _M.fix_hash_seed()
     import pools as _pools
     with _pools.artefact_lock("read", "test suite"):
         raise SystemExit(main())

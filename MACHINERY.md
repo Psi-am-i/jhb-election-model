@@ -443,6 +443,25 @@ rejected because the group total may only be fitted on the previous cycle, which
 | `SHARE_FLOOR` = 0.002 | `montecarlo.py` | JUDGED | — |
 | `level_floor` = 1e-6 | DEFAULTS | JUDGED | 2026 audit |
 
+**The θ calibration does not reach its target, and the reason is the floor.**
+`solve_and_predict` exists to force each party's realised citywide share onto
+the share that draw drew. It gets within ~1e-5 and no closer, on every draw of
+every target, and this is **not** under-iteration: twenty-five times the rounds
+moves the gap 2% (§1.108).
+
+`logit` pins a sub-floor party's level at `logit(level_floor)`, so after the row
+renormalisation it **holds about `level_floor` of every row whatever its target
+says** — and that excess is taken from every party above the floor in proportion
+to size. Johannesburg 2021: 14.5 sub-floor parties hold 1.4866e-05 against
+targets asking 1.6011e-06, injecting **1.3265e-05**; the largest party ends
+5.2612e-06 short against 5.4284e-06 predicted by `share × injected`.
+
+It is reported per run as `solve_floor_injected_mean` / `_worst` in `41_guards`,
+because an absorbing stage must say how much it absorbed. The only lever that
+shrinks it is `level_floor` itself, which has a range and therefore faces the
+full bar. **At 1.3e-05 against a seat ~300× larger, it is a mechanism to know
+about, not a defect costing seats.**
+
 **Known:** `fit_gamma` is a no-intercept OLS of noisy y on noisy x — regression
 dilution, monotone in party size (COPE 0.17 PR / 0.074 Ward against ANC 1.03).
 γ carries no uncertainty into the draws. `calibrate_theta` returns 0.0000 for
@@ -831,6 +850,80 @@ passive file. What catches that is an assertion; the trace is what makes such
 assertions cheap, because the quantity is already exposed. See
 `ARCHITECTURE.md` (the rejected earlier proposal is in
 `archive/rejected/`).
+
+## Proving a value arrived: the delivery log
+
+`45_delivered.json` (and `scenario["_delivered"]`, which travels into
+`forecast_summary.json`) records **which constants a run consulted and at what
+value**. It exists because "this change did nothing" and "this change never
+arrived" were the same observation: of 48 constants pre-registered for a sweep,
+42 carried a blocker, and the largest class was a module constant rebound in the
+parent that never crossed the `ProcessPoolExecutor` boundary.
+
+**The rule (`NULL-RESULTS.md` §4.1): the swept constant must appear in the log,
+at the value that was set. Until it does, a flat result is VOID, not NULL.**
+
+| function | what it does |
+|---|---|
+| `note_value(scenario, name, value, where, kind)` | records one read; returns its argument, so a read is instrumented by wrapping it |
+| `note_module_constants(scenario, where)` | records what THIS PROCESS holds for every name in `MODULE_CONSTANTS`, at the end of a run |
+| `delivery_log(source)` | the log, from a `ModelRun`, a scenario, or a `--run-dir` |
+| `assert_delivered(run, name, expected, kind)` | raises `Undelivered` if it did not arrive, or arrived changed |
+
+### The `kind` is the strength of the claim, and it is the whole point
+
+| kind | what it proves |
+|---|---|
+| `consulted` | recorded **at the site that reads it** — the value demonstrably reached the computation. A delivery proof. |
+| `resolved` | the value this process holds, recorded once per run without reference to any reader. Proves it crossed the process boundary; proves **nothing** about any code reading it. |
+| `resolved-frozen` | as `resolved`, and the name is ALSO captured as a function default at import — so rebinding the module attribute moves the record and **not** the computation (`LEVEL_DF`, §1.33). Never delivery. |
+| `missing` / `not-imported` | the declared name was not there to read. A renamed constant shows as an absence rather than as silence. |
+
+**A `resolved` record must never be reported as evidence that a lever is
+`INERT`.** §1.68 was burned by exactly this — *"that null was measured with the
+gate shut."*
+
+### What `MODULE_CONSTANTS` declares, and what it deliberately does not
+
+48 names across `montecarlo`, `levels`, `polling`, `pools` and `parties`. The
+rule for membership is **read in this process, on the model path** — which is
+not the same question `JUDGEMENT-CALLS.md` asks, and gives a different answer.
+
+**Deliberately absent**, because a constant read only while an artefact is
+*precomputed* reaches the model through that artefact and not through the run:
+the whole `pools.ALPHA_*` family and ten of its siblings, both `fold.py` floors,
+and all of `turnout.py`. **Their delivery proof is `artefact_key` / `pools_sha`:
+a sweep of any of them that does not move `pools_sha` never arrived.** Also
+absent: `turnout` (never imported during a run) and `benchmarks` (it shapes the
+**opponent**, not the model — see §1.106).
+
+### Every lossy rendering carries a digest
+
+`_delivery_value` collapses anything large to a count — and a count is not a
+value. `parties.ALIASES`, seventeen mappings that decide what the model is even
+forecasting, recorded as `{"__dict__": 17}`, so two entirely different alias
+tables were the same record. Each collapse now carries `_delivery_digest`, an
+order-stable content hash, and a same-length edit changes it.
+
+## Reproducibility: the hash seed
+
+Python randomises `hash()` for `str` per process, which reorders `set` and
+`dict` iteration, which reorders a float summation on the model path. The effect
+is machine epsilon — **3.1e-16 to 5.0e-16** against party shares whose median is
+9.4e-5 — so **no forecast moves**. What moves is whether a re-run is
+bit-comparable to the one before it, and `compare_history` fans out to sixteen
+worker processes that each had their own seed.
+
+`montecarlo.fix_hash_seed()` re-execs the process once under
+`PYTHONHASHSEED=0`, called from the `__main__` guard of every runner. The seed
+must be set **before the interpreter starts**, so a re-exec is the only way to
+honour it from inside; the child sees it set and does not re-exec again. Workers
+are fixed for free — a spawned child inherits `os.environ`.
+
+`freeze.ENV_SWITCHES` records it, along with `sys.flags.hash_randomization`,
+because a freeze produced by an *importing* caller holds the constant while the
+interpreter never got it. The guarantee is *identical to the last bit under a
+fixed hash seed; identical to ~1e-16 otherwise.*
 
 ## The ward cartogram — drawing seats instead of land
 

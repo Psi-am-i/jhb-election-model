@@ -337,15 +337,15 @@ requirement to measure.
 
    | claimed columns | n | mean PIT | 50% (PIT) | 80% (PIT) | 90% (PIT) | probit-SD |
    |---|---|---|---|---|---|---|
-   | ranks 1-3 | 48 | 0.511 | 83% | 96% | 98% | 0.676 |
-   | ranks 4-12 | 57 | 0.613 | 61% | 91% | 93% | 0.825 |
+   | ranks 1-3 | 48 | 0.510 | 85% | 96% | 98% | 0.818 |
+   | ranks 4-12 | 57 | 0.613 | 61% | 91% | 93% | 0.820 |
 
    | sixteen-city-year vote error | signed | absolute |
    |---|---|---|
-   | ranks 1-3 | +12.38pp | 93.38pp |
-   | ranks 4-12 | -26.29pp | 72.54pp |
-   | ranks 13+ | +4.42pp | 22.45pp |
-   | phantom (parties that did not stand) | +9.49pp | — |
+   | ranks 1-3 | +12.29pp | 92.52pp |
+   | ranks 4-12 | -26.11pp | 73.00pp |
+   | ranks 13+ | +4.35pp | 22.37pp |
+   | phantom (parties that did not stand) | +9.47pp | — |
 
    **BOTH TABLES ARE NOW MEASURED ON SIXTEEN CITY-YEARS (2026-08-23,
    `MODEL-LOG` §1.77).** They were nine until §1.70 doubled the panel, and that

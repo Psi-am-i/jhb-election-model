@@ -100,13 +100,27 @@ def test_the_freeze_covers_every_declared_lever():
 
 
 def test_the_freeze_records_every_environment_switch():
-    """The six switches change the forecast and are invisible everywhere else.
+    """The switches change the forecast and are invisible almost everywhere.
 
-    They are absent from `DEFAULTS`, unreachable from `--set`, and not written
-    to the run trace, so two runs differing in them are indistinguishable from
-    their recorded scenario — which is how a baseline was measured against the
-    RETIRED sigma on 2026-08-24 without anyone noticing until the numbers made
-    no sense. If a seventh switch is added and not recorded here, that recurs.
+    They are absent from `DEFAULTS` and unreachable from `--set`, so two runs
+    differing in them were indistinguishable from their recorded scenario —
+    which is how a baseline was measured against the RETIRED sigma on
+    2026-08-24 without anyone noticing until the numbers made no sense.
+
+    **Corrected 2026-08-27: "and not written to the run trace" was true when
+    written and is not true now.** `montecarlo.MODULE_CONSTANTS` declares five
+    of the env-derived constants — `polling.SIGMA_TWO_TERM`,
+    `levels.FILTER_TYPE_A`, `EXCLUDE_DEMARCATION_CROSSING`, `THETA_WINDOW`,
+    `THETA_EXCLUDE_TARGETS` — so `note_module_constants` resolves them into
+    `scenario["_delivered"]`, and from there into `45_delivered.json` and
+    `forecast_summary.json`. What is still true, and is why this test stays:
+    only the RESOLVED value travels that way, so an unset variable and one set
+    to its own default are the same record everywhere EXCEPT the `raw` block
+    below. That distinction is this freeze's alone.
+
+    The seventh switch is `PYTHONHASHSEED`, added the same day. It decides
+    whether this published artefact is reproducible to the last bit, and it
+    was recorded in no artefact at all until then (§1.104).
     """
     import freeze as F
     frozen = _load()

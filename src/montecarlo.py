@@ -68,8 +68,10 @@ from __future__ import annotations
 import argparse
 import copy
 import csv
+import hashlib
 import json
 import math
+import os
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -832,18 +834,45 @@ def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6
     # never passes, which is why the `break` below was dead code and all `rounds`
     # were always spent: on the shipped configuration every draw carries such a
     # party (dirichlet_floor 1e-4 against α = 26.86 puts 97.4% of floored members
-    # under 1e-6). Measured on real Johannesburg geography, the solve converges
-    # in ~10 rounds and then burns 30 more achieving nothing.
+    # under 1e-6).
+    #
+    # ⛔ **THE EARLY STOP BELOW STILL NEVER FIRES, AND TWO CLAIMS THAT USED TO
+    # STAND HERE WERE WRONG.** Both are corrected in MODEL-LOG §1.108:
+    #
+    #   * *"the solve converges in ~10 rounds and then burns 30 more achieving
+    #     nothing"* — it does not converge at all. `solve_rounds / solve_calls`
+    #     is exactly `rounds` on every measured target (§1.105), and running
+    #     **25x longer moves the reachable gap by 2%**: 9.8379e-06 at 40 rounds,
+    #     9.8033e-06 at 200, 9.6336e-06 at 1000. The loop is not
+    #     under-iterated; it has reached a plateau it cannot leave.
+    #   * *"repairing it would move numbers without improving the forecast"* —
+    #     an UNMEASURED claim, and it is now known to be unrepairable at a fixed
+    #     `level_floor` rather than merely not worth repairing. Which half of
+    #     that sentence is true has never been tested.
+    #
+    # WHY IT PLATEAUS, measured rather than argued. The floor does not only stop
+    # sub-floor parties responding: it makes each of them HOLD about
+    # `level_floor` of every row whatever its target says, and the row
+    # renormalisation takes that excess from everyone above the floor in
+    # proportion to size. On Johannesburg 2021, 100 draws, 200 solves: 14.5
+    # sub-floor parties hold 1.4866e-05 against targets asking 1.6011e-06, so the
+    # floor INJECTS 1.3265e-05. The largest party (share 0.4066) ends 5.2612e-06
+    # short of its drawn target, against 5.4284e-06 predicted by
+    # `share x injected` — agreement to 3%, which is what identifies the
+    # mechanism rather than merely being consistent with it.
+    #
+    # It is therefore an ABSORPTION, and `stats` now reports it
+    # (`floor_injected_*`) as NULL-RESULTS.md §4.3 requires of an absorbing
+    # stage. **The lever that could actually shrink it is `level_floor` itself**,
+    # which has a range and is therefore a scored change facing the full bar in
+    # `ITERATING.md` — not something to adjust in passing here.
     #
     # THE ARITHMETIC IS DELIBERATELY UNTOUCHED. This changes only WHEN the loop
-    # is allowed to stop, not what it computes — the stuck parties still hold
-    # ~1e-6 each and that mass is still taken from everyone else through the row
-    # renormalisation, leaving the largest party ~1e-5 short of its drawn target.
-    # That residue is ~300x below one seat and orders below `ward_noise_sd` and
-    # `turnout_noise_sd`, which the model injects on purpose, so repairing it
-    # would move numbers without improving the forecast. MODEL-LOG §1.98, F12.
+    # is allowed to stop, not what it computes. MODEL-LOG §1.98 F12, §1.105,
+    # §1.108.
     reachable = target > level_floor
     used, gap = rounds, float("inf")
+    identity_hits = 0
     for _i in range(rounds):
         level = logit(base_city * theta, floor=level_floor)
         pred = expit(level[None, :] + gamma[None, :] * dev)
@@ -851,6 +880,13 @@ def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6
         got = weights @ pred
         err = np.abs(got - target)
         gap = err.max()
+        # F10: where `got` has collapsed, the update takes the IDENTITY and the
+        # party is never lifted. Counted rather than assumed, because §1.98
+        # records that "the obvious cure for F12 activates F10's identity
+        # guard" -- so any future change to the floor must be able to see
+        # whether it has.
+        stuck = got <= 1e-9
+        identity_hits += int(stuck.sum())
         theta = theta * np.where(got > 1e-9, target / np.maximum(got, 1e-12), 1.0)
         if (err[reachable].max() if reachable.any() else 0.0) < tol:
             used = _i + 1
@@ -875,6 +911,26 @@ def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6
             float(stats.get("worst_gap_reachable", 0.0)), reach_gap)
         stats["unreachable_parties"] = max(
             int(stats.get("unreachable_parties", 0)), int((~reachable).sum()))
+        stats["identity_hits"] = stats.get("identity_hits", 0) + identity_hits
+        # ABSORPTION ACCOUNTING (NULL-RESULTS.md §4.3). The floor does not just
+        # stop sub-floor parties responding -- it makes them HOLD roughly
+        # `level_floor` of every row whatever their target says, and the row
+        # renormalisation takes that excess from everyone above the floor, in
+        # proportion to size. Measured on Johannesburg 2021, 100 draws, 200
+        # solves: 14.5 sub-floor parties hold 1.4866e-05 against targets asking
+        # 1.6011e-06, so the floor INJECTS 1.3265e-05; the largest party (0.4066)
+        # falls 5.2612e-06 short of its drawn target against 5.4284e-06 predicted
+        # by `share x injected` -- agreement to 3%.
+        #
+        # It is IRREDUCIBLE at a fixed `level_floor`, and that was measured too:
+        # 25x the rounds moves the reachable gap 2% (9.8379e-06 at 40 rounds,
+        # 9.8033e-06 at 200, 9.6336e-06 at 1000). The loop is not under-iterated.
+        # See MODEL-LOG §1.108.
+        injected = float(got[~reachable].sum() - target[~reachable].sum())
+        stats["floor_injected_sum"] = (
+            float(stats.get("floor_injected_sum", 0.0)) + injected)
+        stats["floor_injected_worst"] = max(
+            float(stats.get("floor_injected_worst", 0.0)), injected)
     level = logit(base_city * theta, floor=level_floor)
     pred = expit(level[None, :] + gamma[None, :] * dev)
     return pred / pred.sum(axis=1, keepdims=True)
@@ -974,6 +1030,73 @@ SCENARIO_METADATA = ("derived_from",)
 
 
 # --------------------------------------------------------------------------
+# reproducibility: the hash seed, which is a property of the PROCESS
+# --------------------------------------------------------------------------
+#
+# Python randomises `hash()` for `str` per process, which reorders `set` and
+# `dict` iteration, which reorders a float summation somewhere on the model
+# path. MODEL-LOG §1.104 measured it on unmodified HEAD: three runs at
+# `PYTHONHASHSEED=0` agree to the digest, three at `PYTHONHASHSEED=random`
+# disagree in every one of them. The magnitude is machine epsilon -- max 3.1e-16
+# to 5.0e-16 against party shares whose median is 9.4e-5 -- so NO FORECAST
+# MOVES. What moves is whether a re-run is bit-comparable to the one before it.
+#
+# WHY IT IS WORTH A RE-EXEC ANYWAY, given the magnitude:
+#
+#   * `test_the_model_is_reproducible_from_its_seed` runs in ONE process and
+#     therefore cannot see this. The claim it appears to make -- that the seed
+#     determines the answer -- holds WITHIN a process and not BETWEEN them.
+#   * `compare_history` fans out to worker processes, each of which got its own
+#     hash seed, so the sixteen city-years were each computed under a different
+#     iteration order.
+#   * `forecast_frozen.json` is PUBLISHED so the forecast can be held to account
+#     after 4 November, and the honest statement of what it guarantees is
+#     "identical to the last bit under a fixed hash seed" rather than the
+#     "reproducible" it would otherwise have to claim.
+#
+# THE SEED MUST BE SET BEFORE THE INTERPRETER STARTS. `PYTHONHASHSEED` is read
+# by CPython at start-up; assigning `os.environ["PYTHONHASHSEED"]` inside a
+# running process changes nothing about that process's own `hash()`. So the
+# only way to honour it from inside is to re-exec once, which is what this does
+# -- and the child then sees the variable already set and does not re-exec
+# again, so it terminates.
+#
+# It also fixes the WORKERS for free and that is the larger half: a
+# `ProcessPoolExecutor` child is a fresh interpreter that inherits `os.environ`
+# from its parent at spawn, so a parent which has re-exec'd under a fixed seed
+# hands that seed to all eight workers without anything being passed explicitly.
+HASH_SEED = "0"
+
+
+def fix_hash_seed(seed: str | None = None) -> None:
+    """Re-exec this process once under a fixed ``PYTHONHASHSEED``.
+
+    ``seed`` resolves ``HASH_SEED`` IN THE BODY and is not a default argument.
+    A module constant captured as a default is frozen at import, so rebinding
+    the attribute would move this function's record and not its behaviour --
+    `LEVEL_DF` §1.33, and `test_no_numeric_module_constant_is_a_default_argument`
+    caught this one the first time the suite ran against it.
+
+    Call it FROM AN ``if __name__ == "__main__"`` GUARD AND NOWHERE ELSE. It
+    replaces the running process, so calling it at import time would re-exec
+    whatever program happened to import this module -- a test runner, a site
+    build -- with `montecarlo`'s argv, which is not a thing any caller could
+    recover from.
+
+    Returns normally, having done nothing, when the seed is already what was
+    asked for; that is the re-exec'd child's own path through here, and it is
+    what stops the recursion.
+    """
+    seed = HASH_SEED if seed is None else seed
+    if os.environ.get("PYTHONHASHSEED") == seed:
+        return
+    os.environ["PYTHONHASHSEED"] = seed
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os.execv(sys.executable, [sys.executable, *sys.argv])
+
+
+# --------------------------------------------------------------------------
 # the delivery proof: a read log that records the VALUE, not just the name
 # --------------------------------------------------------------------------
 #
@@ -1031,6 +1154,42 @@ _UNRECORDED = _Unrecorded()
 DELIVERY_MAX_VALUES = 12
 
 
+# The longest a single rendered value may be before it is replaced by a count
+# and a digest. `levels.KNOWN_ABSENT` is fourteen entries of prose reason and
+# renders in full under the <=16-key rule -- several kilobytes into every
+# `forecast_summary.json`, on every run, for a constant whose value changes
+# about once a month.
+DELIVERY_MAX_CHARS = 2000
+
+
+def _delivery_digest(value) -> str:
+    """A short, order-stable content hash of a value the log cannot show whole.
+
+    **A DELIVERY PROOF THAT CANNOT SEE A CHANGED VALUE IS NOT A DELIVERY
+    PROOF.** Before this existed, `_delivery_value` rendered
+    `parties.ALIASES` -- seventeen ballot-string-to-party-code mappings read
+    inside `run_model`, which decide WHAT THE MODEL IS FORECASTING -- as
+    ``{"__dict__": 17}``. That is a length. Two entirely different alias tables
+    of the same size were indistinguishable in the log that exists to prove
+    what a run consulted, and `assert_delivered` would have passed a sweep that
+    changed every mapping in it.
+
+    Order-stable because a `set` iterates in hash order and dicts are only
+    conventionally ordered: the digest is taken over a sorted rendering, so the
+    same content hashes the same across processes whatever the hash seed did.
+    """
+    try:
+        if isinstance(value, dict):
+            payload = repr(sorted((str(k), repr(v)) for k, v in value.items()))
+        elif isinstance(value, (set, frozenset)):
+            payload = repr(sorted(repr(v) for v in value))
+        else:
+            payload = repr(value)
+    except Exception:                        # pragma: no cover - exotic __repr__
+        payload = f"<unrenderable {type(value).__name__}>"
+    return hashlib.sha256(payload.encode("utf-8", "replace")).hexdigest()[:12]
+
+
 def _delivery_value(value, depth: int = 0):
     """A JSON-native, comparable rendering of a value that was consulted.
 
@@ -1038,6 +1197,11 @@ def _delivery_value(value, depth: int = 0):
     (see :func:`main`), so anything left on it must already be JSON. A numpy
     array on the scenario produced malformed JSON and broke the site build
     once already; this is that lesson applied to the read log.
+
+    **Every lossy rendering carries a digest of the whole value**, because the
+    alternative -- a bare count, or a `repr` cut at 200 characters -- silently
+    turns "this constant was delivered unchanged" into a claim the log cannot
+    actually support. See :func:`_delivery_digest`.
     """
     if value is None or isinstance(value, (bool, int, str)):
         return value
@@ -1050,23 +1214,34 @@ def _delivery_value(value, depth: int = 0):
         if flat.size <= 8 and np.issubdtype(value.dtype, np.number):
             return [float(x) for x in flat]
         return {"__array__": list(value.shape),
-                "sum": float(np.nansum(flat)) if flat.size else 0.0}
+                "sum": float(np.nansum(flat)) if flat.size else 0.0,
+                "sha": _delivery_digest(value.tobytes())}
     if depth >= 2:
-        return repr(value)[:200]
+        return {"__repr__": repr(value)[:200], "sha": _delivery_digest(value)}
     if isinstance(value, (set, frozenset)):
-        return sorted(_delivery_value(v, depth + 1) for v in value)[:16]
+        shown = sorted(_delivery_value(v, depth + 1) for v in value)
+        if len(shown) > 16:
+            return {"__set__": len(value), "sha": _delivery_digest(value)}
+        return shown
     if isinstance(value, Path):
         return str(value)
     if isinstance(value, (list, tuple)):
         if len(value) > 16:
-            return repr(value)[:200]
-        return [_delivery_value(v, depth + 1) for v in value]
-    if isinstance(value, dict):
+            return {"__list__": len(value), "sha": _delivery_digest(value)}
+        rendered = [_delivery_value(v, depth + 1) for v in value]
+    elif isinstance(value, dict):
         if len(value) > 16:
-            return {"__dict__": len(value)}
-        return {str(k): _delivery_value(v, depth + 1)
-                for k, v in sorted(value.items(), key=lambda kv: str(kv[0]))}
-    return repr(value)[:200]
+            return {"__dict__": len(value), "sha": _delivery_digest(value)}
+        rendered = {str(k): _delivery_value(v, depth + 1)
+                    for k, v in sorted(value.items(), key=lambda kv: str(kv[0]))}
+    else:
+        return {"__repr__": repr(value)[:200], "sha": _delivery_digest(value)}
+    # Small by count and still enormous by content: collapse on size too, and
+    # keep the digest so the collapse is not a loss of evidence.
+    if len(repr(rendered)) > DELIVERY_MAX_CHARS:
+        tag = "__list__" if isinstance(rendered, list) else "__dict__"
+        return {tag: len(value), "sha": _delivery_digest(value)}
+    return rendered
 
 
 def note_value(scenario: dict | None, name: str, value, where: str,
@@ -1131,24 +1306,183 @@ def note_value(scenario: dict | None, name: str, value, where: str,
 # binding at import is the `LEVEL_DF` defect itself (§1.33) and would make this
 # log agree with the sweep while the model disagreed with both.
 #
-# `levels` and `polling` also carry environment-derived constants
-# (`SIGMA_TWO_TERM`, `FILTER_TYPE_A`, `THETA_WINDOW`, ...). An env var is a
-# class of input nothing in this repository logs at all, and it selects between
-# two entirely different poll models.
+# THE RULE FOR WHAT BELONGS HERE, applied module by module on 2026-08-27 and
+# the reason the table roughly doubled: **a name belongs here if and only if it
+# is READ IN THIS PROCESS, ON THE MODEL PATH.** Not "is it a judgement" -- that
+# is `JUDGEMENT-CALLS.md`'s question and it has a different answer. A constant
+# read only while an artefact is PRECOMPUTED reaches the model through that
+# artefact, and recording the value this process happens to hold would attest
+# to something the run never consulted. See DELIBERATELY NOT DECLARED below,
+# which is the larger list and the more useful one.
+#
+# ENVIRONMENT VARIABLES ARE LOGGED, and until 2026-08-27 this comment said the
+# opposite -- "an env var is a class of input nothing in this repository logs
+# at all". That was false when it was written and this table is what falsifies
+# it: `levels.FILTER_TYPE_A`, `levels.EXCLUDE_DEMARCATION_CROSSING`,
+# `levels.THETA_WINDOW`, `levels.THETA_EXCLUDE_TARGETS` and
+# `polling.SIGMA_TWO_TERM` are all env-derived, all declared below, and all
+# resolved into `_delivered` on every run. `freeze.ENV_SWITCHES` records the
+# raw environment as well. What is true, and worth keeping, is that only the
+# RESOLVED value is recorded here: `THETA_WINDOW=0` and `THETA_WINDOW` unset
+# are the same record, and only the freeze separates them.
 MODULE_CONSTANTS: dict[str, tuple[str, ...]] = {
+    # PLAN_BOUNDS and COUNCIL are rebound per city by `apply_city`, so the
+    # recorded value is the city's, not the module's shipped default.
+    # POOL_CAPACITY_MARGIN is the one whose EFFECT was already instrumented --
+    # `capped_targets.moved` in `41_guards` -- while its CAUSE was not, which
+    # is the failure NULL-RESULTS §4.1 is against. HASH_SEED records the
+    # reproducibility guarantee the run was made under; see `fix_hash_seed`.
     "montecarlo": ("SHARE_FLOOR", "DIRICHLET_FLOOR", "TURNOUT_DRAW_FLOOR",
                    "TURNOUT_DRAW_CEILING", "LEVEL_DF", "BYE_MIN_WEIGHT",
                    "WARD_PR_RATIO_MIN", "WARD_PR_RATIO_MAX", "COUNCIL",
-                   "TURNOUT_CORRELATION"),
+                   "TURNOUT_CORRELATION", "PLAN_BOUNDS",
+                   "POOL_CAPACITY_MARGIN", "GAMMA_FOLD",
+                   "PARTIAL_BALANCE_PASSES", "HASH_SEED", "FOLDS"),
+    # FOLDS is declared HERE and not under `fold` on purpose: `montecarlo.py`
+    # does `from fold import FOLDS`, and `fold_target_year` resolves the name
+    # in THIS module's globals. A record keyed `fold.FOLDS` would report a
+    # value the model cannot see, which is a false delivery proof rather than a
+    # missing one.
+    #
+    # The four added to `levels` are the PAYLOADS of switches that were already
+    # declared: the log recorded THAT a filter ran and nothing about what it
+    # removed. KNOWN_ABSENT's own docstring calls it "the largest absorber in
+    # this module, and it is not counted".
     "levels": ("SD_FLOOR", "SD_CEILING", "SHRINK", "RELIABILITY_HALF",
                "SPINE_K", "FILTER_TYPE_A", "EXCLUDE_DEMARCATION_CROSSING",
-               "THETA_WINDOW", "THETA_EXCLUDE_TARGETS"),
+               "THETA_WINDOW", "THETA_EXCLUDE_TARGETS", "METRO_CODES",
+               "TYPE_A_EVENTS", "DEMARCATION_CROSSING", "KNOWN_ABSENT"),
+    # POLL_DEFF_STANDALONE is the only one of the four `deff`/`screen`/`drift`
+    # constants that a `DEFAULTS` key does NOT shadow at the call site, so it
+    # is the only one a sweep of the module constant can actually move -- and
+    # it was the undeclared one while its three shadowed siblings were
+    # declared. NATIONAL_VOTES (2016, 2021) and PROJECTED_METRO_SHARE (2026,
+    # and nothing the backtest panel can reach) are the two halves of the
+    # national-poll-to-metro denominator.
     "polling": ("SIGMA_COMMON", "SIGMA_IDIO", "SIGMA_DRIFT_PER_ROOT_DAY",
                 "SIGMA_VOLATILITY", "SIGMA_TWO_TERM", "POLL_HOUSE_K",
                 "POLL_HALF_LIFE_DAYS", "POLL_MIN_N", "POLL_RMS_ERROR",
                 "POLL_HOUSE_SD", "CAMPAIGN_WINDOW_DAYS",
-                "POLL_DRIFT_PP_PER_ROOT_DAY", "REGISTER"),
+                "POLL_DRIFT_PP_PER_ROOT_DAY", "REGISTER",
+                "POLL_DEFF_STANDALONE", "NATIONAL_VOTES",
+                "PROJECTED_METRO_SHARE"),
+    # ONE name out of sixteen in `pools.py`. METRO_CODES is read in this
+    # process, inside `run_model`'s poll path, and holds the same eight codes
+    # as `levels.METRO_CODES` IN A DIFFERENT ORDER (EKU and CPT are swapped).
+    # The two records therefore differ, and that is not a bug to be filed.
+    "pools": ("METRO_CODES",),
+    # ALIASES and MINOR_ALIASES decide WHAT THE MODEL IS FORECASTING: they are
+    # read on every raw ballot row via `parties.canonical`, inside `run_model`,
+    # and adding one merges two ballot strings into a single party for every
+    # fold, theta and arrival downstream. Nothing tested them, no guard saw
+    # them (`compare_history`'s serial-forcing guard keeps int/float/bool
+    # only), and they were absent from every register. They are recorded as a
+    # count and a CONTENT DIGEST -- see `_delivery_digest`, without which a
+    # same-length edit was invisible.
+    "parties": ("ALIASES", "MINOR_ALIASES"),
 }
+
+# DELIBERATELY NOT DECLARED, and the reasons, because an empty row in a table
+# like this reads as an oversight and each of these is a decision.
+#
+# THE ARTEFACT-BORNE CLASS -- eleven of sixteen constants in `pools.py`, both
+# floors in `fold.py`, and everything in `turnout.py`. `pools.ALPHA_MIN_SHARE`,
+# `ALPHA_FLOOR`, `ALPHA_CEILING`, `ALPHA_FALLBACK`, `ARRIVAL_BAND_LO/HI`,
+# `SPLINTER_PARENT_WEIGHT`, `SPLIT_SD_FLOOR`, `MIN_HOME_SPLITS`, `SPLITS`,
+# `SOLVE_TOL`; `fold.SHARE_FLOOR`, `fold.LEVEL_FLOOR`; `turnout.ELECTIONS`,
+# `turnout.LAMBDA_PAIRS`. Every one is read only while `pools --emit`, `fold`
+# or `turnout` PRECOMPUTES an artefact. The model reads the artefact, possibly
+# weeks later. Declaring them would write a `resolved` record for a value that
+# had no bearing on the run, and a sweep could then pass a presence check while
+# being UNDELIVERED in the only sense that matters.
+#
+#   **THE DELIVERY PROOF FOR THAT CLASS IS THE ARTEFACT KEY, NOT THIS TABLE.**
+#   `artefact_key` / `pools_sha` is already recorded on the scenario, so: a
+#   sweep of any ALPHA_* that does not move `pools_sha` never arrived. That is
+#   checkable today. This matters because the handover into 2026-08-27 named
+#   "the whole ALPHA_* family" as the top gap here, on the strength of
+#   NULL-RESULTS.md crediting it with 83-98% of drawn variance. The variance
+#   claim is not in dispute; the ROUTE was. It is not a process constant.
+#
+# `turnout` IS NOT IN `sys.modules` DURING A RUN AT ALL -- its only importer
+# anywhere is a function-local `import turnout` inside `fold.turnout_weights`,
+# reached only from `fold.main`. Declaring it would write `not-imported` for
+# every name on every run, which is worse than silence: a reader scanning
+# `45_delivered.json` takes presence in the table for relevance.
+#
+# `benchmarks` SHAPES THE OPPONENT, NOT THE MODEL. Its six constants set the
+# `prior-lge-noise` spread and the baseline dispatch -- they move the BAR, not
+# the forecast. Declared in one flat table beside `LEVEL_DF`, a future reader
+# sweeping `NEW_PARTY_SIGMA` would see CRPS move and conclude a model lever is
+# live. That is a category error that SURVIVES a correct delivery proof, which
+# makes it worse than the VOID-vs-NULL confusion this whole instrument exists
+# to end. It is also not imported at all under `python src/montecarlo.py`.
+#
+# `parties.PARTIES`, `parties.OTHER`, `parties.INDEPENDENT` -- off the model
+# path. `PARTIES` is read only by `build_crosswalk.py`, an audit CLI whose
+# output has no consumer. `OTHER` and `INDEPENDENT` have ZERO readers; the
+# name the model actually reads is `seats.INDEPENDENT`.
+#
+# `pools.CONFIG` and `levels.METRO_CODES` ARE read in this process and are
+# declared -- but both are bound as FUNCTION DEFAULTS at import, so the live
+# attribute this table records is not necessarily what ran. See
+# `FROZEN_DEFAULTS`, which is why `levels.METRO_CODES` is recorded under a
+# kind of its own and `pools.CONFIG` is left out entirely until the freeze is
+# repaired in `pools.py` (a code change there invalidates all eighteen pool
+# specs, so it is not a change to make in passing).
+
+# (module, constant) pairs whose value is captured as a FUNCTION DEFAULT at
+# import time, so that rebinding the module attribute -- which is exactly what
+# a sweep does -- moves the record here and NOT the computation. `LEVEL_DF`
+# §1.33 is this defect and cost weeks. Recording them under a kind of their own
+# means the log cannot be misread as delivery, and `assert_delivered(...,
+# kind="consulted")` refuses them like any other `resolved` record.
+#
+# `levels.METRO_CODES` is bound in four signatures -- `theta_record`,
+# `local_record`, `theta_prior`, `spine` -- and `run_model` passes `codes` to
+# none of them. It defines the entire evidence set every party's theta and
+# level is estimated from.
+#
+# `polling.REGISTER` was found by the guard test written the same day, and it is
+# the worst of the three: `polling.load(path: Path = REGISTER)` freezes the poll
+# register at import, so **pointing the model at a different register is
+# silently ignored** while the read log would faithfully report the new path.
+# Verified by rebinding it to a nonexistent file and watching `load()` return
+# the same ten polls. Every internal caller invokes `load()` with no argument,
+# and `run_model` reaches it through `validate_or_die`. The poll channel is
+# worth 48 coherent seats at 2026 (§1.65), so a silently-ignored register is not
+# a small thing.
+#
+# `montecarlo.HASH_SEED` was the same shape and is NOT listed, because it was
+# REPAIRED rather than declared: `fix_hash_seed` now resolves it in the body.
+# That is the better answer wherever it is available, and
+# `test_no_numeric_module_constant_is_a_default_argument` insists on it. An
+# entry here is for a binding that cannot be unfrozen without a wider change --
+# `levels.METRO_CODES` is bound in four signatures across two call paths, and
+# `polling.REGISTER` is a Path, which that numeric test cannot see at all.
+FROZEN_DEFAULTS: frozenset[tuple[str, str]] = frozenset({
+    ("levels", "METRO_CODES"),
+    ("polling", "REGISTER"),
+})
+
+
+def _module_namespace(module_name: str):
+    """The live module object for ``module_name``, or ``None``.
+
+    Falls back to ``__main__`` when that IS the module asked for, because a
+    module executed as a script is registered under ``__main__`` and NOT under
+    its own name. Matched on the file, never on a guess: two modules can share
+    a basename, and recording one module's constants under another's name would
+    be a false delivery proof rather than a missing one.
+    """
+    module = sys.modules.get(module_name)
+    if module is not None:
+        return module
+    main = sys.modules.get("__main__")
+    main_file = getattr(main, "__file__", None)
+    if main_file and Path(main_file).stem == module_name:
+        return main
+    return None
 
 
 def note_module_constants(scenario: dict, where: str) -> None:
@@ -1162,9 +1496,21 @@ def note_module_constants(scenario: dict, where: str) -> None:
 
     Every record is ``kind="resolved"``. Read :func:`note_value` on what that
     is and is not evidence for.
+
+    **A MODULE RUN AS A SCRIPT IS NOT IN ``sys.modules`` UNDER ITS OWN NAME**,
+    and that made this function blind on the entry point `CLAUDE.md` documents
+    for tracing -- `python src/montecarlo.py --city joburg --target 2021
+    --run-dir /tmp/t`. There, `montecarlo` is `__main__`; nothing in its import
+    closure imports it by name; so `sys.modules.get("montecarlo")` was `None`
+    and all ten of its own declared constants recorded `not-imported`, on the
+    one command whose purpose is to say what the run read. `compare_history`
+    was unaffected -- it does `import montecarlo as M`, so the name is bound --
+    which is exactly the shape of defect that survives: broken where you look
+    by hand, correct where the panel runs. Measured 2026-08-27; see
+    :func:`_module_namespace`.
     """
     for module_name, names in MODULE_CONSTANTS.items():
-        module = sys.modules.get(module_name)
+        module = _module_namespace(module_name)
         for const in names:
             full = f"{module_name}.{const}"
             if module is None:
@@ -1173,8 +1519,10 @@ def note_module_constants(scenario: dict, where: str) -> None:
             elif not hasattr(module, const):
                 note_value(scenario, full, None, where=where, kind="missing")
             else:
-                note_value(scenario, full, getattr(module, const),
-                           where=where, kind="resolved")
+                note_value(scenario, full, getattr(module, const), where=where,
+                           kind=("resolved-frozen"
+                                 if (module_name, const) in FROZEN_DEFAULTS
+                                 else "resolved"))
 
 
 def delivery_log(source) -> dict:
@@ -3703,6 +4051,22 @@ def run_model(target, scenario: dict,
             float(_solve_stats.get("worst_gap_reachable", 0.0)),
         "solve_unreachable_parties":
             int(_solve_stats.get("unreachable_parties", 0)),
+        # ABSORPTION, not a failure: the mass the level floor INJECTS, which the
+        # row renormalisation then takes from every party above the floor in
+        # proportion to size. This is the cause of `solve_worst_gap_reachable`
+        # and it is irreducible at a fixed `level_floor` -- 25x the rounds moves
+        # the gap 2%. NULL-RESULTS.md §4.3 requires an absorbing stage to report
+        # how much it absorbed; this is that number for this stage.
+        "solve_floor_injected_mean":
+            (float(_solve_stats.get("floor_injected_sum", 0.0))
+             / max(int(_solve_stats.get("solves", 0)), 1)),
+        "solve_floor_injected_worst":
+            float(_solve_stats.get("floor_injected_worst", 0.0)),
+        # F10's identity guard: `theta` updates that took 1.0 because `got` had
+        # collapsed. Expected to be 0 on the shipped configuration; §1.98 warns
+        # that a cure for F12 can activate it, so it is watched rather than
+        # assumed.
+        "solve_identity_hits": int(_solve_stats.get("identity_hits", 0)),
     })
     trace.put("42_pr_share_draws", pr_share_draws, detail=True)
     trace.put("43_ward_share_draws", ward_share_draws, detail=True)
@@ -3962,4 +4326,6 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    # Before anything else: this may replace the process. See `fix_hash_seed`.
+    fix_hash_seed()
     raise SystemExit(main())
