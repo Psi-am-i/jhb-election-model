@@ -332,22 +332,36 @@ PROCESSED = ROOT / "data" / "processed"
 # The nine-city-year backtest is UNAFFECTED and was not re-run for this: it goes
 # through `run_model`, which always built the level this way. This changes only
 # what the golden test characterises.
+# RE-RECORDED 2026-08-27, DELIBERATELY, AND THE REASON IS THE POINT.
+#
+# `projected_pool_shares` now trends on a RATE OF CHANGE rather than a
+# difference (MODEL-LOG §1.102), which moved these by 0.02-0.11pp. A golden must
+# never be re-recorded to accommodate a change that has not earned it, so this
+# waited for evidence, and the evidence is §1.103: the same change is
+# BIT-IDENTICAL across all sixteen backtest city-years on seats, CRPS and
+# median_sum, with only 1e-6 float-summation noise in the MAE columns.
+#
+# That is not a null result. `_target_roll`, this projection and the census
+# level bias all touch ONLY the target with no result file yet, because every
+# backtest year reads its own published roll. So the change reaches the 2026
+# forecast and nothing else — which is what it was built for, and the one case
+# no backtest can adjudicate. **These goldens are the only guard on it.**
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (22.8197, 10.9314, 35.7018),
-    "DA": (25.7851, 17.8486, 35.0579),
-    "EFF": (10.1067, 2.7816, 20.2526),
-    "ASA": (12.5428, 4.6833, 23.0267),
-    "MK": (9.7624, 2.7117, 19.6206),
-    "PA": (6.6652, 4.2248, 10.7982),
-    "VFPLUS": (0.8885, 0.0058, 3.2040),
-    "ALJAMAAH": (0.9028, 0.2801, 1.7427),
-    "ENTRANT": (1.3687, 0.0000, 7.5204),
+    "ANC": (22.5952, 10.9481, 35.9272),
+    "DA": (25.8249, 17.7375, 34.9498),
+    "EFF": (10.3008, 2.9330, 21.2216),
+    "ASA": (12.7029, 4.6963, 23.4185),
+    "MK": (9.7307, 2.7615, 19.3024),
+    "PA": (6.6548, 4.2222, 10.5471),
+    "VFPLUS": (0.8953, 0.0058, 3.1225),
+    "ALJAMAAH": (0.9051, 0.2673, 1.7588),
+    "ENTRANT": (1.3196, 0.0000, 7.5756),
 }
 GOLDEN_POOLS = {
-    "Black African": (50.0080, 41.5603, 57.6262),
-    "Coloured": (11.4798, 8.7879, 15.6118),
-    "Indian/Asian": (5.2052, 3.9804, 6.8071),
-    "White": (31.9383, 25.6930, 38.7253),
+    "Black African": (49.9435, 41.6738, 57.6567),
+    "Coloured": (11.4599, 8.7643, 15.6805),
+    "Indian/Asian": (5.1370, 3.9258, 6.7216),
+    "White": (32.1401, 25.8903, 39.0052),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")

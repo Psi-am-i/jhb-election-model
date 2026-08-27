@@ -95,6 +95,18 @@ DELETED = {
     "turnout_tilt_da": "deleted; it was still quoted on the published page "
                        "for weeks afterwards, which is why CLAUDE.md carries "
                        "the stat-token rule",
+    # Added 2026-08-26 by §1.100 and removed 2026-08-27 by §1.102, both inside a
+    # day. They were the diagnostics on a repair to Johannesburg's 187%
+    # registration rate; the repair was reverted once it was established that
+    # the census adult count is not an input this model consumes — elections are
+    # decided by registered voters and the roll is a counted list, so a rate
+    # above 100% is a fact about the census, not a quantity to clamp.
+    # JUDGEMENT-CALLS.md section I keeps the withdrawn set rather than silently
+    # losing the rows, which is why these names still appear there.
+    "census_blend": "diagnostic on the withdrawn registration repair; "
+                    "§1.100 added, §1.102 removed",
+    "census_blend_wanted": "as census_blend — the lift the roll asked for "
+                           "before MAX_CENSUS_LIFT bound it; §1.100/§1.102",
 }
 
 

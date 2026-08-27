@@ -11755,7 +11755,12 @@ defensible, but it is a different claim and must be written as one.
    the old policy's instinct**: past a point, a defect in the public record
    belongs reported, not absorbed. The code now does both.
 
-### A correction to §1.99
+### A correction to §1.99 — ⛔ THIS CORRECTION IS ITSELF WITHDRAWN, see §1.103
+
+> The paragraph below attributed +4 coherent seats to the `montecarlo.py`
+> changes. **It was wrong.** The baseline it used was nine commits stale, the +4
+> predated this session, and F12 is bit-identical on all sixteen city-years.
+> §1.99's original claim was correct. Left standing as the record of the error.
 
 §1.99 claimed F12's early stop returned a *"bit-identical"* array. **That was
 measured on a three-party toy where the solve had converged, and it does not
@@ -11957,3 +11962,82 @@ pool shares — and has NOT been measured. It is adopted on the argument above,
 which is exactly the thing this repository does not accept, so it is provisional
 until the paired sixteen-city-year comparison is run. **Do not quote it as an
 improvement until then.**
+
+## 1.103 F12 is number-neutral after all — and §1.100's "correction" of §1.99 was itself wrong (2026-08-27)
+
+**A retraction of a retraction, recorded in full because the mistake is the
+interesting part.**
+
+§1.99 said F12's early stop returned a bit-identical answer. §1.100 "corrected"
+that, on the grounds that the `montecarlo.py` changes measured **+4 coherent
+seats** on the panel, and told the reader I had asserted neutrality from a toy.
+**§1.99 was right and §1.100's correction was wrong.**
+
+### The isolation
+
+The early stop was reverted to the original `if gap < tol`, everything else held,
+and the sixteen city-years re-measured:
+
+| key | F12 ON | F12 OFF |
+|---|---|---|
+| `seat_abs_err_coherent` | 386 | 386 |
+| `seat_abs_err` | 407 | 407 |
+| `crps` | 329.4985 | 329.4985 |
+
+Per city-year, seats / CRPS / `median_sum` are **bit-identical in all sixteen**.
+The only differences anywhere are 26 of 96 (city-year, metric) pairs in `pr_mae`
+and `ward_mae`, every one between **1e-6 and 1e-9** — float summation order, the
+same magnitude §1.46 recorded when `compare_history` went parallel.
+
+### Where the +4 actually came from
+
+**The baseline was nine commits stale.** `data/processed/history.json` was
+committed at `2742785` (24 August) and the comparison treated it as "before".
+Between it and this session sit nine commits, including `2c30856` — *"The poll
+channel is worth −6, not +48: the two headline levers re-read on sixteen"*. The
++4 was already in the tree before I touched anything.
+
+**This is the exact failure `ITERATING.md` and `CLAUDE.md` warn about**, and I
+walked into it while quoting those rules at everything else: I measured against a
+stored artefact instead of a paired run on the current tree, and then used the
+difference to retract a correct claim. The paired `before.json` run — the one I
+did do properly — already contained the answer: it scored 386, not 382, *with
+`pools.py` reverted*, which should have told me the +4 predated the session.
+
+**The lesson is not "check the date on the baseline".** It is that a number
+carried in a file is not a measurement of the tree in front of you, however
+recently it was written. `history.json` is a *reference*, and the repository
+already knows this — the `.gitignore` comment explaining why it is tracked says
+so at length.
+
+### Consequences
+
+* **F12's early stop stays.** It is neutral and cuts the θ solve from 40 rounds
+  to ~10, twice per draw, on the hottest loop in the model.
+* **F9, F11, F20 are exonerated too** — they were only ever suspects by
+  association with the same bad comparison.
+* **§1.100 and §1.102's "correction to §1.99" are withdrawn.** §1.100's headline
+  measurement of the cap-and-blend is unaffected: that one *was* paired, against
+  `before.json` on the current tree, and the cap-and-blend really did cost +8
+  seats and +3.09 CRPS. Only the attribution of the extra +4 to `montecarlo.py`
+  was wrong.
+
+### And the rate-of-change projection is backtest-neutral
+
+The same run settles the other open question. With `projected_pool_shares`
+trending on a rate of change, the sixteen city-years are unchanged to float
+noise. That is not a null result — it is the expected one, and it is the third
+member of a family:
+
+> `_target_roll` (F14), the pool-share projection, and the census level bias all
+> touch **only the target that has no result file yet**. The backtest cannot
+> score any of them, because every backtest year reads its own published roll.
+
+So rate-of-change changes the **2026 forecast and nothing else** — which is
+precisely the case it was built for, and precisely the case no backtest can
+adjudicate. It is adopted on the invariance argument (verified to 1.11e-16) plus
+this demonstration that it costs nothing anywhere it *can* be scored.
+
+**The two `test_drawer` goldens may now be re-recorded**, deliberately and with
+this measurement as the reason: they moved 0.02–0.11pp because the 2026 pool
+shares moved, which is the intended effect and the only effect.
