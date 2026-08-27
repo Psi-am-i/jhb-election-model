@@ -46,3 +46,7 @@ __pycache__/
 # something a public repo should carry either.
 .wrangler/
 .pytest_cache/
+
+# The pool-artefact lock (src/pools.py artefact_lock). Runtime coordination,
+# never content — see MODEL-LOG 1.102.
+data/processed/.pools.lock

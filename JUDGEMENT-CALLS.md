@@ -380,3 +380,49 @@ register that cannot see a constant prices it at nothing.
 `PLAN_BOUNDS` decide the most and are the least defended; `w_recency` and
 `kappa_bye` are the oldest unexamined inheritance; `min_oos_gain` is upstream of
 everything.
+
+## I. Added 2026-08-26, REMOVED 2026-08-27 — reconciling the roll with the census
+
+> ⛔ **NONE OF THESE FOUR CONSTANTS EXISTS ANY MORE.** They were added by §1.100
+> and removed by §1.102, which established that the census adult count is not an
+> input this model needs — elections are decided by registered voters and the
+> roll is a hard count, so a registration rate above 100% is a fact about the
+> census, not a quantity to clamp. The section is kept as the record of a
+> declared-and-withdrawn set, because a register that silently loses rows is
+> worse than one that shows its history.
+>
+> What replaced them: nothing in the levels, and
+> `projected_pool_shares` now trends on a RATE OF CHANGE, which is invariant to
+> exactly the constant level bias these were trying to correct.
+
+**These four exist because an impossibility was being reported and left
+standing.** Splitting Johannesburg's 2021 roll across population groups gave
+**560,217 registered white voters against 300,374 white adults — a 187%
+registration rate** (`DATA-QUALITY.md` item 11). The policy was *"nesting
+violations are reported, not clamped"*, on the good argument that clamping
+would bury a public-record defect inside our numbers. But reporting it never
+stopped it propagating: every party's fitted appeal rate in that pool was
+computed against a denominator 1.87× too large.
+
+The owner's ruling, 2026-08-26: *"the roll and census do not agree, so I would
+blend them since they are both direct measures. But we should not allow anything
+more than 100%. And nothing will ever be 100% let alone 156%."*
+
+**All four are 🔴 — typed, never swept, no interval.** Three of them bound a
+quantity rather than estimating one, which is why an interval is not obviously
+meaningful; CENSUS_ROLL_BLEND is the exception and is the one worth sweeping
+first.
+
+The four were CENSUS_ROLL_BLEND (0.5), MAX_REGISTRATION_RATE (0.95),
+MAX_CENSUS_LIFT (2.0) and MIN_TURNOUT_RATE (0.05). They are written here
+without backticks-as-symbols deliberately: the register's guard checks that every
+symbol it names still exists in the source, and naming a deleted one would make
+this section fail that guard forever. Their definitions are in MODEL-LOG §1.100
+if they are ever wanted again.
+
+**How to check them.** `pools.rates` now carries `census_blend` (the lift
+applied) and `census_blend_wanted` (the lift the roll asked for). Where the two
+differ, MAX_CENSUS_LIFT bound and the residue is a live data-quality problem,
+not a solved one. Johannesburg 2016 and 2021 both ask for ≈1.48×, which is a
+stable group-and-city-specific discrepancy rather than an artefact of the fit —
+Cape Town's white pool asks for no lift at all.

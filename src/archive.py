@@ -77,6 +77,12 @@ PROVENANCE = {
     "data/raw/covariates/Ward-Product": "statssa.gov.za Ward-level Small Area Population Estimates 2022",
     "data/raw/covariates/Ward Product_Locked spreadsheets/": "unpacked from statssa.gov.za Ward-Product_Locked-spreadsheets.zip",
     "data/raw/covariates/Ward-statistical": "statssa.gov.za ward product technical note",
+    # Supplied by email, not published: Stats SA User Information Services
+    # (Magakwe Jan Kgope) on 2026-08-24, answering the ward-language request.
+    # It is a SuperCROSS extract at MUNICIPALITY level -- not the ward table
+    # asked for -- so it is held as provenance, not as a model input. See
+    # SOURCES.md "Census 2022 home language" and DATA-QUALITY.md.
+    "data/raw/covariates/Languages by Municipalities": "Stats SA User Information Services, emailed 2026-08-24 (SuperCROSS extract, municipality level)",
     "data/processed/": "derived: src/build_concordance.py, src/build_crosswalk.py",
 }
 

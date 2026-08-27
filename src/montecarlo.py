@@ -799,24 +799,81 @@ def ward_parts(target, data_dir: Path, processed: Path) -> tuple[list[tuple[str,
 
 
 def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6,
-                      level_floor=None):
+                      level_floor=None, stats=None):
     """Solve for θ reaching `target` citywide through the model; return VD shares.
 
-    ``level_floor`` resolves ``SHARE_FLOOR`` at call time; see `log_shock` and
-    MODEL-LOG §1.33 for why no module constant may be a default argument here.
+    ``level_floor`` resolves ``DEFAULTS["level_floor"]`` at call time; see
+    `log_shock` and MODEL-LOG §1.33 for why no module constant may be a default
+    argument here. It resolved ``SHARE_FLOOR`` (0.002) until 2026-08-26 — the
+    floor production abandoned on 2026-08-06 — which no run ever saw, because
+    both production call sites pass ``level_floor`` explicitly from
+    ``scenario["level_floor"]``. It was a trap for the next caller, and phase A's
+    own test file walked into it (MODEL-LOG §1.98, F11).
+
+    ``stats``, when given, is a dict this records into. **It does not raise.**
+    This loop does not converge on the shipped configuration — not rarely, but on
+    *every* draw — because `logit` clips at ``level_floor`` and the tail of the
+    Dirichlet always lands beneath it, so those parties' θ updates are no-ops and
+    the iteration sits on a fixed point that is not the target (MODEL-LOG §1.98,
+    F12). `pools.balance_margins` raises on the same condition; raising here
+    would abort every draw, which is why this counts instead.
+
+    Nothing recorded here changes the returned array.
     """
-    level_floor = SHARE_FLOOR if level_floor is None else level_floor
+    level_floor = DEFAULTS["level_floor"] if level_floor is None else level_floor
     theta = np.where(base_city > 0, target / np.maximum(base_city, 1e-12), 1.0)
     weights = weight / weight.sum()
-    for _ in range(rounds):
+    # JUDGE CONVERGENCE ONLY WHERE IT IS ACHIEVABLE (owner's call, 2026-08-26).
+    #
+    # A party whose target sits under `level_floor` cannot be moved onto it by
+    # ANY θ — `logit` clips at the floor, so its level stops responding and its
+    # error is irreducible. Including it in the stopping test guarantees the test
+    # never passes, which is why the `break` below was dead code and all `rounds`
+    # were always spent: on the shipped configuration every draw carries such a
+    # party (dirichlet_floor 1e-4 against α = 26.86 puts 97.4% of floored members
+    # under 1e-6). Measured on real Johannesburg geography, the solve converges
+    # in ~10 rounds and then burns 30 more achieving nothing.
+    #
+    # THE ARITHMETIC IS DELIBERATELY UNTOUCHED. This changes only WHEN the loop
+    # is allowed to stop, not what it computes — the stuck parties still hold
+    # ~1e-6 each and that mass is still taken from everyone else through the row
+    # renormalisation, leaving the largest party ~1e-5 short of its drawn target.
+    # That residue is ~300x below one seat and orders below `ward_noise_sd` and
+    # `turnout_noise_sd`, which the model injects on purpose, so repairing it
+    # would move numbers without improving the forecast. MODEL-LOG §1.98, F12.
+    reachable = target > level_floor
+    used, gap = rounds, float("inf")
+    for _i in range(rounds):
         level = logit(base_city * theta, floor=level_floor)
         pred = expit(level[None, :] + gamma[None, :] * dev)
         pred /= pred.sum(axis=1, keepdims=True)
         got = weights @ pred
-        gap = np.abs(got - target).max()
+        err = np.abs(got - target)
+        gap = err.max()
         theta = theta * np.where(got > 1e-9, target / np.maximum(got, 1e-12), 1.0)
-        if gap < tol:
+        if (err[reachable].max() if reachable.any() else 0.0) < tol:
+            used = _i + 1
             break
+    if stats is not None:
+        # The reachable gap is what the floor can actually deliver: a party whose
+        # target sits under `level_floor` cannot be moved onto it by any θ, so
+        # including it in the convergence test guarantees failure. Recording both
+        # separates "the solver failed" from "the target was unreachable".
+        reachable = target > level_floor
+        reach_gap = (float(np.abs(got - target)[reachable].max())
+                     if reachable.any() else 0.0)
+        stats["solves"] = stats.get("solves", 0) + 1
+        stats["rounds"] = stats.get("rounds", 0) + used
+        if gap >= tol:
+            stats["nonconvergent"] = stats.get("nonconvergent", 0) + 1
+        if reach_gap >= tol:
+            stats["nonconvergent_reachable"] = \
+                stats.get("nonconvergent_reachable", 0) + 1
+        stats["worst_gap"] = max(float(stats.get("worst_gap", 0.0)), float(gap))
+        stats["worst_gap_reachable"] = max(
+            float(stats.get("worst_gap_reachable", 0.0)), reach_gap)
+        stats["unreachable_parties"] = max(
+            int(stats.get("unreachable_parties", 0)), int((~reachable).sum()))
     level = logit(base_city * theta, floor=level_floor)
     pred = expit(level[None, :] + gamma[None, :] * dev)
     return pred / pred.sum(axis=1, keepdims=True)
@@ -2316,10 +2373,26 @@ def run_model(target, scenario: dict,
         import levels as _levels
         _prior, _groups = _levels.theta_prior(target, base_city_d)
         if _prior:
-            small = _groups.get("small", {})
-            med, sd = small.get("median", 0.8), small.get("sd_log", 0.8)
-            _prior["__small__"] = (med * float(np.exp(-1.2816 * sd)), med,
-                                   med * float(np.exp(1.2816 * sd)))
+            # `__small__` WAS HERE, AND IT WAS A HAND-TYPED 0.8 (MODEL-LOG §1.98).
+            #
+            # The line read `_groups.get("small", {})` and then `.get("median",
+            # 0.8)`. `theta_prior` has three returns: two empty dicts that fail
+            # the `if _prior:` gate above, and one literal whose keys are exactly
+            # {centre, spread, worth, sd}. **"small" could never be a key**, and
+            # `git log -S'"small"' -- src/levels.py` returns no commits, so the
+            # typed 0.8 won every time the line ran — and it reached the
+            # published artefact: forecast_summary.json carried
+            # `scenario.theta_prior.__small__ == [0.28695681, 0.8, 2.23030077]`,
+            # which is exactly 0.8·exp(∓1.2816·0.8).
+            #
+            # `__small__` was not read either. Its consumer was montecarlo.py:629
+            # at 49193a5 and task #22 (48e173d) deleted it, so this wrote a
+            # hand-typed retention prior into the artefact of a model whose whole
+            # point (49193a5) is that the hand-typed priors are gone.
+            #
+            # DELETED RATHER THAN REPAIRED. Adding a `small` group to
+            # `levels.theta_prior` would restore a mechanism that was removed
+            # deliberately, and that is a scored change, not a bug fix.
             scenario["theta_prior"] = _prior
             # The measured log-spread per party, carried to the draw. See
             # make_drawer: this is the number the draw was not using.
@@ -3048,6 +3121,10 @@ def run_model(target, scenario: dict,
 
     draw_target = make_drawer(scenario, base_city_d, centres, index, rng)
     _ipf_stats = getattr(draw_target, "ipf_stats", {})
+    # The IPF has had a failure counter since it was written; the θ solve that
+    # runs twice per draw has never had one, and it has never converged
+    # (MODEL-LOG §1.98). Records only — see `solve_and_predict`.
+    _solve_stats: dict = {}
 
     # --- report configuration -------------------------------------------------
     if verbose:
@@ -3133,9 +3210,9 @@ def run_model(target, scenario: dict,
 
         floor = scenario["level_floor"]
         pr = solve_and_predict(dev_pr, base_city, pr_target, gamma["PR"], weight_cal,
-                               level_floor=floor)
+                               level_floor=floor, stats=_solve_stats)
         wd = solve_and_predict(dev_ward, base_city, ward_target, gamma["Ward"], weight_cal,
-                               level_floor=floor)
+                               level_floor=floor, stats=_solve_stats)
 
         pr_eff = pr if tilt_scale is None else pr * tilt_scale
         wd_eff = wd if tilt_scale is None else wd * tilt_scale
@@ -3204,6 +3281,20 @@ def run_model(target, scenario: dict,
         "bounds_checked": bounds_checked,
         "excessive_draws": excessive_draws,
         "overhang_count": dict(overhang_count),
+        # `solve_nonconvergent` is expected to equal `solve_calls` on the shipped
+        # configuration and that is NOT reassuring — see MODEL-LOG §1.98. Read
+        # `solve_nonconvergent_reachable` instead: it excludes parties whose
+        # target sits under the level floor, which no θ can reach.
+        "solve_calls": int(_solve_stats.get("solves", 0)),
+        "solve_rounds": int(_solve_stats.get("rounds", 0)),
+        "solve_nonconvergent": int(_solve_stats.get("nonconvergent", 0)),
+        "solve_nonconvergent_reachable":
+            int(_solve_stats.get("nonconvergent_reachable", 0)),
+        "solve_worst_gap": float(_solve_stats.get("worst_gap", 0.0)),
+        "solve_worst_gap_reachable":
+            float(_solve_stats.get("worst_gap_reachable", 0.0)),
+        "solve_unreachable_parties":
+            int(_solve_stats.get("unreachable_parties", 0)),
     })
     trace.put("42_pr_share_draws", pr_share_draws, detail=True)
     trace.put("43_ward_share_draws", ward_share_draws, detail=True)

@@ -49,6 +49,9 @@ from __future__ import annotations
 import argparse
 import ast
 import csv
+import time
+import os
+import contextlib
 import hashlib
 import tomllib
 from collections import defaultdict
@@ -60,6 +63,79 @@ import numpy as np
 
 import cityconfig
 import parties as P
+
+# ---------------------------------------------------------------------------
+# ONE WRITER ON THE SHARED ARTEFACTS, ENFORCED — not asked for politely
+# ---------------------------------------------------------------------------
+# `data/processed/**/pools_*.json` is precomputed and shared. CLAUDE.md has said
+# "exactly one worker may re-emit, and nobody else measures while it does" since
+# the rule cost this project a retracted result. It was still only a rule, and on
+# 2026-08-27 it was broken twice inside thirty minutes by two background jobs
+# racing: eighteen specs ended up carrying TWO different `pools_sha` values, and
+# every measurement taken against that tree was meaningless.
+#
+# A convention that depends on remembering is not a guard. This is the guard.
+#
+#   emit  -> EXCLUSIVE lock. A second emit fails immediately with a named error
+#            rather than interleaving.
+#   read  -> SHARED lock, taken by the long readers (compare_history, the suite).
+#            An emit cannot start while one is held, and a reader cannot start
+#            while an emit holds the exclusive lock.
+#
+# Non-blocking by design: waiting silently is how you get a job that looks hung.
+# Set POOLS_LOCK_WAIT=<seconds> to wait instead of failing.
+
+LOCK_PATH = Path("data/processed/.pools.lock")
+
+
+@contextlib.contextmanager
+def artefact_lock(mode: str, what: str = ""):
+    """Hold the pool-artefact lock. ``mode`` is "emit" (exclusive) or "read".
+
+    Raises SystemExit with an explanatory message rather than blocking, so a
+    collision is a loud failure at the start instead of a corrupt measurement at
+    the end.
+    """
+    import fcntl
+    LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    flag = fcntl.LOCK_EX if mode == "emit" else fcntl.LOCK_SH
+    wait = float(os.environ.get("POOLS_LOCK_WAIT", "0") or 0)
+    fh = open(LOCK_PATH, "a+")
+    deadline = time.monotonic() + wait
+    while True:
+        try:
+            fcntl.flock(fh.fileno(), flag | fcntl.LOCK_NB)
+            break
+        except OSError:
+            if time.monotonic() >= deadline:
+                fh.close()
+                held = ""
+                try:
+                    held = LOCK_PATH.read_text().strip().splitlines()[-1]
+                except Exception:
+                    pass
+                raise SystemExit(
+                    f"pools artefacts are locked by another process"
+                    + (f" — {held}" if held else "")
+                    + f"\n  wanted: {mode} {what}"
+                    + "\n  The shared pool specs may not be written by two "
+                      "processes, nor read by a measurement while one writes "
+                      "(CLAUDE.md, 'Shared artefacts: one writer')."
+                      "\n  Wait for it to finish, or set POOLS_LOCK_WAIT=600 "
+                      "to queue behind it.")
+            time.sleep(0.25)
+    try:
+        if mode == "emit":
+            fh.seek(0); fh.truncate()
+            fh.write(f"emit pid={os.getpid()} {what}\n"); fh.flush()
+        yield
+    finally:
+        try:
+            if mode == "emit":
+                fh.seek(0); fh.truncate(); fh.flush()
+        finally:
+            fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
+            fh.close()
 
 CONFIG = Path("config/dimensions.toml")
 
@@ -700,10 +776,32 @@ def projected_pool_shares(series: dict[str, np.ndarray], target: str,
                           damping: float = 0.6) -> tuple[np.ndarray, str]:
     """Carry each pool's share of the roll forward to the target election.
 
-    A straight line through the last two observations, damped, which is the
-    same treatment :func:`composition_at` gives census composition — and for
-    the same reason: a trend measured over one interval, extended, claims more
-    than the data supports.
+    **THE TREND IS A RATE OF CHANGE, NOT A DIFFERENCE** (owner, 2026-08-27:
+    *"the pool size prediction should rely on rate of change not raw
+    numbers"*), and that choice is what lets this projection survive a pool
+    whose LEVEL is known to be wrong.
+
+    Johannesburg's white pool is sized from a census population the roll
+    contradicts by roughly 2x (`DATA-QUALITY.md` items 11 and 13). Under the
+    additive trend used until 2026-08-27 that bias entered TWICE: once in the
+    level carried forward, and again in the increment, because a difference
+    between two inflated numbers is itself inflated. **A ratio is not.** If a
+    pool's share carries a constant factor k in every year::
+
+        share_b / share_a = (c_b / c_a) · (S_a / S_b)
+
+    and k divides out — the remaining term is the roll's own growth, common to
+    every pool. So a log-space trend measures a pool's real rate of change even
+    when nobody can agree how many people are in it, which is the situation we
+    are actually in and expect to stay in.
+
+    Damped for the same reason as before, and the same reason
+    :func:`composition_at` damps census composition: a trend measured over one
+    interval, extended, claims more than the data supports.
+
+    A pool that vanishes between observations has no defined rate of change and
+    holds its last share instead — a log of zero would carry it to zero
+    everywhere and silently delete a pool.
     """
     years = sorted(series)
     if not years:
@@ -713,10 +811,18 @@ def projected_pool_shares(series: dict[str, np.ndarray], target: str,
     a, b = years[-2], years[-1]
     span = int(b) - int(a)
     step = (int(target) - int(b)) / span if span else 0.0
-    trend = series[b] - series[a]
-    shares = np.maximum(series[b] + damping * step * trend, 1e-6)
+    prev = np.asarray(series[a], dtype=float)
+    last = np.asarray(series[b], dtype=float)
+    FLOOR = 1e-9
+    movable = (prev > FLOOR) & (last > FLOOR)
+    ratio = np.ones_like(last)
+    np.divide(last, prev, out=ratio, where=movable)
+    rate = np.zeros_like(last)
+    np.log(ratio, out=rate, where=movable)
+    shares = np.maximum(last * np.exp(damping * step * rate), 1e-6)
     return shares / shares.sum(), (
-        f"{b} roll carried to {target} on the {a}-{b} trend, damped x{damping:g}")
+        f"{b} roll carried to {target} on the {a}-{b} RATE of change "
+        f"(log-space, invariant to a constant level bias), damped x{damping:g}")
 
 
 def vd_map(city: cityconfig.City, year: str) -> tuple[dict[str, str], dict[str, float]]:
@@ -1795,16 +1901,37 @@ def _target_roll(city: cityconfig.City, target: cityconfig.Target,
             f"non-Johannesburg city needs its own; there is no shared one, and "
             f"reading another city's is how this used to report a delimitation "
             f"boundary that was never there.")
+    # ONE VD THAT STRADDLES TWO WARDS BELONGS TO BOTH, IN PROPORTION.
+    #
+    # Until 2026-08-26 this read `vd_registered` and skipped every row after a
+    # VD's first (`vd in seen`), so each of the 181 SPLIT VDs landed WHOLE in
+    # whichever ward sorted first. `montecarlo.ward_parts` reads the same file
+    # and uses `part_registered` — the apportioned split, which is assumption A1
+    # and the entire reason the column exists — so the model built its pools on
+    # one map of the city and its ward tallies on another. **124 of the 135
+    # wards disagreed**, worst by 16,657 registered voters (79800008).
+    #
+    # NOTHING COULD HAVE CAUGHT IT: sum(part_registered) == vd_registered for
+    # all 865 VDs, so the citywide total is identical either way (2,348,781) and
+    # every conservation check passes under both rules. Nor could the backtest —
+    # `_target_roll` is reached only when CALENDAR[year].results is None, so all
+    # sixteen city-years take the ward_totals branch. It was live at 2026 only,
+    # in the published forecast, and unscoreable.
+    #
+    # The corroboration is independent of A1: wards are delimited to hold
+    # roughly equal populations, and the old rule gave Johannesburg ward rolls
+    # ranging 5,902 to 36,649 (CV 30.0%) against 14,791 to 20,007 (CV 11.9%)
+    # under this one. A 6.2x spread is not something a delimitation produces.
+    # MODEL-LOG §1.99; guarded by tests/test_ward_parts.py.
     roll: dict[str, float] = defaultdict(float)
-    seen: set[str] = set()
     with open(path, encoding="utf-8", errors="replace") as fh:
         for row in csv.DictReader(fh):
             vd = (row.get("VD_Number") or "").strip()
             ward = (row.get("WardID_" + target.year) or row.get("Ward") or "").strip()
-            if not vd or not ward or vd in seen:
+            if not vd or not ward:
                 continue
-            seen.add(vd)
-            roll[ward] += float(row.get("vd_registered") or 0)
+            roll[ward] += float(row.get("part_registered")
+                                or row.get("vd_registered") or 0)
     return dict(roll)
 
 
@@ -3452,13 +3579,14 @@ def main() -> None:
     if args.emit:
         import json
         bloc = SIMULATION_BLOC if args.simulation else None
-        spec = emit_pools(city, target, cfg, from_year=args.from_year,
-                          retrospective_home=args.retrospective_home,
-                          split_bloc=bloc)
-        suffix = "_simulation" if args.simulation else ""
-        out = city.processed / f"pools_{target.year}{suffix}.json"
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(json.dumps(spec, indent=2, sort_keys=True))
+        with artefact_lock("emit", f"{city.slug} {target.year}"):
+            spec = emit_pools(city, target, cfg, from_year=args.from_year,
+                              retrospective_home=args.retrospective_home,
+                              split_bloc=bloc)
+            suffix = "_simulation" if args.simulation else ""
+            out = city.processed / f"pools_{target.year}{suffix}.json"
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(json.dumps(spec, indent=2, sort_keys=True))
         print(f"{city.name} {target.year}: {len(spec['pools'])} pools -> {out}")
         if bloc:
             print(f"  SIMULATION SPEC — not the published forecast. "

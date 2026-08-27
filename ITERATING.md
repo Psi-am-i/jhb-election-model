@@ -42,6 +42,84 @@ If yes, it is a candidate for publication. If no, it does not ship and we keep
 iterating. There is no third outcome in which a worse model is published because
 it is newer, better argued, or built from more measurements.
 
+### AMENDED 2026-08-27 — a more honest model beats a rigged one
+
+**The owner's amendment, and the reasoning is the part that matters:**
+
+> *the rule is "worse doesn't ship" because worse almost always means you've
+> modelled something that's nonsense or ineffective. However, there are many
+> exceptions especially when we are replacing smuggled constants or values
+> inserted because they seem to work without any mechanism or explanation for
+> it. In those cases, a more honest model is better than a rigged one.*
+
+**Why the rule exists is now written down, and it is not "the score is the
+truth".** It is that a change which scores worse has *almost always* modelled
+something nonsensical or inert, and the score is the cheapest available detector
+of that. The score is an INSTRUMENT, not the objective. Where the instrument and
+the objective come apart, the objective wins — and the objective is a model whose
+every number has a mechanism behind it.
+
+So the bar governs **candidate improvements** — a new mechanism, a refitted
+constant, a lever someone wants to turn. Is this better? If not, it does not
+ship.
+
+It does **not** govern **replacing something unjustifiable with something
+justified**, of which there are two kinds:
+
+1. **An impossibility.** Something the model's own invariants forbid or that
+   cannot be true of the world — a rate above 100%, a negative count, votes
+   exceeding voters. §1.100: 560,217 registered voters among 300,374 adults is
+   not "a configuration that scores well"; it is wrong, and a score cannot make
+   it right.
+2. **A smuggled constant** — a value that reached the model because it seemed to
+   work, carrying no mechanism, no derivation and no interval. Its score is not
+   evidence *for* it, because a number fitted to the panel will of course score
+   on the panel. **That is what "rigged" means here, and a rigged number scoring
+   well is the symptom, not the defence.** Replacing one with a derived quantity
+   may cost accuracy and still be right, because what is being bought is the
+   ability to know why the model says what it says.
+
+**A caution that belongs with this, because the exception is powerful enough to
+be dangerous.** "This constant is smuggled" is very easy to say about any number
+one dislikes. The register in `JUDGEMENT-CALLS.md` is what settles it — a
+constant marked 🔴 there, with no measurement behind it, is smuggled; one with a
+measurement and an interval is not, however inconvenient. If the status is
+arguable, it is a candidate improvement and faces the full bar.
+
+**The exception is not a loophole, and these conditions are all required:**
+
+1. **It must be an impossibility or a smuggled constant, on the register's
+   evidence — not on anyone's opinion.** "I think this value is badly chosen" is
+   a candidate improvement and faces the full bar.
+2. **The cost is MEASURED, in full, and published in `MODEL-LOG`.** No repair
+   ships on the argument alone. §1.100 records +8 seats, +3.09 CRPS and a failed
+   Key 1 for exactly this reason.
+3. **Key 2 and Key 4 still bind.** Calibration and held-out NLL are untradeable
+   for repairs as for anything else. A repair that breaks calibration does not
+   ship; it goes back for a better repair.
+4. **The cost is recorded as a DEBT, with a hypothesis.** A repair that costs
+   accuracy is evidence that the defect was doing load-bearing work, and the
+   entry must say what work is suspected and how to test it. §1.100's hypothesis
+   is that the inflated white pool was standing in for a differential-turnout
+   effect the model under-weights.
+5. **The debt is revisited.** If the load-bearing work is later supplied and the
+   deficit does not close, the hypothesis was wrong and the entry must be
+   rewritten to say so — a loss taken for correctness is a different claim from a
+   loss expected to be recovered.
+
+**What this exception does NOT license.** It is not a route for a change that
+merely scores worse and has a good story. It is not a reason to stop measuring.
+It is not precedent for trading Key 2 or Key 4. And it is not available to
+anything that could instead be expressed as a lever and swept — if the choice has
+a range, it is a candidate improvement and faces the bar.
+
+**NEVER INVOKED.** It was opened for §1.100 and §1.102 then reverted that
+change outright, so nothing has shipped under it. It is kept — at the owner's
+direction — because the reasoning is right and will be needed: the argument that
+a score is an INSTRUMENT for detecting nonsense rather than the objective itself,
+and that a derived number beats a rigged one, does not depend on the case that
+prompted it. The first genuine use should record itself here.
+
 ### AMENDED 2026-08-23 BY THE OWNER — accuracy is necessary, and it is not sufficient
 
 The owner's amendment, in his words: *a model should ideally be better at

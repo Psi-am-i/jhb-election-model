@@ -270,6 +270,59 @@ users can see where coverage was weakest.
 the violation, or call `pools.pool_counts(city, "2021", cfg)` and read
 `.violations`.
 
+### NOT resolved in the model — attempted 2026-08-26, REVERTED 2026-08-27
+
+> ⛔ **THE REPAIR DESCRIBED BELOW WAS REVERTED** (MODEL-LOG §1.102). The
+> before/after table and the blend are no longer what the code does; the model
+> reports this violation and carries on, as it did before. **The reason is not
+> resignation.** Elections are decided by registered voters, the roll is a hard
+> count, and the census adult figure is not an input the model consumes — so a
+> rate above 100% is a fact about the census rather than a quantity to clamp.
+> Correcting it in the pool sizes measured WORSE (+8 seats, +3.09 CRPS) because
+> pool size and fitted rate are jointly identified by the votes: their product
+> was already right. Kept below as the record of what was tried.
+
+**The data problem above is still real and Stats SA has not answered it.** What
+changed is that the model no longer carries it forward.
+
+Until 2026-08-26 the policy was *"nesting violations are reported, not
+clamped"*, on the argument that clamping would bury a public-record defect
+inside our own numbers. That argument protected the record and did nothing for
+the model: **reporting the 187% never stopped it propagating**, and every
+party's fitted appeal rate in that pool was computed against a denominator
+1.87× too large. The DA's fitted appeal among white voters read 66.8% — a figure
+the model itself declines to call identified.
+
+The owner's ruling: *"the roll and census do not agree, so I would blend them
+since they are both direct measures. But we should not allow anything more than
+100%. And nothing will ever be 100% let alone 156%."*
+
+So both measures now move, the ceiling is hard, and Johannesburg 2021 becomes:
+
+| group | adults (blended) | registered | registered / adults |
+|---|---|---|---|
+| Black African | 2,901,719 | 1,529,453 | 52.7% |
+| Coloured | 150,147 | 121,459 | 80.9% |
+| Indian/Asian | 124,414 | 109,832 | 88.3% |
+| **White** | **504,547** | **459,967** | **91.2%** |
+
+The white pool's adult count is lifted 1.48× and its registrations fall from an
+impossible 560,217 to 459,967. **The published ward totals are untouched** —
+2,220,710 to the voter, per ward — because that number is counted, not
+modelled, and this machinery exists to split it, not revise it.
+
+**The lift is reported, not hidden.** `pools.rates["census_blend"]` carries what
+was applied and `census_blend_wanted` what the roll asked for; where they differ,
+`MAX_CENSUS_LIFT` bound and the residue is still a live data problem. Johannesburg
+asks ≈1.48× in both 2016 and 2021 — a stable, group-and-city-specific
+discrepancy — while Cape Town's white pool asks for nothing. Mangaung 2016's
+Indian/Asian pool asks **3.69×** and is clamped at 2.0, because 13,309
+registered against a census population of 14,929 is not two measures disagreeing.
+
+Constants in `JUDGEMENT-CALLS.md` section I. Mechanism in MODEL-LOG §1.100.
+**The request to Stats SA stands**: publish registration by population group, or
+the ward-level post-enumeration adjustment factors.
+
 ---
 
 ---
@@ -543,3 +596,72 @@ work until a concordance exists. This is the stronger version of that warning
 for two cities: **their citywide shares are not strictly comparable either.**
 Not chased further, and recorded so a θ ratio computed across the 2006→2011
 transition for Mangaung or Buffalo City is read with it in view.
+
+---
+
+## 13. The census cannot supply the votes the DA actually received
+
+**Where:** Stats SA *Ward Statistical Product 2022* (population group and age
+tables) read against IEC results for City of Johannesburg, LGE 2016 and 2021.
+
+Item 11 records that splitting the roll across population groups puts **187% of
+white adults on the voters' roll**. This is the same defect seen from the other
+end, and it is the more decisive view, because it does not depend on the roll at
+all — only on votes actually cast.
+
+Johannesburg 2016, with the white pool sized from the census and blended half-way
+toward the roll (`CENSUS_ROLL_BLEND` 0.5, MODEL-LOG §1.100):
+
+| | |
+|---|---|
+| DA total votes | 451,225 (38.5% of the city — the DA took ~38%) |
+| votes the white pool can cast | 289,055 |
+| DA votes the fit needs from the white pool | 298,565 |
+| **DA share of the entire white pool required** | **103.3%** |
+
+**Every white voter in Johannesburg would have to vote DA, and there would still
+not be enough of them.** And that is *after* the pool has been enlarged by 48%
+from the census's own figure.
+
+**Why this matters more than item 11.** Item 11 can be waved away as a
+registration artefact — people registering where they do not live, students,
+family addresses. This cannot. It says the census's white population is too
+small to have produced the observed result, using only published votes and
+published population. Either the census undercounts the white group in
+Johannesburg, or the DA draws far more support outside it than any ward-level
+ecological fit can identify — and the fit says the DA's rate in that pool is
+**not identified** (4 of 74 parties in the white pool are).
+
+**Two independent reasons to think the census is the problem, not the fit.**
+The correction the roll demands is **stable and specific**: Johannesburg's white
+pool asks for ≈1.48× in *both* 2016 and 2021, while **Cape Town's white pool
+asks for no correction at all**. A fitting artefact would not replicate across
+cycles in one city and vanish in another. And Census 2022's Post-Enumeration
+Survey measured a **62% undercount for the white group** — the highest the UN
+Population Division has recorded — with the published figures adjusted for it and
+the adjustment itself disputed in both directions (item 11).
+
+**What must be fixed, and the order.** This is a **census-level** problem and it
+cannot be resolved by tuning `CENSUS_ROLL_BLEND`. Raising the blend hides the
+contradiction by believing the roll; lowering it makes the arithmetic worse. The
+pool sizes are downstream of a population estimate that is wrong, and the
+sequence has to be:
+
+1. **Establish a defensible white/Indian adult population for each metro ward**,
+   independent of both the census's small-area estimate and the roll — Dorrington
+   et al.'s independent projections (*S. Afr. J. Sci.* 2024) are the obvious
+   starting point, and Stats SA's ward-level post-enumeration adjustment factors
+   are the ask that would settle it.
+2. **Then** re-derive the pool sizes.
+3. **Only then** is the blend a meaningful dial rather than a way of choosing
+   which impossibility to display.
+
+**Reproduce:**
+
+    .venv/bin/python tests/test_pool_bounds.py
+      # test_no_emitted_composition_weight_is_arithmetically_impossible
+      # joburg 2016 DA in White: weight 0.6617 against a maximum of 0.6406
+
+**Open in the model.** MODEL-LOG §1.100 ships the registration-ceiling repair
+with a measured cost and records it as a debt. This item is the reason the debt
+exists and the thing that has to be fixed before it can be discharged.

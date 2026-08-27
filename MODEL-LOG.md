@@ -11209,3 +11209,751 @@ because a rule written twice is a rule that drifts (§1.93). `ARCHITECTURE.md`,
 **§1.95's number-neutrality check on `poll_credence` stands as a fact** — the
 seat-draw hash was identical and that is worth knowing — but it was not, and is
 not, the reason the lever is acceptable. The reason is that 1.0 is the identity.
+
+## 1.97 Phase A: seven seams declared and tested, and the silent-neutral class is now evidenced rather than argued (2026-08-26)
+
+**`ARCHITECTURE.md`'s "Order of work" step A — *"declare and TEST the seams that
+already exist. No refactor."* — is done.** 111 tests over seven functions,
+`src/` byte-identical at the end of it, and the suite goes from **207 passed to
+349 passed, 0 failed**, the same ten declared skips as before.
+
+The point of doing A first was that it costs no refactor and buys the evidence
+for B. It did more than that: **it surfaced about thirty-five defects without
+changing a line of the model**, and they are overwhelmingly the class the
+architecture argument predicted.
+
+### Which seams, and why these seven
+
+Of the nine seams `ARCHITECTURE.md` names, two already had genuine value tests —
+`make_drawer` (`tests/test_drawer.py` is dedicated to it) and `contestation`
+(`tests/test_chain.py:749`, *"contestation changed when every vote was erased"*).
+The other seven did not:
+
+| seam | what passed for coverage |
+|---|---|
+| `allocate_with_overhang` | nothing at all |
+| `ward_parts` | nothing at all |
+| `solve_and_predict` | named in a **comment** (`test_ipf_feasibility.py:405`) |
+| `ward_pr_ratios` | named in a **docstring** (`test_levers_are_live.py:29`) |
+| `spine`, `theta_prior`, `blended_centres` | used as **fixtures** to build other tests' inputs |
+
+**A fixture is not coverage**, and the repository had already recorded the
+consequence without acting on it: `tests/test_drawer.py:410` says the goldens
+*"did not move when §1.49 changed `theta_prior`: they were not reaching it."*
+
+### The tests were verified by mutation, not by passing
+
+A test that passes proves nothing; the standing rule is *"a test is only
+evidence if it fails when the defect returns"* (commit `3839c78`). Every file
+was handed to a second worker that mutated the **source** — boundary flips,
+neutral-value substitutions, dropped loop rounds, removed guards, swapped
+same-typed arguments — and recorded whether the new tests failed, restoring
+`src/` byte-exactly each time.
+
+**55 of 63 mutations caught.** `allocate_with_overhang` scored 15/16.
+
+Two of the eight survivors are **provably equivalent mutants**, and saying so
+matters more than the score. In the `level` rule, `total += deficit` → `total +=
+1` cannot be distinguished: seats sum to the council exactly, so `D(n+j) ≥ D(n)
+− j`, and no covering council lies strictly between `n` and `n + D(n)` — both
+searches terminate on the same council with the same seats. Confirmed on 3,974
+random councils, zero differences. **Pinning it would pin a difference that does
+not exist.** Six real gaps remain, in `ward_parts` (2), `ward_pr_ratios` (2) and
+`blended_centres` (2).
+
+### The two that must be fixed together, or the first fix crashes the model
+
+**`spine_k` cannot be set to zero.** `montecarlo.py:2868` reads
+`k=float(scenario.get("spine_k") or _levels.SPINE_K)`, and `0.0 or 1.0` is
+`1.0`. `k = 0` is the pure national spine — the configuration §1.30 measured at
+RMSE 0.275 against the blend's 0.236 — so it is the natural floor of any sweep
+of `SPINE_K`. **A sweep from 0 silently reports the `k = 1` row at its bottom
+rung**, and reads as "the bottom of the range does nothing". That defeats
+`ITERATING.md` rule 6 at precisely the value that must move the answer most.
+`DEFAULTS["spine_k"]` is `None`, so the `or` is not needed even for the `None`
+case.
+
+**And it is masking a crash.** `levels.py:882` computes `w = k / (worth + k)`,
+which is `0.0 / 0.0` for a party with both records and no θ evidence — and that
+party is exactly the one the local route exists to serve. **ActionSA at 2026 has
+`worth = 0`.** The limit from above is unambiguous (`w = 1` for every `k > 0`),
+so the code has an unresolved discontinuity at the floor of its own sweep range.
+
+**Fix the `or` alone and the first `spine_k = 0` sweep raises
+`ZeroDivisionError` inside `run_model`.** They are one repair, not two.
+
+### The rest of the silent-neutral findings
+
+* **`solve_and_predict` non-convergence is completely silent.** When
+  `for _ in range(rounds)` exhausts without `gap < tol`, control falls out of the
+  bottom and the half-solved answer is returned. No raise, no warning, no
+  counter. (`montecarlo.py:809-822`)
+* Its **NaN guard takes the identity**: `np.where(got > 1e-9, target / …, 1.0)`
+  (`montecarlo.py:817`).
+* Its **default `level_floor` is the value production replaced**:
+  `level_floor=None` resolves to `SHARE_FLOOR` = 0.002, while
+  `DEFAULTS["level_floor"]` is `1e-6`.
+* **`logit`'s ceiling ignores its own `floor` argument** —
+  `np.clip(p, floor, 1 - SHARE_FLOOR)` uses the module constant for the upper
+  clip whatever was passed (`montecarlo.py:355`).
+* **The by-election decay is applied twice — confirmed**, not merely suspected
+  (`montecarlo.py:2575-2579`), and the comment claiming parity with
+  `byelections.py` does not hold. It took a test built with a **non-zero**
+  `w_bye` to see it, which is why it survived: the lever ships at `0.0`.
+* **`ward_pr_ratios`' per-party map is a dead write.** `run_model` stores
+  `scenario["_ward_pr_measured"]` and **no line in `src/` ever reads it back**
+  (AST-checked over every `src/*.py`); a second copy recomputes the same ratios
+  at `montecarlo.py:2715-2725`. Its fallback of 0.8 is returned unclipped, over a
+  population `run_model` itself refuses to trust.
+* **`theta_prior`'s groups block is read under a key it does not have.**
+  `run_model:2319` reads `_groups.get("small", {})` then `.get("median", 0.8)`,
+  but `levels.theta_prior` returns keys exactly `{centre, spread, worth, sd}`.
+  **`"small"` is never a key, so the `0.8` default always wins.**
+* `theta_prior` prices `set(record) | set(baseline)`, so **20 of 56 parties at
+  Johannesburg 2021** receive a prior while absent from the national baseline,
+  contradicting the function's own documented pattern.
+* `groups["centre"]["median"]` is `exp(` weighted mean of logs `)` — a weighted
+  **geometric mean**, printed by `run_model` as a median.
+* **An unrecognised `overhang_rule` string silently applies `expand`** — no
+  `else`, no membership check (`montecarlo.py:1931`). The signature default is
+  `"expand"`, the docstring one line below says `"deduct"`, and
+  `DEFAULTS["overhang_rule"]` is `"deduct"`. A fourth rule, `level`, is
+  documented only in an inline comment.
+* A **ward winner absent from `combined`** is reported excessive and then seated
+  nowhere: `over` is built over `ward_wins` (`:1899`) while the `deduct` loop
+  iterates `votes` (`:1922`).
+* **`blended_centres` silently discards a `poll_levels` entry** for a party not
+  in `base_city`, because the routing loop iterates `base_city.items()` rather
+  than the union of the routes.
+* **The by-election block unconditionally overwrites the poll route's note**, so
+  a party levelled from a poll can report a by-election provenance.
+
+### Three copies of one crosswalk, and a producer/consumer mismatch
+
+`ward_parts` and `pools._target_roll` read **the same file** —
+`data/processed/vd_ward_2026.csv` — **by two different rules**: `ward_parts`
+uses `part_registered`, the apportioned split which is the whole reason the
+column exists, and `pools` does not. `leverage.load_ward_parts`
+(`leverage.py:94`) is a third copy of the crosswalk branch, hardcoding
+`Ward_2026`.
+
+Worse, **producer and consumer disagree on the directory**:
+`build_concordance.py:204` writes `vd_ward_<year>.csv` to `city.processed` — the
+per-city fix from §1.40 — and `montecarlo.ward_parts:776` looks somewhere else.
+Which branch runs is decided by `crosswalk.exists()` and nothing else
+(`montecarlo.py:777`): not by the target being unheld, not by a flag.
+
+### A structural warning the mutation pass turned up
+
+`allocate_with_overhang`'s M16 — `votes.pop(party)` → `pass` — was caught only
+as a **90-second hang**, not an assertion. **Neither the `deduct` loop nor the
+`level` loop has an iteration bound**, so a termination defect in either wedges
+`tests/run_all.py` rather than reporting a failure.
+
+### What this does and does not establish
+
+It establishes the architecture argument's central claim **with instances**:
+absence is indistinguishable from the neutral value across six of the eight
+wiring mechanisms, and a fan-out of value tests over seams that were *already
+clean function boundaries* found about thirty-five of them in one pass.
+
+It does **not** fix anything. Nothing in `src/` moved, deliberately — phase A is
+"no refactor", and a defect found by a test is not a licence to change a
+forecast in the same breath. **Every fix above is now owed a decision about
+whether it moves a number, and if it does, the backtest against real results is
+what adjudicates it** — never the freeze, never a golden.
+
+## 1.98 The §1.97 findings triaged: three that matter, six that were overstated, and one that is in the live forecast (2026-08-26)
+
+Forty-four findings from §1.97, each re-verified against the source by a worker
+that was not the one that found it, and classified by whether fixing it can move
+a number **on the shipped configuration**.
+
+| | |
+|---|---|
+| CONFIRMED | **38** |
+| OVERSTATED or WRONG | **6** |
+| number-**neutral** | 34 |
+| **latent** (inert only because a lever is parked at its neutral value) | 4 |
+| **moving** | **6** |
+
+Six being knocked down matters as much as thirty-eight standing. A finding that
+survives a second reading by someone trying to break it is worth acting on; one
+that does not would have cost a day.
+
+### The one that is in the published 2026 forecast
+
+**`pools._target_roll` and `montecarlo.ward_parts` read the same file and build
+two different cities.** `data/processed/vd_ward_2026.csv` carries
+`part_registered`, the apportioned split of a voting district across the wards it
+straddles — assumption A1, and the entire reason the column exists.
+`montecarlo.py:781` uses it. `pools.py:1803-1807` does not: it keys on
+`WardID_2026`, skips every row after a VD's first (`vd in seen`) and adds
+`vd_registered`, so **each of the 181 split VDs lands whole in whichever ward
+sorts first**.
+
+Measured on the artefact: **124 of the 135 wards disagree**, the worst by
+**16,657 registered voters** (ward 79800008).
+
+**And the citywide total is identical either way — 2,348,781 — so no
+conservation check anywhere could have noticed.** `sum(part_registered) ==
+vd_registered` holds for all 865 VDs, which is exactly why the error is
+invisible.
+
+Recomputed under both rules, pool registration moves Black African −0.147%,
+Coloured −0.129%, **Indian/Asian −2.162%**, White +0.803%, and pool shares shift
+by up to **0.20pp**. The error is largest precisely where pool composition is
+most distinctive.
+
+**The combination is the worst available one.** `pools._target_roll` is reached
+only when `CALENDAR[year].results is None` (`pools.py:1781`), so **all sixteen
+backtest city-years take the other branch and never see this**. It is live at
+2026, it propagates into `pools_2026.json` and `pools_2026_simulation.json` and
+therefore into the published forecast, **and no backtest can score it.**
+
+Fixing it requires re-emitting both 2026 artefacts, which is a one-writer
+operation under `CLAUDE.md`'s shared-artefact rule.
+
+### The solver has never converged, and nothing says so
+
+§1.97 reported these as two findings. They are one mechanism.
+
+`logit` clips its argument to `[floor, 1 - SHARE_FLOOR]`, so once a party's
+implied citywide share falls under the level floor, `montecarlo.py:817`'s
+multiplication of `theta` moves `level` **not at all** — the update is a no-op
+and the iteration sits on a fixed point that is not the target.
+
+Reconstructed on real Johannesburg geography (853 VDs, 36 parties, real per-party
+γ from `fold1_parameters.csv`): with every target above the floor it converges in
+**10 rounds**; with the tail below the floor it **never converges in 40**.
+
+**And the tail is always below the floor.** With the shipped `dirichlet_floor` of
+1e-4 against the Black African pool's α = 26.86, a floored member's concentration
+is α_i = 0.0028; simulating that directly, **97.4% of floored-member draws fall
+below 1e-6 of the city, and every single draw contains at least one** — a mean of
+47.7 out of 49. The source concedes the shape at `montecarlo.py:1826-1829`, *"a
+spike at zero with a rare large chunk"*.
+
+So the `break` at `:818-819` is **essentially dead code on the shipped
+configuration** and the full 40 rounds are always spent.
+
+**Non-convergence is completely silent.** No raise, no warning, no counter, no
+returned gap. Every guard that could have surfaced it was checked:
+`ipf_balances`, `ipf_failures`, `cap_undershoots`, `cap_moved`, `ipf_clipped`,
+`ipf_headroom`, `bounds_violations`, `bounds_checked`, `excessive_draws`,
+`overhang_count` — none is about the solve. `bounds_violations` checks the
+*drawn* target **before** the solve, so it structurally cannot see this.
+`pools.balance_margins` raises `RuntimeError` on the same condition.
+
+**Two consequences, and the smaller one is the seat count.** Because the rows are
+renormalised, the stuck mass is stolen from everyone else, so the **largest**
+party ends short of its own drawn target — the max gap sits on the ANC, not on
+the micro parties. Magnitude ≈ **1e-5 of citywide share**, against a 270-seat
+quota of ~0.37%: roughly **300× below one seat**, so this is moving but almost
+certainly not seat-moving. The larger consequence is that
+`montecarlo.py:1746`'s claim — *"the IPF forces each party's expected citywide
+share onto its SHOCKED centre"* — **is violated on every draw and nothing says
+so**, and the hottest loop in the model burns 40 rounds where 10 suffice.
+
+**Do not fix it by lowering `level_floor`.** That is what
+`tests/test_solve_and_predict.py:478` suggests, and it walks straight into the
+identity guard at `:817` (`np.where(got > 1e-9, …, 1.0)`), whose fallback is the
+identity multiplier. Measured lower bound on `got` at Johannesburg 2021 is
+2.06e-8 at `level_floor = 1e-6` — one and a half orders from the guard.
+
+### A hand-typed prior sits in the published artefact, read by nothing
+
+`run_model:2319` reads `_groups.get("small", {})` then `.get("median", 0.8)`.
+**`"small"` can never be a key.** `theta_prior` has exactly three returns — two
+empty dicts that fail the `if _prior:` gate, and one literal whose keys are
+exactly `{centre, spread, worth, sd}`. `git log -S'"small"' -- src/levels.py`
+returns **no commits**: the read has been dead since the line was written.
+
+So the typed `0.8` always wins, and it is **in the published artefact**:
+`data/processed/forecast_summary.json` carries
+`scenario.theta_prior.__small__ == [0.28695681, 0.8, 2.23030077]`, reproduced
+exactly as `0.8 · exp(∓1.2816 · 0.8)`.
+
+**`__small__` is itself never read either.** Its consumer was
+`montecarlo.py:629` at commit `49193a5`; task #22 (`48e173d`) deleted it. It
+cannot move a number — and it is one line from being live. **Delete the read; do
+not "fix" it by adding a `small` group**, which would restore a mechanism
+deliberately removed and would be a scored change. The whole point of `49193a5`
+was that the hand-typed priors are gone.
+
+### The couplings, which decide the order
+
+Twenty-two coupling groups were identified. The ones that change sequencing:
+
+* **F1+F2+F7** — fixing the `spine_k or SPINE_K` idiom alone makes `k = 0`
+  deliverable and `levels.py:882` then evaluates `0.0/0.0`. Confirmed on real
+  data, and it is **not only ActionSA**: 10 of the parties on the blend route at
+  2026 have `worth == 0`.
+* **F9+F12** — one repair. F12 makes non-convergence universal, so fixing F9 as a
+  *raise* (matching `pools.balance_margins`) would abort every draw. **Count, do
+  not raise.**
+* **F12+F10** — the obvious cure for F12 activates F10's identity guard.
+* **F28 subsumes F29** — both observed zero-ratio parties sit at PR shares of
+  4.5e-5 and 2.0e-4, far below the 0.001 threshold, so restricting the median to
+  the population `run_model` already trusts excludes both.
+* **F41+F44** — neither the `deduct` loop nor the `level` loop has an iteration
+  bound, and the `level` loop's only non-terminating case *is* F42's ward winner
+  absent from `combined`. Bound the loops first and that case fails with a named
+  error instead of hanging the suite.
+
+### Sequencing
+
+**34 neutral fixes can land without a backtest**, and the freeze is the right
+instrument for them — not as a gate, but as the tripwire it is: a change claimed
+to be number-neutral that moves a number is a change to *go and look at*.
+
+The six moving ones each cost a paired, cycle-replicated measurement against
+`ITERATING.md`'s four keys. **F14 is first among them and is not like the
+others**: it is the only one live in the 2026 forecast, and it is the only one no
+backtest can adjudicate, because the sixteen city-years never execute that
+branch. It has to be argued from A1 — which is unambiguous: `part_registered` is
+correct and `vd_registered` is the bug.
+
+## 1.99 Four of §1.98's findings fixed, and the ward roll was the one that mattered (2026-08-26)
+
+The first changes to `src/` since phase A began. Owner's instruction on the
+solver: *"fix the waste and leave the math as clean as possible."*
+
+### F14 — the pool roll and the ward tally were two different cities
+
+`pools._target_roll` now drops its `seen` dedupe and sums `part_registered`,
+which is what `montecarlo.ward_parts` has always used.
+
+**A corroboration the triage did not have, and it is stronger than the A1
+argument.** Wards are delimited to hold roughly equal populations — a fact about
+the Municipal Demarcation Board, not about this model. Johannesburg's 135 ward
+rolls under the two rules:
+
+| rule | mean | sd | CV | min | max |
+|---|---|---|---|---|---|
+| `vd_registered` (old) | 17,398 | 5,226 | **30.0%** | 5,902 | 36,649 |
+| `part_registered` (new) | 17,398 | 2,073 | **11.9%** | 14,791 | 20,007 |
+
+**A 6.2× spread between the smallest and largest ward is not something a
+delimitation produces.** The corrected rule lands inside a plausible tolerance.
+This does not depend on assumption A1 at all, and it is now held as a property
+in `tests/test_ward_parts.py` rather than as a story here: a ratio above 2.0
+fails the test.
+
+`tests/test_ward_parts.py::test_pools_and_montecarlo_read_one_crosswalk_by_two_different_rules`
+documented the defect and instructed its own deletion on repair. It was
+**inverted rather than deleted** — it now asserts the two readers agree ward for
+ward, which is the guard that keeps this fixed. Deleting it would have removed
+the only thing that can notice the divergence returning.
+
+All eighteen pool specs were re-emitted, because a code change to `pools.py`
+invalidates every `artefact_key` and the guard said so — which is the guard
+working, not a nuisance.
+
+### F9 + F12 — the solver counts, and stops when it can
+
+**F9 (silence).** `solve_and_predict` takes an optional `stats` dict and records
+`solves`, `rounds`, `nonconvergent`, `nonconvergent_reachable`, `worst_gap`,
+`worst_gap_reachable` and `unreachable_parties`, surfaced in the `41_guards`
+trace beside `ipf_failures`. **It does not raise.** `pools.balance_margins`
+raises on the same condition; raising here would abort every draw.
+
+The `_reachable` split is the part that makes the counter usable.
+`nonconvergent` alone fires on every solve and is therefore useless as an alarm.
+A party whose target sits under `level_floor` cannot be reached by any θ, so
+excluding those separates *the solver failed* from *the target was
+unreachable*.
+
+**F12 (the stall), fixed as the owner directed — the waste, not the
+arithmetic.** The stopping test now measures only the reachable parties, so the
+loop may stop when it has done everything it can:
+
+    reachable = target > level_floor
+    if err[reachable].max() < tol: break
+
+Measured on the file's constructed city at the shipped `tol` of 1e-6: **3 rounds
+instead of 40**, and the returned array is **bit-identical** to the old
+full-budget answer (max abs difference 0.000e+00). On real geography the triage
+measured genuine convergence at ~10 rounds. This runs twice per draw.
+
+**The arithmetic is deliberately untouched.** The floored parties still hold
+~1e-6 each, that mass is still taken from everyone else through the row
+renormalisation, and the largest party still ends ~1e-5 short of its drawn
+target. That residue is ~300× below one seat and orders of magnitude below
+`ward_noise_sd` and `turnout_noise_sd`, which the model injects **on purpose**.
+Repairing it would move numbers without improving the forecast.
+
+### F11 — a default that pointed at a value production had abandoned
+
+`level_floor=None` resolved `SHARE_FLOOR` (0.002), the "micro floor artefact"
+replaced on 2026-08-06 by 1e-6 precisely because it will not pass a sub-0.2%
+target (§1.18). It now resolves `DEFAULTS["level_floor"]`, still **at call
+time** so §1.33 holds.
+
+No run ever saw the old value — both production call sites pass
+`scenario["level_floor"]`, a hard index that cannot fall back. It was a trap for
+the next caller, and phase A's own test file walked into it.
+
+Two tests were **re-recorded deliberately**, which is the only way a golden may
+move. `test_omitting_level_floor_reinstates_the_floor_production_replaced` said
+in its own docstring that it "fails the day the two are reconciled — which is
+the point"; it now asserts the reconciliation. The CLASS 13 call-time guard was
+**re-pointed** from `M.SHARE_FLOOR` to `M.DEFAULTS["level_floor"]` — watching the
+old name would have left it passing green against a constant the function had
+stopped reading, which is the §1.96 failure precisely.
+
+### F20 — a hand-typed 0.8 removed from the published artefact
+
+Deleted, not repaired. Adding a `small` group to `levels.theta_prior` would
+restore a mechanism `48e173d` removed deliberately, and that is a scored change,
+not a bug fix. The whole point of `49193a5` is that the hand-typed priors are
+gone.
+
+### Two fixture errors of mine, recorded because they are instructive
+
+The re-recorded stall test failed twice before it passed, both times on my
+arithmetic and not the code's. First the replacement target did not sum to 1.
+Second, and more interesting: **`level_floor` and the default `tol` are the same
+order of magnitude — 1e-6 each** — so in a three-party toy a floored party's
+irreducible error is about the size of `tol` itself and the stall is marginal
+rather than clean. In the real model ~47 parties are floored at once and their
+summed theft sits well above `tol`. The test now uses a tighter `tol` to
+reproduce that margin honestly in three parties rather than faking it.
+
+The same measurement corrected a claim in §1.98. The stall is a fixed point in
+**the citywide gap, not in the array**: from 1,000 to 5,000 rounds the gap moves
+4.0987e-07 → 4.0759e-07 (0.6%) while the per-VD array moves by 1.46e-04. θ for a
+floored party keeps shrinking, which cannot move its own clipped level but does
+move everyone else slightly through the renormalisation.
+
+## 1.100 A 187% registration rate, repaired — and the repair scores WORSE, and ships anyway (2026-08-27)
+
+> ⛔ **SUPERSEDED THE SAME DAY BY §1.102 — THE REPAIR WAS REVERTED.** Everything
+> below was true when written and the measurement still stands; the CONCLUSION
+> does not. The cap-and-blend is no longer in the model, no exception to
+> `ITERATING.md` was ever used, and the four constants named here no longer
+> exist. Read §1.102 before acting on any of it.
+
+**This is the first change this repository has shipped against its own bar, and
+the exception is narrow. Read §1.101's amendment to `ITERATING.md` before citing
+it for anything else.**
+
+### The defect
+
+Splitting Johannesburg's 2021 roll across population groups gave:
+
+| pool | voting-age adults | registered | implied rate |
+|---|---|---|---|
+| Black African | 2,867,723 | 1,438,596 | 50.2% |
+| Coloured | 148,214 | 122,572 | 82.7% |
+| Indian/Asian | 118,062 | 99,326 | 84.1% |
+| **White** | **300,374** | **560,217** | **186.5%** |
+
+560,217 registered white voters among 300,374 white adults. `pools.py` states the
+nesting invariant — `people ⊇ voting_age ⊇ registered ⊇ voted` — and it was
+violated by 260,000 people.
+
+**It was known, documented, printed on every run, and deliberately not fixed.**
+`pool_counts` carried a `violations` list whose only consumer printed it;
+`DATA-QUALITY.md` item 11 described it in full; the docstring said *"nesting
+violations are reported, not clamped… silently capping it would bury a defect in
+the public record inside our own numbers."*
+
+**That argument protected the record and did nothing for the model.** Reporting
+the 187% never stopped it propagating: every party's fitted appeal rate in that
+pool was computed against a denominator 1.87× too large. It is why the DA's
+fitted appeal among white voters read 66.8% — a rate the model itself declines to
+call identified (4 of 74 parties in that pool are).
+
+It surfaced only because the owner said the 66.8% looked *"suspiciously low"* and
+the number was chased.
+
+### The repair
+
+Owner's ruling: *"the roll and census do not agree, so I would blend them since
+they are both direct measures. But we should not allow anything more than 100%.
+And nothing will ever be 100% let alone 156%."*
+
+`_nnls` became box-constrained rather than merely non-negative; `_nest` re-imposes
+the ceiling **after** the per-ward scaling (a different thing — the fitted rate is
+one number for the city, and the scaling then stretches each ward to its own
+published total, past the ceiling); and where roll and census cannot both be
+right, each moves half way. Four constants, all declared, in
+`JUDGEMENT-CALLS.md` section I.
+
+Johannesburg 2021 becomes 52.7% / 80.9% / 88.3% / **91.2%**, with the published
+ward totals untouched to the voter, and no violations anywhere.
+
+**The correction is targeted, which is the evidence that it is real.**
+Johannesburg's white pool asks for ≈1.48× in *both* 2016 and 2021 — a stable,
+group-and-city-specific discrepancy — while **Cape Town's white pool asks for
+nothing at all**.
+
+### The measurement, and it is negative
+
+Paired, on identical seeds, sixteen city-years, `pools.py` reverted to HEAD for
+the baseline so the effect is isolated from everything else in the tree:
+
+| key | before | after | effect |
+|---|---|---|---|
+| `seat_abs_err_coherent` | 386 | 386 | **+0.0** |
+| `seat_abs_err` | 407 | 415 | **+8.0** |
+| `crps` | 329.50 | 332.58 | **+3.09** |
+| `pr_mae` | 29.66 | 30.28 | +0.62 |
+| `ward_mae` | 30.28 | 30.76 | +0.48 |
+
+Calibration holds — 100% coverage on all four bands, mean PIT 0.5674 → 0.5695 —
+so **Key 2 is not breached**. **Key 1 fails outright:**
+
+    2016: ethekwini +2, joburg -2, tshwane +2      net +2   better 1/8
+    2021: ekurhuleni -4, joburg +2, nelson +2,
+          tshwane -2                                net -2   better 2/8
+
+Opposite signs by cycle, 2016 a net loss, neither cycle near 5-of-8. On coherent
+seats this is **noise** — three city-years each way, cancelling. The real cost is
+`crps` and the vote-share errors.
+
+### Why it ships regardless
+
+The owner's decision, and his reasoning, recorded verbatim because the reasoning
+is the thing that has to survive:
+
+> *The fix corrects an arithmetic impossibility … and the measurement says
+> correcting it makes the model slightly worse. Both of those are true, and
+> neither cancels the other.*
+>
+> *What it most likely means: the broken denominator was doing load-bearing
+> work. Inflating the White pool inflated the weight of high-turnout, DA-leaning
+> geography — a real effect that the model is apparently under-capturing
+> somewhere legitimate, probably in the turnout channel. Removing the accidental
+> correction without supplying the real one leaves the model worse.*
+>
+> *That would make the honest sequence: find what work the 187% was doing, do
+> that work properly, then the pool sizes can be honest at no cost.*
+
+**So the cost is not accepted, it is DEFERRED, and it is owed as a debt.** The
+next person to touch the turnout channel or the pool sizes should come back to
+this entry. The specific hypothesis to test is that the inflated white pool was
+standing in for a differential-turnout effect the model under-weights; if that is
+right, supplying it properly should recover the +3.09 `crps` and more.
+
+**What would falsify the decision:** if the load-bearing work is found and
+supplied, and the deficit does *not* close, then the 187% was not proxying for
+anything and this change is simply a loss taken for correctness. That is still
+defensible, but it is a different claim and must be written as one.
+
+### Two errors of mine, on the way, both caught by tests
+
+1. **The first cap silently lost 96,823 registered voters** — 2,123,887 against a
+   published 2,220,710. I broke the anchoring invariant while enforcing the
+   ceiling. The published ward total is *counted*, not modelled; where a ward
+   cannot satisfy both, the census gives.
+2. **Inflating Mangaung 2016's Indian/Asian pool 3.69× drove its turnout rate to
+   exactly zero**, deleting the pool's party rates.
+   `test_pool_bounds.py::test_the_three_known_things_hold_at_once` caught it.
+   That produced `MAX_CENSUS_LIFT` and `MIN_TURNOUT_RATE` — and it **vindicates
+   the old policy's instinct**: past a point, a defect in the public record
+   belongs reported, not absorbed. The code now does both.
+
+### A correction to §1.99
+
+§1.99 claimed F12's early stop returned a *"bit-identical"* array. **That was
+measured on a three-party toy where the solve had converged, and it does not
+generalise.** Isolated on the panel, the `montecarlo.py` changes cost **+4
+coherent seats**. On the real model the loop never converges, so *where you stop
+is itself a modelling choice* — stopping at ~10 rounds instead of 40 leaves the
+stalled parties' θ at a different point. The arithmetic is untouched; the
+stopping point is not, and §1.99 conflated the two. F12's isolation is open work.
+
+## 1.101 The repair parked at the measured version, and why the next move is at census level (2026-08-27)
+
+> ⛔ **SUPERSEDED BY §1.102.** The parking decision was overtaken: the repair was
+> reverted outright. The DEFECT ANALYSIS below — the four broken invariants, the
+> 103.3% finding, the census-level argument — all stands and is still the record.
+
+§1.100 shipped the registration-ceiling repair on a measured cost. Attempting to
+tidy it afterwards went badly enough to be worth recording as its own entry,
+because the failures were informative rather than merely embarrassing.
+
+### Four invariants, each fix breaking the next
+
+| attempt | fixed | broke |
+|---|---|---|
+| cap the rate at 0.95 | the 187% | **lost 96,823 registered voters** where a ward had no headroom (2,123,887 against a published 2,220,710) |
+| lift `voting_age` to make room | the lost voters | pools held **more adults than people** (Johannesburg white: 504,547 adults from 333,651 people) |
+| lift `people` to match | the adults | a **bloc split changed the city's population by 3,260** — the electorate became a function of the blend |
+| lift the *composition* and rebuild the chain | both | surfaced that **24 of 135 wards publish more adults than people** (ward 79800072: 6,218 people, 14,676 adults) |
+
+The fourth is not a bug I introduced. Bounding the adult nest at 1.0 — a pool
+cannot hold more adults than it has people — merely **exposed** a second census
+inconsistency that the old unbounded `adult_share` had been absorbing silently.
+It is now `DATA-QUALITY.md` item 13's companion and the adult nest is left
+unbounded, deliberately and with a comment, rather than quietly widened.
+
+**The owner's call: park it at the version that was measured.** So `pools.py` is
+the artefact §1.100 scored — +8 seats, +3.09 CRPS, Key 1 failed, calibration
+intact — and everything after it is future work. The alternative was to keep
+patching and then re-measure, which would have left §1.100 describing a version
+that no longer existed.
+
+### The finding that makes this a census problem, not a tuning problem
+
+Chasing the last failing test produced the sharpest statement of the defect this
+project has, and it does not involve the voters' roll at all — only votes cast
+and published population. Johannesburg 2016:
+
+> The DA needs **103.3% of the entire white pool**. Every white voter in the
+> city would have to vote DA, and there would still not be enough of them — and
+> that is *after* the pool has been enlarged 48% above the census's own figure.
+
+**This cannot be fixed by moving `CENSUS_ROLL_BLEND`.** Raising it hides the
+contradiction by believing the roll; lowering it makes the arithmetic worse. The
+dial chooses which impossibility to display. The pool sizes are downstream of a
+population estimate that is wrong, and the order has to be: establish a
+defensible white/Indian adult population per ward *independently* of both census
+and roll → re-derive the pool sizes → *then* the blend becomes a meaningful dial.
+
+`DATA-QUALITY.md` item 13 carries the full argument, including the two reasons to
+suspect the census rather than the fit: the correction is **stable and specific**
+(Johannesburg asks ≈1.48× in both 2016 and 2021; Cape Town asks for nothing), and
+Census 2022's PES measured a **62% undercount for the white group**.
+
+### Consequences for §1.100's debt
+
+§1.100 recorded the cost as a debt against the hypothesis that the inflated white
+pool was proxying for a differential-turnout effect. **That hypothesis is now
+less likely than a simpler one:** the white pool was inflated because the white
+population *is* larger than the census says, and inflating it was accidentally
+correct. If so the debt is not discharged by improving the turnout channel but by
+fixing the population estimate — and §1.100's falsification condition applies:
+if the turnout work is done and the deficit does not close, the entry must be
+rewritten to say so.
+
+### Known-failing tests at the parked version
+
+Recorded here so the next session does not rediscover them as mysteries. These
+are the revisit list, not a green tree:
+
+* `test_pool_bounds::test_no_emitted_composition_weight_is_arithmetically_impossible`
+  — the 103.3% above, plus two Mangaung 2021 Indian/Asian weights that are the
+  flat 0.25 default for **unidentified** members against a pool too small to
+  supply them.
+* `test_regressions::test_no_emitted_turnout_band_is_one_sided` — Mangaung 2016's
+  Indian/Asian band collapses to low == mode == high when `MIN_TURNOUT_RATE`
+  floors a pool the fit cannot identify. A guard on both ends of the band fixes
+  it and is written up but **not** in the parked version.
+* `test_regressions::test_every_tunable_constant_is_in_the_judgement_register` —
+  `_nest(min_rate=0.0)`, the neutral default of a bound whose value
+  (`MIN_TURNOUT_RATE`) *is* registered. Belongs in `EXEMPT`; the one-line fix is
+  written up but not in the parked version.
+
+## 1.102 The registration repair reverted: registered voters are what matters, and the bias belongs in the TREND (2026-08-27)
+
+**§1.100 and §1.101 are superseded.** The cap-and-blend is out of the model. No
+exception to `ITERATING.md` was used in the end. What replaced it is one line of
+projection arithmetic and a lock.
+
+### The owner's three observations, which between them dissolve the problem
+
+> *"have a look at registration and turnout for each group. Then see if that
+> 'increase' can be explained by the same turnout and higher population."*
+
+It can, completely. **Turnout is not the anomaly:**
+
+| | Joburg 2021 | Cape Town 2021 |
+|---|---|---|
+| white pool turnout | 54.9% | 62.8% |
+| city turnout | 41.6% | 46.3% |
+| **white pool above its city** | **+13.3pp** | **+16.5pp** |
+
+The same pattern in both cities. Nothing to explain. And Cape Town's white pool —
+same census, same roll, same fit, **needing no correction at all** — registers at
+**72.1%**. At that rate Johannesburg's white roll of ~460,000 implies **~638,000
+adults** against the census's 300,374: understated by ~2.1×. Allow that one
+number to be bigger and registration *and* turnout both become unremarkable, with
+nothing else changed.
+
+> *"how could you tell if the census is wrong?"*
+
+Four checks, all pointing one way. **Same method, two cities** — Cape Town is
+fine, Johannesburg is not; a method error appears in both. **Both cycles** —
+Johannesburg asks ≈1.48× in 2016 *and* 2021; a fitting artefact would not
+replicate across two elections. **Across censuses** — 2011 put Joburg's white
+share at 12.3%, 2022 says 7.0%, a 43% relative fall while the city's population
+barely moved. **Stats SA's own PES** measured a 62% undercount for the white
+group, the highest the UN Population Division has recorded. The roll is a
+counted list of individuals with ID numbers, published per voting district; the
+census small-area figure is a modelled estimate.
+
+> *"Either way elections are decided by registered voters, so lets not go into
+> the weeds too far here. registered voters are what matters."*
+
+**This is what settles it.** The census adult count is not an input this model
+consumes — it supplies only the *split* of the roll between groups. So the
+registration rate is a **diagnostic**, not a constraint, and clamping it was
+clamping a denominator nothing downstream reads.
+
+### Why the repair measured worse, understood at last
+
+**Pool size and fitted rate are jointly identified by the votes.** The rates are
+fitted so that `pool_size × rate` reproduces the actual result, so the product is
+right even when `pool_size` is individually wrong. Shrinking the pool broke a
+product that was already correct — which is exactly the +8 seats and +3.09 CRPS
+§1.100 measured, now explained rather than merely recorded.
+
+It also retires §1.100's debt hypothesis. The inflated pool was not proxying for
+a differential-turnout effect. It was absorbing a census level error, and the
+fit had already accommodated it.
+
+**This vindicates the original *"reported, not clamped"* policy — for a better
+reason than the one it gave.** Not "don't bury a public-record defect", but "the
+denominator you are clamping is not a quantity the model uses."
+
+### Where the bias DOES bite, and the fix
+
+The one place it does not cancel is **projection**. `pools_2026.json` carries
+pool shares projected forward, and a mis-sized pool projected onto a future roll
+stays mis-sized — in the live forecast, the one case no backtest can score.
+
+> *"the pool size prediction should rely on rate of change not raw numbers."*
+
+`projected_pool_shares` trended **additively** on shares, so a constant level
+bias entered twice: in the level carried forward, and again in the increment,
+because a difference between two inflated numbers is itself inflated. **A ratio
+is not.** For a pool whose share carries a constant factor k in every year:
+
+    share_b / share_a  =  (c_b / c_a) · (S_a / S_b)
+
+k divides out, and the remaining term is the roll's own growth, common to every
+pool. The projection now trends in log space on that ratio.
+
+**Verified, not asserted.** Projecting a true series, and the same series with
+one pool inflated 2.1× in both years, then removing the bias from the result:
+the two projections agree to **1.11e-16**. The bias cancels exactly.
+
+So the level bias is left where it is — visible, reported, and harmless to a
+product that was already consistent — and removed from the only place it
+propagates.
+
+### And the collision made impossible
+
+Twice in thirty minutes two background jobs raced on `pools_*.json`, leaving
+eighteen specs carrying **two different `pools_sha` values**; every number
+measured against that tree was meaningless, and the artefact key is what caught
+it. `CLAUDE.md` has carried the one-writer rule since it cost a retracted result,
+and it was still only a rule.
+
+`pools.artefact_lock` makes it structural: `--emit` takes an **exclusive** lock,
+`compare_history` and `tests/run_all.py` take **shared** locks. Non-blocking by
+design — a collision fails immediately, naming the holder, rather than waiting
+silently or interleaving. `POOLS_LOCK_WAIT=<seconds>` queues instead.
+Demonstrated: with an emit lock held, a second emit and a reader are both
+refused; both succeed once it is released.
+
+### Still owed
+
+`projected_pool_shares` is itself a **moving change** — it alters every target's
+pool shares — and has NOT been measured. It is adopted on the argument above,
+which is exactly the thing this repository does not accept, so it is provisional
+until the paired sixteen-city-year comparison is run. **Do not quote it as an
+improvement until then.**

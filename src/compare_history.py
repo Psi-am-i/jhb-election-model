@@ -1730,4 +1730,12 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    # A MEASUREMENT MAY NOT RUN WHILE THE POOL SPECS ARE BEING WRITTEN.
+    # Held as a SHARED lock, so several readers may run at once (the sixteen
+    # city-years already run in parallel processes) while an emit is excluded.
+    # On 2026-08-27 two background emits raced and left eighteen specs carrying
+    # two different `pools_sha` values; every number measured against that tree
+    # was meaningless. See pools.artefact_lock.
+    import pools as _pools
+    with _pools.artefact_lock("read", "compare_history"):
+        raise SystemExit(main())

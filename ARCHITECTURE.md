@@ -108,6 +108,26 @@ exactly this: *"That null was measured WITH THE GATE SHUT."*
 `allocate_with_overhang` first: a constructed council where `deduct`, `expand`
 and `cap` give three different answers, all three pinned.
 
+> **✅ A IS DONE — 2026-08-26, MODEL-LOG §1.97.** Seven seams had no value test
+> (`make_drawer` and `contestation` already did). 111 tests; the suite goes 207
+> → **349 passed, 0 failed**; `src/` byte-identical throughout. Verified by
+> **mutation**, not by passing — 55 of 63 mutations of the source were caught,
+> two survivors provably equivalent, six real gaps recorded.
+>
+> **It found about thirty-five defects without changing a line of the model**,
+> and they are the class this document predicted. The sharpest:
+> **`spine_k` cannot be set to zero** (`scenario.get("spine_k") or SPINE_K`, and
+> `0.0 or 1.0` is `1.0`) — and fixing that alone crashes `run_model`, because
+> `levels.py:882`'s `w = k / (worth + k)` is `0.0/0.0` for ActionSA at 2026.
+> **`solve_and_predict` returns a half-solved answer when it fails to converge**,
+> silently. **`theta_prior`'s groups block is read under a key it does not
+> have**, so a `0.8` default always wins. **The by-election decay really is
+> applied twice.** Three copies of one crosswalk, and a producer/consumer
+> directory mismatch.
+>
+> **These are found, not fixed.** Each is owed a decision, and where one moves a
+> number the backtest against real results adjudicates it — never the freeze.
+
 **B — replace the silent orchestration with the bus.**
 
 **C — extract the ~14 inline stages**, each justified by a specific pain, each
