@@ -57,10 +57,13 @@ floor is computed from an estimator the model does not run: a change to
 > ✅ **THE GATE HALF OF THIS WAS FIXED 2026-08-28 (MODEL-LOG §1.124), and this
 > entry is what named it.** `held_out_nll` gained a `COMMITTED` column read off
 > `theta_prior`'s own `groups["sd"]`, and `ITERATING.md`'s Key 4 is restated as
-> that quantity rather than as "`theta_residual`'s folds". The gap the sentence
-> above predicted was a factor of about two on both folds — **1.3241 against the
-> 0.7531 that was printed at 2016, 0.5791 against 0.2280 at 2021** — and the two
-> columns rank at least one candidate differently.
+> that quantity rather than as "`theta_residual`'s folds". **The argument is the
+> mechanism this entry already stated** — form A cannot respond to a change in
+> `sd_for` — and NOT any measured gap: §1.124's first draft quoted "a factor of
+> about two" and a ranking counterexample, and §1.124 itself withdrew both (a
+> ratio of log scores on an interval scale, and a 0.0164-nat move inside the
+> clustering band). The baselines are now 1.1363 and 1.1425, on the committed
+> width, the model's baseline and the t₇ it draws.
 >
 > **The DUPLICATION half is still open.** `theta_prior`, `_shrunk`, `form_b` and
 > `form_c` still each compute `weight = worth/(worth+SHRINK)` separately, and

@@ -14006,8 +14006,10 @@ and the drawn one is ±1.196·sd — **the two agree in the body and differ enti
 in the tail, which is where this fold's score lives.**
 
 At `w = SD_FLOOR = 0.15` and `|r| = 2` — a COPE-sized collapse — the Gaussian
-charges **87.9** nats and the t7 charges **13.3**. A factor of six and a half on
-ONE observation in a fold of 85. **Every candidate this key has ever been used
+charges **87.9107** nats and the t7 **13.2845**: a difference of **74.6 nats on
+one observation** in a fold of 85. (A difference, not a ratio — this entry said
+"a factor of six and a half" three sections above forbidding ratios of log
+scores, which an audit caught. §1.126.) **Every candidate this key has ever been used
 on works by removing or reweighting far-tail observations**, so the Gaussian
 mis-ranked exactly the class of change it was pointed at.
 
@@ -14018,20 +14020,32 @@ layer fails where history is thin". It is not: 2011's fitting record is
 already measured the cause on the other side — COPE (formed Dec 2008, 7.4% in
 2009, gone by 2011), the NFP split from the IFP, the DA/ID merger, taking that
 transition's dispersion from 0.896 to 0.244 when excluded. **5.59 was the
-Gaussian tail penalty on three known party-structural events.** Rendered as an
-effective width it is **452** in log units, which is not a forecast.
+Gaussian tail penalty on three known party-structural events.** Its effective
+width was reported here as **452** in log units — wrong twice over. The Gaussian
+offset was ½ where it must be 1.418939, a factor of **2.5066** (§1.126), making
+the true Gaussian figure **180**; and under the t₇ the model actually draws the
+same fold is a width of **2.19**. A fold with three structural events in it, not
+a broken model. The 452 was a Gaussian yardstick applied to a t-generated fold —
+this entry's own thesis, turned on its own headline illustration.
 
 ### What the instrument now says
 
 Held-out NLL per observation under the predictive the model draws, constants
 carried, on the baseline `run_model` passes:
 
-| fold | n | cy | COMMITTED | A | B | C | (gauss) | w_eff |
-|---|---|---|---|---|---|---|---|---|
-| 2006 | 83 | 8 | **0.3027** | 0.3113 | — | — | 0.3486 | 0.86 |
-| 2011 | 85 | 8 | **2.1831** | 2.0492 | 3.2988 | 1.9475 | 6.6154 | 452.78 |
-| **2016** | 97 | 8 | **1.1363** | 1.0792 | 1.8781 | 1.4246 | 1.9705 | 4.35 |
-| **2021** | 138 | 8 | **1.1425** | 1.0338 | 1.5487 | 1.3040 | 1.3508 | 2.34 |
+| fold | n | cy | COMMITTED | A | B | C | (gauss) | w_eff t₇ | w_eff gauss |
+|---|---|---|---|---|---|---|---|---|---|
+| 2006 | 83 | 8 | **0.3027** | 0.3113 | — | — | 0.3486 | 0.33 | 0.34 |
+| 2011 | 85 | 8 | **2.1831** | 2.0492 | 3.2988 | 1.9475 | 6.6154 | **2.19** | 180.6 |
+| **2016** | 97 | 8 | **1.1363** | 1.0792 | 1.8781 | 1.4246 | 1.9705 | **0.77** | 1.74 |
+| **2021** | 138 | 8 | **1.1425** | 1.0338 | 1.5487 | 1.3040 | 1.3508 | **0.77** | 0.93 |
+
+**The `w_eff` column was 2.5066× too large until §1.126** — the Gaussian offset
+was ½, the convention of the constant-free score, and `nll_gauss` had started
+carrying its ½log2π. Read the **t₇** column: it is the model's own predictive,
+and it says the θ prior at 2016 and 2021 performs like an honest t₇ of width
+**0.77** against §1.59's pooled forward residual sd of **0.7053** and §1.43's
+independent forward RMSE of **0.7150**. Two instruments agreeing to about 5%.
 
 **Note the shape.** Under the Gaussian the two Key-4 folds looked 2.3× apart
 (1.3241 and 0.5791). Under the predictive the model actually draws they are
@@ -14076,8 +14090,9 @@ Gaussian log score minus ½log2π = 0.918939; restoring the constant turns the
 claim reverses. **A log score is an interval scale with no natural zero — 2006's
 is negative — so nothing here may be quoted as a ratio.** Differences in
 nats/observation, and `w_eff = exp(NLL_gauss − ½)`, are what the report prints
-now. The `w_eff` column is what makes 2011's 452 legible; it would have caught
-that fold unaided.
+now. The `w_eff` column is what makes 2011 legible — 2.19 under the model's own
+predictive, against a Gaussian yardstick's 180 — and it would have caught that
+fold unaided, had its offset been right.
 
 ### What was done
 
@@ -14172,8 +14187,12 @@ worsens.**
 
 Same held-out population in every arm — n=97 at 2016, n=138 at 2021, eight
 metro-year clusters each — so only the fitting record changes. `THETA_WINDOW=3`
-at 2016 is byte-identical to unlimited, which is the sanity check: at target
-2016 the record holds three transitions and the window cannot bind.
+at 2016 reproduces unlimited to fourteen digits, which is the sanity check: at
+target 2016 the record holds three transitions and the window cannot bind.
+(*"Byte-identical" was too strong.* 86 of the 97 per-observation deltas are
+non-zero at 1.6e-14 — `polyfit` summation-order dust — and the table below
+originally reported that arm as **"2 of 8 metro-years worse"** off exactly that.
+`key4_delta` now ignores a cluster mean below 1e-9. §1.126.)
 
 ### Through the pass rule, not the means
 
@@ -14191,7 +14210,7 @@ lies **entirely above zero**:
 | `WINDOW=1` | 2021 | −0.1063 | −0.0907 | [−0.1761, −0.0053] | 1/8 | improves |
 | `WINDOW=2` | 2016 | +0.0415 | +0.0432 | [**+0.0104**, +0.0760] | 6/8 | **FAILS Key 4** |
 | `WINDOW=2` | 2021 | −0.0072 | +0.0137 | [−0.0810, +0.1084] | 3/8 | undetermined |
-| `WINDOW=3` | 2016 | −0.0000 | −0.0000 | [−0.0000, +0.0000] | 2/8 | undetermined |
+| `WINDOW=3` | 2016 | −0.0000 | −0.0000 | [−0.0000, +0.0000] | **0/8** | no-op |
 | `WINDOW=3` | 2021 | −0.0068 | −0.0062 | [−0.0118, −0.0005] | 2/8 | improves |
 
 **⛔ NEITHER EXCLUSION FAILS KEY 4 ANY MORE.** Type A is dead even at 2016 — four
@@ -14200,29 +14219,74 @@ better at 2021. State C worsens 2016 in six of eight metro-years but not beyond
 the clustering noise. **Only `THETA_WINDOW=2` trips the floor**, and it is the
 first arm ever to do so on a banded test.
 
-### Why, and it is not an artefact
+### Why — and the first answer written here was wrong
 
-The Gaussian charged a collapse at `w = SD_FLOOR`, `|r| = 2` **87.9 nats**; the
-t₇ the model actually draws charges **13.3**. An exclusion works by deleting
-far-tail observations from the *fitting* record, which narrows every fitted
-width; the Gaussian then punished that narrowing ferociously on the unfiltered
-held-out set, and the t₇ barely does. **So the old Key 4 blocked Type A on a
-tail penalty the model does not incur.**
+> ⛔ **THIS SECTION SAID "the distribution change dominates the baseline
+> change", ON NO MEASUREMENT. §1.126 ran the decomposition both reviewers asked
+> for and it says something else.** Replaced rather than annotated, because it
+> was an inference presented as a cause — the failure §1.124 exists to correct.
 
-That reading is uncomfortable and it is the honest one. The pollster review
-predicted the opposite — *"COMMITTED should worsen at 2016 by more than A did,
-not less"*, reasoning that A's evaluation size moves with the deletions and
-partly offsets the narrowing. **The prediction was wrong**, and the reason is
-that the distribution change dominates the baseline change. It is recorded here
-because a reviewer's stated mechanism that fails is worth as much as one that
-holds.
+**The band did it, not the family.** Scored as a 2×2 — {raw, ballot baseline} ×
+{Gaussian, t₇}, all on COMMITTED widths, paired and clustered — Type A at 2016
+**does not fail the floor in any of the four cells**:
+
+| baseline | family | Δ (nats/obs) | one-sided 95% lower bound | verdict |
+|---|---|---|---|---|
+| raw | Gaussian | +0.5796 | −0.0415 | does not block |
+| raw | t₇ | +0.0124 | −0.2520 | does not block |
+| ballot | Gaussian | +0.3805 | −0.1452 | does not block |
+| ballot | t₇ | **−0.0180** | −0.2481 | does not block |
+
+The `LEVEL_DF` sweep says the same from the other direction. At df = 3, 4, 7,
+15, 30, 100 and 1000 — the last effectively Gaussian — the 2016 point estimate
+walks from −0.0797 to +0.3558 and **the verdict never changes**: the one-sided
+bound runs −0.2846 to −0.1494 and never reaches zero. 2021 improves at every df.
+
+So the family moves the point estimate and even its SIGN, and moves no verdict.
+**What blocked Type A was comparing two per-observation means with no noise
+band.** Under a bare inequality the instrument fix alone would also have removed
+the block, since the 2016 point estimate is now negative — but the band removes
+it under *every* instrument, which is the stronger and simpler statement.
+
+**Both reviewers' stated mechanisms failed, on the same measurement.** The
+pollster predicted COMMITTED would worsen at 2016 by MORE than form A did,
+reasoning that an exclusion narrows every fitted width. §1.126 measured the
+widths: **median 0.3439 → 0.3291 at 2016 and 0.3804 → 0.3792 at 2021, the MEAN
+rising at both, narrower in only 57 of 97 and 72 of 138 rows.** The narrowing is
+not there. What is there is that **every residual moves** — 97 of 97 and 138 of
+138 — because deleting rows moves `mu_all`, which moves the centre `theta_prior`
+returns; median |residual| falls 0.2937 → 0.2634 at 2016. **The gain is in the
+CENTRE channel, and this entry's first draft attributed all of it to the
+width.**
 
 ### What is NOT overturned
 
-* **Type A is still refuted, on seats.** §1.74's condition 2 required the nine
-  city-year seat error to fall below the pre-ingest 254; it was 262 and still is.
-  Key 4 was never the only objection — but it was the one `ITERATING.md` cites
-  as the reason Key 4 exists.
+* **⛔ "Type A is still refuted, on seats" WAS THE WRONG REASSURANCE**, and
+  this bullet replaces it. It read: *"§1.74's condition 2 required the nine
+  city-year seat error to fall below the pre-ingest 254; it was 262 and still
+  is."* Three faults. Condition 2 **as written** was on the sixteen, which §1.74
+  itself calls *"a flaw in the pre-registration… my error"*. §1.74's own
+  nine-metro figure is **260**, not 262 — 262 is a later re-measurement (§1.82).
+  And **"still is" was never measured**: no `compare_history` ran for §1.125, so
+  it is inherited, not verified.
+
+  **Worse, the condition is retired.** `ITERATING.md`'s 2026-08-23 amendment,
+  forty lines above Key 4: *"§1.81's Condition 2 required a candidate's
+  nine-city-year total to fall below **254**, a number produced by a model that
+  had less data. That demands that adding true information never hurt a
+  misspecified model, which is false."* **Leaning on a retired condition to say
+  nothing has changed is not available.**
+
+  **The real position.** On the bar as written today, Type A **passes Key 1**
+  (improves both cycles, −10 and −14; −24 on sixteen), **passes Key 2** (CRPS
+  329.4 → 320.3), and **does not fail Key 4**. §1.126 adds that it does not fail
+  the calibration diagnostic either — it improves it. **The remaining objection
+  is KEY 3 and rule 10**: `TYPE_A_EVENTS` is a hand-maintained list of named
+  party-structural events, a typed and curated exclusion, and that is a
+  derivedness cost rather than a calibration one. That is where the resistance
+  belongs and it is a stronger place to stand — *"we decline this because the
+  exclusion list is typed and unfalsifiable, and here is what deriving it would
+  take"* is defensible in public; *"our NLL gate stopped it"* now is not.
 * **State C's verdict is unchanged**: wins one fold, loses one, `undetermined`,
   exactly as §1.80 recorded — the same shape, different numbers.
 * **§1.82's non-monotonicity finding SURVIVES INTACT, and is now sharper.**
@@ -14255,3 +14319,174 @@ instrument it does not.** Three readings, and they are not equivalent:
 **Nothing has been changed in `ITERATING.md` on the strength of this.** The bar
 is the owner's, and a key whose justification has been undercut is a decision,
 not a measurement.
+
+
+## 1.126 Two reviews of §1.124–§1.125, and what measurement said about all three of us (2026-08-29)
+
+**§1.124 and §1.125 were committed after a review that covered only their first
+half. This entry is the second review, the corrections it forced, and the four
+measurements that settled questions all three of us had been arguing from
+mechanism.** The order of operations failure is itself recorded: the rule in
+`CLAUDE.md` says the pollster reviews substance BEFORE the work is reported, and
+the t₇ score, the baseline fix, `key4_delta`, both guard tests and §1.125's
+entire conclusion went into two commits unreviewed.
+
+### The measurements, because they replace three arguments with facts
+
+**1. The 2×2, and the `LEVEL_DF` sweep: the BAND removed the block, not the
+family.** §1.125 asserted *"the distribution change dominates the baseline
+change"* on no measurement. Type A at 2016 fails the floor in **none** of
+{raw, ballot} × {Gaussian, t₇}, and in none of df = 3, 4, 7, 15, 30, 100, 1000 —
+the point estimate walks from −0.0797 to +0.3558 across that sweep and the
+one-sided bound never reaches zero. §1.125's *Why* section is replaced.
+
+This also **refutes the pollster's warning that `LEVEL_DF` is load-bearing for
+the verdict.** It is 🟡 and typed (`JUDGEMENT-CALLS.md`: *"Nothing was measured;
+it was 4.0 until this branch, and 3 or 6 are equally arguable"*), the concern
+was correct in form, and the verdict is stable across three orders of magnitude
+of it. Worth having asked.
+
+**2. The exclusion does NOT narrow the widths, and the gain is in the centres.**
+Both reviewers' mechanisms rested on it; neither measured it.
+
+| fold | median width | mean width | narrower in | residual moved in | median \|residual\| |
+|---|---|---|---|---|---|
+| 2016 | 0.3439 → 0.3291 | 0.3294 → **0.3323** | 57/97 | **97/97** | 0.2937 → 0.2634 |
+| 2021 | 0.3804 → 0.3792 | 0.3710 → **0.3804** | 72/138 | **138/138** | 0.2980 → 0.2888 |
+
+The mean width **rises** at both folds. What moves is every residual, because
+deleting rows moves `mu_all` and therefore the centre `theta_prior` returns.
+
+**3. Calibration, which is the instrument that CAN see the failure Key 4 names —
+and the biggest finding in this entry.** PIT under the model's own t₇, against a
+calibrated mean of 0.500 and variance of 0.0833:
+
+| arm | fold | PIT mean | PIT var | cov80 | cov95 | mean z² |
+|---|---|---|---|---|---|---|
+| incumbent | 2016 | 0.4938 | **0.1257** | 0.567 | **0.784** | 6.230 |
+| incumbent | 2021 | **0.6130** | **0.1221** | 0.529 | **0.761** | 4.225 |
+| Type A | 2016 | 0.4213 | 0.1133 | 0.577 | 0.814 | 7.400 |
+| Type A | 2021 | 0.5791 | 0.1153 | 0.587 | 0.819 | 3.537 |
+
+**⛔ THE θ PRIOR IS BADLY OVERCONFIDENT AND NOBODY HAD MEASURED IT THIS WAY. Its
+95% interval covers 78% at 2016 and 76% at 2021; its 80% interval covers 57%
+and 53%.** PIT variance is ~50% above calibrated at both folds. This is
+independent of everything else in §1.124–§1.126 and it converges with §1.58
+(mid-ballot seat forecast too narrow) and §1.59/§1.77 (four of five size bins
+too narrow) from a third direction. **The 2021 PIT mean of 0.613 is a level
+bias**, not a width problem — residuals sitting systematically high.
+
+**And Type A IMPROVES both.** PIT variance falls at both folds; coverage rises
+at both; the 2021 level bias moves from 0.613 toward 0.579. **So reading 2 of
+§1.125 — that the t₇ score is blind to an exclusion moving volatility out of the
+prior and into the error — is REFUTED for this candidate.** Type A does not make
+the prior more overconfident on these folds. It makes it less so. The remaining
+objection to it is Key 3, and only Key 3.
+
+(The structural point behind reading 2 stands as maths and should be kept: for a
+t predictive, `∂NLL/∂log|z| → ν+1`, a **constant**, where a Gaussian's is `z²`.
+A log score under a heavy-tailed predictive has bounded influence in the tail by
+construction, so it is low-powered against tail miscalibration. That is a
+property, not a suspicion — it simply did not bite here. PIT is the answer to it
+and PIT is now measured.)
+
+### What was WRONG in the two commits, and is now fixed
+
+**`w_eff` was 2.5066× too large everywhere it was printed or quoted.** It was
+`exp(mean − ½)`, which inverts the constant-FREE score; `nll_gauss` had started
+carrying its `½log2π`, so the offset must be **1.418939**. Fold 2011's headline
+452 is **180** on a Gaussian yardstick and **2.19** under the t₇ the model
+draws. **This is the same defect the commit was written to fix** — a constant
+convention changed and one consumer was not updated — committed by the person
+fixing it, in the same file, on the same day. The report now prints both `w_t7`
+(primary; offset 1.398228, derived and simulation-checked) and `w_gau`.
+
+**`_levels_state()` claimed to hold "everything in `levels` that can change what
+`residuals` returns" and held seven of ten.** Missing: `RELIABILITY_HALF` (🟡,
+never swept, and it moves the residual AND the width through `mu_all`, the
+shrink weight and `worth`), and the PAYLOADS `TYPE_A_EVENTS` and
+`DEMARCATION_CROSSING` behind two switches the key did carry. **That is exactly
+the defect `montecarlo.py`'s own delivery inventory records for the same two
+flags** — *"the log recorded THAT a filter ran and nothing about what it
+removed"* — repeated one file over, the day after it was written up.
+
+**`key4_delta` decided an untradeable floor, had no caller and no test, and
+§1.125's ten-row verdict table came from a script that was not in the tree.**
+Now tested six ways, including the two triggers in isolation and the refusal on
+population drift. Building the fixture caught a further fact worth keeping: at
+`w = 0.40` against these residuals the widths are already slightly WIDE of the
+per-observation optimum (which sits at `|z| = 1`), so a 4× widening is worse and
+a 0.93× narrowing is better — the first draft of the fixture assumed the
+opposite and got 8 of 8 where it wanted 7.
+
+**`WINDOW=3` at 2016 was reported as "2 of 8 metro-years worse" off deltas of
+1.6e-14.** It is a no-op arm; 86 of 97 per-observation deltas are non-zero
+`polyfit` summation dust. `key4_delta` now ignores a cluster mean below 1e-9,
+and "byte-identical" is corrected to "reproduces to fourteen digits".
+
+**The one-sided threshold was at α = 0.025, not 0.05.** `fails = lo > 0` on a
+two-sided 95% interval is a one-sided test at 2.5% — conservative in the one
+direction a floor cannot afford, compounding a score already low-powered in the
+tail. Now `t(0.95, 7) = 1.895` against 2.365, with α declared in `ITERATING.md`.
+
+**The sign count is now a second trigger**, not decoration: FAIL if ≥7 of 8
+clusters worsen, one-sided exact binomial P = 9/256 = 0.035. Checked against
+every arm on record — state C at 2016 is 6/8 (P = 0.145, correctly not a
+failure) and `WINDOW=2` at 2016 is 6/8 *with* the interval excluding zero, so
+the two triggers agree there. It adds a trigger without firing on anything
+already measured.
+
+**`del fold` made `key4_delta`'s fold argument decorative.** Now asserted.
+
+### And the record's own contradictions, from the same two commits
+
+* **`MACHINERY.md` claimed "every interval now excludes the width in use, the
+  top of the ballot included" two lines under a table showing 0.136 ≤ 0.151 ≤
+  0.386.** Flatly wrong, and it contradicted `JUDGEMENT-CALLS.md` and §1.124
+  written in the same commit — on the constant this log has spent three entries
+  arguing about.
+* **`PLAN-TO-LIVE.md` was given a correction block quoting the baselines the
+  same commit superseded** (1.3241/0.5791), and reinstating the "evaluated at
+  the record's own weighted size" wording that §1.124 had just retracted.
+* **`DUPLICATION-AUDIT.md` restated "a factor of about two" and the ranking
+  counterexample**, both withdrawn in §1.124, in a block added by that commit.
+* **`form_a`'s docstring kept the retracted counterexample** after `report()`
+  was updated to disown it.
+* **`nll_t`'s docstring quoted 88.9 and 14.4** — the quadratic term alone and
+  the `log1p` term alone, each missing exactly the constants the function exists
+  to restore. The true figures are **87.9107** and **13.2845**.
+* **"A factor of six and a half"** — a ratio of log scores, three sections above
+  the paragraph forbidding ratios of log scores.
+* **`JUDGEMENT-CALLS.md`'s §1.62 row** quotes 0.682/1.193/0.982/0.161 unmarked
+  and uses them to close off a line of work. Marked; the prohibition stands on
+  its multiple-comparison reasoning, which does not depend on the numbers.
+* **The fold note's "75% / 94% false rejection" figures described the unbanded
+  rule the same commit replaced.** With a band at one-sided α = 0.05 they are
+  ~9.8% and ~18.5%. The multiplicity argument for gating on two folds is largely
+  spent; the two real reasons — 2011 cannot move under any change this key sees,
+  and 2006's fit rests on an "approximate pre-metro footprint" — now lead.
+* **The `v_spine` change is a NO-OP on the branch its comment argued about.**
+  `theta_prior`'s band is symmetric in logs by construction, so
+  `ln(high/low)/(2·1.2816) ≡ ln(high/mid)/1.2816` identically. Where it is not a
+  no-op is the `PLAN_BOUNDS` fallback — ANC 0.0 → 0.127, DA 0.367 → 0.164, MK
+  0.0 → 0.470 — and, genuinely valuable, a party with no plan bound went from
+  `rel = inf` and `w_used = nan` to the typed weight. **Dormant under
+  `bye_weight_mode="fixed"`, and dormancy is not a defence here** (§1.33,
+  §1.63): it must be measured under that lever before it is enabled.
+
+### Still open
+
+1. **The overconfidence finding above deserves its own work.** 95% coverage at
+   76–78% is not a footnote to an instrument entry.
+2. **The κ power sweep** — scale every committed width by κ and report the
+   smallest |log κ| the floor rejects, under both families, uniform and
+   tail-only. That gives Key 4 a minimum detectable effect in its own units, and
+   the pollster's prediction is on record: the t₇ floor should track the
+   Gaussian on a uniform scaling and be far weaker on a tail-only one.
+3. **`ballot_roster` duplicates `pools.contesting_parties`** — declared in the
+   docstring as a knowing exception, but those two rosters are what make
+   `run_model` and `residuals` agree, and if one drifts the "one definition"
+   claim of §1.124's baseline fix stops holding silently.
+4. **§1.62's two refits, and §1.82's `THETA_WINDOW` shape, on the corrected
+   instrument.** The window arms were re-run for §1.125 and the non-monotonicity
+   survives; §1.62's forms were not.

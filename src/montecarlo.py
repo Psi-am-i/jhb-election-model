@@ -2099,13 +2099,43 @@ def blended_centres(
                                      DEFAULTS["bye_weight_mode"])
                 if str(_mode) == "inverse_variance":
                     sd_bye = _sd_bye / math.sqrt(_n_bye) if _n_bye else 0.0
-                    # The spine's own spread, from the θ band already in hand.
-                    # BOTH TAILS: the band is (low, mode, high) at ∓1.2816σ, so
-                    # ln(high/low) spans 2×1.2816σ. Reading only ln(high/mid)
-                    # threw away half the information and, where the band is
-                    # asymmetric about its mode, measured the upper tail alone
-                    # — for a party whose θ prior is skewed that is not σ, it is
-                    # one side of it. Pollster review, MODEL-LOG §1.124.
+                    # The spine's own spread, from the band already in hand.
+                    #
+                    # ⛔ ON THE θ BRANCH THIS IS A PRECISE NO-OP, and the comment
+                    # here used to claim otherwise. `theta_prior` returns
+                    # `(exp(mu − 1.2816σ), exp(mu), exp(mu + 1.2816σ))` —
+                    # **symmetric in logs by construction** — so
+                    # `ln(high/low)/(2·1.2816)` is IDENTICALLY
+                    # `ln(high/mid)/1.2816`. The "asymmetric band, skewed prior,
+                    # measuring one tail" case cannot arise there. That
+                    # justification was wrong and two reviews caught it.
+                    #
+                    # WHAT IT ACTUALLY DOES is on the OTHER branch, where `mid`
+                    # is 1.0 and the band is `PLAN_BOUNDS`, which is NOT
+                    # symmetric about 1:
+                    #
+                    #   party  bounds        old rel   new rel
+                    #   ANC    (0.65, 0.90)   0.0       0.127   (old: high<mid,
+                    #                                   so the guard zeroed it)
+                    #   DA     (1.05, 1.60)   0.367     0.164
+                    #   MK     (0.30, 1.00)   0.0       0.470
+                    #   absent (0.0,  inf)    inf →     0.0
+                    #                         w_used=nan
+                    #
+                    # The last row is the real defect it repairs: a party with
+                    # no plan bound produced `rel = inf`, `sd_spine = inf` and
+                    # `w_used = nan`, which would have propagated into a centre.
+                    # Using both tails is also right on its own terms — it uses
+                    # the information twice over and needs no symmetry
+                    # assumption — but it is a CHANGE on that branch, not a
+                    # tidy-up, and it is unmeasured on the panel.
+                    #
+                    # Reachable only under `bye_weight_mode="inverse_variance"`,
+                    # which is not the default and is not set by any city or
+                    # judgement file, so no committed number moves. Dormancy is
+                    # not a defence in this repository (§1.33, §1.63): it must
+                    # be measured under that lever before it is enabled.
+                    # MODEL-LOG §1.126.
                     rel = (math.log(high / low) / (2 * 1.2816)
                            if low > 0 and high > low else 0.0)
                     sd_spine = abs(anchor) * rel

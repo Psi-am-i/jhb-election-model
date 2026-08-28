@@ -330,5 +330,94 @@ def test_a_change_to_levels_moves_key_4():
         "that matters — add the constant you just introduced to it.")
 
 
+
+def test_key4_delta_is_the_pass_rule_and_has_actually_been_run():
+    """`key4_delta` decides an UNTRADEABLE floor and had no caller and no test.
+
+    MODEL-LOG §1.125's ten-row verdict table — the evidence for "Key 4 no
+    longer blocks the Type A filter" — was produced by a script that was not in
+    the tree, so the refusal on population drift, the band, the sign trigger
+    and `fails` were all unexercised. An audit found it; this is the fix.
+    Synthetic arms, because the property is arithmetic and does not need the
+    archive. MODEL-LOG §1.126.
+    """
+    import math
+
+    # Eight metro-year clusters, four observations each, at one fold.
+    codes = ["JHB", "TSH", "CPT", "ETH", "EKU", "MAN", "NMA", "BUF"]
+    base = {(f"P{j}", "2021", c): (0.30 + 0.01 * j, 0.40)
+            for c in codes for j in range(4)}
+
+    # 1. IDENTICAL ARMS — zero delta, no failure, and the fold is asserted.
+    same = TR.key4_delta(base, dict(base), "2021")
+    assert same["n"] == 32 and same["clusters"] == 8
+    assert abs(same["cluster_delta"]) < 1e-12
+    assert same["worse_clusters"] == 0, (
+        "a zero delta counted as a worsening — the float-dust guard is gone, "
+        "and a genuine no-op will be reported as directional again (§1.126)")
+    assert not same["fails"]
+
+    # 2. THE FOLD IS ASSERTED, not trusted. `del fold` made it decorative.
+    try:
+        TR.key4_delta(base, dict(base), "2016")
+    except ValueError as e:
+        assert "fold 2016" in str(e)
+    else:
+        raise AssertionError("key4_delta accepted observations from the wrong "
+                             "fold; the `fold` argument is decorative again")
+
+    # 3. POPULATION DRIFT REFUSES. Scoring the intersection silently would let
+    #    a candidate 'improve' by dropping the rows it forecasts worst.
+    short = {k: v for k, v in base.items() if k[0] != "P3"}
+    try:
+        TR.key4_delta(base, short, "2021")
+    except ValueError as e:
+        assert "population moved" in str(e)
+    else:
+        raise AssertionError("key4_delta compared two different populations")
+
+    # 4. A CONSISTENT WORSENING IN EVERY CLUSTER FAILS. Widths halved is a
+    #    gross miscalibration and the floor must catch it.
+    narrow = {k: (r, w * 0.5) for k, (r, w) in base.items()}
+    bad = TR.key4_delta(base, narrow, "2021")
+    assert bad["cluster_delta"] > 0 and bad["fails"], (
+        f"halving every width did not fail the floor: "
+        f"delta {bad['cluster_delta']:+.4f}, one-sided lower bound "
+        f"{bad['one_sided_lo']:+.4f}. Key 4 is not a floor.")
+
+    # 5. THE ONE-SIDED THRESHOLD IS THE ONE THAT DECIDES, and it is tighter
+    #    than the two-sided bound it replaced (t(0.95,7)=1.895 < 2.365). The
+    #    halved-width arm has ZERO between-cluster variance — every cluster
+    #    moves identically — so both bounds collapse onto the point estimate
+    #    and only `>=` holds there. The strict inequality is asserted below on
+    #    the tilted arm, which has real spread.
+    assert bad["one_sided_lo"] >= bad["ci95"][0]
+
+    # 6. THE SIGN TRIGGER FIRES INDEPENDENTLY of the band. Seven of eight
+    #    clusters worse by a hair, one much better: the mean is dragged
+    #    negative and the interval is wide, so only the sign count can see it.
+    # `w = 0.40` sits slightly WIDE of the per-observation optimum (which is
+    # at |z| = 1, i.e. w = |r|·√(7/5)), so a hair wider is a hair worse and
+    # 0.93× is better. 4.0× would have been worse too — the first draft of this
+    # fixture used it and got 8 of 8, which is why the assertion below pins the
+    # count rather than trusting the construction.
+    tilt = {}
+    for k, (r, w) in base.items():
+        tilt[k] = (r, w * (1.001 if k[2] != "BUF" else 0.93))
+    sign = TR.key4_delta(base, tilt, "2021")
+    assert sign["worse_clusters"] == 7, sign["worse_clusters"]
+    assert sign["sign_fail"] and sign["fails"], (
+        "seven of eight metro-years worsening did not fail the floor. The "
+        "t interval is driven by the BETWEEN-cluster variance and cannot see "
+        "a small, utterly consistent worsening; the exact binomial can, and "
+        "P(X>=7 | p=0.5) = 9/256 = 0.035.")
+    assert sign["one_sided_lo"] > sign["ci95"][0], (
+        "the one-sided bound is not tighter than the two-sided one on an arm "
+        "with real between-cluster spread; `_t_crit_one_sided` is wrong")
+    assert not sign["one_sided_lo"] > 0, (
+        "this fixture no longer isolates the sign trigger — the band catches "
+        "it too, so the test has stopped testing what it says it does")
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(sys.modules[__name__]))

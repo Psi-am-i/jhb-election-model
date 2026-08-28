@@ -400,14 +400,21 @@ rather than 2**.
 > improve at both 2016 and 2021, stop.**
 
 > ⛔ **READ THE `COMMITTED` COLUMN, NOT THE `A` COLUMN (2026-08-28, MODEL-LOG
-> §1.124).** `0.7531` and `0.8611` below are `form_a`'s — a rebuild evaluated at
-> the record's own weighted size, not the width the model draws with. The
-> committed baseline is **1.3241 at 2016 and 0.5791 at 2021**, and the two
-> columns can rank the same candidate differently. The gate above is still the
-> right gate; the numbers under it are not the model's.
+> §1.124, §1.125, §1.126).** `0.7531` and `0.8611` below are `form_a`'s — a
+> rebuild whose FIT regresses on the record's own weighted size (not, as this
+> block said for a day, whose EVALUATION does), scored as a Gaussian without its
+> constant, on the raw baseline. **The committed baselines are 1.1363 at 2016
+> and 1.1425 at 2021.** The gate above is still the right gate; the numbers
+> under it are not the model's — and §1.125 re-measured this exact arm, where
+> **bare Type A no longer fails Key 4 at any `LEVEL_DF` from 3 to 1000.**
 
-Bare Type A fails that gate today (2016: 0.7531 → 0.8611, **form A; not
-re-measured on COMMITTED**). A correct mixture
+Bare Type A **no longer fails that gate** (§1.125). The figures this sentence
+used to quote — 2016: 0.7531 → 0.8611 — are form A's, Gaussian, unbanded. On the
+committed instrument the 2016 delta is −0.0180 nats/observation with a one-sided
+95% lower bound of −0.2481 and four of eight metro-years worse. **It still fails
+on seats**, but see §1.125: that is Key 1's business, and §1.81's Condition 2 —
+the "below 254" this file leans on — was retired by `ITERATING.md`'s 2026-08-23
+amendment. A correct mixture
 should pass it, because the 2016 fold's held-out set contains AGANG and
 MINORITY_FRONT — precisely the observations a Type-B-only prior assigns near-zero
 density to. **That turns B1 from "a week that might not land" into "an afternoon

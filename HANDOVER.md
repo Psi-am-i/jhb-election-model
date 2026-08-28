@@ -2,7 +2,7 @@
 
 **Read this, then `ITERATING.md`'s Key 4, then `POOLS-REEMIT-QUEUE.md`.**
 Everything is committed; the tree is clean. Branch
-`splinter-rule-and-historical-tail`, **suite 370 passed / 0 failed / 10
+`splinter-rule-and-historical-tail`, **suite 373 passed / 0 failed / 10
 skipped**, freeze re-taken and verifying.
 
 **19 days to nomination lists (16 September), 68 to polling (4 November).**
@@ -11,52 +11,22 @@ skipped**, freeze re-taken and verifying.
 
 ## ⛔ THE NEXT ORDER OF BUSINESS
 
-**Items 1, 2, 3 and 5 of the pollster's list are DONE (MODEL-LOG §1.124).** What
-is left, re-ranked after the review of that work:
+The pollster's original list is done. This is the list after **two rounds of
+review of that work** (§1.126), which found real errors in it — including one I
+made while fixing the identical class of error one file over.
 
 | # | do | why |
 |---|---|---|
-| **1** | ⛔ **OWNER DECISION: Key 4 no longer blocks the Type A filter** (§1.125) | the key's stated reason for existing is undercut; nothing changed on it |
-| 2 | **PIT as a second instrument** — `u = F_t7(z)` per fold and size bin | a t₇ log score is structurally forgiving of a too-narrow tail; PIT is what can see it |
-| 3 | Add a **bias floor `τ²`** before enabling `bye_weight_mode="inverse_variance"` | the lever stays off until then |
-| 4 | Investigate: the by-election weighting is **worse than uniform** | 24.83 vs 24.66, number in hand, nobody acted |
-| 5 | Per-party turnout sensitivity, **hierarchical**, behind a lever | real sign, unvalidatable magnitude |
-| 6 | Write the **fold policy** argument into `JUDGEMENT-CALLS.md` | 2006/2011 are computed and not gated; the reason is in `ITERATING.md` but unregistered |
+| **1** | ⛔ **OWNER DECISION: Key 4 no longer blocks the Type A filter** (§1.125) | its stated reason for existing is undercut; nothing was changed on it |
+| **2** | **The θ prior is badly overconfident** — 95% coverage at 76–78%, PIT variance ~50% high, both folds (§1.126) | measured in passing while checking something else; it is the largest finding of the session and has no work attached |
+| 3 | The **κ power sweep** — smallest \|log κ\| the floor can reject, both families, uniform and tail-only | gives Key 4 a minimum detectable effect in its own units. Prediction on record |
+| 4 | Add a **bias floor `τ²`** before enabling `bye_weight_mode="inverse_variance"` | the lever stays off until then |
+| 5 | Measure the **`v_spine` change under that lever** before enabling it | it is a no-op on the θ branch and an unmeasured change on the `PLAN_BOUNDS` fallback (§1.126) |
+| 6 | Investigate: the by-election weighting is **worse than uniform** | 24.83 vs 24.66 LOO RMSE, number in hand, nobody acted |
+| 7 | Per-party turnout sensitivity, **hierarchical**, behind a lever | real sign, unvalidatable magnitude |
+| 8 | Fold policy → a `JUDGEMENT-CALLS.md` row | 2006/2011 computed, not gated; the reasons are in `ITERATING.md` but unregistered |
 
 ---
-
-## 1. Key 4's instrument was wrong three ways, and is now fixed
-
-`ITERATING.md`'s Key 4 is **untradeable**. It said *"Held-out NLL on
-`theta_residual`'s folds must not worsen in either fold."* Wrong on all three
-counts of what that pointed at:
-
-1. **`form_a` is not the committed estimator.** It is rebuilt from `_fit_line`
-   and reaches `levels` only through the clamp — **so a change to `sd_for` moves
-   the model and leaves the gate where it was.** That mechanism is dispositive
-   on its own; an earlier draft led on a 0.0164 nats counterexample that is
-   inside the clustering noise, and that over-read is itself recorded.
-2. **The harness passed a baseline `run_model` does not pass** — the raw
-   citywide tally, where the model drops off-ballot parties first. 286 parties
-   across 32 metro-years; largest single width moved 0.605.
-3. **The score was a Gaussian; the model draws Student-t₇.** At `w = SD_FLOOR`
-   and `|r| = 2` the Gaussian charges 87.9 nats against the t₇'s 13.3.
-
-**Baselines are now 2016 = 1.1363 and 2021 = 1.1425** — within 0.006 nats of each
-other, where the Gaussian made them look 2.3× apart. The spread was the
-instrument. Fold 2011's notorious 5.59 was the Gaussian tail penalty on three
-known party-structural events (COPE, the NFP split, the DA/ID merger, all
-already measured in §1.71); as an effective width it was **452**, which is not a
-forecast.
-
-Key 4 also had **no noise band** on an untradeable floor. `theta_residual.
-key4_delta` is now the pass rule as code: paired on identity, **refusing** if the
-population moved, t(G−1) on the eight metro-year cluster means, sign count
-reported. **Fails only if the 95% interval lies entirely above zero.**
-
-**⛔ It is a LAYER floor, not the model's predictive score** — it scores the θ
-width about `theta_prior`'s own centre, and the model draws about the spine's.
-Do not quote it as the model's estimation loss; the first draft of §1.124 did.
 
 ### ⛔ The re-measurement is DONE, and it undercut Key 4's reason for existing
 

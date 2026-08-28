@@ -734,9 +734,14 @@ metro-year, and it says two things:
 > | 0.2 – 1% | 0.701 | [0.580, 0.811] | 0.369 |
 > | < 0.2% | 0.864 | [0.678, 1.006] | 0.460 |
 >
-> **Every interval now excludes the width in use, the top of the ballot
-> included** — which is the §1.59 claim below being withdrawn, not weakened.
-> Run `src/theta_residual.py` rather than quoting either table.
+> **The four intervals BELOW 15% all exclude the width in use. The ≥15% one
+> does not** — 0.136 ≤ 0.151 ≤ 0.386, near the bottom of a much wider interval
+> than §1.59 measured. That is §1.77's withdrawal of §1.59's 🟢, not a
+> refutation: the constant is still inside its interval and is no longer
+> comfortably in the middle of it. (This block claimed the opposite for a day,
+> contradicting both `JUDGEMENT-CALLS.md` and MODEL-LOG §1.124 written in the
+> same commit. §1.126.) Run `src/theta_residual.py` rather than quoting either
+> table.
 
 | national size | measured conditional sd | 95% CI | what the model uses |
 |---|---|---|---|

@@ -138,7 +138,9 @@ def residuals(codes=levels.METRO_CODES) -> list[tuple]:
     the ballot has no result, so it was never in the outcome side of the join —
     and moves the largest single width by **0.605**. On the two Key-4 folds the
     committed held-out score moves 1.3241 → 1.0516 at 2016 and 0.5791 → 0.4319
-    at 2021. MODEL-LOG §1.124.
+    at 2021 — **Gaussian without its constant, the convention this module used
+    at the time**; the current column is the t predictive with constants
+    carried. MODEL-LOG §1.124.
 
     **Memoised**, because it is ~45 seconds of `theta_prior` refits and file
     reads and the suite calls it five times in one process. **The cache is keyed
@@ -163,10 +165,34 @@ def _levels_state() -> tuple:
     measured under the old value.
     """
     return (levels.SD_FLOOR, levels.SD_CEILING, levels.SHRINK,
+            # `_reliability` sets `mu_all`, the shrink weight, `obs_size` and
+            # `worth`, so it moves the residual AND the width. 🟡 and never
+            # swept, i.e. a live sweep candidate.
+            getattr(levels, "RELIABILITY_HALF", None),
             getattr(levels, "THETA_WINDOW", None),
             tuple(sorted(getattr(levels, "THETA_EXCLUDE_TARGETS", ()) or ())),
             getattr(levels, "FILTER_TYPE_A", None),
-            getattr(levels, "EXCLUDE_DEMARCATION_CROSSING", None))
+            getattr(levels, "EXCLUDE_DEMARCATION_CROSSING", None),
+            # THE PAYLOADS, NOT ONLY THE SWITCHES. The first version of this
+            # key carried `FILTER_TYPE_A` and `EXCLUDE_DEMARCATION_CROSSING`
+            # and not the tables they read — which is precisely the defect
+            # `montecarlo.py`'s delivery inventory records for the same two
+            # flags: "the log recorded THAT a filter ran and nothing about what
+            # it removed". Edit a register, and without these the memo hands
+            # back the answer measured under the old one.
+            _freeze(getattr(levels, "TYPE_A_EVENTS", None)),
+            _freeze(getattr(levels, "DEMARCATION_CROSSING", None)))
+
+
+def _freeze(value):
+    """A hashable, order-stable image of a nested dict/set/list, for the key."""
+    if isinstance(value, dict):
+        return tuple(sorted((k, _freeze(v)) for k, v in value.items()))
+    if isinstance(value, (set, frozenset)):
+        return tuple(sorted(_freeze(v) for v in value))
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze(v) for v in value)
+    return value
 
 
 @functools.lru_cache(maxsize=None)
@@ -253,12 +279,17 @@ def form_a(record):
     §1.59's table uses `theta_prior`'s real output and is the authority on what
     the model does. This is for RANKING TWO FORMS, not for quoting a width.
 
-    The two differ by more than rounding — 0.7531 against 1.3241 at 2016, 0.2280
-    against 0.5791 at 2021 — and, decisively, **they can rank the same candidate
-    differently**, so "a relative comparison survives a biased instrument" is
-    false here. A/B/C remain useful as a controlled three-way comparison of
-    WHICH RESIDUAL is fitted, holding `_fit_line` constant. They are not the
-    floor.
+    **The argument against using this as the floor is the MECHANISM, not any
+    gap.** A is rebuilt from `_fit_line` and reaches `levels` only through the
+    `[SD_FLOOR, SD_CEILING]` clamp, so a change to `sd_for`'s covariate or
+    weighting cannot move it at all. §1.124's first draft argued from a
+    0.5791 → 0.5955 counterexample instead; that is 0.0164 nats/observation on
+    eight clusters, inside the band, and it is **retracted as evidence**. The
+    figures it quoted — 0.7531 and 0.2280 against 1.3241 and 0.5791 — are also
+    superseded twice over (Gaussian without its constant, raw baseline).
+
+    A/B/C remain useful as a controlled three-way comparison of WHICH RESIDUAL
+    is fitted, holding `_fit_line` constant. They are not the floor.
     """
     everything = [o for v in record.values() for o in v]
     if not everything:
@@ -426,16 +457,34 @@ def form_c(record, target):
 # Two-sided 95% Student-t critical values, df 1..30. A STANDARD TABLE, not a
 # judgement: these are quantiles of a named distribution and `scipy` is not
 # installed. `_t_crit` is used for the cluster band in `key4_delta`, where the
-# number of clusters is eight and a normal quantile would be 13% too narrow.
+# number of clusters is eight and a normal quantile would be 17.1% too narrow
+# (1.960 against t(7) = 2.365).
 _T95 = (12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228,
         2.201, 2.179, 2.160, 2.145, 2.131, 2.120, 2.110, 2.101, 2.093, 2.086,
         2.080, 2.074, 2.069, 2.064, 2.060, 2.056, 2.052, 2.048, 2.045, 2.042)
+
+
+# Below this, a cluster mean is float noise rather than a direction. Set six
+# orders of magnitude above the 1.6e-14 dust a genuine no-op produced and six
+# below the smallest real effect on record (WINDOW=3 at 2021, 0.0062).
+_SIGN_EPS = 1e-9
+
+# One-sided 95% (= two-sided 90%) Student-t critical values, df 1..30.
+_T90 = (6.314, 2.920, 2.353, 2.132, 2.015, 1.943, 1.895, 1.860, 1.833, 1.812,
+        1.796, 1.782, 1.771, 1.761, 1.753, 1.746, 1.740, 1.734, 1.729, 1.725,
+        1.721, 1.717, 1.714, 1.711, 1.708, 1.706, 1.703, 1.701, 1.699, 1.697)
 
 
 def _t_crit(df: int) -> float:
     if df < 1:
         return float("nan")
     return _T95[df - 1] if df <= len(_T95) else 1.960
+
+
+def _t_crit_one_sided(df: int) -> float:
+    if df < 1:
+        return float("nan")
+    return _T90[df - 1] if df <= len(_T90) else 1.645
 
 
 def level_df() -> float:
@@ -475,11 +524,20 @@ def nll_t(resid: float, width: float, df: float | None = None) -> float:
     this fold's score lives.
 
     The size of the error: at ``w = SD_FLOOR`` and ``|r| = 2`` — a COPE-sized
-    collapse — the Gaussian charges 88.9 nats and the t7 charges 14.4. A factor
-    of six on ONE observation in a fold of 85. Every candidate this key has
-    ever been used on (the Type A filter, state C, the `THETA_WINDOW` arms)
-    works by removing or reweighting far-tail observations, so the Gaussian
-    mis-ranked exactly the class of change it was pointed at.
+    collapse — the Gaussian charges **87.9107** nats and the t7 **13.2845**, a
+    difference of **74.6 nats on ONE observation** in a fold of 85. (Stated as a
+    difference, not a ratio: these are log densities on an interval scale, which
+    is the same rule that withdrew "about twice" in §1.124. An earlier version
+    of this docstring said 88.9 and 14.4 — the quadratic and the log1p term
+    each taken alone, i.e. both figures missing exactly the constants this
+    function exists to restore.)
+
+    Every candidate this key has been used on works by removing or reweighting
+    far-tail observations, so the Gaussian scored that class of change on a tail
+    penalty the model never incurs. **It did not, in the event, change any
+    VERDICT** — §1.126 sweeps df from 3 to 1000 and Type A's Key-4 verdict is
+    stable throughout. What changed the verdict was giving the comparison a
+    noise band.
     """
     df = level_df() if df is None else float(df)
     scale = width * math.sqrt((df - 2.0) / df)
@@ -501,10 +559,25 @@ def _score(pairs, df=None) -> dict:
     per-observation loss is the right one. Report both; the disagreement is the
     diagnostic.
 
-    `w_eff` is the width an honest Gaussian would have needed to score this
-    badly, ``exp(NLL_gauss − ½)``. It is the reader-facing version of the
-    number: a log score has no natural zero and 2006's is negative, so it
-    cannot be quoted as a ratio, but an effective width has units and can.
+    `w_eff` is the width a CALIBRATED predictive would have needed to score
+    this badly — the reader-facing version, because a log score has no natural
+    zero (2006's is negative) and cannot be quoted as a ratio, while a width
+    has units and can.
+
+    **Both offsets are derived, and the Gaussian one was wrong by √(2π) for a
+    day.** For `r ~ N(0, w)`, ``E[nll_gauss] = log w + ½ + ½log2π``, so the
+    offset is 1.418939 — not ½. The ½ came from the constant-FREE score this
+    module used before `nll_gauss` started carrying its constant, and leaving
+    it behind made every printed width **2.5066× too large**: fold 2011 read
+    452 when it is 180. The t offset is derived the same way and is 1.398228
+    at ν=7; the two agreeing to 0.02 nats is the sanity check, since a t₇ and
+    a Gaussian of the same sd have nearly the same entropy.
+
+    **`w_eff_t` is the primary reader-facing column**, because it is the
+    model's own predictive. It says the θ prior at 2016 and 2021 performs like
+    an honest t₇ of width ≈0.77 against §1.59's pooled forward residual sd of
+    0.7053 and §1.43's independent forward RMSE of 0.7150 — a two-instrument
+    agreement, and a far more useful reading than the Gaussian column's alarm.
     """
     if not pairs:
         return None
@@ -518,11 +591,50 @@ def _score(pairs, df=None) -> dict:
     n = len(pairs)
     cmeans = {k: sum(v) / len(v) for k, v in sorted(clusters.items())}
     vals = list(cmeans.values())
+    df = level_df() if df is None else float(df)
     return {"nll": tot_t, "mean": tot_t / n, "n": n,
             "mean_gauss": tot_g / n,
-            "w_eff": math.exp(tot_g / n - 0.5),
+            "w_eff_t": math.exp(tot_t / n - _calibrated_offset_t(df)),
+            "w_eff_gauss": math.exp(tot_g / n - _GAUSS_OFFSET),
             "clusters": len(cmeans), "cluster_means": cmeans,
-            "cluster_mean": sum(vals) / len(vals)}
+            "cluster_mean": sum(vals) / len(vals),
+            # THE BAND ON THE LEVEL, not only on a delta. Quoting two fold
+            # means against each other with no band is what let "the two
+            # folds are within 0.006 nats" be written as though it meant
+            # something. It is deep inside this interval.
+            "ci95": _t_band(vals)}
+
+
+# ``E[log w + r²/(2w²) + ½log2π]`` for ``r ~ N(0, w)``. DERIVED, not typed.
+_GAUSS_OFFSET = 0.5 + 0.5 * math.log(2 * math.pi)
+
+
+def _t_band(values) -> tuple:
+    """t(G−1) interval on the mean of G cluster means. nan below two."""
+    g = len(values)
+    if g < 2:
+        return (float("nan"), float("nan"))
+    m = sum(values) / g
+    var = sum((x - m) ** 2 for x in values) / (g - 1)
+    se = math.sqrt(var / g)
+    return (m - _t_crit(g - 1) * se, m + _t_crit(g - 1) * se)
+
+
+@functools.lru_cache(maxsize=None)
+def _calibrated_offset_t(df: float, draws: int = 4_000_000) -> float:
+    """``E[NLL_t] − log w`` for a CALIBRATED t predictive of scale ``w√((ν−2)/ν)``.
+
+    The closed form needs ``E[log1p(z²/ν)]``, a digamma difference; simulating
+    it is three lines, exact enough (1.39792 against the analytic 1.398228 at
+    ν=7) and cannot be got wrong the way the Gaussian offset was. Seeded and
+    memoised, so it is deterministic and paid once per df.
+    """
+    rng = np.random.default_rng(20260829)
+    z = rng.standard_t(df, size=draws)
+    const = (0.5 * math.log(df * math.pi)
+             + math.lgamma(df / 2.0) - math.lgamma((df + 1.0) / 2.0))
+    return float(0.5 * math.log((df - 2.0) / df) + const
+                 + 0.5 * (df + 1.0) * np.log1p(z * z / df).mean())
 
 
 def held_out_nll(codes=levels.METRO_CODES) -> dict:
@@ -583,7 +695,8 @@ def held_out_nll(codes=levels.METRO_CODES) -> dict:
                 [(r[1], _clip(math.exp(0.5 * (coef[0] + coef[1]
                                               * math.log(max(r[0], 1e-5))))),
                   (r[4], r[5])) for r in sel])
-            entry[name].update(intercept=coef[0], slope=coef[1])
+            if entry[name] is not None:     # `sel` is never empty today
+                entry[name].update(intercept=coef[0], slope=coef[1])
         out[year] = entry
     return out
 
@@ -617,7 +730,11 @@ def key4_delta(incumbent: dict, candidate: dict, fold: str) -> dict:
     interval on the cluster means, and the sign count — which at eight clusters
     is the statistic to trust, and is free.
     """
-    del fold                                  # the caller has already selected
+    stray = [k for k in incumbent if k[1] != fold]
+    if stray:
+        raise ValueError(f"{len(stray)} incumbent observations are not from "
+                         f"fold {fold} (first {stray[0]}). The caller selects "
+                         f"the fold; this asserts it rather than trusting it.")
     if incumbent.keys() != candidate.keys():
         only_i = sorted(set(incumbent) - set(candidate))[:5]
         only_c = sorted(set(candidate) - set(incumbent))[:5]
@@ -635,6 +752,12 @@ def key4_delta(incumbent: dict, candidate: dict, fold: str) -> dict:
         clusters.setdefault((k[1], k[2]), []).append(d)
     cmeans = [sum(v) / len(v) for v in clusters.values()]
     g = len(cmeans)
+    # A CLUSTER MEAN BELOW FLOAT DUST IS NOT A WORSENING. `THETA_WINDOW=3` at
+    # 2016 is a no-op — the window cannot bind on a three-transition record —
+    # and it scored "2 of 8 metro-years worse" off per-observation deltas of
+    # 1.6e-14, which then went into §1.125's table as though it meant
+    # something. Summation order in `_fit_line`'s polyfit is enough to produce
+    # them. §1.126.
     pooled = sum(per_obs.values()) / len(per_obs)
     cluster_mean = sum(cmeans) / g
     if g > 1:
@@ -642,15 +765,31 @@ def key4_delta(incumbent: dict, candidate: dict, fold: str) -> dict:
         se = math.sqrt(var / g)
         lo, hi = (cluster_mean - _t_crit(g - 1) * se,
                   cluster_mean + _t_crit(g - 1) * se)
+        # ONE-SIDED AT alpha = 0.05, WHICH IS THE TEST THE FLOOR ACTUALLY WANTS.
+        # `lo > 0` on the TWO-sided 95% interval above is a one-sided test at
+        # 2.5% — conservative in the one direction this floor cannot afford,
+        # because the t score it runs on is already low-powered in the tail
+        # (§1.126). t(0.95, 7) = 1.895 against the two-sided 2.365.
+        one_sided_lo = cluster_mean - _t_crit_one_sided(g - 1) * se
     else:
         se, lo, hi = float("nan"), float("-inf"), float("inf")
+        one_sided_lo = float("-inf")
+    worse = sum(1 for x in cmeans if x > _SIGN_EPS)
+    # THE SIGN COUNT AS A SECOND TRIGGER, not a tiebreak. The t interval is
+    # driven by the BETWEEN-cluster variance and can miss a small worsening that
+    # is utterly consistent; a one-sided exact binomial cannot. At G=8,
+    # P(X>=7 | p=0.5) = 9/256 = 0.035. Checked against the arms on record: state
+    # C at 2016 is 6/8 (P = 0.145, correctly not a failure) and WINDOW=2 at 2016
+    # is 6/8 with an interval excluding zero, so the two triggers agree there.
+    # It adds a real trigger without firing on anything already measured.
+    sign_fail = g >= 8 and worse >= g - 1
     return {"n": len(per_obs), "clusters": g,
             "pooled_delta": pooled, "cluster_delta": cluster_mean,
-            "se": se, "ci95": (lo, hi),
-            "worse_clusters": sum(1 for x in cmeans if x > 0),
-            # THE FLOOR, and it is a floor: a worsening whose interval covers
-            # zero is `undetermined` and does not block. ITERATING.md Key 4.
-            "fails": lo > 0.0}
+            "se": se, "ci95": (lo, hi), "one_sided_lo": one_sided_lo,
+            "worse_clusters": worse, "sign_fail": sign_fail,
+            # THE FLOOR, and it is a floor: a worsening that clears neither
+            # trigger is `undetermined` and does not block. ITERATING.md Key 4.
+            "fails": one_sided_lo > 0.0 or sign_fail}
 
 
 def cluster_bootstrap(rows, rng) -> tuple[float, float]:
@@ -739,7 +878,8 @@ def report() -> str:
             "estimation loss.",
             "",
             f"{'target':>8} {'n':>5} {'cy':>4} {'COMMITTED':>10} {'A':>9} "
-            f"{'B':>9} {'C':>9}  {'gauss':>8} {'w_eff':>8}  best A/B/C"]
+            f"{'B':>9} {'C':>9}  {'gauss':>8} {'w_t7':>7} {'w_gau':>7}"
+            f"  best A/B/C"]
     for year, entry in table.items():
         cells, have = [], {}
         for name in ("A", "B", "C"):
@@ -753,8 +893,9 @@ def report() -> str:
             f"{year:>8} {entry['n']:>5} {entry['clusters']:>4} "
             + (f"{com['mean']:>10.4f}" if com else f"{'—':>10}") + " "
             + " ".join(cells)
-            + (f"  {com['mean_gauss']:>8.4f} {com['w_eff']:>8.2f}" if com
-               else f"  {'—':>8} {'—':>8}")
+            + (f"  {com['mean_gauss']:>8.4f} {com['w_eff_t']:>7.2f} "
+               f"{com['w_eff_gauss']:>7.2f}" if com
+               else f"  {'—':>8} {'—':>7} {'—':>7}")
             + f"  {best}"
             + (f"  ({com['unscored']} unscored)"
                if com and com.get("unscored") else ""))
@@ -765,11 +906,16 @@ def report() -> str:
             "0.918939 those figures",
             "  dropped. Subtract it to reconcile with a number quoted in "
             "§1.61, §1.74 or §1.82.",
-            "  `w_eff` = exp(gauss − ½): the width an honest Gaussian would "
-            "have needed to score",
-            "  this badly. It has units, which a log score does not — note "
-            "2006's score is NEGATIVE,",
-            "  so nothing here may be quoted as a RATIO.",
+            "  `w_t7` = exp(COMMITTED − 1.398228) and `w_gau` = exp(gauss − "
+            "1.418939): the width a",
+            "  CALIBRATED predictive of each family would have needed to score "
+            "this badly. Widths have",
+            "  units; a log score does not, and 2006's is NEGATIVE, so nothing "
+            "here may be a RATIO.",
+            "  Read `w_t7` — it is the model's own predictive. Both offsets are "
+            "derived; the Gaussian",
+            "  one was ½ for a day, which printed every width 2.5066x too "
+            "large (§1.126).",
             ""]
     for year in ("2016", "2021"):
         com, a = table[year].get("COMMITTED"), table[year].get("A")
@@ -778,8 +924,8 @@ def report() -> str:
                 f"  KEY 4, fold {year}: COMMITTED {com['mean']:.4f} against "
                 f"the rebuild A {a['mean']:.4f} — a difference of "
                 f"{com['mean'] - a['mean']:+.4f} nats/obs "
-                f"(effective width {com['w_eff']:.2f} against "
-                f"{a['w_eff']:.2f}).")
+                f"(t7 effective width {com['w_eff_t']:.2f} against "
+                f"{a['w_eff_t']:.2f}).")
     out += ["  The two columns are different estimators and CAN RANK A "
             "CANDIDATE DIFFERENTLY. That is",
             "  not hypothetical. But the finding rests on the MECHANISM — A is "

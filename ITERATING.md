@@ -175,7 +175,8 @@ Accuracy can be bought with a good story; calibration cannot.
 >
 > **Population.** Every (party, metro) pair for which the model forms a θ prior
 > at *f*: the party appears with share > 0 in both the preceding NPE and the
-> LGE *f* citywide tallies for that metro, and in `theta_prior`'s `priors`.
+> LGE *f* citywide tallies for that metro, and in `theta_prior`'s `priors` with
+> a mode strictly above zero.
 > Metros: the eight of `levels.METRO_CODES`. Environment: `THETA_WINDOW=0`,
 > `THETA_EXCLUDE_TARGETS` empty, `FILTER_TYPE_A` and
 > `EXCLUDE_DEMARCATION_CROSSING` unset. **At 2026-08-28 this is n=97 at 2016 and
@@ -204,13 +205,21 @@ Accuracy can be bought with a good story; calibration cannot.
 > comparison is VOID** until it is re-scored on the intersection with both
 > counts reported.
 >
-> **The floor.** Key 4 **FAILS** if, in either fold, the 95% interval on the
-> paired per-cluster delta lies **entirely above zero** — worsening established
-> beyond the clustering noise. A point-estimate worsening whose interval covers
-> zero is `undetermined` and **does not block**, because this is a floor and not
-> a gate. Report the sign count (how many of the eight metro-years worsen)
-> alongside; at eight clusters it is the more trustworthy statistic and it is
-> free.
+> **The floor.** Key 4 **FAILS** if, in either fold, EITHER trigger fires:
+>
+> * the **one-sided 95% lower bound** on the paired per-cluster delta lies above
+>   zero — `t(0.95, G−1)`, which is 1.895 at G=8. **α = 0.05, one-sided,
+>   declared here** rather than left implicit: the first version tested
+>   `lo > 0` on a *two-sided* 95% interval, i.e. α = 0.025, which is
+>   conservative in the one direction a floor cannot afford;
+> * or **≥7 of the 8 metro-year clusters worsen** — one-sided exact binomial,
+>   P(X≥7 | p=½) = 9/256 = 0.035. The t interval is driven by the BETWEEN-cluster
+>   variance and can miss a small but utterly consistent worsening; the sign
+>   count cannot, and it is free.
+>
+> A point-estimate worsening that fires neither is `undetermined` and **does not
+> block**, because this is a floor and not a gate. A cluster mean below 1e-9 is
+> float dust and counts as no direction at all (§1.126).
 >
 > **Folds 2006 and 2011 are computed, reported, and NOT part of the floor.** See
 > the fold note below.
@@ -259,14 +268,26 @@ then tilted by by-elections and polls. That is deliberate — Key 4's value is t
 it scores **the θ layer** on the structural-event parties where Keys 1 and 2 are
 blind — but it must never be quoted as the model's estimation loss.
 
-**THE FOLD NOTE.** 2006 and 2011 are computable and are not gated, for three
-reasons that should be revisited once the band above has been in use for a while.
-Multiplicity is the dominant term: an unbanded "must not worsen in any fold"
-rejects a truly neutral change about 75% of the time on two folds and about 94%
-on four. 2011 is a **constant** under every exclusion experiment that reaches
-this key, because `theta_record` filters the fitting record and `residuals` never
-filters the held-out set. And 2006's fit rests on a single transition whose
-national file the calendar itself calls *"the approximate pre-metro footprint"*.
+**THE FOLD NOTE.** 2006 and 2011 are computable and are not gated, for two
+structural reasons and one that the band above has largely spent.
+
+1. **2011 is a CONSTANT under every change this key is used on.** `theta_record`
+   filters the fitting record; `residuals` never filters the held-out set; the
+   2011 fit uses only pre-2011 transitions. §1.78 and §1.80 both show
+   `5.5915 → 5.5915`. **Gating on a fold that cannot move is not a gate**, and
+   no band touches that.
+2. **2006's fit rests on a single transition**, `npe1999_approx → lge2000`,
+   whose national file the calendar itself calls *"the approximate pre-metro
+   footprint"*. A data-quality reason, also unaffected by the band.
+3. Multiplicity, which **used to be the dominant term and no longer is.** This
+   note said an unbanded "must not worsen in any fold" rejects a neutral change
+   ~75% of the time on two folds and ~94% on four — **true of the bare
+   inequality this same commit replaced, and stale on arrival.** With the band
+   at one-sided α = 0.05 the figures are ~9.8% and ~18.5% (upper bounds; the
+   folds are positively correlated, 2016's record being nested in 2021's).
+   Adding folds is now cheap, and if it is done, **control family-wise error
+   across them (Holm) rather than testing each at α**, or the problem the band
+   solved comes straight back. §1.126.
 **Call 2011 the structural-events fold and read it as a positive signal**: a
 candidate that materially improves it has stopped asking θ to forecast a
 collapse — COPE, the NFP split, the DA/ID merger — which §1.71 says should be
