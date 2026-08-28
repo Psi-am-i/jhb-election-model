@@ -91,13 +91,15 @@ def scenario_citywide(base_city: dict[str, float]) -> dict[str, float]:
     return {party: value / total for party, value in scaled.items()}
 
 
-def load_ward_parts(path: Path) -> list[tuple[str, str, int]]:
-    """Return (VD, 2026 ward, registered voters in that part)."""
-    with path.open(encoding="utf-8", newline="") as handle:
-        return [
-            (row["VD_Number"], row["Ward_2026"], int(row["part_registered"]))
-            for row in csv.DictReader(handle)
-        ]
+def load_ward_parts(path: Path, year: str = "2026") -> list[tuple[str, str, int]]:
+    """Return (VD, ward, registered voters in that part).
+
+    Delegates to `montecarlo.read_ward_crosswalk`: this was one of three copies
+    of the same read, and it hardcoded ``Ward_2026`` (§1.97 F18).
+    """
+    import montecarlo as _M
+    parts, _vds, _split = _M.read_ward_crosswalk(path, year)
+    return parts
 
 
 def load_projected_turnout(path: Path) -> dict[str, float]:

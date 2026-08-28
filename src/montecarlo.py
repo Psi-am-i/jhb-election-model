@@ -773,6 +773,30 @@ def gamma_fold_for(target) -> int:
     return fold
 
 
+def read_ward_crosswalk(path: Path, year: str) -> tuple[list[tuple[str, str, int]], int, int]:
+    """The VD→ward crosswalk: ``([(vd, ward, part_registered), ...], vds, split)``.
+
+    ONE READER (§1.97 F18). There were three: this one, `leverage.load_ward_
+    parts` and an inline comprehension in `export_interactive`, the latter two
+    both hardcoding ``Ward_2026`` where this takes the year. Three copies of a
+    read is how `pools._target_roll` and this function came to build two
+    different cities out of one file (F14, §1.99) — 124 of 135 wards disagreeing
+    with nobody noticing, because the citywide total was identical either way.
+    """
+    with path.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    column = f"Ward_{year}"
+    if rows and column not in rows[0]:
+        raise SystemExit(
+            f"{path.name} has no `{column}` column; it carries "
+            f"{', '.join(k for k in rows[0] if k.startswith('Ward'))or 'no Ward column'}. "
+            f"A crosswalk built for one year cannot be read for another.")
+    parts = [(r["VD_Number"], r[column], int(r["part_registered"])) for r in rows]
+    vds = len({r["VD_Number"] for r in rows})
+    split = len({r["VD_Number"] for r in rows if r.get("is_split") == "Y"})
+    return parts, vds, split
+
+
 def ward_parts(target, data_dir: Path, processed: Path) -> tuple[list[tuple[str, str, int]], str]:
     """VD → ward parts and their registration: ``[(vd, ward, registered), ...]``.
 
@@ -799,27 +823,49 @@ def ward_parts(target, data_dir: Path, processed: Path) -> tuple[list[tuple[str,
     """
     crosswalk = processed / f"vd_ward_{target.year}.csv"
     if crosswalk.exists():
-        with crosswalk.open(encoding="utf-8", newline="") as fh:
-            rows = list(csv.DictReader(fh))
-        column = f"Ward_{target.year}"
-        parts = [(r["VD_Number"], r[column], int(r["part_registered"]))
-                 for r in rows]
-        split = len({r["VD_Number"] for r in rows if r.get("is_split") == "Y"})
+        parts, n_vds, split = read_ward_crosswalk(crosswalk, target.year)
         return parts, (f"{crosswalk.name} ({len(parts)} parts over "
-                       f"{len({r['VD_Number'] for r in rows})} VDs, {split} split)")
+                       f"{n_vds} VDs, {split} split)")
 
-    path = data_dir / target.results(target.year)
+    path = cityconfig.resolve_path(data_dir / target.results(target.year))
     seen: dict[str, tuple[str, int]] = {}
-    with cityconfig.resolve_path(path).open(encoding="utf-8", newline="") as fh:
-        for row in csv.DictReader(fh):
+    vds_in_file: set[str] = set()
+    blank_roll = 0
+    with path.open(encoding="utf-8", newline="") as fh:
+        reader = csv.DictReader(fh)
+        # F16: A MISSING COLUMN AND A BLANK CELL BOTH BECAME ZERO. `.get(...)
+        # or 0` cannot tell "this file does not have a roll" from "this VD's
+        # roll is blank" from "this VD has no voters", and the first is a
+        # different file, not a datum. Refuse it; count the second.
+        if reader.fieldnames is not None and \
+                "Registered_Population" not in reader.fieldnames:
+            raise SystemExit(
+                f"{path.name} has no `Registered_Population` column, so every "
+                f"ward would be given a roll of zero.\n"
+                f"  columns present: {', '.join(reader.fieldnames)}\n"
+                f"  MODEL-LOG §1.97 F16 — this used to read as a city with no "
+                f"voters rather than as the wrong file.")
+        for row in reader:
             vd = row["VD_Number"]
+            vds_in_file.add(vd)
             if vd in seen or not row.get("Ward"):
                 continue
-            registered = int(float(row.get("Registered_Population") or 0))
+            raw = row.get("Registered_Population")
+            if raw is None or str(raw).strip() == "":
+                blank_roll += 1
+            registered = int(float(raw or 0))
             seen[vd] = (row["Ward"].strip(), registered)
     parts = [(vd, ward, registered) for vd, (ward, registered) in seen.items()]
-    return parts, (f"{cityconfig.resolve_path(path).name} "
-                   f"(boundaries and roll only; {len(parts)} VDs, none split)")
+    # F17: A VD WHOSE EVERY ROW LACKS A WARD WAS DROPPED IN SILENCE, and the
+    # label then reported the survivors as though they were the file. Say what
+    # was lost, in the one line the run prints about where its wards came from.
+    lost = len(vds_in_file) - len(seen)
+    detail = f"{len(parts)} VDs, none split"
+    if lost:
+        detail += f", {lost} DROPPED (no ward on any row)"
+    if blank_roll:
+        detail += f", {blank_roll} blank roll"
+    return parts, f"{path.name} (boundaries and roll only; {detail})"
 
 
 def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6,

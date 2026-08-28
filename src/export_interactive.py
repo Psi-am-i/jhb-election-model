@@ -135,9 +135,9 @@ def main(argv: list[str] | None = None) -> int:
                     }
 
     # --- ward-level aggregation ----------------------------------------------
-    with (args.processed / "vd_ward_2026.csv").open(encoding="utf-8", newline="") as fh:
-        parts = [(r["VD_Number"], r["Ward_2026"], int(r["part_registered"]))
-                 for r in csv.DictReader(fh)]
+    # One reader, shared with `montecarlo.ward_parts` (§1.97 F18).
+    parts, _vds, _split = _M.read_ward_crosswalk(
+        args.processed / "vd_ward_2026.csv", "2026")
 
     ratio_pattern, level_pattern = {}, {}
     thi_pattern, tlo_pattern = {}, {}

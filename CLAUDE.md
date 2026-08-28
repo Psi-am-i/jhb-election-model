@@ -168,7 +168,10 @@ are module state.
 Use `.venv/bin/python`, never bare `python` — numpy is not on the system
 interpreter.
 
-    .venv/bin/python tests/run_all.py                  # the suite
+    .venv/bin/python tests/run_all.py                  # the suite (~14 min)
+    .venv/bin/python tests/run_all.py -k spine -k theta # just those modules
+    .venv/bin/python tests/run_all.py -x levers         # everything but the slow one
+    .venv/bin/python tests/run_all.py --list            # the module names
     .venv/bin/python src/compare_history.py            # votes and seats vs actual, 16 city-years
                                                        #   runs in parallel by default; --jobs 1 forces serial
     .venv/bin/python src/diagnose.py --city joburg --target 2021 --wards 0
@@ -179,6 +182,26 @@ interpreter.
                                                        #   forward validated, against what
                                                        #   the model actually uses (§1.59)
     .venv/bin/python src/sweep.py                      # obvious-fault sweep
+
+### Run the targeted modules per change; run the SUITE once per commit
+
+Every run prints a per-module timing table, because a suite that does not say
+which module owns its runtime cannot be made faster on evidence. Measured
+2026-08-28: **`test_levers_are_live` was 999s of 1455s — 69% of the suite in one
+module** — and the other 22 cheap modules together are 92s. It does ~108
+`run_model` calls, one per lever per target; those are now run in parallel and
+it is 361s, so the suite is ~14 minutes.
+
+So the loop is:
+
+* **while iterating** — `-k` the modules your change can reach. Seconds, not
+  minutes. `-x levers` alone is a 3x speedup if you are not touching a lever.
+* **before committing** — the whole suite, once, for the whole batch. Several
+  independent fixes can share one run; that is what `-k` buys, because the
+  targeted run is what tells you which change broke something.
+
+**A subset is not a suite run**, and `run_all.py` prints a banner saying so on
+any partial run. Do not report one as the other.
 
 **Before adding a print to find out what something is, ask for a trace.**
 

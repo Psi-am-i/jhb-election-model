@@ -13,8 +13,10 @@ collected by it unchanged:
 
 from __future__ import annotations
 
+import argparse
 import importlib
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -58,13 +60,72 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            "test_hex_cartogram"]
 
 
-def main() -> int:
+def select(patterns: list[str] | None, skip: list[str] | None) -> list[str]:
+    """The modules to run. A pattern matches by substring, so `-k poll` works.
+
+    THE DEFAULT IS EVERYTHING. A subset is for iterating; it is not a run of
+    the suite, and `main` says so in its output rather than letting a partial
+    green be quoted as a full one.
+    """
+    chosen = list(MODULES)
+    if patterns:
+        chosen = [m for m in chosen if any(pat in m for pat in patterns)]
+        unmatched = [pat for pat in patterns
+                     if not any(pat in m for m in MODULES)]
+        if unmatched:
+            raise SystemExit(
+                f"no test module matches {unmatched}. Known modules:\n  "
+                + "\n  ".join(MODULES))
+    if skip:
+        chosen = [m for m in chosen if not any(pat in m for pat in skip)]
+    if not chosen:
+        raise SystemExit("the selection is empty; nothing to run.")
+    return chosen
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("-k", "--only", action="append", metavar="PATTERN",
+                    help="run only modules whose name contains PATTERN "
+                         "(repeatable). A SUBSET IS NOT A SUITE RUN.")
+    ap.add_argument("-x", "--skip", action="append", metavar="PATTERN",
+                    help="skip modules whose name contains PATTERN")
+    ap.add_argument("--list", action="store_true",
+                    help="print the module list and exit")
+    ap.add_argument("--slowest", type=int, default=8, metavar="N",
+                    help="how many modules to name in the timing summary")
+    args = ap.parse_args(argv)
+
+    if args.list:
+        for m in MODULES:
+            print(m)
+        return 0
+
+    chosen = select(args.only, args.skip)
+    partial = len(chosen) != len(MODULES)
+
     failed = 0
-    for name in MODULES:
+    times: list[tuple[float, str]] = []
+    started = time.monotonic()
+    for name in chosen:
         print(f"\n=== {name} " + "=" * (60 - len(name)))
+        t0 = time.monotonic()
         module = importlib.import_module(name)
         failed |= run_module(vars(module))
+        times.append((time.monotonic() - t0, name))
+
+    total = time.monotonic() - started
+    # WHERE THE TIME GOES, every run, because a forty-minute suite that does not
+    # say which module owns the forty minutes cannot be made faster on evidence.
+    print(f"\n=== timing " + "=" * 51)
+    for seconds, name in sorted(times, reverse=True)[:args.slowest]:
+        print(f"  {seconds:7.1f}s  {seconds / total:5.1%}  {name}")
+    print(f"  {total:7.1f}s   100.0%  TOTAL ({len(chosen)} modules)")
+
     print(f"\nrepository root: {ROOT}")
+    if partial:
+        print(f"\n*** PARTIAL RUN: {len(chosen)} of {len(MODULES)} modules. "
+              f"This is NOT a suite run and must not be reported as one. ***")
     return failed
 
 

@@ -12990,3 +12990,157 @@ not tested*. The evidence for it is §1.113's out-of-sample sweep on the
 world and is not the four keys. This change ships on that basis and on the
 owner's decision, and the entry says so rather than implying a backtest blessed
 it.
+
+## 1.115 The suite was one module: 69% of it, and the fix was not the one I planned (2026-08-28)
+
+The owner: *"the suite takes a very long time. we should give some thought to
+optimisations or ability to run more limited tests and consolidate multiple full
+suite tests to make more of the time."*
+
+### Measure first, and it changed the plan
+
+The plan before measuring was to **parallelise the suite across its 28 modules**.
+`run_all.py` now prints a per-module timing table on every run, and one run
+killed that idea:
+
+| module | seconds | share |
+|---|---|---|
+| **`test_levers_are_live`** | **999.2** | **68.7%** |
+| `test_chain` | 155.8 | 10.7% |
+| `test_levels_dispersion` | 132.1 | 9.1% |
+| `test_regressions` | 55.7 | 3.8% |
+| `test_drawer` | 39.1 | 2.7% |
+| the other 23 modules | 72.9 | 5.0% |
+| **TOTAL** | **1454.8** | |
+
+**Parallelising across modules could not beat 999s**, because one module is the
+critical path — a 1.46x ceiling. Parallelising *inside* that module is 2.77x on
+its own and is where the time actually is. The profile cost one run and
+redirected the whole change.
+
+### What was done
+
+`test_levers_are_live` makes roughly **108 `run_model` calls** — one per lever
+per target, at 40 draws — and they are independent: each perturbs one key from
+the shipped configuration and is compared against the same base. Those now run
+in a `ProcessPoolExecutor`. **999s → 361s.** Suite total ~1455s → ~820s.
+
+Processes and not threads, for the reason `compare_history` uses them:
+`apply_city` and the module constants are module STATE.
+
+**`_sweep_module_constants` is deliberately NOT parallelised.** A module
+constant rebound in the parent DOES NOT CROSS a `ProcessPoolExecutor` boundary
+(§1.33, §1.104) — that is the 42-of-48 undelivered class this very file exists
+to catch. Those six runs stay serial, where the `setattr` is visible to the code
+under test.
+
+### Why this was safe to do at all: the failure mode is LOUD
+
+A worker that did not receive its perturbation runs the shipped configuration,
+so `_moves` returns 0 and the lever is reported **dead**. A broken parallel
+sweep therefore fails with *"these levers are dead"* — it cannot pass quietly.
+That is the exact inverse of the undelivered class, whose danger is that it is
+silent.
+
+**Verified rather than argued.** A live lever (`ward_noise_sd`) was mutated so
+its perturbation is a no-op — set to the 0.1 the model already ships — and the
+parallel sweep reported it dead, as it must:
+
+    reported dead: ['ward_noise_sd at 2021 (perturbed to 0.1, nothing moved)']
+
+A faster test that has stopped detecting anything is worse than a slow one, and
+that is the check which says it has not.
+
+**Both invocation paths verified**, because `run_module`'s own docstring records
+four files that worked under the suite and died standalone: `run_all.py -k
+levers_are_live` and `python tests/test_levers_are_live.py` both give 14 passed.
+Spawn re-imports `__main__` in the child, so an unguarded caller that starts a
+pool re-runs itself — which is exactly what happened to the mutation probe
+before it was given an `if __name__ == "__main__":`.
+
+### Selection, and the workflow that was the owner's real point
+
+`run_all.py` takes `-k/--only` and `-x/--skip` (substring, repeatable) and
+`--list`. `-x levers` alone is a 3x speedup for anyone not touching a lever.
+
+**A partial run prints a banner saying it is NOT a suite run and must not be
+reported as one**, because the failure mode of a fast subset is quoting it as
+full coverage — the same shape as `test_freeze` being written, committed and
+never collected while the suite reported green (see `MODULES`' own comment).
+
+The workflow is now documented in `CLAUDE.md`: **targeted modules while
+iterating, the whole suite once per commit for the whole batch.** This session
+ran the full suite five times for five changes that could have shared one run;
+that is ~80 minutes, and it is the larger half of the saving.
+
+## 1.116 The ward_parts read: a missing column is a different file, a dropped VD is now counted, and three copies became one (2026-08-28)
+
+F16, F17 and F18 of §1.97, landed together because all three are the same read.
+
+### F16 — a blank cell and a missing column were the same answer
+
+`int(float(row.get("Registered_Population") or 0))` turned **a blank cell** and
+**a missing column** both into `0` registered voters, and neither could be told
+from a genuinely empty voting district.
+
+They are not the same fact. **A blank cell is a datum about one VD; a missing
+column is a different file.** The second now refuses, naming the column it
+wanted and listing the columns the file actually has — because the reader's
+first question is "which file did I hand it?". The first is counted and
+reported.
+
+The cost of not refusing, from the phase-A test that pinned it: `run_model`
+keeps only parts with `r > 0`, so a renamed column would make **every** part
+zero, `usable` empty, and the run would die several stages downstream with the
+true cause a hundred lines upstream.
+
+### F17 — a dropped VD was invisible, and the label reported the survivors as the file
+
+A VD whose every row names no ward was skipped in silence, and the source label
+then reported the VDs that survived as though they were the file. The label now
+carries what was lost:
+
+    lge2021_JHB_vd_party_clean.csv (boundaries and roll only; 863 VDs,
+                                    2 DROPPED (no ward on any row), 1 blank roll)
+
+That line is the run's only report of where its wards came from. An instrument
+that reports the survivors and not the losses is the failure `NULL-RESULTS.md`
+§4.1 is against, in the smallest possible place.
+
+### F18 — three implementations of one read
+
+`vd_ward_<year>.csv` was read in three places: `ward_parts`'s crosswalk branch,
+`leverage.load_ward_parts` and an inline comprehension in `export_interactive`.
+**Both copies hardcoded `Ward_2026`**, so neither could read another target, and
+neither returned a source label. `montecarlo.read_ward_crosswalk` is now the one
+reader; the other two delegate.
+
+**Why a read is worth deduplicating even when the copies agree.**
+`pools._target_roll` and `montecarlo.ward_parts` read ONE file by two rules and
+built two different cities — 124 of 135 wards disagreeing, the worst by 16,657
+registered voters — and **no conservation check anywhere could notice**, because
+the citywide total was identical either way (F14, §1.99). Copies of a read do
+not announce their divergence. These three agreed only because 2026 is the one
+year all of them could read, which is exactly the condition under which a
+divergence goes unnoticed.
+
+`DUPLICATION-AUDIT.md` **contained no mention of `ward_parts`, `crosswalk` or
+`leverage`** — the audit that exists to track this class had not seen it. That
+is recorded there as A2 rather than quietly fixed.
+
+### A test that had become vacuous, replaced rather than left green
+
+`test_leverage_reimplements_the_crosswalk_branch_of_ward_parts` asserted that
+the two copies AGREED. That was the right test while there were two, and became
+**vacuous the moment one delegated** — two names for one function agree
+trivially, so the test could no longer fail.
+
+It is replaced by `test_nothing_reimplements_the_crosswalk_read`, which walks
+the AST of every module in `src/` and fails on any second site. Verified
+non-vacuous: it currently finds exactly one, `read_ward_crosswalk`, and would
+have found three before the change.
+
+**A test that cannot fail is not coverage**, and a green one that cannot fail is
+worse than a missing one, because it reads as protection. Same argument as
+`MODULES`' own comment about `test_freeze` being written, committed and never
+collected while the suite reported green.

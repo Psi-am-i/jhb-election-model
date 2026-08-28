@@ -69,6 +69,39 @@ and no local election yet.
 
 ---
 
+## A2. The crosswalk read — three copies, and this audit did not see them (2026-08-28)
+
+**Recorded because the audit missed it.** Until 2026-08-28 this file contained
+no mention of `ward_parts`, `crosswalk` or `leverage`, and there were **three**
+implementations of one read of `vd_ward_<year>.csv`:
+
+| site | year handling | source label |
+|---|---|---|
+| `montecarlo.ward_parts` (crosswalk branch) | `f"Ward_{target.year}"` | yes |
+| `leverage.load_ward_parts` | **hardcoded `Ward_2026`** | no |
+| `export_interactive`, inline comprehension | **hardcoded `Ward_2026`** | no |
+
+Class **N** — number-neutral, one shared definition, no arithmetic changed.
+Resolved: `montecarlo.read_ward_crosswalk` is now the single reader and the
+other two delegate (§1.97 F18).
+
+**Why a read is worth deduplicating even when the copies agree.**
+`pools._target_roll` and `montecarlo.ward_parts` read ONE file by two rules and
+built two different cities — **124 of Johannesburg's 135 wards disagreed, the
+worst by 16,657 registered voters** — and no conservation check anywhere could
+notice, because `sum(part_registered) == vd_registered` holds for every VD and
+the citywide total was identical either way (F14, §1.99). **Copies of a read do
+not announce their divergence**; they agree until the day one of them is
+touched.
+
+The three here agreed only because 2026 is the one year all of them could read,
+which is precisely the condition under which a divergence goes unnoticed.
+
+`tests/test_ward_parts.py::test_nothing_reimplements_the_crosswalk_read` walks
+the AST of every module in `src/` and fails on a second site, so the next copy
+cannot arrive silently. It replaced a test that asserted the two copies AGREED
+— correct while there were two, and vacuous the moment one delegated.
+
 ## B. Bugs found by looking for duplication
 
 ### B0 — "which polls apply to this city" is decided twice, and the two disagree  **[N]**

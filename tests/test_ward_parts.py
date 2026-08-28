@@ -60,6 +60,7 @@ Run:
 
 from __future__ import annotations
 
+import ast
 import csv
 import sys
 import tempfile
@@ -235,7 +236,13 @@ def test_a_crosswalk_naming_another_years_ward_column_refuses_loudly():
         (processed / "vd_ward_2026.csv").rename(processed / "vd_ward_2021.csv")
         try:
             M.ward_parts(target, ELECTIONS, processed)
-        except KeyError as exc:
+        except (KeyError, SystemExit) as exc:
+            # RE-RECORDED 2026-08-28: it was a bare `KeyError` from the dict
+            # lookup; `read_ward_crosswalk` (§1.97 F18) now raises SystemExit
+            # naming the column it wanted and the Ward columns the file has.
+            # Both are loud, which is what this test is for; the second is
+            # actionable. Accept either so the test pins the CONTRACT — it
+            # raises — rather than the exception class.
             assert "Ward_2021" in str(exc), exc
         else:
             raise AssertionError(
@@ -457,42 +464,51 @@ def test_a_vd_whose_every_row_names_no_ward_disappears_without_a_word():
         "the label counts what survived, so it cannot report the loss: " + source)
 
 
-def test_a_missing_registration_silently_becomes_zero_voters():
-    """DEFECT, documented not fixed: absence resolves to the neutral value.
+def test_a_missing_registration_refuses_instead_of_becoming_zero_voters():
+    """RE-RECORDED 2026-08-28. The defect is fixed; this asserts the refusal.
 
-    ``int(float(row.get("Registered_Population") or 0))`` (montecarlo.py:794)
-    turns a blank cell, and a missing column, into ``0`` registered voters. It
-    cannot be told from a genuinely empty voting district.
+    This was `..._silently_becomes_zero_voters` and pinned the behaviour:
+    ``int(float(row.get("Registered_Population") or 0))`` turned a blank cell
+    AND a missing column into ``0`` registered voters, indistinguishable from a
+    genuinely empty voting district. Its own note asked for the change — *"a
+    missing roll is a missing input. It should refuse here and name the file,
+    the way `pools._target_roll` was made to after MODEL-LOG §1.40"* — and
+    §1.97 F16 is that change.
 
-    What that costs downstream: ``run_model`` keeps only parts with ``r > 0``
-    (montecarlo.py:2700), so those VDs vanish from ``usable`` and from
-    ``part_reg`` — the ward tally is then built from the remaining VDs alone.
-    If the whole column were renamed by an ingest change, EVERY part would
-    carry 0, ``usable`` would be empty, and the run would not stop at this
-    seam; it would produce a division by zero or an empty ward list several
-    stages later, with the true cause a hundred lines upstream.
+    **The two cases are now told apart, which is the point.** A MISSING COLUMN
+    is a different file and refuses; a BLANK CELL is a datum about one VD and is
+    counted and reported in the source label. Collapsing them was the defect.
 
-    A missing roll is a missing input. It should refuse here and name the file,
-    the way ``pools._target_roll`` was made to after MODEL-LOG §1.40. The
-    assertions record today's behaviour so the change is visible when it comes.
+    What it cost downstream, kept because it is the reason to refuse: `run_model`
+    keeps only parts with ``r > 0``, so a renamed column made EVERY part 0,
+    ``usable`` empty, and the run died several stages later with the true cause
+    a hundred lines upstream.
     """
     with city_target("joburg", "2021") as target:
+        # A BLANK CELL: still zero, still returned — and now counted.
         blank = [{"VD_Number": "V1", "Ward": "79800009",
                   "Registered_Population": ""}]
         with result_file(target, blank) as (data_dir, processed):
-            parts, _ = M.ward_parts(target, data_dir, processed)
+            parts, source = M.ward_parts(target, data_dir, processed)
         assert parts == [("V1", "79800009", 0)], parts
+        assert "1 blank roll" in source, (
+            f"a blank roll must be REPORTED, not merely tolerated: {source}")
 
-        # And with the column absent altogether — same answer, still no refusal.
+        # A MISSING COLUMN: a different file, and it refuses naming what it got.
         rows = [{"VD_Number": "V1", "Ward": "79800009"}]
-        with result_file(target, rows, columns=("VD_Number", "Ward")) as (d, p):
-            parts, _ = M.ward_parts(target, d, p)
-        assert parts == [("V1", "79800009", 0)], parts
-
-
-# --------------------------------------------------------------------------
-# invariants on the real inputs
-# --------------------------------------------------------------------------
+        with result_file(target, rows, columns=("VD_Number", "Ward")) as (d, pr):
+            try:
+                M.ward_parts(target, d, pr)
+            except SystemExit as exc:
+                assert "Registered_Population" in str(exc), exc
+                assert "columns present" in str(exc), (
+                    f"the refusal must show what the file DOES have, or the "
+                    f"reader cannot tell which file they handed it: {exc}")
+            else:
+                raise AssertionError(
+                    "a result file with no `Registered_Population` column was "
+                    "accepted, and every ward would be given a roll of zero. "
+                    "MODEL-LOG §1.97 F16.")
 
 def test_ward_parts_returns_the_same_answer_twice():
     """If this failed, no measurement taken through this seam would be reproducible.
@@ -675,41 +691,60 @@ def test_the_two_functions_called_ward_parts_are_a_producer_and_a_consumer():
     assert getattr(build_concordance, "montecarlo", None) is None
 
 
-def test_leverage_reimplements_the_crosswalk_branch_of_ward_parts():
-    """DEFECT, documented not fixed: the same rule written twice.
+def test_nothing_reimplements_the_crosswalk_read():
+    """RE-RECORDED 2026-08-28. The duplication is gone; this stops it returning.
 
-    ``leverage.load_ward_parts`` (leverage.py:94) reads the same file, the same
-    three columns, into the same ``(vd, ward, registered)`` tuple shape that
-    ``ward_parts``'s crosswalk branch produces — a second definition of one
-    rule, which CLAUDE.md forbids and DUPLICATION-AUDIT.md exists to track.
+    This was `test_leverage_reimplements_the_crosswalk_branch_of_ward_parts`
+    and it asserted that the two copies AGREED — which was the right test while
+    there were two, and became vacuous the moment `leverage` started
+    delegating, because two names for one function agree trivially. A test that
+    cannot fail is not coverage, so it is replaced rather than left green.
 
-    It is not a harmless copy. The copy hardcodes ``Ward_2026``, so it cannot
-    read any other target; it has no result-file branch, so it cannot serve a
-    past target at all; and it returns no source label, so a run through
-    ``leverage`` has no record of where its wards came from. The two agree
-    today only because 2026 is the one year both can read — which is exactly
-    the condition under which a divergence would go unnoticed.
+    There were THREE copies of one read (§1.97 F18): `ward_parts`'s crosswalk
+    branch, `leverage.load_ward_parts`, and an inline comprehension in
+    `export_interactive`. The latter two both hardcoded ``Ward_2026``, so
+    neither could read another target, and neither returned a source label.
 
-    The test asserts the agreement that holds now, so that the day the copies
-    drift the suite says so instead of the forecast quietly disagreeing with
-    the leverage table.
+    Why this matters more than tidiness: `pools._target_roll` and
+    `montecarlo.ward_parts` read ONE file by two rules and built two different
+    cities — 124 of 135 wards disagreeing (F14, §1.99) — and nothing noticed,
+    because the citywide total was identical either way. Copies of a read do
+    not announce their divergence.
     """
-    try:
-        import leverage
-    except ImportError as exc:
-        skip(f"leverage is not importable here: {exc}")
+    import ast
+    offenders = []
+    for path in sorted((ROOT / "src").glob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            # The signature of the read: subscripting a row by part_registered.
+            if not isinstance(node, ast.Subscript):
+                continue
+            key = getattr(node.slice, "value", None)
+            if key != "part_registered":
+                continue
+            fn = _enclosing_function(tree, node)
+            if (path.name, fn) in {("montecarlo.py", "read_ward_crosswalk"),
+                                   ("pools.py", "_target_roll")}:
+                continue
+            offenders.append(f"{path.name}:{node.lineno} in {fn or '<module>'}")
+    assert not offenders, (
+        "these read `part_registered` outside the one reader:\n  "
+        + "\n  ".join(offenders)
+        + "\n\n  `montecarlo.read_ward_crosswalk` is the single crosswalk "
+          "reader (§1.97 F18); `pools._target_roll` is the separate, "
+          "deliberate roll sum (F14, §1.99). A third site is a second "
+          "definition of one rule, and copies of a read do not announce "
+          "their divergence — F14 was 124 of 135 wards apart and invisible.")
 
-    path = ROOT / "data" / "processed" / "vd_ward_2026.csv"
-    if not path.exists():
-        skip(f"no committed 2026 crosswalk at {path}")
 
-    with city_target("joburg", "2026") as target:
-        mine, _ = M.ward_parts(target, ELECTIONS, target.processed)
-    theirs = leverage.load_ward_parts(path)
-    assert mine == theirs, (
-        "two definitions of one rule have diverged: "
-        f"{len(mine)} parts here against {len(theirs)} in leverage")
-
+def _enclosing_function(tree, target):
+    """The name of the function containing ``target``, or None."""
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            for child in ast.walk(node):
+                if child is target:
+                    return node.name
+    return None
 
 def test_pools_and_montecarlo_now_read_one_crosswalk_by_one_rule():
     """FIXED 2026-08-26, and this is the guard that keeps it fixed.

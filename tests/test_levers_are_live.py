@@ -101,6 +101,8 @@ import argparse
 import ast
 import contextlib
 import json
+import os
+from concurrent.futures import ProcessPoolExecutor
 import shutil
 import sys
 import tempfile
@@ -701,6 +703,49 @@ def _run(target_year: str, overrides: list[str], run_dir: Path | None = None):
             dict(run.ward_win_sum), seats, dict(run.index))
 
 
+# HOW MANY WORKERS THE SWEEP MAY USE.
+#
+# This module is 999s of a 1455s suite -- 69% of it -- because it does roughly
+# 108 `run_model` calls at 40 draws, one per lever per target, and they are
+# INDEPENDENT: each perturbs one key from the shipped configuration and is
+# compared against the same base. Measured 2026-08-28 by the per-module timing
+# in `run_all.py`, which is why this is an evidence-led change and not a guess:
+# the first plan was to parallelise the SUITE across modules, and the profile
+# said that would win 1.46x against 7x here.
+#
+# THE FAILURE MODE IS LOUD, WHICH IS WHAT MAKES THIS SAFE. A worker that did not
+# receive its perturbation runs the shipped configuration, so `_moves` returns 0
+# and the lever is reported DEAD. A broken parallel sweep therefore fails with
+# "these levers are dead", never passes quietly -- which is the opposite of the
+# 42-of-48 undelivered class this file exists to catch, and the reason that
+# class is dangerous is precisely that it is silent.
+#
+# `_sweep_module_constants` is NOT parallelised and must not be: a module
+# constant rebound in the parent DOES NOT CROSS a ProcessPoolExecutor boundary
+# (MODEL-LOG §1.33, §1.104), so those six runs stay serial where the `setattr`
+# is visible to the code under test.
+_SWEEP_WORKERS = max(1, min(8, (os.cpu_count() or 2) - 1))
+
+
+def _run_job(job: tuple[str, list[str]]):
+    """One perturbed run. Module level so a worker process can pickle it."""
+    year, overrides = job
+    return _run(year, overrides)
+
+
+def _run_many(jobs: list[tuple[str, list[str]]]) -> list:
+    """Every job, in order, in parallel where that is worth the spawn.
+
+    Processes and not threads, for the same reason `compare_history` uses them:
+    `apply_city` and the module constants are module STATE, and two threads
+    would tread on each other's city.
+    """
+    if len(jobs) < 2 or _SWEEP_WORKERS < 2:
+        return [_run_job(j) for j in jobs]
+    with ProcessPoolExecutor(max_workers=_SWEEP_WORKERS) as pool:
+        return list(pool.map(_run_job, jobs))
+
+
 def _moves(base, other) -> float:
     """Largest change any lever produced on any output, in percentage points."""
     (bp, bw, bwin, bs, bi), (op, ow, owin, os, oi) = base, other
@@ -806,13 +851,16 @@ def _sweep_paired(year: str, base) -> list[str]:
     DA by 3.4pp and nine seats.
     """
     dead = []
+    jobs, labels = [], []
     for label, keys in sorted(PAIRED.items()):
         if not all(k in M.DEFAULTS for k in keys):
             dead.append(f"{label}: {sorted(set(keys) - set(M.DEFAULTS))} not in DEFAULTS")
             continue
-        overrides = [f"{k}={json.dumps(v)}" for k, v in keys.items()]
-        if _moves(base, _run(year, overrides)) < 1e-9:
-            dead.append(f"{label} at {year} (perturbed {sorted(keys)} together, "
+        jobs.append((year, [f"{k}={json.dumps(v)}" for k, v in keys.items()]))
+        labels.append((label, sorted(keys)))
+    for (label, keys), result in zip(labels, _run_many(jobs)):
+        if _moves(base, result) < 1e-9:
+            dead.append(f"{label} at {year} (perturbed {keys} together, "
                         f"nothing moved)")
     return dead
 
@@ -820,15 +868,16 @@ def _sweep_paired(year: str, base) -> list[str]:
 def _sweep_target(year: str) -> list[str]:
     base = _base(year)
     dead = _sweep_paired(year, base)
-    for key, value in sorted(PERTURB.items()):
-        if key not in M.DEFAULTS:
-            continue
-        # json.dumps, not an f-string: `--set` parses its value as JSON, and
-        # Python's repr of a dict uses single quotes, which json.loads rejects.
-        # It then falls back to storing the raw STRING, and the model gets a
-        # str where it expects a mapping — which is an AttributeError deep in
-        # run_model rather than a clear failure here.
-        moved = _moves(base, _run(year, [f"{key}={json.dumps(value)}"]))
+    # json.dumps, not an f-string: `--set` parses its value as JSON, and
+    # Python's repr of a dict uses single quotes, which json.loads rejects.
+    # It then falls back to storing the raw STRING, and the model gets a
+    # str where it expects a mapping — which is an AttributeError deep in
+    # run_model rather than a clear failure here.
+    keys = [k for k, _v in sorted(PERTURB.items()) if k in M.DEFAULTS]
+    jobs = [(year, [f"{k}={json.dumps(PERTURB[k])}"]) for k in keys]
+    for key, result in zip(keys, _run_many(jobs)):
+        value = PERTURB[key]
+        moved = _moves(base, result)
         why = EXPECTED_INERT.get((key, year))
         if moved < 1e-9 and why is None:
             # Name the year. Without it a key that is inert at one target and
