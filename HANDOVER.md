@@ -9,57 +9,67 @@ skipped**, freeze re-taken and verifying.
 
 ---
 
-## ⛔ THE NEXT ORDER OF BUSINESS: the pollster's ranked list
+## ⛔ THE NEXT ORDER OF BUSINESS
 
-Not the finding list. **The instrument.**
+**Items 1, 2, 3 and 5 of the pollster's list are DONE (MODEL-LOG §1.124).** What
+is left, re-ranked after the review of that work:
 
 | # | do | why |
 |---|---|---|
-| **1** | **Fix Key 4's instrument** | ⛔ **before F22+F23** — see below |
-| 2 | Restate Key 4 as a **quantity**, not a file path | nearly free |
-| 3 | Record that the true committed held-out loss is **~2× the logged figure** | a correction to the record |
-| 4 | Add a **bias floor `τ²`** before enabling `inverse_variance` | the lever stays off until then |
-| 5 | `v_spine` should use `ln(high/low)/(2×1.2816)` | two minutes, uses both tails |
-| 6 | Investigate: the by-election weighting is **worse than uniform** | number in hand, nobody acted |
-| 7 | Per-party turnout sensitivity, **hierarchical**, behind a lever | real sign, unvalidatable magnitude |
+| **1** | **Re-measure Type A, state C and the four `THETA_WINDOW` arms on the corrected instrument** | ⛔ **before F22+F23.** ~30 min of compute. See below |
+| 2 | **PIT as a second instrument** — `u = F_t7(z)` per fold and size bin | a log score charges level bias to the width and cannot say which moved |
+| 3 | Add a **bias floor `τ²`** before enabling `bye_weight_mode="inverse_variance"` | the lever stays off until then |
+| 4 | Investigate: the by-election weighting is **worse than uniform** | 24.83 vs 24.66, number in hand, nobody acted |
+| 5 | Per-party turnout sensitivity, **hierarchical**, behind a lever | real sign, unvalidatable magnitude |
+| 6 | Write the **fold policy** argument into `JUDGEMENT-CALLS.md` | 2006/2011 are computed and not gated; the reason is in `ITERATING.md` but unregistered |
 
 ---
 
-## 1–3. Key 4 measures a stand-in, and it is untradeable
+## 1. Key 4's instrument was wrong three ways, and is now fixed
 
-`ITERATING.md` says: *"Held-out NLL on `theta_residual`'s folds must not worsen
-in either fold."* It is **untradeable**, and exists specifically because without
-it the bar would have shipped the Type A filter.
+`ITERATING.md`'s Key 4 is **untradeable**. It said *"Held-out NLL on
+`theta_residual`'s folds must not worsen in either fold."* Wrong on all three
+counts of what that pointed at:
 
-**`theta_residual.form_a`'s own docstring says it is not the committed
-estimator** — it uses *"the record's own weighted size instead"* of the party's
-size at the target, and says *"This is for RANKING TWO FORMS, NOT FOR QUOTING A
-WIDTH."*
+1. **`form_a` is not the committed estimator.** It is rebuilt from `_fit_line`
+   and reaches `levels` only through the clamp — **so a change to `sd_for` moves
+   the model and leaves the gate where it was.** That mechanism is dispositive
+   on its own; an earlier draft led on a 0.0164 nats counterexample that is
+   inside the clustering noise, and that over-read is itself recorded.
+2. **The harness passed a baseline `run_model` does not pass** — the raw
+   citywide tally, where the model drops off-ballot parties first. 286 parties
+   across 32 metro-years; largest single width moved 0.605.
+3. **The score was a Gaussian; the model draws Student-t₇.** At `w = SD_FLOOR`
+   and `|r| = 2` the Gaussian charges 87.9 nats against the t₇'s 13.3.
 
-| fold | true committed | `theta_residual` prints |
-|---|---|---|
-| 2016 | **1.3241** | 0.7531 |
-| 2021 | **0.5791** | 0.2280 |
+**Baselines are now 2016 = 1.1363 and 2021 = 1.1425** — within 0.006 nats of each
+other, where the Gaussian made them look 2.3× apart. The spread was the
+instrument. Fold 2011's notorious 5.59 was the Gaussian tail penalty on three
+known party-structural events (COPE, the NFP split, the DA/ID merger, all
+already measured in §1.71); as an effective width it was **452**, which is not a
+forecast.
 
-**And they rank candidates differently**: a variant improves on the printed
-column and worsens on the true estimator at 2021 (0.5791 → 0.5955) — a pass on
-one, a fail of an untradeable floor on the other. So the usual defence, *"a
-relative comparison survives a biased instrument"*, is **false here** and the
-counterexample is already in hand.
+Key 4 also had **no noise band** on an untradeable floor. `theta_residual.
+key4_delta` is now the pass rule as code: paired on identity, **refusing** if the
+population moved, t(G−1) on the eight metro-year cluster means, sign count
+reported. **Fails only if the 95% interval lies entirely above zero.**
 
-**F22+F23 is a change to the size-dispersion fit — exactly what the stand-in
-mis-evaluates.** Running it against today's Key 4 gives a number uninterpretable
-in either direction. **The hard part is done**: the true estimator has been
-rebuilt per (target, metro) and verified to reproduce `theta_prior`'s widths
-exactly. What remains is moving it into `theta_residual.py` as a labelled column
-and re-baselining both folds.
+**⛔ It is a LAYER floor, not the model's predictive score** — it scores the θ
+width about `theta_prior`'s own centre, and the model draws about the spine's.
+Do not quote it as the model's estimation loss; the first draft of §1.124 did.
 
-**Restate Key 4 as:** *held-out NLL of the committed width estimator — `sd_for`
-evaluated at the party's size at the target, as `theta_prior` computes it — on
-forward-validated residuals, by fold; folds 2016 and 2021.* Then
-`theta_residual.py` is one implementation of it rather than being it.
+### Why item 1 is the head of the list
 
-## 4–5. `bye_weight_mode` is shipped and must stay OFF
+**Every held-out NLL figure quoted in this repository before 2026-08-28 is form
+A's, Gaussian, without its constant, on the raw baseline.** They are marked in
+place. The one that matters most is §1.82's `THETA_WINDOW` table, which closed
+off recency weighting on the **shape** of a four-point curve whose two closest
+points are 0.03 nats apart — and shape is far more fragile to an instrument
+change than a sign is. No wrong change shipped (Type A and state C were both
+*rejected*), but `PLAN-TO-LIVE.md`'s B1 gate and F22+F23 are live decisions that
+would otherwise be judged against a baseline nobody has measured.
+
+## 3–4. `bye_weight_mode` is shipped and must stay OFF
 
 `"fixed"` (default) or `"inverse_variance"`. Derived weights at joburg 2026:
 EFF 0.722, ANC 0.704, DA 0.528, ASA 0.413, **MK 0.216**, PA 0.204, IFP 0.132,
@@ -75,6 +85,9 @@ fifteen independent draws.
 **Fix:** `v_bye = sd²/n + τ²`, with `τ²` estimated from the residual spread
 *after* removing the turnout relationship, per party. A measurement, not a typed
 constant. It pulls ANC/EFF back and leaves MK's 0.216 alone.
+
+**`v_spine` now uses both tails** — `ln(high/low)/(2×1.2816)` — which was item 5
+and is done.
 
 ---
 

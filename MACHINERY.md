@@ -721,6 +721,23 @@ parameter from it is making this mistake.
 log θ about the centre `theta_prior` actually used, cluster bootstrapped on
 metro-year, and it says two things:
 
+> ⛔ **THIS TABLE IS §1.59's NINE CITY-YEARS AND HAS BEEN SUPERSEDED TWICE.**
+> §1.77 re-measured it on §1.70's doubled panel and §1.124 corrected the
+> harness to use the baseline `run_model` actually passes. **Current, n=403
+> over 32 metro-year clusters:**
+>
+> | national size | measured conditional sd | 95% CI | what the model uses |
+> |---|---|---|---|
+> | ≥ 15% | **0.273** | [0.136, 0.386] | **0.151** (1.81×) |
+> | 5 – 15% | 0.841 | [0.529, 1.026] | 0.187 |
+> | 1 – 5% | 0.503 | [0.380, 0.615] | 0.300 |
+> | 0.2 – 1% | 0.701 | [0.580, 0.811] | 0.369 |
+> | < 0.2% | 0.864 | [0.678, 1.006] | 0.460 |
+>
+> **Every interval now excludes the width in use, the top of the ballot
+> included** — which is the §1.59 claim below being withdrawn, not weakened.
+> Run `src/theta_residual.py` rather than quoting either table.
+
 | national size | measured conditional sd | 95% CI | what the model uses |
 |---|---|---|---|
 | ≥ 15% | **0.138** | [0.084, 0.171] | **0.150** ✓ |

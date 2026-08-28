@@ -54,6 +54,20 @@ where `levels.theta_prior:717` passes the party's size **at the target**. So the
 floor is computed from an estimator the model does not run: a change to
 `levels.py` moves the model and leaves the gate where it was.
 
+> ✅ **THE GATE HALF OF THIS WAS FIXED 2026-08-28 (MODEL-LOG §1.124), and this
+> entry is what named it.** `held_out_nll` gained a `COMMITTED` column read off
+> `theta_prior`'s own `groups["sd"]`, and `ITERATING.md`'s Key 4 is restated as
+> that quantity rather than as "`theta_residual`'s folds". The gap the sentence
+> above predicted was a factor of about two on both folds — **1.3241 against the
+> 0.7531 that was printed at 2016, 0.5791 against 0.2280 at 2021** — and the two
+> columns rank at least one candidate differently.
+>
+> **The DUPLICATION half is still open.** `theta_prior`, `_shrunk`, `form_b` and
+> `form_c` still each compute `weight = worth/(worth+SHRINK)` separately, and
+> A/B/C still rebuild `_fit_line` locally. That is now a diagnostic-only
+> divergence rather than a gate defect, which lowers its severity without
+> removing it.
+
 **Fix:** promote the two closures to `levels.sd_from_fit(coef, size)` and
 `levels.shrunk_centre(obs, fit, mu_all)`; every form differs only in which
 residual it fits, which is what `_fit_line`'s docstring already claims.

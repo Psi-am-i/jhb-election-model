@@ -170,7 +170,111 @@ misleads a reader, and honest intervals are this project's whole public claim.
 Accuracy can be bought with a good story; calibration cannot.
 
 **KEY 4 — the ESTIMATION RECORD is a floor too, and it is not tradeable.**
-Held-out NLL on `theta_residual`'s folds must not worsen in **either** fold.
+
+> **THE QUANTITY.** For each fold *f* ∈ {2016, 2021}:
+>
+> **Population.** Every (party, metro) pair for which the model forms a θ prior
+> at *f*: the party appears with share > 0 in both the preceding NPE and the
+> LGE *f* citywide tallies for that metro, and in `theta_prior`'s `priors`.
+> Metros: the eight of `levels.METRO_CODES`. Environment: `THETA_WINDOW=0`,
+> `THETA_EXCLUDE_TARGETS` empty, `FILTER_TYPE_A` and
+> `EXCLUDE_DEMARCATION_CROSSING` unset. **At 2026-08-28 this is n=97 at 2016 and
+> n=138 at 2021, eight metro-year clusters each.**
+>
+> **The forecast scored.** One `levels.theta_prior(f, baseline)` call per metro,
+> with **the baseline `run_model` passes** — the metro's preceding-NPE citywide
+> shares with off-ballot parties already dropped by `levels.absent_from_ballot`.
+> Centre `m = priors[party][1]`; width `w = groups["sd"][party] =
+> sd_for(baseline[party])`, clamp and all. **Neither is rebuilt.**
+>
+> **The score.** The negative log density of the realised `log θ` under the
+> predictive `montecarlo.log_shock` actually draws — `log m + s·t_df`,
+> `s = w·√((df−2)/df)`, `df = LEVEL_DF` — with the constants carried:
+>
+>     z = (log θ − log m)/s
+>     NLL = log s + ((df+1)/2)·log(1 + z²/df) + C(df)
+>     C(df) = ½·log(dfπ) + logΓ(df/2) − logΓ((df+1)/2)
+>
+> Reported as the mean over the fold's population, and as the mean of the eight
+> per-metro-year means. **Baseline: 2016 = 1.1363, 2021 = 1.1425.**
+>
+> **The comparison.** Paired on observation identity `(party, metro, fold)`,
+> over the SAME population; each arm scored under its own centre AND width,
+> because a change moves both. **If a candidate changes the population the
+> comparison is VOID** until it is re-scored on the intersection with both
+> counts reported.
+>
+> **The floor.** Key 4 **FAILS** if, in either fold, the 95% interval on the
+> paired per-cluster delta lies **entirely above zero** — worsening established
+> beyond the clustering noise. A point-estimate worsening whose interval covers
+> zero is `undetermined` and **does not block**, because this is a floor and not
+> a gate. Report the sign count (how many of the eight metro-years worsen)
+> alongside; at eight clusters it is the more trustworthy statistic and it is
+> free.
+>
+> **Folds 2006 and 2011 are computed, reported, and NOT part of the floor.** See
+> the fold note below.
+
+`src/theta_residual.py` — `held_out_nll()["<fold>"]["COMMITTED"]["mean"]`, and
+`key4_delta()` for the comparison — is **one implementation of that quantity.**
+It is not the definition.
+
+> ⛔ **THIS KEY WAS OPERATIONALISED AGAINST THE WRONG THING IN THREE SEPARATE
+> WAYS UNTIL 2026-08-28, and the block above is the fix.** It used to read
+> *"held-out NLL on `theta_residual`'s folds"*, and the table it pointed at
+> labelled its first column "A = committed".
+>
+> 1. **`form_a` is not the committed estimator.** Its fit regresses on the
+>    record's own reliability-weighted size where `sd_for` regresses on the
+>    party's size at the target, and it is fitted once per fold where `sd_for`
+>    is refitted per metro-year. **The mechanism is dispositive and needs no
+>    number:** A/B/C are rebuilt from `_fit_line` and reach `levels` only through
+>    the clamp, so a change to `sd_for` moves the model and leaves the gate
+>    where it was. `DUPLICATION-AUDIT.md` had named the same seam from the other
+>    side.
+> 2. **The harness passed a baseline the model does not pass** — the raw
+>    citywide tally, not the one with off-ballot parties dropped. 286 parties
+>    across 32 metro-years; the largest single width moved 0.605.
+> 3. **The score was a Gaussian and the model draws a Student-t₇.** At
+>    `w = SD_FLOOR` and `|r| = 2` the Gaussian charges 87.9 nats where the t₇
+>    charges 13.3 — and every candidate this key has been used on works by
+>    removing or reweighting far-tail observations.
+>
+> **Every held-out NLL figure quoted anywhere in this repository before that
+> date is form A's, Gaussian, without its ½log2π, on the raw baseline.** They
+> are marked in place where they appear. Re-measuring the Type A filter, state C
+> and the four `THETA_WINDOW` arms on the corrected instrument is the first item
+> of MODEL-LOG §1.124's open list, and it must happen before F22+F23.
+>
+> **A promotion key names a quantity and its estimator, not a script's output.**
+> Key 1 would survive a rewrite of `compare_history.py`. Key 4 did not survive
+> the rewrite of `theta_residual.py` that already happened — which is the whole
+> argument for the block above.
+
+**⛔ KEY 4 IS A LAYER FLOOR, NOT THE MODEL'S PREDICTIVE SCORE.** It scores the θ
+**width** estimator about `theta_prior`'s **own** centre. The model does not draw
+about that centre: `make_drawer` is handed `centres[party]` from
+`blended_centres`, which for any party the spine reaches is the spine's level,
+then tilted by by-elections and polls. That is deliberate — Key 4's value is that
+it scores **the θ layer** on the structural-event parties where Keys 1 and 2 are
+blind — but it must never be quoted as the model's estimation loss.
+
+**THE FOLD NOTE.** 2006 and 2011 are computable and are not gated, for three
+reasons that should be revisited once the band above has been in use for a while.
+Multiplicity is the dominant term: an unbanded "must not worsen in any fold"
+rejects a truly neutral change about 75% of the time on two folds and about 94%
+on four. 2011 is a **constant** under every exclusion experiment that reaches
+this key, because `theta_record` filters the fitting record and `residuals` never
+filters the held-out set. And 2006's fit rests on a single transition whose
+national file the calendar itself calls *"the approximate pre-metro footprint"*.
+**Call 2011 the structural-events fold and read it as a positive signal**: a
+candidate that materially improves it has stopped asking θ to forecast a
+collapse — COPE, the NFP split, the DA/ID merger — which §1.71 says should be
+handled by `SPLITS` and arrivals instead.
+
+**A/B/C are still printed and are still useful**, as a three-way comparison of
+WHICH RESIDUAL is fitted with `_fit_line` held constant. They are diagnostics.
+They are not the floor.
 
 **This key exists because the first draft of this amendment did not have it, and
 an independent review showed the bar would then have shipped the bare Type A
@@ -186,10 +290,22 @@ are a handful of columns among hundreds. Key 4 scores **the estimator on those
 parties**. Without it a change can get better at the parties the model already
 handles by getting worse at the parties it does not — and both rejected
 exclusions have precisely that signature: CRPS improves while held-out NLL at
-2016 worsens (Type A 0.7531 → 0.8611, state C 0.7531 → 0.9512).
+2016 worsens (Type A 0.7531 → 0.8611, state C 0.7531 → 0.9512). **Those three
+figures are form A's, Gaussian, without its ½log2π, on the raw baseline** —
+measured before the correction above, and the committed baselines are 1.1363 and
+1.1425. The ARGUMENT rests on the direction, and the direction is not in doubt;
+none of the numbers is the model's. Re-measuring them on the corrected
+instrument is item 1 of MODEL-LOG §1.124's open list and must happen before
+F22+F23.
 
-It also restores rule 11's logic to this bar: Keys 1 and 2 run on ~2 effective
-clusters, Key 4 on 18.
+It also restores rule 11's logic to this bar — **but only if the clusters are
+counted honestly.** Keys 1 and 2 run on ~2 effective clusters; Key 4 runs on
+**16 metro-years across 2 cycles**, so its effective count is well below 16 and
+above 2. (This line said "18" until 2026-08-28, which predates §1.70's panel
+doubling and counted a different set — and it said it as though 18 were 18
+independent facts, importing into the key's own justification the exact over-read
+rule 11 exists to warn against. The band in the block above is what actually
+prices the clustering.)
 
 **Note the asymmetry, which is deliberate.** Key 4 is a *floor* (must not
 worsen), not §1.74's *gate* (must improve in both folds). A change may be
@@ -607,14 +723,17 @@ requirement to measure.
     - the **scoreboard** has 9 city-years of which **8 share one cycle** — the
       2021 national swing, ActionSA's arrival, one fragmentation shock. Under
       any honest clustering the effective sample is **about 2**.
-    - the **θ residual record** (`src/theta_residual.py`) has **n=257 across 18
-      metro-year clusters** spanning four cycles.
+    - the **θ residual record** (`src/theta_residual.py`) has **n=403 across 32
+      metro-year clusters** spanning four cycles. (Written as 257 across 18
+      when this passage was drafted; §1.70 doubled the panel to eight metros
+      and nobody came back for the sentence. Re-measured 2026-08-28. **Key 4's
+      own two folds are the 2016 and 2021 slices: n=235 across 16 clusters.**)
 
     The forecasting literature's rule of thumb is on the order of 30 independent
     observations per free parameter before a fitted choice is trustworthy. At
     two effective clusters **the scoreboard supports approximately zero
     parameters chosen on it**, which is why rule 10 exists and why it has been
-    right every time it has been applied. Eighteen clusters is not thirty, but
+    right every time it has been applied. Sixteen clusters is not thirty, but
     it is not two either, and the difference is the whole argument.
 
     **The protocol that follows.** When a specification choice must be made from

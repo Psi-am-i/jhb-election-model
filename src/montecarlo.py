@@ -2099,10 +2099,15 @@ def blended_centres(
                                      DEFAULTS["bye_weight_mode"])
                 if str(_mode) == "inverse_variance":
                     sd_bye = _sd_bye / math.sqrt(_n_bye) if _n_bye else 0.0
-                    # The spine's own spread, from the θ band already in hand:
-                    # (high/mid) is the +1.2816σ multiplier, so ln of it over
-                    # 1.2816 is σ on the log scale.
-                    rel = math.log(high / mid) / 1.2816 if mid > 0 and high > mid else 0.0
+                    # The spine's own spread, from the θ band already in hand.
+                    # BOTH TAILS: the band is (low, mode, high) at ∓1.2816σ, so
+                    # ln(high/low) spans 2×1.2816σ. Reading only ln(high/mid)
+                    # threw away half the information and, where the band is
+                    # asymmetric about its mode, measured the upper tail alone
+                    # — for a party whose θ prior is skewed that is not σ, it is
+                    # one side of it. Pollster review, MODEL-LOG §1.124.
+                    rel = (math.log(high / low) / (2 * 1.2816)
+                           if low > 0 and high > low else 0.0)
                     sd_spine = abs(anchor) * rel
                     if sd_bye > 0 and sd_spine > 0:
                         w_used = (sd_spine ** 2) / (sd_spine ** 2 + sd_bye ** 2)
@@ -3461,9 +3466,13 @@ def run_model(target, scenario: dict,
     except Exception:
         _roster = set()
     if _roster:
-        _absent = sorted(p for p in base_city_d
-                         if p not in _roster and p not in (INDEPENDENT, "IND")
-                         and base_city_d.get(p, 0.0) > 0)
+        # ONE DEFINITION. `theta_residual.residuals` has to reproduce this
+        # baseline exactly — Key 4 scores `theta_prior` and `theta_prior`'s fit
+        # is built off whatever baseline it is handed — and for three months it
+        # did not, because the selection lived here as a comprehension nobody
+        # could call. MODEL-LOG §1.124.
+        import levels as _levels_roster
+        _absent = _levels_roster.absent_from_ballot(base_city_d, _roster)
         if _absent:
             _held = sum(base_city_d[p] for p in _absent)
             for p in _absent:

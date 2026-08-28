@@ -6193,11 +6193,30 @@ Form **A** is the committed estimator. Form **B** refits the same straight line
 on leave-one-out residuals about the shrunk centre — the quantity the layer
 actually faces.
 
+> ⛔ **"FORM A IS THE COMMITTED ESTIMATOR" IS FALSE, AND THIS SENTENCE IS WHERE
+> IT ENTERED THE RECORD (corrected 2026-08-28, §1.124).** `form_a`'s own
+> docstring says it is not: its fit regresses on the record's own
+> reliability-weighted size where `levels.sd_for` regresses on the party's size
+> at the target, and it is fitted once per fold where `sd_for` is refitted per
+> metro-year. It is rebuilt from `_fit_line` and reaches `levels` only through
+> the `[SD_FLOOR, SD_CEILING]` clamp, **so a change to `sd_for` moves the model
+> and leaves form A exactly where it was.** `ITERATING.md` then wrote an
+> UNTRADEABLE Key 4 against it. The committed column is
+> `held_out_nll(...)["COMMITTED"]`, added 2026-08-28.
+
 ### Stage 1 — selection, offline, and it does not touch the scoreboard
 
 Both forms are fitted on the θ record and scored on **held-out θ residuals**,
 never on seats. The score is the out-of-sample negative log-likelihood of the
 residuals under `N(0, w²)`:
+
+> ⛔ **`N(0, w²)` IS NOT WHAT THE MODEL DRAWS (2026-08-28, §1.124).**
+> `montecarlo.log_shock` draws `exp(sd·√((df−2)/df)·t_df)` at `LEVEL_DF = 7`, so
+> the shock is Student-t on the log scale. The two agree in the body and differ
+> entirely in the tail — which is where this score lives, and every candidate
+> this stage has been used on works by removing or reweighting tail
+> observations. The constant ½log2π was also dropped, which is what let a ratio
+> be quoted on a scale whose zero was arbitrary.
 
     NLL = Σ [ log w_i + r_i² / (2 w_i²) ]
 
@@ -6254,7 +6273,8 @@ Reported on the **`reference`** population (§1.56), never `claimed`:
 Eight of the nine scoreboard city-years are one cycle. Stage 2 can therefore
 distinguish "this is a better estimator" from "this suits 2021" only weakly, and
 the 2016 direction is a single city. Stage 1 is the load-bearing test — 257
-observations across 18 metro-year clusters — and stage 2 is a check that the
+observations across 18 metro-year clusters (**403 across 32 since §1.70
+doubled the panel; see §1.124**) — and stage 2 is a check that the
 gain survives contact with the rest of the machinery, not an independent
 confirmation.
 
@@ -8666,6 +8686,15 @@ trees. Re-measured properly, both arms in state A, 1500 draws:
 
 Held-out NLL, same tree:
 
+> ⛔ **THE INSTRUMENT UNDER THIS TABLE WAS WRONG IN THREE WAYS (2026-08-28,
+> §1.124).** Column "A"/"committed" is `theta_residual.form_a`, a REBUILD that
+> a change to `levels.sd_for` cannot move; the harness passed the raw citywide
+> baseline where `run_model` drops off-ballot parties first; and the score is a
+> Gaussian where the model draws Student-t₇, which at `w = SD_FLOOR` and
+> `|r| = 2` charges 87.9 nats against the t₇'s 13.3. **The DIRECTION each of
+> these tables was quoted for has not been re-measured, and the levels are not
+> the model's.** Re-measuring is item 1 of §1.124's open list.
+
 | target | no filter | Type A | |
 |---|---|---|---|
 | 2006 | −0.5555 | −0.5555 | unchanged |
@@ -8947,7 +8976,17 @@ back.
 
 ### Condition 1 — FAILS
 
-Held-out NLL, committed estimator, same tree:
+Held-out NLL, ~~committed estimator~~ **form A** (see the block below), same
+tree:
+
+> ⛔ **THE INSTRUMENT UNDER THIS TABLE WAS WRONG IN THREE WAYS (2026-08-28,
+> §1.124).** Column "A"/"committed" is `theta_residual.form_a`, a REBUILD that
+> a change to `levels.sd_for` cannot move; the harness passed the raw citywide
+> baseline where `run_model` drops off-ballot parties first; and the score is a
+> Gaussian where the model draws Student-t₇, which at `w = SD_FLOOR` and
+> `|r| = 2` charges 87.9 nats against the t₇'s 13.3. **The DIRECTION each of
+> these tables was quoted for has not been re-measured, and the levels are not
+> the model's.** Re-measuring is item 1 of §1.124's open list.
 
 | target | state A | state C | |
 |---|---|---|---|
@@ -9052,6 +9091,22 @@ because the same absolute year is the most recent transition for one target and
 three cycles back for another. Held-out NLL, **same held-out observations in
 every arm** (n=97 at 2016, n=138 at 2021), only the fitting record changes:
 
+
+> ⛔ **THE INSTRUMENT UNDER THIS TABLE WAS WRONG IN THREE WAYS (2026-08-28,
+> §1.124).** Column "A"/"committed" is `theta_residual.form_a`, a REBUILD that
+> a change to `levels.sd_for` cannot move; the harness passed the raw citywide
+> baseline where `run_model` drops off-ballot parties first; and the score is a
+> Gaussian where the model draws Student-t₇, which at `w = SD_FLOOR` and
+> `|r| = 2` charges 87.9 nats against the t₇'s 13.3. **The DIRECTION each of
+> these tables was quoted for has not been re-measured, and the levels are not
+> the model's.** Re-measuring is item 1 of §1.124's open list.
+
+> **This table is the HIGHEST-VALUE re-measurement in §1.124's open list**, and
+> the reason is in the sentence below it: the finding is about the SHAPE of a
+> four-point curve, and shape is far more fragile to an instrument change than a
+> sign is. Two of these four points are 0.03 nats apart. Recency weighting on
+> the θ record is closed off on the strength of it.
+
 | window | record at 2026 | 2016 fold | 2021 fold |
 |---|---|---|---|
 | 1 — most recent only | 138 | **0.6487** | **0.0722** |
@@ -9154,6 +9209,12 @@ both rejected exclusions **improve CRPS while worsening the estimator's held-out
 NLL at 2016** (Type A 0.7531 → 0.8611, state C 0.7531 → 0.9512). That divergence
 is the signature of trading accuracy on the parties the model already handles
 against accuracy on the parties it does not.
+
+> ⛔ **These are form A's, Gaussian, without its ½log2π, on the raw baseline —
+> not the model's (2026-08-28, MODEL-LOG §1.124).** The instrument was wrong in
+> three ways and the committed baselines are now **1.1363 at 2016 and 1.1425 at
+> 2021**. The direction each figure was quoted for has not been re-measured.
+
 
 ### KEY 4, added
 
@@ -13850,3 +13911,235 @@ is harder than estimating the **citywide** level the model actually wants. A
 scheme could fail this test and still improve the citywide estimate. What the
 test does establish is that ρ and the turnout ratio are not capturing
 ward-level structure — which is precisely what both of them claim to do.
+
+
+## 1.123 Corrections to this log, recorded in place rather than appended (2026-08-28)
+
+**No content lives under this heading.** §1.123 was assigned to three
+corrections written as ⛔ blocks *inside the sections they correct*, because a
+correction filed at the end of a 13,000-line log is a correction nobody reading
+the original will see. The blocks are:
+
+* **§1.109's F10 boundary was a decade out** — `solve_identity_hits` is 0 at
+  1e-8 and 2990 at 1e-9, so **1e-8 is the lowest safe point**, not the first
+  live one. Corrected in §1.109's own F12+F10 bullet.
+* **§1.117's "second truthiness site" does not exist** — the overrides it named
+  were deleted on 2026-08-17 and survive only as a tombstone comment.
+* **§1.109 described itself as an index and contained a summary** — the 46-row
+  table (F1–F44, plus F45 and F46) is now there, with provenance: five rows spot-checked, F15 and F19
+  verified in full, **the rest recovered and not re-verified**, and labelled as
+  pointers rather than findings.
+
+
+## 1.124 An UNTRADEABLE promotion key was scored on an estimator the model does not run, a distribution it does not draw, and a baseline it does not pass (2026-08-28)
+
+**`ITERATING.md`'s Key 4 said, verbatim: *"Held-out NLL on `theta_residual`'s
+folds must not worsen in **either** fold."* Three separate things were wrong
+with the quantity that sentence pointed at, and the review that found the first
+found the other two by asking what else the same question would catch.**
+
+### One: the column labelled "committed" was not the committed estimator
+
+`levels.theta_prior` defines `sd_for(size)` as a closure and regresses squared
+deviation on `baseline.get(party)`. `theta_residual.form_a` rebuilds that fit
+from outside the closure, regressing on **the record's own reliability-weighted
+size**, and fits it **once per fold** where `sd_for` is refitted per metro-year.
+Its docstring closes: *"This is for RANKING TWO FORMS, not for quoting a
+width."* It was then quoted as a width, in the one place in this repository
+where a number cannot be traded away.
+
+**The mechanism is the finding, and it needs no number.** A/B/C are rebuilt from
+`_fit_line` and reach `levels` only through the `[SD_FLOOR, SD_CEILING]` clamp.
+**A change to `sd_for` itself — its covariate, its weighting, its residual —
+moves the model and leaves A exactly where it was.** `DUPLICATION-AUDIT.md` had
+already reached this seam from the other side and written the sentence: *"a
+change to `levels.py` moves the model and leaves the gate where it was."* Nobody
+joined it to Key 4.
+
+> ⚠️ **A first draft of this entry led on a counterexample instead** — a
+> candidate variant that improved A at 2021 and worsened the committed column,
+> 0.5791 → 0.5955. **That is a 0.0164 nats/observation move on eight metro-year
+> clusters and is almost certainly inside the noise** (see *Four* below, which
+> is the same criticism applied to the key itself). The finding is right and the
+> evidence was over-read. Leading on the mechanism, which is dispositive on its
+> own, is the correction.
+
+### Two: the harness passed a baseline `run_model` does not pass
+
+`run_model` drops every party not on the target's ballot from `base_city_d`
+**before** calling `theta_prior` — 13 parties holding 0.42% at Johannesburg 2021
+— and `sd_for`'s fit runs over the record filtered by `baseline.get(party) > 0`.
+So a dropped party is out of the regression, the line moves, and **every**
+party's width moves with it. `residuals()` passed the raw citywide tally.
+
+Measured: the drop removes **286 parties across the 32 metro-years**, moves
+**no row and no residual** — a party not on the ballot has no result, so it was
+never in the outcome side of the join — and moves the largest single width by
+**0.605**. It **widens** the fit below 5% of the vote and **narrows** it at the
+top, because the parties being dropped sit at the small end of the size axis
+where the slope is steepest:
+
+| band | median `sd_for`, raw baseline | median `sd_for`, model's baseline | floor binds |
+|---|---|---|---|
+| <0.2% | 0.416 | **0.460** | 0/110 → 0/110 |
+| 0.2–1% | 0.321 | **0.369** | 0/140 → 0/140 |
+| 1–5% | 0.272 | **0.300** | 1/64 → **0/64** |
+| 5–15% | 0.191 | **0.187** | 3/25 → 4/25 |
+| ≥15% | 0.158 | **0.151** | 26/64 → **32/64** |
+
+**The selection is now one function**, `levels.absent_from_ballot`, called by
+both `run_model` and `residuals`. It lived in `run_model` as a comprehension
+nobody could call, which is why the harness could not reproduce it.
+
+**Consequences for the record.** §1.77's SD_FLOOR row moves: the width in use at
+≥15% is **0.151**, not 0.158, the ratio to the measured 0.273 is **1.81×**, not
+1.73×, and the floor binds on **32 of 64** rather than 26. The residual sd and
+its interval are unchanged — residuals do not move, only widths. §1.77's
+withdrawal of §1.59's 🟢 stands and is slightly reinforced.
+
+### Three: the score was a Gaussian and the model draws a Student-t
+
+`montecarlo.log_shock` returns `exp(sd·√((df−2)/df)·t_df)` with
+`LEVEL_DF = 7`. On the log scale the model's shock is Student-t with **scale**
+`s = w·√(5/7)`, not a Gaussian of sd `w`. The declared 80% band uses ±1.2816·sd
+and the drawn one is ±1.196·sd — **the two agree in the body and differ entirely
+in the tail, which is where this fold's score lives.**
+
+At `w = SD_FLOOR = 0.15` and `|r| = 2` — a COPE-sized collapse — the Gaussian
+charges **87.9** nats and the t7 charges **13.3**. A factor of six and a half on
+ONE observation in a fold of 85. **Every candidate this key has ever been used
+on works by removing or reweighting far-tail observations**, so the Gaussian
+mis-ranked exactly the class of change it was pointed at.
+
+**And it explains fold 2011, which nobody had explained.** Under the old score
+2011 was 5.59 against 0.75 at 2016 — an order of magnitude, read as "the width
+layer fails where history is thin". It is not: 2011's fitting record is
+`{2000, 2006}`, *larger* than 2006's, which scores best of all four. §1.71
+already measured the cause on the other side — COPE (formed Dec 2008, 7.4% in
+2009, gone by 2011), the NFP split from the IFP, the DA/ID merger, taking that
+transition's dispersion from 0.896 to 0.244 when excluded. **5.59 was the
+Gaussian tail penalty on three known party-structural events.** Rendered as an
+effective width it is **452** in log units, which is not a forecast.
+
+### What the instrument now says
+
+Held-out NLL per observation under the predictive the model draws, constants
+carried, on the baseline `run_model` passes:
+
+| fold | n | cy | COMMITTED | A | B | C | (gauss) | w_eff |
+|---|---|---|---|---|---|---|---|---|
+| 2006 | 83 | 8 | **0.3027** | 0.3113 | — | — | 0.3486 | 0.86 |
+| 2011 | 85 | 8 | **2.1831** | 2.0492 | 3.2988 | 1.9475 | 6.6154 | 452.78 |
+| **2016** | 97 | 8 | **1.1363** | 1.0792 | 1.8781 | 1.4246 | 1.9705 | 4.35 |
+| **2021** | 138 | 8 | **1.1425** | 1.0338 | 1.5487 | 1.3040 | 1.3508 | 2.34 |
+
+**Note the shape.** Under the Gaussian the two Key-4 folds looked 2.3× apart
+(1.3241 and 0.5791). Under the predictive the model actually draws they are
+**within 0.006 nats of each other**. The spread was the instrument.
+
+### Four: the floor had no noise band, and the document knows better
+
+Key 4 was an unbanded inequality between two per-observation means, in a
+document whose rule 11 says metros within a cycle share one national swing and
+whose own §1.82 amendment says the seat instrument was *"underpowered and
+pointed at the wrong quantity"*. Four faults at once: **no band**, so a truly
+neutral change fails about half the time per fold and about three quarters
+across two; **no clustering**, so 97 observations are treated as 97 facts when
+they are 8 metro-years; **a loss quadratic in the residual**, so the mean is a
+summary of its two worst rows; and **folds that are not independent**, 2016's
+record being a subset of 2021's.
+
+`theta_residual.key4_delta` is the pass rule as code: paired on observation
+identity, **refusing** rather than reconciling if the population moved, deltas
+aggregated per metro-year, a t(G−1) interval on the eight cluster means, and the
+sign count — which at eight clusters is the statistic to trust and is free. The
+floor **fails only if the 95% interval lies entirely above zero**. A worsening
+whose interval covers zero is `undetermined` and does not block, because
+`ITERATING.md` says in terms that Key 4 is a floor and not a gate.
+
+### And what this is NOT
+
+**⛔ Key 4 is a LAYER floor, not the model's predictive score, and the first
+draft of this entry called it "the model's true estimation loss".** That was the
+same overclaim one level up. It scores the θ **width** estimator about
+`theta_prior`'s **own** centre. The model does not draw about that centre:
+`make_drawer` is handed `centres[party]` from `blended_centres`, which for any
+party the spine reaches is the **spine's** level, then tilted by by-elections and
+polls. Two of the three components — width and tail — are now the model's. The
+centre is not, deliberately: Key 4's value is that it scores **the θ layer** on
+the structural-event parties where Keys 1 and 2 are blind, and re-pointing it at
+the spine would lose that.
+
+**"About twice" was withdrawn** from the first draft. `log w + r²/(2w²)` is the
+Gaussian log score minus ½log2π = 0.918939; restoring the constant turns the
+"1.76× and 2.54×" into 1.34× and 1.31×, and at 2006 the sign of the "worse"
+claim reverses. **A log score is an interval scale with no natural zero — 2006's
+is negative — so nothing here may be quoted as a ratio.** Differences in
+nats/observation, and `w_eff = exp(NLL_gauss − ½)`, are what the report prints
+now. The `w_eff` column is what makes 2011's 452 legible; it would have caught
+that fold unaided.
+
+### What was done
+
+1. **`held_out_nll` gained a `COMMITTED` column** scored on `groups["sd"]`
+   straight from `theta_prior`. No intercept or slope, because there is no
+   single line.
+2. **`levels.ballot_roster` and `levels.absent_from_ballot`**, one definition,
+   called by `run_model` and by `residuals`.
+3. **`nll_t` scores the predictive `log_shock` draws**, resolving `LEVEL_DF` at
+   call time; `nll_gauss` carries its constant and is kept for reconciliation
+   with every figure quoted before today.
+4. **`key4_delta`** — the paired clustered comparison, with population identity
+   enforced.
+5. **Key 4 restated in `ITERATING.md` as a quantity**: population, environment,
+   forecast scored, score, comparison, and pass rule. `theta_residual.py` is
+   demoted to one implementation of it. Key 1 would survive a rewrite of
+   `compare_history.py`; Key 4 did not survive the rewrite of
+   `theta_residual.py` that already happened.
+6. **Two guard tests.** `test_key_4_is_scored_on_the_width_the_model_actually_
+   used` recomputes COMMITTED independently, asserts every row is scored, and
+   pins both fold baselines with a re-record instruction.
+   `test_a_change_to_levels_moves_key_4` asserts the property whose absence
+   caused the bug — patch `levels.SD_FLOOR`, the committed widths must move —
+   **and that the memo below cannot serve a stale answer afterwards.** An
+   earlier draft instead asserted COMMITTED stays 0.2 worse than A, which both
+   reviewers rejected: that would have gone red on exactly the improvement Key
+   4 exists to encourage, and it was a typed constant inside an untradeable
+   floor's guard.
+7. **`residuals()` is memoised, keyed on `_levels_state()`.**
+   `test_levers_are_live._patched` sets `levels` constants process-globally and
+   restores them in a `finally`, and a `finally` cannot invalidate an
+   `lru_cache`; without the state key a patch would poison every later call and
+   survive its own restore. **`test_levels_dispersion` 177s → 99s** including
+   the two new tests, and the per-metro-year width check that used to spot-check
+   one metro-year now checks all thirty-two.
+8. **`ITERATING.md`'s cluster counts were stale in the same passage.** The θ
+   residual record is **n=403 across 32 metro-year clusters**, not "257 across
+   18" — §1.70 doubled the panel and the sentence was never revisited. Key 4's
+   own two folds are **n=235 across 16**, and the honest reading is 16
+   metro-years across **2 cycles**, so the effective count is well below 16 and
+   above 2.
+
+### Still open, and ranked
+
+1. **Re-measure the Type A filter, state C, and the four `THETA_WINDOW` arms on
+   the corrected instrument.** Under thirty minutes of compute. §1.82's window
+   table refuted recency weighting on the shape of a four-point curve whose two
+   closest points are 0.03 nats apart, and shape is far more fragile to an
+   instrument change than a sign is. **Do this before F22+F23.** No wrong change
+   has shipped — both filters were *rejected* and the model is unchanged — but
+   `PLAN-TO-LIVE.md`'s B1 gate and F22+F23 are live decisions that would
+   otherwise be judged against a baseline nobody has measured.
+2. **PIT as a second instrument** — `u = F_t7(z)` per fold and size bin, with
+   `mean(u) − 0.5` for level bias against `var(u)` for dispersion, cluster
+   bootstrapped. The pooled residual mean is +0.0732 and the ≥15% bin is −0.086;
+   a log score charges both to the width and cannot say which moved.
+3. **Fold policy.** COMMITTED needs no rebuilt fit, so 2006 and 2011 are now
+   computable; they are reported and not gated. That restriction now needs its
+   argument written down — multiplicity is the dominant term (a neutral change
+   fails ~94% of the time across four unbanded folds), 2011 is a constant under
+   every exclusion experiment because `residuals()` never filters the held-out
+   set, and 2006's fit rests on the calendar's *"approximate pre-metro
+   footprint"*. **Name 2011 the structural-events fold**: a candidate that
+   materially improves it has stopped asking θ to forecast a collapse, which is
+   what §1.71 says should happen through `SPLITS` and arrivals instead.

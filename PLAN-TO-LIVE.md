@@ -399,7 +399,15 @@ rather than 2**.
 > **Pre-register, then measure held-out NLL on both folds FIRST. If it does not
 > improve at both 2016 and 2021, stop.**
 
-Bare Type A fails that gate today (2016: 0.7531 → 0.8611). A correct mixture
+> ⛔ **READ THE `COMMITTED` COLUMN, NOT THE `A` COLUMN (2026-08-28, MODEL-LOG
+> §1.124).** `0.7531` and `0.8611` below are `form_a`'s — a rebuild evaluated at
+> the record's own weighted size, not the width the model draws with. The
+> committed baseline is **1.3241 at 2016 and 0.5791 at 2021**, and the two
+> columns can rank the same candidate differently. The gate above is still the
+> right gate; the numbers under it are not the model's.
+
+Bare Type A fails that gate today (2016: 0.7531 → 0.8611, **form A; not
+re-measured on COMMITTED**). A correct mixture
 should pass it, because the 2016 fold's held-out set contains AGANG and
 MINORITY_FRONT — precisely the observations a Type-B-only prior assigns near-zero
 density to. **That turns B1 from "a week that might not land" into "an afternoon
@@ -523,6 +531,12 @@ rule it blocks Track B.
 State C — the footprint exclusion, 384 → 368, CRPS 324.7, replicating 5-0 and
 2-1 across cycles — **passes Keys 1 and 2 and FAILS Key 4** (held-out NLL at 2016
 0.7531 → 0.9512).
+
+> ⛔ **These are form A's, Gaussian, without its ½log2π, on the raw baseline —
+> not the model's (2026-08-28, MODEL-LOG §1.124).** The instrument was wrong in
+> three ways and the committed baselines are now **1.1363 at 2016 and 1.1425 at
+> 2021**. The direction each figure was quoted for has not been re-measured.
+
 
 **It does not ship.** Under the amended bar that is now a clean verdict rather
 than the §1.81 judgement call it was, and §1.82's interference result says it is

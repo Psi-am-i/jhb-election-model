@@ -126,6 +126,9 @@ import numpy as np
 
 import cityconfig
 import parties as P
+# The independent SLOT's name, from its one definition. `montecarlo` reads the
+# same symbol; `absent_from_ballot` must exclude exactly what `run_model` did.
+from seats import INDEPENDENT as _INDEPENDENT
 
 # There is no "large party" threshold, because the record does not contain one.
 # Binning the observations by baseline share gives sd(log theta) of 0.72, 0.46,
@@ -468,6 +471,53 @@ def _crosses_demarcation(code: str, lge_year: str) -> bool:
             and (code, str(lge_year)) in DEMARCATION_CROSSING)
 
 
+
+
+def ballot_roster(path) -> set[str]:
+    """The party NAMES on one result file's ballot. Names only, never votes.
+
+    Nomination lists close and are published weeks before polling day, so who
+    is standing is available to a forecaster; the results are not. `pools.
+    contesting_parties` makes the same argument at greater length and reads the
+    same column — it is kept there because it takes a `City`, and this takes a
+    path, which is what the historical metro archive offers.
+
+    No `BallotType` filter, deliberately: a party on either ballot is standing.
+    `_citywide` filters to PR because it is counting PR votes; this is counting
+    names.
+    """
+    out: set[str] = set()
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            for row in csv.DictReader(fh):
+                out.add(P.canonical(row["sPartyName"]))
+    except (OSError, KeyError):
+        return set()
+    return out
+
+
+def absent_from_ballot(baseline: dict, roster) -> list[str]:
+    """Parties holding baseline share that are NOT standing at the target.
+
+    **One definition, two callers** (`montecarlo.run_model` builds the drawer's
+    universe from this; `theta_residual.residuals` has to reproduce the same
+    baseline or it measures an estimator the model does not run). The rule and
+    its justification live in `run_model`'s comment: a party that is not on the
+    ballot cannot take votes, and it is removed before θ, ρ, the spine, the
+    pool fit and the seeds have seen it.
+
+    Independents are never dropped — they are a slot, not a party, and no
+    roster names them.
+
+    An empty roster returns nothing to drop: a target not yet held has no
+    published result file to read names from, and dropping the whole baseline
+    because a file is missing would be catastrophic rather than conservative.
+    """
+    if not roster:
+        return []
+    return sorted(p for p in baseline
+                  if p not in roster and p not in (_INDEPENDENT, "IND")
+                  and baseline.get(p, 0.0) > 0)
 
 
 def theta_record(target: cityconfig.Target,

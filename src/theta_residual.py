@@ -94,6 +94,7 @@ MODEL-LOG §1.59.
 
 from __future__ import annotations
 
+import functools
 import math
 import sys
 from pathlib import Path
@@ -125,7 +126,51 @@ def residuals(codes=levels.METRO_CODES) -> list[tuple]:
     See the module docstring. ``size`` is the national share the ratio was
     measured off — the same quantity `sd_for` takes as its argument — and
     ``fitted_sd`` is ``groups["sd"][party]``, the width the draw used.
+
+    **THE BASELINE IS THE ONE `run_model` PASSES, NOT THE RAW CITYWIDE TALLY.**
+    `run_model` drops every party that is not on the target's ballot from
+    `base_city_d` *before* calling `theta_prior`, and `sd_for`'s fit runs over
+    `record` filtered by ``baseline.get(party) > 0`` — so a dropped party is out
+    of the regression, the line moves, and **every** party's width moves with
+    it. Until 2026-08-28 this function passed the raw tally, so the whole module
+    measured a fit the model does not run. The drop removes 286 parties across
+    the 32 metro-years, moves **no** row and **no** residual — a party not on
+    the ballot has no result, so it was never in the outcome side of the join —
+    and moves the largest single width by **0.605**. On the two Key-4 folds the
+    committed held-out score moves 1.3241 → 1.0516 at 2016 and 0.5791 → 0.4319
+    at 2021. MODEL-LOG §1.124.
+
+    **Memoised**, because it is ~45 seconds of `theta_prior` refits and file
+    reads and the suite calls it five times in one process. **The cache is keyed
+    on the `levels` module state it depends on, not on `codes` alone** —
+    `test_levers_are_live._patched` sets module constants process-globally and
+    restores them in a `finally`, and a `finally` cannot invalidate an
+    `lru_cache`. Without the state key a patch landing before a call here would
+    poison every later call and survive its own restore, silently, in the file
+    whose title is *"a measurement whose subject can move under it"*. A fresh
+    list is handed back each call so no caller can corrupt another's. Measured
+    2026-08-28: `test_levels_dispersion` 177s → 53s.
     """
+    return list(_residuals_cached(tuple(codes), _levels_state()))
+
+
+def _levels_state() -> tuple:
+    """Everything in `levels` that can change what `residuals` returns.
+
+    Read at CALL time, never bound as a default — the §1.33 lesson. If you add
+    a module-level lever to `levels.py` that reaches `theta_record`, `sd_for` or
+    `theta_prior`, it belongs here, or the memo will hand back an answer
+    measured under the old value.
+    """
+    return (levels.SD_FLOOR, levels.SD_CEILING, levels.SHRINK,
+            getattr(levels, "THETA_WINDOW", None),
+            tuple(sorted(getattr(levels, "THETA_EXCLUDE_TARGETS", ()) or ())),
+            getattr(levels, "FILTER_TYPE_A", None),
+            getattr(levels, "EXCLUDE_DEMARCATION_CROSSING", None))
+
+
+@functools.lru_cache(maxsize=None)
+def _residuals_cached(codes: tuple, _state: tuple) -> tuple:
     lge = sorted((y for y, e in cityconfig.CALENDAR.items()
                   if e.kind == "LGE" and e.results), key=int)
     out: list[tuple] = []
@@ -145,6 +190,15 @@ def residuals(codes=levels.METRO_CODES) -> list[tuple]:
                 "data/raw/elections/" + lge_tpl.replace("{CODE}", code))
             if not before or not after:
                 continue
+            # THE MODEL'S BASELINE, not the raw tally. See the docstring. NAMES
+            # ONLY — `ballot_roster` reads the party column of the target's
+            # result file and nothing else, which is the read
+            # `pools.contesting_parties` already makes and `run_model` acts on.
+            for _gone in levels.absent_from_ballot(
+                    before,
+                    levels.ballot_roster("data/raw/elections/"
+                                         + lge_tpl.replace("{CODE}", code))):
+                before.pop(_gone, None)
             priors, groups = levels.theta_prior(target, before, codes=codes)
             sds = groups.get("sd", {})
             history = groups.get("worth", {})
@@ -159,7 +213,7 @@ def residuals(codes=levels.METRO_CODES) -> list[tuple]:
                             math.log(after[party] / size) - math.log(centre),
                             float(sds.get(party, float("nan"))),
                             party, year, code, party in history))
-    return out
+    return tuple(out)
 
 
 def _fit_line(xs, ys):
@@ -183,7 +237,13 @@ def _clip(raw: float) -> float:
 
 
 def form_a(record):
-    """The COMMITTED estimator, rebuilt for comparison only.
+    """The committed estimator's SHAPE, rebuilt at the record's own size.
+
+    ⛔ **NOT the width the model uses, and NOT what Key 4 scores.** That is
+    :func:`held_out_nll`'s ``COMMITTED`` column, which reads `theta_prior`'s own
+    output. This function was labelled "A = committed" in the stage-1 table for
+    three months and `ITERATING.md`'s untradeable Key 4 was written against that
+    label; MODEL-LOG §1.124 records the correction and the two folds it moves.
 
     `sd_for` fits ``(log r − mu_all)²`` — squared deviation from the COMMON
     centre — against ``log(size)``, where the size is the party's size AT THE
@@ -192,6 +252,13 @@ def form_a(record):
     evaluated at a size and the two agree wherever a party's size is stable;
     §1.59's table uses `theta_prior`'s real output and is the authority on what
     the model does. This is for RANKING TWO FORMS, not for quoting a width.
+
+    The two differ by more than rounding — 0.7531 against 1.3241 at 2016, 0.2280
+    against 0.5791 at 2021 — and, decisively, **they can rank the same candidate
+    differently**, so "a relative comparison survives a biased instrument" is
+    false here. A/B/C remain useful as a controlled three-way comparison of
+    WHICH RESIDUAL is fitted, holding `_fit_line` constant. They are not the
+    floor.
     """
     everything = [o for v in record.values() for o in v]
     if not everything:
@@ -356,22 +423,137 @@ def form_c(record, target):
     return _fit_line(xs, ys)
 
 
+# Two-sided 95% Student-t critical values, df 1..30. A STANDARD TABLE, not a
+# judgement: these are quantiles of a named distribution and `scipy` is not
+# installed. `_t_crit` is used for the cluster band in `key4_delta`, where the
+# number of clusters is eight and a normal quantile would be 13% too narrow.
+_T95 = (12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228,
+        2.201, 2.179, 2.160, 2.145, 2.131, 2.120, 2.110, 2.101, 2.093, 2.086,
+        2.080, 2.074, 2.069, 2.064, 2.060, 2.056, 2.052, 2.048, 2.045, 2.042)
+
+
+def _t_crit(df: int) -> float:
+    if df < 1:
+        return float("nan")
+    return _T95[df - 1] if df <= len(_T95) else 1.960
+
+
+def level_df() -> float:
+    """`montecarlo.LEVEL_DF`, resolved AT CALL TIME.
+
+    Imported lazily and never bound as a default, for the §1.33 reason: the
+    same constant was once a default argument, and sweeping it changed nothing
+    for five values in a row while reading as "the tail does nothing".
+    """
+    import montecarlo
+    return float(montecarlo.LEVEL_DF)
+
+
+def nll_gauss(resid: float, width: float) -> float:
+    """Negative log density of ``resid`` under ``Normal(0, width)``.
+
+    **The constant is carried.** Every held-out NLL in this repository before
+    2026-08-28 was ``log w + r²/(2w²)`` — this quantity minus ½log2π =
+    0.918939. Dropping it is harmless inside one comparison and makes the
+    number meaningless on its own: it is what let "COMMITTED is about twice A"
+    be written down, a ratio on a scale whose zero was arbitrary and which
+    2006 already reports as negative. MODEL-LOG §1.124.
+    """
+    return (math.log(width) + resid ** 2 / (2 * width ** 2)
+            + 0.5 * math.log(2 * math.pi))
+
+
+def nll_t(resid: float, width: float, df: float | None = None) -> float:
+    """Negative log density under the predictive `montecarlo.log_shock` DRAWS.
+
+    **This is the score, and the Gaussian was the wrong member of the family.**
+    `log_shock` returns ``exp(sd·√((df−2)/df)·t_df)`` with ``df = LEVEL_DF = 7``,
+    so on the log scale the model's shock is Student-t with SCALE
+    ``s = width·√((df−2)/df)``, not a Gaussian of sd ``width``. The declared
+    80% band in `theta_prior` uses ±1.2816·sd and the drawn one is ±1.196·sd —
+    the two agree in the body and differ entirely in the tail, which is where
+    this fold's score lives.
+
+    The size of the error: at ``w = SD_FLOOR`` and ``|r| = 2`` — a COPE-sized
+    collapse — the Gaussian charges 88.9 nats and the t7 charges 14.4. A factor
+    of six on ONE observation in a fold of 85. Every candidate this key has
+    ever been used on (the Type A filter, state C, the `THETA_WINDOW` arms)
+    works by removing or reweighting far-tail observations, so the Gaussian
+    mis-ranked exactly the class of change it was pointed at.
+    """
+    df = level_df() if df is None else float(df)
+    scale = width * math.sqrt((df - 2.0) / df)
+    z = resid / scale
+    const = (0.5 * math.log(df * math.pi)
+             + math.lgamma(df / 2.0) - math.lgamma((df + 1.0) / 2.0))
+    return (math.log(scale) + const
+            + 0.5 * (df + 1.0) * math.log1p(z * z / df))
+
+
+def _score(pairs, df=None) -> dict:
+    """Score ``[(residual, width, cluster)]`` and decompose by cluster.
+
+    Returns the per-observation mean (`mean`), the mean of the per-cluster
+    means (`cluster_mean`) and the cluster means themselves. **The two means
+    differ, and when they disagree one metro-year is driving the answer**: the
+    per-observation mean weights a metro-year with 20 parties four times one
+    with 5, which for a clustered design is the wrong weighting and for a
+    per-observation loss is the right one. Report both; the disagreement is the
+    diagnostic.
+
+    `w_eff` is the width an honest Gaussian would have needed to score this
+    badly, ``exp(NLL_gauss − ½)``. It is the reader-facing version of the
+    number: a log score has no natural zero and 2006's is negative, so it
+    cannot be quoted as a ratio, but an effective width has units and can.
+    """
+    if not pairs:
+        return None
+    clusters: dict[tuple, list[float]] = {}
+    tot_t = tot_g = 0.0
+    for resid, width, key in pairs:
+        t, g = nll_t(resid, width, df), nll_gauss(resid, width)
+        tot_t += t
+        tot_g += g
+        clusters.setdefault(key, []).append(t)
+    n = len(pairs)
+    cmeans = {k: sum(v) / len(v) for k, v in sorted(clusters.items())}
+    vals = list(cmeans.values())
+    return {"nll": tot_t, "mean": tot_t / n, "n": n,
+            "mean_gauss": tot_g / n,
+            "w_eff": math.exp(tot_g / n - 0.5),
+            "clusters": len(cmeans), "cluster_means": cmeans,
+            "cluster_mean": sum(vals) / len(vals)}
+
+
 def held_out_nll(codes=levels.METRO_CODES) -> dict:
-    """Out-of-sample NLL per target for both forms. MODEL-LOG §1.61 stage 1.
+    """Out-of-sample NLL per target. ``COMMITTED`` is Key 4; A/B/C rank forms.
 
-    For each target the coefficients are fitted from the record strictly before
-    it — which is what the model does — and the resulting widths are scored
-    against that target's realised residuals under
+    **``COMMITTED`` is the width the model draws with.** It is
+    ``groups["sd"][party]`` from the `theta_prior` call `residuals` makes with
+    the baseline `run_model` passes — ``sd_for(size at the target)``, clamp and
+    all, off-ballot parties already dropped — so it moves when `levels.py`
+    moves. There is no intercept or slope to report because there is no single
+    line: `sd_for` is refitted per metro-year.
 
-        NLL = sum[ log w + r^2 / (2 w^2) ]
+    **A, B and C do NOT.** They are rebuilt from `_fit_line` to isolate WHICH
+    RESIDUAL is fitted. A's fit regresses on the record's own reliability-
+    weighted size where `sd_for` regresses on the party's size at the target,
+    and A is fitted ONCE per fold where `sd_for` is refitted per metro-year.
+    (All four are EVALUATED at the same point — the party's size at the target.
+    An earlier version of this docstring said otherwise and was wrong.) Until
+    2026-08-28 the stage-1 table labelled A "committed" and `ITERATING.md`'s
+    untradeable Key 4 was written against it, so a change to `levels.sd_for`
+    could move the model and leave the gate where it was — the seam
+    `DUPLICATION-AUDIT.md` had already named from the other side.
 
-    a proper scoring rule for dispersion: it punishes a width that is too small
-    through the second term and one that is too large through the first, so
-    neither widening nor narrowing alone can win. Lower is better.
+    **⛔ KEY 4 IS A LAYER FLOOR, NOT THE MODEL'S PREDICTIVE SCORE.** It scores
+    the θ WIDTH estimator about `theta_prior`'s OWN centre. The model does not
+    draw about that centre: `make_drawer` is handed `centres[party]` from
+    `blended_centres`, which for any party the spine reaches is the spine's
+    level, then tilted by by-elections and polls. Saying otherwise would repeat
+    the error this function was rewritten to fix, one level up.
 
-    Returns per-target totals and per-observation means, plus the metro-year
-    cluster count, because two totals over different n are not comparable and
-    the clusters are what rule 11 counts.
+    MODEL-LOG §1.124.
     """
     rows = residuals(codes=codes)
     by_target: dict[str, list] = {}
@@ -385,19 +567,90 @@ def held_out_nll(codes=levels.METRO_CODES) -> dict:
                 "C": form_c(labelled_record(target, codes=codes), target)}
         entry = {"n": len(sel),
                  "clusters": len({(r[4], r[5]) for r in sel})}
+        # THE COMMITTED WIDTH, read off `theta_prior` rather than rebuilt. A
+        # nan width cannot be scored; it is counted, and `unscored` must be
+        # zero for the fold to be comparable with A/B/C, which are scored on
+        # every row. `test_key_4_...` asserts it.
+        good = [r for r in sel if r[2] == r[2]]
+        entry["COMMITTED"] = _score([(r[1], r[2], (r[4], r[5])) for r in good])
+        if entry["COMMITTED"]:
+            entry["COMMITTED"]["unscored"] = len(sel) - len(good)
         for name, coef in fits.items():
             if coef is None:
                 entry[name] = None
                 continue
-            total = 0.0
-            for size, resid, _w, _p, _y, _c, _had in sel:
-                width = _clip(math.exp(0.5 * (coef[0] + coef[1]
-                                              * math.log(max(size, 1e-5)))))
-                total += math.log(width) + resid ** 2 / (2 * width ** 2)
-            entry[name] = {"nll": total, "mean": total / len(sel),
-                           "intercept": coef[0], "slope": coef[1]}
+            entry[name] = _score(
+                [(r[1], _clip(math.exp(0.5 * (coef[0] + coef[1]
+                                              * math.log(max(r[0], 1e-5))))),
+                  (r[4], r[5])) for r in sel])
+            entry[name].update(intercept=coef[0], slope=coef[1])
         out[year] = entry
     return out
+
+
+def key4_delta(incumbent: dict, candidate: dict, fold: str) -> dict:
+    """The paired, CLUSTERED comparison Key 4's pass rule is stated against.
+
+    ``incumbent`` and ``candidate`` are ``{(party, year, code): (resid, width)}``
+    — one entry per held-out observation, each arm scored under its own
+    `theta_prior` centre AND width, because a change moves both.
+
+    **Why this exists.** Key 4 was written as a bare inequality between two
+    per-observation means. That is indefensible in a document whose rule 11
+    says metros within a cycle share one national swing, for four reasons at
+    once: no band, so a truly neutral change fails about half the time per fold
+    and about three quarters of the time across two; no clustering, so 97
+    observations are treated as 97 facts when they are 8 metro-years; a loss
+    quadratic in the residual, so the mean is a summary of its two worst rows;
+    and folds that are not independent of each other, 2016's record being a
+    subset of 2021's. §1.124's own decisive counterexample is a 0.0164
+    nats/observation move — which is almost certainly inside this band, and is
+    why that finding now rests on the MECHANISM and not on the number.
+
+    **The population must be identical.** Denominator drift is the oldest way
+    to make a scoring instrument lie, and a candidate that changes
+    `theta_prior`'s coverage changes which parties are scored. This REFUSES
+    rather than reconciling: score the intersection deliberately and report
+    both counts, or do not claim a comparison.
+
+    Returns the per-observation delta, the per-cluster deltas, a t(G−1)
+    interval on the cluster means, and the sign count — which at eight clusters
+    is the statistic to trust, and is free.
+    """
+    del fold                                  # the caller has already selected
+    if incumbent.keys() != candidate.keys():
+        only_i = sorted(set(incumbent) - set(candidate))[:5]
+        only_c = sorted(set(candidate) - set(incumbent))[:5]
+        raise ValueError(
+            f"Key 4 population moved: incumbent has {len(incumbent)} "
+            f"observations, candidate {len(candidate)}. Two means over "
+            f"different populations are not a comparison. Only in incumbent: "
+            f"{only_i}; only in candidate: {only_c}. Score the intersection "
+            f"deliberately and report both counts.")
+    per_obs, clusters = {}, {}
+    for k, (r_i, w_i) in incumbent.items():
+        r_c, w_c = candidate[k]
+        d = nll_t(r_c, w_c) - nll_t(r_i, w_i)
+        per_obs[k] = d
+        clusters.setdefault((k[1], k[2]), []).append(d)
+    cmeans = [sum(v) / len(v) for v in clusters.values()]
+    g = len(cmeans)
+    pooled = sum(per_obs.values()) / len(per_obs)
+    cluster_mean = sum(cmeans) / g
+    if g > 1:
+        var = sum((x - cluster_mean) ** 2 for x in cmeans) / (g - 1)
+        se = math.sqrt(var / g)
+        lo, hi = (cluster_mean - _t_crit(g - 1) * se,
+                  cluster_mean + _t_crit(g - 1) * se)
+    else:
+        se, lo, hi = float("nan"), float("-inf"), float("inf")
+    return {"n": len(per_obs), "clusters": g,
+            "pooled_delta": pooled, "cluster_delta": cluster_mean,
+            "se": se, "ci95": (lo, hi),
+            "worse_clusters": sum(1 for x in cmeans if x > 0),
+            # THE FLOOR, and it is a floor: a worsening whose interval covers
+            # zero is `undetermined` and does not block. ITERATING.md Key 4.
+            "fails": lo > 0.0}
 
 
 def cluster_bootstrap(rows, rng) -> tuple[float, float]:
@@ -461,24 +714,87 @@ def report() -> str:
             "",
             f"  SD_FLOOR={levels.SD_FLOOR}  SD_CEILING={levels.SD_CEILING}  "
             f"LOG_CHI2_BIAS={levels.LOG_CHI2_BIAS:.6f} (unused)"]
-    out += ["", "MODEL-LOG §1.61 stage 1 — held-out NLL per observation, "
-            "lower is better.", "A = committed, B = refit leave-one-observation-"
-            "out, C = refit leave-one-cycle-out.",
-            f"{'target':>8} {'n':>5} {'cy':>4} {'A':>10} {'B':>10} {'C':>10}"
-            f"  winner"]
-    for year, entry in held_out_nll().items():
+    table = held_out_nll()
+    out += ["", "HELD-OUT NLL PER OBSERVATION under the predictive the model "
+            "DRAWS: log θ = log(centre)", f"  + s·t_df, s = w·√((df−2)/df), "
+            f"df = LEVEL_DF = {level_df():g}. Lower is better. Constants "
+            f"carried, so these are", "  log scores and not log scores minus "
+            "an unstated offset.",
+            "",
+            "  COMMITTED is ITERATING.md's KEY 4: the width `theta_prior` "
+            "actually handed the party,",
+            "  sd_for(size at the target) off the baseline `run_model` passes, "
+            "clamp and all. It is",
+            "  the only column a change to levels.py is guaranteed to move.",
+            "  A / B / C are REBUILDS that differ only in which residual is "
+            "fitted, at a common",
+            "  `_fit_line`. A is NOT the committed width. MODEL-LOG §1.61 "
+            "stage 1, corrected §1.124.",
+            "",
+            "  ⛔ THIS IS A LAYER FLOOR, NOT THE MODEL'S PREDICTIVE SCORE. It "
+            "scores the θ WIDTH",
+            "  about `theta_prior`'s OWN centre; the model draws about the "
+            "SPINE's centre, tilted",
+            "  by by-elections and polls. Do not quote it as the model's "
+            "estimation loss.",
+            "",
+            f"{'target':>8} {'n':>5} {'cy':>4} {'COMMITTED':>10} {'A':>9} "
+            f"{'B':>9} {'C':>9}  {'gauss':>8} {'w_eff':>8}  best A/B/C"]
+    for year, entry in table.items():
         cells, have = [], {}
         for name in ("A", "B", "C"):
             blk = entry.get(name)
-            cells.append(f"{blk['mean']:>10.4f}" if blk else f"{'—':>10}")
+            cells.append(f"{blk['mean']:>9.4f}" if blk else f"{'—':>9}")
             if blk:
                 have[name] = blk["mean"]
+        com = entry.get("COMMITTED")
         best = min(have, key=have.get) if have else "—"
-        out.append(f"{year:>8} {entry['n']:>5} {entry['clusters']:>4} "
-                   + " ".join(cells) + f"  {best}")
-    out += ["", "  B loses both usable folds; C wins one and loses one, which "
-            "§1.61 calls undetermined.", "  Neither reached stage 2. The model "
-            "is unchanged. MODEL-LOG §1.62."]
+        out.append(
+            f"{year:>8} {entry['n']:>5} {entry['clusters']:>4} "
+            + (f"{com['mean']:>10.4f}" if com else f"{'—':>10}") + " "
+            + " ".join(cells)
+            + (f"  {com['mean_gauss']:>8.4f} {com['w_eff']:>8.2f}" if com
+               else f"  {'—':>8} {'—':>8}")
+            + f"  {best}"
+            + (f"  ({com['unscored']} unscored)"
+               if com and com.get("unscored") else ""))
+    out += ["",
+            "  `gauss` is the SAME widths scored as a Gaussian — the family "
+            "every held-out NLL in",
+            "  this repository used before 2026-08-28, but with the ½log2π = "
+            "0.918939 those figures",
+            "  dropped. Subtract it to reconcile with a number quoted in "
+            "§1.61, §1.74 or §1.82.",
+            "  `w_eff` = exp(gauss − ½): the width an honest Gaussian would "
+            "have needed to score",
+            "  this badly. It has units, which a log score does not — note "
+            "2006's score is NEGATIVE,",
+            "  so nothing here may be quoted as a RATIO.",
+            ""]
+    for year in ("2016", "2021"):
+        com, a = table[year].get("COMMITTED"), table[year].get("A")
+        if com and a:
+            out.append(
+                f"  KEY 4, fold {year}: COMMITTED {com['mean']:.4f} against "
+                f"the rebuild A {a['mean']:.4f} — a difference of "
+                f"{com['mean'] - a['mean']:+.4f} nats/obs "
+                f"(effective width {com['w_eff']:.2f} against "
+                f"{a['w_eff']:.2f}).")
+    out += ["  The two columns are different estimators and CAN RANK A "
+            "CANDIDATE DIFFERENTLY. That is",
+            "  not hypothetical. But the finding rests on the MECHANISM — A is "
+            "rebuilt from",
+            "  `_fit_line` and reaches `levels` only through the clamp, so it "
+            "cannot respond to a",
+            "  change in `sd_for` at all — and NOT on the size of any one gap, "
+            "which is inside the",
+            "  clustering noise. Use `key4_delta` for a comparison; a bare "
+            "difference of means is not one.",
+            "",
+            "  B loses both usable folds; C wins one and loses one, which "
+            "§1.61 calls undetermined.",
+            "  Neither reached stage 2. The model is unchanged. MODEL-LOG "
+            "§1.62, §1.124."]
     return "\n".join(out)
 
 

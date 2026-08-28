@@ -51,14 +51,34 @@ def test_the_harness_takes_its_width_from_the_model_and_never_rebuilds_it():
         f"`theta_prior`'s `groups['sd']` no longer covers every party it "
         f"returns a prior for, so §1.59's `sd_for` column and its `measured` "
         f"column are over different populations.")
-    # and it must be the model's own number, not a lookalike
-    year = sorted({r[4] for r in rows})[-1]
-    code = next(r[5] for r in rows if r[4] == year)
+    # AND IT MUST BE THE MODEL'S OWN NUMBER, NOT A LOOKALIKE — including the
+    # BASELINE. `run_model` drops parties that are not on the target's ballot
+    # before it calls `theta_prior`, and `sd_for`'s fit is built off whatever
+    # baseline it is handed, so passing the raw citywide tally here fits a
+    # different line and returns a different width for EVERY party. This test
+    # rebuilt with the raw tally until 2026-08-28 and agreed with a harness
+    # that was making the same mistake. MODEL-LOG §1.124.
+    #
+    # Every metro-year, not one: the divergence that was missed was largest at
+    # metros with the most off-ballot parties, and a single spot-check is how
+    # it survived. Costs nothing — `residuals` is memoised and `theta_prior` is
+    # cheap next to it.
+    for year in sorted({r[4] for r in rows}):
+        for code in sorted({r[5] for r in rows if r[4] == year}):
+            _check_one(rows, year, code)
+
+
+def _check_one(rows, year, code):
     target = cityconfig.use_target(year)
     npe = cityconfig.preceding(year, "NPE")
+    lge_tpl = cityconfig.CALENDAR[year].results
     before = levels._citywide(
         "data/raw/elections/"
         + cityconfig.CALENDAR[npe].results.replace("{CODE}", code))
+    for gone in levels.absent_from_ballot(
+            before, levels.ballot_roster(
+                "data/raw/elections/" + lge_tpl.replace("{CODE}", code))):
+        before.pop(gone, None)
     _priors, groups = levels.theta_prior(target, before)
     for size, _resid, width, party, y, c, _had in rows:
         if y != year or c != code:
@@ -111,10 +131,11 @@ def test_the_floor_binds_at_the_top_of_the_ballot_and_only_there():
     assert hit * 3 > total, (
         f"SD_FLOOR={levels.SD_FLOOR} binds on {hit} of {total} observations at "
         f"or above 15% of the vote — under a third. §1.59 measured 20 of 37 on "
-        f"nine city-years and §1.77 measured 26 of 64 on sixteen; a further "
-        f"fall means the fit is rising through the floor and the constant is "
-        f"on its way to inert. That is a finding, not a failure: measure it, "
-        f"write it up, and move this bound.")
+        f"nine city-years, §1.77 measured 26 of 64 on sixteen, and §1.124 "
+        f"measures 32 of 64 once the harness uses the baseline `run_model` "
+        f"actually passes; a fall means the fit is rising through the floor "
+        f"and the constant is on its way to inert. That is a finding, not a "
+        f"failure: measure it, write it up, and move this bound.")
     # WHERE §1.59's SECOND FINDING ACTUALLY LIVES is below 1% of the vote —
     # the two bands carrying 250 of the 314 sub-5% observations and the two
     # whose intervals exclude the model's width most comfortably. Nothing may
@@ -127,16 +148,17 @@ def test_the_floor_binds_at_the_top_of_the_ballot_and_only_there():
         f"floor setting the width for any of those parties would partly "
         f"measure the floor instead. Re-run `src/theta_residual.py` before "
         f"quoting it.")
-    # BETWEEN 1% AND 5% A HANDFUL IS TOLERATED, AND EXACTLY ONE IS EXPECTED.
-    # This was `== 0` until 2026-08-23 and it began failing when §1.70 doubled
-    # the panel — not because the floor spread, but because the enlarged record
-    # admits a TARGET 2011 fit at all, and 2011 is the target with the least
-    # history behind its `sd_for` line. The single case is MINORITY_FRONT at
-    # eThekwini, target 2011, at **4.7997% of the vote** — a fifth of a point
-    # under the bin edge, in the one fold whose line is built on two prior
-    # cycles. The next smallest fitted width below 5% is 0.1773, well clear.
-    # So: one boundary observation, not a floor that has started setting the
-    # mid-ballot width. MODEL-LOG §1.77.
+    # BETWEEN 1% AND 5% A HANDFUL IS TOLERATED. IT IS CURRENTLY ZERO.
+    # This was `== 0` until 2026-08-23, when §1.70's doubled panel admitted a
+    # TARGET 2011 fit and MINORITY_FRONT at eThekwini — 4.7997% of the vote, a
+    # fifth of a point under the bin edge — landed on the floor. **It is off it
+    # again as of §1.124**: correcting the harness to use `run_model`'s
+    # baseline WIDENS the fit below 5% (median width 0.272 → 0.300 in this
+    # band) and narrows it at the top, because the off-ballot parties being
+    # dropped sit at the small end of the size axis where the slope is
+    # steepest. The bound is kept loose rather than tightened back to `== 0`:
+    # one boundary observation is not a finding either way, and re-tightening
+    # would make a bin edge into a tripwire. MODEL-LOG §1.77, §1.124.
     mid = on_floor("1-5%")[0]
     below5 = sum(on_floor(b)[1] for b in ("<0.2%", "0.2-1%", "1-5%"))
     assert mid * 50 <= below5, (
@@ -177,6 +199,135 @@ def _bin_of(size: float) -> str:
         if lo <= size < hi:
             return name
     return ">=15%"
+
+
+# --------------------------------------------------------------------------
+# KEY 4's INSTRUMENT. MODEL-LOG §1.124.
+# --------------------------------------------------------------------------
+
+# The Key-4 baselines, re-recorded 2026-08-28 when the instrument was fixed
+# three ways in one commit: the baseline `residuals` passes `theta_prior` became
+# the one `run_model` passes (off-ballot parties dropped), the score became the
+# Student-t the model DRAWS rather than a Gaussian it does not, and the log
+# score's constant is carried. **Re-record these deliberately and say why here.**
+# A silent re-record destroys the only guard on an untradeable floor.
+#
+#   before, Gaussian without its constant, raw baseline:  2016 1.3241  2021 0.5791
+#   after,  t7 with constants, model baseline:            2016 1.1363  2021 1.1425
+#
+# Note what the fix did to the SHAPE: under the Gaussian the two folds looked
+# 2.3x apart, and under the predictive the model actually draws they are within
+# 0.006 nats of each other. The spread was the Gaussian tail penalty on three
+# known party-structural events, not a property of the width layer.
+KEY4_BASELINE = {"2016": 1.1363, "2021": 1.1425}
+
+
+def test_key_4_is_scored_on_the_width_the_model_actually_used():
+    """`held_out_nll`'s COMMITTED column, not its A column, is the floor.
+
+    **This test exists because the two were confused for three months.**
+    `ITERATING.md`'s Key 4 said, verbatim, "Held-out NLL on `theta_residual`'s
+    folds must not worsen in either fold", and the stage-1 table it pointed at
+    labelled column A "committed". `form_a`'s own docstring says it is not: its
+    fit regresses on the record's own reliability-weighted size where
+    `levels.sd_for` regresses on ``baseline.get(party)``, and it is fitted once
+    per fold where `sd_for` is refitted per metro-year. So an untradeable floor
+    was being read off an estimator the model does not run — the same seam
+    `DUPLICATION-AUDIT.md` flagged from the other side.
+
+    Asserted here: COMMITTED scores `theta_prior`'s own widths, recomputed
+    independently of `held_out_nll`'s loop; every row is scored, so the column
+    is comparable with A/B/C; and the recorded baselines still hold.
+    `test_a_change_to_levels_moves_key_4` carries the mechanism half.
+    """
+    rows = TR.residuals()
+    table = TR.held_out_nll()
+
+    by_target: dict[str, list] = {}
+    for row in rows:
+        by_target.setdefault(row[4], []).append(row)
+
+    for year, entry in table.items():
+        blk = entry["COMMITTED"]
+        assert blk, f"fold {year} has no COMMITTED column at all"
+        # EVERY ROW MUST BE SCORED, or COMMITTED's mean is over a different
+        # population than A/B/C's and the columns cannot be read against each
+        # other. A `nan` width is structurally unreachable today — every party
+        # `residuals` emits is in the baseline, hence in `priors`, hence a key
+        # of `groups["sd"]` — and this is what says so if that ever changes.
+        assert blk["unscored"] == 0, (
+            f"fold {year}: {blk['unscored']} observations have no usable "
+            f"width, so COMMITTED is averaged over {blk['n']} where A/B/C are "
+            f"averaged over {entry['n']}. Two means over different "
+            f"populations are not a comparison.")
+        assert blk["n"] == entry["n"] == len(by_target[year])
+
+        scored = [(r[1], r[2], (r[4], r[5])) for r in by_target[year]]
+        mine = sum(TR.nll_t(resid, w) for resid, w, _ in scored) / len(scored)
+        assert abs(mine - blk["mean"]) < 1e-9, (
+            f"fold {year}: COMMITTED reports {blk['mean']:.6f}; scoring "
+            f"`theta_prior`'s own widths under the same predictive gives "
+            f"{mine:.6f}. The column is no longer the committed estimator.")
+
+    for year, expected in KEY4_BASELINE.items():
+        got = table[year]["COMMITTED"]["mean"]
+        assert abs(got - expected) < 5e-4, (
+            f"KEY 4, fold {year}: the committed held-out NLL is {got:.4f} "
+            f"against a recorded {expected:.4f}. `ITERATING.md` declares this "
+            f"floor UNTRADEABLE, so a move is either a finding or a "
+            f"regression and it is never nothing. Measure it with "
+            f"`theta_residual.key4_delta` — a bare difference of means is not "
+            f"a comparison — then re-record the constant above WITH THE "
+            f"REASON.")
+
+
+def test_a_change_to_levels_moves_key_4():
+    """The invariant whose absence caused the bug: the floor must be LIVE.
+
+    `form_a` is rebuilt from `_fit_line` and reaches `levels` only through the
+    clamp, so a change to `sd_for`'s covariate or weighting moves the model and
+    leaves A exactly where it was. That is the defect, stated as a property,
+    and it is the thing worth testing — an assertion that COMMITTED merely
+    *differs* from A by some margin would go stale the moment someone improved
+    the width layer, which is what Key 4 exists to encourage.
+
+    **This also guards the memo.** `residuals` is `lru_cache`d, and
+    `test_levers_are_live._patched` sets `levels` constants process-globally
+    and restores them in a `finally` — which cannot invalidate a cache. The
+    cache is therefore keyed on `_levels_state()`, and the third leg below is
+    what says so: after the patch is restored, the original answer must come
+    back, not the patched one.
+
+    One metro, because the property is per-observation and eight would cost
+    45 seconds to say the same thing.
+    """
+    one = ("JHB",)
+    before = {(r[3], r[4]): r[2] for r in TR.residuals(codes=one)}
+    assert before, "no residuals for JHB alone — the subset is wrong"
+
+    was = levels.SD_FLOOR
+    try:
+        levels.SD_FLOOR = 0.40
+        during = {(r[3], r[4]): r[2] for r in TR.residuals(codes=one)}
+    finally:
+        levels.SD_FLOOR = was
+
+    assert during.keys() == before.keys(), \
+        "the patch changed the POPULATION, not just the widths"
+    moved = [k for k in before if abs(before[k] - during[k]) > 1e-12]
+    assert moved, (
+        "raising `levels.SD_FLOOR` from 0.15 to 0.40 moved not one committed "
+        "width. Key 4 is no longer measuring anything `levels.py` controls — "
+        "which is exactly the state the COMMITTED column was added to end.")
+    assert min(during.values()) >= 0.40 - 1e-12, (
+        "a width came back below the patched floor; `sd_for`'s clamp is not "
+        "reading the module constant at call time")
+
+    after = {(r[3], r[4]): r[2] for r in TR.residuals(codes=one)}
+    assert after == before, (
+        "the memo served a result measured under the PATCHED `levels` after "
+        "the patch was restored. `_levels_state()` is not keying on everything "
+        "that matters — add the constant you just introduced to it.")
 
 
 if __name__ == "__main__":
