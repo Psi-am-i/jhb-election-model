@@ -1,153 +1,136 @@
-# Handover — 2026-08-27
+# Handover — 2026-08-28
 
-**Read this, then `AGENT-PLAN.md`, then `NULL-RESULTS.md`.** Everything below is
-committed; the working tree is clean apart from `new data from statsSA/`, which
-holds two `.inetloc` email shortcuts and no data.
+**Read this, then `ITERATING.md`'s Key 4, then `POOLS-REEMIT-QUEUE.md`.**
+Everything is committed; the tree is clean. Branch
+`splinter-rule-and-historical-tail`, **suite 370 passed / 0 failed / 10
+skipped**, freeze re-taken and verifying.
 
-**Branch `splinter-rule-and-historical-tail`. Suite 360 passed, 0 failed,
-10 skipped.** 20 days to nomination lists (16 September), 69 to polling
-(4 November).
-
----
-
-## ⛔ THE ONE THING TO CHECK BEFORE MEASURING ANYTHING
-
-**`data/processed/history.json` IS STALE RELATIVE TO THE TREE.** It is the
-scoreboard committed at `2742785` on 24 August. Nine commits and a day of work
-sit between it and HEAD, and the current tree has **never been measured**.
-
-Today that exact staleness caused a wrong retraction: a +4 coherent-seat
-difference was attributed to this session's changes when it predated them
-entirely (§1.103). **A number carried in a file is not a measurement of the tree
-in front of you.** Before any paired comparison, run the baseline on the current
-tree.
+**19 days to nomination lists (16 September), 68 to polling (4 November).**
 
 ---
 
-## What was done today, in four commits
+## ⛔ THE NEXT ORDER OF BUSINESS: the pollster's ranked list
 
-| commit | what |
-|---|---|
-| `7de0cd8` | Phase A: 111 value tests over 7 seams, mutation-verified. The 187% registration rate found, repaired, measured, and **reverted**. `pools.artefact_lock`. |
-| `9348aa5` | F12 isolated: neutral. A retraction of a retraction. Goldens re-recorded on evidence. |
-| `2636730` | `NULL-RESULTS.md` and the delivery-proof instrument. Ward-winner key. Absorption accounting. |
-| `76ce46a` | The counters' first act: refuting the change that shipped them. |
+Not the finding list. **The instrument.**
 
-## Where we are in the plan
-
-`AGENT-PLAN.md` — its **SPINE** section is the frame: a declaration is a claim,
-a read log is the evidence, and this is `ARCHITECTURE.md`'s C layer.
-
-| workstream | state |
-|---|---|
-| Phase A — declare and test the seams | ✅ **done**, mutation-verified |
-| Null-results instrument | 🟡 **built, ~1/3 covered** |
-| B2 — sweep the constants | ⛔ **blocked, correctly** — see below |
-| 34 neutral findings from the triage | ⬜ not started |
-| Bottom-up model (owner's proposal) | ⬜ not started |
-| Pool-vs-`dev` experiment | ⬜ not started — **now has a metric that can see it** |
-| Phase B — the bus | ⬜ not started; **reversed to worth doing**, see SPINE |
-| Phase C — extract 14 stages | ⬜ deliberately not started; deep surgery, high risk |
-| Track A publishing (A2, A4) | ⛔ **untouched, and the calendar is real** |
-
-**B2 is blocked on purpose.** Its pre-registration found **48 constants, 42 with
-a blocker**, the largest class being undeliverable — a module constant set in the
-parent does not cross the `ProcessPoolExecutor` boundary, so a sweep fans out to
-eight workers reading the default and reports a **flat, confident null**. Running
-B2 before the delivery proof covers those constants would produce a page of
-authoritative nothing. That is the whole reason the last two commits exist.
+| # | do | why |
+|---|---|---|
+| **1** | **Fix Key 4's instrument** | ⛔ **before F22+F23** — see below |
+| 2 | Restate Key 4 as a **quantity**, not a file path | nearly free |
+| 3 | Record that the true committed held-out loss is **~2× the logged figure** | a correction to the record |
+| 4 | Add a **bias floor `τ²`** before enabling `inverse_variance` | the lever stays off until then |
+| 5 | `v_spine` should use `ln(high/low)/(2×1.2816)` | two minutes, uses both tails |
+| 6 | Investigate: the by-election weighting is **worse than uniform** | number in hand, nobody acted |
+| 7 | Per-party turnout sensitivity, **hierarchical**, behind a lever | real sign, unvalidatable magnitude |
 
 ---
 
-## Open work, in the order I would take it
+## 1–3. Key 4 measures a stand-in, and it is untradeable
 
-**1. Extend delivery-proof coverage.** 32 of ~90 module constants on the model
-path are declared; 205 exist across `src/`. Entirely uncovered: `pools.py`'s 15
-including **the whole `ALPHA_*` family** — the one `NULL-RESULTS.md` names as
-feeding 83–98% of drawn variance — plus `fold.py`'s *second* `SHARE_FLOOR` and
-its own `LEVEL_FLOOR`, `benchmarks`, `turnout`, `parties`, `cityconfig`.
-Parallelises well: one agent per module, disjoint files.
+`ITERATING.md` says: *"Held-out NLL on `theta_residual`'s folds must not worsen
+in either fold."* It is **untradeable**, and exists specifically because without
+it the bar would have shipped the Type A filter.
 
-**2. `PYTHONHASHSEED`.** One line in the runners. §1.104: two runs of unmodified
-HEAD disagree without it, at ~5e-16. Not urgent for accuracy, but
-`forecast_frozen.json` is published and the honest guarantee is *"identical to
-the last bit under a fixed hash seed"*.
+**`theta_residual.form_a`'s own docstring says it is not the committed
+estimator** — it uses *"the record's own weighted size instead"* of the party's
+size at the target, and says *"This is for RANKING TWO FORMS, NOT FOR QUOTING A
+WIDTH."*
 
-**3. F12 is genuinely unfixed, and I now know why my fix could not work.**
-Measured on Johannesburg 2021: `solve_rounds / solve_calls == exactly 40.0` — the
-early stop **never fires**. The reachable-only gap is **1.37e-5, thirteen times
-`tol`**, because the mass the 27 sub-floor parties are stuck holding is *stolen
-from every other party through the row renormalisation*. **The target is the
-theft, not the convergence test.** This is a real, measured, per-draw deviation
-from the drawn target that `montecarlo.py:1746` claims does not happen.
+| fold | true committed | `theta_residual` prints |
+|---|---|---|
+| 2016 | **1.3241** | 0.7531 |
+| 2021 | **0.5791** | 0.2280 |
 
-**4. The 34 neutral findings** (§1.98). Worktree-isolated, one agent per coupling
-group. Note **F1+F2+F7 are one repair**: fixing the `spine_k or SPINE_K` idiom
-alone makes `k=0` deliverable and `levels.py:882` then raises `ZeroDivisionError`
-for ten parties at 2026.
+**And they rank candidates differently**: a variant improves on the printed
+column and worsens on the true estimator at 2021 (0.5791 → 0.5955) — a pass on
+one, a fail of an untradeable floor on the other. So the usual defence, *"a
+relative comparison survives a biased instrument"*, is **false here** and the
+counterexample is already in hand.
 
-**5. Pool-vs-`dev`** — the owner asked for this and it has never run. It must use
-`PartyFit.rates` (the appeal rate, with Duncan-Davis bounds), **not** the stored
-`members` transpose, and it must be scored on the **ward-winner key**, because
-seat error structurally cannot see geography.
+**F22+F23 is a change to the size-dispersion fit — exactly what the stand-in
+mis-evaluates.** Running it against today's Key 4 gives a number uninterpretable
+in either direction. **The hard part is done**: the true estimator has been
+rebuilt per (target, metro) and verified to reproduce `theta_prior`'s widths
+exactly. What remains is moving it into `theta_residual.py` as a labelled column
+and re-baselining both folds.
 
-**6. Track A publishing.** `content/joburg/stats.toml` still carries sources
-reading `run:turnout_tilt_da=1` — **a lever deleted from `run_model`**. First
-thing a hostile reader sees.
+**Restate Key 4 as:** *held-out NLL of the committed width estimator — `sd_for`
+evaluated at the party's size at the target, as `theta_prior` computes it — on
+forward-validated residuals, by fold; folds 2016 and 2021.* Then
+`theta_residual.py` is one implementation of it rather than being it.
 
----
+## 4–5. `bye_weight_mode` is shipped and must stay OFF
 
-## Rules this session paid for
+`"fixed"` (default) or `"inverse_variance"`. Derived weights at joburg 2026:
+EFF 0.722, ANC 0.704, DA 0.528, ASA 0.413, **MK 0.216**, PA 0.204, IFP 0.132,
+AIC 0.089, ATM 0.031. Total 2.005pp of centre.
 
-**A constructed fixture proves a MECHANISM, never a MAGNITUDE.** Three claims
-were asserted from toys and failed on the panel: F12 "bit-identical", the 1e-6
-"float noise" (wrong by ten orders — the floor is **1e-16**, measured), and "3
-rounds instead of 40" (never fires). Toys answer *does this path exist*; only the
-panel answers *how much*.
+**The construction is correct and one term is missing.** ANC and EFF get
+`w > 0.70` — the by-elections outweigh the spine for the two largest parties —
+and their dominant error is **bias, not variance**: measured turnout
+correlations of **+0.720** and **+0.842**. Inverse-variance cannot see a bias it
+was not given, and fifteen contests sharing one selection mechanism are not
+fifteen independent draws.
 
-**Never `git checkout` a whole file to revert part of it.** Reverting the
-cap-and-blend took F14 — the ward-roll fix the owner had explicitly kept — with
-it. A test caught it. Commit smaller and sooner.
-
-**Queue, do not overlap.** Two background jobs raced on `pools_*.json` twice in
-thirty minutes, leaving 18 specs with two different `pools_sha`. `artefact_lock`
-now makes it fail loudly, but the discipline is still *one job at a time*. If a
-run ever reports mixed `pools_sha`, stop and re-emit before believing anything.
-
-**"No change" is four answers.** `UNDELIVERED` / `ABSORBED` / `CANCELLED` /
-`INERT`, and only the last is a result.
-
-**Geography reaches the seat score only through overhang**, which fires in
-**8.1% of draws** through **ANC and IFP alone**. Do not judge a geography change
-by `seat_abs_err_coherent`.
+**Fix:** `v_bye = sd²/n + τ²`, with `τ²` estimated from the residual spread
+*after* removing the turnout relationship, per party. A measurement, not a typed
+constant. It pulls ANC/EFF back and leaves MK's 0.216 alone.
 
 ---
 
-## Stats SA — live, and they are helping
+## Tier 2 is pre-registered and NOT run
 
-Escalated by **Tracy Taylor** (Director, Stakeholder Relations) to three experts.
+All three are read-only specifications with pass conditions written before any
+measurement, per `ITERATING.md`.
 
-* **Vishanth Singh (Geography) — answered.** **No Census 2022 SAL exists.** Not
-  withheld; never created. `SOURCES.md` corrected — it had said "supplied on
-  request only", which was wrong. Ceiling now known: full variable set incl.
-  **language only at local municipality**; pop group/age/sex at ward; nothing
-  else below municipality. Offers geometry-only layers: 2011 SAL/EA/main/sub
-  place, 2022 EA/main/sub place.
-* **Thanyani Maremba (Electronic Product Development) — awaited.** The one who
-  can say whether a **2022 electoral-ward geography exists in SuperWEB2**.
-* **Angela Ngyende (Census Content and Outputs) — awaited.** For the
-  sign-language coding change (9,309 in 2022 against ~235,000 in 2011) and the
-  missing "Other" residual.
+* **F28+F29** — ready, ~20 min. Predicts Key 1 `undetermined` **structurally**:
+  four of eight 2016 city-years have a fallback delta of *exactly* zero, so that
+  cycle can never supply the ≥5/8 the pass condition needs. **The clip never
+  binds anywhere** — only the restriction does work. ENTRANT is the only channel
+  that can move a seat. Its failure condition 4 is the strongest tripwire in the
+  set: the four zero-delta 2016 city-years must come back byte-identical.
+* **F22+F23** — blocked on item 1. Separately established: **`SD_CEILING`'s
+  entire caseload is phantom parties** — 40 at the ceiling, every one a phantom,
+  never binding on a party that reaches the draw.
+* **F3+F8 + `level_floor`** — recommends **not spending** the `level_floor` runs:
+  the lever moves 0.0002–0.0034pp across the whole ballot and **zero seat-mean**;
+  one seat is 150× larger. What *is* real is convergence — at 1e-7 the solver
+  converges and rounds/call falls **40.0 → 16.7**. That is a
+  correctness-and-cost change and must not be dressed as accuracy. F3+F8 carries
+  a **pre-registered expectation of failure** (EFF's level error worsens at 6 of
+  8 metros in both cycles), and recommends splitting the coupling the other way:
+  **F3 alone is free** and F8 then becomes a clean scored change.
 
-**The surviving route to ward-level language** is the rake: Census 2011 language
-by ward (SuperWEB2, Community Profiles → 2011 → Descriptive → *South Africa by
-Electoral Ward*) raked to the 2022 municipal totals in
-`data/raw/covariates/Languages by Municipalities Census 2022.xls`. `pools.py`
-already has the IPF machinery (`balance_margins`).
+---
 
-**Why it matters more than it looks:** `pools.py:372` carries a banner — *"THIS
-IS A PROXY. IT IS MEANT TO BE REPLACED"* — because population group is the only
-ward-level characteristic Stats SA publishes, and it cannot separate the ANC from
-the IFP. `DATA-QUALITY.md` item 13 is the sharpest form of the same problem: **the
-DA requires 103.3% of Johannesburg's entire white pool**, using only published
-votes and published population.
+## The rules this session established
+
+**The review rule, now in `CLAUDE.md`:** split across agents → **check them** →
+**the pollster reviews anything touching the forecast's substance**. I broke it
+in the session that wrote it — reported a change as done and only ran the
+pollster when asked. Run it *before* reporting, not after.
+
+**Measurement discipline:** `freeze --verify` as the neutrality check instead of
+a second suite run; targeted `-k` per change and the **full suite once per
+commit**; a partial run prints a banner that it is not a suite run.
+
+**The suite is 1455s → 557s.** Note the negative result: isolating the long pole
+made it *slower* (586 → 679) because idleness cost more than oversubscription.
+`LONGEST_FIRST` scheduling gets both.
+
+**`POOLS-REEMIT-QUEUE.md` holds two entries**, and the second —
+`_target_roll`'s crosswalk path — **blocks all multi-city 2026 work**: no second
+city can emit a 2026 spec until it lands.
+
+---
+
+## Corrections made to this log's own earlier claims
+
+* **§1.109's F10 boundary was a decade out.** `solve_identity_hits` is 0 at
+  1e-8 and 2990 at 1e-9; 1e-8 is the lowest safe point.
+* **§1.117's "second truthiness site" did not exist** — deleted 2026-08-17,
+  surviving only as a tombstone comment.
+* **§1.109 claimed to be an index and was a summary.** The 48-row table is there
+  now, with provenance: five rows spot-checked, F15/F19 verified in full, **the
+  rest recovered and not re-verified** — treat those as pointers to look, not as
+  findings.
