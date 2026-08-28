@@ -311,6 +311,26 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
         "by-election data covers 2022-06 to 2026-02 only, so no past target has "
         "any. Inert in every backtest by construction; live in 2026. This is why "
         "JUDGEMENT-CALLS.md §A carries it at 🔴 as argued-not-tested."),
+    ("bye_weight_mode", "2021"): Null(
+        cause="UNDELIVERED",
+        where="`bye` is empty at every past target, so the block this lever "
+              "chooses a weight INSIDE is never entered. It cannot be inert "
+              "for its own reasons because it is never consulted — the same "
+              "gate that makes `w_bye` undeliverable at 2021",
+        blocker="DATA",
+        gate_check="bye_deltas_absent",
+        evidence="the same gate as `w_bye` above, checked by "
+                 "`GATES['bye_deltas_absent']` with no model run. At 2026 the "
+                 "lever IS live and measured: derived weights run 0.031 (ATM, "
+                 "3 contests) to 0.722 (EFF, 11 contests) against a typed "
+                 "0.40, moving 2.005pp of centre across all parties. NOTE what "
+                 "this does NOT establish: nothing scores which weighting is "
+                 "BETTER, because no backtest reaches the by-election channel.",
+        reason=
+        "the minimum-variance weight derived from the two estimates' own "
+        "precisions, instead of a typed 0.40. Adopted as a LEVER rather than a "
+        "default on 2026-08-28: switching it moves the published 2026 forecast "
+        "and nothing can score it, so it is the owner's decision. §1.122"),
     ("level_sd_default", "2021"): Null(
         cause="UNDELIVERED",
         where="`sd_for_party` is never called. `handled` is every party holding "
@@ -630,6 +650,10 @@ RUNTIME_INJECTED: dict[str, str] = {
 }
 
 PERTURB: dict[str, object] = {
+    # Perturbed to the OTHER mode, not to a number: it is a categorical lever.
+    # Live at 2026, where it moves nine parties and 2.005pp of centre; inert at
+    # 2021 for exactly the reason `w_bye` is, and the entry below says so.
+    "bye_weight_mode": "inverse_variance",
     "entrant_prob": 0.95,
     "dirichlet_floor": 0.05,
     "ward_noise_sd": 0.60,

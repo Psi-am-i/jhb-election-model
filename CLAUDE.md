@@ -187,6 +187,32 @@ interpreter.
                                                        #   the model actually uses (§1.59)
     .venv/bin/python src/sweep.py                      # obvious-fault sweep
 
+### The review rule: agents check me, and the pollster checks the substance
+
+**Standing instruction from the owner, 2026-08-28: *"same as before: split
+between agent, you check them and pollster checks you (should just make that the
+rule)"*.** So it is the rule, not a per-task choice:
+
+1. **Split the work across agents**, one per finding or coupling group, and read
+   their specifications rather than their summaries. Give them the coupling
+   warnings explicitly — an agent that does not know `compress_levels`
+   renormalises over `centres` will cheerfully propose widening a loop.
+2. **CHECK WHAT THEY RETURN.** Re-derive the decisive number yourself before
+   acting on it. This has repeatedly mattered in both directions: an agent
+   caught §1.109 claiming to be an index when it was a summary, and an agent's
+   own premise about F19's classification turned out to be unverifiable.
+3. **The pollster reviews anything touching the FORECAST'S SUBSTANCE** — an
+   estimator, a weight, a prior, a selection rule. Not plumbing. It found that
+   F34's clamp is three times tighter than its estimate's own noise, and that
+   the ρ weighting moves the answer by 0.065pp while correlating +0.46 with the
+   thing it exists to neutralise. Neither was visible from the code.
+
+**Contention is managed by making agents READ-ONLY when they would collide.**
+Three agents writing to `montecarlo.py` collide whatever regions they occupy,
+because each writes the whole file. Parallel analysis plus serial application
+has been the reliable shape; worktrees are the alternative when the files are
+genuinely disjoint.
+
 ### Run the targeted modules per change; run the SUITE once per commit
 
 Every run prints a per-module timing table, because a suite that does not say

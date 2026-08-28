@@ -13725,3 +13725,117 @@ else — longest-job-first, the oldest scheduling heuristic there is. **The
 reasoning for isolating it was sound and the measurement refuted it**, which is
 the fourth time in three days that has happened and the reason every one of
 these is now measured rather than argued.
+
+## 1.122 The by-election weight, derived — and a turnout adjustment that is right for four parties and catastrophic for one (2026-08-28)
+
+The owner, on §1.121's pollster review: *"f34 use pollster suggestion but lets
+compare how it fares vs byelection turnout. note we can have that as an
+option."* Both done. One ships as a lever; the other is refused with a
+measurement, and the reason it fails is more useful than the failure.
+
+### The weight, derived
+
+`bye_weight_mode` is a new scenario key: `"fixed"` (the typed `w_bye = 0.40`,
+and the default) or `"inverse_variance"`. Combining two unbiased estimates of
+one quantity, the minimum-variance weight on the second is `v₁ / (v₁ + v₂)`.
+Here `v₁` is the spine's variance — from the θ band already in hand — and `v₂`
+is the variance of the by-election mean, `sd² / n`, from the spread
+`byelections.py` now emits.
+
+What it produces at joburg 2026:
+
+| party | contests | typed | **derived** | centre move |
+|---|---|---|---|---|
+| EFF | 11 | 0.40 | **0.722** | −0.445pp |
+| ANC | 15 | 0.40 | **0.704** | −0.389pp |
+| DA | 11 | 0.40 | **0.528** | +0.388pp |
+| ASA | 4 | 0.40 | 0.413 | +0.038pp |
+| **MK** | **8** | 0.40 | **0.216** | +0.122pp |
+| PA | 4 | 0.40 | 0.204 | −0.361pp |
+| IFP | 3 | 0.40 | 0.132 | −0.149pp |
+| AIC | 4 | 0.40 | 0.089 | +0.054pp |
+| ATM | 3 | 0.40 | 0.031 | −0.058pp |
+
+**Total movement 2.005pp across all parties.** A reading from fifteen contests
+that agree earns *more* than 0.40; MK's eight, spanning a factor of 31, earn
+**half**. A typed constant cannot express that distinction, which is the whole
+of the pollster's argument.
+
+**Shipped as a LEVER, defaulting to `fixed`.** It moves the published 2026
+forecast and **no backtest can score it** — `bye` is empty at all sixteen panel
+city-years — so turning it on is the owner's decision, not a commit.
+
+### ⛔ The turnout comparison, and it inverts on inspection
+
+No backtest reaches this channel. But there **is** an out-of-sample test inside
+the by-election data itself: **leave one contest out, predict its party shares
+from the others**, and see which weighting predicts a held-out ward best. 57
+contest-party rows across the 7 parties with ≥4 contests.
+
+| scheme | RMSE | MAE |
+|---|---|---|
+| **uniform** | **24.657pp** | 18.229pp |
+| current (`exp(−age/τ) × √votes × ρ`) | 24.827pp | 18.326pp |
+| ρ only | 24.786pp | 18.394pp |
+| **turnout-adjusted** | **36.463pp** | 21.014pp |
+| current × turnout | 31.970pp | 20.129pp |
+
+On the aggregate the turnout adjustment is far worse, and **the current
+weighting is slightly worse than uniform** — an out-of-sample confirmation of
+§1.121's finding that the weighting moves MK's estimate by 0.065pp.
+
+**But the aggregate hides the finding**, and checking per party is what found
+it:
+
+| party | n | uniform | turnout-adjusted |
+|---|---|---|---|
+| ANC | 15 | 22.11 | **18.28** ✓ |
+| EFF | 11 | 7.93 | **5.79** ✓ |
+| MK | 8 | 10.44 | **8.69** ✓ |
+| AIC | 4 | 1.19 | **0.98** ✓ |
+| ASA | 4 | 7.16 | 7.64 |
+| PA | 4 | 15.32 | 15.37 |
+| **DA** | **11** | **47.30** | **78.98** ✗ |
+
+**The turnout adjustment helps four of seven parties and is catastrophic for
+one.** Why:
+
+| party | correlation of its share with the contest's turnout ratio |
+|---|---|
+| EFF | **+0.842** |
+| AIC | +0.791 |
+| ANC | +0.720 |
+| MK | +0.702 |
+| PA | +0.270 |
+| ASA | −0.232 |
+| **DA** | **−0.925** |
+
+**Turnout sensitivity is party-specific and SIGNED.** The DA does better when
+turnout is low — a suburban, high-propensity base that turns out for a ward
+contest — while the ANC, EFF and MK do better when it is high. A *uniform*
+adjustment applies one sign to every party, so it necessarily gets the DA
+backwards, and the DA's 47 → 79pp is that error.
+
+This is the textbook failure the pollster's own standpoint names: **the
+constant-rate-across-units assumption fails exactly when group behaviour
+correlates with group share.** Here it is, measured, on this model's data.
+
+### Disposition
+
+* **Uniform turnout adjustment: REFUSED**, with the number. It is worse overall
+  and worse for the reason above, not by accident.
+* **Per-party turnout sensitivity: worth pre-registering as a future change.**
+  The signal is strong — |r| of 0.70 to 0.93 on n = 8 to 15 — and it is a real
+  differential-enthusiasm effect, not noise. What it needs is a per-party
+  coefficient, which the data can support and a uniform ratio cannot.
+* **The LOO harness itself is the reusable part.** It is the only out-of-sample
+  evidence this channel will ever have until an election happens, and it is
+  cheap.
+
+### A caveat on the test, stated because it bounds the claim
+
+Leave-one-contest-out measures prediction of a **held-out ward's** share, which
+is harder than estimating the **citywide** level the model actually wants. A
+scheme could fail this test and still improve the citywide estimate. What the
+test does establish is that ρ and the turnout ratio are not capturing
+ward-level structure — which is precisely what both of them claim to do.

@@ -127,6 +127,14 @@ DEFAULTS: dict = {
     # as an argument that function never read, and printed. Three appearances,
     # no effect. See MODEL-LOG §1.35.
     "w_bye": 0.40,
+    # HOW the by-election reading is weighed against the spine. "fixed" is
+    # w_bye above, typed and untested. "inverse_variance" DERIVES it from the
+    # two estimates' own precisions — the minimum-variance combination, which
+    # is a measurement rather than a judgement, and the direction ITERATING.md
+    # says to travel. Default "fixed": switching it MOVES THE 2026 FORECAST and
+    # no backtest can score it (`bye` is empty at all sixteen panel
+    # city-years), so it is opt-in until the owner takes that decision. §1.122
+    "bye_weight_mode": "fixed",
 
     # HOW MUCH A PARTY'S WARD SLATE GROWS BETWEEN LOCAL ELECTIONS, used ONLY
     # where the target's own nomination lists are not published — which is
@@ -1960,6 +1968,10 @@ def blended_centres(
         centre = mode_level
         if party in bye and w > 0:
             weight_sum, delta = bye[party]
+            # The SPREAD beside the mean: how many contests, and how far apart
+            # they were. Needed both for the note and for the derived weight.
+            _n_bye, _sd_bye = (scenario.get("_bye_spread")
+                               or {}).get(party, (0, 0.0))
             if weight_sum >= BYE_MIN_WEIGHT:  # enough to mean anything
                 # THE BALLOTS DIFFER HERE ON PURPOSE, AND IT WAS MEASURED
                 # (§1.97 F46, §1.110). `delta` is built by `byelections.py`
@@ -2064,9 +2076,37 @@ def blended_centres(
                 anchor = mode_level if mode_level > 0 else base
                 clamped = min(max(implied, (low / mid) * anchor),
                               (high / mid) * anchor)
-                centre = (1 - w) * mode_level + w * clamped
-                _n_bye, _sd_bye = (scenario.get("_bye_spread")
-                                   or {}).get(party, (0, 0.0))
+
+                # THE WEIGHT, DERIVED OR TYPED (§1.122). Combining two unbiased
+                # estimates of one quantity, the minimum-variance weight on the
+                # second is v1 / (v1 + v2). Here v1 is the spine's variance and
+                # v2 the by-election mean's, so a reading from eight wards
+                # spanning a factor of 31 earns less than one from fifteen that
+                # agree — which a typed 0.40 cannot express.
+                #
+                # This is what the pollster review asked for: the by-election
+                # estimate for a party with no previous result is a LEVEL read
+                # off a handful of self-selected wards, its 95% interval is
+                # three times wider than the clamp that bounds it, and it was
+                # being given the same weight as a fifteen-contest within-ward
+                # swing. MODEL-LOG §1.121, §1.122.
+                w_used = w
+                # `DEFAULTS[...]`, not a bare `"fixed"`: a literal fallback
+                # can drift from the declared default and nothing would say so,
+                # which is what `test_no_scenario_fallback_is_a_bare_literal`
+                # exists to stop. It caught this one.
+                _mode = scenario.get("bye_weight_mode",
+                                     DEFAULTS["bye_weight_mode"])
+                if str(_mode) == "inverse_variance":
+                    sd_bye = _sd_bye / math.sqrt(_n_bye) if _n_bye else 0.0
+                    # The spine's own spread, from the θ band already in hand:
+                    # (high/mid) is the +1.2816σ multiplier, so ln of it over
+                    # 1.2816 is σ on the log scale.
+                    rel = math.log(high / mid) / 1.2816 if mid > 0 and high > mid else 0.0
+                    sd_spine = abs(anchor) * rel
+                    if sd_bye > 0 and sd_spine > 0:
+                        w_used = (sd_spine ** 2) / (sd_spine ** 2 + sd_bye ** 2)
+                centre = (1 - w_used) * mode_level + w_used * clamped
                 notes[party] = (
                     # F38: THIS WAS AN ASSIGNMENT AND THE POLL ROUTE'S NOTE
                     # DIED HERE. A party whose level came from a poll and was
@@ -2103,7 +2143,9 @@ def blended_centres(
                     + (f", {_n_bye} contests sd {_sd_bye:.1%}" if _n_bye
                        else "")
                     + (f", clamped to {clamped:.1%}" if clamped != implied else "")
-                    + f", w_bye {w})"
+                    + (f", w_bye {w})" if w_used == w
+                       else f", w_bye {w_used:.3f} derived from "
+                            f"sd_bye/sd_spine, typed {w})")
                 )
         centres[party] = centre
     # F35 — THE LOOP IS OVER `base_city`, SO A `poll_levels` ENTRY FOR A PARTY
