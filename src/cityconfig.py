@@ -355,6 +355,30 @@ class Target:
 
     # --- where ----------------------------------------------------------
     @property
+    def crosswalk(self) -> Path:
+        """The VD→ward crosswalk for this target's delimitation. CITY level.
+
+        **Not ``self.processed``, and that was §1.97 F15**: the producer,
+        ``build_concordance.py``, is CITY-scoped — its argparse takes
+        ``--city`` and no target, and the year is a literal in the filename —
+        so it writes here, while four consumers read ``target.processed``.
+        Seven cities' crosswalks therefore sat on disk where nothing looked,
+        and Johannesburg's was found only because ``legacy_processed_root``
+        collapses the two directories at its default target.
+
+        The convention this restores is the repository's own and is visible on
+        disk: an artefact keyed by something OTHER than the running target
+        lives at city level — ``pools_<year>.json``, ``fold<N>_parameters.csv``,
+        ``vd_concordance.csv`` — and an artefact that is the target's own
+        input or output lives under the target. ``pools_<year>.json`` is the
+        exact analogue: a year in the filename, a city-level directory.
+
+        One definition, because it was spelled out at four call sites and they
+        did not agree (§1.120).
+        """
+        return self.city.processed / f"vd_ward_{self.year}.csv"
+
+    @property
     def processed(self) -> Path:
         """Per-target outputs: ``data/processed/<slug>/<target>/``.
 

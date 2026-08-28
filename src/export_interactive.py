@@ -109,7 +109,16 @@ def main(argv: list[str] | None = None) -> int:
     wc, pc = citywide(ward21), citywide(pr21)
 
     # --- gamma: fold 1, then 2021→2024, then 1.0 (as montecarlo resolves) -----
-    params = load_parameters(args.processed / "fold1_parameters.csv")
+    # CITY-LEVEL ARTEFACTS, not target-level (§1.97 F15, §1.120). Both the
+    # ward crosswalk and the fold parameters are keyed by something other than
+    # the running target — `build_concordance` is city-scoped, and fold 3 is
+    # the 2009→2011 transition whichever election is being built — so both are
+    # written to and read from the CITY's directory. `montecarlo` already reads
+    # the fold parameters that way and says why; this file did not, and was
+    # therefore broken for every city except Johannesburg, where
+    # `legacy_processed_root` collapses the two.
+    _city_processed = cityconfig.active().processed
+    params = load_parameters(_city_processed / "fold1_parameters.csv")
     recent = {}
     recent_path = args.processed / "gamma_recent.csv"
     if recent_path.exists():
@@ -137,7 +146,7 @@ def main(argv: list[str] | None = None) -> int:
     # --- ward-level aggregation ----------------------------------------------
     # One reader, shared with `montecarlo.ward_parts` (§1.97 F18).
     parts, _vds, _split = _M.read_ward_crosswalk(
-        args.processed / "vd_ward_2026.csv", "2026")
+        cityconfig.active().processed / "vd_ward_2026.csv", "2026")
 
     ratio_pattern, level_pattern = {}, {}
     thi_pattern, tlo_pattern = {}, {}

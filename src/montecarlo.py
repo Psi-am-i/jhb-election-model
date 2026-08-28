@@ -803,7 +803,10 @@ def ward_parts(target, data_dir: Path, processed: Path) -> tuple[list[tuple[str,
     Two sources, because the two cases genuinely differ.
 
     **A target not yet held** has a delimitation newer than any result file, so
-    the crosswalk ``vd_ward_<year>.csv`` (built by ``build_crosswalk.py``) is
+    the crosswalk ``vd_ward_<year>.csv`` (built by ``build_concordance.py``,
+    NOT ``build_crosswalk.py``, which this said until 2026-08-28 and which
+    builds the unrelated PARTY crosswalk — a citation pointing at a real
+    file that has nothing to do with wards) is
     the only thing that knows it. A voting district straddling two new wards
     appears there once per ward with its registration split by
     ``part_registered`` — 181 of Johannesburg's 865 VDs in 2026 — and that
@@ -821,12 +824,38 @@ def ward_parts(target, data_dir: Path, processed: Path) -> tuple[list[tuple[str,
     apportionment would be inventing data. The consequence is confined to ward
     winners in a handful of wards; citywide totals are unaffected either way.
     """
-    crosswalk = processed / f"vd_ward_{target.year}.csv"
-    if crosswalk.exists():
+    # THE SOURCE IS A FUNCTION OF THE CALENDAR, NOT OF THE FILESYSTEM
+    # (§1.97 F19, §1.120). It used to be `if crosswalk.exists():` and nothing
+    # else — so dropping a `vd_ward_<year>.csv` into a directory changed which
+    # delimitation a BACKTEST ran under, with no argument changed and no
+    # warning printed. A held election has a published record of its own wards
+    # and that record is the answer; an unheld one has only the crosswalk.
+    #
+    # The filename comes from `Target.crosswalk` so there is one definition of
+    # it; the DIRECTORY is the caller's, which is what lets the tests point
+    # this at a temporary one.
+    crosswalk = processed / target.crosswalk.name
+    if cityconfig.CALENDAR[target.year].results is None:
+        if not crosswalk.exists():
+            # §1.40's lesson: name the file you wanted and the command that
+            # makes it. This used to fall through to `target.results()` and
+            # raise "2026 has no result file: it has not been held" — a true
+            # fact about the calendar that nobody needed, naming neither the
+            # file nor the directory it was actually sitting in.
+            raise SystemExit(
+                f"{target.city.name} {target.year}: no VD→ward crosswalk. "
+                f"Wanted {crosswalk}, which does not exist.\n"
+                f"  {target.year} has not been held, so no result file carries "
+                f"its wards and the crosswalk is the only source. Build it "
+                f"with\n"
+                f"    .venv/bin/python src/build_concordance.py "
+                f"--city {target.city.slug}")
         parts, n_vds, split = read_ward_crosswalk(crosswalk, target.year)
         return parts, (f"{crosswalk.name} ({len(parts)} parts over "
                        f"{n_vds} VDs, {split} split)")
 
+    # A HELD TARGET READS ITS OWN PUBLISHED RECORD, and a crosswalk sitting in
+    # its directory is now ignored rather than silently preferred.
     path = cityconfig.resolve_path(data_dir / target.results(target.year))
     seen: dict[str, tuple[str, int]] = {}
     vds_in_file: set[str] = set()
@@ -1428,7 +1457,7 @@ MODULE_CONSTANTS: dict[str, tuple[str, ...]] = {
     # national-poll-to-metro denominator.
     "polling": ("SIGMA_COMMON", "SIGMA_IDIO", "SIGMA_DRIFT_PER_ROOT_DAY",
                 "SIGMA_VOLATILITY", "SIGMA_TWO_TERM", "POLL_HOUSE_K",
-                "POLL_HALF_LIFE_DAYS", "POLL_MIN_N", "POLL_RMS_ERROR",
+                "POLL_HALF_LIFE_DAYS", "POLL_MIN_N",
                 "POLL_HOUSE_SD", "CAMPAIGN_WINDOW_DAYS",
                 "POLL_DRIFT_PP_PER_ROOT_DAY", "REGISTER",
                 "POLL_DEFF_STANDALONE", "NATIONAL_VOTES",
@@ -3657,7 +3686,12 @@ def run_model(target, scenario: dict,
         gamma[ballot] = values
 
     # --- ward parts and registration ----------------------------------------
-    part_rows, parts_source = ward_parts(target, data_dir, processed)
+    # F15: the crosswalk lives at CITY level — `build_concordance` is
+    # city-scoped and has no target — while `processed` here is the TARGET's
+    # directory. Seven cities' crosswalks sat on disk where nothing looked.
+    # See `cityconfig.Target.crosswalk`. §1.120
+    part_rows, parts_source = ward_parts(target, data_dir,
+                                         target.crosswalk.parent)
     registered: defaultdict[str, int] = defaultdict(int)
     for vd, _ward, part_registered in part_rows:
         registered[vd] += part_registered
@@ -3934,46 +3968,63 @@ def run_model(target, scenario: dict,
         _spine, _spine_info = _levels.spine(
             target, base_city_d, prior_pr_share,
             k=float(_levels.SPINE_K if _spine_k is None else _spine_k))
-        if _spine:
-            scenario["spine_level"] = _spine
-            scenario["_spine_info"] = _spine_info
-            # Per party: which route it took, what each route said, and what
-            # the blend weight was. This is the question the level chain gets
-            # asked most often -- "why is this party at this number?" -- and it
-            # has been answered by re-running with prints every time.
-            trace.put("20_spine", {
-                "level": _spine,
-                "k": _spine_info.get("k"),
-                "n_theta": _spine_info.get("n_theta"),
-                "n_rho": _spine_info.get("n_rho"),
-                "theta_centre": _spine_info.get("theta_centre"),
-                "rho_centre": _spine_info.get("rho_centre"),
-                "detail": _spine_info.get("detail"),
-            })
-            # `spine_k` is the constant ARCHITECTURE.md records as UNSETTABLE
-            # -- `scenario.get("spine_k") or SPINE_K`, and `0.0 or 1.0` is 1.0.
-            # Recording the k the spine actually ran on is how a sweep of it
-            # finds that out from the run instead of from a code reading.
-            note_constant(scenario, "spine",
-                          f"k={_spine_info['k']}, {_spine_info['n_theta']} θ and "
-                          f"{_spine_info['n_rho']} ρ observations before "
-                          f"{target.year}",
-                          value=_spine_info.get("k"),
-                          where="montecarlo:run_model -> levels.spine")
-            if verbose:
-                d = _spine_info["detail"]
-                moved = sorted((p for p in d if base_city_d.get(p, 0) >= 0.005),
-                               key=lambda p: -abs(d[p]["local"] - d[p]["national"]))
-                print(f"  spine: {_spine_info['n_theta']} θ and "
+        # F4: THE WHOLE BLOCK USED TO BE GATED ON `if _spine:`, so a spine that
+        # reached NOBODY wrote no `spine_level`, no `20_spine` trace and no
+        # `note_constant` — and a run where the spine placed no party was
+        # indistinguishable from one where this code never executed. The empty
+        # case is exactly the one a reader needs the trace for.
+        #
+        # An empty `spine_level` behaves identically downstream (`party in {}`
+        # is False for every party), so writing it unconditionally is
+        # number-neutral and turns `blended_centres`' F37 record from "the
+        # block did not run" into "it ran and placed nobody" — which are
+        # different facts.
+        scenario["spine_level"] = _spine
+        scenario["_spine_info"] = _spine_info
+        # Per party: which route it took, what each route said, and what
+        # the blend weight was. This is the question the level chain gets
+        # asked most often -- "why is this party at this number?" -- and it
+        # has been answered by re-running with prints every time.
+        trace.put("20_spine", {
+            "level": _spine,
+            "k": _spine_info.get("k"),
+            "n_theta": _spine_info.get("n_theta"),
+            "n_rho": _spine_info.get("n_rho"),
+            "theta_centre": _spine_info.get("theta_centre"),
+            "rho_centre": _spine_info.get("rho_centre"),
+            "detail": _spine_info.get("detail"),
+            # F5/F6: `levels.spine` builds a full absorption block — route
+            # counts, the blend's disagreement accounting, centre
+            # fallbacks, shrink totals, and now the NAMES of the parties it
+            # dropped and of those whose level nothing can read. The trace
+            # discarded all of it. "Written, never read" was true of the
+            # producer and the reason was here.
+            "absorption": _spine_info.get("absorption"),
+        })
+        # `spine_k` is the constant ARCHITECTURE.md records as UNSETTABLE
+        # -- `scenario.get("spine_k") or SPINE_K`, and `0.0 or 1.0` is 1.0.
+        # Recording the k the spine actually ran on is how a sweep of it
+        # finds that out from the run instead of from a code reading.
+        note_constant(scenario, "spine",
+                      f"k={_spine_info['k']}, {_spine_info['n_theta']} θ and "
                       f"{_spine_info['n_rho']} ρ observations before "
-                      f"{target.year}; θ centre "
-                      f"{_spine_info['theta_centre']:.2f}, ρ centre "
-                      f"{_spine_info['rho_centre']:.2f}")
-                for p in moved[:6]:
-                    print(f"    {p:<12} w_local {d[p]['w_local']:.2f} "
-                          f"(θ worth {d[p]['worth']:.1f})  national "
-                          f"{d[p]['national']:.2%} / local {d[p]['local']:.2%} "
-                          f"-> {_spine[p]:.2%}")
+                      f"{target.year}",
+                      value=_spine_info.get("k"),
+                      where="montecarlo:run_model -> levels.spine")
+        if verbose:
+            d = _spine_info["detail"]
+            moved = sorted((p for p in d if base_city_d.get(p, 0) >= 0.005),
+                           key=lambda p: -abs(d[p]["local"] - d[p]["national"]))
+            print(f"  spine: {_spine_info['n_theta']} θ and "
+                  f"{_spine_info['n_rho']} ρ observations before "
+                  f"{target.year}; θ centre "
+                  f"{_spine_info['theta_centre']:.2f}, ρ centre "
+                  f"{_spine_info['rho_centre']:.2f}")
+            for p in moved[:6]:
+                print(f"    {p:<12} w_local {d[p]['w_local']:.2f} "
+                      f"(θ worth {d[p]['worth']:.1f})  national "
+                      f"{d[p]['national']:.2%} / local {d[p]['local']:.2%} "
+                      f"-> {_spine[p]:.2%}")
     except FileNotFoundError as _exc:
         print(f"  ! spine unavailable ({_exc}); levels fall back to the "
               f"national route alone")

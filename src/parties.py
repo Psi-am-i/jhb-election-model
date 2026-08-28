@@ -22,10 +22,12 @@ from __future__ import annotations
 
 import re
 
-# OTHER is the residual bucket that f_other scales; INDEPENDENT is excluded
-# from PR seat allocation by statute.
-OTHER = "OTHER"
-INDEPENDENT = "INDEPENDENT"
+# `OTHER` and `INDEPENDENT` were defined here and READ BY NOTHING — deleted
+# 2026-08-28 (§1.97). `OTHER` was "the residual bucket that f_other scales", and
+# `f_other` was deleted on 2026-08-19 (§1.52), so it outlived its only stated
+# purpose by nine days. `INDEPENDENT` was a third copy of a string the model
+# reads from `seats.INDEPENDENT` (montecarlo.py imports it from there); the
+# `OTHER` bucket the site shows is built in the presentation layer.
 
 # canonical code -> (display name, has its own theta parameter)
 PARTIES: dict[str, tuple[str, bool]] = {

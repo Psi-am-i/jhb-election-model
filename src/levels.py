@@ -1051,6 +1051,12 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
     # measured retention happens to equal the group's, and it is counted here
     # so that it stops being.
     routes = {"blend": 0, "national_only": 0, "local_only": 0, "dropped": 0}
+    # NAMES, NOT JUST COUNTS (§1.97 F5, F6). A count says how much was lost; a
+    # reader chasing "why is this party at this number?" needs to know WHICH.
+    # Both lists are bounded by the party universe and are written into the
+    # trace, so they cost nothing anyone will notice.
+    dropped_parties: list[str] = []
+    local_only_unused: list[str] = []
     blend = {"n": 0, "disagreement": 0.0, "moved_from_national": 0.0,
              "moved_from_local": 0.0, "at_full_local": 0,
              "at_full_national": 0, "nonfinite": 0}
@@ -1123,12 +1129,27 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
         elif local > 0:
             w, level, route = 1.0, loc_level, "local only (no national record)"
             routes["local_only"] += 1
+            # F6: THIS LEVEL MAY HAVE NO READER. `spine` walks
+            # `set(baseline) | set(prev_local)`, but its only consumer —
+            # `montecarlo.blended_centres` — iterates `base_city`, which IS
+            # `baseline`. So a party with a local record and no entry in the
+            # baseline at all gets a level computed here that nothing can ever
+            # look up. Named rather than repaired: widening the consumer's loop
+            # is a MODEL change (it would add parties to `centres`, and
+            # `compress_levels` renormalises over that membership), so this
+            # records the fact and leaves the decision.
+            if party not in baseline:
+                local_only_unused.append(party)
         else:
             # Present in one of the two inputs at exactly zero, and dropped
             # entirely — no level, no detail row, no trace. Counted, because a
             # party that vanishes here reappears downstream as whatever
             # `blended_centres` finds first.
+            # F5: a party that vanishes here reappears downstream as whatever
+            # `blended_centres` finds first, and until now the only signal was
+            # its ABSENCE from the returned dict — a count with no names.
             routes["dropped"] += 1
+            dropped_parties.append(party)
             continue
         levels[party] = level
         detail[party] = {"w_local": w, "worth": worth, "route": route,
@@ -1142,6 +1163,8 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
         # WHAT THIS FUNCTION ABSORBED, and where. Written, never read.
         "absorption": {
             "routes": routes,
+            "dropped_parties": sorted(dropped_parties),
+            "local_only_unused": sorted(local_only_unused),
             "blend": dict(blend, share_local=(
                 blend["moved_from_national"] / blend["disagreement"]
                 if blend["disagreement"] > 0 else 0.0)),

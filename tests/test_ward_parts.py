@@ -221,63 +221,69 @@ def test_a_crosswalk_naming_another_years_ward_column_refuses_loudly():
     The year appears twice — in the filename and in the ``Ward_<year>`` column
     — and nothing checks that they agree. The contract worth having is that a
     disagreement RAISES: a ``.get(column, "")`` here would hand every VD the
-    empty-string ward, and ``run_model``'s ``sorted(..., key=int)`` at :2699
-    would then die somewhere else entirely, or worse, collapse all 135 wards
-    into one. This pins the loud failure so a later refactor cannot soften it
-    into the silent-fallback shape ARCHITECTURE.md exists to retire.
+    empty-string ward, and ``run_model``'s ``sorted(..., key=int)`` would then
+    die somewhere else entirely, or worse, collapse every ward into one. This
+    pins the loud failure so a later refactor cannot soften it into the
+    silent-fallback shape ARCHITECTURE.md exists to retire.
+
+    **RE-POINTED to 2026 on 2026-08-28.** It used to build the fixture at
+    joburg 2021, and under F19's calendar gate a held target never reaches the
+    crosswalk reader at all — 2021 has a published record of its own wards. The
+    column-mismatch check is unchanged and still fully exercised; only the
+    target had to move to one where the crosswalk branch runs. §1.120
     """
     rows = [
         {"VD_Number": "A", "Ward_{year}": "1", "WardID_{year}": "79800001",
          "vd_registered": "10", "part_registered": "10",
          "weight": "1.000000", "is_split": "N"},
     ]
-    # Written with 2026 headers, then renamed to look like a 2021 crosswalk.
-    with city_target("joburg", "2021") as target, crosswalk("2026", rows) as processed:
-        (processed / "vd_ward_2026.csv").rename(processed / "vd_ward_2021.csv")
+    # Written with 2021 headers, then named as if it were the 2026 crosswalk.
+    with city_target("joburg", "2026") as target, crosswalk("2021", rows) as processed:
+        (processed / "vd_ward_2021.csv").rename(processed / "vd_ward_2026.csv")
         try:
             M.ward_parts(target, ELECTIONS, processed)
         except (KeyError, SystemExit) as exc:
-            # RE-RECORDED 2026-08-28: it was a bare `KeyError` from the dict
-            # lookup; `read_ward_crosswalk` (§1.97 F18) now raises SystemExit
-            # naming the column it wanted and the Ward columns the file has.
-            # Both are loud, which is what this test is for; the second is
-            # actionable. Accept either so the test pins the CONTRACT — it
-            # raises — rather than the exception class.
-            assert "Ward_2021" in str(exc), exc
+            # `read_ward_crosswalk` (§1.97 F18) raises SystemExit naming the
+            # column it wanted and the Ward columns the file has; a bare
+            # KeyError from the dict lookup is the older, louder-but-blunter
+            # form. Accept either so this pins the CONTRACT — it raises — and
+            # not the exception class.
+            assert "Ward_2026" in str(exc), exc
         else:
             raise AssertionError(
-                "a crosswalk whose ward column is for a different year was "
-                "accepted; it must refuse rather than produce a ward map that "
-                "is silently empty or wrong")
+                "a crosswalk whose Ward column names a different year than its "
+                "filename was accepted. Every VD would take the empty-string "
+                "ward and the failure would surface far downstream.")
 
+def test_a_crosswalk_in_a_held_targets_directory_is_ignored():
+    """RE-RECORDED 2026-08-28. The property this pinned has been REMOVED (F19).
 
-def test_the_crosswalk_wins_over_the_result_file_on_existence_alone():
-    """If this failed, a past target would read the wrong delimitation.
+    It pinned exactly what its own docstring called a hazard: *"dropping a
+    `vd_ward_<year>.csv` into a target's processed directory changes which
+    delimitation the backtest of that year runs under, with no argument changed
+    and no warning printed."*
 
-    The branch is selected by ``crosswalk.exists()`` and by nothing else — not
-    by the target being unheld, not by any flag. That is a real property of the
-    seam and callers must be able to rely on it: dropping a
-    ``vd_ward_<year>.csv`` into a target's processed directory changes which
-    delimitation the backtest of that year runs under, with no argument
-    changed and no warning printed. The returned label is the only signal, and
-    this test is what makes that promise checkable.
+    **The source is now a function of the CALENDAR, not of the filesystem.** A
+    held election published a record of its own wards and that record is the
+    answer; an unheld one has only the crosswalk. So this asserts the inverse
+    of what it used to.
+
+    Replaced rather than re-pointed, because the behaviour it described is gone
+    — a test kept green by weakening its claim is worse than one deleted.
     """
-    rows = [
-        {"VD_Number": "32860728", "Ward_{year}": "1", "WardID_{year}": "79800001",
-         "vd_registered": "7", "part_registered": "7",
-         "weight": "1.000000", "is_split": "N"},
-    ]
-    with city_target("joburg", "2021") as target, crosswalk("2021", rows) as processed:
-        parts, source = M.ward_parts(target, ELECTIONS, processed)
-
-    assert parts == [("32860728", "1", 7)], parts
-    assert source.startswith("vd_ward_2021.csv"), source
-    assert "boundaries and roll only" not in source
-
-
-# --------------------------------------------------------------------------
-# the result-file branch — a past target, read from its own published record
-# --------------------------------------------------------------------------
+    rows = [{"VD_Number": "V1", "Ward_2021": "1", "WardID_2021": "79800001",
+             "vd_registered": "10", "part_registered": "10",
+             "weight": "1.000000", "is_split": "N"}]
+    with city_target("joburg", "2021") as target, \
+            crosswalk("2021", rows) as processed:
+        assert (processed / "vd_ward_2021.csv").exists(), "fixture not written"
+        _parts, source = M.ward_parts(target, ELECTIONS, processed)
+    assert not source.startswith("vd_ward_2021.csv"), (
+        f"a crosswalk in a HELD target's directory was preferred over the "
+        f"published result file: {source}. 2021 has its own record of its own "
+        f"wards; a file dropped beside it must not silently change which "
+        f"delimitation the backtest runs under. §1.97 F19, §1.120.")
+    assert "boundaries and roll only" in source, source
 
 def test_a_vd_named_on_every_ballot_row_is_returned_once():
     """If this failed, a VD's roll would be counted once per party per ballot.
@@ -820,57 +826,40 @@ def test_pools_and_montecarlo_now_read_one_crosswalk_by_one_rule():
         f"citywide roll moved to {sum(vals):,.0f}; this fix is a redistribution "
         f"between wards and must never change the total (mean {mean:,.0f})")
 
-def test_montecarlo_cannot_find_the_crosswalk_build_concordance_writes():
-    """DEFECT, documented not fixed: producer and consumer use different paths,
-    and the resulting error names the wrong cause.
+def test_every_city_reads_the_crosswalk_build_concordance_wrote():
+    """RE-RECORDED 2026-08-28. The producer and consumer are reconciled (F15).
 
-    ``build_concordance.py`` writes ``vd_ward_2026.csv`` into
-    ``city.processed`` (build_concordance.py:204 and :210 — the per-city fix from
-    MODEL-LOG §1.40). ``ward_parts`` looks for it in ``target.processed``
-    (montecarlo.py:776), and for every city except Johannesburg those are
-    different directories: ``data/processed/tshwane/`` against
-    ``data/processed/tshwane/2026/``. Johannesburg alone is exempt, because
-    ``legacy_processed_root`` collapses the two at its default target
-    (cityconfig.py:374-378) — so the one city that works is the one that hides
-    the defect, which is the same shape as the §1.40 fallback that "was
-    reachable only by a city it could only mislead".
+    This pinned the defect: `build_concordance` writes to `city.processed`
+    while four consumers read `target.processed`, so **seven cities' 2026
+    crosswalks sat on disk where nothing looked**. Only Johannesburg worked,
+    and only because `legacy_processed_root` collapses the two directories at
+    its default target. Its own assertion carried the instruction — *"if the
+    producer and consumer have been reconciled, delete this test and record
+    it"* — and §1.120 is that record.
 
-    What the user sees is not "the crosswalk is in the wrong place". The
-    missing crosswalk drops through to the result-file branch, which asks for a
-    2026 result file, which does not exist because the election has not
-    happened — so the message is *"2026 has no result file: it has not been
-    held"*. That is a true sentence about a fact nobody needed to be told, and
-    it names neither the file that was wanted nor the directory it is actually
-    sitting in. §1.40's whole lesson was that a missing per-city input must
-    refuse by naming the file it wanted.
-
-    This test asserts the defect as it stands today. When the paths are
-    reconciled it will fail, and that failure is the notification.
+    The fix moved NO files. `Target.crosswalk` is the single definition and it
+    is CITY-level, which is the convention every other non-target-keyed
+    artefact already follows: `pools_<year>.json`, `fold<N>_parameters.csv`,
+    `vd_concordance.csv`. `pools_<year>.json` is the exact analogue — a year in
+    the filename, a city-level directory — and `montecarlo` was already reading
+    THAT one correctly a hundred lines above the line that got this wrong.
     """
-    slug = "tshwane"
-    city = cityconfig.load(slug)
-    written = ROOT / city.processed / "vd_ward_2026.csv"
-    if not written.exists():
-        skip(f"{slug} has no 2026 crosswalk on disk at {written}")
-
-    with city_target(slug, "2026") as target:
-        looked_for = ROOT / target.processed / "vd_ward_2026.csv"
-        assert not looked_for.exists(), (
-            "the two paths now coincide for " + slug + "; if the producer and "
-            "consumer have been reconciled, delete this test and record it")
-        try:
-            M.ward_parts(target, ELECTIONS, target.processed)
-        except SystemExit as exc:
-            message = str(exc)
-        else:
-            raise AssertionError(
-                f"{slug} 2026 now resolves its wards; the path mismatch is "
-                f"fixed and this test should be replaced by a positive one")
-
-    assert "no result file" in message, message
-    assert "vd_ward_2026.csv" not in message, (
-        "the refusal has started naming the crosswalk — good; update this test")
-
+    seen = 0
+    for slug in ("joburg", "tshwane", "capetown", "ekurhuleni", "ethekwini",
+                 "mangaung", "nelsonmandelabay", "buffalocity"):
+        with city_target(slug, "2026") as target:
+            if not (ROOT / target.crosswalk).exists():
+                continue
+            seen += 1
+            parts, source = M.ward_parts(target, ELECTIONS,
+                                         ROOT / target.crosswalk.parent)
+            assert parts, f"{slug}: crosswalk found but no parts returned"
+            assert source.startswith("vd_ward_2026.csv"), (
+                f"{slug}: read something other than the crosswalk — {source}")
+    assert seen >= 2, (
+        f"only {seen} city has a 2026 crosswalk this test could reach, so it "
+        f"cannot show that NON-Johannesburg cities are served — which is the "
+        f"whole point of F15.")
 
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

@@ -112,7 +112,14 @@ REGISTER = Path("polls.json")
 # giving an RMS of 3.03pp against a nominal margin nearer 1.5. So 3.0 is the
 # number a forecaster should carry, and it is a TRACK RECORD rather than a
 # formula — the standard the pollster brief asks for.
-POLL_RMS_ERROR = 0.030
+# `POLL_RMS_ERROR = 0.030` stood here and was READ BY NOTHING — deleted
+# 2026-08-28 (§1.97). The derivation above is kept because it is the provenance
+# of a number that is still live elsewhere: `POLL_HOUSE_SD` is this RMS with
+# the sampling term removed. What the decomposition is actually CALIBRATED
+# against is `POLL_RMS_ERROR_2016` (0.0303, the measured RMS), which
+# `tests/test_polling_sd.py` asserts on — a different constant, so the register
+# entry describing this one as "the calibration target" was describing its
+# neighbour.
 
 # ---------------------------------------------------------------------------
 # σ_poll AS A DECOMPOSITION (2026-08-22). The flat 3.0pp above is retained as

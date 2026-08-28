@@ -92,6 +92,21 @@ DELETED = {
     "theta_mode": "deleted 2026-08-19; §1.52",
     "individual_theta": "deleted 2026-08-19; §1.52",
     "f_other": "deleted 2026-08-19; §1.52",
+    # Deleted 2026-08-28 (§1.119) on the owner's standing rule — "if something
+    # is dead and no longer used, why would we want to keep it around". Each had
+    # ZERO qualified readers in the tree, verified before deletion.
+    "OTHER": "parties.OTHER, deleted 2026-08-28; §1.119. It was 'the residual "
+             "bucket that f_other scales', and f_other went on 2026-08-19 "
+             "(§1.52) — it outlived its only stated purpose by nine days. The "
+             "OTHER bucket the site shows is built in the presentation layer",
+    "POLL_RMS_ERROR": "deleted 2026-08-28; §1.119. Read by nothing in src/ "
+                      "since §1.67 replaced it with the sigma decomposition. "
+                      "The register described it as the surviving CALIBRATION "
+                      "TARGET, and that was its neighbour: the tests assert "
+                      "against POLL_RMS_ERROR_2016 (0.0303). Its derivation — "
+                      "Ipsos's nine 2016 metro readings, RMS 3.03pp — is kept "
+                      "as a comment in polling.py, because POLL_HOUSE_SD is "
+                      "that number with the sampling term removed",
     "turnout_tilt_da": "deleted; it was still quoted on the published page "
                        "for weeks afterwards, which is why CLAUDE.md carries "
                        "the stat-token rule",

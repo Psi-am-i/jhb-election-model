@@ -886,6 +886,24 @@ def reproject(comp: dict[str, np.ndarray], city: cityconfig.City,
     return out, (mapped / total if total > 0 else 0.0)
 
 
+# KEPT DELIBERATELY, AND UNEXERCISED (owner, 2026-08-28). It is read only at
+# `composition_at`'s two-or-more-census interpolation, and every dimension in
+# `config/dimensions.toml` declares exactly ONE census — population_group, age
+# and sex, verified — so `len(frames) == 1`, the function returns early, and
+# these two lines never execute on any shipped configuration.
+#
+# NOT DEAD CODE, AND NOT DELETED. The interpolation is real capability that a
+# second census would need immediately, and the Stats SA correspondence is live
+# on exactly that question (SOURCES.md: no Census 2022 SAL exists; the surviving
+# route is a rake of 2011 ward language onto 2022 municipal totals). Deleting it
+# would throw away the machinery on the day before it is wanted.
+#
+# What it is NOT is a null: a sweep of it returns flat because the branch is
+# UNREACHABLE, which is `NULL-RESULTS.md`'s cause A by unreachability rather
+# than by undelivery, and a fifth state the cause codes do not name. It is also
+# invisible to `compare_history`'s serial-forcing guard, whose filter skips a
+# leading underscore. Declared in JUDGEMENT-CALLS.md so it is not mistaken for
+# either a live constant or an oversight. §1.119
 _LOG_FLOOR = 1e-6
 
 

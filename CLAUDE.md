@@ -151,6 +151,10 @@ exists to stop being sufficient, so everything was re-emitted and re-measured.
 A comment-or-docstring-only change does NOT move the hash; that was confirmed
 in the same session.
 
+**A `pools.py` CODE change is BATCHED, not taken when convenient.** What is waiting for the next re-emit window, and the procedure for taking it, is in
+`POOLS-REEMIT-QUEUE.md`. A comment-or-docstring-only change does not move the
+hash and does not belong there.
+
 **The specs are not tracked by git.** They have no version history, which is why
 the key exists.
 

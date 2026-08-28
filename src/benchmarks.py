@@ -87,7 +87,23 @@ def sources_for(target: int) -> dict[str, str | None]:
             "earlier_lge": (cityconfig.CALENDAR[earlier_lge].results
                             if earlier_lge else None)}
 
-SHARE_FLOOR = M.SHARE_FLOOR
+# THE OPPONENT'S FLOOR IS ITS OWN NUMBER, NOT THE MODEL'S (owner, 2026-08-28).
+#
+# This was `SHARE_FLOOR = M.SHARE_FLOOR`, evaluated at IMPORT — so setting
+# `montecarlo.SHARE_FLOOR` moved the model and left the bar where it was
+# (§1.97, verified: at `M.SHARE_FLOOR = 0.05` this stayed 0.002). That looked
+# like a `LEVEL_DF` §1.33 freeze and it is asymmetric in the dangerous
+# direction: a sweep silently changes the margin without changing the forecast.
+#
+# **The fix is NOT to make it track.** A baseline that moves when a model
+# constant is swept is not a bar — nothing could be compared across the change.
+# The defect was that a snapshot LOOKS like it tracks. So it is pinned as the
+# opponent's own declared constant, at the value it already had.
+#
+# NUMBER-NEUTRAL: 0.002 is what `M.SHARE_FLOOR` resolved to at import, so no
+# baseline moves. If the model's floor is ever re-derived, this is a separate
+# decision and should be taken deliberately rather than inherited.
+SHARE_FLOOR = 0.002     # the prior-lge-noise logit clip; see above
 NEW_PARTY_SIGMA = 1.0   # logit spread for a party with no previous cycle to measure
 MIN_SIGMA = 0.15        # nobody is nailed on: floor the measured movement
 MAX_SIGMA = 2.0

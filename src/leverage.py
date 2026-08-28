@@ -214,11 +214,20 @@ def main(argv: list[str] | None = None) -> int:
 
     base_votes, _ = load(args.data_dir / "npe2024_{CODE}_vd_party.csv", None)
     base_share, base_city = shares(base_votes), citywide(base_votes)
-    params = load_parameters(args.processed / "fold1_parameters.csv")
+    # CITY-LEVEL ARTEFACTS, not target-level (§1.97 F15, §1.120). Both the
+    # ward crosswalk and the fold parameters are keyed by something other than
+    # the running target — `build_concordance` is city-scoped, and fold 3 is
+    # the 2009→2011 transition whichever election is being built — so both are
+    # written to and read from the CITY's directory. `montecarlo` already reads
+    # the fold parameters that way and says why; this file did not, and was
+    # therefore broken for every city except Johannesburg, where
+    # `legacy_processed_root` collapses the two.
+    _city_processed = cityconfig.active().processed
+    params = load_parameters(_city_processed / "fold1_parameters.csv")
     target_city = scenario_citywide(base_city)
     universe = [p for p in base_city if p != "IND"]
 
-    parts = load_ward_parts(args.processed / "vd_ward_2026.csv")
+    parts = load_ward_parts(_city_processed / "vd_ward_2026.csv")
     turnout = load_projected_turnout(args.processed / "turnout.csv")
 
     # Weight VDs by their projected 2026 votes cast when solving for θ, so the

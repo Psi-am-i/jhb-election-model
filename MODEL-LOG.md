@@ -12516,6 +12516,75 @@ lines, `levels.py` ~180).
    `BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA`, `FORUM_4_SERVICE_DELIVERY`. Measured
    independently. A count of city-years was read as a count of parties.
 
+### ⛔ THE TABLE ITSELF, ADDED 2026-08-28 — because §1.109 did not contain one
+
+**This entry was committed on 2026-08-27 saying it was "the index it should have
+had", and it was not: it carried the status SUMMARY below and the couplings, and
+no per-finding rows.** `grep -n "F15\|F19" MODEL-LOG.md` returned exactly one
+line — the summary's own class list. So for a day the log claimed to be the
+index to forty-four findings while being a set of counts, which is the same
+defect one level up from the one it was written to fix. Found when an agent
+investigating F15 could not find any per-finding text and said so.
+
+Rows marked ✅ have been fixed since; the section that fixed each is named.
+Status is as of 2026-08-28.
+
+| F | one line | status |
+|---|---|---|
+| F1 | `spine_k or SPINE_K` — `0.0 or 1.0` is 1.0, so `spine_k=0` was undeliverable | ✅ §1.117 |
+| F2 | `k/(worth+k)` is 0/0 for a party with both records and no θ evidence | ✅ §1.117 |
+| F3 | an empty θ/ρ record makes the spine publish a group centre of exactly 1.0 | open (couple with F8) |
+| F4 | `if _spine:` skipped the whole block — no level, no trace, no note | ✅ §1.119 |
+| F5 | a party the spine could not reach was signalled only by its absence | ✅ §1.119 |
+| F6 | the local-only route computes levels the consumer cannot read — **32 of 32 at 2026** | ✅ named §1.119; repair is scored |
+| F7 | a party at `w=1.0` was labelled "blend" while nothing was blended | ✅ §1.117 |
+| F8 | the spine takes the FLAT group centre for a party with no record of its own, defeating `size_centre` | open, **moving** |
+| F9 | `solve_and_predict` non-convergence was completely silent | ✅ §1.99 |
+| F10 | the θ update's NaN guard takes the identity — `np.where(got > 1e-9, …, 1.0)` | open, latent; counted §1.108 |
+| F11 | default `level_floor=None` resolved `SHARE_FLOOR`, not `DEFAULTS["level_floor"]` | ✅ §1.99 |
+| F12 | a target below the level floor stalls the solve | ✅ characterised §1.108; irreducible at a fixed floor |
+| F13 | `logit`'s ceiling ignored its own `floor` argument | ✅ §1.112 |
+| F14 | `pools._target_roll` and `ward_parts` built two different cities from one file | ✅ §1.99 |
+| F15 | the crosswalk producer writes to `city.processed`; four consumers read `target.processed` | open, **live for 7 cities at 2026** |
+| F16 | a blank cell and a missing column both became 0 registered voters | ✅ §1.116 |
+| F17 | a VD whose every row names no ward was dropped in silence | ✅ §1.116 |
+| F18 | three implementations of one crosswalk read | ✅ §1.116 |
+| F19 | the crosswalk branch is chosen by `crosswalk.exists()` and nothing else | open |
+| F20 | `_groups.get("small", …)` — a hand-typed 0.8 reached the published artefact | ✅ §1.99 |
+| F21 | `np.std(…, ddof=1)` over one observation is `nan` | open, unreachable today |
+| F22 | `theta_prior` prices `set(record) | set(baseline)`, giving 20 of 56 parties a phantom prior | open (couple with F23) |
+| F23 | the size-dispersion fit drops any party with `baseline <= 0` | open, **moving** |
+| F24 | `groups["centre"]["median"]` is a reliability-weighted GEOMETRIC MEAN | open, naming only |
+| F25 | `size_centre` computed a reliability weight and never used it | ✅ §1.110 commit |
+| F26 | `scenario["_ward_pr_measured"]` is a dead write; a second copy recomputes it | open |
+| F27 | both keys gated on `if _ratios:`, and `if fallback:` discards a legitimate 0.0 | open — **truthiness trap, 2 sites** |
+| F28 | the ward/PR median fallback is measured over a population `run_model` distrusts, unclipped | open, **moving** |
+| F29 | a party that stood and scored zero enters the median as exactly 0.0 | open, **subsumed by F28** |
+| F30 | the ballot split is case-sensitive and non-exhaustive | open |
+| F31 | the two ward/PR copies address the same file by different routes | open, overstated |
+| F32 | §1.37's stated mechanism for `ward_pr_ratio_overrides` being dead is wrong | ✅ §1.117 |
+| F33 | the ward-local by-election term applies the recency decay TWICE | open, latent (`w_bye_local_* = 0.0`) |
+| F34 | `implied = prior_pr_share.get(party, 0.0) + delta` reads a missing party as zero | open |
+| F35 | a `poll_levels` entry for a party not in `base_city` is silently discarded | open — assertion only; widening is scored |
+| F36 | a seeded arrival whose band is missing writes no note | open, overstated |
+| F37 | `spine_level … or {}` — an absent spine degrades silently | ✅ §1.117 |
+| F38 | the by-election block unconditionally REPLACES the poll route's note | open |
+| F39 | an unrecognised `overhang_rule` silently applied `expand` | ✅ §1.111 |
+| F40 | the signature default was `"expand"` against a docstring saying `deduct` | ✅ §1.111 |
+| F41 | the `level` rule's growth loop was unbounded | ✅ §1.111 |
+| F42 | a ward winner absent from `combined` was reported excessive and seated nowhere | ✅ §1.111 (refusal; the D-term repair is scored) |
+| F43 | the docstring listed three rules; `level` was in none of them | ✅ §1.111 |
+| F44 | NEITHER overhang loop had an iteration bound | ✅ §1.111 |
+| **F45** | `scenario["_theta_worth"]` — one occurrence in the tree, the write | ✅ §1.110 commit |
+| **F46** | a ward-ballot delta added to a PR-ballot level | ✅ §1.114 (adopted §1.113) |
+
+**Provenance, stated because it matters.** The F-number→finding map was recovered
+from the triage workflow's output file under `/private/tmp`, not from the
+repository, which is the whole point of §1.109. Five rows were spot-checked
+against the source by hand (F13, F25, F33, F45, F46) and all five held; F15 and
+F19 were verified independently in full (§1.120). **The rest are recovered, not
+re-verified** — treat a row as a pointer to look, not as a finding.
+
 ### Status, verified against HEAD
 
 | | count | which |
@@ -13304,3 +13373,164 @@ on, changed with no test, diff or artefact key noticing.** The earlier case was
 raw election files leaving `data/raw`; this is published outputs being
 overwritten in `data/processed`. Both are invisible for the same reason, and the
 reason is that being gitignored is not the same as being unimportant.
+
+## 1.119 The spine's local-only route computes levels nothing can read — 32 of them at 2026, and zero readable at any target (2026-08-28)
+
+F4, F5 and F6 of §1.97, landed together because all three are the same thing:
+**the spine failing to say what it did.** Number-neutral — every change here is a
+record.
+
+### F4 — a spine that reached nobody wrote nothing at all
+
+The whole block was gated on `if _spine:`, so an empty spine wrote no
+`spine_level`, no `20_spine` trace and no `note_constant`. **A run where the
+spine placed no party was indistinguishable from one where the code never
+executed** — and the empty case is precisely the one a reader needs the trace
+for. Now written unconditionally, which is number-neutral (`party in {}` is
+False for every party) and upgrades §1.117's F37 record from "the block did not
+run" to "it ran and placed nobody".
+
+### F5 — the trace discarded the entire absorption block
+
+`levels.spine` builds a full accounting — route counts, the blend's
+disagreement, centre fallbacks, shrink totals — and its own comment says *"WHAT
+THIS FUNCTION ABSORBED, and where. Written, never read."* **The reason it was
+never read is that `montecarlo`'s `20_spine` trace did not forward it.** The
+producer was blamed for a consumer's omission. Forwarded now, along with the
+names of the parties dropped (`dropped_parties`) rather than only their count.
+
+### ⭐ F6 — and it is much larger than "a few parties"
+
+`spine` walks `set(baseline) | set(prev_local)`. Its only consumer,
+`montecarlo.blended_centres`, iterates **`base_city`, which IS `baseline`** —
+so a party reachable only through `prev_local` gets a level computed for it that
+**nothing can ever look up**.
+
+Measured, after naming them:
+
+| target | `local_only` levels computed | of those, unreadable | readable |
+|---|---|---|---|
+| joburg 2016 | 11 | 11 | **0** |
+| joburg 2021 | 10 | 10 | **0** |
+| joburg 2026 | 32 | 32 | **0** |
+
+**Not "sometimes unreadable" — never readable, at any target measured.** The
+local-only branch requires `national <= 0`, and the only way to take it while
+still being *in* `baseline` is to sit there at exactly 0.0, which no party does.
+So the entire route is dead work: it computes a level, records a `detail` row and
+a `route` label for 32 parties at 2026, and no consumer can reach any of them.
+
+### Recorded, NOT repaired, and the reason is the same as F35's
+
+Widening the consumer's loop to admit these parties is **a model change, not a
+fix**. `compress_levels` ships live at `level_shrink = 0.35` and renormalises
+over the membership of `centres`, so merely adding keys rescales every party
+already there. The right change spans universe construction, the routing loop
+and that normalisation base — and it must be measured on the panel.
+
+So this entry names it and the trace now shows it. `local_only_unused` is in
+`20_spine.json` on every run, so the next person to ask "does the local-only
+route do anything?" reads the answer instead of deriving it.
+
+**What it is worth is unknown and deliberately not guessed.** These are small
+parties by construction — they have no national record — and whether admitting
+them helps or hurts is exactly the sort of magnitude this session has been wrong
+about four times. It needs the panel, not an argument.
+
+## 1.120 The crosswalk was written where nothing looked: seven cities, and it is what blocks a second city at 2026 (2026-08-28)
+
+F15 and F19, with the `pools.py` half deferred to the re-emit queue.
+
+### F15 — the producer is city-scoped and four consumers are not
+
+`build_concordance.py` writes `vd_ward_2026.csv` to **`city.processed`**. Its
+argparse takes `--city` and no target, and the year is a literal in the
+filename — it is a property of a *delimitation*, one per city. Four consumers
+read **`target.processed`**: `montecarlo.ward_parts`, `pools._target_roll`,
+`leverage.main`, `export_interactive.main`.
+
+**All eight crosswalks exist on disk. Seven were unreachable.**
+
+| | |
+|---|---|
+| found by the consumer | **1** — joburg 2026, and only because `legacy_processed_root` collapses the two directories at its default target |
+| **not found** | **7** — tshwane, capetown, ekurhuleni, ethekwini, mangaung, nelsonmandelabay, buffalocity |
+| backtest city-years affected | **0** — no `vd_ward_2016.csv` or `vd_ward_2021.csv` exists anywhere, so all sixteen correctly take the result-file branch |
+
+**It is a live defect, not a latent one, and it is the thing blocking a second
+city at 2026.** `pools.py --city tshwane --target 2026 --emit` dies in
+`_target_roll` for exactly this reason, so no other city can have a 2026 pool
+spec — which is why `compare_history` has never had one to run.
+
+### The fix moves no files: the CONSUMERS were wrong
+
+`Target.crosswalk` is now the single definition, and it is city-level. That is
+the repository's own convention, visible on disk: an artefact keyed by anything
+other than the running target lives at city level — `pools_<year>.json`,
+`fold<N>_parameters.csv`, `vd_concordance.csv` — and the target's own inputs and
+outputs live under the target. **`pools_<year>.json` is the exact analogue** — a
+year in the filename, a city-level directory — and `montecarlo` was already
+reading *that* one correctly a hundred lines above the line that got this wrong.
+
+`pools._target_roll`'s own docstring already asserted the intent — *"that lands
+in the city's own processed directory"* — while its code read `target.processed`.
+**The docstring was right and the code was the bug.**
+
+Verified after the change: joburg 1059 parts / 865 VDs, tshwane 951 / 774,
+capetown 845 / 802 — all three read their crosswalk where before two of them
+refused.
+
+### ⛔ The `pools.py` half is QUEUED, not done
+
+`pools._target_roll:1910` needs the same correction, and changing a path
+expression changes what the code computes — so it **moves `pools_sha` and
+invalidates all eighteen specs**. It is entry 2 in `POOLS-REEMIT-QUEUE.md`,
+which is exactly what that file was opened for. **Until it lands, a second city
+still cannot emit a 2026 spec**, so F15 is only half-closed and this entry says
+so rather than implying otherwise.
+
+### F19 — the source is now a function of the calendar, not the filesystem
+
+`ward_parts` chose its branch on `crosswalk.exists()` and nothing else. The
+phase-A test that pinned it did not endorse it — it recorded the hazard in its
+own words: *"dropping a `vd_ward_<year>.csv` into a target's processed directory
+changes which delimitation the backtest of that year runs under, with no
+argument changed and no warning printed."*
+
+Now: **a held election published a record of its own wards and that record is
+the answer; an unheld one has only the crosswalk.** A crosswalk sitting in a past
+target's directory is ignored.
+
+And the refusal is worth the change on its own. Previously a missing crosswalk
+fell through to `target.results()` and raised *"2026 has no result file: it has
+not been held"* — a true fact about the calendar that nobody needed, naming
+neither the file wanted nor the directory it was sitting in. It now names both
+and gives the command that builds it, which was §1.40's whole lesson.
+
+**Changed for: the seven cities at 2026, which start working. Unchanged for: all
+sixteen backtest city-years and joburg 2026.** Argued from the filesystem and
+the calendar table — no `vd_ward_<past year>.csv` exists anywhere, and for
+joburg 2026 the two directories coincide so the bytes read are identical.
+
+### Three tests re-recorded, and one of them had to be replaced
+
+* the F15 pin asked to be deleted when the paths were reconciled — it is now its
+  positive counterpart, asserting that **every** city with a crosswalk on disk
+  reads it, and failing if fewer than two do, because Johannesburg alone proves
+  nothing;
+* `test_the_crosswalk_wins_over_the_result_file_on_existence_alone` pinned the
+  property being removed, so it is **replaced by its inverse**, not re-pointed —
+  a test kept green by weakening its claim is worse than one deleted;
+* the year-mismatch refusal moved from 2021 to 2026, because a held target no
+  longer reaches the crosswalk reader at all.
+
+### Two adjacent defects found while verifying, both fixed here
+
+* **`fold<N>_parameters.csv` has the identical mismatch** in `leverage.py` and
+  `export_interactive.py`, which read it from `args.processed` while
+  `montecarlo` reads it from `cityconfig.active().processed` *and carries a
+  comment saying why it must*. Both scripts were broken for every non-Johannesburg
+  city for a second, independent reason.
+* **`montecarlo.py:806` credited the crosswalk to `build_crosswalk.py`.** That
+  file exists and builds the unrelated PARTY crosswalk. A citation pointing at a
+  real file that has nothing to do with the subject is worse than none.
