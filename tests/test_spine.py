@@ -352,17 +352,25 @@ def test_a_party_with_no_theta_record_sits_entirely_on_its_own_last_local_result
     is what moves ActionSA from 5.98% to 15.23%, the single largest thing the
     spine does to the 2026 forecast.
 
-    NOTE the route is still LABELLED "blend" while nothing is blended, and the
-    weight is pinned at 1.0 for the whole sweep. Read straight from the trace,
-    that reports a blend where a selection happened. The number is right; the
-    label is not, and it is recorded in this file's findings.
+    RE-RECORDED 2026-08-28 (§1.97 F7). The note here used to read: *"the route
+    is still LABELLED 'blend' while nothing is blended... the number is right;
+    the label is not."* The label is now `blend at full local (no θ evidence)`,
+    which is what actually happened — a selection, not a blend.
+
+    `routes["blend"]` still counts it as a blend, deliberately: that counter is
+    about WHICH RECORDS THE PARTY HAS, and this party has both. What changed is
+    the per-party label, which is what a reader checks when asking why a party
+    sits where it does.
     """
     for k in (0.01, 1.0, 100.0):
         level, info = _spine(k=k)
         d = info["detail"]["NOTHETA"]
         assert d["worth"] == 0.0, d
         assert d["w_local"] == 1.0, d
-        assert d["route"] == "blend", d
+        assert d["route"] == "blend at full local (no θ evidence)", d
+        assert d["route"].startswith("blend"), (
+            f"the label must still say it took the blend ROUTE (the party has "
+            f"both records); only what happened WITHIN it changed: {d}")
         assert _close(level["NOTHETA"], 0.02), level["NOTHETA"]
 
 
@@ -565,31 +573,45 @@ def test_a_first_local_election_party_gets_the_flat_group_centre_not_the_size_ce
         "the size centre distinguishes them; the spine does not")
 
 
-def test_k_equal_to_zero_divides_by_zero_for_a_party_with_no_theta_record():
-    """WRONG, and pinned as it stands: the sweep's own floor crashes the run.
+def test_k_equal_to_zero_puts_a_party_with_no_theta_record_on_its_national_route():
+    """RE-RECORDED 2026-08-28. The 0/0 is resolved, and the limit was CHOSEN.
 
-    ``w = k / (worth + k)`` is ``0.0 / 0.0`` when a party has both records and
-    no theta evidence -- and that party is precisely the one the local route
-    exists to serve (ActionSA 2026, §1.30). The limit is unambiguous: ``w = 1``
-    for every k > 0, so the value at k = 0 is a discontinuity the code does not
-    resolve; it raises ``ZeroDivisionError`` out of the middle of ``run_model``.
+    This was `..._divides_by_zero_for_a_party_with_no_theta_record` and pinned
+    the crash: `w = k / (worth + k)` is `0.0 / 0.0` for a party with both
+    records and no θ evidence, and it raised `ZeroDivisionError` out of the
+    middle of `run_model`. It said *"if that is the fix, assert the intended
+    weight here instead — the limit from above is w = 1, the party's own local
+    result."*
 
-    It survives today only because it is masked by a second defect: the call
-    site's ``scenario.get('spine_k') or SPINE_K`` cannot deliver 0 at all (see
-    ``test_k_equal_to_zero_puts_every_blended_party_exactly_on_its_national_route``).
-    Fix the ``or`` and the first sweep of ``spine_k`` from 0 crashes. Both are
-    in this file's findings, and they must be fixed together.
+    **The limit from above is NOT what was chosen, and the disagreement is the
+    point.** `w` weights the LOCAL route, so `k = 0` means "pure national
+    spine". Taking `w = 1` at `worth = 0` would make `k = 0` mean pure-national
+    for every party EXCEPT those with no θ evidence, which are precisely the
+    parties the local route exists to serve — so the lever would mean two
+    different things depending on who it was applied to. **A lever that means
+    two things is not a lever**, and `spine_k` exists to be swept.
+
+    The owner's call, 2026-08-28, choosing `w = 0.0` when `worth + k <= 0`, and
+    the reasoning is on the record: *ActionSA is a local party, the spine makes
+    no sense there either.* The national route for a party with no national
+    history is not a quantity worth protecting the discontinuity for.
+
+    NOTHING SHIPS DIFFERENTLY. At `spine_k = None` the resolved k is
+    `SPINE_K = 1.0`, so `worth + k` is never zero and this branch never runs on
+    any shipped configuration — which is what makes it a free change and why it
+    could land without a backtest.
     """
-    try:
-        _spine(k=0.0)
-    except ZeroDivisionError:
-        pass
-    else:
-        raise AssertionError(
-            "k = 0 no longer raises for a party with no theta record. If that "
-            "is the fix, assert the intended weight here instead -- the limit "
-            "from above is w = 1, the party's own local result.")
-
+    levels, info = _spine(k=0.0)
+    for party, d in info["detail"].items():
+        if d["route"].startswith("blend"):
+            assert d["w_local"] == 0.0, (
+                f"{party}: k=0 must put every blended party on its NATIONAL "
+                f"route, and this one is at w_local={d['w_local']}. If the "
+                f"limit was deliberately changed, re-read the docstring above "
+                f"before re-recording — the choice is registered in "
+                f"JUDGEMENT-CALLS.md.")
+            assert abs(levels[party] - d["national"]) < 1e-12, (
+                f"{party}: w_local is 0 but the level is not the national one")
 
 def test_the_diagnostic_counts_the_observations_the_blend_was_actually_built_from():
     """``n_theta`` and ``n_rho`` are the only account of how much evidence there was.

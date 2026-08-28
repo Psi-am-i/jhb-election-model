@@ -1874,7 +1874,18 @@ def blended_centres(
     # the blend. The θ-only branch below is what runs for a party the spine
     # cannot reach — and for a seeded arrival, which has neither record and is
     # sized from the arrival record instead.
-    spine_level = scenario.get("spine_level") or {}
+    # F37: AN ABSENT SPINE AND A SPINE THAT REACHED NOBODY ARE DIFFERENT
+    # FACTS, and both degraded every party to the θ route below in silence —
+    # a run with no spine at all was indistinguishable from one where the
+    # spine ran and reached everyone. Recorded rather than repaired, because
+    # the fallback itself is correct: what was missing is any record that it
+    # happened. `None` means the spine block did not run; 0 means it ran and
+    # placed nobody.
+    _spine_level = scenario.get("spine_level")
+    note_value(scenario, "spine_level.reached",
+               -1 if _spine_level is None else len(_spine_level),
+               where="montecarlo:blended_centres", kind="consulted")
+    spine_level = _spine_level or {}
     poll_levels = scenario.get("poll_levels") or {}
     for party, base in base_city.items():
         if party in poll_levels:
@@ -3914,9 +3925,15 @@ def run_model(target, scenario: dict,
     # inputs are strictly before the target.
     try:
         import levels as _levels
+        # F1: `scenario.get("spine_k") or SPINE_K` — and `0.0 or 1.0` is 1.0,
+        # so `spine_k=0` was UNDELIVERABLE and a sweep of it measured the
+        # default at every value. `spine_k` ships as None, which is why the
+        # idiom looked right; None is the only value it ever had to resolve.
+        # Resolved on `is None` so zero is a value like any other.
+        _spine_k = scenario.get("spine_k")
         _spine, _spine_info = _levels.spine(
             target, base_city_d, prior_pr_share,
-            k=float(scenario.get('spine_k') or _levels.SPINE_K))
+            k=float(_levels.SPINE_K if _spine_k is None else _spine_k))
         if _spine:
             scenario["spine_level"] = _spine
             scenario["_spine_info"] = _spine_info
@@ -4514,6 +4531,35 @@ def main(argv: list[str] | None = None) -> int:
     def _p_win(count: int) -> float:
         """Jeffreys posterior mean. Never exactly 0 or 1 from a finite sample."""
         return (count + 0.5) / (draws + 1.0)
+
+    # ⛔ A DIAGNOSTIC RUN MUST NOT OVERWRITE THE PUBLISHED ARTEFACTS.
+    #
+    # `main` writes three files into `data/processed/` — `ward_winner_probs.csv`,
+    # `seat_draws.csv`, `forecast_summary.json` — and they are the SITE'S
+    # inputs. `data/**` is gitignored, so nothing warns and no artefact key
+    # notices; the only symptom is a test failing later for a reason that looks
+    # unrelated.
+    #
+    # That happened on 2026-08-28. `CLAUDE.md` documents
+    # `python src/montecarlo.py --city joburg --target 2021 --run-dir /tmp/t`
+    # as the way to trace a run, and two such runs — the second a `--set
+    # spine_k=0` sweep at 60 draws — replaced the 5,000-draw shipped forecast on
+    # disk. `test_the_cartogram_ink_is_proportional_to_seats` went red an hour
+    # later, and the cause was a DIAGNOSTIC COMMAND.
+    #
+    # `run_model`'s docstring says "writes nothing unless `run_dir` is given,
+    # and then it writes only a trace". That is true OF THE FUNCTION and was
+    # read as covering the command. It does not.
+    #
+    # So: `--run-dir` means "I am looking at this run", and a run being looked
+    # at does not publish. `build_all.py` invokes this with no `--run-dir`
+    # (build_all.py:85) and is unaffected.
+    if args.run_dir is not None:
+        print(f"\n  --run-dir given: the trace is in {args.run_dir} and the "
+              f"published artefacts in {processed} were NOT rewritten.\n"
+              f"  (A diagnostic run does not publish. Re-run without "
+              f"--run-dir to regenerate them.)")
+        return 0
 
     ww_out = processed / "ward_winner_probs.csv"
     with ww_out.open("w", encoding="utf-8", newline="") as handle:

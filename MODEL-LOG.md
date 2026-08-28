@@ -3287,6 +3287,11 @@ docstring is not applied to code that has not been written yet.
 
 ## 1.37 Seven more levers that do nothing, and an audit that was a comment (2026-08-17)
 
+> ⛔ **MECHANISM CORRECTED 2026-08-28 (§1.117, F32).** The reason given here for `ward_pr_ratio_overrides` being unreachable —
+> that `levels.ward_pr_ratios` returns a fallback at every runnable target — is imprecise. It returns one **unconditionally**
+> (the failure path returns `({}, 0.8)`); what gates delivery is `if _ratios:` at the caller, and the fallback is truthy
+> only because 0.8 is not 0. **The conclusion stands at all 32 (city, target) pairs; the explanation did not.**
+
 Acting on a second independent review of the same day's work. Everything here is
 a defect in an *instrument* or in the *record*; none of it moves a forecast, and
 that is the pattern rather than a coincidence.
@@ -13144,3 +13149,158 @@ have found three before the change.
 worse than a missing one, because it reads as protection. Same argument as
 `MODULES`' own comment about `test_freeze` being written, committed and never
 collected while the suite reported green.
+
+## 1.117 spine_k=0 is deliverable, the 0/0 is resolved by a CHOSEN limit, and the blend stops claiming to blend (2026-08-28)
+
+F1, F2, F7 and F37, landed together because §1.109 established the first three
+cannot be split: **fixing the `or` alone makes `k = 0` deliverable and the model
+then raises `ZeroDivisionError` out of the middle of `run_model`.**
+
+### F1 — `spine_k = 0` could not be delivered, and `spine_k` exists to be swept
+
+    k=float(scenario.get('spine_k') or _levels.SPINE_K)
+
+`0.0 or 1.0` is `1.0`. The idiom looked right because `spine_k` ships as `None`
+and `None` is the only value it ever had to resolve — so a sweep of `spine_k`
+measured `SPINE_K` at every value and reported a flat, confident null.
+Resolved on `is None`, so zero is a value like any other.
+
+**Verified end to end rather than by reading**: `--set spine_k=0` now runs, and
+`20_spine.json` records `k = 0.0` where it would have recorded `1.0`.
+
+### F2 — the 0/0, and the limit is a CHOICE
+
+`w = k / (worth + k)` is `0/0` for a party with both records and no θ evidence.
+`w` weights the **local** route, so `k = 0` means "pure national spine".
+
+**The owner chose `w = 0.0` when `worth + k <= 0`**, and rejected the limit from
+above (`w = 1` as `k → 0⁺`) that the phase-A test had assumed. The reason is
+that the limit from above makes `k = 0` mean pure-national for every party
+*except* those with no θ evidence — which are precisely the ones the local route
+exists to serve. **A lever that means two things depending on who it is applied
+to is not a lever**, and this one exists to be swept.
+
+The owner's reasoning, recorded because it is a modelling judgement and not just
+a tiebreak: *"ActionSA is a local party, the spine makes no sense there
+either."* The national route for a party with no national history is not a
+quantity worth preserving a discontinuity to protect.
+
+Measured at joburg 2026: **22 blend-route parties, 5 of them at `worth = 0`** —
+ASA, AHC, AFRICA_RESTORATION_ALLIANCE, BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA,
+FORUM_4_SERVICE_DELIVERY. At `k = 0` every blended party now sits at
+`w_local = 0`; ASA moves from `1.000` to `0.000`, which is the case the decision
+was about. **This independently confirms §1.109's correction of §1.98**, which
+claimed "10 of the parties on the blend route at 2026 have `worth == 0`" — it is
+five, and the ten was a count of city-years.
+
+### F7 — the label said "blend" where a selection had happened
+
+A party with both records and no θ evidence gets `w = 1.0` at the shipped
+`k = 1`: one hundred per cent its own last local result, nothing blended. The
+route label said `blend` anyway — and that label is what a reader checks when
+asking why a party sits where it does. For ActionSA at 2026 it reported the
+national route as contributing when it was not.
+
+Now `blend at full local (no θ evidence)` and `blend at full national (k=0)`.
+`routes["blend"]` still counts them as blend, deliberately: **that counter is
+about which records the party HAS**, and it has both. Only the per-party label
+changed. The `blend.at_full_local` / `at_full_national` counters already existed
+— the accounting knew; the label did not say.
+
+### F37 — an absent spine and an empty one were the same silence
+
+`spine_level = scenario.get("spine_level") or {}` degraded every party to the θ
+route without a word, and a run where the spine block never executed was
+indistinguishable from one where it ran and reached everyone. Recorded rather
+than repaired — the fallback itself is correct — as a `consulted` delivery
+record: `-1` for "the block did not run", `0` for "it ran and placed nobody",
+otherwise the count reached.
+
+### All four are inert at the shipped configuration
+
+`spine_k` ships as `None` → `k = 1.0`, so `worth + k` is never zero and F2's
+branch never runs; F1 resolves `None` exactly as the `or` did; F7 is a label;
+F37 is a record. **No backtest was needed and none was spent.** What the change
+buys is that the first honest sweep of `SPINE_K` is now possible — §1.30
+measured `k = 0` at RMSE 0.275 against the blend's 0.236, and that comparison
+has never been reproducible from the harness because the value could not be set.
+
+### F32, batched with them — a mechanism corrected, a conclusion upheld
+
+`tests/test_levers_are_live.py` explained `ward_pr_ratio_overrides` being
+unreachable by saying `levels.ward_pr_ratios` "returns a fallback at every
+target the harness can run", which reads as a fact about the targets. **It
+returns one unconditionally** — the failure path returns `({}, 0.8)`. What gates
+delivery is `if _ratios:` at the caller, and the fallback is truthy only because
+0.8 is not 0. The conclusion holds at all 32 (city, target) pairs; the
+explanation did not. §1.37 carries a banner in place, per §1.103's precedent.
+
+**And it leaves a live trap named**: if that fallback were ever `0.0`, `not
+fallback` would be true and the two deleted overrides would come back to life.
+That is F27's truthiness bug, and this is the second place it can bite.
+
+## 1.118 A documented diagnostic command overwrote the published forecast, and `data/**` being gitignored is why nothing said so (2026-08-28)
+
+**Self-inflicted, caught by a test an hour later, and the delay is the finding.**
+
+`CLAUDE.md` documents this as the way to look at a run without re-running it:
+
+    .venv/bin/python src/montecarlo.py --city joburg --target 2021 --run-dir /tmp/t
+
+`montecarlo.main` also writes **three files into `data/processed/`** —
+`ward_winner_probs.csv`, `seat_draws.csv`, `forecast_summary.json` — and those
+are the site's inputs and the published forecast.
+
+Two diagnostic runs were made while implementing §1.117, to check that
+`spine_k=0` was deliverable. The second was `--set spine_k=0 --draws 60`. So the
+forecast on disk became **a sixty-draw run of a configuration the model does not
+ship**, replacing the five-thousand-draw one.
+
+### Why an hour passed before anything noticed
+
+* **`data/**` is gitignored**, so `git status` showed a clean tree.
+* No artefact key covers these files — `pools_*.json` has one, these do not.
+* The freeze is a separate artefact and was unaffected.
+* The symptom, when it came, was
+  `test_the_cartogram_ink_is_proportional_to_seats` failing on ward-winner
+  distortion ratios — which reads as a cartogram problem, not as a
+  contaminated input. It reads `ward_winner_probs.csv`.
+
+**Nothing in the repository connected the cause to the symptom.** The run that
+did it printed the files it wrote, and that line scrolled past among a coalition
+table.
+
+### The docstring that made it easy to believe otherwise
+
+`run_model`'s docstring says *"Writes nothing unless ``run_dir`` is given, and
+then it writes only a trace."* **That is true of the function and it is not true
+of the command**, and it is the sentence a reader checks before running a
+diagnostic. The function is innocent; `main` is not.
+
+### The guard
+
+**`--run-dir` now means "I am looking at this run", and a run being looked at
+does not publish.** `main` writes the trace, prints what it did not rewrite, and
+returns. `build_all.py` invokes `montecarlo.py` with no `--run-dir`
+(`build_all.py:85`) and is unaffected.
+
+Verified: the same 40-draw `--set spine_k=0 --run-dir` run leaves
+`ward_winner_probs.csv` and `forecast_summary.json` byte-identical
+(`6a5f8238…`, `8249ea50…` before and after) while still writing a full trace.
+`tests/test_chain.py::test_a_diagnostic_run_does_not_overwrite_the_published_artefacts`
+pins it against a sentinel file, and asserts the trace is still written — the
+guard is about publishing, not about tracing.
+
+### The artefacts were restored, not left
+
+Regenerated by a plain `python src/montecarlo.py` at the shipped configuration —
+`draws: 5000, seed: 20261104`, confirmed from the rewritten
+`forecast_summary.json` — and the cartogram test returned to 17/17.
+
+### What this belongs to
+
+This is `silent-input-loss` (§1.72) in a new place: **a file the model depends
+on, changed with no test, diff or artefact key noticing.** The earlier case was
+raw election files leaving `data/raw`; this is published outputs being
+overwritten in `data/processed`. Both are invisible for the same reason, and the
+reason is that being gitignored is not the same as being unimportant.

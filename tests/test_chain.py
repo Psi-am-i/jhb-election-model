@@ -90,6 +90,7 @@ from __future__ import annotations
 
 import json
 import sys
+import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -1002,6 +1003,63 @@ class _Target:
 
     def __init__(self, year):
         self.year = year
+
+
+def test_a_diagnostic_run_does_not_overwrite_the_published_artefacts():
+    """A diagnostic that REPLACES the forecast is not a diagnostic either.
+
+    `montecarlo.main` writes three files into the processed directory —
+    `ward_winner_probs.csv`, `seat_draws.csv`, `forecast_summary.json` — and
+    they are the site's inputs and the published forecast.
+
+    **This happened on 2026-08-28.** `CLAUDE.md` documents
+    `python src/montecarlo.py ... --run-dir /tmp/t` as the way to trace a run,
+    and two such runs — the second a `--set spine_k=0` sweep at 60 draws —
+    replaced the 5,000-draw shipped forecast on disk. `data/**` is gitignored,
+    so `git status` was clean and no artefact key noticed;
+    `test_the_cartogram_ink_is_proportional_to_seats` went red an hour later,
+    reading like a cartogram problem. §1.118.
+
+    `run_model`'s docstring — *"writes nothing unless `run_dir` is given, and
+    then it writes only a trace"* — is true OF THE FUNCTION and was read as
+    covering the command. This test is about the command.
+
+    **It runs against the REAL processed directory on purpose**, because that
+    is the path that broke and a temporary one cannot supply the pool spec and
+    turnout the run reads. The three files are snapshotted and restored in a
+    `finally`, so a regression fails the test rather than damaging the tree.
+    """
+    import montecarlo as M
+    import cityconfig
+
+    cityconfig.use("joburg")
+    processed = cityconfig.use_target("2026").processed
+    names = ("ward_winner_probs.csv", "seat_draws.csv", "forecast_summary.json")
+    before = {n: (processed / n).read_bytes()
+              for n in names if (processed / n).exists()}
+    if not before:
+        skip(f"no published artefacts in {processed} to protect")
+
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            trace_dir = Path(tmp) / "trace"
+            rc = M.main(["--city", "joburg", "--target", "2026",
+                         "--draws", "20", "--run-dir", str(trace_dir)])
+            assert rc == 0, rc
+            assert (trace_dir / "41_guards.json").exists(), (
+                "the trace must still be written — the guard is about "
+                "PUBLISHING, not about tracing")
+        for name, blob in before.items():
+            assert (processed / name).read_bytes() == blob, (
+                f"a --run-dir run rewrote {name}. A diagnostic must not "
+                f"publish: `data/**` is gitignored, so this is invisible until "
+                f"something downstream breaks. MODEL-LOG §1.118.")
+    finally:
+        # Restore whatever the run may have written, so a REGRESSION in the
+        # guard costs a red test and not a contaminated forecast.
+        for name, blob in before.items():
+            if (processed / name).read_bytes() != blob:
+                (processed / name).write_bytes(blob)
 
 
 def test_the_trace_is_inert_without_a_run_directory():

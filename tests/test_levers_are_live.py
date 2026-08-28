@@ -25,10 +25,21 @@ The instances that motivated this file, all confirmed by an independent review o
     the first deletion took their test coverage with it and nothing failed.
   * `pool_spec`'s `base_city_d` argument — same thing, never referenced, and
     missed by the review.
-  * `ward_pr_ratio_overrides` (MK 0.80, ENTRANT 0.80) — gated on `not fallback`,
-    and `levels.ward_pr_ratios` returns a fallback at every target the harness
-    can run. The code's own comment says the fallback REPLACES these two numbers;
-    they were left in `DEFAULTS` and in the register anyway.
+  * `ward_pr_ratio_overrides` (MK 0.80, ENTRANT 0.80) — gated on `not fallback`.
+    The code's own comment says the fallback REPLACES these two numbers; they
+    were left in `DEFAULTS` and in the register anyway.
+
+    **The mechanism named here was wrong until 2026-08-28 (§1.97 F32) and the
+    conclusion was right.** It said `levels.ward_pr_ratios` "returns a fallback
+    at every target the harness can run", which reads as a fact about the
+    targets. It is not: `ward_pr_ratios` returns a fallback **unconditionally**
+    — its failure path returns `({}, 0.8)`. What decides delivery is the gate at
+    the CALLER, `if _ratios:` (montecarlo.py:3379): the fallback reaches the
+    scenario only when the measured map is non-empty, and it is then truthy only
+    because 0.8 is not 0. So the overrides are dead at all 32 (city, target)
+    pairs for two reasons stacked, not one — and if the fallback were ever 0.0
+    they would come back to life through `not fallback`, which is exactly the
+    truthiness trap F27 is about.
 
 The guard is behavioural and there is no static version of it: a textual
 reference count passes for every one of the four above. So the test perturbs each

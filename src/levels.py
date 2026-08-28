@@ -1069,12 +1069,41 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
         nat_level = national * float(np.exp(mu_t.get(party, c_t))) if national > 0 else 0.0
         loc_level = local * float(np.exp(mu_r.get(party, c_r))) if local > 0 else 0.0
         if national > 0 and local > 0:
-            w = k / (worth + k)
+            # F2: `k / (worth + k)` is 0/0 when a party has both records and NO
+            # θ evidence, and `spine_k=0` is exactly the sweep worth running
+            # (§1.30 measured k=0 at RMSE 0.275 against the blend's 0.236). It
+            # raised ZeroDivisionError out of the middle of `run_model`, past
+            # the `except FileNotFoundError` above it, for five blend-route
+            # parties at joburg 2026.
+            #
+            # THE LIMIT IS CHOSEN, NOT DERIVED — the owner's call, 2026-08-28.
+            # `w` is the weight on the LOCAL route, so `k=0` means "pure
+            # national spine". Taking `w = 0.0` when `worth + k <= 0` keeps that
+            # meaning for EVERY party. The alternative — `w = 1.0` when
+            # `worth <= 0`, the limit from above — would have made `k=0` mean
+            # pure-national for everyone EXCEPT the parties with no θ evidence,
+            # which is the single largest thing the spine does at 2026. A lever
+            # that means two things is not a lever. Registered in
+            # JUDGEMENT-CALLS.md.
+            w = 0.0 if (worth + k) <= 0 else k / (worth + k)
             # Hoisted so the accounting below reuses the logs the blend already
             # took, rather than taking them twice — same values, same warnings.
             log_loc, log_nat = np.log(loc_level), np.log(nat_level)
             level = float(np.exp(w * log_loc + (1 - w) * log_nat))
+            # F7: SAY WHAT HAPPENED, NOT WHICH BRANCH RAN. A party with both
+            # records and no θ evidence gets `w = 1.0` — one hundred per cent
+            # its own last local result, nothing blended — and was labelled
+            # "blend" anyway. That is the label a reader checks when asking why
+            # a party sits where it does, and for ActionSA at 2026 it said the
+            # national route was contributing when it was not.
+            #
+            # `routes["blend"]` still counts it as blend, because that counter
+            # is about WHICH RECORDS THE PARTY HAS and it does have both.
             route = "blend"
+            if w >= 1.0:
+                route = "blend at full local (no θ evidence)"
+            elif w <= 0.0:
+                route = "blend at full national (k=0)"
             routes["blend"] += 1
             gap = abs(float(log_loc) - float(log_nat))
             if np.isfinite(gap):
