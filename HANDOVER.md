@@ -16,8 +16,8 @@ is left, re-ranked after the review of that work:
 
 | # | do | why |
 |---|---|---|
-| **1** | **Re-measure Type A, state C and the four `THETA_WINDOW` arms on the corrected instrument** | ⛔ **before F22+F23.** ~30 min of compute. See below |
-| 2 | **PIT as a second instrument** — `u = F_t7(z)` per fold and size bin | a log score charges level bias to the width and cannot say which moved |
+| **1** | ⛔ **OWNER DECISION: Key 4 no longer blocks the Type A filter** (§1.125) | the key's stated reason for existing is undercut; nothing changed on it |
+| 2 | **PIT as a second instrument** — `u = F_t7(z)` per fold and size bin | a t₇ log score is structurally forgiving of a too-narrow tail; PIT is what can see it |
 | 3 | Add a **bias floor `τ²`** before enabling `bye_weight_mode="inverse_variance"` | the lever stays off until then |
 | 4 | Investigate: the by-election weighting is **worse than uniform** | 24.83 vs 24.66, number in hand, nobody acted |
 | 5 | Per-party turnout sensitivity, **hierarchical**, behind a lever | real sign, unvalidatable magnitude |
@@ -58,7 +58,25 @@ reported. **Fails only if the 95% interval lies entirely above zero.**
 width about `theta_prior`'s own centre, and the model draws about the spine's.
 Do not quote it as the model's estimation loss; the first draft of §1.124 did.
 
-### Why item 1 is the head of the list
+### ⛔ The re-measurement is DONE, and it undercut Key 4's reason for existing
+
+§1.125. On the corrected instrument **Type A's 2016 fold no longer worsens** —
+4/8 metro-years better, 4/8 worse, 95% interval [−0.305, +0.269] — and 2021
+improves beyond the noise. `ITERATING.md` says Key 4 exists *because* the bar
+would otherwise have shipped Type A. **It would ship it now.**
+
+Type A is still refuted on §1.74's seat condition, and §1.82's refutation of
+recency weighting survives and is now banded (`THETA_WINDOW=2` is the first arm
+ever to fail the floor on a banded test). But the key's justification is
+undercut, **and nothing in `ITERATING.md` has been changed on the strength of
+it — the bar is the owner's.** §1.125 recommends keeping Key 4 as the layer
+floor it honestly is and adding PIT, which can see a too-narrow width where a t₇
+log score structurally cannot.
+
+Note also: the pollster predicted the opposite direction and was wrong. The
+distribution change dominates the baseline change.
+
+### Why that re-measurement was the head of the list
 
 **Every held-out NLL figure quoted in this repository before 2026-08-28 is form
 A's, Gaussian, without its constant, on the raw baseline.** They are marked in

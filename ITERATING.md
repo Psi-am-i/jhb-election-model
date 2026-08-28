@@ -276,6 +276,21 @@ handled by `SPLITS` and arrivals instead.
 WHICH RESIDUAL is fitted with `_fit_line` held constant. They are diagnostics.
 They are not the floor.
 
+> ⛔ **THE JUSTIFICATION BELOW NO LONGER HOLDS ON THE CORRECTED INSTRUMENT
+> (2026-08-28, MODEL-LOG §1.125), AND THE KEY HAS DELIBERATELY NOT BEEN CHANGED
+> FOR IT.** Re-measured on the committed width, the model's baseline and the
+> Student-t₇ it draws, **Type A's 2016 fold no longer worsens** — four
+> metro-years better, four worse, the 95% interval straddling zero — and 2021
+> improves. **Key 4 does not block the change it was created to block.** The old
+> block was a Gaussian tail penalty (87.9 nats against the t₇'s 13.3 on one
+> collapse) that the model does not incur. Type A is *still refuted*, on §1.74's
+> seat condition, and §1.82's refutation of recency weighting *survives and is
+> now banded*. But this paragraph's argument is undercut, and the bar is the
+> owner's to amend. **Read §1.125 before relying on it.** The recommendation
+> there is to keep Key 4 as the layer floor it honestly is and add a PIT
+> instrument — which can see a too-narrow width where a t₇ log score
+> structurally cannot — before any exclusion is reconsidered.
+
 **This key exists because the first draft of this amendment did not have it, and
 an independent review showed the bar would then have shipped the bare Type A
 filter** — the one change §1.74, §1.82 and the plan all agree must NOT ship,

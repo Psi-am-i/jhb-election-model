@@ -14143,3 +14143,115 @@ that fold unaided.
    footprint"*. **Name 2011 the structural-events fold**: a candidate that
    materially improves it has stopped asking θ to forecast a collapse, which is
    what §1.71 says should happen through `SPLITS` and arrivals instead.
+
+
+## 1.125 On the corrected instrument, Key 4 no longer blocks the change it was created to block (2026-08-28)
+
+**§1.124's first open item, done. It is not the tidy confirmation it was
+expected to be.**
+
+`ITERATING.md` says why Key 4 exists, in terms: *"the first draft of this
+amendment did not have it, and an independent review showed the bar would then
+have shipped the bare Type A filter"* — the change §1.74, §1.82 and the plan all
+agree must not ship. The mechanism was §1.74's table: Type A improves both
+cycles on seats and improves CRPS, so it passes Keys 1 and 2 cleanly, and only
+the held-out NLL at 2016 stopped it.
+
+**Re-measured on the corrected instrument — the committed width, the model's
+baseline, the Student-t₇ the model draws — Type A's 2016 fold no longer
+worsens.**
+
+| arm | 2016 | 2021 |
+|---|---|---|
+| **unlimited / no filter (incumbent)** | **1.1363** | **1.1425** |
+| Type A filter | **1.1067** | **0.9483** |
+| state C (`THETA_EXCLUDE_TARGETS=2011`) | 1.4237 | 1.0515 |
+| `THETA_WINDOW=1` | 1.1101 | 1.0362 |
+| `THETA_WINDOW=2` | 1.1777 | 1.1353 |
+| `THETA_WINDOW=3` | 1.1363 | 1.1357 |
+
+Same held-out population in every arm — n=97 at 2016, n=138 at 2021, eight
+metro-year clusters each — so only the fitting record changes. `THETA_WINDOW=3`
+at 2016 is byte-identical to unlimited, which is the sanity check: at target
+2016 the record holds three transitions and the window cannot bind.
+
+### Through the pass rule, not the means
+
+Run through `key4_delta` — paired on observation identity, deltas aggregated per
+metro-year, t(G−1) on the eight cluster means, failing only if the 95% interval
+lies **entirely above zero**:
+
+| arm | fold | per-obs Δ | per-cluster Δ | 95% CI | worse in | verdict |
+|---|---|---|---|---|---|---|
+| **Type A** | 2016 | −0.0295 | −0.0180 | [−0.3052, +0.2692] | **4/8** | undetermined |
+| **Type A** | 2021 | −0.1942 | −0.1907 | [−0.3202, **−0.0613**] | 1/8 | **improves** |
+| state C | 2016 | +0.2874 | +0.2964 | [−0.0921, +0.6849] | 6/8 | undetermined |
+| state C | 2021 | −0.0910 | −0.0979 | [−0.1802, −0.0155] | 1/8 | improves |
+| `WINDOW=1` | 2016 | −0.0261 | −0.0211 | [−0.2077, +0.1656] | 3/8 | undetermined |
+| `WINDOW=1` | 2021 | −0.1063 | −0.0907 | [−0.1761, −0.0053] | 1/8 | improves |
+| `WINDOW=2` | 2016 | +0.0415 | +0.0432 | [**+0.0104**, +0.0760] | 6/8 | **FAILS Key 4** |
+| `WINDOW=2` | 2021 | −0.0072 | +0.0137 | [−0.0810, +0.1084] | 3/8 | undetermined |
+| `WINDOW=3` | 2016 | −0.0000 | −0.0000 | [−0.0000, +0.0000] | 2/8 | undetermined |
+| `WINDOW=3` | 2021 | −0.0068 | −0.0062 | [−0.0118, −0.0005] | 2/8 | improves |
+
+**⛔ NEITHER EXCLUSION FAILS KEY 4 ANY MORE.** Type A is dead even at 2016 — four
+metro-years better, four worse, the interval straddling zero — and clearly
+better at 2021. State C worsens 2016 in six of eight metro-years but not beyond
+the clustering noise. **Only `THETA_WINDOW=2` trips the floor**, and it is the
+first arm ever to do so on a banded test.
+
+### Why, and it is not an artefact
+
+The Gaussian charged a collapse at `w = SD_FLOOR`, `|r| = 2` **87.9 nats**; the
+t₇ the model actually draws charges **13.3**. An exclusion works by deleting
+far-tail observations from the *fitting* record, which narrows every fitted
+width; the Gaussian then punished that narrowing ferociously on the unfiltered
+held-out set, and the t₇ barely does. **So the old Key 4 blocked Type A on a
+tail penalty the model does not incur.**
+
+That reading is uncomfortable and it is the honest one. The pollster review
+predicted the opposite — *"COMMITTED should worsen at 2016 by more than A did,
+not less"*, reasoning that A's evaluation size moves with the deletions and
+partly offsets the narrowing. **The prediction was wrong**, and the reason is
+that the distribution change dominates the baseline change. It is recorded here
+because a reviewer's stated mechanism that fails is worth as much as one that
+holds.
+
+### What is NOT overturned
+
+* **Type A is still refuted, on seats.** §1.74's condition 2 required the nine
+  city-year seat error to fall below the pre-ingest 254; it was 262 and still is.
+  Key 4 was never the only objection — but it was the one `ITERATING.md` cites
+  as the reason Key 4 exists.
+* **State C's verdict is unchanged**: wins one fold, loses one, `undetermined`,
+  exactly as §1.80 recorded — the same shape, different numbers.
+* **§1.82's non-monotonicity finding SURVIVES INTACT, and is now sharper.**
+  Window 2 is the worst arm at both folds and is the only arm that fails the
+  floor; window 3 repairs it; window 1 is better than both. A monotone decay in
+  age cannot represent that curve. **Recency weighting stays refuted**, and it
+  is now refuted with a noise band rather than on four unbanded points.
+* **Every quoted DIRECTION in §1.74, §1.80 and §1.82 survives except one** —
+  Type A at 2016, which went from "worse" to "dead even".
+
+### What this means for the bar, and it needs the owner
+
+**Key 4's stated purpose was to stop the Type A filter, and on a correct
+instrument it does not.** Three readings, and they are not equivalent:
+
+1. **The old block was spurious** — a Gaussian tail penalty on a predictive the
+   model does not issue — and Type A should be judged on Keys 1, 2 and 3 alone,
+   where it already fails condition 2. Key 4 keeps its value as a floor on the θ
+   layer without being the thing that stopped this particular change.
+2. **The correct instrument is the wrong instrument for this job.** The worry
+   about an exclusion is that it moves volatility out of the prior and into the
+   error, and a log score under a t₇ predictive is *structurally* forgiving of a
+   too-narrow width in the tail. If that worry is real, it needs a test that can
+   see it — **PIT, which decomposes the score into level bias and dispersion and
+   is §1.124's open item 2** — rather than a Gaussian standing in for one.
+3. **Both.** This is the likeliest reading and it is the one this entry
+   recommends: keep Key 4 as the layer floor it now honestly is, and add the PIT
+   instrument before any exclusion is reconsidered.
+
+**Nothing has been changed in `ITERATING.md` on the strength of this.** The bar
+is the owner's, and a key whose justification has been undercut is a decision,
+not a measurement.
