@@ -326,6 +326,7 @@
    "arrival_group_draw": false,
    "bye_local_cap": 1.5,
    "bye_tau_months": 18.0,
+   "bye_weight_mode": "fixed",
    "contestation_expand": 0.22,
    "dirichlet_floor": 0.0001,
    "dirichlet_scale": 1.0,
@@ -746,9 +747,9 @@
   "seed": 20261104,
   "target": "2026"
  },
- "content_sha256": "2630722d6e0764f0b61f80391c5c69d0c0a7aaa5df12f03d781e0510a5edce0d",
+ "content_sha256": "af88257f07b3acf5c188201ff0ae548c2c06231fec10574bc782c737b7512335",
  "provenance": {
-  "git_commit": "7f3a57be59c10315af858bf54477f36c163eb270",
+  "git_commit": "82c61e13790e3c21de356e4c45da2609881c465c",
   "git_dirty": false,
   "numpy": "2.5.1",
   "python": "3.13.4"
