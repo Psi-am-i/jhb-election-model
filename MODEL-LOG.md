@@ -12695,10 +12695,21 @@ Twenty-two coupling groups exist; these five change the order of work.
   measured.
 * **F12+F10 is now the live hazard.** §1.108 names `level_floor` as the only
   remaining move on F12. Measured lower bound on `got` at joburg 2021: **2.06e-8
-  at `level_floor=1e-6`** (safe, 20x above F10's 1e-9 threshold), 2.06e-9 at
-  1e-7, 2.06e-11 at 1e-8. **A floor at or below ~1e-8 turns F10 from latent to
-  live**, and `solve_identity_hits` — shipped in §1.108 and currently 0 — is the
-  instrument that must be watched during any such sweep.
+  at `level_floor=1e-6`** (safe, 20x above F10's 1e-9 threshold), and
+  `solve_identity_hits` — shipped in §1.108 and currently 0 — is the instrument
+  that must be watched during any such sweep.
+
+  > ⛔ **CORRECTED 2026-08-28 (§1.123): THE BOUNDARY IS A DECADE LOWER THAN THIS
+  > SAID.** The original continued *"2.06e-9 at 1e-7, 2.06e-11 at 1e-8. A floor
+  > at or below ~1e-8 turns F10 from latent to live."* Measured directly on the
+  > counter that exists for it — `solve_identity_hits`, joburg 2021, 40 draws —
+  > it is **0 at 1e-6, 0 at 1e-7, 0 at 1e-8, and 2990 at 1e-9**. **1e-8 is the
+  > lowest SAFE point; 1e-9 is the first live one.** The quoted chain was also
+  > internally inconsistent: two decades of floor cannot move a linear mechanism
+  > three decades, and 2.06e-10 would still not have fired. The 2.06e-8 itself
+  > stays UNVERIFIED — it came from a reconstruction that is not in the
+  > repository — but the consequence it was quoted for is now measured, which is
+  > the fact a sweep actually needs.
 * **F28 subsumes F29.** Both zero-ratio parties sit at PR shares 4.5e-5 and
   2.0e-4, far below the 0.001 threshold, so restricting the median to the
   population `run_model` already trusts removes both. Landing them separately
