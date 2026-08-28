@@ -12904,3 +12904,89 @@ at one threshold, with no check that the threshold was not doing the work.** A
 single measurement is not a robust one, and "I measured it" became the same kind
 of unearned confidence that "it is obviously wrong" was three entries ago. The
 sweep cost one script and inverted the answer.
+
+## 1.114 F46 adopted: the by-election delta is converted onto the PR base where the ratio can be measured (2026-08-28)
+
+The owner's decision, on §1.113's evidence: *"lets use it."* Implemented,
+measured, and it costs **one seat in the published forecast** — for a reason
+that is not the one it looks like.
+
+### What changed
+
+`blended_centres` converted a by-election delta measured on the **ward** ballot
+onto `prior_pr_share`, a level on the **PR** ballot, additively. It now divides
+that delta by the party's own measured ward/PR ratio — **but only where the
+ratio is trustworthy.**
+
+"Trustworthy" is not a new judgement. It is the population and the clip
+`run_model` already uses for this exact quantity: parties above `pc > 0.001` at
+the previous LGE, clipped to `[WARD_PR_RATIO_MIN, WARD_PR_RATIO_MAX]` =
+`[0.5, 2.0]`. The ratios are recorded **in the loop that already builds them**
+rather than recomputed, because two definitions of one quantity is the defect
+this repository has paid for most often.
+
+A party below the threshold keeps the additive form — MK is the case at 2026,
+having no 2021 base at all — and the route note now says which branch ran, so a
+trace can tell them apart:
+
+    DA   ... ward delta +9.34%/ratio 1.054 ...
+    MK   ... ward delta +10.58% additive ...
+
+### The effect on the 2026 forecast
+
+| party | centre before | after | move |
+|---|---|---|---|
+| DA | 30.534% | 30.359% | **−0.175pp** |
+| ANC | 25.991% | 26.042% | +0.051pp |
+| EFF | 11.788% | 11.763% | −0.025pp |
+| ATM | 0.552% | 0.533% | −0.018pp |
+| ASA | 14.686% | 14.685% | **−0.002pp** |
+| everything else | | | < 0.001pp |
+
+**Total absolute movement 0.274pp**, which matches the 0.30pp predicted from the
+deltas before the change was made.
+
+### ⛔ The one seat that moved is ASA's, and ASA barely moved
+
+`freeze.py --verify` reports exactly one median change: **ASA 26 → 25.**
+
+**ASA's centre moved by 0.002pp — two thousandths of a point — and ASA's own
+implied level did not change at all**, because it is clamped at 16.8% both
+before and after. What ASA got was a renormalisation echo of the DA's move.
+
+Meanwhile **the DA's centre moved 0.175pp, eighty-seven times further, and its
+median did not move at all.**
+
+That pair is the whole explanation, and it is worth stating because the naive
+reading of "F46 costs ASA a seat" is wrong: **seats are a step function of votes
+through a quota, so a median sitting on a boundary flips on any change at all,
+and a median in the middle of a step absorbs a large one.** ASA's band is
+[10, 52] — it was on a knife edge. This is `ITERATING.md`'s own opening
+argument ("a forecast can be four seats out while being a tenth of a point out
+on the ballot") arriving in the smallest possible form.
+
+**So the honest statement of the cost is 0.274pp of centre movement, not one
+seat.** The seat is a boundary artefact of a knife-edge median and would move
+back on a change of similar size in any direction.
+
+### The overhang batch is confirmed neutral on the FORECAST, not just the suite
+
+Attribution was checked rather than assumed. The drift spanned two commits, so
+the F46 change was stashed and the freeze re-verified against the committed
+overhang batch alone:
+
+    VERIFIED — forecast_frozen.json reproduces exactly (21aea11583658f9a…)
+
+So §1.111's six findings and §1.112's F13 are number-neutral on the published
+2026 forecast to the last bit, which is a stronger statement than the suite
+passing. **All of the one-seat move is F46's.**
+
+### What is still untestable, and stays labelled so
+
+`bye` is non-empty only at joburg 2026, so **no backtest can score this change**
+— exactly as for `w_bye` itself, which `MACHINERY.md` already labels *argued,
+not tested*. The evidence for it is §1.113's out-of-sample sweep on the
+2016 → 2021 transition across eight metros, which is real evidence about the
+world and is not the four keys. This change ships on that basis and on the
+owner's decision, and the entry says so rather than implying a backtest blessed
+it.

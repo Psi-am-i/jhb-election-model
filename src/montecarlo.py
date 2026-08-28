@@ -1891,13 +1891,16 @@ def blended_centres(
                 # is the same threshold shape `ward_pr_ratios` already uses
                 # (pc > 0.001, clipped to WARD_PR_RATIO_MIN/MAX).
                 #
-                # SO THIS LINE IS WRONG FOR THE PARTIES THAT HOLD SEATS, and
-                # right for the tail. The correction is worth ~0.30pp across all
-                # 2026 centres (DA -0.19pp, four of nine parties absorbed by the
-                # clamp below), and it is NOT made here pending the owner's call
-                # on whether a 0.2pp change to the published forecast is wanted
-                # now. §1.109, §1.110, §1.113.
-                implied = prior_pr_share.get(party, 0.0) + delta
+                # ADOPTED 2026-08-28 on the owner's decision, and applied
+                # ONLY where the ratio is trustworthy — `_ward_pr_trusted`
+                # carries exactly the parties above the 0.001 threshold, with
+                # the same [WARD_PR_RATIO_MIN, WARD_PR_RATIO_MAX] clip the
+                # model already uses for this quantity. Everyone else keeps the
+                # additive form, which the sweep says is better for them.
+                # §1.109, §1.110, §1.113, §1.114.
+                _r = (scenario.get("_ward_pr_trusted") or {}).get(party)
+                delta_pr = (delta / _r) if _r else delta
+                implied = prior_pr_share.get(party, 0.0) + delta_pr
                 if party in prior:
                     low, high = prior[party][0], prior[party][2]
                     mid = prior[party][1] or 1.0
@@ -1936,6 +1939,12 @@ def blended_centres(
                 notes[party] = (
                     f"θ-mode {mode_level:.1%} → {centre:.1%} "
                     f"(by-elections imply {implied:.1%}"
+                    # WHICH CONVERSION RAN, because the two are a 0.2pp
+                    # difference on the DA and invisible otherwise. A trace that
+                    # cannot say which branch it took cannot be used to check
+                    # this change later.
+                    + (f", ward delta {delta:+.2%}/ratio {_r:.3f}" if _r
+                       else f", ward delta {delta:+.2%} additive")
                     + (f", clamped to {clamped:.1%}" if clamped != implied else "")
                     + f", w_bye {w})"
                 )
@@ -3698,15 +3707,31 @@ def run_model(target, scenario: dict,
     wc, pc = citywide(prior_ward), citywide(prior_pr)
     prior_pr_share = pc
     ratio = np.ones(npar)
+    # THE SAME RATIOS, KEYED BY PARTY, for the by-election conversion (F46,
+    # §1.113). Recorded in this loop rather than recomputed, because two
+    # definitions of one quantity is the defect this repository has paid for
+    # most often. Only the TRUSTED ones are carried: a party under the 0.001
+    # threshold has a ratio that is a quotient of two noisy numbers, and
+    # dividing a delta by it amplifies noise faster than it removes bias —
+    # measured, and it is why `blended_centres` falls back to additive there.
+    trusted_ward_pr: dict[str, float] = {}
     for p, i in index.items():
         if pc.get(p, 0) > 0.001:
             ratio[i] = np.clip(wc.get(p, 0.0) / pc[p],
                                WARD_PR_RATIO_MIN, WARD_PR_RATIO_MAX)
+            trusted_ward_pr[p] = float(ratio[i])
     # A party with no ward history at the previous LGE gets the median of the
     # parties that have one — a rule that applies to whoever turns up next,
     # rather than the two hand-set numbers this replaces (MK 0.80 "bounded by
     # ActionSA's observed 0.77", ENTRANT 0.80), both of which were read off the
     # target.
+    # Consumed by `blended_centres` for the by-election conversion. NOT the
+    # fallback: an untrusted party keeps the additive treatment.
+    scenario["_ward_pr_trusted"] = trusted_ward_pr
+    note_value(scenario, "montecarlo.WARD_PR_RATIO_MIN", WARD_PR_RATIO_MIN,
+               where="montecarlo:run_model ward/PR ratio clip")
+    note_value(scenario, "montecarlo.WARD_PR_RATIO_MAX", WARD_PR_RATIO_MAX,
+               where="montecarlo:run_model ward/PR ratio clip")
     fallback = scenario.get("_ward_pr_fallback")
     if fallback:
         for p, i in index.items():
