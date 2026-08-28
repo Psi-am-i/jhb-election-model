@@ -1366,7 +1366,7 @@ def note_value(scenario: dict | None, name: str, value, where: str,
       when a declared name is not there to read. A renamed constant shows up as
       an absence rather than as silence.
 
-    Writing to ``scenario`` (like ``_constants_read`` and ``_ward_pr_measured``)
+    Writing to ``scenario`` (like ``_constants_read`` and ``_ward_pr_trusted``)
     keeps the log travelling with the run into ``forecast_summary.json``, and
     keeps this function free of module state -- which is what lets it be called
     inside a worker process and mean something.
@@ -1751,7 +1751,7 @@ def note_constant(scenario: dict, constant: str, party: str | None = None,
     whose only local result IS the target.
 
     The run therefore measures its own reads and ``backtest.in_sample_banner``
-    reports those. Kept on the scenario (like ``_ward_pr_measured``) so it
+    reports those. Kept on the scenario (like ``_ward_pr_trusted``) so it
     travels into ``forecast_summary.json`` with everything else: values are
     plain lists, because that file is JSON.
 
@@ -1917,17 +1917,26 @@ def blended_centres(
     spine_level = _spine_level or {}
     poll_levels = scenario.get("poll_levels") or {}
     for party, base in base_city.items():
+        # WHICH ROUTE SET THE LEVEL, so the note can say. It used to say
+        # "θ-mode" whichever of the four ran, and only the last one IS a θ
+        # mode: at joburg 2026 all NINE tilted parties took the SPINE route, so
+        # the label was wrong for every one of them on the live forecast. Not
+        # latent — that is what the published run says today. §1.121
         if party in poll_levels:
             # A poll outranks the arrival record for a party with no record.
             mode_level = float(poll_levels[party])
+            route = "poll level"
             notes[party] = f"level from poll: {mode_level:.2%}"
         elif seeded.get(party, 0.0) > 0:
             band = bands.get(party)
             mode_level = base * (float(band[1]) if band else 1.0)
+            route = "seeded level"
         elif party in spine_level:
             mode_level = spine_level[party]
+            route = "spine level"
         elif party in prior:
             mode_level = base * prior[party][1]
+            route = "θ-mode"
         else:
             # NO PARTY-SPECIFIC FALLBACK. Until 2026-08-19 three more branches
             # sat here -- `theta_mode` (six named parties), `individual_theta`
@@ -1974,8 +1983,12 @@ def blended_centres(
                 # a quotient of two noisy numbers, so dividing by it amplifies
                 # noise faster than it removes bias. Above ~1% the ratio is well
                 # estimated and proportional is the better description — which
-                # is the same threshold shape `ward_pr_ratios` already uses
-                # (pc > 0.001, clipped to WARD_PR_RATIO_MIN/MAX).
+                # is the same threshold shape `run_model`'s OWN ratio block
+                # uses a few hundred lines below (pc > 0.001, clipped to
+                # WARD_PR_RATIO_MIN/MAX). NOT `levels.ward_pr_ratios`, which
+                # applies NEITHER — this comment said so until 2026-08-28 and
+                # was wrong when written (§1.121). The difference is not
+                # cosmetic: it is why the two are not interchangeable.
                 #
                 # ADOPTED 2026-08-28 on the owner's decision, and applied
                 # ONLY where the ratio is trustworthy — `_ward_pr_trusted`
@@ -1984,6 +1997,36 @@ def blended_centres(
                 # model already uses for this quantity. Everyone else keeps the
                 # additive form, which the sweep says is better for them.
                 # §1.109, §1.110, §1.113, §1.114.
+                # F34 CASE (3): A WARD-ONLY PARTY HAS AN UNKNOWN BASE, NOT A
+                # ZERO ONE. `prior_pr_share.get(party, 0.0)` below conflates
+                # three states: a party that stood and polled (the base is
+                # real and `delta` is a genuine within-ward SWING); one that
+                # did not exist (zero IS the value, and `byelections.py`
+                # measured its deltas against that same zero, so `delta` is a
+                # LEVEL); and one that stood on the WARD ballot only, where
+                # the PR base is unknown and `0 + delta` is neither.
+                #
+                # Only the third is wrong, and it is UNREACHABLE today: at
+                # joburg 2026 the single party reaching this block with no PR
+                # share is MK, which did not exist (2021 PR 0.000%, ward
+                # 0.000%, and all eight of its contests carry base 0.0000).
+                # The real case-(3) parties are under the weight bar — IND at
+                # 8.4 against BYE_MIN_WEIGHT 30.0. Skipped rather than raised:
+                # it is a legitimate data state, not an impossible one, and
+                # killing a live run over it would be worse than declining to
+                # tilt. §1.121
+                if (party not in prior_pr_share
+                        and (scenario.get("_prior_ward_share") or {}
+                             ).get(party, 0.0) > 0):
+                    note_value(scenario, "bye.ward_only_base_skipped", party,
+                               where="montecarlo:blended_centres bye base",
+                               kind="consulted")
+                    print(f"  !! {party}: by-election weight {weight_sum:.1f} "
+                          f"and no previous PR share, but it DID stand on the "
+                          f"ward ballot. Its PR base is unknown, not zero, so "
+                          f"the by-election tilt is SKIPPED. MODEL-LOG §1.121.")
+                    centres[party] = centre
+                    continue
                 _r = (scenario.get("_ward_pr_trusted") or {}).get(party)
                 delta_pr = (delta / _r) if _r else delta
                 implied = prior_pr_share.get(party, 0.0) + delta_pr
@@ -2022,8 +2065,27 @@ def blended_centres(
                 clamped = min(max(implied, (low / mid) * anchor),
                               (high / mid) * anchor)
                 centre = (1 - w) * mode_level + w * clamped
+                _n_bye, _sd_bye = (scenario.get("_bye_spread")
+                                   or {}).get(party, (0, 0.0))
                 notes[party] = (
-                    f"θ-mode {mode_level:.1%} → {centre:.1%} "
+                    # F38: THIS WAS AN ASSIGNMENT AND THE POLL ROUTE'S NOTE
+                    # DIED HERE. A party whose level came from a poll and was
+                    # then tilted by by-elections reported only the second
+                    # half. The metro-poll block later already appends; this one
+                    # now does too, so the note reads in the order the
+                    # contributions were applied. TEXT ONLY — `notes` reaches
+                    # `print`, `ModelRun.notes` and the trace, and no
+                    # arithmetic anywhere; `route_notes` has no reader at all.
+                    #
+                    # Latent today: the poll route and this block are mutually
+                    # exclusive at every target that exists. `national_polls`
+                    # returns nothing at 2026 (both admitted polls are
+                    # metro-scope), and `bye` is empty at all sixteen backtest
+                    # city-years. It becomes reachable the moment a national
+                    # poll declared for 2026 names a seeded arrival that also
+                    # clears BYE_MIN_WEIGHT. §1.121
+                    (notes[party] + " | " if party in notes else "")
+                    + f"{route} {mode_level:.1%} → {centre:.1%} "
                     f"(by-elections imply {implied:.1%}"
                     # WHICH CONVERSION RAN, because the two are a 0.2pp
                     # difference on the DA and invisible otherwise. A trace that
@@ -2031,10 +2093,51 @@ def blended_centres(
                     # this change later.
                     + (f", ward delta {delta:+.2%}/ratio {_r:.3f}" if _r
                        else f", ward delta {delta:+.2%} additive")
+                    # THE SPREAD, NOT JUST THE MEAN. For a party with no
+                    # previous result nothing differences out and this is a
+                    # LEVEL read off a handful of self-selected wards: MK's
+                    # eight run 0.74%-22.90%, sd 9.1pp, so its own 95%
+                    # interval is [3.8%, 17.4%] against a clamp of [9.3%,
+                    # 13.7%]. A reader who sees only "imply 10.6%" cannot
+                    # tell that from a citywide measurement. §1.121
+                    + (f", {_n_bye} contests sd {_sd_bye:.1%}" if _n_bye
+                       else "")
                     + (f", clamped to {clamped:.1%}" if clamped != implied else "")
                     + f", w_bye {w})"
                 )
         centres[party] = centre
+    # F35 — THE LOOP IS OVER `base_city`, SO A `poll_levels` ENTRY FOR A PARTY
+    # OUTSIDE IT IS DISCARDED HERE: no centre, no note, no warning. This
+    # assertion is the gate on WIDENING that loop, and it exists because
+    # widening it is simultaneously number-moving and useless.
+    #
+    #   USELESS: `universe` and `index` are built from the same dict and passed
+    #   to this function, so a party absent from `base_city` is absent from the
+    #   draw matrix and every consumer downstream ignores whatever centre it
+    #   were given.
+    #
+    #   NUMBER-MOVING: `compress_levels` renormalises over the MEMBERSHIP of
+    #   `centres` — `total` and `freed` are both sums over it — and it ships
+    #   live at level_shrink = 0.35. One extra key rescales EVERY party.
+    #
+    # So the repair is ONE change spanning universe construction, this loop and
+    # `compress_levels`' normalisation base, or it is this assertion. If you
+    # are here because this fired, you are doing the first and you must do all
+    # three: a green suite after widening the loop alone would be wrong.
+    #
+    # Passes today by construction (`centres` is written only inside this loop,
+    # which has no `continue`/`break` and a raising `else`) and empirically —
+    # the dropped set is empty on all seventeen runnable configurations, because
+    # `national_polls` returns nothing at 2026 and the only 2021 candidate,
+    # ASA, is seeded and therefore in `base_city`. §1.121
+    if set(centres) != set(base_city):
+        raise AssertionError(
+            f"`blended_centres` no longer returns exactly the baseline's "
+            f"parties: added {sorted(set(centres) - set(base_city))}, dropped "
+            f"{sorted(set(base_city) - set(centres))}. `compress_levels` "
+            f"renormalises over this membership at level_shrink="
+            f"{scenario.get('level_shrink')}, so this moved every party. See "
+            f"the comment above — the repair spans three places or it is none.")
     before = dict(centres)
     centres = compress_levels(centres, scenario)
     if trace:
@@ -3401,12 +3504,31 @@ def run_model(target, scenario: dict,
             if verbose:
                 centre, spread = _groups["centre"], _groups["spread"]
                 print(f"  levels: {centre['n']} transitions before "
-                      f"{target.year}, common centre {centre['median']:.2f}; "
+                      f"{target.year}, common centre "
+                      f"{centre['weighted_geomean']:.2f}; "
                       f"sd(log θ) {spread['at_40%']:.2f} at 40% of the vote "
                       f"rising to {spread['at_0.1%']:.2f} at 0.1%")
+        # `scenario["_ward_pr_measured"] = _ratios` was written here and READ
+        # BY NOTHING — zero loads in all of `src/` (§1.109 F26). DELETED
+        # 2026-08-28. The third of its kind after `__small__` (§1.98) and
+        # `_theta_worth` (F45): written to the scenario, carried into
+        # `forecast_summary.json` where a reader would take it for something
+        # the model uses, and consumed nowhere. Only the median — the second
+        # element — ever crossed this seam.
+        #
+        # DELETED RATHER THAN WIRED THROUGH, and that is the measured part.
+        # `run_model` recomputes the same ratios inline below from the same
+        # file, and the two are BIT-IDENTICAL where the consumer trusts them:
+        # 496 party-ratios above the 0.1% PR floor across all 32 (city, target)
+        # pairs, worst absolute difference exactly 0.0. What they do NOT agree
+        # on is WHO GETS A RATIO. `levels` drops a party with no ward votes;
+        # the inline copy keeps it at 0.0 and clips to WARD_PR_RATIO_MIN. AGANG
+        # at Tshwane 2026 is exactly that party — 761 PR votes, 0.113% of the
+        # ballot, no ward row at all — and consuming this map would move it
+        # from 0.5 to the fallback 0.855. One moved party is a SCORED change,
+        # not a tidy-up, so the duplication STAYS and the dead write goes.
         _ratios, _fallback = _levels.ward_pr_ratios(target, target.city)
         if _ratios:
-            scenario["_ward_pr_measured"] = _ratios
             scenario["_ward_pr_fallback"] = _fallback
         # CONTESTATION IS A CHANGE, NOT A LEVEL. See where it is applied.
         # `_contestation` is who stands at the TARGET; `_contestation_prev` is
@@ -3796,6 +3918,13 @@ def run_model(target, scenario: dict,
     prior_ward, _ = load(prior_lge_file, "Ward")
     prior_pr, _ = load(prior_lge_file, "PR")
     wc, pc = citywide(prior_ward), citywide(prior_pr)
+    # F34 case (3): `blended_centres` cannot otherwise tell a party that DID
+    # NOT STAND from one that stood on the WARD ballot only. At joburg 2021 the
+    # second is real — IND at 1.290% of the ward ballot with no PR line, and
+    # SAKHISIZWE_CONVENTION and AFRICAN_COVENANT beside it. For such a party
+    # the PR base is UNKNOWN, not zero, and `0 + delta` is neither a level nor
+    # a swing. Recorded here rather than recomputed there: one definition.
+    scenario["_prior_ward_share"] = dict(wc)
     prior_pr_share = pc
     ratio = np.ones(npar)
     # THE SAME RATIOS, KEYED BY PARTY, for the by-election conversion (F46,
@@ -3824,7 +3953,21 @@ def run_model(target, scenario: dict,
     note_value(scenario, "montecarlo.WARD_PR_RATIO_MAX", WARD_PR_RATIO_MAX,
                where="montecarlo:run_model ward/PR ratio clip")
     fallback = scenario.get("_ward_pr_fallback")
-    if fallback:
+    # `is not None`, NOT truthiness (§1.109 F27). A zero fallback is
+    # REPRESENTABLE — 2 of the 753 measured ratios across the 32 (city, target)
+    # pairs are exactly 0.0, so a median of zero is something this data can
+    # produce — and `if fallback:` would discard it in silence, reverting every
+    # party below the 0.1% floor (ENTRANT included) to `ratio = 1.0` from
+    # `np.ones(npar)`: the identity wearing the fallback's name.
+    #
+    # NUMBER-NEUTRAL, and measured so: the fallback is a float in
+    # [0.7533, 1.1227] at all 32 pairs and `None` at none of them, so both
+    # spellings take the same branch everywhere the model can run. THIS IS THE
+    # GUARD, INSTALLED BEFORE ANYTHING NEEDS IT. The change that would need it —
+    # delivering the fallback unconditionally so the miss path stops landing on
+    # 1.0 — is NOT made here: that path fires at none of the 32 pairs, so it is
+    # unscoreable, therefore argued and not tested.
+    if fallback is not None:
         for p, i in index.items():
             if pc.get(p, 0) <= 0.001:
                 ratio[i] = fallback
@@ -3885,9 +4028,19 @@ def run_model(target, scenario: dict,
     bye_path = processed / "byelection_party_deltas.csv"
     if bye_path.exists():
         with bye_path.open(encoding="utf-8", newline="") as fh:
+            _spread: dict[str, tuple[int, float]] = {}
             for row in csv.DictReader(fh):
                 bye[row["party"]] = (float(row["weight_sum"]),
                                     float(row["weighted_delta"]))
+                # THE SPREAD TRAVELS WITH THE MEAN. A note reporting only
+                # "by-elections imply 10.6%" conceals that the reading is
+                # eight contests spanning a factor of 31, with a 95% interval
+                # three times wider than the clamp that bounds it. On the
+                # scenario rather than in `bye` so the tuple shape every
+                # consumer unpacks stays as it was.
+                _spread[row["party"]] = (int(row.get("contests") or 0),
+                                         float(row.get("delta_sd") or 0.0))
+            scenario["_bye_spread"] = _spread
     # --- polls, for the parties nothing else can see (task #23) ------------
     # ONLY arrivals. An established party has a record and the spine uses it;
     # a poll is a competing estimate of the same quantity there and blending

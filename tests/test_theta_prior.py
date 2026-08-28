@@ -255,7 +255,7 @@ def test_the_shrink_target_is_the_size_centre_and_not_the_flat_common_mean():
         priors, groups = levels.theta_prior(TARGET_UNUSED, baseline)
     assert len(calls) == 1
 
-    flat = groups["centre"]["median"]     # exp(mu_all), the flat common centre
+    flat = groups["centre"]["weighted_geomean"]     # exp(mu_all), the flat common centre
     assert abs(priors["TINY"][1] - _line(0.0005)) < 1e-9, (
         f"the smallest party came back at {priors['TINY'][1]:.6f}, not at the "
         f"size centre {_line(0.0005):.6f}. If it came back at {flat:.6f} the "
@@ -570,7 +570,7 @@ def test_the_width_is_the_dispersion_line_evaluated_and_not_a_typed_default():
         priors, groups = levels.theta_prior(TARGET_UNUSED, baseline)
     assert len(calls) == 1
 
-    assert abs(math.log(groups["centre"]["median"])) < 1e-12, (
+    assert abs(math.log(groups["centre"]["weighted_geomean"])) < 1e-12, (
         "the mirrored record no longer has a common centre of exactly 1, so "
         "the closed form below does not apply and this test is not measuring "
         "what it claims")
@@ -821,45 +821,44 @@ def test_group_membership_is_total_and_deterministic_over_the_baseline():
 # FINDINGS — behaviour documented here because phase A does not edit src/
 # --------------------------------------------------------------------------
 
-def test_a_record_of_one_observation_makes_every_band_nan_in_silence():
-    """FINDING. ``np.std(ddof=1)`` over one sample is ``nan``, and nothing checks.
+def test_a_record_of_one_observation_is_refused_rather_than_returning_nan():
+    """RE-RECORDED 2026-08-28. The silent nan is now a named refusal (F21).
 
-    With fewer than six usable rows for the dispersion fit the function falls
-    back to ``pooled = np.std(np.log(ratios_all), ddof=1)``. Over a single
-    observation that is ``nan``; ``np.clip(nan, SD_FLOOR, SD_CEILING)`` is
-    ``nan``, so **every** party's ``low`` and ``high`` and every entry of
-    ``groups['sd']`` comes back ``nan`` — including parties that have plenty of
-    record of their own, because the width is shared.
+    This pinned the defect: `np.std(..., ddof=1)` over ONE observation is
+    `nan`, `np.clip` propagates it, `sd_for` hands the same nan to every party,
+    and `make_drawer` reads `sd_measured.get(party, sd_default)` with the key
+    PRESENT — so the default never fires and the nan reaches the draw. Its own
+    message authorised this rewrite: *"If it has been given a guard, DELETE
+    THIS TEST and record the fix; if it has been given a typed default width,
+    that is a judgement call and belongs in JUDGEMENT-CALLS.md."* It was given
+    a guard, not a width.
 
-    It does not raise, and it is not caught downstream: ``make_drawer`` reads
-    ``sd_measured.get(party, sd_default)`` (montecarlo.py:1546), and the key is
-    PRESENT, so the default never fires and the ``nan`` reaches the draw.
-
-    Reachable whenever the record thins to one row — a single ``codes`` entry
-    at an early target, or a demarcation crossing removing the rest. This test
-    asserts the CURRENT, WRONG behaviour so that fixing it is a visible,
-    deliberate change; it is not an endorsement of it.
+    **The refusal is unreachable on the archive, which is the point of it.**
+    `theta_record` reads `target.year` and `codes` and never `target.city`, so
+    the record is identical for all eight metros: 175 observations at 2016, 272
+    at 2021, 410 at 2026. Narrowed to a single metro code — the only narrowing
+    any caller can do — the thinnest non-empty record is 7. So this converts an
+    unverified assumption into a checked one at the site that depends on it,
+    and costs nothing.
     """
     record = {"ONLY": [(1.2, 0.05)]}
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", RuntimeWarning)
-        with synthetic_record(record) as calls:
-            priors, groups = levels.theta_prior(
-                TARGET_UNUSED, {"ONLY": 0.05, "OTHER": 0.10})
-    assert len(calls) == 1
-
-    low, mode, high = priors["ONLY"]
-    assert math.isfinite(mode), (
-        "the mode has become nan as well — the damage is wider than the "
-        "width, and this finding needs re-describing")
-    assert math.isnan(low) and math.isnan(high), (
-        f"the single-observation band is now ({low!r}, {mode!r}, {high!r}). "
-        f"If it has been given a guard, DELETE THIS TEST and record the fix; "
-        f"if it has been given a typed default width, that is a judgement "
-        f"call and belongs in JUDGEMENT-CALLS.md.")
-    assert all(math.isnan(v) for v in groups["sd"].values()), (
-        f"widths are now {groups['sd']} — see above")
-
+    with synthetic_record(record) as calls:
+        try:
+            levels.theta_prior(TARGET_UNUSED, {"ONLY": 0.05, "OTHER": 0.10})
+        except ValueError as exc:
+            assert "observation" in str(exc), exc
+            assert "nan" in str(exc), (
+                f"the refusal must say WHAT would have happened — a silent "
+                f"nan band for every party — not merely that the input was "
+                f"short: {exc}")
+        else:
+            raise AssertionError(
+                "a one-observation record no longer refuses. If it now "
+                "returns a typed default width, that is a judgement call and "
+                "belongs in JUDGEMENT-CALLS.md, not in a fallback. §1.97 F21.")
+    assert len(calls) == 1, (
+        "theta_record was not called, so this test did not exercise the "
+        "injected record at all")
 
 def test_a_party_in_the_record_but_absent_from_the_baseline_is_priced_at_size_zero():
     """FINDING. The function's own comment says this party "is not here and cannot be".

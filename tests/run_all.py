@@ -14,9 +14,13 @@ collected by it unchanged:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import importlib
+import io
+import os
 import sys
 import time
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -60,6 +64,56 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            "test_hex_cartogram"]
 
 
+# MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.
+#
+# Everything else in this suite writes only into temporary directories, which
+# is what makes module-level parallelism safe at all — checked file by file.
+# These do not:
+#
+#   test_chain — `test_a_diagnostic_run_does_not_overwrite_the_published_
+#     artefacts` runs `montecarlo.main` against the REAL processed directory,
+#     because that is the path §1.118 broke and a temporary one cannot supply
+#     the pool spec. It snapshots and restores the three published artefacts,
+#     but a concurrent module reading them mid-test would see a 20-draw
+#     forecast. It is correct AND it is not concurrency-safe.
+#
+# Being on this list costs wall clock, so a module earns its place by touching
+# state outside a temp directory — not by being slow or by being important.
+#
+# ⛔ `test_levers_are_live` WAS PUT HERE AND IT MADE THE SUITE SLOWER. The
+# reasoning was sound and the measurement refuted it: the module is already
+# parallel inside (~7 workers over ~108 run_model calls, §1.115), so nesting it
+# in a 7-worker pool oversubscribes 8 cores — module time rose 812s -> 982s.
+# Running it alone removed that. It also left SEVEN CORES IDLE for its whole
+# 362s, and wall clock went 586s -> 679s: the oversubscription cost less than
+# the idleness. Reverted, and the lesson is scheduled instead — see
+# LONGEST_FIRST. §1.121
+SERIAL_ONLY = {"test_chain"}
+
+# LONGEST JOB FIRST. `pool.map` starts work in the order given, so a 362s module
+# submitted last finishes ~362s after the pool would otherwise have drained. The
+# fix is not to isolate it but to START it first, which is the oldest scheduling
+# heuristic there is. Named rather than sorted by a stored timing, because a
+# timings file would be one more artefact to go stale; the profile is printed on
+# every run and this list is three names long.
+LONGEST_FIRST = ("test_levers_are_live", "test_levels_dispersion", "test_drawer")
+
+
+def _run_one(name: str) -> tuple[str, int, str, float]:
+    """Import and run one module, capturing its output. For a worker process."""
+    t0 = time.monotonic()
+    buf = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+            module = importlib.import_module(name)
+            failed = run_module(vars(module))
+    except BaseException as exc:                       # noqa: BLE001
+        # A module that dies on IMPORT must be a failure, not a lost future.
+        buf.write(f"\n!! {name} raised {type(exc).__name__}: {exc}\n")
+        failed = 1
+    return name, failed, buf.getvalue(), time.monotonic() - t0
+
+
 def select(patterns: list[str] | None, skip: list[str] | None) -> list[str]:
     """The modules to run. A pattern matches by substring, so `-k poll` works.
 
@@ -92,6 +146,10 @@ def main(argv: list[str] | None = None) -> int:
                     help="skip modules whose name contains PATTERN")
     ap.add_argument("--list", action="store_true",
                     help="print the module list and exit")
+    ap.add_argument("-j", "--jobs", type=int, default=0, metavar="N",
+                    help="run modules in N parallel PROCESSES (0 = auto, "
+                         "1 = serial). Modules in SERIAL_ONLY always run "
+                         "alone, after the rest.")
     ap.add_argument("--slowest", type=int, default=8, metavar="N",
                     help="how many modules to name in the timing summary")
     args = ap.parse_args(argv)
@@ -104,10 +162,33 @@ def main(argv: list[str] | None = None) -> int:
     chosen = select(args.only, args.skip)
     partial = len(chosen) != len(MODULES)
 
+    workers = args.jobs or max(1, min(8, (os.cpu_count() or 2) - 1))
+    parallel = [m for m in chosen if m not in SERIAL_ONLY]
+    parallel.sort(key=lambda m: (LONGEST_FIRST.index(m)
+                                 if m in LONGEST_FIRST else len(LONGEST_FIRST)))
+    serial = [m for m in chosen if m in SERIAL_ONLY]
+
     failed = 0
     times: list[tuple[float, str]] = []
     started = time.monotonic()
-    for name in chosen:
+
+    # PARALLEL FIRST, SERIAL AFTER. Output is buffered per module and printed
+    # in the declared order, so a parallel run reads exactly like a serial one
+    # — interleaved output would make a failure impossible to attribute, which
+    # would cost more than the wall clock saves.
+    if workers > 1 and len(parallel) > 1:
+        print(f"running {len(parallel)} modules across {workers} processes"
+              + (f", then {len(serial)} serially" if serial else ""))
+        with ProcessPoolExecutor(max_workers=workers) as pool:
+            for name, f, out, secs in pool.map(_run_one, parallel):
+                print(f"\n=== {name} " + "=" * (60 - len(name)))
+                print(out, end="")
+                failed |= f
+                times.append((secs, name))
+    else:
+        serial = chosen
+
+    for name in serial:
         print(f"\n=== {name} " + "=" * (60 - len(name)))
         t0 = time.monotonic()
         module = importlib.import_module(name)
@@ -117,10 +198,19 @@ def main(argv: list[str] | None = None) -> int:
     total = time.monotonic() - started
     # WHERE THE TIME GOES, every run, because a forty-minute suite that does not
     # say which module owns the forty minutes cannot be made faster on evidence.
+    # THE SHARE IS OF MODULE TIME, NOT OF WALL CLOCK. In parallel mode those
+    # differ and the naive version printed percentages summing past 100%, which
+    # is exactly the kind of statistic that gets quoted. Both numbers are shown
+    # because they answer different questions: the share says what to optimise
+    # NEXT, and the wall clock says what the run cost.
+    spent = sum(sec for sec, _ in times) or 1.0
     print(f"\n=== timing " + "=" * 51)
     for seconds, name in sorted(times, reverse=True)[:args.slowest]:
-        print(f"  {seconds:7.1f}s  {seconds / total:5.1%}  {name}")
-    print(f"  {total:7.1f}s   100.0%  TOTAL ({len(chosen)} modules)")
+        print(f"  {seconds:7.1f}s  {seconds / spent:5.1%}  {name}")
+    print(f"  {spent:7.1f}s   100.0%  module time ({len(chosen)} modules)")
+    if abs(spent - total) > 1.0:
+        print(f"  {total:7.1f}s          WALL CLOCK "
+              f"({spent / total:.2f}x from running in parallel)")
 
     print(f"\nrepository root: {ROOT}")
     if partial:

@@ -13304,9 +13304,21 @@ delivery is `if _ratios:` at the caller, and the fallback is truthy only because
 0.8 is not 0. The conclusion holds at all 32 (city, target) pairs; the
 explanation did not. §1.37 carries a banner in place, per §1.103's precedent.
 
-**And it leaves a live trap named**: if that fallback were ever `0.0`, `not
-fallback` would be true and the two deleted overrides would come back to life.
-That is F27's truthiness bug, and this is the second place it can bite.
+**And it leaves a trap named**: if that fallback were ever `0.0`, truthiness
+discards it and every party below the credibility floor reverts to the identity
+`1.0`. That is F27.
+
+> ⛔ **CORRECTED 2026-08-28 (§1.121).** This paragraph originally said the
+> zero would revive "the two deleted overrides — F27's truthiness bug, and this
+> is the second place it can bite." **There is no second site.**
+> `ward_pr_ratio_overrides` gated on `not fallback` was deleted on 2026-08-17
+> and survives only as a tombstone comment at `montecarlo.py:3832`; the only
+> other `not fallback` in `src/` is an unrelated local in `pools.py:615`.
+> Verified by grep. A deleted thing cannot come back to life through a guard
+> that no longer exists, and the sentence was incoherent as well as wrong.
+> **The single live truthiness site is `montecarlo.py:3827`, and it is
+> latent**: the fallback is a float in [0.7533, 1.1227] at all 32 (city,
+> target) pairs and `None` at none of them (§1.121).
 
 ## 1.118 A documented diagnostic command overwrote the published forecast, and `data/**` being gitignored is why nothing said so (2026-08-28)
 
@@ -13534,3 +13546,182 @@ joburg 2026 the two directories coincide so the bytes read are identical.
 * **`montecarlo.py:806` credited the crosswalk to `build_crosswalk.py`.** That
   file exists and builds the unrelated PARTY crosswalk. A citation pointing at a
   real file that has nothing to do with the subject is worse than none.
+
+## 1.121 The ward/PR group, three small findings, and a by-election estimate whose bound is three times tighter than its own noise (2026-08-28)
+
+Tier 1's remainder — **F26, F27, F30, F31, F21, F24, F35, F38** — plus the
+number-neutral half of **F34** and a pollster review that reframed it. Every
+change below is number-neutral: 370 passed, and `freeze --verify` reproduces
+`forecast_frozen.json` exactly.
+
+### F26 — the dead write deleted, and the duplication kept ON PURPOSE
+
+`scenario["_ward_pr_measured"]` had **zero loads in all of `src/`** and was
+carried into `forecast_summary.json` where a reader would take it for something
+the model uses. Third of its kind after `__small__` (§1.98) and `_theta_worth`
+(F45).
+
+**Deleted rather than wired through, and that is the measured part.** The two
+copies of the ratio formula — `levels.ward_pr_ratios` and `run_model`'s inline
+block — are **bit-identical where the consumer trusts them**: 496 party-ratios
+above the 0.1% PR floor across all 32 (city, target) pairs, worst absolute
+difference **exactly 0.0**. What they do not agree on is *who gets a ratio*:
+257 parties appear in `levels` only (all below the floor), 57 differ by the
+`[0.5, 2.0]` clip that `levels` does not apply, and **one appears in the inline
+copy only — AGANG at Tshwane 2026**, which took 761 PR votes and has no ward row
+at all. Consuming `levels`' map moves it from 0.5 to the fallback 0.855.
+
+**One moved party makes it a scored change, not a tidy-up.** The earlier
+triage's warning — that fixing F26 by wiring the map through "turns three
+neutral changes into one moving one" — now has a number behind it.
+
+### F27 — the guard installed before anything needs it
+
+`if fallback:` discards a legitimate `0.0`, reverting every party below the
+credibility floor to the identity `1.0` from `np.ones(npar)`. Now
+`if fallback is not None:`.
+
+**Latent, and measured so:** the fallback is a float in **[0.7533, 1.1227]** at
+all 32 pairs and `None` at none of them, so both spellings take the same branch
+everywhere the model can run. 2 of the 753 measured ratios are exactly 0.0, so a
+zero median is something the data can produce — it just has not.
+
+**Not done: delivering the fallback unconditionally.** That substitutes 0.8 for
+the identity 1.0 on a path that fires at none of the 32 pairs — unscoreable,
+therefore argued and not tested.
+
+> ⛔ **§1.117's "second truthiness site" was wrong and is corrected there.**
+> `ward_pr_ratio_overrides` gated on `not fallback` was deleted on 2026-08-17
+> and survives only as a tombstone comment. There is one live site.
+
+### F30, F31 — latent, left, and now with the evidence for leaving them
+
+**F30** (case-sensitive ballot split): all 33 LGE files carry exactly
+`{'PR','Ward'}` — no case variants, no blanks — and zero empty or
+float-formatted `Party_Votes`. **F31** (two file-addressing routes): every
+`--data-dir` defaults identically and nothing passes another. Both are worth
+doing eventually and neither touches a number; F30 breaks a third golden and is
+not coupled to F26 or F27, so it is a separate commit.
+
+### F21 — the silent `nan`, refused
+
+`np.std(..., ddof=1)` over one observation is `nan`; `np.clip` propagates it,
+`sd_for` hands the same `nan` to every party, and `make_drawer` reads
+`sd_measured.get(party, sd_default)` with **the key present**, so the default
+never fires and the `nan` reaches the draw.
+
+**Unreachable, and that is the point of the refusal.** `theta_record` reads
+`target.year` and `codes` and never `target.city`, so the record is identical
+for all eight metros: **175 / 272 / 410** observations at 2016 / 2021 / 2026.
+Narrowed to a single metro code — the only narrowing any caller can do — the
+thinnest non-empty record on the archive is **7**.
+
+### F24 — `median` renamed to `weighted_geomean`
+
+`exp(mu_all)` is exp of the reliability-weighted mean of `log θ` — a weighted
+**geometric mean** of the record, not an order statistic of it. It sat beside
+`n` and `effective_n`, which describe the record, so that is not how it read.
+Verified not a published key: it appears nowhere in `forecast_summary.json`, in
+`content/` or in `site/`. Four sites, one commit, key string only.
+
+### F35 — an assertion, because the repair spans three places
+
+Confirmed on every point: parties outside `base_city` are absent from
+`universe` and `index`, so widening the loop is **useless**; and
+`compress_levels` renormalises over `centres`' membership at
+`level_shrink = 0.35`, so it is simultaneously **number-moving**. The dropped
+set is empty on all seventeen runnable configurations — `national_polls`
+returns nothing at 2026 (both admitted polls are metro-scope) and the only 2021
+candidate, ASA, is seeded.
+
+### F38, and a defect that was LIVE rather than latent
+
+F38 — the by-election block overwrote the poll route's note — is latent: the
+two channels are mutually exclusive at every target that exists.
+
+**But the route label was wrong on the published forecast right now.** The note
+said `θ-mode` whichever of the four routes set the level, and **at joburg 2026
+all nine tilted parties took the SPINE route**. Now `spine level`, `poll level`,
+`seeded level` or `θ-mode`, whichever ran.
+
+### F34 — the pollster's review, and what it changed
+
+The `.get(party, 0.0)` default conflates three states: a party that stood
+(`delta` is a within-ward **swing**, and ward composition differences out), one
+that did not exist (`delta` **is** the level), and one that stood on the **ward
+ballot only** (the base is unknown, not zero).
+
+**Exactly one party reaches it at joburg 2026: MK**, and it is the middle case —
+2021 PR 0.000%, ward 0.000%, and all eight contests carry `base = 0.0000`. **The
+arithmetic is correct for the only party it touches.**
+
+The pollster's finding is not about the arithmetic:
+
+| | |
+|---|---|
+| MK's eight by-election shares | 0.74% … 22.90% — a factor of **31** |
+| sd across contests | **9.77pp** |
+| se of the mean (n=8) | **3.45pp** |
+| naive 95% interval | **[3.81%, 17.35%]** — 13.5pp wide |
+| the clamp bounding it | **[9.33%, 13.71%]** — 4.38pp wide |
+
+**The bound is three times tighter than the sampling uncertainty of the thing it
+bounds.** Essentially the whole informative range of the estimate lies outside
+the clamp, so the channel is not adding evidence for MK — it is adding a bounded
+perturbation around the spine, and the bound decides the answer. *"A good bound
+over a noisy estimator described as a measurement is how a model gets its
+credibility questioned."*
+
+**And the weighting scheme does not bite.** `exp(−age/τ) × √votes × ρ` moves
+MK's estimate by **0.065pp** (unweighted 10.514%, weighted 10.579%). Worse, **ρ
+correlates +0.46 with MK's share** — the wards where MK does best score as the
+most citywide-typical, so ρ is mildly reinforcing the selection it exists to
+neutralise. On the one party where this channel matters, the elaborate weighting
+is a rounding error.
+
+**Why MK is the case where this bites and no one else is:** for an established
+party the estimator is a difference-in-differences and ward selection largely
+cancels. MK's base is zero in all eight wards, so **nothing differences out** —
+and the same `w_bye = 0.40` is applied to both.
+
+#### Done now (number-neutral)
+
+* **The spread travels with the mean.** `byelections.py` emits `delta_sd`, and
+  the note reads `… 8 contests sd 9.1% …`. A reader who saw only "by-elections
+  imply 10.6%" could not tell a citywide measurement from a level read off eight
+  self-selected wards.
+* **Case (3) is skipped with a named warning** and a `consulted` delivery
+  record. Unreachable today — the real case-(3) parties are under the bar (IND
+  at 8.4 against 30.0) — so this closes the trap before it is live. Skipped
+  rather than raised: it is a legitimate data state, not an impossible one.
+
+#### Deferred, with the proposal written down
+
+* **Derive `w_bye` by inverse variance instead of typing it.** This is the item
+  that would actually improve the forecast, and it replaces a constant with a
+  measurement — the direction `ITERATING.md` says to travel. On these figures
+  the by-election reading would earn far less than 0.40. **It moves the 2026
+  forecast and no backtest can score it**, so it needs a decision, not a commit.
+* **Use the turnout ratio already computed.** `byelection_turnout.csv` holds a
+  differential-enthusiasm signal this channel ignores, and it is the one thing
+  that could resolve which way the selection bias runs for an insurgent party.
+
+**Explicitly NOT proposed: a second constant.** A `w_bye_new_party` would stack
+an untested number on an untested number at an unscoreable target.
+
+### The suite: an optimisation that made it slower, measured and reverted
+
+`test_levers_are_live` is parallel inside (~7 workers over ~108 `run_model`
+calls, §1.115). Nesting it in a 7-worker module pool oversubscribes 8 cores, so
+it was moved to `SERIAL_ONLY` to run alone.
+
+**That made the suite slower: 586s → 679s.** Running it alone removed the
+oversubscription (module time 982s → 899s) and left **seven cores idle for its
+whole 362s**. The idleness cost more than the contention.
+
+Reverted, and the lesson scheduled instead: `LONGEST_FIRST` puts the long pole
+at the head of the pool so it starts immediately and overlaps with everything
+else — longest-job-first, the oldest scheduling heuristic there is. **The
+reasoning for isolating it was sound and the measurement refuted it**, which is
+the fourth time in three days that has happened and the reason every one of
+these is now measured rather than argued.

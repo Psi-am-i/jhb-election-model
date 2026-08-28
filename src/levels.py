@@ -711,6 +711,32 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
             # NOT corrected by LOG_CHI2_BIAS, deliberately — see the constant.
             return float(np.exp(0.5 * (intercept + slope * x)))
     else:
+        # ddof=1 OVER ONE OBSERVATION IS `nan`, AND IT IS SILENT (§1.97 F21).
+        # `np.clip` propagates it, `sd_for` hands the same nan to every party,
+        # and `make_drawer` reads `sd_measured.get(party, sd_default)` with the
+        # key PRESENT — so the default never fires and the nan reaches the draw.
+        # Refused rather than defaulted: a typed width here would be a
+        # judgement call and belongs in JUDGEMENT-CALLS.md, not in a fallback.
+        #
+        # THE REFUSAL IS UNREACHABLE ON THE ARCHIVE, and saying so is the point
+        # of it. `theta_record` reads `target.year` and `codes` and never
+        # `target.city`, so the record is IDENTICAL for all eight metros: 175
+        # observations at 2016, 272 at 2021, 410 at 2026 (measured by calling
+        # `theta_record` directly). Narrowed to a single metro code — the only
+        # narrowing any caller can do, via `theta_residual.py` — the thinnest
+        # non-empty record on the archive is 7, and 7 again under
+        # THETA_WINDOW=1. An empty record returns earlier and never arrives
+        # here. §1.121
+        if len(ratios_all) < 2:
+            # `getattr`, because `theta_prior` passes `target` straight to
+            # `theta_record` and never touches it otherwise — the tests hand it
+            # a plain string for exactly that reason. A refusal that raises a
+            # DIFFERENT error while reporting the first is worse than useless.
+            raise ValueError(
+                f"the θ record holds {len(ratios_all)} observation(s) before "
+                f"{getattr(target, 'year', target)}: sd(log θ) is undefined "
+                f"and every party's band would come back nan in silence. "
+                f"See MODEL-LOG §1.121.")
         pooled = float(np.std(np.log(ratios_all), ddof=1))
         sd_route = "pooled"
 
@@ -837,7 +863,18 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
     shrink["share"] = (shrink["absorbed"] / shrink["offered"]
                        if shrink["offered"] > 0 else 0.0)
     return priors, {
-        "centre": {"n": len(everything), "median": float(np.exp(mu_all)),
+        # `weighted_geomean`, NOT `median` — renamed 2026-08-28 (§1.97 F24,
+        # §1.121). `exp(mu_all)` is exp of the reliability-weighted mean of
+        # log θ, i.e. the weighted GEOMETRIC MEAN of the record, not an order
+        # statistic of it. It is also the median of the LogNormal(mu_all, sd)
+        # this function goes on to fit, which is why the old name survived —
+        # but it sat beside `n` and `effective_n`, which describe THE RECORD,
+        # so that is not how it read. Not a published key: it appears nowhere
+        # in `forecast_summary.json` (checked by recursive walk), in `content/`
+        # or in `site/`; the `median` that IS published is a seat median on a
+        # different dict.
+        "centre": {"n": len(everything),
+                   "weighted_geomean": float(np.exp(mu_all)),
                    "effective_n": float(weights_all.sum())},
         "spread": {"at_0.1%": sd_for(0.001), "at_1%": sd_for(0.01),
                    "at_10%": sd_for(0.10), "at_40%": sd_for(0.40)},

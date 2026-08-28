@@ -588,40 +588,48 @@ def _cross_check_every_city() -> int:
     return checked
 
 
-def test_the_measured_map_is_written_to_the_scenario_and_never_read_back():
-    """DOCUMENTS A DEFECT. ``_ward_pr_measured`` is a dead write.
+def test_the_measured_map_is_no_longer_written_to_the_scenario():
+    """RE-RECORDED 2026-08-28. The dead write is gone; the live one is pinned.
 
-    ``montecarlo.py:2352`` stores the whole per-party map on the scenario and
-    nothing in ``src/`` ever reads it — the ratios are recomputed inline instead
-    (montecarlo.py:2715-2725). So ``ward_pr_ratios``'s first return value, which
-    is the entire point of the function, is discarded by its only caller, and
-    the seam reads as wired when only the median crosses it. This is the
-    duplicated-logic rule in CLAUDE.md, and it is why a defect in this function's
-    per-party arithmetic could not change a forecast.
+    This previously pinned the WRONG behaviour deliberately and said that the
+    day someone deleted the dead write it must be rewritten. This is that
+    rewrite. `_ward_pr_measured` had zero loads in all of `src/` and was
+    deleted (§1.97 F26, §1.121).
 
-    **The assertion below pins the WRONG behaviour on purpose**, so that the day
-    someone wires the map through — or deletes the dead write — this test fails
-    and is rewritten rather than the change going unnoticed. It is not an
-    endorsement. Contrast ``_ward_pr_fallback``, which is written and read, and
-    is asserted here to show the check can tell the difference.
+    **It was deleted rather than WIRED THROUGH, and the reason is a number.**
+    The two copies of the formula are bit-identical where the consumer trusts
+    them — 496 party-ratios above the 0.1% PR floor across all 32 (city,
+    target) pairs, worst absolute difference exactly 0.0 — but they do not
+    agree on WHO GETS A RATIO: `levels` drops a party with no ward votes,
+    `run_model` keeps it at 0.0 and clips to `WARD_PR_RATIO_MIN`. AGANG at
+    Tshwane 2026 is that party — 761 PR votes, no ward row — and consuming the
+    map moves it from 0.5 to the fallback 0.855. So the duplication stays until
+    someone scores removing it.
+
+    `_ward_pr_fallback` is asserted written AND read, because it is now the
+    only part of `ward_pr_ratios` that reaches the model at all.
     """
-    unread, read_back = [], []
+    measured, fallback = [], []
     for path in sorted((ROOT / "src").glob("*.py")):
-        tree = ast.parse(path.read_text(encoding="utf-8"))
-        for key, stores, loads in _scenario_key_uses(tree):
-            if key == "_ward_pr_measured":
-                unread.append((path.name, stores, loads))
-            elif key == "_ward_pr_fallback":
-                read_back.append((path.name, stores, loads))
-    assert unread, "_ward_pr_measured is no longer written anywhere in src/"
-    assert sum(l for _n, _s, l in unread) == 0, (
-        f"_ward_pr_measured is now READ somewhere ({unread}) — good news, and "
-        f"this test must be rewritten to assert what reads it.")
-    assert sum(l for _n, _s, l in read_back) >= 1, (
-        f"_ward_pr_fallback is no longer read ({read_back}); the fallback was "
-        f"the ONLY part of ward_pr_ratios that reached the model, so nothing "
-        f"the function computes is used at all now.")
-
+        text = path.read_text(encoding="utf-8")
+        for line_no, line in enumerate(text.splitlines(), 1):
+            if line.lstrip().startswith("#"):
+                continue
+            if "_ward_pr_measured" in line:
+                measured.append(f"{path.name}:{line_no}")
+            if "_ward_pr_fallback" in line:
+                fallback.append(f"{path.name}:{line_no}  {line.strip()[:60]}")
+    assert not measured, (
+        f"_ward_pr_measured is back in live code ({measured}). If the map is "
+        f"now CONSUMED that is a scored change, not a fix — AGANG at Tshwane "
+        f"2026 moves from 0.5 to the fallback 0.855 — and this test must be "
+        f"rewritten to say what reads it and what the backtest said.")
+    assert any("scenario[" in f for f in fallback), (
+        f"_ward_pr_fallback is no longer written: {fallback}")
+    assert any("scenario.get" in f for f in fallback), (
+        f"_ward_pr_fallback is no longer read: {fallback}. It was the ONLY "
+        f"part of ward_pr_ratios reaching the model, so nothing the function "
+        f"computes would be used at all.")
 
 def _scenario_key_uses(tree):
     """``(key, stores, loads)`` for every ``scenario[...]``-shaped key used.
@@ -815,11 +823,11 @@ def test_when_the_measurement_is_unavailable_run_model_falls_back_to_1_0_not_0_8
     ``({}, 0.8)`` when it cannot measure. ``run_model`` then does::
 
         _ratios, _fallback = _levels.ward_pr_ratios(target, target.city)
-        if _ratios:                                  # montecarlo.py:2351
-            scenario["_ward_pr_measured"] = _ratios
+        if _ratios:                                  # the gate, unchanged
             scenario["_ward_pr_fallback"] = _fallback
         ...
-        fallback = scenario.get("_ward_pr_fallback")  # montecarlo.py:2730
+        fallback = scenario.get("_ward_pr_fallback")
+        if fallback is not None:                     # `is not None` since F27
         if fallback:
             for p, i in index.items():
                 if pc.get(p, 0) <= 0.001:
@@ -838,10 +846,19 @@ def test_when_the_measurement_is_unavailable_run_model_falls_back_to_1_0_not_0_8
     pinned, so removing either fails here.
     """
     source = (ROOT / "src" / "montecarlo.py").read_text(encoding="utf-8")
-    assert 'if _ratios:\n            scenario["_ward_pr_measured"] = _ratios' in source \
-        and 'scenario["_ward_pr_fallback"] = _fallback' in source, (
+    assert 'if _ratios:\n            scenario["_ward_pr_fallback"] = _fallback' in source, (
             "the guard around the two ward/PR scenario keys has changed shape; "
             "re-derive whether the miss path still lands on 1.0")
+    # NEW 2026-08-28: nothing pinned the SPELLING of the fallback guard, and
+    # the spelling is the finding. A 0.0 fallback is representable — 2 of the
+    # 753 measured ratios across the 32 (city, target) pairs are exactly 0.0 —
+    # and `if fallback:` would discard it silently, reverting every party below
+    # the 0.1% floor to the identity 1.0. §1.97 F27, §1.121.
+    assert "if fallback is not None:" in source, (
+        "the fallback consumer is back on truthiness. A zero fallback is a "
+        "value this data can produce, and discarding it returns every "
+        "sub-threshold party to `np.ones(npar)` — the identity, wearing the "
+        "fallback's name.")
     assert 'fallback = scenario.get("_ward_pr_fallback")' in source, (
         "the consumer no longer reads the fallback off the scenario")
     assert "ratio = np.ones(npar)" in source, (

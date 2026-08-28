@@ -904,27 +904,47 @@ def test_a_party_absent_from_the_previous_pr_shares_is_read_as_having_polled_zer
     assert math.isclose(out[0], 0.5 * 0.20 + 0.5 * 0.04, rel_tol=1e-12), out[0]
 
 
-def test_the_poll_route_note_is_overwritten_by_the_by_election_note():
-    """DOCUMENTS A FALSE EXPLANATION. The report says θ-mode for a poll level.
+def test_the_poll_route_note_is_carried_through_the_by_election_block():
+    """RE-RECORDED 2026-08-28. The note appends now; it used to overwrite (F38).
 
-    The poll branch writes ``notes[party] = "level from poll: …"``; the
-    by-election block then unconditionally REPLACES it with a note beginning
-    ``"θ-mode {level}"``. The number is right and the stated reason is wrong,
-    for exactly the class of party the arrivals poll path exists to serve — one
-    with no record, which is also the class most likely to have contested
-    by-elections. ``notes`` is what the run prints as why a party is where it
-    is, and CLAUDE.md's standing complaint is documents that look current and
-    cannot be.
+    This pinned the defect and said so in its own failure message — *"the note
+    now carries the poll route through the by-election block — good; this test
+    recorded that it did not"*. Both its assertions invert here, which is the
+    outcome it was written to detect.
+
+    A party whose level came from a poll and was then tilted by by-elections
+    reported only the second half. The metro-poll block later already appended;
+    this one did not, so the run's per-party explanation — the first thing a
+    reader checks — dropped the route that set the level.
+
+    **Latent today**: the poll route and the by-election block are mutually
+    exclusive at every target that exists. `national_polls` returns nothing at
+    2026 (both admitted polls are metro-scope) and `bye` is empty at all
+    sixteen backtest city-years. It becomes reachable the moment a national
+    poll declared for 2026 names a seeded arrival that also clears
+    `BYE_MIN_WEIGHT` — `ALL_CITIZENS_PARTY` (49.55) and
+    `TRUTH_AND_SOLIDARITY_MOVEMENT` (30.58) are exactly that shape today,
+    lacking only the seed and the poll.
+
+    The note also stopped saying "θ-mode" for routes that are not a θ mode —
+    at joburg 2026 all nine tilted parties took the SPINE route, so that label
+    was wrong for every one of them on the live forecast.
     """
-    with _plan_bounds({}):
-        scenario = _scenario(w_bye=0.50, poll_levels={"X": 0.20})
-        _, notes = M.blended_centres(scenario, {"X": BASE}, {"X": 0.18},
-                                     {"X": (100.0, 0.04)})
-    assert notes["X"].startswith("θ-mode"), notes["X"]
-    assert "poll" not in notes["X"], (
-        "the note now carries the poll route through the by-election block — "
-        "good; this test recorded that it did not")
-
+    scenario = _scenario(w_bye=0.50, poll_levels={"X": 0.20})
+    _, notes = M.blended_centres(scenario, {"X": BASE}, {"X": 0.18},
+                                 {"X": (100.0, 0.04)})
+    note = notes["X"]
+    assert note.startswith("level from poll: "), (
+        f"the poll route's note no longer leads — the by-election block has "
+        f"gone back to overwriting it: {note!r}")
+    assert " | " in note, (
+        f"the two contributions are not separated; the note should read in "
+        f"the order they were applied: {note!r}")
+    assert "by-elections imply" in note, (
+        f"the by-election half is missing: {note!r}")
+    assert "θ-mode" not in note, (
+        f"the note calls a poll-route level a θ-mode: {note!r}. Only the "
+        f"`prior` branch is a θ mode; the other three are not.")
 
 def test_a_missing_w_bye_raises_rather_than_meaning_zero():
     """The one input read WITHOUT a default, and it must stay that way.

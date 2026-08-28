@@ -230,9 +230,20 @@ def main(argv: list[str] | None = None) -> int:
     for party in sorted(weighted, key=lambda p: (-weight_sum[p], p)):
         n = sum(1 for r in delta_rows if r["party"] == party)
         mean_delta = weighted[party] / weight_sum[party]
+        # THE SPREAD, because the mean alone is not the evidence. MK at
+        # joburg 2026 is eight contests running 0.74% to 22.90% — a factor of
+        # 31 — and a note reporting only "by-elections imply 10.6%" conceals
+        # that its own 95% interval is [3.8%, 17.4%], three times wider than
+        # the clamp that bounds it. `sd` here is the population sd of the
+        # per-contest DELTAS, which for a party with no previous result are
+        # its raw by-election shares.
+        _d = [float(r["delta"]) for r in delta_rows if r["party"] == party]
+        _mu = sum(_d) / len(_d)
+        _sd = (sum((x - _mu) ** 2 for x in _d) / len(_d)) ** 0.5
         summary.append({"party": party, "contests": n,
                         "weight_sum": f"{weight_sum[party]:.2f}",
-                        "weighted_delta": f"{mean_delta:+.4f}"})
+                        "weighted_delta": f"{mean_delta:+.4f}",
+                        "delta_sd": f"{_sd:.4f}"})
         if weight_sum[party] > 10:
             print(f"  {party:<10s} {n:>8d} {weight_sum[party]:>9.1f} {mean_delta:>+10.1%}")
 
@@ -250,7 +261,9 @@ def main(argv: list[str] | None = None) -> int:
     out_deltas = args.processed / "byelection_party_deltas.csv"
     with out_deltas.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(
-            handle, fieldnames=["party", "contests", "weight_sum", "weighted_delta"])
+            handle,
+            fieldnames=["party", "contests", "weight_sum", "weighted_delta",
+                        "delta_sd"])
         writer.writeheader()
         writer.writerows(summary)
 
