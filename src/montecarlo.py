@@ -2132,10 +2132,23 @@ def blended_centres(
                     #
                     # Reachable only under `bye_weight_mode="inverse_variance"`,
                     # which is not the default and is not set by any city or
-                    # judgement file, so no committed number moves. Dormancy is
-                    # not a defence in this repository (§1.33, §1.63): it must
-                    # be measured under that lever before it is enabled.
-                    # MODEL-LOG §1.126.
+                    # judgement file, so no committed number moves.
+                    #
+                    # ⛔ AND IT CANNOT BE MEASURED, BY CONSTRUCTION. The
+                    # by-election window is 2022-06 to 2026-02, so **no
+                    # backtested target has any by-elections at all** and
+                    # nothing under `bye_weight_mode` can ever be scored on the
+                    # panel. This is therefore **ARGUED, NOT TESTED** — the same
+                    # category `CLAUDE.md` assigns to `w_bye` and the
+                    # first-local-election bias correction — and must be
+                    # labelled that way wherever it is quoted. Filing it as
+                    # "pending a measurement", as an earlier version of this
+                    # comment did, leaves a queue item nobody can ever close.
+                    #
+                    # The `rel = inf → w_used = nan` repair is the exception: it
+                    # is unambiguously a bug fix and needs no measurement. The
+                    # `PLAN_BOUNDS` table above is the judgement.
+                    # MODEL-LOG §1.126, §1.127.
                     rel = (math.log(high / low) / (2 * 1.2816)
                            if low > 0 and high > low else 0.0)
                     sd_spine = abs(anchor) * rel

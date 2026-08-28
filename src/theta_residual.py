@@ -701,6 +701,110 @@ def held_out_nll(codes=levels.METRO_CODES) -> dict:
     return out
 
 
+@functools.lru_cache(maxsize=None)
+def _t_reference(df: float, draws: int = 4_000_000) -> tuple:
+    """A seeded, sorted t sample. The CDF and the quantiles, without scipy."""
+    rng = np.random.default_rng(20260829)
+    return tuple(np.sort(rng.standard_t(df, size=draws)))
+
+
+def pit_table(codes=levels.METRO_CODES, df=None) -> dict:
+    """PIT and coverage of the θ prior under the predictive the model DRAWS.
+
+    **This is the instrument a log score cannot replace, and §1.126 is the entry
+    that needed it.** `NLL` charges a level bias and a width error to the same
+    number; PIT separates them — ``mean(u) − ½`` is the level, ``var(u)``
+    against 1/12 is the width — and coverage at a fixed quantile is a
+    BOUNDED-INFLUENCE statistic where ``mean z²`` under a t₇ is not (each
+    observation's contribution to the second moment is unbounded, and the
+    sample mean's own variance is finite only because ν > 4). When the two
+    disagree, coverage is the estimate and **the disagreement is the finding**.
+
+    ``u = F_t(z)``, ``z = residual / (w·√((ν−2)/ν))``, the same scale
+    `montecarlo.log_shock` draws through. A calibrated forecast gives
+    ``mean(u) = 0.5``, ``var(u) = 1/12 = 0.0833``, and coverage at nominal.
+
+    ``kappa_star`` is the single multiplier on every committed width that
+    minimises the held-out NLL — the width the layer SHOULD have carried,
+    expressed as a factor on the width it did. It is reported per fold and per
+    size bin, because §1.59 measured the conditional dispersion as NON-MONOTONE
+    in size and a pooled multiplier would be set by the small parties.
+
+    ⛔ **A κ above 1 does NOT authorise widening `sd_for` by it.** §1.50
+    established, and §1.59 confirmed, that this layer must carry the CONDITIONAL
+    dispersion because the within-pool Dirichlet independently supplies most of
+    the drawn variance. A θ layer 1.8× under-wide does not make the SEAT
+    forecast 1.8× under-wide, and widening θ could over-widen the published
+    intervals while fixing the layer. **`ITERATING.md` Key 2 — cluster-corrected
+    seat coverage — is the gate, and it is untradeable.** This function
+    diagnoses; it does not license.
+    """
+    df = level_df() if df is None else float(df)
+    ref = np.asarray(_t_reference(df))
+    scale = math.sqrt((df - 2.0) / df)
+    q80 = float(np.abs(ref)[np.argsort(np.abs(ref))][int(0.80 * len(ref))])
+    q95 = float(np.abs(ref)[np.argsort(np.abs(ref))][int(0.95 * len(ref))])
+
+    rows = residuals(codes=codes)
+    by: dict[str, list] = {}
+    for r in rows:
+        by.setdefault(r[4], []).append(r)
+
+    out = {}
+    for year, sel in sorted(by.items()):
+        resid = np.array([r[1] for r in sel])
+        width = np.array([r[2] for r in sel])
+        z = resid / (width * scale)
+        u = np.searchsorted(ref, z) / len(ref)
+        out[year] = {
+            "n": len(sel),
+            "pit_mean": float(u.mean()), "pit_var": float(u.var()),
+            "cov80": float((np.abs(z) <= q80).mean()),
+            "cov95": float((np.abs(z) <= q95).mean()),
+            "mean_z2": float((z * z).mean()),
+            # TRIMMED, so "a few extreme rows" is measured rather than asserted.
+            "mean_z2_trim3": float(np.sort(z * z)[:-3].mean()),
+            "kappa_star": _kappa_star(resid, width, df),
+            "kappa_by_bin": {
+                name: _kappa_star(resid[m], width[m], df)
+                for name, m in ((n, np.array([lo <= r[0] < hi for r in sel]))
+                                for (lo, hi), n in zip(BINS, _BIN_NAMES))
+                if m.sum() >= 8},
+        }
+    return {"folds": out, "df": df, "q80": q80, "q95": q95}
+
+
+_BIN_NAMES = ("<0.2%", "0.2-1%", "1-5%", "5-15%", ">=15%")
+
+
+def _kappa_star(resid, width, df, lo=0.2, hi=6.0, steps=60) -> float:
+    """The width multiplier minimising held-out NLL. Golden-section, not a grid.
+
+    Reported as a DIAGNOSIS of how far the layer is from calibrated, never as a
+    coefficient to apply — see `pit_table`'s warning about §1.50.
+    """
+    if len(resid) < 2:
+        return float("nan")
+
+    def cost(k):
+        return float(sum(nll_t(r, k * w, df) for r, w in zip(resid, width)))
+
+    phi = (math.sqrt(5.0) - 1.0) / 2.0
+    a, b = lo, hi
+    c, d = b - phi * (b - a), a + phi * (b - a)
+    fc, fd = cost(c), cost(d)
+    for _ in range(steps):
+        if fc < fd:
+            b, d, fd = d, c, fc
+            c = b - phi * (b - a)
+            fc = cost(c)
+        else:
+            a, c, fc = c, d, fd
+            d = a + phi * (b - a)
+            fd = cost(d)
+    return float((a + b) / 2.0)
+
+
 def key4_delta(incumbent: dict, candidate: dict, fold: str) -> dict:
     """The paired, CLUSTERED comparison Key 4's pass rule is stated against.
 
@@ -906,8 +1010,8 @@ def report() -> str:
             "0.918939 those figures",
             "  dropped. Subtract it to reconcile with a number quoted in "
             "§1.61, §1.74 or §1.82.",
-            "  `w_t7` = exp(COMMITTED − 1.398228) and `w_gau` = exp(gauss − "
-            "1.418939): the width a",
+            f"  `w_t7` = exp(COMMITTED − {_calibrated_offset_t(level_df()):.6f})"
+            f" and `w_gau` = exp(gauss − {_GAUSS_OFFSET:.6f}): the width a",
             "  CALIBRATED predictive of each family would have needed to score "
             "this badly. Widths have",
             "  units; a log score does not, and 2006's is NEGATIVE, so nothing "
@@ -916,6 +1020,42 @@ def report() -> str:
             "derived; the Gaussian",
             "  one was ½ for a day, which printed every width 2.5066x too "
             "large (§1.126).",
+            ""]
+    # CALIBRATION, which the log score cannot decompose and this can.
+    pit = pit_table()
+    out += [f"PIT AND COVERAGE under the same predictive (df = {pit['df']:g}). "
+            f"A log score charges a level",
+            "  bias and a width error to one number; this separates them. "
+            "Calibrated: PIT mean 0.500,",
+            "  PIT var 0.0833, coverage at nominal. `k*` is the single width "
+            "multiplier that minimises",
+            "  held-out NLL — the width the layer SHOULD have carried, as a "
+            "factor on the one it did.",
+            "",
+            f"{'fold':>8} {'n':>5} {'PIT mean':>9} {'PIT var':>8} {'cov80':>7} "
+            f"{'cov95':>7} {'mean z2':>8} {'trim3':>7} {'k*':>6}"]
+    for year, e in pit["folds"].items():
+        out.append(f"{year:>8} {e['n']:>5} {e['pit_mean']:>9.4f} "
+                   f"{e['pit_var']:>8.4f} {e['cov80']:>7.3f} {e['cov95']:>7.3f} "
+                   f"{e['mean_z2']:>8.3f} {e['mean_z2_trim3']:>7.3f} "
+                   f"{e['kappa_star']:>6.3f}")
+    out += ["", "  k* by size bin — a POOLED multiplier would be set by the "
+            "small parties, and §1.59",
+            "  measured the conditional dispersion as NON-MONOTONE in size:"]
+    for year, e in pit["folds"].items():
+        cells = "  ".join(f"{k} {v:.2f}" for k, v in e["kappa_by_bin"].items())
+        out.append(f"{year:>8}  {cells}")
+    out += ["",
+            "  ⛔ k* > 1 DOES NOT AUTHORISE WIDENING `sd_for` BY IT. §1.50 and "
+            "§1.59: this layer must",
+            "  carry the CONDITIONAL dispersion because the within-pool "
+            "Dirichlet independently supplies",
+            "  most of the drawn variance. A theta layer 1.8x under-wide does "
+            "NOT make the SEAT forecast",
+            "  1.8x under-wide. ITERATING.md KEY 2 — cluster-corrected seat "
+            "coverage — is the gate, and",
+            "  it is untradeable. This diagnoses; it does not license. "
+            "MODEL-LOG §1.127.",
             ""]
     for year in ("2016", "2021"):
         com, a = table[year].get("COMMITTED"), table[year].get("A")
@@ -944,7 +1084,84 @@ def report() -> str:
     return "\n".join(out)
 
 
+def dump_arm(path, codes=levels.METRO_CODES) -> int:
+    """Write one Key-4 ARM to JSON: ``{"party|fold|metro": [residual, width]}``.
+
+    **The reason this exists is a process failure worth stating.** MODEL-LOG
+    §1.125's ten-row verdict table and §1.126's PIT table were both produced by
+    scratch scripts that were not in the repository — and §1.126 indicts §1.125
+    for exactly that, in bold, before doing it again. An arm comparison needs
+    two runs under different `levels` environments, so it cannot be one function
+    call; it can be two documented commands, and then the tables in the log are
+    reproducible by anyone:
+
+        .venv/bin/python src/theta_residual.py --dump-arm /tmp/base.json
+        FILTER_TYPE_A=1 .venv/bin/python src/theta_residual.py \
+            --dump-arm /tmp/typea.json
+        .venv/bin/python src/theta_residual.py --compare /tmp/base.json \
+            /tmp/typea.json
+
+    Every fold is written, not only the two Key 4 gates on, because 2011 is the
+    structural-events fold and reading it is how a candidate is understood even
+    though it cannot gate.
+    """
+    import json
+    rows = residuals(codes=codes)
+    out = {f"{p}|{y}|{c}": [r, w]
+           for _s, r, w, p, y, c, _h in rows if w == w}
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump({"n": len(out), "obs": out}, fh)
+    print(f"wrote {len(out)} observations to {path}")
+    return 0
+
+
+def compare_arms(incumbent_path, candidate_path) -> int:
+    """`key4_delta` on two dumped arms, per fold, with the channel split.
+
+    **The channel split is not decoration.** §1.125 asserted the gain from an
+    exclusion was in the width; §1.126 measured that the widths barely move and
+    said the gain is in the CENTRE — and asserted THAT without isolating it,
+    which is the same error one level down. A residual IS ``log θ − log(centre
+    theta_prior gave)``, so an arm carrying the incumbent's residual and the
+    candidate's width is the width channel alone, and the difference from the
+    full delta is the centre channel. It costs one dictionary comprehension.
+    """
+    import json
+    inc = json.load(open(incumbent_path, encoding="utf-8"))["obs"]
+    can = json.load(open(candidate_path, encoding="utf-8"))["obs"]
+    key = lambda k: tuple(k.split("|"))                        # noqa: E731
+    inc = {key(k): tuple(v) for k, v in inc.items()}
+    can = {key(k): tuple(v) for k, v in can.items()}
+    folds = sorted({k[1] for k in inc})
+    print(f"{'fold':>6} {'channel':>10} {'n':>5} {'delta':>9} {'1-sided lo':>11} "
+          f"{'worse':>7}  verdict")
+    for fold in folds:
+        i = {k: v for k, v in inc.items() if k[1] == fold}
+        c = {k: v for k, v in can.items() if k[1] == fold}
+        if i.keys() != c.keys():
+            print(f"{fold:>6}  POPULATION MOVED — {len(i)} vs {len(c)}")
+            continue
+        # WIDTH CHANNEL: the candidate's width against the incumbent's centre.
+        width_only = {k: (i[k][0], c[k][1]) for k in i}
+        for label, arm in (("width", width_only), ("total", c)):
+            r = key4_delta(i, arm, fold)
+            lo = r["one_sided_lo"]
+            print(f"{fold:>6} {label:>10} {r['n']:>5} {r['cluster_delta']:>+9.4f} "
+                  f"{lo:>+11.4f} {r['worse_clusters']:>4}/{r['clusters']}  "
+                  f"{'FAILS Key 4' if r['fails'] else 'does not block'}")
+    return 0
+
+
 def main() -> int:
+    import argparse
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--dump-arm", metavar="PATH")
+    ap.add_argument("--compare", nargs=2, metavar=("INCUMBENT", "CANDIDATE"))
+    args = ap.parse_args()
+    if args.dump_arm:
+        return dump_arm(args.dump_arm)
+    if args.compare:
+        return compare_arms(*args.compare)
     print(report())
     return 0
 

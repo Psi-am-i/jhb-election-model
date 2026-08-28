@@ -14255,9 +14255,22 @@ widths: **median 0.3439 → 0.3291 at 2016 and 0.3804 → 0.3792 at 2021, the ME
 rising at both, narrower in only 57 of 97 and 72 of 138 rows.** The narrowing is
 not there. What is there is that **every residual moves** — 97 of 97 and 138 of
 138 — because deleting rows moves `mu_all`, which moves the centre `theta_prior`
-returns; median |residual| falls 0.2937 → 0.2634 at 2016. **The gain is in the
-CENTRE channel, and this entry's first draft attributed all of it to the
-width.**
+returns; median |residual| falls 0.2937 → 0.2634 at 2016.
+
+**And the channel split is now MEASURED, not inferred** (§1.127; a review pointed
+out that "the gain is in the centre channel" was the same species of assertion as
+the paragraph it replaced). A residual is `log θ − log(centre)`, so an arm
+carrying the incumbent's residual with the candidate's width isolates the width
+channel exactly:
+
+| fold | width channel | total | worse in (width) |
+|---|---|---|---|
+| 2016 | **+0.0921** | −0.0180 | 6/8 |
+| 2021 | **+0.0209** | −0.1907 | 5/8 |
+
+**The width channel is actively WORSE at both folds.** All of the improvement,
+and more, comes from the centres. `src/theta_residual.py --dump-arm` and
+`--compare` make this reproducible from the tree.
 
 ### What is NOT overturned
 
@@ -14340,11 +14353,17 @@ change"* on no measurement. Type A at 2016 fails the floor in **none** of
 the point estimate walks from −0.0797 to +0.3558 across that sweep and the
 one-sided bound never reaches zero. §1.125's *Why* section is replaced.
 
-This also **refutes the pollster's warning that `LEVEL_DF` is load-bearing for
-the verdict.** It is 🟡 and typed (`JUDGEMENT-CALLS.md`: *"Nothing was measured;
-it was 4.0 until this branch, and 3 or 6 are equally arguable"*), the concern
-was correct in form, and the verdict is stable across three orders of magnitude
-of it. Worth having asked.
+This refutes the operative half of the pollster's warning that `LEVEL_DF` is
+load-bearing — the verdict is stable across three orders of magnitude of a 🟡
+typed constant (`JUDGEMENT-CALLS.md`: *"Nothing was measured; it was 4.0 until
+this branch, and 3 or 6 are equally arguable"*). **But it is robust because the
+BAND IS WIDE, not because the statistic is insensitive.** Across the sweep the
+point estimate moves **0.4355 nats** while the one-sided bound moves 0.135: the
+constant shifts the statistic by more than twice the largest real effect this key
+has ever measured (Type A's −0.19 at 2021), and the verdict survives only because
+the band grows with it. **A future candidate with tighter between-cluster spread
+would be decided by a typed constant after all**, which is the same fact as the
+open MDE question below, arriving from a different direction.
 
 **2. The exclusion does NOT narrow the widths, and the gain is in the centres.**
 Both reviewers' mechanisms rested on it; neither measured it.
@@ -14376,12 +14395,29 @@ independent of everything else in §1.124–§1.126 and it converges with §1.58
 too narrow) from a third direction. **The 2021 PIT mean of 0.613 is a level
 bias**, not a width problem — residuals sitting systematically high.
 
-**And Type A IMPROVES both.** PIT variance falls at both folds; coverage rises
-at both; the 2021 level bias moves from 0.613 toward 0.579. **So reading 2 of
-§1.125 — that the t₇ score is blind to an exclusion moving volatility out of the
-prior and into the error — is REFUTED for this candidate.** Type A does not make
-the prior more overconfident on these folds. It makes it less so. The remaining
-objection to it is Key 3, and only Key 3.
+**And Type A improves the BODY of the distribution while making the far tail
+worse.** PIT variance falls at both folds, coverage rises at both, and the 2021
+level bias moves from 0.613 toward 0.579 — but `mean z²` at 2016 goes **6.230 →
+7.400**, worse by 19%.
+
+**That trade is not an inconvenience, it is the mechanism.** `residuals()` never
+filters the held-out set, so the COPE/IFP/DA collapses stay in it; Type A deletes
+them from the *fitting* record, which moves `mu_all` and every centre with it;
+and the rows that then sit furthest from their centre are precisely the ones the
+deletion was about. **Type A forecasts the ninety-odd ordinary parties better by
+forecasting the three structural events worse.** Coverage at a fixed quantile is
+the statistic to believe — each row contributes at most 1/n, where a row's
+contribution to `mean z²` under a t₇ is unbounded and the sample mean's own
+variance is finite only because ν > 4 — and the trimmed figure confirms it
+(6.230 → 3.642 dropping three rows at 2016). But the disagreement between a
+robust and a non-robust statistic *is* the finding, and it is the direction
+reading 2 predicted, occurring in the one region reading 2 is about.
+
+**So: reading 2 of §1.125 is refuted FOR THE TYPE A FILTER, on folds 2016 and
+2021, at the 80th and 95th percentiles. In the far tail it is not.** Reading 2
+is a claim about a class — exclusions — and it has now been tested on **one
+member**. State C is the second and is one `--dump-arm` away. The remaining
+objection to Type A is Key 3, and only Key 3.
 
 (The structural point behind reading 2 stands as maths and should be kept: for a
 t predictive, `∂NLL/∂log|z| → ν+1`, a **constant**, where a Gaussian's is `z²`.
@@ -14490,3 +14526,113 @@ already measured.
 4. **§1.62's two refits, and §1.82's `THETA_WINDOW` shape, on the corrected
    instrument.** The window arms were re-run for §1.125 and the non-monotonicity
    survives; §1.62's forms were not.
+
+
+## 1.127 The θ prior's 95% interval covers 76–78%, and it is a SCALE error — but §1.50 is the reason you may not simply widen it (2026-08-29)
+
+**A third review of §1.126 caught it repeating the failure it indicts §1.125
+for: its headline finding came from a script that was not in the tree.** The
+instrument is now `theta_residual.pit_table()`, printed by `report()`, guarded
+by `test_the_theta_prior_is_measurably_overconfident`, and the numbers reproduce
+(0.4937/0.6129 against the off-tree 0.4938/0.6130). This entry is what it says
+now that it can be re-run.
+
+### The finding
+
+PIT and coverage under the predictive `montecarlo.log_shock` actually draws.
+Calibrated: PIT mean 0.500, PIT variance 1/12 = 0.0833, coverage at nominal.
+
+| fold | n | PIT mean | PIT var | cov80 | cov95 | mean z² | trimmed z² | **κ\*** |
+|---|---|---|---|---|---|---|---|---|
+| 2006 | 83 | 0.5393 | 0.0500 | 0.904 | 0.988 | 0.602 | 0.467 | **0.660** |
+| 2011 | 85 | 0.4238 | 0.1402 | 0.518 | 0.612 | 19.702 | 12.352 | **3.089** |
+| **2016** | 97 | 0.4937 | **0.1256** | **0.567** | **0.784** | 6.230 | 3.642 | **1.798** |
+| **2021** | 138 | 0.6129 | **0.1221** | **0.529** | **0.761** | 4.225 | 3.206 | **1.749** |
+
+**On both gated folds the θ prior's nominal 95% interval covers 76–78% and its
+80% interval covers 53–57%.** `κ*` is the single multiplier on every committed
+width minimising held-out NLL — the width the layer should have carried as a
+factor on the one it did.
+
+**It is a SCALE error, not a shape error, and four instruments agree.** The
+review derived the implied multiplier three ways before `κ*` was computed and
+pre-registered the range 1.7–2.2:
+
+| fold | from cov95 | from cov80 | from mean z² | from the log score | **κ\* measured** |
+|---|---|---|---|---|---|
+| 2016 | ×1.74 | ×1.70 | ×2.11 | ×2.24 | **1.798** |
+| 2021 | ×1.84 | ×1.86 | ×1.74 | ×2.04 | **1.749** |
+
+**The two coverage points agree to within 2% inside each fold**, which is the
+load-bearing observation: one multiplier fixes both the 80th and the 95th
+percentile, so the predictive FAMILY is right and the WIDTH is wrong. A shape
+problem would demand different multipliers at different quantiles. The ordering
+across instruments is what theory predicts — robust lowest, second moment next,
+tail-weighted log score highest — and `κ*` landed inside a range fixed before it
+was measured.
+
+**The 2021 level bias is a second, much smaller finding.** PIT mean 0.6129
+corresponds to a shift of δ ≈ 0.445 scale units. A *pure* shift of that size with
+a correct width would give 95% coverage of 0.939 and 80% of 0.765 — so the level
+bias accounts for about **6% of the 95% shortfall and 13% of the 80% shortfall.**
+The width problem is ~90% of it. And 2016's PIT mean is 0.4937, essentially
+unbiased, with the same shortfall.
+
+**This converges from a third direction.** §1.58 measures the mid-ballot SEAT
+forecast as too narrow; §1.59/§1.77 measure four of five size bins as too narrow
+against the cluster-bootstrap interval; this measures the θ prior's own PIT under
+the model's own predictive. Three instruments, three populations, one direction.
+
+### ⛔ Why you may NOT multiply `sd_for` by κ\*
+
+**§1.50's argument is the veto, and it is the thing most likely to be skipped.**
+§1.50 established, and §1.59 confirmed, that this layer must carry the
+**conditional** dispersion *because the within-pool Dirichlet independently
+supplies most of the drawn variance*. **A θ layer 1.8× under-wide does not make
+the SEAT forecast 1.8× under-wide**, and widening θ by κ\* could over-widen the
+published intervals while correctly repairing the layer. **`ITERATING.md` Key 2 —
+cluster-corrected seat coverage — is the gate, and it is untradeable.** The θ PIT
+diagnoses; it does not license.
+
+**And κ\* is not flat, so a single multiplier is the wrong instrument anyway:**
+
+| fold | <0.2% | 0.2–1% | 1–5% | 5–15% | ≥15% |
+|---|---|---|---|---|---|
+| 2016 | 1.40 | 2.36 | 2.32 | — | **0.71** |
+| 2021 | 1.78 | 1.74 | 1.77 | 1.93 | 1.59 |
+
+**2021 is strikingly flat — 1.59 to 1.93 across the whole ballot. 2016 is not**:
+the mid-ballot wants ×2.3 and the top of the ballot wants ×0.71, i.e. the large
+parties' widths are too WIDE there. That is §1.59's non-monotonicity finding
+seen through a different instrument, and it says the defect is in `sd_for`'s
+**slope** at least as much as its level. `SD_FLOOR` never binds below 5% of the
+vote, which is where most of the 403 observations and most of the miscalibration
+live — so this is a change to the fitted line, not to the constant.
+
+**The other two folds are not noise either.** 2006's κ\* is **0.660** — the prior
+there is too WIDE — and 2011's is **3.089**, which is the structural-events fold
+and is exactly what "the model is being asked to forecast three collapses it has
+no business forecasting" looks like from the calibration side.
+
+### What would tell you a repair worked, in order of authority
+
+1. **Key 2, cluster-corrected seat coverage (§1.34). Untradeable, and the only
+   thing that can veto.** This is the check, not a formality.
+2. Key 1, coherent seats, paired across sixteen city-years, with the band.
+3. θ PIT back to nominal within cluster-bootstrap noise, **per size bin**. The
+   diagnostic, not the gate.
+4. Key 4's own committed NLL should improve materially. If widening by κ\* does
+   not improve it, the measurement is wrong somewhere.
+
+### Still open
+
+* **The κ power sweep** — the smallest |log κ| the floor can *reject*, on real
+  rows, both families, uniform and tail-only. Now targeted: **can Key 4 detect a
+  ×1.8 miscalibration, which is the one the model actually has?** The
+  `LEVEL_DF` table suggests se ≈ 0.27 at df=1000, larger than any effect the key
+  has measured, so the answer may be no. The pollster's prediction is on record:
+  the t₇ floor should track the Gaussian on a uniform scaling and be far weaker
+  on a tail-only one. Note that `test_key4_delta`'s fixture 4 does NOT bound
+  this — it has zero between-cluster variance by construction.
+* **State C's PIT**, which turns reading 2's refutation from one member of the
+  class into two. One `--dump-arm` away.

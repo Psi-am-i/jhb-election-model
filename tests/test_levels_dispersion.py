@@ -20,6 +20,7 @@ What is left to guard is the three claims the write-ups actually lean on.
 
 from __future__ import annotations
 
+import math
 import sys
 from pathlib import Path
 
@@ -417,6 +418,74 @@ def test_key4_delta_is_the_pass_rule_and_has_actually_been_run():
     assert not sign["one_sided_lo"] > 0, (
         "this fixture no longer isolates the sign trigger — the band catches "
         "it too, so the test has stopped testing what it says it does")
+
+
+
+# The θ prior's calibration, recorded 2026-08-29 (MODEL-LOG §1.127). These are
+# NOT a target and NOT a standard of correctness — they record that the prior is
+# roughly 1.8x too narrow on both Key-4 folds, so a change that moves them is
+# either a repair or a regression and is never nothing. **Re-record deliberately
+# and say why here.**
+PIT_BASELINE = {
+    "2016": {"cov95": 0.784, "cov80": 0.567, "pit_var": 0.1256, "kappa": 1.798},
+    "2021": {"cov95": 0.761, "cov80": 0.529, "pit_var": 0.1221, "kappa": 1.749},
+}
+
+
+def test_the_theta_prior_is_measurably_overconfident():
+    """PIT and coverage of the θ prior, in the tree, where they can be re-run.
+
+    **This test exists because the finding it guards was measured off-tree.**
+    MODEL-LOG §1.126 called the overconfidence result "the biggest finding in
+    this entry" — and produced it from a scratch script, in the same entry that
+    indicts §1.125 for producing its verdict table from a scratch script. A
+    reviewer caught the repeat. `pit_table()` and this test are the fix.
+
+    What is asserted: that the prior is still substantially too narrow on both
+    gated folds, and that the recorded numbers still hold. It is a diagnosis of
+    the model, not a target for it — see `pit_table`'s warning that §1.50's
+    Dirichlet argument means κ may NOT simply be multiplied into `sd_for`.
+    """
+    table = TR.pit_table()
+    for year, want in PIT_BASELINE.items():
+        got = table["folds"][year]
+        for field in ("cov95", "cov80", "pit_var"):
+            assert abs(got[field] - want[field]) < 2e-3, (
+                f"fold {year}: {field} is {got[field]:.4f} against a recorded "
+                f"{want[field]:.4f}. The θ prior's calibration moved. That is "
+                f"a finding either way — measure it, write it up, and "
+                f"re-record the constant above WITH THE REASON.")
+        assert abs(got["kappa_star"] - want["kappa"]) < 5e-2, (
+            f"fold {year}: κ* is {got['kappa_star']:.3f} against a recorded "
+            f"{want['kappa']:.3f}")
+        # THE STRUCTURAL CLAIM, which outlives the exact numbers: a nominal 95%
+        # interval that covers under 85% is not a 95% interval.
+        assert got["cov95"] < 0.85, (
+            f"fold {year}: 95% coverage has risen to {got['cov95']:.3f}. If "
+            f"the θ prior has been widened, §1.127's finding is repaired and "
+            f"this test should be rewritten to assert the repair — but check "
+            f"KEY 2's seat coverage first, because §1.50 says widening this "
+            f"layer can over-widen the seats.")
+        assert got["pit_var"] > 0.0833, (
+            f"fold {year}: PIT variance {got['pit_var']:.4f} is no longer "
+            f"above the calibrated 1/12; the prior is no longer too narrow")
+
+    # AND THE INSTRUMENT MUST NOT BE MEASURING ITSELF. A calibrated draw put
+    # through the same pipeline has to come back calibrated, or the table above
+    # is reporting a defect in `pit_table` rather than in the prior.
+    import numpy as np
+    rng = np.random.default_rng(4242)
+    df = table["df"]
+    w = 0.37
+    fake = rng.standard_t(df, size=200_000) * w * math.sqrt((df - 2) / df)
+    ref = np.asarray(TR._t_reference(df))
+    z = fake / (w * math.sqrt((df - 2) / df))
+    u = np.searchsorted(ref, z) / len(ref)
+    assert abs(float(u.mean()) - 0.5) < 0.01, float(u.mean())
+    assert abs(float(u.var()) - 1 / 12) < 0.005, float(u.var())
+    assert abs(TR._kappa_star(fake[:2000], np.full(2000, w), df) - 1.0) < 0.1, (
+        "κ* on a perfectly calibrated synthetic sample is not 1.0, so the "
+        "1.8 measured on the real folds is partly the estimator")
 
 
 if __name__ == "__main__":

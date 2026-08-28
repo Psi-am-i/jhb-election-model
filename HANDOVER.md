@@ -17,9 +17,9 @@ made while fixing the identical class of error one file over.
 
 | # | do | why |
 |---|---|---|
-| **1** | ⛔ **OWNER DECISION: Key 4 no longer blocks the Type A filter** (§1.125) | its stated reason for existing is undercut; nothing was changed on it |
-| **2** | **The θ prior is badly overconfident** — 95% coverage at 76–78%, PIT variance ~50% high, both folds (§1.126) | measured in passing while checking something else; it is the largest finding of the session and has no work attached |
-| 3 | The **κ power sweep** — smallest \|log κ\| the floor can reject, both families, uniform and tail-only | gives Key 4 a minimum detectable effect in its own units. Prediction on record |
+| **1** | **The θ prior is ~1.8× too narrow** — 95% coverage 76–78%, 80% coverage 53–57%, κ\* = 1.798 / 1.749 (§1.127) | **the only finding here about the FORECAST rather than the instrument**, it sits on untradeable Key 2, and three independent instruments now agree |
+| **2** | ⛔ **OWNER DECISION: Key 4 no longer blocks the Type A filter** (§1.125) | its stated reason for existing is undercut; nothing was changed on it |
+| 3 | The **κ power sweep** — smallest \|log κ\| the floor can reject, both families, uniform and tail-only | now targeted: **can Key 4 detect the ×1.8 the model actually has?** `se ≈ 0.27` suggests not |
 | 4 | Add a **bias floor `τ²`** before enabling `bye_weight_mode="inverse_variance"` | the lever stays off until then |
 | 5 | Measure the **`v_spine` change under that lever** before enabling it | it is a no-op on the θ branch and an unmeasured change on the `PLAN_BOUNDS` fallback (§1.126) |
 | 6 | Investigate: the by-election weighting is **worse than uniform** | 24.83 vs 24.66 LOO RMSE, number in hand, nobody acted |
