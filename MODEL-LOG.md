@@ -6243,11 +6243,29 @@ quoting the score on data the form was chosen with, which is the whole of rule
 
 Reported on the **`reference`** population (§1.56), never `claimed`:
 
+> ⛔ **THIS GATE WAS MIS-SET AND ONE LINE OF IT WAS MATERIALLY SLACK
+> (2026-08-29, §1.131).** All three width figures below are the NINE-city-year
+> `reference` values of 2026-08-20. Recomputed on the committed sixteen-city-year
+> artefact they are **sd(z) 1.796, IQR-sd 0.503, probit-SD 0.818.**
+>
+> **The third line is the one that matters:** a floor of 0.60 was written to
+> allow ranks 1-3 to narrow by about 12% from 0.682. At 0.818 the same floor
+> allows **27%**, so a candidate could narrow the top of the ballot by more than
+> twice what this gate was written to permit and still pass it. It is corrected
+> below. The other two are direction-only and are unaffected in direction.
+>
+> And note what the recomputation does to the first line: **sd(z) 1.796 is two
+> columns.** Cape Town's Cape Coloured Congress (z = +13.18) and Johannesburg's
+> PA (z = +10.86) carry **69.9% of Σz² across all 120 columns**, and dropping
+> them alone takes sd(z) to **0.981** — nominal. "Move toward 1.0 from 1.796" can
+> therefore be satisfied by getting two columns less wrong, which is not what
+> this gate intended to measure.
+
 | statistic | what it must do |
 |---|---|
-| `sd(z)`, ranks 4-12 | move **toward 1.0** from 1.940 |
-| `IQR-sd`, ranks 4-12 | move **toward 1.0** from 0.595 |
-| probit-SD, ranks 1-3 | must not fall below **0.60** (it is 0.682 and already too wide) |
+| `sd(z)`, ranks 4-12 | move **toward 1.0** from **1.796** — and report it with the top-2 columns dropped (0.981) beside it, or the figure is two observations |
+| `IQR-sd`, ranks 4-12 | move **toward 1.0** from **0.503** |
+| probit-SD, ranks 1-3 | must not fall below **0.72** — i.e. the same ~12% of the incumbent **0.818** the original 0.60/0.682 allowed |
 | coherent seats, held-out city-years | must not worsen by more than **6** |
 | CRPS | **reported and explicitly not decisive** — see above |
 | `p_any` for parties that won seats | no party that won a seat may drop below 0.02 |
@@ -15180,3 +15198,374 @@ this panel* rather than *unmeasured*.
   measurement that returns anything: simulated interval ≈ [4.7, 15] under
   independence, wider under clustering, and it would rule out ν = 4 with about
   81% probability. An afternoon, and its honest output is "7 is in the middle".
+
+
+## 1.131 The seat-side widths, recomputed on sixteen — and "the mid-ballot is 1.8× too narrow" is TWO COLUMNS (2026-08-29)
+
+`ITERATING.md` rule 8's `reference` width figures are **nine city-years, dated
+2026-08-20**, and **no test holds them**. The committed artefact has had all
+sixteen since §1.70, and `compare_history` stores per-column data precisely so
+*"a pooled figure can be recomputed over ANY subset of columns later"*. Nobody
+had. This recomputes them, and the result changes what §1.127's finding means.
+
+### The table
+
+| `reference`, 16 c-y | n(z) | sd(z) | mean z | IQR-sd | probit-SD |
+|---|---|---|---|---|---|
+| ranks 1-3 | 48 | **0.725** | +0.032 | 0.415 | **0.818** |
+| ranks 4-12 | 120 | **1.796** | +0.525 | **0.503** | **1.305** |
+| ranks 13+ | 135 | 0.415 | −0.121 | 0.096 | **1.203** |
+
+against the nine-year figures the file quotes: sd(z) 0.855 / 1.940, IQR-sd 0.595,
+probit-SD 0.682 / 1.020 / 1.188.
+
+### ⛔ The finding: sd(z) = 1.796 is two observations
+
+Σz² at ranks 4-12 is 416.9 over 120 columns, and **two of them carry 69.9% of
+it**:
+
+| | city-year | party | z | share of Σz² |
+|---|---|---|---|---|
+| 1 | Cape Town 2021 | Cape Coloured Congress | **+13.18** | 41.6% |
+| 2 | Johannesburg 2021 | PA | **+10.86** | 28.3% |
+| 3 | Nelson Mandela Bay 2021 | Northern Alliance | +4.91 | 5.8% |
+
+Leave-the-largest-out: **1.796 → 1.373 → 0.981** dropping one, then two. **Two
+columns of 120 and the band is nominal.**
+
+**So "the mid-ballot is 1.8× too narrow" is not a width statement about 120
+columns. It is two parties the model badly under-forecast in 2021**, and a z of
++13 is not reachable by any width multiplier — at a width that covered the CCC
+every other column would be grossly over-dispersed. It is a **mechanism**
+failure, and `sd(z)` is the wrong instrument for reporting it, in exactly the way
+§1.58 already established `sd(z)` is the wrong instrument at ranks 13+.
+
+**What IS real and survives:** a modest, genuine under-forecasting tilt —
+**75 of 120 columns positive, sign test p = 0.008**, median z **+0.181**. Not
++0.525; that mean is the same two columns. And the fault is **entirely 2021 and
+entirely outside `claimed`**: splitting at `p_any = 0.5`, the 57 claimed columns
+read sd 0.857 / mean +0.168 and the 63 unclaimed read sd **2.303** / mean
+**+0.849**; by cycle, 2016 reads sd 0.485 and 2021 reads sd 2.262. The mid-ballot
+fault is the 2021 populist-newcomer wave — CCC, PA, Northern Alliance, ARA — in
+columns the model gives a seat to in under half its draws.
+
+### Three errors of mine, all found by review
+
+**1. I used the wrong probit convention, and my cross-check could not have
+caught it.** `compare_history` reports `pit_dispersion` on **every PIT in the
+band** and `dispersion` on the z-kept subset; the comment beside them says so and
+even gives the gap. I computed probit-SD on the z-kept subset and got 0.925 at
+13+ where the canonical figure is **1.203**. On my convention ranks 13+ appears
+to have flipped from too-narrow to too-wide; **on the repo's it is 1.188 → 1.203,
+i.e. §1.58's "ranks 13+ are INERT" survives a panel doubling untouched** — a
+genuinely good out-of-sample confirmation I would have reported as a refutation.
+
+**And the validation I trusted was structurally incapable of catching it.** I
+checked my pipeline against the test-guarded `claimed` figures and reproduced
+0.818 / 0.820 exactly. But **`claimed` has ZERO null-z columns in every band**
+(48/48, 57/57, 4/4) because `CLAIM_FRACTION = 0.5` and a degenerate column has
+`p_any = 0` — so the two conventions are *identical by construction* there. The
+discriminating case cannot occur in the population I validated against. **A check
+that cannot fail on the dimension in question is not a check on that dimension**,
+and I quoted it as my reason for trusting everything else.
+
+**2. λ was wrong.** I took θ's variance share as `1 − 0.83` from the Dirichlet
+figure. But §1.48 reports θ's share **directly**, and the two are not
+complements — the entry says they "sum to roughly 1.04", i.e. two roughly
+additive terms that over-sum. The θ row for mid-ballot parties is **0.07–0.44**,
+not ≤0.17.
+
+**3. "§1.50's veto does not bind in this direction" is wrong, and it fails the
+other way.** The arithmetic that θ cannot FIX the mid-ballot holds a fortiori —
+reaching 1.796 needs κ ≈ 3.2 even at λ = 0.24, and the two crux columns need
+10.9× and 13.2×, so no κ of any size reaches them. But §1.50's veto is about
+over-widening the **published** intervals, and those live at **ranks 1-3** —
+which is the band that is **already too wide** (sd(z) 0.725) *and* the band with
+θ's **highest** variance share (ANC 0.37, DA 0.54). A κ = 1.8 widening at λ = 0.54
+multiplies the DA's width by 1.51 and drives ranks 1-3 further from 1.0.
+**Widening θ fails on both counts, not on neither.** The veto binds exactly where
+I said it did not.
+
+Two further channels I had ignored, both already measured in the register:
+applying the chi-square correction — a θ widening of exactly 1.8874 — moved
+ranks 4-12 sd(z) from 0.856 to 0.522, a realised multiplier implying λ_eff ≈ 0.66,
+four times my estimate; and turning `SD_FLOOR` off narrows θ **only at ≥15% of
+the vote** yet moves ranks 4-12 from 0.856 to 0.786. A per-party variance
+decomposition cannot produce that. **Shares renormalise and seats come from a
+fixed pool, so θ at rank 1 reaches seat variance at rank 7** — θ is a correlated
+level layer feeding a zero-sum allocator, not an independent per-party shock.
+
+### ⛔ A pre-registered gate was materially slack, and is now corrected
+
+§1.61's A2 gate reads *"probit-SD, ranks 1-3 must not fall below 0.60 (it is
+0.682 and already too wide)"* — a floor written to allow about **12%** of
+narrowing. The figure is **0.818**, so the same floor allowed **27%**. A
+candidate could have narrowed the top of the ballot by more than twice what the
+gate intended and passed it. Corrected to **0.72**, and the other two lines
+re-anchored on the sixteen-year figures with the leave-the-largest-out
+requirement attached.
+
+### And a property of the bands that limits everything above
+
+`rank_band_of` ranks by the party's **ACTUAL** citywide PR share — its own
+docstring says so in capitals. Three consequences worth stating once:
+
+* Fine for description and for a **paired** before/after comparison, because
+  membership is a function of the outcome and does not move when the model does.
+  That is genuinely different from `claimed`'s defect.
+* **Undefined for the live forecast** — there is no actual share at 2026 — so
+  anything conditioned on a rank band is a **backtest-only** instrument and
+  cannot gate 2026.
+* Band membership is assigned by how well a party **actually did**, so the CCC
+  and the PA are in 4-12 *because they surged*. The band is mildly enriched for
+  the very surprise the statistic then reports. Harmless for a paired
+  comparison, but it means "ranks 4-12 sd(z) = 1.8" is not an estimate of how the
+  model does on parties it *forecasts* to be mid-ballot, which is what a reader
+  assumes.
+
+### Consequences for the record
+
+Every `reference` width figure in `ITERATING.md` rule 8, §1.56, §1.58, §1.61,
+§1.127 and §1.128, and the ones hard-coded in `compare_history`'s own report
+prose and `theta_residual`'s printed output, are the nine-year values. The typed
+figures are **removed from the code** — the report now describes the shape and
+prints the live numbers, per the standing rule that a model figure is never typed
+into prose. **What survives:** §1.56's finding that `claimed` selects away from
+the failures (now stronger — the 63 unclaimed columns read sd 2.303 against the
+claimed 0.857); §1.58's "mis-shaped, not mis-scaled"; and "a width comparison
+goes on `reference`". **What does not:** "ranks 1-3 are too wide by about 1.5×"
+(it is 1.2–1.4×), and "probit-SD says about right at 4-12" (it says 1.305, too
+narrow), so the three-way disagreement is now "far too wide / too narrow / far
+too narrow" rather than "too wide / about right / far too narrow".
+
+
+## 1.132 Split by cycle and the bands do not survive it: the model is too WIDE wherever it has a record, and the whole "too narrow" reading is the new-party channel (2026-08-29)
+
+**§1.131 recomputed the seat-side widths on sixteen city-years and read a width
+off a pool of two cycles that disagree in sign. This splits it, and the
+conclusion inverts.**
+
+### The split
+
+| `reference`, ranks 4-12 | n | sd(z) | mean z | median z |
+|---|---|---|---|---|
+| **2016** | 53 | **0.485** | −0.072 | −0.047 |
+| **2021** | 67 | **2.262** | +0.997 | +0.265 |
+| pooled (§1.131's headline) | 120 | 1.796 | +0.525 | +0.181 |
+
+Signed vote error at ranks 4-12 across the eight metros: **−0.04pp at 2016**
+against **−26.07pp at 2021**.
+
+**And split again on a covariate knowable in advance — whether the party has a
+record in that metro:**
+
+| 2021, ranks 4-12 | n | sd(z) | mean z | median z |
+|---|---|---|---|---|
+| party present in the metro's 2016 panel | 39 | **0.583** | +0.268 | +0.181 |
+| party **new** in 2021 | 28 | **3.193** | +2.013 | +0.971 |
+| 2021, ranks 1-3, established only | 23 | **0.446** | −0.215 | — |
+
+> ⛔ **ON EVERY COLUMN WHERE THE MODEL HAS A LOCAL RECORD — EITHER CYCLE, EITHER
+> BAND — THE FORECAST IS TOO WIDE, BY 1.7× TO 2.7×. THE ENTIRE "TOO NARROW"
+> READING IS THE NEW-PARTY CHANNEL.**
+
+That is a **composition** effect between two populations, not a shape defect
+within one — and it prescribes a different repair from either "widen" or "shift
+the mid-ballot level". Eleven of the twelve worst 2021 misses at ranks 1-3 and
+4-12 are parties with no column in that metro's 2016 panel: CCC, PA, Northern
+Alliance, ActionSA, Africa Restoration Alliance, DOP, Cape Independence, Abantu
+Batho Congress, Active Citizens Coalition, AASD. Only Al Jama-ah at Johannesburg
+had a record. **A mid-ballot level correction would hand mass to the IFP, ACDP,
+COPE and Al Jama-ah — whose 2021 median z is +0.181 — and miss every party that
+actually surged.**
+
+### And it is not distinguishable from correct dispersion anyway
+
+The cluster bootstrap over 16 city-years puts ranks 4-12 `sd(z)` at
+**[0.810, 2.501]**, which contains 1.0. A two-stage bootstrap (cycle, then city
+within cycle) gives [0.432, 2.671]. With two cycles the between-cycle component
+has **one degree of freedom**, and that is the binding constraint, not n = 120.
+
+### ⛔ The θ instrument cannot see the parties that caused the failure
+
+`theta_residual`'s record requires the party to appear in the preceding NPE's
+citywide shares. Checked directly against `npe2019_*`:
+
+| party | metro | NPE2019 share | in the θ record? |
+|---|---|---|---|
+| Cape Coloured Congress | CPT | absent | **no** |
+| Africa Restoration Alliance | CPT | absent | **no** |
+| ActionSA | JHB | absent | **no** |
+| Northern Alliance | NMA | absent | **no** |
+| PA | JHB | 0.00030 | yes, barely |
+
+**So §1.59/§1.127's "three instruments, three populations, one direction"
+convergence is much weaker than advertised on its seat-side arm.** The largest
+single seat-side miss at ranks 1-3 — ActionSA at Johannesburg, PIT exactly 1.0 —
+**cannot be a θ defect, because θ never saw it.**
+
+### Corrections to §1.131 and to what I told the owner
+
+1. **λ was the complement of the wrong ablation.** §1.48 reports θ's share
+   directly and the two are not complements (they sum to ~1.04). The θ row is
+   **0.07–0.54**, so the pass-through at κ=1.8 is 1.08×–1.49×, not 1.02×–1.18×.
+2. **"θ cannot over-widen the seats because it cannot move them" is refuted by
+   an experiment already in the log.** §1.50 ran a ~1.9× multiplier on `sd_for`
+   and measured **CRPS 231.9 → 246.8, coherent seats 258 → 268**. A change that
+   costs 15 CRPS points and 10 seats moves the forecast.
+3. **"Ranks 4-12 need ~1.80" is the least defensible number I have written.**
+   Its cluster CI contains 1.0; two columns supply 70% of it; it is 0.485 at
+   2016; and on the `p_any ≥ 0.5` half it is 0.857, i.e. too *wide*.
+4. **§1.131's validation claim was wrong twice over.** Reproducing `claimed`'s
+   guarded probit-SD validates the pipeline on `claimed` (n=48/57), not on a
+   2.1× larger different population — and ranks 1-3 matches at 0.818 *precisely
+   because the two populations coincide there*.
+5. **κ\* ≈ 1.8 is a two-fold number.** Across four folds it is 0.660 / 3.089 /
+   1.798 / 1.749, `sd(log κ*) = 0.643`, a four-fold interval of roughly
+   **[0.57, 4.4]**. §1.130's [1.72, 2.21] is a range over ν *at fixed folds*, not
+   a sampling interval across cycles. **2026's κ is not knowable from this
+   panel**, and that belongs in `JUDGEMENT-CALLS.md`, not in a handover as a
+   settled defect.
+
+### Two defects in the repository found on the way
+
+* **`ITERATING.md` rule 8's out-of-sample claim is false on the artefact it
+  cites.** It says the rank split *"was measured on one electoral cycle and it
+  holds on two"*. At 2016 the ranks 4-12 signed error is −0.04pp and the mean-PIT
+  interval contains 0.50; the only significant 2016 deviation is at ranks 1-3 and
+  it runs **opposite** to 2021. It holds on one cycle and is absent on the other.
+* **`_probit`'s docstring was false and its check had gone stale** — corrected in
+  place. The clip is load-bearing after all: the test-guarded ranks 1-3 probit-SD
+  reads **0.697 / 0.760 / 0.818** at clips 1e-4 / 1e-5 / 1e-6, a **17% swing**
+  driven by one saturated column (ActionSA, PIT exactly 1.0). Sensitivity to the
+  clip is the stated reason the `all` population is called untrustworthy; by that
+  standard ranks 1-3 on `claimed` now fails the same test.
+
+### What item 1 is
+
+**Neither the θ width nor the mid-ballot level. It is the new-party arrival
+SIZE.** It owns the entire 2021 mid-ballot signed error, the entire "too narrow"
+reading, and the one PIT of exactly 1.0. §1.58 said it in one line and it was
+never made the priority: *"That is an error of SIZE, and it is a different repair
+from an error of possibility."* It is also the one channel with dated new
+evidence arriving — **nomination lists on 16 September**.
+
+**Two caveats to carry with it:** it can only be validated on 2021, because 2016
+has almost no new parties of consequence, so it is a **one-cycle** validation and
+rule 11 must be quoted against it; and "three successive fragmenting cycles" is
+an argument, not a measurement.
+
+
+## 1.133 The arrival mechanism was already built, and the instrument that rejected it hands the incumbent the answer key (2026-08-29)
+
+**Agreed with the pollster before implementing anything, per the owner's
+instruction. Two findings changed the plan; both are verified.**
+
+### 1. The mechanism exists. B is a RETRY, not a new estimator.
+
+`pools.arrival_group_record` and `pools.arrival_group_spec` are in the tree, and
+`montecarlo.py:2664` carries the heading **"ARRIVALS AS A GROUP — BUILT,
+MEASURED, AND NOT ADOPTED."** It is exactly the estimand §1.132's finding calls
+for: a **group total** (the quantity that behaves regularly), a **concentration**
+as an implied symmetric-Dirichlet α, and a **split by ward reach** — corr(reach,
+log vote) **+0.393** against +0.145 for metros contested and −0.09 for geographic
+concentration, with seat-winning arrivals at a median ward reach of **99% against
+33%**.
+
+It already diagnoses §1.132's failure: the single generic slot *cannot* work,
+because *"reality delivers 11 to 32 arrivals per metro and the slot holds one"*.
+
+**So the correct move is to retry a built mechanism on the target it was built
+for, not to fit a new size distribution to 2021's eleven arrivals.** Building a
+second estimator beside it would be this repository's most reliable defect, and
+fitting sizes to make the CCC and the PA come out right is rule 10's exact
+prohibition — the parameters would be chosen on the scoreboard the problem was
+selected from.
+
+### 2. ⛔ THE REJECTION IS A RIGGED COMPARISON
+
+`backtest.entrant_actual_for` returns
+
+```python
+max(newcomers, key=lambda p: (newcomers[p], p))
+```
+
+— **the seat-winning newcomer with the MOST seats** — and `relabel_run` renames
+the model's generic `ENTRANT` column onto it. A nameless column must be assigned
+to something, but "the largest realised arrival" is **the most favourable
+possible assignment, chosen with the outcome in hand.** It hands the incumbent a
+free correct label on the single hardest column in the panel, and the bias is
+largest exactly where 2021's errors are.
+
+`montecarlo.py:2664` already concedes it in the same breath as the rejection:
+*"the slot it replaces was scoring well for a reason that is not skill: it is
+relabelled onto the LARGEST arrival, so a single lump of mass lands on exactly
+the right party after the fact."*
+
+**This is the same class of fault as `claimed` selecting away from failures** —
+which rule 8 identified and fixed by introducing `reference`. It was never fixed
+here. **So the CRPS 85.9 → 109.9 and seat MAE 113 → 134 that rejected the group
+mechanism are not a fair comparison, and Key 1 cannot currently arbitrate this
+channel at all.**
+
+The fix is a measurement, not a judgement: **score the arrival channel as a
+GROUP** — total arrival mass and total arrival seats against realised totals,
+with no per-party assignment. Label-free, computable on both cycles, and exactly
+what the group mechanism forecasts. Report the incumbent under both rules — the
+favourable relabel and the label-free total — as a sensitivity pair.
+
+### 3. The record is THREE cycles, not sixteen metro-years and not four
+
+`arrival_group_record`'s docstring says *"sixteen metro-years"*. Counted:
+
+| LGE | metros contributing a row | group total, range |
+|---|---|---|
+| 2000 | 0 | no preceding NPE |
+| 2006 | 0 | — |
+| **2011** | **6** | 0.36% – 5.61% |
+| **2016** | **8** | 0.31% – 4.74% |
+| **2021** | **8** | **1.53% – 19.99%** |
+| **total** | **22** | |
+
+**Twenty-two rows across three cycles**, not 16 and not 32. That matters for how
+`M` (the group total) may be fitted: **2011 and 2016 agree with each other and
+2021 is about four times higher**, so with three cycles the 2021 regime shift can
+be *seen as an outlier* rather than assumed to be the norm or dismissed as noise.
+A two-cycle record could not have distinguished those.
+
+`total_log_sd` should therefore widen substantially once 2021 enters the fit, and
+that widening is the honest response to a regime change — **check it is not being
+suppressed by a clamp.** Note also that `total_log_median` is computed as
+`np.mean(logs)`; the name is a trap for the next reader.
+
+### The agreed order, and what is NOT being done yet
+
+1. ✅ The row count above — it was the cheap thing that decides the framing.
+2. **The reporting repairs (§1.134), including the label-free entrant score**,
+   which is what makes the retry judgeable. Nothing else can be judged until it
+   exists.
+3. **Re-fit `M` with 2021 in the record** — a `pools.py` CODE change, so it goes
+   through `POOLS-REEMIT-QUEUE.md` and the batched window, not taken when
+   convenient.
+4. **Write the pass condition and the predicted signs down before 16 September**,
+   including that the delta must survive removing CCC-Cape Town and PA-Joburg, or
+   it is a two-observation fit.
+5. **16 September: supply the roster, switch `arrival_group_draw` on, measure.**
+   The lists supply `N` and the ward-reach weights *exactly*, so only `M` is
+   forecast — the estimand narrows from "the unconditional arrival size
+   distribution" to "`M` given `N`, split by observed reach", which is a better
+   estimand and a smaller claim.
+
+**Predicted signs, recorded now so they cannot be chosen later.** §1.48's trace
+documents the entrant rescale pulling the top of the ballot 7–9% below its
+centre. At 2021 the ranks 1-3 signed error is **+15.48pp** (over-forecast), so
+taking mass from the top is directionally **right**; at 2016 it is **−3.19pp**
+(under-forecast), so the same change is directionally **wrong**. **Expect 2021 to
+improve and 2016 to worsen**, and do not read the 2016 regression as a refutation
+when it is the arithmetic.
+
+**And Key 4 cannot see any of this** — the arrival path touches neither `sd_for`
+nor `theta_prior`, and §1.132 established that four of the five biggest misses
+have no θ row at all. It will neither block the retry nor supply evidence for it.
+**A key that cannot fire is not a key that passed**, and both halves must be
+stated when the retry is reported.

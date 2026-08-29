@@ -328,11 +328,31 @@ def _probit(u):
     columns do — parties given zero seats in every draw that nonetheless won
     one), and an infinity would make every statistic downstream ``nan``.
 
-    **It is not load-bearing for the figure this report quotes, and that was
-    checked rather than assumed.** The ``claimed`` population carries no PIT at
-    0 or 1 (its range on the committed artefact is 0.052 to 0.997), and the
-    per-band probit-SD is 0.7399 / 0.7338 at ``1e-4``, ``1e-6`` and ``1e-8``
-    alike — unchanged to four decimals across four orders of magnitude. It IS
+    ⛔ **THIS PARAGRAPH SAID THE CLIP IS NOT LOAD-BEARING AND THAT IT HAD BEEN
+    CHECKED RATHER THAN ASSUMED. IT IS LOAD-BEARING, AND THE CHECK WENT STALE
+    (2026-08-29, MODEL-LOG §1.132).** It claimed *"the `claimed` population
+    carries no PIT at 0 or 1 (its range on the committed artefact is 0.052 to
+    0.997)"*. **On the sixteen-city-year artefact the range is 0.0018 to exactly
+    1.0** — ActionSA at Johannesburg 2021, a party given a seat in no draw that
+    won 44 of them. One saturated column out of 48 is enough to move the
+    TEST-GUARDED ranks 1-3 probit-SD by **17%**:
+
+        clip      1e-4     1e-5     1e-6
+        ranks 1-3   0.697    0.760    0.818     <- the figure `ITERATING.md`
+                                                   rule 8's table pins
+        reference 4-12, 7 saturated of 128:
+                    1.140    1.224    1.305
+
+    Ranks 4-12 on ``claimed`` has no saturated column and is genuinely clip-free
+    at 0.820. So the statistic is stable exactly where it was checked and moves
+    where it was not — which is the same shape of error as the check itself.
+
+    **Quote the clip with the figure, or do not quote the figure.** And note the
+    consequence for the disqualification below: sensitivity to the clip was the
+    stated reason for calling the ``all`` population untrustworthy, and by that
+    standard ranks 1-3 on ``claimed`` now fails the same test.
+
+    It IS
     load-bearing for the ``all`` population, which has three columns at exactly
     1.0; that population is already labelled untrustworthy for other reasons
     (see :func:`calibration_columns`) and its width figure should not be quoted
@@ -1291,17 +1311,19 @@ def _width_on_reference(pooled: dict) -> list[str]:
         "**Ranks 1-3 are the same columns in both populations** — the top three "
         "are always claimed — so that row is a consistency check and the two "
         "`SD of z` numbers should agree exactly. It is also the band that is "
-        "genuinely too WIDE (probit-SD 0.682, with `mean z` ≈ 0 so nothing is "
-        "attenuating it) and the band that responds to `dirichlet_scale`.\n\n"
+        "genuinely too WIDE and the band that responds to `dirichlet_scale`.\n\n"
         "**Ranks 4-12 cannot be described by one width, and that is the "
         "finding.** On the same columns `sd(z)` says far too narrow, `IQR-sd` "
-        "(0.595) says too wide, and probit-SD says about right — because the "
-        "error distribution is a narrow shifted bulk with two enormous "
-        "outliers, Cape Town's Cape Coloured Congress at z = +12.1 and "
-        "Johannesburg's PA at +9.3, both of which `claimed` excludes by "
-        "construction. A distribution that reads too wide, about right and far "
-        "too narrow depending which moment you take is mis-SHAPED, not "
-        "mis-scaled, and no scalar fixes it. §1.56, §1.58.\n")
+        "says too wide, and probit-SD disagrees with both — because the error "
+        "distribution is a narrow shifted bulk with two enormous outliers, "
+        "Cape Town's Cape Coloured Congress and Johannesburg's PA, both of "
+        "which `claimed` excludes by construction. A distribution that reads "
+        "differently depending which moment you take is mis-SHAPED, not "
+        "mis-scaled, and no scalar fixes it.\n\n"
+        "⛔ **AND THE SPREAD AT 4-12 IS TWO COLUMNS.** Those two carry ~70% of "
+        "the band's total squared z; dropping them takes `sd(z)` to about 1.0. "
+        "Quote the leave-the-largest-out figure beside the headline or the "
+        "headline is two observations, not a width. §1.56, §1.58, §1.131.\n")
     return out
 
 

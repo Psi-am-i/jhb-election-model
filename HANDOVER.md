@@ -17,7 +17,7 @@ made while fixing the identical class of error one file over.
 
 | # | do | why |
 |---|---|---|
-| **1** | **The θ prior is ~1.8× too narrow** — 95% coverage 76–78%, 80% coverage 53–57%, κ\* = 1.798 / 1.749 (§1.127) | **the only finding here about the FORECAST rather than the instrument**, it sits on untradeable Key 2, and three independent instruments now agree |
+| **1** | ⛔ **NEW-PARTY ARRIVAL SIZE** (§1.132) — not the θ width, not the mid-ballot level | it owns the ENTIRE 2021 mid-ballot signed error (−26.07pp against 2016's −0.04pp), the entire "too narrow" reading, and the one PIT of exactly 1.0. **Wherever the model HAS a local record it is too WIDE, 1.7–2.7×** |
 | **2** | **Build the instrument for THE VACANCY** — see `ITERATING.md`, "THE VACANCY" | ⛔ **decided 2026-08-29: Key 4 is KEPT as a θ-width floor, its old justification is dead, and nothing in the bar now guards against a change that improves the many by degrading the few** |
 | 3 | **State C's PIT and A²** — one `--dump-arm` away | turns reading 2's refutation from one member of the exclusion class into two |
 | 4 | The **pooled 403-row ν bound with δ free** | the only version of the `LEVEL_DF` measurement that returns anything: simulated interval ≈ [4.7, 15], rules out ν=4 with ~81% probability |
@@ -28,6 +28,37 @@ made while fixing the identical class of error one file over.
 | 8 | Fold policy → a `JUDGEMENT-CALLS.md` row | 2006/2011 computed, not gated; the reasons are in `ITERATING.md` but unregistered |
 
 ---
+
+### ⛔ Item 1 changed on 2026-08-29, and the old item 1 was wrong
+
+I told the owner the θ prior's overconfidence was the top priority. **Two rounds
+of review took it off the top, and took my replacement off too.**
+
+Split the committed artefact by cycle and the bands do not survive it. Ranks
+4-12 `sd(z)` is **0.485 at 2016** and **2.262 at 2021**; the signed vote error is
+**−0.04pp** against **−26.07pp**. Split again on whether the party has a record
+in that metro: 2021 established parties read **0.583**, new parties **3.193**,
+and 2021 ranks 1-3 established read **0.446**.
+
+> **On every column where the model has a local record — either cycle, either
+> band — the forecast is too WIDE by 1.7× to 2.7×. The whole "too narrow"
+> reading is the new-party channel.**
+
+Eleven of the twelve worst 2021 misses are parties with no 2016 column in that
+metro. And **four of the five biggest have no θ row at all** — no NPE2019 vote
+in their metro — so they are structurally invisible to the instrument §1.127
+used. ActionSA at Johannesburg, PIT exactly 1.0, *cannot* be a θ defect.
+
+The pooled `sd(z)` of 1.796 also has a cluster CI of **[0.810, 2.501]**, which
+contains 1.0: it is not distinguishable from correct dispersion on this panel.
+
+**So item 1 is arrival SIZE** — §1.58 said it in one line and it was never made
+the priority: *"That is an error of SIZE, and it is a different repair from an
+error of possibility."* It is the one channel with dated new evidence arriving:
+**nomination lists, 16 September.** Carry both caveats: it can only be validated
+on 2021 (2016 has almost no new parties of consequence), so it is a one-cycle
+validation and rule 11 applies; and "three successive fragmenting cycles" is an
+argument, not a measurement.
 
 ### ⛔ Key 4: kept, repurposed, and the hole it leaves is now named
 

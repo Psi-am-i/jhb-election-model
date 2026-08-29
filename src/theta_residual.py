@@ -1270,9 +1270,11 @@ def report() -> str:
             "untradeable: CRPS, and the",
             "  LEVEL-FREE WIDTH STATISTICS on the `reference` population — "
             "which already reads sd(z)",
-            "  1.940 at ranks 4-12, the SEAT side of this same fault. This "
-            "diagnoses; it does not",
-            "  license. MODEL-LOG §1.127, §1.128.",
+            "  1.796 at ranks 4-12 on sixteen city-years — but SEE §1.131: "
+            "two columns carry 70% of",
+            "  that, and dropping them gives 0.981. This diagnoses; it does "
+            "not license.",
+            "  MODEL-LOG §1.127, §1.128, §1.131.",
             ""]
     for year in ("2016", "2021"):
         com, a = table[year].get("COMMITTED"), table[year].get("A")

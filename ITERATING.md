@@ -643,9 +643,21 @@ requirement to measure.
    as the signed vote bands say, but by much less than it did, and only the
    ranks 4-12 cluster-bootstrap CI excludes 0.50 — [0.537, 0.684] on sixteen
    city-years, against ranks 1-3 at [0.474, 0.544], which does not separate from
-   centred. **That split survived the panel doubling**, which is the first
+   centred. ~~**That split survived the panel doubling**, which is the first
    out-of-sample evidence rule 8 has ever had for its central claim: it was
-   measured on one electoral cycle and it holds on two.
+   measured on one electoral cycle and it holds on two.~~
+
+   > ⛔ **FALSE ON THE ARTEFACT THIS RULE CITES (2026-08-29, MODEL-LOG §1.132).**
+   > The pooled interval above is correctly computed; the out-of-sample
+   > inference from it is not. **Split by cycle, the split is a 2021
+   > phenomenon and is ABSENT at 2016.** At 2016 the ranks 4-12 signed vote
+   > error across the eight metros is **−0.04pp** against 2021's **−26.07pp**,
+   > `sd(z)` is **0.485** against 2021's **2.262**, and the mean-PIT interval
+   > contains 0.50. The only band with a significant 2016 deviation is ranks
+   > 1-3, **running opposite to 2021**. It holds on one cycle and is absent on
+   > the other, so pooling two cycles that disagree in sign is what produced the
+   > appearance of replication. **Never quote a width or a PIT pooled over
+   > cycles without the per-cycle pair beside it.**
 
    **That gap is a zero-sum transfer, not two independent faults**: shares sum
    to one, so the +12.55pp at ranks 1-3, the +4.42pp at 13+ and the +9.60pp of
