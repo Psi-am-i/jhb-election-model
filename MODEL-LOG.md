@@ -14554,7 +14554,16 @@ Calibrated: PIT mean 0.500, PIT variance 1/12 = 0.0833, coverage at nominal.
 width minimising held-out NLL — the width the layer should have carried as a
 factor on the one it did.
 
-**It is a SCALE error, not a shape error, and four instruments agree.** The
+**It is consistent with a SCALE error, and four instruments agree on its size.**
+
+> ⛔ **This section originally said "a SCALE error, not a shape error", resting
+> on the two coverage points agreeing to within 2%. §1.130 shows that does not
+> survive a power check: the ratio's entire signal range across ν ∈ [3, ∞) is
+> 0.916–1.162 and its 5–95% sampling range at n=97 under a TRUE ν=7 is
+> 0.822–1.198 — the noise is wider than the whole signal, so 2% agreement is
+> what every ν produces. The SIZE conclusion is untouched and is now established
+> more strongly (§1.130 §3: implied κ ∈ [1.72, 2.21] whatever ν is); the
+> scale-versus-shape claim is withdrawn.** The
 review derived the implied multiplier three ways before `κ*` was computed and
 pre-registered the range 1.7–2.2:
 
@@ -14565,8 +14574,9 @@ pre-registered the range 1.7–2.2:
 
 **The two coverage points agree to within 2% inside each fold**, which is the
 load-bearing observation: one multiplier fixes both the 80th and the 95th
-percentile, so the predictive FAMILY is right and the WIDTH is wrong. A shape
-problem would demand different multipliers at different quantiles. The ordering
+percentile — **but see the block above: this panel cannot distinguish a scale
+error from a shape error at these quantiles, and the inference drawn from it
+here is withdrawn.** The ordering
 across instruments is what theory predicts — robust lowest, second moment next,
 tail-weighted log score highest — and `κ*` landed inside a range fixed before it
 was measured.
@@ -14991,3 +15001,182 @@ converts the vacancy from **unmeasurable** to **unmeasured with a stated MDE**.
 statistic by 0.4355 nats across its plausible range. It is 🟡, typed, never
 measured, and was a different value four weeks ago. **Measuring it is no longer
 a tidy-up.**
+
+
+## 1.130 The tail instrument, run — and `LEVEL_DF` cannot be measured on this panel, which is a result and not a failure (2026-08-29)
+
+§1.129 named three untried instruments for the vacated role and said measuring
+`LEVEL_DF` was "no longer a tidy-up". Both were taken up. **The tail instrument
+does not restore the block either, and the ν measurement is refuted by
+simulation before it was built.**
+
+### 1. Anderson–Darling on the PIT values — built, and it does not restore the block
+
+A² weights the **ends** of the PIT distribution where KS weights the middle, and
+is bounded per observation where `mean z²` under a t predictive is not. That
+combination is exactly what §1.126 said it wanted and did not have.
+
+**As a calibration statistic it is emphatic.** A calibrated forecast gives ≈0.6;
+the 5% point under independence is 2.492, and these rows are 8 metro-year
+clusters, so the cluster-bootstrap interval is what may be read:
+
+| fold | n | A² | 95% (cluster) | cov95 |
+|---|---|---|---|---|
+| 2006 | 83 | 3.63 | [1.85, 7.26] | 0.988 |
+| 2011 | 85 | 28.68 | [18.40, 47.27] | 0.612 |
+| **2016** | 97 | **8.41** | **[4.99, 14.76]** | 0.784 |
+| **2021** | 138 | **26.29** | **[15.25, 45.06]** | 0.761 |
+
+**Both gated folds reject calibration with the whole cluster interval above the
+independence critical value.** §1.127's finding survives its most tail-sensitive
+test. (2006 is non-uniform in the *other* direction — cov95 0.988, κ\* 0.660.)
+
+**As the vacancy's instrument it says what everything else has said.** Paired,
+recomputing both arms on the same resampled metro-years:
+
+| fold | A² incumbent | A² Type A | Δ | 95% (paired cluster) | verdict |
+|---|---|---|---|---|---|
+| 2016 | 8.41 | 10.74 | **+2.334** | [−3.881, +8.801] | undetermined |
+| 2021 | 26.29 | 13.39 | **−12.900** | [−19.742, −7.450] | **better** |
+
+At 2016 the tail degrades and the interval covers zero; at 2021 calibration
+improves enormously. **So the instrument built for "aggregate improves, tail
+worsens" agrees with the rest: the Type A filter does not harm calibration on
+this panel.** That is the sentence §1.128 could not yet write, and it is worth
+more than "no honest key exists" — the family was tried and it reported.
+
+Crucially, **A² is not monotone in the width**: it punishes too wide as hard as
+too narrow, which is what distinguishes it from the excluded-class score §1.128
+refuted (whose `∂NLL/∂log w` is negative for every |z| > 1, so any candidate
+could pass by inflating `sd_for`). `test_anderson_darling_reads_the_tail_and_is_
+not_gameable_by_widening` asserts exactly that.
+
+### 2. ⛔ ν IS NOT MEASURABLE HERE, AND THE ESTIMATOR I INTENDED IS CONFOUNDED BY §1.127's OWN FINDING
+
+The intended measurement was a joint ML of (κ, ν) on the held-out standardised
+residuals. A simulation study, run **before building it**, refuted it three ways.
+
+**(a) No power.** At the true value ν = 7 and n = 97, the median 95% profile
+interval on ν is **[2.80, ∞), unbounded above 66% of the time**; at n = 138,
+[3.48, ∞) and unbounded 55% of the time. The estimator separates "ν=3" from
+"Gaussian" and essentially nothing else — the textbook result, confirmed on this
+panel's actual per-bin widths and counts.
+
+**(b) The cluster bootstrap under-covers, badly.** With a metro-year shock and a
+fold-wide common shock — which is precisely what rule 11 describes and precisely
+what a bootstrap over 8 metros cannot resample — coverage is **45–58% for ν and
+67–90% for κ against a nominal 95%**, and the interval becomes *confidently
+wrong* rather than merely wide.
+
+**(c) FATAL: the width-slope misfit manufactures a heavy tail out of Gaussian
+data.** `sd_for`'s per-bin κ\* is heterogeneous at 2016 and flat at 2021 —
+measured spread of log κ\* across bins **0.565 at 2016 against 0.069 at 2021**.
+Simulated with truth **Gaussian** and that heterogeneity, ν̂ comes back ≈ 3–4 at
+2016 and ∞ at 2021. **A joint ML would have reported "heavy tail at 2016,
+Gaussian at 2021" and every nat of the difference would have been §1.127's own
+finding that `sd_for`'s SLOPE is wrong at 2016 and right at 2021.** Not one nat
+of it would have been about tails. **Not built.**
+
+### 3. What survives, and it strengthens §1.127
+
+**κ survives whatever ν turns out to be.** Profiling κ at each fixed ν and
+inverting against §1.127's observed κ\*(ν=7), the implied true κ across the whole
+plausible ν range is **[1.72, 2.21] at 2016 and [1.66, 2.14] at 2021**. It never
+approaches 1. *"The θ prior is about 1.8× too narrow"* is now established
+independently of the tail assumption rather than conditional on it.
+
+**But κ\* had no honest interval, and it needed a location.** `_kappa_and_shift`
+fits δ alongside κ. Measured: **2021's κ falls 1.749 → 1.662 with δ = +0.377**,
+which is its PIT mean of 0.6129 expressed as a shift; 2016 is unchanged
+(δ = +0.025), consistent with its PIT mean of 0.4937. And the honest cluster
+interval on κ is roughly **×1.5 wide before the coverage correction** — §1.127
+quoted a bare point estimate and should not have.
+
+### 4. ⛔ A CORRECTION TO §1.127's HEADLINE
+
+§1.127 wrote: *"The two coverage points agree to within 2% inside each fold,
+which is the load-bearing observation: one multiplier fixes both the 80th and
+the 95th percentile, so the predictive FAMILY is right and the WIDTH is wrong."*
+
+**That does not survive a power check.** The statistic is the ratio of the two
+implied multipliers; its entire signal range across ν ∈ [3, ∞) is 0.916–1.162,
+and its 5–95% sampling range at n = 97 when the truth *is* ν = 7 is **0.822 to
+1.198**. **The noise is wider than the whole signal.** Agreement of the two
+coverage points to 2% is what you get under *every* ν in the range. The correct
+sentence is: *consistent with a scale error, and this panel cannot distinguish a
+scale error from a shape error at these quantiles.* The scale conclusion is
+untouched — §3 above establishes it more strongly than the sentence it replaces.
+
+### 5. The one shape statistic that IS usable, and its caveat
+
+**R = mean(z²) / trimmed mean(z²) is scale-free — κ cancels exactly — so it
+reads tail shape and nothing else.** Both columns were already in `pit_table`;
+only the null was missing, and it is now simulated in the tree rather than
+quoted from a scratch script.
+
+| fold | n | R | P(R ≥ obs \| ν=7) | ν=15 | ν=30 | top-3 share of Σz² |
+|---|---|---|---|---|---|---|
+| 2016 | 97 | 1.7106 | **0.0211** | 0.0008 | 0.0000 | **0.433** |
+| 2021 | 138 | 1.3178 | 0.1713 | **0.0220** | 0.0052 | 0.258 |
+
+**2021 is comfortable with ν = 5–7 and rejects ν ≥ 15 and Gaussian.** That is
+real evidence the tail is genuinely heavier than normal, on 138 rows whose top
+three are three *different* parties. **2016 rejects ν=7 and wants ν ≈ 3–4 — and
+43% of its Σz² is one party's collapse in three Gauteng metros**, so n_eff for
+its tail is nearer 1 than 97. Read as a bound, never as a test: the draws are
+independent and the rows are not.
+
+### 6. So `LEVEL_DF` is DECLARED to an interval, not left unmeasured
+
+Four constraints, none needing more panel than exists:
+
+1. `exp(t_ν)` needs ν > 1 for a finite mean and the allocator takes a mean.
+2. `pit_table`'s own `mean z²` has finite sampling variance only for ν > 4, so
+   ν ≤ 4 invalidates one of the four instruments §1.127 leans on.
+3. **The seat forecast is flat in ν above ~5.** `JUDGEMENT-CALLS.md` already
+   records the sweep: 316 coherent seat error and 6/9 at df=3, **308 and 7/9 at
+   df=7, 308 and 6/9 at df=30** — *"only df=3 is distinguishable"*. The
+   mechanism is the dilution: the within-pool Dirichlet supplies 83–98% of drawn
+   variance for every party but the ANC and DA, so moving ν from 3 to 30 moves
+   the 95th and 99th percentiles of the total shock by **under 1%** for most of
+   the ballot.
+4. R at 2021 rejects ν ≥ 15.
+
+**ν ∈ [5, 15] on the evidence, and nothing inside it is resolvable by any
+instrument this repository has or could build on 403 observations.** The
+committed 7.0 sits in the middle. Its `JUDGEMENT-CALLS.md` label should change
+from *"nothing was measured"* to **measured to an interval that contains it, and
+not resolvable further on this panel** — which is a different and much better
+statement than the 🟡 it has carried.
+
+### 7. And the width-channel flip is a VARIANCE effect, which changes how §1.129 reads
+
+§1.129 reported that Type A fails the width-channel floor at ν = 3 and 4 and not
+at ν ≥ 7. **Δ is positive at every ν; only the standard error moves**, because
+`∂NLL/∂log w` is bounded by −ν, so a smaller ν caps the tail rows' influence and
+shrinks the between-cluster spread:
+
+| ν | 3 | 4 | **7** | 15 | 30 | 1000 |
+|---|---|---|---|---|---|---|
+| Δ/se | 2.430 | 2.123 | **1.861** | 1.741 | 1.708 | 1.685 |
+
+against a critical 1.895. **Interpolating on log ν, the verdict boundary is
+ν = 6.50 and the committed 7.0 is 8% above it.** So §1.129's "near-miss at
+p = 0.0526" is a near-miss in ν as well as in p — and since ν = 4 versus ν = 7
+is undecidable (§2), **the 2016 verdict cannot be settled by measuring ν.**
+§1.129's disposition (report, do not gate) is therefore not provisional pending
+a measurement; it is **terminal**, and should be recorded as *undecidable on
+this panel* rather than *unmeasured*.
+
+### Still open
+
+* **State C's PIT and A²** — one `--dump-arm` away, and it turns reading 2's
+  refutation from one member of the class into two.
+* **Threshold-weighted CRPS**, the remaining untried member. Note the caveat
+  §1.130 could not dispose of: *any* proper score of this forecast inherits
+  `LEVEL_DF`, because `LEVEL_DF` is part of the forecast. twCRPS will carry the
+  same knob.
+* **The pooled 403-row ν bound with δ free** — the only version of the ν
+  measurement that returns anything: simulated interval ≈ [4.7, 15] under
+  independence, wider under clustering, and it would rule out ν = 4 with about
+  81% probability. An afternoon, and its honest output is "7 is in the middle".

@@ -216,17 +216,44 @@ def _citywide(path) -> dict[str, float]:
     are the reason any score here can be believed, and the cost being bought
     with them is a few seconds of CSV parsing per run.
     """
+    shares, _roster = _citywide_and_roster(path)
+    return shares
+
+
+def _citywide_and_roster(path) -> tuple[dict[str, float], set[str]]:
+    """One pass: the PR shares AND every party name on any ballot.
+
+    **One parse, because `residuals` needs both and the file is enormous.**
+    Reading the target's result file twice — once for the outcome and once for
+    the roster `run_model` drops absent parties by — took
+    `theta_residual.residuals` from 43s to 113s. A VD-level result file is
+    hundreds of thousands of rows.
+
+    The two answers are deliberately different reads of it: the shares filter to
+    `BallotType` PR because they are counting PR votes; the roster does not,
+    because a party on either ballot is standing. Names are canonicalised once
+    per DISTINCT name rather than once per row.
+
+    Still **not cached** — see `_citywide`'s docstring; the temporal guards spy
+    on file opens and a memo makes a leak invisible rather than absent.
+    """
     counts: dict[str, int] = defaultdict(int)
+    raw: set[str] = set()
     try:
         with open(path, encoding="utf-8", errors="replace") as fh:
             for row in csv.DictReader(fh):
+                name = row["sPartyName"]
+                raw.add(name)
                 if row.get("BallotType") in (None, "", "PR"):
-                    counts[P.canonical(row["sPartyName"])] += int(
+                    counts[P.canonical(name)] += int(
                         float(row.get("Party_Votes") or 0))
     except FileNotFoundError:
-        return _absent(path)
+        return _absent(path), set()
+    except KeyError:
+        return {}, set()
     total = sum(counts.values())
-    return {k: v / total for k, v in counts.items()} if total else {}
+    return ({k: v / total for k, v in counts.items()} if total else {},
+            {P.canonical(n) for n in raw})
 
 
 # ELECTION FILES THIS RECORD IS ALLOWED NOT TO HAVE.
@@ -486,14 +513,7 @@ def ballot_roster(path) -> set[str]:
     `_citywide` filters to PR because it is counting PR votes; this is counting
     names.
     """
-    out: set[str] = set()
-    try:
-        with open(path, encoding="utf-8", errors="replace") as fh:
-            for row in csv.DictReader(fh):
-                out.add(P.canonical(row["sPartyName"]))
-    except (OSError, KeyError):
-        return set()
-    return out
+    return _citywide_and_roster(path)[1]
 
 
 def absent_from_ballot(baseline: dict, roster) -> list[str]:

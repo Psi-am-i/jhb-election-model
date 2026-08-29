@@ -19,7 +19,8 @@ made while fixing the identical class of error one file over.
 |---|---|---|
 | **1** | **The θ prior is ~1.8× too narrow** — 95% coverage 76–78%, 80% coverage 53–57%, κ\* = 1.798 / 1.749 (§1.127) | **the only finding here about the FORECAST rather than the instrument**, it sits on untradeable Key 2, and three independent instruments now agree |
 | **2** | **Build the instrument for THE VACANCY** — see `ITERATING.md`, "THE VACANCY" | ⛔ **decided 2026-08-29: Key 4 is KEPT as a θ-width floor, its old justification is dead, and nothing in the bar now guards against a change that improves the many by degrading the few** |
-| 3 | The **κ power sweep** — smallest \|log κ\| the floor can reject, both families, uniform and tail-only | now targeted: **can Key 4 detect the ×1.8 the model actually has?** `se ≈ 0.27` suggests not |
+| 3 | **State C's PIT and A²** — one `--dump-arm` away | turns reading 2's refutation from one member of the exclusion class into two |
+| 4 | The **pooled 403-row ν bound with δ free** | the only version of the `LEVEL_DF` measurement that returns anything: simulated interval ≈ [4.7, 15], rules out ν=4 with ~81% probability |
 | 4 | Add a **bias floor `τ²`** before enabling `bye_weight_mode="inverse_variance"` | the lever stays off until then |
 | 5 | Measure the **`v_spine` change under that lever** before enabling it | it is a no-op on the θ branch and an unmeasured change on the `PLAN_BOUNDS` fallback (§1.126) |
 | 6 | Investigate: the by-election weighting is **worse than uniform** | 24.83 vs 24.66 LOO RMSE, number in hand, nobody acted |

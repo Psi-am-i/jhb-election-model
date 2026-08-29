@@ -488,5 +488,59 @@ def test_the_theta_prior_is_measurably_overconfident():
         "1.8 measured on the real folds is partly the estimator")
 
 
+
+def test_anderson_darling_reads_the_tail_and_is_not_gameable_by_widening():
+    """A² is the tail instrument §1.128 said the bar did not have.
+
+    Two properties, both load-bearing, and neither needs the archive:
+
+    1. **It rejects a too-narrow forecast that a mean would pass.** The failure
+       this bar cannot see is "body improves, tail degrades"; A² weights the
+       ends of the PIT where KS weights the middle.
+    2. **It is NOT monotone in the width.** That is what distinguishes it from
+       the excluded-class score §1.128 refuted, whose `∂NLL/∂log w` is negative
+       for every |z| > 1 so any candidate could pass it by inflating `sd_for`.
+       A² must punish TOO WIDE as hard as too narrow.
+
+    MODEL-LOG §1.130.
+    """
+    import numpy as np
+    rng = np.random.default_rng(90210)
+    df = 7.0
+    ref = np.asarray(TR._t_reference(df))
+
+    def a2(scale, n=400):
+        z = rng.standard_t(df, size=n) / scale
+        return TR.anderson_darling(np.searchsorted(ref, z) / len(ref))
+
+    calibrated = np.median([a2(1.0) for _ in range(15)])
+    assert calibrated < 2.492, (
+        f"A² on a CALIBRATED sample is {calibrated:.3f}, above the 5% point "
+        f"under independence. The statistic is broken, not the forecast.")
+
+    too_narrow = np.median([a2(0.6) for _ in range(15)])
+    too_wide = np.median([a2(1.8) for _ in range(15)])
+    assert too_narrow > 10 * calibrated, (
+        f"A² barely moved on a forecast 1.67x too narrow: {too_narrow:.3f} "
+        f"against {calibrated:.3f} calibrated")
+    assert too_wide > 10 * calibrated, (
+        f"A² = {too_wide:.3f} on a forecast 1.8x TOO WIDE, against "
+        f"{calibrated:.3f} calibrated. **If A² can be passed by widening it is "
+        f"the same signed width test §1.128 refuted**, and it must not go in "
+        f"the bar. Re-derive before using it.")
+
+    # AND THE PAIRED FORM REFUSES A MOVED POPULATION, like `key4_delta`.
+    codes = ["JHB", "TSH", "CPT", "ETH", "EKU", "MAN", "NMA", "BUF"]
+    base = {(f"P{j}", "2021", c): (0.3 + 0.01 * j, 0.4)
+            for c in codes for j in range(4)}
+    short = {k: v for k, v in base.items() if k[0] != "P3"}
+    try:
+        TR.ad_delta(base, short, "2021", reps=50)
+    except ValueError as e:
+        assert "population moved" in str(e)
+    else:
+        raise AssertionError("ad_delta compared two different populations")
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(sys.modules[__name__]))

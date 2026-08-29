@@ -640,7 +640,12 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         "SD_FLOOR", "SD_CEILING",                     # bounds on a MEASURED fit
         "MIN_HOME_SPLITS",                            # registered under its own name
         # `theta_residual.py` MEASURES the model; it is not part of it.
-        "BOOT", "BOOT_SEED",
+        # `SIM_DRAWS` and `NULL_REPS` bound how precisely a REFERENCE
+        # distribution is simulated — the t sample behind `nll_t`'s calibrated
+        # offset and the shape ratio's null. Neither can reach a forecast.
+        # Added 2026-08-29 (§1.130) after this guard correctly caught a bare
+        # `reps=2000` in a new signature.
+        "BOOT", "BOOT_SEED", "SIM_DRAWS", "NULL_REPS",
         # --- operational residue surfaced by the 2026-08-23 widening ---
         "timeout",        # HTTP timeouts in the three fetch_* tools
         "steps",          # `_scale_into_box` solver iterations
