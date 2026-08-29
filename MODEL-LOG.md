@@ -15623,3 +15623,84 @@ which belongs in the same settled-tree window as the `pools.py` re-emit.
 
 Number-neutral: the band report gains fields and changes no computation, and the
 guarded `ITERATING.md` table still reconciles against the artefact.
+
+
+## 1.135 The arrival retry needs no `pools.py` re-fit — it needs a way to read a nomination list, and that is buildable now (2026-08-29)
+
+Step 3 of §1.133's agreed order was *"re-fit `M` with 2021 in the record — a
+`pools.py` CODE change, so it goes through the re-emit queue"*. **Checked, and it
+is not needed.** `arrival_group_record(before_year="2026")` **already returns the
+22-row, three-cycle record including 2021** (§1.133). `arrival_group_spec` fits
+`M` on whatever record precedes the target, so at target 2026 the re-fit is
+automatic. Nothing to change and nothing to queue.
+
+**The blocker is somewhere else, and it is more interesting.**
+
+### Both inputs the mechanism needs come from a RESULT file
+
+| what the group mechanism needs | where it comes from | at 2026 |
+|---|---|---|
+| the **roster** — who is standing | `pools.contesting_parties`, reading `sPartyName` from the target's **result file** | no result file → `roster_is_real = False` |
+| the **ward reach** — where they stand | `pools._ward_reach`, counting ward rows in the target's **result file** | falls back to **2021's** reach |
+
+`arrival_group_spec` is called `if roster_is_real else None`, so the emitted 2026
+spec carries **`arrival_group: null` today** — confirmed in
+`data/processed/pools_2026.json`. The mechanism is not merely switched off; it
+**cannot be constructed**, and `arrival_group_draw` has nothing to draw from.
+
+**So the critical-path item before 16 September is an INGEST PATH, not a model
+change.** The nomination lists publish that day and nothing in this repository
+can read one. The suite already prints the warning, and it names the fix:
+
+> *"no published roster for 2026 (it has not been held) … **NO GENUINE ENTRANT
+> CAN BE FOUND**: a party contesting 2026 with no 2024 vote is invisible here,
+> and ActionSA in 2021 was exactly that. Declare one in
+> `judgements/joburg-2026.toml`, or point this at the published nomination
+> list."*
+
+That warning has been printing for weeks as a note. **§1.132 makes it the
+model's largest known defect**: ActionSA in 2021 is the single worst seat-side
+miss in the panel (PIT exactly 1.0), and it is precisely the case this warning
+describes.
+
+### Why building it now is the whole point
+
+The pollster's argument, and it decides the calendar: **the lists supply two of
+the estimand's three quantities exactly.**
+
+| quantity | evidence today | after 16 September |
+|---|---|---|
+| **N** — how many no-record parties contest | trending up | **known exactly** |
+| **M** — the mass they take as a group | 22 rows, 3 cycles, 0.31%–19.99% | still forecast |
+| **split weights** — ward reach | 2021's, as a stand-in | **known exactly** |
+
+Only `M` remains a forecast, and `M` is one number per metro-year — which is why
+it is estimable where eleven party sizes are not. **The estimand narrows from
+"the unconditional arrival size distribution" to "`M` given `N`, split by
+observed reach", which is a better estimand and a smaller claim.**
+
+**Three weeks is not enough to design an estimator. It is enough to fill one
+in.** So the seam is built now and the data dropped in on the day.
+
+### The revised order
+
+1. ✅ the row count (§1.133) — 22 rows, three cycles
+2. ✅ the reporting repairs and the label-free referee (§1.134, `964544b`)
+3. **~~Re-fit `M`~~ — NOT NEEDED. The fit is automatic at target 2026.**
+4. **Build the roster/reach seam** so a published nomination list can be
+   supplied without a code change on the day — the code's own suggested route is
+   the judgement file. **This is a `pools.py` change and therefore belongs in
+   `POOLS-REEMIT-QUEUE.md`**, and the re-emit it forces is one the roster would
+   have forced anyway.
+5. **Write the pass condition and the predicted signs down** — before the data
+   arrives, so neither can be chosen after it. §1.133 records the signs already:
+   **2021 improves, 2016 worsens.**
+6. **16 September: supply the roster and reach, re-emit, switch
+   `arrival_group_draw` on, and judge it on the LABEL-FREE score**, with the
+   relabelled score printed beside it as the sensitivity pair.
+
+**Not started tonight, deliberately.** Step 4 is a `pools.py` code change, which
+this repository batches into a settled-tree window rather than taking when
+convenient — and the machine has had a `mempalace repair` on it for the last two
+hours, which is not a settled tree. The finding is what matters and it is
+recorded; the build is a morning's work against a seam whose shape is now known.
