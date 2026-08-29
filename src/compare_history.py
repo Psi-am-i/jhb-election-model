@@ -792,6 +792,79 @@ def _cluster_bootstrap_ci(groups, level=0.95, draws=20_000, seed=20260817):
     return float(lo), float(hi), draws
 
 
+def _band_splits(detail) -> dict:
+    """The four things that must travel with any width figure. §1.134.
+
+    **1. PER CYCLE.** A width pooled over two cycles that disagree in SIGN is
+    the error that produced §1.131's wrong answer and `ITERATING.md` rule 8's
+    false claim to have replicated out of sample. On `reference` ranks 4-12 the
+    pooled `sd(z)` is 1.796 and the halves are **0.485 at 2016 and 2.262 at
+    2021**; the signed vote error is −0.04pp against −26.07pp. **Never quote the
+    pooled figure without the pair.** Eight metros inside one cycle share a
+    national swing, so a within-cycle figure is optimistic too — rule 11.
+
+    **2. LEVERAGE.** The share of Σ(z−z̄)² carried by the largest two and three
+    columns. At `reference` ranks 4-12 the top two carry **69.9%** — Cape Town's
+    Cape Coloured Congress and Johannesburg's PA — and dropping them takes
+    `sd(z)` from 1.796 to 0.981. One line here would have stopped a session's
+    worth of wrong conclusions.
+
+    **3. BY `p_any`.** Whether the model gives the column a seat in at least half
+    its draws is a property of the FORECAST, not the outcome, so splitting on it
+    is not selection on the answer — unlike the rank band itself, which
+    `rank_band_of` assigns by ACTUAL share. `p_any ≥ 0.5` is exactly the
+    `claimed` population; the two halves read 0.857 and 2.303.
+
+    **4. PIT SATURATION AND THE CLIP.** `_probit`'s docstring asserted the clip
+    was not load-bearing and that this had been "checked rather than assumed".
+    The check went stale: one saturated column moves the TEST-GUARDED ranks 1-3
+    figure **0.697 → 0.818** across clips 1e-4 to 1e-6. A band carrying a PIT at
+    0 or 1 has an **unquotable** probit-SD, by the same rule `_probit` already
+    applies to the `all` population — so it is marked, not silently printed.
+    """
+    def _stats(rows):
+        z = np.array([v for _y, v, _u, _p in rows if v is not None], dtype=float)
+        if z.size < 2:
+            return {"n": int(z.size), "sd_z": float("nan"),
+                    "z_bias": float("nan")}
+        return {"n": int(z.size), "sd_z": float(z.std(ddof=1)),
+                "z_bias": float(z.mean())}
+
+    cycles = sorted({y for y, _z, _u, _p in detail})
+    z = np.array([v for _y, v, _u, _p in detail if v is not None], dtype=float)
+    lev = {}
+    if z.size > 3:
+        dev = np.sort((z - z.mean()) ** 2)[::-1]
+        total = float(dev.sum()) or float("nan")
+        lev = {"top2": float(dev[:2].sum() / total),
+               "top3": float(dev[:3].sum() / total),
+               "sd_z_drop2": float(np.sort(np.abs(z - z.mean()))[:-2].size > 1
+                                   and np.delete(z, np.argsort(
+                                       -np.abs(z - z.mean()))[:2]).std(ddof=1)
+                                   or float("nan"))}
+    pits = np.array([u for _y, _z, u, _p in detail if u is not None], dtype=float)
+    saturated = int(((pits <= 0.0) | (pits >= 1.0)).sum()) if pits.size else 0
+    clips = {}
+    for c in (1e-4, 1e-5, 1e-6):
+        if pits.size > 1:
+            v = np.array([_probit(x) for x in np.clip(pits, c, 1 - c)])
+            clips[f"{c:g}"] = float(v.std(ddof=1))
+    return {
+        "by_cycle": {y: _stats([d for d in detail if d[0] == y]) for y in cycles},
+        "leverage": lev,
+        "by_p_any": {
+            "ge_half": _stats([d for d in detail
+                               if d[3] is not None and d[3] >= 0.5]),
+            "lt_half": _stats([d for d in detail
+                               if d[3] is not None and d[3] < 0.5])},
+        "pit_saturated": saturated,
+        "probit_by_clip": clips,
+        # ⛔ A band with a saturated PIT has an unquotable probit-SD. Not a
+        # warning in prose — a field, so a consumer must look at it.
+        "probit_quotable": saturated == 0,
+    }
+
+
 def pooled_by_band(results, pop) -> dict:
     """The pooled calibration of one population, SPLIT BY ACTUAL PR RANK.
 
@@ -859,6 +932,10 @@ def pooled_by_band(results, pop) -> dict:
         per_city_hits: dict[float, list[list[int]]] = {lv: [] for lv in LEVELS}
         z_all: list[float] = []
         cov = {level: {"inside": 0, "counted": 0} for level in LEVELS}
+        # (cycle, z, pit, p_any) per column, for the four splits below. MODEL-LOG
+        # §1.134: a width pooled over two cycles that disagree in SIGN is what
+        # produced §1.131's wrong answer and rule 8's false replication claim.
+        detail: list[tuple] = []
         for r in results:
             block = (r.get("calibration") or {}).get(pop)
             if not block or "band" not in block:
@@ -868,6 +945,11 @@ def pooled_by_band(results, pop) -> dict:
             per_city.append(here)
             z_all.extend(v for v, b in zip(block.get("z") or [], labels)
                          if b == band and v is not None)
+            _pa = block.get("p_any") or [None] * len(labels)
+            for b, zv, uv, pav in zip(labels, block.get("z") or [None] * len(labels),
+                                      block["pit"], _pa):
+                if b == band:
+                    detail.append((str(r.get("year")), zv, uv, pav))
             city_hits = {level: [] for level in LEVELS}
             for hit, b in zip(block.get("hits") or [], labels):
                 if b != band:
@@ -883,6 +965,7 @@ def pooled_by_band(results, pop) -> dict:
             continue
         lo, hi, boot_draws = _cluster_bootstrap_ci(per_city)
         u = np.asarray(pits, dtype=float)
+        splits = _band_splits(detail)
 
         def _cov_rows(hit_groups, inside, counted):
             """A coverage row WITH an interval on it.
@@ -924,6 +1007,8 @@ def pooled_by_band(results, pop) -> dict:
             # values, 124 z), and labelling a width figure with the PIT count
             # says it was measured on columns it was not.
             "n_z": int(len(z_all)),
+            # THE FOUR THINGS THAT MUST TRAVEL WITH EVERY WIDTH FIGURE. §1.134.
+            **splits,
             "z_bias": (float(np.mean(z_all)) if len(z_all) else float("nan")),
             "pit_var": (float(u.var(ddof=1)) if u.size > 1 else float("nan")),
             "coverage": [

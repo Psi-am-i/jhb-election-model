@@ -74,7 +74,7 @@ import official_seats
 import parties as P
 import score as S
 from fold import citywide, load
-from seats import allocate, eligible_parties
+from seats import INDEPENDENT, allocate, eligible_parties
 
 def runnable_targets(city=None) -> tuple[str, ...]:
     """Past local elections this harness can actually run, for one city.
@@ -595,6 +595,67 @@ def entrant_actual_for(actual_seats: Mapping[str, int],
     # relabel should do with a real tie is an open question (MODEL-LOG §1.41);
     # this only stops the answer changing between runs.
     return max(newcomers, key=lambda p: (newcomers[p], p)) if newcomers else None
+
+
+def arrival_group_score(pr_share_draws, seat_draws, index,
+                        actual_shares, actual_seats, base_city) -> dict:
+    """Score the arrival channel as a GROUP, with **no per-party label**.
+
+    ⛔ **THIS EXISTS BECAUSE THE EXISTING SCORE HANDS THE INCUMBENT THE ANSWER
+    KEY.** `entrant_actual_for` maps the model's nameless `ENTRANT` column onto
+    ``max(newcomers, key=seats)`` — **the seat-winning newcomer with the most
+    seats, chosen with the outcome in hand.** A nameless column must be assigned
+    to something, but that is the most favourable assignment available, and
+    `montecarlo`'s own comment concedes what it buys: *"the slot it replaces was
+    scoring well for a reason that is not skill: it is relabelled onto the
+    LARGEST arrival, so a single lump of mass lands on exactly the right party
+    after the fact."*
+
+    It is the same class of fault as the `claimed` population selecting away
+    from the forecaster's own failures, which `ITERATING.md` rule 8 identified
+    and fixed by introducing `reference`. It was never fixed here — **so the
+    CRPS 85.9 → 109.9 that rejected the group arrival mechanism is not a fair
+    comparison, and Key 1 cannot currently arbitrate this channel at all.**
+    MODEL-LOG §1.133.
+
+    The label-free quantity: **total mass and total seats taken by parties with
+    no baseline**, forecast against realised. It assigns nothing, so it cannot
+    be gamed by the assignment; it is computable on every cycle; and it is
+    exactly what `pools.arrival_group_spec` forecasts. Report it BESIDE the
+    relabelled score as a sensitivity pair — the same shape as the clip
+    sensitivity in `compare_history._band_splits` — never instead of it, because
+    the pair is the finding.
+
+    Returns per-draw group totals summarised, plus the realised totals. A `nan`
+    for `mass_pit` means no party arrived, which is a legitimate outcome and not
+    a missing measurement.
+    """
+    import numpy as _np
+
+    arrived = [p for p in actual_seats if p not in base_city and p != INDEPENDENT]
+    cols = [index[p] for p in index if p not in base_city and p != INDEPENDENT]
+    out = {"n_arrived": len(arrived), "n_columns": len(cols),
+           "actual_mass": float(sum(actual_shares.get(p, 0.0) for p in arrived)),
+           "actual_seats": int(sum(actual_seats.get(p, 0) for p in arrived))}
+    if not cols:
+        out.update(mass_mean=0.0, seats_mean=0.0, mass_pit=float("nan"),
+                   seats_pit=float("nan"))
+        return out
+    mass = _np.asarray(pr_share_draws)[:, cols].sum(axis=1)
+    seats = _np.asarray(seat_draws)[:, cols].sum(axis=1)
+    # PIT of the realised total in the drawn total's distribution. Mid-rank for
+    # the seat one because seats are discrete and a naive PIT saturates at 1.0 —
+    # which is exactly the defect `_probit`'s clip was hiding (§1.132).
+    out.update(
+        mass_mean=float(mass.mean()), mass_median=float(_np.median(mass)),
+        seats_mean=float(seats.mean()), seats_median=float(_np.median(seats)),
+        mass_pit=float((mass < out["actual_mass"]).mean()
+                       + 0.5 * (mass == out["actual_mass"]).mean()),
+        seats_pit=float((seats < out["actual_seats"]).mean()
+                        + 0.5 * (seats == out["actual_seats"]).mean()),
+        mass_err=float(out["actual_mass"] - mass.mean()),
+        seats_err=float(out["actual_seats"] - seats.mean()))
+    return out
 
 
 def relabel_run(run, entrant: str | None):

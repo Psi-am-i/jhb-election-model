@@ -15569,3 +15569,57 @@ nor `theta_prior`, and §1.132 established that four of the five biggest misses
 have no θ row at all. It will neither block the retry nor supply evidence for it.
 **A key that cannot fire is not a key that passed**, and both halves must be
 stated when the retry is reported.
+
+
+## 1.134 The reporting repairs: a width may no longer travel alone (2026-08-29)
+
+**Agreed with the pollster as the precondition for everything else, and it is
+load-bearing rather than hygienic: one of these fields is the referee for the
+arrival retry, and another is the instrument that measures it.**
+
+Every band figure `compare_history.pooled_by_band` returns now carries four
+things, each of which exists because its absence produced a wrong published
+conclusion:
+
+1. **`by_cycle`.** A width pooled over two cycles that disagree in SIGN is what
+   gave rule 8 a false claim to have replicated out of sample and gave §1.131 a
+   "1.8× too narrow" that describes neither cycle. `reference` ranks 4-12:
+   **0.485 at 2016, 2.262 at 2021**, pooled 1.796.
+2. **`leverage`.** Share of Σ(z−z̄)² carried by the largest two and three
+   columns, and `sd_z_drop2`. At ranks 4-12: **top-2 = 0.695, and dropping them
+   gives 0.981.** One line, and it would have stopped a session's worth of wrong
+   conclusions.
+3. **`by_p_any`.** `p_any ≥ 0.5` versus below — a property of the FORECAST, not
+   the outcome, unlike the rank band itself. Reads **0.857 against 2.303**.
+4. **`pit_saturated`, `probit_by_clip`, `probit_quotable`.** A band carrying a
+   PIT at 0 or 1 is marked **unquotable**, as a field rather than a warning in
+   prose, by the same rule `_probit` already applies to the `all` population.
+   Ranks 4-12 has **7 saturated of 128** and reads 1.140 / 1.224 / 1.305 across
+   clips 1e-4 / 1e-5 / 1e-6.
+
+The per-cycle figures carry their own caveat and it is written beside them:
+eight metros inside one cycle share a national swing, so a within-cycle interval
+is optimistic too.
+
+### And the label-free arrival score, which is the referee
+
+`backtest.arrival_group_score` scores the arrival channel as a **group** —
+total mass and total seats taken by parties with no baseline, forecast against
+realised — with **no per-party assignment**. It exists because
+`entrant_actual_for` relabels the nameless `ENTRANT` onto
+``max(newcomers, key=seats)``, the most favourable assignment available and
+chosen with the outcome in hand, which is what produced the CRPS 85.9 → 109.9
+that rejected the group arrival mechanism (§1.133).
+
+**The test is the property, not a number:** two outcomes with identical arrival
+totals but the mass split differently between two newcomers must score
+*identically*. The relabelling score cannot do that — it follows whichever is
+larger. Seat PITs are mid-ranked because seats are discrete and a naive PIT
+saturates at 1.0, which is the defect `_probit`'s clip was hiding.
+
+**Report it BESIDE the relabelled score as a sensitivity pair, never instead of
+it — the pair is the finding.** It populates on the next `compare_history` run,
+which belongs in the same settled-tree window as the `pools.py` re-emit.
+
+Number-neutral: the band report gains fields and changes no computation, and the
+guarded `ITERATING.md` table still reconciles against the artefact.

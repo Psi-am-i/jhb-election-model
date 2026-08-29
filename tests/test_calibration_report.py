@@ -1374,6 +1374,96 @@ def test_the_reference_population_is_fixed_and_keeps_the_worst_columns():
         f"but invisible to the width statistic — which is the same hiding "
         f"place one level down")
 
+def test_a_width_never_travels_without_its_cycle_split_and_its_leverage():
+    """Four fields that must accompany every band width. MODEL-LOG §1.134.
+
+    **Each one exists because its absence produced a wrong published
+    conclusion.** Pooling two cycles that disagree in sign gave `ITERATING.md`
+    rule 8 a false claim to have replicated out of sample, and gave §1.131 a
+    "the mid-ballot is 1.8x too narrow" that is two columns. The leverage share
+    is one line and would have stopped both.
+    """
+    import compare_history as ch
+    rows = json.loads((ROOT / "data/processed/history.json").read_text())
+    band = ch.pooled_by_band(rows, "reference")["4-12"]
+
+    for field in ("by_cycle", "leverage", "by_p_any", "pit_saturated",
+                  "probit_by_clip", "probit_quotable"):
+        assert field in band, f"`{field}` is gone from the band report (§1.134)"
+
+    cyc = band["by_cycle"]
+    assert set(cyc) >= {"2016", "2021"}, sorted(cyc)
+    # THE FINDING, as a structural assertion rather than a pinned number: the
+    # two cycles do not agree, so the pooled figure describes neither.
+    assert cyc["2021"]["sd_z"] > 3 * cyc["2016"]["sd_z"], (
+        f"ranks 4-12 sd(z) is {cyc['2016']['sd_z']:.3f} at 2016 and "
+        f"{cyc['2021']['sd_z']:.3f} at 2021. If these have converged, §1.132's "
+        f"central finding — that the pooled width describes neither cycle — has "
+        f"changed, and rule 8 and the HANDOVER's item 1 both need re-reading.")
+
+    assert band["leverage"]["top2"] > 0.5, (
+        f"the two largest columns carry {band['leverage']['top2']:.1%} of the "
+        f"band's squared deviation. §1.131 measured 69.5%; below half means the "
+        f"'two columns are the finding' reading no longer holds.")
+
+    # A SATURATED BAND IS UNQUOTABLE, and it is a field so a consumer must look.
+    assert band["pit_saturated"] > 0 and band["probit_quotable"] is False, (
+        "reference ranks 4-12 carries saturated PITs and must be marked "
+        "unquotable; `_probit`'s clip moves it by 17% across 1e-4..1e-6")
+    clips = band["probit_by_clip"]
+    assert max(clips.values()) - min(clips.values()) > 0.05, (
+        f"probit-SD is now clip-insensitive at {clips}; if that is real, "
+        f"`_probit`'s docstring and §1.132 both need rewriting")
+
+    # And ranks 1-3, which the ITERATING table pins, is the SAME columns in both
+    # populations -- so a divergence there means the split logic is broken.
+    a = ch.pooled_by_band(rows, "reference")["1-3"]
+    b = ch.pooled_by_band(rows, "claimed")["1-3"]
+    assert a["n_z"] == b["n_z"] and abs(a["dispersion"] - b["dispersion"]) < 1e-9
+
+
+def test_the_arrival_channel_has_a_score_that_cannot_be_handed_the_answer():
+    """`arrival_group_score` must not depend on WHICH arrival it is told about.
+
+    `entrant_actual_for` picks `max(newcomers, key=seats)` — the most favourable
+    assignment available, chosen with the outcome in hand — and that is what
+    rejected the group arrival mechanism at CRPS 85.9 -> 109.9. A label-free
+    score is the referee that comparison needed. MODEL-LOG §1.133.
+    """
+    import backtest
+
+    idx = {"ANC": 0, "DA": 1, "NEWCO": 2, "TINYCO": 3}
+    base = {"ANC": 0.5, "DA": 0.4}
+    draws = np.array([[0.50, 0.40, 0.08, 0.02], [0.50, 0.40, 0.04, 0.06],
+                      [0.50, 0.40, 0.02, 0.08], [0.50, 0.40, 0.10, 0.00]])
+    seatd = np.array([[100, 80, 16, 4], [100, 80, 8, 12],
+                      [100, 80, 4, 16], [100, 80, 20, 0]])
+
+    # THE PROPERTY: two outcomes with the SAME arrival totals but the mass split
+    # differently between the two newcomers must score identically. The
+    # relabelling score cannot do this -- it would follow whichever is larger.
+    one = backtest.arrival_group_score(
+        draws, seatd, idx, {"NEWCO": 0.10, "TINYCO": 0.02},
+        {"NEWCO": 20, "TINYCO": 4}, base)
+    two = backtest.arrival_group_score(
+        draws, seatd, idx, {"NEWCO": 0.02, "TINYCO": 0.10},
+        {"NEWCO": 4, "TINYCO": 20}, base)
+    for k in ("actual_mass", "actual_seats", "mass_pit", "seats_pit",
+              "mass_err", "seats_err"):
+        assert abs(one[k] - two[k]) < 1e-12, (
+            f"`{k}` moved when the SAME total arrival mass was split "
+            f"differently between newcomers ({one[k]} vs {two[k]}). The score "
+            f"is label-dependent, which is the whole defect it exists to fix.")
+
+    # A party WITH a baseline is never an arrival, however well it did.
+    assert one["n_arrived"] == 2 and one["n_columns"] == 2
+
+    # No arrival at all is a legitimate outcome, not a missing measurement.
+    none = backtest.arrival_group_score(draws, seatd, {"ANC": 0, "DA": 1},
+                                        {}, {}, base)
+    assert none["n_arrived"] == 0 and none["mass_pit"] != none["mass_pit"]
+
+
 if __name__ == "__main__":
     # `run_module`, NOT a hand-rolled loop. Until 2026-08-23 this file ended with
     # `for name, fn in sorted(globals().items()): ... fn()`, which catches
