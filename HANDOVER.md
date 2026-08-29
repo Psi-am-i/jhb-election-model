@@ -18,7 +18,7 @@ made while fixing the identical class of error one file over.
 | # | do | why |
 |---|---|---|
 | **1** | **The θ prior is ~1.8× too narrow** — 95% coverage 76–78%, 80% coverage 53–57%, κ\* = 1.798 / 1.749 (§1.127) | **the only finding here about the FORECAST rather than the instrument**, it sits on untradeable Key 2, and three independent instruments now agree |
-| **2** | ⛔ **OWNER DECISION: Key 4 no longer blocks the Type A filter** (§1.125) | its stated reason for existing is undercut; nothing was changed on it |
+| **2** | **Build the instrument for THE VACANCY** — see `ITERATING.md`, "THE VACANCY" | ⛔ **decided 2026-08-29: Key 4 is KEPT as a θ-width floor, its old justification is dead, and nothing in the bar now guards against a change that improves the many by degrading the few** |
 | 3 | The **κ power sweep** — smallest \|log κ\| the floor can reject, both families, uniform and tail-only | now targeted: **can Key 4 detect the ×1.8 the model actually has?** `se ≈ 0.27` suggests not |
 | 4 | Add a **bias floor `τ²`** before enabling `bye_weight_mode="inverse_variance"` | the lever stays off until then |
 | 5 | Measure the **`v_spine` change under that lever** before enabling it | it is a no-op on the θ branch and an unmeasured change on the `PLAN_BOUNDS` fallback (§1.126) |
@@ -28,7 +28,31 @@ made while fixing the identical class of error one file over.
 
 ---
 
-### ⛔ The re-measurement is DONE, and it undercut Key 4's reason for existing
+### ⛔ Key 4: kept, repurposed, and the hole it leaves is now named
+
+**Owner decision, 2026-08-29:** *"4 was still useful, but has a new role. Keep it
+but change its raison d'être. We will have to find something novel to take its
+place which we do not yet have."*
+
+So `ITERATING.md` now says three things where it said one. **Key 4 IS** a floor
+on the θ width estimator — 235 observations, 16 metro-year clusters, against
+Keys 1 and 2's ~2 — and untradeable because a layer that has stopped estimating
+its own dispersion honestly cannot be repaired by a better score elsewhere.
+**Key 4 IS NOT** a guard against an exclusion moving volatility out of the prior
+and into the error; §1.125 measured that it passes Type A at every `LEVEL_DF`
+from 3 to 1000. **And THE VACANCY** is written into the bar as a known hole:
+nothing now blocks a change that improves the many by degrading the few, and
+until something does, **no exclusion or record restriction may be adopted on an
+aggregate score alone.**
+
+The live evidence that this is not hypothetical: under Type A the θ prior's PIT
+variance falls and coverage rises at both folds while `mean z²` at 2016 worsens
+6.230 → 7.400 and the *trimmed* figure improves to 3.642. Ninety-odd ordinary
+parties forecast better by forecasting three collapses worse — and every
+aggregate score in the bar reads that as an improvement, because on average it
+is one.
+
+### The re-measurement that got us here
 
 §1.125. On the corrected instrument **Type A's 2016 fold no longer worsens** —
 4/8 metro-years better, 4/8 worse, 95% interval [−0.305, +0.269] — and 2021

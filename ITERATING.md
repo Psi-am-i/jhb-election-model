@@ -260,7 +260,47 @@ It is not the definition.
 > the rewrite of `theta_residual.py` that already happened — which is the whole
 > argument for the block above.
 
-**⛔ KEY 4 IS A LAYER FLOOR, NOT THE MODEL'S PREDICTIVE SCORE.** It scores the θ
+**⛔ WHAT KEY 4 IS FOR — restated by the owner on 2026-08-29, replacing the
+justification it was created with.**
+
+> Key 4 is **a floor on the θ width estimator**, and that is the whole of it. It
+> asserts that a change may not make the model's estimate of `sd(log θ)` worse
+> out of sample on the record where that record is thickest — 235 observations
+> across 16 metro-year clusters, against Keys 1 and 2's ~2 effective clusters.
+> It is untradeable because a layer that has stopped estimating its own
+> dispersion honestly cannot be repaired by a better score somewhere else.
+>
+> **It is NOT a guard against an exclusion moving volatility out of the prior
+> and into the error.** It was believed to be, for the reason set out below, and
+> §1.125 measured that it is not — Type A passes it at every `LEVEL_DF` from 3
+> to 1000, on either baseline, under either scoring family. **Nothing in this
+> bar now performs that job.**
+
+**⛔ THE VACANCY — added 2026-08-29, and it is to be read as a KNOWN HOLE IN THE
+BAR, not as a formality.**
+
+> **The bar has no instrument that can block a change which improves the many by
+> degrading the few.** The evidence that this is a live failure mode and not a
+> hypothetical: under the Type A filter the θ prior's PIT variance falls and its
+> coverage rises at both folds — the body of the distribution improves — while
+> `mean z²` at 2016 worsens **6.230 → 7.400**, and the trimmed figure (dropping
+> three rows) *improves* to 3.642. **Ninety-odd ordinary parties are forecast
+> better by forecasting three party-structural collapses worse**, and every
+> aggregate score in this bar reads that as an improvement, because it is one on
+> average.
+>
+> Whether that trade is a defect or the correct behaviour is **itself unsettled**
+> — §1.71 and §1.73 argue a collapse is not retention and belongs to
+> `pools.SPLITS` and the arrival machinery rather than to θ. **Until an
+> instrument exists that can put a number on it, no exclusion or record
+> restriction may be adopted on the strength of an aggregate score alone**, and
+> any candidate of that shape must carry an explicit statement of what it makes
+> worse and where.
+>
+> A replacement instrument is being designed. **It does not exist yet, and this
+> block stays until it does.** MODEL-LOG §1.125, §1.126, §1.127.
+
+**KEY 4 IS A LAYER FLOOR, NOT THE MODEL'S PREDICTIVE SCORE.** It scores the θ
 **width** estimator about `theta_prior`'s **own** centre. The model does not draw
 about that centre: `make_drawer` is handed `centres[party]` from
 `blended_centres`, which for any party the spine reaches is the spine's level,
@@ -297,9 +337,12 @@ handled by `SPLITS` and arrivals instead.
 WHICH RESIDUAL is fitted with `_fit_line` held constant. They are diagnostics.
 They are not the floor.
 
-> ⛔ **THE JUSTIFICATION BELOW NO LONGER HOLDS ON THE CORRECTED INSTRUMENT
-> (2026-08-28, MODEL-LOG §1.125), AND THE KEY HAS DELIBERATELY NOT BEEN CHANGED
-> FOR IT.** Re-measured on the committed width, the model's baseline and the
+> ⛔ **AMENDED BY THE OWNER, 2026-08-29. THE JUSTIFICATION BELOW IS DEAD AND
+> THE KEY IS KEPT.** The paragraph that follows is retained as the record of why
+> Key 4 was created, and it is **no longer why Key 4 exists**. See "WHAT KEY 4
+> IS FOR" immediately above and "THE VACANCY" immediately below.
+>
+> The measurement (2026-08-28, MODEL-LOG §1.125): Re-measured on the committed width, the model's baseline and the
 > Student-t₇ it draws, **Type A's 2016 fold no longer worsens** — four
 > metro-years better, four worse, the 95% interval straddling zero — and 2021
 > improves. **Key 4 does not block the change it was created to block.** The old
