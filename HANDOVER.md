@@ -1,11 +1,139 @@
-# Handover — 2026-08-28
+# Handover — 2026-08-29
 
-**Read this, then `ITERATING.md`'s Key 4, then `POOLS-REEMIT-QUEUE.md`.**
-Everything is committed; the tree is clean. Branch
-`splinter-rule-and-historical-tail`, **suite 373 passed / 0 failed / 10
-skipped**, freeze re-taken and verifying.
+**START AT "THE NEXT RUN" BELOW.** It is pre-registered and ready to execute;
+everything after it is the reasoning that produced it.
 
-**19 days to nomination lists (16 September), 68 to polling (4 November).**
+Branch `splinter-rule-and-historical-tail`. **18 days to nomination lists
+(16 September), 67 to polling (4 November).**
+
+**⛔ The state to verify before trusting anything here:** run
+`git status --short` (expect clean), `tests/run_all.py` (expect 0 failed) and
+`freeze.py --verify` (expect VERIFIED). The last full suite was **377 passed / 0
+failed / 10 skipped** with `freeze --verify` VERIFIED, on the tree this handover
+describes. All 18 pool specs carry `pools_sha` `dbdf171344ffd5f0`, matching the
+live code — **no re-emit is needed.** Re-run the preflight anyway; it is three
+commands and it is what the plan's first step exists for.
+
+---
+
+## ▶ THE NEXT RUN — pre-registered, ready to execute
+
+**Written 2026-08-29 BEFORE any of it was run, so no pass condition and no
+predicted sign can be chosen after seeing a number.** Read this section top to
+bottom and do exactly what it says. MODEL-LOG §1.133, §1.134, §1.135.
+
+### What is being tested and why
+
+The **group arrival mechanism** (`pools.arrival_group_spec`,
+`montecarlo.arrival_group_draw`) was built, measured and rejected at CRPS
+85.9 → 109.9. **That rejection is not admissible**: it was scored through
+`backtest.entrant_actual_for`, which relabels the model's nameless `ENTRANT`
+onto `max(newcomers, key=seats)` — the seat-winning newcomer with the most
+seats, **chosen with the outcome in hand**. `montecarlo.py` concedes it: *"the
+slot it replaces was scoring well for a reason that is not skill."* This is a
+re-run of that comparison with a referee that cannot be handed the answer.
+
+### 0. Preflight — do not skip, and abort on any failure
+
+    git status --short                      # must be clean
+    .venv/bin/python tests/run_all.py       # must be 0 failed
+    .venv/bin/python src/freeze.py --verify # must say VERIFIED
+
+Confirm the artefacts are live (they were at the time of writing — **no re-emit
+is needed and none should be taken**):
+
+    .venv/bin/python -c "import sys;sys.path.insert(0,'src');import pools;\
+      from pathlib import Path;print(pools._code_sha(Path('src/pools.py')))"
+    # must print dbdf171344ffd5f0, matching all 18 specs
+
+**⛔ Do NOT run `pools.py --emit`.** The keys match; re-emitting while measuring
+is the hazard `CLAUDE.md` names twice.
+
+### 1. The two arms — neither writes the committed artefact
+
+    .venv/bin/python src/compare_history.py \
+        --json /tmp/arm_incumbent.json --md /tmp/arm_incumbent.md
+
+    .venv/bin/python src/compare_history.py --set arrival_group_draw=true \
+        --json /tmp/arm_group.json --md /tmp/arm_group.md
+
+`--set` is the only honest way to move this lever: editing `DEFAULTS` does not
+reach a run, because `apply_city` writes the city TOML over it afterwards.
+Verified: `arrival_group_draw=true` parses to a real boolean.
+
+### 2. What decides it
+
+**PRIMARY — the label-free arrival score.** Each city-year record now carries
+`arrival_group`: total mass and total seats taken by parties with **no NPE
+baseline**, forecast against realised, assigned to nobody. Compare `mass_err`,
+`seats_err`, `mass_pit`, `seats_pit` across the arms.
+
+**SENSITIVITY PAIR — the relabelled score** (`crps`, `seat_abs_err_coherent`).
+Report it **beside** the label-free one, never instead of it. **If the two
+disagree, that disagreement is the finding**, and it is the whole reason this
+re-run exists.
+
+**KEY 1** — paired, per city-year, **reported by cycle separately**.
+**KEY 2** — CRPS and the level-free width statistics on `reference`, which is
+untradeable. Use the new `by_cycle`, `leverage`, `by_p_any` and
+`probit_quotable` fields; a band marked unquotable may not be cited.
+**KEY 3** — the mechanism replaces a typed generic slot with a fitted group, so
+price the derivedness honestly in both directions.
+
+### 3. Pass conditions, fixed now
+
+1. The **label-free** `mass_err` and `seats_err` must improve at 2021, on the
+   pooled 8 metros **and** in at least 5 of the 8 individually.
+2. **Key 2 must not worsen.** Untradeable.
+3. The improvement must **survive removing the two largest arrival columns**
+   (Cape Town's Cape Coloured Congress, and ActionSA at Johannesburg). If the
+   whole gain is those two, it is a two-observation fit and **it does not ship**.
+4. The **2016 arm must come back byte-identical**. See the tripwire below.
+
+### 4. Predicted signs — recorded before the run
+
+* **2021 should improve; 2016 should not move at all.** §1.48's trace has the
+  entrant rescale pulling the top of the ballot 7–9% below its centre; at 2021
+  ranks 1-3 are over-forecast by **+15.48pp** so taking mass off the top is
+  directionally right.
+* **⛔ 2016 IS A NULL ARM AND IS THE STRONGEST TRIPWIRE IN THE SET.** Every 2016
+  spec has **zero seeded arrivals** and `arrival_group: None`, so the lever has
+  nothing to act on. **If any 2016 city-year moves by one seat, the lever is
+  reaching something it must not, and the run is void** — stop and find out why
+  before reading 2021.
+* Spreading mass across many named arrivals instead of one lump should **raise**
+  the ranks 13+ over-forecast and phantom mass. Watch it; §1.54 measured the
+  remedy on the receiving side at 14–22 coherent seats.
+
+### 5. What must NOT count as a pass
+
+* **The relabelled score improving on its own.** That is the rigged instrument.
+* **A gain that vanishes when the top two arrival columns are removed.**
+* **Key 4 saying anything.** It cannot fire — the arrival path touches neither
+  `sd_for` nor `theta_prior`, and four of the five biggest misses have no θ row
+  at all. **A key that cannot fire is not a key that passed**, and both halves
+  must be stated when this is written up.
+
+### 6. The constraint to state in the write-up, whatever the result
+
+**This is a ONE-CYCLE validation on ~1 effective cluster, and it cannot be
+widened.** Checked exhaustively:
+
+| target | seeded arrivals | prior record to fit `M` | retry possible |
+|---|---|---|---|
+| 2011 | yes | **0 rows** | no — nothing to fit |
+| 2016 | **0** | 6 rows | no — nothing to draw |
+| **2021** | 32 | 14 rows | **yes, all 8 metros** |
+
+Eight metros inside one cycle share a national swing, so rule 11 applies at its
+strongest. **Do not report 8 city-years as 8 independent facts.**
+
+### 7. If it passes
+
+It still does not ship on this evidence alone. Write it up with the one-cycle
+caveat, the label-free/relabelled pair, and the leverage check, and put it to the
+owner. The live 2026 forecast additionally needs the roster seam
+(`POOLS-REEMIT-QUEUE` entry 3) before the mechanism can be constructed at all.
 
 ---
 
@@ -17,7 +145,8 @@ made while fixing the identical class of error one file over.
 
 | # | do | why |
 |---|---|---|
-| **1** | ⛔ **NEW-PARTY ARRIVAL SIZE** (§1.132) — not the θ width, not the mid-ballot level | it owns the ENTIRE 2021 mid-ballot signed error (−26.07pp against 2016's −0.04pp), the entire "too narrow" reading, and the one PIT of exactly 1.0. **Wherever the model HAS a local record it is too WIDE, 1.7–2.7×** |
+| **1** | ⛔ **RE-RUN THE ARRIVAL RETRY AT 2021, FAIRLY** (§1.135) — `arrival_group_draw=True` + `compare_history` | the mechanism exists, its rejection was scored by an instrument that hands the incumbent the answer key, and the fair referee is now wired in. **No nomination list, no `pools.py` change, no re-emit needed** — the 2021 spec already carries a real `arrival_group` |
+| **1b** | The **PA-type failure is NOT the arrival channel** (§1.135) | a 0.03% national base growing ~40× locally is the θ/seeding path. Two of the biggest misses, two different mechanisms — the retry touches one of them |
 | **2** | **Build the instrument for THE VACANCY** — see `ITERATING.md`, "THE VACANCY" | ⛔ **decided 2026-08-29: Key 4 is KEPT as a θ-width floor, its old justification is dead, and nothing in the bar now guards against a change that improves the many by degrading the few** |
 | 3 | **State C's PIT and A²** — one `--dump-arm` away | turns reading 2's refutation from one member of the exclusion class into two |
 | 4 | The **pooled 403-row ν bound with δ free** | the only version of the `LEVEL_DF` measurement that returns anything: simulated interval ≈ [4.7, 15], rules out ν=4 with ~81% probability |
@@ -42,7 +171,14 @@ and 2021 ranks 1-3 established read **0.446**.
 
 > **On every column where the model has a local record — either cycle, either
 > band — the forecast is too WIDE by 1.7× to 2.7×. The whole "too narrow"
-> reading is the new-party channel.**
+> reading is parties the model had not seen.**
+
+⚠️ **But "had not seen" has two meanings and they are different failure modes**
+(§1.135). `entrant_actual_for` calls a party an arrival when it is absent from
+the preceding NPE baseline. ActionSA and the CCC are — the group arrival
+mechanism addresses them. **The PA is not: it held 0.0295% nationally at
+Johannesburg in 2019 and grew roughly fortyfold locally**, which is the
+θ/seeding path. The two biggest seat-side misses need two different repairs.
 
 Eleven of the twelve worst 2021 misses are parties with no 2016 column in that
 metro. And **four of the five biggest have no θ row at all** — no NPE2019 vote

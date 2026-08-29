@@ -1255,6 +1255,25 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
                            entrant_actual=entrant_actual)
     out["crps"] = scored["crps"]["total"]
 
+    # THE ARRIVAL CHANNEL, SCORED WITHOUT A LABEL. `entrant_actual` above is
+    # `max(newcomers, key=seats)` — the most favourable assignment available,
+    # chosen with the outcome in hand — so every score that uses it flatters the
+    # generic-slot incumbent on the hardest column in the panel, and that is
+    # what rejected the group arrival mechanism at CRPS 85.9 → 109.9. This is
+    # the referee that comparison never had: total arrival mass and total
+    # arrival seats, assigned to nobody. **Reported BESIDE the relabelled score
+    # as a sensitivity pair, never instead of it.** MODEL-LOG §1.133, §1.134.
+    #
+    # Computed BEFORE nothing and AFTER `relabel_run`, deliberately: the relabel
+    # renames a column and moves no mass, so the group total is identical either
+    # way — and asserting that is how a future reader knows the label cannot
+    # reach this number.
+    if run.pr_share_draws is not None:
+        out["arrival_group"] = B.arrival_group_score(
+            run.pr_share_draws, run.seat_draws,
+            {p: i for i, p in enumerate(run.universe)},
+            actual_pr, actual_seats, _npe_baseline(target, data_dir))
+
     ctx = BM.build_context(int(year), data_dir)
     for name in ("last-lge", "uniform-swing", "prior-lge-noise"):
         try:
@@ -1288,6 +1307,28 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
                 abs(r["actual"] - r["forecast"]) for r in m.get("parties", [])),
             "generated": pub.get("generated")}
     return out
+
+
+def _npe_baseline(target, data_dir: Path) -> dict:
+    """The preceding NPE's citywide shares — what "has no baseline" means.
+
+    The same quantity `run_model` builds its universe from, and the same test
+    `backtest.entrant_actual_for` applies: a party absent from it "arrived from
+    nothing". Read here rather than carried on `ModelRun` because the run does
+    not expose it, and defined ONCE so the arrival score and the relabel cannot
+    drift apart on what counts as an arrival.
+
+    Off-ballot parties are NOT dropped (§1.124's `absent_from_ballot`): that
+    changes which parties enter `sd_for`'s fit, and changes nothing about who
+    has a baseline above zero, which is all this is asked.
+    """
+    npe = target.previous_npe
+    if not npe:
+        return {}
+    path = data_dir / target.results(npe)
+    if not cityconfig.resolve_path(path).exists():
+        return {}
+    return {p: v for p, v in citywide(load(path, None)[0]).items() if v > 0}
 
 
 def _actual_seats(target, data_dir: Path, run):

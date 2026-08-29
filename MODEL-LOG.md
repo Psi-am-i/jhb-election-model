@@ -15701,6 +15701,54 @@ in.** So the seam is built now and the data dropped in on the day.
 
 **Not started tonight, deliberately.** Step 4 is a `pools.py` code change, which
 this repository batches into a settled-tree window rather than taking when
-convenient — and the machine has had a `mempalace repair` on it for the last two
-hours, which is not a settled tree. The finding is what matters and it is
-recorded; the build is a morning's work against a seam whose shape is now known.
+convenient. The finding is what matters and it is recorded; the build is a
+morning's work against a seam whose shape is now known.
+
+### ⛔ AND THE RETRY IS RUNNABLE ON THE BACKTEST TODAY
+
+The nomination list is needed for the **live 2026** forecast. It is **not**
+needed to judge the mechanism, because at a target already held the roster is
+real. `data/processed/pools_2021.json` carries a fully constructed
+`arrival_group`:
+
+    alpha 4.357 · total_log_median −4.2619 · total_log_sd 0.9275 · 32 weights
+    derived_from: 14 metro-years before 2021, split by ward reach
+
+**14 = the 6 metro-years from 2011 plus the 8 from 2016**, which is an exact
+cross-check on §1.133's row count. (2016's spec is `None` — only 2011 precedes
+it, and that is not enough record to fit.)
+
+**So the fair re-run of the rejected comparison can be done now**, at target
+2021, with the label-free referee that comparison never had. It needs no
+nomination list, no `pools.py` change and no re-emit — only
+`arrival_group_draw=True` and a `compare_history` run. That is a much shorter
+path to the answer than waiting for 16 September, and it is what should happen
+next.
+
+`backtest.arrival_group_score` is now wired into `compare_history`'s per
+city-year record as `arrival_group`, so the pair — label-free and relabelled —
+lands in the artefact on the next run.
+
+### A distinction the wiring exposed, and §1.132 blurred it
+
+`entrant_actual_for` calls a party an arrival when it is **absent from the
+preceding NPE baseline**. §1.132's split used a different test — *present in the
+metro's 2016 panel* — and the two disagree on the case that matters:
+
+| party | NPE2019 share at its metro | an "arrival"? |
+|---|---|---|
+| ActionSA (JHB) | **absent** | yes |
+| Cape Coloured Congress (CPT) | **absent** | yes |
+| **PA (JHB)** | **0.0295%** | **NO — it has a baseline** |
+
+**So the two biggest seat-side misses are DIFFERENT FAILURE MODES.** ActionSA and
+the CCC are arrivals with no baseline at all, and the group mechanism addresses
+them. **The PA is a party with a 0.03% national base that grew roughly
+forty-fold locally** — that is the θ/seeding path, not the arrival path, and
+nothing in the arrival retry will touch it.
+
+§1.132 lumped them together as "the new-party channel". Corrected here: the
+channel owns one of the two, and the other is a separate open finding. The
+per-cycle and leverage fields added in §1.134 will show them separately, because
+`by_p_any` and the arrival score use the model's own baseline while the rank
+band does not.
