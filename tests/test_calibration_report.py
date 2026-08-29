@@ -1436,8 +1436,13 @@ def test_the_arrival_channel_has_a_score_that_cannot_be_handed_the_answer():
     base = {"ANC": 0.5, "DA": 0.4}
     draws = np.array([[0.50, 0.40, 0.08, 0.02], [0.50, 0.40, 0.04, 0.06],
                       [0.50, 0.40, 0.02, 0.08], [0.50, 0.40, 0.10, 0.00]])
-    seatd = np.array([[100, 80, 16, 4], [100, 80, 8, 12],
-                      [100, 80, 4, 16], [100, 80, 20, 0]])
+    # ⛔ list-of-dicts, the type a real `ModelRun` carries. This fixture was a
+    # dense 2-D array until 2026-08-29, which is why this test passed against a
+    # function that could not run on real input at all (MODEL-LOG §1.136).
+    seatd = [{"ANC": 100, "DA": 80, "NEWCO": 16, "TINYCO": 4},
+             {"ANC": 100, "DA": 80, "NEWCO": 8, "TINYCO": 12},
+             {"ANC": 100, "DA": 80, "NEWCO": 4, "TINYCO": 16},
+             {"ANC": 100, "DA": 80, "NEWCO": 20, "TINYCO": 0}]
 
     # THE PROPERTY: two outcomes with the SAME arrival totals but the mass split
     # differently between the two newcomers must score identically. The
@@ -1462,6 +1467,96 @@ def test_the_arrival_channel_has_a_score_that_cannot_be_handed_the_answer():
     none = backtest.arrival_group_score(draws, seatd, {"ANC": 0, "DA": 1},
                                         {}, {}, base)
     assert none["n_arrived"] == 0 and none["mass_pit"] != none["mass_pit"]
+    # ⛔ The no-columns branch must carry the SAME KEYS as the live one, or a
+    # consumer reading `mass_err` KeyErrors on exactly the city-years where
+    # nothing arrived. It omitted all four error/median keys until 2026-08-29.
+    for k in ("mass_err", "seats_err", "mass_median", "seats_median"):
+        assert k in none, f"`{k}` missing from the no-arrival branch"
+
+
+def test_arrival_score_runs_on_the_types_PRODUCTION_actually_builds():
+    """⛔ THE FIXTURE ABOVE IS THE WRONG TYPE, AND THAT HID A TOTAL FAILURE.
+
+    `seat_draws` is ``list[dict[str, int]]`` on a real `ModelRun`
+    (`montecarlo.py`), **not** the dense ``(draws, parties)`` array
+    `pr_share_draws` is. `arrival_group_score` indexed both as arrays, so on
+    real input it raised ``IndexError: too many indices`` for every city-year;
+    `compare_history` caught it per city-year and printed ``nothing runnable``.
+    The referee had never produced a single number, and the suite was green —
+    because the only test handed it a 2-D fixture production never builds.
+    MODEL-LOG §1.136. So this test uses the PRODUCTION types, deliberately.
+    """
+    import backtest
+
+    idx = {"ANC": 0, "DA": 1, "NEWCO": 2, "TINYCO": 3}
+    base = {"ANC": 0.5, "DA": 0.4}
+    draws = np.array([[0.50, 0.40, 0.08, 0.02], [0.50, 0.40, 0.04, 0.06],
+                      [0.50, 0.40, 0.02, 0.08], [0.50, 0.40, 0.10, 0.00]])
+    # A list of {party: seats} dicts, sparse — zero-seat parties are ABSENT,
+    # which is how `montecarlo` builds them.
+    seatd = [{"ANC": 100, "DA": 80, "NEWCO": 16, "TINYCO": 4},
+             {"ANC": 100, "DA": 80, "NEWCO": 8, "TINYCO": 12},
+             {"ANC": 100, "DA": 80, "NEWCO": 4, "TINYCO": 16},
+             {"ANC": 100, "DA": 80, "NEWCO": 20}]
+
+    got = backtest.arrival_group_score(
+        draws, seatd, idx, {"NEWCO": 0.10, "TINYCO": 0.02},
+        {"NEWCO": 20, "TINYCO": 4}, base)
+    # Drawn arrival seat totals are 20, 20, 20, 20 -> mean 20, realised 24.
+    assert got["seats_mean"] == 20.0, got["seats_mean"]
+    assert got["seats_err"] == 4.0, got["seats_err"]
+    assert got["n_columns"] == 2
+
+    # ⛔ A realised total above EVERY draw must be flagged. Mid-ranking does not
+    # remove saturation — `seats_pit` is exactly 1.0 here — and that case is
+    # ActionSA-shaped, which is the one this score exists to see.
+    assert got["seats_pit"] == 1.0
+    assert got["seats_outside_support"] is True
+
+
+def test_the_arrival_score_is_unchanged_by_the_relabel():
+    """The comment at the call site PROMISED this and no assertion existed.
+
+    `compare_history` computes the arrival score AFTER `relabel_run`, on the
+    stated grounds that "the relabel renames a column and moves no mass, so the
+    group total is identical either way — and asserting that is how a future
+    reader knows the label cannot reach this number." No such assertion was
+    ever written. It is written here, and it is not free: `relabel_run` has a
+    MERGE branch as well as a rename branch, and the merge does move mass
+    between columns. MODEL-LOG §1.136.
+    """
+    import backtest
+    from types import SimpleNamespace
+
+    def _run():
+        return SimpleNamespace(
+            index={"ANC": 0, "DA": 1, "ENTRANT": 2},
+            universe=["ANC", "DA", "ENTRANT"],
+            pr_share_draws=np.array([[0.50, 0.40, 0.10],
+                                     [0.55, 0.35, 0.10],
+                                     [0.60, 0.36, 0.04]]),
+            ward_share_draws=None, ward_winner_counts=None,
+            seat_draws=[{"ANC": 100, "DA": 80, "ENTRANT": 20},
+                        {"ANC": 110, "DA": 70, "ENTRANT": 20},
+                        {"ANC": 120, "DA": 72, "ENTRANT": 8}],
+            ward_win_sum={"ENTRANT": 3}, overhang_count={},
+            notes={"ENTRANT": ""})
+
+    base = {"ANC": 0.5, "DA": 0.4}
+    shares, seats = {"NEWCO": 0.12}, {"NEWCO": 22}
+
+    before = _run()
+    a = backtest.arrival_group_score(before.pr_share_draws, before.seat_draws,
+                                     before.index, shares, seats, base)
+    after = backtest.relabel_run(_run(), "NEWCO")
+    b = backtest.arrival_group_score(after.pr_share_draws, after.seat_draws,
+                                     after.index, shares, seats, base)
+
+    for k in ("actual_mass", "actual_seats", "mass_mean", "seats_mean",
+              "mass_pit", "seats_pit", "mass_err", "seats_err"):
+        assert abs(a[k] - b[k]) < 1e-12, (
+            f"`{k}` moved across the relabel ({a[k]} vs {b[k]}). The call site "
+            f"claims the label cannot reach this number; it just did.")
 
 
 if __name__ == "__main__":

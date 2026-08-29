@@ -163,6 +163,25 @@ small one; on ~2 effective clusters that is a fact about the panel, not a defect
 of the test. **Anything below "most metros, both cycles, same direction" is
 `undetermined`, not `adopted`.**
 
+**⛔ KEY 1 CANNOT CURRENTLY ARBITRATE THE ARRIVAL CHANNEL, AND EVERY SEAT FIGURE
+IN THIS FILE IS SCORED AFTER THE RELABEL.** `compare_history.py:1221` runs
+`backtest.relabel_run` on every run before scoring, renaming the model's generic
+`ENTRANT` column onto `max(newcomers, key=seats)` — the largest realised arrival,
+chosen with the outcome in hand (`backtest.py:596`). **The baselines have no
+such column**: `benchmarks.py` never builds an `ENTRANT`, so there is nothing to
+relabel and no equivalent benefit. The model is handed a free correct label on
+the single hardest column in the panel and uniform swing is not.
+
+This is the same class of fault as `claimed` selecting away from the
+forecaster's own failures, which rule 8 identified and fixed by introducing
+`reference`; it was never fixed here. **The magnitude of its effect on the
+headline margin is UNQUANTIFIED** — it touches the arrival columns only, so it
+does not void comparisons that leave those columns alone, but it does mean **no
+seat or CRPS comparison in this file arbitrates a change to the arrival
+channel.** The label-free referee `backtest.arrival_group_score` is the fix, and
+it must be reported beside the relabelled score as a sensitivity pair, never
+instead of it. §1.133, §1.136.
+
 **KEY 2 — calibration is a floor, not a currency.** CRPS must not worsen beyond
 its noise, and the level-free width statistics on the `reference` population
 must not worsen. **Key 2 is not tradeable.** A worse-calibrated model actively
@@ -896,6 +915,44 @@ requirement to measure.
     smaller than two effective clusters can resolve is "undetermined", not
     "adopted"**.
 
+12. **A SCORING CHANGE PROVES IT RAN ON PRODUCTION TYPES BEFORE IT ARBITRATES
+    ANYTHING.** Added 2026-08-29. Rule 6 makes a *lever* prove it swept
+    something; the same obligation falls on an *instrument*, and this bar did
+    not have it.
+
+    `backtest.arrival_group_score` — the label-free arrival referee, built
+    precisely to remove the outcome-favourable relabel — indexed `seat_draws`
+    (a `list[dict[str, int]]`) as a 2-D array and raised `IndexError` on **every
+    one of the sixteen city-years, from the day it was written**.
+    `compare_history` catches per city-year, so the failure printed as
+    `nothing runnable` and **read as absence of data rather than as a defect**.
+    The suite was green and `freeze --verify` VERIFIED throughout: *the preflight
+    tests the MODEL and cannot see a broken REFEREE.* Its one unit test used a
+    dense 2-D fixture production never builds — the right function with the wrong
+    types.
+
+    So: **a new or changed score must be run once through `compare_history` on
+    real input and return a finite number on every city-year before any verdict
+    is read off it, and a per-city-year `failed:` line is a BUILD FAILURE, not a
+    null.** "It is in the suite" is not this proof — a fixture proves mechanism,
+    not that the production caller can reach it. §1.136.
+
+13. **A CYCLE THAT CANNOT MOVE IS NOT A CYCLE THAT REPLICATED.** Added
+    2026-08-29. Key 1's pass condition asks that *"no cycle shows a net loss"* —
+    and a cycle where the candidate is structurally inert satisfies that
+    trivially, eight city-years at a time.
+
+    **For any arrival-channel candidate, 2016 is a null arm**: all eight emitted
+    2016 specs carry `arrival_group: null` and **zero** seeds,
+    `montecarlo.py:2699` leaves `group_idx = None`, and the same RNG draws are
+    consumed either way — confirmed empirically on 2026-08-29, when all eight
+    2016 city-years came back byte-identical across both arms. The fold note
+    under Key 4 already says this in its own case — *"gating on a fold that
+    cannot move is not a gate"* — and it applies to Key 1 unchanged.
+
+    **A candidate must state, before the run, which cycles its arm can move. A
+    frozen cycle is reported as `null arm`, never as "no net loss".** §1.136.
+
 ## When to stop — written 2026-08-21, because "keep iterating" is not a plan
 
 > ## ⚠️ THIS SECTION IS OBSOLETE (2026-08-23) — READ `PLAN-TO-LIVE.md` INSTEAD
@@ -957,12 +1014,30 @@ Everything with a measurement behind it has now been tried:
 
 | candidate | result | measured at |
 |---|---|---|
-| `sd_for` refit, two forms | **refuted** — loses held-out NLL | §1.62 |
-| arrival-group draw | **refuted** — 254 → 348 | §1.63 |
+| `sd_for` refit, two forms | **verdict STALE** — refuted on form A's Gaussian score on the raw baseline, and A/B/C reach `levels` only through the clamp, so that gate cannot see an `sd_for` change at all (Key 4 correction block) | §1.62 |
+| arrival-group draw | **re-measured 2026-08-29 and still refuted** — but the 254 → 348 was scored through the outcome-favourable relabel and on a half-null panel, so **cite §1.136, not §1.63** | §1.63, §1.136 |
 | chi-square bias correction | **refuted** — worse on everything | §1.50, §1.59 |
 | tail soft-floor | **refuted** — costs 14–22 seats | §1.54 |
 | symmetric spine blend | **refuted** — 312 → 338 | register |
 | `dirichlet_scale` narrowing | **a trade, not a win** — fixes ranks 1-3 width and costs 4 seats at 1.4, 8 at 2.0 | §1.55, §1.58 |
+
+**⛔ THE ARRIVAL ROW IS RE-MEASURED, NOT MERELY RE-ASSERTED (2026-08-29, §1.136).**
+Its original 254 → 348 is withdrawn as evidence on three counts: it was scored
+after `backtest.relabel_run`, which renames the model's nameless `ENTRANT` onto
+`max(newcomers, key=seats)` — the largest realised arrival, chosen with the
+outcome in hand (`backtest.py:596`); half its panel is a **structural null arm**
+(all eight 2016 specs carry `arrival_group: null` and zero seeds); and the lever
+is **mis-scoped** — it zeroes every seeded arrival column, so it deletes the
+splinter channel rather than replacing the generic slot, turning ActionSA's 6.85%
+seed into 0.18% against an actual 18.12%.
+
+The fair re-run was done on 2026-08-29 with the label-free referee and **the
+refutation holds** — 2 of 8 metros at 2021, pooled Σ|mass_err| 0.2714 → 0.5084,
+Key 2's level-free width 1.2000 → 1.3557, and the direction survives dropping the
+two largest arrival metros. **But it refutes THAT LEVER, not the idea of scoring
+arrivals as a group**, and no later citation may collapse the two. A test of the
+group *estimator* needs a lever scoped to the generic slot alone; it does not
+exist.
 
 The last row is the only one with a live case, and it is a trade: ranks 1-3 are
 about 1.47× too wide (probit-SD 0.682, unattenuated) and narrowing fixes it **at

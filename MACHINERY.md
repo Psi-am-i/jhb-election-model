@@ -420,7 +420,7 @@ at all) and the model gave it 6.9% against 18.12%.
 | `MIN_HOME_SPLITS` = 2 | `pools.py` | **JUDGED** | binary home/away where ActionSA shows a gradient (0.611/0.315/0.289/0.103) |
 | `SPLIT_SD_FLOOR` = 0.90 | `pools.py` | **JUDGED floor** on a measured spread | binds at target 2016 where the pooled record's log-sd is 0.286 |
 | Ward reach | `levels.contestation` | MEASURED, nomination lists | corr(reach, log vote) = **+0.393** for arrivals; seat-winners have median reach 99% against 33% |
-| Arrivals as a group | `pools.arrival_group_spec` | MEASURED | **BUILT AND NOT ADOPTED** — scored worse; see MODEL-LOG |
+| Arrivals as a group | `pools.arrival_group_spec`, drawn in `montecarlo.make_drawer` (**not** `blended_centres`) | MEASURED for the group TOTAL; **not a measurement of the split** | **BUILT, MIS-SCOPED, NOT ADOPTED.** Its weights cover every key of `arrival_rules` — splinters as well as entrants, 32 of them at Johannesburg 2021 — and the draw **zeroes all of them**, so it deletes the splinter seed channel rather than replacing the generic slot. Re-run fairly 2026-08-29 and refuted again: label-free `mass_err` worse at 6 of 8 metros, pooled Σ\|err\| 0.2714 → 0.5084. §1.136 |
 
 **What is measured about arrivals as a class.** They take between 1.53% and
 19.99% of a metro's vote (median 7.21%) and **130 of 1,752 seats in the
@@ -478,7 +478,7 @@ PA and PAC — a degenerate solution reported as converged.
 | `w_recency` = 0.70 | `turnout.py` | JUDGED | 2016 vs 2021 |
 | `turnout_pattern_blend` / `_jitter` | DEFAULTS | JUDGED | — |
 | `turnout_noise_sd` = 0.08 | DEFAULTS | JUDGED | i.i.d. per VD, so it vanishes citywide |
-| `turnout_tilt_anc` / `_da` | DEFAULTS | JUDGED | **OFF**; applied *after* calibration, breaking it |
+| `turnout_tilt_anc` / `_da` | **DELETED** | — | ⛔ **NOT IN `DEFAULTS` AND NOT READ BY `run_model`.** Verified 2026-08-29: both keys are absent from `montecarlo.DEFAULTS`. They applied a tilt *after* calibration, breaking it. This row said "**OFF** in DEFAULTS" until 2026-08-29 — **claiming a switch that does not exist**, which is precisely the failure `CLAUDE.md` records as having already cost this project once, when ten front-page claims were pinned to a deleted `turnout_tilt_da` (`build_site.py:454`, `stats.py:209`) |
 | κ_bye tilt | `turnout.py` | MEASURED | contests before target ✅ |
 
 ---
@@ -505,7 +505,7 @@ PA and PAC — a degenerate solution reported as converged.
 | Pooled calibration **split by rank band** | `compare_history.pooled_by_band`, sharing `rank_band_of` with the band table so the two cannot mean different sets of parties | — |
 | Brier + reliability on ward winners | `score.py` | — |
 | Rank bands, SIGNED and ABSOLUTE, plus phantom mass | `compare_history.rank_bands` | — |
-| Pooled coverage + pooled randomised PIT, three populations | `compare_history.calibration_columns` / `.pooled_calibration` | — |
+| Pooled coverage + pooled randomised PIT, **four** populations | `compare_history.calibration_columns` / `.pooled_calibration` | — |
 | Ground truth | `backtest.actual_result`, asserted against `official_seats` | ✅ |
 | Benchmarks (last-LGE, uniform swing, prior-LGE-noise) | `benchmarks.py` | pre-target only ✅ |
 **Read the bands, not the pool (2026-08-17, MODEL-LOG §1.36).** The pooled mean
@@ -575,7 +575,61 @@ city-year where nobody arrived. The bands iterate the parties that DID stand, so
 no band can see it, and it is exactly why the three signed bands sum to
 −6.48pp rather than to zero.
 
-### Calibration is pooled across city-years, and reported over three populations
+### The arrival channel, scored without a label
+
+`backtest.arrival_group_score`, called once per city-year in
+`compare_history.run_city_year` and stored as `arrival_group`. It reports **total
+mass and total seats taken by parties with no NPE baseline** — forecast against
+realised — and **assigns nothing to anybody.**
+
+It exists because every other arrival number in the report is scored through
+`backtest.entrant_actual_for`, which maps the nameless `ENTRANT` column onto
+`max(newcomers, key=seats)`: **the seat-winning newcomer with the most seats,
+chosen with the outcome in hand.** That is the most favourable assignment
+available, and the same class of fault as the `claimed` population selecting away
+from a forecaster's own failures. **The baselines have no `ENTRANT` column at
+all** (`benchmarks.py` never builds one), so the relabel benefits the model on a
+column uniform swing structurally lacks. Report the label-free score **beside**
+the relabelled one as a sensitivity pair, never instead of it — the pair is the
+finding.
+
+| field | what it is |
+|---|---|
+| `actual_mass`, `actual_seats` | realised arrival totals, selected from `actual_shares` = `citywide(pr)` — **the whole PR ballot**, not the seat winners |
+| `mass_mean/median`, `seats_mean/median` | the drawn totals, summed over every arrival column the model holds |
+| `mass_err`, `seats_err` | realised **minus** drawn mean — **SIGNED**; read them as \|error\| |
+| `mass_pit`, `seats_pit` | mid-rank PIT of the realised total in the drawn distribution. `nan` means nobody arrived, which is an outcome and not a gap |
+| `seats_outside_support` | the realised total lies outside every draw — the ActionSA case the score exists to see |
+
+⛔ **IT HAD NEVER PRODUCED A NUMBER UNTIL 2026-08-29.** It indexed `seat_draws` —
+a `list[dict[str, int]]` on `ModelRun` — as if it were the `(draws, parties)`
+array `pr_share_draws` is, so `np.asarray(...)[:, cols]` raised `IndexError` on
+**all sixteen** city-years and `compare_history` printed `nothing runnable`. The
+suite was green throughout: its one unit test handed it a dense 2-D fixture
+production never builds. **Seats are now summed by party NAME.** §1.136.
+
+⛔ **AND ITS REALISED SIDE WAS OUTCOME-SELECTED.** `arrived` came from
+`actual_seats`, which is filtered to `s > 0`, so realised arrival mass counted
+only arrivals that **won a seat** while the forecast side summed every arrival
+column. Understated in all sixteen city-years and **exactly zero in four**. It
+pointed the same way as the rig the function exists to remove. Both sides are now
+input-selected.
+
+**Two cautions on reading it.** `seats_pit` saturates at exactly 1.0 when the
+realised total exceeds every draw — that is reported, not hidden, and
+`seats_outside_support` flags it. And a **mid-P PIT is under-dispersed** against
+uniform, so it must not be pooled through `_probit` without randomisation.
+
+**It is emitted but NOT rendered.** `render()` has no arrival section; the
+numbers live only in the JSON artefact. A score nobody sees in the report is a
+score nobody reads.
+
+**It does not share the relabel's definition of "arrival", and its docstring said
+it did.** The relabel tests against `run.index`; this score tests against
+`_npe_baseline`. A pool-seeded party such as ActionSA holds a column, so it can
+never be the entrant, and yet it **is** an arrival column here. §1.136.
+
+### Calibration is pooled across city-years, and reported over four populations
 
 `score.py` has computed coverage and the randomised PIT per run since it was
 written; `compare_history` took `crps.total` and discarded the rest, so the
@@ -618,14 +672,41 @@ and this model has the second one — see MODEL-LOG §1.34.
 
 ## Summary of what is switched off
 
-`entrant_geography` · `w_bye_local_*` · `arrival_group_draw` — and the legacy `poll_id`/`poll_weight`/`poll_k` path, superseded by the metro-poll inverse-variance blend and reachable only by setting `poll_id`. `polling_lean`/`polling_span` were listed here as *switched off*; they are **deleted** (2026-08-17), having been computed, passed to `pool_spec` as an argument it never read, and printed. "Switched off" and "deleted" are different claims and this line made the wrong one for one commit.
+`entrant_geography` · `w_bye_local_*` · `arrival_group_draw`. The legacy `poll_id`/`poll_weight`/`poll_k` path was on this list until 2026-08-29, described as "reachable only by setting `poll_id`"; it is **deleted** (2026-08-22, §1.68) — verified: none of the three keys is in `DEFAULTS`, and the code is gone (`montecarlo.py:4397` carries the tombstone). There is nothing to reach. `polling_lean`/`polling_span` were listed here as *switched off*; they are **deleted** (2026-08-17), having been computed, passed to `pool_spec` as an argument it never read, and printed. **"Switched off" and "deleted" are different claims, and this line has now made the wrong one twice, about two different levers** — see also the `turnout_tilt_*` row above, which claimed a `DEFAULTS` switch that does not exist.
 
 `poll_weight` has LEFT this list: metro polls now blend automatically for any
 target that has one, and `polls.json` carries machine-readable fieldwork dates.
-**`arrival_group_draw` was not off. Until 2026-08-20 it was UNREACHABLE** — the key was in no `DEFAULTS`, and both `parse_set` and `read_scenario_file` reject a key that is not already in the scenario, so neither `--set` nor a config file could create it. The branch was also broken (`NameError: dirichlet_floor`) and would have crashed the first time anything reached it. It is now declared at `False`, repaired, and measured on nine city-years rather than on Johannesburg alone: coherent seat error 254 → 348, CRPS 232.9 → 296.0, worse in six and better in one. At 2026 it is inert for a further reason no code change can fix — `pools.arrival_group_spec` needs a real roster, and the IEC publishes the 2026 candidate list on 16 September. `level_sd_default` and `turnout_correlation` had the identical defect and are now declared too. MODEL-LOG §1.63.
+**`arrival_group_draw` was not off. Until 2026-08-20 it was UNREACHABLE** — the key was in no `DEFAULTS`, and both `parse_set` and `read_scenario_file` reject a key that is not already in the scenario, so neither `--set` nor a config file could create it. The branch was also broken (`NameError: dirichlet_floor`) and would have crashed the first time anything reached it. It is now declared at `False` and repaired.
 
-It is off because it was built, measured and rejected — it
-scored worse, for a reason recorded in MODEL-LOG rather than guessed at.
+⛔ **The 254 → 348 / CRPS 232.9 → 296.0 figures once quoted here must NOT be
+cited as its rejection.** Three defects, all verified 2026-08-29 (§1.136):
+**(a)** they were scored through `backtest.entrant_actual_for`, which assigns the
+nameless `ENTRANT` to `max(newcomers, key=seats)` — the largest arriving
+seat-winner, chosen with the outcome in hand — so they flatter the incumbent on
+the one column that decides the comparison; **(b)** half that panel is a **null
+arm**: all eight 2016 specs carry `arrival_group: null` and zero seeds,
+`montecarlo.py:2699` leaves `group_idx = None`, and the same RNG draws are
+consumed either way; **(c)** the lever is **mis-scoped** — `arrival_group_spec`
+receives `sorted(arrivals)`, the whole key set of `arrival_rules`, so splinters
+are in its weights and `montecarlo.py:2949` zeroes those columns before
+overwriting them. ActionSA's 6.85% pool seed becomes **0.18%** against an actual
+**18.12%**. That is not a test of the group estimator.
+
+**It was re-run fairly on 2026-08-29** with the label-free referee
+(`backtest.arrival_group_score`) and **the rejection stands**: label-free
+`mass_err` better at only 2 of 8 metros at 2021, pooled Σ|mass_err| 0.2714 →
+0.5084 and Σ|seats_err| 54.15 → 104.21; Key 2's level-free width worsens 1.2000
+→ 1.3557; the direction survives dropping Johannesburg and Cape Town; and all
+eight 2016 city-years came back byte-identical. **But it refutes THIS LEVER, not
+the idea of scoring arrivals as a group** — Ekurhuleni's incumbent arrival mass
+error is +0.0002, essentially exact, and the lever turns it into +0.0702, because
+the seeds it destroys were doing the work.
+
+At 2026 it is inert for a further reason no code change can fix —
+`pools.arrival_group_spec` needs a real roster, and the IEC publishes the 2026
+candidate list on 16 September. `level_sd_default` and `turnout_correlation` had
+the identical declaration defect and are now declared too. MODEL-LOG §1.63,
+§1.133, §1.136.
 
 Two things are switched ON but cannot be exercised by any backtest, and must be
 labelled as argued rather than tested wherever they are quoted: `w_bye` (the
@@ -760,7 +841,7 @@ monotone (0.915, 0.737, 0.448, 0.663, 0.138), so the line is anchored at the
 ends and wrong in the middle. That middle is the mid-ballot — the band §1.58
 independently measures as too narrow on the seat forecast.
 
-## Running the nine city-years
+## Running the sixteen city-years
 
 `compare_history` runs them in parallel processes by default — one per
 city-year, capped at the machine's cores less one. `--jobs 1` forces the serial
@@ -908,7 +989,7 @@ gate shut."*
 
 ### What `MODULE_CONSTANTS` declares, and what it deliberately does not
 
-48 names across `montecarlo`, `levels`, `polling`, `pools` and `parties`. The
+**47** names across `montecarlo`, `levels`, `polling`, `pools` and `parties` (re-counted 2026-08-29; it said 48). The
 rule for membership is **read in this process, on the model path** — which is
 not the same question `JUDGEMENT-CALLS.md` asks, and gives a different answer.
 

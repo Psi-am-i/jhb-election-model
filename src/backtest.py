@@ -627,25 +627,62 @@ def arrival_group_score(pr_share_draws, seat_draws, index,
     the pair is the finding.
 
     Returns per-draw group totals summarised, plus the realised totals. A `nan`
-    for `mass_pit` means no party arrived, which is a legitimate outcome and not
-    a missing measurement.
+    for `mass_pit` means **the MODEL held no arrival column** — there was nothing
+    to draw, so there is no predictive distribution to take a PIT in. That is a
+    legitimate outcome and not a missing measurement.
+
+    ⚠️ **It does NOT mean "no party arrived".** The realised side is selected
+    independently, from the whole PR ballot, so `actual_mass` can be non-zero on
+    exactly those city-years — and reading the `nan` as "nothing arrived here"
+    would code a model-side absence as a fact about the world. `NULL-RESULTS.md`
+    calls that a PHANTOM null; four of sixteen city-years produced one under the
+    previous outcome-selected rule. §1.136.
     """
     import numpy as _np
 
-    arrived = [p for p in actual_seats if p not in base_city and p != INDEPENDENT]
-    cols = [index[p] for p in index if p not in base_city and p != INDEPENDENT]
+    # ⛔ THE ACTUAL SIDE IS SELECTED FROM THE BALLOT, NOT FROM THE SEAT WINNERS.
+    # It read `actual_seats` until 2026-08-29, and `actual_result` filters that
+    # to `s > 0` (see :func:`actual_result`) — so the realised arrival TOTAL
+    # counted only arrivals that won a seat, while the forecast side summed
+    # every arrival column the model holds. That is denominator drift with the
+    # outcome on one side of it, and it points the same way as the rig this
+    # function exists to remove: at Johannesburg 2021 there are 32 arrival
+    # columns and 3 seat-winners, so the filter deleted precisely the parties
+    # the GROUP mechanism forecasts and the single-slot incumbent does not.
+    # Measured across the panel: realised mass understated in all 16
+    # city-years, and *exactly zero* in four of them against a true arrival
+    # mass of 0.31–1.75pp. `actual_shares` is `citywide(pr)` over every party
+    # on the PR ballot, so selecting from it makes both sides input-selected.
+    # MODEL-LOG §1.136.
+    arrived = [p for p in actual_shares if p not in base_city and p != INDEPENDENT]
+    names = [p for p in index if p not in base_city and p != INDEPENDENT]
+    cols = [index[p] for p in names]
     out = {"n_arrived": len(arrived), "n_columns": len(cols),
            "actual_mass": float(sum(actual_shares.get(p, 0.0) for p in arrived)),
            "actual_seats": int(sum(actual_seats.get(p, 0) for p in arrived))}
     if not cols:
         out.update(mass_mean=0.0, seats_mean=0.0, mass_pit=float("nan"),
-                   seats_pit=float("nan"))
+                   seats_pit=float("nan"), mass_median=0.0, seats_median=0.0,
+                   mass_err=out["actual_mass"], seats_err=float(out["actual_seats"]),
+                   seats_outside_support=bool(out["actual_seats"] > 0))
         return out
     mass = _np.asarray(pr_share_draws)[:, cols].sum(axis=1)
-    seats = _np.asarray(seat_draws)[:, cols].sum(axis=1)
-    # PIT of the realised total in the drawn total's distribution. Mid-rank for
-    # the seat one because seats are discrete and a naive PIT saturates at 1.0 —
-    # which is exactly the defect `_probit`'s clip was hiding (§1.132).
+    # ⛔ BY NAME, NOT BY COLUMN. `seat_draws` is `list[dict[str, int]]`
+    # (montecarlo.ModelRun), NOT the (draws, parties) array `pr_share_draws`
+    # is. Indexing it `[:, cols]` raised `IndexError` on every city-year, so
+    # `compare_history` caught it per city-year and printed `nothing runnable`
+    # — this referee had never produced a number on real input. The unit test
+    # missed it by handing in a dense 2-D fixture production never builds.
+    # `relabel_run` rewrites `seat_draws`' keys too, so both orderings agree.
+    seats = _np.array([float(sum(d.get(p, 0) for p in names))
+                       for d in seat_draws])
+    # PIT of the realised total in the drawn total's distribution, mid-rank on
+    # the atom. ⚠️ Mid-rank does NOT remove saturation: if the realised total
+    # exceeds every draw, `seats_pit` is exactly 1.0 — which is the ActionSA
+    # case this score exists to measure, so it is reported, not hidden, and
+    # `seats_outside_support` flags it. A mid-P PIT is also UNDER-dispersed
+    # against uniform, so it must not be pooled through `_probit` without
+    # randomisation. MODEL-LOG §1.136.
     out.update(
         mass_mean=float(mass.mean()), mass_median=float(_np.median(mass)),
         seats_mean=float(seats.mean()), seats_median=float(_np.median(seats)),
@@ -653,6 +690,8 @@ def arrival_group_score(pr_share_draws, seat_draws, index,
                        + 0.5 * (mass == out["actual_mass"]).mean()),
         seats_pit=float((seats < out["actual_seats"]).mean()
                         + 0.5 * (seats == out["actual_seats"]).mean()),
+        seats_outside_support=bool(out["actual_seats"] > seats.max()
+                                   or out["actual_seats"] < seats.min()),
         mass_err=float(out["actual_mass"] - mass.mean()),
         seats_err=float(out["actual_seats"] - seats.mean()))
     return out

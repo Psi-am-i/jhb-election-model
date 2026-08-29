@@ -665,3 +665,61 @@ sequence has to be:
 **Open in the model.** MODEL-LOG §1.100 ships the registration-ceiling repair
 with a measured cost and records it as a debt. This item is the reason the debt
 exists and the thing that has to be fixed before it can be discharged.
+
+## 14. 🔴 Two LGE cycles are on disk, reconciled, and invisible to `pools.py` (2026-08-29)
+
+**This is a defect in this repository's own plumbing, not in the public record** —
+which is why item 13 above, correctly, says the opposite about the same files.
+
+`pools.metro_file` resolves only two candidates:
+
+    data/raw/elections/_metros/lge{year}_{CODE}_vd_party.csv
+    data/raw/elections/_reports/lge{year}_{CODE}_downloadable_party_results.csv
+
+Those exist for **2011, 2016 and 2021 only**. The 2000 and 2006 metro results are
+in the archive as `data/raw/elections/lge{year}_{CODE}_vd_party_clean.csv` —
+**eight metros at 2006**, verified by item 13 at *100% reconciliation, worst
+drift 0.00%* — and read every run by `levels._citywide`. `metro_file` returns
+`None` for both years, for every metro.
+
+**It is a path-and-format mismatch, not missing data.** The two candidate paths
+are bulk-export format (`PARTYNAME`); the archive files are clean format
+(`sPartyName`/`Party_Votes`). `pools._npe_citywide_for` **already reads the clean
+format from that directory, inside the same module**, so the reader exists and is
+not wired to LGE years. `pools.py:2636` claims the header drift between the two
+formats "is handled in one place" — that path cannot be taken.
+
+**Measured cost.**
+
+    metro_file('JHB','2006')                       -> None
+    lge_transitions(before='2016')                 -> (('2000','2006'), ('2006','2011'))
+    entrant_record(that)                           -> 0 rows
+    arrival_group_record('2016')                   -> 6 rows (NOT empty)
+
+`entrant_record` is empty, so `arrival_rules` takes its `if not record: return
+{}, {}` exit and **all eight 2016 specs carry zero seeds and `arrival_group:
+null`** — which is the entire reason the arrival-mechanism validation is one
+cycle wide (§1.136). Note the record itself is *not* the constraint: six rows are
+available. At 2021 `entrant_record` rests on **1 usable transition of 3**, at 2026
+on **2 of 4**; `arrival_group_record` is 22 rows over three cycles at 2026 where
+**five** cycles exist on disk. Every pools-side record is affected —
+`measure_pool_ratios`, `entrant_record`, `_ward_reach`, `home_splinter_record`,
+`splinter_record`, `arrival_group_record`, `metro_roster`.
+
+**⚠️ The trap this creates for a reader**, and it caught two write-ups already:
+item 13 says the 2006 archive is complete and guarded, which is TRUE — so an
+empty arrival record reads as *"history is thin"* rather than *"the file is
+unreachable"*. §1.135 concluded "not enough record to fit" and §1.136 §5
+concluded a definitional gap; both were wrong, and §1.136 §9 corrects them. **An
+absent record and an unreadable one return the same empty list and are opposite
+findings.**
+
+**How to check it.**
+
+    .venv/bin/python -c "import sys;sys.path.insert(0,'src');import pools;\
+      print(pools.metro_file('JHB','2006'), \
+            len(pools.entrant_record(pools.lge_transitions(before='2016'))))"
+    # prints "None 0" today
+
+**Fix** is queued as `POOLS-REEMIT-QUEUE.md` entry 4. It is a `pools.py` change
+and it **moves numbers**, not only `pools_sha`.

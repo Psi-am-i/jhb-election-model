@@ -195,11 +195,31 @@ Also: the site is rebuilt *from* `history.md`, so the generator fixes of
 Rule: **never type a model figure into prose** — register it as a stat token and
 let `build_site.py` audit it.
 
-### A5. Nomination lists, 16 September
+### A5. Nomination lists, 16 September — ★ NOT mechanical, and the seam must land FIRST
 
-Dated and mechanical. Retires `contestation_expand`, makes contestation live,
-and withdraws the phantom entrant mass. Then re-run, re-score, and publish the
-revision under §5c's stated rule.
+**⛔ CORRECTED 2026-08-29 (§1.136, `POOLS-REEMIT-QUEUE` entry 3). This said
+"dated and mechanical". It is neither: it is a `pools.py` code change on the
+critical path with a hard external deadline.**
+
+`data/processed/pools_2026.json` carries `arrival_group: null` and zero seeds.
+`contesting_parties` and `_ward_reach` **both read the target's RESULT FILE**,
+which does not exist at 2026, so `roster_is_real` is False and
+`arrival_group_spec` returns `None`: **the arrival mechanism cannot be
+CONSTRUCTED at 2026, not merely switched off.** A published nomination list
+cannot reach the model without a declared-roster path
+(`judgements/joburg-2026.toml`).
+
+That is a `pools.py` change, so it moves `pools_sha`, so it invalidates **all
+eighteen** specs and forces the full window — re-emit ×18 → `compare_history`
+baseline → freeze — one writer, nothing else running.
+
+**Land the seam BEFORE 16 September, and before the model freeze**, so the day
+itself is a data drop rather than a code change under deadline. It is needed
+whatever any arrival lever does.
+
+Then, as originally written: retires `contestation_expand`, makes contestation
+live, and withdraws the phantom entrant mass. Then re-run, re-score, and publish
+the revision under §5c's stated rule.
 
 **Decide the rollback rule NOW, before the lists land.** §5c predicts the lists
 are worth about ±3 seats to the PA and ∓2 to the DA. If the real lists move the

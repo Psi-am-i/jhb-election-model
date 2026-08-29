@@ -15752,3 +15752,308 @@ channel owns one of the two, and the other is a separate open finding. The
 per-cycle and leverage fields added in §1.134 will show them separately, because
 `by_p_any` and the arrival score use the model's own baseline while the rank
 band does not.
+
+
+## 1.136 The referee could not run, and the lever is mis-scoped: it deletes the splinter channel (2026-08-29)
+
+**The pre-registered run in `HANDOVER.md` was executed and produced nothing.**
+Both arms returned `nothing runnable`: all sixteen city-years raised
+`IndexError` inside the referee itself. Everything below the first heading was
+established before any arm-B number was read.
+
+### 1. ⛔ THE LABEL-FREE REFEREE HAD NEVER PRODUCED A NUMBER
+
+`backtest.arrival_group_score:645` did
+
+    seats = np.asarray(seat_draws)[:, cols].sum(axis=1)
+
+but `seat_draws` is `list[dict[str, int]]` (`montecarlo.ModelRun:3263`), not the
+`(draws, parties)` array `pr_share_draws` is. `np.asarray` of a list of dicts is
+a 1-D object array, so `[:, cols]` raises on **every** city-year.
+`compare_history` catches per city-year (`:2224`, `:2234`), so sixteen
+`failed: IndexError` lines print and `main` returns 1.
+
+**The suite was green and `freeze --verify` VERIFIED throughout.** The preflight
+in `HANDOVER.md` tests the MODEL; it cannot see a broken REFEREE. The only test
+(`test_calibration_report.py:1440`) passed a dense 2-D fixture that production
+never builds — one test with the right function and the wrong types, one
+(`test_regressions.py:470`) with the right types and the wrong function. **That
+seam is the whole defect**, and it is now closed by a test using production
+types.
+
+### 2. ⛔ AND THE MASS HALF WAS OUTCOME-SELECTED, POINTING AT THE CHALLENGER
+
+`arrived` was taken from `actual_seats`, which `actual_result:536` filters to
+`s > 0`. So realised arrival mass counted **only arrivals that won a seat**,
+while the forecast side summed every arrival column the model holds. Measured
+across the panel — realised arrival mass, seat-winners only vs the whole ballot:
+
+| | joburg | tshwane | ekurhuleni | ethekwini | capetown | mangaung | NMB | buffalocity |
+|---|---|---|---|---|---|---|---|---|
+| 2016 seat-winners | 1.94% | **0.00%** | 1.78% | 2.40% | 0.55% | 4.31% | 1.09% | **0.00%** |
+| 2016 whole ballot | 2.29% | 0.31% | 2.06% | 3.25% | 1.43% | 4.74% | 1.59% | 0.68% |
+| 2021 seat-winners | 18.67% | 9.90% | 8.17% | 5.91% | 6.64% | **0.00%** | 5.89% | **0.00%** |
+| 2021 whole ballot | 19.99% | 11.38% | 9.14% | 7.21% | 8.00% | 1.53% | 7.02% | 1.75% |
+
+Understated in **all sixteen**, and **exactly zero in four** against a true
+arrival mass up to 1.75%. The direction condemns it: at Johannesburg 2021 there
+are **32 arrival columns and 3 seat-winners**, so the filter deleted precisely
+the parties the GROUP mechanism forecasts and the single-slot incumbent does
+not. **A referee built to remove a bias favouring the incumbent retained a
+smaller one pointing the same way.** Fixed to select from `actual_shares` —
+`citywide(pr)`, the whole PR ballot — so both sides are input-selected.
+
+Also fixed: the no-columns branch omitted `mass_err`/`seats_err` (latent
+`KeyError`); `seats_pit` saturates at exactly 1.0 when the realised total
+exceeds every draw — the ActionSA case the score exists to see — so the
+docstring's saturation claim was false and a `seats_outside_support` flag now
+reports it; and a mid-P PIT is **under-dispersed**, so it must not be pooled
+through `_probit` without randomisation.
+
+### 3. ⛔ THE LEVER IS NOT WHAT THE HANDOVER SAYS IT IS
+
+`HANDOVER.md` prices this as "replaces a typed generic slot with a fitted
+group". **It also deletes the splinter channel.** `arrival_group_spec` is handed
+`sorted(arrivals)` — the full key set of `arrival_rules`, splits and entrants
+alike (`pools.py:3458`) — and **all 32 seeded parties at Johannesburg 2021 are
+in its weights**, ActionSA included. The group draw *zeroes* those columns
+(`montecarlo.py:2949`) and overwrites them with its Dirichlet slice.
+
+| ActionSA, Johannesburg 2021 | share |
+|---|---|
+| actual | **18.12%** |
+| incumbent — pool splinter seed | **6.85%** |
+| challenger — E[group total] × normalised reach weight | **0.18%** |
+
+The reach weights barely discriminate: ASA's raw reach is 0.9926 against many at
+1.0, so it receives **8.42%** of the group total for being one of 32 near-equally
+present parties. **Nothing on a nomination list separates the party that takes
+18% from twenty micro-parties with the same ward reach**, and that is the wall.
+
+### 4. PREDICTED SIGNS — REPLACING §1.133's, AND RECORDED BEFORE ARM B WAS READ
+
+§1.133 and §1.135 both recorded *"2021 improves, 2016 worsens"*. **Both halves
+are wrong, and neither could have been right.**
+
+* **2016 cannot move at all.** All eight 2016 specs carry `arrival_group: null`
+  and **zero** seeds; the guard at `montecarlo.py:2699` leaves `group_idx = None`
+  and control falls to the incumbent `elif`. Verified further that this consumes
+  the *same* RNG draws either way, so 2016 is a null arm and not merely a quiet
+  one. §1.133's "2016 worsens" was written without checking the arm.
+* **2021 should get WORSE on the label-free referee, not better.** Measured
+  incumbent arrival mass at Johannesburg 2021 is **9.52%** against a realised
+  **19.99%** (`mass_err +10.47pp`, `mass_pit 0.985`, `seats_err +23.1`). The
+  challenger's expected arrival mass is **2.17%**, so its `mass_err` should be
+  near **+17.8pp** — worse by roughly 7pp, because it deletes a 6.85% seed and
+  returns 0.18%.
+
+**So the expected result is that the challenger fails pass condition 1 — and
+that this is NOT a refutation of scoring arrivals as a group.** It is a
+refutation of *this lever*, which is mis-scoped: it cannot be read as a test of
+the group estimator while it simultaneously destroys the splinter seed that
+carries the largest arrival in the panel.
+
+### 5. Corrections to `HANDOVER.md`
+
+* "the 2021 spec already carries a real `arrival_group`" — true, but "**32**
+  seeded arrivals" is **Johannesburg alone**. The 2021 panel total is **165**.
+* §6's "this is a one-cycle validation and **it cannot be widened**" is
+  **overstated**. 2016's zero seeds are not a fact about 2016: `newcomers`
+  requires no 2011 LGE vector **and** no 2014 NPE vote (`pools.py:3263-3266`),
+  while `arrival_group_record` counts a 2016 arrival on local > 0 and NPE ≤ 0
+  (`:2549`) — and by *that* definition 2016 metro arrival totals ran
+  **0.31%–4.74%**. The estimator's training definition and its application
+  definition disagree, and reconciling them is what would buy a second cycle. A
+  `pools.py` change, so `POOLS-REEMIT-QUEUE.md`.
+* The lever is documented as read in `blended_centres` (`montecarlo.py:269`,
+  `JUDGEMENT-CALLS.md:63`). **It is read in `make_drawer:2699`.** `blended_centres`
+  never touches it, so the centres are byte-identical across the two arms.
+* `_npe_baseline`'s docstring claims it is "the same test `entrant_actual_for`
+  applies … so the arrival score and the relabel cannot drift apart". **False**:
+  the relabel tests against `run.index`, the group score against the NPE
+  baseline. A pool-seeded party such as ActionSA holds a column, so it can never
+  be the entrant, yet it *is* an arrival column in `arrival_group_score`.
+* The stale rejection number still quoted in `montecarlo.py:2683` —
+  "Johannesburg 2016 CRPS 45.0 → 45.7" — **predates the §1.69 re-emit** and
+  cannot have come from this code path at a target with no spec. Not evidence.
+
+### 6. Key 4 cannot fire, and that is stated, not passed
+
+The arrival path touches neither `sd_for` nor `theta_prior`. **A key that cannot
+fire is not a key that passed.**
+
+### 7. THE RESULT — the rejection SURVIVES the fair referee, and the prediction held
+
+Both arms, 16 city-years, fixed referee. **The prediction in §4 above was recorded
+before arm B was read and was accurate to 0.04pp**: predicted challenger
+`mass_err` at Johannesburg ≈ +17.8pp, realised **+17.76pp**.
+
+**Pass condition 4 — the tripwire — PASSES.** All eight 2016 city-years came
+back **byte-identical** (`d_coherent_seats` and `d_crps` exactly 0.000000). The
+null arm is now confirmed empirically, not only by code reading.
+
+**Pass condition 1 — the label-free score at 2021 — FAILS decisively.**
+
+| metro | actual mass | `mass_err` A | `mass_err` B | `seats_err` A | `seats_err` B |
+|---|---|---|---|---|---|
+| buffalocity | 1.75% | −0.0204 | **−0.0029** | −2.93 | **−1.65** |
+| capetown | 8.00% | **+0.0457** | +0.0598 | **+10.58** | +13.87 |
+| ekurhuleni | 9.14% | **+0.0002** | +0.0702 | **−2.64** | +12.57 |
+| ethekwini | 7.21% | **−0.0228** | +0.0516 | **−5.19** | +10.89 |
+| joburg | 19.99% | **+0.1045** | +0.1776 | **+23.04** | +40.88 |
+| mangaung | 1.53% | −0.0225 | **−0.0066** | −3.41 | **−2.01** |
+| nelsonmandelabay | 7.02% | **+0.0347** | +0.0477 | **+4.11** | +5.60 |
+| tshwane | 11.38% | **+0.0206** | +0.0919 | **+2.25** | +16.74 |
+| **pooled Σ\|err\|** | | **0.2714** | 0.5084 | **54.15** | 104.21 |
+
+**2 of 8 on both mass and seats against a requirement of ≥5**, and pooled error
+roughly **doubles**. B wins only at buffalocity and mangaung — the two metros
+where realised arrival mass is smallest (1.75%, 1.53%) and the incumbent
+*over*-forecasts. Everywhere the arrival channel actually carries weight, B is
+far worse.
+
+**Pass condition 2 — Key 2, untradeable — ALSO FAILS.** On the level-free width
+statistic over the `reference` population at 2021, probit-SD moves **1.2000 →
+1.3557**, away from 1.0. (PIT variance moves 0.0796 → 0.0831, *toward* uniform —
+the two disagree, which is exactly why §1.131 requires the width verdict to come
+from the level-free statistic and not from PIT variance against 1/12.) At 2016
+both arms read 1.2711, consistent with the tripwire.
+
+**Pass condition 3 — leverage — the failure is BROAD, not two-observation.**
+Dropping Johannesburg *and* Cape Town, the six remaining metros still favour the
+incumbent: Σ|mass_err| 0.1212 vs 0.2709, Σ|seats_err| 20.53 vs 49.46.
+
+**The sensitivity pair AGREES with the primary.** The relabelled score — the
+rigged instrument — gives CRPS **221.09 → 283.56** and coherent seat error
+**262 → 348**, B better at 3/8 and 2/8. §1.133 required that a disagreement
+between the two would itself be the finding; **they do not disagree.** Note the
+relative magnitude reproduces the original rejection almost exactly: the old
+CRPS 85.9 → 109.9 is +27.9%, this is **+28.3%**.
+
+**Key 4 cannot fire** — the arrival path touches neither `sd_for` nor
+`theta_prior`. Stated, not passed.
+
+### 8. ⛔ WHAT THIS DOES AND DOES NOT REFUTE
+
+**It refutes THIS LEVER. It does not refute scoring arrivals as a group**, and
+the two must not be conflated in any later citation of this entry.
+
+The lever deletes the splinter channel (§3 above), so the comparison is not
+"generic slot vs fitted group" — it is "generic slot **plus 32 fitted splinter
+seeds**" against "fitted group **with those seeds destroyed**". The cleanest
+evidence is Ekurhuleni: the incumbent's arrival mass error there is **+0.0002**
+— essentially exact — and the challenger turns it into +0.0702. **The seeds are
+doing real work and the lever throws them away.**
+
+So the honest statement is: **the group arrival mechanism as currently wired is
+refuted on a fair referee, on eight metros in one cycle.** A test of the group
+*estimator* would require a lever that replaces only the generic `ENTRANT` slot
+and leaves `arrival_rules`' splinter seeds standing. That lever does not exist,
+and building it is the next question this channel poses — not another sweep of
+the one that does.
+
+**Rule 11 still applies at its strongest.** Eight metros inside one cycle share
+a national swing; this is ~1 effective cluster and **must not be reported as
+eight independent facts.** But the direction is consistent at 6 of 8, survives
+the leverage check, and agrees across two instruments built on opposite
+assumptions — so the refutation is about as well supported as this panel allows.
+
+### 9. ⛔ CORRECTION TO §5 ABOVE, SAME DAY — I named the wrong cause, and so did §1.135
+
+§5 said 2016's zero seeds come from a **definitional gap** between
+`arrival_group_record` and `newcomers`. **That gap is real and it is not the
+binding cause.** §1.135 said the 2016 spec is `None` because *"only 2011 precedes
+it, and that is not enough record to fit"*. **That is also wrong.** Both were
+found by an audit of `JUDGEMENT-CALLS`/`DATA-QUALITY` and then re-derived here:
+
+    metro_file('JHB','2000')  -> None
+    metro_file('JHB','2006')  -> None
+    metro_file('JHB','2011')  -> _reports/lge2011_JHB_downloadable_party_results.csv
+    lge_transitions(before='2016') -> (('2000','2006'), ('2006','2011'))
+    entrant_record(that)      -> 0 rows
+    arrival_group_record('2016') -> 6 rows, totals 1.64/0.36/2.56/5.61/1.02/0.41%
+
+**The record is NOT empty — it has six rows.** `arrival_group_spec` returned
+`None` on its `not parties` guard, never on `not record`. The chain is:
+`metro_file` resolves nothing for 2000 or 2006 → `metro_citywide` returns `{}` →
+`entrant_record` is `[]` → `arrival_rules` takes its `if not record: return {},
+{}` exit → `arrivals` is empty → no seeds, and `arrival_group_spec` has no party
+list to weight.
+
+**And the cause is a PATH-AND-FORMAT MISMATCH, not missing data.**
+`pools.metro_file` resolves only `_metros/lge{year}_{CODE}_vd_party.csv` and
+`_reports/…_downloadable_party_results.csv`, which exist for 2011, 2016 and 2021
+only. The 2000 and 2006 metro results **are on disk** as
+`data/raw/elections/lge{year}_{CODE}_vd_party_clean.csv` — **eight metros at
+2006**, verified — and `levels._citywide` reads them every run.
+`pools._npe_citywide_for` already reads that clean format from that directory,
+**inside the same module**, so the reader exists and is simply not wired to LGE
+years. `pools.py:2636` even claims the clean files are handled; that path cannot
+be taken.
+
+**This is the same defect a MemPalace note recorded on 2026-08-27 as "a filename
+mismatch" and nobody acted on.**
+
+**So `HANDOVER.md` §6's "it cannot be widened — checked exhaustively" is wrong
+for a bigger reason than §5 gave.** The arrival validation is one cycle wide
+because two LGE cycles are unreadable to `pools.py`, not because history is thin.
+Every pools-side record is affected — `entrant_record` rests on 1 usable
+transition of 3 at 2021 and 2 of 4 at 2026; `arrival_group_record` is 22 rows
+across three cycles at 2026 where **five** cycles exist on disk.
+
+**`DATA-QUALITY.md` item 13 makes this worse, not better**: it records the 2006
+ingest at *"100% reconciliation, worst drift 0.00%"*. A reader checks it, sees
+the archive verified, and concludes the arrival record is thin because history is
+thin. It is a new item, not a correction to that one.
+
+**Queued** as `POOLS-REEMIT-QUEUE` entry 4 — and unlike entries 1-3 it moves
+NUMBERS, not just `pools_sha`, so the window's "re-take the baseline" step is
+load-bearing for it.
+
+**What §5's definitional gap still is:** a real second-order disagreement, on the
+narrow set of parties with a preceding-LGE vote and no preceding-NPE vote. It is
+step two of the same repair, not the repair.
+
+**The lesson, which is the one this repository keeps paying for:** *"not enough
+record"* and *"the record is unreachable"* produce the same empty result and are
+opposite findings. §1.135 read an empty return as a fact about history. So did I,
+one section earlier, with a more elaborate wrong reason.
+
+### 10. The calibration read, which stops two misreadings of §7
+
+Pooled arrival PIT over the eight metros in each cycle (0.5 is ideal; high means
+the realised total sat above most draws, i.e. **under-forecast**):
+
+| arm | cycle | mean `mass_pit` | mean `seats_pit` | metros with `mass_pit` > 0.9 |
+|---|---|---|---|---|
+| **A incumbent** | 2016 | 0.771 | 0.667 | **0 of 8** |
+| **A incumbent** | 2021 | **0.613** | 0.538 | **1 of 8** |
+| **B group** | 2016 | 0.771 | 0.667 | 0 of 8 |
+| **B group** | 2021 | **0.877** | 0.768 | **6 of 8** |
+
+**Misreading 1 — "the incumbent is badly miscalibrated on arrivals".** It is at
+**Johannesburg** (`mass_pit` 0.985, `seats_err` +23.0), and that is one metro.
+Pooled over the cycle the incumbent sits at **0.613** against an ideal 0.5 with
+**one** metro above 0.9. It is mildly under-forecasting arrival mass, not
+systematically broken. Johannesburg is an outlier and must be quoted as one.
+
+**Misreading 2 — "B lost narrowly".** B's failure is **systematic**, not noise:
+**6 of 8** metros above `mass_pit` 0.9 and a pooled 0.877. That is the signature
+of a forecast whose central tendency is far too low, which is exactly what
+zeroing the seeds does. Per the standpoint's rule, a PIT clustered near 1 for a
+whole class is a **LEVEL** finding, not a dispersion one — so the repair is the
+group total's location, not its width.
+
+**And the 2016 rows are identical across arms to three decimals**, which is the
+tripwire agreeing a third time.
+
+**⚠️ A methodological weakness in the pre-registration, for the next one.** The
+PRIMARY decision statistic was `mass_err`/`seats_err` — **a bias measure, not a
+proper score.** A forecast with an enormous variance and the right mean scores
+zero bias. It happened not to matter here (CRPS agreed, and the PIT table above
+shows the failure is in location), but **the label-free referee should report a
+proper score on the group total — CRPS of the drawn total against the realised
+total — and that should be the primary.** Bias and PIT are diagnostics beside it,
+not the arbiter. Neither `mass_median` nor `seats_median` is used by anything
+today, and `mass_err` is taken against the **mean**, which is the right choice for
+a total but is nowhere stated.

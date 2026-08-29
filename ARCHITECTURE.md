@@ -13,11 +13,19 @@ It is not unlikely. It is what the structure predicts.
 
 | `montecarlo.run_model` | |
 |---|---|
-| lines | **1,099** |
+| lines | **1,315** |
 | branches (`if`) | **74** |
-| distinct local names bound | **228** |
-| `scenario.get(...)` reads | 32 |
+| distinct local names bound | **231** |
+| `scenario.get(...)` reads | 34 |
 | `return` statements | **1** |
+
+**Re-measured 2026-08-29 — the first three were stale, and the line count was
+understating this document's own case by 216 lines** (1,099 → 1,315).
+**Derive these, never re-type them**, by AST over `montecarlo.run_model`:
+`ast.FunctionDef` named `run_model`, then `end_lineno - lineno + 1`, `ast.If`
+nodes, `ast.Name` nodes with a `Store` context, and `scenario.get` calls. A
+figure typed into prose here goes stale silently, which is the exact failure this
+document exists to argue about.
 
 **Six of the eight wiring mechanisms fail silently**, and they carry most of the
 dataflow. The failure is uniform:
@@ -184,5 +192,5 @@ is one unit). Three do not:
   channel is worth **−6** and not **+48** (§1.94).
 
 Its deferral condition — *"restructure against frozen numbers"* — is now met by
-`src/freeze.py`. And `run_model` grew from 863 lines to 1,099 while the work was
+`src/freeze.py`. And `run_model` grew from 863 lines to 1,315 while the work was
 deferred.

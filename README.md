@@ -5,13 +5,21 @@ A voting-district-level model of the City of Johannesburg council election on
 the statutory seat formula including overhang, and full enumeration of the
 coalition arithmetic the result permits.
 
-**It has been scored.** The whole pipeline is run against the 2021 municipal
-election in all eight South African metros — each fitted only on its own
-wards, its own roll and its own history — and compared with three baselines
-that need no model at all. It beats the best of them in seven of the eight.
-Regenerate the scoring, and the page that reports it, with
-`python src/build_validation.py --target 2021`; the results and their
-provenance land in `data/processed/validation_2021.json`.
+**It has been scored, on sixteen city-years.** The whole pipeline is run against
+the 2016 *and* 2021 municipal elections in all eight South African metros — each
+fitted only on its own wards, its own roll and its own history — and compared
+with baselines that need no model at all. It wins on coherent seat error against
+uniform swing in most of the sixteen, on both cycles — but **read the per-cycle
+split from the run, not from a number typed here**: eight metros inside one cycle
+share a national swing, so they are not eight independent facts, and the seat
+figures are scored after a relabel that assigns the model's generic newcomer
+column to the largest arrival with the outcome in hand (`ITERATING.md`, Key 1).
+
+Regenerate the full comparison with `.venv/bin/python src/compare_history.py`.
+The 2021 scoring page is `.venv/bin/python src/build_validation.py --target 2021`;
+note that `data/processed/validation_2021.json` is a **400-draw artefact last
+generated 2026-08-11** and predates several corrections, so regenerate it before
+citing it.
 
 **The forecast, an interactive version, and the full written record live at
 [joburg.whysoserious.city](https://joburg.whysoserious.city).** This repository

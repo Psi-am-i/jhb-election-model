@@ -1,22 +1,103 @@
-# Handover — 2026-08-29
+# Handover — 2026-08-29 (REVISED, post-result)
 
-**START AT "THE NEXT RUN" BELOW.** It is pre-registered and ready to execute;
-everything after it is the reasoning that produced it.
+**⛔ THE PRE-REGISTERED RUN HAS BEEN EXECUTED AND ITS RESULT IS READ. DO NOT
+RE-RUN IT.** MODEL-LOG **§1.136 §7** carries both arms; **§8** carries what they
+do and do not refute; **§9** corrects §5 of the same entry. The section
+"THE NEXT RUN" below is kept **verbatim, as the pre-registration record** — it is
+what was written before any number was seen, and its whole value is that it
+cannot now be edited to fit the answer. Its deviations are annotated in place.
 
-Branch `splinter-rule-and-historical-tail`. **18 days to nomination lists
-(16 September), 67 to polling (4 November).**
+**START AT "▶ WHAT TO DO NEXT", immediately below.**
 
-**⛔ The state to verify before trusting anything here:** run
-`git status --short` (expect clean), `tests/run_all.py` (expect 0 failed) and
-`freeze.py --verify` (expect VERIFIED). The last full suite was **377 passed / 0
-failed / 10 skipped** with `freeze --verify` VERIFIED, on the tree this handover
-describes. All 18 pool specs carry `pools_sha` `dbdf171344ffd5f0`, matching the
-live code — **no re-emit is needed.** Re-run the preflight anyway; it is three
-commands and it is what the plan's first step exists for.
+Branch `splinter-rule-and-historical-tail`. Nomination lists **16 September
+2026**, polling **4 November 2026** (18 and 67 days as of 2026-08-29 — quote the
+dates, not the countdown).
+
+**⛔ THE PREFLIGHT BELOW PASSED WHILE THE REFEREE WAS BROKEN, AND CANNOT SEE
+THAT.** On 2026-08-29 `git status --short` was clean, the suite was **377 passed
+/ 0 failed / 10 skipped**, and `freeze --verify` said VERIFIED — while
+`backtest.arrival_group_score` raised `IndexError` on **all sixteen**
+city-years and had never produced a number in its life. `freeze --verify`
+re-runs the MODEL and hashes its output (`freeze.py:290`); it never imports the
+scoring path. **The preflight tests the model and has no instrument that can see
+a broken referee.** So it now has a fourth step:
+
+    git status --short                      # must be clean
+    .venv/bin/python tests/run_all.py       # must be 0 failed
+    .venv/bin/python src/freeze.py --verify # must say VERIFIED
+    # AND, before trusting ANY comparison:
+    .venv/bin/python src/compare_history.py --jobs 1 --draws 50 \
+        --json /tmp/smoke.json --md /tmp/smoke.md
+    .venv/bin/python -c "import json;r=json.load(open('/tmp/smoke.json'));\
+      assert len(r)==16, len(r);\
+      assert all('arrival_group' in x for x in r), 'referee did not run';\
+      print('16 city-years, referee live')"
+
+**⛔ `compare_history` CATCHES PER CITY-YEAR** (`:2224`, `:2234`) and prints
+`failed: <Error>` rather than stopping. It returns 1 and prints `nothing
+runnable` only when EVERY city-year fails — **if three fail it exits 0 and
+writes a JSON with thirteen records**, and two arms compared on different subsets
+are not a comparison. **Assert the count of 16 on both arms, every time.**
+
+All 18 pool specs carry `pools_sha` `dbdf171344ffd5f0`, matching the live code —
+**no re-emit is needed** and none should be taken.
 
 ---
 
-## ▶ THE NEXT RUN — pre-registered, ready to execute
+
+---
+
+## ▶ WHAT TO DO NEXT — the run is done and the lever is REFUTED
+
+### 0. Close the tree first
+The referee fix may still be uncommitted (`src/backtest.py`,
+`tests/test_calibration_report.py`, `MODEL-LOG.md`, and the documentation
+corrected in the same batch). Commit them **together**, then run the FULL suite
+once on that commit. The recorded 377/0/10 predates the **three** tests
+added/repaired on 2026-08-29 — do not report the old count as a pass.
+
+### 1. Do NOT re-run the arms. Read §1.136 §7.
+The lever fails pass conditions **1, 2 and 3**; condition **4 passes** (all eight
+2016 city-years byte-identical). **It refutes THIS LEVER, not the idea of
+scoring arrivals as a group** — §1.136 §8 is explicit and the distinction must
+survive every later citation.
+
+### 2. ★ THE ONLY DATED ITEM: the roster seam, BEFORE 16 September
+`POOLS-REEMIT-QUEUE` entry 3. `pools_2026.json` carries `arrival_group: null`
+because `contesting_parties` and `_ward_reach` both read the target's **result
+file**, which does not exist at 2026. Feeding a published nomination list needs a
+declared-roster path — a `pools.py` change, so it moves `pools_sha`, so it forces
+the full **eighteen-spec re-emit → baseline → freeze** under the one-writer rule.
+**Land it before the model freeze, so 16 September is a data drop and not a code
+change under deadline.** It is needed whatever any lever does.
+`PLAN-TO-LIVE.md` A5 called this "dated and mechanical"; it is neither.
+
+### 3. The model question this channel now poses
+Build a lever that replaces **only** the generic `ENTRANT` slot and **leaves
+`arrival_rules`' splinter seeds standing** (§1.136 §8). That is the untested
+version of the group estimator; the tested one deleted the seeds, and the seeds
+do real work — Ekurhuleni's incumbent arrival-mass error is **+0.0002** and the
+lever turns it into +0.0702. Pre-register it first, and **name a pass condition
+the code can actually compute** (see the two deviations annotated in §3 below).
+
+### 4. Widening to a second cycle is now a filed, verified defect
+`POOLS-REEMIT-QUEUE` entry **4**, and `DATA-QUALITY.md` item **14**.
+`pools.metro_file` cannot resolve the 2000 and 2006 metro results **which are on
+disk and reconciled**, so `entrant_record` before 2016 is empty and all eight
+2016 specs carry zero seeds. It is wiring, not missing history. ⚠️ **This entry
+moves NUMBERS, not only `pools_sha`.**
+
+### 5. Get an owner ruling on the 27 August Track B gate
+`PLAN-TO-LIVE.md`'s own rule drops Track B if A1, A2 and the A4 content decision
+are not done by 27 August. A1 is done; **A2 and A4 are not** —
+`content/joburg/stats.toml` still carries eleven `mode="fixed"` tokens sourced to
+`turnout_tilt_da`, **a lever `run_model` no longer has**. That date has passed.
+Until the owner rules, this file and `PLAN-TO-LIVE.md` give opposite
+instructions.
+
+---
+
+## ▶ THE NEXT RUN — the PRE-REGISTRATION RECORD (executed; do not re-run)
 
 **Written 2026-08-29 BEFORE any of it was run, so no pass condition and no
 predicted sign can be chosen after seeing a number.** Read this section top to
@@ -90,8 +171,38 @@ price the derivedness honestly in both directions.
    whole gain is those two, it is a two-observation fit and **it does not ship**.
 4. The **2016 arm must come back byte-identical**. See the tripwire below.
 
+> **⛔ TWO DEVIATIONS, RECORDED 2026-08-29. The conditions above are NOT edited.**
+>
+> **(a) Condition 1's "improve" was never pinned to a direction.** `mass_err` and
+> `seats_err` are **signed** (`actual − forecast_mean`, `backtest.py`), and no
+> document pinned "improve" to `|error|`. It was pinned to **|error|** in the
+> review *before* the arms were read, consistent with `seat_abs_err_coherent`
+> elsewhere — but it was choosable, and it flips the reading at buffalocity and
+> mangaung, the only two metros the challenger wins. The verdict is 2/8 under
+> either reading, so nothing turned on it. **No future condition may name a
+> signed quantity without saying which direction is better.**
+>
+> **(b) Condition 3 was NOT EXECUTABLE AS WRITTEN.** `arrival_group_score`
+> returns group **totals** only — there is no per-column breakdown and nothing in
+> the codebase can drop a named arrival column from it. It also names ActionSA
+> where the leverage instrument it echoes (`compare_history._band_splits`) names
+> **Johannesburg's PA**, which §1.135 established is *not* an arrival at all.
+> What was actually run is a **metro-level** leave-two-out (drop Johannesburg and
+> Cape Town): Σ|mass_err| 0.1212 vs 0.2709, Σ|seats_err| 20.53 vs 49.46, pointing
+> the same way. **That is a stronger test than the one written, and it is still a
+> deviation.** A pre-registration the code cannot execute is one that gets
+> reinterpreted after the fact.
+
 ### 4. Predicted signs — recorded before the run
 
+* ⛔ **SUPERSEDED 2026-08-29 by MODEL-LOG §1.136 §4, recorded BEFORE arm B was
+  read. Kept unedited below, because a pre-registration revised after the fact is
+  not one.** The **"2016"** half is right, but it silently REPLACED §1.133's and
+  §1.135's recorded *"2016 worsens"* with no dated note — and both MODEL-LOG
+  halves were themselves wrong. The **"2021 should improve"** half is **REFUTED**:
+  measured incumbent arrival mass at Johannesburg was 9.52% against a realised
+  19.99%, the challenger's expected arrival mass is 2.17%, so it was predicted to
+  score ~7pp WORSE — realised **+17.76pp** against a prediction of +17.8pp.
 * **2021 should improve; 2016 should not move at all.** §1.48's trace has the
   entrant rescale pulling the top of the ballot 7–9% below its centre; at 2021
   ranks 1-3 are over-forecast by **+15.48pp** so taking mass off the top is
@@ -116,14 +227,20 @@ price the derivedness honestly in both directions.
 
 ### 6. The constraint to state in the write-up, whatever the result
 
-**This is a ONE-CYCLE validation on ~1 effective cluster, and it cannot be
-widened.** Checked exhaustively:
+**This is a ONE-CYCLE validation on ~1 effective cluster** — ⛔ **but "it cannot
+be widened / checked exhaustively" is WITHDRAWN (§1.136 §9).** 2016's zero seeds
+are not a fact about 2016: `pools.metro_file` **cannot resolve the 2000 and 2006
+metro results, which are on disk and reconciled at 100%** (`DATA-QUALITY.md` item
+14). So `entrant_record(lge_transitions(before='2016'))` is `[]`, `arrival_rules`
+takes its `if not record` exit, and no seeds exist. The record is **not** the
+constraint — `arrival_group_record('2016')` returns **6 rows**. It is wiring, and
+it is `POOLS-REEMIT-QUEUE` entry 4. The table below is kept as written:
 
 | target | seeded arrivals | prior record to fit `M` | retry possible |
 |---|---|---|---|
 | 2011 | yes | **0 rows** | no — nothing to fit |
 | 2016 | **0** | 6 rows | no — nothing to draw |
-| **2021** | 32 | 14 rows | **yes, all 8 metros** |
+| **2021** | **32 at Johannesburg, 165 across the panel** | 14 rows | **yes, all 8 metros** |
 
 Eight metros inside one cycle share a national swing, so rule 11 applies at its
 strongest. **Do not report 8 city-years as 8 independent facts.**
@@ -145,7 +262,7 @@ made while fixing the identical class of error one file over.
 
 | # | do | why |
 |---|---|---|
-| **1** | ⛔ **RE-RUN THE ARRIVAL RETRY AT 2021, FAIRLY** (§1.135) — `arrival_group_draw=True` + `compare_history` | the mechanism exists, its rejection was scored by an instrument that hands the incumbent the answer key, and the fair referee is now wired in. **No nomination list, no `pools.py` change, no re-emit needed** — the 2021 spec already carries a real `arrival_group` |
+| ~~1~~ ✅ | ⛔ **DONE 2026-08-29 — RAN, AND THE LEVER FAILED** (§1.136 §7). Its justification below is also stale: it said "the fair referee is now wired in", and the referee had never produced a number. **Replaced by: build a lever scoped to the generic slot alone** (§1.136 §8). ~~RE-RUN THE ARRIVAL RETRY AT 2021, FAIRLY (§1.135)~~ — `arrival_group_draw=True` + `compare_history` | the mechanism exists, its rejection was scored by an instrument that hands the incumbent the answer key, and the fair referee is now wired in. **No nomination list, no `pools.py` change, no re-emit needed** — the 2021 spec already carries a real `arrival_group` |
 | **1b** | The **PA-type failure is NOT the arrival channel** (§1.135) | a 0.03% national base growing ~40× locally is the θ/seeding path. Two of the biggest misses, two different mechanisms — the retry touches one of them |
 | **2** | **Build the instrument for THE VACANCY** — see `ITERATING.md`, "THE VACANCY" | ⛔ **decided 2026-08-29: Key 4 is KEPT as a θ-width floor, its old justification is dead, and nothing in the bar now guards against a change that improves the many by degrading the few** |
 | 3 | **State C's PIT and A²** — one `--dump-arm` away | turns reading 2's refutation from one member of the exclusion class into two |
@@ -307,11 +424,11 @@ pollster when asked. Run it *before* reporting, not after.
 a second suite run; targeted `-k` per change and the **full suite once per
 commit**; a partial run prints a banner that it is not a suite run.
 
-**The suite is 1455s → 557s.** Note the negative result: isolating the long pole
+**The suite is 1455s → 557s.** ⚠️ **Both figures are stale: measured 2026-08-29 at 1194.5s wall clock** (2045.9s of module time, 1.71x from parallelism), with `test_levers_are_live` still the long pole at 809.6s / 39.6%. `CLAUDE.md` says "~14 minutes" and this line says 557s; neither matches. Quote the measurement, and re-measure rather than re-typing. Note the negative result: isolating the long pole
 made it *slower* (586 → 679) because idleness cost more than oversubscription.
 `LONGEST_FIRST` scheduling gets both.
 
-**`POOLS-REEMIT-QUEUE.md` holds two entries**, and the second —
+**`POOLS-REEMIT-QUEUE.md` holds FOUR entries** (it said two; it held three even then, and §1.136 added a fourth), and the second —
 `_target_roll`'s crosswalk path — **blocks all multi-city 2026 work**: no second
 city can emit a 2026 spec until it lands.
 

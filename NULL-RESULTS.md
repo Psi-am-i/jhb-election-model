@@ -23,9 +23,28 @@ harness cannot tell four different things apart, and reports all four as
 | **B** | **ABSORBED** | it arrived, and something downstream ate it |
 | **C** | **CANCELLED** | it arrived, and a fitted parameter moved to offset it |
 | **D** | **INERT** | it arrived, propagated, and genuinely does not matter |
+| **E** | **VOID** | the measurement was attempted and **raised**, and the harness reported the exception as an absence |
+| **F** | **PHANTOM** | the measurement ran and returned a null its own **selection rule manufactured** |
 
 **Only D is a result.** A is a defect. B is a structural fact that must be
-stated. C is a statement about identifiability, not about the world.
+stated. C is a statement about identifiability, not about the world. **E and F
+were added 2026-08-29 (§1.136) because both occurred and neither had a code.**
+
+* **E — VOID.** `backtest.arrival_group_score` indexed `seat_draws` (a
+  `list[dict[str,int]]`) as a 2-D array and raised `IndexError` on **all sixteen**
+  city-years, for its entire life. `compare_history` catches per city-year, so the
+  run printed `nothing runnable` and **read as "no data yet" rather than "the
+  referee is broken"**. The suite was green and `freeze --verify` VERIFIED
+  throughout: the preflight tests the model and cannot see a broken score.
+* **F — PHANTOM.** The same referee took its realised arrival set from
+  `actual_seats`, which is filtered to `s > 0`, while the forecast side summed
+  every arrival column. Realised arrival mass was understated in **all sixteen**
+  city-years and was **exactly 0.00% in four** — Tshwane 2016, Buffalo City 2016,
+  Mangaung 2021, Buffalo City 2021 — against true whole-ballot masses of 0.31%,
+  0.68%, 1.53% and 1.75%. Its docstring said a null there *"is a legitimate
+  outcome and not a missing measurement"*, so four manufactured nulls would have
+  been coded **INERT** and reported as a property of the world. **A null is only
+  as trustworthy as the SELECTION ON BOTH SIDES of it.**
 
 Today's evidence that all four are present and confused:
 
@@ -41,6 +60,36 @@ Today's evidence that all four are present and confused:
   changing the pool size changes nothing once the rate refits (§1.102). That is
   why repairing a 187% registration rate measured *worse*.
 * **D** — genuinely inert levers exist and are worth knowing about.
+
+
+## A whole CHANNEL can be null across half the panel, and nothing here would say so
+
+Added 2026-08-29 (§1.136). **`arrival_group_draw` is a structural null at every
+2016 target.** All eight emitted 2016 specs carry `arrival_group: null` and
+**zero** seeds; `montecarlo.py:2699` leaves `group_idx = None`, control falls to
+the incumbent branch, and the **same RNG draws are consumed either way** —
+confirmed empirically when all eight 2016 city-years came back byte-identical
+across both arms.
+
+**Cause A — UNDELIVERED, at panel scale**, and the blocker is `DATA`:
+`pools.metro_file` cannot resolve the 2000 and 2006 metro results, **which are on
+disk and reconciled at 100%** (`DATA-QUALITY.md` item 14). So `entrant_record`
+before 2016 is empty and `arrival_rules` returns nothing to seed. It is wiring,
+not thin history — and `arrival_group_record('2016')` returns **6 non-empty
+rows**, so the record was never the constraint.
+
+**Nothing in this repository reports it.** `test_levers_are_live` sweeps only
+2021 and 2026, so `EXPECTED_INERT` carries `("arrival_group_draw", "2026")` and
+**no 2016 entry** — while that entry's own evidence field names
+`pools_2016.json`'s null in passing. **The gap is in the harness**:
+`EXPECTED_INERT` is keyed `(lever, year)` and the sweep supplies only two years,
+so a null at a *backtest* target has nowhere to be registered. Either sweep 2016,
+or key the register on the panel rather than on the sweep's targets.
+
+**Why it matters beyond bookkeeping:** Key 1's pass condition asks that *"no
+cycle shows a net loss"*, and a structurally frozen cycle satisfies that
+trivially, eight city-years at a time. `ITERATING.md` rule 13 now says so.
+**An unregistered null arm reads as a passing tripwire.**
 
 ## 2. The largest absorber is by design, and it was never written down
 
