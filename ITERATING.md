@@ -297,8 +297,64 @@ BAR, not as a formality.**
 > any candidate of that shape must carry an explicit statement of what it makes
 > worse and where.
 >
-> A replacement instrument is being designed. **It does not exist yet, and this
-> block stays until it does.** MODEL-LOG §1.125, §1.126, §1.127.
+**WHAT NOW OCCUPIES THE VACANCY — 2026-08-29, MODEL-LOG §1.128.** The search for
+a replacement found that the obvious one is empty by construction, and that the
+honest occupant is a **precondition**, not a fifth key.
+
+> **(a) ROUTE, DO NOT DROP — a Key 3 / rule 10 condition, and it is checkable
+> rather than statistical.** *An exclusion or record restriction may not ship
+> unless the volatility it removes is carried somewhere the model still draws
+> from, and its register must say where, PER ROW.*
+>
+> On the Type A register this currently fails **four of six rows**: `SPLITS`
+> routes the IFP's NFP split and the DA's ActionSA split, and routes nothing for
+> the ID **merger** (there is no merger machinery in `src/` at all), for COPE's
+> or Agang's **post-formation collapse** (`SPLITS["COPE"]` models COPE's birth,
+> not its death), or for Minority Front's **leader death**. `arrivals.py` models
+> entry and has no exit path. **Unrouted rows that a given fold can actually
+> move: two of three at 2016, four of five at 2021, four of six at 2026** — the
+> filter keys transitions strictly before the target, so fold 2016 loses only the
+> three 2011 rows and one of those (IFP) is routed.
+>
+> **(b) THE WIDTH CHANNEL, POOLED — REPORTED FOR EVERY RECORD-TOUCHING
+> CANDIDATE, AND NOT A GATE.** ⛔ It was adopted as a floor on 2026-08-29 and
+> that was one review too early: **its 2016 verdict flips with `LEVEL_DF`** —
+> Type A FAILS it at df 3 and 4 (one-sided bounds +0.0159 and +0.0082, 7/8
+> clusters worse) and does not block at df ≥ 7, where the margin is p = 0.0526.
+> `LEVEL_DF` is 🟡, typed, never measured, and **was 4.0 until this branch**. It
+> becomes a gate when that constant is measured or when the pass rule declares
+> its df. It is nonetheless **the best-powered instrument in this bar** — MDE
+> 0.094 / 0.046 nats against Key 4's 0.230 / 0.130, because holding the residual
+> fixed strips the centre-movement noise — and it still cannot separate this
+> candidate from noise. Note `Δ_total ≠ Δ_width + Δ_centre`: NLL is jointly
+> non-linear, the split is path-dependent, and what is reported is the
+> incumbent-first path. §1.129. A residual is `log θ − log(centre)`, so an arm carrying the
+> incumbent's residual with the candidate's width isolates the width alone:
+> `theta_residual.py --dump-arm` twice, then `--compare`. It is the vacated
+> quantity — *did this narrow the prior relative to what it must forecast?* — on
+> the full n=97/138, eight real metro-year clusters, and a population the
+> candidate cannot choose. **Report it for every candidate that touches the
+> record.** Type A reads +0.0921 at 2016 (one-sided bound −0.0017) and +0.0209 at
+> 2021 (−0.0249): worse at both folds, blocking at neither.
+>
+> **(c) THE PER-BIN SPLIT IS REPORTED AND NOT GATED.** Three mid-ballot bins fail
+> uncorrected in the same direction at both folds — and **not one survives Holm
+> across the nine bins** (smallest p 0.0079 against a critical 0.0056). "7/7
+> clusters worse" at 2021 1–5% is **not a second witness**: the exact sign test
+> gives 0.0078 against the t's 0.0079, two readings of one statistic. It buys
+> robustness, not corroboration. The instrument is the right shape and the panel
+> is too small. **Never quote the uncorrected table without the Holm column** —
+> `--compare` now prints both.
+>
+> **(d) AND THE GAP IS STILL REAL.** On every instrument this repository has, the
+> Type A filter does **not** harm calibration. **No instrument this repository
+> has** restores the old block — the tail-weighted family built for exactly this
+> shape has not been tried (§1.129) — and manufacturing an instrument to reach a
+> verdict already held is the failure §1.124 exists to name. Decline such a change on (a) — typed, unfalsifiable, and
+> four of six rows routing the volatility nowhere — or adopt it. Do not invent an
+> instrument to do it for you.
+
+MODEL-LOG §1.125, §1.126, §1.127, §1.128.
 
 **KEY 4 IS A LAYER FLOOR, NOT THE MODEL'S PREDICTIVE SCORE.** It scores the θ
 **width** estimator about `theta_prior`'s **own** centre. The model does not draw
@@ -328,7 +384,11 @@ structural reasons and one that the band above has largely spent.
    Adding folds is now cheap, and if it is done, **control family-wise error
    across them (Holm) rather than testing each at α**, or the problem the band
    solved comes straight back. §1.126.
-**Call 2011 the structural-events fold and read it as a positive signal**: a
+**Call 2011 the structural-events fold — and read a movement in it as a positive
+signal IF AND ONLY IF the volatility is routed** (the precondition above; a
+candidate that improves 2011 by dropping rows that go nowhere has moved
+volatility out of the prior and into the error, which is the same movement read
+the other way). Subject to that: a
 candidate that materially improves it has stopped asking θ to forecast a
 collapse — COPE, the NFP split, the DA/ID merger — which §1.71 says should be
 handled by `SPLITS` and arrivals instead.

@@ -735,9 +735,13 @@ def pit_table(codes=levels.METRO_CODES, df=None) -> dict:
     dispersion because the within-pool Dirichlet independently supplies most of
     the drawn variance. A θ layer 1.8× under-wide does not make the SEAT
     forecast 1.8× under-wide, and widening θ could over-widen the published
-    intervals while fixing the layer. **`ITERATING.md` Key 2 — cluster-corrected
-    seat coverage — is the gate, and it is untradeable.** This function
-    diagnoses; it does not license.
+    intervals while fixing the layer. **`ITERATING.md` Key 2 is the gate, and it
+    is untradeable** — CRPS, and the LEVEL-FREE WIDTH STATISTICS on the
+    `reference` population, which is the population rule 8 requires for a width
+    comparison because `claimed` selects columns from the forecaster's own
+    draws. (An earlier version of this docstring called Key 2 "cluster-corrected
+    seat coverage". It is not; that is a different quantity, and §1.127 carried
+    the same mis-paraphrase.) This function diagnoses; it does not license.
     """
     df = level_df() if df is None else float(df)
     ref = np.asarray(_t_reference(df))
@@ -887,9 +891,21 @@ def key4_delta(incumbent: dict, candidate: dict, fold: str) -> dict:
     # is 6/8 with an interval excluding zero, so the two triggers agree there.
     # It adds a real trigger without firing on anything already measured.
     sign_fail = g >= 8 and worse >= g - 1
+    # THE p-VALUE, IN THE TREE. §1.128's nine-bin Holm table was computed by a
+    # scratch script — the THIRD off-tree table in four entries, after §1.125's
+    # verdict table and §1.126's PIT table — and `ITERATING.md` then said "never
+    # quote the uncorrected table without the Holm column" while nothing here
+    # could produce that column. One-sided, against the t reference already
+    # memoised for the scoring family. §1.129.
+    if g > 1 and se > 0:
+        _ref = np.asarray(_t_reference(float(g - 1)))
+        one_sided_p = float((_ref > cluster_mean / se).mean())
+    else:
+        one_sided_p = 0.0 if cluster_mean > _SIGN_EPS else 1.0
     return {"n": len(per_obs), "clusters": g,
             "pooled_delta": pooled, "cluster_delta": cluster_mean,
             "se": se, "ci95": (lo, hi), "one_sided_lo": one_sided_lo,
+            "one_sided_p": one_sided_p,
             "worse_clusters": worse, "sign_fail": sign_fail,
             # THE FLOOR, and it is a floor: a worsening that clears neither
             # trigger is `undetermined` and does not block. ITERATING.md Key 4.
@@ -1052,10 +1068,13 @@ def report() -> str:
             "Dirichlet independently supplies",
             "  most of the drawn variance. A theta layer 1.8x under-wide does "
             "NOT make the SEAT forecast",
-            "  1.8x under-wide. ITERATING.md KEY 2 — cluster-corrected seat "
-            "coverage — is the gate, and",
-            "  it is untradeable. This diagnoses; it does not license. "
-            "MODEL-LOG §1.127.",
+            "  1.8x under-wide. ITERATING.md KEY 2 is the gate and it is "
+            "untradeable: CRPS, and the",
+            "  LEVEL-FREE WIDTH STATISTICS on the `reference` population — "
+            "which already reads sd(z)",
+            "  1.940 at ranks 4-12, the SEAT side of this same fault. This "
+            "diagnoses; it does not",
+            "  license. MODEL-LOG §1.127, §1.128.",
             ""]
     for year in ("2016", "2021"):
         com, a = table[year].get("COMMITTED"), table[year].get("A")
@@ -1107,8 +1126,12 @@ def dump_arm(path, codes=levels.METRO_CODES) -> int:
     """
     import json
     rows = residuals(codes=codes)
-    out = {f"{p}|{y}|{c}": [r, w]
-           for _s, r, w, p, y, c, _h in rows if w == w}
+    # SIZE IS CARRIED so a channel split can be read per size bin without a
+    # second run. It is the party's share at the target and is identical in
+    # every arm — an exclusion changes the fitting record, never the baseline —
+    # so it is safe to take from whichever arm is loaded.
+    out = {f"{p}|{y}|{c}": [r, w, sz]
+           for sz, r, w, p, y, c, _h in rows if w == w}
     with open(path, "w", encoding="utf-8") as fh:
         json.dump({"n": len(out), "obs": out}, fh)
     print(f"wrote {len(out)} observations to {path}")
@@ -1132,7 +1155,13 @@ def compare_arms(incumbent_path, candidate_path) -> int:
     key = lambda k: tuple(k.split("|"))                        # noqa: E731
     inc = {key(k): tuple(v) for k, v in inc.items()}
     can = {key(k): tuple(v) for k, v in can.items()}
+    # Size is carried in the dump but is NOT part of the scored pair; strip it
+    # here rather than teaching `key4_delta` about a field it must not use.
+    size = {k: v[2] for k, v in inc.items() if len(v) > 2}
+    inc = {k: (v[0], v[1]) for k, v in inc.items()}
+    can = {k: (v[0], v[1]) for k, v in can.items()}
     folds = sorted({k[1] for k in inc})
+    bins = []
     print(f"{'fold':>6} {'channel':>10} {'n':>5} {'delta':>9} {'1-sided lo':>11} "
           f"{'worse':>7}  verdict")
     for fold in folds:
@@ -1142,6 +1171,9 @@ def compare_arms(incumbent_path, candidate_path) -> int:
             print(f"{fold:>6}  POPULATION MOVED — {len(i)} vs {len(c)}")
             continue
         # WIDTH CHANNEL: the candidate's width against the incumbent's centre.
+        # A residual IS `log θ − log(centre)`, so holding the incumbent's
+        # residual and taking the candidate's width isolates the width exactly,
+        # and the remainder of the total is the centre channel.
         width_only = {k: (i[k][0], c[k][1]) for k in i}
         for label, arm in (("width", width_only), ("total", c)):
             r = key4_delta(i, arm, fold)
@@ -1149,7 +1181,64 @@ def compare_arms(incumbent_path, candidate_path) -> int:
             print(f"{fold:>6} {label:>10} {r['n']:>5} {r['cluster_delta']:>+9.4f} "
                   f"{lo:>+11.4f} {r['worse_clusters']:>4}/{r['clusters']}  "
                   f"{'FAILS Key 4' if r['fails'] else 'does not block'}")
+        # PER SIZE BIN, because a pooled median can hide a real narrowing in one
+        # band: §1.74 measured `sd_for` at 5–15% falling 0.203 → 0.150 under the
+        # Type A filter while §1.126 found no pooled narrowing at all (median
+        # 0.3439 → 0.3291, mean RISING). Both were quoted as the same claim.
+        # THE HOLM FAMILY IS THE FOLDS THAT CAN MOVE. A fold whose fitting
+        # record the candidate does not touch is structurally null — 2006 and
+        # 2011 under any `TYPE_A_EVENTS` arm, because `theta_record` keys the
+        # filter on transitions strictly BEFORE the target and neither fold's
+        # record contains one. Padding the family with hypotheses that cannot
+        # be false is not conservatism, it is throwing away power: it took the
+        # smallest Holm critical from 0.0056 to 0.0031. §1.129.
+        if size and abs(key4_delta(i, c, fold)["cluster_delta"]) > _SIGN_EPS:
+            for (lo_b, hi_b), name in zip(BINS, _BIN_NAMES):
+                sel = [k for k in i if lo_b <= size.get(k, -1) < hi_b]
+                if len(sel) < 8:
+                    continue
+                sub_i = {k: i[k] for k in sel}
+                sub_w = {k: (i[k][0], c[k][1]) for k in sel}
+                bins.append((fold, name, key4_delta(sub_i, sub_w, fold),
+                             _median([i[k][1] for k in sel]),
+                             _median([c[k][1] for k in sel])))
+    # THE HOLM COLUMN, ranked, because a family of bin tests is not a family of
+    # independent ones: they partition the same rows and the folds share a
+    # nested record. Holm is valid under arbitrary dependence, which is what
+    # that requires. FWER rather than FDR because this is a GATE — a false
+    # rejection blocks a good change. **The uncorrected column must never be
+    # quoted without this one.** §1.128, §1.129.
+    if bins:
+        bins.sort(key=lambda b: b[2]["one_sided_p"])
+        m = len(bins)
+        print(f"\nWIDTH CHANNEL BY SIZE BIN — {m} tests, Holm at alpha=0.05. "
+              f"`sd_for` medians are the DIRECT")
+        print("  width measurement, so a score delta is never read as a width "
+              "movement (§1.129).")
+        print(f"{'fold':>6} {'bin':>8} {'n':>4} {'G':>3} {'delta':>9} {'se':>7} "
+              f"{'worse':>6} {'p':>8} {'Holm':>8} {'w_inc':>7} {'w_cand':>7}  "
+              f"verdict")
+        still = True
+        for j, (fold, name, r, w_i, w_c) in enumerate(bins):
+            crit = 0.05 / (m - j)
+            if r["one_sided_p"] > crit:
+                still = False
+            print(f"{fold:>6} {name:>8} {r['n']:>4} {r['clusters']:>3} "
+                  f"{r['cluster_delta']:>+9.4f} {r['se']:>7.4f} "
+                  f"{r['worse_clusters']:>3}/{r['clusters']} "
+                  f"{r['one_sided_p']:>8.4f} {crit:>8.4f} {w_i:>7.4f} "
+                  f"{w_c:>7.4f}  "
+                  + ("FAILS (Holm)" if still and r["one_sided_p"] <= crit
+                     else "fails uncorrected" if r["one_sided_p"] <= 0.05
+                     else ""))
     return 0
+
+
+def _median(xs):
+    xs = sorted(xs)
+    n = len(xs)
+    return float("nan") if not n else (
+        xs[n // 2] if n % 2 else 0.5 * (xs[n // 2 - 1] + xs[n // 2]))
 
 
 def main() -> int:

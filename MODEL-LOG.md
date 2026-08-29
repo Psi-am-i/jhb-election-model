@@ -14591,8 +14591,13 @@ the model's own predictive. Three instruments, three populations, one direction.
 supplies most of the drawn variance*. **A θ layer 1.8× under-wide does not make
 the SEAT forecast 1.8× under-wide**, and widening θ by κ\* could over-widen the
 published intervals while correctly repairing the layer. **`ITERATING.md` Key 2 —
-cluster-corrected seat coverage — is the gate, and it is untradeable.** The θ PIT
-diagnoses; it does not license.
+the level-free WIDTH statistics on the `reference` population, plus CRPS — is
+the gate, and it is untradeable.** (This entry first wrote Key 2 as
+"cluster-corrected seat coverage". That is a different quantity; Key 2's text is
+*"CRPS must not worsen beyond its noise, and the level-free width statistics on
+the `reference` population must not worsen"*, and rule 8 requires `reference`
+for a width comparison precisely because `claimed` selects columns from the
+forecaster's own draws. §1.128.) The θ PIT diagnoses; it does not license.
 
 **And κ\* is not flat, so a single multiplier is the wrong instrument anyway:**
 
@@ -14616,8 +14621,11 @@ no business forecasting" looks like from the calibration side.
 
 ### What would tell you a repair worked, in order of authority
 
-1. **Key 2, cluster-corrected seat coverage (§1.34). Untradeable, and the only
-   thing that can veto.** This is the check, not a formality.
+1. **Key 2 — CRPS and the level-free width statistics on the `reference`
+   population. Untradeable, and the only thing that can veto.** On `reference`,
+   ranks 4-12 already read `sd(z)` **1.940**, which is the seat side of this
+   same fault; see §1.128 for why that is a convergence and not the
+   contradiction this entry's author briefly believed it was.
 2. Key 1, coherent seats, paired across sixteen city-years, with the band.
 3. θ PIT back to nominal within cluster-bootstrap noise, **per size bin**. The
    diagnostic, not the gate.
@@ -14636,3 +14644,350 @@ no business forecasting" looks like from the calibration side.
   this — it has zero between-cluster variance by construction.
 * **State C's PIT**, which turns reading 2's refutation from one member of the
   class into two. One `--dump-arm` away.
+
+
+## 1.128 The replacement for Key 4's vacated role: my proposal was EMPTY BY CONSTRUCTION, and the honest occupant is a precondition, not a statistic (2026-08-29)
+
+**Owner decision, 2026-08-29:** *"4 was still useful, but has a new role. Keep it
+but change its raison d'être. We will have to find something novel to take its
+place which we do not yet have."* §1.128 is the search for the replacement. It
+found one, and it is not a scoring key.
+
+### First, two errors of mine to retract
+
+**⛔ 1. THE θ-vs-SEAT "CONTRADICTION" I REPORTED DOES NOT EXIST, AND THIS
+REPOSITORY ALREADY SAID SO TWICE.** After §1.127 I read `ITERATING.md`'s rule 8
+as saying the SEAT forecast is too WIDE (probit-SD 0.685/0.695) against §1.127's
+θ layer 1.8× too NARROW, and reported that as the most valuable open question in
+the repo. Wrong on both halves:
+
+* **0.685/0.695 is a NINE-city-year figure**, and it sits inside a paragraph that
+  is itself calling an earlier number stale. The guarded sixteen-city-year
+  `claimed` pair is **0.818/0.820** (`ITERATING.md`'s marked table, held against
+  `data/processed/history.json` by `test_calibration_report.py`).
+* **A width comparison goes on `reference`, never on `claimed`** — rule 8 says so
+  in bold, because `claimed` selects columns from the forecaster's own draws.
+  **On `reference`, ranks 4-12 read `sd(z)` 1.940** — about half as wide as it
+  should be, i.e. **too NARROW**, against §1.127's κ\* of 1.749–1.798. Those
+  **agree**.
+* And the agreement was already written down, twice: `theta_residual.py`'s own
+  module docstring (*"Two instruments, one on the θ prior and one on the seat
+  draws, agreeing on the same band and the same direction"*) and §1.59
+  (*"different data, different statistics, same band, same direction"*). **I read
+  that docstring at the start of the same session.**
+
+  What is real is smaller and sharper: **ranks 1-3 are genuinely too WIDE**
+  (probit-SD 0.682, `mean z` −0.009 so nothing attenuates it) and §1.127's κ\* at
+  ≥15% is **0.71 at 2016** — also too wide, agreeing — but **1.59 at 2021**,
+  disagreeing. One fold of two, top of the ballot only. And §1.58 records that
+  ranks 4-12 are *"mis-shaped, not mis-scaled — no scalar fixes it"*, where
+  §1.127 found the θ layer's two coverage points agreeing within 2%, i.e. a
+  scale error. **That** is the tension worth chasing, and it is not the one I
+  reported.
+
+**⛔ 2. KEY 2 IS NOT "cluster-corrected seat coverage".** §1.127 and
+`pit_table`'s docstring both said so. Key 2's text is *"CRPS must not worsen
+beyond its noise, and the level-free width statistics on the `reference`
+population must not worsen."* Coverage and a level-free width statistic are
+different quantities, and the paraphrase had been written into the log twice
+before anyone read the key.
+
+### The proposal, and the theorem that kills it
+
+I proposed: **score a candidate on exactly the observations its exclusion
+deleted.** The premise was that `residuals()` never filters the held-out set, so
+deleted rows remain scoreable.
+
+**They remain scoreable at the fold where they cannot move. It is a theorem, not
+an accident:**
+
+> `theta_record` builds fold *f*'s fitting record from transitions **strictly
+> before** *f*, and applies `TYPE_A_EVENTS` inside that loop. `residuals` builds
+> fold *f*'s held-out set from transition *f* **itself**. Therefore
+> **deleted(*f*) ⊆ transitions < *f*** and **held-out(*f*) = transition *f***, so
+> **deleted(*f*) ∩ held-out(*f*) = ∅, always, for every candidate that filters
+> the fitting record.**
+
+Verified directly: at fold 2016 the filter deletes COPE/DA/IFP from the
+**target-2011** transition, and 2011 is not the held-out set at 2016. **The fact
+I cited as the proposal's enabling premise — "fold 2011 is a constant under every
+exclusion" — is the proof that it fails**, read the other way round.
+
+**The nearest workable reformulation is scoring class MEMBERS at their own
+transition, and it has n = 4, 8 and 0:**
+
+| fold | class members held out | which | independent events |
+|---|---|---|---|
+| 2016 | **4** of 97 | AGANG (JHB, TSH, EKU), MINORITY_FRONT (ETH) | 2 |
+| 2021 | **8** of 138 | DA, all eight metros | **1** (one national ActionSA split) |
+| **2026 — the forecast** | **0** | `TYPE_A_EVENTS` has no 2026 key | — |
+
+Three independent disqualifications: **no sign trigger exists at G=4** (the most
+extreme possible count is 4/4, P = 1/16 = 0.0625 > 0.05); **at 2021 the class is
+anti-tail** (the eight DA rows rank 87–137 of 138 by |log θ|, while the actual
+2021 tail is the PA, NFP and AIC, all deliberately excluded from the register by
+§1.74); and **the class is empty at 2026**, which is the forecast the whole
+exercise is about.
+
+**And restricted to that class the score degenerates.** For the t predictive,
+`∂NLL/∂log w = 1 − (ν+1)z²/(ν+z²)`, which is **zero at |z| = 1 and → −ν**:
+
+| \|z\| | 0.5 | 1.0 | 2 | 5 | 9 | ∞ |
+|---|---|---|---|---|---|---|
+| ∂NLL/∂log w | +0.724 | 0.000 | −1.909 | −5.250 | −6.364 | **−7** |
+
+The class is by construction the rows with |z| ≫ 1 — at 2016 it is ranks 1, 2, 3
+and 6 of 97 — so on that population **the score is monotone decreasing in the
+width**. It is a signed width test wearing a proper scoring rule's costume, and
+any candidate that widens `sd_for` passes it. **If you want a width test, write a
+width test.** Add that the deltas would share one `mu_all` and one fitted line,
+so the between-cluster variance is near zero and the band would certify a
+mechanical fact at arbitrary confidence — and that §1.74 already measured the
+class as empirically indistinguishable from "the five largest |log θ|
+observations", so scoring a candidate on rows it selected for being outliers is
+selection on the dependent variable.
+
+**REFUTED. Recorded so nobody re-proposes it.**
+
+### What the search found instead — and it is a precondition
+
+**"ROUTE, DO NOT DROP."** The defence of Type A is that a collapse is not
+retention and belongs to `pools.SPLITS` and the arrival machinery instead. **That
+defence is true for two of the register's six rows and false for four:**
+
+| register row | event | routed where the model still draws from it? |
+|---|---|---|
+| DA 2011 | `MERGER_ABSORBED` (the ID) | **No — there is no merger machinery in `src/` at all** |
+| IFP 2011 | `SPLIT_PARENT` (NFP) | Yes — `SPLITS["NFP"] → IFP` |
+| COPE 2011 | `POST_FORMATION_COLLAPSE` | **No** — `SPLITS["COPE"] → ANC` models its BIRTH, not its collapse |
+| AGANG 2016 | `POST_FORMATION_COLLAPSE` | **No** |
+| MINORITY_FRONT 2016 | `LEADER_DEATH` | **No** |
+| DA 2021 | `SPLIT_PARENT` (ActionSA) | Yes — `SPLITS["ASA"] → DA` |
+
+`pools.SPLITS` holds exactly `{ASA→DA, COPE→ANC, EFF→ANC, GOOD→DA, MK→ANC,
+NFP→IFP}`; `arrivals.py` models entry and has no exit path; and the only
+occurrence of "merger" anywhere in `src/` is a comment in `parties.py` saying the
+DP/DA case is *not* one. **Two of six are routed** — the IFP's NFP split and the
+DA's ActionSA split.
+
+> ⛔ **A first draft of this section said "all four of the movable rows at fold
+> 2016 are routed nowhere". That is false and a review caught it.** `theta_record`
+> keys the filter on transitions strictly BEFORE the target, so fold 2016's fit
+> loses only the **three** 2011 rows — COPE, DA and IFP — **and the IFP is
+> routed**. Correctly: **two of three unrouted at 2016, four of five at 2021,
+> four of six at 2026.** The claim as written made the objection sound tighter at
+> the decisive fold than it is.
+
+**So the honest occupant of the vacated role is a checkable structural condition,
+not a statistic:** *an exclusion may not ship unless the volatility it removes is
+carried somewhere the model still draws from, and the register must say where,
+per row.* It blocks Type A today, on a property anyone can verify, and it sits
+where §1.126 already said the objection belongs — **Key 3 and rule 10** — rather
+than inventing a fifth key to reach a verdict already held.
+
+### The statistical half: the width channel, which is the right shape and is UNDERPOWERED
+
+§1.127's channel split isolates exactly the vacated quantity — *did the exclusion
+narrow the prior relative to what it must forecast?* — on the full n=97/138 with
+eight genuine metro-year clusters and a population the candidate cannot choose.
+Pooled, it does not block: **+0.0921 at 2016 (one-sided lower bound −0.0017, 6/8
+worse) and +0.0209 at 2021 (−0.0249, 5/8)**. The 2016 bound misses zero by
+0.0017.
+
+**Split by size bin it looks decisive, and under a multiplicity correction it is
+not.** A review flagged the loose end that §1.74 measured `sd_for` at 5–15%
+falling 0.203 → 0.150 under Type A while §1.126 found no pooled narrowing at all
+— so the split was run:
+
+| fold | bin | n | G | Δ | se | worse | one-sided p | Holm crit |
+|---|---|---|---|---|---|---|---|---|
+| 2021 | 1–5% | 15 | 7 | **+0.2349** | 0.0705 | **7/7** | 0.0079 | 0.0056 |
+| 2021 | 5–15% | 8 | 7 | **+0.2709** | 0.1180 | 6/7 | 0.0309 | 0.0063 |
+| 2016 | 1–5% | 13 | 7 | **+0.4834** | 0.2177 | 5/7 | 0.0342 | 0.0071 |
+| 2021 | 0.2–1% | 45 | 8 | +0.0452 | 0.0289 | 5/8 | 0.0809 | 0.0083 |
+| 2016 | 0.2–1% | 41 | 8 | +0.0294 | 0.0301 | 5/8 | 0.1813 | 0.0125 |
+| 2021 | ≥15% | 17 | 8 | +0.0521 | 0.0350 | 4/8 | 0.0906 | 0.0100 |
+| 2016 | ≥15% | 16 | 8 | −0.0144 | 0.0168 | 2/8 | 0.7903 | 0.0167 |
+| 2016 | <0.2% | 22 | 7 | −0.0921 | 0.0976 | 3/7 | 0.8092 | 0.0250 |
+| 2021 | <0.2% | 53 | 8 | −0.0732 | 0.0332 | 2/8 | 0.9683 | 0.0500 |
+
+**Three mid-ballot bins fail uncorrected, at both folds, in the same direction —
+and NOT ONE SURVIVES HOLM ACROSS THE NINE.** The smallest p is 0.0079 against a
+critical 0.0056. **This is suggestive and it is not established**, and it is
+written down at length precisely because the uncorrected table is what a reader
+wants to believe: the failure sits in the mid-ballot, which is the band §1.58 and
+§1.59 already name as the model's largest unexplained fault and where §1.127's
+κ\* is highest (2.32–2.36 at 2016). It resolves §1.74-vs-§1.126 — **the
+narrowing is real and it is mid-ballot; §1.126's pooled median hid it** — and it
+does not clear the bar on this panel.
+
+**The instrument is the right shape and the panel is too small to run it at bin
+level.** That is the same minimum-detectable-effect problem §1.127 records for
+Key 4 itself: back-solved from §1.125's published intervals, Key 4's MDE at 2016
+is **0.230 nats/observation**, larger than the largest real effect it has ever
+measured. Building a bin-level key on 8–15 rows without knowing the MDE is how
+Key 4 became vacant in the first place.
+
+### What goes into the bar, and what does not
+
+* **ADOPTED — the routing precondition**, as a Key 3 / rule 10 condition.
+* **ADOPTED — the width channel, POOLED, as a pre-registered floor.** It is the
+  right quantity on an unchoosable population, it already exists
+  (`--dump-arm` / `--compare`), and it must be reported for every candidate that
+  touches the record.
+* **REPORTED, NOT GATED — the per-bin split**, with its Holm column beside it, so
+  the uncorrected table can never be quoted alone.
+* **NOT ADOPTED — the excluded-class score.** Refuted above.
+* **AND THE GAP IS STATED, because it is the honest finding:** on every
+  instrument this repository now has, **the Type A filter does not harm
+  calibration** — PIT variance falls at both folds, coverage rises at both, and
+  the width channel's per-bin failure does not survive correction. **No
+  instrument this repository has restores the old block** — stated that way and
+  not as "no honest key exists", which is a universal claim from two attempts;
+  §1.129 names the family built for this failure mode and not yet tried — and
+  **manufacturing an instrument to reach a verdict already held is the failure
+  §1.124 exists to name.** The
+  defensible sentence is the one §1.126 arrived at, now with a mechanism under
+  it: *we decline this because the exclusion list is typed and unfalsifiable,
+  four of its six rows route the removed volatility nowhere, and here is what
+  deriving it would take.*
+
+### One contradiction inside the bar, created last night and now removed
+
+`ITERATING.md` said, of the structural-events fold: *"Call 2011 the
+structural-events fold and read it as a positive signal: a candidate that
+materially improves it has stopped asking θ to forecast a collapse."* A guard
+against volatility leaving the prior reads **the same movement as a negative
+signal**. Both sentences cannot stand, and the routing precondition is what
+decides between them: improving 2011 is a positive signal **if and only if** the
+volatility is routed somewhere the model still draws from, and a negative one
+otherwise. That is now what the file says.
+
+
+## 1.129 The width-channel floor is decided by an unmeasured constant, so it is reported and NOT gated (2026-08-29)
+
+**A pollster review of §1.128 accepted the theorem, the derivative table, the
+routing table and both retractions — every one reproduced — and then blocked the
+adoption.** §1.128 adopted the pooled width channel as a pre-registered floor
+without sweeping `LEVEL_DF` on it. §1.126 had written, verbatim: *"A future
+candidate with tighter between-cluster spread would be decided by a typed
+constant after all."* The width channel is that candidate: its between-cluster
+spread is **2.45× tighter** than the total channel's (se 0.0495 against 0.1215
+at 2016), because holding the residual fixed strips out the centre-movement
+noise.
+
+### The sweep, and the verdict flips
+
+Type A, width channel, per `LEVEL_DF`:
+
+| df | 2016 Δ | se | one-sided lo | p | worse | verdict |
+|---|---|---|---|---|---|---|
+| **3** | +0.0724 | 0.0298 | **+0.0159** | 0.0230 | **7/8** | **FAILS** |
+| **4** | +0.0762 | 0.0359 | **+0.0082** | 0.0359 | **7/8** | **FAILS** |
+| 7 | +0.0921 | 0.0495 | −0.0017 | 0.0528 | 6/8 | does not block |
+| 15 | +0.1269 | 0.0729 | −0.0111 | 0.0627 | 6/8 | does not block |
+| 30 | +0.1715 | 0.1004 | −0.0187 | 0.0658 | 6/8 | does not block |
+| 100 | +0.2660 | 0.1574 | −0.0322 | 0.0676 | 6/8 | does not block |
+| 1000 | +0.3733 | 0.2216 | −0.0466 | 0.0682 | 6/8 | does not block |
+
+2021 does not block at any df.
+
+**⛔ AT `LEVEL_DF = 4` — THE VALUE THIS MODEL USED UNTIL THIS BRANCH — THE TYPE A
+FILTER FAILS THE WIDTH-CHANNEL FLOOR AT 2016.** `JUDGEMENT-CALLS.md` carries
+`LEVEL_DF` at 🟡: *"Nothing was measured; it was 4.0 until this branch, and 3 or
+6 are equally arguable. Moved to 7 because `exp(t₄)` has no finite mean."* At 7
+the 2016 margin is t = 1.860 against a critical 1.895, **p = 0.0526** — a
+near-miss whose sign is set by a constant nobody has measured.
+
+**So the disposition changes: the pooled width channel is REPORTED for every
+record-touching candidate and is NOT A GATE**, until `LEVEL_DF` is measured or
+the pass rule declares its df explicitly. §1.128 adopted it as a floor; that was
+one review too early, and this is the correction.
+
+**What §1.128 failed to claim, and it is the case for keeping it.** Holding the
+residual fixed makes the width channel **2.5–2.8× better powered than the key it
+supplements**: MDE 0.094 / 0.046 nats against Key 4's 0.230 / 0.130. At 2016 its
+MDE is *smaller* than the largest real effect Key 4 has ever measured — which was
+§1.127's whole complaint about Key 4. It is the best-powered instrument in the
+bar and it still cannot separate this candidate from noise.
+
+**And one property to declare rather than discover.** `Δ_total ≠ Δ_width +
+Δ_centre`: NLL is jointly non-linear in (residual, width), so the split is
+path-dependent and what is reported is the incumbent-first path. `compare_arms`
+said "the remainder of the total is the centre channel", which presupposes an
+additivity that does not hold. Also: gating on the width channel alone would
+block a candidate that narrows widths while improving centres by more. That is
+defensible here — the centre gain runs through `mu_all` and is exactly what is
+suspect — but it is a judgement, not arithmetic.
+
+### The per-bin split, now with the width itself, which settles §1.74 vs §1.126
+
+The p-value and its Holm critical are **in the tree** — `key4_delta` returns
+`one_sided_p`, `compare_arms` ranks the bins and prints both, and it carries the
+median `sd_for` per arm so a score delta is never read as a width movement. That
+closes the off-tree-table failure at its **third** occurrence in four entries.
+
+The Holm family is also corrected: it is the folds that **can move**. Padding it
+with 2006 and 2011 — structurally null under any `TYPE_A_EVENTS` arm, since the
+filter keys transitions strictly before the target and neither fold's record
+contains one — took the smallest critical from 0.0056 to 0.0031. That is not
+conservatism, it is discarding power.
+
+| fold | bin | Δ | p | Holm | `sd_for` incumbent → candidate |
+|---|---|---|---|---|---|
+| 2021 | 1–5% | +0.2349 | 0.0079 | 0.0056 | 0.2675 → **0.2409** |
+| 2021 | 5–15% | +0.2709 | 0.0309 | 0.0063 | 0.1815 → **0.1500** |
+| 2016 | 1–5% | +0.4834 | 0.0342 | 0.0071 | 0.2714 → **0.2111** |
+| 2016 | <0.2% | −0.0921 | 0.8092 | 0.0250 | 0.4343 → **0.4984** |
+| 2021 | <0.2% | −0.0732 | 0.9683 | 0.0500 | 0.4594 → **0.5084** |
+
+**§1.128 claimed the per-bin split "resolves §1.74-vs-§1.126". It did not — a
+score delta is not a width, and the mid-ballot is where |z| is largest, so it
+would score worst under ANY uniform narrowing. The direct measurement above is
+what earns it**, and it does: the exclusion **narrows the mid-ballot and widens
+the small end**. 5–15% at 2021 falls **0.1815 → 0.1500, exactly onto
+`SD_FLOOR`**, reproducing §1.74's independently measured 0.203 → 0.150; and
+<0.2% *rises* at both folds. §1.126's pooled median (0.3439 → 0.3291, mean
+rising) was the average of those two opposite movements. **Both entries were
+right about different bands.**
+
+### Two more corrections to §1.128
+
+* **"All four unrouted rows are the movable ones at fold 2016" is false.** Fold
+  2016's fit loses three rows, not four, and one of them (IFP) is routed. Two of
+  three at 2016, four of five at 2021, four of six at 2026.
+* **"No honest scoring key restores the old block" was a universal claim from two
+  attempts**, cut to "no instrument this repository has". The tail-weighted
+  family built for exactly this shape has not been tried.
+
+### The instrument that has NOT been tried, and should be
+
+The failure mode is "aggregate improves, tail worsens", and there is a standard
+proper family for it that the refuted excluded-class proposal was a bad imitation
+of:
+
+* **Threshold-weighted CRPS** (Gneiting & Ranjan 2011) — proper, weighted on a
+  region of outcome space **fixed in advance** rather than by which rows the
+  candidate deleted, so it is neither chooseable nor selection on the dependent
+  variable. Decisively, **twCRPS is not monotone in width**, so §1.128's
+  degeneracy theorem does not apply to it, and n stays at the full 97/138.
+* **Anderson–Darling on the PIT values** — cheapest, and available today:
+  `pit_table` already computes *u* per row, and AD weights the tails of the
+  uniform where KS does not. §1.126 reports cov80, cov95 and mean z²; the failure
+  lives beyond 95%.
+* **A Murphy diagram** — elementary scores across thresholds, incumbent minus
+  candidate; a crossing is visible directly and it decomposes a proper score
+  rather than inventing one.
+
+Expected outcome, stated in advance: **on eight clusters these are probably also
+underpowered.** But *"we ran the instrument built for this failure mode, and here
+is its MDE"* is a far stronger position than *"no honest key exists"*, and it
+converts the vacancy from **unmeasurable** to **unmeasured with a stated MDE**.
+**Do not gate Type A on any of it.**
+
+### And a constant that is now load-bearing twice
+
+`LEVEL_DF` decides the width channel's 2016 verdict and shifts Key 4's own
+statistic by 0.4355 nats across its plausible range. It is 🟡, typed, never
+measured, and was a different value four weeks ago. **Measuring it is no longer
+a tidy-up.**
