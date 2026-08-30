@@ -136,6 +136,47 @@ and `cap` give three different answers, all three pinned.
 > **These are found, not fixed.** Each is owed a decision, and where one moves a
 > number the backtest against real results adjudicates it — never the freeze.
 
+> **⛔ STATUS, ADDED 2026-08-29 — B AND C ARE NOT STARTED, AND C'S TARGET IS
+> GROWING.** Without these markers this file reads as a plan in progress. It is
+> one third executed and two thirds dormant.
+>
+> * **B — NOT STARTED. Zero code.** There is no bus module and no `bus.read`
+>   call anywhere in `src/`; the only occurrence in the repository is this
+>   document being quoted inside a test docstring.
+> * **C — NOT STARTED, and `run_model` has grown 19% since this file was
+>   written.** Measured by AST at both commits: **1,107 lines on 2026-08-25**,
+>   the day this document was written, against **1,315 today**. `montecarlo.py`
+>   went 3,457 → 4,915, up 42%. The closing line of this file — *"`run_model`
+>   grew from 863 lines to 1,315 while the work was deferred"* — is still being
+>   written, in real time.
+> * **Three of the four generated lists do not exist**, and never have:
+>   `MODEL-MAP.json` and `IMPACT.json` have never been created in any commit in
+>   this repository's history, and the `sys.monitoring` line-coverage half of
+>   list C does not exist. List B exists for scenario levers only.
+> * **The nine-field declaration is an ASPIRATION, not a practice.** No unit
+>   declares itself. There is no `class Unit`, no `reads=`/`writes=` anywhere.
+>   Of the nine fields, only `name` and `where` are machine-recoverable for any
+>   unit, and both come free from Python rather than from anything adopted here.
+>   The nearest real thing is the registered-null record in the lever test,
+>   which covers five of the nine fields — **for levers, not for units.**
+>
+> **Recommendation recorded 2026-08-29, owner's call:** do not start B or C, and
+> do not build `MODEL-MAP.json`, before 4 November. The silent-neutral defect
+> class this file targets is currently being caught by cheaper machinery built
+> *after* it — the delivery log, the registered nulls, the gates — which is
+> finding real faults. Extraction would move forecast numbers with ~60 days to
+> polling, and every move needs a sixteen-city-year paired backtest to
+> adjudicate, with the freeze explicitly barred from arbitrating. A manifest
+> also cannot reach the inline stages where this document says the defects live,
+> so it would document the well-behaved third and be silent on the rest — which
+> reads as coverage without being coverage.
+>
+> **The one cheap piece worth doing now:** this file promises that *"a `§N.M`
+> that does not resolve fails the build"*. That test does not exist and is about
+> an hour's work. It guards the exact rot this project keeps hitting — a
+> citation to a renumbered or never-existent MODEL-LOG section, the same class
+> that put 24 wrong line numbers into the constants register.
+
 **B — replace the silent orchestration with the bus.**
 
 **C — extract the ~14 inline stages**, each justified by a specific pain, each

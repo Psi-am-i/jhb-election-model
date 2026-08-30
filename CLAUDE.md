@@ -187,6 +187,91 @@ interpreter.
                                                        #   the model actually uses (§1.59)
     .venv/bin/python src/sweep.py                      # obvious-fault sweep
 
+### ⛔ THE WORKING LOOP — the standard procedure for this project
+
+**Standing instruction from the owner, 2026-08-30:** *"use multiple agents,
+check their work, and get pollster to review after each round. Then make
+changes. Iterate this pattern. When a section is clear, move to the next."*
+
+**This is the procedure, not a per-task choice. One section at a time, and a
+section is not left until it is clear.**
+
+    ROUND = design (parallel, read-only)
+          → I check (re-derive the decisive number myself)
+          → pollster reviews, BLIND where possible
+          → apply only what the check and the review agree on
+          → measure, and write the result up
+          → next section
+
+1. **DESIGN — split across agents, in parallel, READ-ONLY.** One agent per
+   finding or coupling group. Give them the coupling warnings explicitly; an
+   agent that does not know `compress_levels` renormalises over `centres` will
+   cheerfully propose widening a loop. Agents return **specifications**, not
+   edits — see the contention rule below.
+2. **⛔ I CHECK WHAT THEY RETURN, BY RE-DERIVING IT.** Not by reading the
+   summary. This has changed the answer repeatedly and in both directions: an
+   agent cited `PARTY_OF_ACTION` as ActionSA (the conclusion held, the evidence
+   did not); an agent's P(cap binds) of 0.7% was 9.4e-05 at 2021 and 5.7e-03 at
+   2026; and one agent overturned another's cause for the 2016 null arm **and
+   mine**. Quote what you verified and what you did not.
+3. **THE POLLSTER REVIEWS EACH ROUND, AND BLIND WHERE IT CAN BE.** Not only at
+   the end, and not only on substance. Give it the evidence base and the
+   question; do **not** give it my conclusion. Two blind passes have now each
+   found a publication-blocking defect the other reviewer missed entirely, and
+   one of them **downgraded its own earlier verdict on better arithmetic**,
+   which is the behaviour blindness buys.
+4. **APPLY ONLY WHAT BOTH AGREE ON.** Where they disagree, the disagreement is
+   the finding and it goes to the owner — do not split the difference.
+5. **MEASURE, THEN WRITE IT UP.** `compare_history` adjudicates 16 city-years in
+   about three minutes. **Prefer questions that instrument can settle, and be
+   sparing with those it cannot.** A rejected idea is written up with the
+   measurement that rejected it.
+
+**PRE-REGISTER THE PREDICTION BEFORE THE RUN, IN WRITING.** It is what turns a
+result into evidence. It has paid twice: a challenger's arrival mass was
+predicted at +17.8pp and realised at +17.76pp; and a prediction that local
+anchoring would *help* the mid-ballot was recorded, refuted, and the refutation
+was the useful part.
+
+### The three ultra reviews — spend them on code that moves numbers
+
+**The owner holds three `/code-review ultra` runs. They are user-triggered and
+billed; I cannot launch one, so ASK when the moment arrives rather than assuming.**
+
+A deep multi-agent review is wasted on a documentation diff. Spend them where a
+defect would be expensive and where this project's normal safety nets do not
+reach — which is precisely where a change **moves forecast numbers**, because
+`forecast_frozen.json` is explicitly barred from arbitrating and the backtest
+cannot tell a fixed bug from a new one.
+
+**Booked, in priority order:**
+
+1. **The `pools.py` re-emit batch** — the 2000/2006 `metro_file` reader plus the
+   roster/reach seam. Highest stakes on the calendar: it moves numbers, it
+   invalidates **all eighteen** specs, it touches the shared artefact path, and
+   it runs under a one-writer window. **Review it BEFORE the re-emit, not after**
+   — afterwards the baseline has already moved and there is nothing clean to
+   compare against.
+2. **Any new SCORING instrument** — the bloc-total score, or anything else that
+   arbitrates. This repository has just been bitten by a referee that raised on
+   every city-year for its entire life while the suite stayed green, because its
+   only test used a fixture of a type production never builds. A scorer is the
+   one thing whose failure is invisible to the thing that would normally catch
+   it.
+3. **Hold the third in reserve** for whatever the width work becomes, or for the
+   first change that alters a published figure.
+
+**Do not spend one on:** a documentation pass, a doc consolidation, a lever
+sweep that changes no code, or a change the 16-city-year backtest already
+adjudicates in three minutes.
+
+**Contention is managed by making agents READ-ONLY when they would collide.**
+Three agents writing to `montecarlo.py` collide whatever regions they occupy,
+because each writes the whole file. **Parallel analysis plus serial application
+is the reliable shape**; worktrees are the alternative when the files are
+genuinely disjoint. Only one worker may re-emit `pools_*.json`, and **nobody
+measures while that happens.**
+
 ### The review rule: agents check me, and the pollster checks the substance
 
 **Standing instruction from the owner, 2026-08-28: *"same as before: split

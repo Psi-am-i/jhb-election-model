@@ -16057,3 +16057,211 @@ total — and that should be the primary.** Bias and PIT are diagnostics beside 
 not the arbiter. Neither `mass_median` nor `seats_median` is used by anything
 today, and `mass_err` is taken against the **mean**, which is the right choice for
 a total but is nowhere stated.
+
+
+## 1.137 LGE→LGE as the primary route: proposed by the owner, tested across three orders of magnitude, and REFUTED — but the validation that chose the current value was inadequate (2026-08-30)
+
+**The owner's challenge, and it is a good one:** *"We are working from NGE to LGE.
+Why? … if we have previous LGEs the prediction should START with the LGE number.
+… our chosen mechanism seems one of many and we have not tried any others."*
+
+### 1. He was right that it had never been tested
+
+`levels.spine` blends a **national** leg (preceding NPE × θ) and a **local** leg
+(preceding LGE × ρ), weighted toward local by `k/(worth + k)` with `k = SPINE_K
+= 1.0`. Measured at Johannesburg 2026:
+
+| party | national leg | local leg | `w_local` | result |
+|---|---|---|---|---|
+| DA | 0.3101 | 0.2751 | **0.0297** | 0.3090 |
+| ANC | 0.2799 | 0.2845 | ~0.03 | 0.2800 |
+| PA | 0.0580 | **0.0804** | ~0.11 | 0.0641 |
+| ActionSA | 0.0576 | 0.1195 | **1.0** | 0.1195 |
+
+Route census: 23 blend, 21 national-only, 34 local-only. **A party with a long
+retention record is forecast ~97% from the national election.** ActionSA is
+already at full local, so the owner's own worked example was in fact handled.
+
+⛔ **And the sweep that chose `SPINE_K = 1.0` never left the national regime.**
+It is recorded as fitted leave-one-metro-out with *"the curve flat over
+[0.5, 1.5]"* — but across that interval the DA's `w_local` moves only **0.015 →
+0.044**. The validating sweep could not have tested local-primary. **That is
+rule 6's own failure mode** — *sweep it to a value that MUST change the answer* —
+applied to the model's most consequential attractor, and it stood for weeks.
+
+`spine_k` is a live scenario key (F1 fixed the `or SPINE_K` idiom that made 0
+undeliverable), so the hypothesis needed **no code change** to test.
+
+### 2. The measurement — `--set spine_k=N`, 16 city-years, five arms
+
+| `w_local` (DA) | `spine_k` | 2016 seats | 2021 seats | **total** | CRPS total |
+|---|---|---|---|---|---|
+| 0.030 | **1 (shipped)** | 124 | **262** | **386** | 329.5 |
+| 0.234 | 10 | **108** | 336 | 444 | 367.3 |
+| 0.502 | 33 | 118 | 400 | 518 | 412.9 |
+| 0.754 | 100 | 134 | 432 | 566 | 444.2 |
+| 0.968 | 1000 | 146 | 458 | 604 | 469.9 |
+
+**Monotone worse, over a 33× range of local weight.** 2021 improves in **0 of 8
+metros at every setting**; at k=10 it is worse in **8 of 8** (+74 seats). 2016
+improves in 4 of 8 at k=10 (−16 seats) and then degrades too.
+
+**Key 1 fails on its own terms**: the sign is not the same in both cycles, and
+2021 shows a net loss at every value tested.
+
+### 3. WHY it fails, which is the part worth keeping
+
+Signed error by rank band, summed over 8 metros (**+ is OVER-forecast**):
+
+| target | band | k=1 | k=10 |
+|---|---|---|---|
+| 2021 | ranks 1-3 | +15.48 | **+19.35** |
+| 2021 | ranks 4-12 | −26.07 | **−30.65** |
+| 2016 | ranks 1-3 | −3.19 | **−0.56** |
+| 2016 | ranks 4-12 | −0.04 | −2.35 |
+
+**Local anchoring propagates the previous local election's PARTY-SIZE STRUCTURE
+forward.** At a 2021 target the local leg is 2016, when the mid-ballot was
+smaller and the big two larger — so it pushes ranks 1-3 further up (already
+over-forecast) and ranks 4-12 further down (already under-forecast), worsening
+both. Across 2011→2016, a structurally stable transition, the same move helps.
+
+**It is a bet on structural stability, and South African local politics is
+currently fragmenting.** 2026 — MK new, ActionSA established, the PA growing —
+is the case where it does worst. That is the finding, and it is a statement
+about the domain rather than about the code.
+
+### 4. What is NOT refuted, and must not be swept up with this
+
+* **The conceptual objection stands.** `worth` measures how well estimated the
+  **national** leg is, and that is then used to gate the **local** leg. Both legs
+  estimate the same quantity; the defensible weighting between two competing
+  estimates is **inverse-variance**, per party, not a function of one leg's
+  record. A global `k` moves every party together and cannot express that. **The
+  principled version of the owner's idea is untested.**
+* **The geography layer carries the SAME national-first assumption and it has
+  not been tested at all.** `dev` is each party's per-VD logit deviation at the
+  preceding **NPE**, and every γ fold is an NPE→LGE transition
+  (`GAMMA_FOLD["2026"] = 1` — the **2014 NPE → 2016 LGE**, a decade before the
+  target). **Party sizes realign; ward patterns realign far less**, so the
+  failure above does not predict a failure there. This is now the strongest
+  untested idea in the model.
+* **Demographic placement of established parties.** Per-VD pool composition is
+  used in exactly one place — seeding **arrivals** — and the code says so:
+  *"put it where its pools live. This is the one place the pools do work the old
+  baseline-deviation model cannot do at all."* ⚠️ Caveat before anyone builds it:
+  the pool fit **identifies only 11/8/3/4 party-members per pool out of ~75**, and
+  21 parties have no vector at all, so for most of the ballot `dev` carries more
+  information than pools do. The honest design is a blend, and none exists.
+
+### 5. The status of `SPINE_K = 1.0` after this
+
+**Vindicated as a value, on a validation that was inadequate.** The shipped
+setting sits at or near the optimum of the pooled curve — but the recorded
+justification ("flat over [0.5, 1.5]") described a *local* plateau on what is
+actually a monotone decline, and read as though the question had been settled.
+It had not been. The value survives; the reasoning behind it is replaced by this
+entry.
+
+### 6. ⛔ CORRECTION, SAME DAY — THE SWEEP TESTED THE WRONG ESTIMATOR
+
+**The owner asked what the sweep assumed the national impact was. The answer is
+ZERO, and that is not what he proposed.**
+
+The local leg is `prev_local × exp(mu_r)` — the previous LGE result times a
+fitted **LGE→LGE** retention ratio, shrunk toward `rho_centre = 0.7446` for any
+party with no ρ record of its own. So raising `k` moves weight onto *"the
+previous local election, decayed ~25%, with no national information whatsoever."*
+
+**His proposal was different**: start at the previous LGE and use the national
+movement to predict the **change** — *"the party drop-off is applied to previous
+LGE … its NGE result should influence the next LGE based on its LGE/NGE ratio."*
+The sweep deleted the national signal instead of repurposing it as a delta. **So
+§1.137's five arms do not test the owner's estimator, and the refutation above
+must not be quoted as refuting it.** What they refute is the narrower claim that
+the shipped blend should sit further toward an undecayed local anchor — which is
+still a real result, and still monotone.
+
+**And his estimator is already in the tree, as a scored baseline.**
+`benchmarks.uniform_swing` is documented as *"the previous local election,
+shifted by the movement between the two national elections that bracket it"* —
+which is exactly LGE-anchored with the national swing as the change signal.
+Measured on the same 16 city-years, coherent seat error:
+
+| estimator | 2016 | 2021 | **total** |
+|---|---|---|---|
+| `last-lge` — pure local, no national | 442 | 502 | **944** |
+| **`uniform-swing` — the owner's proposal** | 180 | 350 | **530** |
+| **the model** | 124 | 262 | **386** |
+
+**The ladder is the finding.** Anchoring locally and applying the national swing
+is worth **414 seats** against pure local — the owner's instinct is
+directionally right and large. The model's route then improves on *that* by a
+further **144 seats**, consistently in both cycles. So the national election is
+load-bearing in both estimators, and the open question was never "national or
+local" but *how* the national enters — as a level conversion (shipped) or as a
+swing transfer (the baseline). **The shipped conversion wins by ~27%.**
+
+**What this leaves genuinely open** is the inverse-variance blend of §4 above:
+neither the shipped weight nor the swing transfer weights the two legs by their
+own per-party uncertainty, and nothing has tested one that does.
+
+
+## 1.138 Model + uniform swing: Murphy's combination is refused at the boundary, because the two forecasts err in the SAME direction (2026-08-30)
+
+**Owner's question, and a good one:** *"What is it like if we combine uniform
+swing and the current model? I think both are defensible. Does the combination
+correct where we see the biggest issues?"*
+
+**Answer: no. It amplifies them, monotonically, on both bands.**
+
+Citywide PR shares, all 16 city-years, top-12 columns, `w` = weight on the model,
+uniform swing computed as `LGE_prev + (NPE_recent − NPE_prior)` clipped and
+renormalised — `benchmarks.uniform_swing`'s own definition. **Signed is + for
+OVER-forecast.**
+
+| w (model) | 1-3 signed | 1-3 abs | 4-12 signed | 4-12 abs |
+|---|---|---|---|---|
+| **0.00 — pure uniform swing** | **+49.42** | 138.90 | **−60.22** | 101.68 |
+| 0.15 | +43.85 | 129.73 | −54.35 | 93.26 |
+| 0.30 | +38.28 | 120.84 | −48.49 | 85.51 |
+| 0.50 | +30.86 | 110.89 | −40.67 | 77.18 |
+| 0.70 | +23.43 | 101.03 | −32.86 | 71.24 |
+| 0.85 | +17.86 | 95.52 | −26.99 | 68.64 |
+| **1.00 — the model** | **+12.29** | **92.52** | **−21.13** | **68.01** |
+
+### Why it fails, and it is the same mechanism as §1.137
+
+**Uniform swing carries the model's two headline biases in the same direction and
+about three times as strongly.** It over-forecasts ranks 1-3 and under-forecasts
+ranks 4-12 — precisely the two faults §1.131/§1.132 identify — so every unit of
+weight moved onto it makes both worse. A convex combination buys something only
+when the partners' errors are independent or opposed; these are aligned.
+
+The reason is structural: uniform swing is `previous LGE + an additive national
+shift`, which **preserves the previous local election's party-size hierarchy**.
+That is the identical failure mode §1.137 measured when `spine_k` moved weight
+onto the local leg — a stale size structure propagated forward. **Two
+independent tests of two different mechanisms are pointing at the same defect in
+the same direction**, which is worth more than either alone.
+
+**Murphy's optimum is on the boundary at w = 1.0.** Note the precedent: §1.57's
+`blended-swing` reached the same boundary result on a different pair
+(`last-lge` × `uniform-swing`, optimum at pure uniform swing). Convex
+combination has now been refused twice on this panel, both times at an endpoint.
+
+### The caveat that must travel with this
+
+Several of the model's constants were fitted on these city-years and uniform
+swing has no fitted parameters, so the comparison **flatters the model**. That is
+what `backtest.FITTED_ON`'s in-sample banner exists for. It does not overturn a
+gap this large and this monotone, but the number is not a clean out-of-sample
+margin and must not be quoted as one.
+
+### What this does NOT close
+
+It measures a blend of two **level** forecasts and says nothing about the joint
+structure. Mixing two distributions widens the result, so a mixture could still
+improve **calibration** while worsening the level — untested, and a poor trade to
+take blind. The live defect in the joint structure is the cross-party
+correlation, which is a different problem and a better target.

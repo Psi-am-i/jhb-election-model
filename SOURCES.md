@@ -209,7 +209,7 @@ Needed to verify that a VD keeping its number kept its catchment (see
 
 | Where | Result |
 |---|---|
-| MDB ArcGIS org, full service list (43 services) | only 2026-era voting-district layers; ward layers back to 2000 |
+| MDB ArcGIS org, full service list (43 services) | only 2026-era voting-district layers; ward layers back to 2000 — ⚠️ **but NOT every year: see the gap below** |
 | MDB DCAT catalogues, both hub sites | no VD datasets at all |
 | ArcGIS Online public search | one 4-feature derived sample; nothing national |
 | IEC GeoServer `vmdgeomaps.elections.org.za` | address points (NAD) plus GeoServer demo layers |
@@ -227,6 +227,60 @@ the 2014 NPE export —
 `elections.org.za/content/Elections/Downloadable-results/2016-Municipal-Elections--Complete-VD-level-results-data-(zipped-CSV)/`.
 Its JHB PR totals reconcile exactly, party for party, against the per-municipality
 CSV we already had.
+
+## Historic WARD boundaries — published, with a hole exactly at 2006
+
+**Checked 2026-08-29 against the MDB's ArcGIS organisation** (item search on the
+MDB's own account), because the line above — *"ward layers back to 2000"* — reads
+as *every year* back to 2000 and is not what it means. The published ward feature
+services are:
+
+| delimitation | ArcGIS item |
+|---|---|
+| MDB Wards 2000 | `3ff7a9b13f2e4adc89095b146515cda5` |
+| MDB Wards 2009 | `38cebccb8a134ac69941c0c7733a29e5` |
+| MDB Wards 2011 | `97cb14748cef423a94f7b7154387b2dc` |
+| MDB Wards 2016 | `a19b92da789f4c949f17a88d14690568` |
+| MDB Wards 2021 | `279fbf82a48f46678ddd498627af3f0a` |
+
+**There is no ward layer NAMED 2006 — but the 2006 delimitation IS published,
+as `MDB Wards 2009`.** Verified 2026-08-29 by querying the feature service
+(`services7.arcgis.com/oeoyTUJC8HEeYsRB/.../MDB_Ward_2009`, field
+`LocalMunicipalityCode`) and comparing its ward counts against the distinct ward
+numbers in our own `lge2006_*_vd_party_clean.csv` files:
+
+| metro | LGE 2006 results | **MDB Wards 2009** | LGE 2011 results | verdict |
+|---|---|---|---|---|
+| Buffalo City | 45 | **45** | 50 | **= 2006** |
+| Cape Town | 105 | **105** | 111 | **= 2006** |
+| eThekwini | 100 | **100** | 103 | **= 2006** |
+| Johannesburg | 109 | **109** | 130 | **= 2006** |
+| Mangaung | 45 | **45** | 49 | **= 2006** |
+| Nelson Mandela Bay | 60 | **60** | 60 | **= 2006** |
+| Ekurhuleni | 88 | 89 | 101 | matches neither — **off by one** |
+| Tshwane | 76 | 95 | 105 | matches neither — **+19** |
+
+**So it is a 2009-vintage snapshot of the wards elected in 2006**, and it
+reproduces the 2006 set exactly for **six of the eight metros**. The two
+exceptions are boundary changes made between the 2006 election and 2009 —
+Tshwane's footprint grew (it absorbed Metsweding before 2011, and the 2009 layer
+already carries part of that), and Ekurhuleni differs by a single ward. **The
+name is the trap: a layer labelled 2009 is the 2006 council's geography.**
+
+⚠️ **This corrects an earlier entry here, and an earlier conclusion, both of
+which said the 2006 boundaries were unavailable.** They are available.
+
+**What that does and does not unblock.** It removes the "the data does not
+exist" objection to a 2011 backtest, for six metros directly. It does **not**
+remove the recorded failure — *"no ward joined the census"* — because that is a
+**delimitation-vintage mismatch**: the census tables the model joins on sit on a
+much later delimitation, so 2006-era wards do not key to them. What is now
+possible, and was not, is an **areal-interpolation crosswalk** from these
+polygons onto the census delimitation — a real spatial join with real geometry on
+both sides, rather than an impossibility. It is a modelling exercise that injects
+its own error into the demographics → pools layer, so it is a decision to take
+deliberately and measure, not a free win.
+
 
 ## Archive
 
