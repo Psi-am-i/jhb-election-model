@@ -927,6 +927,149 @@ module refuses at import by design, so the one-command build died before every
 audit on every city. The interactive steps are now opt-in
 (`build_all.py --interactive`), non-fatal and last. MODEL-LOG §1.89.
 
+## Saying what we published, and when: the publication ledger
+
+Staleness (above) asks whether a number on the page is still current. This asks
+a different question the site could not answer at all: **what did we publish,
+when, and out of which run.**
+
+The owner's standard is **attribution, not re-derivability**. A forecast value
+is live at one point and is bound to be superseded; the old value goes into that
+token's history. We do not have to be able to recompute it — ten front-page
+claims are pinned to `run:turnout_tilt_da=1`, a lever `run_model` no longer has,
+and nothing will ever recompute those. We do have to be able to say what the
+value was, when that was, and which model produced it.
+
+`src/publication.py` is an **append-only** ledger — one row per token per
+publication — and it is **bitemporal**, keeping two clocks that are routinely
+conflated:
+
+| field | clock | what it answers |
+|---|---|---|
+| `as_of` | VALID time | what the run KNEW — its input cut-off |
+| `published_at` | TRANSACTION time | when a reader could first see it |
+| `run_at` | — | when the model was executed |
+
+Keeping them apart is what lets "we republished an unchanged figure" and "the
+model re-estimated" be different events. `as_of` is currently the run time and **says so in the row** — `as_of_is` is
+carried in the row's `provenance`, alongside the git commit and dirty flag, the
+pool artefact keys, the draw count and the forecast content hash. A genuine
+cut-off would be the newest fieldwork end date the run consumed, and until that
+is wired the field is a labelled stand-in rather than a measurement. **The label
+has to be in the ROW**: `site/changes.json` is overwritten every build, so a
+future reader looking at a two-year-old row has only the row.
+
+Every row carries **both** the raw `value` and the `display` string the reader
+saw, because the interesting case is invisible from either alone: a raw move
+that does not change the printed glyph is classified `rounding` — recorded, and
+disclosed in aggregate, but not marked inline, since a mark that fires when
+nothing visible changed teaches readers to ignore marks.
+
+### What the build does with it
+
+`build_site.py` classifies every token that reaches a reader against the last
+published row, prints what moved, and writes `site/changes.json` for the page
+layer to render from — the same classification the ledger stores, not a second
+copy of the logic.
+
+**Publishing is opt-in and a move must be declared.** `--publish` appends to the
+ledger; without it the build still writes `site/changes.json` but **appends no
+ledger row**, because the ledger cannot take a row back and this script runs many
+times a day. With it, a batch in which anything **moved** is refused unless
+`--reason` and `--change-class` (one of `recompute`, `data_revision`,
+`mechanism`, `bugfix`) are given. **A first publication is not a move**: a `new`
+token has nothing to have changed from, and stamping the founding rows with one
+of those four classes would write a false lineage into a record that cannot be
+rewritten. **This is not a
+gate on the forecast moving — that is expected. It is a gate on the move being
+silent.**
+
+Four refusals stand between a build and a published row — the first on the
+WRITE path proper, the other three on the BUILD path ahead of it — and they
+refuse rather than warn for the
+reason recorded throughout this file: a print is a comment, and ten orphaned
+claims survived two reviews that both named them.
+
+* **Unattributable rows.** A row whose `model_run_id` says *unknown*, or with no
+  run time or no transaction time, is refused — and the **whole batch is
+  validated before the file is opened**, because a refusal raised mid-write left
+  the earlier rows permanently written.
+* **Undeclared moves**, above.
+* **A superseded figure in live present tense.** A retired figure may appear as
+  history — *"as of 7 August the model said …"* — and not as the present. The
+  prose **declares** its own dating by enclosing the sentence in an element
+  carrying `data-asof`, recorded per occurrence, because the same token is live
+  on one page and historical in another. It is declared rather than sniffed for
+  a nearby date: such a guess fails **open** on prose it cannot parse, which is
+  the exact defect, and closed on prose that is fine.
+* **A published token that has left the registry unretired** — `set(latest(city))
+  − set(registry)`, minus anything already carrying `superseded_at`. This one
+  has **no escape hatch**, unlike `--allow-orphans` and `--allow-stale-sources`,
+  because the obligation it enforces is one call to `retire()` with a reason
+  rather than model work. See below.
+
+### The seam: a ledger that starts empty, and a figure that can simply vanish
+
+`retire()` is the only thing that sets `superseded_at`, and the superseded-in-
+present-tense refusal is built entirely on that stamp. So a token that is
+**deleted** rather than retired takes the guard with it — there is no row left
+for the check to fire on. That is not hypothetical: it is exactly what the ten
+`turnout_tilt_da` claims are, and the lever was deleted for a good reason by
+someone with no idea a front-page claim was pinned to it.
+
+Two halves, and the second is the one that matters:
+
+* **`publication.backfill(city, rows)`** enters figures the site published
+  **before this ledger existed**. They have no run identity and never will, so
+  the row is keyed to the **archived page's bytes** instead:
+  `r-preledger-<first 12 hex of sha256(page)>`, with the page path, the full sha
+  and an `as_of_is` saying *"reconstructed from the published page; no run
+  identity exists"* in `provenance`. `preledger_identity(page)` cuts that
+  identity, in the same shape `run_identity` returns, so a backfilled row is
+  built exactly like a live one. **`build_site` never calls it.** It is a
+  one-off, and its purpose is to make a figure *retirable*, not to make it
+  current — backfilling a claim and leaving it in live prose publishes precisely
+  the stale number this machinery exists to stop.
+
+  **The one exemption from the attribution refusal is keyed on EVIDENCE, not on
+  the caller.** The prefix alone buys nothing: the id must follow from the sha
+  the row itself records, the page path and the label must be there, and the row
+  must not also claim a run time. A caller-keyed version — *only `backfill` may
+  write such a row* — was written first and is **wrong**: `retire()` closes a
+  token out by re-appending the row it is retiring, so the retirement of a
+  backfilled figure is itself a pre-ledger row arriving through `append`.
+  Locking the caller made the ten claims backfillable and then **unretirable**,
+  moving the seam one step down rather than closing it. `backfill` adds the one
+  check that needs the world and cannot be made later: the page at the recorded
+  path must still be there and must still hash to what the row claims.
+
+* **The build refusal above is the durable half.** The backfill fixes ten rows;
+  the refusal stops the eleventh, the next time a lever is deleted.
+
+**Backfilling and retiring the ten does not clear the build.** Measured
+2026-08-31 against a throwaway ledger: the `ORPHANED PINNED CLAIMS` refusal is a
+property of `content/joburg/stats.toml`, not of the ledger, so it still fires on
+all ten; and the superseded-in-present-tense refusal then fires for the first
+time in its life on **13 occurrences of 9 of the ten tokens**, because no page in
+the tree carries a single `data-asof`. Both are correct. What is left is
+editorial — date the prose, re-capture the claims under a mechanism that exists,
+or cut them — and not machinery.
+
+The run identity is built from what actually determines a forecast — the git
+commit and dirty flag, the pool artefact keys, and a hash of the forecast
+content with the volatile `_`-prefixed stamps stripped — so two identical
+forecasts produced a minute apart get the **same** id, and the id can answer
+whether anything moved. `freeze.py` already computes the commit, the dirty flag
+and the pool artefact keys, and is called rather than reimplemented; the content
+hash is the one piece computed here, because nothing else needed it.
+
+Nothing has been published yet: `--publish` refuses today because
+`data/processed/forecast_summary.json` predates the `_generated` stamp and
+carries no run time. **`publications/` does not exist**, and no backfill has been
+run — the machinery is built and proven against a throwaway ledger, and the real
+one is append-only, so the first row written to it is a decision, not a step. See
+MODEL-LOG §1.142 for the seam and how it was closed.
+
 ## Reading a run without re-running it
 
 `run_model(..., run_dir=...)` — or `--run-dir` on `montecarlo.py` and
@@ -1013,10 +1156,26 @@ order-stable content hash, and a same-length edit changes it.
 
 Python randomises `hash()` for `str` per process, which reorders `set` and
 `dict` iteration, which reorders a float summation on the model path. The effect
-is machine epsilon — **3.1e-16 to 5.0e-16** against party shares whose median is
-9.4e-5 — so **no forecast moves**. What moves is whether a re-run is
-bit-comparable to the one before it, and `compare_history` fans out to sixteen
-worker processes that each had their own seed.
+on any **share** is machine epsilon — **3.1e-16 to 5.0e-16** against party shares
+whose median is 9.4e-5. What moves is whether a re-run is bit-comparable to the
+one before it, and `compare_history` fans out to sixteen worker processes that
+each had their own seed.
+
+⛔ **THIS SECTION USED TO SAY "SO NO FORECAST MOVES", AND THAT IS FALSE.**
+Measured on `prior-lge-noise` at mangaung 2021, 1000 draws, seed `0` against seed
+`1`: **one draw in a thousand differs, and it differs by a SEAT** — ACDP 1 → 0,
+UNITED_CHRISTIAN_DEMOCRATIC_PARTY 0 → 1, council size preserved. The epsilon
+cannot move a share, but the allocator has a discrete step, and a
+largest-remainder **tie** between two micro-parties is broken by iteration order.
+A 1e-16 perturbation crosses the tie. The old claim was true of the continuous
+quantity and false of the published one. MODEL-LOG §1.145.
+
+**MEASURED on a BASELINE, ARGUED for `run_model`** — and this file's own rule is
+that the distinction is stated wherever the claim is quoted. The seat that moved
+was `benchmarks.prior_lge_noise`'s. `run_model` shares the allocator, so the
+mechanism transfers by argument; **it has not been measured there**, and the
+honest reading is that no model forecast is *known* to have moved and the
+guarantee can no longer promise that none could.
 
 `montecarlo.fix_hash_seed()` re-execs the process once under
 `PYTHONHASHSEED=0`, called from the `__main__` guard of every runner. The seed
@@ -1027,7 +1186,17 @@ are fixed for free — a spawned child inherits `os.environ`.
 `freeze.ENV_SWITCHES` records it, along with `sys.flags.hash_randomization`,
 because a freeze produced by an *importing* caller holds the constant while the
 interpreter never got it. The guarantee is *identical to the last bit under a
-fixed hash seed; identical to ~1e-16 otherwise.*
+fixed hash seed; identical to ~1e-16 in the shares, and up to a tie-broken seat,
+otherwise.*
+
+**The guard is attached to `__main__`, so it protects how the code is RUN and not
+how it is IMPORTED — and every ad-hoc measurement harness imports.** A script
+that imports these modules gets no re-exec and no fixed seed, and its numbers are
+then not bit-comparable to a canonical run. This is not hypothetical: it accounts
+exactly for a two-cell, ≤0.0016 CRPS disagreement between an analysis harness and
+`compare_history` (MODEL-LOG §1.145). **An analysis script must call
+`montecarlo.fix_hash_seed()` itself**, or set `PYTHONHASHSEED` before the
+interpreter starts, before comparing anything it produces to a shipped number.
 
 ## The ward cartogram — drawing seats instead of land
 

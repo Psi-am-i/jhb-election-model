@@ -51,6 +51,7 @@ from _support import ROOT, run_module  # noqa: E402
 MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            "test_chain",
            "test_delivery_proof",
+           "test_standalone_modules",
            "test_pool_conservation", "test_pool_bounds", "test_regressions",
            "test_calibration_report", "test_ipf_feasibility",
            "test_levels_dispersion", "test_polling_sd",
@@ -61,7 +62,7 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            "test_ward_parts", "test_solve_and_predict",
            "test_blended_centres",
            "test_levers_are_live", "test_build_all", "test_stat_freshness",
-           "test_publication_ledger",
+           "test_publication_ledger", "test_published_page",
            "test_hex_cartogram"]
 
 

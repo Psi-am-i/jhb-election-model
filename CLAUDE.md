@@ -1,29 +1,30 @@
-# Working rules for this repository
+# A Model for forecasting Local Government Elections in South Africa
 
-## The documentation is part of the model, not a description of it
+## Documentation is part of the model, not a description of it.
 
-**Whenever the model changes, the record changes in the same commit.** Not
-afterwards, not in a cleanup pass. A stale document here is worse than a missing
-one: it looks current and cannot be, and every reader downstream — including the
-next session, including a reviewer — takes it at its word.
+**The model's ability to predict is above everything else.** 
+It is tested by comparing it's predictions to real elections - and using only data from before that election. Variables are ideally derived and not hard coded. When this is not possible, all hand written variables are recorded in Judgement-Calls.md to make them obvious.
 
-This has already gone wrong more than once. `MACHINERY.md` spent weeks
+**The model is evolving and it's forecast evolves with it**
+The published forecast is not 'correct'. The only measure of teh model is how well it predicts real elections.
+
+**Whenever the model changes, the documented record must change in the same commit.** 
+Not afterwards, not in a cleanup pass. A stale document here is worse than a missing
+one. This has already gone wrong more than once. `MACHINERY.md` spent weeks
 describing a level layer that no longer ran. The published forecast page carried
-ten claims pinned to `turnout_tilt_da`, a lever deleted from `run_model`, and the
-stat audit kept reporting "no drift" because a fixed token cannot drift.
-`site/plan.html` was served for weeks after no build produced it.
+ten claims pinned to `turnout_tilt_da`, a lever deleted from `run_model`just as an example.
 
-### Which file takes what
+### Which file records what
 
 | change | goes in |
 |---|---|
-| a **mechanism** — how something is computed | the function's docstring **and** `MACHINERY.md` |
+| a **mechanism** — how something is computed | the function's docstring | `MACHINERY.md` |
 | a **number** the data did not force | `JUDGEMENT-CALLS.md`, with status, evidence and how to check it |
 | a **finding** — including a rejected one, and especially a negative result | `MODEL-LOG.md` (append; never rewrite history) |
 | a change in **what counts as better** | `ITERATING.md` |
 | a defect in the **inputs** | `DATA-QUALITY.md` |
 | a new or changed **source** | `SOURCES.md`, with provenance |
-| a **claim on the public site** | `content/<city>/stats.toml` as a token — never typed into prose |
+| a **number or claim on the public site** | `content/<city>/stats.toml` as a token — never typed into prose |
 
 `MODEL-LOG.md` is the record of record. If a thing was measured and rejected, it
 belongs there with its number, so nobody spends a day rediscovering it.
@@ -45,10 +46,7 @@ belongs there with its number, so nobody spends a day rediscovering it.
 ## Two backlogs, and they do not mix
 
 `PUBLISHING-BACKLOG.md` holds the presentation layer — the interactive, the live
-page, the stat tokens. **This repository's working list is the model's ability to
-predict, and nothing else.** The owner's standing position is that the page gets
-rebuilt when the model is ready, so presentation work is not a competing
-priority and is never a reason to change a forecast.
+page, the stat tokens. 
 
 ## Iterating, not publishing
 
@@ -58,57 +56,27 @@ priority and is never a reason to change a forecast.
 `data/processed/forecast_frozen.json`, to a golden, or to any earlier output of
 this model. The only standard is backtesting against REAL ELECTION RESULTS.**
 
-This rule already existed in the sentence below and was broken anyway, on
-2026-08-25, by the author of this note: `src/freeze.py` was built as a fixed
-reference and "must reproduce the frozen panel to the seat or be reverted" was
-written into the restructure plan as its verification gate. The owner stopped
-it. **We are not benchmarking against a broken implementation we cannot
-evaluate.**
+**Agreement with a previous output is evidence of nothing**
+When a change moves a number, the question is always "does the backtest against real results improve?" and never "does it still match?". It is cycle-replicated, against the keys in `ITERATING.md`.
 
-**Why it is not a technicality.** "Reproduce the old numbers or revert"
-**enshrines the current bugs as the definition of correct.** If an extraction
-changes a number it may have *fixed* something — the poll channel was worth −6
-and nobody knew for four days (§1.94), the by-election decay is applied twice,
-`allocate_with_overhang` has no test. A rule that reverts any change to those
-paths protects the defects. Agreement with a previous output is evidence of
-*nothing*, because that output was never known to be right.
-
-**So when a change moves a number, the question is never "does it still match?"
-It is "does the backtest against real results improve?"** — paired,
-cycle-replicated, against the four keys in `ITERATING.md`.
-
-**What the freeze IS for**, and it is not this: recording what we published and
-the exact configuration that produced it, so the forecast can be held to account
-after 4 November; and acting as a **tripwire** that says *go and look* when
+**A freeze of results** is only a **tripwire** that says *go and look* when
 something moved unexpectedly. A tripwire is not a gate. It never decides whether
 a change is right.
 
-Read `ITERATING.md` first. The published forecast is a recent output of an
-earlier version — not a benchmark, not a target, not evidence. The only question
-is whether the current model predicts PAST elections better than the previous
-iteration and better than the naive baselines. If it does not, it does not ship,
-however well argued. Worse does not ship.
+Read `ITERATING.md` first. Does the current predicts PAST elections better than the previous
+iteration one and better than the naive baselines? This is the main criteria of shipping changes. Read the amendment at the top of `ITERATING.md` before judging any change.
 
-**The bar was AMENDED on 2026-08-23 and is now four keys, not one** — paired and
-cycle-replicated on seats, calibration as an untradeable floor, derivedness
-priced in coherent seats against a budget that never refills, and the estimation
-record's held-out NLL as a second untradeable floor. Read the amendment at the
-top of `ITERATING.md` before judging any change; the single-number version above
-is what it replaced.
-
-## Shared artefacts: one writer, and nobody measures while it writes
+## BEWARE CONTENTIION - SHARED ARTIFACTS - nobody measures while it writes
 
 `data/processed/pools_*.json` is **precomputed**. Changing `src/pools.py` does
 nothing until you re-emit it, and re-emitting it changes the baseline of every
 measurement anyone else is taking at that moment.
 
-This has cost twice. A lever sweep returned **different answers on two identical
-runs** because another worker was re-emitting the artefacts underneath it; two
-`EXPECTED_INERT` reasons were written from those unstable readings and had to be
-retracted. Partitioning work by *file* is not enough — `pools.py` and
-`compare_history.py` do not overlap as files and collide completely as work.
+A lever sweep will return **different answers on two identical
+runs** if another worker is re-emitting the artefacts underneath it.
+Partitioning work by *file* is not enough — `pools.py` and `compare_history.py` do not overlap as files and collide completely as work.
 
-So, when more than one worker is active:
+When more than one worker is active:
 
 * **Exactly one** may re-emit `pools_*.json`, and it owns them for the duration.
 * **Nobody else runs the model, `compare_history`, or any sweep** while that is
@@ -116,8 +84,12 @@ So, when more than one worker is active:
 * The re-emit and the canonical measurement happen **once, at the end, on a
   settled tree** — and every number quoted anywhere must come from that run.
 
-A number measured against a moving artefact is not a measurement. It reads
-exactly like one.
+**Contention is managed by making agents READ-ONLY when they would collide.**
+Three agents writing to `montecarlo.py` collide whatever regions they occupy,
+because each writes the whole file. **Parallel analysis plus serial application
+is the reliable shape**
+
+A number measured against a moving artefact is not a measurement but reads exactly like one.
 
 **Since 2026-08-18 the artefacts say what built them.** Every `pools_*.json`
 carries an `artefact_key` — city, target, a hash of `config/dimensions.toml`,
@@ -129,43 +101,19 @@ artefacts moving under a measurement in progress. Re-emit with:
     .venv/bin/python src/pools.py --city <city> --target <year> --emit
 
 Emission is deterministic — re-emitting every spec changes nothing but the key —
-so the hazard is re-emitting *while someone measures*, not re-emitting. **There
-are eighteen specs since 2026-08-22**, not eleven: the eight 2016 specs are now
-all emitted (§1.69). Re-emit the lot with
-
-    for c in joburg tshwane ekurhuleni ethekwini capetown mangaung \
-             nelsonmandelabay buffalocity; do
-      for y in 2016 2021; do
-        .venv/bin/python src/pools.py --city $c --target $y --emit
-      done
-    done
-    .venv/bin/python src/pools.py --city joburg --target 2026 --emit
-    .venv/bin/python src/pools.py --city joburg --target 2026 --simulation --emit
+so the hazard is re-emitting *while someone measures*, not re-emitting. 
 
 **A CODE change to `pools.py` invalidates every one of them, and the guard will
-say so.** This caught the §1.69 audit itself: constants were promoted to module
-level, `pools_sha` moved, and a canonical measurement had already been taken
-against the older specs. It was verified number-neutral separately and was in
-fact correct — and "I checked it separately" is precisely the reasoning the key
-exists to stop being sufficient, so everything was re-emitted and re-measured.
-A comment-or-docstring-only change does NOT move the hash; that was confirmed
-in the same session.
+say so.** 
 
-**A `pools.py` CODE change is BATCHED, not taken when convenient.** What is waiting for the next re-emit window, and the procedure for taking it, is in
-`POOLS-REEMIT-QUEUE.md`. A comment-or-docstring-only change does not move the
-hash and does not belong there.
+**A `pools.py` CODE change is BATCHED, not taken when convenient.** What is waiting for the next re-emit window, and the procedure for taking it, is in `POOLS-REEMIT-QUEUE.md`. A comment-or-docstring-only change does not move the hash and does not belong there.
 
 **The specs are not tracked by git.** They have no version history, which is why
 the key exists.
 
 **`compare_history` runs its sixteen city-years in parallel processes** (since
 2026-08-18), which is safe because they only READ the specs — the rule above is
-about who WRITES them, and that is still one worker at a time. Measured at 1500
-draws: 499s serial against 169s parallel, a 2.96x speedup, with
-`seat_abs_err_coherent`, `crps`, `seat_abs_err` and `median_sum` bit-identical
-and the MAE columns agreeing to 6.7e-15 (float summation order, MODEL-LOG
-§1.46). Processes rather than threads because `apply_city` and `levels.SD_FLOOR`
-are module state.
+about who WRITES them, and that is still one worker at a time. 
 
 ## Running things
 
@@ -189,19 +137,14 @@ interpreter.
 
 ### ⛔ THE WORKING LOOP — the standard procedure for this project
 
-**Standing instruction from the owner, 2026-08-30:** *"use multiple agents,
-check their work, and get pollster to review after each round. Then make
-changes. Iterate this pattern. When a section is clear, move to the next."*
-
-**This is the procedure, not a per-task choice. One section at a time, and a
-section is not left until it is clear.**
+**This is the procedure, not a per-task choice. One section at a time, and a section is not left until it is clear.**
 
     ROUND = design (parallel, read-only)
           → I check (re-derive the decisive number myself)
           → pollster reviews, BLIND where possible
           → apply only what the check and the review agree on
           → measure, and write the result up
-          → next section
+          → iterate what is left then move to next section
 
 1. **DESIGN — split across agents, in parallel, READ-ONLY.** One agent per
    finding or coupling group. Give them the coupling warnings explicitly; an
@@ -209,14 +152,10 @@ section is not left until it is clear.**
    cheerfully propose widening a loop. Agents return **specifications**, not
    edits — see the contention rule below.
 2. **⛔ I CHECK WHAT THEY RETURN, BY RE-DERIVING IT.** Not by reading the
-   summary. This has changed the answer repeatedly and in both directions: an
-   agent cited `PARTY_OF_ACTION` as ActionSA (the conclusion held, the evidence
-   did not); an agent's P(cap binds) of 0.7% was 9.4e-05 at 2021 and 5.7e-03 at
-   2026; and one agent overturned another's cause for the 2016 null arm **and
-   mine**. Quote what you verified and what you did not.
+   summary. This has changed the answer repeatedly and in both directions.
 3. **THE POLLSTER REVIEWS EACH ROUND, AND BLIND WHERE IT CAN BE.** Not only at
    the end, and not only on substance. Give it the evidence base and the
-   question; do **not** give it my conclusion. Two blind passes have now each
+   question; do **not** give it your conclusion. Two blind passes have now each
    found a publication-blocking defect the other reviewer missed entirely, and
    one of them **downgraded its own earlier verdict on better arithmetic**,
    which is the behaviour blindness buys.
@@ -228,42 +167,37 @@ section is not left until it is clear.**
    measurement that rejected it.
 
 **PRE-REGISTER THE PREDICTION BEFORE THE RUN, IN WRITING.** It is what turns a
-result into evidence. It has paid twice: a challenger's arrival mass was
-predicted at +17.8pp and realised at +17.76pp; and a prediction that local
-anchoring would *help* the mid-ballot was recorded, refuted, and the refutation
-was the useful part.
+result into evidence. 
 
 ### The three ultra reviews — spend them on code that moves numbers
 
 **The owner holds three `/code-review ultra` runs. They are user-triggered and
 billed; I cannot launch one, so ASK when the moment arrives rather than assuming.**
 
-A deep multi-agent review is wasted on a documentation diff. Spend them where a
-defect would be expensive and where this project's normal safety nets do not
-reach — which is precisely where a change **moves forecast numbers**, because
-`forecast_frozen.json` is explicitly barred from arbitrating and the backtest
-cannot tell a fixed bug from a new one.
+A deep multi-agent review to be used where a defect would be expensive and where this project's normal safety nets do not reach — which is precisely where a change **moves forecast numbers**, because
+`forecast_frozen.json` is explicitly barred from arbitrating and the backtest cannot tell a fixed bug from a new one.
 
-**Booked, in priority order:**
+**BOOKED FIRST: the `pools.py` re-emit batch** — the 2000/2006 `metro_file`
+reader plus the roster/reach seam. **Its brief is written and frozen at
+`audits/ULTRA-REVIEW-1-pools-reemit.md`.**
 
-1. **The `pools.py` re-emit batch** — the 2000/2006 `metro_file` reader plus the
-   roster/reach seam. Highest stakes on the calendar: it moves numbers, it
-   invalidates **all eighteen** specs, it touches the shared artefact path, and
-   it runs under a one-writer window. **Review it BEFORE the re-emit, not after**
-   — afterwards the baseline has already moved and there is nothing clean to
-   compare against.
-2. **Any new SCORING instrument** — the bloc-total score, or anything else that
-   arbitrates. This repository has just been bitten by a referee that raised on
-   every city-year for its entire life while the suite stayed green, because its
-   only test used a fixture of a type production never builds. A scorer is the
-   one thing whose failure is invisible to the thing that would normally catch
-   it.
-3. **Hold the third in reserve** for whatever the width work becomes, or for the
-   first change that alters a published figure.
+* **Read the brief before writing a line of the batch, and do not amend it
+  afterwards.** If the hunt list is visible while the code is written, the code
+  gets written to pass it and the review inherits a blind spot shaped exactly
+  like the brief.
+* **Run it from a branch carrying ONLY the batch**, not from here:
 
-**Do not spend one on:** a documentation pass, a doc consolidation, a lever
-sweep that changes no code, or a change the 16-city-year backtest already
-adjudicates in three minutes.
+      git checkout -b pools-reemit          # off this branch
+      # write the batch, archive the 18 current specs, then:
+      /ultrareview splinter-rule-and-historical-tail
+
+  `/ultrareview` takes a PR number, a branch, or nothing — **there is no way to
+  pass it instructions**, which is why the brief lives in the repo and is
+  pointed at from here. With no argument it diffs against `main`, which on this
+  branch is 158 files and 88k lines and is **refused outright** (limits: 500
+  files, 8,000 lines).
+* **Before the emit, never after.** Afterwards the baseline has moved and there
+  is nothing clean to compare against.
 
 **Contention is managed by making agents READ-ONLY when they would collide.**
 Three agents writing to `montecarlo.py` collide whatever regions they occupy,
@@ -292,22 +226,10 @@ rule)"*.** So it is the rule, not a per-task choice:
    the ρ weighting moves the answer by 0.065pp while correlating +0.46 with the
    thing it exists to neutralise. Neither was visible from the code.
 
-**Contention is managed by making agents READ-ONLY when they would collide.**
-Three agents writing to `montecarlo.py` collide whatever regions they occupy,
-because each writes the whole file. Parallel analysis plus serial application
-has been the reliable shape; worktrees are the alternative when the files are
-genuinely disjoint.
-
 ### Run the targeted modules per change; run the SUITE once per commit
 
 Every run prints a per-module timing table, because a suite that does not say
-which module owns its runtime cannot be made faster on evidence. Measured
-2026-08-28: **`test_levers_are_live` was 999s of 1455s — 69% of the suite in one
-module** — and the other 22 cheap modules together are 92s. It does ~108
-`run_model` calls, one per lever per target; those are now run in parallel and
-it is 361s, so the suite is ~14 minutes.
-
-So the loop is:
+which module owns its runtime cannot be made faster on evidence. 
 
 * **while iterating** — `-k` the modules your change can reach. Seconds, not
   minutes. `-x levers` alone is a 3x speedup if you are not touching a lever.

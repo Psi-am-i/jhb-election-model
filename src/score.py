@@ -46,6 +46,8 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 
+import hashlib
+
 import numpy as np
 
 # Calibration is scored on the seats a forecaster actually CLAIMS: columns
@@ -273,8 +275,69 @@ def crps_by_party(samples: np.ndarray, actual: np.ndarray, parties: Sequence[str
 # ---------------------------------------------------------------------------
 
 
+def _column_entropy(party: str) -> int:
+    """A stable 64-bit integer from a party name.
+
+    ⛔ **NOT** ``hash()``. Python randomises string hashing per process. This
+    repository pins it with ``montecarlo.fix_hash_seed()``, but that runs only
+    from an ``if __name__ == "__main__"`` guard — so any IMPORTING caller (a
+    test module, an analysis harness, ``build_site``) is unpinned, and the same
+    forecast would get a different PIT depending on how the code was entered.
+    That is the §1.145 failure exactly, and it is the one this function must not
+    reproduce.
+
+    blake2b rather than ``zlib.crc32`` (the precedent ``_pit_seed`` sets):
+    CRC32 is a 32-bit linear checksum, so a 200-name panel carries a ~5e-6
+    birthday-collision chance against blake2b-64's ~1e-15. Measured on the real
+    panel there are 151 distinct party names and **zero** collisions under
+    either, so this is cheap insurance rather than a fix — but two parties
+    sharing a uniform would be invisible and permanent.
+    """
+    return int.from_bytes(
+        hashlib.blake2b(party.encode("utf-8"), digest_size=8).digest(), "big")
+
+
+def column_rng(seed: int | None, party: str) -> np.random.Generator:
+    """THE PIT column key. One definition, because two would drift.
+
+    ⛔ It was written twice — here and in ``compare_history.redraw_pits`` — and
+    the golden test asserted ``_column_entropy`` rather than either call site,
+    so **reverting both to ``hash()`` left every test green**: a duplicated
+    number and an un-fireable guard in the same three lines, inside the key
+    built to stop exactly that (§1.145). Found in review 2026-08-31.
+    """
+    return np.random.default_rng([int(seed or 0), _column_entropy(party)])
+
+
+def pit_intervals(samples: np.ndarray,
+                  actual: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """The jump each randomised PIT lands inside: ``(F(y⁻), F(y) − F(y⁻))``.
+
+    **This is the entire information content of a randomised PIT, and it carries
+    no randomness.** ``below + u·width`` is the PIT; ``below + width/2`` is its
+    exact expectation over the randomisation; the exact probability of landing
+    in any bin is that bin's overlap with ``[below, below + width]`` divided by
+    ``width``. Store these two numbers and every PIT statistic is recoverable at
+    any number of randomisations, for ever, without re-running the model.
+
+    Which is why they are now written into the artefact: the seed band below was
+    only measurable at all because the jumps happened to be recoverable from a
+    lattice (both are multiples of 1/draws). That was luck, and it will not
+    survive a change of draw count.
+    """
+    samples = _as_matrix(samples)
+    if samples.shape[0] == 0:
+        return np.zeros(0, dtype=float), np.zeros(0, dtype=float)
+    below = np.array([float((samples[:, j] < actual[j]).mean())
+                      for j in range(samples.shape[1])], dtype=float)
+    at_or = np.array([float((samples[:, j] <= actual[j]).mean())
+                      for j in range(samples.shape[1])], dtype=float)
+    return below, at_or - below
+
+
 def pit_values(samples: np.ndarray, actual: np.ndarray,
-               seed: int | None = 20211101) -> np.ndarray:
+               parties: Sequence[str], seed: int | None = 20211101,
+               replicates: int = 1) -> np.ndarray:
     """Randomised probability integral transform, one value per party.
 
     Under a perfectly calibrated forecast, PIT values are uniform on [0,1].
@@ -284,20 +347,72 @@ def pit_values(samples: np.ndarray, actual: np.ndarray,
     calibration. Without this correction a discrete forecast looks
     mis-calibrated when it is not.
 
+    ⛔ **EACH COLUMN'S GENERATOR IS DERIVED FROM ``(seed, party name)``, AND THE
+    REASON IS THAT THE OLD ONE MADE THE FLOOR MOVE ON ITS OWN.**
+
+    Until 2026-08-31 this drew from a SINGLE stream, one value per column, in
+    column order — so the j-th column got the j-th draw and nothing else
+    determined it. Adding, removing or reordering a column re-rolled the
+    randomisation of every column after it, and a change to the model was then
+    indistinguishable from a re-roll. Measured on the committed panel: the seed
+    alone moved the pooled mean PIT with sd **0.00955** on ``reference`` and
+    **0.00528** on ``claimed`` (not 0.0013 — on ``claimed`` the randomisation
+    lives in the small-party JUMP MASSES, not the truth-zero columns, which is
+    the opposite of where it was looked for). On the statistic ``ITERATING.md``
+    quotes as Key 2's width floor — ``reference``/2021 probit-SD, n=235, reading
+    exactly 1.2000 — the re-roll sd is **0.0327**, which makes the 1.2000 →
+    1.3557 finding built on it just **3.4 sd of a paired re-roll**.
+
+    **Key 2 is an untradeable floor. A floor that moves 0.03 while the model
+    stands still is not a floor.**
+
+    So a column's PIT now depends on exactly: the seed, its own party name, its
+    own draws and its own outcome — and on NOTHING about which other columns are
+    scored or in what order. Adding, removing or reordering a column leaves
+    every other column bit-identical (measured: max |Δ| = 0.0, exactly).
+
+    ``replicates`` returns shape ``(replicates, n_cols)`` above 1, for callers
+    that average a STATISTIC over randomisations; the first row is always
+    bit-identical to the ``replicates=1`` value. ⛔ **Average the statistic,
+    never the PIT values** — averaging the values first shrinks each draw toward
+    the jump midpoint and would have read this model's width as 1.01 ("correct")
+    where it is 1.20 ("too narrow"). See :func:`pit_intervals`.
+
     Not itself a score -- read it through :func:`pit_histogram`, whose *shape*
     says what kind of wrong the model is.
     """
     samples = _as_matrix(samples)
     if samples.shape[0] == 0:
-        return np.zeros(0, dtype=float)   # no draws: no transform to take
-    rng = np.random.default_rng(seed)
-    out = []
-    for j in range(samples.shape[1]):
-        column = samples[:, j]
-        below = float((column < actual[j]).mean())
-        at_or_below = float((column <= actual[j]).mean())
-        out.append(below + rng.random() * (at_or_below - below))
-    return np.array(out, dtype=float)
+        return np.zeros(0, dtype=float)
+    if len(parties) != samples.shape[1]:
+        raise ValueError(
+            f"pit_values got {len(parties)} party names for "
+            f"{samples.shape[1]} columns. The name IS the key now, so a "
+            f"mismatch silently mis-keys every column after the first gap.")
+    if len(set(parties)) != len(parties):
+        dupes = sorted({p for p in parties if list(parties).count(p) > 1})
+        raise ValueError(
+            f"pit_values got duplicate party names {dupes}. Two columns would "
+            f"share one uniform, which is invisible and permanent.")
+
+    below, width = pit_intervals(samples, actual)
+    reps = max(1, int(replicates))
+    out = np.empty((reps, len(below)), dtype=float)
+    for j, party in enumerate(parties):
+        rng = column_rng(seed, party)
+        out[:, j] = below[j] + rng.random(reps) * width[j]
+    # ⛔ A PIT OUTSIDE [0,1] IS NOT A PIT, AND NOTHING ELSE WOULD HAVE SAID SO.
+    # `pit_intervals` had no test: returning `at_or` instead of `at_or - below`
+    # emits values up to 1.37 and every calibration statistic downstream keeps
+    # computing. Measured in review 2026-08-31. This is the cheapest possible
+    # guard on the quantity Key 2 is quoted against.
+    if out.size and (out.min() < -1e-9 or out.max() > 1 + 1e-9):
+        bad = int(np.argmax((out < -1e-9) | (out > 1 + 1e-9)) % out.shape[1])
+        raise ValueError(
+            f"PIT outside [0,1]: {out.min():.4f}..{out.max():.4f}, first at "
+            f"column {parties[bad]!r}. `pit_intervals` must return the JUMP "
+            f"F(y)-F(y-), not F(y).")
+    return out[0] if replicates <= 1 else out
 
 
 # χ²(0.95) critical values, dof 1..20 -- avoids a scipy dependency for the one
@@ -657,7 +772,8 @@ def score_seats(draws: Sequence[Mapping[str, int]], actual: Mapping[str, int],
     # saying so beats returning a short array the callers below would index off
     # the end of
     empty = np.full(samples.shape[1], float("nan"))
-    pits = pit_values(samples, truth, seed=seed) if samples.shape[0] else empty
+    pits = (pit_values(samples, truth, parties, seed=seed)
+            if samples.shape[0] else empty)
     median = np.median(samples, axis=0) if samples.shape[0] else empty
 
     # WHICH COLUMNS TEST CALIBRATION, and the answer must not depend on the

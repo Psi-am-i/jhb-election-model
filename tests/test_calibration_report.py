@@ -44,11 +44,20 @@ CLASS 8, FOURTH INSTANCE — AND IT SHIPPED IN THE COMMIT THAT FIXED THE THIRD.
     The pooled PIT mean added above is itself a signed average, one level up. It
     runs over every claimed column at once, so a model that forecasts the top of
     the ballot too HIGH and the middle too LOW has the two cancel and reports a
-    figure near 0.50. That is not a hypothetical: on the nine city-years the
-    claimed population pools to **0.588** and splits into **0.431 at ranks 1-3**
+    figure near 0.50. That is not a hypothetical: on the NINE city-years the
+    claimed population pooled to **0.588** and split into **0.431 at ranks 1-3**
     and **0.750 at ranks 4-12** (n=27 and n=26, cluster-bootstrap CIs [0.380,
     0.479] and [0.674, 0.810], both excluding 0.50 in opposite directions). The
     same rank ordering the band table already used was eleven lines away.
+
+    ⛔ **ON THE SIXTEEN CITY-YEARS THE CANCELLATION IS NO LONGER WHAT MAKES THE
+    POOLED FIGURE MISLEADING.** Ranks 1-3 is now **0.510**, CI [0.474, 0.542],
+    containing 0.50 with cycles of opposite sign — refuted. Ranks 4-12 is
+    **0.613** on ``claimed`` and **0.688** on ``reference``, the latter
+    replicating at 0.623 (2016) and 0.745 (2021). So there is ONE bias, not two,
+    and the pooled 0.559 understates it by averaging a real departure against a
+    centred band. **The reason to disaggregate is unchanged; the arithmetic
+    behind it is not.** Re-measured 2026-08-31; MODEL-LOG §1.146.
 
     Width splits too, and the two coverage measures disagree where discreteness
     bites: a nominal 50% interval covers 70% at ranks 1-3 and 46% at ranks 4-12
@@ -148,9 +157,15 @@ def _banded_results(rng, n_city_years, lam_forecast, lam_truth_top,
     band sizes and symmetric shifts, so the pooled mean PIT comes out at
     ~0.50 — a forecast that reads perfectly centred and is not centred anywhere.
 
-    That is this model's own shape (claimed columns, committed history.json at
-    1500 draws: ranks 1-3 mean PIT 0.431, ranks 4-12 0.750, pooled 0.587) and it
-    is the case the pooled statistic shipped unable to see.
+    That was this model's own shape when the panel was nine city-years (ranks
+    1-3 mean PIT 0.431, ranks 4-12 0.750, pooled 0.587), and it is the case the
+    pooled statistic shipped unable to see. **On the committed SIXTEEN
+    city-years the shape has changed and only half of it survives**: pooled
+    0.559, ranks 1-3 **0.510** (CI contains 0.50, cycles of opposite sign — the
+    finding is refuted), ranks 4-12 **0.613**. The synthetic case below is still
+    the right test of the INSTRUMENT — a pooled mean that reads 0.50 over two
+    opposite biases — it is simply no longer a portrait of this model.
+    Re-measured 2026-08-31; MODEL-LOG §1.146.
 
     ``actual_pr`` is what supplies the ranking, and the shares are descending by
     construction so party index is rank.
@@ -549,8 +564,9 @@ def test_pooled_pit_is_split_by_rank_band_and_the_bands_disagree():
     be quoted about direction at all, and it was being quoted about direction in
     ``ITERATING.md`` rule 8.
 
-    The model's own figures (claimed columns, committed history.json, 1500
-    draws): pooled 0.587, ranks 1-3 0.431, ranks 4-12 0.750.
+    The model's own figures, committed history.json, claimed columns:
+    **16 city-years (current): pooled 0.559, ranks 1-3 0.510, ranks 4-12
+    0.613.** (Nine city-years, superseded: 0.587 / 0.431 / 0.750.)
     """
     rng = np.random.default_rng(31337)
     results = _banded_results(rng, n_city_years=9, lam_forecast=40.0,
@@ -803,9 +819,14 @@ def test_the_all_population_is_selected_on_the_outcome_and_says_so():
 def test_the_vote_bands_and_the_calibration_bands_are_the_same_partition():
     """Two instruments, one ballot. They must be split on the same rule.
 
-    The whole force of the finding is that the signed vote bands (+32.50pp at
-    ranks 1-3, −37.34pp at 4-12, committed history.json at 1500 draws) and the
-    per-band PIT (0.431 / 0.750) are the SAME statement measured twice. That
+    The whole force of the finding was that the signed vote bands (+32.50pp at
+    ranks 1-3, −37.34pp at 4-12) and the per-band PIT (0.431 / 0.750 on nine
+    city-years) are the SAME statement measured twice. **On sixteen they are no
+    longer**: the seat PIT at ranks 1-3 is 0.510 and does not corroborate the
+    vote band there, though it has little power to see 0.26pp per party per
+    city-year, so it does not refute it either (MODEL-LOG §1.146). The two
+    instruments still must be split on the same rule, which is what this test
+    asserts and is unaffected. That
     only holds if "ranks 1-3" means the same parties in both tables — so both
     go through ``rank_band_of`` and this test asserts they agree party by party.
     """
@@ -1557,6 +1578,316 @@ def test_the_arrival_score_is_unchanged_by_the_relabel():
         assert abs(a[k] - b[k]) < 1e-12, (
             f"`{k}` moved across the relabel ({a[k]} vs {b[k]}). The call site "
             f"claims the label cannot reach this number; it just did.")
+
+
+def test_the_relabel_ablation_actually_withholds_the_label():
+    """⛔ A SWITCH THAT SILENTLY DID NOTHING WOULD PRICE THE LABEL AT ZERO.
+
+    `JHB_SCORE_NO_RELABEL=1` exists to answer "what is the free arrival label
+    worth", and `ITERATING.md` now quotes 11.52 CRPS and 2.17 points of margin
+    off it (§1.148). If the switch were inert — misspelled, read in the parent
+    but not the spawned worker, or applied only at `relabel_run` while
+    `entrant_actual` went on reaching `score_seats` — the ablation would return
+    the baseline and the label would be priced at nothing. **A number this
+    repository quotes must come from a switch someone has watched bite.**
+
+    Mangaung 2016 is used because it is small (~7s at 200 draws) and because it
+    is one of the TEN city-years where a label exists. At the other six
+    `entrant_actual` is `None`, the ablation is a no-op by construction, and
+    this test would pass while proving nothing.
+    """
+    import os
+    import montecarlo as M
+    import compare_history as CH
+    from pathlib import Path
+    data = Path("data/raw/elections")
+    if not data.is_dir():
+        skip("no election archive on disk")
+    M.fix_hash_seed()
+    prev = os.environ.get("JHB_SCORE_NO_RELABEL")
+    try:
+        os.environ.pop("JHB_SCORE_NO_RELABEL", None)
+        on = CH.run_city_year("mangaung", "2016", 200, data)
+        os.environ["JHB_SCORE_NO_RELABEL"] = "1"
+        off = CH.run_city_year("mangaung", "2016", 200, data)
+    finally:
+        os.environ.pop("JHB_SCORE_NO_RELABEL", None)
+        if prev is not None:
+            os.environ["JHB_SCORE_NO_RELABEL"] = prev
+
+    assert on["scored_without_relabel"] is False, on["scored_without_relabel"]
+    assert off["scored_without_relabel"] is True, (
+        "the artefact does not record that it was scored without the label. An "
+        "absent or wrong stamp makes two incomparable runs look comparable.")
+    assert off["crps"] > on["crps"], (
+        f"withholding the arrival label did not make the score worse: "
+        f"{on['crps']:.4f} with the label, {off['crps']:.4f} without. Either "
+        f"the switch is inert or it is not reaching every consumer of "
+        f"`entrant_actual` — it must reach `calibration_columns` and both "
+        f"`score_seats` calls, not only `relabel_run`.")
+
+
+def test_the_arrival_referee_is_rendered_and_reads_the_right_way_round():
+    """⛔ THIS SECTION EXISTED AS A NUMBER IN A FILE AND AS NOTHING A READER SAW.
+
+    `backtest.arrival_group_score` was computed into `history.json` on every run
+    from the day it was repaired and rendered in no report, so the one
+    instrument that scores arrivals WITHOUT handing the model the answer was
+    invisible unless somebody opened the JSON. `ITERATING.md` had prescribed
+    "reported beside the relabelled score as a sensitivity pair" the whole time.
+
+    The direction is asserted because it is the half a reader gets wrong: these
+    are PIT values, so **above 0.5 means the model forecast too LITTLE**. A
+    table that renders but is read backwards is worse than no table.
+    """
+    import compare_history as CH
+    rows = [{"city": "Johannesburg", "year": "2021",
+             "arrival_group": {"n_arrived": 32, "n_columns": 33,
+                               "actual_mass": 0.19988, "actual_seats": 46,
+                               "mass_mean": 0.09539, "mass_median": 0.08987,
+                               "seats_mean": 22.957, "seats_median": 22.0,
+                               "mass_pit": 0.989, "seats_pit": 0.976,
+                               "seats_outside_support": False,
+                               "mass_err": 0.10449, "seats_err": 23.043}}]
+    out = "\n".join(CH._arrival_referee(rows))
+    assert "19.99%" in out and "9.54%" in out, (
+        f"the actual and forecast arrival mass are not both in the table; a "
+        f"sensitivity pair that shows one side is not a pair.\n{out}")
+    assert "0.989" in out, "the mass PIT is not rendered"
+    assert "too little" in out.lower(), (
+        "the table does not tell the reader which way a PIT above 0.5 reads. "
+        "It is the one thing they will get wrong.")
+
+    # An artefact from before the referee existed must render nothing, not crash
+    # and not an empty table with a misleading panel mean over zero rows.
+    assert CH._arrival_referee([{"city": "X", "year": "2016"}]) == [], (
+        "a results set with no arrival_group produced output. Older "
+        "history.json files have no such key and must render no section.")
+
+
+def _toy(seed=7):
+    import numpy as np
+    rng = np.random.default_rng(seed)
+    names = ["ANC", "DA", "EFF", "ACTIONSA"]
+    X = rng.poisson([90, 70, 30, 12], size=(1000, 4)).astype(float)
+    return names, X, np.array([95., 66., 33., 10.]), rng
+
+
+def test_a_columns_pit_does_not_depend_on_which_other_columns_are_scored():
+    """⛔ THE FLOOR USED TO MOVE ON ITS OWN, AND THIS IS WHY.
+
+    `pit_values` drew from ONE stream, one value per column, in column order —
+    so the j-th column got the j-th draw and adding, removing or reordering any
+    column re-rolled every column after it. A change to the model and a re-roll
+    of the randomisation were then indistinguishable.
+
+    Measured on the committed panel before the fix: the seed alone moved the
+    pooled mean PIT with sd **0.00955** on `reference` and **0.00528** on
+    `claimed`, and moved the statistic ITERATING quotes as Key 2's width floor
+    — `reference`/2021 probit-SD, n=235, reading exactly 1.2000 — with sd
+    **0.0327**. The 1.2000 → 1.3557 finding built on it is 3.4 sd of a paired
+    re-roll. **Key 2 is untradeable; a floor that moves 0.03 while the model
+    stands still is not a floor.**
+
+    The assertion is EXACT equality, not a tolerance. Same entropy, same first
+    double — if this ever needs a tolerance, the keying has broken.
+    """
+    import numpy as np
+    import score as S
+    names, X, y, rng = _toy()
+    base = S.pit_values(X, y, names)
+
+    front = np.column_stack([rng.poisson(5, 1000).astype(float), X])
+    added = S.pit_values(front, np.r_[4., y], ["NEWPARTY"] + names)
+    assert np.array_equal(base, added[1:]), (
+        f"adding a column changed other columns' PIT by up to "
+        f"{float(np.max(np.abs(base - added[1:])))}. The randomisation is still "
+        f"positional, so a model change and a re-roll are indistinguishable.")
+
+    idx = [3, 1, 0, 2]
+    reordered = S.pit_values(X[:, idx], y[idx], [names[i] for i in idx])
+    assert np.array_equal(base[idx], reordered), "column order still matters"
+
+
+def test_the_pit_key_is_stable_across_processes_and_is_not_pythons_hash():
+    """⛔ `hash()` WOULD HAVE REPRODUCED §1.145 INSIDE THE CALIBRATION KEY.
+
+    Python randomises string hashing per process. This repository pins it with
+    `montecarlo.fix_hash_seed()` — but only from an `if __name__ == "__main__"`
+    guard, so any IMPORTING caller (a test module, an analysis harness,
+    `build_site`) runs unpinned. Keying the PIT on `hash(party)` would have made
+    the same forecast produce different calibration depending on how the code
+    was entered, which is exactly the defect §1.145 took a day to find.
+
+    The golden literal is the guard: it is machine- and version-independent, and
+    it fails the moment anyone swaps blake2b for something process-local.
+    """
+    import numpy as np
+    import score as S
+    assert S._column_entropy("ANC") == 16408193524922255279, S._column_entropy("ANC")
+    assert S._column_entropy("DA") != S._column_entropy("ANC")
+
+    # ⛔ AND THE GOLDEN IS ON THE OUTPUT, NOT THE HELPER. Asserting
+    # `_column_entropy` alone left the key defeatable: it was written out TWICE
+    # — in `pit_values` and in `redraw_pits` — and reverting BOTH call sites to
+    # `hash()` kept every test in this file green, because neither site was
+    # asserted. Found in review 2026-08-31. There is now one `column_rng`, and
+    # this golden runs through it.
+    rng = np.random.default_rng(3)
+    X = rng.poisson([1.0, 2.0], size=(500, 2)).astype(float)
+    got = S.pit_values(X, np.array([1., 2.]), ["ANC", "DA"], seed=20211101)
+    assert [round(float(v), 12) for v in got] == [0.596815370098, 0.656853108072], (
+        f"the PIT column key changed: {[float(v) for v in got]}. If this was "
+        f"deliberate, every calibration figure on record moves with it and the "
+        f"re-record must be declared. If it was not, something reintroduced a "
+        f"process-local hash.")
+
+
+def test_pit_intervals_returns_the_JUMP_and_a_pit_can_never_leave_zero_one():
+    """⛔ `pit_intervals` HAD NO TEST, AND GETTING IT WRONG EMITS PIT > 1 SILENTLY.
+
+    Returning `F(y)` instead of the jump `F(y) - F(y⁻)` produces PIT values up
+    to **1.37** on a small-count fixture — and every calibration statistic
+    downstream keeps computing, because nothing anywhere asserted the range.
+    Measured in review 2026-08-31. Worse, the `mean jump > 0.2` guard in the
+    averaging test below is satisfied MORE easily by the wrong quantity, so the
+    one test in the neighbourhood actively failed to discriminate.
+
+    This is the cheapest possible guard on the quantity Key 2 is quoted against.
+    """
+    import numpy as np
+    import score as S
+    rng = np.random.default_rng(11)
+    X = rng.poisson([0.6, 1.2, 2.0, 0.9], size=(1000, 4)).astype(float)
+    y = np.array([1., 1., 2., 0.])
+    lo, w = S.pit_intervals(X, y)
+
+    below = np.array([float((X[:, j] < y[j]).mean()) for j in range(4)])
+    at_or = np.array([float((X[:, j] <= y[j]).mean()) for j in range(4)])
+    assert np.allclose(lo, below) and np.allclose(w, at_or - below), (
+        "pit_intervals is not returning (F(y-), F(y)-F(y-))")
+    assert (w >= 0).all() and (lo + w <= 1 + 1e-12).all()
+
+    pits = S.pit_values(X, y, ["A", "B", "C", "D"])
+    assert (pits >= 0).all() and (pits <= 1).all(), (
+        f"PIT outside [0,1]: {pits.min():.4f}..{pits.max():.4f}")
+
+    # And the guard must actually fire on the wrong quantity.
+    #
+    # ⚠️ AT `replicates=64`, DELIBERATELY. The first version of this mutation
+    # drew ONE uniform per column and passed — column A's ceiling under the
+    # mutation is 1.46, but it only exceeds 1 when u > 0.487, and that seed's
+    # draw happened to fall below. The guard was right; the MUTATION was flaky,
+    # which is the same defect one level up: a check that only sometimes
+    # detects the thing it is checking for. 64 draws makes it 0.487**64.
+    assert float((below + at_or).max()) > 1.0, (
+        "this fixture cannot exceed 1 even under the mutation, so the mutation "
+        "proves nothing. Pick columns with more mass at the outcome.")
+    import unittest.mock as _m
+    with _m.patch.object(S, "pit_intervals", lambda X_, y_: (below, at_or)):
+        try:
+            S.pit_values(X, y, ["A", "B", "C", "D"], replicates=64)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(
+                "pit_values accepted a jump of F(y) instead of F(y)-F(y-), "
+                "emitting PIT above 1. The range guard cannot fire.")
+
+
+def test_averaging_the_statistic_and_averaging_the_values_are_not_the_same():
+    """⛔ THE WRONG ONE INVERTS THIS PROJECT'S WIDTH VERDICT.
+
+    R-averaging exists to take the randomisation noise out of a Key 2 figure.
+    The tempting implementation — average the PIT values, then compute one
+    statistic — shrinks every draw toward its jump midpoint and reports a
+    forecast as better calibrated than it is. Measured on a real city-year:
+    probit-SD **0.75 statistic-averaged against 0.43 value-averaged**; on the
+    full `reference` population it reads 1.20 correctly and **1.01 —
+    "correct"** the wrong way.
+
+    Averaging the statistic is right because the statistic is what carries the
+    claim; averaging the values is a different estimator of a different thing.
+    """
+    import numpy as np
+    import compare_history as CH
+    import score as S
+    # ⛔ SMALL COUNTS, DELIBERATELY. The first version of this test used the
+    # shared toy (Poisson means 90/70/30/12) and the two methods agreed to
+    # 0.0025 — because the jump mass P(X = y) is negligible for a party
+    # holding ninety seats. The effect lives entirely in the small parties,
+    # which is where this panel's randomisation lives too (22 truth-one
+    # `claimed` columns carry ten times the jump mass of the truth-zero ones).
+    # A fixture without that property cannot tell the two estimators apart and
+    # would have passed whichever one was implemented.
+    import numpy as np
+    rng = np.random.default_rng(11)
+    names = ["SMALL_A", "SMALL_B", "SMALL_C", "SMALL_D"]
+    X = rng.poisson([0.6, 1.2, 2.0, 0.9], size=(1000, 4)).astype(float)
+    y = np.array([1., 1., 2., 0.])
+    lo, w = S.pit_intervals(X, y)
+    assert float(np.mean(w)) > 0.2, (
+        f"the fixture's mean jump mass is {float(np.mean(w)):.3f}; too small to "
+        f"discriminate. That is the defect this test exists to catch.")
+    block = {"parties": names, "pit": list(S.pit_values(X, y, names)),
+             "pit_lo": list(lo), "pit_w": list(w), "pit_seed": 20211101}
+    drawn, exact = CH.redraw_pits(block, replicates=64)
+    assert exact and drawn.shape == (64, 4)
+    stat = float(np.mean([CH.pit_dispersion(list(r)) for r in drawn]))
+    vals = CH.pit_dispersion(list(drawn.mean(axis=0)))
+    assert abs(stat - vals) > 0.05, (
+        f"statistic-averaging and value-averaging agree to {abs(stat-vals):.4f} "
+        f"on this fixture, so the test cannot tell them apart and would not "
+        f"catch the substitution. Pick a fixture with real jump mass.")
+
+    one, _ = CH.redraw_pits(block, replicates=1)
+    assert np.array_equal(one[0], np.asarray(block["pit"])), (
+        "R=1 must reproduce the stored randomisation exactly, or the artefact "
+        "and the redraw are describing different forecasts.")
+
+
+def test_an_artefact_without_the_intervals_falls_back_LOUDLY():
+    """⛔ A SILENT FALLBACK TO R=1 IS A GUARD THAT READS AS WORKING.
+
+    `history.json` written before this change carries `pit` and no
+    `pit_lo`/`pit_w`, so the R-averaging cannot run on it. That is expected —
+    the re-record is deliberately deferred to the re-emit window — and it is
+    precisely the state in which a quiet fallback would report an R=64 figure
+    that is really one draw. So the fallback sets `exact=False`, and
+    `exact_mean_pit` returns `nan` rather than the single-draw mean, which is a
+    different quantity wearing the same name.
+    """
+    import math
+    import compare_history as CH
+    import score as S
+    names, X, y, _ = _toy()
+    old = {"parties": names, "pit": list(S.pit_values(X, y, names))}
+    drawn, exact = CH.redraw_pits(old, replicates=64)
+    assert drawn.shape[0] == 1 and exact is False, (
+        f"an artefact with no stored intervals returned {drawn.shape[0]} "
+        f"replicates with exact={exact}. It cannot; there is nothing to redraw "
+        f"from, and reporting 64 would be a fabricated precision.")
+    assert math.isnan(CH.exact_mean_pit(old)), (
+        "exact_mean_pit returned a number for a block that cannot support one.")
+
+
+def test_pit_values_refuses_a_mis_keyed_or_duplicated_column_set():
+    """The name IS the key now, so a wrong name list mis-keys silently.
+
+    A short list would key every column after the gap to the wrong party; a
+    duplicate would give two columns the same uniform. Both are invisible in the
+    output and permanent in the artefact, so both are refused at the call.
+    """
+    import score as S
+    names, X, y, _ = _toy()
+    for bad, why in [(names[:3], "too few names"),
+                     (["ANC", "ANC", "EFF", "DA"], "a duplicate name")]:
+        try:
+            S.pit_values(X, y, bad)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"{why} was accepted")
 
 
 if __name__ == "__main__":

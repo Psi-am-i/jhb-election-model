@@ -23,6 +23,7 @@ Then deploy:
 from __future__ import annotations
 
 import argparse
+import json
 
 import cityconfig
 import re
@@ -32,7 +33,15 @@ from pathlib import Path
 
 import markdown
 
+import publication
 import stats as statlib
+
+# The repository root, resolved from THIS FILE rather than the process's working
+# directory. `publication.LEDGER_ROOT` is a relative path by design (see the
+# LEVEL_DF class of defect, §1.33: a `Path` frozen as a default argument), and a
+# relative ledger path read from the wrong CWD is worse than a missing one — it
+# resolves to an empty ledger, which reads as "nothing was ever published".
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 STYLE = """
   :root{
@@ -355,6 +364,85 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
 
 
 
+def _ledger_candidates(published: list[dict], ledger: dict, ident: dict,
+                       now: str, *, reason: str | None,
+                       change_class: str | None):
+    """The rows this build WOULD publish, and the reader-facing diff of them.
+
+    ⛔ ONE FUNCTION BUILDS BOTH, DELIBERATELY. The printed report, the
+    `changes.json` the page renders from, and the rows `--publish` appends must
+    describe the same thing or the site tells the reader one story while the
+    permanent record keeps another. Two code paths over the same data is how
+    that gap opens, and this repository's standing rule is one definition only.
+
+    A token can appear on several pages. It is ONE published figure — the
+    registry resolves it once per build — so it becomes one row, and the pages
+    it reached are recorded on the diff rather than duplicated into the ledger.
+    If two occurrences of one token ever disagree, that is a renderer bug and
+    it is raised rather than silently reconciled.
+
+    `movement` is computed against the LAST PUBLISHED row, not against the
+    previous build: an unpublished experimental build must not consume a
+    token's change, or the move it made would never be disclosed to anyone.
+    """
+    by_token: dict[str, dict] = {}
+    pages: dict[str, list[str]] = {}
+    for occ in published:
+        name = occ["token"]
+        pages.setdefault(name, [])
+        if occ.get("page") and occ["page"] not in pages[name]:
+            pages[name].append(occ["page"])
+        first = by_token.setdefault(name, occ)
+        if first["display"] != occ["display"]:
+            raise SystemExit(
+                f"token {name!r} rendered as {first['display']!r} on "
+                f"{first.get('page')} and {occ['display']!r} on "
+                f"{occ.get('page')}. One token is one published figure; two "
+                f"values means the registry resolved twice and the ledger "
+                f"cannot say which one the reader was shown.")
+
+    rows: list[publication.Row] = []
+    changes: list[dict] = []
+    for name in sorted(by_token):
+        occ = by_token[name]
+        prev = ledger.get(name)
+        try:
+            movement = publication.classify(prev, occ["value"], occ["display"],
+                                            tolerance=occ.get("tolerance"),
+                                            fmt=occ.get("fmt"))
+        except ValueError as exc:
+            # A tolerance written in the wrong units. Loud rather than silent
+            # was already the design (`publication.classify`); a refusal rather
+            # than a traceback is what makes it actionable, and it belongs in
+            # the same family as every other build refusal.
+            raise SystemExit(
+                f"refusing to publish: {exc}\n"
+                f"Fix the tolerance in the stats registry. Nothing was "
+                f"written to the ledger.") from None
+        rows.append(publication.Row(
+            token=name, value=occ["value"], display=occ["display"],
+            fmt=occ.get("fmt"), source=occ.get("source", ""),
+            model_run_id=ident["model_run_id"], run_at=ident["run_at"],
+            as_of=ident["as_of"], published_at=now,
+            # A row that did not move owes no explanation; one that did owes
+            # both, and `--publish` refuses the batch if they are missing.
+            change_class=(change_class if movement != "none" else None),
+            reason=(reason if movement != "none" else None),
+            movement=movement,
+            provenance={k: ident.get(k) for k in
+                        ("git_commit", "git_dirty", "pool_artefact_keys",
+                         "forecast_content_sha256", "draws", "as_of_is")}))
+        changes.append({
+            "token": name, "movement": movement,
+            "value": occ["value"], "display": occ["display"],
+            "previous": None if prev is None else prev.display,
+            "previous_published_at": None if prev is None else prev.published_at,
+            "fmt": occ.get("fmt"), "source": occ.get("source", ""),
+            "mode": occ.get("mode"), "pages": pages[name],
+        })
+    return rows, changes
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=Path("site"))
@@ -375,6 +463,27 @@ def main(argv: list[str] | None = None) -> int:
                              "escape hatch only — the claim is a number on the "
                              "page that cannot be re-derived or drift-checked, "
                              "so say why in the commit if you use it.")
+    parser.add_argument("--ledger-root", type=Path, default=None,
+                        help="where the publication ledger lives (default: "
+                             "publications/ under the repository root). Exists "
+                             "so the end-to-end build can be exercised against "
+                             "a throwaway ledger — the real one is append-only "
+                             "and a test must never be able to write to it.")
+    parser.add_argument("--publish", action="store_true",
+                        help="APPEND this build's figures to the publication "
+                             "ledger. Without it the build reports what moved "
+                             "and appends NO LEDGER ROW (site/changes.json is "
+                             "still written) — the ledger is append-only, "
+                             "so a row written by an experimental build is "
+                             "permanent.")
+    parser.add_argument("--reason",
+                        help="why the figures moved, in the reader's language. "
+                             "Required by --publish whenever anything moved.")
+    parser.add_argument("--change-class", choices=publication.CHANGE_CLASSES,
+                        help="what KIND of change this is: recompute, "
+                             "data_revision, mechanism or bugfix. 'the model "
+                             "moved' and 'we were wrong' are different "
+                             "sentences and the reader is owed which.")
     parser.add_argument("--allow-stale-sources", action="store_true",
                         help="publish even when a token's source FILE is older "
                              "than the reference run. Staging escape hatch "
@@ -394,12 +503,18 @@ def main(argv: list[str] | None = None) -> int:
     unresolved_all: list[str] = []
     audits: dict[str, tuple[list[str], list[str]]] = {}
     generated: list[str] = []
+    # Every token OCCURRENCE that reached a reader, in reading order. The
+    # ledger needs the raw value AND the displayed string; see `stats.render`.
+    published: list[dict] = []
 
     for source, spec in DOCS.items():
         output, kicker, standfirst = spec[:3]
         tech = spec[3] if len(spec) > 3 else None
         page = render_doc(Path(source), kicker, standfirst, output, tech)
-        page, drift, unresolved = statlib.render(page, registry, ctx)
+        seen: list[dict] = []
+        page, drift, unresolved = statlib.render(page, registry, ctx,
+                                                 record=seen)
+        published += [{**r, "page": output} for r in seen]
         all_drift += drift
         unresolved_all += [f"{source}: {u}" for u in unresolved]
         # A GENERATED page is exempt from the typed-figure audit, and only a
@@ -423,7 +538,10 @@ def main(argv: list[str] | None = None) -> int:
     for source, output in ARTEFACTS.items():
         href = "./" if output == "index.html" else output.removesuffix(".html")
         html = inject_nav(Path(source).read_text(encoding="utf-8"), href)
-        html, drift, unresolved = statlib.render(html, registry, ctx)
+        seen = []
+        html, drift, unresolved = statlib.render(html, registry, ctx,
+                                                 record=seen)
+        published += [{**r, "page": output} for r in seen]
         all_drift += drift
         unresolved_all += [f"{source}: {u}" for u in unresolved]
         audits[output] = statlib.audit(html, **audit_cfg)
@@ -504,6 +622,73 @@ def main(argv: list[str] | None = None) -> int:
     elif stale:
         print("\n!! publishing against STALE source files (--allow-stale-sources):")
         print(statlib.freshness_report(stale))
+    # A SUPERSEDED FIGURE IN LIVE PRESENT TENSE IS FATAL, since 2026-08-31,
+    # and it is the second clause of the attribution rule this whole ledger
+    # exists to keep. The owner's standard is that a published number need not
+    # be re-derivable — it must be ATTRIBUTABLE, and a figure whose mechanism
+    # the model no longer has may still be published *as history*: "as of 7
+    # August the model said the DA would be short by 39 seats". What it may not
+    # do is speak in the present. Without this check the rule is a licence.
+    #
+    # The prose DECLARES its own dating by enclosing the sentence in an element
+    # carrying `data-asof`; see `stats.DATED_REGION` for why it is declared per
+    # occurrence rather than sniffed for a nearby date.
+    city = cityconfig.active().slug
+    # ROOT IS ANCHORED TO THE REPOSITORY, NOT THE WORKING DIRECTORY. `latest`
+    # defaults to a relative `publications/`, so a build run from anywhere but
+    # the repo root would read an EMPTY ledger, classify every token as `new`,
+    # and let `dated_context_violations` return [] — the refusal failing OPEN
+    # and silently, which is the exact failure the declared-dating design was
+    # chosen to avoid.
+    ledger_root = args.ledger_root or (REPO_ROOT / publication.LEDGER_ROOT)
+    ledger = publication.latest(city, root=ledger_root)
+    undated = publication.dated_context_violations(published, ledger)
+    if undated:
+        refuse = True
+        print("\nSUPERSEDED FIGURES IN LIVE PRESENT TENSE — refusing to "
+              "publish a retired number as though it were current:")
+        for v in undated:
+            print(f"  ✗ {v['token']} = {v['display']}")
+            print(f"      {v['why']}")
+        print("  Wrap the sentence in <span data-asof=\"YYYY-MM-DD\">…</span> "
+              "so it reads as history, or cut the claim.")
+
+    # A PUBLISHED TOKEN THAT LEAVES THE REGISTRY UNRETIRED IS FATAL, since
+    # 2026-08-31 — and this is the DURABLE half of the pre-ledger backfill.
+    #
+    # Backfilling the ten `turnout_tilt_da` claims and retiring them is a
+    # cleanup: it fixes ten rows. This is the fix. The seam was never really
+    # "the ledger started empty"; it was that a figure can stop being produced
+    # and simply VANISH — deleted from the registry, gone from the page, and
+    # nothing anywhere saying it stopped being current or when. `retire()` is
+    # the only thing that sets `superseded_at`, and `dated_context_violations`
+    # — the second clause of the attribution rule — is built entirely on that
+    # stamp. So a token that disappears without a retirement takes the check
+    # with it: there is no row left to fire on.
+    #
+    # The next deleted lever reopens the hole otherwise, and it will be deleted
+    # for a good reason, by someone with no idea a claim on the front page was
+    # pinned to it. That is exactly how `turnout_tilt_da` happened.
+    #
+    # NO ESCAPE HATCH, unlike --allow-orphans and --allow-stale-sources. Those
+    # stage a fix that needs model work; this one is satisfied by one call to
+    # `publication.retire()` with a reason, which is the whole obligation.
+    vanished = sorted(t for t, row in ledger.items()
+                      if t not in registry and not row.superseded_at)
+    if vanished:
+        refuse = True
+        print("\nPUBLISHED TOKENS THAT LEFT THE REGISTRY UNRETIRED — refusing "
+              "to let a figure stop being current without saying so:")
+        for name in vanished:
+            row = ledger[name]
+            print(f"  ✗ {name} = {row.display}  (last published "
+                  f"{row.published_at}, run {row.model_run_id})")
+        print("  Each was published, is no longer in the stats registry, and "
+              "carries no supersession stamp — so nothing can tell a reader "
+              "when it stopped being true. Close each one out:")
+        print(f"    P.retire({city!r}, '<token>', reason='<why>', "
+              f"change_class='mechanism', root=Path({str(ledger_root)!r}))")
+
     if refuse:
         raise SystemExit(1)
 
@@ -540,6 +725,88 @@ def main(argv: list[str] | None = None) -> int:
             "with no source. Register each as a {{token}}, or add its context "
             "to [audit].allow in the stats registry if it is historical fact, "
             "a statement of the rules, or reviewed static prose.")
+
+    # --- the publication ledger: what moved, and on whose authority --------
+    # ⛔ CHANGING THE FORECAST IS EXPECTED. LEAVING THE READER TO NOTICE IS NOT.
+    #
+    # The owner's ruling, 2026-08-30: a forecast value is live at one point and
+    # is bound to be superseded, the old value going into that token's history.
+    # We do not have to be able to RE-DERIVE it. We have to be able to say what
+    # it was, when that was, and which model produced it.
+    #
+    # So this section is not a gate on the forecast moving — it is a gate on
+    # the move being SILENT. Every occurrence that reached a reader is
+    # classified against the last published row and reported; publishing them
+    # requires a reason of a stated kind.
+    #
+    # --publish is opt-in because the ledger is append-only: a row written by
+    # an experimental build can never be taken back, and this script is run
+    # many times a day during a rewrite.
+    ident = publication.run_identity(args.processed)
+    now = publication.utc_now()
+    rows, changes = _ledger_candidates(published, ledger, ident, now,
+                                       reason=args.reason,
+                                       change_class=args.change_class)
+    summary = publication.summarise(rows)
+    # ⛔ `new` IS NOT A MOVE, and treating it as one writes a lie into a record
+    # that cannot be rewritten. `classify` returns "new" for a first
+    # publication; if that counts as moved, the FIRST EVER --publish demands a
+    # --change-class, and every founding row is then stamped `recompute` /
+    # `mechanism` / `bugfix` — none of which describes a figure that was never
+    # published before. Found in blind review 2026-08-31; the print two lines
+    # below already counted new separately and this did not.
+    moved = [c for c in changes if c["movement"] not in ("none", "new")]
+
+    # NEW IS COUNTED SEPARATELY FROM CHANGED, because they are different
+    # sentences to a reader and `summarise` is right to keep them apart: a
+    # first publication did not MOVE. Reporting them together printed "0
+    # visibly changed" directly above a list of twelve tokens.
+    n_new = len(summary["by_movement"].get("new", []))
+    print(f"\npublication ledger ({city}): {summary['n']} token(s) on the "
+          f"page · {n_new} published for the first time · "
+          f"{summary['n_visible']} visibly changed · "
+          f"{summary['n_rounding']} moved below the displayed precision")
+    visible = [c for c in changes
+               if c["movement"] in ("new", "nominal", "material", "minor")]
+    for c in sorted(visible, key=lambda c: c["token"])[:12]:
+        was = "—" if c["previous"] is None else c["previous"]
+        print(f"  {c['movement']:<9s} {c['token']:<28s} {was} -> {c['display']}")
+    if len(visible) > 12:
+        print(f"  … and {len(visible) - 12} more")
+
+    # The reader-facing record. Written on EVERY build, published or not, so
+    # the page layer renders "what changed" from the same classification the
+    # ledger stores — not a second copy of the logic that can drift away from
+    # it. These are the exact rows `--publish` would append.
+    (args.out / "changes.json").write_text(
+        json.dumps({"city": city, "run": ident, "summary": summary,
+                    "changes": changes}, indent=2, sort_keys=True, default=str),
+        encoding="utf-8")
+    print("  wrote    site/changes.json (the reader-facing 'what changed')")
+
+    if args.publish:
+        if moved and not (args.reason and args.change_class):
+            raise SystemExit(
+                f"refusing to publish: {len(moved)} token(s) moved and the "
+                f"change is undeclared. Pass --reason and --change-class.\n"
+                f"A forecast is EXPECTED to move. What a reader may not be "
+                f"asked to do is notice on their own.")
+        try:
+            n = publication.append(city, rows, root=ledger_root)
+        except publication.Unattributable as exc:
+            # A refusal, not a crash. The ledger is append-only, so this is the
+            # last moment the defect is fixable, and the builder needs to be
+            # told what to DO — not handed a traceback.
+            raise SystemExit(
+                f"refusing to publish: {exc}\n"
+                f"Nothing was written. Re-run the model "
+                f"(`.venv/bin/python src/montecarlo.py --city {city}`) so the "
+                f"forecast carries the run stamp this row must be attributed "
+                f"to, then build again.") from None
+        print(f"  appended {n} row(s) to {ledger_root}/{city}/ledger.jsonl "
+              f"as run {ident['model_run_id']}")
+    else:
+        print("  (dry run — pass --publish to append these to the ledger)")
 
     # Serve everything as UTF-8 regardless of meta tags — the sheet originally
     # shipped without a <head> and mojibake'd every em-dash (review of the

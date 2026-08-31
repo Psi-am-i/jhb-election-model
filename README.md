@@ -71,10 +71,15 @@ python src/pools.py --city joburg --target 2026 --emit --simulation   # reader e
 
 # 5. the forecast and its outputs
 python src/montecarlo.py                 # 5,000 draws; scenario knobs via --config/--set
-python src/leverage.py                   # per-ward turnout elasticity
 python src/render_sheet.py               # regenerate the sheet's figures
 python src/build_site.py                 # the public site -> ./site
 python src/build_portal.py               # the multi-city portal
+
+# `leverage.py` used to be step 5 here. It was retired to
+# archive/retired-scripts/ — nothing imported it, nothing ran it, and this
+# line was the only thing still claiming it existed. That is why
+# tests/test_standalone_modules.py does not accept "named in a .md file" as
+# evidence that a module is alive.
 
 # or all of the above in one command
 python src/build_all.py --city joburg

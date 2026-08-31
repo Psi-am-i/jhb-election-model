@@ -16597,3 +16597,920 @@ artefact key named the violation in one line, at the moment it happened, in the
 middle of an unrelated measurement. That is exactly what it was built for, and
 it is worth recording that a change can be small, correct, and still belong in
 the window.
+
+ ## 1.142 The publication ledger, wired to the build — and three guards that could not fire until they were made to (2026-08-31)
+
+The owner's ruling on 2026-08-30 set the standard this entry implements: *"Every
+forecast value is live at one point and it is bound to be superseded — the old
+value going into the history for that token. We need to be able to say what
+values were, when that was, what model generated it. We must just be able to say
+what it was and why."*
+
+**That is attribution, not re-derivability, and the distinction is what makes it
+achievable.** Ten front-page claims are pinned to `run:turnout_tilt_da=1`, a
+lever `run_model` has not had for weeks. They cannot be re-derived by anything.
+They can be attributed — and under this rule they may be published as history and
+not as the present tense.
+
+### What was built
+
+`src/publication.py` is an append-only, bitemporal ledger: one row per token per
+publication, carrying VALID time (`as_of`, what the run knew) separately from
+TRANSACTION time (`published_at`, when a reader could see it). `build_site.py`
+now classifies every token that reaches a reader against the last published row,
+prints what moved, writes `site/changes.json` for the page layer, and — under
+`--publish` — appends.
+
+**Publishing is opt-in, and a move must be declared.** `--publish` refuses a
+batch in which anything moved unless `--reason` and `--change-class` are given.
+This is not a gate on the forecast moving; the owner was explicit that *"changing
+the forecast is EXPECTED. What needs to be clear is what changed."* It is a gate
+on the move being silent.
+
+`stats.render` grew an opt-in `record=` that reports what each token resolved
+to — the raw value AND the displayed string. Both are needed and neither is
+recoverable from the rendered HTML: a raw move that leaves the glyph unchanged is
+the `rounding` case, invisible to a reader and undetectable from the string.
+Recording changes no output, and a test asserts the two renders are equal.
+
+### The three guards that read as working and could not act
+
+All three were found in blind review before a single row was written, which is
+the only reason they were cheap. **The ledger is append-only: a wrong row is
+permanent.**
+
+1. **`run_identity` returned `model_run_id="r-unknown-8249ea50"`** — every row
+   would have attributed the live forecast to a run called *unknown*, for ever.
+   The test asserting the id "names the run" **passed in that state**, because it
+   asserted `startswith("r-")`. It now builds the id from the git commit, the
+   pool artefact keys and a hash of the forecast content with the volatile
+   `_`-prefixed stamps stripped: `r-7e4cf7c1ecb4-2d609320-dirty`.
+
+2. **The first id hashed `forecast_summary.json`'s BYTES**, and that file now
+   carries its own wall-clock `_generated` stamp — so two byte-identical
+   forecasts a minute apart got different ids, and the id could no longer answer
+   *did the forecast change*, which is the only question it exists for.
+
+3. **`dated_context_violations` could never fire**, because nothing in the
+   module set `superseded_at`. `retire()` was added so it can, with a test that
+   proves the guard acts. Recorded rather than quietly fixed, because the
+   pattern is the point: **a check is not a check until something can make it
+   fail**, and this is the third instance in three sessions.
+
+A fourth was added at the write path rather than in a test. `append` refuses any
+row whose `model_run_id` says *unknown*, or which has no run time or no
+transaction time — and it validates the **whole batch before opening the file**.
+A refusal raised mid-iteration *would* leave the earlier rows written,
+permanently, in a ledger that cannot take them back — **stated as a hazard the
+design forecloses, not as something that happened**: the previous `append` had no
+refusal at all, so it never occurred. (Corrected 2026-08-31 in blind review,
+which caught this write-up promoting the conditional to the past tense while the
+code comment beside it had it right.) **A test can be written weakly; a
+refusal at the write path cannot be satisfied by a weaker assertion.**
+
+### A negative result worth keeping: the dating cannot be sniffed
+
+The obvious implementation of "may only appear in a dated context" is a regex
+looking for a date near the token. It was rejected without being built, and the
+reason is recorded because it will look attractive again: such a check **fails
+open on prose it cannot parse** — publishing a dead number as current, the exact
+defect — **and closed on prose that is fine**, and it does both silently. The
+prose declares its own dating instead, by enclosing the sentence in an element
+carrying `data-asof`, and the declaration is recorded PER OCCURRENCE: the same
+token is live on the forecast page and historical in a retrospective, which a
+registry-level flag could not tell apart.
+
+### What is NOT yet resolved, and is the next thing to look at
+
+**The ledger starts empty while the site already has a history.** `retire()`
+raises `KeyError` on a token that was never published, so the ten
+`turnout_tilt_da` claims — the retirement machinery's declared first customers —
+cannot currently be retired at all: they have been on the live page for weeks and
+in the ledger never. Either the first publication backfills them and they are
+retired in the row after, or `retire` learns to close out a token it never saw.
+Both are defensible; neither has been chosen, and nothing should be published
+until it is.
+
+**Nothing has been published.** `--publish` correctly refuses today, because
+`data/processed/forecast_summary.json` predates the `_generated` stamp and so
+carries no run time. The model must be re-run before the first append. That
+refusal firing on the real tree is the strongest evidence the write path works —
+though reaching it requires `--allow-orphans --allow-stale-sources` to step past
+the live orphan and stale-source refusals, which is now done by an end-to-end
+test rather than by hand (§1.146).
+
+ ## 1.143 Dead code in `src/` is now a test failure — and "named in a .md file" is not evidence a module is alive (2026-08-31)
+
+`src/leverage.py` sat in `src/` for weeks, imported by nothing and run by nobody,
+until it was retired to `archive/retired-scripts/` (§1.140). Nothing in the suite
+could see it. `tests/test_standalone_modules.py` now enforces the rule: every
+module in `src/` is either **imported** by another module or a test, or is an
+intentional **entry point declared in an allowlist with a reason**. Anything in
+neither is named and fails the build. The tree is clean today: **50 modules, 28
+imported, 22 declared entry points, none dead.**
+
+### Two ways of writing this check that do not work
+
+Both were tried against negative controls, and the record matters because each
+looks obviously correct.
+
+**A top-of-file import scan produces false corpses.** This project imports by
+bare module name because `src/` is on `sys.path`, and several imports are
+function-local: `freeze` is imported inside a function of `publication.py`,
+`turnout` inside a function in `fold.py`, `ingest_lge` three times inside
+`pools.py`. A naive scan reports all three as dead. The check walks the AST and
+counts every `Import` node wherever it sits.
+
+**`if __name__ == "__main__"` cannot distinguish a script from a corpse.**
+`archive/retired-scripts/leverage.py` has one, and an `argparse` parser too — as
+does **every one of the 22 un-imported modules in `src/`**. A `__main__`-based
+rule would have exonerated the exact file that prompted the guard. It is kept
+only as corroboration: a module *declared* an entry point must have one.
+
+**And "it is named in a `.md` file" is worse than useless, because it was true of
+`leverage.py` the whole time.** `README.md` step 5 still read
+`python src/leverage.py   # per-ward turnout elasticity` — the reproduction
+recipe instructing a reader to run a script that had been retired. Found by the
+agent building this guard; the line is now removed and the README says why it is
+gone. **A documentation reference is evidence about the documentation, not about
+the code**, which is precisely the failure mode `CLAUDE.md`'s same-commit rule
+exists to prevent and which this line survived.
+
+Five negative controls were run against a temporary tree and all bite: restoring
+`leverage.py` names it; a stale allowlist entry fails; a reason under 60
+characters fails; allowlisting something already imported fails; declaring a
+module a script when it has no `__main__` fails.
+
+### One judgement call, recorded as one
+
+`export_interactive.py` is allowlisted **on notice**. Nothing imports it and the
+only thing that runs it is `build_all.py --interactive`, a flag off by default
+and disabled by design because `build_interactive.py` refuses at import. It is
+gated, not dead — but it is in exactly the position `leverage.py` occupied. If
+the port named in `PUBLISHING-BACKLOG.md` is abandoned, it should be retired
+rather than left allowlisted.
+
+### The guard caught the session that wrote it
+
+`test_no_test_file_defines_a_test_after_its_main_block` failed immediately after
+five new tests were appended to `tests/test_publication_ledger.py` — **below its
+`if __name__ == "__main__":` block**, where direct invocation would never have
+collected them. Five tests written to check a refusal path, silently
+uncollectable. Same class as everything in §1.142: a check that reads as working.
+
+ ## 1.144 CRPS does NOT drift with the column count — the sum is exactly invariant, and §1.141 was wrong about it (2026-08-31)
+
+**Pre-registered before the run** (`prereg/2026-08-31-crps-column-count.md`, written
+after reading the code and before a number existed): P1, P2 and P4 held; **P3
+was refuted**, and the refutation is in §3 below.
+
+### The measurement
+
+`score.seat_matrix` keeps column *i* iff `truth[i] > 0 or samples[:, i].max() > 0`
+(`src/score.py:191`). A column a forecaster does **not** score is therefore one
+where the party won nothing **and** that forecaster is identically zero in every
+draw — seats are non-negative, so `max == 0` means all zero. For such a column
+
+    CRPS = E|X − y| − ½E|X − X′| = 0 − 0 = 0     exactly, not approximately.
+
+`crps["total"]` is a **SUM** (`score.py:266`), so it is invariant to padding.
+Measured on the panel rather than argued: **max |own_total − union_total| = 0.0
+across all 64 forecaster × city-year combinations**, re-summed independently from
+the per-party dictionaries.
+
+| support | model | uniform-swing | margin | sign count |
+|---|---|---|---|---|
+| own sets (what ships) | 329.50 | 530.00 | 37.8% | 14–2–0 |
+| **union (held)** | **329.50** | **530.00** | **37.8%** | **14–2–0** |
+| intersection | 320.46 | 486.00 | 34.1% | 13–3–0 |
+| mean per column | 0.766 | 2.285 | 66.5% | — |
+
+### 1. ⛔ THIS CORRECTS §1.141, WHICH IS WRONG WHERE IT GENERALISES
+
+§1.141 says: *"A summed joint score over a variable dimension is denominator
+drift by construction."* **That is exactly backwards.** A SUM is the case that is
+safe, because the absent column contributes zero. The statistic that drifts is a
+**MEAN**, and the variogram is a mean over pairs — by deliberate design, and
+`score.py`'s own comment says so: *"MEAN over pairs, not a sum. A sum scales as
+d(d−1)/2."*
+
+So the three scores behave differently and must be quoted differently:
+
+| score | shape | padding | comparable across forecasters? |
+|---|---|---|---|
+| `crps["total"]` | sum over columns | contributes 0 | **yes** |
+| `energy` | E‖X−y‖ − ½E‖X−X′‖ | a zero coordinate adds nothing to a norm | **yes** — uniform swing padded 19 → 56: **56.9737 → 56.9737** |
+| `variogram` | **mean over pairs** | adds zero-valued pairs, grows the denominator | **NO — it shrinks** |
+| `crps["mean"]` | sum ÷ n_scored | denominator grows | **NO** |
+
+The mean-over-pairs normalisation was introduced to make the variogram
+comparable across *d*. **It does not: it over-corrects.** Padding uniform swing
+from 19 columns to the model's 56 moves its variogram **4.0384 → 1.8916** — the
+padding more than halves its score. Neither a sum nor a mean is comparable
+across differing *d*; only holding *d* fixed is.
+
+**What survives, and it is the useful part:** §1.141's operational conclusion —
+*"no model-vs-baseline joint difference may be quoted until the universe is
+held"* — was right, for the variogram, for the wrong reason. Holding it does not
+reverse the direction: the model is 0.7519 against uniform swing's padded
+1.8916, still better, with the margin cut from 5.4× to 2.5×.
+
+**And no shipped CRPS conclusion flips.** Every CRPS figure in this log is a
+sum — §1.69's 232.7/234.3/236.1, §1.82's 329.4→320.3, §1.100's +3.09, the
+85.9→109.9 arrival rejection — and all survive, including when a change moves the
+model's own column set, since a dropped column is dropped precisely because it
+now contributes zero.
+
+### 2. The mean flatters the model, and must never be the cross-forecaster key
+
+Switching sum → mean moves the model's advantage from 37.8% to **66.5%**, because
+it divides the model's total by 430 and uniform swing's by 232. The model draws
+1000 times and picks up a column for every party it seats even once; the
+deterministic baselines pick up almost none. `format_report` prints `mean` in
+every block (`score.py:749`), so it is available to be quoted and must not be.
+
+### 3. The intersection is the WRONG common support, and this refutes P3
+
+P3 predicted the model would lose more to an intersection than the baselines
+would. **The opposite:** the intersection deletes **44.00 CRPS from uniform
+swing against 9.04 from the model**, biasing toward the baselines. It drops no
+actual winner at any city-year, so what it deletes is real, earned penalty for
+seats a baseline awarded to parties that won nothing — ethekwini 2016 alone costs
+uniform swing 17.00. **The union is the correct common support, and since the sum
+is invariant, the union is what already ships.**
+
+The model's 213 columns that uniform swing does not score carry **+6.17 CRPS,
+1.9% of its 329.50** — they penalise the model for spurious mass, correctly. The
+sum is if anything conservative against the model.
+
+### 4. Two findings that are not about CRPS
+
+**`seat_matrix`'s comment promises a materiality threshold the code does not
+have.** The comment block at `score.py:171` is headed *"MATERIALITY, not mere
+presence"* and says a column earns its place when a forecaster gives it a seat
+*"often enough that the claim is a real claim"* — having just argued that keeping
+a column on *"one draw in five hundred"* is **"ruinous for coverage and PIT"**.
+The code is `samples[:, i].max() > 0`: one draw in a thousand suffices. The
+prose argues against its own implementation. **Not changed here** — it is a
+change to a SCORER, the one class whose failure the suite structurally cannot see
+(§1.136), and it is owed the adversarial review already booked for exactly this.
+Recorded so it is not rediscovered.
+
+**Key 1 cannot arbitrate the arrival channel at 6 of 16 city-years, not
+generically.** `entrant_actual` is `None` at joburg 2021, tshwane 2016 and 2021,
+mangaung 2021, and buffalocity 2016 and 2021 — so the generic `ENTRANT` column
+survives the relabel and is scored as its own party, carrying 2.71 CRPS in total
+(0.86 at joburg 2021, the model's single largest extra column). `ITERATING.md`'s
+⛔ block reads as though the relabel always fires. It does not, and joburg 2021 —
+the flagship city-year — is one of the six.
+
+ ## 1.145 The hash seed moves a SEAT, not just an epsilon — and the guard is lost by any importing caller (2026-08-31)
+
+Found while checking a subagent's claim that the `prior-lge-noise` baseline is
+not reproducible. **The claim is true. Its stated cause is wrong**, and the
+distinction is the whole entry.
+
+### The cause is hash randomisation, not BLAS
+
+The agent diagnosed *"multithreaded-BLAS summation order"* on the evidence that
+six free runs split 3/3 while four runs with `OMP_NUM_THREADS=1` were identical.
+Re-derived here, and **pinning does not fix it**: six pinned runs at mangaung
+2021 split **5/1**. Four threads or one, it still flips.
+
+`PYTHONHASHSEED` settles it exactly:
+
+| seed | runs | result |
+|---|---|---|
+| `0` | 6 | all identical |
+| `1` | 3 | all identical, and **different from seed 0** |
+| `12345` | 3 | all identical, same as seed 0 |
+| free | 11 | both outcomes appear, roughly 1 in 6 |
+
+Two outcomes selected deterministically by the seed is hash randomisation
+reordering a `dict`/`set`, not float summation order under threads. The agent's
+4/4 pinned result was a run of luck at a ~1-in-6 flip rate — **which is why four
+identical runs is not evidence of determinism**, and why the pinned control had
+to be repeated rather than accepted.
+
+### What actually moves, and it is not machine epsilon
+
+`MACHINERY.md` said the effect is *"3.1e-16 to 5.0e-16 … so **no forecast
+moves**."* **Refuted.** Diffing the two seeds' seat draws at mangaung 2021, 1000
+draws:
+
+    draws differing: 1 / 1000
+    draw 661: ACDP 1 → 0,  UNITED_CHRISTIAN_DEMOCRATIC_PARTY 0 → 1
+    total absolute seat difference: 2      council size preserved
+
+**A seat changes hands.** The epsilon is real and is confined to the shares — but
+the allocator has a discrete step, and a largest-remainder **tie** between two
+micro-parties is broken by iteration order. A 1e-16 perturbation that cannot move
+a share can and does cross a tie. The claim "no forecast moves" was true of the
+continuous quantity and false of the published one, which is the only one anyone
+reads. Corrected in `MACHINERY.md` in this commit.
+
+### The guard exists and every runner has it; an importing caller does not
+
+`montecarlo.fix_hash_seed()` re-execs under `PYTHONHASHSEED=0` and is called from
+the `__main__` guard of all seven runners — `compare_history.py:2306` and
+`tests/run_all.py:234` among them. **So the canonical panel is deterministic and
+nothing that has shipped is affected.**
+
+What has no guard is a script that *imports* the modules instead of running them,
+which is what every ad-hoc measurement harness is — including the one that
+produced §1.144's tables. Its two-cell disagreement with `compare_history`
+(tshwane 2016 62.7436 vs 62.7428, mangaung 2021 15.5535 vs 15.5550, max 0.0016
+CRPS) is fully explained by this and is not a defect in either run. §1.144's
+conclusions are unaffected: they turn on exact zeros and on differences of tens
+of CRPS, not thousandths.
+
+**The lesson is the one this project keeps relearning.** The reproducibility
+guarantee is attached to the `__main__` guard, so it protects the way the code is
+*run* and not the way it is *imported* — and measurement scripts always import.
+An analysis harness must call `montecarlo.fix_hash_seed()` itself, or set
+`PYTHONHASHSEED` before the interpreter starts, before any number it produces is
+compared to a canonical one.
+
+ ## 1.146 The blind review of §1.142–§1.145 — four of my own guards could not fire, and the ranks 1-3 calibration finding is refuted (2026-08-31)
+
+The round's own review, run blind on the substance. It found more in my work than
+I did, and one of its findings is the exact defect §1.142 was written to
+celebrate catching elsewhere.
+
+### 1. ⛔ THE LEDGER WAS WIRED AND DEAD, AND NO TEST COULD SEE IT
+
+`build_site.main()` raises `SystemExit(1)` at the orphan and stale-source
+refusals **above** the ledger block, so on this tree `publication.latest`,
+`dated_context_violations`, `_ledger_candidates` in situ, `site/changes.json` and
+the entire `--publish` path executed **zero times**. Every test called
+`_ledger_candidates` directly with hand-built dicts. **Deleting the whole block
+from `main()` would have failed nothing.**
+
+That is the wrong-shape-fixture defect one level up: the unit tests were right
+about the unit and silent about the integration — the same shape as
+`arrival_group_score`, which raised on every city-year for its entire life while
+the suite stayed green (§1.136). Fixed with three end-to-end tests that run the
+real `build_site.py` as a subprocess into a throwaway site and a throwaway
+ledger, and a new `--ledger-root` so a test can never write to the real one.
+**Verified by discrimination**: the assertion sees 0 matching lines when the
+block is unreachable and 1 when it is reached.
+
+### 2. My own stability test asserted the property's proxy, not the property
+
+`test_the_run_id_is_stable_across_identical_forecasts` made three assertions,
+**all on `forecast_content_sha256`, none on `model_run_id`**. Reintroducing the
+original defect verbatim — an id built from the wall-clock stamp — left it
+**green**. This is the third instance of the pattern in this session and the
+first one I wrote myself, in the commit whose entire subject was that pattern.
+
+Two smaller ones in the same function: `assert ident["as_of_is"]` asserts a
+hard-coded non-empty literal and cannot be falsy; and `pool_artefact_keys` was
+computed, documented as part of the id, and **not in the id**.
+
+### 3. `new` counted as a move, which would have written a false label for ever
+
+`moved` was `movement != "none"`, and `classify` returns `"new"` for a first
+publication. So the **first ever** `--publish` would have refused for an
+undeclared change that never happened — and satisfying it would have stamped
+every founding row with one of `recompute`/`data_revision`/`mechanism`/`bugfix`,
+none of which describes a figure never published before. In an append-only
+record that label could never be corrected. The print two lines below already
+counted `new` separately; the refusal did not.
+
+### 4. The ledger root resolved against the working directory
+
+`publication.latest(city)` took the default relative `publications/`. A build run
+from anywhere but the repository root would read an **empty** ledger, classify
+every token as `new`, and let `dated_context_violations` return `[]` — **the
+refusal failing open, and silently**, which is precisely what the
+declared-dating design was chosen over a regex to avoid. Now anchored to
+`REPO_ROOT`.
+
+### 5. The row was dropping the provenance the module says determines a forecast
+
+`git_commit`, `git_dirty`, `pool_artefact_keys`, `draws`,
+`forecast_content_sha256` and the `as_of_is` label were computed and stored
+nowhere durable — they reached only `site/changes.json`, which every build
+overwrites. `Row` now carries a `provenance` dict. Done now because the ledger is
+empty; an append-only file cannot be migrated later.
+
+### 6. THE RANKS 1-3 CALIBRATION FINDING IS REFUTED ON SIXTEEN CITY-YEARS
+
+Four docstrings quoted nine-city-year figures **as "the committed
+`history.json`"** while the artefact had grown to sixteen. Re-measured here,
+cluster-bootstrapped over city-years:
+
+| population / band | was (9 city-years) | is (16) | verdict |
+|---|---|---|---|
+| claimed, pooled | 0.598 | 0.559 | — |
+| claimed, ranks 1-3 | n=27, 0.434 | n=48, **0.510** [0.474, 0.542] | **REFUTED** |
+| claimed, ranks 4-12 | n=28, 0.757 | n=57, **0.613** [0.537, 0.683] | survives, does **not** replicate by cycle (2016 0.512, 2021 0.687) |
+| reference, ranks 4-12 | — | n=128, **0.688** [0.634, 0.735] | survives **and replicates**: 0.623 (2016), 0.745 (2021) |
+
+**The model does not over-forecast the top three.** The CI contains 0.50 and the
+two cycles have *opposite* signs (2016 0.554, 2021 0.465), so it fails Key 1's
+own replication standard. The "two biases in opposite directions" reading —
+quoted in `compare_history.py` three times and in `test_calibration_report.py`
+three times — must not be used again.
+
+**One bias survives, and it is the mid-ballot being under-forecast.** Quote it on
+`reference`, which is the population Key 2 makes an untradeable floor, and say
+which population it is: on `claimed` the 2016 arm is centred at 0.512 and the
+whole effect is 2021. *(The reviewer reported the replication without that
+qualification; re-deriving it on both populations is what separates them.)*
+
+`ITERATING.md` rule 8's own tables were current and guarded — but the guard
+parses those tables only, so six docstrings sat outside its reach. All corrected
+in this commit.
+
+### 7. Pre-registrations are now committed, not left in a temp directory
+
+§1.144 cited its pre-registration at a path under `/private/tmp` that resolves to
+nothing from the repository. **The one document that turns a result into
+evidence was not durable.** Now `prereg/`, committed before the run it predicts.
+
+### What was NOT acted on, and why
+
+The review's top-ranked finding — a level correction to the mid-ballot, worth an
+estimated 10–20 CRPS on the panel — is **new modelling work, not a defect in this
+round**, and goes to the owner rather than being taken unilaterally. So do three
+others: the `reference` mean PIT carries a **±0.019 band from the PIT
+randomisation seed alone** (182 of 376 columns are pure re-roll), which makes an
+untradeable floor noisier than the moves read against it; the entrant relabel is
+worth **6.1–11 CRPS and 1.1–2.0 points** of the 37.8pp headline margin, replacing
+"UNQUANTIFIED" in `ITERATING.md`; and the ledger backfill decision (§1.142's open
+seam) has a recommendation — **backfill via a separate entry point, do not weaken
+`retire()`** — which is the owner's to take.
+
+**`score.py:171`'s materiality comment needs no measurement and no ultra review.**
+The headline `coverage` and `pit` are computed on `claimed`, selected at
+`CLAIM_FRACTION = 0.50`; any materiality threshold at or below 0.50 removes only
+columns that already fail `claimed`. **The consequence for the calibration key is
+exactly zero.** It is a stale comment contradicting both the code and the module
+header, and fixing it is an edit, not an investigation.
+
+### §1.146 addendum — the documentation audit, and one finding it makes about itself
+
+A third review audited the §1.142–§1.145 diff claim-by-claim against the code.
+Most of what it found had already been caught by the blind review above and
+fixed. **Four were live and are corrected in this commit:**
+
+* **The energy invariance was evidenced by a measurement that proves nothing.**
+  §1.144 quoted `28.3828 → 28.3828` — the MODEL at joburg 2021, where the own
+  column set *already equals* the union, so **nothing was padded**. The
+  probative pair sat two lines below in the same file: uniform swing padded 19 →
+  56, `56.9737 → 56.9737`. The claim was right and the number cited for it was
+  vacuous, which is the harder error to see: a correct conclusion resting on
+  evidence that does not bear on it.
+* **A one-city-year variogram sat under "Verified on the panel, not argued."**
+  Only the CRPS row of that table is panel-wide. Now labelled, along with the
+  fact that `energy` sub-samples above `max_draws` and is therefore stochastic.
+* **MACHINERY generalised a BASELINE measurement into `run_model`'s own
+  reproducibility guarantee.** The seat that moved was
+  `benchmarks.prior_lge_noise`'s; `run_model` shares the allocator, so it
+  transfers by argument and not by measurement. Labelled argued-vs-measured, per
+  this repository's own rule.
+* **§1.144 cited its pre-registration at a path that resolves to nothing** — the
+  session scratchpad. Now `prereg/`, committed, with the citation updated.
+
+Plus three small ones: the `--publish` help still said the build "writes
+nothing" when `site/changes.json` is written every time; "three refusals sit on
+the write path" described one write refusal and two build refusals; and
+`freeze.py` computes three of the four identity components, not all four.
+
+**And the audit's own delivery is the entry's last finding.** Its report was lost
+in transit — only a footnote arrived, referring to "the audit above" that no one
+had seen. It was recovered by asking the agent to restate from its own context,
+**and it correctly reported that the tree had moved underneath it**: it had
+audited a snapshot with no §1.146, no `prereg/`, and a `build_site.py` since
+rewritten, and it marked each finding live / unknown / resolved rather than
+asserting all of them. That is the behaviour to want from a stale reviewer, and
+it is why every "unknown" above was re-derived here before being acted on rather
+than either trusted or discarded.
+
+ ## 1.147 The corrective-action review — and item 1 is PROHIBITED by the register, which neither reviewer noticed (2026-08-31)
+
+The four outstanding items went back to the reviewer for corrective action. Its
+answer **overturned its own earlier diagnosis of item 1**, and my check of that
+answer found a second, harder blocker that it missed.
+
+### The reviewer's own correction: it is a WIDTH fault, not a level fault
+
+Splitting `reference` ranks 4-12 by whether the model *claims* the column —
+re-derived here, exact agreement:
+
+| cycle | subset | n | mean PIT | 95% CI | verdict |
+|---|---|---|---|---|---|
+| 2016 | claimed | 24 | 0.544 | [0.478, 0.616] | contains 0.50 |
+| 2016 | **not claimed** | 36 | **0.675** | **[0.577, 0.767]** | excludes |
+| 2021 | claimed | 33 | 0.678 | [0.591, 0.746] | excludes |
+| 2021 | **not claimed** | 35 | **0.808** | **[0.731, 0.878]** | excludes |
+
+**The effect replicates in both cycles, and it lives entirely in the columns the
+model does not claim.** The `claimed` population's failure to replicate — the
+correction I sent back — is explained: on claimed columns 2016 is centred, so
+pooling the two subsets hides a real, replicating bias behind a null one. The
+population was the confound, not the cycle.
+
+**And the block is not new parties.** Of the 71 not-claimed columns, **62 (87%)
+are parties the model already has and already seats sometimes** — `P(≥1 seat)`
+between 0.05 and 0.50 — with only 9 below 0.05. So it is **not** an entry or
+roster fault and needs **no `pools.py` change** on its own account. The block
+carries **66.70 CRPS, 20.2% of the model's 329.50** (verified by joining the
+per-column scores to the band labels). A distribution too narrow, centred
+slightly low, pins `P(≥1 seat)` at 0.25–0.50 for parties that go on to win — which
+is exactly the shape measured.
+
+The reviewer withdrew its own "level correction" remedy. It was attached to the
+wrong 57 columns.
+
+### ⛔ AND THE PROPOSED FIX IS FORBIDDEN BY `JUDGEMENT-CALLS.md`
+
+The corrective action offered was to fit or clamp the sub-15% bins to their own
+measured intervals instead of to the line. **That is a third functional form
+tried against the same two folds, and the register prohibits it in terms:**
+
+> *"No further functional form may be tried against these two folds"* ⛔ …
+> *"two forms are already spent and a handful of trials makes a spurious
+> two-of-two likely. Licensed next by more folds (ingest the pre-2011 archive for
+> the other seven metros) or by a mechanism argument naming the shape in
+> advance."* — `JUDGEMENT-CALLS.md`, the `sd_for` size-dependence row
+
+The reviewer cited the row **above** it — the `SD_FLOOR` row, where the *global*
+correction was refuted (258→268 seats, 231.9→246.8 CRPS) — and correctly warned
+against repeating that. It did not cite the row that actually governs its own
+proposal. Two forms were built and refuted in §1.62; the prohibition rests on a
+multiple-comparisons argument that does not depend on the numbers.
+
+**So item 1 is not merely mis-timed. As proposed it may not be run at all.**
+
+### What that does to the ordering — the conclusion survives, the reason changes
+
+The reviewer put item 1 last because its baseline is about to move underneath it.
+True, and not the binding reason. The binding reason is that **re-emit entry 4 is
+one of the two things that LICENSES item 1**: it unlocks the 2000 and 2006 metro
+results for eight metros — reconciled, on disk, and unreadable only because
+`pools.metro_file` cannot resolve them — which *is* the register's "ingest the
+pre-2011 archive for the other seven metros". Entry 4's own note says it "changes
+every fitted quantity in every spec … the entrant record, the arrival-group
+record, the splinter records and the pool ratios all gain rows."
+
+**The re-emit window is a PRECONDITION for item 1, not a scheduling
+inconvenience.** The only alternative route is the register's second door: a
+mechanism argument naming the shape **in advance**, pre-registered under
+`prereg/`. That door is open now and costs nothing but the argument.
+
+### The order, then
+
+1. **Item 3a** — the relabel-off run, ~3 minutes, replaces `UNQUANTIFIED` with a
+   number. Best ratio on the list because it is nearly free, and it answers the
+   first question a hostile reviewer asks.
+2. **Item 2** — per-column PIT seeding plus R-averaged statistics. Buys **no
+   score at all**; it buys a Key 2 floor that cannot move 0.037 while the model
+   stands still. It is also a precondition for *measuring* item 1, whose success
+   criterion is a ~0.08 PIT move read against ±0.019 of seed noise. Re-records
+   the artefact, so it gets cheaper the sooner it is done.
+3. **Item 4** — the ledger backfill, the one narrow `r-preledger-` exemption, and
+   the `set(latest()) − registry` orphan check. **`build_site` currently exits 1
+   and the publication path is blocked**; this clears one of the two blockers.
+4. **Item 3b interim** — print `arrival_group_score` beside the relabelled score.
+5. **The re-emit window, before 16 September**, entry 4 through the booked
+   `/code-review ultra` *before* the emit. Nomination lists land that day and
+   entry 3 exists so the roster is a config edit rather than a code change on the
+   day.
+6. **Item 1**, on the new baseline and the widened fold set — or earlier, if a
+   pre-registered mechanism argument names the shape first.
+
+**Items 2 and 4 buy credibility and instrument soundness, not accuracy, and are
+recorded as such rather than dressed as score.** Item 2 in particular is the
+kind of thing this repository has been bitten by twice: an instrument that can
+move without the model moving, read as a regression.
+
+ ## 1.148 The relabel priced: 11.52 CRPS and 2.17 points of margin — and the arrival referee is finally visible (2026-08-31)
+
+Items 3a and 3b of the corrective-action order (§1.147). Both are instrument
+work: neither changes a forecast, and both change what can honestly be claimed
+about one.
+
+### 3a — what the free label is worth
+
+`compare_history` scores the model **after** `backtest.relabel_run` renames its
+generic `ENTRANT` column onto the largest party that actually arrived — a label
+chosen **with the outcome in hand**. The baselines have no `ENTRANT` column, so
+there is nothing to relabel and no equivalent benefit. `ITERATING.md` has called
+the magnitude UNQUANTIFIED since the fault was found.
+
+`JHB_SCORE_NO_RELABEL=1` withholds it. An **environment variable** because
+`compare_history` fans out to sixteen spawned processes and `os.environ` is what
+they inherit — the same route `fix_hash_seed` uses — and deliberately **not** a
+scenario key, because `--set` keys are model levers and a scoring switch among
+them would make an instrument change look like a forecast change. It suppresses
+`entrant_actual` **everywhere**, not only at `relabel_run`: the label also
+reaches `calibration_columns` and both `score_seats` calls, where `seat_matrix`
+merges the ENTRANT column onto the named party, so dropping only the relabel
+would have priced the ablation at less than it is worth.
+
+Paired, same seeds, 16 city-years:
+
+| | CRPS | margin vs uniform swing | seat err (coherent) |
+|---|---|---|---|
+| with the relabel (what ships) | **329.50** | **37.8%** | 386 |
+| without it | **341.02** | **35.7%** | 426 |
+| **the label is worth** | **11.52 (3.5%)** | **2.17 points** | 40 seats |
+
+**The estimate it replaces was 6.1–11 CRPS and 1.1–2.0 points. The measurement
+lands just above both bounds** — a reminder that a bound built from a plausible
+per-column estimate is not a measurement, even when the reasoning is sound.
+
+**Internal check, and it is the reason to believe the number.** The ablation is
+**bit-identical at exactly the six city-years where `entrant_actual` is `None`**
+— joburg 2021, tshwane 2016 and 2021, mangaung 2021, buffalocity 2016 and 2021 —
+and moves at exactly the ten where a label exists. It is measuring the label and
+nothing else.
+
+**This does not make the margin dishonest; it makes it stateable.** 35.7% over
+uniform swing on a label-free comparison is the number a hostile reviewer would
+compute, and it is now on the record beside the 37.8%.
+
+### 3b — the referee that was computed and never shown
+
+`backtest.arrival_group_score` scores the arrival channel **without** the label.
+It has been written into `history.json` on every run since it was repaired
+(§1.136) and appeared in **no rendered report**, so the one instrument that
+scores arrivals without handing the model the answer was invisible unless
+somebody opened the JSON. `ITERATING.md` already prescribed the remedy —
+*"reported beside the relabelled score as a sensitivity pair, never instead of
+it"* — and nothing did it.
+
+`compare_history`'s markdown now carries it on every run. Panel mass PIT
+**0.692**, seats PIT **0.602**, above 0.5 at **13 of 16** city-years; PIT above
+0.5 means the model forecast too little. At joburg 2021 — the flagship — the
+model forecast **9.54% of the ballot against a realised 19.99%, and 23.0 arrival
+seats against 46**, with the truth at the **98.9th percentile** of its own
+distribution.
+
+**And the section makes re-emit entry 4's problem legible without anyone
+looking for it.** Across all eight metros at 2016 the forecast arrival mass is
+1.28–1.56% — a near-constant — against a realised 0.31–4.74%. That is the
+fallback firing because `pools.metro_file` cannot resolve the 2000 and 2006
+results, so all eight 2016 specs carry zero seeds. A reader of the report can now
+see that the 2016 arm is not a fit, which is the fact that makes the arrival
+validation one cycle wide.
+
+ ## 1.149 The pre-ledger seam is closed — and the STRICTER version of the fix made the ten claims unretirable (2026-08-31)
+
+Item 4 of §1.147. §1.142 left the ledger empty while the site had weeks of
+published history, so `retire()` raised `KeyError` on the ten `turnout_tilt_da`
+claims it was built for, `dated_context_violations` could never fire, and the
+publication path was blocked.
+
+`publication.backfill()` enters them, keyed to the **archived page's bytes**:
+`r-preledger-<sha(page)[:12]>`, with the page path, the full sha256 and an
+`as_of_is` saying no run identity exists carried in `provenance`.
+`_refuse_unattributable` gained exactly one exemption for that id, and `retire()`
+was not touched.
+
+### ⛔ THE VERSION I SPECIFIED WAS STRICTER AND WRONG
+
+I specified a **caller-keyed** lock — the exemption reachable only with
+`backfill` on the stack. It was built first, and requirement 3 failed on its
+first run:
+
+    FAIL test_a_figure_published_before_the_ledger_existed_can_be_entered_as_history
+      retire(...) -> append(...) -> Unattributable: token 'claim_short_by'
+      carries a r-preledger-* run id on the normal write path.
+
+**`retire()` closes a token out by `dataclasses.replace`-ing the last published
+row and APPENDING it** — verified — so the retirement of a backfilled figure *is*
+a pre-ledger row arriving through `append`. The caller lock made the ten claims
+backfillable and then **unretirable**: it did not close the seam, it moved it one
+step down. A stricter guard was the wrong guard, and only running it showed that.
+
+So the exemption is keyed on **evidence**: the id must be `r-preledger-` followed
+by the first twelve hex of the sha256 the row itself records, that sha must be a
+sha, a page must be named, `as_of_is` must be present, and the row may not also
+claim a `run_at`. Forging the id means also naming a page and a full sha256 that
+agree with it. Everything checked is checkable **from the row alone**, because it
+also runs on rows read back years later when the page may be gone; `backfill`
+does the one check that needs the world — that the page still hashes to the
+recorded sha.
+
+**Attacked independently rather than taken on report.** Five routes, all refused:
+a bare prefix with no provenance; a prefix claiming a `run_at` as well; a real
+sha with an invented id; an id that follows the sha with no page named; a sha
+that is not a sha. The genuine route through `backfill` is accepted, at
+`r-preledger-1f61e3fa709c` off the real `site/index.html`.
+
+### The durable half is the build refusal, and it is the part that matters
+
+`set(latest(city)) − set(registry)`, minus anything already superseded, is now
+fatal — **with no escape hatch**, unlike `--allow-orphans`, because the
+obligation is one call to `retire()` with a reason. Verified by planting a
+published token absent from the registry: the build exits 1, names it, and
+prints the `retire()` call that clears it.
+
+Backfilling ten rows is a cleanup. **This stops the eleventh** — the next time a
+lever is deleted for a good reason by someone with no idea a front-page claim was
+pinned to it, which is exactly how the ten happened.
+
+### Measured: backfill + retire does NOT unblock the build, and should not
+
+On a throwaway ledger, backfilling and retiring all ten:
+
+* `ORPHANED PINNED CLAIMS` still fires on all ten. It is a property of
+  `content/joburg/stats.toml` — `mode="fixed"`, `source="run:turnout_tilt_da=1"`
+  — which the ledger cannot touch.
+* `SUPERSEDED FIGURES IN LIVE PRESENT TENSE` **fires for the first time in its
+  life**, on 13 occurrences of 9 of the ten tokens. Confirmed independently:
+  **`data-asof` appears nowhere in `content/`, `docs-public/` or any page** —
+  nothing in the tree is dated, so every superseded figure is in present tense.
+
+The machinery is closed; what remains is **editorial** — date the prose,
+re-capture under a mechanism that exists, or cut — plus the registry.
+
+**No real backfill was performed.** `publications/` still does not exist. The
+first row in an append-only ledger is the owner's call, and §1.142 says nothing
+should be published until the seam decision is taken. The verified recipe is
+recorded and can be run in one command when that decision is made.
+
+**Incidental, confirmed:** `claim_p_da_alone` is registered in `stats.toml` and
+renders on **no page at all** — a token nobody can see and nothing can drift-check.
+
+ ## 1.150 The PIT randomisation was keyed on COLUMN POSITION, so Key 2's floor moved on its own (2026-08-31)
+
+Item 2 of §1.147. **Code landed; the artefact re-record is deliberately deferred
+to the re-emit window**, which re-records everything anyway — one deliberate
+re-record instead of two (owner's decision, 2026-08-31).
+
+### The defect
+
+`score.pit_values` drew from a **single** RNG stream, one value per column, in
+column order. The j-th column got the j-th draw and nothing else determined it,
+so adding, removing or reordering any column re-rolled every column after it —
+and **a change to the model was indistinguishable from a re-roll of the
+randomisation.**
+
+Measured on the committed panel, by recovering the jump intervals from a lattice
+(`pit = below + u·w`, both multiples of 1/draws, `u` regenerable from
+`_pit_seed`) and re-derived independently:
+
+| population | n | Σw² | sd of pooled mean PIT |
+|---|---|---|---|
+| `reference` | 376 | 154.862 | **0.00955** |
+| `claimed` | 109 | 3.975 | **0.00528** |
+| `seat_holders` | 199 | 5.929 | 0.00353 |
+
+**⛔ §1.146's figure of 0.0013 for `claimed` was WRONG — it is 0.00528, four
+times larger.** The premise behind it was that the randomisation lives in the
+truth-zero columns, of which `claimed` has only 3. It does not: on `claimed` it
+lives in the **small-party jump masses**, and the 22 truth-one columns carry ten
+times the jump mass of the truth-zero ones. (Recovering `claimed` also required
+noticing it is a **mask** over the full matrix, so its uniforms come from
+full-matrix positions — a first attempt keyed on subset positions left 97 of 109
+columns unsolvable.)
+
+**And on the statistic Key 2 actually quotes.** `ITERATING.md`'s width floor
+"1.2000 → 1.3557" is `reference`/2021 probit-SD, n=235, reading **exactly
+1.2000** on the artefact. Its re-roll sd over 600 seeds is **0.0327** — so that
+finding is **3.4 sd of a paired re-roll**. Key 2 is an untradeable floor; a floor
+that moves 0.03 while the model stands still is not a floor. At R=64 the residual
+is 0.0040 and the same finding is 27 sd.
+
+### The fix, and one tempting shortcut refuted
+
+Each column's generator is now derived from `(seed, party name)` via
+**blake2b-64, not `hash()`** — Python randomises string hashing per process and
+`fix_hash_seed()` runs only from a `__main__` guard, so an importing caller would
+have got a different PIT for the same forecast (§1.145 inside the calibration
+key). Invariance to column addition, removal and reordering is **exactly 0.0**,
+asserted as equality rather than a tolerance.
+
+`pit_intervals` now stores `(F(y⁻), F(y) − F(y⁻))` in the artefact. That is the
+whole information content of a randomised PIT and it carries no randomness — with
+it, every PIT statistic is recoverable at any number of randomisations for ever.
+It is stored because the band above was measurable **only** by lattice recovery,
+which was luck and does not survive a change of draw count.
+
+**⛔ AVERAGE THE STATISTIC, NEVER THE VALUES.** Averaging PIT values first shrinks
+each draw toward its jump midpoint: measured, probit-SD **0.75 statistic-averaged
+against 0.43 value-averaged** on one city-year, and 1.20 against 1.01 on
+`reference` — the second reads "correct" for a forecast that is too narrow. It
+would have inverted this project's width verdict.
+
+**REFUTED: restating Key 2's floor on `dispersion_ratio` = sd(z).** It is
+genuinely randomisation-free and already in the artefact, and on pooled
+`reference` the two agree (1.2328 against probit-SD's 1.2271) — so it looks like
+a way to make the whole problem leave the floor. **Split by cycle they diverge
+badly:** 2016 sd(z) **0.4574** against probit-SD 1.2711; 2021 **1.4305** against
+1.2000. `z` is not distribution-free and mid-ballot seat counts are strongly
+right-skewed. Substituting would trade a seed band for a distributional bias.
+
+### The fallback is loud, because a quiet one would be the usual defect
+
+`history.json` written before this change has no intervals, so R-averaging cannot
+run on it — which is exactly the state the tree is in until the window. So
+`redraw_pits` returns the single stored randomisation with **`exact=False`**, the
+pooled block reports `pit_randomisation_exact`, and `exact_mean_pit` returns
+`nan` rather than the single-draw mean, which is a different quantity wearing the
+same name.
+
+### And the test fixture had to be fixed, not the assertion
+
+The first version of the statistic-vs-value test used the shared toy (Poisson
+means 90/70/30/12) and the two estimators **agreed to 0.0025** — the jump mass is
+negligible for a party holding ninety seats. It now uses small counts and
+asserts the fixture's own mean jump mass exceeds 0.2 before testing anything.
+A fixture without the property under test passes whichever implementation is
+written, which is §1.136's defect in miniature.
+
+**Still to do at the window:** regenerate `history.json` (64 `pit` arrays, 1114
+values), `history.md`, and the ~45 documentation sites that quote a randomised
+PIT figure — including `ITERATING.md` rule 8's guarded table. Predicted to stay
+inside its ±0.012 tolerance, which is itself **smaller than the 0.0095 seed noise
+on the statistic it guards** and should be re-derived in the same commit.
+
+ ## 1.151 Four defects in the round's own new code — two inside the key Key 2 is quoted against (2026-08-31)
+
+The review of §1.148–§1.150 found four, all verified here by construction before
+being fixed. Two sit inside the PIT column key that §1.150 built to make Key 2's
+floor stable, which is the uncomfortable part: **the fix for an instrument
+defect carried two more of the same class.**
+
+### 1. `pit_intervals` had no test, and getting it wrong emits PIT > 1 silently
+
+Returning `F(y)` instead of the jump `F(y) − F(y⁻)` produces PIT values up to
+**1.37** on a small-count fixture, and every calibration statistic downstream
+keeps computing — **nothing anywhere asserted the range.** Worse, the
+`mean jump > 0.2` guard in the averaging test is satisfied *more easily* by the
+wrong quantity, so the one test in the neighbourhood actively failed to
+discriminate. `pit_values` now refuses a PIT outside [0,1] and names the column.
+
+**And the mutation that proves it was itself flaky.** The first version drew one
+uniform per column and PASSED: column A's ceiling under the mutation is 1.46, but
+it exceeds 1 only when `u > 0.487`, and that seed fell below. The guard was
+right; the *check on the guard* was probabilistic. Now run at `replicates=64`
+(0.487⁶⁴), with an assertion that the fixture can exceed 1 at all. **A check that
+only sometimes detects what it checks for is the same defect one level up.**
+
+### 2. The column key was written twice, and the golden asserted neither site
+
+`score.pit_values` and `compare_history.redraw_pits` each built
+`default_rng([seed, _column_entropy(party)])`, and the golden test asserted
+`_column_entropy` itself. **Reverting both call sites to `hash()` left every new
+test green** — reproducing §1.145's process-local-hash defect *inside the key
+built to prevent it*, as a duplicated number and an un-fireable guard in the same
+three lines. There is now one `score.column_rng`, and the golden is on
+`pit_values`' **output** for a fixed fixture.
+
+### 3. `mean_pit_exact` was a different estimand from `mean_pit_r`
+
+`mean_pit_r` pools columns; `mean_pit_exact` averaged **per-city-year means,
+unweighted**. On the committed panel:
+
+| population | pooled | mean-of-city-means | difference |
+|---|---|---|---|
+| `reference` | 0.5674 | 0.5656 | −0.0018 |
+| `claimed` | 0.5593 | 0.5562 | −0.0031 |
+| **`seat_holders`** | 0.6990 | 0.6821 | **−0.0168** |
+| `all` | 0.5385 | 0.5438 | +0.0053 |
+
+**The `seat_holders` gap is 4.2× the 0.0040 residual the whole change exists to
+remove.** A weighting difference introduced while removing a smaller noise term
+is the change defeating its own purpose. Both now pool columns.
+
+### 4. The pre-ledger exemption was forgeable through `append`
+
+A sha256 of arbitrary bytes plus a `page` naming **a file that has never
+existed** was accepted, and `retire()` then laundered it into a supersession.
+Only id↔sha was enforced; page↔sha was checked in `backfill`, which was optional.
+
+**The obvious fix does not work**, and it is worth recording why, because it is
+the third time this shape has come up. Requiring the page on disk at append time
+breaks `retire()` — which re-appends the row it retires, legitimately, years
+later when the page may be gone. A caller lock fails for the same reason
+(§1.149).
+
+**What works is a property of the RECORD, not of the call stack:** `append` may
+not introduce a pre-ledger token the ledger has *never seen*. `backfill` is the
+only door for a first write, and it is the only place the page can be checked
+against the world; it vouches for what it verified. `retire()` always operates on
+a token already present, so it passes. The forgery does not. Page↔sha is also
+re-verified at append whenever the page is still on disk.
+
+**The agent's test encoded the old, permissive contract** — it asserted that a
+well-formed pre-ledger row could enter through `append` — so the hole was
+written into the suite as the specification. Rewritten to assert the new one,
+including that a backfilled token can then be appended to, which is what `retire`
+needs.
+
+### Standing, and one decision for the owner
+
+`test_published_page` in `run_all.MODULES` makes the suite **red on every
+commit**: six live figures disagree with the model, four pages are dated
+2026-08-17 against a 2026-08-28 run, and 24 of 24 pinned tokens are undeclared.
+Every one is real and is the module's point — but **a suite that always fails is
+a suite nobody reads, which is precisely the dynamic that module's own docstring
+blames for the eleven-day defect.** Either the six figures are fixed before the
+gate is enforced, or that module is gated separately. Not decided here.
+
+Suite after these fixes: **421 passed, 4 failed** — the four above, unchanged.

@@ -66,6 +66,30 @@ from pathlib import Path
 
 TOKEN = re.compile(r"\{\{([a-z0-9_]+)\}\}")
 
+# ⛔ A DATED CONTEXT IS DECLARED BY THE PROSE, NEVER INFERRED FROM IT.
+#
+# `publication.dated_context_violations` refuses to publish a SUPERSEDED figure
+# in live present tense — "the model says the DA is short by 39 seats" — while
+# permitting the same figure in a dated one — "as of 7 August the model said …".
+# Only the sentence knows which it is. A regex hunting for a nearby date would
+# be a guess, and a guess in a refusal path is worse than no refusal: it fails
+# open on the prose it cannot parse and fails closed on prose that is fine.
+#
+# So the author declares it, per occurrence, by enclosing the sentence:
+#
+#     <span data-asof="2026-08-07">As of 7 August the model gave {{token}}.</span>
+#
+# Per OCCURRENCE and not per token, because dating is a property of the
+# sentence: the same token can be live on the forecast page and historical in a
+# retrospective, and a registry-level flag could not tell those apart.
+DATED_REGION = re.compile(
+    r'<(?P<tag>\w+)[^>]*\bdata-asof="[^"]*"[^>]*>.*?</(?P=tag)>', re.S)
+
+
+def dated_spans(text: str) -> list[tuple[int, int]]:
+    """Character ranges of prose that places a figure in time."""
+    return [m.span() for m in DATED_REGION.finditer(text)]
+
 # The run every other artefact in data/processed is dated against. A file-backed
 # source older than this one describes an earlier model.
 REFERENCE_ARTEFACT = "forecast_summary.json"
@@ -405,14 +429,27 @@ def _span(text: str, entry: dict, name: str, live_str: str | None) -> str:
             f' data-when="{when}"{live_attr} title="{tip}">{text}</span>')
 
 
-def render(text: str, registry: dict, ctx: dict, *, wrap: bool = True):
+def render(text: str, registry: dict, ctx: dict, *, wrap: bool = True,
+           record: list | None = None):
     """Substitute every ``{{token}}``.
 
     Returns ``(text, drift_rows, unresolved)``. ``unresolved`` being
     non-empty is a build error for the caller; ``drift_rows`` are advisory.
+
+    ``record``, if given, is appended one mapping per token OCCURRENCE:
+    ``token``, the raw ``value``, the ``display`` string the reader actually
+    sees, ``fmt``, ``source``, ``mode`` and ``dated``. The publication ledger
+    needs all of these and could not reconstruct any of them from the rendered
+    HTML — ``value`` and ``display`` in particular must both be kept, because a
+    raw move that leaves the glyph unchanged is exactly the case the ledger
+    classifies as ``rounding`` and is undetectable from the string alone.
+
+    Recording is opt-in and changes no output: with ``record=None`` this
+    function is byte-identical to what it was.
     """
     drift: list[dict] = []
     unresolved: list[str] = []
+    regions = dated_spans(text) if record is not None else []
 
     def _one(match: re.Match) -> str:
         name = match.group(1)
@@ -445,6 +482,21 @@ def render(text: str, registry: dict, ctx: dict, *, wrap: bool = True):
                 return match.group(0)
             shown = _fmt(live, spec)
 
+        if record is not None:
+            at = match.start()
+            record.append({
+                "token": name,
+                # the RAW value as published: the pinned value for a fixed
+                # token (that is what the reader got), the live one otherwise.
+                "value": (entry["value"] if entry.get("mode") == "fixed"
+                          else live),
+                "display": shown,
+                "fmt": spec,
+                "source": entry.get("source", ""),
+                "mode": entry.get("mode", "free"),
+                "tolerance": entry.get("tolerance"),
+                "dated": any(lo <= at < hi for lo, hi in regions),
+            })
         return _span(shown, entry, name, live_str) if wrap else shown
 
     return TOKEN.sub(_one, text), drift, unresolved

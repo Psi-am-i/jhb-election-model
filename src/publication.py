@@ -44,6 +44,17 @@ without it, and "the model moved" and "we were wrong" are different sentences
 that a reader is entitled to have distinguished. Lineage discipline is precisely
 the practice of separating them.
 
+**The ledger starts empty and the site does not.** Figures published before any
+of this existed have no run identity and cannot be given one, so they are entered
+through :func:`backfill` — keyed to the archived page's bytes rather than to a
+run — and retired in the row after. That is the ONLY exemption from the
+attribution refusal; it is keyed on the row's EVIDENCE rather than on its caller
+(:func:`_refuse_unattributable` records why the stricter version is wrong), and
+`build_site` never calls it. The durable half of the same seam lives in the
+build: a token that was
+published and has since left the registry is a **refusal**, not a silent
+disappearance, or the next deleted lever reopens exactly this hole.
+
 **Append-only.** A row is never rewritten. ``superseded_at`` is a convenience,
 not the source of truth: everything callers need is derivable by ordering on
 ``published_at``, which keeps the file genuinely append-only and means a failed
@@ -61,6 +72,7 @@ import dataclasses
 import datetime as dt
 import hashlib
 import json
+import re
 import unicodedata
 from pathlib import Path
 from typing import Any, Iterable
@@ -82,6 +94,23 @@ LEDGER_ROOT = Path("publications")
 #: wrong", or admit the second when it is true.
 CHANGE_CLASSES = ("recompute", "data_revision", "mechanism", "bugfix")
 
+#: ⛔ THE ONE EXEMPTION FROM THE ATTRIBUTION REFUSAL — see :func:`backfill`.
+#:
+#: A figure published before this ledger existed has no run identity and never
+#: will: the run that produced it is gone, and the only evidence it was ever
+#: published is the page itself. Such a row is identified by the ARCHIVED PAGE
+#: rather than by a run — `r-preledger-<first 12 hex of sha256 of the page
+#: bytes>` — and that is the ONLY id `_refuse_unattributable` will accept
+#: without a run time.
+PRELEDGER_PREFIX = "r-preledger-"
+
+#: The `as_of_is` label a backfilled row carries. `as_of_is` exists to tell a
+#: future reader whether valid time was MEASURED or stood in for; on these rows
+#: there is no run at all, and the label has to say so in the row, because a row
+#: is all a future reader gets.
+AS_OF_RECONSTRUCTED = ("reconstructed from the published page; "
+                       "no run identity exists")
+
 #: How a figure moved, from the reader's side rather than the model's.
 #:   new       — first publication of this token
 #:   nominal   — a STRING changed; the sentence may now mean something else
@@ -90,6 +119,17 @@ CHANGE_CLASSES = ("recompute", "data_revision", "mechanism", "bugfix")
 #:   rounding  — the raw value moved but the displayed glyph did not
 #:   none      — no movement at all
 MOVEMENTS = ("new", "nominal", "material", "minor", "rounding", "none")
+
+
+def utc_now() -> str:
+    """The publication stamp — TRANSACTION time, in UTC, to the second.
+
+    Public because `build_site` must stamp a whole batch with ONE instant: rows
+    written a few milliseconds apart would sort into an order that implies they
+    were separate publications, and `latest()` resolves ties by publication
+    order.
+    """
+    return _utc()
 
 
 def _utc(when: dt.datetime | None = None) -> str:
@@ -131,6 +171,23 @@ class Row:
     reason: str | None
     movement: str
     superseded_at: str | None = None
+    # ⛔ THE PROVENANCE TRAVELS WITH THE ROW, NOT BESIDE IT.
+    #
+    # `run_identity` computes the git commit, the dirty flag, the pool artefact
+    # keys, the draw count and the content hash — and the first version of this
+    # dataclass STORED NONE OF THEM. Two of the three things this module's own
+    # docstring names as determining a forecast reached the ledger only through
+    # `site/changes.json`, which is overwritten on every build. The id string
+    # carries an abbreviated commit and content hash and nothing else, so the
+    # pool artefact keys — the input this project already knows goes stale
+    # silently — were recoverable from nowhere.
+    #
+    # One dict rather than five fields, because what identifies a run will grow
+    # (a real `as_of` cut-off is the next one) and an append-only file cannot be
+    # migrated. `as_of_is` lives here too: it is the label saying `as_of` is
+    # currently a stand-in for valid time, and a future reader needs it in the
+    # ROW to tell a stand-in from a measurement.
+    provenance: dict | None = None
 
     def as_json(self) -> dict:
         d = dataclasses.asdict(self)
@@ -242,27 +299,374 @@ def latest(city: str, *, root: Path | None = None) -> dict[str, Row]:
     return out
 
 
-def append(city: str, rows: Iterable[Row], *, root: Path | None = None) -> int:
-    """Append rows. Never rewrites, never reorders, never deduplicates."""
+class Unattributable(ValueError):
+    """A row that could not be traced back to a run. Refused, never stored."""
+
+
+_SHA256 = re.compile(r"[0-9a-f]{64}")
+
+
+def _preledger_defect(row: Row) -> str | None:
+    """``None`` unless the row CLAIMS the pre-ledger exemption without earning it.
+
+    ⛔ **THE EXEMPTION IS KEYED ON EVIDENCE, NOT ON A PREFIX.** A refusal with a
+    hole in it is worse than no refusal, and the obvious hole here is a row that
+    simply *calls itself* pre-ledger. So the id may not be chosen freely: it must
+    be ``r-preledger-`` followed by the first twelve hex of the sha256 recorded
+    in ``provenance["reconstructed_from"]["sha256"]``, which is the hash of the
+    archived page's bytes. The id and the evidence are therefore one thing —
+    forging the id means also naming a page and a full sha256 that agree with it.
+
+    Returns a message rather than raising, so both write paths raise the same
+    exception type with the same wording and neither can drift from the other.
+
+    ⚠️ Everything here is checkable **from the row alone**, deliberately: this
+    runs on rows read back out of the ledger years from now, when the page file
+    may be long gone. :func:`backfill` does the one check that needs the world —
+    that the page at the recorded path really does hash to the recorded sha —
+    because that check can only be made at the moment of writing.
+    """
+    if not (row.model_run_id or "").startswith(PRELEDGER_PREFIX):
+        return None
+    src = (row.provenance or {}).get("reconstructed_from")
+    if not isinstance(src, dict) or not src.get("sha256"):
+        return (
+            f"token {row.token!r} carries a {PRELEDGER_PREFIX}* run id but no "
+            f"provenance['reconstructed_from']['sha256']. That id is the ONLY "
+            f"one this ledger accepts without a run time, and it is accepted "
+            f"only because the archived page stands in for the run. A row "
+            f"claiming the exemption with no page behind it is exactly the "
+            f"unattributable row the refusal exists to stop.")
+    sha = str(src["sha256"])
+    if not _SHA256.fullmatch(sha):
+        return (
+            f"token {row.token!r} records reconstructed_from sha256={sha!r}, "
+            f"which is not a sha256. The page's bytes are the whole evidence "
+            f"for this row; a hash nobody can check is not evidence.")
+    if row.model_run_id != PRELEDGER_PREFIX + sha[:12]:
+        return (
+            f"token {row.token!r} has run id {row.model_run_id!r} but records "
+            f"page sha256 {sha}. The id must be "
+            f"{PRELEDGER_PREFIX + sha[:12]!r} — the id and the page it names "
+            f"are one fact, and an id that does not follow from the sha can be "
+            f"invented.")
+    if not src.get("page"):
+        return (
+            f"token {row.token!r} records a page sha with no page path. A hash "
+            f"with nothing to hash cannot be re-checked by anyone.")
+    if not (row.provenance or {}).get("as_of_is"):
+        return (
+            f"token {row.token!r} has no provenance['as_of_is']. A future "
+            f"reader gets the ROW and nothing else, and without the label they "
+            f"cannot tell a reconstructed figure from a measured one — which is "
+            f"the whole reason the label exists.")
+    if row.run_at:
+        return (
+            f"token {row.token!r} claims the pre-ledger exemption AND a run "
+            f"time of {row.run_at!r}. The exemption exists precisely because no "
+            f"run identity survives; a row with a run time does not need it and "
+            f"must be attributed to that run instead.")
+    return None
+
+
+def _refuse_unattributable(row: Row) -> None:
+    """⛔ THE LEDGER IS APPEND-ONLY, SO AN UNATTRIBUTABLE ROW IS PERMANENT.
+
+    The whole claim this ledger makes is the owner's: *we must be able to say
+    what a figure was, when that was, and what model generated it.* A row
+    missing its run identity cannot answer the third, and because nothing here
+    is ever rewritten, it can never be made to. The only moment the defect is
+    fixable is BEFORE the write.
+
+    This exists because the guard above it was not enough on its own.
+    `run_identity` was returning `model_run_id="r-unknown-…"` and `run_at=None`,
+    and the test asserting the id "names the run" passed anyway — it checked the
+    prefix. A test can be written weakly; a refusal at the write path cannot be
+    satisfied by a weaker assertion.
+
+    `run_at` is absent when the forecast artefact predates the `_generated`
+    stamp. That is exactly the state the current `data/processed` is in, and it
+    is why nothing may be published from it until the model is re-run.
+
+    ⛔ **THERE IS EXACTLY ONE EXEMPTION, AND IT IS KEYED ON EVIDENCE.** A figure
+    the site published before this ledger existed has no run identity and cannot
+    be given one — see :func:`backfill`. Such a row may be written with no
+    `run_at`, and ONLY if it earns it: the id must be `r-preledger-<sha[:12]>`
+    where the sha is the full sha256 the row itself records for the archived
+    page it was cut from, the page path must be there, the label must be there,
+    and it must not also claim a run time (:func:`_preledger_defect`).
+
+    ⚠️ **THE EXEMPTION IS NOT KEYED ON THE CALLER, AND THAT WAS TRIED FIRST.**
+    Requiring `backfill` to be on the stack — a perfectly-formed pre-ledger row
+    refused to `append` — is stricter, and it is WRONG: :func:`retire` closes a
+    token out by `dataclasses.replace`-ing the last published row and appending
+    it, so the retirement of a backfilled figure is itself a pre-ledger row
+    arriving through `append`. A caller lock makes the ten `turnout_tilt_da`
+    claims backfillable and then unretirable, which is the seam it was meant to
+    close, one step further down. Found by the test, not by reading it.
+
+    What keeps the NORMAL path safe is therefore the evidence, not the door.
+    `build_site` builds `model_run_id` from `run_identity` — which cannot emit
+    this prefix — and `provenance` from a fixed list of keys that does not
+    include `reconstructed_from`. To reach the exemption by accident a build
+    would have to name an archived page and its full sha256 and derive the id
+    from it, which is not a thing code does by mistake.
+    """
+    if not row.model_run_id or "unknown" in row.model_run_id:
+        raise Unattributable(
+            f"token {row.token!r} carries model_run_id={row.model_run_id!r}. A "
+            f"published figure attributed to a run nobody can find is not "
+            f"attributed. Re-run the model so `run_identity` can name it.")
+
+    claims_exemption = row.model_run_id.startswith(PRELEDGER_PREFIX)
+    defect = _preledger_defect(row)
+    if defect:
+        raise Unattributable(defect)
+
+    if not row.run_at and not claims_exemption:
+        raise Unattributable(
+            f"token {row.token!r} has no run time. The forecast artefact "
+            f"predates the `_generated` stamp, so nothing can say WHEN this "
+            f"figure was produced. Re-run the model before publishing.")
+    if not row.published_at:
+        raise Unattributable(
+            f"token {row.token!r} has no published_at. That is TRANSACTION "
+            f"time — without it the history cannot be ordered.")
+
+
+def _verify_page_if_present(row: Row) -> None:
+    """Re-hash the archived page when it is still on disk; ignore it when not.
+
+    Defence in depth behind the ledger check in :func:`append`. A row whose page
+    is present and no longer hashes to the sha it records names a document
+    nobody can now produce, and the id is derived from that sha — so the row
+    would be permanently unverifiable. When the page is *absent* the row is
+    admitted: that is the legitimate years-later case, and it is why this cannot
+    be the only lock.
+    """
+    src = (row.provenance or {}).get("reconstructed_from") or {}
+    page, sha = src.get("page"), src.get("sha256")
+    if not page or not sha:
+        return
+    path = Path(page)
+    if not path.is_file():
+        return
+    actual = hashlib.sha256(path.read_bytes()).hexdigest()
+    if actual != sha:
+        raise Unattributable(
+            f"token {row.token!r} records page {page} at sha256 {sha[:12]}…, "
+            f"but that file now hashes to {actual[:12]}…. The page IS the "
+            f"evidence for this row and the id is derived from it; writing "
+            f"this would name a document nobody can produce.")
+
+
+def append(city: str, rows: Iterable[Row], *, root: Path | None = None,
+           _page_verified: bool = False) -> int:
+    """Append rows. Never rewrites, never reorders, never deduplicates.
+
+    Refuses any row that cannot be attributed to a run — see
+    `_refuse_unattributable`. The check is here rather than in `Row.__post_init__`
+    so that a row may be BUILT and inspected (by the build's own dry run, by a
+    diff) without being publishable.
+
+    **The one exemption is not a second write path.** :func:`backfill` adds the
+    checks that need the world — that the archived page is still on disk and
+    still hashes to what the row claims — and then comes through here, so there
+    is exactly one place that validates a batch and then opens the file.
+    """
     root = LEDGER_ROOT if root is None else root
     path = root / city / "ledger.jsonl"
+
+    # ⛔ VALIDATE THE WHOLE BATCH BEFORE OPENING THE FILE. A refusal raised
+    # mid-iteration would leave the rows before it already written, in a ledger
+    # that by construction cannot take them back — the partial write would be
+    # permanent and the batch it belonged to would be missing.
+    batch = list(rows)
+    for row in batch:
+        _refuse_unattributable(row)
+
+    # ⛔ `append` MAY NOT INTRODUCE A *NEW* PRE-LEDGER TOKEN. `backfill` IS THE
+    # ONLY DOOR, AND THE LOCK IS THE LEDGER — NOT THE CALL STACK.
+    #
+    # Found in review 2026-08-31: a sha256 of arbitrary bytes plus a `page`
+    # naming a file that has never existed was accepted here, and `retire()`
+    # then laundered it into a supersession. Only id↔sha agreement was
+    # enforced; page↔sha was checked in `backfill`, which was optional.
+    #
+    # The obvious fix — require the page on disk — does NOT work, and the
+    # reason is the one that already caught a stricter design: `retire()`
+    # closes a token out by re-appending the row it retires, so a pre-ledger
+    # row legitimately arrives here years later when the page may be long gone.
+    # Refusing on a missing page would make backfilled figures unretirable all
+    # over again.
+    #
+    # A CALLER lock does not work either, for the same reason. What does work
+    # is a property of the RECORD: a pre-ledger row for a token the ledger has
+    # never seen is a first write and must come through `backfill`, which
+    # verifies the page. A pre-ledger row for a token already present is a
+    # retirement or a re-publication of something `backfill` already vouched
+    # for. `retire()` passes; the forgery does not.
+    preledger = [r for r in batch
+                 if (r.model_run_id or "").startswith(PRELEDGER_PREFIX)]
+    # `_page_verified` is set ONLY by `backfill`, which has just re-hashed the
+    # page. It is not a caller lock — that shape was tried and it broke
+    # `retire()` (§1.149). It is a statement that the evidence has been checked
+    # against the world, which `append` alone cannot do.
+    if preledger and not _page_verified:
+        known = set(latest(city, root=root))
+        for row in preledger:
+            if row.token not in known:
+                raise Unattributable(
+                    f"token {row.token!r} carries a {PRELEDGER_PREFIX}* run id "
+                    f"and has never been published in {city}. `append` cannot "
+                    f"introduce a pre-ledger token — the archived page it "
+                    f"names is unverified here. Use `backfill()`, which hashes "
+                    f"the page and refuses a mismatch.")
+            _verify_page_if_present(row)
+
     path.parent.mkdir(parents=True, exist_ok=True)
     n = 0
     with path.open("a", encoding="utf-8") as handle:
-        for row in rows:
+        for row in batch:
             handle.write(json.dumps(row.as_json(), sort_keys=True) + "\n")
             n += 1
     return n
 
 
-def run_identity(processed: Path) -> dict:
-    """Who produced the figures — enough to attribute, not to re-derive.
+def preledger_identity(page: Path) -> dict:
+    """The identity of a figure recovered from an ARCHIVED PAGE, not from a run.
 
-    ⚠️ A TIMESTAMP SAYS *WHEN*, NOT *WHAT*. `_generated` was added to
-    `forecast_summary.json` on 2026-08-30 and is necessary but not sufficient:
-    two runs a minute apart on different code are different runs and a date
-    cannot tell them apart. Attribution needs the code and the inputs named too,
-    which is why the git sha and the pool artefact keys are here.
+    Same shape as :func:`run_identity` — `model_run_id`, `run_at`, `as_of`,
+    `provenance` — so a caller builds a backfilled `Row` exactly the way
+    `build_site` builds a live one, and the two cannot drift apart.
+
+    **The page's bytes ARE the identity.** There is no run to name: the run that
+    produced these figures is gone, its levers deleted, its outputs overwritten.
+    What survives is the document the reader was actually shown, so that is what
+    the row is keyed to — `r-preledger-<first 12 hex of sha256 of the page
+    bytes>` — and the full sha, plus the path, travel in `provenance` so anyone
+    can re-check the twelve hex against the archived file.
+
+    ``run_at`` is ``None`` and must stay ``None``: nothing knows when that model
+    ran. ``as_of`` is ``None`` HERE and the caller may set it on the row — the
+    page's own `data-when`, or the registry's `captured` date, is a genuine
+    statement of what the model knew and is better evidence than a blank. It is
+    not filled in from the file's mtime, which says when the bytes were last
+    touched and nothing about the forecast.
+    """
+    page = Path(page)
+    sha = hashlib.sha256(page.read_bytes()).hexdigest()
+    return {
+        "model_run_id": PRELEDGER_PREFIX + sha[:12],
+        "run_at": None,
+        "as_of": None,
+        "provenance": {
+            "reconstructed_from": {"page": str(page), "sha256": sha},
+            "as_of_is": AS_OF_RECONSTRUCTED,
+        },
+    }
+
+
+def backfill(city: str, rows: Iterable[Row], *, root: Path | None = None) -> int:
+    """Enter figures the site published BEFORE this ledger existed. One-off.
+
+    ⛔ **THE SEAM THIS CLOSES.** The ledger starts empty and the live site has
+    weeks of history. Ten front-page claims are pinned to `run:turnout_tilt_da=1`
+    — a lever `run_model` no longer has — and they are the declared first
+    customers of :func:`retire`, which raises `KeyError` on a token that was
+    never published. So the ten could not be retired, `dated_context_violations`
+    could not fire on them, and the whole publication path was blocked. The fix
+    is to enter what the page actually said, then retire it in the row after.
+
+    ⛔ **AND WHY IT IS A SEPARATE FUNCTION RATHER THAN A FLAG ON `append`.**
+    The alternative — teach `retire` to close out a token it never saw — puts
+    the exemption on the path every build uses. This module has already produced
+    four guards that read as working and could not fire; the way that happens is
+    a refusal quietly acquiring a case that swallows the rows it was meant to
+    stop. **`build_site` never calls this**, and it is the only thing in the
+    repository that verifies a backfilled row against the page still on disk.
+
+    ⚠️ What it is NOT is a lock on the caller: the exemption in
+    `_refuse_unattributable` is keyed on the row's evidence, because
+    :func:`retire` re-appends the row it is closing out and a backfilled row's
+    retirement is therefore a pre-ledger row going through `append`. See that
+    function for the whole argument; a caller lock was written first and made
+    the ten claims backfillable and then unretirable.
+
+    **What it does NOT do: make these figures current.** A backfilled row is
+    entered so it can be *retired* — attribution is what makes a dead figure
+    quotable as history, and :func:`dated_context_violations` is what stops it
+    being quoted as the present. Backfilling a claim and leaving it live
+    publishes exactly the stale number this module exists to prevent.
+
+    Every row must carry an identity from :func:`preledger_identity`, and — the
+    one check that cannot be made later — **the page at the recorded path must
+    still hash to the recorded sha**. A row whose evidence has already moved is
+    refused now, while that is still possible; the ledger is append-only.
+    """
+    batch = list(rows)
+    for row in batch:
+        if not (row.model_run_id or "").startswith(PRELEDGER_PREFIX):
+            raise Unattributable(
+                f"token {row.token!r} went through `backfill()` with run id "
+                f"{row.model_run_id!r}. Backfill reconstructs figures from an "
+                f"ARCHIVED PAGE and marks them as reconstructed; a row that can "
+                f"name its run belongs in `append()`, where it KEEPS that "
+                f"attribution instead of being labelled as having none.")
+        src = (row.provenance or {}).get("reconstructed_from")
+        if isinstance(src, dict) and src.get("page") and src.get("sha256"):
+            page = Path(str(src["page"]))
+            if not page.is_file():
+                raise Unattributable(
+                    f"token {row.token!r} is reconstructed from {page} and that "
+                    f"file is not there. The page's bytes are the only evidence "
+                    f"this figure was ever published; archive the page first "
+                    f"and record where it lives, or this row attributes to "
+                    f"nothing.")
+            actual = hashlib.sha256(page.read_bytes()).hexdigest()
+            if actual != str(src["sha256"]):
+                raise Unattributable(
+                    f"token {row.token!r} records page sha256 "
+                    f"{str(src['sha256'])[:12]}… for {page}, which now hashes "
+                    f"to {actual[:12]}…. The page has changed since the row was "
+                    f"built, so the row's id names a document nobody can "
+                    f"produce. Re-cut the identity from the archived bytes.")
+    return append(city, batch, root=root, _page_verified=True)
+
+
+def run_identity(processed: Path) -> dict:
+    """WHICH RUN produced these figures — enough to attribute, not to re-derive.
+
+    ⛔ **A TIMESTAMP SAYS *WHEN*, NOT *WHAT*, AND THE FIRST VERSION OF THIS
+    FUNCTION MADE THAT MISTAKE TWICE.** It built the id from a sha256 of
+    ``forecast_summary.json``'s bytes — a file that now contains its own
+    wall-clock ``_generated`` stamp — so two byte-identical forecasts a minute
+    apart got *different* ids, and the id could no longer answer "did the
+    forecast change", which is the only question attribution exists for. Its
+    docstring also claimed to carry the git sha and the pool artefact keys; it
+    returned neither. Both found in blind review, 2026-08-31, before a single
+    row was written. **Rows are append-only, so a wrong id is permanent** — this
+    had to be right first, not fixed later.
+
+    So the id is built from what actually determines a forecast:
+
+    * ``git_commit`` — the code, and ``git_dirty`` because a commit means
+      nothing when the tree has moved off it;
+    * ``pool_artefact_keys`` — the emitted specs the run consumed, which is the
+      input this project already knows can go stale silently. **These are
+      RECORDED on the row (in ``provenance``) and are deliberately NOT folded
+      into the id string**, which stays short enough to quote: two runs off
+      different specs but identical content share an id and are told apart by
+      the row. An earlier version of this docstring claimed the id was built
+      from them and it was not — caught in blind review 2026-08-31;
+    * ``forecast_content_sha`` — a hash of the summary with the volatile
+      ``_``-prefixed stamps REMOVED, so re-running the same model on the same
+      inputs yields the same id.
+
+    ``freeze.py`` already computes every one of these properly, and this
+    function calls it rather than growing a second, weaker definition of the
+    same thing — the no-duplicated-logic rule, and the reason ``leverage.py``
+    was retired.
     """
     summary_path = processed / "forecast_summary.json"
     summary: dict = {}
@@ -271,24 +675,51 @@ def run_identity(processed: Path) -> dict:
             summary = json.loads(summary_path.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
             summary = {}
-    run_at = summary.get("_generated")
-    draws = summary.get("_draws")
-    ident = {
-        "run_at": run_at,
-        "draws": draws,
+
+    # The CONTENT hash: everything the model computed, with the run's own
+    # volatile stamps stripped. Two identical forecasts must hash identically or
+    # the id cannot answer "did anything change".
+    content = {k: v for k, v in summary.items() if not k.startswith("_")}
+    content_sha = hashlib.sha256(
+        json.dumps(content, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest() if content else None
+
+    ident: dict = {
+        "run_at": summary.get("_generated"),
+        "draws": summary.get("_draws"),
+        "forecast_content_sha256": content_sha,
         "forecast_summary_sha256": _sha(summary_path),
         "seat_draws_sha256": _sha(processed / "seat_draws.csv"),
     }
+
+    # Code and inputs, from freeze — imported lazily so `publication` stays
+    # importable if freeze's heavier dependencies ever move.
+    try:
+        import freeze as _freeze
+        ident["git_commit"] = _freeze._git("rev-parse", "HEAD")
+        ident["git_dirty"] = _freeze._dirty_excluding()
+    except Exception:                                        # noqa: BLE001
+        ident["git_commit"] = None
+        ident["git_dirty"] = None
+    try:
+        import cityconfig as _cc
+        import freeze as _freeze
+        ident["pool_artefact_keys"] = _freeze.pool_artefact_keys(_cc.active())
+    except Exception:                                        # noqa: BLE001
+        ident["pool_artefact_keys"] = None
+
     # `as_of` — VALID time. The best available statement of what the run KNEW.
     # It is the run time until something better exists: a genuine input cut-off
-    # would come from the newest input the run consumed, and that is worth
-    # building rather than guessing. Recorded as run time and LABELLED, so it is
-    # never mistaken for a measured cut-off.
-    ident["as_of"] = run_at
+    # would be the newest fieldwork end date the run consumed, and `polls.json`
+    # carries those. Recorded as run time and LABELLED, so a future session can
+    # tell a stand-in row from a measured one.
+    ident["as_of"] = ident["run_at"]
     ident["as_of_is"] = "run time; no input cut-off is recorded yet"
-    stamp = (run_at or "unknown").replace(":", "").replace("-", "")
-    digest = (ident["forecast_summary_sha256"] or "0" * 8)[:8]
-    ident["model_run_id"] = f"r-{stamp}-{digest}"
+
+    commit = (ident.get("git_commit") or "nogit")[:8]
+    ident["model_run_id"] = (
+        f"r-{(content_sha or '0' * 12)[:12]}-{commit}"
+        + ("-dirty" if ident.get("git_dirty") else ""))
     return ident
 
 
@@ -322,6 +753,56 @@ def dated_context_violations(rendered: Iterable[dict],
                         "was; it does not make it current."),
             })
     return out
+
+
+def retire(city: str, token: str, *, reason: str,
+           change_class: str = "mechanism", when: str | None = None,
+           root: Path | None = None) -> Row:
+    """Close a token out: the model no longer produces it, and nothing replaced it.
+
+    ⛔ **THIS IS THE ONLY THING THAT SETS ``superseded_at``, AND WITHOUT IT
+    :func:`dated_context_violations` CANNOT FIRE.** That check enforces the
+    second clause of the attribution rule — a superseded figure may appear only
+    in a dated context — and it was written before anything could mark a figure
+    superseded, so for its first hours it was a guard that read as working and
+    could not act. Found in review on 2026-08-31, in the same commit that
+    catalogued four other guards with exactly that defect. Recorded here rather
+    than quietly fixed, because the pattern is the point: a check is not a check
+    until something can make it fail.
+
+    Append-only, like everything here. The retirement is a NEW row carrying the
+    last published value with a supersession stamp — never an edit of the old
+    one, which would destroy the record of what was actually published.
+
+    Its first customers are the ten claims pinned to ``run:turnout_tilt_da=1``,
+    a lever ``run_model`` no longer has: they cannot be re-derived, they can be
+    attributed, and after this they may only appear in prose that says when they
+    were true.
+    """
+    if change_class not in CHANGE_CLASSES:
+        raise ValueError(
+            f"change_class {change_class!r} is not one of {CHANGE_CLASSES}. "
+            f"A retirement owes the reader a reason of a KIND, not just prose.")
+    if not reason:
+        raise ValueError(
+            f"retiring {token} without a reason. 'The model moved' and 'we were "
+            f"wrong' are different sentences and the reader is owed which.")
+    when = when or _utc()
+    prev = latest(city, root=root).get(token)
+    if prev is None:
+        raise KeyError(
+            f"{token} was never published in {city}; there is nothing to retire. "
+            f"A token that never reached a reader needs no supersession row.")
+    if prev.superseded_at:
+        raise ValueError(
+            f"{token} was already retired on {prev.superseded_at}. Retiring "
+            f"twice would put two supersession stamps in the record and make "
+            f"'when did this stop being current' unanswerable.")
+    row = dataclasses.replace(prev, published_at=when, superseded_at=when,
+                              change_class=change_class, reason=reason,
+                              movement="none")
+    append(city, [row], root=root)
+    return row
 
 
 def summarise(rows: Iterable[Row]) -> dict:

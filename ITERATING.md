@@ -174,13 +174,70 @@ the single hardest column in the panel and uniform swing is not.
 
 This is the same class of fault as `claimed` selecting away from the
 forecaster's own failures, which rule 8 identified and fixed by introducing
-`reference`; it was never fixed here. **The magnitude of its effect on the
-headline margin is UNQUANTIFIED** — it touches the arrival columns only, so it
-does not void comparisons that leave those columns alone, but it does mean **no
-seat or CRPS comparison in this file arbitrates a change to the arrival
-channel.** The label-free referee `backtest.arrival_group_score` is the fix, and
-it must be reported beside the relabelled score as a sensitivity pair, never
-instead of it. §1.133, §1.136.
+`reference`; it was never fixed here. **MEASURED 2026-08-31, and it is no longer
+unquantified: the free label is worth 11.52 CRPS — 3.5% of the model's 329.50 —
+and 2.17 points of the margin over uniform swing, which falls from 37.8% to
+35.7%.** Seat error (coherent) goes 386 → 426. Reproduce with
+`JHB_SCORE_NO_RELABEL=1 .venv/bin/python src/compare_history.py`, which withholds
+the label from the model everywhere it is used, not only at `relabel_run`. The
+ablation moves **exactly the ten city-years where a label exists** and is
+bit-identical at the six where `entrant_actual` is `None` — an internal check
+that it is measuring the label and nothing else.
+
+The effect touches the arrival columns only, so it does not void comparisons
+that leave those columns alone — but it does mean **no seat or CRPS comparison
+in this file arbitrates a change to the arrival channel.** The label-free referee
+`backtest.arrival_group_score` is the fix, and it must be reported beside the
+relabelled score as a sensitivity pair, never instead of it. **DONE 2026-08-31:**
+`compare_history`'s report now carries a section "The arrival channel, scored
+without the label" on every run — it had been computed into `history.json` and
+rendered nowhere since it was repaired. Panel mass PIT **0.692**, seats PIT
+**0.602**, above 0.5 at **13 of 16** city-years. §1.133, §1.136, §1.148.
+
+**AMENDED 2026-08-31 — the relabel does not always fire, and where it does not,
+something worse happens.** `entrant_actual` is `None` at **6 of the 16
+city-years** — joburg 2021, tshwane 2016 and 2021, mangaung 2021, buffalocity
+2016 and 2021 — because no newcomer took a seat for it to be named after. The
+block above reads as though the relabel is universal; at those six the model's
+generic `ENTRANT` **survives into scoring as its own party column**, carrying
+2.71 CRPS across the panel (0.86 at joburg 2021, the model's single largest
+extra column). So the fault has two faces, not one: at ten city-years the model
+gets a free correct label, and at six it is scored on a column no baseline has
+and no real party corresponds to. **Joburg 2021 — the flagship city-year — is one
+of the six.** MODEL-LOG §1.144 §4.
+
+### Which scores may be compared across forecasters, and which may not
+
+**AMENDED 2026-08-31, measured, and it corrects §1.141.** The scored column set
+depends on the forecaster (`score.seat_matrix`: a column is kept if the party
+won a seat **or this forecaster gave it one in any draw**), so forecasters are
+routinely scored over different *d* — 430 columns for the model against 232 for
+uniform swing over the panel. That does **not** invalidate every score, and the
+distinction is exact rather than a matter of degree:
+
+| statistic | shape | comparable across forecasters? |
+|---|---|---|
+| `crps["total"]` | **sum** over columns | **YES** — an unscored column is identically zero in every draw against a truth of zero, so its CRPS is exactly 0 |
+| `energy` | `E‖X−y‖ − ½E‖X−X′‖` | **YES** — a zero coordinate adds nothing to a Euclidean norm |
+| `crps["mean"]` | sum ÷ `n_scored` | **NO** — flatters the forecaster with more columns; moves the model's margin 37.8% → 66.5% |
+| `variogram` | **mean over pairs** | **NO** — padding adds zero-valued pairs and grows the denominator, so the score *shrinks*: uniform swing 4.0384 → 1.8916 when padded 19 → 56 (**joburg 2021 only**, not a panel figure) |
+| `n_scored`, `coverage_all` | counts over the set | **NO** |
+
+**The CRPS row is verified on the panel, not argued: max |own_total −
+union_total| = 0.0 across all 64 forecaster × city-year combinations.** The
+energy and variogram rows are a mathematical argument from their form, checked
+at ONE city-year (joburg 2021) — the invariance of a norm to a zero coordinate is
+exact, so a single check is a spot-check rather than a sample, but say which it
+is. `energy` additionally sub-samples above `max_draws=4000` with a fixed seed,
+so at production draw counts it is a **stochastic** statistic and small
+differences in it are not meaningful. The correct common support is the
+**union**, and because the sum is invariant, the union is what already ships —
+no change is required to Key 1. The **intersection** is wrong and biases toward
+the baselines, deleting 44.00 CRPS of earned penalty from uniform swing against
+9.04 from the model.
+
+**So: quote `crps["total"]` and `energy` across forecasters. Never quote
+`crps["mean"]` or `variogram` across forecasters without holding the universe.**
 
 **KEY 2 — calibration is a floor, not a currency.** CRPS must not worsen beyond
 its noise, and the level-free width statistics on the `reference` population

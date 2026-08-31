@@ -562,7 +562,17 @@ def _population_block(parties, samples, truth, *, seed, membership) -> dict:
     covers this one.
     """
     n_cols = samples.shape[1] if samples.ndim == 2 else 0
-    pits = S.pit_values(samples, truth, seed=seed) if samples.shape[0] else []
+    pits = (S.pit_values(samples, truth, parties, seed=seed)
+            if samples.shape[0] else [])
+    # THE JUMP EACH PIT LANDS INSIDE, stored beside the PIT itself. It carries
+    # no randomness, and with it every PIT statistic is recoverable at any
+    # number of randomisations without re-running the model. The seed band that
+    # motivated this change was measurable at all only because the jumps
+    # happened to be recoverable from a lattice (both are multiples of 1/draws)
+    # — luck that does not survive a change of draw count. See
+    # `score.pit_intervals`.
+    pit_lo, pit_w = (S.pit_intervals(samples, truth) if samples.shape[0]
+                     else ([], []))
     hits, z_cols = [], []
     for j in range(n_cols):
         hits.append([int(row["inside"])
@@ -574,6 +584,9 @@ def _population_block(parties, samples, truth, *, seed, membership) -> dict:
         "n": int(n_cols),
         "parties": list(parties),
         "pit": [float(v) for v in pits],
+        "pit_lo": [float(v) for v in pit_lo],
+        "pit_w": [float(v) for v in pit_w],
+        "pit_seed": int(seed),
         "z": z_cols,
         "p_any": _p_any(samples),
         "band": [membership.get(p, "off-ballot") for p in parties],
@@ -596,8 +609,11 @@ def calibration_columns(seat_draws, actual_seats, entrant_actual, seed,
     **The per-column band label is why ``actual_pr`` is here.** A pooled mean PIT
     over a population that contains two opposite biases is the same mistake as a
     signed error sum over a band that contains two opposite errors: it averages
-    them and reports "fine". This model's ``claimed`` population pools to 0.587
-    and is −0.069 at ranks 1-3 and +0.250 at ranks 4-12. Every block below
+    them and reports "fine". On the committed sixteen city-years this model's
+    ``claimed`` population pools to **0.559** and is **+0.010 at ranks 1-3 and
+    +0.113 at ranks 4-12** (updated 2026-08-31; the nine-city-year figures
+    0.587 / −0.069 / +0.250 that stood here are superseded, and the ranks 1-3
+    sign has flipped — see :func:`pooled_by_band`). Every block below
     therefore carries ``band`` alongside ``pit``, from :func:`rank_band_of` —
     the same partition :func:`rank_bands` splits the vote error on. Without
     ``actual_pr`` no column can be ranked and the pooled figure is all there is,
@@ -645,7 +661,8 @@ def calibration_columns(seat_draws, actual_seats, entrant_actual, seed,
     """
     parties, samples, truth = S.seat_matrix(seat_draws, actual_seats,
                                             entrant_actual)
-    pits = S.pit_values(samples, truth, seed=seed)
+    pits = S.pit_values(samples, truth, parties, seed=seed)
+    all_lo, all_w = S.pit_intervals(samples, truth)
     n_cols = samples.shape[1] if samples.ndim == 2 else 0
     claimed = ((samples > 0).mean(axis=0) >= S.CLAIM_FRACTION
                if samples.shape[0] else np.zeros(n_cols, dtype=bool))
@@ -693,6 +710,11 @@ def calibration_columns(seat_draws, actual_seats, entrant_actual, seed,
             "n": int(mask.sum()),
             "parties": [p for p, keep in zip(parties, mask) if keep],
             "pit": [float(v) for v in np.asarray(pits)[mask]],
+            # sliced alongside the PIT, so a masked population can be re-drawn
+            # exactly as the reference one can. See `score.pit_intervals`.
+            "pit_lo": [float(v) for v in np.asarray(all_lo)[mask]],
+            "pit_w": [float(v) for v in np.asarray(all_w)[mask]],
+            "pit_seed": int(seed),
             "z": [v for v, keep in zip(z_cols, mask) if keep],
             "p_any": _p_any(samples[:, mask]),
             # ``off-ballot`` is a column with no actual PR rank: a party the
@@ -707,7 +729,62 @@ def calibration_columns(seat_draws, actual_seats, entrant_actual, seed,
     return out
 
 
-def pooled_calibration(results, bins: int = 10) -> dict:
+def redraw_pits(block: dict, replicates: int = 64):
+    """PIT values redrawn ``replicates`` times from the stored jump intervals.
+
+    Returns ``(array_of_shape_(R, n), exact)``. ``exact`` is False when the
+    block predates ``pit_lo``/``pit_w``, in which case the stored single
+    randomisation is returned unchanged as one replicate — **and the caller must
+    say so**, because a silent fallback to R=1 is a guard that reads as working.
+
+    ⛔ **AVERAGE THE STATISTIC, NEVER THE VALUES.** Averaging PIT values first
+    shrinks each draw toward its jump midpoint: measured at R=64 on
+    ``reference`` that reads probit-SD **1.01 ("correct")** where the honest
+    figure is **1.20 ("too narrow")**, and 50% coverage 0.76 against 0.53. It
+    would have inverted this project's width verdict.
+
+    Why this exists: the randomisation alone moved the pooled mean PIT with
+    sd 0.00955 on ``reference``, and moved the statistic Key 2 quotes as its
+    width floor — ``reference``/2021 probit-SD, n=235, reading exactly 1.2000 —
+    with sd **0.0327**. The 1.2000 → 1.3557 finding built on that floor is
+    therefore **3.4 sd of a paired re-roll**. Key 2 is untradeable; a floor that
+    moves 0.03 while the model stands still is not a floor. At R=64 the residual
+    is 0.0040 and the same finding is 27 sd.
+    """
+    import numpy as _np
+    pit = _np.asarray(block.get("pit") or [], dtype=float)
+    lo = block.get("pit_lo")
+    w = block.get("pit_w")
+    if not lo or not w or len(lo) != len(pit):
+        return pit.reshape(1, -1), False
+    lo = _np.asarray(lo, dtype=float)
+    w = _np.asarray(w, dtype=float)
+    seed = int(block.get("pit_seed") or 0)
+    R = max(1, int(replicates))
+    out = _np.empty((R, len(lo)), dtype=float)
+    for j, party in enumerate(block.get("parties") or []):
+        rng = S.column_rng(seed, party)  # ONE definition; see score.column_rng
+        out[:, j] = lo[j] + rng.random(R) * w[j]
+    return out, True
+
+
+def exact_mean_pit(block: dict) -> float:
+    """The mean PIT over the randomisation, in closed form: ``mean(lo + w/2)``.
+
+    Zero randomisation noise, no replicates needed. The randomised PIT is
+    uniform on ``[lo, lo+w]``, so its expectation is the midpoint and the mean
+    of the midpoints is the exact expected mean PIT. Returns ``nan`` on a block
+    that predates the stored intervals rather than silently returning the
+    single-draw figure, which is a different quantity.
+    """
+    lo, w = block.get("pit_lo"), block.get("pit_w")
+    if not lo or not w:
+        return float("nan")
+    return float(np.mean(np.asarray(lo) + np.asarray(w) / 2.0))
+
+
+def pooled_calibration(results, bins: int = 10,
+                       replicates: int = 64) -> dict:
     """Coverage and PIT summed over every city-year, pooled AND split by rank.
 
     Coverage pools by adding hits and columns; PIT pools by concatenating the
@@ -717,28 +794,64 @@ def pooled_calibration(results, bins: int = 10) -> dict:
 
     **The pooled figure must not be read alone, and the ``by_band`` block is
     why.** Pooling over city-years is what makes the statistic readable;
-    pooling over rank bands is what makes it wrong. This model's ``claimed``
-    population pools to a mean PIT of 0.587 and splits into 0.431 at ranks 1-3
-    and 0.750 at ranks 4-12 — an over-forecast averaged with an under-forecast.
-    See :func:`pooled_by_band` and MODEL-LOG §1.36.
+    pooling over rank bands is what makes it wrong. On the committed sixteen
+    city-years this model's ``claimed`` population pools to a mean PIT of
+    **0.559** and splits into **0.510 at ranks 1-3 and 0.613 at ranks 4-12**.
+    The point stands — the pooled figure hides the split — but the SHAPE has
+    changed since the nine-city-year reading quoted here (0.587 / 0.431 /
+    0.750): ranks 1-3 is now centred, and the whole departure is the middle.
+    See :func:`pooled_by_band` and MODEL-LOG §1.36, §1.146.
     """
     out = {}
     for pop in POPULATIONS:
         pits: list[float] = []
         cov: dict[float, dict] = {}
+        # R-AVERAGED PIT, and a flag saying whether it really is. `redraw_pits`
+        # needs the stored jump intervals; a block written before they existed
+        # returns its single stored randomisation and `exact=False`, and that
+        # must be REPORTED rather than quietly averaged over one replicate.
+        reps: list[np.ndarray] = []
+        exact_all = True
         for r in results:
             block = (r.get("calibration") or {}).get(pop)
             if not block:
                 continue
             pits.extend(block["pit"])
+            drawn, exact = redraw_pits(block, replicates=replicates)
+            reps.append(drawn)
+            exact_all = exact_all and exact
             for row in block["coverage"]:
                 acc = cov.setdefault(float(row["level"]),
                                      {"inside": 0, "counted": 0})
                 acc["inside"] += int(row["inside"])
                 acc["counted"] += int(row["counted"])
+        # The mean PIT over R randomisations, and — where the intervals are
+        # stored — its exact closed form, which needs no replicates at all.
+        wide = (np.hstack(reps) if reps and exact_all
+                else np.array(pits, dtype=float).reshape(1, -1))
+        # ⛔ POOLED OVER COLUMNS, matching `mean_pit_r`. This averaged
+        # per-city-year means until 2026-08-31 — a DIFFERENT ESTIMAND, and on
+        # the committed panel it differed from the pooled figure by 0.0168 on
+        # `seat_holders`, which is 4.2x the 0.0040 residual this whole change
+        # exists to remove. A weighting difference introduced while removing a
+        # smaller noise term is the change defeating its own purpose.
+        mids: list[float] = []
+        for r in results:
+            b = (r.get("calibration") or {}).get(pop)
+            if not b or not b.get("pit_lo") or not b.get("pit_w"):
+                continue
+            mids.extend(np.asarray(b["pit_lo"], dtype=float)
+                        + np.asarray(b["pit_w"], dtype=float) / 2.0)
+        exact_mean = float(np.mean(mids)) if (exact_all and mids) else float("nan")
         out[pop] = {
             "n": len(pits),
             "pit": S.pit_histogram(np.array(pits, dtype=float), bins=bins),
+            "pit_replicates": int(wide.shape[0]),
+            "pit_randomisation_exact": bool(exact_all),
+            "mean_pit_r": float(np.mean(wide)),
+            "mean_pit_exact": exact_mean,
+            "pit_dispersion_r": float(np.mean(
+                [pit_dispersion(list(row)) for row in wide])),
             "coverage": [
                 {"level": level, "inside": acc["inside"],
                  "counted": acc["counted"],
@@ -876,18 +989,38 @@ def pooled_by_band(results, pop) -> dict:
     argument that condemned :func:`rank_bands`' signed sum one day earlier, and
     the pooled PIT shipped in the same commit with the same defect.
 
-    On this model's ``claimed`` population (committed ``history.json``) the
-    pooled mean is 0.598 and the split is:
+    ⛔ **RE-MEASURED 2026-08-31 ON THE COMMITTED SIXTEEN CITY-YEARS, AND HALF OF
+    WHAT THIS DOCSTRING SAID IS NO LONGER TRUE.** The figures below stood here as
+    "committed ``history.json``" while the artefact had grown from nine
+    city-years to sixteen, and nothing checked them — the guard on rule 8's
+    tables in ``ITERATING.md`` parses those tables only, not this docstring.
 
-        ranks 1-3    n=27  mean PIT 0.434
-        ranks 4-12   n=28  mean PIT 0.757
+    ==================  ==========================  ==========================
+    population/band     was (9 city-years)          is (16, cluster-bootstrap)
+    ==================  ==========================  ==========================
+    claimed, pooled     0.598                       0.559
+    claimed, ranks 1-3  n=27, 0.434                 n=48, **0.510** [0.474, 0.542]
+    claimed, ranks 4-12 n=28, 0.757                 n=57, **0.613** [0.537, 0.683]
+    ==================  ==========================  ==========================
 
-    Two biases in opposite directions, both cluster-bootstrap CIs excluding
-    0.50, and the pooled figure is their average. The model **over**-forecasts
-    the top three and **under**-forecasts the middle — which is exactly what the
-    signed vote bands (+32.52pp at ranks 1-3, −37.18pp at 4-12) had been saying
-    all along. The two instruments never disagreed; only one of them was
-    disaggregated.
+    **The ranks 1-3 finding is REFUTED.** Its CI now contains 0.50, and the two
+    cycles have opposite signs (2016 0.554, 2021 0.465), so it does not
+    replicate. The model does **not** over-forecast the top three on this panel,
+    and the "two biases in opposite directions" reading must not be quoted.
+
+    **The ranks 4-12 finding survives and strengthens.** On the ``reference``
+    population — the one Key 2 makes an untradeable floor — it is **0.688,
+    CI [0.634, 0.735], replicating across cycles at 0.623 (2016) and 0.745
+    (2021)**. On ``claimed`` it is 0.613 with the CI excluding 0.50, but it does
+    NOT replicate by cycle there (2016 0.512, 2021 0.687), so quote the
+    ``reference`` reading and say which population it is.
+
+    So the surviving claim is one bias, not two: **the mid-ballot is
+    under-forecast.** The signed vote bands (+32.52pp at ranks 1-3, −37.18pp at
+    4-12) are a separate instrument and are not corroborated at ranks 1-3 by
+    this one — but the seat PIT has little power to see 0.26pp per party per
+    city-year, so this is not evidence against the vote finding either. MODEL-LOG
+    §1.146.
 
     **WIDTH DOES NOT SPLIT THE SAME WAY, AND THIS PROJECT GOT THAT BACKWARDS
     TWICE IN TWO DAYS.** First it read "roughly the right width, do not widen".
@@ -1215,6 +1348,33 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
     actual_pr, actual_ward = actual_shares(target, data_dir)
     actual_seats, entrant_actual, actual_winners = _actual_seats(
         target, data_dir, run)
+    # ⛔ MEASUREMENT-HARNESS ABLATION, OFF UNLESS EXPLICITLY ASKED FOR.
+    #
+    # `JHB_SCORE_NO_RELABEL=1` withholds the arrival label from the MODEL so the
+    # relabel's worth can be priced. ITERATING.md has recorded that worth as
+    # UNQUANTIFIED since the fault was found: `relabel_run` renames the model's
+    # generic ENTRANT onto the largest realised arrival, **chosen with the
+    # outcome in hand**, and the baselines have no ENTRANT column so there is
+    # nothing to relabel and no equivalent benefit. The model is handed a free
+    # correct label on the hardest column in the panel and uniform swing is not.
+    #
+    # It is an ENVIRONMENT variable because `compare_history` fans out to
+    # sixteen spawned worker processes and `os.environ` is what they inherit —
+    # the same route `fix_hash_seed` relies on. It is deliberately NOT a
+    # scenario key: `--set` keys are MODEL levers, and putting a scoring switch
+    # among them would make an instrument change look like a forecast change.
+    #
+    # ⛔ NEVER SET IT FOR A SHIPPED RUN OR A FREEZE. It changes what the scorer
+    # is, not what the model predicts, and a number measured under it is not
+    # comparable to one measured without it.
+    if os.environ.get("JHB_SCORE_NO_RELABEL") == "1":
+        # Suppressed EVERYWHERE, not just at the relabel. `entrant_actual` also
+        # reaches `calibration_columns` and both `score_seats` calls, where
+        # `seat_matrix` merges the ENTRANT column onto the named party. Dropping
+        # only the relabel would leave the label still doing its work downstream
+        # and would price the ablation at less than it is worth.
+        entrant_actual = None
+
     # Before ANY of the tables below. entrant_actual used to reach score_seats
     # and nothing else, so votes, rank bands and both seat errors all scored the
     # arrival machinery as a total miss plus a phantom. See backtest.relabel_run.
@@ -1359,6 +1519,27 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
             "seat_abs_err": sum(
                 abs(r["actual"] - r["forecast"]) for r in m.get("parties", [])),
             "generated": pub.get("generated")}
+
+    # ⛔ THE SCORED ARTEFACT SAYS WHETHER IT WAS ABLATED. ALWAYS, NOT ONLY WHEN
+    # IT WAS.
+    #
+    # `JHB_SCORE_NO_RELABEL` changes what the SCORER is, so two `history.json`
+    # files can disagree by 11.52 CRPS with identical forecasts behind them
+    # (§1.148). Recorded unconditionally because this repository has already
+    # been bitten by the other convention: an ABSENT record and a NEGATIVE one
+    # read the same, and "the key is missing" then means both "the ablation was
+    # off" and "this artefact predates the ablation" — which are different
+    # facts and only one of them is safe to compare against.
+    #
+    # It is NOT in `freeze.ENV_SWITCHES`, deliberately. `freeze` re-runs
+    # `run_model` and never imports the scoring path, so this switch cannot
+    # reach a frozen forecast; recording it there would assert an influence it
+    # does not have and would demand a freeze re-record for nothing. That was
+    # tried on 2026-08-31 and `test_the_freeze_records_every_environment_switch`
+    # correctly refused it. The contamination risk is here, in the scored
+    # artefact, and this is where the stamp belongs.
+    out["scored_without_relabel"] = (
+        os.environ.get("JHB_SCORE_NO_RELABEL") == "1")
     return out
 
 
@@ -1368,8 +1549,22 @@ def _npe_baseline(target, data_dir: Path) -> dict:
     The same quantity `run_model` builds its universe from, and the same test
     `backtest.entrant_actual_for` applies: a party absent from it "arrived from
     nothing". Read here rather than carried on `ModelRun` because the run does
-    not expose it, and defined ONCE so the arrival score and the relabel cannot
-    drift apart on what counts as an arrival.
+    not expose it.
+
+    ⛔ **THIS DOCSTRING USED TO CLAIM IT WAS "defined ONCE so the arrival score
+    and the relabel cannot drift apart on what counts as an arrival". THAT IS
+    FALSE, MODEL-LOG SAYS SO, AND THE SENTENCE SURVIVED IN THE CODE ANYWAY** —
+    corrected 2026-08-31 after a blind review found it still here.
+
+    This function has exactly **one** call site, and it is the arrival score.
+    The relabel does not use it: `_actual_seats` builds
+    ``base = {p: 1.0 for p in run.index}`` — the model's whole universe, under
+    which nothing has ever "arrived from nothing". **The two definitions
+    therefore disagree, and they disagree loudest at the flagship city-year**:
+    at joburg 2021 `entrant_actual` is `None` while `arrival_group_score`
+    reports 32 arrived parties holding 46 seats. Reconciling them is the
+    outstanding work (§1.144 §4, §1.146); until then, do not read either as
+    speaking for the other.
 
     Off-ballot parties are NOT dropped (§1.124's `absent_from_ballot`): that
     changes which parties enter `sd_for`'s fit, and changes nothing about who
@@ -1739,6 +1934,62 @@ def render_calibration(results: list[dict], bins: int = 10) -> str:
     return "\n".join(lines)
 
 
+def _arrival_referee(results: list[dict]) -> list[str]:
+    """The arrival channel scored WITHOUT the free label — reported beside the
+    relabelled headline, never instead of it.
+
+    ⛔ **THIS WAS COMPUTED, STORED AND NEVER SHOWN.** `arrival_group_score` has
+    been written into `history.json` on every run since it was repaired, and
+    appeared in no rendered report — so the one instrument that scores the
+    arrival channel without handing the model the answer was invisible unless
+    somebody opened the JSON. `ITERATING.md` already prescribes the remedy in
+    these words: *"reported beside the relabelled score as a sensitivity pair,
+    never instead of it."* This is that.
+
+    **Why it is needed.** The headline CRPS is scored AFTER `relabel_run`
+    renames the model's generic ENTRANT onto the largest realised arrival —
+    chosen with the outcome in hand — and the baselines have no such column.
+    Measured on this panel, that free label is worth **11.52 CRPS (3.5%) and
+    2.17 points of the margin over uniform swing**; `JHB_SCORE_NO_RELABEL=1`
+    reproduces it. This table is the label-free view of the same channel.
+
+    `mass_pit` and `seats_pit` are the numbers to read. Both are PIT values, so
+    **0.5 is centred and above 0.5 means the model forecast too LITTLE** arrival
+    mass or too few arrival seats.
+    """
+    rows = [r for r in results if r.get("arrival_group")]
+    if not rows:
+        return []
+    out = ["\n## The arrival channel, scored without the label\n",
+           "The headline CRPS above is scored after the model's generic "
+           "`ENTRANT` column is renamed onto the largest party that actually "
+           "arrived — a label chosen with the result in hand, which no baseline "
+           "gets. This table does not use it. **PIT above 0.5 means the model "
+           "forecast too little.**\n",
+           "| city-year | arrived | actual mass | forecast mass | actual seats "
+           "| forecast seats | mass PIT | seats PIT |",
+           "|---|---|---|---|---|---|---|---|"]
+    mp, sp = [], []
+    for r in rows:
+        a = r["arrival_group"]
+        mp.append(a["mass_pit"]); sp.append(a["seats_pit"])
+        out.append(
+            f"| {r['city']} {r['year']} | {a['n_arrived']} | "
+            f"{a['actual_mass'] * 100:.2f}% | {a['mass_mean'] * 100:.2f}% | "
+            f"{a['actual_seats']} | {a['seats_mean']:.1f} | "
+            f"{a['mass_pit']:.3f} | {a['seats_pit']:.3f} |")
+    out.append(f"| **panel mean** | | | | | | **{sum(mp) / len(mp):.3f}** | "
+               f"**{sum(sp) / len(sp):.3f}** |")
+    over = sum(1 for v in mp if v > 0.5)
+    out.append(f"\nMass PIT is above 0.5 at **{over} of {len(mp)}** city-years. "
+               f"A panel mean well above 0.5 on both columns is the model "
+               f"systematically under-forecasting how much of the ballot goes "
+               f"to parties arriving from nothing — read it next to the "
+               f"mid-ballot calibration below, which is the same leak seen "
+               f"through a different instrument.\n")
+    return out
+
+
 def _headline_split(results: list[dict]) -> list[str]:
     """The headline margin over uniform swing, split Gauteng against the rest.
 
@@ -1923,6 +2174,9 @@ def render(results: list[dict]) -> str:
         "seat vector by largest remainder, so it IS a chamber and is the only "
         "one comparable to the baselines, which allocate per draw and sum "
         "exactly. Lower is better throughout.\n")
+
+    for line in _arrival_referee(results):
+        add(line)
 
     add("\n## Where the vote error sits on the ballot\n")
     add("**Two columns per band, and they answer different questions.** *signed* "
