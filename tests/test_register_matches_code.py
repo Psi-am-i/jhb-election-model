@@ -92,6 +92,23 @@ DELETED = {
     "theta_mode": "deleted 2026-08-19; §1.52",
     "individual_theta": "deleted 2026-08-19; §1.52",
     "f_other": "deleted 2026-08-19; §1.52",
+    # Retired with `src/leverage.py` on 2026-08-31 (§1.140), to
+    # `archive/retired-scripts/`. The script was standalone — never imported by
+    # `run_model`, `compare_history` or the build, and nothing read its
+    # `ward_leverage.csv` — and it typed six parties' growth rates with
+    # `F_OTHER = 1.30` for anything unlisted. The disqualifying part is that
+    # `f_other` itself was deleted from the model on 2026-08-19 (§1.52), so
+    # every number the script printed after that date came from a path the
+    # forecast had abandoned, while reading as a sensitivity analysis OF the
+    # forecast. Recorded here rather than struck from the register because the
+    # register is where a deleted constant is DISCUSSED, and the argument for
+    # its removal is worth keeping.
+    "THETA_CENTRAL": "six typed per-party theta centres in the retired "
+                     "leverage.py; §1.140",
+    "F_OTHER": "the 1.30 fallback growth for any party not named in "
+               "THETA_CENTRAL, in the retired leverage.py. It ran `f_other`, "
+               "deleted from the model 2026-08-19; §1.52, §1.140",
+    "DA_LED_COALITION": "a two-party tuple in the retired leverage.py; §1.140",
     # Deleted 2026-08-28 (§1.119) on the owner's standing rule — "if something
     # is dead and no longer used, why would we want to keep it around". Each had
     # ZERO qualified readers in the tree, verified before deletion.

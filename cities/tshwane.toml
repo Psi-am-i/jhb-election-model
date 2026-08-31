@@ -114,14 +114,24 @@ labels = [
 ]
 
 [judgements]
-[judgements.plan_bounds]
-# PLACEHOLDER — CoJ ranges. Re-derive from Tshwane's transitions.
-ANC = [0.65, 0.9]
-DA = [1.05, 1.6]
-EFF = [0.55, 1.1]
-ASA = [0.9, 3.0]
-MK = [0.3, 1.0]
-VFPLUS = [0.7, 2.2]
+# ⛔ `[judgements.plan_bounds]` DELETED 2026-08-31. It carried six of
+# Johannesburg's seven theta ranges under its own comment, "PLACEHOLDER — CoJ
+# ranges. Re-derive from Tshwane's transitions." They never were.
+#
+# Deleted rather than re-derived, for three reasons:
+#   * `cityconfig`'s own docstring names this exact failure — "applied blind to
+#     another metro these do not crash; they produce plausible, wrong output."
+#     Tshwane HONESTLY UNCLAMPED beats Tshwane clamped with Johannesburg's
+#     numbers, because absence is a legitimate state and a wrong bound is not.
+#   * It is number-neutral on everything anyone has ever scored. The clamp lives
+#     inside the by-election tilt, gated on `byelection_party_deltas.csv`, which
+#     exists at exactly one path in the tree — Johannesburg 2026. It fires on
+#     ZERO of the sixteen panel city-years (MODEL-LOG §1.140 §4).
+#   * Tshwane cannot emit a 2026 spec at all until `POOLS-REEMIT-QUEUE` entry 2
+#     lands, so nothing could have read these before then either.
+#
+# If Tshwane bounds are wanted, derive them from Tshwane's own transitions and
+# say so here. Do not copy another metro's.
 
 [judgements.scalars]
 w_bye = 0.4

@@ -1034,11 +1034,19 @@ def test_a_diagnostic_run_does_not_overwrite_the_published_artefacts():
 
     cityconfig.use("joburg")
     processed = cityconfig.use_target("2026").processed
-    names = ("ward_winner_probs.csv", "seat_draws.csv", "forecast_summary.json")
-    before = {n: (processed / n).read_bytes()
-              for n in names if (processed / n).exists()}
+    # ⛔ THE WHOLE DIRECTORY, NEVER A LIST OF NAMES. This test enumerated
+    # exactly three filenames until 2026-08-30, and `coalitions.write_outputs`
+    # published FOUR more from 64 lines above the guard. Both the guard and this
+    # test named the same three, so four files walked past both — every suite
+    # run wrote 20-draw coalition CSVs into the real processed directory, and
+    # they carried a timestamp newer than the 5,000-draw artefacts they claimed
+    # to summarise. A list of names cannot protect a file added later, and
+    # `write_outputs` predates the guard it evaded. So the property is stated
+    # over the directory: same filenames, same bytes.
+    before = {f.name: f.read_bytes() for f in processed.iterdir() if f.is_file()}
     if not before:
         skip(f"no published artefacts in {processed} to protect")
+    _created_by_this_run: set[str] = set()
 
     try:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1049,6 +1057,14 @@ def test_a_diagnostic_run_does_not_overwrite_the_published_artefacts():
             assert (trace_dir / "41_guards.json").exists(), (
                 "the trace must still be written — the guard is about "
                 "PUBLISHING, not about tracing")
+        created = {f.name for f in processed.iterdir()
+                   if f.is_file()} - set(before)
+        _created_by_this_run.update(created)
+        assert not created, (
+            f"a --run-dir run CREATED {sorted(created)} in {processed}. A "
+            f"diagnostic must not publish, and a guard that enumerates "
+            f"filenames cannot see a new one — which is exactly how four "
+            f"coalition CSVs were published at 20 draws. MODEL-LOG §1.118.")
         for name, blob in before.items():
             assert (processed / name).read_bytes() == blob, (
                 f"a --run-dir run rewrote {name}. A diagnostic must not "
@@ -1056,7 +1072,20 @@ def test_a_diagnostic_run_does_not_overwrite_the_published_artefacts():
                 f"something downstream breaks. MODEL-LOG §1.118.")
     finally:
         # Restore whatever the run may have written, so a REGRESSION in the
-        # guard costs a red test and not a contaminated forecast.
+        # guard costs a red test and not a contaminated forecast. Deleting what
+        # the run CREATED matters as much as restoring what it overwrote.
+        #
+        # ⛔ DELETE ONLY WHAT THIS RUN CREATED, NEVER "anything not in the
+        # snapshot". `data/processed` is SHARED and gitignored, and an
+        # unconditioned sweep here would delete a file some other process wrote
+        # between the snapshot and this teardown. That is the failure mode of
+        # the entry titled "Gitignored is not unimportant" — a diagnostic
+        # destroying a published artefact because nothing warns on an ignored
+        # path. The created set is captured inside the `try`, above.
+        for name in _created_by_this_run:
+            target = processed / name
+            if target.is_file():
+                target.unlink()
         for name, blob in before.items():
             if (processed / name).read_bytes() != blob:
                 (processed / name).write_bytes(blob)

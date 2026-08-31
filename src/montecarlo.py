@@ -69,6 +69,7 @@ import argparse
 import copy
 import csv
 import hashlib
+import datetime as _dt
 import json
 import math
 import os
@@ -108,11 +109,27 @@ DIRICHLET_FLOOR = 1e-4
 
 # §3.5 raw-θ ranges: the plan's sanity bounds on any derived per-party value,
 # and the clamp on what by-election or polling evidence may claim.
-PLAN_BOUNDS = {
-    "ANC": (0.65, 0.90), "DA": (1.05, 1.60), "EFF": (0.55, 1.10),
-    "ASA": (0.90, 3.00), "MK": (0.30, 1.00), "PA": (1.00, 2.20),
-    "ALJAMAAH": (0.80, 3.00),
-}
+# ⛔ EMPTY, DELIBERATELY. This held seven party-named theta clamps until
+# 2026-08-30 — a silent DUPLICATE of `cities/<city>.toml [judgements.plan_bounds]`,
+# which `apply_city` rebinds this name from on every run. The literal was
+# therefore dead on every path that goes through `apply_city` (all of them) and
+# live only if one ever did not: a trap, not a default.
+#
+# ⚠️ AND IT HID AN ASYMMETRY NOBODY CHOSE. Only `joburg.toml` and
+# `tshwane.toml` declare the block. The other six metros resolve to `{}` and
+# `.get(party, (0.0, inf))` at the clamp site — so TWO METROS ARE CLAMPED AND
+# SIX ARE NOT, and the module literal made that invisible by looking like a
+# floor under all of them. Emptying it does not fix the asymmetry; it stops the
+# asymmetry being disguised. What the six unclamped metros should do is a
+# question about the forecast's substance and is owed to the pollster, not to
+# this comment.
+#
+# The better end state, recorded so it is not rediscovered: derive the band from
+# the party's own measured `sd(log theta)` — `theta_residual.py` already computes
+# it — so a party with no measured prior gets a WIDE bound rather than NONE,
+# which is the failure this constant exists to prevent and currently cannot.
+# MODEL-LOG §1.140.
+PLAN_BOUNDS: dict[str, tuple[float, float]] = {}
 
 DEFAULTS: dict = {
     "draws": 5000,
@@ -4788,7 +4805,18 @@ def main(argv: list[str] | None = None) -> int:
     results["structural"]["field without ANC, EFF and MK: median seats"] = float(
         np.median(field))
     coalitions.report(results, "(per-draw threshold, overhang-adjusted)")
-    coalitions.write_outputs(results, processed)
+    # ⛔ `write_outputs` USED TO BE CALLED HERE, 64 LINES ABOVE THE `--run-dir`
+    # GUARD, so every diagnostic run — including `tests/test_chain.py`'s
+    # `--draws 20` — published four coalition CSVs into the real processed
+    # directory and nothing restored them. Found 2026-08-30: all four carried a
+    # timestamp NEWER than the 5,000-draw artefacts they claimed to summarise,
+    # and `coalition_mwc.csv` held 416 rows whose every probability was a
+    # multiple of 0.05. It is now below the guard, with the other published
+    # writes. `report` stays here: a diagnostic run may still SEE the tables, it
+    # may not PUBLISH them. This is §1.118 recurring through the gap its own fix
+    # left, so see the test note there too — the guard and its test both
+    # enumerated three filenames, and a list of names cannot protect a file
+    # added later.
 
     # --- outputs --------------------------------------------------------------
     # A MONTE CARLO ESTIMATE OF 1.000 IS A STATEMENT ABOUT THE DRAW COUNT, NOT
@@ -4859,6 +4887,8 @@ def main(argv: list[str] | None = None) -> int:
               f"--run-dir to regenerate them.)")
         return 0
 
+    coalitions.write_outputs(results, processed)
+
     ww_out = processed / "ward_winner_probs.csv"
     with ww_out.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
@@ -4901,6 +4931,19 @@ def main(argv: list[str] | None = None) -> int:
         "power": results["power"],
         "minority": results["minority"],
     }
+    # ⛔ THE RUN MUST SAY WHEN IT RAN, AND THIS ARTEFACT CARRIED NO TIMESTAMP
+    # OF ANY KIND UNTIL 2026-08-30. Consequence: a published figure could not
+    # name the run it came from, so `site/index.html` said the DA finishes
+    # first 87% of the time for ELEVEN DAYS after the model settled on 71%, and
+    # nothing on the page — not the number, not its mouseover — could contradict
+    # it. mtime is not a substitute: it is destroyed by a copy, a checkout or a
+    # restore, and this repository already distrusts it elsewhere for exactly
+    # that reason. `_generated` is what lets the page state which run it is
+    # showing, and lets a test assert the page is not older than the run.
+    # MODEL-LOG §1.140.
+    summary["_generated"] = _dt.datetime.now(_dt.timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ")
+    summary["_draws"] = int(draws)
     summary_out = processed / "forecast_summary.json"
     with summary_out.open("w", encoding="utf-8") as handle:
         json.dump(summary, handle, indent=1)

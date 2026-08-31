@@ -16265,3 +16265,335 @@ structure. Mixing two distributions widens the result, so a mixture could still
 improve **calibration** while worsening the level — untested, and a poor trade to
 take blind. The live defect in the joint structure is the cross-party
 correlation, which is a different problem and a better target.
+
+
+## 1.139 A diagnostic run published four coalition files at 20 draws, for two years, through the gap the previous fix left (2026-08-30)
+
+**§1.118 recurring — and it recurred through its own remedy.** Found while
+auditing the live page.
+
+### What was wrong
+
+All four `data/processed/coalition_*.csv` were **20-draw** output carrying a
+timestamp of 2026-08-29 21:28 — **newer than the 5,000-draw artefacts they claim
+to summarise** (`seat_draws.csv` and `forecast_summary.json`, both 2026-08-28
+04:23). `coalition_mwc.csv` held 416 rows whose every probability was a multiple
+of 0.05.
+
+The cause is one ordering fact:
+
+    montecarlo.py:4791   coalitions.write_outputs(results, processed)
+    montecarlo.py:4855   if args.run_dir is not None: ... return 0
+
+**The publish was sixty-four lines ABOVE the guard that exists to stop a
+diagnostic run publishing.** `tests/test_chain.py`'s own regression test invokes
+`--draws 20 --run-dir` against the real processed directory, deliberately — so
+**every suite run republished them**, and the 21:28 stamp is this session's own
+suite run.
+
+### ⛔ WHY THE GUARD AND ITS TEST BOTH MISSED IT
+
+Both enumerate **three filenames**:
+
+    names = ("ward_winner_probs.csv", "seat_draws.csv", "forecast_summary.json")
+
+Four more files walked past the guard and past the test that guards the guard.
+`write_outputs` predates the guard it evaded. **A list of names cannot protect a
+file added later** — and `tests/run_all.py`'s own comment repeats the same wrong
+enumeration, so the error is stated identically in three places.
+
+### The fix
+
+* `write_outputs` moved **below** the `--run-dir` return. `coalitions.report`
+  stays above it: a diagnostic run may still SEE the tables, it may not PUBLISH
+  them.
+* The test's property is now stated **over the directory, never over a list**:
+  same filenames, same bytes. It additionally fails on a file the run *created*,
+  and the `finally` deletes those as well as restoring overwrites.
+* **Verified directly rather than inferred from an exit code**: a
+  `--run-dir --draws 20` run now leaves `data/processed` byte-identical — 43
+  files, same hash — with the trace still written.
+
+### Regenerated, and a PREDICTION THAT WAS WRONG
+
+Regenerated from the intact 5,000-draw pair (exact, not approximate: these files
+depend only on the seat draws and the threshold, neither of which was touched).
+
+| file | at 20 draws | at 5,000 |
+|---|---|---|
+| `coalition_mwc.csv` | 416 rows, **9** distinct | 729 rows, **228** distinct |
+| `coalition_pairs_triples.csv` | 42 rows, 15 distinct | 104 rows, **84** distinct |
+| `coalition_minority.csv` | 4 rows, all ×0.05 | 4 rows, min 0.0560 |
+
+**The design note predicted the MWC row count would FALL** below 416, reasoning
+that a coalition now needs 50 of 5,000 draws to clear the 1% cut instead of 1 of
+20. **It rose to 729.** At 20 draws most genuinely minimal-winning coalitions
+never appeared *at all*, so the old file was not merely coarse — **it was missing
+rows.** "Coarser" and "shorter" are different failures and the arithmetic only
+predicts the first.
+
+### What this cost, and what it did not
+
+**Nothing published was wrong.** Verified: no consumer outside `coalitions.py`
+reads these files — the site's coalition numbers come from
+`forecast_summary.json`, which is written *below* the guard and was always clean.
+It was a landmine, not a live error: four files with a fresh date and twenty
+draws behind them, which is what anyone would reach for next.
+
+### Still open, and it is forecast substance
+
+A **minimum-draw guard** in `coalitions.analyse`. `draws = seats.shape[0]` is
+bound at `coalitions.py:148` and **never used**; there is no draw-count check
+anywhere in the module. The proposed threshold is derived three independent ways
+(the p>0.001 and p>0.01 inclusion cuts cannot exclude anything below 1,000
+draws; the report prints to 0.1%; a 5th percentile needs interior support) — and
+carries the uncomfortable corollary that at the production 5,000 draws the 95%
+half-width at p=0.5 is **±1.4pp**, so the files' four decimal places are two to
+three spurious digits at any count this model will run. **That is a floor on a
+published probability, so it goes past the pollster before it lands.**
+
+
+## 1.140 A published figure must be ATTRIBUTABLE, not re-derivable — and the party cast comes out of the code (2026-08-30)
+
+Two owner decisions, and the first replaces a rule this project has been
+enforcing wrongly.
+
+### 1. ⛔ THE RE-DERIVABILITY RULE WAS WRONG, AND IT IS REPLACED
+
+Ten pinned claims on the live page are sourced to `run:turnout_tilt_da=1` — a
+lever deleted from `run_model`. The build has been refusing to publish because
+of them since 17 August, and the standing remedy was *"re-capture them under a
+mechanism that exists, or cut the claim."* The owner's ruling:
+
+> *"The model will change and how an old model reached something can only be
+> recorded. Every forecast value is live at one point and it is bound to be
+> superseded — the old value going into the history for that token. We need to
+> be able to say what values were, when that was, what model generated it.
+> Earlier insistence of always being able to re-run the model is only true of
+> values generated by the current model and does not make sense for older values
+> generated by older models. We must just be able to say what it was and why."*
+
+**So the requirement on a published figure is ATTRIBUTION, not
+RE-DERIVABILITY.** Re-derivability is a property of the *current* model's
+outputs and is incoherent as a demand on the past: a figure produced by a
+mechanism since deleted cannot be recomputed and does not need to be. It needs
+to say what it was, when it was true, and which model said so.
+
+**The pattern has a name and it is standard**: *bitemporal* storage — a **valid
+time** (when the figure was true of the world) and a **transaction time** (when
+we believed it). A correction inserts on the valid-time axis while opening a new
+transaction-time slice, so **the old belief remains queryable**. Warehousing
+calls it Slowly Changing Dimension Type 2. The discipline that travels with it
+is lineage: it is what distinguishes a genuine amendment from an ingestion
+artefact when the two look identical in the data.
+
+**The schema**, append-only, never rewritten:
+
+    token · value · format · source · model_run_id · published_at · superseded_at
+
+A figure from a retired lever keeps its row with its run recorded. Where current
+machinery *can* recompute the quantity, it does, and the new value **supersedes**
+rather than overwrites.
+
+**⛔ AND IT EXTENDS TO USER-GENERATED FORECASTS.** Owner, same ruling: *"Same
+applies to user generated models. We just need to be able to compare them to the
+end vote and see who won."* The interactive lets a reader move levers and produce
+their own forecast; those are forecasts and get the same treatment — recorded
+with their parameters and their run id, attributable, and **scored against the
+real result on 4 November like any other**. So `model_run_id` must accommodate a
+user run, not only a published one, and the schema above is written to allow it.
+(Noted: `build_interactive.py` currently refuses at module level — its in-browser
+drawer is the deleted two-bloc engine, never ported to voter pools — so this is a
+constraint on the rebuild, not a description of today.)
+
+**What this retires:** the demand that every pinned claim be re-derivable. What
+replaces it is stricter in the way that matters — a figure with no recorded run
+is now the defect, where before an unre-derivable figure was.
+
+### 2. The party cast comes out of the code
+
+Owner: *"a party specific condition — these should NOT EXIST, except perhaps in
+the display layer. Look through the entire code base for variables using da,
+anc, pa, asa, mk etc. Justify every single one in use."*
+
+Audited whole-tree. **The model is far more party-agnostic than the example
+suggests**: `polling.py`, `theta_residual.py`, `turnout.py`, `seats.py`,
+`score.py`, `fold.py` and `byelections.py` contain **zero party names in
+executable code** — `polling.py`'s eleven mentions are all comments. The residue
+is ~50 lines across eight sites.
+
+**Applied now:**
+
+* **`montecarlo.PLAN_BOUNDS` emptied.** Seven party-named θ clamps that were a
+  silent duplicate of `cities/*.toml`, which `apply_city` rebinds this name from
+  on every run — so the literal was dead on every real path and live only if one
+  ever was not. ⚠️ **And it disguised an asymmetry nobody chose**: only joburg
+  (7 entries) and tshwane (6) declare the block; the other six metros resolve to
+  `{}` and are **not clamped at all**. Verified. Emptying the literal does not
+  fix that — it stops it being hidden. What the six should do is forecast
+  substance and is owed to the pollster.
+* **`pools.gate`'s `["ANC","DA","EFF"]` default deleted.** It duplicated
+  `config/dimensions.toml`'s own `gate_parties` and would have taken over
+  unnoticed if that block were renamed. Absence is now an error.
+* **`width_budget`'s ten-party default deleted.** It measured the width of a
+  fixed cast from an earlier cycle, so a party outside the list was never
+  budgeted. `spread(run, None)` now means **the run's own universe**, resolved
+  from a cheap probe run.
+* **`src/leverage.py` RETIRED** to `archive/retired-scripts/`. Standalone, never
+  imported, output read by nothing — and it typed six parties' growth rates with
+  `F_OTHER = 1.30` for anything unlisted, **running `f_other`, a mechanism
+  deleted from the model on 2026-08-19 (§1.52)**. Every number it printed after
+  that date came from a path the forecast had abandoned, while reading as a
+  sensitivity analysis *of* the forecast.
+
+**Queued** as `POOLS-REEMIT-QUEUE` entry 5: `pools.SPLITS` and
+`levels.TYPE_A_EVENTS` into one tracked `config/splits.toml`. Deferred to the
+window because moving a table out of `pools.py` moves the artefact key even when
+every emitted value is identical — and unlike entry 4, **this one SHOULD be
+number-neutral, which is the test.**
+
+**Kept, with reasons.** `coalitions.py`'s named structural rows are arithmetic
+*over* the forecast and a coalition question is inherently about named parties —
+the enumeration underneath is fully party-agnostic, which is the right design.
+They should be *declared* in `cities/*.toml [coalitions]` rather than typed, but
+they are not a modelling defect. `pools.SIMULATION_BLOC`'s mechanism is
+defensible; only its `"IFP"` function default is not.
+
+**And a class no guard can see:** ~35 party names sit in `.py` comments that
+encode a rule or a measurement — including a live documented defect at
+`montecarlo.py:579`, that the capacity guard *"transfers the PA's truncated
+upside to the top of the ballot"*, which exists **only** as a comment. Those rot
+exactly like code.
+
+### 3. The page, so far
+
+`_generated` and `_draws` now written into `forecast_summary.json` — it carried
+**no timestamp of any kind**, which is why a figure could not name its run and
+the 87% could stand for eleven days. The typed `"The 87% for ANC+DA"` is now
+`{{p_anc_da}}`, a token that already existed, already resolved, and **was used by
+nothing** while the quantity it defines sat typed beside it reading 29 points
+wrong. Three further prose figures — ActionSA's 2021 result, the glossary's own
+illustration, and the stated 90% band convention — are allowed with reasons
+rather than tokenised, because they are facts and conventions, not model output.
+
+### 4. ⛔ CORRECTION TO §2 ABOVE, SAME DAY — THE θ CLAMP FIRES ON NOTHING IN THE PANEL
+
+§2 says emptying `PLAN_BOUNDS` exposed an asymmetry that "changes what the model
+computes for three quarters of the panel", and that what the six unclamped
+metros should do is owed to the pollster. **The premise is false**, found in
+blind review and verified here.
+
+`PLAN_BOUNDS` has two use sites:
+
+* `montecarlo.py:4498` — increments `bounds_violations`, which is **printed and
+  never acted on**. A diagnostic counter, not a clamp.
+* `montecarlo.py:2066` — the real clamp, and it sits **inside the by-election
+  tilt**, which is gated at `:4139` on `processed / "byelection_party_deltas.csv"`.
+
+That file exists at **exactly one path in the tree** — `data/processed/`, which
+via `legacy_processed_root` *is* joburg-2026. Verified: no
+`data/processed/<city>/<year>` backtest directory has one.
+
+**So the clamp fires on ZERO of the sixteen panel city-years.** Emptying the
+literal was number-neutral on the entire panel, and the clamp has only ever
+fired on one run: the live Johannesburg 2026 forecast. The six "unclamped"
+metros were never clamped on any run anyone has ever scored.
+
+**Which makes B1 unmeasurable by construction** — the same category `CLAUDE.md`
+assigns to `w_bye` and the first-local-election correction. Anything decided
+there is **argued, not tested**, and must be labelled so wherever quoted. It also
+re-ranks the options: deriving the band from each party's own measured
+`sd(log θ)` is still the right end state, but it changes the live forecast
+through a mechanism **no backtest can reach**, three weeks before the roster
+lands. After 4 November.
+
+**What is worth doing now is small.** `cities/tshwane.toml` carries Johannesburg's
+seven numbers under its own comment `# PLACEHOLDER — CoJ ranges. Re-derive from
+Tshwane's transitions.` Tshwane honestly unclamped beats Tshwane clamped with
+another metro's numbers — which is exactly the failure `cityconfig`'s docstring
+warns of: *"applied blind to another metro these do not crash; they produce
+plausible, wrong output."* And `apply_city` should print a named line when a city
+declares no block, because `.get(party, (0.0, inf))` means "no bound" **silently**.
+
+**The finding is worth more than the fix, and it is this: the clamp is
+unreachable on the panel.** A future session would otherwise spend a day
+rediscovering it.
+
+### 5. And a hazard introduced by §1.139's own fix, caught in the same review
+
+The generalised guard test's `finally` deleted **any** file in `data/processed`
+absent from its opening snapshot. That directory is shared and gitignored, so a
+file written by another process between snapshot and teardown would have been
+destroyed — the precise shape of the entry titled *"Gitignored is not
+unimportant"*. Corrected: the created set is captured **inside** the `try` and
+only those names are removed.
+
+
+## 1.141 The only joint scores in the building were computed and thrown away — and the obvious way to make them comparable does not work (2026-08-31)
+
+### 1. Wired in
+
+`score.score_seats` has returned `energy` and `variogram` since it was written
+(`score.py:710-711`). `compare_history` took `crps["total"]` and **dropped both
+on the floor**, so no `energy` or `variogram` key has ever existed in
+`history.json`. Now kept, for the model and for **every opponent** — a joint
+score with no baseline beside it is unreadable, since there is no scale on which
+an energy score of 28 is good or bad, only better or worse than the thing that
+needs no model.
+
+It matters because **CRPS is a MARGINAL score** — per party, then summed — so it
+is structurally blind to whether parties move *together*. The model's draws say
+the ANC and DA trade against each other (−0.271) where the realised errors say
+they do not (+0.09), and until now no statistic in the panel could see that.
+
+First reading, Johannesburg 2021 at 400 draws: model **energy 28.32 / variogram
+0.746**; uniform swing **56.97 / 4.038**.
+
+**Reported, NOT a fifth key.** Four keys is already more discipline than most
+published forecasts carry, and a fifth arriving nine weeks from polling is a
+tuning surface with no time to check.
+
+### 2. ⛔ AND THE COMPARISON IS NOT YET VALID, FOR A REASON THE FIX DOES NOT ADDRESS
+
+Those two numbers are **over different dimension counts**: `n_scored` is **56**
+for the model and **19** for uniform swing. `seat_matrix` keeps a column when the
+truth **or this forecaster's own draws** give it a seat, and its docstring says
+so outright: *"The scored column set depends only on this forecaster and the
+result."* A summed joint score over a variable dimension is denominator drift by
+construction.
+
+**The proposed remedy — score both over a declared `parties` universe — does not
+work.** `parties` fixes column **ORDER** only, by its own docstring; it "cannot
+change any number". The set is held only by `seat_matrix(keep_all=True)`, and
+**`score_seats` does not expose it.**
+
+So: `n_scored` is now recorded beside every joint score, which makes the
+asymmetry **visible instead of silent**, and **no model-vs-baseline joint
+difference may be quoted until the universe is held.** Closing it is a change to
+a SCORER — the one class whose failure the suite structurally cannot see
+(§1.136) — so it is owed an adversarial review, not a quick passthrough.
+
+**And the design being worked around is right.** `seat_matrix` refuses a
+materiality cliff deliberately: dropping a column drops *pairs*, which made the
+variogram improper and let a forecaster shade its claims below the threshold to
+improve its own score. The variable set is correct for scoring **one** forecaster
+and wrong for comparing **two**. Those are different jobs.
+
+### 3. A discipline failure, recorded because the guard caught it
+
+The D7 fix from §1.140 — deleting `pools.gate`'s typed `["ANC","DA","EFF"]`
+default — was **executable code in `pools.py`**, so it moved `pools_sha` from
+`dbdf171344ffd5f0` to `e44c09169ba266ca` and every one of the eighteen specs
+immediately reported STALE mid-measurement. `CLAUDE.md` says such changes are
+**batched into a re-emit window, not taken when convenient**, and I took it when
+convenient.
+
+**Reverted; the hash is back to `dbdf171344ffd5f0` and matches all eighteen.**
+Re-queued as `POOLS-REEMIT-QUEUE` entry 6, to be bundled with entry 5, which is
+the other party-cast change.
+
+**The guard worked and the discipline did not**, which is the useful half: the
+artefact key named the violation in one line, at the moment it happened, in the
+middle of an unrelated measurement. That is exactly what it was built for, and
+it is worth recording that a change can be small, correct, and still belong in
+the window.

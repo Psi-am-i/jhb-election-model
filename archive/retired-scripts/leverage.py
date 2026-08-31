@@ -1,3 +1,31 @@
+"""⛔ RETIRED 2026-08-30. DO NOT RUN. Kept as the record of an argument.
+
+This was a standalone sensitivity script — never imported by `run_model`,
+`compare_history` or the build, and nothing read its `ward_leverage.csv`.
+
+It is retired for two reasons, and the second is the disqualifying one:
+
+* **It types six party names and their growth rates into code.**
+  `THETA_CENTRAL = {"ANC": 0.75, "DA": 1.30, "EFF": 0.85, "ASA": 1.50,
+  "MK": 0.60, "PA": 1.40}` with `F_OTHER = 1.30` for anything unlisted — so a
+  party that did not exist when this was written is silently assumed to grow
+  30%. The owner's rule of 2026-08-30 is that party-specific conditions do not
+  belong outside the display layer, and this is a whole scenario built from
+  them.
+
+* **⛔ It runs a mechanism the model no longer has.** `f_other` was deleted from
+  `run_model` on 2026-08-19 (MODEL-LOG §1.52). Every number this script printed
+  after that date came from a path the forecast had abandoned, while reading as
+  a sensitivity analysis OF the forecast.
+
+If the question it asked is wanted again — which wards decide a DA-led
+coalition — rebuild it reading θ from `levels.theta_prior`, which covers every
+party with a national share, and the coalition from a declared
+`cities/*.toml [coalitions]` block. Do not restore this file.
+
+MODEL-LOG §1.140.
+"""
+
 """Per-ward turnout leverage on the 2026 council (plan §5).
 
 For each 2026 ward, turnout is perturbed by ±5 percentage points across the VD

@@ -1254,6 +1254,50 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
     scored = S.score_seats(run.seat_draws, actual_seats,
                            entrant_actual=entrant_actual)
     out["crps"] = scored["crps"]["total"]
+    # ⛔ THE ONLY JOINT SCORES IN THE BUILDING, AND THEY WERE COMPUTED AND
+    # THROWN AWAY. `score_seats` has returned `energy` and `variogram` since it
+    # was written (`score.py:710-711`); this function took `crps["total"]` and
+    # dropped both on the floor, so no `energy` or `variogram` key has ever
+    # existed in `history.json`.
+    #
+    # It matters because **CRPS is a MARGINAL score** — it is computed per
+    # party and summed — so it is structurally blind to whether the parties move
+    # together. The model's own draws say the ANC and DA trade against each
+    # other (-0.271) where the realised errors say they do not (+0.09), and no
+    # statistic in the panel could see that. These two can.
+    #
+    # ⚠️ THREE CAUTIONS, and they travel with every quotation of these numbers:
+    #   * NOT A FIFTH KEY. Four keys is already more discipline than most
+    #     published forecasts carry, and a fifth arriving nine weeks from
+    #     polling is a tuning surface with no time to check it. Reported only.
+    #   * ⛔ NOT COMPARABLE BETWEEN FORECASTERS AS COMPUTED, AND THE OBVIOUS
+    #     FIX DOES NOT WORK. `seat_matrix` keeps a column when the truth OR this
+    #     forecaster's own draws give it a seat, and its docstring is explicit:
+    #     *"The scored column set depends only on this forecaster and the
+    #     result."* So a summed joint score over a variable dimension is
+    #     denominator drift by construction — measured here at Johannesburg
+    #     2021: the model scores over **56** columns and uniform swing over
+    #     **19**. Passing `parties=` does NOT fix it; that argument fixes column
+    #     ORDER only, by its own docstring. The set is held only by
+    #     `seat_matrix(keep_all=True)`, which `score_seats` does not expose.
+    #     `n_scored` is recorded beside every joint score so the asymmetry is at
+    #     least VISIBLE rather than silent — **do not quote a model-vs-baseline
+    #     joint difference until the universe is held.** Making that possible is
+    #     a change to a SCORER, which is the one class of change whose failure
+    #     the suite cannot see (§1.136), so it is owed an adversarial review
+    #     rather than a quick passthrough.
+    #     Note the design being worked around is deliberate and right for
+    #     per-forecaster scoring: `seat_matrix` refuses a materiality cliff
+    #     because dropping a column drops PAIRS, which made the variogram
+    #     improper and let a forecaster shade its claims below the threshold to
+    #     improve its own score.
+    #   * `energy_score` SUBSAMPLES at `max_draws=4000` with a fixed seed, so at
+    #     5,000 production draws it is a stochastic statistic. Measure its
+    #     seed-to-seed spread once and never quote a difference smaller than it.
+    # MODEL-LOG §1.141.
+    out["energy"] = scored["energy"]
+    out["variogram"] = scored["variogram"]
+    out["n_scored"] = len(scored.get("parties") or [])
 
     # THE ARRIVAL CHANNEL, SCORED WITHOUT A LABEL. `entrant_actual` above is
     # `max(newcomers, key=seats)` — the most favourable assignment available,
@@ -1289,9 +1333,18 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
             out["opponents"][name] = {"error": str(exc)}
             continue
         bench_seats = seats_from_draws(seat_draws)
+        # Score the opponent ONCE and keep all three. A joint score with no
+        # baseline beside it is unreadable — there is no scale on which an
+        # energy score of 41 is good or bad, only better or worse than the
+        # thing that needs no model. This also stops the opponent being scored
+        # twice by two different calls.
+        bench_scored = S.score_seats(seat_draws, actual_seats,
+                                     entrant_actual=entrant_actual)
         out["opponents"][name] = {
-            "crps": S.score_seats(seat_draws, actual_seats,
-                                  entrant_actual=entrant_actual)["crps"]["total"],
+            "crps": bench_scored["crps"]["total"],
+            "energy": bench_scored["energy"],
+            "variogram": bench_scored["variogram"],
+            "n_scored": len(bench_scored.get("parties") or []),
             "seat_abs_err": sum(
                 abs(actual_seats.get(p, 0) - bench_seats.get(p, 0))
                 for p in set(actual_seats) | set(bench_seats)),

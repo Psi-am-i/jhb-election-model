@@ -646,6 +646,16 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         # Added 2026-08-29 (§1.130) after this guard correctly caught a bare
         # `reps=2000` in a new signature.
         "BOOT", "BOOT_SEED", "SIM_DRAWS", "NULL_REPS",
+        # The publication ledger's file-format version (`publication.SCHEMA`).
+        # OPERATIONAL: it versions the on-disk shape of `ledger.jsonl` so a
+        # future reader can tell which fields a row was written with. It cannot
+        # reach a forecast — no model code reads it, and changing it changes
+        # nothing anyone computes. Registering it in JUDGEMENT-CALLS.md would be
+        # worse than exempting it: the register is for numbers the DATA did not
+        # force, and a reader who finds a format version filed beside
+        # `SPINE_K` learns to trust the register less. Added 2026-08-31 (§1.141)
+        # after this guard correctly caught a bare `SCHEMA = 1` in a new module.
+        "SCHEMA",
         # --- operational residue surfaced by the 2026-08-23 widening ---
         "timeout",        # HTTP timeouts in the three fetch_* tools
         "steps",          # `_scale_into_box` solver iterations

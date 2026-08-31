@@ -61,6 +61,7 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            "test_ward_parts", "test_solve_and_predict",
            "test_blended_centres",
            "test_levers_are_live", "test_build_all", "test_stat_freshness",
+           "test_publication_ledger",
            "test_hex_cartogram"]
 
 

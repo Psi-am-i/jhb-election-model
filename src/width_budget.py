@@ -73,9 +73,16 @@ def run(city, year, draws, overrides, patches=(), seed=20261104):
 
 
 def spread(run_obj, parties):
-    """sd(log share) per party across draws — the forecast's own dispersion."""
+    """sd(log share) per party across draws — the forecast's own dispersion.
+
+    ``parties=None`` means THE RUN'S OWN UNIVERSE. This function took a fixed
+    list until 2026-08-30 and its only caller passed a ten-party cast typed in
+    an earlier cycle, so a party outside that list was never budgeted and its
+    width was never checked. The universe is what the model actually built;
+    asking it is always right and never goes stale. MODEL-LOG §1.140.
+    """
     out = {}
-    for p in parties:
+    for p in (run_obj.index if parties is None else parties):
         i = run_obj.index.get(p)
         if i is None:
             continue
@@ -128,9 +135,13 @@ def main():
     ap.add_argument("--city", default="joburg")
     ap.add_argument("--year", default="2021")
     ap.add_argument("--draws", type=int, default=600)
-    ap.add_argument("--parties", nargs="+",
-                    default=["ANC", "DA", "EFF", "ASA", "IFP", "VFPLUS", "PA",
-                             "ALJAMAAH", "ACDP", "COPE"])
+    # A TEN-PARTY TYPED DEFAULT MEASURED THE WIDTH OF A FIXED CAST. Any party
+    # outside the list was never budgeted and its width never checked — and the
+    # list is from an earlier cycle. `None` means "the run's own universe",
+    # resolved after the model is loaded, so a new party is measured the first
+    # time it appears. MODEL-LOG §1.140.
+    ap.add_argument("--parties", nargs="+", default=None,
+                    help="parties to budget (default: the run's own universe)")
     a = ap.parse_args()
 
     import numpy.random as _npr
@@ -166,6 +177,17 @@ def main():
     # stream shift out; the spread of the full-model arm across seeds is
     # reported below as the floor under which nothing here is a finding.
     seeds = [20261104, 20261105, 20261106, 20261107, 20261108]
+    # RESOLVE THE PARTY LIST FROM THE RUN, not from a typed cast. One cheap
+    # baseline run supplies the universe the model actually built, so every
+    # party in this forecast is budgeted — including one that did not exist when
+    # this script was written. `--parties` still overrides, for a targeted look.
+    if not a.parties:
+        probe = run(a.city, a.year, min(a.draws, 60), [], {}, seeds[0])
+        by_mean = {p: float(np.mean(probe.pr_share_draws[:, i]))
+                   for p, i in probe.index.items()}
+        a.parties = sorted(spread(probe, None), key=lambda q: -by_mean.get(q, 0.0))
+        print(f"  parties: {len(a.parties)} from the run's own universe, "
+              f"largest first (pass --parties to narrow)")
     rows = {}
     for label, overrides, patches in arms:
         per_seed = [spread(run(a.city, a.year, a.draws, overrides, patches, sd),

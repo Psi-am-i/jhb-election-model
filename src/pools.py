@@ -3476,6 +3476,15 @@ def gate(cfg: Config, year: str = "2021",
     by re-describing the base. Only a dimension that transfers is real.
     """
     tested = [d for d in cfg.dimensions if d.role == "tilt"]
+    # ⚠️ THIS TYPED DEFAULT IS A KNOWN DEFECT AND IS QUEUED, NOT KEPT.
+    # `["ANC","DA","EFF"]` silently duplicates `config/dimensions.toml`'s own
+    # `gate_parties` and would take over unnoticed if that block were renamed.
+    # The fix — raise on absence — was WRITTEN AND REVERTED on 2026-08-31,
+    # because it is executable code in `pools.py` and therefore moves the
+    # artefact key, invalidating all eighteen emitted specs. It went in as
+    # `POOLS-REEMIT-QUEUE.md` entry 6 instead. The guard caught the violation
+    # immediately (`pools_2021.json is STALE ... dbdf171344ffd5f0 ->
+    # e44c09169ba266ca`), which is the artefact key doing exactly its job.
     parties = list(cfg.gate.get("gate_parties", ["ANC", "DA", "EFF"]))
     results: dict[str, dict] = {}
 

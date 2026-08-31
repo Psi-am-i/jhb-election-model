@@ -49,6 +49,11 @@ mode = "free"
 source = "model:structural.P(ANC+DA is winning)"
 format = "pct0"
 inserted = "2026-08-07"
+used_in = "the 'viability is not intent' note under the coalition table"
+# ⛔ THIS TOKEN EXISTED, RESOLVED, AND WAS USED BY NOTHING — while the quantity
+# it defines sat TYPED into the prose beside it, reading 87% against a model
+# that said 58%. A registered token no page uses is a guard that was never
+# armed. Tokenised 2026-08-30. MODEL-LOG §1.140.
 
 [p_excessive_anc]
 mode = "free"
@@ -353,4 +358,17 @@ allow = [
   "nationally in 2024",            # and its own 2024 national result, IEC record
   "one house had",                 # SRF and Ipsos published poll numbers, POLLING.md
   "another had the ANC on",        # ditto, the second house in the same sentence
+  # ADDED 2026-08-30, after the audit was read to the bottom for the first time.
+  # It reported 45 unsourced figures; 41 sat inside machine-owned marker blocks
+  # that regenerate every build, and only FOUR were hand-typed prose. One of the
+  # four was a real defect — "The 87% for ANC+DA", 29 points wrong, now the
+  # token {{p_anc_da}}. These are the other three, and each is allowed for a
+  # stated reason rather than because it was noisy. MODEL-LOG §1.140.
+  "arriving from nowhere to take", # ActionSA's 2021 result, IEC record — a fact
+                                   #   about the past, which cannot go stale
+  "never means a vote share",      # the glossary's own illustration of what a
+                                   #   percentage on this page does NOT mean;
+                                   #   an example, not a figure
+  "the middle 90%",                # a stated reporting convention (the band the
+                                   #   charts draw), not a model output
 ]
