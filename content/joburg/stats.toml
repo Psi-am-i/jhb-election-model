@@ -145,6 +145,7 @@ captured = "2026-08-06"
 tolerance = "exact"
 used_in = "headline and standfirst — if another party started overhanging, both are wrong"
 
+unverifiable = "a party NAME selected from p_excessive_by_party; resolve() returns numbers only"
 [claim_short_by]
 mode = "fixed"
 value = 39
@@ -154,6 +155,8 @@ run = "seed=20261104 draws=1500"
 tolerance = 3
 used_in = "claims/zille-490k — the headline verdict"
 
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
 [claim_da_median]
 mode = "fixed"
 value = 97
@@ -163,6 +166,8 @@ run = "seed=20261104 draws=1500"
 tolerance = 3
 used_in = "claims/zille-490k step 3 — 'lands on 97 of the 136 needed'"
 
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
 [claim_da_votes_surge]
 mode = "fixed"
 value = 524000
@@ -172,6 +177,8 @@ format = "comma"
 tolerance = 15000
 used_in = "claims/zille-490k step 2"
 
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
 [claim_poll_base]
 mode = "fixed"
 value = 985000
@@ -181,6 +188,7 @@ format = "comma"
 tolerance = 15000
 used_in = "claims/zille-490k step 1"
 
+unverifiable = "registered roll times blended turnout; the model emits no such token"
 [claim_poll_surged]
 mode = "fixed"
 value = 1290000
@@ -190,6 +198,8 @@ format = "comma"
 tolerance = 30000
 used_in = "claims/zille-490k step 1"
 
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
 [claim_half_surged]
 mode = "fixed"
 value = 644000
@@ -199,6 +209,8 @@ format = "comma"
 tolerance = 15000
 used_in = "claims/zille-490k step 1"
 
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
 [claim_da_share_surged]
 mode = "fixed"
 value = 41
@@ -207,6 +219,8 @@ captured = "2026-08-07"
 tolerance = 2
 used_in = "claims/zille-490k steps 2 and 3"
 
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
 [claim_anc_wards_surged]
 mode = "fixed"
 value = 62
@@ -215,6 +229,8 @@ captured = "2026-08-07"
 tolerance = 3
 used_in = "claims/zille-490k step 3 — the ward wall"
 
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
 [claim_p_da_alone]
 mode = "fixed"
 value = 3
@@ -223,6 +239,8 @@ captured = "2026-08-07"
 tolerance = 2
 used_in = "claims/zille-490k step 3 — 'about 3 in 100'"
 
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
 [claim_anc_collapse_seats]
 mode = "fixed"
 value = 47
@@ -231,6 +249,8 @@ captured = "2026-08-07"
 tolerance = 4
 used_in = "claims/zille-490k steelman — where the ward wall breaks"
 
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
 [claim_vote_share_needed]
 mode = "fixed"
 value = 57
@@ -239,6 +259,7 @@ captured = "2026-08-07"
 tolerance = 2
 used_in = "claims/zille-490k steelman — votes-majority is not seats-majority"
 
+unverifiable = "a one-off allocator experiment, not a quantity a run re-emits"
 [bloc_leak_votes]
 mode = "fixed"
 value = 587000
@@ -247,6 +268,7 @@ captured = "2026-08-06"
 format = "comma"
 used_in = "the reservoir finding (forecast + interactive) — a measurement of the past, restated 3x"
 
+unverifiable = "a measured historical vote movement (MODEL-LOG 1.18), not a model output"
 [blind_test_called]
 mode = "fixed"
 value = 129
@@ -254,12 +276,14 @@ source = "external:fold-2 blind validation (MODEL-LOG 1.9)"
 captured = "2026-08-04"
 used_in = "why-believe (forecast + interactive), methodology — restated 3x"
 
+unverifiable = "a recorded result of the fold-2 blind validation, not a live quantity"
 [blind_test_of]
 mode = "fixed"
 value = 135
 source = "external:ward count at the 2021 delimitation"
 captured = "2026-08-04"
 
+unverifiable = "the ward count at the 2021 delimitation — an external boundary fact"
 [asa_2021_seats]
 mode = "fixed"
 value = 44
@@ -267,6 +291,7 @@ source = "external:IEC 2021 CoJ result — ActionSA's first election"
 captured = "2026-08-04"
 used_in = "new-entrant blindness, restated 3x"
 
+unverifiable = "IEC 2021 CoJ result — an external electoral fact, not a model output"
 [byelection_count]
 mode = "fixed"
 value = 15
@@ -274,6 +299,7 @@ source = "external:IEC by-election records, CoJ 2021-2026"
 captured = "2026-08-05"
 used_in = "colophons, sources, evidence weights — restated 3x"
 
+unverifiable = "IEC by-election records — an external count, not a model output"
 [turnout_seats_moved]
 mode = "fixed"
 value = 2
@@ -283,6 +309,7 @@ used_in = "turnout sections (forecast + interactive), why-believe — restated 2
 
 # --- added with the party-box rework of the claims section (2026-08-07) ---
 
+unverifiable = "an archived elasticity result; its script was retired to archive/retired-scripts"
 [claim_hi_turnout]
 mode = "fixed"
 value = 75
@@ -291,6 +318,7 @@ captured = "2026-08-07"
 tolerance = 2
 used_in = "claims/zille-490k step 2 — the turnout fantasy"
 
+unverifiable = "a registration-weighted record over all VDs; the model emits no such token"
 [claim_prop_seats]
 mode = "fixed"
 value = 110
@@ -299,6 +327,7 @@ captured = "2026-08-07"
 tolerance = 3
 used_in = "claims/zille-490k step 3 — what proportionality would give"
 
+unverifiable = "arithmetic on the council size, not a quantity the model emits"
 [claim_anc_entitlement_surged]
 mode = "fixed"
 value = 50
@@ -307,6 +336,8 @@ captured = "2026-08-07"
 tolerance = 3
 used_in = "claims/zille-490k step 3 — the wall versus the entitlement"
 
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
 [claim_poll_2021]
 mode = "fixed"
 value = 917000
@@ -315,6 +346,7 @@ captured = "2026-08-07"
 format = "comma"
 used_in = "claims/zille-490k step 4 — the only denominator that makes 490k a majority"
 
+unverifiable = "IEC 2021 CoJ Seat Calculation Detail — an external electoral fact"
 [claim_490k_of_2021]
 mode = "fixed"
 value = 53
@@ -323,6 +355,7 @@ captured = "2026-08-07"
 tolerance = 1
 used_in = "claims/zille-490k step 4"
 
+unverifiable = "arithmetic on two published figures, not a quantity the model emits"
 [claim_others_shed]
 mode = "fixed"
 value = 190000
@@ -343,6 +376,7 @@ used_in = "claims/zille-490k step 4 — what the frozen-poll world requires"
 #   historical fact   what happened, from the IEC record
 #   the rules         how the electoral system works
 #   reviewed prose    a human decided it should stay static
+unverifiable = "arithmetic on two published figures, not a quantity the model emits"
 [audit]
 allow = [
   "Laingsburg",                    # 2021 result, IEC record

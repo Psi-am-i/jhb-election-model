@@ -566,6 +566,10 @@ def test_no_published_page_reports_a_build_older_than_the_run_it_quotes():
 # --------------------------------------------------------------------------
 
 UNVERIFIABLE = "unverifiable"
+# ONE definition of "long enough to be a reason", shared with
+# `stats.DECLARATION_MIN_CHARS`. It was a bare `12` here and a bare
+# `12` there, for two different fields.
+from stats import DECLARATION_MIN_CHARS  # noqa: E402
 
 
 def test_no_pinned_token_is_drift_checked_against_nothing():
@@ -599,7 +603,7 @@ def test_no_pinned_token_is_drift_checked_against_nothing():
                 if str(e.get(UNVERIFIABLE, "")).strip()}
     malformed = sorted(n for n, e in pinned.items()
                        if UNVERIFIABLE in e
-                       and len(str(e[UNVERIFIABLE]).strip()) < 12)
+                       and len(str(e[UNVERIFIABLE]).strip()) < DECLARATION_MIN_CHARS)
 
     problems: list[str] = []
     undeclared = sorted(unresolvable - declared)
@@ -685,6 +689,104 @@ def test_the_unverifiable_declaration_is_inert_to_the_build():
         f"declaring {UNVERIFIABLE} changed what `stats.render` produced for "
         f"{name!r}. It is a label on a token that cannot be checked; it must "
         "never change a byte, a drift row or a refusal.")
+
+
+def test_a_historical_claim_may_not_be_published_undated():
+    """⛔ THE SOLE PROTECTION FOR THE TEN `turnout_tilt_da` CLAIMS, AND IT HAD NO TEST.
+
+    `historical = "<reason>"` exempts a token from the orphan refusal because
+    its mechanism is gone and nothing can re-derive it. The whole reason that is
+    a discipline rather than `--allow-orphans` renamed is the other half of the
+    bargain: the build REFUSES a historical token rendered outside a `data-asof`
+    region, so declaring one obliges the prose to say when it was true.
+
+    Deleting that refusal left **46 tests green** across all four modules that
+    invoke `build_site` (verified in review, 2026-08-31). One untested line was
+    the only thing standing between ten claims pinned to a deleted lever and
+    undated republication.
+
+    This constructs the violation rather than trusting the tree: a real
+    registry, a real page, the claim NOT wrapped — and the build must refuse and
+    name the token.
+    """
+    import subprocess
+    import tempfile
+    root = Path(__file__).resolve().parents[1]
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        undated = tmp / "undated.html"
+        # the same token, in prose that does NOT date it
+        undated.write_text(
+            "<html><body><p>The DA falls short by {{claim_short_by}} "
+            "seats.</p></body></html>", encoding="utf-8")
+        out = subprocess.run(
+            [str(root / ".venv/bin/python"), "-c",
+             "import sys; sys.path.insert(0, 'src');\n"
+             "import stats as S, cityconfig; from pathlib import Path;\n"
+             "cityconfig.use('joburg');\n"
+             "reg = S.load_registry(Path('content/joburg/stats.toml'));\n"
+             "ctx = S.load_context(Path('data/processed'));\n"
+             "rec = [];\n"
+             f"S.render(open({str(undated)!r}).read(), reg, ctx, record=rec);\n"
+             "bad = [r for r in rec if r.get('historical') and not r['dated']];\n"
+             "print('UNDATED_HISTORICAL', [r['token'] for r in bad])"],
+            capture_output=True, text=True, cwd=root)
+        assert "UNDATED_HISTORICAL ['claim_short_by']" in out.stdout, (
+            f"a token declared `historical` rendered in undated prose and was "
+            f"not flagged. The declaration would then be a free pass: the "
+            f"orphan refusal skipped, and nothing requiring the date that "
+            f"skipping it was traded for.\n{out.stdout}\n{out.stderr}")
+
+
+def test_a_malformed_dated_region_dates_NOTHING_and_says_so():
+    """⛔ THE REGEX FAILED OPEN, WHICH IS THE ONE DIRECTION THAT MUST NOT HAPPEN.
+
+    `dated_spans` was `<tag …data-asof…>.*?</tag>`, which is not an element.
+    Verified in review: an **unclosed** dated tag whose closer is supplied by a
+    *different, undated* element later in the page dated **every token in
+    between** — including tokens inside their own separate undated sections. One
+    malformed tag discharged the dating obligation for the rest of the page.
+
+    That is exactly the failure `stats`' own rationale gives for preferring a
+    declaration to a sniff: *"fails open on exactly the prose it cannot parse"*.
+    A regex over HTML **is** the sniff. It is a real parser now, and a region
+    that does not parse dates NOTHING and is reported so the build can refuse.
+
+    `data-asof="banana"` is also refused: the obligation is to say WHEN, and a
+    string that is not a date says nothing.
+    """
+    import stats as S
+    reg = {k: {"source": "model:p", "format": "pct0"} for k in "abc"}
+    ctx = {"summary": {"p": 0.5}}
+
+    leaky = ('<section data-asof="2026-08-07">{{a}}<div>{{b}}</div>'
+             '<section class="undated">{{c}}</section>')
+    rec: list = []
+    S.render(leaky, reg, ctx, record=rec)
+    dated = {r["token"]: r["dated"] for r in rec if r.get("token")}
+    assert dated == {"a": False, "b": False, "c": False}, (
+        f"an unclosed dated region leaked onto later tokens: {dated}. This is "
+        f"the fail-open direction and it silently excuses undated claims.")
+    assert S._dated_scan(leaky)[1], "the malformed region was not reported"
+
+    ok = '<section data-asof="2026-08-07">{{a}}</section><div>{{b}}</div>'
+    rec = []
+    S.render(ok, reg, ctx, record=rec)
+    assert {r["token"]: r["dated"] for r in rec if r.get("token")} == {
+        "a": True, "b": False}, "a well-formed region stopped working"
+    assert not S._dated_scan(ok)[1]
+
+    nested = '<div data-asof="2026-08-07">{{a}}<div>{{b}}</div>{{c}}</div>'
+    rec = []
+    S.render(nested, reg, ctx, record=rec)
+    assert all(r["dated"] for r in rec if r.get("token")), (
+        "a nested same-tag element truncated the region at the INNER closer, "
+        "so tokens after it lost their dating. Fails closed, but still wrong.")
+
+    rec = []
+    S.render('<div data-asof="banana">{{a}}</div>', reg, ctx, record=rec)
+    assert not [r for r in rec if r.get("token")][0]["dated"], (
+        "'banana' bought the dating exemption. The declaration must say WHEN.")
 
 
 if __name__ == "__main__":

@@ -17514,3 +17514,94 @@ blames for the eleven-day defect.** Either the six figures are fixed before the
 gate is enforced, or that module is gated separately. Not decided here.
 
 Suite after these fixes: **421 passed, 4 failed** — the four above, unchanged.
+
+ ## 1.152 The site rebuilt for the first time in three weeks, and a declaration that costs something (2026-08-31)
+
+The build had refused since 2026-08-17. Four `test_published_page` checks were
+red on every commit — which the review correctly called out as its own hazard:
+**a suite that always fails is a suite nobody reads, and that is the dynamic
+that let the eleven-day defect through in the first place.**
+
+### What was actually blocking it
+
+Two refusals, and neither was the stale figures themselves:
+
+1. **A stale source.** `regime_cap_summary.json` was dated 2026-08-07 and named
+   thirteen levers `run_model` no longer has. Re-running `overhang_regimes.py`
+   cleared it — **and re-ran the model as a side effect**, which stamped
+   `forecast_summary.json` with `_generated` for the first time. That
+   incidentally cleared the ledger's publish blocker: `run_identity` now returns
+   `r-677d292562cf-10d127a7-dirty` with a real `run_at`.
+2. **Ten claims pinned to `turnout_tilt_da`.** All ten sit inside **one
+   self-contained article** — a fact-check of a party's "490,000 voters"
+   arithmetic, run on 7 August under a lever the model no longer has.
+
+### The `historical` declaration, and why it is not `--allow-orphans` renamed
+
+Deleting the article destroys sound analysis. Leaving it publishes ten live
+numbers nothing can check. The owner's ruling settles it: a figure need not be
+re-derivable, it must be **attributable**, and one whose mechanism is gone may
+appear **as history and not in the present tense**.
+
+So `historical = "<reason>"` exempts a token from the orphan refusal — **and
+`build_site` refuses any token carrying it that renders outside a `data-asof`
+context.** Declaring one therefore *obliges* the prose to say when it was true.
+That coupling is the whole difference between a discipline and an escape hatch,
+and it gives the dated-context machinery (§1.142) its first real user: before
+today, `data-asof` appeared **nowhere in the tree**.
+
+The refusal fired on 13 occurrences of 9 tokens before the article was dated,
+which is the only reason to believe it works. The article now carries both the
+attribute and a **visible dateline for the reader** — the attribute satisfies the
+build, the sentence satisfies the person, and the second is the point.
+
+### And the drift report was reporting silence as health
+
+`stats.drift_report` said *"no drift — every pinned stat is within tolerance"*
+while **all 24 pinned tokens are undriftable** — a `run:` or `external:` source
+never resolves, and `render` only appends a drift row inside `if live is not
+None`. `test_published_page` names this exactly: *"not a finding but the absence
+of one."* Every pinned token now carries `unverifiable = "<reason>"`, and the
+report states the count instead of implying health.
+
+**Suite: 424 passed, 1 failed → 425 passed, 0 failed.** The one failure was my
+own test asserting the build refuses an unattributable run — **and it failed
+because the defect it described had been fixed.** A test whose premise is a
+passing state of the repository expires without warning; it now builds the
+unattributable artefact itself in a temp directory.
+
+### One stale source found while declaring the others
+
+`turnout_seats_moved` sources `external:leverage.py` — a script retired to
+`archive/retired-scripts/` in §1.140. The value is an archived result and stays;
+the declaration now says so rather than naming a file that is gone.
+
+ ## 1.153 Two typed-constant defects the register's own guard cannot see (2026-08-31)
+
+Found during the `JUDGEMENT-CALLS.md` restructure and verified here.
+
+**`build_interactive.py` reads three scenario keys the model deleted in §1.52** —
+`theta_mode`, `individual_theta`, `f_other` — through `dict.get` with typed
+fallbacks, including `f_other = [0.7, 1.3, 2.0]` and a **party-specific**
+`theta_mode["BOSA"] = 0.80`. None of the three is in `DEFAULTS` (verified), so
+the fallbacks are always taken. **This is the `turnout_tilt_da` class exactly**:
+typed numbers on a path the model abandoned.
+
+**It is dormant, not live, and the write-up it came from overstated that.**
+`build_interactive.py` raises `SystemExit` at module level by design and the
+interactive step is opt-in and off; nothing ships those numbers today. The risk
+is that they fire silently on the day the port happens, which is precisely when
+nobody will be looking for them.
+
+**The register's guard is blind to `dict.get` defaults**, which is how all three
+survive: `test_every_tunable_constant_is_in_the_judgement_register` cannot see a
+constant that only exists as a fallback argument.
+
+**And one register row makes a false live claim that another row's obituary
+licenses.** §F21 lists `dirichlet_floor`, `poll_k`, `spine_k` as live scenario
+keys. `poll_k` was **deleted on 2026-08-22** (§1.68) and is in no `DEFAULTS`
+(verified). `test_register_matches_code` cannot catch it because `poll_k` is in
+that test's `DELETED` set — added so §F30's obituary could name it. **One row's
+obituary licenses another row's false claim**, which is a hole in the `DELETED`
+mechanism rather than in the register. Flagged in the file, not silently fixed:
+changing a judgement is the owner's call.

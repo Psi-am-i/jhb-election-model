@@ -14,4 +14,5 @@ never edited after the measurement — a pre-registration that moves is not one.
 
 | file | question | outcome |
 |---|---|---|
+| `2026-08-31-sd-for-shape-mechanism.md` | what shape should `sd_for` take below 15% of the vote? | **OPEN — not yet run.** Written to satisfy the mechanism door in `JUDGEMENT-CALLS.md`'s `sd_for` row, which bars a third functional form against the same two folds. Gated behind re-emit entry 4. |
 | `2026-08-31-crps-column-count.md` | does `crps["total"]` drift with the scored column count? | P1, P2, P4 held; **P3 refuted** (the intersection biases toward the baselines, not the model); the prediction that `energy` drifts was also **refuted** — it is invariant. MODEL-LOG §1.144. |

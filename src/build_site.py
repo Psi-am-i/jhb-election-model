@@ -689,13 +689,85 @@ def main(argv: list[str] | None = None) -> int:
         print(f"    P.retire({city!r}, '<token>', reason='<why>', "
               f"change_class='mechanism', root=Path({str(ledger_root)!r}))")
 
+    # ⛔ A DECLARED HISTORICAL CLAIM MUST APPEAR IN DATED PROSE. FATAL.
+    #
+    # `historical` exempts a token from the orphan refusal because its
+    # mechanism is gone and it can never be re-derived — the owner's ruling
+    # allows that, as HISTORY. This is the other half of the bargain, and
+    # without it the declaration is just `--allow-orphans` spelled differently:
+    # a figure the model cannot produce, sitting in the present tense, with a
+    # line in a config file quietly excusing it.
+    #
+    # `dated` comes from the prose itself (`stats.DATED_REGION`), per
+    # occurrence, never inferred — see that regex for why a guess here fails
+    # OPEN on exactly the prose it cannot parse.
+    bad_asof = sorted({m for o in published
+                       for m in (o.get("malformed_asof") or [])})
+    if bad_asof:
+        refuse = True
+        print("\nMALFORMED `data-asof` REGION — refusing to publish against a "
+              "dating declaration that cannot be trusted:")
+        for m in bad_asof:
+            print(f"  ✗ {m}")
+        print("  A region that does not parse dates NOTHING, so every "
+              "historical claim inside it would publish in the present tense.")
+
+    published = [o for o in published if o.get("token")]
+
+    # ⛔ THE DATE MUST BE THE RIGHT DATE, NOT MERELY A WELL-FORMED ONE.
+    #
+    # Parsing `data-asof` closed "banana"; it did not close `2099-12-31`, nor a
+    # date BEFORE the figure was captured. Either lets a page say a figure was
+    # true at a time it was not, which is the whole obligation the declaration
+    # buys. Found in review 2026-08-31, after the parser fix.
+    today = date.today().isoformat()
+    wrong_date = []
+    for o in published:
+        a, cap = o.get("asof", ""), o.get("captured", "")
+        if not o.get("historical") or not a:
+            continue
+        if a > today:
+            wrong_date.append((o["token"], a, "is in the future"))
+        elif cap and a < cap:
+            wrong_date.append((o["token"], a,
+                               f"precedes the figure's own capture date {cap}"))
+    if wrong_date:
+        refuse = True
+        print("\nA HISTORICAL FIGURE IS DATED TO A TIME IT WAS NOT TRUE — "
+              "refusing:")
+        for tok, a, why in sorted(set(wrong_date)):
+            print(f"  ✗ {tok}  dated {a}, which {why}")
+    undated_history = [o for o in published
+                       if o.get("historical") and not o.get("dated")]
+    if undated_history:
+        refuse = True
+        seen = sorted({o["token"] for o in undated_history})
+        print("\nHISTORICAL CLAIMS IN LIVE PRESENT TENSE — refusing to publish "
+              "a figure the model can no longer produce as though it were "
+              "current:")
+        for tok in seen:
+            occ = [o for o in undated_history if o["token"] == tok]
+            print(f"  ✗ {tok}  ({len(occ)} occurrence(s) on "
+                  f"{', '.join(sorted({o.get('page', '?') for o in occ}))})")
+        print('  Enclose the passage in <span data-asof="YYYY-MM-DD">…</span> '
+              "so it reads as history, or cut the claim. A token declared "
+              "`historical` is one nothing can re-derive; the date is what "
+              "tells the reader when it was true.")
+
     if refuse:
         raise SystemExit(1)
 
     n_pinned = sum(1 for e in registry.values() if e.get("mode") == "fixed")
-    n_free = len(registry) - n_pinned
+    # `registry` carries the [audit] block alongside the tokens, so
+    # `len(registry) - n_pinned` counted it as a free token and printed 16
+    # where there are 15. Caught in review 2026-08-31 — and it had already
+    # travelled into a review write-up unverified, which is what a wrong count
+    # in a build log does.
+    n_free = sum(1 for e in registry.values()
+                 if isinstance(e, dict) and e.get("mode") != "fixed"
+                 and e.get("source"))
     print(f"\nstats: {n_free} free tokens resolved live · {n_pinned} pinned")
-    print(statlib.drift_report(all_drift))
+    print(statlib.drift_report(all_drift, registry))
     if all_drift and args.strict_drift:
         raise SystemExit(1)
 

@@ -60,9 +60,14 @@ from __future__ import annotations
 import csv
 import json
 import re
+from html.parser import HTMLParser
 import tomllib
 from datetime import datetime
 from pathlib import Path
+
+UNVERIFIABLE = "unverifiable"  # see `drift_report`
+DECLARATION_MIN_CHARS = 12   # a declaration shorter than this is not a reason
+HISTORICAL = "historical"   # see `orphaned_scenario_claims`
 
 TOKEN = re.compile(r"\{\{([a-z0-9_]+)\}\}")
 
@@ -82,13 +87,105 @@ TOKEN = re.compile(r"\{\{([a-z0-9_]+)\}\}")
 # Per OCCURRENCE and not per token, because dating is a property of the
 # sentence: the same token can be live on the forecast page and historical in a
 # retrospective, and a registry-level flag could not tell those apart.
-DATED_REGION = re.compile(
-    r'<(?P<tag>\w+)[^>]*\bdata-asof="[^"]*"[^>]*>.*?</(?P=tag)>', re.S)
+_ASOF_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
-def dated_spans(text: str) -> list[tuple[int, int]]:
-    """Character ranges of prose that places a figure in time."""
-    return [m.span() for m in DATED_REGION.finditer(text)]
+class _AsOfScanner(HTMLParser):
+    """Character ranges of elements carrying a well-formed ``data-asof``.
+
+    ⛔ **THIS WAS A REGEX AND THE REGEX FAILED OPEN.** It matched
+    ``<tag …data-asof…>.*?</tag>`` non-greedily, which is not what an element
+    is. Verified in review 2026-08-31:
+
+    * an **unclosed** ``<section data-asof=…>`` whose ``</section>`` is supplied
+      by a *different, undated* element later in the page dated **every token in
+      between**, including tokens inside their own separate undated sections —
+      one malformed tag silently discharged the dating obligation for the rest
+      of the page;
+    * the same tag with **no** closer anywhere dated nothing (fails closed);
+    * a **nested** same-tag element truncated the region at the inner closer.
+
+    `stats`' own argument for declared-over-sniffed dating is that a guess
+    *"fails open on exactly the prose it cannot parse"*. A regex over HTML is
+    that guess. This is a real parser with a depth counter, so an element's
+    extent is its extent.
+
+    **The date is validated, not merely present.** ``data-asof="banana"`` used
+    to buy the exemption; the obligation is to say WHEN a figure was true, and a
+    string that is not a date says nothing.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=False)
+        self.spans: list[tuple[int, int, str]] = []
+        self._dates: dict[int, str] = {}
+        self._open: list[tuple[str, int, int | None]] = []   # tag, depth, start
+        self._depth = 0
+        self.malformed: list[str] = []
+
+    def _offset(self) -> int:
+        line, col = self.getpos()
+        return self._line_start[line - 1] + col
+
+    def feed_text(self, text: str) -> None:
+        self._line_start = [0]
+        for ln in text.split("\n"):
+            self._line_start.append(self._line_start[-1] + len(ln) + 1)
+        self._text = text
+        self.feed(text)
+        self.close()
+        # An element opened and never closed cannot define a region. Recorded
+        # so the caller can REFUSE rather than silently date nothing.
+        for tag, _, start in self._open:
+            if start is not None:
+                self.malformed.append(
+                    f"<{tag} data-asof=…> at offset {start} is never closed")
+
+    def handle_starttag(self, tag, attrs):
+        d = dict(attrs)
+        start = None
+        if "data-asof" in d:
+            value = (d.get("data-asof") or "").strip()
+            if _ASOF_DATE.match(value):
+                start = self._offset()
+                self._dates[start] = value
+            else:
+                self.malformed.append(
+                    f'<{tag} data-asof="{value}"> is not a YYYY-MM-DD date')
+        self._open.append((tag, self._depth, start))
+        self._depth += 1
+
+    def handle_startendtag(self, tag, attrs):
+        if "data-asof" in dict(attrs):
+            self.malformed.append(
+                f"<{tag} data-asof=… /> is self-closing and encloses nothing")
+
+    def handle_endtag(self, tag):
+        for i in range(len(self._open) - 1, -1, -1):
+            if self._open[i][0] == tag:
+                _, depth, start = self._open.pop(i)
+                self._depth = depth
+                if start is not None:
+                    self.spans.append((start, self._offset() + len(tag) + 3,
+                                       self._dates.pop(start, "")))
+                return
+        # a closer with no opener: ignore, but it is why the regex failed open
+
+
+def dated_spans(text: str) -> list[tuple[int, int, str]]:
+    """``(start, end, date)`` per region of prose that dates a figure."""
+    return _dated_scan(text)[0]
+
+
+def _dated_scan(text: str) -> tuple[list[tuple[int, int, str]], list[str]]:
+    """``(spans, malformed)`` — the second is why a build may refuse."""
+    p = _AsOfScanner()
+    try:
+        p.feed_text(text)
+    except Exception:                                        # noqa: BLE001
+        return [], ["the page could not be parsed for data-asof regions"]
+    return p.spans, p.malformed
+
 
 # The run every other artefact in data/processed is dated against. A file-backed
 # source older than this one describes an earlier model.
@@ -247,6 +344,25 @@ def orphaned_scenario_claims(registry: dict) -> list[tuple[str, str]]:
     orphans: list[tuple[str, str]] = []
     for name, entry in (registry.get("stat") or registry).items():
         if not isinstance(entry, dict):
+            continue
+        # ⛔ A DECLARED HISTORICAL CLAIM IS NOT AN ORPHAN — BUT THE DECLARATION
+        # COSTS SOMETHING, WHICH IS THE ONLY REASON IT IS NOT AN ESCAPE HATCH.
+        #
+        # The owner's ruling (2026-08-30): a published figure need not be
+        # re-derivable, it must be ATTRIBUTABLE — and a figure whose mechanism
+        # the model no longer has may be published as HISTORY and not as the
+        # present tense. Ten claims fact-checking a party's turnout arithmetic
+        # were run on 7 August under `turnout_tilt_da`, a lever `run_model` no
+        # longer has. They cannot be re-derived by anything. Deleting them
+        # destroys sound analysis; leaving them undeclared publishes a live
+        # number nothing can check.
+        #
+        # So `historical` declares them — and `build_site` REFUSES any token
+        # carrying it that renders outside a `data-asof` context. Declaring one
+        # therefore obliges the prose to say when it was true. That coupling is
+        # what makes this a discipline rather than `--allow-orphans` by another
+        # name; see `stats.DATED_REGION`.
+        if len(str(entry.get(HISTORICAL, "")).strip()) >= DECLARATION_MIN_CHARS:
             continue
         source = str(entry.get("source", ""))
         if not source.startswith("run:"):
@@ -449,7 +565,8 @@ def render(text: str, registry: dict, ctx: dict, *, wrap: bool = True,
     """
     drift: list[dict] = []
     unresolved: list[str] = []
-    regions = dated_spans(text) if record is not None else []
+    regions, malformed = (_dated_scan(text) if record is not None
+                          else ([], []))
 
     def _one(match: re.Match) -> str:
         name = match.group(1)
@@ -495,11 +612,22 @@ def render(text: str, registry: dict, ctx: dict, *, wrap: bool = True,
                 "source": entry.get("source", ""),
                 "mode": entry.get("mode", "free"),
                 "tolerance": entry.get("tolerance"),
-                "dated": any(lo <= at < hi for lo, hi in regions),
+                "dated": any(lo <= at < hi for lo, hi, _ in regions),
+                "asof": next((d for lo, hi, d in regions
+                              if lo <= at < hi), ""),
+                "captured": str(entry.get("captured", "")),
+                "historical": str(entry.get(HISTORICAL, "")).strip(),
             })
         return _span(shown, entry, name, live_str) if wrap else shown
 
-    return TOKEN.sub(_one, text), drift, unresolved
+    out_text = TOKEN.sub(_one, text)
+    if record is not None and malformed:
+        # Surfaced through the record so the caller can REFUSE. A
+        # malformed dated region silently dates nothing (or, before
+        # the parser, everything), and either way the reader is not
+        # told when the figure was true.
+        record.append({"token": "", "malformed_asof": malformed})
+    return out_text, drift, unresolved
 
 
 # --------------------------------------------------------------------------
@@ -626,16 +754,43 @@ def audit_report(numbers: list[str], claims: list[str], *, limit: int = 8) -> st
     return "\n".join(out)
 
 
-def drift_report(rows: list[dict]) -> str:
+def drift_report(rows: list[dict], registry: dict | None = None) -> str:
+    """The drift lines, and — when the registry is given — what was NOT checked.
+
+    ⛔ "no drift — every pinned stat is within tolerance" WAS A LIE BY
+    OMISSION, and `tests/test_published_page.py` names it: *"the build's
+    cheerful 'no drift' is not a finding but the absence of one."* A pinned
+    token drifts only inside `if live is not None`, and a `run:` or `external:`
+    source never resolves — so **all 24 pinned tokens on this site are
+    undriftable**, and the build was reporting their silence as their health.
+
+    Now that every one of them carries an `unverifiable` declaration, the count
+    can be stated instead of implied. A reader of the build log should not have
+    to know the internals to discover that "no drift" was computed over nothing.
+    """
+    unchecked = 0
+    if registry:
+        unchecked = sum(1 for e in (registry.get("stat") or registry).values()
+                        if isinstance(e, dict) and e.get("mode") == "fixed"
+                        and str(e.get(UNVERIFIABLE, "")).strip())
+    # ⛔ STATE THE DECLARATION, NOT A CAUSE THIS FUNCTION NEVER CHECKS. The
+    # first version said "their sources never resolve" while counting only the
+    # DECLARATIONS — so pointing one token at a resolvable source would print a
+    # drift row and "never resolve" in the same report. The previous defect was
+    # a lie by omission; that would have been the same lie by assertion.
+    tail = (f"\n  ({unchecked} pinned token(s) carry an `unverifiable` "
+            f"declaration and are therefore unchecked rather than "
+            f"checked-and-fine)" if unchecked else "")
     if not rows:
-        return "  no drift — every pinned stat is within tolerance"
+        return ("  no drift among the pinned stats that CAN be drift-checked"
+                + tail)
     out = []
     for r in rows:
         out.append(f"  ⚠ {r['token']}: pinned {r['pinned']} → model now says "
                    f"{r['live']} (tolerance {r['tolerance']})")
         if r["used_in"]:
             out.append(f"      used in: {r['used_in']} — the argument may need rewriting")
-    return "\n".join(out)
+    return "\n".join(out) + tail
 
 
 # The CSS/markup a page needs so pinned figures reveal their provenance.

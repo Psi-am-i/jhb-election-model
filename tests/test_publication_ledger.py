@@ -589,19 +589,46 @@ def test_the_ledger_block_in_the_real_build_actually_executes():
 def test_the_real_build_refuses_to_publish_an_unattributable_run():
     """The write path's refusal, exercised through `main()` rather than around it.
 
-    `data/processed/forecast_summary.json` predates the `_generated` stamp, so
-    it carries no run time and nothing may be attributed to it. The build must
-    say so and write NOTHING — a refusal that leaves a partial ledger behind is
-    worse than no refusal, because the file cannot be edited afterwards.
+    ⛔ **THIS TEST USED TO RELY ON THE TREE BEING BROKEN, AND THE TREE GOT
+    FIXED.** It asserted that the build refuses because
+    `data/processed/forecast_summary.json` predated the `_generated` stamp — a
+    true fact on 2026-08-31 morning and false by that afternoon, when
+    `overhang_regimes.py` re-ran the model and stamped it. The test then failed
+    for the best possible reason: **the defect it described was gone.**
+
+    A test whose premise is a passing state of the repository expires without
+    warning. So it now BUILDS the unattributable artefact itself, in a temp
+    directory, and the guarantee is permanent: a forecast with no run time may
+    not be published, whatever `data/processed` happens to contain today.
     """
+    import json as _json
+    import shutil as _sh
     import tempfile as _tf
+    root = Path(__file__).resolve().parents[1]
+    live = root / "data" / "processed" / "forecast_summary.json"
+    if not live.is_file():
+        skip("no forecast_summary.json")
     with _tf.TemporaryDirectory() as tmp:
-        r = _build(Path(tmp), "--publish",
+        tmp = Path(tmp)
+        proc = tmp / "processed"
+        proc.mkdir()
+        for f in (root / "data" / "processed").glob("*.json"):
+            _sh.copy2(f, proc / f.name)
+        for f in (root / "data" / "processed").glob("*.csv"):
+            _sh.copy2(f, proc / f.name)
+        # strip the run stamp: this is the artefact nothing can attribute
+        blob = _json.loads((proc / "forecast_summary.json").read_text())
+        blob.pop("_generated", None)
+        (proc / "forecast_summary.json").write_text(_json.dumps(blob))
+
+        r = _build(tmp, "--processed", str(proc), "--publish",
                    "--reason", "exercising the refusal",
                    "--change-class", "recompute")
-        assert r.returncode != 0, "the build published an unattributable run"
-        assert "refusing to publish" in (r.stdout + r.stderr)
-        assert not list((Path(tmp) / "led").rglob("*.jsonl")), (
+        out = r.stdout + r.stderr
+        assert r.returncode != 0, (
+            f"the build published a forecast with no run time.\n{out[-1200:]}")
+        assert "refusing to publish" in out and "run time" in out, out[-1200:]
+        assert not list((tmp / "led").rglob("*.jsonl")), (
             "a ledger file was created by a REFUSED publication. The ledger is "
             "append-only; whatever is in it now is permanent.")
 

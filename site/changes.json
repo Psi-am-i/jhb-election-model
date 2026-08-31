@@ -1,0 +1,495 @@
+{
+  "changes": [
+    {
+      "display": "54",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "regime:cap:parties.ANC.median",
+      "token": "anc_entitlement",
+      "value": 54.5
+    },
+    {
+      "display": "55",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "model:parties.ANC.ward_wins_mean",
+      "token": "anc_ward_median",
+      "value": 55.3016
+    },
+    {
+      "display": "44",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "external:IEC 2021 CoJ result \u2014 ActionSA's first election",
+      "token": "asa_2021_seats",
+      "value": 44
+    },
+    {
+      "display": "129",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "external:fold-2 blind validation (MODEL-LOG 1.9)",
+      "token": "blind_test_called",
+      "value": 129
+    },
+    {
+      "display": "135",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "external:ward count at the 2021 delimitation",
+      "token": "blind_test_of",
+      "value": 135
+    },
+    {
+      "display": "587,000",
+      "fmt": "comma",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "external:MODEL-LOG 1.18 \u2014 ANC-bloc vote loss 2019 NPE to 2021 LGE",
+      "token": "bloc_leak_votes",
+      "value": 587000
+    },
+    {
+      "display": "15",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "external:IEC by-election records, CoJ 2021-2026",
+      "token": "byelection_count",
+      "value": 15
+    },
+    {
+      "display": "53",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "arithmetic: 490,000 as a share of the 2021 poll",
+      "token": "claim_490k_of_2021",
+      "value": 53
+    },
+    {
+      "display": "47",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "run:turnout_tilt_da=1 \u2014 ANC median in the draws where the DA reaches 136",
+      "token": "claim_anc_collapse_seats",
+      "value": 47
+    },
+    {
+      "display": "50",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "run:turnout_tilt_da=1 \u2014 ANC proportional entitlement in the surged poll",
+      "token": "claim_anc_entitlement_surged",
+      "value": 50
+    },
+    {
+      "display": "62",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "run:turnout_tilt_da=1 parties.ANC.ward_wins_mean",
+      "token": "claim_anc_wards_surged",
+      "value": 62
+    },
+    {
+      "display": "97",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "run:turnout_tilt_da=1 parties.DA.median",
+      "token": "claim_da_median",
+      "value": 97
+    },
+    {
+      "display": "41",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "run:turnout_tilt_da=1 \u2014 DA share of the surged poll",
+      "token": "claim_da_share_surged",
+      "value": 41
+    },
+    {
+      "display": "524,000",
+      "fmt": "comma",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "run:turnout_tilt_da=1 \u2014 DA votes at the record-turnout anchor",
+      "token": "claim_da_votes_surge",
+      "value": 524000
+    },
+    {
+      "display": "644,000",
+      "fmt": "comma",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "run:turnout_tilt_da=1 \u2014 half the surged poll",
+      "token": "claim_half_surged",
+      "value": 644000
+    },
+    {
+      "display": "75",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "derived: registration-weighted highest turnout on record, all VDs",
+      "token": "claim_hi_turnout",
+      "value": 75
+    },
+    {
+      "display": "190,000",
+      "fmt": "comma",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "arithmetic: votes every other party must lose to freeze the poll",
+      "token": "claim_others_shed",
+      "value": 190000
+    },
+    {
+      "display": "917,000",
+      "fmt": "comma",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "external:IEC 2021 CoJ Seat Calculation Detail \u2014 A/2, ballots per paper",
+      "token": "claim_poll_2021",
+      "value": 917000
+    },
+    {
+      "display": "985,000",
+      "fmt": "comma",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "derived: registered x blended turnout, default scenario",
+      "token": "claim_poll_base",
+      "value": 985000
+    },
+    {
+      "display": "1,290,000",
+      "fmt": "comma",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "run:turnout_tilt_da=1 \u2014 total votes cast",
+      "token": "claim_poll_surged",
+      "value": 1290000
+    },
+    {
+      "display": "110",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "arithmetic: 41% of a 270-seat council",
+      "token": "claim_prop_seats",
+      "value": 110
+    },
+    {
+      "display": "39",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "run:turnout_tilt_da=1 \u2014 136 minus DA median",
+      "token": "claim_short_by",
+      "value": 39
+    },
+    {
+      "display": "57",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "allocator experiment: DA share needed for 136 with the ANC on 62 wards",
+      "token": "claim_vote_share_needed",
+      "value": 57
+    },
+    {
+      "display": "270",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "methodology.html",
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "derived:council_size",
+      "token": "council_size",
+      "value": 270
+    },
+    {
+      "display": "136",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "methodology.html",
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "derived:majority",
+      "token": "majority",
+      "value": 136
+    },
+    {
+      "display": "5,000",
+      "fmt": "comma",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "derived:n_draws",
+      "token": "n_draws",
+      "value": 5000
+    },
+    {
+      "display": "58%",
+      "fmt": "pct0",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "model:structural.P(ANC+DA is winning)",
+      "token": "p_anc_da",
+      "value": 0.5836
+    },
+    {
+      "display": "71%",
+      "fmt": "pct0",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "model:structural.P(DA is the largest single party)",
+      "token": "p_da_largest",
+      "value": 0.7122
+    },
+    {
+      "display": "58%",
+      "fmt": "pct0",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "methodology.html",
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "source": "model:p_excessive_by_party.ANC",
+      "token": "p_excessive_anc",
+      "value": 0.5756
+    }
+  ],
+  "city": "joburg",
+  "run": {
+    "as_of": "2026-08-31T10:33:44Z",
+    "as_of_is": "run time; no input cut-off is recorded yet",
+    "draws": 5000,
+    "forecast_content_sha256": "677d292562cff548fac46152f3f92a7b0aede27366f42f7637e71f8398a77489",
+    "forecast_summary_sha256": "01022e0642eed24df7e38d92f56fc2e41b035637e453f76442b84d7f020da773",
+    "git_commit": "10d127a765a5ab5506677cfb8034d176b9814b6a",
+    "git_dirty": true,
+    "model_run_id": "r-677d292562cf-10d127a7-dirty",
+    "pool_artefact_keys": {
+      "pools_2016.json": {
+        "city": "joburg",
+        "config_sha": "050fa0e62ec22543",
+        "pools_sha": "dbdf171344ffd5f0",
+        "schema": 1,
+        "target": "2016"
+      },
+      "pools_2021.json": {
+        "city": "joburg",
+        "config_sha": "050fa0e62ec22543",
+        "pools_sha": "dbdf171344ffd5f0",
+        "schema": 1,
+        "target": "2021"
+      },
+      "pools_2026.json": {
+        "city": "joburg",
+        "config_sha": "050fa0e62ec22543",
+        "pools_sha": "dbdf171344ffd5f0",
+        "schema": 1,
+        "target": "2026"
+      },
+      "pools_2026_simulation.json": {
+        "city": "joburg",
+        "config_sha": "050fa0e62ec22543",
+        "pools_sha": "dbdf171344ffd5f0",
+        "schema": 1,
+        "target": "2026"
+      }
+    },
+    "run_at": "2026-08-31T10:33:44Z",
+    "seat_draws_sha256": "036bb974f6069d1ddc047ed44452c4cb383895693941a5b126bb74463fba69e0"
+  },
+  "summary": {
+    "by_movement": {
+      "new": [
+        "anc_entitlement",
+        "anc_ward_median",
+        "asa_2021_seats",
+        "blind_test_called",
+        "blind_test_of",
+        "bloc_leak_votes",
+        "byelection_count",
+        "claim_490k_of_2021",
+        "claim_anc_collapse_seats",
+        "claim_anc_entitlement_surged",
+        "claim_anc_wards_surged",
+        "claim_da_median",
+        "claim_da_share_surged",
+        "claim_da_votes_surge",
+        "claim_half_surged",
+        "claim_hi_turnout",
+        "claim_others_shed",
+        "claim_poll_2021",
+        "claim_poll_base",
+        "claim_poll_surged",
+        "claim_prop_seats",
+        "claim_short_by",
+        "claim_vote_share_needed",
+        "council_size",
+        "majority",
+        "n_draws",
+        "p_anc_da",
+        "p_da_largest",
+        "p_excessive_anc"
+      ]
+    },
+    "n": 29,
+    "n_rounding": 0,
+    "n_visible": 0,
+    "nominal": []
+  }
+}

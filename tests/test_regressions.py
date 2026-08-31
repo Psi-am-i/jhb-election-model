@@ -646,6 +646,15 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         # Added 2026-08-29 (§1.130) after this guard correctly caught a bare
         # `reps=2000` in a new signature.
         "BOOT", "BOOT_SEED", "SIM_DRAWS", "NULL_REPS",
+        # `stats.DECLARATION_MIN_CHARS` — the shortest string accepted as a
+        # REASON on an `unverifiable` or `historical` declaration. OPERATIONAL:
+        # it decides whether a sentence counts as an explanation, and it cannot
+        # reach a forecast; no draw, share or seat depends on it. Named as a
+        # constant on 2026-08-31 because the same bare `12` was written twice
+        # for two different fields, in `stats.py` and in
+        # `tests/test_published_page.py` — a number typed in two places, which
+        # is the defect this whole register exists to stop.
+        "DECLARATION_MIN_CHARS",
         # The publication ledger's file-format version (`publication.SCHEMA`).
         # OPERATIONAL: it versions the on-disk shape of `ledger.jsonl` so a
         # future reader can tell which fields a row was written with. It cannot
