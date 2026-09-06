@@ -31,10 +31,12 @@ model from public records.
 | Document | What it is |
 |---|---|
 | [`MACHINERY.md`](MACHINERY.md) | How each stage actually works, and which numbers are measured, argued or declared |
-| [`ITERATING.md`](ITERATING.md) | The four-key bar a change must pass to ship, and why "worse does not ship" is the only rule that matters |
+| [`ITERATING.md`](ITERATING.md) | The four-key bar a change must pass to ship, and why the rule is "more honest usually ships" |
 | [`JUDGEMENT-CALLS.md`](JUDGEMENT-CALLS.md) | Every constant the data did not force, with its status, its evidence and how to check it |
 | [`archive/superseded-docs/METHODOLOGY.md`](archive/superseded-docs/METHODOLOGY.md) | **SUPERSEDED** — the original review brief, archived 2026-08-23. `MACHINERY.md` replaces it |
 | [`MODEL-LOG.md`](MODEL-LOG.md) | The running engineering log: findings, obstacles, silent data traps, the assumption register, every decision with its rationale |
+| [`audits/ENGINE-SUMMARY-2026-09-05.md`](audits/ENGINE-SUMMARY-2026-09-05.md) | **Where the engine stands as a whole** — accuracy on the record, what is good, what needs work, and what to expect on 4 November. Start here for the state of the model rather than of the code |
+| [`audits/`](audits/) | Review briefs and their state documents. `ULTRA-REVIEW-1-pools-reemit.md` is frozen and must not be amended; `ULTRA-REVIEW-1-STATE.md` is the one that may change |
 | [`SOURCES.md`](SOURCES.md) | Acquisition recipes for every input: URLs, the non-obvious election IDs, access workarounds, checksum discipline |
 | [`DATA-QUALITY.md`](DATA-QUALITY.md) | Defects in the official published records, each with the file, the arithmetic and what it cost us — thousands separators that silently drop 68% of a city's vote, a comma inside a party's name, every independent published under one shared name |
 | [`archive/original-plan/joburg-prediction-model-plan-v2.md`](archive/original-plan/joburg-prediction-model-plan-v2.md) | The original build plan — kept as written, including the parts the build later proved wrong |

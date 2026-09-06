@@ -89,6 +89,9 @@ promotion note in §F.
 | `bye_weight_mode` | `"fixed"` | `montecarlo.py` | Defaults to `fixed`. `inverse_variance` is built and derives the weight; switching it moves the published 2026 forecast and no backtest can score either — the owner's call. | 🟡 | §A33 |
 | `CAMPAIGN_WINDOW_DAYS` | 550 | — | 550, typed. | 🟡 | §F4 |
 | `CELL_AREA_FACTOR` | — | `hex_cartogram.py` | Typed at 1.0. ARGUED, NOT TESTED, and a trade between two goods rather than right against wrong. Touches no forecast. | 🟡 | §D17 |
+| `independent_wards` (C) in the forecast | 0, structurally | `montecarlo.run_model` | The forecast universe drops INDEPENDENT/IND, so no draw can seat an independent and C is always 0. The IEC records C=1 at eThekwini 2011 and C=4 at 2016, both SCORED — the model allocates those seats to parties and is charged for it. An ASSUMPTION, not a measurement; registered 2026-09-02 after being silent. | 🔴 | §1.166 |
+| `CENSUS_COVERAGE_FLOOR` | 0.80 | `pools.py` | A WARNING in `pool_counts` and a REFUSAL in `registered_at_target`, on different denominators. Measured 2026-09-02: 0.9609-0.9979 at the refusal, so it binds nowhere and has never been exercised. The §J2 argument applies to it and has not been applied. | 🔴 | §J1 |
+| `CENSUS_DRIFT_CEILING` | 0.05 | `pools.pool_counts` | The reprojection refusal: how far the CITYWIDE composition moves because of unmappable wards. Bounded by ablation (worst random loss 0.028, segregated loss ~0.28) on one city only. | 🟡 | §J2 |
 | `contestation_expand` | 0.220 | `montecarlo.py`, applied in `levels.projected_cont… | Ships 0.220, live only where no backtest can reach it; superseded automatically the day the IEC publishes 2026 lists. | 🔴 | §A5 |
 | `DIRICHLET_FLOOR` | 1e-4 | — | 1e-4 and inert as committed — but it has a SECOND consumer that floors a CONCENTRATION rather than a mean, and `PERTURB` sweeps it to 0.05 where that would bind. | 🟢 | §F1 |
 | `dirichlet_floor`, `spine_k` (scenario keys) | — | — | Scenario keys mirroring the module constants so a sweep is reproducible. ⚠ This row also lists `poll_k`, which was DELETED on 2026-08-22 (§1.68) and is in no `DEFAULTS` — see the restructure note beneath. | 🟢 | §F21 |
@@ -117,7 +120,9 @@ promotion note in §F.
 | `MIN_SHARE`, `CLAIM_FRACTION`, `F_OTHER` | 0.005, 0.50, 1.30 | — | All three were filed under the wrong module once. `MIN_SHARE` is `gamma_recent.py`'s and is a CLAIM about the model, not reporting; `CLAIM_FRACTION` is `score.py`'s. ⚠ `F_OTHER` is no longer in `src/` at all — see the restructure note beneath. | 🟡 | §F29 |
 | `OVERHANG_DEDUCT_MAX_ROUNDS_SLACK` | 2 | `montecarlo.py` | Derived, not chosen: any value ≥ 1 is equivalent. | 🟢 | §A39 |
 | `OVERHANG_LEVEL_MAX_ROUNDS` | 200 | `montecarlo.py` | 200 rounds. Bounded on ROUNDS deliberately rather than on council size, because a magnitude off the real panel does not transfer to a toy. | 🟡 | §A40 |
-| `overhang_rule` | `"deduct"` | `montecarlo.DEFAULTS` | Ships "deduct". A LEGAL INTERPRETATION, and the highest-stakes row in §H: the four regimes give different council sizes AND different majority thresholds. | 🔴 | §H1 |
+| `NATIONAL_ONLY_FLOOR` | 0.001 | `pools.py` | The national share below which a party with no local record is NOT assumed onto an unheld ballot. Measured over 16 city-years: drops 158 of 226 such candidates for 0.10pp of vote. MK (12.2%) clears it. Owner's decision 2026-09-03; unreachable from any backtest. | 🟢 | §K1 |
+| `PRIOR_LOCAL_FLOOR` | 0.001 | `pools.py` | The prior-LOCAL share below which a party with no national vote is not assumed onto an unheld ballot. Drops 112 of 189 such candidates for 0.038pp and ZERO seats. ⚠️ INERT until entry 3 lets a projected roster drive the off-ballot drop. | 🟢 | §K2 |
+| `overhang_rule` | `"deduct"` | `montecarlo.DEFAULTS` | ⚖️ **STATUTE, reclassified 2026-09-02** — Act 3 of 2021 Schedule 1 item 16. NOT a lever and never swept: refused at the `--set` boundary, out of `PERTURB`. Never bound in 24 metro-years; tightest margin 2 seats. | ⚖️ | §H1 |
 | `pa_contestation_uplift` | DELETED 2026-08-18 | — | DELETED 2026-08-18. The branch now falls back to the previous local election's measured contestation for every party, which makes it backtestable. | ⚪ | §F27 |
 | `PAGE_SIZE` | — | — | Pagination. Reporting, not belief. | 🟢 | §F37 |
 | `PARTIAL_BALANCE_PASSES` | 200 | — | 200. A convergence budget that is not a converging sequence, so the number chooses how close to the boundary it gets. | 🟡 | §F12 |
@@ -1319,13 +1324,43 @@ the live forecast through a default argument no sweep could reach (§1.84).
 Every row here is 🔴 — typed, never swept, no interval — unless it says
 otherwise. **None has been measured; several have never been moved at all.**
 
-### §H1 · `overhang_rule` — `"deduct"` — 🔴
+### §H1 · `overhang_rule` — `"deduct"` — ⚖️ STATUTE, NOT A JUDGEMENT CALL
 
-**Where.** `montecarlo.DEFAULTS`
+⛔ **RECLASSIFIED 2026-09-02 (§1.165). This is not a lever and it must never be
+swept.** It sat at 🔴 "typed, never swept, no interval" for its whole life, and
+the sweep-order note above used to schedule it first. That was a category error:
+the Municipal Structures Act Schedule 1 item 16, as amended by Act 3 of 2021, is
+part of the DEFINITION of the outcome being forecast — the same category as the
+council having a fixed size — and no backtest can arbitrate it.
 
-**Now.** Ships "deduct". A LEGAL INTERPRETATION, and the highest-stakes row in §H: the four regimes give different council sizes AND different majority thresholds.
+**Where.** `montecarlo.DEFAULTS`, with its value refused at the `--set`
+boundary by `montecarlo.STATUTORY_VALUES` and cross-checked in both directions
+by `tests/test_levers_are_live.py::STATUTORY`.
 
-**Record.** **A LEGAL INTERPRETATION, and the highest-stakes row here.** Four regimes — `cap` / `level` / `deduct` / `expand` — give different council sizes AND different majority thresholds. Chosen in §1.17. Invisible to the old guard because it is a *string*
+**Why the key was not simply deleted.** `test_regressions`'s branch (e)
+enumerates `DEFAULTS` and is the only route by which this entry enters the
+code-to-register scan, so deleting the key would have orphaned §H1 — the
+bidirectional-scan failure, committed in the name of register hygiene. The key
+stays; the value is nailed down.
+
+**The evidence, and it is not a score.** Computed from actual results over 24
+metro-years: **the clause has never once bound.** Tightest margin over every
+entitlement-pool party, by cycle — 2011 **+3**, 2016 **+5**, 2021 **+2** — with
+the closest approaches being small concentrated parties (ALJAMAAH at
+Johannesburg 2021, 1 ward against a 3-seat entitlement; the PA at Ekurhuleni
+2021, 2 against 4), not the ANC. Nationally, Laingsburg WC051 2021 is the only
+excessive-seat case found in ~65 IEC reports.
+
+⚠️ **The nearest-miss figure of "4 wards" quoted on 2026-09-02 was the LARGEST
+party's margin only.** Item 16 fires on any party, and the true minimum is 2.
+
+⚠️ **THE PRIMARY SOURCES ARE NOT IN THE TREE.** The consolidated Structures Act,
+the PMG copy of Act 3 of 2021 and the Laingsburg Seat Calculation Detail are
+recorded in §1.17 as "copies in the session scratchpad". **Owner action: commit
+them.** Until then the highest-stakes rule in the model has a citation chain that
+cannot be re-checked from the repository.
+
+**Record.** Four regimes — `cap` / `level` / `deduct` / `expand` — give different council sizes AND different majority thresholds. Chosen in §1.17. Reachable only behind `--counterfactual`, which `src/overhang_regimes.py` passes to build the comparison table
 
 ### §H2 · `w_recency` — 0.70 — 🔴
 
@@ -1508,8 +1543,8 @@ gaps rather than from zero, and so that **B2's sweep has a list**: the
 Derivedness Debt in `ITERATING.md`'s Key 3 is computed from this register, and a
 register that cannot see a constant prices it at nothing.
 
-**The order to sweep them in is not the order above.** `overhang_rule` and
-`PLAN_BOUNDS` decide the most and are the least defended; `w_recency` and
+**The order to sweep them in is not the order above.** `PLAN_BOUNDS` decides
+the most and is the least defended; `w_recency` and
 `kappa_bye` are the oldest unexamined inheritance; `min_oos_gain` is upstream of
 everything.
 
@@ -1560,6 +1595,612 @@ stable group-and-city-specific discrepancy rather than an artefact of the fit �
 Cape Town's white pool asks for no lift at all.
 
 ---
+
+## J. Added 2026-09-02 — the two reprojection guards (§1.161)
+
+Wards are redrawn at every local election, so a composition fitted on one
+delimitation has to be moved onto the target's wards through voting districts
+(`pools.reproject`). Two constants decide when that move is trusted. **They are
+not a pair of thresholds on one quantity — one is a refusal and the other is
+not, and they are not measured on the same denominator.**
+
+### §J1 · `CENSUS_COVERAGE_FLOOR` — 0.80 — 🔴 typed, and it means two things
+
+**Where.** `pools.py`, module level. Read at **two** sites that do different things:
+
+* `pool_counts` — a **printed warning** only. The refusal there is §J2.
+* `registered_at_target` — a **refusal** (`SystemExit`), with no drift test.
+
+**Why it is not the refusal in the first place.** Coverage answers "how much of
+the city failed to map"; the question that matters is "how far did the answer
+move because of what was lost". Those come apart badly: eThekwini lost **one
+ward of 111** — 0.8% of the city, 99.8% Black African — and a coverage-shaped
+test refused the whole city-year over it, while the citywide composition it
+induced moved **0.0023**. See §J2.
+
+**Now.** Typed. ⚠️ NOT MEASURED — 0.80 is a guess at a proxy whose transfer
+function to the quantity that matters is unknown.
+
+**Measured 2026-09-02, and it binds nowhere.** Coverage at the
+`registered_at_target` refusal, on the full emit path with the artefact write
+stubbed so nothing on disk moved:
+
+| city-year | fitted → target delimitation | covered |
+|---|---|---|
+| Cape Town 2011 | 2006 → 2011 | 0.9609 |
+| Johannesburg 2011 | 2006 → 2011 | 0.9653 |
+| Mangaung 2011 | 2006 → 2011 | 0.9771 |
+| eThekwini 2011 | 2006 → 2011 | 0.9899 |
+| **Johannesburg 2026 (live)** | 2021 → 2026 | **0.9979** |
+
+Worst case is 16pp of headroom above the floor. At the `pool_counts` warning
+site the same measure runs 0.9803–1.0000 across all 24 city-years. **So this
+constant is inert everywhere it can currently be reached**, and its value has
+never been exercised by anything.
+
+**⛔ The inconsistency is known and is NOT resolved.** The §J2 argument — that
+the harm is the induced shift, not the size of the loss — applies just as well
+at `registered_at_target`, which still refuses on coverage and runs no drift
+test. It is left alone because changing a refusal is a behaviour change to be
+measured rather than tidied, and because it is inert today. It is owed the §J2
+treatment. **How to check it:** re-run the probe above; the day any city-year
+approaches 0.80, this becomes live and undefended in the same moment.
+
+### §J2 · `CENSUS_DRIFT_CEILING` — 0.05 — 🟡 measured against an alternative
+
+**Where.** `pools.pool_counts`. The refusal: the largest pool-share difference
+between the citywide composition including and excluding the wards that fail to
+reproject — **how far the city's own answer moves because of the loss**, not
+how unlike the lost wards are.
+
+**Why the distinction is the whole entry.** The metric this was first written
+with measured how demographically *unlike* the lost wards were. It scored
+eThekwini's single lost ward at **0.282** and refused a city-year over 0.8% of
+its electorate. The induced citywide shift for that same loss is **0.0023** —
+two orders smaller, and the honest number.
+
+**Evidence for 0.05.** Randomly ablating Johannesburg's wards all the way down
+to 60% coverage moves a pool share by at most **0.028**. So 0.05 is roughly
+twice the worst random loss and an order of magnitude below the ~0.28 a
+genuinely segregated loss of a large block produces: it separates the two cases
+with margin on both sides.
+
+**What it is not.** It is not fitted, and the ablation behind it was run on one
+city. **How to check it:** re-run the ablation on Cape Town, whose reprojection
+coverage is the worst on the panel. That would make it a measurement rather than
+an argued bound.
+
+## K. Added 2026-09-03 — who is assumed onto a ballot that has not been published (§1.175)
+
+### §K1 · `NATIONAL_ONLY_FLOOR` — 0.001 — 🟢 measured, owner's decision
+
+**Where.** `pools.py`, module level. Read **only** in the branch that runs when
+no roster has been published — i.e. an unheld target. A held election has a real
+roster and never reaches it, so **this constant cannot touch any backtest.**
+
+**What it decides.** Whether a party that polled in the preceding NATIONAL
+election, and has no preceding LOCAL record, is assumed onto the ballot of an
+election that has not happened yet. Below 0.1% of the national vote, it is not.
+
+**Why a floor exists at all.** The forecast has to exist before nomination lists
+publish on 16 September, so the model must guess the roster. The rule was
+`set(baseline) | set(composition)` — *everyone* with a national vote — and it had
+never been scored.
+
+⚠️ **One number that circulated during this decision is misleading and is
+corrected here.** "The lowest preceding national share of any party that went on
+to win a seat is 0.0138%" is true, but that party is in the **both** class — it
+had a prior local record and is admitted regardless of any national floor. It
+does not constrain this cut. **The binding figure is 0.0254%** (the PA at
+Ekurhuleni 2016). The lower number would push a reader toward a floor lower than
+the evidence requires.
+
+**The evidence, 16 city-years (2016 and 2021, eight metros).** Splitting every
+admitted candidate by where its evidence comes from:
+
+| candidate class | n | won a seat | win rate | mean vote share |
+|---|---|---|---|---|
+| prior-local AND national | 189 | 125 | **66.1%** | **89.73%** |
+| prior-local ONLY | 153 | 10 | 6.5% | 0.48% |
+| **national ONLY** | **226** | 30 | **13.3%** | **5.12%** |
+| genuinely new | 232 | — | — | 4.66% |
+
+⚠️ **Independents are excluded from these shares.** `parties.canonical` folds
+every independent into one `IND` pseudo-party; counting it puts the prior-local
+class at 1.72% rather than 0.48%. Definitional, but the tables mean "parties".
+
+Ninety per cent of the vote is in the class with both kinds of evidence. The
+national-only class is 226 candidates for 5.12%.
+
+**Why the value is 0.1% and not the class.** ⛔ **The class cannot be dropped:
+MK is exactly it for 2026** — a 2024 national party with no 2021 local vector,
+at 12.2% nationally in Johannesburg. So the limit is on SIZE. Ordering the 226:
+
+| cut | dropped | **local vote lost** |
+|---|---|---|
+| 0.1% | **158 of 226** | **0.10pp** |
+| 0.2% | 188 | 0.21pp |
+| 1.0% | 216 | 0.88pp |
+
+**0.1% removes 70% of the phantom candidates for one tenth of a percentage
+point.** ⛔ **The first draft argued this from the transfer ratio of the LARGEST
+national-only parties (11.51% → 11.64%, 10.13% → 10.93%) and that reasoning is
+wrong** — it observes the ratio at the top and licenses a decision at the bottom.
+Measured by band, the ratio is *higher and far more dispersed* at the cut point
+than at the top:
+
+| preceding national share | n | median local/national | mean | max |
+|---|---|---|---|---|
+| **< 0.10%** | 20 | **1.41** | **1.97** | 10.44 |
+| 0.10–0.20% | 12 | 0.93 | 0.97 | 1.94 |
+| 0.20–0.50% | 17 | 1.16 | 1.42 | 5.02 |
+| > 2% | 9 | 1.11 | 1.18 | 1.45 |
+
+Small parties MULTIPLY their share locally — textbook second-order election
+behaviour (Reif & Schmitt: small, local and opposition parties gain at local
+elections). **The tail is systematically UNDER-valued by the very quantity used
+to cut it.** The chosen value survives, because the `local vote lost` column
+already prices the realised ratio rather than the predicted one — but the
+sentence was wrong reasoning that happened to reach a defensible number, and it
+is struck rather than left for the next person to move the floor with.
+
+**Chosen by the owner, 2026-09-03**, from the table above rather than from a
+round number.
+
+⛔ **0.2% was rejected on the wrong statistic.** The first draft said it "costs
+twice the vote for 30 more dropped candidates" — but **vote share is not the loss
+function; seats are, and seats are a step function.** Re-scored on seats, over
+**three cycles / 24 city-years**:
+
+| cut | seats lost | city-years with a deleted seat-winner | by cycle (2011/2016/2021) |
+|---|---|---|---|
+| **0.10%** | **2** | **2 of 24** | 0 / 2 / 0 |
+| 0.20% | **12** | **11 of 24** | 6 / 3 / 3 |
+| 0.50% | **25** | **16 of 24** | 8 / 4 / 13 |
+
+The vote column makes 0.5% look nearly free at 0.61pp. **In seats it deletes a
+real seat-winner in two-thirds of the panel**, and the harm replicates in every
+cycle. This is much stronger evidence for 0.1% than the first draft had, and it
+is the version that should be re-read in two years. *(The seat figures are a
+LOWER bound: dropping a party also redistributes its vote and can flip
+marginals.)*
+
+**Measured effect on the live forecast.** At Johannesburg 2026 it drops **14**
+parties; `no_measured_vector` goes 21 → 8. **MK (12.2%), ActionSA (6.2%), RISE
+(1.6%) and BOSA (1.0%) all clear it**; what goes is XILUVA (0.025%),
+BASIC_INCOME_GRANT_SA (0.078%) and eleven more of that size. 24 of 44 national
+parties clear the floor.
+
+**What it does NOT fix, and must not be read as fixing.** A genuinely new party —
+no national vote, no local record — is still invisible.
+
+⛔ **And calling ActionSA "the outlier of sixteen city-years, not the norm" was
+wrong.** Split by cycle, the genuinely-new class is not a stable distribution
+with one outlier; it is a regime change:
+
+| cycle | mean city share | seats won |
+|---|---|---|
+| 2011 | 1.24% | 17 |
+| 2016 | 1.56% | 20 |
+| **2021** | **6.92%** | **114** |
+
+**That class won 134 seats across the panel — nearly as many as the entire
+national-only class this floor argues about (150).** Averaging a quiet cycle with
+a rupture to get 4.66% is anti-conservative when **2026 follows a larger rupture
+than either**. It is the same missing covariate `CLAUDE.md` already names for
+`k*`: nothing in this model has a term for how turbulent a cycle is. The remedy for that is a **declared**
+newcomer in `judgements/<slug>-<year>.toml`, which is a judgement the owner makes
+and the model cannot.
+
+### ⚠️ Three corrections and a cost, added 2026-09-03 after the first draft
+
+**1. It is not the NATIONAL share. It is this metro's share of the national
+election.** `baseline` reads the city's own result file for the preceding NPE
+(`pools.py`, in `emit_pools` where `baseline` is built), so a party is judged on how it polled *in Johannesburg*
+at the national election, not nationally. That is the better quantity — locally
+relevant — but the first draft of this entry said "national share" throughout
+and was wrong. Verified that the measurement used the same quantity as the code:
+`baseline` and `_npe_citywide_for` agree to **0.00000** across all 44 parties,
+because the NPE file carries only PR rows and the filter is a no-op.
+
+**2. ⛔ IT WOULD HAVE REMOVED TWO REAL SEAT-WINNERS.** Tested against the record:
+
+    joburg 2016      PA   0.0558% at the preceding NPE   won 1 seat   0.17% local
+    ekurhuleni 2016  PA   0.0254% at the preceding NPE   won 1 seat   0.28% local
+
+Both are the Patriotic Alliance, and both are the case the floor is structurally
+worst at: **locally concentrated, nationally negligible.** Two seats out of the
+~3,684 in the panel is the measured price of dropping 158 of 226 candidates —
+but it is a price, it is not zero, and it has a demographic shape rather than
+being spread at random. *(The PA is at 2.9% in 2024 and clears the floor
+comfortably now; the exposure is to the NEXT locally-concentrated party.)*
+
+**3. The boundary is crowded.** Seven parties sit within 0.05pp of the floor at
+Johannesburg 2024 — UNITED_AFRICANS_TRANSFORMATION 0.150%, ALLIED_MOVEMENT_FOR_CHANGE
+0.140%, COPE 0.121%, HOPE4SA 0.114%, DUDULA 0.107%, **AIC 0.1021%**, AHC 0.1006%
+— against ACTION_ALLIANCE_DEVELOPMENT_PARTY at 0.0964% and AZAPO at 0.0875% just
+below. **The AIC clears by two thousandths of a percentage point**, and the AIC
+is one of the parties the roster rule was measured to MISS at 2016, worth
+1.5–2.7% locally. A floor with that many parties adjacent to it is a knife-edge,
+and small changes to the preceding NPE will move parties across it.
+
+**How to check it.** Re-run the class table and the cut table on the next cycle's
+record; if `national ONLY` stops being ~5% of the vote, or if the transfer ratio
+of the large ones stops being ~1.0, the floor's justification has moved. **And
+re-run the seat-winner falsifier** — if it starts removing more than a seat or
+two, or removes one in a city where the margin is close, the floor is costing
+more than it was chosen to cost.
+
+### §K2 · `PRIOR_LOCAL_FLOOR` — 0.001 — 🟢 measured, and INERT TODAY
+
+**Where.** `pools.py`, module level, same branch as §K1.
+
+**What it decides.** Whether a party that contested the preceding LOCAL election
+and polled nothing at the preceding NATIONAL one is assumed onto an unheld
+ballot. Below 0.1% of its prior local share, it is not.
+
+**Why it exists.** §K1's first draft filtered only the national-only class and
+left this one — 153 of 568 admitted candidates — entirely unfiltered. A blind
+review found it, and it is **the better bargain of the two**. Over three cycles,
+189 such candidates (independents excluded) and **137 of them, 72%, never stand
+again**:
+
+| floor on prior local share | dropped | vote lost | **seats lost** |
+|---|---|---|---|
+| 0.05% | 73 | 0.019pp | **0** |
+| **0.10%** | **112** | **0.038pp** | **0** |
+| 0.20% | 148 | 0.147pp | **5** |
+| 0.50% | 184 | 0.359pp | 16 |
+
+**59% of the class removed at zero measured seat cost** — against the national
+floor's 70% for two seats. The value is 0.1% for the same reason it is there:
+0.2% costs five seats, one of them a party that won four on a 0.162% prior share.
+The curve mirrors §K1's almost exactly, which is itself evidence the shape is
+real rather than fitted.
+
+### ⛔ IT WAS INERT WHEN MEASURED, AND THAT WAS STATED RATHER THAN DISCOVERED
+
+At Johannesburg 2026 it removed **27 parties from the guessed roster and changed
+nothing in the emitted spec**: `no_measured_vector` was 21 → 8 with or without
+it, identical to §K1 acting alone. The reason was structural — those parties sit
+in `composition`, so they were never in `no_vector`, and the branch that would
+drop them from the ballot was gated on a single boolean that was False for an
+unheld target.
+
+**So this constant was a precondition, not a change** — measured and registered
+before its consumer existed, the same pattern as `judgements_sha`.
+
+⚠️ **UPDATED 2026-09-03: the consumer now exists.** That boolean was replaced by
+the three states of `pools.resolve_roster` (§L1, §1.177). A *projected* roster
+may now drop parties, and what it may drop is exactly what §K1 and §K2
+deliberately excluded — so this floor is live at an unheld target from this
+commit onward. It is no longer inert and the paragraph above is history.
+
+**How to check it.** Re-run the table above on the next cycle. And at the post-
+review emit, re-measure the spec diff: if this floor still changes nothing now
+that the projected drop reaches it, the drop is not wired up and one of the two
+is wrong.
+
+## L. Added 2026-09-03 — the declared-nomination-list path (§1.177, §1.178)
+
+⛔ **EVERYTHING IN THIS SECTION IS ARGUED, NOT TESTED, AND THE REASON IS
+STRUCTURAL.** The path runs only for a target whose election has not been held.
+Every one of the 24 backtested city-years has a published result file and takes
+the `published` arm, so **no measurement the harness can make reaches any of
+this.** It will run for the first time in production, on 16 September 2026, on
+the live Johannesburg forecast. That is the whole reason it is written down
+here rather than left to the code.
+
+### §L1 · A declared roster ADDS always and DELETES only on `complete = true` — ⚖️ argued
+
+**What.** `declared_roster` returns `complete: False` unless the judgement file
+says otherwise, and `resolve_roster` licenses a deletion from the pools only
+when it is True.
+
+**Why it is a judgement.** Two facts, not one: *do we know the ballot* and *are
+we allowed to remove parties from the pools*. Conflating them is a boolean, and
+the boolean deletes **2.4-2.9% of a city's vote across 16-20 parties** when it
+fires wrongly (§1.175) — funded out of the parties ranked 4th to 12th, which
+are exactly the ones that win marginal seats. On the day, under time pressure,
+a half-pasted list must fail safe, and the safe direction is *add*.
+
+**How to check it.** After nomination lists publish, count the parties in
+`pools_2026.json`'s composition against the IEC list. If `complete = true` was
+set and the counts disagree, the deletion fired on a partial paste.
+
+### §L2 · The declaration sets the LEVEL; the record sets the WIDTH — ⚖️ argued
+
+**What.** For a party sized by declaration — `support`, or `overperform` — the
+band is `[lo_e / base, 1.0, hi_e / base]` where `base` is the **comparator
+mean**, never the adjusted centre.
+
+**Why it is a judgement, and why the alternative is indefensible.** Until
+2026-09-03 the divisor was the adjusted centre, so stating that a party is
+larger than its comparators narrowed its band in exact proportion: ActionSA's
+documented ×36 would have put its 95th percentile at **7.7% of its own mean**.
+That is a forecast made 36× sharper by the act of admitting a guess, at the one
+place in the model where least is known. The replacement is not measured —
+nothing in the record says how uncertain a *declared* level is — but it is the
+only reading under which the two inputs answer different questions.
+
+**And the level has to survive the group budget.** `arrival_rules` rescales the
+entrant group to the arrival-total record, and a declared party left inside that
+budget has its declaration renormalised away — a declared 12% measured out at
+0.3687%. A judged size therefore sits **outside** the budget, and is not netted
+off it: the record is a prior over arrivals nobody has sized, and a cycle with a
+12% arrival is not the cycle it describes. The undeclared group keeps the
+record. §1.178.
+
+⚠️ **What it does not claim.** That the comparator band's relative width is
+*right* for a declared party. A hand-declared level may be far better informed
+than the arrival record (a former mayor with a national profile) or far worse
+(a name on a list). The model has no term for that and this makes no attempt to
+add one; it only refuses to let the level silently set the width.
+
+**How to check it.** After 4 November, score the declared parties' PIT. If they
+cluster at the extremes the width is wrong; if they cluster near 0.5 the level
+is doing the work and the width is defensible.
+
+### §L3 · `PARTY_KEYS` is closed and an unknown key refuses — ⚖️ argued, and cheap
+
+**What.** `[party.X]` accepts `parent`, `weights`, `support`, `overperform` and
+`baseline_share`. Anything else raises, naming the file and listing the set.
+
+**Why.** `baseline_share` is informational and **nothing reads it**, while all
+408 party tables in the tree carry it and nothing else — and three docstrings
+plus the file template named it as the strength knob. The documented way to
+size a declared party was a key with no reader. A closed set does not fix a
+wrong document, but it does stop the next misspelling costing a forecast
+instead of a run, and `suport = 0.12` costs nothing to type on a deadline.
+
+**How to check it.** `test_an_unreadable_key_in_a_party_table_refuses_instead_of_being_ignored`
+asserts both directions: every key the live files use is admitted, and a
+constructed misspelling is refused.
+
+### §L4 · `ROSTER_DROP_CEILING` — 0.015 — ⚖️ argued, from a measured cost
+
+**What.** A `complete = true` roster that would delete parties holding more
+than **1.5%** of the fitting year's vote refuses, names the parties and their
+shares, and requires `confirm_drop = true`.
+
+**Why that number.** §1.175 measured a wrongly-fired drop at **2.4-2.9%** of a
+city's vote across 16-20 parties. The ceiling sits below the smallest of those,
+so a real mis-paste trips it, and above the trivial corrections a genuine list
+makes. Under largest remainder ~0.4% of the vote is a seat, so 1.5% is roughly
+four seats — the point at which a human should look.
+
+⚠️ **It is a tripwire, not a bound.** `confirm_drop = true` passes any mass. The
+refusal buys a second pair of eyes on the one edit that has no second chance,
+not a limit on what the ballot may be.
+
+**How to check it.** After the lists publish, the accepted drop's mass should be
+small and its parties should all be genuinely absent from the IEC list. If
+`confirm_drop` had to be set, the reconciliation belongs in `MODEL-LOG.md`.
+
+### §L5 · `MAX_POOL_CAPTURE` — 0.9 — 🔴 typed, and it binds SILENTLY
+
+**What.** No party may be seeded to take more than 90% of any one pool.
+`_capture_from_share` clips to it.
+
+**Why it is 🔴.** It was a bare `0.9` literal inside a comprehension, in no
+register entry, until 2026-09-03. Nothing measured it and nothing said when it
+bound. Measured now on Johannesburg-like pool sizes:
+
+| declaration | delivered | short |
+|---|---|---|
+| 18.12% flat (the ActionSA level) | 16.44% | 9% |
+| 25% flat | 20.15% | 19% |
+| **6% entirely in Indian/Asian** | **2.85%** | **53%** |
+
+Second-order for a flat vector and severe for a **concentrated** one — which is
+exactly what `weights` exists to express. The note beside it read
+`Sized at a DECLARED 6.00% of the city` throughout.
+
+**What is fixed and what is not.** `capture_shortfall` now measures the loss and
+the note reports it, so the cap is no longer silent. **The value is still
+undefended** — 0.9 was never measured against anything, and the honest
+alternatives (refuse, renormalise onto the remaining pools, or raise the cap)
+have not been scored. Registered here so it is visible rather than quietly
+binding.
+
+**How to check it.** `test_the_pool_capture_cap_says_when_it_binds` asserts it
+does not bind on an ordinary flat declaration and does on a concentrated one.
+
+### §L6 · `_arrival_total_prior` — pooled MEAN over entrants only — 🟢 measured, and a hypothesis withdrawn
+
+**What.** The arrival group budget is the **mean** of the **entrants-only**
+group total, **pooled** over every city-year strictly before the target. Not a
+median, not the all-arrivals population, and not recency-weighted.
+
+**Why mean.** Two independent reasons. IPF pins each party's mean to its centre,
+so whatever goes into a centre is an expectation by construction (the
+2026-08-17 correction, §1.179). And it scores better out of sample: Σ|err| over
+the 2016 and 2021 targets is **2.6146% against the median's 3.0777%**.
+
+**Why not recency.** It was the plan's own provisional position and it does not
+survive measurement: recency-weighted scores **2.6893%** and last-cycle-only
+**2.7746%**, both worse than the pooled mean. The gap is 0.08pp over two
+targets — inside noise — so the claim is the weaker one: recency is **not
+better**, and it costs a half-life parameter a panel with ~3 effective clusters
+cannot support. **Parsimony decides it, not the score.**
+
+⚠️ **What is known to be wrong with it.** Every estimator tested under-predicts
+at **8 of 8** target-cells. The entrants-only series runs 1.15 / 2.00 / **0.84**
+/ 2.04 / 3.61% across 2000–2021 — not a trend, a dip at 2011 and a sharp rise
+after — and no backward-looking statistic tracks that. **So the 2026 arrival
+mass is more likely low than high**, and it should be said that way wherever it
+is quoted. A trend term is NOT added: fitted on two scored targets it is the
+`k*` error again, and the honest reading is the same one — this is not a
+constant to estimate but a variable with a missing covariate (how fragmenting a
+cycle is), for which the model has no term.
+
+**How to check it.** Re-run the out-of-sample table in §1.180 when 2026 lands.
+It adds a third target, which is the first thing that could genuinely separate
+these four estimators.
+
+### §L7 · `len(arr) < 3` in `arrival_group_record` — 🔴 selects on the dependent variable
+
+**What.** A metro-year with fewer than three arrivals is dropped from the
+arrival record entirely.
+
+**Why it exists, and why that is the wrong reason for one of its two
+consumers.** A symmetric-Dirichlet concentration is not estimable below three
+members, so `arrival_group_spec` needs the floor. **`_arrival_total_prior` needs
+only the total and inherits the floor anyway** — and the floor selects on
+arrival COUNT, which is correlated with arrival MASS, so the budget is
+systematically inflated by excluding the quiet city-years.
+
+Measured 2026-09-04. The three excluded rows are **MAN 2006 (0.330%), BUF 2006
+(0.493%) and MAN 2011 (0.284%) — the three smallest arrival totals in the whole
+record**, two of them in the cycle the widening adds:
+
+| target | with the floor | without | effect |
+|---|---|---|---|
+| 2011 | 1.8769% | 1.5512% | **+17.4%** |
+| 2016 | 1.3977% | 1.2048% | +13.8% |
+| 2021 | 1.6433% | 1.4840% | +9.7% |
+| 2026 | **2.1867%** | 2.0163% | +7.8% |
+
+**Status: left in place, deliberately.** Removing it is forecast-moving and
+belongs in a window with its own pre-registration, not in a commit fixing
+something else. It is registered here so the inflation is a known quantity
+rather than a discovery — `audits/BATCH-PLAN-2026-09-02.md` required this and it
+had not been done.
+
+⚠️ **It is the same defect one level down from the one §L6 fixes**: one record,
+two consumers, and a rule that belongs to one of them applied to both.
+
+### §L8 · `UNCLASSIFIED_FLOOR` — 0.005 — ⚖️ a REPORT, and it changes no number
+
+**What.** A party with no measured pool vector, no entry in `SPLITS` and no
+declared parent — so `classify_arrival` calls it *"arrived from nothing"* — is
+listed in the emitted spec under `unclassified_with_national_record` if it held
+at least **0.5%** at the preceding NATIONAL election.
+
+**Why the national share and not the local one.** The local baseline of such a
+party is zero by construction — that is what makes it an arrival — so a local
+trigger can never fire. A party that plainly exists nationally and has no local
+lineage is the case worth a second look: **it has probably split from someone
+nobody has typed into `SPLITS`.** Getting that wrong once cost 0.1% against an
+actual 18.12% (ActionSA, 2021).
+
+**Emitted, not printed.** A warning printed during an emit is scrollback, and
+the emit is the operation nobody re-runs. In the spec it is diffable, it
+survives into `compare_history`, and a test can assert on it.
+
+⚠️ **It changes no forecast number.** Nothing downstream reads the field; the
+party is still sized as an entrant exactly as before. It is a flag for a human
+before the emit, not a mechanism.
+
+**What it finds today.** On the live Johannesburg 2026 roster it flags exactly
+two — **RISE (1.56%)** and **BOSA (1.02%)**. BOSA is Mmusi Maimane's party,
+founded after he was pushed out of the DA in October 2019, and it is treated as
+arriving from nothing. On the evidence of §1.186 — where that departure cost the
+DA two-thirds of the Coloured pool and half the Indian/Asian — that is very
+likely a split whose parent should be declared. **Flagged, not decided:** naming
+a parent is a judgement, it belongs in the judgement file, and it is the owner's.
+
+**Why 0.5%.** Below it the list fills with the national tail: at 0.1% it would
+flag fourteen more, all under 0.11%, none of them plausible splits. Above ~2% it
+would miss both of the ones that matter. Chosen to make the list short enough to
+read on the day. Undefended beyond that.
+
+### §L9 · `REGISTRATION_MAX` — 2.0 — ⚖️ a runaway guard, not an estimate
+
+**What.** `_nest` fits three levels with one solver. `adult_share` and `turnout`
+are bounded at **1.0**, which they cannot exceed. **`registration` is bounded at
+2.0**, because it can.
+
+**Why it can exceed 1.** Registered voters are **counted**; census voting-age
+population is **modelled**. `pool_counts` computes their ratio itself and files
+it as `census_correction`, *"a property of the census, not of the model"* —
+**1.206 Indian/Asian and 1.480 White at Johannesburg 2021**. `DATA-QUALITY`
+item 11 records the 2022 census over-stating exactly those groups by 14% and
+24%. From Phase 1a until 2026-09-05 the solver clipped that quantity to 1.0 and
+pushed the surplus into the other pools: **Johannesburg's White share of the
+registered roll read 20.0% against 25.2% unclipped.**
+
+⛔ **THE EVIDENCE FIRST WRITTEN HERE WAS MEASURED WITH THE WRONG INSTRUMENT AND
+THE VALUE 2.0 IS NOT YET DEFENDED. CORRECTED 2026-09-06.**
+
+It said *"the only values above 2 are Mangaung Indian/Asian at 4.34 and 3.36"*
+and cited Cape Town Indian/Asian at 1.82 / 1.92 / 1.72 as proof the guard admits
+it. **That table was taken with the bound lifted on all three levels at once**,
+which inflates `adult_share` and deflates the registration rate — the identical
+error §1.189 diagnoses for its own P2 two paragraphs later and did not carry
+back. Re-derived with the **shipped** instrument:
+
+| city | pool | 2006 | 2011 | 2016 | 2021 |
+|---|---|---|---|---|---|
+| Johannesburg | White | 1.27 | 1.38 | 1.71 | 1.74 |
+| **Cape Town** | **Indian/Asian** | 1.90 | **2.13** | **2.26** | 1.93 |
+| Mangaung | Indian/Asian | — | — | 4.34 | 3.27 |
+
+**Two of Cape Town's four cycles are ABOVE 2.0.** So the guard binds on **four
+`registration` cells in two cities** — Cape Town 2011 and 2016, Mangaung 2016 and
+2021 — two of which this entry cited as proof it binds on nothing but the
+degenerate pool.
+
+⚠️ **And the panel-wide picture is larger still: 24 fitted cells sit on a bound,
+across four cities and 15 city-years** (§1.192) — 4 `registration`, 10
+`adult_share` at 1.0, 5 `turnout` at 0.0, and the rest. **Johannesburg, Tshwane,
+Ekurhuleni and eThekwini are clean.**
+
+**Status: the per-level split is right and ships. The VALUE 2.0 is undefended**
+and is deferred rather than defended — changing it forces another emit and the
+evidence for any replacement must be re-measured on the corrected instrument
+first. What is certain is that the old single bound of 1.0 clamped a quantity the
+model separately computes as 1.48.
+
+⛔ **It is a guard, not an estimate.** It does not say a registration rate of 2.0
+is plausible; it says a fit that reaches 2.0 has stopped estimating. When it
+binds, the pool is listed in the spec's `rates_on_a_bound`.
+
+**And the clip is no longer silent.** `_nnls`'s docstring always promised the
+caller *"must SAY SO rather than quietly using the clipped value"*; the
+`unidentified` list it pointed at was computed and **read by nothing** — no
+print, no field, no test. It is now emitted as `rates_on_a_bound`. Its message
+also distinguishes the two causes: a pool reaching under 25% of any ward is
+genuinely unidentifiable, while one reaching 77% is identifiable and its bound is
+binding because the true value lies beyond it. The old message blamed the ward
+table for both.
+
+⚠️ **What this does NOT fix, measured and pre-registered as P3.** The DA/White
+infeasibility is **unrelated**: fatal cells went 18 → 17, Buffalo City and Nelson
+Mandela Bay unchanged, Cape Town marginally worse. That corner is a structural
+failure of the ecological fit where one pool dominates — at Buffalo City 2011 the
+DA is fitted taking 100% of three pools at once and still cannot reach its actual
+20.26%. Separate work, §1.189.
+
+**How to check it.** `test_the_registration_bound_is_per_level` asserts
+`adult_share` and `turnout` stay within [0, 1] everywhere, that a rate above 1 is
+admitted for registration, and that the guard binds on Mangaung's Indian/Asian
+pool.
+
+### §L10 · `gates_sha` — the artefact key records the resolved ENV gates
+
+**What.** The key now carries a hash of `HELD_BACK_OFF`, the resulting size of
+`levels.HELD_BACK`, and `THETA_WINDOW`.
+
+**The hole it closes.** `_deps_sha` names `levels` as a dependency *because* it
+carries `HELD_BACK`, "which decides whether a fitting election may be read at
+all". But `HELD_BACK_OFF=1` empties that gate at import time and `_code_sha`
+hashes a **syntax tree**, which an environment variable does not change.
+Measured 2026-09-05: the gate goes from **14 entries to 0** while `deps_sha`
+stays byte-identical at `53cedeb94115dd98`.
+
+⚠️ **And `levels.py`'s own comment invites the run that does it** — *"`HELD_BACK_OFF=1`
+lifts the gate for one run, so the diagnosis this entry is about can be
+MEASURED"*. A spec emitted during such a run reported itself **current for
+ever after**. That is precisely the silent staleness the key exists to close,
+arriving through the one door it was not watching.
+
+**Recorded, not refused.** A diagnostic emit is legitimate; what matters is that
+the artefact says it was one. A later normal run compares and reports stale.
+
+**How to check it.** `test_an_environment_gate_moves_the_artefact_key` flips the
+resolved gate and asserts the key moves — and asserts the gate is non-empty by
+default, so the constructed violation is not a change from nothing to nothing.
 
 ## Appendix — how this register has failed before
 

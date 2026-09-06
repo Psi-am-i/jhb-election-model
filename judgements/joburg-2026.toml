@@ -16,6 +16,88 @@
 # Every override here is recorded in the run's provenance and should be
 # deleted once the election has been held and the vector measured.
 
+# ============================================================================
+# NOMINATION DAY — 16 SEPTEMBER 2026. THE TEMPLATE IS BELOW, COMMENTED OUT.
+# ============================================================================
+#
+# Uncomment `[roster]` and paste the IEC candidate list into `parties`.
+# Everything below is commented, so this block changes nothing until you act.
+#
+# ⛔ THREE THINGS TO KNOW BEFORE YOU TYPE, at 22:00 with a deadline:
+#
+#   1. `complete` DEFAULTS TO FALSE, and that is the safety property. A roster
+#      that does not say `complete = true` ADDS parties and REMOVES NONE. Set
+#      it only when you are certain the list is the WHOLE ballot. A partial
+#      paste with `complete = true` deletes real parties from the pools.
+#
+#   2. WRITE BOOLEANS BARE.  complete = true      ✅
+#                            complete = "true"    ❌ REFUSED (a quoted value
+#                            is a string, and `bool("false")` is True)
+#
+#   3. PASTING THIS CHANGES `judgements_sha` AND NOTHING ELSE. So it
+#      invalidates exactly TWO specs — pools_2026.json and
+#      pools_2026_simulation.json. It is a two-spec re-emit:
+#
+#          .venv/bin/python src/pools.py --city joburg --target 2026 --emit
+#          .venv/bin/python src/pools.py --city joburg --target 2026 \
+#              --simulation --emit
+#
+#      It is NOT the 26-spec window. Do not re-emit the panel on the night.
+#
+#   4. ⛔ RE-EMITTING A SPEC CHANGES NO PUBLISHED NUMBER. The two commands
+#      above rewrite the pool file. The forecast still has to be RE-RUN and
+#      the site REBUILT, or the page shows the old number with a new spec
+#      underneath it. See PLAN-TO-LIVE §A5 and PUBLISHING-BACKLOG §5c.
+#      Doing only the emit is doing the reversible half.
+#
+#   5. IF `complete = true` REFUSES ON THE DROP MASS, here is what normal
+#      looks like — measured over the two transitions we have:
+#
+#          2016 ballot against the 2011 fit:  8 parties, 1.16% of the vote
+#          2021 ballot against the 2016 fit: 10 parties, 0.32% of the vote
+#
+#      Both are under the 1.5% ceiling. So a refusal means the paste drops
+#      MORE than any real ballot ever has, and the first assumption should be
+#      that the list is incomplete — not that the ceiling is wrong. Set
+#      `confirm_drop = true` only after checking the names against the IEC's.
+#
+# The run REFUSES, loudly and by name, if: a key here is misspelt; the table
+# is misspelt; a party name resolves to nothing and has no [party.X] table; or
+# a `complete = true` roster would delete more than 1.5% of the 2021 vote
+# (add `confirm_drop = true` only after checking the list against the IEC's).
+#
+# [roster]
+# complete = false          # true ONLY when this is the whole ballot
+# confirm_drop = false      # true only to accept a >1.5% deletion, knowingly
+# parties = [
+#   "AFRICAN NATIONAL CONGRESS",
+#   "DEMOCRATIC ALLIANCE",
+#   "ECONOMIC FREEDOM FIGHTERS",
+#   "UMKHONTO WESIZWE",
+#   "ACTIONSA",
+#   # ... paste the rest of the IEC list here, one per line
+# ]
+#
+# Optional. Per-party ward lists, for full fidelity once the lists land.
+# `reach` is DERIVED from these if you give wards and omit reach.
+# [roster.wards]
+# ACTIONSA = [1, 2, 3]
+#
+# Optional. Fraction of wards each party contests, if you know it directly.
+# Overrides anything derived from [roster.wards].
+# [roster.reach]
+# ACTIONSA = 0.99
+#
+# A GENUINELY NEW PARTY needs BOTH: a line in `parties` above, and a
+# [party.X] table saying how strong it is and which pools it draws from.
+# Without the table the run refuses, because an unrecognised name is far more
+# often a typo than a new party. `support` is its share OF THE CITY.
+#
+# [party.SOME_NEW_PARTY]
+# support = 0.05
+# parent = ""              # e.g. "ANC" to inherit the ANC's pool vector
+# ============================================================================
+
 [party.MK]
 baseline_share = 0.1222
 parent = "ANC"   # splinter: inherits the ANC's pool vector until measured

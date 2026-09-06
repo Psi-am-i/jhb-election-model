@@ -76,7 +76,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _support import ROOT, skip, run_module  # noqa: E402
+from _support import ROOT, skip, run_module, scanned  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -578,6 +578,7 @@ def test_no_top_level_function_is_defined_and_never_used():
                      sorted(SRC.glob("*.py")) +
                      sorted((ROOT / "tests").glob("*.py")))
     dead = []
+    public = []
     for path in sorted(SRC.glob("*.py")):
         for node in ast.parse(path.read_text()).body:
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -585,12 +586,129 @@ def test_no_top_level_function_is_defined_and_never_used():
             name = node.name
             if name.startswith("_") or name == "main" or name in ALLOWED:
                 continue
+            public.append(name)
             if len(re.findall(rf"\b{re.escape(name)}\b", text)) <= 1:
                 dead.append(f"{path.name}: {name}")
+    # (1) IT LOOKED. 347 public top-level functions across 50 files on
+    # 2026-08-31; the bounds are fractions of the file count so they do not go
+    # stale as src/ grows. Below the floor the AST walk has stopped reaching
+    # the definitions and `dead` is empty because nothing was examined.
+    scanned(public, of=sorted(SRC.glob("*.py")), low=2.0, high=20.0,
+            what="public top-level functions in src/",
+            denominator=".py files in src/")
     assert not dead, (
         "defined and never referenced anywhere in src/ or tests/:\n  "
         + "\n  ".join(dead)
         + "\nDelete it, or call it, or add it to ALLOWED with a reason.")
+
+
+# A public top-level function in `src/` whose only "references" are prose —
+# comments and docstrings — and which no code anywhere calls. The test above
+# counts references with a TEXT regex over the concatenated source, so a
+# function named in a sentence reads as used; these four are what that costs.
+#
+# Each is a real finding, verified 2026-08-31 by counting `ast.Name`/
+# `ast.Attribute` references across `src/` and `tests/` instead:
+#
+#   seats.overhang            — 25 regex hits, ALL of them the English word
+#                               "overhang" in comments and docstrings. Zero code
+#                               references, in the seat-allocation module. This
+#                               is the `pools.apply_arrivals` shape exactly: a
+#                               documented mechanism that never runs, being read
+#                               by anyone who opens seats.py to understand how
+#                               overhang is handled.
+#   polling.metro_polls       — one comment in montecarlo.py, one docstring in
+#                               polling.py.
+#   pools.constrain_pool_turnout — a `:func:` docstring reference and a `# NOTE:`
+#                               comment, both inside pools.py itself.
+#   stats.dated_spans         — one docstring in tests/test_published_page.py.
+#
+# They are NOT in `ALLOWED` above, because ALLOWED excuses a function from the
+# text-regex guard and these are not excused — they are recorded, with the
+# guard that says so, until someone deletes or wires each one. `src/` is not
+# this worker's to change.
+PROSE_ONLY_REFERENCES = {
+    "overhang": "seats.py — 25 regex hits, all the English word; zero callers",
+    "metro_polls": "polling.py — a comment and a docstring, no caller",
+    "constrain_pool_turnout": "pools.py — its own docstring and a # NOTE",
+    "dated_spans": "stats.py — one docstring in tests/test_published_page.py",
+}
+
+
+def test_no_public_function_is_kept_alive_only_by_prose():
+    """(0) THE RIGHT SET — the sibling above counts words, not calls.
+
+    `test_no_top_level_function_is_defined_and_never_used` counts
+    ``re.findall(rf"\\b{name}\\b", TEXT)`` over the raw concatenation of `src/`
+    and `tests/`, so a comment, a docstring, or the ordinary English word that
+    happens to spell the function's name all read as uses. Its population is
+    347 functions and it reports **zero** dead ones. Counting `ast.Name` and
+    `ast.Attribute` references instead reports **four**, and one of them is
+    `seats.overhang` — twenty-five "references", every one of them the word
+    "overhang" in a sentence, in the module that allocates seats.
+
+    That is the failure CLAUDE.md calls the worst-record class: the scan was
+    healthy, the detector worked, and it found nothing **in the wrong set**.
+
+    The four are recorded in `PROSE_ONLY_REFERENCES` rather than fixed, because
+    `src/` is not this test's to edit — and the record is checked BOTH ways, so
+    the list cannot rot in either direction: a fifth is a failure, and a fourth
+    that acquires a caller is also a failure, which is what makes the entry
+    disappear when the defect does.
+    """
+    import collections
+    refs: collections.Counter = collections.Counter()
+    for path in sorted(SRC.glob("*.py")) + sorted((ROOT / "tests").glob("*.py")):
+        for node in ast.walk(ast.parse(path.read_text())):
+            if isinstance(node, ast.Name):
+                refs[node.id] += 1
+            elif isinstance(node, ast.Attribute):
+                refs[node.attr] += 1
+    # A name reached by `getattr(mod, "name")` or a dispatch table is a real
+    # call, and it is a STRING. Harvested from `src/` ONLY — because
+    # `PROSE_ONLY_REFERENCES` below is a dict whose keys are those very names,
+    # in this file, so harvesting strings from `tests/` makes the record of the
+    # defect erase the defect. That is the identical self-pollution that made
+    # `test_register_matches_code.DELETED` inert for its whole life, found here
+    # by writing the guard and watching it exonerate its own subjects.
+    for path in sorted(SRC.glob("*.py")):
+        for node in ast.walk(ast.parse(path.read_text())):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                refs[f"str:{node.value}"] += 1
+
+    public, prose_only = [], {}
+    for path in sorted(SRC.glob("*.py")):
+        for node in ast.parse(path.read_text()).body:
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            name = node.name
+            if name.startswith("_") or name == "main":
+                continue
+            public.append(name)
+            # A `def` binds the name but creates no Name node, so this counter
+            # holds USES only.
+            if refs[name] == 0 and refs[f"str:{name}"] == 0:
+                prose_only[name] = f"{path.name}:{node.lineno}"
+
+    scanned(public, of=sorted(SRC.glob("*.py")), low=2.0, high=20.0,
+            what="public top-level functions in src/",
+            denominator=".py files in src/")
+
+    new = sorted(set(prose_only) - set(PROSE_ONLY_REFERENCES))
+    assert not new, (
+        "public function(s) in src/ with no code reference anywhere in src/ or "
+        "tests/ — only prose:\n  "
+        + "\n  ".join(f"{n}  ({prose_only[n]})" for n in new)
+        + "\n\nThe sibling guard cannot see these: it counts the NAME in the "
+          "raw text, so a comment, a docstring, or the ordinary English word "
+          "spelling it all read as uses. Delete the function, wire it up, or "
+          "add it to PROSE_ONLY_REFERENCES with the evidence.")
+
+    fixed = sorted(set(PROSE_ONLY_REFERENCES) - set(prose_only))
+    assert not fixed, (
+        f"PROSE_ONLY_REFERENCES records {fixed} as having no caller, and they "
+        f"now do. Delete the entry — a record of a defect that outlives the "
+        f"defect is the next false claim's licence.")
 
 
 # ---------------------------------------------------------------------------
@@ -751,14 +869,35 @@ def test_every_tunable_constant_is_in_the_judgement_register():
                         found.setdefault(
                             sub.target.id,
                             f"{path.name}:{sub.lineno} {node.name}.{sub.target.id}")
-            # (d) module constants: scalars as before, PLUS containers holding numbers
-            if (isinstance(node, ast.Assign) and len(node.targets) == 1
-                    and isinstance(node.targets[0], ast.Name)):
-                n = node.targets[0].id
+            # (d) module constants: scalars, containers holding numbers, AND —
+            #     since 2026-08-31 — tuple targets and annotated assignments.
+            #     `SD_FLOOR, SD_CEILING = 0.15, 1.20` in levels.py and
+            #     `SAFE, STRONG, LEAN = 0.90, 0.75, 0.60` in hex_cartogram.py
+            #     were invisible to the single-`ast.Name`-target rule, which is
+            #     why `SD_FLOOR` and `SD_CEILING` sat in EXEMPT below excusing
+            #     names the scan had stopped finding. The widening adds exactly
+            #     those five and all five are registered, so it is green.
+            targets_values: list[tuple] = []
+            if isinstance(node, ast.Assign) and len(node.targets) == 1:
+                target = node.targets[0]
+                if isinstance(target, ast.Name):
+                    targets_values = [(target, node.value)]
+                elif (isinstance(target, ast.Tuple)
+                        and isinstance(node.value, ast.Tuple)
+                        and len(target.elts) == len(node.value.elts)):
+                    targets_values = list(zip(target.elts, node.value.elts))
+            elif (isinstance(node, ast.AnnAssign)
+                    and isinstance(node.target, ast.Name)
+                    and node.value is not None):
+                targets_values = [(node.target, node.value)]
+            for target, value in targets_values:
+                if not isinstance(target, ast.Name):
+                    continue
+                n = target.id
                 if n.startswith("_") or not n.isupper():
                     continue
                 try:
-                    v = ast.literal_eval(node.value)
+                    v = ast.literal_eval(value)
                 except Exception:
                     continue
                 if isinstance(v, (int, float)) and not isinstance(v, bool):
@@ -787,6 +926,32 @@ def test_every_tunable_constant_is_in_the_judgement_register():
                 elif isinstance(v, (int, float)) and not isinstance(v, bool):
                     found.setdefault(k, f"{toml.name}:{prefix}{k} = {v}")
         _walk(tomllib.loads(toml.read_text()))
+
+    # (1) IT LOOKED. `assert not missing` is satisfied by a scan that harvested
+    # nothing — a renamed `SRC`, a `literal_eval` that stopped succeeding, an
+    # `ast` shape that moved. Both bounds are fractions of the `src/` file
+    # count so neither goes stale: 148 names across 50 files on 2026-08-31.
+    scanned(found, of=sorted(SRC.glob("*.py")), low=1.0, high=8.0,
+            what="tunable constants harvested from src/",
+            denominator=".py files in src/")
+
+    # (0) THE OTHER DIRECTION, on the exemption list itself. An EXEMPT name the
+    # scan no longer finds is excusing nothing, and it sits there ready to
+    # excuse the next constant that happens to be given the same name. Two were
+    # in that state on 2026-08-31 — `SD_FLOOR` and `SD_CEILING`, which
+    # `levels.py` binds as `SD_FLOOR, SD_CEILING = 0.15, 1.20`, a tuple target
+    # the scan could not see. The repair was to widen the scan, not to delete
+    # the exemptions: a stale exemption is usually a blind scan wearing a
+    # disguise.
+    dead_exemptions = sorted(n for n in EXEMPT if n not in found)
+    assert not dead_exemptions, (
+        f"{len(dead_exemptions)} EXEMPT name(s) are not found by this scan at "
+        f"all: {dead_exemptions}\n"
+        f"  Either the constant is gone — delete the exemption — or the scan "
+        f"has stopped seeing a shape it used to see, which is the more likely "
+        f"and the more dangerous. Check the AST shape before touching the "
+        f"list; the whole point of EXEMPT is that every entry is a judgement "
+        f"someone made about a constant that EXISTS.")
 
     missing = sorted(f"{n}   ({where})" for n, where in found.items()
                      if n not in EXEMPT and n not in reg)
@@ -922,6 +1087,13 @@ def test_every_test_module_is_collected():
     import run_all
     on_disk = {p.stem for p in sorted((ROOT / "tests").glob("test_*.py"))}
     listed = set(run_all.MODULES)
+    # (1) IT LOOKED. The two set differences below already fail loudly on an
+    # empty `on_disk` (every listed module becomes stale), but not on an empty
+    # `listed` paired with an empty glob — and the glob is the fragile half.
+    # 31 test modules against 34 .py files in tests/ on 2026-08-31.
+    scanned(on_disk, of=sorted((ROOT / "tests").glob("*.py")),
+            low=0.6, high=1.0, what="test modules found on disk",
+            denominator="all .py files in tests/")
     missing = sorted(on_disk - listed)
     assert not missing, (
         f"test module(s) on disk but never collected by tests/run_all.py: "

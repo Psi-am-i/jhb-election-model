@@ -125,8 +125,7 @@ things. Several defects were found by the tests rather than by anyone looking.
 
 ## 4. What needs work, in order of how much it costs the forecast
 
-**0. ⛔ THE LARGEST LIVE UNCERTAINTY IS A PARAMETER THE MODEL DOES NOT HAVE, AND
-THE PANEL HAS TWO OBSERVATIONS OF IT THAT DISAGREE SIXFOLD.**
+**0. ⛔ MK'S LEVEL IS THE LARGEST LIVE UNCERTAINTY — AND IT IS NOT A COIN FLIP.**
 
 MK is not an arrival — it is a declared ANC splinter and takes its **level** from
 the 2024 national election, where it won **12.22% in Johannesburg**. The question
@@ -139,20 +138,32 @@ prior cases, and they do not agree:
 | **COPE** 2009 → 2011 | 9.61% | 1.11% | **0.12** |
 | **EFF** 2014 → 2016 | 10.13% | 10.93% | **1.08** |
 
-Across all eight metros the retention is **0.12–0.28 in one cycle and 1.01–1.50
-in the other** — tight within each cycle, six-fold apart between them. That is a
-cycle-level regime with a missing covariate, the same shape as `k*` and the
-arrival series.
+⛔ **AN EARLIER DRAFT CALLED THIS "a cycle-level regime" AND PROPOSED A PRIOR
+SPANNING BOTH. THAT WAS WRONG AND IS WITHDRAWN** (§1.191). It treated a known
+cause as random noise.
 
-**Applied to MK in Johannesburg: 1.47% on the COPE regime, 13.20% on the EFF
-regime.** An 11.7-point swing in citywide share — roughly **31 seats of 270** —
-and the difference between MK being irrelevant and MK deciding the coalition.
+**In the very cycle COPE lost 81%, the ANC held its national level (0.99) and
+the DA gained half again (1.49).** A regime that moves one party to 0.19 while
+its co-movers sit at 0.99 and 1.49 is not a regime — COPE is the outlier, and
+what distinguishes it is that Lekota and Shilowa spent 2010 publicly destroying
+each other.
 
-⚠️ **This cannot be fitted.** Two cycles support zero parameters. The honest
-treatment is a level prior for MK wide enough to span both regimes, with COPE and
-EFF named. **It forecloses the first criticism any expert will make**: *"you gave
-MK its 2024 national number in a local election, and COPE lost 88% of its in
-exactly that transition."*
+**Two further cases both point the other way.** ATM was new nationally in 2019,
+fought its first local election in 2021, and held at **1.14**. And MK has its own
+local record: **8 Johannesburg by-elections since August 2024, weighted delta
++10.58pp from a zero base — a retention of 0.87** against its 12.22% national
+share.
+
+**So MK keeps its 2024 level as its base.** The structure is: a party with a
+previous result keeps it, adjusted by (a) recent polls and (b) public leadership
+sentiment. The model has (a) and not (b) — and (b) is the only thing that
+separates COPE from the EFF, ATM and MK's own by-elections.
+
+⚠️ **Caveats that stay attached.** ATM polls 0.2–0.8%, an order of magnitude
+below MK, so small-party retention may be a different regime. And **MK chose
+which 8 by-elections to contest** — a self-selected, low-turnout subsample is an
+upward-biased estimate, not a clean one. Three observations support **zero fitted
+parameters**; this is an argued prior with named cases.
 
 **1. Level carry-forward is the biggest defect the BACKTEST can see — and the
 2011 evidence is COPE, not the DA.** Composition is measured at election T−1; the level is applied at
@@ -256,11 +267,11 @@ withdrawn.
 
 ⛔ **And the direction of the MK error is NOT the arrival-channel direction.** MK
 is a declared splinter carrying a national level, so the arrival channel's
-8-cell under-prediction does not apply to it. **The one comparable case on this
-panel points the other way**: COPE was over-forecast at 7 of 8 metros in exactly
-this transition. So the honest statement is that **MK's level is the single
-largest source of error in the Johannesburg forecast and its sign is unknown**,
-not that new parties will be under-stated.
+under-prediction does not apply to it. **MK's level is still the single largest
+source of error in the Johannesburg forecast** — but its sign is not unknown, as
+an earlier draft said. Of three first-local-election cases, two held (EFF 1.08,
+ATM 1.14) and one collapsed for a nameable reason, and MK's own by-election
+record runs at 0.87. §1.191.
 
 **What this accuracy supports saying in public.** Ranges and scenarios. It does
 **not** support a claim about who leads or which coalition forms: the model has

@@ -135,6 +135,62 @@ def test_the_freeze_records_every_environment_switch():
         "which selects between two entirely different sigma decompositions "
         "and defaults to on from an UNSET variable")
 
+    # ⛔ AND THE OTHER DIRECTION, WHICH IS THE ONE THAT FAILED.
+    #
+    # Everything above asserts ENV_SWITCHES ⊆ the freeze. Nothing asserted that
+    # the variables `src/` actually READS are ⊆ ENV_SWITCHES — so a switch could
+    # be added to the code and never to the register, which is exactly what
+    # happened to `HELD_BACK_OFF`. It empties `levels.HELD_BACK` at import,
+    # moving `theta_record` from 410 observations to 458 and setting every band
+    # width in the published forecast, and it was in no register for weeks.
+    #
+    # This is CLAUDE.md §4 point 0: the claim is a set EQUALITY and the scan was
+    # a subset check. MODEL-LOG §1.193 class A.
+    import ast as _ast
+    read: set[str] = set()
+    for path in sorted(Path(ROOT / "src").glob("*.py")):
+        tree = _ast.parse(path.read_text())
+        for node in _ast.walk(tree):
+            # os.environ.get("X") / os.environ["X"] / os.getenv("X")
+            name = None
+            if isinstance(node, _ast.Call):
+                fn = node.func
+                if (isinstance(fn, _ast.Attribute) and fn.attr in ("get", "getenv")
+                        and node.args and isinstance(node.args[0], _ast.Constant)
+                        and isinstance(node.args[0].value, str)):
+                    src = _ast.unparse(fn.value)
+                    if "environ" in src or src.endswith("os"):
+                        name = node.args[0].value
+            elif (isinstance(node, _ast.Subscript)
+                  and isinstance(node.slice, _ast.Constant)
+                  and isinstance(node.slice.value, str)
+                  and "environ" in _ast.unparse(node.value)):
+                name = node.slice.value
+            if name and name.isupper():
+                read.add(name)
+
+    assert read, (
+        "the AST scan found no environment reads in src/ at all — the detector "
+        "is broken, not the code")
+    unregistered = sorted(read - set(F.ENV_SWITCHES)
+                          - set(getattr(F, "ENV_NOT_RECORDED", {})))
+    assert not unregistered, (
+        f"src/ reads these environment variables and the freeze records none "
+        f"of them: {unregistered}.\n\n"
+        f"A switch the code obeys and the artefact does not record makes two "
+        f"freezes indistinguishable when they were produced differently — "
+        f"§1.104's failure, and §1.193's. Add each to `freeze.ENV_SWITCHES`, "
+        f"or stop reading it, or add it to `freeze.ENV_NOT_RECORDED` with the "
+        f"reason it cannot change a number.")
+
+    # An exemption must be for a variable that IS read, or the list is decoration
+    # that hides the next real one.
+    stale = sorted(set(getattr(F, "ENV_NOT_RECORDED", {})) - read)
+    assert not stale, (
+        f"`freeze.ENV_NOT_RECORDED` exempts {stale}, which `src/` does not "
+        f"read. An exemption for a variable nobody reads is dead weight that "
+        f"makes the list look considered when it is stale.")
+
 
 def test_the_freeze_names_a_commit_that_exists_and_a_clean_tree():
     """A freeze taken on a dirty tree cannot be reproduced from the repository.

@@ -75,10 +75,11 @@ from __future__ import annotations
 
 import ast
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _support import ROOT, run_module  # noqa: E402
+from _support import ROOT, run_module, scanned  # noqa: E402
 
 SRC = ROOT / "src"
 TESTS = ROOT / "tests"
@@ -222,7 +223,17 @@ def _module_names() -> set[str]:
     `sys.path` (see `tests/_support`), so it is `import pools`, never
     `import src.pools`. `__init__.py` does not exist and must not.
     """
-    return {path.stem for path in SRC.glob("*.py")}
+    names = {path.stem for path in SRC.glob("*.py")}
+    # (1) IT LOOKED, once, for every test below — all four consume this and all
+    # four pass on an empty set, because `orphans`, `ghosts` and `redundant`
+    # are set differences that go empty when `SRC` does. The denominator is the
+    # whole Python tree, which moves with the repository, so the band cannot be
+    # repaired by lowering a number: 50 of 84 files, 0.60, on 2026-08-31.
+    scanned(names, of=sorted(SRC.glob("*.py")) + sorted(TESTS.glob("*.py")),
+            low=0.25, high=0.85,
+            what="modules found in src/",
+            denominator=".py files across src/ and tests/")
+    return names
 
 
 def _importers() -> dict[str, set[str]]:
@@ -356,6 +367,106 @@ def test_every_declared_entry_point_carries_a_real_reason():
         f"command in README.md or CLAUDE.md, a step in `build_all.plan`, or a "
         f"named human workflow. 'CLI' and 'entry point' are not reasons; they "
         f"are restatements of the exemption.")
+
+    # (0) THE RIGHT SET. The rule above says the reason must name WHERE IT IS
+    # WRITTEN DOWN, and the scan measured only its LENGTH — sixty characters of
+    # anything passed. The shortest live reason is 134 characters and the floor
+    # is 60, so the length test has never been within 2x of binding and, when
+    # it finally did trip, the cheap repair would have been to lower it. So
+    # check the citation instead: the document the reason names must exist and
+    # must still name the module. Measured 2026-08-31: 22 of 22 do.
+    #
+    # `README.md` carried `python src/leverage.py` for a script retired to
+    # `archive/retired-scripts/` — a citation rotting exactly this way, one
+    # layer out — which is why this direction is worth a test.
+    documents = {p.name: p for p in ROOT.glob("*.md")}
+    documents["build_all.plan"] = SRC / "build_all.py"
+
+    uncited, stale = [], []
+    for name, reason in sorted(ENTRY_POINTS.items()):
+        cited = [d for d in documents if d in reason]
+        if not cited and "docstring" not in reason:
+            uncited.append(name)
+        for doc in cited:
+            # The FILENAME, not the bare name: `SOURCES.md` contains the word
+            # "sweep" in prose and does not run `src/sweep.py`, and a citation
+            # that matches on an English word is the length test again.
+            if f"{name}.py" not in documents[doc].read_text(encoding="utf-8"):
+                stale.append(f"{name} cites {doc}, which does not name "
+                             f"{name}.py")
+    assert not uncited, (
+        f"ENTRY_POINTS entries citing no checkable document: {uncited}\n"
+        f"  Name a file this test can open — one of {sorted(documents)} — or "
+        f"say 'its own docstring'. A reason nobody can follow is the length "
+        f"test passing and the rule failing.")
+    assert not stale, (
+        "ENTRY_POINTS reasons whose citation has gone stale:\n  "
+        + "\n  ".join(stale)
+        + "\n  The declaration is now the only place this script is claimed "
+          "to be run from, which is the state `leverage.py` was in.")
+
+
+def test_the_dead_code_detector_catches_a_constructed_orphan():
+    """(2) IT CAN SEE, and (3) ON A CONSTRUCTED TREE.
+
+    Every other test in this file reports on the tree as it happens to be, and
+    the tree currently has no orphan — so nothing here has ever demonstrated
+    that the import graph can find one. This builds a two-module `src/` where
+    one module imports the other and a third imports nothing, and pushes it
+    through the same `ast.walk`-based edge collection.
+
+    It also covers the shape `_importers` was written for and the shape it is
+    still blind to, and asserts the difference rather than assuming it: an
+    import inside a FUNCTION BODY counts (that is what `ast.walk` buys over
+    `tree.body`), while two modules that import only each other look alive to a
+    one-hop rule and are therefore NOT reported — recorded here so the
+    limitation is a measured fact rather than an unexamined belief.
+    """
+    def importers_over(directory):
+        names = {p.stem for p in directory.glob("*.py")}
+        found = {name: set() for name in names}
+        for path in sorted(directory.glob("*.py")):
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+            imported: set[str] = set()
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    imported |= {a.name.split(".")[0] for a in node.names}
+                elif (isinstance(node, ast.ImportFrom)
+                      and node.module and not node.level):
+                    imported.add(node.module.split(".")[0])
+            for name in imported & names:
+                if name != path.stem:
+                    found[name].add(path.name)
+        return found
+
+    with tempfile.TemporaryDirectory() as tmp:
+        fake = Path(tmp)
+        (fake / "consumer.py").write_text(
+            "def go():\n"
+            "    import used_deep\n"          # inside a body: ast.walk finds it
+            "    return used_deep\n")
+        (fake / "used_deep.py").write_text("VALUE = 1\n")
+        (fake / "orphan.py").write_text(
+            'def f():\n    return 1\n\n'
+            'if __name__ == "__main__":\n    f()\n')
+        (fake / "cycle_a.py").write_text("import cycle_b\n")
+        (fake / "cycle_b.py").write_text("import cycle_a\n")
+        seen = importers_over(fake)
+
+    assert seen["used_deep"] == {"consumer.py"}, (
+        f"an import inside a function body was not seen: {seen['used_deep']}. "
+        f"`ast.walk` rather than `tree.body` is the whole reason this graph is "
+        f"trusted, because a large share of this repository's imports are "
+        f"deferred into function bodies.")
+    orphans = sorted(n for n, s in seen.items() if not s)
+    assert orphans == ["consumer", "orphan"], (
+        f"the orphan detector reported {orphans}. It must report `orphan` — "
+        f"which nothing imports and which has the `__main__` block that makes "
+        f"dead code look alive — and `consumer`, the root. It must NOT report "
+        f"`cycle_a` or `cycle_b`: THEY IMPORT ONLY EACH OTHER AND A ONE-HOP "
+        f"RULE CANNOT SEE THAT. `leverage.py` with a friend would be invisible "
+        f"to the live test, and this records that limit rather than assuming "
+        f"it away.")
 
 
 def test_every_declared_entry_point_can_actually_be_run():

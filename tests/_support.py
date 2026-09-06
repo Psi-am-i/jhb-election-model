@@ -208,3 +208,50 @@ def run_module(namespace) -> int:
         print(text)
     print(f"\n{passed} passed, {failed} failed, {skipped} skipped")
     return 1 if failed else 0
+
+
+def scanned(population, *, of, low, high, what, denominator):
+    """Assert a scan LOOKED: population non-empty and inside a two-sided band.
+
+    Written for the class CLAUDE.md calls "a test that asserts ABSENCE". Such a
+    test collects offenders from live repository state and asserts the
+    collection is empty; it passes identically when the scan found nothing
+    because there is nothing wrong and when the scan found nothing because it
+    scanned nothing. This is the second of that section's four requirements.
+
+    Both bounds are FRACTIONS of a denominator the caller computes from the
+    tree — the number of ``.py`` files in ``src/``, the number of rows in a
+    register, the number of test modules — so neither goes stale when the tree
+    grows. A bare integer floor is deliberately not offered: **when a bare
+    floor trips, the cheapest repair is to lower it**, which converts a guard
+    into a record of decline. A ratio against a denominator that moves with the
+    tree has no such cheap repair.
+
+    The UPPER bound matters as much as the lower one and is the half people
+    leave out. A scan that suddenly sees three times what it used to has
+    usually broken its own filter — the register guard's underscore filter, the
+    dead-code guard's substring count — and a one-sided floor calls that a
+    success.
+
+    Args:
+      population: what the scan actually examined (sized, or an int).
+      of:          the denominator, likewise.
+      low, high:   fractions of ``of``; the band is inclusive at both ends.
+      what:        what the population IS, for the failure message.
+      denominator: what the denominator IS, for the failure message.
+    """
+    n = population if isinstance(population, int) else len(population)
+    d = of if isinstance(of, int) else len(of)
+    assert d > 0, (
+        f"the denominator ({denominator}) is zero, so the bound on {what} "
+        f"means nothing. The scan has lost its input, not passed.")
+    lo, hi = low * d, high * d
+    assert lo <= n <= hi, (
+        f"{what}: the scan examined {n}, and {denominator} is {d}, so the "
+        f"expected band is {lo:.1f}..{hi:.1f} ({low:.3g}..{high:.3g} of the "
+        f"denominator).\n"
+        f"BELOW the band the scan has stopped seeing its population and the "
+        f"emptiness it asserts is vacuous. ABOVE it the filter has broken open "
+        f"and the population is no longer the one the claim is about. Fix the "
+        f"scan; move the band only with a reason written beside it.")
+    return n

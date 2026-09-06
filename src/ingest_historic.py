@@ -224,18 +224,67 @@ def open_member(spec: dict):
 # a neighbouring municipality the way the last-word fallback did.
 MUNI_HEAD = {
     "npe1999": {
-        # 1999 predates every metro. Johannesburg is reconstructible from the
-        # five MLCs that became it; the others are NOT, and this table refuses
-        # rather than silently handing back somebody else's city.
-        "joburg": ("JOHANNESBURG MLC", "MIDRAND/ RABIE RIDGE/ IVORY PARK MLC"),
+        # ⛔ 1999 PREDATES EVERY METRO, SO EACH IS THE SUM OF THE COUNCILS THAT
+        # BECAME IT. THIS TABLE NAMED JOHANNESBURG ONLY, AND NAMED IT WRONGLY.
+        #
+        # It declared ("JOHANNESBURG MLC", "MIDRAND/ RABIE RIDGE/ IVORY PARK
+        # MLC"). `matches_city` compares WHOLE HEADS and no council is called
+        # "JOHANNESBURG MLC" — the four are EASTERN, NORTHERN, SOUTHERN and
+        # WESTERN. So one of five matched and Johannesburg's 1999 election was
+        # Midrand: 392 rows, 28 voting districts, 65,674 votes.
+        #
+        # ⛔ AND THE FILE ON DISK WAS NOT STALE — I CLAIMED IT WAS, WRONGLY.
+        # Its sha256 matches the manifest's 9 August entry exactly, and the
+        # corrected head list reproduces it BYTE-FOR-BYTE, all five councils
+        # including Midrand's 392 rows (4074+1848+1498+1260+392 = 9,072). No
+        # Johannesburg number moved. That is the stronger claim and the one
+        # worth having. The 9,072 / 648 / 1,361,299 figures elsewhere in this
+        # module are Johannesburg's CORRECT numbers, wrongly written into
+        # Tshwane's file by the old bug — not evidence that Johannesburg's own
+        # file was ever contaminated. Corrected 2026-09-01.
+        # Corrected 2026-08-31 by reading the archive.
+        #
+        # Councils amalgamated into each metro in December 2000.
+        "joburg": ("EASTERN JOHANNESBURG MLC", "NORTHERN JOHANNESBURG MLC",
+                   "SOUTHERN JOHANNESBURG MLC", "WESTERN JOHANNESBURG MLC",
+                   "MIDRAND/ RABIE RIDGE/ IVORY PARK MLC"),
+        "tshwane": ("CITY COUNCIL OF PRETORIA MLC", "NORTHERN PRETORIA MLC",
+                    "CENTURION MLC", "HAMMANSKRAAL LAC", "MABOPANE TRC",
+                    "TEMBA TRC", "WINTERVELD TRC"),
+        "ekurhuleni": ("ALBERTON TLC", "BENONI TLC", "BOKSBURG TLC",
+                       "BRAKPAN TLC", "EDENVALE/ MODDERFONTEIN MLC",
+                       "GERMISTON TLC", "KEMPTON PARK/ TEMBISA MLC",
+                       "NIGEL TLC", "SPRINGS TLC"),
+        "ethekwini": ("INNER WEST DURBAN MLC", "NORTH CENTRAL DURBAN MLC",
+                      "NORTHERN DURBAN MLC", "OUTER WEST DURBAN MLC",
+                      "SOUTH CENTRAL DURBAN MLC", "SOUTH DURBAN MLC"),
+        "capetown": ("CENTRAL CAPE TOWN MLC", "TYGERBERG MLC",
+                     "BLAAUWBERG MLC", "OOSTENBERG MLC", "HELDERBERG MLC",
+                     "SOUTHERN PENINSULA MLC"),
+        "mangaung": ("BLOEMFONTEIN TLC", "BLOEMFONTEIN RURAL RLC",
+                     "BOTSHABELO TLC", "THABA NCHU TLC",
+                     "THABA NCHU RURAL RLC"),
+        "nelsonmandelabay": ("PORT ELIZABETH TLC", "PORT ELIZABETH RURAL TRC",
+                             "UITENHAGE TLC", "UITENHAGE RURAL TRC",
+                             "DESPATCH TLC"),
+        # ⚠️ King William's Town joined Buffalo City in 2011, NOT 2000.
+        # Buffalo City at 1999 is East London only; including KWT would
+        # overstate it. Recorded as a deliberate exclusion.
+        "buffalocity": ("EAST LONDON TLC", "EAST LONDON RURAL TRC"),
     },
     "lge2000": {
         "joburg": ("JOHANNESBURG",), "tshwane": ("PRETORIA",),
         "capetown": ("CAPE TOWN",), "mangaung": ("FS172",),
         "nelsonmandelabay": ("PORT ELIZABETH",), "buffalocity": ("EC125",),
-        # Ekurhuleni and eThekwini are absent from the 2000 archive under any
-        # name; both were constituted at that election out of prior structures.
-        # Checked 2026-08-22 — do not add a guess here.
+        # ⛔ THIS SAID EKURHULENI AND ETHEKWINI WERE "absent from the 2000
+        # archive under any name … do not add a guess here". WRONG. They are
+        # there under their 2000 names — "East Rand - Greater East Rand Metro"
+        # (9,813 rows) and "Durban - Durban Metro" (13,328) — and the correct
+        # heads were ALREADY DECLARED in `npe2004` below, which has carried
+        # ("EAST RAND",) and ("DURBAN",) all along. Not a guess that failed: a
+        # search that stopped at the modern name, plus a note telling the next
+        # reader not to look. Corrected 2026-08-31.
+        "ekurhuleni": ("EAST RAND",), "ethekwini": ("DURBAN",),
     },
     "npe2004": {
         "joburg": ("JOHANNESBURG",), "tshwane": ("PRETORIA",),
@@ -318,7 +367,8 @@ def ingest(tag: str, spec: dict, city, tolerance: float) -> int:
             f"MUNI_HEAD and MODEL-LOG §1.70.\n"
             f"  If this city IS in the archive, add its exact municipality head "
             f"to MUNI_HEAD[{tag!r}]. If it is not — Ekurhuleni and eThekwini in "
-            f"lge2000, every metro but Johannesburg in npe1999 — then the "
+            f"lge2000 and npe1999 are now ingested for ALL EIGHT metros "
+            f"(2026-09-01), so an absence here is new — then the "
             f"election predates the municipality and there is nothing to add.")
     spec = dict(spec, _heads=heads)
     stream = open_member(spec)

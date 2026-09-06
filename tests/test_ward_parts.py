@@ -697,6 +697,41 @@ def test_the_two_functions_called_ward_parts_are_a_producer_and_a_consumer():
     assert getattr(build_concordance, "montecarlo", None) is None
 
 
+# The two readers of `part_registered` in `src/`, and why each is allowed:
+# `montecarlo.read_ward_crosswalk` is the single crosswalk reader (§1.97 F18),
+# `pools._target_roll` the separate, deliberate roll sum (F14, §1.99). Asserted
+# as an EQUALITY below rather than as an exemption, so a reader that vanishes
+# is as much a finding as one that appears.
+KNOWN_CROSSWALK_READERS = {("montecarlo.py", "read_ward_crosswalk"),
+                           ("pools.py", "_target_roll")}
+
+
+def _crosswalk_readers(paths):
+    """Every site reading a row's ``part_registered``, by either access form.
+
+    ``r["part_registered"]`` is an `ast.Subscript`; ``r.get("part_registered")``
+    is an `ast.Call`. Matching only the first is what made this scan's failable
+    population zero — see the test below.
+    """
+    found = []
+    for path in sorted(paths):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            key = None
+            if isinstance(node, ast.Subscript):
+                key = getattr(node.slice, "value", None)
+            elif (isinstance(node, ast.Call)
+                  and isinstance(node.func, ast.Attribute)
+                  and node.func.attr in ("get", "pop", "setdefault")
+                  and node.args and isinstance(node.args[0], ast.Constant)):
+                key = node.args[0].value
+            if key != "part_registered":
+                continue
+            found.append((path.name, _enclosing_function(tree, node),
+                          node.lineno))
+    return found
+
+
 def test_nothing_reimplements_the_crosswalk_read():
     """RE-RECORDED 2026-08-28. The duplication is gone; this stops it returning.
 
@@ -716,31 +751,65 @@ def test_nothing_reimplements_the_crosswalk_read():
     cities — 124 of 135 wards disagreeing (F14, §1.99) — and nothing noticed,
     because the citywide total was identical either way. Copies of a read do
     not announce their divergence.
+
+    **WIDENED 2026-08-31, and it had a failable population of ZERO.** The scan
+    matched `ast.Subscript` only — `r["part_registered"]` — and the tree holds
+    exactly one of those, `montecarlo.read_ward_crosswalk`, which is exempt. So
+    after exemptions nothing remained to judge. Meanwhile the SECOND reader it
+    names, `pools._target_roll`, reads
+
+        roll[ward] += float(row.get("part_registered") or row.get("vd_registered") or 0)
+
+    which is a `Call`, not a `Subscript`, and was therefore invisible to the
+    detector AND to its own exemption. The exemption pair `("pools.py",
+    "_target_roll")` had never once fired. **A third site written as
+    `row.get("part_registered")` — the form the surviving reader itself uses —
+    would have been detected by nothing and exempted by nothing.**
+
+    So the detector now reads both access forms, and the assertion is an
+    EQUALITY rather than an emptiness: a reader that vanishes is as much a
+    finding as one that appears, because the first means the scan went blind.
     """
-    import ast
-    offenders = []
-    for path in sorted((ROOT / "src").glob("*.py")):
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        for node in ast.walk(tree):
-            # The signature of the read: subscripting a row by part_registered.
-            if not isinstance(node, ast.Subscript):
-                continue
-            key = getattr(node.slice, "value", None)
-            if key != "part_registered":
-                continue
-            fn = _enclosing_function(tree, node)
-            if (path.name, fn) in {("montecarlo.py", "read_ward_crosswalk"),
-                                   ("pools.py", "_target_roll")}:
-                continue
-            offenders.append(f"{path.name}:{node.lineno} in {fn or '<module>'}")
-    assert not offenders, (
-        "these read `part_registered` outside the one reader:\n  "
-        + "\n  ".join(offenders)
-        + "\n\n  `montecarlo.read_ward_crosswalk` is the single crosswalk "
-          "reader (§1.97 F18); `pools._target_roll` is the separate, "
-          "deliberate roll sum (F14, §1.99). A third site is a second "
-          "definition of one rule, and copies of a read do not announce "
-          "their divergence — F14 was 124 of 135 wards apart and invisible.")
+    found = _crosswalk_readers(sorted((ROOT / "src").glob("*.py")))
+    sites = {(f, fn) for f, fn, _ in found}
+    assert sites == KNOWN_CROSSWALK_READERS, (
+        f"the readers of `part_registered` in src/ have changed.\n"
+        f"  APPEARED: {sorted(sites - KNOWN_CROSSWALK_READERS)}\n"
+        f"  VANISHED: {sorted(KNOWN_CROSSWALK_READERS - sites)}\n"
+        f"  all sites: {sorted(found)}\n\n"
+        f"  `montecarlo.read_ward_crosswalk` is the single crosswalk reader "
+        f"(§1.97 F18); `pools._target_roll` is the separate, deliberate roll "
+        f"sum (F14, §1.99). A site that APPEARED is a second definition of one "
+        f"rule, and copies of a read do not announce their divergence — F14 "
+        f"was 124 of 135 wards apart and invisible. A site that VANISHED means "
+        f"either the read moved or this scan has stopped seeing it, and the "
+        f"emptiness it would otherwise report is worth nothing.")
+
+
+def test_the_crosswalk_reader_scan_sees_both_ways_of_reading_a_row():
+    """(2) IT CAN SEE — on a constructed module, through the same detector.
+
+    Both forms, because the blindness that mattered was to exactly one of them:
+    the subscript form was seen and the `.get` form was not, and the only real
+    reader of the second kind sat unexamined behind an exemption that could
+    never fire.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        fake = Path(tmp) / "fake_reader.py"
+        fake.write_text(
+            "def by_subscript(rows):\n"
+            "    return [r['part_registered'] for r in rows]\n\n"
+            "def by_get(rows):\n"
+            "    return [r.get('part_registered') or 0 for r in rows]\n\n"
+            "def unrelated(rows):\n"
+            "    return [r['vd_registered'] for r in rows]\n")
+        found = _crosswalk_readers([fake])
+    assert {(f, fn) for f, fn, _ in found} == {
+        ("fake_reader.py", "by_subscript"), ("fake_reader.py", "by_get")}, (
+        f"the detector must see BOTH `row['part_registered']` and "
+        f"`row.get('part_registered')` and nothing else; it reported {found}. "
+        f"It saw only the first until 2026-08-31, which is why "
+        f"`pools._target_roll` — the second real reader — was never examined.")
 
 
 def _enclosing_function(tree, target):

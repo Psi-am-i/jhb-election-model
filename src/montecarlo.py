@@ -84,7 +84,8 @@ import numpy as np
 import cityconfig
 import coalitions
 from fold import FOLDS, citywide, load, load_parameters, shares
-from seats import INDEPENDENT, allocate
+from seats import (INDEPENDENT, allocate, eligible_parties,
+                   outside_pool_wards)
 
 SHARE_FLOOR = 0.002
 COUNCIL = 270
@@ -798,7 +799,8 @@ def gamma_fold_for(target) -> int:
     return fold
 
 
-def read_ward_crosswalk(path: Path, year: str) -> tuple[list[tuple[str, str, int]], int, int]:
+def read_ward_crosswalk(path: Path, year: str, ward_column: str | None = None
+                        ) -> tuple[list[tuple[str, str, int]], int, int]:
     """The VD→ward crosswalk: ``([(vd, ward, part_registered), ...], vds, split)``.
 
     ONE READER (§1.97 F18). There were three: this one, `leverage.load_ward_
@@ -807,10 +809,19 @@ def read_ward_crosswalk(path: Path, year: str) -> tuple[list[tuple[str, str, int
     read is how `pools._target_roll` and this function came to build two
     different cities out of one file (F14, §1.99) — 124 of 135 wards disagreeing
     with nobody noticing, because the citywide total was identical either way.
+
+    ``ward_column`` exists because THERE ARE TWO WARD KEY SPACES in the same
+    file and they are not interchangeable: ``Ward_<year>`` is the ward NUMBER
+    (``94``) and ``WardID_<year>`` is the MDB identifier (``79800094``). This
+    module keys on the number; `pools` keys on the identifier, because the
+    election result files it joins against carry ``Ward 79800094``. Delegating
+    without saying which is wanted would produce a join that matches nothing —
+    so the caller names the column and this stays the only place that knows how
+    a crosswalk row is shaped.
     """
     with path.open(encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))
-    column = f"Ward_{year}"
+    column = ward_column or f"Ward_{year}"
     if rows and column not in rows[0]:
         raise SystemExit(
             f"{path.name} has no `{column}` column; it carries "
@@ -1061,8 +1072,15 @@ def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6
 # scenario configuration
 # --------------------------------------------------------------------------
 
-def parse_set(pairs: list[str], scenario: dict) -> None:
-    """Apply --set key=value overrides; values parsed as JSON where possible."""
+def parse_set(pairs: list[str], scenario: dict,
+              counterfactual: bool = False) -> None:
+    """Apply --set key=value overrides; values parsed as JSON where possible.
+
+    ``counterfactual`` unlocks :data:`STATUTORY_VALUES`. It exists for
+    ``overhang_regimes.py``, which scores the same simulated elections under
+    each country's rule for the comparison table, and it is NOT reachable
+    without saying the word on the command line.
+    """
     for item in pairs:
         key, _, value = item.partition("=")
         key = key.strip()
@@ -1072,6 +1090,53 @@ def parse_set(pairs: list[str], scenario: dict) -> None:
             scenario[key] = json.loads(value)
         except json.JSONDecodeError:
             scenario[key] = value
+        if not counterfactual:
+            _refuse_non_statutory(key, scenario[key])
+
+
+# The seat-allocation rules that are STATUTE, and the only value each may take
+# on a path that produces a forecast. A key listed here is not a lever: the
+# project does not get to choose it, a backtest cannot score it, and no sweep
+# can improve it.
+#
+# ⛔ WHY THIS IS A VALUE CHECK AND NOT A DELETION. Removing `overhang_rule`
+# from `DEFAULTS` is the obvious move and it is worse: `benchmarks` carries it
+# as a dataclass field (an import-time failure), `apply_city` would refuse every
+# Johannesburg and Tshwane run, `overhang_regimes.py` drives the counterfactuals
+# through `--set`, the freeze would have to be re-recorded — and, the sting,
+# `test_regressions`'s branch (e) enumerates `DEFAULTS` and is the ONLY route by
+# which `overhang_rule` enters the code-to-register scan. Deleting the key
+# orphans its own register entry, which is the bidirectional-scan failure
+# CLAUDE.md names as the worst class, committed in the name of register hygiene.
+#
+# So the key stays and the VALUE is nailed down. `overhang_regimes.py` reaches
+# the counterfactuals through `allocate_with_overhang(rule=...)` directly, which
+# makes the escape hatch an API rather than a hole. MODEL-LOG §1.165.
+STATUTORY_VALUES = {
+    "overhang_rule": "deduct",
+}
+
+
+def _refuse_non_statutory(key: str, value) -> None:
+    """Refuse a scenario override that would change the law, not the model."""
+    want = STATUTORY_VALUES.get(key)
+    if want is not None and value != want:
+        raise SystemExit(
+            f"`{key}` is STATUTE, not a lever: it may only be {want!r} on a "
+            f"path that produces a forecast, and {value!r} was asked for.\n"
+            f"\n"
+            f"  The excessive-seats provision (Municipal Structures Act "
+            f"Schedule 1 item 16, as amended by Act 3 of 2021) is part of the "
+            f"DEFINITION of the outcome being forecast, in the same category "
+            f"as the council having a fixed size. It is not selected by "
+            f"backtest score and no sweep can improve it: it has never once "
+            f"bound in a South African metro across 24 city-years, so there is "
+            f"nothing for a score to arbitrate.\n"
+            f"\n"
+            f"  The other regimes are COUNTERFACTUALS and remain available "
+            f"for analysis behind `--counterfactual`, which is what "
+            f"`src/overhang_regimes.py` passes to build the regime-comparison "
+            f"table. They must not reach a forecast. MODEL-LOG §1.165.")
 
 
 def apply_city(city) -> None:
@@ -1549,7 +1614,7 @@ MODULE_CONSTANTS: dict[str, tuple[str, ...]] = {
 # attribute this table records is not necessarily what ran. See
 # `FROZEN_DEFAULTS`, which is why `levels.METRO_CODES` is recorded under a
 # kind of its own and `pools.CONFIG` is left out entirely until the freeze is
-# repaired in `pools.py` (a code change there invalidates all eighteen pool
+# repaired in `pools.py` (a code change there invalidates all twenty-six pool
 # specs, so it is not a change to make in passing).
 
 # (module, constant) pairs whose value is captured as a FUNCTION DEFAULT at
@@ -1869,11 +1934,30 @@ def load_scenario(args) -> dict:
     if args.config:
         overrides, _metadata = read_scenario_file(args.config)
         apply_overrides(scenario, overrides)
-    parse_set(args.set or [], scenario)
+    parse_set(args.set or [], scenario,
+              counterfactual=getattr(args, "counterfactual", False))
     if args.draws:
         scenario["draws"] = args.draws
     if args.seed:
         scenario["seed"] = args.seed
+
+    # ⛔ THE STATUTE CHECK RAN ON ONE ROUTE IN AND THERE ARE TWO.
+    #
+    # `_refuse_non_statutory` was called only from `parse_set`, so `--set
+    # overhang_rule=expand` refused while `--config s.json` containing the same
+    # value sailed through: `read_scenario_file` validates key NAMES against
+    # DEFAULTS and never looks at values, and `apply_overrides` merges blind.
+    # A published forecast could therefore be produced under the counterfactual
+    # allocation rule with no refusal and no `--counterfactual` — the exact
+    # outcome the guard's own message says must not reach a forecast. Found by
+    # the code review, 2026-09-05.
+    #
+    # Checked once here, over the SETTLED scenario, so every route in is
+    # covered by construction rather than by remembering to add a call.
+    if not getattr(args, "counterfactual", False):
+        for _key in STATUTORY_VALUES:
+            if _key in scenario:
+                _refuse_non_statutory(_key, scenario[_key])
     return scenario
 
 
@@ -3021,7 +3105,8 @@ OVERHANG_LEVEL_MAX_ROUNDS = 200
 
 
 def allocate_with_overhang(
-    combined: dict[str, int], ward_wins: dict[str, int], rule: str = "deduct"
+    combined: dict[str, int], ward_wins: dict[str, int], rule: str = "deduct",
+    independent_wards: int = 0, no_pr_list_wards: int = 0
 ) -> tuple[dict[str, int], int, int, dict[str, int]]:
     """Schedule 1 allocation with the excessive-seats treatment.
 
@@ -3075,7 +3160,9 @@ def allocate_with_overhang(
             f"be counted excessive and then seated nowhere. `combined` is "
             f"`pr_votes + ward_votes`, so this means the two ballots disagree "
             f"about who stood. MODEL-LOG §1.97 F42.")
-    alloc = allocate(combined, total_seats=COUNCIL)
+    alloc = allocate(combined, total_seats=COUNCIL,
+                     independent_wards=independent_wards,
+                     no_pr_list_wards=no_pr_list_wards)
     over = {p: ward_wins[p] - alloc.seats.get(p, 0)
             for p in ward_wins
             if ward_wins[p] > 0 and ward_wins[p] >= alloc.seats.get(p, 0)}
@@ -3089,7 +3176,9 @@ def allocate_with_overhang(
         total = COUNCIL
         for _round in range(OVERHANG_LEVEL_MAX_ROUNDS):
             try:
-                sub = allocate(combined, total_seats=total)
+                sub = allocate(combined, total_seats=total,
+                               independent_wards=independent_wards,
+                               no_pr_list_wards=no_pr_list_wards)
             except ValueError as exc:
                 # THE RULE NAMES ITSELF. `allocate` fails when the council has
                 # grown large against the vote total, and its message names the
@@ -3133,7 +3222,10 @@ def allocate_with_overhang(
         # At least one party is fixed and removed per round, so the loop cannot
         # outlast the parties; the slack covers the final round that fixes none.
         for _round in range(len(combined) + OVERHANG_DEDUCT_MAX_ROUNDS_SLACK):
-            sub = allocate(votes, total_seats=COUNCIL - sum(fixed.values()))
+            sub = allocate(votes,
+                           total_seats=COUNCIL - sum(fixed.values()),
+                           independent_wards=independent_wards,
+                           no_pr_list_wards=no_pr_list_wards)
             newly = {p: ward_wins[p] for p in list(votes)
                      if ward_wins.get(p, 0) > 0
                      and ward_wins.get(p, 0) >= sub.seats.get(p, 0)}
@@ -3426,8 +3518,16 @@ def run_model(target, scenario: dict,
             try:
                 import pools as _pools_key
                 _stale = _pools_key.stale_reason(spec, target.city, target)
-            except Exception:                       # never fail a run over this
-                _stale = None
+            except Exception as exc:
+                # ⛔ DO NOT FAIL OPEN. This used to set `_stale = None`, which
+                # is the value meaning "this spec is current" — so any error
+                # inside `stale_reason`, including the `KeyError` its own
+                # docstring records, was REPORTED AS FRESH. A guard that
+                # answers "fine" when it could not run is worse than no guard,
+                # and it is this project's empty-record-vs-unreachable-record
+                # class exactly. The run still does not fail; it says so.
+                _stale = (f"staleness could not be determined ({exc!r}) — "
+                          f"treat this spec as UNVERIFIED, not as current")
             if _stale:
                 print(f"  ! pools_{target.year}.json is STALE: {_stale}")
             scenario["_pools_stale"] = _stale
@@ -3439,11 +3539,13 @@ def run_model(target, scenario: dict,
                 "fitted_on": spec.get("fitted_on"),
             })
             # `artefact_key` is the DELIVERY PROOF for the precomputed-artefact
-            # class: city, target, a hash of config/dimensions.toml and a hash
-            # of pools.py's code. A run that reports "pools were read" says
-            # nothing about WHICH pools; this says which, and a sweep over
-            # `config/dimensions.toml` that does not move this key never
-            # arrived. See CLAUDE.md, "Shared artefacts".
+            # class: city, target, and five hashes — `pools.py`'s code, every
+            # `config/*.toml`, every `cities/*.toml`, the first-party modules
+            # the emit leans on, and this city-year's judgement file. A run that
+            # reports "pools were read" says nothing about WHICH pools; this
+            # says which, and a sweep over any of those that does not move this
+            # key never arrived. See CLAUDE.md, "Shared artefacts", and
+            # MACHINERY.md's key table for what is deliberately still outside.
             note_constant(scenario, "pools", f"fitted on {spec['fitted_on']}",
                           value=spec.get("artefact_key"),
                           where=f"montecarlo:run_model <- {spec_path.name}")
@@ -4562,11 +4664,38 @@ def run_model(target, scenario: dict,
         for w in winners:
             wins[universe[w]] += 1
 
-        combined = {universe[i]: int(round(pr_votes[i] + ward_votes[i]))
-                    for i in range(npar)}
-        combined = {p: v for p, v in combined.items() if v > 0}
+        # ⛔ THE STATUTORY ENTITLEMENT POOL HAS ONE DEFINITION, AND THIS USED
+        # TO BE A SECOND ONE.
+        #
+        # `seats.eligible_parties` is what `backtest.actual_result` allocates
+        # over, and it is Schedule 1: independents and parties that contested a
+        # ward without registering a PR list do NOT earn an entitlement — their
+        # ward seats leave the pool through the C and D terms instead. This
+        # site built its own `combined` (sum first, then keep anything
+        # positive), so the model and the ground truth it is scored against
+        # applied DIFFERENT MEMBERSHIP TESTS to one statutory quantity, and
+        # rounded in a different order besides. Measured 2026-09-02: the two
+        # sets differ at 9 of 24 real city-years. MODEL-LOG §1.163.
+        ward_totals_d = {universe[i]: int(round(ward_votes[i]))
+                         for i in range(npar)}
+        pr_totals_d = {universe[i]: int(round(pr_votes[i]))
+                       for i in range(npar)}
+        combined = eligible_parties(ward_totals_d, pr_totals_d)
+
+        # C and D: the ward seats that leave the pool WITH the councillor, and
+        # therefore before the quota is struck.
+        #
+        # ⚠️ C IS STRUCTURALLY ZERO HERE AND THAT IS AN ASSUMPTION, NOT A
+        # MEASUREMENT. The universe drops INDEPENDENT/IND, so no draw can seat
+        # an independent — while the IEC records C = 1 at eThekwini 2011 and
+        # C = 4 at eThekwini 2016. Both are scored, so the model allocates
+        # those seats to parties and is charged for it. Registered in
+        # JUDGEMENT-CALLS.md; forecasting independents is a separate change.
+        # The plumbing is correct regardless of what the draw supplies.
+        c_wards, d_wards, pool_wins = outside_pool_wards(dict(wins), combined)
         seats, council, threshold, over = allocate_with_overhang(
-            combined, dict(wins), scenario["overhang_rule"])
+            combined, pool_wins, scenario["overhang_rule"],
+            independent_wards=c_wards, no_pr_list_wards=d_wards)
 
         seat_draws.append(seats)
         thresholds[d] = threshold
@@ -4685,6 +4814,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--config", type=Path, help="scenario JSON overriding DEFAULTS")
     parser.add_argument("--set", action="append", metavar="KEY=VALUE",
                         help="override one scenario key, e.g. --set w_bye=0")
+    parser.add_argument("--counterfactual", action="store_true",
+                        help="ANALYSIS ONLY: allow --set to change a statutory "
+                             "rule (see STATUTORY_VALUES). Never use this for a "
+                             "run whose output is published as the forecast.")
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
     parser.add_argument("--processed", type=Path, default=None,
                         help="where inputs are read and outputs written "

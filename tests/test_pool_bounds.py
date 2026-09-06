@@ -99,6 +99,10 @@ def test_no_fitted_rate_falls_outside_its_duncan_davis_interval():
     print(f"  {len(FITS)} city-years, every rate inside its bounds")
 
 
+# The first target election that has not been held, so has no result to be
+# checked against. Not a coverage gap: a property of the calendar.
+_FIRST_UNHELD_TARGET = 2026
+
 def test_the_three_known_things_hold_at_once():
     """Pool totals, party totals AND the bounds — on one matrix.
 
@@ -333,17 +337,62 @@ def test_no_emitted_composition_weight_is_arithmetically_impossible():
     import json
 
     # (city, target) -> the emitted artefact, which is what the model reads.
-    targets = [("joburg", "2016"), ("joburg", "2021"),
-               ("tshwane", "2021"), ("ekurhuleni", "2021"),
-               ("ethekwini", "2021"), ("capetown", "2021"),
-               ("mangaung", "2021"), ("nelsonmandelabay", "2021"),
-               ("buffalocity", "2021")]
+    # ⛔ DERIVED FROM THE ARTEFACT, NEVER TYPED. This was a hand-written list of
+    # nine city-years, written when nine specs existed. §1.69 emitted seven more
+    # on 2026-08-22 and the list never moved, so the guard scanned 9 of 16 —
+    # 368 of 667 party-pool pairs — and **the unscanned 45% contains real
+    # violations**, including one at 228.93x against the 5.2x that prompted this
+    # test in the first place (§1.42). The scan was healthy, the detector
+    # worked, and it found nothing IN THE WRONG SET.
+    # ⛔ AND IT HAPPENED AGAIN, ONE LAYER UP (§1.162 §4). Deriving the
+    # population from `history.json` fixed the typed list and replaced it with
+    # the SCORED set, while the claim this test makes covers the EMITTED set.
+    # On 2026-09-02 three 2011 specs were emitted and never scanned because
+    # they failed to score, and one of them — Cape Town 2011 DA in White at
+    # 1.26x — was a real violation nothing had ever reported.
+    #
+    # The population is now the emitted specs, and a spec that cannot be
+    # checked is NAMED rather than skipped: an unscannable member is a hole in
+    # the claim, and a hole nobody is told about is how this test has now been
+    # wrong twice about the same thing in two different ways.
     hist_path = ROOT / "data/processed/history.json"
     if not hist_path.exists():
         skip("no data/processed/history.json — run compare_history first")
     hist = {r["slug"] + str(r["year"]): r for r in json.loads(hist_path.read_text())}
 
-    bad = []
+    emitted = set()
+    for spec in sorted((ROOT / "data/processed").glob("**/pools_*.json")):
+        year = spec.stem.replace("pools_", "").split("_")[0]
+        if not year.isdigit():
+            continue
+        if spec.stem.endswith("_simulation"):
+            continue
+        parent = spec.parent.name
+        slug = parent if parent != "processed" else "joburg"
+        emitted.add((slug, year))
+
+    # A future target has no result to be checked against; that is a property
+    # of the world, not a gap in coverage.
+    future = {(s, y) for s, y in emitted if s + y not in hist
+              and int(y) >= _FIRST_UNHELD_TARGET}
+    unscannable = sorted({(s, y) for s, y in emitted
+                          if s + y not in hist} - future)
+    assert not unscannable, (
+        f"these pool specs are EMITTED and cannot be checked, so the claim "
+        f"this test makes does not cover them: {unscannable}.\n"
+        f"  They are backtest targets with no row in history.json. Either "
+        f"re-run compare_history so they are scored, or establish why they "
+        f"cannot be — but do not let them sit outside the scan silently, "
+        f"which is how Cape Town 2011's 1.26x went unreported (§1.162 §4).")
+
+    targets = sorted(emitted - future)
+    # (1) IT LOOKED, and the bound is two-sided against a computed denominator
+    # rather than a floor that ratchets down when it trips.
+    assert len(targets) >= 0.75 * len(emitted), (
+        f"only {len(targets)} of {len(emitted)} emitted specs are being "
+        f"scanned; the claim covers the emitted set.")
+
+    bad, straining = [], []
     for slug, year in targets:
         city = cityconfig.load(slug)
         spec_path = city.processed / f"pools_{year}.json"
@@ -372,18 +421,135 @@ def test_no_emitted_composition_weight_is_arithmetically_impossible():
             for nm in names:
                 if w[nm] <= 0:
                     continue
-                ratio = (w[nm] / wsum) / (share[nm] / s_p)
-                if ratio > 1.0 + 1e-9:
-                    bad.append(f"{slug} {year} {party} in {nm}: weight "
-                               f"{w[nm]/wsum:.4f} against a maximum of "
-                               f"{share[nm]/s_p:.4f} ({ratio:.2f}x)")
+                # ⛔ TESTED AT THE POOL'S OWN TOP-OF-BAND TURNOUT, NOT THE MIDDLE.
+                #
+                # Turnout is DRAWN per pool, not fixed, and the pools have
+                # separate turnout levers — so a composition that will not fit at
+                # the central turnout may fit perfectly at a draw the model
+                # actually makes. Testing the middle alone condemned four
+                # city-years the model can legitimately reach.
+                #
+                # ⚠️ AND RAISING EVERY POOL TOGETHER IS THE WRONG TEST, which is
+                # how this was first got wrong: lifting all pools lifts the CITY
+                # total too, so a pool's SHARE can fall and the ceiling gets
+                # tighter rather than looser. The question is what ONE pool can
+                # cast when its own turnout is at the top of its band and the
+                # others sit at theirs — which is what a per-group lever does.
+                # ⛔ COMPARED IN VOTES, NOT IN SHARES OF A SHIFTING TOTAL.
+                # A ratio against `pool_share / party_share` lets the CITY total
+                # grow when this pool's turnout rises, which silently inflates
+                # the party's implied vote count on the other side of the
+                # inequality. The party's vote is a FIXED, OBSERVED number; only
+                # the pool's capacity is being flexed. So: hold the party's
+                # votes at the central-turnout city size and ask whether this
+                # pool can cast that many.
+                party_votes = s_p * total
+                pool_hi = (pools_[nm].get("registered", 0.0)
+                           * float((pools_[nm].get("turnout") or [0, 1, 0])[2]))
+                if share[nm] <= 0:
+                    # A pool that casts NOTHING, with a party weighted into it.
+                    # The shipped test divided by this and raised
+                    # ZeroDivisionError — an error, not a finding, so it read as
+                    # a broken test rather than a broken spec.
+                    bad.append(f"{slug} {year} {party} in {nm}: the pool casts "
+                               f"ZERO votes and still carries weight "
+                               f"{w[nm] / wsum:.4f}")
+                    continue
+                rel = w[nm] / wsum
+                # FATAL only if it cannot fit even when this pool's own turnout
+                # is at the top of its band — i.e. more of the party's vote than
+                # the pool can cast under ANY draw the model makes. That is the
+                # owner's constraint: no party can take more votes from a pool
+                # than the pool has voters.
+                need = rel * party_votes
+                if pool_hi > 0 and need > pool_hi * (1.0 + 1e-9):
+                    bad.append(
+                        f"{slug} {year} {party} in {nm}: needs {need:,.0f} votes "
+                        f"from a pool that casts at most {pool_hi:,.0f} even at "
+                        f"the TOP of its turnout band — {need - pool_hi:,.0f} "
+                        f"more votes than that pool has voters ({need/pool_hi:.2f}x)")
+                elif rel > (share[nm] / s_p) * (1.0 + 1e-9):
+                    # Straining but reachable: impossible at central turnout,
+                    # possible at the top of this pool's band. Recorded, not
+                    # fatal — the model draws there.
+                    straining.append(
+                        f"{slug} {year} {party} in {nm}: {rel:.4f} against "
+                        f"{share[nm]/s_p:.4f} at central turnout, but fits at "
+                        f"the top of the band")
     assert not bad, (
         "these emitted pool weights describe an election that cannot happen — "
-        "the party is drawing more from the pool than the pool casts:\n  "
+        "the party is SEEDED to draw more from the pool than the pool "
+        "casts:\n  "
         + "\n  ".join(bad)
-        + "\nCheck that `PartyFit.composition` is being handed VOTES CAST "
-          "(registered x turnout), the same vector `montecarlo.pool_spec` "
-          "builds, and not a registration or projected-share vector.")
+        + "\n\n  ⚠️ THIS IS NOT AN IMPOSSIBLE ELECTION, and this message said "
+          "it was until 2026-09-02. `montecarlo.pool_spec` re-fits the "
+          "composition by iterative proportional fitting on EVERY draw, "
+          "imposing each pool's counted voters and the party's drawn citywide "
+          "level as hard margins. Verified: Buffalo City 2011 DA/White is "
+          "repaired 0.575 -> 0.374 before draw one. THE MODEL NEVER ALLOCATES "
+          "A PARTY MORE VOTES THAN A POOL CASTS.\n"
+          "\n  What this DOES report is a seed that IPF has to drag a long "
+          "way, which moves the composition away from what was measured. "
+          "Check that `PartyFit.composition` is handed VOTES CAST "
+          "(registered x turnout), the same vector `pool_spec` builds, and "
+          "not a registration or projected-share vector. Do NOT propose a "
+          "fit-time capacity constraint on the strength of this message "
+          "alone: one was built, measured and reverted (MODEL-LOG §1.41, "
+          "coherent seat error 306 -> 486).")
+
+
+def test_the_registration_bound_is_per_level():
+    """One solver, three levels, and only one of them may exceed 1.
+
+    Phase 1a bounded all three at 1.0 because "a value above 1.0 is not a rate
+    at all". True of `adult_share` (adults per person) and `turnout` (voters
+    per registered). FALSE of `registration`: registered voters are counted and
+    census voting-age population is modelled, and `pool_counts` computes their
+    ratio separately as `census_correction` — 1.480 for White at Johannesburg
+    2021 — while the solver clipped the same quantity to 1.0. JUDGEMENT-CALLS
+    §L9, MODEL-LOG §1.189.
+    """
+    import numpy as np
+
+    seen_above_one = False
+    for slug, year in FITS:
+        counts = pools.pool_counts(cityconfig.load(slug), year,
+                                   pools.load_config())
+        rates = counts.rates
+
+        # (1) THE TWO THAT CANNOT EXCEED 1 STILL CANNOT.
+        for level in ("adult_share", "turnout"):
+            r = rates[level]
+            assert np.all(r <= 1.0 + 1e-9), (
+                f"{slug} {year}: {level} reached {float(np.max(r)):.4f}. "
+                f"Adults cannot exceed people and voters cannot exceed "
+                f"registered; only `registration` may pass 1.")
+            assert np.all(r >= -1e-9), f"{slug} {year}: {level} went negative"
+
+        # (2) REGISTRATION IS BOUNDED BY THE GUARD, NOT BY 1.
+        reg = rates["registration"]
+        assert np.all(reg <= pools.REGISTRATION_MAX + 1e-9), (
+            f"{slug} {year}: registration reached {float(np.max(reg)):.4f}, "
+            f"above REGISTRATION_MAX")
+        if np.any(reg > 1.0 + 1e-6):
+            seen_above_one = True
+
+    # (3) IT LOOKED. If nothing anywhere exceeds 1, the whole change is inert
+    #     and this test is guarding a situation that does not arise.
+    assert seen_above_one, (
+        "no registration rate anywhere in the panel exceeds 1.0, so lifting "
+        "the bound changed nothing and §L9 is defending an empty case. "
+        "Johannesburg White measured 1.74 when this was written.")
+
+    # (4) AND THE GUARD BINDS WHERE THE MODEL IS KNOWN TO BE BROKEN — Mangaung's
+    #     Indian/Asian pool, which also carries a fitted turnout of exactly 0.
+    man = pools.pool_counts(cityconfig.load("mangaung"), "2016",
+                            pools.load_config())
+    assert man.unidentified, (
+        "Mangaung 2016 reports no rate on a bound. Its Indian/Asian pool has "
+        "3,531 registered voters and a fitted turnout of exactly 0.0000; if "
+        "nothing is reported, the detector has stopped seeing it.")
+
 
 if __name__ == "__main__":
     # `run_module`, NOT a hand-rolled loop. Until 2026-08-23 this file ended with

@@ -210,7 +210,7 @@ cannot reach the model without a declared-roster path
 (`judgements/joburg-2026.toml`).
 
 That is a `pools.py` change, so it moves `pools_sha`, so it invalidates **all
-eighteen** specs and forces the full window — re-emit ×18 → `compare_history`
+twenty-six** specs and forces the full window — re-emit ×26 → `compare_history`
 baseline → freeze — one writer, nothing else running.
 
 **Land the seam BEFORE 16 September, and before the model freeze**, so the day

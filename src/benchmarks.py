@@ -61,7 +61,7 @@ import cityconfig
 import montecarlo as M
 import score as S
 from fold import citywide, load, shares
-from seats import eligible_parties  # allocate itself is reached via montecarlo
+from seats import eligible_parties, outside_pool_wards  # allocate itself is reached via montecarlo
 
 def sources_for(target: int) -> dict[str, str | None]:
     """Files each baseline needs that the backtest's TARGETS table does not name.
@@ -301,8 +301,14 @@ def council_from_shares(ctx: Context, ward_share: np.ndarray,
     previous = M.COUNCIL
     try:
         M.COUNCIL = ctx.council
+        # The same C/D split the model and the ground truth use — one
+        # definition (`seats.outside_pool_wards`). A baseline that allocated
+        # over a different council from the model it is compared against would
+        # put part of the margin in the arithmetic rather than the forecast.
+        c_wards, d_wards, pool_wins = outside_pool_wards(dict(wins), combined)
         seats, _council, _thr, _over = M.allocate_with_overhang(
-            combined, dict(wins), rule=ctx.overhang_rule)
+            combined, pool_wins, rule=ctx.overhang_rule,
+            independent_wards=c_wards, no_pr_list_wards=d_wards)
     finally:
         M.COUNCIL = previous
     return {p: s for p, s in seats.items() if s > 0}, winners

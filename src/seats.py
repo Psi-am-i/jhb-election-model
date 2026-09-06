@@ -68,6 +68,41 @@ def eligible_parties(
     }
 
 
+def outside_pool_wards(
+    ward_wins: dict[str, int], combined: dict[str, int]
+) -> tuple[int, int, dict[str, int]]:
+    """Split ward wins into the entitlement pool and the C and D terms.
+
+    Returns ``(independent_wards, no_pr_list_wards, pool_wins)``.
+
+    Schedule 1 takes two kinds of ward seat out of the pool BEFORE the quota is
+    struck, because the councillor leaves with the seat: independents (C) and
+    the winners of wards contested by a party that registered no PR list (D).
+    Everything else stays in and earns an entitlement.
+
+    ONE DEFINITION, because there were about to be three. ``backtest`` computed
+    this inline for the ground truth, ``benchmarks`` did not compute it at all,
+    and ``montecarlo`` had no notion of C or D whatsoever — so the forecast
+    allocated over the whole council while the record it is scored against
+    allocated over ``council - C - D``. They agree at 22 of 24 real metro-years
+    and differ at eThekwini 2011 (C=1) and 2016 (C=4), both of them scored.
+    MODEL-LOG §1.163.
+
+    ⚠️ ``IND`` is matched as well as :data:`INDEPENDENT` because the published
+    result files merge every independent in a voting district into one row of
+    that name; ``DATA-QUALITY.md`` item 12 has why that count is an upper bound
+    and why the IEC's published C is preferred wherever a report exists.
+    """
+    outside = {p: n for p, n in ward_wins.items()
+               if p in (INDEPENDENT, "IND") or p not in combined}
+    independent_wards = sum(n for p, n in outside.items()
+                            if p in (INDEPENDENT, "IND"))
+    no_pr_list_wards = sum(n for p, n in outside.items()
+                           if p not in (INDEPENDENT, "IND"))
+    pool_wins = {p: n for p, n in ward_wins.items() if p not in outside}
+    return independent_wards, no_pr_list_wards, pool_wins
+
+
 def allocate(
     combined: dict[str, int],
     total_seats: int = 270,

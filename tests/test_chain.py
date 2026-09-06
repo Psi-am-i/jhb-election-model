@@ -88,8 +88,14 @@ Runs standalone or under pytest::
 
 from __future__ import annotations
 
+import collections
+import csv
+import os
 import json
+import tomllib
 import sys
+import ast
+import inspect
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
@@ -103,6 +109,7 @@ from _support import (ROOT, election_files_read, run_module,    # noqa: E402
 import cityconfig                                               # noqa: E402
 import levels                                                   # noqa: E402
 import montecarlo as mc                                         # noqa: E402
+import parties                                                  # noqa: E402
 import pools                                                    # noqa: E402
 import score as S                                               # noqa: E402
 
@@ -959,7 +966,17 @@ def test_every_emitted_pool_spec_carries_a_current_artefact_key():
     failure is asking.
     """
     stale = []
-    for path in sorted(ROOT.glob("data/processed/**/pools_*.json")):
+    specs = sorted(ROOT.glob("data/processed/**/pools_*.json"))
+    # ⛔ (1) IT LOOKED. `data/**` is gitignored, so on a fresh clone this glob
+    # is EMPTY and the test passed while checking nothing — the headline
+    # staleness guard, vacuous. Two-sided against a computed denominator so it
+    # cannot go stale as cities are added.
+    cities = len(list((ROOT / "cities").glob("*.toml")))
+    assert cities <= len(specs) <= 4 * cities + 4, (
+        f"found {len(specs)} emitted specs against {cities} cities. Zero means "
+        f"this scan is examining nothing and its emptiness is worth nothing; a "
+        f"wild count means the glob is picking up something it should not.")
+    for path in specs:
         spec = json.loads(path.read_text())
         slug = path.parent.name if path.parent.name != "processed" else "joburg"
         city = cityconfig.load(slug)
@@ -973,6 +990,381 @@ def test_every_emitted_pool_spec_carries_a_current_artefact_key():
         "\nRe-emit with `python src/pools.py --city <city> --target <year> "
         "--emit`, and say in the commit what re-emitting changed besides the "
         "artefact key.")
+
+
+def test_every_field_of_the_artefact_key_is_actually_checked():
+    """A field recorded and never compared is a guard that cannot fire.
+
+    `stale_reason` used to compare a **typed tuple** `("pools_sha",
+    "config_sha")` and then index a **typed dict** for the human label. Adding a
+    field to `artefact_key` and not to both left it recorded and unchecked;
+    adding it to only one raised `KeyError` on a real spec. A number typed in
+    two places, and this is the test that makes the third place impossible.
+
+    ⛔ ENUMERATES rather than lists (§1.173). It asks `artefact_key` what fields
+    exist and requires each non-identity one to be NAMED in the refusal, so a
+    field added tomorrow is covered without editing this test.
+    """
+    city = cityconfig.use("joburg")
+    target = cityconfig.Target(city=city, year="2026")
+    now = pools.artefact_key(city, target)
+
+    # The SAME set the code uses, imported rather than retyped — a set typed
+    # in two places is exactly what `stale_reason` was fixed for.
+    checkable = sorted(set(now) - pools._IDENTITY_FIELDS)
+    # (1) IT LOOKED, two-sided against a computed denominator.
+    assert 2 <= len(checkable) <= 8, (
+        f"artefact_key has {len(checkable)} comparable fields ({checkable}); "
+        f"one or none means this scan is examining almost nothing.")
+
+    for field in checkable:
+        doctored = dict(now)
+        doctored[field] = "0000000000000000"
+        why = pools.stale_reason({"artefact_key": doctored}, city, target)
+        # (2) IT CAN SEE, on a CONSTRUCTED key rather than the tree's state.
+        assert why is not None, (
+            f"perturbing {field} produced no staleness reason: it is recorded "
+            f"in the key and never compared, so nothing would notice it moving")
+        assert field in why, (
+            f"{field} moved and the reason does not name it: {why!r}. The "
+            f"useful half of a staleness report is WHICH thing moved.")
+
+
+def test_the_judgement_file_is_keyed_by_payload_and_not_by_prose():
+    """A staleness warning that fires on a comment is one nobody reads.
+
+    `judgements/<slug>-<year>.toml` declares each party's `parent`,
+    `baseline_share` and pool `weights` — it sets seeds — and until 2026-09-02
+    it was **in no hash anywhere**, so hand-editing it changed what the model
+    computes while every spec reported itself current. That is the hole entry 3
+    would have shipped a nomination list through on 16 September.
+
+    Hashing its BYTES would have been the other failure: 26 specs marked stale
+    on every prose edit, and a guard that cries wolf is switched off. So the
+    hash is over the PARSED payload, following `theta_residual`'s memo key,
+    which freezes the table and not the switch.
+
+    Both directions are asserted, on a constructed file — the tree's own
+    judgement files are never touched.
+    """
+    city = cityconfig.use("joburg")
+    target = cityconfig.Target(city=city, year="2026")
+    body = '[party.EXAMPLE]\nbaseline_share = 0.05\nparent = "ANC"\n'
+
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "joburg-2026.toml"
+        original = pools.lineage_path
+        try:
+            pools.lineage_path = lambda c, t: path
+
+            path.write_text(body)
+            base = pools.artefact_key(city, target)["judgements_sha"]
+
+            path.write_text(body + "\n# prose, and nothing else\n")
+            after_comment = pools.artefact_key(city, target)["judgements_sha"]
+            assert after_comment == base, (
+                "a comment-only edit moved `judgements_sha`. Every spec would "
+                "report stale on a prose change, and a warning that fires on "
+                "prose is one everybody learns to ignore — which is the "
+                "failure `_code_sha`'s docstring exists to prevent.")
+
+            path.write_text(body.replace('parent = "ANC"', 'parent = "DA"'))
+            after_payload = pools.artefact_key(city, target)["judgements_sha"]
+            assert after_payload != base, (
+                "changing a declared PARENT did not move `judgements_sha`. "
+                "That field selects between two different sizing machineries "
+                "(`classify_arrival`), and getting it wrong once produced 0.1% "
+                "against an actual 18.12%.")
+        finally:
+            pools.lineage_path = original
+
+
+def test_the_config_hash_covers_the_whole_config_directory():
+    """The population is `config/*.toml`, not one named file.
+
+    `config_sha` hashed a single path. `config/` held exactly one file, so the
+    claim ("what this spec was built from") and the scan coincided **by
+    accident** — and a second config file would have been consumed by the model
+    and invisible to staleness. §1.173.
+
+    ⚠️ RUNS IN A TEMPORARY DIRECTORY, and the first version of this test did
+    not. It wrote `config/_constructed_by_a_test.toml` into the live tree —
+    mutating a **hashed shared input** while CLAUDE.md §3 forbids moving the
+    artefacts' baseline during a measurement, so a concurrent `compare_history`
+    worker would have seen `config_sha` move under it. It also leaked the file
+    if the test was killed. `_config_sha` takes a path, so there is no reason
+    to touch the real directory.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        named = root / "dimensions.toml"
+        named.write_text("# constructed\nx = 1\n")
+        before = pools._config_sha(named)
+
+        (root / "second.toml").write_text("# a second config file\ny = 2\n")
+        after = pools._config_sha(named)
+        assert after != before, (
+            "a new config/*.toml did not move `config_sha`. Its content would "
+            "be read by the model and reported as current by every spec.")
+
+        (root / "second.toml").unlink()
+        assert pools._config_sha(named) == before, (
+            "removing the second file did not restore the hash, so the scan is "
+            "not a function of the directory's contents")
+
+
+# A genuine entrant legitimately slugs, so `[roster]` requires it to carry a
+# `[party.X]` table as well — which is what makes a misspelt EXISTING party
+# detectable. Declaring one is therefore a two-line edit, and the tests do it
+# the way the refusal instructs.
+_PLACE_NEWPARTY = '[party.NEWPARTY]\nsupport = 0.05\n'
+
+
+def test_a_roster_has_three_states_and_only_two_may_delete_a_party():
+    """Drop what was deliberately excluded, never what was merely absent.
+
+    `roster_is_real` was a boolean and it conflated "we know the ballot" with
+    "we may delete parties from the pools". The second deletes 2.4-2.9% of a
+    city's vote across 16-20 parties when it fires wrongly (§1.175), and on
+    16 September 2026 it would fire on a half-typed nomination list.
+
+      published  absence is deliberate      -> may drop
+      declared   absence is ambiguous       -> may drop ONLY if complete = true
+      projected  absence is ignorance       -> may drop only what a measured
+                                              floor deliberately excluded
+
+    ⛔ THIS ASSERTS `resolve_roster`, NOT `declared_roster`. The first version
+    of this test checked only the PARSER, and the seam shipped broken: the
+    projected branch sat one indent level out, so it ran in the declared case
+    too and rebuilt `roster` from the baseline **two lines after** reading the
+    declared list. The parser was perfect and the hand-declared nomination list
+    reached nothing. The population a roster test must cover is the resolution,
+    which is why it is a function and not eighty inline lines.
+    """
+    city = cityconfig.use("joburg")
+    target = cityconfig.Target(city=city, year="2026")
+    original = pools.lineage_path
+
+    # Constructed, not observed. NEWPARTY is in neither, which is the whole
+    # case the seam exists for: a genuine entrant is invisible to a projection.
+    composition = {"ANC": [0.9, 0.1], "DA": [0.2, 0.8], "SMALLFRY": [0.5, 0.5]}
+    baseline = {"ANC": 0.40, "DA": 0.25, "SMALLFRY": 0.0004}
+
+    def _resolve(body, tgt=target, year="2021"):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / f"joburg-{tgt.year}.toml"
+            path.write_text(body)
+            try:
+                pools.lineage_path = lambda c, t: path
+                return pools.resolve_roster(
+                    city, tgt, year, dict(composition), dict(baseline))
+            finally:
+                pools.lineage_path = original
+
+    # (1) PROJECTED — no [roster] at all.
+    roster, source, deliberate, _ = _resolve(
+        '[party.MK]\nbaseline_share = 0.12\nparent = "ANC"\n')
+    assert source == "projected", source
+    assert "NEWPARTY" not in roster, (
+        "a projection invented a party it has no evidence for")
+    assert "ANC" in roster and "DA" in roster
+    assert deliberate <= {"SMALLFRY"}, (
+        f"a projected roster deleted {deliberate - {'SMALLFRY'}} from the "
+        f"pools. Only what a MEASURED floor excluded may go; everything else "
+        f"absent from a guess is ignorance, and that is how ActionSA was lost.")
+    # A [party.X] entry does not put MK on the ballot — [roster] does.
+    assert "MK" not in roster, (
+        "a [party.X] entry became a ballot claim. `write_lineage_template` "
+        "auto-generates one per no_vector party, so a stale template would "
+        "silently override the measured floors §K1/§K2.")
+
+    # (2) DECLARED, incomplete — ADDS and removes nothing.
+    roster, source, deliberate, _ = _resolve(
+        '[roster]\nparties = ["ANC", "NEWPARTY"]\n' + _PLACE_NEWPARTY)
+    assert source == "declared", source
+    assert "NEWPARTY" in roster, (
+        "THE BLOCKING BUG. A declared nomination list was read and then "
+        "discarded — the projected branch rebuilt `roster` from the baseline "
+        "and the entrant vanished. This is the assertion that catches it.")
+    assert deliberate == set(), (
+        f"an INCOMPLETE declared roster deleted {deliberate}. A partial paste "
+        f"on a deadline must add parties and delete none: `complete` defaults "
+        f"to false and that is the whole safety property.")
+
+    # (3) DECLARED, complete = true — the deletion is licensed, and only now.
+    roster, source, deliberate, _ = _resolve(
+        '[roster]\ncomplete = true\nconfirm_drop = true\n'
+        'parties = ["ANC", "NEWPARTY"]\n' + _PLACE_NEWPARTY)
+    assert source == "declared", source
+    assert "NEWPARTY" in roster
+    assert deliberate == {"DA", "SMALLFRY"}, (
+        f"a COMPLETE declared roster dropped {deliberate}, expected "
+        f"{{'DA', 'SMALLFRY'}} — the composition members it does not name")
+
+    # (4) PUBLISHED beats a declared list. The target has been held, so the
+    #     result file is the ballot and a hand-written guess cannot override it.
+    held = cityconfig.Target(city=city, year="2021")
+    published = pools.contesting_parties(city, "2021")
+    assert len(published) > 20, (
+        f"IT LOOKED: contesting_parties(joburg, 2021) returned {len(published)} "
+        f"parties. With an empty result the published arm is untested and rows "
+        f"1-3 are all this proves.")
+    roster, source, deliberate, _ = _resolve(
+        '[roster]\ncomplete = true\nparties = ["ANC"]\n', held, "2016")
+    assert source == "published", (
+        f"a declared [roster] overrode a HELD election ({source}). The result "
+        f"file is what happened; a judgement call cannot outrank it.")
+    assert roster == published
+    assert deliberate == {"SMALLFRY"}, (
+        f"the published arm dropped {deliberate}. The DA contested 2021 and "
+        f"the result file says so, so it survives a declared list that omits "
+        f"it — which is the point: a held election outranks a judgement call. "
+        f"Only SMALLFRY, absent from the real ballot, is deliberate.")
+
+
+def test_a_declared_roster_reaches_the_emitted_spec():
+    """The end-to-end anchor: one emit, and the declared party must arrive.
+
+    ⛔ THIS IS THE EXPENSIVE TEST AND IT IS DELIBERATE. It costs a full city
+    fit (~100s) and everything above it is milliseconds, because everything
+    above it exercises `resolve_roster` in isolation. Isolation is exactly what
+    let the seam ship broken once: the resolution was correct in the branch
+    that never ran, and no test crossed from the resolution to `seeds`.
+
+    So this asserts the one thing a unit test cannot — that the wire is
+    connected — on the STRUCTURE and not the values. The seed's size is
+    `arrival_rules`' business and R4 will move it; that this party has a seed
+    at all, and a place in every pool, is this seam's business.
+    """
+    city = cityconfig.use("joburg")
+    target = cityconfig.use_target("2026")
+    original = pools.lineage_path
+    body = pools.lineage_path(city, target).read_text()
+
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "joburg-2026.toml"
+        path.write_text('[roster]\nparties = ["ANC", "DA", "EFF", "NEWPARTY"]\n'
+                        + _PLACE_NEWPARTY + '\n' + body)
+        try:
+            pools.lineage_path = lambda c, t: path
+            spec = pools.emit_pools(city, target, pools.load_config())
+        finally:
+            pools.lineage_path = original
+
+    assert "roster declared" in spec["provenance"], spec["provenance"]
+    assert "NEWPARTY" in spec["seeds"], (
+        "a party declared under [roster] emitted no seed. It is in no pool "
+        "vector and in no baseline, so with no seed it is not forecast at all "
+        "— which is the ActionSA failure the seam exists to prevent.")
+    placed = [n for n, pl in spec["pools"].items() if "NEWPARTY" in pl["members"]]
+    assert len(placed) == len(spec["pools"]), (
+        f"NEWPARTY reached {len(placed)} of {len(spec['pools'])} pools. With "
+        f"no measured vector it takes an even share of every pool — a "
+        f"placeholder, and meant to look like one — so absence from a pool "
+        f"means the declaration did not reach the composition.")
+    # AND the incomplete list deleted nobody: ANC/DA/EFF are named, everyone
+    # else in the composition must still be there.
+    members = {p for pl in spec["pools"].values() for p in pl["members"]}
+    assert len(members) > 20, (
+        f"the composition fell to {len(members)} parties. An INCOMPLETE "
+        f"declared roster must add and never delete.")
+
+
+def test_a_party_table_entry_does_not_put_a_party_on_the_ballot():
+    """`[roster]` decides who stands; `[party.X]` decides how they are placed.
+
+    A first version of the seam added every `[party.X]` entry to the roster.
+    `write_lineage_template` auto-generates one entry per `no_vector` party, so
+    the file already lists parties the measured floors (§K1, §K2) exclude, and
+    a stale template would have silently overridden measured evidence.
+
+    The BEHAVIOUR is asserted next door, on a constructed file, by
+    `test_a_roster_has_three_states_...` row (1). What this asserts is that the
+    hazard is LIVE in the tree rather than hypothetical: the real judgement
+    file really does carry entries the §K1 floor really does exclude. Without
+    that, the constructed test guards an interaction nobody would ever meet.
+
+    A previous version of this test asserted a string was absent from
+    `inspect.getsource(pools.emit_pools)`. That proved nothing about what the
+    code does, and it broke the moment the block moved to `resolve_roster` —
+    which is the correct fate of a test that scans source instead of running it.
+    """
+    city = cityconfig.use("joburg")
+    target = cityconfig.Target(city=city, year="2026")
+    lineage = pools.load_lineage(city, target)
+    assert len(lineage) >= 5, (
+        f"judgements/joburg-2026.toml carries {len(lineage)} [party.*] entries; "
+        f"with too few, this proves nothing about the interaction it pins")
+
+    # The §K1 baseline, read the way `emit_pools` reads it — no fit needed.
+    path = city.path("raw", "elections",
+                     cityconfig.CALENDAR[target.previous_npe].results)
+    counts = collections.defaultdict(int)
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            counts[parties.canonical(row["sPartyName"])] += int(
+                float(row.get("Party_Votes") or 0))
+    total = sum(counts.values())
+    assert total > 0, f"{path} parsed to zero votes"
+    baseline = {q: c / total for q, c in counts.items()}
+
+    below = {q for q in lineage if baseline.get(q, 0.0) < pools.NATIONAL_ONLY_FLOOR}
+    assert below, (
+        f"no [party.*] entry in judgements/joburg-2026.toml sits below the "
+        f"§K1 floor of {pools.NATIONAL_ONLY_FLOOR:.1%}, so promoting party "
+        f"entries to the roster would currently override nothing and the "
+        f"constructed guard next door defends an interaction that cannot "
+        f"arise. Re-check that the floor and the template still disagree.")
+    assert len(below) < len(lineage), (
+        f"ALL {len(lineage)} party entries sit below the floor. A one-sided "
+        f"count that can only grow is not a measurement; if the template has "
+        f"stopped emitting anything the floor keeps, this test is scanning the "
+        f"wrong population.")
+
+
+def test_the_emit_dependency_set_matches_what_pools_actually_imports():
+    """`deps_sha` names four modules. That claim must hold in BOTH directions.
+
+    `pools_sha` hashes one file while `_code_sha`'s docstring claims any change
+    to what the code computes moves it — false of the first-party modules the
+    emit leans on. `deps_sha` covers them, and this asserts the named set is
+    neither short (a dependency nobody hashes) nor long (a module hashed that
+    the emit does not read, which would cry wolf).
+
+    `montecarlo` is deliberately absent and that absence is asserted, with the
+    reason: it carries every forecast lever and changes on most working days,
+    so hashing it would mark all 26 specs stale continuously.
+    """
+    source = (ROOT / "src" / "pools.py").read_text()
+    tree = ast.parse(source)
+    first_party = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            first_party.update(a.name.split(".")[0] for a in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            first_party.add(node.module.split(".")[0])
+    local = {m for m in first_party if (ROOT / "src" / f"{m}.py").exists()}
+
+    named = set(pools._EMIT_DEPENDENCIES)
+    # (1) IT LOOKED, two-sided against a computed denominator.
+    assert 3 <= len(named) <= len(local), (
+        f"`_EMIT_DEPENDENCIES` names {len(named)} of {len(local)} first-party "
+        f"modules pools.py imports ({sorted(local)}); one or none means this "
+        f"is examining almost nothing.")
+    unknown = named - local
+    assert not unknown, (
+        f"`_EMIT_DEPENDENCIES` names {sorted(unknown)}, which `pools.py` does "
+        f"not import — hashing a module the emit never reads cries wolf.")
+    assert "montecarlo" not in named, (
+        "montecarlo is excluded deliberately: it carries every forecast lever "
+        "and changes on most working days, so hashing it would mark all 26 "
+        "specs stale continuously. If that judgement is revisited, the residual "
+        "risk recorded beside `_EMIT_DEPENDENCIES` must be revisited with it.")
+    missing = local - named - {"montecarlo"}
+    assert not missing, (
+        f"pools.py imports {sorted(missing)} and `deps_sha` does not hash "
+        f"them, so a change to what they compute leaves every spec reporting "
+        f"itself current. Either hash them or record why not.")
 
 
 def test_a_pool_spec_from_different_code_is_reported_as_stale():
@@ -1210,5 +1602,797 @@ class _Args:
         self.seed = None
 
 
+def _close(a, b, rel=1e-9):
+    """Elementwise near-equality. This harness has no pytest."""
+    a, b = list(a), list(b)
+    return len(a) == len(b) and all(
+        abs(x - y) <= rel * max(1.0, abs(x), abs(y)) for x, y in zip(a, b))
+
+
+def _arrival_kw():
+    """A synthetic arrival record. Constructed, so it cannot expire silently."""
+    return dict(
+        rates=np.array([[0.30, 0.10], [0.05, 0.40]]),
+        universe=["ANC", "DA"],
+        categories=["A", "B"],
+        record=[(0.010, 0.5), (0.004, 0.4), (0.02, 0.6), (0.001, 0.3),
+                (0.05, 0.7), (0.002, 0.45), (0.03, 0.55), (0.007, 0.5)],
+        splinter_fractions=[0.10, 0.20, 0.15],
+        pool_size=np.array([1000.0, 2000.0]))
+
+
+def test_a_declared_strength_is_read_and_does_not_narrow_its_own_band():
+    """The 16-September path: an owner states how big a new party will be.
+
+    Three defects, all measured 2026-09-03 and all on this one path:
+
+    1. `support` was read ONLY inside `if weights:`. A party announced without
+       a ward list — the ordinary case — had its declared size discarded and
+       was seeded at the comparator mean instead.
+    2. `lo_e`/`hi_e` were bound only in the entrant branch and read by every
+       non-split branch. Declaring `weights` raised `UnboundLocalError` when
+       the party was the sole newcomer, and inherited the PREVIOUS party's
+       quantiles when it was not — so the band depended on alphabetical order.
+    3. The band divided the record's quantiles by the ADJUSTED centre, so
+       stating a level narrowed the band in proportion to it. ActionSA's x36
+       would have produced a 95th percentile at 7.7% of its own mean: the act
+       of admitting a guess made the forecast 36x sharper.
+
+    The rule: **the declaration sets the level, the record sets the width.**
+    """
+    kw = _arrival_kw()
+    peers = [s for s, _ in kw["record"]]
+    expect_lo = float(np.quantile(peers, pools.ARRIVAL_BAND_LO)) / float(np.mean(peers))
+    expect_hi = float(np.quantile(peers, pools.ARRIVAL_BAND_HI)) / float(np.mean(peers))
+    assert expect_hi / expect_lo > 3.0, (
+        f"IT LOOKED: the constructed record's band spans only "
+        f"{expect_hi / expect_lo:.1f}x. Too narrow to show a band collapsing, "
+        f"so widen the record before trusting what follows.")
+
+    def rules_for(lineage, others=()):
+        r, notes = pools.arrival_rules({"NEWPARTY", *others}, lineage, **kw)
+        return r["NEWPARTY"], notes["NEWPARTY"]
+
+    def implied_share(rule):
+        """The citywide share a capture vector actually buys.
+
+        ⛔ ASSERT THE NUMBER, NOT THE NOTE. The first version of this test
+        checked that the note said "DECLARED 12.00%", and a mutation that
+        deleted the line honouring `support` left the note untouched and the
+        test green: the prose claimed a declaration the arithmetic ignored.
+        `_capture_from_share` puts `share * w_g * electorate / pool_size[g]`
+        in each pool, so weighting back by pool size recovers the share.
+        """
+        size = kw["pool_size"]
+        return sum(r * size[g] for g, r in rule["capture"].items()) / size.sum()
+
+    # (1) weights + support, sole newcomer. This raised UnboundLocalError.
+    got, why = rules_for({"NEWPARTY": {"weights": [1.0, 0.0], "support": 0.12}})
+    assert _close(got["band"], [expect_lo, 1.0, expect_hi]), got["band"]
+    assert "DECLARED" in why, why
+    assert _close([implied_share(got)], [0.12], rel=1e-6), (
+        f"declared 12% with weights, bought {implied_share(got):.4%}")
+
+    # (2) ORDER INDEPENDENCE. `AAAOTHER` sorts first and takes the entrant
+    #     branch, which is what used to leave lo_e/hi_e lying around.
+    other, _ = rules_for({"NEWPARTY": {"weights": [1.0, 0.0], "support": 0.12}},
+                         others=("AAAOTHER",))
+    assert _close(other["band"], got["band"]), (
+        f"a party's band changed because another party was emitted first: "
+        f"{other['band']} vs {got['band']}. The band is a property of the "
+        f"arrival record, not of the loop's iteration order.")
+
+    # (3) `support` WITHOUT weights — the case that was silently discarded.
+    got3, why3 = rules_for({"NEWPARTY": {"support": 0.12}})
+    assert "DECLARED 12.00%" in why3, why3
+    assert _close(got3["band"], [expect_lo, 1.0, expect_hi])
+    assert _close([implied_share(got3)], [0.12], rel=1e-6), (
+        f"a `support` declared WITHOUT `weights` bought "
+        f"{implied_share(got3):.4%} of the city, not the 12% stated. It was "
+        f"read only inside `if weights:`, so an owner who knew the size but "
+        f"not the ward list had their number silently discarded — and the "
+        f"note still said DECLARED, which is why this asserts the arithmetic.")
+    default_share = implied_share(rules_for({})[0])
+    assert abs(implied_share(got3) - default_share) > 0.05, (
+        f"the declared share {implied_share(got3):.4%} is indistinguishable "
+        f"from the undeclared default {default_share:.4%}, so this test would "
+        f"pass whether or not the declaration was honoured")
+
+    # (4) A LEVEL DOES NOT BUY SHARPNESS. x36 is the ActionSA judgement.
+    plain, _ = rules_for({})
+    loud, _ = rules_for({"NEWPARTY": {"overperform": 36.0}})
+    assert _close(loud["band"], plain["band"]), (
+        f"a x36 judgement moved the band from {plain['band']} to "
+        f"{loud['band']}. Stating that a party is bigger than its comparators "
+        f"says nothing about how well we know it, and dividing the record's "
+        f"quantiles by the raised centre made the forecast 36x sharper.")
+    assert _close([sum(loud["capture"].values())],
+                  [36.0 * sum(plain["capture"].values())]), (
+        "the multiplier must still move the LEVEL — this test must not pass "
+        "by making `overperform` inert.")
+
+    # (5) ⛔ THE GROUP BUDGET MUST NOT RENORMALISE A DECLARATION AWAY.
+    #     `arrival_rules` holds the entrant GROUP to the arrival-total record.
+    #     That record is a prior over arrivals nobody has sized; a declared
+    #     party is not one. Leaving it in the budget put a declared 12.00% out
+    #     at 0.3687% -- a factor of 33 -- while the note said "group rescaled
+    #     x0.03". `support` was readable by then and still did nothing.
+    crowd = tuple(f"P{i:02d}" for i in range(29))
+    pool = kw["pool_size"]
+
+    def with_budget(lineage):
+        r, _ = pools.arrival_rules({"NEWPARTY", *crowd}, lineage,
+                                   group_total=0.0175, **kw)
+        return r
+
+    r5 = with_budget({"NEWPARTY": {"support": 0.12}})
+    got5 = sum(v * pool[g] for g, v in r5["NEWPARTY"]["capture"].items()) / pool.sum()
+    assert _close([got5], [0.12], rel=1e-6), (
+        f"a declared 12% emerged from the group rescale at {got5:.4%}. The "
+        f"arrival-total record is a prior over arrivals we know nothing "
+        f"about, and a party somebody has named and sized is not one of them.")
+
+    rest = sum(sum(v * pool[g] for g, v in r5[q]["capture"].items()) / pool.sum()
+               for q in crowd)
+    assert _close([rest], [0.0175], rel=1e-6), (
+        f"the 29 UNDECLARED entrants total {rest:.4%} against a record of "
+        f"1.75%. Holding a declared party out of the budget must not release "
+        f"the rest of the group from it — that would trade one bug for the "
+        f"over-allocation the rescale was built to fix (ranks 13+ went "
+        f"-4.6pp to +19.4pp when it was absent).")
+
+    # IT LOOKED: without the exemption the budget really does bite here.
+    unfixed = with_budget({})
+    solo = sum(v * pool[g] for g, v in unfixed["NEWPARTY"]["capture"].items()) / pool.sum()
+    assert solo < 0.01, (
+        f"an UNDECLARED entrant in this 30-party crowd comes out at {solo:.4%}, "
+        f"so the group rescale is barely binding and the assertions above "
+        f"would pass whether or not the exemption existed")
+
+
+def test_an_unreadable_key_in_a_party_table_refuses_instead_of_being_ignored():
+    """A misspelt `support` is a forecast, not a run, and it fails silently.
+
+    `[party.X]` is hand-edited under time pressure on the day a nomination
+    list lands. `suport = 0.12` costs nothing to type, nothing reads it, and
+    the emit prints the party at the comparator mean without complaint.
+    """
+    city = cityconfig.use("joburg")
+    target = cityconfig.Target(city=city, year="2026")
+    original = pools.lineage_path
+
+    # (0) THE RIGHT POPULATION: every key the tree actually uses must be
+    #     accepted, or this refusal breaks the twenty-six live files.
+    used = set()
+    for path in sorted(Path("judgements").glob("*.toml")):
+        raw = tomllib.loads(path.read_text())
+        for body in (raw.get("party") or {}).values():
+            used |= set(body)
+    assert used, "no [party.*] keys found in judgements/ — scanning the wrong place"
+    assert used <= set(pools.PARTY_KEYS), (
+        f"the live judgement files use {sorted(used - set(pools.PARTY_KEYS))}, "
+        f"which PARTY_KEYS does not admit. This refusal would break the emit.")
+
+    def _load(body):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "joburg-2026.toml"
+            p.write_text(body)
+            try:
+                pools.lineage_path = lambda c, t: p
+                return pools.load_lineage(city, target)
+            finally:
+                pools.lineage_path = original
+
+    # (1) every accepted key passes
+    ok = "[party.X]\n" + "\n".join(
+        f'{k} = {"[0.5, 0.5]" if k == "weights" else chr(34) + "ANC" + chr(34) if k == "parent" else "0.1"}'
+        for k in pools.PARTY_KEYS)
+    assert set(_load(ok)["X"]) == set(pools.PARTY_KEYS)
+
+    # (2) A CONSTRUCTED VIOLATION, through the same detector.
+    try:
+        _load('[party.X]\nsuport = 0.12\n')
+    except SystemExit as exc:
+        assert "suport" in str(exc) and "support" in str(exc), str(exc)
+    else:
+        raise AssertionError(
+            "a misspelt `suport` was accepted and ignored. The party is then "
+            "seeded at the comparator mean and nothing says the declaration "
+            "did not land.")
+
+
+def test_the_arrival_record_figures_are_the_record():
+    """A quoted figure must fail when the thing it quotes moves.
+
+    `arrival_group_record`'s docstring said *"sixteen metro-years… median
+    3.11%"* for weeks after the panel became 22 city-years and 2.17%, and three
+    further sites quoted "0.31%-4.74% over sixteen metro-years" — which is
+    2016's range over eight, not the record's. None of the four stated the
+    number the live forecast actually uses.
+
+    This is the decay class the register's appendix documents for line numbers,
+    and the same remedy: if a number is written down, something fails when it
+    moves. Derived here, never typed.
+    """
+    rec = pools.arrival_group_record()
+    shares = [x for x, _, _ in rec]
+    doc = pools.arrival_group_record.__doc__
+
+    assert len(rec) >= 20, (
+        f"IT LOOKED: the arrival record is {len(rec)} rows. Below about 20 the "
+        f"panel has shrunk and the docstring's claims need re-reading, not "
+        f"re-asserting.")
+    for label, text in (("row count", f"**{len(rec)}**"),
+                        ("median", f"**median {np.median(shares):.2%}**"),
+                        ("maximum", f"{max(shares):.2%}")):
+        assert text in doc, (
+            f"`arrival_group_record`'s docstring does not state the record's "
+            f"{label}: expected {text!r}. Re-derived now — {len(rec)} rows, "
+            f"median {np.median(shares):.4%}, range {min(shares):.2%}-"
+            f"{max(shares):.2%}.")
+
+    # ⛔ AND THE CONCENTRATION, WHICH THIS TEST DID NOT LOOK AT.
+    #
+    # It asserted the row count, the median of TOTALS and the max of TOTALS —
+    # and the docstring's alpha range went stale underneath it twice without a
+    # word. Its own docstring says the fault it exists for is that "none of the
+    # four stated the number the live forecast actually uses"; it then did not
+    # pin that number either. Healthy scan, working detector, wrong population.
+    alphas = [a for _, a, _ in rec]
+    for label, text in (("alpha range", f"{min(alphas):.2f} to {max(alphas):.2f}"),
+                        ("alpha median", f"median of {np.median(alphas):.2f}")):
+        assert text in doc, (
+            f"`arrival_group_record`'s docstring does not state the record's "
+            f"{label}: expected {text!r}. Re-derived — range {min(alphas):.2f}"
+            f"-{max(alphas):.2f}, median {np.median(alphas):.2f}. This is the "
+            f"CONCENTRATION, which `arrival_group_spec` emits into every spec "
+            f"with a roster, and it moved +124% at 2021 when the record was "
+            f"widened.")
+
+    # And the split/entrant decomposition the docstring warns about.
+    prior = pools._arrival_total_prior.__doc__
+    ent = [e for _, _, e in rec]
+    for text in (f"median {np.median(shares):.4%}", f"mean {np.mean(shares):.4%}",
+                 f"median {np.median(ent):.4%}", f"mean {np.mean(ent):.4%}"):
+        assert text in prior, (
+            f"`_arrival_total_prior` does not state {text!r}. Its two numbers "
+            f"are an error of population and an error of statistic that nearly "
+            f"cancel, so BOTH must be visible or the next reader repairs one.")
+
+    # ⛔ AND THE VALUE THE FUNCTION ACTUALLY RETURNS. Everything above pins the
+    # record; this pins the OUTPUT, which is what the forecast consumes and
+    # what no version of this test had ever checked.
+    for year in ("2011", "2016", "2021", "2026"):
+        got = pools._arrival_total_prior(year)
+        assert got is not None, f"_arrival_total_prior({year}) is None"
+        assert f"{year}  n=" in prior or f"{got:.4%}" in prior, (
+            f"_arrival_total_prior({year}) returns {got:.4%} and the docstring "
+            f"does not state it. The number the live forecast uses is the one "
+            f"that must be pinned.")
+    live = pools._arrival_total_prior("2026")
+    assert f"{live:.4%}" in prior, (
+        f"the 2026 budget is {live:.4%} and the docstring does not say so — "
+        f"this is the value the published forecast consumes.")
+
+
+def test_a_declared_pool_vector_is_not_a_declared_size():
+    """`weights` says WHERE the votes come from, not HOW MANY there are.
+
+    For one commit the `weights` branch defaulted its size to the median over
+    the whole un-reach-matched arrival record, and exempted the party from the
+    group budget on `not weights`. Two consequences: the two branches held
+    different beliefs about "no information" (4.8x apart on the live
+    Johannesburg record), and a party nobody had sized escaped the budget
+    carrying a number nobody had stated — under a note reading "pools and
+    support DECLARED".
+    """
+    kw = _arrival_kw()
+    pool = kw["pool_size"]
+    crowd = tuple(f"P{i:02d}" for i in range(29))
+
+    def outcome(lineage):
+        r, notes = pools.arrival_rules({"NEWPARTY", *crowd}, lineage,
+                                       group_total=0.0175, **kw)
+        mine = sum(v * pool[g] for g, v in r["NEWPARTY"]["capture"].items()) / pool.sum()
+        rest = sum(sum(v * pool[g] for g, v in r[q]["capture"].items()) / pool.sum()
+                   for q in crowd)
+        return mine, rest, notes["NEWPARTY"]
+
+    bare, bare_rest, _ = outcome({})
+    wonly, wonly_rest, why = outcome({"NEWPARTY": {"weights": [1.0, 0.0]}})
+    sized, _, _ = outcome({"NEWPARTY": {"weights": [1.0, 0.0], "support": 0.12}})
+
+    assert _close([wonly], [bare], rel=1e-6), (
+        f"a `weights`-only party was sized at {wonly:.4%} against an "
+        f"undeclared party's {bare:.4%}. Declaring a pool vector states no "
+        f"level, so both must fall back to the same reach-matched estimate.")
+    assert _close([wonly_rest], [bare_rest], rel=1e-6), (
+        f"a `weights`-only party changed the other entrants' total "
+        f"({bare_rest:.4%} -> {wonly_rest:.4%}), so it escaped the group "
+        f"budget. The exemption is for a party somebody has named AND SIZED.")
+    assert "size NOT declared" in why, (
+        f"the note claims a size was declared when none was: {why[:120]!r}")
+    assert _close([sized], [0.12], rel=1e-6), (
+        "adding `support` must still declare the level — this test must not "
+        "pass by making the weights branch inert.")
+
+
+def test_a_declared_roster_refuses_what_it_cannot_read():
+    """On 16 September this file is pasted from the IEC list, under pressure.
+
+    Four silent failures, all measured 2026-09-03 and all fixed here:
+      * `[rostr]` parses cleanly, reads as nothing, and the run falls through
+        to a PROJECTED ballot printing only its routine message;
+      * `partys = [...]` does the same;
+      * `parties.canonical` SLUGS an unrecognised name, so 'VF PLUS' becomes
+        VF_PLUS — a phantom party — while under `complete = true` the real
+        VFPLUS is deleted from the pools by the same edit;
+      * a `complete` deletion reported a COUNT, never the MASS, and §1.175
+        prices a wrongly-fired drop at 2.4-2.9% of a city's vote.
+    """
+    city = cityconfig.use("joburg")
+    target = cityconfig.Target(city=city, year="2026")
+    original = pools.lineage_path
+
+    def read(body):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "joburg-2026.toml"
+            path.write_text(body)
+            try:
+                pools.lineage_path = lambda c, t: path
+                return pools.declared_roster(city, target)
+            finally:
+                pools.lineage_path = original
+
+    def refuses(body, needle):
+        try:
+            read(body)
+        except SystemExit as exc:
+            assert needle in str(exc), f"wrong refusal for {body!r}: {exc}"
+            return
+        raise AssertionError(f"accepted in silence: {body!r}")
+
+    # (0) THE RIGHT POPULATION: the live files must still parse.
+    for path in sorted(Path("judgements").glob("*.toml")):
+        raw = tomllib.loads(path.read_text())
+        assert set(raw) <= pools.LINEAGE_TABLES, (
+            f"{path} carries top-level {sorted(set(raw) - pools.LINEAGE_TABLES)}, "
+            f"which this refusal would reject. It would break the emit.")
+
+    # (1) it accepts what it should
+    ok = read('[roster]\nparties = ["FREEDOM FRONT PLUS", "ANC"]\n')
+    assert ok["parties"] == ["VFPLUS", "ANC"], ok
+    assert ok["complete"] is False and ok["confirm_drop"] is False
+
+    # (2) CONSTRUCTED VIOLATIONS, each through the same detector
+    refuses('[rostr]\nparties = ["ANC"]\n', "rostr")
+    refuses('[roster]\npartys = ["ANC"]\n', "partys")
+    refuses('[roster]\nparties = ["ANC"]\ncomplte = true\n', "complte")
+    # ⚠️ THE NAME CHECK MOVED, AND SO DOES ITS TEST. It used to live in
+    # `declared_roster`, which has no evidence about the city and so had to
+    # define "known" as the alias tables alone — and that refused the REAL 2021
+    # ballot (see `test_a_realistic_nomination_list_is_accepted`). It now lives
+    # in `resolve_roster`, which has the composition and the baseline. Asserting
+    # it here would test a function that no longer makes the claim.
+    original_lp = pools.lineage_path
+    composition = {"ANC": [1.0], "DA": [1.0]}
+    baseline = {"ANC": 0.40, "DA": 0.25}
+
+    def resolve_refuses(body, needle):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "joburg-2026.toml"
+            path.write_text(body)
+            try:
+                pools.lineage_path = lambda c, t: path
+                pools.resolve_roster(city, target, "2021",
+                                     dict(composition), dict(baseline))
+            except SystemExit as exc:
+                assert needle in str(exc), f"wrong refusal: {exc}"
+                return
+            finally:
+                pools.lineage_path = original_lp
+        raise AssertionError(f"a slugged name was accepted: {body!r}")
+
+    for name, slug in (("VF PLUS", "VF_PLUS"),
+                       ("UMKHONTO WE SIZWE", "UMKHONTO_WE_SIZWE"),
+                       ("ACTIONSA (ASA)", "ACTIONSA_ASA")):
+        resolve_refuses(f'[roster]\nparties = ["{name}"]\n', slug)
+
+    # (3) a GENUINE entrant slugs legitimately, and is admitted once placed
+    placed = read('[roster]\nparties = ["BRAND NEW PARTY"]\n'
+                  '[party.BRAND_NEW_PARTY]\nsupport = 0.05\n')
+    assert placed["parties"] == ["BRAND_NEW_PARTY"], placed
+    # and it survives resolution, because its [party.X] table places it
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "joburg-2026.toml"
+        path.write_text('[roster]\nparties = ["BRAND NEW PARTY"]\n'
+                        '[party.BRAND_NEW_PARTY]\nsupport = 0.05\n')
+        try:
+            pools.lineage_path = lambda c, t: path
+            roster, _, _, _ = pools.resolve_roster(
+                city, target, "2021", {"ANC": [1.0]}, {"ANC": 0.4})
+            assert "BRAND_NEW_PARTY" in roster, roster
+        finally:
+            pools.lineage_path = original
+
+    # (4) THE DELETION RECONCILES OR IT DOES NOT HAPPEN.
+    composition = {"ANC": [1.0], "DA": [1.0], "EFF": [1.0]}
+    baseline = {"ANC": 0.40, "DA": 0.25, "EFF": 0.10}
+
+    def resolve(body):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "joburg-2026.toml"
+            path.write_text(body)
+            try:
+                pools.lineage_path = lambda c, t: path
+                return pools.resolve_roster(city, target, "2021",
+                                            dict(composition), dict(baseline))
+            finally:
+                pools.lineage_path = original
+
+    big = '[roster]\ncomplete = true\nparties = ["ANC"]\n'
+    try:
+        resolve(big)
+    except SystemExit as exc:
+        assert "ceiling" in str(exc) and "confirm_drop" in str(exc), str(exc)
+        assert "DA" in str(exc), (
+            f"the refusal must NAME what it would delete: {exc}")
+    else:
+        raise AssertionError(
+            "a `complete = true` roster deleted the DA and the EFF from the "
+            "pools without reconciling the mass. §1.175 prices a wrongly-fired "
+            "drop at 2.4-2.9% of a city's vote, and it is funded out of the "
+            "parties ranked 4th to 12th.")
+
+    # and the acknowledgement lets a real one through
+    roster, source, deliberate, _ = resolve(big.rstrip() + "\nconfirm_drop = true\n")
+    assert source == "declared" and deliberate == {"DA", "EFF"}, (source, deliberate)
+
+    # IT LOOKED: a SMALL drop must still pass without acknowledgement, or the
+    # ceiling is really a ban and `complete = true` is unusable.
+    small = ('[roster]\ncomplete = true\n'
+             'parties = ["ANC", "DA", "EFF"]\n')
+    _, src2, del2, _ = resolve(small)
+    assert src2 == "declared" and del2 == set(), (src2, del2)
+
+
+def test_the_pool_capture_cap_says_when_it_binds():
+    """`min(..., 0.9)` was a bare literal in no register entry, and it is silent.
+
+    On Johannesburg-like pool sizes a declaration concentrated in one small
+    pool loses more than half of itself, under a note that still reads
+    "DECLARED". `capture_shortfall` is what lets the note tell the truth.
+    """
+    pool = np.array([2_180_000.0, 155_000.0, 92_000.0, 480_000.0])
+    flat = np.ones(4)
+    narrow = np.array([0.0, 0.0, 1.0, 0.0])
+
+    assert pools.capture_shortfall(flat, 0.02, pool) == 0.0, (
+        "the cap binds on a 2% flat declaration, so it binds almost "
+        "everywhere and is not a cap but a ceiling on the model")
+    big = pools.capture_shortfall(narrow, 0.06, pool)
+    assert big > 0.4, (
+        f"a 6% declaration concentrated in a pool holding "
+        f"{pool[2] / pool.sum():.1%} of the electorate lost only {big:.1%}. "
+        f"Re-check the arithmetic: this is the case the warning exists for.")
+
+    # the note must SAY so — the whole defect was a silent clip under a
+    # message reading DECLARED.
+    kw = _arrival_kw()
+    kw["pool_size"] = pool
+    kw["rates"] = np.zeros((4, 2))
+    kw["categories"] = ["A", "B", "C", "D"]
+    _, notes = pools.arrival_rules(
+        {"NEWPARTY"}, {"NEWPARTY": {"weights": [0, 0, 1, 0], "support": 0.06}}, **kw)
+    assert "DID NOT FIT" in notes["NEWPARTY"], notes["NEWPARTY"]
+
+
+def test_an_incomplete_declared_roster_unions_and_never_strips_a_vector():
+    """"ADDS always, removes none" has to mean UNION. It meant REPLACE.
+
+    `roster = set(declared["parties"])` looked right and inverted the only
+    safety property the incomplete state has. `no_vector` derives from
+    `roster`, so a baseline party left out of a half-typed paste was not in
+    `roster`, therefore not in `no_vector`, and got **no pool vector at all** —
+    falling to the residual bucket and drawn against a range meant for minor
+    parties.
+
+    Measured on the real 2026 inputs before the fix: pasting the top six cost
+    **8 parties 15.4826% of the 2024 baseline their pool vector, MK alone at
+    12.22%**, while the run printed "ADDS 6 parties and removes none".
+
+    ⚠️ And the union must still honour §K1/§K2 — the first fix re-admitted the
+    13 parties those floors had just excluded on measured evidence.
+    """
+    city = cityconfig.use("joburg")
+    target = cityconfig.Target(city=city, year="2026")
+    original = pools.lineage_path
+
+    # Constructed. MK stands for any party with a baseline and no fitted vector.
+    composition = {"ANC": [1.0], "DA": [1.0], "EFF": [1.0], "SMALLFRY": [1.0]}
+    baseline = {"ANC": 0.40, "DA": 0.25, "EFF": 0.10,
+                "MK": 0.1222, "TINY": 0.0001}
+
+    def resolve(body=None):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "joburg-2026.toml"
+            path.write_text(body if body is not None else "")
+            try:
+                pools.lineage_path = lambda c, t: path
+                return pools.resolve_roster(city, target, "2021",
+                                            dict(composition), dict(baseline))
+            finally:
+                pools.lineage_path = original
+
+    projected, psrc, _, _ = resolve()
+    assert psrc == "projected"
+    assert "MK" in projected, "the projected ballot must carry a baseline party"
+    assert "TINY" not in projected, (
+        "TINY is below NATIONAL_ONLY_FLOOR and must not be on a projected "
+        "ballot — otherwise this test cannot show the union honours the floor")
+
+    partial, src, deliberate, _ = resolve(
+        '[roster]\nparties = ["ANC", "DA"]\n')
+    assert src == "declared"
+    assert deliberate == set(), f"an INCOMPLETE roster deleted {deliberate}"
+
+    # (1) THE DEFECT: nothing the projection carried may be lost.
+    lost = projected - partial
+    assert not lost, (
+        f"a partial declared roster dropped {sorted(lost)} from the ballot. "
+        f"They then get no pool vector at all. 'Adds always, removes none' "
+        f"means UNION with the projected ballot, not replace it.")
+    assert "MK" in partial, (
+        "MK has a baseline and no fitted vector, so it must stay on the ballot "
+        "to be given one. This is the 12.22% case.")
+
+    # (2) AND THE UNION HONOURS THE MEASURED FLOORS.
+    assert "TINY" not in partial, (
+        "the union re-admitted a party §K1's floor excluded on measured "
+        "evidence. The floor applies whoever is asking.")
+
+    # (3) COMPLETE still replaces — that is what declaring a whole ballot means.
+    whole, wsrc, wdel, _ = resolve(
+        '[roster]\ncomplete = true\nconfirm_drop = true\nparties = ["ANC"]\n')
+    assert whole == {"ANC"}, whole
+    assert wdel == {"DA", "EFF", "SMALLFRY"}, wdel
+
+
+def test_the_two_safety_booleans_refuse_a_quoted_value():
+    """`bool("false")` is True, and these two flags decide deletions.
+
+    Every other key in `[roster]` refuses a wrong type loudly. The two whose
+    entire job is safety accepted any truthy string — so one pair of quotes
+    turned the deletion on and a second disabled the ceiling that would have
+    caught it, at 22:00 on the one night this file is ever edited.
+    """
+    city = cityconfig.use("joburg")
+    target = cityconfig.Target(city=city, year="2026")
+    original = pools.lineage_path
+
+    def read(body):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "joburg-2026.toml"
+            path.write_text(body)
+            try:
+                pools.lineage_path = lambda c, t: path
+                return pools.declared_roster(city, target)
+            finally:
+                pools.lineage_path = original
+
+    # real booleans still work, both ways
+    assert read('[roster]\nparties = ["ANC"]\ncomplete = true\n')["complete"] is True
+    assert read('[roster]\nparties = ["ANC"]\ncomplete = false\n')["complete"] is False
+    assert read('[roster]\nparties = ["ANC"]\n')["complete"] is False, "default"
+
+    # CONSTRUCTED VIOLATIONS: every truthy non-boolean must refuse.
+    for key in ("complete", "confirm_drop"):
+        for literal in ('"false"', '"no"', '"true"', '1', '0'):
+            try:
+                read(f'[roster]\nparties = ["ANC"]\n{key} = {literal}\n')
+            except SystemExit as exc:
+                assert key in str(exc), str(exc)
+            else:
+                raise AssertionError(
+                    f"[roster] {key} = {literal} was accepted. "
+                    f"`bool({literal})` decides whether parties are deleted "
+                    f"from the pools, and {literal} is not a boolean.")
+
+
+def test_an_environment_gate_moves_the_artefact_key():
+    """`_code_sha` hashes a syntax tree. An env var does not change the tree.
+
+    `_deps_sha` names `levels` as a dependency BECAUSE it carries `HELD_BACK`,
+    "which decides whether a fitting election may be read at all". But
+    `HELD_BACK_OFF=1` empties `HELD_BACK` at import time, and `levels.py`'s own
+    comment invites exactly that run. Measured 2026-09-05 before the fix:
+    `HELD_BACK` 14 entries -> 0, `deps_sha` byte-identical. A spec emitted that
+    way reported itself current for ever after — the silent staleness this key
+    exists to close, through the one door it did not watch.
+    """
+    city = cityconfig.use("joburg")
+    target = cityconfig.Target(city=city, year="2026")
+
+    base = pools.artefact_key(city, target)
+    assert "gates_sha" in base, (
+        "the artefact key records no gate state, so an emit run under "
+        "HELD_BACK_OFF=1 is indistinguishable from a normal one")
+
+    # CONSTRUCTED VIOLATION: flip the resolved gate and the key must move.
+    import levels
+    real_env = os.environ.get("HELD_BACK_OFF")
+    real_gate = levels.HELD_BACK
+    try:
+        os.environ["HELD_BACK_OFF"] = "1"
+        levels.HELD_BACK = type(real_gate)()
+        moved = pools.artefact_key(city, target)
+    finally:
+        levels.HELD_BACK = real_gate
+        if real_env is None:
+            os.environ.pop("HELD_BACK_OFF", None)
+        else:
+            os.environ["HELD_BACK_OFF"] = real_env
+
+    assert moved["gates_sha"] != base["gates_sha"], (
+        "lifting HELD_BACK did not move the artefact key. A spec emitted "
+        "during a diagnostic run would report itself current for ever.")
+    assert pools.artefact_key(city, target)["gates_sha"] == base["gates_sha"], (
+        "the gate state did not restore — this test has contaminated the tree")
+
+    # IT LOOKED: the gate must actually be non-empty by default, or the
+    # constructed violation is a change from nothing to nothing.
+    assert len(real_gate) > 0, (
+        f"levels.HELD_BACK is empty by default ({len(real_gate)}), so this "
+        f"test flips nothing. It held 14 entries when written.")
+
+
+def test_a_realistic_nomination_list_is_accepted():
+    """⛔ THE 16 SEPTEMBER REHEARSAL. It has to accept the real thing.
+
+    Every other roster test drives a constructed three-party file. This one
+    pastes an actual metro ballot — the real 2021 Johannesburg list, 57 parties,
+    which is the shape and size of what a human will paste on nomination night.
+
+    **It failed when written, and that is why it exists.** `KNOWN_PARTY_CODES`
+    was the hand-maintained alias tables alone, so the long tail of small
+    parties that genuinely contested resolved to "unknown" and the run refused
+    the correct input. A guard that fires on the right answer on the one night
+    it runs is worse than no guard at all.
+
+    "Known" is now: the alias tables, OR a prior record in this city, OR a party
+    that stood at the last local election even if it scored nothing
+    (AFRICAN_COVENANT and SAKHISIZWE_CONVENTION are both on the real 2021
+    ballot with zero votes), OR placed by its own `[party.X]` table.
+    """
+    city = cityconfig.use("joburg")
+    target = cityconfig.Target(city=city, year="2026")
+    original = pools.lineage_path
+
+    ballot = sorted(pools.contesting_parties(city, "2021"))
+    assert len(ballot) > 40, (
+        f"IT LOOKED: the 2021 Johannesburg ballot parsed to {len(ballot)} "
+        f"parties. A realistic list is 50+; with fewer this rehearses nothing.")
+
+    local = pools.metro_citywide("JHB", "2021")
+    spec = json.loads((ROOT / "data/processed/pools_2026.json").read_text())
+    cats = list(spec["pools"])
+    composition = {q: [spec["pools"][c]["members"].get(q, 0.0) for c in cats]
+                   for q in {r for pl in spec["pools"].values() for r in pl["members"]}
+                   if q in local}
+    path = city.path("raw", "elections",
+                     cityconfig.CALENDAR[target.previous_npe].results)
+    counts = collections.defaultdict(int)
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            counts[parties.canonical(row["sPartyName"])] += int(
+                float(row.get("Party_Votes") or 0))
+    total = sum(counts.values())
+    baseline = {q: c / total for q, c in counts.items()}
+
+    def resolve(body):
+        with tempfile.TemporaryDirectory() as tmp:
+            f = Path(tmp) / "joburg-2026.toml"
+            f.write_text(body)
+            try:
+                pools.lineage_path = lambda c, t: f
+                return pools.resolve_roster(city, target, "2021",
+                                            dict(composition), dict(baseline))
+            finally:
+                pools.lineage_path = original
+
+    listing = json.dumps(ballot)
+
+    # (1) THE HAPPY PATH, INCOMPLETE — adds, deletes nothing.
+    roster, src, deliberate, _ = resolve(f"[roster]\nparties = {listing}\n")
+    assert src == "declared", src
+    assert deliberate == set(), (
+        f"an INCOMPLETE roster deleted {len(deliberate)} parties")
+    assert len(roster) >= len(ballot), (
+        f"the union lost parties: {len(roster)} on the ballot against "
+        f"{len(ballot)} declared")
+
+    # (2) THE HAPPY PATH, COMPLETE — the whole ballot, and it is accepted.
+    roster2, src2, _, _ = resolve(
+        f"[roster]\ncomplete = true\nparties = {listing}\n")
+    assert src2 == "declared" and roster2 == set(ballot), (
+        f"a complete real ballot did not resolve to itself: "
+        f"{len(roster2)} against {len(ballot)}")
+
+    # (3) AND A TYPO IN A REAL PARTY'S NAME STILL REFUSES. If this passes,
+    #     the fix for (1) and (2) has made the guard useless.
+    try:
+        resolve('[roster]\nparties = ["AFRICAN NATIONAL CONGRES"]\n')
+    except SystemExit as exc:
+        assert "AFRICAN_NATIONAL_CONGR" in str(exc), str(exc)
+    else:
+        raise AssertionError(
+            "a misspelt 'AFRICAN NATIONAL CONGRES' was accepted. Widening "
+            "`known` to admit the real ballot must not admit typos — that is "
+            "the whole trade this guard exists to make.")
+
+
+def test_an_undeclared_split_is_flagged_in_the_spec_not_printed():
+    """A party with a national vote and no lineage is the ActionSA shape.
+
+    `classify_arrival` says "arrived from nothing" for anything absent from
+    `SPLITS` and undeclared. That is right for a genuine entrant and wrong for a
+    party that plainly exists and has simply not been typed in — which cost
+    0.1% against an actual 18.12% once already.
+
+    The flag is written INTO the spec rather than printed, because a print
+    during an emit is scrollback and the emit is the one operation nobody
+    re-runs. This asserts the detector's rule on constructed input; the
+    end-to-end test asserts it reaches the file.
+    """
+    floor = pools.UNCLASSIFIED_FLOOR
+    assert 0.001 < floor < 0.02, (
+        f"UNCLASSIFIED_FLOOR is {floor}. Below ~0.1% it flags the whole "
+        f"national tail; above ~2% it misses the cases it exists for.")
+
+    # (1) THE RULE: no declared parent AND a national share over the floor.
+    def flags(party, national, declared_parent=None):
+        parent, _ = pools.classify_arrival(party, declared_parent)
+        return not parent and national >= floor
+
+    assert flags("BRANDNEW", floor + 1e-6), "a party over the floor must flag"
+    assert not flags("BRANDNEW", floor - 1e-6), "under the floor must not flag"
+    assert not flags("BRANDNEW", 0.5, declared_parent="ANC"), (
+        "a DECLARED parent means the lineage is known — nothing to flag")
+
+    # (2) A PARTY ALREADY IN `SPLITS` IS CLASSIFIED AND MUST NOT FLAG. MK is
+    #     the live case: it carries 12.22% of the 2024 vote, so a rule keying
+    #     only on size would flag the one party whose parent IS declared.
+    parent, _ = pools.classify_arrival("MK", None)
+    assert parent == "ANC", f"MK's declared parent is {parent!r}, expected ANC"
+    assert not flags("MK", 0.1222), (
+        "MK flagged despite being in SPLITS with parent ANC. The detector must "
+        "key on MISSING LINEAGE, not on size — otherwise the biggest arrival "
+        "in the file is the first false positive.")
+
+    # (3) IT LOOKED: the live 2026 roster must actually contain a case, or this
+    #     guards a situation that does not arise.
+    city = cityconfig.use("joburg")
+    target = cityconfig.Target(city=city, year="2026")
+    path = city.path("raw", "elections",
+                     cityconfig.CALENDAR[target.previous_npe].results)
+    counts = collections.defaultdict(int)
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            counts[parties.canonical(row["sPartyName"])] += int(
+                float(row.get("Party_Votes") or 0))
+    total = sum(counts.values())
+    baseline = {q: c / total for q, c in counts.items()}
+    live = [q for q, v in baseline.items()
+            if flags(q, v) and q not in ("IND", "ENTRANT")]
+    assert live, (
+        f"no party in the {target.previous_npe} national file has a share over "
+        f"{floor:.1%} and no declared lineage, so this detector currently "
+        f"guards nothing. Re-check the floor against the file.")
+    assert len(live) < 10, (
+        f"{len(live)} parties flagged. The list is meant to be short enough to "
+        f"read on nomination day; this one would be ignored.")
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))
+

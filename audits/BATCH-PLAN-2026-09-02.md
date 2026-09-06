@@ -345,8 +345,9 @@ PRE  [x] 16 SEPTEMBER REHEARSAL — the real 2021 ballot (57 parties) pasted as 
      [x] §L9's evidence corrected; the VALUE 2.0 marked undefended and deferred
      [ ] ASK THE OWNER TO LAUNCH /code-review ultra ultra-review-base
 END  [x] full suite once, reported honestly
-         -> 447 passed, 4 failed, 17 skipped. 31 modules, 828s, no PARTIAL
-            banner. All 4 failures are the recorded expected ones; none new.
+         -> 451 passed, 5 failed, 17 skipped. 31 modules, 813s, no PARTIAL
+            banner, run at HEAD. TWO of the five are LIVE DEFECTS (Mangaung's
+            degenerate pool; the DA composition infeasibility), three expected.
      [ ] both archives re-verified byte-identical
      [ ] ULTRA-REVIEW-1-STATE.md: 4th failure, entry 4 scope (2011+2016, 16 of 24),
          arrival_group_draw caveat, R0b and R4 numbers

@@ -150,6 +150,95 @@ any importing caller is unpinned (§1.145).
 one is the live forecast. A change that improves the backtest and breaks the 2026
 path would pass every test in the suite.
 
+## AMENDMENT of 2026-09-02 — the batch grew, and this was added BEFORE the code
+
+⛔ **Added under the freeze rule at the top of this document — "anything to add
+must be added now" — before a line of entries 7-10 was written.** The batch is no
+longer the six queue entries. Four findings from 2026-09-02 (`MODEL-LOG`
+§1.162-§1.165) join it, and one earlier change is already in the tree.
+
+**Already in the working tree, un-emitted at the time of writing:** the
+delimitation fix (§1.160) and the crosswalk-reader delegation (§1.161). These
+were forced by defects rather than chosen for a window; they have been emitted
+and measured once already, and the specs on disk carry `pools_sha
+86995c914b530216`. **The review sees them in the diff and should treat them as
+part of the batch.**
+
+**Entry 7 — the turnout band (§1.162 §9).** The band excludes the realised
+citywide turnout in **11 of 24 city-years**, one-directional by cycle: at 2011,
+7 of 8 sit **entirely below** what happened (Johannesburg realised 54.2% against
+a band of 36.5%-43.3%); at 2021, 4 of 8 sit **entirely above**. Capacity at the
+top of every band ÷ actual votes cast runs **0.799-1.053 at 2011**. Cause: the
+centre is the last election and the WIDTH is the historical range, so a 2011
+target — which has exactly one prior LGE — gets a narrow band around a single
+reading. **This is a level error on the model's most important scalar.**
+
+**Entry 8 — `_nnls` is unbounded above (§1.164).** `pools._nest` fits one rate
+per pool by projected gradient with a non-negativity constraint **and no upper
+bound of 1.0 and no regularisation**. It returns `adult_share` of 1.3037 at
+Buffalo City and 2.0573 at Mangaung — more adults than people — and turnout of
+exactly 0.0000. Measured: the design matrix's condition number is **18.8 at
+`registered` and 486.9 at `voted`** at Buffalo City 2006; Mangaung is **singular
+in all four cycles**. The turnout solve manufactures every degenerate cell in the
+panel.
+
+**Entry 9 — the pool-bounds guard scans the wrong population (§1.162 §4).** It
+takes city-years from `history.json`, the **scored** set, while its claim covers
+the **emitted** set; three 2011 specs are emitted and never scanned. It also
+divides by the model's own central-turnout total rather than by counted votes.
+
+**Entry 10 — C and D in the forecast allocator (§1.163).** Landing in Phase 0,
+**before** this window and with its own baseline, but visible in the branch diff.
+
+### What to hunt in the additions
+
+**10. Entry 7 must not be tuned to a coverage statistic.** Coverage is gameable
+by widening, and a band wide enough to cover everything forecasts nothing.
+Verify the new width is derived from a measured process — turnout's own serial
+correlation and cycle-level shocks — and NOT fitted until the hit rate passes.
+**A band fitted to realised coverage is fitting to a ratio defined against our
+own output, which the register bars (CLAUDE.md rule: level vs shape).** Check
+which side of that line the implementation lands on, and check that sharpness is
+reported next to coverage rather than coverage alone.
+
+**11. Entry 7 has a one-observation case and the fix may hide it.** At a 2011
+target the record holds ONE prior LGE. Whatever replaces the width there is an
+assumption, not a measurement. Is it labelled as one? Does it differ from the
+n≥2 path, and can a reader tell which they are looking at?
+
+**12. Entry 8 cannot fix what it is likely to be sold as fixing.** `_nnls` is
+reached only through `_nest`, which computes `adult_share`, `registration` and
+`turnout`. **It does not touch the party composition**, which comes from
+`fit_joint`. If the diff or its commit message claims the `_nnls` bound repairs
+the DA/White overflow, that is the claim to break. Separately: bounding a rate at
+1.0 turns a corner solution into a **different** corner solution — check that an
+unidentified pool is now REPORTED as unidentified rather than silently clipped,
+and that `_nest`'s per-ward rescaling does not simply reabsorb the clipped mass
+and restore the old answer.
+
+**13. Entry 9 is a scan-shaped guard and this repository's worst-record class.**
+The claim must equal the population scanned, in BOTH directions. Verify the new
+population is the emitted specs, that it is non-empty within a two-sided bound
+computed from a real denominator, and that a constructed violation is caught by
+the same detector. Note the guard's message says the weights "describe an
+election that cannot happen" — **`montecarlo.pool_spec` re-fits by IPF on every
+draw and repairs them (0.575 → 0.374 at Buffalo City 2011), so the message is
+false.** Does the fixed guard still overstate what it has found?
+
+**14. Entry 10 mis-strikes the quota in the direction that flatters us.**
+`available = total − C − D`; omitting them makes the quota too SMALL,
+entitlements too HIGH, and overhang **under**-detected. Any overhang incidence
+figure taken before entry 10 is a floor. Check that every such figure quoted in
+the tree has been re-taken, and that the forecast path and the backtest path now
+produce the same council for the same votes — they differ today at eThekwini
+2011 and 2016 and agree at the other 22.
+
+**15. Four changes, four different failure directions, one emit.** Entries 7 and
+8 both move pool capacity, in ways that could cancel: a wider band adds capacity,
+a bounded rate removes it. **Is either being credited with the other's effect?**
+Demand that each is measured with the other held fixed, or that the combined
+measurement is stated as combined.
+
 ## What NOT to spend it on
 
 Documentation wording, the queue document itself, and anything the 16-city-year

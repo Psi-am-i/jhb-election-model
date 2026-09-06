@@ -72,6 +72,19 @@ import geopandas as gpd
 
 # Each election, its file, and the ballot to read for VD membership.
 ELECTIONS = {
+    # ⛔ EXTENDED BACK TO 1999 ON 2026-09-01. This table began at 2011, so every
+    # election before it was joined on ward numbers that were redrawn at each
+    # delimitation — comparing different pieces of ground and calling it a
+    # transition. The voting district is the stable atom and it is stable a long
+    # way back: 723 of 727 of Johannesburg's 2006 VDs survive into 2011, and 648
+    # of 652 of its 2000 VDs survive into 2006. Owner, 2026-08-31: *"you have
+    # the ward maps. Calculate what ward became what and adjust systematically
+    # to compensate when this happens (and it happens in every cycle)."*
+    "1999": ("npe1999_approx_{CODE}_vd_party.csv", None),
+    "2000": ("lge2000_{CODE}_vd_party_clean.csv", "PR"),
+    "2004": ("npe2004_{CODE}_vd_party.csv", None),
+    "2006": ("lge2006_{CODE}_vd_party_clean.csv", "PR"),
+    "2009": ("npe2009_{CODE}_vd_party.csv", None),
     "2011": ("lge2011_{CODE}_vd_party_clean.csv", "PR"),
     "2014": ("npe2014_{CODE}_vd_party.csv", None),
     "2016": ("lge2016_{CODE}_vd_party_clean.csv", "PR"),

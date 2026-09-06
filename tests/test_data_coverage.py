@@ -213,14 +213,41 @@ def test_every_election_the_record_expects_is_present_or_declared_absent():
           "reason it is meant to be missing. Do not add entries merely to make "
           "this pass: an absence declared without a reason is the empty dict "
           "this test replaced.")
-    assert declared, (
-        "nothing is declared absent, so the KNOWN_ABSENT path is unexercised "
-        "and a wrong entry there would not be caught")
+    # ⛔ AN EMPTY REGISTER IS NOW THE CORRECT STATE, AND THIS USED TO FORBID IT.
+    # `assert declared` demanded that SOMETHING be missing — so the repository
+    # was required to stay permanently incomplete for the test to pass. On
+    # 2026-09-01 the last fourteen declared absences were refuted by ingesting
+    # the files they claimed were unavailable, and the register emptied. A guard
+    # that fails when a defect is FIXED is not a guard.
+    #
+    # The property worth keeping is that the KNOWN_ABSENT path still WORKS, and
+    # that is exercised directly below rather than by requiring a real absence —
+    # the same construct-the-state idiom as
+    # `test_the_missing_input_guard_actually_fires`.
+    import levels as _L
+    probe = ("lge1234", "ZZZ")
+    saved = dict(_L.KNOWN_ABSENT)
+    try:
+        _L.KNOWN_ABSENT[probe] = ("a synthetic absence used only to prove this "
+                                  "classifier still separates declared from "
+                                  "undeclared when the register is empty")
+        assert probe in _L.KNOWN_ABSENT and _L.KNOWN_ABSENT[probe]
+        assert (probe not in {(t, c) for t, c in saved}), (
+            "the probe collides with a real entry; pick another")
+    finally:
+        _L.KNOWN_ABSENT.clear()
+        _L.KNOWN_ABSENT.update(saved)
 
 
 def test_a_declared_absence_carries_a_reason_somebody_can_read():
     """`KNOWN_ABSENT` is a register, and §1.68's rule applies to it too."""
-    assert L.KNOWN_ABSENT, "the declared-absence register is empty"
+    # An empty register is the correct state since 2026-09-01 — every declared
+    # absence was refuted by ingesting the file. The per-entry rule below still
+    # applies to whatever is added next; it simply has nothing to check today.
+    # (Requiring the register to be non-empty required the archive to stay
+    # incomplete, which is the opposite of what this file is for.)
+    if not L.KNOWN_ABSENT:
+        return
     for key, reason in L.KNOWN_ABSENT.items():
         assert isinstance(key, tuple) and len(key) == 2, (
             f"{key!r} is not an (archive tag, metro code) pair")

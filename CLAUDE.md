@@ -125,7 +125,7 @@ version history, and a run prints a named reason when it does not match. That
 stops a stale result being *believed afterwards*; it does not stop the artefacts
 moving under a measurement in progress, which is what the rule above is for.
 
-**A CODE change to `pools.py` invalidates all eighteen specs and is BATCHED, not
+**A CODE change to `pools.py` invalidates all TWENTY-SIX specs and is BATCHED, not
 taken when convenient.** What is queued, the emit loop and the window procedure
 are in `POOLS-REEMIT-QUEUE.md`; a comment-or-docstring-only change does not move
 the hash and does not belong there. One spec re-emits with

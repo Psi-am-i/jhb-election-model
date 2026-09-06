@@ -1106,9 +1106,10 @@ requirement to measure.
 ⛔ **STALE SINCE THE PANEL BECAME 24, AND THIS FILE'S OWN RULE SAYS SO.**
 §1.77 instructs that every number predating §1.70 be re-read before it is quoted
 again; the panel then went 16 → 24 on 2026-09-02 and this headline never moved.
-**On the current 24 city-years the coherent seat error is 707** — 29.5 per
-city-year against the 24.0 below — and no uniform-swing comparison has been
-taken on the wider panel. The paragraph is kept because the *sign* of the claim
+**On the current 24 city-years the coherent seat error is 707 against uniform
+swing's 885** — a 20.1% margin, and 29.5 seats per city-year against the 24.0
+below. (An earlier version of this banner said no uniform-swing comparison had
+been taken on the wider panel. It had: `history.json` carries the column.) The paragraph is kept because the *sign* of the claim
 is what matters and it has not been retested, not because the figure is current.
 ⚠️ **Do not quote 384 without saying it is sixteen city-years.**
 

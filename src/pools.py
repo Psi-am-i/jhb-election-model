@@ -52,7 +52,9 @@ import csv
 import time
 import os
 import contextlib
+import io
 import hashlib
+import json
 import tomllib
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -176,8 +178,13 @@ class Config:
     dimensions: tuple[Dimension, ...]
     fit: dict
     gate: dict
-    damping: float = 0.6
-    max_extrapolation: float = 8.0
+    # ⚠️ These two are the SECOND copy of `extrapolation_damping` /
+    # `extrapolation_max_years`. `load_config` always passes both explicitly
+    # and refuses if the TOML omits them, so these defaults are unreachable
+    # from the emit path — kept only so a hand-built `Config` in a test is
+    # constructible, and marked so nobody reads them as the shipped values.
+    damping: float = 0.6           # unreachable; see load_config
+    max_extrapolation: float = 8.0  # unreachable; see load_config
 
     def base(self) -> Dimension:
         base = [d for d in self.dimensions if d.role == "base"]
@@ -237,7 +244,7 @@ def _code_sha(path: Path) -> str:
         ast.dump(tree, annotate_fields=False).encode()).hexdigest()[:16]
 
 
-def artefact_key(city, target, config_path: Path = CONFIG) -> dict:
+def artefact_key(city, target, config_path: Path | None = None) -> dict:
     """What an emitted spec was built FROM, so staleness can be detected.
 
     `pools_*.json` is precomputed. Changing this file does nothing until the
@@ -258,16 +265,181 @@ def artefact_key(city, target, config_path: Path = CONFIG) -> dict:
     A wrong-city INPUT is a different failure and is caught by refusing the
     fallback, which is where `pools.py` now refuses by name.
     """
+    # ⛔ RESOLVED HERE, NOT IN THE SIGNATURE. A `Path` frozen as a default is
+    # evaluated once at import, so rebinding `pools.CONFIG` moved nothing — in
+    # the parent or in a worker. That is the `LEVEL_DF` class (§1.33): a
+    # constant that reads as configurable and is not. Three signatures carried
+    # it; all three now resolve at call time.
+    config_path = CONFIG if config_path is None else config_path
     return {
-        "schema": 1,
+        "schema": 2,
         "city": getattr(city, "slug", str(city)),
         "target": getattr(target, "year", str(target)),
         "pools_sha": _code_sha(Path(__file__)),
-        "config_sha": _sha(config_path),
+        "config_sha": _config_sha(config_path),
+        "cities_sha": _cities_sha(),
+        "deps_sha": _deps_sha(),
+        "judgements_sha": _judgements_sha(city, target),
+        "gates_sha": _gates_sha(),
     }
 
 
-def stale_reason(spec: dict, city, target, config_path: Path = CONFIG) -> str | None:
+def _gates_sha() -> str:
+    """The RESOLVED state of the environment gates that change what is read.
+
+    ⛔ A HOLE THE CODE HASH CANNOT SEE. `_deps_sha` names `levels` as a
+    dependency precisely because it carries `HELD_BACK`, "which decides whether
+    a fitting election may be read at all" — but `HELD_BACK` is emptied by an
+    ENVIRONMENT VARIABLE and `_code_sha` hashes the syntax tree. Measured
+    2026-09-05: `HELD_BACK_OFF=1` takes `HELD_BACK` from 14 entries to 0 and
+    leaves `deps_sha` byte-identical at `53cedeb94115dd98`.
+
+    `levels.py`'s own comment invites the run that does it — *"`HELD_BACK_OFF=1`
+    lifts the gate for one run, so the diagnosis this entry is about can be
+    MEASURED"* — so a spec emitted during such a run would report itself current
+    for ever after. That is exactly the silent staleness this key exists to
+    close, arriving through the one door it did not watch.
+
+    Recorded rather than refused: a diagnostic emit is legitimate, and what
+    matters is that the artefact says it was one.
+    """
+    import levels as _levels
+    state = {
+        "HELD_BACK_OFF": os.environ.get("HELD_BACK_OFF") == "1",
+        "HELD_BACK_n": len(getattr(_levels, "HELD_BACK", ()) or ()),
+        "THETA_WINDOW": os.environ.get("THETA_WINDOW", ""),
+    }
+    return hashlib.sha256(
+        json.dumps(state, sort_keys=True).encode()).hexdigest()[:16]
+
+
+# The first-party modules `emit_pools` actually reads at emit time, whose CODE
+# decides emitted numbers. `pools_sha` hashes ONE file and `_code_sha`'s
+# docstring claims "any change to what the code computes moves it" — true of
+# this file and false of the five below it leans on.
+#
+#   parties     `P.canonical` — every party name in every file
+#   cityconfig  `CALENDAR` dates AND `results` templates; a `results` of None is
+#               what empties the 2026 roster
+#   ingest_lge  `read_municipality`, the cleaner whose known failure was a
+#               silent 68% vote loss
+#   levels      `HELD_BACK`, which decides whether a fitting election may be
+#               read at all
+#
+# ⛔ `montecarlo` IS DELIBERATELY EXCLUDED, and the reason is cry-wolf, not
+# irrelevance: `read_ward_crosswalk` is a genuine emit-path dependency, but the
+# module also carries every forecast lever and changes on most working days.
+# Hashing it would mark all 26 specs stale continuously, and a staleness warning
+# that fires daily is one nobody reads — the failure `_code_sha` was shaped to
+# avoid. The residual risk is named here rather than hidden: a change to
+# `read_ward_crosswalk` alone will NOT mark a spec stale.
+_EMIT_DEPENDENCIES = ("parties", "cityconfig", "ingest_lge", "levels")
+
+
+def _deps_sha() -> str:
+    """The code of the first-party modules the emit leans on, hashed together."""
+    here = Path(__file__).parent
+    parts = [f"{name}:{_code_sha(here / f'{name}.py')}"
+             for name in _EMIT_DEPENDENCIES]
+    return hashlib.sha256("|".join(parts).encode()).hexdigest()[:16]
+
+
+def _cities_sha() -> str:
+    """Every `cities/*.toml`, because they are a PANEL input, not a city one.
+
+    ⛔ THE SAME POPULATION BUG AS `config_sha`, ONE DIRECTORY OVER — and it was
+    introduced by the turnout-band work that fixed the first one.
+    `panel_turnout_spread` globs `cityconfig.CITIES_DIR` to measure how far each
+    pool's turnout moves across the whole panel, so **adding a ninth city
+    changes the turnout band of all twenty-six existing specs**, in every city,
+    including the live 2026 forecast. Nothing marked them stale.
+
+    `MACHINERY.md` called this omission "per-city structure and judgements",
+    which understates it: for the band it is a panel input, and the expansion
+    roadmap is about to add cities.
+    """
+    parts = [f"{f.name}:{_sha(f)}"
+             for f in sorted(cityconfig.CITIES_DIR.glob("*.toml"))]
+    return hashlib.sha256("|".join(parts).encode()).hexdigest()[:16]
+
+
+# The key fields that say WHICH artefact this is, rather than what it was built
+# from. Compared by name with a better message than the value scan gives, so
+# they are excluded from it. Exported because `test_chain` needs the same set
+# and a set typed in two places is the defect `stale_reason` was just fixed for.
+_IDENTITY_FIELDS = frozenset({"city", "target"})
+
+
+def _config_sha(config_path: Path) -> str:
+    """Every `config/*.toml`, not the one file this used to name.
+
+    ⛔ A POPULATION BUG, NOT A MISSING FILE. The key's claim is *what this spec
+    was built FROM*; the population scanned was a single named path. `config/`
+    held exactly one file when that was written, so the claim and the scan
+    coincided by accident — and the day a second config file appeared its
+    content would have been invisible: editable, consumed, and reported current
+    by every spec. CLAUDE.md's rule for a scan-shaped claim applies directly —
+    state the population the claim covers, and assert it equals what is
+    scanned.
+
+    Name AND content, sorted, so adding, removing or renaming a file moves the
+    key as surely as editing one does.
+    """
+    root = Path(config_path).parent
+    parts = []
+    for f in sorted(root.glob("*.toml")):
+        parts.append(f"{f.name}:{_sha(f)}")
+    if not parts:                      # the named file is all there is
+        return _sha(config_path)
+    return hashlib.sha256("|".join(parts).encode()).hexdigest()[:16]
+
+
+def _judgements_sha(city, target) -> str:
+    """This city-year's judgement file, hashed as PARSED PAYLOAD not bytes.
+
+    ⛔ IT WAS IN NO HASH AT ALL, AND IT SETS SEEDS. `judgements/<slug>-<year>.toml`
+    declares each party's `parent`, `support` and pool `weights`, which
+    `classify_arrival` and `emit_pools` read directly. So a hand edit to it
+    changed what the model computes and **every emitted spec went on reporting
+    itself current** — the silent-staleness hole this whole mechanism exists to
+    close, sitting in the one input a human is most likely to edit.
+
+    ⚠️ **THE SEAM THAT WOULD USE THIS DOES NOT EXIST YET.** Queue entry 3 is
+    meant to make a published nomination list *a config edit rather than a code
+    change*, and it is not built. Today `CALENDAR["2026"].results` is `None`, so
+    `contesting_parties` returns an empty set, `roster_is_real` is False, and
+    `newcomers` — which derives from `roster` — never iterates a party declared
+    in this file. The emitted 2026 spec carries `seeds {}` and
+    `arrival_group: null`, and the message `emit_pools` prints pointing a reader
+    at this file is, for a genuinely new party, **currently inert**.
+
+    So this hash is here BEFORE its consumer, deliberately: the alternative is
+    to build the seam and then remember to key it. Stated as pending rather than
+    as done, because a document that looks current and is not is worse than one
+    that is missing.
+
+    **PARSED, NOT BYTES**, following `theta_residual`'s memo key, which freezes
+    the table rather than the switch. A byte hash would mark all 26 specs stale
+    on every comment edit, and a staleness warning that fires on prose is one
+    everybody learns to ignore — which is the failure `_code_sha`'s own
+    docstring was written to prevent.
+    """
+    try:
+        path = lineage_path(city, target)
+    except Exception:
+        return "unkeyed"
+    if not path.exists():
+        return "absent"
+    try:
+        payload = tomllib.loads(path.read_text())
+    except Exception:
+        return "unparsable"
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode()).hexdigest()[:16]
+
+
+def stale_reason(spec: dict, city, target,
+                 config_path: Path | None = None) -> str | None:
     """Why this spec should not be trusted for this run, or None.
 
     Returns a sentence, not a boolean, because the caller prints it and the
@@ -277,23 +449,53 @@ def stale_reason(spec: dict, city, target, config_path: Path = CONFIG) -> str | 
     if not key:
         return ("emitted before artefact keys existed, so nothing can say "
                 "whether it matches the current pools.py — re-emit to check")
+    # Resolved here too: this function NAMES the file in its message, and an
+    # unresolved None would print "None changed since this spec was emitted".
+    config_path = CONFIG if config_path is None else config_path
     now = artefact_key(city, target, config_path)
     if key.get("city") != now["city"] or key.get("target") != now["target"]:
         return (f"built for {key.get('city')} {key.get('target')}, "
                 f"not {now['city']} {now['target']}")
-    moved = [name for name in ("pools_sha", "config_sha")
-             if key.get(name) != now[name]]
+    # ⛔ DERIVED FROM THE KEY, NOT TYPED HERE. This used to compare a literal
+    # tuple and then index a literal dict, so a field added to `artefact_key`
+    # and not to BOTH of these was recorded and never checked — and a field
+    # added to only one of them raised `KeyError` on a real spec. A number
+    # typed in two places; one goes stale. The identity fields are excluded by
+    # name because they are compared above with a better message.
+    # ⛔ BOTH DIRECTIONS, AND `schema` IS COMPARED.
+    #
+    # Iterating `now` alone is the code->key direction only: a field present in
+    # a STORED key and no longer produced by `artefact_key` was invisible, which
+    # is the register->code blindness CLAUDE.md names as this project's worst
+    # class. And `schema` sat in `identity`, so a bump that only REMOVED a field
+    # passed silently. Comparing the field SETS closes both at once.
+    absent = sorted(set(key) ^ set(now))
+    if absent:
+        return (f"this spec's key records {sorted(set(key) - set(now)) or 'nothing'} "
+                f"that the code no longer produces, and the code produces "
+                f"{sorted(set(now) - set(key)) or 'nothing'} that it does not "
+                f"record — the key's shape has changed (schema "
+                f"{key.get('schema')} -> {now['schema']}); re-emit before "
+                f"believing any measurement taken against it")
+    moved = [name for name in sorted(now) if name not in _IDENTITY_FIELDS
+             and key.get(name) != now[name]]
     if moved:
-        which = " and ".join(
-            {"pools_sha": "src/pools.py", "config_sha": str(config_path)}[m]
-            for m in moved)
+        labels = {"schema": "the artefact key's own shape",
+                  "pools_sha": "src/pools.py",
+                  "config_sha": f"{Path(config_path).parent}/*.toml",
+                  "cities_sha": f"{cityconfig.CITIES_DIR}/*.toml",
+                  "deps_sha": "src/{" + ",".join(_EMIT_DEPENDENCIES) + "}.py",
+                  "judgements_sha": str(lineage_path(city, target))}
+        which = " and ".join(labels.get(m, m) for m in moved)
         return (f"{which} changed since this spec was emitted "
                 f"({', '.join(f'{m} {key.get(m)} -> {now[m]}' for m in moved)}); "
                 f"re-emit before believing any measurement taken against it")
     return None
 
 
-def load_config(path: Path = CONFIG) -> Config:
+def load_config(path: Path | None = None) -> Config:
+    # Resolved at call time, not frozen in the signature — see `artefact_key`.
+    path = CONFIG if path is None else path
     raw = tomllib.loads(Path(path).read_text())
     dims = []
     for d in raw["dimension"]:
@@ -316,8 +518,17 @@ def load_config(path: Path = CONFIG) -> Config:
         dimensions=tuple(dims),
         fit=raw.get("fit", {}),
         gate=raw.get("gate", {}),
-        damping=float(raw.get("extrapolation_damping", 0.6)),
-        max_extrapolation=float(raw.get("extrapolation_max_years", 8)),
+        # ⛔ NO TYPED FALLBACK, for the reason `_required_gate` gives: a
+        # default here duplicates `config/dimensions.toml` in code and takes
+        # over in SILENCE if the key is renamed. These two are the members of
+        # that class that MOVE NUMBERS — `damping` is applied in the covariate
+        # extrapolation and `max_extrapolation` gates it — where `gate_parties`
+        # and `min_oos_gain` cannot, being reachable only from `--gate`.
+        # Declaring the population as "two, by grep for `cfg.<section>.get(`"
+        # named a SPELLING and missed these, which are `raw.get(` one level up
+        # and duplicated a second time as dataclass defaults below.
+        damping=_required_setting(raw, "extrapolation_damping"),
+        max_extrapolation=_required_setting(raw, "extrapolation_max_years"),
     )
 
 
@@ -345,6 +556,12 @@ def read_census(dim: Dimension, census: Census, cfg: Config) -> dict[str, np.nda
     out: dict[str, np.ndarray] = {}
     for row in rows:
         code = str(row[census.code_column]).strip()
+        # ⛔ THE WORKBOOK CARRIES A 'Total' ROW AND IT IS NOT A WARD. Harmless
+        # under a code join, which simply never asks for it; ruinous in any
+        # denominator taken over the dict, where it double-counts the whole
+        # country. Exactly one non-8-digit key exists in all three workbooks.
+        if code in _CENSUS_TOTAL_ROW or not (code.isdigit() and len(code) == 8):
+            continue
         vec = np.array([cell(row, c) for c in census.columns], dtype=float)
         if vec.sum() > 0:
             # Renormalised over the listed categories, so where the columns do
@@ -377,6 +594,12 @@ def read_census_population(census: Census,
     out: dict[str, float] = {}
     for row in rows:
         code = str(row[census.code_column]).strip()
+        # ⛔ THE WORKBOOK CARRIES A 'Total' ROW AND IT IS NOT A WARD. Harmless
+        # under a code join, which simply never asks for it; ruinous in any
+        # denominator taken over the dict, where it double-counts the whole
+        # country. Exactly one non-8-digit key exists in all three workbooks.
+        if code in _CENSUS_TOTAL_ROW or not (code.isdigit() and len(code) == 8):
+            continue
         if census.total_column >= 0:
             total = float(row[census.total_column] or 0.0)
         else:
@@ -421,6 +644,10 @@ class PoolCounts:
     voted: np.ndarray
     rates: dict[str, np.ndarray] = field(default_factory=dict)
     violations: list[str] = field(default_factory=list)
+    # Rates that landed on a bound rather than being estimated. A pool listed
+    # here has no identifying variation in this city's ward table at that
+    # level, and its rate is a clipped corner, not a measurement (§1.164).
+    unidentified: list[str] = field(default_factory=list)
 
     def composition(self, level: str = "voted") -> np.ndarray:
         counts = getattr(self, level)
@@ -558,7 +785,44 @@ def vote_located_bloc(city: cityconfig.City, before_year: str,
              "within_rate": within_rate, "before": before_year})
 
 
-def _nest(parent: np.ndarray, observed: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def _at_bound(rate: np.ndarray, upper: float = 1.0) -> np.ndarray:
+    """Which fitted rates are sitting on a bound, i.e. are not estimates."""
+    return (rate <= _RATE_BOUND_EPS) | (rate >= upper - _RATE_BOUND_EPS)
+
+
+# ⚖️ The most a REGISTRATION rate may reach before it is treated as a runaway.
+# NOT an estimate — a guard. JUDGEMENT-CALLS §L9,
+# prereg/2026-09-05-registration-rate-bound.md.
+#
+# Registered voters are COUNTED; census voting-age population is MODELLED, so
+# their ratio is not a rate bounded by 1. The model computes it separately as
+# `census_correction` — 1.206 Indian/Asian and 1.480 White at Johannesburg 2021
+# — and the old single bound of 1.0 clipped that very quantity.
+#
+# ⛔ THE VALUE 2.0 IS UNDEFENDED. The table that used to justify it here was
+# measured with the bound lifted on ALL THREE levels, which inflates
+# `adult_share` and deflates this rate. Re-derived on the shipped instrument:
+#
+#     Johannesburg White        1.27 / 1.38 / 1.71 / 1.74
+#     Cape Town Indian/Asian    1.90 / 2.13 / 2.26 / 1.93   <- TWO above 2.0
+#     Mangaung Indian/Asian        —  /    — / 4.34 / 3.27
+#
+# So this binds on FOUR cells in TWO cities, not on Mangaung alone — and the
+# retracted comment cited Cape Town as proof it binds on nothing. See
+# JUDGEMENT-CALLS §L9, which carries the correction and the deferral.
+#
+# ⚠️ Do NOT cite DATA-QUALITY item 11 for this. Item 11 says the census
+# over-statement "does not explain this gap; it WIDENS it" — an over-stated
+# denominator makes the ratio smaller. The support for rates above 1 is item 13
+# and the `registration_series` docstring.
+#
+# The per-level split ships because bounding a quantity the model separately
+# computes as 1.48 is wrong on its face. The VALUE is deferred, not defended.
+REGISTRATION_MAX = 2.0
+
+
+def _nest(parent: np.ndarray, observed: np.ndarray,
+          upper: float = 1.0) -> tuple[np.ndarray, np.ndarray]:
     """Split an observed ward total across pools, in proportion to the parent.
 
     One rate per pool is fitted across wards (``observed_w ~ sum_g parent_wg
@@ -566,21 +830,81 @@ def _nest(parent: np.ndarray, observed: np.ndarray) -> tuple[np.ndarray, np.ndar
     actually observed there. The rate carries the between-ward information; the
     scaling makes every ward agree with the published count.
     """
-    rate = _nnls(parent, observed)
+    rate = _nnls(parent, observed, upper=upper)
     child = parent * rate[None, :]
     row = child.sum(axis=1)
     scale = np.divide(observed, row, out=np.ones_like(row), where=row > 0)
     return child * scale[:, None], rate
 
 
-def _nnls(A: np.ndarray, b: np.ndarray, iters: int = 40000) -> np.ndarray:
+def _nnls(A: np.ndarray, b: np.ndarray, iters: int = 40000,
+          upper: float = 1.0) -> np.ndarray:
+    """Fit one non-negative rate per pool, BOUNDED ABOVE BY A PROPORTION.
+
+    ⛔ THE UPPER BOUND WAS MISSING AND IT MANUFACTURED EVERY DEGENERATE CELL IN
+    THE PANEL (§1.164). Each fitted quantity here — ``adult_share``,
+    ``registration``, ``turnout`` — is a PROPORTION of the level above it, so a
+    value above 1.0 is not a rate at all. Unbounded, this returned
+    ``adult_share`` of **1.3037** at Buffalo City and **2.0573** at Mangaung:
+    more adults than people.
+
+    The damage was not the impossible number itself but what it did downstream.
+    A pool whose rate runs away takes the OTHER pools' rates down with it to
+    keep the ward totals right, and a small pool driven to ``0.0000`` loses its
+    whole column from the matrix the composition is then fitted on. Measured at
+    Buffalo City 2006, the design matrix's condition number is **18.8 at
+    `registered` and 486.9 at `voted`** — a twenty-four-fold degradation created
+    entirely here, in the turnout solve, and not present in the census.
+
+    ⚠️ **A BOUND TURNS A RUNAWAY INTO A CORNER, WHICH IS BETTER AND STILL NOT AN
+    ESTIMATE.** A rate sitting exactly on 0.0 or on ``upper`` means the ward
+    table could not identify that pool, and the caller must SAY SO rather than
+    quietly using the clipped value — see :func:`_nest`, which reports it, and
+    the ``unidentified`` list on :class:`PoolCounts`. Clipping silently would
+    replace a visibly absurd number with an invisibly wrong one, which is
+    worse.
+    """
     x = np.full(A.shape[1], b.sum() / max(A.sum(), 1e-9))
+    x = np.clip(x, 0.0, upper)
     lipschitz = float(np.linalg.norm(A, 2) ** 2)
     if lipschitz <= 0:
         return x
     for _ in range(iters):
-        x = np.maximum(x - (A.T @ (A @ x - b)) / lipschitz, 0.0)
+        x = np.clip(x - (A.T @ (A @ x - b)) / lipschitz, 0.0, upper)
     return x
+
+
+# How close to a bound a fitted rate must sit before it is reported as
+# unidentified rather than estimated. Not a tuning knob: it exists because
+# floating-point iteration lands near a bound rather than exactly on it.
+_RATE_BOUND_EPS = 1e-6
+
+# The preceding-NATIONAL share below which a party with no preceding LOCAL
+# record is not assumed onto an unheld ballot. Owner's decision 2026-09-03,
+# evidence in MODEL-LOG §1.175 and JUDGEMENT-CALLS §K1. Applies ONLY where no
+# roster has been published — a held election has a real one and never uses it.
+NATIONAL_ONLY_FLOOR = 0.001
+
+# The preceding-LOCAL share below which a party with no preceding NATIONAL vote
+# is not assumed onto an unheld ballot. Same value and same reasoning as
+# NATIONAL_ONLY_FLOOR, and a better bargain: it drops 59% of that class for
+# 0.038pp of vote and NO seats. JUDGEMENT-CALLS §K2, MODEL-LOG §1.176.
+PRIOR_LOCAL_FLOOR = 0.001
+
+# The panel-measured turnout band needs a floor on evidence and a stated
+# fallback when it does not have it. Neither is tuned: 12 observations is three
+# cities' worth of one transition, below which the quantile is noise, and the
+# fallback is the value the old code used so that a thin-evidence case is no
+# worse than before rather than differently wrong.
+_PANEL_SPREAD_MIN_OBS = 12
+# Below this many observations of its OWN, a pool cannot estimate its own
+# spread and falls back to the panel's. At a 2011 target each pool has one.
+_OWN_EVIDENCE_MIN_OBS = 4
+# Winsorisation drops the single most extreme observation, so it needs a sample
+# that survives losing one. Applied below this, it re-creates the defect it
+# exists to fix -- measured, 2011 coverage 5 of 8 -> 1 of 8.
+_WINSORISE_MIN_OBS = 6
+_PANEL_SPREAD_FALLBACK = 0.30
 
 
 def ward_totals(city: cityconfig.City, year: str,
@@ -590,6 +914,29 @@ def ward_totals(city: cityconfig.City, year: str,
     path = city.path("raw", "elections", template) if template else None
     if not path or not path.exists():
         raise SystemExit(f"no result file for {city.slug} {year}: {path}")
+    # ⛔ THE QUARANTINE IS HONOURED HERE TOO, AND THIS IS THE THIRD READER.
+    #
+    # `levels.HELD_BACK` withholds the pre-2011 history pending a diagnosis.
+    # `levels._citywide` honoured it, `pools._npe_citywide_for` was taught to,
+    # and THIS path — `ward_totals`, reached through `pool_counts` and
+    # `registration_series` — was not. Measured 2026-09-01: `_citywide` refused
+    # Cape Town's `lge2000` while `pool_counts` read 1,269,582 registered voters
+    # out of the same file, and it reached the emitted spec — Cape Town's 2016
+    # registration series carried 2000/2006/2009/2011/2014 where Johannesburg's
+    # carried 2011/2014, and its White pool's turnout ceiling moved 0.7484 to
+    # 0.8578. No other metro, because no other metro's 2000 wards join the
+    # census — so the leak was CITY-SHAPED AND ARBITRARY.
+    #
+    # That is worse than the numbers: a quarantine that leaks through one of
+    # three readers means the effect being diagnosed is not the effect being
+    # measured, and the panel figure adjudicated against it was not measuring
+    # what it claimed. **Three readers of one file is the defect this project is
+    # named for; the gate is imported, never copied.**
+    import levels as _levels
+    if _levels._held_back(path):
+        raise SystemExit(
+            f"{city.slug} {year}: this election is in `levels.HELD_BACK` and "
+            f"may not be read. See that dict for the diagnosis it waits on.")
     # The results-portal NPE layout (2019, 2024) carries no Ward column at all,
     # so those files land with it blank. A national election has no ward
     # contest, but its voting districts still sit inside wards, and the LGE
@@ -658,6 +1005,81 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
     adults_by_ward = (read_census_population(age.censuses[-1], cfg)
                       if age else {})
 
+    # ⛔ THE COUNT HALF OF THE CENSUS JOIN, TRIGGERED ON DELIMITATION.
+    #
+    # `composition_at` above already moves the SHARE onto this election's wards
+    # whenever the census was published on a different delimitation. These two
+    # reads did not, so `people = composition x population` mixed TWO POLYGON
+    # SETS: median per-ward disagreement 6.8%-24.4% at a 2011 fitting year and
+    # up to 10% at 2016. Every one of the sixteen city-years carried it.
+    #
+    # ⚠️ THE TRIGGER IS THE DELIMITATION, NOT AN EMPTY OVERLAP, AND THE
+    # DIFFERENCE IS NOT COSMETIC. The first version asked `if not (codes &
+    # set(people_by_ward))` — which is the trap `composition_at`'s own comment
+    # warns about, because ward codes are REUSED and a wrong join therefore
+    # SUCCEEDS. Cape Town's municipal code never changed (191...), so its 2006
+    # wards "joined" Census 2022 and the branch never fired: it was fitted on
+    # 2000, 2006, 2011 and 2016 turnout where every other metro had 2011 and
+    # 2016, on a join with a median per-ward error of 14.7%. Nobody saw it
+    # because `turnout_record` swallows the refusal.
+    src_delim = base.censuses[-1].delimitation
+    if int(src_delim) != delimitation_for(year):
+        people_by_ward, cov = reproject_counts(
+            people_by_ward, city, str(src_delim), year)
+        if adults_by_ward:
+            age_delim = age.censuses[-1].delimitation
+            adults_by_ward, _ = reproject_counts(
+                adults_by_ward, city, str(age_delim), year)
+        # ⛔ GATED ON WHAT THE MISSINGNESS DOES, NOT ON HOW MUCH OF IT THERE IS.
+        #
+        # A coverage floor is a proxy for the quantity that matters — how far
+        # the citywide composition moves because of what failed to map — with an
+        # unknown transfer function. Measured, the function is weak: randomly
+        # ablating Johannesburg's wards from 95% to 60% coverage moves the
+        # largest pool share by only 0.021 to 0.028.
+        #
+        # And coverage is PESSIMISTIC here, because it counts population lost at
+        # the voting-district level while whole wards are rarely lost at all:
+        # Tshwane reports 72.6% coverage but loses **7 wards of 107**, and those
+        # seven are demographically almost identical to the ones kept (largest
+        # pool-share difference 0.013). Mangaung loses **one ward of 51** at
+        # 0.043. A raw floor of 0.80 blocked both metros from ever becoming
+        # backtest targets on the strength of a number that was not measuring
+        # the harm.
+        #
+        # So the refusal is on the demographic SHIFT the loss induces. Coverage
+        # is still computed and reported, because a very low one means something
+        # structural even when the mix happens to match.
+        drift = _reprojection_drift(city, str(src_delim), year, cfg)
+        if drift is not None and drift > CENSUS_DRIFT_CEILING:
+            raise SystemExit(
+                f"{city.slug} {year}: the wards that fail to reproject from the "
+                f"{src_delim} delimitation are demographically unlike the ones "
+                f"that survive — largest pool-share difference {drift:.3f}, "
+                f"ceiling {CENSUS_DRIFT_CEILING:.3f}. Coverage was {cov:.1%}. "
+                f"A biased loss cannot be averaged away.")
+        if cov < CENSUS_COVERAGE_FLOOR:
+            print(f"  !! {city.slug} {year}: census reprojection mapped "
+                  f"{cov:.1%} of this city's people, below "
+                  f"{CENSUS_COVERAGE_FLOOR:.0%} — admitted because the loss is "
+                  f"demographically even (shift {drift if drift is not None else float('nan'):.3f})")
+
+    # ⛔ AND THE KEY SETS MUST AGREE, NOT MERELY INTERSECT.
+    #
+    # The delimitation label answers "should these join?"; it does not answer
+    # "did the right rows join?". A MUNICIPAL boundary change inside one
+    # delimitation gives a matching label and a silently wrong join — the same
+    # shape as Cape Town, one level down. A join on reusable keys must assert on
+    # the KEY SET. Reported rather than raised when the shortfall is small,
+    # because a handful of wards genuinely fail to reproject and the coverage
+    # floor above is the quantitative guard; a large gap is a different animal.
+    matched = codes & set(people_by_ward)
+    if codes and len(matched) < 0.5 * len(codes):
+        raise SystemExit(
+            f"{city.slug} {year}: only {len(matched)} of {len(codes)} election "
+            f"wards found a census population after reprojection. The two are "
+            f"not describing the same city.")
+
     wards = sorted(w for w in codes
                    if w in comp_by_ward and w in people_by_ward
                    and reg_by_ward.get(w, 0) > 0)
@@ -701,8 +1123,16 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
         voting_age = people.copy()
         rates["adult_share"] = np.ones(people.shape[1])
 
+    # ⛔ REGISTRATION IS THE ONE LEVEL THAT MAY EXCEED 1, AND IT WAS CLIPPED.
+    # Bounding all three at 1.0 clamped a quantity `census_correction` two
+    # blocks down independently computes as 1.206 and 1.480 for this very city,
+    # and pushed the surplus into the other pools: Johannesburg's White share of
+    # the registered roll read 20.0% against 25.2% unclipped. See
+    # REGISTRATION_MAX. `adult_share` and `turnout` genuinely cannot exceed 1
+    # and keep the tight bound.
     registered, rates["registration"] = _nest(
-        voting_age, np.array([reg_by_ward[w] for w in wards]))
+        voting_age, np.array([reg_by_ward[w] for w in wards]),
+        upper=REGISTRATION_MAX)
     voted, rates["turnout"] = _nest(
         registered, np.array([votes_by_ward.get(w, 0.0) for w in wards]))
 
@@ -712,6 +1142,48 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
     # So this ratio is reported as a property of the census, not of the model.
     implied = registered.sum(axis=0) / np.maximum(voting_age.sum(axis=0), 1e-9)
     rates["census_correction"] = np.maximum(implied, 1.0)
+
+    # ⛔ A RATE ON A BOUND IS A REPORT THAT THE POOL IS UNIDENTIFIED.
+    #
+    # `_nnls` is now bounded to [0, 1] (§1.164), which stops a runaway rate but
+    # replaces it with a corner — and a corner is not an estimate either. The
+    # three levels are named so a reader can see WHERE identification failed:
+    # Mangaung's Indian/Asian pool reaches a maximum ward share of 2.0-2.4%
+    # anywhere in the city, so its turnout has never been identifiable and the
+    # old code reported 0.0000 as though it were measured.
+    unidentified = []
+    # ⚠️ EACH LEVEL IS TESTED AGAINST ITS OWN BOUND. `registration` is bounded
+    # at REGISTRATION_MAX, not 1.0, so testing it against 1.0 reported every
+    # legitimately-above-one rate as a clipped corner — Johannesburg White at
+    # 1.739 is an estimate, not a bound. Caught immediately after loosening the
+    # bound without moving the detector with it.
+    for name in ("adult_share", "registration", "turnout"):
+        rate = rates.get(name)
+        if rate is None:
+            continue
+        level_upper = REGISTRATION_MAX if name == "registration" else 1.0
+        for g, flag in enumerate(_at_bound(rate, upper=level_upper)):
+            if flag:
+                reach = float((people[:, g]
+                               / np.maximum(people.sum(axis=1), 1e-9)).max())
+                # ⛔ TWO CAUSES, ONE MESSAGE, AND IT NAMED THE WRONG ONE. This
+                # said "the ward table cannot identify this pool" for pools
+                # reaching 71.1% and 77.2% of a single ward — abundant
+                # identifying variation. They sat on the bound because the true
+                # rate EXCEEDS it, which is a different fault with a different
+                # fix, and the message sent the reader to the ward table
+                # instead of the census denominator. Found by review 2026-09-05.
+                why = ("the ward table cannot identify this pool at this level"
+                       if reach < 0.25 else
+                       "this pool IS identifiable (it reaches "
+                       f"{reach:.1%} of a ward), so the bound is binding "
+                       "because the true value lies beyond it — look at the "
+                       "denominator, not the ward table")
+                unidentified.append(
+                    f"{categories[g]}: {name} fitted to {rate[g]:.4f}, which is "
+                    f"ON A BOUND — {why}. The value is a clipped corner and not "
+                    f"a measurement. Largest share this pool reaches in any "
+                    f"ward: {reach:.1%}.")
 
     violations = []
     for name, child, parent in (("registered", registered, voting_age),
@@ -731,7 +1203,8 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
 
     return PoolCounts(wards=wards, categories=categories, people=people,
                       voting_age=voting_age, registered=registered, voted=voted,
-                      rates=rates, violations=violations)
+                      rates=rates, violations=violations,
+                      unidentified=unidentified)
 
 
 def registration_series(city: cityconfig.City, cfg: Config,
@@ -831,10 +1304,52 @@ def vd_map(city: cityconfig.City, year: str) -> tuple[dict[str, str], dict[str, 
     Each election file records which voting districts made up which ward *that
     year*, which is what makes VDs the common currency between delimitations.
     """
+    # ⛔ A FUTURE ELECTION HAS NO RESULT FILE AND DOES NOT NEED ONE.
+    #
+    # The wards of the election being forecast are published before it is held —
+    # that is what a delimitation IS — and they land in
+    # `<processed>/vd_ward_<year>.csv` with the pre-election roll: VD number,
+    # ward id, and the registered voters in each part of a split VD. Requiring a
+    # RESULT file to know the ward map confuses "which wards exist" with "who
+    # won", and it broke the live 2026 forecast the moment `registered_at_target`
+    # started reprojecting.
     template = cityconfig.CALENDAR[year].results
     path = city.path("raw", "elections", template) if template else None
     if not path or not path.exists():
-        raise SystemExit(f"no result file for {city.slug} {year}: {path}")
+        # `Target.crosswalk`, not `target.processed` — the crosswalk is CITY
+        # level (§1.97 F15, one definition since §1.120). Spelling the path here
+        # is what left seven cities' crosswalks on disk where nothing looked;
+        # `use_target()` would also have resolved the ACTIVE city's, not this
+        # one's, which is the same defect one level along.
+        roll = cityconfig.Target(city=city, year=year).crosswalk
+        if roll.exists():
+            # ONE crosswalk reader (§1.97 F18). This branch used to parse the
+            # file itself, which made a THIRD copy of a read that has already
+            # built two different cities out of one file without either
+            # noticing (F14, §1.99). `ward_column` is passed explicitly because
+            # this module keys wards by the MDB identifier the result files
+            # carry, not by the ward number `montecarlo` uses.
+            import montecarlo as _mc
+            parts, _vds, _split = _mc.read_ward_crosswalk(
+                roll, year, ward_column=f"WardID_{year}")
+            ward_of, reg = {}, {}
+            best: dict[str, float] = {}
+            for vd, ward, part in parts:
+                vd, ward = str(vd).strip(), str(ward).strip()
+                if not vd or not ward:
+                    continue
+                # A split VD appears once per ward. Its registration is the sum
+                # of its parts; its ward, for a one-to-one map, is the part that
+                # holds most of it.
+                reg[vd] = reg.get(vd, 0.0) + float(part)
+                if float(part) >= best.get(vd, -1.0):
+                    best[vd] = float(part)
+                    ward_of[vd] = ward
+            if ward_of:
+                return ward_of, reg
+        raise SystemExit(
+            f"no ward map for {city.slug} {year}: neither a result file at "
+            f"{path} nor a pre-election roll at {roll}")
     ward_of, reg = {}, {}
     with open(path, encoding="utf-8", errors="replace") as fh:
         for row in csv.DictReader(fh):
@@ -907,6 +1422,25 @@ def reproject(comp: dict[str, np.ndarray], city: cityconfig.City,
 _LOG_FLOOR = 1e-6
 
 
+# The share of a city's census population that must survive reprojection
+# before the result is trusted. ⚠️ A CHOSEN NUMBER, NOT A MEASURED ONE — the
+# quantity that matters is how far the citywide COMPOSITION moves because of
+# what is missing, and coverage is a proxy for that with an unknown transfer
+# function. Measured coverage runs 87.0% (Johannesburg 2006) to 72.5%
+# (Mangaung 2006); at 0.80 the latter stays blocked. Registered in
+# JUDGEMENT-CALLS.md and owed a sensitivity measurement.
+CENSUS_COVERAGE_FLOOR = 0.80          # reported, no longer a refusal
+# The refusal: how far a city's own composition moves because of wards that fail
+# to reproject. MEASURED against the alternative — randomly ablating
+# Johannesburg's wards all the way to 60% coverage moves a pool share by 0.028,
+# so 0.05 is roughly twice the worst random loss and an order below the ~0.28
+# that a genuinely segregated loss of a large block would produce.
+CENSUS_DRIFT_CEILING = 0.05
+
+
+_CENSUS_TOTAL_ROW = {"Total", "TOTAL", "total"}
+
+
 def delimitation_for(year: str) -> int:
     """Which delimitation an election was fought on.
 
@@ -917,6 +1451,113 @@ def delimitation_for(year: str) -> int:
     lge = [int(y) for y, e in cityconfig.CALENDAR.items()
            if e.kind == "LGE" and int(y) <= int(year)]
     return max(lge) if lge else int(year)
+
+
+def _reprojection_drift(city: cityconfig.City, from_year: str, to_year: str,
+                        cfg: "Config") -> float | None:
+    """How far this city's composition MOVES because of what fails to reproject.
+
+    The largest per-pool shift between the citywide census mix computed over all
+    source wards and the mix over only those that reach the target
+    delimitation. `None` when nothing is lost. **This, not raw coverage and not
+    the oddity of the lost wards, is what decides whether a reprojection is
+    safe**: losing a quarter of a city evenly is nearly harmless, and losing one
+    unrepresentative ward of 111 is harmless too — what matters is the product.
+    """
+    import numpy as _np
+    old_ward, _ = vd_map(city, from_year)
+    new_ward, _ = vd_map(city, to_year)
+    reached = {w for vd, w in old_ward.items() if new_ward.get(vd) is not None}
+    lost = {w for w in old_ward.values()} - reached
+    if not lost:
+        return None
+    base = cfg.base()
+    shares = read_census(base, base.censuses[-1], cfg)
+    people = read_census_population(base.censuses[-1], cfg)
+
+    def mix(ws):
+        acc = _np.zeros(len(base.categories)); tot = 0.0
+        for w in ws:
+            if w in shares and w in people:
+                acc = acc + _np.asarray(shares[w], dtype=float) * float(people[w])
+                tot += float(people[w])
+        return acc / tot if tot > 0 else acc
+
+    # ⛔ THE HARM IS HOW FAR THE CITY MOVES, NOT HOW ODD THE LOST WARDS ARE.
+    #
+    # The first version returned |mix(kept) - mix(lost)|, which is the wrong
+    # quantity twice over: it ignores HOW MUCH is lost, and it is largest
+    # exactly when the loss is smallest and most peculiar. eThekwini loses ONE
+    # ward of 111 — 34,980 people, 0.8% of the city — that is 99.8% Black
+    # African against a city at 71.5%. That scored 0.282 and refused a metro we
+    # already had, on a loss that moves the citywide composition by 0.002.
+    #
+    # So: compute the citywide mix WITH the lost wards and WITHOUT them, and
+    # return how far it actually moved. That is the induced error, which is what
+    # a threshold can honestly be set against.
+    kept = mix(reached)
+    whole = mix(reached | lost)
+    if not kept.any() or not whole.any():
+        return None
+    return float(_np.max(_np.abs(whole - kept)))
+
+
+def reproject_counts(counts: dict[str, float], city: cityconfig.City,
+                     from_year: str, to_year: str) -> tuple[dict[str, float], float]:
+    """Move a ward-level COUNT from one delimitation onto another.
+
+    The twin of :func:`reproject`, and it must be a twin rather than a reuse
+    because the two quantities move differently. A composition is a SHARE and is
+    averaged into the new ward, weighted by registered voters; a population is a
+    COUNT and must be SPLIT — each old ward's people are divided among its
+    voting districts in proportion to registration, then summed into whichever
+    new ward each district now sits in. Averaging a count would destroy it.
+
+    ⛔ WHY THIS EXISTS. `composition_at` has reprojected since it was written, so
+    the pre-2011 wards join the census correctly there — but
+    `read_census_population` had no such branch, returned census-delimitation
+    codes, and NOTHING JOINED. That single gap is what made 2006 unusable as a
+    fitting year and therefore 2011 unusable as a backtest target: the whole
+    pre-2011 archive was on disk, reconciled, and unreachable because one of two
+    parallel census reads could not follow the wards.
+
+    Owner, 2026-08-31: *"wards changed sizes yes… but you have the ward maps.
+    Calculate what ward became what and adjust systematically to compensate when
+    this happens (and it happens in every cycle)."* This is that compensation
+    for the count half.
+
+    Returns the reprojected counts and the fraction of the SOURCE total that
+    could be mapped, so a caller can refuse a bad join instead of trusting it.
+    """
+    old_ward, old_reg = vd_map(city, from_year)
+    new_ward, _ = vd_map(city, to_year)
+
+    # Each old ward's registration, so a ward's people can be split across its
+    # own voting districts in proportion to where its voters are.
+    ward_reg: dict[str, float] = {}
+    for vd, ward in old_ward.items():
+        ward_reg[ward] = ward_reg.get(ward, 0.0) + old_reg.get(vd, 0.0)
+
+    out: dict[str, float] = {}
+    mapped = 0.0
+    # ⛔ THE DENOMINATOR IS THIS CITY'S OWN POPULATION, NOT THE NATION'S.
+    # The first version summed every key in `counts` — all 4,469 national wards,
+    # plus a literal 'Total' row that double-counted the national figure — so
+    # coverage came out as city/country, about 3%, and the guard refused every
+    # time. Johannesburg 2006 reports 87.0% on the correct denominator and 3.4%
+    # on the wrong one; the fix looked like a working refusal and was a broken
+    # one.
+    total = sum(float(counts[w]) for w in ward_reg if w in counts)
+    for vd, src_ward in old_ward.items():
+        people = counts.get(src_ward)
+        denom = ward_reg.get(src_ward, 0.0)
+        dest = new_ward.get(vd)
+        if people is None or denom <= 0 or dest is None:
+            continue
+        share = old_reg.get(vd, 0.0) / denom
+        out[dest] = out.get(dest, 0.0) + float(people) * share
+        mapped += float(people) * share
+    return out, (mapped / total if total > 0 else 0.0)
 
 
 def composition_at(dim: Dimension, cfg: Config, when: float,
@@ -1632,6 +2273,8 @@ def turnout_record(city: cityconfig.City, cfg: Config, before: str | None = None
 
 
 def turnout_band(record: dict[str, np.ndarray], n_pools: int,
+                 panel_spread: dict[str, float] | None = None,
+                 categories: tuple[str, ...] | None = None,
                  ) -> list[tuple[float, float, float]]:
     """(low, mode, high) turnout per pool: last election, widened by history.
 
@@ -1712,12 +2355,185 @@ def turnout_band(record: dict[str, np.ndarray], n_pools: int,
         # One observation supports no statement about change, so it falls back
         # to 0.30 logits — the same default the log version used, now in the
         # units it is actually applied in.
+        # ⛔ THE WIDTH NO LONGER COMES FROM THIS CITY'S OWN max-min.
+        #
+        # `max - min` over two or three points is not a spread estimator: it can
+        # only grow with sample size, so 2016 and 2021 targets got bands
+        # approaching the unit interval while a 2011 target -- one prior
+        # election, so no range at all -- got a typed 0.30 logits. Measured
+        # against what happened, 7 of 8 2011 bands sat ENTIRELY BELOW the
+        # realised turnout. §1.162 §9.
+        #
+        # `panel_spread` is how far a pool's turnout has actually MOVED between
+        # local elections across the whole panel, using only transitions that
+        # end before this target. The city's own observed range is kept as a
+        # FLOOR: a city that has visibly moved more than the panel typical
+        # should not be handed a narrower band than its own history shows.
         lg = _logit(column)
-        spread = float(lg.max() - lg.min()) if len(column) > 1 else 0.30
+        own = float(lg.max() - lg.min()) if len(column) > 1 else 0.0
+        name = categories[g] if categories and g < len(categories) else None
+        measured = (panel_spread or {}).get(name, _PANEL_SPREAD_FALLBACK)
+        spread = max(measured, own)
         low = float(_expit(_logit(centre) - spread))
         high = float(_expit(_logit(centre) + spread))
         bands.append((low, centre, max(high, centre * 1.001)))
     return bands
+
+
+_PANEL_SPREAD_CACHE: dict[tuple, tuple[float, int]] = {}
+
+
+def panel_turnout_spread(cfg: Config, before: str | None = None,
+                         split_bloc: dict | None = None
+                         ) -> tuple[dict[str, float], int]:
+    """How far EACH pool's turnout moves between local elections, panel-wide.
+
+    Returns ``({category: spread_in_logits}, n_observations)``.
+
+    ⛔ WHY THIS EXISTS. :func:`turnout_band` took its width from the city's own
+    observed range, ``max - min`` over the years on record, and fell back to a
+    typed 0.30 logits when only one year existed. **A 2011 target has exactly
+    one prior local election, so every 2011 band was 0.30 logits either side of
+    a single reading**; measured against what happened, 7 of 8 sat ENTIRELY
+    BELOW the realised turnout, Johannesburg's running 36.5%-43.3% against a
+    realised 54.2% (§1.162 §9). And ``max - min`` over two or three points is
+    not a spread estimator either: it can only grow with sample size.
+
+    **The replacement is a property of the WORLD.** How much turnout moves
+    between consecutive local elections has been observed eight metros at a
+    time, and measuring it needs no reference to any forecast we have made —
+    which keeps this on the estimation side of the line CLAUDE.md draws.
+
+    ⚠️ **PER POOL, AND THAT IS THE WHOLE POINT.** A single spread pooled across
+    every pool was measured first and rejected: small pools move enormously,
+    the big pool carries 70-85% of the roll, and applying the small-pool
+    movement to the big one **doubled the mean band width to 41.5pp while
+    2016's coverage, already 8 of 8, gained nothing.** Coverage is gameable by
+    widening and that was the game being played. Each pool now gets the width
+    its own movement supports.
+
+    ⚠️ **NO FUTURE.** Only transitions ending strictly before ``before`` count,
+    so a 2011 target sees the 2000-2006 movement and nothing later.
+    """
+    # ⛔ NOT `id(cfg)`. The cache held no reference to the Config, so CPython
+    # freed it and handed the same address to the next one — measured, five
+    # `load_config()` calls returned three distinct ids with two reused. A
+    # sweep that loads config A, emits, drops it, then loads config B with
+    # different pool categories would silently get A's panel spread, so the
+    # turnout band widths in the spec would come from the wrong dimension set.
+    # Keyed on the config's CONTENT instead, which is what it was always
+    # meant to mean.
+    key = (str(before), _config_sha(CONFIG),
+           repr(sorted((split_bloc or {}).items())))
+    if key in _PANEL_SPREAD_CACHE:
+        return _PANEL_SPREAD_CACHE[key]
+
+    def _logit(x):
+        x = np.clip(np.asarray(x, dtype=float), 1e-4, 1 - 1e-4)
+        return np.log(x / (1 - x))
+
+    moves: dict[str, list[float]] = {}
+    total = 0
+    for slug in sorted(q.stem for q in cityconfig.CITIES_DIR.glob("*.toml")):
+        try:
+            city = cityconfig.load(slug)
+        except (Exception, SystemExit):
+            continue
+        seen: dict[str, tuple[tuple[str, ...], np.ndarray]] = {}
+        for year, election in sorted(cityconfig.CALENDAR.items()):
+            if election.kind != "LGE" or not election.results:
+                continue
+            if before is not None and int(year) >= int(before):
+                continue
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    pc = pool_counts(city, year, cfg, split_bloc=split_bloc)
+            except (Exception, SystemExit):
+                # SystemExit is NOT an Exception subclass, and this module
+                # raises it for a held-back election (`levels.HELD_BACK`) and
+                # for a missing result file. Catching `Exception` alone let a
+                # held-back Buffalo City 2000 abort the whole panel sweep.
+                continue
+            seen[year] = (tuple(pc.categories), pc.rates["turnout"])
+        years = sorted(seen)
+        for a, b in zip(years, years[1:]):
+            (ca, ra), (cb, rb) = seen[a], seen[b]
+            for i, name in enumerate(ca):
+                if name not in cb:
+                    continue
+                j = cb.index(name)
+                x, y = float(ra[i]), float(rb[j])
+                # A pool UNIDENTIFIED at either end gives a movement between
+                # two corner solutions, which is not a movement.
+                if not (_RATE_BOUND_EPS < x < 1 - _RATE_BOUND_EPS
+                        and _RATE_BOUND_EPS < y < 1 - _RATE_BOUND_EPS):
+                    continue
+                moves.setdefault(name, []).append(
+                    float(_logit(y) - _logit(x)))
+                total += 1
+
+    pooled = [v for vs in moves.values() for v in vs]
+    if not pooled:
+        _PANEL_SPREAD_CACHE[key] = ({}, 0)
+        return _PANEL_SPREAD_CACHE[key]
+
+    def _spread(vals: list[float]) -> float:
+        """A robust half-width, WINSORISED AT ONE POINT.
+
+        ⛔ THIS USED TO BE `max(|delta|)` FOR A SMALL SAMPLE AND IT LET ONE
+        BROKEN ROW SET THE BAND FOR THE WHOLE PANEL. Buffalo City's Coloured
+        turnout is fitted at **0.0375** in 2006 and 0.6004 in 2011 — 3.75% of a
+        pool voting is not a turnout, it is a rate-identification failure — and
+        that single transition gives |delta logit| = **3.6529**, against a
+        second-largest of 1.4320 and a median of 0.9618. It became the Coloured
+        band for all eight metros at 2016: [2.5%, 97.5%], an interval that
+        states nothing.
+
+        With n around nine the 0.90 quantile IS the maximum, so the two branches
+        were the same estimator wearing different names, and both were a single
+        order statistic. Winsorising the top point is the smallest change that
+        makes the estimate robust to exactly the failure observed: one corrupt
+        transition can no longer set the width, two would still show.
+
+        ⚠️ It is winsorisation of ONE point and no more. That is a choice, it is
+        registered, and it is not a licence to trim until the answer is liked.
+        """
+        mag = np.sort(np.abs(vals))
+        # ⚠️ WINSORISE ONLY WHERE THE SAMPLE CAN AFFORD IT. Dropping the top
+        # point of four leaves three, and the estimate collapses to the typed
+        # fallback -- which is the original defect, re-entered by the cure.
+        # Measured: winsorising at every n took 2011 coverage from 5 of 8 back
+        # to 1 of 8 while fixing 2016. Scarcity and contamination need opposite
+        # treatments, and only one of them is robustness.
+        if mag.size >= _WINSORISE_MIN_OBS:
+            mag = mag[:-1]
+        if mag.size < _PANEL_SPREAD_MIN_OBS:
+            return float(max(mag.max(), _PANEL_SPREAD_FALLBACK))
+        return float(max(np.quantile(mag, 0.90), _PANEL_SPREAD_FALLBACK))
+
+    # ⛔ THE POOLED FLOOR APPLIES ONLY WHERE A POOL HAS NO EVIDENCE OF ITS OWN.
+    #
+    # It used to be `max(own, pooled)` for every pool under the observation
+    # threshold, which handed **Black African — 70-85% of the roll — the
+    # small-pool movement** (1.1618) over its own worst observed transition
+    # (0.6194), a 1.9x inflation. That is verbatim the behaviour this function's
+    # docstring says was measured and rejected, still live as a floor.
+    # ⛔ THE POOLED FLOOR IS FOR SCARCITY, NOT FOR EVERY POOL.
+    #
+    # It used to be `max(own, pooled)` for every pool under the threshold, which
+    # handed **Black African -- 70-85% of the roll -- the small-pool movement**
+    # (1.1618) over its own worst observed transition (0.6194), a 1.9x
+    # inflation, verbatim the behaviour this function's docstring says was
+    # rejected. Removing it entirely was worse: at a 2011 target each pool has
+    # ONE observation, and its own evidence is no evidence.
+    #
+    # So the floor applies exactly where a pool cannot speak for itself.
+    fallback = _spread(pooled)
+    out = ({name: (_spread(vs) if len(vs) >= _OWN_EVIDENCE_MIN_OBS
+                   else max(_spread(vs), fallback))
+            for name, vs in moves.items()}, total)
+    _PANEL_SPREAD_CACHE[key] = out
+    return out
 
 
 def turnout_limits(record: dict[str, np.ndarray], registered: np.ndarray,
@@ -1808,6 +2624,42 @@ def registered_at_target(city: cityconfig.City, target: cityconfig.Target,
     counts = pool_counts(city, fitted_on, cfg, split_bloc=split_bloc)
     composition = counts.composition("registered")
     by_ward = {w: composition[i] for i, w in enumerate(counts.wards)}
+
+    # ⛔ THE FITTING YEAR'S WARDS ARE NOT THE TARGET'S WARDS, AND THIS JOINED
+    # THEM BY CODE.
+    #
+    # `by_ward` is keyed on the FITTING election's wards; the roll below is the
+    # TARGET's. Wards are redrawn between local elections, so for any pair that
+    # straddles a delimitation this was joining composition to the wrong
+    # polygon — and because ward codes are reused, it succeeded. Measured share
+    # of the target roll sitting in a voting district whose ward code changed
+    # since the fitting election: **100% at a 2011 target for seven of eight
+    # metros**, and still 3-37% at 2016 and 2021 targets — including the LIVE
+    # 2026 forecast, where the target delimitation (2026) differs from 2021's.
+    #
+    # `reproject` is the SHARE twin and is the right one here: a composition is
+    # averaged into the new ward weighted by registration, where a population
+    # count would have to be split. See `reproject_counts` for the other half.
+    # The fitting election's wards are not the target's. Wards are redrawn
+    # between local elections, so for any pair straddling a delimitation this
+    # was joining composition to the wrong polygon — and because ward codes are
+    # reused, it SUCCEEDED. Measured share of the target roll sitting in a VD
+    # whose ward code changed since the fitting election: 100% at a 2011 target
+    # for seven of eight metros, and still 3-37% at 2016 and 2021 — including
+    # the live 2026 forecast, whose delimitation differs from 2021's.
+    #
+    # `reproject` is the SHARE twin and is right here: a composition is averaged
+    # into the new ward weighted by registration, where a population count must
+    # be split. A future target needs no result file — `vd_map` reads the
+    # pre-election roll for it.
+    if delimitation_for(fitted_on) != delimitation_for(target.year):
+        by_ward, covered = reproject(by_ward, city, fitted_on, target.year)
+        if covered < CENSUS_COVERAGE_FLOOR:
+            raise SystemExit(
+                f"{city.slug}: moving the {fitted_on} composition onto the "
+                f"{target.year} wards mapped only {covered:.1%} of the target "
+                f"electorate. Below {CENSUS_COVERAGE_FLOOR:.0%} the join is "
+                f"worse than the refusal it replaces.")
 
     # A missing roll used to stand in the fitting election's own and print a
     # warning. That branch is gone with the wrong-city fallback that made it
@@ -1907,7 +2759,15 @@ def _target_roll(city: cityconfig.City, target: cityconfig.Target,
             return ward_totals(city, target.year)[0]
         except SystemExit:
             pass
-    path = target.processed / f"vd_ward_{target.year}.csv"
+    # ⛔ `target.crosswalk`, NOT `target.processed`. The crosswalk is a CITY-level
+    # artefact (§1.97 F15) and `Target.crosswalk` is its ONE definition
+    # (§1.120). Spelling the path here read `data/processed/<slug>/<year>/` for
+    # every city but Johannesburg — whose `legacy_processed_root` collapses the
+    # two directories, which is exactly why the defect was invisible and why it
+    # blocked `--city <any non-joburg> --target 2026 --emit`. The docstring
+    # above has said "the city's own processed directory" throughout; the code
+    # disagreed with it.
+    path = target.crosswalk
     if not path.exists():
         raise SystemExit(
             f"{city.name} {target.year}: no ward roll for this city. Wanted "
@@ -2015,8 +2875,13 @@ def measure_pool_ratios(composition: dict[str, np.ndarray], n_pools: int,
     ratios: list[list[float]] = [[] for _ in range(n_pools)]
     for code in codes:
         for before, after in transitions:
-            a = metro_citywide(code, before)
-            b = metro_citywide(code, after)
+            # ⛔ THE 2000 AND 2006 METRO RESULTS ARE ON DISK AND `metro_file` CANNOT
+            # SEE THEM. `_npe_citywide_for` reads the same `_clean.csv` files through
+            # `CALENDAR[year].results`, and the two readers agree to 0.00e+00 on all
+            # 24 metro-years where BOTH resolve — so this is a resolver fallback, not
+            # a second definition (§1.181). prereg/2026-09-03-arrival-record-widening.
+            a = metro_citywide(code, before) or _npe_citywide_for(code, before)
+            b = metro_citywide(code, after) or _npe_citywide_for(code, after)
             if not a or not b:
                 continue
             ta = pool_totals(composition, a, n_pools)
@@ -2238,15 +3103,26 @@ def entrant_record(transitions, codes=METRO_CODES,
     seen: list[float] = []
     for code in codes:
         for before, after in transitions:
-            a, b = metro_citywide(code, before), metro_citywide(code, after)
+            a = metro_citywide(code, before) or _npe_citywide_for(code, before)
+            b = metro_citywide(code, after) or _npe_citywide_for(code, after)
             if not a or not b:
                 continue
+            # ⛔ `_ward_reach` IS NOT WIDENED — it goes through `metro_file`,
+            # whose reader cannot parse the clean files. So for a transition
+            # the fallback has just made visible, reach is `{}`.
+            #
+            # `reach.get(party, 1.0)` would then record every pre-2006 arrival
+            # as having contested **100% of wards** — a fabricated covariate at
+            # the most consequential value, landing squarely in the
+            # `abs(r - 1.0) < 0.25` comparator bucket that sizes the arrivals
+            # which win seats. 9 rows of 319 at target 2026, 9 of 63 at 2016.
+            # SKIP the row instead: an unmeasured reach is not a reach of one.
             reach = _ward_reach(code, after)
             for party, share in b.items():
                 if party in exclude:
                     continue
-                if a.get(party, 0.0) <= 1e-4 < share:
-                    seen.append((share, reach.get(party, 1.0)))
+                if a.get(party, 0.0) <= 1e-4 < share and party in reach:
+                    seen.append((share, reach[party]))
     return sorted(seen)
 
 
@@ -2486,7 +3362,18 @@ def _band_from(record: list[float], label: str, pooled: list[float] | None
 
 
 def _npe_citywide_for(code: str, year: str) -> dict[str, float]:
-    """One metro's NPE shares by IEC code, for reading a split where it lived."""
+    """One metro's NPE shares by IEC code, for reading a split where it lived.
+
+    ⛔ HONOURS `levels.HELD_BACK`, AND HAD TO BE TOLD TO. This is a SECOND reader
+    of the same election files that `levels._citywide` reads, and when the
+    pre-2011 history was held back there it kept flowing in through here —
+    `npe1999` reached the splinter records while every other consumer thought it
+    was excluded, and the panel moved by 2.63 CRPS for no stated reason.
+
+    Two readers of one file is this repository's signature defect and the owner's
+    standing rule is one definition only. The gate is imported rather than
+    copied, so it cannot be true in one module and false in the other.
+    """
     template = cityconfig.CALENDAR[year].results
     if not template:
         return {}
@@ -2494,6 +3381,9 @@ def _npe_citywide_for(code: str, year: str) -> dict[str, float]:
     if not path.exists():
         path = Path("data/raw/elections") / path.name
     if not path.exists():
+        return {}
+    import levels as _levels
+    if _levels._held_back(path):
         return {}
     counts: dict[str, int] = defaultdict(int)
     with open(path, encoding="utf-8", errors="replace") as fh:
@@ -2506,7 +3396,7 @@ def _npe_citywide_for(code: str, year: str) -> dict[str, float]:
 
 
 def arrival_group_record(before_year: str | None = None
-                         ) -> list[tuple[float, float]]:
+                         ) -> list[tuple[float, float, float]]:
     """What ARRIVALS TAKE AS A GROUP in a metro, and how concentrated it is.
 
     One entry per metro-year strictly before the target, as
@@ -2520,17 +3410,42 @@ def arrival_group_record(before_year: str | None = None
     there is exactly one of those per city; the other twenty-six get about
     0.07% each because nothing is left to give them.
 
-    The quantity that behaves regularly is the GROUP TOTAL. Over sixteen
-    metro-years it runs 0.31% to 19.99%, median 3.11%, and it is rising —
-    2016 spans 0.31-4.74% against 2021's 1.53-19.99%. Drawing that and splitting
-    it is a far smaller claim than sizing thirty parties independently, and it
-    is the external review's item 4.
+    The quantity that behaves regularly is the GROUP TOTAL. Over the **29**
+    metro-years now on record it runs 0.31% to 19.99%, **median 1.75%**, and it
+    is rising — 2016 spans 0.31-4.74% against 2021's 1.53-19.99%.
+
+    ⚠️ Every figure here is pinned by `test_the_arrival_record_figures_are_the
+    _record`, which has now caught this docstring twice: it said "sixteen
+    metro-years… median 3.11%" for weeks after the panel became 22, and it said
+    22 within hours of the widening that made it 29. That is the guard working,
+    and it is why the figures are derived by a test rather than trusted.
+
+    ⛔ **THIS RECORD COUNTS SPLITS AS WELL AS ENTRANTS; ITS CONSUMER DOES NOT.**
+    A party at its first local election has no preceding national vote whether
+    it is a splinter or an entrant, so EFF, ActionSA, COPE, GOOD, MK and the NFP
+    are all in these totals — while `arrival_rules` spends the budget only over
+    `entrant_sizes`, which excludes every `as_split` party. Johannesburg 2021 is
+    19.99% as a group and **1.87% excluding splits**, a factor of 10.7. See
+    `_arrival_total_prior`; do not repair one half alone.
 
     The concentration matters as much as the total, because the split is not
     even: the largest arrival took 91% of the group in Johannesburg 2021 and 20%
-    in Cape Town 2016. The implied symmetric-Dirichlet α ranges 0.22 to 20.66
-    with a median of 4.85, so the draw has to be able to produce both "one party
+    in Cape Town 2016. The implied symmetric-Dirichlet α ranges 0.22 to 43.21
+    with a median of 8.41, so the draw has to be able to produce both "one party
     takes almost all of it" and "thirty parties share it".
+
+    ⛔ **THE WIDENING MOVED THAT CONCENTRATION HARD, AND IT MOVED IT THE WRONG
+    WAY.** `arrival_group_spec`'s α, before → after: 2016 8.654 → 10.874 (+26%),
+    **2021 4.357 → 9.758 (+124%)**, 2026 5.096 → 8.406 (+65%). A HIGHER α splits
+    the group MORE EVENLY — so it makes "one arrival takes 91% of the group"
+    less likely, and that case is Johannesburg 2021, ActionSA, the single
+    largest error this model makes.
+
+    ⚠️ **And it invalidates the measurement that retired `arrival_group_draw`.**
+    That lever was refuted at CRPS 85.9 → 109.9, measured at α = 4.357. The
+    spec it would read now carries 9.758. **The refutation does not transfer**
+    and must be re-taken before the lever is called dead again. It is inert
+    today only because the lever defaults to False.
     """
     out: list[tuple[float, float]] = []
     lge = sorted((y for y, e in cityconfig.CALENDAR.items()
@@ -2542,12 +3457,30 @@ def arrival_group_record(before_year: str | None = None
         if not prev:
             continue
         for code in METRO_CODES:
-            local = metro_citywide(code, year)
+            local = (metro_citywide(code, year)
+                     or _npe_citywide_for(code, year))
             natl = _npe_citywide_for(code, prev)
             if not local or not natl:
                 continue
             arr = {p: s for p, s in local.items()
                    if p != "IND" and s > 0 and natl.get(p, 0.0) <= 0}
+            # ⚠️ THIS FLOOR BELONGS TO THE CONCENTRATION, NOT TO THE TOTAL,
+            # AND IT SELECTS ON THE DEPENDENT VARIABLE. A symmetric-Dirichlet
+            # α is not estimable below three members — that is why it is here.
+            # `_arrival_total_prior` needs only the total and inherits it
+            # anyway. The three rows it excludes are MAN 2006 (0.330%), BUF
+            # 2006 (0.493%) and MAN 2011 (0.284%) — **the three smallest
+            # arrival totals in the record, two of them in the cycle the
+            # widening adds**. Measured effect on the budget (2026-09-04):
+            #
+            #     2011  1.8769% -> 1.5512% without the floor   (-17.4%)
+            #     2016  1.3977% -> 1.2048%                     (-13.8%)
+            #     2021  1.6433% -> 1.4840%                      (-9.7%)
+            #     2026  2.1867% -> 2.0163%                      (-7.8%)
+            #
+            # JUDGEMENT-CALLS §L7. Left in place deliberately — removing it is
+            # forecast-moving and belongs in a window with a pre-registration,
+            # not in a commit that is fixing something else.
             if len(arr) < 3:
                 continue
             total = float(sum(arr.values()))
@@ -2556,7 +3489,39 @@ def arrival_group_record(before_year: str | None = None
             var = float(shares.var())
             mean = 1.0 / n
             alpha = max((mean * (1 - mean) / max(var, 1e-9)) - 1.0, 0.01)
-            out.append((total, float(alpha)))
+            # ⛔ TWO TOTALS, BECAUSE THERE ARE TWO CONSUMERS AND THEY SPEND
+            # OVER DIFFERENT POPULATIONS.
+            #
+            # A party at its FIRST local election has no preceding national
+            # vote whether it is a splinter or an entrant, so EFF, ActionSA,
+            # COPE, GOOD, MK and the NFP are all in `arr`. But `arrival_rules`
+            # spends the group budget only over `entrant_sizes`, which excludes
+            # every `as_split` party — so the budget was measured over a
+            # population ~1.3x wider than the one it is spent on. Johannesburg
+            # 2021 is 19.99% as a group and 1.87% excluding splits, a factor of
+            # 10.7, and the whole of that gap is ActionSA (§1.179).
+            #
+            # `arrival_group_spec` still consumes the ALL-arrivals total and
+            # concentration, because it splits between every named arrival.
+            # `_arrival_total_prior` takes the entrants-only one. One record,
+            # two totals, each spent where it was measured.
+            # ⚠️ "ENTRANTS ONLY" IS ONLY DEFINED WHERE `SPLITS` IS POPULATED,
+            # WHICH IS 2011 ONWARD. `SPLITS` names six modern parties (COPE,
+            # EFF, NFP, GOOD, MK, ASA) and no pre-2011 one, so **all seven rows
+            # the 2000/2006 widening adds have `entrants == total` exactly**
+            # (verified 2026-09-04). At target 2011 that is every row, so the
+            # population fix is a NO-OP on the fold it was measured to justify;
+            # at 2016 it is 7 of 13 rows carrying 1.0106pp of the 1.3977pp
+            # budget — 72% of the fold — structurally all-arrivals.
+            #
+            # The 2006 lists contain what look like genuine splits sized as
+            # entrants: NATIONAL_DEMOCRATIC_CONVENTION (Jiyane out of the IFP,
+            # 2005 — the same shape as the NFP, which IS in SPLITS) in five of
+            # the seven, UNITED_INDEPENDENT_FRONT in six. So this corrects a
+            # ~1.3x population error from 2011 on and leaves an unbounded one
+            # before it. Do not read the label as a guarantee.
+            entrants = float(sum(v for q, v in arr.items() if q not in SPLITS))
+            out.append((total, float(alpha), entrants))
     return out
 
 
@@ -2589,8 +3554,12 @@ def arrival_group_spec(before_year: str | None, reach: dict[str, float],
     record = arrival_group_record(before_year)
     if not record or not parties:
         return None
-    totals = np.array([t for t, _ in record])
-    alphas = np.array([a for _, a in record])
+    # ALL-arrivals totals here, deliberately: this splits between every named
+    # arrival, splinters included, so it spends over the population it was
+    # measured on. `_arrival_total_prior` takes the entrants-only third element
+    # because IT spends over entrants only. See `arrival_group_record`.
+    totals = np.array([t for t, _, _ in record])
+    alphas = np.array([a for _, a, _ in record])
     logs = np.log(totals)
     weights = {p: max(float(reach.get(p, 0.0)), 0.02) for p in parties}
     return {
@@ -2670,14 +3639,56 @@ def _arrival_total_prior(before_year: str | int) -> float | None:
 
     Read off ``arrival_group_record`` for city-years strictly before the target,
     so it is a forecast input rather than hindsight. The median rather than the
-    mean: the distribution runs 0.31%-4.74% over sixteen metro-years and the
-    mean is pulled by Cape Town 2021, which is one observation.
+    mean: the distribution is violently right-skewed and the mean is pulled by
+    Johannesburg 2021, which is one observation. The docstring used to say
+    "0.31%-4.74% over sixteen metro-years", which is 2016's range over eight.
+
+    ⛔ **BOTH HALVES WERE WRONG AND THEY VERY NEARLY CANCELLED.** Until
+    2026-09-03 this returned the MEDIAN of the ALL-ARRIVALS total. The budget is
+    spent only over `entrant_sizes`, which excludes every `as_split` party, so
+    the population was ~1.3x too broad; and it was a median where the consumer
+    is an expectation — the correction the entrant branch made on 2026-08-17,
+    undone here in aggregate. On the 22-row record: 2.1701% used against
+    2.2853% correct. **Repairing either half alone moved it the wrong way** —
+    entrants-only median −23%, all-arrivals mean +97% — so they shipped
+    together (§1.179, §1.180, JUDGEMENT-CALLS §L6).
+
+    On the widened 29-row record, re-derived 2026-09-03:
+
+        all arrivals   median 1.7458%   mean 3.6932%
+        entrants only  median 1.5703%   mean 2.1867%   <- the mean is USED
+
+    The values now passed:
+
+        2011  n= 7  1.8769%      2016  n=13  1.3977%
+        2021  n=21  1.6433%      2026  n=29  2.1867%
+
+    ⛔ **THE OUT-OF-SAMPLE TABLE THAT USED TO SIT HERE RANKED BY MAGNITUDE,
+    NOT BY SKILL, AND IT IS NOT EVIDENCE FOR THIS CHOICE.** Every estimator
+    under-predicts at **8 of 8** cells, so Σ|err| collapses to
+    `5.6555% − Σ(predictions)` and the biggest number wins by construction:
+    pooled mean 2.6146%, pooled median 3.0777%, recency 2.6893%, last-cycle
+    2.7746% — and **a CONSTANT 2.8%, with no parameters and no record at all,
+    scores 1.5707%**, forty percent better than the shipped estimator. Verified
+    2026-09-04.
+
+    **The mean is used anyway, and the reason is the consumer, not the score.**
+    IPF pins each party's mean to its centre, so whatever goes into a centre is
+    an expectation by construction (the 2026-08-17 correction). That argument is
+    independent, sound and sufficient on its own. Recency is declined on
+    parsimony — a half-life is a parameter a panel with ~3 effective clusters
+    cannot support.
+
+    ⚠️ **The 8-of-8 under-prediction is the real finding and it is unfixed.**
+    The entrants-only series runs 0.84 → 2.04 → 3.61% over 2011/2016/2021 and
+    no backward-looking statistic tracks it. **The 2026 arrival mass is more
+    likely low than high**, and that belongs in the copy wherever it is quoted.
     """
     rec = arrival_group_record(before_year=str(before_year))
     if not rec:
         return None
     import numpy as _np
-    return float(_np.median([s for s, _ in rec]))
+    return float(_np.mean([e for _, _, e in rec]))
 
 
 def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
@@ -2803,7 +3814,10 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         if not record:
             return None, None, None, "none"
         return _band_from(record, label, pooled_splits)
-    default_support = float(np.median(all_shares)) if all_shares else 0.0
+    # (`default_support`, the median over the whole un-reach-matched record,
+    # was deleted 2026-09-03: it was the `weights` branch's fallback and read
+    # 4.8x low against the reach-matched `base` the entrant branch uses. One
+    # definition of "no information", not two.)
     index = {p: i for i, p in enumerate(universe)}
     n_pools = len(categories)
 
@@ -2819,6 +3833,7 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         parent = parent or ""
         weights = declared.get("weights")
         reach = (contestation or {}).get(party)
+        judged = False   # set by the entrant branch; see the group rescale
 
         # ONE decision about which machinery sizes this party, used by the
         # branch AND by the band below. They used to be decided separately —
@@ -2830,12 +3845,71 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         f_lo, f_mid, f_hi, f_kind = band_for(party)
         as_split = bool(parent and parent in index and f_mid is not None)
 
+        # ⛔ THE BAND IS A PROPERTY OF THE ARRIVAL RECORD, NOT OF OUR OWN CENTRE.
+        #
+        # These three were computed inside the entrant branch and read at the
+        # bottom by every branch that is not a split. Two consequences, both
+        # measured on 2026-09-03 and both on the path this seam exists to open:
+        #
+        #   * a party declared with `weights` — *"declare which pools it pulls
+        #     from and what support you expect"*, which is what the note four
+        #     branches down actually instructs a reader to do — raised
+        #     `UnboundLocalError: lo_e` when it was the only newcomer;
+        #   * and when it was not, it silently inherited the PREVIOUS party's
+        #     quantiles rescaled by its own centre. A declared 12% picked up
+        #     band [0.029, 1.0, 0.358] — a 95th percentile at 36% of the mean,
+        #     which is not a band, and nothing would have said so.
+        #
+        # Identical in kind to the `(lo_e, mid_e, hi_e)` fallback repaired
+        # above: three variables defined later, per party, inside the loop.
+        # Fixing it there and leaving it here is why it is hoisted now.
+        #
+        # Dividing by `base` rather than by the adjusted `size` is the other
+        # half. The quantiles describe how big arrivals turn out to be; the
+        # declared centre says where we think THIS one sits. Dividing the first
+        # by the second made the band narrow in proportion to the judgement —
+        # ActionSA's x36 would have produced a band running to 7.7% of its own
+        # centre, a forecast made 36x sharper by the act of admitting we are
+        # guessing. The relative width belongs to the record and stays put.
+        #
+        # Number-neutral on the tree as it stands: no judgement file declares
+        # `weights`, `support` or `overperform`, so `base` == the old `size`
+        # and every emitted band is unchanged. Verified against all 26 specs.
+        peers = comparators(reach)
+        base = max(float(np.mean(peers)), 1e-9)
+        lo_e = float(np.quantile(peers, ARRIVAL_BAND_LO))
+        hi_e = float(np.quantile(peers, ARRIVAL_BAND_HI))
+
         if weights:
             vec = np.array([float(w) for w in weights], dtype=float)
             vec = vec / vec.sum() if vec.sum() > 0 else np.full(n_pools, 1.0 / n_pools)
-            size = float(declared.get("support", default_support))
+            # ⛔ DECLARING POOLS IS NOT DECLARING A SIZE, AND THE FALLBACK
+            # WAS THE WRONG ONE. `default_support` is the median over the
+            # WHOLE, un-reach-matched arrival record — the estimator the
+            # entrant branch removed on 2026-08-17 for under-forecasting every
+            # arrival by a factor of four. On the live Johannesburg 2026 record
+            # it reads 0.0607% against `base`'s 0.2901% for a full-reach party,
+            # 4.8x low, so the two branches held different beliefs about what
+            # "no information" means. They now share `base`.
+            stated = declared.get("support")
+            judged = stated is not None
+            size = float(stated) if judged else base
             capture = _capture_from_share(vec, size, pool_size)
-            why = "pools and support declared in judgements/"
+            short = capture_shortfall(vec, size, pool_size)
+            why = ((f"pools and support DECLARED in judgements/: {size:.2%} of "
+                    f"the city, split by the declared weights"
+                    if judged else
+                    f"POOLS declared in judgements/, size NOT declared: "
+                    f"{size:.2%} from the {len(peers)} comparable arrivals on "
+                    f"record. Set `support` to state it")
+                   + f". Band {lo_e / base:.2f}-{hi_e / base:.2f}x that centre "
+                   + "— the declaration sets the level, the record sets the "
+                     "width."
+                   + (f" ⚠️ {short:.0%} of the declared share DID NOT FIT: the "
+                      f"{MAX_POOL_CAPTURE:.0%} per-pool cap binds on this "
+                      f"vector, so the party is seeded at "
+                      f"{size * (1 - short):.2%}, not {size:.2%}. Spread the "
+                      f"weights or lower `support`." if short > 1e-6 else ""))
         elif as_split:
             # The parent's own rates ARE its pool weights. Capturing f of each
             # is what "inherits the parent's split" means, and the pool
@@ -2904,7 +3978,6 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # comparators is raised by the judgement layer below — which is
             # where "this one is led by a former mayor" belongs, because
             # nothing in a result file says it.
-            peers = comparators(reach)
             # THE MEAN, NOT THE MEDIAN, AND THE REASON IS WHAT CONSUMES IT.
             #
             # This was `np.median(peers)` until 2026-08-17 and it under-forecast
@@ -2933,29 +4006,70 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # already made twice: flooring the Dirichlet MEAN rather than its
             # concentration, and reporting the coherent seat vector rather than
             # marginal medians. Third instance, same principle.
-            size = float(np.mean(peers))
-            lo_e = float(np.quantile(peers, ARRIVAL_BAND_LO))
-            hi_e = float(np.quantile(peers, ARRIVAL_BAND_HI))
+            size = base
             # A judgement may say this one is unlike its comparators. Mashaba
-            # had been mayor of this city and was widely liked; nothing
-            # measurable said so, and doubling the default would have put
-            # ActionSA at 18.4% against an actual 18.12%.
-            size *= float(declared.get("overperform", 1.0))
-            capture = _capture_from_share(vec, size, pool_size)
+            # had been mayor of this city and was widely liked, and nothing
+            # measurable said so.
+            #
+            # ⚠️ The figure this comment used to quote — *"doubling the default
+            # would have put ActionSA at 18.4% against an actual 18.12%"* — was
+            # true when written and stopped being true the moment the group
+            # rescale landed below, which renormalised any judgement straight
+            # back out. Sizing ActionSA correctly needs `support = 0.18`, and
+            # that only reaches the spec because a judged size is now held out
+            # of the group budget. §1.178.
+            # A judgement may state the level outright, or scale the default.
+            # `support` was read ONLY in the `weights` branch above, so an
+            # owner who knew the size but not the pools — the ordinary case
+            # for a party announced without a ward list — had their number
+            # silently discarded and got the comparator mean instead.
+            stated = declared.get("support")
+            if stated is not None:
+                size = float(stated)
             mult = float(declared.get("overperform", 1.0))
-            why = (f"entrant from nothing: even share of every pool. Sized at "
-                   f"the EXPECTED result for the {len(peers)} arrivals that "
-                   f"contested about as much of a city ({reach_used:.0%} of "
-                   f"wards): mean {size:.2%}, median {np.median(peers):.2%}, "
-                   f"band {lo_e:.2%}-{hi_e:.2%}"
+            size *= mult
+            judged = stated is not None or mult != 1.0
+            capture = _capture_from_share(vec, size, pool_size)
+            why = (f"entrant from nothing: even share of every pool. "
+                   + (f"Sized at a DECLARED {float(stated):.2%} of the city"
+                      if stated is not None else
+                      f"Sized at the EXPECTED result for the {len(peers)} "
+                      f"arrivals that contested about as much of a city "
+                      f"({reach_used:.0%} of wards): mean {base:.2%}, median "
+                      f"{np.median(peers):.2%}")
                    + (f" after a x{mult:g} judgement" if mult != 1.0 else "")
-                   + ". THE EVEN SPREAD IS A PLACEHOLDER: declare which pools "
-                     "it pulls from and what support you expect.")
-        centre = max(size, 1e-9) if not as_split else 1.0
+                   + f". Band {lo_e:.2%}-{hi_e:.2%} on the record, carried "
+                   + "across as a RELATIVE width. THE EVEN SPREAD IS A "
+                     "PLACEHOLDER: declare which pools it pulls from and what "
+                     "support you expect.")
         rules[party] = {"capture": capture,
                         "band": [f_lo / f_mid, 1.0, f_hi / f_mid] if as_split
-                                else [lo_e / centre, 1.0, hi_e / centre]}
-        if not as_split and not weights:
+                                else [lo_e / base, 1.0, hi_e / base]}
+        # ⛔ A JUDGED SIZE IS OUTSIDE THE GROUP BUDGET, OR IT IS NOT A SIZE.
+        #
+        # The rescale below holds the entrant GROUP to the arrival-total record.
+        # That record is a prior over arrivals we know NOTHING about; a party
+        # somebody has named and sized is not one of them. Leaving a declared
+        # party in the budget renormalises the declaration away — measured
+        # 2026-09-03 on a synthetic 30-entrant city, a declared 12.00% came out
+        # at **0.3687%**, a factor of 33, while the note announced "group
+        # rescaled x0.03". `support` had just been made readable and was still
+        # doing nothing, and `overperform` had been in this position all along:
+        # the comment above claiming a x2 judgement would have put ActionSA at
+        # 18.4% has been false since the group rescale landed.
+        #
+        # It is not SUBTRACTED from the budget either. A cycle containing a
+        # 12% arrival is not a cycle the 1.75% record describes, and netting it
+        # off leaves the other twenty-nine entrants sharing a negative
+        # remainder. The declared party sits outside; the undeclared ones keep
+        # the record. JUDGEMENT-CALLS §L2.
+        #
+        # ⚠️ THE TEST IS `judged`, NOT `weights`. It was `not weights` for one
+        # commit, which exempted a party whose POOLS were declared and whose
+        # SIZE was not — so a `weights`-only party escaped the budget carrying
+        # a number nobody had stated. The exemption is for a party somebody has
+        # named AND SIZED; declaring a pool vector is neither.
+        if not as_split and not judged:
             entrant_sizes[party] = size
         notes[party] = why
 
@@ -2964,8 +4078,9 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
     #
     # Seeding each entrant at the reach-matched MEAN is right per party and
     # wrong per city, because a city fields twenty to forty of them: 30 x 0.34%
-    # is a 10.2% arrival total against a record whose median is 1.64% and whose
-    # maximum over sixteen metro-years is 4.74%. Measured, that over-allocation
+    # is a 10.2% arrival total against a pre-2021 record (n=14) whose median is
+    # 1.6155% and whose maximum is 5.61% -- NOT 4.74%, which is 2016's maximum
+    # over eight. Measured, that over-allocation
     # showed up exactly where it was put -- ranks 13+ went from -4.6pp to
     # +19.4pp and the seat error from 316 to 322, while ranks 4-12 did not move.
     # Seeding at the MEDIAN gets the total right by luck (30 x 0.08% = 1.6%) and
@@ -2999,6 +4114,12 @@ def _reach_of(contestation) -> float:
     return 1.0
 
 
+# ⚖️ The most of a pool one party may be seeded to take. A bare 0.9 literal
+# until 2026-09-03, in no register entry, and it binds SILENTLY — see
+# `capture_shortfall`. JUDGEMENT-CALLS §L5.
+MAX_POOL_CAPTURE = 0.9
+
+
 def _capture_from_share(weights: np.ndarray, share: float,
                         pool_size: np.ndarray) -> dict:
     """Turn "x% of the city, spread across pools like this" into a rate per pool.
@@ -3017,8 +4138,30 @@ def _capture_from_share(weights: np.ndarray, share: float,
     out = {}
     for g, w in enumerate(weights):
         if w > 0 and pool_size[g] > 0:
-            out[g] = float(min(share * w * electorate / pool_size[g], 0.9))
+            out[g] = float(min(share * w * electorate / pool_size[g],
+                               MAX_POOL_CAPTURE))
     return out
+
+
+def capture_shortfall(weights: "np.ndarray", share: float,
+                      pool_size: "np.ndarray") -> float:
+    """How much of ``share`` the ``MAX_POOL_CAPTURE`` clip silently removed.
+
+    ⚠️ THE CLIP IS INVISIBLE AND THE NOTE BESIDE IT STILL SAYS "DECLARED".
+    Measured 2026-09-03 on Johannesburg-like pool sizes: a flat declaration of
+    18.12% emerges at 16.44%, 25% at 20.15%, and 6% concentrated entirely in
+    the Indian/Asian pool at **2.85% — 53% short**. Second-order at the
+    ActionSA level and severe for a CONCENTRATED declaration, which is exactly
+    what `weights` exists to express.
+
+    Returns the fraction of the requested share that did not survive, so the
+    caller can say so rather than reporting a number it did not deliver.
+    """
+    cap = _capture_from_share(weights, share, pool_size)
+    if not cap or share <= 0:
+        return 0.0
+    got = sum(r * pool_size[g] for g, r in cap.items()) / pool_size.sum()
+    return max(0.0, 1.0 - got / share)
 
 
 
@@ -3027,12 +4170,191 @@ def lineage_path(city: cityconfig.City, target: cityconfig.Target) -> Path:
     return Path("judgements") / f"{city.slug}-{target.year}.toml"
 
 
+# Every key the `[roster]` table may carry. Closed for the same reason
+# `PARTY_KEYS` is closed, and the failure here is worse: an unrecognised key
+# does not mis-size one party, it discards the whole nomination list and falls
+# through to a PROJECTED ballot printing only its routine message.
+# ⚖️ The preceding-NATIONAL share above which a party with no declared lineage
+# is flagged in the emitted spec as a possible undeclared split. JUDGEMENT-CALLS
+# §L8. It is a REPORT, not a behaviour: nothing downstream reads it, and the
+# party is still sized as an entrant exactly as before.
+UNCLASSIFIED_FLOOR = 0.005
+
+# ⚖️ The share of the fitting year's vote a `complete = true` roster may delete
+# without an explicit acknowledgement. JUDGEMENT-CALLS §L4.
+ROSTER_DROP_CEILING = 0.015
+
+ROSTER_KEYS = {
+    "parties":      "the names on the ballot",
+    "complete":     "true only when this is the WHOLE ballot; licenses deletion",
+    "reach":        "per-party fraction of wards contested, overriding the carry-forward",
+    "wards":        "per-party ward lists, for full fidelity once lists land",
+    "confirm_drop": "acknowledges a `complete` deletion above ROSTER_DROP_CEILING",
+}
+
+# Party codes the repository already knows. A declared name that resolves
+# outside this set is either a genuine entrant — which must carry its own
+# `[party.X]` table — or a typo. The check lives in `resolve_roster`,
+# which has the city's composition and baseline; this set is only one of
+# the four things it counts as known.
+KNOWN_PARTY_CODES = (set(P.PARTIES) | set(P.ALIASES.values())
+                     | set(P.MINOR_ALIASES.values()) | {"IND", "ENTRANT"})
+
+
+# The only top-level tables a judgement file may carry. `[rostr]` was the last
+# silent failure left in this file: `raw.get("roster")` returned None, the run
+# fell through to a PROJECTED ballot, and the only sign was the routine "no
+# roster for 2026" message it prints every other day of the year. One character,
+# and the whole nomination list is discarded on the one day it matters.
+LINEAGE_TABLES = {"party", "roster"}
+
+
+def _lineage_raw(path: Path) -> dict:
+    """Parse a judgement file, refusing a top-level table nothing reads."""
+    raw = tomllib.loads(path.read_text())
+    unknown = sorted(set(raw) - LINEAGE_TABLES)
+    if unknown:
+        raise SystemExit(
+            f"{path} carries top-level {unknown}; only "
+            f"{sorted(LINEAGE_TABLES)} are read.\n\n"
+            f"`[rostr]` parses cleanly, reads as nothing, and drops the run "
+            f"through to a PROJECTED ballot announcing only that no roster was "
+            f"declared. Fix the spelling.")
+    return raw
+
+
+def declared_roster(city: cityconfig.City, target: cityconfig.Target) -> dict:
+    """A nomination list declared by hand, from `[roster]` in the judgement file.
+
+    Read from the same `judgements/<slug>-<year>.toml` that already carries each
+    party's `parent`, `support` and pool `weights`, so a published list is
+    **a config edit rather than a code change** on 16 September 2026 — which is
+    the whole point of this seam. `load_lineage` has always ignored unknown
+    top-level tables, so the file can be prepared and reviewed before this
+    reader existed.
+
+    Returns ``{"parties": [...], "complete": bool, "reach": {party: fraction},
+    "wards": {party: [ward, ...]}}`` — empty dict when no `[roster]` is
+    declared.
+
+    ⛔ ``complete`` DEFAULTS TO FALSE, AND THAT IS THE WHOLE SAFETY PROPERTY.
+    A declared roster is used to ADD parties always, and is allowed to REMOVE
+    them only when it says it is the entire ballot. Absence from a list somebody
+    is halfway through typing is not evidence that a party is not standing, and
+    the branch that drops parties from the pools deletes 2.4-2.9% of a city's
+    vote across 16-20 parties when it fires wrongly (measured, §1.175). On the
+    day, under time pressure, a partial paste must fail safe.
+    """
+    path = lineage_path(city, target)
+    if not path.exists():
+        return {}
+    raw = _lineage_raw(path)
+    block = raw.get("roster")
+    if not block:
+        return {}
+    unknown = sorted(set(block) - set(ROSTER_KEYS))
+    if unknown:
+        known = "\n".join(f"    {k:14s} {v}" for k, v in ROSTER_KEYS.items())
+        raise SystemExit(
+            f"[roster] in {path} carries {unknown}, which nothing reads.\n\n"
+            f"A key this table does not recognise is ignored in silence, so "
+            f"`partys = [...]` discards the entire nomination list and the run "
+            f"falls through to a PROJECTED ballot with only a routine message "
+            f"to say so. The keys are:\n{known}\n\nFix the spelling.")
+
+    parties = [P.canonical(x) for x in (block.get("parties") or [])]
+    wards = {P.canonical(k): list(v)
+             for k, v in (block.get("wards") or {}).items()}
+    reach = {P.canonical(k): float(v)
+             for k, v in (block.get("reach") or {}).items()}
+    # ⛔ A DECLARED `wards` LIST WITH NO READER IS THE `baseline_share` DEFECT
+    # ONE TABLE OVER. It was parsed, returned, and consumed by nothing except
+    # deriving `parties` — so an owner who pasted per-ward nominations and no
+    # `[roster.reach]` got `reach = None` for every genuine entrant (it has no
+    # prior ward ballot to carry forward), and `comparators(None)` then falls
+    # back to the WHOLE un-reach-matched arrival record: the estimator this
+    # file removed elsewhere for exactly that reason.
+    #
+    # Derived the same way `_ward_reach` derives it — a party's ward count over
+    # the union of every ward the declaration mentions — so the two definitions
+    # of "reach" cannot drift. An explicit `[roster.reach]` still wins.
+    if wards:
+        seen = {w for ws in wards.values() for w in ws}
+        if seen:
+            for q, ws in wards.items():
+                reach.setdefault(q, len(set(ws)) / len(seen))
+    if not parties and wards:
+        parties = sorted(wards)
+
+    # (The NAME check lives in `resolve_roster`, not here. It needs the
+    # city's own composition and baseline to know what "known" means, and
+    # this function has neither. See there.)
+
+    # ⛔ THE TWO SAFETY BOOLEANS ARE TYPE-CHECKED, AND THEY WERE NOT.
+    # `bool("false")` is True. Every other key in this table refuses a wrong
+    # type loudly; the two whose entire job is safety accepted any truthy
+    # string, so one pair of quotes turned the deletion on and a second pair
+    # disabled the ceiling that would have caught it — at 22:00 on the one
+    # night this file is ever edited.
+    flags = {}
+    for key in ("complete", "confirm_drop"):
+        raw_flag = block.get(key, False)
+        if not isinstance(raw_flag, bool):
+            raise SystemExit(
+                f"[roster] {key} in {path} is {raw_flag!r}, which is "
+                f"{type(raw_flag).__name__} and not a boolean.\n\n"
+                f"Write `{key} = true` or `{key} = false` without quotes. "
+                f"`\"false\"` is a non-empty string and would read as TRUE — "
+                f"and this flag decides whether parties are deleted from the "
+                f"pools.")
+        flags[key] = raw_flag
+
+    return {"parties": parties, "complete": flags["complete"],
+            "reach": reach, "wards": wards,
+            "confirm_drop": flags["confirm_drop"]}
+
+
+# Every key a `[party.X]` table may carry, and what reads it.
+#
+# ⛔ A MISSPELLED KEY IS SILENTLY IGNORED, AND THIS FILE IS EDITED UNDER TIME
+# PRESSURE ON THE DAY A NOMINATION LIST LANDS. `support = 0.12` typed as
+# `suport` costs nothing to type and the emit prints a party at the comparator
+# mean with no complaint. So the set is closed and an unknown key refuses.
+#
+# `baseline_share` is INFORMATIONAL and nothing reads it — it records what the
+# party polled at the preceding national election so a human sizing it has the
+# number in front of them. It is NOT the strength knob; `support` is. All three
+# docstrings said "parent, `baseline_share` and pool `weights`" and every one
+# of the 408 party tables in the tree carries `baseline_share` and nothing
+# else, so the documented way to size a declared party was a key with no
+# reader. That is the trap this set closes.
+PARTY_KEYS = {
+    "parent":         "which sizing machinery: a named parent makes it a SPLIT",
+    "weights":        "its pool vector, in `categories` order, normalised",
+    "support":        "its expected share OF THE CITY — the strength knob",
+    "overperform":    "a multiplier on the default strength, when you prefer "
+                      "to scale the record rather than replace it",
+    "baseline_share": "INFORMATIONAL: what it polled at the preceding national "
+                      "election. Nothing reads this.",
+}
+
+
 def load_lineage(city: cityconfig.City, target: cityconfig.Target) -> dict[str, dict]:
     path = lineage_path(city, target)
     if not path.exists():
         return {}
-    raw = tomllib.loads(path.read_text())
-    return {k: v for k, v in (raw.get("party") or {}).items()}
+    raw = _lineage_raw(path)
+    table = dict((raw.get("party") or {}).items())
+    for party, body in table.items():
+        unknown = sorted(set(body) - set(PARTY_KEYS))
+        if unknown:
+            known = "\n".join(f"    {k:15s} {v}" for k, v in PARTY_KEYS.items())
+            raise SystemExit(
+                f"[party.{party}] in {path} carries {unknown}, which nothing "
+                f"reads.\n\nA key this file does not recognise is ignored in "
+                f"silence, so a typo costs a forecast rather than a run. The "
+                f"keys are:\n{known}\n\nDelete it, or fix the spelling.")
+    return table
 
 
 def write_lineage_template(city: cityconfig.City, target: cityconfig.Target,
@@ -3080,7 +4402,10 @@ def write_lineage_template(city: cityconfig.City, target: cityconfig.Target,
         "#      which is almost certainly wrong and is meant to look wrong.",
         "#",
         "#   2. HOW MUCH SUPPORT DO YOU EXPECT?",
-        "#      `support` is its share of the city. The default is what",
+        "#      `support` is its share of the city, and it is read whether or",
+        "#      not you also set `weights` — until 2026-09-03 it was read only",
+        "#      alongside them, so a party announced without a ward list had",
+        "#      its declared size silently discarded. The default is what",
         "#      arrivals have historically won per ward contested, times the",
         "#      wards this one is contesting — so it rises with reach and falls",
         "#      without it. Override when you know something the record does",
@@ -3095,13 +4420,326 @@ def write_lineage_template(city: cityconfig.City, target: cityconfig.Target,
     for party, share in sorted(newcomers.items(), key=lambda kv: -kv[1]):
         lines += [
             f"[party.{party}]",
+            f"# baseline_share is INFORMATIONAL — what it polled at "
+            f"{target.previous_npe}. Nothing reads it.",
             f"baseline_share = {share:.4f}",
             'parent = ""      # e.g. "ANC" to inherit the ANC\'s pool vector',
             f'# weights = [{", ".join("0.0" for _ in pools_named)}]',
+            "# support = 0.00   # its expected share OF THE CITY. THIS is the",
+            "#                  # strength knob; `baseline_share` above is not.",
             "",
         ]
     path.write_text("\n".join(lines))
     return path
+
+
+def city_mix_for(ctx: dict, n: int) -> "np.ndarray":
+    """The city's own pool composition — where this city's votes actually are.
+
+    ONE definition, used by the splinter blend and by an unmeasured entrant.
+    It was written inline for the splinter and duplicated as `np.full(n, 1/n)`
+    for the entrant, which is how the two came to disagree about what "we have
+    no information" means. Falls back to a uniform vector only when the city has
+    no measured pool votes at all, where there is genuinely nothing else to say.
+    """
+    pv = ctx.get("pool_votes")
+    if pv is None:
+        return np.full(n, 1.0 / n)
+    arr = np.asarray(pv, dtype=float)
+    return (arr / arr.sum()) if arr.sum() > 0 else np.full(n, 1.0 / n)
+
+
+def resolve_roster(city: cityconfig.City, target: cityconfig.Target,
+                   year: str, composition: dict, baseline: dict[str, float]
+                   ) -> tuple[set[str], str, set[str], dict[str, float]]:
+    """Who is on the ballot at ``target``, and who may be deleted from the pools.
+
+    ONE definition, called by :func:`emit_pools`. It lives out here rather than
+    inline because the three states below form a truth table, and a truth table
+    that can only be reached through a 97-second city fit does not get tested —
+    which is exactly how the first version of this shipped with the projected
+    branch running in the declared case, silently overwriting a hand-declared
+    nomination list two lines after reading it.
+
+    Returns ``(roster, roster_source, deliberate, prior_local)``.
+
+    * ``roster`` — every party on the ballot.
+    * ``roster_source`` — ``published`` / ``declared`` / ``projected``.
+    * ``deliberate`` — the subset of ``composition`` the caller may DELETE.
+      Never simply "everyone absent from the roster"; see below.
+    * ``prior_local`` — the fitting year's citywide shares, returned because the
+      caller quotes them when it reports the drop and re-reading the file to
+      get them is how the two floors stopped being measured on comparable
+      quantities.
+    """
+    # ⛔ A ROSTER HAS THREE STATES, NOT TWO, AND THEY LICENSE DIFFERENT THINGS.
+    #
+    # `roster_is_real` was a boolean, and it conflated "we know the ballot" with
+    # "we are allowed to delete parties from the pools". Those are not the same
+    # question, and the second one deletes 2.4-2.9% of a city's vote across
+    # 16-20 parties when it fires wrongly (§1.175).
+    #
+    #   published  the target's own result file. Absence is DELIBERATE: the
+    #              party did not stand. Dropping is correct.
+    #   declared   a hand-written list in the judgement file. Absence is
+    #              AMBIGUOUS — it may be a partial paste on a deadline — so it
+    #              may only drop when the list says `complete = true`.
+    #   projected  our guess. Absence is mostly IGNORANCE, and dropping on
+    #              ignorance is how a genuine entrant gets deleted. Only the
+    #              parties a MEASURED floor deliberately excluded may be dropped.
+    #
+    # The rule the three share: **drop what was deliberately excluded, never
+    # what was merely absent.**
+    # Hoisted: the drop's message quotes it in all three states, and it was
+    # previously defined only inside the projected branch.
+    prior_local = _npe_citywide_for(city.code, year)
+
+    # ⛔ THE PROJECTED BALLOT IS COMPUTED ONCE AND USED TWICE, FLOORS AND ALL.
+    # The projected branch builds it, and a declared-but-INCOMPLETE roster
+    # unions with it. Building it in only one place meant the union re-admitted
+    # the 13 parties §K1 and §K2 had just excluded on measured evidence —
+    # caught 2026-09-04 by `no_vector` going 8 -> 21 on the real 2026 inputs.
+    # The floors' justification (§K1: 158 of 226 for 0.10pp; §K2: 112 of 189
+    # for 0.038pp and zero seats) applies whoever is asking.
+    _thin = {p for p, v in baseline.items()
+             if p not in composition and v < NATIONAL_ONLY_FLOOR}
+    _local_thin = {p for p, v in (prior_local or {}).items()
+                   if p not in baseline and v < PRIOR_LOCAL_FLOOR}
+    _projected = ((set(baseline) | set(composition))
+                  - _thin - _local_thin - {"IND", "ENTRANT"})
+
+    roster = contesting_parties(city, target.year)
+    roster_source = "published"
+    deliberate: set[str] = set()
+    if roster:
+        deliberate = {p for p in composition
+                      if p not in roster and p not in ("IND", "ENTRANT")}
+    else:
+        declared = declared_roster(city, target)
+        if declared.get("parties"):
+            roster_source = "declared"
+            # ⛔ "ADDS ALWAYS, REMOVES NONE" MUST MEAN UNION. IT MEANT REPLACE.
+            #
+            # `roster = set(declared["parties"])` looked right and inverted the
+            # only safety property this branch has. `no_vector` derives from
+            # `roster`, so a BASELINE party omitted from a partial paste is not
+            # in `roster`, is therefore not in `no_vector`, and never gets a
+            # pool vector at all — it falls to the residual bucket and is drawn
+            # against a range meant for minor parties.
+            #
+            # Measured on the real 2026 inputs: pasting the top six and
+            # stopping cost **8 parties 15.4826% of the 2024 baseline their
+            # pool vector, MK alone at 12.22%** — while the run printed "ADDS 6
+            # parties and removes none". The half-typed list is exactly the
+            # case `complete` defaults to False for.
+            #
+            # So an INCOMPLETE roster unions with what a projection would have
+            # produced. A COMPLETE one replaces, which is what declaring the
+            # whole ballot means.
+            declared_set = set(declared["parties"])
+            # ⛔ A NAME THAT RESOLVES TO NOTHING BECOMES A PARTY OF ITS OWN —
+            # AND THE FIRST VERSION OF THIS CHECK BLOCKED THE REAL BALLOT.
+            #
+            # `parties.canonical` slugs what it does not recognise, so a
+            # mis-transcription becomes a phantom, and under `complete = true`
+            # it deletes the real party too. That is worth refusing.
+            #
+            # But "known" was first defined as the hand-maintained alias tables
+            # alone, and **rehearsing the actual 2021 Johannesburg ballot — 57
+            # parties, the realistic shape of a nomination list — REFUSED**,
+            # because the long tail of small parties that genuinely contested
+            # has canonical codes and no alias entry. A guard that fires on the
+            # correct input on the one night it runs is worse than no guard.
+            #
+            # "Known" is therefore: in the alias tables, OR carrying a prior
+            # record in this city (the fitted composition or the national
+            # baseline), OR placed by its own `[party.X]` table. Only a name
+            # with none of those three is a typo.
+            # ⚠️ AND A PARTY THAT STOOD LAST TIME IS KNOWN EVEN IF IT SCORED
+            # NOTHING. `composition` holds only parties with a fitted vector,
+            # so AFRICAN_COVENANT and SAKHISIZWE_CONVENTION — both on the real
+            # 2021 Johannesburg ballot with zero votes — were refused by the
+            # first version of this, on a rehearsal of the actual ballot. The
+            # ballot itself is the authority on who is a real party.
+            # ⚠️ CANONICALISED, because `declared_set` is. A quoted TOML key
+            # — `[party."SOME NEW PARTY"]` — would otherwise never match
+            # `SOME_NEW_PARTY`, so the run would refuse and tell the owner to
+            # do the thing they had just done.
+            placed = {P.canonical(q) for q in load_lineage(city, target)}
+            known = (KNOWN_PARTY_CODES | set(composition) | set(baseline)
+                     | set(contesting_parties(city, year)) | placed
+                     | {"IND", "ENTRANT"})
+            unplaced = sorted(declared_set - known)
+            if unplaced:
+                raise SystemExit(
+                    f"[roster] in {lineage_path(city, target)} names "
+                    f"{unplaced[:8]}"
+                    f"{' …' if len(unplaced) > 8 else ''}, which resolve to no "
+                    f"known party, carry no record in {year} or "
+                    f"{target.previous_npe}, and have no [party.X] table.\n\n"
+                    f"`parties.canonical` slugs a name it does not recognise, "
+                    f"so a mis-transcription becomes a NEW party — and under "
+                    f"`complete = true` it also deletes the real one.\n\n"
+                    f"⛔ CHECK THE SPELLING FIRST, against parties.py. A real "
+                    f"party under an unfamiliar IEC spelling is far more likely "
+                    f"than a new one, and 'fixing' it with a [party.X] table "
+                    f"turns a party that HAS a baseline into a phantom entrant "
+                    f"sized from the arrival record — while `complete = true` "
+                    f"deletes the real one. That is the ActionSA failure with "
+                    f"the sign reversed.\n\n"
+                    f"Only if it is genuinely new: give it a [party.X] table "
+                    f"saying how strong it is and which pools it draws from.")
+            if declared["complete"]:
+                roster = declared_set
+            else:
+                roster = declared_set | _projected
+            # ⛔ A DECLARED PARTY WHOSE KEY DOES NOT MATCH THE BASELINE'S IS
+            # SIZED AS AN ARRIVAL, SILENTLY.
+            #
+            # `KNOWN_PARTY_CODES` catches a name that resolves to nothing. It
+            # cannot catch one that resolves to a DIFFERENT valid key from the
+            # one the preceding national file used — canonicalisation does not
+            # span eras. Measured 2026-09-03 at Johannesburg 2000: npe1999
+            # carries `VRYHEIDSFRONT \ FREEDOM FRONT` -> VRYHEIDSFRONT_FREEDOM_
+            # FRONT while lge2000 carries `VRYHEIDSFRONT PLUS` -> VFPLUS, so
+            # **VF Plus is counted as an ARRIVAL at 0.19% against a baseline
+            # where it actually polled 0.29%.**
+            #
+            # On the record that is a rounding error. On the LIVE path it is
+            # not: a party pasted from the nomination list under a spelling the
+            # 2024 national file did not use has no baseline, so it is seeded
+            # from the arrival record instead of carrying its real share — the
+            # ActionSA failure with the sign reversed. MK's 12.22% baseline is
+            # exactly what would be lost.
+            #
+            # It REPORTS rather than refuses: a genuine entrant has no baseline
+            # by definition, and that is the case this seam exists for. What the
+            # owner needs on the day is the list, to eyeball.
+            # ⚠️ THE PREDICATE IS `newcomers`', NOT A LOOKALIKE. The sizing
+            # rule is `baseline.get(p, 0.0) <= 0.0`; this warned on
+            # `q not in baseline`, so a party PRESENT in the baseline file with
+            # zero votes was sized as an arrival in silence. Two such rows exist
+            # in lge2021_JHB (AFRICAN_COVENANT, SAKHISIZWE_CONVENTION), so the
+            # class is real in this data even though npe2024_JHB has none.
+            as_arrival = sorted(q for q in roster
+                                if q not in composition
+                                and baseline.get(q, 0.0) <= 0.0
+                                and q not in ("IND", "ENTRANT"))
+            if as_arrival:
+                print(f"  ! {len(as_arrival)} declared parties have NO "
+                      f"{target.previous_npe} baseline and no fitted vector, so "
+                      f"they are sized as ARRIVALS: {', '.join(as_arrival[:8])}"
+                      f"{', …' if len(as_arrival) > 8 else ''}. Correct for a "
+                      f"genuine entrant. For a party that already exists it "
+                      f"means the name here does not match the one in the "
+                      f"{target.previous_npe} results and its real share is "
+                      f"being thrown away — check it against parties.py.")
+            if declared["complete"]:
+                deliberate = {p for p in composition
+                              if p not in roster and p not in ("IND", "ENTRANT")}
+                # ⛔ THE DELETION RECONCILES, OR IT DOES NOT HAPPEN.
+                #
+                # A count is not a check. §1.175 measured a wrongly-fired drop
+                # at 2.4-2.9% of a city's vote across 16-20 parties, and under
+                # largest remainder ~0.4% is a seat — so the number that
+                # matters is the MASS, and it is the number the message did not
+                # print. Above the ceiling the run refuses and names what it
+                # would have deleted, because a paste that drops a fifth of the
+                # ballot is far likelier to be half a list than a real one.
+                dropped_mass = sum((prior_local or {}).get(p, 0.0)
+                                   for p in deliberate)
+                if dropped_mass > ROSTER_DROP_CEILING and not declared["confirm_drop"]:
+                    worst = sorted(deliberate,
+                                   key=lambda q: -(prior_local or {}).get(q, 0.0))
+                    named = ", ".join(
+                        f"{q} {(prior_local or {}).get(q, 0.0):.2%}" for q in worst[:8])
+                    raise SystemExit(
+                        f"the declared {target.year} roster says `complete = true` "
+                        f"and would delete {len(deliberate)} parties holding "
+                        f"{dropped_mass:.2%} of the {year} vote, above the "
+                        f"{ROSTER_DROP_CEILING:.1%} ceiling.\n\n"
+                        f"Largest first: {named}"
+                        f"{', …' if len(worst) > 8 else ''}\n\n"
+                        f"A drop this size is more often half a nomination list "
+                        f"than a real one, and it is funded out of the parties "
+                        f"ranked 4th to 12th, which the model already "
+                        f"under-predicts (§1.175). Check the list against the "
+                        f"IEC's. If it IS right, add `confirm_drop = true` to "
+                        f"[roster] in {lineage_path(city, target)}.")
+                print(f"  ! the declared {target.year} roster says it is COMPLETE, "
+                      f"so {len(deliberate)} parties holding {dropped_mass:.2%} "
+                      f"of the {year} vote are dropped from the pools"
+                      + (" (confirm_drop)" if declared["confirm_drop"] else ""))
+            else:
+                added = sorted(declared_set - _projected)
+                print(f"  ! the declared {target.year} roster does NOT say "
+                      f"`complete = true`, so it is UNIONED with the projected "
+                      f"ballot: {len(declared_set)} declared, {len(added)} of "
+                      f"them new, {len(roster)} on the ballot in total, and "
+                      f"NOTHING removed. Set `complete = true` once the list is "
+                      f"known to be the whole ballot.")
+        else:
+            roster_source = "projected"
+            # ⛔ NOT EVERY PARTY WITH A NATIONAL VOTE. Measured over 16 city-years
+            # (§1.175): candidates carrying a preceding NATIONAL vote but no
+            # preceding LOCAL record number 226, win a seat 13.3% of the time, and
+            # carry 5.12% of a city's vote — while the 189 candidates with BOTH
+            # kinds of evidence carry 89.73%. Admitting the whole national ballot
+            # buys a long tail of parties that will not stand.
+            #
+            # But the class cannot be dropped: **MK is exactly it for 2026** — a
+            # 2024 national party with no 2021 local vector — so the limit is on
+            # SIZE, not on class. At a 0.1% national floor, 158 of those 226
+            # candidates go and the cost is **0.10pp of a city's vote**; the large
+            # ones transfer nearly one-for-one (national 11.51% -> local 11.64%,
+            # 10.13% -> 10.93%), which is why cutting the tail is safe.
+            #
+            # Owner's decision, 2026-09-03. JUDGEMENT-CALLS.md §K1.
+            thin = _thin
+            # ⛔ AND THE SAME CUT ON THE OTHER SINGLE-SOURCE CLASS, which was left
+            # unfiltered in the first draft and is the better bargain of the two.
+            # A party that contested the preceding LOCAL election and polled
+            # nothing at the preceding national one stands again only 28% of the
+            # time (137 of 189 never do, three cycles). At a 0.1% floor on its
+            # prior LOCAL share this drops 112 of 189 candidates for **0.038pp of
+            # vote and ZERO seats** — against the national floor's 70% for two
+            # seats. At 0.2% it costs 5 seats, so the value is the same 0.1% and
+            # for the same reason. §K2.
+            # `prior_local` is the party's own share at the election the vectors
+            # were fitted on, read through the same PR-filtered path `baseline`
+            # uses so the two floors are measured on comparable quantities.
+            local_thin = _local_thin
+            roster = _projected
+            # ⛔ THE ONLY PARTIES A GUESS MAY DELETE ARE THE ONES IT DELIBERATELY
+            # EXCLUDED. `thin` and `local_thin` are removals made on measured
+            # evidence (§K1: 158 of 226 for 0.10pp and two seats; §K2: 112 of 189
+            # for 0.038pp and none). Everything else missing from a projected
+            # roster is ignorance, and dropping on ignorance is how a genuine
+            # entrant is deleted.
+            deliberate = {p for p in (thin | local_thin)
+                          if p in composition and p not in ("IND", "ENTRANT")}
+            if local_thin:
+                print(f"  ! {len(local_thin)} parties contested {year} locally below "
+                      f"{PRIOR_LOCAL_FLOOR:.1%} and polled nothing nationally, so they "
+                      f"are NOT assumed onto the {target.year} ballot (JUDGEMENT-CALLS "
+                      f"§K2; costs 0.038pp of vote and zero seats on the record)")
+            if thin:
+                print(f"  ! {len(thin)} parties held a {target.previous_npe} national "
+                      f"vote below {NATIONAL_ONLY_FLOOR:.1%} and no local record, so "
+                      f"they are NOT assumed onto the {target.year} ballot "
+                      f"(JUDGEMENT-CALLS §K1; costs 0.10pp of vote on the record)")
+            print(f"  ! no roster for {target.year}: it has not been held and none "
+                  f"is declared, so the ballot is PROJECTED. Parties in the "
+                  f"{target.previous_npe} baseline still get a pool vector, but NO "
+                  f"GENUINE ENTRANT CAN BE FOUND — a party contesting "
+                  f"{target.year} with no {target.previous_npe} vote is invisible "
+                  f"to a projection, and ActionSA in 2021 was exactly that "
+                  f"(18.12% of Johannesburg). To add one, name it under [roster] "
+                  f"in {lineage_path(city, target)} and give it a strength and "
+                  f"pools under [party.X] there — the roster table puts a party on "
+                  f"the ballot, the party table says how strong it is and which "
+                  f"pools it draws from.")
+    return roster, roster_source, deliberate, prior_local
 
 
 def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
@@ -3168,7 +4806,15 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
                                       split_bloc=split_bloc)
     record = turnout_record(city, cfg, before=target.year,
                             split_bloc=split_bloc)
-    turnout = turnout_band(record, n)
+    panel_spread, spread_n = panel_turnout_spread(
+        cfg, before=target.year, split_bloc=split_bloc)
+    if spread_n < _PANEL_SPREAD_MIN_OBS:
+        print(f"  !! turnout band width rests on {spread_n} observed pool "
+              f"transition(s) before {target.year} — the full observed range "
+              f"is used rather than a quantile, because a quantile of that "
+              f"many points cannot see a tail it holds no points in")
+    turnout = turnout_band(record, n, panel_spread=panel_spread,
+                           categories=tuple(cats))
     pool_votes_at_target = registered * np.array(
         [float(turnout[g][1]) for g in range(n)])
     composition = {p: f.composition(pool_votes_at_target)
@@ -3210,22 +4856,10 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # while the ANC was debited to 15.98%, half its measured share, which is
     # why this code produced ANC 36 / MK 68. A seed is for a party with NO
     # baseline; everyone else already has their level from the baseline itself.
-    roster = contesting_parties(city, target.year)
-    roster_is_real = bool(roster)
-    if not roster:
-        # A target that has not happened has no result file and therefore no
-        # roster. Falling through with an empty set silently deleted every seed
-        # from the 2026 spec — the live forecast — while the backtests, which do
-        # have a roster, looked fine. Fall back to the baseline plus anyone
-        # already carrying a pool vector, and say so.
-        roster = set(baseline) | set(composition)
-        print(f"  ! no published roster for {target.year} (it has not been "
-              f"held). Parties in the {target.previous_npe} baseline still get "
-              f"a pool vector, but NO GENUINE ENTRANT CAN BE FOUND: a party "
-              f"contesting {target.year} with no {target.previous_npe} vote is "
-              f"invisible here, and ActionSA in 2021 was exactly that. Declare "
-              f"one in {lineage_path(city, target)}, or point this at the "
-              f"published nomination list.")
+    # Who is on the ballot, and who may be deleted from the pools. Three
+    # states, and only two of them license a deletion — `resolve_roster`.
+    roster, roster_source, deliberate, prior_local = resolve_roster(
+        city, target, year, composition, baseline)
     # THE ROSTER CUTS BOTH WAYS. It was only ever used to ADD parties — to find
     # a genuine entrant absent from the baseline — and never to remove one. So a
     # party that contested the last national election and is NOT on this
@@ -3247,25 +4881,72 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # Only when the roster is real. A target that has not been held has no
     # nomination list, and the fallback roster above is the baseline itself, so
     # this would be a no-op there in any case.
-    if roster_is_real:
-        absent = sorted(p for p in composition
-                        if p not in roster and p not in ("IND", "ENTRANT"))
-        if absent:
-            held = sum(baseline.get(p, 0.0) for p in absent)
-            for party in absent:
-                composition.pop(party, None)
-            print(f"  not on the {target.year} ballot, dropped from the pools: "
-                  f"{len(absent)} parties holding {held:.2%} of the "
-                  f"{target.previous_npe} baseline between them "
-                  f"({', '.join(absent[:6])}"
-                  f"{', …' if len(absent) > 6 else ''})")
+    absent = sorted(deliberate)
+    if absent:
+        # ⚠️ REPORT BOTH SHARES. This used to quote only the party's share of
+        # the preceding NATIONAL baseline — which is EXACTLY 0.000% for every
+        # party `local_thin` removes, because polling nothing nationally is what
+        # put it there. The message would have read "27 parties holding 0.00%"
+        # while they held 0.038pp of the local vote. A drop that reports itself
+        # as free is the one nobody checks.
+        held = sum(baseline.get(p, 0.0) for p in absent)
+        held_local = sum((prior_local or {}).get(p, 0.0) for p in absent)
+        for party in absent:
+            composition.pop(party, None)
+        print(f"  dropped from the pools as not on the {target.year} ballot "
+              f"({roster_source} roster): {len(absent)} parties holding "
+              f"{held:.2%} of the {target.previous_npe} national baseline and "
+              f"{held_local:.3%} of the {year} local vote "
+              f"({', '.join(absent[:6])}{', …' if len(absent) > 6 else ''})")
+
+    # ⛔ A PARTY DECLARED IN THE JUDGEMENT FILE JOINS THE ROSTER, OR THE
+    # DECLARATION DOES NOTHING.
+    #
+    # `no_vector` derives from `roster`, and a PROJECTED roster is built from
+    # the baseline and the fitted composition — so a genuinely new party, which
+    # by definition appears in neither, was never iterated. The file's own
+    # template says "these parties will be on the ballot… THE MODEL CANNOT
+    # ANSWER THIS. You can", and `emit_pools` prints a message pointing a reader
+    # at it — while the path was inert for exactly the case it advertises.
+    # That is why ActionSA could not be declared into the 2021 forecast.
+    # ⚠️ AND `[party.X]` DOES NOT PUT A PARTY ON THE BALLOT — `[roster]` DOES.
+    #
+    # A first version of this added every `[party.X]` entry to the roster, and
+    # it was wrong: `write_lineage_template` auto-generates one entry per
+    # `no_vector` party, so the file already lists parties the floors have since
+    # excluded on measured evidence, and a stale template would have silently
+    # overridden §K1 and §K2 — 13 of them at Johannesburg 2026. The file's own
+    # header says what those entries are: *"These parties are in the baseline
+    # but did not contest the election the pool vectors were fitted on"*. They
+    # describe HOW to place a party that is already standing.
+    #
+    # So the two tables have two jobs, and a genuine entrant needs both:
+    #   [roster]   parties = [...]        who is on the ballot
+    #   [party.X]  support/parent/weights          how strong, and which pools
+    lineage = load_lineage(city, target)
 
     no_vector = {p for p in roster
                  if p not in composition and p not in ("IND", "ENTRANT")}
     # A seed is only for a party with no level to start from.
     newcomers = {p for p in no_vector if baseline.get(p, 0.0) <= 0.0}
-    lineage = load_lineage(city, target)
     inherited: dict[str, str] = {}
+    # ⛔ A PARTY WITH A NATIONAL RECORD AND NO LINEAGE IS THE ActionSA SHAPE,
+    # AND NOTHING USED TO SAY SO WHERE ANYONE WOULD SEE IT.
+    #
+    # `classify_arrival` returns "no lineage on record: arrived from nothing"
+    # for anything absent from `SPLITS` and undeclared. That answer is right for
+    # a genuine entrant and wrong for a party that plainly exists — it just
+    # split from someone nobody has typed in. Getting that wrong once cost
+    # 0.1% against an actual 18.12%.
+    #
+    # The detector triggers on the party's share at the preceding NATIONAL
+    # election, not on its (definitionally zero) local baseline: a party that
+    # exists nationally and has no local lineage is exactly the case worth a
+    # second look. `unclassified` is EMITTED INTO THE SPEC rather than printed,
+    # because a print during an emit is scrollback and the emit is the one
+    # operation nobody re-runs. In the file it is diffable, it survives into
+    # `compare_history`, and a test can assert on it.
+    unclassified: dict[str, float] = {}
     for party in sorted(no_vector):
         rule = lineage.get(party, {})
         weights = rule.get("weights")
@@ -3281,6 +4962,9 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
         # measured ones, which is this repository's own stated standard.
         parent, _why = classify_arrival(party, rule.get("parent"))
         parent = (parent or "").strip().upper()
+        national = float(baseline.get(party, 0.0))
+        if not parent and national >= UNCLASSIFIED_FLOOR:
+            unclassified[party] = national
         if weights:
             vec = np.array([float(w) for w in weights], dtype=float)
             vec = vec / vec.sum() if vec.sum() > 0 else np.full(n, 1.0 / n)
@@ -3313,20 +4997,41 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             # The city's own pool composition AT THE FITTING YEAR, which is the
             # basis the vectors themselves are fitted on, so the two halves of
             # the blend are on the same footing.
-            _pv = np.asarray(ctx.get("pool_votes"), dtype=float) \
-                if ctx.get("pool_votes") is not None else None
-            city_mix = (_pv / _pv.sum()) if _pv is not None and _pv.sum() > 0 \
-                else np.full(n, 1.0 / n)
+            city_mix = city_mix_for(ctx, n)
             vec = alpha * composition[parent] + (1.0 - alpha) * city_mix
             vec = vec / vec.sum() if vec.sum() > 0 else np.full(n, 1.0 / n)
             inherited[party] = (f"splinter of {parent}, {alpha:.0%} its vector "
                                 f"and {1 - alpha:.0%} the city average")
         else:
-            # An entrant draws an even share of every pool. Almost certainly
-            # wrong, and deliberately so: it is the assumption that makes the
-            # absence of a judgement visible rather than convenient.
-            vec = np.full(n, 1.0 / n)
-            inherited[party] = ("entrant, even share of every pool"
+            # An entrant with no measured vector and no declared parent draws in
+            # proportion to WHERE THE VOTES ARE — the city's own pool
+            # composition, the same `city_mix` the splinter blend leans on.
+            #
+            # ⛔ THIS WAS AN EVEN SHARE OF EVERY POOL, `np.full(n, 1/n)`, AND
+            # THAT IS NOT A NEUTRAL ASSUMPTION — IT IS AN IMPOSSIBLE ONE.
+            # The intent was honest ("make the absence of a judgement visible
+            # rather than convenient"), but an even share assigns a party 25% of
+            # its vote from a pool that may cast almost nothing. Measured at
+            # Buffalo City 2016, where the Indian/Asian pool has 8,107
+            # registered voters casting ~1 vote: three parties were each given
+            # 0.25 of it, which is 228.93x more than the pool can cast. At
+            # Mangaung 2016 the same pool casts EXACTLY ZERO and still carried
+            # weight, which made the guard raise ZeroDivisionError rather than
+            # report a finding.
+            #
+            # The city mix keeps the intent — it is still not a fitted vector,
+            # and `inherited` still says so — while being arithmetically
+            # possible by construction. A party nobody has measured is best
+            # assumed to draw like the city, not like a uniform distribution
+            # over categories of wildly different size.
+            #
+            # Found 2026-08-31 by widening `test_pool_bounds`, whose target list
+            # was typed when nine specs existed and never grew to sixteen: all
+            # nine violations sat in the seven city-years it had stopped
+            # scanning.
+            vec = city_mix_for(ctx, n)
+            inherited[party] = ("entrant, no measured vector — spread as the "
+                                "city's own pool composition"
                                 + (f" (parent {parent!r} not measured)"
                                    if parent else ""))
         composition[party] = vec
@@ -3345,7 +5050,30 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     universe_fitted = sorted(fits)
     # Who contests how much of the city. Nomination lists are public before
     # polling day; for a target already held the roster stands in.
-    reach = _ward_reach(city.code, target.year) or _ward_reach(city.code, year)
+    # ⛔ THE REACH FALLBACK WAS SILENT, AND IT IS THE SPLIT WEIGHT.
+    #
+    # `_ward_reach` at an unheld target returns {} — `metro_file` has no result
+    # file to read — so this quietly used the FITTING year's geography and said
+    # nothing. Reach sets `arrival_group_spec`'s weights and matches entrant
+    # comparators, so carrying it forward is a real assumption, not plumbing.
+    #
+    # It is kept, not replaced: the owner's instruction is to fall back to
+    # previous elections with a declared judgement on direction, and
+    # `levels.projected_contestation` measures that direction (median party
+    # expands 0.220 of the remaining distance, but only 65.5% expand at all —
+    # so applying the median to everyone over-states a third of the roster).
+    # What changes is that the fallback now ANNOUNCES itself and can be
+    # overridden per party in the judgement file.
+    reach = _ward_reach(city.code, target.year)
+    reach_source = f"{target.year} ward ballot"
+    if not reach:
+        reach = _ward_reach(city.code, year)
+        reach_source = f"{year} ward ballot, carried forward unchanged"
+    declared_reach = (declared_roster(city, target) or {}).get("reach") or {}
+    if declared_reach:
+        reach = {**reach, **declared_reach}
+        reach_source += f"; {len(declared_reach)} declared in judgements"
+    print(f"  reach for {target.year}: {reach_source}")
     arrivals, seed_notes = arrival_rules(
         newcomers, lineage, rates_matrix, universe_fitted, cats, record,
         splinter_record(city, target.year), registered, contestation=reach,
@@ -3353,8 +5081,11 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
         city_code=city.code,
         pooled_splits=pooled_splinter_record(target.year),
         # The arrival TOTAL, from city-years strictly before the target. It is
-        # the regular quantity (median 1.64%, 0.31%-4.74% over sixteen
-        # metro-years) where an individual arrival's size is not.
+        # the regular quantity where an individual arrival's size is not.
+        # ⚠️ For 2026 the value passed is 2.1701% over 22 rows, and it is
+        # measured over a population wider than the one it is spent on --
+        # see `_arrival_total_prior`. Do not quote a figure here; it decayed
+        # once already.
         group_total=_arrival_total_prior(target.year))
     # An arrival's composition follows from where it captures, so it does not
     # need a separate vector: the pools it takes from ARE its pool weights.
@@ -3383,6 +5114,34 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     split_years = sorted({y for pair in transitions for y in pair}, key=int)
     for code in METRO_CODES:
         for y in split_years:
+            # ⛔ NOT WIDENED, AND THIS IS THE ONE SITE THAT IS NOT. It feeds
+            # `dirichlet_alpha` — JUDGEMENT-CALLS §B's "dominant width lever,
+            # 83-98% of drawn variance for every party except ANC and DA".
+            #
+            # Adding 2000/2006 here took the sample from 24 metro-years to 33
+            # and moved alpha from [15.61, 22.58, 21.51, 21.94] to
+            # [12.73, 14.54, 16.15, 22.42] — a WIDENING of the published
+            # forecast on three of four pools. That looked like more evidence
+            # and it is double-counting. §1.184:
+            #
+            #   * Fit alpha per era and the POOLED value sits BELOW BOTH eras'
+            #     own (Black African 45.30 early, 15.61 late, 12.73 pooled).
+            #     Genuine dispersion lands between them; below both is the
+            #     signature of a level shift read as scatter.
+            #   * The level shift is a TREND, not noise. Johannesburg's Black
+            #     African pool: ANC+EFF+ActionSA is 87.9/89.9/90.7/89.9/87.7%
+            #     across 2000-2021 — flat to 3 points over 25 years — while the
+            #     ANC alone goes 90.7 -> 53.5. A steady directional transfer
+            #     inside the pool, -18.2 then -19.0 points a cycle.
+            #   * And it is measured in SHARE space while turnout moves under
+            #     it. In votes per REGISTERED voter the same bloc falls
+            #     46.1% -> 31.9%: about a third left the electorate rather than
+            #     switching. The model already has per-pool turnout bands for
+            #     that, and arrivals for the new parties.
+            #
+            # So three mechanisms the model handles deliberately elsewhere were
+            # being counted a second time here as unpredictability. The other
+            # three sites keep the fallback; this one does not.
             shares = metro_citywide(code, y)
             if not shares:
                 continue
@@ -3456,18 +5215,90 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             # than thirty independent seeds and one generic slot. None where
             # there is no nomination list to split between.
             "arrival_group": arrival_group_spec(
-                target.year, reach, sorted(arrivals)) if roster_is_real else None,
-            "provenance": f"{ctx['provenance']}; pools sized by {roll_note}",
+                target.year, reach, sorted(arrivals))
+            if roster_source in ("published", "declared") else None,
+            "provenance": (f"{ctx['provenance']}; pools sized by {roll_note}; "
+                           f"roster {roster_source}; reach {reach_source}"),
             "pool_shares_at_target": target_shares.tolist(),
             "registration_series": {y: v.tolist() for y, v in series.items()},
             "categories": cats,
             "no_measured_vector": inherited,
+            # ⛔ `_nnls`'s docstring promises the caller "must SAY SO rather
+            # than quietly using the clipped value — see the `unidentified`
+            # list". That list was computed, stored, and read by NOTHING: no
+            # print, no field, no test. The clip was silent, which the same
+            # docstring calls "worse". Emitted now, so a clipped corner is
+            # visible in the artefact a reader actually opens. §L9.
+            "rates_on_a_bound": list(
+                getattr(ctx.get("counts"), "unidentified", []) or []),
+            # Parties with NO FITTED POOL VECTOR and no declared lineage that
+            # nevertheless hold a preceding NATIONAL vote — candidates for a
+            # split nobody has declared. Emitted, not printed. §L8.
+            #
+            # ⚠️ NOT "sized as arrivals from nothing". These parties are by
+            # definition ABOVE the floor, and `newcomers` filters on
+            # `baseline <= 0`, so the flagged set and the seeded set are
+            # DISJOINT BY CONSTRUCTION. A flagged party keeps its baseline
+            # LEVEL and is given the city's own pool composition as its vector.
+            # The defect this points at is therefore the VECTOR, not the size —
+            # smaller than the first write-up claimed, and `support` cannot
+            # reach these parties at all.
+            "unclassified_with_national_record": {
+                p: round(v, 6) for p, v in sorted(unclassified.items(),
+                                                  key=lambda kv: -kv[1])},
             "judgement_file": str(template)}
 
 
 # --------------------------------------------------------------------------
 # admission: does a dimension earn its place?
 # --------------------------------------------------------------------------
+def _required_setting(raw: dict, key: str) -> float:
+    """A top-level `dimensions.toml` number, or a refusal naming the file."""
+    if key not in raw:
+        raise SystemExit(
+            f"`{key}` is missing from {CONFIG}.\n"
+            f"\n"
+            f"  There is deliberately NO typed fallback: a default here would "
+            f"duplicate the config in code and take over in silence the moment "
+            f"the key were renamed. Unlike the `[gate]` settings this one "
+            f"REACHES THE EMITTED SPEC, through the covariate extrapolation.")
+    return float(raw[key])
+
+
+def _required_gate(cfg: Config, key: str):
+    """A `[gate]` setting, or a refusal naming the file it should be in.
+
+    ⛔ THE TYPED FALLBACK IS THE DEFECT, NOT THE MISSING KEY. `cfg.gate.get(key,
+    <literal>)` duplicates `config/dimensions.toml` in code, and the copy takes
+    over **silently** if the TOML block is renamed or dropped — which is how a
+    party cast typed into `pools.py` comes to decide a gate nobody thinks is
+    typed. The owner ruled that class out on 2026-08-30: the cast changes every
+    cycle and a typed default cannot.
+
+    **Both instances are fixed, and two is the whole population** — a grep for
+    `cfg.<section>.get(` in this module returns exactly `gate_parties` and
+    `min_oos_gain`, both here. Fixing one of a two-instance defect is worse than
+    fixing neither, because it removes the symptom that would have found the
+    other.
+
+    ⚠️ The fix was written and REVERTED once, on 2026-08-31: it is executable
+    code, so it moved `pools_sha` and every emitted spec reported STALE
+    immediately. That was the artefact key doing its job, and it is why this
+    landed in a batched re-emit window (`POOLS-REEMIT-QUEUE.md` entry 6) rather
+    than when it was noticed.
+    """
+    if key not in cfg.gate:
+        raise SystemExit(
+            f"`[gate] {key}` is missing from {CONFIG}.\n"
+            f"\n"
+            f"  There is deliberately NO typed fallback: a default here would "
+            f"duplicate the config in code and take over in silence the moment "
+            f"the block were renamed. Declare it in the TOML, which is the one "
+            f"place it belongs and the one place that moves `config_sha` when "
+            f"it changes.")
+    return cfg.gate[key]
+
+
 def gate(cfg: Config, year: str = "2021",
          slugs: tuple[str, ...] = ("joburg", "tshwane")) -> dict[str, dict]:
     """Fit on one city, predict another, and see whether a tilt helped.
@@ -3476,16 +5307,7 @@ def gate(cfg: Config, year: str = "2021",
     by re-describing the base. Only a dimension that transfers is real.
     """
     tested = [d for d in cfg.dimensions if d.role == "tilt"]
-    # ⚠️ THIS TYPED DEFAULT IS A KNOWN DEFECT AND IS QUEUED, NOT KEPT.
-    # `["ANC","DA","EFF"]` silently duplicates `config/dimensions.toml`'s own
-    # `gate_parties` and would take over unnoticed if that block were renamed.
-    # The fix — raise on absence — was WRITTEN AND REVERTED on 2026-08-31,
-    # because it is executable code in `pools.py` and therefore moves the
-    # artefact key, invalidating all eighteen emitted specs. It went in as
-    # `POOLS-REEMIT-QUEUE.md` entry 6 instead. The guard caught the violation
-    # immediately (`pools_2021.json is STALE ... dbdf171344ffd5f0 ->
-    # e44c09169ba266ca`), which is the artefact key doing exactly its job.
-    parties = list(cfg.gate.get("gate_parties", ["ANC", "DA", "EFF"]))
+    parties = list(_required_gate(cfg, "gate_parties"))
     results: dict[str, dict] = {}
 
     prepared = {}
@@ -3521,7 +5343,7 @@ def gate(cfg: Config, year: str = "2021",
         results[dim.name] = {
             "gain": mean_gain,
             "per_party": {p: float(np.mean(g)) for p, g in gains.items()},
-            "admit": mean_gain >= float(cfg.gate.get("min_oos_gain", 0.01)),
+            "admit": mean_gain >= float(_required_gate(cfg, "min_oos_gain")),
             "currently": dim.admitted,
         }
     return results

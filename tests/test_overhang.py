@@ -61,6 +61,7 @@ Run:
 from __future__ import annotations
 
 import ast
+import tempfile
 import sys
 from contextlib import contextmanager
 from pathlib import Path
@@ -666,33 +667,15 @@ def test_an_unrecognised_rule_string_raises_instead_of_running_another_law():
             f"is how `level` came to be missing from it (§1.97 F43).")
 
 
-def test_no_call_site_relies_on_the_signature_default():
-    """DEFECT in the declaration; this test guards the blast radius.
+def _two_argument_overhang_calls(paths):
+    """Call sites of ``allocate_with_overhang`` that omit the rule. A FUNCTION
+    so a constructed call site can be pushed through the same detector.
 
-    ``def allocate_with_overhang(combined, ward_wins, rule="expand")`` — but
-    the docstring one line below says 'Default rule "deduct"', and
-    ``DEFAULTS["overhang_rule"]`` is ``"deduct"``, which is the statute
-    (§1.17). The signature default is the legacy counterfactual and disagrees
-    with both the prose and the model's own configuration.
-
-    Today that is harmless only because both call sites pass the rule
-    explicitly — ``montecarlo.run_model`` passes ``scenario["overhang_rule"]``
-    and ``benchmarks.council_from_shares`` passes ``ctx.overhang_rule``. This
-    test asserts that, because the moment somebody adds a two-argument call
-    believing the docstring, they get the expand rule, a council that is not
-    270 and a majority threshold that is not 136 — with no error anywhere.
-
-    It also pins the configured default to ``"deduct"``, which is justified by
-    the amended Act and the Laingsburg precedent, not by what the code returns.
+    Returns ``(offenders, sites)`` — the offenders and every call site seen,
+    because "no call omits the rule" is only evidence if calls were found.
     """
-    assert M.DEFAULTS["overhang_rule"] == "deduct", (
-        "the statute, adopted as the default in MODEL-LOG §1.17")
-    assert M.allocate_with_overhang.__defaults__ == ("deduct",), (
-        "if this has changed, the signature default was edited — re-read the "
-        "docstring and this test together rather than just re-recording it")
-
-    offenders = []
-    for path in sorted((ROOT / "src").glob("*.py")):
+    offenders, sites = [], []
+    for path in sorted(paths):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         for node in ast.walk(tree):
             if not isinstance(node, ast.Call):
@@ -703,12 +686,103 @@ def test_no_call_site_relies_on_the_signature_default():
             if name != "allocate_with_overhang":
                 continue
             supplied = len(node.args) + len(node.keywords)
+            sites.append(f"{path.name}:{node.lineno} ({supplied} args)")
             if supplied < 3:
                 offenders.append(f"{path.name}:{node.lineno} ({supplied} args)")
+    return offenders, sites
+
+
+def test_no_call_site_relies_on_the_signature_default():
+    """The signature default is invisible at the call site; this pins both ends.
+
+    **RE-RECORDED, AND THE NOTE THAT SHOULD HAVE COME WITH IT, WRITTEN
+    2026-08-31.** This test used to open *"DEFECT in the declaration"* and
+    describe ``def allocate_with_overhang(combined, ward_wins, rule="expand")``
+    — the legacy counterfactual as the signature default, disagreeing with the
+    docstring and with ``DEFAULTS["overhang_rule"]``. **The signature was fixed
+    to ``rule: str = "deduct"`` and the assertion below was re-recorded to
+    match, while the docstring was left describing the old world.** Its own
+    failure message says *"re-read the docstring and this test together rather
+    than just re-recording it"*, and that is exactly what did not happen — for
+    long enough that the test's stated premise ("they get the expand rule, a
+    council that is not 270") had been false for the whole time a reader would
+    have trusted it. CLAUDE.md: *"Re-record a golden test deliberately and say
+    why in the file."*
+
+    **What it guards NOW.** The blast radius is smaller and still real: a
+    two-argument call takes the statute silently instead of the scenario's
+    configured ``overhang_rule``, so a run under ``--set overhang_rule=cap`` or
+    a regime sweep gets ``deduct`` with no error anywhere. Both call sites pass
+    it explicitly — ``montecarlo.run_model`` passes ``scenario["overhang_rule"]``
+    and ``benchmarks.council_from_shares`` passes ``ctx.overhang_rule`` — and
+    this asserts that.
+
+    It also pins the configured default to ``"deduct"``, which is justified by
+    the amended Act and the Laingsburg precedent, not by what the code returns.
+    """
+    assert M.DEFAULTS["overhang_rule"] == "deduct", (
+        "the statute, adopted as the default in MODEL-LOG §1.17")
+    # RE-RECORDED 2026-09-02, and the docstring re-read with it, as this
+    # test's own failure message demands. `allocate_with_overhang` gained
+    # `independent_wards` and `no_pr_list_wards` — the Schedule 1 C and D
+    # terms — which this module's docstring has flagged as the deliberately
+    # deferred, CONSERVATIVE half of the F42 fix since it was written:
+    # "Taking a no-PR-list ward winner's seats out of the pool ... changes the
+    # quota and is a scored change." It is now taken, and it is scored.
+    #
+    # ⚠️ THE TWO ZEROS ARE THEMSELVES A CLAIM — that no seat leaves the pool —
+    # and a caller that forgets them gets the old, wrong council in silence.
+    # That is the same failure mode this test was built for on `rule`, so the
+    # detector below is widened to the C/D arguments rather than left pinning
+    # `rule` alone. MODEL-LOG §1.163.
+    assert M.allocate_with_overhang.__defaults__ == ("deduct", 0, 0), (
+        "if this has changed, the signature default was edited — re-read the "
+        "docstring and this test together rather than just re-recording it")
+
+    offenders, sites = _two_argument_overhang_calls(
+        (ROOT / "src").glob("*.py"))
+    # (1) IT LOOKED. `not offenders` is satisfied by finding no calls at all,
+    # and the whole population is two: benchmarks.py and montecarlo.py. If the
+    # function is renamed, inlined, or reached through an alias this scan goes
+    # to zero and reports success.
+    assert len(sites) == 2, (
+        f"allocate_with_overhang is called at {len(sites)} site(s) in src/, "
+        f"not the 2 this pins ({sites}). Zero means the name changed and this "
+        f"scan is examining nothing; three means a new caller nobody reviewed.")
     assert not offenders, (
-        "these calls omit the rule and therefore silently take the signature "
-        "default 'expand', not the documented and configured 'deduct':\n  "
+        "these calls omit the rule and therefore silently take the SIGNATURE "
+        "default — the statute, `deduct` — instead of the scenario's "
+        "configured `overhang_rule`, so a run under `--set overhang_rule=cap` "
+        "or a regime sweep is quietly not the run that was asked for:\n  "
         + "\n  ".join(offenders))
+
+
+def test_the_two_argument_call_detector_can_see_one():
+    """(2) IT CAN SEE, on a constructed module. The live population is 0.
+
+    The scan above reports no offender because both real call sites pass three
+    arguments, and that is the healthy state — which means the ONLY evidence
+    the detector still works is a call site built for the purpose. Both call
+    shapes are covered: a bare name and an attribute, because `montecarlo`
+    calls it one way and `benchmarks` the other.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        fake = Path(tmp) / "fake_caller.py"
+        fake.write_text(
+            "import montecarlo\n\n"
+            "def bad_bare(c, w):\n"
+            "    return allocate_with_overhang(c, w)\n\n"
+            "def bad_attr(c, w):\n"
+            "    return montecarlo.allocate_with_overhang(c, w)\n\n"
+            "def good(c, w, rule):\n"
+            "    return montecarlo.allocate_with_overhang(c, w, rule)\n\n"
+            "def unrelated(c, w):\n"
+            "    return montecarlo.allocate(c, w)\n")
+        offenders, sites = _two_argument_overhang_calls([fake])
+    assert len(sites) == 3 and len(offenders) == 2, (
+        f"the detector was handed three calls — two omitting the rule, one "
+        f"passing it — and reported {len(sites)} site(s), {len(offenders)} "
+        f"offender(s): {offenders}. It must see all three and object to two.")
 
 
 def test_level_raises_instead_of_terminating_when_the_council_outgrows_the_votes():

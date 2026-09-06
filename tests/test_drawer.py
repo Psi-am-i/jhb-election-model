@@ -92,6 +92,37 @@ TOL = 0.01
 ELECTIONS = ROOT / "data" / "raw" / "elections"
 PROCESSED = ROOT / "data" / "processed"
 
+# RE-RECORDED 2026-09-02, deliberately: THE CENSUS IS NOW REPROJECTED ONTO THE
+# TARGET'S WARDS INSTEAD OF JOINED TO THEM BY WARD CODE (MODEL-LOG §1.160/§1.161).
+#
+# Wards are redrawn at every local election and their codes are REUSED, so the
+# old join succeeded while attaching each ward's composition to a different
+# polygon. The share of the 2026 target roll sitting in a voting district whose
+# ward code changed since 2021 is not small, so this moves the live forecast.
+#
+# The movement, against the 2026-08-23 record:
+#   DA   mean 26.05% -> 26.46%  (+0.42pp)   ANC  mean 22.40% -> 22.52%  (+0.12pp)
+#   EFF  mean 10.28% -> 10.10%  (-0.17pp)   ASA  mean 12.72% -> 12.65%  (-0.07pp)
+#   PA   mean  6.59% ->  6.45%  (-0.14pp)   MK   mean  9.79% ->  9.76%  (-0.03pp)
+# and on the pools, which is where the change actually acts:
+#   Black African mean 51.14% -> 50.55% (-0.59pp), p5 43.03% -> 42.26%
+#   White         mean 32.56% -> 33.05% (+0.49pp), p95 39.34% -> 40.02%
+# The two largest pools move in opposite directions and nearly cancel, which
+# is what a REPROJECTION should do: it moves composition between wards, it
+# does not create or destroy voters.
+#
+# ⛔ THIS IS NOT CLAIMED AS AN IMPROVEMENT TO THE 2026 FORECAST, and it cannot
+# be: nothing scores 2026. It is claimed as a CORRECTNESS fix, and the evidence
+# for it is on the backtest, where the same change takes the panel from 16
+# city-years to 21 and stops Cape Town being fitted on twice everyone else's
+# history. On the sixteen city-years common to both, CRPS 329.61 -> 331.59 and
+# seat error 380 -> 378 — i.e. inside noise, which is what a correctness fix
+# with no accuracy claim should look like.
+#
+# Recorded against pools_sha 86995c914b530216, all 26 specs re-emitted at one
+# key. The two OPEN pool-capacity defects (§1.161 §5) are at 2011 Buffalo City /
+# Nelson Mandela Bay and 2016 Mangaung, and touch no number in this file.
+
 # RE-RECORDED 2026-08-23, deliberately: THIS GOLDEN HAD BEEN RED SINCE 22 AUG
 # AND NOBODY RE-RECORDED IT. Two shipped changes moved the 2026 Johannesburg
 # forecast and neither carried the golden with it, which is the failure
@@ -346,22 +377,73 @@ PROCESSED = ROOT / "data" / "processed"
 # backtest year reads its own published roll. So the change reaches the 2026
 # forecast and nothing else — which is what it was built for, and the one case
 # no backtest can adjudicate. **These goldens are the only guard on it.**
+# RE-RECORDED 2026-09-01, DELIBERATELY. ONE CAUSE, AND IT IS ISOLATED: AN
+# ENTRANT WITH NO MEASURED VECTOR NO LONGER DRAWS AN EVEN SHARE OF EVERY POOL.
+#
+# `emit_pools` gave a party it had never measured `np.full(n, 1/n)` — 25% of its
+# vote from each of the four pools — as a deliberately visible non-judgement. It
+# is not a neutral assumption but an impossible one: at Buffalo City 2016 that
+# handed three parties a quarter each of an Indian/Asian pool casting about one
+# vote, 228.93x more than the pool can cast, and at Mangaung 2016 the same pool
+# casts EXACTLY ZERO and still carried weight. Such a party now spreads as
+# `city_mix_for` — the city's own pool composition, the same vector the splinter
+# blend already leaned on. For Johannesburg 2026 that is
+# (0.5667, 0.0718, 0.0436, 0.3179) instead of (0.25, 0.25, 0.25, 0.25), applied
+# to the 21 parties in the spec's `no_measured_vector`.
+#
+# **WHY THIS IS ATTRIBUTED RATHER THAN ASSUMED.** The specs were re-emitted in
+# the same window as `reproject_counts` and a corrected `MUNI_HEAD`, and a
+# re-record that guesses among three changes is worth nothing. The pre-emit
+# specs were archived before the batch (`archive/pools-preemit-2026-08-31/`), so
+# the fixture was rebuilt against the OLD `joburg_pools_2026.json` with
+# everything else at today's tree. It reproduces the previous goldens EXACTLY —
+# ANC 22.5952, DA 25.8249, ASA 12.7029, all nine to 4 dp — and `blended_centres`
+# returns a byte-identical dict on both sides. So none of the movement is the
+# level layer, the θ record or the ingest; all of it is the spec, and within the
+# spec the only fields that moved are the entrant vectors and the `alpha` they
+# imply. Diffed across all eighteen specs: **not one measured party's pool
+# vector changed by more than 1e-12.**
+#
+# The movement, against the 2026-08-27 record:
+#   ANC  mean 22.5952 -> 22.4032 (-0.1920)   DA   mean 25.8249 -> 26.0462 (+0.2213)
+#   ASA  mean 12.7029 -> 12.7249 (+0.0220)   MK   mean  9.7307 ->  9.7879 (+0.0572)
+#   Black African 49.9435 -> 51.1416 (+1.1981)   Coloured 11.4599 -> 10.6379 (-0.8220)
+#   Indian/Asian   5.1370 ->  4.2938 (-0.8432)   White    32.1401 -> 32.5595 (+0.4194)
+#
+# **THE POOL SIGNS ARE THE GUARD, NOT NOISE.** Johannesburg's votes are far more
+# Black African than a quarter and far less Indian/Asian, so moving the
+# unmeasured parties off a uniform vector must raise the Black African total and
+# cut the Indian/Asian one. A re-record with those signs reversed would mean the
+# city mix had been wired in backwards.
+#
+# **THE PRIOR HOLD IS DISCHARGED, AND NOT BY WAITING IT OUT.** The docstring on
+# `test_party_marginals_match_recorded` said do not re-record until the pre-2011
+# ingest's 26-seat regression was disposed of. It has been: the seven metros'
+# pre-2011 files are quarantined in `levels.HELD_BACK` pending diagnosis, and
+# Johannesburg's — the only ones this fixture reads — were live throughout. The
+# measurement above is what settles it rather than asserts it: with the old spec
+# the goldens return to the digit, so the ingest reaches this fixture by no path
+# at all.
+#
+# NOT RE-RUN FOR THIS, AND NOT CLAIMED: the sixteen-city-year panel. This
+# records where the 2026 Johannesburg prior now is. No improvement is claimed
+# and none is measured here.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (22.5952, 10.9481, 35.9272),
-    "DA": (25.8249, 17.7375, 34.9498),
-    "EFF": (10.3008, 2.9330, 21.2216),
-    "ASA": (12.7029, 4.6963, 23.4185),
-    "MK": (9.7307, 2.7615, 19.3024),
-    "PA": (6.6548, 4.2222, 10.5471),
-    "VFPLUS": (0.8953, 0.0058, 3.1225),
-    "ALJAMAAH": (0.9051, 0.2673, 1.7588),
-    "ENTRANT": (1.3196, 0.0000, 7.5756),
+    "ANC": (22.5216, 10.7994, 35.1625),
+    "DA": (26.4646, 17.9717, 35.8335),
+    "EFF": (10.1040, 2.8209, 20.4816),
+    "ASA": (12.6508, 4.6577, 22.8424),
+    "MK": (9.7552, 3.0188, 19.5788),
+    "PA": (6.4458, 3.7914, 9.9925),
+    "VFPLUS": (0.8519, 0.0061, 3.1740),
+    "ALJAMAAH": (0.9099, 0.2436, 1.8881),
+    "ENTRANT": (1.4516, 0.0000, 8.0032),
 }
 GOLDEN_POOLS = {
-    "Black African": (49.9435, 41.6738, 57.6567),
-    "Coloured": (11.4599, 8.7643, 15.6805),
-    "Indian/Asian": (5.1370, 3.9258, 6.7216),
-    "White": (32.1401, 25.8903, 39.0052),
+    "Black African": (50.5506, 42.2597, 58.1623),
+    "Coloured": (10.6273, 7.8487, 14.4213),
+    "Indian/Asian": (4.3190, 3.4004, 5.4251),
+    "White": (33.0514, 26.5267, 40.0176),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")
@@ -580,26 +662,24 @@ def test_every_draw_is_a_probability_vector():
 def test_party_marginals_match_recorded():
     """The realised per-party marginals are what they were when recorded.
 
-    **FAILING DELIBERATELY SINCE 2026-08-22, AND NOT TO BE RE-RECORDED YET.**
+    **THE HOLD THAT STOOD HERE FROM 2026-08-22 IS DISCHARGED, 2026-09-01.**
 
-    The pre-2011 archive was ingested for seven more metros (MODEL-LOG §1.70),
-    which enlarged the θ record from n=257 to n=370 and therefore moved the θ
-    prior for every city-year. These goldens are correctly reporting that
-    movement — that is their entire job, and CLAUDE.md's rule is that a golden
-    is re-recorded *deliberately, with the reason written in the file*.
+    It said: do not re-record, because the pre-2011 ingest had enlarged the θ
+    record from n=257 to n=370, moved the θ prior for every city-year, and cost
+    26 coherent seats on the nine city-years that existed before it (254 → 280,
+    §1.70) — a regression whose disposition was undecided, so a re-record would
+    have frozen a prior that scored worse and erased the only signal that it
+    moved.
 
-    **The reason is not yet available, because the movement is a REGRESSION
-    whose disposition is undecided.** The enlarged record costs **26 coherent
-    seats** on the nine city-years that existed before it (254 → 280, §1.70).
-    Two corrections were measured against it and neither cleared its bar: the
-    blunt whole-transition drop (§1.74, recovers to 256 but destroys the
-    uniform-swing baseline for two city-years) and the pre-registered Type A
-    event filter (§1.74, recovers to 260, loses the 2016 NLL fold).
-
-    So re-recording now would freeze a prior that scores worse than its
-    predecessor and erase the only signal that it moved. **Re-record only once
-    the ingest is either kept on a stated basis or reverted**, and say which
-    here when you do.
+    Two things closed it. The seven newly ingested metros are quarantined in
+    `levels.HELD_BACK` pending a stated diagnosis — present and correct, not
+    fed to the model — while Johannesburg's own pre-2011 files, the only ones
+    this fixture reads, were live throughout and never held. And the hold was
+    then tested rather than assumed: rebuilding this fixture against the
+    archived pre-emit spec reproduces every previous golden to four decimal
+    places with byte-identical centres, so the ingest reaches these values by no
+    path at all. The reason for the re-record, and the measurement behind it,
+    are with the GOLDEN_PARTIES block above.
     """
     if not GOLDEN_PARTIES:
         skip("no GOLDEN_PARTIES recorded — run: "
@@ -660,11 +740,13 @@ def test_entrant_rescale_pushes_every_pool_down():
     that the next person to read this file is not sent after a defect that is
     not there.
     
-    **FAILING DELIBERATELY SINCE 2026-08-22** for the same reason as
-    `test_party_marginals_match_recorded` above — the pre-2011 ingest moved the
-    θ prior, the movement is a 26-seat regression (§1.70), and no correction has
-    yet cleared its pre-registered bar (§1.74). Do not re-record until the
-    ingest's disposition is settled. Read that docstring first.
+    This test carried a "FAILING DELIBERATELY SINCE 2026-08-22" note pointing at
+    `test_party_marginals_match_recorded`'s hold. **It is passing, and was
+    passing before that hold was discharged on 2026-09-01** — it asserts a
+    DIRECTION, not a recorded number, so the θ prior moving underneath it never
+    could have made it red. The note was inherited from the neighbouring
+    docstring rather than observed, and it is removed so that a genuinely red
+    result here is read as one. Note removed 2026-09-01.
     """
     _m, index, scenario, base_city_d, centres = draw_matrix()
     offenders = []

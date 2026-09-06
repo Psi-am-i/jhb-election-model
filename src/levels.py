@@ -201,6 +201,91 @@ SPINE_K = 1.0
 # nothing — _citywide returns empty on a missing file.
 METRO_CODES = ("JHB", "TSH", "CPT", "ETH", "EKU", "MAN", "NMA", "BUF")
 
+# ⛔ HELD BACK PENDING DIAGNOSIS — NOT BECAUSE IT SCORES WORSE.
+#
+# The pre-2011 archive was ingested for all eight metros on 2026-09-01,
+# `lge2000` and `npe1999`, every one reconciled at 100% and validated against
+# each metro's own 2000 election. **The data is right and it is staying.**
+#
+# The reason recorded here matters more than the decision, because a hold-back
+# justified by a score is **selection of training data on the test set** — the
+# same failure as tuning a parameter to the panel, one level up and harder to
+# see. If "keep the history that improves the panel" were ever the rule, the
+# panel would stop being an out-of-sample check on this model. So:
+#
+#   **This is held back because its effect is NOT UNDERSTOOD, and it is void
+#   the moment it is.** The cost is 13.65 CRPS across 12 of 16 city-years.
+#
+# **The boundary hypothesis is REFUTED, and that is why this entry is broad.**
+# The first reading was that Ekurhuleni and eThekwini — constituted at the 2000
+# election out of "Greater East Rand Metro" and "Durban Metro" — might not cover
+# the modern ground, and that the damage would concentrate there. Tested:
+#
+#     all history live                  CRPS 345.99   seats 430
+#     EKU + ETH held back only          CRPS 344.49   seats 428
+#     all history held back             CRPS 332.34   seats 376
+#
+# Quarantining the two suspect metros recovers **1.50 of 13.65 — 11%**, against
+# the ~44% the hypothesis predicted from their share of the per-city-year damage.
+# Two further things follow. **The 2000 election was the first under wall-to-wall
+# demarcation, so EVERY metro was constituted at it** — the reason never
+# distinguished those two. And per-city-year attribution does not predict what
+# removing an input recovers, because the splinter, entrant and pooled records
+# are computed ACROSS ALL EIGHT METROS: damage attributed to a city-year can be
+# caused by another city's data.
+#
+# **The surviving hypothesis is a REGIME effect**: 1999→2000 sits in a different
+# party system (NNP extant, the DA newly merged, near-total ANC dominance) and
+# its retention ratios are not exchangeable with 2019→2021's. The record is
+# already known to be cycle-unstable — k* runs 0.62 / 2.48 / 1.70 / 1.76 across
+# 2006 / 2011 / 2016 / 2021 with no covariate — so adding a fifth cycle whose k*
+# is unknown perturbs the pooled fit and degrades every target at once, which is
+# the pattern observed.
+#
+# **THE VOIDING TEST, SHARPENED BY MEASUREMENT (§1.158).** `THETA_WINDOW` was
+# swept with this history live: the optimum is 2 transitions at 338.35, against
+# 345.99 unlimited and 332.34 with the history out. So a recency window recovers
+# **7.64 of the 13.65 and leaves 6.01** — the θ half of the damage is a recency
+# effect and the rest is not. Since `THETA_WINDOW` trims only the θ record, the
+# remainder is in the splinter, entrant and pooled records, which reach this data
+# by a different path.
+#
+# **So the test is: hold the pre-2011 data out of the POOLED records only,
+# leaving θ alone, and see whether the last 6.01 returns.** One run, more direct
+# than the k* measurement it replaces, and it tests the half that is actually
+# unexplained. **This entry is not evidence about the data; it is an admission
+# that its effect is unexplained — and it is now half explained.**
+# `HELD_BACK_OFF=1` lifts the gate for one run, so the diagnosis this entry is
+# waiting for can be MEASURED without editing the file that records it. Sweeping
+# `THETA_WINDOW` requires the held-back history to be live; editing the gate to
+# do that, then editing it back, is how a measurement ends up taken against a
+# tree nobody can reconstruct.
+import os as _os_gate
+_HELD_BACK_OFF = _os_gate.environ.get("HELD_BACK_OFF") == "1"
+
+HELD_BACK: dict[tuple[str, str], str] = {} if _HELD_BACK_OFF else {
+    (tag, code): "pre-2011 history, ingested and correct; held pending "
+                 "diagnosis of a 13.65 CRPS regime effect, NOT because it "
+                 "scores worse. Void once k* for the 2000 cycle is measured "
+                 "(MODEL-LOG 1.154)"
+    for tag in ("lge2000", "npe1999")
+    # ⛔ JOHANNESBURG IS NOT HELD BACK, AND INCLUDING IT WAS A REGRESSION I
+    # INTRODUCED. `lge2000_JHB` and `npe1999_approx_JHB` were the ONLY files of
+    # their kind before 2026-09-01 and were already live — `KNOWN_ABSENT` listed
+    # the other seven metros and never Johannesburg. Holding all eight back
+    # therefore removed a transition the model had been using for weeks, and
+    # KEY 4's folds are Johannesburg's: held-out NLL at fold 2016 went 1.1363 ->
+    # 1.1777, an untradeable floor moving because of the gate rather than
+    # because of the data. Caught by the suite, not by me — I had adjudicated
+    # Keys 1 and 2 and not looked at 4.
+    #
+    # The seven metros below are the ones ingested on 2026-09-01 and never
+    # before used. Holding those is the actual quarantine; holding Johannesburg
+    # was an unmeasured change wearing the same name.
+    for code in ("TSH", "EKU", "ETH", "CPT", "MAN", "NMA", "BUF")
+}
+
+
 def _citywide(path) -> dict[str, float]:
     """One election's citywide PR shares. **Deliberately not cached.**
 
@@ -216,8 +301,18 @@ def _citywide(path) -> dict[str, float]:
     are the reason any score here can be believed, and the cost being bought
     with them is a few seconds of CSV parsing per run.
     """
+    if _held_back(path):
+        return {}
     shares, _roster = _citywide_and_roster(path)
     return shares
+
+
+def _held_back(path) -> bool:
+    """Is this election ingested but deliberately not yet fed to the model?"""
+    parts = Path(path).name.split("_")
+    tag = parts[0] if parts else ""
+    code = next((x for x in parts if x.isupper() and len(x) == 3), "")
+    return (tag, code) in HELD_BACK
 
 
 def _citywide_and_roster(path) -> tuple[dict[str, float], set[str]]:
@@ -274,23 +369,40 @@ def _citywide_and_roster(path) -> tuple[dict[str, float], set[str]]:
 #
 # Every absence here is DECLARED, with the reason, and each mirrors a refusal
 # `ingest_historic.MUNI_HEAD` already makes for the same archive.
-KNOWN_ABSENT: dict[tuple[str, str], str] = {
-    **{("npe1999", code):
-       "the 1999 national election predates every metro but Johannesburg, "
-       "which is itself reconstructed from five metropolitan local councils "
-       "and carries the `_approx` tag. `ingest_historic.MUNI_HEAD` declares "
-       "npe1999 for joburg ONLY and refuses the rest rather than guessing — "
-       "this is that refusal, seen from the record's side."
-       for code in ("TSH", "EKU", "ETH", "CPT", "MAN", "NMA", "BUF")},
-    **{("lge2000", code):
-       "the 2000 local election has never been ingested for this metro. "
-       "Ekurhuleni and eThekwini are ABSENT FROM THE ARCHIVE under any name "
-       "(both were constituted at that election) and MUNI_HEAD records that "
-       "deliberately; the others are ingestible and simply have not been done. "
-       "Ingesting them would ADD θ and ρ observations and move every number "
-       "here, so it is a measurement, not a chore — see §1.75."
-       for code in ("TSH", "EKU", "ETH", "CPT", "MAN", "NMA", "BUF")},
-}
+#
+# ⛔ EMPTIED 2026-09-01, BECAUSE THERE IS NOTHING LEFT TO DECLARE. Every file
+# the CALENDAR walk asks for is now on disk — all sixteen pre-2011 extracts,
+# `lge2000` and `npe1999` for all eight metros, ingested and reconciled on
+# 2026-08-31/09-01. Verified by walking `cityconfig.CALENDAR` against
+# `data/raw/elections`: ten (transition, tag) pairs, eight metros each,
+# **zero missing**.
+#
+# The fourteen entries removed here said two things that had both stopped being
+# true, and each had already caused a wrong conclusion:
+#
+#   * `npe1999` for the seven non-Johannesburg metros — "predates every metro
+#     but Johannesburg … MUNI_HEAD declares npe1999 for joburg ONLY". MUNI_HEAD
+#     now declares all eight, each as the sum of the councils that amalgamated
+#     into it in December 2000. 1999 predates every metro INCLUDING
+#     Johannesburg, which is why all eight carry the `_approx` tag.
+#   * `lge2000` for the same seven — "has never been ingested … Ekurhuleni and
+#     eThekwini are ABSENT FROM THE ARCHIVE under any name". They were not
+#     absent. They are in the 2000 archive as "EAST RAND" and "DURBAN", the
+#     heads `npe2004` had carried all along; the note telling the next reader
+#     not to look is what kept them missing. Corrected in `MUNI_HEAD`
+#     2026-08-31.
+#
+# **AN ABSENCE AND A QUARANTINE ARE DIFFERENT FACTS AND THIS TABLE HOLDS ONLY
+# THE FIRST.** Fourteen of these sixteen files are on disk and are NOT being
+# fed to the model — that is `HELD_BACK` above, which means *present, correct,
+# and withheld pending a stated diagnosis*. Merging the two would make a
+# deliberate quarantine indistinguishable from a file nobody ever fetched,
+# which is the confusion §1.43 and §1.75 both are.
+#
+# The table stays, empty, because `_absent` is the refusal path and it must
+# keep a place to declare a real future absence. A file going missing now is a
+# `SystemExit`, which is the intended behaviour.
+KNOWN_ABSENT: dict[tuple[str, str], str] = {}
 
 
 def _absent(path) -> dict[str, float]:

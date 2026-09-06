@@ -708,6 +708,84 @@ candidate list on 16 September. `level_sd_default` and `turnout_correlation` had
 the identical declaration defect and are now declared too. MODEL-LOG §1.63,
 §1.133, §1.136.
 
+### Who is on the ballot — `pools.resolve_roster`
+
+ONE function decides who stands at a target and who may be **deleted** from the
+pools, and it returns `(roster, roster_source, deliberate, prior_local)`. Three
+states, and they license different things — the distinction is the whole
+mechanism, because the second question deletes 2.4-2.9% of a city's vote across
+16-20 parties when it fires wrongly (§1.175):
+
+| state | source | absence means | may delete |
+|---|---|---|---|
+| `published` | the target's own result file | the party did not stand | everything absent |
+| `declared` | `[roster]` in `judgements/<slug>-<year>.toml` | **ambiguous** — possibly a half-typed list | only if `complete = true` |
+| `projected` | our own guess, from the baseline and the fitted composition | **ignorance** | only what the §K1/§K2 floors deliberately excluded |
+
+`published` outranks a declared list: a held election is what happened. A
+declared list ADDS parties always — that is what lets a genuine entrant be
+named — and `complete` defaults to **false**, so a partial paste on a deadline
+fails safe. See JUDGEMENT-CALLS §L1.
+
+⚠️ **`[roster]` says WHO stands; `[party.X]` says HOW they are placed.** They
+are different tables and promoting the second to the first is a defect, not a
+convenience: `write_lineage_template` auto-generates a `[party.X]` entry per
+party with no measured vector, so a stale template lists parties the measured
+floors have since excluded — 13 of them at Johannesburg 2026 — and would
+silently override §K1 and §K2.
+
+**It is a function and not eighty inline lines for a reason.** Reached only
+through a 97-second city fit, the truth table did not get tested, and the first
+version shipped with the projected branch one indent level out: it ran in the
+declared case too and rebuilt the roster from the baseline **two lines after**
+reading the declared list. The parser was flawless; nothing crossed from it to
+`seeds`. Four rows now run against the function in milliseconds and one
+end-to-end test crosses to the emitted spec. §1.178.
+
+### How a declared party is SIZED — `[party.X]`
+
+| key | read by | what it does |
+|---|---|---|
+| `parent` | `classify_arrival` | names a parent, making it a SPLIT rather than an entrant |
+| `weights` | `arrival_rules` | its pool vector, in `categories` order, normalised |
+| `support` | `arrival_rules` | **the strength knob** — its expected share of the city |
+| `overperform` | `arrival_rules` | a multiplier on the default, to scale the record rather than replace it |
+| `baseline_share` | **nothing** | informational: what it polled at the preceding national election |
+
+The set is closed by `pools.PARTY_KEYS` and an unknown key **refuses**, naming
+the file. **`weights` declares WHERE the votes come from, not HOW MANY** — a
+party with `weights` and no `support` is sized and budgeted exactly like an
+undeclared one, and the note says `size NOT declared`.
+
+⚠️ **`MAX_POOL_CAPTURE = 0.9` clips a concentrated declaration and used to do it
+silently** — 6% aimed entirely at Johannesburg's Indian/Asian pool delivers
+2.85%. `capture_shortfall` measures the loss and the note reports it.
+JUDGEMENT-CALLS §L5.
+
+**`[roster]` refuses what it cannot read**, in three closed sets:
+`LINEAGE_TABLES` (a misspelt `[rostr]` used to drop the run silently through to
+a PROJECTED ballot), `ROSTER_KEYS`, and `KNOWN_PARTY_CODES` — a declared name
+must resolve to a known party **or** carry its own `[party.X]` table, because
+`parties.canonical` slugs what it does not recognise and `'VF PLUS'` becomes a
+phantom `VF_PLUS` while the real `VFPLUS` is deleted. And a `complete = true`
+deletion above `ROSTER_DROP_CEILING` (1.5% of the fitting year's vote) refuses,
+names the parties, and requires `confirm_drop = true`. §L4. Until 2026-09-03 `support` was read only alongside `weights`, so a
+party announced without a ward list had its declared size silently discarded;
+and all three docstrings plus the template named `baseline_share` — the one key
+nothing reads — as the strength knob. JUDGEMENT-CALLS §L3.
+
+⛔ **A JUDGED SIZE SITS OUTSIDE THE GROUP BUDGET.** `arrival_rules` rescales
+the entrant group to the arrival-total record (`_arrival_total_prior`). That
+record is a prior over arrivals nobody has sized, so a party declared with
+`support` or `overperform` is held out of it — inside, a declared 12% came out
+at 0.3687%. The undeclared entrants still carry the record. §1.178.
+
+⛔ **THE DECLARATION SETS THE LEVEL; THE RECORD SETS THE WIDTH.** The band is
+the arrival record's quantiles divided by the **comparator mean**, never by the
+adjusted centre. Dividing by the centre made a stated level narrow its own band
+in proportion to it — ActionSA's ×36 would have produced a 95th percentile at
+7.7% of its own mean. JUDGEMENT-CALLS §L2, §1.178.
+
 Two things are switched ON but cannot be exercised by any backtest, and must be
 labelled as argued rather than tested wherever they are quoted: `w_bye` (the
 by-election scrape covers 2022-06 to 2026-02, so no past target has any) and the
@@ -865,9 +943,43 @@ Every `pools_*.json` carries an `artefact_key`:
 
 | field | what it pins |
 |---|---|
+| `schema` | the key's own shape. **2 since 2026-09-02** |
 | `city`, `target` | which city-year it was built for |
-| `config_sha` | `config/dimensions.toml` |
+| `config_sha` | **every `config/*.toml`**, by name and content, sorted — not the one named file it used to be |
+| `cities_sha` | **every `cities/*.toml`**. Not a per-city input: `panel_turnout_spread` globs the directory, so adding a ninth city moves the turnout band of all twenty-six specs |
 | `pools_sha` | `pools.py`'s **code**, hashed over its syntax tree with docstrings stripped, so changing a comment does not fire it |
+| `deps_sha` | the code of `parties`, `cityconfig`, `ingest_lge`, `levels` — the first-party modules the emit leans on. ⚠️ `montecarlo` is deliberately excluded: it changes on most working days and would mark every spec stale continuously, so a change to `read_ward_crosswalk` alone will NOT fire |
+| `judgements_sha` | `judgements/<slug>-<year>.toml`, hashed as **parsed payload** — so a prose edit does not fire it and a declared parent or weight does |
+
+⛔ **Two of those changed on 2026-09-02 because the key's POPULATION was wrong,
+not because a file was missing (§1.173).** `config_sha` named a single path,
+which coincided with the whole of `config/` only by accident; a second config
+file would have been consumed and invisible. And `judgements/<slug>-<year>.toml`
+— which sets each party's `parent`, `baseline_share` and pool `weights`, and is
+the one input a human is most likely to hand-edit — **was in no hash at all.** A
+nomination-list edit on 16 September would have changed what the model computes
+while every spec reported itself current.
+
+**Still outside the key, and named here so the gap is stated rather than
+implied:**
+
+* **`data/raw/**`** — deliberate, but *not* for the reason this used to give.
+  Hashing all 387 MB takes about a third of a second, so "it would cost more
+  than it catches" is wrong by an order of magnitude. The real reason is that
+  **`data/archive_manifest.csv` already covers it**, git-tracked, with
+  bidirectional tests written after six inputs went missing (§1.75). A second
+  mechanism over the same population is the duplication this project is named
+  for. ⚠️ Refreshing the manifest is therefore the moment to re-emit.
+* **`data/processed/<…>/vd_ward_<target>.csv`** — covered by nothing: not in
+  the key, gitignored, and excluded from the manifest assertions as an
+  "output", which it is not. It is a hand-curated input that sets the pool
+  sizes of the live forecast, and the IEC will republish the roll before
+  4 November. **This is a real gap, not a decision.**
+* **`montecarlo.py`** — see `deps_sha` above; excluded to avoid crying wolf,
+  with the residual risk named.
+* Emit parameters (`from_year`, `split_bloc`, `retrospective_home`), so
+  `pools_2026.json` and `pools_2026_simulation.json` carry byte-identical keys.
+  The `simulation_only` marker is the compensating control.
 
 `run_model` compares it against what the current code would produce and prints a
 named reason when it differs. The check is a **report, not a refusal** — an

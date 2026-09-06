@@ -123,7 +123,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _support import ROOT, skip, run_module  # noqa: E402
+from _support import ROOT, skip, run_module, scanned  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -631,6 +631,26 @@ OPERATIONAL: dict[str, str] = {
     "pools": "the emitted pool spec itself, loaded from pools_<year>.json",
 }
 
+# ⛔ STATUTE. A THIRD CATEGORY, BECAUSE THE OTHER TWO ARE BOTH WRONG FOR IT.
+#
+# `OPERATIONAL` means "not a claim about the world" — the statute emphatically
+# is one. `PERTURB` means "the project chose this and must show the choice
+# matters" — the project chose nothing; the legislature did.
+#
+# Filing the excessive-seats provision under `PERTURB` for its whole life is
+# how this module came to demand that a law move the forecast, and to offer
+# "delete it from DEFAULTS" as one of three remedies when it did not. Its value
+# is now refused at the `--set` boundary by `montecarlo.STATUTORY_VALUES`, so
+# what this category asserts is that the two lists agree: a statutory key is
+# named here and nailed down there, and neither can drift without the other.
+# MODEL-LOG §1.165.
+STATUTORY: dict[str, str] = {
+    "overhang_rule": (
+        "Municipal Structures Act Schedule 1 item 16 as amended by Act 3 of "
+        "2021. Not selected by score and not scoreable: it has never bound in "
+        "a metro across 24 city-years, tightest margin 2 seats."),
+}
+
 # Perturbations chosen to be large enough that no honest lever could absorb them.
 # Keys `montecarlo` reads out of `scenario` that are INJECTED AT RUNTIME rather
 # than declared: the pool spec writes them, or a stage writes them for a later
@@ -706,16 +726,16 @@ PERTURB: dict[str, object] = {
     # non-perturbation. At k=0 the slot inherits the parent's per-VD map and the
     # forecast moves at both targets. MODEL-LOG §1.53.
     "entrant_geography": {"parent": "ANC", "k": 0.0},
-    "overhang_rule": "expand",
 }
 
 
-def _run(target_year: str, overrides: list[str], run_dir: Path | None = None):
+def _run(target_year: str, overrides: list[str], run_dir: Path | None = None,
+         draws: int | None = None):
     city = cityconfig.use("joburg")
     target = cityconfig.use_target(target_year)
     M.apply_city(city)
     scenario = M.load_scenario(argparse.Namespace(
-        config=None, set=list(overrides), draws=DRAWS, seed=20261104,
+        config=None, set=list(overrides), draws=draws or DRAWS, seed=20261104,
         city="joburg", target=target_year))
     # `run_dir` is opt-in and changes no number -- asserted by
     # `test_chain.py::test_the_trace_is_inert_without_a_run_directory` -- and
@@ -762,10 +782,32 @@ def _run(target_year: str, overrides: list[str], run_dir: Path | None = None):
 _SWEEP_WORKERS = max(1, min(8, (os.cpu_count() or 2) - 1))
 
 
+# ⛔ A LEVER WHOSE EFFECT IS A RARE TAIL NEEDS MORE DRAWS, NOT AN EXCUSE.
+#
+# `DRAWS` is 40, which resolves any lever that shifts the central mass. It does
+# NOT resolve one that changes the answer in a small fraction of draws, and
+# reporting such a lever as DEAD is a false negative of exactly the kind this
+# module exists to prevent.
+#
+# ⚠️ THIS TABLE IS EMPTY, AND ITS ONE ENTRY WAS A MISTAKE WORTH RECORDING.
+# `("overhang_rule", "2021")` was given a 400-draw budget on 2026-09-01 so the
+# harness could resolve a 3.5% tail. The measurement was sound and the
+# conclusion was wrong: `overhang_rule` is STATUTE, it is not a lever, and the
+# fix was to take it out of `PERTURB` rather than to make this module better at
+# policing it. A test whose remedy menu offers "delete it" for the
+# excessive-seats provision is a hazard, not a guard. MODEL-LOG §1.165.
+#
+# Keep the mechanism: the next lever with a genuinely rare effect will need it,
+# and re-deriving the argument from scratch would be waste. Keep it EMPTY until
+# then, so nothing is resolved harder than the evidence warrants.
+RESOLUTION: dict[tuple[str, str], int] = {}
+
+
 def _run_job(job: tuple[str, list[str]]):
     """One perturbed run. Module level so a worker process can pickle it."""
-    year, overrides = job
-    return _run(year, overrides)
+    year, overrides = job[0], job[1]
+    draws = job[2] if len(job) > 2 else None
+    return _run(year, overrides, draws=draws)
 
 
 def _run_many(jobs: list[tuple[str, list[str]]]) -> list:
@@ -826,12 +868,22 @@ def _trace_root() -> Path:
     return _TRACE_ROOT
 
 
-def _base(year: str):
-    """The unperturbed run at `year`, with a trace on disk beside it."""
+def _base(year: str, draws: int | None = None):
+    """The unperturbed run at `year`, with a trace on disk beside it.
+
+    ``draws`` overrides the module default for a lever that needs more
+    resolution; that base is cached separately and carries no trace.
+    """
     assert _PATCH_DEPTH == 0, (
         "a base run was requested while a module constant is patched. Cache it "
         "and every later comparison is against a configuration this project "
         "does not ship.")
+    if draws is not None and draws != DRAWS:
+        # A comparison must be against a base at the SAME draw count and seed,
+        # or the difference measured is the sample, not the lever.
+        if (year, draws) not in _BASE:
+            _BASE[(year, draws)] = _run(year, [], draws=draws)
+        return _BASE[(year, draws)]
     if year not in _BASE:
         run_dir = _trace_root() / year
         _BASE[year] = _run(year, [], run_dir=run_dir)
@@ -909,10 +961,14 @@ def _sweep_target(year: str) -> list[str]:
     # str where it expects a mapping — which is an AttributeError deep in
     # run_model rather than a clear failure here.
     keys = [k for k, _v in sorted(PERTURB.items()) if k in M.DEFAULTS]
-    jobs = [(year, [f"{k}={json.dumps(PERTURB[k])}"]) for k in keys]
-    for key, result in zip(keys, _run_many(jobs)):
+    jobs = [(year, [f"{k}={json.dumps(PERTURB[k])}"], RESOLUTION.get((k, year)))
+            for k in keys]
+    results = _run_many(jobs)
+    for key, result in zip(keys, results):
         value = PERTURB[key]
-        moved = _moves(base, result)
+        # Against a base at the SAME draw count, or the difference measured is
+        # the sample rather than the lever.
+        moved = _moves(_base(year, RESOLUTION.get((key, year))), result)
         why = EXPECTED_INERT.get((key, year))
         if moved < 1e-9 and why is None:
             # Name the year. Without it a key that is inert at one target and
@@ -1243,12 +1299,27 @@ def test_every_defaults_key_is_swept_or_excused():
     ENUMERATING rather than listing. This does the same, in both directions.
     """
     keys = set(M.DEFAULTS)
-    missing = sorted(keys - set(PERTURB) - set(OPERATIONAL))
+    missing = sorted(keys - set(PERTURB) - set(OPERATIONAL) - set(STATUTORY))
     assert not missing, (
         "these DEFAULTS keys are never perturbed, so nothing would notice if "
         f"they stopped doing anything:\n  {missing}\n"
-        "Give each a perturbation in PERTURB, or name it in OPERATIONAL with "
-        "the reason it is not a model judgement.")
+        "Give each a perturbation in PERTURB, name it in OPERATIONAL with the "
+        "reason it is not a model judgement, or name it in STATUTORY if the "
+        "project does not get to choose it at all.")
+
+    # The two halves of the statutory claim must agree, in BOTH directions: a
+    # key named here must be nailed down in the source, and every key nailed
+    # down there must be named here. One without the other is a claim nobody
+    # checks -- and the source list is what actually refuses the override.
+    assert set(STATUTORY) == set(M.STATUTORY_VALUES), (
+        f"STATUTORY here is {sorted(STATUTORY)} and "
+        f"montecarlo.STATUTORY_VALUES is {sorted(M.STATUTORY_VALUES)}. A "
+        f"statutory key named in one and not the other is either an "
+        f"unenforced claim or an unexplained refusal.")
+    for key, want in M.STATUTORY_VALUES.items():
+        assert M.DEFAULTS[key] == want, (
+            f"DEFAULTS[{key!r}] is {M.DEFAULTS[key]!r} but the statute is "
+            f"{want!r} -- the shipped default is not the law.")
 
     stale = sorted(set(PERTURB) - keys - set(_MODULE_LEVEL))
     assert not stale, (
@@ -1620,19 +1691,39 @@ def test_no_dict_literal_declares_the_same_key_twice():
     import ast as _ast
     from collections import Counter as _Counter
     bad = []
-    for path in sorted((ROOT / "src").glob("*.py")) + sorted((ROOT / "tests").glob("*.py")):
+    files = (sorted((ROOT / "src").glob("*.py"))
+             + sorted((ROOT / "tests").glob("*.py")))
+    parsed, can_fail = [], []
+    for path in files:
         try:
             tree = _ast.parse(path.read_text())
         except SyntaxError:
             continue
+        parsed.append(path)
         for node in _ast.walk(tree):
             if not isinstance(node, _ast.Dict):
                 continue
             keys = [k.value for k in node.keys
                     if isinstance(k, _ast.Constant) and isinstance(k.value, str)]
+            if len(keys) > 1:
+                # Only a dict with two or more string keys CAN declare one
+                # twice. That subset is the population this claim is about.
+                can_fail.append(f"{path.name}:{node.lineno}")
             for key, n in _Counter(keys).items():
                 if n > 1:
                     bad.append(f"{path.name}:{node.lineno} declares {key!r} {n} times")
+    # (1) IT LOOKED. `assert not bad` is satisfied by parsing nothing, and a
+    # single SyntaxError in a file this walk touches drops it silently through
+    # the `continue` above. Both bounds are fractions of the file count, so
+    # neither goes stale as the tree grows — 84 files and 449 two-key dicts on
+    # 2026-08-31.
+    scanned(parsed, of=files, low=1.0, high=1.0,
+            what="files this walk parsed",
+            denominator=".py files in src/ and tests/")
+    scanned(can_fail, of=files, low=2.0, high=20.0,
+            what="dict literals with two or more string keys — the only ones "
+                 "that CAN declare a key twice",
+            denominator=".py files in src/ and tests/")
     assert not bad, (
         "a dict literal declares one key more than once; every copy but the "
         "last is dead, along with any comment explaining it:\n  "
@@ -1874,6 +1965,104 @@ def test_module_constants_are_swept_for_liveness_too():
           "it.")
 
 
+def _default_argument_scan(paths):
+    """The scan behind CLASS 12, as a function so a fixture can be pushed through it.
+
+    Returns ``(offenders, numeric, bound_as_default)`` — the offenders, the
+    numeric module constants examined, and the (module, name) pairs bound as a
+    default argument. The last two are the SCANNED population; the first is the
+    verdict. Keeping them apart is the point: a guard that bounds the verdict
+    would be demanding violations, and a guard that bounds nothing passes on an
+    empty tree.
+    """
+    offenders: list[str] = []
+    numeric_seen: list[str] = []
+    bound: list[str] = []
+    for path in sorted(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except SyntaxError:
+            continue
+        numeric = {t.id for node in tree.body
+                   if isinstance(node, ast.Assign) and len(node.targets) == 1
+                   for t in node.targets
+                   if isinstance(t, ast.Name) and t.id.isupper()
+                   and isinstance(node.value, ast.Constant)
+                   and isinstance(node.value.value, (int, float))
+                   and not isinstance(node.value.value, bool)}
+        numeric_seen += [f"{path.name}:{n}" for n in sorted(numeric)]
+        if not numeric:
+            continue
+        as_default: dict[str, list[str]] = {}
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            for d in (list(node.args.defaults)
+                      + [x for x in node.args.kw_defaults if x is not None]):
+                for n in ast.walk(d):
+                    if isinstance(n, ast.Name):
+                        as_default.setdefault(n.id, []).append(
+                            f"{node.name}():{node.lineno}")
+        bound += [f"{path.name}:{n}" for n in sorted(as_default)]
+        for name in sorted(numeric & set(as_default)):
+            loads = sum(1 for n in ast.walk(tree)
+                        if isinstance(n, ast.Name) and n.id == name
+                        and isinstance(n.ctx, ast.Load))
+            if loads <= len(as_default[name]):
+                offenders.append(
+                    f"{path.name} {name} is read ONLY as a default argument "
+                    f"({', '.join(as_default[name])})")
+    return offenders, numeric_seen, bound
+
+
+def test_the_default_argument_scan_can_still_see_the_LEVEL_DF_shape():
+    """(1) AND (2) for the scan below, which has a population of ZERO offenders.
+
+    **Measured 2026-08-31: `numeric & as_default` is empty in all 50 files of
+    `src/`, so `test_no_numeric_module_constant_is_reachable_only_as_a_default_argument`
+    cannot fail for any reason.** That is the healthy state for a guard on a
+    defect — but it means the only evidence the guard still works is the scan's
+    own inputs and a constructed violation, and its `assert seen_defaults`
+    supplied neither: `seen_defaults` counted 22 by tallying every `ast.Name`
+    inside every default expression, which on that date was `Path` (×2),
+    `frozenset`, `blk` (a local), `levels` (a module, ×5) and six real
+    constants. **The guard read 22 on a tested population of 0** — a set
+    disjoint from the one under test — and its message named
+    `official_seats.REPORTS`, which the scan does not reach at all because that
+    module has no numeric constant.
+
+    So: bound the two SCANNED sets against the file count, and re-run the
+    detector on the exact shape the original `LEVEL_DF` defect had.
+    """
+    src = sorted((ROOT / "src").glob("*.py"))
+    offenders, numeric, bound = _default_argument_scan(src)
+    scanned(numeric, of=src, low=0.6, high=6.0,
+            what="numeric UPPERCASE module constants in src/",
+            denominator=".py files in src/")
+    scanned(bound, of=src, low=0.1, high=3.0,
+            what="module-level names bound as a default argument",
+            denominator=".py files in src/")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        # Exactly `def log_shock(..., df: float = LEVEL_DF)`: the constant is
+        # loaded nowhere else in its own module, so setting it after import
+        # changes nothing.
+        fake = Path(tmp) / "fake_levels.py"
+        fake.write_text(
+            "LEVEL_DF = 4.0\nSD_FLOOR = 0.01\n\n"
+            "def log_shock(rng, df: float = LEVEL_DF):\n"
+            "    return rng\n\n"
+            "def widen(sd):\n"
+            "    return max(sd, SD_FLOOR)\n")
+        caught, _, _ = _default_argument_scan([fake])
+    assert len(caught) == 1 and "LEVEL_DF" in caught[0], (
+        f"the detector was handed the original defect verbatim — a numeric "
+        f"constant read only as a default argument, beside one that is read in "
+        f"a body — and reported {caught}. It must report LEVEL_DF and only "
+        f"LEVEL_DF. Its live population is 0, so this is the ONLY evidence it "
+        f"can still see anything.")
+
+
 def test_no_numeric_module_constant_is_reachable_only_as_a_default_argument():
     """CLASS 12's founding shape, made structural.
 
@@ -1889,49 +2078,17 @@ def test_no_numeric_module_constant_is_reachable_only_as_a_default_argument():
     `pools.CONFIG` and `official_seats.REPORTS` are all in this shape and none
     of them is a judgement call — they are maps and paths, and a caller passes
     them explicitly. The class this catches is a NUMBER someone chose.
-    """
-    offenders, seen_defaults = [], 0
-    for path in sorted((ROOT / "src").glob("*.py")):
-        try:
-            tree = ast.parse(path.read_text(encoding="utf-8"))
-        except SyntaxError:
-            continue
-        numeric = {t.id for node in tree.body
-                   if isinstance(node, ast.Assign) and len(node.targets) == 1
-                   for t in node.targets
-                   if isinstance(t, ast.Name) and t.id.isupper()
-                   and isinstance(node.value, ast.Constant)
-                   and isinstance(node.value.value, (int, float))
-                   and not isinstance(node.value.value, bool)}
-        if not numeric:
-            continue
-        as_default: dict[str, list[str]] = {}
-        for node in ast.walk(tree):
-            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                continue
-            for d in (list(node.args.defaults)
-                      + [x for x in node.args.kw_defaults if x is not None]):
-                for n in ast.walk(d):
-                    if isinstance(n, ast.Name):
-                        as_default.setdefault(n.id, []).append(
-                            f"{node.name}():{node.lineno}")
-        seen_defaults += sum(len(v) for v in as_default.values())
-        for name in sorted(numeric & set(as_default)):
-            loads = sum(1 for n in ast.walk(tree)
-                        if isinstance(n, ast.Name) and n.id == name
-                        and isinstance(n.ctx, ast.Load))
-            if loads <= len(as_default[name]):
-                offenders.append(
-                    f"{path.name} {name} is read ONLY as a default argument "
-                    f"({', '.join(as_default[name])})")
 
-    assert seen_defaults, (
-        "no module constant is used as a default argument anywhere in src/, "
-        "which means this scan is looking for a pattern that no longer occurs "
-        "in any form — and it would then pass forever while checking nothing. "
-        "Three benign instances existed on 2026-08-27 (levels.METRO_CODES, "
-        "pools.CONFIG, official_seats.REPORTS); if all three have gone, "
-        "rewrite this guard rather than deleting it.")
+    The scan lives in :func:`_default_argument_scan`, and the evidence that it
+    still SEES — a constructed `LEVEL_DF` bound as a default, plus two-sided
+    bounds on both scanned sets — is in
+    `test_the_default_argument_scan_can_still_see_the_LEVEL_DF_shape`. It has
+    to be, because the offender population here has been 0 since the original
+    defect was fixed and an empty verdict is indistinguishable from a dead scan
+    without one.
+    """
+    offenders, _numeric, _bound = _default_argument_scan(
+        (ROOT / "src").glob("*.py"))
     assert not offenders, (
         "a numeric module constant is bound once at import and nowhere else:\n  "
         + "\n  ".join(offenders)

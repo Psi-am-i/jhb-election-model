@@ -104,7 +104,37 @@ ENV_SWITCHES = (
     # condition `tests/test_freeze.py` describes as how a baseline was measured
     # against the RETIRED sigma without anyone noticing. MODEL-LOG §1.104.
     "PYTHONHASHSEED",
+    # The eighth, added 2026-09-06, and it is the seventh's lesson repeated.
+    # `levels.HELD_BACK` quarantines the pre-2011 history for seven metros, and
+    # `HELD_BACK_OFF=1` empties it at import — `levels.py`'s own comment INVITES
+    # that run, so a diagnostic freeze is a legitimate thing to take. Measured:
+    # the variable moves `theta_record` from 410 observations to 458 and
+    # `local_record` from 292 to 353 across six extra parties, which sets
+    # `sd(log θ)` and `sd(log ρ)` — **every band width in the published
+    # forecast**. Two freezes differing only in it were indistinguishable in the
+    # artefact, which is §1.104's failure exactly. A `gates_sha` was added to
+    # `pools.artefact_key` on 2026-09-05 and not carried to this register, the
+    # other one of the same class. MODEL-LOG §1.193.
+    "HELD_BACK_OFF",
+    # The ninth, found by the code→register scan the same day, and arguably the
+    # most important of all: `JHB_SCORE_NO_RELABEL=1` withholds the arrival
+    # label from the MODEL, which changes what the SCORER IS. Two `history.json`
+    # files differing only in it are two different scoreboards, and the
+    # difference is worth 40 coherent seats (386 → 426). A freeze that does not
+    # say which scorer produced its baseline cannot be compared to another.
+    "JHB_SCORE_NO_RELABEL",
 )
+
+# Environment variables `src/` reads that deliberately do NOT belong above,
+# each with the reason. The guard in `tests/test_freeze.py` scans `src/` and
+# requires every read to be either registered or listed here — an exemption
+# with a reason, never a silent omission.
+ENV_NOT_RECORDED = {
+    "POOLS_LOCK_WAIT": "a lock TIMEOUT in seconds. It changes how long a writer "
+                       "waits for the artefact lock and can change whether a "
+                       "run completes, but it cannot change a number that a "
+                       "completed run produces.",
+}
 
 
 def _git(*args: str) -> str:

@@ -13,8 +13,8 @@
 >   sixteen-city-year figure.
 > * **There are 26 pool specs, not 18**, and they are **deliberately stale** —
 >   a single re-emit is pending behind a paid code review.
-> * **The suite is 450 passed / 4 failed / 17 skipped**, not 377/0/10. Two of
->   those four failures are **live defects**, not expected ones.
+> * **The suite is 451 passed / 5 failed / 17 skipped**, not 377/0/10. Two of
+>   those five failures are **live defects**, not expected ones.
 > * A batch of ~40 commits has landed: the turnout band, a bounded rate
 >   estimator, the artefact key's population, a declared-nomination-list roster
 >   seam, the 2000/2006 election results made readable, and an
@@ -150,7 +150,7 @@ re-run of that comparison with a referee that cannot be handed the answer.
 
 > ⛔ **ANNOTATED 2026-09-05, NOT EDITED.** Every line of the preflight below is
 > now false, and a session following it would draw the wrong conclusion four
-> ways: the suite is **450 passed / 4 failed** (two of the four are live
+> ways: the suite is **451 passed / 5 failed** (two of the five are live
 > defects), `freeze --verify` speaks for a pre-batch artefact, the code hash is
 > **not** `dbdf171344ffd5f0`, and there are **26** specs rather than 18. **A
 > re-emit is not merely permitted — it is the pending step of the current

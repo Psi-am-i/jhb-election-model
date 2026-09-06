@@ -39,7 +39,12 @@ PROCESSED = Path("data/processed")
 def main() -> int:
     for rule in ("expand", "level", "cap"):
         print(f"\n=== overhang_rule={rule} ===")
-        montecarlo.main(["--set", f"overhang_rule={rule}"])
+        # `--counterfactual` is required since 2026-09-02: `overhang_rule`
+        # is statute and `--set` refuses to change it without the word
+        # being said. This script is the one legitimate caller, and it
+        # restores the reference run below. MODEL-LOG §1.165.
+        montecarlo.main(["--counterfactual",
+                         "--set", f"overhang_rule={rule}"])
         shutil.copy(PROCESSED / "forecast_summary.json",
                     PROCESSED / f"regime_{rule}_summary.json")
         shutil.copy(PROCESSED / "seat_draws.csv",

@@ -26,7 +26,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _support import run_module  # noqa: E402
+from _support import run_module, scanned  # noqa: E402
 
 import build_all  # noqa: E402
 import cityconfig  # noqa: E402
@@ -73,8 +73,28 @@ def test_build_site_and_portal_are_reached_when_an_optional_step_refuses():
 
 
 def test_the_interactive_page_is_not_built_by_default():
-    """It refuses by design. Asking for it every time makes refusal routine."""
+    """It refuses by design. Asking for it every time makes refusal routine.
+
+    **(1) and (2) added 2026-08-31.** The two `assert not any(...)` clauses are
+    satisfied by an EMPTY command log, and the log is empty whenever `build_all`
+    stops routing through `subprocess.run` — an in-process call, a `Popen`, a
+    task runner. So the absence is asserted against the same denominator that
+    produces it, and the SAME substring detector is required to find
+    `build_interactive.py` when the flag IS passed. A detector that cannot find
+    the thing present proves nothing by not finding it absent.
+    """
     _, ran = _main(["--city", "joburg"])
+    opted, _ = _main(["--city", "joburg", "--interactive"]), None
+    with_flag = opted[1]
+
+    scanned(ran, of=with_flag, low=0.4, high=1.0,
+            what="commands the default build ran",
+            denominator="commands the --interactive build ran")
+    assert any("build_interactive.py" in c for c in with_flag), (
+        f"the substring detector cannot find build_interactive.py even when "
+        f"--interactive is passed, so its silence on the default build is "
+        f"worth nothing. Commands: {with_flag}")
+
     assert not any("build_interactive.py" in c for c in ran), (
         "build_interactive ran without --interactive, and it is a step that "
         "deliberately refuses")
@@ -124,6 +144,13 @@ def test_a_required_failure_does_not_reach_the_site():
     finally:
         build_all.subprocess.run = real
     ran = [" ".join(c) for c in log]
+    # (1) IT LOOKED. `not any(...)` over an empty log is a pass, and an empty
+    # log is what a build that stopped shelling out produces. The required step
+    # must be seen to have been ATTEMPTED before its non-reaching of the site
+    # means anything.
+    assert any("render_map.py" in c for c in ran), (
+        f"the failing REQUIRED step was never attempted, so the build did not "
+        f"stop — it never started. Commands: {ran}")
     assert not any("build_site.py" in c for c in ran), ran
 
 

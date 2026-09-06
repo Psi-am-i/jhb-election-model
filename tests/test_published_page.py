@@ -399,8 +399,17 @@ def test_the_page_diff_is_readable_and_names_the_token_first():
     bytes the (refused) build wrote for it.
 
     ⛔ It asserts NOTHING about whether the pages agree. That is T1 and T6.
-    This test would pass on a perfectly fresh tree with an empty diff, and is
-    written so that it does.
+
+    **AND ON A FRESH TREE IT USED TO ASSERT NOTHING AT ALL.** It returned at
+    the `_normalise(old) == _normalise(new)` line — which on 2026-08-31 was not
+    merely normalise-equal but BYTE-equal — so the only assertion that ever
+    executed was `fresh.exists()`, and every diff renderer below it was
+    unreached. That is precisely the failure the docstring above describes
+    happening to a scoring function, reproduced in the test written to prevent
+    it: a fresh tree is the NORMAL state of this repository, so the normal
+    state was zero coverage. **The divergence is now CONSTRUCTED when the tree
+    does not supply one**, which is CLAUDE.md's third requirement — a test
+    whose premise is a passing state of the tree expires silently.
     """
     if not LANDING.exists():
         skip("site/index.html is absent — nothing has been built to check")
@@ -412,8 +421,24 @@ def test_the_page_diff_is_readable_and_names_the_token_first():
             "the diff machinery has nothing to run on")
         old = LANDING.read_text(encoding="utf-8")
         new = fresh.read_text(encoding="utf-8")
+        constructed = False
         if _normalise(old) == _normalise(new):
-            return                       # nothing to diff; T1/T6 own that case
+            # Move ONE free token's rendered glyph, which is exactly the shape
+            # branch (b) exists to report, and carry on into the renderers.
+            spans = [s for s in _spans(old) if s.get("data-mode") == "free"]
+            assert spans, (
+                "site/index.html carries no free stat token, so no divergence "
+                "of the shape this test reports can be constructed and the "
+                "diff renderers below have never been executed on anything.")
+            victim = spans[0]
+            anchor = f'data-token="{victim["data-token"]}"'
+            start = old.index(">", old.index(anchor)) + 1
+            end = old.index("</span>", start)
+            new = old[:start] + "MOVED-FOR-THE-DIFF-TEST" + old[end:]
+            constructed = True
+            assert _normalise(old) != _normalise(new), (
+                "the constructed divergence survived normalisation, so this "
+                "test still runs the renderers on nothing")
 
         tokens = _token_diff(old, new)
         prose = list(unified_diff(_visible(old), _visible(new), lineterm="", n=1))
@@ -433,6 +458,14 @@ def test_the_page_diff_is_readable_and_names_the_token_first():
             "a visible-text diff line runs past 4,000 characters, so a block "
             "of markup survived stripping. The whole point is that the reader "
             "can see which figure moved.")
+        if constructed:
+            # (2) IT CAN SEE. The divergence was planted on one named token, so
+            # the token diff must NAME it — which is what "names the token
+            # first" in this test's title actually claims and never checked.
+            assert any(victim["data-token"] in line for line in tokens), (
+                f"a free token's rendered figure was changed and the token "
+                f"diff did not name {victim['data-token']!r}. It reported: "
+                f"{tokens[:5]}")
 
 
 def test_the_published_pages_are_what_this_tree_builds_today():
