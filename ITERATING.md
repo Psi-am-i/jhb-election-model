@@ -42,7 +42,32 @@ If yes, it is a candidate for publication. If no, it does not ship and we keep
 iterating. There is no third outcome in which a worse model is published because
 it is newer, better argued, or built from more measurements.
 
-### AMENDED 2026-08-27 — a more honest model beats a rigged one
+### ⛔ AMENDED 2026-09-01 BY THE OWNER — THE RULE IS NOW "MORE HONEST USUALLY SHIPS"
+
+> *"Please remove 'worse does not ship' — you make it mean something new each
+> time. **More honest usually ships.**"* — owner, 2026-09-01
+
+**"Worse does not ship" is retired as a rule.** It was invoked in this project
+for a scorer change, a data ingest and a pool fix inside one week, meaning
+something different each time — which is what a rule that has stopped carrying
+its own reasoning looks like. A phrase that can justify any of three opposite
+decisions is not a standard.
+
+**The standard is: a change that makes the model MORE HONEST usually ships, even
+when a headline score worsens.** More honest means: a real measurement replacing
+a typed constant; real data replacing an assumed absence; a rigged comparison
+made fair; an instrument that can no longer flatter itself.
+
+**What still does not ship is a change that scores worse AND explains nothing** —
+because that is the case where a worse score almost always means something
+nonsensical or inert has been modelled, which is the reasoning the old rule was
+carrying and the only part worth keeping.
+
+**And "more honest" is a claim that must be argued, not asserted.** Say what the
+change makes true that was false before. If the only argument is that the number
+went the way you wanted, it is not an honesty argument.
+
+### The 2026-08-27 amendment this supersedes — a more honest model beats a rigged one
 
 **The owner's amendment, and the reasoning is the part that matters:**
 
@@ -660,6 +685,20 @@ requirement to measure.
    doubt. The WIDTH does not: **both bands are too wide, by almost exactly the
    same factor.**
 
+   ⛔ **RE-RECORDED 2026-08-31, DELIBERATELY, AND HERE IS WHY.** The PIT
+   randomisation was re-keyed from COLUMN POSITION to `(seed, party name)`
+   (§1.150), because the old keying let the seed alone move `reference`/2021
+   probit-SD by 0.0327 — making a Key 2 finding built on it 3.4 sd of a paired
+   re-roll. Re-keying necessarily moves every PIT value once. Measured against
+   the previous artefact: ranks 1-3 **0.510 → 0.510** (it has returned to where it began), ranks
+   4-12 **0.613 → 0.629**. The second exceeds this table's own ±0.012 tolerance, which is how
+   the guard caught it — correctly.
+
+   **No conclusion moves.** Ranks 1-3 remains centred (CI contains 0.50, cycles
+   of opposite sign) and ranks 4-12 remains the one departed band. The
+   re-record was intended for the re-emit window; it landed early because
+   re-taking the baseline *is* the re-record, which was not obvious in advance.
+
    <!-- CHECKED-AGAINST-ARTEFACT: data/processed/history.json, claimed columns.
         tests/test_calibration_report.py::test_the_documented_figures_match_the_committed_artefact
         parses the two tables below and fails the build if they and the artefact
@@ -668,58 +707,89 @@ requirement to measure.
 
    | claimed columns | n | mean PIT | 50% (PIT) | 80% (PIT) | 90% (PIT) | probit-SD |
    |---|---|---|---|---|---|---|
-   | ranks 1-3 | 48 | 0.510 | 85% | 96% | 98% | 0.818 |
-   | ranks 4-12 | 57 | 0.613 | 61% | 91% | 93% | 0.820 |
+   | ranks 1-3 | 63 | 0.527 | 73% | 94% | 94% | 0.760 |
+   | ranks 4-12 | 65 | 0.588 | 62% | 91% | 94% | 0.851 |
 
-   | sixteen-city-year vote error | signed | absolute |
+   | twenty-one-city-year vote error | signed | absolute |
    |---|---|---|
-   | ranks 1-3 | +12.29pp | 92.52pp |
-   | ranks 4-12 | -26.11pp | 73.00pp |
-   | ranks 13+ | +4.35pp | 22.37pp |
-   | phantom (parties that did not stand) | +9.47pp | — |
+   | ranks 1-3 | -4.83pp | 181.50pp |
+   | ranks 4-12 | -12.54pp | 105.77pp |
+   | ranks 13+ | +3.91pp | 24.15pp |
+   | phantom (parties that did not stand) | +13.47pp | — |
 
-   **BOTH TABLES ARE NOW MEASURED ON SIXTEEN CITY-YEARS (2026-08-23,
-   `MODEL-LOG` §1.77).** They were nine until §1.70 doubled the panel, and that
-   entry's own instruction — *"every number in this repository predating this
-   entry was measured on nine city-years and must be re-read on sixteen before
-   it is quoted again"* — was not carried out at the time. This is that re-read
-   for rule 8. **The fault keeps its shape and grows with the panel**: ranks 1-3
-   +10.62pp → **+12.55pp** signed and 61.09 → **94.23pp** absolute, ranks 4-12
-   −22.76 → **−26.57pp** and 48.42 → **72.60pp**. Half the added city-years are
-   a cycle the model had never been scored on, so more absolute error over more
-   columns is expected; what matters is that the SIGNS and the ordering are
-   unchanged.
+   **BOTH TABLES ARE NOW MEASURED ON TWENTY-ONE CITY-YEARS (2026-09-02,
+   `MODEL-LOG` §1.160/§1.161).** They were nine until §1.70, sixteen until
+   §1.77, and are twenty-one now that the 2011 cycle is emitted. The standing
+   instruction from §1.70 — *"every number in this repository predating this
+   entry was measured on [the old panel] and must be re-read before it is
+   quoted again"* — applies again, to everything quoted off the sixteen.
 
-   Mean PIT moved with it — ranks 1-3 0.483 → **0.511** and ranks 4-12 0.676 →
-   **0.613**, both toward 0.50 — and the width statistic moved the other way:
-   probit-SD 0.685 → **0.676** at the top and 0.695 → **0.828** in the middle.
-   **On sixteen city-years the middle band is not merely mis-levelled, it is
-   measurably wider than it was**, which is the direction §1.59's second finding
-   asked for and is not evidence that anything was fixed — nothing about the
-   width was changed between the two measurements. The panel was.
+   ⛔ **THE RANKS 1-3 SIGN FLIPPED, AND THE PREVIOUS VERSION OF THIS PARAGRAPH
+   SAID IT WOULDN'T.** On sixteen city-years it read *"the fault keeps its shape
+   and grows with the panel"*, with ranks 1-3 at **+13.15pp** signed. On
+   twenty-one it is **-4.83pp**. The model does not over-forecast the top three;
+   on this panel it slightly under-forecasts them. **That claim survived two
+   panel expansions and did not survive the third**, which is the whole argument
+   for re-reading rather than re-quoting — a sign is the most confidently
+   repeated thing in this document and it was wrong.
+
+   The other bands keep their direction and shrink: ranks 4-12 -27.44 →
+   **-12.54pp** signed, ranks 13+ +5.04 → **+3.91pp**. Absolute error roughly
+   doubles at the top (94.41 → **181.50pp**) and grows by half in the middle
+   (71.81 → **105.77pp**), which is expected when five city-years are added from
+   a cycle the model had never been scored on; absolute error over more columns
+   is not a regression and is not read as one.
+
+   **Phantom mass grew, and it is where the missing sign went**: +9.25 →
+   **+13.47pp** on parties that did not stand at all. The three signed bands sum
+   to **-13.47pp** rather than to zero for exactly that reason. No band can see
+   it, because each iterates the parties that DID stand. A reader comparing the
+   ranks 1-3 sign across panels without also reading this row will mis-attribute
+   the flip to the top of the ballot; it belongs to the column that is not in
+   either table.
+
+   Mean PIT: ranks 1-3 0.510 → **0.527**, ranks 4-12 0.629 → **0.588**. The
+   middle band moved toward 0.50 and the top band moved away from it, in the
+   direction the signed error now says. **Only ranks 4-12 still excludes 0.50**
+   on the cluster bootstrap — [0.509, 0.654] — and ranks 1-3 at [0.494, 0.557]
+   straddles it comfortably.
+
+   The width statistic moved substantially and in the direction that matters:
+   probit-SD 0.624 → **0.760** at the top and 0.808 → **0.851** in the middle,
+   both toward 1.0. **Nothing about the width was changed between the two
+   measurements — the panel was**, so this is not evidence that a width fix
+   worked. It is evidence that the sixteen-city-year width verdict was measured
+   on too little, and the earlier reading of the top band as far too sharp was
+   overstated. 50% PIT coverage falls 83% → 73% at the top with it.
 
    **The tail is the cost, it was attacked, and it stays.** Ranks 13+ sit at
-   **+4.42pp** signed (they were −1.55pp before the shrink and +5.60pp on the
-   nine): a band that was very nearly unbiased is over-forecast, because the
-   shrink returns its freed mass by uniform renormalisation and there are many
-   micro-parties to receive it. §1.54 built the obvious fix — a soft floor on
-   the receiving side — and measured it: it closes the tail and **costs 14 to 22
-   coherent seats**, while making ranks 1-3 and 4-12 *both worse*. The mass
-   withheld from the tail goes to the TOP, not the middle, because every weight
-   tried is monotone in size. And the tail is **33 of 2,960 seats** at stake
-   across the sixteen — **1.1%** of what is being contested, a smaller share
-   than the 1.8% it was on the nine.
+   **+3.91pp** signed on twenty-one city-years (+5.04pp on the sixteen, −1.55pp
+   before the shrink, +5.60pp on the nine): a band that was very nearly unbiased
+   is over-forecast, because the shrink returns its freed mass by uniform
+   renormalisation and there are many micro-parties to receive it. §1.54 built
+   the obvious fix — a soft floor on the receiving side — and measured it: it
+   closes the tail and **costs 14 to 22 coherent seats**, while making ranks 1-3
+   and 4-12 *both worse*. The mass withheld from the tail goes to the TOP, not
+   the middle, because every weight tried is monotone in size. And the tail is
+   **33 of 3,684 seats** at stake across the twenty-one — **0.90%** of what is
+   being contested, against 1.1% on the sixteen and 1.8% on the nine. ⚠️ The 33
+   did not move when five city-years were added, so the share falls purely
+   because the denominator grew; that is arithmetic, not an improvement.
 
    So this is a bias the project has decided to carry, on the record, rather
    than an outstanding defect.
 
-   **On level.** The pooled claimed mean PIT is 0.559 and it sits between 0.511
-   and 0.613 — an over-forecast averaged with an under-forecast. The model still
-   **over**-forecasts the top three and **under**-forecasts the middle, exactly
-   as the signed vote bands say, but by much less than it did, and only the
-   ranks 4-12 cluster-bootstrap CI excludes 0.50 — [0.537, 0.684] on sixteen
-   city-years, against ranks 1-3 at [0.474, 0.544], which does not separate from
-   centred. ~~**That split survived the panel doubling**, which is the first
+   **On level.** On twenty-one city-years the claimed mean PIT is **0.527** at
+   ranks 1-3 and **0.588** at ranks 4-12 — both above 0.50, i.e. both bands now
+   read as UNDER-forecast rather than as an over-forecast averaged with an
+   under-forecast. Only the ranks 4-12 cluster-bootstrap CI excludes 0.50 —
+   **[0.509, 0.654]** — against ranks 1-3 at **[0.494, 0.557]**, which does not
+   separate from centred.
+
+   ⚠️ **The sentence this replaces said the model "still over-forecasts the top
+   three", and on this panel it does not.** The figures it quoted ([0.537,
+   0.684] and [0.474, 0.544]) were the sixteen-city-year values and must not be
+   requoted. ~~**That split survived the panel doubling**, which is the first
    out-of-sample evidence rule 8 has ever had for its central claim: it was
    measured on one electoral cycle and it holds on two.~~
 
@@ -912,7 +982,7 @@ requirement to measure.
    withdrawal is instructive.** Both derived values were measured on the nine
    city-years at 1500 draws and both are worse, monotonically: 254 coherent at
    the committed 0.25, **262 at 0.290 and 264 at 0.353**, with CRPS 232.7 /
-   234.3 / 236.1. *Worse does not ship.* Note this is not a constant chosen ON
+   234.3 / 236.1. *Worse, and nothing more honest is being bought.* Note this is not a constant chosen ON
    the scoreboard — 0.25 is the incumbent and the scoreboard was used to REJECT
    a change, which is the one thing it is unambiguously for. And §1.31's finding
    that "the whole range is inside the noise" **has expired**: the same sweep
@@ -1033,6 +1103,15 @@ requirement to measure.
 > top of this file.
 
 
+⛔ **STALE SINCE THE PANEL BECAME 24, AND THIS FILE'S OWN RULE SAYS SO.**
+§1.77 instructs that every number predating §1.70 be re-read before it is quoted
+again; the panel then went 16 → 24 on 2026-09-02 and this headline never moved.
+**On the current 24 city-years the coherent seat error is 707** — 29.5 per
+city-year against the 24.0 below — and no uniform-swing comparison has been
+taken on the wider panel. The paragraph is kept because the *sign* of the claim
+is what matters and it has not been retested, not because the figure is current.
+⚠️ **Do not quote 384 without saying it is sixteen city-years.**
+
 The only question this file asks is whether the model predicts past elections
 better than the last version and better than the baselines. It does: **384
 coherent seat error against uniform swing's 530 across sixteen city-years, with
@@ -1098,7 +1177,7 @@ exist.
 
 The last row is the only one with a live case, and it is a trade: ranks 1-3 are
 about 1.47× too wide (probit-SD 0.682, unattenuated) and narrowing fixes it **at
-the cost of coherent seats**. *Worse does not ship* decides that, and rule 10
+the cost of coherent seats**. *Worse with nothing more honest bought* decides that, and rule 10
 decides it again, since the method-of-moments fit names 1.0.
 
 ### So the remaining work is not modelling

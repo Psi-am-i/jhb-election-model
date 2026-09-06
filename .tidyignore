@@ -1,0 +1,19 @@
+# Do not sweep this repository.
+#
+# It DELIBERATELY stages work that looks like an untidy tree and is not:
+#
+#   * `data/processed/**/pools_*.json` are held UN-EMITTED on purpose. The
+#     booked `/code-review ultra` must run against a diff whose artefacts have
+#     not moved (audits/ULTRA-REVIEW-1-pools-reemit.md, "BEFORE the emit, never
+#     after"). Committing or re-emitting them destroys the baseline.
+#
+#   * `main` is deliberately PINNED BEHIND the working branch, because the
+#     no-argument review bundles `main..HEAD` and that is what defines the
+#     review's scope.
+#
+# On 2026-09-02 23:06 a sweep committed this session's in-flight work AND moved
+# `main` to it. Nothing was lost, but the review scope became ZERO COMMITS —
+# and a review of an empty diff reports nothing wrong, which is
+# indistinguishable from a clean review. See audits/ULTRA-REVIEW-1-STATE.md.
+#
+# Remove this file once the review has run and the emit window has closed.

@@ -98,6 +98,37 @@ Also confirmed working: turnout PDFs at
 Run `src/fetch_iec.py` to sweep every LGE report that is served directly
 (party CSV, detailed results, seat calculation, turnout) for 2011, 2016 and 2021.
 
+## ⛔ TWO ROUTES, AND THE PER-VD RESULTS DO NOT ALL COME FROM THE SAME ONE
+
+**Read this before concluding that an election's results are missing.** The
+project holds VD-level party results for every LGE from 2000 and every NPE from
+1999, but they arrive by two completely different routes, in two different
+layouts, and only one of them is reachable from the IEC's results portal.
+
+| | portal route | bulk-archive route |
+|---|---|---|
+| host | `results.elections.org.za` | `www.elections.org.za/content/uploadedfiles/` |
+| covers | **LGE 2011, 2016, 2021 only** (ids 197 / 402 / 1091), per municipality | **NPE 1999, 2004, 2009 and LGE 2000, 2006** (and 2011, as a cross-check), one national CSV per election |
+| lands in | `data/raw/elections/_reports/`, `_metros/` | `data/raw/elections/_source/*.zip` |
+| linked from | the report picker, per election and municipality | **nothing — no page of either site, absent from the downloads portal, 404 on every report route** |
+| addressed by | province + municipality code in the URL | a municipality *string* inside the CSV that changes every year, enumerated in `ingest_historic.MUNI_HEAD` |
+| layout | `Province,Municipality,Ward,VotingDistrict,…,PartyName,TotalValidVotes` (2011 is UTF-16LE) | one national table per election; `src/ingest_historic.py` converts it to `…,VD_Number,…,sPartyName,Party_Votes` |
+| read by | `pools.metro_file`, `src/ingest_lge.py` | `src/ingest_historic.py` → `lge2000_*_vd_party_clean.csv`, `npe1999_approx_*_vd_party.csv` |
+
+The NPE years 2014, 2019 and 2024 are a third case: national zips from their own
+`Downloadable-results` routes, and so is the 2016 LGE national export found via
+the Internet Archive (below).
+
+**THIS AMBIGUITY HAS COST TWICE, IN THE SAME DIRECTION EACH TIME.** A search for
+the 2000 and 2006 results looked on the portal, found nothing before 2011, and
+concluded the data was absent — while it sat in `_source/` on disk. And
+`ingest_historic.MUNI_HEAD` carried a note saying Ekurhuleni and eThekwini were
+"absent from the 2000 archive under any name … do not add a guess here"; they
+were there all along as `EAST RAND` and `DURBAN`, and the note is what stopped
+the next reader looking. **Absence from the portal is not absence from the
+archive.** Before recording that an election is missing, check `_source/` and
+check `MUNI_HEAD`.
+
 ## The pre-2011 archive — a national bulk export nothing links to
 
 Every election from 1999 is published as a single zipped national CSV under a
@@ -124,13 +155,23 @@ already held as national zips from their own routes.
 
 Each archive holds one CSV covering the whole country, both electoral events
 where applicable, keyed by a municipality string that changes every year
-(`JHB -`, `JOHANNESBURG -`, `Johannesburg -`, and five separate metropolitan
-local councils in 1999, before the metro existed). `src/ingest_historic.py`
-converts them to the project's canonical VD files, describing each layout
-explicitly rather than sniffing it, and refuses to write a file when more than
-2% of its VD-ballots fail to reconcile -- party votes summing to that
-district's valid total, within `--tolerance` (default 0.1%). All five
-archives reconcile at 100%, worst drift 0.00%.
+(`JHB -`, `JOHANNESBURG -`, `Johannesburg -`, and in 1999 the separate
+metropolitan, transitional and rural local councils that preceded every metro).
+`src/ingest_historic.py` converts them to the project's canonical VD files,
+describing each layout explicitly rather than sniffing it, and refuses to write
+a file when more than 2% of its VD-ballots fail to reconcile -- party votes
+summing to that district's valid total, within `--tolerance` (default 0.1%).
+All six archives reconcile at 100%, worst drift 0.00%.
+
+**Extracted for all eight metros on 2026-08-31/09-01**, `lge2000` and
+`npe1999`, each at 100% reconciliation — sixteen files, listed in the inventory
+at the foot of this document and recorded in `data/archive_manifest.csv`.
+Before that only Johannesburg's two had ever been derived, and `MUNI_HEAD`
+declared `npe1999` for Johannesburg alone. **Being on disk is not the same as
+being used:** fourteen of the sixteen are quarantined in `levels.HELD_BACK`
+pending a diagnosis of their effect on the panel. That is a modelling decision
+recorded there, not a statement about the source, and it does not belong in
+this file beyond this sentence.
 
 **Read DATA-QUALITY 10a and 10b before touching these files.** The vote column
 mixes plain integers with thousands-separated ones in the same column, and a
@@ -138,10 +179,16 @@ naive reader silently discards 68.4% of Johannesburg's 2009 votes while
 dropping only 4.0% of its rows. An unquoted comma inside a party's own name
 shifts every later column in six 2006 districts.
 
-**Caveat on 1999:** the City of Johannesburg did not exist until the December
-2000 election. The 1999 file is aggregated from the five metropolitan local
-councils that became it and is written as `npe1999_approx_*`; the footprint is
-approximate and it must not be used for ward-level work.
+**Caveat on 1999, and it applies to all eight metros, not only Johannesburg:**
+no metro existed until the December 2000 election, which was the first under
+wall-to-wall demarcation. Each 1999 file is aggregated from the councils that
+amalgamated into that metro — five for Johannesburg, seven for Tshwane, nine
+for Ekurhuleni, and so on, enumerated in `ingest_historic.MUNI_HEAD` — and every
+one is written as `npe1999_approx_*`. **The `_approx` tag is on all eight
+because the footprint is approximate for all eight**; these files must not be
+used for ward-level work. One boundary is a deliberate exclusion rather than an
+approximation: King William's Town joined Buffalo City in 2011, not 2000, so
+Buffalo City at 1999 is East London only.
 
 ## Boundaries — MDB Spatial Knowledge Hub
 
@@ -646,3 +693,131 @@ it would have looked well-sourced.
 **Not yet used by any code.** Every row above is argument, not measurement, and
 nothing in `src/` reads any of it. Under CLAUDE.md's rule that anything the
 harness cannot test is labelled argued-not-tested, these are argued.
+
+## Inventory — every raw input on disk, by family
+
+Generated from `data/raw` on 2026-08-31, and regenerable: this table is a
+census of what is actually held, not a description of what was intended. It
+exists because "the archive is complete" was true of one file family and false
+of another, and nothing distinguished them — which is how a search for the 2000
+and 2006 results concluded they were absent when they were on disk.
+
+| path family | files | bytes |
+|---|---:|---:|
+| `byelections/byelections_Gauteng_vd_party.csv` | 1 | 186,232 |
+| `byelections/byelections_SA_vd_party.csv` | 1 | 1,237,210 |
+| `covariates/Languages by Municipalities Census <YEAR>.xls` | 1 | 56,832 |
+| `covariates/Ward Product_Locked spreadsheets/PP_Age Group_27-10-<YEAR>.xlsx` | 1 | 1,179,506 |
+| `covariates/Ward Product_Locked spreadsheets/PP_Population Group_27-10-<YEAR>.xlsx` | 1 | 411,126 |
+| `covariates/Ward Product_Locked spreadsheets/PP_Sex_27-10-<YEAR>.xlsx` | 1 | 286,724 |
+| `covariates/Ward-Product_Locked-spreadsheets.zip` | 1 | 1,865,768 |
+| `covariates/Ward-statistical-product-technical-note.pdf` | 1 | 519,560 |
+| `elections/_metros/lge<YEAR>_BUF_vd_party.csv` | 1 | 2,143,452 |
+| `elections/_metros/lge<YEAR>_CPT_vd_party.csv` | 1 | 9,894,016 |
+| `elections/_metros/lge<YEAR>_EKU_vd_party.csv` | 1 | 5,222,603 |
+| `elections/_metros/lge<YEAR>_ETH_vd_party.csv` | 1 | 10,713,476 |
+| `elections/_metros/lge<YEAR>_JHB_vd_party.csv` | 1 | 10,295,882 |
+| `elections/_metros/lge<YEAR>_MAN_vd_party.csv` | 1 | 1,965,193 |
+| `elections/_metros/lge<YEAR>_NMA_vd_party.csv` | 1 | 1,849,140 |
+| `elections/_metros/lge<YEAR>_TSH_vd_party.csv` | 1 | 7,857,185 |
+| `elections/_reports/lge<YEAR>_BUF_detailed_results.pdf` | 3 | 91,251 |
+| `elections/_reports/lge<YEAR>_BUF_downloadable_party_results.csv` | 3 | 4,675,262 |
+| `elections/_reports/lge<YEAR>_BUF_seat_calculation_detail.pdf` | 3 | 81,036 |
+| `elections/_reports/lge<YEAR>_BUF_seat_calculation_detail.xls` | 3 | 70,027 |
+| `elections/_reports/lge<YEAR>_BUF_voter_turnout.pdf` | 3 | 257,470 |
+| `elections/_reports/lge<YEAR>_CPT_detailed_results.pdf` | 3 | 145,442 |
+| `elections/_reports/lge<YEAR>_CPT_downloadable_party_results.csv` | 3 | 30,135,246 |
+| `elections/_reports/lge<YEAR>_CPT_seat_calculation_detail.pdf` | 3 | 122,852 |
+| `elections/_reports/lge<YEAR>_CPT_seat_calculation_detail.xls` | 3 | 111,318 |
+| `elections/_reports/lge<YEAR>_CPT_voter_turnout.pdf` | 3 | 334,901 |
+| `elections/_reports/lge<YEAR>_EKU_detailed_results.pdf` | 3 | 118,215 |
+| `elections/_reports/lge<YEAR>_EKU_downloadable_party_results.csv` | 3 | 15,095,679 |
+| `elections/_reports/lge<YEAR>_EKU_seat_calculation_detail.pdf` | 3 | 103,501 |
+| `elections/_reports/lge<YEAR>_EKU_seat_calculation_detail.xls` | 3 | 87,753 |
+| `elections/_reports/lge<YEAR>_EKU_voter_turnout.pdf` | 3 | 326,433 |
+| `elections/_reports/lge<YEAR>_ETH_detailed_results.pdf` | 3 | 129,677 |
+| `elections/_reports/lge<YEAR>_ETH_downloadable_party_results.csv` | 3 | 24,219,924 |
+| `elections/_reports/lge<YEAR>_ETH_seat_calculation_detail.pdf` | 3 | 108,804 |
+| `elections/_reports/lge<YEAR>_ETH_seat_calculation_detail.xls` | 3 | 92,281 |
+| `elections/_reports/lge<YEAR>_ETH_voter_turnout.pdf` | 3 | 325,551 |
+| `elections/_reports/lge<YEAR>_JHB_detailed_results.pdf` | 3 | 132,824 |
+| `elections/_reports/lge<YEAR>_JHB_downloadable_party_results.csv` | 3 | 24,132,294 |
+| `elections/_reports/lge<YEAR>_JHB_seat_calculation_detail.pdf` | 3 | 112,136 |
+| `elections/_reports/lge<YEAR>_JHB_seat_calculation_detail.xls` | 3 | 95,128 |
+| `elections/_reports/lge<YEAR>_JHB_voter_turnout.pdf` | 3 | 356,357 |
+| `elections/_reports/lge<YEAR>_MAN_detailed_results.pdf` | 3 | 91,580 |
+| `elections/_reports/lge<YEAR>_MAN_downloadable_party_results.csv` | 3 | 4,753,137 |
+| `elections/_reports/lge<YEAR>_MAN_seat_calculation_detail.pdf` | 3 | 84,055 |
+| `elections/_reports/lge<YEAR>_MAN_seat_calculation_detail.xls` | 3 | 71,349 |
+| `elections/_reports/lge<YEAR>_MAN_voter_turnout.pdf` | 3 | 257,809 |
+| `elections/_reports/lge<YEAR>_NMA_detailed_results.pdf` | 3 | 100,508 |
+| `elections/_reports/lge<YEAR>_NMA_downloadable_party_results.csv` | 3 | 5,036,565 |
+| `elections/_reports/lge<YEAR>_NMA_seat_calculation_detail.pdf` | 3 | 88,800 |
+| `elections/_reports/lge<YEAR>_NMA_seat_calculation_detail.xls` | 3 | 81,594 |
+| `elections/_reports/lge<YEAR>_NMA_voter_turnout.pdf` | 3 | 268,410 |
+| `elections/_reports/lge<YEAR>_TSH_detailed_results.pdf` | 3 | 123,605 |
+| `elections/_reports/lge<YEAR>_TSH_downloadable_party_results.csv` | 3 | 17,589,400 |
+| `elections/_reports/lge<YEAR>_TSH_seat_calculation_detail.pdf` | 3 | 103,821 |
+| `elections/_reports/lge<YEAR>_TSH_seat_calculation_detail.xls` | 3 | 84,973 |
+| `elections/_reports/lge<YEAR>_TSH_voter_turnout.pdf` | 3 | 322,914 |
+| `elections/_reports/npe<YEAR>_prov_JHB_detailed.pdf` | 1 | 10,840 |
+| `elections/_source/<YEAR>_lge.zip` | 3 | 8,123,532 |
+| `elections/_source/<YEAR>_npe.zip` | 2 | 6,957,746 |
+| `elections/_source/lge<YEAR>_JHB_detailed.pdf` | 1 | 54,619 |
+| `elections/_source/lge<YEAR>_JHB_seats.pdf` | 2 | 64,681 |
+| `elections/_source/lge<YEAR>_national_vd_results.zip` | 1 | 3,794,857 |
+| `elections/_source/npe<YEAR>_national_and_provincial.zip` | 2 | 12,606,657 |
+| `elections/_source/npe<YEAR>_provincial_national.zip` | 2 | 8,203,348 |
+| `elections/lge<YEAR>_BUF_vd_party_clean.csv` | 5 | 3,944,766 |
+| `elections/lge<YEAR>_CPT_vd_party_clean.csv` | 5 | 23,651,713 |
+| `elections/lge<YEAR>_EKU_vd_party_clean.csv` | 5 | 12,570,664 |
+| `elections/lge<YEAR>_ETH_vd_party_clean.csv` | 5 | 20,853,480 |
+| `elections/lge<YEAR>_JHB_vd_party.csv` | 2 | 15,033,256 |
+| `elections/lge<YEAR>_JHB_vd_party_clean.csv` | 5 | 19,632,921 |
+| `elections/lge<YEAR>_MAN_vd_party_clean.csv` | 5 | 3,963,152 |
+| `elections/lge<YEAR>_NMA_vd_party_clean.csv` | 5 | 4,346,044 |
+| `elections/lge<YEAR>_TSH_vd_party_clean.csv` | 5 | 14,026,103 |
+| `elections/npe<YEAR>_BUF_vd_party.csv` | 5 | 3,707,175 |
+| `elections/npe<YEAR>_CPT_vd_party.csv` | 5 | 11,527,281 |
+| `elections/npe<YEAR>_EKU_vd_party.csv` | 5 | 8,574,886 |
+| `elections/npe<YEAR>_ETH_vd_party.csv` | 5 | 10,258,488 |
+| `elections/npe<YEAR>_JHB_vd_party.csv` | 5 | 12,953,625 |
+| `elections/npe<YEAR>_MAN_vd_party.csv` | 5 | 3,338,211 |
+| `elections/npe<YEAR>_NMA_vd_party.csv` | 5 | 2,875,380 |
+| `elections/npe<YEAR>_TSH_vd_party.csv` | 5 | 9,852,722 |
+| `elections/npe<YEAR>_approx_BUF_vd_party.csv` | 1 | 121,371 |
+| `elections/npe<YEAR>_approx_CPT_vd_party.csv` | 1 | 852,243 |
+| `elections/npe<YEAR>_approx_EKU_vd_party.csv` | 1 | 506,679 |
+| `elections/npe<YEAR>_approx_ETH_vd_party.csv` | 1 | 745,543 |
+| `elections/npe<YEAR>_approx_JHB_vd_party.csv` | 1 | 789,426 |
+| `elections/npe<YEAR>_approx_MAN_vd_party.csv` | 1 | 219,195 |
+| `elections/npe<YEAR>_approx_NMA_vd_party.csv` | 1 | 186,186 |
+| `elections/npe<YEAR>_approx_TSH_vd_party.csv` | 1 | 425,233 |
+| `geo/vds<YEAR>_BUF.geojson` | 1 | 4,029,771 |
+| `geo/vds<YEAR>_CPT.geojson` | 1 | 2,992,746 |
+| `geo/vds<YEAR>_EKU.geojson` | 1 | 2,047,042 |
+| `geo/vds<YEAR>_ETH.geojson` | 1 | 9,536,981 |
+| `geo/vds<YEAR>_JHB.geojson` | 1 | 2,934,961 |
+| `geo/vds<YEAR>_MAN.geojson` | 1 | 1,678,735 |
+| `geo/vds<YEAR>_NMA.geojson` | 1 | 1,271,088 |
+| `geo/vds<YEAR>_TSH.geojson` | 1 | 3,270,361 |
+| `geo/votingstations<YEAR>_BUF.geojson` | 1 | 164,864 |
+| `geo/votingstations<YEAR>_CPT.geojson` | 1 | 367,770 |
+| `geo/votingstations<YEAR>_EKU.geojson` | 1 | 288,745 |
+| `geo/votingstations<YEAR>_ETH.geojson` | 1 | 392,300 |
+| `geo/votingstations<YEAR>_JHB.geojson` | 1 | 399,036 |
+| `geo/votingstations<YEAR>_MAN.geojson` | 1 | 168,331 |
+| `geo/votingstations<YEAR>_NMA.geojson` | 1 | 116,294 |
+| `geo/votingstations<YEAR>_TSH.geojson` | 1 | 350,823 |
+| `geo/wards<YEAR>_BUF.geojson` | 2 | 4,294,028 |
+| `geo/wards<YEAR>_CPT.geojson` | 2 | 2,516,783 |
+| `geo/wards<YEAR>_EKU.geojson` | 2 | 1,687,732 |
+| `geo/wards<YEAR>_ETH.geojson` | 2 | 7,665,186 |
+| `geo/wards<YEAR>_JHB.geojson` | 4 | 5,270,429 |
+| `geo/wards<YEAR>_MAN.geojson` | 2 | 1,465,320 |
+| `geo/wards<YEAR>_NMA.geojson` | 2 | 1,541,943 |
+| `geo/wards<YEAR>_SA.gdb.zip` | 2 | 49,949,064 |
+| `geo/wards<YEAR>_TSH.geojson` | 4 | 5,016,916 |
+
+**278 files, 520,393,059 bytes, 114 families.**
+

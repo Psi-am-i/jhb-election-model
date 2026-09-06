@@ -1,3 +1,9 @@
+**MemPalace wing:** `jhb_election_model` — file every diary entry, drawer and KG fact for this project here.
+**Agent identity:** `atlas-claude` on Atlas, `scout-claude` on Scout (`hostname -s`). Never write as plain `claude-code`.
+**Before answering about past decisions or prior sessions here, search first** (`mempalace_search(query="…", wing="sessions")`) and quote what you find.
+
+---
+
 # A model for forecasting Local Government Elections in South Africa
 
 **This file holds only the rules a session would otherwise break by default.**
@@ -42,8 +48,12 @@ something moved unexpectedly. It never decides whether a change is right.
 
 **Read `ITERATING.md` before judging any change** — the bar is four keys, not a
 single seat total, and the 2026-08-23 and 2026-08-27 amendments at the top change
-what "better" means. Worse does not ship, and the reason it does not is that
-worse almost always means something nonsensical or inert has been modelled.
+what "better" means. **The rule since 2026-09-01 is "MORE HONEST USUALLY SHIPS"**
+— a change that makes the model more honest ships even when a headline score
+worsens. What does not ship is a change that scores worse **and explains
+nothing**, because that is the case where worse almost always means something
+nonsensical or inert has been modelled. *"Worse does not ship" is retired: it was
+made to mean something new each time it was invoked.*
 
 **Two backlogs, and they do not mix.** `PUBLISHING-BACKLOG.md` is the
 presentation layer and is never a reason to change a forecast; it carries the

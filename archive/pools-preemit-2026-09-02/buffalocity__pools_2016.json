@@ -1,0 +1,193 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "city": "buffalocity",
+    "config_sha": "050fa0e62ec22543",
+    "pools_sha": "86995c914b530216",
+    "schema": 1,
+    "target": "2016"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2011",
+  "judgement_file": "judgements/buffalocity-2016.toml",
+  "no_measured_vector": {
+    "EFF": "splinter of ANC, 35% its vector and 65% the city average",
+    "PEOPLES_ALLIANCE": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_CONGRESS": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.7996178922905274,
+    0.04179862142353735,
+    0.03396247463930058,
+    0.1246210116466348
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 26.41215133631773,
+      "derived_from": "pool vectors fitted on buffalocity 2011; size from the 2016 roll split by each ward's own composition; turnout from buffalocity's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "AIC",
+        "ANC",
+        "COPE",
+        "DA",
+        "PAC",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.6240976231386093,
+        "AIC": 1.0,
+        "ANC": 0.982438272499848,
+        "COPE": 0.8901625935925851,
+        "DA": 0.19678181177223036,
+        "EFF": 0.8779841382230724,
+        "PAC": 0.9999999999999998,
+        "PAN_AFRICANIST_MOVEMENT": 0.9999999999999998,
+        "PEOPLES_ALLIANCE": 0.8217396043817317,
+        "UDM": 0.931787806562907,
+        "UNITED_CONGRESS": 0.8217396043817317,
+        "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.8217396043817317
+      },
+      "registered": 342512.11789872503,
+      "turnout": [
+        0.5385805484075564,
+        0.5487240096746111,
+        0.5588271417950096
+      ]
+    },
+    "Coloured": {
+      "alpha": 37.97767749594765,
+      "derived_from": "pool vectors fitted on buffalocity 2011; size from the 2016 roll split by each ward's own composition; turnout from buffalocity's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.06483388832062625,
+        "ANC": 0.003367111912647705,
+        "COPE": 0.10983740640741493,
+        "DA": 0.15606877775774047,
+        "EFF": 0.027662895124880682,
+        "PEOPLES_ALLIANCE": 0.04074523993146767,
+        "UDM": 0.020772486389265456,
+        "UNITED_CONGRESS": 0.04074523993146767,
+        "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.04074523993146767
+      },
+      "registered": 15223.93566810225,
+      "turnout": [
+        0.0144585524317454,
+        0.6125770576555908,
+        0.9941661119458178
+      ]
+    },
+    "White": {
+      "alpha": 101.76674312716372,
+      "derived_from": "pool vectors fitted on buffalocity 2011; size from the 2016 roll split by each ward's own composition; turnout from buffalocity's local elections before 2016",
+      "identified": [
+        "ACDP"
+      ],
+      "members": {
+        "ACDP": 0.3110684885407646,
+        "ANC": 0.014194615587504174,
+        "DA": 0.6471494104700292,
+        "EFF": 0.09435296665204695,
+        "PEOPLES_ALLIANCE": 0.13751515568680076,
+        "UDM": 0.047439707047827566,
+        "UNITED_CONGRESS": 0.13751515568680076,
+        "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.13751515568680076
+      },
+      "registered": 47238.73814722861,
+      "turnout": [
+        0.6846662430436599,
+        0.7378526286900894,
+        0.7848867331958508
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2011; pools sized by 2014 roll carried to 2016 on the 2011-2014 RATE of change (log-space, invariant to a constant level bias), damped x0.6",
+  "registration_series": {
+    "2006": [
+      0.8805393393413787,
+      0.02838562068859072,
+      0.039632823355656266,
+      0.05144221661437422
+    ],
+    "2009": [
+      0.8367012437224464,
+      0.038707603318077266,
+      0.03560720051143731,
+      0.08898395244803911
+    ],
+    "2011": [
+      0.8277500011681105,
+      0.03650214407168584,
+      0.032476757455029044,
+      0.10327109730517471
+    ],
+    "2014": [
+      0.8080368966330128,
+      0.04023534343850277,
+      0.03355112276383029,
+      0.11817663716465422
+    ]
+  },
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeds": {},
+  "splinter_home": {
+    "fractions": {
+      "NFP": 0.3524
+    },
+    "measured_at": [
+      "2014"
+    ]
+  },
+  "target": "2016",
+  "turnout_limits": {
+    "city": {
+      "high": 0.6093351817090046,
+      "low": 0.46927589249804874,
+      "observed_high": 0.5539410742809132,
+      "observed_low": 0.5214176583311653,
+      "previous": 0.5539410742809132
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.6035964106420723,
+        "low": 0.4847224935668007,
+        "observed_high": 0.5487240096746111,
+        "observed_low": 0.5385805484075563,
+        "previous": 0.5487240096746111
+      },
+      {
+        "high": 0.6738347634211499,
+        "low": 0.01301269718857086,
+        "observed_high": 0.6125770576555908,
+        "observed_low": 0.0144585524317454,
+        "previous": 0.6125770576555908
+      },
+      {
+        "high": 0.11443860899813255,
+        "low": 0.0,
+        "observed_high": 0.1040350990892114,
+        "observed_low": 0.0,
+        "previous": 0.0
+      },
+      {
+        "high": 0.8116378915590984,
+        "low": 0.6161996187392939,
+        "observed_high": 0.7378526286900894,
+        "observed_low": 0.6846662430436599,
+        "previous": 0.7378526286900894
+      }
+    ]
+  }
+}

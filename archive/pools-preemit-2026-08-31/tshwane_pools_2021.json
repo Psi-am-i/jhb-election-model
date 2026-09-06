@@ -1,0 +1,917 @@
+{
+  "arrival_group": {
+    "alpha": 4.357017760030976,
+    "derived_from": "14 metro-years before 2021; split by ward reach (corr +0.393 on log vote)",
+    "n_observations": 14,
+    "total_log_median": -4.261897847061204,
+    "total_log_sd": 0.9275108567319761,
+    "weights": {
+      "ABANTU_BATHO_CONGRESS": 0.27102803738317754,
+      "ACTIVE_MOVEMENT_FOR_CHANGE": 0.028037383177570093,
+      "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": 0.38317757009345793,
+      "AFRICA_RESTORATION_ALLIANCE": 1.0,
+      "AGENCY_FOR_NEW_AGENDA": 0.02,
+      "ARUSHA_ECONOMIC_COALITION": 0.14018691588785046,
+      "ASA": 1.0,
+      "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.08411214953271028,
+      "CAPE_COLOURED_CONGRESS": 0.02,
+      "CONCERN": 0.09345794392523364,
+      "DEMOCRATIC_ARTISTS_PARTY": 0.06542056074766354,
+      "DISABILITY_AND_OLDER_PERSON_POLITICAL_PARTY": 0.037383177570093455,
+      "DOP": 0.9532710280373832,
+      "FEDERAL_PARTY_SA": 1.0,
+      "GOD_SAVE_AFRICA": 0.02,
+      "KHOISAN_KINGDOM_AND_ALL_PEOPLE": 0.02,
+      "PARTY_OF_ACTION": 0.9345794392523364,
+      "POELANO_REVELATION_PARTY": 0.037383177570093455,
+      "RCT": 1.0,
+      "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.02,
+      "SPECTRUM_NATIONAL_PARTY": 0.6542056074766355,
+      "THE_ORGANIC_HUMANITY_MOVEMENT": 1.0,
+      "THE_PEOPLE_S_VOICE": 0.17757009345794392,
+      "UIM": 0.16822429906542055,
+      "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.028037383177570093,
+      "UNITED_CULTURAL_MOVEMENT": 0.08411214953271028
+    }
+  },
+  "artefact_key": {
+    "city": "tshwane",
+    "config_sha": "050fa0e62ec22543",
+    "pools_sha": "dbdf171344ffd5f0",
+    "schema": 1,
+    "target": "2021"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [
+    [
+      0.0001168250294844122,
+      0.0625
+    ],
+    [
+      0.0001258578045778785,
+      0.15555555555555556
+    ],
+    [
+      0.0001370911816698668,
+      0.08620689655172414
+    ],
+    [
+      0.0001378063303289429,
+      0.022222222222222223
+    ],
+    [
+      0.00015242884799394736,
+      0.5446428571428571
+    ],
+    [
+      0.0001553308347638374,
+      0.5851851851851851
+    ],
+    [
+      0.00018246956986136764,
+      0.05357142857142857
+    ],
+    [
+      0.00018550084663038845,
+      0.7850467289719626
+    ],
+    [
+      0.00018920186476075184,
+      0.12931034482758622
+    ],
+    [
+      0.00020027147911613521,
+      0.09821428571428571
+    ],
+    [
+      0.00020812290109750898,
+      0.028037383177570093
+    ],
+    [
+      0.00021139767240036493,
+      0.6696428571428571
+    ],
+    [
+      0.00022688189714954564,
+      0.15517241379310345
+    ],
+    [
+      0.00023810558488871505,
+      0.00909090909090909
+    ],
+    [
+      0.0002523068998052506,
+      1.0
+    ],
+    [
+      0.0002559024455372839,
+      0.16071428571428573
+    ],
+    [
+      0.0002781548321057433,
+      0.3392857142857143
+    ],
+    [
+      0.0002803800707625893,
+      0.05357142857142857
+    ],
+    [
+      0.00029172985289982104,
+      0.25
+    ],
+    [
+      0.0002939337334761846,
+      0.08888888888888889
+    ],
+    [
+      0.0002969529727889678,
+      0.07272727272727272
+    ],
+    [
+      0.0003026959856936318,
+      0.08888888888888889
+    ],
+    [
+      0.0003026959856936318,
+      0.14814814814814814
+    ],
+    [
+      0.00030962779479825307,
+      0.5909090909090909
+    ],
+    [
+      0.00033156055987004605,
+      0.08035714285714286
+    ],
+    [
+      0.0003382362758405839,
+      0.09821428571428571
+    ],
+    [
+      0.00034713731966697265,
+      0.05172413793103448
+    ],
+    [
+      0.00035435264501801827,
+      0.8620689655172413
+    ],
+    [
+      0.0003551543478348011,
+      0.14655172413793102
+    ],
+    [
+      0.00035595605065158394,
+      0.11206896551724138
+    ],
+    [
+      0.00037583215283490455,
+      1.0
+    ],
+    [
+      0.000376065333006965,
+      1.0
+    ],
+    [
+      0.0003928343802235949,
+      0.25862068965517243
+    ],
+    [
+      0.0003974462044340149,
+      1.0
+    ],
+    [
+      0.0004071969804081697,
+      0.7476635514018691
+    ],
+    [
+      0.00042249738444456026,
+      0.14655172413793102
+    ],
+    [
+      0.0004399973926080438,
+      1.0
+    ],
+    [
+      0.0004433922675555626,
+      0.1588785046728972
+    ],
+    [
+      0.000497855239627684,
+      0.05185185185185185
+    ],
+    [
+      0.0004986591520389306,
+      0.9913793103448276
+    ],
+    [
+      0.0005140301297314137,
+      0.125
+    ],
+    [
+      0.00054916642949625,
+      0.853448275862069
+    ],
+    [
+      0.0007785962091418059,
+      0.7090909090909091
+    ],
+    [
+      0.0007981615201711028,
+      1.0
+    ],
+    [
+      0.0008465981745226862,
+      0.10344827586206896
+    ],
+    [
+      0.0008794679900107829,
+      0.22413793103448276
+    ],
+    [
+      0.0008833912269410571,
+      0.028037383177570093
+    ],
+    [
+      0.0008890467405578373,
+      1.0
+    ],
+    [
+      0.000942463550833279,
+      0.5636363636363636
+    ],
+    [
+      0.000983439579930808,
+      0.5
+    ],
+    [
+      0.001208408509209919,
+      0.18
+    ],
+    [
+      0.0012273679396776255,
+      0.36666666666666664
+    ],
+    [
+      0.0012545630008811313,
+      0.1
+    ],
+    [
+      0.0013299509665457127,
+      1.0
+    ],
+    [
+      0.0013562059549935177,
+      0.8909090909090909
+    ],
+    [
+      0.0016068700279226595,
+      0.08
+    ],
+    [
+      0.001616232878634219,
+      0.5603448275862069
+    ],
+    [
+      0.0016504428944947816,
+      0.6
+    ],
+    [
+      0.0017110288875524242,
+      0.17037037037037037
+    ],
+    [
+      0.0017518414705690634,
+      0.37272727272727274
+    ],
+    [
+      0.00181340489175702,
+      1.0
+    ],
+    [
+      0.0024757614543390216,
+      0.13333333333333333
+    ],
+    [
+      0.002732329487430198,
+      0.24545454545454545
+    ],
+    [
+      0.0027804357017290103,
+      0.125
+    ],
+    [
+      0.002783512179870044,
+      1.0
+    ],
+    [
+      0.002844795032098351,
+      0.1
+    ],
+    [
+      0.0029172985289982103,
+      0.35
+    ],
+    [
+      0.0032049593453102225,
+      0.54
+    ],
+    [
+      0.004346558604755593,
+      1.0
+    ],
+    [
+      0.007628202301688787,
+      0.5948275862068966
+    ],
+    [
+      0.008010744068816708,
+      0.7166666666666667
+    ],
+    [
+      0.015094807668629454,
+      0.9272727272727272
+    ],
+    [
+      0.01574707338564176,
+      0.04
+    ],
+    [
+      0.016147641587536038,
+      0.26666666666666666
+    ],
+    [
+      0.016241232769230157,
+      0.7777777777777778
+    ],
+    [
+      0.016477892253944235,
+      0.8482142857142857
+    ],
+    [
+      0.02738639701254563,
+      0.26
+    ]
+  ],
+  "fitted_on": "2016",
+  "judgement_file": "judgements/tshwane-2021.toml",
+  "no_measured_vector": {
+    "ABANTU_BATHO_CONGRESS": "entrant, even share of every pool",
+    "ACTIVE_MOVEMENT_FOR_CHANGE": "entrant, even share of every pool",
+    "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": "entrant, even share of every pool",
+    "AFRICAN_COVENANT": "entrant, even share of every pool",
+    "AFRICA_RESTORATION_ALLIANCE": "entrant, even share of every pool",
+    "AGENCY_FOR_NEW_AGENDA": "entrant, even share of every pool",
+    "AIC": "entrant, even share of every pool",
+    "ALJAMAAH": "entrant, even share of every pool",
+    "ARUSHA_ECONOMIC_COALITION": "entrant, even share of every pool",
+    "ASA": "splinter of DA, 35% its vector and 65% the city average",
+    "ATM": "entrant, even share of every pool",
+    "BLACK_FIRST_LAND_FIRST": "entrant, even share of every pool",
+    "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": "entrant, even share of every pool",
+    "CAPE_COLOURED_CONGRESS": "entrant, even share of every pool",
+    "CONCERN": "entrant, even share of every pool",
+    "DEMOCRATIC_ARTISTS_PARTY": "entrant, even share of every pool",
+    "DISABILITY_AND_OLDER_PERSON_POLITICAL_PARTY": "entrant, even share of every pool",
+    "DOP": "entrant, even share of every pool",
+    "ECONOMIC_EMANCIPATION_FORUM": "entrant, even share of every pool",
+    "FEDERAL_PARTY_SA": "entrant, even share of every pool",
+    "GOD_SAVE_AFRICA": "entrant, even share of every pool",
+    "GOOD": "splinter of DA, 35% its vector and 65% the city average",
+    "KHOISAN_KINGDOM_AND_ALL_PEOPLE": "entrant, even share of every pool",
+    "NFP": "splinter of IFP, 35% its vector and 65% the city average",
+    "PARTY_OF_ACTION": "entrant, even share of every pool",
+    "POELANO_REVELATION_PARTY": "entrant, even share of every pool",
+    "RCT": "entrant, even share of every pool",
+    "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": "entrant, even share of every pool",
+    "SPECTRUM_NATIONAL_PARTY": "entrant, even share of every pool",
+    "THE_ORGANIC_HUMANITY_MOVEMENT": "entrant, even share of every pool",
+    "THE_PEOPLE_S_VOICE": "entrant, even share of every pool",
+    "UIM": "entrant, even share of every pool",
+    "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": "entrant, even share of every pool",
+    "UNITED_CULTURAL_MOVEMENT": "entrant, even share of every pool"
+  },
+  "pool_shares_at_target": [
+    0.6477097480034064,
+    0.026426465627069056,
+    0.009357808810459388,
+    0.3165059775590652
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 24.29010963178376,
+      "derived_from": "pool vectors fitted on tshwane 2016; size from the 2021 roll split by each ward's own composition; turnout from tshwane's local elections before 2021",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "APC",
+        "COPE",
+        "DA",
+        "EFF"
+      ],
+      "members": {
+        "ABANTU_BATHO_CONGRESS": 0.25,
+        "ACDP": 0.409783999176664,
+        "ACTIVE_MOVEMENT_FOR_CHANGE": 0.25000000000000006,
+        "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": 0.24999999999999994,
+        "AFRICAN_COVENANT": 0.25,
+        "AFRICAN_MANDATE_CONGRESS": 1.0,
+        "AFRICA_RESTORATION_ALLIANCE": 0.25,
+        "AGANG": 0.9460443403602916,
+        "AGENCY_FOR_NEW_AGENDA": 0.24999999999999997,
+        "AIC": 0.25,
+        "ALJAMAAH": 0.25,
+        "ANC": 0.9688000220454788,
+        "APC": 0.9932641357738056,
+        "ARUSHA_ECONOMIC_COALITION": 0.25000000000000006,
+        "ASA": 0.6046528712613478,
+        "ATM": 0.25,
+        "AZAPO": 0.9230410715608296,
+        "BLACK_FIRST_LAND_FIRST": 0.25,
+        "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.25000000000000006,
+        "CAPE_COLOURED_CONGRESS": 0.25,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.5483810483326862,
+        "CONCERN": 0.25000000000000006,
+        "COPE": 0.7984654990262767,
+        "DA": 0.1453766240351377,
+        "DEMOCRATIC_ARTISTS_PARTY": 0.25000000000000006,
+        "DISABILITY_AND_OLDER_PERSON_POLITICAL_PARTY": 0.25000000000000006,
+        "DOP": 0.24999999999999997,
+        "ECONOMIC_EMANCIPATION_FORUM": 0.25,
+        "EFF": 0.9141889363524938,
+        "FEDERAL_PARTY_SA": 0.25,
+        "FORUM_4_SERVICE_DELIVERY": 1.0,
+        "GOD_SAVE_AFRICA": 0.25000000000000006,
+        "GOOD": 0.43153750370251254,
+        "IFP": 0.91574074078113,
+        "KHOISAN_KINGDOM_AND_ALL_PEOPLE": 0.25,
+        "NFP": 0.7011649445636097,
+        "PA": 0.08069987054562056,
+        "PAC": 0.9412964345975232,
+        "PARTY_OF_ACTION": 0.24999999999999997,
+        "POELANO_REVELATION_PARTY": 0.25000000000000006,
+        "RCT": 0.25,
+        "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.25,
+        "SPECTRUM_NATIONAL_PARTY": 0.25,
+        "THE_ORGANIC_HUMANITY_MOVEMENT": 0.25,
+        "THE_PEOPLE_S_VOICE": 0.25000000000000006,
+        "UDM": 0.5925672848203077,
+        "UIM": 0.25000000000000006,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.25000000000000006,
+        "UNITED_CULTURAL_MOVEMENT": 0.25000000000000006,
+        "VFPLUS": 0.04441955257321427
+      },
+      "registered": 1012201.6928634462,
+      "turnout": [
+        0.49505922520998435,
+        0.5154106122782689,
+        0.5357110168215306
+      ]
+    },
+    "Coloured": {
+      "alpha": 12.26782962795498,
+      "derived_from": "pool vectors fitted on tshwane 2016; size from the 2021 roll split by each ward's own composition; turnout from tshwane's local elections before 2021",
+      "identified": [
+        "ACDP",
+        "PA"
+      ],
+      "members": {
+        "ABANTU_BATHO_CONGRESS": 0.25,
+        "ACDP": 0.027370888735533352,
+        "ACTIVE_MOVEMENT_FOR_CHANGE": 0.25,
+        "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": 0.24999999999999994,
+        "AFRICAN_COVENANT": 0.25,
+        "AFRICA_RESTORATION_ALLIANCE": 0.25,
+        "AGANG": 0.005860955511287481,
+        "AGENCY_FOR_NEW_AGENDA": 0.24999999999999997,
+        "AIC": 0.25,
+        "ALJAMAAH": 0.25,
+        "ANC": 0.005850924765834306,
+        "APC": 0.006735864226194523,
+        "ARUSHA_ECONOMIC_COALITION": 0.25,
+        "ASA": 0.01545922502319802,
+        "ATM": 0.25,
+        "AZAPO": 0.00780302048806005,
+        "BLACK_FIRST_LAND_FIRST": 0.25,
+        "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.25,
+        "CAPE_COLOURED_CONGRESS": 0.25,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.09294244259797518,
+        "CONCERN": 0.25000000000000006,
+        "COPE": 0.021871507672420642,
+        "DA": 0.03385474719068386,
+        "DEMOCRATIC_ARTISTS_PARTY": 0.25,
+        "DISABILITY_AND_OLDER_PERSON_POLITICAL_PARTY": 0.25,
+        "DOP": 0.24999999999999997,
+        "ECONOMIC_EMANCIPATION_FORUM": 0.25,
+        "EFF": 0.012799002866571884,
+        "FEDERAL_PARTY_SA": 0.25,
+        "GOD_SAVE_AFRICA": 0.25,
+        "GOOD": 0.024929014469544295,
+        "IFP": 0.009601743134607597,
+        "KHOISAN_KINGDOM_AND_ALL_PEOPLE": 0.25,
+        "NFP": 0.0164404630499176,
+        "PA": 0.8927294193639163,
+        "PAC": 0.004470075623867585,
+        "PARTY_OF_ACTION": 0.24999999999999997,
+        "POELANO_REVELATION_PARTY": 0.25,
+        "RCT": 0.25,
+        "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.25,
+        "SPECTRUM_NATIONAL_PARTY": 0.25,
+        "THE_ORGANIC_HUMANITY_MOVEMENT": 0.25,
+        "THE_PEOPLE_S_VOICE": 0.25,
+        "UDM": 0.018629507269316864,
+        "UIM": 0.25,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.25,
+        "UNITED_CULTURAL_MOVEMENT": 0.25
+      },
+      "registered": 32212.061326996907,
+      "turnout": [
+        0.4380358336768821,
+        0.5467695592467927,
+        0.6512165172296155
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 9.900878373124169,
+      "derived_from": "pool vectors fitted on tshwane 2016; size from the 2021 roll split by each ward's own composition; turnout from tshwane's local elections before 2021",
+      "identified": [],
+      "members": {
+        "ABANTU_BATHO_CONGRESS": 0.25,
+        "ACTIVE_MOVEMENT_FOR_CHANGE": 0.25,
+        "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": 0.25,
+        "AFRICAN_COVENANT": 0.25,
+        "AFRICA_RESTORATION_ALLIANCE": 0.24999999999999997,
+        "AGENCY_FOR_NEW_AGENDA": 0.25,
+        "AIC": 0.25,
+        "ALJAMAAH": 0.25,
+        "ANC": 0.010494582275665729,
+        "ARUSHA_ECONOMIC_COALITION": 0.24999999999999997,
+        "ASA": 0.0067836591623525585,
+        "ATM": 0.25,
+        "BLACK_FIRST_LAND_FIRST": 0.25,
+        "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.25,
+        "CAPE_COLOURED_CONGRESS": 0.25,
+        "CONCERN": 0.25000000000000006,
+        "COPE": 0.009148213212624278,
+        "DA": 0.01749335001873769,
+        "DEMOCRATIC_ARTISTS_PARTY": 0.25,
+        "DISABILITY_AND_OLDER_PERSON_POLITICAL_PARTY": 0.25,
+        "DOP": 0.25,
+        "ECONOMIC_EMANCIPATION_FORUM": 0.25,
+        "EFF": 0.011197119585864964,
+        "FEDERAL_PARTY_SA": 0.24999999999999997,
+        "GOD_SAVE_AFRICA": 0.25,
+        "GOOD": 0.014482913521227573,
+        "KHOISAN_KINGDOM_AND_ALL_PEOPLE": 0.25,
+        "NFP": 0.008360241014669381,
+        "PARTY_OF_ACTION": 0.25,
+        "POELANO_REVELATION_PARTY": 0.25,
+        "RCT": 0.24999999999999997,
+        "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.25,
+        "SPECTRUM_NATIONAL_PARTY": 0.25,
+        "THE_ORGANIC_HUMANITY_MOVEMENT": 0.24999999999999997,
+        "THE_PEOPLE_S_VOICE": 0.24999999999999997,
+        "UDM": 0.024874205192355676,
+        "UIM": 0.24999999999999997,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.25,
+        "UNITED_CULTURAL_MOVEMENT": 0.25
+      },
+      "registered": 18608.935259891958,
+      "turnout": [
+        0.2689837508352994,
+        0.6382756990257089,
+        0.8943117506809021
+      ]
+    },
+    "White": {
+      "alpha": 53.85302797156064,
+      "derived_from": "pool vectors fitted on tshwane 2016; size from the 2021 roll split by each ward's own composition; turnout from tshwane's local elections before 2021",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "DA",
+        "EFF",
+        "VFPLUS"
+      ],
+      "members": {
+        "ABANTU_BATHO_CONGRESS": 0.24999999999999997,
+        "ACDP": 0.5628451120878027,
+        "ACTIVE_MOVEMENT_FOR_CHANGE": 0.25000000000000006,
+        "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": 0.25,
+        "AFRICAN_COVENANT": 0.25,
+        "AFRICA_RESTORATION_ALLIANCE": 0.25,
+        "AGANG": 0.048094704128420845,
+        "AGENCY_FOR_NEW_AGENDA": 0.25,
+        "AIC": 0.25,
+        "ALJAMAAH": 0.25,
+        "ANC": 0.01485447091302117,
+        "ARUSHA_ECONOMIC_COALITION": 0.25,
+        "ASA": 0.37310424455310165,
+        "ATM": 0.25,
+        "AZAPO": 0.06915590795111029,
+        "BLACK_FIRST_LAND_FIRST": 0.25,
+        "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.25000000000000006,
+        "CAPE_COLOURED_CONGRESS": 0.25,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.3586765090693386,
+        "CONCERN": 0.25,
+        "COPE": 0.1705147800886784,
+        "DA": 0.8032752787554407,
+        "DEMOCRATIC_ARTISTS_PARTY": 0.25000000000000006,
+        "DISABILITY_AND_OLDER_PERSON_POLITICAL_PARTY": 0.25000000000000006,
+        "DOP": 0.24999999999999997,
+        "ECONOMIC_EMANCIPATION_FORUM": 0.25,
+        "EFF": 0.06181494119506948,
+        "FEDERAL_PARTY_SA": 0.25,
+        "GOD_SAVE_AFRICA": 0.25000000000000006,
+        "GOOD": 0.5290505683067157,
+        "IFP": 0.07465751608426248,
+        "KHOISAN_KINGDOM_AND_ALL_PEOPLE": 0.25,
+        "NFP": 0.27403435137180326,
+        "PA": 0.026570710090463273,
+        "PAC": 0.05423348977860917,
+        "PARTY_OF_ACTION": 0.24999999999999997,
+        "POELANO_REVELATION_PARTY": 0.25000000000000006,
+        "RCT": 0.25,
+        "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.25,
+        "SPECTRUM_NATIONAL_PARTY": 0.25,
+        "THE_ORGANIC_HUMANITY_MOVEMENT": 0.25,
+        "THE_PEOPLE_S_VOICE": 0.25,
+        "UDM": 0.36392900271801965,
+        "UIM": 0.25,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.25000000000000006,
+        "UNITED_CULTURAL_MOVEMENT": 0.25000000000000006,
+        "VFPLUS": 0.9555804474267856
+      },
+      "registered": 463562.31054966495,
+      "turnout": [
+        0.6856003282106594,
+        0.7427206782685821,
+        0.7926026562745602
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2016; pools sized by 2016 roll carried to 2021 on the 2014-2016 RATE of change (log-space, invariant to a constant level bias), damped x0.6",
+  "registration_series": {
+    "2011": [
+      0.6819219294375746,
+      0.01959444414117386,
+      0.013086601227412979,
+      0.28539702519383847
+    ],
+    "2014": [
+      0.6755427726973964,
+      0.01888767311159233,
+      0.01381516007029826,
+      0.29175439412071313
+    ],
+    "2016": [
+      0.6648619564489204,
+      0.02162271910566043,
+      0.011832344852200563,
+      0.3016829795932186
+    ]
+  },
+  "seed_bands": {
+    "ABANTU_BATHO_CONGRESS": [
+      0.13536163053683622,
+      1.0,
+      6.363568123824699
+    ],
+    "ACTIVE_MOVEMENT_FOR_CHANGE": [
+      0.12158951108549138,
+      1.0,
+      7.482065870717027
+    ],
+    "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": [
+      0.1122877759943599,
+      1.0,
+      4.7259668875015555
+    ],
+    "AFRICA_RESTORATION_ALLIANCE": [
+      0.11382199743612399,
+      1.0,
+      4.786750217765953
+    ],
+    "AGENCY_FOR_NEW_AGENDA": [
+      0.12362558117334685,
+      1.0,
+      6.656756171845064
+    ],
+    "ARUSHA_ECONOMIC_COALITION": [
+      0.13536978373298353,
+      1.0,
+      6.414863030048209
+    ],
+    "ASA": [
+      0.0741185985453149,
+      1.0,
+      6.514428707498725
+    ],
+    "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": [
+      0.12158951108549138,
+      1.0,
+      7.482065870717027
+    ],
+    "CAPE_COLOURED_CONGRESS": [
+      0.22530378564220305,
+      1.0,
+      2.5420345044601413
+    ],
+    "CONCERN": [
+      0.12685391812753957,
+      1.0,
+      7.3269414927346315
+    ],
+    "DEMOCRATIC_ARTISTS_PARTY": [
+      0.12158951108549138,
+      1.0,
+      7.482065870717027
+    ],
+    "DISABILITY_AND_OLDER_PERSON_POLITICAL_PARTY": [
+      0.12158951108549138,
+      1.0,
+      7.482065870717027
+    ],
+    "DOP": [
+      0.11927666471924889,
+      1.0,
+      4.827308614115057
+    ],
+    "FEDERAL_PARTY_SA": [
+      0.11382199743612399,
+      1.0,
+      4.786750217765953
+    ],
+    "GOD_SAVE_AFRICA": [
+      0.12158951108549138,
+      1.0,
+      7.482065870717027
+    ],
+    "KHOISAN_KINGDOM_AND_ALL_PEOPLE": [
+      0.22530378564220305,
+      1.0,
+      2.5420345044601413
+    ],
+    "PARTY_OF_ACTION": [
+      0.11927666471924889,
+      1.0,
+      4.827308614115057
+    ],
+    "POELANO_REVELATION_PARTY": [
+      0.12158951108549138,
+      1.0,
+      7.482065870717027
+    ],
+    "RCT": [
+      0.11382199743612399,
+      1.0,
+      4.786750217765953
+    ],
+    "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": [
+      0.22530378564220305,
+      1.0,
+      2.5420345044601413
+    ],
+    "SPECTRUM_NATIONAL_PARTY": [
+      0.10304290669066274,
+      1.0,
+      5.048288595263319
+    ],
+    "THE_ORGANIC_HUMANITY_MOVEMENT": [
+      0.11382199743612399,
+      1.0,
+      4.786750217765953
+    ],
+    "THE_PEOPLE_S_VOICE": [
+      0.13536978373298353,
+      1.0,
+      6.414863030048209
+    ],
+    "UIM": [
+      0.13536978373298353,
+      1.0,
+      6.414863030048209
+    ],
+    "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": [
+      0.12158951108549138,
+      1.0,
+      7.482065870717027
+    ],
+    "UNITED_CULTURAL_MOVEMENT": [
+      0.12158951108549138,
+      1.0,
+      7.482065870717027
+    ]
+  },
+  "seed_notes": {
+    "ABANTU_BATHO_CONGRESS": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 45 arrivals that contested about as much of a city (27% of wards): mean 0.21%, median 0.04%, band 0.03%-1.32%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "ACTIVE_MOVEMENT_FOR_CHANGE": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 41 arrivals that contested about as much of a city (3% of wards): mean 0.21%, median 0.04%, band 0.03%-1.57%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 29 arrivals that contested about as much of a city (38% of wards): mean 0.27%, median 0.09%, band 0.03%-1.27%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "AFRICA_RESTORATION_ALLIANCE": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 19 arrivals that contested about as much of a city (100% of wards): mean 0.34%, median 0.08%, band 0.04%-1.63%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "AGENCY_FOR_NEW_AGENDA": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 77 arrivals that contested about as much of a city (50% of wards): mean 0.24%, median 0.05%, band 0.03%-1.58%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "ARUSHA_ECONOMIC_COALITION": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 45 arrivals that contested about as much of a city (14% of wards): mean 0.21%, median 0.04%, band 0.03%-1.32%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "ASA": "SPLIT from DA (Mashaba, the DA's own mayor of Johannesburg, who resigned the party in October 2019): takes 15.4% of a vector that is 35% DA's pool rates and 65% the city's own composition \u2014 measured, median over 22 splinter-metro cases. Band 1.1%-100.0% from the away splinter record. Every party in those pools gives up the same proportion; none is named.",
+    "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 41 arrivals that contested about as much of a city (8% of wards): mean 0.21%, median 0.04%, band 0.03%-1.57%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "CAPE_COLOURED_CONGRESS": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 39 arrivals that contested about as much of a city (1% of wards): mean 0.11%, median 0.03%, band 0.02%-0.28%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "CONCERN": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 42 arrivals that contested about as much of a city (9% of wards): mean 0.21%, median 0.04%, band 0.03%-1.51%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "DEMOCRATIC_ARTISTS_PARTY": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 41 arrivals that contested about as much of a city (7% of wards): mean 0.21%, median 0.04%, band 0.03%-1.57%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "DISABILITY_AND_OLDER_PERSON_POLITICAL_PARTY": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 41 arrivals that contested about as much of a city (4% of wards): mean 0.21%, median 0.04%, band 0.03%-1.57%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "DOP": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 22 arrivals that contested about as much of a city (95% of wards): mean 0.34%, median 0.08%, band 0.04%-1.62%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "FEDERAL_PARTY_SA": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 19 arrivals that contested about as much of a city (100% of wards): mean 0.34%, median 0.08%, band 0.04%-1.63%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "GOD_SAVE_AFRICA": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 41 arrivals that contested about as much of a city (2% of wards): mean 0.21%, median 0.04%, band 0.03%-1.57%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "KHOISAN_KINGDOM_AND_ALL_PEOPLE": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 39 arrivals that contested about as much of a city (1% of wards): mean 0.11%, median 0.03%, band 0.02%-0.28%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "PARTY_OF_ACTION": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 22 arrivals that contested about as much of a city (93% of wards): mean 0.34%, median 0.08%, band 0.04%-1.62%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "POELANO_REVELATION_PARTY": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 41 arrivals that contested about as much of a city (4% of wards): mean 0.21%, median 0.04%, band 0.03%-1.57%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "RCT": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 19 arrivals that contested about as much of a city (100% of wards): mean 0.34%, median 0.08%, band 0.04%-1.63%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 39 arrivals that contested about as much of a city (1% of wards): mean 0.11%, median 0.03%, band 0.02%-0.28%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "SPECTRUM_NATIONAL_PARTY": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 19 arrivals that contested about as much of a city (65% of wards): mean 0.32%, median 0.09%, band 0.03%-1.63%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "THE_ORGANIC_HUMANITY_MOVEMENT": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 19 arrivals that contested about as much of a city (100% of wards): mean 0.34%, median 0.08%, band 0.04%-1.63%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "THE_PEOPLE_S_VOICE": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 45 arrivals that contested about as much of a city (18% of wards): mean 0.21%, median 0.04%, band 0.03%-1.32%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "UIM": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 45 arrivals that contested about as much of a city (17% of wards): mean 0.21%, median 0.04%, band 0.03%-1.32%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 41 arrivals that contested about as much of a city (3% of wards): mean 0.21%, median 0.04%, band 0.03%-1.57%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%",
+    "UNITED_CULTURAL_MOVEMENT": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 41 arrivals that contested about as much of a city (8% of wards): mean 0.21%, median 0.04%, band 0.03%-1.57%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.27: 25 entrants summing to 5.90% against an arrival-total record of 1.62%"
+  },
+  "seeds": {
+    "ABANTU_BATHO_CONGRESS": 0.0005670137475416819,
+    "ACTIVE_MOVEMENT_FOR_CHANGE": 0.00057612981258388,
+    "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": 0.0007379317662915525,
+    "AFRICA_RESTORATION_ALLIANCE": 0.000930149211790924,
+    "AGENCY_FOR_NEW_AGENDA": 0.0006508532975930358,
+    "ARUSHA_ECONOMIC_COALITION": 0.0005624797587610402,
+    "ASA": 0.05669573508845843,
+    "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.00057612981258388,
+    "CAPE_COLOURED_CONGRESS": 0.0003001079836466587,
+    "CONCERN": 0.0005642253590294464,
+    "DEMOCRATIC_ARTISTS_PARTY": 0.00057612981258388,
+    "DISABILITY_AND_OLDER_PERSON_POLITICAL_PARTY": 0.00057612981258388,
+    "DOP": 0.0009177416790836193,
+    "FEDERAL_PARTY_SA": 0.000930149211790924,
+    "GOD_SAVE_AFRICA": 0.00057612981258388,
+    "KHOISAN_KINGDOM_AND_ALL_PEOPLE": 0.0003001079836466587,
+    "PARTY_OF_ACTION": 0.0009177416790836193,
+    "POELANO_REVELATION_PARTY": 0.00057612981258388,
+    "RCT": 0.000930149211790924,
+    "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.0003001079836466587,
+    "SPECTRUM_NATIONAL_PARTY": 0.0008819606601477976,
+    "THE_ORGANIC_HUMANITY_MOVEMENT": 0.000930149211790924,
+    "THE_PEOPLE_S_VOICE": 0.0005624797587610402,
+    "UIM": 0.0005624797587610402,
+    "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.00057612981258388,
+    "UNITED_CULTURAL_MOVEMENT": 0.00057612981258388
+  },
+  "splinter_home": {
+    "fractions": {
+      "GOOD": 0.0558,
+      "NFP": 0.3524
+    },
+    "measured_at": [
+      "2014",
+      "2019"
+    ]
+  },
+  "target": "2021",
+  "turnout_limits": {
+    "city": {
+      "high": 0.6452544175960128,
+      "low": 0.4940638200850328,
+      "observed_high": 0.5865949250872843,
+      "observed_low": 0.5489598000944809,
+      "previous": 0.5865949250872843
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.5669516735060959,
+        "low": 0.44555330268898596,
+        "observed_high": 0.5154106122782689,
+        "observed_low": 0.4950592252099844,
+        "previous": 0.5154106122782689
+      },
+      {
+        "high": 0.6014465151714721,
+        "low": 0.3942322503091939,
+        "observed_high": 0.5467695592467927,
+        "observed_low": 0.4380358336768821,
+        "previous": 0.5467695592467927
+      },
+      {
+        "high": 0.7021032689282799,
+        "low": 0.24208537575176947,
+        "observed_high": 0.6382756990257089,
+        "observed_low": 0.2689837508352994,
+        "previous": 0.6382756990257089
+      },
+      {
+        "high": 0.8169927460954404,
+        "low": 0.6170402953895935,
+        "observed_high": 0.7427206782685821,
+        "observed_low": 0.6856003282106594,
+        "previous": 0.7427206782685821
+      }
+    ]
+  }
+}

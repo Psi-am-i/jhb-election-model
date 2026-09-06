@@ -533,10 +533,47 @@ describing each layout rather than sniffing it. Matching is on the token **befor
 last-word fallback did.
 
 **A missing entry is a REFUSAL, not a fallback.** That is the whole lesson: the
-fallback is what wrote Johannesburg's election into seven other cities. Two
-absences are recorded deliberately — Ekurhuleni and eThekwini in `lge2000`
-(both constituted at that election), and every metro but Johannesburg in
-`npe1999` (which predates them all).
+fallback is what wrote Johannesburg's election into seven other cities.
+
+> ### ⛔ BOTH "DELIBERATE ABSENCES" RECORDED HERE WERE WRONG (2026-08-31/09-01)
+>
+> This paragraph used to end: *"Two absences are recorded deliberately —
+> Ekurhuleni and eThekwini in `lge2000` (both constituted at that election), and
+> every metro but Johannesburg in `npe1999` (which predates them all)."*
+> **Neither survived being looked at again**, and the way each failed is the
+> useful part, because a refusal that is wrong looks exactly like one that is
+> right.
+>
+> * **`lge2000` for Ekurhuleni and eThekwini.** The table above marks Ekurhuleni
+>   *absent* from `lge2000` and the note said "checked 2026-08-22 — do not add a
+>   guess here". They are in that archive, as `East Rand - Greater East Rand
+>   Metro` (9,813 rows) and `Durban - Durban Metro` (13,328) — and the heads
+>   that find them, `EAST RAND` and `DURBAN`, were **already declared one row
+>   down in `npe2004`**. This was not a guess that failed. It was a search that
+>   stopped at the modern name, plus a note instructing the next reader not to
+>   repeat it. **A refusal is only as good as the search behind it, and this one
+>   documented the stopping point as a finding.**
+> * **`npe1999` for every metro but Johannesburg.** 1999 predates every metro
+>   *including* Johannesburg — 2000 was the first election under wall-to-wall
+>   demarcation — so "Johannesburg is reconstructible and the others are not"
+>   was never a real distinction. All eight are the sum of the councils that
+>   amalgamated into them, enumerated in `MUNI_HEAD` and all tagged `_approx`.
+>
+> Johannesburg's own `npe1999` head list was **also** wrong while this was
+> believed: it declared `("JOHANNESBURG MLC", "MIDRAND/ RABIE RIDGE/ IVORY PARK
+> MLC")` and `matches_city` compares whole heads, so of five councils only
+> Midrand could match. The file on disk was nonetheless correct — 9,072 rows,
+> 648 VDs, 1,361,299 votes, all five councils present — because it predated the
+> whole-head matcher. Re-ingesting with the corrected heads reproduces it
+> **byte-identically** (sha256 `818d351ce629d8…`, unchanged in
+> `data/archive_manifest.csv`), so no Johannesburg number moved.
+>
+> **Result: all sixteen pre-2011 metro files now exist**, `lge2000` and
+> `npe1999` for all eight, every one at 100% reconciliation.
+> `levels.KNOWN_ABSENT` is consequently **empty** — there is nothing left to
+> declare. Fourteen of the sixteen are withheld from the model in
+> `levels.HELD_BACK`, which is a different fact: *present and correct, not yet
+> fed in, pending a stated diagnosis.* Do not read that as an absence.
 
 ### Verified
 
@@ -682,6 +719,22 @@ in the archive as `data/raw/elections/lge{year}_{CODE}_vd_party_clean.csv` —
 drift 0.00%* — and read every run by `levels._citywide`. `metro_file` returns
 `None` for both years, for every metro.
 
+> **Updated 2026-09-01, and the defect got BIGGER, not smaller.** When this item
+> was written, `lge2000` existed for Johannesburg alone. It now exists for **all
+> eight metros**, so `metro_file` is blind to sixteen reconciled files rather
+> than nine. Re-checked on the settled tree after the 2026-08-31 re-emit:
+> `metro_file('JHB','2006')` and `metro_file('JHB','2000')` both still return
+> `None`, `entrant_record(lge_transitions(before='2016'))` is still **0 rows**,
+> and all eight 2016 specs still carry `arrival_group: null`. **The fix did not
+> land in that window** — it remains `POOLS-REEMIT-QUEUE.md` entry 4, and
+> `archive/pools-preemit-2026-08-31/README.md` predicted the 2016 specs would go
+> from `seeds = 0` / `arrival_group: null` to populated in that emit. They did
+> not, because entry 4 was not taken. Verified by diffing all eighteen archived
+> pre-emit specs against the emitted ones: **not one measured party's pool
+> vector moved by more than 1e-12**; the only fields that changed were the
+> unmeasured-entrant vectors and, for Cape Town alone, `registration_series` and
+> `turnout_limits`.
+
 **It is a path-and-format mismatch, not missing data.** The two candidate paths
 are bulk-export format (`PARTYNAME`); the archive files are clean format
 (`sPartyName`/`Party_Votes`). `pools._npe_citywide_for` **already reads the clean
@@ -723,3 +776,79 @@ findings.**
 
 **Fix** is queued as `POOLS-REEMIT-QUEUE.md` entry 4. It is a `pools.py` change
 and it **moves numbers**, not only `pools_sha`.
+
+## 15. 🔴 `HELD_BACK` has a third reader it does not gate, and Cape Town's specs are already carrying the withheld data (2026-09-01)
+
+**A defect in this repository's own plumbing, like item 14 — not in the public
+record.** The pre-2011 files are correct; the question is which code is allowed
+to see them.
+
+`levels.HELD_BACK` withholds `lge2000` and `npe1999` for the seven metros
+ingested on 2026-08-31 pending a diagnosis of their effect on the panel. Two
+readers honour it: `levels._citywide` (the θ and ρ records) and
+`pools._npe_citywide_for` (the splinter records), the second of which had to be
+told to — its own docstring records that when it was not, `npe1999` "kept
+flowing in through here … and the panel moved by 2.63 CRPS for no stated
+reason".
+
+**There is a third, and it is still open.** `pools.registration_series` walks
+every CALENDAR year with a result template and calls `pools.pool_counts`, which
+opens the election file for its per-VD registered population. Nothing on that
+path consults the gate:
+
+Run from the repository root, as `leak.py`:
+
+    import sys; sys.path.insert(0, 'src')
+    import levels as L, cityconfig, pools
+    print(('lge2000', 'CPT') in L.HELD_BACK)
+    print(L._citywide('data/raw/elections/lge2000_CPT_vd_party_clean.csv'))
+    city = cityconfig.load('capetown'); cityconfig.use('capetown')
+    print(pools.pool_counts(city, '2000', pools.load_config())
+               .totals('registered').sum())
+
+prints today:
+
+    True
+    {}                 # levels refuses the file
+    1269582.0          # pools reads 1.27m registered voters out of the same file
+
+**It has already reached the emitted specs.** Diffing all eighteen archived
+pre-emit specs (`archive/pools-preemit-2026-08-31/`) against the ones emitted on
+2026-08-31, Cape Town is the only city whose non-entrant fields moved:
+
+| spec | field | before | after |
+|---|---|---|---|
+| `capetown/pools_2016.json` | `registration_series` | 2006, 2009, 2011, 2014 | **2000**, 2006, 2009, 2011, 2014 |
+| `capetown/pools_2016.json` | `turnout_limits.pool[3].observed_high` (White) | 0.7484 | **0.8578** |
+| `capetown/pools_2016.json` | `turnout_limits.pool[3].high` (White) | 0.8232 | **0.9435** |
+
+`capetown/pools_2021.json` gains the same `2000` series row. No other city
+gained one, because their 2000 wards do not join the census — which is a second
+reason this is worth fixing rather than shrugging at: **the leak is city-shaped
+and arbitrary**, present where the join happens to succeed and absent where it
+does not, so it is not even a consistent bias.
+
+`projected_pool_shares` reads only the last two years of the series, so the
+extra `2000` row does not move the projection. The turnout limits are used, and
+they moved.
+
+**Why this matters beyond the numbers.** `HELD_BACK`'s own comment states that
+withholding data on a *score* would be selection of training data on the test
+set, and that it is therefore withheld only because its effect is **not
+understood**. A quarantine that leaks through one of three readers cannot
+support that argument: the effect being diagnosed is not the effect being
+measured. The gate is imported rather than copied in `_npe_citywide_for`
+precisely so it "cannot be true in one module and false in the other" — and it
+currently is.
+
+**How to check it.** The one-liner above, or:
+
+    .venv/bin/python -c "import sys,json;sys.path.insert(0,'src');\
+      print(sorted(json.load(open('data/processed/capetown/pools_2016.json'))\
+                   ['registration_series']))"
+    # ['2000', '2006', '2009', '2011', '2014'] today
+
+**Fix** belongs with `POOLS-REEMIT-QUEUE.md`: it is a `pools.py` change, it
+**moves numbers** for at least Cape Town, and it needs the window. Not applied
+here — this item records it rather than fixing it, because taking the re-emit
+window would destroy the measurement the current specs were taken with.

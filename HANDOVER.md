@@ -1,3 +1,25 @@
+# Handover — 2026-08-29, with a 2026-09-05 banner
+
+> ## ⛔ READ THIS FIRST — the state below is from 2026-08-29 and the tree has moved a long way since
+>
+> **Current state is `audits/ENGINE-SUMMARY-2026-09-05.md` (where the engine
+> stands) and `audits/BATCH-PLAN-2026-09-02.md` (what is in flight).** This file
+> is kept for its pre-registration record, which is its whole value and must not
+> be edited to fit later answers.
+>
+> What has changed since it was written:
+>
+> * **The panel is 24 city-years, not 16.** Every score quoted below is a
+>   sixteen-city-year figure.
+> * **There are 26 pool specs, not 18**, and they are **deliberately stale** —
+>   a single re-emit is pending behind a paid code review.
+> * **The suite is 450 passed / 4 failed / 17 skipped**, not 377/0/10. Two of
+>   those four failures are **live defects**, not expected ones.
+> * A batch of ~40 commits has landed: the turnout band, a bounded rate
+>   estimator, the artefact key's population, a declared-nomination-list roster
+>   seam, the 2000/2006 election results made readable, and an
+>   undeclared-split detector.
+
 # Handover — 2026-08-29 (REVISED, post-result)
 
 **⛔ THE PRE-REGISTERED RUN HAS BEEN EXECUTED AND ITS RESULT IS READ. DO NOT
@@ -39,8 +61,14 @@ runnable` only when EVERY city-year fails — **if three fail it exits 0 and
 writes a JSON with thirteen records**, and two arms compared on different subsets
 are not a comparison. **Assert the count of 16 on both arms, every time.**
 
-All 18 pool specs carry `pools_sha` `dbdf171344ffd5f0`, matching the live code —
-**no re-emit is needed** and none should be taken.
+⛔ **SUPERSEDED 2026-09-05, AND IT WAS THE FIRST THING A NEW SESSION READ.**
+This said *"All 18 pool specs carry `pools_sha` `dbdf171344ffd5f0`, matching the
+live code — no re-emit is needed and none should be taken."* **Every clause of
+that is now false**: there are **26** specs, not 18; they carry
+`86995c914b530216`, not `dbdf171344ffd5f0`; the live code has moved many times
+since; and **a re-emit is the whole point of the current batch** and is pending
+behind a paid review. `CLAUDE.md` sends every new session to this file first,
+so a stale line here is the most expensive kind in the repository.
 
 ---
 
@@ -119,6 +147,15 @@ re-run of that comparison with a referee that cannot be handed the answer.
     git status --short                      # must be clean
     .venv/bin/python tests/run_all.py       # must be 0 failed
     .venv/bin/python src/freeze.py --verify # must say VERIFIED
+
+> ⛔ **ANNOTATED 2026-09-05, NOT EDITED.** Every line of the preflight below is
+> now false, and a session following it would draw the wrong conclusion four
+> ways: the suite is **450 passed / 4 failed** (two of the four are live
+> defects), `freeze --verify` speaks for a pre-batch artefact, the code hash is
+> **not** `dbdf171344ffd5f0`, and there are **26** specs rather than 18. **A
+> re-emit is not merely permitted — it is the pending step of the current
+> batch.** Kept verbatim because this section is the pre-registration record and
+> its value is that it cannot be edited to fit later answers.
 
 Confirm the artefacts are live (they were at the time of writing — **no re-emit
 is needed and none should be taken**):

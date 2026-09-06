@@ -1,0 +1,304 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "city": "ethekwini",
+    "config_sha": "050fa0e62ec22543",
+    "pools_sha": "732ef614fabd6ac7",
+    "schema": 1,
+    "target": "2016"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2011",
+  "judgement_file": "judgements/ethekwini-2016.toml",
+  "no_measured_vector": {
+    "ACADEMIC_CONGRESS_UNION": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AFRICAN_MANTUNGWA_COMMUNITY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AIC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "ALJAMAAH": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "ALLIED_MOVEMENT_FOR_CHANGE": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "DEMOCRATIC_LIBERAL_CONGRESS": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "EFF": "splinter of ANC, 35% its vector and 65% the city average",
+    "INDEPENDENT_PEOPLE_S_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "MINORITIES_OF_SOUTH_AFRICA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "PAC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "PEOPLE_S_REVOLUTIONARY_MOVEMENT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "SOUTH_AFRICAN_POLITICAL_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "THE_PROMISE_OF_FREEDOM": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_PEOPLES_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_RESIDENTS_FRONT": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.6959904379889893,
+    0.02750767497299482,
+    0.17675803394772618,
+    0.09974385309028977
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 174.51245537125794,
+      "derived_from": "pool vectors fitted on ethekwini 2011; size from the 2016 roll split by each ward's own composition; turnout from ethekwini's local elections before 2016",
+      "identified": [
+        "ANC",
+        "APC",
+        "COPE",
+        "DA",
+        "IFP"
+      ],
+      "members": {
+        "ACADEMIC_CONGRESS_UNION": 0.7031171528616149,
+        "ACDP": 0.14890788233367372,
+        "AFRICAN_MANTUNGWA_COMMUNITY": 0.7031171528616149,
+        "AIC": 0.7031171528616149,
+        "ALJAMAAH": 0.7031171528616149,
+        "ALLIED_MOVEMENT_FOR_CHANGE": 0.7031171528616149,
+        "ANC": 0.9767305713358778,
+        "APC": 0.826051481248885,
+        "AZAPO": 0.6877534353547713,
+        "COPE": 0.6217270015978889,
+        "DA": 0.030185531613977475,
+        "DEMOCRATIC_LIBERAL_CONGRESS": 0.7031171528616149,
+        "EFF": 0.7988818493276069,
+        "IFP": 0.8926739885407046,
+        "INDEPENDENT_PEOPLE_S_PARTY": 0.7031171528616149,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.7031171528616149,
+        "MINORITIES_OF_SOUTH_AFRICA": 0.7031171528616149,
+        "MINORITY_FRONT": 0.0029137611816258085,
+        "PAC": 0.7031171528616149,
+        "PEOPLE_S_REVOLUTIONARY_MOVEMENT": 0.7031171528616149,
+        "SOUTH_AFRICAN_POLITICAL_PARTY": 0.7031171528616149,
+        "THE_PROMISE_OF_FREEDOM": 0.7031171528616149,
+        "TRULY_ALLIANCE": 0.20688261172130906,
+        "UDM": 0.5485009687177602,
+        "UNITED_PEOPLES_PARTY": 0.7031171528616149,
+        "UNITED_RESIDENTS_FRONT": 0.7031171528616149,
+        "VFPLUS": 0.06346420778732363
+      },
+      "registered": 1308165.2135021356,
+      "turnout": [
+        0.31994951169174035,
+        0.6005604364478563,
+        0.8277273545499061
+      ]
+    },
+    "Coloured": {
+      "alpha": 25.41962393287191,
+      "derived_from": "pool vectors fitted on ethekwini 2011; size from the 2016 roll split by each ward's own composition; turnout from ethekwini's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "COPE"
+      ],
+      "members": {
+        "ACADEMIC_CONGRESS_UNION": 0.026902793036923712,
+        "ACDP": 0.0359161195115332,
+        "AFRICAN_MANTUNGWA_COMMUNITY": 0.026902793036923712,
+        "AIC": 0.026902793036923712,
+        "ALJAMAAH": 0.026902793036923712,
+        "ALLIED_MOVEMENT_FOR_CHANGE": 0.026902793036923712,
+        "ANC": 0.0068871137579139255,
+        "APC": 0.017124236456713945,
+        "AZAPO": 0.024228389132174913,
+        "COPE": 0.023424879468853698,
+        "DA": 0.08081707383834058,
+        "DEMOCRATIC_LIBERAL_CONGRESS": 0.026902793036923712,
+        "EFF": 0.01989730528927029,
+        "IFP": 0.09065455687035649,
+        "INDEPENDENT_PEOPLE_S_PARTY": 0.026902793036923712,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.026902793036923712,
+        "MINORITIES_OF_SOUTH_AFRICA": 0.026902793036923712,
+        "MINORITY_FRONT": 0.00013369009555678978,
+        "PAC": 0.026902793036923712,
+        "PEOPLE_S_REVOLUTIONARY_MOVEMENT": 0.026902793036923712,
+        "SOUTH_AFRICAN_POLITICAL_PARTY": 0.026902793036923712,
+        "THE_PROMISE_OF_FREEDOM": 0.026902793036923712,
+        "TRULY_ALLIANCE": 0.011001796133763874,
+        "UDM": 0.06448132017483187,
+        "UNITED_PEOPLES_PARTY": 0.026902793036923712,
+        "UNITED_RESIDENTS_FRONT": 0.026902793036923712,
+        "VFPLUS": 0.11000545484007644
+      },
+      "registered": 54432.11783364805,
+      "turnout": [
+        0.029399648445253702,
+        0.5389254652718292,
+        0.9783098291653048
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 24.05351800284519,
+      "derived_from": "pool vectors fitted on ethekwini 2011; size from the 2016 roll split by each ward's own composition; turnout from ethekwini's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "COPE",
+        "IFP",
+        "MINORITY_FRONT",
+        "TRULY_ALLIANCE"
+      ],
+      "members": {
+        "ACADEMIC_CONGRESS_UNION": 0.16071698259102765,
+        "ACDP": 0.6555601484585782,
+        "AFRICAN_MANTUNGWA_COMMUNITY": 0.16071698259102765,
+        "AIC": 0.16071698259102765,
+        "ALJAMAAH": 0.16071698259102765,
+        "ALLIED_MOVEMENT_FOR_CHANGE": 0.16071698259102765,
+        "ANC": 0.008859000866368111,
+        "APC": 0.07607902803431826,
+        "AZAPO": 0.1737749830802213,
+        "COPE": 0.2443936847454602,
+        "DA": 0.42752791082982466,
+        "DEMOCRATIC_LIBERAL_CONGRESS": 0.16071698259102765,
+        "EFF": 0.10756668898739682,
+        "IFP": 0.01667145458893892,
+        "INDEPENDENT_PEOPLE_S_PARTY": 0.16071698259102765,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.16071698259102765,
+        "MINORITIES_OF_SOUTH_AFRICA": 0.16071698259102765,
+        "MINORITY_FRONT": 0.9963221649515424,
+        "PAC": 0.16071698259102765,
+        "PEOPLE_S_REVOLUTIONARY_MOVEMENT": 0.16071698259102765,
+        "SOUTH_AFRICAN_POLITICAL_PARTY": 0.16071698259102765,
+        "THE_PROMISE_OF_FREEDOM": 0.16071698259102765,
+        "TRULY_ALLIANCE": 0.7302392455186769,
+        "UDM": 0.08297141942581529,
+        "UNITED_PEOPLES_PARTY": 0.16071698259102765,
+        "UNITED_RESIDENTS_FRONT": 0.16071698259102765,
+        "VFPLUS": 0.30782584251756095
+      },
+      "registered": 348328.468324385,
+      "turnout": [
+        0.24233553765901547,
+        0.5113177349802797,
+        0.7739016451162117
+      ]
+    },
+    "White": {
+      "alpha": 47.370905646672085,
+      "derived_from": "pool vectors fitted on ethekwini 2011; size from the 2016 roll split by each ward's own composition; turnout from ethekwini's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "APC",
+        "COPE",
+        "UDM",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACADEMIC_CONGRESS_UNION": 0.1092630715104338,
+        "ACDP": 0.1596158496962148,
+        "AFRICAN_MANTUNGWA_COMMUNITY": 0.1092630715104338,
+        "AIC": 0.1092630715104338,
+        "ALJAMAAH": 0.1092630715104338,
+        "ALLIED_MOVEMENT_FOR_CHANGE": 0.1092630715104338,
+        "ANC": 0.007523314039840281,
+        "APC": 0.08074525426008303,
+        "AZAPO": 0.1142431924328326,
+        "COPE": 0.11045443418779724,
+        "DA": 0.4614694837178573,
+        "DEMOCRATIC_LIBERAL_CONGRESS": 0.1092630715104338,
+        "EFF": 0.07365415639572606,
+        "INDEPENDENT_PEOPLE_S_PARTY": 0.1092630715104338,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.1092630715104338,
+        "MINORITIES_OF_SOUTH_AFRICA": 0.1092630715104338,
+        "MINORITY_FRONT": 0.0006303837712749764,
+        "PAC": 0.1092630715104338,
+        "PEOPLE_S_REVOLUTIONARY_MOVEMENT": 0.1092630715104338,
+        "SOUTH_AFRICAN_POLITICAL_PARTY": 0.1092630715104338,
+        "THE_PROMISE_OF_FREEDOM": 0.1092630715104338,
+        "TRULY_ALLIANCE": 0.05187634662625005,
+        "UDM": 0.30404629168159275,
+        "UNITED_PEOPLES_PARTY": 0.1092630715104338,
+        "UNITED_RESIDENTS_FRONT": 0.1092630715104338,
+        "VFPLUS": 0.5187044948550389
+      },
+      "registered": 192037.20033983118,
+      "turnout": [
+        0.3505126741413571,
+        0.6329790015456558,
+        0.8464237361429141
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2011; pools sized by 2014 roll carried to 2016 on the 2011-2014 RATE of change (log-space, invariant to a constant level bias), damped x0.6",
+  "registration_series": {
+    "2006": [
+      0.668044349386786,
+      0.03891903537259323,
+      0.19507137897914623,
+      0.09796523626147452
+    ],
+    "2009": [
+      0.6872536551396792,
+      0.03702678597463157,
+      0.17543908564056615,
+      0.10028047324512308
+    ],
+    "2011": [
+      0.6860394905094042,
+      0.029245715025377216,
+      0.18356122339119488,
+      0.1011535710740238
+    ],
+    "2014": [
+      0.69316983919392,
+      0.027994941182646282,
+      0.17868523690080465,
+      0.10014998272262916
+    ]
+  },
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeds": {},
+  "splinter_home": {
+    "fractions": {
+      "NFP": 0.3524
+    },
+    "measured_at": [
+      "2014"
+    ]
+  },
+  "target": "2016",
+  "turnout_limits": {
+    "city": {
+      "high": 0.6443068421495465,
+      "low": 0.39151780886431825,
+      "observed_high": 0.5857334928632241,
+      "observed_low": 0.43501978762702026,
+      "previous": 0.5857334928632241
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.660616480092642,
+        "low": 0.402577276869973,
+        "observed_high": 0.6005604364478563,
+        "observed_low": 0.44730808541108114,
+        "previous": 0.6005604364478563
+      },
+      {
+        "high": 0.5928180117990122,
+        "low": 0.25077789736806666,
+        "observed_high": 0.5389254652718292,
+        "observed_low": 0.27864210818674073,
+        "previous": 0.5389254652718292
+      },
+      {
+        "high": 0.5624495084783077,
+        "low": 0.3413177046181576,
+        "observed_high": 0.5113177349802797,
+        "observed_low": 0.3792418940201751,
+        "previous": 0.5113177349802797
+      },
+      {
+        "high": 0.6962769017002214,
+        "low": 0.44712831310263845,
+        "observed_high": 0.6329790015456558,
+        "observed_low": 0.4968092367807094,
+        "previous": 0.6329790015456558
+      }
+    ]
+  }
+}

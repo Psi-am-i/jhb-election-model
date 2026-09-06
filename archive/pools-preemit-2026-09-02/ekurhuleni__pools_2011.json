@@ -1,0 +1,249 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "city": "ekurhuleni",
+    "config_sha": "050fa0e62ec22543",
+    "pools_sha": "86995c914b530216",
+    "schema": 1,
+    "target": "2011"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2006",
+  "judgement_file": "judgements/ekurhuleni-2011.toml",
+  "no_measured_vector": {
+    "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "APC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "BLACK_CONSCIOUSNESS_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "COPE": "splinter of ANC, 35% its vector and 65% the city average",
+    "FIRST_NATION_LIBERATION_ALLIANCE": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "NATIONAL_REPUBLICAN_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "NFP": "splinter of IFP, 35% its vector and 65% the city average",
+    "PAN_AFRICANIST_MOVEMENT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "PEOPLE_S_CIVIC_ORGANISATION": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "THE_REAL_CONGRESS": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UMHLABA_UHLAGENE_PEOPLES_UNITED_NATIONS": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.7498928499395081,
+    0.037209204606724,
+    0.030281159695546817,
+    0.18261678575822102
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on ekurhuleni 2006; size from the 2011 roll split by each ward's own composition; turnout from ekurhuleni's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "DA",
+        "DISPLACEES_RATE_PAYERS_ASSOCIATION",
+        "IFP",
+        "PAC",
+        "SIMUNYE_IN_CHRIST_ORGANISATION",
+        "UDM",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.5373630967155021,
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.7218073363861085,
+        "ANC": 0.9817008639286217,
+        "APC": 0.7218073363861085,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.7218073363861085,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.687918963617118,
+        "COPE": 0.8127700710259881,
+        "DA": 0.08188037809174803,
+        "DISPLACEES_RATE_PAYERS_ASSOCIATION": 1.0,
+        "FIRST_NATION_LIBERATION_ALLIANCE": 0.7218073363861085,
+        "IFP": 0.8837433222948177,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.1594411031528691,
+        "NATIONAL_REPUBLICAN_PARTY": 0.7218073363861085,
+        "NFP": 0.7784849314541566,
+        "PAC": 0.9640954030479977,
+        "PAN_AFRICANIST_MOVEMENT": 0.7218073363861085,
+        "PEOPLE_S_CIVIC_ORGANISATION": 0.7218073363861085,
+        "SIMUNYE_IN_CHRIST_ORGANISATION": 0.8760842327601631,
+        "THEMBISA_CONCERNED_RESIDENTS_ASSOCIATION": 1.0,
+        "THE_REAL_CONGRESS": 0.7218073363861085,
+        "UDM": 0.9999999999999998,
+        "UMHLABA_UHLAGENE_PEOPLES_UNITED_NATIONS": 0.7218073363861085,
+        "VFPLUS": 0.3260382923218112
+      },
+      "registered": 1063787.8597660884,
+      "turnout": [
+        0.3343771338402225,
+        0.4040895857274388,
+        0.4779009708290294
+      ]
+    },
+    "Coloured": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on ekurhuleni 2006; size from the 2011 roll split by each ward's own composition; turnout from ekurhuleni's local elections before 2011",
+      "identified": [
+        "CHRISTIAN_DEMOCRATIC_PARTY",
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+        "PAC",
+        "SIMUNYE_IN_CHRIST_ORGANISATION",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.15247931382735905,
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.037789840394024284,
+        "ANC": 0.01812652719816436,
+        "APC": 0.037789840394024284,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.037789840394024284,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.1463155964617023,
+        "COPE": 0.03090768077547331,
+        "DA": 0.05048584276749095,
+        "FIRST_NATION_LIBERATION_ALLIANCE": 0.037789840394024284,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.180239225379362,
+        "NATIONAL_REPUBLICAN_PARTY": 0.037789840394024284,
+        "NFP": 0.024563396256115786,
+        "PAC": 0.03590459695200228,
+        "PAN_AFRICANIST_MOVEMENT": 0.037789840394024284,
+        "PEOPLE_S_CIVIC_ORGANISATION": 0.037789840394024284,
+        "SIMUNYE_IN_CHRIST_ORGANISATION": 0.12391576723983687,
+        "THE_REAL_CONGRESS": 0.037789840394024284,
+        "UMHLABA_UHLAGENE_PEOPLES_UNITED_NATIONS": 0.037789840394024284,
+        "VFPLUS": 0.11358427364516493
+      },
+      "registered": 59659.01128030721,
+      "turnout": [
+        0.312649709070211,
+        0.38042124919320214,
+        0.45319726219915146
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on ekurhuleni 2006; size from the 2011 roll split by each ward's own composition; turnout from ekurhuleni's local elections before 2011",
+      "identified": [
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA"
+      ],
+      "members": {
+        "ACDP": 0.09632217125348433,
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.019937038553855143,
+        "APC": 0.019937038553855143,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.019937038553855143,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.011482201484687487,
+        "COPE": 0.012959075060005843,
+        "DA": 0.05062244849000699,
+        "FIRST_NATION_LIBERATION_ALLIANCE": 0.019937038553855143,
+        "IFP": 0.1162566777051823,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.09902465189142806,
+        "NATIONAL_REPUBLICAN_PARTY": 0.019937038553855143,
+        "NFP": 0.05364891225681964,
+        "PAN_AFRICANIST_MOVEMENT": 0.019937038553855143,
+        "PEOPLE_S_CIVIC_ORGANISATION": 0.019937038553855143,
+        "THE_REAL_CONGRESS": 0.019937038553855143,
+        "UMHLABA_UHLAGENE_PEOPLES_UNITED_NATIONS": 0.019937038553855143,
+        "VFPLUS": 0.1693692585320381
+      },
+      "registered": 49858.17302550583,
+      "turnout": [
+        0.19137086017385374,
+        0.24211347093563232,
+        0.30129744162276073
+      ]
+    },
+    "White": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on ekurhuleni 2006; size from the 2011 roll split by each ward's own composition; turnout from ekurhuleni's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.21383541820365448,
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.22046578466601216,
+        "ANC": 0.00017260887321394444,
+        "APC": 0.22046578466601216,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.22046578466601216,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.1542832384364921,
+        "COPE": 0.14336317313853278,
+        "DA": 0.817011330650754,
+        "FIRST_NATION_LIBERATION_ALLIANCE": 0.22046578466601216,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.5612950195763409,
+        "NATIONAL_REPUBLICAN_PARTY": 0.22046578466601216,
+        "NFP": 0.1433027600329079,
+        "PAN_AFRICANIST_MOVEMENT": 0.22046578466601216,
+        "PEOPLE_S_CIVIC_ORGANISATION": 0.22046578466601216,
+        "THE_REAL_CONGRESS": 0.22046578466601216,
+        "UMHLABA_UHLAGENE_PEOPLES_UNITED_NATIONS": 0.22046578466601216,
+        "VFPLUS": 0.3910081755009857
+      },
+      "registered": 251086.95592809858,
+      "turnout": [
+        0.46590646942320213,
+        0.5407628116394164,
+        0.6138237421110802
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2006; pools sized by 2009 roll carried to 2011 on the 2006-2009 RATE of change (log-space, invariant to a constant level bias), damped x0.6",
+  "registration_series": {
+    "2006": [
+      0.7516418357284438,
+      0.04183797845968277,
+      0.03479932277233983,
+      0.17172086303953354
+    ],
+    "2009": [
+      0.7505328494902032,
+      0.03848402353516697,
+      0.031514511806062066,
+      0.179468615168568
+    ]
+  },
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeds": {},
+  "target": "2011",
+  "turnout_limits": {
+    "city": {
+      "high": 0.46367297219032433,
+      "low": 0.37936879542844715,
+      "observed_high": 0.42152088380938574,
+      "observed_low": 0.42152088380938574,
+      "previous": 0.42152088380938574
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.4444985443001827,
+        "low": 0.36368062715469496,
+        "observed_high": 0.4040895857274388,
+        "observed_low": 0.4040895857274388,
+        "previous": 0.4040895857274388
+      },
+      {
+        "high": 0.4184633741125224,
+        "low": 0.34237912427388195,
+        "observed_high": 0.38042124919320214,
+        "observed_low": 0.38042124919320214,
+        "previous": 0.38042124919320214
+      },
+      {
+        "high": 0.26632481802919555,
+        "low": 0.21790212384206908,
+        "observed_high": 0.24211347093563232,
+        "observed_low": 0.24211347093563232,
+        "previous": 0.24211347093563232
+      },
+      {
+        "high": 0.5948390928033581,
+        "low": 0.4866865304754748,
+        "observed_high": 0.5407628116394164,
+        "observed_low": 0.5407628116394164,
+        "previous": 0.5407628116394164
+      }
+    ]
+  }
+}

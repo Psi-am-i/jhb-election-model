@@ -1,0 +1,306 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "city": "capetown",
+    "config_sha": "050fa0e62ec22543",
+    "pools_sha": "eaff455dbf98d017",
+    "schema": 1,
+    "target": "2011"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2006",
+  "judgement_file": "judgements/capetown-2011.toml",
+  "no_measured_vector": {
+    "AFRICAN_BOND_OF_UNITY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "ALJAMAAH": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "APC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "CAPE_MUSLIM_CONGRESS": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "CAPE_PARTY_KAAPSE_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "COMMUNITY_COALITION": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "COPE": "splinter of ANC, 35% its vector and 65% the city average",
+    "DEMOCRATS_FOR_CHANGE": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "NATIONAL_ALLIANCE_FOR_DEMOCRACY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "NATIONAL_INDEPENDANT_CIVIC_ORGANISATION": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "NATIONAL_PARTY_SOUTH_AFRICA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "NATIONAL_PEOPLE_S_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "NFP": "splinter of IFP, 35% its vector and 65% the city average",
+    "PAN_AFRICANIST_MOVEMENT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "SOCIAL_DEMOCRATIC_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_MAJORITY_FRONT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNIVERSAL_CIVICS_OF_SOUTH_AFRICA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "WESTERN_CAPE_COMMUNITY": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.3292596106807493,
+    0.39818310686849295,
+    0.05071419253622696,
+    0.22184308991453083
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on capetown 2006; size from the 2011 roll split by each ward's own composition; turnout from capetown's local elections before 2011",
+      "identified": [
+        "PAC",
+        "UDM",
+        "UNITED_INDEPENDENT_FRONT",
+        "VFPLUS"
+      ],
+      "members": {
+        "ABOLITION_OF_INCOME_TAX_AND_USURY_PARTY": 0.21057340251873127,
+        "ACDP": 0.0015991340821860812,
+        "AFRICAN_BOND_OF_UNITY": 0.33567737768388944,
+        "ALJAMAAH": 0.33567737768388944,
+        "ANC": 0.8204567650966278,
+        "APC": 0.33567737768388944,
+        "AZAPO": 0.24422103492500435,
+        "CAPE_MUSLIM_CONGRESS": 0.33567737768388944,
+        "CAPE_PARTY_KAAPSE_PARTY": 0.33567737768388944,
+        "COMMUNITY_COALITION": 0.33567737768388944,
+        "COPE": 0.5053501632783478,
+        "DA": 0.0007393444898572735,
+        "DEMOCRATS_FOR_CHANGE": 0.33567737768388944,
+        "IFP": 0.12103394914275532,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.33567737768388944,
+        "NATIONAL_ALLIANCE_FOR_DEMOCRACY": 0.33567737768388944,
+        "NATIONAL_INDEPENDANT_CIVIC_ORGANISATION": 0.33567737768388944,
+        "NATIONAL_PARTY_SOUTH_AFRICA": 0.33567737768388944,
+        "NATIONAL_PEOPLE_S_PARTY": 0.33567737768388944,
+        "NFP": 0.2605521776944925,
+        "PAC": 0.7173779541886198,
+        "PAN_AFRICANIST_MOVEMENT": 0.33567737768388944,
+        "SOCIAL_DEMOCRATIC_PARTY": 0.33567737768388944,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.33567737768388944,
+        "UDM": 0.9361995138106273,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.33567737768388944,
+        "UNITED_INDEPENDENT_FRONT": 0.39998320696779216,
+        "UNITED_MAJORITY_FRONT": 0.33567737768388944,
+        "UNIVERSAL_CIVICS_OF_SOUTH_AFRICA": 0.33567737768388944,
+        "VFPLUS": 0.36485776325155134,
+        "WESTERN_CAPE_COMMUNITY": 0.33567737768388944
+      },
+      "registered": 588817.2476536823,
+      "turnout": [
+        0.3342933233438114,
+        0.477854757385596,
+        0.6251703241954467
+      ]
+    },
+    "Coloured": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on capetown 2006; size from the 2011 roll split by each ward's own composition; turnout from capetown's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "AFRICA_MUSLIM_PARTY",
+        "IFP",
+        "UNITED_INDEPENDENT_FRONT",
+        "UNIVERSAL_PARTY"
+      ],
+      "members": {
+        "ABOLITION_OF_INCOME_TAX_AND_USURY_PARTY": 0.5172148858888417,
+        "ACDP": 0.5947061084171685,
+        "AFRICAN_BOND_OF_UNITY": 0.3453489103548397,
+        "AFRICA_MUSLIM_PARTY": 0.6392497060732533,
+        "ALJAMAAH": 0.3453489103548397,
+        "ANC": 0.1372855859286504,
+        "APC": 0.3453489103548397,
+        "AZAPO": 0.4647255188505629,
+        "CAPE_MUSLIM_CONGRESS": 0.3453489103548397,
+        "CAPE_PARTY_KAAPSE_PARTY": 0.3453489103548397,
+        "COMMUNITY_COALITION": 0.3453489103548397,
+        "COPE": 0.27252674680567346,
+        "DA": 0.34169896317433723,
+        "DEMOCRATS_FOR_CHANGE": 0.3453489103548397,
+        "IFP": 0.7689939389106168,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.3453489103548397,
+        "NATIONAL_ALLIANCE_FOR_DEMOCRACY": 0.3453489103548397,
+        "NATIONAL_INDEPENDANT_CIVIC_ORGANISATION": 0.3453489103548397,
+        "NATIONAL_PARTY_SOUTH_AFRICA": 0.3453489103548397,
+        "NATIONAL_PEOPLE_S_PARTY": 0.3453489103548397,
+        "NFP": 0.4936246703493617,
+        "PAC": 0.10700007611104465,
+        "PAN_AFRICANIST_MOVEMENT": 0.3453489103548397,
+        "SOCIAL_DEMOCRATIC_PARTY": 0.3453489103548397,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.3453489103548397,
+        "UDM": 0.031218906865701595,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.3453489103548397,
+        "UNITED_INDEPENDENT_FRONT": 0.43221411790021125,
+        "UNITED_MAJORITY_FRONT": 0.3453489103548397,
+        "UNIVERSAL_CIVICS_OF_SOUTH_AFRICA": 0.3453489103548397,
+        "UNIVERSAL_PARTY": 1.0,
+        "VFPLUS": 0.1650344704565031,
+        "WESTERN_CAPE_COMMUNITY": 0.3453489103548397
+      },
+      "registered": 700736.4803119901,
+      "turnout": [
+        0.2784703178319186,
+        0.41292886082917446,
+        0.561763122735195
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on capetown 2006; size from the 2011 roll split by each ward's own composition; turnout from capetown's local elections before 2011",
+      "identified": [
+        "AFRICA_MUSLIM_PARTY",
+        "PAC",
+        "VFPLUS"
+      ],
+      "members": {
+        "ABOLITION_OF_INCOME_TAX_AND_USURY_PARTY": 0.10425930267852077,
+        "ACDP": 0.13545767228098138,
+        "AFRICAN_BOND_OF_UNITY": 0.06826369764582406,
+        "AFRICA_MUSLIM_PARTY": 0.3607502939267467,
+        "ALJAMAAH": 0.06826369764582406,
+        "ANC": 0.038662270829044866,
+        "APC": 0.06826369764582406,
+        "AZAPO": 0.0962638354166141,
+        "CAPE_MUSLIM_CONGRESS": 0.06826369764582406,
+        "CAPE_PARTY_KAAPSE_PARTY": 0.06826369764582406,
+        "COMMUNITY_COALITION": 0.06826369764582406,
+        "COPE": 0.05790319825995134,
+        "DA": 0.07734710187469722,
+        "DEMOCRATS_FOR_CHANGE": 0.06826369764582406,
+        "IFP": 0.013435972644415737,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.06826369764582406,
+        "NATIONAL_ALLIANCE_FOR_DEMOCRACY": 0.06826369764582406,
+        "NATIONAL_INDEPENDANT_CIVIC_ORGANISATION": 0.06826369764582406,
+        "NATIONAL_PARTY_SOUTH_AFRICA": 0.06826369764582406,
+        "NATIONAL_PEOPLE_S_PARTY": 0.06826369764582406,
+        "NFP": 0.049073993895331146,
+        "PAC": 0.17290089198899236,
+        "PAN_AFRICANIST_MOVEMENT": 0.06826369764582406,
+        "SOCIAL_DEMOCRATIC_PARTY": 0.06826369764582406,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.06826369764582406,
+        "UDM": 0.006791574378912225,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.06826369764582406,
+        "UNITED_INDEPENDENT_FRONT": 0.009077939766262798,
+        "UNITED_MAJORITY_FRONT": 0.06826369764582406,
+        "UNIVERSAL_CIVICS_OF_SOUTH_AFRICA": 0.06826369764582406,
+        "VFPLUS": 0.19676760831117118,
+        "WESTERN_CAPE_COMMUNITY": 0.06826369764582406
+      },
+      "registered": 99697.64557969802,
+      "turnout": [
+        0.43415526280573413,
+        0.5830420323059564,
+        0.718182744990562
+      ]
+    },
+    "White": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on capetown 2006; size from the 2011 roll split by each ward's own composition; turnout from capetown's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "VFPLUS"
+      ],
+      "members": {
+        "ABOLITION_OF_INCOME_TAX_AND_USURY_PARTY": 0.16795240891390625,
+        "ACDP": 0.26823708521966394,
+        "AFRICAN_BOND_OF_UNITY": 0.25071001431544676,
+        "ALJAMAAH": 0.25071001431544676,
+        "ANC": 0.0035953781456769117,
+        "APC": 0.25071001431544676,
+        "AZAPO": 0.1947896108078186,
+        "CAPE_MUSLIM_CONGRESS": 0.25071001431544676,
+        "CAPE_PARTY_KAAPSE_PARTY": 0.25071001431544676,
+        "COMMUNITY_COALITION": 0.25071001431544676,
+        "COPE": 0.16421989165602732,
+        "DA": 0.5802145904611083,
+        "DEMOCRATS_FOR_CHANGE": 0.25071001431544676,
+        "IFP": 0.09653613930221196,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.25071001431544676,
+        "NATIONAL_ALLIANCE_FOR_DEMOCRACY": 0.25071001431544676,
+        "NATIONAL_INDEPENDANT_CIVIC_ORGANISATION": 0.25071001431544676,
+        "NATIONAL_PARTY_SOUTH_AFRICA": 0.25071001431544676,
+        "NATIONAL_PEOPLE_S_PARTY": 0.25071001431544676,
+        "NFP": 0.1967491580608146,
+        "PAC": 0.002721077711343232,
+        "PAN_AFRICANIST_MOVEMENT": 0.25071001431544676,
+        "SOCIAL_DEMOCRATIC_PARTY": 0.25071001431544676,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.25071001431544676,
+        "UDM": 0.02579000494475891,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.25071001431544676,
+        "UNITED_INDEPENDENT_FRONT": 0.15872473536573387,
+        "UNITED_MAJORITY_FRONT": 0.25071001431544676,
+        "UNIVERSAL_CIVICS_OF_SOUTH_AFRICA": 0.25071001431544676,
+        "VFPLUS": 0.27334015798077455,
+        "WESTERN_CAPE_COMMUNITY": 0.25071001431544676
+      },
+      "registered": 356601.6264546296,
+      "turnout": [
+        0.48486184038225505,
+        0.6317240658817572,
+        0.7576450436753773
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2006; pools sized by 2009 roll carried to 2011 on the 2006-2009 RATE of change (log-space, invariant to a constant level bias), damped x0.6",
+  "registration_series": {
+    "2006": [
+      0.3418695111925092,
+      0.4076453479124327,
+      0.0569992344753998,
+      0.19348590641965838
+    ],
+    "2009": [
+      0.3329955722733898,
+      0.40108240908390164,
+      0.05246420699758656,
+      0.2134578116451222
+    ]
+  },
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeds": {},
+  "target": "2011",
+  "turnout_limits": {
+    "city": {
+      "high": 0.5381539599962354,
+      "low": 0.4403077854514653,
+      "observed_high": 0.48923087272385035,
+      "observed_low": 0.48923087272385035,
+      "previous": 0.48923087272385035
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.5256402331241556,
+        "low": 0.43006928164703645,
+        "observed_high": 0.477854757385596,
+        "observed_low": 0.477854757385596,
+        "previous": 0.477854757385596
+      },
+      {
+        "high": 0.45422174691209194,
+        "low": 0.37163597474625704,
+        "observed_high": 0.41292886082917446,
+        "observed_low": 0.41292886082917446,
+        "previous": 0.41292886082917446
+      },
+      {
+        "high": 0.6413462355365521,
+        "low": 0.5247378290753608,
+        "observed_high": 0.5830420323059564,
+        "observed_low": 0.5830420323059564,
+        "previous": 0.5830420323059564
+      },
+      {
+        "high": 0.694896472469933,
+        "low": 0.5685516592935815,
+        "observed_high": 0.6317240658817572,
+        "observed_low": 0.6317240658817572,
+        "previous": 0.6317240658817572
+      }
+    ]
+  }
+}
