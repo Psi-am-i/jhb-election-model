@@ -68,6 +68,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import datetime as _dt
 import functools
 import os
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -1297,18 +1298,6 @@ def ward_winner_accuracy(ward_probs, actual_winners) -> dict:
     }
 
 
-def published_for(city_slug: str, year: str) -> dict | None:
-    path = Path("data/processed") / f"validation_{year}.json"
-    if not path.exists():
-        return None
-    try:
-        payload = json.loads(path.read_text())
-    except Exception:
-        return None
-    entry = (payload.get("cities") or {}).get(city_slug)
-    return entry
-
-
 def _run_one(job):
     """One city-year, as a picklable unit of work for a worker process.
 
@@ -1325,6 +1314,49 @@ def _run_one(job):
     slug, year, draws, data_dir, overrides, run_dir = job
     return run_city_year(slug, year, draws, Path(data_dir), overrides,
                          run_dir=Path(run_dir) if run_dir else None)
+
+
+def _reconcile_arrival(run, scored: dict) -> dict:
+    """Does the arrival mass the SPEC declares equal the mass the RUN draws?
+
+    ⛔ NOTHING COMPARED THESE TWO NUMBERS, AND THAT IS HOW THE DOUBLE-COUNT
+    SURVIVED. The emitted spec declares `seeded_arrival_mass`; the run draws its
+    own arrival total. On 2026-09-08 the first was 1.3977% and the second
+    3.32% — a factor of 2.4 sitting in one artefact and one run, in plain sight,
+    for a day. I saw both numbers, did not reconcile them, and reasoned my way
+    to a different diagnosis entirely (§1.215).
+
+    A quantity that crosses an artefact boundary and is not checked on the other
+    side is not declared, whatever the artefact says. This is the check.
+
+    ⚠️ IT REPORTS, IT DOES NOT REFUSE. A refusal here would abort every scored
+    city-year in the panel on a defect the panel exists to measure — and the
+    gap is currently REAL, so a refusal would make the instrument unusable at
+    exactly the moment it is telling the truth. The number goes into the
+    artefact, `_arrival_referee` prints it, and a test asserts on it.
+    """
+    seeds = (run.scenario.get("pool_seeds") or {}) if hasattr(run, "scenario") else {}
+    declared = float(sum(v for v in seeds.values() if v > 0))
+    drawn = float(scored.get("mass_mean") or 0.0)
+    # The generic slot's contribution, if it is in the universe at all. It is
+    # appended whenever `entrant_prob > 0`, unconditionally on whether named
+    # seeds already exist — which is the mechanism being measured here.
+    prob = float((run.scenario or {}).get("entrant_prob") or 0.0)
+    share = (run.scenario or {}).get("entrant_share") or [0.0, 0.0, 0.0]
+    slot = prob * (sum(float(x) for x in share) / 3.0) if prob > 0 else 0.0
+    has_slot = "ENTRANT" in set(run.universe or ())
+    return {
+        "declared_seeded_mass": declared,
+        "drawn_mass_mean": drawn,
+        "generic_slot_expectation": slot if has_slot else 0.0,
+        "generic_slot_present": bool(has_slot),
+        "seeded_parties": len([v for v in seeds.values() if v > 0]),
+        # The residual after accounting for the generic slot. If the slot is
+        # the whole of the discrepancy this lands near zero, which is the
+        # signature of double-counting rather than of a mis-sized budget.
+        "unexplained": drawn - declared - (slot if has_slot else 0.0),
+        "double_counted": bool(has_slot and declared > 0),
+    }
 
 
 def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
@@ -1477,6 +1509,8 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
             run.pr_share_draws, run.seat_draws,
             {p: i for i, p in enumerate(run.universe)},
             actual_pr, actual_seats, _npe_baseline(target, data_dir))
+        out["arrival_reconciliation"] = _reconcile_arrival(
+            run, out["arrival_group"])
 
     ctx = BM.build_context(int(year), data_dir)
     for name in ("last-lge", "uniform-swing", "prior-lge-noise"):
@@ -1505,20 +1539,63 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
             "energy": bench_scored["energy"],
             "variogram": bench_scored["variogram"],
             "n_scored": len(bench_scored.get("parties") or []),
-            "seat_abs_err": sum(
+            # ⛔ `seat_abs_err_coherent`, NOT `seat_abs_err`. THE SAME KEY NAME
+            # MEANT TWO STATISTICS AT TWO DEPTHS OF THIS FILE.
+            #
+            # The model's own `seat_abs_err` is the MARGINAL statistic — a sum
+            # over per-party medians, which need not fill a council. A baseline
+            # is deterministic (or allocated per draw), so its error is the
+            # COHERENT one. Under the old name a reader — or a future session —
+            # could set the model's marginal total against a baseline's coherent
+            # total and read the difference as skill. That is exactly what
+            # happened on 2026-09-08: the pre-batch coherent 707 was quoted
+            # against the post-batch marginal 706 and the batch was reported as
+            # "essentially flat" when it was +38 coherent. §1.214.
+            #
+            # Renamed rather than detected afterwards: the collision was invited
+            # by the schema, and a detector for it would be one more thing to
+            # verify. `render` prints the full key name for the same reason.
+            "seat_abs_err_coherent": sum(
                 abs(actual_seats.get(p, 0) - bench_seats.get(p, 0))
                 for p in set(actual_seats) | set(bench_seats)),
             "wards": ward_winner_accuracy(BM.ward_probabilities(ward_draws),
                                           actual_winners)}
 
-    pub = published_for(city_slug, year)
-    if pub and pub.get("model"):
-        m = pub["model"]
-        out["opponents"]["published"] = {
-            "crps": m.get("crps"),
-            "seat_abs_err": sum(
-                abs(r["actual"] - r["forecast"]) for r in m.get("parties", [])),
-            "generated": pub.get("generated")}
+    # ⛔ THE `published` OPPONENT IS DELETED. IT WAS THIS MODEL'S OWN OUTPUT.
+    #
+    # It read `data/processed/validation_2021.json` — a run of THIS model from
+    # 2026-08-11 — and placed it in `opponents` beside `uniform-swing`,
+    # `last-lge` and `prior-lge-noise`, where a reader takes it for an outside
+    # forecaster. `CLAUDE.md` rule 1 bars comparing anything to an earlier
+    # output of this model, and the key name invited exactly that: on 2026-09-09
+    # I nearly reported "we lose to the published forecast by 9.7%" to the owner
+    # as the external comparison he had asked for.
+    #
+    # It is not merely self-benchmarking, it is incomparable on FOUR axes at
+    # once, all verified against the artefact:
+    #
+    #     axis            published        model (same 8 rows)   model (all 24)
+    #     rows            8 of 24, 2021    8                     24, three cycles
+    #     party universe  12, fixed        n_scored 20-56        n_scored 9-56
+    #     draws           400              1000                  1000
+    #     in_sample       True             out of sample         out of sample
+    #
+    # `in_sample` is `True` in every one of its eight cities and `run_city_year`
+    # dropped that flag when it copied the number into `opponents` — so the one
+    # field that disclosed the contamination did not survive into the table
+    # where the comparison was made.
+    #
+    # ⚠️ AND STAMPING IT WITH AN `n` WOULD HAVE BEEN WORSE THAN LEAVING IT.
+    # Printing `n=8` beside it certifies the row subset while silently blessing
+    # the other three axes; the number then reads as checked, on the authority
+    # of the instrument. A partial compatibility check that reads as a complete
+    # one is the failure this whole change exists to remove. Deleted rather than
+    # renamed for the same reason: `self_2026_08_11` still sits in a column of
+    # opponents and still gets subtracted from. §1.216.
+    #
+    # `published_for` is deleted with it. If an external forecast ever exists,
+    # it goes in its own section printing all four axes on its face — not into
+    # `opponents`.
 
     # ⛔ THE SCORED ARTEFACT SAYS WHETHER IT WAS ABLATED. ALWAYS, NOT ONLY WHEN
     # IT WAS.
@@ -2022,11 +2099,12 @@ def _headline_split(results: list[dict]) -> list[str]:
         if not sel:
             continue
         opp = [r["opponents"].get("uniform-swing", {}) for r in sel]
-        if any("error" in o or o.get("seat_abs_err") is None for o in opp):
+        if any("error" in o or o.get("seat_abs_err_coherent") is None
+               for o in opp):
             out.append(f"| {label} | {len(sel)} | — | — | — | — | — | — |")
             continue
         m = sum(r["seat_abs_err_coherent"] for r in sel)
-        u = sum(o["seat_abs_err"] for o in opp)
+        u = sum(o["seat_abs_err_coherent"] for o in opp)
         mc = sum(r["crps"] for r in sel)
         uc = sum(o["crps"] for o in opp)
         out.append(
@@ -2040,7 +2118,7 @@ def _headline_split(results: list[dict]) -> list[str]:
         w = l = t = 0
         for r in rows:
             o = r["opponents"].get("uniform-swing", {})
-            u = o.get("seat_abs_err")
+            u = o.get("seat_abs_err_coherent")
             if u is None:
                 continue
             m = r["seat_abs_err_coherent"]
@@ -2139,7 +2217,135 @@ def render_wards(results: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def render(results: list[dict]) -> str:
+def _opp_total(results: list[dict], key: str, field: str) -> float | None:
+    """One opponent's total over the rows where it is present and scorable."""
+    vals = [(r["opponents"].get(key) or {}).get(field) for r in results]
+    good = [v for v in vals if v is not None]
+    return sum(good) if len(good) == len(results) else None
+
+
+def _totals_row(results: list[dict]) -> str:
+    """The TOTAL line for the Headline table.
+
+    ⛔ THIS ROW EXISTS BECAUSE THE POOLED NUMBER THIS PROJECT ARGUES OVER DID NOT
+    EXIST IN ANY ARTEFACT. `render` printed 24 rows and no total, so every
+    pooled claim ever made here was summed by hand — and on 2026-09-08 a
+    hand-summed pre-batch COHERENT 707 was set against a post-batch MARGINAL 706
+    and reported as "essentially flat" when it was +38 coherent (§1.214).
+
+    An opponent's total is `None` unless it is present on EVERY row, so a
+    benchmark scored on a subset cannot contribute a total that looks like the
+    others.
+    """
+    n = len(results)
+    def opp(key):
+        v = _opp_total(results, key, "seat_abs_err_coherent")
+        return "—" if v is None else f"{v:.0f}"
+    return (f"| **TOTAL** [rows={n}] | "
+            f"{sum(r['council'] for r in results)} | — | — | "
+            f"**{sum(r['seat_abs_err'] for r in results)}** | — | "
+            f"**{sum(r['seat_abs_err_coherent'] for r in results)}** | "
+            f"**{sum(r['crps'] for r in results):.1f}** | "
+            f"{opp('last-lge')} | {opp('uniform-swing')} | "
+            f"{opp('prior-lge-noise')} |")
+
+
+def _citable(results: list[dict], manifest: dict | None = None) -> str:
+    """The block that is meant to be COPIED, not read.
+
+    ⛔ EVERY NUMBER LEAVES THIS PROJECT WITH ITS OWN IDENTITY ATTACHED, OR IT
+    DOES NOT LEAVE.
+
+    The rule that decides what goes on a line: **a coordinate is printed when it
+    VARIES within the report, and lives in the manifest when it does not.** So
+    `rows` is here (it differs between the panel and any subset) and `draws` is
+    not (one `--draws` for the whole run). If a subset-scored benchmark ever
+    returns, its axes start varying and get promoted by the rule rather than by
+    someone remembering.
+
+    Printing run-level constants on every line would be furniture, and furniture
+    teaches the eye to skip the label — which is the failure this is here to
+    prevent.
+
+    ⚠️ Compliance is a design property, not a discipline: citing has to be
+    EASIER than retyping, or the number gets retyped. Hence a block that can be
+    pasted whole.
+    """
+    n = len(results)
+    us = _opp_total(results, "uniform-swing", "seat_abs_err_coherent")
+    coh = sum(r["seat_abs_err_coherent"] for r in results)
+    marg = sum(r["seat_abs_err"] for r in results)
+    crps = sum(r["crps"] for r in results)
+    scored = sum(r.get("n_scored") or 0 for r in results)
+    # ⛔ THE ONE-LINE TOKEN, AND IT IS THE POINT OF THIS BLOCK.
+    #
+    # A blind reviewer put the load-bearing assumption plainly: to write "the
+    # panel scores 745" in a sentence you would have to paste an eight-line
+    # fenced block carrying four numbers you do not want — so you would retype
+    # `745`, and the whole exercise fails. They were right.
+    #
+    # ⚠️ AND THE COORDINATE RULE WAS APPLIED BACKWARDS. §1.214 compared TWO
+    # REPORTS (a pre-batch 707 against a post-batch 706), not two lines of one,
+    # and both reports print `[rows=24]` — so the block did not disambiguate
+    # the very confusion it cites as its reason for existing. A between-report
+    # citation needs the between-report coordinates: the commit, the draw
+    # count, and which specs were read.
+    #
+    # Hence one line, pasteable mid-sentence, carrying all of them.
+    man_bits = []
+    if manifest:
+        c = str(manifest.get("git_commit") or "?")[:8]
+        if manifest.get("git_dirty"):
+            c += "+dirty"
+        man_bits = [f"@{c}", f"{manifest.get('draws')}d"]
+        keys = {k.get("pools_sha") for city in
+                (manifest.get("pool_artefact_keys") or {}).values()
+                for k in (city or {}).values() if isinstance(k, dict)}
+        if len(keys) == 1:
+            man_bits.append(f"pools:{str(keys.pop())[:8]}")
+    tok = "/".join([f"seat_abs_err_coherent={coh}"] + man_bits + [f"rows={n}"])
+
+    out = ["### Citable totals\n",
+           f"**Quoting one number in a sentence? Paste this token, do not "
+           f"retype the figure:**\n",
+           "```",
+           tok,
+           "```",
+           "",
+           "The full set, for anything more than one number:\n",
+           "```",
+           f"seat_abs_err_coherent = {coh:<8} [rows={n}]",
+           f"seat_abs_err          = {marg:<8} [rows={n}]   # MARGINAL, not "
+           f"comparable to the line above",
+           f"crps                  = {crps:<8.2f} [rows={n}]",
+           f"n_scored              = {scored:<8} [rows={n}]   # summed scoring "
+           f"columns, the CRPS denominator"]
+    if us:
+        out.append(f"margin_vs_uniform_swing = {100 * (1 - coh / us):.1f}%"
+                   f"   [rows={n}, coherent]")
+    else:
+        # ⛔ SAY WHY, DO NOT DROP THE LINE. A margin that quietly disappears
+        # reads as "not applicable"; a margin that is absent because the
+        # opponent was not scored on every row is a different fact and the
+        # reader must be told which. This is the same loud-degradation rule
+        # `test_calibration_report.py` applies to an artefact missing its
+        # intervals.
+        have = sum(1 for r in results
+                   if (r["opponents"].get("uniform-swing") or {})
+                   .get("seat_abs_err_coherent") is not None)
+        out.append(f"margin_vs_uniform_swing = UNAVAILABLE   "
+                   f"[uniform-swing carries seat_abs_err_coherent on {have} of "
+                   f"{n} rows; a total over a subset is not the panel's total]")
+    out += ["```",
+            "",
+            "`seat_abs_err` and `seat_abs_err_coherent` are DIFFERENT "
+            "STATISTICS. Quoting one against the other is §1.214."]
+    return "\n".join(out)
+
+
+def render(results: list[dict], manifest: dict | None = None) -> str:
+    global _MANIFEST_FOR_RENDER
+    _MANIFEST_FOR_RENDER = manifest
     lines: list[str] = []
     add = lines.append
     add("# Historical performance — votes and seats, predicted against actual\n")
@@ -2153,17 +2359,21 @@ def render(results: list[dict]) -> str:
     add("|---|---|---|---|---|---|---|---|---|---|---|")
     for r in results:
         o = r["opponents"]
-        def cell(key, field="seat_abs_err"):
+        def cell(key, field="seat_abs_err_coherent"):
             v = o.get(key, {})
             if "error" in v or v.get(field) is None:
                 return "—"
-            return f"{v[field]:.0f}" if field == "seat_abs_err" else f"{v[field]:.1f}"
+            return (f"{v[field]:.0f}" if field == "seat_abs_err_coherent"
+                    else f"{v[field]:.1f}")
         add(f"| {r['city']} {r['year']} | {r['council']} | "
             f"{r['pr_mae']:.2f}pp | {r['ward_mae']:.2f}pp | "
             f"{r['seat_abs_err']} | {r['median_sum']} | "
             f"{r['seat_abs_err_coherent']} | {r['crps']:.1f} | "
             f"{cell('last-lge')} | {cell('uniform-swing')} | "
             f"{cell('prior-lge-noise')} |")
+    add(_totals_row(results))
+    add("")
+    add(_citable(results, _MANIFEST_FOR_RENDER))
     add("")
     for line in _headline_split(results):
         add(line)
@@ -2426,6 +2636,124 @@ _IMPORT_TIME_CONSTANTS = {label: _module_constants(mod)
 _IMPORTED_BEFORE_US = _modules_imported_before_us()
 
 
+# Operational, not a modelling choice: it versions the SHAPE of the scoreboard
+# envelope so a reader can tell a manifested artefact from a bare one. Exempt
+# from JUDGEMENT-CALLS for the same reason `publication.SCHEMA` is.
+HISTORY_SCHEMA = 1
+_MANIFEST_FOR_RENDER: dict | None = None
+
+
+def _archive_targets() -> list[tuple[str, str]]:
+    """Every city-year the archive supports, regardless of what this run chose.
+
+    The denominator `population.excluded` is measured against. Derived, never
+    typed — a typed panel list is how §1.69 stayed wrong for months.
+    """
+    out = []
+    for slug in CITIES:
+        try:
+            years, refused = runnable(cityconfig.load(slug))
+        except Exception:
+            continue
+        out += [(slug, y) for y in years] + [(slug, y) for y, _ in refused]
+    return out
+
+
+def build_manifest(args, excluded, results) -> dict:
+    """What produced this scoreboard, assembled from `freeze`'s existing code.
+
+    ⛔ `history.json` ARBITRATES EVERYTHING IN THIS PROJECT AND, UNTIL NOW,
+    DECLARED NOTHING ABOUT ITSELF. Meanwhile `freeze.py` writes a full manifest
+    — git sha, dirty flag, draws, seed, resolved env switches, every input
+    spec's artefact key — onto `forecast_frozen.json`, **the one artefact
+    `CLAUDE.md` bars from arbitrating anything.** The apparatus was pointed at
+    the wrong artefact; this points it at the right one.
+
+    ⚠️ EVERY FIELD IS A CALL INTO `freeze`, NOT A REIMPLEMENTATION. This
+    repository already carries three dialects of "declare your identity"
+    (`pools.artefact_key`, `freeze.bundle`, `publication.run_identity`), each
+    grown around one artefact. A fourth would be the disease, not the cure — and
+    the no-duplicated-logic rule is the same one that retired `leverage.py`.
+
+    `excluded` is recorded, not just printed. It is the panel denominator, it
+    was quietly smaller than the archive for months (§1.69), and stdout is not
+    an artefact.
+    """
+    import freeze as F
+    return {
+        "schema": HISTORY_SCHEMA,
+        "generated": _dt.datetime.now(_dt.timezone.utc)
+                        .strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "draws": args.draws,
+        # The seed every city-year actually ran at. `run_city_year` passes
+        # seed=None, which is falsy, so each one takes DEFAULTS["seed"].
+        "seed": M.DEFAULTS.get("seed"),
+        "overrides": list(args.set or []),
+        "git_commit": F._git("rev-parse", "HEAD"),
+        "git_dirty": F._dirty_excluding(args.json, args.md),
+        "env_switches": F.resolved_switches(),
+        "pool_artefact_keys": {
+            slug: F.pool_artefact_keys(cityconfig.load(slug))
+            for slug in sorted({r["slug"] for r in results})},
+        # THE POPULATION, BOTH WAYS. What was scored, and what the archive
+        # supports but this run did not cover. A denominator that is only
+        # implicit in the length of a list is the shape §1.69 got wrong.
+        #
+        # ⛔ AND THE FIRST VERSION RECORDED ONLY `runnable()` REFUSALS, SO THE
+        # CLI FILTERS WERE INVISIBLE TO IT. `--city joburg` overwrites the
+        # canonical scoreboard with three rows and a manifest reading
+        # `excluded: []` — which ASSERTS that the archive supports three. That
+        # is §1.69 reinstated inside the fix for §1.69, and stamped into an
+        # artefact rather than merely printed. The filters are now recorded,
+        # and `excluded` is derived from the full archive minus what was
+        # scored, not from refusals alone.
+        "filters": {"city": args.city, "target": args.target},
+        "population": {
+            "scored": [f"{r['slug']}:{r['year']}" for r in results],
+            "n_scored_rows": len(results),
+            "excluded": ([{"city": c, "year": y, "why": w}
+                          for c, y, w in excluded]
+                         + [{"city": c, "year": y, "why": "not selected by "
+                             "--city/--target on this run"}
+                            for c, y in _archive_targets()
+                            if f"{c}:{y}" not in
+                            {f"{r['slug']}:{r['year']}" for r in results}
+                            and not any(c == e[0] and y == e[1]
+                                        for e in excluded)]),
+        },
+    }
+
+
+def load_history(path) -> tuple[dict, list[dict]]:
+    """Read a scoreboard artefact, and REFUSE the pre-manifest shape.
+
+    Returns ``(manifest, records)``.
+
+    ⛔ IT DOES NOT ACCEPT BOTH SHAPES. A helper that silently copes with an old
+    artefact is exactly the quiet fallback this repository forbids elsewhere
+    (`test_calibration_report.py`'s "falls back LOUDLY"), and here it would be
+    self-defeating: the whole point is that a number cannot be quoted without
+    the manifest that says what produced it, so a path that yields records with
+    no manifest reinstates the defect.
+    """
+    payload = json.loads(Path(path).read_text())
+    if isinstance(payload, list):
+        raise SystemExit(
+            f"{path} is a bare list — the pre-manifest scoreboard shape. It "
+            f"carries no git sha, no draw count, no seed, no env switches and "
+            f"no declared population, so nothing measured against it can be "
+            f"shown to be comparable with anything else. Re-run "
+            f"`src/compare_history.py` to produce a scoreboard that declares "
+            f"itself. (Refused rather than read: a number without its "
+            f"provenance is how §1.214 happened.)")
+    if not isinstance(payload, dict) or "records" not in payload:
+        raise SystemExit(
+            f"{path} is neither a bare list nor a manifest envelope; top level "
+            f"is {type(payload).__name__} with keys "
+            f"{sorted(payload)[:8] if isinstance(payload, dict) else '-'}.")
+    return payload.get("manifest") or {}, payload["records"]
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -2544,8 +2872,10 @@ def main(argv: list[str] | None = None) -> int:
         print("nothing runnable")
         return 1
     args.json.parent.mkdir(parents=True, exist_ok=True)
-    args.json.write_text(json.dumps(results, indent=2, default=float))
-    text = render(results)
+    args.json.write_text(json.dumps(
+        {"manifest": build_manifest(args, excluded, results),
+         "records": results}, indent=2, default=float))
+    text = render(results, build_manifest(args, excluded, results))
     args.md.write_text(text)
     print(text)
     print(f"\nwrote {args.md} and {args.json}")

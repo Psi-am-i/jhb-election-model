@@ -127,6 +127,24 @@ DELETED = {
     "pa_contestation_uplift": "a one-party constant, live only where no "
                               "backtest could reach it; §1.47",
     "theta_mode": "deleted 2026-08-19; §1.52",
+    # Renamed, then its compatibility fallback deleted, in two steps. The field
+    # was `total_log_median` while holding `np.mean(logs)` — a name that said
+    # median over a value that was a mean, read by `make_drawer` as a
+    # lognormal's LOCATION. Writer and reader were renamed to `total_log_mean`
+    # on 2026-09-06 (§1.197) and `montecarlo` kept a
+    # `group.get("total_log_mean", group.get("total_log_median"))` fallback for
+    # specs emitted before the window. That fallback was deleted at the emit on
+    # 2026-09-08, ON EVIDENCE: all 27 specs were re-emitted and every one of the
+    # 16 carrying a non-null `arrival_group` has the new key and none has the
+    # old. ⛔ THE REGISTER STILL DISCUSSES THE OLD NAME ON PURPOSE — §L's account
+    # of the `n < 3` drop names it to explain what the value used to be called,
+    # and that sentence is the reason anyone reading an older spec or an older
+    # MODEL-LOG entry can tell what they are looking at. **This guard caught the
+    # deletion the same day it happened**, which is what it is for.
+    "total_log_median": "renamed to total_log_mean 2026-09-06 (it held a "
+                        "mean); the reader's compatibility fallback deleted at "
+                        "the emit 2026-09-08 once every spec carried the new "
+                        "key; §1.197, §1.212",
     # Retired with `src/leverage.py` on 2026-08-31 (§1.140), to
     # `archive/retired-scripts/`. The script was standalone — never imported by
     # `run_model`, `compare_history` or the build, and nothing read its

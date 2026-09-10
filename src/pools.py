@@ -52,6 +52,7 @@ import csv
 import time
 import os
 import contextlib
+import functools
 import io
 import hashlib
 import json
@@ -1023,13 +1024,43 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
     # 2016, on a join with a median per-ward error of 14.7%. Nobody saw it
     # because `turnout_record` swallows the refusal.
     src_delim = base.censuses[-1].delimitation
+
+    # ⛔ THE AGE DIMENSION IS GATED ON ITS OWN DELIMITATION, NOT ON THE BASE'S.
+    #
+    # This block used to sit INSIDE the `base` gate below while using
+    # `age.censuses[-1].delimitation` for its own reprojection — so the gate and
+    # the operation read two different dimensions. The silent direction is the
+    # one that matters: base matches the election delimitation and age does not.
+    # The block never runs, `adults_by_ward` stays on its own polygon set, and
+    # it is then joined to this election's wards by ward code — **which
+    # SUCCEEDS, because ward codes are reused**, the exact trap the comment
+    # below warns about one level up.
+    #
+    # ⚠️ AND THE ADULTS JOIN HAS NO KEY-SET ASSERTION, so the failure is silent
+    # in a second way. `people_by_ward` gets `matched = codes & set(...)` and a
+    # 50% refusal further down; `adults_by_ward` is read with `.get(w, 0.0)`, so
+    # an unmatched ward reads as **zero adults** and `_nest` fits `adult_share`
+    # toward the floor rather than raising. Recorded, not fixed here: a new
+    # refusal on an unreachable path is a guard nothing can exercise.
+    #
+    # ⚠️ UNREACHABLE TODAY AND NOT TOMORROW. Every live dimension in
+    # `config/dimensions.toml` is Census 2022 on delimitation 2021, so the two
+    # gates always agree and this branch is number-neutral — which the emit must
+    # CONFIRM by diff, not assume. Each dimension carries its own
+    # `[[dimension.census]]` list, and the commented-out base 2011 entry is the
+    # highest-value outstanding data request after home language. The moment one
+    # dimension gains a census the other does not, this is live, which is why it
+    # lands BEFORE that data arrives rather than after. Ultra review #1,
+    # POOLS-REEMIT-QUEUE entry 15, §1.195.
+    if adults_by_ward:
+        age_delim = age.censuses[-1].delimitation
+        if int(age_delim) != delimitation_for(year):
+            adults_by_ward, _ = reproject_counts(
+                adults_by_ward, city, str(age_delim), year)
+
     if int(src_delim) != delimitation_for(year):
         people_by_ward, cov = reproject_counts(
             people_by_ward, city, str(src_delim), year)
-        if adults_by_ward:
-            age_delim = age.censuses[-1].delimitation
-            adults_by_ward, _ = reproject_counts(
-                adults_by_ward, city, str(age_delim), year)
         # ⛔ GATED ON WHAT THE MISSINGNESS DOES, NOT ON HOW MUCH OF IT THERE IS.
         #
         # A coverage floor is a proxy for the quantity that matters — how far
@@ -1193,8 +1224,16 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
             if ratio > 1.0:
                 violations.append(
                     f"{categories[g]}: {name} is {ratio:.0%} of the level "
-                    f"above it, which is impossible. Do NOT read this as a "
-                    f"census undercount: the published Census 2022 figures for "
+                    f"above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. "
+                    f"Registration and votes are administrative events — an "
+                    f"in-person appearance with an ID book — and the "
+                    f"denominator is a MODELLED small-area census estimate, so "
+                    f"the term that fails here is the estimate. The published "
+                    f"ward totals are untouched either way: this machinery "
+                    f"SPLITS them and does not revise them, so what a ratio "
+                    f"above 1 impeaches is the split, not the roll. Do NOT "
+                    f"read this as a "
+                    f"census UNDERCOUNT either: the published Census 2022 figures for "
                     f"the white and Indian groups are argued to be too HIGH, "
                     f"not too low (over-adjustment for a 62%/72% "
                     f"post-enumeration undercount, leaving them 14%/24% above "
@@ -2235,6 +2274,89 @@ def metro_citywide(code: str, year: str, ballot: str = "PR") -> dict[str, float]
     return {p: c / total for p, c in counts.items()} if total else {}
 
 
+# ⛔ ONE RESOLUTION OF "THIS METRO'S CITYWIDE SHARES", AND A LEDGER OF WHAT
+# SERVED IT. `metro_citywide(code, y) or _npe_citywide_for(code, y)` was written
+# out at EIGHT sites across five record functions. Two things follow from that
+# and both have bitten:
+#
+#   1. It is the duplication rule's own case — one definition, or the copies
+#      drift. `_ward_reach` is NOT widened this way (its reader cannot parse the
+#      clean files, §1.208), so which resolution a function uses is a real
+#      distinction that eight inline copies cannot express.
+#   2. **`HELD_BACK_OFF=1` IS ONE ENV VAR FROM BEING LOAD-BEARING ON THE ARRIVAL
+#      RECORD.** `_npe_citywide_for` calls `levels._held_back` and returns `{}`
+#      for the seven quarantined metros at lge2000, and every caller guards on
+#      empty — so a quarantined metro-year is silently ABSENT from the record
+#      rather than refused. That is an 8-way asymmetry taken on an absence, and
+#      nothing measured it. Batch plan R4, risk item 5.
+#
+# The ledger counts, per record, how many (code, year) reads were OFFERED and
+# what served each: the metro reader, the citywide fallback the 2000/2006
+# widening added, or nothing. It is emitted into the spec, because **the specs
+# are not in git** — after a restore, a number's provenance exists nowhere.
+#
+# ⚠️ COUNTING ONLY. `_citywide_for` returns exactly what the `or` returned:
+# `metro_citywide` first, `_npe_citywide_for` when that is falsy, `{}` when
+# both are. No value moves; `pools_sha` does.
+_TRANSITION_LEDGER: dict[str, dict[str, int]] = {}
+_LEDGER_RECORD: str | None = None
+
+
+def _ledger_reset() -> None:
+    """Start a fresh tally. Called once per emit, so counts are per-spec."""
+    _TRANSITION_LEDGER.clear()
+
+
+def _ledgered(name: str):
+    """Attribute every `_citywide_for` read inside this function to one record.
+
+    A DECORATOR rather than a `with` block at each call site, because a call
+    site can be missed and a decorator cannot: any caller of the record is
+    counted, including the tests. ``functools.wraps`` is load-bearing —
+    ``tests/test_chain.py`` calls ``inspect.getsource(pools.measure_pool_ratios)``
+    and ``inspect.signature`` on it, and both unwrap through ``__wrapped__``
+    (verified 2026-09-08 rather than assumed).
+
+    Nesting is handled by saving and restoring, so `splinter_record` called from
+    inside `pooled_splinter_record` is attributed to the inner record and the
+    outer one resumes afterwards.
+    """
+    def deco(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            global _LEDGER_RECORD
+            prev = _LEDGER_RECORD
+            _LEDGER_RECORD = name
+            _TRANSITION_LEDGER.setdefault(
+                name, {"offered": 0, "metro": 0, "fallback": 0,
+                       "unavailable": 0})
+            try:
+                return fn(*args, **kwargs)
+            finally:
+                _LEDGER_RECORD = prev
+        return wrapper
+    return deco
+
+
+def _citywide_for(code: str, year: str) -> dict[str, float]:
+    """One metro-year's citywide PR shares, from whichever reader can serve it.
+
+    Exactly equivalent to ``metro_citywide(code, year) or
+    _npe_citywide_for(code, year)``, which is what it replaces at all eight
+    sites. The only addition is the tally.
+    """
+    served = metro_citywide(code, year)
+    how = "metro"
+    if not served:
+        served = _npe_citywide_for(code, year)
+        how = "fallback" if served else "unavailable"
+    if _LEDGER_RECORD is not None:
+        row = _TRANSITION_LEDGER.setdefault(
+            _LEDGER_RECORD,
+            {"offered": 0, "metro": 0, "fallback": 0, "unavailable": 0})
+        row["offered"] += 1
+        row[how] += 1
+    return served
 
 
 def turnout_record(city: cityconfig.City, cfg: Config, before: str | None = None,
@@ -2842,6 +2964,7 @@ def lge_transitions(before: str | None = None) -> tuple[tuple[str, str], ...]:
     return tuple(p for p in pairs if int(p[1]) < int(before))
 
 
+@_ledgered("measure_pool_ratios")
 def measure_pool_ratios(composition: dict[str, np.ndarray], n_pools: int,
                         transitions=None, codes=None) -> list[list[float]]:
     """How much a pool's vote total moves between elections, IN ONE CITY.
@@ -2880,8 +3003,8 @@ def measure_pool_ratios(composition: dict[str, np.ndarray], n_pools: int,
             # `CALENDAR[year].results`, and the two readers agree to 0.00e+00 on all
             # 24 metro-years where BOTH resolve — so this is a resolver fallback, not
             # a second definition (§1.181). prereg/2026-09-03-arrival-record-widening.
-            a = metro_citywide(code, before) or _npe_citywide_for(code, before)
-            b = metro_citywide(code, after) or _npe_citywide_for(code, after)
+            a = _citywide_for(code, before)
+            b = _citywide_for(code, after)
             if not a or not b:
                 continue
             ta = pool_totals(composition, a, n_pools)
@@ -3041,6 +3164,82 @@ SPLITS: dict[str, Split] = {
 }
 
 
+@dataclass(frozen=True)
+class ArrivalDefinition:
+    """One of the ways this module decides that a party has ARRIVED."""
+    predicate: str
+    population: str
+    splits: str
+    computed_in: str
+    consumed_by: str
+
+
+# ⛔ THIS MODULE HAS FIVE DEFINITIONS OF "AN ARRIVAL" AND THEY ARE NOT
+# INTERCHANGEABLE. NOTHING USED TO SAY WHICH ONE ANY FUNCTION OR TEST USED.
+#
+# Six errors in three days trace to that silence, and every one of them was a
+# quantity measured over one of these populations and spent over another:
+# §1.198 (the band claim), §1.199 (dispersion against the wrong estimator),
+# §1.200 (the budget scored against the wrong arrival definition), §1.201 (the
+# contender test measuring the chaff), §1.203 (the fifth), and §1.179 — the
+# group budget itself, which was measured over ARRIVED_VS_NATIONAL and spent
+# over ARRIVED_VS_NATIONAL_EXCLUDING_SPLITS, and was right only by accident.
+# **None of the six was caught by a test.** Each was found by reading a row and
+# asking whether the number could be true.
+#
+# So each site that computes one of these carries the marker
+# ``# ARRIVAL DEFINITION: <NAME>``, and
+# ``test_every_arrival_definition_is_named_where_it_is_computed`` asserts the
+# register and the code agree IN BOTH DIRECTIONS — a name here with no site,
+# and a site naming something not here, both fail. That bidirectionality is the
+# point: the register guard that checked only code→register let a deleted lever
+# sit in the register for days (CLAUDE.md §4).
+#
+# ⚠️ A NAME IS NOT A PROOF THAT THEY DIFFER. That is asserted separately, on
+# the real record, by ``test_the_arrival_definitions_are_not_interchangeable``.
+ARRIVAL_DEFINITIONS: dict[str, ArrivalDefinition] = {
+    "ARRIVED_VS_NATIONAL": ArrivalDefinition(
+        predicate="local share > 0 and preceding-NPE share <= 0, party != IND",
+        population="every metro x every LGE year that has a preceding NPE",
+        splits="INCLUDED",
+        computed_in="arrival_group_record -> total",
+        consumed_by="arrival_group_spec: the group TOTAL and its Dirichlet a"),
+    "ARRIVED_VS_NATIONAL_EXCLUDING_SPLITS": ArrivalDefinition(
+        predicate="ARRIVED_VS_NATIONAL and party not in SPLITS",
+        population="the same rows; a strictly smaller set within each",
+        splits="EXCLUDED",
+        computed_in="arrival_group_record -> entrants",
+        consumed_by="_arrival_total_prior: the group BUDGET, which "
+                    "arrival_rules spends only over entrant_sizes"),
+    "ARRIVED_VS_LOCAL_EXCLUDING_SPLITS_WITH_REACH": ArrivalDefinition(
+        predicate="preceding-LGE share <= 1e-4 < share, party not in SPLITS, "
+                  "and the party has a MEASURED ward reach",
+        population="consecutive LGE pairs; a party with a national record but "
+                   "no local one IS an arrival here and is NOT one above",
+        splits="EXCLUDED",
+        computed_in="entrant_record",
+        consumed_by="comparators(): the per-entrant SIZE record"),
+    "SEEDABLE_AT_TARGET": ArrivalDefinition(
+        predicate="on the roster, absent from the fitted composition, not IND "
+                  "or ENTRANT, and preceding-NPE baseline <= 0",
+        population="one target city-year; a forecast set, not a record",
+        splits="INCLUDED (a split is seeded, then SIZED off its parent)",
+        computed_in="emit_pools -> newcomers",
+        consumed_by="arrival_rules: who actually receives a seed"),
+    "UNCLASSIFIED_WITH_NATIONAL_RECORD": ArrivalDefinition(
+        predicate="on the roster, absent from the fitted composition, no "
+                  "parent from classify_arrival, and preceding-NPE baseline "
+                  ">= UNCLASSIFIED_FLOOR",
+        population="one target city-year; DISJOINT from SEEDABLE_AT_TARGET by "
+                   "construction, since one needs baseline <= 0 and the other "
+                   "baseline > 0",
+        splits="n/a - by construction these have no declared lineage",
+        computed_in="emit_pools -> unclassified",
+        consumed_by="the emitted spec's `unclassified_with_national_record`: "
+                    "the nomination-day flag, not a size"),
+}
+
+
 def classify_arrival(party: str, declared_parent: str | None = None
                      ) -> tuple[str | None, str]:
     """SPLIT OR ENTRANT — the definition, and the only place that decides.
@@ -3080,6 +3279,7 @@ def classify_arrival(party: str, declared_parent: str | None = None
     return None, "no lineage on record: arrived from nothing"
 
 
+@_ledgered("entrant_record")
 def entrant_record(transitions, codes=METRO_CODES,
                    exclude=frozenset(SPLITS)) -> list[float]:
     """Every share won by a party that arrived FROM NOTHING.
@@ -3103,8 +3303,8 @@ def entrant_record(transitions, codes=METRO_CODES,
     seen: list[float] = []
     for code in codes:
         for before, after in transitions:
-            a = metro_citywide(code, before) or _npe_citywide_for(code, before)
-            b = metro_citywide(code, after) or _npe_citywide_for(code, after)
+            a = _citywide_for(code, before)
+            b = _citywide_for(code, after)
             if not a or not b:
                 continue
             # ⛔ `_ward_reach` IS NOT WIDENED — it goes through `metro_file`,
@@ -3118,6 +3318,7 @@ def entrant_record(transitions, codes=METRO_CODES,
             # which win seats. 9 rows of 319 at target 2026, 9 of 63 at 2016.
             # SKIP the row instead: an unmeasured reach is not a reach of one.
             reach = _ward_reach(code, after)
+            # ARRIVAL DEFINITION: ARRIVED_VS_LOCAL_EXCLUDING_SPLITS_WITH_REACH
             for party, share in b.items():
                 if party in exclude:
                     continue
@@ -3151,6 +3352,7 @@ def _ward_reach(code: str, year: str) -> dict[str, float]:
     return {p: len(w) / len(seen) for p, w in wards.items()} if seen else {}
 
 
+@_ledgered("home_splinter_record")
 def home_splinter_record(exclude: str | None = None,
                          before_year: str | None = None) -> dict[str, float]:
     """What each split took OF ITS PARENT, measured in its leader's own city.
@@ -3207,13 +3409,14 @@ def home_splinter_record(exclude: str | None = None,
         before, after = split.measured_from
         if before_year and int(after) >= int(before_year):
             continue                      # had not happened yet at the target
-        a = metro_citywide(split.home, before) or _npe_citywide_for(split.home, before)
-        b = metro_citywide(split.home, after) or _npe_citywide_for(split.home, after)
+        a = _citywide_for(split.home, before)
+        b = _citywide_for(split.home, after)
         if a.get(split.parent, 0) > 0 and b.get(party, 0) > 0:
             out[party] = b[party] / a[split.parent]
     return out
 
 
+@_ledgered("splinter_record")
 def splinter_record(city: cityconfig.City | None, before_year: str | None = None,
                     splits: dict | None = None,
                     at_home: bool = False,
@@ -3260,10 +3463,12 @@ def splinter_record(city: cityconfig.City | None, before_year: str | None = None
             continue          # no home on record; it contributes to neither
         if not at_home and split.home == here:
             continue          # this city IS its home; not an away observation
-        a, b = metro_citywide(code, before), metro_citywide(code, after)
-        if not a or not b:
-            a = a or _npe_citywide_for(code, before)
-            b = b or _npe_citywide_for(code, after)
+        # Was `metro_citywide` first and the fallback only under a
+        # `if not a or not b:` guard. That guard saved nothing — `x or f()`
+        # already short-circuits — and it was the eighth inline copy of the
+        # resolution. Same values, one definition, and the ledger now sees it.
+        a = _citywide_for(code, before)
+        b = _citywide_for(code, after)
         if a.get(parent, 0) > 0 and b.get(splinter, 0) > 0:
             out.append(b[splinter] / a[parent])
     return sorted(out)
@@ -3395,6 +3600,7 @@ def _npe_citywide_for(code: str, year: str) -> dict[str, float]:
     return {k: v / total for k, v in counts.items()} if total else {}
 
 
+@_ledgered("arrival_group_record")
 def arrival_group_record(before_year: str | None = None
                          ) -> list[tuple[float, float, float]]:
     """What ARRIVALS TAKE AS A GROUP in a metro, and how concentrated it is.
@@ -3421,12 +3627,35 @@ def arrival_group_record(before_year: str | None = None
     and it is why the figures are derived by a test rather than trusted.
 
     ⛔ **THIS RECORD COUNTS SPLITS AS WELL AS ENTRANTS; ITS CONSUMER DOES NOT.**
-    A party at its first local election has no preceding national vote whether
-    it is a splinter or an entrant, so EFF, ActionSA, COPE, GOOD, MK and the NFP
-    are all in these totals — while `arrival_rules` spends the budget only over
-    `entrant_sizes`, which excludes every `as_split` party. Johannesburg 2021 is
-    19.99% as a group and **1.87% excluding splits**, a factor of 10.7. See
-    `_arrival_total_prior`; do not repair one half alone.
+    `arrival_rules` spends the budget only over `entrant_sizes`, which excludes
+    every `as_split` party. Johannesburg 2021 is 19.99% as a group and **1.87%
+    excluding splits**, a factor of 10.7. See `_arrival_total_prior`; do not
+    repair one half alone.
+
+    ⛔ **AND THE REASON THIS PARAGRAPH USED TO GIVE WAS FALSE.** It read: *"A
+    party at its first local election has no preceding national vote whether it
+    is a splinter or an entrant, so EFF, ActionSA, COPE, GOOD, MK and the NFP
+    are all in these totals."* **Four of those six are in no row of this
+    record.** The predicate is `natl.get(p) <= 0` at the PRECEDING NPE, and a
+    contender normally has a national result first — the correction §1.201 had
+    already made about the same six parties, not yet carried here. Measured over
+    all 29 rows (2026-09-08), the only `SPLITS` members that appear at all are:
+
+        2011  NFP  in JHB, TSH, EKU, ETH, CPT   (5 rows)
+        2021  ASA  in JHB, TSH, EKU, ETH        (4 rows)
+
+    EFF held a 2014 national vote before its first local election, COPE a 2004,
+    GOOD a 2019 and MK a 2024 — **so none of them can be an arrival by this
+    definition**, and 2000, 2006 and 2016 have `entrants == total` EXACTLY in
+    every row. **The all-arrivals / entrants-only distinction therefore bites in
+    9 rows of 29 and in two cycles of five**, and almost all of its magnitude is
+    one party in one city: ActionSA's 18.12% of Johannesburg 2021.
+
+    That does not make the split wrong — `_arrival_total_prior` must still
+    measure over the population it is spent on — but it makes the *label*
+    promise more than it delivers, which is what the five-way register above
+    exists to stop. Do not read "excluding splits" as "excluding the parties you
+    are thinking of".
 
     The concentration matters as much as the total, because the split is not
     even: the largest arrival took 91% of the group in Johannesburg 2021 and 20%
@@ -3447,7 +3676,7 @@ def arrival_group_record(before_year: str | None = None
     and must be re-taken before the lever is called dead again. It is inert
     today only because the lever defaults to False.
     """
-    out: list[tuple[float, float]] = []
+    out: list[tuple[float, float, float]] = []
     lge = sorted((y for y, e in cityconfig.CALENDAR.items()
                   if e.kind == "LGE" and e.results), key=int)
     for year in lge:
@@ -3457,11 +3686,11 @@ def arrival_group_record(before_year: str | None = None
         if not prev:
             continue
         for code in METRO_CODES:
-            local = (metro_citywide(code, year)
-                     or _npe_citywide_for(code, year))
+            local = _citywide_for(code, year)
             natl = _npe_citywide_for(code, prev)
             if not local or not natl:
                 continue
+            # ARRIVAL DEFINITION: ARRIVED_VS_NATIONAL
             arr = {p: s for p, s in local.items()
                    if p != "IND" and s > 0 and natl.get(p, 0.0) <= 0}
             # ⚠️ THIS FLOOR BELONGS TO THE CONCENTRATION, NOT TO THE TOTAL,
@@ -3520,6 +3749,7 @@ def arrival_group_record(before_year: str | None = None
             # the seven, UNITED_INDEPENDENT_FRONT in six. So this corrects a
             # ~1.3x population error from 2011 on and leaves an unbounded one
             # before it. Do not read the label as a guarantee.
+            # ARRIVAL DEFINITION: ARRIVED_VS_NATIONAL_EXCLUDING_SPLITS
             entrants = float(sum(v for q, v in arr.items() if q not in SPLITS))
             out.append((total, float(alpha), entrants))
     return out
@@ -3529,9 +3759,29 @@ def arrival_group_spec(before_year: str | None, reach: dict[str, float],
                        parties: list[str]) -> dict | None:
     """The group total to draw, and how to split it between named arrivals.
 
-    Split weights are each arrival's WARD REACH, because that is what predicts
-    an arrival's size and nothing else measured does. Over 258 arrivals across
-    eight metros and two elections:
+    ⛔ **THE CLAIM THIS DOCSTRING USED TO OPEN WITH IS REFUTED. It read: "Split
+    weights are each arrival's WARD REACH, because that is what predicts an
+    arrival's size and nothing else measured does."** Reach does correlate with
+    size — within a city-year, which is the population a split operates over,
+    Spearman +0.336 over 297 entrant-pairs, R² ≈ 0.11 — but **as a PROPORTIONAL
+    WEIGHT it loses to a uniform vector by roughly 7 nats per city-year out of
+    sample, on both scored cycles.** A positive correlation on log share is not a
+    licence to use the covariate as a weight; that is a link-function error, the
+    same shape as reading a rank correlation as a level.
+
+    ⚠️ And reach does not identify the winner: it saturates exactly where the
+    decision is. In 2021 six of eight metros have 6–18 parties at reach ≥ 0.90,
+    with a mean of 3.4 tied at the maximum, and the highest-reach party is the
+    largest arrival in only about a third of city-years. Within the reach ≥ 0.90
+    subset the realised top takes 60.0% against 24.4% for an even split — reach
+    picks the contender SET and says nothing about which contender wins. §1.220.
+
+    ⚠️ These weights are inert today (`arrival_group_draw` is False) and this note
+    exists so that whoever switches the lever on does not inherit the refuted
+    rationale with it. The exchangeable vector is the defensible default.
+
+    The original figures, kept because the correlation itself is real — but note
+    the record is now 304 pairs, not 258, and re-derives to +0.320:
 
         corr(ward reach, log vote share)      +0.393
         corr(metros contested, log vote)      +0.145
@@ -3563,7 +3813,16 @@ def arrival_group_spec(before_year: str | None, reach: dict[str, float],
     logs = np.log(totals)
     weights = {p: max(float(reach.get(p, 0.0)), 0.02) for p in parties}
     return {
-        "total_log_median": float(np.mean(logs)),
+        # ⛔ RENAMED FROM `total_log_median`, WHICH HELD A MEAN. The field is
+        # the location of a LOGNORMAL the drawer samples the group total from,
+        # and `np.mean(logs)` is what has always been stored — so the name said
+        # median while every consumer spent a mean. Renamed rather than made
+        # true: the mean of the logs is the right statistic here (the consumer
+        # pins an expectation — §1.180 / JUDGEMENT-CALLS §L6), so the defect
+        # was the label. Batched with the re-emit because it changes an emitted
+        # key; `montecarlo` reads the old name as a fallback until every spec
+        # on disk carries the new one.
+        "total_log_mean": float(np.mean(logs)),
         "total_log_sd": float(np.std(logs, ddof=1)) if len(logs) > 1 else 0.8,
         "alpha": float(np.median(alphas)),
         "weights": weights,
@@ -3603,9 +3862,23 @@ def metro_roster(code: str, year: str) -> set[str]:
     if path is None:
         return set()
     # Through the same reader `metro_citywide` uses, so the two answers are
-    # like-for-like and the header drift between `_metros/` (`PartyName`) and
-    # the clean files (`sPartyName`) is handled in one place. PR ballot, again
-    # to match, and because that is the ballot a national poll speaks to.
+    # like-for-like. PR ballot, again to match, and because that is the ballot
+    # a national poll speaks to.
+    #
+    # ⛔ THIS COMMENT USED TO CLAIM `read_municipality` HANDLES THE DRIFT
+    # BETWEEN `_metros/` (`PartyName`) AND THE CLEAN FILES (`sPartyName`).
+    # **It does not, and it cannot.** The reader takes the IEC's raw header —
+    # PROVINCE / VOTINGDISTRICT / PARTYNAME / TOTALVALIDVOTES — and *emits*
+    # `sPartyName`; handed a `_clean` file it raises `KeyError:
+    # 'VOTINGDISTRICT'` (verified 2026-09-08), failing before it ever reaches
+    # the party column the comment named. So `metro_file` resolves `_metros/`
+    # and `_reports/` ONLY, the clean files are read by `_npe_citywide_for`
+    # through a different reader, and **`metro_file` must never be widened to
+    # reach them** — doing so breaks `metro_citywide`, `metro_roster` and
+    # `_ward_reach` at once. The consequence is real and load-bearing:
+    # `_ward_reach` cannot see a transition the citywide fallback has made
+    # visible, which is why `entrant_record` SKIPS such a row rather than
+    # defaulting its reach to 1.0. §1.197, batch plan R4.
     return {P.canonical(row["sPartyName"])
             for row in read_municipality(path, code, "PR")}
 
@@ -3638,10 +3911,18 @@ def _arrival_total_prior(before_year: str | int) -> float | None:
     """The typical COMBINED share of every party arriving in one city-year.
 
     Read off ``arrival_group_record`` for city-years strictly before the target,
-    so it is a forecast input rather than hindsight. The median rather than the
-    mean: the distribution is violently right-skewed and the mean is pulled by
-    Johannesburg 2021, which is one observation. The docstring used to say
-    "0.31%-4.74% over sixteen metro-years", which is 2016's range over eight.
+    so it is a forecast input rather than hindsight. **The MEAN over ENTRANTS
+    ONLY**, for the reason set out below — the consumer pins an expectation.
+
+    ⚠️ These three sentences used to argue the opposite, and survived the change
+    that reversed it: *"the median rather than the mean: the distribution is
+    violently right-skewed and the mean is pulled by Johannesburg 2021, which is
+    one observation."* That is a live argument against what the function now
+    does, sitting at the top of the function that does it, and a reader who
+    stopped after the first paragraph would have taken it as current. Kept only
+    as this note. (The earlier correction it records is real: the docstring also
+    once said "0.31%-4.74% over sixteen metro-years", which is 2016's range over
+    eight.)
 
     ⛔ **BOTH HALVES WERE WRONG AND THEY VERY NEARLY CANCELLED.** Until
     2026-09-03 this returned the MEDIAN of the ALL-ARRIVALS total. The budget is
@@ -3665,8 +3946,16 @@ def _arrival_total_prior(before_year: str | int) -> float | None:
 
     ⛔ **THE OUT-OF-SAMPLE TABLE THAT USED TO SIT HERE RANKED BY MAGNITUDE,
     NOT BY SKILL, AND IT IS NOT EVIDENCE FOR THIS CHOICE.** Every estimator
-    under-predicts at **8 of 8** cells, so Σ|err| collapses to
-    `5.6555% − Σ(predictions)` and the biggest number wins by construction:
+    under-predicts at both scored targets, so Σ|err| collapses to
+    `5.6555% − Σ(predictions)` and the biggest number wins by construction.
+    ⚠️ **The instrument has TWO effective observations** — every metro-cell in a
+    target shares one prediction, so the sum reduces to
+    `|2.0424 − p| + |3.6131 − p|`, and "8 of 8 cells" is two year-level facts
+    (§1.198). **A flat 2.8% scoring 1.5707% is not evidence either**: for two
+    points every constant in [2.0424, 3.6131] scores exactly that, it is the L1
+    minimum on an interval, and 2.8 is the midpoint of the two outcomes being
+    scored. The honest pre-2016 constant is 1.40 — the pooled mean itself. The
+    numbers:
     pooled mean 2.6146%, pooled median 3.0777%, recency 2.6893%, last-cycle
     2.7746% — and **a CONSTANT 2.8%, with no parameters and no record at all,
     scores 1.5707%**, forty percent better than the shipped estimator. Verified
@@ -3891,17 +4180,34 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # it reads 0.0607% against `base`'s 0.2901% for a full-reach party,
             # 4.8x low, so the two branches held different beliefs about what
             # "no information" means. They now share `base`.
+            # ⛔ `overperform` IS READ HERE TOO, BECAUSE `PARTY_KEYS` PROMISES
+            # IT UNCONDITIONALLY. The register describes it as "a multiplier on
+            # the default strength", scoped to no branch, and the closed-key
+            # refusal ACCEPTS it here — so a party declared with `weights` and
+            # `overperform = 1.5` passed every guard and was seeded at the
+            # comparator mean with the multiplier dropped on the floor. That is
+            # the silent-discard class `PARTY_KEYS` was built to close,
+            # surviving inside the mechanism that closed it. The two branches
+            # now read the same two keys and combine them the same way: the
+            # declaration (or the record) sets the level, the multiplier scales
+            # it, and either one makes the party `judged` and therefore held
+            # out of the group budget. Number-neutral on the tree as it stands
+            # — no judgement file declares any of the three keys.
             stated = declared.get("support")
-            judged = stated is not None
-            size = float(stated) if judged else base
+            mult = float(declared.get("overperform", 1.0))
+            judged = stated is not None or mult != 1.0
+            size = (float(stated) if stated is not None else base) * mult
             capture = _capture_from_share(vec, size, pool_size)
             short = capture_shortfall(vec, size, pool_size)
-            why = ((f"pools and support DECLARED in judgements/: {size:.2%} of "
-                    f"the city, split by the declared weights"
-                    if judged else
+            why = ((f"pools and support DECLARED in judgements/: "
+                    f"{float(stated):.2%} of the city, split by the declared "
+                    f"weights"
+                    if stated is not None else
                     f"POOLS declared in judgements/, size NOT declared: "
-                    f"{size:.2%} from the {len(peers)} comparable arrivals on "
+                    f"{base:.2%} from the {len(peers)} comparable arrivals on "
                     f"record. Set `support` to state it")
+                   + (f", after a x{mult:g} judgement — seeded at {size:.2%}"
+                      if mult != 1.0 else "")
                    + f". Band {lo_e / base:.2f}-{hi_e / base:.2f}x that centre "
                    + "— the declaration sets the level, the record sets the "
                      "width."
@@ -4759,6 +5065,11 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # None means "no cutoff" — the retrospective mode. Otherwise the target's
     # own year, so a split that had not happened yet cannot size an arrival.
     home_cutoff = None if retrospective_home else target.year
+    # One tally per emit, so `transition_ledger` below counts THIS spec's reads
+    # and not every read since the process started. `emit_pools` is the only
+    # resetter; a caller measuring a record on its own gets a cumulative tally,
+    # which is the right answer for that use and the wrong one here.
+    _ledger_reset()
     year = from_year or target.previous_lge or target.year
     fits, ctx = fit_city(city, year, cfg, split_bloc=split_bloc)
     cats = list(ctx["categories"])
@@ -4928,6 +5239,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     no_vector = {p for p in roster
                  if p not in composition and p not in ("IND", "ENTRANT")}
     # A seed is only for a party with no level to start from.
+    # ARRIVAL DEFINITION: SEEDABLE_AT_TARGET
     newcomers = {p for p in no_vector if baseline.get(p, 0.0) <= 0.0}
     inherited: dict[str, str] = {}
     # ⛔ A PARTY WITH A NATIONAL RECORD AND NO LINEAGE IS THE ActionSA SHAPE,
@@ -4963,6 +5275,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
         parent, _why = classify_arrival(party, rule.get("parent"))
         parent = (parent or "").strip().upper()
         national = float(baseline.get(party, 0.0))
+        # ARRIVAL DEFINITION: UNCLASSIFIED_WITH_NATIONAL_RECORD
         if not parent and national >= UNCLASSIFIED_FLOOR:
             unclassified[party] = national
         if weights:
@@ -5044,7 +5357,11 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # transitions.
     limits = turnout_limits(record, registered)
 
-    record = entrant_record(lge_transitions(before=target.year))
+    # ONE NAME PER DATASET. This was `record`, the name bound 240 lines
+    # above to `turnout_record` and still read at `turnout_limits` two
+    # lines up — two unrelated series sharing a name inside one function,
+    # so anything hoisted past the rebinding would silently read the other.
+    entrant_hist = entrant_record(lge_transitions(before=target.year))
     rates_matrix = np.array([[fits[p].rates[g] if p in fits else 0.0
                               for p in sorted(fits)] for g in range(n)])
     universe_fitted = sorted(fits)
@@ -5075,7 +5392,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
         reach_source += f"; {len(declared_reach)} declared in judgements"
     print(f"  reach for {target.year}: {reach_source}")
     arrivals, seed_notes = arrival_rules(
-        newcomers, lineage, rates_matrix, universe_fitted, cats, record,
+        newcomers, lineage, rates_matrix, universe_fitted, cats, entrant_hist,
         splinter_record(city, target.year), registered, contestation=reach,
         splinter_home=home_splinter_record(before_year=home_cutoff),
         city_code=city.code,
@@ -5209,8 +5526,32 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             "turnout_limits": limits,
             "seeds": {p: v for p, v in seeds.items() if abs(v) > 1e-9},
             "seed_bands": {p: list(v) for p, v in seed_bands.items()},
+            # ⛔ TRANSITIONS OFFERED vs USED, PER RECORD. Batch plan R4, risk
+            # item 5: `HELD_BACK_OFF=1` is one env var from being load-bearing
+            # on the arrival record, because `_npe_citywide_for` returns `{}`
+            # for a quarantined metro-year and every caller guards on empty —
+            # so a held-back metro is silently ABSENT rather than refused.
+            # `unavailable` is that count, per record, and it was invisible.
+            #
+            # ⚠️ EMITTED, NOT PRINTED, AND THAT IS THE WHOLE POINT: the specs
+            # are NOT in git, so after an emit-measure-restore cycle a number's
+            # provenance exists nowhere at all. A print during an emit is
+            # scrollback, and the emit is the one operation nobody re-runs.
+            # `fallback` counts the reads the 2000/2006 widening (entry 4) made
+            # possible; at target 2026 it is 9 of 40 offered, with 7
+            # unavailable — the seven metros held back at lge2000. §1.209.
+            "transition_ledger": {k: dict(v) for k, v in
+                                  sorted(_TRANSITION_LEDGER.items())},
+            # The seeded arrival mass as a fraction of this city's electorate,
+            # so "the arrival machinery is on at this target" is a NUMBER in the
+            # artefact rather than an inference from a non-empty `seeds` dict.
+            # Zero with a non-empty roster means the seeds are all below 1e-9;
+            # zero with an empty one means the mechanism could not be built.
+            "seeded_arrival_mass": float(
+                sum(v for v in seeds.values() if v > 0.0)),
             "seed_notes": seed_notes,
-            "entrant_record": [[float(share), float(reach)] for share, reach in record],
+            "entrant_record": [[float(share), float(reach)]
+                               for share, reach in entrant_hist],
             # Arrivals as a GROUP, drawn once and split by ward reach, rather
             # than thirty independent seeds and one generic slot. None where
             # there is no nomination list to split between.

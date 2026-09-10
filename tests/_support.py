@@ -179,6 +179,32 @@ def run_module(namespace) -> int:
     )
     passed = failed = skipped = 0
     failures: list[str] = []
+
+    # ⛔ THE ACTIVE CITY IS PROCESS-GLOBAL, AND `run_all` REUSES WORKERS.
+    #
+    # `cityconfig.use(slug)` sets module-level `_ACTIVE`/`_TARGET`. ELEVEN test
+    # modules call it and most never put it back, and `ProcessPoolExecutor`
+    # gives one worker several modules in sequence — so a module that switches
+    # city silently re-points every module scheduled after it in that worker.
+    #
+    # Measured: `polling.screen` on the 2026 target admits 2 polls with joburg
+    # active and **0** with capetown active, because the metro filter reads the
+    # active city. `test_polling_register` asserts "no polls admitted at 2026 —
+    # the register or the rules moved", which is exactly the right message for
+    # the wrong cause, and it made a real defect look like a poll-register
+    # change. The failure is ORDER-DEPENDENT, so it appears and disappears as
+    # modules are added.
+    #
+    # Restored PER TEST, here, rather than in each of the eleven: one
+    # definition, and a module added tomorrow inherits it. Same family as
+    # JUDGEMENT-CALLS §A43 (`apply_city` never resets `DEFAULTS`), which is on
+    # the register in red for the same reason.
+    try:
+        import cityconfig as _cc
+        _city0 = _cc.active().slug
+    except Exception:
+        _cc = _city0 = None
+
     for name in names:
         try:
             namespace[name]()
@@ -203,6 +229,16 @@ def run_module(namespace) -> int:
         else:
             passed += 1
             print(f"ok   {name}")
+        finally:
+            # Put the active city back after EVERY test, pass or fail. A test
+            # that fails mid-way is exactly the one most likely to have left
+            # the global switched.
+            if _cc is not None and _city0 is not None:
+                try:
+                    if _cc.active().slug != _city0:
+                        _cc.use(_city0)
+                except Exception:
+                    pass
     for text in failures:
         print()
         print(text)

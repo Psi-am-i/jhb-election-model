@@ -358,7 +358,9 @@ def test_no_emitted_composition_weight_is_arithmetically_impossible():
     hist_path = ROOT / "data/processed/history.json"
     if not hist_path.exists():
         skip("no data/processed/history.json — run compare_history first")
-    hist = {r["slug"] + str(r["year"]): r for r in json.loads(hist_path.read_text())}
+    import compare_history as ch
+    hist = {r["slug"] + str(r["year"]): r
+            for r in ch.load_history(hist_path)[1]}
 
     emitted = set()
     for spec in sorted((ROOT / "data/processed").glob("**/pools_*.json")):

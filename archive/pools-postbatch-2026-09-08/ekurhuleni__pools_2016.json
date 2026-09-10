@@ -1,0 +1,642 @@
+{
+  "arrival_group": {
+    "alpha": 10.87423244668734,
+    "derived_from": "13 metro-years before 2016; split by ward reach (corr +0.393 on log vote)",
+    "n_observations": 13,
+    "total_log_mean": -4.239066024984355,
+    "total_log_sd": 0.796079274728338,
+    "weights": {
+      "ACADEMIC_CONGRESS_UNION": 0.3392857142857143,
+      "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.5446428571428571,
+      "AIC": 0.8482142857142857,
+      "ALJAMAAH": 0.125,
+      "BUILDING_A_COHESIVE_SOCIETY": 0.0625,
+      "EKURHULENI_COMMUNITY_MOVEMENT": 1.0,
+      "INTERNATIONAL_REVELATION_CONGRESS": 0.05357142857142857,
+      "PALMRIDGE_COMMUNITY_FORUM": 0.16071428571428573,
+      "PAN_AFRICAN_SOCIALIST_MOVEMENT_OF_AZANIA": 0.08035714285714286,
+      "UNITED_FRONT_OF_CIVICS": 0.09821428571428571,
+      "UNITED_RESIDENTS_FRONT": 0.6696428571428571
+    }
+  },
+  "artefact_key": {
+    "cities_sha": "68080ceed71cbe08",
+    "city": "ekurhuleni",
+    "config_sha": "25516d034e2496af",
+    "deps_sha": "53cedeb94115dd98",
+    "gates_sha": "6f4daff30349fefd",
+    "judgements_sha": "8f408f836ab4d1fb",
+    "pools_sha": "843229dbe414b6b9",
+    "schema": 2,
+    "target": "2016"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [
+    [
+      0.0001110268461123144,
+      0.24324324324324326
+    ],
+    [
+      0.00011925248870770664,
+      0.25384615384615383
+    ],
+    [
+      0.00014863271334390475,
+      0.990990990990991
+    ],
+    [
+      0.0001495280911351331,
+      0.04504504504504504
+    ],
+    [
+      0.00021648913334629822,
+      0.015384615384615385
+    ],
+    [
+      0.0002372751146755106,
+      0.08108108108108109
+    ],
+    [
+      0.000246228892587794,
+      0.2702702702702703
+    ],
+    [
+      0.0002852886460622828,
+      0.023076923076923078
+    ],
+    [
+      0.0003372877091805844,
+      1.0
+    ],
+    [
+      0.000347475854232611,
+      0.04950495049504951
+    ],
+    [
+      0.0004107923362581748,
+      0.038834951456310676
+    ],
+    [
+      0.00041608032976785206,
+      1.0
+    ],
+    [
+      0.00048050125891329834,
+      0.2
+    ],
+    [
+      0.0004806326596867137,
+      0.8910891089108911
+    ],
+    [
+      0.000487100550029171,
+      0.25384615384615383
+    ],
+    [
+      0.00048796131697027167,
+      0.0761904761904762
+    ],
+    [
+      0.000505274573597555,
+      1.0
+    ],
+    [
+      0.0005139468521650683,
+      0.11711711711711711
+    ],
+    [
+      0.0005631926306826271,
+      0.4954954954954955
+    ],
+    [
+      0.0005999317508833858,
+      0.08461538461538462
+    ],
+    [
+      0.0006330320983984378,
+      1.0
+    ],
+    [
+      0.0006482535208493195,
+      0.22522522522522523
+    ],
+    [
+      0.0006891041440730882,
+      0.1553398058252427
+    ],
+    [
+      0.0007063416638841086,
+      0.9846153846153847
+    ],
+    [
+      0.000756594233587949,
+      0.04504504504504504
+    ],
+    [
+      0.000764700511322133,
+      1.0
+    ],
+    [
+      0.0008103542731921111,
+      0.04950495049504951
+    ],
+    [
+      0.00084966723480237,
+      1.0
+    ],
+    [
+      0.0009316881802775159,
+      0.9904761904761905
+    ],
+    [
+      0.0009383559252073024,
+      0.27927927927927926
+    ],
+    [
+      0.0009746048177725196,
+      1.0
+    ],
+    [
+      0.001112176365554744,
+      0.0891089108910891
+    ],
+    [
+      0.0011380251726512225,
+      0.08108108108108109
+    ],
+    [
+      0.0012466013310607905,
+      0.04950495049504951
+    ],
+    [
+      0.0012898879358506689,
+      0.9805825242718447
+    ],
+    [
+      0.001317100730896891,
+      0.6576576576576577
+    ],
+    [
+      0.0013547065981284814,
+      0.6036036036036037
+    ],
+    [
+      0.0013568386649499852,
+      0.9795918367346939
+    ],
+    [
+      0.0013646235753137673,
+      0.9833333333333333
+    ],
+    [
+      0.0014657334442407957,
+      0.06306306306306306
+    ],
+    [
+      0.0014855897791423195,
+      0.12244897959183673
+    ],
+    [
+      0.00163095855882571,
+      1.0
+    ],
+    [
+      0.002314858379599134,
+      0.2
+    ],
+    [
+      0.0024533351479656567,
+      0.990990990990991
+    ],
+    [
+      0.0027171220888632854,
+      0.13846153846153847
+    ],
+    [
+      0.003517043963944927,
+      0.918918918918919
+    ],
+    [
+      0.004077113937362384,
+      0.8155339805825242
+    ],
+    [
+      0.004324511330219685,
+      0.08333333333333333
+    ],
+    [
+      0.004610059467693643,
+      0.9238095238095239
+    ],
+    [
+      0.005271877327716847,
+      0.9923076923076923
+    ],
+    [
+      0.0054062911034367285,
+      0.990990990990991
+    ],
+    [
+      0.005511538080618005,
+      0.5918367346938775
+    ],
+    [
+      0.006816360279198117,
+      0.9207920792079208
+    ],
+    [
+      0.03583325491672156,
+      0.06
+    ]
+  ],
+  "fitted_on": "2011",
+  "judgement_file": "judgements/ekurhuleni-2016.toml",
+  "no_measured_vector": {
+    "ACADEMIC_CONGRESS_UNION": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AGANG": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AIC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "ALJAMAAH": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AZAPO": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "BUILDING_A_COHESIVE_SOCIETY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "EFF": "splinter of ANC, 35% its vector and 65% the city average",
+    "EKURHULENI_COMMUNITY_MOVEMENT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "INTERNATIONAL_REVELATION_CONGRESS": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "PA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "PALMRIDGE_COMMUNITY_FORUM": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "PAN_AFRICAN_SOCIALIST_MOVEMENT_OF_AZANIA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_FRONT_OF_CIVICS": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_RESIDENTS_FRONT": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.7387408888311502,
+    0.026523533260137584,
+    0.024359829246413462,
+    0.21037574866229872
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 64.93454984418986,
+      "derived_from": "pool vectors fitted on ekurhuleni 2011; size from the 2016 roll split by each ward's own composition; turnout from ekurhuleni's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "APC",
+        "COPE",
+        "DA",
+        "IFP",
+        "PAC",
+        "UDM"
+      ],
+      "members": {
+        "ACADEMIC_CONGRESS_UNION": 0.25,
+        "ACDP": 0.6518225616483058,
+        "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.25,
+        "AGANG": 0.7172569690286756,
+        "AIC": 0.25000000000000006,
+        "ALJAMAAH": 0.25,
+        "ANC": 0.9937776529877188,
+        "APC": 0.9966196718662347,
+        "AZAPO": 0.7172569690286756,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.25,
+        "COPE": 0.8967297029990889,
+        "DA": 0.10790156802483947,
+        "EFF": 0.8140392084143409,
+        "EKURHULENI_COMMUNITY_MOVEMENT": 0.25,
+        "IFP": 0.9999999999999998,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.2153257440524139,
+        "INTERNATIONAL_REVELATION_CONGRESS": 0.25,
+        "PA": 0.7172569690286756,
+        "PAC": 0.9967843885703762,
+        "PALMRIDGE_COMMUNITY_FORUM": 0.25,
+        "PAN_AFRICAN_SOCIALIST_MOVEMENT_OF_AZANIA": 0.25,
+        "UDM": 0.8545322615635366,
+        "UNITED_FRONT_OF_CIVICS": 0.25,
+        "UNITED_RESIDENTS_FRONT": 0.25,
+        "VFPLUS": 0.29486880529418485
+      },
+      "registered": 1188427.2810174453,
+      "turnout": [
+        0.3932525572626067,
+        0.5258312166438874,
+        0.6548652261094714
+      ]
+    },
+    "Coloured": {
+      "alpha": 22.33018895147569,
+      "derived_from": "pool vectors fitted on ekurhuleni 2011; size from the 2016 roll split by each ward's own composition; turnout from ekurhuleni's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "COPE",
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+        "UDM",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACADEMIC_CONGRESS_UNION": 0.25,
+        "ACDP": 0.1133979737638491,
+        "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.25000000000000006,
+        "AGANG": 0.023710985497300347,
+        "AIC": 0.24999999999999997,
+        "ALJAMAAH": 0.25000000000000006,
+        "ANC": 0.002536665791095367,
+        "APC": 0.00028113559612730964,
+        "AZAPO": 0.023710985497300347,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.25000000000000006,
+        "COPE": 0.08253038411951269,
+        "DA": 0.06353442591240115,
+        "EFF": 0.01629997360012861,
+        "EKURHULENI_COMMUNITY_MOVEMENT": 0.24999999999999997,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.039115478276988316,
+        "INTERNATIONAL_REVELATION_CONGRESS": 0.25000000000000006,
+        "PA": 0.023710985497300347,
+        "PAC": 0.0032156114296237595,
+        "PALMRIDGE_COMMUNITY_FORUM": 0.25000000000000006,
+        "PAN_AFRICAN_SOCIALIST_MOVEMENT_OF_AZANIA": 0.25000000000000006,
+        "UDM": 0.050420904513672565,
+        "UNITED_FRONT_OF_CIVICS": 0.25000000000000006,
+        "UNITED_RESIDENTS_FRONT": 0.25000000000000006,
+        "VFPLUS": 0.06016184213033505
+      },
+      "registered": 38007.36149587534,
+      "turnout": [
+        0.23014263799975004,
+        0.5558876559555094,
+        0.8397653613992778
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 6.033264113102046,
+      "derived_from": "pool vectors fitted on ekurhuleni 2011; size from the 2016 roll split by each ward's own composition; turnout from ekurhuleni's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACADEMIC_CONGRESS_UNION": 0.25000000000000006,
+        "ACDP": 0.01916540180242069,
+        "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.25000000000000006,
+        "AGANG": 0.023447106652325477,
+        "AIC": 0.24999999999999997,
+        "ALJAMAAH": 0.25000000000000006,
+        "ANC": 0.00030086771704530623,
+        "APC": 0.0002529917612307729,
+        "AZAPO": 0.023447106652325477,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.25000000000000006,
+        "COPE": 0.0016930303696576963,
+        "DA": 0.06470513769595607,
+        "EFF": 0.01534592302497742,
+        "EKURHULENI_COMMUNITY_MOVEMENT": 0.24999999999999997,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.10771073735045279,
+        "INTERNATIONAL_REVELATION_CONGRESS": 0.25000000000000006,
+        "PA": 0.023447106652325477,
+        "PALMRIDGE_COMMUNITY_FORUM": 0.25000000000000006,
+        "PAN_AFRICAN_SOCIALIST_MOVEMENT_OF_AZANIA": 0.25000000000000006,
+        "UDM": 0.007758816408309213,
+        "UNITED_FRONT_OF_CIVICS": 0.25000000000000006,
+        "UNITED_RESIDENTS_FRONT": 0.25000000000000006,
+        "VFPLUS": 0.4212675709885801
+      },
+      "registered": 44062.1522104898,
+      "turnout": [
+        0.24211347093563232,
+        0.47496640067316503,
+        0.7192391718276312
+      ]
+    },
+    "White": {
+      "alpha": 68.46022958925577,
+      "derived_from": "pool vectors fitted on ekurhuleni 2011; size from the 2016 roll split by each ward's own composition; turnout from ekurhuleni's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACADEMIC_CONGRESS_UNION": 0.25000000000000006,
+        "ACDP": 0.2156140627854244,
+        "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.25,
+        "AGANG": 0.23558493882169843,
+        "AIC": 0.24999999999999997,
+        "ALJAMAAH": 0.25,
+        "ANC": 0.0033848135041405964,
+        "APC": 0.0028462007764072724,
+        "AZAPO": 0.23558493882169843,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.25,
+        "COPE": 0.019046882511740453,
+        "DA": 0.7638588683668034,
+        "EFF": 0.1543148949605532,
+        "EKURHULENI_COMMUNITY_MOVEMENT": 0.24999999999999994,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.6378480403201451,
+        "INTERNATIONAL_REVELATION_CONGRESS": 0.25,
+        "PA": 0.23558493882169843,
+        "PALMRIDGE_COMMUNITY_FORUM": 0.25,
+        "PAN_AFRICAN_SOCIALIST_MOVEMENT_OF_AZANIA": 0.25,
+        "UDM": 0.0872880175144817,
+        "UNITED_FRONT_OF_CIVICS": 0.25,
+        "UNITED_RESIDENTS_FRONT": 0.25,
+        "VFPLUS": 0.22370178158690004
+      },
+      "registered": 316619.20527618955,
+      "turnout": [
+        0.5058349851248347,
+        0.6786287798509859,
+        0.813302539010186
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2011; pools sized by 2014 roll carried to 2016 on the 2011-2014 RATE of change (log-space, invariant to a constant level bias), damped x0.6; roster published; reach 2016 ward ballot",
+  "rates_on_a_bound": [],
+  "registration_series": {
+    "2006": [
+      0.7516418357284438,
+      0.04183797845968277,
+      0.03479932277233983,
+      0.17172086303953354
+    ],
+    "2009": [
+      0.7505328494902032,
+      0.03848402353516697,
+      0.031514511806062066,
+      0.179468615168568
+    ],
+    "2011": [
+      0.7565846358394013,
+      0.023606081213334636,
+      0.027412869327598923,
+      0.1923964136196652
+    ],
+    "2014": [
+      0.7440038501149395,
+      0.025662183441024947,
+      0.0252027104356131,
+      0.2051312560084222
+    ]
+  },
+  "seed_bands": {
+    "ACADEMIC_CONGRESS_UNION": [
+      0.5520790092545558,
+      1.0,
+      2.8445654104897375
+    ],
+    "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": [
+      0.2295167827048443,
+      1.0,
+      2.590544478379949
+    ],
+    "AIC": [
+      0.34973299558322146,
+      1.0,
+      2.7378894857164116
+    ],
+    "ALJAMAAH": [
+      0.15445402203573222,
+      1.0,
+      1.7505080010360659
+    ],
+    "BUILDING_A_COHESIVE_SOCIETY": [
+      0.15445402203573222,
+      1.0,
+      1.7505080010360659
+    ],
+    "EKURHULENI_COMMUNITY_MOVEMENT": [
+      0.32171437788179824,
+      1.0,
+      2.6669135309475567
+    ],
+    "INTERNATIONAL_REVELATION_CONGRESS": [
+      0.15445402203573222,
+      1.0,
+      1.7505080010360659
+    ],
+    "PALMRIDGE_COMMUNITY_FORUM": [
+      0.15445402203573222,
+      1.0,
+      1.7505080010360659
+    ],
+    "PAN_AFRICAN_SOCIALIST_MOVEMENT_OF_AZANIA": [
+      0.15445402203573222,
+      1.0,
+      1.7505080010360659
+    ],
+    "UNITED_FRONT_OF_CIVICS": [
+      0.15445402203573222,
+      1.0,
+      1.7505080010360659
+    ],
+    "UNITED_RESIDENTS_FRONT": [
+      0.2295167827048443,
+      1.0,
+      2.590544478379949
+    ]
+  },
+  "seed_notes": {
+    "ACADEMIC_CONGRESS_UNION": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 13 arrivals that contested about as much of a city (34% of wards): mean 0.09%, median 0.06%. Band 0.05%-0.25% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.64: 11 entrants summing to 2.20% against an arrival-total record of 1.40%",
+    "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 54 arrivals that contested about as much of a city (54% of wards): mean 0.21%, median 0.08%. Band 0.05%-0.54% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.64: 11 entrants summing to 2.20% against an arrival-total record of 1.40%",
+    "AIC": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 24 arrivals that contested about as much of a city (85% of wards): mean 0.20%, median 0.13%. Band 0.07%-0.54% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.64: 11 entrants summing to 2.20% against an arrival-total record of 1.40%",
+    "ALJAMAAH": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 28 arrivals that contested about as much of a city (12% of wards): mean 0.21%, median 0.06%. Band 0.03%-0.38% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.64: 11 entrants summing to 2.20% against an arrival-total record of 1.40%",
+    "BUILDING_A_COHESIVE_SOCIETY": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 28 arrivals that contested about as much of a city (6% of wards): mean 0.21%, median 0.06%. Band 0.03%-0.38% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.64: 11 entrants summing to 2.20% against an arrival-total record of 1.40%",
+    "EKURHULENI_COMMUNITY_MOVEMENT": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 22 arrivals that contested about as much of a city (100% of wards): mean 0.20%, median 0.11%. Band 0.07%-0.54% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.64: 11 entrants summing to 2.20% against an arrival-total record of 1.40%",
+    "INTERNATIONAL_REVELATION_CONGRESS": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 28 arrivals that contested about as much of a city (5% of wards): mean 0.21%, median 0.06%. Band 0.03%-0.38% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.64: 11 entrants summing to 2.20% against an arrival-total record of 1.40%",
+    "PALMRIDGE_COMMUNITY_FORUM": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 28 arrivals that contested about as much of a city (16% of wards): mean 0.21%, median 0.06%. Band 0.03%-0.38% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.64: 11 entrants summing to 2.20% against an arrival-total record of 1.40%",
+    "PAN_AFRICAN_SOCIALIST_MOVEMENT_OF_AZANIA": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 28 arrivals that contested about as much of a city (8% of wards): mean 0.21%, median 0.06%. Band 0.03%-0.38% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.64: 11 entrants summing to 2.20% against an arrival-total record of 1.40%",
+    "UNITED_FRONT_OF_CIVICS": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 28 arrivals that contested about as much of a city (10% of wards): mean 0.21%, median 0.06%. Band 0.03%-0.38% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.64: 11 entrants summing to 2.20% against an arrival-total record of 1.40%",
+    "UNITED_RESIDENTS_FRONT": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 54 arrivals that contested about as much of a city (67% of wards): mean 0.21%, median 0.08%. Band 0.05%-0.54% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.64: 11 entrants summing to 2.20% against an arrival-total record of 1.40%"
+  },
+  "seeded_arrival_mass": 0.013976651299959559,
+  "seeds": {
+    "ACADEMIC_CONGRESS_UNION": 0.0005539708553327127,
+    "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.0013373684692256367,
+    "AIC": 0.0012521445334508093,
+    "ALJAMAAH": 0.0013678537516777873,
+    "BUILDING_A_COHESIVE_SOCIETY": 0.0013678537516777873,
+    "EKURHULENI_COMMUNITY_MOVEMENT": 0.0012886764626580385,
+    "INTERNATIONAL_REVELATION_CONGRESS": 0.0013678537516777873,
+    "PALMRIDGE_COMMUNITY_FORUM": 0.0013678537516777873,
+    "PAN_AFRICAN_SOCIALIST_MOVEMENT_OF_AZANIA": 0.0013678537516777873,
+    "UNITED_FRONT_OF_CIVICS": 0.0013678537516777873,
+    "UNITED_RESIDENTS_FRONT": 0.0013373684692256367
+  },
+  "splinter_home": {
+    "fractions": {
+      "NFP": 0.3524
+    },
+    "measured_at": [
+      "2014"
+    ]
+  },
+  "target": "2016",
+  "transition_ledger": {
+    "arrival_group_record": {
+      "fallback": 9,
+      "metro": 8,
+      "offered": 24,
+      "unavailable": 7
+    },
+    "entrant_record": {
+      "fallback": 17,
+      "metro": 8,
+      "offered": 32,
+      "unavailable": 7
+    },
+    "home_splinter_record": {
+      "fallback": 4,
+      "metro": 0,
+      "offered": 4,
+      "unavailable": 0
+    },
+    "splinter_record": {
+      "fallback": 52,
+      "metro": 0,
+      "offered": 52,
+      "unavailable": 0
+    }
+  },
+  "turnout_limits": {
+    "city": {
+      "high": 0.6111830680631621,
+      "low": 0.38366221818605634,
+      "observed_high": 0.555620970966511,
+      "observed_low": 0.4262913535400626,
+      "previous": 0.555620970966511
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.5784143383082763,
+        "low": 0.36368062715469496,
+        "observed_high": 0.5258312166438874,
+        "observed_low": 0.4040895857274388,
+        "previous": 0.5258312166438874
+      },
+      {
+        "high": 0.6114764215510604,
+        "low": 0.34237912427388195,
+        "observed_high": 0.5558876559555094,
+        "observed_low": 0.38042124919320214,
+        "previous": 0.5558876559555094
+      },
+      {
+        "high": 0.5224630407404816,
+        "low": 0.21790212384206908,
+        "observed_high": 0.47496640067316503,
+        "observed_low": 0.24211347093563232,
+        "previous": 0.47496640067316503
+      },
+      {
+        "high": 0.7464916578360845,
+        "low": 0.4866865304754748,
+        "observed_high": 0.6786287798509859,
+        "observed_low": 0.5407628116394164,
+        "previous": 0.6786287798509859
+      }
+    ]
+  },
+  "unclassified_with_national_record": {}
+}

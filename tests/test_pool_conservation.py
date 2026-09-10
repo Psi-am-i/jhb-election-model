@@ -33,6 +33,7 @@ So this measures it, on the emitted specs rather than on a fixture:
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -162,6 +163,188 @@ def test_an_arrival_does_not_touch_pools_it_is_not_in():
         f"{other!r} by {worst:.4f} — a party is taking votes from a pool it is "
         f"not in")
     print(f"  untouched pool {other!r}: worst internal shift {worst:.5f}")
+
+
+def _seeded_parties_outside_every_pool(spec) -> list[str]:
+    """The predicate. A seeded party that belongs to NO pool, by the drawer's
+    own definition of membership.
+
+    ⛔ THE MEMBERSHIP EXPRESSION IS COPIED FROM `make_drawer`, DELIBERATELY.
+    `montecarlo.make_drawer` builds
+    ``handled = {p for cfg in scenario["pools"].values() for p in cfg["members"]
+    if p in index}`` and its loop then does ``if party in handled: continue``
+    BEFORE it looks a seed band up. So if this set ever fails to contain a
+    seeded party, that party silently changes engine — it stops being drawn
+    from its pools and starts being drawn from a triangular. Asserting the
+    same expression here is what makes this test track that branch rather than
+    a restatement of the spec's own shape.
+    """
+    members = {p for cfg in spec["pools"].values() for p in cfg["members"]}
+    return sorted(p for p, v in (spec.get("seeds") or {}).items()
+                  if float(v) > 0 and p not in members)
+
+
+def test_every_seeded_party_belongs_to_a_pool():
+    """A seeded arrival is drawn from its POOLS, and it must have some.
+
+    ⛔ THIS IS THE INVARIANT A WHOLE REFUTATION RESTS ON, AND NOTHING TESTED IT.
+    `make_drawer` skips every pool member before it reads `pool_seed_bands`, so
+    the emitted band's `lo`/`hi` are consumed by nothing — measured 2026-09-06,
+    replacing every seeded band with [0.001, 1.0, 50.0] leaves `pr_share_draws`
+    and the seat totals byte-identical (§1.198). That conclusion is only sound
+    while EVERY seeded party is a pool member. The day one is not, that party
+    alone is drawn from a triangular whose width nothing has been maintaining,
+    and the model changes engine for it in silence.
+
+    The invariant is currently guaranteed by arithmetic — `emit_pools` writes a
+    normalised vector over `n` pools, so its largest weight is at least `1/n`,
+    far above the `w[g] > 1e-4` members filter. It is guaranteed by arithmetic
+    that could change: a roster drop, a capture that comes back empty, or a
+    tighter filter each break it, and none of them looks like it is breaking
+    anything.
+
+    ⚠️ **The liveness register cannot catch it either.** `pool_seed_bands` sits
+    in `RUNTIME_INJECTED` in `test_levers_are_live.py` — explicitly "not a
+    lever" — so the register never asks whether its `lo` and `hi` are read by
+    anything. That exemption is how a dead artefact survived two rounds of
+    repair to its contents.
+    """
+    specs = _specs()
+    with_seeds = [(path, spec) for path, spec in specs if (spec.get("seeds") or {})]
+    seeded_total = sum(len([1 for v in (spec.get("seeds") or {}).values() if float(v) > 0])
+                       for _p, spec in specs)
+
+    # IT LOOKED, two-sided, against a computed denominator rather than a typed
+    # floor: a bare "> 0" ratchets, and the cheapest way to fix it when it trips
+    # is to lower it.
+    assert specs, "no emitted pool specs found — this test scanned nothing"
+    assert 0.10 <= len(with_seeds) / len(specs) <= 0.90, (
+        f"{len(with_seeds)} of {len(specs)} emitted specs carry seeds. Outside "
+        f"[10%, 90%] this is not the population the claim is about: at the low "
+        f"end the scan is empty in all but name, and at the high end something "
+        f"has started seeding the targets that should have none (2016 and 2011 "
+        f"carry no entrant record, and 2026 has no roster).")
+    assert seeded_total >= 20, (
+        f"only {seeded_total} seeded parties across every spec; the 2021 "
+        f"targets alone carry dozens, so this is scanning a broken emission")
+
+    for path, spec in specs:
+        orphans = _seeded_parties_outside_every_pool(spec)
+        assert not orphans, (
+            f"{path.name}: {len(orphans)} seeded parties belong to no pool — "
+            f"{', '.join(orphans[:5])}. `make_drawer` skips pool members BEFORE "
+            f"it reads `pool_seed_bands`, so these parties alone are drawn from "
+            f"the seed-band triangular instead of from their pools. That band's "
+            f"width is maintained by nothing (§1.198) and the two engines do "
+            f"not agree.")
+
+    # IT CAN SEE: the same predicate, on a constructed violation.
+    _path, real = next((p, s) for p, s in with_seeds)
+    broken = json.loads(json.dumps(real))
+    victim = next(p for p, v in broken["seeds"].items() if float(v) > 0)
+    for cfg in broken["pools"].values():
+        cfg["members"].pop(victim, None)
+    assert _seeded_parties_outside_every_pool(broken) == [victim], (
+        f"the detector did not catch a constructed violation: {victim} was "
+        f"removed from every pool's members and still read as belonging to one")
+
+    print(f"  {seeded_total} seeded parties across {len(with_seeds)} of "
+          f"{len(specs)} specs, every one of them in a pool")
+
+
+def test_a_seeded_arrival_is_drawn_CONCENTRATED_not_evenly():
+    """The near-uniform `seeds` are a MEAN VECTOR. The DRAW is a spike at zero.
+
+    ⛔ THIS IS THE MOST MISREAD MECHANISM IN THE MODEL AND NOTHING ASSERTED IT.
+    The emitted seeds for undeclared entrants sit within a 1.12x max/min spread
+    at Cape Town 2016, so every reader — including the author of this test, in
+    §1.220 — concludes the model divides the arrival budget evenly. It does not.
+    Seeded arrivals are pool members, so their split is drawn by the POOL
+    Dirichlet at a per-component concentration of `p_i * A_pool` ~ 0.005: most
+    draws near zero, a rare large chunk.
+
+    Measured live at Cape Town 2016: E[top arrival's share of the group] = 0.412
+    against 0.062 if the draw were flat, and a median party draw of 0.137 of its
+    own mean. Realised, across 24 metro-years, the top arrival takes a median
+    62.6% of the group.
+
+    ⚠️ THE BEHAVIOUR IS LOAD-BEARING AND ACCIDENTAL. It comes from a pool
+    concentration fitted for a different purpose. A future change to `alpha`, or
+    a well-meaning "let's make the seeds less flat", would silently convert this
+    into the even split everybody already believes it is — and the even split is
+    the pathological one: it makes arrival seats a step function of the roster
+    LENGTH, and costs +12 seats over 16 metro-years against the live path's
+    +6.5. Nothing else in the suite would notice. §1.220.
+    """
+    import cityconfig
+    import montecarlo as M
+    import numpy as _np
+
+    spec_path = ROOT / "data/processed/capetown/pools_2016.json"
+    if not spec_path.exists():
+        skip("capetown 2016 spec not emitted")
+    seeds = {k: v for k, v in
+             json.loads(spec_path.read_text())["seeds"].items() if v > 0}
+
+    # (1) IT LOOKED. The premise is a near-flat MEAN vector over several
+    #     parties — without that this test would be asserting the obvious.
+    assert len(seeds) >= 8, (
+        f"only {len(seeds)} seeded parties at capetown 2016; the claim is about "
+        f"a crowd and needs one.")
+    spread = max(seeds.values()) / min(seeds.values())
+    assert spread < 3.0, (
+        f"the seeded MEAN vector at capetown 2016 spans {spread:.2f}x. This test "
+        f"exists to show that a FLAT mean still draws concentrated; if the mean "
+        f"is no longer flat, re-derive §1.220 before editing this number.")
+
+    # ⛔ RESTORE THE ACTIVE CITY. `cityconfig.use` sets PROCESS-GLOBAL state
+    # (`_ACTIVE`, `_TARGET`), and `run_all` runs modules in one process — so a
+    # test that switches city and walks away silently re-points every later
+    # test in the suite. This one did exactly that on its first run and broke
+    # `test_polling_register`, which screens "the 2026 target" and got Cape
+    # Town's. Same family as JUDGEMENT-CALLS §A43 (`apply_city` never resets
+    # `DEFAULTS`), which is on the register in red.
+    _prev_city = cityconfig.active().slug
+    try:
+        cityconfig.use("capetown")
+        target = cityconfig.use_target("2016")
+        scenario = M.load_scenario(argparse.Namespace(
+            config=None, set=[], draws=300, seed=None,
+            city="capetown", target="2016"))
+        run = M.run_model(target, scenario, ROOT / "data/raw/elections",
+                          verbose=False)
+    finally:
+        cityconfig.use(_prev_city)
+    index = {p: i for i, p in enumerate(run.universe)}
+    cols = [index[p] for p in seeds if p in index]
+    assert len(cols) == len(seeds), (
+        f"{len(cols)} of {len(seeds)} seeded parties reached the universe — a "
+        f"seeded party that is not drawn is a different defect.")
+
+    draws = _np.asarray(run.pr_share_draws)[:, cols]
+    group = draws.sum(axis=1)
+    top = (draws.max(axis=1) / _np.maximum(group, 1e-12)).mean()
+    flat = 1.0 / len(cols)
+
+    # (2) THE CLAIM: the top of the group takes far more than an even share.
+    #     Bounded on BOTH sides — an upper bound too, because a draw that put
+    #     everything on one party would also pass a bare floor and would be a
+    #     different, worse model.
+    assert 3 * flat < top < 0.95, (
+        f"E[top arrival's share of the group] is {top:.3f} at capetown 2016, "
+        f"against {flat:.3f} for a flat draw. Below ~{3 * flat:.3f} the model "
+        f"has become the EVEN split everyone already believes it is — which "
+        f"costs +12 seats over 16 metro-years and makes arrival seats a step "
+        f"function of the roster length (§1.220). Above 0.95 it has become a "
+        f"point bet on one unnamed party.")
+
+    # (3) THE SIGNATURE: a spike at zero. The median party draws far below its
+    #     own mean. This is what distinguishes "concentrated" from "shifted".
+    ratio = float(_np.median(draws / _np.maximum(draws.mean(axis=0), 1e-15)))
+    assert ratio < 0.5, (
+        f"the median seeded party draws {ratio:.3f} of its own mean. Near 1.0 "
+        f"the distribution is symmetric and the concentration above is coming "
+        f"from something other than the spike-at-zero this documents.")
 
 
 if __name__ == "__main__":

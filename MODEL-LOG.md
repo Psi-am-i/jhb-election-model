@@ -21280,3 +21280,2202 @@ POOL GEOGRAPHY is being guessed at the city average when someone may know
 better. For BOSA nobody does — its only local evidence is 1.02% at a national
 election. **Leaving it at the city average is the honest answer, and it should be
 recorded as a decision rather than left as a default.**
+
+## 1.195 Ultra review #1: nothing moved a number, and the one real class it found was a register promising a key one branch reads (2026-09-06)
+
+**The review the brief booked** (`audits/ULTRA-REVIEW-1-pools-reemit.md`) ran on
+2026-09-06 against `ultra-review-base`, before the emit, as the brief requires:
+47 files, 7,396 insertions, 36 agents, two rounds, 8 finders and 22 verifiers,
+three confirmations required per finding. It hit its wall clock with all seven
+candidates swept. **Four findings survived verification. None is a
+forecast-moving defect, and that is the headline result.**
+
+⛔ **THE NEGATIVE RESULT IS THE POINT AND IS RECORDED AS ONE.** The batch's
+justification for spending a paid review here was that
+`forecast_frozen.json` is barred from arbitrating and the backtest cannot tell a
+fixed bug from a new one, so a defect landing with the emit would be
+expensive and invisible. The review found no such defect. That is evidence about
+the batch, not an argument that the instrument is weak — it confirmed six
+findings, four of which survived the quality cap, and two further quality
+findings were trimmed by that cap rather than by disagreement. **What it does
+not license is the inverse claim**: the review read the diff, and the diff is
+the pool layer. It says nothing about the level machinery (folds 10-30), which
+§1.190's own note already called the least-examined part of the model.
+
+### The three that landed, all number-neutral on this tree
+
+Each was re-derived against the tree before being applied — the summaries were
+not taken on trust — and each is in `POOLS-REEMIT-QUEUE.md` under *Landed in the
+tree, awaiting only the pending emit*, entries 12-14. All three move `pools_sha`
+(`_code_sha` hashes the syntax tree, and a local annotation and a variable name
+are both in it), which costs nothing here **only because the emit had not been
+taken yet**. Taken a day later, each would have cost a window.
+
+1. **`arrival_group_record`'s accumulator was annotated `list[tuple[float,
+   float]]` and stores 3-tuples** (`pools.py:3450`), in the one function whose
+   docstring is pinned by a test *because* its schema was widened 2 → 3. A
+   local annotation is not evaluated at runtime, so nothing computed changes.
+2. **`emit_pools` used the name `record` for two unrelated datasets** —
+   `turnout_record` at `:4807`, read at `:4816` and `:5045`, then
+   `entrant_record(lge_transitions(...))` at `:5047`, read at `:5078` and
+   `:5213`. Renamed to `entrant_hist`. Two series under one name inside one
+   function is the shape where a later hoist silently reads the other one.
+3. ⛔ **`overperform` was documented unconditionally and read in one branch of
+   two.** This is the only one of the three that is a defect rather than
+   hygiene.
+
+### Why (3) is the interesting one: the register promised what the code did not
+
+`PARTY_KEYS` was added in this batch to close the *"unknown keys silently
+ignored"* hole (§1.178). It lists
+
+    "overperform": "a multiplier on the default strength, when you prefer to
+                    scale the record rather than replace it"
+
+with no branch named. The closed-key refusal therefore **accepts** `overperform`
+beside `weights` — and the `weights` branch read `support` and nothing else. So
+a party declared as the code's own note instructs a reader to declare one —
+*"declare which pools it pulls from and what support you expect"* — with
+`weights = [...]` and `overperform = 1.5` passed every guard, was seeded at the
+comparator mean `base`, and printed no warning. **The silent-discard class that
+`PARTY_KEYS` exists to close, surviving inside the mechanism that closed it.**
+
+Both branches now compute the same two lines:
+
+    mult   = float(declared.get("overperform", 1.0))
+    judged = stated is not None or mult != 1.0
+    size   = (float(stated) if stated is not None else base) * mult
+
+so either key sizes the party **and** holds it outside the entrant group budget
+(§L2 — inside it, a declared 12% measured out at 0.3687%).
+
+**Number-neutral, and verified as such at unit level rather than asserted:** no
+judgement file in the tree declares `weights`, `support` or `overperform` — all
+408 `[party.X]` tables carry `baseline_share` and `parent` — so no party is
+`judged`, the group budget is unchanged, and every emitted band and seed is
+computed exactly as before. **The emit must confirm it, not assume it:** emit,
+and diff the specs. The repair changes what happens on **16 September**, under
+time pressure, with a nomination list in front of someone.
+
+**The guard is case (6) of
+`test_a_declared_strength_is_read_and_does_not_narrow_its_own_band`**, and it
+asserts the arithmetic, not the note (§1.178's own lesson): the implied citywide
+share recovered from the capture vector at exactly 3× the undeclared one, the
+band unmoved by the multiplier, the party's declared size surviving the group
+rescale, and the 29 undeclared entrants still summing to the 1.75% record. It
+also refuses to run if the per-pool cap binds on the test vector, so it cannot
+pass by measuring a clip. Case (4) already proved the multiplier — **in the
+branch that already honoured it**, which is exactly how the register could
+promise a key the arithmetic ignored while the suite stayed green.
+
+### The fourth finding: a latent nested gate, queued rather than taken
+
+**`pool_counts` reprojects `adults_by_ward` inside a branch gated on the BASE
+dimension's delimitation** (`pools.py:1026-1032`):
+
+    src_delim = base.censuses[-1].delimitation
+    if int(src_delim) != delimitation_for(year):
+        people_by_ward, cov = reproject_counts(...)
+        if adults_by_ward:
+            age_delim = age.censuses[-1].delimitation      # its OWN delimitation
+            adults_by_ward, _ = reproject_counts(...)
+
+The gate reads one dimension and the operation reads another. The silent
+direction is **base matching the election delimitation while age does not**: the
+block never runs, `adults_by_ward` stays on its own delimitation, and it is
+joined to the election-year wards by ward code. **Ward codes are contiguous and
+reused, so that join SUCCEEDS** — the precise trap the comment eight lines above
+this branch warns about, and the one that fitted Cape Town on a 14.7% median
+per-ward error without anyone seeing it (§1.160).
+
+It is worse than a wrong reprojection, because there is no key-set assertion on
+this side: `people_by_ward` gets `matched = codes & set(people_by_ward)` and a
+50% refusal; `adults_by_ward` is read with `.get(w, 0.0)`, so unmatched wards
+report **zero adults** and `_nest` fits `adult_share` toward the floor rather
+than raising. CLAUDE.md's rule for a scan-shaped claim — *"a join on reusable
+keys must assert on the KEY SET"* — is written directly above the branch and is
+enforced for one of the two joins.
+
+**Unreachable today**: every live dimension in `config/dimensions.toml` is
+Census 2022 on delimitation 2021, so the two gates always agree. **It becomes
+live the moment one dimension gains a census the other does not** — and the
+commented-out base 2011 entry is described in that same file as *"the
+highest-value outstanding data request after home language"*. So the fix must
+land **before** that data arrives, not after it. Queued as entry 15; the repair
+is one line (gate the adults block on `age_delim` independently) and is
+number-neutral under today's config, which is also its acceptance test.
+
+### One candidate did not reach a verdict
+
+`panel_turnout_spread`'s cache key hashes `_config_sha(CONFIG)` — the module
+global — rather than the `cfg` actually passed in (`pools.py:2420`), so two
+configs with different pool definitions could share a cache entry within one
+process. Verified as PLAUSIBLE, not CONFIRMED, and not taken here. It is a
+one-process-lifetime hazard rather than an emitted-value one, but it sits on the
+turnout band, which is a live width lever, and it should be settled before the
+next `pools.py` window rather than carried indefinitely.
+
+## 1.196 The count outranks the census — already the position, wrongly worded, and violated in exactly one place (2026-09-06)
+
+**Raised by the owner**, on the construction map's account of the nesting
+levels: *"The registered voters and actual votes MUST always be more important
+than census. The first two require in person appearance with an ID book. They
+are as real as counts get… If we do not [have population group in the roll],
+then census can be used to give an approximate population group split. The only
+other time census is useful is to predict the eligible voter pools — but this
+does not decide elections, it's a soft measure of 'room for growth'."**
+
+**The ruling is not new and that matters**: it is what `DATA-QUALITY` item 11
+has said since 2026-08-27, after the repair that lifted the census to close the
+ratio was reverted for measuring worse (+8 seats, +3.09 CRPS — pool size and
+fitted rate are jointly identified by the votes, so their product was already
+right). What was wrong was **where it was written and how the code said it.**
+
+### 1. The violation message accused the wrong term
+
+It read *"{pool}: registered is 187% of the level above it, **which is
+impossible**"*. The count is not impossible; the ratio is. Reworded to say so,
+and to name the two sides: registration and votes are administrative events —
+an in-person appearance with an ID book — against a **modelled** small-area
+estimate with a disputed post-enumeration adjustment. It now also states what
+the number actually impeaches: `_nest` forces every ward to its published
+totals, so the counted quantity is exact and **only the split is estimated**.
+The existing warning is kept, because it is the non-obvious half — this is not a
+census undercount either, since the 2022 figures for these groups are argued to
+be 14%/24% too HIGH, which widens the gap rather than closing it.
+
+⚠️ **The message is in `pools.py`, so `_code_sha` moves for a string.** Free
+this week and not next; it goes into the pending pre-emit batch with entries
+12-14 rather than waiting for a window of its own.
+
+### 2. The standing rule was recorded only inside a struck-through block
+
+`DATA-QUALITY` item 11 carried the ordering inside the *"NOT resolved in the
+model — REVERTED"* section, which is the record of an abandoned repair. A rule
+a reader has to find inside a retraction is a rule that will be re-litigated. It
+now stands at the top of item 11, with the owner's second point explicit: **the
+roll and the results carry no population group**, so census is the apportionment
+key for the split and the soft ceiling on the eligible pool, and is **never a
+validator** — an estimate coming in under a hard count is evidence about the
+estimate.
+
+### 3. One place runs the other way, and it is measured
+
+**`REGISTRATION_MAX = 2.0` is a census-derived ceiling on a counted quantity.**
+Re-measured on the shipped instrument across all 24 city-years (2026-09-06):
+
+| city | pool | year | rate | implied registered ÷ adults |
+|---|---|---|---|---|
+| Cape Town | Indian/Asian | 2011 | **2.000 (bound)** | 2.120 |
+| Cape Town | Indian/Asian | 2016 | **2.000 (bound)** | 2.129 |
+| Mangaung | Indian/Asian | 2016 | **2.000 (bound)** | 2.217 |
+| Mangaung | Indian/Asian | 2021 | **2.000 (bound)** | 2.204 |
+
+Four cells, two cities — **reproducing JUDGEMENT-CALLS §L9's corrected table
+exactly**, which is the point of re-measuring it rather than citing it. Where
+the bound binds, `_nest`'s row scaling pushes the surplus into the other pools
+of that ward: the identical mechanism the old 1.0 clip caused one magnitude
+down, where Johannesburg's White share of the roll read 20.0% clipped against
+25.2% unclipped. **Not touched here.** It moves emitted numbers in at least four
+city-years and belongs in the emit window behind
+`prereg/2026-09-05-registration-rate-bound.md`, where §L9 already records the
+value as deferred rather than defended.
+
+**Panel-wide, 18 of the 24 city-years carry at least one nesting violation** —
+Johannesburg White at 154/185/187%, Cape Town Indian/Asian at 199-213%, Mangaung
+Indian/Asian at 220-222%, and single-figure overshoots at Tshwane, Ekurhuleni,
+Nelson Mandela Bay and Buffalo City. This is a property of the census split
+across the whole panel, not a Johannesburg quirk, and it is the standing request
+to Stats SA that item 11 ends on.
+
+⚠️ **What was NOT established.** Mangaung's and Buffalo City's Indian/Asian
+pools fit a turnout of exactly 0.000 — the live defect behind
+`test_the_three_known_things_hold_at_once` — and they are the same pools that
+hit the registration ceiling. **Co-located is not causal**: Mangaung 2011 and
+Buffalo City 2011/2021 fit 0.000 turnout with the registration rate well below
+the bound, so the ceiling cannot be the whole explanation and may be none of it.
+Recorded as an observation to test, not a finding.
+
+## 1.197 R4 was already in the tree, three of its four predictions hold, and the fourth could never have held (2026-09-06)
+
+**The batch checklist says R4 is unstarted. It is not** — every code change it
+describes is in the tree and has been since the batch commit; only the
+verification, the emit and the pollster check are outstanding. A checklist that
+disagrees with the code is the failure mode this repository keeps writing up, so
+it is corrected in the same commit as this entry.
+
+Verified by **re-deriving each pre-registered quantity**, not by reading the
+diff. `prereg/2026-09-03-arrival-record-widening.md` is the document; it
+supersedes the queue-cell version.
+
+| # | prediction | measured | verdict |
+|---|---|---|---|
+| P1 | `arrival_group_record('2026')` 22 → **29** rows | 29 | **HELD** |
+| P2 | `_arrival_total_prior` = 1.8769 / 1.3977 / 1.6433 / **2.1867%** at 2011/16/21/26 | 1.876892 / 1.397665 / 1.643280 / 2.186689% | **HELD**, max \|Δ\| 8.4e-8 |
+| P3 | joburg 2026 α `[15.61, 22.58, 21.51, 21.94]` → `[12.73, 14.54, 16.15, 22.42]` | not taken | **SUPERSEDED** — see below |
+| P4 | the 2016 arm goes live, 63 rows / 54 with measured reach | 54 | **HELD** |
+| P5 | 2021 full-reach `base` 0.3398% → 0.2818%, band `[0.114, 1, 4.787]` → `[0.172, 1, 5.580]` | 0.2661%, `[0.181, 1, 5.673]` | ⛔ **FALSIFIED** |
+
+### P3 was superseded by the owner, and the supersession is in the code
+
+The fourth widening site — `emit_pools`' split-sample loop, which feeds
+`dirichlet_alpha` — was **deliberately not wired** (§1.184, §1.185). The
+pre-registration predicted a 24 → 33 metro-year sample and an α widening on
+three of four pools; the owner's reading was that the extra evidence is a level
+**trend**, a **transfer** and an **abstention** being counted a second time as
+unpredictability, and the code now carries that argument at the site. So P3 is
+not a failed prediction, it is a prediction about a change that was then
+declined — and the distinction is only visible because the site carries a
+twenty-line comment saying so.
+
+### P5 is falsified, and it was unattainable when it was written
+
+The "before" arm reproduces the pre-registration **exactly** — disable the
+`_npe_citywide_for` fallback and 2021 returns `base` 0.3398% and band
+`[0.114, 1, 4.787]`, to four significant figures. So the record function has not
+drifted and the baseline is intact.
+
+The "after" arm does not. Re-running the widened arm **with unknown-reach rows
+defaulted to a reach of 1.0** reproduces the predicted numbers exactly —
+0.2818% and `[0.172, 1, 5.580]`, 140 rows at 2021 and 63 at 2016.
+
+**So P5's figures were computed with the behaviour P0 of the same document
+forbids.** P0 says those rows are *"a fabricated covariate at the most
+consequential value… SKIPPED, not defaulted"*; P5's numbers were taken before
+the skip and were therefore unreachable by any implementation that obeys P0.
+The implementation is right and the prediction was wrong when written.
+
+**The direction survives and the magnitudes do not.** The widening lowers the
+entrant centre (0.3398% → 0.2661%, predicted 0.2818%) and widens the band's
+upper ratio (4.787 → 5.673, predicted 5.580). Every sign is as pre-registered.
+Correct post-skip values, for the record:
+
+| target | rows | peers | base | band |
+|---|---|---|---|---|
+| 2016 | 54 | 22 | 0.2025% | `[0.322, 1, 2.667]` |
+| 2021 | 131 | 41 | 0.2661% | `[0.181, 1, 5.673]` |
+| 2026 | 304 | 120 | 0.2902% | `[0.153, 1, 4.783]` |
+
+⚠️ **The lesson is not "pre-register more carefully".** It is that a
+pre-registration is a program with two arms, and **the arms must be computed by
+the same instrument**. P0 and P5 were written in one sitting and disagreed about
+what the instrument was; nothing in the document could catch that, because a
+prediction is prose. The check that caught it is the one CLAUDE.md already
+requires — re-derive the decisive number rather than reading the summary — and
+it caught it in two runs.
+
+### Two hygiene items closed, one of them a live defect
+
+* ⛔ **`total_log_median` held `np.mean(logs)`.** The name said median; every
+  consumer spent a mean. It is the location of the lognormal
+  `montecarlo.make_drawer` samples the arrival group's total from, so the label
+  was wrong at the one place a reader checks what a draw is centred on.
+  **Renamed `total_log_mean`**, writer and reader in one commit, with the reader
+  keeping the old key as a fallback **only until every spec on disk carries the
+  new one** — a note that must be deleted at the window, not left standing.
+* **`_arrival_total_prior`'s docstring opened by arguing for the median**, six
+  lines above the paragraph explaining why the mean is used. A live argument
+  against the function's own behaviour, at the top of the function. Replaced,
+  with the old text kept as the record of what it said.
+
+### What is actually left in R4
+
+The archive-before-restore, the placebo emit, the emit-measure-restore itself,
+the per-city seeded arrival mass, the provenance instrumentation, and the
+**sighted** pollster check against the R-1 decision. None of them is a code
+change; all of them need the tree to themselves.
+
+## 1.198 The pollster's two blocking findings are refuted on their premise, and the thing underneath them is worse (2026-09-06)
+
+**The R4 pollster pass, one blind section and one sighted.** Twelve findings,
+two marked publication-blocking. Both blocking findings are **refuted by
+re-derivation**, and the mechanism that refutes them is a larger defect than
+either.
+
+### F1 refuted: the triangular is never drawn for a seeded arrival
+
+The claim: `arrival_rules` rescales the group so `Σ centres = _arrival_total_prior`,
+`make_drawer` then draws each seeded party as `base × triangular(low, 1.0, high)`,
+and `E[triangular] = (low + 1 + high)/3 = 2.285` — so the budget pins a sum of
+**modes** while the forecast spends a sum of **means**, and the realised 2026
+arrival mass is ~5% against a pinned 2.19%.
+
+The arithmetic is right and the path is not taken. `make_drawer` builds
+
+    handled = {p for cfg in scenario["pools"].values() for p in cfg["members"]
+               if p in index}
+    for party, i in index.items():
+        if party in handled or party == "ENTRANT":
+            continue                      # <- BEFORE the seed_band lookup
+        seed_band = (scenario.get("pool_seed_bands") or {}).get(party) ...
+
+and **every seeded arrival is a pool member**: `emit_pools` writes
+`composition[party]` for each one, the members filter admits any weight above
+1e-4, and a normalised vector always has one. Measured on the emitted
+`pools_2021.json`: **32 seeded parties, 32 of them in a pool, none outside.**
+So the `seed_band` branch is skipped for all of them and no triangular is drawn.
+
+⛔ **`montecarlo.py`'s own comment at the dead-store removal says the opposite** —
+*"`blended_centres` and `make_drawer` both take `pool_seed_bands` directly and
+short-circuit before any membership test"*. True of `blended_centres`, false of
+`make_drawer`, and it is the sentence a reader consults. Corrected in this
+commit.
+
+### And therefore: the arrival band's WIDTH reaches nothing
+
+Constructed perturbation, joburg 2021, 60 draws, seed fixed, every seeded
+party's band replaced by `[0.001, 1.0, 50.0]` — a fifty-thousand-fold change in
+claimed width, mid untouched:
+
+    pr_share_draws IDENTICAL: True
+    seat totals    IDENTICAL: True
+
+**The emitted band's `lo` and `hi` are read by nothing.** `blended_centres`
+takes only `band[1]`, which is `1.0` by construction, so it reads the level and
+discards the width; `make_drawer` never reaches the band at all.
+
+Worse, the same parties are explicitly denied the ordinary level shock:
+
+    pool_sd_shock = {p: (0.0 if p in seeded_set else sd_for_party(p)) ...}
+
+zero, on the argument that their band carries their uncertainty. **It does not
+carry it, so they have none.** A seeded arrival's only variance is the
+within-pool Dirichlet split. The least-known quantity in the model is drawn with
+less level uncertainty than a party with twenty years of record.
+
+⚠️ **This is not the same claim as the one already in the tree.** The entrant
+branch's docstring says the band *"could not do anything with it, because
+`pool_spec` balances both margins by IPF and IPF pins each party's MEAN to its
+centre"* — damping by a downstream constraint. The measurement above is
+stronger and simpler: the number is never read. Two rounds of work were spent
+on a quantity nothing consumes — §1.178's repair of the band divisor (the
+ActionSA ×36 → 7.7% story) and P5 of the R4 pre-registration, whose
+falsification I reported an hour ago as though it had a forecast consequence.
+**It does not.** It is a defect in an emitted artefact, not in a forecast.
+
+**F2 falls with it.** "A bounded triangular assigns probability zero to an
+ActionSA-scale arrival" is true of the triangular and the triangular is not
+drawn here. It stands only for parties in **no** pool, which is a different and
+much smaller population, and it must be re-scoped before it is cited again.
+
+### F4 confirmed, and my own prompt was wrong
+
+The pollster caught the premise I gave it. Counted by transition:
+
+| transition | rows with measured reach | rows skipped |
+|---|---|---|
+| 2000 → 2006 | 0 | **8** |
+| 2006 → 2011 | **54** | 1 |
+| 2011 → 2016 | 77 | 0 |
+| 2016 → 2021 | 173 | **6** |
+
+So the widening adds **63 rows of which 54 carry a measured reach** — they
+arrive at 2011, which the reader parses. Only 9 lack it. The choice between
+skipping and defaulting is a 9-row question; the 54-row question — pre-realignment
+rows entering a reach-matched comparator pool — was never asked.
+
+⛔ **And the six rows at 2016 → 2021 are a different animal entirely.** That
+transition is fully readable, so its missing reach is not a file-format problem:
+`_ward_reach` is built from **ward-ballot** rows while the record's shares come
+from the **PR** ballot, so a party that contested only the PR ballot has no ward
+candidates and is absent by fact rather than by defect. **A measured zero is
+being treated as missing data and discarded.** The skip rule is therefore right
+for 2000/2006 and wrong for PR-only arrivals — and PR-only arrivals are exactly
+the small parties that win list seats without winning wards.
+
+### Confirmed, and adopted
+
+* **The out-of-sample score has two effective observations, not eight.** The
+  year-level block means reconstruct exactly from the four pooled means —
+  {2000,2006} n=7 1.8769%, 2011 n=6 0.8386%, 2016 n=8 2.0424%, 2021 n=8 3.6131%
+  — and `Σ|err|` reproduces as `|2.0424 − p| + |3.6131 − p|` for every
+  estimator quoted. "8 of 8 cells under-predict" is **two** year-level facts.
+* **The constant 2.8% cannot lose.** For two points, *every* constant in
+  [2.0424, 3.6131] scores exactly 1.5707 — it is the L1 minimum attained on an
+  interval, and 2.8 is the midpoint of the two outcomes being scored, chosen
+  after seeing both. The honest pre-2016 constant is **1.40, which is the pooled
+  mean this model already ships.** §L6 must say this; as written it hands a
+  hostile reader the strongest available attack on the estimator.
+* **The series is not monotone, so my own question B4 was malformed.** Once
+  2000/2006 are in it runs 1.88 → 0.84 → 2.04 → 3.61: a dip at 2011 and a rise
+  after. An honestly out-of-sample trend estimator scores **3.0286 against the
+  pooled mean's 2.6145**, and every convex blend of persistence and climatology
+  is monotone worsening in the persistence weight — the optimum is pure
+  climatology, which is what ships.
+
+### What this changes about the order of work
+
+**The re-emit is no longer the next step.** Two of the three things the pollster
+would have done before it are void, and the one that survives — resolving
+`arrival_group_spec`, whose refutation was taken at α 4.357 against a spec now
+carrying 9.758 — is joined by a larger question this entry opens: whether a
+seeded arrival should have level uncertainty at all, and through which channel.
+That is a forecast-moving decision, it is unregistered, and it is the owner's.
+
+## 1.199 The dispersion measurement measured the wrong thing, and the missing covariate is the entrant count (2026-09-07)
+
+**The pollster reviewed the walk-forward, the §L6 rewrite and my own refutation
+of its previous finding. Three of its claims were checked by re-derivation and
+all three hold.** The first invalidates the headline number I reported.
+
+### 1. `sd(log error) = 1.1948` is not a predictive residual — it is the size distribution
+
+The four conditional dispersions I measured are, to three decimals, the **raw
+cross-sectional sd of `log(arrival size)`** inside the same reach bins:
+
+| reach bin | raw sd(log size) | my "sd(log error)" |
+|---|---|---|
+| 0.00–0.15 | 1.008 | 0.900 |
+| 0.15–0.40 | 1.145 | 1.171 |
+| 0.40–0.75 | 1.129 | 1.139 |
+| 0.75–1.01 | 1.240 | 1.288 |
+
+Unconditional: raw **1.2028** against my pooled **1.1948**, so the estimator's
+implied R² on log size is **0.013**. `comparators()` returns a set whose mean is
+nearly flat in reach, so subtracting `log(base)` subtracts a near-constant.
+
+**The number is real and the label was wrong.** It does not say "the model's
+predictions miss by this much"; it says **the centre carries essentially no
+party-level information**, which is a different and more defensible claim, and
+one that must be written that way or it reads as circular. A shock sized at 1.19
+would not be calibrating a residual — it would be restating the prior.
+
+### 2. `log_shock` cannot carry it: the mean is infinite
+
+`log_shock` returns `exp(sd · scale · standard_t(df))`, and `E[exp(c·t_ν)] = ∞`
+for any `c ≠ 0`. Simulated at σ = 1.1948 the realised mean climbs with the draw
+count — 2.70 at 2k draws, 3.76 at 40k, 4.40 at 400k — while the median stays 1.
+IPF pins each party's **mean** to its centre, so a median-1/mean-divergent shock
+multiplies the arrival group's expected mass by an amount that depends on how
+many draws you took. **This repository has already been here**: the comment at
+`montecarlo.py:2703` records 39 arrivals on a high-tailed triangular averaging
+~32× their seed, taking CRPS 84 → 172 and the DA 89 seats → 47.
+
+Any shock added here is **mean-1 by construction** — `exp(σZ − σ²/2)`, Gaussian
+— or it is not added.
+
+### 3. ⛔ The group total's swing is a COUNT effect, and the count is observable
+
+The tension I could not resolve — party-level errors are 99.8% idiosyncratic
+while the group total swings 0.84 → 2.04 → 3.61% — resolves exactly:
+
+    per-arrival mean:  2016  0.2122%      2021  0.1671%
+    count ratio 2.2468  ×  size ratio 0.7874  =  1.7690
+    observed total ratio 3.6131 / 2.0424  =  1.7690
+
+**Per-arrival size FELL 21% while the total rose 77%. The total moved because
+more parties stood.** There is nothing to reconcile and no common cycle shock is
+needed to explain it.
+
+⛔ **This identifies §L6's own missing covariate by name.** §L6 says the budget
+is *"not a constant to estimate but a variable with a missing covariate (how
+fragmenting a cycle is), for which the model has no term."* **The covariate is
+the number of entrants on the nomination roster, and it is known before polling
+day.** At Johannesburg 2021 the per-arrival estimator implies 31 × 0.238% =
+**7.37%**, `_arrival_total_prior` says **1.6433%**, and the realised total was
+**3.6131%** — two estimators of one quantity disagreeing 4.5×, with the truth
+near their geometric midpoint. That is the highest-value item in this area and
+it forecloses the §L6 caveat instead of restating it.
+
+### 4. And my own A2 claim was too strong, with the sign inverted
+
+I wrote that a seeded arrival has **no level uncertainty**. Correct form: **no
+idiosyncratic lognormal shock, and an inert band** — both verified — but its
+within-pool Dirichlet component has shape `α_i = m·α₀`, which for ActionSA at
+2021 is 1.91 (CV 0.69) and for a median micro-arrival is 0.0085 (CV ≈ 10.7,
+median share ≈ 0, mean = the seed).
+
+**So the model's implied dispersion FALLS with size while the record's rises
+with reach — the conditional structure has the opposite sign.** That, not the
+absolute level, is the finding. And it kills the precedent I reached for:
+`levels.py` fits `sd(log θ)` from 0.72 at the smallest party to 0.26 at the
+largest, which also falls with size. Citing it as *"we already fit a conditional
+dispersion this way"* would import a gradient of the wrong sign.
+
+### What this changes about the order
+
+**The dispersion question moves to after the emit**, because every number above
+is measured on the record the re-emit replaces — `base` at full reach goes
+0.3398% → 0.2661%. What belongs **before** it: an assertion that every party
+with `seeds[p] > 0` appears in some pool's `members`, which is the invariant my
+refutation rests on and which nothing currently tests (`pool_seed_bands` sits in
+`RUNTIME_INJECTED` in the liveness register, so the register never asks whether
+its `lo`/`hi` are read — that exemption is how a dead artefact survived).
+
+## 1.200 P2 falsified: I scored the budget against a population it is not spent over (2026-09-07)
+
+**The pre-registration held for one round and died on the blind pollster pass.**
+`prereg/2026-09-07-entrant-count-covariate.md` is unedited; this is the result.
+
+### The defect: three populations, and I used the wrong one
+
+There are three definitions of "an arrival" live in `pools.py` at once:
+
+| | definition | where |
+|---|---|---|
+| **A** | no preceding **national** vote | `arrival_group_record` — what `_arrival_total_prior` is MEASURED on |
+| **B** | no preceding **local** vote, and a measured ward reach | `entrant_record` — what I built the realised series from |
+| **C** | **neither** a local nor a national vote | `newcomers` (`pools.py:4978-4981`) — what the budget is SPENT over |
+
+`no_vector` filters on absence from the previous LGE's `composition`; `newcomers`
+then filters that on `baseline <= 0`, the previous NPE. So the spend population
+is the **intersection**, and my P2 panel scored an A-estimator against
+B-realisations. Re-derived on all three, walk-forward, 16 city-years:
+
+| realised series | budget (shipped) | count route | geometric mid |
+|---|---|---|---|
+| **B** — what I scored | L1 30.2537% | **L1 25.0877%** | L1 23.1752% |
+| **A** — what the budget is measured on | **L1 24.7380%** | L1 26.7812% | L1 22.5837% |
+| **C** — what the budget is SPENT on | **L1 20.7957%**, RMSE 1.8624% | L1 23.9546%, RMSE 2.1036% | L1 19.6933% |
+
+**On C the shipped budget wins on both L1 and RMSE.** The count route's advantage
+existed only on the population I chose by accident. P2 is falsified, the change
+is not made, and `comparators()` is untouched for the separate reasons in P0.
+
+⚠️ **This is the §L6 defect one level up.** §L6 records the budget having been
+*measured* over a population 1.3× wider than the one it is *spent* over. I then
+built the instrument that was supposed to check it on a third population again.
+**Three definitions of one word in one module is the duplicated-logic defect this
+repository already has a rule against**, and it has now produced two errors.
+
+### What survives, and it is not nothing: the budget is 35% low in aggregate
+
+Every criterion in P2's table — Σ|err|, mean|log err|, hit-rate within 2× — is
+**median-seeking**, while the consumer is an arithmetic mean: IPF pins each
+party's mean to its centre, which is §L6's own reason for preferring the mean.
+Scored on C with the criterion that matches the consumer:
+
+| route | L1 | RMSE | **aggregate mass ratio** |
+|---|---|---|---|
+| budget (shipped) | 20.7957% | 1.8624% | **0.647** |
+| count | 23.9546% | 2.1036% | 1.260 |
+| geometric mid | 19.6933% | 1.6077% | 0.862 |
+
+**The shipped rescale allocates 65% of the arrival mass the record shows**, and
+no L1 table can see it, because L1 rewards being low. That is §L6's "under-predicts
+at both targets" restated at the level that reaches seats.
+
+### The shape that is right, and the level that is not a constant
+
+`want` reaches the forecast only through `k = want / have`, `have = Σ base_i`.
+`have` is **already** count-proportional and **already** reach-weighted; the
+rescale's whole function is to delete both signals and replace them with a
+per-target constant. Measured directly, walk-forward, on C:
+
+    k* = realised / Σ base_i    mean 1.035   median 0.786   geometric 0.710
+                                sd 1.223     range 0.186 – 5.338
+    mass-weighted 0.763    |    2016 arm 1.096    2021 arm 0.639
+
+So `k̄ × Σ base_i` is aggregate-unbiased by construction (AGG 1.000 at 0.763),
+improves RMSE (1.775 vs 1.862), costs one parameter instead of an estimator, and
+keeps both signals the count route would have sold.
+
+⛔ **And its level is not a constant, on the only fold that exists.** `k̄`
+estimated from the 2016 arm alone and applied to 2021 **over-predicts by 1.72×**.
+Three defensible values span 1.0 (unparameterised, AGG 1.311), 1.035 (mean over
+cells) and 0.763 (mass-weighted) — a 36% range — against a fold-to-fold swing of
+1.096 / 0.639. **This is the `k*` shape exactly**: not a constant to estimate but
+a variable with a missing covariate, and refusing to fit it here is the same
+refusal §L6 makes about the trend term.
+
+### The covariate that is actually missing, named
+
+The group total is a **mixture**, not a level:
+
+* a **regular tail** — micro-parties, ~0.093% each, `corr(log n, log tail) = +0.773`,
+  which the entrant count predicts well;
+* a **sporadic head** — parties above 0.5%, present in **8 of 24** city-years,
+  mean 0.857% with sd 1.531%, **uncorrelated with the count (+0.042)**, and
+  carrying **84% of the variance**.
+
+So the count can only ever fix the regular part. And the head is thinner
+evidence than 16 cells suggests: at 2016 **four of the five cells with any head
+mass are the same party**, the AIC. That is roughly 1 + 3 independent head
+events, not 16 — and removing year fixed effects takes the count's explanatory
+power to R² 0.19 on C, 0.14 on A, 0.075 on B.
+
+**Nothing ships from this round.** What it produced is a refutation of my own
+pre-registration, a named defect in the shipped rescale (35% low in aggregate
+mass), and the first statement of the head/tail mixture that any future arrival
+work has to start from.
+
+## 1.201 The contender rule: four events, one bimodal split, and a population trap for the fourth time (2026-09-07)
+
+**The owner's proposal**: separate a *contender* from the chaff of newcomers by
+three qualities — new or a split; a leader recognised nationally or locally; no
+leadership disaster — with the hypothesis that a contender does well where the
+parties drawing on its pool are already shedding, and that a contender with a
+national result tracks it locally unless the third condition fails. Written up
+as **JUDGEMENT-CALLS §L11**. Nothing is wired; this entry is the evidence.
+
+### The roster, measured
+
+113 arrivals at ≥0.5% of a metro across 2006–2021, 39 distinct parties. The
+contenders: **ActionSA** 2021 (JHB 18.12%, TSH 9.28%, EKU 7.36%, ETH 2.35%),
+**EFF** 2016 (all eight metros, 3.12–11.64%), **COPE** 2011 (five metros,
+1.11–4.88%), GOOD, the Cape Coloured Congress, the NFP, the AIC, the Northern
+Alliance, the PA and the Independent Democrats.
+
+⛔ **The owner's premise that "a national result with no local result is
+unusual, ActionSA being the only example" is backwards, and the correction is
+load-bearing.** ActionSA is the outstanding example of the *reverse* — it
+arrived with **no national result at all** and took 18.12% of Johannesburg.
+Having a national result first is the **common** case: EFF, COPE, GOOD, PA and
+the ID all had one.
+
+### The one bimodal split in the record
+
+What a contender kept of its preceding national share, locally:
+
+    EFF 2016     1.01  1.03  1.05  1.08  1.21  1.24  1.49  1.50   (8 metros)
+    GOOD 1.07    PA 1.49    Independent Democrats 0.86
+    COPE 2011    0.12  0.16  0.22  0.24  0.28                     (5 metros)
+
+Everything sits between 0.9 and 1.5 except COPE, at a fifth of its national vote
+in **every** metro — the one party with a public leadership implosion. The
+model's θ machinery has no term that could separate them.
+
+⛔ **CORRECTED 2026-09-07: "averages these into a single ratio near 0.6" was
+wrong.** MK is absent from the θ record, so it falls back to the **flat common
+centre**, measured live at **0.9256** — not `size_centre` (0.8128 at MK's size,
+not used) and not 0.6. MK's implied level is 12.2184% × 0.9256 = **11.31%**. The
+correction this section motivates is therefore worth about **2 seats, not 10**.
+§1.205.
+
+### The strongest relationship, and why it does not forecast
+
+Contender size against the ANC's movement **in that same city**: COPE 2011
+**−0.92**, EFF 2016 **−0.82**. COPE's ordering is near-monotone in the ANC's
+collapse — Nelson Mandela Bay −15.5pp → 4.88%, eThekwini **+3.2pp** → 0.40%.
+Same party, same year, same leadership, same national brand; the local result is
+set by whether the incumbent was bleeding in that particular city.
+
+⚠️ **It is contemporaneous, so it explains and does not predict.** The
+forecastable form — the incumbent's decline in the cycle *before* — gives pooled
+**−0.47** and within-year **−0.31** over 17 city-years, and **inverts inside
+2016**, where Nelson Mandela Bay and Buffalo City had the steepest prior falls
+(−15.5, −12.2) and the smallest arrivals (0.80%, 0.32%).
+
+**The reconciliation is the rule's conjunction.** 2016 had fertile ground in
+every metro and no contender-grade leader standing in it; 2021 had the same
+ground plus Mashaba. The pool decline says whether the ground is fertile; the
+leader says whether anyone plants in it.
+
+### Landing, not crossing
+
+Decomposing each contender's fitted pool vector against its parent's: **EFF
+stayed** in the ANC's pool (weight 0.69–1.12), **ActionSA crossed out** of the
+DA's (0.13) — and both succeeded, because both landed in the pool that was
+shedding. **Agang stayed in a pool that was not**, and took 0.03% of
+Johannesburg against ActionSA's 18.12%. Two famous founders, one city, a factor
+of six hundred, and the discriminator is that one had been its mayor.
+
+### ⛔ And the population trap, for the fourth time today
+
+The first run of the forecastable test returned null correlations of the wrong
+sign. The tell was in the table: **Johannesburg 2021 showed a biggest arrival of
+0.43% in the year ActionSA took 18.12%.** The population excluded parties in
+`SPLITS` — which is all six contenders, ActionSA, EFF, COPE, GOOD, MK and the
+NFP — so the test was measuring the chaff and calling it the contenders. With
+them restored the sign flips to −0.47.
+
+**That is the fourth population error in one day**: §1.200's budget scored
+against the wrong arrival definition, §1.199's dispersion measured against the
+wrong estimator, §1.198's band claim, and now this. Every one of them was found
+by looking at a row and asking whether the number could be true, and none by a
+test. **The common cause is that this module carries several definitions of
+"arrival" at once and none of the tests states which one it is using.**
+
+## 1.202 Controlling for turnout takes the contender rule's panel evidence to zero (2026-09-07)
+
+**The owner's control, and it is the most consequential measurement of the
+day.** A fall in an incumbent's SHARE mixes two things — voters switching away,
+and voters staying home — and only the first leaves votes a contender can take.
+The model's own note already records the 2021 ANC collapse as *"587k
+abstentions, not switches"*.
+
+Measuring the ANC in **votes per registered voter** (share × turnout) alongside
+share, over 23 city-years, against the biggest arrival in that city-year:
+
+| predictor | pooled | **within-year** |
+|---|---|---|
+| ANC share decline | −0.125 | −0.168 |
+| ANC decline **per registered voter** | −0.322 | **−0.002** |
+| turnout decline | −0.439 | **+0.047** |
+
+⛔ **Within-year, all three are zero.** The pooled correlations are entirely a
+**year effect**, and the panel holds three years:
+
+    2011   turnout +13.1%   ANC per-reg +5.3%   mean biggest arrival 1.01%
+    2016   turnout  +0.6%   ANC per-reg −5.7%                        1.13%
+    2021   turnout −14.6%   ANC per-reg −9.8%                        5.33%   (max 18.12%)
+
+Contenders broke through in the cycle turnout collapsed by fourteen points and
+not in the cycle it rose by thirteen. **That is three observations wearing the
+clothes of twenty-three**, and it is the same shape the pollster's R5 warned
+about for the entrant count.
+
+### What survives, narrowed
+
+COPE's **−0.92** and the EFF's **−0.82** are *one party across eight cities in
+one year*. Those are genuine cross-city signals and they stand. What does not
+stand is the generalisation: **"how big is the biggest newcomer in this
+city-year" has no within-year relationship to what the incumbent shed**, on
+either share or per-registered. §L11 is amended rather than left overstating it.
+
+### The denominator, which I quoted without checking
+
+**ActionSA's 18.12% of votes cast is 7.54% of the registered roll.** Tshwane's
+9.28% is 4.09%; Ekurhuleni's 7.36% is 3.13%. Johannesburg's turnout fell from
+56% to 41.6% in that cycle, so a material part of every contender share quoted
+in §1.201 is a smaller denominator rather than more support. The comparison that
+matters for a forecast is per-registered, because that is the quantity the pool
+machinery draws.
+
+⚠️ **This does not refute the owner's mechanism — it refuses to let the record
+confirm it.** Abstention and contender breakthrough co-occur at the year level,
+and with three years nothing here can separate "the incumbent's voters left and
+a contender caught the few who stayed" from "a contender appeared and its
+supporters were the only ones motivated to turn out".
+
+## 1.203 Turnout normalisation and a per-party turnout lever: both refused, and the fifth population error (2026-09-07)
+
+**Two proposals went to a blind pollster pass. Both are refused, on evidence
+re-derived here.**
+
+### Proposal A — normalise the arrival record by turnout
+
+⛔ **The record I measured it on is not the record the model consumes.** My
+population applied no `SPLITS` exclusion; `entrant_record` does. The emitted
+record is **n=256, mean 0.1991%, max 2.8304%** — ActionSA's 18.12% is not in it
+and cannot be, because `ASA` is one of the six names in `SPLITS`. Reconstruction:
+stripping ActionSA's three rows (34.76pp) from my 262 gives 0.1915% against the
+emitted 0.1991%, and nothing else reconciles.
+
+**Consequences.** The uplift is ×1.19 on the real population, not ×1.13. And the
+motivating pattern — "high-turnout cycles produced small arrivals, the
+low-turnout cycle produced an 18% one" — **is produced entirely by the row that
+is not in the record.** The record's true maximum is 2.83%.
+
+⛔ **And the premise implies the opposite of the proposal.** Write a party's
+base as a fraction `p` of the roll voting with probability `q`, against turnout
+`t`: share-of-cast is `p·q/t`. If `q` scales with `t` — *supporters as
+turnout-sensitive as everyone else*, which is A's stated assumption — then
+**share-of-cast is the invariant and the status quo is correct**. A requires
+`q` to be independent of `t`: a bloc that votes regardless, the opposite
+endpoint. With `γ = dlog q/dlog t`, the status quo asserts `γ = 1` and A asserts
+`γ = 0`; the record cannot distinguish them, and A picks an endpoint.
+
+**The pipeline would also hold both beliefs at once.** The seed enters as a
+share of votes cast and becomes the IPF column margin, so the arrival's realised
+roll-share is `centre × drawn turnout` — `γ = 1` inside the simulation while A
+asserts `γ = 0` across the record.
+
+**The defensible response to an unresolvable ±19% is to WIDEN, not to shift.**
+Centre at the midpoint, band spanning both hypotheses, and the non-identification
+recorded. A also silently moves `hi_e/base` — currently 5.07 for a full-reach
+entrant and the dominant lever on how large a serious arrival can get — because
+the per-cohort multipliers are not monotone across the pooled record and the
+quantiles re-rank.
+
+### Proposal B — a per-party turnout lever
+
+**Not identified.** `Δlog s = Δlog p + Δlog q − Δlog t`, so the regression
+estimates `γ + η` where `η` is the co-movement of *appeal* with turnout. In
+2016→2021 `η` is not a nuisance term — the ANC's decline and the turnout
+collapse are substantially the same event.
+
+**The coefficients are outside the range the mechanism can occupy.** With
+appeal fixed, `β = γ − 1` and `γ ∈ [0, ~2]`, so a turnout mechanism lives in
+`β ∈ [−1, +1]`. Five of seven are outside it: EFF −2.80, VF+ −2.70, ACDP −1.93,
+IFP −1.27, AIC +1.74. The two survivors are the two with the most observations,
+and dispersion runs inverse to sample size — the signature of noise.
+
+⛔ **And my own hand-check flips the sign.** ANC, 2016→2021, the decisive cycle:
+
+    Johannesburg   Δlog s −0.3018 / Δlog t −0.2982  →  β = +1.01
+    Cape Town      Δlog s −0.2707 / Δlog t −0.3095  →  β = +0.87
+
+against a pooled **−0.06**. The pooled estimate is dominated by 2011→2016, where
+turnout moved 57.5% → 58.1% — a regressor with no signal and large idiosyncratic
+noise. **No coefficient in that table is usable**, and the effective sample size
+for "what happens when a turnout regime shifts" is **one**.
+
+⛔ **There is also nowhere to put it.** Verified: a party-column multiplier
+inside the pools leaves every cross-product ratio unchanged and both margins
+external, so **IPF annihilates it** — the repository already moved the level
+shock out of within-pool allocation for exactly this reason. `weight_cal =
+reg * t_draw` carries **no party index**, and `solve_and_predict` calibrates each
+party to its drawn target regardless. And applying it after calibration is what
+`turnout_tilt_*` did: `tilt_scale = None` is hard-coded at `montecarlo.py:4655`
+and both uses are dead branches — the lever was built, diagnosed and removed.
+⚠️ `build_interactive.py:91-92` still reads `turnout_tilt_anc` and
+`turnout_tilt_da`, keys `run_model` no longer produces.
+
+**The owner's motivation is real and its correct expression is a declared
+judgement on a party's centre**, labelled argued-not-tested — not a fitted
+elasticity.
+
+### The accounting identity that must not reach prose
+
+`Σ_j Δa_j ≡ Δt` in roll-share space, so "the ANC's loss is 79% of the turnout
+decline" is a ratio of two terms of one identity, and the shares sum to 100% with
+positives offsetting: Johannesburg ANC +78.6%, DA +76.0%, EFF +13.3%, ActionSA
+−52.2%. **It licenses "ANC voters stayed home" only under zero switching**, which
+is false on its face — ActionSA's +7.54 came from somewhere. At best a loose
+upper bound, and the Duncan-Davis bounds on the abstainer share of ActionSA's
+vote are **[0%, 100%]**: the aggregate rows say nothing.
+
+### ⛔ The fifth population error in two days, and the common cause
+
+§1.198 (band), §1.199 (dispersion), §1.200 (budget), §1.201 (contenders) and now
+this. **Three of the five were mine and two were the reviewer's**, and every one
+is the same mistake: `pools.py` carries several definitions of "an arrival" —
+no preceding national vote, no preceding local vote, neither, and
+splits-excluded — and **no test, comment or function signature states which one
+it is using.**
+
+⚠️ **And the comment that describes the record is wrong on every figure it
+quotes** (`pools.py:3782-3793`): it names ActionSA, the EFF and GOOD as being in
+the record when all three are excluded by `SPLITS`; says 45 arrivals contest over
+90% of wards when the record holds 87; says ~14 cleared 1% when 6 did; and gives
+that group's median as 0.49% against a measured 0.0778%. It is the likely source
+of this error and it is the `CLAUDE.md` §2 case exactly — a comment that looks
+current, cannot be, and has now cost an analysis.
+
+## 1.204 The VD study: 8,822 districts, one decisive result, and my own estimator malformed (2026-09-07)
+
+Run against `prereg/2026-09-07-vd-turnout-propensity.md`, unedited. Two arms,
+PR ballot only, first-differenced within voting district. Match rates 77–99%,
+every metro above the pre-registered 70% floor.
+
+    falling arm  2016 → 2021   n = 4,794 VDs   Δturnout mean −15.4%  sd 7.6%
+    rising  arm  2006 → 2011   n = 4,028 VDs   Δturnout mean +11.6%  sd 10.1%
+
+### ⭐ The decisive result: who absorbed the 2021 collapse
+
+Slope of `Δ(party votes ÷ registered)` on `Δturnout`, against the party's own
+share at the start:
+
+| party | slope | share 2016 | absorbed of the decline |
+|---|---|---|---|
+| **ANC** | **0.628** | 44.3% | **67.3%** |
+| **DA** | **0.195** | 41.7% | **20.9%** |
+| EFF | 0.063 | 7.7% | 6.8% |
+| VF+ | 0.020 | 0.7% | 2.1% |
+
+**The slopes sum to 0.933**, and to 1.025 on the rising arm — every point of
+turnout movement lands with some party, so the decomposition is complete and
+this is a well-formed estimator rather than a correlation.
+
+**The ANC absorbed two thirds of the turnout collapse on 44% of the vote; the
+DA absorbed a fifth on 42%.** Against a mean fall of 15.4 points across 4,794
+districts, that is the clearest measurement of differential abstention this
+project has.
+
+⛔ **AND IT REFUTES THE METRO-LEVEL ESTIMATE OUTRIGHT.** §1.203 measured the DA
+at β = +0.90 — its share falling *faster* than turnout, read as its own
+supporters staying home. At VD level the DA's supporters are differentially
+**reliable**. The metro regression was reading ActionSA's entry as turnout, as
+the pollster said it was. **The DA's 2021 collapse was defection, not
+abstention** — and P2 pre-registered this outcome as the discriminating one,
+naming in advance what it would mean if the VD arm agreed with the metro arm
+instead.
+
+### ⛔ P1 is malformed, so the normalisation is NOT rescued
+
+The arrival coefficient came in at **corr +0.104, slope +0.061** — positive, and
+inside the pre-registered band of +0.05 to +0.30. **The prediction held and the
+estimator does not identify what it was built to.** An arriving party has no
+baseline to difference, so the outcome is a **level** at t1 regressed on a
+**change** — not a first difference at all, and the design's whole defence was
+that differencing removes the compositional confound.
+
+What it does say, consistently across both arms: arrivals are stronger where
+turnout **moved less**, in either direction (falling arm +0.104, rising arm
+−0.110). That is a finding about stable districts, not about supporter
+propensity. **`γ_arrival` remains unmeasured, so §1.203's refusal of the
+normalisation stands** and the midpoint-and-widen response is still the answer.
+
+### The sign test fails, which is the pre-registered kill for the lever
+
+| | falling arm | rising arm |
+|---|---|---|
+| ANC | 0.628 vs 44.3% — marginal | 0.580 vs 58.1% — average |
+| DA | 0.195 vs 41.7% — **reliable** | 0.485 vs 27.3% — **marginal** |
+
+**The DA is reliable when turnout falls and marginal when it rises.** A stable
+turnout propensity cannot do that. P0 committed in advance that a coefficient
+failing to reverse correctly is measuring appeal rather than turnout, and the
+whole study fails with it. **The per-party turnout lever stays refused, now on a
+9,000-district test rather than on 16 metro points.**
+
+**Also falsified: my EFF prediction.** I predicted its supporters would be the
+marginal voters; measured slope 0.063 against a 7.7% share puts them on the
+reliable side.
+
+### What this leaves
+
+One finding worth keeping and citing — the ANC absorbed 67% of the 2021
+collapse, the DA 21%, on a complete decomposition over 4,794 districts. Two
+refusals confirmed on far better evidence than they were made on. And a
+malformed estimator of my own, caught by the pre-registration rather than by a
+test, because P1 named what it would take to count and the result could then be
+held against it.
+
+## 1.205 RESERVED — the T1 rupture mixture, decided and not yet built (2026-09-07)
+
+**This number is claimed and deliberately unwritten**, so the gap between
+§1.204 and §1.206 is not a deleted entry. §1.201 forward-references it for the
+MK correction — *"MK's implied level is 12.2184% × 0.9256 = 11.31%… worth about
+2 seats, not 10. §1.205"* — and the design it belongs to is the intact/rupture
+mixture on `spine`'s national-only route (intact θ = 1.0, rupture θ ≈ 0.16 at
+p = 0.25). It is buildable entirely in `montecarlo.py`, which is not in
+`_EMIT_DEPENDENCIES`, so it invalidates no pool spec and does not belong to the
+emit batch. **Pre-register the seat effect before writing it** (HANDOVER,
+2026-09-08 banner).
+
+## 1.206 Five definitions of "an arrival", one of them documented backwards (2026-09-08)
+
+⛔ **THIS IS THE DEFECT THE 2026-09-08 HANDOVER BANNER NAMES, AND MEASURING IT
+FOUND A FALSE CLAIM SITTING IN THE CODE.**
+
+`pools.py` decides that a party has *arrived* in five different places, on five
+different predicates, and until today **nothing stated which one any function or
+test was using**. Every one of the six errors of 2026-09-03/07 was a quantity
+measured over one of these populations and spent over another — §1.179 (the
+group budget), §1.198 (the band claim), §1.199 (dispersion against the wrong
+estimator), §1.200 (the budget scored against the wrong arrival definition),
+§1.201 (the contender test measuring the chaff), §1.203 (the fifth). **None was
+caught by a test.** Each was found by reading a row and asking whether the
+number could be true.
+
+### The five, now registered in `pools.ARRIVAL_DEFINITIONS`
+
+| name | predicate | splits | consumed by |
+|---|---|---|---|
+| `ARRIVED_VS_NATIONAL` | local > 0, preceding **NPE** ≤ 0, ≠ IND | in | `arrival_group_spec` — group total and α |
+| `ARRIVED_VS_NATIONAL_EXCLUDING_SPLITS` | the above, minus `SPLITS` | out | `_arrival_total_prior` — the group **budget** |
+| `ARRIVED_VS_LOCAL_EXCLUDING_SPLITS_WITH_REACH` | preceding **LGE** ≤ 1e-4 < share, not a split, reach measured | out | `comparators()` — per-entrant **size** |
+| `SEEDABLE_AT_TARGET` | on the roster, no fitted vector, preceding-NPE baseline ≤ 0 | in | `arrival_rules` — who is **seeded** |
+| `UNCLASSIFIED_WITH_NATIONAL_RECORD` | on the roster, no fitted vector, no lineage, baseline ≥ `UNCLASSIFIED_FLOOR` | n/a | the spec's nomination-day **flag** |
+
+Each computing site now carries `# ARRIVAL DEFINITION: <NAME>`, and
+`test_every_arrival_definition_is_named_where_it_is_computed` asserts the
+register and the code agree **in both directions** — a name with no site fails
+exactly as loudly as a site with no name. That is the direction with the worst
+record in this repository: the lever register was checked code→register only,
+and a deleted lever sat in it for days looking live.
+
+### ⛔ And the reason `arrival_group_record` gave for its own split was FALSE
+
+Its docstring read: *"A party at its first local election has no preceding
+national vote whether it is a splinter or an entrant, so EFF, ActionSA, COPE,
+GOOD, MK and the NFP are all in these totals."*
+
+**Four of those six are in no row of the record.** Measured over all 29 rows:
+
+    2011   NFP   JHB, TSH, EKU, ETH, CPT     (5 rows)
+    2021   ASA   JHB, TSH, EKU, ETH          (4 rows)
+    2000, 2006, 2016 — no SPLITS member in any row; entrants == total EXACTLY
+
+EFF held a 2014 national vote before its first local election, COPE a 2004,
+GOOD a 2019, MK a 2024 — so **none of them can be an arrival under a predicate
+that requires no preceding national vote.** This is the same correction §1.201
+had already made about the same six parties (*"having a national result first is
+the COMMON case"*), never carried back to the function it was about.
+
+**What it changes and what it does not.** The all-arrivals / entrants-only
+distinction is real and §1.179's repair stands — but it bites in **9 rows of 29
+and in two cycles of five**, and almost all of its magnitude is one party in one
+city: ActionSA's 18.12% of Johannesburg 2021. The label "excluding splits"
+therefore promises far more than it delivers, and a reader sizing the next cycle
+off that sentence would have budgeted for six parties' worth of correction where
+the record contains two.
+
+No forecast number moves. `_arrival_total_prior` already computed the entrants
+total from the actual membership rather than from the docstring's list.
+
+### The guard, and its mutations
+
+`test_the_arrival_definitions_are_not_interchangeable` separates the
+definitions **on the real record** rather than asserting they are different:
+
+* `0 < differ < rows` — a two-sided bound. Zero rows containing a split would
+  mean the entrants-only total is identical everywhere and §1.179 bought
+  nothing; all rows would mean the label is not selecting.
+* `causes == {"NFP", "ASA"}` — the measured membership, pinned. A seventh party
+  entering `SPLITS`, or a change of predicate, fails here rather than silently
+  restating the table.
+* EFF must be an arrival against the previous **local** election at 2016 and not
+  against the previous **national** one — the worked case that proves the two
+  populations are not the same set.
+* `UNCLASSIFIED_FLOOR > 0` — the arithmetic that makes the seeded set and the
+  flagged set disjoint, asserted instead of the note claiming it.
+
+Three mutations were run and all three caught: deleting a marker (fails
+register→code), misspelling one (fails code→register), and re-nesting the entry-15
+gate (below). The register-completeness test also carries a constructed marker
+through its own regex, so a detector that stopped matching cannot pass silently.
+
+## 1.207 Queue entry 15: the gate and the operation read two different dimensions (2026-09-08)
+
+`pool_counts` reprojects two ward-level counts onto the election's
+delimitation — the base dimension's population and the age dimension's 20+
+count. The second sat **inside the first's `if`** while using
+`age.censuses[-1].delimitation` for its own reprojection, so the gate and the
+operation read different dimensions (ultra review #1, §1.195).
+
+The silent direction is the one that matters: base matches the election and age
+does not. The block never runs, `adults_by_ward` stays on its own polygon set,
+and it is then joined to this election's wards by ward code — **which succeeds,
+because ward codes are reused**, the exact trap `composition_at`'s own comment
+warns about one level up. And the adults join has **no key-set assertion**:
+`people_by_ward` gets `matched = codes & set(...)` and a 50% refusal, while
+`adults_by_ward` is read with `.get(w, 0.0)`, so an unmatched ward reads as
+**zero adults** and `_nest` fits `adult_share` toward the floor rather than
+raising. That second half is recorded and **not** fixed — a new refusal on a
+path nothing can currently reach is a guard no test can exercise.
+
+**Number-neutral, verified rather than assumed.** Every dimension in
+`config/dimensions.toml` is Census 2022 on delimitation 2021, so the two gates
+always agree today. `pool_counts` was run on nine city-years (joburg, tshwane,
+capetown × 2011/2016/2021) before and after, hashing `wards`, `categories`, all
+four count matrices, every fitted rate, `violations` and `unidentified`:
+**identical on all nine.** The emit must still confirm it by diff.
+
+⚠️ **A NOTE ON THE FIRST ATTEMPT AT THAT CHECK, WHICH SAID THE OPPOSITE.** It
+hashed the dataclass fields through `np.asarray(v, dtype=object).tobytes()`,
+which serialises **pointers**, not values — so it reported six of six city-years
+as changed on code that had not changed. A probe that is not deterministic
+across processes reads exactly like a real difference, and on the eve of an emit
+that is the most expensive possible false positive.
+
+The branch is unreachable today, so the guard for it is **constructed**:
+`test_each_census_dimension_is_reprojected_on_its_own_delimitation` moves the
+base dimension onto the election's own delimitation, leaves age on 2021, and
+asserts exactly one reprojection runs. Under the old nesting it is zero. It also
+asserts, as its premise, that the live dimensions currently agree — the day they
+stop, that assertion fails and says so.
+
+**It lands BEFORE the Census 2011 ward data arrives, not after.** Each dimension
+carries its own `[[dimension.census]]` list, and the commented-out base 2011
+entry is the highest-value outstanding data request after home language. The
+moment one dimension gains a census the other does not, this branch is live.
+
+## 1.208 Two comments claimed a reader handles a format it cannot parse (2026-09-08)
+
+`pools.metro_roster` carried *"the header drift between `_metros/`
+(`PartyName`) and the clean files (`sPartyName`) is handled in one place"*, and
+`archive.py`'s manifest carried the same claim in the other direction.
+
+**Both are false.** `ingest_lge.read_municipality` parses the IEC's raw header
+only — PROVINCE / VOTINGDISTRICT / PARTYNAME / TOTALVALIDVOTES — and *emits*
+`sPartyName`. Handed a `_clean` file it raises `KeyError: 'VOTINGDISTRICT'`
+(verified 2026-09-08), failing before it ever reaches the party column the
+comment named.
+
+This is not cosmetic: it is the comment that would tell a future session it is
+safe to widen `metro_file` to reach the clean files. Doing so breaks
+`metro_citywide`, `metro_roster` and `_ward_reach` at once, and the real
+consequence of the split is already load-bearing — `_ward_reach` cannot see a
+transition the citywide fallback has made visible, which is precisely why
+`entrant_record` **skips** such a row rather than defaulting its reach to 1.0
+(§1.197). A reader who believed the comment would have removed the skip.
+
+Both comments now state what the readers actually do and why there are two.
+
+## 1.209 The transition ledger: eight inline copies of one resolution, and what counting them showed (2026-09-08)
+
+`metro_citywide(code, y) or _npe_citywide_for(code, y)` was written out at
+**eight sites across five record functions**. It is now one function,
+`_citywide_for`, which returns exactly what the `or` returned and additionally
+tallies what served each read. The tally is emitted into the spec as
+`transition_ledger`, because **the specs are not in git** — after an
+emit-measure-restore cycle a number's provenance exists nowhere at all, and a
+print during an emit is scrollback.
+
+This is batch plan R4's risk item 5, which had no instrument:
+`HELD_BACK_OFF=1` is one env var from being load-bearing on the arrival record,
+because `_npe_citywide_for` returns `{}` for a quarantined metro-year and every
+caller guards on empty — so a held-back metro is silently **absent** rather than
+refused. `unavailable` is that count, and it was invisible.
+
+At Johannesburg 2021:
+
+| record | offered | metro reader | fallback | unavailable |
+|---|---|---|---|---|
+| `arrival_group_record` | 32 | 16 | 9 | **7** |
+| `entrant_record` | 48 | 24 | 17 | **7** |
+| `home_splinter_record` | 8 | **0** | 8 | 0 |
+| `splinter_record` | 68 | **0** | 68 | 0 |
+
+The seven unavailable are the seven metros held back at `lge2000`. At target
+2026 `arrival_group_record` offers 40 and the same 7 are unavailable — the
+8-way asymmetry taken on an absence, now a number in the artefact.
+
+### ⛔ And the two splinter records never touch the metro reader at all
+
+**68 of 68 and 8 of 8 served by the fallback.** Every `Split.measured_from` pair
+is a pair of **NPE** years — COPE 2004/2009, EFF and NFP 2009/2014, GOOD
+2014/2019, MK 2019/2024 — and `metro_file` resolves only `lge{year}` templates,
+so `metro_citywide(code, "2019")` is `None` → `{}` **always**. The first branch
+of that `or` is unreachable at those two sites.
+
+Not a defect, and deliberately not "fixed" — an LGE-year pair would use it. But
+it means **both splinter records depend wholly on `_npe_citywide_for`**, the
+reader the 2000/2006 widening touched, with no metro-reader path to soften a
+change to it. That was not visible anywhere before this ledger.
+
+`splinter_record` also carried an `if not a or not b:` guard around its
+fallback, which saved nothing — `x or f()` already short-circuits — and was the
+eighth copy of the resolution.
+
+## 1.210 `measure_pool_ratios` HAS NO CALLER, and MACHINERY.md lists it as live machinery (2026-09-08)
+
+⛔ **Found by the ledger: `measure_pool_ratios` never appeared in it.** The
+decorator registers a row for any invocation, so an absent row means the
+function was not called during an emit. It is not called anywhere:
+
+    grep -rn "measure_pool_ratios(" --include='*.py' src/   ->  0 call sites
+
+Every neighbouring row of the same `MACHINERY.md` table has callers —
+`fit_city` 4, `bounds` 4, `dirichlet_alpha` 1, `balance_within_bounds` 1. This
+one has none. Its only other references are `tests/test_chain.py`, which
+inspects its **source and signature** and never calls it, and its own error
+message.
+
+**What was claimed about it, in three places:**
+
+* `MACHINERY.md` row: *"Pool ratio ranges | `pools.measure_pool_ratios` |
+  MEASURED, 16 metro transitions | 2011→2016, 2016→2021"* — presented as part of
+  the live construction.
+* `audits/BATCH-PLAN-2026-09-02.md` R4: *"Apply `x or _npe_citywide_for(...)` at
+  the four shares sites… **All four are always-consumed.**"* **False for one of
+  the four.**
+* `audits/ULTRA-REVIEW-1-STATE.md`: told the paid reviewers it was one of three
+  sites the 2000/2006 reader was wired into. **Entry 4's wiring there went into
+  nothing**, which also means one third of that row's claimed blast radius was
+  zero — and a reviewer was pointed at it.
+
+**This is the opening example of `CLAUDE.md` §2 happening again in the same
+file**: *"MACHINERY.md spent weeks describing a level layer that no longer
+ran."* The documents are corrected. **The function is NOT deleted** — that is a
+real change and it is not taken on the eve of an emit, in a commit that is doing
+something else. Flagged to the owner as the decision it is.
+
+⚠️ **The generalisable point is about the guard, not the function.** Two tests
+name `measure_pool_ratios` and both passed throughout, because they assert on
+`inspect.getsource` and `inspect.signature` — **properties of the text, not of
+whether anything runs it**. A test that reads a function's source keeps a dead
+function looking tested. The ledger found in one run what two tests could not
+see, and it found it by counting *executions* rather than by reading code.
+
+## 1.211 Entry 4 reaches 2016 and 2021, NOT 2011 — the count was right and the cycles were wrong (2026-09-08)
+
+The batch plan's R4 scope note, repeated to the paid reviewers in
+`audits/ULTRA-REVIEW-1-STATE.md`, says entry 4 *"turns the arrival machinery on
+at **2011 as well as 2016 — 16 of 24 scored city-years**"*.
+
+**Measured on the full in-process emit of all 27 specs, diffed field by field
+against the pre-batch archive `pools-preemit-2026-09-02`:**
+
+| target | specs | identical | with **arrival-path** changes |
+|---|---|---|---|
+| 2011 | 8 | 0 | **0** |
+| 2016 | 8 | 0 | **8** |
+| 2021 | 8 | 0 | **8** |
+| 2026 | 1 (+1 never emitted) | 0 | 1 (`entrant_record` only) |
+
+*(arrival path = `seeds`, `seed_bands`, `seed_notes`, `entrant_record`,
+`arrival_group`.)*
+
+**The count 16 is right. The cycles are 2016 and 2021, not 2011 and 2016.** The
+2011 arm is untouched on the arrival path — all eight specs still emit
+`seeds = {}`, `arrival_group = null` and `entrant_record = []`, exactly as before
+the batch. Its `seeded_arrival_mass` is 0.000000 in all eight.
+
+### Why 2011 cannot be live, and no reader widening can change it
+
+`entrant_hist = entrant_record(lge_transitions(before=target.year))`. At target
+2011 that is **one** transition, `(2000, 2006)`, whose `after` year is 2006 —
+and `_ward_reach(code, "2006")` returns **0 parties for every metro**, because
+`_ward_reach` goes through `metro_file`, which resolves only `_metros/` and
+`_reports/` and has no 2006 entry. `entrant_record` requires `party in reach`,
+so **every row is skipped and the record is empty**; `arrival_rules` then takes
+its `if not record: return {}, {}` exit and `arrival_group_spec` returns `None`
+on an empty `parties`.
+
+    target 2011: transitions (('2000','2006'),)                       ->   0 rows
+    target 2016: + ('2006','2011')                                    ->  54 rows
+    target 2021: + ('2011','2016')                                    -> 131 rows
+    target 2026: + ('2016','2021')                                    -> 304 rows
+
+**This is the deliberate skip working as designed** — entry 4's P0 chose to skip
+an unmeasured reach rather than default it to 1.0, because `reach.get(party,
+1.0)` fabricates the covariate at its most consequential value. What was never
+written down is the consequence: **that choice leaves the entire 2011 arm
+dead**, and it is dead structurally. Fixing it needs *ward-level* 2006 results in
+a format `metro_file` can read — a different reader from the citywide one entry 4
+widened, and the one §1.208 shows cannot parse the clean files. **The two
+findings are the same wall seen from two sides.**
+
+⚠️ **The batch is NOT inert at 2011.** All eight specs differ from the pre-batch
+archive in `pools`, `turnout_limits`, `pool_shares_at_target`,
+`registration_series` and `rates_on_a_bound` — the turnout band, the `_nnls`
+bound and R1b's winsorisation. So a 2011 movement in `compare_history` is
+evidence about **those**, and quoting it as evidence about arrivals would be
+wrong in a way no test can catch. Name the channel when the baseline is
+re-taken.
+
+### And the probe was wrong the first time, for the third time today
+
+The first run of this comparison reported five joburg specs as "NOT IN ARCHIVE",
+because the archives store **joburg unprefixed** — it is the root city, so its
+specs are `pools_2011.json`, not `joburg__pools_2011.json`. Same class as the
+pointer-hash and the archive glob earlier today: **three false results in one
+session, every one from the instrument rather than the tree, and every one
+shaped like a real finding.** A probe that says "missing" or "changed" gets one
+re-derivation before it is believed.
+
+## 1.212 THE EMIT WINDOW TAKEN — 27 specs, and the re-taken baseline (2026-09-08)
+
+> ⛔ **THE BASELINE COMPARISON IN THIS SECTION IS WRONG. SEE §1.214 AND
+> §1.215.** "Seat error 707 → 706, essentially flat" set the pre-batch
+> **coherent** figure against the post-batch **marginal** one. Like for
+> like: 689 → 706 marginal, **707 → 745 coherent**, 539.41 → 548.05 CRPS —
+> worse on all three. The section is left standing as written, per this
+> file's own rule against rewriting history; everything in it except that
+> comparison holds.
+
+**The window is closed. 26 → 27 specs, one uniform key, archived before anything
+else touched them.**
+
+| | before | after |
+|---|---|---|
+| specs on disk | 26 | **27** (`tshwane/pools_2026.json`, never emitted before) |
+| `pools_sha` | `86995c914b530216` | **`843229dbe414b6b9`** |
+| `artefact_key` schema | 1 | **2** (+`cities_sha`, `deps_sha`, `gates_sha`, `judgements_sha`) |
+
+Checked, not assumed: every one of the 27 carries **one** `pools_sha` and
+schema, and the live code re-derives the same key. The pre-emit tree was hashed
+immediately before the loop and was byte-identical to
+`archive/pools-preemit-2026-09-02` on all 26; the post-emit state is saved as
+**`archive/pools-postbatch-2026-09-08/`** — R0b's rule, taken first, because it
+is "impossible to recover later".
+
+### The baseline, re-taken on the settled tree
+
+    24 city-years   seat_abs_err 706      CRPS 548.05
+    previous        seat_abs_err 707      CRPS 539.41   (§1.166)
+    move            seat -1               CRPS +8.64
+
+    by cycle   2011  n=8  seat 294  CRPS 208.23
+               2016  n=8  seat 129  CRPS 115.04
+               2021  n=8  seat 283  CRPS 224.78
+
+    seat_abs_err_coherent 745 | energy 233.93 | variogram 15.04
+    pr_mae mean 3.1393 | ward_mae mean 2.8515
+
+**24 records, 0 failed, `arrival_group` present on all 24** — the preflight
+assertion HANDOVER demands, because `compare_history` catches per city-year and
+would exit 0 on a short panel.
+
+### ⛔ WHAT THIS NUMBER IS, AND WHAT IT IS NOT
+
+**It is the WHOLE BATCH against the whole pre-batch state — roughly forty
+commits' worth — and it cannot be attributed to any one entry.** The batch plan
+priced this: entry 4's contribution was to be separated by its own
+emit-measure-restore cycle, and that cycle was never run before the code landed
+(§1.197 found R4 already in the tree). **That attribution is now permanently
+unavailable**, and no later measurement recovers it. Recorded as a loss, not
+worked around.
+
+**Seat error is flat (−1) and CRPS is 1.6% worse.** Under the rule in force
+since 2026-09-01 — *more honest usually ships; what does not ship is a change
+that scores worse and explains nothing* — the explanation is available and
+specific, and it is **not** a claim that the batch is an improvement:
+
+* **The 2016 arm went from dead to live.** All eight 2016 specs moved from
+  `seeds = {}` to seeded (2–16 parties each), so 2016 is scoring a mechanism it
+  previously did not run at all. §1.211.
+* **`HANDOVER.md`'s strongest tripwire is retired by that** — *"if any 2016
+  city-year moves by one seat, the lever is reaching something it must not"* —
+  as the 2026-09-03 pre-registration said in advance it would be.
+* **2011 moved without the arrival path**, through the turnout band, the `_nnls`
+  bound and R1b's winsorisation. Quoting a 2011 movement as evidence about
+  arrivals would be wrong and nothing tests for it.
+
+**I am not adjudicating this.** `ITERATING.md` sets the bar at four keys, not a
+seat total, and the pollster review of a forecast-moving batch is the owner's
+call. The numbers are here so the judgement is made on them.
+
+### The arrival referee, live on 24 city-years for the first time
+
+    23 of 24 have arrivals to score
+    mass_pit mean 0.583          (0.5 = calibrated; >0.5 = the model draws LOW)
+    seats_outside_support        0 city-years
+    |mass_err| sum 0.4981, mean 0.0217
+
+The PIT sitting above 0.5 is the same under-prediction R-1 recorded — *"8 of 8
+cells UNDER-predict… a level bias, deliberately NOT fixed"*. It is now measured
+on 23 cells rather than 8, and it is still there.
+
+### The old-key fallback is deleted, on evidence
+
+`montecarlo`'s `group.get("total_log_mean", group.get("total_log_median"))` is
+gone. All 27 specs were re-emitted and **every one of the 16 carrying a non-null
+`arrival_group` has `total_log_mean`; none has `total_log_median`** — checked
+against the files, not inferred from the commit. A fallback kept past its window
+silently accepts a stale spec that `artefact_key` would have refused, which is
+the one thing the key exists to prevent.
+
+### Still open, and deliberately not done here
+
+**The freeze is NOT taken.** `freeze.py` records `git_dirty`, the tree carries
+fourteen modified files, and a freeze taken on a moving tree is the failure this
+repository has a memory about. It waits on a commit, which is the owner's call.
+The full suite is run and reported separately.
+
+## 1.213 The suite after the emit: 452/8/17, and the three new failures are the batch working (2026-09-08)
+
+Full suite on the settled post-emit tree: **452 passed, 8 failed, 17 skipped**,
+31 modules, 1271s module time / 816s wall clock. No `PARTIAL RUN` banner. Against
+the pre-emit 451/5/17.
+
+⚠️ **THE REGISTER FAILURE BELOW WAS FIXED AFTER THAT RUN**, and its module
+re-runs green at 8/8, so the tree now stands at **453 / 7 / 17 by module
+arithmetic**. That is *not* a suite run and is not reported as one — the next
+full run is the one that may claim it. `test_calibration_report` was also
+re-run after the `ITERATING.md` edit and returns the same two failures, both
+recorded below.
+
+**One of the old five is FIXED by the emit:**
+`test_every_emitted_pool_spec_carries_a_current_artefact_key` now passes — every
+spec carries `843229dbe414b6b9` at schema 2.
+
+**Three of the old five are unchanged and were expected:** the Mangaung
+degenerate pool (`test_the_three_known_things_hold_at_once`), the DA composition
+infeasibility (`test_no_emitted_composition_weight_is_arithmetically_impossible`)
+— both **live defects, pre-existing, not introduced here** — and the freeze's
+missing environment switches.
+
+**The fourth is the same one, now more precise:**
+`test_the_documented_figures_match_the_committed_artefact` — *"ITERATING.md rule
+8 says ranks 1-3 n = 63; history.json says 72."* The re-measurement onto 24
+city-years that was already outstanding.
+
+### The four new ones
+
+**(1) and (2) — `test_drawer`'s recorded marginals.** The citywide prior moved,
+which is the tripwire firing on the emit exactly as intended. Largest moves at
+Johannesburg 2026: **DA mean −0.5393pp** (26.4646 → 25.9253), ANC +0.0454,
+ASA +0.0693, EFF +0.1417, MK −0.0342; DA p95 −0.7713, ANC p5 +0.3997.
+
+⛔ **NOT RE-RECORDED.** `CLAUDE.md` §2: *"Re-record a golden deliberately and say
+why in the file. A silent re-record destroys the only guard on the prior."* The
+prior moved because the batch moved it; re-recording is a decision for the owner
+alongside the baseline, not a step in closing a window. **The command is
+`.venv/bin/python tests/test_drawer.py --record` and it has deliberately not
+been run.**
+
+**(3) — `test_every_symbol_the_register_names_exists`. THE GUARD CAUGHT ME, THE
+SAME DAY.** Deleting `montecarlo`'s `total_log_median` fallback left
+`JUDGEMENT-CALLS.md` naming a symbol that exists nowhere in `src/`. That is the
+guard's exact purpose, and the fix is the one its own message prescribes:
+`total_log_median` is now in the test's `DELETED` table with the entries that
+renamed and then removed it, **so the absence is a decision rather than a gap**.
+The register still discusses the old name on purpose — §L's account of the
+`n < 3` drop is how a reader of an older spec can tell what they are looking at.
+Module green, 8/8.
+
+**(4) — `test_the_relabel_ablation_actually_withholds_the_label`, and this one
+is a real finding.**
+
+    Mangaung 2016:  7.5149 CRPS with the arrival label
+                    7.5149 CRPS without it
+
+**The label is worth exactly zero there, and the switch is not inert** — the run
+still stamps `scored_without_relabel = True`, which the same test asserts
+separately and which still passes.
+
+The cause is the batch. Mangaung 2016's pre-emit spec carried `seeds = {}` and
+`arrival_group = null`; it now carries **four named seeds** — AIC, Agency for New
+Agenda, Azanian Alliance Congress, Botshabelo Unemployed Movement — totalling
+1.3977%. An arrival that used to reach the score only through the generic
+`ENTRANT` column is now **named and seeded directly**, so `relabel_run` has
+nothing to move.
+
+⛔ **AND IT INVALIDATES A NUMBER `ITERATING.md` QUOTES.** That file priced the
+free label at *"11.52 CRPS — 3.5% of the model's 329.50 — and 2.17 points of the
+margin"*, measured on a **16 city-year** panel (the baseline is now 548.05 on 24)
+**and on a panel where the 2016 arm had no seeds at all**. Both figures are
+struck there, with the reason, in this commit — `CLAUDE.md` §2. So is the
+companion claim that the ablation *"is bit-identical at the six where
+`entrant_actual` is `None`"*: that count, and the "**ten** city-years where a
+label exists" the test selects Mangaung on, were both taken before the 2016 arm
+existed and neither has been re-derived.
+
+⚠️ **THE TEST IS NOT PATCHED TO PASS.** Re-pointing it at a city-year where the
+label still bites would make it green and would be a change to what it proves,
+and the honest sequence is the other way round: **re-measure which city-years
+still carry a live label, and re-measure the label's worth on the 24-city-year
+panel, before any figure goes back into `ITERATING.md` or the test is
+re-scoped.** This was the pre-registration's own prediction — *"`HANDOVER.md`
+calls 2016 the strongest tripwire in the set… THAT INSTRUMENT IS RETIRED BY THIS
+CHANGE"* — arriving on schedule.
+
+## 1.214 ⛔ I COMPARED TWO DIFFERENT STATISTICS. THE BATCH IS WORSE ON ALL THREE (2026-09-09)
+
+**§1.212's headline — "seat error 707 → 706, essentially flat" — is WRONG, and a
+blind pollster review caught it within minutes.**
+
+707 is the **coherent** seat error. `ITERATING.md:1135` says so in its own words:
+*"On the current 24 city-years the **coherent** seat error is 707 against uniform
+swing's 885."* 706 is `seat_abs_err`, the marginal-median statistic. **I read the
+pre-batch coherent figure against the post-batch median figure and reported the
+difference as flat.**
+
+Like for like, from `data/processed/history.json` (mtime 2026-09-06, 24 records,
+CRPS summing to 539.41 — the stated baseline, and NOT overwritten by the
+2026-09-08 run, which was directed at a scratch path):
+
+| statistic | pre | post | Δ |
+|---|---|---|---|
+| `seat_abs_err` (marginal median) | 689 | 706 | **+17** |
+| `seat_abs_err_coherent` (the headline Key 1 uses) | 707 | **745** | **+38** |
+| `crps` | 539.41 | 548.05 | **+8.64** |
+
+**The batch is worse on every measure, and worst on the one the margin table
+uses.** The margin over uniform swing on coherent seats falls **20.1% → 15.8%**.
+
+⚠️ **This is the project's own recurring failure — quoting a figure against a
+different statistic of the same name — committed by me, in the write-up of the
+window, and propagated to `HANDOVER.md`, `PROJECT-STATUS.md` and two MemPalace
+drawers before it was caught.** It was not caught by a test, because no test
+compares two runs; it was caught by a reviewer who re-derived the baseline from
+the artefact instead of taking the number from the prose.
+
+### The mechanism, pre-registered by the reviewer and then measured
+
+The reviewer localised the damage before looking at the post-batch arrival
+blocks, and predicted: 2016 `seats_mean` summing to 35–45 against a realised 23;
+`mass_mean` ≈ 0.026–0.030; 2016 coherent ≥ 155.
+
+Measured, target 2016, eight metros:
+
+| | pre | post | realised |
+|---|---|---|---|
+| `n_columns` (arrival columns) | 1 at every cell | 3 to 17 | — |
+| mean `mass_mean` | 0.0145 | **0.0332** | **0.0204** |
+| Σ `seats_mean` | 22.1 | **48.0** | **23** |
+| Σ `seat_abs_err_coherent` | 124 | **156** | — |
+| mean `mass_pit` | 0.768 (all 8 above 0.7) | 0.399 | 0.5 = calibrated |
+
+**The coherent prediction is confirmed (156 ≥ 155). The other two landed outside
+the predicted bands, both in the worse direction.**
+
+⛔ **THE BATCH DID NOT FIX THE ARRIVAL UNDER-FORECAST. IT CROSSED IT.** Model
+arrival mass went from 1.45% against a realised 2.04% — under — to **3.32%
+against the same 2.04%**, an over-forecast of 63%. `mass_pit` did not converge on
+0.5; it went from 0.768 to 0.399, overshooting to the other side, with Tshwane
+at **0.000** and Buffalo City at 0.082.
+
+And the model now forecasts **48 arrival seats at 2016 against 23 realised** —
+more than double. The reviewer's account of why: the batch corrected the arrival
+**mass** and left the arrival **vote-to-seat conversion** uncorrected, and the
+two errors had been cancelling. Realised 2016 arrivals convert 2.044% of votes
+into 1.60% of seats (ratio ≈ 0.78, they lose at the quota); the model converts at
+≈ 1.0. Pre-batch, 1.45% × 1.0 ≈ 22 seats ≈ right by luck. Post-batch, 3.32% × 1.0
+≈ 48 against 23.
+
+⚠️ **A second mechanism is also live and inflates the CRPS move independently.**
+`score.seat_matrix` keeps a column when the truth is positive **or any draw is
+positive**, and `crps["total"]` sums over kept columns — so a model that becomes
+more granular is penalised on the total even at unchanged per-column skill.
+Measured: `n_scored` at 2016 rose from (15,15,15,17,18,11,13,10) to
+(25,19,25,28,33,14,19,12) — a mean of 14.3 → 21.9 columns. **Part of the +6.90
+CRPS at 2016 is denominator drift, not skill**, and the two mechanisms are not
+separated by anything currently reported.
+
+### What this changes
+
+**The batch is not shippable as it stands, and "more honest usually ships" does
+not rescue it** — the honest half (arrival mass) was shipped without the half
+that makes it pay (conversion), which guarantees a worse score, and it overshot
+the mass as well. The pair is the change; half of it is a regression.
+
+`ITERATING.md` rule 13 also declared 2016 a **structurally null arm** for any
+arrival candidate. This batch un-froze it, so the pre/post comparison at 2016 is
+not like-for-like on a live channel — it is a channel switching on. That is a
+real capability gain and it is also why the naive pre/post read at 2016 cannot
+be quoted as skill.
+
+## 1.215 Three blind reviews, one decomposition: the whole regression is the arrival channel (2026-09-09)
+
+Three blind pollster reviews were run in parallel on an evidence pack containing
+no conclusions. **All three independently found the §1.212 statistic swap** (see
+§1.214). Everything below I re-derived myself before accepting it.
+
+### The like-for-like table, and the cycle decomposition that settles it
+
+| | pre | post | Δ |
+|---|---|---|---|
+| `seat_abs_err` | 689 | 706 | +17 |
+| `seat_abs_err_coherent` | 707 | **745** | **+38** |
+| CRPS | 539.41 | 548.05 | +8.64 |
+| margin over uniform swing (coherent) | 20.1% | **15.8%** | **−4.3pp** |
+
+By cycle — and **2011 is a natural control, because 0 of its 8 specs carry any
+arrival-path change** (§1.211):
+
+| cycle | coherent | CRPS | scored columns |
+|---|---|---|---|
+| **2011 (control)** | 329 → **329** (**+0**) | 207.82 → 208.23 (**+0.41**) | 98 → **98** (+0) |
+| 2016 (channel switched ON) | 124 → **156** (**+32**) | 108.14 → 115.04 (**+6.90**) | 114 → **175** (**+61**) |
+| 2021 (record widened) | 254 → 260 (+6) | 223.45 → 224.78 (+1.33) | 316 → **316** (+0) |
+
+⛔ **THE ENTIRE REGRESSION IS THE ARRIVAL CHANNEL.** At 2011 the coherent seat
+error is **exactly unchanged** and CRPS moves +0.19%. So the turnout band, the
+winsorisation, the `_nnls` bound and every non-arrival member of the batch cost
+**zero seats** on the cycle where only they applied. §1.212 said attribution was
+permanently gone; **it was not, and this is it.**
+
+### The CRPS rise is a bigger denominator, not worse forecasting
+
+`score.seat_matrix` keeps a column when the truth gives a seat **or any single
+draw does**, and `crps["total"]` sums over kept columns — so a model that names
+more parties is mechanically penalised on the total.
+
+    scored columns   528 -> 589   (+11.6%, ALL of it at 2016)
+    CRPS per column  1.0216 -> 0.9305   (-8.9%, BETTER)
+    at 2016          0.9486 -> 0.6573   (-30.7%, BETTER)
+
+**Per column the model improved. The +8.64 total is denominator drift.** Neither
+statistic is right on its own — per-column is gameable by adding free zero
+columns — and the fix is a **fixed universe** (the union of both runs' columns,
+or `keep_all`). Until then the CRPS pair should not be quoted.
+
+⛔ **But `seat_abs_err_coherent` is NOT denominator-sensitive** — it apportions a
+fixed council by largest remainder. **+38 coherent seats is real forecast
+damage**, and it is the number to act on.
+
+### The mechanism: the batch crossed the arrival bias rather than closing it
+
+Pre-registered by a reviewer before looking, then measured. Target 2016:
+
+| | pre | post | realised |
+|---|---|---|---|
+| arrival columns | 1 at every cell | 3 to 17 | — |
+| mean arrival mass | 1.45% | **3.32%** | **2.04%** |
+| Σ forecast arrival seats | 22.1 | **48.0** | **23** |
+| mean `mass_pit` | 0.768 (8/8 over 0.5) | 0.399 (3/8) | 0.5 |
+
+The model forecast too little arrival mass; it now forecasts **63% too much**,
+and **48 arrival seats against 23 realised**. `mass_pit` did not converge on 0.5
+— it overshot to the far side, with Tshwane at **0.000**.
+
+The reviewer's account, which the arithmetic supports: realised arrivals convert
+votes to seats at ≈0.78 (they lose at the quota); the model converts at ≈1.0.
+Pre-batch 1.45% × 1.0 ≈ 22 ≈ right **by luck**. Post-batch 3.32% × 1.0 ≈ 48
+against 23. **The mass error and the conversion error had been cancelling, and
+the batch fixed one of them.**
+
+⚠️ Per-cycle, the level bias is unmoved where the channel is dark: 2011 stays at
+0.773 with **7 of 7** cells over 0.5, and 2021 at 0.593 → 0.601.
+
+⚠️ **A population mismatch in my own reporting, corrected:** §1.212's "mass_pit
+mean 0.583 over 23" and a reviewer's "0.6792 over 24" are different populations —
+`buffalocity2011` has `n_arrived = 0` and a pit of exactly 0.0 in both runs.
+Matched: **24 cells 0.6792 → 0.5587; 23 cells 0.7087 → 0.5830.** No city-year
+lost its referee.
+
+### Two reviewer concerns tested and REFUTED
+
+* **`_PANEL_SPREAD_CACHE` is keyed without a code version and never cleared**, so
+  an in-process A/B could have returned identity by construction. **Refuted with
+  evidence**: the 27-spec in-process emit is **byte-identical on all 27** to the
+  production emit, which ran 27 separate processes. The neutrality check stands.
+* **`polling.usable_for` "has no `src/` callers"** — it has **4**.
+  `polling.house_ceiling` has 0, but its own docstring declares it a test helper
+  *"so that none of them restates it"*. Honest, not dead.
+
+### And one that is confirmed and embarrassing
+
+`tests/test_chain.py::test_a_pool_is_never_built_from_another_citys_composition`
+is **unconditionally vacuous**. It assigns `inspect.getsource(...)` and never
+reads it, then asserts `default is None or len(list(default)) <= 1` where the
+default **is** `None` — so the whole test reduces to `assert None is None`. It
+has never been able to fail, it never calls the function, and the function it
+guards has **zero callers** (§1.210). A rule the owner personally caught, guarded
+by a test that cannot fire, over code that does not run.
+
+**The generalisable rule, and all three reviewers converged on it:** every guard
+in this repository that failed did so with a **sound detector over the wrong
+population** — the dead-code guard harvests references from `tests/` as well as
+`src/`, so a test naming a function exonerates it; the relabel test's premise is
+a panel that has since grown; the freshness test scans a source-text window. That
+is `CLAUDE.md` §4 rule 0, and it remains the highest-yield line in the file.
+
+## 1.216 The scoreboard's fourth "baseline" was this model's own output, and the totals it is quoted for never existed (2026-09-09)
+
+Three changes to `compare_history`, all in the analysis layer — the layer that
+turns artefacts into English, which carries 0 of the project's 453 tests and
+produced all seven of the errors of 2026-09-08/09.
+
+### `published` is deleted, not renamed
+
+`published_for()` read `data/processed/validation_2021.json` — **a run of this
+model from 2026-08-11** — and placed it in `opponents` beside `uniform-swing`,
+`last-lge` and `prior-lge-noise`, where it reads as an outside forecaster. On
+2026-09-09 I nearly reported *"we lose to the published forecast by 9.7%"* to the
+owner as the external comparison he had asked for. Rule 1 bars comparing to any
+earlier output of this model; the key name invited exactly that.
+
+Verified against the artefact, it is incomparable on **four axes at once**:
+
+| axis | `published` | model, same 8 rows | model, all 24 |
+|---|---|---|---|
+| rows | **8 of 24, all 2021** | 8 | 24, three cycles |
+| party universe | **12, fixed** | `n_scored` 20–56 | `n_scored` 9–56 |
+| draws | **400** | 1000 | 1000 |
+| `in_sample` | **`True`** | out of sample | out of sample |
+
+`in_sample` is `True` in every one of its eight cities, and `run_city_year`
+**dropped that flag when it copied the number into `opponents`** — the one field
+disclosing the contamination did not survive into the table where the comparison
+was made.
+
+⚠️ **Stamping it with an `n` would have been worse than leaving it alone.**
+Printing `n=8` beside it certifies the row subset while silently blessing the
+other three axes, and the number then reads as *checked*, on the instrument's
+authority. A partial compatibility check that reads as a complete one is the
+failure this whole change exists to remove — which is also why it is deleted
+rather than renamed: `self_2026_08_11` would still sit in a column of opponents
+and still get subtracted from.
+
+### `opponents[*].seat_abs_err` → `seat_abs_err_coherent`
+
+**One key name meant two statistics at two depths of one file.** The model's own
+`seat_abs_err` is MARGINAL — a sum over per-party medians, which need not fill a
+council. A baseline is deterministic, so its error is COHERENT. §1.214's headline
+error was *invited by the schema*: the pre-batch coherent 707 quoted against the
+post-batch marginal 706.
+
+Renamed at source rather than detected afterwards — a detector for it would be
+one more thing owing its own constructed violation. Four readers moved in the
+same change (`:2056`, `:2060`, `:2074`, `cell()`'s default), because a partial
+rename would leave a silent hole where the old one was.
+
+### The totals now exist, and they carry their own identity
+
+⛔ **`render` printed 24 rows and no total, so every pooled claim this project has
+ever made was summed by hand.** That is why §1.214 was possible at all: the
+number does not exist in any artefact until a human invents it.
+
+Added: a `**TOTAL** [rows=n]` row, and a **citable block designed to be pasted**
+— `seat_abs_err_coherent = 707 [rows=24]` beside `seat_abs_err = 689 [rows=24]`,
+explicitly marked not comparable to each other.
+
+**The rule that decides what is printed, and it maintains itself: a coordinate
+goes ON THE LINE when it varies within the report, and in the manifest when it
+does not.** `rows` varies; `draws` does not. Printing run-level constants on
+every line is furniture, and furniture teaches the eye to skip the label — the
+failure this exists to prevent. If a subset-scored benchmark ever returns, its
+axes start varying and are promoted by the rule rather than by memory.
+
+**Compliance is a design property, not a discipline.** Citing has to be *easier
+than retyping* or the number gets retyped, so the block is pasteable whole.
+
+**Constructed violation, run:** an opponent scored on 8 of 24 rows emits
+`margin_vs_uniform_swing = UNAVAILABLE [uniform-swing carries
+seat_abs_err_coherent on 8 of 24 rows; a total over a subset is not the panel's
+total]` rather than a total that looks like the others. The control — the same
+opponent on all 24 — emits 20.1%. **And the line says why it is unavailable
+rather than dropping**, which is the loud-degradation rule this repository
+already applies to an artefact missing its intervals; the first draft silently
+omitted the line, which was the same defect inside the fix for it.
+
+*(Targeted run after the change: `test_regressions` 19/0;
+`test_calibration_report` and `test_pool_bounds` unchanged at their four
+pre-existing failures — the two live defects, the rule-8 documentation mismatch,
+and the relabel ablation. No new failure.)*
+
+## 1.217 The scoreboard declares itself, and the first thing it said was that the batch moved §1.132 (2026-09-09)
+
+### Phase B — `history.json` carries a manifest
+
+`build_manifest()` wraps the scoreboard as `{"manifest": …, "records": […]}`.
+**Every field is a call into `freeze`, not a reimplementation** — this repository
+already carries three dialects of "declare your identity" (`pools.artefact_key`,
+`freeze.bundle`, `publication.run_identity`), each grown around one artefact, and
+a fourth would be the disease rather than the cure. First run:
+
+    schema 1 | generated 2026-09-09T10:12:24Z | draws 1000 | seed 20261104
+    git_commit efa06f78… | git_dirty True | env_switches raw=9 resolved=7
+    pool_artefact_keys 8 cities | population.scored 24 | population.excluded 0
+
+`population.excluded` is **recorded, not merely printed**. It is the denominator
+of every claim this report makes, it was quietly smaller than the archive for
+months (§1.69), and stdout is not an artefact.
+
+`load_history()` returns `(manifest, records)` and **refuses the bare-list shape
+outright** rather than coping with it. A helper that silently accepts an
+undeclared artefact reinstates the defect it exists to prevent. Constructed
+violation run: it refuses the archived pre-batch file and names the remedy.
+
+The three load sites moved by **mechanical unwrapping with no assertion
+touched**, which was the stated acceptance condition — had an assertion needed to
+move, the tests would have been load-bearing on the shape and that is a different
+job.
+
+⚠️ **The pre-batch scoreboard is archived first**, at
+`archive/scoreboard-prebatch-2026-09-06/`, because the re-run overwrites it and
+it is the only in-tree record of the state §1.214's correction was derived from.
+
+### ⛔ And the re-run immediately surfaced something the old artefact was hiding
+
+`test_a_width_never_travels_without_its_cycle_split_and_its_leverage` now fails.
+**It is not the load-site edit** — the unwrapping worked and the test read its
+records. It is a substantive assertion about the data, and the data is now
+post-batch. Measured on both artefacts:
+
+| | ranks 4–12 sd(z) 2016 | 2021 | ratio |
+|---|---|---|---|
+| pre-batch | **0.499** | 2.156 | **4.32** ✓ |
+| post-batch | **1.122** | 2.216 | **1.97** ⛔ |
+
+The test asserts `2021 > 3 × 2016`, because §1.132's central finding is that **a
+pooled width describes neither cycle**. The batch has more than doubled 2016's
+dispersion and the two cycles have converged, so that finding no longer holds in
+the form the guard states it.
+
+This is consistent with §1.215's account and is caused by the same thing: the
+2016 arm went from one generic arrival column to 3–17 named ones, and its width
+moved with it. **It is the guard working**, and it says the batch reached further
+than the seat totals showed. `ITERATING.md` rule 8 and the HANDOVER item that
+rest on §1.132 both need re-reading against the post-fix state — **after** Phase
+E, not now, because the double-count is still in the tree and 2016's width is
+measured with a phantom party in it.
+
+⚠️ **Recorded and deliberately NOT fixed.** Relaxing the threshold to make the
+suite green would delete the only signal that a central finding moved.
+
+## 1.218 The double-count removed: three pre-registered clauses hold, one is falsified (2026-09-09)
+
+### The change
+
+`montecarlo.py`'s `if scenario["entrant_prob"] > 0: universe.append("ENTRANT")`
+was unconditional on whether `pool_seeds` had already named the arrivals. **The
+generic slot is a stand-in for a party we cannot name; once the arrivals are
+named there is no unnamed one, and keeping both forecasts the same voters
+twice.** It now appends only when no arrival is named.
+
+**Not a lever, and not a new judgement.** A ballot is a fact — you cannot vote
+for a party that is not on it — and `JUDGEMENT-CALLS §A4` has carried this as a
+RED entry all along (*"nothing retires the generic entrant when the ballot
+becomes known"*), written about the 2026 roster and true at every target where
+the ballot is known. Where nothing is named — the live 2026 target, roster
+projected, `seeds` empty — the slot survives, which is checked.
+
+### C1, the reconciliation, was built FIRST and fired on the live defect
+
+Before the fix, at Mangaung 2016:
+
+    declared seeded mass       1.3977%
+  + generic slot expectation   1.4167%   (0.25 x mean(1%, 4%, 12%))
+  = 2.8143%   against drawn    3.2259%   unexplained residual +0.4116%
+
+The slot accounts for 1.42 of the 1.83pp gap — the signature of double-counting
+rather than a mis-sized budget. **A quantity that crosses an artefact boundary
+and is not checked on the other side is not declared, whatever the artefact
+says.** Both numbers sat in one artefact and one run for a day; I read both and
+did not reconcile them (§1.215).
+
+It reports rather than refuses: a refusal would abort every scored city-year on
+the defect the panel exists to measure.
+
+### Adjudication against the pre-registration, written before the change
+
+| clause | result |
+|---|---|
+| **PRIMARY — phantom column falls to zero wherever seeds exist** | **CONFIRMED** — 0 of 24 city-years `double_counted` |
+| 2016 arrival-seat gap `\|forecast − 23\|` falls from 25 to under 5 | **CONFIRMED** — 48.0 → **27.1** seats, gap 25.0 → **4.1** |
+| ranks 4–12 **absolute** error falls | ⛔ **FALSIFIED** — 136.086 → 136.161pp, **+0.075** |
+| margin over uniform swing (885 coherent, n=24) improves or is unchanged | **CONFIRMED** — 15.8% → **18.1%** |
+
+    seat_abs_err_coherent = 725      [rows=24]      (was 745)
+    seat_abs_err          = 709      [rows=24]      (was 706)
+    crps                  = 545.84   [rows=24]      (was 548.05)
+    n_scored              = 580      [rows=24]      (was 589)
+
+⚠️ **725 is above the pre-batch 707 and that is NOT the yardstick.** The
+pre-registration said *"I do not predict a return to any prior total, and a
+result near one is not evidence of anything"*, because rule 1 bars an earlier
+output of this model from arbitrating. The external yardstick is uniform swing,
+and the margin improved 15.8% → 18.1%.
+
+### ⛔ The falsified clause is the informative one
+
+The **signed** 4–12 error fell hard, +8.117 → **+4.818pp**, while the
+**absolute** error did not move (136.086 → 136.161). That is exactly the
+asymmetry the reviewer warned of when they made me predict the absolute:
+*removing phantom mass moves the signed figure toward zero by construction,
+whether or not anything improved.* Had I pre-registered the signed figure — as
+my first draft did — this would have read as a clean confirmation.
+
+**What it means: the phantom mass is gone, and the band is no more accurate than
+before.** Mass that was being attributed to a party that did not exist is now
+attributed to real parties, and attributed about as wrongly. The arrival
+LEVEL is repaired; the arrival SHAPE is not, and the near-uniform split across
+named entrants (Cape Town 2016: 16 parties within a 1.12× spread, against a
+record whose implied concentration runs 0.62 to 43) remains untouched. That is
+the next repair, and it now has a clean instrument to be measured on.
+
+**Recorded as falsified rather than reframed.** A pre-registration that is
+edited after the result is not one.
+
+## 1.219 The declaration audit, and a blind review that found five blocking defects in it (2026-09-09)
+
+`src/declares.py` answers the owner's instruction — *"it should be possible to
+see at a glance if everything declares itself"* — in one table.
+
+**Three states, not two, and the third is the whole point:**
+
+    ✓ declared and agrees    ~ declared and WRONG    ✗ undeclared
+
+A binary table would have painted every currently-broken artefact green, because
+they all carry the right field NAMES. Reading a declaration and then **checking**
+it is the verb `pools.stale_reason` already applies to specs; this applies it
+everywhere.
+
+    27 of 38 artefacts that CAN declare themselves do.  7 declare and are WRONG.
+    Separately: 104 CSV intermediates carry no identity at all (the §1.75 hole).
+
+### ⛔ A blind review found five blocking defects, and I had committed the tool's own failure mode inside it
+
+| # | defect | why it mattered |
+|---|---|---|
+| B1 | **`declares.py` was an orphan** — imported by nothing, in no entry-point register, and it turned the suite red | the tool built so everything declares itself, declaring nothing. Caught by `test_no_module_in_src_is_dead_code` |
+| B2 | **the manifest's `population` ignored the CLI filters** — `--city joburg` would overwrite the canonical scoreboard with 3 rows and `excluded: []`, *asserting the archive supports three* | §1.69 reinstated inside the fix for §1.69, and now stamped into an artefact rather than merely printed |
+| B3 | **the `~` state was near-decorative** — presence-by-truthiness, so `"<unavailable>"`, `"<unreadable: …>"` and a key dict with no `pools_sha` all scored ✓ | **every one of those is a string this repository's own code emits on a failure path.** The reviewer constructed all three and all three passed |
+| B4 | **`history.json` counted as fully declared while carrying `git_dirty: true`** | a commit id that does not identify the content is a false declaration, not a footnote. `--verify` would have exited 0 on it |
+| B5 | **fail-open**: `_live_pools_sha()` swallowed its exception, and with `pools` unimportable the LYING count fell 5 → 1 with **no diagnostic** | an audit that reports "all clear" when it could not run its own check is worse than no audit. It now raises `CannotAudit` |
+
+All five fixed. B3 and B5 are the same class I have committed all week, committed
+**inside the tool written to stop it** — which is worth stating plainly rather
+than filing under polish.
+
+### Two more the reviewer was right about
+
+**The headline number was 76% constant.** `_intermediate_rows` sets every CSV to
+UNDECLARED unconditionally — no input can make one read otherwise — so "28 of
+137" mixed a measurement with a structural fact and produced the wrong decision
+in the first ten seconds. Split: *27 of 38 that can declare*, with the 104-CSV
+hole stated as a sentence. **A denominator that cannot vary is not a
+denominator.**
+
+**The scan population was wrong, in the tool about populations.**
+`*summary.json` used `glob`, not `rglob`, and missed
+`joburg/2021/forecast_summary.json` — a run embedding a **third** stale
+`pools_sha` at `_draws: 2`, sitting in `data/processed` unseen. Also added:
+`validation_2021.json` (which carries `in_sample: True` on every city and is the
+artefact behind §1.216's self-benchmark), `width_budget.json`, `sweep.json`,
+`interactive_data.json`. That is `CLAUDE.md` §4 rule 0 recurring — a scan that
+did not state the population it covers.
+
+### The citation token — the reviewer took down the load-bearing assumption
+
+The theory was that if citing a number with its identity is easier than retyping
+it, compliance becomes the lazy path. The reviewer said plainly they would
+retype `745` rather than paste an eight-line fenced block, and **they were
+right**. Worse, the coordinate rule was applied backwards: §1.214 compared **two
+reports**, not two lines of one, and both print `[rows=24]` — so the block did
+not disambiguate the confusion it cites as its reason for existing.
+
+One line now, carrying the between-report coordinates:
+
+    seat_abs_err_coherent=725/@efa06f78+dirty/1000d/pools:843229db/rows=24
+
+A pre-batch token would read a different commit and `pools:86995c91`. The
+mismatch is visible **inside the sentence**.
+
+### The guards caught four of my own defects in one suite run
+
+`declares` orphaned; `build_manifest(jobs_list)` accepted and never read;
+`HISTORY_SCHEMA` unregistered; and `entrant_prob`/`entrant_share`/
+`entrant_geography` newly inert at 2021. The last is **correct and expected** —
+where the ballot is known the arrivals are named and the generic slot is not
+built — so it is declared in `EXPECTED_INERT` behind a new
+`GATES["arrivals_are_named"]`, with the reason that *a ballot is a fact, not a
+lever*.
+
+⚠️ And one more: my `ENTRY_POINTS` entry claimed `CLAUDE.md` §5 named the tool.
+It did not, yet. `test_every_declared_entry_point_carries_a_real_reason` caught
+the lie **in the declaration of the declaration tool**. §5 now names it.
+
+**Suite on the settled tree: 452 passed, 8 failed, 17 skipped, no PARTIAL
+banner.** All four of my failures are fixed; the eight are the pre-existing set —
+two live defects, the drawer goldens (deliberately not re-recorded), §1.132's
+moved cycle split, the rule-8 documentation mismatch, the relabel ablation, and
+the freeze's missing switches.
+
+## 1.220 The arrival split is NOT uniform — my premise was wrong, and the shape is worth ≲1 seat (2026-09-10)
+
+⛔ **I opened this round on a false premise and the design pass killed it before a
+line was written.** I had measured the emitted `seeds` — near-uniform, max/min
+1.12× at Cape Town 2016 — and called it the forecast. **It is the MEAN VECTOR.**
+Seeded arrivals are pool members, so their realised split comes from the pool
+Dirichlet at a per-component concentration of `α_i = p_i × A_pool ≈ 0.005`: a
+spike at zero with a rare large chunk.
+
+Measured from a **live model run** (400 draws, real `pr_share_draws`, not a
+reconstruction):
+
+| | Cape Town 2016 | Johannesburg 2021 |
+|---|---|---|
+| mean-vector spread max/min | **1.12×** | 184.8× (ActionSA is a split) |
+| **E[top arrival's share of group]** | **0.412** | 0.723 |
+| median top share | 0.388 | 0.751 |
+| if the DRAW were flat | 0.062 | 0.031 |
+| median party's draw ÷ its own mean | **0.137** | 0.079 |
+
+Against a realised top-of-group share of **median 62.6%** across 24 metro-years
+(my measurement) and **mean 0.370** entrants-only (the reviewer's). **The model
+already concentrates, and roughly correctly on the head.** It does so by accident,
+through a pool concentration fitted for another purpose, and **nothing in the
+repository says so** — which is the actual defect and it is documentary.
+
+### The seat arithmetic, which settles whether to touch it
+
+Group total held at the realised value, only the split rule varied, 16
+metro-years, real Schedule 1 quota and largest remainder *(reviewer's
+measurement; caveated as using PR shares as a proxy for the combined ballot, so
+levels are approximate and the comparisons internally consistent)*:
+
+    realised                                   163
+    deterministic even POINT split             175   (+12)
+    the live path (pool Dirichlet)           169.5   (+6.5)
+    Dirichlet, uniform mean, a = 0.9         169.1
+    Dirichlet, uniform mean, A = 10          168.4
+
+**Every stochastic split lands within ~1 seat of every other across a 13× range
+of concentration.** What matters is randomised versus deterministic — and the
+model is already randomised. The residual +6.5 is the ~0.78-vs-1.0 vote-to-seat
+conversion of §1.218, which no split shape can reach.
+
+⚠️ **And the deterministic even split is genuinely pathological**, which is worth
+recording so nobody "simplifies" the path back to it: holding the group total at
+Johannesburg 2016's realised 2.285%, arrival seats as a function of the number of
+equal slices runs **6, 6, 6, 5, 8, 9, 6, 3, 3, 2, 2, 1, 1, 0, 0** for n = 1…120.
+A point split makes the forecast's arrival seat count a step function of the
+**nomination roster length**, which is not a vote.
+
+### What survives, and is real: the mean vector is ordered BACKWARDS
+
+At Cape Town 2016, over all 16 seeded entrants with a measured reach and a real
+result:
+
+    corr(reach, log ACTUAL)  = +0.558      reach is predictive
+    corr(reach, log SEED)    = -0.945      the mean vector runs against it
+    corr(log SEED, log ACT)  = -0.488
+
+The party with reach 1.000 that took **0.2784%** — the largest of the group — was
+seeded **0.0837%**, the lowest of the sixteen. The party with reach 0.026 that
+took 0.0089% was seeded the highest.
+
+**Cause, and it is not the comparator window.** `base = np.mean(peers)` is an
+arithmetic mean of a violently right-skewed window, and each window's mean is
+carried by a few huge rows. The high-reach and low-reach comparator sets at Cape
+Town 2016 are **completely disjoint** (Jaccard 0.000) and still produce means
+within 8% of each other. On **logs** the same rows separate 1.85×, the right way.
+
+A one-line change — geometric instead of arithmetic mean of the same window —
+flips it: `corr(reach, log seed)` **−0.945 → +0.983**, and
+`corr(log seed, log actual)` **−0.488 → +0.483**. The group rescale `k = want/have`
+pins the level regardless, so **only the relative weights survive and the level is
+untouched.**
+
+### ⛔ And it is still NOT being taken, for four reasons
+
+1. **It is worth ≲1 seat over 16 metro-years.** The mean vector's spread would go
+   1.12× → 1.86× under a draw whose own concentration is ~200×. `ITERATING.md`
+   sets the bar at four keys; this cannot clear it and cannot be told from noise.
+2. **The referee is blind to it by construction.**
+   `test_the_arrival_channel_has_a_score_that_cannot_be_handed_the_answer` asserts
+   to **1e-12** that `arrival_group_score` is unchanged when the same total is
+   split differently. The one instrument that scores arrivals without handing the
+   model the answer cannot see a split change at all.
+3. **Two floors absorb it.** `SHARE_FLOOR = 0.002` pins every entrant below ~0.8%
+   to identical VD geography — the median entrant seed is 0.05–0.22%. And
+   `DIRICHLET_FLOOR = 1e-4` sits only **1.9×** below the median entrant's
+   within-pool share at Johannesburg, so taking mass from the many renormalises
+   straight back.
+4. **It costs a re-emit window** — `arrival_rules` moves `pools_sha`, invalidating
+   all 27 specs, plus a fresh baseline and freeze — to move a channel that reaches
+   the live 2026 forecast by **exactly nothing** until a roster exists.
+
+**Recorded as a known, measured, deliberately unfixed defect.** It becomes worth
+taking in the same window as any other `pools.py` change, and the one-line form
+and its numbers are above so nobody re-derives them.
+
+### Two further findings from the review, worth more than the split
+
+* **The concentration in `arrival_group_record` is the SPLINTER signal, not the
+  entrant one.** Johannesburg 2021's α moves **0.225 → 18.462 — a factor of 82 —**
+  when ActionSA leaves the group. §1.179 already carries this population warning
+  for the arrival **total** (10.7×); nobody carried it to the **concentration**,
+  where it is eight times larger.
+* **Entrants-only α is statistically CONSTANT across cycles** (parametric
+  bootstrap against a shared-concentration null, p = 0.205). **This is explicitly
+  not the `k*` problem** — `k*`'s 4× spread survives its null, α's 70× spread does
+  not. The apparent instability is method-of-moments noise on 3–32 members.
+* **Reach as a proportional weight LOSES to uniform** by ~7 nats per city-year out
+  of sample, on both cycles. So `arrival_group_spec`'s emitted reach weights are
+  worse than exchangeable ones — which matters if `arrival_group_draw` is ever
+  switched on, and is independent of the group-total grounds it was refuted on.
+
+## 1.221 A test that switched city and walked away, and the guard that made it visible (2026-09-10)
+
+Adding §1.220's concentration guard turned `test_polling_register` red with
+*"no polls admitted at 2026 — the register or the rules moved"*. The register had
+not moved. **The active city had.**
+
+`cityconfig.use(slug)` sets process-global `_ACTIVE`/`_TARGET`. **Eleven test
+modules call it and most never put it back**, and `run_all` uses a
+`ProcessPoolExecutor` whose workers each run several modules in sequence — so a
+module that switches city silently re-points every module scheduled after it in
+that worker. Measured:
+
+    polling.screen on the 2026 target, by active city
+        joburg    -> 2 polls admitted
+        capetown  -> 0
+        mangaung  -> 0
+
+because the metro filter reads the active city. The assertion message is exactly
+right for the wrong cause, and it made a **test-isolation defect look like a
+change to the poll register** — on the same day a second polling house was found
+in an unread PR, which is precisely when that misreading would have been most
+expensive.
+
+**Fixed once, in `_support.run_module`, not eleven times.** The active city is
+captured per module and restored after **every test, pass or fail** — a test that
+fails mid-way is the one most likely to have left the global switched. One
+definition, and a module added tomorrow inherits it.
+
+**Constructed violation run:** a synthetic test whose whole body is
+`cityconfig.use("capetown")` no longer escapes its module; the harness restores
+`joburg` and the assertion that it did passes.
+
+⚠️ **The failure was ORDER-DEPENDENT**, so it appeared and disappeared as modules
+were added — it passed when the two modules were run together with `-k` and
+failed in the full suite. That is the shape that makes this class expensive: it
+looks like flakiness and gets re-run rather than diagnosed. Same family as
+`JUDGEMENT-CALLS §A43` (`apply_city` never resets `DEFAULTS`), which is on the
+register in red for the same reason.
+
+**Suite on the settled tree: 453 passed, 8 failed, 17 skipped, no PARTIAL
+banner** — the eight are the pre-existing set.
+
+## 1.222 — Twenty-six of the 104 processed CSVs did not match what the code produces; refreshing them moved nothing, and that is the finding
+
+The owner asked what the 104 CSV intermediates under `data/processed` are, which
+processes ingest them, and said that any whose provenance we cannot establish
+should be deleted and regenerated correctly. Provenance is now established for
+all 104, by construction rather than by grep.
+
+**Method, because two earlier attempts at this got it wrong.** Every `.csv`
+under `data/processed` was deleted in an isolated scratch root (`data/raw`,
+`src`, `cities`, `config`, `content` symlinked; `data/processed` copied, then
+purged of CSVs) and every generator re-run from empty. A file that exists
+afterwards was written by a generator; one that does not was written by nothing.
+The population is then unambiguous, which the two earlier attempts were not:
+
+* the **first reader trace was too narrow** and reported "nothing reads it" for
+  `fold*_parameters.csv`, `vd_concordance.csv`, `party_crosswalk.csv`,
+  `vd_ward_*.csv`, `coalition_*.csv`, `ward_winner_probs.csv` and
+  `ward_leverage.csv`. Six of those seven have real readers.
+* the **second comparison had a broken population**: most files in that scratch
+  tree had never been rewritten, so `IDENTICAL` was trivially true for them. The
+  mtime fence meant to catch that was worthless, because `cp -R` restamps every
+  file it copies. **This is CLAUDE.md §4 rule 0 — the scan was healthy, the
+  detector worked, and it found nothing in the wrong set.**
+
+**Verdict on 104 files: 51 CURRENT, 26 STALE, 27 NO-GENERATOR.**
+
+Of the 27 with no generator, 23 are model outputs (`coalition_*` ×16,
+`seat_draws` ×2, `ward_winner_probs` ×2, `regime_*_seat_draws` ×3) produced by
+running the model, not by an ingest script, and the sweep deliberately did not
+run the model. The other four were the interesting ones:
+
+| file | finding | action |
+|---|---|---|
+| `ward_leverage.csv` | writer is `archive/retired-scripts/leverage.py`, whose own docstring records that nothing read it | **deleted** |
+| `tshwane/turnout.csv` | orphan at city level holding the pre-ingest schema. `turnout.py --city tshwane` writes `tshwane/2026/turnout.csv`, which is also what the model reads; no invocation produces this copy | **deleted** |
+| `fold5_parameters.csv` | fold 5 has `lambda_pair: None`, so the default `--turnout level` is refused and every non-default writes a variant filename. **No invocation available today reproduces this file under this name.** Read only by `fold.py --fit-from 5`, never by the forecast (`GAMMA_FOLD` is `{2026:1, 2021:1, 2016:3, 2011:4}`) | kept and flagged — deleting an artefact that cannot be rebuilt buys nothing |
+| `fold1_parameters__turnout-ratio.csv` | deliberate experiment variant, reproducible with `--turnout ratio` | kept |
+
+**The 26 stale files split three ways, and only one class could reach a number.**
+
+| family | n | what moves | reaches the forecast? |
+|---|---|---|---|
+| `fold{1,2,3,4}_parameters.csv`, 7 cities | 11 | `theta_calibrated` ONLY; `theta_raw` and `gamma` identical to 4dp | **no** — `montecarlo.py:4072` and `export_interactive.py:129` read `params[ballot]["gamma"]` and nothing else |
+| `<city>/2016/turnout.csv`, 7 cities | 7 | five pre-2011 columns added; every shared value identical | **no** — `prior_years` is `>= "2011"` at this target |
+| `<city>/2021/turnout.csv`, 7 cities | 7 | `turnout_2021_projected` moves on 207–709 VDs per city, mean \|Δ\| 0.020, max 0.30 | **yes** — this is `projected_col`, which becomes `ratio_pattern` |
+| `party_crosswalk.csv` | 1 | carries a `bloc` column retired at commit `87806a7` | **no** — no reader in `src/` or `tests/` |
+
+Joburg's turnout files are current at all three years. The other seven cities'
+2021 files predate the 2026-08-09 pre-2011 archive ingest, which is what gave λ̂
+its 2011 anchor — so seven of the eight cities were scoring 2021 on a turnout
+projection built without it, for a month.
+
+**`montecarlo.py:4142` already carried the warning, in a comment:** *"an
+artefact that reaches the model WITH NO KEY AT ALL. Nothing declares
+`turnout.csv`, nothing sweeps it, and it carries no artefact key: a stale or
+rebuilt copy moves every draw in silence."* It did, for seven cities, and
+nothing caught it. The comment was right and being right in a comment is worth
+nothing.
+
+### The measurement, pre-registered at `prereg/2026-09-10-stale-intermediates-refresh.md`
+
+Refreshed all 26, deleted the two orphans, re-ran `compare_history`:
+
+    before  seat_abs_err_coherent=725/@efa06f78+dirty/1000d/pools:843229db/rows=24
+    after   seat_abs_err_coherent=725/@efa06f78+dirty/1000d/pools:843229db/rows=24
+
+**The 24-row seat table is byte-identical — `diff` of the two tables is empty.**
+`margin_vs_uniform_swing` is 18.1% on both sides.
+
+**The pre-registration's secondary clause — "exactly the seven non-joburg 2021
+city-years change" — is FALSIFIED.** None of them changed. That looked like an
+instrument failure and was chased rather than explained away:
+
+1. the model does read the refreshed file (`--run-dir` trace, capetown 2021:
+   `artefact:turnout.csv → {vds: 779, ...}`; the old file had 772 rows);
+2. the input is live — swapping the old file back changes the output
+   (`P(any party excessive)` 0.7%→0.6%, three coalition probabilities by 0.1pp);
+3. it is below seat resolution — in that same A/B no seat median or band moved.
+
+`t_draw` takes `t_ratio` at blend 0.5, jittered ±0.25, times lognormal noise with
+`turnout_noise_sd = 0.08`. A systematic 2pp shift on a 0.55 base is ~3.6%
+relative, half weighted, against 8% per-draw noise.
+
+**This is a null result of the useful kind.** The seven cities' staleness was a
+real defect in the inputs and was *not* a defect in any published number — a
+stronger statement than "we fixed it", and unavailable without measuring. It
+also bounds the turnout channel: a 2pp systematic per-VD error is invisible in
+seats, so remaining seat error does not live there.
+
+**What is not established:** that the refresh is harmless in general. Measured on
+the 24-city-year backtest at 1000 draws only; the 2026 forecast was not re-run.
+
+**Side effect, recorded rather than tidied away.** The A/B in step 2 above ran
+`montecarlo.py --city capetown --target 2021` twice, and a bare model run writes
+its outputs. It overwrote `capetown/2021/coalition_{minority,mwc,pairs_triples,
+power}.csv` and created `capetown/2021/{seat_draws.csv,ward_winner_probs.csv,
+forecast_summary.json}`, which did not exist. The prior contents are not
+recoverable — `data/**` is gitignored — but they are not lost in any meaningful
+sense: what is there now is this code's output for that city-year at 1000 draws.
+The manifest is what surfaced it, which is the whole point of `--verify`, and
+this is the hazard the memory entry *"gitignored is not unimportant"* names: a
+diagnostic run is a writer.

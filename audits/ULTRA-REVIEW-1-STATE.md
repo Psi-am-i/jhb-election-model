@@ -310,8 +310,40 @@ generic hunt 9, and each touches the live forecast.
 | | what | where |
 |---|---|---|
 | **R3** | the declared-nomination-list roster seam, three states, and the sizing knobs beside it | `resolve_roster`, `declared_roster`, `arrival_rules` |
-| **R4** | the 2000/2006 reader wired into three sites — and **deliberately NOT into the fourth** | `measure_pool_ratios`, `entrant_record`, `arrival_group_record`; **not** the `emit_pools` split-sample loop |
+| **R4** | the 2000/2006 reader wired into three sites — and **deliberately NOT into the fourth** | `entrant_record`, `arrival_group_record`; **not** the `emit_pools` split-sample loop. ⛔ **CORRECTED 2026-09-08: the third site named here, `measure_pool_ratios`, HAS NO CALLER IN `src/` — the wiring there went into nothing, so one third of this row's claimed blast radius was zero, and the reviewers were pointed at it.** §1.210 |
 | **R5** | the undeclared-split detector, emitted into every spec | `unclassified_with_national_record` |
+
+⛔ **R4's SCOPE, CORRECTED 2026-09-08 — the reviewers were given the wrong
+cycles.** This document and the batch plan both said entry 4 turns the arrival
+machinery on at *"2011 as well as 2016 — 16 of 24 scored city-years"*. **The
+count is right and the cycles are wrong: it reaches 2016 AND 2021, and does not
+reach 2011 at all.** Measured on a full in-process emit of all 27 specs, diffed
+field by field against `archive/pools-preemit-2026-09-02`:
+
+| target | specs | with arrival-path changes |
+|---|---|---|
+| 2011 | 8 | **0** |
+| 2016 | 8 | **8** |
+| 2021 | 8 | **8** |
+
+All eight 2011 specs still emit `seeds = {}`, `arrival_group = null`,
+`entrant_record = []`, `seeded_arrival_mass = 0.000000`. **Structural:** target
+2011 has one transition, `(2000, 2006)`, and `_ward_reach(code, '2006')` is
+empty for every metro — `_ward_reach` goes through `metro_file`, which has no
+2006 entry — so entry 4's own skip-don't-default rule empties the record.
+
+⚠️ **The batch is NOT inert at 2011.** `pools`, `turnout_limits`,
+`pool_shares_at_target`, `registration_series` and `rates_on_a_bound` all move
+there, through the turnout band, the `_nnls` bound and R1b's winsorisation. **A
+2011 movement in the re-taken baseline is evidence about those, not about
+arrivals.** §1.211.
+
+⚠️ **Fourth expected suite failure, recorded:**
+`test_every_emitted_pool_spec_carries_a_current_artefact_key` is red until the
+emit — the specs on disk carry `pools_sha 86995c914b530216` at schema **1**,
+while the live code produces `1bdc972788b5082d` at schema **2** with four
+additional key members (`cities_sha`, `deps_sha`, `gates_sha`,
+`judgements_sha`). Any *other* failure in that module is real.
 
 ⛔ **The single most reviewable decision in the batch is the site R4 does NOT
 touch.** Wiring the fallback into the split-sample loop moved the per-pool

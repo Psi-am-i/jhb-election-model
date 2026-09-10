@@ -38,7 +38,9 @@ Nomination lists publish **16 September 2026**, 14 days out.
 
 **Two claims cut as void:** `_npe_citywide_for` builds its path from `cityconfig.CALENDAR[year].results`, and **every** template is `*_clean.csv` / `npe*_vd_party.csv` — it can never reach `_reports/`. So the UTF-16 corruption path does not exist; R0a's encoding half and risk item 4 are removed.
 
-**And the scope was wrong.** Entry 4 turns the arrival machinery on at **2011 as well as 2016 — 16 of 24 scored city-years**. `_arrival_total_prior('2011')` returns `None` today and `entrant_record` before 2011 is empty. The frozen brief says "the 2016 arm" because the eight 2011 targets did not exist when it was written. `ULTRA-REVIEW-1-STATE.md` must correct this or the reviewer hunts the wrong blast radius.
+**And the scope was wrong.** ~~Entry 4 turns the arrival machinery on at **2011 as well as 2016 — 16 of 24 scored city-years**.~~
+
+⛔ **CORRECTED 2026-09-08, AND THE CORRECTION WAS ITSELF WRONG. THE COUNT IS RIGHT AND THE CYCLES ARE NOT: entry 4 reaches 2016 AND 2021 — 16 of 24 — and does NOT reach 2011.** Measured on a full in-process emit of all 27 specs diffed against `pools-preemit-2026-09-02`: arrival-path changes in 0 of 8 at 2011, 8 of 8 at 2016, 8 of 8 at 2021. All eight 2011 specs still emit `seeds = {}`, `arrival_group = null`, `entrant_record = []`. **Structural, not incidental:** target 2011 has one transition, `(2000, 2006)`, and `_ward_reach(code, '2006')` is empty for every metro because `_ward_reach` goes through `metro_file`, which has no 2006 entry — so entry 4's own skip-don't-default rule (P0) empties the record. ⚠️ **The batch is not inert at 2011** — `turnout_limits`, `pool_shares_at_target`, `registration_series`, `pools` and `rates_on_a_bound` all move there, via the turnout band, the `_nnls` bound and R1b's winsorisation. **Name that channel when the baseline is re-taken; a 2011 movement is not evidence about arrivals.** §1.211.
 
 ---
 
@@ -117,7 +119,7 @@ A **population** bug: the claim is "what this spec was built from"; the populati
 
 **Never widen `metro_file`** — it feeds `read_municipality`, which cannot parse the clean files (`KeyError`, verified), and widening breaks `metro_citywide`, `metro_roster` and `_ward_reach` at once. Correct the two comments that falsely claim the drift is handled (`pools.py:3163-3166`, `archive.py:68-70`).
 
-Apply `x or _npe_citywide_for(...)` at the four **shares** sites, each with its own reason: `entrant_record` `:2755`, `arrival_group_record` `:3073`, `measure_pool_ratios` `:2531`, the `emit_pools` split loop `:3958`. All four are always-consumed. Do not widen `_ward_reach` or `metro_roster` here.
+Apply `x or _npe_citywide_for(...)` at the four **shares** sites, each with its own reason: `entrant_record` `:2755`, `arrival_group_record` `:3073`, `measure_pool_ratios` `:2531`, the `emit_pools` split loop `:3958`. ~~All four are always-consumed.~~ ⛔ **FALSE, CORRECTED 2026-09-08: `measure_pool_ratios` HAS NO CALLER IN `src/` and is consumed by nothing.** Found by the transition ledger (§1.209), which counts executions — the function never appeared in a tally. Do not widen `_ward_reach` or `metro_roster` here.
 
 - **The HELD_BACK gate is inherited for free** — confirmed: `_npe_citywide_for` calls `levels._held_back`, returns `{}` for the seven quarantined metros at `lge2000`, and all four sites guard on empty. **But** it leaves an 8-way asymmetry taken on an absence. **Instrument it**: transitions offered vs used, per record, into `provenance`.
 - Apply the R-1 decision on level-vs-dispersion.
@@ -157,7 +159,7 @@ Apply `x or _npe_citywide_for(...)` at the four **shares** sites, each with its 
 
 1. Full suite once on a settled tree; report honestly.
 2. **Re-archive and verify** both archives byte-identical after the restore cycles; rebuild if drifted.
-3. Update `ULTRA-REVIEW-1-STATE.md`: the fourth expected failure, **entry 4's true scope (2011 *and* 2016, 16 of 24)**, the `arrival_group_draw` scoping caveat, and the R0b/R4 numbers.
+3. Update `ULTRA-REVIEW-1-STATE.md`: the fourth expected failure, **entry 4's true scope — 2016 *and* 2021, 16 of 24, NOT 2011 (§1.211)** — the `arrival_group_draw` scoping caveat, and the R0b/R4 numbers.
 4. **Ask the owner to launch `/code-review ultra`** — user-triggered and billed.
 5. Triage: fix-before / fix-after / rejected-with-reason. **The emit does not happen until the first list is empty.**
 6. **One emit, 26 specs** — the queue's loop says eighteen and is stale; correct it first. Then `compare_history`, then the freeze, nothing else running.
@@ -286,39 +288,93 @@ QUEUE[x] entry 11 filed: the group budget is measured over splits+entrants and
          spent over entrants only, with a MEDIAN where the consumer is an
          expectation. 2.1701% used vs 2.2853% correct -- right by accident.
          ⛔ MOVES NUMBERS, both halves together, inside the ultra review scope.
-R4   [ ] ⛔ ARCHIVE THE POST-R4 EMIT **BEFORE** RESTORING. R0b says it in
-         full: "impossible to recover later". Without it R5 and every ultra
-         fix are attributed against a PRE-R4 baseline and R4's own
-         contribution can never be separated again. FIVE MINUTES.
-     [ ] ⛔ PLACEBO EMIT, the constructed null arm that replaces the 2016
-         tripwire: restrict the fallback to years metro_citywide already
-         covers; every spec must come back byte-identical to the pre-batch
-         archive. Separates "wired correctly" from "the new data moved things".
-     [ ] provenance: transitions offered vs used, per record, INTO the spec --
-         the specs are not in git, so after the restore a number's provenance
-         exists nowhere
-     [ ] per-city seeded arrival mass as a fraction of the electorate, all 26
-     [ ] tell the paid reviewers IN WRITING that the specs contradict the code
-         by design and which tests are red on purpose
-     [ ] ⛔ FOLD IN QUEUE ENTRY 11. R-1, entry 4 and entry 11 are all the same two
-         functions (`arrival_group_record` / `_arrival_total_prior`). Entry 4
-         widens the record 22 -> 29 rows, so entry 11's 2.1867% must be
-         RE-DERIVED after it, and R-1 is a decision about that same statistic.
-         Taken separately this measures one quantity three times against three
-         records and believes the last. One commit, one pre-registration.
-     [ ] pre-register P1-P5 in writing BEFORE either arm
-     [ ] `or _npe_citywide_for` at the 4 shares sites only
-     [ ] skip entrant_record rows with unknown reach (no 1.0 default)
-     [ ] instrument transitions offered vs used in provenance
-     [ ] register len(arr)<3; rename total_log_median; refresh 3 stale docstring figures
-     [ ] correct the 2 false comments (pools.py:3163, archive.py:68)
-     [ ] baseline-only arrival reconciliation
-     [ ] emit-measure-restore; report as "conditional on bounded rates + measured band"
+R4   ⛔ THE CODE IS ALREADY IN THE TREE — this block read as unstarted for
+     three days while every change in it was shipped. Verified by re-derivation
+     2026-09-06 (§1.197): P1 HELD (29 rows), P2 HELD on all four targets to
+     8.4e-8, P4 HELD (54 rows), P3 SUPERSEDED by the owner, P5 FALSIFIED and
+     unattainable as written — its numbers were taken with the unknown-reach
+     DEFAULTING that P0 of the same document forbids, and the correct post-skip
+     2021 values are base 0.2661%, band [0.181, 1, 5.673].
+     [x] POST-EMIT STATE ARCHIVED FIRST -> archive/pools-postbatch-2026-09-08/
+         (27 specs, pools_sha 843229dbe414b6b9, schema 2). ⛔ BUT R4's OWN
+         CONTRIBUTION IS PERMANENTLY UNRECOVERABLE: its emit-measure-restore
+         cycle was never run before the code landed (§1.197 found R4 already in
+         the tree), so the re-taken baseline is the WHOLE batch against the
+         whole pre-batch state. Recorded as a loss, not worked around. §1.212
+     [ ] ⛔ PLACEBO EMIT still NOT run -- the constructed null arm that would
+         separate "wired correctly" from "the new data moved things". ⚠️ Its
+         value is now LOWER than when it was written and it is not free: the
+         emit has been taken, so a placebo needs its own emit-and-restore
+         cycle. ⛔ WHAT REPLACES PART OF IT, and is done: a full in-process
+         emit of all 27 diffed FIELD BY FIELD against pools-preemit-2026-09-02
+         localises the batch by CYCLE and by CHANNEL -- arrival-path changes in
+         0 of 8 at 2011, 8 of 8 at 2016, 8 of 8 at 2021 (§1.211). That answers
+         "which cycles did the arrival wiring reach"; it does NOT answer "would
+         a null arm come back identical". OWNER'S CALL whether to spend a
+         window on the remainder.
+     [x] provenance: `transition_ledger` emitted INTO every spec -- offered /
+         metro / fallback / unavailable, per record. Built by extracting the
+         EIGHT inline copies of `metro_citywide(...) or _npe_citywide_for(...)`
+         into one `_citywide_for`. Number-neutral: all five records identical
+         across 4 targets and 3 cities, and all 27 specs identical field for
+         field bar the new fields. §1.209
+     [x] `seeded_arrival_mass` emitted in all 27. 16 of 27 non-zero: every
+         2016 spec at 0.013977 and four 2021 specs at 0.016433 -- exactly
+         _arrival_total_prior's 1.3977% / 1.6433%, i.e. the group rescale
+         pinning the sum to the budget. The four ABOVE it (JHB 0.0848,
+         TSH 0.0734, EKU 0.0518, ETH 0.0257) are the judged party outside the
+         budget, per §L2. All eight 2011 specs and all three 2026 specs are
+         0.000000 -- 2011 structurally (§1.211), 2026 for want of a roster.
+     [x] ULTRA-REVIEW-1-STATE.md carries both, and the review ran 2026-09-06:
+         4 findings, none forecast-moving; 3 landed pre-emit (queue 12-14),
+         1 queued (15). §1.195
+     [x] ⛔ FOLDED IN — AND THIS LINE READ AS UNSTARTED FOR FIVE DAYS WHILE THE
+         CODE WAS SHIPPED, exactly as the R4 heading above it did (§1.197).
+         Landed 2026-09-03 with entry 4 under prereg/2026-09-03-arrival-record-
+         widening.md P2. Verified in code 2026-09-08: `_arrival_total_prior`
+         returns np.mean([e for _, _, e in rec]) -- the MEAN, over the
+         ENTRANTS-ONLY third element. ⛔ THE LESSON IS ABOUT THIS FILE, NOT
+         ABOUT THAT ENTRY: an unticked box is not evidence of unstarted work,
+         and three items in this batch have now been read that way. VERIFY IN
+         CODE BEFORE BELIEVING A BOX.
+     [x] pre-registered in `prereg/2026-09-03-arrival-record-widening.md`
+         (P0-P8), which supersedes the queue-cell version
+     [x] 3 of 4 sites wired; the 4th (the emit split-sample loop feeding
+         `dirichlet_alpha`) DELIBERATELY NOT — the owner's reading, §1.184/
+         §1.185, carried at the site in code. ⛔ THIS SUPERSEDES P3.
+     [x] skipped, not defaulted. 63 -> 54 rows at 2016, 319 -> 304 at 2026
+     [x] done -- same item as above, listed twice in this block. §1.209
+     [x] len(arr)<3 registered JUDGEMENT-CALLS §L7 and cited at the site
+     [x] total_log_median -> total_log_mean: THE NAME SAID MEDIAN AND THE VALUE
+         WAS np.mean(logs), read by make_drawer as a lognormal's location.
+         Writer + reader in one commit; the reader's old-key fallback MUST be
+         deleted at the window (§1.197)
+     [x] _arrival_total_prior's docstring opened by arguing FOR the median, six
+         lines above the paragraph explaining why the mean is used. Replaced
+     [x] the 2 false comments corrected -- both claimed read_municipality
+         handles the header drift between _metros/ and the _clean files. It
+         raises KeyError: 'VOTINGDISTRICT' on a clean file (verified). §1.208
+     [x] DISCHARGED BY THE REGISTER, not by merging the definitions. The two
+         predicates stay DIFFERENT deliberately -- `arrival_group_record` keys
+         on the preceding NATIONAL vote, `newcomers` on the baseline and the
+         fitted vector -- and all FIVE are now named in
+         pools.ARRIVAL_DEFINITIONS with a marker at each site and a
+         bidirectional guard. Reconciling them into one would have been the
+         wrong repair; the defect was that nothing SAID which was which. §1.206
+     [x] SUPERSEDED BY THE REAL EMIT. No restore: this was the batch's own
+         window, not a measurement cycle. Baseline re-taken on the settled
+         tree: 24 city-years, 0 failed, arrival_group on all 24 ->
+         seat 707 -> 706, CRPS 539.41 -> 548.05. Reported as THE WHOLE BATCH,
+         which is the only honest scoping now available. §1.212
      [ ] pollster SIGHTED check vs the R-1 decision
-R5   [ ] detector triggers on preceding-NPE share, not baseline
-     [ ] durable: emitted into the spec, not printed
-     [ ] byte-identity vs R3 state apart from the new field
-     [ ] pollster BLIND on the split-vs-entrant binary; record as next-batch finding
+R5   ⛔ SUPERSEDED DUPLICATE -- the block below is the live one. This copy sat
+     here fully unticked beside a fully ticked R5 and is the same class as the
+     entry-11 and R4 misreads: A BOX IS NOT EVIDENCE. Kept, not deleted, so the
+     duplication itself stays on the record.
+     [-] detector triggers on preceding-NPE share, not baseline    (see below)
+     [-] durable: emitted into the spec, not printed               (see below)
+     [-] byte-identity vs R3 state apart from the new field        (see below)
+     [-] pollster BLIND on the split-vs-entrant binary             (see below)
 R5   [x] detector triggers on preceding-NPE share, not baseline
      [x] durable: emitted into the spec as `unclassified_with_national_record`
      [x] UNCLASSIFIED_FLOOR registered JUDGEMENT-CALLS §L8; changes no number
@@ -343,18 +399,47 @@ PRE  [x] 16 SEPTEMBER REHEARSAL — the real 2021 ballot (57 parties) pasted as 
      [x] env register closed BOTH ways; JHB_SCORE_NO_RELABEL registered
          (it changes what the SCORER is — 40 coherent seats)
      [x] §L9's evidence corrected; the VALUE 2.0 marked undefended and deferred
-     [ ] ASK THE OWNER TO LAUNCH /code-review ultra ultra-review-base
+     [x] LAUNCHED AND RETURNED 2026-09-06. §1.195
 END  [x] full suite once, reported honestly
          -> 451 passed, 5 failed, 17 skipped. 31 modules, 813s, no PARTIAL
             banner, run at HEAD. TWO of the five are LIVE DEFECTS (Mangaung's
             degenerate pool; the DA composition infeasibility), three expected.
-     [ ] both archives re-verified byte-identical
-     [ ] ULTRA-REVIEW-1-STATE.md: 4th failure, entry 4 scope (2011+2016, 16 of 24),
-         arrival_group_draw caveat, R0b and R4 numbers
-     [ ] correct the queue's window loop: eighteen -> twenty-six
-     [ ] ASK the owner to launch /code-review ultra
-     [ ] triage every finding; emit only when fix-before is empty
-     [ ] one emit -> compare_history -> freeze
+     [x] archives re-verified 2026-09-08, and the LIVE TREE with them:
+           pools-preemit-2026-09-02   86995c91 schema 1 -- 26/26 BYTE-IDENTICAL
+                                      to data/processed today, so the restore
+                                      was exact and nothing has drifted since
+           pools-anchor-2026-09-02    eaff455d schema 1 -- 26 specs, one sha
+           pools-postphase1-2026-09-02 732ef614 schema 1 -- 26 specs, one sha
+         All three are git-tracked and `git status archive/` is clean, which is
+         the drift check. ⚠️ EACH ARCHIVE IS FLAT with `city__pools_year.json`
+         names -- a `find -name 'pools_*.json'` matches only the 5 unprefixed
+         joburg ones and reports "5 specs". That miscount was made once today.
+         LIVE CODE NOW: pools_sha 1bdc972788b5082d, schema 2 (+cities_sha,
+         deps_sha, gates_sha, judgements_sha). That gap IS the pending emit.
+     [x] ULTRA-REVIEW-1-STATE.md updated 2026-09-08. ⛔ THE SCOPE LINE ITSELF
+         WAS WRONG: entry 4 reaches 2016 AND 2021 (16 of 24), NOT 2011+2016.
+         0 of 8 arrival-path changes at 2011, 8 of 8 at 2016, 8 of 8 at 2021,
+         measured against pools-preemit-2026-09-02. Also corrected there:
+         measure_pool_ratios has NO CALLER, so one of the three sites the
+         reviewers were pointed at had zero blast radius. §1.210, §1.211
+     [x] the queue's window loop already says twenty-six (and warns that the
+         command issues 27, the 27th being tshwane/pools_2026.json)
+     [x] POOLS-REEMIT-QUEUE.md Queued table EMPTIED -- all six entries verified
+         in code 2026-09-08 and moved to `Landed`, each with the grep that
+         proves it. The table had listed them as outstanding for days.
+     [x] queue entry 15 landed (the delimitation gate, §1.207); entries 17 and
+         18 added for the arrival register (§1.206) and the false comments
+     [x] the five definitions of "an arrival" NAMED in pools.ARRIVAL_DEFINITIONS
+         with markers at all five sites and a BIDIRECTIONAL register guard.
+         Found and corrected a false docstring claim: four of the six SPLITS
+         parties are in no row of the arrival record (§1.206)
+     [x] done 2026-09-06 (§1.195)
+     [x] triaged; fix-before is EMPTY. 12-14 landed, 15 and 16 queued,
+         one PLAUSIBLE candidate recorded and not taken (§1.195)
+     [x] one emit (27 specs) -> compare_history (24 city-years) DONE
+     [ ] ⛔ FREEZE NOT TAKEN -- freeze.py records `git_dirty` and the tree
+         carries 14 modified files. It waits on a commit, which is the owner's
+         call. Do not take it on a moving tree.
 ```
 
 ## Critical files

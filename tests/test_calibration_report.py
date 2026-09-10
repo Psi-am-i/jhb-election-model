@@ -1140,7 +1140,11 @@ def _artefact():
     path = ROOT / "data" / "processed" / "history.json"
     if not path.exists():
         skip(f"{path} is not on disk; run src/compare_history.py")
-    return json.loads(path.read_text())
+    # Through `load_history`, which REFUSES a scoreboard that cannot say what
+    # produced it. Returns (manifest, records); every assertion below is about
+    # the records and is unchanged.
+    import compare_history as ch
+    return ch.load_history(path)[1]
 
 
 def _documented_rows():
@@ -1405,7 +1409,7 @@ def test_a_width_never_travels_without_its_cycle_split_and_its_leverage():
     is one line and would have stopped both.
     """
     import compare_history as ch
-    rows = json.loads((ROOT / "data/processed/history.json").read_text())
+    rows = ch.load_history(ROOT / "data/processed/history.json")[1]
     band = ch.pooled_by_band(rows, "reference")["4-12"]
 
     for field in ("by_cycle", "leverage", "by_p_any", "pit_saturated",

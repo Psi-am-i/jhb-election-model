@@ -31,9 +31,60 @@ be.
 | Tilt dimensions (age, sex) | same | MEASURED and **REJECTED** by the gate | — |
 | Party pool vectors | `pools.fit_city`, balanced by **`balance_within_bounds`** | MEASURED, 742 wards / 8 metros | the fitting election only ✅ |
 | Lower/upper bounds per rate | `pools.bounds` (Duncan-Davis) | MEASURED, arithmetic only | ✅ |
-| Pool ratio ranges | `pools.measure_pool_ratios` | MEASURED, 16 metro transitions | 2011→2016, 2016→2021 |
+| ~~Pool ratio ranges~~ | ⛔ `pools.measure_pool_ratios` **HAS NO CALLER** — NOT part of the live construction | — | §1.210, 2026-09-08 |
 | Pool α | `pools.dirichlet_alpha` | MEASURED, method of moments, size-weighted | ditto |
+| **Arrival SPLIT** (how a fixed arrival budget divides between unnamed parties) | **the pool Dirichlet — NOT the emitted `seeds`** | see below | — |
 | Emitted spec | `data/processed/{city}/pools_{target}.json` | DERIVED | — |
+
+⛔ **HOW THE ARRIVAL SPLIT ACTUALLY WORKS, BECAUSE NOTHING SAID SO AND EVERY
+READER — INCLUDING THIS ONE — CONCLUDED THE WRONG THING.**
+
+The emitted `seeds` for undeclared entrants are near-uniform: at Cape Town 2016,
+sixteen parties within a **1.12×** max/min spread. **That is the MEAN VECTOR, not
+the forecast.** Seeded arrivals are pool members, so their realised split is drawn
+by the pool Dirichlet at a per-component concentration of
+`α_i = p_i × A_pool ≈ 0.005` — a spike at zero with a rare large chunk.
+
+Measured from a live 400-draw run:
+
+| | Cape Town 2016 | Johannesburg 2021 |
+|---|---|---|
+| mean-vector spread | 1.12× | 184.8× (ActionSA is a *split*, not an entrant) |
+| **E[top arrival's share of the group]** | **0.412** | 0.723 |
+| if the draw were flat | 0.062 | 0.031 |
+| median party's draw ÷ its own mean | 0.137 | 0.079 |
+
+Against a realised top-of-group share of **median 62.6%** across 24 metro-years.
+**So the model already concentrates, and roughly correctly on the head** — and it
+does so through a pool concentration fitted for an entirely different purpose.
+
+⚠️ **The consequence for anyone editing this path:** the flat-looking `seeds` are
+not a bug to be "fixed" by concentrating them, and a *deterministic* point split
+is the genuinely pathological alternative — it makes the forecast's arrival seat
+count a step function of the nomination roster length (6, 6, 6, 5, 8, 9, 6, 3, 3,
+2, 2, 1, 1, 0, 0 for n = 1…120 at a fixed group total), which is not a vote.
+Randomising is what buys the model its accuracy here; concentration barely
+matters — every stochastic split lands within ~1 seat of every other across a 13×
+range of concentration, over 16 metro-years. §1.220.
+
+⚠️ **What IS wrong, measured and deliberately unfixed:** the mean vector is
+ordered *backwards* against ward reach (`corr(reach, log seed) = −0.945` at Cape
+Town 2016, against `corr(reach, log actual) = +0.558`), because `base` is an
+arithmetic mean of a right-skewed comparator window. A geometric mean of the same
+window flips it to +0.983. It is worth ≲1 seat, the arrival referee cannot see it,
+two floors absorb it, and it costs a re-emit window — so it waits for one. §1.220.
+
+⛔ **THE STRUCK ROW ABOVE IS THIS FILE'S OWN OPENING FAILURE, REPEATED.**
+`CLAUDE.md` §2 leads with *"MACHINERY.md spent weeks describing a level layer
+that no longer ran"*, and the pool-ratio row was doing exactly that:
+`measure_pool_ratios` has **zero call sites in `src/`** (every other row in the
+table has callers — `fit_city` 4, `bounds` 4, `dirichlet_alpha` 1,
+`balance_within_bounds` 1). It was found by the transition ledger, which counts
+*executions*: the function never appeared in a tally. **Two tests name it and
+both pass**, because they assert on `inspect.getsource` and `inspect.signature`
+— properties of the text, not of whether anything runs it. The function is kept
+pending an owner decision; the claim that it is live is not. §1.210.
+
 
 **What the dimensions are for.** A pool is not restricted to race; the registry
 takes n vectors (income, education, home language, age, sex). Race is the only
@@ -749,13 +800,21 @@ end-to-end test crosses to the emitted spec. §1.178.
 | `parent` | `classify_arrival` | names a parent, making it a SPLIT rather than an entrant |
 | `weights` | `arrival_rules` | its pool vector, in `categories` order, normalised |
 | `support` | `arrival_rules` | **the strength knob** — its expected share of the city |
-| `overperform` | `arrival_rules` | a multiplier on the default, to scale the record rather than replace it |
+| `overperform` | `arrival_rules` | a multiplier on the default, to scale the record rather than replace it — **in both branches**, with or without `weights` |
 | `baseline_share` | **nothing** | informational: what it polled at the preceding national election |
 
 The set is closed by `pools.PARTY_KEYS` and an unknown key **refuses**, naming
 the file. **`weights` declares WHERE the votes come from, not HOW MANY** — a
-party with `weights` and no `support` is sized and budgeted exactly like an
-undeclared one, and the note says `size NOT declared`.
+party with `weights` and no `support` **and no `overperform`** is sized and
+budgeted exactly like an undeclared one, and the note says `size NOT declared`.
+
+⚠️ **`overperform` was read in one branch of two until 2026-09-06**, while
+`PARTY_KEYS` promised it unconditionally and the closed-key refusal accepted it
+beside `weights`. So the declaration form the code's own note instructs a reader
+to use — *"declare which pools it pulls from and what support you expect"* —
+was the one form that dropped the multiplier on the floor, seeded the party at
+the comparator mean, and said nothing. Number-neutral when fixed (no judgement
+file declares any of the three keys) and reachable on 16 September. §1.195.
 
 ⚠️ **`MAX_POOL_CAPTURE = 0.9` clips a concentrated declaration and used to do it
 silently** — 6% aimed entirely at Johannesburg's Indian/Asian pool delivers

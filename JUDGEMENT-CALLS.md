@@ -626,7 +626,7 @@ These have no measurement behind them. They are the ones to attack first.
 **Record**, oldest first:
 
 1. ⛔
-2. **UNDECLARED UNTIL 2026-08-29** (§1.136). All five are **inline literals or `dict.get` defaults**, which `test_every_tunable_constant_is_in_the_judgement_register` is structurally blind to — the §1.86 widening covered parameter defaults, argparse, dataclass fields and top-level assigns, and stops there. **The `n < 3` drop is the most consequential**: it selects which metro-years enter the estimation record, so it sets `total_log_median`, `total_log_sd`, `alpha` **and** `_arrival_total_prior`'s median — the last of which rescales every seeded arrival on the **INCUMBENT** path, so it is live at every target whether or not `arrival_group_draw` is on. The **0.02** reach floor decides what an arrival absent from the reach dict is worth. The **0.45** cap carries the code comment *"never binding"*, which was unmeasured: re-derived 2026-08-29, P(total > 0.45) = **9.4e-05** per draw on the 2021 specs, but **5.7e-03 at 2026**, where the record gains 2021's 19.99% and `total_log_sd` widens 0.928 → 1.154. So it is ~60× more likely to bind on the live forecast than on the panel it was checked against, and "never binding" should not be re-typed. The **0.8** fallback fires only at n=1 and never has. The **4.0** α fallback stands in for a record median of **4.357**. **ARGUED, NOT TESTED** — none has been swept, and until §1.136 the mechanism they parameterise had never produced a number.
+2. **UNDECLARED UNTIL 2026-08-29** (§1.136). All five are **inline literals or `dict.get` defaults**, which `test_every_tunable_constant_is_in_the_judgement_register` is structurally blind to — the §1.86 widening covered parameter defaults, argparse, dataclass fields and top-level assigns, and stops there. **The `n < 3` drop is the most consequential**: it selects which metro-years enter the estimation record, so it sets `total_log_mean` (named `total_log_median` until 2026-09-06, when it held a mean), `total_log_sd`, `alpha` **and** `_arrival_total_prior`'s median — the last of which rescales every seeded arrival on the **INCUMBENT** path, so it is live at every target whether or not `arrival_group_draw` is on. The **0.02** reach floor decides what an arrival absent from the reach dict is worth. The **0.45** cap carries the code comment *"never binding"*, which was unmeasured: re-derived 2026-08-29, P(total > 0.45) = **9.4e-05** per draw on the 2021 specs, but **5.7e-03 at 2026**, where the record gains 2021's 19.99% and `total_log_sd` widens 0.928 → 1.154. So it is ~60× more likely to bind on the live forecast than on the panel it was checked against, and "never binding" should not be re-typed. The **0.8** fallback fires only at n=1 and never has. The **4.0** α fallback stands in for a record median of **4.357**. **ARGUED, NOT TESTED** — none has been swept, and until §1.136 the mechanism they parameterise had never produced a number.
 
 ### §A46 · the peer window that sizes every seeded arrival — ±0.25 of ward reach, minimum 8 comparators — 🔴
 
@@ -1910,9 +1910,9 @@ set and the counts disagree, the deletion fired on a partial paste.
 
 ### §L2 · The declaration sets the LEVEL; the record sets the WIDTH — ⚖️ argued
 
-**What.** For a party sized by declaration — `support`, or `overperform` — the
-band is `[lo_e / base, 1.0, hi_e / base]` where `base` is the **comparator
-mean**, never the adjusted centre.
+**What.** For a party sized by declaration — `support`, or `overperform`, with
+or without `weights` — the band is `[lo_e / base, 1.0, hi_e / base]` where
+`base` is the **comparator mean**, never the adjusted centre.
 
 **Why it is a judgement, and why the alternative is indefensible.** Until
 2026-09-03 the divisor was the adjusted centre, so stating that a party is
@@ -1945,6 +1945,14 @@ is doing the work and the width is defensible.
 
 **What.** `[party.X]` accepts `parent`, `weights`, `support`, `overperform` and
 `baseline_share`. Anything else raises, naming the file and listing the set.
+
+⚠️ **A closed set is a promise about what is READ, and for one key it was not
+one.** `overperform` was listed here and honoured only in the entrant branch:
+declared beside `weights` it passed the refusal, sized nothing, and printed no
+warning. Fixed 2026-09-06 — both branches now read `support` and `overperform`
+the same way, and either makes the party `judged` and therefore held outside the
+group budget (§L2). The lesson generalises: **admitting a key is not the same as
+reading it, and this register is the only place that says which.** §1.195.
 
 **Why.** `baseline_share` is informational and **nothing reads it**, while all
 408 party tables in the tree carry it and nothing else — and three docstrings
@@ -2012,10 +2020,19 @@ does not bind on an ordinary flat declaration and does on a concentrated one.
 group total, **pooled** over every city-year strictly before the target. Not a
 median, not the all-arrivals population, and not recency-weighted.
 
-**Why mean.** Two independent reasons. IPF pins each party's mean to its centre,
-so whatever goes into a centre is an expectation by construction (the
-2026-08-17 correction, §1.179). And it scores better out of sample: Σ|err| over
-the 2016 and 2021 targets is **2.6146% against the median's 3.0777%**.
+**Why mean.** The estimand argument, which stands alone: IPF pins each party's
+mean to its centre, so whatever goes into a centre is an expectation by
+construction (the 2026-08-17 correction, §1.179). It also scores better out of
+sample — Σ|err| over the 2016 and 2021 targets is **2.6146% against the
+median's 3.0777%** — but see the two warnings below before quoting that number
+as though it settled anything.
+
+⛔ **DO NOT IMPORT THE `k*` RMS-OVER-MEAN PRECEDENT HERE.** There the consumer
+needed `E[k²]`, so the root-mean-square was the right statistic. Here the
+consumer needs `E[X]`. The mean is correct and RMS is **not** the analogous
+move — the analogy is about matching the statistic to the consumer, and the
+consumers differ. Written down because the precedent is one page away and reads
+as though it generalises.
 
 **Why not recency.** It was the plan's own provisional position and it does not
 survive measurement: recency-weighted scores **2.6893%** and last-cycle-only
@@ -2024,8 +2041,27 @@ targets — inside noise — so the claim is the weaker one: recency is **not
 better**, and it costs a half-life parameter a panel with ~3 effective clusters
 cannot support. **Parsimony decides it, not the score.**
 
+⛔ **THE OUT-OF-SAMPLE INSTRUMENT HAS TWO EFFECTIVE OBSERVATIONS, AND EVERY
+FIGURE ABOVE IS A TWO-POINT COMPARISON** (pollster review, 2026-09-06; §1.198).
+The score is taken over the 2016 and 2021 targets, and every metro-cell inside a
+target shares one prediction, so `Σ|err|` reduces exactly to
+`|2.0424 − p| + |3.6131 − p|`. **"8 of 8 cells" is two year-level facts, not
+eight independent confirmations**, and a backward-looking mean on a series that
+dips then rises *must* under-predict — observing that it does is the mechanism
+restating itself, not new evidence.
+
+⛔ **AND THE CONSTANT THAT "BEATS" EVERY ESTIMATOR CANNOT LOSE.** A flat 2.8%
+scores **1.5707%**, forty percent better than the shipped estimator — and for
+two points, *every* constant in **[2.0424, 3.6131]** scores exactly 1.5707. It
+is the L1 minimum attained on an interval, and 2.8 is the midpoint of the two
+outcomes being scored, chosen with both of them in view. **The honest constant —
+the one pickable before 2016, from 2000/2006/2011 — is 1.40, which is the
+pooled mean this model already ships.** The estimator and the honest constant
+are the same number. Anyone citing the 2.8% result as evidence against the
+estimator is citing an in-sample fit with one parameter.
+
 ⚠️ **What is known to be wrong with it.** Every estimator tested under-predicts
-at **8 of 8** target-cells. The entrants-only series runs 1.15 / 2.00 / **0.84**
+at both scored targets. The entrants-only series runs 1.15 / 2.00 / **0.84**
 / 2.04 / 3.61% across 2000–2021 — not a trend, a dip at 2011 and a sharp rise
 after — and no backward-looking statistic tracks that. **So the 2026 arrival
 mass is more likely low than high**, and it should be said that way wherever it
@@ -2034,9 +2070,18 @@ is quoted. A trend term is NOT added: fitted on two scored targets it is the
 constant to estimate but a variable with a missing covariate (how fragmenting a
 cycle is), for which the model has no term.
 
+⚠️ **The population is a guarantee only from 2011.** `SPLITS` names six modern
+parties and no pre-2011 one, so the seven rows the 2000/2006 widening adds have
+`entrants == total` by construction — 24% of the 29-row panel — and the 2006
+lists carry what look like genuine splits sized as entrants. *"Entrants only"*
+is therefore a measured population after 2011 and a label before it. Populating
+`SPLITS` for those cycles is a judgement call, it is cheap, and it would remove
+the caveat.
+
 **How to check it.** Re-run the out-of-sample table in §1.180 when 2026 lands.
-It adds a third target, which is the first thing that could genuinely separate
-these four estimators.
+It adds a third target — taking the instrument from two effective observations
+to three, which is the first thing that could genuinely separate these four
+estimators.
 
 ### §L7 · `len(arr) < 3` in `arrival_group_record` — 🔴 selects on the dependent variable
 
@@ -2176,6 +2221,142 @@ DA is fitted taking 100% of three pools at once and still cannot reach its actua
 `adult_share` and `turnout` stay within [0, 1] everywhere, that a rate above 1 is
 admitted for registration, and that the guard binds on Mangaung's Indian/Asian
 pool.
+
+### §L11 · The CONTENDER rule — ⛔ SUPERSEDED 2026-09-07, ITS HEADLINE COMPARISON IS ACROSS TWO MODULES
+
+⛔ **DO NOT APPLY THIS ENTRY. Its evidence table compares two parties that are
+sized by different machinery, and the 2026 party it says it flags is on the side
+the table does not describe.** `emit_pools` computes
+`newcomers = {p for p in no_vector if baseline.get(p, 0.0) <= 0.0}`, so a party
+with a preceding NATIONAL result never reaches `arrival_rules` at all:
+
+| party | prior national (JHB) | sized by |
+|---|---|---|
+| **ActionSA** 2021 | **0.00%** | `pools.arrival_rules` |
+| **Agang** 2016 | **0.52%** (NPE 2014) | `levels.spine`, route *national only* |
+| **MK** 2026 | **12.22%** (NPE 2024) | `levels.spine`, same route |
+| EFF 2016, COPE 2011 | 10.13%, 9.61% | `levels.spine`, same route |
+
+**So the 600× ratio this entry rests on — ActionSA 18.12% against Agang 0.03% —
+is a comparison across two populations**, and the "contender" class it defines
+cuts across them. Most of the analysis behind it concerns parties the arrival
+record does not size. **Sixth population error in the sequence §1.198–§1.204
+names, and the only one in the register itself.**
+
+⛔ **"Office held" is refuted on the population where it can be tested.** On the
+eight first-local events, office-held geomean is **0.975** against no-office
+**1.299** — the wrong direction — and **COPE, whose leaders were Minister of
+Defence and a provincial Premier, is the worst event in the record at 0.179.**
+Rupture does the work the office criterion was being credited with.
+
+**Replaced by §L12**, which partitions on the line the code already draws.
+Retained unedited below as the record of what was argued. §1.205.
+
+### §L11 (superseded) · The CONTENDER rule — who is not chaff — ⚖️ argued, and not yet wired
+
+**What.** A party arriving with no local record is treated as a **contender**
+rather than as one of the thirty micro-parties on the ballot when **all three**
+hold, judged on nomination day:
+
+1. **Provenance** — it is new, or a split from an existing party.
+2. **Standing** — its leader **has held elected or executive office**. Public,
+   binary, and checkable before the lists close.
+3. **No rupture** — no public leadership breakdown between the party's
+   formation and polling day, recorded as a **dated event with a source**.
+
+Everything else is chaff, however well known the founder. A contender is then
+sized by three multipliers, strongest evidence first: the pool it lands in and
+whether that pool's incumbent is shedding; its leader's home city; and its own
+preceding national result where it has one.
+
+**Why it is a judgement and cannot be derived.** Criterion 2 is not in any
+result file. It is the one input that separates the two cases the record
+otherwise cannot tell apart, and the separation is enormous:
+
+| | leader | office held | first local result |
+|---|---|---|---|
+| **ActionSA**, Johannesburg 2021 | Mashaba | **Mayor of Johannesburg** | **18.12%** |
+| **Agang**, Johannesburg 2016 | Ramphele | none | **0.03%** |
+
+Both were new parties with nationally famous founders. A factor of six hundred
+separates them, and nothing in the IEC's files predicts it. Ramphele was a
+Black Consciousness founder, a vice-chancellor and a World Bank managing
+director; she had never held political office. **Fame is not the bar. Office
+is.**
+
+**The evidence for each multiplier, and its strength.**
+
+* ⭐ **The pool, contemporaneously — the strongest relationship in the arrival
+  record.** A contender's size tracks the decline of the incumbent in the pool
+  it lands in: **COPE 2011 corr −0.92** across eight metros (Nelson Mandela Bay
+  ANC −15.5pp → COPE 4.88%; eThekwini ANC **+3.2pp** → COPE 0.40%), **EFF 2016
+  corr −0.82**. ⚠️ **This EXPLAINS and does not FORECAST** — the incumbent's
+  collapse and the contender's rise are the same event.
+* **The pool, forecastably — real, weak, and the honest number.** Using only the
+  decline in the cycle **before** the election: pooled **−0.47**, within-year
+  **−0.31** across 17 city-years. Inside 2016 it inverts. It says whether the
+  ground is fertile, not whether anyone plants in it — 2016 had fertile ground
+  in every metro and no contender-grade leader, and its largest arrivals were
+  0.09–2.74%.
+
+⛔ **CONTROLLED FOR TURNOUT, THE PANEL-LEVEL VERSION OF THIS IS NOTHING**
+(owner's control, 2026-09-07). A fall in the incumbent's SHARE mixes voters
+switching away with voters staying home, and only the first leaves anything for
+a contender to take. Measuring the ANC in **votes per registered voter** as well,
+across 23 city-years:
+
+| | pooled | **within-year** |
+|---|---|---|
+| ANC share decline | −0.13 | **−0.17** |
+| ANC decline per registered voter | −0.32 | **−0.00** |
+| turnout decline | −0.44 | **+0.05** |
+
+**The whole relationship is a YEAR effect and there are three years**: turnout
++13.1% in 2011 with a mean biggest arrival of 1.01%; +0.6% in 2016 with 1.13%;
+**−14.6% in 2021 with 5.33%**. Contenders broke through in the cycle turnout
+collapsed and not in the cycle it rose.
+
+**So the pool multiplier survives only in its narrow form** — one party across
+cities in one year, which is what COPE's −0.92 and the EFF's −0.82 are. It does
+NOT generalise to "how big is the biggest newcomer in this city-year", which has
+no within-year relationship to what the incumbent shed.
+
+⚠️ **And part of a contender's headline share is a shrinking denominator.**
+ActionSA's **18.12% of votes cast is 7.54% of the registered roll**; Tshwane's
+9.28% is 4.09%; Ekurhuleni's 7.36% is 3.13%. Johannesburg's turnout fell 56% →
+41.6% in that cycle. Any figure quoted from this entry is a share of a
+**smaller electorate** than the one that produced the comparison, and the model
+draws turnout per pool precisely so that this is not assumed away.
+* **The home city.** ActionSA 18.12% in Mashaba's Johannesburg, 9.28% / 7.36% /
+  2.35% at increasing remove; GOOD 3.68% in De Lille's Cape Town and ≤0.49%
+  everywhere else. The model already measures this — 0.611 of the parent at
+  home against 0.103 away.
+* **The national anchor, and rupture as its exception.** EFF kept 1.01–1.50× of
+  its national share across eight metros, GOOD 1.07, PA 1.49, the ID 0.86 —
+  **COPE 0.12–0.28 across five**, after the Lekota–Shilowa war. One bimodal
+  split, and criterion 3 is what selects the branch.
+
+**Landing, not crossing, is the mechanism.** Decomposing each contender's
+fitted pool vector against its parent's: EFF **stayed** in the ANC's pool
+(weight 0.69–1.12) and ActionSA **crossed out** of the DA's (0.13) — and both
+succeeded, because both ended up in the pool that was shedding. Agang stayed in
+a pool that was not.
+
+⛔ **What this does NOT claim.**
+* It rests on **four events** — COPE, the EFF, ActionSA, with Agang as the
+  negative control — one of which supplies eight data points by standing
+  everywhere at once. It is not a fitted model and must not be quoted as one.
+* **Nothing is wired.** No code reads this entry. It changes no number today.
+* Criterion 2 must be **written down before nomination day or it is hindsight**,
+  and the temptation to award "standing" retrospectively to whoever did well is
+  the whole failure mode.
+
+**How to check it.** After 4 November: whether the parties flagged as contenders
+before the lists closed behaved as contenders, and whether any party denied the
+label beat 1% of a metro. **For 2026 the rule flags MK** — a split, led by a
+former State President, no rupture on record, with a 12.22% Johannesburg
+national result to anchor on. If a rupture occurs before polling day the rule
+says COPE, not EFF, and nothing in the model would currently notice.
 
 ### §L10 · `gates_sha` — the artefact key records the resolved ENV gates
 

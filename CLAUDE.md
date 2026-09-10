@@ -1,6 +1,5 @@
 **MemPalace wing:** `jhb_election_model` — file every diary entry, drawer and KG fact for this project here.
-**Agent identity:** `atlas-claude` on Atlas, `scout-claude` on Scout (`hostname -s`). Never write as plain `claude-code`.
-**Before answering about past decisions or prior sessions here, search first** (`mempalace_search(query="…", wing="sessions")`) and quote what you find.
+**Global policy — agent identity, MemPalace, machines, secrets — lives in `~/CLAUDE.md` (rules 1-5)** and `~/projects/SECRETS.md`. Do not restate it here.
 
 ---
 
@@ -282,6 +281,19 @@ that each is not dead** — do not remove a line without moving its entry there:
     .venv/bin/python src/contested_area.py              # the poll path's contested-area
                                                         #   conversion (§1.66)
     .venv/bin/python src/sweep.py                       # obvious-fault sweep
+
+**Before quoting any number, and before believing one:**
+
+    .venv/bin/python src/declares.py            # does every artefact declare
+                                                #   what produced it? one table
+    .venv/bin/python src/declares.py --verify   # exit 1 if anything is
+                                                #   undeclared or LYING
+
+⛔ **Three states, not two.** `✓` declared and agrees · `~` **declared and
+WRONG** · `✗` undeclared. The middle one is the whole point: an artefact that
+declares nothing is a known gap, an artefact that declares wrongly is a gap
+wearing a badge and nothing else can see it. Seven of the artefacts that declare
+anything are currently in that state.
 
 And one more, imported by `test_levels_dispersion.py` rather than orphaned:
 

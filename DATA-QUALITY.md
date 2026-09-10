@@ -216,6 +216,40 @@ group) is downloadable and is what this model uses instead.
 
 ## 11. More registered voters than adults, in one population group
 
+⛔ **THE ORDERING, STATED ONCE AND AT THE TOP** (owner, 2026-09-06; it was
+previously recorded only inside the struck-through repair below, which is the
+wrong place for a standing rule). **Registration and votes outrank the census,
+always.** Both require an in-person appearance with an ID book: they are
+administrative events, as close to a count as this data gets. The census is a
+survey estimate with sampling error, a disputed post-enumeration adjustment and
+a different reference date. So when the two disagree, **the census yields** —
+and a ratio above 100% is a statement about the estimate, never a licence to
+revise the roll.
+
+**What the census is still needed for, and it is not nothing.** The roll and the
+results carry **no population group**, so the census is the only available
+apportionment key for the pool split, and it is the soft ceiling on the eligible
+pool — *room for growth*, which does not decide an election. Those are its two
+jobs. It is never a validator: a census-derived denominator that comes in under
+a hard count is evidence the estimate is stale, over-adjusted or wrongly
+allocated at ward level, not evidence the count is too high.
+
+**Where the model obeys this**: `_nest` forces every ward to its published
+registration and vote totals, so the counted quantity is exact and only the
+*split* is estimated; the violation message says so in those words; the
+`census_correction` ratio is filed as *"a property of the census, not of the
+model"*; and the 2026-08-26 repair that lifted the census to fix the ratio was
+reverted after measuring worse.
+
+⚠️ **Where it does not, and this is the open item**: `REGISTRATION_MAX = 2.0` is
+a census-derived ceiling on a counted quantity, and it **binds on four cells in
+two cities** — Cape Town Indian/Asian 2011 and 2016, Mangaung Indian/Asian 2016
+and 2021, re-measured on the shipped instrument 2026-09-06 and reproducing
+JUDGEMENT-CALLS §L9's table. Where it binds, the census overrules the roll and
+`_nest`'s row scaling pushes the surplus into the other pools of that ward. The
+value is recorded as **deferred, not defended**; see §L9 and
+`prereg/2026-09-05-registration-rate-bound.md`.
+
 **Where:** Stats SA *Ward Statistical Product 2022* (population group and age
 tables) read against the IEC's registered totals for LGE 2021, City of
 Johannesburg, 135 wards.
@@ -852,3 +886,47 @@ currently is.
 **moves numbers** for at least Cape Town, and it needs the window. Not applied
 here — this item records it rather than fixing it, because taking the re-emit
 window would destroy the measurement the current specs were taken with.
+
+---
+
+## Seven cities scored 2021 on a turnout projection built without the pre-2011 archive (found and fixed 2026-09-10, §1.222)
+
+**Status: FIXED. Effect on scored numbers: none, measured.**
+
+`<city>/2021/turnout.csv` for buffalocity, capetown, ekurhuleni, ethekwini,
+mangaung, nelsonmandelabay and tshwane predated the 2026-08-09 pre-2011 archive
+ingest. They were missing `turnout_{1999,2000,2004,2006,2009}` and
+`lambda_2011`, so λ̂ had no 2011 anchor, and `turnout_2021_projected` — the
+column `montecarlo.py` reads as `ratio_pattern` — differed from what the code
+produces on 207 to 709 VDs per city, mean |Δ| 0.020, max 0.30. Johannesburg's
+files were current at all three years; the other seven were a month stale.
+
+The same sweep found the 2016 files stale in a way that is inert (the added
+columns are all pre-2011 and `prior_years` is `>= "2011"` at that target), and
+eleven `fold*_parameters.csv` stale only in `theta_calibrated`, which the
+forecast never reads.
+
+**How it went unnoticed.** `turnout.csv` carries no `artefact_key`, unlike
+`pools_*.json`. `montecarlo.py:4142` says so in a comment — *"a stale or rebuilt
+copy moves every draw in silence"* — and records the citywide levels it was
+given as a delivery proof, but nothing compares that record against what the
+generator would produce. **A recorded value is not a check.**
+
+**How to check it.** There is no key to compare, so the check is a
+regeneration. Delete every CSV under a copy of `data/processed` in a scratch
+root, re-run the generators from empty, and diff:
+
+    src/build_concordance.py --city <c>   # per city
+    src/build_crosswalk.py
+    src/byelections.py
+    src/turnout.py --city <c> --target <y>
+    src/gamma_recent.py --city <c> --target <y>
+    src/fold.py --fold <n> --city <c>
+
+Purging first is what makes the population honest: a file nothing rewrote
+reports "identical" trivially, and an mtime fence does not catch it because
+`cp -R` restamps.
+
+**What is still open.** `turnout.csv` still has no artefact key, so this can
+recur silently the next time an ingest lands. The durable fix is a key on it,
+or the regeneration diff above run as a test.

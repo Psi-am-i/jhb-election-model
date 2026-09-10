@@ -1,0 +1,205 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "cities_sha": "68080ceed71cbe08",
+    "city": "mangaung",
+    "config_sha": "25516d034e2496af",
+    "deps_sha": "53cedeb94115dd98",
+    "gates_sha": "6f4daff30349fefd",
+    "judgements_sha": "9f4268ff8f90c79e",
+    "pools_sha": "843229dbe414b6b9",
+    "schema": 2,
+    "target": "2011"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2006",
+  "judgement_file": "judgements/mangaung-2011.toml",
+  "no_measured_vector": {
+    "APC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "BLACK_CONSCIOUSNESS_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "COPE": "splinter of ANC, 35% its vector and 65% the city average",
+    "UNITED_RESIDENTS_FRONT": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.7641884092708879,
+    0.030142650923138233,
+    0.004266562129150663,
+    0.20140237767682315
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on mangaung 2006; size from the 2011 roll split by each ward's own composition; turnout from mangaung's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "DA",
+        "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+        "PAC"
+      ],
+      "members": {
+        "ACDP": 0.6561311712339725,
+        "ANC": 0.9849417151288793,
+        "APC": 0.8055227568710145,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.8055227568710145,
+        "COPE": 0.8683193922612672,
+        "DA": 0.09857754228811925,
+        "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 1.0,
+        "PAC": 1.0,
+        "UNITED_RESIDENTS_FRONT": 0.8055227568710145,
+        "VFPLUS": 0.02845648192313652
+      },
+      "registered": 289607.9711808064,
+      "turnout": [
+        0.2890301532641407,
+        0.4364073565229952,
+        0.5959426869795134
+      ]
+    },
+    "Coloured": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on mangaung 2006; size from the 2011 roll split by each ward's own composition; turnout from mangaung's local elections before 2011",
+      "identified": [
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.1048720085233762,
+        "ANC": 0.009470257862911445,
+        "APC": 0.019108723866056845,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.019108723866056845,
+        "COPE": 0.015735260764955957,
+        "DA": 0.04702352515244155,
+        "UNITED_RESIDENTS_FRONT": 0.019108723866056845,
+        "VFPLUS": 0.05454427248727247
+      },
+      "registered": 13660.43419044329,
+      "turnout": [
+        0.15046967649136744,
+        0.25226308380977025,
+        0.39120847358255256
+      ]
+    },
+    "White": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on mangaung 2006; size from the 2011 roll split by each ward's own composition; turnout from mangaung's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.23899682024265134,
+        "ANC": 0.005588027008209338,
+        "APC": 0.1753685192629287,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.1753685192629287,
+        "COPE": 0.11594534697377695,
+        "DA": 0.8543989325594392,
+        "UNITED_RESIDENTS_FRONT": 0.1753685192629287,
+        "VFPLUS": 0.916999245589591
+      },
+      "registered": 69423.59462875032,
+      "turnout": [
+        0.3121827894654146,
+        0.46366644252212497,
+        0.622166125786726
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2006; pools sized by 2009 roll carried to 2011 on the 2006-2009 RATE of change (log-space, invariant to a constant level bias), damped x0.6; roster published; reach 2011 ward ballot",
+  "rates_on_a_bound": [
+    "Indian/Asian: adult_share fitted to 1.0000, which is ON A BOUND \u2014 the ward table cannot identify this pool at this level. The value is a clipped corner and not a measurement. Largest share this pool reaches in any ward: 2.0%.",
+    "Indian/Asian: registration fitted to 0.0000, which is ON A BOUND \u2014 the ward table cannot identify this pool at this level. The value is a clipped corner and not a measurement. Largest share this pool reaches in any ward: 2.0%."
+  ],
+  "registration_series": {
+    "2006": [
+      0.8017925156693854,
+      0.03300023052894059,
+      0.0,
+      0.16520725380167414
+    ],
+    "2009": [
+      0.7745418654463355,
+      0.0309246059447773,
+      0.0042649670933322,
+      0.19026856151555496
+    ]
+  },
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeded_arrival_mass": 0.0,
+  "seeds": {},
+  "target": "2011",
+  "transition_ledger": {
+    "arrival_group_record": {
+      "fallback": 9,
+      "metro": 0,
+      "offered": 16,
+      "unavailable": 7
+    },
+    "entrant_record": {
+      "fallback": 9,
+      "metro": 0,
+      "offered": 16,
+      "unavailable": 7
+    },
+    "home_splinter_record": {
+      "fallback": 0,
+      "metro": 0,
+      "offered": 0,
+      "unavailable": 0
+    },
+    "splinter_record": {
+      "fallback": 18,
+      "metro": 0,
+      "offered": 18,
+      "unavailable": 0
+    }
+  },
+  "turnout_limits": {
+    "city": {
+      "high": 0.4782091107084228,
+      "low": 0.39126199967052777,
+      "observed_high": 0.43473555518947526,
+      "observed_low": 0.43473555518947526,
+      "previous": 0.43473555518947526
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.48004809217529476,
+        "low": 0.3927666208706957,
+        "observed_high": 0.4364073565229952,
+        "observed_low": 0.4364073565229952,
+        "previous": 0.4364073565229952
+      },
+      {
+        "high": 0.2774893921907473,
+        "low": 0.22703677542879322,
+        "observed_high": 0.25226308380977025,
+        "observed_low": 0.25226308380977025,
+        "previous": 0.25226308380977025
+      },
+      {
+        "high": 0.4795616337887158,
+        "low": 0.3923686094634947,
+        "observed_high": 0.43596512162610523,
+        "observed_low": 0.43596512162610523,
+        "previous": 0.43596512162610523
+      },
+      {
+        "high": 0.5100330867743375,
+        "low": 0.4172997982699125,
+        "observed_high": 0.46366644252212497,
+        "observed_low": 0.46366644252212497,
+        "previous": 0.46366644252212497
+      }
+    ]
+  },
+  "unclassified_with_national_record": {}
+}

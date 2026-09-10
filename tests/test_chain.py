@@ -95,6 +95,7 @@ import json
 import tomllib
 import sys
 import ast
+import re
 import inspect
 import tempfile
 from contextlib import contextmanager
@@ -1749,6 +1750,44 @@ def test_a_declared_strength_is_read_and_does_not_narrow_its_own_band():
         f"so the group rescale is barely binding and the assertions above "
         f"would pass whether or not the exemption existed")
 
+    # (6) ⛔ `overperform` MUST DO THE SAME THING IN THE `weights` BRANCH.
+    #     `PARTY_KEYS` documents it as "a multiplier on the default strength"
+    #     with no branch named, and the closed-key refusal ACCEPTS it beside
+    #     `weights` — so the one declaration form the code's own note tells a
+    #     reader to use ("declare which pools it pulls from and what support
+    #     you expect") was the one form that dropped the multiplier. It read
+    #     `support` and nothing else, seeded at the comparator mean, and said
+    #     nothing. Case (4) above proves the multiplier only in the branch that
+    #     already honoured it; without this the register can promise a key the
+    #     arithmetic ignores and the suite stays green.
+    vec_only, _ = rules_for({"NEWPARTY": {"weights": [1.0, 0.0]}})
+    vec_loud, vec_why = rules_for({"NEWPARTY": {"weights": [1.0, 0.0],
+                                                "overperform": 3.0}})
+    assert "DID NOT FIT" not in vec_why, (
+        f"the per-pool cap binds on this vector, so the 3x below is measuring "
+        f"the clip and not the multiplier: {vec_why}")
+    assert _close([implied_share(vec_loud)],
+                  [3.0 * implied_share(vec_only)], rel=1e-9), (
+        f"a party declared with `weights` and `overperform = 3.0` bought "
+        f"{implied_share(vec_loud):.4%} against the undeclared "
+        f"{implied_share(vec_only):.4%}. The multiplier was read only in the "
+        f"entrant branch, so declaring the pools discarded it silently.")
+    assert _close(vec_loud["band"], vec_only["band"]), (
+        f"the multiplier moved the band {vec_only['band']} -> "
+        f"{vec_loud['band']}; the record sets the width, not the level.")
+
+    #     and a multiplier is a SIZING, so it leaves the group budget too.
+    r6 = with_budget({"NEWPARTY": {"weights": [1.0, 0.0], "overperform": 3.0}})
+    got6 = sum(v * pool[g] for g, v in r6["NEWPARTY"]["capture"].items()) / pool.sum()
+    assert _close([got6], [3.0 * implied_share(vec_only)], rel=1e-9), (
+        f"the multiplied party came out of the group rescale at {got6:.4%}, "
+        f"so the declaration was renormalised away — the failure `judged` "
+        f"exists to prevent, arriving through the other branch.")
+    rest6 = sum(sum(v * pool[g] for g, v in r6[q]["capture"].items()) / pool.sum()
+                for q in crowd)
+    assert _close([rest6], [0.0175], rel=1e-6), (
+        f"the 29 undeclared entrants total {rest6:.4%} against a 1.75% record")
+
 
 def test_an_unreadable_key_in_a_party_table_refuses_instead_of_being_ignored():
     """A misspelt `support` is a forecast, not a run, and it fails silently.
@@ -2391,6 +2430,251 @@ def test_an_undeclared_split_is_flagged_in_the_spec_not_printed():
     assert len(live) < 10, (
         f"{len(live)} parties flagged. The list is meant to be short enough to "
         f"read on nomination day; this one would be ignored.")
+
+
+def test_each_census_dimension_is_reprojected_on_its_own_delimitation():
+    """The gate and the operation must read the SAME dimension.
+
+    ``pool_counts`` reprojects two ward-level counts onto the election's
+    delimitation: the base dimension's population, and the age dimension's 20+
+    count. Until 2026-09-08 the second sat INSIDE the first's ``if`` while using
+    ``age.censuses[-1].delimitation`` for its own reprojection — so a run where
+    the base matched the election and age did not would skip the age
+    reprojection entirely, then join ``adults_by_ward`` to this election's wards
+    by ward code. **Ward codes are reused, so that join succeeds**, and there is
+    no key-set assertion on the adults side: an unmatched ward reads as zero
+    adults through ``.get(w, 0.0)`` and ``_nest`` fits ``adult_share`` toward
+    the floor rather than raising. Ultra review #1, queue entry 15, §1.195.
+
+    ⚠️ **THE BRANCH IS UNREACHABLE ON TODAY'S CONFIG**, so an observational
+    test of it would assert emptiness and prove nothing. Every dimension in
+    ``config/dimensions.toml`` is Census 2022 on delimitation 2021 — asserted
+    below, because that is the premise — and the divergence is therefore
+    CONSTRUCTED, not waited for.
+    """
+    cfg = pools.load_config()
+    base = cfg.base()
+    age = next((d for d in cfg.dimensions if d.name == "age"), None)
+    assert age is not None, "no age dimension: this test has no subject"
+
+    # (0) THE POPULATION, AND BOTH DIRECTIONS OF IT. The claim is about every
+    #     dimension that carries a census, not only the two named above.
+    dims = [d for d in cfg.dimensions if d.censuses]
+    assert len(dims) >= 2, (
+        f"{len(dims)} dimensions carry a census; the claim is about a "
+        f"DISAGREEMENT between two of them and needs at least two.")
+    delims = {d.name: int(d.censuses[-1].delimitation) for d in dims}
+    assert len(set(delims.values())) == 1, (
+        f"dimension delimitations already disagree: {delims}. That is not a "
+        f"failure — it is the day this branch goes live. Re-derive the emit's "
+        f"number-neutrality before trusting a spec.")
+
+    # (1) IT LOOKED: pool_counts must actually reproject something, or the
+    #     recorded calls below are empty for a reason that has nothing to do
+    #     with the gate.
+    city = cityconfig.load("joburg")
+    seen: list[tuple[str, str]] = []
+    real = pools.reproject_counts
+
+    def spy(counts, city_, from_year, to_year):
+        seen.append((str(from_year), str(to_year)))
+        return real(counts, city_, from_year, to_year)
+
+    # The election year whose delimitation differs from the census's, so the
+    # base gate fires and both counts are due a reprojection.
+    year = "2011"
+    assert int(base.censuses[-1].delimitation) != pools.delimitation_for(year), (
+        f"{year} is on the census's own delimitation, so nothing reprojects "
+        f"and this test would pass on an empty call list.")
+
+    pools.reproject_counts = spy
+    try:
+        pools.pool_counts(city, year, cfg)
+        both = list(seen)
+        seen.clear()
+
+        # (2) IT CAN SEE: construct the divergence the gate is for — age on a
+        #     delimitation the election does NOT share, base on one it does.
+        #     Under the old nesting the age call disappears; under the fix it
+        #     survives on its own gate.
+        import dataclasses
+        moved = dataclasses.replace(
+            base, censuses=(dataclasses.replace(
+                base.censuses[-1],
+                delimitation=pools.delimitation_for(year)),))
+        constructed = dataclasses.replace(
+            cfg, dimensions=tuple(moved if d is base else d
+                                  for d in cfg.dimensions))
+        pools.pool_counts(city, year, constructed)
+        age_only = list(seen)
+    finally:
+        pools.reproject_counts = real
+
+    assert len(both) == 2, (
+        f"the base gate fired and {len(both)} counts were reprojected, not 2. "
+        f"Calls: {both}. Both the population and the 20+ count are due one.")
+    assert len(age_only) == 1, (
+        f"with the BASE dimension moved onto {year}'s own delimitation and the "
+        f"AGE dimension left on {age.censuses[-1].delimitation}, "
+        f"{len(age_only)} reprojections ran, not 1. Calls: {age_only}. Zero is "
+        f"the pre-fix behaviour: the age block was nested inside the base's "
+        f"gate, so adults silently stayed on the wrong polygon set and joined "
+        f"anyway on reused ward codes.")
+
+
+def test_every_arrival_definition_is_named_where_it_is_computed():
+    """The register and the code must agree IN BOTH DIRECTIONS.
+
+    ``pools.ARRIVAL_DEFINITIONS`` names five populations this module calls "an
+    arrival". Six errors in three days were a quantity measured over one and
+    spent over another (§1.179, §1.198-§1.201, §1.203), and none was caught by a
+    test. The register is the fix; this asserts it is not decorative.
+
+    ⛔ **BOTH DIRECTIONS, BECAUSE ONE DIRECTION IS THE CLASS WITH THE WORST
+    RECORD HERE.** The lever register was checked code→register only, so a
+    deleted lever sat in it for days looking live (CLAUDE.md §4, rule 0). A name
+    with no site is exactly as bad as a site with no name.
+    """
+    src = (ROOT / "src" / "pools.py").read_text()
+    marked = re.findall(r"^[ \t]*# ARRIVAL DEFINITION: ([A-Z_]+)$",
+                        src, flags=re.M)
+    register = set(pools.ARRIVAL_DEFINITIONS)
+
+    # (1) IT LOOKED. Two-sided, against a computed denominator rather than a
+    #     bare floor: every registered name must be marked exactly once, so the
+    #     count is pinned from both ends and cannot ratchet.
+    assert len(register) >= 4, (
+        f"{len(register)} arrival definitions registered. This module had five "
+        f"when the register was written; fewer than four means definitions were "
+        f"merged without the register being told.")
+    assert len(marked) == len(register), (
+        f"{len(marked)} marked sites against {len(register)} registered names. "
+        f"marked={sorted(marked)} registered={sorted(register)}")
+    assert len(set(marked)) == len(marked), (
+        f"a name is marked twice: {sorted(marked)}. Two sites computing the "
+        f"same definition is the duplication rule's own case — derive one from "
+        f"the other.")
+
+    missing_site = register - set(marked)
+    assert not missing_site, (
+        f"registered with no site in pools.py: {sorted(missing_site)}. Either "
+        f"the definition was deleted and the register was not told, or the "
+        f"marker was lost in an edit.")
+    unregistered = set(marked) - register
+    assert not unregistered, (
+        f"marked in pools.py but not registered: {sorted(unregistered)}.")
+
+    # (2) IT CAN SEE. The detector is a pure regex, so the violation is
+    #     mechanical: a marker naming something not in the register must fail
+    #     the same membership check the assertion above uses.
+    fake = re.findall(r"^[ \t]*# ARRIVAL DEFINITION: ([A-Z_]+)$",
+                      "    # ARRIVAL DEFINITION: NOT_A_REAL_DEFINITION\n",
+                      flags=re.M)
+    assert fake == ["NOT_A_REAL_DEFINITION"] and not (set(fake) <= register), (
+        "the marker regex does not match a constructed marker, so a real one "
+        "could be dropped silently and this test would still pass.")
+
+    # (3) Every entry says what it is spent on. A register that records the
+    #     predicate and not the consumer would not have caught §1.179, which
+    #     was a mismatch between the two.
+    for name, d in pools.ARRIVAL_DEFINITIONS.items():
+        for field in ("predicate", "population", "splits",
+                      "computed_in", "consumed_by"):
+            assert getattr(d, field).strip(), f"{name}.{field} is empty"
+
+
+def test_the_arrival_definitions_are_not_interchangeable():
+    """Named populations that turn out to be the same set prove nothing.
+
+    So this separates them ON THE REAL RECORD, which also pins the correction
+    made to ``arrival_group_record``'s docstring on 2026-09-08: it claimed EFF,
+    ActionSA, COPE, GOOD, MK and the NFP were all in the all-arrivals totals.
+    **Four of the six are in no row at all**, because the predicate is "no
+    PRECEDING NATIONAL vote" and each of those four had one.
+    """
+    splits = set(pools.SPLITS)
+    lge = sorted((y for y, e in cityconfig.CALENDAR.items()
+                  if e.kind == "LGE" and e.results), key=int)
+
+    rows = 0
+    differ = 0
+    causes: set[str] = set()
+    arrivals_by_year: dict[str, set[str]] = {}
+    for year in lge:
+        prev = cityconfig.preceding(year, "NPE")
+        if not prev:
+            continue
+        for code in pools.METRO_CODES:
+            local = (pools.metro_citywide(code, year)
+                     or pools._npe_citywide_for(code, year))
+            natl = pools._npe_citywide_for(code, prev)
+            if not local or not natl:
+                continue
+            arr = {q: v for q, v in local.items()
+                   if q != "IND" and v > 0 and natl.get(q, 0.0) <= 0}
+            if len(arr) < 3:
+                continue
+            rows += 1
+            arrivals_by_year.setdefault(year, set()).update(arr)
+            inside = set(arr) & splits
+            if inside:
+                differ += 1
+                causes |= inside
+
+    # (1) IT LOOKED, and the denominator is computed rather than typed.
+    assert rows >= 20, (
+        f"{rows} rows in the arrival record. The claims below are about a "
+        f"panel; this one is too small to separate anything.")
+
+    # ARRIVED_VS_NATIONAL vs ARRIVED_VS_NATIONAL_EXCLUDING_SPLITS: the two
+    # totals must differ somewhere, or excluding splits is a no-op and
+    # `_arrival_total_prior`'s whole population correction is inert.
+    assert 0 < differ < rows, (
+        f"{differ} of {rows} rows contain a SPLITS member. Zero means the "
+        f"entrants-only total is identical to the all-arrivals one everywhere "
+        f"and §1.179's correction bought nothing; all of them means the label "
+        f"is not selecting.")
+
+    # The four that CANNOT appear, because each held a preceding national vote.
+    # If one ever does, the docstring's measured table is stale and so is every
+    # figure derived from it.
+    absent = {q for q in splits if q not in causes}
+    assert causes and absent, (
+        f"SPLITS members present in the record: {sorted(causes)}; absent: "
+        f"{sorted(absent)}. Both must be non-empty or the distinction the "
+        f"docstring draws does not exist.")
+    assert causes == {"NFP", "ASA"}, (
+        f"the SPLITS members appearing in the all-arrivals record are "
+        f"{sorted(causes)}, not ['ASA', 'NFP']. `arrival_group_record`'s "
+        f"docstring states the measured membership row by row; re-derive it "
+        f"and the 9-of-29 claim before trusting any budget figure.")
+
+    # ARRIVED_VS_LOCAL_* is a DIFFERENT population, and the canonical proof is
+    # a party with a national record and no local one: an arrival against the
+    # previous LGE, and not an arrival against the previous NPE.
+    prev_lge = pools.metro_citywide("JHB", "2011")
+    this_lge = pools.metro_citywide("JHB", "2016")
+    assert prev_lge and this_lge, "the 2011/2016 Johannesburg files did not read"
+    vs_local = {q for q, v in this_lge.items()
+                if prev_lge.get(q, 0.0) <= 1e-4 < v and q != "IND"}
+    vs_national = arrivals_by_year.get("2016", set())
+    only_local = vs_local - vs_national
+    assert only_local, (
+        "no party is an arrival against the previous LOCAL election and not "
+        "against the previous NATIONAL one, so the two definitions coincide at "
+        "2016 and nothing here separates them. EFF is the case: a 2014 "
+        "national vote, no 2011 local one.")
+    assert "EFF" in only_local, (
+        f"EFF is not in the local-only arrival set {sorted(only_local)}. It is "
+        f"the worked example both the register and the docstring cite.")
+
+    # SEEDABLE_AT_TARGET and UNCLASSIFIED_WITH_NATIONAL_RECORD are disjoint by
+    # construction, and the register says so. Assert the arithmetic, not the
+    # note: one needs baseline <= 0, the other baseline >= a positive floor.
+    assert pools.UNCLASSIFIED_FLOOR > 0.0, (
+        f"UNCLASSIFIED_FLOOR is {pools.UNCLASSIFIED_FLOOR}. At or below zero "
+        f"the seeded set and the flagged set overlap, and a party could be "
+        f"both sized from nothing and flagged as having a national record.")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,488 @@
+{
+  "arrival_group": {
+    "alpha": 10.87423244668734,
+    "derived_from": "13 metro-years before 2016; split by ward reach (corr +0.393 on log vote)",
+    "n_observations": 13,
+    "total_log_mean": -4.239066024984355,
+    "total_log_sd": 0.796079274728338,
+    "weights": {
+      "PEOPLES_ALLIANCE": 0.08,
+      "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.54
+    }
+  },
+  "artefact_key": {
+    "cities_sha": "68080ceed71cbe08",
+    "city": "buffalocity",
+    "config_sha": "25516d034e2496af",
+    "deps_sha": "53cedeb94115dd98",
+    "gates_sha": "6f4daff30349fefd",
+    "judgements_sha": "d49599aebcc006a5",
+    "pools_sha": "843229dbe414b6b9",
+    "schema": 2,
+    "target": "2016"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [
+    [
+      0.0001110268461123144,
+      0.24324324324324326
+    ],
+    [
+      0.00011925248870770664,
+      0.25384615384615383
+    ],
+    [
+      0.00014863271334390475,
+      0.990990990990991
+    ],
+    [
+      0.0001495280911351331,
+      0.04504504504504504
+    ],
+    [
+      0.00021648913334629822,
+      0.015384615384615385
+    ],
+    [
+      0.0002372751146755106,
+      0.08108108108108109
+    ],
+    [
+      0.000246228892587794,
+      0.2702702702702703
+    ],
+    [
+      0.0002852886460622828,
+      0.023076923076923078
+    ],
+    [
+      0.0003372877091805844,
+      1.0
+    ],
+    [
+      0.000347475854232611,
+      0.04950495049504951
+    ],
+    [
+      0.0004107923362581748,
+      0.038834951456310676
+    ],
+    [
+      0.00041608032976785206,
+      1.0
+    ],
+    [
+      0.00048050125891329834,
+      0.2
+    ],
+    [
+      0.0004806326596867137,
+      0.8910891089108911
+    ],
+    [
+      0.000487100550029171,
+      0.25384615384615383
+    ],
+    [
+      0.00048796131697027167,
+      0.0761904761904762
+    ],
+    [
+      0.000505274573597555,
+      1.0
+    ],
+    [
+      0.0005139468521650683,
+      0.11711711711711711
+    ],
+    [
+      0.0005631926306826271,
+      0.4954954954954955
+    ],
+    [
+      0.0005999317508833858,
+      0.08461538461538462
+    ],
+    [
+      0.0006330320983984378,
+      1.0
+    ],
+    [
+      0.0006482535208493195,
+      0.22522522522522523
+    ],
+    [
+      0.0006891041440730882,
+      0.1553398058252427
+    ],
+    [
+      0.0007063416638841086,
+      0.9846153846153847
+    ],
+    [
+      0.000756594233587949,
+      0.04504504504504504
+    ],
+    [
+      0.000764700511322133,
+      1.0
+    ],
+    [
+      0.0008103542731921111,
+      0.04950495049504951
+    ],
+    [
+      0.00084966723480237,
+      1.0
+    ],
+    [
+      0.0009316881802775159,
+      0.9904761904761905
+    ],
+    [
+      0.0009383559252073024,
+      0.27927927927927926
+    ],
+    [
+      0.0009746048177725196,
+      1.0
+    ],
+    [
+      0.001112176365554744,
+      0.0891089108910891
+    ],
+    [
+      0.0011380251726512225,
+      0.08108108108108109
+    ],
+    [
+      0.0012466013310607905,
+      0.04950495049504951
+    ],
+    [
+      0.0012898879358506689,
+      0.9805825242718447
+    ],
+    [
+      0.001317100730896891,
+      0.6576576576576577
+    ],
+    [
+      0.0013547065981284814,
+      0.6036036036036037
+    ],
+    [
+      0.0013568386649499852,
+      0.9795918367346939
+    ],
+    [
+      0.0013646235753137673,
+      0.9833333333333333
+    ],
+    [
+      0.0014657334442407957,
+      0.06306306306306306
+    ],
+    [
+      0.0014855897791423195,
+      0.12244897959183673
+    ],
+    [
+      0.00163095855882571,
+      1.0
+    ],
+    [
+      0.002314858379599134,
+      0.2
+    ],
+    [
+      0.0024533351479656567,
+      0.990990990990991
+    ],
+    [
+      0.0027171220888632854,
+      0.13846153846153847
+    ],
+    [
+      0.003517043963944927,
+      0.918918918918919
+    ],
+    [
+      0.004077113937362384,
+      0.8155339805825242
+    ],
+    [
+      0.004324511330219685,
+      0.08333333333333333
+    ],
+    [
+      0.004610059467693643,
+      0.9238095238095239
+    ],
+    [
+      0.005271877327716847,
+      0.9923076923076923
+    ],
+    [
+      0.0054062911034367285,
+      0.990990990990991
+    ],
+    [
+      0.005511538080618005,
+      0.5918367346938775
+    ],
+    [
+      0.006816360279198117,
+      0.9207920792079208
+    ],
+    [
+      0.03583325491672156,
+      0.06
+    ]
+  ],
+  "fitted_on": "2011",
+  "judgement_file": "judgements/buffalocity-2016.toml",
+  "no_measured_vector": {
+    "EFF": "splinter of ANC, 35% its vector and 65% the city average",
+    "PEOPLES_ALLIANCE": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_CONGRESS": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.8009077516737958,
+    0.04283304694593224,
+    0.028635474721087996,
+    0.127623726659184
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 26.439205190222765,
+      "derived_from": "pool vectors fitted on buffalocity 2011; size from the 2016 roll split by each ward's own composition; turnout from buffalocity's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "AIC",
+        "ANC",
+        "COPE",
+        "DA",
+        "PAC",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.6202547571009319,
+        "AIC": 0.9999999999999998,
+        "ANC": 0.9824062520931692,
+        "COPE": 0.8893287871246169,
+        "DA": 0.19642389646569683,
+        "EFF": 0.8778741129167713,
+        "PAC": 0.9999999999999996,
+        "PAN_AFRICANIST_MOVEMENT": 0.9999999999999996,
+        "PEOPLES_ALLIANCE": 0.25,
+        "UDM": 0.9310278373556766,
+        "UNITED_CONGRESS": 0.8215875764371723,
+        "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.25
+      },
+      "registered": 343065.8583285107,
+      "turnout": [
+        0.4146418964558681,
+        0.5479197110239044,
+        0.6746618485998797
+      ]
+    },
+    "Coloured": {
+      "alpha": 37.92362156008361,
+      "derived_from": "pool vectors fitted on buffalocity 2011; size from the 2016 roll split by each ward's own composition; turnout from buffalocity's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.066012913237383,
+        "ANC": 0.003438018202530141,
+        "COPE": 0.11067121287538306,
+        "DA": 0.1569576561232117,
+        "EFF": 0.02784454988959576,
+        "PEOPLES_ALLIANCE": 0.25,
+        "UDM": 0.020900305426365832,
+        "UNITED_CONGRESS": 0.0409865284903234,
+        "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.25000000000000006
+      },
+      "registered": 15646.438932956991,
+      "turnout": [
+        0.03182933290958244,
+        0.6004274583160789,
+        0.9856494585843439
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on buffalocity 2011; size from the 2016 roll split by each ward's own composition; turnout from buffalocity's local elections before 2016",
+      "identified": [],
+      "members": {
+        "PEOPLES_ALLIANCE": 0.25,
+        "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.25000000000000006
+      },
+      "registered": 11867.64136142949,
+      "turnout": [
+        2.05996373173095e-07,
+        0.0001,
+        0.0463058965410023
+      ]
+    },
+    "White": {
+      "alpha": 101.79987363467608,
+      "derived_from": "pool vectors fitted on buffalocity 2011; size from the 2016 roll split by each ward's own composition; turnout from buffalocity's local elections before 2016",
+      "identified": [
+        "ACDP"
+      ],
+      "members": {
+        "ACDP": 0.313732329661685,
+        "ANC": 0.014155729704300634,
+        "DA": 0.6466184474110915,
+        "EFF": 0.09428133719363296,
+        "PEOPLES_ALLIANCE": 0.25,
+        "UDM": 0.048071857217957634,
+        "UNITED_CONGRESS": 0.13742589507250422,
+        "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.25
+      },
+      "registered": 48464.061377102924,
+      "turnout": [
+        0.5535994273670521,
+        0.7189705711957415,
+        0.84070692783615
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2011; pools sized by 2014 roll carried to 2016 on the 2011-2014 RATE of change (log-space, invariant to a constant level bias), damped x0.6; roster published; reach 2016 ward ballot",
+  "rates_on_a_bound": [
+    "Indian/Asian: adult_share fitted to 1.0000, which is ON A BOUND \u2014 the ward table cannot identify this pool at this level. The value is a clipped corner and not a measurement. Largest share this pool reaches in any ward: 11.7%.",
+    "Indian/Asian: turnout fitted to 0.0000, which is ON A BOUND \u2014 the ward table cannot identify this pool at this level. The value is a clipped corner and not a measurement. Largest share this pool reaches in any ward: 11.7%."
+  ],
+  "registration_series": {
+    "2006": [
+      0.8823978521359168,
+      0.02984321104685833,
+      0.032689331078848326,
+      0.05506960573837654
+    ],
+    "2009": [
+      0.8386243434570957,
+      0.0402303357166353,
+      0.028172740043747604,
+      0.09297258078252145
+    ],
+    "2011": [
+      0.8290452396508474,
+      0.03752051739769995,
+      0.027416919803077644,
+      0.10601732314837495
+    ],
+    "2014": [
+      0.8093263525624412,
+      0.04126712249888832,
+      0.028298613344273204,
+      0.12110791159439716
+    ]
+  },
+  "seed_bands": {
+    "PEOPLES_ALLIANCE": [
+      0.15445402203573222,
+      1.0,
+      1.7505080010360659
+    ],
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE": [
+      0.2295167827048443,
+      1.0,
+      2.590544478379949
+    ]
+  },
+  "seed_notes": {
+    "PEOPLES_ALLIANCE": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 28 arrivals that contested about as much of a city (8% of wards): mean 0.21%, median 0.06%. Band 0.03%-0.38% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x3.29: 2 entrants summing to 0.43% against an arrival-total record of 1.40%",
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 54 arrivals that contested about as much of a city (54% of wards): mean 0.21%, median 0.08%. Band 0.05%-0.54% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x3.29: 2 entrants summing to 0.43% against an arrival-total record of 1.40%"
+  },
+  "seeded_arrival_mass": 0.01397665129995956,
+  "seeds": {
+    "PEOPLES_ALLIANCE": 0.00706707743593698,
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.006909573864022581
+  },
+  "splinter_home": {
+    "fractions": {
+      "NFP": 0.3524
+    },
+    "measured_at": [
+      "2014"
+    ]
+  },
+  "target": "2016",
+  "transition_ledger": {
+    "arrival_group_record": {
+      "fallback": 9,
+      "metro": 8,
+      "offered": 24,
+      "unavailable": 7
+    },
+    "entrant_record": {
+      "fallback": 17,
+      "metro": 8,
+      "offered": 32,
+      "unavailable": 7
+    },
+    "home_splinter_record": {
+      "fallback": 4,
+      "metro": 0,
+      "offered": 4,
+      "unavailable": 0
+    },
+    "splinter_record": {
+      "fallback": 52,
+      "metro": 0,
+      "offered": 52,
+      "unavailable": 0
+    }
+  },
+  "turnout_limits": {
+    "city": {
+      "high": 0.6095600093292101,
+      "low": 0.4679566840926994,
+      "observed_high": 0.5541454630265545,
+      "observed_low": 0.5199518712141105,
+      "previous": 0.5541454630265545
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.6027116821262949,
+        "low": 0.48444399900213436,
+        "observed_high": 0.5479197110239044,
+        "observed_low": 0.5382711100023715,
+        "previous": 0.5479197110239044
+      },
+      {
+        "high": 0.6604702041476869,
+        "low": 0.028646399618624196,
+        "observed_high": 0.6004274583160789,
+        "observed_low": 0.03182933290958244,
+        "previous": 0.6004274583160789
+      },
+      {
+        "high": 0.05093648619510255,
+        "low": 0.0,
+        "observed_high": 0.04630589654100231,
+        "observed_low": 0.0,
+        "previous": 0.0
+      },
+      {
+        "high": 0.7908676283153157,
+        "low": 0.5974621572845475,
+        "observed_high": 0.7189705711957415,
+        "observed_low": 0.663846841427275,
+        "previous": 0.7189705711957415
+      }
+    ]
+  },
+  "unclassified_with_national_record": {}
+}

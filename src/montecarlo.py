@@ -2806,7 +2806,23 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             w = np.array([float(group["weights"][p]) for p in members])
             group_w = w / w.sum()
             group_alpha = float(group.get("alpha", 4.0)) * _dirichlet_scale(scenario)
-            group_ln = (float(group["total_log_median"]),
+            # ⛔ `total_log_mean`, AND THE OLD-KEY FALLBACK IS GONE.
+            #
+            # The field was `total_log_median` until 2026-09-06 while holding
+            # `np.mean(logs)` — a name that said median over a value that was a
+            # mean, read here as a lognormal's location. Writer and reader were
+            # renamed in one commit and a `group.get("total_log_mean",
+            # group.get("total_log_median"))` fallback carried the specs that
+            # predated the window.
+            #
+            # **Deleted 2026-09-08, at the emit, on evidence rather than on
+            # schedule**: all 27 specs were re-emitted and every one of the 16
+            # carrying a non-null `arrival_group` has `total_log_mean` and none
+            # has `total_log_median` (checked, not assumed). A fallback kept
+            # past its window is worse than none — it silently accepts a stale
+            # spec that `artefact_key` would otherwise have refused, which is
+            # the whole point of the key. §1.212.
+            group_ln = (float(group["total_log_mean"]),
                         float(group["total_log_sd"]))
 
     # Pools sharing a `tie` draw ONE shock between them, apportioned by base.
@@ -3846,18 +3862,61 @@ def run_model(target, scenario: dict,
         # wide because arrivals genuinely are. Carrying it as this party's own
         # theta range is what stops a seeded party being pinned to its seed.
         # A DEAD STORE, REMOVED 2026-08-19. This wrote each seeded arrival's
-        # band into `individual_theta`, and nothing read it back:
-        # `blended_centres` and `make_drawer` both take `pool_seed_bands`
-        # directly and short-circuit before any membership test. Confirmed
+        # band into `individual_theta`, and nothing read it back. Confirmed
         # three ways in §1.41 -- multiplying every written band by 100,
         # setting the whole dict to [50,80,99], and deleting all 32 keys, all
         # byte-identical. The key it wrote into no longer exists.
+        #
+        # ⛔ THE SENTENCE THAT USED TO SIT HERE WAS FALSE ABOUT `make_drawer`,
+        # AND IT IS THE SENTENCE A READER CONSULTS. It said "`blended_centres`
+        # and `make_drawer` both take `pool_seed_bands` directly and
+        # short-circuit before any membership test". True of the first, false
+        # of the second: `make_drawer` skips every party in `handled` -- i.e.
+        # every pool member -- BEFORE it looks a seed band up, and every seeded
+        # arrival is a pool member (32 of 32 in the emitted 2021 spec). So the
+        # triangular branch below is not taken for any arrival, the emitted
+        # band's `lo` and `hi` are read by NOTHING, and `blended_centres` uses
+        # only `band[1]`, which is 1.0 by construction. Measured 2026-09-06:
+        # replacing every seeded band with [0.001, 1.0, 50.0] leaves
+        # `pr_share_draws` and the seat totals byte-identical. §1.198.
         if verbose:
             for party in sorted(seeds, key=lambda p: -abs(seeds[p]))[:8]:
                 why = notes_by_party.get(party, "parent debited")
                 print(f"  seed {party:<12} {seeds[party]:+.2%}  {why}")
     universe = sorted(p for p in base_city_d if p != INDEPENDENT and p != "IND")
-    if scenario["entrant_prob"] > 0:
+    # ⛔ THE GENERIC SLOT IS A STAND-IN FOR A PARTY WE CANNOT NAME. ONCE THE
+    # ARRIVALS ARE NAMED, THERE IS NO UNNAMED ONE, AND KEEPING BOTH FORECASTS
+    # THE SAME VOTERS TWICE.
+    #
+    # This line read `if scenario["entrant_prob"] > 0:` — unconditional on
+    # whether `pool_seeds` had already seeded the arrivals by name. The
+    # consequence, measured:
+    #
+    #   target 2016, before named seeds existed
+    #       generic slot expectation   1.4167%   (0.25 x mean(1%, 4%, 12%))
+    #       drawn arrival mass         1.4500%   <- the slot WAS the forecast
+    #
+    #   target 2016, after the batch seeded arrivals by name
+    #       declared seeded mass       1.3977%
+    #     + generic slot expectation   1.4167%
+    #     = 2.8143%, drawn 3.2259%     against a realised 2.0400%
+    #
+    # So the model forecast 48 arrival seats across the eight 2016 metros
+    # against 23 realised, and the arrival PIT crossed from 0.768 (too little)
+    # to 0.399 (too much) rather than converging on 0.5. §1.215, §1.218.
+    #
+    # ⚠️ THIS IS NOT A NEW JUDGEMENT. `JUDGEMENT-CALLS §A4` has carried it as a
+    # RED entry — *"nothing retires the generic entrant when the ballot becomes
+    # known"* — written about the 2026 roster. It bites at every target where
+    # the ballot IS known, which is every scored city-year in the panel.
+    #
+    # ⚠️ AND IT IS NOT A LEVER. A ballot is a fact: you cannot vote for a party
+    # that is not on it. Where no arrival is named — the live 2026 target, whose
+    # roster is projected and whose `seeds` are empty — the slot is still the
+    # honest representation of a party nobody has named yet, and it survives.
+    named_arrivals = {p for p, v in (scenario.get("pool_seeds") or {}).items()
+                      if v > 0}
+    if scenario["entrant_prob"] > 0 and not named_arrivals:
         universe.append("ENTRANT")
     index = {party: i for i, party in enumerate(universe)}
     vds = sorted(base_share_d)

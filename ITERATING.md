@@ -199,15 +199,41 @@ the single hardest column in the panel and uniform swing is not.
 
 This is the same class of fault as `claimed` selecting away from the
 forecaster's own failures, which rule 8 identified and fixed by introducing
-`reference`; it was never fixed here. **MEASURED 2026-08-31, and it is no longer
-unquantified: the free label is worth 11.52 CRPS — 3.5% of the model's 329.50 —
-and 2.17 points of the margin over uniform swing, which falls from 37.8% to
-35.7%.** Seat error (coherent) goes 386 → 426. Reproduce with
+`reference`; it was never fixed here. ~~**MEASURED 2026-08-31: the free label is
+worth 11.52 CRPS — 3.5% of the model's 329.50 — and 2.17 points of the margin
+over uniform swing, which falls from 37.8% to 35.7%.** Seat error (coherent) goes
+386 → 426.~~
+
+⛔ **STALE SINCE THE 2026-09-08 EMIT. DO NOT QUOTE THE STRUCK FIGURES.** They
+were measured on a **16 city-year** panel (329.50 CRPS; the baseline is now
+**548.05 on 24**) and, more importantly, **on a panel where the 2016 arm had no
+seeds at all**. The batch turned that arm on: all eight 2016 specs went from
+`seeds = {}` to seeded, so an arrival that used to reach the score only through
+the generic `ENTRANT` column is now **named and seeded directly**, and there is
+nothing left for the relabel to move.
+
+**Measured, not inferred:** `test_the_relabel_ablation_actually_withholds_the_
+label` now fails at Mangaung 2016 with **7.5149 CRPS with the label and 7.5149
+without** — the label is worth *exactly zero* there. Its pre-emit spec carried
+`seeds = {}` and `arrival_group = null`; it now carries four named seeds
+(AIC, Agency for New Agenda, Azanian Alliance Congress, Botshabelo Unemployed
+Movement) totalling 1.3977%. **The switch is not inert** — the run still stamps
+`scored_without_relabel = True`, which that test asserts separately and which
+still passes. The quantity it prices has genuinely gone to zero at that
+city-year. §1.213.
+
+⚠️ **The test's own premise needs re-scoping, and that is a decision, not a
+tidy-up.** It picks Mangaung 2016 because it was "one of the TEN city-years where
+a label exists"; that count was taken before the 2016 arm existed and has not
+been re-derived. **Re-measure which city-years still carry a live label before
+re-pointing the test**, and re-measure the label's worth on the 24-city-year
+panel before any figure goes back into this file. Reproduce with
 `JHB_SCORE_NO_RELABEL=1 .venv/bin/python src/compare_history.py`, which withholds
-the label from the model everywhere it is used, not only at `relabel_run`. The
-ablation moves **exactly the ten city-years where a label exists** and is
-bit-identical at the six where `entrant_actual` is `None` — an internal check
-that it is measuring the label and nothing else.
+the label everywhere it is used, not only at `relabel_run`.
+
+⚠️ The old claim that the ablation *"is bit-identical at the six where
+`entrant_actual` is `None`"* is also pinned to the retired panel. Do not repeat
+either number without re-deriving it.
 
 The effect touches the arrival columns only, so it does not void comparisons
 that leave those columns alone — but it does mean **no seat or CRPS comparison

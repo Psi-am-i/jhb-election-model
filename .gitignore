@@ -65,3 +65,4 @@ data/processed/.pools.lock
 # is not already in its proper place. HANDOVER.md said this folder held "no
 # data"; it holds a duplicate of the file the ward-language rake depends on.
 new data from statsSA/
+*.swp

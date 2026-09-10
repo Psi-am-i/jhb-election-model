@@ -764,6 +764,11 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         # Added 2026-08-29 (§1.130) after this guard correctly caught a bare
         # `reps=2000` in a new signature.
         "BOOT", "BOOT_SEED", "SIM_DRAWS", "NULL_REPS",
+        # Versions the SHAPE of the scoreboard envelope so a reader can tell a
+        # manifested artefact from a bare one. Operational, exactly as
+        # `publication.SCHEMA` is — it encodes no belief about an election and
+        # cannot reach a forecast. Added 2026-09-09 with the manifest (§1.217).
+        "HISTORY_SCHEMA",
         # `stats.DECLARATION_MIN_CHARS` — the shortest string accepted as a
         # REASON on an `unverifiable` or `historical` declaration. OPERATIONAL:
         # it decides whether a sentence counts as an explanation, and it cannot

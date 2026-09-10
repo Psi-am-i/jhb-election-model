@@ -1,0 +1,274 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "cities_sha": "68080ceed71cbe08",
+    "city": "ethekwini",
+    "config_sha": "25516d034e2496af",
+    "deps_sha": "53cedeb94115dd98",
+    "gates_sha": "6f4daff30349fefd",
+    "judgements_sha": "7dc89b789556051f",
+    "pools_sha": "843229dbe414b6b9",
+    "schema": 2,
+    "target": "2011"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2006",
+  "judgement_file": "judgements/ethekwini-2011.toml",
+  "no_measured_vector": {
+    "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "APC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "BLACK_CONSCIOUSNESS_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "COPE": "splinter of ANC, 35% its vector and 65% the city average",
+    "NFP": "splinter of IFP, 35% its vector and 65% the city average",
+    "SOCIALIST_GREEN_COALITION": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "SOLIDARITY_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_ACTION_FRONT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_RESIDENTS_FRONT": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.6945633693360831,
+    0.036268342357821996,
+    0.16802332986992471,
+    0.10114495843617012
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on ethekwini 2006; size from the 2011 roll split by each ward's own composition; turnout from ethekwini's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "DA",
+        "IFP",
+        "TRULY_ALLIANCE",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.16347967693403165,
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.690852379511095,
+        "ANC": 0.9384937400701457,
+        "APC": 0.690852379511095,
+        "AZAPO": 0.6336740548694951,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.690852379511095,
+        "COPE": 0.7775268557067627,
+        "DA": 0.017030778113402208,
+        "IFP": 0.965217713396754,
+        "MINORITY_FRONT": 0.0016528311426770499,
+        "NFP": 0.7868802463710757,
+        "SOCIALIST_GREEN_COALITION": 0.690852379511095,
+        "SOLIDARITY_PARTY": 0.690852379511095,
+        "TRULY_ALLIANCE": 0.540996911766552,
+        "UDM": 0.6949852677905124,
+        "UNITED_ACTION_FRONT": 0.690852379511095,
+        "UNITED_RESIDENTS_FRONT": 0.690852379511095,
+        "VFPLUS": 0.2696597290729137
+      },
+      "registered": 1121282.732232963,
+      "turnout": [
+        0.2981973910360507,
+        0.44730808541108114,
+        0.6065397548836429
+      ]
+    },
+    "Coloured": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on ethekwini 2006; size from the 2011 roll split by each ward's own composition; turnout from ethekwini's local elections before 2011",
+      "identified": [
+        "AZAPO",
+        "TRULY_ALLIANCE",
+        "UDM",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.10529451340487837,
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.02529934460673789,
+        "ANC": 0.0020132047879740877,
+        "APC": 0.02529934460673789,
+        "AZAPO": 0.04764407601037156,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.02529934460673789,
+        "COPE": 0.017149195670170557,
+        "DA": 0.06570361703711897,
+        "IFP": 0.03338125827036158,
+        "NFP": 0.02812801438900618,
+        "SOCIALIST_GREEN_COALITION": 0.02529934460673789,
+        "SOLIDARITY_PARTY": 0.02529934460673789,
+        "TRULY_ALLIANCE": 0.013173854284164918,
+        "UDM": 0.03771816589736259,
+        "UNITED_ACTION_FRONT": 0.02529934460673789,
+        "UNITED_RESIDENTS_FRONT": 0.02529934460673789,
+        "VFPLUS": 0.08526708810929706
+      },
+      "registered": 63612.92768946311,
+      "turnout": [
+        0.16860440048203193,
+        0.27864210818674073,
+        0.4238804286556424
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on ethekwini 2006; size from the 2011 roll split by each ward's own composition; turnout from ethekwini's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "TRULY_ALLIANCE"
+      ],
+      "members": {
+        "ACDP": 0.5163134719345868,
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.1712962198277939,
+        "ANC": 0.05290436804692852,
+        "APC": 0.1712962198277939,
+        "AZAPO": 0.08563764864745448,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.1712962198277939,
+        "COPE": 0.129859071704491,
+        "DA": 0.33043806857307245,
+        "IFP": 0.0008588453851438708,
+        "MINORITY_FRONT": 0.9980152268555514,
+        "NFP": 0.11164313877286638,
+        "SOCIALIST_GREEN_COALITION": 0.1712962198277939,
+        "SOLIDARITY_PARTY": 0.1712962198277939,
+        "TRULY_ALLIANCE": 0.3551779083988136,
+        "UDM": 0.08280352320438245,
+        "UNITED_ACTION_FRONT": 0.1712962198277939,
+        "UNITED_RESIDENTS_FRONT": 0.1712962198277939,
+        "VFPLUS": 0.2280013505068698
+      },
+      "registered": 316011.5836066712,
+      "turnout": [
+        0.24285124911220016,
+        0.3792418940201751,
+        0.5378216503679067
+      ]
+    },
+    "White": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on ethekwini 2006; size from the 2011 roll split by each ward's own composition; turnout from ethekwini's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "AZAPO",
+        "TRULY_ALLIANCE",
+        "UDM",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.21491233772650323,
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.11255205605437328,
+        "ANC": 0.006588687094951711,
+        "APC": 0.11255205605437328,
+        "AZAPO": 0.2330442204726789,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.11255205605437328,
+        "COPE": 0.07546487691857574,
+        "DA": 0.5868275362764064,
+        "IFP": 0.0005421829477406298,
+        "MINORITY_FRONT": 0.00027559811368780586,
+        "NFP": 0.07334860046705186,
+        "SOCIALIST_GREEN_COALITION": 0.11255205605437328,
+        "SOLIDARITY_PARTY": 0.11255205605437328,
+        "TRULY_ALLIANCE": 0.09065132555046951,
+        "UDM": 0.18449304310774253,
+        "UNITED_ACTION_FRONT": 0.11255205605437328,
+        "UNITED_RESIDENTS_FRONT": 0.11255205605437328,
+        "VFPLUS": 0.41707183231091943
+      },
+      "registered": 165641.7564709023,
+      "turnout": [
+        0.3413898706485498,
+        0.4968092367807094,
+        0.6528476717885663
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2006; pools sized by 2009 roll carried to 2011 on the 2006-2009 RATE of change (log-space, invariant to a constant level bias), damped x0.6; roster published; reach 2011 ward ballot",
+  "rates_on_a_bound": [],
+  "registration_series": {
+    "2006": [
+      0.668044349386786,
+      0.03891903537259323,
+      0.19507137897914623,
+      0.09796523626147452
+    ],
+    "2009": [
+      0.6872536551396792,
+      0.03702678597463157,
+      0.17543908564056615,
+      0.10028047324512308
+    ]
+  },
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeded_arrival_mass": 0.0,
+  "seeds": {},
+  "target": "2011",
+  "transition_ledger": {
+    "arrival_group_record": {
+      "fallback": 9,
+      "metro": 0,
+      "offered": 16,
+      "unavailable": 7
+    },
+    "entrant_record": {
+      "fallback": 9,
+      "metro": 0,
+      "offered": 16,
+      "unavailable": 7
+    },
+    "home_splinter_record": {
+      "fallback": 0,
+      "metro": 0,
+      "offered": 0,
+      "unavailable": 0
+    },
+    "splinter_record": {
+      "fallback": 18,
+      "metro": 0,
+      "offered": 18,
+      "unavailable": 0
+    }
+  },
+  "turnout_limits": {
+    "city": {
+      "high": 0.47617164836110343,
+      "low": 0.38959498502272094,
+      "observed_high": 0.43288331669191216,
+      "observed_low": 0.43288331669191216,
+      "previous": 0.43288331669191216
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.4920388939521893,
+        "low": 0.402577276869973,
+        "observed_high": 0.44730808541108114,
+        "observed_low": 0.44730808541108114,
+        "previous": 0.44730808541108114
+      },
+      {
+        "high": 0.3065063190054148,
+        "low": 0.25077789736806666,
+        "observed_high": 0.27864210818674073,
+        "observed_low": 0.27864210818674073,
+        "previous": 0.27864210818674073
+      },
+      {
+        "high": 0.41716608342219264,
+        "low": 0.3413177046181576,
+        "observed_high": 0.3792418940201751,
+        "observed_low": 0.3792418940201751,
+        "previous": 0.3792418940201751
+      },
+      {
+        "high": 0.5464901604587804,
+        "low": 0.44712831310263845,
+        "observed_high": 0.4968092367807094,
+        "observed_low": 0.4968092367807094,
+        "previous": 0.4968092367807094
+      }
+    ]
+  },
+  "unclassified_with_national_record": {}
+}

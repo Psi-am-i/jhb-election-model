@@ -293,6 +293,28 @@ _NO_METRO_POLL_NULL = Null(
     reason=_NO_METRO_POLL)
 
 EXPECTED_INERT: dict[tuple[str, str], Null] = {
+    # The three generic-entrant levers, at every target whose ballot is known.
+    # See `_gate_arrivals_are_named`. Added 2026-09-09 with §1.218's fix; before
+    # it, all three were "live" at 2021 only because the model was forecasting
+    # arrivals twice and these sized the phantom half.
+    **{(lever, "2021"): Null(
+        cause="UNDELIVERED",
+        where="`universe` does not contain ENTRANT — `montecarlo` appends it "
+              "only when no arrival is named, and the 2021 spec seeds 32 by "
+              "name",
+        blocker="DATA",
+        gate_check="arrivals_are_named",
+        evidence="the emitted 2021 spec carries 32 positive `seeds`; checked by "
+                 "`GATES['arrivals_are_named']` with no model run. ⚠️ What this "
+                 "does NOT establish: nothing here says what the generic slot "
+                 "is worth at 2026, where it IS the only arrival channel and "
+                 "no backtest can reach it.",
+        reason="a ballot is a fact, not a lever — you cannot vote for a party "
+               "that is not on it. Where the arrivals are named there is no "
+               "unnamed one, and a slot standing in for it would forecast the "
+               "same voters twice. Live at 2026, whose roster is projected. "
+               "§1.218, JUDGEMENT-CALLS §A4.")
+       for lever in ("entrant_prob", "entrant_share", "entrant_geography")},
     ("w_bye", "2021"): Null(
         cause="UNDELIVERED",
         where="`bye` is empty — run_model fills it from "
@@ -1105,7 +1127,39 @@ def _gate_level_sd_fallback_never_binds(year: str) -> tuple[bool, str]:
                                   if exposed else "")
 
 
+def _gate_arrivals_are_named(year: str) -> tuple[bool, str]:
+    """The ballot is known and the arrivals are seeded BY NAME, so the generic
+    slot is not in the universe and nothing that sizes it can move.
+
+    ⛔ THIS GATE IS NEW BECAUSE THE MODEL CHANGED, AND THE CHANGE IS THE POINT.
+    `montecarlo` appended the nameless `ENTRANT` column whenever
+    `entrant_prob > 0`, unconditionally on whether `pool_seeds` had already
+    named the arrivals — so at every target with a real ballot the model
+    forecast the same voters twice: 1.3977% of named seeds PLUS 1.4167% of an
+    unnamed stand-in, against a realised 2.04% (§1.218).
+
+    A ballot is a fact, not a lever: you cannot vote for a party that is not on
+    it. So where arrivals are named, `entrant_prob`, `entrant_share` and
+    `entrant_geography` are inert BY CONSTRUCTION, and that is correct rather
+    than a defect. At the live 2026 target no arrival is named — the roster is
+    projected — and all three are live again.
+    """
+    _, target = _joburg(year)
+    path = _spec_path(target)
+    if not path.exists():
+        return True, f"no pool spec at {path}"
+    seeds = {k: v for k, v in
+             (json.loads(path.read_text()).get("seeds") or {}).items() if v > 0}
+    return bool(seeds), (
+        f"{path.name} seeds {len(seeds)} arrival(s) by name, so the generic "
+        f"ENTRANT column is not built"
+        if seeds else
+        f"{path.name} names no arrival — THE GATE IS OPEN and the generic "
+        f"slot is the model's only arrival channel")
+
+
 GATES = {
+    "arrivals_are_named": _gate_arrivals_are_named,
     "bye_deltas_absent": _gate_bye_deltas_absent,
     "bye_contest_detail_absent": _gate_bye_contest_detail_absent,
     "no_metro_poll": _gate_no_metro_poll,

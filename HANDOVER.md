@@ -1,4 +1,173 @@
-# Handover — 2026-08-29, with a 2026-09-05 banner
+# Handover — 2026-08-29, with a 2026-09-08 banner
+
+> ## ⛔ STATE AT 2026-09-10 — READ THIS FIRST, IT SUPERSEDES THE BANNER BELOW
+>
+> **The processed intermediates were audited by regeneration and 26 of the 104
+> CSVs did not match what the code produces (§1.222).** Seven cities' 2021
+> turnout files predated the 2026-08-09 pre-2011 archive ingest, in the column
+> `montecarlo.py` reads as `ratio_pattern`. All 26 refreshed; two orphans
+> (`ward_leverage.csv`, `tshwane/turnout.csv`) deleted; `fold5_parameters.csv`
+> kept and flagged as **not reproducible by any invocation available today**.
+>
+> **Measured, pre-registered at `prereg/2026-09-10-stale-intermediates-refresh.md`:
+> the 24-row seat table is BYTE-IDENTICAL before and after.**
+> `seat_abs_err_coherent=725/@efa06f78+dirty/1000d/pools:843229db/rows=24` on
+> both sides; `margin_vs_uniform_swing` 18.1% on both. The pre-registration's
+> secondary clause ("exactly seven city-years change") is **FALSIFIED** — none
+> did. The input is live (an A/B moves coalition probabilities by 0.1pp) but
+> sits below seat resolution, swamped by `turnout_noise_sd = 0.08`.
+>
+> **`tests/test_intermediates_are_current.py` is new and now in the suite.** It
+> purges every CSV from a scratch copy, re-runs every generator from empty, and
+> compares. Verified by mutation: restoring the month-stale capetown file turns
+> it red and names the file. Suite: **453 passed, 8 failed, 17 skipped, no
+> PARTIAL banner** — the same eight as before this work.
+>
+> **Still open:** `turnout.csv` has no artefact key, so this can only be caught
+> by that test, not by a run. The freeze has not been taken and the tree is
+> dirty. The published site is still the 31 August build.
+
+> ## ⛔ STATE AT 2026-09-08 (SECOND PASS) — READ THIS BEFORE EVERYTHING BELOW
+>
+> **Branch `ultra-review`, last commit `efa06f7`. FOURTEEN FILES MODIFIED AND
+> TWO NEW PRE-REGISTRATIONS, ALL UNCOMMITTED.** The emit window is **shut** and
+> nothing has been emitted.
+>
+> ### ⛔ THE QUEUE IS EMPTY. THE ONLY THING LEFT IS THE WINDOW.
+>
+> `POOLS-REEMIT-QUEUE.md`'s *Queued* table listed all six original entries as
+> outstanding for days while **every one of them was in the tree**. Verified
+> entry by entry in code on 2026-09-08 and moved to *Landed*, each with the grep
+> that proves it. **This is the third tracking document in this batch to
+> understate the tree** — R4's own heading (§1.197), queue entry 11, and now the
+> table itself. ⛔ **AN UNTICKED BOX IS NOT EVIDENCE OF UNSTARTED WORK. VERIFY
+> IN CODE BEFORE BELIEVING ONE.**
+>
+> **On disk:** 26 specs at `pools_sha 86995c914b530216`, schema **1**, and
+> byte-identical to `archive/pools-preemit-2026-09-02/` on all 26 — the restore
+> was exact and nothing has drifted. **Live code:** `pools_sha
+> 1bdc972788b5082d`, schema **2**. That gap is the pending emit, and it is why
+> `test_every_emitted_pool_spec_carries_a_current_artefact_key` is red.
+>
+> ### What landed in the working tree
+>
+> * The three ultra-review repairs (queue 12–14) and the violation-message
+>   reword (16), all number-neutral, all awaiting the same emit.
+> * **Queue entry 15 (§1.207)** — the adults reprojection was gated on the BASE
+>   dimension's delimitation while reprojecting on the AGE dimension's. Fixed,
+>   proved number-neutral on nine city-years, and guarded by a CONSTRUCTED
+>   divergence (the branch is unreachable on today's config).
+> * **The five definitions of "an arrival" are now named (§1.206)** —
+>   `pools.ARRIVAL_DEFINITIONS`, a marker at each of the five computing sites,
+>   and a BIDIRECTIONAL register guard. This was the recurring defect the last
+>   banner flagged. ⛔ **Measuring it found a false claim in the code**:
+>   `arrival_group_record` said EFF, ActionSA, COPE, GOOD, MK and the NFP were
+>   all in its totals — **four of the six are in no row**, because each held a
+>   preceding national vote. Only NFP (2011) and ASA (2021) ever appear, so the
+>   all-arrivals/entrants-only split bites in 9 rows of 29. No number moves.
+> * The two false comments claiming `read_municipality` handles the header drift
+>   between `_metros/` and the `_clean` files (§1.208). It raises
+>   `KeyError: 'VOTINGDISTRICT'` on a clean file.
+> * `total_log_median` → `total_log_mean`. **The reader's old-key fallback in
+>   `montecarlo.py` must be deleted at the window.**
+> * MODEL-LOG §1.195–§1.208. §1.205 is a RESERVED placeholder — the T1 rupture
+>   mixture, claimed by a forward reference in §1.201 and not yet written.
+> * **Still in the tree from the first 2026-09-08 pass** (this banner replaces
+>   that one; nothing it listed has been reverted):
+>   `tests/test_pool_conservation.py::test_every_seeded_party_belongs_to_a_pool`
+>   — green, 165 seeded parties across 8 of 25 specs; §L6 rewritten (two
+>   effective observations, the constant 2.8% is an ex-post fit);
+>   `DATA-QUALITY.md` item 11 given the count-outranks-census rule at the top;
+>   **§L11 marked SUPERSEDED** — its evidence table spans two modules.
+>
+> ### ⛔ THE EMIT WINDOW IS TAKEN. 27 SPECS, ONE KEY, BASELINE RE-TAKEN.
+>
+>     specs        26 -> 27  (tshwane/pools_2026.json, first ever emit)
+>     pools_sha    86995c914b530216 schema 1 -> 843229dbe414b6b9 schema 2
+>     archived     archive/pools-postbatch-2026-09-08/   (saved FIRST, per R0b)
+>
+>     ⛔ BASELINE — THE FIRST WRITE-UP OF THIS WAS WRONG. See §1.214/§1.215.
+>     "707 -> 706, essentially flat" compared the pre-batch COHERENT figure
+>     against the post-batch MARGINAL one. Like for like, 24 city-years:
+>       seat_abs_err            689 -> 706     (+17)
+>       seat_abs_err_coherent   707 -> 745     (+38)   <- the headline Key 1 uses
+>       CRPS                 539.41 -> 548.05  (+8.64)
+>       margin over uniform swing (coherent)  20.1% -> 15.8%
+>     WORSE ON ALL THREE. Found by all three blind reviewers independently.
+>       by cycle    2011 seat 294 / CRPS 208.23
+>                   2016 seat 129 / CRPS 115.04
+>                   2021 seat 283 / CRPS 224.78
+>       coherent 745 | energy 233.93 | variogram 15.04
+>       arrival referee LIVE on 23 of 24: mass_pit mean 0.583, 0 outside support
+>
+> ⛔ **AND ATTRIBUTION WAS NOT GONE — 2011 IS A NATURAL CONTROL.** 0 of its 8
+> specs carry any arrival-path change (§1.211), so its delta prices everything
+> EXCEPT arrivals. It is **exactly zero** on coherent seats and +0.41 CRPS:
+>
+>     cycle              coherent            CRPS              columns
+>     2011 (control)   329 -> 329  (+0)   207.82 -> 208.23   98  -> 98
+>     2016 (ON)        124 -> 156 (+32)   108.14 -> 115.04   114 -> 175
+>     2021             254 -> 260  (+6)   223.45 -> 224.78   316 -> 316
+>
+> **The entire regression is the arrival channel.** The turnout band, the
+> winsorisation and the `_nnls` bound cost ZERO seats where only they applied.
+>
+> ⚠️ **The CRPS rise is denominator drift, not worse forecasting**: scored
+> columns 528 -> 589 (+11.6%, all at 2016) while CRPS **per column** improved
+> 1.0216 -> 0.9305 (−8.9%). Do not quote the CRPS pair until it is re-scored on
+> a fixed universe. **`seat_abs_err_coherent` is immune to this** — it
+> apportions a fixed council — so **+38 is the real damage and the number to act
+> on.** §1.215.
+>
+> ### Suite on the settled post-emit tree: 452 passed / 8 failed / 17 skipped
+>
+> Was 451/5/17. ⚠️ **The register failure was fixed after that run and its module
+> re-runs 8/8, so the tree stands at 453/7/17 by module arithmetic — NOT a suite
+> run, and not to be reported as one.** **The artefact-key failure is FIXED by the emit.** Three of the
+> old five stand (Mangaung's degenerate pool and the DA composition
+> infeasibility — both live, both pre-existing; plus the freeze's env switches),
+> and the ITERATING rule-8 one is now precise: *rule 8 says n = 63, history.json
+> says 72*. **Four are new, and none is a regression:**
+>
+> * **`test_drawer`'s two recorded marginals** — the tripwire firing on the
+>   emit. DA mean −0.5393pp at Johannesburg 2026, ANC +0.0454, EFF +0.1417.
+>   ⛔ **NOT re-recorded.** `.venv/bin/python tests/test_drawer.py --record` is
+>   the command and it is deliberately unrun — a silent re-record destroys the
+>   only guard on the prior, so it goes with the owner's read of the baseline.
+> * **`test_every_symbol_the_register_names_exists`** — the guard caught my own
+>   deletion of `total_log_median` the same day. **Fixed**: it is in the test's
+>   `DELETED` table now, so the absence is a decision. Module green 8/8.
+> * **`test_the_relabel_ablation_actually_withholds_the_label`** — Mangaung 2016
+>   scores **7.5149 with the label and 7.5149 without**. The switch is not inert;
+>   the label is worth *zero* there, because that spec went from `seeds = {}` to
+>   four NAMED seeds and the generic-entrant relabel has nothing to move.
+>   `ITERATING.md`'s "11.52 CRPS / 2.17 points" is struck as stale in the same
+>   commit. **The test is NOT patched to pass** — re-measure which city-years
+>   still carry a live label, and the label's worth on 24, first. §1.213.
+>
+> ### What is still open
+>
+> 1. ⛔ **THE FREEZE IS NOT TAKEN.** `freeze.py` records `git_dirty` and the tree
+>    carries the whole batch uncommitted. It waits on a commit — the owner's
+>    call. Do not take it on a moving tree.
+> 2. The **placebo emit** is still unrun, and now costs its own window. What
+>    partly replaces it is done: the batch is localised by cycle and channel
+>    (§1.211).
+> 3. The **pollster SIGHTED check** against the R-1 decision.
+> 4. `measure_pool_ratios` has **no caller** (§1.210) — kept, flagged, not
+>    deleted. An owner decision.
+>
+> **What is decided and NOT built:** the T1 rupture mixture (§1.205) — intact
+> θ = 1.0, rupture θ ≈ 0.16 at p = 0.25, on `spine`'s *national only* route.
+> Buildable entirely in `montecarlo.py`, which is not in `_EMIT_DEPENDENCIES`,
+> so it invalidates no specs and is not part of this batch. Pre-register the
+> seat effect before writing it.
+>
+> **What is refused, with numbers:** the turnout normalisation of the arrival
+> record (§1.203, confirmed §1.204 on 8,822 VDs); the per-party turnout lever
+> (the DA is reliable when turnout falls and marginal when it rises — no stable
+> propensity can be both); the entrant-count budget covariate (§1.200 — it lost
+> on the population the budget is actually spent over).
 
 > ## ⛔ READ THIS FIRST — the state below is from 2026-08-29 and the tree has moved a long way since
 >
