@@ -23911,3 +23911,355 @@ two days after — said the opposite. Nothing re-read it because nothing had to.
   behind a party that could hold the balance of a 270-seat council. The poll
   channel was built for exactly this case. **This is the largest unevidenced
   quantity in the live forecast** and it is a judgement call, not a measurement.
+
+## 1.227 A stage trace of both targets, and §1.226's account of MK is wrong (2026-09-12)
+
+Four read-only agents were given `--run-dir` traces of Johannesburg **2021** (a
+scoreable past election) and **2026** (the live forecast), one segment each, and
+asked the same three questions of every stage: what went in, what came out, and
+which mechanism fired versus did not — with the gate named for each that did
+not. §1.225's decomposition came out of the same discipline. This is the result,
+and it opens with a correction to the entry above.
+
+### ⛔ CORRECTION TO §1.226 — MK's level does NOT come from `plan_bounds`
+
+§1.226 says: *"with the channel off its level comes from `plan_bounds.MK =
+[0.3, 1.0]` in `cities/joburg.toml` — a hand-typed 3.3× range, now the only
+thing standing behind a party that could hold the balance."* **That is wrong,
+and it was asserted from reading the config rather than the run.**
+
+Measured from the trace: `plan_bounds` appears in `_constants_read` at
+**neither** target. `PLAN_BOUNDS` is consulted only in the `else` of `if party
+in prior` — the by-election clamp's fallback for a party with **no θ band** —
+and every party reaching that clamp has one. MK's actual route, verbatim from
+`30_centres.route_notes` at 2026:
+
+    MK -> spine level 11.3% → 11.0% (by-elections imply 10.6%,
+          ward delta +10.58% additive, 8 contests sd 9.1%, w_bye 0.4)
+
+So MK's centre is **the spine** — the 2024 national baseline carried across by
+retention — blended with **eight by-election contests** at `w_bye = 0.4`. Not a
+hand-typed band. The by-election evidence is real votes, which is better
+evidence than the entry credited the model with.
+
+**The true finding is different, and worse.** What bounds MK is the θ band
+`exp(±1.2816·sd)` = **[9.3%, 13.7%]**, and MK's `sd` is **0.1500 — `SD_FLOOR`,
+the narrowest width this model can express — on ZERO θ observations.**
+
+### ⛔ THE DISPERSION FIT HAS NO EVIDENCE TERM, AND IT IS LOAD-BEARING AT 2026
+
+`sd` is fitted as a function of party **size** alone. Nothing in it counts how
+many transitions of record a party has. The consequence, at 2026:
+
+| party | θ observations (`worth`) | `sd` | band |
+|---|---|---|---|
+| MK | **0** | **0.1500** (at the floor) | ±1.2816σ → [0.824, 1.214] |
+| ASA | **0** | **0.1730** | ×1.2482 |
+| IFP | 15.66 | 0.2407 | ×1.3613 |
+
+**A party with no record at all is given a NARROWER band than a party with
+fifteen transitions of it.** That is backwards, and it is not cosmetic: at 2026
+the θ band is what clamps the by-election channel, and it bound four parties —
+
+    ASA  spine 13.5%, by-elections imply 18.8%, CLAMPED to 16.8%   (−2.0pp)
+    PA   spine  6.4%, imply 22.2%,              CLAMPED to  8.4%
+    IFP  spine  1.3%, imply  2.5%,              CLAMPED to  1.8%
+    AIC  spine  0.3%, imply −0.5%,              CLAMPED to  0.2%
+
+So **ActionSA's 2026 level is cut by 2 points by a width whose only input is
+that ActionSA is about 6% of the national vote.** The width that decides how
+much real by-election evidence a party is allowed carries no term for how much
+is known about that party. ⚠️ **Unscoreable where it acts**: at 2021
+`route_notes` is empty — the by-election window is 2022-06 to 2026-02, so no
+backtestable target enters the clamp at all.
+
+### The arrival machinery is DEAD at 2026, and the trace does not say so
+
+| | `pools_2021.json` | `pools_2026.json` |
+|---|---|---|
+| seeded arrivals | **32** | **0** |
+| `seeded_arrival_mass` | **8.484%** of the city | **0.0** |
+| `arrival_group` | α=9.758, 21 metro-years | **`null`** |
+
+Cross-checked in the trace: the set of parties reaching a centre but absent from
+the θ prior is exactly 32 at 2021 and **empty** at 2026. So the splinter and
+arrival machinery — the part of this model that sizes a new party from the
+record of 22 measured metro splinter cases — carries 8.5% of the vote at the
+target we can score and **nothing at all** at the target we publish. The only
+arrival mechanism live at 2026 is the generic `entrant_prob = 0.25` /
+`entrant_share = [0.01, 0.04, 0.12]`.
+
+This is defensible per party — ActionSA has a 2021 local result now, BOSA and
+RISE have 2024 national votes — but it means the backtest exercises a path for a
+tenth of the vote that the live forecast does not, and **`02_pools_artefact`
+traces four fields while six scenario keys are mutated**, so a reader of the
+trace cannot see it.
+
+### The θ prior's mode is consumed by nothing, at either target
+
+`blended_centres` routes poll → seeded → spine → θ-mode. At 2021 every one of
+55 parties reaching a centre is covered by the spine (65 reached) or a seed
+(32); at 2026 all 44 are covered by the spine (76 reached). **The θ-mode branch
+fires for zero parties at both targets.** The prior's *mode* is therefore dead
+as a level; only its `sd` is consumed — and the `sd` is the quantity with no
+evidence term.
+
+`SD_CEILING` is inert on the same evidence: it binds below 0.0015% of the vote,
+reachable only by the `max(size, 1e-5)` substitution for a zero-baseline party,
+and the set of ceiling-clamped entries (21 of 44 at 2021, 35 of 79 at 2026) is
+**exactly** the set that never reaches a centre. It is an attractor acting only
+on rows that are discarded.
+
+### ⛔ ELEVEN LEVERS ARE SILENTLY OVERRIDDEN BY `cities/joburg.toml`
+
+`apply_city` resets `DEFAULTS` to `_PRISTINE_DEFAULTS` and then overwrites it
+from `[judgements.scalars]`: `w_bye`, `turnout_pattern_blend`,
+`turnout_blend_jitter`, `turnout_noise_sd`, `entrant_prob`, `entrant_share`,
+`ward_noise_sd`, `level_floor`, `overhang_rule`, `draws`, `seed`. **Every one of
+those toml values is numerically identical to the default**, so the override is
+invisible in any diff — and **editing `montecarlo.DEFAULTS["w_bye"]` would not
+change the Johannesburg forecast**, because the toml puts 0.4 back. Nothing in
+the run or the trace says so. Same class as the `pa_contestation_uplift` case
+already on record.
+
+### What the trace itself cannot show, which is a finding about the instrument
+
+* **`_index.json` is byte-identical between a backtested target and the live
+  forecast.** `Trace.close` writes `delivered` as a flat sorted list, discarding
+  the `kind` field that carries all the evidential weight. Of 53 delivered
+  names, **12 are `consulted`** (reached the computation) and **41 are
+  `resolved` only** (crossed the process boundary, no reader) — including all
+  fifteen `polling.*` constants, which `poll_paths="off"` guarantees were not
+  read. The summary the code writes for itself invites exactly the reading
+  `note_value`'s docstring forbids.
+* **`theta_prior` returns an `absorption` block built for this audit —
+  `sd_route`, `at_ceiling`, the shrink shares — and `montecarlo.py` traces none
+  of it**, hand-rolling a weaker `at_the_floor` instead. `20_spine` traces its
+  own absorption block; the θ stage does not. One line fixes it.
+* **`00_target` records no file path**, so the largest difference between the
+  two runs — 2026 has no result file, hence no ballot roster, hence 27 of 44
+  live parties on a fallback θ and no contestation reading — is invisible.
+
+### `montecarlo.PLAN_BOUNDS` is a dead-code candidate
+
+Three readers: the clamp fallback that never fires (above), a violation counter
+that is printed and never read (`JUDGEMENT-CALLS §A20` says so in terms), and
+the site payload. On this city, at both targets, it moved no number.
+**Confirmed for these runs; not proved dead in general** — the clamp fallback is
+live for any party reaching it with no θ band, which is a real data state
+elsewhere in the panel. What would settle it: rebind to `{}` and check
+`40_draws` for byte-identity. `MODULE_PERTURB` sweeps **5 of the 47** declared
+module constants and this is not one of them. `JUDGEMENT-CALLS §H5` states the
+clamp as live mechanism, and at Johannesburg it is not.
+
+### Minor, flagged
+
+`levels.METRO_CODES` and `pools.METRO_CODES` are two tuples of the same eight
+metros in **different order** (CPT/EKU swapped), both delivered as separate
+constants. Same set, so no number moves today — but `theta_record` accumulates
+in code order, so they are not interchangeable at float level, and it is a
+duplicated definition under the one-definition rule.
+
+### The draw machinery and the guards — the fourth segment
+
+**⛔ OVERHANG AT 2026 IS A KNIFE-EDGE, AND IT DECIDES TWO DRAWS IN THREE.**
+
+    excessive_draws   2021:  23 / 400 =  5.75%      2026: 268 / 400 = 67.0%
+    of which ANC      2021:  11 (2.75%)             2026: 244 (61.0%)
+
+The cause is arithmetic and worth stating exactly. The ANC's ward dominance is
+sticky while its PR entitlement is not:
+
+| | entitlement | ward wins per draw | cushion |
+|---|---|---|---|
+| 2021 | 0.390 × 270 ≈ **105.3** | ≈ **84.6** | ~20 seats |
+| 2026 | 0.227 × 270 ≈ **61.4** | ≈ **61.8** | **≈ half a seat** |
+
+The ANC's PR share has almost halved since 2021 while its first-past-the-post
+ward count has fallen only 27%, so at 2026 it sits **exactly on the trigger**.
+This project's standing claim is that overhang is the ONLY route by which ward
+geography reaches the seat count (`NULL-RESULTS.md`). At 2026 that route is open
+in two draws out of three, and **the ANC's seat total is set by its ward wins
+rather than its PR entitlement in 61% of the live forecast**. At 2021 it is
+essentially shut. ⚠️ **The two targets are not testing the same machinery at the
+same operating point** — which bears on every backtest-derived claim about the
+geography layer.
+
+**⛔ THE DA IS DRAWN SYSTEMATICALLY LOW, AT BOTH TARGETS, AND NOTHING COUNTS IT.**
+
+Centre-to-drawn-mean gap, against a Monte-Carlo standard error of ~0.25pp:
+
+    DA   2021  −0.71pp (≈2.8 se)      2026  −1.19pp
+                                       (−0.83pp ≈ 3.3 se after the ENTRANT
+                                        channel's 0.36pp rescaling)
+
+ANC, EFF and MK are all within ~1.3 se — no finding. The small-party tail runs
+**high**: at 2026 thirteen parties outside the IPF hold 0.612pp of centre mass
+and draw 0.777pp, **+27%**.
+
+**The mechanism is the `sd` floor from the segment above, compounding.**
+`log_shock` is median-1 and `exp(t₇)` has no finite mean, so after
+renormalisation parties with above-average `sd(log θ)` gain mass and parties at
+`SD_FLOOR = 0.15` lose it. ANC, DA — and at 2026 EFF and MK — are all pinned at
+the floor while the median party sits at 0.63–0.67. The DA loses most because it
+is second-largest with a floored sd. **So the missing evidence term in the
+dispersion fit does not merely mis-state a width: it moves the drawn centre of
+the second-largest party by about a point.** No counter records it.
+
+**The capacity machinery CANNOT FIRE, and its comments describe a reverted
+formula.** `ipf_clipped = {}`, `cap_moved = 0.0`, `cap_undershoots = 0` at both
+targets — but these are CANNOT-FIRE, not clean bills of health. Max headroom is
+**ANC 0.393 (2021) / DA 0.275 (2026)**; the smallest shock that could clip is
+**×2.54**, against `sd(log θ) = 0.15` — beyond 9σ. Meanwhile the comment block on
+`capped_targets` still carries *"firing in 39.2% of draws"* and
+`partial_balance`'s docstring still cites *"the PA at 102% of the Coloured
+pool"* — both measured under the tighter ceiling that was reverted as "A
+DISASTER" a few lines above. **As shipped, the redistribution rule those numbers
+justify never fires**, and the judgement recorded about where displaced mass
+should go is moot.
+
+✅ **`ipf_failures = 0` is the cleanest counter in the model** — genuinely LIVE
+BUT SILENT, with its population proved non-empty by `ipf_balances = 400`. It read
+42.7% before 2026-08-17.
+
+**⛔ `bounds_violations` IS SATURATED AND CANNOT MEAN WHAT IT LOOKS LIKE.** It
+fires on 17–52% of draws at both targets, and it must: the §3.5 bands are
+**narrower than the model's own drawn uncertainty**. The ANC's band is ±16%
+around its centre; its drawn 90% interval is −47%/+56%. A ~50% violation rate is
+what a correctly-functioning model produces against a band that tight, so the
+guard cannot distinguish "the draw machinery went wrong" from "the model is
+honestly uncertain". Three consequences:
+
+1. **`bounds_checked` counts DRAWS, not party-checks** — 400, where the
+   population actually scanned is 1 600 (2021) and 2 800 (2026) party-checks.
+   Empty `PLAN_BOUNDS`, or an eligibility filter that excluded everyone, would
+   report identically to a clean run. **This fails part 0 of `CLAUDE.md` §4's
+   own four-part rule** — state the population and assert it equals what was
+   scanned. One line fixes it.
+2. **Two centres sit at or past their own band edge, and the guard reports a
+   per-draw rate instead of saying so.** The **PA's centre implies a retention
+   ratio of 2.308 against a tolerance ceiling of 2.31**; the DA's centre ratio is
+   1.070 against a lower tolerance of 0.9975.
+3. **The `base_city > 0.005` filter silences the guard exactly where it would
+   bite.** At 2021 the PA's centre implies **2.727 against a band top of 2.31** —
+   genuinely out of band — and the check is skipped because its 2019 baseline was
+   0.000295.
+
+**And one self-reference:** at 2021 ASA is seeded, so `base_city[ASA]` **equals
+its own `before_shrink` centre** to the digit. The "raw national-to-local
+retention ratio" being range-checked for ASA is therefore *drawn share ÷ the
+model's own centre* — not a retention ratio at all. It violates on 46.8% of
+draws and the number means nothing.
+
+**Turnout has no counter anywhere.** No stage records the drawn turnout, the
+per-draw blend, or whether the clip bound. Derived analytically from the two
+`turnout.csv` files: the **ceiling (0.95) binds on roughly 66–216 VD-draws per
+target** (~0.05% of VD-draws, concentrated on 1–6 very high-turnout VDs) and the
+**floor (0.02) is ≈18σ away and cannot fire**. `TURNOUT_DRAW_FLOOR` is
+simultaneously uncounted, unreachable, and swept for liveness nowhere.
+
+**Smaller, and each real:**
+
+* `solve_nonconvergent_reachable` was added as the informative alternative to
+  `solve_nonconvergent` and is **also 100%** at both targets; the refinement buys
+  nothing here. The usable statistic is `solve_worst_gap` — 1.6e-05, i.e.
+  0.0016pp.
+* The early `break` in the solver **never fired once in 800 solves** at either
+  target (`solve_rounds` is exactly 40 × `solve_calls`).
+* **An uncounted clip that actually bound:** at 2021 the AIC's realised ward/PR
+  ratio is **0.50004 — pinned to `WARD_PR_RATIO_MIN`**. `ratio` is not in the
+  trace and no counter records rail hits; it was found by dividing two traced
+  vectors.
+* `main` prints `cap_moved` as a percentage while the per-draw call site passes
+  **votes** — a latent unit bug, invisible only because it is 0.0.
+* At 2026, `IND` holds 0.000455 of centre mass and is dropped from the drawn
+  universe; 0.04pp disappears into the renormalisation with nothing counting it.
+* **2026 draws an `ENTRANT` at 1.34pp mean / 3.40 seats and 2021 has no ENTRANT
+  column at all.** Checked against `entrant_prob × E[triangular] = 0.01417` —
+  agrees. So **the backtest does not exercise the entrant channel the live
+  forecast depends on**, in either direction.
+
+### The level layer — and ActionSA 2021 was under-sized by a median of TWO numbers
+
+**⛔ `f_mid = 0.2041` IS THE WHOLE OF THE ACTIONSA MISS, AND IT IS A MEDIAN OF
+TWO OBSERVATIONS.**
+
+The seed note says *"20.4% … measured, median over 22 splinter-metro cases"*.
+**The 22 cases attach to the 0.35/0.65 blend, NOT to the fraction.** `f_mid` is
+`np.median` of the *home-city* splinter record, which at 2021 is exactly two
+numbers — `splinter_home = {GOOD: 0.0558, NFP: 0.3524}` — whose median is
+0.2041. Reading the note as "20.4% is backed by 22 cases" is wrong, and the
+sentence invites it.
+
+The chain, reconstructed from the trace and `pools_2021.json`:
+
+    base_city[ASA] = seed = f_mid x 0.33515 (the DA's mix-weighted pool rate)
+                          = 0.0684031
+    centre         = seed x band[1]=1.0    -> 6.8403%
+    after shrink   -> 7.5199%  -> normalised 6.733%
+    drawn          mean 6.454%, p5 2.68%, p95 11.32%
+    ACTUAL                                            18.12%
+
+**Solving on the stage's own arithmetic, ActionSA needed `f_mid ≈ 0.61–0.70`.**
+And `pools.py`'s own docstring records ActionSA's realised home fraction as
+**0.611**. So the mechanism was right and the parameter was not: a two-point
+median could not supply the number the election went on to produce.
+
+⚠️ **`f_mid` is INVARIANT to the 0.35/0.65 mix.** `scale` renormalises the city
+half onto the parent's footing, so `blended · mix = parent_rate · mix` for any α.
+**α sets the splinter's GEOGRAPHY, not its size.** Anyone tuning the mix to fix
+the level is tuning the wrong number.
+
+**⛔ AND I WAS WRONG ABOUT THE BAND.** I said earlier in this session that the
+2.7%–100% band "permitted" 18.12%, so only the central case was at fault. **The
+band is not consumed at all.** `blended_centres` reads only `band[1]`, and
+`make_drawer` skips every pool member before it looks a seed band up — all 32
+seeded arrivals are pool members. §1.198 already measured this: replacing every
+seeded band with `[0.001, 1.0, 50.0]` leaves the draws **byte-identical**. So
+ActionSA's 2021 forecast had no width contribution from its band whatsoever;
+**the point estimate was the entire forecast**, and p95 of 11.32% came from the
+pool Dirichlet alone.
+
+**Nothing debits the parent.** The 32 seeds' 8.484% is *added* to `base_city`
+and the dilution is spread proportionally over all 55 parties at normalisation.
+Seeding ActionSA cost the **ANC 2.51pp** of normalised centre and the **DA
+2.18pp** — a split *from the DA* took more level off the ANC than off the DA.
+
+### ⛔ THE SPINE USES THE FLAT θ CENTRE FOR RECORDLESS PARTIES, AND IT IS CONSUMED
+
+`_shrunk` fits `size_centre` and the trace reports `theta_shrink.target =
+"size_centre"` — but `spine` then writes `mu_t.get(party, c_t)` where `c_t` is
+`mu_all`, **the flat reliability-weighted geometric mean**. So every party with
+no θ record of its own bypasses the size-aware fit, while the absorption block
+says otherwise. 27 parties at 2026, 40 at 2021.
+
+**§1.49 converted `theta_prior` away from exactly this flat centre**, on the
+argument that *"a common centre hands every party the same retention, when the
+record says small parties GAIN and large ones lose"* — and that change was
+justified as number-neutral **because its mode is not consumed**. The spine's
+copy **is** consumed. This is the one-definition rule paying out again, and the
+sign is the worst possible:
+
+| party | flat centre (used) | size-aware (the model's own fit) | error |
+|---|---|---|---|
+| **MK 2026** | **11.309%** | 9.931% | **+13.9%** |
+| BOSA 2026 | — | — | −8.3% |
+| ARISE / DUDULA / BIG / AAR 2026 | — | — | −21% to −29% |
+| GOOD / ATM / BLF / NFP 2021 | — | — | −11% to −16% |
+
+**It inflates the one large recordless party and deflates every small one** —
+precisely the direction the model is already documented as being wrong in (over
+the top of the ballot, under the middle). MK is the third-largest party in the
+live forecast and this puts it **+13.9% high** before anything else runs. The
+same `mu_all` fallback governs ρ for 35 parties at 2026, ActionSA among them;
+the trace does not record what a size-aware ρ centre would have been, so that
+one is unquantified.
+
+**Also in this segment:** `30_centres` does not record which of its four routes
+set a party's centre unless that party was also by-election-tilted — at 2021
+`route_notes` is `{}`, so the file cannot say ASA took the seeded route. The
+ActionSA chain above required opening the pools artefact. Adding `route`
+unconditionally is text-only and closes it. And the spine publishes a level for
+all 33 seeded parties that nothing reads and that differs from the centre by a
+fixed 1/θ = 1.1695× — a reader quoting `20_spine` for ActionSA gets 5.85% where
+the model used 6.84%.

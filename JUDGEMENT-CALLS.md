@@ -297,7 +297,28 @@ These have no measurement behind them. They are the ones to attack first.
 
 **Where.** `montecarlo`, `polling`, and the whole `EXPECTED_INERT` list
 
-**Now.** Still true, and still the strongest criticism available to a reviewer: one house (SRF/Victory Research) decides the Johannesburg headline, now through the σ arithmetic rather than a cap.
+**Now.** ⛔ **AMENDED 2026-09-12 — THE "ONE HOUSE DECIDES THE HEADLINE" CLAIM
+IS RETIRED. NO POLL REACHES THE FORECAST AT ALL** (`poll_paths="off"`, §A8,
+MODEL-LOG §1.225). Confirmed against a `--run-dir` trace of both targets: neither
+`poll_level` (arrivals) nor `metro_poll` (metro blend) appears in
+`_constants_read` at 2021 or 2026, so the poll levers are now unscoreable at
+NEITHER target rather than at 2026 only.
+
+**The criticism is REDUCED, NOT ANSWERED, and this entry stays 🔴.** The live
+forecast still runs machinery no backtest row can score, and the same trace
+names what is left: the **by-election channel** (`w_bye`, `bye_weight_mode`,
+`BYE_MIN_WEIGHT`, and the ward-local variants — `byelection_party_deltas.csv`
+exists only at 2026, and `30_centres.route_notes` carries nine parties at 2026
+against **zero** at 2021), **`contestation_expand`** via
+`levels.projected_contestation`, the **generic `ENTRANT` slot** and its three
+levers, and `GAMMA_FOLD`'s 2026 entry. So the count went from three such
+channels to two, and the largest single block — the seven poll levers — is gone.
+
+⚠️ **This "Now." line said the opposite for the first hours of 2026-09-12**,
+after the summary table row above had already been corrected. `CLAUDE.md` §2
+requires the record to change in the same commit as the model; the table moved
+and the prose did not, which is the same one-copy-updated failure the file
+warns about. Found by a trace audit, not by a test — nothing checks this line.
 
 **Record.** **MEASURED 2026-08-22 (§1.69), and it is the strongest criticism available to a reviewer.** The headline "254 coherent against uniform swing's 376" is scored on a configuration the live forecast does not run, in both directions. **What 2026 GAINS that no past target can score:** `w_bye` (the by-election window is 2022-06 to 2026-02, so no backtested target has any), `contestation_expand` (superseded by real nomination lists wherever a result file exists), and all six poll levers (the register holds no metro poll of Johannesburg declared for 2021). **What 2026 LOSES:** the arrivals poll path, worth **48 coherent seats** (§1.65) — see the row above. And the magnitude is not small. Johannesburg 2026 at `poll_paths` off against all, 600 draws: **DA 65 → 78 seats, ANC 68 → 63, ASA 31 → 25 — and the lead FLIPS**, from ANC-largest to DA-largest. `H_eff` still prints as **1.0** — the two admitted Johannesburg polls are both SRF/Victory Research — but **there is no longer a cap to sit on** (2026-08-24, §1.91). The influence is now set by the σ arithmetic and not by `poll_house_k`, which is the reverse of what this row said for a day. Measured on the shipped register at target date: DA σ **5.057pp** against a floor of **4.595pp**, ANC 4.922pp, MK 4.794, ASA 4.772, EFF 4.720. MEASURED on the settled tree (`tests/test_drawer.py`, re-recorded 2026-08-24): the DA's blend weight is now **0.484 by arithmetic** where the cap used to pin it at exactly 0.500, and the 2026 forecast moves by about a seat — **DA 79 → 78, ANC 63 → 64, ASA 24 → 25**. So the dependence on one house is essentially UNCHANGED in magnitude; what changed is that it is now set by the σ arithmetic and can be argued with, rather than by a typed constant. The 65 → 78 / 68 → 63 poll-on-vs-off figures below therefore still stand to within a seat. One house, two waves, decides the headline. Quote this beside the 254 wherever the 254 is quoted; it is not a defect to be fixed but a dependence to be disclosed
 
