@@ -2342,8 +2342,15 @@ def _citywide_for(code: str, year: str) -> dict[str, float]:
     """One metro-year's citywide PR shares, from whichever reader can serve it.
 
     Exactly equivalent to ``metro_citywide(code, year) or
-    _npe_citywide_for(code, year)``, which is what it replaces at all eight
-    sites. The only addition is the tally.
+    _npe_citywide_for(code, year)``, which is what it replaces at every site
+    that needs a metro-year's citywide shares. The only addition is the tally.
+
+    No count is given here on purpose. This docstring said "all eight sites"
+    while there were nine, and POOLS-REEMIT-QUEUE cited the pre-refactor
+    token ``or _npe_citywide_for`` as the proof that the change had landed --
+    a string that survives in this file only inside a comment, so the queue's
+    own grep returned 1 and read as "not landed" on the eve of an
+    irreversible emit. Count this helper's own call sites instead.
     """
     served = metro_citywide(code, year)
     how = "metro"

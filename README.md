@@ -5,15 +5,17 @@ A voting-district-level model of the City of Johannesburg council election on
 the statutory seat formula including overhang, and full enumeration of the
 coalition arithmetic the result permits.
 
-**It has been scored, on sixteen city-years.** The whole pipeline is run against
-the 2016 *and* 2021 municipal elections in all eight South African metros — each
-fitted only on its own wards, its own roll and its own history — and compared
-with baselines that need no model at all. It wins on coherent seat error against
-uniform swing in most of the sixteen, on both cycles — but **read the per-cycle
-split from the run, not from a number typed here**: eight metros inside one cycle
-share a national swing, so they are not eight independent facts, and the seat
-figures are scored after a relabel that assigns the model's generic newcomer
-column to the largest arrival with the outcome in hand (`ITERATING.md`, Key 1).
+**It is scored against real elections.** The whole pipeline is run against the
+2011, 2016 *and* 2021 municipal elections in all eight South African metros —
+each fitted only on its own wards, its own roll and its own history — and
+compared with baselines that need no model at all. How many city-years that is,
+and how the model fares against uniform swing in each cycle, is **read from the
+run, not from a number typed here**: `compare_history`'s `rows=` token carries
+the population. Two cautions travel with anything it prints — eight metros
+inside one cycle share a national swing, so they are not eight independent
+facts; and the seat figures are scored after a relabel that assigns the model's
+generic newcomer column to the largest arrival with the outcome in hand
+(`ITERATING.md`, Key 1).
 
 Regenerate the full comparison with `.venv/bin/python src/compare_history.py`.
 The 2021 scoring page is `.venv/bin/python src/build_validation.py --target 2021`;

@@ -210,7 +210,35 @@ DEFAULTS: dict = {
     # was to empty `polls.json` — so the one thing nobody had ever done was
     # measure what it is worth. `backtest.FITTED_ON` declares both paths
     # leak-free and neither has ever been scored. MODEL-LOG §1.65.
-    "poll_paths": "all",    # "off" | "arrivals" | "all"
+    #
+    # ⛔ SHIPPED "off" SINCE 2026-09-12 — THE FORECAST USES NO POLL AT ALL.
+    #
+    # The owner's decision, and it is a DESIGN decision, not a score one:
+    #
+    # > we want to be able to incorporate all the polling we receive. And yes,
+    # > it would be a user lever on the site so they can say i trust or dont
+    # > trust this poll and have that affect numbers within the polls range of
+    # > error. But we still need to design how the various polls interact with
+    # > each other properly so for now, pull the polling mechanism out of the
+    # > forecast and we will plan properly how to re-insert it.
+    #
+    # §1.94 had reserved exactly this call to him: a channel measured at −6
+    # coherent seats "has lost the argument that justified keeping it live
+    # where it cannot [be scored] — that is a decision for the owner,
+    # pre-registered before it is taken". Pre-registration:
+    # `prereg/2026-09-12-polls-out-of-the-forecast.md`. Result: §1.225.
+    #
+    # NOTHING IS DELETED. `polling.py`, the register, `screen`, the metro
+    # conversion and every poll judgement call stay exactly where they are and
+    # stay reachable, so `--set poll_paths=all` restores the previous forecast
+    # exactly. Re-insertion is a default change, not a rebuild — which is the
+    # whole reason this is a switch and not a deletion.
+    #
+    # ⛔ DO NOT USE `poll_credence` TO TURN POLLS OFF. It gates the metro blend
+    # ONLY. The arrivals path writes `scenario["poll_levels"]` directly and is
+    # gated by THIS key alone, so `poll_credence=0` leaves the larger of the
+    # two paths fully live — the one §1.65 measured at 48 coherent seats.
+    "poll_paths": "off",    # "off" | "arrivals" | "all"
 
     # HOW MUCH TO BELIEVE THE POLLS, as a continuous dial rather than a switch.
     #
@@ -3474,8 +3502,10 @@ def run_model(target, scenario: dict,
     **Writes nothing unless ``run_dir`` is given**, and then it writes only a
     trace: each stage's output as JSON, so an intermediate can be read instead
     of re-derived by adding a print and running again. The trace never feeds
-    back into the forecast — with ``run_dir`` unset the run is byte-identical
-    to one from before tracing existed, which a test asserts. See :class:`Trace`.
+    back into the forecast — passing a ``run_dir`` leaves every drawn seat and
+    every drawn share exactly where it was, which
+    ``test_chain.py::test_passing_a_run_directory_changes_no_drawn_number``
+    asserts by running the model twice on one seed. See :class:`Trace`.
 
     Every input is resolved from ``target``: the baseline is the NPE preceding
     it, the ward/PR split ratios and the local by-election geography come from

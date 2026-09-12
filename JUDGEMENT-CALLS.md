@@ -13,6 +13,12 @@ Status: 🔴 wants a second opinion · 🟡 defensible, bounded by evidence ·
 🟢 forced by arithmetic or by an identity · ⚪ superseded or resolved ·
 ⚫ deleted or refused
 
+⚠️ **[16-panel] — evidence pinned to a retired panel (flagged 2026-09-11, not
+re-judged).** The backtest panel grew past sixteen city-years on 2026-09-01/02
+(MODEL-LOG §1.160–§1.161). A row tagged **[16-panel]** rests on a measurement
+taken on the sixteen; its figures describe that panel, not today's, and have
+not been re-measured. Tagging changed no value, status or colour.
+
 ## How to read this file
 
 **RESTRUCTURED 2026-08-31. Nothing was re-judged: no value, status marker or
@@ -120,13 +126,13 @@ promotion note in §F.
 | `MIN_SHARE`, `CLAIM_FRACTION`, `F_OTHER` | 0.005, 0.50, 1.30 | — | All three were filed under the wrong module once. `MIN_SHARE` is `gamma_recent.py`'s and is a CLAIM about the model, not reporting; `CLAIM_FRACTION` is `score.py`'s. ⚠ `F_OTHER` is no longer in `src/` at all — see the restructure note beneath. | 🟡 | §F29 |
 | `OVERHANG_DEDUCT_MAX_ROUNDS_SLACK` | 2 | `montecarlo.py` | Derived, not chosen: any value ≥ 1 is equivalent. | 🟢 | §A39 |
 | `OVERHANG_LEVEL_MAX_ROUNDS` | 200 | `montecarlo.py` | 200 rounds. Bounded on ROUNDS deliberately rather than on council size, because a magnitude off the real panel does not transfer to a toy. | 🟡 | §A40 |
-| `NATIONAL_ONLY_FLOOR` | 0.001 | `pools.py` | The national share below which a party with no local record is NOT assumed onto an unheld ballot. Measured over 16 city-years: drops 158 of 226 such candidates for 0.10pp of vote. MK (12.2%) clears it. Owner's decision 2026-09-03; unreachable from any backtest. | 🟢 | §K1 |
+| `NATIONAL_ONLY_FLOOR` | 0.001 | `pools.py` | The national share below which a party with no local record is NOT assumed onto an unheld ballot. **[16-panel]** Measured over 16 city-years: drops 158 of 226 such candidates for 0.10pp of vote. MK (12.2%) clears it. Owner's decision 2026-09-03; unreachable from any backtest. | 🟢 | §K1 |
 | `PRIOR_LOCAL_FLOOR` | 0.001 | `pools.py` | The prior-LOCAL share below which a party with no national vote is not assumed onto an unheld ballot. Drops 112 of 189 such candidates for 0.038pp and ZERO seats. ⚠️ INERT until entry 3 lets a projected roster drive the off-ballot drop. | 🟢 | §K2 |
 | `overhang_rule` | `"deduct"` | `montecarlo.DEFAULTS` | ⚖️ **STATUTE, reclassified 2026-09-02** — Act 3 of 2021 Schedule 1 item 16. NOT a lever and never swept: refused at the `--set` boundary, out of `PERTURB`. Never bound in 24 metro-years; tightest margin 2 seats. | ⚖️ | §H1 |
 | `pa_contestation_uplift` | DELETED 2026-08-18 | — | DELETED 2026-08-18. The branch now falls back to the previous local election's measured contestation for every party, which makes it backtestable. | ⚪ | §F27 |
 | `PAGE_SIZE` | — | — | Pagination. Reporting, not belief. | 🟢 | §F37 |
 | `PARTIAL_BALANCE_PASSES` | 200 | — | 200. A convergence budget that is not a converging sequence, so the number chooses how close to the boundary it gets. | 🟡 | §F12 |
-| `PLAN_BOUNDS` | 7 party ranges | `montecarlo.py` | Present for four of the sixteen panel city-years and absent for twelve, because six of eight metro configs have no `[judgements]` block — which makes the headline seat figure a mixture of two configurations. | 🔴 | §H5 |
+| `PLAN_BOUNDS` | 7 party ranges | `montecarlo.py` | **[16-panel]** Present for four of the sixteen panel city-years and absent for twelve, because six of eight metro configs have no `[judgements]` block — which makes the headline seat figure a mixture of two configurations. | 🔴 | §H5 |
 | `poll_credence` | 1.0 | `montecarlo.DEFAULTS` → the metro-poll blend | Declared at 1.0, which is the identity, so it moves nothing. The value the backtest supports is UNMEASURED — the paired sweep is pre-registered and not run. | 🔴 | §A11 |
 | `poll_deff_subsample` | 1.6 (standalone 1.2) | `montecarlo.DEFAULTS` → `polling.design_effect` | Declared at 1.6 (standalone 1.2) and unmeasured; measurable the day a house publishes its effective base. | 🔴 | §A10 |
 | `poll_half_life_days` | 120.0 | `montecarlo.DEFAULTS`, mirrors `polling.POLL_HALF_… | A real constant since §1.67 and mirrored in `DEFAULTS`, so a sweep can now reach it. Still declared: no SA metro series is long enough to fit it. | 🔴 | §A14 |
@@ -135,7 +141,7 @@ promotion note in §F.
 | `poll_id`, `poll_weight`, `poll_k` | — | `polls.json` | DELETED 2026-08-22. The legacy path bypassed every admission rule in `polling.usable_for` and had never executed. | ⚪ | §F30 |
 | `POLL_K` | — | — | DELETED 2026-08-22 with the legacy poll path. The shape survives as `poll_house_k`. | ⚪ | §F5 |
 | `poll_min_n` | 300 | `polling.screen` | Declared at 300 and settable. Note it runs ahead of every scope test, so it also gates the national polls that drive the arrivals path. | 🔴 | §A16 |
-| `poll_paths` | "all" | `montecarlo.py`, gates both live poll paths | Ships "all". On sixteen city-years the channel is worth −6 coherent seats — turning it off is better on seats and on CRPS. The 48-seat figure is RETRACTED. | 🟢 | §A8 |
+| `poll_paths` | **"off"** | `montecarlo.py`, gates both live poll paths | **SHIPS "off" SINCE 2026-09-12 — the forecast uses no poll at all.** The owner's decision, on design grounds; see §A8 and MODEL-LOG §1.225. Measured on 24 city-years: removing the channel moves coherent seat error 725 → 723 and CRPS 545.8 → 541.4, i.e. **not distinguishable from zero**. Every other poll lever below is inert by configuration while this stands. | 🟢 | §A8 |
 | `POLL_RMS_ERROR` | ~~0.030~~ | — | DELETED 2026-08-28. Read by nothing; the constant the tests assert against is its neighbour `POLL_RMS_ERROR_2016`. | ⚫ deleted | §F2 |
 | `poll_screen_sd`, `poll_drift_per_root_day`, `POLL_MIN_N` | 0.020 · 0.0010 · 300 | `montecarlo.DEFAULTS` → `polling.py` (`POLL_MIN_N`… | All three declared, none measured. The drift rate is fittable from the campaign's waves — pre-register that fit before running it. | 🔴 | §A13 |
 | `polling_lean`, `polling_span` | — | DELETED, and this row said "still wired" for days… | DELETED. This row said "still wired" for days after they were gone, which is why the register → code guard exists. | ⚪ | §F26 |
@@ -190,7 +196,7 @@ easiest kind to lose, because nothing can grep for them.
 |---|---|---|---|---|
 | the θ record pools a collapse, a split and a merger | `levels.theta_record` | Not implemented. The 2009→2011 transition is still pooled into θ; a structural-event filter is the proposed instrument and the decision is the owner's. | 🔴 | §A2 |
 | retiring the generic entrant at nomination close | `montecarlo`, `cities/joburg.toml` | OPEN GAP. A one-off decision to be taken when the lists close on 16 September — explicitly NOT to be automated. Task A4. | 🔴 | §A4 |
-| the published 2026 forecast is not the backtested configuration | `montecarlo`, `polling`, and the whole `EXPECTED_I… | Still true, and still the strongest criticism available to a reviewer: one house (SRF/Victory Research) decides the Johannesburg headline, now through the σ arithmetic rather than a cap. | 🔴 | §A7 |
+| the published 2026 forecast is not the backtested configuration | `montecarlo`, `polling`, and the whole `EXPECTED_I… | **AMENDED 2026-09-12.** No house decides the headline any more — the poll channel is OFF (§A8, MODEL-LOG §1.225). The criticism is REDUCED, not answered: the live forecast still runs `w_bye` and `contestation_expand`, which no backtest row can score, so it went from three unscoreable channels to two. Measured effect of the switch on the headline: DA 79 → 68, and the largest-party call becomes a **dead heat** (ANC 47.3% / DA 47.0%) rather than DA 71.4%. §1.226. | 🔴 | §A7 |
 | σ_poll, decomposed (`POLL_HOUSE_SD` and the calibration trio) | `polling.poll_sd` / `aggregate_sd` | The flat `POLL_RMS_ERROR` form is retired; the live sum is `polling._sigma_total` and `POLL_HOUSE_SD` survives only as the `n_eff == 0` fallback. | 🟡 | §A9 |
 | the derivedness budget | `ITERATING.md`, "the only question" | Declared at 12 coherent seats and never topped up. Governance, not a code lever; it deliberately has no symbol in `src/`. | 🔴 | §A15 |
 | how unplaced votes are spread over a party's zeroed pool cells | `pools.balance_within_bounds` | Pool-size proportional, and there is no constant in it — the quantity is derived. Argued, not tested: no backtest can separate the three candidate rules. | 🟡 | §A19 |
@@ -297,17 +303,64 @@ These have no measurement behind them. They are the ones to attack first.
 
 ⚠️ **Restructure note, 2026-08-31 — flagged, not resolved.** This entry quotes the arrivals poll path as *"worth **48 coherent seats**"* and points at "the row above". §A8 retracts that number in terms — *"The 48 must not be quoted; it was, twice"* — and measures the whole channel at **−6** coherent seats on sixteen city-years. The two entries have contradicted each other since 2026-08-25 and the later one says so. Nothing here reconciles them: which figure is right is a judgement, and it changes what a reader believes about the published forecast.
 
-### §A8 · `poll_paths` — "all" — 🟢
+✅ **RECONCILED 2026-09-12 (§1.225), and neither figure survives as stated.** The
+24-row panel decomposes the channel EXACTLY, because the two paths fire on
+disjoint city-years — the register holds no admissible metro poll for 2021, and
+the 2016 national poll names only ANC/DA/EFF, every one of which has a baseline,
+so arrivals cannot fire at 2016:
+
+| path | rows it acts on | Δ seats (off − on) | Δ CRPS |
+|---|---|---|---|
+| metro blend | the three 2016 metro-poll cities | **−4** | −1.74 |
+| arrivals | the four 2021 ActionSA metros | **+2** | −2.72 |
+
+So the arrivals path is worth **+2 coherent seats**, not 48 and not −6: the panel
+seat metric mildly prefers to KEEP it, while CRPS prefers to lose it. The −6 of
+§1.94 was the two paths summed on a smaller panel. **Both quoted figures were
+aggregates of two mechanisms that move in opposite directions**, which is why
+neither replicated. ⚠️ Under rule 11 the effective sample is close to two events
+— ActionSA's 2021 arrival seen in four metros of one cycle, and the three Ipsos
+2016 metro polls — so none of these three numbers should be quoted as a rate.
+
+### §A8 · `poll_paths` — **"off"** — 🟢
 
 **Where.** `montecarlo.py`, gates both live poll paths
 
-**Now.** Ships "all". On sixteen city-years the channel is worth −6 coherent seats — turning it off is better on seats and on CRPS. The 48-seat figure is RETRACTED.
+**Now.** ⛔ **SHIPS "off" SINCE 2026-09-12. THE FORECAST USES NO POLL AT ALL.**
+The owner's decision, taken on design grounds rather than on score — we had no
+designed answer to how several polls should combine, so the channel is off
+until that is settled and a per-poll reader control is built. Nothing is
+deleted and `--set poll_paths=all` restores the previous forecast exactly.
+MODEL-LOG §1.225; pre-registration
+`prereg/2026-09-12-polls-out-of-the-forecast.md`.
+
+⚠️ **While this ships "off", EVERY other poll lever in this register is inert
+by configuration** — `poll_credence`, `poll_house_k`, `poll_deff_subsample`,
+`poll_screen_sd`, `poll_drift_per_root_day`, `poll_min_n`,
+`poll_half_life_days`. Their rows below describe what they do when the channel
+is on, which is the state this project intends to return to. They are **not**
+dead: `tests/test_levers_are_live.py` carries a `CONDITIONAL` entry for each
+that opens the gate and asserts the lever still moves the forecast, so the
+machinery cannot rot while it is switched off.
 
 **Record**, oldest first:
 
 1. Which poll paths run: `"off"` · `"arrivals"` (a national poll converted to the contested area, for parties with NO record) · `"all"` (adds the metro-poll inverse-variance blend).
 2. **Added 2026-08-21 so the channel could be MEASURED for the first time** — until then the only way to switch it off was to empty `polls.json`, and nothing in `sweep.py`, `compare_history` or the tests scored it. ~~Nine city-years at 1500 draws: off 304 / arrivals 256 / all 254.~~
 3. **REVERSED ON SIXTEEN, 2026-08-25 (§1.94).** Sixteen city-years, 1500 draws, paired on identical seeds: **off 376 coherent / CRPS 324.6 · arrivals 378 / 327.6 · all 382 / 329.0** — monotone the OTHER WAY. The channel is worth **−6 coherent seats**: turning it off is better, on seats and on CRPS. It fails two of Key 1's three conditions. **This is not the doubled panel** — on §1.65's own nine city-years it measures **−4**. What changed is that the model WITHOUT the channel improved sharply (Tshwane 2021 52→34, Ekurhuleni 38→28) while the model with it did not: the channel was patching a hole, and the hole was fixed. The 48 must not be quoted; it was, twice, after §1.70 instructed that every nine-city-year number be re-read here, and the metro path two more; **no city-year is made worse by either.** Ships at `"all"`, which is seat-identical to the committed artefact. **Two caveats that must travel with the number**: the whole arrivals effect is one party (ActionSA) in four metros of one cycle, so under rule 11 the effective sample is close to one; and the path is **dead at 2026** for want of a `NATIONAL_VOTES["2026"]` entry, so the 48 seats are measured on a channel the live forecast does not currently have. MODEL-LOG §1.65.
+4. **SWITCHED OFF, 2026-09-12 (§1.225).** Twenty-four city-years, 1000 draws:
+   **all 725 coherent / CRPS 545.84 · off 723 / 541.39**, margin over uniform
+   swing 18.1% → 18.3%. Every headline prefers "off" and none of them by much.
+   ⛔ **The −2 is the residue of +6, −4 and −4**: seven rows moved, seventeen
+   were identical, and ekurhuleni 2021 moved six seats *against* the change.
+   **Do not quote −2 as the value of the channel** — the honest statement is
+   that its contribution to seat error is not distinguishable from zero on 24
+   rows, and that §1.94's −6 on sixteen and this −2 on 24 are both inside the
+   swing of a single city-year. The decision was not taken on this number and
+   this number does not support or contradict it; it rests on the design
+   argument in §1.225. Every 2011 row moved by exactly zero, which is what
+   establishes that the switch turns off what it claims to: the register holds
+   no 2011 poll.
 
 ### §A9 · σ_poll, decomposed — `POLL_HOUSE_SD` 0.025 · `POLL_CAL_N_2016` 800 · `POLL_CAL_DEFF_2016` 1.3 · `POLL_RMS_ERROR_2016` 0.0303 — 🟡
 
@@ -1230,7 +1283,7 @@ what determines whether a range means anything:
 
 | call | value | allowable range | what sets it |
 |---|---|---|---|
-| `SD_FLOOR` | 0.15 | **[0.11, 0.30]** — *but see the caveat* | Forward-validated conditional sd(log θ) at ≥15% of the vote, cluster-bootstrapped on metro-year. §1.59 measured **0.138 [0.084, 0.171]** (n=37) on the old record. §1.77 re-measured **0.273 [0.136, 0.386]** (n=64) on sixteen city-years and the tree restored per §1.75. 0.15 is inside both. **§1.71's quoted 0.208 [0.114, 0.299] at n=370 DOES NOT REPRODUCE** — the residual count is 403 on the restored tree, with or without the Type A filter, while §1.71's own ≥15% binding count (26 of 64) matches today's exactly. It was measured against a tree state that cannot now be reconstructed, which is what §1.75 found had happened to `data/raw/elections/`. Quote §1.77's figures, not §1.71's** |
+| `SD_FLOOR` | 0.15 | **[0.11, 0.30]** — *but see the caveat* | Forward-validated conditional sd(log θ) at ≥15% of the vote, cluster-bootstrapped on metro-year. §1.59 measured **0.138 [0.084, 0.171]** (n=37) on the old record. **[16-panel]** §1.77 re-measured **0.273 [0.136, 0.386]** (n=64) on sixteen city-years and the tree restored per §1.75. 0.15 is inside both. **§1.71's quoted 0.208 [0.114, 0.299] at n=370 DOES NOT REPRODUCE** — the residual count is 403 on the restored tree, with or without the Type A filter, while §1.71's own ≥15% binding count (26 of 64) matches today's exactly. It was measured against a tree state that cannot now be reconstructed, which is what §1.75 found had happened to `data/raw/elections/`. Quote §1.77's figures, not §1.71's** |
 | `SPINE_K` | 1.0 | **[0.5, 1.5]** | Fitted leave-one-metro-out and the curve is **flat across that interval**. A flat optimum is a range, not a point — which is why the row is 🔴 despite being fitted |
 | `POLL_HOUSE_SD` | 0.025 | **[0.022, 0.028]** | The non-sampling residual of Ipsos's nine 2016 metro readings, recomputed across a threefold range of assumed n: **2.16pp at n=500, 2.52 at 800, 2.77 at 1500**. The value is stable against the one thing about it that is unknown, which is what makes it quotable as measured |
 | `level_shrink_scale` | 0.04 | **[0.02, 0.40]** | Swept twentyfold; the correction improves 7 of 9 city-years **at every value** and there is no cliff. A scale, not a tuned constant |
@@ -1390,7 +1443,7 @@ cannot be re-checked from the repository.
 
 **Where.** `montecarlo.py`
 
-**Now.** Present for four of the sixteen panel city-years and absent for twelve, because six of eight metro configs have no `[judgements]` block — which makes the headline seat figure a mixture of two configurations.
+**Now.** **[16-panel]** Present for four of the sixteen panel city-years and absent for twelve, because six of eight metro configs have no `[judgements]` block — which makes the headline seat figure a mixture of two configurations.
 
 **Record.** The plan's θ table, transcribed. Clamps the by-election channel and drives the §3.5 violation counter. **Six of eight metros have no `[judgements]` block at all**, so `apply_city` sets it to `{}` and the clamp is silently absent — four of sixteen panel city-years run with it, twelve without, which makes the 384 figure a mixture of two configurations
 

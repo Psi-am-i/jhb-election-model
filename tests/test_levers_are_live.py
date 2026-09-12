@@ -263,6 +263,41 @@ _WARD_LOCAL_BYE = (
 # waves are admitted — which puts them in the `w_bye` position, live exactly
 # where no backtest can score them, and that is stated wherever they are quoted.
 # MODEL-LOG §1.67.
+# ⛔ THE POLL CHANNEL IS SHIPPED OFF (2026-09-12). Every lever inside either
+# poll path is therefore inert AT EVERY TARGET, and inert by CONFIGURATION —
+# which is a different claim from `_NO_METRO_POLL` below, and a stronger one.
+# `_NO_METRO_POLL` says the register happens to hold no metro poll for a target
+# and stops being true the day someone adds one. This says the model does not
+# read a poll at all, and stops being true only when the owner changes the
+# default back.
+#
+# ⛔ IT IS NOT AN EXCUSE, AND MUST NOT BECOME ONE. Every lever carried on this
+# reason ALSO has a `CONDITIONAL` entry that opens the gate — `poll_paths=all`
+# in BOTH the base and the perturbed run — and asserts the lever still moves
+# the forecast there. So the machinery the owner intends to re-insert stays
+# proven live while it is switched off, instead of rotting unobserved behind a
+# register entry. That is the whole lesson of `_LEGACY_POLL`: the legacy poll
+# path sat certified-inert for eight days while it was simply never run, and
+# `poll_k` was written into MODEL-LOG as a measured null on the same mistake.
+#
+# If a lever below ever goes dead WITH THE GATE OPEN, this reason has expired
+# and the lever is broken, not inert.
+_POLLS_OFF = (
+    "the forecast ships with `poll_paths=\"off\"` (2026-09-12, MODEL-LOG "
+    "§1.225), so neither the arrivals path nor the metro blend runs and no "
+    "lever inside either is read — at any target. Inert by CONFIGURATION, not "
+    "by data and not by a defect: `--set poll_paths=all` restores the previous "
+    "forecast exactly, and the `CONDITIONAL` entry for this lever measures it "
+    "there on every run of this file. The owner's decision and the reasoning "
+    "are in `prereg/2026-09-12-polls-out-of-the-forecast.md`.")
+
+
+def _polls_off_null(where: str, evidence: str) -> "Null":
+    return Null(cause="UNDELIVERED", where=where, blocker="SWITCH",
+                gate_check="polls_shipped_off", evidence=evidence,
+                reason=_POLLS_OFF)
+
+
 _NO_METRO_POLL = (
     "the metro-poll path is the only consumer of this lever and the register "
     "holds no metro poll of Johannesburg declared for 2021 — the only admitted "
@@ -439,6 +474,58 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
     ("poll_drift_per_root_day", "2021"): _NO_METRO_POLL_NULL,
     ("poll_half_life_days", "2021"): _NO_METRO_POLL_NULL,
     ("poll_credence", "2021"): _NO_METRO_POLL_NULL,
+    # ⛔ THE CHANNEL WENT OFF ON 2026-09-12 AND THESE ARE ITS CONSEQUENCES.
+    #
+    # The five entries above keep their ORIGINAL reason deliberately. At 2021
+    # they were already inert because the register holds no 2021 Johannesburg
+    # metro poll, and that was true before this switch and stays true after it.
+    # Overwriting them with the new reason would destroy the record of what was
+    # believed and why — the convention `_LEGACY_POLL` set. They are now inert
+    # for TWO independent reasons, either of which alone would do it.
+    #
+    # What is new below is the levers that were LIVE until the switch:
+    # `poll_min_n` at both targets (it gates the arrivals path, which is why
+    # §1.75 struck it from the `_NO_METRO_POLL` list), and the metro-blend
+    # levers at 2026, where two SRF waves were admitted.
+    ("poll_min_n", "2021"): _polls_off_null(
+        where="`_usable = polling.national_polls(...) if scenario['poll_paths'] "
+              "in ('arrivals', 'all') else []` — the arrivals path is not "
+              "entered, so the min-n floor inside `polling.screen` is never "
+              "reached by the only caller that used it at this target",
+        evidence="LIVE UNTIL 2026-09-12 and the only poll lever that was: "
+                 "§1.75 struck its `_NO_METRO_POLL` entry precisely because the "
+                 "floor sits ahead of every scope test in `polling.screen` and "
+                 "so gated the national poll the arrivals path reads. With "
+                 "`poll_paths=off` that caller is gone. Measured with the gate "
+                 "open by `CONDITIONAL['poll_min_n@2021']`."),
+    ("poll_min_n", "2026"): _polls_off_null(
+        where="same — neither `national_polls` (arrivals) nor the metro block "
+              "is entered, so nothing calls `polling.screen` on the forecast "
+              "path at all",
+        evidence="see `CONDITIONAL['poll_min_n@2026']`, which opens the gate "
+                 "and asserts the lever still moves the forecast there."),
+    ("poll_credence", "2026"): _polls_off_null(
+        where="`if scenario['poll_paths'] == 'all'` guards the entire metro "
+              "blend block; `poll_credence` multiplies `w` INSIDE it and is "
+              "never read",
+        evidence="LIVE UNTIL 2026-09-12 — this dial chose the 2026 headline "
+                 "(§1.95) and the two SRF waves it weighted are still in the "
+                 "register. Measured with the gate open by "
+                 "`CONDITIONAL['poll_credence@2026']`."),
+    ("poll_deff_subsample", "2026"): _polls_off_null(
+        where="`polling.effective_n`, reached only from inside the metro blend "
+              "block the shipped `poll_paths` does not enter",
+        evidence="see `CONDITIONAL['poll_deff_subsample@2026']`."),
+    ("poll_screen_sd", "2026"): _polls_off_null(
+        where="`polling._sigma_total`'s screen term, reached only from inside "
+              "the metro blend block",
+        evidence="see `CONDITIONAL['poll_screen_sd@2026']`."),
+    ("poll_drift_per_root_day", "2026"): _polls_off_null(
+        where="`polling._sigma_total`'s drift term, same block",
+        evidence="see `CONDITIONAL['poll_drift_per_root_day@2026']`."),
+    ("poll_half_life_days", "2026"): _polls_off_null(
+        where="`polling._recency_weights`, same block",
+        evidence="see `CONDITIONAL['poll_half_life_days@2026']`."),
     ("arrival_group_draw", "2026"): Null(
         cause="UNDELIVERED",
         where="`group = scenario.get('arrival_group') or None` — the emitted "
@@ -704,7 +791,12 @@ PERTURB: dict[str, object] = {
     "turnout_noise_sd": 0.50,
     "w_bye": 0.95,
     "arrival_group_draw": True,   # the mechanism instead of the generic slot
-    "poll_paths": "off",          # both poll paths off; worth -6 on sixteen (§1.94)
+    # ⛔ PERTURBED TO "all", NOT TO "off" — the shipped value became "off" on
+    # 2026-09-12 (§1.225) and a lever perturbed to its own default is a test
+    # that cannot fail. This asks the live question now: does turning the
+    # channel back ON still move the forecast? It must, or `--set
+    # poll_paths=all` no longer restores what it claims to restore.
+    "poll_paths": "all",          # both poll paths ON; the shipped value is "off"
     "poll_credence": 0.0,         # believe the metro polls not at all
     "poll_house_k": 6.0,          # cap 0.86 at one house — near-uncapped
     "poll_deff_subsample": 4.0,   # a subsample worth a quarter of its headline n
@@ -760,7 +852,12 @@ def _run(target_year: str, overrides: list[str], run_dir: Path | None = None,
         config=None, set=list(overrides), draws=draws or DRAWS, seed=20261104,
         city="joburg", target=target_year))
     # `run_dir` is opt-in and changes no number -- asserted by
-    # `test_chain.py::test_the_trace_is_inert_without_a_run_directory` -- and
+    # `test_chain.py::test_passing_a_run_directory_changes_no_drawn_number`,
+    # which runs the model twice on one seed and compares the drawn seats and
+    # shares. It used to cite `test_the_trace_is_inert_without_a_run_directory`,
+    # which asserts that a `Trace(None)` writes nothing and never runs the model
+    # with a `run_dir` at all -- so the baseline every lever verdict here is
+    # measured against rested on a citation to the wrong property. -- and
     # only `_base` passes one. It is what lets a gate check LOOK at a quantity
     # (the measured sd(log theta), say) instead of arguing about it: the whole
     # point of a delivery proof is that somebody can go and see the value.
@@ -1092,6 +1189,22 @@ def _gate_local_bye_weights_shipped_off(year: str) -> tuple[bool, str]:
                         + ("" if not any(w) else " — THE GATE IS OPEN"))
 
 
+def _gate_polls_shipped_off(year: str) -> tuple[bool, str]:
+    """`poll_paths` ships "off", so NEITHER poll path runs and no poll lever
+    inside them is read at any target.
+
+    Needs no model run: the gate is the shipped default itself. That is the
+    strongest form this check can take — the other poll gate, `no_metro_poll`,
+    is a claim about the REGISTER and goes stale the day a poll is added, while
+    this one is a claim about the configuration and is true until the default
+    changes back.
+    """
+    shipped = M.DEFAULTS["poll_paths"]
+    return shipped == "off", (
+        f'DEFAULTS poll_paths={shipped!r}'
+        + ("" if shipped == "off" else " — THE GATE IS OPEN"))
+
+
 def _gate_level_sd_fallback_never_binds(year: str) -> tuple[bool, str]:
     """No party can reach `sd_measured.get(party, sd_default)`'s second argument.
 
@@ -1167,6 +1280,7 @@ GATES = {
     "real_contestation_lists": _gate_real_contestation_lists,
     "sigma_two_term_shipped_on": _gate_sigma_two_term_shipped_on,
     "local_bye_weights_shipped_off": _gate_local_bye_weights_shipped_off,
+    "polls_shipped_off": _gate_polls_shipped_off,
     "level_sd_fallback_never_binds": _gate_level_sd_fallback_never_binds,
 }
 
@@ -1215,12 +1329,74 @@ CONDITIONAL: dict[str, Conditional] = {
     "poll_house_k@2026": Conditional(
         key="poll_house_k", year="2026", value=6.0,
         opens="sigma_two_term_shipped_on",
+        # TWO gates now, and BOTH must be opened. `SIGMA_TWO_TERM=0` restores
+        # the branch that reads the cap, but since 2026-09-12 the block that
+        # branch lives in is not entered at all, so opening the σ switch alone
+        # would leave this reading "gate opened and the lever still did not
+        # move" — a true statement about the wrong gate.
+        gate_scenario=(("poll_paths", "all"),),
         gate_module=(("polling", "SIGMA_TWO_TERM", False),),
         why="the retired weight cap. The EXPECTED_INERT entry keeps the lever "
             "on the grounds that `SIGMA_TWO_TERM=0` still reads it — so that is "
             "the configuration it is measured in. If this ever goes dead the "
             "entry's own justification has gone with it and the lever should "
             "be deleted."),
+
+    # ⛔ THE POLL CHANNEL, MEASURED WITH ITS GATE HELD OPEN.
+    #
+    # These exist so that switching the channel off does not quietly stop
+    # testing it. Each holds `poll_paths="all"` in BOTH the base and the
+    # perturbed run and moves only the lever, so what is measured is the lever
+    # and not the switch — the distinction `Conditional`'s own docstring draws
+    # against `PAIRED`, and the one `poll_k` was certified inert for missing.
+    #
+    # The owner intends to re-insert this machinery once the interaction
+    # between houses is designed. Until then these are the only thing standing
+    # between "switched off" and "rotted".
+    "poll_credence@2026": Conditional(
+        key="poll_credence", year="2026", value=0.0,
+        opens="polls_shipped_off", gate_scenario=(("poll_paths", "all"),),
+        why="the dial that chose the 2026 headline while the channel was on "
+            "(§1.95). 0.0 against the shipped 1.0 is the identity against full "
+            "belief, so this is the widest perturbation the dial admits."),
+    "poll_min_n@2021": Conditional(
+        key="poll_min_n", year="2021", value=5000, opens="polls_shipped_off",
+        gate_scenario=(("poll_paths", "all"),),
+        why="the admission floor, at the target where it gates the ARRIVALS "
+            "path — `ipsos-2021-lge-national` has n=1501, so a 5,000 floor "
+            "excludes it and the entrant levels it feeds disappear. This is "
+            "the one poll lever that was never inert at 2021 (§1.75) and it is "
+            "measured here for that reason."),
+    "poll_min_n@2026": Conditional(
+        key="poll_min_n", year="2026", value=5000, opens="polls_shipped_off",
+        gate_scenario=(("poll_paths", "all"),),
+        why="the same floor at the target where it gates the METRO path: both "
+            "SRF waves are ~500-person subsamples, so a 5,000 floor admits "
+            "neither."),
+    "poll_deff_subsample@2026": Conditional(
+        key="poll_deff_subsample", year="2026", value=4.0,
+        opens="polls_shipped_off", gate_scenario=(("poll_paths", "all"),),
+        why="the design effect on a metro subsample — 4.0 prices the ~500-person "
+            "cut as worth a quarter of its headline n."),
+    "poll_screen_sd@2026": Conditional(
+        key="poll_screen_sd", year="2026", value=0.12,
+        opens="polls_shipped_off", gate_scenario=(("poll_paths", "all"),),
+        why="the surcharge for an undisclosed likely-voter screen, priced as "
+            "ruinous. SRF's screen is the caveat the register carries against "
+            "both admitted waves, so this is the term that decides how much "
+            "that caveat costs."),
+    "poll_drift_per_root_day@2026": Conditional(
+        key="poll_drift_per_root_day", year="2026", value=0.02,
+        opens="polls_shipped_off", gate_scenario=(("poll_paths", "all"),),
+        why="how fast opinion is assumed to move between fieldwork and polling "
+            "day. The July wave is months out from 4 November, so this term is "
+            "a large part of what its σ ends up being."),
+    "poll_half_life_days@2026": Conditional(
+        key="poll_half_life_days", year="2026", value=5.0,
+        opens="polls_shipped_off", gate_scenario=(("poll_paths", "all"),),
+        why="the recency half-life. At 5 days only the freshest wave counts, "
+            "which collapses the two SRF waves to one and is the sharpest "
+            "statement of what recency weighting is doing."),
 }
 
 
@@ -1296,24 +1472,46 @@ MODULE_PERTURB: tuple = (
     ("polling", "SIGMA_TWO_TERM", "2026", False,
      "the switch between the shipped two-term sigma and the retired "
      "four-component one. `poll_house_k`'s whole EXPECTED_INERT entry rests on "
-     "this being reachable; this is the check that it still is."),
+     "this being reachable; this is the check that it still is.",
+     # ⛔ MEASURED WITH THE POLL GATE HELD OPEN, since 2026-09-12.
+     #
+     # Both sigma decompositions live INSIDE the metro blend block, and the
+     # shipped `poll_paths="off"` does not enter it — so from that date this
+     # constant stopped moving the forecast and this entry went red. That is a
+     # true report and the wrong conclusion: the constant is not dead, the
+     # block it lives in is not run. Deleting the entry would have removed the
+     # only check that the retired sigma is still reachable, which is the sole
+     # justification `poll_house_k`'s own excuse rests on — so a switch-off
+     # would have quietly cascaded into deleting a lever.
+     #
+     # Held open in BOTH runs, so what is measured is the constant and not the
+     # switch. Same instrument as `Conditional`, same reason.
+     (("poll_paths", "all"),)),
 )
 
 
 def _sweep_module_constants() -> list[str]:
     dead: list[str] = []
-    for mod_name, const, year, value, _why in MODULE_PERTURB:
+    for entry in MODULE_PERTURB:
+        # Five fields, or six where the constant sits behind a gate the shipped
+        # configuration holds shut. The sixth is scenario overrides applied to
+        # BOTH runs — never to the perturbed one alone, which would measure the
+        # gate instead of the constant.
+        mod_name, const, year, value, _why = entry[:5]
+        gate = entry[5] if len(entry) > 5 else ()
         module = _module(mod_name)
         assert hasattr(module, const), (
             f"{mod_name}.{const} does not exist. A constant named here and gone "
             f"from the source is coverage that deleted itself — the fault "
             f"`test_every_defaults_key_is_swept_or_excused` exists to catch, "
             f"one namespace over.")
-        base = _base(year)
+        overrides = [f"{k}={json.dumps(v)}" for k, v in gate]
+        base = _run(year, overrides) if gate else _base(year)
         with _patched(module, const, value):
-            moved = _moves(base, _run(year, []))
+            moved = _moves(base, _run(year, overrides))
         if moved < 1e-9:
-            dead.append(f"{mod_name}.{const} at {year} (set to {value!r}, "
+            where = f" with {overrides} held open" if gate else ""
+            dead.append(f"{mod_name}.{const} at {year} (set to {value!r}{where}, "
                         f"nothing moved)")
     return dead
 

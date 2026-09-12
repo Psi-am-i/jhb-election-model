@@ -165,7 +165,7 @@ and `cap` give three different answers, all three pinned.
 > class this file targets is currently being caught by cheaper machinery built
 > *after* it — the delivery log, the registered nulls, the gates — which is
 > finding real faults. Extraction would move forecast numbers with ~60 days to
-> polling, and every move needs a sixteen-city-year paired backtest to
+> polling, and every move needs a full-panel paired backtest to
 > adjudicate, with the freeze explicitly barred from arbitrating. A manifest
 > also cannot reach the inline stages where this document says the defects live,
 > so it would document the well-behaved third and be silent on the rest — which
@@ -197,8 +197,8 @@ reverted"*. That is benchmarking against a broken implementation, it violates
 
 **So: when a change moves a number, the question is never "does it still
 match?". It is "does the backtest against REAL ELECTION RESULTS improve?"** —
-paired, cycle-replicated, against `ITERATING.md`'s four keys, on the sixteen
-city-years.
+paired, cycle-replicated, against `ITERATING.md`'s four keys, on the full
+panel.
 
 The freeze still earns its place, for two things that are not evaluation:
 recording what we published and the configuration that produced it, so the

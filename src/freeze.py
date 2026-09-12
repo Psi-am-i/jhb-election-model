@@ -153,9 +153,19 @@ def _dirty_excluding(*ignore: Path) -> bool:
     the tree, so the artefact being written must be excluded or a clean freeze
     could never be taken at all.
 
-    Paths are compared repository-relative, which is how git prints them.
+    Paths are compared repository-relative, which is how git prints them. A
+    path outside the repository is dropped: git cannot see it, so it cannot
+    dirty the tree.
     """
-    skip = {str(p.resolve().relative_to(REPO)) for p in ignore}
+    skip = set()
+    for p in ignore:
+        # `relative_to` raises on an out-of-repo path, and `compare_history
+        # --json /tmp/x.json` reaches this line AFTER the panel has run — so
+        # the whole run was lost to a bookkeeping line.
+        try:
+            skip.add(str(Path(p).resolve().relative_to(REPO)))
+        except ValueError:
+            continue
     out = _git("status", "--porcelain")
     if out == "<unavailable>":
         return True                       # cannot tell; assume the worse

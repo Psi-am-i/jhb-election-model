@@ -1,4 +1,140 @@
-# Handover — 2026-08-29, with a 2026-09-08 banner
+# Handover — 2026-08-29, with a 2026-09-12 banner
+
+> ## ⛔ STATE AT 2026-09-12 — READ THIS FIRST
+>
+> **THE POLL CHANNEL IS SWITCHED OFF. THE FORECAST USES NO POLL AT ALL.**
+> `montecarlo.DEFAULTS["poll_paths"]` is `"off"` (was `"all"`), on the owner's
+> decision, taken on design grounds: the interaction between several polls was
+> never designed, and he wants a per-poll reader control ("i trust / dont trust
+> this poll") before it goes back in. **Nothing is deleted** — `--set
+> poll_paths=all` restores the previous forecast exactly. Pre-registration
+> `prereg/2026-09-12-polls-out-of-the-forecast.md`, result MODEL-LOG §1.225.
+>
+> **Measured, both arms, 1000 draws, 24 rows, run serially on one tree:**
+>
+>     seat_abs_err_coherent  725 -> 723   (-2)
+>     CRPS                 545.84 -> 541.39
+>     margin over uniform swing  18.1% -> 18.3%
+>
+> ⛔ **DO NOT QUOTE −2 AS THE VALUE OF THE POLL CHANNEL.** Seven of 24 rows
+> moved; ekurhuleni 2021 moved **+6 against** the change, joburg 2021 −4,
+> tshwane 2016 −4, and seventeen rows were identical. The contribution is not
+> distinguishable from zero. Every 2011 row moved by exactly zero, which is the
+> clause that proves the switch does what it says.
+>
+> **Three consequences already handled:** the seven poll levers are inert by
+> configuration and each now carries BOTH an `EXPECTED_INERT` entry and a
+> `CONDITIONAL` one that opens the gate and proves it still moves;
+> `polling.SIGMA_TWO_TERM` went red for the same reason and `MODULE_PERTURB`
+> now takes a gate-override field rather than losing the entry — deleting it
+> would have removed the sole justification for keeping `poll_house_k`.
+>
+> **SUITE: 460 passed, 9 failed, 17 skipped, no PARTIAL banner.** Run twice —
+> once after the code was settled and again after the documentation was, because
+> the register→code guard reads these files; both runs identical, and the second
+> is the one these counts come from. **Eight of the nine failures pre-date this
+> work and none is poll-related** — the two drifted `test_drawer` goldens were
+> proved independent of the switch by rebuilding the fixture under BOTH settings
+> and getting byte-identical marginals (DA mean 25.9253% either way, against a
+> recorded 26.4646%), so that drift has some other cause and is not mine. The
+> ninth is below and is deliberate.
+>
+> ### ⚠️ ONE TEST IS RED ON PURPOSE AND IT IS A DECISION FOR THE OWNER
+>
+> `test_the_published_pages_are_what_this_tree_builds_today` fails on
+> `site/methodology.html` (and will on `index.html`). Those pages' sources were
+> rewritten to say polls are no longer used; the published site is still the
+> 31 August build. **Rebuilding it publishes the polls-off forecast and moves
+> the headline.** That is an outward-facing act and was deliberately not taken
+> here.
+>
+> ### ⛔ MEASURED 2026-09-12 — WHAT THE SWITCH DOES TO THE 2026 HEADLINE
+>
+> Joburg 2026, `poll_paths` off vs all, 1000 draws, seed 20261104, `run_model`
+> called directly so nothing was published:
+>
+>     party   OFF median  (5-95)   ALL median  (5-95)   shift
+>     DA           68    [47- 93]       79    [55-105]   -11
+>     ANC          68    [31- 96]       64    [27- 89]    +4
+>     ASA          27    [11- 52]       25    [10- 51]    +2
+>     EFF          26    [ 8- 58]       23    [ 8- 55]    +3
+>     MK           23    [ 7- 53]       23    [ 7- 52]     0
+>
+>     largest party   OFF: ANC 47.3% / DA 47.0%      ALL: DA 71.4% / ANC 25.3%
+>
+> ⛔ **THE HONEST HEADLINE IS "TOO CLOSE TO CALL", NOT "THE ANC WINS".** With
+> polls off the largest-party call is a **dead heat** — 47.3% against 47.0%, a
+> 0.3pp gap on 1000 draws, which is inside its own sampling error. Removing
+> polls did not buy a confident wrong call; it replaced a confident call with an
+> honest tie. Say it that way or not at all.
+>
+> ✅ **THE CALIBRATION GATE PASSES.** The polls-off DA 90% interval is [47, 93]
+> and contains the polls-on median of 79. So the forecast is NOT asserting that
+> the only independent reading of this election lies outside its own interval —
+> which it would have been indefensible to publish.
+>
+> ⛔ **AND THIS RETIRES THE "83 → 77" CLAIM FOR GOOD.** `methodology.md` said
+> turning polls ON moved the DA **83 → 77**. Measured, it moves the DA **68 →
+> 79** — the opposite direction and a different pair. `JUDGEMENT-CALLS.md` §A7's
+> "65 → 78" was right in direction and within ~3 seats in magnitude. The
+> sentence was deleted rather than corrected, which was the right call: it also
+> described a cap retired at §1.91.
+>
+> **Also landed:** the `CLAUDE.md` numbers rule rewritten to the owner's
+> statement of it (*a number lives where it was generated; everywhere else
+> points*); `BATCH-PLAN-2026-09-02.md` archived with a stub;
+> `test_passing_a_run_directory_changes_no_drawn_number` added, because
+> `CLAUDE.md` cited a test for that claim which asserted something else, and so
+> did `test_levers_are_live` and `run_model`'s own docstring.
+>
+> **Still open:** the freeze question (see below) and a clean-tree panel (item
+> 13). `site/index.html`'s poll wording (item 16) is FIXED in its source
+> (`forecast-sheet.html`) and awaits the same rebuild decision as methodology.
+>
+> ⛔ **THE LABEL-FREE PANEL WAS NEVER WAITING ON A SETTLED TREE — IT IS WAITING
+> ON A REPAIR.** `test_the_relabel_ablation_actually_withholds_the_label` is red
+> and says the switch is inert: *"6.9450 with the label, 6.9450 without"*. So
+> `JHB_SCORE_NO_RELABEL=1` withholds nothing, and this banner and its two
+> predecessors were wrong to list it as merely unrun. It needs to reach
+> `calibration_columns` and both `score_seats` calls, not only `relabel_run`.
+> This matters beyond bookkeeping: `relabel_run` gives the model a correct label
+> on the hardest column in the panel, chosen with the result in hand, which no
+> baseline gets — so the ABSOLUTE totals (725/723) and the margin over uniform
+> swing flatter the model, and nothing can say by how much until the ablation
+> works. **Quote paired differences, not the margin.**
+>
+> **On the freeze, since the owner asked what it is for.** `forecast_frozen.json`
+> is NOT an orphan: it records commit `82c61e1` with `git_dirty: false`, and
+> `pools.py` at that commit re-hashes to the `dbdf171344ffd5f0` the freeze
+> records — verified 2026-09-12. So the published 28 August model IS recoverable
+> from git; what is not preserved is the emitted spec FILES (`data/**` is
+> gitignored) and the raw inputs, which have since been refreshed (§1.222). It
+> also agrees with the site's `forecast_summary.json` on **every headline seat
+> median** (DA 78, ANC 63, ASA 25, EFF 24, MK 22, PA 19, IFP 2) despite the
+> 1500-vs-5000 draw difference — they differ in the tails, not the headline.
+
+
+> ## ⛔ STATE AT 2026-09-11 — READ THIS FIRST
+>
+> **The document-integrity pass is half landed; the three owner decisions and
+> the two measurements are not.** Full ledger: `audits/DOC-INTEGRITY-2026-09-10.md`
+> §H. It holds the pollster's 17-item work list, persisted because its only other copy was lost.
+>
+> **Landed, all uncommitted** — mechanical items 4, 5, 7–12: no line-number
+> citations left in `MACHINERY.md` or `POOLS-REEMIT-QUEUE.md`; "sixteen
+> city-years" removed as a live claim from README, MACHINERY, ARCHITECTURE and
+> AGENT-PLAN, with a dated banner on `PLAN-TO-LIVE.md`; JUDGEMENT-CALLS rows whose evidence is the retired panel
+> tagged **[16-panel]** (not re-measured). **One code fix:**
+> `freeze._dirty_excluding` no longer raises on an out-of-repo `--json`, which
+> used to throw away a completed `compare_history` run (MODEL-LOG §1.223).
+>
+> **Waiting on the owner:** the `methodology.md` wording (it describes a deleted
+> poll cap as live); which artefact is *the* freeze; the `CLAUDE.md` "only
+> MODEL-LOG holds numbers" rule; and his review of the `CLAUDE.md` §0 rewrite.
+>
+> **Waiting on a settled tree:** the label-free panel
+> (`JHB_SCORE_NO_RELABEL=1`) and a clean with-label panel, run once, serially,
+> after a commit. Nothing has been measured this session.
 
 > ## ⛔ STATE AT 2026-09-10 — READ THIS FIRST, IT SUPERSEDES THE BANNER BELOW
 >

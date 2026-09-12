@@ -1,5 +1,11 @@
 # Plan to a new live forecast — amended 2026-08-23
 
+> ⚠️ **Dated. Kept as the record of the plan it was on 2026-08-23** (note added
+> 2026-09-11). Its premises have moved: the panel grew past sixteen city-years
+> on 2026-09-01/02 (MODEL-LOG §1.160–§1.161). Every figure below is pinned to the
+> panel of its date. Read the current population and scores from
+> `compare_history`, and where the branch stands from `HANDOVER.md`.
+
 **24 days to nomination lists (16 September). 73 days to polling day
 (4 November).** Both are hard dates set by the IEC.
 

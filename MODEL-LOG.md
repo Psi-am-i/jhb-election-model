@@ -23479,3 +23479,435 @@ sense: what is there now is this code's output for that city-year at 1000 draws.
 The manifest is what surfaced it, which is the whole point of `--verify`, and
 this is the hazard the memory entry *"gitignored is not unimportant"* names: a
 diagnostic run is a writer.
+
+## 1.223 A bookkeeping line that threw away finished panel runs, and a README claim the panel no longer supports (2026-09-11)
+
+**Found by the blind doc-integrity review of 2026-09-10; confirmed and fixed.**
+`compare_history` asks `freeze._dirty_excluding(args.json, args.md)` whether the
+tree is dirty **after** the panel has run, excluding its own outputs. The
+exclusion was built with `p.resolve().relative_to(REPO)`, which raises
+`ValueError` for a path outside the repository — so
+`compare_history --json /tmp/x.json`, the natural way to measure *without*
+overwriting `history.json`, completed the panel and then died on the manifest.
+The measurement was lost and nothing was written.
+
+An out-of-repo path is now dropped: git cannot see it, so it cannot dirty the
+tree. **Constructed, not observed:** the pre-fix expression raises on a probe
+path under the system temp directory; the fixed function returns the same answer
+for that path as with nothing excluded; and
+`test_freeze.py::test_an_output_outside_the_repository_does_not_discard_the_run`
+asserts that equality, plus a check that its probe really is outside the repository.
+No forecast number can move: the function feeds only the `git_dirty` stamp.
+
+**Why it mattered more than it looks.** The label-free panel — the arm 2026 is
+actually scored like, because 2026 gets no relabel — is the measurement the
+shipping decision turns on, and the only way to take it without overwriting the
+canonical `history.json` was the path that crashed. So the harness's
+cheapest safe measurement mode was unusable.
+
+**A README claim the panel no longer supports.** `README.md` said the model
+"wins on coherent seat error against uniform swing in most of the sixteen, on
+both cycles". Counted per city-year off `history.json` (1000 draws,
+`efa06f78+dirty`, with-relabel arm): **2011 4W 3L 1T · 2016 5W 3L · 2021 6W 1L
+1T**. Half of eight is not "most", so the claim fails at 2011, the cycle added
+after it was written. The sentence is removed rather than updated, so the README
+points at the run and names the two cautions that go with any figure it prints.
+This is a with-relabel, dirty-tree, 1000-draw count, and it is quoted here as the
+reason for the removal, not as a score.
+
+## 1.224 Three wrong probes for one queue row, and the entry they were guarding is the one that moves numbers (2026-09-12)
+
+**Re-verifying `POOLS-REEMIT-QUEUE`'s six landed entries in the code, four days
+before an irreversible emit window. Five rows checked out. The sixth did not, and
+the change was fine — the PROOF was broken.**
+
+Entry 4 is the wiring of `_npe_citywide_for` into the citywide-shares sites. It is
+the only entry in the batch that **moves numbers**. The queue proved it with
+"`or _npe_citywide_for` at **9** sites".
+
+**That token appears once in `src/pools.py`, and that once is inside a comment.**
+The wiring had been refactored into a helper, `_citywide_for`, and the proof was
+never moved with it. So an operator re-verifying the queue with the queue's own
+grep gets **1**, not 9, and concludes that the forecast-moving entry never
+landed — during a one-writer window, under deadline.
+
+**The change IS landed**: `_citywide_for` is defined once and called at **nine**
+sites. Its docstring, meanwhile, said it replaced the pattern "at all **eight**
+sites". So the queue had the right count and the wrong token; the helper had the
+right token and the wrong count. Neither was checkable against the other.
+
+**Then my own first two repairs were also wrong**, which is the part worth
+recording:
+
+1. I put `grep -n '…' src/pools.py | grep -v '…'` into a markdown **table cell**.
+   The `|` splits the cell — a proof that breaks the document it lives in.
+2. I replaced it with `[^_]_citywide_for\(`, which **still matches inside
+   `_npe_citywide_for`**: the character before the token there is `e`, and `e`
+   satisfies `[^_]`. It over-counts, silently, in the same direction as the bug.
+
+The probe that works uses a word boundary — `\b_citywide_for\(` — and works for
+a reason worth stating, because it is not obvious: `_` **is** a word character,
+so `\b` cannot match between `e` and `_`, which is exactly the position the
+false positive needed. It returns **10**: one `def` and nine calls. The row now
+states that number and the command that yields it.
+
+**And the helper's docstring carries no count at all any more.** A typed count is
+what went stale; replacing eight with nine would have reset the same clock. It
+also had to stop containing the literal `_citywide_for(` — while it did, the
+docstring inflated its own proof-grep to 11.
+
+### Number-neutrality, measured rather than assumed
+
+Both edits are a docstring and a markdown file. `_code_sha` **strips docstrings**
+— it pops the leading `Expr(Constant(str))` from every module, function and class
+body — so neither should move the key. **Verified rather than believed**, because
+entry 6 is in this queue precisely for being a small correct change that moved
+`pools_sha` and turned all eighteen specs STALE:
+
+    pools_sha BEFORE: 843229dbe414b6b9
+    pools_sha AFTER : 843229dbe414b6b9
+
+All 27 specs stay current. (Note the distinction that caught entry 16: a
+**message** string is in the hash, a **docstring** is not.)
+
+### Why this is the third instance, not the first
+
+The repository already records two probe bugs that reported a false change on the
+eve of an emit — a pointer-hash and a bad glob. This is the third, and it is the
+first where the probe sat inside the **tracking document the operator reads during
+the window**. The standing rule — *re-derive, do not read the summary* — needs one
+clause added for this class: **when a proof IS a grep, run the grep, and check it
+against a case it must not match.** Three of the four greps written in this entry
+were wrong, and every one of them looked right.
+
+### Decided here, so the window does not have to
+
+`POOLS-REEMIT-QUEUE` step 3 asks, as a blocker, whether Tshwane needs a
+`--simulation` spec — 27 or 28. **It does not. The count is 27.** Nothing in
+`src/` or `tests/` reads a `pools_*_simulation.json`; `SIMULATION_BLOC` has
+exactly one use, the emit itself. `pools.py` states the spec is "not good enough
+to publish a seat count from" and writes it to a separate path so the forecast
+cannot pick it up. Its consumer is the reader edition — and `content/` holds
+`joburg` only, so there is no Tshwane page to explore on. Emitting one would add
+an artefact with no consumer, for a city whose own config still says
+`STATUS: SKELETON`.
+
+## 1.225 The poll channel is switched off, and the −6 it was carried out on turns out to be −2 (2026-09-12)
+
+**The owner took the decision §1.94 reserved to him.** Asked to settle
+`docs-public/methodology.md`, which describes a poll cap retired in §1.91 and a
+side-by-side publication that has never existed:
+
+> we want to be able to incorporate all the polling we receive. And yes, it
+> would be a user lever on the site so they can say i trust or dont trust this
+> poll and have that affect numbers within the polls range of error. But we
+> still need to design how the various polls interact with each other properly
+> so for now, pull the polling mechanism out of the forecast and we will plan
+> properly how to re-insert it.
+
+Pre-registered at `prereg/2026-09-12-polls-out-of-the-forecast.md`, written
+before either arm ran.
+
+**The change is one default.** `montecarlo.DEFAULTS["poll_paths"]` `"all"` →
+`"off"`. Nothing is deleted: `polling.py`, the register, `screen`, the metro
+conversion and every poll judgement call stay reachable, and `--set
+poll_paths=all` restores the previous forecast exactly.
+
+⛔ **`poll_credence` IS NOT THE SWITCH.** It gates the metro blend only; the
+arrivals path writes `scenario["poll_levels"]` directly and is gated by
+`poll_paths` alone. Turning polls off with the credence dial would have left
+the larger of the two paths — the one §1.65 measured at 48 coherent seats —
+fully live.
+
+### The measurement
+
+Both arms at 1000 draws, 24 rows, same tree, run serially, nothing else
+touching the artefacts.
+
+| | polls ON | polls OFF | Δ |
+|---|---|---|---|
+| `seat_abs_err_coherent` | 725 | **723** | **−2** |
+| `seat_abs_err` (marginal) | 709 | 702 | −7 |
+| CRPS | 545.84 | **541.39** | **−4.45** |
+| margin over uniform swing | 18.1% | **18.3%** | +0.2pp |
+
+    seat_abs_err_coherent=725/@1d9a0e1d+dirty/1000d/pools:843229db/rows=24   ON
+    seat_abs_err_coherent=723/@1d9a0e1d+dirty/1000d/pools:843229db/rows=24   OFF
+
+Every headline moves the right way. **That is very nearly the whole of the good
+news, and the row table is why.**
+
+| city-year | Δ seats | Δ CRPS |
+|---|---|---|
+| ekurhuleni 2021 | **+6** | +3.80 |
+| joburg 2021 | −4 | −3.63 |
+| tshwane 2016 | −4 | −1.31 |
+| ethekwini 2021 | 0 | −3.12 |
+| tshwane 2021 | 0 | +0.23 |
+| joburg 2016 | 0 | −0.35 |
+| nelsonmandelabay 2016 | 0 | −0.08 |
+| **the other 17 rows** | **0** | **0.000** |
+
+**−2 is the residue of +6, −4 and −4.** It is not a small uniform improvement;
+it is three large offsetting swings and a lot of nothing. **Do not quote −2 as
+the value of the poll channel.** The honest statement is that the channel's
+contribution to seat error is **not distinguishable from zero on 24 rows**, and
+that a single city-year moves by three times the panel total.
+
+**CRPS is the better-behaved signal**: −4.45 over seven rows, five of them
+improving, and it improves at ethekwini 2021 by 3.12 with no seat change at
+all — polls were widening that distribution without moving its centre past a
+quota.
+
+### ⛔ THE PANEL DECOMPOSES THE TWO PATHS EXACTLY, AND THEY DISAGREE
+
+Found by the blind pollster review, from this run, with no extra model time.
+**The two paths fire on disjoint city-years**, and that is a property of the
+register, not a coincidence: no admissible metro poll is declared for 2021 (the
+one 2021 metro poll on file carries no numbers and is refused by the
+commissioned rule), and the 2016 national poll names only ANC, DA and EFF —
+every one of which has a baseline, so the arrivals path, which only touches
+parties with NO baseline, cannot fire at 2016. Verified against every row of
+`polls.json` by scope and target.
+
+| path | rows it acts on | Δ seats (off − on) | Δ CRPS |
+|---|---|---|---|
+| **metro blend** | the three 2016 metro-poll cities | **−4** | −1.74 |
+| **arrivals** | the four 2021 ActionSA metros | **+2** | −2.72 |
+
+Re-derived: 2016 movers are joburg (0 / −0.353), tshwane (−4 / −1.307) and
+nelsonmandelabay (0 / −0.078); 2021 movers are ekurhuleni (+6 / +3.801), joburg
+(−4 / −3.627), ethekwini (0 / −3.118) and tshwane (0 / +0.229). Both columns sum
+to the table.
+
+**This reverses how the channel should be described.** The path being switched
+off at 2026 is the **metro blend**, and it is the one the panel's seat metric
+likes least. The **arrivals** path is the one seats mildly prefer to KEEP — and
+it is dead at 2026 anyway for want of an admissible national poll. So §1.65's
++48 and §1.94's −6 were both aggregates of two mechanisms pulling opposite ways,
+which is why neither replicated. ⚠️ **The moving set is also a two-sided check on
+the affected population** — the seven rows that moved are *exactly* the
+register's poll footprint, none missing and none extra, which is stronger
+evidence that the switch does what it claims than the 2011 zeros are.
+
+### What the mechanism turns out to be, on the rows that moved
+
+| row | party | actual | with polls | without | what the poll did |
+|---|---|---|---|---|---|
+| joburg 2021 | ASA | 18.12% | 5.38% | 6.30% | pushed it FURTHER DOWN |
+| ekurhuleni 2021 | ASA | 7.36% | 5.42% | 3.27% | pushed it UP, toward truth |
+| tshwane 2016 | ANC | 41.48% | 43.51% | 41.73% | poll said 47%; dragged a near-exact call off |
+
+**The arrivals path converts one NATIONAL poll into a metro number, so it hands
+every city roughly the same figure for a new party.** That is about right for a
+typical metro and badly wrong in the entrant's home city: it helped ActionSA in
+Ekurhuleni (actual 7.36%) and hurt it in Johannesburg (actual 18.12%). So the
++6/−4 that nearly cancels is not two coin flips — it is one mechanism being
+right about the average city and wrong about the exceptional one. **That is a
+design fault, not noise, and it is the thing the re-insertion has to fix.**
+
+### ⚠️ THE CHANGE FAILS THIS PROJECT'S OWN KEY 1
+
+Stated by the blind review and re-derived here. Key 1 wants the same sign in both
+cycles, no cycle with a net loss, and at least one cycle with ≥5 of 8 strictly
+better:
+
+| | 2016 (8 rows) | 2021 (8 rows) | verdict |
+|---|---|---|---|
+| Δ seats | −4 (1 better, 0 worse) | **+2** (1 better, 1 worse) | sign FLIPS; 2021 is a net loss; neither cycle reaches 5/8 |
+| Δ CRPS | −1.74 (3 better, 0 worse) | −2.72 (2 better, 2 worse) | same sign, no net loss, but 3/8 and 2/8 |
+
+**So by the project's own language this is `undetermined`, not `adopted`** — on
+seats it fails on two of three conditions, and CRPS, the stronger reading, fails
+the third. This does not reverse the change: `ITERATING.md`'s defensibility trade
+is available *precisely* where Key 1 returns `undetermined` ("you may buy past
+noise; you may not buy past a measurement"), and this change retires a channel
+whose weight rests on one house with an undisclosed screen. **But no sentence
+anywhere may present −2 as a result.**
+
+### ⚠️ AND THE ABSOLUTE TOTALS FLATTER THE MODEL
+
+`compare_history` runs `backtest.relabel_run`, which renames the generic
+`ENTRANT` column onto the largest *realised* arrival — a label chosen with the
+result in hand, which no baseline gets. So **725 and 723 are inflated in the
+model's favour**, and the "margin over uniform swing 18.1% → 18.3%" is a 0.2pp
+move on a statistic that is not clean. **Quote the paired difference; do not lean
+on the margin.** The arm that would quantify this has never been run — and
+§1.225's write-up of that as "waiting on a settled tree" was wrong: it is
+waiting on a REPAIR. `test_the_relabel_ablation_actually_withholds_the_label` is
+red and says the switch is inert — *"6.9450 with the label, 6.9450 without"* —
+so `JHB_SCORE_NO_RELABEL=1` currently withholds nothing and the label-free panel
+cannot be measured until that is fixed.
+
+### Two arguments for the switch that the decision did not rest on, and should
+
+Both from the blind review, both checkable in the register:
+
+1. **The within-house swing is underpriced by about an order of magnitude.** The
+   same house had the ANC at 30% in Feb–Mar and 18% in July — 12pp in five
+   months. `POLL_DRIFT_PP_PER_ROOT_DAY` prices that 147-day span at ≈1.2pp. On
+   ~500-person samples a 12pp gap is ≈3σ of sampling error, so it is real
+   movement or a methods change, and neither is priced. **The "how do several
+   polls interact" problem does not need a second house — it already exists
+   between two waves of one.**
+2. **"off" is the only setting where the published and the backtested
+   configuration agree about polls.** §A7 — the live forecast running channels
+   no backtest row can score — is called the strongest criticism available to a
+   reviewer, and this removes one of the three. It does not remove them all:
+   `w_bye` and `contestation_expand` remain.
+
+### The middle position, priced and rejected
+
+`poll_paths="arrivals"` is a supported third value and looks like the
+sophisticated answer. From the exact decomposition it would score **721** seats
+(725 − 4) and **CRPS 544.10** — best of three on seats. It is still the wrong
+choice, and not on taste: **at 2026 it is identical to "off"**, because no poll
+with `target: 2026` and `scope: "national"` exists, so the arrivals path cannot
+fire there. It would change nothing a reader sees while re-opening the §A7 gap —
+the backtest would score a channel the live forecast does not have. Verified
+against `polls.json`.
+
+### Scoring the pre-registration
+
+| clause | verdict |
+|---|---|
+| PRIMARY — improves by between 1 and 25 coherent seats | **CONFIRMED**, at the very bottom of the range (2) |
+| SECONDARY — 2011 rows move by exactly zero | **CONFIRMED** — all 8 rows, both metrics, 0.000 |
+| SECONDARY — at least one 2016 row moves | **CONFIRMED** — three did |
+| SECONDARY — at least one 2021 row moves | **CONFIRMED** — four did |
+| MECHANISM — the seven poll levers go inert at every target | **CONFIRMED** |
+| falsifier — panel worsens by more than 5 | not triggered |
+
+**Nothing was falsified, and I am not treating that as a success.** The primary
+clause predicted a range 12 times wider than the result, which is a band loose
+enough to be confirmed by noise; §1.94's −6 on sixteen rows and this −2 on 24
+are both inside the swing of one city-year. The clause that did real work is
+the 2011 one, because it is exact and it could have failed on any of eight
+rows: the register holds no 2011 poll, so no 2011 row may move, and none did.
+**That is the clause that says the switch does what it says.**
+
+### The prediction I got wrong in kind, not in outcome
+
+The pre-registration said the honest response to seven newly-inert levers was
+"an `EXPECTED_INERT` entry per lever … NOT a loosened assertion". That was the
+wrong instrument and the file already held the right one. `EXPECTED_INERT`
+excuses a lever; `CONDITIONAL` **holds the gate open in both runs and measures
+the lever anyway**. All seven now have both — the excuse says why the shipped
+forecast does not read them, and the conditional proves they still move the
+forecast when `poll_paths=all` is restored.
+
+That distinction is not bookkeeping. The owner intends to re-insert this
+machinery once the interaction between houses is designed, and a switched-off
+channel with no conditional coverage is exactly how the legacy poll path sat
+broken and uncertified for eight days (§1.68) and how `poll_k` was written into
+this log as a measured null it never was (`_LEGACY_POLL`). **A lever behind a
+shut gate must still be measured, or switching something off silently deletes
+its tests.**
+
+### What the switch-off cascaded into, and what it nearly deleted
+
+`polling.SIGMA_TWO_TERM` went red in `test_module_constants_are_swept_for_liveness_too`:
+both sigma decompositions live inside the metro block, so with the block unrun
+the constant moved nothing. **The report was true and the obvious conclusion was
+wrong.** Its `MODULE_PERTURB` entry exists because `poll_house_k`'s entire
+`EXPECTED_INERT` excuse rests on the retired sigma still being reachable — so
+deleting the red entry would have removed the only evidence for keeping a lever,
+and the lever would have gone next. `MODULE_PERTURB` now takes an optional sixth
+field of scenario overrides applied to **both** runs, and SIGMA_TWO_TERM is
+measured with `poll_paths=all` held open. Same instrument as `CONDITIONAL`, same
+reason.
+
+### What is NOT established
+
+* **The 2026 forecast moves and nothing can score it.** The live Johannesburg
+  headline depended on the metro path. It will move back by roughly what
+  `methodology.md` records the channel as having been worth, and **no backtest
+  can say whether that is better** — the 2026 configuration is unscoreable by
+  construction. The published site is still the 31 August build and now
+  disagrees with the model on the headline, not merely on the draw count.
+* **That polls are uninformative.** §1.95's second job — polls as an external
+  check that the model is in the ballpark — is unscoreable and unaffected. The
+  check still exists; it has stopped being an input.
+* **That −2 generalises.** 1000 draws, 24 rows, this artefact set. Three rows
+  carry the entire signal and one of them moves the other way.
+
+## 1.226 The 2026 headline, measured on both sides of the switch: a dead heat, not an ANC win — and "83 → 77" is dead (2026-09-12)
+
+§1.225 switched the poll channel off and said the 2026 forecast would move
+without saying by how much, because the panel cannot score 2026. A blind
+pollster review of that change asked two questions the backtest cannot answer,
+and both are answerable by one paired run. Joburg 2026, `poll_paths` off vs all,
+1000 draws, seed 20261104, `run_model` called directly so nothing was published.
+
+| party | OFF median | OFF 5–95 | ALL median | ALL 5–95 | shift |
+|---|---|---|---|---|---|
+| DA | 68 | 47–93 | 79 | 55–105 | **−11** |
+| ANC | 68 | 31–96 | 64 | 27–89 | +4 |
+| ASA | 27 | 11–52 | 25 | 10–51 | +2 |
+| EFF | 26 | 8–58 | 23 | 8–55 | +3 |
+| MK | 23 | 7–53 | 23 | 7–52 | 0 |
+| PA | 19 | 12–30 | 18 | 12–30 | +1 |
+
+    largest party   OFF: ANC 47.3% / DA 47.0%      ALL: DA 71.4% / ANC 25.3%
+
+### The result is a TIE, and the difference matters
+
+⛔ **Do not write "with polls off the model says the ANC is largest."** The call
+is **47.3% against 47.0%** on 1000 draws — a 0.3pp gap, inside its own sampling
+error. The switch did not replace a confident DA call with a confident ANC call;
+it replaced a confident call with **an honest dead heat**. That is a much more
+defensible thing to publish and a much weaker thing to claim.
+
+The review's stated worst case was "the model calls the wrong largest party with
+the contrary evidence switched off in its own repository". Measured, that is not
+the position: the model declines to call it. The risk is real but it is the risk
+of publishing a tie, not of publishing a wrong winner.
+
+### ✅ The calibration gate passes
+
+The review proposed a gate and called it blocking: does the polls-off DA
+interval still cover the polls-on median? If not, the forecast would be
+asserting that the only independent reading of this election lies outside its own
+90% interval — indefensible whatever one thinks of poll weighting.
+
+    polls-off DA 90% interval   [47, 93]
+    polls-on  DA median          79        ✅ inside
+
+**Calibration before sharpness, and it holds.** Note what makes it hold: the
+polls-off interval is 46 seats wide. The model is not confident that the DA is
+on 68; it is saying 68 is the middle of a range that comfortably includes the
+poll's answer. Removing polls widened nothing and hid nothing.
+
+### ⛔ "83 → 77" IS RETIRED, AND §A7 WAS RIGHT
+
+`docs-public/methodology.md` claimed, publicly and undated, that turning the
+poll channel on moved the DA **from 83 to 77 seats**. Measured, it moves the DA
+**68 → 79**: the opposite direction, and neither endpoint. `JUDGEMENT-CALLS.md`
+§A7's "off 65 → on 78, and the lead FLIPS" was right in direction and within
+about three seats in magnitude, on a different tree at 600 draws.
+
+The public sentence was **deleted rather than corrected** (§1.225), which was
+right for an independent reason: it also described the `weight_cap` retired at
+§1.91. The review's mechanical argument for why it could not have been true is
+worth keeping, because it needed no run: the poll aggregate puts the DA near
+41%, `blend_poll_centre` returns a convex combination bounded between `mu` and
+the poll share, and a DA sitting at ~25% of a 270-seat council can therefore
+only be **raised** by blending toward 41%. A claim that polls lowered the DA
+contradicts the blend's own docstring.
+
+**The lesson is the one §1.222 and §1.223 already taught and this repository
+keeps paying for**: the figure was quoted in public for three weeks while two
+measurements in the same tree — one taken the day before it was committed, one
+two days after — said the opposite. Nothing re-read it because nothing had to.
+
+### What this does NOT settle
+
+* **Whether 68 or 79 is closer to the truth.** Unscoreable until 4 November.
+  That is the whole reason the decision rests on the design argument.
+* **MK.** It is unchanged at 23 seats across the switch, which is not
+  reassurance: MK polls 8–13% in this city, did not contest the 2021 LGE, and
+  with the channel off its level comes from `plan_bounds.MK = [0.3, 1.0]` in
+  `cities/joburg.toml` — a hand-typed 3.3× range, now the only thing standing
+  behind a party that could hold the balance of a 270-seat council. The poll
+  channel was built for exactly this case. **This is the largest unevidenced
+  quantity in the live forecast** and it is a judgement call, not a measurement.

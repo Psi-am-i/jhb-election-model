@@ -217,6 +217,24 @@ def test_the_freeze_names_a_commit_that_exists_and_a_clean_tree():
         f"before quoting it as a reference.")
 
 
+def test_an_output_outside_the_repository_does_not_discard_the_run():
+    """`compare_history --json /tmp/x.json` asks whether the tree is dirty
+    AFTER the panel has run, excluding its own outputs. `relative_to` raised
+    `ValueError` on the out-of-repo path, so a completed run was thrown away
+    at a bookkeeping line.
+
+    Constructed, not observed: a file git cannot see changes nothing, so the
+    answer with it excluded must equal the answer with nothing excluded.
+    """
+    import tempfile
+    import freeze as F
+    outside = Path(tempfile.gettempdir()).resolve() / "history_outside.json"
+    assert F.REPO not in outside.parents, (
+        f"the probe path {outside} is inside the repository, so it tests "
+        f"nothing about an outside one")
+    assert F._dirty_excluding(outside) == F._dirty_excluding()
+
+
 def test_the_frozen_forecast_is_a_council():
     """A sanity floor. Catches a freeze of a run that did not finish.
 

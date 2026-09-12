@@ -146,7 +146,7 @@ then evaluates `0.0/0.0` for ten parties at 2026. One repair, not two.
 
 The owner's proposal: project ward/VD results forward **independently**, sum to a
 citywide total, and compare against the top-down model. Where they disagree is
-diagnostic, and the disagreement is measurable on all sixteen city-years.
+diagnostic, and the disagreement is measurable on every panel city-year.
 
 **The trap, which the design must clear:** a naive bottom-up — summing historical
 VD shares weighted by registration — reproduces last election's citywide result
@@ -169,7 +169,7 @@ citywide size — a **13× relative discount** of the smallest pool against the
 largest.
 
 Test whether **corrected** pool allocation beats `dev` (fixed historical
-geography) for parties that have both. 16 city-years, parallel prep, serial
+geography) for parties that have both. The full panel, parallel prep, serial
 measure. **Must use the rates, not the stored composition** — testing the
 transpose would measure the wrong thing and a negative result would mean nothing.
 

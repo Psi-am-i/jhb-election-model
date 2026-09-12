@@ -375,9 +375,9 @@ this document until 2026-08-17. Both are in `montecarlo.py`.
 
 | step | where | what it does |
 |---|---|---|
-| pool capacity ceiling | `pool_spec`, `montecarlo.py:929-946` | a party can take at most every vote cast in the pools it belongs to. Its centre is water-filled under `POOL_CAPACITY_MARGIN × capacity` (`capped_targets`), and the excess goes to the parties that can hold it |
+| pool capacity ceiling | `pool_spec` (`montecarlo.py`) | a party can take at most every vote cast in the pools it belongs to. Its centre is water-filled under `POOL_CAPACITY_MARGIN × capacity` (`capped_targets`), and the excess goes to the parties that can hold it |
 | run-level balance | `pool_spec` → `pools.balance_margins` | fixes each party's expected citywide share at its centre, once, on the unshocked centres |
-| **per-draw balance** | `draw_pools`, `montecarlo.py:1290-1335` | the level shock is applied to the CENTRES and the matrix re-balanced against the shocked column margin, so the whole shock survives into the draw. Costs ~0.15 ms a draw |
+| **per-draw balance** | `draw_pools` (`montecarlo.py`) | the level shock is applied to the CENTRES and the matrix re-balanced against the shocked column margin, so the whole shock survives into the draw. Costs ~0.15 ms a draw |
 | per-draw capacity clip | `draw_pools` → `capped_targets` | the shocked centres are water-filled under the same capacity before the balance, because a shock can ask for far more than the run-level centre did — at Johannesburg 2026 the PA has asked for up to **254%** of the Coloured pool |
 | fallback | `partial_balance` (both sites) | when the two margins cannot both hold, alternating row/column scaling ENDING ON THE ROW pass: every pool exactly allocated, the party levels as close as the arithmetic permits. **Counted, not swallowed** — `ModelRun.ipf_failures` / `.ipf_balances`, printed by `main` |
 
@@ -529,7 +529,7 @@ PA and PAC — a degenerate solution reported as converged.
 | `w_recency` = 0.70 | `turnout.py` | JUDGED | 2016 vs 2021 |
 | `turnout_pattern_blend` / `_jitter` | DEFAULTS | JUDGED | — |
 | `turnout_noise_sd` = 0.08 | DEFAULTS | JUDGED | i.i.d. per VD, so it vanishes citywide |
-| `turnout_tilt_anc` / `_da` | **DELETED** | — | ⛔ **NOT IN `DEFAULTS` AND NOT READ BY `run_model`.** Verified 2026-08-29: both keys are absent from `montecarlo.DEFAULTS`. They applied a tilt *after* calibration, breaking it. This row said "**OFF** in DEFAULTS" until 2026-08-29 — **claiming a switch that does not exist**, which is precisely the failure `CLAUDE.md` records as having already cost this project once, when ten front-page claims were pinned to a deleted `turnout_tilt_da` (`build_site.py:454`, `stats.py:209`) |
+| `turnout_tilt_anc` / `_da` | **DELETED** | — | ⛔ **NOT IN `DEFAULTS` AND NOT READ BY `run_model`.** Verified 2026-08-29: both keys are absent from `montecarlo.DEFAULTS`. They applied a tilt *after* calibration, breaking it. This row said "**OFF** in DEFAULTS" until 2026-08-29 — **claiming a switch that does not exist**, which is precisely the failure `CLAUDE.md` records as having already cost this project once, when ten front-page claims were pinned to a deleted `turnout_tilt_da` (`build_site.py`, `stats.py` — search `turnout_tilt_da`) |
 | κ_bye tilt | `turnout.py` | MEASURED | contests before target ✅ |
 
 ---
@@ -655,14 +655,14 @@ finding.
 ⛔ **IT HAD NEVER PRODUCED A NUMBER UNTIL 2026-08-29.** It indexed `seat_draws` —
 a `list[dict[str, int]]` on `ModelRun` — as if it were the `(draws, parties)`
 array `pr_share_draws` is, so `np.asarray(...)[:, cols]` raised `IndexError` on
-**all sixteen** city-years and `compare_history` printed `nothing runnable`. The
+**all sixteen** city-years then scored and `compare_history` printed `nothing runnable`. The
 suite was green throughout: its one unit test handed it a dense 2-D fixture
 production never builds. **Seats are now summed by party NAME.** §1.136.
 
 ⛔ **AND ITS REALISED SIDE WAS OUTCOME-SELECTED.** `arrived` came from
 `actual_seats`, which is filtered to `s > 0`, so realised arrival mass counted
 only arrivals that **won a seat** while the forecast side summed every arrival
-column. Understated in all sixteen city-years and **exactly zero in four**. It
+column. Understated in all sixteen city-years then scored and **exactly zero in four**. It
 pointed the same way as the rig the function exists to remove. Both sides are now
 input-selected.
 
@@ -723,7 +723,7 @@ and this model has the second one — see MODEL-LOG §1.34.
 
 ## Summary of what is switched off
 
-`entrant_geography` · `w_bye_local_*` · `arrival_group_draw`. The legacy `poll_id`/`poll_weight`/`poll_k` path was on this list until 2026-08-29, described as "reachable only by setting `poll_id`"; it is **deleted** (2026-08-22, §1.68) — verified: none of the three keys is in `DEFAULTS`, and the code is gone (`montecarlo.py:4397` carries the tombstone). There is nothing to reach. `polling_lean`/`polling_span` were listed here as *switched off*; they are **deleted** (2026-08-17), having been computed, passed to `pool_spec` as an argument it never read, and printed. **"Switched off" and "deleted" are different claims, and this line has now made the wrong one twice, about two different levers** — see also the `turnout_tilt_*` row above, which claimed a `DEFAULTS` switch that does not exist.
+`entrant_geography` · `w_bye_local_*` · `arrival_group_draw`. The legacy `poll_id`/`poll_weight`/`poll_k` path was on this list until 2026-08-29, described as "reachable only by setting `poll_id`"; it is **deleted** (2026-08-22, §1.68) — verified: none of the three keys is in `DEFAULTS`, and the code is gone (the tombstone is the `poll_id` comment in `montecarlo.py`). There is nothing to reach. `polling_lean`/`polling_span` were listed here as *switched off*; they are **deleted** (2026-08-17), having been computed, passed to `pool_spec` as an argument it never read, and printed. **"Switched off" and "deleted" are different claims, and this line has now made the wrong one twice, about two different levers** — see also the `turnout_tilt_*` row above, which claimed a `DEFAULTS` switch that does not exist.
 
 `poll_weight` has LEFT this list: metro polls now blend automatically for any
 target that has one, and `polls.json` carries machine-readable fieldwork dates.
@@ -736,10 +736,10 @@ nameless `ENTRANT` to `max(newcomers, key=seats)` — the largest arriving
 seat-winner, chosen with the outcome in hand — so they flatter the incumbent on
 the one column that decides the comparison; **(b)** half that panel is a **null
 arm**: all eight 2016 specs carry `arrival_group: null` and zero seeds,
-`montecarlo.py:2699` leaves `group_idx = None`, and the same RNG draws are
+`make_drawer` leaves `group_idx` at `None`, and the same RNG draws are
 consumed either way; **(c)** the lever is **mis-scoped** — `arrival_group_spec`
 receives `sorted(arrivals)`, the whole key set of `arrival_rules`, so splinters
-are in its weights and `montecarlo.py:2949` zeroes those columns before
+are in its weights and `draw_pools` zeroes those columns before
 overwriting them. ActionSA's 6.85% pool seed becomes **0.18%** against an actual
 **18.12%**. That is not a test of the group estimator.
 
@@ -978,7 +978,7 @@ monotone (0.915, 0.737, 0.448, 0.663, 0.138), so the line is anchored at the
 ends and wrong in the middle. That middle is the mid-ballot — the band §1.58
 independently measures as too narrow on the seat forecast.
 
-## Running the sixteen city-years
+## Running the panel
 
 `compare_history` runs them in parallel processes by default — one per
 city-year, capped at the machine's cores less one. `--jobs 1` forces the serial
@@ -1005,7 +1005,7 @@ Every `pools_*.json` carries an `artefact_key`:
 | `schema` | the key's own shape. **2 since 2026-09-02** |
 | `city`, `target` | which city-year it was built for |
 | `config_sha` | **every `config/*.toml`**, by name and content, sorted — not the one named file it used to be |
-| `cities_sha` | **every `cities/*.toml`**. Not a per-city input: `panel_turnout_spread` globs the directory, so adding a ninth city moves the turnout band of all twenty-six specs |
+| `cities_sha` | **every `cities/*.toml`**. Not a per-city input: `panel_turnout_spread` globs the directory, so adding a ninth city moves the turnout band of every spec |
 | `pools_sha` | `pools.py`'s **code**, hashed over its syntax tree with docstrings stripped, so changing a comment does not fire it |
 | `deps_sha` | the code of `parties`, `cityconfig`, `ingest_lge`, `levels` — the first-party modules the emit leans on. ⚠️ `montecarlo` is deliberately excluded: it changes on most working days and would mark every spec stale continuously, so a change to `read_ward_crosswalk` alone will NOT fire |
 | `judgements_sha` | `judgements/<slug>-<year>.toml`, hashed as **parsed payload** — so a prose edit does not fire it and a declared parent or weight does |

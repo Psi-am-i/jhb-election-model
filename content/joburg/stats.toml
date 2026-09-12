@@ -406,3 +406,57 @@ allow = [
   "the middle 90%",                # a stated reporting convention (the band the
                                    #   charts draw), not a model output
 ]
+
+# ---------------------------------------------------------------------------
+# The poll channel, switched off 2026-09-12 (MODEL-LOG §1.225)
+# ---------------------------------------------------------------------------
+# These four sit inside a DATED argument on the methodology page — "this is
+# what removing polls was worth, measured on the day it was done" — so they are
+# `fixed` by the same logic as every entry above: the claim is about a past
+# comparison and must not silently re-resolve to a later panel.
+#
+# ⚠️ THEY ARE A BACKTEST PANEL, NOT A FORECAST OUTPUT, so `free` is not
+# available to them: nothing in a site build runs `compare_history`. That makes
+# the pin honest rather than convenient, but it also means the usual drift
+# report cannot see them. The check that CAN is `src/declares.py --verify`
+# against the run below, and the row-by-row table in MODEL-LOG §1.225.
+
+[polls_off_seat_err_before]
+unverifiable = "a compare_history BACKTEST PANEL, not a forecast output — no site build runs the panel, so nothing here re-derives it. Checked instead by MODEL-LOG §1.225 and the pre-registration, which carry the row-by-row table this single number summarises."
+mode = "fixed"
+value = 725
+source = "compare_history:seat_abs_err_coherent, poll_paths=all"
+captured = "2026-09-12"
+run = "seed=20261104 draws=1000 rows=24 pools:843229db"
+tolerance = "exact"
+used_in = "methodology.md, 'what it was worth, measured' — the with-polls arm"
+
+[polls_off_seat_err_after]
+unverifiable = "a compare_history BACKTEST PANEL, not a forecast output — no site build runs the panel, so nothing here re-derives it. Checked instead by MODEL-LOG §1.225 and the pre-registration, which carry the row-by-row table this single number summarises."
+mode = "fixed"
+value = 723
+source = "compare_history:seat_abs_err_coherent, poll_paths=off"
+captured = "2026-09-12"
+run = "seed=20261104 draws=1000 rows=24 pools:843229db"
+tolerance = "exact"
+used_in = "methodology.md — the without-polls arm. The PAIR is the claim; quoting either alone says nothing"
+
+[polls_off_crps_before]
+unverifiable = "a compare_history BACKTEST PANEL, not a forecast output — no site build runs the panel, so nothing here re-derives it. Checked instead by MODEL-LOG §1.225 and the pre-registration, which carry the row-by-row table this single number summarises."
+mode = "fixed"
+value = 545.8
+source = "compare_history:crps, poll_paths=all"
+captured = "2026-09-12"
+run = "seed=20261104 draws=1000 rows=24 pools:843229db"
+tolerance = 0.05
+used_in = "methodology.md — distributional score, with polls"
+
+[polls_off_crps_after]
+unverifiable = "a compare_history BACKTEST PANEL, not a forecast output — no site build runs the panel, so nothing here re-derives it. Checked instead by MODEL-LOG §1.225 and the pre-registration, which carry the row-by-row table this single number summarises."
+mode = "fixed"
+value = 541.4
+source = "compare_history:crps, poll_paths=off"
+captured = "2026-09-12"
+run = "seed=20261104 draws=1000 rows=24 pools:843229db"
+tolerance = 0.05
+used_in = "methodology.md — distributional score, without polls"

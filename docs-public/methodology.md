@@ -262,30 +262,51 @@ against three baselines that need no model at all. The results are on the
   same reason. Fixing it means drawing a party's level from its local and
   national records together, weighted by which has actually been more
   informative for a party like it. It is the largest open item on the model.
-- **Polls ARE used, and one house currently moves the Johannesburg headline.**
-  *(Corrected 2026-08-23. Until then this page said "no poll is currently used
-  at all" — that stopped being true on 2026-08-22 and the page was not
-  changed. It is the most serious error this site has carried.)*
+- **No poll is used in the forecast. This changed on 12 September 2026, and
+  before that date polls were used.**
 
-  The rule, which we said we would publish before using them at all: a poll is
-  priced by a decomposed standard error — sampling, house effect, likely-voter
-  screen and drift since fieldwork — and blended by inverse variance against
-  the model's own centre. **A single unreplicated house is capped at half the
-  blend**, however large its sample, because a house effect is a common bias
-  that publishing more waves cannot average away.
+  *This page has twice described the wrong state of this switch, and both times
+  in the same direction — the text stayed still while the model moved. It said
+  "no poll is currently used at all" for a day after that stopped being true on
+  2026-08-22, which is the most serious error this site has carried; it then
+  described a weighting cap for three weeks after that cap was retired. So the
+  date above is not decoration. **If you are reading this and the site's
+  forecast still differs from a no-polls model, this sentence is stale again and
+  the forecast is what to believe.***
 
-  The cap binds today. Johannesburg's only 2026 metro polling is two waves from
-  one house, so the effective house count is one and the cap is what stands
-  between that house and the published forecast. Turning the poll channel on
-  moved the DA from 83 to 77 seats. **We publish the forecast with polls and
-  without, side by side, for that reason.**
+  **Why they were taken out.** Polls were an input until 12 September. Removing
+  them is not a judgement that they are worthless — it is that we had no
+  designed answer to how several polls should interact with each other: how much
+  two waves from one house count against one wave from another, how a party-
+  internal poll is discounted, how a national poll and a metro poll combine. The
+  weighting we had was defensible one poll at a time and improvised across
+  several. Rather than keep shipping a forecast that depended on it, the channel
+  is off until that is designed properly.
 
-  The caution that motivated the old sentence is unchanged and is why the cap
-  exists: the polls that exist disagree with each other by more than the
-  quantity being forecast — one house had the DA on 42% and the ANC on 18% in
-  the same year another had the ANC on 35% and the DA on 25% — and metro-level
-  polling has little track record here to weight them by; pre-2021 polling
-  missed ActionSA in this city by about ten points.
+  **What it was worth, measured.** Against the 24 past city-elections we can
+  backtest, removing polls changed the total seat error from
+  {{polls_off_seat_err_before}} to {{polls_off_seat_err_after}} and the
+  distributional score (CRPS) from {{polls_off_crps_before}} to
+  {{polls_off_crps_after}}. Both move the right way and neither is large: seven
+  of the 24 elections moved at all, one of them by six seats *against* the
+  change. The honest summary is that **we cannot distinguish the poll channel's
+  contribution from zero**, which is itself a reason not to let it move a
+  published headline while its design is unsettled.
+
+  **What we intend.** To use every poll we receive, and to put the weighting in
+  the reader's hands — a control on this site letting you say how far you trust
+  each individual poll, within that poll's own margin of error, and see the
+  forecast respond. That is the design being worked on; it is not built yet, and
+  we would rather say so than ship the half of it we had.
+
+  **The caution that has always motivated this is unchanged**: the polls that
+  exist disagree with each other by more than the quantity being forecast — one
+  house had the DA on 42% and the ANC on 18% in the same year another had the
+  ANC on 35% and the DA on 25% — and metro-level polling has little track record
+  here to weight them by; pre-2021 polling missed ActionSA in this city by about
+  ten points. Every poll we hold is still listed, with its caveats, and the
+  model is still read against them as an outside check that it is in the
+  ballpark. They are evidence we look at. They are not, at present, an input.
 - **Arithmetic is not politics.** The model says which governments are
   numerically possible. Whether people who dislike each other will sit in the
   same room is not a modelling question.

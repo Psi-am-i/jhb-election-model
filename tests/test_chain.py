@@ -98,6 +98,7 @@ import ast
 import re
 import inspect
 import tempfile
+import argparse
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -1482,6 +1483,78 @@ def test_a_diagnostic_run_does_not_overwrite_the_published_artefacts():
         for name, blob in before.items():
             if (processed / name).read_bytes() != blob:
                 (processed / name).write_bytes(blob)
+
+
+def test_passing_a_run_directory_changes_no_drawn_number():
+    """⛔ THE CLAIM `CLAUDE.md` MAKES, ASSERTED OVER THE DRAWS THEMSELVES.
+
+    `CLAUDE.md` §5 says of `--run-dir`: *"Opt-in and changes no number"*, and
+    cited `test_chain.py` as asserting byte-identity. It did not. The two tests
+    it could have meant asserted neighbouring properties:
+
+    * `test_a_diagnostic_run_does_not_overwrite_the_published_artefacts` —
+      that the run does not PUBLISH. About the processed directory, not the
+      draws.
+    * `test_the_trace_is_inert_without_a_run_directory` — that a `Trace(None)`
+      writes nothing. About the ABSENCE case, and it never runs the model with
+      a `run_dir` to compare.
+
+    Neither compares a run that traces against one that does not, so the
+    sentence was an argued claim wearing a citation. `test_levers_are_live`
+    then repeated the same citation to justify passing a `run_dir` into its
+    own baseline — so the one place the trace is used at scale rested on it.
+
+    The property is cheap to state directly: same target, same scenario, same
+    seed, run twice, and the only difference is the `run_dir`. If tracing ever
+    consumes a random number, reorders a loop, or mutates an array it was
+    handed to inspect, every baseline in the repository moves for a logging
+    reason and this goes red.
+    """
+    import cityconfig
+    cityconfig.use("joburg")
+    target = cityconfig.use_target("2021")
+    mc.apply_city(cityconfig.use("joburg"))
+
+    def _scenario():
+        # Rebuilt per run, NOT shared: `run_model` mutates the scenario it is
+        # given (it writes `poll_levels`, `_bye_spread` and the noted
+        # constants into it), so handing the same dict to both runs would
+        # compare a first run against a second that started somewhere else.
+        return mc.load_scenario(argparse.Namespace(
+            config=None, set=[], draws=20, seed=20261104,
+            city="joburg", target="2021"))
+
+    with tempfile.TemporaryDirectory() as tmp:
+        traced = mc.run_model(target, _scenario(), verbose=False,
+                              run_dir=Path(tmp) / "trace")
+        plain = mc.run_model(target, _scenario(), verbose=False)
+
+    seats_t, seats_p = traced.seat_draws, plain.seat_draws
+    assert len(seats_t) == len(seats_p), (
+        f"the two runs drew {len(seats_t)} and {len(seats_p)} draws — a "
+        f"difference in COUNT, before any question of identity")
+    assert seats_t, "the probe drew nothing, so it proves nothing"
+    assert seats_t == seats_p, (
+        "passing --run-dir MOVED THE DRAWN SEATS. `CLAUDE.md` §5 documents "
+        "the trace as changing no number and `test_levers_are_live` passes a "
+        "run_dir into its own baseline on that basis, so every lever verdict "
+        "measured against that baseline is affected.")
+
+    # ⛔ AND THE SHARES, because seats are integers allocated through a quota:
+    # a share can move by a tenth of a point and leave every seat integer
+    # exactly where it was. Asserting seats alone would pass through the most
+    # likely form of this defect.
+    for name in ("pr_share_draws", "ward_share_draws"):
+        a, b = getattr(traced, name), getattr(plain, name)
+        assert (a is None) == (b is None), f"{name}: one run produced it, one did not"
+        if a is None:
+            continue
+        assert a.shape == b.shape, f"{name}: {a.shape} vs {b.shape}"
+        assert a.size, f"{name} is empty, so it proves nothing"
+        assert np.array_equal(a, b), (
+            f"--run-dir moved {name} while the seat integers were unchanged — "
+            f"a share move too small to cross a quota. The trace must not "
+            f"touch the draws at all.")
 
 
 def test_the_trace_is_inert_without_a_run_directory():

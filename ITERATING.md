@@ -189,10 +189,10 @@ of the test. **Anything below "most metros, both cycles, same direction" is
 `undetermined`, not `adopted`.**
 
 **⛔ KEY 1 CANNOT CURRENTLY ARBITRATE THE ARRIVAL CHANNEL, AND EVERY SEAT FIGURE
-IN THIS FILE IS SCORED AFTER THE RELABEL.** `compare_history.py:1221` runs
+IN THIS FILE IS SCORED AFTER THE RELABEL.** `compare_history` runs
 `backtest.relabel_run` on every run before scoring, renaming the model's generic
 `ENTRANT` column onto `max(newcomers, key=seats)` — the largest realised arrival,
-chosen with the outcome in hand (`backtest.py:596`). **The baselines have no
+chosen with the outcome in hand (`backtest.entrant_actual_for`). **The baselines have no
 such column**: `benchmarks.py` never builds an `ENTRANT`, so there is nothing to
 relabel and no equivalent benefit. The model is handed a free correct label on
 the single hardest column in the panel and uniform swing is not.
@@ -205,8 +205,9 @@ over uniform swing, which falls from 37.8% to 35.7%.** Seat error (coherent) goe
 386 → 426.~~
 
 ⛔ **STALE SINCE THE 2026-09-08 EMIT. DO NOT QUOTE THE STRUCK FIGURES.** They
-were measured on a **16 city-year** panel (329.50 CRPS; the baseline is now
-**548.05 on 24**) and, more importantly, **on a panel where the 2016 arm had no
+were measured on a **16 city-year** panel (329.50 CRPS then; the model's own
+level on the current panel is in `history.json` and MODEL-LOG §1.215, not typed
+here) and, more importantly, **on a panel where the 2016 arm had no
 seeds at all**. The batch turned that arm on: all eight 2016 specs went from
 `seeds = {}` to seeded, so an arrival that used to reach the score only through
 the generic `ENTRANT` column is now **named and seeded directly**, and there is
