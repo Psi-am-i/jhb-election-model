@@ -185,6 +185,25 @@ class Null:
                     stays and ``evidence`` carries the correction, because a
                     silently rewritten excuse destroys the record of what was
                     believed — the convention `_LEGACY_POLL` already set.
+    ``claimed_targets``
+                    the targets this entry's REASON generalises over, beyond
+                    the one it is keyed to. Empty means "this target only",
+                    which is the honest default.
+
+                    ⛔ **IT EXISTS BECAUSE A REGISTER CLAIMED MORE THAN THE
+                    HARNESS TESTED.** The three generic-entrant entries are
+                    keyed at 2021 and their reason says the levers are inert
+                    "at every target whose ballot is known" — a claim over
+                    2011, 2016 and 2021, of which `_sweep_target` runs exactly
+                    one. Read off the artefact, the claim is FALSE at 2011:
+                    `pools_2011.json` seeds **0** arrivals, so
+                    `GATES['arrivals_are_named']` is OPEN there and all three
+                    levers are live and have never been swept. A claim about
+                    a target nothing looks at is not a weaker claim, it is an
+                    unchecked one. Every target named here has its gate
+                    evaluated by
+                    `test_no_excuse_claims_a_target_its_gate_was_not_checked_at`,
+                    and every target NOT named must appear in `GATE_OPEN_AT`.
     """
 
     cause: str
@@ -193,6 +212,7 @@ class Null:
     gate_check: str = ""
     evidence: str = ""
     reason: str = ""
+    claimed_targets: tuple = ()
 
     @property
     def code(self) -> str:
@@ -328,7 +348,9 @@ _NO_METRO_POLL_NULL = Null(
     reason=_NO_METRO_POLL)
 
 EXPECTED_INERT: dict[tuple[str, str], Null] = {
-    # The three generic-entrant levers, at every target whose ballot is known.
+    # The three generic-entrant levers, at the targets whose arrivals are
+    # SEEDED BY NAME — which is not the same set as "whose ballot is known",
+    # and the difference is the whole of the correction below.
     # See `_gate_arrivals_are_named`. Added 2026-09-09 with §1.218's fix; before
     # it, all three were "live" at 2021 only because the model was forecasting
     # arrivals twice and these sized the phantom half.
@@ -339,11 +361,24 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
               "name",
         blocker="DATA",
         gate_check="arrivals_are_named",
+        claimed_targets=("2016", "2021"),
         evidence="the emitted 2021 spec carries 32 positive `seeds`; checked by "
                  "`GATES['arrivals_are_named']` with no model run. ⚠️ What this "
                  "does NOT establish: nothing here says what the generic slot "
                  "is worth at 2026, where it IS the only arrival channel and "
-                 "no backtest can reach it.",
+                 "no backtest can reach it.\n"
+                 "  ⛔ AND THE REASON BELOW OVER-CLAIMED, CORRECTED HERE "
+                 "RATHER THAN REWRITTEN. It says the levers are inert wherever "
+                 "the ballot is known, which reads across 2011, 2016 and 2021. "
+                 "Measured off the artefacts: `pools_2016.json` seeds 11 "
+                 "arrivals and `pools_2021.json` 32 — gate shut, claim true — "
+                 "but **`pools_2011.json` seeds 0**, so the gate is OPEN at "
+                 "2011 and all three levers are LIVE at a runnable target the "
+                 "sweep has never run. A known ballot does not imply a seeded "
+                 "roster; the seeds come from `pools.py`'s arrival rules, and "
+                 "at 2011 it has none. `claimed_targets` now scopes the entry "
+                 "to what is checked and `GATE_OPEN_AT` carries 2011 as an "
+                 "open gate, so neither half can be believed without evidence.",
         reason="a ballot is a fact, not a lever — you cannot vote for a party "
                "that is not on it. Where the arrivals are named there is no "
                "unnamed one, and a slot standing in for it would forecast the "
@@ -1284,6 +1319,61 @@ GATES = {
     "level_sd_fallback_never_binds": _gate_level_sd_fallback_never_binds,
 }
 
+# Gates that need NO model run. Nine of the ten; only
+# `level_sd_fallback_never_binds` calls `_base`. An entry may only generalise
+# past its own target (`Null.claimed_targets`) if its gate is in here, because
+# the point of generalising cheaply is that the extra targets get CHECKED —
+# and a check that costs a run at every runnable target would not be made.
+MODEL_FREE_GATES = frozenset(GATES) - {"level_sd_fallback_never_binds"}
+
+# The gates whose evidence is the emitted pool spec. Both report a MISSING file
+# as a shut gate — correct for their own use (no spec, nothing to draw) and a
+# vacuous pass for anything that generalises, so the file is asserted present
+# before a claim is believed on one of them.
+_SPEC_GATES = frozenset({"arrivals_are_named", "no_arrival_group_spec"})
+
+# THE TARGETS `test_every_tunable_lever_actually_moves_the_forecast` ACTUALLY
+# SWEEPS. Named once and consumed by the test, so the pair cannot drift: the
+# sweep ran `_sweep_target("2021") + _sweep_target("2026")` as a literal while
+# `EXPECTED_INERT` prose generalised across targets nobody ran.
+#
+# ⚠️ 2011 IS RUNNABLE AND IS NOT SWEPT. `backtest.runnable_targets("joburg")`
+# returns 2011, 2016 and 2021; the sweep runs 2021 and the live 2026. That is a
+# cost decision (108 `run_model` calls already make this module 69% of the
+# suite), not a statement about 2011 — and `_NO_METRO_POLL_NULL` records the
+# same gap for 2016 in its own note. What the register may NOT do is claim
+# anything about an unswept target without evidence; that is what
+# `claimed_targets` and `GATE_OPEN_AT` are for.
+SWEPT_TARGETS = ("2021", "2026")
+
+# ⛔ (gate, target) PAIRS WHERE THE GATE IS OPEN — the declared gaps.
+#
+# An `EXPECTED_INERT` entry that generalises must account for EVERY target its
+# gate could be evaluated at: each is either in the entry's `claimed_targets`
+# (and the gate is asserted SHUT there) or here (and the gate is asserted
+# OPEN). There is no third state, so a target cannot be quietly left out of
+# both — which is exactly how "inert at every target whose ballot is known"
+# came to cover 2011, where it is false.
+#
+# The value is what an open gate MEANS, and it is not a nullity: an open gate
+# is a live lever.
+GATE_OPEN_AT: dict[tuple[str, str], str] = {
+    ("arrivals_are_named", "2011"): (
+        "`pools_2011.json` seeds NO arrival by name, so `montecarlo` appends "
+        "the generic ENTRANT column and the three entrant levers are LIVE — "
+        "the generic slot is the entire arrival forecast at this target. 2011 "
+        "is runnable and is not in SWEPT_TARGETS, so the harness has never "
+        "measured any of the three here. This is a declared gap, not a null: "
+        "nothing has been learned about entrant_prob, entrant_share or "
+        "entrant_geography at 2011."),
+    ("arrivals_are_named", "2026"): (
+        "the same, and this one is intended — the 2026 roster is projected, "
+        "nomination lists close on 16 September, and until they are ingested "
+        "the generic slot is the model's only arrival channel. The levers are "
+        "live here and the sweep runs 2026, so they are measured; what no "
+        "backtest can do is score them. JUDGEMENT-CALLS §A4."),
+}
+
 
 # --------------------------------------------------------------------------
 # CONDITIONAL — open the gate, then perturb the lever
@@ -1524,7 +1614,12 @@ def test_every_tunable_lever_actually_moves_the_forecast():
     constants. `polling_lean` is computed, passed to `pool_spec`, and never read
     by it. Both were found by accident. This finds them on purpose.
     """
-    dead = _sweep_target("2021") + _sweep_target("2026")
+    # SWEPT_TARGETS, not two literals: the register beside it keys its excuses
+    # and its declared gaps to this tuple, and a third target added here must
+    # move both rather than silently widening what the register may claim.
+    dead: list[str] = []
+    for year in SWEPT_TARGETS:
+        dead += _sweep_target(year)
     assert not dead, (
         "these levers did not move the forecast when perturbed to a value that "
         "must change it:\n  " + "\n  ".join(dead) +
@@ -1580,6 +1675,450 @@ def test_every_defaults_key_is_swept_or_excused():
         "Either they were deleted — in which case remove them here and say so "
         "in MODEL-LOG — or they are module constants, which need naming in "
         "_MODULE_LEVEL and reaching a different way.")
+
+
+# --------------------------------------------------------------------------
+# the PROVENANCE register — does every constant say whether it read an election
+# --------------------------------------------------------------------------
+def _noted_constants() -> set[str]:
+    """Every name `montecarlo` passes to `note_constant`.
+
+    ⚠️ THE SAME PARSE `tests/test_chain.py::
+    test_every_constant_the_model_falls_back_to_says_when_it_was_fitted`
+    performs. It belongs in `tests/_support.py` beside `scanned`, and it is not
+    there only because file ownership in this round did not extend to that
+    file — recorded so the next editor moves it rather than adding a third
+    copy. The two tests ask different questions over different populations
+    (that one: noted <-> FITTED_ON; this one: DEFAULTS <-> all four registers)
+    and both need this one fact about the model.
+    """
+    import re
+    source = (SRC / "montecarlo.py").read_text(encoding="utf-8")
+    return set(re.findall(r'note_constant\(\s*scenario,\s*"([^"]+)"', source))
+
+
+def _classify_constants(defaults, fitted, uninstrumented, unsettled_, excused,
+                        noted):
+    """The three ways the provenance register can disagree with the code.
+
+    Returns ``(unaccounted, phantom, overlap)``:
+
+      unaccounted  a constant the model has and no register mentions — the
+                   defect this exists for. `level_shrink` sat here for weeks.
+      phantom      a register entry naming a constant the model does not have.
+                   A deleted lever has sat in a register for days in this
+                   repository before, because the guard checked code->register
+                   and never register->code.
+      overlap      a constant in two registers, i.e. two verdicts, of which a
+                   reader sees whichever is checked first.
+
+    ⛔ A PURE FUNCTION OF SIX SETS, DELIBERATELY. The populations are passed
+    in, so a CONSTRUCTED violation can be pushed through the very same detector
+    the real populations go through — which is the only way to know the
+    detector can see (CLAUDE.md §4, requirement 2). A check written inline
+    against module globals cannot be shown to work at all.
+    """
+    known = set(defaults) | set(noted)
+    registers = (set(fitted), set(uninstrumented), set(unsettled_), set(excused))
+    unaccounted = sorted(set(defaults) - set().union(*registers))
+    phantom = sorted(set().union(*registers) - known)
+    overlap = sorted({k for i, a in enumerate(registers)
+                      for b in registers[i + 1:] for k in (a & b)})
+    return unaccounted, phantom, overlap
+
+
+def test_every_defaults_key_declares_whether_it_read_an_election():
+    """CLASS 12's sibling: a constant that never says where it came from.
+
+    ⛔ **THE GUARD THAT SHOULD HAVE CAUGHT THIS SCANNED THE WRONG POPULATION.**
+    `test_chain.py` checks `note_constant` call sites against
+    `backtest.FITTED_ON` — a closed loop over one set, in both directions, and
+    therefore structurally blind to every `DEFAULTS` key that reaches neither.
+    27 of the 35 did. Among them `level_shrink`, chosen by leave-one-city-year-
+    out over a nine-city-year panel this project SCORES, worth coherent seat
+    error 312 -> 264 — the largest single improvement the model has had, and
+    the in-sample banner could not name it.
+
+    That is CLAUDE.md §4's worst-performing class in one sentence: *the scan
+    was healthy, the detector worked, and it found nothing in the wrong set.*
+    So this scans **`montecarlo.DEFAULTS` itself**, and asserts BOTH
+    directions:
+
+      * every `DEFAULTS` key is in exactly one provenance register;
+      * every register entry names a constant the model actually has — a
+        `DEFAULTS` key, or one of the names `note_constant` records.
+
+    The four registers are not four grades of guilt. `FITTED_ON` carries a
+    consumption PROOF (`note_constant`); `FITTED_ON_UNINSTRUMENTED` carries
+    none, because nothing instruments those read sites;
+    `PROVENANCE_UNSETTLED` is an open question that must not be resolved by
+    guessing; `NOT_FITTED` is the excuse, with its reason.
+    """
+    import backtest as B
+
+    defaults = set(M.DEFAULTS)
+
+    # 0. IT SCANNED THE RIGHT THING. The claim is about every DEFAULTS key, so
+    # the population must BE the DEFAULTS keys — asserted against this file's
+    # other, independent enumeration of the same set (the sweep partition), so
+    # neither can shrink without the other noticing. A fraction of a computed
+    # denominator rather than a bare floor: a floor's cheapest repair is to
+    # lower it.
+    partition = set(PERTURB) | set(OPERATIONAL) | set(STATUTORY)
+    scanned(defaults, of=partition, low=1.0, high=1.0,
+            what="the DEFAULTS keys whose provenance is registered",
+            denominator="the keys PERTURB/OPERATIONAL/STATUTORY partition")
+    assert defaults == partition, (
+        "the provenance register and the liveness sweep disagree about what "
+        f"the model's constants ARE: only in DEFAULTS "
+        f"{sorted(defaults - partition)}, only in the sweep partition "
+        f"{sorted(partition - defaults)}. One of the two is scanning a stale "
+        "population; see test_every_defaults_key_is_swept_or_excused.")
+
+    unaccounted, phantom, overlap = _classify_constants(
+        defaults, B.FITTED_ON, B.FITTED_ON_UNINSTRUMENTED,
+        B.PROVENANCE_UNSETTLED, B.NOT_FITTED, _noted_constants())
+
+    assert not unaccounted, (
+        "these constants are in montecarlo.DEFAULTS and in NO provenance "
+        f"register, so `backtest.contaminated` cannot see them and the "
+        f"in-sample banner cannot name them:\n  {unaccounted}\n"
+        "Every run resolves them, so the banner's all-clear is being printed "
+        "over them. Put each in backtest.FITTED_ON (consumption proved by "
+        "note_constant), FITTED_ON_UNINSTRUMENTED (fitted on a result, read "
+        "site not instrumented), PROVENANCE_UNSETTLED (the record contradicts "
+        "itself and nobody has settled it) or NOT_FITTED (with the reason it "
+        "reads no election result). ⛔ Read its own DEFAULTS comment and its "
+        "register entry first — the whole failure here is a constant whose "
+        "provenance nobody looked up.")
+
+    assert not phantom, (
+        "these provenance entries name constants the model does not have:\n  "
+        f"{phantom}\n"
+        "A register entry for a deleted constant is a claim nobody can check, "
+        "and this repository has had a lever sit in a register for days after "
+        "deletion because the guard only ever looked code->register. Delete "
+        "the entry and say so in MODEL-LOG.")
+
+    assert not overlap, (
+        f"these constants are in two provenance registers at once: {overlap}. "
+        "That is two verdicts on one number, and a reader gets whichever is "
+        "checked first.")
+
+    # Every year must be a real election, the same validation `check_derived_
+    # from` applies to a scenario's own declaration. A typo'd year is not a
+    # loud failure: `any(y >= target)` on a nonsense string silently decides
+    # the wrong way and the entry stops meaning anything.
+    import cityconfig as C
+    for name, entry in {**B.register(), **B.PROVENANCE_UNSETTLED}.items():
+        years = entry[0]
+        unknown = [y for y in years if y not in C.CALENDAR]
+        assert not unknown, (
+            f"backtest's register says {name!r} read {unknown}, which is not "
+            f"in the election calendar. A year that names no election makes "
+            f"the entry inert instead of failing.")
+
+    # An entry with no years in the UNINSTRUMENTED register can never implicate
+    # anything, so it is an excuse wearing a contamination entry's clothes.
+    # (FITTED_ON uses `()` deliberately, for keys reported but never scored.)
+    yearless = sorted(k for k, (years, _why)
+                      in B.FITTED_ON_UNINSTRUMENTED.items() if not years)
+    assert not yearless, (
+        f"{yearless} are registered as fitted on an election and name no "
+        f"election. Either name the years, or move them to NOT_FITTED with "
+        f"the reason they read no result.")
+
+
+def test_the_provenance_guard_can_see_a_constant_that_is_not_registered():
+    """A CONSTRUCTED violation through the same detector, three ways.
+
+    The test above asserts three emptinesses. Emptiness is what a detector
+    that has stopped working also reports, and nothing in this project has a
+    worse record than a scan that was healthy and looked at the wrong set. So
+    each of the three findings is provoked deliberately and must be seen.
+
+    The inputs are FABRICATED, not observed: a test whose premise is a passing
+    state of the tree expires the day the tree changes, silently.
+    """
+    import backtest as B
+
+    defaults = set(M.DEFAULTS)
+    fitted, uninst = B.FITTED_ON, B.FITTED_ON_UNINSTRUMENTED
+    unsettled_, excused = B.PROVENANCE_UNSETTLED, B.NOT_FITTED
+    noted = _noted_constants()
+
+    # 1. a constant the model has and no register mentions — F2's own defect,
+    #    reconstructed.
+    unaccounted, _, _ = _classify_constants(
+        defaults | {"__constructed_lever__"}, fitted, uninst, unsettled_,
+        excused, noted)
+    assert unaccounted == ["__constructed_lever__"], (
+        f"a DEFAULTS key in no register was not reported: {unaccounted}. The "
+        f"guard above cannot see the thing it exists for.")
+
+    # 2. a register entry for a constant the model does not have — the
+    #    register->code direction, which is the one that has failed here
+    #    before. Provoked in EACH register, because one of them being wired up
+    #    is not evidence about the others.
+    for i, name in enumerate(("FITTED_ON", "FITTED_ON_UNINSTRUMENTED",
+                              "PROVENANCE_UNSETTLED", "NOT_FITTED")):
+        ghost = f"__constructed_{name.lower()}_entry__"
+        args = [dict(fitted), dict(uninst), dict(unsettled_), dict(excused)]
+        args[i] = {**args[i], ghost: ((), "constructed") if i < 2 else "x"}
+        _, phantom, _ = _classify_constants(defaults, *args, noted)
+        assert ghost in phantom, (
+            f"a {name} entry naming a constant that does not exist was not "
+            f"reported: {phantom}. A deleted lever could sit in {name} "
+            f"forever.")
+
+    # 3. one constant, two verdicts.
+    victim = sorted(excused)[0]
+    _, _, overlap = _classify_constants(
+        defaults, fitted, {**uninst, victim: ((), "constructed")}, unsettled_,
+        excused, noted)
+    assert overlap == [victim], (
+        f"a constant registered as BOTH fitted and not-fitted was not "
+        f"reported: {overlap}.")
+
+    # And the detector is not simply reporting everything: the real
+    # populations, unmodified, come back clean through the same call.
+    assert _classify_constants(defaults, fitted, uninst, unsettled_, excused,
+                               noted) == ([], [], []), \
+        "the detector reports a violation on the unmodified tree"
+
+
+def test_a_panel_fitted_default_cannot_be_inherited_into_an_all_clear():
+    """⛔ THE ALL-CLEAR THAT CARRIED THE WORD "MEASURED".
+
+    A scenario file may declare `derived_from` and, if every entry predates the
+    target, have the keys it SETS treated as clean. Everything it leaves alone
+    still comes from `DEFAULTS`, and `backtest`'s own docstring says inheriting
+    a 2021-fitted constant is no less circular for being inherited. But
+    `contaminated` could only see the eight instrumented keys — so a file that
+    declared those eight clean printed
+
+        OUT-OF-SAMPLE (MEASURED): Nothing this run consumed was fitted on 2021
+        or later.
+
+    while `level_shrink = 0.35` came through untouched from `DEFAULTS`: a
+    parameter chosen by leave-one-city-year-out over a panel containing that
+    very row, worth coherent seat error 312 -> 264.
+
+    Constructed input, no model run, and the assertions are on MEMBERSHIP and
+    not on wording — a test pinned to a `why` string stays green while the
+    arithmetic beside it is broken. The one string asserted is the IN-SAMPLE
+    headline, which is a contract: `build_validation.parse_backtest` greps it
+    to set `in_sample` in `validation_<year>.json`.
+    """
+    import backtest as B
+
+    # A run at 2021 that declared every INSTRUMENTED key clean and inherited
+    # the rest. `read` is empty: nothing instrumented was consumed.
+    scenario = {"level_shrink": 0.35, "level_shrink_scale": 0.04,
+                "dirichlet_scale": 1.0, "entrant_prob": 0.25}
+    clean = set(B.FITTED_ON)
+
+    dirty = B.contaminated("2021", clean, {}, scenario)
+    assert "level_shrink" in dirty, (
+        f"declaring every instrumented key clean still buys an all-clear at "
+        f"2021 while level_shrink is inherited from DEFAULTS: {dirty}")
+
+    # The same scenario WITHOUT the scenario argument is the old behaviour,
+    # and it must stay that way — `tests/test_chain.py` calls `contaminated`
+    # with a read log and no scenario, and a caller that cannot supply one
+    # gets the conservative wording instead of a silent change of meaning.
+    assert B.contaminated("2021", clean, {}) == [], \
+        "the read-log-only path changed meaning; test_chain.py depends on it"
+
+    # 2026 is a genuine forecast and must stay clean, or the banner becomes
+    # noise that readers learn to skip.
+    assert B.contaminated("2026", set(), {}, scenario) == [], (
+        "a constant fitted on 2016/2021 was reported against a target it "
+        "predates; every past-fitted prior would be listed on the live "
+        "forecast and the warning would stop meaning anything")
+
+    banner = B.in_sample_banner("2021", "declared", clean, ["2016"], {},
+                                scenario)
+    assert "IN-SAMPLE — THESE ARE NOT OUT-OF-SAMPLE" in banner, (
+        "the IN-SAMPLE headline changed. build_validation.parse_backtest "
+        "greps that exact string to set `in_sample` in validation_<year>.json, "
+        "so a silent edit here mislabels the published scoreboard.")
+    assert "level_shrink" in banner, \
+        "the banner warns without naming the constant it is warning about"
+    assert "MEASURED" not in banner, \
+        "a banner that says IN-SAMPLE is also claiming a measured all-clear"
+
+    # No scenario, no claim. The half nothing instruments cannot be checked
+    # from a read log, and the banner must say so rather than print MEASURED.
+    partial = B.in_sample_banner("2026", "defaults", set(), None, {})
+    assert "NOT CHECKED" in partial and "PARTLY MEASURED" in partial, (
+        "with no scenario the banner still claims a MEASURED all-clear over a "
+        "register it could not look at:\n" + partial)
+    full = B.in_sample_banner("2026", "defaults", set(), None, {}, scenario)
+    assert "MEASURED" in full and "NOT CHECKED" not in full, (
+        "with a scenario supplied the banner should be able to claim a "
+        "measured all-clear at 2026:\n" + full)
+
+
+def test_an_unsettled_provenance_is_never_reported_as_an_all_clear():
+    """`PROVENANCE_UNSETTLED` blocks the all-clear and scores nothing.
+
+    `spine_k` resolves to `levels.SPINE_K`, and the record gives that constant
+    two incompatible provenances — `FITTED_ON["spine"]` says "pre-target
+    transitions only" and carries no years, `levels.py` says "180
+    party-city-years across eight metros and three transitions", which reaches
+    2016->2021 and so reads the 2021 result. Writing either into the register
+    would replace one false statement with another.
+
+    So the third state exists, and it has to behave as neither of the other
+    two: it must not be scored as contamination (that is a verdict on an open
+    question) and it must not be silently counted clean (that is the defect).
+    """
+    import backtest as B
+
+    assert B.PROVENANCE_UNSETTLED, \
+        "nothing is unsettled any more; delete this test with the register"
+    key = sorted(B.PROVENANCE_UNSETTLED)[0]
+    scenario = {key: None}
+
+    assert B.contaminated("2021", set(), {}, scenario) == [], (
+        f"{key} is being SCORED as contamination while its provenance is an "
+        f"open question. Settle it and move it to a register that has years.")
+    assert B.unsettled(scenario) == [key], \
+        f"{key} is held by the run and is not reported at all"
+    assert B.unsettled(None) == [], \
+        "a run that supplied no scenario cannot hold anything"
+
+    banner = B.in_sample_banner("2021", "defaults", set(), None, {}, scenario)
+    assert "NOT VERIFIED" in banner and key in banner, (
+        "an unsettled provenance was folded into a MEASURED all-clear:\n"
+        + banner)
+
+    # ⛔ AND IT MUST GO QUIET WHERE IT CANNOT BITE. An open question is scoped
+    # by its WORST-CASE years: at a target no reading of the provenance
+    # reaches, flagging it is noise, and a banner that cries on the live
+    # forecast is a banner readers learn to skip. `spine_k`'s worst case ends
+    # at 2021, so 2026 must come back MEASURED.
+    latest = max(max(y for y in years)
+                 for years, _why in B.PROVENANCE_UNSETTLED.values())
+    beyond = str(int(latest) + 5)
+    assert B.unsettled(scenario, (), beyond) == [], (
+        f"{key} is flagged at {beyond}, which no reading of its provenance "
+        f"reaches (its worst case ends at {latest})")
+    assert "MEASURED" in B.in_sample_banner(
+        beyond, "defaults", set(), None, {}, scenario), \
+        "an unsettled key is downgrading a target its worst case cannot reach"
+
+
+def test_no_excuse_claims_a_target_its_gate_was_not_checked_at():
+    """A register may not claim more than it checked.
+
+    ⛔ **THE ENTRANT ENTRIES CLAIMED THREE TARGETS AND THE SWEEP RAN ONE.**
+    Their reason says the levers are inert "at every target whose ballot is
+    known"; `_sweep_target` runs 2021 and 2026. Off the artefact, the claim is
+    false at 2011 — `pools_2011.json` seeds **0** arrivals, so the gate is OPEN
+    and all three levers are live at a runnable target nothing has ever swept.
+
+    A gate is cheap where a sweep is not: `arrivals_are_named` reads one JSON
+    file. So every target an entry generalises over gets its gate EVALUATED,
+    and every target it does not name must be declared in `GATE_OPEN_AT` and
+    evaluated too. There is no third state, which is what stops a target being
+    quietly left out of both.
+    """
+    import backtest as B
+
+    targets = tuple(B.runnable_targets(cityconfig.use("joburg"))) + ("2026",)
+    assert len(targets) >= 3, (
+        f"only {targets} are runnable; this test's population has collapsed "
+        f"and it is no longer checking a generalisation at all")
+
+    generalising = {(key, year): null
+                    for (key, year), null in EXPECTED_INERT.items()
+                    if null.claimed_targets}
+    assert generalising, (
+        "no EXPECTED_INERT entry generalises past its own target any more. If "
+        "that is deliberate, delete this test; if an entry's prose still "
+        "reads across targets, give it claimed_targets instead.")
+
+    for (key, year), null in sorted(generalising.items()):
+        assert year in null.claimed_targets, (
+            f"{key}@{year} claims {null.claimed_targets}, which does not "
+            f"include the target it is keyed to.")
+        assert null.gate_check in MODEL_FREE_GATES, (
+            f"{key}@{year} generalises over {null.claimed_targets} on the "
+            f"gate {null.gate_check!r}, which needs a model run. An entry may "
+            f"only claim extra targets when checking them is cheap, or the "
+            f"claim goes unchecked — which is the state this test exists to "
+            f"end.")
+        gate = GATES[null.gate_check]
+        for target in targets:
+            # ⛔ AN ABSENT ARTEFACT REPORTS AS A SHUT GATE. Both spec-reading
+            # gates return `(True, "no pool spec at ...")` when the file is
+            # missing, which is "I could not look", not "the gate is shut" —
+            # and a claimed target checked against a missing file would pass
+            # vacuously, which is the exact shape of the defect being fixed.
+            if (null.gate_check in _SPEC_GATES
+                    and target in null.claimed_targets):
+                path = _spec_path(_joburg(target)[1])
+                assert path.exists(), (
+                    f"{key}@{year} claims {target}, and {null.gate_check} "
+                    f"reads {path}, which is not there. The gate would report "
+                    f"SHUT for want of a file; emit the spec or drop the "
+                    f"claim.")
+            shut, detail = gate(target)
+            declared_open = (null.gate_check, target) in GATE_OPEN_AT
+            if target in null.claimed_targets:
+                assert shut and not declared_open, (
+                    f"{key}@{year} claims the lever is inert at {target} "
+                    f"because {null.gate_check} is shut there, and it is "
+                    f"not: {detail}")
+            else:
+                assert declared_open, (
+                    f"{key}@{year} says nothing about {target}, and "
+                    f"GATE_OPEN_AT does not declare "
+                    f"({null.gate_check!r}, {target!r}) either. The register "
+                    f"is silent about a target it could have checked for the "
+                    f"cost of one file read — gate reports: {detail}")
+                assert not shut, (
+                    f"GATE_OPEN_AT declares {null.gate_check} OPEN at "
+                    f"{target} and it is SHUT: {detail}. The declared gap has "
+                    f"closed; move {target} into claimed_targets.")
+
+    # And the declarations are not allowed to outlive their entries.
+    claimed_gates = {n.gate_check for n in generalising.values()}
+    orphans = sorted(pair for pair in GATE_OPEN_AT
+                     if pair[0] not in claimed_gates or pair[1] not in targets)
+    assert not orphans, (
+        f"GATE_OPEN_AT declares {orphans}, which no generalising entry uses "
+        f"or which names a target this city cannot run. A declared gap that "
+        f"nothing reads is a claim nobody checks.")
+
+
+def test_every_excuse_is_keyed_to_a_target_the_sweep_runs():
+    """An excuse for a target nothing measures excuses nothing.
+
+    `EXPECTED_INERT` is consulted by `_sweep_target`, which runs
+    `SWEPT_TARGETS`. An entry keyed to any other year is never looked at: it
+    cannot suppress a failure, and — worse — it reads as a measured null about
+    a target the harness has never run.
+    """
+    stray = sorted({(k, y) for (k, y) in EXPECTED_INERT
+                    if y not in SWEPT_TARGETS})
+    assert not stray, (
+        f"these EXPECTED_INERT entries are keyed to targets the sweep does not "
+        f"run, so nothing ever reads them:\n  {stray}\n"
+        f"SWEPT_TARGETS is {SWEPT_TARGETS}. Either add the target to the sweep "
+        f"— and pay for it — or delete the entry; an unread excuse still reads "
+        f"to a person as a measured null.")
+
+    # It looked, and it did not look at everything. The denominator is every
+    # (lever, swept target) pair the sweep actually evaluates: an EXPECTED_INERT
+    # that approached it would mean the sweep excuses nearly every verdict it
+    # reaches, which is a suppression list and not a register.
+    scanned(EXPECTED_INERT, of=len(PERTURB) * len(SWEPT_TARGETS),
+            low=0.05, high=0.75,
+            what="the excused (lever, target) pairs",
+            denominator="the (lever, target) pairs the sweep evaluates")
 
 
 def test_no_function_argument_is_accepted_and_never_used():

@@ -261,10 +261,25 @@ review inherits a blind spot shaped like the brief. Briefs live in `audits/`.
 that each is not dead — do not remove a line without moving its entry there, and
 let that test, not this file, be the authority on how many there are:
 
-    .venv/bin/python src/diagnose.py --city joburg --target 2021 --wards 0
     .venv/bin/python src/arrivals.py                    # arrival machinery, scored alone
     .venv/bin/python src/contested_area.py              # poll path's contested-area conversion
     .venv/bin/python src/sweep.py                       # obvious-fault sweep
+
+**`src/diagnose.py` was in that list until 2026-09-12 and is not any more** —
+`tests/test_diagnose_baselines.py` imports it, so it satisfies the rule on its
+own and its `ENTRY_POINTS` exemption was deleted (an exemption that exempts
+nothing costs a reader the one thing the list is for). It is still a CLI a human
+runs, and the command lives in its own docstring now, which is where the person
+about to run it will read it:
+
+    .venv/bin/python src/diagnose.py --city joburg --target 2021 --wards 0
+
+⚠️ **The guard chain here runs one way only.** `test_standalone_modules` checks
+ENTRY_POINTS → document (the cited file must still name the module); nothing
+checks document → ENTRY_POINTS, so this block could name a module with no entry
+and the suite would stay green. That is the same blind direction the register
+guard had until 2026-09-12 (§4's scanned-the-wrong-set class). Until it is
+closed, this block is maintained by hand.
 
 **Before quoting or believing any number:**
 

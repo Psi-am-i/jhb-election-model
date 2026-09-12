@@ -6,7 +6,7 @@ the ward calls were right and the seat arithmetic concentrated a small vote
 error at the top. Those are three different bugs with three different fixes, and
 a single number cannot tell them apart.
 
-So this prints four things for one city-year, in the order a fault travels
+So this prints five things for one city-year, in the order a fault travels
 through the model:
 
 1. **CITYWIDE VOTE** — every party, PR and ward ballot, predicted against
@@ -22,6 +22,30 @@ through the model:
    p=0.45 is noise; a ward lost at p=0.02 is a fault.
 4. **WHERE THE SEAT ERROR CAME FROM** — the same total decomposed by party, so
    a 62 can be read as "the ANC alone is 25 of it" instead of as a mystery.
+5. **THE SAME MEASURE FOR THE NAIVE BASELINES** — because a seat error means
+   nothing until "last time happens again" is standing beside it.
+
+⛔ **THERE ARE TWO SEAT POINT FORECASTS AND THIS FILE REPORTED ONE AS THE
+OTHER.** Sections 2 and 4 show the per-party MEDIAN over draws, which is what a
+reader wants beside a per-party actual. The median of a sum is not the sum of
+medians, so that vector does not fill a council: on the Johannesburg panel it
+sums to 243 / 259 / 253 against chambers of 260 / 270 / 270. The baselines in
+section 5 are deterministic — every draw is identical — so THEIR medians are a
+chamber, and until 2026-09-12 this table set a 253-seat vector against 270-seat
+ones and read the shortfall as skill.
+
+It was worth a verdict. Johannesburg 2016 printed "model better" (21 against
+uniform swing's 26) on a year the model **loses** (28 against 26) — which is
+what ``compare_history``'s own sign count had said all along, ``2016: 0W 1L
+0T``. 2011 printed a win on a tie.
+
+So every verdict here is computed from :data:`VERDICT_STATISTIC` —
+``seat_abs_err_coherent``, the largest-remainder apportionment of the MEAN seat
+vector, which IS a council — on **both** sides, through the one function that
+defines it (``compare_history.coherent_seats``). The marginal figure is still
+printed, because sections 2 and 4 are built on it and the two must reconcile,
+but it is labelled, it carries what it sums to, and it decides nothing.
+MODEL-LOG §1.214.
 
 Usage::
 
@@ -44,9 +68,19 @@ import backtest as B
 import benchmarks as BM
 import cityconfig
 import montecarlo as M
-import score as S
+# ⛔ ONE DEFINITION OF THE COHERENT CHAMBER, AND IT IS NOT HERE. `coherent_seats`
+# apportions the mean seat vector by largest remainder so the result IS a
+# council; `seats_from_draws` is the marginal median it must never be confused
+# with, and its docstring carries the argument for keeping both. Importing them
+# rather than copying them is what stops section 5 drifting away from the panel
+# that adjudicates the model. CLAUDE.md: one definition only.
+from compare_history import coherent_seats, seats_from_draws
 from fold import citywide, load
-from seats import allocate, eligible_parties
+
+# `score`, `seats.allocate` and `seats.eligible_parties` were imported here and
+# used by nothing — verified by AST reference count across src/ and tests/ on
+# 2026-09-12. Removed with this change rather than left as furniture; every one
+# of them is still imported, and used, by the modules that actually allocate.
 
 
 def run(city_slug: str, year: str, draws: int, data_dir: Path):
@@ -57,6 +91,184 @@ def run(city_slug: str, year: str, draws: int, data_dir: Path):
         config=None, set=None, draws=draws, seed=None,
         city=city_slug, target=year))
     return target, M.run_model(target, scenario, data_dir, verbose=False)
+
+
+# ---------------------------------------------------------------------------
+# THE BASELINE TABLE — as data first, as text second.
+#
+# SEPARATED FROM `main` DELIBERATELY. The defect these functions exist to
+# prevent is arithmetic, and arithmetic buried inside a print loop cannot be
+# tested without a data directory, a model run and three minutes. Everything
+# below is pure — dicts in, dicts and strings out — so a CONSTRUCTED inversion
+# goes through it in milliseconds. See `tests/test_diagnose_baselines.py`.
+# ---------------------------------------------------------------------------
+
+BASELINES = ("last-lge", "uniform-swing", "prior-lge-noise")
+"""The forecasters section 5 scores.
+
+`benchmarks.BENCHMARKS` also carries `blended-swing`, which is deliberately not
+printed: `compare_history` scores these same three, and a diagnostic that
+disagreed with the panel about who the opponents are would be one more thing to
+reconcile every time a number moved.
+"""
+
+VERDICT_STATISTIC = "seat_abs_err_coherent"
+"""The statistic every verdict in section 5 is computed from, both sides.
+
+Named, and printed, because the alternative has a record. `compare_history`
+carries `seat_abs_err` and `seat_abs_err_coherent` under two names for exactly
+this reason (§1.214): on 2026-09-08 a marginal 706 was read against a coherent
+707 and a batch that was +38 coherent was reported as "essentially flat".
+"""
+
+
+def _abs_err(forecast: dict, actual: dict) -> int:
+    """Total absolute seat error over the UNION of the two party sets.
+
+    The union, not the forecaster's own columns: a party that won seats and was
+    forecast nothing is error, and so is a party forecast seats that won none.
+    """
+    return sum(abs(forecast.get(p, 0) - actual.get(p, 0))
+               for p in set(forecast) | set(actual))
+
+
+def seat_scores(draws, actual_seats: dict, council: int) -> dict:
+    """Both seat point forecasts for ONE forecaster, and what each one fills.
+
+    ``marginal``  per-party median over draws (`compare_history.seats_from_draws`).
+                  What a reader wants beside a per-party actual, and NOT a
+                  chamber — the median of a sum is not the sum of medians.
+    ``coherent``  largest remainder on the mean seat vector
+                  (`compare_history.coherent_seats`). A council, by construction.
+
+    ``draw_total`` is the mean number of seats this forecaster's own draws
+    actually fill, and it is here because `coherent_seats` RESCALES to
+    ``council``. Schedule 1 takes independents (C) and the winners of wards
+    contested by parties with no PR list (D) out of the pool before the quota is
+    struck (`seats.outside_pool_wards`, MODEL-LOG §1.163), so a forecaster whose
+    draws fill ``council - C - D`` would be rescaled UP — inventing phantom
+    seats and flattering whoever fills the chamber. That is the same defect this
+    change removes, running the other way. It is therefore reported and flagged
+    in the print, never silently corrected: `fills_council` is False whenever the
+    draws do not fill the chamber they are about to be apportioned into.
+    """
+    marginal = seats_from_draws(draws)
+    coherent = coherent_seats(draws, council)
+    draw_total = (float(np.mean([sum(d.values()) for d in draws]))
+                  if draws else 0.0)
+    return {
+        "marginal": marginal,
+        "coherent": coherent,
+        "marginal_err": _abs_err(marginal, actual_seats),
+        "coherent_err": _abs_err(coherent, actual_seats),
+        "marginal_sum": sum(marginal.values()),
+        "coherent_sum": sum(coherent.values()),
+        "draw_total": draw_total,
+        "fills_council": abs(draw_total - council) <= 0.5,
+        "council": council,
+    }
+
+
+def baseline_rows(model_draws, bench_draws: dict, actual_seats: dict,
+                  council: int) -> list[dict]:
+    """One row per forecaster, the model first, every row scored the SAME WAY.
+
+    ⛔ THE POINT OF THIS FUNCTION IS THAT THERE IS ONE CALL TO `seat_scores`
+    AND EVERY FORECASTER GOES THROUGH IT. The defect it replaces used the same
+    code path for both sides too — and that was not enough, because the
+    consequence of a marginal median is asymmetric: a DETERMINISTIC baseline's
+    median is its allocation exactly, while a stochastic forecaster's is short
+    of the chamber. Identical treatment of a statistic that means different
+    things by forecaster is not a like-for-like comparison.
+
+    ``bench_draws`` maps name -> draws. A value that is not a non-empty list is
+    an ERROR ROW carrying that value as its reason: `benchmarks.run_one` raises
+    `SystemExit` for a baseline that cannot be computed for a year, and a
+    forecaster that could not run must appear in the table saying so rather than
+    vanish from it.
+
+    ``margin`` is ``row.coherent_err - model.coherent_err``, so POSITIVE means
+    the model is better by that many seats. ``better`` is the sign of the
+    margin and nothing else.
+    """
+    model = {"name": "this model", "is_model": True, "margin": None,
+             "better": None, **seat_scores(model_draws, actual_seats, council)}
+    rows = [model]
+    ordered = ([n for n in BASELINES if n in bench_draws]
+               + [n for n in bench_draws if n not in BASELINES])
+    for name in ordered:
+        draws = bench_draws[name]
+        if not isinstance(draws, list) or not draws:
+            rows.append({"name": name, "is_model": False, "margin": None,
+                         "better": None,
+                         "error": str(draws) if draws else "not computed"})
+            continue
+        row = {"name": name, "is_model": False,
+               **seat_scores(draws, actual_seats, council)}
+        row["margin"] = row["coherent_err"] - model["coherent_err"]
+        row["better"] = ("tie" if row["margin"] == 0
+                         else "model" if row["margin"] > 0 else "baseline")
+        rows.append(row)
+    return rows
+
+
+def render_baselines(rows: list[dict]) -> list[str]:
+    """Section 5 as lines. BOTH statistics, labelled, verdict named."""
+    model = rows[0]
+    out = [
+        "5. THE SAME MEASURE FOR THE NAIVE BASELINES",
+        "",
+        f"  ⛔ THE VERDICT IS `{VERDICT_STATISTIC}`, ON BOTH SIDES, THROUGH",
+        "     ONE FUNCTION: largest remainder on the mean seat vector, which IS",
+        "     a council.",
+        "  The `marginal` column sums per-party MEDIANS, and this model's",
+        f"     fill {model['marginal_sum']} of {model['council']} seats — "
+        f"short of a chamber, which flatters",
+        "     whichever forecaster over-forecasts. It is printed because",
+        "     sections 2 and 4 are built on it and the two must reconcile.",
+        "     IT DECIDES NOTHING. Reading one as the other is MODEL-LOG",
+        "     §1.214.",
+        "",
+        f"  {'forecaster':<20}{'coherent':>10}{'marginal':>10}"
+        f"{'medians fill':>16}{'verdict (coherent)':>23}",
+    ]
+    for r in rows:
+        if "error" in r:
+            out.append(f"  {r['name']:<20}{'—':>10}{'—':>10}"
+                       f"{'—':>16}{r['error'][:23]:>23}")
+            continue
+        name = r["name"] + ("" if r["fills_council"] else " *")
+        fills = f"{r['marginal_sum']} of {r['council']}"
+        if r["is_model"]:
+            verdict = "—"
+        elif r["better"] == "tie":
+            verdict = "tie, 0 seats in it"
+        elif r["better"] == "model":
+            verdict = f"model better by {r['margin']}"
+        else:
+            verdict = f"BASELINE BETTER by {-r['margin']}"
+        out.append(f"  {name:<20}{r['coherent_err']:>10}{r['marginal_err']:>10}"
+                   f"{fills:>16}{verdict:>23}")
+    flagged = [r for r in rows if "error" not in r and not r["fills_council"]]
+    if flagged:
+        # Built outside the f-string: a nested f-string quoted with the same
+        # character is a syntax error before Python 3.12, and this file has to
+        # import on whatever interpreter the CLI is run with.
+        names = ", ".join(r["name"] for r in flagged)
+        fills = ", ".join("%.1f" % r["draw_total"] for r in flagged)
+        out += [
+            "",
+            f"  * {names}: these draws fill {fills} seats, not "
+            f"{model['council']}, so the",
+            "    largest-remainder apportionment RESCALED them UP and part of",
+            "    the error above is the chamber definition rather than the",
+            "    forecast. Schedule 1 removes independents (C) and no-PR-list",
+            "    ward winners (D) from the pool before the quota is struck:",
+            "    `seats.outside_pool_wards`, MODEL-LOG §1.163. FLAGGED, NOT",
+            "    CORRECTED — inventing the missing seats is this section's own",
+            "    defect, inverted.",
+        ]
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -157,8 +369,12 @@ def main(argv: list[str] | None = None) -> int:
 
     # ---- 2. seats, split -------------------------------------------------
     actual_wardwins = Counter(actual_ward_winners.values())
-    model_seats = {p: int(np.median([d.get(p, 0) for d in run_.seat_draws]))
-                   for p in {q for d in run_.seat_draws for q in d}}
+    # ⛔ THIS WAS A SECOND DEFINITION OF `seats_from_draws`, COPIED. It is the
+    # same comprehension, without the docstring that says the result does not
+    # sum to a council — so the one warning that would have stopped section 5
+    # comparing it to a chamber was the thing the copy left behind.
+    scores = seat_scores(run_.seat_draws, actual_seats, target.council)
+    model_seats = scores["marginal"]
     # Model ward wins: the modal winner of each ward, which is the call it makes.
     model_ward_call: dict[str, str] = {}
     probs = run_.ward_probabilities()
@@ -183,10 +399,12 @@ def main(argv: list[str] | None = None) -> int:
         # entitled seat a ward councillor fills. Negative means overhang.
         print(f"  {p[:13]:<14}{m_s:>6}{a_s:>7}{m_w:>8}{a_w:>8}"
               f"{m_s - m_w:>8}{a_s - a_w:>8}")
-    seat_err = {p: model_seats.get(p, 0) - actual_seats.get(p, 0)
-                for p in set(actual_seats) | set(model_seats)}
     print(f"\n  ward calls: {sum(1 for w, c in model_ward_call.items() if actual_ward_winners.get(w) == c)}"
           f"/{len(model_ward_call)} correct")
+    print(f"  the model's seats above are per-party MEDIANS and fill "
+          f"{scores['marginal_sum']} of {scores['council']} seats; the "
+          f"coherent point\n  forecast — largest remainder on the mean vector, "
+          f"used in sections 4 and 5 — fills {scores['coherent_sum']}")
 
     # ---- 3. wards called wrong -------------------------------------------
     wrong = []
@@ -215,31 +433,52 @@ def main(argv: list[str] | None = None) -> int:
 
     # ---- 4. where the seat error came from -------------------------------
     print("\n4. WHERE THE SEAT ERROR CAME FROM\n")
-    total = sum(abs(v) for v in seat_err.values())
-    print(f"  {'party':<14}{'error':>8}{'share of total':>17}")
-    for p, v in sorted(seat_err.items(), key=lambda kv: -abs(kv[1])):
-        if v == 0:
+    err_marg = {p: scores["marginal"].get(p, 0) - actual_seats.get(p, 0)
+                for p in set(actual_seats) | set(scores["marginal"])}
+    err_coh = {p: scores["coherent"].get(p, 0) - actual_seats.get(p, 0)
+               for p in set(actual_seats) | set(scores["coherent"])}
+    total = scores["coherent_err"]
+    print(f"  {'party':<14}{'marginal':>10}{'coherent':>10}"
+          f"{'share of coherent':>20}")
+    for p in sorted(set(err_marg) | set(err_coh),
+                    key=lambda q: (-abs(err_coh.get(q, 0)),
+                                   -abs(err_marg.get(q, 0)))):
+        m, c = err_marg.get(p, 0), err_coh.get(p, 0)
+        if not m and not c:
             continue
-        print(f"  {p[:13]:<14}{v:>+8}{abs(v) / total:>16.0%}")
-    print(f"  {'':<14}{'':>8}\n  total absolute seat error: {total}")
+        share = f"{abs(c) / total:.0%}" if total else "—"
+        print(f"  {p[:13]:<14}{m:>+10}{c:>+10}{share:>20}")
+    print("\n  total absolute seat error, and they are NOT the same statistic:")
+    print(f"    coherent{scores['coherent_err']:>8}   largest remainder on the "
+          f"MEAN seat vector; fills {scores['coherent_sum']}")
+    print(f"    {'':<16}of {scores['council']}. ⛔ THIS IS WHAT SECTION 5'S "
+          f"VERDICT USES.")
+    print(f"    marginal{scores['marginal_err']:>8}   sum of per-party MEDIANS; "
+          f"fills {scores['marginal_sum']} of {scores['council']},")
+    print(f"    {'':<16}so it is not comparable to a forecaster that fills the "
+          f"chamber.")
 
-    # ---- benchmarks, on the same party set -------------------------------
-    print("\n5. THE SAME MEASURE FOR THE NAIVE BASELINES\n")
+    # ---- benchmarks, on the same party set AND the same statistic --------
+    #
+    # The baselines are computed BEFORE anything is printed, because the table
+    # is now rendered from rows rather than assembled a line at a time — which
+    # is what lets `tests/test_diagnose_baselines.py` put a constructed
+    # inversion through the same arithmetic with no data directory at all.
     ctx = BM.build_context(int(target.year), args.data_dir)
-    print(f"  {'forecaster':<20}{'seat error':>12}{'vs model':>12}")
-    print(f"  {'this model':<20}{total:>12}{'—':>12}")
-    for bench in ("last-lge", "uniform-swing", "prior-lge-noise"):
+    bench_draws: dict[str, object] = {}
+    for bench in BASELINES:
         try:
-            bd = BM.run_one(bench, ctx, draws=min(args.draws, 2000))
+            bench_draws[bench] = BM.run_one(bench, ctx,
+                                            draws=min(args.draws, 2000))
         except SystemExit as exc:
-            print(f"  {bench:<20}{'—':>12}   {exc}")
-            continue
-        bs = {p: int(np.median([d.get(p, 0) for d in bd]))
-              for p in {q for d in bd for q in d}}
-        berr = sum(abs(bs.get(p, 0) - actual_seats.get(p, 0))
-                   for p in set(actual_seats) | set(bs))
-        verdict = "model better" if total < berr else "BASELINE BETTER"
-        print(f"  {bench:<20}{berr:>12}{verdict:>16}")
+            # Not `continue`. A baseline that cannot be computed for this year
+            # must appear in the table saying so; dropping the row leaves the
+            # reader to notice an absence.
+            bench_draws[bench] = str(exc)
+    print()
+    for line in render_baselines(baseline_rows(
+            run_.seat_draws, bench_draws, actual_seats, target.council)):
+        print(line)
     return 0
 
 

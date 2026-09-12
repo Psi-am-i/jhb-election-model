@@ -24263,3 +24263,130 @@ unconditionally is text-only and closes it. And the spine publishes a level for
 all 33 seeded parties that nothing reads and that differs from the centre by a
 fixed 1/θ = 1.1695× — a reader quoting `20_spine` for ActionSA gets 5.85% where
 the model used 6.84%.
+
+## 1.228 Phase 0 of the remediation: ten instrument repairs, and the suite was already red (2026-09-13)
+
+**Four blind pollster passes produced 33 numbered fixes; this is the first ten,
+all DISCLOSURE — none moves a forecast number, and that claim is checked below
+rather than asserted.** Implemented by four agents on strictly disjoint files
+(collisions in this repository are by FILE, not by region) with the coordinator
+holding the shared test infrastructure and every `.md`.
+
+### The claim, and how it was established
+
+Full suite on the work: **503 passed, 8 failed, 19 skipped** over 35 modules.
+Then Atlas was reset to pristine `b2fcc43` and the same modules re-run:
+**9 failures**. The 8 are a strict SUBSET of the 9, and the one that disappeared
+is the width test re-encoded below. **Phase 0 introduced no regressions and the
+tree was already red before it.**
+
+⛔ **THE COMMITTED TREE HAD NINE FAILING TESTS AND NOBODY KNEW**, because no
+full-suite run had been taken on it. Six were unknown to all four reviews and to
+the plan. They are not fixed here and are recorded so the next reader does not
+rediscover them: two golden-drift tests in `test_drawer` (the citywide prior and
+pool totals moved 0.02-0.40pp from recorded — the poll-channel switch-off of
+§1.225 is the likely cause and the golden was not re-recorded with it); two in
+`test_pool_bounds` reporting seeds that IPF must drag (the test's own message
+says *"THIS IS NOT AN IMPOSSIBLE ELECTION"* and warns off the fit-time capacity
+constraint that was built and reverted at coherent seat error 306 → 486);
+`test_freeze` missing `HELD_BACK_OFF` and `JHB_SCORE_NO_RELABEL` from its
+env-switch record; `test_published_page`; and the two calibration ones.
+
+### What the ten repairs were
+
+The pattern in every one: **the model computes the right thing and the harness
+discards it, never asks for it, or describes it wrongly.** #1 the scoreboard
+never called `contaminated()`; #5 every guard counter was computed and thrown
+away (`_solve_stats` was a local of `run_model`); #6 `arrival_reconciliation`
+read the POST-relabel index, so `generic_slot_present` was true at 4 of 24 rows
+and at 2011 it filed the whole drawn arrival mass as "unexplained" while
+flagging nothing; #8 a crashed city-year was stamped with a false reason; #9
+five printed claims came from a different panel; #4 `diagnose` scored the model
+on marginal medians summing to 243/259/253 against baselines forming full
+councils, printing "model better" for 2016 where the coherent answer is a loss.
+
+**#4's verdicts change and that is the point of it:** Johannesburg 2011 → tie
+(60 vs 60), **2016 → the model LOSES (28 vs 26)**, 2021 unchanged win (86 vs
+126). `compare_history`'s own sign count already said `2016: 0W 1L 0T`; the
+diagnostic had been contradicting the scoreboard.
+
+### ⛔ A prior finding was never significant on the panel it was found on
+
+`test_a_width_never_travels_without_its_cycle_split_and_its_leverage` failed on
+two assertions, and BOTH were panel-size-dependent encodings of findings that
+had not changed.
+
+**The cycle assertion compared 2016 against 2021 and nothing else**, on a panel
+that had only those two cycles when it was written. The artefact now carries
+2011, and **2011 is the extreme**: sd(z) on `reference` ranks 4-12 is **0.452 at
+2011, 1.155 at 2016, 1.960 at 2021**. So the hard-coded pair measured the
+narrowest gap available (1.70×) and reported §1.132's finding as retired while
+the real spread had GROWN to 4.33× — the scanned-the-wrong-set class, failing in
+the direction that quietly kills a live finding.
+
+⚠️ **The specific 2016-vs-2021 3× claim NO LONGER HOLDS and must not be
+re-asserted.** What holds, and is the stronger statement, is that sd(z) is
+**monotone in the cycle**. That is what the test now asserts: directed, uses
+every cycle, carries no tuned threshold, and breaks if any adjacent pair
+converges or inverts.
+
+**The leverage assertion was `top2 > 0.5`, and the first repair was worse than
+the defect.** `top2` is a share of Σ(z−z̄)², which under calibration is χ²₁ and
+heavy-tailed, so the top two of *n* carry far more than an equal share. The
+first re-encoding used `10 × (2/n)` on the reasoning that two columns "with no
+concentration" carry `2/n`. **That is wrong by about 8×.** Simulated, 200k
+replicates, fixed seed:
+
+| n | `2/n` | null MEAN | null p95 |
+|---|---|---|---|
+| 9 | 22.2% | **62.4%** | 82.4% |
+| 170 | 1.18% | **9.13%** | 12.35% |
+
+So 48.5% on 170 columns is **5.3× the null mean, not 41×** — and the bar
+`10 × (2/n)` = 11.8% sits BELOW the null's own 95th percentile, meaning **a
+perfectly calibrated band cleared that test 7.9% of the time.** A threshold
+picked after seeing the number, on a wrong benchmark, that barely discriminates:
+the ratchet `CLAUDE.md` §4 warns about, reached from a correct diagnosis. It now
+scores against its own simulated null at the observed *n* and requires the 99th
+percentile.
+
+⛔ **AND THE NEGATIVE RESULT THAT FELL OUT OF IT: §1.131's "the spread at 4-12
+is two columns" was NOT SIGNIFICANT on the nine-city-year panel where it was
+found.** 69.5% against a null mean of 62.4% gives **P(null ≥ 0.695) = 0.27**. It
+became a real finding only at n=170, where P ≈ 0. Anything resting on that claim
+as measured in §1.131 is resting on noise; the claim is true now, for a reason
+that did not exist then.
+
+### Two defects found and NOT fixed here
+
+**`prior-lge-noise`'s seat error is a marginal statistic wearing the coherent
+name.** `compare_history` stores every baseline's marginal medians under
+`seat_abs_err_coherent`, justified by "a baseline is deterministic". True of
+`last-lge` and `uniform-swing`; **false of `prior-lge-noise`, which is
+stochastic** — measured, its medians sum to 254/266/264 against councils of
+260/270/270. Its column understates the model's margin over it. Filed as #34.
+
+**The live 2026 forecast runs with the off-ballot drop switched off.**
+`CALENDAR["2026"].results` is `None`, so `contesting_parties` returns `set()`
+before opening anything; the declared-roster path is reached only from
+`emit_pools`, never from `run_model`; and `judgements/joburg-2026.toml`'s
+`[roster]` block is entirely commented out. A second consumer 700 lines below
+(the national-poll arrivals path) is suppressed by the same empty set. Filed as
+#35.
+
+### Guards installed for errors made DURING this work
+
+Three coordinator errors had no guard, and each now has one with a mutation test
+proving it catches the exact defect: `CLAUDE.md` claimed `src/diagnose.py` has no
+importer after a test began importing it (the guard chain ran ENTRY_POINTS →
+document and never document → reality); the scoreboard was calling
+`contaminated` without the scenario, so it disclosed `['pools']` alone while
+`level_shrink` went unnamed — twenty-six tests passed while that was true; and
+§A38 of `JUDGEMENT-CALLS` quoted the PA at "0.09% … a 33× miss", a truncation of
+0.0969% taken from a `diagnose` run rather than the artefact, with the ratio then
+computed from the truncated value (the artefact gives 30×).
+
+⚠️ **Two of those three guards failed on first write, and one failed silently** —
+a regex looking for the letter `x` where the document has `×`, matching nothing.
+That is the guard-finds-nothing failure, committed inside a guard written against
+it. Both are recorded in the tests' own comments as the reason for their shape.

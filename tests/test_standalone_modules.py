@@ -116,10 +116,6 @@ ENTRY_POINTS: dict[str, str] = {
         "— validates the poll path's contested-area conversion, the table "
         "`polling.metro_estimate` asserted for months with no script behind it "
         "(MODEL-LOG §1.66). Run by hand when the poll channel changes.",
-    "diagnose":
-        "CLAUDE.md 'Running things': `.venv/bin/python src/diagnose.py --city "
-        "joburg --target 2021 --wards 0` — the per-city-year investigation CLI. "
-        "Run by hand when compare_history flags a city-year.",
     "sweep":
         "CLAUDE.md 'Running things': `.venv/bin/python src/sweep.py` — the "
         "obvious-fault sweep. Run by hand before a commit that moves numbers.",
@@ -520,3 +516,80 @@ if __name__ == "__main__":
     # missing input. See `tests/_support.run_module` and MODEL-LOG §1.84.
     # Append new tests ABOVE this line.
     raise SystemExit(run_module(globals()))
+
+
+# The CLAUDE.md block whose whole claim is "these have no importer". Parsed,
+# not typed: the heading is the anchor and the module names come out of the
+# commands beneath it.
+_NO_IMPORTER_HEADING = "**These have no importer and are alive only because they are named here.**"
+
+
+def _claimed_importerless() -> set[str]:
+    """Module names CLAUDE.md asserts have no importer, read from the document."""
+    import re
+    text = (ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+    i = text.find(_NO_IMPORTER_HEADING)
+    assert i != -1, (
+        "CLAUDE.md's no-importer block heading has moved or been reworded. This "
+        "guard anchors on it, and a guard that silently finds nothing is worse "
+        "than no guard.")
+    # The block runs to the next bold heading at column 0.
+    j = text.find("\n**", i + len(_NO_IMPORTER_HEADING))
+    return set(re.findall(r"src/(\w+)\.py", text[i:j if j != -1 else len(text)]))
+
+
+def test_claude_md_does_not_claim_an_imported_module_has_no_importer():
+    """(0) THE RIGHT SET — the direction that was missing, and it went stale.
+
+    `test_the_allowlist_exempts_nothing_that_is_already_imported` runs
+    ENTRY_POINTS -> reality. `test_every_declared_entry_point_carries_a_real_reason`
+    runs ENTRY_POINTS -> document. **Nothing ran document -> reality**, so
+    CLAUDE.md could assert "these have no importer" about a module that had
+    acquired one, indefinitely, with the suite green.
+
+    It did exactly that: `src/diagnose.py` stayed in that block on 2026-09-12
+    after `tests/test_diagnose_baselines.py` began importing it, and the
+    deletion of its ENTRY_POINTS entry — which the other guard correctly forced
+    — left the document asserting the opposite of the truth. Same blind
+    direction as the constant register before fix #3, one document out.
+    """
+    claimed = _claimed_importerless()
+    importers = _importers()
+
+    # (1) IT LOOKED. Two-sided, against a computed denominator.
+    modules = {q.stem for q in SRC.glob("*.py")}
+    assert claimed, "no modules parsed out of CLAUDE.md's no-importer block"
+    assert claimed <= modules, sorted(claimed - modules)
+    scanned(claimed, of=modules, low=0.02, high=0.5,
+            what="modules CLAUDE.md claims have no importer",
+            denominator="modules in src/")
+
+    wrong = sorted(f"{name} (imported by {sorted(importers[name])})"
+                   for name in claimed if importers.get(name))
+    assert not wrong, (
+        f"CLAUDE.md says these have no importer, and they do:\n    "
+        + "\n    ".join(wrong)
+        + "\n  The claim is the reason the section exists, so a module that "
+          "gains an importer must move OUT of that block. Its command line can "
+          "stay elsewhere in the section — what may not stay is the assertion "
+          "that nothing imports it.")
+
+
+def test_the_no_importer_claim_detector_can_see_a_violation():
+    """(2) IT CAN SEE, on (3) A CONSTRUCTED input.
+
+    The test above reports on the tree as it happens to be, and the tree is
+    currently correct — so on its own it has never demonstrated it can catch
+    the thing it was written for. This pushes a module that IS imported through
+    the same predicate.
+    """
+    importers = _importers()
+    imported = {m for m in (q.stem for q in SRC.glob("*.py")) if importers.get(m)}
+    assert imported, "no src/ module has an importer; the probe proves nothing"
+    victim = sorted(imported)[0]
+
+    # The same expression the guard uses, on a constructed claim set.
+    wrong = [name for name in {victim} if importers.get(name)]
+    assert wrong == [victim], (
+        f"the detector did not flag {victim}, which {sorted(importers[victim])} "
+        f"imports — so the guard above would not have caught diagnose either")

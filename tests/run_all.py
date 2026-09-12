@@ -64,7 +64,14 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            "test_blended_centres",
            "test_levers_are_live", "test_build_all", "test_stat_freshness",
            "test_publication_ledger", "test_published_page",
-           "test_hex_cartogram"]
+           "test_hex_cartogram",
+           # Added 2026-09-12 with the Phase 0 instrument repairs.
+           # Membership is not optional: `test_every_test_module_is
+           # _collected` turns the suite red for any `tests/test_*.py`
+           # missing from this list.
+           "test_scoreboard_disclosure",
+           "test_diagnose_baselines",
+           "test_roster_fails_closed"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

@@ -643,6 +643,50 @@ machinery cannot rot while it is switched off.
 
 **Record.** Lognormal noise on each ward×party tally before calling winners. Adopted on an audit, not measured.
 
+⛔ **STANDING REFUSAL (owner, 2026-09-12): `ward_noise_sd` IS NEVER WIDENED TO
+COVER A CITYWIDE LEVEL ERROR.** Recorded as a rule because it is the tempting fix
+and it will be proposed again.
+
+**What prompts it.** The Johannesburg 2021 backtest called 127 of 135 wards
+correctly, and two of the eight misses — wards 79800017 and 79800018, won by the
+Patriotic Alliance — were called at `P(DA) = 1.000`. A probability of exactly one
+on an outcome that did not happen is an infinite log score, so the instinct is to
+widen the ward noise until the model stops being certain.
+
+**Why that is the wrong repair, with the arithmetic.** The PA was forecast at a
+citywide PR **mean of 0.10% against 2.96% actual — a 30× level miss** (on the
+median, 0.04% against 2.96%, a 79× miss). The ward layer
+placed a correct citywide total; there was no citywide total to place. Widening
+`ward_noise_sd` far enough to make a 33× level error survivable would spend the
+**96.8% pooled ward hit rate** — the model's one result that beats every naive
+reference in all three cycles — to buy two wards. That is treating the symptom,
+and it would degrade the layer that is working to disguise a failure in the layer
+that is not.
+
+**What the honest repairs are instead.** (1) The ward ceiling is a *reporting*
+artefact: at 2000 draws any probability below 1/2000 is unrepresentable, so
+`1.000` is partly draw-count. Report `1 − 1/N` and publish the reliability table
+(fix #23). (2) The three seat columns with `p_any = 0.0` on parties that won
+seats — ALJAMAAH 2011, OKM 2011, ALJAMAAH 2016 — have **no column at all**,
+because the run's universe is the NPE baseline plus seeds; the repair is
+`universe = baseline ∪ roster` (fix #22). Neither touches ward noise. (3) The
+PA's level is an arrival-channel defect and belongs to the arrival work.
+
+⚠️ **The figures above are from `data/processed/history.json`, joburg 2021**
+(`pr_median` 0.0375%, `pr_mean` 0.0969%, `pr_actual` 2.9604%), not from a
+`diagnose` run — two runs at different draw counts give slightly different
+means, and a figure in prose has to say which one it came from. This entry said
+"0.09% ... a 33× miss" until 2026-09-12: 0.09% was a *truncation* of 0.0969%
+(it rounds to 0.10%), and the 33× was then computed from the truncated value
+rather than from the data. Both halves of `CLAUDE.md` §2's "never type a model
+figure into prose" — quoted here, inside a rule about discipline, by me.
+
+**Status: argued, not tested.** No measurement is offered for the refusal itself;
+it is a statement about which layer owns the error, and the evidence is the
+decomposition above. If someone believes a ward-layer change is warranted, the
+bar is a measurement showing the ward layer mis-places a level it was given
+correctly — not a ward that was lost because the level was wrong.
+
 ### §A39 · `OVERHANG_DEDUCT_MAX_ROUNDS_SLACK` — 2 — 🟢
 
 **Where.** `montecarlo.py`

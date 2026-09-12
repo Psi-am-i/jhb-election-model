@@ -1168,6 +1168,71 @@ def _documented_rows():
     return calib, votes
 
 
+def test_the_standing_refusals_figures_match_the_artefact():
+    """A figure typed into JUDGEMENT-CALLS prose, held against `history.json`.
+
+    ⛔ **THE EXISTING FIGURES TEST DOES NOT COVER THIS FILE.** Its own docstring
+    scopes it to ITERATING.md's two marked tables and excludes prose — a
+    deliberate and correct limit, because a test that parsed every number in
+    every document would be unmaintainable. The consequence is that a figure in
+    a JUDGEMENT-CALLS entry has no guard at all, and on 2026-09-12 §A38 quoted
+    the PA's forecast share as "0.09%" with a "33x" miss derived from it. The
+    artefact says `pr_mean` 0.0969% — which ROUNDS TO 0.10% — and the true
+    ratio is 30x. Both halves of `CLAUDE.md` §2's "never type a model figure
+    into prose", inside a rule about discipline.
+
+    So the entry now NAMES its source and its three values, and this holds them
+    to it. The pattern generalises: quote the artefact, name the field, and let
+    a test own the number.
+    """
+    import re
+    text = (ROOT / "JUDGEMENT-CALLS.md").read_text(encoding="utf-8")
+    quoted = {m.group(1): float(m.group(2))
+              for m in re.finditer(r"`(pr_median|pr_mean|pr_actual)` ([\d.]+)%",
+                                   text)}
+
+    # (1) IT LOOKED. Three fields, named, or the parse has gone stale.
+    assert set(quoted) == {"pr_median", "pr_mean", "pr_actual"}, (
+        f"parsed {sorted(quoted)} out of JUDGEMENT-CALLS.md; expected the three "
+        f"PA fields §A38 cites. If the entry was reworded, this guard is "
+        f"checking nothing and must be repointed, not deleted.")
+
+    results = _artefact()
+    row = [r for r in results
+           if r.get("slug") == "joburg" and str(r.get("year")) == "2021"]
+    assert len(row) == 1, "joburg 2021 is not in the artefact exactly once"
+    votes = {v[0]: v for v in row[0]["votes"]}
+    assert "PA" in votes, "the PA has left the joburg 2021 vote table"
+    pa = votes["PA"]
+    actual = {"pr_median": pa[1] * 100, "pr_mean": pa[2] * 100,
+              "pr_actual": pa[3] * 100}
+
+    # (2) THE CLAIM. Four decimals, as written — a rounding that changes the
+    # quoted digit is the defect, so the tolerance must be tighter than it.
+    drift = [f"{k}: JUDGEMENT-CALLS says {quoted[k]}%, artefact says "
+             f"{actual[k]:.4f}%" for k in actual
+             if abs(quoted[k] - actual[k]) > 0.0001]
+    assert not drift, (
+        "§A38's PA figures no longer match the committed artefact:\n  "
+        + "\n  ".join(drift)
+        + "\n  Paste the artefact's values in, and RECOMPUTE the multiplier "
+          "from them rather than from the rounded figure — that is the error "
+          "this guard was written for.")
+
+    # (3) AND THE MULTIPLIER IS DERIVED FROM THEM, not from a rounded value.
+    ratio = actual["pr_actual"] / actual["pr_mean"]
+    # The document uses the multiplication sign, not the letter x. My first
+    # version of this regex looked for "x" and silently matched nothing, which
+    # is the guard-finds-nothing failure this whole file is about.
+    stated = re.search(r"a (\d+)\u00d7 level miss", text)
+    assert stated, "§A38 no longer states the level-miss multiple"
+    assert abs(int(stated.group(1)) - round(ratio)) <= 1, (
+        f"§A38 states a {stated.group(1)}x level miss; the artefact gives "
+        f"{actual['pr_actual']:.4f} / {actual['pr_mean']:.4f} = {ratio:.1f}x. "
+        f"A ratio computed from a ROUNDED figure rather than from the data is "
+        f"exactly how 33x was written for a 30x miss.")
+
+
 def test_the_documented_figures_match_the_committed_artefact():
     """The guard that was missing, and the reason three reviews found the same rot.
 
@@ -1399,6 +1464,26 @@ def test_the_reference_population_is_fixed_and_keeps_the_worst_columns():
         f"but invisible to the width statistic — which is the same hiding "
         f"place one level down")
 
+def _top2_null(n: int, reps: int = 20_000) -> dict:
+    """What share of Σ(z−z̄)² the top two of `n` columns carry UNDER CALIBRATION.
+
+    Not `2/n`. Under calibration `z` is standard normal, so the squared
+    deviations are χ²₁ and heavy-tailed, and the largest two of `n` draws carry
+    far more than their equal share — 9.1% at n=170, not 1.2%. Getting this
+    wrong makes a concentration test pass on a calibrated band.
+
+    Simulated rather than typed, with a fixed seed, so it re-derives itself at
+    whatever `n` the panel happens to have and cannot go stale when the panel
+    grows. That is the whole defect this replaced.
+    """
+    import numpy as np
+    rng = np.random.default_rng(20260912)
+    z = rng.standard_normal((reps, n))
+    d2 = (z - z.mean(axis=1, keepdims=True)) ** 2
+    share = np.sort(d2, axis=1)[:, -2:].sum(axis=1) / d2.sum(axis=1)
+    return {"mean": float(share.mean()), "p99": float(np.percentile(share, 99))}
+
+
 def test_a_width_never_travels_without_its_cycle_split_and_its_leverage():
     """Four fields that must accompany every band width. MODEL-LOG §1.134.
 
@@ -1419,17 +1504,101 @@ def test_a_width_never_travels_without_its_cycle_split_and_its_leverage():
     cyc = band["by_cycle"]
     assert set(cyc) >= {"2016", "2021"}, sorted(cyc)
     # THE FINDING, as a structural assertion rather than a pinned number: the
-    # two cycles do not agree, so the pooled figure describes neither.
-    assert cyc["2021"]["sd_z"] > 3 * cyc["2016"]["sd_z"], (
-        f"ranks 4-12 sd(z) is {cyc['2016']['sd_z']:.3f} at 2016 and "
-        f"{cyc['2021']['sd_z']:.3f} at 2021. If these have converged, §1.132's "
-        f"central finding — that the pooled width describes neither cycle — has "
-        f"changed, and rule 8 and the HANDOVER's item 1 both need re-reading.")
+    # cycles do not agree, so the pooled figure describes none of them.
+    #
+    # ⛔ THIS COMPARED 2016 AGAINST 2021 AND NOTHING ELSE, on a panel that had
+    # only those two cycles. The artefact now carries 2011 as well, and 2011 is
+    # the EXTREME — so the hard-coded pair measured the narrowest gap available
+    # and reported the finding as gone (1.960 vs 1.155 is 1.70x) while the real
+    # spread had grown to 4.33x. A two-cycle test on a three-cycle panel is the
+    # scanned-the-wrong-set class (`CLAUDE.md` §4), and it failed in the
+    # direction that retires a live finding.
+    #
+    # Measured 2026-09-12 over all 24 city-years: sd(z) is 0.452 at 2011, 1.155
+    # at 2016 and 1.960 at 2021 — monotone, and the same shape `CLAUDE.md`
+    # records for `k*` ("a 4x spread that no single number resolves").
+    # BOTH CLAIMS, because they are different and the pair is the finding.
+    # The ordered one is the second-order-election story §1.132 is about (the
+    # later cycle is the turbulent one); the all-cycles one is the dispersion.
+    # Asserting only the widest pair would stay green on 2011 alone if 2016 and
+    # 2021 converged completely — which is the exact event rule 8 and the
+    # HANDOVER's item 1 depend on, and it would be reported only in a failure
+    # MESSAGE. This repository asserts the number, not the message.
+    # `bool(nan)` is True, so a `.get(...)` truth test RETAINS a nan cycle and
+    # DROPS one whose sd(z) is exactly 0.0 — which is the single case that
+    # would most strongly confirm the finding. `_stats` returns nan for any
+    # cycle with fewer than two scored columns.
+    spread = {c: v for c in cyc
+              if (v := cyc[c].get("sd_z")) is not None and v == v}
+    assert len(spread) >= 2, sorted(cyc)
+    lo_c, hi_c = min(spread, key=spread.get), max(spread, key=spread.get)
+    lo, hi = spread[lo_c], spread[hi_c]
 
-    assert band["leverage"]["top2"] > 0.5, (
-        f"the two largest columns carry {band['leverage']['top2']:.1%} of the "
-        f"band's squared deviation. §1.131 measured 69.5%; below half means the "
-        f"'two columns are the finding' reading no longer holds.")
+    # ⛔ THE ORDERED CLAIM IS ASSERTED AS MONOTONICITY, NOT AS `2021 > 3x2016`,
+    # AND THE DIFFERENCE IS A MEASURED CHANGE, NOT A CONVENIENCE. That pair was
+    # 3.5x on the nine-city-year panel and is **1.70x** on twenty-four (1.155
+    # at 2016, 1.960 at 2021) — so the specific 3x claim between those two
+    # cycles NO LONGER HOLDS and must not be re-asserted. What does hold, and
+    # is the stronger structural statement, is that sd(z) rises monotonically
+    # with the cycle: 0.452 -> 1.155 -> 1.960. That is directed, uses every
+    # cycle, carries no tuned threshold, and breaks if ANY adjacent pair
+    # converges or inverts — which is the event rule 8 and the HANDOVER's item
+    # 1 depend on. §1.132's own reading is preserved; the pair figure it was
+    # written against is not. MODEL-LOG entry filed 2026-09-12.
+    ordered = [cyc[c]["sd_z"] for c in sorted(spread)]
+    assert all(a < b for a, b in zip(ordered, ordered[1:])), (
+        "ranks 4-12 sd(z) by cycle is "
+        + ", ".join(f"{c} {spread[c]:.3f}" for c in sorted(spread))
+        + " — no longer monotone in the cycle. §1.132 reads the later cycles "
+          "as the turbulent ones; an inversion or a convergence between "
+          "adjacent cycles changes that, and rule 8 and the HANDOVER's item 1 "
+          "both need re-reading.")
+
+    assert hi > 3 * lo, (
+        "ranks 4-12 sd(z) by cycle is "
+        + ", ".join(f"{c} {spread[c]:.3f}" for c in sorted(spread))
+        + f" — widest ratio {hi / lo:.2f}x ({hi_c} over {lo_c}). If the cycles "
+        f"have converged, §1.132's central finding — that the pooled width "
+        f"describes NO cycle — has changed, and rule 8 and the HANDOVER's item "
+        f"1 both need re-reading. Compare every cycle present: this assertion "
+        f"named 2016 and 2021 until 2026-09-12 and missed that 2011 is the "
+        f"extreme.")
+
+    # ⛔ TWO WRONG ENCODINGS OF THIS, AND THE SECOND WAS MINE.
+    #
+    # It was `top2 > 0.5`, which is a function of the panel's SIZE and not of
+    # the concentration it claims to measure: the same two columns carry 69.5%
+    # on nine city-years and 48.5% on twenty-four purely because there are more
+    # columns to share the total. That bare floor retired a finding that had
+    # not changed.
+    #
+    # I replaced it with `top2 > 10 * (2/n)` on 2026-09-12, reasoning that two
+    # columns "with no concentration" carry 2/n. THAT IS WRONG. `top2` is a
+    # share of Σ(z−z̄)², and under calibration those squared deviations are
+    # χ²₁ — heavy-tailed — so the top two of n carry FAR more than 2/n.
+    # Simulated (200k replicates): at n=170 the null mean is 9.1%, not 1.2%.
+    # So "48.5% is 41x expectation" overstated it by ~8x (it is 5.3x), and
+    # worse, the bar 10*(2/n) = 11.8% sits BELOW the null's own 95th percentile
+    # of 12.4% — a perfectly calibrated band cleared my test 7.9% of the time.
+    # A threshold picked after seeing the number, on a wrong benchmark, that
+    # barely discriminates: exactly the ratchet `CLAUDE.md` §4 warns about,
+    # arrived at from the right diagnosis.
+    #
+    # So score it against ITS OWN NULL at the observed n. Scale-free,
+    # self-calibrating, and the simulation doubles as the positive control.
+    _lev, _nz = band["leverage"]["top2"], band["n_z"]
+    _null = _top2_null(_nz)
+    assert _lev > _null["p99"], (
+        f"the two largest columns carry {_lev:.1%} of ranks 4-12's squared "
+        f"deviation across {_nz} scored columns. Under calibration the top two "
+        f"of {_nz} χ²₁ deviations carry {_null['mean']:.1%} on average and "
+        f"{_null['p99']:.1%} at the 99th percentile, so this is "
+        f"{_lev / _null['mean']:.1f}x the null mean. Below the 99th percentile "
+        f"the 'two columns are the finding' reading is not distinguishable "
+        f"from a calibrated band.\n"
+        f"  ⚠️ §1.131 measured 69.5% at n=9 against a null mean of 62.4% — "
+        f"P(null ≥ 0.695) = 0.27. That finding was NOT significant on the "
+        f"panel it was found on; it became real only at n=170.")
 
     # A SATURATED BAND IS UNQUOTABLE, and it is a field so a consumer must look.
     assert band["pit_saturated"] > 0 and band["probit_quotable"] is False, (

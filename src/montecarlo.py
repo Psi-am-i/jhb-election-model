@@ -3454,6 +3454,29 @@ class ModelRun:
     # reporting only the seat error hides which of those is happening.
     pr_share_draws: np.ndarray | None = None
     ward_share_draws: np.ndarray | None = None
+    # WHICH ROSTER STATE THE RUN WAS IN, because two of them used to be one
+    # empty set. `roster_state` is "published" or "not_yet_held" — a roster that
+    # should exist and could not be read raises instead of arriving here;
+    # `roster_size` is the positive control, so a consumer can tell a roster that
+    # was READ from one that was merely absent; `roster_dropped` names the
+    # parties the off-ballot drop removed, so the mechanism's firing is a fact
+    # and not an inference. See :func:`roster_for_target`.
+    roster_state: str = ""
+    roster_size: int = 0
+    roster_dropped: list[str] = field(default_factory=list)
+    # EVERY GUARD AND SOLVE COUNTER THE RUN PRODUCED — exactly the payload of the
+    # trace's `41_guards`, because it IS that payload: the dict is built once and
+    # handed to both, so the trace and a scoreboard reading this cannot disagree
+    # about what the run did. Until now these lived only in a `--run-dir` trace
+    # and in locals (`_solve_stats` is a local of `run_model`), so
+    # `compare_history` could not see solve non-convergence, the level floor's
+    # injected mass, or the IPF's clipping at all without re-running with a
+    # trace directory. Keys are documented at the `41_guards` call site.
+    #
+    # Several of these ARE also typed fields above (`ipf_failures`,
+    # `cap_moved`, `bounds_violations` …) and those stay: they have consumers.
+    # This is the whole board, including the ones that had no route out.
+    guards: dict = field(default_factory=dict)
 
     @property
     def draws(self) -> int:
@@ -3489,6 +3512,87 @@ class ModelRun:
             out[w] = {self.universe[j]: float(counts[j]) / self.draws
                       for j in np.nonzero(counts)[0]}
         return out
+
+
+def roster_for_target(target) -> tuple[set[str], str]:
+    """Who is on ``target``'s ballot, and WHICH of three states that answer is in.
+
+    Returns ``(roster, state)``:
+
+    * ``"published"`` — the target's own result file exists and was read, so the
+      off-ballot drop in :func:`run_model` is correct and runs.
+    * ``"not_yet_held"`` — ``cityconfig.CALENDAR[year].results`` is ``None``, so
+      this election HAS no result file, no roster can exist, and the drop is
+      disabled KNOWINGLY. This is the live 2026 forecast's state today.
+
+    The third state is an EXCEPTION rather than a return value: a roster that
+    SHOULD exist and could not be read stops the run.
+
+    ⛔ **DO NOT FAIL OPEN.** This was::
+
+            try:
+                _roster = _pools.contesting_parties(target.city, target.year)
+            except Exception:
+                _roster = set()
+
+    and an empty roster is the value meaning *drop nobody*. So any defect inside
+    ``contesting_parties`` — a renamed ``sPartyName`` column, a moved archive
+    file, a wrong working directory (the path it builds is RELATIVE) — silently
+    disabled the off-ballot drop AND was indistinguishable from an election that
+    has not been held, so nothing downstream could notice. ``run_model``'s own
+    comment prices that mechanism at *"of the order of one invented seat, funded
+    out of the parties ranked 4th to 12th"*: Johannesburg 2021, 13 parties in the
+    2019 baseline not on the ballot, holding 0.42% between them.
+
+    A guard that answers "fine" when it could not run is worse than no guard.
+    This is the empty-record-vs-unreachable-record class exactly, and it is the
+    same class ``pools.stale_reason`` is handled for a hundred lines below — the
+    file held two opposite policies for one failure mode until now.
+
+    **Nothing is caught, deliberately.** ``contesting_parties`` signals "no
+    roster exists" by RETURNING an empty set, never by raising, so there is no
+    exception here that legitimately means it — which is why the old
+    ``except Exception`` could only ever have been swallowing defects. Every
+    exception propagates.
+
+    **The discriminator is the RESULTS TEMPLATE, not the clock.** ``results is
+    None`` is the calendar's own statement that an election has no result file
+    (``cityconfig``: *"None for an election not yet held"*), and it is the same
+    condition ``contesting_parties`` keys its legitimate empty return on, so the
+    two cannot disagree. A date comparison would instead flip state on polling
+    day and refuse the next target days before anyone has ingested a file.
+
+    ⚠️ **A DECLARED roster is deliberately NOT consulted here.**
+    ``pools.resolve_roster`` has three sources — published, declared (a hand-typed
+    ``[roster]`` in the judgement file) and projected — and it is reached only
+    from ``emit_pools``, i.e. when a pool spec is emitted. Wiring the declared
+    list into this drop would move the live 2026 forecast, which is a scored
+    change and not a failure-path fix. The asymmetry is real and is now RECORDED
+    rather than silent: on a night when the owner has pasted the IEC list into
+    ``judgements/<city>-2026.toml``, the spec uses it and this drop still reports
+    ``not_yet_held``.
+    """
+    import pools as _pools
+    template = cityconfig.CALENDAR[target.year].results
+    if template is None:
+        return set(), "not_yet_held"
+    roster = _pools.contesting_parties(target.city, target.year)
+    if not roster:
+        raise SystemExit(
+            f"the {target.year} ballot roster for {target.city.slug} is EMPTY, "
+            f"and the calendar says this election HAS a result file:\n"
+            f"  {target.city.path('raw', 'elections', template)}\n\n"
+            f"⛔ THE RUN REFUSES RATHER THAN CONTINUING. An empty roster "
+            f"disables the off-ballot drop — every party in the "
+            f"{target.previous_npe} baseline then keeps a share at this local "
+            f"election whether or not it stood — and an empty set is exactly "
+            f"what a NOT-YET-HELD target returns, so nothing downstream can "
+            f"tell the two apart.\n\n"
+            f"Check, in this order: the working directory (the path above is "
+            f"RELATIVE, and the model is run from the repository root); that "
+            f"the file is present and non-empty; that it still has an "
+            f"`sPartyName` column.")
+    return roster, "published"
 
 
 def run_model(target, scenario: dict,
@@ -3667,12 +3771,18 @@ def run_model(target, scenario: dict,
     # same justification `levels.contestation` already runs on: nomination lists
     # close and are published weeks before polling day, so WHO IS ON THE BALLOT
     # is available to a forecaster. Their votes are not, and none are read here.
-    # A target not yet held has no roster and is left alone.
-    try:
-        import pools as _pools
-        _roster = _pools.contesting_parties(target.city, target.year)
-    except Exception:
-        _roster = set()
+    # A target not yet held has no roster and is left alone — KNOWINGLY, which
+    # is the whole of `roster_for_target`'s job. THREE STATES, NOT TWO: this read
+    # used to be wrapped in `except Exception: _roster = set()`, and an empty set
+    # is the value meaning "drop nobody", so an unreadable roster silently
+    # disabled the drop and looked exactly like an unheld election. It now
+    # refuses instead, and `_roster_state` is how a consumer tells a knowingly
+    # disabled drop from a broken one.
+    _roster, _roster_state = roster_for_target(target)
+    # Travels into `forecast_summary.json` with the rest of the scenario, beside
+    # `_pools_stale`, which is the same kind of fact about the same kind of input.
+    scenario["_roster_state"] = _roster_state
+    _roster_dropped: list[str] = []
     if _roster:
         # ONE DEFINITION. `theta_residual.residuals` has to reproduce this
         # baseline exactly — Key 4 scores `theta_prior` and `theta_prior`'s fit
@@ -3683,6 +3793,10 @@ def run_model(target, scenario: dict,
         _absent = _levels_roster.absent_from_ballot(base_city_d, _roster)
         if _absent:
             _held = sum(base_city_d[p] for p in _absent)
+            # RECORDED, never re-derived. The drop is the mechanism the empty
+            # roster used to disable, so a consumer asking "did it fire?" must
+            # get the answer from the code that fired it.
+            _roster_dropped = list(_absent)
             for p in _absent:
                 base_city_d.pop(p, None)
             for _vd in base_share_d.values():
@@ -3694,6 +3808,8 @@ def run_model(target, scenario: dict,
                       f"{target.previous_npe} baseline "
                       f"({', '.join(_absent[:5])}"
                       f"{', …' if len(_absent) > 5 else ''})")
+    trace.put("03_roster", {"state": _roster_state, "size": len(_roster),
+                            "dropped": sorted(_roster_dropped)})
 
 
     # A party with no baseline cannot be grown into existence: theta multiplies,
@@ -4816,7 +4932,11 @@ def run_model(target, scenario: dict,
         "seat_mean": {p: float(np.mean([s.get(p, 0) for s in seat_draws]))
                       for p in {q for s in seat_draws for q in s}},
     })
-    trace.put("41_guards", {
+    # `put` RETURNS WHAT IT IS GIVEN (see `Trace`), so this records the board and
+    # binds it in one expression, with no second copy to drift. `guards` goes on
+    # to `ModelRun` below, which is the only route these counters have to a
+    # consumer that did not ask for a `--run-dir`.
+    guards = trace.put("41_guards", {
         "ipf_balances": int(_ipf_stats.get("balances", 0)),
         "ipf_failures": int(_ipf_stats.get("failures", 0)),
         "cap_undershoots": int(capped_targets.undershoots),
@@ -4887,7 +5007,9 @@ def run_model(target, scenario: dict,
         ipf_worst=dict(_ipf_stats.get("worst") or {}),
         ipf_headroom=dict(_ipf_stats.get("headroom") or {}),
         notes=notes, gamma_source=gamma_source, ratio=ratio, n_vd=nvd,
-        pr_share_draws=pr_share_draws, ward_share_draws=ward_share_draws)
+        pr_share_draws=pr_share_draws, ward_share_draws=ward_share_draws,
+        roster_state=_roster_state, roster_size=len(_roster),
+        roster_dropped=sorted(_roster_dropped), guards=dict(guards))
 
 
 # --------------------------------------------------------------------------

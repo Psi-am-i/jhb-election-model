@@ -937,32 +937,59 @@ def _band_splits(detail) -> dict:
     applies to the `all` population — so it is marked, not silently printed.
     """
     def _stats(rows):
-        z = np.array([v for _y, v, _u, _p in rows if v is not None], dtype=float)
+        z = np.array([d[1] for d in rows if d[1] is not None], dtype=float)
         if z.size < 2:
             return {"n": int(z.size), "sd_z": float("nan"),
                     "z_bias": float("nan")}
         return {"n": int(z.size), "sd_z": float(z.std(ddof=1)),
                 "z_bias": float(z.mean())}
 
-    cycles = sorted({y for y, _z, _u, _p in detail})
-    z = np.array([v for _y, v, _u, _p in detail if v is not None], dtype=float)
+    cycles = sorted({d[0] for d in detail})
+    kept = [d for d in detail if d[1] is not None]
+    z = np.array([d[1] for d in kept], dtype=float)
     lev = {}
     if z.size > 3:
-        dev = np.sort((z - z.mean()) ** 2)[::-1]
+        squared = (z - z.mean()) ** 2
+        order = np.argsort(-squared)
+        dev = squared[order]
         total = float(dev.sum()) or float("nan")
         lev = {"top2": float(dev[:2].sum() / total),
                "top3": float(dev[:3].sum() / total),
                "sd_z_drop2": float(np.sort(np.abs(z - z.mean()))[:-2].size > 1
                                    and np.delete(z, np.argsort(
                                        -np.abs(z - z.mean()))[:2]).std(ddof=1)
-                                   or float("nan"))}
-    pits = np.array([u for _y, _z, u, _p in detail if u is not None], dtype=float)
-    saturated = int(((pits <= 0.0) | (pits >= 1.0)).sum()) if pits.size else 0
+                                   or float("nan")),
+               # ⛔ WHICH COLUMNS THEY ARE, so the report can NAME them instead
+               # of carrying "Cape Town's Cape Coloured Congress and
+               # Johannesburg's PA" as typed prose on a panel that may contain
+               # neither. Ordered by the SAME `argsort` that produced `top2` and
+               # `sd_z_drop2` above, so the names cannot disagree with the share
+               # printed beside them.
+               "top_columns": [
+                   {"label": kept[int(i)][4], "z": float(z[int(i)]),
+                    "share": float(squared[int(i)] / total)}
+                   for i in order[:3]]}
+    pits = np.array([d[2] for d in detail if d[2] is not None], dtype=float)
+    sat_mask = ((pits <= 0.0) | (pits >= 1.0)) if pits.size else np.zeros(0, bool)
+    saturated = int(sat_mask.sum()) if pits.size else 0
     clips = {}
-    for c in (1e-4, 1e-5, 1e-6):
+    # 1e-2 IS IN THIS TUPLE ON PURPOSE. The three tight clips differ by a few
+    # percent and read as noise; the gap to 1e-2 is what makes the dependence
+    # legible — on `reference` ranks 4-12 over Johannesburg alone the figure is
+    # 1.0655 at 1e-2 against 1.5497 at 1e-6, which is the same statistic and two
+    # different verdicts. `_probit` hard-clips at 1e-6, so the figure this report
+    # BOLDS is the most extreme of the four and the reader is owed the rest.
+    for c in (1e-2, 1e-4, 1e-5, 1e-6):
         if pits.size > 1:
             v = np.array([_probit(x) for x in np.clip(pits, c, 1 - c)])
             clips[f"{c:g}"] = float(v.std(ddof=1))
+    # The same statistic with the saturated columns DROPPED rather than clipped.
+    # A clip is an arbitrary answer to "what is Phi^-1(1)?"; dropping is the
+    # honest one, and the gap between this and the clipped figures is the size of
+    # the problem.
+    unsat = pits[~sat_mask] if pits.size else pits
+    drop_sat = (float(_probit(unsat).std(ddof=1)) if unsat.size > 1
+                else float("nan"))
     return {
         "by_cycle": {y: _stats([d for d in detail if d[0] == y]) for y in cycles},
         "leverage": lev,
@@ -973,6 +1000,7 @@ def _band_splits(detail) -> dict:
                                if d[3] is not None and d[3] < 0.5])},
         "pit_saturated": saturated,
         "probit_by_clip": clips,
+        "probit_drop_saturated": drop_sat,
         # ⛔ A band with a saturated PIT has an unquotable probit-SD. Not a
         # warning in prose — a field, so a consumer must look at it.
         "probit_quotable": saturated == 0,
@@ -1080,10 +1108,15 @@ def pooled_by_band(results, pop) -> dict:
             z_all.extend(v for v, b in zip(block.get("z") or [], labels)
                          if b == band and v is not None)
             _pa = block.get("p_any") or [None] * len(labels)
-            for b, zv, uv, pav in zip(labels, block.get("z") or [None] * len(labels),
-                                      block["pit"], _pa):
+            _names = block.get("parties") or [""] * len(labels)
+            for b, zv, uv, pav, party in zip(
+                    labels, block.get("z") or [None] * len(labels),
+                    block["pit"], _pa, _names):
                 if b == band:
-                    detail.append((str(r.get("year")), zv, uv, pav))
+                    # The label travels with the column so `_band_splits` can
+                    # NAME the high-leverage ones. See its `top_columns`.
+                    detail.append((str(r.get("year")), zv, uv, pav,
+                                   f"{r.get('city')} {r.get('year')} {party}"))
             city_hits = {level: [] for level in LEVELS}
             for hit, b in zip(block.get("hits") or [], labels):
                 if b != band:
@@ -1316,7 +1349,7 @@ def _run_one(job):
                          run_dir=Path(run_dir) if run_dir else None)
 
 
-def _reconcile_arrival(run, scored: dict) -> dict:
+def _reconcile_arrival(run, scored: dict, pre_relabel_universe) -> dict:
     """Does the arrival mass the SPEC declares equal the mass the RUN draws?
 
     ⛔ NOTHING COMPARED THESE TWO NUMBERS, AND THAT IS HOW THE DOUBLE-COUNT
@@ -1329,11 +1362,59 @@ def _reconcile_arrival(run, scored: dict) -> dict:
     A quantity that crosses an artefact boundary and is not checked on the other
     side is not declared, whatever the artefact says. This is the check.
 
+    ⛔ **AND FOR ITS FIRST LIFE THIS CHECK WAS BLIND EXACTLY WHERE IT MATTERED.**
+    ``generic_slot_present`` tested ``"ENTRANT" in run.universe`` — on the
+    **post-relabel** run. ``backtest.relabel_run`` renames the generic ENTRANT
+    column onto the party that actually arrived, so by the time this function
+    ran the slot it hunts for had been renamed out of existence at every
+    city-year where an arrival happened. It reported ``False`` and filed the
+    slot's whole expectation under ``unexplained``, silently.
+
+    The evidence, measured on the committed twenty-four-row artefact before the
+    repair. The flag read true at **4 of 24** rows — tshwane, mangaung,
+    nelsonmandelabay and buffalocity **2011**, which are precisely the rows where
+    no party arrived, so ``entrant_actual`` was ``None`` and the relabel never
+    fired. At those four ``generic_slot_expectation`` is **0.014167**
+    (``0.25 x mean(0.01, 0.04, 0.12)``). At the 2011 rows where the relabel DID
+    fire, ``unexplained`` read **0.01507, 0.01410, 0.01411, 0.01493** (joburg,
+    ekurhuleni, ethekwini, capetown). **The mass filed as unexplained is, to four
+    decimals, the slot the detector could not see.** A detector that is blind in
+    exactly the population it hunts is not quiet, it is broken.
+
+    So the presence test is taken from the **pre-relabel** universe, which the
+    caller captures before :func:`backtest.relabel_run` and passes in.
+    ``pre_relabel_universe`` is REQUIRED and has no default, deliberately: a
+    future edit that forgets to capture it raises ``TypeError`` instead of
+    quietly going blind again, which is the failure mode this whole repair is
+    about.
+
+    ⚠️ It is deliberately NOT re-derived here from
+    ``entrant_prob > 0 and not named_arrivals`` (``montecarlo.py``'s own rule for
+    appending the slot). That would be a second copy of a rule this repository
+    forbids duplicating, and it would assert the mechanism rather than observe
+    it. Watching the universe watches what the model actually built — the same
+    argument as ``tests/_support.election_files_read``.
+
     ⚠️ IT REPORTS, IT DOES NOT REFUSE. A refusal here would abort every scored
     city-year in the panel on a defect the panel exists to measure — and the
     gap is currently REAL, so a refusal would make the instrument unusable at
     exactly the moment it is telling the truth. The number goes into the
-    artefact, `_arrival_referee` prints it, and a test asserts on it.
+    artefact, :func:`_arrival_referee` prints it with a flag a reader cannot
+    miss, and ``tests/test_scoreboard_disclosure.py`` asserts on it.
+
+    **THE FLAG'S THRESHOLD IS DERIVED, NOT TYPED**, so it owes nothing to
+    ``JUDGEMENT-CALLS.md``: the residual is flagged when it is **at least as
+    large as** the budget it is a residual OF — ``declared + slot``. In words,
+    *what is left over is as big as everything we just accounted for*. It is
+    two-sided, because a residual below ``-budget`` is the same disagreement
+    pointing the other way: the declared budget exceeds what was actually drawn.
+    Where nothing is accounted for at all (no seeds and no slot) any drawn
+    arrival mass is unexplained by construction and flags.
+
+    ⚠️ The comparison is ``>=`` and not ``>`` for one case that is not an edge
+    case at all: a budget that is declared and then **not drawn** gives
+    ``unexplained == -budget`` exactly, and a strict ``>`` calls that agreement.
+    It is the opposite — none of the declared mass arrived.
     """
     seeds = (run.scenario.get("pool_seeds") or {}) if hasattr(run, "scenario") else {}
     declared = float(sum(v for v in seeds.values() if v > 0))
@@ -1344,7 +1425,11 @@ def _reconcile_arrival(run, scored: dict) -> dict:
     prob = float((run.scenario or {}).get("entrant_prob") or 0.0)
     share = (run.scenario or {}).get("entrant_share") or [0.0, 0.0, 0.0]
     slot = prob * (sum(float(x) for x in share) / 3.0) if prob > 0 else 0.0
-    has_slot = "ENTRANT" in set(run.universe or ())
+    # ⛔ THE PRE-RELABEL UNIVERSE. See the docstring: reading `run.universe` here
+    # tests a universe the relabel has already rewritten.
+    has_slot = "ENTRANT" in set(pre_relabel_universe or ())
+    accounted = declared + (slot if has_slot else 0.0)
+    unexplained = drawn - accounted
     return {
         "declared_seeded_mass": declared,
         "drawn_mass_mean": drawn,
@@ -1354,8 +1439,75 @@ def _reconcile_arrival(run, scored: dict) -> dict:
         # The residual after accounting for the generic slot. If the slot is
         # the whole of the discrepancy this lands near zero, which is the
         # signature of double-counting rather than of a mis-sized budget.
-        "unexplained": drawn - declared - (slot if has_slot else 0.0),
+        "unexplained": unexplained,
+        # What the residual is a residual OF, stored so the flag below can be
+        # recomputed from the artefact rather than taken on trust.
+        "unexplained_budget": accounted,
+        "unexplained_ratio": (unexplained / accounted if accounted
+                              else float("nan")),
+        "unexplained_flag": (bool(abs(unexplained) >= accounted) if accounted
+                             else bool(drawn > 0)),
         "double_counted": bool(has_slot and declared > 0),
+    }
+
+
+def _guard_block(run) -> dict:
+    """Every guard counter the run produced, or an explicit statement of absence.
+
+    ⛔ **THE PANEL'S GUARD STATE WAS UNKNOWN, NOT CLEAN.** `compare_history`
+    calls `run_model` with `verbose=False`, which suppresses the printed
+    warnings, and carried no counter onto the record — while the solve counters
+    were LOCALS of `run_model`, reachable only by re-running with a `--run-dir`.
+    So "the cap is not binding" and "IPF does not fall back" were claims nobody
+    could check against the panel that decides what ships. `cap_moved` and
+    `ipf_failures` are the two whose SILENCE was read as success for two days
+    (MODEL-LOG §1.41); a silence is much harder to misread when it sits in the
+    artefact beside the run that produced it.
+
+    **The source is `ModelRun.guards`, not the typed fields.** That dict IS the
+    payload `montecarlo` hands to the trace's `41_guards` stage — built once and
+    given to both — so a scoreboard and a trace taken from the same run cannot
+    disagree about what it did. Reading the typed fields instead would be a
+    second copy of a subset, which is how two definitions of one number start.
+    The typed fields keep their own consumers; nothing here touches them.
+
+    ⚠️ **`recorded: False` IS NOT "EVERY COUNTER IS ZERO".** `ModelRun.guards`
+    defaults to an empty dict, so a run from before the field existed is
+    indistinguishable from a run that fired nothing — unless the difference is
+    written down. This repository has already published two write-ups that got
+    that distinction wrong about one defect, and `load_history` refuses a
+    pre-manifest artefact for the same reason. A consumer must be able to tell
+    "measured, and it did not fire" from "not measured".
+    """
+    board = dict(getattr(run, "guards", None) or {})
+    return {
+        "recorded": bool(board),
+        "unavailable_why": (None if board else
+                            "this ModelRun carries no `guards` board — it "
+                            "predates montecarlo's `ModelRun.guards` field, so "
+                            "the counters were NOT measured. This is not a "
+                            "report that they were zero."),
+        # Nested rather than merged into this dict, so a counter that montecarlo
+        # someday names `recorded` cannot collide with the flag that says
+        # whether anything was recorded at all.
+        "counters": board,
+    }
+
+
+def _roster_block(run) -> dict:
+    """The ballot roster the run used, with the count that proves it was read.
+
+    Carried for the same reason as the guard board: `roster_state` decides
+    whether the off-ballot drop could fire at all, and a consumer that sees only
+    an empty `roster_dropped` cannot tell "the roster was read and nothing was
+    dropped" from "there was no roster". `roster_size` is that positive control.
+    """
+    state = getattr(run, "roster_state", "") or ""
+    return {
+        "recorded": bool(state),
+        "state": state or None,
+        "size": int(getattr(run, "roster_size", 0) or 0),
+        "dropped": sorted(getattr(run, "roster_dropped", None) or []),
     }
 
 
@@ -1376,6 +1528,61 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
     # re-running the whole comparison with a print added.
     run = M.run_model(target, scenario, data_dir, verbose=False,
                       run_dir=(run_dir / f"{city_slug}-{year}") if run_dir else None)
+
+    # ⛔ EVERY GUARD COUNTER THE RUN PRODUCED, CARRIED ONTO THE RECORD.
+    #
+    # `run_model` is called with `verbose=False` above, which suppresses the
+    # printed warnings, and until `ModelRun.guards` existed the solve counters
+    # were LOCALS of `run_model` reachable only through a `--run-dir` trace. So
+    # the panel's guard state was not "clean", it was UNKNOWN — and every "that
+    # guard is not binding" claim made about these sixteen-to-twenty-four
+    # city-years was an assumption wearing a measurement's clothes.
+    #
+    # ⚠️ READ THE BOARD, NOT THE TYPED FIELDS. `run.guards` IS the payload the
+    # trace records (`montecarlo` builds the dict once and hands it to both), so
+    # a scoreboard reading it cannot disagree with a trace taken from the same
+    # run. Several of those counters are ALSO typed fields on `ModelRun`
+    # (`ipf_failures`, `cap_moved`, `bounds_violations`) and those keep their
+    # existing consumers untouched — this is the whole board, including the ten
+    # that had no route out at all.
+    #
+    # Taken HERE, before the relabel, for the same reason `constants_read` is:
+    # both describe the run, and `relabel_run` rewrites the run in place.
+    guard_block = _guard_block(run)
+    # F7's roster state, carried for the same reason and with the same
+    # positive control: `roster_size` is what separates a roster that was READ
+    # from one that was merely absent.
+    roster_block = _roster_block(run)
+
+    # ⛔ WHAT THIS RUN ACTUALLY CONSUMED, so the scoreboard can say whether it is
+    # scoring out of sample. `backtest.contaminated` and `in_sample_banner` have
+    # existed and been correct all along; nothing in this file called either, so
+    # the panel that arbitrates every decision in this project declared nothing
+    # about its own provenance.
+    #
+    # ⚠️ `--set` is deliberately NOT offered as `scenario_keys`. That argument
+    # only clears a key when the scenario also carries a `derived_from`, and a
+    # `--set` on the command line is a lever sweep, not a provenance
+    # declaration. `declared=None` and an empty clean set is the honest call.
+    #
+    # ⚠️ AND THIS IS NOT AN ALL-CLEAR MECHANISM. `note_constant(scenario,
+    # "pools")` fires unconditionally and `FITTED_ON["pools"]` lists 2011, 2016
+    # and 2021, so every target this harness can run is in-sample and says so.
+    # What changes here is that the scoreboard NAMES the constants inside that
+    # warning and carries the evidence into the artefact — not that any row
+    # becomes clean.
+    constants_read = {k: sorted(v) for k, v in (run.constants_read or {}).items()}
+    # ⛔ THE SCENARIO IS PASSED, AND WITHOUT IT THIS DISCLOSED HALF THE REGISTER.
+    # `contaminated` implicates an INSTRUMENTED constant from `read` and an
+    # UNINSTRUMENTED one from scenario membership. Called with `read` alone it
+    # returns `FITTED_ON` only and silently omits the seven in
+    # `FITTED_ON_UNINSTRUMENTED` — `level_shrink` among them, the constant the
+    # whole register rewrite was for. Filtered to `DEFAULTS` so the row carries
+    # the levers and not the run's private `_`-prefixed bookkeeping.
+    scenario_defaults = {k: v for k, v in (scenario or {}).items()
+                         if k in M.DEFAULTS}
+    contaminated = B.contaminated(year, set(), run.constants_read,
+                                  scenario_defaults)
 
     actual_pr, actual_ward = actual_shares(target, data_dir)
     actual_seats, entrant_actual, actual_winners = _actual_seats(
@@ -1406,6 +1613,16 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
         # only the relabel would leave the label still doing its work downstream
         # and would price the ablation at less than it is worth.
         entrant_actual = None
+
+    # ⛔ CAPTURED BEFORE THE RELABEL, AND THE ONLY REASON THIS LINE EXISTS IS
+    # THAT `_reconcile_arrival` READ IT AFTERWARDS AND WENT BLIND.
+    #
+    # `relabel_run` renames the generic ENTRANT column onto the party that
+    # actually arrived, so after it there is no ENTRANT in the universe at any
+    # city-year where an arrival happened — which is every city-year the arrival
+    # referee is asked about. The presence test has to happen here. See
+    # :func:`_reconcile_arrival` for the measurement that proves it was blind.
+    pre_relabel_universe = tuple(run.universe or ())
 
     # Before ANY of the tables below. entrant_actual used to reach score_seats
     # and nothing else, so votes, rank bands and both seat errors all scored the
@@ -1442,6 +1659,21 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
             _pit_seed(city_slug, year), actual_pr=actual_pr,
             reference=reference_universe(target, city, data_dir)),
         "opponents": {},
+        # THE PROVENANCE OF THIS ROW, carried so `history.json` cannot be read
+        # without it. `render` re-derives the banner from these two fields
+        # through `backtest.in_sample_banner` — the prose is not stored, so
+        # there is only ever one definition of it.
+        "constants_read": constants_read,
+        # The levers this row actually resolved, so the banner can be
+        # re-derived at render time without re-running the model.
+        "scenario_defaults": scenario_defaults,
+        "contaminated": contaminated,
+        "in_sample": bool(contaminated),
+        # WHAT THE GUARDS DID. See `_guard_block`: `recorded` is False on a run
+        # whose `ModelRun` predates the board, which is NOT the same fact as
+        # every counter reading zero.
+        "guards": guard_block,
+        "roster": roster_block,
     }
     scored = S.score_seats(run.seat_draws, actual_seats,
                            entrant_actual=entrant_actual)
@@ -1510,7 +1742,7 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
             {p: i for i, p in enumerate(run.universe)},
             actual_pr, actual_seats, _npe_baseline(target, data_dir))
         out["arrival_reconciliation"] = _reconcile_arrival(
-            run, out["arrival_group"])
+            run, out["arrival_group"], pre_relabel_universe)
 
     ctx = BM.build_context(int(year), data_dir)
     for name in ("last-lge", "uniform-swing", "prior-lge-noise"):
@@ -1731,8 +1963,9 @@ def _width_on_reference(pooled: dict) -> list[str]:
            "`z`; the pooled tables above count PIT values and their `n` is "
            "larger.\n",
            "| band | `claimed` n(z) | `claimed` SD of z | `reference` n(z) | "
-           "`reference` SD of z | `reference` mean z | `reference` probit-SD |",
-           "|---|---|---|---|---|---|---|"]
+           "`reference` SD of z | `reference` mean z | `reference` probit-SD | "
+           "same @1e-2 | drop saturated | sat. PITs |",
+           "|---|---|---|---|---|---|---|---|---|---|"]
     for band in BAND_LABELS:
         a, b = clm.get(band), ref.get(band)
         if not a or not b:
@@ -1746,7 +1979,42 @@ def _width_on_reference(pooled: dict) -> list[str]:
                    f"{num(a, 'dispersion')} | {b.get('n_z', b['n'])} | "
                    f"{num(b, 'dispersion')} | "
                    f"{num(b, 'z_bias', '{:+.3f}')} | "
-                   f"**{num(b, 'pit_dispersion')}** |")
+                   f"{_probit_cell(b)} | {_clip_cell(b, '0.01')} | "
+                   f"{num(b, 'probit_drop_saturated')} | "
+                   f"{b.get('pit_saturated', 0)} |")
+    out.append("")
+    out.append(_CLIP_NOTE)
+    # ⛔ THE LEVERAGE SENTENCE IS COMPUTED FROM THE ROWS SCORED, NOT TYPED.
+    # It carried "Cape Town's Cape Coloured Congress and Johannesburg's PA …
+    # ~70% … dropping them takes sd(z) to about 1.0" as literal prose. On a
+    # Johannesburg-only panel neither party is in the run; on the sixteen- and
+    # twenty-four-row panels the share is 48.5%, not ~70%. Three typed figures,
+    # each true of a panel that no longer exists. `CLAUDE.md`: never type a model
+    # figure into prose.
+    mid = ref.get("4-12") or {}
+    lev = mid.get("leverage") or {}
+    cols = lev.get("top_columns") or []
+    if cols and lev.get("top2") is not None:
+        named = "; ".join(f"**{c['label']}** (z {c['z']:+.2f}, "
+                          f"{100 * c['share']:.1f}% of the band's squared "
+                          f"deviation)" for c in cols[:2])
+        drop2 = lev.get("sd_z_drop2")
+        drop_txt = ("—" if drop2 is None or drop2 != drop2 else f"{drop2:.3f}")
+        leverage_line = (
+            f"\n⛔ **AND THE SPREAD AT 4-12 IS A HANDFUL OF COLUMNS.** On the "
+            f"`reference` population over the {mid.get('n_z', 0)} columns "
+            f"carrying a defined `z`, the two largest carry "
+            f"**{100 * lev['top2']:.1f}%** of the band's total squared `z`: "
+            f"{named}. Dropping them takes `sd(z)` from "
+            f"{mid.get('dispersion', float('nan')):.3f} to **{drop_txt}**. "
+            f"Quote the leave-the-largest-out figure beside the headline or the "
+            f"headline is two observations, not a width. §1.56, §1.58, §1.131.\n")
+    else:
+        leverage_line = (
+            "\n**Leverage is not reported for ranks 4-12 on this panel**: the "
+            "band carries too few columns with a defined `z` for the "
+            "largest-two share to mean anything. A width figure from it is two "
+            "or three observations; do not quote one.\n")
     out.append(
         "\n**Read the last column, not the `SD of z` column, on ranks 13+.** "
         "`sd(z)` is exact under a level shift and **meaningless on a "
@@ -1766,16 +2034,101 @@ def _width_on_reference(pooled: dict) -> list[str]:
         "**Ranks 4-12 cannot be described by one width, and that is the "
         "finding.** On the same columns `sd(z)` says far too narrow, `IQR-sd` "
         "says too wide, and probit-SD disagrees with both — because the error "
-        "distribution is a narrow shifted bulk with two enormous outliers, "
-        "Cape Town's Cape Coloured Congress and Johannesburg's PA, both of "
-        "which `claimed` excludes by construction. A distribution that reads "
-        "differently depending which moment you take is mis-SHAPED, not "
-        "mis-scaled, and no scalar fixes it.\n\n"
-        "⛔ **AND THE SPREAD AT 4-12 IS TWO COLUMNS.** Those two carry ~70% of "
-        "the band's total squared z; dropping them takes `sd(z)` to about 1.0. "
-        "Quote the leave-the-largest-out figure beside the headline or the "
-        "headline is two observations, not a width. §1.56, §1.58, §1.131.\n")
+        "distribution is a narrow shifted bulk with a few enormous outliers, "
+        "which `claimed` excludes by construction. They are NAMED below, from "
+        "the rows actually scored. A distribution that reads differently "
+        "depending which moment you take is mis-SHAPED, not mis-scaled, and no "
+        "scalar fixes it.\n")
+    out.append(leverage_line)
     return out
+
+
+_CLIP_NOTE = (
+    "⛔ **A probit-SD from a band carrying a saturated PIT is a property of the "
+    "CLIP, not of the forecast, and this table prints both so the reader can "
+    "see which.** `_probit` clips at 1e-6; a column whose truth exceeded every "
+    "draw has a PIT of exactly 1.0, and `Φ⁻¹(1)` is infinite, so the figure in "
+    "the first column is whatever the clip decides. The `@1e-2` column is the "
+    "same statistic with a looser clip and the `drop saturated` column is the "
+    "same statistic with those columns removed instead of pinned — the honest "
+    "answer to a question the clip only papers over. **Where the three "
+    "disagree and `sat. PITs` is non-zero, the band's width is UNQUOTABLE**: "
+    "say so, or quote the drop-saturated figure and say that is what it is. "
+    "Measured on `reference` ranks 4-12 over Johannesburg alone, the three read "
+    "1.55 / 1.07 / 1.10 — the same band, two different verdicts. MODEL-LOG "
+    "§1.132, §1.134.\n")
+
+
+def _probit_cell(blk: dict) -> str:
+    """The probit-SD, marked UNQUOTABLE in the cell when the band is saturated.
+
+    ``_band_splits`` has computed ``probit_quotable`` since §1.134 and nothing
+    printed it, so the one figure the report bolds carried no sign that it was
+    not a property of the forecast. A footnote is not enough here: the number is
+    read out of the table and the footnote is not.
+    """
+    v = blk.get("pit_dispersion")
+    if v is None or v != v:
+        return "—"
+    if blk.get("probit_quotable") is False:
+        return f"{v:.3f} ⛔UNQUOTABLE"
+    return f"**{v:.3f}**"
+
+
+def _clip_cell(blk: dict, clip: str) -> str:
+    """One entry from ``probit_by_clip``, or ``—`` where it was not computed."""
+    v = (blk.get("probit_by_clip") or {}).get(clip)
+    return "—" if v is None or v != v else f"{v:.3f}"
+
+
+def _saturated_columns(results: list[dict], pop: str) -> tuple[list[str], int]:
+    """``(labels of columns whose PIT is exactly 0 or 1, total columns)``.
+
+    A PIT can land exactly on 1.0 without any randomisation luck: when the truth
+    exceeds every draw, ``score.pit_intervals`` returns ``below = 1.0`` and
+    ``width = 0.0``, so ``below + u*width`` is 1.0 for every ``u``. Those are the
+    zero-probability failures — a party given a seat in no draw that won one —
+    and the count of them is a fact about the panel, not a constant.
+
+    **The saturation rule is `_band_splits`'s**, not a second one: ``u <= 0 or
+    u >= 1``. Two definitions of "saturated" in one file is exactly the
+    duplication that let `score.column_rng` be written twice and reverted in
+    both places with the suite green.
+    """
+    labels: list[str] = []
+    total = 0
+    for r in results:
+        block = (r.get("calibration") or {}).get(pop) or {}
+        parties = block.get("parties") or []
+        for party, u in zip(parties, block.get("pit") or []):
+            total += 1
+            if u <= 0.0 or u >= 1.0:
+                labels.append(f"{r.get('city')} {r.get('year')} {party}")
+    return labels, total
+
+
+def _both_sides_zero(results: list[dict], pop: str) -> int:
+    """Columns correctly at zero on BOTH sides — the dilution, counted.
+
+    A party the model gave a seat in no draw and which won none: ``p_any`` is
+    0.0 and the PIT jump is the whole of ``[0, 1]`` (``below = 0``,
+    ``at_or = 1``), so ``pit_w`` is 1.0. Each is a free interval hit and a
+    near-uniform PIT, which is why a population that admits them reads
+    optimistically.
+
+    ``score.seat_matrix`` admits a column only when ``truth > 0 or
+    samples.max() > 0``, so **neither clause can be satisfied by such a column**
+    and it cannot appear in ``claimed``, ``seat_holders`` or ``all``. It appears
+    in ``reference``, which is built with ``keep_all=True``. That distinction is
+    what the report's own prose had backwards.
+    """
+    n = 0
+    for r in results:
+        block = (r.get("calibration") or {}).get(pop) or {}
+        for w, pa in zip(block.get("pit_w") or [], block.get("p_any") or []):
+            if pa == 0.0 and w >= 1.0:
+                n += 1
+    return n
 
 
 def render_calibration(results: list[dict], bins: int = 10) -> str:
@@ -1849,6 +2202,19 @@ def render_calibration(results: list[dict], bins: int = 10) -> str:
         "changed here — the heuristic is fine for its own purpose and what is "
         "wrong is quoting it about width. **The χ² column is the test of "
         "uniformity; the level-free dispersion table is the test of width.**")
+    # ⛔ EVERY FIGURE IN THIS PARAGRAPH IS COMPUTED FROM THE ROWS SCORED.
+    # It carried "Five of its columns across the nine city-years carry PIT
+    # exactly 1.0" and "diluted by ~200 parties correctly at zero on both
+    # sides" as typed prose, on a report that had been sixteen and then
+    # twenty-four city-years for weeks. The second was WRONG IN KIND as well as
+    # in size: `score.seat_matrix` admits a column only when `truth > 0 or
+    # samples.max() > 0`, so a column zero on BOTH sides cannot be in `all` at
+    # all — measured, 0 of 580. Those columns live in `reference`, which is
+    # built with `keep_all=True`, and the sentence had attached a property of
+    # one population to another. Both are now derived. See `_saturated_columns`.
+    sat_cols, n_all_cols = _saturated_columns(results, "all")
+    _, n_ref_cols = _saturated_columns(results, "reference")
+    ref_zero = _both_sides_zero(results, "reference")
     add("\nThe three populations differ by which columns they count, and the "
         "difference is itself the finding. `claimed` selects on the FORECAST, "
         "which leaves PIT uniform under calibration, so it is the honest test "
@@ -1859,13 +2225,27 @@ def render_calibration(results: list[dict], bins: int = 10) -> str:
         "neutral. `all` was documented as neutral and **is not**: "
         "`score.seat_matrix` admits a column when `truth[i] > 0 or "
         "samples[:, i].max() > 0`, and the first clause lets a party in because "
-        "it WON, which is outcome selection. Five of its columns across the nine "
-        "city-years carry PIT exactly 1.0 — parties the model gave zero seats in "
-        "every draw, present only because they won a seat. It is a mixture of an "
-        "outcome-selected set and a neutral one, and the neutral part is itself "
-        "diluted by ~200 parties correctly at zero on both sides, each a free "
-        "interval hit and a near-uniform PIT. Two errors pushing opposite ways: "
-        "`all` tests nothing.\n")
+        "it WON, which is outcome selection. "
+        + (f"**{len(sat_cols)} of its {n_all_cols} columns across "
+           f"{len(results)} city-year{'s' if len(results) != 1 else ''} carry "
+           f"PIT exactly 0 or 1** — parties the model gave zero seats in every "
+           f"draw, present only because they won a seat"
+           + (f" ({', '.join(sat_cols[:5])}"
+              + (f", +{len(sat_cols) - 5} more" if len(sat_cols) > 5 else "")
+              + ")" if sat_cols else "") + ". "
+           if n_all_cols else "")
+        + "It is a mixture of an outcome-selected set and a neutral one.\n")
+    add(f"**The dilution is in `reference`, not in `all`, and this report said "
+        f"otherwise for months.** A column correctly at zero on both sides is a "
+        f"free interval hit and a near-uniform PIT — but `seat_matrix`'s "
+        f"admission rule excludes it from `all` by construction, and the count "
+        f"there is **{_both_sides_zero(results, 'all')} of {n_all_cols}**. Such "
+        f"columns are admitted to `reference`, which is built with "
+        f"`keep_all=True` over a fixed universe, and there the count is "
+        f"**{ref_zero} of {n_ref_cols}**. `all` is still not a test of anything "
+        f"— its outcome-selected part and its neutral part push opposite ways — "
+        f"but quote the dilution against the population that actually carries "
+        f"it.\n")
 
     add("### Split by actual PR rank — `claimed` columns\n")
     add("**The pooled row above is the average of the rows below, and they have "
@@ -1953,9 +2333,10 @@ def render_calibration(results: list[dict], bins: int = 10) -> str:
         "divide the level out. **1.00 is right; below 1.00 the intervals are "
         "too WIDE; above 1.00 too narrow.** `1/ratio` is roughly the factor "
         "they are out by.\n")
-    add("| band | n | probit-SD (level-free) | exact SD of z | standardised "
-        "bias (mean z) | PIT variance vs 1/12 |")
-    add("|---|---|---|---|---|---|")
+    add("| band | n | probit-SD (level-free) | same @1e-2 clip | drop saturated "
+        "| sat. PITs | exact SD of z | standardised bias (mean z) | PIT "
+        "variance vs 1/12 |")
+    add("|---|---|---|---|---|---|---|---|---|")
     for band in (*BAND_LABELS, "off-ballot"):
         blk = band_block.get(band)
         if not blk:
@@ -1965,10 +2346,13 @@ def render_calibration(results: list[dict], bins: int = 10) -> str:
             v = blk.get(key)
             return "—" if v is None or v != v else fmt.format(v)
 
-        add(f"| {_BAND_LABEL[band]} | {blk['n']} | {num('pit_dispersion')} | "
+        add(f"| {_BAND_LABEL[band]} | {blk['n']} | "
+            f"{_probit_cell(blk)} | {_clip_cell(blk, '0.01')} | "
+            f"{num('probit_drop_saturated')} | {blk.get('pit_saturated', 0)} | "
             f"{num('dispersion')} | {num('z_bias', '{:+.3f}')} | "
             f"{num('pit_var', '{:.4f}')} vs {1 / 12:.4f} |")
     add("")
+    add(_CLIP_NOTE)
     for line in _width_on_reference(pooled):
         add(line)
     add("**`probit-SD` is the one to quote when only a PIT is available.** It "
@@ -2064,6 +2448,295 @@ def _arrival_referee(results: list[dict]) -> list[str]:
                f"to parties arriving from nothing — read it next to the "
                f"mid-ballot calibration below, which is the same leak seen "
                f"through a different instrument.\n")
+    out += _arrival_reconciliation_table(results)
+    return out
+
+
+def _arrival_reconciliation_table(results: list[dict]) -> list[str]:
+    """The arrival BUDGET against the arrival DRAW, and what is left over.
+
+    ⛔ **THIS WAS COMPUTED ON EVERY RUN AND RENDERED NOWHERE.**
+    :func:`_reconcile_arrival` has written `arrival_reconciliation` into
+    `history.json` since it was added, and its own docstring claimed
+    "`_arrival_referee` prints it, and a test asserts on it". **Neither was
+    true**: `_arrival_referee` rendered `arrival_group` only, and no test in
+    `tests/` referenced `arrival_reconciliation`, `generic_slot_present` or
+    `unexplained` at all. A reconciliation nobody reads is not a reconciliation;
+    it is the same class of defect as the arrival referee itself, which sat in
+    the JSON unrendered until §1.133.
+
+    Both halves are now true. The flag is derived — a residual larger than the
+    budget it is a residual of — so no threshold is typed here; see
+    :func:`_reconcile_arrival`.
+    """
+    rows = [r for r in results if r.get("arrival_reconciliation")]
+    if not rows:
+        return []
+    out = ["\n### Does the arrival budget equal the arrival draw?\n",
+           "**The forecast side of the table above, reconciled against what was "
+           "declared.** `declared` is the mass the emitted pool spec seeds by "
+           "name; `generic slot` is the nameless `ENTRANT` column's expectation "
+           "(`entrant_prob x mean(entrant_share)`), counted only where the model "
+           "actually held that column; `unexplained` is what the draw produced "
+           "beyond the two. **A row is flagged when the residual is at least as "
+           "large as the budget it is a residual of** — that threshold is "
+           "derived from the row, not typed.\n",
+           "| city-year | declared | generic slot | slot held? | budget | drawn "
+           "| unexplained | |",
+           "|---|---|---|---|---|---|---|---|"]
+    flagged, blind = [], []
+    for r in rows:
+        a = r["arrival_reconciliation"]
+        mark = " **← FLAG**" if a.get("unexplained_flag") else ""
+        if a.get("unexplained_flag"):
+            flagged.append(f"{r['city']} {r['year']}")
+        if not a.get("generic_slot_present") and a.get("drawn_mass_mean"):
+            blind.append(f"{r['city']} {r['year']}")
+        out.append(
+            f"| {r['city']} {r['year']} | {a['declared_seeded_mass'] * 100:.2f}% "
+            f"| {a['generic_slot_expectation'] * 100:.2f}% | "
+            f"{'yes' if a.get('generic_slot_present') else 'no'} | "
+            f"{a.get('unexplained_budget', float('nan')) * 100:.2f}% | "
+            f"{a['drawn_mass_mean'] * 100:.2f}% | "
+            f"{a['unexplained'] * 100:+.2f}%{mark} |")
+    if flagged:
+        out.append(
+            f"\n⛔ **The residual exceeds the accounted budget at "
+            f"{len(flagged)} of {len(rows)} city-years: "
+            f"{', '.join(flagged)}.** At those rows the arrival mass the model "
+            f"draws is not the arrival mass anything declared, by more than the "
+            f"declaration itself. Go and look; this is a tripwire, not a "
+            f"verdict.\n")
+    else:
+        out.append(f"\nNo row's residual exceeds its accounted budget "
+                   f"({len(rows)} city-years checked).\n")
+    if blind:
+        out.append(
+            f"⚠️ The model drew arrival mass with **no generic slot recorded** "
+            f"at {len(blind)} of {len(rows)} city-years ({', '.join(blind)}). "
+            f"Before the presence test was moved ahead of the relabel this was "
+            f"true at twenty of twenty-four rows and meant the detector was "
+            f"blind, not that the slot was absent. If it is non-empty here, "
+            f"check that against `montecarlo`'s rule for appending `ENTRANT` "
+            f"before reading it as a fact about the model.\n")
+    return out
+
+
+# THE COUNTERS THE MARKDOWN TABLE SHOWS, and how each is read. The full board
+# goes to `history.json`; this is the compact view, chosen for what a reader
+# must not have to go looking for.
+#
+# ⛔ A KEY THIS TABLE ASKS FOR AND THE BOARD DOES NOT HAVE IS REPORTED, NOT
+# BLANKED. A hard-coded column list against a dict built in another module is
+# exactly the arrangement that goes silently stale when a key is renamed — the
+# column would read `-` for ever and nobody would know the difference between
+# "the guard did not fire" and "this table lost the guard". `_guard_table`
+# names any expected key the board is missing, in the report itself.
+_GUARD_COLUMNS = (
+    ("IPF fell back", ("ipf_failures", "ipf_balances"), "rate"),
+    ("cap moved", ("cap_moved",), "pct4"),
+    ("cap undershoots", ("cap_undershoots",), "int"),
+    ("θ-bound violations", ("bounds_violations", "bounds_checked"), "sumrate"),
+    ("solve non-conv (reachable)",
+     ("solve_nonconvergent_reachable", "solve_calls"), "rate"),
+    ("floor injected mean", ("solve_floor_injected_mean",), "pct4"),
+    ("floor injected worst", ("solve_floor_injected_worst",), "pct4"),
+    ("identity hits", ("solve_identity_hits",), "int"),
+    ("excessive draws", ("excessive_draws",), "int"),
+)
+
+
+def _guard_cell(board: dict, keys: tuple, kind: str) -> str:
+    """One cell, where a MISSING key reads `—` and a zero reads `0`."""
+    if any(k not in board for k in keys):
+        return "—"
+    if kind == "int":
+        return f"{int(board[keys[0]]):,}"
+    if kind == "pct4":
+        return f"{float(board[keys[0]]):.4%}"
+    if kind == "rate":
+        top, bottom = float(board[keys[0]]), float(board[keys[1]])
+        return (f"{int(top):,}/{int(bottom):,}"
+                + (f" ({top / bottom:.1%})" if bottom else ""))
+    if kind == "sumrate":                      # a dict of per-party counts
+        top = float(sum((board[keys[0]] or {}).values()))
+        bottom = float(board[keys[1]] or 0)
+        return (f"{int(top):,}/{int(bottom):,}"
+                + (f" ({top / bottom:.1%})" if bottom else ""))
+    return "—"                                 # pragma: no cover
+
+
+def _guard_table(results: list[dict]) -> list[str]:
+    """What the guards did, per city-year. **The evidence for every "not
+    binding" claim anyone makes about this panel.**
+
+    Before this the panel was run with `verbose=False` and recorded no counter,
+    so the honest description of its guard state was *unknown*. A table of
+    zeroes is worth printing for exactly that reason: it is the difference
+    between a measured null and an assumed one, and `NULL-RESULTS.md` exists
+    because this project has confused the two before.
+    """
+    rows = [r for r in results if (r.get("guards") or {}).get("counters")]
+    missing_board = [f"{r.get('city')} {r.get('year')}" for r in results
+                     if not (r.get("guards") or {}).get("counters")]
+    if not rows:
+        return []
+    out = ["\n## Guards — what fired, per city-year\n",
+           "**A zero here is a MEASURED zero.** The panel is scored with "
+           "`verbose=False`, which suppresses `run_model`'s printed warnings, "
+           "and until `ModelRun.guards` existed the solve counters were locals "
+           "reachable only through a `--run-dir` trace — so the guard state of "
+           "every city-year in this report used to be *unknown*, not clean. A "
+           "`—` is an unreachable record and is NOT a zero.\n",
+           "`cap moved` and `IPF fell back` are the two counters whose silence "
+           "was read as success for two days (§1.41). `solve non-conv "
+           "(reachable)` excludes parties whose target sits under the level "
+           "floor, which no θ can reach — read it rather than the raw count, "
+           "which is expected to equal `solve_calls` (§1.98). The full board is "
+           "in `history.json` under each record's `guards.counters`.\n",
+           "| city-year | " + " | ".join(h for h, _k, _f in _GUARD_COLUMNS)
+           + " | roster |",
+           "|---" * (len(_GUARD_COLUMNS) + 2) + "|"]
+    fired: dict[str, int] = {}
+    absent: set[str] = set()
+    for r in rows:
+        board = r["guards"]["counters"]
+        cells = []
+        for heading, keys, kind in _GUARD_COLUMNS:
+            absent.update(k for k in keys if k not in board)
+            cells.append(_guard_cell(board, keys, kind))
+            value = board.get(keys[0])
+            if isinstance(value, dict):
+                value = sum(value.values())
+            if isinstance(value, (int, float)) and value:
+                fired[heading] = fired.get(heading, 0) + 1
+        roster = r.get("roster") or {}
+        roster_cell = (f"{roster.get('state')} ({roster.get('size')}"
+                       + (f", {len(roster['dropped'])} dropped"
+                          if roster.get("dropped") else "") + ")"
+                       if roster.get("recorded") else "—")
+        out.append(f"| {r['city']} {r['year']} | " + " | ".join(cells)
+                   + f" | {roster_cell} |")
+    if fired:
+        out.append("\n**Guards that bound on at least one city-year:** "
+                   + "; ".join(f"{name} ({n} of {len(rows)})"
+                               for name, n in sorted(fired.items()))
+                   + ". Every other counter above is a measured zero across "
+                     "the whole panel.")
+    else:
+        out.append(f"\n**No guard fired on any of the {len(rows)} city-years "
+                   f"scored.** That is now a measurement rather than an "
+                   f"assumption.")
+    if absent:
+        out.append(f"\n⛔ **This table asked for {len(absent)} counter(s) the "
+                   f"run did not produce: {', '.join(sorted(absent))}.** A "
+                   f"renamed or removed counter reads as `—` in every row "
+                   f"above; it is named here so the column cannot go quietly "
+                   f"blind. Reconcile `_GUARD_COLUMNS` against "
+                   f"`montecarlo`'s `41_guards` payload.")
+    if missing_board:
+        out.append(f"\n⚠️ **{len(missing_board)} city-year(s) carry no guard "
+                   f"board at all** ({', '.join(missing_board)}) — their "
+                   f"counters were NOT measured, which is not a report that "
+                   f"they were zero.")
+    out.append("")
+    return out
+
+
+def _in_sample_verdict(results: list[dict]) -> dict:
+    """Which rows are scored in-sample, and which constants put them there.
+
+    ⛔ `history.json` ARBITRATES EVERY DECISION IN THIS PROJECT AND SAID NOTHING
+    ABOUT WHETHER ITS SCORES WERE OUT OF SAMPLE. `backtest.contaminated` and
+    `backtest.in_sample_banner` were written for exactly this, are correct, and
+    were called only by `backtest.py`'s single-target CLI — so the harness that
+    produces the panel never asked the question the harness that produces one
+    city-year prints in a box of exclamation marks.
+
+    ⚠️ **This does not flip anything to clean, and must not be reported as
+    though it did.** `montecarlo.note_constant(scenario, "pools")` fires on
+    every run and `FITTED_ON["pools"]` names 2011, 2016 and 2021, so every
+    target this harness can run is in-sample already. What was missing is the
+    DISCLOSURE: which constants, read by what, on which rows.
+
+    **Nothing here names a key or a year.** The implicated set comes from each
+    row's own `contaminated` list, which came from `backtest.FITTED_ON` at run
+    time. A key added to that table appears here by itself, and a key removed
+    disappears by itself — which matters, because that table is being extended
+    while this is being written.
+
+    An OLDER ARTEFACT, written before `run_city_year` recorded provenance, has
+    no `contaminated` key on any row. That is reported as `unknown` rather than
+    as clean: a missing record and a negative record are different facts, and
+    only one of them is safe to quote.
+    """
+    known = [r for r in results if "contaminated" in r]
+    unknown = [f"{r.get('slug')}:{r.get('year')}" for r in results
+               if "contaminated" not in r]
+    dirty = [r for r in known if r.get("contaminated")]
+    keys: dict[str, list[str]] = {}
+    for r in dirty:
+        for key in r["contaminated"]:
+            keys.setdefault(key, []).append(f"{r.get('slug')}:{r.get('year')}")
+    if unknown and not known:
+        verdict = "UNKNOWN (this artefact predates provenance recording)"
+    elif dirty:
+        verdict = "IN-SAMPLE"
+    else:
+        verdict = "OUT-OF-SAMPLE (MEASURED)"
+    return {
+        "verdict": verdict,
+        "rows_in_sample": [f"{r.get('slug')}:{r.get('year')}" for r in dirty],
+        "rows_out_of_sample": [f"{r.get('slug')}:{r.get('year')}"
+                               for r in known if not r.get("contaminated")],
+        "rows_unknown": unknown,
+        "keys": {k: sorted(v) for k, v in sorted(keys.items())},
+        "source": "backtest.FITTED_ON, via ModelRun.constants_read",
+    }
+
+
+def _in_sample_block(results: list[dict]) -> list[str]:
+    """The in-sample banner, above the tables, once per distinct banner.
+
+    Printed ABOVE the headline for the reason `backtest.in_sample_banner`'s own
+    docstring gives: *"nobody reads a seat MAE and then checks the provenance."*
+
+    The banner text is re-derived here from each row's stored `constants_read`
+    rather than stored per row — one definition (`backtest`'s), and no second
+    copy in the artefact to go stale. Rows whose banner text is identical
+    (typically every city at one target year) collapse to one printing with the
+    city-years it covers listed beside it, because twenty-four copies of the
+    same warning is furniture, and furniture teaches the eye to skip the label.
+    """
+    known = [r for r in results if "constants_read" in r]
+    if not known:
+        return []
+    verdict = _in_sample_verdict(results)
+    grouped: dict[str, list[str]] = {}
+    for r in known:
+        text = B.in_sample_banner(str(r.get("year")), "defaults", set(), None,
+                                  r.get("constants_read") or {},
+                                  r.get("scenario_defaults") or None)
+        grouped.setdefault(text, []).append(f"{r.get('city')} {r.get('year')}")
+    out = ["## Provenance — are these out-of-sample scores?\n",
+           f"**{verdict['verdict']}.** "
+           f"{len(verdict['rows_in_sample'])} of {len(results)} scored rows use "
+           f"priors fitted on their own target election or later"
+           + (f"; {len(verdict['rows_unknown'])} row(s) predate provenance "
+              f"recording and are UNKNOWN, not clean"
+              if verdict["rows_unknown"] else "") + ".\n"]
+    if verdict["keys"]:
+        out.append("| constant | rows it implicates |")
+        out.append("|---|---|")
+        for key, rows in verdict["keys"].items():
+            out.append(f"| `{key}` | {len(rows)} — {', '.join(rows)} |")
+        out.append("")
+    for text, cities in grouped.items():
+        out.append(f"Covering **{', '.join(cities)}**:\n")
+        out.append("```")
+        out.append(text)
+        out.append("```")
+        out.append("")
     return out
 
 
@@ -2088,16 +2761,33 @@ def _headline_split(results: list[dict]) -> list[str]:
     percentages in this docstring went the same way and are gone for the same
     reason. `CLAUDE.md`: never type a model figure into prose.
     """
-    groups = [("Gauteng (JHB, TSH, EKU)", lambda r: r["slug"] in GAUTENG),
+    # ⛔ THE GROUP LABEL NAMES THE CITIES IN THE GROUP, NOT THE CITIES THE GROUP
+    # WOULD CONTAIN ON A FULL PANEL. It read "Gauteng (JHB, TSH, EKU)" always —
+    # so a Johannesburg-only run printed a row labelled with three metros over
+    # three Johannesburg city-years, which is a claim about coverage the run
+    # cannot support.
+    def _label(base, rows):
+        names = sorted({r["city"] for r in rows})
+        return f"{base} ({', '.join(names)})" if names else base
+
+    groups = [("Gauteng", lambda r: r["slug"] in GAUTENG),
               ("everywhere else", lambda r: r["slug"] not in GAUTENG)]
+    kind = _reference_kind(results, "uniform-swing")
+    kind_note = {"point": " — **uniform swing is a POINT forecast here**",
+                 "probabilistic": " — uniform swing is probabilistic here",
+                 "unknown": " — uniform swing's kind could not be determined"}
     out = ["### The margin is not evenly spread\n",
+           f"The margin below is against **uniform swing**{kind_note[kind]}.\n",
+           (_POINT_FORECAST_NOTE + "\n") if kind == "point" else "",
            "| | city-years | seat err (coherent) | uniform-swing | margin | "
-           "CRPS | uniform-swing CRPS | margin |",
+           f"CRPS | uniform-swing CRPS ({kind}) | margin |",
            "|---|---|---|---|---|---|---|---|"]
-    for label, keep in groups:
+    margins = {}
+    for base, keep in groups:
         sel = [r for r in results if keep(r)]
         if not sel:
             continue
+        label = _label(base, sel)
         opp = [r["opponents"].get("uniform-swing", {}) for r in sel]
         if any("error" in o or o.get("seat_abs_err_coherent") is None
                for o in opp):
@@ -2113,6 +2803,8 @@ def _headline_split(results: list[dict]) -> list[str]:
             f"{100 * (1 - mc / uc):.0f}% |" if u and uc else
             f"| {label} | {len(sel)} | {m:.0f} | {u:.0f} | — | {mc:.1f} | "
             f"{uc:.1f} | — |")
+        if u:
+            margins[base] = 1 - m / u
     # The sign count, per cycle, computed from these results.
     def _tally(rows):
         w = l = t = 0
@@ -2133,10 +2825,71 @@ def _headline_split(results: list[dict]) -> list[str]:
     replicates = all(
         _tally([r for r in results if r["year"] == y])[0]
         > _tally([r for r in results if r["year"] == y])[1] for y in cycles)
+    # ⛔ WHICH CITY-YEARS THE MODEL ACTUALLY LOSES AT, NAMED FROM THE ROWS.
+    # This sentence read "Outside Gauteng the model is closer to parity with
+    # uniform swing on seats and loses at Mangaung" on every report ever
+    # generated — a claim about a city that need not be in the run at all, and
+    # was not in the Johannesburg panel four reviewers read.
+    lost = [f"{r['city']} {r['year']}" for r in results
+            if (r["opponents"].get("uniform-swing") or {})
+            .get("seat_abs_err_coherent") is not None
+            and r["seat_abs_err_coherent"]
+            > r["opponents"]["uniform-swing"]["seat_abs_err_coherent"]]
+    cities = sorted({r["slug"] for r in results})
+    if len(margins) > 1 and margins.get("Gauteng") is not None:
+        other = max(v for k, v in margins.items() if k != "Gauteng")
+        concentrated = margins["Gauteng"] > other
+        split_line = (
+            f"**The headline margin is a Gauteng result.** It is "
+            f"{100 * margins['Gauteng']:.0f}% inside Gauteng against "
+            f"{100 * other:.0f}% outside it. Quote the split, not the pool."
+            if concentrated else
+            f"**The headline margin is NOT concentrated in Gauteng on this "
+            f"panel**: {100 * margins['Gauteng']:.0f}% inside against "
+            f"{100 * other:.0f}% outside. Quote the split anyway — the point of "
+            f"the table is that the reader checks rather than assumes.")
+    else:
+        present = ", ".join(sorted({r["city"] for r in results}))
+        split_line = (
+            f"**This panel has only one of the two groups, so it cannot say "
+            f"whether the margin is concentrated in Gauteng.** It covers "
+            f"{present}. The comparison the table exists to make is not "
+            f"available here; do not read the single row as the split.")
+    split_line += ("  The model is beaten by uniform swing on seats at "
+                   f"**{len(lost)} of {len(results)}** city-years"
+                   + (f": {', '.join(lost)}." if lost else "."))
+
+    # ⛔ THE CLUSTER CLAIM IS A CLAIM ABOUT INDEPENDENCE AND IS REFUSED WHEN THE
+    # PANEL CANNOT SUPPORT ONE. The template printed "{n} city-years is {c}
+    # effective clusters, not {n}" — which on three cycles of one city rendered
+    # as "3 city-years is 3 effective clusters, not 3", a sentence that
+    # substitutes the same number twice and asserts full independence for three
+    # elections in a single metro.
+    if len(cities) < 2:
+        cluster_line = (
+            f"⛔ **NO POOLED CLUSTER COUNT IS QUOTED, BECAUSE THIS PANEL IS ONE "
+            f"CITY.** All {len(results)} rows are "
+            f"{sorted({r['city'] for r in results})[0]}: {len(cycles)} cycles of "
+            f"a single metro. Metros inside one cycle share a national swing, "
+            f"and cycles of one metro share its pools, its geography and its "
+            f"party system — so neither dimension supplies independent clusters "
+            f"and there is no honest effective-n to print. Do not compute a "
+            f"p-value from this count.")
+    elif len(cycles) < 2:
+        cluster_line = (
+            f"Metros inside one cycle share a national swing, and this panel is "
+            f"one cycle — so {len(results)} city-years is **1 effective "
+            f"cluster**, not {len(results)}. Never quote a p-value off the "
+            f"pooled count.")
+    else:
+        cluster_line = (
+            f"Metros inside one cycle share a national swing, so {len(results)} "
+            f"city-years across {len(cities)} cities is nearer "
+            f"**{len(cycles)} effective clusters** than {len(results)}. Never "
+            f"quote a p-value off the pooled count.")
+
     out.append(
-        f"\n**The headline margin is a Gauteng result.** Outside Gauteng the "
-        f"model is closer to parity with uniform swing on seats and loses at "
-        f"Mangaung. Quote the split, not the pool.\n\n"
+        f"\n{split_line}\n\n"
         f"**Sign count against uniform swing: {w} wins, {l} losses, {t} ties "
         f"across {len(results)} city-years** — {per}. "
         + ("The sign REPLICATES across cycles, which is what the amended bar's "
@@ -2145,9 +2898,7 @@ def _headline_split(results: list[dict]) -> list[str]:
            if replicates and len(cycles) > 1 else
            "The sign does NOT replicate across cycles; do not quote the pooled "
            "count without saying so. ")
-        + f"Metros inside one cycle share a national swing, so {len(results)} "
-        f"city-years is {len(cycles)} effective clusters, not {len(results)} — "
-        f"never quote a p-value off the pooled count.")
+        + cluster_line)
     return out
 
 
@@ -2215,6 +2966,52 @@ def render_wards(results: list[dict]) -> str:
                  "margin is the model's geography adding less than its citywide "
                  "machinery, which is a statement the seat columns cannot make.")
     return "\n".join(lines)
+
+
+def _reference_kind(results: list[dict], key: str) -> str:
+    """Is this opponent a POINT forecast or a probabilistic one? Measured.
+
+    ⛔ **A CRPS MARGIN OVER A POINT FORECAST IS NOT A CLAIM ABOUT UNCERTAINTY,
+    AND THIS REPORT PRINTED ONE AS IF IT WERE.** CRPS collapses to absolute
+    error when the forecast is a point mass. Measured across the committed
+    twenty-four-row artefact, `last-lge` and `uniform-swing` each carry
+    `crps == seat_abs_err_coherent` on **24 of 24 rows, to exactly zero
+    difference**, and `prior-lge-noise` on **0 of 24** (largest gap 15.25). The
+    two deterministic baselines express no uncertainty at all, so beating them
+    on CRPS says the model's CENTRAL ESTIMATE is better — it says nothing
+    whatever about whether the model's intervals are honest, which is what a
+    reader takes from a proper score.
+
+    **Derived, never declared.** The verdict is recomputed from the rows on
+    every render, so a baseline that becomes genuinely probabilistic loses the
+    label by itself and one that is quietly made deterministic gains it. A typed
+    list of "the deterministic ones" would be a fact about `benchmarks.py` that
+    this file could not check and would go stale the way every other typed
+    figure here has.
+
+    ``unknown`` where any scored row lacks either number — deliberately NOT
+    defaulting to ``point``, because "the evidence is missing" and "the evidence
+    says deterministic" are different facts and only one licenses the caveat.
+    """
+    seen = 0
+    for r in results:
+        o = r.get("opponents", {}).get(key) or {}
+        crps, seat = o.get("crps"), o.get("seat_abs_err_coherent")
+        if crps is None or seat is None or "error" in o:
+            return "unknown"
+        seen += 1
+        if float(crps) != float(seat):
+            return "probabilistic"
+    return "point" if seen else "unknown"
+
+
+_POINT_FORECAST_NOTE = (
+    "**A margin over a POINT forecast is a claim about the central estimate, "
+    "not about uncertainty.** CRPS collapses to absolute error when a forecast "
+    "expresses no spread, so for those references the CRPS column below is the "
+    "same statistic as the seat-error column beside it, not an independent "
+    "check. Only a reference marked *probabilistic* puts the model's intervals "
+    "under any test at all.")
 
 
 def _opp_total(results: list[dict], key: str, field: str) -> float | None:
@@ -2318,11 +3115,20 @@ def _citable(results: list[dict], manifest: dict | None = None) -> str:
            f"seat_abs_err          = {marg:<8} [rows={n}]   # MARGINAL, not "
            f"comparable to the line above",
            f"crps                  = {crps:<8.2f} [rows={n}]",
+           # ⛔ NOT "the CRPS denominator". A TOTAL HAS NO DENOMINATOR — `crps`
+           # above is a SUM over columns, not a mean, so dividing by this number
+           # is not a normalisation of it and never was. The count still matters,
+           # for the opposite reason: the scored column set depends on the
+           # forecaster (§1.141 measured the model over 56 columns against
+           # uniform swing's 19 at one city-year), so this is what makes that
+           # asymmetry visible — not what makes the total comparable.
            f"n_scored              = {scored:<8} [rows={n}]   # summed scoring "
-           f"columns, the CRPS denominator"]
+           f"columns. NOT a denominator: `crps` is a sum, and this count differs "
+           f"between forecasters (§1.141)"]
     if us:
         out.append(f"margin_vs_uniform_swing = {100 * (1 - coh / us):.1f}%"
-                   f"   [rows={n}, coherent]")
+                   f"   [rows={n}, coherent, vs a "
+                   f"{_reference_kind(results, 'uniform-swing')} forecast]")
     else:
         # ⛔ SAY WHY, DO NOT DROP THE LINE. A margin that quietly disappears
         # reads as "not applicable"; a margin that is absent because the
@@ -2336,10 +3142,41 @@ def _citable(results: list[dict], manifest: dict | None = None) -> str:
         out.append(f"margin_vs_uniform_swing = UNAVAILABLE   "
                    f"[uniform-swing carries seat_abs_err_coherent on {have} of "
                    f"{n} rows; a total over a subset is not the panel's total]")
+    # ⛔ THE ONE PROBABILISTIC REFERENCE BELONGS IN THE HEADLINE, AND WAS NOT IN
+    # IT. `prior-lge-noise` is "last time happens again, with a spread from the
+    # previous transition" — the only opponent here that expresses uncertainty
+    # at all (`_reference_kind` measures it: 0 of 24 rows have its CRPS equal to
+    # its seat error, against 24 of 24 for both the others). So it is the ONLY
+    # baseline against which a CRPS margin is a statement about the model's
+    # intervals, and the citable block quoted the two deterministic ones and not
+    # it.
+    pln = _opp_total(results, "prior-lge-noise", "seat_abs_err_coherent")
+    pln_kind = _reference_kind(results, "prior-lge-noise")
+    if pln:
+        out.append(f"margin_vs_prior_lge_noise = {100 * (1 - coh / pln):.1f}%"
+                   f" [rows={n}, coherent, vs a {pln_kind} forecast — the only "
+                   f"reference here that expresses uncertainty]")
+    else:
+        have = sum(1 for r in results
+                   if (r["opponents"].get("prior-lge-noise") or {})
+                   .get("seat_abs_err_coherent") is not None)
+        out.append(f"margin_vs_prior_lge_noise = UNAVAILABLE   "
+                   f"[prior-lge-noise carries seat_abs_err_coherent on {have} "
+                   f"of {n} rows; a total over a subset is not the panel's "
+                   f"total]")
     out += ["```",
             "",
             "`seat_abs_err` and `seat_abs_err_coherent` are DIFFERENT "
-            "STATISTICS. Quoting one against the other is §1.214."]
+            "STATISTICS. Quoting one against the other is §1.214.",
+            "",
+            "**The references are not the same kind of forecast**, and the "
+            "margins above are not the same kind of claim: "
+            + "; ".join(
+                f"`{key}` is **{_reference_kind(results, key)}**"
+                for key in ("last-lge", "uniform-swing", "prior-lge-noise"))
+            + ". A margin over a point forecast says the central estimate is "
+              "better; only a margin over a probabilistic one says anything "
+              "about the intervals. Measured from the rows, not declared."]
     return "\n".join(out)
 
 
@@ -2351,6 +3188,11 @@ def render(results: list[dict], manifest: dict | None = None) -> str:
     add("# Historical performance — votes and seats, predicted against actual\n")
     add(f"{len(results)} city-years. Shares are citywide percentages; the "
         f"model column is the median over draws.\n")
+
+    # ABOVE THE TABLES. See `_in_sample_block`: a caveat printed after the
+    # numbers is a caveat nobody reads.
+    for line in _in_sample_block(results):
+        add(line)
 
     add("## Headline\n")
     add("| city-year | council | list MAE | ward MAE | seat err (median) | "
@@ -2384,6 +3226,13 @@ def render(results: list[dict], manifest: dict | None = None) -> str:
         "seat vector by largest remainder, so it IS a chamber and is the only "
         "one comparable to the baselines, which allocate per draw and sum "
         "exactly. Lower is better throughout.\n")
+
+    # WHAT THE GUARDS DID, before the channel-specific sections. It belongs
+    # above them because it qualifies every number in the report: a city-year
+    # whose IPF fell back in half its draws did not run the mechanism the rest
+    # of this report is describing.
+    for line in _guard_table(results):
+        add(line)
 
     for line in _arrival_referee(results):
         add(line)
@@ -2708,20 +3557,70 @@ def build_manifest(args, excluded, results) -> dict:
         # and `excluded` is derived from the full archive minus what was
         # scored, not from refusals alone.
         "filters": {"city": args.city, "target": args.target},
-        "population": {
-            "scored": [f"{r['slug']}:{r['year']}" for r in results],
-            "n_scored_rows": len(results),
-            "excluded": ([{"city": c, "year": y, "why": w}
-                          for c, y, w in excluded]
-                         + [{"city": c, "year": y, "why": "not selected by "
-                             "--city/--target on this run"}
-                            for c, y in _archive_targets()
-                            if f"{c}:{y}" not in
-                            {f"{r['slug']}:{r['year']}" for r in results}
-                            and not any(c == e[0] and y == e[1]
-                                        for e in excluded)]),
-        },
+        # ⛔ THE IN-SAMPLE VERDICT, IN THE MANIFEST, SO A READER OF
+        # `history.json` CANNOT MISS IT. The banner is rendered above the
+        # tables in `history.md`; a consumer that reads the JSON instead saw
+        # nothing at all. Derived from each row's own `contaminated` list — no
+        # key and no year is named in this file, so `backtest.FITTED_ON` can
+        # grow or shrink without stranding this.
+        "in_sample": _in_sample_verdict(results),
+        "population": _population_block_for(excluded, results,
+                                           _archive_targets()),
     }
+
+
+def _population_block_for(excluded, results, archive) -> dict:
+    """What was scored, and what was not — with the RIGHT reason on each row.
+
+    Extracted from :func:`build_manifest` so it can be tested without git, a
+    city config or a pool spec. The bucketing is the whole of the logic and it
+    had a defect that only a test on synthetic input can demonstrate.
+
+    ⛔ **A CRASHED CITY-YEAR USED TO BE STAMPED WITH A REASON THAT WAS FALSE.**
+    `main` caught the exception, printed one line and dropped the row. It then
+    reached here in neither `results` nor `excluded` — so the catch-all branch
+    below labelled it *"not selected by --city/--target on this run"*, which is
+    a statement about the CLI and was untrue: the row was selected, it was run,
+    and it died. That is worse than silence. A reader who sees a declared reason
+    stops looking, and the panel comes out short with an explanation that
+    explains the wrong thing.
+
+    The fix is upstream — `main` now records failures INTO `excluded` with the
+    exception on them — and the dedupe below is what makes that stick: a row
+    already carrying a real reason never picks up the catch-all one as well.
+    This function is where that is checked.
+    """
+    scored = {f"{r['slug']}:{r['year']}" for r in results}
+    named = {(c, y) for c, y, _ in excluded}
+    return {
+        "scored": [f"{r['slug']}:{r['year']}" for r in results],
+        "n_scored_rows": len(results),
+        "excluded": ([{"city": c, "year": y, "why": w}
+                      for c, y, w in excluded]
+                     + [{"city": c, "year": y, "why": "not selected by "
+                         "--city/--target on this run"}
+                        for c, y in archive
+                        if f"{c}:{y}" not in scored and (c, y) not in named]),
+    }
+
+
+def _exit_code(results, failures) -> int:
+    """0 clean, 1 nothing ran, **2 when any city-year failed**.
+
+    ⛔ A SHRUNKEN PANEL MUST NOT BE MISTAKEN FOR A COMPLETE ONE. A city-year that
+    raised was caught, printed once, and dropped; the totals were then re-summed
+    over the survivors and the process exited 0. The only surviving trace was
+    `rows=N` inside the citable token — which a reader sees AFTER they have
+    already read and believed the total.
+
+    So the artefacts are still written (a shrunken panel has to be RECORDED, and
+    the failure reasons live in the manifest's `excluded` block), and then the
+    run refuses. Exit 2 rather than 1 so "everything failed" and "something
+    failed" stay distinguishable to a caller.
+    """
+    if not results:
+        return 1
+    return 2 if failures else 0
 
 
 def load_history(path) -> tuple[dict, list[dict]]:
@@ -2841,6 +3740,9 @@ def main(argv: list[str] | None = None) -> int:
     if workers == 0:
         workers = max(1, min(len(jobs_list), (os.cpu_count() or 2) - 1))
     results = []
+    # ⛔ A FAILED CITY-YEAR IS A RECORDED EXCLUSION, NOT A GAP. See `_exit_code`
+    # and `_population_block_for` for what it used to become instead.
+    failures: list[tuple[str, str, str]] = []
     if workers > 1 and len(jobs_list) > 1:
         # Order is preserved by index, not by completion, so the report and the
         # artefact read the same however the work finishes.
@@ -2858,6 +3760,8 @@ def main(argv: list[str] | None = None) -> int:
                     print(f"  {slug} {year} done", flush=True)
                 except Exception as exc:
                     print(f"  {slug} {year} failed: {type(exc).__name__}: {exc}")
+                    failures.append((slug, year, f"FAILED while scoring: "
+                                                 f"{type(exc).__name__}: {exc}"))
         results = [r for r in done if r is not None]
     else:
         for slug, year, draws, data_dir, overrides, run_dir in jobs_list:
@@ -2868,9 +3772,17 @@ def main(argv: list[str] | None = None) -> int:
                                              run_dir=Path(run_dir) if run_dir else None))
             except Exception as exc:
                 print(f"    failed: {type(exc).__name__}: {exc}")
+                failures.append((slug, year, f"FAILED while scoring: "
+                                             f"{type(exc).__name__}: {exc}"))
+    # BEFORE the manifest is built, so the real reason reaches the artefact and
+    # the "not selected by --city/--target" branch does not claim these rows.
+    excluded += failures
     if not results:
-        print("nothing runnable")
-        return 1
+        print("nothing runnable"
+              + (f" — {len(failures)} city-year(s) failed:" if failures else ""))
+        for slug, year, why in failures:
+            print(f"    {slug} {year}: {why}")
+        return _exit_code(results, failures)
     args.json.parent.mkdir(parents=True, exist_ok=True)
     args.json.write_text(json.dumps(
         {"manifest": build_manifest(args, excluded, results),
@@ -2879,7 +3791,20 @@ def main(argv: list[str] | None = None) -> int:
     args.md.write_text(text)
     print(text)
     print(f"\nwrote {args.md} and {args.json}")
-    return 0
+    # ⛔ AFTER the artefacts are written and BEFORE the process returns success.
+    # A shrunken panel is recorded, then refused: the totals above were re-summed
+    # over the survivors and there is no honest way to present them as the
+    # panel's. See `_exit_code`.
+    if failures:
+        print(f"\n⛔ {len(failures)} of {len(jobs_list)} selected city-year(s) "
+              f"FAILED and are not in the totals above. Every number in this "
+              f"report is summed over {len(results)} rows, not "
+              f"{len(jobs_list)}:")
+        for slug, year, why in failures:
+            print(f"    {slug} {year}: {why}")
+        print("  They are recorded in the manifest's population.excluded block. "
+              "Exiting non-zero so a short panel cannot pass for a full one.")
+    return _exit_code(results, failures)
 
 
 if __name__ == "__main__":

@@ -44,6 +44,15 @@ banner naming the constants implicated for that target (see :data:`FITTED_ON`),
 and it prints by default, because a caveat that lives only in a docstring is a
 caveat nobody reads next to the number.
 
+**The register was not the model, and for months it was not close.** It held
+eight constants; ``montecarlo.DEFAULTS`` holds thirty-five, and the rest were
+excused in a paragraph of prose that nothing could enumerate. ``level_shrink``
+— fitted by leave-one-city-year-out across a nine-city-year panel this harness
+SCORES, and worth coherent seat error 312 -> 264 — appeared nowhere in this
+file, so no banner could name it and a declared scenario could inherit it into
+a MEASURED all-clear. Provenance now lives in four registers covering every
+``DEFAULTS`` key exactly once, enumerated in both directions by a test.
+
 A scenario file can declare itself clean with a top-level ``"derived_from"``:
 the list of elections its numbers were fitted on. Any entry at or after the
 target and the run refuses. Entries all before it and the banner is downgraded
@@ -163,19 +172,42 @@ TARGETS = _Targets()
 # in-sample accounting
 # ---------------------------------------------------------------------------
 
-# Which elections each ``montecarlo.DEFAULTS`` constant read, taken from the
-# constants' own comments rather than from a fresh judgement -- if a comment
-# says a number came from an election, that election is listed here. The years
-# are the LGEs whose *results* the number saw, so a target at or before a listed
-# year means the prior has read the answer.
+# ⛔ FOUR REGISTERS, AND EVERY ``montecarlo.DEFAULTS`` KEY IS IN EXACTLY ONE.
 #
-# Not listed, because they are not fitted on any election's result: the turnout
-# dials (A2 judgements), the by-election weights (no evidence exists for a past
-# target -- see ``montecarlo.run_model``), ``ward_noise_sd`` and ``level_floor``
-# (both audit findings about the machinery, not about a party), the overhang
-# rule (law), and γ itself -- ``gamma_fold_for`` already refuses a fold that
-# does not finish strictly before the target, which is the one part of this
-# problem the code can enforce instead of announce.
+# This was one register plus a PROSE paragraph of exceptions, and the paragraph
+# is why ``level_shrink`` — a parameter worth coherent seat error 312 -> 264,
+# fitted by leave-one-city-year-out over a panel this harness SCORES — appeared
+# nowhere in this file at all. Prose cannot be enumerated, so nothing could
+# notice that 27 of the 35 ``DEFAULTS`` keys reached neither list. The
+# enumeration is now machine-checked in BOTH directions by
+# ``tests/test_levers_are_live.py::
+# test_every_defaults_key_declares_whether_it_read_an_election``.
+#
+#   FITTED_ON                  read an election result; consumption PROVED by
+#                              ``montecarlo.note_constant``
+#   FITTED_ON_UNINSTRUMENTED   read an election result; consumption NOT
+#                              instrumented — the run resolves the key and
+#                              nothing records the read
+#   PROVENANCE_UNSETTLED       we do not yet know which of the two it is, and
+#                              saying either would be a guess
+#   NOT_FITTED                 reads no election result, with the reason
+#
+# ⚠️ THE SPLIT IS ABOUT EVIDENCE, NOT ABOUT IMPORTANCE. It is the same
+# distinction ``montecarlo.assert_delivered`` draws between a ``consulted``
+# record and a ``resolved`` one: the first says code read the value, the second
+# says the process held it. Merging the two registers would claim a proof that
+# does not exist; dropping the second is what produced this defect.
+#
+# γ is in none of them because it is not a ``DEFAULTS`` key and because
+# ``gamma_fold_for`` already REFUSES a fold that does not finish strictly
+# before the target — the one part of this problem the code can enforce
+# instead of announce.
+
+# Which elections each constant read, taken from the constants' own comments
+# rather than from a fresh judgement -- if a comment says a number came from an
+# election, that election is listed here. The years are the LGEs whose *results*
+# the number saw, so a target at or before a listed year means the prior has
+# read the answer.
 FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
     "pools": (
         ("2011", "2016", "2021"),
@@ -282,8 +314,310 @@ FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
 }
 
 
+# Same shape as :data:`FITTED_ON`, and the difference is the EVIDENCE, not the
+# seriousness. Nothing calls ``note_constant`` at these read sites, so this
+# harness cannot say the run consumed them; it can say the run RESOLVED them,
+# which is what ``scenario[key]`` being present means and no more.
+#
+# ⛔ THE DECLARATION IS THE AUTHOR'S WORD — the same caveat the module docstring
+# puts on ``derived_from``. Nothing here verifies a provenance and none of it is
+# evidence. What IS checked is that the register is complete, that its years are
+# real elections, and that no entry names a constant the model does not have.
+#
+# **THE FIX IS TO MAKE A CONSTANT TARGET-AWARE, NOT TO DECLARE IT
+# CONTAMINATED** (owner, 2026-09-12). A number recomputed with a cutoff at the
+# target stops being a leak; registration is the fallback for what genuinely
+# cannot be recomputed — the census being the one real example. Every entry
+# below that carries a fix number is scheduled for that treatment, and the
+# entry is the bookkeeping in the meantime.
+FITTED_ON_UNINSTRUMENTED: dict[str, tuple[tuple[str, ...], str]] = {
+    # THE NINE-CITY-YEAR PANEL IS JHB16 + THE EIGHT METROS AT 2021 (MODEL-LOG
+    # §1.44's own per-city-year table). It does NOT contain Johannesburg 2011 —
+    # a 2011 target is implicated anyway, because a constant fitted on 2016 and
+    # 2021 results is hindsight at 2011 and `contaminated` tests `y >= target`.
+    "level_shrink": (
+        ("2016", "2021"),
+        "leave-one-city-year-out over nine city-years chose 0.350 in all nine "
+        "folds, and the FORM was screened against the same nine (§1.44 records "
+        "that as an L1 leak). Worth coherent seat error 312 -> 264 on that "
+        "panel, which is the size of the thing being declared"),
+    "level_shrink_scale": (
+        ("2016", "2021"),
+        "the twenty-fold 0.02-0.40 sweep that selected 0.04 ran on the same "
+        "nine city-years (§F20). 'A scale, not a tuned constant' bounds how "
+        "much the leak is WORTH — the correction improves 7 of 9 at every "
+        "value — and does not make it absent"),
+    "dirichlet_scale": (
+        ("2016", "2021"),
+        "⚠️ UNRESOLVED, AND LISTED IN THE CONSERVATIVE DIRECTION. 1.0 is the "
+        "identity on `pools.dirichlet_alpha`'s method-of-moments fit, whose "
+        "inputs are pre-target and already covered by `pools` — on that reading "
+        "it reads no result. But it was RETAINED after a 0.5/1.0/2.0 sweep "
+        "across the nine city-years (§1.55, §1.58), and confirmed-by-the-panel "
+        "is still selection-on-the-panel. Over-warning is the cheaper error"),
+    "contestation_expand": (
+        ("2011", "2016", "2021"),
+        "0.220 is the median slate expansion measured across the eight metros "
+        "and every consecutive LGE pair on disk, n=165 (§A5). ⚠️ RESOLVED BUT "
+        "ALMOST CERTAINLY NOT CONSUMED at any past target: `levels.contestation` "
+        "returns the target's published lists and `levels.projected_contestation` "
+        "— the only consumer — is then never called. That gate is machine-checked "
+        "by tests/test_levers_are_live.py GATES['real_contestation_lists']"),
+    "entrant_prob": (
+        ("2011", "2016", "2021"),
+        "⚠️ UNRESOLVED. 0.25 is TYPED and predates the measurement (§A3), so on "
+        "one reading it read nothing. But the arrival base rate that validates "
+        "it (NFP 2011, AIC 2016, ActionSA 2021; 7 of 9 city-years) and the "
+        "panel sweep that refused to raise it (254/262/264 coherent at "
+        "0.25/0.290/0.353) both read those results. ⚠️ Inert wherever the "
+        "arrivals are seeded by name — GATES['arrivals_are_named'], which is "
+        "OPEN at 2011"),
+    "entrant_share": (
+        ("2016", "2021"),
+        "⚠️ UNRESOLVED, as `entrant_prob`. [0.01, 0.04, 0.12] is typed from the "
+        "plan; what is quoted for it is a check against the AIC's 1.62% in 2016 "
+        "and against ActionSA in 2021 (§A17). Same arrivals gate"),
+    # ⛔ THE EXCUSE THAT USED TO COVER THIS WAS FALSE, AND THAT IS WHY IT MOVED.
+    # The deleted prose said the turnout dials "are not fitted on any election's
+    # result". True of the three TYPED dials (§A41/§F23) and untrue of this one:
+    # `montecarlo.py`'s own comment says 0.63 is measured "over 14
+    # metro-transitions (eight metros, 2011->2016 and 2016->2021)".
+    "turnout_correlation": (
+        ("2016", "2021"),
+        "the mean off-diagonal correlation between pools' log turnout changes, "
+        "measured over 14 metro-transitions — eight metros, 2011->2016 AND "
+        "2016->2021 (montecarlo.py, beside TURNOUT_CORRELATION). It reads "
+        "TURNOUT and not votes, which is why it was mistaken for a typed dial; "
+        "turnout is still an outcome no forecaster holds before polling day, "
+        "and at a 2021 target this constant was fitted on 2021's. FIX #38 "
+        "makes the derived calculation take the target into account — a "
+        "constant recomputed with a cutoff stops being a leak, which is the "
+        "remedy this register is the fallback for. Until then it is declared"),
+}
+
+
+# ⛔ NEITHER A CLEARANCE NOR A VERDICT. A key here has a provenance the record
+# states TWICE, incompatibly, and nobody has yet settled which account is true.
+#
+# It is a register because the completeness guard demands that every
+# ``DEFAULTS`` key be accounted for and silence is the failure being fixed; it
+# is a SEPARATE register because filing an unsettled key as fitted or as
+# excused would replace one false statement with another, which is the whole
+# class of defect here. It blocks the MEASURED all-clear and reports itself; it
+# does not score the key as contaminated, because that would be a verdict.
+#
+# The years are the WORST CASE under the unsettled reading — what the constant
+# would have read if the less favourable of the two accounts is the true one.
+# They are what keeps this from becoming noise: at a target the worst case does
+# not reach, the open question cannot bite and the banner says nothing about
+# it. Flagging the live 2026 forecast over a constant that on either account
+# read nothing after 2021 would spend the banner's credibility where it is
+# needed most.
+PROVENANCE_UNSETTLED: dict[str, tuple[tuple[str, ...], str]] = {
+    "spine_k": (
+        ("2011", "2016", "2021"),
+        "FIX #39, OPEN. This key ships as None and resolves to "
+        "`levels.SPINE_K = 1.0`, and the record gives that constant two "
+        "incompatible provenances. `FITTED_ON[\"spine\"]` says k is \"fitted "
+        "across metros on pre-target transitions only\" and carries NO years, "
+        "so it can never contaminate anything. `levels.py`, beside the "
+        "constant, says it was \"fitted by leave-one-metro-out over 180 "
+        "party-city-years across eight metros and three transitions\" — and "
+        "three transitions on the archive reaches 2016->2021, which is the "
+        "2021 result, in Johannesburg among others. One of those two "
+        "statements is wrong. Neither is repeated here as though it were "
+        "settled; the investigation is the deliverable, and the register waits "
+        "for it"),
+}
+
+
+# Reads no election result, one entry per ``montecarlo.DEFAULTS`` key, with the
+# reason. This is the paragraph of prose that used to live above ``FITTED_ON``,
+# made enumerable — and one claim shorter, because ``turnout_correlation`` was
+# in it and should not have been.
+#
+# ⚠️ An entry here is a CLAIM ABOUT A MECHANISM and it expires when the
+# mechanism changes. Several rest on a gate being shut; each names the gate, and
+# ``tests/test_levers_are_live.py`` is where those gates are actually checked.
+NOT_FITTED: dict[str, str] = {
+    # --- run control: not a claim about the world at all -------------------
+    "draws": "how many samples to take",
+    "seed": "reproducibility, not a model parameter",
+    # --- the by-election family -------------------------------------------
+    # ⚠️ NOT "it reads no election": a by-election IS an election. It reads no
+    # LGE result, and its evidence window POST-DATES every past target, so the
+    # whole block is unreachable in a backtest. If the channel ever does deliver
+    # at a past target, the window makes that a LEAK and these entries move.
+    "w_bye": "the by-election blend weight. The evidence window is 2022-06 to "
+             "2026-02, so `bye` is empty at every past target and the weight "
+             "multiplies nothing — GATES['bye_deltas_absent']. Typed, 🔴 "
+             "argued-not-tested, and scoreable only by the 2026 result",
+    "bye_weight_mode": "which weighting the by-election block uses, chosen "
+                       "inside a block no past target enters — the same gate as "
+                       "`w_bye`. A method choice, not an estimate",
+    "w_bye_local_ward": "the ward-local by-election weight; ships 0.0 and its "
+                        "input file exists at no past target "
+                        "(GATES['bye_contest_detail_absent'])",
+    "w_bye_local_pr": "the same, for the list ballot",
+    "bye_local_cap": "a cap in logit units on one contest's shift, measured on "
+                     "byelection_contest_detail.csv — by-election evidence, "
+                     "never an LGE result, and behind the same two gates",
+    "bye_tau_months": "the recency half-life on by-election evidence; same "
+                      "evidence base and same gates",
+    # --- the poll levers ---------------------------------------------------
+    # Every one of these reads a POLL. The cutoff is enforced in code, not
+    # announced here: `polling.usable_for` admits a poll only when its
+    # machine-readable fieldwork_end falls strictly before the target's polling
+    # day, and refuses any poll it cannot date. Same reason `metro_poll` and
+    # `poll_level` sit in FITTED_ON with no years.
+    "poll_paths": "WHICH poll paths run. A switch over mechanisms, not an "
+                  "estimate. ⚠️ It ships \"off\" (§1.225), a default the owner "
+                  "chose on a channel measured at -6 coherent seats across the "
+                  "panel — so the SWITCH is panel-informed even though the "
+                  "thing it switches reads no result",
+    "poll_credence": "how much to believe a metro poll; declared, 1.0 is the "
+                     "identity, and no poll it weighs post-dates its target",
+    "poll_house_k": "the cap on one house's weight; declared (§1.67)",
+    "poll_deff_subsample": "the design effect charged to a metro subsample; "
+                           "declared",
+    "poll_screen_sd": "the surcharge for an undisclosed likely-voter screen; "
+                      "declared",
+    "poll_drift_per_root_day": "assumed opinion drift between fieldwork and "
+                               "polling day; declared",
+    "poll_min_n": "the admission floor on a poll's n; declared",
+    "poll_half_life_days": "the recency half-life across poll waves; declared, "
+                           "and asserted equal to polling.POLL_HALF_LIFE_DAYS "
+                           "at import",
+    # --- the typed turnout dials (A2) -------------------------------------
+    # These three ARE what the deleted prose meant by "the turnout dials".
+    # Each weighs or jitters a turnout pattern; neither pattern is estimated
+    # here, and both are resolved per target from `<target>/turnout.csv`.
+    "turnout_pattern_blend": "the weight between two turnout patterns. Typed "
+                             "(§A41/§F23); the patterns themselves come from "
+                             "the target's own turnout.csv",
+    "turnout_blend_jitter": "how far the blend is jittered per draw. Typed; "
+                            "measured citywide effect ~0.003",
+    "turnout_noise_sd": "per-VD lognormal turnout noise. Typed",
+    # --- machinery floors and audit findings -------------------------------
+    "ward_noise_sd": "an audit finding about the machinery, not about a party "
+                     "(2026-08-05): ward winners were deterministic given a "
+                     "citywide draw, which overstated P(overhang)",
+    "level_floor": "the same class — the SHARE_FLOOR clamp made sub-0.2% "
+                   "levels unattainable and inflated the micro-party tail",
+    "dirichlet_floor": "the same clamp on deviation inputs, mirrored as a "
+                       "scenario key so the sweep that chose it is reproducible",
+    "level_sd_default": "the fallback level spread for a party with no measured "
+                        "sd(log theta). It binds on no party at either target "
+                        "(GATES['level_sd_fallback_never_binds']) and is a "
+                        "fallback, not a fit",
+    # --- statute and switches ---------------------------------------------
+    "overhang_rule": "the excessive-seats provision. Municipal Structures Act "
+                     "Schedule 1 item 16 as amended by Act 3 of 2021 — the "
+                     "project did not choose it and cannot",
+    "arrival_group_draw": "WHICH arrival mechanism runs. A switch, and its "
+                          "value is the off state. ⚠️ The decision to keep it "
+                          "off was taken against the panel (§1.63, re-run "
+                          "§1.136), so the same selection-by-confirmation "
+                          "question `dirichlet_scale` carries applies to the "
+                          "SWITCH; the mechanism behind it reads no result",
+    # --- and the two DEFAULTS keys that are already in FITTED_ON ------------
+    # `pools` and `entrant_geography` are not here; they are instrumented.
+}
+
+
+# The two registers that carry YEARS, merged. One reader, because two callers
+# each reaching into both is how the halves drift apart.
+def register() -> dict[str, tuple[tuple[str, ...], str]]:
+    """``FITTED_ON`` and ``FITTED_ON_UNINSTRUMENTED`` as one mapping."""
+    return {**FITTED_ON, **FITTED_ON_UNINSTRUMENTED}
+
+
+# A key in two registers means two different verdicts on one constant, and
+# whichever is read second wins silently. Checked at import, because a register
+# that contradicts itself should not survive to be printed.
+_OVERLAP = sorted(
+    (set(FITTED_ON) & set(FITTED_ON_UNINSTRUMENTED))
+    | (set(FITTED_ON) & set(NOT_FITTED))
+    | (set(FITTED_ON_UNINSTRUMENTED) & set(NOT_FITTED))
+    | (set(PROVENANCE_UNSETTLED) & (set(FITTED_ON) | set(FITTED_ON_UNINSTRUMENTED)
+                                    | set(NOT_FITTED))))
+assert not _OVERLAP, (
+    f"these constants are in more than one provenance register: {_OVERLAP}. "
+    f"A constant cannot be both fitted on an election and not fitted on one, "
+    f"and a reader would see whichever the code happened to check first.")
+
+
+def _delivered_names(scenario) -> set[str]:
+    """Names the run's value-bearing log records, or an empty set.
+
+    ``montecarlo.delivery_log`` is the one reader for that log, so this does
+    not grow a second. **It is only safe to call on a mapping that HAS the
+    log**: handed a bare dict without ``_delivered`` it returns the whole dict
+    as if every key in it were a recorded read, which would turn every scenario
+    key into a false delivery proof.
+    """
+    if not isinstance(scenario, Mapping) or "_delivered" not in scenario:
+        return set()
+    return set(M.delivery_log(scenario) or {})
+
+
+def _grade(key: str, scenario, delivered: set[str]) -> str:
+    """How strong the evidence is that this run read ``key``.
+
+    ``consulted`` — the value-bearing log records it, at a value.
+    ``resolved``  — the scenario carries it and nothing recorded a read.
+    ``""``        — no evidence either way.
+
+    The distinction is ``montecarlo.assert_delivered``'s, and it is the whole
+    reason there are two year-bearing registers: a ``resolved`` record says
+    this process HELD the value, not that any code read it.
+    """
+    if key in delivered:
+        return "consulted"
+    if isinstance(scenario, Mapping) and key in scenario:
+        return "resolved"
+    return ""
+
+
+def _held(scenario, keys) -> dict[str, str]:
+    """``{key: grade}`` for every one of ``keys`` this run held."""
+    if scenario is None:
+        return {}
+    delivered = _delivered_names(scenario)
+    return {k: g for k in keys if (g := _grade(k, scenario, delivered))}
+
+
+def _shown(scenario, key: str) -> str:
+    """The value the scenario holds, short enough to print beside a name."""
+    if not isinstance(scenario, Mapping) or key not in scenario:
+        return ""
+    text = repr(scenario[key])
+    return text if len(text) <= 40 else text[:37] + "..."
+
+
+def unsettled(scenario, declared_clean=(),
+              target_year: str | None = None) -> list[str]:
+    """:data:`PROVENANCE_UNSETTLED` keys this run held that could bite here.
+
+    Reported, never scored. A key whose provenance nobody has settled cannot be
+    called contaminated — that would be a verdict on an open question — and
+    must not be quietly counted clean either, which is what the absence of this
+    function used to do for every unregistered constant in the model.
+
+    ``target_year`` filters on the entry's WORST-CASE years, so a target the
+    unfavourable reading does not reach hears nothing. Omitted, every held key
+    is returned.
+    """
+    return sorted(k for k in _held(scenario, PROVENANCE_UNSETTLED)
+                  if k not in declared_clean
+                  and (target_year is None
+                       or any(y >= str(target_year)
+                              for y in PROVENANCE_UNSETTLED[k][0])))
+
+
 def contaminated(target_year: str, declared_clean: set[str],
-                 read: Mapping[str, list[str]] | None = None) -> list[str]:
+                 read: Mapping[str, list[str]] | None = None,
+                 scenario: Mapping | None = None) -> list[str]:
     """``FITTED_ON`` keys that read this target or later, minus declared ones.
 
     ``declared_clean`` is the set of keys a scenario file actually sets while
@@ -298,11 +632,27 @@ def contaminated(target_year: str, declared_clean: set[str],
     here default to empty and are read by nothing until somebody fills them
     in, so before this every target from 2011 to 2016 was reported in-sample
     on the strength of two constants that had no value at all.
+
+    ``scenario`` IS WHAT REACHES THE UNINSTRUMENTED HALF, and without it this
+    function can only see constants somebody remembered to instrument. That
+    asymmetry is the defect it was given: a scenario file declaring the eight
+    instrumented keys clean bought a MEASURED all-clear at 2021 while
+    ``level_shrink`` — fitted by leave-one-city-year-out over a panel
+    containing that very row — came through untouched from ``DEFAULTS`` and
+    was named nowhere in this file. Passed a scenario, a
+    :data:`FITTED_ON_UNINSTRUMENTED` key is implicated when the run's delivery
+    log records it (``consulted``) or, failing that, when the scenario simply
+    carries it (``resolved``). **Omitted, those keys are not implicated at
+    all** — so a caller holding only a read log gets exactly the old answer,
+    and is told by :func:`in_sample_banner` that half the register went
+    unchecked rather than being handed an all-clear.
     """
     keys = set(FITTED_ON) if read is None else set(read) & set(FITTED_ON)
+    keys |= set(_held(scenario, FITTED_ON_UNINSTRUMENTED))
+    years = register()
     return sorted(k for k in keys
                   if k not in declared_clean
-                  and any(y >= str(target_year) for y in FITTED_ON[k][0]))
+                  and any(y >= str(target_year) for y in years[k][0]))
 
 
 def check_derived_from(declared, target_year: str, label: str) -> list[str]:
@@ -328,8 +678,8 @@ def check_derived_from(declared, target_year: str, label: str) -> list[str]:
 
 
 def in_sample_banner(target_year: str, label: str, scenario_keys: set[str],
-                     declared, read: Mapping[str, list[str]] | None = None
-                     ) -> str:
+                     declared, read: Mapping[str, list[str]] | None = None,
+                     scenario: Mapping | None = None) -> str:
     """The warning (or the all-clear) for one scenario at one target.
 
     Printed on every run, before the numbers, because the alternative is a
@@ -339,9 +689,23 @@ def in_sample_banner(target_year: str, label: str, scenario_keys: set[str],
     Passing it is what makes this a measurement; without it the banner falls
     back to naming every constant that COULD be implicated, which is the
     conservative reading and the one to use if the run has not happened yet.
+
+    ``scenario`` is the run's scenario (``ModelRun.scenario``), and it is what
+    lets the banner see the constants nothing instruments.
+
+    ⛔ **THE WORD "MEASURED" IS A CLAIM, AND IT IS NOW ONLY MADE WHEN IT IS
+    TRUE.** Without a scenario this function could see only the instrumented
+    half of the register and still printed ``OUT-OF-SAMPLE (MEASURED):
+    Nothing this run consumed was fitted on <target> or later.`` — a false
+    all-clear carrying the word MEASURED, over a register that did not contain
+    the largest fitted constant in the model. There are now three all-clears
+    and they say different things: MEASURED (both halves checked), PARTLY
+    MEASURED (the uninstrumented half was not reachable), and NOT VERIFIED (a
+    constant's provenance is an open question). Only the first is an all-clear.
     """
     clean = set(scenario_keys) if declared is not None else set()
-    dirty = contaminated(target_year, clean, read)
+    dirty = contaminated(target_year, clean, read, scenario)
+    open_questions = unsettled(scenario, clean, target_year)
     if not dirty:
         if read is None:
             return (f"  out-of-sample (DECLARED, not verified): {label} says "
@@ -350,12 +714,36 @@ def in_sample_banner(target_year: str, label: str, scenario_keys: set[str],
                     f"{target_year}, and it sets every constant this harness "
                     f"knows to have read {target_year} or later.")
         touched = sorted(set(read) & set(FITTED_ON))
+        held = _held(scenario, FITTED_ON_UNINSTRUMENTED)
         provenance = (f" It read {', '.join(touched)}, none of which reaches "
                       f"{target_year}." if touched else
                       " It read none of the constants this harness tracks.")
+        if held:
+            provenance += (f" It also held {', '.join(sorted(held))}, none of "
+                           f"which reaches {target_year}.")
         declaration = (f"{label} declares derived_from "
                        f"{', '.join(str(y) for y in declared)}. "
                        if declared is not None else "")
+        if scenario is None:
+            # The half this harness could not look at is named, with its size,
+            # because "I did not check" and "I checked and it was clean" are
+            # the two readings a bare all-clear cannot be told apart from.
+            return (f"  OUT-OF-SAMPLE (PARTLY MEASURED — "
+                    f"{len(FITTED_ON_UNINSTRUMENTED)} constants NOT CHECKED): "
+                    f"{declaration}Nothing this run is RECORDED as consuming "
+                    f"was fitted on {target_year} or later.{provenance} No "
+                    f"scenario was supplied, so the uninstrumented register "
+                    f"({', '.join(sorted(FITTED_ON_UNINSTRUMENTED))}) could "
+                    f"not be checked at all.")
+        if open_questions:
+            return (f"  OUT-OF-SAMPLE (NOT VERIFIED — provenance unsettled): "
+                    f"{declaration}Nothing this run consumed was fitted on "
+                    f"{target_year} or later.{provenance} But this run held "
+                    f"{', '.join(open_questions)}, whose provenance the record "
+                    f"states two incompatible ways; until that is settled this "
+                    f"is not an all-clear. "
+                    + " ".join(f"{k}: {PROVENANCE_UNSETTLED[k][1]}"
+                               for k in open_questions))
         return (f"  OUT-OF-SAMPLE (MEASURED): {declaration}Nothing this run "
                 f"consumed was fitted on {target_year} or later.{provenance}")
 
@@ -377,8 +765,10 @@ def in_sample_banner(target_year: str, label: str, scenario_keys: set[str],
     else:
         lines.append("  No \"derived_from\" declared, so nothing is claimed to "
                      "be clean. Implicated constants:")
+    years_for = register()
+    held = _held(scenario, FITTED_ON_UNINSTRUMENTED)
     for key in dirty:
-        years, why = FITTED_ON[key]
+        years, why = years_for[key]
         saw = ", ".join(y for y in years if y >= str(target_year))
         lines.append(f"    {key:<24s} read {saw} — {why}")
         users = list((read or {}).get(key) or [])
@@ -386,17 +776,32 @@ def in_sample_banner(target_year: str, label: str, scenario_keys: set[str],
             shown = ", ".join(users[:8])
             more = f" (+{len(users) - 8} more)" if len(users) > 8 else ""
             lines.append(f"      consumed by: {shown}{more}")
+        elif key in held:
+            # NOT "consumed by". Nothing instruments this read site, so what
+            # can honestly be said is what the run HELD and at what value —
+            # `resolved`, in the sense montecarlo.assert_delivered gives it.
+            lines.append(f"      {held[key]} at {_shown(scenario, key)} "
+                         f"(no read-site instrumentation)")
     # The clean reads are printed too. A banner that lists only what is wrong
     # invites the reading that everything else was measured from nothing, and
     # the interesting cases here are the ones that touch the target's own file
     # legitimately — contestation takes the ward ballot and no vote on it.
-    clean_reads = sorted((set(read or {}) & set(FITTED_ON)) - set(dirty))
+    clean_reads = sorted(((set(read or {}) & set(FITTED_ON)) | set(held))
+                         - set(dirty))
     if clean_reads:
         lines.append("  Also read, and clean at this target:")
         for key in clean_reads:
-            years, why = FITTED_ON[key]
+            years, why = years_for[key]
             when = ", ".join(years) if years else "no result"
             lines.append(f"    {key:<24s} read {when} — {why}")
+    if scenario is None:
+        lines.append(f"  NOT CHECKED, because no scenario was supplied: "
+                     f"{', '.join(sorted(FITTED_ON_UNINSTRUMENTED))}. Nothing "
+                     f"instruments their read sites, so only the scenario can "
+                     f"say whether this run held them.")
+    for key in open_questions:
+        lines.append(f"    {key:<24s} PROVENANCE UNSETTLED — "
+                     f"{PROVENANCE_UNSETTLED[key][1]}")
     lines.append("  Declare a clean scenario with a top-level \"derived_from\": "
                  "[\"2011\", ...] naming every")
     lines.append("  election its numbers were fitted on; a run refuses if any "
@@ -843,12 +1248,16 @@ def main(argv: list[str] | None = None) -> int:
         # what matters: nobody reads a seat MAE and then checks the provenance.
         run = M.run_model(target, scenario, args.data_dir, processed)
         read = run.constants_read
+        # BOTH, and the second is the one that was missing. `constants_read`
+        # covers only what `note_constant` instruments; the run's own scenario
+        # is the only evidence this harness has about every other constant it
+        # resolved — `level_shrink` among them.
         in_sample = bool(contaminated(
             target.year, set(overrides) if declared is not None else set(),
-            read))
+            read, run.scenario))
         print()
         print(in_sample_banner(target.year, label, set(overrides), declared,
-                               read))
+                               read, run.scenario))
         seats = S.score_seats(run.seat_draws, actual_seats, entrant, seed=args.seed)
         wards = S.score_wards(
             relabel_entrant(run.ward_probabilities(), entrant), actual_winners)

@@ -66,3 +66,9 @@ data/processed/.pools.lock
 # data"; it holds a duplicate of the file the ward-language rake depends on.
 new data from statsSA/
 *.swp
+
+# Site design assets (Pixelmator sources, full-size renders). Untracked and
+# deliberately so — they are tens of megabytes of binaries that belong with the
+# site, not with the model. Listed here because `git add -A` swept them into a
+# commit on 2026-09-13 and they had to be removed from it.
+whysoserious.city/
