@@ -2,42 +2,164 @@
 
 24 city-years. Shares are citywide percentages; the model column is the median over draws.
 
+## Provenance — are these out-of-sample scores?
+
+**IN-SAMPLE.** 24 of 24 scored rows use priors fitted on their own target election or later.
+
+| constant | rows it implicates |
+|---|---|
+| `contestation_expand` | 24 — buffalocity:2011, buffalocity:2016, buffalocity:2021, capetown:2011, capetown:2016, capetown:2021, ekurhuleni:2011, ekurhuleni:2016, ekurhuleni:2021, ethekwini:2011, ethekwini:2016, ethekwini:2021, joburg:2011, joburg:2016, joburg:2021, mangaung:2011, mangaung:2016, mangaung:2021, nelsonmandelabay:2011, nelsonmandelabay:2016, nelsonmandelabay:2021, tshwane:2011, tshwane:2016, tshwane:2021 |
+| `dirichlet_scale` | 24 — buffalocity:2011, buffalocity:2016, buffalocity:2021, capetown:2011, capetown:2016, capetown:2021, ekurhuleni:2011, ekurhuleni:2016, ekurhuleni:2021, ethekwini:2011, ethekwini:2016, ethekwini:2021, joburg:2011, joburg:2016, joburg:2021, mangaung:2011, mangaung:2016, mangaung:2021, nelsonmandelabay:2011, nelsonmandelabay:2016, nelsonmandelabay:2021, tshwane:2011, tshwane:2016, tshwane:2021 |
+| `entrant_prob` | 24 — buffalocity:2011, buffalocity:2016, buffalocity:2021, capetown:2011, capetown:2016, capetown:2021, ekurhuleni:2011, ekurhuleni:2016, ekurhuleni:2021, ethekwini:2011, ethekwini:2016, ethekwini:2021, joburg:2011, joburg:2016, joburg:2021, mangaung:2011, mangaung:2016, mangaung:2021, nelsonmandelabay:2011, nelsonmandelabay:2016, nelsonmandelabay:2021, tshwane:2011, tshwane:2016, tshwane:2021 |
+| `entrant_share` | 24 — buffalocity:2011, buffalocity:2016, buffalocity:2021, capetown:2011, capetown:2016, capetown:2021, ekurhuleni:2011, ekurhuleni:2016, ekurhuleni:2021, ethekwini:2011, ethekwini:2016, ethekwini:2021, joburg:2011, joburg:2016, joburg:2021, mangaung:2011, mangaung:2016, mangaung:2021, nelsonmandelabay:2011, nelsonmandelabay:2016, nelsonmandelabay:2021, tshwane:2011, tshwane:2016, tshwane:2021 |
+| `level_shrink` | 24 — buffalocity:2011, buffalocity:2016, buffalocity:2021, capetown:2011, capetown:2016, capetown:2021, ekurhuleni:2011, ekurhuleni:2016, ekurhuleni:2021, ethekwini:2011, ethekwini:2016, ethekwini:2021, joburg:2011, joburg:2016, joburg:2021, mangaung:2011, mangaung:2016, mangaung:2021, nelsonmandelabay:2011, nelsonmandelabay:2016, nelsonmandelabay:2021, tshwane:2011, tshwane:2016, tshwane:2021 |
+| `level_shrink_scale` | 24 — buffalocity:2011, buffalocity:2016, buffalocity:2021, capetown:2011, capetown:2016, capetown:2021, ekurhuleni:2011, ekurhuleni:2016, ekurhuleni:2021, ethekwini:2011, ethekwini:2016, ethekwini:2021, joburg:2011, joburg:2016, joburg:2021, mangaung:2011, mangaung:2016, mangaung:2021, nelsonmandelabay:2011, nelsonmandelabay:2016, nelsonmandelabay:2021, tshwane:2011, tshwane:2016, tshwane:2021 |
+| `pools` | 24 — buffalocity:2011, buffalocity:2016, buffalocity:2021, capetown:2011, capetown:2016, capetown:2021, ekurhuleni:2011, ekurhuleni:2016, ekurhuleni:2021, ethekwini:2011, ethekwini:2016, ethekwini:2021, joburg:2011, joburg:2016, joburg:2021, mangaung:2011, mangaung:2016, mangaung:2021, nelsonmandelabay:2011, nelsonmandelabay:2016, nelsonmandelabay:2021, tshwane:2011, tshwane:2016, tshwane:2021 |
+| `splinter_home` | 16 — buffalocity:2016, buffalocity:2021, capetown:2016, capetown:2021, ekurhuleni:2016, ekurhuleni:2021, ethekwini:2016, ethekwini:2021, joburg:2016, joburg:2021, mangaung:2016, mangaung:2021, nelsonmandelabay:2016, nelsonmandelabay:2021, tshwane:2016, tshwane:2021 |
+| `turnout_correlation` | 24 — buffalocity:2011, buffalocity:2016, buffalocity:2021, capetown:2011, capetown:2016, capetown:2021, ekurhuleni:2011, ekurhuleni:2016, ekurhuleni:2021, ethekwini:2011, ethekwini:2016, ethekwini:2021, joburg:2011, joburg:2016, joburg:2021, mangaung:2011, mangaung:2016, mangaung:2021, nelsonmandelabay:2011, nelsonmandelabay:2016, nelsonmandelabay:2021, tshwane:2011, tshwane:2016, tshwane:2021 |
+
+Covering **Johannesburg 2011, Tshwane 2011, Ekurhuleni 2011, eThekwini 2011, Cape Town 2011, Mangaung 2011, Nelson Mandela Bay 2011, Buffalo City 2011**:
+
+```
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !! IN-SAMPLE — THESE ARE NOT OUT-OF-SAMPLE SCORES
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  Scenario 'defaults' scores target 2011 using priors fitted on 2011 or later.
+  The scores below measure fit, not forecasting skill; read them as an upper bound.
+  No "derived_from" declared. These constants were READ BY THIS RUN, with what read them:
+    contestation_expand      read 2011, 2016, 2021 — 0.220 is the median slate expansion measured across the eight metros and every consecutive LGE pair on disk, n=165 (§A5). ⚠️ RESOLVED BUT ALMOST CERTAINLY NOT CONSUMED at any past target: `levels.contestation` returns the target's published lists and `levels.projected_contestation` — the only consumer — is then never called. That gate is machine-checked by tests/test_levers_are_live.py GATES['real_contestation_lists']
+      resolved at 0.22 (no read-site instrumentation)
+    dirichlet_scale          read 2016, 2021 — ⚠️ UNRESOLVED, AND LISTED IN THE CONSERVATIVE DIRECTION. 1.0 is the identity on `pools.dirichlet_alpha`'s method-of-moments fit, whose inputs are pre-target and already covered by `pools` — on that reading it reads no result. But it was RETAINED after a 0.5/1.0/2.0 sweep across the nine city-years (§1.55, §1.58), and confirmed-by-the-panel is still selection-on-the-panel. Over-warning is the cheaper error
+      resolved at 1.0 (no read-site instrumentation)
+    entrant_prob             read 2011, 2016, 2021 — ⚠️ UNRESOLVED. 0.25 is TYPED and predates the measurement (§A3), so on one reading it read nothing. But the arrival base rate that validates it (NFP 2011, AIC 2016, ActionSA 2021; 7 of 9 city-years) and the panel sweep that refused to raise it (254/262/264 coherent at 0.25/0.290/0.353) both read those results. ⚠️ Inert wherever the arrivals are seeded by name — GATES['arrivals_are_named'], which is OPEN at 2011
+      resolved at 0.25 (no read-site instrumentation)
+    entrant_share            read 2016, 2021 — ⚠️ UNRESOLVED, as `entrant_prob`. [0.01, 0.04, 0.12] is typed from the plan; what is quoted for it is a check against the AIC's 1.62% in 2016 and against ActionSA in 2021 (§A17). Same arrivals gate
+      resolved at [0.01, 0.04, 0.12] (no read-site instrumentation)
+    level_shrink             read 2016, 2021 — leave-one-city-year-out over nine city-years chose 0.350 in all nine folds, and the FORM was screened against the same nine (§1.44 records that as an L1 leak). Worth coherent seat error 312 -> 264 on that panel, which is the size of the thing being declared
+      resolved at 0.35 (no read-site instrumentation)
+    level_shrink_scale       read 2016, 2021 — the twenty-fold 0.02-0.40 sweep that selected 0.04 ran on the same nine city-years (§F20). 'A scale, not a tuned constant' bounds how much the leak is WORTH — the correction improves 7 of 9 at every value — and does not make it absent
+      resolved at 0.04 (no read-site instrumentation)
+    pools                    read 2011, 2016, 2021 — pool COMPOSITION comes from Census 2022, which post-dates any target before 2026. The ratio ranges no longer do — they derive from transitions strictly before the target. A census is a covariate, not an outcome: it says who lives in a ward, not how they voted.
+      consumed by: fitted on 2006
+    turnout_correlation      read 2016, 2021 — the mean off-diagonal correlation between pools' log turnout changes, measured over 14 metro-transitions — eight metros, 2011->2016 AND 2016->2021 (montecarlo.py, beside TURNOUT_CORRELATION). It reads TURNOUT and not votes, which is why it was mistaken for a typed dial; turnout is still an outcome no forecaster holds before polling day, and at a 2021 target this constant was fitted on 2021's. FIX #38 makes the derived calculation take the target into account — a constant recomputed with a cutoff stops being a leak, which is the remedy this register is the fallback for. Until then it is declared
+      resolved at 0.63 (no read-site instrumentation)
+  Also read, and clean at this target:
+    contestation             read no result — ward-ballot PRESENCE at the target, taken from the target's own file. Nomination lists are public before polling day; no vote is read
+    spine                    read no result — the national-and-local level blend (task #22). Both records are filtered to elections strictly before the target; k=1.0 is fitted across metros on pre-target transitions only
+    spine_k                  PROVENANCE UNSETTLED — FIX #39, OPEN. This key ships as None and resolves to `levels.SPINE_K = 1.0`, and the record gives that constant two incompatible provenances. `FITTED_ON["spine"]` says k is "fitted across metros on pre-target transitions only" and carries NO years, so it can never contaminate anything. `levels.py`, beside the constant, says it was "fitted by leave-one-metro-out over 180 party-city-years across eight metros and three transitions" — and three transitions on the archive reaches 2016->2021, which is the 2021 result, in Johannesburg among others. One of those two statements is wrong. Neither is repeated here as though it were settled; the investigation is the deliverable, and the register waits for it
+  Declare a clean scenario with a top-level "derived_from": ["2011", ...] naming every
+  election its numbers were fitted on; a run refuses if any entry reaches the target.
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+```
+
+Covering **Johannesburg 2016, Tshwane 2016, Ekurhuleni 2016, eThekwini 2016, Cape Town 2016, Mangaung 2016, Nelson Mandela Bay 2016, Buffalo City 2016**:
+
+```
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !! IN-SAMPLE — THESE ARE NOT OUT-OF-SAMPLE SCORES
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  Scenario 'defaults' scores target 2016 using priors fitted on 2016 or later.
+  The scores below measure fit, not forecasting skill; read them as an upper bound.
+  No "derived_from" declared. These constants were READ BY THIS RUN, with what read them:
+    contestation_expand      read 2016, 2021 — 0.220 is the median slate expansion measured across the eight metros and every consecutive LGE pair on disk, n=165 (§A5). ⚠️ RESOLVED BUT ALMOST CERTAINLY NOT CONSUMED at any past target: `levels.contestation` returns the target's published lists and `levels.projected_contestation` — the only consumer — is then never called. That gate is machine-checked by tests/test_levers_are_live.py GATES['real_contestation_lists']
+      resolved at 0.22 (no read-site instrumentation)
+    dirichlet_scale          read 2016, 2021 — ⚠️ UNRESOLVED, AND LISTED IN THE CONSERVATIVE DIRECTION. 1.0 is the identity on `pools.dirichlet_alpha`'s method-of-moments fit, whose inputs are pre-target and already covered by `pools` — on that reading it reads no result. But it was RETAINED after a 0.5/1.0/2.0 sweep across the nine city-years (§1.55, §1.58), and confirmed-by-the-panel is still selection-on-the-panel. Over-warning is the cheaper error
+      resolved at 1.0 (no read-site instrumentation)
+    entrant_prob             read 2016, 2021 — ⚠️ UNRESOLVED. 0.25 is TYPED and predates the measurement (§A3), so on one reading it read nothing. But the arrival base rate that validates it (NFP 2011, AIC 2016, ActionSA 2021; 7 of 9 city-years) and the panel sweep that refused to raise it (254/262/264 coherent at 0.25/0.290/0.353) both read those results. ⚠️ Inert wherever the arrivals are seeded by name — GATES['arrivals_are_named'], which is OPEN at 2011
+      resolved at 0.25 (no read-site instrumentation)
+    entrant_share            read 2016, 2021 — ⚠️ UNRESOLVED, as `entrant_prob`. [0.01, 0.04, 0.12] is typed from the plan; what is quoted for it is a check against the AIC's 1.62% in 2016 and against ActionSA in 2021 (§A17). Same arrivals gate
+      resolved at [0.01, 0.04, 0.12] (no read-site instrumentation)
+    level_shrink             read 2016, 2021 — leave-one-city-year-out over nine city-years chose 0.350 in all nine folds, and the FORM was screened against the same nine (§1.44 records that as an L1 leak). Worth coherent seat error 312 -> 264 on that panel, which is the size of the thing being declared
+      resolved at 0.35 (no read-site instrumentation)
+    level_shrink_scale       read 2016, 2021 — the twenty-fold 0.02-0.40 sweep that selected 0.04 ran on the same nine city-years (§F20). 'A scale, not a tuned constant' bounds how much the leak is WORTH — the correction improves 7 of 9 at every value — and does not make it absent
+      resolved at 0.04 (no read-site instrumentation)
+    pools                    read 2016, 2021 — pool COMPOSITION comes from Census 2022, which post-dates any target before 2026. The ratio ranges no longer do — they derive from transitions strictly before the target. A census is a covariate, not an outcome: it says who lives in a ward, not how they voted.
+      consumed by: fitted on 2011
+    splinter_home            read 2019, 2024 — home-city splinter fractions (GOOD in Cape Town 2019, MK in eThekwini 2024). A split takes far more where its leader's own following is, and the effect is only measurable across elections either side of most targets
+      consumed by: NFP measured at 2014
+    turnout_correlation      read 2016, 2021 — the mean off-diagonal correlation between pools' log turnout changes, measured over 14 metro-transitions — eight metros, 2011->2016 AND 2016->2021 (montecarlo.py, beside TURNOUT_CORRELATION). It reads TURNOUT and not votes, which is why it was mistaken for a typed dial; turnout is still an outcome no forecaster holds before polling day, and at a 2021 target this constant was fitted on 2021's. FIX #38 makes the derived calculation take the target into account — a constant recomputed with a cutoff stops being a leak, which is the remedy this register is the fallback for. Until then it is declared
+      resolved at 0.63 (no read-site instrumentation)
+  Also read, and clean at this target:
+    contestation             read no result — ward-ballot PRESENCE at the target, taken from the target's own file. Nomination lists are public before polling day; no vote is read
+    spine                    read no result — the national-and-local level blend (task #22). Both records are filtered to elections strictly before the target; k=1.0 is fitted across metros on pre-target transitions only
+    spine_k                  PROVENANCE UNSETTLED — FIX #39, OPEN. This key ships as None and resolves to `levels.SPINE_K = 1.0`, and the record gives that constant two incompatible provenances. `FITTED_ON["spine"]` says k is "fitted across metros on pre-target transitions only" and carries NO years, so it can never contaminate anything. `levels.py`, beside the constant, says it was "fitted by leave-one-metro-out over 180 party-city-years across eight metros and three transitions" — and three transitions on the archive reaches 2016->2021, which is the 2021 result, in Johannesburg among others. One of those two statements is wrong. Neither is repeated here as though it were settled; the investigation is the deliverable, and the register waits for it
+  Declare a clean scenario with a top-level "derived_from": ["2011", ...] naming every
+  election its numbers were fitted on; a run refuses if any entry reaches the target.
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+```
+
+Covering **Johannesburg 2021, Tshwane 2021, Ekurhuleni 2021, eThekwini 2021, Cape Town 2021, Mangaung 2021, Nelson Mandela Bay 2021, Buffalo City 2021**:
+
+```
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !! IN-SAMPLE — THESE ARE NOT OUT-OF-SAMPLE SCORES
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  Scenario 'defaults' scores target 2021 using priors fitted on 2021 or later.
+  The scores below measure fit, not forecasting skill; read them as an upper bound.
+  No "derived_from" declared. These constants were READ BY THIS RUN, with what read them:
+    contestation_expand      read 2021 — 0.220 is the median slate expansion measured across the eight metros and every consecutive LGE pair on disk, n=165 (§A5). ⚠️ RESOLVED BUT ALMOST CERTAINLY NOT CONSUMED at any past target: `levels.contestation` returns the target's published lists and `levels.projected_contestation` — the only consumer — is then never called. That gate is machine-checked by tests/test_levers_are_live.py GATES['real_contestation_lists']
+      resolved at 0.22 (no read-site instrumentation)
+    dirichlet_scale          read 2021 — ⚠️ UNRESOLVED, AND LISTED IN THE CONSERVATIVE DIRECTION. 1.0 is the identity on `pools.dirichlet_alpha`'s method-of-moments fit, whose inputs are pre-target and already covered by `pools` — on that reading it reads no result. But it was RETAINED after a 0.5/1.0/2.0 sweep across the nine city-years (§1.55, §1.58), and confirmed-by-the-panel is still selection-on-the-panel. Over-warning is the cheaper error
+      resolved at 1.0 (no read-site instrumentation)
+    entrant_prob             read 2021 — ⚠️ UNRESOLVED. 0.25 is TYPED and predates the measurement (§A3), so on one reading it read nothing. But the arrival base rate that validates it (NFP 2011, AIC 2016, ActionSA 2021; 7 of 9 city-years) and the panel sweep that refused to raise it (254/262/264 coherent at 0.25/0.290/0.353) both read those results. ⚠️ Inert wherever the arrivals are seeded by name — GATES['arrivals_are_named'], which is OPEN at 2011
+      resolved at 0.25 (no read-site instrumentation)
+    entrant_share            read 2021 — ⚠️ UNRESOLVED, as `entrant_prob`. [0.01, 0.04, 0.12] is typed from the plan; what is quoted for it is a check against the AIC's 1.62% in 2016 and against ActionSA in 2021 (§A17). Same arrivals gate
+      resolved at [0.01, 0.04, 0.12] (no read-site instrumentation)
+    level_shrink             read 2021 — leave-one-city-year-out over nine city-years chose 0.350 in all nine folds, and the FORM was screened against the same nine (§1.44 records that as an L1 leak). Worth coherent seat error 312 -> 264 on that panel, which is the size of the thing being declared
+      resolved at 0.35 (no read-site instrumentation)
+    level_shrink_scale       read 2021 — the twenty-fold 0.02-0.40 sweep that selected 0.04 ran on the same nine city-years (§F20). 'A scale, not a tuned constant' bounds how much the leak is WORTH — the correction improves 7 of 9 at every value — and does not make it absent
+      resolved at 0.04 (no read-site instrumentation)
+    pools                    read 2021 — pool COMPOSITION comes from Census 2022, which post-dates any target before 2026. The ratio ranges no longer do — they derive from transitions strictly before the target. A census is a covariate, not an outcome: it says who lives in a ward, not how they voted.
+      consumed by: fitted on 2016
+    splinter_home            read 2024 — home-city splinter fractions (GOOD in Cape Town 2019, MK in eThekwini 2024). A split takes far more where its leader's own following is, and the effect is only measurable across elections either side of most targets
+      consumed by: GOOD, NFP measured at 2014, 2019
+    turnout_correlation      read 2021 — the mean off-diagonal correlation between pools' log turnout changes, measured over 14 metro-transitions — eight metros, 2011->2016 AND 2016->2021 (montecarlo.py, beside TURNOUT_CORRELATION). It reads TURNOUT and not votes, which is why it was mistaken for a typed dial; turnout is still an outcome no forecaster holds before polling day, and at a 2021 target this constant was fitted on 2021's. FIX #38 makes the derived calculation take the target into account — a constant recomputed with a cutoff stops being a leak, which is the remedy this register is the fallback for. Until then it is declared
+      resolved at 0.63 (no read-site instrumentation)
+  Also read, and clean at this target:
+    contestation             read no result — ward-ballot PRESENCE at the target, taken from the target's own file. Nomination lists are public before polling day; no vote is read
+    spine                    read no result — the national-and-local level blend (task #22). Both records are filtered to elections strictly before the target; k=1.0 is fitted across metros on pre-target transitions only
+    spine_k                  PROVENANCE UNSETTLED — FIX #39, OPEN. This key ships as None and resolves to `levels.SPINE_K = 1.0`, and the record gives that constant two incompatible provenances. `FITTED_ON["spine"]` says k is "fitted across metros on pre-target transitions only" and carries NO years, so it can never contaminate anything. `levels.py`, beside the constant, says it was "fitted by leave-one-metro-out over 180 party-city-years across eight metros and three transitions" — and three transitions on the archive reaches 2016->2021, which is the 2021 result, in Johannesburg among others. One of those two statements is wrong. Neither is repeated here as though it were settled; the investigation is the deliverable, and the register waits for it
+  Declare a clean scenario with a top-level "derived_from": ["2011", ...] naming every
+  election its numbers were fitted on; a run refuses if any entry reaches the target.
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+```
+
 ## Headline
 
-| city-year | council | list MAE | ward MAE | seat err (median) | medians sum to | seat err (coherent) | CRPS | last-lge | uniform-swing | prior-lge-noise |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Johannesburg 2011 | 260 | 5.06pp | 4.24pp | 56 | 244 | 60 | 41.4 | 52 | 60 | 50 |
-| Johannesburg 2016 | 270 | 0.83pp | 1.21pp | 21 | 259 | 28 | 20.6 | 92 | 26 | 91 |
-| Johannesburg 2021 | 270 | 6.30pp | 5.12pp | 94 | 254 | 86 | 68.3 | 134 | 126 | 125 |
-| Tshwane 2011 | 210 | 6.51pp | 4.86pp | 46 | 196 | 60 | 32.5 | 40 | 56 | 39 |
-| Tshwane 2016 | 214 | 1.18pp | 1.02pp | 17 | 209 | 16 | 13.5 | 70 | 10 | 70 |
-| Tshwane 2021 | 214 | 1.96pp | 1.92pp | 36 | 202 | 34 | 27.5 | 80 | 60 | 77 |
-| Ekurhuleni 2011 | 202 | 3.55pp | 2.48pp | 32 | 188 | 36 | 24.8 | 32 | 44 | 35 |
-| Ekurhuleni 2016 | 224 | 1.66pp | 2.11pp | 19 | 213 | 24 | 17.8 | 80 | 22 | 76 |
-| Ekurhuleni 2021 | 224 | 2.51pp | 2.12pp | 38 | 208 | 26 | 29.3 | 72 | 48 | 66 |
-| eThekwini 2011 | 205 | 2.68pp | 1.89pp | 28 | 196 | 31 | 23.3 | 49 | 35 | 55 |
-| eThekwini 2016 | 219 | 1.57pp | 2.68pp | 29 | 212 | 34 | 21.0 | 64 | 50 | 59 |
-| eThekwini 2021 | 222 | 2.27pp | 2.51pp | 39 | 205 | 34 | 30.4 | 82 | 36 | 76 |
-| Cape Town 2011 | 221 | 4.27pp | 3.69pp | 38 | 207 | 42 | 26.6 | 94 | 58 | 93 |
-| Cape Town 2016 | 231 | 0.49pp | 0.43pp | 11 | 224 | 8 | 12.2 | 46 | 30 | 49 |
-| Cape Town 2021 | 231 | 2.18pp | 2.36pp | 43 | 220 | 40 | 34.1 | 68 | 38 | 63 |
-| Mangaung 2011 | 97 | 8.00pp | 8.13pp | 29 | 92 | 34 | 18.7 | 28 | 30 | 28 |
-| Mangaung 2016 | 100 | 0.55pp | 1.14pp | 6 | 94 | 10 | 7.1 | 24 | 12 | 22 |
-| Mangaung 2021 | 101 | 1.79pp | 0.87pp | 7 | 94 | 8 | 9.5 | 24 | 8 | 20 |
-| Nelson Mandela Bay 2011 | 120 | 7.20pp | 6.76pp | 33 | 111 | 34 | 21.0 | 48 | 42 | 48 |
-| Nelson Mandela Bay 2016 | 120 | 0.48pp | 0.80pp | 6 | 116 | 8 | 7.6 | 38 | 16 | 38 |
-| Nelson Mandela Bay 2021 | 120 | 2.60pp | 2.78pp | 22 | 112 | 20 | 17.0 | 28 | 22 | 27 |
-| Buffalo City 2011 | 100 | 7.16pp | 6.90pp | 32 | 90 | 32 | 19.9 | 28 | 30 | 27 |
-| Buffalo City 2016 | 100 | 1.17pp | 2.39pp | 11 | 95 | 10 | 9.5 | 28 | 14 | 25 |
-| Buffalo City 2021 | 100 | 2.99pp | 1.91pp | 9 | 93 | 8 | 7.8 | 14 | 12 | 15 |
-| **TOTAL** [rows=24] | 4375 | — | — | **702** | — | **723** | **541.4** | 1315 | 885 | 1274 |
+| city-year | council | list MAE | ward MAE | seat err (median) | medians sum to | seat err (coherent) | CRPS | last-lge | uniform-swing | prior-lge-noise | uniform-swing+roster |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Johannesburg 2011 | 260 | 5.06pp | 4.24pp | 56 | 244 | 60 | 41.4 | 52 | 60 | 56 | 56 |
+| Johannesburg 2016 | 270 | 0.83pp | 1.21pp | 21 | 259 | 28 | 20.6 | 92 | 26 | 96 | 26 |
+| Johannesburg 2021 | 270 | 6.30pp | 5.12pp | 94 | 254 | 86 | 68.3 | 134 | 126 | 130 | 128 |
+| Tshwane 2011 | 210 | 6.51pp | 4.86pp | 46 | 196 | 60 | 32.5 | 40 | 56 | 46 | 56 |
+| Tshwane 2016 | 214 | 1.18pp | 1.02pp | 17 | 209 | 16 | 13.5 | 70 | 10 | 76 | 16 |
+| Tshwane 2021 | 214 | 1.96pp | 1.92pp | 36 | 202 | 34 | 27.5 | 80 | 60 | 80 | 60 |
+| Ekurhuleni 2011 | 202 | 3.55pp | 2.48pp | 32 | 188 | 36 | 24.8 | 32 | 44 | 42 | 40 |
+| Ekurhuleni 2016 | 224 | 1.66pp | 2.11pp | 19 | 213 | 24 | 17.8 | 80 | 22 | 80 | 16 |
+| Ekurhuleni 2021 | 224 | 2.51pp | 2.12pp | 38 | 208 | 26 | 29.3 | 72 | 48 | 64 | 46 |
+| eThekwini 2011 | 205 | 2.68pp | 1.89pp | 28 | 196 | 31 | 23.3 | 49 | 35 | 61 | 33 |
+| eThekwini 2016 | 219 | 1.57pp | 2.68pp | 29 | 212 | 34 | 21.0 | 64 | 50 | 64 | 36 |
+| eThekwini 2021 | 222 | 2.27pp | 2.51pp | 39 | 205 | 34 | 30.4 | 82 | 36 | 80 | 34 |
+| Cape Town 2011 | 221 | 4.27pp | 3.69pp | 38 | 207 | 42 | 26.6 | 94 | 58 | 100 | 40 |
+| Cape Town 2016 | 231 | 0.49pp | 0.43pp | 11 | 224 | 8 | 12.2 | 46 | 30 | 58 | 34 |
+| Cape Town 2021 | 231 | 2.18pp | 2.36pp | 43 | 220 | 40 | 34.1 | 68 | 38 | 62 | 34 |
+| Mangaung 2011 | 97 | 8.00pp | 8.13pp | 29 | 92 | 34 | 18.7 | 28 | 30 | 30 | 32 |
+| Mangaung 2016 | 100 | 0.55pp | 1.14pp | 6 | 94 | 10 | 7.1 | 24 | 12 | 26 | 10 |
+| Mangaung 2021 | 101 | 1.79pp | 0.87pp | 7 | 94 | 8 | 9.5 | 24 | 8 | 18 | 10 |
+| Nelson Mandela Bay 2011 | 120 | 7.20pp | 6.76pp | 33 | 111 | 34 | 21.0 | 48 | 42 | 52 | 38 |
+| Nelson Mandela Bay 2016 | 120 | 0.48pp | 0.80pp | 6 | 116 | 8 | 7.6 | 38 | 16 | 40 | 16 |
+| Nelson Mandela Bay 2021 | 120 | 2.60pp | 2.78pp | 22 | 112 | 20 | 17.0 | 28 | 22 | 30 | 20 |
+| Buffalo City 2011 | 100 | 7.16pp | 6.90pp | 32 | 90 | 32 | 19.9 | 28 | 30 | 28 | 30 |
+| Buffalo City 2016 | 100 | 1.17pp | 2.39pp | 11 | 95 | 10 | 9.5 | 28 | 14 | 26 | 14 |
+| Buffalo City 2021 | 100 | 2.99pp | 1.91pp | 9 | 93 | 8 | 7.8 | 14 | 12 | 16 | 12 |
+| **TOTAL** [rows=24] | 4375 | — | — | **702** | — | **723** | **541.4** | 1315 | 885 | 1361 | 837 |
 
 ### Citable totals
 
 **Quoting one number in a sentence? Paste this token, do not retype the figure:**
 
 ```
-seat_abs_err_coherent=723/@1d9a0e1d+dirty/1000d/pools:843229db/rows=24
+seat_abs_err_coherent=723/@d08d7057/1000d/pools:843229db/rows=24
 ```
 
 The full set, for anything more than one number:
@@ -46,24 +168,71 @@ The full set, for anything more than one number:
 seat_abs_err_coherent = 723      [rows=24]
 seat_abs_err          = 702      [rows=24]   # MARGINAL, not comparable to the line above
 crps                  = 541.39   [rows=24]
-n_scored              = 580      [rows=24]   # summed scoring columns, the CRPS denominator
-margin_vs_uniform_swing = 18.3%   [rows=24, coherent]
+n_scored              = 805      [rows=24]   # summed scoring columns. NOT a denominator: `crps` is a sum, and this count differs between forecasters (§1.141)
+margin_vs_uniform_swing = 18.3%   [rows=24, coherent, vs a point forecast]
+margin_vs_prior_lge_noise = 46.9% [rows=24, coherent, vs a probabilistic forecast — the only reference here that expresses uncertainty]
 ```
 
 `seat_abs_err` and `seat_abs_err_coherent` are DIFFERENT STATISTICS. Quoting one against the other is §1.214.
 
+**The references are not the same kind of forecast**, and the margins above are not the same kind of claim: `last-lge` is **point**; `uniform-swing` is **point**; `prior-lge-noise` is **probabilistic**; `uniform-swing+roster` is **point**. A margin over a point forecast says the central estimate is better; only a margin over a probabilistic one says anything about the intervals. Measured from the rows, not declared.
+
 ### The margin is not evenly spread
 
-| | city-years | seat err (coherent) | uniform-swing | margin | CRPS | uniform-swing CRPS | margin |
+The margin below is against **uniform swing** — **uniform swing is a POINT forecast here**.
+
+**A margin over a POINT forecast is a claim about the central estimate, not about uncertainty.** CRPS collapses to absolute error when a forecast expresses no spread, so for those references the CRPS column below is the same statistic as the seat-error column beside it, not an independent check. Only a reference marked *probabilistic* puts the model's intervals under any test at all.
+
+| | city-years | seat err (coherent) | uniform-swing | margin | CRPS | uniform-swing CRPS (point) | margin |
 |---|---|---|---|---|---|---|---|
-| Gauteng (JHB, TSH, EKU) | 9 | 370 | 452 | 18% | 275.9 | 452.0 | 39% |
-| everywhere else | 15 | 353 | 433 | 18% | 265.5 | 433.0 | 39% |
+| Gauteng (Ekurhuleni, Johannesburg, Tshwane) | 9 | 370 | 452 | 18% | 275.9 | 452.0 | 39% |
+| everywhere else (Buffalo City, Cape Town, Mangaung, Nelson Mandela Bay, eThekwini) | 15 | 353 | 433 | 18% | 265.5 | 433.0 | 39% |
 
-**The headline margin is a Gauteng result.** Outside Gauteng the model is closer to parity with uniform swing on seats and loses at Mangaung. Quote the split, not the pool.
+**The headline margin is NOT concentrated in Gauteng on this panel**: 18% inside against 18% outside. Quote the split anyway — the point of the table is that the reader checks rather than assumes.  The model is beaten by uniform swing on seats at **7 of 24** city-years: Johannesburg 2016, Tshwane 2011, Tshwane 2016, Ekurhuleni 2016, Cape Town 2021, Mangaung 2011, Buffalo City 2011.
 
-**Sign count against uniform swing: 15 wins, 7 losses, 2 ties across 24 city-years** — 2011: 4W 3L 1T; 2016: 5W 3L 0T; 2021: 6W 1L 1T. The sign REPLICATES across cycles, which is what the amended bar's Key 1 asks of any candidate and is the strongest claim this panel supports. Metros inside one cycle share a national swing, so 24 city-years is 3 effective clusters, not 24 — never quote a p-value off the pooled count.
+**Sign count against uniform swing: 15 wins, 7 losses, 2 ties across 24 city-years** — 2011: 4W 3L 1T; 2016: 5W 3L 0T; 2021: 6W 1L 1T. The sign REPLICATES across cycles, which is what the amended bar's Key 1 asks of any candidate and is the strongest claim this panel supports. Metros inside one cycle share a national swing, so 24 city-years across 8 cities is nearer **3 effective clusters** than 24. Never quote a p-value off the pooled count.
 
-**Read the two seat-error columns together.** *seat err (median)* uses the per-party marginal median, which is what the per-party tables below show and which **does not sum to a council** — the *medians sum to* column says by how much. *seat err (coherent)* apportions the mean seat vector by largest remainder, so it IS a chamber and is the only one comparable to the baselines, which allocate per draw and sum exactly. Lower is better throughout.
+**Read the two seat-error columns together.** *seat err (median)* uses the per-party marginal median, which is what the per-party tables below show and which **does not sum to a council** — the *medians sum to* column says by how much. *seat err (coherent)* apportions the mean seat vector by largest remainder, so it IS a chamber. Lower is better throughout.
+
+**The reference columns are the COHERENT statistic too, and until fix #34 they were not.** They carried the marginal median under the coherent key. That is exact for a deterministic reference — whose draws are identical repeats, so its median IS its allocation — and wrong for a stochastic one: `prior-lge-noise`'s medians fell short of the chamber, and a short vector flatters a forecaster wherever it over-forecasts, so the model's margin over the one reference here that expresses uncertainty was understated. Every forecaster in this table is now scored by `compare_history.coherent_seats`, the single definition of a coherent chamber.
+
+**Every forecaster in every row is scored on one held column set** (24 distinct sets across 24 rows — they differ by city-year, which is expected; what matters is that the model and every reference share one within a row). CRPS and energy are invariant to the columns that holding adds, so those two are comparable with runs that predate it; **the variogram is not** — it is a mean over pairs and moves with the column count, so quote a variogram difference within a run and never across two.
+
+
+## Guards — what fired, per city-year
+
+**A zero here is a MEASURED zero.** The panel is scored with `verbose=False`, which suppresses `run_model`'s printed warnings, and until `ModelRun.guards` existed the solve counters were locals reachable only through a `--run-dir` trace — so the guard state of every city-year in this report used to be *unknown*, not clean. A `—` is an unreachable record and is NOT a zero.
+
+`cap moved` and `IPF fell back` are the two counters whose silence was read as success for two days (§1.41). `solve non-conv (reachable)` excludes parties whose target sits under the level floor, which no θ can reach — read it rather than the raw count, which is expected to equal `solve_calls` (§1.98). The full board is in `history.json` under each record's `guards.counters`.
+
+| city-year | IPF fell back | cap moved | cap undershoots | θ-bound violations | solve non-conv (reachable) | floor injected mean | floor injected worst | identity hits | excessive draws | roster |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Johannesburg 2011 | 0/1,000 (0.0%) | 0.0000% | 0 | 629/1,000 (62.9%) | 1,275/2,000 (63.7%) | 0.0003% | 0.0013% | 0 | 0 | published (22, 9 dropped) |
+| Johannesburg 2016 | 0/1,000 (0.0%) | 0.0000% | 0 | 572/1,000 (57.2%) | 136/2,000 (6.8%) | 0.0001% | 0.0007% | 0 | 0 | published (28, 9 dropped) |
+| Johannesburg 2021 | 0/1,000 (0.0%) | 0.0000% | 0 | 1,300/1,000 (130.0%) | 2,000/2,000 (100.0%) | 0.0014% | 0.0032% | 0 | 68 | published (57, 13 dropped) |
+| Tshwane 2011 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 1,337/2,000 (66.8%) | 0.0003% | 0.0008% | 0 | 3 | published (19, 7 dropped) |
+| Tshwane 2016 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 673/2,000 (33.7%) | 0.0002% | 0.0007% | 0 | 0 | published (22, 8 dropped) |
+| Tshwane 2021 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 1,996/2,000 (99.8%) | 0.0009% | 0.0023% | 0 | 108 | published (51, 15 dropped) |
+| Ekurhuleni 2011 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 1,235/2,000 (61.8%) | 0.0003% | 0.0006% | 0 | 1 | published (24, 10 dropped) |
+| Ekurhuleni 2016 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 526/2,000 (26.3%) | 0.0002% | 0.0006% | 0 | 0 | published (26, 9 dropped) |
+| Ekurhuleni 2021 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 1,696/2,000 (84.8%) | 0.0004% | 0.0013% | 0 | 21 | published (38, 19 dropped) |
+| eThekwini 2011 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 1,060/2,000 (53.0%) | 0.0002% | 0.0006% | 0 | 1 | published (19, 8 dropped) |
+| eThekwini 2016 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 320/2,000 (16.0%) | 0.0001% | 0.0077% | 0 | 0 | published (28, 5 dropped) |
+| eThekwini 2021 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 1,899/2,000 (95.0%) | 0.0007% | 0.0026% | 0 | 1 | published (54, 10 dropped) |
+| Cape Town 2011 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 1,974/2,000 (98.7%) | 0.0006% | 0.0011% | 0 | 0 | published (34, 5 dropped) |
+| Cape Town 2016 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 1,892/2,000 (94.6%) | 0.0005% | 0.0011% | 0 | 0 | published (37, 10 dropped) |
+| Cape Town 2021 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 2,000/2,000 (100.0%) | 0.0016% | 0.0031% | 0 | 3 | published (54, 15 dropped) |
+| Mangaung 2011 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 1,194/2,000 (59.7%) | 0.0002% | 0.0007% | 0 | 10 | published (11, 6 dropped) |
+| Mangaung 2016 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 247/2,000 (12.3%) | 0.0001% | 0.0084% | 0 | 0 | published (16, 7 dropped) |
+| Mangaung 2021 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 751/2,000 (37.5%) | 0.0002% | 0.0006% | 0 | 84 | published (24, 16 dropped) |
+| Nelson Mandela Bay 2011 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 983/2,000 (49.1%) | 0.0002% | 0.0006% | 0 | 4 | published (14, 8 dropped) |
+| Nelson Mandela Bay 2016 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 19/2,000 (0.9%) | 0.0000% | 0.0003% | 0 | 0 | published (20, 7 dropped) |
+| Nelson Mandela Bay 2021 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 782/2,000 (39.1%) | 0.0002% | 0.0012% | 0 | 20 | published (29, 13 dropped) |
+| Buffalo City 2011 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 1,023/2,000 (51.1%) | 0.0002% | 0.0006% | 0 | 2 | published (9, 9 dropped) |
+| Buffalo City 2016 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 84/2,000 (4.2%) | 0.0001% | 0.0004% | 0 | 3 | published (13, 9 dropped) |
+| Buffalo City 2021 | 0/1,000 (0.0%) | 0.0000% | 0 | 0/1,000 (0.0%) | 687/2,000 (34.4%) | 0.0002% | 0.0006% | 0 | 4 | published (28, 12 dropped) |
+
+**Guards that bound on at least one city-year:** excessive draws (15 of 24); floor injected mean (24 of 24); floor injected worst (24 of 24); solve non-conv (reachable) (24 of 24); θ-bound violations (3 of 24). Every other counter above is a measured zero across the whole panel.
 
 
 ## The arrival channel, scored without the label
@@ -99,6 +268,42 @@ The headline CRPS above is scored after the model's generic `ENTRANT` column is 
 | **panel mean** | | | | | | **0.665** | **0.588** |
 
 Mass PIT is above 0.5 at **18 of 24** city-years. A panel mean well above 0.5 on both columns is the model systematically under-forecasting how much of the ballot goes to parties arriving from nothing — read it next to the mid-ballot calibration below, which is the same leak seen through a different instrument.
+
+
+### Does the arrival budget equal the arrival draw?
+
+**The forecast side of the table above, reconciled against what was declared.** `declared` is the mass the emitted pool spec seeds by name; `generic slot` is the nameless `ENTRANT` column's expectation (`entrant_prob x mean(entrant_share)`), counted only where the model actually held that column; `unexplained` is what the draw produced beyond the two. **A row is flagged when the residual is at least as large as the budget it is a residual of** — that threshold is derived from the row, not typed.
+
+| city-year | declared | generic slot | slot held? | budget | drawn | unexplained | |
+|---|---|---|---|---|---|---|---|
+| Johannesburg 2011 | 0.00% | 1.42% | yes | 1.42% | 1.51% | +0.09% |
+| Johannesburg 2016 | 1.40% | 0.00% | no | 1.40% | 1.84% | +0.45% |
+| Johannesburg 2021 | 8.48% | 0.00% | no | 8.48% | 8.74% | +0.26% |
+| Tshwane 2011 | 0.00% | 1.42% | yes | 1.42% | 1.46% | +0.04% |
+| Tshwane 2016 | 1.40% | 0.00% | no | 1.40% | 1.88% | +0.49% |
+| Tshwane 2021 | 7.34% | 0.00% | no | 7.34% | 7.99% | +0.65% |
+| Ekurhuleni 2011 | 0.00% | 1.42% | yes | 1.42% | 1.41% | -0.01% |
+| Ekurhuleni 2016 | 1.40% | 0.00% | no | 1.40% | 1.89% | +0.49% |
+| Ekurhuleni 2021 | 5.18% | 0.00% | no | 5.18% | 5.98% | +0.80% |
+| eThekwini 2011 | 0.00% | 1.42% | yes | 1.42% | 1.41% | -0.01% |
+| eThekwini 2016 | 1.40% | 0.00% | no | 1.40% | 1.98% | +0.58% |
+| eThekwini 2021 | 2.57% | 0.00% | no | 2.57% | 3.69% | +1.12% |
+| Cape Town 2011 | 0.00% | 1.42% | yes | 1.42% | 1.49% | +0.08% |
+| Cape Town 2016 | 1.40% | 0.00% | no | 1.40% | 1.70% | +0.31% |
+| Cape Town 2021 | 1.64% | 0.00% | no | 1.64% | 2.01% | +0.37% |
+| Mangaung 2011 | 0.00% | 1.42% | yes | 1.42% | 1.26% | -0.16% |
+| Mangaung 2016 | 1.40% | 0.00% | no | 1.40% | 2.09% | +0.69% |
+| Mangaung 2021 | 1.64% | 0.00% | no | 1.64% | 2.50% | +0.86% |
+| Nelson Mandela Bay 2011 | 0.00% | 1.42% | yes | 1.42% | 1.32% | -0.10% |
+| Nelson Mandela Bay 2016 | 1.40% | 0.00% | no | 1.40% | 1.82% | +0.42% |
+| Nelson Mandela Bay 2021 | 1.64% | 0.00% | no | 1.64% | 2.11% | +0.47% |
+| Buffalo City 2011 | 0.00% | 1.42% | yes | 1.42% | 1.45% | +0.03% |
+| Buffalo City 2016 | 1.40% | 0.00% | no | 1.40% | 1.95% | +0.55% |
+| Buffalo City 2021 | 1.64% | 0.00% | no | 1.64% | 2.55% | +0.91% |
+
+No row's residual exceeds its accounted budget (24 city-years checked).
+
+⚠️ The model drew arrival mass with **no generic slot recorded** at 16 of 24 city-years (Johannesburg 2016, Johannesburg 2021, Tshwane 2016, Tshwane 2021, Ekurhuleni 2016, Ekurhuleni 2021, eThekwini 2016, eThekwini 2021, Cape Town 2016, Cape Town 2021, Mangaung 2016, Mangaung 2021, Nelson Mandela Bay 2016, Nelson Mandela Bay 2021, Buffalo City 2016, Buffalo City 2021). Before the presence test was moved ahead of the relabel this was true at twenty of twenty-four rows and meant the detector was blind, not that the slot was absent. If it is non-empty here, check that against `montecarlo`'s rule for appending `ENTRANT` before reading it as a fact about the model.
 
 
 ## Where the vote error sits on the ballot
@@ -141,34 +346,34 @@ Mass PIT is above 0.5 at **18 of 24** city-years. A panel mean well above 0.5 on
 
 **`seat_abs_err_coherent` cannot see geography and this can.** `solve_and_predict` forces every party's citywide share onto the share the draw drew, and both ballots are `weight @ pred` against those same targets, so `dev`, `gamma`, pool composition and the whole VD layer reach the seat score ONLY through an overhang trigger. Any change to those is judged here, or it is judged by an instrument that is blind to it. Hit rate is the modal call; Brier (multi-category, 0 to 2) is the proper score and is what a change in CONFIDENCE moves. **Read the model against the baselines in its own row** — safe wards are called correctly by anything at all.
 
-| city-year | wards | model called | hit rate | Brier MC | last-lge | uniform-swing | prior-lge-noise |
-|---|---|---|---|---|---|---|---|
-| Johannesburg 2011 | 130 | 126 | 96.9% | 0.048 | 92.3% | 93.8% | 92.3% |
-| Johannesburg 2016 | 135 | 134 | 99.3% | 0.017 | 94.8% | 97.8% | 94.8% |
-| Johannesburg 2021 | 135 | 127 | 94.1% | 0.092 | 93.3% | 93.3% | 93.3% |
-| Tshwane 2011 | 105 (only 99 matched) | 98 | 93.3% | 0.081 | 98.1% | 98.1% | 98.1% |
-| Tshwane 2016 | 107 | 104 | 97.2% | 0.044 | 98.1% | 98.1% | 98.1% |
-| Tshwane 2021 | 107 | 104 | 97.2% | 0.038 | 98.1% | 98.1% | 98.1% |
-| Ekurhuleni 2011 | 101 | 97 | 96.0% | 0.045 | 94.1% | 96.0% | 95.0% |
-| Ekurhuleni 2016 | 112 | 111 | 99.1% | 0.027 | 97.3% | 99.1% | 97.3% |
-| Ekurhuleni 2021 | 112 | 108 | 96.4% | 0.068 | 95.5% | 94.6% | 95.5% |
-| eThekwini 2011 | 103 | 97 | 94.2% | 0.101 | 93.2% | 92.2% | 93.2% |
-| eThekwini 2016 | 110 (only 109 matched) | 97 | 88.2% | 0.201 | 82.7% | 85.5% | 83.6% |
-| eThekwini 2021 | 111 | 109 | 98.2% | 0.036 | 96.4% | 98.2% | 96.4% |
-| Cape Town 2011 | 111 | 111 | 100.0% | 0.014 | 85.6% | 97.3% | 85.6% |
-| Cape Town 2016 | 116 | 116 | 100.0% | 0.004 | 100.0% | 100.0% | 100.0% |
-| Cape Town 2021 | 116 | 115 | 99.1% | 0.014 | 99.1% | 99.1% | 99.1% |
-| Mangaung 2011 | 49 | 49 | 100.0% | 0.026 | 98.0% | 95.9% | 98.0% |
-| Mangaung 2016 | 50 (only 49 matched) | 48 | 96.0% | 0.034 | 96.0% | 98.0% | 96.0% |
-| Mangaung 2021 | 51 | 50 | 98.0% | 0.038 | 98.0% | 96.1% | 98.0% |
-| Nelson Mandela Bay 2011 | 60 | 59 | 98.3% | 0.024 | 83.3% | 96.7% | 83.3% |
-| Nelson Mandela Bay 2016 | 60 | 57 | 95.0% | 0.069 | 96.7% | 96.7% | 96.7% |
-| Nelson Mandela Bay 2021 | 60 | 57 | 95.0% | 0.047 | 95.0% | 95.0% | 95.0% |
-| Buffalo City 2011 | 50 | 49 | 98.0% | 0.045 | 94.0% | 98.0% | 94.0% |
-| Buffalo City 2016 | 50 | 48 | 96.0% | 0.089 | 100.0% | 96.0% | 100.0% |
-| Buffalo City 2021 | 50 | 48 | 96.0% | 0.071 | 96.0% | 96.0% | 96.0% |
+| city-year | wards | model called | hit rate | Brier MC | last-lge | uniform-swing | prior-lge-noise | uniform-swing+roster |
+|---|---|---|---|---|---|---|---|---|
+| Johannesburg 2011 | 130 | 126 | 96.9% | 0.048 | 92.3% | 93.8% | 92.3% | 93.8% |
+| Johannesburg 2016 | 135 | 134 | 99.3% | 0.017 | 94.8% | 97.8% | 94.8% | 97.8% |
+| Johannesburg 2021 | 135 | 127 | 94.1% | 0.092 | 93.3% | 93.3% | 93.3% | 93.3% |
+| Tshwane 2011 | 105 (only 99 matched) | 98 | 93.3% | 0.081 | 98.1% | 98.1% | 98.1% | 98.1% |
+| Tshwane 2016 | 107 | 104 | 97.2% | 0.044 | 98.1% | 98.1% | 98.1% | 98.1% |
+| Tshwane 2021 | 107 | 104 | 97.2% | 0.038 | 98.1% | 98.1% | 98.1% | 98.1% |
+| Ekurhuleni 2011 | 101 | 97 | 96.0% | 0.045 | 94.1% | 96.0% | 95.0% | 96.0% |
+| Ekurhuleni 2016 | 112 | 111 | 99.1% | 0.027 | 97.3% | 99.1% | 97.3% | 99.1% |
+| Ekurhuleni 2021 | 112 | 108 | 96.4% | 0.068 | 95.5% | 94.6% | 95.5% | 94.6% |
+| eThekwini 2011 | 103 | 97 | 94.2% | 0.101 | 93.2% | 92.2% | 93.2% | 92.2% |
+| eThekwini 2016 | 110 (only 109 matched) | 97 | 88.2% | 0.201 | 82.7% | 85.5% | 83.6% | 85.5% |
+| eThekwini 2021 | 111 | 109 | 98.2% | 0.036 | 96.4% | 98.2% | 96.4% | 98.2% |
+| Cape Town 2011 | 111 | 111 | 100.0% | 0.014 | 85.6% | 97.3% | 85.6% | 96.4% |
+| Cape Town 2016 | 116 | 116 | 100.0% | 0.004 | 100.0% | 100.0% | 100.0% | 100.0% |
+| Cape Town 2021 | 116 | 115 | 99.1% | 0.014 | 99.1% | 99.1% | 99.1% | 99.1% |
+| Mangaung 2011 | 49 | 49 | 100.0% | 0.026 | 98.0% | 95.9% | 98.0% | 95.9% |
+| Mangaung 2016 | 50 (only 49 matched) | 48 | 96.0% | 0.034 | 96.0% | 98.0% | 96.0% | 98.0% |
+| Mangaung 2021 | 51 | 50 | 98.0% | 0.038 | 98.0% | 96.1% | 98.0% | 96.1% |
+| Nelson Mandela Bay 2011 | 60 | 59 | 98.3% | 0.024 | 83.3% | 96.7% | 83.3% | 96.7% |
+| Nelson Mandela Bay 2016 | 60 | 57 | 95.0% | 0.069 | 96.7% | 96.7% | 96.7% | 96.7% |
+| Nelson Mandela Bay 2021 | 60 | 57 | 95.0% | 0.047 | 95.0% | 95.0% | 95.0% | 95.0% |
+| Buffalo City 2011 | 50 | 49 | 98.0% | 0.045 | 94.0% | 98.0% | 94.0% | 98.0% |
+| Buffalo City 2016 | 50 | 48 | 96.0% | 0.089 | 100.0% | 96.0% | 100.0% | 96.0% |
+| Buffalo City 2021 | 50 | 48 | 96.0% | 0.071 | 96.0% | 96.0% | 96.0% | 96.0% |
 
-**Pooled over 24 city-years: 2119/2191 = 96.7% of ward contests called correctly, against last-lge 94.7%, uniform-swing 96.2%, prior-lge-noise 94.8%. A margin over the baselines that is smaller than the seat margin is the model's geography adding less than its citywide machinery, which is a statement the seat columns cannot make.
+**Pooled over 24 city-years: 2119/2191 = 96.7% of ward contests called correctly, against last-lge 94.7%, uniform-swing 96.2%, prior-lge-noise 94.8%, uniform-swing+roster 96.1%. A margin over the baselines that is smaller than the seat margin is the model's geography adding less than its citywide machinery, which is a statement the seat columns cannot make.
 
 ## Calibration — pooled across every city-year, and split by rank
 
@@ -176,21 +381,35 @@ Mass PIT is above 0.5 at **18 of 24** city-years. A panel mean well above 0.5 on
 
 A mean PIT above 0.50 means the truth keeps landing high in the forecast distribution — the model forecast too LOW for those columns. Below 0.50 means it forecast too HIGH. Read the sign per band; the pooled sign is an artefact of how the two bands happen to be sized.
 
-| population | n | 50% | 80% | 90% | mean PIT | χ² vs flat (5% crit) |
+| population | n | 50% | 80% | 90% | mean PIT | χ²_RS vs flat (5% crit) |
 |---|---|---|---|---|---|---|
-| reference (INPUT-selected — fixed; the only one to compare on) | 514 | 79% | 91% | 94% | 0.581 | 57.0 (16.92) |
-| claimed by the model (forecast-selected — neutral for ONE model) | 157 | 77% | 92% | 95% | 0.536 | 40.9 (16.92) |
-| won a seat (outcome-selected — INFLATED by construction) | 269 | 59% | 81% | 87% | 0.692 | 127.7 (16.92) |
-| every scored column (MIXED: outcome-selected + neutral, diluted) | 580 | 81% | 91% | 94% | 0.550 | 30.7 (16.92) |
+| reference (INPUT-selected — fixed; the only one to compare on) | 514 | 79% | 91% | 94% | 0.581 | 34.8 (16.92) |
+| claimed by the model (forecast-selected — neutral for ONE model) | 157 | 77% | 92% | 95% | 0.536 | 41.6 (16.92) |
+| won a seat (outcome-selected — INFLATED by construction) | 269 | 59% | 81% | 87% | 0.692 | 118.1 (16.92) |
+| every scored column (MIXED: outcome-selected + neutral, diluted) | 580 | 81% | 91% | 94% | 0.550 | 25.6 (16.92) |
 
 * **reference** (n=514) PIT histogram [35, 27, 28, 45, 42, 70, 66, 72, 70, 59] — approximately flat
 * **claimed** (n=157) PIT histogram [12, 8, 6, 15, 19, 31, 18, 24, 20, 4] — hump-shaped: the truth lands mid-distribution too often — over-dispersed, the model is hedging
 * **seat_holders** (n=269) PIT histogram [10, 4, 6, 12, 19, 33, 32, 44, 51, 58] — U-shaped: the truth lands outside the distribution too often — under-dispersed, widen it; mean PIT 0.69 — the model under-predicts seats
 * **all** (n=580) PIT histogram [47, 42, 37, 57, 48, 75, 65, 75, 73, 61] — approximately flat
 
-The verdict at the end of each line is `score.pit_histogram`'s shape heuristic, which reads the end mass and the mean. **DO NOT ACT ON IT AS A WIDTH VERDICT — it is not reliable as one, and on this model it is demonstrably wrong.** The heuristic tests the mass in the two END bins against flat, so a histogram that is monotone increasing scores as U-shaped: a shifted forecast piles mass in the top bin and gets called under-dispersed. On the ranks 4-12 columns it reads the histogram `[1, 1, 1, 11, 14]` — 25 of 28 in the top two bins, monotone, nothing at the bottom — and prints *"U-shaped … under-dispersed, widen it"*, while calling the pooled population *"hump-shaped — over-dispersed, hedging"*. The two verdicts contradict each other and the band one contradicts the level-free width table below, which is the one that is right. `score.py` is not changed here — the heuristic is fine for its own purpose and what is wrong is quoting it about width. **The χ² column is the test of uniformity; the level-free dispersion table is the test of width.**
 
-The three populations differ by which columns they count, and the difference is itself the finding. `claimed` selects on the FORECAST, which leaves PIT uniform under calibration, so it is the honest test and the only one to quote. `seat_holders` selects on the OUTCOME: zero is the bottom of the support, so winning a seat selects over-performers and the population reads high even for a perfect forecaster — it is quoted because it is the population a reader assumes, not because it is neutral. `all` was documented as neutral and **is not**: `score.seat_matrix` admits a column when `truth[i] > 0 or samples[:, i].max() > 0`, and the first clause lets a party in because it WON, which is outcome selection. Five of its columns across the nine city-years carry PIT exactly 1.0 — parties the model gave zero seats in every draw, present only because they won a seat. It is a mixture of an outcome-selected set and a neutral one, and the neutral part is itself diluted by ~200 parties correctly at zero on both sides, each a free interval hit and a near-uniform PIT. Two errors pushing opposite ways: `all` tests nothing.
+The verdict at the end of each line is `score.pit_histogram`'s shape heuristic, which reads the end mass and the mean. **DO NOT ACT ON IT AS A WIDTH VERDICT — it is not reliable as one, and on this model it is demonstrably wrong.** The heuristic tests the mass in the two END bins against flat, so a histogram that is monotone increasing scores as U-shaped: a shifted forecast piles mass in the top bin and gets called under-dispersed. On the ranks 4-12 columns it reads the histogram `[1, 1, 1, 11, 14]` — 25 of 28 in the top two bins, monotone, nothing at the bottom — and prints *"U-shaped … under-dispersed, widen it"*, while calling the pooled population *"hump-shaped — over-dispersed, hedging"*. The two verdicts contradict each other and the band one contradicts the level-free width table below, which is the one that is right. `score.py` is not changed here — the heuristic is fine for its own purpose and what is wrong is quoting it about width. **The χ²_RS column is the test of uniformity — `score.chi2_clustered`, clustered by city-year and averaged over the PIT re-randomisations, set out below; the level-free dispersion table is the test of width.**
+
+### The uniformity test — `score.chi2_clustered`
+
+* **reference** (24 city-years, R=64) — uniformity REJECTED after the clustering correction: χ²_RS 34.75 against 16.92 on 9 dof, design effect 1.04, in 64/64 randomisations [cells 0.65–1.64, cv² 0.17; Satterthwaite χ² 29.83 against 15.14 on 7.7 dof, 64/64]. The NOMINAL χ² it corrects averages 36.0 with sd 8.3 across those 64 randomisations; the 95% cluster-bootstrap interval on it is [19.1, 81.3] from 20,000 replicates.
+* **claimed** (24 city-years, R=64) — uniformity REJECTED after the clustering correction: χ²_RS 41.56 against 16.92 on 9 dof, design effect 1.00, in 64/64 randomisations [cells 0.37–1.71, cv² 0.27; Satterthwaite χ² 32.84 against 14.25 on 7.1 dof, 64/64]. The NOMINAL χ² it corrects averages 41.4 with sd 4.7 across those 64 randomisations; the 95% cluster-bootstrap interval on it is [26.2, 83.5] from 20,000 replicates.
+* **seat_holders** (24 city-years, R=64) — uniformity REJECTED after the clustering correction: χ²_RS 118.13 against 16.92 on 9 dof, design effect 1.10, in 64/64 randomisations [cells 0.11–2.81, cv² 0.58; Satterthwaite χ² 75.15 against 12.17 on 5.7 dof, 64/64]. The NOMINAL χ² it corrects averages 129.0 with sd 5.5 across those 64 randomisations; the 95% cluster-bootstrap interval on it is [93.0, 204.0] from 20,000 replicates.
+* **all** (24 city-years, R=64) — not established: χ²_RS averages 25.61 against 16.92 but only 59/64 randomisations reject — the answer depends on the PIT re-roll, not on the model [cells 0.72–1.31, cv² 0.13; Satterthwaite χ² 22.71 against 15.47 on 8.0 dof, 54/64]. The NOMINAL χ² it corrects averages 25.8 with sd 6.4 across those 64 randomisations; the 95% cluster-bootstrap interval on it is [13.9, 65.1] from 20,000 replicates.
+
+⚠️ **The cluster level is this file's choice, not the statistic's**, and `score.chi2_clustered` returns the limitation with the number so that it is quoted with it: *the clusters are whatever the caller grouped by. On this panel city-year clustering (k=24) gives delta-bar 1.07 and buys almost nothing; the CYCLE level, where the dependence actually is (sd(z) across 2011/2016/2021 is 0.601/0.889/1.265 pooled and 0.452/1.155/1.960 on ranks 4-12), has k=3 and cannot be estimated. Quote the city-year result WITH that limitation — see score.chi2_clustered.__doc__.*
+
+**Two corrections separate this column from the χ² a PIT histogram reports, and the second is the one that was missing.** The PIT of an integer seat count is randomised within its jump, so a χ² computed on one draw of that randomisation is a draw from a distribution and not a statistic — the `sd` printed above is its spread with the model standing still, and on this panel it is a large fraction of the statistic itself. And the columns inside a city-year share a turnout draw, a pool structure and a national swing, so the nominal test's critical value is not this design's. `score.chi2_clustered` averages over R re-randomisations and applies the Rao-Scott correction with the design effect ESTIMATED from the city-years; it needs at least 8 of them and says `not established` rather than printing a number when it has fewer. See its docstring for what the design effect turns out to be here, and why.
+
+The three populations differ by which columns they count, and the difference is itself the finding. `claimed` selects on the FORECAST, which leaves PIT uniform under calibration, so it is the honest test and the only one to quote. `seat_holders` selects on the OUTCOME: zero is the bottom of the support, so winning a seat selects over-performers and the population reads high even for a perfect forecaster — it is quoted because it is the population a reader assumes, not because it is neutral. `all` was documented as neutral and **is not**: `score.seat_matrix` admits a column when `truth[i] > 0 or samples[:, i].max() > 0`, and the first clause lets a party in because it WON, which is outcome selection. **15 of its 580 columns across 24 city-years carry PIT exactly 0 or 1** — parties the model gave zero seats in every draw, present only because they won a seat (Johannesburg 2011 ALJAMAAH, Johannesburg 2011 OKM, Johannesburg 2016 ALJAMAAH, Ekurhuleni 2011 DISPLACEES_RATE_PAYERS_ASSOCIATION, Ekurhuleni 2011 INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA, +10 more). It is a mixture of an outcome-selected set and a neutral one.
+
+**The dilution is in `reference`, not in `all`, and this report said otherwise for months.** A column correctly at zero on both sides is a free interval hit and a near-uniform PIT — but `seat_matrix`'s admission rule excludes it from `all` by construction, and the count there is **0 of 580**. Such columns are admitted to `reference`, which is built with `keep_all=True` over a fixed universe, and there the count is **87 of 514**. `all` is still not a test of anything — its outcome-selected part and its neutral part push opposite ways — but quote the dilution against the population that actually carries it.
 
 ### Split by actual PR rank — `claimed` columns
 
@@ -214,29 +433,35 @@ The rank-band vote table further up and the mean-PIT column here are the same LE
 
 **This table, not the coverage rows, is the width verdict.** Coverage moves with the level as well as the width: a forecast pushed off centre vacates the middle of its own interval, so its 50% coverage falls however wide it is. Read at one level, coverage says 'too narrow' for a forecast that is merely shifted. The columns below divide the level out. **1.00 is right; below 1.00 the intervals are too WIDE; above 1.00 too narrow.** `1/ratio` is roughly the factor they are out by.
 
-| band | n | probit-SD (level-free) | exact SD of z | standardised bias (mean z) | PIT variance vs 1/12 |
-|---|---|---|---|---|---|
-| ranks 1-3 | 72 | 0.748 | 0.755 | +0.062 | 0.0525 vs 0.0833 |
-| ranks 4-12 | 78 | 0.850 | 0.794 | +0.004 | 0.0558 vs 0.0833 |
-| ranks 13+ | 7 | 0.593 | 0.416 | -0.646 | 0.0333 vs 0.0833 |
+| band | n | probit-SD (level-free) | same @1e-2 clip | drop saturated | sat. PITs | exact SD of z | standardised bias (mean z) | PIT variance vs 1/12 |
+|---|---|---|---|---|---|---|---|---|
+| ranks 1-3 | 72 | **0.748** | 0.745 | 0.748 | 0 | 0.755 | +0.062 | 0.0525 vs 0.0833 |
+| ranks 4-12 | 78 | **0.850** | 0.819 | 0.850 | 0 | 0.794 | +0.004 | 0.0558 vs 0.0833 |
+| ranks 13+ | 7 | **0.593** | 0.593 | 0.593 | 0 | 0.416 | -0.646 | 0.0333 vs 0.0833 |
+
+⛔ **A probit-SD from a band carrying a saturated PIT is a property of the CLIP, not of the forecast, and this table prints both so the reader can see which.** `_probit` clips at 1e-6; a column whose truth exceeded every draw has a PIT of exactly 1.0, and `Φ⁻¹(1)` is infinite, so the figure in the first column is whatever the clip decides. The `@1e-2` column is the same statistic with a looser clip and the `drop saturated` column is the same statistic with those columns removed instead of pinned — the honest answer to a question the clip only papers over. **Where the three disagree and `sat. PITs` is non-zero, the band's width is UNQUOTABLE**: say so, or quote the drop-saturated figure and say that is what it is. Measured on `reference` ranks 4-12 over Johannesburg alone, the three read 1.55 / 1.07 / 1.10 — the same band, two different verdicts. MODEL-LOG §1.132, §1.134.
 
 #### The same question on the FIXED population — and it disagrees
 
 **The `n` here is the number of columns the width figure was actually computed on** — columns with a defined `z`. A column whose draws are all identical has no scale, so it carries a PIT and no `z`; the pooled tables above count PIT values and their `n` is larger.
 
-| band | `claimed` n(z) | `claimed` SD of z | `reference` n(z) | `reference` SD of z | `reference` mean z | `reference` probit-SD |
-|---|---|---|---|---|---|---|
-| ranks 1-3 | 72 | 0.755 | 72 | 0.755 | +0.062 | **0.748** |
-| ranks 4-12 | 78 | 0.794 | 170 | 1.557 | +0.420 | **1.308** |
-| ranks 13+ | 7 | 0.416 | 171 | 0.381 | -0.177 | **1.119** |
+| band | `claimed` n(z) | `claimed` SD of z | `reference` n(z) | `reference` SD of z | `reference` mean z | `reference` probit-SD | same @1e-2 | drop saturated | sat. PITs |
+|---|---|---|---|---|---|---|---|---|---|
+| ranks 1-3 | 72 | 0.755 | 72 | 0.755 | +0.062 | **0.748** | 0.745 | 0.748 | 0 |
+| ranks 4-12 | 78 | 0.794 | 170 | 1.557 | +0.420 | 1.308 ⛔UNQUOTABLE | 0.982 | 0.957 | 9 |
+| ranks 13+ | 7 | 0.416 | 171 | 0.381 | -0.177 | 1.119 ⛔UNQUOTABLE | 0.915 | 0.870 | 5 |
+
+⛔ **A probit-SD from a band carrying a saturated PIT is a property of the CLIP, not of the forecast, and this table prints both so the reader can see which.** `_probit` clips at 1e-6; a column whose truth exceeded every draw has a PIT of exactly 1.0, and `Φ⁻¹(1)` is infinite, so the figure in the first column is whatever the clip decides. The `@1e-2` column is the same statistic with a looser clip and the `drop saturated` column is the same statistic with those columns removed instead of pinned — the honest answer to a question the clip only papers over. **Where the three disagree and `sat. PITs` is non-zero, the band's width is UNQUOTABLE**: say so, or quote the drop-saturated figure and say that is what it is. Measured on `reference` ranks 4-12 over Johannesburg alone, the three read 1.55 / 1.07 / 1.10 — the same band, two different verdicts. MODEL-LOG §1.132, §1.134.
+
 
 **Read the last column, not the `SD of z` column, on ranks 13+.** `sd(z)` is exact under a level shift and **meaningless on a near-degenerate discrete column**: where the forecast is roughly Bernoulli(p) and the truth is zero, `z = −√(p/(1−p))` exactly, a function of the forecast probability with no room to spread. On the 96 ranks-13+ columns whose truth is zero, observed `z` correlates with that expression at **+0.93**. probit-SD comes from the randomised PIT, which is uniform under calibration whatever the support, and is the one to read there — at the cost of being attenuated by a level shift, so it is a LOWER BOUND wherever `mean z` is far from zero. Neither statistic is right everywhere; the pair is. MODEL-LOG §1.58.
 
 **Ranks 1-3 are the same columns in both populations** — the top three are always claimed — so that row is a consistency check and the two `SD of z` numbers should agree exactly. It is also the band that is genuinely too WIDE and the band that responds to `dirichlet_scale`.
 
-**Ranks 4-12 cannot be described by one width, and that is the finding.** On the same columns `sd(z)` says far too narrow, `IQR-sd` says too wide, and probit-SD disagrees with both — because the error distribution is a narrow shifted bulk with two enormous outliers, Cape Town's Cape Coloured Congress and Johannesburg's PA, both of which `claimed` excludes by construction. A distribution that reads differently depending which moment you take is mis-SHAPED, not mis-scaled, and no scalar fixes it.
+**Ranks 4-12 cannot be described by one width, and that is the finding.** On the same columns `sd(z)` says far too narrow, `IQR-sd` says too wide, and probit-SD disagrees with both — because the error distribution is a narrow shifted bulk with a few enormous outliers, which `claimed` excludes by construction. They are NAMED below, from the rows actually scored. A distribution that reads differently depending which moment you take is mis-SHAPED, not mis-scaled, and no scalar fixes it.
 
-⛔ **AND THE SPREAD AT 4-12 IS TWO COLUMNS.** Those two carry ~70% of the band's total squared z; dropping them takes `sd(z)` to about 1.0. Quote the leave-the-largest-out figure beside the headline or the headline is two observations, not a width. §1.56, §1.58, §1.131.
+
+⛔ **AND THE SPREAD AT 4-12 IS A HANDFUL OF COLUMNS.** On the `reference` population over the 170 columns carrying a defined `z`, the two largest carry **54.8%** of the band's total squared `z`: **Cape Town 2021 CAPE_COLOURED_CONGRESS** (z +11.19, 28.3% of the band's squared deviation); **Johannesburg 2021 PA** (z +10.85, 26.5% of the band's squared deviation). Dropping them takes `sd(z)` from 1.557 to **1.045**. Quote the leave-the-largest-out figure beside the headline or the headline is two observations, not a width. §1.56, §1.58, §1.131.
 
 **`probit-SD` is the one to quote when only a PIT is available.** It is `sd(Φ⁻¹(u))`, and under a location shift of a roughly normal forecast `Φ⁻¹(u)` translates — the shift lands in the mean, not the spread. `exact SD of z` is `(truth − forecast mean) / forecast sd` per column, centred, which is invariant to a shift by construction; it reads `—` on an artefact written before `calibration_columns` stored the `z` column, and it is the number to prefer when it is there. The standardised bias is the LEVEL, kept in its own column so that it can never be read as width again.
 

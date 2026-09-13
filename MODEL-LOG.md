@@ -24730,3 +24730,145 @@ Filed as `DATA-QUALITY` §16; the repair is the canonical run.
 **The sweep's best decision was an omission:** it declined to write the 112–116
 margin anywhere, because subtracting a fresh measurement from a stale artefact
 produces a number with no provenance.
+
+## 1.231 The canonical measurement, and four of the five conclusions drawn from it were over-read (2026-09-13)
+
+**The first run of this code on a clean tree.** Commit `d08d705`, 24 rows, 1000
+draws, seed 20261104, `git_dirty: False`, schema 3, no overrides. Installed as
+`data/processed/history.json`; the previous pair is archived at
+`archive/scoreboard-precanonical-2026-09-13/` with its own README, kept because
+it is the only record of what every earlier claim was computed on.
+
+⚠️ **Say the unexciting part first: the model's own total moved 725 → 723**, on
+three rows. **The dirty tree was not materially distorting the model's score.**
+The substantive change in this run is the new opponent, not the clean tree.
+
+### The panel
+
+| forecaster | coherent seat error, 24 rows |
+|---|---|
+| **model** | **723** |
+| `uniform-swing+roster` | **837** (band **837–841**) |
+| `uniform-swing` | 885 |
+| `last-lge` | 1315 |
+| `prior-lge-noise` | 1361 |
+
+**The instrument passes, and that is worth recording.** Every opponent carries
+the same `n_scored` as the model on all 24 rows; `comparable: True` 24/24;
+`fills_council: True` for model and all four opponents 24/24; one `universe_key`
+per row. The 580-vs-332-column drift that motivated #13 is closed.
+
+### ⛔ The honest headline
+
+**Per-row against the honest opponent: 12 wins, 8 losses, 4 ties — two-sided
+sign test p = 0.5034. There is no evidence of row-level skill.** (The p = 0.134
+quoted during Phase 1 belongs to plain `uniform-swing`, not the fair reference.)
+
+**The margin is four rows.** joburg 2021 (−42), capetown 2016 (−26), tshwane
+2021 (−26), ekurhuleni 2021 (−20) sum to **−114**, and the other twenty rows net
+to **exactly zero**.
+
+### The five conclusions, and how four of them failed
+
+**1. "The advantage is the lineage layer" — OVER-READ.** `capetown-2016` is
+**23% of the entire margin and has no arrival at all**; ActionSA did not exist.
+Its gain is `DA −9`, `ANC −11` — pure level accuracy in a stable two-party city.
+At `tshwane-2021` the DA and ASA tie as largest contributors. Across the big four
+the arrival channel is roughly **a third** of the gain. And the model is not
+sizing ActionSA *correctly*: joburg 2021 actual **44**, model median **16**,
+opponent **1**. It wins by being non-zero where the opponent is ~1.
+
+**2. "The city-level result is real (7/8, p = 0.016)" — NOT INDEPENDENT.**
+Remove the big four and the city record **flips: 3 better, 4 worse, 1 tied,
+p = 1.0.** It is the same four rows at a coarser grain. Two further objections:
+the dependence runs along **year**, not city — the 2021 arrival is one event
+hitting three metros at once — and with 8 clusters the minimum attainable
+two-sided p is 0.0078, so 0.0156 is the second-best possible outcome and the
+test has about two resolvable states.
+
+**3. "Beats the honest opponent 723 to 837" — TRUE, AND MUST CARRY TWO CLAUSES.**
+Quote **837–841**, never 837 alone. And it is **not out-of-sample skill**:
+`in_sample: True` on 24/24 against a **zero-parameter** opponent. Sharper still,
+`splinter_home` is fitted on **2019 and 2024** — post-dating the 2021 target —
+and it is the constant that sizes ActionSA. It contaminates 16 rows including
+all three 2021 metros carrying three of the four big wins. **The ActionSA rows
+are the least out-of-sample rows in the panel, and they are where the margin
+lives.**
+
+**4. "The gates fired three times" — THE DENOMINATOR IS WRONG.** **213
+party-rows sit exactly at `SD_CEILING = 1.20`**, not three. Of those, exactly one
+won a real seat: `mangaung-2016` AIC, 2 seats against a model median of 0. So the
+clamp is not destroying forecasts — it binds almost entirely on parties that won
+nothing — but it is active on roughly a third of all party-columns, and a gate
+reporting "three firings" badly understates how often it is live.
+
+**5. ⛔ "`prior-lge-noise` rose 1274 → 1361, strengthening the pre-registration"
+— VOID. It did not move on a single row.** The old `seat_abs_err_coherent` equals
+the new `seat_abs_err` on **24/24 rows**, verified. Schema 1's field *labelled*
+`_coherent` for that opponent held the non-coherent statistic; schema 3 added a
+real coherent allocation and kept the old value under the honest name. **This is
+a metric redefinition, not a behaviour change** — the pre-registration named a
+quantity that was redefined underneath it, so it is neither confirmed nor
+refuted. `Pre-register the consumer, not the quantity`, recurring exactly.
+
+### Three findings nobody asked for, and two are larger than most of the above
+
+⛔ **The opponent awards 90 seats to parties that won zero; the model awards 9** —
+against a total margin of 114. Largest-remainder rewarding fragmentation: the ~2%
+arrival budget split across up to 32 newcomers lifts several over a remainder
+cut. `arrival_budget` fixes the *group* total and does not address the per-party
+remainder behaviour that follows. This does not make the opponent dishonest; it
+makes it weak in a nameable way, and the margin must be quoted with that named.
+
+⛔ **121 party-columns across all 24 rows won real seats — 170 of them — while
+the model's median was zero.** Worst: `ethekwini-2011` NFP (10), `joburg-2021` PA
+(8), `capetown-2021` CCC (7). The report's *"Missed entirely"* line fires **8
+times** — under-reporting by a factor of ~15. It does not affect
+`seat_abs_err_coherent`, which is mean-based, so no headline is wrong; but the
+per-party table a reader actually reads is silent about 170 real seats. The
+arrival-probability/arrival-size conflation: a right-skewed per-party
+distribution has median zero whatever its mean.
+
+⛔ **`plan_bounds` is never named in `contaminated` on any row — the banner says
+nine implicated constants and the true count is ten.** It is in `FITTED_ON` at
+2006-2021, but `contaminated()` intersects with `constants_read`, which holds
+only `['contestation','pools','spine','splinter_home']`. The one
+`note_constant("plan_bounds")` sits in a by-election branch no backtest row
+reaches (the delivery log carries **zero** `note_constant:` entries) while the
+bounds are applied elsewhere. It flips no verdict — every row is already
+in-sample via `pools` — so it is a **disclosure-completeness** defect in the
+artefact that is now the provenance record of record.
+
+### Corrections to §1.230
+
+**`Σ centres` is associated with ballot size, not with cycle** — and "tracks
+fragmentation, not cycle" also over-states it. `corr(Σ, n_parties) = 0.629`,
+`corr(Σ, year) = 0.444`, but party count itself runs 10.6 → 20.9 → 38.1 by
+cycle, so the two are badly confounded and 24 points cannot separate them.
+⭐ **It compromises no published number**, and the reason matters: renormalising
+by a *common* factor is scale-free, and seat allocation depends only on relative
+shares. The open exposure is any **absolute** floor applied *before*
+renormalisation (`dirichlet_floor`, `SHARE_FLOOR`), which binds differently at
+Σ = 1.18 than at Σ = 0.97. Not closed.
+
+**`bounds_violations` is non-zero at joburg only** (629/572/1300) because only
+`joburg.toml` declares `[judgements.plan_bounds]`; 21 rows loop over an empty
+dict while `bounds_checked` reads 1000 regardless — **the positive control is
+blind in both directions**, because it counts draws, not bound-checks. The
+correct control is `draws × len(PLAN_BOUNDS)`.
+
+**`solve_worst_gap_reachable` reaches 0.190** at `ethekwini-2011` and 0.0688-0.148
+at six more 2011 rows, against **1.18e-05** at `joburg-2011` — the reading used
+to call the solve saturation harmless. Four to five orders of magnitude, and the
+call was made on the one row that does not show it. `CLAUDE.md` §4 item 0: a
+healthy scan, a working detector, the wrong population.
+
+### The process note worth keeping
+
+The reviewer's first attempt at party-level attribution read `seats` as
+`(predicted, actual)` when it is `(actual, model)`, and produced *"a coherent,
+confident, entirely wrong story"* — that the model was over-forecasting ActionSA
+threefold. It was caught only because the ANC's 153 Johannesburg seats in 2011 is
+an externally known fact. **Anything derived from a scratch probe over this
+artefact should be checked against one externally-known number before it is
+believed.**
