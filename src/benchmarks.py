@@ -40,6 +40,14 @@ Four baselines, in increasing order of how much they are allowed to know:
     model. If the Monte Carlo cannot beat "last time, plus last transition's
     worth of uncertainty", its distributional layer is adding nothing.
 
+**A deterministic rule is not automatically a REPRODUCIBLE one, and this module
+shipped without noticing.** The allocator breaks an exact largest-remainder tie
+by insertion order; insertion order came from iterating a set of strings; and
+CPython randomises string hashing per process. So two identical runs of
+``uniform-swing+roster`` returned different councils, and the 24-city-year panel
+returned one of three totals. :func:`canonical_order` is the stated rule that
+replaces the accident — read it before touching the allocation path.
+
 **Every baseline sees only pre-election data.** Same rule as the backtest
 harness, same reasoning: ward boundaries, the voters' roll and — for
 ``uniform-swing+roster`` — the nomination list and the count of ward candidates
@@ -283,6 +291,79 @@ def build_context(target: int, data_dir: Path = Path("data/raw/elections"),
 # ---------------------------------------------------------------------------
 
 
+def canonical_order(combined: dict[str, int]) -> dict[str, int]:
+    """The same tally, ordered ``(most votes first, then by NAME)``.
+
+    ⛔ **THIS IS THE TIE-BREAK, AND WITHOUT IT A BASELINE IS NOT REPRODUCIBLE.**
+
+    ``seats.allocate`` hands out the remainder seats by
+    ``sorted(remainders, key=lambda p: (-remainders[p], -combined[p]))``. Python's
+    sort is stable, so two parties with the **same remainder and the same vote
+    total** keep the order they had in ``combined`` — and ``combined`` comes back
+    from ``seats.eligible_parties``, which builds itself by iterating
+    ``set(ward_votes) | set(pr_votes)``. Iteration order of a set of **strings**
+    is a function of ``PYTHONHASHSEED``, which CPython randomises per process.
+    So the last seat went to whichever of the tied parties the interpreter
+    happened to hash first that morning.
+
+    Exact ties are not a curiosity here, they are the normal case, because
+    :func:`newcomer_shares` gives every newcomer with the same ward reach
+    **exactly** the same share, and the flat geography then gives them the same
+    votes in every voting district. Johannesburg 2021, measured 2026-09-13 —
+    seven groups of parties on identical combined vote totals, of which the top
+    two are::
+
+        4,176 votes   5 parties, reach 1.000
+        4,146 votes   2 parties, reach 0.99259 — ASA and CHANGE
+
+    The five are comfortably inside the shortfall. **The pair straddles the
+    cut**: one of ActionSA and CHANGE took the last seat and the other did not,
+    decided by nothing. Measured: Johannesburg 2021 returned a seat error of
+    **128 under some interpreter starts and 130 under others**, 8 to 6 over
+    fourteen starts, from identical inputs — ``reach`` and the entry shares hash
+    identically across every run, and only the council moves.
+
+    **A STATED RULE, NOT AN ACCIDENT — the precedent is ``backtest.
+    entrant_actual_for``**, which sorts by ``(seats, name)`` for exactly this
+    class of defect after two identical runs produced three different hashes.
+    Name is the only discriminator left once votes are equal; it decides nothing
+    on the merits and it decides the same way every time, which is the whole
+    requirement. ⚠️ It is *arbitrary*, and where a tie-break decides a number
+    that gets quoted, the quote has to say so — see :func:`uniform_swing_roster`
+    on ActionSA, whose single seat is one of these.
+
+    **HOW MUCH OF THE PANEL THE ARBITRARY HALF DECIDES, MEASURED RATHER THAN
+    ASSERTED** (2026-09-13, 24 city-years, seat error against the published
+    results). Run the same panel with the name rule sorted the other way and
+    only two city-years move — Johannesburg 2021 by 2 seats and Nelson Mandela
+    Bay 2021 by 2 — so ``uniform-swing+roster`` totals **837 under this rule and
+    841 under its mirror**, against ``uniform-swing``'s 885, which has no exact
+    ties and does not move at all. The band is 4 seats wide and the name rule
+    sits at the favourable end of it; that is worth saying out loud, and it is
+    also why the rule was fixed as the established precedent BEFORE the panel
+    was re-measured rather than chosen afterwards. ⚠️ **Quote 837 with the
+    band, never alone.** The margin being argued about is 48 seats and the
+    arbitrary component is 4, so the conclusion does not turn on it — but a
+    reader who discovers the 4 unaided is entitled to disbelieve the 48.
+
+    (Before the fix the same panel returned 837, 839 or 841 depending on which
+    way the interpreter hashed that morning; all three were observed over eight
+    process starts. A review that measured 839 measured one draw of that.)
+
+    Sorting by ``-votes`` first is not needed for determinism (the allocator
+    re-sorts) and is kept because it makes the order readable in a trace and
+    makes the name rule visibly the *residual*, applying only where the votes
+    are equal.
+
+    **The fix is here rather than in ``seats.eligible_parties``** because the
+    defect is shared: any caller of the allocator with two exactly-equal parties
+    has it. Doing it at this one site fixes all five baselines, which is every
+    consumer in this module, and leaves the model's own path untouched rather
+    than moving numbers in a file this change has no measurement for.
+    """
+    return {p: combined[p] for p in sorted(combined, key=lambda p: (-combined[p], p))}
+
+
 def council_from_shares(ctx: Context, ward_share: np.ndarray,
                         pr_share: np.ndarray) -> tuple[dict[str, int], dict[str, str]]:
     """Turn VD-level ballot shares into ``({party: seats}, {ward: winner})``.
@@ -292,6 +373,10 @@ def council_from_shares(ctx: Context, ward_share: np.ndarray,
     model's. ``montecarlo.COUNCIL`` is a module global the allocator reads, so
     it is set for the target and restored -- the same thing ``backtest.main``
     does, done locally and put back.
+
+    The tally goes in through :func:`canonical_order`, which is what makes every
+    baseline in this module reproducible across processes. Read it before
+    changing anything here.
     """
     ward_votes = ctx.weight[:, None] * ward_share
     pr_votes = ctx.weight[:, None] * pr_share
@@ -308,7 +393,7 @@ def council_from_shares(ctx: Context, ward_share: np.ndarray,
                    for i, p in enumerate(ctx.universe)}
     pr_totals = {p: int(round(pr_votes[:, i].sum()))
                  for i, p in enumerate(ctx.universe)}
-    combined = eligible_parties(ward_totals, pr_totals)
+    combined = canonical_order(eligible_parties(ward_totals, pr_totals))
 
     previous = M.COUNCIL
     try:
@@ -654,7 +739,16 @@ def uniform_swing_roster(ctx: Context, draws: int = 1, seed: int | None = None):
     """``uniform-swing``, given the ballot. The honest opponent at 2021.
 
     Uses everything :func:`uniform_swing` uses, plus the target's nomination
-    roster and the pre-target arrival record. Deterministic.
+    roster and the pre-target arrival record.
+
+    **Deterministic, and reproducible across processes only because of
+    :func:`canonical_order`.** This docstring said "Deterministic" flat, and it
+    was wrong: the newcomer block hands parties with equal ward reach exactly
+    equal vote totals, the allocator's largest-remainder tie then fell to set
+    iteration order, and Johannesburg 2021 returned a seat error of 128 or 130
+    depending on ``PYTHONHASHSEED`` — 8 runs to 6 over fourteen interpreter
+    starts, measured 2026-09-13. ``canonical_order`` has the mechanism and the
+    tie-break rule that replaces it.
 
     ⛔ **THE COMPARISON THIS REPAIRS WAS NOT A COMPARISON.** ``run_model`` reads
     ``pools.contesting_parties(target.city, target.year)`` and uses it twice: to
@@ -690,27 +784,76 @@ def uniform_swing_roster(ctx: Context, draws: int = 1, seed: int | None = None):
     The model's claim at Johannesburg 2021 rests almost entirely on that layer,
     and this is the opponent that layer should be measured against.
 
-    ⚠️ **AND THAT MEANS THIS DOES NOT REPAIR THE ACTIONSA COLUMN.** It should be
-    said here rather than discovered in a scoring table. The budget is 1.9562%
-    of the city shared over 32 newcomers by reach, so ActionSA enters
-    Johannesburg 2021 at **0.1638%** of the vote and takes **one seat of 270 on
-    a remainder, against 44** (measured 2026-09-13; nothing is scored against
-    the result to obtain it — these are the reference's own inputs). No
-    backward-looking naive rule can do better, because none exists: the record's
-    90th percentile for a full-slate arrival is well under 1%, every
-    construction tried — per-party reach-matched median, reach-matched mean,
-    budget split by reach — lands ActionSA between 0.07% and 0.31%, and the only
-    pre-election evidence that ever distinguished it from the other thirty-one
-    names on that ballot was polling, which no member of this family is allowed.
+    ⚠️ **AND THAT MEANS THIS DOES NOT REPAIR THE ACTIONSA COLUMN. THE REASON IS
+    THE CEILING, NOT THE SPLIT.** It should be said here rather than discovered
+    in a scoring table.
+
+    **The arrival budget is 1.9562% of the city, for every newcomer BETWEEN
+    THEM. ActionSA took 16.052% of the combined ballot (18.118% PR, 13.983%
+    ward) and 44 seats.** Hand one party the entire measured budget — every
+    other arrival forecast a flat zero, which is the most extreme construction
+    this family permits — and it is still **8.2× short**: measured through this
+    same function, a single newcomer holding all 1.9562% takes **5 seats of
+    270, against 44**. No split of that budget can size ActionSA, because the
+    level is wrong by nearly an order of magnitude before the split is reached;
+    and the level is not a free choice, it is what parties with no prior result
+    have actually taken in a metro, measured over 21 city-years strictly before
+    2021. That is the whole argument, and it does not depend on which covariate
+    does the splitting.
+
+    **So a better covariate cannot rescue this column, and one was proposed:
+    PR-LIST LENGTH** (blind review, 2026-09-13) — ActionSA filed a full slate of
+    PR candidates where the shells ranked above it did not, which is the same
+    class of fact as ward reach: published, pre-polling-day, no lineage. It
+    would order the newcomers correctly and it is **not in the data**. Searched
+    2026-09-13: ``data/raw`` holds no candidate-level file anywhere —
+    ``elections``, ``byelections``, ``covariates``, ``geo``, ``polling``,
+    ``_source``, ``_reports`` — because the IEC's result files are party ×
+    voting district × ballot type. The PR ballot publishes one row per party per
+    VD wherever that party has a list, so its rows give *whether* a party filed,
+    never *how many names*, which is exactly the quantity that would separate
+    ActionSA from a shell. ``SOURCES.md`` already carries "no nomination lists"
+    as an outstanding acquisition. It is worth acquiring on its own merits —
+    but it buys a better split of a 5-seat budget, not a 44-seat party, and
+    adopting it here without measuring it is forbidden anyway.
+
+    The split is the second-order point and is quoted because the figures get
+    repeated: ActionSA enters at **0.1638%** of the vote — the budget times
+    134/135 over the summed reach — and ranks **sixth-equal of the 32
+    newcomers**, tied with CHANGE and behind five parties at reach 1.000, for
+    the single reason that it did not nominate a ward candidate in 1 of 135
+    wards. The reference has no other covariate with which to prefer it, and
+    the only pre-election evidence that ever distinguished ActionSA from the
+    other thirty-one names on that ballot was polling, which no member of this
+    family is allowed to see.
+
+    ⚠️ **ActionSA's ONE SEAT IS A COIN TOSS THAT `canonical_order` FIXED IN
+    PLACE, and a figure that survives only by the tie-break must say so.**
+    ActionSA and CHANGE come out on identical combined votes (4,146) and
+    identical remainders; the last seat of the shortfall goes to exactly one of
+    them, and the stated rule — equal votes break by NAME — gives it to ASA.
+    Johannesburg 2021 therefore scores a seat error of **128**, and would score
+    **130** had the same arbitrary rule sorted the other way. The uncertainty on
+    this city-year's figure is that 2 seats wide and no narrower, and it is
+    arithmetic, not forecasting. (Measured 2026-09-13; every number in these two
+    paragraphs is a property of the reference's own inputs except ActionSA's
+    realised share and seats, which are the result and are quoted as the thing
+    being missed.)
 
     So what this reference changes is the OTHER two mechanisms: thirty
     off-ballot parties stop being forecast a share they could not have won, and
     thirty-two on-ballot parties stop being forecast a structural zero. Six of
-    those thirty-two take a seat each. **That is the known cost and it is
-    stated, not hidden**: largest-remainder allocation rewards fragmentation, so
-    spreading a measured 1.96% across a long ballot buys columns that are right
-    in kind and wrong in detail. Whether the two mechanisms net out for or
-    against the reference, and by how much, is a measurement and not a claim.
+    those thirty-two take a seat each — ActionSA and five shells. **That is the
+    known cost and it is stated, not hidden**: largest-remainder allocation
+    rewards fragmentation, so spreading a measured 1.96% across a long ballot
+    buys columns that are right in kind and wrong in detail. It is realised at
+    this very target, in the other direction: the **PA won 8 seats on 2.934% of
+    the combined ballot, and this reference gives it 0** — it held 0.1527% at
+    the 2016 LGE, the national swing moves it to 0.1448%, and it finishes 17th
+    on remainders against a shortfall of 12, five places behind six newcomers it
+    outpolled by twenty to one on the day. Whether the two mechanisms net out
+    for or against the reference, and by how much, is a measurement and not a
+    claim.
 
     **The order of operations, because it is load-bearing.** The swing is
     applied to the prior columns first, exactly as :func:`uniform_swing` does,

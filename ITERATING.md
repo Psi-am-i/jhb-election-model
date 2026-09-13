@@ -335,11 +335,28 @@ struck.
 the target's nomination roster and the baselines are not.** The relabel moves one
 column at four 2011 rows and nothing on seats; the roster decides which parties
 exist at every row in the panel, including Johannesburg 2021, which supplies the
-pooled margin. A roster-aware reference (`uniform-swing+roster`) is being built to
-price it, and until it returns this is **ARGUED, not measured**. It is also the
-reason to quote paired differences rather than the margin — not the relabel. **A
-caveat aimed at the wrong mechanism is worse than none**, because it spends the
-reader's scepticism in the wrong place.
+pooled margin. It is also the reason to quote paired differences rather than the
+margin — not the relabel. **A caveat aimed at the wrong mechanism is worse than
+none**, because it spends the reader's scepticism in the wrong place.
+
+⛔ **UPDATED 2026-09-13 — THE ROSTER-AWARE REFERENCE HAS RETURNED, AND IT
+REFUTES THE ESTIMATE IT WAS COMMISSIONED ON.** This paragraph used to end "a
+roster-aware reference (`uniform-swing+roster`) is being built to price it, and
+until it returns this is ARGUED, not measured." It was built; it is
+`benchmarks.uniform_swing_roster`; and the asymmetry is **not** worth the ~30
+seats of the 2021 margin that was estimated for it. The reason is a ceiling and
+not a split: the arrival budget is what parties with no prior result have
+actually taken in a metro, measured strictly before the target, and it is an
+order of magnitude short of ActionSA whichever way it is divided — hand one
+party the whole budget and it is still short. **No backward-looking naive rule
+can size ActionSA**, so removing the information asymmetry does not rescue the
+comparison. What is left is not an information gap at all but the model's
+lineage layer, which is a claim about skill and about one hand-declared party
+in one city. MODEL-LOG §1.229; the measured figures, and the arbitrary
+tie-break band that two of them carry, live in
+`benchmarks.uniform_swing_roster` and `benchmarks.canonical_order` where they
+were taken. **The margin over the fair reference — not over plain uniform
+swing — is the number Key 1 should be read on from here.**
 
 ### Which scores may be compared across forecasters, and which may not
 
@@ -355,7 +372,7 @@ distinction is exact rather than a matter of degree:
 | `crps["total"]` | **sum** over columns | **YES** — an unscored column is identically zero in every draw against a truth of zero, so its CRPS is exactly 0 |
 | `energy` | `E‖X−y‖ − ½E‖X−X′‖` | **YES** — a zero coordinate adds nothing to a Euclidean norm |
 | `crps["mean"]` | sum ÷ `n_scored` | **NO** — flatters the forecaster with more columns; moves the model's margin 37.8% → 66.5% |
-| `variogram` | **mean over pairs** | **NO** — padding adds zero-valued pairs and grows the denominator, so the score *shrinks*: uniform swing 4.0384 → 1.8916 when padded 19 → 56 (**joburg 2021 only**, not a panel figure) |
+| `variogram` | **mean over pairs** | **NO** — padding changes it, and ⛔ **the DIRECTION is not predictable from the column counts** (corrected 2026-09-13). Padding adds `d` non-zero cross terms as well as `m(m−1)/2` zero ones, so the mean rises before it falls; the closed form, the crossover condition and the fixture that pins both limbs are in `score.hold_universe` and `score.variogram_score` — read them there rather than reasoning from "the denominator grows". The one measured panel-adjacent instance, uniform swing at **joburg 2021 only**, fell when padded 19 → 56 |
 | `n_scored`, `coverage_all` | counts over the set | **NO** |
 
 **The CRPS row is verified on the panel, not argued: max |own_total −
@@ -1181,7 +1198,7 @@ requirement to measure.
 
     **For any arrival-channel candidate, 2016 is a null arm**: all eight emitted
     2016 specs carry `arrival_group: null` and **zero** seeds,
-    `montecarlo.py:2699` leaves `group_idx = None`, and the same RNG draws are
+    `montecarlo.make_drawer` leaves `group_idx = None`, and the same RNG draws are
     consumed either way — confirmed empirically on 2026-08-29, when all eight
     2016 city-years came back byte-identical across both arms. The fold note
     under Key 4 already says this in its own case — *"gating on a fold that
@@ -1216,12 +1233,31 @@ requirement to measure.
 ⛔ **STALE SINCE THE PANEL BECAME 24, AND THIS FILE'S OWN RULE SAYS SO.**
 §1.77 instructs that every number predating §1.70 be re-read before it is quoted
 again; the panel then went 16 → 24 on 2026-09-02 and this headline never moved.
-**On the current 24 city-years the coherent seat error is 707 against uniform
-swing's 885** — a 20.1% margin, and 29.5 seats per city-year against the 24.0
-below. (An earlier version of this banner said no uniform-swing comparison had
-been taken on the wider panel. It had: `history.json` carries the column.) The paragraph is kept because the *sign* of the claim
-is what matters and it has not been retested, not because the figure is current.
+The paragraph is kept because the *sign* of the claim is what matters and it has
+not been retested, not because the figure is current.
 ⚠️ **Do not quote 384 without saying it is sixteen city-years.**
+
+⛔ **CORRECTED 2026-09-13 — THIS BANNER USED TO TYPE ITS OWN 24-PANEL HEADLINE
+("707 against uniform swing's 885, a 20.1% margin") AND BOTH HALVES OF IT ARE
+NOW UNQUOTABLE.** Two separate faults, and they are worth separating:
+
+* **707 is a tree state, not the panel.** The committed artefact
+  `data/processed/history.json` carries the totals; `audits/DOC-INTEGRITY-2026-09-10.md`
+  §2 already recorded that 707 came from a different tree than the one that
+  stamped the ✅ beside it, and §1.214/§1.218/§1.225 moved it again. **The
+  number is read from the run and is not typed here.** What the artefact holds
+  today additionally predates this week's instrument repairs — it is
+  `HISTORY_SCHEMA` 1, generated at the parent commit with `git_dirty: true` —
+  so every total in it is awaiting the canonical run, not merely out of date.
+* **Uniform swing is no longer the opponent this margin should be quoted
+  against.** `benchmarks.uniform_swing_roster` gives the reference the same
+  nomination roster the model reads, which is the asymmetry the paragraph two
+  sections up was written about. It is a materially harder opponent than plain
+  `uniform-swing`, so **the margin against the fair reference is much smaller
+  than the margin against uniform swing** — read both from the run, and quote
+  the fair one. MODEL-LOG §1.229; the panel figures, the tie-break band on
+  them and the reason they must never be quoted without that band are in
+  `benchmarks.canonical_order`'s docstring, which is where they were measured.
 
 The only question this file asks is whether the model predicts past elections
 better than the last version and better than the baselines. It does: **384
@@ -1272,11 +1308,17 @@ Everything with a measurement behind it has now been tried:
 Its original 254 → 348 is withdrawn as evidence on three counts: it was scored
 after `backtest.relabel_run`, which renames the model's nameless `ENTRANT` onto
 `max(newcomers, key=seats)` — the largest realised arrival, chosen with the
-outcome in hand (`backtest.py:596`); half its panel is a **structural null arm**
+outcome in hand (`backtest.relabel_run` / `entrant_actual_for`); half its panel is a **structural null arm**
 (all eight 2016 specs carry `arrival_group: null` and zero seeds); and the lever
 is **mis-scoped** — it zeroes every seeded arrival column, so it deletes the
-splinter channel rather than replacing the generic slot, turning ActionSA's 6.85%
-seed into 0.18% against an actual 18.12%.
+splinter channel rather than replacing the generic slot, turning ActionSA's pool
+seed into a challenger-sized 0.18% against an actual 18.12%.
+⚠️ **The seed is an EMITTED value and must not be typed here** (2026-09-13):
+this sentence carried "6.85%", which was the seed in the spec current on
+2026-08-29 and is not the seed in any spec on disk since — the 2026-09-02
+archive holds 6.756% and the live `data/processed/pools_2021.json` holds
+6.840%. Read it from `seeds["ASA"]` in the spec for the run being described;
+the same figure was typed into three documents and all three disagreed.
 
 The fair re-run was done on 2026-08-29 with the label-free referee and **the
 refutation holds** — 2 of 8 metros at 2021, pooled Σ|mass_err| 0.2714 → 0.5084,

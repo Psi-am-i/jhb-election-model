@@ -770,6 +770,402 @@ def test_the_group_label_names_the_cities_in_the_group():
 
 
 # ---------------------------------------------------------------------------
+# F11 — the statistic that is PRINTED is the statistic that was COMPUTED
+#
+# `score.chi2_clustered` was written, tested, documented with a four-row table
+# of its own results — and called by nothing. `render_calibration` went on
+# printing `pit_histogram`'s nominal χ² under the words "the χ² column is the
+# test of uniformity", and a commit message said the clustered test "has
+# finally been run" and "is now averaged over replicates". Both sentences were
+# true of a function no production path reached.
+#
+# The printed number was also unquotable in its own right: it is ONE
+# randomisation of a discrete PIT, and a re-roll moves the `reference`
+# population from 19.31 to 66.19 with the model standing still.
+# ---------------------------------------------------------------------------
+
+def _uniformity_cells(text: str) -> dict[str, float]:
+    """The uniformity-test cell of every pooled-calibration row, parsed.
+
+    A pure predicate over the rendered text, which is what gives the two tests
+    below a mechanical positive control: the same parser reads the fixed report
+    and a constructed pre-fix one, and only the parser's OUTPUT is compared to
+    the computed statistic. Rows are keyed by population, taken from
+    `C._POP_LABEL` so a relabelling cannot make this scan silently empty.
+
+    The COLUMN is found by its header rather than by position, so a table that
+    grows a column on the right does not quietly leave this reading a different
+    number. If the header is not found nothing is returned, and the callers
+    fail on an empty scan rather than on a wrong one.
+    """
+    by_label = {label: pop for pop, label in C._POP_LABEL.items()}
+    index, out = None, {}
+    for line in text.splitlines():
+        if not line.startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if cells[0] == "population":
+            index = next((i for i, c in enumerate(cells) if "χ²" in c), None)
+            continue
+        pop = by_label.get(cells[0])
+        if pop is None or index is None or index >= len(cells):
+            continue
+        value = re.match(r"^(-?\d+(?:\.\d+)?)", cells[index])
+        out[pop] = float(value.group(1)) if value else float("nan")
+    return out
+
+
+def _uniformity_offences(text: str, pooled: dict) -> list[str]:
+    """Cells that are not the clustered, replicate-averaged statistic.
+
+    ⛔ THE COMPARISON IS TO A NUMBER, not to a word beside it. A test that
+    asserted the report contains the string "clustered" would have passed on
+    every day this defect existed: the paragraph said so while the cell carried
+    the nominal figure.
+    """
+    cells = _uniformity_cells(text)
+    offences = []
+    for pop, block in pooled.items():
+        clustered = block["pit_clustered"]
+        if pop not in cells:
+            offences.append(f"{pop}: no row in the pooled table at all")
+            continue
+        if not clustered.get("estimable"):
+            continue
+        if abs(cells[pop] - round(clustered["chi2_rs"], 1)) > 0.051:
+            offences.append(
+                f"{pop}: the table prints {cells[pop]} where "
+                f"`score.chi2_clustered` computed χ²_RS "
+                f"{clustered['chi2_rs']:.1f} (the nominal single-randomisation "
+                f"χ² beside it is {block['pit']['chi2']:.1f})")
+    return offences
+
+
+def _mixed_record(year="2011", seed=7, parties=12):
+    """A city-year whose FOUR POPULATIONS ARE DIFFERENT SETS OF COLUMNS.
+
+    ⛔ `_record` gives every party seats in every draw and a seat in the
+    outcome, so `reference`, `claimed`, `seat_holders` and `all` come out as
+    the same 80 columns with the same statistic — a fixture on which a report
+    that printed ONE population's number in all four rows passes. The claim
+    being made is per-population, so the fixture has to be too.
+
+    Four classes of column, one per population boundary:
+
+    ==========================  ===========================================
+    the model gives seats,      every population
+    the party wins one
+    the model gives NOTHING,    not `claimed` (it claims no seat), and a PIT
+    the party wins a seat       of exactly 1.0
+    the model gives seats,      not `seat_holders`
+    the party wins none
+    zero on both sides          `reference` only — `score.seat_matrix`
+                                refuses the column anywhere else
+    ==========================  ===========================================
+    """
+    rng = np.random.default_rng(seed)
+    names = [f"P{j}" for j in range(parties)]
+    draws = [{} for _ in range(400)]
+    actual = {}
+    for j, party in enumerate(names):
+        kind = j % 4
+        if kind == 0:
+            column, actual[party] = rng.poisson(6, 400), int(rng.poisson(6))
+        elif kind == 1:
+            column, actual[party] = np.zeros(400, int), int(1 + rng.poisson(1))
+        elif kind == 2:
+            column, actual[party] = rng.poisson(3, 400), 0
+        else:
+            column, actual[party] = np.zeros(400, int), 0
+        for d, value in zip(draws, column):
+            d[party] = int(value)
+    return {
+        "city": "Johannesburg", "slug": "joburg", "year": year, "council": 270,
+        "calibration": C.calibration_columns(
+            draws, actual, None, seed,
+            actual_pr={p: 0.40 - 0.03 * j for j, p in enumerate(names)},
+            reference=names)}
+
+
+def _calibration_panel(n=10):
+    """A panel LARGE ENOUGH FOR THE TEST TO BE ESTIMABLE, constructed.
+
+    `chi2_clustered` needs eight clusters before it will estimate a design
+    effect, and says `not established` below that — so a two-city-year fixture,
+    which is what the rest of this file uses, cannot tell the wired report from
+    the unwired one. The seeds differ per row so the city-years are not copies
+    of one another.
+    """
+    years = ("2011", "2016", "2021")
+    return [_mixed_record(year=years[i % 3], seed=100 + i) for i in range(n)]
+
+
+def test_the_uniformity_column_prints_the_clustered_replicate_averaged_test():
+    """⛔ THE INSTRUMENT IS WIRED, AND THE EVIDENCE IS THE PRINTED NUMBER.
+
+    Three things, in order:
+
+    1. **IT LOOKED.** Every population reaches the table and every one of them
+       is `estimable` — on a panel of fewer than eight city-years the statistic
+       refuses to produce a number and this test would compare nothing.
+    2. **THE FIXTURE SEPARATES THE TWO ANSWERS.** The nominal χ² and the
+       clustered one must differ by more than the table's own rounding, or a
+       cell carrying either would satisfy the claim and the test would be
+       furniture.
+    3. **THE CLAIM.** Every cell is the clustered, replicate-averaged χ²_RS.
+    """
+    results = _calibration_panel()
+    pooled = C.pooled_calibration(results)
+    text = C.render_calibration(results)
+
+    # (1) IT LOOKED — two-sided, against the populations the report renders.
+    cells = _uniformity_cells(text)
+    scanned(set(cells), of=set(C.POPULATIONS), low=1.0, high=1.0,
+            what="populations whose uniformity cell was parsed",
+            denominator="populations the report renders")
+    for pop in C.POPULATIONS:
+        clustered = pooled[pop]["pit_clustered"]
+        assert clustered["estimable"], (
+            f"{pop}: `chi2_clustered` is not estimable on a {len(results)}"
+            f"-city-year panel ({clustered['verdict']}), so this test compares "
+            f"nothing. Enlarge the fixture rather than lowering the bar.")
+        assert clustered["replicates"] > 1, (
+            f"{pop}: R={clustered['replicates']}. The statistic printed would "
+            f"be a SINGLE randomisation — the property this whole change "
+            f"exists to remove — and the fixture's blocks must be carrying no "
+            f"`pit_lo`/`pit_w`.")
+
+    # (2) THE FIXTURE SEPARATES THEM — both ways, because the claim is made of
+    # each population separately and a fixture on which the four coincide
+    # cannot see a row printing another population's number.
+    gaps = {pop: abs(pooled[pop]["pit"]["chi2"]
+                     - pooled[pop]["pit_clustered"]["chi2_rs"])
+            for pop in C.POPULATIONS}
+    assert min(gaps.values()) > 0.1, (
+        f"the nominal and clustered statistics are indistinguishable at the "
+        f"table's precision on this fixture ({gaps}), so a report printing "
+        f"either would pass. The fixture, not the assertion, is what needs "
+        f"changing.")
+    distinct = {round(pooled[pop]["pit_clustered"]["chi2_rs"], 1)
+                for pop in C.POPULATIONS}
+    assert len(distinct) == len(C.POPULATIONS), (
+        f"the {len(C.POPULATIONS)} populations produce {len(distinct)} "
+        f"distinct statistics on this fixture, so a table printing one "
+        f"population's number in every row would pass. See `_mixed_record`, "
+        f"which exists for exactly this.")
+
+    # (3) THE CLAIM.
+    offences = _uniformity_offences(text, pooled)
+    assert not offences, "\n".join(offences)
+
+
+def test_the_uniformity_guard_sees_the_nominal_chi2_being_printed_instead():
+    """(2) IT CAN SEE, on (3) A CONSTRUCTED input — twice, two ways.
+
+    **The mutation.** `score.chi2_clustered` is replaced by a wrapper that
+    moves the corrected statistic to a value it cannot otherwise take. The
+    report must follow it. Nothing in the pre-fix code path could: it read
+    `pit_histogram`'s χ², which this patch does not touch, so the wiring —
+    not a form of words about it — is what this asserts.
+
+    **The constructed violation.** The pre-fix table row, rebuilt with the
+    nominal single-randomisation χ² in the cell, is pushed through the same
+    parser and the same predicate, which must report it.
+    """
+    results = _calibration_panel()
+    real = C.S.chi2_clustered
+    sentinel = 7.77
+
+    def moved(*args, **kwargs):
+        out = dict(real(*args, **kwargs))
+        out["chi2_rs"] = sentinel
+        return out
+
+    C.S.chi2_clustered = moved
+    try:
+        pooled = C.pooled_calibration(results)
+        text = C.render_calibration(results)
+    finally:
+        C.S.chi2_clustered = real
+
+    cells = _uniformity_cells(text)
+    assert cells and all(v == round(sentinel, 1) for v in cells.values()), (
+        f"the uniformity cells read {cells} while `score.chi2_clustered` was "
+        f"returning χ²_RS {sentinel} for every population. The report is not "
+        f"printing that function's output, which is the defect: the column "
+        f"carried `pit_histogram`'s nominal χ² for as long as it existed.")
+    assert not _uniformity_offences(text, pooled), (
+        "the predicate disagrees with itself about the patched report")
+
+    # THE CONSTRUCTED VIOLATION — the pre-fix cell, through the same parser.
+    # Constructed rather than measured: a violation built out of a real run is
+    # a premise that expires the day the run changes, and the predicate under
+    # test is a comparison of two numbers that need not be anyone's.
+    fake = {pop: {"n": 100, "pit": {"chi2": 55.6, "mean": 0.579},
+                  "pit_clustered": {"estimable": True, "chi2_rs": 32.3,
+                                    "chi2_crit_95": 16.92}}
+            for pop in C.POPULATIONS}
+    pre_fix = "\n".join(
+        ["| population | n | 50% | 80% | 90% | mean PIT | χ² vs flat (5% crit) |",
+         "|---|---|---|---|---|---|---|"]
+        + [f"| {C._POP_LABEL[pop]} | {fake[pop]['n']} | 50% | 80% | 90% | "
+           f"{fake[pop]['pit']['mean']:.3f} | {fake[pop]['pit']['chi2']:.1f} "
+           f"({fake[pop]['pit_clustered']['chi2_crit_95']}) |"
+           for pop in C.POPULATIONS])
+    caught = _uniformity_offences(pre_fix, fake)
+    assert len(caught) == len(C.POPULATIONS), (
+        f"the pre-fix table — the nominal single-randomisation χ² in the "
+        f"uniformity cell — produced {len(caught)} offence(s) against "
+        f"{len(C.POPULATIONS)} populations: {caught}. A guard that cannot see "
+        f"the code it was written for is furniture.")
+
+
+def test_the_printed_uniformity_statistic_is_not_one_roll_of_the_dice():
+    """⛔ WHAT IS PRINTED MUST NOT BE A DRAW FROM A DISTRIBUTION.
+
+    The PIT of an integer seat count is randomised inside its jump, so a χ²
+    computed on one draw of it is a function of the randomisation seed as much
+    as of the model: on the committed 24-city-year panel a re-roll moves the
+    `reference` population's nominal figure from 19.31 to 66.19 with the model
+    standing still.
+
+    **The two numbers this asserts are computed by the run, not typed here.**
+    `chi2_sd` is the spread of the nominal statistic across the R
+    randomisations — the instability itself, measured — and `chi2_sd / sqrt(R)`
+    is what is left of it once the statistic is averaged over them, which is
+    what the report prints.
+
+    ⚠️ **A re-roll experiment was tried here first and is the wrong test.**
+    Re-seeding the whole panel and comparing the spread of the printed figure
+    with the spread of the nominal one gave a ratio anywhere between 1.1 and
+    10.7 across five-seed groups — an honest measurement of nothing, since a
+    spread estimated from five draws is mostly noise, and any threshold on it
+    would be a coin toss. MEMORY: "one measurement is not a robust one".
+    """
+    import math
+
+    pooled = C.pooled_calibration(_calibration_panel())
+    for pop in C.POPULATIONS:
+        clustered = pooled[pop]["pit_clustered"]
+        reps = clustered["replicates"]
+        assert clustered["estimable"] and reps > 1, (
+            f"{pop}: R={reps}, estimable={clustered['estimable']} — there is "
+            f"no average here to test")
+
+        # (1) THE INSTABILITY IS REAL ON THIS FIXTURE, measured. Without this
+        # the comparison below could be satisfied by a statistic that does not
+        # move because nothing in the fixture randomises.
+        assert clustered["chi2_sd"] > 0.0, (
+            f"{pop}: the nominal χ² does not move at all across {reps} "
+            f"randomisations of this panel, so there is nothing here for the "
+            f"averaging to fix and this test proves nothing.")
+
+        # (2) AND EVERY REPLICATE REACHED IT. The default is read off
+        # `redraw_pits` rather than typed, because the defect this catches is
+        # the report passing each city-year's STORED single randomisation —
+        # which is what `pooled_calibration` already held in `pits` and is one
+        # slip away from being the thing handed to the test. That slip leaves
+        # R=1, a legal-looking result, and the unstable number back in the
+        # column under a corrected name.
+        wanted = inspect.signature(C.redraw_pits).parameters["replicates"].default
+        assert reps == wanted, (
+            f"{pop}: the statistic averaged {reps} randomisations where "
+            f"`redraw_pits` draws {wanted}. The report is not being handed the "
+            f"replicates it computes.")
+        # (3) AND THE SINGLE ROLL THE REPORT USED TO PRINT IS A DIFFERENT
+        # NUMBER — not a rounding of the same one. Compared like with like:
+        # one draw of the NOMINAL statistic against the R-average of that same
+        # statistic, and the yardstick is that average's own randomisation
+        # standard error, `chi2_sd / sqrt(R)`.
+        se = clustered["chi2_sd"] / math.sqrt(reps)
+        single = pooled[pop]["pit"]["chi2"]
+        assert abs(single - clustered["chi2"]) > se, (
+            f"{pop}: the stored single randomisation reads {single:.2f} "
+            f"against the R-averaged {clustered['chi2']:.2f}, inside the "
+            f"averaged figure's own standard error. This fixture cannot "
+            f"distinguish the two and the test above is decorative.")
+
+
+# ---------------------------------------------------------------------------
+# F12 — one cluster resampler, and the report's intervals are shown to use it
+#
+# `score.cluster_bootstrap`'s docstring asked, in writing, that
+# `compare_history`'s private copy "become a call to this" when the file was
+# next opened. The file was then opened and 807 lines changed with the copy
+# left in place — a self-cancelling TODO, and two definitions of a published
+# interval under the owner's one-definition rule.
+# ---------------------------------------------------------------------------
+
+def test_the_report_has_no_private_cluster_resampler_left():
+    """The absence, and a positive control for the detector that reads it."""
+    source = (ROOT / "src" / "compare_history.py").read_text(encoding="utf-8")
+
+    def defines_one(text: str) -> bool:
+        return bool(re.search(r"^\s*def _?cluster_bootstrap", text, re.M))
+
+    # IT CAN SEE: the deleted function's own signature, through this detector.
+    assert defines_one(
+        "def _cluster_bootstrap_ci(groups, level=0.95, draws=20_000):\n"
+        "    return float('nan'), float('nan'), draws\n"), (
+        "the detector does not recognise the definition it was written to "
+        "find, so its verdict on the real file means nothing")
+    assert not defines_one(source), (
+        "`compare_history` defines a cluster resampler again. There is one, it "
+        "lives in `score.py`, and a second definition of a published interval "
+        "is the failure mode `score.column_rng` exists for.")
+    assert not hasattr(C, "_cluster_bootstrap_ci"), (
+        "`_cluster_bootstrap_ci` is importable from `compare_history` again")
+
+
+def test_every_interval_in_the_band_table_comes_from_score_cluster_bootstrap():
+    """⛔ THE CALL SITES ARE PROVED BY MOVING THE FUNCTION'S ANSWER.
+
+    Both of them: the mean-PIT interval and the ~60 coverage-row intervals.
+    `score.cluster_bootstrap` is replaced by a wrapper that moves the endpoints
+    somewhere they cannot otherwise land, and every interval in the block must
+    move with it. A private copy — or one call site left behind on one — fails
+    this without any need to know where it is.
+    """
+    results = [_record(year=y, seed=s) for y, s in (("2011", 1), ("2016", 2),
+                                                    ("2021", 3))]
+    real = C.S.cluster_bootstrap
+    moved = (-0.125, 0.875)
+    seen = []
+
+    def spy(groups, *args, **kwargs):
+        out = dict(real(groups, *args, **kwargs))
+        seen.append(len(groups))
+        out["lo"], out["hi"] = moved
+        return out
+
+    C.S.cluster_bootstrap = spy
+    try:
+        bands = C.pooled_by_band(results, "claimed")
+    finally:
+        C.S.cluster_bootstrap = real
+
+    intervals = []
+    for band, block in bands.items():
+        intervals.append((band, "mean PIT", tuple(block["ci"])))
+        for key in ("coverage", "pit_coverage"):
+            for row in block[key]:
+                intervals.append((band, f"{key} {row['level']}",
+                                  tuple(row["ci"])))
+    # IT LOOKED, two-sided: one mean-PIT interval and two coverage triples per
+    # band, so the count is fixed by the table's own shape rather than by a
+    # number typed here.
+    expected = len(bands) * (1 + 2 * len(C.LEVELS))
+    assert len(intervals) == expected and seen, (
+        f"{len(intervals)} intervals found against {expected} the band table "
+        f"has room for, on {len(seen)} resampler calls")
+    wrong = [i for i in intervals if i[2] != moved]
+    assert not wrong, (
+        f"{len(wrong)} of {len(intervals)} intervals did not follow "
+        f"`score.cluster_bootstrap` when its answer was moved: {wrong[:3]}. "
+        f"They are being computed somewhere else.")
+
+
+# ---------------------------------------------------------------------------
 # F10 — labels that do not mislead
 # ---------------------------------------------------------------------------
 
@@ -1125,6 +1521,89 @@ def test_the_guard_columns_name_keys_montecarlo_actually_produces():
         f"payload does not produce. Those columns will read `-` in every row "
         f"for ever, which is indistinguishable from a guard that did not fire.")
 
+def _contaminated_calls(source: str) -> list[ast.Call]:
+    """Every ``*.contaminated(...)`` call in a block of source, parsed.
+
+    Parsed, not grepped: a regex over the call TEXT is brittle — `[^)]*` stops
+    at the `)` inside `set()`, which is how the first version of this guard
+    failed on correct code.
+    """
+    import textwrap
+    tree = ast.parse(textwrap.dedent(source))
+    return [n for n in ast.walk(tree)
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+            and n.func.attr == "contaminated"]
+
+
+def _scenario_disclosure_offences(source: str) -> list[str]:
+    """Calls to ``backtest.contaminated`` that hand it no usable scenario.
+
+    ⛔ **THE CLAIM IS ABOUT THE ARGUMENT, AND IT IS MADE OF EVERY CALL SITE.**
+    An arity test passes on `contaminated(year, set(), read, None)`, which
+    discloses precisely what the pre-fix three-argument call disclosed: the
+    parameter defaults to `None`, so the fourth position can be filled with the
+    default and nothing changes. What the call must pass is an expression
+    carrying the run's scenario — so this asks whether the argument bound to
+    that parameter MENTIONS a name derived from `scenario`, which `None`, `{}`
+    and an unrelated local all fail.
+
+    The parameter's NAME and POSITION come from
+    :func:`backtest.contaminated`'s own signature rather than from a literal 4
+    written here, so a reorder or a rename turns this red instead of leaving it
+    reading a stale index.
+    """
+    import textwrap
+    params = list(inspect.signature(B.contaminated).parameters)
+    assert "scenario" in params, (
+        f"`backtest.contaminated` has parameters {params} and none of them is "
+        f"`scenario`. Either it was renamed — in which case this guard is "
+        f"about to check the wrong argument — or the uninstrumented half of "
+        f"the register has lost its route in.")
+    index = params.index("scenario")
+
+    tree = ast.parse(textwrap.dedent(source))
+    # Names that carry the scenario: the parameter itself, and anything
+    # assigned from an expression mentioning one of them. Two passes, because
+    # `a = scenario; b = a` chains and one pass would miss `b`.
+    carriers = {"scenario"}
+    for _ in range(2):
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+                continue
+            value = getattr(node, "value", None)
+            if value is None:
+                continue
+            if not any(isinstance(n, ast.Name) and n.id in carriers
+                       for n in ast.walk(value)):
+                continue
+            targets = (node.targets if isinstance(node, ast.Assign)
+                       else [node.target])
+            carriers |= {t.id for t in targets if isinstance(t, ast.Name)}
+
+    offences = []
+    for call in _contaminated_calls(source):
+        bound = call.args[index] if len(call.args) > index else None
+        for kw in call.keywords:
+            if kw.arg == "scenario":
+                bound = kw.value
+            elif kw.arg is None:              # **kwargs — unreadable from here
+                bound = kw.value
+        line = getattr(call, "lineno", "?")
+        if bound is None:
+            offences.append(
+                f"line {line}: passes {len(call.args) + len(call.keywords)} "
+                f"argument(s) and no `scenario` at position {index}")
+            continue
+        if not any(isinstance(n, ast.Name) and n.id in carriers
+                   for n in ast.walk(bound)):
+            offences.append(
+                f"line {line}: passes `{ast.unparse(bound)}` as the scenario, "
+                f"which mentions nothing derived from the run's scenario "
+                f"(carriers: {sorted(carriers)}). The uninstrumented register "
+                f"is reached through that argument and only through it.")
+    return offences
+
+
 def test_the_disclosure_names_the_uninstrumented_constants_too():
     """The two halves of the register must BOTH reach the artefact.
 
@@ -1171,22 +1650,26 @@ def test_the_disclosure_names_the_uninstrumented_constants_too():
     # BACKTEST function can do it; this proves `compare_history` does, which is
     # the half that was broken. Asserted on the source, because running a
     # city-year here would cost minutes and need the archive.
-    # Parsed, not grepped: a regex over the call text is brittle (`[^)]*`
-    # stops at the `)` inside `set()`, which is how the first version of this
-    # assertion failed on correct code). Count the ARGUMENTS.
-    import ast, textwrap
-    tree = ast.parse(textwrap.dedent(inspect.getsource(C.run_city_year)))
-    calls = [n for n in ast.walk(tree)
-             if isinstance(n, ast.Call)
-             and isinstance(n.func, ast.Attribute)
-             and n.func.attr == "contaminated"]
-    assert calls, "`run_city_year` no longer calls `B.contaminated` at all"
-    assert any(len(c.args) + len(c.keywords) >= 4 for c in calls), (
-        "`run_city_year` calls `B.contaminated` with "
-        f"{[len(c.args) + len(c.keywords) for c in calls]} argument(s) and the "
-        "scenario is the fourth. Without it the call returns the instrumented "
-        "register only, and the uninstrumented constants — `level_shrink` "
-        "among them — go unnamed in `history.json`.")
+    #
+    # ⛔ THE ARGUMENT, NOT THE ARITY, AND EVERY CALL SITE, NOT ANY.
+    # This assertion read `any(len(c.args) + len(c.keywords) >= 4 ...)` until
+    # 2026-09-13 and was satisfied by `B.contaminated(year, set(), read, None)`
+    # — four arguments disclosing exactly nothing, because the parameter
+    # defaults to `None` and `None` is what the pre-fix call effectively passed.
+    # `any` was the second hole: with two call sites one correct call covered a
+    # broken one, and the broken one is the one that writes the artefact.
+    source = inspect.getsource(C.run_city_year)
+    sites = len(re.findall(r"\.contaminated\s*\(", source))
+    scanned(_contaminated_calls(source), of=sites, low=1.0, high=1.0,
+            what="`B.contaminated` call sites the AST walk found",
+            denominator="`.contaminated(` occurrences in run_city_year")
+    offences = _scenario_disclosure_offences(source)
+    assert not offences, (
+        "`run_city_year` does not hand `B.contaminated` the run's scenario:\n"
+        + "\n".join(offences)
+        + "\nWithout it the call returns the instrumented register only, and "
+          "the uninstrumented constants — `level_shrink` among them — go "
+          "unnamed in `history.json`.")
 
 
 def test_the_disclosure_guard_can_see_the_scenario_being_dropped():
@@ -1204,6 +1687,52 @@ def test_the_disclosure_guard_can_see_the_scenario_being_dropped():
         "the pre-fix call already disclosed an uninstrumented constant, so the "
         "guard above cannot distinguish the fixed code from the broken code "
         "and proves nothing.")
+
+    # AND THE SOURCE-LEVEL HALF OF THE GUARD, MUTATED. Four shapes, three of
+    # which an ARITY test — the assertion that stood here until 2026-09-13 —
+    # accepts. The `None` form is the one that matters: it satisfies
+    # `len(args) >= 4` and discloses exactly what the three-argument call
+    # discloses, because `None` IS that parameter's default.
+    def shaped(call: str) -> str:
+        return ("def run_city_year(target, scenario=None):\n"
+                "    scenario_defaults = {k: v for k, v in (scenario or {}).items()}\n"
+                "    other = _guard_block(run)\n"
+                f"    contaminated = {call}\n"
+                "    return contaminated\n")
+
+    broken = {
+        "the pre-fix call": "B.contaminated(year, set(), read)",
+        "the default passed explicitly": "B.contaminated(year, set(), read, None)",
+        "an empty scenario": "B.contaminated(year, set(), read, {})",
+        "a keyword None": "B.contaminated(year, set(), read, scenario=None)",
+        "an unrelated local": "B.contaminated(year, set(), read, other)",
+    }
+    for label, call in broken.items():
+        assert _scenario_disclosure_offences(shaped(call)), (
+            f"{label} — `{call}` — passed the guard. It discloses the "
+            f"instrumented register only, and the guard above is furniture.")
+        assert len(_contaminated_calls(shaped(call))) == 1, (
+            f"the AST walk did not even find the call in {label}, so the "
+            f"result above says nothing about the predicate")
+
+    # THE POSITIVE CONTROL, equally constructed: the fixed shapes pass.
+    for label, call in {
+            "positional": "B.contaminated(year, set(), read, scenario_defaults)",
+            "keyword": "B.contaminated(year, set(), read, scenario=scenario)",
+            "inline": "B.contaminated(year, set(), read, dict(scenario))",
+    }.items():
+        assert not _scenario_disclosure_offences(shaped(call)), (
+            f"the {label} form — `{call}` — is refused by the guard, which "
+            f"would make the only way to pass it a single blessed spelling")
+
+    # TWO CALL SITES, ONE BROKEN: `any` covered this and the fix must not.
+    both = shaped("B.contaminated(year, set(), read, scenario_defaults)").replace(
+        "    return contaminated\n",
+        "    also = B.contaminated(year, set(), read)\n    return contaminated\n")
+    assert len(_contaminated_calls(both)) == 2
+    assert _scenario_disclosure_offences(both), (
+        "a correct call site covered a broken one. The artefact is written by "
+        "ONE of them and the guard cannot know which.")
 
 
 # ---------------------------------------------------------------------------

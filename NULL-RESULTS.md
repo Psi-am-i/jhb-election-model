@@ -66,7 +66,7 @@ Today's evidence that all four are present and confused:
 
 Added 2026-08-29 (§1.136). **`arrival_group_draw` is a structural null at every
 2016 target.** All eight emitted 2016 specs carry `arrival_group: null` and
-**zero** seeds; `montecarlo.py:2699` leaves `group_idx = None`, control falls to
+**zero** seeds; `montecarlo.make_drawer` leaves `group_idx = None`, control falls to
 the incumbent branch, and the **same RNG draws are consumed either way** —
 confirmed empirically when all eight 2016 city-years came back byte-identical
 across both arms.
@@ -160,7 +160,7 @@ The repository is not naive about this. It has:
    cover it.** Its comment cites *"the one `LEVEL_DF` was in for weeks"* — and it
    checks five `levels` names. `LEVEL_DF` is `montecarlo.LEVEL_DF`. It is not
    covered. Neither is anything in `polling`.
-3. **`EXPECTED_INERT` reasons are claims, not evidence.** `pools.py:248` records
+3. **`EXPECTED_INERT` reasons are claims, not evidence.** `pools.artefact_key`'s docstring records
    that two of them were written from unstable readings and had to be retracted.
    A prose reason cannot distinguish A from D — which is the entire problem.
 

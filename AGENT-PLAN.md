@@ -139,7 +139,7 @@ identified.
   checked: anything that moves a number was mis-triaged and comes back.
 
 **The known coupling that decides order:** F1+F2+F7 — fixing the
-`spine_k or SPINE_K` idiom alone makes `k = 0` deliverable and `levels.py:882`
+`spine_k or SPINE_K` idiom alone makes `k = 0` deliverable and `levels.spine`'s `k / (worth + k)`
 then evaluates `0.0/0.0` for ten parties at 2026. One repair, not two.
 
 ## Workstream 3 — the bottom-up model ★ highest upside, least specified
@@ -163,7 +163,7 @@ is right.
 
 Established §1.98/§1.102: the model fits `PartyFit.rates` — *"appeal rate within
 each pool"*, with Duncan-Davis bounds — then **stores the transpose** and never
-persists the rates. The one place pools allocate geography (`montecarlo.py:2499`,
+persists the rates. The one place pools allocate geography (`montecarlo.pool_spec`,
 seeded parties only) uses the transpose, over-weighting every pool by its own
 citywide size — a **13× relative discount** of the smallest pool against the
 largest.

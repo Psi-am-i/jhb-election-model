@@ -139,10 +139,23 @@
 > ⚠️ **The asymmetry that IS material is a different mechanism: the model is given
 > the target's nomination roster and the baselines are not.** It decides which
 > parties exist at every row, including Johannesburg 2021, which supplies the
-> pooled margin. A roster-aware reference (`uniform-swing+roster`) is being built
-> to price it. **ARGUED, not measured, until that reference returns** — and it is
-> the reason to **quote paired differences rather than the margin**, not the
-> relabel.
+> pooled margin. It is the reason to **quote paired differences rather than the
+> margin**, not the relabel.
+>
+> ⛔ **UPDATED 2026-09-13 — THE REFERENCE HAS RETURNED. This banner said "a
+> roster-aware reference (`uniform-swing+roster`) is being built to price it.
+> ARGUED, not measured, until that reference returns."** It was built, it is
+> `benchmarks.uniform_swing_roster`, and it **refutes the ~30-seat estimate that
+> commissioned it**: no backward-looking naive rule can size ActionSA, because
+> the arrival budget — what parties with no prior result have actually taken in a
+> metro, measured strictly before the target — is an order of magnitude short of
+> it before any split is reached. Removing the asymmetry does not rescue the
+> comparison; what remains is the model's lineage layer, which is a claim about
+> skill and about one hand-declared party in one city. MODEL-LOG §1.229.
+> ⚠️ **Two of its panel figures carry an arbitrary tie-break band and must be
+> quoted with it** — see `benchmarks.canonical_order`, which is where they were
+> measured, and **not the "839" that circulated in this batch's early notes:
+> that was one draw of a hash-dependent number.**
 >
 > **On the freeze, since the owner asked what it is for.** `forecast_frozen.json`
 > is NOT an orphan: it records commit `82c61e1` with `git_dirty: false`, and
@@ -393,8 +406,8 @@ THAT.** On 2026-08-29 `git status --short` was clean, the suite was **377 passed
 / 0 failed / 10 skipped**, and `freeze --verify` said VERIFIED — while
 `backtest.arrival_group_score` raised `IndexError` on **all sixteen**
 city-years and had never produced a number in its life. `freeze --verify`
-re-runs the MODEL and hashes its output (`freeze.py:290`); it never imports the
-scoring path. **The preflight tests the model and has no instrument that can see
+re-runs the MODEL and hashes its output (`freeze.main`, which calls
+`M.run_model`); it never imports the scoring path. **The preflight tests the model and has no instrument that can see
 a broken referee.** So it now has a fourth step:
 
     git status --short                      # must be clean

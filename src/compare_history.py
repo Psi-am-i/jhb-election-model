@@ -936,6 +936,13 @@ def pooled_calibration(results, bins: int = 10,
     changed since the nine-city-year reading quoted here (0.587 / 0.431 /
     0.750): ranks 1-3 is now centred, and the whole departure is the middle.
     See :func:`pooled_by_band` and MODEL-LOG §1.36, §1.146.
+
+    ``pit_clustered`` is :func:`score.chi2_clustered` over the same city-years,
+    which is **the uniformity test this report quotes**: the nominal χ² in
+    ``pit`` is one randomisation of a discrete PIT read against a critical value
+    that assumes independent columns, and neither assumption holds here. The
+    clustered statistic is averaged over the R re-randomisations and corrected
+    for the clustering, and it carries its own replicate spread.
     """
     out = {}
     for pop in POPULATIONS:
@@ -978,9 +985,33 @@ def pooled_calibration(results, bins: int = 10,
             mids.extend(np.asarray(b["pit_lo"], dtype=float)
                         + np.asarray(b["pit_w"], dtype=float) / 2.0)
         exact_mean = float(np.mean(mids)) if (exact_all and mids) else float("nan")
+        # ⛔ THE TEST THAT IS QUOTED MUST BE THE TEST THAT WAS COMPUTED.
+        # `pit_histogram`'s χ² is ONE randomisation of a discrete PIT, scored
+        # against a critical value that assumes independent columns; the columns
+        # inside a city-year are not independent. `score.chi2_clustered` is the
+        # corrected test, averaged over the R re-randomisations, and it is what
+        # `render_calibration` prints. It was written, tested and called by
+        # NOTHING until this line — the report went on printing the nominal
+        # single-randomisation figure under the words "the test of uniformity".
+        #
+        # The nominal `pit` block is kept beside it because the histogram it
+        # describes is printed too, and because the `chi2_sd` this returns is the
+        # derived evidence that one randomisation is not quotable: it is the
+        # spread of that same nominal statistic across re-rolls with the model
+        # standing still.
+        #
+        # ⚠️ A block written before the jump intervals existed yields one
+        # replicate where the others yield R, and `chi2_clustered` refuses a
+        # ragged panel rather than averaging over a different population per
+        # cluster. Every cluster is then cut to its FIRST randomisation — one
+        # randomisation for all of them, which is the old unstable number and is
+        # flagged as such by `pit_randomisation_exact`, rather than a silently
+        # ragged average.
+        clusters = reps if exact_all else [np.asarray(g)[:1] for g in reps]
         out[pop] = {
             "n": len(pits),
             "pit": S.pit_histogram(np.array(pits, dtype=float), bins=bins),
+            "pit_clustered": S.chi2_clustered(clusters, bins=bins),
             "pit_replicates": int(wide.shape[0]),
             "pit_randomisation_exact": bool(exact_all),
             "mean_pit_r": float(np.mean(wide)),
@@ -996,48 +1027,6 @@ def pooled_calibration(results, bins: int = 10,
             "by_band": pooled_by_band(results, pop),
         }
     return out
-
-
-def _cluster_bootstrap_ci(groups, level=0.95, draws=20_000, seed=20260817):
-    """A CI for a pooled mean, resampling CITY-YEARS rather than columns.
-
-    Columns inside one city-year are not independent — they share a turnout
-    draw, a pool structure and a national swing — so a naive column bootstrap
-    would give an interval far too tight. The city-year is the cluster, and
-    with nine of them the interval is wide and honest rather than narrow and
-    wrong.
-
-    ``draws`` and ``seed`` are literals in this signature rather than module
-    constants on purpose. They are run control — how the CI is estimated, not
-    what the model believes — and a numeric module constant is either a
-    judgement that must be registered or a default-argument capture that freezes
-    at import; this is neither. The seed is fixed because a CI that moves
-    between two runs of the same data is a figure nobody can quote. The
-    replicate count is returned with the result so the report can state it
-    without a figure being typed into prose.
-
-    Returns ``(lo, hi, draws)``, or ``(nan, nan, draws)`` when fewer than two
-    clusters carry any value.
-
-    The replicate mean is computed from per-cluster SUMS and SIZES rather than
-    by concatenating the clusters, which is the same number — the mean of a
-    concatenation is the total over the count — and turns 20,000 Python-level
-    concatenations into two array reductions. That matters now: intervals are
-    put on every coverage row as well as on the mean PIT, so this is called
-    about sixty times per report rather than three.
-    """
-    groups = [np.asarray(g, dtype=float) for g in groups if len(g)]
-    if len(groups) < 2:
-        return float("nan"), float("nan"), draws
-    rng = np.random.default_rng(seed)
-    k = len(groups)
-    sums = np.array([g.sum() for g in groups], dtype=float)
-    sizes = np.array([g.size for g in groups], dtype=float)
-    pick = rng.integers(0, k, size=(draws, k))
-    means = sums[pick].sum(axis=1) / sizes[pick].sum(axis=1)
-    lo, hi = np.percentile(means, [100 * (1 - level) / 2,
-                                   100 * (1 + level) / 2])
-    return float(lo), float(hi), draws
 
 
 def _band_splits(detail) -> dict:
@@ -1180,7 +1169,11 @@ def pooled_by_band(results, pop) -> dict:
 
     So the surviving claim is one bias, not two: **the mid-ballot is
     under-forecast.** The signed vote bands (+32.52pp at ranks 1-3, −37.18pp at
-    4-12) are a separate instrument and are not corroborated at ranks 1-3 by
+    4-12 — **nine city-years at 1500 draws**; ``compress_levels`` and
+    ``MACHINERY.md`` quote +32.30 / −36.20 for the same claim, which is the
+    400-draw cached-mean-vector reading of it, §1.44. Two estimators, one
+    finding, and both numbers are nine-panel) are a separate instrument and are
+    not corroborated at ranks 1-3 by
     this one — but the seat PIT has little power to see 0.26pp per party per
     city-year, so this is not evidence against the vote finding either. MODEL-LOG
     §1.146.
@@ -1264,7 +1257,23 @@ def pooled_by_band(results, pop) -> dict:
         pits = [u for g in per_city for u in g]
         if not pits:
             continue
-        lo, hi, boot_draws = _cluster_bootstrap_ci(per_city)
+        # ⛔ ONE CLUSTER RESAMPLER, AND IT LIVES IN `score`. This file carried a
+        # private copy — `_cluster_bootstrap_ci`, bit-for-bit the same interval —
+        # until 2026-09-13. `score.cluster_bootstrap`'s own docstring had said
+        # for weeks that the copy should become a call to it "when
+        # `compare_history` is next opened"; it was opened, 807 lines changed,
+        # and the copy stayed.
+        #
+        # `draws` and `seed` are left at the callee's defaults rather than named
+        # here, and that is the same argument the deleted copy carried: they are
+        # RUN CONTROL — how the interval is estimated, not what the model
+        # believes — so they are neither a registered judgement nor something a
+        # caller should be free to vary per table. The seed is fixed because an
+        # interval that moves between two runs of one artefact is a figure nobody
+        # can quote, and the replicate count travels in the result so the report
+        # can state it without a number being typed into prose.
+        boot = S.cluster_bootstrap(per_city)
+        lo, hi, boot_draws = boot["lo"], boot["hi"], boot["draws"]
         u = np.asarray(pits, dtype=float)
         splits = _band_splits(detail)
 
@@ -1278,7 +1287,8 @@ def pooled_by_band(results, pop) -> dict:
             city-year is the unit, because columns inside one share a turnout
             draw.
             """
-            clo, chi, _ = _cluster_bootstrap_ci(hit_groups)
+            res = S.cluster_bootstrap(hit_groups)
+            clo, chi = res["lo"], res["hi"]
             return {"inside": inside, "counted": counted,
                     "empirical": (inside / counted if counted else float("nan")),
                     "ci": [clo, chi]}
@@ -2189,8 +2199,10 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
     # IT WAS.
     #
     # `JHB_SCORE_NO_RELABEL` changes what the SCORER is, so two `history.json`
-    # files can disagree by 11.52 CRPS with identical forecasts behind them
-    # (§1.148). Recorded unconditionally because this repository has already
+    # files can disagree on CRPS with identical forecasts behind them (§1.148;
+    # the 11.52 that used to be typed here is a struck sixteen-panel figure —
+    # see `_arrival_referee`, and do not restate it). Recorded unconditionally
+    # because this repository has already
     # been bitten by the other convention: an ABSENT record and a NEGATIVE one
     # read the same, and "the key is missing" then means both "the ablation was
     # off" and "this artefact predates the ablation" — which are different
@@ -2546,23 +2558,32 @@ def render_calibration(results: list[dict], bins: int = 10) -> str:
         "forecast distribution — the model forecast too LOW for those columns. "
         "Below 0.50 means it forecast too HIGH. Read the sign per band; the "
         "pooled sign is an artefact of how the two bands happen to be sized.\n")
-    add("| population | n | 50% | 80% | 90% | mean PIT | χ² vs flat (5% crit) |")
+    add("| population | n | 50% | 80% | 90% | mean PIT | χ²_RS vs flat (5% crit) |")
     add("|---|---|---|---|---|---|---|")
     for pop in POPULATIONS:
         block = pooled[pop]
         cov = {row["level"]: row["empirical"] for row in block["coverage"]}
         hist = block["pit"]
-        crit = hist.get("chi2_crit_95")
+        # ⛔ THE CLUSTERED, REPLICATE-AVERAGED STATISTIC — `score.chi2_clustered`,
+        # which until this line was called by nothing and printed nowhere while
+        # this column carried `pit_histogram`'s single-randomisation nominal χ²
+        # under the words "the test of uniformity". The critical value comes from
+        # the same result, so the statistic and the value it is read against
+        # cannot come from two different tests.
+        clus = block["pit_clustered"]
+        crit = clus.get("chi2_crit_95")
+        cell = (f"{clus['chi2_rs']:.1f} ({crit if crit is not None else '—'})"
+                if clus.get("estimable") else "not established")
         add(f"| {_POP_LABEL[pop]} | {block['n']} | "
             + " | ".join(f"{100 * cov.get(level, float('nan')):.0f}%"
                          for level in LEVELS)
-            + f" | {hist['mean']:.3f} | {hist['chi2']:.1f} "
-              f"({crit if crit is not None else '—'}) |")
+            + f" | {hist['mean']:.3f} | {cell} |")
     add("")
     for pop in POPULATIONS:
         block = pooled[pop]
         add(f"* **{pop}** (n={block['n']}) PIT histogram "
             f"{block['pit']['counts']} — {block['pit']['verdict']}")
+    add("")
     add("\nThe verdict at the end of each line is `score.pit_histogram`'s shape "
         "heuristic, which reads the end mass and the mean. **DO NOT ACT ON IT "
         "AS A WIDTH VERDICT — it is not reliable as one, and on this model it "
@@ -2577,8 +2598,65 @@ def render_calibration(results: list[dict], bins: int = 10) -> str:
         "contradict each other and the band one contradicts the level-free "
         "width table below, which is the one that is right. `score.py` is not "
         "changed here — the heuristic is fine for its own purpose and what is "
-        "wrong is quoting it about width. **The χ² column is the test of "
-        "uniformity; the level-free dispersion table is the test of width.**")
+        "wrong is quoting it about width. **The χ²_RS column is the test of "
+        "uniformity — `score.chi2_clustered`, clustered by city-year and "
+        "averaged over the PIT re-randomisations, set out below; the level-free "
+        "dispersion table is the test of width.**")
+    add("\n### The uniformity test — `score.chi2_clustered`\n")
+    # ⛔ EVERY NUMBER IN THIS BLOCK IS READ OFF THE RESULT. In particular the
+    # instability of the nominal statistic is quoted as the `chi2_sd` the run
+    # computed — the spread of that χ² across re-randomisations of the SAME
+    # forecast — and not as a figure typed from a past panel.
+    for pop in POPULATIONS:
+        clus = pooled[pop]["pit_clustered"]
+        exact = pooled[pop].get("pit_randomisation_exact", False)
+        head = f"* **{pop}** ({clus['clusters']} city-years, R={clus['replicates']})"
+        if not clus.get("estimable"):
+            add(f"{head} — {clus['verdict']}")
+            continue
+        add(f"{head} — {clus['verdict']}. The NOMINAL χ² it corrects averages "
+            f"{clus['chi2']:.1f} with sd {clus['chi2_sd']:.1f} across those "
+            f"{clus['replicates']} randomisations; the 95% cluster-bootstrap "
+            f"interval on it is [{clus['ci_lo']:.1f}, {clus['ci_hi']:.1f}] from "
+            f"{clus['ci_draws']:,} replicates.")
+        if not exact:
+            add(f"  ⚠️ **R={clus['replicates']}: the stored jump intervals are "
+                f"missing on at least one city-year**, so this is a SINGLE "
+                f"randomisation of the PIT and carries the instability the sd "
+                f"above measures. Re-run the panel before quoting it.")
+        # ⚠️ THE SECOND-ORDER (SATTERTHWAITE) PAIR IS NOT PRINTED AGAIN HERE.
+        # `chi2_clustered`'s own verdict already carries it — the cell design
+        # effects' range and cv², the adjusted statistic, its moved dof and its
+        # own critical value — and a number printed twice is a number that can
+        # disagree with itself. Read `chi2_satt` / `dof_satt` /
+        # `chi2_satt_crit_95` from the result if a consumer needs them apart
+        # from the sentence.
+    # ⛔ THE CAVEAT TRAVELS WITH THE NUMBER. `score.chi2_clustered` returns
+    # `level_caveat` precisely so a consumer prints it instead of leaving it in
+    # a docstring nobody opens at quoting time — and THIS report is that
+    # consumer. It is quoted, not paraphrased: the level the clusters were
+    # formed at is a property of what this file passed in.
+    caveats = {pooled[pop]["pit_clustered"]["level_caveat"]
+               for pop in POPULATIONS}
+    for caveat in sorted(caveats):
+        add(f"\n⚠️ **The cluster level is this file's choice, not the "
+            f"statistic's**, and `score.chi2_clustered` returns the limitation "
+            f"with the number so that it is quoted with it: *{caveat}*")
+    add("\n**Two corrections separate this column from the χ² a PIT histogram "
+        "reports, and the second is the one that was missing.** The PIT of an "
+        "integer seat count is randomised within its jump, so a χ² computed on "
+        "one draw of that randomisation is a draw from a distribution and not a "
+        "statistic — the `sd` printed above is its spread with the model "
+        "standing still, and on this panel it is a large fraction of the "
+        "statistic itself. And the columns inside a city-year share a turnout "
+        "draw, a pool structure and a national swing, so the nominal test's "
+        "critical value is not this design's. `score.chi2_clustered` averages "
+        "over R re-randomisations and applies the Rao-Scott correction with the "
+        "design effect ESTIMATED from the city-years; it needs at least "
+        + str(pooled[POPULATIONS[0]]["pit_clustered"]["min_clusters"])
+        + " of them and says `not established` rather than printing a number "
+        "when it has fewer. See its docstring for what the design effect turns "
+        "out to be here, and why.")
     # ⛔ EVERY FIGURE IN THIS PARAGRAPH IS COMPUTED FROM THE ROWS SCORED.
     # It carried "Five of its columns across the nine city-years carry PIT
     # exactly 1.0" and "diluted by ~200 parties correctly at zero on both
@@ -2787,9 +2865,21 @@ def _arrival_referee(results: list[dict]) -> list[str]:
     **Why it is needed.** The headline CRPS is scored AFTER `relabel_run`
     renames the model's generic ENTRANT onto the largest realised arrival —
     chosen with the outcome in hand — and the baselines have no such column.
-    Measured on this panel, that free label is worth **11.52 CRPS (3.5%) and
-    2.17 points of the margin over uniform swing**; `JHB_SCORE_NO_RELABEL=1`
-    reproduces it. This table is the label-free view of the same channel.
+    `JHB_SCORE_NO_RELABEL=1` withholds the label everywhere it is used, and
+    this table is the label-free view of the same channel.
+
+    ⛔ **THE FIGURE THIS DOCSTRING USED TO QUOTE IS STRUCK, AND IT WAS STRUCK IN
+    TWO OTHER FILES BEFORE IT WAS STRUCK HERE** (2026-09-13). It read *"Measured
+    on this panel, that free label is worth 11.52 CRPS (3.5%) and 2.17 points of
+    the margin over uniform swing"*. That is a **sixteen** city-year measurement,
+    taken before the 2026-09-08 emit seeded the 2016 arm, and `ITERATING.md`
+    Key 1 and `HANDOVER.md` had both already struck it with the words *"must not
+    be resurrected"* while this docstring went on asserting it as current — the
+    exact failure mode of a figure typed in three places. **On the live panel
+    the label fires at four rows of twenty-four, all 2011, and is worth nothing
+    on seats; its CRPS worth is UNMEASURED.** MODEL-LOG §1.229 #14. Do not put a
+    number back here: the run is where it lives, and this table is how it is
+    read.
 
     `mass_pit` and `seats_pit` are the numbers to read. Both are PIT values, so
     **0.5 is centred and above 0.5 means the model forecast too LITTLE** arrival

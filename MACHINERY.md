@@ -14,6 +14,18 @@ inert by default.
 temporal-validity question: a number that saw election *T* cannot be used to
 predict *T*.
 
+> ⚠️ **EVERY SCOREBOARD FIGURE IN THIS FILE IS PINNED TO THE PANEL IT WAS TAKEN
+> ON, AND THE PANEL HAS MOVED TWICE** (banner added 2026-09-13). The panel went
+> nine → sixteen at §1.70 and sixteen → twenty-four on 2026-09-02, and the
+> specs were re-emitted on 2026-09-08 (§1.212). A seat error, a CRPS, a mean
+> PIT, a coverage or a dispersion figure written in this file's prose is
+> therefore a **dated reading**, not a current one, unless the line itself says
+> which panel it is on. **The live values are read from the run** —
+> `compare_history`'s `rows=` token carries the population — and the source of
+> record for each mechanism's own figures is the function's docstring. Do not
+> re-derive a ratio from a figure typed here; `JUDGEMENT-CALLS.md` §A38 records
+> what that already cost once.
+
 ---
 
 ## 0. Structure — which parties compete with which
@@ -290,7 +302,13 @@ micro-party, near `level_shrink` for a dominant one.
 
 It exists because the model's error is a **share vector too widely spread**, not
 a level error in any one party: ranks 1-3 come out +32.30pp signed against ranks
-4-12 at −36.20pp, almost exactly offsetting. Shrinking a vector of noisy
+4-12 at −36.20pp, almost exactly offsetting. ⚠️ **TWO ESTIMATORS, TWO NUMBERS,
+AND BOTH ARE IN THE TREE** (noted 2026-09-13): that pair is measured on the
+cached mean vectors at 400 draws (§1.44), while `compare_history`'s own band
+table reads **+32.52 / −37.18pp** on the same populations at 1500 draws, and
+both are quoted as live facts in different files. §1.44 records the gap and
+attributes it to draw count. **Neither is a current reading** — both are nine
+city-years, and the panel is twenty-four. Shrinking a vector of noisy
 estimates toward its centre is the standard remedy, and the correction is
 applied here rather than inside the spine precisely because the spine cannot see
 arrivals, and a good part of ranks 4-12 are arrivals.
@@ -460,7 +478,13 @@ function emits.
 **So the model is good at NEW parties and bad at UNKNOWN ones.** MK in 2026 is
 in the first class (12.2% of Johannesburg's 2024 national vote, seeded at 8.18%),
 as are RISE and BOSA. ActionSA in 2021 was in the second (no 2019 national vote
-at all) and the model gave it 6.9% against 18.12%.
+at all) and the model gave it a small fraction of the 18.12% it took.
+⚠️ **The forecast share is NOT typed here** (2026-09-13): this line said 6.9%,
+`POLLING.md`'s comparison table says 6.4% for the same quantity, and
+`PUBLISHING-BACKLOG.md` proposed publishing 6.3%, which is the *poll's* number
+and not the model's. Three copies, three values, one of them attributed to the
+wrong forecaster. Read it from the run's vote table for joburg 2021; 18.12% is
+the published result (`SOURCES.md`) and is the half of the pair that may stand.
 
 | Piece | Where | Source | Notes |
 |---|---|---|---|
@@ -594,7 +618,14 @@ dispersion statistic — probit-SD against 1.0 gives p = 0.030 and 0.025 per ban
 
 The `all` population is **not** neutral: `score.py` admits a column if the party
 won a seat, regardless of the forecast, so it is a mixture of a neutral set and an
-outcome-selected one and is labelled that way.
+outcome-selected one and is labelled that way. ⚠️ **And it does NOT reject
+uniformity** (2026-09-13): under the clustered, replicate-averaged test it
+rejects in only a minority-short fraction of randomisations, so its honest
+status is **"not established"**, not the clean rejection a single-randomisation
+χ² made it look like. `reference` and `claimed` are the two populations that may
+be quoted, and only they reject in every replicate. The figures are in
+`score.chi2_clustered`'s docstring and the live ones come off the run's
+calibration table, which prints `not established` in words rather than a number.
 
 | Generic `ENTRANT` renamed to the party that arrived | `backtest.relabel_run`, once on the run before any table | ✅ |
 
@@ -643,6 +674,20 @@ all** (`benchmarks.py` never builds one), so the relabel benefits the model on a
 column uniform swing structurally lacks. Report the label-free score **beside**
 the relabelled one as a sensitivity pair, never instead of it — the pair is the
 finding.
+
+⚠️ **SCOPE, ADDED 2026-09-13 — THE MECHANISM IS REAL AND ITS REACH IS SMALL, AND
+THIS PARAGRAPH READ AS THOUGH IT WERE UNIVERSAL.** A generic `ENTRANT` exists
+only where a spec carries no seeds, so on the current panel the relabel can fire
+at the 2011 rows alone, and it needs a seat-winning party with no baseline as
+well — **four rows of twenty-four**, at all of which the relabelled party's seat
+median is 0, so it is worth nothing on seats. ⛔ **ActionSA is a named seeded
+column and is NEVER relabelled**, which is the opposite of the impression the
+sentence above leaves: the hardest column in the panel gets no help from the
+label. Its worth in CRPS on the 24-row panel is **still unmeasured** — the
+"11.52 CRPS / 2.17 points" that used to be quoted for it is a sixteen-panel
+figure and is struck. MODEL-LOG §1.229 #14; `ITERATING.md`, Key 1 carries the
+row-by-row derivation. **The asymmetry that is actually material is a different
+one — the roster — and `benchmarks.uniform_swing_roster` now prices it.**
 
 | field | what it is |
 |---|---|
@@ -740,8 +785,12 @@ arm**: all eight 2016 specs carry `arrival_group: null` and zero seeds,
 consumed either way; **(c)** the lever is **mis-scoped** — `arrival_group_spec`
 receives `sorted(arrivals)`, the whole key set of `arrival_rules`, so splinters
 are in its weights and `draw_pools` zeroes those columns before
-overwriting them. ActionSA's 6.85% pool seed becomes **0.18%** against an actual
-**18.12%**. That is not a test of the group estimator.
+overwriting them. ActionSA's pool seed becomes **0.18%** against an actual
+**18.12%**. That is not a test of the group estimator. ⚠️ **The seed itself is
+NOT typed here** (2026-09-13): it is `seeds["ASA"]` in the emitted spec and it
+moves with every emit — this sentence used to say 6.85%, the 2026-09-02 archive
+holds 6.756% and the live spec holds 6.840%, and the same figure was typed into
+three documents that then disagreed. `ITERATING.md`, Key 1 carries the note.
 
 **It was re-run fairly on 2026-08-29** with the label-free referee
 (`backtest.arrival_group_score`) and **the rejection stands**: label-free

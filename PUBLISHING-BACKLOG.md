@@ -85,9 +85,13 @@ exposing our judgement calls… and we need to allow users to try it."*
 
 **This is a plan, not a commitment to build now.** `ITERATING.md` rule 5 still
 holds: nothing is republished until the model that produced it has beaten the
-previous iteration on history. It has (254 against 312 a week ago, 8 of 9
-against uniform swing) — so the gate is passable, but the model list should be
-closed first.
+previous iteration on history. It had, when this was written (~~254 against 312
+a week ago, 8 of 9 against uniform swing~~) — so the gate is passable, but the
+model list should be closed first. ⚠️ **Those are NINE-city-year figures and are
+struck** (2026-09-13): the panel is twenty-four, the specs were re-emitted on
+2026-09-08, and the opponent to headline is now the roster-aware reference and
+not plain uniform swing (MODEL-LOG §1.229). **The gate is re-read from the run,
+never from this line.**
 
 ## 1. What is actually broken, precisely
 
@@ -180,10 +184,24 @@ are typed and admitted (`w_bye`), and at least one is a known open question
 
 ## 5. What the page must say about itself
 
-* the backtest, prominently: **254 coherent seat error against uniform swing's
-  376**, and that this is nine city-years with eight in a single cycle;
-* that ranks 4-12 are under-forecast by 22.76pp and the model knows it;
-* that the tail is over-forecast by 5.60pp as a *deliberate* trade (§1.54);
+* the backtest, prominently: the coherent seat error against the baselines, how
+  many city-years that is, and how many of them share a cycle. ⛔ **The figures
+  are NOT typed here** (corrected 2026-09-13): this line used to read "254
+  coherent seat error against uniform swing's 376, and that this is nine
+  city-years with eight in a single cycle", which was a **nine**-city-year
+  reading, superseded at §1.70 (sixteen) and again on 2026-09-02
+  (twenty-four) — a publication instruction carrying a three-panels-old number
+  is how a stale figure reaches a reader. They go on the page as stat tokens
+  from the run, per `CLAUDE.md` §2. ⚠️ **And uniform swing is no longer the
+  right opponent to headline**: `benchmarks.uniform_swing_roster` gives the
+  reference the same nomination roster the model reads, so it is the honest
+  comparison at 2021 and the margin against it is much the smaller one
+  (MODEL-LOG §1.229). Two of its panel figures carry an arbitrary tie-break
+  band that must be quoted with them — `benchmarks.canonical_order`;
+* that ranks 4-12 are under-forecast and the model knows it — ⚠️ the "22.76pp"
+  that stood here is a nine-panel figure (§1.36) and is not the current reading;
+* that the tail is over-forecast as a *deliberate* trade (§1.54) — ⚠️ likewise
+  the "5.60pp": read the band table from the run, do not type it;
 * the ward-level approximation the page makes against the Python model, measured
   and quoted, as `export_interactive.py`'s docstring already promises.
 
@@ -229,11 +247,21 @@ Strongly wanted, not blocking:
   first-local-election bias correction, the contestation correction (which is
   the identity at 2026 — task A4), and the poll path (task A8).
 * **A stated failure mode, in the model's own voice.** *"The largest error in
-  the 2021 backtest was ActionSA, forecast at 6.3% against 18.1%. A party with
-  no electoral record cannot be forecast from a record it does not have. If a
-  comparable party emerges in 2026, this forecast will be wrong in the same
-  way."* Already true, already measured, and it buys more credibility than any
-  item on the model list.
+  the 2021 backtest was ActionSA: the model forecast a small fraction of the
+  18.12% it took. A party with no electoral record cannot be forecast from a
+  record it does not have. If a comparable party emerges in 2026, this forecast
+  will be wrong in the same way."* Already true, already measured, and it buys
+  more credibility than any item on the model list.
+  ⛔ **THE NUMBER WAS WRONG AND CAME OFF THE WRONG ROW** (corrected 2026-09-13).
+  This sentence read *"forecast at 6.3% against 18.1%"*. **6.3% is not the
+  model's forecast** — it is the Ipsos-poll conversion in `POLLING.md`, whose
+  table puts the model's own Johannesburg figure in the next column at 6.4%,
+  while `MACHINERY.md` §"new vs unknown parties" says 6.9% for the same
+  quantity. Three numbers, one claim, and the one chosen for publication was the
+  one belonging to a different forecaster. **Read it from the run and register
+  it as a stat token; do not type it into the sentence.** The realised 18.12% is
+  a published election result (`SOURCES.md`) and is the only figure here that
+  may be typed.
 * **Coalition and majority probabilities checked for calibration, not merely
   produced.** A hung-council probability is the number that gets quoted, and it
   is a threshold on a sum — it inherits every width fault amplified.

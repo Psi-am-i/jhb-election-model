@@ -773,8 +773,8 @@ drift 0.00%* — and read every run by `levels._citywide`. `metro_file` returns
 are bulk-export format (`PARTYNAME`); the archive files are clean format
 (`sPartyName`/`Party_Votes`). `pools._npe_citywide_for` **already reads the clean
 format from that directory, inside the same module**, so the reader exists and is
-not wired to LGE years. `pools.py:2636` claims the header drift between the two
-formats "is handled in one place" — that path cannot be taken.
+not wired to LGE years. `pools.metro_roster`'s comment claims the header drift between the two
+formats is handled in one place — that path cannot be taken.
 
 **Measured cost.**
 
@@ -907,7 +907,7 @@ eleven `fold*_parameters.csv` stale only in `theta_calibrated`, which the
 forecast never reads.
 
 **How it went unnoticed.** `turnout.csv` carries no `artefact_key`, unlike
-`pools_*.json`. `montecarlo.py:4142` says so in a comment — *"a stale or rebuilt
+`pools_*.json`. `montecarlo.run_model` says so in a comment — *"a stale or rebuilt
 copy moves every draw in silence"* — and records the citywide levels it was
 given as a delivery proof, but nothing compares that record against what the
 generator would produce. **A recorded value is not a check.**
@@ -930,3 +930,39 @@ reports "identical" trivially, and an mtime fence does not catch it because
 **What is still open.** `turnout.csv` still has no artefact key, so this can
 recur silently the next time an ingest lands. The durable fix is a key on it,
 or the regeneration diff above run as a test.
+
+## 16. 🔴 `history.json` and `history.md` are two DIFFERENT runs, and prose cites them as one artefact (found 2026-09-13)
+
+**Every document in this repository that says "the committed 24-row artefact"
+means one of two files that disagree.** Measured on Atlas, read-only, at
+`7fcfd30`:
+
+| file | commit it records | panel `seat_abs_err_coherent` |
+|---|---|---|
+| `data/processed/history.json` | `efa06f78…`, `git_dirty: true`, `manifest.schema` **1** | **725** (summed over its 24 `records`) |
+| `data/processed/history.md` | `1d9a0e1d…`, `+dirty`, per its own token line | **723** |
+
+`history.md` is the later, polls-off run (§1.225); `history.json` is the
+2026-09-10 run that preceded the switch. They sit side by side in the same
+directory under names that read as a pair, and **nothing in either file says the
+other is from a different tree.** That is how "725" and "723" both came to be
+quoted as the current panel total in the same week — `HANDOVER.md` has them as a
+before/after pair, which is correct, and other prose has them as alternatives,
+which is not.
+
+⛔ **AND BOTH ARE NOW BEHIND THE CODE.** `manifest.schema` is **1**; the
+instrument repairs of 2026-09-13 (§1.228, §1.229) raised `HISTORY_SCHEMA` and
+changed what several columns mean — the held column set, the baselines' scoring
+statistic, and the χ² the calibration table prints. **So any figure sourced to
+either file is awaiting the canonical run, not merely a cycle out of date**, and
+that includes the CRPS margin, the per-band z-scores and every `n_scored`.
+
+**What a citation must therefore carry:** which of the two files, the commit in
+its manifest, and the schema. A bare "the committed artefact" no longer
+identifies anything. The run's own token line
+(`seat_abs_err_coherent=<n>/@<commit>+dirty/<draws>d/pools:<sha>/rows=<n>`) is
+the right thing to quote, because it carries all three.
+
+**Not fixed here.** The repair is the canonical run on a settled tree, after
+which both files come from one invocation; until then the pair is a tripwire,
+not a source.

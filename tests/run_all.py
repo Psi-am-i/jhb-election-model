@@ -77,7 +77,12 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # reads as coverage and is not.
            "test_roster_aware_baseline",
            "test_scored_universe",
-           "test_panel_wiring"]
+           "test_panel_wiring",
+           # Added 2026-09-13 with the stage observers. Same rule again:
+           # membership is not a judgement, only the position is.
+           "test_stage_inputs",
+           "test_stage_realisation",
+           "test_stage_estimation"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

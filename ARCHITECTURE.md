@@ -126,7 +126,7 @@ and `cap` give three different answers, all three pinned.
 > and they are the class this document predicted. The sharpest:
 > **`spine_k` cannot be set to zero** (`scenario.get("spine_k") or SPINE_K`, and
 > `0.0 or 1.0` is `1.0`) — and fixing that alone crashes `run_model`, because
-> `levels.py:882`'s `w = k / (worth + k)` is `0.0/0.0` for ActionSA at 2026.
+> `levels.spine`'s `w = k / (worth + k)` is `0.0/0.0` for ActionSA at 2026.
 > **`solve_and_predict` returns a half-solved answer when it fails to converge**,
 > silently. **`theta_prior`'s groups block is read under a key it does not
 > have**, so a `0.8` default always wins. **The by-election decay really is

@@ -121,6 +121,7 @@ promotion note in §F.
 | `max_parties` | 12 | `coalitions.analyse` | 12. Operational in flavour, but it silently truncates the coalition space if a council ever seats more than twelve parties — which the 2026 ballot could. | 🔴 | §H13 |
 | `MAX_SIGMA`, `MIN_SIGMA`, `NEW_PARTY_SIGMA` | 2.0, 0.15, 1.0 | — | Spread bounds for the `prior-lge-noise` BASELINE, not for the model. | 🟡 | §F28 |
 | `METRO_CODES` widened 2 → 8 | — | `levels.py` | Eight metros. More evidence and no leakage, but it moves θ itself, so it is confounded with the spine in any before/after delta. | 🟡 | §B6 |
+| `min_clusters` | 8 | `score.chi2_clustered` | Typed. The floor below which the clustered uniformity test prints `not established` instead of a χ². Moves no forecast; decides whether a calibration verdict is a number or a refusal. Under a known null δ̄ is unbiased at every k from 3 to 24 and its noise is SMOOTH in k, so there is no cliff at 8 — any floor is a line on a continuum. | 🔴 | §D22 |
 | `MIN_HOME_SPLITS` and the binary home/away | 2 | `pools.py` | Unchanged: a measured gradient (0.611 / 0.315 / 0.289 / 0.103) modelled as two buckets. | 🔴 | §A44 |
 | `min_oos_gain` | 0.01 | `config/dimensions.toml` | 0.01, and it is upstream of every pool in the model: age and sex are rejected by this number. | 🔴 | §H7 |
 | `MIN_SHARE`, `CLAIM_FRACTION`, `F_OTHER` | 0.005, 0.50, 1.30 | — | All three were filed under the wrong module once. `MIN_SHARE` is `gamma_recent.py`'s and is a CLAIM about the model, not reporting; `CLAIM_FRACTION` is `score.py`'s. ⚠ `F_OTHER` is no longer in `src/` at all — see the restructure note beneath. | 🟡 | §F29 |
@@ -291,7 +292,7 @@ These have no measurement behind them. They are the ones to attack first.
 
 1. Whether an arriving party's size comes from the ARRIVAL-GROUP mechanism — a group total drawn from a fitted lognormal and split among named arrivals by a Dirichlet — or from the generic `ENTRANT` slot, a Bernoulli times a triangular.
 2. **UNTIL 2026-08-20 THIS KEY DID NOT EXIST.** `blended_centres` read `scenario.get("arrival_group_draw")`, it was in no `DEFAULTS`, and both `parse_set` and `read_scenario_file` reject a key that is not already in the scenario — so `--set` and a config file could not create it either. The mechanism was not off, it was **unreachable**, and `MACHINERY.md` described it as *switched off*, which claims a switch that did not exist. Same class as `LEVEL_DF` bound as a default argument (§1.33). It escaped both lever guards for the one reason neither can catch: they iterate `DEFAULTS`. **And it was broken** — the branch raised `NameError: dirichlet_floor` on the first run that reached it, so the code comment scheduling a retry "by 2026" scheduled a crash, and the rejection measurement recorded against it was taken on code that has since drifted. Now declared, repaired and **measured on nine city-years, which the original Johannesburg-only rejection never was: coherent seat error 254 → 348 and CRPS 232.9 → 296.0, worse in six city-years and better in one.** The rejection is confirmed and strengthened. Ships False — what changed is that "off" is now true rather than merely written down. MODEL-LOG §1.63.
-3. **⛔ AND IT DELETES THE SPLINTER CHANNEL (2026-08-29, §1.136).** `arrival_group_spec` is handed `sorted(arrivals)` — the full key set of `arrival_rules`, splits and entrants alike (`arrival_group_spec`'s call site in `pools.py`) — so all 32 seeded parties at Johannesburg 2021 are in its weights, ActionSA included, and `make_drawer` zeroes those columns before overwriting them: ActionSA actual **18.12%**, incumbent pool-splinter seed **6.85%**, challenger **0.18%**. So this is not "a fitted group replacing a typed slot"; it is that AND the removal of the seed carrying the largest arrival in the panel, and it cannot be read as a test of the group estimator while both are true. **The 254 → 348 above is a NINE-city-year figure scored through the outcome-favourable relabel, and §1.94 superseded that baseline (376 on sixteen) — do not quote it as the live rejection.** The fair re-run on the label-free referee (2026-08-29) refutes it again: 2 of 8 metros at 2021, pooled Σ|mass_err| 0.2714 → 0.5084, Key 2's level-free width 1.2000 → 1.3557.
+3. **⛔ AND IT DELETES THE SPLINTER CHANNEL (2026-08-29, §1.136).** `arrival_group_spec` is handed `sorted(arrivals)` — the full key set of `arrival_rules`, splits and entrants alike (`arrival_group_spec`'s call site in `pools.py`) — so all 32 seeded parties at Johannesburg 2021 are in its weights, ActionSA included, and `make_drawer` zeroes those columns before overwriting them: ActionSA actual **18.12%**, incumbent pool-splinter seed — `seeds["ASA"]` in the emitted spec, **not typed here** — replaced by a challenger-sized **0.18%**. ⚠️ (2026-09-13: this row said "6.85%". That was the seed in the spec current on 2026-08-29; the 2026-09-02 archive holds 6.756% and the live `data/processed/pools_2021.json` holds 6.840%. Three documents typed the same emitted value and all three disagreed — read it from the spec for the run being described.) So this is not "a fitted group replacing a typed slot"; it is that AND the removal of the seed carrying the largest arrival in the panel, and it cannot be read as a test of the group estimator while both are true. **The 254 → 348 above is a NINE-city-year figure scored through the outcome-favourable relabel, and §1.94 superseded that baseline (376 on sixteen) — do not quote it as the live rejection.** The fair re-run on the label-free referee (2026-08-29) refutes it again: 2 of 8 metros at 2021, pooled Σ|mass_err| 0.2714 → 0.5084, Key 2's level-free width 1.2000 → 1.3557.
 
 ### §A7 · the published 2026 forecast is not the configuration the backtest scores — 🔴
 
@@ -657,7 +658,7 @@ widen the ward noise until the model stops being certain.
 citywide PR **mean of 0.10% against 2.96% actual — a 30× level miss** (on the
 median, 0.04% against 2.96%, a 79× miss). The ward layer
 placed a correct citywide total; there was no citywide total to place. Widening
-`ward_noise_sd` far enough to make a 33× level error survivable would spend the
+`ward_noise_sd` far enough to make that 30× level error survivable would spend the
 **96.8% pooled ward hit rate** — the model's one result that beats every naive
 reference in all three cycles — to buy two wards. That is treating the symptom,
 and it would degrade the layer that is working to disguise a failure in the layer
@@ -685,6 +686,14 @@ means, and a figure in prose has to say which one it came from. This entry said
 (it rounds to 0.10%), and the 33× was then computed from the truncated value
 rather than from the data. Both halves of `CLAUDE.md` §2's "never type a model
 figure into prose" — quoted here, inside a rule about discipline, by me.
+⛔ **AND A THIRD COPY OF THE SAME NUMBER SURVIVED THE FIX UNTIL 2026-09-13.** The
+"33×" was corrected in the sentence that derives it and left standing in the
+sentence that argues from it, four paragraphs later — so this entry carried 30×,
+79× **and** 33× for one quantity at once. Re-derived from the artefact
+(Atlas, read-only, 2026-09-13): `votes[3]/votes[2]` = 2.9604/0.0969 = **30.5×**
+and `votes[3]/votes[1]` = 2.9604/0.0375 = **78.9×**; there is no 33. *Correcting
+a figure means correcting every copy of it, and the copies are where the rule
+actually bites.*
 
 ⚠️ **And the citation names a POSITION, because there is no field to name.** The
 first version of this line cited the three numbers as pr_median, pr_mean and
@@ -1052,6 +1061,42 @@ These shape what a reader concludes and are easy to mistake for findings.
 **Now.** Typed at 5.0 radii — a regression guard rather than a claim, and it separates the optimal assignment (3.8) from the greedy one (8.8).
 
 **Record.** The bound at which a cartogram has stopped being a map: no hexagon may sit further than five hex radii from its ward's true centroid. In radii rather than pixels so it does not move with the figure's size. Johannesburg's worst ward is at 3.8 under the optimal assignment and **8.8 under the greedy one**, so the bound separates the two — which is what it is for. Typed, and a regression guard rather than a claim.
+
+### §D22 · `min_clusters` — 8 — 🔴
+
+**Where.** `score.chi2_clustered`
+
+**Now.** Typed at 8: the number of clusters below which the clustered uniformity test refuses to estimate a design effect and returns `estimable: False` with a `not established` verdict instead of a χ². **It moves no forecast** — no draw, share or seat reads it, and it is not one of `ITERATING.md`'s four keys — but it decides whether this repository's calibration verdict at a given cluster level is a number or a refusal, and the committed `data/processed/history.md` prints both the verdict and the value of this constant in words.
+
+**Record.**
+
+1. **Registered 2026-09-13, number-neutral.** It was a bare `if k < 8` in the function body, a shape the 2026-08-23 widening cannot see — that scan reads default arguments, module constants, dataclass fields, `DEFAULTS` and TOML, not in-body literals. Hoisting it to a default argument is what made it visible to `test_every_tunable_constant_is_in_the_judgement_register`, and the guard caught it immediately. The value is unchanged, so no reported figure moves.
+
+2. **8 is a round number.** Nothing in `src/`, `MODEL-LOG.md` or `MACHINERY.md` derives it. The function's own argument — *"three clusters cannot estimate ten cell design effects"* — argues for **a** floor and not for **this** floor. It is not the survey literature's number either: the usual rules of thumb for cluster-robust inference are 30–50 clusters, which would refuse this panel's own k=24 as well. It coincides with the eight metros of `levels.METRO_CODES`, so clustering by **city** is admitted at exactly the boundary while clustering by **cycle** (k=3) is refused; no record says that was the reason and none is claimed here.
+
+3. **What a floor buys, measured — a fact about the ESTIMATOR under a known null, not a fit to any model output.** Panel shape held at the real one (n≈528 columns split k ways, R=8 re-randomisations, independent uniform PIT, so the true design effect is 1; 200 replicates for the δ̄ rows, 400 for the cell row):
+
+   | k | 3 | 4 | 6 | 8 | 12 | 24 |
+   |---|---|---|---|---|---|---|
+   | mean δ̄ | 1.005 | 0.993 | 1.003 | 1.002 | 0.997 | 0.998 |
+   | rse(δ̄) | 12.1% | 10.2% | 7.5% | 6.0% | 4.8% | 3.1% |
+   | p95 of the largest cell δ | 2.16 | 1.91 | 1.70 | 1.58 | 1.45 | 1.31 |
+
+   δ̄ is unbiased at every k and its noise is **smooth in k**. There is no cliff at 8 or anywhere else, so any floor is a line drawn on a continuum and 6 and 12 are as defensible as 8. That is what keeps this 🔴.
+
+4. ⚠️ **Whether the k=3 figures the docstring cites as its reason are estimator noise is NOT ESTABLISHED, and it turns on a quantity nobody has measured.** Same null hardened to the panel's own shape — k=3, unequal clusters, a non-uniform pooled PIT rising 8.0% → 12.4% across the deciles (which the δ formula scores against a flat `p0` and cannot subtract off), columns independent, 1500 replicates a row — the answer depends entirely on how much the R re-randomisations average away:
+
+   | independent replicates | mean largest cell δ | p99 | max seen | P(≥ 5.08) |
+   |---|---|---|---|---|
+   | R = 1 | 2.91 | 7.24 | 11.10 | 6.4% |
+   | R = 2 | 2.29 | 4.61 | 6.03 | 0.5% |
+   | R = 8 | 1.59 | 2.45 | 2.99 | 0.0% |
+
+   The observed 5.08 and 10.65 are ordinary noise under R=1 and impossible under R=8. The run uses R=64, but those replicates re-randomise **the same columns** inside their jump intervals, so they are positively correlated and the effective count is somewhere between 1 and 64 — **and it has never been computed.** Until it is, *"a number about the estimator, not about the panel"* is a conjecture, not a measurement; so is its negation.
+
+5. **The justification that survives either way, and it does not pick 8.** With δ̄ estimated on k−1 degrees of freedom, reading χ²/δ̄ against a fixed χ²(9) critical value treats an estimated quantity as known, which is anti-conservative and worsens as k falls. That argues for an F-type reference (Rao–Scott / Thomas) rather than a bright-line refusal, and it has not been built.
+
+**How to check.** Both nulls need `src/score.py` and numpy only — no data, no model run, no pools. Draw k clusters of independent PIT values, call `chi2_clustered(..., min_clusters=2)`, and read `deff` and `deff_cells`. The effective-R question needs the committed artefact's stored jump intervals.
 
 ## E. What is genuinely from the record
 

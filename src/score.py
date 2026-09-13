@@ -303,11 +303,31 @@ def hold_universe(forecasts: Sequence[Sequence[Mapping[str, int]]],
 
         V(m) = (S + m·C) / [(d+m)(d+m-1)/2],  C = Σ_j (|y_j|^p - E|X_j|^p)²
 
-    which rises when ``m < 2C/V - 2d + 1`` and falls after it. Both signs are
-    reachable and which one applies depends on ``C`` and ``V``, neither of which
-    survives into ``history.json``. **Do not predict the direction of a
-    variogram change from the column counts.** What holding the universe buys
-    there is that the two forecasters are at least at the same ``d``: today the
+    with ``S`` the original ``d(d-1)/2`` pairs' contribution. Verified to six
+    figures against the real thing: on the fixture in ``test_scored_universe``
+    the closed form and ``variogram_score`` agree to 3e-17 over m = 0..19.
+    **V(m+1) > V(m) exactly while**
+
+        m < d - 1 - 2S/C
+
+    and falls after it. Both signs are reachable and which one applies depends
+    on ``S`` and ``C``, neither of which survives into ``history.json``. **Do
+    not predict the direction of a variogram change from the column counts.**
+
+    ⛔ **THIS LINE USED TO READ ``m < 2C/V - 2d + 1``, WHICH IS OUT BY A FACTOR
+    OF TWO.** Differentiating ``V`` in ``u = d + m`` gives ``C·u(u-1) >
+    V·u(u-1)(2u-1)/2``, hence ``u < C/V + ½`` and ``m < C/V - d + ½`` — the old
+    line doubled that. (The continuous form names ``V`` on both sides and can
+    only be read as a fixed point, which is why the discrete condition above is
+    the one stated; they agree.) Measured on the same fixture, d=8, S=4.3507,
+    C=1.9415: the variogram peaks at **m = 3**, the corrected condition returns
+    2.52 so the last rising step is 2→3, and the old one returns 5.99. The
+    conclusion this was quoted for is unaffected — both signs really are
+    reachable, and the test below pins both limbs — but the stated reason for it
+    was wrong.
+
+    What holding the universe buys on the variogram, then, is not invariance but
+    that the two forecasters are at least at the same ``d``: today the
     model is scored over 580 columns across the panel and uniform-swing over
     332, and a mean over pairs is not comparable across that.
 
@@ -595,6 +615,36 @@ _CHI2_95 = {1: 3.84, 2: 5.99, 3: 7.81, 4: 9.49, 5: 11.07, 6: 12.59, 7: 14.07,
             20: 31.41}
 
 
+def chi2_crit_95(dof: float) -> float | None:
+    """χ²(0.95) at a possibly FRACTIONAL ``dof``. One table, extended.
+
+    The Satterthwaite form in :func:`chi2_clustered` divides the degrees of
+    freedom by ``1 + cv²``, so its reference distribution stops having a whole
+    number of them and the integer table above stops being enough. This
+    interpolates that table rather than introducing a closed-form approximation
+    beside it, because a second way of producing one critical value is how two
+    definitions of one number start (:func:`column_rng` is this repository's
+    worked example of what that costs).
+
+    Linear in ``dof`` between the tabulated points. χ²(0.95) is very nearly
+    linear there — the table's second differences run about −0.04 — so the error
+    is bounded and small. Measured against an exact inverse of the regularised
+    incomplete gamma over dof 1.00 to 20.00 in steps of 0.01: worst absolute
+    error **0.066, at dof 1.45**, and under **0.01 for every dof ≥ 5**, which is
+    the whole range this module reaches (``dof = 9/(1+cv²)``, and ``cv²`` would
+    have to exceed 0.8 to leave it). ``None`` outside the table: an extrapolated
+    critical value is a fabrication, and returning one would be worse than
+    returning nothing.
+    """
+    if dof is None or not (1.0 <= float(dof) <= 20.0):
+        return None
+    dof = float(dof)
+    lo = int(dof)
+    if lo == dof:
+        return _CHI2_95[lo]
+    return _CHI2_95[lo] + (dof - lo) * (_CHI2_95[lo + 1] - _CHI2_95[lo])
+
+
 def pit_histogram(pits: np.ndarray, bins: int = 10) -> dict:
     """Bin the PIT values and say what the shape means. **Flat is the target.**
 
@@ -668,15 +718,26 @@ def cluster_bootstrap(groups: Sequence[Sequence[float]],
     per-cluster sums and sizes rather than by concatenating — the same number,
     two array reductions instead of ``draws`` Python-level concatenations.
 
-    ⛔ **THIS IS NOT A SECOND BOOTSTRAP.** It is the generalisation of
-    ``compare_history._cluster_bootstrap_ci``, which is this function pinned to
-    the pooled mean, and with the same ``seed`` and ``draws`` it draws the same
-    cluster indices and returns the same interval to the last bit —
-    ``test_scored_universe`` asserts exactly that against the real panel. That
-    file cannot import this one back (``compare_history`` imports ``score``, so
-    the arrow only goes one way), which is why the general version lives here;
-    when ``compare_history`` is next opened, its private copy should become a
-    call to this.
+    ⛔ **THIS IS THE ONLY CLUSTER BOOTSTRAP ``compare_history`` HAS**, since
+    2026-09-13. It held a private copy, ``_cluster_bootstrap_ci`` — this
+    function pinned to the pooled mean — which drew the same cluster indices
+    from the same ``seed`` and ``draws`` and returned the same interval to the
+    last bit. The two were checked bit-for-bit (same float, same hex, same
+    degenerate ``nan``) and the whole ``pooled_calibration`` output diffed
+    across ~60 intervals before the copy was deleted; no number moved. Both of
+    its call sites now come here. ``compare_history`` cannot be imported back
+    from this module (the arrow runs one way, it imports ``score``), which is
+    why the general version lives here and not there.
+
+    ⚠️ **One duplicate is left and it is NOT this one.**
+    ``theta_residual.cluster_bootstrap`` is the same scheme specialised to
+    ``sd(residual)`` and should become a call to this function when that file
+    is next opened. ``test_scored_universe`` asserts the set of modules
+    defining a resampler by NAME, so a fourth turns red and so does a rename.
+
+    ⚠️ Nothing independent now recomputes this interval, which is the price of
+    the consolidation. ``test_scored_universe`` pins the value in hex on a fixed
+    fixture in its place.
 
     ⚠️ **A percentile interval on an observed statistic is not a test.** It is
     centred on what was seen, not on the null, so "the interval excludes the
@@ -726,7 +787,8 @@ def _chi2_flat(values: np.ndarray, bins: int) -> float:
 
 
 def chi2_clustered(groups, bins: int = 10, level: float = 0.95,
-                   draws: int = 20_000, seed: int = 20260817) -> dict:
+                   draws: int = 20_000, seed: int = 20260817,
+                   min_clusters: int = 8) -> dict:
     """Is the pooled PIT histogram flatter than CLUSTERED noise? **The test.**
 
     ``groups`` is one entry per cluster — per city-year. An entry is either the
@@ -767,21 +829,137 @@ def chi2_clustered(groups, bins: int = 10, level: float = 0.95,
     bootstrap agrees: on ``claimed`` the 95% interval on χ² is [25.5, 85.0] and
     on ``reference`` [18.4, 80.0], both entirely above 16.92.
 
-    δ̄ ≈ 1 is not an accident and is worth saying out loud, because it is the
-    opposite of the survey-sampling intuition that motivated the check. Seats
-    inside a council are zero-sum, so a city-year's per-column errors are
-    NEGATIVELY correlated, and that pushes the between-cluster variance of a
-    pooled cell share down towards — and sometimes below — its independent
-    value. A metro council is not a cluster sample of independent households.
+    ⛔ **δ̄ ≈ 1 IS AN AVERAGE OVER CELLS THAT RUN 0.11 TO 2.84, AND THE OLD
+    EXPLANATION OF IT PREDICTED THE WRONG SIGN.** This docstring used to say
+    that seats inside a council are zero-sum, so a city-year's per-column errors
+    are negatively correlated, pushing the between-cluster variance below its
+    independent value. That predicts δ̄ < 1, and **every measured δ̄ is ≥ 1**
+    (1.07, 1.01, 1.13, 1.06). What the cells actually say, replicate-averaged
+    over R=64 — this is ``deff_cells``, and the bar marks the median PIT:
 
-    ⚠️ The correction needs the design effect ESTIMATED, and with ``k``
-    city-years there are ``k`` of them. The three-city-year panel this question
-    was first asked on could not estimate δ̄ at all; 24 can. Below eight
-    clusters ``estimable`` is False and the result says so rather than printing
-    a number.
+        reference     0.73 0.66 0.69 0.82 0.97 | 1.27 1.25 1.28 1.34 1.70
+        seat_holders  0.38 0.11 0.34 0.45 0.82 | 1.47 1.44 1.58 1.91 2.84
+        all           0.70 0.78 0.78 0.86 0.92 | 1.34 1.12 1.30 1.52 1.24
+        claimed       0.80 0.44 0.65 0.82 1.34 | 1.99 1.34 1.41 0.98 0.35
+
+    The zero-sum intuition is right where the PIT is low or middling — those
+    cells do run below 1 — and it is wrong at the top, where they run 1.2 to
+    2.8. **A high PIT is the truth landing above the forecast: a party the model
+    UNDER-forecast, which is this model's dominant failure.** The pooled
+    ``reference`` histogram rises monotonically from 8.0% of its mass in the
+    bottom decile to 12.4% in the top, and ``seat_holders`` from 4.1% to 21.2%.
+    And under-forecasting arrives a whole city-year at a time — one turnout
+    draw, one national swing, one city's small-party structure — so the count of
+    top-decile columns varies between city-years far more than binomially.
+    **The clustering is concentrated in the failure mode — on ``reference``,
+    ``seat_holders`` and ``all``, and NOT on ``claimed``**, which is the
+    opposite of harmless even though the mean is ≈1. ⛔ That qualification is
+    load-bearing and must travel with the sentence: ``claimed`` is one of the
+    two populations this repository may quote, so an unqualified "the
+    clustering is concentrated in the failure mode" is false of half the
+    headline. Measured: the correlation
+    between bin index and cell design effect is **+0.71** on ``reference`` and
+    **+0.90** on ``seat_holders``, and positive in 64/64 randomisations of each.
+
+    ``claimed`` is the exception, and it is the same finding seen from the other
+    side: its top cell is **0.35**, because the selection rule admits a column
+    only when the model gives it a seat in half its draws, and so drops the
+    under-forecast columns before they can cluster. Its top decile holds 2.3% of
+    its mass against ``reference``'s 12.4%. See the ``CLAIM_FRACTION`` note at
+    the top of this module.
+
+    **Heterogeneous cells are precisely what the first-order correction assumes
+    away, so it is CHECKED and not assumed.** Rao & Scott's second-order
+    (Satterthwaite) form divides again by ``1 + cv²`` of the cell design effects
+    and reads the result against χ² on ``(B-1)/(1+cv²)`` dof. Same artefact,
+    R=64, averaging the adjusted STATISTIC over randomisations:
+
+        population    cv²    χ²_S    dof_S   crit_S   rejects
+        reference    0.177   27.46   7.67    15.04    64/64
+        claimed      0.279   32.17   7.07    14.16    64/64
+        seat_holders 0.572   70.42   5.74    12.19    64/64
+        all          0.156   20.50   7.80    15.23    51/64
+
+    **First order is adequate and the rejection survives on both quotable
+    populations.** ``all`` reads 51/64 here against 52/64 first order: it was
+    never a rejecting population by this function's own rule, and the
+    second-order form does not change that. The ``cv²`` used is an UPPER bound
+    on the design heterogeneity, because the PIT randomisation adds noise to
+    each cell that a per-replicate ``cv²`` counts as spread — so the correction
+    is conservative in the direction that matters.
+
+    ⚠️ **THE CLUSTER LEVEL MAY BE THE WRONG ONE, AND THIS PANEL CANNOT TEST THE
+    RIGHT ONE.** The clusters are whatever the caller grouped by, and
+    ``compare_history`` groups by city-year — the level this panel can estimate,
+    24 clusters against a floor of 8. But the panel is 8 cities × 3 CYCLES, and
+    the cycle effect is the large one. sd(z) on ``reference`` across
+    2011 / 2016 / 2021, **by rank band and pooled — they are different
+    populations and both are quoted in this repository**:
+
+        ranks 1-3     0.881   0.367   0.954    2.6x
+        ranks 4-12    0.452   1.155   1.960    4.3x   <- §1.228 quotes THIS
+        ranks 13+     0.094   0.233   0.415    4.4x
+        pooled        0.601   0.889   1.265    2.1x
+
+    with pooled mean z −0.096 / +0.013 / +0.238. §1.228's figures are the
+    ranks 4-12 band, not the whole population; re-derived here on the committed
+    artefact and they reproduce to three decimals. **Quote the band with the
+    number** — the two were briefly recorded as a discrepancy and they are not
+    one. Either way the cycle effect is large, and ranks 4-12 is the band that
+    decides marginal seats. Re-clustered on YEAR (k=3, R=64, reached only by
+    lowering ``min_clusters``):
+
+        population    δ̄     χ²_RS   crit    rejects
+        reference    1.61   22.27   16.92   51/64
+        claimed      1.46   29.06   16.92   64/64
+        seat_holders 2.20   57.67   16.92   64/64
+        all          1.47   17.49   16.92   35/64
+
+    δ̄ is 1.5 to 2.2 there, not 1.07, and on ``reference`` and ``all`` the
+    rejection stops being established by this function's own rule. **So the
+    honest statement is "clustering at the CITY-YEAR level buys almost nothing",
+    never "the clustering correction buys almost nothing".**
+
+    ⛔ **And those k=3 figures are a WARNING, not a result.** Three clusters give
+    each cell two degrees of freedom; the cell design effects come back at 5.08
+    and 10.65. **The level where the dependence lives is the level this panel
+    cannot test, and a fourth cycle is the only thing that fixes it** — the
+    city-year result is what is quotable, with that limitation attached to it
+    wherever it is quoted.
+
+    ⚠️ **THIS DOCSTRING USED TO CALL 5.08 AND 10.65 "a number about the
+    estimator and not about the panel". THAT IS WITHDRAWN — it is not
+    established, in either direction** (2026-09-13, JUDGEMENT-CALLS §D22).
+    Simulated against a known null with this panel's own shape — k=3, unequal
+    clusters, a pooled PIT rising 8.0% → 12.4% across the deciles, columns
+    INDEPENDENT so the true design effect is 1 — the largest of the ten cell
+    design effects reaches 11.10 with ``P(≥ 5.08) = 6.4%`` when the replicates
+    do not average (R=1), and never exceeds 2.99 in 1500 tries once eight
+    independent replicates do (R=8). The run uses R=64, but those replicates
+    re-randomise **the same columns** inside their jump intervals, so they are
+    positively correlated and the effective count is somewhere in between and
+    **has never been computed**. Compute it before quoting either reading.
+
+    ⚠️ The correction needs the design effect ESTIMATED, and with ``k`` clusters
+    there are ``k`` of them. The three-city-year panel this question was first
+    asked on could not estimate δ̄ at all; 24 city-years can. Below
+    ``min_clusters`` (default 8) ``estimable`` is False and the result says so
+    rather than printing a number. Lowering it is for the diagnostic question
+    *where is the dependence?* and its output is not a test.
+
+    ⛔ **``min_clusters`` IS TYPED AND 8 IS A ROUND NUMBER — JUDGEMENT-CALLS
+    §D22, 🔴.** Nothing derives it. Under the null above δ̄ is unbiased at every
+    k and its noise is SMOOTH in k — rse 12.1% at k=3, 6.0% at k=8, 3.1% at
+    k=24 — so there is no cliff here and any floor is a line drawn on a
+    continuum. What survives as an argument for having one is that χ²/δ̄ is read
+    against a fixed ``χ²(B-1)`` critical value as though δ̄ were known, which is
+    anti-conservative and worsens as k falls; that argues for an F-type
+    reference (Rao & Scott, Thomas), not for a bright-line refusal, and the
+    F-type reference has not been built.
 
     Returns the nominal and corrected statistics with their replicate spread,
-    the bootstrap interval, and ``verdict``.
+    the per-cell design effects and their ``cv²``, the Satterthwaite pair, the
+    bootstrap interval, and ``verdict``.
     """
     blocks = []
     for g in groups:
@@ -797,14 +975,30 @@ def chi2_clustered(groups, bins: int = 10, level: float = 0.95,
     out = {"n": int(sum(b.shape[1] for b in blocks)), "clusters": k,
            "bins": int(bins), "dof": dof, "chi2_crit_95": crit,
            "replicates": int(reps), "estimable": False,
+           "min_clusters": int(min_clusters),
            "chi2": float("nan"), "chi2_sd": float("nan"),
-           "deff": float("nan"), "deff_cells": [],
+           "deff": float("nan"), "deff_cells": [], "deff_cells_sd": [],
+           "deff_cv2": float("nan"),
            "chi2_rs": float("nan"), "chi2_rs_sd": float("nan"),
+           "chi2_satt": float("nan"), "dof_satt": float("nan"),
+           "chi2_satt_crit_95": float("nan"), "rejects_satt": 0,
            "rejects_in": 0, "ci_lo": float("nan"), "ci_hi": float("nan"),
            "ci_level": float(level), "ci_draws": int(draws),
-           "verdict": "not established: fewer than eight clusters, so the "
-                      "design effect cannot be estimated"}
-    if k < 8 or crit is None or not out["n"]:
+           # ⛔ THE RESULT IS ONLY AS GOOD AS THE LEVEL IT WAS CLUSTERED AT, AND
+           # THIS FUNCTION CANNOT SEE WHICH LEVEL THAT WAS — the caller chose
+           # it. Carried in the result so it travels with the number rather
+           # than living only in a docstring nobody opens at quoting time.
+           "level_caveat":
+               "the clusters are whatever the caller grouped by. On this panel "
+               "city-year clustering (k=24) gives delta-bar 1.07 and buys "
+               "almost nothing; the CYCLE level, where the dependence actually "
+               "is (sd(z) across 2011/2016/2021 is 0.601/0.889/1.265 pooled "
+               "and 0.452/1.155/1.960 on ranks 4-12), has k=3 and cannot be "
+               "estimated. Quote the city-year result WITH that limitation — "
+               "see score.chi2_clustered.__doc__.",
+           "verdict": f"not established: fewer than {int(min_clusters)} "
+                      f"clusters, so the design effect cannot be estimated"}
+    if k < min_clusters or crit is None or not out["n"]:
         return out
     if any(b.shape[0] != reps for b in blocks):
         raise ValueError(
@@ -814,8 +1008,9 @@ def chi2_clustered(groups, bins: int = 10, level: float = 0.95,
             f"different population per cluster.")
 
     p0 = 1.0 / bins
-    chi2s, deffs, rs = [], [], []
+    chi2s, deffs, rs, cv2s, satts = [], [], [], [], []
     cells = np.empty((reps, k, bins), dtype=float)
+    cell_deffs = np.empty((reps, bins), dtype=float)
     for r in range(reps):
         for c, block in enumerate(blocks):
             cells[r, c] = np.histogram(block[r], bins=bins, range=(0.0, 1.0))[0]
@@ -833,8 +1028,25 @@ def chi2_clustered(groups, bins: int = 10, level: float = 0.95,
         chi2s.append(chi2)
         deffs.append(deff)
         rs.append(chi2 / deff if deff > 0 else float("nan"))
-        if r == 0:
-            out["deff_cells"] = [float(v) for v in d_cells]
+        # Rao & Scott's SECOND-ORDER (Satterthwaite) correction. `cv2` is the
+        # squared coefficient of variation of the cell design effects, standing
+        # in for the one over the generalised design effects (the eigenvalues),
+        # which a cell-level estimate is all this has. Per replicate, because
+        # the adjusted value is a STATISTIC and this module averages statistics
+        # and never the PIT values.
+        mean_cell = float(d_cells.mean())
+        cv2 = float(d_cells.var() / mean_cell ** 2) if mean_cell else float("nan")
+        cv2s.append(cv2)
+        satts.append(rs[-1] / (1.0 + cv2))
+        # ⛔ THE REPLICATE MEAN, NOT ``r == 0``. It used to store the first
+        # randomisation's cells beside a `deff` averaged over all R of them, so
+        # the two did not even describe the same quantity — on `reference` the
+        # stored cells averaged 1.115 while `deff` read 1.072, and the cells
+        # moved by up to 0.5 between randomisations. `deff` is a LINEAR
+        # functional of the cells, so the mean of the cells reproduces it
+        # exactly; `test_scored_universe` asserts that identity, which is what
+        # makes this a checkable claim rather than a convention.
+        cell_deffs[r] = d_cells
 
     # The interval integrates BOTH sources of noise — which city-years were
     # observed, and which randomisation the PIT drew — by giving each
@@ -856,29 +1068,58 @@ def chi2_clustered(groups, bins: int = 10, level: float = 0.95,
 
     mean_rs = float(np.mean(rs))
     rejects = int(sum(1 for v in rs if v > crit))
+    cells_mean = cell_deffs.mean(axis=0)
+    # The Satterthwaite reference distribution, on its own (fractional) dof.
+    # Both the statistic and the dof are averaged over randomisations; the
+    # critical value is then taken once, at the mean dof.
+    dof_satt = float(np.mean([dof / (1.0 + v) for v in cv2s]))
+    crit_satt = chi2_crit_95(dof_satt)
+    rejects_satt = 0
+    for value, c in zip(satts, cv2s):
+        per_crit = chi2_crit_95(dof / (1.0 + c))
+        # A dof outside the table is NOT a rejection. `chi2_crit_95` returns
+        # None rather than extrapolating, and counting an unknown critical
+        # value as passed would turn a gap in the table into evidence.
+        if per_crit is not None and value > per_crit:
+            rejects_satt += 1
     out.update({
         "estimable": True,
         "chi2": float(np.mean(chi2s)), "chi2_sd": float(np.std(chi2s)),
         "deff": float(np.mean(deffs)),
+        "deff_cells": [float(v) for v in cells_mean],
+        "deff_cells_sd": [float(v) for v in cell_deffs.std(axis=0)],
+        "deff_cv2": float(np.mean(cv2s)),
         "chi2_rs": mean_rs, "chi2_rs_sd": float(np.std(rs)),
+        "chi2_satt": float(np.mean(satts)), "dof_satt": dof_satt,
+        "chi2_satt_crit_95": (float(crit_satt) if crit_satt is not None
+                              else float("nan")),
+        "rejects_satt": rejects_satt,
         "rejects_in": rejects,
         "ci_lo": float(lo), "ci_hi": float(hi),
     })
+    # The cell SPREAD is printed beside δ̄ wherever δ̄ is: a mean over cells that
+    # run 0.11 to 2.84 is not a description of any of them, and the cells are
+    # where the finding is (see the docstring).
+    spread = (f"cells {cells_mean.min():.2f}–{cells_mean.max():.2f}, "
+              f"cv² {out['deff_cv2']:.2f}; Satterthwaite χ² {out['chi2_satt']:.2f} "
+              f"against {out['chi2_satt_crit_95']:.2f} on {dof_satt:.1f} dof, "
+              f"{rejects_satt}/{reps}")
     if mean_rs > crit and rejects == reps:
         out["verdict"] = (
             f"uniformity REJECTED after the clustering correction: "
             f"χ²_RS {mean_rs:.2f} against {crit} on {dof} dof, design effect "
-            f"{out['deff']:.2f}, in {rejects}/{reps} randomisations")
+            f"{out['deff']:.2f}, in {rejects}/{reps} randomisations "
+            f"[{spread}]")
     elif mean_rs > crit:
         out["verdict"] = (
             f"not established: χ²_RS averages {mean_rs:.2f} against {crit} but "
             f"only {rejects}/{reps} randomisations reject — the answer depends "
-            f"on the PIT re-roll, not on the model")
+            f"on the PIT re-roll, not on the model [{spread}]")
     else:
         out["verdict"] = (
             f"uniformity NOT rejected once the columns are clustered: χ²_RS "
             f"{mean_rs:.2f} against {crit} on {dof} dof, design effect "
-            f"{out['deff']:.2f} (nominal χ² {out['chi2']:.2f})")
+            f"{out['deff']:.2f} (nominal χ² {out['chi2']:.2f}) [{spread}]")
     return out
 
 

@@ -24409,6 +24409,31 @@ reference gives zero. Every construction tried — reach-matched median,
 reach-matched mean, budget-split-by-reach — lands it between **0.07% and
 0.31%**, and the record's 90th percentile for a full-slate arrival is under 1%.
 
+⛔ **CORRECTED SAME DAY — THAT ONE SEAT IS A TIE-BREAK, AND THE PANEL TOTAL IS A
+BAND.** Both figures above were quoted flat and neither may be.
+
+* **ActionSA's single seat is decided by the name rule and nothing else.** It is
+  **sixth-EQUAL of the 32 newcomers**, on exactly CHANGE's share (both reach
+  0.99259, both 0.1638%, identical combined votes and identical remainders) and
+  behind five parties at reach 1.000; the last seat of the shortfall goes to one
+  of the pair. Under the stated rule — equal votes break by NAME — it goes to
+  ASA; **mirror the rule and ActionSA takes ZERO and CHANGE takes the seat.**
+  Re-derived 2026-09-13 by running `uniform_swing_roster` at joburg 2021 under
+  both orderings (Atlas, `7fcfd30`, read-only): ASA 1 / CHANGE 0 under the name
+  rule, ASA 0 / CHANGE 1 mirrored, council 270 both ways. The budget
+  (1.956244%), the 32-newcomer count and the 0.1638% were re-derived in the same
+  run and reproduce exactly.
+* **The 24-city-year total is 837 under the name rule and 841 under its
+  mirror**, against plain `uniform-swing`'s 885, which has no exact ties and
+  does not move. ⚠️ **Quote 837 with the band, never alone.** Before
+  `canonical_order` fixed the tie the same panel returned **837, 839 or 841**
+  depending on how the interpreter hashed that morning — **so the 839 that
+  circulated in this batch's early notes was one draw of a hash-dependent
+  number, not a measurement.** The derivation, the mechanism and the reason the
+  rule was fixed *before* the panel was re-measured are in
+  `benchmarks.canonical_order`'s docstring, which is the source; this entry
+  points at it rather than restating it.
+
 **No backward-looking naive rule can SIZE ActionSA.** The only pre-election
 evidence that ever distinguished it from the other thirty-one names on that
 ballot was polling, which this family of references may not use. The estimate
@@ -24449,8 +24474,14 @@ argument is wrong and nothing may be quoted until that is understood.**
 A column outside a forecaster's own set is zero in truth and zero in every draw,
 so it contributes `E|X−y| = 0` with a zero spread term, and an extra zero
 coordinate leaves a Euclidean norm unchanged. Verified at pads of 0, 5, 20 and
-50 columns: CRPS 12.773299 and energy 6.158879 alike. **So the 38.3% CRPS margin
-does not move — holding the universe makes it QUOTABLE, not corrected.**
+50 columns: CRPS 12.773299 and energy 6.158879 alike. **So the CRPS margin does
+not move — holding the universe makes it QUOTABLE, not corrected.**
+⚠️ **The margin's VALUE is a separate question and this entry must not be read
+as re-stating it** (clarified same day). The 38.3% it was written around is read
+from `data/processed/history.json`, which is `HISTORY_SCHEMA` **1**, generated
+at the PARENT commit with `git_dirty: true` — it predates every repair in this
+batch. Invariance under padding is proved here; the number itself is **awaiting
+the canonical run** and is not re-measured in this entry.
 `compare_history`'s own caution, which scoped itself to energy and variogram,
 had it backwards: energy is the invariant one. `n_scored` and the **variogram**
 do move, the variogram by an **unknown sign** — `V(m) = (S + mC)/[(d+m)(d+m−1)/2]`
@@ -24465,13 +24496,35 @@ forgives what `seat_matrix` exists to penalise.
 
 Rao–Scott over 24 city-year clusters: **32.33 on `reference`** (nominal 34.44,
 design effect **1.07**), **41.05 on `claimed`**, both 64/64 replicates, against a
-critical value of 16.92. **The clustering correction buys almost nothing, and
-the reason is worth keeping: seats inside a council are zero-sum, so a
-city-year's per-column errors are NEGATIVELY correlated**, pushing between-cluster
-variance down. A metro council is not a cluster sample of independent
-households; the survey-sampling intuition points the wrong way here. (On three
-city-years the worry was right — three clusters cannot estimate ten cell design
-effects, and `chi2_clustered` refuses below eight.)
+critical value of 16.92. ⛔ **CORRECTED SAME DAY — THIS PARAGRAPH ORIGINALLY
+READ "the clustering correction buys almost nothing, and the reason is worth
+keeping: seats inside a council are zero-sum, so a city-year's per-column errors
+are NEGATIVELY correlated, pushing between-cluster variance down." BOTH HALVES
+ARE WRONG.**
+
+* **The explanation predicts the wrong sign.** Negative correlation predicts
+  δ̄ < 1 and **every measured δ̄ is ≥ 1** — 1.07 `reference`, 1.01 `claimed`,
+  1.13 `seat_holders`, 1.06 `all`. The zero-sum intuition holds only in the low
+  and middling PIT cells; at the top, where the truth lands above the forecast —
+  this model's dominant failure — the cells run 1.2 to 2.8, and that
+  under-forecasting arrives a whole city-year at a time. The clustering is
+  concentrated in the failure mode on `reference`, `seat_holders` and `all`, and
+  **NOT on `claimed`**, whose selection rule drops the under-forecast columns
+  before they can cluster. That exception is load-bearing and must travel with
+  the sentence, because `claimed` is one of the two populations this repository
+  may quote.
+* **The scope of "buys almost nothing" was overstated.** It is true of
+  clustering at the **CITY-YEAR** level, which is the level this panel can
+  estimate. Re-clustered on YEAR the design effect is 1.5 to 2.2, and on
+  `reference` and `all` the rejection stops being established. The honest
+  sentence is *"clustering at the CITY-YEAR level buys almost nothing"*, never
+  *"the clustering correction buys almost nothing"*.
+
+The cell tables, the Satterthwaite second-order check, the bin-index
+correlations and the k=3 warning are in `score.chi2_clustered`'s docstring,
+where they were measured; they are pointed at here and not restated.
+(On three city-years the worry was right — three clusters cannot estimate ten
+cell design effects, and `chi2_clustered` refuses below eight.)
 
 ⚠️ **And the χ² in the report was computed on ONE PIT re-randomisation.** A
 re-roll moves `reference` from **19.31 to 66.19** (sd 8.62) with the model
@@ -24534,3 +24587,146 @@ and the figures test reads the artefact at the position the document names.
 Narrowing the guard was considered and rejected: a "data, not code" rule must be
 syntactic, and it would wave through the next deleted lever that happens to sit
 near a filename.
+
+## 1.230 Gated stage observation: three observers, nineteen live defects, and a pre-registration refuted (2026-09-13)
+
+**Two things landed together: the repairs a blind review of `7fcfd30` demanded,
+and a new method — temporary observers that watch one pipeline segment each and
+then write the tests that make themselves redundant.** Suite 644 passed / 8
+failed / 20 skipped, the 8 being §1.228's documented pre-existing set. No new
+failure.
+
+### The method, and why the seam was free
+
+`--run-dir` already emits thirteen named stages per run, opt-in, with `test_chain`
+asserting the run is byte-identical with and without it — so observing does not
+perturb what is observed. Three segments, one agent each, each delivering a test
+module of **pure predicates over a stage payload** (runnable without data, each
+with a constructed violation) and a skill so a later agent resumes cold.
+
+⚠️ **The warning that governed the design: this model ALREADY HAD a stage
+observer and it was blind.** `arrival_reconciliation` read the post-relabel index,
+so it was silent at 20 of 24 rows while filing the entire 2011 arrival mass as
+"unexplained". Every gate therefore carries its own positive control.
+
+### ⛔ The pre-registered expectation was REFUTED, and that is the finding
+
+Recorded before the observers ran: *"inputs and realisation should find more than
+estimation, because conservation and cutoff properties are checkable and an
+estimate's correctness largely is not. If estimation finds the most, that is a
+surprise worth chasing."*
+
+**Estimation found the most consequential defect in the batch: an unregistered,
+cycle-varying level lever.** The centres vector is not normalised — measured,
+`Σ centres` is **0.9952 / 1.0567 / 1.1168** at 2011/2016/2021, growing with
+ballot fragmentation — and `pool_spec` then renormalises, deflating every party
+by **0.5% at 2011 and 10.5% at 2021**. The ANC's 43.02% centre reaches the draw
+as **38.5%**.
+
+Two consequences. First, **the total `compress_levels` conserves exactly is
+discarded at the very next stage**, so that conservation is cosmetic downstream —
+and an observer checking `30_centres` in isolation would have certified it
+correct. Second, and this is why it blocks work: **it varies monotonically by
+cycle, in the same region as the phenomenon fix #16 was designed to explain.**
+⛔ **#16 IS NOW BLOCKED.** Fitting a signed turnout interaction on top of an
+undeclared cycle-varying deflation would let #16 absorb it, and the project would
+report a measured effect that was partly a renormalisation artefact.
+
+### The nineteen, by segment — none caught by any existing test
+
+**Inputs (34 invariants).** `01_scenario_in` records **`pools: {}` on every run** —
+emitted sixty lines before `scenario["pools"]` is assigned — so a cutoff audit
+reading the lever set alone clears the largest input the model has, in the stage
+built to be the record. `pools.fitted_on_not_before_target` is **an unguarded leak
+path with no prior defect behind it**: `emit_pools` resolves
+`fitted_on = from_year or target.previous_lge or target.year`, so a target with
+no previous LGE fits pool ratios on its own result, and nothing in `src/` checks
+it (all 26 specs on disk are clean). `00_target` records **no date**, though the
+cutoff is a date property and `Target.date` can move for 2026.
+
+**Estimation (29 predicates).** Besides the renormalisation: the spine multiplies
+already-local seeded arrivals by a national-to-local factor — a category error at
+**32 of 65 levels** at joburg 2021, inert only because the seed branch outranks
+it; `route_notes` is `{}` at every backtest target, so the route is computed and
+discarded; and `levels.spine`'s ρ archive had **no open-spy** — added, no leak
+found (n_θ 175/272, n_ρ 83/174, zero files at or after the target).
+
+**Realisation (47 tests).** ⛔ **The exact-tie defect is LIVE, not latent.**
+Measured on a real 400-draw trace at joburg 2021: three allocations hit an exact
+tie straddling the cut, and reversing the key order **moved a seat in 1 of 400
+draws** — while `allocate`'s docstring claims float remainders make it
+unreachable. Renaming a party can move a seat; `fix_hash_seed` makes that
+repeatable, not correct. **The pool-capacity cap is inert on everything the
+backtest can see** — `cap_moved = 0`, `ipf_clipped = {}`, `ipf_failures = 0` at
+nine city-years — so the 39%-of-draws figure is 2026-only and the
+proportional-to-mass redistribution cannot be validated by any panel measurement.
+`cap_moved` **adds shares and votes into one accumulator** with no reset, latent
+only because it is zero. `ipf_worst` is **not on the guard board**, so the "whole
+board" is one counter short. `bounds_violations` fires in **a quarter to a half
+of draws** (ASA 192/400). And `history.json` carries **`guards: null` on all 24
+records**, so any "measured zero" quoted from it is unmeasured.
+
+### Round A — the repairs the blind review demanded
+
+**The reference was not deterministic, and the cause was not a cache.** Exact
+ties plus `set`-of-strings iteration, which CPython randomises per process:
+fourteen fresh processes gave 8 councils one way and 6 the other. Fixed with a
+stated rule (`canonical_order`, the `entrant_actual_for` precedent). **Post-fix,
+one hash six times across seeds; pre-fix, four distinct hashes in five runs.** The
+panel is **837, band 837–841** — the previously reported 839 was one draw of a
+three-valued random variable, and the chosen tie-break sits at the end favourable
+to the reference.
+
+**`chi2_clustered` had no production consumer.** The report printed the
+single-randomisation nominal χ². Now wired — and the decomposition is two
+findings, not one: the clustering correction moves `reference` 34.44 → 32.33,
+while **the figure being printed was 55.6 against an R=64 mean of 34.44, sd 8.62
+— a 2.5σ roll of the dice.** Only the second explains why `all` now reads "not
+established, 52/64 reject" where it previously read as a clean rejection.
+
+Also: the variogram crossover condition was out by 2× (correct discrete form
+`m < d − 1 − 2S/C`); `deff_cells` stored one randomisation beside a 64-replicate
+`deff`, which is why an earlier reviewer's vectors would not reproduce; and
+`claimed` is **the exception** to the clustering pattern — its top cell is 0.35,
+the lowest of its ten, because its selection rule drops the under-forecast
+columns before they can cluster. That qualification is load-bearing: `claimed` is
+one of the two quotable populations.
+
+⛔ **A claim of this project's is withdrawn.** The k=3 cell design effects of 5.08
+and 10.65 were called "a number about the estimator, not the panel". Under an
+independence null they are **ordinary noise at R=1** (P ≥ 5.08 is 6.4%) and
+impossible at R=8; the run uses R=64 but those replicates re-randomise the same
+columns, so the effective count has never been computed. **Unestablished, not
+refuted.** §1.228 #15 carries the same sentence and is corrected here rather than
+edited, being committed history.
+
+`min_clusters = 8` is registered (§D22, 🔴) rather than exempted — and measured:
+the design effect is unbiased at every k with noise smooth in k (rse 12.1% at
+k=3, 6.0% at 8, 3.1% at 24). **There is no cliff at 8.** Any floor is a line on a
+continuum.
+
+### A guard that passes on an accident
+
+`test_every_tunable_constant_is_in_the_judgement_register` tests membership by
+bare substring against the whole register text. So **`lo` and `hi` in
+`theta_residual._kappa_star(lo=0.2, hi=6.0)` pass only because those letters
+occur inside ordinary words** — that pair is the golden-section bracket for `k*`,
+which `CLAUDE.md` discusses, and it is registered nowhere. Recorded, not fixed.
+
+### The documentation sweep
+
+**A figure struck in two documents was still asserted live in the code that
+renders the report** (the relabel's "11.52 CRPS / 2.17 points"). ActionSA's pool
+seed was typed in **five places matching no spec on disk**. `PUBLISHING-BACKLOG`
+proposed a public sentence giving **the poll's** ActionSA figure as the model's.
+"254 / 376" still stood as a publication instruction, three panels stale. Every
+live `.py:NNN` citation checked — **8 of 8** — pointed at unrelated code.
+
+⛔ **And `history.json` and `history.md` are two different runs** — different
+commits, while the JSON's manifest claims a third and `git_dirty: True`. Every
+"the committed 24-row artefact" citation is ambiguous, including those in §1.229.
+Filed as `DATA-QUALITY` §16; the repair is the canonical run.
+
+**The sweep's best decision was an omission:** it declined to write the 112–116
+margin anywhere, because subtracting a fresh measurement from a stale artefact
+produces a number with no provenance.

@@ -15,7 +15,16 @@ the population. Two cautions travel with anything it prints — eight metros
 inside one cycle share a national swing, so they are not eight independent
 facts; and the seat figures are scored after a relabel that assigns the model's
 generic newcomer column to the largest arrival with the outcome in hand
-(`ITERATING.md`, Key 1).
+(`ITERATING.md`, Key 1) — which, measured, reaches **four rows of the
+twenty-four, all 2011, and moves no seat**, so it is a caveat about the vote
+table rather than about the seat totals (MODEL-LOG §1.229).
+
+⚠️ **Plain uniform swing is not the hardest baseline available.** It is not
+given the nomination roster and the model is; `benchmarks.uniform_swing_roster`
+is the reference that is, and it is the honest opponent at 2021. Read the margin
+against **that**, from the run. The roster reference's panel figures carry an
+arbitrary tie-break band that must be quoted with them —
+`benchmarks.canonical_order` holds the measurement and the rule.
 
 Regenerate the full comparison with `.venv/bin/python src/compare_history.py`.
 The 2021 scoring page is `.venv/bin/python src/build_validation.py --target 2021`;
