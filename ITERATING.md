@@ -188,14 +188,18 @@ small one; on ~2 effective clusters that is a fact about the panel, not a defect
 of the test. **Anything below "most metros, both cycles, same direction" is
 `undetermined`, not `adopted`.**
 
-**⛔ KEY 1 CANNOT CURRENTLY ARBITRATE THE ARRIVAL CHANNEL, AND EVERY SEAT FIGURE
-IN THIS FILE IS SCORED AFTER THE RELABEL.** `compare_history` runs
+**⛔ KEY 1 CANNOT CURRENTLY ARBITRATE THE ARRIVAL CHANNEL, AND ~~EVERY SEAT FIGURE
+IN THIS FILE IS SCORED AFTER THE RELABEL~~ THE RELABEL REACHES FOUR OF THE
+TWENTY-FOUR ROWS — SEE THE 2026-09-13 AMENDMENT BELOW.** `compare_history` runs
 `backtest.relabel_run` on every run before scoring, renaming the model's generic
 `ENTRANT` column onto `max(newcomers, key=seats)` — the largest realised arrival,
 chosen with the outcome in hand (`backtest.entrant_actual_for`). **The baselines have no
 such column**: `benchmarks.py` never builds an `ENTRANT`, so there is nothing to
-relabel and no equivalent benefit. The model is handed a free correct label on
-the single hardest column in the panel and uniform swing is not.
+relabel and no equivalent benefit. ~~The model is handed a free correct label on
+the single hardest column in the panel and uniform swing is not.~~ **That last
+sentence is wrong and is corrected below. The hardest column in the panel is
+ActionSA, and ActionSA is never relabelled.** The mechanism is real; only its
+scope was overstated.
 
 This is the same class of fault as `claimed` selecting away from the
 forecaster's own failures, which rule 8 identified and fixed by introducing
@@ -227,8 +231,10 @@ city-year. §1.213.
 tidy-up.** It picks Mangaung 2016 because it was "one of the TEN city-years where
 a label exists"; that count was taken before the 2016 arm existed and has not
 been re-derived. **Re-measure which city-years still carry a live label before
-re-pointing the test**, and re-measure the label's worth on the 24-city-year
-panel before any figure goes back into this file. Reproduce with
+re-pointing the test** — ⛔ **DONE 2026-09-13, and the answer is the four 2011
+rows named in the amendment below; the label's worth on the 24-city-year panel is
+still open** — and re-measure that worth before any figure goes back into this
+file. Reproduce with
 `JHB_SCORE_NO_RELABEL=1 .venv/bin/python src/compare_history.py`, which withholds
 the label everywhere it is used, not only at `relabel_run`.
 
@@ -247,7 +253,13 @@ rendered nowhere since it was repaired. Panel mass PIT **0.692**, seats PIT
 **0.602**, above 0.5 at **13 of 16** city-years. §1.133, §1.136, §1.148.
 
 **AMENDED 2026-08-31 — the relabel does not always fire, and where it does not,
-something worse happens.** `entrant_actual` is `None` at **6 of the 16
+something worse happens.** ⛔ **SUPERSEDED 2026-09-13: every count in this
+paragraph is a 16-panel figure taken before the 2016 arm was seeded, and its
+flagship example is now false — Johannesburg 2021 holds 32 named seeded arrival
+columns and NO generic `ENTRANT` at all, so nothing there is "an extra column no
+baseline has". Read the next amendment for the live scope; this one is kept
+because the two-faced shape of the fault is still the right idea at 2011.**
+`entrant_actual` is `None` at **6 of the 16
 city-years** — joburg 2021, tshwane 2016 and 2021, mangaung 2021, buffalocity
 2016 and 2021 — because no newcomer took a seat for it to be named after. The
 block above reads as though the relabel is universal; at those six the model's
@@ -257,6 +269,77 @@ extra column). So the fault has two faces, not one: at ten city-years the model
 gets a free correct label, and at six it is scored on a column no baseline has
 and no real party corresponds to. **Joburg 2021 — the flagship city-year — is one
 of the six.** MODEL-LOG §1.144 §4.
+
+**⛔ AMENDED 2026-09-13 — THE CAVEAT WAS POINTED AT THE WRONG MECHANISM. The
+relabel is real, it fires at FOUR of the twenty-four rows, all of them 2011, and
+at all four it is worth nothing on seats.** Every figure below is read from the
+committed 24-row artefact `data/processed/history.json`
+(`manifest.git_commit efa06f78…`, generated 2026-09-10, 1000 draws, `git_dirty:
+true`) unless another source is named. **The label's worth in CRPS on this panel
+is still UNMEASURED** — the struck 11.52 above is a 16-panel figure and stays
+struck.
+
+* **Where a generic column exists at all.** `montecarlo.py` appends `ENTRANT`
+  only `if scenario["entrant_prob"] > 0 and not named_arrivals`. In the artefact
+  `arrival_reconciliation.seeded_parties` is **0** and `arrival_group.n_columns`
+  is **1** at all eight 2011 rows, and `n_columns` **equals** the seeded count at
+  all sixteen 2016 and 2021 rows (Johannesburg 11 at 2016, 32 at 2021; spec seeds
+  in `data/processed/pools_2016.json` and `pools_2021.json`). There is a generic
+  slot at the 2011 rows and nowhere else in the panel.
+* **Where the relabel fires.** It also needs a seat-winning party with no
+  baseline. Re-derived with `backtest.entrant_actual_for` against the previous-NPE
+  citywide baseline (Atlas, commit `21c5b22`, read-only): **NFP at joburg (2
+  seats), ekurhuleni (3) and ethekwini (10), and the Cape Muslim Congress at
+  capetown (1), all 2011** — and **no seat-winning newcomer at all** at tshwane,
+  mangaung, nelsonmandelabay and buffalocity 2011. Four rows of twenty-four.
+* ⛔ **ActionSA is never relabelled.** The Johannesburg 2021 spec carries 32 named
+  seeds including `ASA` at **6.84%**, so no `ENTRANT` is appended and there is
+  nothing to rename. The single hardest column in the panel is scored under its
+  own name with no help from the label, which is the opposite of what the block
+  above said.
+* **What it buys at the four firing rows: nothing on seats.** The model's seat
+  median for the relabelled party is **0** at every one of them — against a
+  realised 2 (joburg), 3 (ekurhuleni), 10 (ethekwini) and 1 (capetown). Withheld,
+  the phantom column scores 0 against 0 and the named party 0 against its actual,
+  which is the same total. **ARGUED from the artefact's medians**;
+  `seat_abs_err_coherent` scores a coherent allocation that the artefact does not
+  carry per party, and it has not been re-derived.
+* **So the label's whole effect is in the distributional scores and the vote
+  table**, where one arrival column is matched to a real party instead of being
+  scored as phantom mass plus a total miss. Johannesburg 2011: median **0.000%**,
+  mean **1.507%**, against the NFP's realised **0.824%**. Ekurhuleni mean 1.410%
+  against 1.133%; Cape Town 1.493% against 0.245%; eThekwini **1.411% against
+  4.478%**, where the label converts phantom mass into a large *under*-forecast
+  rather than a flattering hit. A point or two of CRPS at a handful of 2011 rows
+  is the order of the thing, and **the number itself is not in hand**.
+* **The failing ablation test is not evidence of a broken switch.**
+  `test_the_relabel_ablation_actually_withholds_the_label` runs at mangaung 2016,
+  which carries four named seeds and no generic column, so the label has nothing
+  to rename and the two runs must score identically.
+  `JHB_SCORE_NO_RELABEL=1` sets `entrant_actual = None` at the single place it is
+  computed, upstream of `relabel_run`, `calibration_columns` and both
+  `score_seats` calls, and `score.seat_matrix` then renames a key no draw holds.
+  **The standing diagnosis that the ablation "is waiting on a repair" is wrong and
+  should not be repeated.** The test's premise — "one of the TEN city-years where
+  a label exists" — is the retired panel's count; the live answer is the four 2011
+  rows above. Re-pointing it is a test change and is not made in this amendment.
+* **`generic_slot_present` in this artefact is a PRE-REPAIR reading.** It is true
+  at 4 of 24 rows — tshwane, mangaung, nelsonmandelabay, buffalocity 2011 — which
+  are exactly the rows where the relabel did **not** fire, because the detector
+  tested the post-relabel universe and the slot had been renamed out of existence
+  wherever it did. `compare_history._reconcile_arrival` takes the test from the
+  pre-relabel universe at `21c5b22`; the artefact predates that, so on a re-run
+  the flag should read true at all eight 2011 rows. **Not re-measured.**
+
+⚠️ **AND THE ASYMMETRY THAT MATTERS IS A DIFFERENT MECHANISM: the model is given
+the target's nomination roster and the baselines are not.** The relabel moves one
+column at four 2011 rows and nothing on seats; the roster decides which parties
+exist at every row in the panel, including Johannesburg 2021, which supplies the
+pooled margin. A roster-aware reference (`uniform-swing+roster`) is being built to
+price it, and until it returns this is **ARGUED, not measured**. It is also the
+reason to quote paired differences rather than the margin — not the relabel. **A
+caveat aimed at the wrong mechanism is worse than none**, because it spends the
+reader's scepticism in the wrong place.
 
 ### Which scores may be compared across forecasters, and which may not
 

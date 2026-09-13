@@ -10,7 +10,7 @@ the *same output shape* the model produces -- a list of ``{party: seats}``
 dicts, one per draw, plus a matching list of ``{ward: winner}`` -- so
 ``score.py`` scores them with the identical code path and no special cases.
 
-Three baselines, in increasing order of how much they are allowed to know:
+Four baselines, in increasing order of how much they are allowed to know:
 
 ``last-lge``
     The previous local election's VD-level result, re-laid on the target's ward
@@ -23,6 +23,14 @@ Three baselines, in increasing order of how much they are allowed to know:
     national elections that bracket it -- see :func:`uniform_swing` for why that
     is the only aggregate a legitimate uniform swing can use here.
 
+``uniform-swing+roster``
+    ``uniform-swing`` given the one pre-election input the MODEL has and the
+    other baselines do not: the target's **nomination roster**. Parties that did
+    not stand are dropped, parties that did stand and have no prior result enter
+    at a declared arrival prior. See :func:`uniform_swing_roster` for why the
+    comparison is unfair without it, and for exactly how much of the gap that
+    does and does not close.
+
 ``prior-lge-noise``
     ``last-lge`` with a spread calibrated from how much the parties actually
     moved over the *preceding* local-election transition. Deterministic
@@ -33,9 +41,12 @@ Three baselines, in increasing order of how much they are allowed to know:
     worth of uncertainty", its distributional layer is adding nothing.
 
 **Every baseline sees only pre-election data.** Same rule as the backtest
-harness, same reasoning: ward boundaries and the voters' roll come from the
-target's own result file because they are published months before polling day;
-the votes in that file are touched only by the scorer. Council size comes from
+harness, same reasoning: ward boundaries, the voters' roll and — for
+``uniform-swing+roster`` — the nomination list and the count of ward candidates
+on it come from the target's own result file, because all four are published
+before polling day; the votes in that file are touched only by the scorer, and
+``tests/test_roster_aware_baseline.py`` proves it by erasing every one of them
+and demanding the same answer. Council size comes from
 ``cities/<slug>.toml`` (see :func:`council_size`), not from the IEC's
 post-election seat calculation. What each baseline uses is listed in its
 docstring, and there is nothing else in scope for it to use.
@@ -51,7 +62,7 @@ from __future__ import annotations
 
 import argparse
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 import numpy as np
@@ -59,6 +70,7 @@ import numpy as np
 import backtest as B
 import cityconfig
 import montecarlo as M
+import pools as _pools
 import score as S
 from fold import citywide, load, shares
 from seats import eligible_parties, outside_pool_wards  # allocate itself is reached via montecarlo
@@ -449,6 +461,308 @@ def blended_swing(ctx: Context, draws: int = 1, seed: int | None = None):
     return _repeat(seats, winners, draws)
 
 
+# ---------------------------------------------------------------------------
+# the roster: the one pre-election input the model had and the baselines did not
+# ---------------------------------------------------------------------------
+
+
+def roster_split(ctx: Context) -> tuple[list[str], list[str], dict[str, float]]:
+    """Who on the target's ballot the baseline already has, and who is new.
+
+    Returns ``(on_ballot, newcomers, reach)``:
+
+    * ``on_ballot`` — the members of ``ctx.universe`` that actually stood.
+    * ``newcomers`` — parties on the ballot with no prior local and no prior
+      national result, so ``ctx.universe`` has no column for them at all.
+    * ``reach`` — for each newcomer that has one, the fraction of the target's
+      wards in which it fielded a ward candidate.
+
+    **Every one of these three is a NOMINATION fact, and none of them reads a
+    vote.** Nomination lists close and are published weeks before polling day;
+    the count of ballot LINES a party occupies is a property of that list. This
+    is the same argument ``pools.contesting_parties``, ``pools.metro_roster``
+    and ``levels.contestation`` already run on, and
+    ``tests/test_roster_aware_baseline.py`` proves it the only honest way there
+    is — by erasing every ``Party_Votes`` in the repository and demanding this
+    function return the identical answer.
+
+    **Three things are borrowed rather than rewritten, deliberately.**
+
+    ``montecarlo.roster_for_target`` resolves the roster, so this reference and
+    the model it is scored against are asking the same question of the same
+    file, and this inherits its fail-closed behaviour for free: an unreadable
+    roster raises rather than returning the empty set that means *drop nobody*.
+    A reference whose roster silently emptied would score as plain
+    ``uniform-swing`` under the name of the fixed one, which is the worst
+    available outcome — a comparison that has stopped being made while still
+    printing a column.
+
+    ``pools._ward_reach`` measures reach. It is private, and it is called
+    anyway, because the arrival record this reference sizes newcomers from
+    (:func:`arrival_budget`) measures reach WITH THAT FUNCTION. ``levels.
+    contestation`` computes the same quantity by a different route for a
+    different consumer; sizing a party against a record whose covariate was
+    measured by the other definition is a comparison between two things, not
+    one, and the window it feeds is narrow enough to notice.
+
+    The ``IND``/``INDEPENDENT`` exclusion matches :func:`build_context`'s, for
+    its reason: independents take seats out of the pool through the Schedule 1
+    ``C`` term rather than earning an entitlement.
+
+    ⚠️ **A "newcomer" here is new to BOTH records.** ``ctx.universe`` is the
+    union of the prior LGE's two ballots and two national elections, so a party
+    absent from it has no prior result of any kind — which is precisely the
+    class uniform swing cannot represent, because there is nothing to swing.
+    """
+    city = cityconfig.active()
+    target = cityconfig.Target(city=city, year=str(ctx.target))
+    roster, state = M.roster_for_target(target)
+    if state != "published":
+        raise SystemExit(
+            f"uniform-swing+roster needs the {ctx.target} nomination roster and "
+            f"the calendar says that election has no result file to read it "
+            f"from (state {state!r}). This reference exists to be given the "
+            f"ballot; without one it would silently BE `uniform-swing`, under a "
+            f"name promising otherwise.")
+    roster = {p for p in roster if p not in ("IND", "INDEPENDENT")}
+
+    on_ballot = [p for p in ctx.universe if p in roster]
+    newcomers = sorted(roster - set(ctx.universe))
+    measured = _pools._ward_reach(city.code, str(ctx.target))
+    return on_ballot, newcomers, {p: measured[p] for p in newcomers
+                                  if p in measured}
+
+
+def arrival_budget(target: int) -> float:
+    """What parties arriving in one metro take BETWEEN THEM, measured before
+    ``target``.
+
+    The mean of ``pools.arrival_group_record(before_year=target)``'s group
+    total, over every metro-year strictly earlier than the target. At the three
+    runnable targets that is 1.877% (7 rows), 1.903% (13) and 1.956% (21) —
+    a quantity so nearly flat across the record that little in this reference
+    turns on which summary of it is taken.
+
+    **THE GROUP TOTAL, NOT A PER-PARTY SHARE, AND THAT IS THE WHOLE POINT.**
+    The obvious construction — give every newcomer the typical arrival's share —
+    does not survive contact with the ballots. The record averages about five
+    arrivals per metro-year; Johannesburg's 2021 ballot carries **32** parties
+    with no prior result of any kind, because ballots have grown (57 parties in
+    2021 against 28 in 2016). Multiplying a per-party statistic by 32 puts
+    **7.29%** of the city's vote into newcomers against a record that says
+    arrivals collectively take about 2%, and it does it by extrapolating a
+    conditional mean far outside the support it was measured on. The group total
+    is the quantity ``pools.arrival_group_record`` says behaves regularly, and
+    it is the one that does not scale with how long the ballot paper happens to
+    have got.
+
+    **The MEAN, not the median**, for ``_arrival_total_prior``'s reason and not
+    a new one: these shares are spent inside a simplex, so what goes in is an
+    expectation by construction. It is also the pollster's standing objection to
+    the alternative — an estimator that takes the median of a violently
+    right-skewed arrival distribution is silent about every new party by design,
+    and would make this reference's newcomer columns decorative.
+
+    **ALL arrivals, not entrants-only.** ``pools._arrival_total_prior`` takes
+    the entrants-only column because its consumer spends the budget over
+    ``entrant_sizes``, which excludes every party classified as a split. This
+    reference has no lineage layer at all — see :func:`uniform_swing_roster` —
+    so the population it spends the budget over INCLUDES the splits, and the
+    entrants-only total would under-budget it. Getting that pairing wrong in the
+    other direction is MODEL-LOG §1.179/§1.180 exactly; the rule is that the
+    budget and the population it is spent over must be the same population.
+
+    The cutoff is enforced inside ``arrival_group_record`` — ``if before_year
+    and int(year) >= int(before_year): continue`` — which is why it is called
+    rather than reimplemented here.
+    """
+    record = _pools.arrival_group_record(before_year=str(target))
+    if not record:
+        raise SystemExit(
+            f"uniform-swing+roster cannot size the parties arriving at "
+            f"{target}: no metro-year strictly before it carries both a local "
+            f"result and a preceding national one, so `arrival_group_record` "
+            f"is empty. The reference is not computable for this target — "
+            f"which is a different statement from 'no party arrived', and it "
+            f"is refused rather than quietly scored with an empty roster half.")
+    return float(np.mean([total for total, _alpha, _entrants in record]))
+
+
+def newcomer_shares(ctx: Context, newcomers: list[str],
+                    reach: dict[str, float]) -> dict[str, float]:
+    """The declared prior each roster newcomer enters at. Pre-target only.
+
+        share(p) = arrival_budget(target) * reach(p) / SUM reach(q)
+
+    **Nothing here is a fitted or a typed constant.** The level is a measured
+    record (:func:`arrival_budget`); the split between parties is ward reach, a
+    nomination fact; and there is no third term. That matters more than usual
+    for an opponent — a reference carrying a dial is a reference that moves when
+    somebody turns it, and then nothing can be compared across the turn. It is
+    the same argument the ``SHARE_FLOOR`` note above makes, arrived at by not
+    having a constant rather than by pinning one.
+
+    **Why reach, and why reach alone.** The record's own strongest covariate:
+    an arrival contesting under a tenth of a city's wards sits at the 23rd
+    percentile of all arrivals and one contesting over 90% at the 86th
+    (``pools.arrival_rules``, correlation +0.44 on logs). Without it a party
+    fielding seven ward candidates and a party fielding a full slate are
+    forecast identically, which is indefensible on sight and is the criticism
+    ``arrival_rules`` already records against its own raw median. Reach does
+    NOT separate a serious party from a shell — most full-slate arrivals are
+    vanity registrations — and this reference does not pretend otherwise; it
+    places a party by its reach and no further, which is exactly what the model
+    does before its judgement layer speaks.
+
+    ⛔ **A NEWCOMER WITH NO MEASURABLE REACH DOES NOT GET A REACH OF ONE.** It
+    gets the median of the newcomers that do have one. ``pools.entrant_record``
+    records why in as many words: defaulting an unmeasured reach to 1.0 fabricates
+    a covariate at its most consequential value, landing the party in the
+    comparator bucket that sizes the arrivals which win seats. Zero is the other
+    tempting answer and it silently deletes a party that is on the ballot, which
+    is the defect this whole reference exists to remove. The median of the same
+    population is the one answer that is neither — and where NO newcomer has a
+    measured reach, every weight is that same value, it cancels in the
+    normalisation, and the budget splits evenly. So the fallback introduces no
+    number. At Johannesburg 2021 it is reached by one party of 32.
+
+    **The remaining simplification, stated because it is invisible otherwise:**
+    a newcomer's share is laid flat across every voting district, on both
+    ballots, including wards it did not contest. Flat is the model's own
+    representation of a party with no geography (``montecarlo`` §1.27: "an
+    entrant has no baseline, so dev is zero and it lands evenly across the
+    city"), so the two agree; but a party with reach 0.3 is credited with a
+    ward-ballot share in the 70% of wards where it fielded nobody, which
+    slightly inflates its combined-vote entitlement. It is bounded by the share
+    itself — tens of a basis point — and it would take a per-ward roster to fix,
+    which ``_ward_reach`` returns a fraction rather than a list of.
+    """
+    if not newcomers:
+        return {}
+    budget = arrival_budget(ctx.target)
+    known = sorted(reach.values())
+    fallback = float(np.median(known)) if known else 1.0
+    weights = np.array([reach.get(p, fallback) for p in newcomers], dtype=float)
+    total = float(weights.sum())
+    if total <= 0:
+        weights = np.ones(len(newcomers))
+        total = float(len(newcomers))
+    return {p: budget * float(w) / total for p, w in zip(newcomers, weights)}
+
+
+def uniform_swing_roster(ctx: Context, draws: int = 1, seed: int | None = None):
+    """``uniform-swing``, given the ballot. The honest opponent at 2021.
+
+    Uses everything :func:`uniform_swing` uses, plus the target's nomination
+    roster and the pre-target arrival record. Deterministic.
+
+    ⛔ **THE COMPARISON THIS REPAIRS WAS NOT A COMPARISON.** ``run_model`` reads
+    ``pools.contesting_parties(target.city, target.year)`` and uses it twice: to
+    drop baseline parties that did not stand, and — through the judgement
+    layer — to seed by name the parties that did stand and had no prior result.
+    ``build_context`` builds its universe from prior results only. So at
+    Johannesburg 2021 the model knew ActionSA was on the ballot and uniform
+    swing could not represent it AT ALL: no prior local vote, no prior national
+    vote, nothing to swing, forecast zero against 44 seats. Seat totals are
+    conserved, so that column is not worth 44 to the margin but closer to twice
+    that — every seat ActionSA did not get in the reference was handed to a
+    party that did not win it.
+
+    **This is not leakage and never was.** Nomination lists close and are
+    published weeks before polling day; a forecaster in October 2021 knew
+    ActionSA was standing, knew it was standing in 134 of 135 wards, and knew
+    which thirty parties from the 2019 baseline were not standing at all. It is
+    an information asymmetry between a model and the reference it is scored
+    against, on the single most decisive quantity in the panel, and the fix is
+    to give the reference the information rather than to take it from the model.
+
+    **What the reference is given, and the line that is NOT crossed.**
+
+    * the roster: who stood. A fact, published before the election.
+    * the arrival record: what parties with no record take, in a metro, between
+      them, measured over city-years strictly before the target.
+
+    It is NOT given the lineage layer — ``pools.SPLITS``, the judgement files,
+    the home/away splinter record — which is how the model knows ActionSA is
+    Herman Mashaba leaving the DA rather than the thirty-first name on a long
+    ballot. **That is deliberate, and it is the difference between information
+    and skill.** A reference handed the model's structure is not a reference.
+    The model's claim at Johannesburg 2021 rests almost entirely on that layer,
+    and this is the opponent that layer should be measured against.
+
+    ⚠️ **AND THAT MEANS THIS DOES NOT REPAIR THE ACTIONSA COLUMN.** It should be
+    said here rather than discovered in a scoring table. The budget is 1.9562%
+    of the city shared over 32 newcomers by reach, so ActionSA enters
+    Johannesburg 2021 at **0.1638%** of the vote and takes **one seat of 270 on
+    a remainder, against 44** (measured 2026-09-13; nothing is scored against
+    the result to obtain it — these are the reference's own inputs). No
+    backward-looking naive rule can do better, because none exists: the record's
+    90th percentile for a full-slate arrival is well under 1%, every
+    construction tried — per-party reach-matched median, reach-matched mean,
+    budget split by reach — lands ActionSA between 0.07% and 0.31%, and the only
+    pre-election evidence that ever distinguished it from the other thirty-one
+    names on that ballot was polling, which no member of this family is allowed.
+
+    So what this reference changes is the OTHER two mechanisms: thirty
+    off-ballot parties stop being forecast a share they could not have won, and
+    thirty-two on-ballot parties stop being forecast a structural zero. Six of
+    those thirty-two take a seat each. **That is the known cost and it is
+    stated, not hidden**: largest-remainder allocation rewards fragmentation, so
+    spreading a measured 1.96% across a long ballot buys columns that are right
+    in kind and wrong in detail. Whether the two mechanisms net out for or
+    against the reference, and by how much, is a measurement and not a claim.
+
+    **The order of operations, because it is load-bearing.** The swing is
+    applied to the prior columns first, exactly as :func:`uniform_swing` does,
+    and only then are the off-ballot columns removed and renormalised: a
+    dropped party's swing is discarded rather than redistributed by hand.
+    Newcomers are then inserted at their declared shares with the incumbent
+    columns scaled by ``1 - SUM(shares)``, so a newcomer's share means what it
+    says and everyone else gives up vote in proportion to what they hold. That
+    is the simplex identity ``arrival_rules`` states for the same operation —
+    inserting a party at rate ``r`` scales every other party by ``1 - r`` — and
+    it is why nothing here debits a named party.
+    """
+    if not ctx.prior_npe_city:
+        raise SystemExit(
+            f"uniform-swing+roster needs {sources_for(ctx.target)['prior_npe']}, "
+            f"which is not on disk for this city — same requirement as "
+            f"uniform-swing, and for the same reason")
+
+    on_ballot, newcomers, reach = roster_split(ctx)
+    entry = newcomer_shares(ctx, newcomers, reach)
+
+    swing = np.array([ctx.base_npe_city.get(p, 0.0) - ctx.prior_npe_city.get(p, 0.0)
+                      for p in ctx.universe])
+    ward = np.clip(ctx.ward_share + swing[None, :], 0.0, None)
+    pr = np.clip(ctx.pr_share + swing[None, :], 0.0, None)
+
+    keep = [i for i, p in enumerate(ctx.universe) if p in set(on_ballot)]
+    if not keep:
+        raise SystemExit(
+            f"the {ctx.target} roster excludes every party in the baseline "
+            f"universe, which is a broken roster and not an election")
+    ward = _renormalise(ward[:, keep])
+    pr = _renormalise(pr[:, keep])
+
+    universe = [ctx.universe[i] for i in keep] + list(newcomers)
+    mass = float(sum(entry.values()))
+    if not 0.0 <= mass < 1.0:
+        raise SystemExit(
+            f"the arrival budget resolved to {mass:.4%} of the city, which is "
+            f"not a share. `arrival_budget` and `newcomer_shares` disagree "
+            f"about their units.")
+    if newcomers:
+        block = np.tile(np.array([entry[p] for p in newcomers], dtype=float),
+                        (len(ctx.vds), 1))
+        ward = np.hstack([ward * (1.0 - mass), block])
+        pr = np.hstack([pr * (1.0 - mass), block])
+
+    seats, winners = council_from_shares(replace(ctx, universe=universe),
+                                         ward, pr)
+    return _repeat(seats, winners, draws)
+
+
 def prior_lge_noise(ctx: Context, draws: int = 2000, seed: int | None = 20211101,
                     scale: float = 1.0):
     """``last-lge`` with a spread calibrated on the previous local transition.
@@ -527,6 +841,10 @@ BENCHMARKS = {
     "last-lge": last_lge,
     "uniform-swing": uniform_swing,
     "blended-swing": blended_swing,
+    # THE NAME IS THE CONTRACT. `compare_history` derives its opponent list from
+    # this registry, so this string is what appears in every table and every
+    # write-up. It is not to be prettified.
+    "uniform-swing+roster": uniform_swing_roster,
     "prior-lge-noise": prior_lge_noise,
 }
 

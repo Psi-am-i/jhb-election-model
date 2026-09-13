@@ -347,10 +347,27 @@ def test_every_baseline_the_table_prints_is_scored_and_named():
             and n.value in set(BM.BENCHMARKS)} == {"last-lge"}
 
     # Rows out == forecasters in, both directions, plus the model.
-    bench_draws = {"last-lge": deterministic_baseline({"ANC": 120, "DA": 100,
-                                                       "EFF": 50}),
-                   "uniform-swing": deterministic_baseline(BASELINE),
-                   "prior-lge-noise": "no prior LGE for this target"}
+    #
+    # ⚠️ DERIVED FROM `D.BASELINES`, NOT TYPED — and the reason is this test's
+    # own history. The three names were written out here while the two
+    # assertions below pin this dict against `D.BASELINES` in both directions,
+    # so together they demanded `set(D.BASELINES) == {those three}`. The day
+    # `uniform-swing+roster` was registered, a fixture with nothing wrong with
+    # it turned the test red on a premise that had nothing to do with the
+    # defect, and the only way to satisfy both this and
+    # `set(BM.BENCHMARKS) - set(D.BASELINES) == {"blended-swing"}` above was to
+    # come back and edit it. Derived, the next reference costs no edit here.
+    #
+    # The last baseline is the error row, whichever it is, because `rows[-1]` is
+    # what the "could not run" assertions read. `uniform-swing` keeps the draws
+    # the round trip below reads off it by name.
+    could_not_run = "this reference cannot be computed for this target"
+    bench_draws = {
+        name: (could_not_run if i == len(D.BASELINES) - 1
+               else deterministic_baseline(
+                   BASELINE if name == "uniform-swing"
+                   else {"ANC": 120, "DA": 100, "EFF": 50}))
+        for i, name in enumerate(D.BASELINES)}
     rows = D.baseline_rows(model_draws(), bench_draws, ACTUAL, COUNCIL)
     assert rows[0]["is_model"] is True
     assert [r["name"] for r in rows[1:]] == list(D.BASELINES), [
@@ -360,7 +377,7 @@ def test_every_baseline_the_table_prints_is_scored_and_named():
     # A baseline that could not run is a ROW, not an absence — and carries no
     # verdict, because it has no numbers to earn one.
     failed = rows[-1]
-    assert failed["error"] == "no prior LGE for this target"
+    assert failed["error"] == could_not_run
     assert failed["margin"] is None and failed["better"] is None
     assert "coherent_err" not in failed
 

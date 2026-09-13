@@ -510,14 +510,6 @@ def test_every_declared_entry_point_can_actually_be_run():
         f"README naming a retired script.")
 
 
-if __name__ == "__main__":
-    # `run_module`, not a hand-rolled loop: it is the only runner that catches
-    # `SkipTest` and `SystemExit`, which every module in `src/` raises for a
-    # missing input. See `tests/_support.run_module` and MODEL-LOG §1.84.
-    # Append new tests ABOVE this line.
-    raise SystemExit(run_module(globals()))
-
-
 # The CLAUDE.md block whose whole claim is "these have no importer". Parsed,
 # not typed: the heading is the anchor and the module names come out of the
 # commands beneath it.
@@ -593,3 +585,11 @@ def test_the_no_importer_claim_detector_can_see_a_violation():
     assert wrong == [victim], (
         f"the detector did not flag {victim}, which {sorted(importers[victim])} "
         f"imports — so the guard above would not have caught diagnose either")
+
+
+if __name__ == "__main__":
+    # `run_module`, not a hand-rolled loop: it is the only runner that catches
+    # `SkipTest` and `SystemExit`, which every module in `src/` raises for a
+    # missing input. See `tests/_support.run_module` and MODEL-LOG §1.84.
+    # Append new tests ABOVE this line.
+    raise SystemExit(run_module(globals()))

@@ -91,17 +91,58 @@
 > 13). `site/index.html`'s poll wording (item 16) is FIXED in its source
 > (`forecast-sheet.html`) and awaits the same rebuild decision as methodology.
 >
-> ⛔ **THE LABEL-FREE PANEL WAS NEVER WAITING ON A SETTLED TREE — IT IS WAITING
-> ON A REPAIR.** `test_the_relabel_ablation_actually_withholds_the_label` is red
-> and says the switch is inert: *"6.9450 with the label, 6.9450 without"*. So
-> `JHB_SCORE_NO_RELABEL=1` withholds nothing, and this banner and its two
-> predecessors were wrong to list it as merely unrun. It needs to reach
-> `calibration_columns` and both `score_seats` calls, not only `relabel_run`.
-> This matters beyond bookkeeping: `relabel_run` gives the model a correct label
-> on the hardest column in the panel, chosen with the result in hand, which no
-> baseline gets — so the ABSOLUTE totals (725/723) and the margin over uniform
-> swing flatter the model, and nothing can say by how much until the ablation
-> works. **Quote paired differences, not the margin.**
+> ⛔ **CORRECTED 2026-09-13 — THE LABEL-FREE PANEL IS NOT WAITING ON A REPAIR.
+> THE SWITCH IS COMPLETE, AND THE CAVEAT IT SERVES WAS AIMED AT THE WRONG
+> MECHANISM.** `test_the_relabel_ablation_actually_withholds_the_label` is red —
+> *"6.9450 with the label, 6.9450 without"* — and that is **not** evidence of an
+> inert switch. It runs at **mangaung 2016**, which carries four NAMED seeds and
+> therefore **no generic `ENTRANT` column at all**
+> (`arrival_reconciliation.seeded_parties` 4, `arrival_group.n_columns` 4 in
+> `data/processed/history.json`), so the label has nothing to rename and the two
+> runs must score identically. `JHB_SCORE_NO_RELABEL=1` sets `entrant_actual =
+> None` at the single place it is computed, **upstream of** `relabel_run`,
+> `calibration_columns` and both `score_seats` calls (`compare_history.py` at
+> `21c5b22`), and `score.seat_matrix`'s merge then renames a key no draw holds.
+> **This banner's two predecessors were right that the panel was merely unrun;
+> the "it needs to reach `calibration_columns`" diagnosis is wrong — it already
+> does.** What the test needs is re-pointing at a city-year where a generic slot
+> exists. That is a test change and is not made here.
+>
+> **The relabel's real scope — measured on the committed 24-row artefact
+> `data/processed/history.json` (`manifest.git_commit efa06f78…`, generated
+> 2026-09-10, 1000 draws, `git_dirty: true`): four rows of twenty-four, all
+> 2011.** `montecarlo.py` appends `ENTRANT` only `if scenario["entrant_prob"] > 0
+> and not named_arrivals`, and in that artefact `seeded_parties` is 0 with
+> `n_columns` 1 at all eight 2011 rows, while `n_columns` **equals** the seeded
+> count at all sixteen 2016 and 2021 rows. The relabel then needs a seat-winning
+> party with no baseline, which exists at joburg, ekurhuleni, ethekwini and
+> capetown 2011 only (**NFP 2, 3, 10 seats; Cape Muslim Congress 1** — re-derived
+> with `backtest.entrant_actual_for` against the previous-NPE citywide baseline,
+> Atlas, `21c5b22`, read-only) and at none of the other four 2011 rows.
+> ⛔ **ActionSA is one of Johannesburg 2021's 32 named seeds
+> (`data/processed/pools_2021.json`, `ASA` 6.84%) and is never relabelled** — the
+> old wording implied the model was handed a free label on the hardest column in
+> the panel, and it is not.
+>
+> **And at the four rows where it does fire it is worth nothing on seats.** The
+> model's seat median for the relabelled party is **0** against a realised 2 / 3 /
+> 10 / 1 (`history.json`, `seats`), so withholding the label leaves a
+> median-based seat error unchanged — ARGUED from the artefact's medians;
+> `seat_abs_err_coherent` scores a coherent allocation the artefact does not carry
+> per party and it has NOT been re-derived. What the label moves is CRPS and the
+> vote table: at Johannesburg 2011 the relabelled column's PR share is median
+> 0.000%, mean 1.507%, against the NFP's realised 0.824%. **So the 725/723 totals
+> and the margin are not flattered in the way this banner claimed. The 24-panel
+> CRPS price of the label is still unmeasured** — `ITERATING.md`'s struck "11.52
+> CRPS / 2.17 points" is a 16-panel figure and must not be resurrected.
+>
+> ⚠️ **The asymmetry that IS material is a different mechanism: the model is given
+> the target's nomination roster and the baselines are not.** It decides which
+> parties exist at every row, including Johannesburg 2021, which supplies the
+> pooled margin. A roster-aware reference (`uniform-swing+roster`) is being built
+> to price it. **ARGUED, not measured, until that reference returns** — and it is
+> the reason to **quote paired differences rather than the margin**, not the
+> relabel.
 >
 > **On the freeze, since the owner asked what it is for.** `forecast_frozen.json`
 > is NOT an orphan: it records commit `82c61e1` with `git_dirty: false`, and
@@ -280,6 +321,13 @@
 >   `ITERATING.md`'s "11.52 CRPS / 2.17 points" is struck as stale in the same
 >   commit. **The test is NOT patched to pass** — re-measure which city-years
 >   still carry a live label, and the label's worth on 24, first. §1.213.
+>   ⛔ **ANSWERED 2026-09-13: the live label exists at four rows — joburg,
+>   ekurhuleni, ethekwini and capetown 2011** (a generic slot only where no
+>   arrival is seeded by name, and a seat-winning newcomer only at those four;
+>   `history.json` plus `backtest.entrant_actual_for`, see the 2026-09-12 banner
+>   above). The test's own premise, *"one of the TEN city-years where a label
+>   exists"*, is the retired 16-panel's count. The label's worth on 24 is still
+>   unmeasured, and on seat medians it is zero at all four.
 >
 > ### What is still open
 >

@@ -1168,6 +1168,31 @@ def _documented_rows():
     return calib, votes
 
 
+# §A38's citations, and the comparison that adjudicates them. FUNCTIONS, so the
+# constructed-violation test below pushes its input through the SAME code the
+# live test runs — the pattern CLAUDE.md §4 asks for, and the reason the register
+# guard's own detector is a function rather than an inline comprehension.
+_A38_CITATION = re.compile(
+    r"PR (median|mean|actual)\s+`votes\[(\d+)\]`\s*=\s*([\d.]+)%")
+
+# Four decimals, as the entry writes them: a rounding that changes a quoted
+# digit is the defect, so the tolerance must be tighter than one.
+_A38_TOLERANCE = 0.0001
+
+
+def _a38_citations(text: str) -> dict[str, tuple[int, float]]:
+    """statistic -> (position in the `votes` row, percentage as written)."""
+    return {m.group(1): (int(m.group(2)), float(m.group(3)))
+            for m in _A38_CITATION.finditer(text)}
+
+
+def _a38_drift(quoted: dict[str, float], actual: dict[str, float]) -> list[str]:
+    """The statistics whose written value has left the artefact's."""
+    return [f"{k}: JUDGEMENT-CALLS says {quoted[k]}%, artefact says "
+            f"{actual[k]:.4f}%" for k in sorted(actual)
+            if abs(quoted[k] - actual[k]) > _A38_TOLERANCE]
+
+
 def test_the_standing_refusals_figures_match_the_artefact():
     """A figure typed into JUDGEMENT-CALLS prose, held against `history.json`.
 
@@ -1177,25 +1202,45 @@ def test_the_standing_refusals_figures_match_the_artefact():
     every document would be unmaintainable. The consequence is that a figure in
     a JUDGEMENT-CALLS entry has no guard at all, and on 2026-09-12 §A38 quoted
     the PA's forecast share as "0.09%" with a "33x" miss derived from it. The
-    artefact says `pr_mean` 0.0969% — which ROUNDS TO 0.10% — and the true
+    artefact says 0.0969% at the mean — which ROUNDS TO 0.10% — and the true
     ratio is 30x. Both halves of `CLAUDE.md` §2's "never type a model figure
     into prose", inside a rule about discipline.
 
     So the entry now NAMES its source and its three values, and this holds them
     to it. The pattern generalises: quote the artefact, name the field, and let
     a test own the number.
-    """
-    import re
-    text = (ROOT / "JUDGEMENT-CALLS.md").read_text(encoding="utf-8")
-    quoted = {m.group(1): float(m.group(2))
-              for m in re.finditer(r"`(pr_median|pr_mean|pr_actual)` ([\d.]+)%",
-                                   text)}
 
-    # (1) IT LOOKED. Three fields, named, or the parse has gone stale.
-    assert set(quoted) == {"pr_median", "pr_mean", "pr_actual"}, (
+    ⚠️ **AND IT MUST NAME A FIELD THAT EXISTS.** The first version of the entry
+    cited the three numbers as pr_median / pr_mean / pr_actual in backticks, as
+    though `history.json` keyed them. It does not: `vote_table` returns unnamed
+    tuples and the record stores bare lists, so two of those three names were in
+    no module in this repository and the third collided with an unrelated key in
+    `montecarlo.py`. `test_every_symbol_the_register_names_exists` failed on the
+    two — the register-to-code direction doing exactly its job — and the
+    collision is the reminder that a name-level check cannot tell a field from
+    its homonym. The entry now cites the POSITION, which the artefact has, and
+    this guard reads the artefact AT THE POSITION THE DOCUMENT NAMES, so a
+    renumbered citation fails on the value rather than passing on the name.
+    """
+    text = (ROOT / "JUDGEMENT-CALLS.md").read_text(encoding="utf-8")
+    quoted = _a38_citations(text)
+
+    # (1) IT LOOKED. Three statistics, each with a position, or the parse has
+    # gone stale. `assert not drift` below is vacuous on an empty parse.
+    assert set(quoted) == {"median", "mean", "actual"}, (
         f"parsed {sorted(quoted)} out of JUDGEMENT-CALLS.md; expected the three "
-        f"PA fields §A38 cites. If the entry was reworded, this guard is "
+        f"PA statistics §A38 cites. If the entry was reworded, this guard is "
         f"checking nothing and must be repointed, not deleted.")
+
+    # (0) THE RIGHT SET. Three DISTINCT positions in the row `vote_table`
+    # writes — `(party, pr_median, pr_mean, pr_actual, ward_*)`. A document that
+    # cited one position three times would otherwise satisfy everything below.
+    sites = {k: v[0] for k, v in quoted.items()}
+    assert sorted(sites.values()) == [1, 2, 3], (
+        f"§A38 cites positions {sites} of the `votes` row; `vote_table` puts "
+        f"the PR median, mean and actual at 1, 2 and 3. Either the entry is "
+        f"wrong or `vote_table`'s tuple changed, and the second one moves every "
+        f"reader of this artefact.")
 
     results = _artefact()
     row = [r for r in results
@@ -1204,14 +1249,12 @@ def test_the_standing_refusals_figures_match_the_artefact():
     votes = {v[0]: v for v in row[0]["votes"]}
     assert "PA" in votes, "the PA has left the joburg 2021 vote table"
     pa = votes["PA"]
-    actual = {"pr_median": pa[1] * 100, "pr_mean": pa[2] * 100,
-              "pr_actual": pa[3] * 100}
+    # Read where the DOCUMENT points, not where this test would like to look.
+    actual = {k: pa[i] * 100 for k, i in sites.items()}
+    quoted = {k: v[1] for k, v in quoted.items()}
 
-    # (2) THE CLAIM. Four decimals, as written — a rounding that changes the
-    # quoted digit is the defect, so the tolerance must be tighter than it.
-    drift = [f"{k}: JUDGEMENT-CALLS says {quoted[k]}%, artefact says "
-             f"{actual[k]:.4f}%" for k in actual
-             if abs(quoted[k] - actual[k]) > 0.0001]
+    # (2) THE CLAIM.
+    drift = _a38_drift(quoted, actual)
     assert not drift, (
         "§A38's PA figures no longer match the committed artefact:\n  "
         + "\n  ".join(drift)
@@ -1220,7 +1263,7 @@ def test_the_standing_refusals_figures_match_the_artefact():
           "this guard was written for.")
 
     # (3) AND THE MULTIPLIER IS DERIVED FROM THEM, not from a rounded value.
-    ratio = actual["pr_actual"] / actual["pr_mean"]
+    ratio = actual["actual"] / actual["mean"]
     # The document uses the multiplication sign, not the letter x. My first
     # version of this regex looked for "x" and silently matched nothing, which
     # is the guard-finds-nothing failure this whole file is about.
@@ -1228,9 +1271,77 @@ def test_the_standing_refusals_figures_match_the_artefact():
     assert stated, "§A38 no longer states the level-miss multiple"
     assert abs(int(stated.group(1)) - round(ratio)) <= 1, (
         f"§A38 states a {stated.group(1)}x level miss; the artefact gives "
-        f"{actual['pr_actual']:.4f} / {actual['pr_mean']:.4f} = {ratio:.1f}x. "
+        f"{actual['actual']:.4f} / {actual['mean']:.4f} = {ratio:.1f}x. "
         f"A ratio computed from a ROUNDED figure rather than from the data is "
         f"exactly how 33x was written for a 30x miss.")
+
+
+def test_the_A38_figure_detector_can_see_a_drift_and_a_renumbered_citation():
+    """(2) IT CAN SEE, on (3) A CONSTRUCTED input.
+
+    The guard above reports on the document as it happens to be, and the
+    document is currently correct — so on its own it has never demonstrated it
+    can catch anything. Its premise is an observed passing state, which is the
+    class `CLAUDE.md` §4 says expires silently.
+
+    Three constructed documents go through `_a38_citations` and `_a38_drift`,
+    the same two functions the live test uses, against a constructed vote row.
+    Each carries one of the three ways this entry has gone wrong or could:
+    a value that drifted from the artefact (the 0.09%-for-0.0969% defect that
+    caused this guard to be written), a citation renumbered to a position
+    holding a different statistic, and a rewording that leaves the parse
+    matching nothing at all — the guard-finds-nothing failure this file's own
+    `×`-versus-`x` comment records.
+    """
+    # A constructed row in `vote_table`'s shape: party, then PR median / mean /
+    # actual, then the three ward columns. Not the PA's real numbers — a
+    # detector proved against observed values proves nothing about the detector.
+    row = ["ZZ", 0.0100, 0.0200, 0.5000, 0.0, 0.0, 0.0]
+    good = ("PR median `votes[1]` = 1.0000%, PR mean `votes[2]` = 2.0000%, "
+            "PR actual `votes[3]` = 50.0000%")
+
+    # The control: the detector must PASS the correct document, or every
+    # failure below is the detector being broken rather than the defect being
+    # caught — a positive control that only ever fails is a stuck needle.
+    cited = _a38_citations(good)
+    assert set(cited) == {"median", "mean", "actual"}, sorted(cited)
+    sites = {k: v[0] for k, v in cited.items()}
+    assert sorted(sites.values()) == [1, 2, 3]
+    clean = _a38_drift({k: v[1] for k, v in cited.items()},
+                       {k: row[i] * 100 for k, i in sites.items()})
+    assert not clean, f"the detector flagged a correct document: {clean}"
+
+    # (a) A DRIFTED VALUE. 2.0000% written as 1.9%, the shape of the original
+    # defect: a truncation that still looks like the number.
+    drifted = _a38_citations(good.replace("`votes[2]` = 2.0000%",
+                                          "`votes[2]` = 1.9%"))
+    seen = _a38_drift({k: v[1] for k, v in drifted.items()},
+                      {k: row[v[0]] * 100 for k, v in drifted.items()})
+    assert [s.split(":")[0] for s in seen] == ["mean"], (
+        f"a value 0.1pp from the artefact was not reported: {seen}. The "
+        f"tolerance is {_A38_TOLERANCE}, and this is the defect the guard "
+        f"exists for.")
+
+    # (b) A RENUMBERED CITATION. The mean's value kept, its position moved to
+    # the median's — the failure a name-based citation could not express and a
+    # positional one can. It must be caught by the position check AND, because
+    # the live guard reads where the document points, by the value comparison.
+    moved = _a38_citations(good.replace("PR mean `votes[2]`", "PR mean `votes[1]`"))
+    assert sorted(v[0] for v in moved.values()) == [1, 1, 3], (
+        f"the renumbered citation did not survive the parse: {moved}")
+    seen = _a38_drift({k: v[1] for k, v in moved.items()},
+                      {k: row[v[0]] * 100 for k, v in moved.items()})
+    assert [s.split(":")[0] for s in seen] == ["mean"], (
+        f"reading position 1 for the mean returned the median's 1.0000% "
+        f"against a written 2.0000% and that was not reported: {seen}")
+
+    # (c) A REWORDING. The parse returns nothing, and `assert not drift` is
+    # vacuously true on nothing — which is why the live test asserts the key
+    # set BEFORE it compares anything.
+    assert not _a38_citations(
+        good.replace("`votes[", "`vote_row[")), (
+        "the citation regex still matched after the document was reworded, so "
+        "it is not anchored on the form the entry actually uses")
 
 
 def test_the_documented_figures_match_the_committed_artefact():

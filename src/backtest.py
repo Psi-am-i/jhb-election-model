@@ -974,6 +974,86 @@ def actual_result(path: Path, council: int, year: int | None = None,
     return seats, winners
 
 
+def arrival_baseline(target, data_dir: Path) -> dict[str, float] | None:
+    """**THE ONE DEFINITION OF "HAS A BASELINE" IN THIS REPOSITORY.**
+
+    The preceding national election's citywide shares, filtered to shares above
+    zero. A party absent from what this returns "arrived from nothing"; a party
+    present in it did not. That is `pools.ARRIVAL_DEFINITIONS
+    ["ARRIVED_VS_NATIONAL"]` — *"local share > 0 and preceding-NPE share <= 0,
+    party != IND"* — read here rather than a sixth definition being invented,
+    because the register exists precisely so a new site names an existing
+    population instead of adding one (§1.206).
+
+    ⛔ **THERE WERE THREE OF THESE AND THEY DISAGREED.** Every consumer of
+    :func:`entrant_actual_for` built its own baseline and each built a different
+    one:
+
+      * ``compare_history._actual_seats`` passed ``{p: 1.0 for p in run.index}``
+        — **the model's whole fitted universe**, so a party the pool fit had
+        handed a vector to was not an arrival even with no national record at
+        all. Not a registered definition, and the only one of the three whose
+        answer depends on the model rather than on the world.
+      * ``diagnose`` and ``backtest.main`` passed ``citywide(...)`` of the
+        preceding NPE **unfiltered**, so a party carrying a row of zeroes in
+        that file counted as having a baseline. Membership, not share.
+      * ``compare_history._npe_baseline`` passed the same thing **filtered to
+        ``> 0``**, which is the registered predicate.
+
+    ⚠️ **AND THE SECOND AND THIRD AGREE VACUOUSLY TODAY.** Measured over all 24
+    runnable city-years on 2026-09-13: **zero** parties have a preceding-NPE
+    citywide total of exactly zero, so the filter removes nothing and the two
+    return identical maps at every row. That is a fact about these files, not a
+    property of the operation — a `0` row is one merged VD away — and it is why
+    the filtered version is the one kept rather than the one dropped.
+
+    Returns ``None``, never ``{}``, when the preceding NPE cannot be read.
+    ⛔ **THE DIFFERENCE IS THE WHOLE SAFETY PROPERTY.** An empty baseline does
+    not mean "nobody had a record", it means **everybody arrived** — every party
+    in the council, the ANC included, becomes a newcomer, and
+    :func:`entrant_actual_for` would relabel the model's generic ENTRANT onto
+    the largest party in the chamber. "The record is empty" and "the record is
+    unreachable" returning the same value is a fault this project has already
+    published twice; here it would fail OPEN, in the most expensive direction
+    available. Callers must refuse rather than proceed.
+    """
+    npe = getattr(target, "previous_npe", None)
+    if not npe:
+        return None
+    path = data_dir / target.results(npe)
+    if not cityconfig.resolve_path(path).exists():
+        return None
+    return {p: v for p, v in citywide(load(path, None)[0]).items() if v > 0}
+
+
+def entrant_actual_for_target(target, actual_seats: Mapping[str, int],
+                              data_dir: Path) -> str | None:
+    """Which party arrived from nothing at ``target``. **The one call path.**
+
+    :func:`arrival_baseline` then :func:`entrant_actual_for`, so no consumer has
+    to know — or choose — what "from nothing" is measured against. Every caller
+    that used to build its own baseline goes through here.
+
+    ⛔ **AN UNREADABLE BASELINE RELABELS NOTHING.** Where
+    :func:`arrival_baseline` returns ``None`` this returns ``None`` rather than
+    treating an absent record as an empty one. The consequence is the
+    conservative one and deliberately so: with no label the model's generic
+    ENTRANT column stays in the scored universe as phantom mass and is PENALISED
+    (``tests/test_regressions.py`` pins that case), where the failed-open
+    alternative would hand the model a free correct label on the largest party
+    in the council. A scorer that errs must err against the model.
+
+    ⚠️ It answers "who", not "how well". The assignment is
+    ``max(newcomers, key=seats)`` — chosen with the outcome in hand — and
+    :func:`arrival_group_score` exists because of it. Nothing about routing the
+    three call sites through one definition repairs that; see MODEL-LOG §1.133.
+    """
+    base = arrival_baseline(target, data_dir)
+    if base is None:
+        return None
+    return entrant_actual_for(actual_seats, base)
+
+
 def entrant_actual_for(actual_seats: Mapping[str, int],
                        base_city: Mapping[str, float]) -> str | None:
     """Which party actually arrived from nothing, if any.
@@ -982,6 +1062,15 @@ def entrant_actual_for(actual_seats: Mapping[str, int],
     so scoring maps ENTRANT onto whichever seat-winning party had no baseline
     at all. Anything else scores the machinery as a total miss even when it
     sized the newcomer correctly, which is the interesting question.
+
+    ⚠️ **THIS FUNCTION DOES NOT DEFINE "HAS A BASELINE" — ITS CALLER DOES**, and
+    for most of this repository's life each caller defined it differently. Take
+    ``base_city`` from :func:`arrival_baseline`, or better, call
+    :func:`entrant_actual_for_target` and never hold the baseline at all. An
+    empty ``base_city`` makes **every** seat-winner a newcomer; it is accepted
+    here because the predicate is honest arithmetic on whatever it is given, and
+    refused one level up where the difference between "empty" and "unreadable"
+    is knowable.
     """
     newcomers = {p: s for p, s in actual_seats.items() if p not in base_city}
     # DETERMINISTIC TIE-BREAK. `max(newcomers, key=newcomers.get)` returns the
@@ -1198,9 +1287,10 @@ def main(argv: list[str] | None = None) -> int:
     actual_seats, actual_winners = actual_result(
         actual_path, target.council, int(target.year), city.code)
 
-    base_votes, _ = load(args.data_dir / target.results(target.previous_npe), None)
-    base_city = citywide(base_votes)
-    entrant = entrant_actual_for(actual_seats, base_city)
+    # THE ONE CALL PATH. This built its own baseline — `citywide(load(...))` of
+    # the preceding NPE, unfiltered — and `diagnose` built the same one again
+    # while `compare_history` built two others. See `arrival_baseline`.
+    entrant = entrant_actual_for_target(target, actual_seats, args.data_dir)
 
     print(f"backtest: {city.name} {target.year} ({target.date}) "
           f"— council {target.council}, γ fold {M.gamma_fold_for(target)}, "

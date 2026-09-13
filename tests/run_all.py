@@ -71,7 +71,13 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # missing from this list.
            "test_scoreboard_disclosure",
            "test_diagnose_baselines",
-           "test_roster_fails_closed"]
+           "test_roster_fails_closed",
+           # Added 2026-09-13 with the Phase 1 repairs. Same rule as the block
+           # above: a module that is written, committed and never listed here
+           # reads as coverage and is not.
+           "test_roster_aware_baseline",
+           "test_scored_universe",
+           "test_panel_wiring"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

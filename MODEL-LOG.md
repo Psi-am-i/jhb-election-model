@@ -24390,3 +24390,147 @@ computed from the truncated value (the artefact gives 30×).
 a regex looking for the letter `x` where the document has `×`, matching nothing.
 That is the guard-finds-nothing failure, committed inside a guard written against
 it. Both are recorded in the tests' own comments as the reason for their shape.
+
+## 1.229 Phase 1: the reference is made fair, and it refutes the premise it was built on (2026-09-13)
+
+**Six fixes (#11 #12 #13 #14 #15 #34) plus the cross-file wiring none of them
+could reach from inside its own grant.** Full suite on the combined tree:
+**560 passed, 8 failed, 19 skipped**, against a measured base at `21c5b22` of
+506 / 10 / 19. The remaining 8 are the pre-existing set of §1.228 less the two
+this batch repaired; **no new failure.**
+
+### ⛔ #11 refutes the estimate that commissioned it
+
+The brief said ~30 of the 40-seat 2021 margin came from the model being handed
+the nomination roster while uniform swing was not. **That is wrong.** In
+`benchmarks.uniform_swing_roster`, ActionSA enters Johannesburg 2021 at
+**0.1638%** and takes **one seat of 270**, against 44 actual; the unfixed
+reference gives zero. Every construction tried — reach-matched median,
+reach-matched mean, budget-split-by-reach — lands it between **0.07% and
+0.31%**, and the record's 90th percentile for a full-slate arrival is under 1%.
+
+**No backward-looking naive rule can SIZE ActionSA.** The only pre-election
+evidence that ever distinguished it from the other thirty-one names on that
+ballot was polling, which this family of references may not use. The estimate
+assumed the reference could represent ActionSA roughly correctly; it can
+represent it and it cannot size it.
+
+The budget is the **group total** arrivals take (1.877 / 1.903 / 1.956% at
+2011/2016/2021), measured strictly before the target, split by ward reach — no
+fitted or typed constant. Per-party would have been catastrophic: the record
+averages ~5.5 arrivals per metro-year and Johannesburg's 2021 ballot carries
+**32** parties with no prior result, so multiplying a per-party mean puts
+**7.29%** of the city into newcomers against a record saying ~2%.
+
+⭐ **What this leaves is the finding.** The asymmetry was real and is removed;
+removing it does not rescue the comparison, because what remains is not an
+information gap at all. The model's 15 ActionSA seats come from its **lineage
+layer** — `SPLITS`, the judgement files, the splinter record — and no naive
+reference gets any of it. If the pooled margin still rests on Johannesburg 2021
+after the canonical run, the honest reading is *"the model's advantage is its
+lineage judgement"*: a defensible claim about skill, and a claim about **one
+hand-declared party in one city**. The reference that would settle it is
+poll-aware, which is a different opponent.
+
+### #34 — adding noise to persistence cannot improve it
+
+`prior-lge-noise` scored **1274** against `last-lge`'s **1315** — 41 seats
+better than the persistence forecast it is built from. Measured: its marginal
+medians sum to **254 / 266 / 264** against councils of 260 / 270 / 270, ~120
+seats withheld across the panel, and withheld seats remove absolute error
+wherever persistence over-forecasts a declining incumbent. It was stored under a
+key named `seat_abs_err_coherent`. Every baseline is now scored on the statistic
+its key claims; the two deterministic references do not move (24/24 rows, gap
+0.00). **Pre-registered: the total should RISE toward 1315. If it falls, the
+argument is wrong and nothing may be quoted until that is understood.**
+
+### #13 — CRPS and energy are EXACTLY invariant, which is not what was expected
+
+A column outside a forecaster's own set is zero in truth and zero in every draw,
+so it contributes `E|X−y| = 0` with a zero spread term, and an extra zero
+coordinate leaves a Euclidean norm unchanged. Verified at pads of 0, 5, 20 and
+50 columns: CRPS 12.773299 and energy 6.158879 alike. **So the 38.3% CRPS margin
+does not move — holding the universe makes it QUOTABLE, not corrected.**
+`compare_history`'s own caution, which scoped itself to energy and variogram,
+had it backwards: energy is the invariant one. `n_scored` and the **variogram**
+do move, the variogram by an **unknown sign** — `V(m) = (S + mC)/[(d+m)(d+m−1)/2]`
+rises then falls, both limbs are real on real forecasts, and the baselines' pad
+sits near the crossover. No direction is claimed.
+
+⛔ `reference` alone is not a legal held set: **seven parties won seats while
+outside it**, and it carries no phantom-mass column, so scoring on it alone
+forgives what `seat_matrix` exists to penalise.
+
+### #15 — the clustered χ² rejects, and the χ² previously printed was not a number
+
+Rao–Scott over 24 city-year clusters: **32.33 on `reference`** (nominal 34.44,
+design effect **1.07**), **41.05 on `claimed`**, both 64/64 replicates, against a
+critical value of 16.92. **The clustering correction buys almost nothing, and
+the reason is worth keeping: seats inside a council are zero-sum, so a
+city-year's per-column errors are NEGATIVELY correlated**, pushing between-cluster
+variance down. A metro council is not a cluster sample of independent
+households; the survey-sampling intuition points the wrong way here. (On three
+city-years the worry was right — three clusters cannot estimate ten cell design
+effects, and `chi2_clustered` refuses below eight.)
+
+⚠️ **And the χ² in the report was computed on ONE PIT re-randomisation.** A
+re-roll moves `reference` from **19.31 to 66.19** (sd 8.62) with the model
+standing still; the stored value read 55.61 against an R-averaged 34.44. **Any
+χ² quoted from a single randomisation is not a number.** Now averaged over
+replicates with `rejects_in/R` reported.
+
+`claimed` keeps **2 of the 10 worst |z| columns**; the eight it drops all have
+`p_any` between 0.10 and 0.32, so the selection rule is almost the exact
+complement of the failure mode. sd(z) 0.784 kept vs 1.062 fixed vs 1.194
+dropped — it understates the width fault by ~26%. (The Johannesburg 2021 PA z is
+**8.24** on this artefact; an earlier 11.45 is stale.)
+
+### #12 — one definition, and it is one conjunction from mattering
+
+Three definitions of "arrived from nothing" reached three call sites.
+`ARRIVED_VS_NATIONAL` — already registered in `pools.ARRIVAL_DEFINITIONS`, not
+invented — is now the single path via `backtest.entrant_actual_for_target`.
+`_actual_seats` no longer takes the run, so **the ground truth no longer depends
+on the forecast**.
+
+No score moves, and the reason is structural: a generic `ENTRANT` column exists
+only where `pool_seeds` is empty, and with no seeds `run.index` **is** the
+preceding-NPE universe — so the two definitions differ exactly by the seeded
+parties, and where there are seeds there is nothing to relabel. Verified by
+running: ekurhuleni and ethekwini 2011 keep NFP; mangaung 2016 goes `None → AIC`
+and is inert. ⛔ **Delete `and not named_arrivals` and they diverge at every
+seeded row at once**, with the model relabelled onto a 44-seat party at
+Johannesburg 2021.
+
+### #14 — the caveat was pointed at the wrong mechanism
+
+The relabel fires at **four of twenty-four rows, all 2011** — joburg (NFP, 2),
+ekurhuleni (NFP, 3), ethekwini (NFP, **10**), capetown (Cape Muslim Congress, 1).
+**ActionSA is a named seeded column and is never relabelled.** The relabelled
+party's seat median is 0 at all four, so seat error is untouched. At eThekwini
+the labelled forecast is 1.411% against 4.478% realised — the label converts
+phantom mass into a large under-forecast, not a flattering hit.
+
+The ablation test can only bite where a slot **and** a label coexist: those same
+four rows. It runs at mangaung 2016, which has four seeds and no slot, so it
+withholds a label that does nothing. **Its standing diagnosis — "the switch is
+inert" / "waiting on a repair" — is wrong.** Move it to ethekwini 2011.
+
+### Two coordinator defects, committed at `21c5b22` and repaired here
+
+`test_no_test_file_defines_a_test_after_its_main_block` and
+`test_every_symbol_the_register_names_exists` were failing **in the Phase 0
+commit**, because the guards added at the end of that batch were verified with
+targeted module runs and the suite was not re-run. *A subset is not a suite
+run* — committed while writing guards against that class.
+
+The second is the sharper lesson. §A38 cited `pr_median`/`pr_mean`/`pr_actual`
+as though they were artefact fields. **They are not fields at all** — the
+`votes` rows are positional lists, two of the three names exist nowhere in the
+repository, and the third exists only as an unrelated trace key, which is why
+the register guard caught two and let one through on a homonym. **The guard was
+right and the document was wrong.** §A38 now cites `votes[1]`/`votes[2]`/`votes[3]`
+and the figures test reads the artefact at the position the document names.
+Narrowing the guard was considered and rejected: a "data, not code" rule must be
+syntactic, and it would wave through the next deleted lever that happens to sit
+near a filename.

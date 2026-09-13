@@ -36,6 +36,7 @@ change rather than passing vacuously. Re-run `src/compare_history.py`.
 
 from __future__ import annotations
 
+import ast
 import inspect
 import re
 import sys
@@ -49,6 +50,7 @@ from _support import ROOT, run_module, scanned, skip  # noqa: E402
 sys.path.insert(0, str(ROOT / "src"))
 
 import backtest as B  # noqa: E402
+import benchmarks as BM  # noqa: E402
 import cityconfig  # noqa: E402
 import compare_history as C  # noqa: E402
 
@@ -140,6 +142,7 @@ def _record(year="2011", slug="joburg", city="Johannesburg", *, seats=8,
         "votes": [], "pr_mae": 1.0, "ward_mae": 1.0, "pr_mae_median": 1.0,
         "ward_mae_median": 1.0, "bands": bands, "seats": {},
         "seat_abs_err": 50, "seat_abs_err_coherent": 60, "median_sum": 250,
+        "coherent_sum": 270, "draw_total": 270.0, "fills_council": True,
         "crps": 40.0,
         "calibration": C.calibration_columns(draws, actual, None, seed,
                                              actual_pr=actual_pr,
@@ -150,12 +153,27 @@ def _record(year="2011", slug="joburg", city="Johannesburg", *, seats=8,
                          else ["pools"]),
         "in_sample": bool(contaminated if contaminated is not None else True),
         "arrival_reconciliation": reconciliation,
+        # ⛔ THE TWO DETERMINISTIC REFERENCES CARRY `seat_abs_err ==
+        # seat_abs_err_coherent == crps`, AND THAT IS THE POINT OF THE NUMBERS.
+        # A deterministic forecaster's draws are identical repeats, so its
+        # median IS its allocation and CRPS collapses onto both. The stochastic
+        # one is deliberately given three different numbers, because the
+        # pre-#34 artefact could not tell those apart: it filed the MARGINAL
+        # error under the coherent key, so a fixture that made them equal would
+        # pass against the defect.
         "opponents": opponents if opponents is not None else {
-            "last-lge": {"crps": 52.0, "seat_abs_err_coherent": 52, "wards": {}},
-            "uniform-swing": {"crps": 70.0, "seat_abs_err_coherent": 70,
-                              "wards": {}},
-            "prior-lge-noise": {"crps": 48.5, "seat_abs_err_coherent": 66,
-                                "wards": {}}},
+            "last-lge": {"crps": 52.0, "seat_abs_err": 52,
+                         "seat_abs_err_coherent": 52, "median_sum": 270,
+                         "coherent_sum": 270, "draw_total": 270.0,
+                         "fills_council": True, "wards": {}},
+            "uniform-swing": {"crps": 70.0, "seat_abs_err": 70,
+                              "seat_abs_err_coherent": 70, "median_sum": 270,
+                              "coherent_sum": 270, "draw_total": 270.0,
+                              "fills_council": True, "wards": {}},
+            "prior-lge-noise": {"crps": 48.5, "seat_abs_err": 61,
+                                "seat_abs_err_coherent": 66, "median_sum": 264,
+                                "coherent_sum": 270, "draw_total": 270.0,
+                                "fills_council": True, "wards": {}}},
     }
 
 
@@ -1186,6 +1204,567 @@ def test_the_disclosure_guard_can_see_the_scenario_being_dropped():
         "the pre-fix call already disclosed an uninstrumented constant, so the "
         "guard above cannot distinguish the fixed code from the broken code "
         "and proves nothing.")
+
+
+# ---------------------------------------------------------------------------
+# F34 — a key named `coherent` holds the COHERENT number, on every forecaster
+#
+# `run_city_year` scored each reference with `seats_from_draws` — the per-party
+# MARGINAL median — and filed the result under `seat_abs_err_coherent`. The
+# justification written beside it was that "a baseline is deterministic (or
+# allocated per draw), so its error is the COHERENT one". That is true of
+# `last-lge` and `uniform-swing`, whose draws are identical repeats, and FALSE
+# of `prior-lge-noise`, which is stochastic: measured on Atlas, its marginal
+# medians sum to 254 / 266 / 264 against Johannesburg councils of 260 / 270 /
+# 270. A vector short of the chamber flatters the forecaster wherever it
+# over-forecasts, so the model's margin over the only reference in this panel
+# that expresses uncertainty was UNDERSTATED.
+#
+# The instrument here is an INVARIANT rather than a spy: a scored seat vector
+# either sums to the council or is visibly flagged as not having (Schedule 1's
+# C and D terms). A spy would watch the call and say nothing about the pairing,
+# which is where the defect lived.
+# ---------------------------------------------------------------------------
+
+def _stochastic_short(council=10):
+    """A forecaster whose MEDIAN under-allocates by exactly one seat.
+
+    Constructed, not observed, and small enough to check by hand:
+
+        draws      A=8 B=2, A=7 B=3, A=7 B=3, A=8 B=2   (every draw sums to 10)
+        median     A=7 B=2  -> 9 of 10. SHORT BY ONE.
+        mean       A=7.5 B=2.5 -> largest remainder gives A the odd seat: 8/2.
+        actual     A=6 B=4
+
+    so the marginal error is |6-7| + |4-2| = **3** and the coherent error is
+    |6-8| + |4-2| = **4**. The forecaster over-forecasts A, the missing seat
+    lands on A, and the short vector therefore reports one seat LESS error than
+    the forecaster earned — the exact direction of the defect, at a magnitude
+    that can be recomputed in a sentence.
+    """
+    draws = [{"A": 8, "B": 2}, {"A": 7, "B": 3},
+             {"A": 7, "B": 3}, {"A": 8, "B": 2}]
+    return draws, {"A": 6, "B": 4}, council
+
+
+def _deterministic(seats, council=10, draws=4):
+    """A forecaster that draws the same chamber every time — `last-lge`'s shape."""
+    return [dict(seats) for _ in range(draws)], council
+
+
+def test_a_stochastic_forecasters_coherent_seat_error_is_not_its_marginal_one():
+    """(2) IT CAN SEE — the constructed violation, with its number.
+
+    The old expression and the new one are BOTH computed here against the same
+    constructed forecaster, so this fails if the two ever coincide — which is
+    what would make every other assertion in this section vacuous.
+    """
+    draws, actual, council = _stochastic_short()
+    marginal = C.seats_from_draws(draws)
+    coherent = C.coherent_seats(draws, council)
+
+    assert sum(marginal.values()) == council - 1, (
+        f"the constructed forecaster's medians sum to "
+        f"{sum(marginal.values())}, not {council - 1}. The fixture no longer "
+        f"under-allocates, so the defect it exists to demonstrate cannot occur "
+        f"in it and every assertion below is vacuous.")
+    assert sum(coherent.values()) == council
+
+    old = C.seat_abs_err(marginal, actual)      # what the key USED to hold
+    new = C.seat_abs_err(coherent, actual)      # what its name claims
+    assert (old, new) == (3, 4), (
+        f"the constructed case scores {old} marginal / {new} coherent, not "
+        f"3 / 4. Recheck `_stochastic_short`'s arithmetic before trusting any "
+        f"number below it.")
+    assert old < new, (
+        "the marginal statistic did not FLATTER the forecaster here, so this "
+        "fixture no longer demonstrates the direction of the defect: a short "
+        "vector understates the error of a forecaster that over-forecasts.")
+
+
+def test_a_deterministic_forecaster_scores_the_same_either_way():
+    """Why `last-lge` and `uniform-swing` must not move, and the bound on it.
+
+    Their draws are identical repeats, so the median IS the mean IS the
+    allocation, and the largest-remainder apportionment of a vector that already
+    sums to the council is that vector. The two statistics are therefore equal
+    by construction — which is what makes it safe to say fix #34 moves
+    `prior-lge-noise` and nothing else.
+
+    Checked on a forecaster that is WRONG (it over-forecasts A by two), because
+    a fixture that is right scores zero both ways and would pass with the
+    apportionment deleted.
+    """
+    for seats in ({"A": 8, "B": 2}, {"A": 6, "B": 4}, {"A": 5, "B": 3, "C": 2}):
+        draws, council = _deterministic(seats)
+        actual = {"A": 6, "B": 4}
+        assert C.seats_from_draws(draws) == C.coherent_seats(draws, council), (
+            f"a deterministic forecaster's marginal and coherent vectors "
+            f"disagree at {seats}; fix #34 was applied on the measured claim "
+            f"that they cannot.")
+        assert (C.seat_abs_err(C.seats_from_draws(draws), actual)
+                == C.seat_abs_err(C.coherent_seats(draws, council), actual))
+
+
+def _stat_pairings(source: str) -> list[tuple[str, str]]:
+    """Every ``seat_abs_err*`` key in `run_city_year`, with the vector it scores.
+
+    ⛔ **THE DEFECT WAS A PAIRING, AND A PAIRING LEAVES NO TRACE IN THE VALUES.**
+    Once the dict is built, `seat_abs_err_coherent: 66` looks exactly the same
+    whichever vector produced the 66, so no spy on the call and no assertion on
+    the artefact can tell the fixed code from the broken code. The source can.
+
+    Walks `run_city_year`, records which producer each local seat vector came
+    from (``bench_seats = seats_from_draws(...)`` ->
+    ``{"bench_seats": "seats_from_draws"}``), then reports
+    ``(key, producer)`` for every ``seat_abs_err``/``seat_abs_err_coherent``
+    dict key in it. Takes SOURCE rather than the imported module so a
+    constructed mutation can be pushed through the same detector — which is the
+    only thing that shows the detector is not inert.
+    """
+    fn = ast.parse(source).body[0]
+    origin: dict[str, str] = {}
+    for node in ast.walk(fn):
+        if isinstance(node, ast.Assign) and isinstance(node.value, ast.Call):
+            func = node.value.func
+            name = (func.id if isinstance(func, ast.Name)
+                    else getattr(func, "attr", None))
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    origin[target.id] = name
+    found = []
+    for node in ast.walk(fn):
+        if not isinstance(node, ast.Dict):
+            continue
+        for key, value in zip(node.keys, node.values):
+            if not (isinstance(key, ast.Constant)
+                    and key.value in ("seat_abs_err", "seat_abs_err_coherent")):
+                continue
+            if not (isinstance(value, ast.Call)
+                    and isinstance(value.func, ast.Name)
+                    and value.func.id == "seat_abs_err"
+                    and value.args
+                    and isinstance(value.args[0], ast.Name)):
+                found.append((key.value, "<not scored by seat_abs_err(vector)>"))
+                continue
+            found.append((key.value,
+                          origin.get(value.args[0].id, "<untracked local>")))
+    return found
+
+
+def _vector_producers(source: str) -> int:
+    """How many seat vectors `run_city_year` builds. The scan's denominator."""
+    fn = ast.parse(source).body[0]
+    return sum(1 for node in ast.walk(fn)
+               if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+               and node.func.id in ("seats_from_draws", "coherent_seats"))
+
+
+def test_every_seat_error_key_is_scored_on_the_vector_its_name_claims():
+    """(0) THE RIGHT POPULATION, and it is the half this class gets wrong.
+
+    The claim is about EVERY forecaster `run_city_year` scores — the model and
+    each reference — not about the block someone happened to look at. The
+    pre-#34 defect is precisely a file in which one block was right and the
+    other was wrong while both used the same key name, so a scan of one block
+    would have been healthy, working, and looking in the wrong set.
+
+    The population is therefore every `seat_abs_err*` key in the function, and
+    the denominator is every seat vector the function BUILDS. They must match
+    exactly: a vector computed and never scored, or a key scoring a vector twice,
+    both break the equality. Neither number is typed here.
+    """
+    source = inspect.getsource(C.run_city_year)
+    pairings = _stat_pairings(source)
+    scanned(pairings, of=_vector_producers(source), low=1.0, high=1.0,
+            what="seat-error keys in `run_city_year` paired with their vector",
+            denominator="seat vectors the function builds "
+                        "(`seats_from_draws` + `coherent_seats` calls)")
+
+    expected = {"seat_abs_err": "seats_from_draws",
+                "seat_abs_err_coherent": "coherent_seats"}
+    wrong = [p for p in pairings if expected[p[0]] != p[1]]
+    assert not wrong, (
+        f"a seat-error key is scored on the wrong vector: {wrong}.\n"
+        f"`seat_abs_err_coherent` must be `seat_abs_err(<coherent_seats(...)>, "
+        f"actual)` and `seat_abs_err` must be `seat_abs_err("
+        f"<seats_from_draws(...)>, actual)`, on the model and on every "
+        f"reference. Filing the marginal median under the coherent name is "
+        f"§1.214 inside one function, and it understated the model's margin "
+        f"over `prior-lge-noise` on every row of the panel.")
+
+    # BOTH statistics reach BOTH kinds of forecaster — the bidirectional half.
+    # One block carrying only the coherent key is how the two sides came to be
+    # scored on different statistics in the first place.
+    assert sorted(pairings) == sorted(list(expected.items()) * 2), (
+        f"the function no longer scores exactly two forecaster blocks on both "
+        f"statistics: {sorted(pairings)}")
+
+
+def test_the_pairing_detector_can_see_the_pre_fix_code():
+    """(2) IT CAN SEE — the mutation is literally the code that shipped.
+
+    Rewrites the fixed source back into its pre-#34 form (the opponent block
+    scoring `bench_seats`, the marginal median, under the coherent key) and
+    pushes it through the SAME detector. If the detector does not fire, the
+    test above is furniture.
+    """
+    source = inspect.getsource(C.run_city_year)
+    assert "seat_abs_err(bench_coherent, actual_seats)" in source, (
+        "the opponent block no longer scores `bench_coherent`, so this "
+        "mutation cannot reconstruct the defect and proves nothing about the "
+        "detector.")
+    pre_fix = source.replace("seat_abs_err(bench_coherent, actual_seats)",
+                             "seat_abs_err(bench_seats, actual_seats)")
+    wrong = [p for p in _stat_pairings(pre_fix)
+             if p == ("seat_abs_err_coherent", "seats_from_draws")]
+    assert wrong, (
+        "the pre-fix source — the marginal median filed under the coherent key "
+        "— passed the detector unchanged. The guard above cannot distinguish "
+        "the fixed code from the code it replaced.")
+
+    # AND THE OTHER DIRECTION: scoring the coherent vector under the marginal
+    # name is the same defect inverted and must trip too.
+    inverted = source.replace("seat_abs_err(bench_seats, actual_seats)",
+                              "seat_abs_err(bench_coherent, actual_seats)")
+    assert [p for p in _stat_pairings(inverted)
+            if p == ("seat_abs_err", "coherent_seats")]
+
+
+def test_a_forecaster_that_cannot_fill_the_chamber_is_flagged_not_corrected():
+    """Schedule 1's escape hatch, and the one way a coherent total still misleads.
+
+    `coherent_seats` RESCALES to the council. Independents (C) and the winners
+    of wards contested by parties with no PR list (D) come out of the pool
+    before the quota is struck (`seats.outside_pool_wards`, §1.163), so a
+    forecaster can legitimately fill fewer seats than the chamber — and be
+    apportioned UP into it, credited with seats it never claimed. That is fix
+    #34's defect inverted, and `diagnose.render_baselines` settled the answer
+    last round: report it, flag it, never silently correct it.
+    """
+    draws = [{"A": 5, "B": 3} for _ in range(4)]        # fills 8 of 10
+    fill = C.chamber_fill(draws, 10)
+    assert fill == {"draw_total": 8.0, "fills_council": False}
+    assert sum(C.coherent_seats(draws, 10).values()) == 10, (
+        "the apportionment did not rescale the short vector up to the council, "
+        "so there is nothing here to flag and this test proves nothing")
+
+    ok = C.chamber_fill([{"A": 6, "B": 4} for _ in range(4)], 10)
+    assert ok == {"draw_total": 10.0, "fills_council": True}
+
+    # THE FLAG REACHES THE REPORT, and names the forecaster and the row.
+    short_row = _record(year="2016", seed=3)
+    short_row["opponents"]["prior-lge-noise"].update(
+        {"draw_total": 262.0, "fills_council": False})
+    text = C.render([short_row])
+    assert "FLAGGED, NOT CORRECTED" in text and "262.0 of 270" in text, (
+        "a reference whose draws fill 262 of a 270-seat chamber was "
+        "apportioned up into it and the report says nothing")
+    assert "prior-lge-noise" in text
+
+    # NEGATIVE CONTROL: every forecaster fills its chamber, no flag. Otherwise
+    # the warning is unconditional furniture and carries no information.
+    assert "FLAGGED, NOT CORRECTED" not in C.render([_record(seed=4)])
+
+
+def test_an_unmeasured_chamber_fill_is_not_reported_as_a_clean_one():
+    """"Not measured" and "measured and fine" are different facts.
+
+    A row written before fix #34 carries no `fills_council` at all. This
+    repository has published the wrong one of those two before — twice about the
+    same defect — and `_guard_block` and `_roster_block` both exist to keep them
+    apart. The chamber-fill note follows them.
+    """
+    row = _record()
+    for block in [row] + list(row["opponents"].values()):
+        block.pop("fills_council", None)
+        block.pop("draw_total", None)
+    text = C.render([row])
+    assert "carry no `fills_council` record" in text and "NOT measured" in text
+    assert "FLAGGED, NOT CORRECTED" not in text, (
+        "an unrecorded row was reported as a SHORT one; absence of evidence is "
+        "being read as evidence")
+
+
+def test_the_shared_seat_error_scores_the_union_of_both_party_sets():
+    """`seat_abs_err` replaced three inline copies; it must be the same sum.
+
+    A party that won seats and was forecast nothing is error, and so is a party
+    forecast seats that won none. A version that iterated the forecaster's own
+    keys would score zero for the first and is the asymmetry this asserts away.
+    """
+    forecast, actual = {"A": 5, "GONE": 3}, {"A": 4, "NEW": 2}
+    assert C.seat_abs_err(forecast, actual) == 1 + 3 + 2
+    assert C.seat_abs_err({}, actual) == 6
+    assert C.seat_abs_err(forecast, {}) == 8
+    assert C.seat_abs_err({}, {}) == 0
+
+
+def test_the_reference_kind_verdict_reads_the_marginal_error_not_the_coherent():
+    """Fix #34 would have broken `_reference_kind` silently, and this is why.
+
+    CRPS collapses to the absolute error of the POINT a forecaster drew — its
+    median vector — not to a largest-remainder apportionment of its mean. While
+    `seat_abs_err_coherent` held the marginal number the distinction did not
+    exist; now it does, and a deterministic reference whose draws fill fewer
+    seats than the chamber (Schedule 1 C and D) would have its rescaled coherent
+    error compared against its CRPS, the equality would fail, and a POINT
+    forecast would be labelled *probabilistic* — credited with intervals it does
+    not have, in the one sentence of the report that tells a reader whether a
+    CRPS margin means anything.
+    """
+    def row(**opp):
+        return {"slug": "joburg", "year": "2011", "opponents": opp}
+
+    # A deterministic reference apportioned UP: CRPS equals the MARGINAL error
+    # and differs from the coherent one. It is still a point forecast.
+    short = [row(x={"crps": 52.0, "seat_abs_err": 52,
+                    "seat_abs_err_coherent": 58, "fills_council": False}),
+             row(x={"crps": 92.0, "seat_abs_err": 92,
+                    "seat_abs_err_coherent": 97, "fills_council": False})]
+    assert C._reference_kind(short, "x") == "point", (
+        "a deterministic reference that could not fill the chamber was labelled "
+        "probabilistic because its RESCALED error was compared with its CRPS")
+
+    # The genuinely probabilistic one is still caught.
+    spread = [row(x={"crps": 48.5, "seat_abs_err": 61,
+                     "seat_abs_err_coherent": 66})]
+    assert C._reference_kind(spread, "x") == "probabilistic"
+
+    # A PRE-#34 ARTEFACT carries no `seat_abs_err` on its opponents, and its
+    # `seat_abs_err_coherent` IS the marginal number under the old name. The
+    # fallback must therefore read the same statistic, not a different one.
+    legacy = [row(x={"crps": 52.0, "seat_abs_err_coherent": 52})]
+    assert C._reference_kind(legacy, "x") == "point"
+    assert C._reference_kind([row(x={"crps": 52.0})], "x") == "unknown"
+
+
+# ---------------------------------------------------------------------------
+# F11b — the opponent list is DERIVED from the registry, never typed
+#
+# The three names were typed in five places in `compare_history`, so a fourth
+# reference could be added to `benchmarks.BENCHMARKS`, be better than every
+# reference already there, and never appear in the scoreboard — dropped by
+# nobody, in five places at once.
+# ---------------------------------------------------------------------------
+
+def _with_registry(extra: dict):
+    """Swap `benchmarks.BENCHMARKS` for a constructed one. Returns a restorer."""
+    original = dict(BM.BENCHMARKS)
+    BM.BENCHMARKS.update(extra)
+    def restore():
+        BM.BENCHMARKS.clear()
+        BM.BENCHMARKS.update(original)
+    return restore
+
+
+def test_a_new_registry_entry_is_scored_without_an_edit_to_this_file():
+    """(3) A CONSTRUCTED INPUT — a reference that exists only inside this test.
+
+    The default for a name nobody has thought about is that it is SCORED. That
+    direction is the whole fix: deriving the other way ("score only what is
+    listed") is what loses a reference in silence.
+    """
+    restore = _with_registry({"constructed-reference": lambda *a, **k: None})
+    try:
+        scored = C.scored_opponents()
+        assert "constructed-reference" in scored, (
+            "a benchmark added to `benchmarks.BENCHMARKS` is not scored by the "
+            "panel. A reference can therefore be written, registered and "
+            "silently left out of every table that compares it.")
+        assert set(scored) == set(BM.BENCHMARKS) - set(C.OPPONENTS_NOT_SCORED), (
+            "the scored set is not the registry minus the written exclusions, "
+            "so some third rule is deciding who appears")
+        # DISPLAY ORDER survives, and the unknown one sorts after it.
+        assert list(scored)[:len(C.OPPONENT_ORDER)] == list(C.OPPONENT_ORDER)
+    finally:
+        restore()
+
+
+def test_the_only_way_out_of_the_scoreboard_is_a_written_reason():
+    """Exclusion is explicit, visible and costs a sentence.
+
+    `blended-swing` is the live case: its own fit puts the optimal weight at
+    1.0, which IS `uniform-swing`, so scoring it would add a duplicate column
+    and silently inflate every count of references beaten.
+    """
+    assert "blended-swing" in BM.BENCHMARKS, (
+        "`blended-swing` has left the registry; move or delete its entry in "
+        "`OPPONENTS_NOT_SCORED` rather than leaving a reason for a benchmark "
+        "that no longer exists")
+    assert "blended-swing" not in C.scored_opponents()
+    for name, why in C.OPPONENTS_NOT_SCORED.items():
+        assert len((why or "").strip()) > 40, (
+            f"{name} is excluded from the scoreboard with no real reason "
+            f"({why!r}). An exclusion without a written reason is a silent drop "
+            f"with a dictionary key on it.")
+
+    # (2) IT CAN SEE: a constructed exclusion with an empty reason is refused.
+    C.OPPONENTS_NOT_SCORED["constructed-empty"] = ""
+    restore = _with_registry({"constructed-empty": lambda *a, **k: None})
+    try:
+        raised = False
+        try:
+            C.scored_opponents()
+        except SystemExit as exc:
+            raised, message = True, str(exc)
+        assert raised and "constructed-empty" in message, (
+            "an exclusion carrying no reason was accepted")
+    finally:
+        restore()
+        C.OPPONENTS_NOT_SCORED.pop("constructed-empty", None)
+
+
+def test_a_reference_named_here_that_left_the_registry_is_refused_loudly():
+    """The registry -> code direction, which is the one that goes stale.
+
+    CLAUDE.md §4: the lever register checked code -> register and never the
+    reverse, so a deleted lever sat in it for days. A display order or an
+    exclusion reason for a benchmark that no longer exists is the same shape —
+    a stale decision that still reads as a current one — so it raises rather
+    than being quietly filtered out.
+    """
+    original = dict(BM.BENCHMARKS)
+    BM.BENCHMARKS.pop(C.OPPONENT_ORDER[0])
+    try:
+        raised = False
+        try:
+            C.scored_opponents()
+        except SystemExit as exc:
+            raised, message = True, str(exc)
+        assert raised and C.OPPONENT_ORDER[0] in message, (
+            "`OPPONENT_ORDER` named a benchmark the registry no longer has and "
+            "it was filtered out in silence")
+    finally:
+        BM.BENCHMARKS.clear()
+        BM.BENCHMARKS.update(original)
+
+
+def test_a_new_reference_reaches_every_table_a_reader_actually_reads():
+    """⛔ SCORED BUT UNPRINTED IS THE SAME AS NOT SCORED.
+
+    The five typed sites were the scoring loop, the headline header, the
+    headline cells, the totals row, the ward table and the citable block —
+    so a name could be scored into `history.json` and appear in none of them.
+    Every table is checked, not one: scanning the table that happens to be
+    derived while another is still typed is the wrong-population failure.
+    """
+    restore = _with_registry({"constructed-reference": lambda *a, **k: None})
+    try:
+        rows = []
+        for year, seed in (("2011", 1), ("2016", 2)):
+            row = _record(year=year, seed=seed)
+            row["opponents"]["constructed-reference"] = {
+                "crps": 81.0, "seat_abs_err": 77, "seat_abs_err_coherent": 79,
+                "median_sum": 268, "coherent_sum": 270, "draw_total": 270.0,
+                "fills_council": True,
+                "wards": {"n_wards": 10, "called": 6, "hit_rate": 0.6,
+                          "wards_matched": 10, "brier_multicategory": 0.5}}
+            row["wards"] = {"n_wards": 10, "called": 8, "hit_rate": 0.8,
+                            "wards_matched": 10, "brier_multicategory": 0.4}
+            rows.append(row)
+
+        report = C.render(rows)
+        headline = report.split("## Headline", 1)[1].split("\n## ", 1)[0]
+        header = next(ln for ln in headline.splitlines()
+                      if ln.startswith("| city-year"))
+        sections = {
+            "headline header": header,
+            "ward table": C.render_wards(rows),
+            "citable block": C._citable(rows),
+        }
+        missing = [name for name, text in sections.items()
+                   if "constructed-reference" not in text]
+        assert not missing, (
+            f"a reference in the registry AND in the rows is missing from "
+            f"{missing}. It is being scored and not shown, which is the same "
+            f"as not being scored — the comparison happens in the table.")
+        scanned([n for n in sections if "constructed-reference" in sections[n]],
+                of=sections, low=1.0, high=1.0,
+                what="report sections carrying the new reference",
+                denominator="report sections this test renders")
+
+        # THE TOTALS ROW HAS NO NAMES, SO IT IS CHECKED BY POSITION — which is
+        # the only way it can be wrong: a header derived and a totals row still
+        # typed would put every reference's total under the wrong heading.
+        def cells(line):
+            return [c.strip() for c in line.strip().strip("|").split("|")]
+        at = cells(header).index("constructed-reference")
+        assert cells(C._totals_row(rows))[at] == "158", (
+            f"the totals row puts {cells(C._totals_row(rows))[at]!r} under "
+            f"`constructed-reference`, and 2 rows of 79 is 158. The header and "
+            f"the totals are not derived from the same column list.")
+
+        # THE COLUMN COUNTS STILL LINE UP. A markdown table whose header and
+        # separator disagree renders as prose, which is a silent way to lose
+        # every number in it. Taken as the CONTIGUOUS run of rows from each
+        # header — the headline section carries a second, narrower table below
+        # it (`_headline_split`) and pooling the two would compare tables that
+        # are not meant to match.
+        def table_from(text, first):
+            lines, seen = [], False
+            for line in text.splitlines():
+                if line.startswith(first):
+                    seen = True
+                if seen and line.startswith("|"):
+                    lines.append(line)
+                elif seen:
+                    break
+            return lines
+
+        for name, lines in (("headline", table_from(headline, "| city-year |")),
+                            ("ward", table_from(sections["ward table"],
+                                                "| city-year |"))):
+            assert len(lines) >= 4, (
+                f"the {name} table came back as {len(lines)} rows — header, "
+                f"separator, {len(rows)} city-years and a total is the least it "
+                f"can be, so this check has lost its input")
+            widths = {ln.count("|") for ln in lines}
+            assert len(widths) == 1, (
+                f"the {name} table has rows of {sorted(widths)} cells; header, "
+                f"separator and body disagree and it will not render")
+    finally:
+        restore()
+
+
+def test_an_opponent_in_the_artefact_cannot_vanish_from_the_report():
+    """The silent drop, running the other way.
+
+    A report is rendered from rows that may have been scored by an older build.
+    Deriving the columns from today's registry ALONE would make a reference that
+    is in the artefact disappear from the table — the numbers are there, nobody
+    sees them. `opponent_columns` unions the two.
+    """
+    row = _record()
+    row["opponents"]["retired-reference"] = {
+        "crps": 61.0, "seat_abs_err": 88, "seat_abs_err_coherent": 90,
+        "fills_council": True, "draw_total": 270.0, "wards": {}}
+    assert "retired-reference" not in BM.BENCHMARKS
+    assert "retired-reference" in C.opponent_columns([row])
+    assert "retired-reference" in C.render([row]), (
+        "a reference the artefact carries is missing from the report because "
+        "the registry no longer lists it")
+
+
+def test_the_diagnostic_does_not_score_a_reference_the_panel_refuses():
+    """`diagnose.BASELINES` must be a subset of what the panel scores.
+
+    A diagnostic that disagreed with the panel about who the opponents are is
+    one more thing to reconcile every time a number moves, and `diagnose`'s own
+    docstring gives that as its reason for refusing `blended-swing`.
+
+    ⚠️ THE OTHER DIRECTION IS DELIBERATELY NOT ASSERTED HERE. `diagnose.py` is
+    still a typed list, so a reference newly added to the registry appears in
+    the panel and not in the diagnostic — a real silent drop, one module over,
+    and the fix belongs in that file rather than in a red test that blocks
+    whoever lands the next reference. It is recorded here so it is not lost.
+    """
+    import diagnose as D
+    extra = sorted(set(D.BASELINES) - set(C.scored_opponents()))
+    assert not extra, (
+        f"`diagnose.BASELINES` scores {extra}, which the panel does not. "
+        f"Section 5 of the diagnostic and the scoreboard would print different "
+        f"opponents for the same city-year.")
 
 
 if __name__ == "__main__":

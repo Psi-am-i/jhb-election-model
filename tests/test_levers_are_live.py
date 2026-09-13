@@ -737,6 +737,7 @@ DELIBERATELY_UNUSED: dict[str, str] = {
         "absolute seat error, which matters when reading 'the model beats it "
         "8/9 on CRPS': a point forecast is maximally penalised by CRPS.",
     "benchmarks.py:uniform_swing(seed)": "same uniform dispatch, same reason",
+    "benchmarks.py:uniform_swing_roster(seed)": "same uniform dispatch, same reason",
     "benchmarks.py:blended_swing(seed)":
         "same uniform dispatch, same reason. It is `prev + BLEND_W * swing` and "
         "BLEND_W is 1.0, so it is currently `uniform-swing` exactly — kept "
@@ -2154,6 +2155,96 @@ def test_no_function_argument_is_accepted_and_never_used():
         "to satisfy a uniform dispatch interface, add it to DELIBERATELY_UNUSED "
         "with the reason — an ignored argument should be a claim someone made, "
         "not a thing nobody noticed.")
+
+
+def test_every_deliberately_unused_key_names_something_that_exists():
+    """THE OTHER DIRECTION, WHICH THIS REGISTER DID NOT HAVE.
+
+    `test_no_function_argument_is_accepted_and_never_used` scans code→register:
+    every ignored argument must be named here. Nothing scanned register→code,
+    and that is the direction CLAUDE.md §4 rule 0 puts worst — the lever
+    register was one-way, so a lever deleted from the code sat in it for days
+    still reading as a live decision. An exemption whose function has been
+    renamed or deleted is the same object: a sentence excusing something that is
+    not there, indistinguishable on sight from one excusing something that is.
+
+    ⚠️ **ONLY EXISTENCE IS ASSERTED — NOT THAT THE ARGUMENT IS STILL IGNORED —
+    AND THE OMISSION IS MEASURED, NOT AN OVERSIGHT.** The stricter check flags
+    exactly one live entry, `levels.py:sd_raw(size)`, and it flags it wrongly:
+    `sd_raw` has two branches sharing one signature, the fitted one reads
+    `size` and the pooled fallback does not, so a whole-function usage test —
+    which is what the code→register scan above is — sees the argument used and
+    never consults the exemption at all. The entry is therefore currently
+    UNREAD rather than wrong, and its own text says so. Tightening this to
+    per-branch usage means teaching a test what a branch is, which is a bigger
+    claim than the register is worth; the fact is recorded here instead of
+    being lost.
+    """
+    import ast
+    import re
+
+    stale = []
+    for key in DELIBERATELY_UNUSED:
+        m = re.fullmatch(r"([\w.]+\.py):(\w+)\((\w+)\)", key)
+        if not m:
+            stale.append(f"{key} — not in `file.py:function(arg)` form")
+            continue
+        filename, func, arg = m.groups()
+        path = ROOT / "src" / filename
+        if not path.exists():
+            stale.append(f"{key} — src/{filename} does not exist")
+            continue
+        defs = [n for n in ast.walk(ast.parse(path.read_text()))
+                if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and n.name == func]
+        if not defs:
+            stale.append(f"{key} — no function `{func}` in src/{filename}")
+            continue
+        args = {a.arg for n in defs for a in n.args.args + n.args.kwonlyargs}
+        if arg not in args:
+            stale.append(f"{key} — `{func}` takes {sorted(args)}, not `{arg}`")
+
+    assert not stale, (
+        "these DELIBERATELY_UNUSED entries excuse something that no longer "
+        "exists, so each reads as a current decision about absent code:\n  "
+        + "\n  ".join(stale) +
+        "\nDelete the entry with the change that deleted its subject.")
+
+    # (1) IT LOOKED, two-sided against a denominator that moves with the tree:
+    # every entry was resolved, and the register is a small fraction of the
+    # arguments in `src/` rather than a blanket amnesty.
+    total_args = sum(
+        len([a for a in n.args.args + n.args.kwonlyargs
+             if not a.arg.startswith("_") and a.arg not in ("self", "cls")])
+        for path in sorted((ROOT / "src").glob("*.py"))
+        for n in ast.walk(ast.parse(path.read_text()))
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)))
+    scanned(DELIBERATELY_UNUSED, of=total_args, low=0.0005, high=0.05,
+            what="arguments excused as deliberately unused",
+            denominator="named arguments of functions in src/")
+
+    # (2) IT CAN SEE. The same resolver over constructed keys — a deleted file,
+    # a renamed function, a renamed argument — must name all three.
+    import ast as _ast
+    fake = ["nosuchmodule.py:f(x)", "benchmarks.py:no_such_function(seed)",
+            "benchmarks.py:uniform_swing(no_such_argument)"]
+    caught = []
+    for key in fake:
+        filename, func, arg = re.fullmatch(r"([\w.]+\.py):(\w+)\((\w+)\)",
+                                           key).groups()
+        path = ROOT / "src" / filename
+        if not path.exists():
+            caught.append(key)
+            continue
+        defs = [n for n in _ast.walk(_ast.parse(path.read_text()))
+                if isinstance(n, (_ast.FunctionDef, _ast.AsyncFunctionDef))
+                and n.name == func]
+        if not defs or arg not in {a.arg for n in defs
+                                   for a in n.args.args + n.args.kwonlyargs}:
+            caught.append(key)
+    assert caught == fake, (
+        f"the resolver caught {caught} of {fake}, so its silence about the "
+        f"real register means less than it appears to")
 
 
 def test_no_scenario_key_is_read_without_being_declared():

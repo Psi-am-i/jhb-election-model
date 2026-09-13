@@ -672,14 +672,30 @@ because the run's universe is the NPE baseline plus seeds; the repair is
 `universe = baseline ∪ roster` (fix #22). Neither touches ward noise. (3) The
 PA's level is an arrival-channel defect and belongs to the arrival work.
 
-⚠️ **The figures above are from `data/processed/history.json`, joburg 2021**
-(`pr_median` 0.0375%, `pr_mean` 0.0969%, `pr_actual` 2.9604%), not from a
+⚠️ **The figures above are from `data/processed/history.json`, joburg 2021** —
+the PA's row in that record's `votes` table, which is a POSITIONAL list carrying
+no field names of its own:
+PR median `votes[1]` = 0.0375%,
+PR mean `votes[2]` = 0.0969%,
+PR actual `votes[3]` = 2.9604%.
+They are not from a
 `diagnose` run — two runs at different draw counts give slightly different
 means, and a figure in prose has to say which one it came from. This entry said
 "0.09% ... a 33× miss" until 2026-09-12: 0.09% was a *truncation* of 0.0969%
 (it rounds to 0.10%), and the 33× was then computed from the truncated value
 rather than from the data. Both halves of `CLAUDE.md` §2's "never type a model
 figure into prose" — quoted here, inside a rule about discipline, by me.
+
+⚠️ **And the citation names a POSITION, because there is no field to name.** The
+first version of this line cited the three numbers as pr_median, pr_mean and
+pr_actual in backticks, as though they were keys of the artefact. They are not:
+`vote_table` returns unnamed tuples and the record stores them as bare lists, so
+two of those three names exist nowhere in this repository and the third exists
+only in `montecarlo.py` as a key of a different structure — which is why a
+name-level check waved it through. `test_every_symbol_the_register_names_exists`
+caught the other two on the day they were written. **Invented names are the same
+defect as a stale line number**: they are checkable-looking and they check
+nothing, so cite the position, which the artefact actually has.
 
 **Status: argued, not tested.** No measurement is offered for the refusal itself;
 it is a statement about which layer owns the error, and the evidence is the

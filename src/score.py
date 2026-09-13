@@ -51,9 +51,38 @@ import hashlib
 import numpy as np
 
 # Calibration is scored on the seats a forecaster actually CLAIMS: columns
-# where it gives a seat in at least this fraction of its draws. Selecting on
-# the forecast keeps PIT uniform under calibration; selecting on the outcome
-# does not. See :func:`seat_matrix`.
+# where it gives a seat in at least this fraction of its draws.
+#
+# ⛔ **THE THEOREM IS TRUE AND IT DOES NOT LICENCE LEADING WITH THIS
+# POPULATION.** Selecting on the forecast leaves PIT uniform *under
+# calibration* — that is a statement about the NULL, and it is the only thing
+# the argument buys. It says nothing about what the statistic estimates when
+# the null is false, and here the selection rule is very nearly the complement
+# of this model's dominant failure mode: the failure is giving a real party
+# essentially zero, and the rule admits a column only when the model gives it a
+# seat in half its draws.
+#
+# Measured on the committed 24-city-year artefact, against the fixed
+# ``reference`` population (input-selected — see
+# ``compare_history.reference_universe``):
+#
+#     columns carrying a z          413 fixed / 153 kept by `claimed`
+#     the ten worst |z| columns     `claimed` keeps 2 of 10
+#     sd(z)                         1.062 fixed, 0.784 kept, 1.194 dropped
+#     mean z                        +0.105 fixed, +0.014 kept, +0.158 dropped
+#
+# So on this model `claimed` reports a width fault ~26% smaller and a level
+# bias near zero where the fixed population reads +0.105, and the columns it
+# drops are the ones the model got most wrong — Cape Town 2021
+# CAPE_COLOURED_CONGRESS (z=+11.19, p_any 0.11), Johannesburg 2021 PA (z=+8.24,
+# p_any 0.28), Nelson Mandela Bay 2021 NORTHERN_ALLIANCE (z=+5.06, p_any 0.10).
+#
+# `claimed` is therefore a CONDITIONAL diagnostic — "of the seats this
+# forecaster claims, is it calibrated?" — and it is a fair question a forecaster
+# is answerable for. It is not the headline, and there is no neutral undiluted
+# third population to go looking for: the fixed one is diluted by columns that
+# are zero on both sides, and that is the price of being fixed. **Report both,
+# permanently, each labelled with what selects it.**
 CLAIM_FRACTION = 0.50
 
 # There is deliberately NO materiality threshold on the scored column set. One
@@ -217,6 +246,149 @@ def relevant_parties(forecasts: Sequence[Sequence[Mapping[str, int]]],
                     keep.add(entrant_actual if (entrant_actual and party == "ENTRANT")
                              else party)
     return sorted(keep)
+
+
+# ---------------------------------------------------------------------------
+# holding the universe, so a model-vs-baseline difference is one comparison
+# ---------------------------------------------------------------------------
+
+
+def hold_universe(forecasts: Sequence[Sequence[Mapping[str, int]]],
+                  actual: Mapping[str, int],
+                  entrant_actual: str | None = None,
+                  fixed: Sequence[str] = ()) -> list[str]:
+    """The column set several forecasters are to be COMPARED on.
+
+    ``fixed`` is an input-selected population — in this repository,
+    ``compare_history.reference_universe``, a party's previous-election share
+    plus its nomination slate, neither of which can move when a lever moves.
+    The union with :func:`relevant_parties` adds every party that actually won
+    a seat and every column any forecaster in the comparison claims.
+
+    **Why the union, and not ``fixed`` alone.** ``fixed`` was the obvious
+    candidate and it is not sufficient, for two measured reasons.
+
+    *It does not contain every seat-winner.* Across the committed 24 city-years
+    **seven parties won seats while sitting outside ``reference``** — ALJAMAAH
+    at Johannesburg 2011, PA at Johannesburg 2016 and Ekurhuleni 2016, IFP at
+    Tshwane 2021, MINORITIES_OF_SOUTH_AFRICA at eThekwini 2016,
+    AGENCY_FOR_NEW_AGENDA at Mangaung 2016, AIC at Buffalo City 2011. Scoring on
+    ``fixed`` alone deletes a column where a party really won, for BOTH sides at
+    once, so whichever forecaster was worse on it is forgiven. These are exactly
+    the small-party misses this model's failure mode produces.
+
+    *It excuses spurious mass.* ``fixed`` holds no column for a party that was
+    never plausibly on the ballot, and this model puts seats on 25 such columns
+    at Johannesburg 2021 alone. Dropping them stops the score seeing phantom
+    mass, which is the property :func:`seat_matrix` exists to protect.
+
+    **The union is a superset of every forecaster's own scored set, and that is
+    what makes it free.** A column outside a forecaster's own set is, by the
+    admission rule in :func:`seat_matrix`, zero in the truth and zero in every
+    one of its draws — and a both-zero column contributes **exactly nothing** to
+    CRPS (``E|X-y| = 0`` and the spread term is 0) and nothing to the energy
+    score (an extra zero coordinate leaves every Euclidean norm unchanged).
+    Measured, padding a real 8-column forecast out to 58 columns: CRPS total
+    12.773299 and energy 6.158879 at m=0, 5, 20 and 50 padding columns alike.
+
+    So holding the universe this way moves **no CRPS and no energy number**,
+    for the model or for a baseline, and the difference between them becomes a
+    difference over one column set rather than two. It is what makes the number
+    quotable; it is not a correction of an inflation, and must not be sold as
+    one.
+
+    ⚠️ **The variogram is the exception and it really does move.**
+    :func:`variogram_score` is a MEAN over ``d(d-1)/2`` pairs, so a both-zero
+    column adds ``d`` non-zero cross terms and ``m(m-1)/2`` zero ones, and
+
+        V(m) = (S + m·C) / [(d+m)(d+m-1)/2],  C = Σ_j (|y_j|^p - E|X_j|^p)²
+
+    which rises when ``m < 2C/V - 2d + 1`` and falls after it. Both signs are
+    reachable and which one applies depends on ``C`` and ``V``, neither of which
+    survives into ``history.json``. **Do not predict the direction of a
+    variogram change from the column counts.** What holding the universe buys
+    there is that the two forecasters are at least at the same ``d``: today the
+    model is scored over 580 columns across the panel and uniform-swing over
+    332, and a mean over pairs is not comparable across that.
+
+    ⚠️ The returned set depends on WHICH forecasters are in the comparison —
+    that is the price of keeping spurious mass scored. It is harmless for CRPS
+    and energy (invariant, as above) and not harmless for the variogram, so a
+    variogram computed on a held universe is quotable as a difference WITHIN one
+    run and never as an absolute. Pass ``forecasts=[]`` to get ``fixed`` plus
+    the seat-winners and nothing else, if a roster-independent set is wanted
+    instead and the phantom-mass cost is accepted deliberately.
+    """
+    held = set(relevant_parties(forecasts, actual, entrant_actual))
+    held.update(fixed)
+    return sorted(held)
+
+
+def universe_key(columns: Sequence[str] | Mapping) -> str:
+    """A stable fingerprint of a scored column SET, order-insensitive.
+
+    Takes a list of party names or a :func:`score_seats` result. Order is
+    deliberately not part of the key: no score here depends on column order
+    (each PIT column is keyed by its own party name, and CRPS, energy and the
+    variogram are all symmetric), so two runs that differ only in order ARE
+    comparable and a key that said otherwise would cry wolf.
+
+    ``hashlib`` rather than ``hash()`` for the reason :func:`_column_entropy`
+    gives: Python randomises string hashing per process, so a ``hash()``-derived
+    key would differ between the run that produced a score and the run that
+    checked it.
+    """
+    if isinstance(columns, Mapping):
+        columns = columns.get("parties") or []
+    digest = hashlib.blake2b(
+        "\n".join(sorted(str(c) for c in columns)).encode("utf-8"),
+        digest_size=8)
+    return digest.hexdigest()
+
+
+def comparable(scored: Mapping[str, Mapping]) -> dict:
+    """Were these forecasters scored on the same columns? **The #13 predicate.**
+
+    ``scored`` maps a forecaster name to its :func:`score_seats` result. Returns
+    ``{"comparable", "key", "n", "columns", "by_forecaster", "mismatch"}``;
+    ``mismatch`` is empty exactly when every forecaster carries the same column
+    set, and otherwise names, per forecaster, the columns only it has
+    (``only_here``) and the columns it lacks (``missing``).
+
+    **This is a predicate on the SETS, not on the scores**, and it is strict on
+    purpose even though :func:`hold_universe` records that CRPS and energy are
+    invariant to the columns that differ under the default admission rule. That
+    invariance is a property of *that* rule; a held universe that dropped a
+    forecaster's claims, or two runs scored against different reference
+    universes, break it, and a predicate that tried to be clever about which
+    differences are harmless would be a second place where the admission rule is
+    encoded.
+
+    Read it as: *may I quote a difference between these summed scores?* A
+    ``False`` here is what the warning in ``compare_history`` describes —
+    ``n_scored`` 55 for the model against 18-19 for the baselines at 2021 — and
+    the fix is to score both with ``universe=hold_universe(...)``.
+    """
+    by_forecaster = {name: sorted(result.get("parties") or [])
+                     for name, result in scored.items()}
+    sets = {name: set(cols) for name, cols in by_forecaster.items()}
+    union: set[str] = set().union(*sets.values()) if sets else set()
+    mismatch = {}
+    for name, cols in sets.items():
+        only = sorted(cols - set().union(*(s for n, s in sets.items()
+                                           if n != name)) ) if len(sets) > 1 else []
+        missing = sorted(union - cols)
+        if only or missing:
+            mismatch[name] = {"only_here": only, "missing": missing}
+    keys = {name: universe_key(cols) for name, cols in by_forecaster.items()}
+    same = len(set(keys.values())) <= 1
+    return {"comparable": bool(same and not mismatch),
+            "key": next(iter(keys.values())) if same and keys else None,
+            "n": len(union),
+            "columns": sorted(union),
+            "by_forecaster": {name: len(cols)
+                              for name, cols in by_forecaster.items()},
+            "mismatch": mismatch}
 
 
 # ---------------------------------------------------------------------------
@@ -469,8 +641,245 @@ def pit_histogram(pits: np.ndarray, bins: int = 10) -> dict:
             "mean": float(pits.mean()) if n else float("nan"),
             "chi2": chi2,
             "chi2_dof": bins - 1,
+            # ⛔ `chi2` ABOVE IS THE NOMINAL TEST AND IT ASSUMES INDEPENDENT
+            # COLUMNS, WHICH THEY ARE NOT. Columns inside one city-year share a
+            # turnout draw, a pool structure and a national swing, so this
+            # critical value is not the design's. :func:`chi2_clustered` is the
+            # test to quote; this pair is the familiar number kept beside it.
+            # It is also ONE randomisation — on the committed panel a re-roll
+            # moves it from 19.3 to 66.2 on `reference`.
             "chi2_crit_95": _CHI2_95.get(bins - 1),
             "verdict": verdict}
+
+
+def cluster_bootstrap(groups: Sequence[Sequence[float]],
+                      statistic=None, level: float = 0.95,
+                      draws: int = 20_000, seed: int = 20260817) -> dict:
+    """Percentile interval for a pooled statistic, resampling CLUSTERS.
+
+    ``groups`` is one array per cluster — here, per city-year. Clusters are
+    drawn ``k`` at a time with replacement from the ``k`` observed ones, which
+    is the only resampling that respects the dependence: columns inside a
+    city-year share a turnout draw, a pool structure and a national swing, and
+    a column bootstrap would return an interval far too tight.
+
+    ``statistic`` takes the resampled list of cluster arrays and returns a
+    float. ``None`` means the pooled mean, and that path is computed from
+    per-cluster sums and sizes rather than by concatenating — the same number,
+    two array reductions instead of ``draws`` Python-level concatenations.
+
+    ⛔ **THIS IS NOT A SECOND BOOTSTRAP.** It is the generalisation of
+    ``compare_history._cluster_bootstrap_ci``, which is this function pinned to
+    the pooled mean, and with the same ``seed`` and ``draws`` it draws the same
+    cluster indices and returns the same interval to the last bit —
+    ``test_scored_universe`` asserts exactly that against the real panel. That
+    file cannot import this one back (``compare_history`` imports ``score``, so
+    the arrow only goes one way), which is why the general version lives here;
+    when ``compare_history`` is next opened, its private copy should become a
+    call to this.
+
+    ⚠️ **A percentile interval on an observed statistic is not a test.** It is
+    centred on what was seen, not on the null, so "the interval excludes the
+    critical value" is evidence and not a p-value. The test is
+    :func:`chi2_clustered`'s Rao-Scott correction.
+
+    Returns ``{"lo", "hi", "point", "level", "draws", "clusters", "n",
+    "replicates"}``; ``lo``/``hi``/``point`` are ``nan`` with fewer than two
+    non-empty clusters, because one cluster carries no between-cluster
+    information and an interval drawn from it would be a fabrication.
+    """
+    kept = [np.asarray(g, dtype=float) for g in groups if len(g)]
+    k = len(kept)
+    n = int(sum(g.size for g in kept))
+    empty = {"lo": float("nan"), "hi": float("nan"), "point": float("nan"),
+             "level": float(level), "draws": int(draws), "clusters": k,
+             "n": n, "replicates": np.zeros(0, dtype=float)}
+    if k < 2:
+        return empty
+    rng = np.random.default_rng(seed)
+    pick = rng.integers(0, k, size=(draws, k))
+    if statistic is None:
+        sums = np.array([g.sum() for g in kept], dtype=float)
+        sizes = np.array([g.size for g in kept], dtype=float)
+        values = sums[pick].sum(axis=1) / sizes[pick].sum(axis=1)
+        point = float(sums.sum() / sizes.sum())
+    else:
+        values = np.array([statistic([kept[i] for i in row]) for row in pick],
+                          dtype=float)
+        point = float(statistic(kept))
+    lo, hi = np.percentile(values, [100 * (1 - level) / 2,
+                                    100 * (1 + level) / 2])
+    return {"lo": float(lo), "hi": float(hi), "point": point,
+            "level": float(level), "draws": int(draws), "clusters": k,
+            "n": n, "replicates": values}
+
+
+def _chi2_flat(values: np.ndarray, bins: int) -> float:
+    """Pearson χ² of ``values`` against a flat histogram on [0, 1]."""
+    counts, _ = np.histogram(np.asarray(values, dtype=float), bins=bins,
+                             range=(0.0, 1.0))
+    n = int(counts.sum())
+    if not n:
+        return float("nan")
+    expected = n / bins
+    return float(((counts - expected) ** 2 / expected).sum())
+
+
+def chi2_clustered(groups, bins: int = 10, level: float = 0.95,
+                   draws: int = 20_000, seed: int = 20260817) -> dict:
+    """Is the pooled PIT histogram flatter than CLUSTERED noise? **The test.**
+
+    ``groups`` is one entry per cluster — per city-year. An entry is either the
+    cluster's PIT values, or a ``(replicates, n_columns)`` array of the same
+    columns re-randomised, which is what :func:`pit_intervals` makes possible
+    and what should be passed: the χ² of a single randomisation is not a stable
+    number. Measured on the committed 24-city-year artefact at R=64, the
+    ``reference`` population's nominal χ² runs **19.31 to 66.19** across
+    re-rolls with the model standing still, and the stored single randomisation
+    reads 55.61 against an R-averaged 34.44. **Never quote a χ² from one
+    randomisation.** Statistics are averaged over replicates, never the PIT
+    values (:func:`pit_values`).
+
+    **What the correction is.** The nominal test treats the columns as
+    independent, and they are not: a city-year's columns share a turnout draw,
+    a pool structure and a national swing. Rao & Scott's first-order correction
+    divides Pearson's χ² by a mean cell design effect,
+
+        d_k = Var_cluster(p̂_k) / [p_k(1 - p_k) / N],   δ̄ = Σ_k (1-p_k) d_k/(B-1)
+
+    with ``p_k = 1/bins`` the null and ``Var_cluster`` the with-replacement
+    between-cluster variance of the pooled cell share. ``χ²/δ̄`` is then read
+    against the same ``χ²(B-1)`` critical value. ``δ̄ > 1`` means clustering has
+    inflated the nominal statistic and the nominal test is anti-conservative;
+    ``δ̄ < 1`` means the opposite.
+
+    **What it says here, and it is not what was feared.** On the committed
+    artefact, 24 city-years:
+
+        population    N    χ²(R=64)   δ̄      χ²_RS   crit   rejects
+        reference    514     34.44   1.07    32.33   16.92   64/64
+        claimed      157     41.31   1.01    41.05   16.92   64/64
+        seat_holders 269    124.52   1.13   110.44   16.92   64/64
+        all          580     24.67   1.06    23.62   16.92   52/64
+
+    The design effect is ≈1, so **the rejection of uniformity survives the
+    clustering correction** on both populations that may be quoted. The cluster
+    bootstrap agrees: on ``claimed`` the 95% interval on χ² is [25.5, 85.0] and
+    on ``reference`` [18.4, 80.0], both entirely above 16.92.
+
+    δ̄ ≈ 1 is not an accident and is worth saying out loud, because it is the
+    opposite of the survey-sampling intuition that motivated the check. Seats
+    inside a council are zero-sum, so a city-year's per-column errors are
+    NEGATIVELY correlated, and that pushes the between-cluster variance of a
+    pooled cell share down towards — and sometimes below — its independent
+    value. A metro council is not a cluster sample of independent households.
+
+    ⚠️ The correction needs the design effect ESTIMATED, and with ``k``
+    city-years there are ``k`` of them. The three-city-year panel this question
+    was first asked on could not estimate δ̄ at all; 24 can. Below eight
+    clusters ``estimable`` is False and the result says so rather than printing
+    a number.
+
+    Returns the nominal and corrected statistics with their replicate spread,
+    the bootstrap interval, and ``verdict``.
+    """
+    blocks = []
+    for g in groups:
+        arr = np.asarray(g, dtype=float)
+        if arr.ndim == 1:
+            arr = arr.reshape(1, -1)
+        if arr.size:
+            blocks.append(arr)
+    k = len(blocks)
+    reps = max((b.shape[0] for b in blocks), default=0)
+    dof = bins - 1
+    crit = _CHI2_95.get(dof)
+    out = {"n": int(sum(b.shape[1] for b in blocks)), "clusters": k,
+           "bins": int(bins), "dof": dof, "chi2_crit_95": crit,
+           "replicates": int(reps), "estimable": False,
+           "chi2": float("nan"), "chi2_sd": float("nan"),
+           "deff": float("nan"), "deff_cells": [],
+           "chi2_rs": float("nan"), "chi2_rs_sd": float("nan"),
+           "rejects_in": 0, "ci_lo": float("nan"), "ci_hi": float("nan"),
+           "ci_level": float(level), "ci_draws": int(draws),
+           "verdict": "not established: fewer than eight clusters, so the "
+                      "design effect cannot be estimated"}
+    if k < 8 or crit is None or not out["n"]:
+        return out
+    if any(b.shape[0] != reps for b in blocks):
+        raise ValueError(
+            f"chi2_clustered got clusters with different replicate counts "
+            f"{sorted({b.shape[0] for b in blocks})}. Every cluster must be "
+            f"re-randomised the same number of times or the average is over a "
+            f"different population per cluster.")
+
+    p0 = 1.0 / bins
+    chi2s, deffs, rs = [], [], []
+    cells = np.empty((reps, k, bins), dtype=float)
+    for r in range(reps):
+        for c, block in enumerate(blocks):
+            cells[r, c] = np.histogram(block[r], bins=bins, range=(0.0, 1.0))[0]
+        a = cells[r]
+        n_c = a.sum(axis=1)
+        total = a.sum(axis=0)
+        n = float(total.sum())
+        chi2 = float(((total - n * p0) ** 2 / (n * p0)).sum())
+        phat = total / n
+        # with-replacement between-cluster variance of the pooled cell share
+        resid = a - np.outer(n_c, phat)
+        var = (k / (k - 1.0)) * (resid ** 2).sum(axis=0) / n ** 2
+        d_cells = var / (p0 * (1.0 - p0) / n)
+        deff = float(((1.0 - p0) * d_cells).sum() / dof)
+        chi2s.append(chi2)
+        deffs.append(deff)
+        rs.append(chi2 / deff if deff > 0 else float("nan"))
+        if r == 0:
+            out["deff_cells"] = [float(v) for v in d_cells]
+
+    # The interval integrates BOTH sources of noise — which city-years were
+    # observed, and which randomisation the PIT drew — by giving each
+    # randomisation an equal share of the bootstrap draws. At reps == 1 this is
+    # one `cluster_bootstrap` call with the caller's seed and draw count, so it
+    # reduces exactly to the plain scheme.
+    per = max(1, draws // reps)
+    boot: list[np.ndarray] = []
+    for r in range(reps):
+        res = cluster_bootstrap([b[r] for b in blocks],
+                                statistic=lambda gs: _chi2_flat(
+                                    np.concatenate(gs), bins),
+                                level=level, draws=per, seed=seed + r)
+        boot.append(res["replicates"])
+    values = np.concatenate(boot) if boot else np.zeros(0)
+    lo, hi = (np.percentile(values, [100 * (1 - level) / 2,
+                                     100 * (1 + level) / 2])
+              if values.size else (float("nan"), float("nan")))
+
+    mean_rs = float(np.mean(rs))
+    rejects = int(sum(1 for v in rs if v > crit))
+    out.update({
+        "estimable": True,
+        "chi2": float(np.mean(chi2s)), "chi2_sd": float(np.std(chi2s)),
+        "deff": float(np.mean(deffs)),
+        "chi2_rs": mean_rs, "chi2_rs_sd": float(np.std(rs)),
+        "rejects_in": rejects,
+        "ci_lo": float(lo), "ci_hi": float(hi),
+    })
+    if mean_rs > crit and rejects == reps:
+        out["verdict"] = (
+            f"uniformity REJECTED after the clustering correction: "
+            f"χ²_RS {mean_rs:.2f} against {crit} on {dof} dof, design effect "
+            f"{out['deff']:.2f}, in {rejects}/{reps} randomisations")
+    elif mean_rs > crit:
+        out["verdict"] = (
+            f"not established: χ²_RS averages {mean_rs:.2f} against {crit} but "
+            f"only {rejects}/{reps} randomisations reject — the answer depends "
+            f"on the PIT re-roll, not on the model")
+    else:
+        out["verdict"] = (
+            f"uniformity NOT rejected once the columns are clustered: χ²_RS "
+            f"{mean_rs:.2f} against {crit} on {dof} dof, design effect "
+            f"{out['deff']:.2f} (nominal χ² {out['chi2']:.2f})")
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -753,7 +1162,8 @@ def score_seats(draws: Sequence[Mapping[str, int]], actual: Mapping[str, int],
                 entrant_actual: str | None = None,
                 levels: Sequence[float] = (0.5, 0.8, 0.9),
                 bins: int = 10, seed: int | None = 20211101,
-                parties: Sequence[str] | None = None) -> dict:
+                parties: Sequence[str] | None = None,
+                universe: Sequence[str] | None = None) -> dict:
     """Score a seat forecast end to end. Returns a dict; see :func:`format_report`.
 
     ``parties`` is an optional candidate universe (see :func:`seat_matrix`); it
@@ -761,13 +1171,78 @@ def score_seats(draws: Sequence[Mapping[str, int]], actual: Mapping[str, int],
     columns are always this forecaster's own non-zero ones plus the ones the
     result made non-zero. Nothing here depends on what else is in the run.
 
-    Coverage and PIT are reported twice: the headline pair over the seats this
+    ``universe`` is the different thing, and the one a CROSS-FORECASTER
+    comparison needs: the exact column set to score, filter and all. Without it
+    the scored set is ``truth > 0 or this forecaster's draws > 0``, so the
+    denominator moves with the forecaster — measured on the committed panel,
+    the model is scored over 580 columns across the 24 city-years and
+    uniform-swing over 332 — and a summed or joint score over two different
+    column sets is not one comparison. Build it with :func:`hold_universe`,
+    check the result with :func:`comparable`, and see ``hold_universe`` for
+    what does and does not move when you do (CRPS and energy: nothing; the
+    variogram: really, and in a direction the column counts do not determine).
+
+    A ``universe`` that omits a party which actually won a seat is REFUSED. It
+    would delete a real error from the sum for every forecaster at once, which
+    forgives whichever of them was worse on that column — and the seven parties
+    in this panel that won seats outside the input-selected ``reference`` set
+    are exactly the small-party misses this model produces. A universe that
+    omits a column this forecaster CLAIMS is allowed, because forgiving
+    spurious mass is a defensible deliberate choice, and the count of them is
+    returned as ``dropped_claims`` so it is never silent.
+
+    Coverage and PIT are reported twice: the pair over the seats this
     forecaster CLAIMS (a seat in at least ``CLAIM_FRACTION`` of its draws), and
-    ``coverage_all`` / ``pit_all`` over every scored column. The first is the
-    calibration test; the second is kept so the difference is visible.
+    ``coverage_all`` over every scored column. ⛔ **The first is a CONDITIONAL
+    diagnostic, not the headline** — its selection rule is nearly the
+    complement of this model's dominant failure mode and it drops eight of the
+    ten worst columns in the fixed population; see the ``CLAIM_FRACTION`` note
+    at the top of this module for the measured cost. The fixed population
+    cannot be computed here — it is built from a previous result and a
+    nomination list, which are inputs this module never reads — so it is
+    ``compare_history.reference_universe`` that supplies it, and both must be
+    reported.
+
+    ⚠️ Holding the universe does not change the ``claimed`` pair at all, and
+    that is provable rather than lucky: ``claimed`` is a subset of this
+    forecaster's own non-zero columns, so a held SUPERSET adds only columns it
+    cannot contain, and each PIT is keyed by its own party name
+    (:func:`column_rng`) so no column's value moves when another is added.
+    ``coverage_all`` and ``n_scored_all`` do move, and are labelled as diluted
+    where they are printed.
     """
+    held = None
+    dropped_claims: list[str] = []
+    if universe is not None:
+        if parties is not None:
+            raise ValueError(
+                "score_seats got both `parties` and `universe`. They are "
+                "different things — `parties` fixes column ORDER over a set "
+                "still chosen by the forecaster, `universe` fixes the SET — "
+                "and silently letting one win would make the scored columns a "
+                "matter of argument order. Pass `universe` alone.")
+        held = list(universe)
+        duplicates = sorted({p for p in held if held.count(p) > 1})
+        if duplicates:
+            raise ValueError(
+                f"score_seats got a universe with duplicate names "
+                f"{duplicates}. Two columns would share one PIT uniform and "
+                f"the column set would not be the set it reports.")
+        own = set(relevant_parties([draws], actual, entrant_actual))
+        lost_truth = sorted(p for p in set(actual) - set(held)
+                            if actual.get(p, 0) > 0)
+        if lost_truth:
+            raise ValueError(
+                f"score_seats was given a universe that omits {len(lost_truth)} "
+                f"parties that actually won seats: {lost_truth}. Scoring on it "
+                f"would delete a real error from the sum for every forecaster "
+                f"at once. Union the universe with the seat-winners — "
+                f"`hold_universe` already does.")
+        dropped_claims = sorted(own - set(held))
     parties, samples, truth = seat_matrix(draws, actual, entrant_actual,
-                                          parties=parties)
+                                          keep_all=held is not None,
+                                          parties=held if held is not None
+                                          else parties)
     # with no draws every per-party column is undefined rather than zero, and
     # saying so beats returning a short array the callers below would index off
     # the end of
@@ -793,11 +1268,17 @@ def score_seats(draws: Sequence[Mapping[str, int]], actual: Mapping[str, int],
     # 0.721 to three decimals. It is an instrument that manufactures its own
     # conclusion.
     #
-    # Selecting on the FORECAST is neutral: the criterion depends on F alone, so
-    # PIT uniformity survives it. A calibrated forecaster simulated under this
-    # rule returns mean PIT 0.503. The question it asks is the right one — "of
-    # the seats this forecaster claims, how well calibrated is it?" — and a
-    # forecaster is answerable for its own claims whatever the outcome.
+    # Selecting on the FORECAST is neutral UNDER THE NULL: the criterion depends
+    # on F alone, so PIT uniformity survives it, and a calibrated forecaster
+    # simulated under this rule returns mean PIT 0.503. ⛔ **THAT IS THE WHOLE
+    # OF WHAT THE ARGUMENT BUYS, AND THIS COMMENT USED TO CLAIM MORE.** It said
+    # the question was "the right one". It is *a* right question — a forecaster
+    # is answerable for its own claims whatever the outcome — but it is a
+    # CONDITIONAL one, and when the null is false the selection is not
+    # informationless: on this model it drops eight of the ten worst columns in
+    # the fixed population and reads sd(z) 0.784 against 1.062. The measurement
+    # is at the top of this module. It is reported BESIDE a fixed population,
+    # never instead of one.
     claimed = ((samples > 0).mean(axis=0) >= CLAIM_FRACTION
                if samples.shape[0] else np.zeros(samples.shape[1], dtype=bool))
     s_won = samples[:, claimed] if samples.shape[0] else samples
@@ -806,11 +1287,22 @@ def score_seats(draws: Sequence[Mapping[str, int]], actual: Mapping[str, int],
 
     return {
         "parties": parties,
+        # THE SCORED COLUMN SET, DECLARED. `universe_held` False says the set is
+        # this forecaster's own — fine for its own score, not comparable with
+        # another forecaster's summed or joint score. `universe_key` is what
+        # `comparable` matches on, and it is in the result so a stored
+        # scoreboard can be checked long after the run.
+        "universe_held": held is not None,
+        "universe_key": universe_key(parties),
+        "dropped_claims": dropped_claims if held is not None else [],
         "n_draws": int(samples.shape[0]),
         "actual": {p: int(truth[j]) for j, p in enumerate(parties)},
         "median": {p: float(median[j]) for j, p in enumerate(parties)},
         "crps": crps_by_party(samples, truth, parties),
-        # headline: parties that won a seat
+        # the CLAIMED columns — a seat in at least CLAIM_FRACTION of the draws.
+        # Not "parties that won a seat", which is what this comment said and is
+        # the outcome-selected population the block above rejects; and not the
+        # headline either. See the CLAIM_FRACTION note.
         "pit": pit_histogram(pits_won, bins=bins),
         "coverage": coverage(s_won, t_won, levels),
         "n_scored_calibration": int(claimed.sum()),
@@ -867,6 +1359,26 @@ def format_report(seats: Mapping | None = None, wards: Mapping | None = None,
                    f"{len(parties)} parties)   [lower better]")
         out.append(f"  energy score {seats['energy']:.2f}   "
                    f"variogram(0.5) {seats['variogram']:.2f}   [lower better]")
+        # WHETHER THESE THREE MAY BE SET AGAINST ANOTHER FORECASTER'S. Printed
+        # on the same line as the joint scores because that is where a reader
+        # decides to quote a difference, and the summed CRPS above is subject
+        # to it too — the warning that scoped this caution to `energy` and
+        # `variogram` alone left the CRPS margin looking exempt.
+        if seats.get("universe_held"):
+            note = (f"universe HELD at {len(parties)} columns "
+                    f"[{seats.get('universe_key', '?')}] — a difference against "
+                    f"another forecaster scored on the same key is one "
+                    f"comparison")
+            if seats.get("dropped_claims"):
+                note += (f"; {len(seats['dropped_claims'])} of this "
+                         f"forecaster's own claimed columns are OUTSIDE it and "
+                         f"go unpenalised")
+        else:
+            note = (f"universe NOT held: these {len(parties)} columns are this "
+                    f"forecaster's own ∪ the result's, so the denominator moves "
+                    f"with the forecaster — do not quote a model-vs-baseline "
+                    f"difference off them")
+        out.append(f"  ({note})")
         cov = "  ".join(f"{r['level']:.0%}: {r['inside']}/{r['counted']}"
                         f" = {r['empirical']:.0%}" for r in seats["coverage"])
         out.append(f"  coverage   {cov}   [on the {seats.get('n_scored_calibration', '?')} "

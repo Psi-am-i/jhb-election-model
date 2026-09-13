@@ -60,8 +60,6 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-import numpy as np
-
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import backtest as B
@@ -74,7 +72,16 @@ import montecarlo as M
 # with, and its docstring carries the argument for keeping both. Importing them
 # rather than copying them is what stops section 5 drifting away from the panel
 # that adjudicates the model. CLAUDE.md: one definition only.
-from compare_history import coherent_seats, seats_from_draws
+#
+# `seat_abs_err` and `chamber_fill` arrive by the same route and for the same
+# reason. Both were written out longhand here AND in `compare_history`, and
+# `compare_history.seat_abs_err`'s docstring names this file as the second copy:
+# "the defect fix #34 removes was not in this arithmetic but in WHICH VECTOR
+# each call site handed it. One name makes the pairing visible at every call."
+# Two copies cannot be made to disagree about the pairing by one edit, which is
+# exactly the property wanted.
+from compare_history import (chamber_fill, coherent_seats, scored_opponents,
+                             seat_abs_err, seats_from_draws)
 from fold import citywide, load
 
 # `score`, `seats.allocate` and `seats.eligible_parties` were imported here and
@@ -103,13 +110,28 @@ def run(city_slug: str, year: str, draws: int, data_dir: Path):
 # goes through it in milliseconds. See `tests/test_diagnose_baselines.py`.
 # ---------------------------------------------------------------------------
 
-BASELINES = ("last-lge", "uniform-swing", "prior-lge-noise")
-"""The forecasters section 5 scores.
+BASELINES = scored_opponents()
+"""The forecasters section 5 scores. **DERIVED FROM THE PANEL, NEVER TYPED.**
 
-`benchmarks.BENCHMARKS` also carries `blended-swing`, which is deliberately not
-printed: `compare_history` scores these same three, and a diagnostic that
-disagreed with the panel about who the opponents are would be one more thing to
-reconcile every time a number moved.
+⛔ THIS WAS A TYPED TUPLE AND THE TYPING IS WHAT BROKE IT. `benchmarks.py`
+gained `uniform-swing+roster`; this list did not; and the diagnostic would have
+gone on printing three opponents while the scoreboard printed four, for the same
+city-year, with nothing saying which was the panel's view. That is the silent
+drop this repository keeps paying for — a lever left in the register, a party
+deleted from the code, a whole panel's worth of city-years (§1.69) — and the
+answer is always the same one: derive it, in the inclusive direction, so an
+unknown name appears rather than disappears.
+
+`compare_history.scored_opponents` is that derivation, and taking it rather than
+re-deriving it here is the point. It reads `benchmarks.BENCHMARKS` minus
+`compare_history.OPPONENTS_NOT_SCORED` — today `blended-swing` alone, whose
+written reason names this file — so the diagnostic and the panel **cannot**
+disagree about who the opponents are. A second derivation with the same inputs
+would be a second thing to keep in step, which is the state this replaces.
+
+⚠️ ORDER COMES WITH IT. `scored_opponents` sorts by `OPPONENT_ORDER` first, so a
+reference the panel has not ranked prints last here too. `baseline_rows` orders
+its rows off this tuple, so the table and the scoreboard read in one order.
 """
 
 VERDICT_STATISTIC = "seat_abs_err_coherent"
@@ -122,14 +144,12 @@ this reason (§1.214): on 2026-09-08 a marginal 706 was read against a coherent
 """
 
 
-def _abs_err(forecast: dict, actual: dict) -> int:
-    """Total absolute seat error over the UNION of the two party sets.
-
-    The union, not the forecaster's own columns: a party that won seats and was
-    forecast nothing is error, and so is a party forecast seats that won none.
-    """
-    return sum(abs(forecast.get(p, 0) - actual.get(p, 0))
-               for p in set(forecast) | set(actual))
+# `_abs_err` LIVED HERE AND IT WAS THE SECOND COPY OF `compare_history
+# .seat_abs_err`. Deleted 2026-09-13, not because the two had drifted — they had
+# not, the arithmetic was identical — but because the defect §1.214 records was
+# never in this arithmetic at all. It was in WHICH VECTOR each call site handed
+# it, and a repository with two names for one operation has two places to check
+# that pairing and no way to fix both in one edit. CLAUDE.md: one definition.
 
 
 def seat_scores(draws, actual_seats: dict, council: int) -> dict:
@@ -154,17 +174,19 @@ def seat_scores(draws, actual_seats: dict, council: int) -> dict:
     """
     marginal = seats_from_draws(draws)
     coherent = coherent_seats(draws, council)
-    draw_total = (float(np.mean([sum(d.values()) for d in draws]))
-                  if draws else 0.0)
     return {
         "marginal": marginal,
         "coherent": coherent,
-        "marginal_err": _abs_err(marginal, actual_seats),
-        "coherent_err": _abs_err(coherent, actual_seats),
+        "marginal_err": seat_abs_err(marginal, actual_seats),
+        "coherent_err": seat_abs_err(coherent, actual_seats),
         "marginal_sum": sum(marginal.values()),
         "coherent_sum": sum(coherent.values()),
-        "draw_total": draw_total,
-        "fills_council": abs(draw_total - council) <= 0.5,
+        # `draw_total` and `fills_council`, from the ONE function that decides
+        # what "filled the chamber" means. It was two lines here and the same
+        # two lines in `compare_history.chamber_fill`, including the half-seat
+        # tolerance — a constant that has to be the same number in the panel and
+        # in the diagnostic or the two flag different rows.
+        **chamber_fill(draws, council),
         "council": council,
     }
 
@@ -311,9 +333,14 @@ def main(argv: list[str] | None = None) -> int:
     # (the pool fit gave it a vector) and still have no baseline to grow from,
     # which is exactly the AIC in 2016: present in the index, absent from the
     # 2014 NPE, and therefore the party the generic entrant stands for.
-    base_prev = citywide(load(args.data_dir / target.results(target.previous_npe),
-                              None)[0])
-    arrived = B.entrant_actual_for(actual_seats, base_prev)
+    #
+    # ⛔ AND THAT SENTENCE WAS RIGHT WHILE `compare_history` DID THE OPPOSITE.
+    # It passed `{p: 1.0 for p in run.index}` — the index this comment says not
+    # to use — so the panel and this diagnostic could name different parties as
+    # the arrival at the same city-year. Both now go through
+    # `backtest.entrant_actual_for_target`, which is the only thing that reads
+    # the preceding NPE for this purpose. §1.206, fix #12.
+    arrived = B.entrant_actual_for_target(target, actual_seats, args.data_dir)
     relabelled_from_entrant = False
     if arrived and "ENTRANT" in idx:
         e = idx["ENTRANT"]

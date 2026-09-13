@@ -26,15 +26,34 @@ alone, is judged by an instrument that cannot see it — and returns a flat,
 confident null that means nothing. See :func:`ward_winner_accuracy` and
 ``NULL-RESULTS.md``.
 
-and each is scored against three opponents, all through ``score.py`` so nothing
-is scored by different code:
+and each is scored against every reference in ``benchmarks.BENCHMARKS`` bar
+those ``OPPONENTS_NOT_SCORED`` refuses in writing, all through ``score.py`` so
+nothing is scored by different code. **The list is DERIVED, not typed here** --
+see :func:`scored_opponents`; at the time of writing it resolves to:
 
-    last-lge          "the last local election happens again"
-    uniform-swing     that, shifted by the national movement bracketing it
-    prior-lge-noise   that, with a spread from the previous transition
-    published         the run recorded in data/processed/validation_<year>.json,
-                      where one exists -- the model as it stood then, so a
-                      change can be read as a change rather than asserted
+    last-lge              "the last local election happens again"
+    uniform-swing         that, shifted by the national movement bracketing it
+    prior-lge-noise       that, with a spread from the previous transition
+    uniform-swing+roster  uniform swing GIVEN THE BALLOT -- off-ballot parties
+                          dropped, roster newcomers entered at the measured
+                          arrival budget. The honest opponent at 2021, because
+                          the model reads the roster and uniform swing could not
+
+⛔ **EVERY FORECASTER IN A ROW IS SCORED ON ONE HELD COLUMN SET.**
+``score.seat_matrix`` keeps a column when the truth OR *this forecaster's* draws
+give it a seat, so before ``score.hold_universe`` was wired in here the model was
+scored over 580 columns across the panel and ``uniform-swing`` over 332 — and a
+summed CRPS, energy or variogram difference between two such totals is a
+difference between two denominators. ``run_city_year`` now builds one set per
+row (``reference_universe`` ∪ every seat-winner ∪ every forecaster's claims),
+scores everybody on it, and stores ``score.comparable``'s verdict on the row.
+CRPS and energy are provably invariant to the columns this adds; **the variogram
+is not** and is quotable within a run only. ``HISTORY_SCHEMA`` 3.
+
+⛔ The ``published`` opponent was DELETED and this list named it for days after:
+it read a run of THIS model and sat where a reader takes a column for an outside
+forecaster. See the comment in :func:`run_city_year`. ``CLAUDE.md`` rule 1 bars
+comparing anything to an earlier output of this model.
 
 It also reports **pooled calibration** -- coverage at 50/80/90 and the
 randomised PIT histogram, summed over every city-year. Per city-year those are
@@ -102,6 +121,121 @@ CITIES = ["joburg", "tshwane", "ekurhuleni", "ethekwini", "capetown",
 # uniform swing is not evenly spread and quoting the pooled figure alone is the
 # strongest available criticism of it. See :func:`_headline_split`.
 GAUTENG = frozenset({"joburg", "tshwane", "ekurhuleni"})
+
+
+# ---------------------------------------------------------------------------
+# ⛔ WHO THE PANEL SCORES ITSELF AGAINST — DERIVED FROM THE REGISTRY, NEVER TYPED
+#
+# The three reference names used to be typed at EIGHT literal sites across six
+# tables and loops in this file: the scoring loop, the headline header and its
+# cells, the totals row, the ward table's header, loop and cells, and the
+# citable block's kind sentence. So a fourth reference could be added to
+# `benchmarks.BENCHMARKS`, be a genuine improvement on the ones already here,
+# and never appear in the scoreboard at all — dropped by nobody, on purpose, in
+# eight places at once. That silent drop is this repository's recurring failure
+# mode and it has cost it a lever in the register, a deleted party in the code
+# and a whole panel's worth of city-years (§1.69).
+#
+# Everything below derives from `benchmarks.BENCHMARKS`. **Adding a reference
+# therefore takes NO edit here at all** — it is scored and printed the next time
+# the panel runs. What takes an edit is REFUSING one, and the edit is one line
+# that costs a written reason.
+# ---------------------------------------------------------------------------
+
+OPPONENT_ORDER = ("last-lge", "uniform-swing", "prior-lge-noise")
+"""DISPLAY ORDER ONLY. It does not decide who is scored, and cannot.
+
+Ordered by how much each reference concedes: persistence, then persistence plus
+the national swing that bracketed the target, then the only one that expresses a
+spread. A registry entry missing from this tuple is still scored and still
+printed — it simply sorts after these. So the tuple can go stale in exactly one
+harmless way (a new reference printed last) and in no harmful one.
+"""
+
+OPPONENTS_NOT_SCORED = {
+    "blended-swing":
+        "its own fit says the optimal weight is 1.0, and w=1 IS `uniform-swing` "
+        "(`benchmarks.blended_swing`). Scoring it would put a column in the "
+        "scoreboard identical to a column already in it, and every count of "
+        "'references beaten' would silently gain one. What `blended-swing` is "
+        "worth is the FIT — that the swing-damping family's optimum sits on its "
+        "own boundary — and a fit belongs in its docstring, not in a panel "
+        "column. `diagnose.BASELINES` refuses it for the same reason and says "
+        "so; the two must agree or a diagnostic and the panel disagree about "
+        "who the opponents are.",
+}
+"""Registry entries the panel deliberately does NOT score, each with its reason.
+
+⛔ **THE ONLY ROUTE OUT OF THE SCOREBOARD.** :func:`scored_opponents` takes
+everything in `benchmarks.BENCHMARKS` that is not named here, so a reference
+cannot leave the panel by being forgotten — only by someone writing down why it
+should not be in it. A reason is required, not decorative: an empty one is
+refused below, because "excluded for reasons unrecorded" is the same fact as a
+silent drop with a comment on it.
+"""
+
+
+def scored_opponents() -> tuple[str, ...]:
+    """Every reference in `benchmarks.BENCHMARKS` bar those explicitly refused.
+
+    ⛔ **DERIVED IN THE INCLUSIVE DIRECTION, WHICH IS THE WHOLE POINT.** An
+    unknown registry entry is SCORED, not skipped: the default for a name
+    nobody has thought about is that it appears in the table, where a reader
+    sees it. The alternative default — score only what is listed — is the one
+    that loses a reference in silence, and it is the shape this function
+    replaces.
+
+    **Both directions are checked**, because a one-way scan is how the lever
+    register kept an entry for a lever that had been deleted from the code
+    (CLAUDE.md §4). Code → registry is structural: every registry name is
+    either scored or refused, by construction. Registry → code is not, so a
+    name typed into `OPPONENT_ORDER` or `OPPONENTS_NOT_SCORED` that no longer
+    exists in `benchmarks.BENCHMARKS` raises here rather than being quietly
+    filtered out — a refusal whose subject has been deleted is a stale reason
+    that still reads as a current decision.
+
+    Raises `SystemExit`, matching `benchmarks.run_with_wards`'s treatment of an
+    unknown name: this is a mistake in the code, discovered at the moment the
+    panel is assembled, and a panel assembled from a stale list is worse than
+    no panel.
+    """
+    registry = dict(BM.BENCHMARKS)
+    stale = sorted(set(OPPONENT_ORDER) | set(OPPONENTS_NOT_SCORED))
+    stale = [n for n in stale if n not in registry]
+    if stale:
+        raise SystemExit(
+            f"compare_history names {stale} as references, and "
+            f"benchmarks.BENCHMARKS has {sorted(registry)}. A display order or "
+            f"an exclusion reason for a benchmark that no longer exists is a "
+            f"stale decision that still reads as a current one — delete the "
+            f"line rather than letting it be filtered out in silence.")
+    blank = sorted(k for k, why in OPPONENTS_NOT_SCORED.items()
+                   if not (why or "").strip())
+    if blank:
+        raise SystemExit(
+            f"OPPONENTS_NOT_SCORED carries no reason for {blank}. An exclusion "
+            f"without a written reason is a silent drop with a dictionary key "
+            f"on it.")
+    keep = [n for n in registry if n not in OPPONENTS_NOT_SCORED]
+    ordered = [n for n in OPPONENT_ORDER if n in keep]
+    return tuple(ordered + sorted(n for n in keep if n not in ordered))
+
+
+def opponent_columns(results: list[dict]) -> tuple[str, ...]:
+    """The reference columns a REPORT prints: the scored set, plus the artefact's.
+
+    Not simply :func:`scored_opponents`. A report is rendered from rows that may
+    have been scored by an older build of this file, so deriving the columns from
+    today's registry alone would make a reference that IS in the artefact vanish
+    from the table — the same silent drop, running the other way. The union keeps
+    both honest: a reference newly added to the registry shows as ``—`` on old
+    rows, and a reference dropped from the registry still shows the numbers the
+    artefact actually carries.
+    """
+    scored = scored_opponents()
+    extra = sorted({k for r in results for k in (r.get("opponents") or {})
+                    if k not in scored})
+    return tuple(list(scored) + extra)
 
 
 def runnable(city) -> tuple[list[str], list[tuple[str, str]]]:
@@ -1232,12 +1366,22 @@ def seats_from_draws(draws):
     of a sum is not the sum of medians, and with many parties the shortfall is
     large: at Johannesburg 2021 this returns 243 seats against a 270-seat
     chamber, so 27 of the reported seat error is the aggregation rather than the
-    model. The baselines in ``benchmarks.py`` allocate per draw and sum exactly,
-    which makes any seat-error comparison against them unfair to this side.
+    model.
+
+    ⛔ **THIS SHORTFALL IS NOT A PROPERTY OF THE MODEL, IT IS A PROPERTY OF THE
+    STATISTIC** — and this docstring used to say otherwise. It claimed "the
+    baselines in ``benchmarks.py`` allocate per draw and sum exactly, which
+    makes any seat-error comparison against them unfair to this side", and that
+    is true of the two DETERMINISTIC references and false of the stochastic one:
+    `prior-lge-noise`'s marginal medians sum to 254 / 266 / 264 against
+    Johannesburg councils of 260 / 270 / 270. Any forecaster that draws is short
+    here, the model included, and the sentence let a marginal baseline total be
+    read as a coherent one for exactly as long as it stood. §1.214, fix #34.
 
     Kept, because the per-party median is what a reader wants to see next to a
-    per-party actual. :func:`coherent_seats` is the summable counterpart, and
-    :func:`render` prints both totals so the gap is never invisible.
+    per-party actual. :func:`coherent_seats` is the summable counterpart, every
+    forecaster in the report is scored on BOTH, and :func:`render` prints the
+    totals so the gap is never invisible.
     """
     parties = sorted({p for d in draws for p in d})
     return {p: int(np.median([d.get(p, 0) for d in draws])) for p in parties}
@@ -1274,6 +1418,56 @@ def coherent_seats(draws, council: int):
         for i in order[:short]:
             base[i] += 1
     return {p: int(n) for p, n in zip(parties, base)}
+
+
+def seat_abs_err(forecast: dict, actual: dict) -> int:
+    """Total absolute seat error over the UNION of the two party sets.
+
+    The union, not the forecaster's own columns: a party that won seats and was
+    forecast nothing is error, and so is a party forecast seats that won none.
+    Named rather than written inline because it was written inline three times
+    in this file and once, as ``_abs_err``, in `diagnose.py` — and the defect
+    fix #34 removes was not in this arithmetic but in WHICH VECTOR each call
+    site handed it. One name makes the pairing visible at every call.
+
+    ⚠️ `diagnose._abs_err` WAS a second copy of these two lines and is gone:
+    `diagnose.seat_scores` imports this one (2026-09-13). Both were correct and
+    identical, which is the point — the pairing of vector to key is what has to
+    be checked, and two names meant two places to check it.
+    """
+    return sum(abs(forecast.get(p, 0) - actual.get(p, 0))
+               for p in set(forecast) | set(actual))
+
+
+def chamber_fill(draws, council: int) -> dict:
+    """What a forecaster's OWN draws fill, before apportionment rescales them.
+
+    ⛔ **BECAUSE `coherent_seats` RESCALES TO ``council``, AND A RESCALE UP
+    INVENTS SEATS.** Schedule 1 takes independents (C) and the winners of wards
+    contested by parties with no PR list (D) out of the pool before the quota is
+    struck (`seats.outside_pool_wards`, §1.163), so a forecaster whose draws
+    legitimately fill ``council - C - D`` would be apportioned up into a chamber
+    it never claimed — flattering whichever party the largest remainders land
+    on. That is fix #34's defect inverted, and the answer is the same one
+    `diagnose.seat_scores` reached last round: **report and flag it, never
+    silently correct it.**
+
+    ``draw_total`` is the mean number of seats the draws themselves allocate;
+    ``fills_council`` is False whenever that is not the chamber they are about
+    to be apportioned into. Carried on every forecaster's record — the model's
+    and every reference's — so the flag cannot be true of one side and unasked
+    of the other.
+
+    ⚠️ `diagnose.seat_scores` computed these same two fields inline, including
+    the half-seat tolerance. It calls this now (2026-09-13) — a tolerance that
+    differed between the panel and the diagnostic would flag different rows in
+    the two tables and neither would say why.
+    """
+    total = (float(np.mean([sum(d.values()) for d in draws])) if draws else 0.0)
+    return {"draw_total": total,
+            # Half a seat: the per-draw sums are integers, so a mean within 0.5
+            # of the council is a chamber every draw filled exactly.
+            "fills_council": abs(total - council) <= 0.5}
 
 
 def ward_winner_accuracy(ward_probs, actual_winners) -> dict:
@@ -1586,7 +1780,7 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
 
     actual_pr, actual_ward = actual_shares(target, data_dir)
     actual_seats, entrant_actual, actual_winners = _actual_seats(
-        target, data_dir, run)
+        target, data_dir)
     # ⛔ MEASUREMENT-HARNESS ABLATION, OFF UNLESS EXPLICITLY ASKED FOR.
     #
     # `JHB_SCORE_NO_RELABEL=1` withholds the arrival label from the MODEL so the
@@ -1631,6 +1825,75 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
 
     model_seats = seats_from_draws(run.seat_draws)
     coherent = coherent_seats(run.seat_draws, target.council)
+
+    # ---------------------------------------------------------------------
+    # ⛔ THE REFERENCES ARE RUN **BEFORE** THE MODEL IS SCORED, AND THE ORDER
+    # IS THE FIX, NOT A TIDY-UP.
+    #
+    # `score.seat_matrix` keeps a column when the truth OR **this forecaster's**
+    # draws give it a seat, so the scored denominator moves with the forecaster:
+    # across the committed panel the model is scored over 580 columns and
+    # `uniform-swing` over 332, and a summed CRPS, energy or variogram over two
+    # different column sets is not one comparison. `score.hold_universe` is the
+    # repair and it needs EVERY forecaster's claims in hand — which means the
+    # references have to exist before the model's own score is taken.
+    #
+    # So this block only RUNS them. Scoring them stays where it always was,
+    # below the model's block, because the held set has to be built between the
+    # two. Nothing else moved: `run_with_wards`, its `SystemExit` handling and
+    # the draw count are the lines that were there.
+    #
+    # ⚠️ Safe to hoist, checked rather than assumed: `build_context` reads files
+    # and `council_from_shares` sets `montecarlo.COUNCIL` inside a
+    # `try/finally` that puts it back, so nothing between here and the old
+    # position can see a difference. `run_model` has already completed.
+    ctx = BM.build_context(int(year), data_dir)
+    # DERIVED FROM `benchmarks.BENCHMARKS`, never typed. See
+    # :func:`scored_opponents`: a reference added to the registry is scored here
+    # with no edit, and the only way out of this loop is a written reason in
+    # `OPPONENTS_NOT_SCORED`.
+    opponents: dict[str, dict] = {}
+    bench_runs: dict[str, tuple] = {}
+    for name in scored_opponents():
+        try:
+            # `run_with_wards` rather than `run_one`, which is a one-line
+            # wrapper that calls it and DISCARDS the ward half. Identical seat
+            # draws — so every existing number is unchanged — and it is the
+            # only way the geography key gets an opponent. A ward hit rate
+            # without a baseline beside it is unreadable: safe wards are called
+            # right by anything, including "last time happens again".
+            bench_runs[name] = BM.run_with_wards(name, ctx,
+                                                 draws=min(draws, 2000))
+        except SystemExit as exc:
+            opponents[name] = {"error": str(exc)}
+
+    # ⛔ `reference` ALONE IS NOT THE HELD SET, AND THE MISTAKE IS EXPENSIVE IN
+    # BOTH DIRECTIONS. `reference_universe` is input-selected and fixed, which
+    # is what makes it the right FIXED FLOOR — but seven parties across this
+    # panel won seats while outside it (ALJAMAAH, PA twice, IFP, MINORITIES_OF
+    # _SOUTH_AFRICA, AGENCY_FOR_NEW_AGENDA, AIC), and scoring on it alone
+    # deletes a column where a party really won for BOTH sides at once, which
+    # forgives whichever forecaster was worse on it. It also carries no column
+    # for the 25 parties this model puts seats on at Johannesburg 2021 that were
+    # never plausibly on the ballot, so scoring on it alone stops the score
+    # seeing phantom mass — the exact thing `seat_matrix` exists to penalise.
+    #
+    # `hold_universe` is built for this: reference ∪ every seat-winner ∪ every
+    # forecaster's own claims. Read its docstring for what moves (the variogram,
+    # really, and in a direction the column counts do not determine) and what
+    # provably does not (CRPS and energy: a both-zero column contributes exactly
+    # nothing to either).
+    #
+    # Computed ONCE, from ONE `reference_universe` call, and handed to the
+    # model's score, every reference's score and the calibration block — so the
+    # fixed population in the calibration table and the floor of the held set
+    # cannot be two different sets under one name.
+    reference = reference_universe(target, city, data_dir)
+    held = S.hold_universe([run.seat_draws]
+                           + [sd for sd, _wd in bench_runs.values()],
+                           actual_seats, entrant_actual, fixed=reference)
+    # ---------------------------------------------------------------------
+
     out = {
         "city": city.name, "slug": city_slug, "year": year,
         "council": target.council,
@@ -1642,12 +1905,21 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
         "bands": rank_bands(run, actual_pr, actual_seats),
         "seats": {p: (actual_seats.get(p, 0), model_seats.get(p, 0))
                   for p in sorted(set(actual_seats) | set(model_seats))},
-        "seat_abs_err": sum(abs(actual_seats.get(p, 0) - model_seats.get(p, 0))
-                            for p in set(actual_seats) | set(model_seats)),
-        "seat_abs_err_coherent": sum(
-            abs(actual_seats.get(p, 0) - coherent.get(p, 0))
-            for p in set(actual_seats) | set(coherent)),
+        # BOTH STATISTICS, THROUGH ONE FUNCTION, ON EVERY FORECASTER. The
+        # opponent block below computes its two the same way from the same
+        # pair of vectors; see the comment there for what happened when it did
+        # not. `seat_abs_err` is the MARGINAL median vector and does not fill a
+        # council; `seat_abs_err_coherent` is the largest-remainder
+        # apportionment of the mean and does. They are different statistics and
+        # quoting one against the other is §1.214.
+        "seat_abs_err": seat_abs_err(model_seats, actual_seats),
+        "seat_abs_err_coherent": seat_abs_err(coherent, actual_seats),
         "median_sum": sum(model_seats.values()),
+        "coherent_sum": sum(coherent.values()),
+        # What this forecaster's own draws fill, so a coherent total that was
+        # rescaled UP into a chamber the draws never claimed is visible rather
+        # than silently believed. See :func:`chamber_fill`.
+        **chamber_fill(run.seat_draws, target.council),
         # AFTER relabel_run, which renames ENTRANT on `ward_winner_counts`
         # itself — score the arrival machinery's ward calls under the name of
         # the party that actually arrived, or it is debited twice.
@@ -1657,8 +1929,23 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
         "calibration": calibration_columns(
             run.seat_draws, actual_seats, entrant_actual,
             _pit_seed(city_slug, year), actual_pr=actual_pr,
-            reference=reference_universe(target, city, data_dir)),
-        "opponents": {},
+            reference=reference),
+        # The same dict the reference loop below fills. One object, so a
+        # reference that could not run is already recorded in it.
+        "opponents": opponents,
+        # ⛔ THE MACHINE-READABLE PROOF THAT THIS ROW'S FORECASTERS WERE SCORED
+        # ON ONE COLUMN SET. `universe_key` is order-insensitive
+        # (`score.universe_key`), so two runs differing only in column order
+        # agree — and a row whose key does not match its references' `n_scored`
+        # is a row whose summed scores must not be differenced. Stored rather
+        # than recomputed at render time because the column NAMES do not survive
+        # into `history.json` and the key is what is left.
+        "universe_key": S.universe_key(held),
+        "universe_n": len(held),
+        # What the held set is a superset OF, so the floor can be checked from
+        # the artefact: a `reference` that silently emptied would leave the held
+        # set looking healthy while the fixed population underneath it was gone.
+        "reference_n": len(reference),
         # THE PROVENANCE OF THIS ROW, carried so `history.json` cannot be read
         # without it. `render` re-derives the banner from these two fields
         # through `backtest.in_sample_banner` — the prose is not stored, so
@@ -1675,9 +1962,20 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
         "guards": guard_block,
         "roster": roster_block,
     }
+    # ⛔ `universe=held`, NOT `parties=held`. They are different arguments and
+    # `score_seats` refuses both at once for that reason: `parties` fixes column
+    # ORDER over a set the forecaster still chooses, `universe` fixes the SET.
+    # Passing the first would have left the denominator drifting exactly as
+    # before while reading, in a diff, like the fix.
     scored = S.score_seats(run.seat_draws, actual_seats,
-                           entrant_actual=entrant_actual)
+                           entrant_actual=entrant_actual, universe=held)
     out["crps"] = scored["crps"]["total"]
+    # How many of this forecaster's OWN claims the held set does not carry.
+    # `hold_universe` unions every forecaster's claims in, so this is zero by
+    # construction here — and it is recorded rather than assumed, because the
+    # day it is not zero the summed scores are forgiving somebody's phantom
+    # mass and nothing else in the artefact would say so.
+    out["dropped_claims"] = len(scored.get("dropped_claims") or [])
     # ⛔ THE ONLY JOINT SCORES IN THE BUILDING, AND THEY WERE COMPUTED AND
     # THROWN AWAY. `score_seats` has returned `energy` and `variogram` since it
     # was written (`score.py:710-711`); this function took `crps["total"]` and
@@ -1737,61 +2035,119 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
     # way — and asserting that is how a future reader knows the label cannot
     # reach this number.
     if run.pr_share_draws is not None:
-        out["arrival_group"] = B.arrival_group_score(
-            run.pr_share_draws, run.seat_draws,
-            {p: i for i, p in enumerate(run.universe)},
-            actual_pr, actual_seats, _npe_baseline(target, data_dir))
-        out["arrival_reconciliation"] = _reconcile_arrival(
-            run, out["arrival_group"], pre_relabel_universe)
+        # ⛔ THE SAME BASELINE THE RELABEL USES, AND AN UNREADABLE ONE IS
+        # REFUSED. `arrival_baseline` returns None — never {} — when the
+        # preceding NPE cannot be read, and an EMPTY baseline here does not mean
+        # "nobody had a record", it means EVERY party arrived: `arrival_group
+        # _score` selects `[p for p in actual_shares if p not in base_city]`, so
+        # it would report the whole ballot as an arrival and the realised mass
+        # as 100% of the city. That is the phantom-null fault §1.136 names,
+        # inverted and much larger. The row says it could not be computed.
+        arrival_base = B.arrival_baseline(target, data_dir)
+        if arrival_base is None:
+            out["arrival_group"] = {
+                "error": f"no preceding NPE result file for {target.year}, so "
+                         f"'arrived from nothing' is not computable here. This "
+                         f"is NOT the same fact as no party arriving."}
+        else:
+            out["arrival_group"] = B.arrival_group_score(
+                run.pr_share_draws, run.seat_draws,
+                {p: i for i, p in enumerate(run.universe)},
+                actual_pr, actual_seats, arrival_base)
+            out["arrival_reconciliation"] = _reconcile_arrival(
+                run, out["arrival_group"], pre_relabel_universe)
 
-    ctx = BM.build_context(int(year), data_dir)
-    for name in ("last-lge", "uniform-swing", "prior-lge-noise"):
-        try:
-            # `run_with_wards` rather than `run_one`, which is a one-line
-            # wrapper that calls it and DISCARDS the ward half. Identical seat
-            # draws — so every existing number is unchanged — and it is the
-            # only way the geography key gets an opponent. A ward hit rate
-            # without a baseline beside it is unreadable: safe wards are called
-            # right by anything, including "last time happens again".
-            seat_draws, ward_draws = BM.run_with_wards(
-                name, ctx, draws=min(draws, 2000))
-        except SystemExit as exc:
-            out["opponents"][name] = {"error": str(exc)}
-            continue
+    # THE REFERENCES ARE SCORED HERE AND WERE RUN ABOVE, BEFORE THE MODEL.
+    # `held` cannot be built until every forecaster's claims are in hand, and
+    # the model cannot be scored until `held` exists — so the run and the score
+    # are two passes with the model's score between them. See the hoisted block.
+    scored_blocks: dict[str, dict] = {"model": scored}
+    for name, (seat_draws, ward_draws) in bench_runs.items():
         bench_seats = seats_from_draws(seat_draws)
+        bench_coherent = coherent_seats(seat_draws, target.council)
         # Score the opponent ONCE and keep all three. A joint score with no
         # baseline beside it is unreadable — there is no scale on which an
         # energy score of 41 is good or bad, only better or worse than the
         # thing that needs no model. This also stops the opponent being scored
         # twice by two different calls.
+        #
+        # ⛔ ON `held`, THE SAME SET THE MODEL WAS SCORED ON. Without it
+        # `seat_matrix` gives this reference its OWN columns — 18-19 at
+        # Johannesburg 2021 against the model's 55 — and `score.comparable`
+        # reads False for the row, which is the warning `score_seats`' docstring
+        # points at. Every summed difference quoted off this artefact before
+        # this line was a difference between two denominators.
         bench_scored = S.score_seats(seat_draws, actual_seats,
-                                     entrant_actual=entrant_actual)
-        out["opponents"][name] = {
+                                     entrant_actual=entrant_actual,
+                                     universe=held)
+        scored_blocks[name] = bench_scored
+        opponents[name] = {
             "crps": bench_scored["crps"]["total"],
             "energy": bench_scored["energy"],
             "variogram": bench_scored["variogram"],
             "n_scored": len(bench_scored.get("parties") or []),
-            # ⛔ `seat_abs_err_coherent`, NOT `seat_abs_err`. THE SAME KEY NAME
-            # MEANT TWO STATISTICS AT TWO DEPTHS OF THIS FILE.
+            # ⛔ EACH KEY HOLDS THE STATISTIC ITS NAME CLAIMS. ONE OF THEM DID
+            # NOT, FROM THE DAY THE NAME WAS INTRODUCED (§1.214) UNTIL FIX #34.
             #
-            # The model's own `seat_abs_err` is the MARGINAL statistic — a sum
-            # over per-party medians, which need not fill a council. A baseline
-            # is deterministic (or allocated per draw), so its error is the
-            # COHERENT one. Under the old name a reader — or a future session —
-            # could set the model's marginal total against a baseline's coherent
-            # total and read the difference as skill. That is exactly what
-            # happened on 2026-09-08: the pre-batch coherent 707 was quoted
-            # against the post-batch marginal 706 and the batch was reported as
-            # "essentially flat" when it was +38 coherent. §1.214.
+            # The two names mean two different things and both are wanted:
+            # `seat_abs_err` scores the MARGINAL median vector, which need not
+            # fill a council; `seat_abs_err_coherent` scores the
+            # largest-remainder apportionment of the MEAN, which does. Setting
+            # one against the other is §1.214 — on 2026-09-08 a pre-batch
+            # coherent 707 was quoted against a post-batch marginal 706 and a
+            # +38 batch was reported as "essentially flat".
             #
-            # Renamed rather than detected afterwards: the collision was invited
-            # by the schema, and a detector for it would be one more thing to
-            # verify. `render` prints the full key name for the same reason.
-            "seat_abs_err_coherent": sum(
-                abs(actual_seats.get(p, 0) - bench_seats.get(p, 0))
-                for p in set(actual_seats) | set(bench_seats)),
+            # ⛔ **AND THAT IS WHAT THIS BLOCK ITSELF WAS DOING.** It computed
+            # `seats_from_draws` — the marginal median — and filed it under
+            # `seat_abs_err_coherent`, on the argument that "a baseline is
+            # deterministic (or allocated per draw), so its error is the
+            # COHERENT one". That argument holds for `last-lge` and
+            # `uniform-swing`, whose draws are identical repeats so the median
+            # IS the allocation, and it is **false for `prior-lge-noise`**,
+            # which is stochastic: its marginal medians sum to 254 / 266 / 264
+            # against Johannesburg councils of 260 / 270 / 270. A short vector
+            # FLATTERS the forecaster wherever it over-forecasts, so the model's
+            # margin over the one probabilistic reference in this panel was
+            # understated for as long as the line stood. Fix #34; the same
+            # defect one layer down was fixed in `diagnose.py` last round.
+            #
+            # The repair is not a rename. It is to score every forecaster on the
+            # statistic the key claims, through the same two functions the model
+            # goes through forty lines above — `seats_from_draws` and
+            # `coherent_seats`, which is the ONE definition of a coherent
+            # chamber in this repository. Where a reference is genuinely
+            # deterministic the two vectors are identical and nothing moves.
+            "seat_abs_err": seat_abs_err(bench_seats, actual_seats),
+            "seat_abs_err_coherent": seat_abs_err(bench_coherent, actual_seats),
+            "median_sum": sum(bench_seats.values()),
+            "coherent_sum": sum(bench_coherent.values()),
+            # The Schedule 1 escape hatch, asked of the references exactly as it
+            # is asked of the model: a coherent total rescaled UP from draws
+            # that filled fewer seats is part chamber definition and not all
+            # forecast. Flagged in `render`, never corrected.
+            **chamber_fill(seat_draws, target.council),
+            # Zero by construction under `hold_universe`, recorded anyway: a
+            # reference whose own claims were being dropped from the sum would
+            # be scored on a set that FORGIVES its phantom mass, and the
+            # model-vs-reference difference would be reading that instead of a
+            # forecast.
+            "dropped_claims": len(bench_scored.get("dropped_claims") or []),
             "wards": ward_winner_accuracy(BM.ward_probabilities(ward_draws),
                                           actual_winners)}
+
+    # ⛔ THE #13 PREDICATE, RUN ON THE ROW THAT WAS JUST BUILT. `score.comparable`
+    # asks the only question that licenses a difference between two of the sums
+    # above — *were these forecasters scored on the same columns?* — and it is
+    # asked HERE, of the real objects, rather than inferred at render time from
+    # `n_scored`, which is a count and cannot tell two same-sized different sets
+    # apart. A reference that failed to run carries no `parties` and is not in
+    # the comparison; it already shows as `—`.
+    #
+    # ⚠️ IT REPORTS, IT DOES NOT REFUSE, for `_reconcile_arrival`'s reason: a
+    # refusal here would abort a panel on exactly the defect the panel exists to
+    # measure. `comparable is False` on a row means the summed scores in that
+    # row must not be differenced, and the artefact says so in the row.
+    out["comparable"] = S.comparable(scored_blocks)["comparable"]
 
     # ⛔ THE `published` OPPONENT IS DELETED. IT WAS THIS MODEL'S OWN OUTPUT.
     #
@@ -1852,44 +2208,34 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
     return out
 
 
-def _npe_baseline(target, data_dir: Path) -> dict:
-    """The preceding NPE's citywide shares — what "has no baseline" means.
-
-    The same quantity `run_model` builds its universe from, and the same test
-    `backtest.entrant_actual_for` applies: a party absent from it "arrived from
-    nothing". Read here rather than carried on `ModelRun` because the run does
-    not expose it.
-
-    ⛔ **THIS DOCSTRING USED TO CLAIM IT WAS "defined ONCE so the arrival score
-    and the relabel cannot drift apart on what counts as an arrival". THAT IS
-    FALSE, MODEL-LOG SAYS SO, AND THE SENTENCE SURVIVED IN THE CODE ANYWAY** —
-    corrected 2026-08-31 after a blind review found it still here.
-
-    This function has exactly **one** call site, and it is the arrival score.
-    The relabel does not use it: `_actual_seats` builds
-    ``base = {p: 1.0 for p in run.index}`` — the model's whole universe, under
-    which nothing has ever "arrived from nothing". **The two definitions
-    therefore disagree, and they disagree loudest at the flagship city-year**:
-    at joburg 2021 `entrant_actual` is `None` while `arrival_group_score`
-    reports 32 arrived parties holding 46 seats. Reconciling them is the
-    outstanding work (§1.144 §4, §1.146); until then, do not read either as
-    speaking for the other.
-
-    Off-ballot parties are NOT dropped (§1.124's `absent_from_ballot`): that
-    changes which parties enter `sd_for`'s fit, and changes nothing about who
-    has a baseline above zero, which is all this is asked.
-    """
-    npe = target.previous_npe
-    if not npe:
-        return {}
-    path = data_dir / target.results(npe)
-    if not cityconfig.resolve_path(path).exists():
-        return {}
-    return {p: v for p, v in citywide(load(path, None)[0]).items() if v > 0}
+# ⛔ `_npe_baseline` LIVED HERE AND IT WAS THE THIRD OF THREE DEFINITIONS OF
+# "ARRIVED FROM NOTHING". DELETED 2026-09-13, FIX #12.
+#
+# Its own docstring carried the indictment: *"This function has exactly one call
+# site, and it is the arrival score. The relabel does not use it: `_actual_seats`
+# builds ``base = {p: 1.0 for p in run.index}`` — the model's whole universe,
+# under which nothing has ever arrived from nothing. The two definitions
+# therefore disagree, and they disagree loudest at the flagship city-year."*
+#
+# It is now `backtest.arrival_baseline`, which is `pools.ARRIVAL_DEFINITIONS
+# ["ARRIVED_VS_NATIONAL"]` and is what `diagnose`, `backtest.main`, the relabel
+# and the arrival score ALL read. The register's answer was to name the
+# population, not to invent a sixth; §1.206 is the argument and this is the
+# first fix that takes it.
+#
+# ⚠️ Off-ballot parties are still NOT dropped (§1.124's `absent_from_ballot`):
+# that changes which parties enter `sd_for`'s fit and changes nothing about who
+# has a baseline above zero, which is all this is asked.
 
 
-def _actual_seats(target, data_dir: Path, run):
+def _actual_seats(target, data_dir: Path):
     """Council, arriving party and WARD WINNERS, via the backtest's own reader.
+
+    ⚠️ **``run`` WAS A PARAMETER HERE AND ITS REMOVAL IS THE POINT OF FIX #12.**
+    This function took the ModelRun solely to read ``run.index`` as the arrival
+    baseline. Nothing about the ground truth depends on the forecast, and a
+    function that takes the forecast in order to decide what happened invites
+    exactly the coupling it had.
 
     ``actual_result`` returns more than the seats and its arity has changed
     before, so each map is picked out by shape rather than by position: the
@@ -1897,6 +2243,36 @@ def _actual_seats(target, data_dir: Path, run):
     ``entrant_actual`` needs the model's own BASELINE — which party had no
     national share to grow from — not the target, which is what makes a
     correctly sized newcomer score as a newcomer rather than as a total miss.
+
+    ⛔ **AND THIS FUNCTION DID NOT USE THAT BASELINE. IT USED THE MODEL'S
+    INDEX**, ``{p: 1.0 for p in run.index}``, under which a party the pool fit
+    had given a vector to could not be an arrival however new it was. That is
+    the third of the three definitions fix #12 removes, and it is the only one
+    whose answer is a property of the model rather than of the world: change a
+    seed and the panel changes its mind about who arrived. It now calls
+    ``backtest.entrant_actual_for_target``, which reads the preceding NPE — the
+    registered ``ARRIVED_VS_NATIONAL`` predicate — as ``diagnose`` and
+    ``backtest.main`` already did in words if not in code.
+
+    ⚠️ **NO SCORE MOVES, AND THE REASON IS STRUCTURAL RATHER THAN LUCKY.** The
+    label reaches only ``backtest.relabel_run`` and ``score.seat_matrix``, and
+    both of those are no-ops unless a forecaster holds a literal ``ENTRANT``
+    column. ``montecarlo`` appends that column under exactly one condition —
+    ``if scenario["entrant_prob"] > 0 and not named_arrivals`` — so a slot
+    exists only where ``pool_seeds`` is EMPTY. With no seeds, ``run.index`` is
+    the preceding-NPE universe plus the slot itself, so the old newcomer set and
+    the new one are the same set: the two definitions differ exactly by the
+    SEEDED parties, and where there are seeds there is no slot to relabel. On
+    the committed panel that is the eight 2011 rows (``seeded_parties`` 0) with
+    a slot and identical labels, and sixteen 2016/2021 rows (``seeded_parties``
+    2-32) where the label was inert either way.
+
+    ⛔ **That is one conjunction deep and it is not a promise.** Delete
+    ``and not named_arrivals`` from ``montecarlo`` — the §1.215 fix, which its
+    own comment argues is not a lever — and the two definitions diverge at every
+    seeded city-year at once, with the model relabelled onto a 44-seat party at
+    Johannesburg 2021 where it is relabelled onto nothing today. Which is the
+    argument for settling the definition NOW rather than when it next bites.
 
     The winners were already being read here and thrown away, which is part of
     why no geography-sensitive score existed: the ground truth for one was a
@@ -1919,8 +2295,9 @@ def _actual_seats(target, data_dir: Path, run):
             winners = item
     if seats is None:
         raise ValueError(f"actual_result returned no seat map for {target.year}")
-    base = {p: 1.0 for p in run.index}
-    return seats, B.entrant_actual_for(seats, base), winners or {}
+    return (seats,
+            B.entrant_actual_for_target(target, seats, data_dir),
+            winners or {})
 
 
 _POP_LABEL = {
@@ -2418,7 +2795,13 @@ def _arrival_referee(results: list[dict]) -> list[str]:
     **0.5 is centred and above 0.5 means the model forecast too LITTLE** arrival
     mass or too few arrival seats.
     """
-    rows = [r for r in results if r.get("arrival_group")]
+    # `"error" not in` — a row whose preceding NPE could not be read carries an
+    # arrival_group block saying so (see `run_city_year`), and it has none of
+    # the fields below. "Not computable here" is a different fact from "nothing
+    # arrived" and from "not scored", and only the first of the three belongs in
+    # a table of arrival masses.
+    rows = [r for r in results
+            if r.get("arrival_group") and "error" not in r["arrival_group"]]
     if not rows:
         return []
     out = ["\n## The arrival channel, scored without the label\n",
@@ -2913,6 +3296,10 @@ def render_wards(results: list[dict]) -> str:
     rows = [r for r in results if (r.get("wards") or {}).get("n_wards")]
     if not rows:
         return ""
+    # DERIVED, so a reference added to `benchmarks.BENCHMARKS` gets a column
+    # here without an edit, and one already in the artefact cannot lose its
+    # column by being dropped from the registry. See :func:`opponent_columns`.
+    columns = opponent_columns(rows)
     lines = ["\n## Ward winners — the geography key\n",
              "**`seat_abs_err_coherent` cannot see geography and this can.** "
              "`solve_and_predict` forces every party's citywide share onto the "
@@ -2926,8 +3313,8 @@ def render_wards(results: list[dict]) -> str:
              "baselines in its own row** — safe wards are called correctly by "
              "anything at all.\n",
              "| city-year | wards | model called | hit rate | Brier MC | "
-             "last-lge | uniform-swing | prior-lge-noise |",
-             "|---|---|---|---|---|---|---|---|"]
+             + " | ".join(columns) + " |",
+             "|" + "---|" * (5 + len(columns))]
 
     def opponent(r, key):
         w = ((r["opponents"].get(key) or {}).get("wards") or {})
@@ -2939,7 +3326,7 @@ def render_wards(results: list[dict]) -> str:
         w = r["wards"]
         totals["n"] += w["n_wards"]
         totals["called"] += w["called"]
-        for key in ("last-lge", "uniform-swing", "prior-lge-noise"):
+        for key in columns:
             ow = ((r["opponents"].get(key) or {}).get("wards") or {})
             if ow.get("n_wards"):
                 slot = opp_totals.setdefault(key, {"n": 0, "called": 0})
@@ -2951,8 +3338,7 @@ def render_wards(results: list[dict]) -> str:
             f"| {r['city']} {r['year']} | {w['n_wards']}{short} | "
             f"{w['called']} | {w['hit_rate']:.1%} | "
             f"{w['brier_multicategory']:.3f} | "
-            f"{opponent(r, 'last-lge')} | {opponent(r, 'uniform-swing')} | "
-            f"{opponent(r, 'prior-lge-noise')} |")
+            + " | ".join(opponent(r, key) for key in columns) + " |")
     pooled = totals["called"] / totals["n"] if totals["n"] else float("nan")
     against = ", ".join(
         f"{key} {slot['called'] / slot['n']:.1%}"
@@ -2975,12 +3361,29 @@ def _reference_kind(results: list[dict], key: str) -> str:
     AND THIS REPORT PRINTED ONE AS IF IT WERE.** CRPS collapses to absolute
     error when the forecast is a point mass. Measured across the committed
     twenty-four-row artefact, `last-lge` and `uniform-swing` each carry
-    `crps == seat_abs_err_coherent` on **24 of 24 rows, to exactly zero
-    difference**, and `prior-lge-noise` on **0 of 24** (largest gap 15.25). The
-    two deterministic baselines express no uncertainty at all, so beating them
-    on CRPS says the model's CENTRAL ESTIMATE is better — it says nothing
-    whatever about whether the model's intervals are honest, which is what a
-    reader takes from a proper score.
+    `crps == seat_abs_err` on **24 of 24 rows, to exactly zero difference**, and
+    `prior-lge-noise` on **0 of 24** (largest gap 15.25). The two deterministic
+    baselines express no uncertainty at all, so beating them on CRPS says the
+    model's CENTRAL ESTIMATE is better — it says nothing whatever about whether
+    the model's intervals are honest, which is what a reader takes from a proper
+    score.
+
+    ⛔ **THE COMPARISON IS AGAINST `seat_abs_err`, THE MARGINAL VECTOR, AND
+    MOVING IT TO THE COHERENT ONE WOULD BREAK THE TEST SILENTLY.** The identity
+    CRPS collapses to is the absolute error of the POINT the forecaster drew —
+    which is its median vector, not a largest-remainder apportionment of its
+    mean. For a deterministic reference that fills the council the two are the
+    same number, which is why this worked while `seat_abs_err_coherent` held the
+    marginal statistic (fix #34). It would stop working for a deterministic
+    reference whose draws fill fewer seats than the chamber — Schedule 1 C and D
+    (`chamber_fill`) — because the apportionment would rescale it UP, the
+    equality would fail, and a point forecast would be labelled *probabilistic*
+    and credited with intervals it does not have.
+
+    ⚠️ An artefact written before fix #34 carries no `seat_abs_err` on its
+    opponents, and its `seat_abs_err_coherent` **is** the marginal number under
+    the old name. So the fallback below reads the same statistic, not a
+    different one, and an old artefact gets the verdict it always got.
 
     **Derived, never declared.** The verdict is recomputed from the rows on
     every render, so a baseline that becomes genuinely probabilistic loses the
@@ -2996,7 +3399,10 @@ def _reference_kind(results: list[dict], key: str) -> str:
     seen = 0
     for r in results:
         o = r.get("opponents", {}).get(key) or {}
-        crps, seat = o.get("crps"), o.get("seat_abs_err_coherent")
+        crps = o.get("crps")
+        seat = o.get("seat_abs_err")
+        if seat is None:
+            seat = o.get("seat_abs_err_coherent")   # pre-#34 artefact; see above
         if crps is None or seat is None or "error" in o:
             return "unknown"
         seen += 1
@@ -3043,8 +3449,7 @@ def _totals_row(results: list[dict]) -> str:
             f"**{sum(r['seat_abs_err'] for r in results)}** | — | "
             f"**{sum(r['seat_abs_err_coherent'] for r in results)}** | "
             f"**{sum(r['crps'] for r in results):.1f}** | "
-            f"{opp('last-lge')} | {opp('uniform-swing')} | "
-            f"{opp('prior-lge-noise')} |")
+            + " | ".join(opp(key) for key in opponent_columns(results)) + " |")
 
 
 def _citable(results: list[dict], manifest: dict | None = None) -> str:
@@ -3173,11 +3578,126 @@ def _citable(results: list[dict], manifest: dict | None = None) -> str:
             "margins above are not the same kind of claim: "
             + "; ".join(
                 f"`{key}` is **{_reference_kind(results, key)}**"
-                for key in ("last-lge", "uniform-swing", "prior-lge-noise"))
+                for key in opponent_columns(results))
             + ". A margin over a point forecast says the central estimate is "
               "better; only a margin over a probabilistic one says anything "
               "about the intervals. Measured from the rows, not declared."]
     return "\n".join(out)
+
+
+def _chamber_fill_note(results: list[dict], columns) -> list[str]:
+    """Name every forecaster×row whose own draws did not fill the chamber.
+
+    ⛔ **THE ONE WAY A COHERENT SEAT ERROR CAN STILL MISLEAD.**
+    `coherent_seats` rescales to ``council``, so a forecaster whose draws
+    allocate fewer seats than that is apportioned UP and credited with seats it
+    never claimed. Schedule 1 makes that a legitimate state rather than a bug:
+    independents (C) and the winners of wards contested by parties with no PR
+    list (D) come out of the pool before the quota is struck
+    (`seats.outside_pool_wards`, §1.163), so the pool genuinely IS smaller than
+    the chamber at a city-year with either.
+
+    **Flagged, never corrected.** Inventing the missing seats is fix #34's own
+    defect inverted, and correcting silently would hide the one condition under
+    which the headline columns are not like for like. Same decision, same
+    reasoning, as `diagnose.render_baselines`.
+
+    Prints nothing when every forecaster filled its chamber — which is the state
+    the panel is expected to be in, so the section is evidence when it appears
+    and silence is not evidence of anything. Rows written before fix #34 carry
+    no `fills_council` at all; those are reported as UNRECORDED rather than as
+    clean, because "not measured" and "measured and fine" are different facts
+    and this repository has published the wrong one before.
+    """
+    short, unrecorded = [], 0
+    for r in results:
+        blocks = [("this model", r)] + [
+            (key, (r.get("opponents") or {}).get(key) or {}) for key in columns]
+        for name, blk in blocks:
+            # An EMPTY block is a reference this row never scored — it already
+            # shows as `—` in the table. "Not scored here" and "scored and not
+            # measured" are different facts and counting the first as the
+            # second would make the unrecorded line fire on every panel that
+            # has a reference the artefact predates.
+            if not blk or "error" in blk:
+                continue
+            fills = blk.get("fills_council")
+            if fills is None:
+                unrecorded += 1
+            elif not fills:
+                short.append(f"{r['city']} {r['year']} / {name} "
+                             f"({blk.get('draw_total', float('nan')):.1f} of "
+                             f"{r['council']})")
+    out = []
+    if short:
+        out += ["**⚠️ Some forecasters' draws did not fill the chamber they "
+                "were apportioned into**, so part of their coherent error above "
+                "is the chamber definition rather than the forecast: "
+                + "; ".join(short) + ". Schedule 1 removes independents (C) and "
+                "no-PR-list ward winners (D) from the pool before the quota is "
+                "struck (§1.163). FLAGGED, NOT CORRECTED.\n"]
+    if unrecorded:
+        out += [f"*{unrecorded} forecaster-rows carry no `fills_council` "
+                f"record.* They predate fix #34 and were NOT measured — which "
+                f"is not the same fact as having filled the chamber. Re-run "
+                f"`src/compare_history.py`.\n"]
+    return out
+
+
+def _universe_note(results: list[dict]) -> list[str]:
+    """⛔ MAY THE MARGINS IN THIS REPORT BE DIFFERENCED AT ALL?
+
+    Every CRPS, energy and variogram column in the tables below is a SUM over a
+    column set, and until the held universe landed each forecaster chose its
+    own: 580 columns for the model across the panel against 332 for
+    `uniform-swing`. A difference between two such sums is a difference between
+    two denominators, and nothing in the report said so.
+
+    `score.comparable` is the predicate and `run_city_year` stores its verdict
+    on the row. This prints it. It is **derived from the rows** — a row that
+    predates the held universe carries no `comparable` key and is reported as
+    UNRECORDED, because "not measured" and "measured and fine" are different
+    facts and this repository has published the wrong one before.
+
+    ⚠️ IT NAMES THE EXCEPTION RATHER THAN HIDING IT. Holding the universe moves
+    no CRPS and no energy number — a both-zero column contributes exactly
+    nothing to either — but the variogram is a MEAN over pairs and really does
+    move, in a direction the column counts do not determine
+    (`score.hold_universe`). So a variogram difference is quotable WITHIN one
+    run and never across two, and that sentence prints beside the verdict rather
+    than living in a docstring nobody reading this table will open.
+    """
+    if not results:
+        return []
+    verdicts = [r.get("comparable") for r in results]
+    unrecorded = sum(1 for v in verdicts if v is None)
+    incomparable = [f"{r['city']} {r['year']}"
+                    for r in results if r.get("comparable") is False]
+    keys = {r.get("universe_key") for r in results if r.get("universe_key")}
+    out = []
+    if incomparable:
+        out += ["**⛔ Some rows scored their forecasters on DIFFERENT column "
+                "sets**, so no summed score in them may be differenced: "
+                + ", ".join(incomparable) + ". `score.comparable` is the "
+                "predicate; the fix is `score_seats(universe=hold_universe"
+                "(...))` at every call site in the row.\n"]
+    if unrecorded:
+        out += [f"*{unrecorded} of {len(results)} rows carry no `comparable` "
+                f"record.* They predate the held universe and were NOT "
+                f"measured — which is not the same fact as having been "
+                f"comparable. Re-run `src/compare_history.py`.\n"]
+    if not incomparable and not unrecorded:
+        out += [f"**Every forecaster in every row is scored on one held column "
+                f"set** ({len(keys)} distinct set{'' if len(keys) == 1 else 's'}"
+                f" across {len(results)} rows — they differ by city-year, which "
+                f"is expected; what matters is that the model and every "
+                f"reference share one within a row). CRPS and energy are "
+                f"invariant to the columns that holding adds, so those two are "
+                f"comparable with runs that predate it; **the variogram is "
+                f"not** — it is a mean over pairs and moves with the column "
+                f"count, so quote a variogram difference within a run and never "
+                f"across two.\n"]
+    return out
 
 
 def render(results: list[dict], manifest: dict | None = None) -> str:
@@ -3194,11 +3714,15 @@ def render(results: list[dict], manifest: dict | None = None) -> str:
     for line in _in_sample_block(results):
         add(line)
 
+    # DERIVED FROM THE REGISTRY AND THE ROWS, so a reference cannot be scored
+    # into `history.json` and left out of the table anyone reads — which is the
+    # only place the numbers are actually compared.
+    columns = opponent_columns(results)
     add("## Headline\n")
     add("| city-year | council | list MAE | ward MAE | seat err (median) | "
-        "medians sum to | seat err (coherent) | CRPS | last-lge | "
-        "uniform-swing | prior-lge-noise |")
-    add("|---|---|---|---|---|---|---|---|---|---|---|")
+        "medians sum to | seat err (coherent) | CRPS | "
+        + " | ".join(columns) + " |")
+    add("|" + "---|" * (8 + len(columns)))
     for r in results:
         o = r["opponents"]
         def cell(key, field="seat_abs_err_coherent"):
@@ -3211,8 +3735,7 @@ def render(results: list[dict], manifest: dict | None = None) -> str:
             f"{r['pr_mae']:.2f}pp | {r['ward_mae']:.2f}pp | "
             f"{r['seat_abs_err']} | {r['median_sum']} | "
             f"{r['seat_abs_err_coherent']} | {r['crps']:.1f} | "
-            f"{cell('last-lge')} | {cell('uniform-swing')} | "
-            f"{cell('prior-lge-noise')} |")
+            + " | ".join(cell(key) for key in columns) + " |")
     add(_totals_row(results))
     add("")
     add(_citable(results, _MANIFEST_FOR_RENDER))
@@ -3223,9 +3746,24 @@ def render(results: list[dict], manifest: dict | None = None) -> str:
         "uses the per-party marginal median, which is what the per-party tables "
         "below show and which **does not sum to a council** — the *medians sum "
         "to* column says by how much. *seat err (coherent)* apportions the mean "
-        "seat vector by largest remainder, so it IS a chamber and is the only "
-        "one comparable to the baselines, which allocate per draw and sum "
-        "exactly. Lower is better throughout.\n")
+        "seat vector by largest remainder, so it IS a chamber. Lower is better "
+        "throughout.\n")
+    add("**The reference columns are the COHERENT statistic too, and until fix "
+        "#34 they were not.** They carried the marginal median under the "
+        "coherent key. That is exact for a deterministic reference — whose "
+        "draws are identical repeats, so its median IS its allocation — and "
+        "wrong for a stochastic one: `prior-lge-noise`'s medians fell short of "
+        "the chamber, and a short vector flatters a forecaster wherever it "
+        "over-forecasts, so the model's margin over the one reference here that "
+        "expresses uncertainty was understated. Every forecaster in this table "
+        "is now scored by `compare_history.coherent_seats`, the single "
+        "definition of a coherent chamber.\n")
+    # WHETHER THE MARGINS ABOVE MAY BE DIFFERENCED AT ALL. Immediately under
+    # the headline table, because it qualifies every number in it.
+    for line in _universe_note(results):
+        add(line)
+    for line in _chamber_fill_note(results, columns):
+        add(line)
 
     # WHAT THE GUARDS DID, before the channel-specific sections. It belongs
     # above them because it qualifies every number in the report: a city-year
@@ -3488,7 +4026,28 @@ _IMPORTED_BEFORE_US = _modules_imported_before_us()
 # Operational, not a modelling choice: it versions the SHAPE of the scoreboard
 # envelope so a reader can tell a manifested artefact from a bare one. Exempt
 # from JUDGEMENT-CALLS for the same reason `publication.SCHEMA` is.
-HISTORY_SCHEMA = 1
+#
+# ⛔ 2 SINCE FIX #34, AND THE BUMP IS THE POINT. `opponents[*]
+# .seat_abs_err_coherent` HELD A DIFFERENT STATISTIC AT SCHEMA 1: the marginal
+# median vector, under the coherent key. A schema-1 total and a schema-2 total
+# for `prior-lge-noise` are therefore not comparable, and nothing else in the
+# envelope would have said so — this is §1.214 across two artefacts instead of
+# two lines of one, which is exactly the confusion the citable token exists to
+# stop. Schema 2 also adds `seat_abs_err`, `median_sum`, `coherent_sum`,
+# `draw_total` and `fills_council` to every opponent block; the presence of
+# `seat_abs_err` there is the machine-readable test for which statistic the
+# coherent key holds.
+# ⛔ 3 SINCE THE HELD UNIVERSE, AND THIS BUMP MATTERS MORE THAN THE LAST ONE.
+# At schema 2 and earlier, `crps`, `energy`, `variogram` and `n_scored` were
+# each taken over THE FORECASTER'S OWN column set — the model over 580 columns
+# across the panel and `uniform-swing` over 332. At schema 3 every forecaster in
+# a row is scored over one held set (`score.hold_universe`). CRPS and energy are
+# provably invariant to the columns that differ, so those two are comparable
+# across the bump; **the variogram is not, and `n_scored` is not**, and nothing
+# else in the envelope would have said so. Schema 3 also adds `universe_key`,
+# `universe_n`, `reference_n`, `comparable` and `dropped_claims` — `comparable`
+# being the machine-readable licence to difference two of the sums at all.
+HISTORY_SCHEMA = 3
 _MANIFEST_FOR_RENDER: dict | None = None
 
 
