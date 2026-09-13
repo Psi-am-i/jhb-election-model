@@ -966,3 +966,67 @@ the right thing to quote, because it carries all three.
 **Not fixed here.** The repair is the canonical run on a settled tree, after
 which both files come from one invocation; until then the pair is a tripwire,
 not a source.
+
+---
+
+## 17. 🔴 A party that changes its registered name is published as two parties, and the record never says they are one (found 2026-09-13)
+
+**The class.** The IEC's voting-district exports identify a party by its name and
+by nothing else. `PartyName` in the `_metros` and `_reports` exports, `sPartyName`
+in the bulk NPE files — **there is no party ID in any of them**, and none of them
+is stable across elections, because the name published is the name as registered
+*for that election*. So a party that renames itself between two elections is two
+parties in the record, and nothing in the record relates them.
+
+**What that does to an analysis, silently.** Any procedure that asks *"was this
+party present at the preceding election?"* — an arrival detector, a retention
+ratio, a swing, a splinter's parent — answers **no** for a renamed incumbent. The
+consequences run in both directions at once and neither raises:
+
+* the renamed party is counted as an **arrival, carrying its predecessor's full
+  incumbent vote**, which inflates every statistic fitted to what new parties
+  take; and
+* the predecessor is counted as having **vanished**, which is a 100% loss in any
+  retention or θ record that reaches it.
+
+**The instance.** The National Party's successor is published as
+`NEW NATIONAL PARTY` in the 1999 national export and as
+`NUWE NASIONALE PARTY / NEW NATIONAL PARTY` in the 2004 one. Same party, same
+registration, one election apart. Folding the two spellings to one code and
+re-reading the raw files (2026-09-13) moves the 1999→2004 arrival pool in **all
+eight metros**; Cape Town's, the largest, goes from **22.28% to 11.45%** — half
+of what looked like the biggest arrival event in the pre-2011 record was an
+incumbent that had changed its letterhead.
+
+**How to detect it.** A name comparison, not a code comparison — the codes are
+what the renaming has already broken. For each pair of consecutive elections,
+list the parties present in the later one and absent from the earlier, ranked by
+vote, and check the largest against the parties that disappeared, on substring
+containment and on token overlap rather than on equality. A rename almost always
+leaves one of the old tokens in the new name — as `NEW NATIONAL PARTY` does
+inside `NUWE NASIONALE PARTY / NEW NATIONAL PARTY` — which is why containment
+finds it and a code match cannot. Names must be compared case- and
+punctuation-folded, or the defects in items 3 and 4 of this file hide the match.
+
+⛔ **THE CLASS IS OPEN, NOT CLOSED, AND THE SEARCH THAT FOUND IT IS THE REASON.**
+Only the **top** arrival of each metro-year was checked. The micro-party tail —
+the great majority of arrivals in every cycle, and the population the arrival
+budget is actually spread over — **was not examined at all**, so the count of
+renamings in this record is unknown and is a lower bound of one. A second
+instance anywhere in the tail would move the same statistics in the same
+direction, because the error has a sign: a renamed incumbent always arrives with
+more vote than a real newcomer.
+
+**Fix (IEC).** Publish the registered **party ID** alongside the name in every
+export, and keep it stable across elections when a party re-registers under a new
+name. Failing that, publish a name-change register — *this ID was `X` and is now
+`Y`, effective this election* — which is information the Commission holds at
+registration and which no downstream user can reconstruct.
+
+**In the model.** A `parties.ALIASES` entry, queued as entry 19 of
+`POOLS-REEMIT-QUEUE.md` because `parties` is an emit dependency. Probed
+read-only, with a positive control: the alias leaves today's θ and arrival
+records byte-identical, because **no LGE file carries either spelling** and the
+NNP had dissolved before the 2006 local election. It is a correctness fix on the
+national reads, not a repair to a live forecast number — and the reason it is
+worth taking anyway is the class above, not the instance.

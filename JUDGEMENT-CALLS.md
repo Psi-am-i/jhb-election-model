@@ -167,6 +167,7 @@ promotion note in §F.
 | `SPINE_K`, reciprocal form | — | `levels.py` | 1.0, fitted leave-one-metro-out on a curve that is flat 0.5–1.5. A step function scored better out of sample and was rejected on structural grounds — which is why this is 🔴 despite being fitted. | 🔴 | §B1 + §F14 |
 | `SPLINTER_PARENT_WEIGHT` | 0.35 | — | 0.35, measured over 22 splinter-metro cases, no bootstrap, and stale since the archive grew (§A). | 🔴 | §F6 |
 | `SPLIT_SD_FLOOR` | — | `pools.py` | 0.90, and it overrides its own measurement at target 2016 while binding at neither 2021 nor 2026 — real work in the one fold where it is least justified. | 🔴 | §B3 |
+| the `home` city and `measured_from` pair of each entry in `SPLITS` | ASA→JHB · GOOD→CPT · MK→ETH · NFP→ETH · COPE and EFF→**None** | `pools.SPLITS`, read by `home_splinter_record` | Six typed biographical claims that select WHICH record sizes a splinter. ActionSA's is the single assignment behind the panel's largest error, and the two unset ones announce nothing at all. Declared 2026-09-13, never swept. | 🔴 | §A47 |
 | the size-dependence of `sd_for` below 15% | a straight line in log(size) | `levels.py`, inside `theta_prior` | The model is UNCHANGED and the fault is the FORM, not the residual. ⛔ No further functional form may be tried against these two folds, and this row's numbers are Form A's and must not be quoted. | 🔴 | §F18 |
 | `THETA_CENTRAL` | 6 party values | `leverage.py` | NOT LIVE. The plan's six typed party values, and the module holding them has since been retired out of `src/` — see the restructure note beneath. | 🟡 not live | §H16 |
 | `theta_prior` and `_shrunk` | RESOLVED 2026-08-18 | `levels.py` (`theta_prior`, `_shrunk`) | RESOLVED 2026-08-18. Both shrink toward `size_centre`, they agree to 1e-16, and no forecast moved. | ⚪ | §A26 |
@@ -778,6 +779,34 @@ correctly — not a ward that was lost because the level was wrong.
 **Now.** Declared 2026-08-29. Live in every backtest and in the 2026 forecast, not gated by `arrival_group_draw`, and the frequency of its whole-record fallback is unmeasured.
 
 **Record.** Which historical arrivals count as comparable to this one, and therefore the size of **every seeded arrival** — the incumbent path, live in every backtest and in the 2026 forecast, **not** gated by `arrival_group_draw`. Falls back to the whole record when fewer than 8 peers are within the window, so the window's real effect is the frequency of that fallback, which is unmeasured. The register declares `ARRIVAL_BAND_LO`/`HI` — the band's *shape* — but not the rule choosing the observations the band is fitted to. Undeclared until 2026-08-29. **ARGUED, NOT TESTED.**
+
+### §A47 · which city is a splinter's home, and which pair of elections it is measured across — `SPLITS`: ASA→JHB · GOOD→CPT · MK→ETH · NFP→ETH · COPE→None · EFF→None — 🔴
+
+**Where.** `pools.SPLITS`, read by `pools.home_splinter_record` (which record) and by `pools.arrival_rules` (which record sizes a given party in a given city). Distinct from §A44, which registers the THRESHOLD (`MIN_HOME_SPLITS`) and the binary shape; this registers the six per-party assignments those mechanisms are applied to, and it is upstream of them — the threshold only matters once a party has been called *at home*.
+
+**Now.** Six typed assignments, none derived, none swept, and no test constructs a violation of any of them. Two of the six carry no home city at all and are therefore invisible in every artefact: a party with no home city produces no marker, no note and no banner line.
+
+**Record.**
+
+1. **What a `home` is.** A biographical claim: the city where the splitting leader's own following is. Nothing in the data derives it, and nothing could — it is a fact about a person, asserted. `home_splinter_record` uses it twice: to decide which historical splits count as *home* observations at all, and (through `arrival_rules`) to decide whether the party being sized is at home in the city being forecast. **Both branches are selected by these six literals.**
+
+2. ⛔ **ASA→JHB IS THE SINGLE ASSIGNMENT BEHIND THE PANEL'S LARGEST ERROR.** It is what routes ActionSA to the home record at Johannesburg and to the away record everywhere else, and the home record is what the emitted 2021 spec's `seed_notes["ASA"]` names as the source of its band. Flip that one literal and Johannesburg's largest arrival is sized from a different record. It has never been varied.
+
+3. ⚠️ **`home = None` IS ALSO A JUDGEMENT, AND IT IS THE ONE NOTHING CAN SEE.** COPE and the EFF are declared to have had no home city. That is arguable in both cases and it is asserted in neither direction by any measurement. An unset home costs a party its home branch everywhere, which means it is sized from the away record **in its own home city if it has one**, silently — there is no marker, no note and no banner line for a home that was never declared. The other four assignments at least announce themselves through the spec's `splinter_home` marker. These two announce nothing, which makes them strictly harder to audit than the ones that are wrong out loud.
+
+4. **`measured_from` is the second half of the same call.** It names the pair of elections each split is measured across — the parent's share before, the splinter's after — and it is what the target cutoff filters on (MODEL-LOG §1.232). **ASA's is unset**, which is deliberate and load-bearing: ActionSA contributes no row to the home record and so cannot size itself. `home_splinter_record`'s `exclude` argument enforces the same thing a second way for every caller.
+
+5. **The measured consequence is §A44's and is not restated here.** The gradient across metros that the binary home/away bucketing flattens, and the Tshwane seed it produced, are in §A44. What §A44 does not cover is that the bucket a party lands in is *chosen per party*, by this table.
+
+6. **How to check it.** The assignments themselves:
+
+       .venv/bin/python -c "import sys; sys.path.insert(0,'src'); import pools; \
+         [print(k, v.parent, v.home, v.measured_from) for k, v in sorted(pools.SPLITS.items())]"
+
+   What each target actually uses, which is the quantity that reaches a forecast — `pools.home_splinter_record(before_year=<target>)`, or the `splinter_home` marker in the emitted spec, which records it per run.
+
+7. **Declared 2026-09-13**, on the round that corrected `backtest.FITTED_ON["splinter_home"]` (MODEL-LOG §1.232). Until then `splinter_home` appeared nowhere in this register at all: the mechanism was in §A44 and the per-party assignment it applies to was in neither.
+
 
 ## B. Measured, but the form or the selection was chosen
 

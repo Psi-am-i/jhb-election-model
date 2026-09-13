@@ -24872,3 +24872,136 @@ threefold. It was caught only because the ANC's 153 Johannesburg seats in 2011 i
 an externally known fact. **Anything derived from a scratch probe over this
 artefact should be checked against one externally-known number before it is
 believed.**
+
+---
+
+## 1.232 ⛔ CORRECTS §1.231 conclusion 3: `splinter_home` is target-filtered, and the register that said otherwise had been stale for thirty days (2026-09-13)
+
+**§1.231 is not rewritten. This entry is the correction and stands beside it.**
+
+### What §1.231 conclusion 3 claimed
+
+> *"`splinter_home` is fitted on **2019 and 2024** — post-dating the 2021 target
+> — and it is the constant that sizes ActionSA. It contaminates 16 rows
+> including all three 2021 metros carrying three of the four big wins. **The
+> ActionSA rows are the least out-of-sample rows in the panel, and they are
+> where the margin lives.**"*
+
+### Why it is wrong
+
+**The claim rested on the register, not on the spec.** `backtest.FITTED_ON`
+declared the pair `("2019", "2024")`, `contaminated()` tests `y >= target`, and
+the banner therefore named `splinter_home` on every row that read it. Nobody
+opened the artefact the rows actually load.
+
+**The emitted specs disagree, and they are the run.** Read from
+`data/processed/**/pools_*.json` on 2026-09-13, the `splinter_home` marker each
+spec carries — `measured_at`, the election at which each split it used actually
+happened — is `["2014"]` at every 2016 target, `["2014", "2019"]` at every 2021
+target, and `["2014", "2019", "2024"]` at 2026. **Checked across every spec on
+disk: not one carries a year at or after its own target.** So the contamination
+the banner reported does not exist on any row of the panel.
+
+**The mechanism is the cutoff, and it is dated.** The register entry was written
+`6952322`, 2026-08-11, when `pools.home_splinter_record` ignored the target and
+every run measured MK's eThekwini split whatever it was forecasting. The filter
+landed three days later in `f33528f`, 2026-08-14 — `pools.emit_pools` passes the
+target year as the cutoff unless `--retrospective-home` is given, and
+`home_splinter_record` drops any split whose second election reaches it. **The
+register was never updated, and has been wrong since.**
+
+**Two years is also the wrong SHAPE, not merely the wrong pair.** The window
+moves with the target, so the set of splits this key reads differs at every
+target and no static tuple can name it. The tuple that was there named neither
+the 2021 set nor the 2026 set: it omitted the NFP's eThekwini split, which is in
+both. Establishing that was the point of the exercise — see the register entry
+itself for what `FITTED_ON` can now honestly say, and why the key could not
+simply be moved to another register.
+
+### What survives, and what is withdrawn
+
+* ⭐ **The `IN-SAMPLE` verdict on all 24 rows is UNAFFECTED.** It comes from
+  `FITTED_ON["pools"]`, registered on 2011/2016/2021 and read unconditionally by
+  every run. Nothing in this correction makes any row out-of-sample, and the
+  headline of §1.231 conclusion 3 — *"beats the honest opponent, and it is not
+  out-of-sample skill"* — stands exactly as written.
+* ⛔ **WITHDRAWN: the specific mechanism named for it.** `splinter_home` did not
+  post-date any target on any row.
+* ⛔ **WITHDRAWN: "the ActionSA rows are the least out-of-sample rows in the
+  panel".** That ranking was derived from the false contamination and there is
+  no longer anything to support it. Every row is in-sample by the same route —
+  `pools` — and this correction offers no basis for ordering them.
+* **Unaffected: that `splinter_home` is what sizes ActionSA.** Verified from the
+  live 2021 Johannesburg spec's own `seed_notes["ASA"]`, which names the
+  home-city record as the band it was drawn from. What is withdrawn is the claim
+  that the record it drew from reached 2021 or later.
+* **The "16 rows" figure was arithmetically right for the wrong reason.** It is
+  16 rather than 24 because the 2011 specs carry no `splinter_home` marker at
+  all — no split had happened yet — so `contaminated()` intersects it away. The
+  correct count of rows contaminated by this key is zero.
+
+### The second correction from the same round: the ActionSA seed
+
+I described the model as seeding ActionSA at a figure that is in fact the
+`uniform-swing+roster` reference's share for that row, not the model's.
+
+**The model's seed is in the spec** — `seeds["ASA"]` in
+`data/processed/pools_2021.json`, the spec the run being described loaded. It is
+more than a hundred times the median of the spec's thirty-one other seeds, which
+is the shape the reference's figure does not have. ⚠️ **The value is not typed
+here, deliberately**: `JUDGEMENT-CALLS.md` §A6 records three documents typing
+this same emitted number and all three disagreeing, because the spec was
+re-emitted between them. Read it from the spec for the run being described.
+
+**The reference's figure must likewise be read from the reference.** It is not
+re-derived here: taking it means running the benchmark, and the canonical
+measurement was in another worker's hands.
+
+### ⭐ The canonical artefact carries its own refutation, in one object
+
+`data/processed/history.json`, the schema-3 run §1.231 installed, holds this at
+`joburg` 2021 — both fields, in the same record:
+
+```
+"constants_read": { "splinter_home": ["GOOD, NFP measured at 2014, 2019"], ... }
+"contaminated":   [ ..., "splinter_home", ... ]
+```
+
+**The run recorded the years it measured and then reported itself contaminated
+by years it had not measured**, because the two come from different places: the
+first from `note_constant`, fed by the spec's own marker; the second from
+`FITTED_ON`, fed by a comment written three days before the code changed. A
+reader had both halves in front of them and the contradiction was not visible,
+because nothing prints them together.
+
+### What this change does and does not move
+
+* **No forecast number moves.** `montecarlo` does not import `backtest`; the
+  register is read by `compare_history`, `benchmarks`, `arrivals`, `diagnose`
+  and `sweep` — the scoring and reporting side. Nothing drawn depends on it.
+* **The scoreboard's disclosure moves, and should.** On the next
+  `compare_history` run, `splinter_home` leaves the `contaminated` list on the
+  sixteen rows that read it — at `joburg` 2021 that list goes from nine keys to
+  eight — and the banner moves the key into its "also read, and clean at this
+  target" block. ⛔ **`in_sample` stays `True` on all 24 rows**, by `pools`, and
+  no panel total changes.
+* ⚠️ **A figure quoted from `history.json` today predates this correction.** The
+  artefact's own `contaminated` lists are the ones described above, and they
+  will differ from the next run's for this reason and not because anything was
+  refitted.
+
+### The general lesson, which is the one worth keeping
+
+⛔ **A REGISTER ENTRY IS A CLAIM WITH NO EXPIRY, AND THE CODE IT DESCRIBES MOVES
+UNDER IT.** `FITTED_ON` is a hand-maintained description of what other modules
+do; three days after this entry was written, the module it described stopped
+doing it, and nothing anywhere could tell. **The banner is only as good as the
+last time somebody re-read the register against the code** — and the register is
+printed on every run, in the tone of a measurement, which is what made it
+believable enough to reach a conclusion in §1.231. The same class as
+`An unticked box is not evidence`: verify in the artefact before quoting the
+tracker.
+
+**And the cheap check that would have caught it existed all along.** The spec
+records `measured_at` precisely so the years can be read rather than assumed.
+Opening one file would have settled it.

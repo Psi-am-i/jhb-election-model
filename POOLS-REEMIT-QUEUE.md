@@ -43,28 +43,40 @@ after declaring `_LOG_FLOOR`). Only changes to what the code *computes* qualify.
 
        find data/processed -name 'pools_*.json' | wc -l
 
-   ⚠️ **The command above emits 27 and there are 26 on disk today.** The 27th is
-   `tshwane/pools_2026.json`, which queue entry 2 made emittable and which has
-   never been emitted. **So the count goes 26 → 27, and that is expected.** An
-   operator who reads "confirm twenty-six" and counts 27 will resolve the
-   discrepancy at speed, in the dark, in an irreversible window — which is why
-   the number is not restated here. **Count against what the loop issued, not
-   against a number in a document.**
+   ⛔ **THIS PARAGRAPH USED TO CARRY A COUNT AND THE COUNT WENT STALE — which
+   is precisely the failure it was written to warn about.** It said the loop
+   emits 27 against 26 on disk, the 27th being `tshwane/pools_2026.json`, which
+   queue entry 2 made emittable and which "has never been emitted". It has:
+   the 2026-09-08 window emitted every spec, `tshwane/pools_2026.json` among
+   them, so the before-count and the after-count are now the same number and an
+   operator following this step would have gone looking for a discrepancy that
+   is not there. **Verified 2026-09-13 by running the `find` above and by
+   `tests/test_register_matches_code.py`, whose `DELETED` note records the same
+   window re-emitting the full set.**
 
-   *(Undecided, and it must be decided before the window: does Tshwane also need
-   a `--simulation` spec? Johannesburg has one. If yes the count is 28.)*
+   ⚠️ **So no count is written here, in either direction.** Run the loop, run
+   the `find`, and check that what is on disk is what the loop issued and that
+   every spec carries one `pools_sha`. **Count against what the loop issued,
+   not against a number in a document** — including this one.
+
+   *(Undecided, and it must be decided before the window: does Tshwane also
+   need a `--simulation` spec? Johannesburg has one. If yes the loop issues one
+   more than it does today.)*
 4. Re-take the baseline (`compare_history`) and the freeze, in that order, on a
    settled tree. **Every number quoted afterwards comes from that run.**
 
 ---
 
-## Queued — ⛔ EMPTY. Every entry has landed; the window is all that is left
+## Queued — two entries, both opened 2026-09-13
 
 ⛔ **THE ENTRY NUMBERS ARE ONE NAMESPACE SHARED WITH
 `audits/ULTRA-REVIEW-1-pools-reemit.md`, WHICH IS FROZEN.** The brief uses
 **1-6** for the rows below and **7-10** for its own amendments (7 = the turnout
 band, 8 = `_nnls`, 9 = the pool-bounds guard, 10 = the C and D terms). A new row
-here therefore starts at **11**. This was got wrong once, on 2026-09-03: the
+here therefore starts **above the highest number already used in either
+document**. ⚠️ **This sentence used to name that number and it has been outgrown
+twice** — it said 11, and the rows below now reach past it. Read the tables and
+take the next one from them; do not take it from here. This was got wrong once, on 2026-09-03: the
 arrival-budget row was filed as "entry 7" and collided with the brief's turnout
 band — two live changes in one batch under one name, and a reviewer would have
 checked the wrong one. **Never renumber an existing row**; the brief cannot be
@@ -76,11 +88,12 @@ widens the record 22 → 29 rows, so entry 11's measurements must be re-derived
 *after* it and R-1 (§1.180 / §L6) is a decision about that same statistic. The
 only forecast-moving work in this queue is those three together. See both rows.
 
-⛔ **NOTHING IS QUEUED. VERIFIED IN CODE ON 2026-09-08, ENTRY BY ENTRY** — and
-the table below said otherwise for days, which is the third time a tracking
-document in this batch has understated the tree (R4, §1.197; entry 11; now all
-six). **The rows have not been deleted**: every one is in *Landed in the tree*
-with the grep that proves it. What each check found:
+**ENTRIES 19 AND 20 ARE QUEUED. Entries 1-6 are not** — they were VERIFIED IN
+CODE ON 2026-09-08, ENTRY BY ENTRY, and the table below had said otherwise for
+days, which was the third time a tracking document in this batch understated the
+tree (R4, §1.197; entry 11; then all six). **Those rows have not been deleted**:
+every one is in *Landed in the tree* with the grep that proves it. What each
+check found:
 
 | # | proof it is in the tree |
 |---|---|
@@ -91,10 +104,49 @@ with the grep that proves it. What each check found:
 | 5 | `unclassified_with_national_record` emitted into the spec |
 | 6 | `_required_gate` at **4** sites |
 
-**So the only thing standing between this batch and a re-emit is the window
-itself.** Do not read the length of the *Landed* table as work outstanding.
+**Do not read the length of the *Landed* table as work outstanding** — none of
+it is. The outstanding work is entries 19 and 20 below, and then the window.
+
+### Entry 4, checked again on 2026-09-13 — and the claim about it needs two corrections
+
+`_citywide_for` is wired at every site that needs a metro-year's citywide shares
+(the `\b_citywide_for\(` grep above), and its `_npe_citywide_for` fallback serves
+**all eight metros at 2006**, where `metro_file` returns nothing for any of them.
+So **`metro_file` is no longer the binding constraint** and §1.136's account of
+the 2016 specs is history rather than current state.
+
+⚠️ **Two things that were said about this row are wrong, and both were checked
+rather than assumed.**
+
+1. **The arrival record does not start at 2004→2006.** It starts one cycle
+   earlier, at 1999→2000, with a single Johannesburg row — `levels.HELD_BACK`
+   gates `lge2000` and `npe1999` for the other seven metros and **not** for
+   Johannesburg, so that one row flows through while its seven siblings do not.
+2. **2004→2006 is not eight metros, it is six.** The READER serves all eight;
+   the RECORD drops Mangaung and Buffalo City at that cycle through the
+   `len(arr) < 3` floor (JUDGEMENT-CALLS §L7, which names those two rows as
+   among the three smallest arrival totals in the whole record). "The reader can
+   see it" and "the record contains it" are different claims and this row
+   conflated them.
+
+Re-derive the row count from `pools.arrival_group_record()` rather than from any
+figure in this file; the 22 → 29 widening the coupling warning above depends on
+is the quantity to check, and it is a live call, not a number.
 
 ⛔ **ENTRY 11 LANDED ON 2026-09-03**, folded into entry 4 as the coupling warning above it required, under `prereg/2026-09-03-arrival-record-widening.md` P2. Verified in code 2026-09-08: `_arrival_total_prior` returns `np.mean([e for _, _, e in rec])` — the MEAN, over the ENTRANTS-ONLY third element. **The batch plan's checklist still read it as unstarted for five days**, which is the second time that block has understated the tree (the first was R4 itself, §1.197). Its full evidence is kept below in *Landed in the tree*.
+
+### The queued entries
+
+⛔ **BOTH ARE IN `pools._EMIT_DEPENDENCIES` TERRITORY AND NEITHER CAN BE TAKEN
+OUTSIDE THE WINDOW.** Entry 19 changes `parties.py`, which is an emit dependency,
+so it moves `deps_sha`; entry 20 changes a message string in `pools.py`, which
+`_code_sha` hashes, so it moves `pools_sha`. Each invalidates every spec.
+
+| # | change | what it moves, and the acceptance test | opened |
+|---|---|---|---|
+| 19 | ⛔ **A PARTY THAT CHANGES ITS REGISTERED NAME BETWEEN ELECTIONS BECOMES AN ARRIVAL CARRYING ITS PREDECESSOR'S FULL VOTE, AND NOTHING DETECTS IT.** `parties.canonical` derives a code from the name, so the 1999 file's `NEW NATIONAL PARTY` and the 2004 file's `NUWE NASIONALE PARTY / NEW NATIONAL PARTY` fold to **different codes** — verified by calling `parties.canonical` on both — and `parties.ALIASES` has no entry for either. Every consumer that asks "did this party exist at the preceding election?" answers no. **Measured 2026-09-13, reading the raw NPE files directly and folding both spellings to one code: the 1999→2004 arrival pool falls in all eight metros, Cape Town's from 22.28% to 11.45%**, which is the largest. The fix is a `parties.ALIASES` entry. ⚠️ **The class is wider than the instance and is NOT closed by this row** — only the top arrival of each metro-year was ever checked. `DATA-QUALITY.md` item 17 carries the class and the detection method. | ⚖️ **Number-neutral on the tree as it stands, on evidence, and the evidence is narrower than the change.** **No LGE file carries either spelling** (grep over `data/`; both occur only in `npe1999_approx_*` and `npe2004_*`), and the NNP had dissolved before the 2006 local election, so no local record moves. Probed read-only in fresh processes, with a positive control that fires and reverts: adding the alias leaves `levels.theta_record` for all eight metros at 2011/2016/2021 and `pools.arrival_group_record` / `home_splinter_record` at all four targets **byte-identical**. ⛔ **That is not the emitted spec.** The acceptance test is the window's own: emit, and diff every spec. Anything that moves is a consumer the probe did not reach. | 2026-09-13 |
+| 20 | **`pools.arrival_rules` emits a `RETROSPECTIVE` warning that is false at every spec on disk.** The at-home branch of `band_for` labels its record *"home-city splits (…), RETROSPECTIVE: not all precede this target"* **unconditionally**. That was true until the target cutoff landed on 2026-08-14; since then the home record handed to that branch is already filtered, and the label survives as a claim about the code's own behaviour that the code stopped having. **Verified 2026-09-13: no spec on disk carries a `splinter_home.measured_at` year at or after its own target**, so the warning is false on every one. It is read where it does most harm — `seed_notes["ASA"]` in the 2021 specs, the note beside the largest arrival in the panel. ⚠️ **The fix is to make the label CONDITIONAL, not to delete it**: under `--retrospective-home` the cutoff is off and the warning is true and wanted. MODEL-LOG §1.232. | **Number-neutral in intent — it is a note, not a computation** — and it still moves `pools_sha`, because `_code_sha` hashes string constants. Same class as entry 16, and for the same reason it belongs in this batch rather than in a window of its own. Acceptance test: emit and diff; `seed_notes` and the artefact key should move and nothing else. | 2026-09-13 |
+
 
 ---
 

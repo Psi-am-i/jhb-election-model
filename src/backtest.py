@@ -252,26 +252,68 @@ FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
     "entrant_geography": (
         ("2006", "2011", "2016", "2021"),
         "k measured across the six entrants on record (empty by default)"),
-    # An entry with no years reads no RESULT, and so can never contaminate a
-    # target; it is here to be reported rather than to be scored. Contestation
-    # comes out of the target's own file, which looks alarming and is not: the
-    # quantity is which parties appear on each ward's ballot, published when
-    # nominations close and available to any forecaster weeks before polling
-    # day. It used to count only the wards where a party WON votes, which is
-    # not the ballot but the result, and that was a genuine leak.
-    # Deliberately retrospective, at the project owner's direction and with
-    # the reasoning recorded: only one home-city split had happened before
-    # 2021, and one observation is not a sample — sizing ActionSA from it
-    # alone gave 1.87% against an actual 16.1%. Using the whole record gives
-    # 15.78%, from GOOD and MK, neither of which is ActionSA. A target at or
-    # before the latest split used is therefore IN-SAMPLE and says so here,
-    # which is the difference between a declared choice and a leak.
+    # ⚠️ AN ENTRY WITH NO YEARS MEANS "NO YEAR IT READS CAN REACH A TARGET".
+    # That is NOT the same as "it reads nothing", and the two cases are both
+    # here. `contestation`, `spine`, `metro_poll` and `poll_level` read no
+    # result at all; `splinter_home` reads several and has its window cut at
+    # the target. `contaminated` needs the same answer from both — no year at
+    # or after the target — so both carry the empty tuple, and the difference
+    # lives in each entry's own prose, which is why the banner prints it.
+    # Contestation comes out of the target's own file, which looks alarming
+    # and is not: the quantity is which parties appear on each ward's ballot,
+    # published when nominations close and available to any forecaster weeks
+    # before polling day. It used to count only the wards where a party WON
+    # votes, which is not the ballot but the result, and that was a genuine
+    # leak.
+    #
+    # ⛔ A TARGET-AWARE QUANTITY CANNOT BE DESCRIBED BY A STATIC YEAR TUPLE,
+    # AND THIS ENTRY TRIED TO FOR THIRTY DAYS. It read ("2019", "2024"),
+    # written 2026-08-11 when `pools.home_splinter_record` ignored the target
+    # and every run measured MK's eThekwini split. The cutoff landed three days
+    # later — `pools.emit_pools` sets `home_cutoff` to the target year unless
+    # `--retrospective-home` is given, and `home_splinter_record` drops any
+    # split whose second election reaches it — and this entry did not move. So
+    # `contaminated` named `splinter_home` on every panel row that read it,
+    # while the spec each of those rows loads had measured only splits
+    # strictly before its own target. MODEL-LOG §1.232.
+    #
+    # Two years was also the wrong SHAPE, not merely the wrong pair. The window
+    # moves with the target, so the record this key reads is a different set at
+    # every target and no single tuple can name it. The tuple that was here
+    # named neither the set at 2021 nor the set at 2026: it omitted the NFP
+    # split that is in both.
+    #
+    # ⚠️ IT STAYS IN `FITTED_ON`, AND THAT IS NOT A FREE CHOICE.
+    # `tests/test_chain.py` matches every `note_constant(scenario, "...")` in
+    # `montecarlo.py` against this dict in BOTH directions, so a key the run
+    # notes must be declared HERE and nowhere else. `splinter` could be deleted
+    # from this register when its cutoff landed because nothing notes it;
+    # `splinter_home` is noted, so deleting it fails that guard, and moving it
+    # to `FITTED_ON_UNINSTRUMENTED` or `PROVENANCE_UNSETTLED` fails it too.
+    # That it is not a `montecarlo.DEFAULTS` key does not bear on the choice:
+    # several entries here are not, and the completeness guard runs DEFAULTS
+    # → the registers, never the reverse.
+    #
+    # ⛔ WHAT THE EMPTY TUPLE DOES NOT COVER: `--retrospective-home`. That flag
+    # restores the unfiltered record, and a spec emitted under it CAN carry a
+    # year at or after its target. This register cannot see it, because the
+    # years are a property of the RUN and not of the constant. The detector is
+    # the spec's own `splinter_home` marker, which records which splits were
+    # used and when they happened, is emitted on both paths, and which
+    # `run_model` turns into this key's `note_constant` text — so every run's
+    # `constants_read` carries the years and the scoreboard row records them.
+    # ⚠️ The BANNER prints a key's consumers only when the key is IMPLICATED,
+    # which on the default path is now never: the clean-reads block prints the
+    # key and its reason and not its note. Read the spec's marker or the row's
+    # `constants_read`, not this entry, to find out what a given run measured.
     "splinter_home": (
-        ("2019", "2024"),
-        "home-city splinter fractions (GOOD in Cape Town 2019, MK in "
-        "eThekwini 2024). A split takes far more where its leader's own "
-        "following is, and the effect is only measurable across elections "
-        "either side of most targets"),
+        (),
+        "home-city splinter fractions. It DOES read results — the splits on "
+        "record are in `pools.SPLITS` — but the window is cut at the target, "
+        "so no year it reads can reach one. Which splits a given run used, "
+        "and when they happened, are in that spec's `splinter_home` marker "
+        "and in this run's own `constants_read`. `--retrospective-home` "
+        "disables the cutoff and only the marker catches it"),
     "contestation": (
         (),
         "ward-ballot PRESENCE at the target, taken from the target's own "
@@ -792,7 +834,13 @@ def in_sample_banner(target_year: str, label: str, scenario_keys: set[str],
         lines.append("  Also read, and clean at this target:")
         for key in clean_reads:
             years, why = years_for[key]
-            when = ", ".join(years) if years else "no result"
+            # NOT "no result". An empty tuple means no year this key reads
+            # can reach the target, which `splinter_home` satisfies by having
+            # its window cut at the target rather than by reading nothing.
+            # Printing "read no result" beside it asserted something false
+            # about a key that reads three elections.
+            when = (", ".join(years) if years
+                    else "nothing that reaches this target")
             lines.append(f"    {key:<24s} read {when} — {why}")
     if scenario is None:
         lines.append(f"  NOT CHECKED, because no scenario was supplied: "
