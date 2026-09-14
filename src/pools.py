@@ -303,12 +303,32 @@ def _gates_sha() -> str:
 
     Recorded rather than refused: a diagnostic emit is legitimate, and what
     matters is that the artefact says it was one.
+
+    ⛔ ONLY GATES THAT CHANGE WHAT **THIS** MODULE READS BELONG IN HERE, AND
+    `THETA_WINDOW` DID NOT. It sat beside the two below until 2026-09-14 and
+    `pools.py` reads it NOWHERE ELSE — one line, in this dict. This module's
+    only use of `levels` is `_levels._held_back`, so the gate cannot reach an
+    emitted number through the import either; its real consumers are
+    `levels.py`'s θ-record trimming, `theta_residual`, `freeze` and
+    `montecarlo`. Verified end to end, read-only: with it unset every spec on
+    disk reported clean, with `THETA_WINDOW=2` every one reported STALE naming
+    `gates_sha`, and unset again every one clean. That is cry-wolf in the one
+    field that must not cry wolf — the same failure the comment below gives as
+    the reason `montecarlo` is excluded from `_deps_sha` — and it would have
+    stamped a false `stale_reason` into the trace of the `HELD_BACK_OFF=1
+    THETA_WINDOW=2` arm contemplated by
+    `prereg/2026-09-13-held-back-quarantine-asymmetry.md`, on a tree where
+    nothing is stale. POOLS-REEMIT-QUEUE entry 25.
+
+    ⛔ THE OTHER TWO STAY, AND DELETING THE DICT WOULD BE THE HALF-REPAIR.
+    `HELD_BACK_OFF=1` genuinely changes what `_npe_citywide_for` and
+    `ward_totals` may read, so for those two the staleness is TRUE and wanted.
+    `tests/test_artefact_key_discriminates.py` asserts both directions.
     """
     import levels as _levels
     state = {
         "HELD_BACK_OFF": os.environ.get("HELD_BACK_OFF") == "1",
         "HELD_BACK_n": len(getattr(_levels, "HELD_BACK", ()) or ()),
-        "THETA_WINDOW": os.environ.get("THETA_WINDOW", ""),
     }
     return hashlib.sha256(
         json.dumps(state, sort_keys=True).encode()).hexdigest()[:16]
@@ -345,6 +365,34 @@ def _deps_sha() -> str:
     return hashlib.sha256("|".join(parts).encode()).hexdigest()[:16]
 
 
+def _toml_population(root: Path, what: str) -> list[Path]:
+    """The `*.toml` files a key field claims to cover, or a refusal.
+
+    ⛔ ONE STATED OUTCOME FOR THE ZERO-FILE CASE, SHARED BY BOTH SCANS, AND
+    UNTIL 2026-09-14 THERE WERE TWO DIFFERENT SILENT ONES. `_config_sha`
+    returned `_sha`'s `"missing"` — a FIXED STRING in a hash field, so with
+    `config/` emptied every spec agreed with every other and staleness became
+    undetectable rather than loud — while `_cities_sha` returned
+    `sha256("")[:16]`, a hash of nothing that reads like a hash of something.
+    Both verified. Neither says what happened.
+
+    A directory with no `*.toml` in it is not a population, so there is nothing
+    honest to hash and the claim *"this is what the spec was built from"* cannot
+    be made. `CLAUDE.md` §4 prefers a refusal to a silent sentinel, and this is
+    the refusal — one definition, so the two scans cannot drift apart again.
+    """
+    files = sorted(Path(root).glob("*.toml"))
+    if not files:
+        raise SystemExit(
+            f"no *.toml in {root}, so {what} has nothing to hash.\n\n"
+            f"The artefact key's claim is WHAT THIS SPEC WAS BUILT FROM, and an "
+            f"empty population cannot support it. A sentinel here would make "
+            f"every spec agree with every other and staleness undetectable — "
+            f"which is the failure the key exists to close. Restore the "
+            f"directory rather than re-emitting against it.")
+    return files
+
+
 def _cities_sha() -> str:
     """Every `cities/*.toml`, because they are a PANEL input, not a city one.
 
@@ -360,7 +408,7 @@ def _cities_sha() -> str:
     roadmap is about to add cities.
     """
     parts = [f"{f.name}:{_sha(f)}"
-             for f in sorted(cityconfig.CITIES_DIR.glob("*.toml"))]
+             for f in _toml_population(cityconfig.CITIES_DIR, "cities_sha")]
     return hashlib.sha256("|".join(parts).encode()).hexdigest()[:16]
 
 
@@ -371,8 +419,8 @@ def _cities_sha() -> str:
 _IDENTITY_FIELDS = frozenset({"city", "target"})
 
 
-def _config_sha(config_path: Path) -> str:
-    """Every `config/*.toml`, not the one file this used to name.
+def _config_sha(config_file: Path) -> str:
+    """The NAMED config file, and every `config/*.toml` beside it.
 
     ⛔ A POPULATION BUG, NOT A MISSING FILE. The key's claim is *what this spec
     was built FROM*; the population scanned was a single named path. `config/`
@@ -385,14 +433,42 @@ def _config_sha(config_path: Path) -> str:
 
     Name AND content, sorted, so adding, removing or renaming a file moves the
     key as surely as editing one does.
+
+    ⛔ THE DIRECTORY SCAN IS DELIBERATE. THE SIGNATURE WAS THE LIE.
+    Until 2026-09-14 the argument was spelt `config_path: Path` and then thrown
+    away — the body took its `.parent` and globbed — so the parameter was
+    INERT: `_config_sha(alpha.toml)`, `_config_sha(beta.toml)` and
+    `_config_sha(does_not_exist.toml)` all returned one hash, verified on a
+    constructed two-file directory. `artefact_key(..., config_path=X)` therefore
+    could not tell two configs apart: a silent-staleness hole inside the field
+    added to close one.
+
+    The repair is NOT to go back to hashing one named file — that was the
+    population bug above, and it is why the scan is here. It is to make the
+    argument LIVE and the population EXPLICIT, so the two claims are separable:
+    the digest covers `config_file`'s own name and content AND the directory
+    listing, and both move it. Which config was asked for is now part of the
+    answer; editing a sibling still moves the key, as it must.
+
+    A named file that is not on disk is a refusal, not a `"missing"` marker in
+    a hash field. `artefact_key`'s claim is what the spec was built FROM, and a
+    config that is not there built nothing.
+
+    POOLS-REEMIT-QUEUE entry 24.
     """
-    root = Path(config_path).parent
-    parts = []
-    for f in sorted(root.glob("*.toml")):
-        parts.append(f"{f.name}:{_sha(f)}")
-    if not parts:                      # the named file is all there is
-        return _sha(config_path)
-    return hashlib.sha256("|".join(parts).encode()).hexdigest()[:16]
+    named = Path(config_file)
+    files = _toml_population(named.parent, "config_sha")
+    if not named.exists():
+        raise SystemExit(
+            f"the artefact key was asked to hash {named}, which is not on "
+            f"disk, while {named.parent} holds "
+            f"{[f.name for f in files]}.\n\n"
+            f"A hash of a file that is not there is a claim about nothing. "
+            f"Name a config that exists, or pass none and take the default "
+            f"({CONFIG}).")
+    parts = [f"{f.name}:{_sha(f)}" for f in files]
+    return hashlib.sha256(
+        f"named:{named.name}|{'|'.join(parts)}".encode()).hexdigest()[:16]
 
 
 def _judgements_sha(city, target) -> str:
@@ -483,7 +559,12 @@ def stale_reason(spec: dict, city, target,
     if moved:
         labels = {"schema": "the artefact key's own shape",
                   "pools_sha": "src/pools.py",
-                  "config_sha": f"{Path(config_path).parent}/*.toml",
+                  # Names the population `_config_sha` actually hashes, which
+                  # since 2026-09-14 is the named file AND its directory. The
+                  # label was the one honest thing in the old version and it
+                  # has to move with the scan, or it becomes the lie the
+                  # signature used to be.
+                  "config_sha": f"{config_path} and {Path(config_path).parent}/*.toml",
                   "cities_sha": f"{cityconfig.CITIES_DIR}/*.toml",
                   "deps_sha": "src/{" + ",".join(_EMIT_DEPENDENCIES) + "}.py",
                   "judgements_sha": str(lineage_path(city, target))}
@@ -908,13 +989,88 @@ _WINSORISE_MIN_OBS = 6
 _PANEL_SPREAD_FALLBACK = 0.30
 
 
+# Why a city-year is not in a record, as an ENUM that PARTITIONS the losses.
+#
+# ⛔ "NOT ON DISK" AND "ON DISK AND THE JOIN IS UNSAFE" WERE ONE `SystemExit`,
+# AND THREE CALLERS CAUGHT THEM WITH ONE `except`. A refusal written to STOP a
+# wrong join instead DELETED that city-year with no output: `registration_series`
+# dropped joburg 1999/2004/2019 and 2004/2019 in every one of the eight cities —
+# EVERY ONE OF THOSE RESULT FILES ON DISK — under a comment reading "that
+# election is not on disk for this city", while its own docstring promised ten
+# cycles and it returned eight.
+#
+# The harm is not the drop; a genuinely absent election SHOULD be dropped. The
+# harm is the SILENCE, and its size depends on which year falls: `turnout_band`
+# centres on the most recent LGE, so losing that one RE-CENTRES the forecast
+# (measured on a forced Tshwane 2016 refusal: centre -0.4919, 63.3% -> 14.1%,
+# with zero output), while losing any earlier one NARROWS the band (measured on
+# a forced joburg 2000 refusal: pool 2 width 0.7511 -> 0.5777, -23.1%, centre
+# unmoved). A silently sharpened band is an overconfident forecast with no
+# trace. POOLS-REEMIT-QUEUE entry 22; DATA-QUALITY.md item 18 carries the input
+# defect underneath.
+#
+# So the claim these enums make testable is not "no city-year is ever dropped"
+# — it is **no city-year leaves the record without the run saying which one and
+# why**. `tests/test_census_refusal_is_not_swallowed.py` asserts the causes
+# partition the refused set with no residue.
+POOL_LOSS_CAUSES = ("not_on_disk", "held_back", "census_join_unsafe",
+                    "other_refusal")
+
+# The finer reason inside `census_join_unsafe`, one per refusal site, so an
+# injection can assert WHICH guard fired and not merely that one did.
+CENSUS_UNSAFE_REASONS = ("census_drift", "census_drift_unmeasurable",
+                         "census_wards_unmatched", "census_no_join")
+
+
+class ElectionUnavailable(SystemExit):
+    """This city-year's result file cannot be read AT ALL, and ``cause`` says why.
+
+    A `SystemExit` subclass on purpose: every existing `except SystemExit`
+    caller keeps working unchanged, and the ones that want to REPORT the loss
+    can now read `.cause` instead of guessing. `cause` is `not_on_disk` or
+    `held_back` — both legitimate reasons to pass over an election, neither of
+    them a reason to be quiet about it.
+    """
+
+    def __init__(self, cause: str, message: str):
+        assert cause in POOL_LOSS_CAUSES, cause
+        self.cause = cause
+        super().__init__(message)
+
+
+class PoolCountsUnsafe(Exception):
+    """The file is ON DISK and the census join is not safe to use.
+
+    ⛔ DELIBERATELY **NOT** A `SystemExit`. That is the entire repair: the three
+    callers below already carried `except SystemExit: continue`, so a refusal
+    written to stop a wrong join was caught by the same clause as a missing
+    file and the city-year vanished. An ordinary exception cannot be caught by
+    those clauses, so every caller has to say what it is doing with it.
+
+    ⚠️ LOUD BUT SURVIVABLE, DECIDED BEFORE IT LANDED. `:1108` fires today on
+    2004 and 2019 in all eight cities and on joburg 1999; making that FATAL
+    would block every city from emitting on a defect that has been present all
+    along, which is a bigger change than the one being fixed. These are reads of
+    the HISTORICAL record, not of the target, so the callers record the loss,
+    name it, and carry on — and the emitted numbers do not move.
+    """
+
+    cause = "census_join_unsafe"
+
+    def __init__(self, city_slug: str, year: str, reason: str, message: str):
+        assert reason in CENSUS_UNSAFE_REASONS, reason
+        self.city_slug, self.year, self.reason = city_slug, year, reason
+        super().__init__(message)
+
+
 def ward_totals(city: cityconfig.City, year: str,
                 ballot: str = "PR") -> tuple[dict[str, float], dict[str, float]]:
     """Ward -> registered voters, and ward -> votes cast. Both published."""
     template = cityconfig.CALENDAR[year].results
     path = city.path("raw", "elections", template) if template else None
     if not path or not path.exists():
-        raise SystemExit(f"no result file for {city.slug} {year}: {path}")
+        raise ElectionUnavailable(
+            "not_on_disk", f"no result file for {city.slug} {year}: {path}")
     # ⛔ THE QUARANTINE IS HONOURED HERE TOO, AND THIS IS THE THIRD READER.
     #
     # `levels.HELD_BACK` withholds the pre-2011 history pending a diagnosis.
@@ -935,7 +1091,8 @@ def ward_totals(city: cityconfig.City, year: str,
     # named for; the gate is imported, never copied.**
     import levels as _levels
     if _levels._held_back(path):
-        raise SystemExit(
+        raise ElectionUnavailable(
+            "held_back",
             f"{city.slug} {year}: this election is in `levels.HELD_BACK` and "
             f"may not be read. See that dict for the diagnosis it waits on.")
     # The results-portal NPE layout (2019, 2024) carries no Ward column at all,
@@ -1082,18 +1239,52 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
         # is still computed and reported, because a very low one means something
         # structural even when the mix happens to match.
         drift = _reprojection_drift(city, str(src_delim), year, cfg)
+        # ⛔ "COULD NOT BE MEASURED" IS NOT "NOTHING WAS LOST", AND ONE `None`
+        # MEANT BOTH. `_reprojection_drift` returned `None` for a clean
+        # reprojection AND for one whose census mixes came out empty, and this
+        # line treated both as safe. The second is an absence of evidence — the
+        # same empty-record-vs-unreachable-record class as entry 21 — so it now
+        # arrives as its own sentinel and REFUSES.
+        #
+        # ⚖️ NUMBER-NEUTRAL ON THIS TREE, VERIFIED RATHER THAN ARGUED. Scanned
+        # all eight cities × every calendar year with a result file: the drift
+        # is unmeasurable at 2004 and 2019 in every city and at joburg 1999,
+        # and EVERY ONE of those is refused two lines below by the 50% guard
+        # anyway. No city-year is admitted on an unmeasurable drift, so this
+        # changes which cause is NAMED and nothing that is computed. The entry
+        # recorded only a failure to CONSTRUCT such a case; this is the panel
+        # scan that closes it.
+        if drift is DRIFT_UNMEASURABLE:
+            raise PoolCountsUnsafe(
+                city.slug, year, "census_drift_unmeasurable",
+                f"{city.slug} {year}: the demographic drift induced by "
+                f"reprojecting from the {src_delim} delimitation could not be "
+                f"MEASURED — the census mixes came out empty on one or both "
+                f"sides. Coverage was {cov:.1%}. An unmeasurable shift is not "
+                f"a safe one, and admitting it printed a conclusion the code "
+                f"never reached.")
         if drift is not None and drift > CENSUS_DRIFT_CEILING:
-            raise SystemExit(
+            raise PoolCountsUnsafe(
+                city.slug, year, "census_drift",
                 f"{city.slug} {year}: the wards that fail to reproject from the "
                 f"{src_delim} delimitation are demographically unlike the ones "
                 f"that survive — largest pool-share difference {drift:.3f}, "
                 f"ceiling {CENSUS_DRIFT_CEILING:.3f}. Coverage was {cov:.1%}. "
                 f"A biased loss cannot be averaged away.")
         if cov < CENSUS_COVERAGE_FLOOR:
+            # ⚠️ SAYS WHAT WAS MEASURED, AND USED TO STATE A CONCLUSION IT HAD
+            # NOT REACHED. With the drift uncomputable this printed "admitted
+            # because the loss is demographically even (shift nan)" — on every
+            # case observed the run was then REFUSED two lines later, so the
+            # message was a lie about its own outcome as well as about its
+            # evidence. The uncomputable case cannot reach here at all now, and
+            # the branch that can names the number it has.
             print(f"  !! {city.slug} {year}: census reprojection mapped "
                   f"{cov:.1%} of this city's people, below "
-                  f"{CENSUS_COVERAGE_FLOOR:.0%} — admitted because the loss is "
-                  f"demographically even (shift {drift if drift is not None else float('nan'):.3f})")
+                  f"{CENSUS_COVERAGE_FLOOR:.0%} — admitted because the "
+                  f"measured demographic shift is "
+                  f"{'0.000 (nothing was lost)' if drift is None else f'{drift:.3f}'}"
+                  f", within the {CENSUS_DRIFT_CEILING:.3f} ceiling")
 
     # ⛔ AND THE KEY SETS MUST AGREE, NOT MERELY INTERSECT.
     #
@@ -1106,7 +1297,8 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
     # floor above is the quantitative guard; a large gap is a different animal.
     matched = codes & set(people_by_ward)
     if codes and len(matched) < 0.5 * len(codes):
-        raise SystemExit(
+        raise PoolCountsUnsafe(
+            city.slug, year, "census_wards_unmatched",
             f"{city.slug} {year}: only {len(matched)} of {len(codes)} election "
             f"wards found a census population after reprojection. The two are "
             f"not describing the same city.")
@@ -1115,7 +1307,9 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
                    if w in comp_by_ward and w in people_by_ward
                    and reg_by_ward.get(w, 0) > 0)
     if not wards:
-        raise SystemExit(f"{city.slug} {year}: no ward joined the census")
+        raise PoolCountsUnsafe(
+            city.slug, year, "census_no_join",
+            f"{city.slug} {year}: no ward joined the census")
 
     comp = np.array([comp_by_ward[w] for w in wards])
     categories = base.categories
@@ -1246,6 +1440,81 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
                       unidentified=unidentified)
 
 
+# WHICH CITY-YEARS EACH RECORD LOST, AND WHY. `(record, city slug)` ->
+# `{year: cause}`, one cause per year out of `POOL_LOSS_CAUSES`.
+#
+# ⚠️ EMITTED AS STATE, NOT AS A MESSAGE. A summary line is printed too, but a
+# test pinned to log text stays green while the arithmetic beside it is broken
+# (CLAUDE.md §4), so the thing a guard asserts on is this dict.
+# `tests/test_census_refusal_is_not_swallowed.py` reads it.
+_POOL_LOSS_LEDGER: dict[tuple[str, str], dict[str, str]] = {}
+
+
+def pool_losses(record: str | None = None,
+                city_slug: str | None = None) -> dict[tuple[str, str], dict[str, str]]:
+    """Every city-year a pool record dropped since this process started.
+
+    Filtered by ``record`` and/or ``city_slug`` when given. The causes are
+    :data:`POOL_LOSS_CAUSES` and they PARTITION the losses: a refusal that
+    reaches a record without one of them is a bug in this module, not a gap in
+    the data.
+    """
+    return {k: dict(v) for k, v in _POOL_LOSS_LEDGER.items()
+            if (record is None or k[0] == record)
+            and (city_slug is None or k[1] == city_slug)}
+
+
+def _pool_counts_or_loss(city: cityconfig.City, year: str, cfg: Config, *,
+                         split_bloc: dict | None, losses: dict[str, str],
+                         quiet_stdout: bool = False) -> "PoolCounts | None":
+    """``pool_counts``, or ``None`` with the loss RECORDED AND CAUSED.
+
+    ⛔ ONE DEFINITION FOR THREE CALLERS, because the defect was that they each
+    had their own `except SystemExit: continue` and two of them were wrong about
+    what they were catching. `registration_series`'s comment said *"that
+    election is not on disk for this city"* for years whose files are all on
+    disk.
+
+    ⛔ AND IT DOES NOT CATCH `Exception`. `panel_turnout_spread` used
+    `except (Exception, SystemExit)`, which swallowed a genuine `TypeError` or
+    `KeyError` inside `pool_counts` as though it were a missing file. A real
+    bug must PROPAGATE; only a refusal is a loss.
+    """
+    try:
+        if quiet_stdout:
+            with contextlib.redirect_stdout(io.StringIO()):
+                return pool_counts(city, year, cfg, split_bloc=split_bloc)
+        return pool_counts(city, year, cfg, split_bloc=split_bloc)
+    except PoolCountsUnsafe as unsafe:
+        losses[year] = unsafe.cause
+    except ElectionUnavailable as gone:
+        losses[year] = gone.cause
+    except SystemExit as other:
+        # Not a refusal this module raised by name. It is still a loss and it
+        # still may not be silent — `other_refusal` is a named residue, not an
+        # unnamed one, and a cause that starts appearing here is a refusal that
+        # wants its own entry in `POOL_LOSS_CAUSES`.
+        losses[year] = "other_refusal"
+        print(f"  !! {city.slug} {year}: dropped from a pool record by a "
+              f"refusal this module does not classify — {str(other)[:200]}")
+    return None
+
+
+def _report_pool_losses(record: str, city: cityconfig.City,
+                        losses: dict[str, str]) -> None:
+    """File the losses and say them out loud, grouped by cause. One line."""
+    _POOL_LOSS_LEDGER[(record, city.slug)] = dict(losses)
+    if not losses:
+        return
+    by_cause: dict[str, list[str]] = {}
+    for year, cause in sorted(losses.items()):
+        by_cause.setdefault(cause, []).append(year)
+    parts = "; ".join(f"{cause} {', '.join(years)}"
+                      for cause, years in sorted(by_cause.items()))
+    print(f"  ! {record}({city.slug}): {len(losses)} election(s) left the "
+          f"record — {parts}")
+
+
 def registration_series(city: cityconfig.City, cfg: Config,
                         before: str | None = None,
                         split_bloc: dict | None = None) -> dict[str, np.ndarray]:
@@ -1267,20 +1536,32 @@ def registration_series(city: cityconfig.City, cfg: Config,
 
     ``before`` restricts to elections strictly before that year, so a backtest
     cannot see its own target's roll.
+
+    ⛔ AND IT SAYS WHAT IT LOST. Until 2026-09-14 this loop carried
+    `except SystemExit: continue  # that election is not on disk for this city`
+    — a comment that was FALSE on this tree. joburg 1999, and 2004 and 2019 in
+    every one of the eight cities, have their result files on disk and are lost
+    to the CENSUS JOIN; the pre-2011 years in the other seven are lost to
+    `levels.HELD_BACK`. Neither is "not on disk", and neither was reported, so
+    the docstring above promised ten cycles while this returned eight and
+    nothing said which two were missing or why. The losses now carry a cause and
+    are readable through :func:`pool_losses`.
     """
     out: dict[str, np.ndarray] = {}
+    losses: dict[str, str] = {}
     for year in cityconfig.CALENDAR:
         if before is not None and int(year) >= int(before):
             continue
         if cityconfig.CALENDAR[year].results is None:
             continue
-        try:
-            counts = pool_counts(city, year, cfg, split_bloc=split_bloc)
-        except SystemExit:
-            continue           # that election is not on disk for this city
+        counts = _pool_counts_or_loss(city, year, cfg, split_bloc=split_bloc,
+                                      losses=losses)
+        if counts is None:
+            continue
         total = counts.totals("registered")
         if total.sum() > 0:
             out[year] = total / total.sum()
+    _report_pool_losses("registration_series", city, losses)
     return out
 
 
@@ -1492,16 +1773,45 @@ def delimitation_for(year: str) -> int:
     return max(lge) if lge else int(year)
 
 
+class _DriftUnmeasurable:
+    """The one value meaning *the drift could not be computed*.
+
+    A sentinel object rather than a second `None`, so it cannot be confused
+    with the safe case by a caller that forgets there are two — which is
+    exactly what happened. Identity-compared (`is`), so it can never test equal
+    to `None`, to `0.0`, or to anything a mutation might make it.
+    """
+
+    __slots__ = ()
+
+    def __repr__(self) -> str:      # pragma: no cover - a debugging nicety
+        return "DRIFT_UNMEASURABLE"
+
+
+DRIFT_UNMEASURABLE = _DriftUnmeasurable()
+
+
 def _reprojection_drift(city: cityconfig.City, from_year: str, to_year: str,
-                        cfg: "Config") -> float | None:
+                        cfg: "Config") -> "float | None | _DriftUnmeasurable":
     """How far this city's composition MOVES because of what fails to reproject.
 
     The largest per-pool shift between the citywide census mix computed over all
     source wards and the mix over only those that reach the target
-    delimitation. `None` when nothing is lost. **This, not raw coverage and not
-    the oddity of the lost wards, is what decides whether a reprojection is
-    safe**: losing a quarter of a city evenly is nearly harmless, and losing one
-    unrepresentative ward of 111 is harmless too — what matters is the product.
+    delimitation. **This, not raw coverage and not the oddity of the lost
+    wards, is what decides whether a reprojection is safe**: losing a quarter of
+    a city evenly is nearly harmless, and losing one unrepresentative ward of
+    111 is harmless too — what matters is the product.
+
+    ⛔ THREE OUTCOMES, AND TWO OF THEM USED TO SHARE `None`.
+
+        ``None``                 nothing is lost — SAFE, and measured so.
+        ``float``                the measured shift.
+        ``DRIFT_UNMEASURABLE``   the census mixes came out empty, so nothing
+                                 was measured — NOT safe, merely unknown.
+
+    The caller treated the third as the first and printed *"admitted because
+    the loss is demographically even (shift nan)"*, a conclusion nothing had
+    reached. POOLS-REEMIT-QUEUE entry 22.
     """
     import numpy as _np
     old_ward, _ = vd_map(city, from_year)
@@ -1537,7 +1847,7 @@ def _reprojection_drift(city: cityconfig.City, from_year: str, to_year: str,
     kept = mix(reached)
     whole = mix(reached | lost)
     if not kept.any() or not whole.any():
-        return None
+        return DRIFT_UNMEASURABLE
     return float(_np.max(_np.abs(whole - kept)))
 
 
@@ -2388,16 +2698,24 @@ def turnout_record(city: cityconfig.City, cfg: Config, before: str | None = None
     the correlated shock the model has never had.
     """
     out: dict[str, np.ndarray] = {}
+    losses: dict[str, str] = {}
     for year, election in sorted(cityconfig.CALENDAR.items()):
         if election.kind != kind or not election.results:
             continue
         if before is not None and int(year) >= int(before):
             continue
-        try:
-            out[year] = pool_counts(city, year, cfg,
-                                    split_bloc=split_bloc).rates["turnout"]
-        except SystemExit:
-            continue
+        # ⛔ THIS IS THE CALLER THE HARM IS MEASURED THROUGH. `turnout_band`
+        # centres on `arr[-1]`, so a year lost HERE either re-centres the
+        # forecast (if it is the most recent LGE: Tshwane 2016 forced, centre
+        # -0.4919, 63.3% -> 14.1%) or narrows the band (any earlier one:
+        # joburg 2000 forced, pool 2 width -23.1%, centre unmoved). Both with
+        # no output at all. Losing a year is sometimes right; losing it in
+        # silence never is.
+        counts = _pool_counts_or_loss(city, year, cfg, split_bloc=split_bloc,
+                                      losses=losses)
+        if counts is not None:
+            out[year] = counts.rates["turnout"]
+    _report_pool_losses(f"turnout_record.{kind}", city, losses)
     return out
 
 
@@ -2569,21 +2887,26 @@ def panel_turnout_spread(cfg: Config, before: str | None = None,
         except (Exception, SystemExit):
             continue
         seen: dict[str, tuple[tuple[str, ...], np.ndarray]] = {}
+        losses: dict[str, str] = {}
         for year, election in sorted(cityconfig.CALENDAR.items()):
             if election.kind != "LGE" or not election.results:
                 continue
             if before is not None and int(year) >= int(before):
                 continue
-            try:
-                with contextlib.redirect_stdout(io.StringIO()):
-                    pc = pool_counts(city, year, cfg, split_bloc=split_bloc)
-            except (Exception, SystemExit):
-                # SystemExit is NOT an Exception subclass, and this module
-                # raises it for a held-back election (`levels.HELD_BACK`) and
-                # for a missing result file. Catching `Exception` alone let a
-                # held-back Buffalo City 2000 abort the whole panel sweep.
+            # ⛔ NARROWED FROM `except (Exception, SystemExit)`, WHICH ALSO
+            # SWALLOWED A GENUINE `TypeError`. SystemExit is not an Exception
+            # subclass and this module raises it for a held-back election and
+            # for a missing result file — that is why the tuple was there — but
+            # catching `Exception` as well meant a real bug inside `pool_counts`
+            # was indistinguishable from an absent file, across the whole panel
+            # sweep, in silence. The helper catches refusals by name and lets
+            # everything else through.
+            pc = _pool_counts_or_loss(city, year, cfg, split_bloc=split_bloc,
+                                      losses=losses, quiet_stdout=True)
+            if pc is None:
                 continue
             seen[year] = (tuple(pc.categories), pc.rates["turnout"])
+        _report_pool_losses("panel_turnout_spread", city, losses)
         years = sorted(seen)
         for a, b in zip(years, years[1:]):
             (ca, ra), (cb, rb) = seen[a], seen[b]
@@ -3573,8 +3896,31 @@ def _band_from(record: list[float], label: str, pooled: list[float] | None
     return lo, mid, hi, label
 
 
-def _npe_citywide_for(code: str, year: str) -> dict[str, float]:
-    """One metro's NPE shares by IEC code, for reading a split where it lived.
+# Every state `_npe_citywide_state` can return, and the ONE that means the
+# record was actually consulted.
+#
+# ⛔ FOUR CAUSES SHARED ONE VALUE, AND TWO CONSUMERS READ IT IN OPPOSITE
+# DIRECTIONS. `_npe_citywide_for` returned `{}` for all four, so a caller could
+# not tell *"the file was read and the mass really is zero"* from *"nothing was
+# read at all"* — this repository's empty-record-vs-unreachable-record class,
+# one layer below `tests/test_roster_fails_closed.py`, which separates exactly
+# these states for `contesting_parties` and does not for the MASS path a
+# deletion is weighed on. POOLS-REEMIT-QUEUE entry 21.
+#
+# `read` is deliberately NOT "read and non-empty": a file that parses to a zero
+# total is a record that was consulted, and refusing on it would be the naive
+# repair this distinction exists to rule out.
+NPE_CITYWIDE_STATES = ("read", "no_template", "absent", "held_back")
+NPE_CITYWIDE_UNREACHABLE = tuple(s for s in NPE_CITYWIDE_STATES if s != "read")
+
+
+def _npe_citywide_state(code: str, year: str) -> tuple[dict[str, float], str]:
+    """One metro's NPE shares, AND whether the record was reachable at all.
+
+    Returns ``(shares, state)`` with ``state`` in :data:`NPE_CITYWIDE_STATES`.
+    Only ``read`` means the file was opened and parsed; an empty ``shares`` with
+    ``state == "read"`` is a genuine zero and is safe to weigh, while an empty
+    ``shares`` in any other state is an absence of evidence and is not.
 
     ⛔ HONOURS `levels.HELD_BACK`, AND HAD TO BE TOLD TO. This is a SECOND reader
     of the same election files that `levels._citywide` reads, and when the
@@ -3585,18 +3931,22 @@ def _npe_citywide_for(code: str, year: str) -> dict[str, float]:
     Two readers of one file is this repository's signature defect and the owner's
     standing rule is one definition only. The gate is imported rather than
     copied, so it cannot be true in one module and false in the other.
+
+    ⚠️ DELIBERATELY NOT MEMOISED, for the reason `levels._citywide` gives: a memo
+    hides the read, and the read is what `tests/test_prior_local_fails_closed.py`
+    spies on to prove the guard is weighing something real.
     """
     template = cityconfig.CALENDAR[year].results
     if not template:
-        return {}
+        return {}, "no_template"
     path = Path(str(template).replace("{CODE}", code))
     if not path.exists():
         path = Path("data/raw/elections") / path.name
     if not path.exists():
-        return {}
+        return {}, "absent"
     import levels as _levels
     if _levels._held_back(path):
-        return {}
+        return {}, "held_back"
     counts: dict[str, int] = defaultdict(int)
     with open(path, encoding="utf-8", errors="replace") as fh:
         for row in csv.DictReader(fh):
@@ -3604,7 +3954,22 @@ def _npe_citywide_for(code: str, year: str) -> dict[str, float]:
                 counts[P.canonical(row["sPartyName"])] += int(
                     float(row.get("Party_Votes") or 0))
     total = sum(counts.values())
-    return {k: v / total for k, v in counts.items()} if total else {}
+    return ({k: v / total for k, v in counts.items()} if total else {}), "read"
+
+
+def _npe_citywide_for(code: str, year: str) -> dict[str, float]:
+    """The shares alone, for callers that legitimately skip an absent record.
+
+    ⚠️ THIS IS THE LOSSY ONE, AND THAT IS ALLOWED ONLY WHERE SKIPPING IS THE
+    RIGHT ANSWER. `arrival_group_record` and `_citywide_for` iterate metro-years
+    and must pass over a quarantined or absent one — for them `{}` IS the
+    answer, and `_citywide_for` additionally tallies which of the three it was
+    into `_TRANSITION_LEDGER`. Any caller that WEIGHS the record — the
+    `complete = true` deletion ceiling and the §K2 prior-local floor, both in
+    `resolve_roster` — must call :func:`_npe_citywide_state` instead and refuse
+    on an unreachable one, because for them `{}` scores as "nothing to lose".
+    """
+    return _npe_citywide_state(code, year)[0]
 
 
 @_ledgered("arrival_group_record")
@@ -4588,14 +4953,71 @@ def declared_roster(city: cityconfig.City, target: cityconfig.Target) -> dict:
     # back to the WHOLE un-reach-matched arrival record: the estimator this
     # file removed elsewhere for exactly that reason.
     #
-    # Derived the same way `_ward_reach` derives it — a party's ward count over
-    # the union of every ward the declaration mentions — so the two definitions
-    # of "reach" cannot drift. An explicit `[roster.reach]` still wins.
+    # ⛔ THE DENOMINATOR IS THE CITY, AND IT USED TO BE THE PASTE.
+    #
+    # This comment claimed the derivation matched `_ward_reach` — "so the two
+    # definitions of 'reach' cannot drift" — and they had already drifted. The
+    # old body built `seen` from the union of every ward the DECLARATION
+    # mentions, while `_ward_reach` builds it from every row of the whole ward
+    # ballot. Three things follow, and the second is the one that makes it a
+    # defect rather than a wrong number:
+    #
+    #   * **It is wrong.** One entrant declared on 20 of Johannesburg's 135
+    #     wards scored 1.0 against a true 0.1481 — 6.75x — which flips
+    #     `comparators`' `abs(r - 1.0) < 0.25` bucket (True at 1.0, False at
+    #     0.1481) and takes `arrival_group_spec`'s maximum split weight.
+    #   * **It is not a property of the party.** Declare a second party on the
+    #     other 115 wards and the FIRST party's reach falls 1.0 -> 0.1481 with
+    #     nothing about its own declaration changed. The value was a function of
+    #     how far through the paste the typist had got — maximal at the first
+    #     party entered, shrinking as the list grows, which is the opposite of
+    #     the direction anyone would check.
+    #   * **It is indistinguishable from a correct value.** `_ward_reach` returns
+    #     exactly 1.0 for 15 of its 55 parties at JHB 2021, so a 20-ward party
+    #     at 1.0 looks like every genuinely city-wide party in the record.
+    #
+    # So the denominator is the city's own ward count, which is what
+    # `_ward_reach`'s `seen` MEANS. An explicit `[roster.reach]` still wins.
+    # POOLS-REEMIT-QUEUE entry 23, guard C.
     if wards:
-        seen = {w for ws in wards.values() for w in ws}
-        if seen:
-            for q, ws in wards.items():
-                reach.setdefault(q, len(set(ws)) / len(seen))
+        try:
+            ward_of, _reg = vd_map(city, target.year)
+        except SystemExit as exc:
+            raise SystemExit(
+                f"[roster.wards] in {path} declares per-ward nominations, and "
+                f"reach is a party's wards over THE CITY'S wards — but there "
+                f"is no ward map for {city.slug} {target.year}:\n\n  {exc}\n\n"
+                f"Deriving it against the wards named in the paste instead is "
+                f"what this was changed away from: it made reach a function of "
+                f"how far through the list the typist had got. Either supply "
+                f"the pre-election roll that ward map needs, or declare the "
+                f"values directly under [roster.reach], which wins over any "
+                f"derivation.") from exc
+        city_wards = set(ward_of.values())
+        # `vd_map` refuses rather than returning nothing, so this cannot be
+        # zero — asserted rather than assumed, because a zero denominator here
+        # would divide by the thing the repair is about.
+        assert city_wards, (
+            f"vd_map({city.slug}, {target.year}) returned a ward map with no "
+            f"wards in it. Reach cannot be derived against an empty city.")
+        declared_wards = {w for ws in wards.values() for w in ws}
+        # ⚠️ REPORTED, NEVER REFUSED. The ward identifiers in a pasted list may
+        # be typed in a different space from the roll's (`79800001` vs `1`), and
+        # a guard that fires on the correct input on the one night it runs is
+        # worse than no guard — this file has already been burned by exactly
+        # that, two functions down. The count is still right when the spelling
+        # is not, so the run says so and carries on.
+        stray = sorted(declared_wards - city_wards)
+        if stray:
+            print(f"  ! {len(stray)} of the {len(declared_wards)} wards named "
+                  f"in [roster.wards] are not wards of {city.slug} "
+                  f"{target.year} ({', '.join(str(w) for w in stray[:6])}"
+                  f"{', …' if len(stray) > 6 else ''}). Reach is still counted "
+                  f"over {len(city_wards)} city wards, so the ARITHMETIC is "
+                  f"right and the spelling may not be — check them against the "
+                  f"roll before trusting the derived reach.")
+        for q, ws in wards.items():
+            reach.setdefault(q, len(set(ws)) / len(city_wards))
     if not parties and wards:
         parties = sorted(wards)
 
@@ -4805,7 +5227,55 @@ def resolve_roster(city: cityconfig.City, target: cityconfig.Target,
     # what was merely absent.**
     # Hoisted: the drop's message quotes it in all three states, and it was
     # previously defined only inside the projected branch.
-    prior_local = _npe_citywide_for(city.code, year)
+    #
+    # ⛔ AND IT IS WEIGHED, SO AN UNREACHABLE RECORD MUST REFUSE RATHER THAN
+    # SCORE ZERO. `_npe_citywide_for` returned `{}` for four causes the caller
+    # could not tell apart, and both consumers below read that `{}` as a fact
+    # about the world:
+    #
+    #   the `complete = true` ceiling  `dropped_mass` came out 0.0, so
+    #                                  `dropped_mass > ROSTER_DROP_CEILING` was
+    #                                  false and the refusal NEVER FIRED.
+    #                                  Reproduced on a half-typed nomination
+    #                                  list at joburg 2026: with the record
+    #                                  reachable the run REFUSED, naming 48
+    #                                  parties holding 7.77% of the 2021 vote —
+    #                                  five times the ceiling; with the same
+    #                                  list and the record unreachable it
+    #                                  ADMITTED, printing "0.00%".
+    #   the §K2 prior-local floor      `_local_thin` came out empty, so the
+    #                                  incomplete-roster union re-admitted
+    #                                  everything §K2 had excluded: 35 -> 62
+    #                                  parties on the same constructed inputs.
+    #
+    # One `{}`, two consumers, OPPOSITE SIGNS — a deletion that cannot fire and
+    # a floor that cannot hold. So this path takes the STATE as well as the
+    # shares and refuses on anything but `read`. Verified 2026-09-14 over every
+    # target the emit loop issues: all of them read a real record (smallest 8
+    # parties at buffalocity 2016, largest 54 at joburg 2026, every mass
+    # 1.000000), so the refusal blocks nothing on this tree — it is the
+    # unreachable case that was never supposed to be scored.
+    #
+    # ⚠️ `read` INCLUDES A GENUINE ZERO. A file that parses to a zero total was
+    # consulted, and it still ADMITS; refusing on emptiness is the naive repair
+    # that passes three of this defect's four injections and fails the fourth.
+    # POOLS-REEMIT-QUEUE entry 21, guard A.
+    prior_local, prior_local_state = _npe_citywide_state(city.code, year)
+    if prior_local_state != "read":
+        raise SystemExit(
+            f"{city.slug} {target.year}: the {year} citywide record could not "
+            f"be read ({prior_local_state}), and it is the MASS this run "
+            f"weighs two decisions on.\n\n"
+            f"  * a `complete = true` roster's deletion is scored against it, "
+            f"and an unreadable record scores every deletion at 0.00% — so the "
+            f"{ROSTER_DROP_CEILING:.1%} ceiling cannot fire and a half-typed "
+            f"nomination list deletes the rest of the ballot in silence.\n"
+            f"  * the §K2 prior-local floor is derived from it, and an "
+            f"unreadable record re-admits every party that floor excluded.\n\n"
+            f"An empty record and an unreachable one are different facts and "
+            f"this refuses only the second: a {year} file that is read and "
+            f"genuinely holds no PR vote is admitted. Restore the file, or "
+            f"lift `levels.HELD_BACK` for it, before emitting.")
 
     # ⛔ THE PROJECTED BALLOT IS COMPUTED ONCE AND USED TWICE, FLOORS AND ALL.
     # The projected branch builds it, and a declared-but-INCOMPLETE roster

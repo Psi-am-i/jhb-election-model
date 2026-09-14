@@ -556,6 +556,40 @@ PA and PAC — a degenerate solution reported as converged.
 | `turnout_tilt_anc` / `_da` | **DELETED** | — | ⛔ **NOT IN `DEFAULTS` AND NOT READ BY `run_model`.** Verified 2026-08-29: both keys are absent from `montecarlo.DEFAULTS`. They applied a tilt *after* calibration, breaking it. This row said "**OFF** in DEFAULTS" until 2026-08-29 — **claiming a switch that does not exist**, which is precisely the failure `CLAUDE.md` records as having already cost this project once, when ten front-page claims were pinned to a deleted `turnout_tilt_da` (`build_site.py`, `stats.py` — search `turnout_tilt_da`) |
 | κ_bye tilt | `turnout.py` | MEASURED | contests before target ✅ |
 
+### Which elections the turnout record is allowed to lose, and how it says so
+
+`turnout_record`, `registration_series` and `panel_turnout_spread` all read
+`pool_counts`, which refuses a city-year whose census join is unsafe. Until
+2026-09-14 each caller carried its own `except SystemExit: continue` and the
+city-year simply **vanished** — `registration_series`'s clause even said *"that
+election is not on disk for this city"* for years whose files are all on disk.
+
+The claim is not that nothing is ever dropped — dropping a genuinely absent
+election is correct — it is that **silence is forbidden**, because the size of
+the harm depends on WHICH year falls and neither magnitude is visible without
+the loss list:
+
+* lose the **most recent** LGE and `turnout_band` is RE-CENTRED (`arr[-1]` is the
+  centre) — a forced Tshwane 2016 refusal moved the centre by −0.4919, 63.3% →
+  14.1%, with zero output;
+* lose any **earlier** one and the band NARROWS — a forced joburg 2000 refusal
+  took pool 2's width 0.7511 → 0.5777, −23.1%, centre unmoved. A silently
+  sharpened band is an overconfident forecast with no trace.
+
+So `pool_counts` now raises `PoolCountsUnsafe` — deliberately **not** a
+`SystemExit`, which is the whole repair — for the three census refusals, and
+`ElectionUnavailable(SystemExit)` carrying `not_on_disk` / `held_back` for the
+two absence cases. One helper serves all three callers, files the loss under a
+cause from `POOL_LOSS_CAUSES`, prints one summary line per record per city, and
+**does not catch `Exception`**, so a real `TypeError` inside `pool_counts`
+propagates instead of reading as a missing file. `pools.pool_losses()` exposes
+the ledger as state rather than as log text.
+
+Which years are lost today is a property of the inputs, not of this mechanism —
+`DATA-QUALITY.md` item 18 carries it, and
+`tests/test_census_refusal_is_not_swallowed.py` asserts the served and lost sets
+PARTITION the on-disk population with no residue.
+
 ---
 
 ## 6. Ballots and seats
@@ -822,10 +856,40 @@ mechanism, because the second question deletes 2.4-2.9% of a city's vote across
 | `declared` | `[roster]` in `judgements/<slug>-<year>.toml` | **ambiguous** — possibly a half-typed list | only if `complete = true` |
 | `projected` | our own guess, from the baseline and the fitted composition | **ignorance** | only what the §K1/§K2 floors deliberately excluded |
 
+⛔ **AND IT REFUSES WHEN THE RECORD IT WEIGHS CANNOT BE READ.** `prior_local`
+— the fitting year's citywide shares — is not a by-product: the `complete = true`
+deletion is scored as a MASS against it, and the §K2 floor is derived from it.
+Until 2026-09-14 it came from `_npe_citywide_for`, which returned `{}` for four
+causes a caller could not tell apart (no calendar template, file absent, held
+back, and read-with-a-zero-total), and the two consumers read that one value in
+**opposite directions**: the deletion scored 0.00% and its ceiling never fired,
+while the floor excluded nobody and the incomplete-roster union re-admitted
+everything it had just removed. It is now `_npe_citywide_state`, which returns
+`(shares, state)`, and `resolve_roster` refuses on any state but `read`.
+⚠️ **`read` includes a genuine zero**: a file that was opened and holds no PR
+vote is a fact about the world and still admits. Refusing on emptiness is the
+naive repair, and it deletes the distinction. §1.238, guarded by
+`tests/test_prior_local_fails_closed.py`.
+
 `published` outranks a declared list: a held election is what happened. A
 declared list ADDS parties always — that is what lets a genuine entrant be
 named — and `complete` defaults to **false**, so a partial paste on a deadline
 fails safe. See JUDGEMENT-CALLS §L1.
+
+⚠️ **A declared `[roster.wards]` block sizes reach against THE CITY, not against
+the paste.** A party's reach is its ward count over the city's own ward count
+from `vd_map(city, target.year)` — which is what `_ward_reach` means by its
+denominator, and there is one definition of reach. It was the union of wards
+named in the declaration until 2026-09-14, which made reach a function of how far
+through the list the typist had got: one entrant on 20 of Johannesburg's 135
+wards scored 1.0 against a true 0.1481, and declaring a second party on the other
+115 dropped the first party's value to 0.1481 with nothing about its own
+declaration changed. Wards named outside the city's set are **reported, not
+refused** — the identifiers may legitimately be typed in another space, and a
+guard that fires on the correct input on the one night it runs is worse than no
+guard. An explicit `[roster.reach]` still wins over the derivation, and deleting
+the derivation is barred: it restores the `reach = None` defect the derivation
+closed. §1.238, `tests/test_declared_reach_matches_ward_reach.py`.
 
 ⚠️ **`[roster]` says WHO stands; `[party.X]` says HOW they are placed.** They
 are different tables and promoting the second to the first is a defect, not a
@@ -1100,11 +1164,12 @@ Every `pools_*.json` carries an `artefact_key`:
 |---|---|
 | `schema` | the key's own shape. **2 since 2026-09-02** |
 | `city`, `target` | which city-year it was built for |
-| `config_sha` | **every `config/*.toml`**, by name and content, sorted — not the one named file it used to be |
+| `config_sha` | **the named config file AND every `config/*.toml` beside it**, by name and content, sorted. Both halves are load-bearing and each was a defect on its own: hashing only the named file was a population bug (a second config would have been consumed and invisible), and hashing only the directory made the ARGUMENT INERT — `_config_sha(alpha.toml)`, `_config_sha(beta.toml)` and `_config_sha(does_not_exist.toml)` returned one hash, verified. A named file not on disk, or a directory with no `*.toml` in it, is a **refusal** — the second shared with `cities_sha` through one definition, replacing two different silent sentinels (`"missing"` against `sha256("")[:16]`) |
 | `cities_sha` | **every `cities/*.toml`**. Not a per-city input: `panel_turnout_spread` globs the directory, so adding a ninth city moves the turnout band of every spec |
 | `pools_sha` | `pools.py`'s **code**, hashed over its syntax tree with docstrings stripped, so changing a comment does not fire it |
 | `deps_sha` | the code of `parties`, `cityconfig`, `ingest_lge`, `levels` — the first-party modules the emit leans on. ⚠️ `montecarlo` is deliberately excluded: it changes on most working days and would mark every spec stale continuously, so a change to `read_ward_crosswalk` alone will NOT fire |
 | `judgements_sha` | `judgements/<slug>-<year>.toml`, hashed as **parsed payload** — so a prose edit does not fire it and a declared parent or weight does |
+| `gates_sha` | the RESOLVED state of the environment gates that change what THIS module may read: `HELD_BACK_OFF` and the size of `levels.HELD_BACK`. A hole the code hash cannot see — `HELD_BACK_OFF=1` empties the quarantine without changing a byte of any `.py`. ⛔ **Only gates `pools.py` actually reads belong here.** `THETA_WINDOW` sat in it until 2026-09-14 and is read by `levels`, `theta_residual`, `freeze` and `montecarlo` and by nothing here, so setting it marked every spec STALE while changing nothing emitted — cry-wolf in the one field that must not cry wolf. Removing the dict instead would have destroyed the `HELD_BACK_OFF` guard, which is real; `tests/test_artefact_key_discriminates.py` asserts both directions |
 
 ⛔ **Two of those changed on 2026-09-02 because the key's POPULATION was wrong,
 not because a file was missing (§1.173).** `config_sha` named a single path,

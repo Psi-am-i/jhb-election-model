@@ -1079,6 +1079,33 @@ delimitation (2021) already matches the census's, so no reprojection is
 attempted. That is luck, not a property: the moment a census on a different
 delimitation is adopted, 2024 joins the other three.
 
+**⚠️ THE CONSEQUENCE IS PANEL-WIDE, AND THE THREE CITIES ABOVE WERE THE THREE
+THAT WERE CHECKED.** Re-scanned 2026-09-14 over all eight cities × every calendar
+year with a result file: **2004 and 2019 are refused by the census join in every
+one of the eight**, and joburg 1999 as well (the other seven are refused earlier
+by `levels.HELD_BACK` at 1999/2000, so the census guard never sees them). The
+counts above are a sample of the class, not its extent.
+
+**And the refusal was reached through a message that stated a conclusion nothing
+had computed.** On every one of those city-years the reprojection prints
+*"admitted because the loss is demographically even (shift nan)"* two lines
+before the run is REFUSED by the 50%-of-wards guard — so the message was wrong
+about its evidence (the drift was not measured, it was uncomputable) and wrong
+about its own outcome (nothing was admitted). Both halves fixed 2026-09-14:
+`_reprojection_drift` returns a `DRIFT_UNMEASURABLE` sentinel distinct from its
+safe `None`, `pool_counts` refuses on it, and the coverage message names the
+number it actually has. **Number-neutral on this tree**, verified by the same
+panel scan: no city-year is admitted on an uncomputable drift, so the change
+moves which cause is named and nothing that is computed. §1.238.
+
+**What a repair here would buy, and why this item is the upstream one.** Every
+one of those losses is silent no longer — `pools.pool_losses()` names it with a
+cause — but it is still a loss. If `vd_map` learned to fall back to the
+delimitation's own ward map for a portal-layout file, joburg's registration
+series would grow from eight cycles toward the ten its docstring promises, and
+`tests/test_census_refusal_is_not_swallowed.py`'s two-sided bound on the served
+fraction would legitimately need to move with it.
+
 ⛔ **And the refusal does not stop the run — it deletes the year.**
 `pools.registration_series` catches `SystemExit` and continues, under the comment
 *"that election is not on disk for this city"*. **Every one of those files is on

@@ -89,7 +89,17 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # twice in one day: `test_covariate_fail_open` landed from the
            # fail-open work (§1.233) and was uncollected on the same run.
            "test_provenance_gates",
-           "test_covariate_fail_open"]
+           "test_covariate_fail_open",
+           # Added 2026-09-14 with POOLS-REEMIT-QUEUE entries 21-25. Same rule
+           # as every block above, and it has now bitten three times: a module
+           # that is written, committed and never listed here reads as coverage
+           # and is not. All four are fault-injection guards for fail-open or
+           # cry-wolf paths in `pools.py`, and none of the four had anything in
+           # the suite before this.
+           "test_prior_local_fails_closed",
+           "test_census_refusal_is_not_swallowed",
+           "test_declared_reach_matches_ward_reach",
+           "test_artefact_key_discriminates"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

@@ -25595,3 +25595,116 @@ diff is meant to be reviewed un-emitted, per the frozen ultra-review brief.
 `pool_conservation`, `pool_bounds`, `scored_universe`, `panel_wiring`,
 `standalone_modules`, `delivery_proof`, `regressions`) were run instead; see
 the run for the pass/fail counts, never a number copied out of this entry.
+
+## 1.238 Five fail-open and cry-wolf paths in `pools.py`, each found by fault injection and none of them previously guarded (2026-09-14)
+
+POOLS-REEMIT-QUEUE entries 21-25, written to code. Every reproduction in those
+rows was re-derived against the tree before a line was written — entry 26 had
+landed since they were drafted — and all five held exactly as stated. Four new
+test modules, `tests/test_prior_local_fails_closed.py`,
+`test_census_refusal_is_not_swallowed.py`,
+`test_declared_reach_matches_ward_reach.py` and
+`test_artefact_key_discriminates.py`, all four added to `run_all.MODULES`.
+
+**Nothing was emitted.** The un-emitted diff is what the next review reads.
+
+### Entry 21 — one empty dict, two consumers, opposite signs
+
+`_npe_citywide_for` returned `{}` for four causes a caller could not tell apart.
+Verified by reaching each branch deliberately: no `CALENDAR[year].results`
+template, the file absent at both candidate paths, `levels.HELD_BACK`, and a
+file read with a zero total — one value, four causes; control
+`_npe_citywide_for("JHB","2021")` returns 54 parties summing to 1.000000.
+Reproduced on a half-typed nomination list at joburg 2026 marked
+`complete = true`: record reachable → REFUSED, 48 parties holding **7.77%** of
+the 2021 vote against a 1.5% ceiling; record unreachable → ADMITTED at 0.00%;
+reverted → REFUSED identically.
+
+Split into `_npe_citywide_state`, which returns `(shares, state)`, with
+`_npe_citywide_for` kept as the shares-only wrapper for the callers that
+legitimately skip a missing metro-year (`arrival_group_record`, `_citywide_for`).
+`resolve_roster` now refuses on any state but `read`. **`read` includes a genuine
+zero** — that is the discriminator, and the naive repair (refuse on empty) passes
+three of the four injections and fails it.
+
+⚖️ Re-derived independently across every target the emit loop issues, plus the
+unheld target of all eight cities — 32 city-years, a superset of the loop:
+**every one resolves to `read`**, smallest 8 parties (buffalocity 2016), largest
+54 (joburg 2026), every mass 1.000000. So the refusal blocks nothing on this
+tree. That is a prediction; the emit-and-diff is the test.
+
+### Entry 22 — three census refusals swallowed, and the loss list they now carry
+
+`registration_series` carried `except SystemExit: continue  # that election is
+not on disk for this city`. Verified false: joburg 1999, and **2004 and 2019 in
+all eight cities**, have their result files on disk and are lost to the census
+join; the pre-2011 years in the other seven are lost to `levels.HELD_BACK`.
+⚠️ **The entry named joburg, tshwane and capetown; the census loss is in fact
+panel-wide** — a correction to the row, found by scanning all eight cities
+rather than the three it listed.
+
+`PoolCountsUnsafe` (deliberately NOT a `SystemExit`) now carries the three census
+refusals; `ElectionUnavailable(SystemExit)` carries `not_on_disk` and
+`held_back`. One helper, `_pool_counts_or_loss`, serves all three callers,
+records the loss under a cause from `POOL_LOSS_CAUSES`, and **does not catch
+`Exception`** — so `panel_turnout_spread`'s old `except (Exception, SystemExit)`
+no longer swallows a real `TypeError`. `pool_losses()` exposes the ledger as
+state; a summary line is printed beside it, because a test pinned to log text
+stays green while the arithmetic beside it is broken.
+
+⚖️ Record-neutral, verified: `registration_series(joburg)` returns the same eight
+cycles as before and `turnout_record(joburg, kind="LGE")` the same five, with the
+three losses now named.
+
+**A negative result that closes the entry's open question.** `_reprojection_drift`
+returned `None` for both *nothing was lost* and *nothing could be measured*, and
+the caller treated both as safe, printing "admitted because the loss is
+demographically even (shift nan)". The entry could not construct a case where
+that admits a join the 50% guard then passes. **Scanned instead, over all eight
+cities × every calendar year with a result file: the drift is unmeasurable at
+2004 and 2019 in every city and at joburg 1999, and every one of those is refused
+two lines later by the 50% guard.** So the `None` was a false message, not an
+open hole, and giving it its own `DRIFT_UNMEASURABLE` sentinel that refuses is
+**number-neutral on this tree** — it changes which cause is named, not what is
+computed.
+
+### Entry 23 — reach was a property of the typist, not of the party
+
+`declared_roster` derived reach against the union of wards named in the paste.
+Reproduced: one entrant on 20 of Johannesburg's 135 wards scored **1.0 against a
+true 0.1481**; declare a second party on the other 115 and the first party's
+reach falls to 0.1481 with nothing about its own declaration changed. The
+denominator is now the city's own ward count from `vd_map(city, target.year)`
+(135 at both 2021 and 2026). Wards named outside the city's ward set are
+**reported, never refused** — the id spaces may legitimately differ (`79800001`
+against `1`) and a guard that fires on the correct input on the one night it runs
+is worse than no guard.
+
+### Entries 24 and 25 — the key that could not discriminate, and the gate that cried wolf
+
+`_config_sha(alpha.toml)`, `_config_sha(beta.toml)` and
+`_config_sha(does_not_exist.toml)` all returned one hash on a constructed
+two-file directory. The directory scan was kept — it is deliberate and replaced a
+population bug — and the **signature** was the lie: the digest now covers the
+named file and the directory listing, so the argument is live and editing a
+sibling still moves it. A named file that is not on disk refuses. The zero-file
+case refuses through one shared helper with `_cities_sha`, replacing two
+different silent sentinels (`"missing"` against `sha256("")[:16]`).
+
+`THETA_WINDOW` is out of `_gates_sha`. Verified in three subprocesses: unset and
+`THETA_WINDOW=2` now give an identical key; `HELD_BACK_OFF=1` still moves
+`gates_sha`, and nothing else. Both directions, because deleting the dict would
+satisfy the first and destroy the second.
+
+### Mutation testing, which is the only evidence the guards work
+
+Six mutations run, each reverted. Caught: the entry-21 refusal turned off (2
+tests red); the loss ledger silenced (1 red); the entry-23 denominator returned
+to the paste (2 red); `THETA_WINDOW` put back in the gates (2 red); the config
+argument made inert again (3 red). **One survived and was fixed.** Reverting the
+`DRIFT_UNMEASURABLE` producer to `None` left the suite green, because that case
+had patched `_reprojection_drift` to hand back the sentinel — a control that
+passes under the defect *and* under its fix, which is the live class found in
+this repository the same week. Rewritten to run the real function body with its
+census read blinded, and the mutation is now caught. The four-part rule is the
+cheap approximation; this is the check that it approximated anything.

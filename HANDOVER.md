@@ -1,5 +1,29 @@
 # Handover — 2026-08-29, with a 2026-09-12 banner
 
+> ## ⛔ STATE AT 2026-09-14 — BRANCH `remediation`, AND NOTHING IS EMITTED
+>
+> **POOLS-REEMIT-QUEUE entries 21-25 are written to code and un-emitted**, on
+> top of entry 26. Five fail-open or cry-wolf paths in `pools.py`, each
+> reproduced before it was touched and each now carrying a fault-injection
+> guard: the `complete = true` deletion ceiling that could not fire on an
+> unreachable prior-local record, the three census refusals that three callers
+> swallowed, the declared reach that measured the typist rather than the party,
+> the config hash whose argument was inert, and `THETA_WINDOW` crying wolf in
+> `_gates_sha`. Evidence, corrections and the mutation results are in
+> MODEL-LOG §1.238; the rows are in *Landed in the tree* in the queue.
+>
+> **⛔ DO NOT EMIT WITHOUT READING THE WINDOW PROCEDURE.** The diff is meant to
+> be reviewed un-emitted. Every spec on disk is stale against `pools_sha`,
+> `config_sha` and `gates_sha`, correctly, which is what the two red staleness
+> guards are reporting — `test_every_emitted_pool_spec_carries_a_current_
+> artefact_key` and `test_a_real_run_produces_a_trace_that_passes_every_
+> predicate`. They clear on the emit and must not be "fixed".
+>
+> **Four new test modules**, all four in `run_all.MODULES`:
+> `test_prior_local_fails_closed`, `test_census_refusal_is_not_swallowed`,
+> `test_declared_reach_matches_ward_reach`, `test_artefact_key_discriminates`.
+> For the counts, run the suite — never a number copied out of this banner.
+
 > ## ⛔ STATE AT 2026-09-12 — READ THIS FIRST
 >
 > **THE POLL CHANNEL IS SWITCHED OFF. THE FORECAST USES NO POLL AT ALL.**
