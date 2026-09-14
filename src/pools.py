@@ -5529,6 +5529,18 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             # has moved under it. `provenance` below is the prose account for a
             # reader; this is the machine-checkable one. See `artefact_key`.
             "artefact_key": artefact_key(city, target),
+            # ⛔ STRUCTURED, NOT ONLY PROSE. `provenance` below has always said
+            # "roster {roster_source}; reach {reach_source}", but as words
+            # glued into a sentence — nothing downstream could ask a spec
+            # "which state was your roster in?" without parsing English out of
+            # a free-text field. `montecarlo.roster_for_target` needs exactly
+            # that question answered machine-readably to tell a PROJECTED
+            # ballot (an assumption about who will contest) from a PUBLISHED
+            # one (the target's own result file) — see its docstring. `roster`
+            # is sorted for a stable diff; `resolve_roster` returns a set.
+            "roster": sorted(roster),
+            "roster_source": roster_source,
+            "reach_source": reach_source,
             **marker,
             "turnout_limits": limits,
             "seeds": {p: v for p, v in seeds.items() if abs(v) > 1e-9},

@@ -28,6 +28,23 @@ fail open. The file held two opposite policies for one failure mode.
 not-yet-held, and unreadable (which raises) — and records which one occurred on
 ``ModelRun``.
 
+⚠️ **AMENDMENT 2026-09-14 — A FOURTH STATE, ``projected``.** Before this date a
+not-yet-held target ALWAYS disabled the off-ballot drop, even when
+``pools.emit_pools`` had already resolved a roster for the pools themselves
+(``pools.resolve_roster``'s published/declared/projected states) — two halves
+of one run disagreeing about what the ballot is, with nothing saying so.
+``emit_pools`` now writes that roster onto the spec as ``roster`` /
+``roster_source`` / ``reach_source`` fields (not only inside the free-text
+``provenance`` sentence), ``run_model`` reads them into ``scenario`` before
+calling ``roster_for_target``, and a not-yet-held target with a spec roster now
+returns state ``"projected"`` — the SAME fail-closed discipline applies: a spec
+naming a ``roster_source`` with no readable ``roster`` behind it raises, exactly
+as an unreadable ``contesting_parties`` result does for the published state.
+Section 4 below covers this state; sections 1-3 are otherwise unchanged and
+still describe the published/not-yet-held pair, because every spec on disk
+today predates the new fields and so still resolves to ``not_yet_held`` — this
+addition is inert until the pending ``pools.py`` re-emit lands.
+
 WHAT THIS FILE HAS TO PROVE, per ``CLAUDE.md`` §4's rule for a test that asserts
 an absence. The claim "no run reaches the drawing stage with a silently empty
 roster" is an absence claim, and three of the four requirements are where such
@@ -86,6 +103,7 @@ UNHELD = "2026"        # the live forecast: CALENDAR[...].results is None
 
 PUBLISHED = "published"
 NOT_YET_HELD = "not_yet_held"
+PROJECTED = "projected"       # added 2026-09-14 — section 4, below
 
 
 class Sentinel(Exception):
@@ -350,7 +368,7 @@ def test_run_model_resolves_its_roster_through_the_checked_path():
     target = cityconfig.use_target(UNHELD)
     real = M.roster_for_target
 
-    def sentinel(_target):
+    def sentinel(_target, _scenario=None):
         raise Sentinel("roster_for_target was called")
 
     try:
@@ -449,6 +467,120 @@ def test_the_run_records_which_roster_state_it_was_in():
     scanned(run.guards, of=orphans, low=1.0, high=3.0,
             what="guard counters carried on the run",
             denominator="the counters that had no route out before F7")
+
+
+# --------------------------------------------------------------------------
+# 4. the PROJECTED state — a not-yet-held target with a spec roster
+# --------------------------------------------------------------------------
+#
+# Added 2026-09-14. ``emit_pools`` now writes ``roster``/``roster_source`` as
+# spec fields and ``run_model`` stashes them onto ``scenario`` before calling
+# ``roster_for_target`` — see both docstrings. Every spec on disk today
+# predates those fields, so these tests call ``roster_for_target`` directly
+# with a CONSTRUCTED scenario rather than through a real spec file, which is
+# also why section 1-3's ``test_the_run_records_which_roster_state_it_was_in``
+# (an end-to-end run against the real 2026 spec) still asserts
+# ``NOT_YET_HELD``: this addition is inert on the tree as it stands, and stays
+# that way until the pending re-emit lands.
+
+def test_a_projected_roster_is_read_from_the_scenario_the_spec_populated():
+    """THE POSITIVE CONTROL for the fourth state.
+
+    Mirrors ``test_the_published_roster_is_read_from_the_targets_own_file``:
+    given the input this function is documented to consult, the right state
+    and the right roster come back.
+    """
+    target = _target(UNHELD)
+    scenario = {"_pools_roster_source": "projected",
+               "_pools_roster": ["ANC", "DA", "MK", "ACTIONSA"]}
+    roster, state = M.roster_for_target(target, scenario)
+    assert state == PROJECTED, (
+        f"a not-yet-held target with a spec roster resolved to {state!r}, not "
+        f"{PROJECTED!r}")
+    assert roster == {"ANC", "DA", "MK", "ACTIONSA"}, (
+        f"the returned roster {roster} does not match the scenario's "
+        f"`_pools_roster`")
+
+
+def test_no_scenario_or_no_spec_roster_falls_back_to_not_yet_held():
+    """BACKWARD COMPATIBILITY: the state this function has always had.
+
+    No ``scenario``, an empty one, and one whose ``_pools_roster_source`` is
+    unset all mean the same thing — no spec roster is available, whether
+    because there is no spec at all (a caller supplying ``scenario['pools']``
+    directly skips the spec-loading block entirely) or because it predates
+    this field (every spec on disk today). None of these is a defect:
+    ``not_yet_held`` stays correct for all four.
+    """
+    target = _target(UNHELD)
+    for scenario in (None, {}, {"_pools_roster_source": None},
+                     {"_pools_roster_source": None, "_pools_roster": None}):
+        roster, state = M.roster_for_target(target, scenario)
+        assert (roster, state) == (set(), NOT_YET_HELD), (
+            f"scenario={scenario!r} resolved to ({roster}, {state!r}), not "
+            f"(set(), {NOT_YET_HELD!r})")
+
+
+def test_a_spec_roster_source_with_no_readable_roster_refuses():
+    """CAN THE GUARD SEE, one layer up? The same trap ``contesting_parties``
+    returning empty on a file that exists was fixed for: a spec that NAMES a
+    ``roster_source`` is claiming ``pools.resolve_roster`` produced a roster,
+    so an empty or malformed one alongside that claim must not silently fall
+    back to 'drop nobody' — it must refuse, exactly as the published branch's
+    fault-injected empty roster does in section 2 above.
+
+    Four constructed shapes, because "missing", "empty" and "wrong type" are
+    different ways the same claim can be broken, and a check tuned to only one
+    of them would miss the others.
+    """
+    target = _target(UNHELD)
+    for bad_roster in (None, [], "ANC,DA,MK", {"ANC": 1}):
+        scenario = {"_pools_roster_source": "projected",
+                   "_pools_roster": bad_roster}
+        try:
+            roster, state = M.roster_for_target(target, scenario)
+        except SystemExit:
+            continue                   # refused, as it must
+        raise AssertionError(
+            f"scenario carrying roster_source='projected' and "
+            f"roster={bad_roster!r} resolved anyway to {len(roster)} parties "
+            f"in state {state!r}. THIS IS FAILING OPEN: a spec claiming a "
+            f"roster_source with no readable roster behind it disabled the "
+            f"off-ballot drop and is indistinguishable from a target with no "
+            f"spec roster at all.")
+
+    # THE MECHANISM IS STILL LIVE, same discipline as section 2's final check.
+    good = {"_pools_roster_source": "projected", "_pools_roster": ["ANC"]}
+    roster, state = M.roster_for_target(target, good)
+    assert (roster, state) == ({"ANC"}, PROJECTED), (
+        f"after the fault-injected cases, a well-formed scenario resolved to "
+        f"({roster}, {state!r}), not ({{'ANC'}}, {PROJECTED!r}). Something in "
+        f"the constructed cases above left state behind.")
+
+
+def test_projected_never_overrides_a_published_result_file():
+    """A HELD target must never resolve to `projected`, whatever a stray
+    scenario claims.
+
+    `roster_for_target` branches on the calendar's own `results` template
+    FIRST, so a scenario carrying `_pools_roster_source` for a HELD target is
+    simply not consulted and the published path runs, reading the real result
+    file as it always has. This is the direction §4's "two-sided" requirement
+    asks for: section 1 above proves the healthy published case; this proves a
+    projected-shaped scenario cannot smuggle itself into it.
+    """
+    city = _city()
+    path = _roster_path(city, HELD)
+    if path is None or not path.exists():
+        skip(f"no {HELD} result file for {CITY} on disk")
+    target = _target(HELD)
+    scenario = {"_pools_roster_source": "projected", "_pools_roster": ["X"]}
+    roster, state = M.roster_for_target(target, scenario)
+    assert state == PUBLISHED and roster, (
+        f"a HELD target with a stray projected-shaped scenario resolved to "
+        f"({len(roster)} parties, {state!r}), not the published state read "
+        f"from {path}. A scenario field must never override a real result "
+        f"file.")
 
 
 if __name__ == "__main__":

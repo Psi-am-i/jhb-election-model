@@ -79,7 +79,7 @@ ARTEFACT_KEY_SCHEMA = 2
 # pass for ever and silently -- the exact failure `artefact_key` exists to close.
 _SHA16 = re.compile(r"\A[0-9a-f]{16}\Z")
 
-ROSTER_STATES = ("published", "not_yet_held")
+ROSTER_STATES = ("published", "projected", "not_yet_held")
 
 # Where an existing trace may be found for the integration test. An env var
 # rather than a fixed path, because a trace is a diagnostic artefact and lives
@@ -192,18 +192,25 @@ INVARIANTS: dict[str, str] = {
     "roster.fields":
         "the stage must carry state, size and dropped.",
     "roster.state_unknown":
-        "`roster_for_target` returns exactly two states; a third value means "
-        "somebody widened the contract without telling the consumers.",
+        "`roster_for_target` returns exactly three states; a fourth value "
+        "means somebody widened the contract without telling the consumers.",
     "roster.published_but_empty":
         "⛔ THE POSITIVE CONTROL. An empty roster is the value meaning DROP "
         "NOBODY, and it used to be indistinguishable from an election not yet "
         "held -- so any defect inside `contesting_parties` silently disabled "
         "the off-ballot drop, worth of the order of one invented seat. `size` "
         "is what tells a roster that was READ from one that was merely absent.",
+    "roster.projected_but_empty":
+        "the same trap one layer up: a spec that NAMES a `roster_source` is "
+        "claiming `pools.resolve_roster` produced a roster, and "
+        "`roster_for_target` raises rather than returning an empty or "
+        "malformed one under that claim (2026-09-14) -- so a `projected` "
+        "state with size<=0 cannot have come from that function either.",
     "roster.not_yet_held_but_populated":
-        "the not-yet-held state has no result file, so it can have no roster "
-        "and can have dropped nobody. A size or a drop in that state means the "
-        "state label is lying about which branch ran.",
+        "the not-yet-held state has no result file and no usable spec roster, "
+        "so it can have no roster and can have dropped nobody. A size or a "
+        "drop in that state means the state label is lying about which branch "
+        "ran.",
     "roster.dropped_not_sorted_unique":
         "`dropped` is written `sorted(...)` of a list built by appending each "
         "absent party once. A duplicate means the drop ran twice on one party; "
@@ -212,8 +219,12 @@ INVARIANTS: dict[str, str] = {
         "the discriminator is the RESULTS TEMPLATE, not the clock: "
         "`CALENDAR[year].results is None` is the calendar's own statement that "
         "an election has no result file, and it is the same condition "
-        "`contesting_parties` keys its legitimate empty return on. A trace "
-        "where the two disagree is a run that took the wrong branch.",
+        "`contesting_parties` keys its legitimate empty return on. A held "
+        "target (a result file exists) must be `published`; an unheld one may "
+        "be `not_yet_held` OR `projected` (2026-09-14: the spec's own roster, "
+        "when it has one), but `published` is never legitimate without a "
+        "result file. A trace where these disagree is a run that took the "
+        "wrong branch.",
 
     # --- agreements across the four --------------------------------------
     "across.stage_missing":
@@ -475,6 +486,14 @@ def offences_roster(payload, *, target=None, has_results=None) -> list:
                  f"value meaning DROP NOBODY, and `roster_for_target` refuses "
                  f"rather than returning it -- so this payload cannot have come "
                  f"from that function.")
+    elif state == "projected":
+        if not isinstance(size, int) or isinstance(size, bool) or size <= 0:
+            _off(out, "roster.projected_but_empty",
+                 f"state=projected with size={size!r}. A spec naming a "
+                 f"roster_source is claiming a roster was resolved, and "
+                 f"`roster_for_target` refuses rather than returning an empty "
+                 f"or malformed one under that claim -- so this payload cannot "
+                 f"have come from that function.")
     elif state == "not_yet_held":
         if size != 0 or n_dropped:
             _off(out, "roster.not_yet_held_but_populated",
@@ -484,12 +503,17 @@ def offences_roster(payload, *, target=None, has_results=None) -> list:
             and state in ROSTER_STATES:
         year = target["year"]
         if year in has_results:
-            want = "published" if has_results[year] else "not_yet_held"
-            if state != want:
+            # A held target (a result file exists) must be `published`; an
+            # unheld one may be `not_yet_held` OR `projected` -- both are
+            # legitimate depending on whether the pool spec resolved a roster
+            # -- but `published` is never legitimate without a result file.
+            allowed = {"published"} if has_results[year] \
+                else {"not_yet_held", "projected"}
+            if state not in allowed:
                 _off(out, "roster.state_disagrees_with_calendar",
                      f"state={state} at target {year}, whose calendar entry "
                      f"{'has' if has_results[year] else 'has no'} a result "
-                     f"template, so the state must be {want}")
+                     f"template, so the state must be one of {sorted(allowed)}")
     return out
 
 
@@ -680,6 +704,22 @@ def healthy_not_yet_held() -> dict:
     return trace
 
 
+def healthy_projected() -> dict:
+    """2026-with-a-spec-roster: no result file, but the pool spec has one.
+
+    Added 2026-09-14 alongside the `projected` state: `roster_for_target` now
+    reads `pools.emit_pools`'s own `roster`/`roster_source` off the spec for a
+    target with no result file, instead of always disabling the drop. Built
+    from `healthy_not_yet_held` -- same target, same calendar shape -- with
+    only `03_roster` changed, so a test comparing the two isolates exactly
+    that difference.
+    """
+    trace = healthy_not_yet_held()
+    trace["03_roster"] = {"state": "projected", "size": 40,
+                          "dropped": ["GAMMA"]}
+    return trace
+
+
 def _check(trace, world=None) -> list:
     """Every predicate over a constructed trace, in the constructed world.
 
@@ -788,6 +828,11 @@ CORRUPTIONS: dict[str, tuple] = {
     # set while the state still claims the drop ran.
     "roster.published_but_empty":
         (_mut(("03_roster", "size"), 0), healthy),
+    # Same defect, one layer up: a spec claiming a roster_source with no
+    # readable roster behind it. `roster_for_target` raises on this rather
+    # than falling back to `not_yet_held` -- see its docstring, 2026-09-14.
+    "roster.projected_but_empty":
+        (_mut(("03_roster", "size"), 0), healthy_projected),
     "roster.not_yet_held_but_populated":
         (_mut(("03_roster", "size"), 57), healthy_not_yet_held),
     "roster.dropped_not_sorted_unique":
@@ -812,11 +857,13 @@ CORRUPTIONS: dict[str, tuple] = {
 def test_a_healthy_payload_raises_no_offence():
     """The floor. A predicate that fires on a correct payload is noise.
 
-    Both roster states, because they are different branches and one of them --
-    ``not_yet_held`` -- is the state the live 2026 forecast runs in.
+    All three roster states, because they are different branches and two of
+    them -- ``not_yet_held`` and, since 2026-09-14, ``projected`` -- are states
+    the live 2026 forecast can legitimately run in.
     """
     for name, trace in (("published", healthy()),
-                        ("not_yet_held", healthy_not_yet_held())):
+                        ("not_yet_held", healthy_not_yet_held()),
+                        ("projected", healthy_projected())):
         found = _check(trace)
         assert not found, f"the {name} trace was flagged: {found}"
 
@@ -824,10 +871,12 @@ def test_a_healthy_payload_raises_no_offence():
 def test_the_live_forecasts_roster_state_is_not_treated_as_a_fault():
     """`not_yet_held` with an empty roster is CORRECT and must stay so.
 
-    The whole point of three states is that an election with no result file
-    legitimately has no roster. A guard that could not tell that from a broken
-    read would have to be switched off for the live forecast, and a guard that
-    is off is not a guard.
+    The whole point of (now four) states is that an election with no result
+    file legitimately has no roster, UNLESS the pool spec resolved one --
+    ``test_a_projected_roster_state_is_not_treated_as_a_fault`` is that other
+    half. A guard that could not tell either from a broken read would have to
+    be switched off for the live forecast, and a guard that is off is not a
+    guard.
     """
     trace = healthy_not_yet_held()
     assert trace["03_roster"] == {"state": "not_yet_held", "size": 0,
@@ -839,6 +888,32 @@ def test_the_live_forecasts_roster_state_is_not_treated_as_a_fault():
     held = dict(trace["00_target"], year="2021")
     assert "roster.state_disagrees_with_calendar" in ids(offences_roster(
         trace["03_roster"], target=held, has_results=WORLD["has_results"]))
+
+
+def test_a_projected_roster_state_is_not_treated_as_a_fault():
+    """`projected` at an unheld target is CORRECT; at a held one it is a fault.
+
+    Added 2026-09-14 with the state itself. Mirrors the `not_yet_held` test
+    above exactly, because the two are siblings under the same calendar
+    discriminator (`has_results[year]` false) -- this is the other value that
+    branch may legitimately take, and it must be told apart from
+    `not_yet_held` by a consumer, not merged into "some unheld state".
+    """
+    trace = healthy_projected()
+    assert trace["03_roster"]["state"] == "projected" and trace["03_roster"][
+        "size"] > 0, "the fixture itself must carry a real, non-empty roster"
+    assert not offences_roster(trace["03_roster"], target=trace["00_target"],
+                               has_results=WORLD["has_results"])
+    # …and the same payload at a HELD target is a fault: `projected` is an
+    # assumption, and an assumption is never legitimate once the real result
+    # file exists to read instead.
+    held = dict(trace["00_target"], year="2021")
+    assert "roster.state_disagrees_with_calendar" in ids(offences_roster(
+        trace["03_roster"], target=held, has_results=WORLD["has_results"]))
+    # `projected` and `not_yet_held` must not be conflated: a consumer reading
+    # only "did the drop run on real data" needs the states kept SEPARATE.
+    assert trace["03_roster"]["state"] != \
+        healthy_not_yet_held()["03_roster"]["state"]
 
 
 # --------------------------------------------------------------------------

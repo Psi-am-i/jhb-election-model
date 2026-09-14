@@ -25523,3 +25523,75 @@ document → ENTRY_POINTS**. That block is maintained by hand. It did behave
 correctly today in the other direction: giving `declares` an importer made its
 exemption redundant, the guard said so, and the entry was deleted — the same
 call §1.219's `diagnose.py` precedent made on 2026-09-12.
+
+## 1.237 The pools spec and the off-ballot drop disagreed about the 2026 ballot, and neither said so (2026-09-14)
+
+`pools.resolve_roster` has resolved a published/declared/projected ballot for
+`emit_pools` since queue entry 3 landed, and used it to drop off-ballot parties
+from the *pools*. `montecarlo.roster_for_target`, called separately inside
+`run_model`, only ever asked whether `cityconfig.CALENDAR[year].results` was
+set — `None` for 2026 — and disabled its own off-ballot drop unconditionally
+whenever it was, with no way to see what `resolve_roster` had already decided.
+**Two mechanisms in one run, drawing on the same target, disagreeing about what
+the ballot is, with nothing in the emitted spec or the trace saying so.**
+
+**The fix, queue entry 26** (`POOLS-REEMIT-QUEUE.md`), in two halves:
+
+* `emit_pools` now writes `roster` (sorted list), `roster_source` and
+  `reach_source` as top-level spec fields — the same values `provenance`
+  already stated as a sentence, machine-readable for the first time. This is a
+  `pools.py` code change and moves `pools_sha`; it is batched, not emitted.
+* `montecarlo.roster_for_target` gains a fourth state, `"projected"`: a
+  not-yet-held target whose spec carries a `roster_source` now returns that
+  roster instead of an empty one, so the off-ballot drop runs against the SAME
+  ballot the pools were built from. `montecarlo.py` is confirmed outside
+  `_EMIT_DEPENDENCIES` (`pools.py:337`), so this half moves nothing in the
+  artefact key and forces no re-emit on its own — but see below.
+
+⛔ **THE SAME FAIL-CLOSED DISCIPLINE, ONE LAYER UP.** A spec that names a
+`roster_source` is claiming `resolve_roster` produced a roster; an empty or
+malformed `roster` field alongside that claim now raises rather than falling
+back to `not_yet_held` — the identical trap `contesting_parties` returning
+empty on a file that exists was fixed for. Constructed and caught: four shapes
+(missing/`None`/empty list/wrong type), each refuses; a well-formed scenario
+resolves correctly afterward, proving the mechanism was not left disabled by
+the fault injection (`tests/test_roster_fails_closed.py`, section 4). The
+calendar-agreement check in `tests/test_stage_inputs.py::offences_roster` was
+widened both directions: a held target must still be `published` only; an
+unheld one may now be `not_yet_held` **or** `projected`, never the reverse.
+
+⚠️ **THIS IS A DELIBERATE REVERSAL, NOT A NEUTRAL WIDENING.** `roster_for_target`'s
+own docstring used to record, as a considered decision: *"wiring the declared
+list into this drop would move the live 2026 forecast, which is a scored
+change and not a failure-path fix."* That objection is real, and is now judged
+the smaller problem: the two mechanisms disagreeing about the ballot was the
+larger one. **This half is inert on the tree as it stands** — every spec on
+disk today predates `roster_source`, so `roster_for_target` still reads `None`
+and every target still resolves `not_yet_held`, verified by re-running
+`tests/test_roster_fails_closed.py::test_the_run_records_which_roster_state_it_was_in`
+(a real run against the live 2026 spec) unchanged. **It starts moving the live
+2026 forecast's numbers the moment queue entry 26 is emitted** — `compare_history`
+cannot arbitrate this, because there is no 2026 result to score against; the
+acceptance test is procedural (named in the queue entry).
+
+**Investigated and NOT the same defect, on inspection:** `arrival_group` stays
+`None` for a projected roster (`emit_pools`'s own gate, `roster_source in
+("published", "declared")` only). `arrival_group_spec` splits arrivals across
+specific wards by measured `reach` — a property of an actual nomination list —
+and a projected roster is a guess built from the baseline and the fitted
+composition, with no ward-level nomination detail behind it. Building a
+ward-split arrival group from that would fabricate spatial precision the
+projection does not have. Left alone, deliberately.
+
+**Two established facts, taken as given and not re-derived** (matches the
+narrowing in `audits/ULTRA-REVIEW-1-pools-reemit.md`'s companion brief): MK's
+2026 roster placement (§K1) and `seeds: 0` in `pools_2026.json` are both
+correct as they stand and neither was touched.
+
+**Not run:** no re-emit, no `compare_history`, no bare `montecarlo.py`. The
+diff is meant to be reviewed un-emitted, per the frozen ultra-review brief.
+`tests/run_all.py -k roster -k stage_inputs` and a broader targeted slice
+(`chain`, `covariate_fail_open`, `intermediates_are_current`,
+`pool_conservation`, `pool_bounds`, `scored_universe`, `panel_wiring`,
+`standalone_modules`, `delivery_proof`, `regressions`) were run instead; see
+the run for the pass/fail counts, never a number copied out of this entry.

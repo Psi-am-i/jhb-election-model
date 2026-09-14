@@ -3455,12 +3455,16 @@ class ModelRun:
     pr_share_draws: np.ndarray | None = None
     ward_share_draws: np.ndarray | None = None
     # WHICH ROSTER STATE THE RUN WAS IN, because two of them used to be one
-    # empty set. `roster_state` is "published" or "not_yet_held" — a roster that
-    # should exist and could not be read raises instead of arriving here;
-    # `roster_size` is the positive control, so a consumer can tell a roster that
-    # was READ from one that was merely absent; `roster_dropped` names the
-    # parties the off-ballot drop removed, so the mechanism's firing is a fact
-    # and not an inference. See :func:`roster_for_target`.
+    # empty set. `roster_state` is "published", "projected" or "not_yet_held"
+    # — a roster that should exist and could not be read raises instead of
+    # arriving here, whether the source is the target's own result file or the
+    # pool spec's own resolved roster. "projected" means the drop ran against
+    # an ASSUMPTION (the pool spec's roster for a target with no result file
+    # yet), never a fact — read it that way, not as "published" with worse
+    # provenance. `roster_size` is the positive control, so a consumer can tell
+    # a roster that was READ from one that was merely absent; `roster_dropped`
+    # names the parties the off-ballot drop removed, so the mechanism's firing
+    # is a fact and not an inference. See :func:`roster_for_target`.
     roster_state: str = ""
     roster_size: int = 0
     roster_dropped: list[str] = field(default_factory=list)
@@ -3514,19 +3518,37 @@ class ModelRun:
         return out
 
 
-def roster_for_target(target) -> tuple[set[str], str]:
-    """Who is on ``target``'s ballot, and WHICH of three states that answer is in.
+def roster_for_target(target, scenario: dict | None = None) -> tuple[set[str], str]:
+    """Who is on ``target``'s ballot, and WHICH of four states that answer is in.
 
     Returns ``(roster, state)``:
 
     * ``"published"`` — the target's own result file exists and was read, so the
       off-ballot drop in :func:`run_model` is correct and runs.
-    * ``"not_yet_held"`` — ``cityconfig.CALENDAR[year].results`` is ``None``, so
-      this election HAS no result file, no roster can exist, and the drop is
-      disabled KNOWINGLY. This is the live 2026 forecast's state today.
+    * ``"projected"`` — the target has NOT been held, but the pool spec
+      :func:`run_model` already loaded (``pools.emit_pools``, read earlier in
+      the same call) carries its own ``roster``/``roster_source`` — an
+      ASSUMPTION, never the target's own result file. ``roster_source`` inside
+      the spec may itself say ``published`` (impossible here — that state
+      requires a result file, which is exactly what this branch has none of),
+      ``declared`` (a hand-typed ``[roster]`` in the judgement file) or
+      ``projected`` (``pools.resolve_roster``'s guess, built from the baseline
+      and the fitted composition). Whichever it is, from THIS function's
+      standpoint it is a guess about a ballot that has not happened, so the
+      state name reported here is uniformly ``"projected"`` — the underlying
+      distinction is still readable from ``scenario["_pools_roster_source"]``
+      and from the spec itself, for a reader who wants it, but it must not be
+      read as a fact by anything consuming ``roster_state`` alone.
+    * ``"not_yet_held"`` — ``cityconfig.CALENDAR[year].results`` is ``None`` AND
+      no spec roster is available either (no spec on disk, or one emitted
+      before this field existed), so nothing about the ballot is known at all
+      and the drop is disabled KNOWINGLY. This was the live 2026 forecast's
+      only state before 2026-09-14, and it remains correct for a target with
+      neither a result file nor a usable spec roster.
 
-    The third state is an EXCEPTION rather than a return value: a roster that
-    SHOULD exist and could not be read stops the run.
+    The fourth state is an EXCEPTION rather than a return value: a roster that
+    SHOULD exist and could not be read stops the run — true of BOTH sources now,
+    not just the published one (see the two raises below).
 
     ⛔ **DO NOT FAIL OPEN.** This was::
 
@@ -3553,7 +3575,10 @@ def roster_for_target(target) -> tuple[set[str], str]:
     roster exists" by RETURNING an empty set, never by raising, so there is no
     exception here that legitimately means it — which is why the old
     ``except Exception`` could only ever have been swallowing defects. Every
-    exception propagates.
+    exception propagates. The same discipline now applies to the spec roster: a
+    spec that NAMES a ``roster_source`` is claiming a roster was resolved, and an
+    empty or malformed ``roster`` alongside that claim raises rather than
+    quietly falling back to ``not_yet_held`` — the same trap one layer up.
 
     **The discriminator is the RESULTS TEMPLATE, not the clock.** ``results is
     None`` is the calendar's own statement that an election has no result file
@@ -3562,20 +3587,53 @@ def roster_for_target(target) -> tuple[set[str], str]:
     two cannot disagree. A date comparison would instead flip state on polling
     day and refuse the next target days before anyone has ingested a file.
 
-    ⚠️ **A DECLARED roster is deliberately NOT consulted here.**
-    ``pools.resolve_roster`` has three sources — published, declared (a hand-typed
-    ``[roster]`` in the judgement file) and projected — and it is reached only
-    from ``emit_pools``, i.e. when a pool spec is emitted. Wiring the declared
-    list into this drop would move the live 2026 forecast, which is a scored
-    change and not a failure-path fix. The asymmetry is real and is now RECORDED
-    rather than silent: on a night when the owner has pasted the IEC list into
-    ``judgements/<city>-2026.toml``, the spec uses it and this drop still reports
-    ``not_yet_held``.
+    ⚠️ **A DECLARED/PROJECTED roster used to be deliberately NOT consulted
+    here — REVERSED 2026-09-14.** Until then this function only ever returned
+    ``published`` or ``not_yet_held``: ``pools.resolve_roster`` has three
+    sources (published / declared / projected), reached only from
+    ``emit_pools``, and the pool SPEC used whichever one it resolved to build
+    the pools themselves — but the emitted spec carried none of that
+    (``roster``, ``roster_source``, ``reach_source``) as a field a caller could
+    read, only folded into the free-text ``provenance`` sentence. So the spec
+    quietly used a projected ballot to decide what to drop from the pools while
+    this function, unable to see that, always disabled its OWN off-ballot drop
+    for the same target — two layers of the same run disagreeing about what the
+    ballot is, with nothing saying so. ``emit_pools`` now writes ``roster`` /
+    ``roster_source`` / ``reach_source`` as spec fields (see its docstring), and
+    :func:`run_model` reads them into ``scenario`` before calling here. This
+    function now uses them, so the drop runs against the SAME assumption the
+    pools were built from, and the state name (``projected``, never
+    ``published``) says plainly that it is an assumption. The earlier objection
+    — "this moves the live 2026 forecast, which is a scored change" — is real
+    and is now the point: the two mechanisms disagreeing was the defect, not a
+    conservative default, and it is fixed by making them agree.
     """
     import pools as _pools
     template = cityconfig.CALENDAR[target.year].results
     if template is None:
-        return set(), "not_yet_held"
+        _source = (scenario or {}).get("_pools_roster_source")
+        if _source is None:
+            # No spec roster to consult: no spec on disk, or one emitted before
+            # this field existed (every spec on disk today, pre-batch-emit).
+            # Legacy behaviour, unchanged — NOT a defect, a missing input.
+            return set(), "not_yet_held"
+        _spec_roster = (scenario or {}).get("_pools_roster")
+        if not isinstance(_spec_roster, list) or not _spec_roster:
+            raise SystemExit(
+                f"the {target.year} pool spec for {target.city.slug} declares "
+                f"roster_source={_source!r} but its `roster` field is "
+                f"{_spec_roster!r} — not a non-empty list.\n\n"
+                f"⛔ THE RUN REFUSES RATHER THAN CONTINUING. A spec naming a "
+                f"roster_source is claiming a roster WAS resolved by "
+                f"`pools.resolve_roster`; an empty or missing `roster` "
+                f"alongside that claim is the same empty-record-vs-unreachable-"
+                f"record failure `contesting_parties` was fixed for above, one "
+                f"layer up — it would silently fall back to 'drop nobody' and "
+                f"be indistinguishable from a target with no spec roster at "
+                f"all.\n\n"
+                f"Check `pools.emit_pools`'s call to `resolve_roster` and "
+                f"re-emit pools_{target.year}.json.")
+        return set(_spec_roster), "projected"
     roster = _pools.contesting_parties(target.city, target.year)
     if not roster:
         raise SystemExit(
@@ -3682,6 +3740,21 @@ def run_model(target, scenario: dict,
                 print(f"  ! pools_{target.year}.json is STALE: {_stale}")
             scenario["_pools_stale"] = _stale
             scenario["_pools_artefact_key"] = spec.get("artefact_key")
+            # What the SPEC's own roster resolution decided, so a not-yet-held
+            # target's off-ballot drop (`roster_for_target`, below) can run
+            # against the same ballot the pools themselves were built from,
+            # instead of disagreeing with it in silence. `None` on both for any
+            # spec emitted before this field existed — legacy, not a defect;
+            # `roster_for_target` reads that as "no spec roster available".
+            #
+            # ⚠️ NOT added to `02_pools_artefact`'s own payload:
+            # `tests/test_stage_inputs.py::offences_pools_artefact` pins that
+            # stage's field set to exactly {path, artefact_key, stale_reason,
+            # fitted_on}. The state this unlocks is visible at `03_roster`
+            # instead (`state` gains a `"projected"` value) and in the spec
+            # itself, which `path` above already points at.
+            scenario["_pools_roster"] = spec.get("roster")
+            scenario["_pools_roster_source"] = spec.get("roster_source")
             trace.put("02_pools_artefact", {
                 "path": str(spec_path),
                 "artefact_key": spec.get("artefact_key"),
@@ -3771,17 +3844,31 @@ def run_model(target, scenario: dict,
     # same justification `levels.contestation` already runs on: nomination lists
     # close and are published weeks before polling day, so WHO IS ON THE BALLOT
     # is available to a forecaster. Their votes are not, and none are read here.
-    # A target not yet held has no roster and is left alone — KNOWINGLY, which
-    # is the whole of `roster_for_target`'s job. THREE STATES, NOT TWO: this read
-    # used to be wrapped in `except Exception: _roster = set()`, and an empty set
-    # is the value meaning "drop nobody", so an unreadable roster silently
-    # disabled the drop and looked exactly like an unheld election. It now
-    # refuses instead, and `_roster_state` is how a consumer tells a knowingly
-    # disabled drop from a broken one.
-    _roster, _roster_state = roster_for_target(target)
+    # A target not yet held has no roster and is left alone — KNOWINGLY, unless
+    # the pool spec already resolved one (projected/declared) — which is what
+    # makes this a FOUR-STATE read, not three: this used to be wrapped in
+    # `except Exception: _roster = set()`, and an empty set is the value
+    # meaning "drop nobody", so an unreadable roster silently disabled the drop
+    # and looked exactly like an unheld election. It now refuses instead, and
+    # `_roster_state` is how a consumer tells a knowingly disabled drop from a
+    # broken one — and, since 2026-09-14, a drop running on an ASSUMPTION from
+    # one running on the target's own result file.
+    _roster, _roster_state = roster_for_target(target, scenario)
     # Travels into `forecast_summary.json` with the rest of the scenario, beside
     # `_pools_stale`, which is the same kind of fact about the same kind of input.
     scenario["_roster_state"] = _roster_state
+    if _roster_state == "projected":
+        # ⛔ MUST ANNOUNCE ITSELF AS AN ASSUMPTION, NOT PASS AS FACT. Printed
+        # unconditionally (not gated on `verbose`), same as the STALE-spec
+        # warning above — this changes what the off-ballot drop does, at the
+        # live 2026 target, and a reader must not have to pass `verbose=True`
+        # to find out.
+        print(f"  ! roster for {target.year} is PROJECTED, not published: "
+              f"{len(_roster)} parties, from pools_{target.year}.json's own "
+              f"roster_source={scenario.get('_pools_roster_source')!r}. This "
+              f"is an ASSUMPTION about who will contest {target.year} — the "
+              f"election has not been held — and the off-ballot drop below is "
+              f"running against that guess, not against a result file.")
     _roster_dropped: list[str] = []
     if _roster:
         # ONE DEFINITION. `theta_residual.residuals` has to reproduce this
@@ -3808,6 +3895,15 @@ def run_model(target, scenario: dict,
                       f"{target.previous_npe} baseline "
                       f"({', '.join(_absent[:5])}"
                       f"{', …' if len(_absent) > 5 else ''})")
+    # ⚠️ FIELDS DELIBERATELY UNCHANGED: `state`/`size`/`dropped` only.
+    # `tests/test_stage_inputs.py::offences_roster` pins this stage's field set
+    # exactly. The underlying spec-level distinction (published/declared/
+    # projected inside `pools.resolve_roster`) is NOT duplicated into any trace
+    # stage — it lives in the spec itself (`roster_source`, `reach_source`,
+    # `emit_pools`), which `02_pools_artefact.path` already points a reader at.
+    # `state` here answers the question this stage exists to answer -- did the
+    # off-ballot drop run against the real ballot, an assumption, or nothing --
+    # and "projected" is now a legitimate value of it.
     trace.put("03_roster", {"state": _roster_state, "size": len(_roster),
                             "dropped": sorted(_roster_dropped)})
 

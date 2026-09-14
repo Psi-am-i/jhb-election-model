@@ -842,6 +842,53 @@ reading the declared list. The parser was flawless; nothing crossed from it to
 `seeds`. Four rows now run against the function in milliseconds and one
 end-to-end test crosses to the emitted spec. §1.178.
 
+### The SECOND consumer of the same roster — `montecarlo.roster_for_target`
+
+`resolve_roster` decides what to drop from the **pools**; a separate function,
+`montecarlo.roster_for_target`, decides what to drop from the **theta
+baseline** (`run_model`'s off-ballot drop, which pops absent parties out of
+`base_city_d`/`base_share_d` before `theta_prior` ever sees them). Until
+2026-09-14 the two did not agree, because the pool spec never wrote its own
+roster decision anywhere a caller could read: `emit_pools` folded
+`roster_source`/`reach_source` into the free-text `provenance` sentence only,
+and `roster_for_target` could see nothing but the calendar's own
+`results` template — so a not-yet-held target (2026, today) always resolved
+`not_yet_held` and left the theta-baseline drop disabled, **even when
+`resolve_roster` had already built and used a projected ballot for the pools
+themselves.** Two mechanisms, one target, disagreeing about what the ballot
+is, and nothing said so. §1.237.
+
+`emit_pools` now writes `roster` / `roster_source` / `reach_source` as spec
+fields, `run_model` reads them into `scenario` before calling
+`roster_for_target`, and that function gains a **fourth** state:
+
+| state | source | the off-ballot drop |
+|---|---|---|
+| `published` | the target's own result file | runs, correct |
+| `projected` | the pool spec's own `roster`/`roster_source` (whichever of published/declared/projected `resolve_roster` reached) | runs, against an ASSUMPTION |
+| `not_yet_held` | neither a result file nor a spec roster | disabled, knowingly |
+| *(raise)* | a spec claiming a `roster_source` with no readable `roster` behind it | the run stops |
+
+`projected` is deliberately never called `published` here, whatever
+`resolve_roster` itself decided internally — from `roster_for_target`'s
+standpoint every non-result-file source is a guess, and the state name is the
+one place a downstream reader (`compare_history`, `forecast_summary.json`,
+a person) can tell "ran against a fact" from "ran against an assumption"
+without opening the spec. The fourth branch — a named `roster_source` with an
+unreadable `roster` — fails the SAME way `contesting_parties` returning empty
+on a file that exists was fixed to fail: it raises, rather than quietly
+falling back to `not_yet_held` and disabling the drop in silence. See
+`roster_for_target`'s own docstring for the full history, including why the
+earlier decision NOT to wire a declared/projected roster into this drop was
+reversed rather than merely widened.
+
+⚠️ **`arrival_group` is a THIRD mechanism and is not part of this reconciliation.**
+`emit_pools` builds it only when `roster_source in ("published", "declared")` —
+never for `projected` — because it splits arrivals across specific wards by a
+measured `reach`, a property of an actual nomination list that a guessed
+roster does not have. Investigated 2026-09-14 and found to be a different,
+still-deliberate choice, not the same disagreement.
+
 ### How a declared party is SIZED — `[party.X]`
 
 | key | read by | what it does |
