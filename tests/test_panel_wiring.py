@@ -371,20 +371,34 @@ def test_nothing_outside_backtest_chooses_its_own_arrival_baseline():
     a file that has stopped computing arrivals at all.
     """
     files = sorted(SRC.glob("*.py"))
-    scanned(files, of=files, low=1.0, high=1.0,
-            what="source modules scanned for a hand-built arrival baseline",
-            denominator="`.py` files in src/")
 
     offenders = []
     consumers = []
+    examined = []
     for path in files:
         tree = ast.parse(path.read_text(encoding="utf-8"))
+        examined.append(path.name)
         names = {ast.unparse(n.func).split(".")[-1] for n in ast.walk(tree)
                  if isinstance(n, ast.Call)}
         if "entrant_actual_for_target" in names:
             consumers.append(path.name)
         if path.name != "backtest.py" and "entrant_actual_for" in names:
             offenders.append(path.name)
+
+    # ⛔ IT LOOKED — AND THE DENOMINATOR IS NOT THE POPULATION. Until
+    # 2026-09-14 this call was `scanned(files, of=files, low=1.0, high=1.0)`:
+    # the same object on both sides, so the band collapsed to
+    # `len(files) <= len(files) <= len(files)` and the only live assertion left
+    # was that the glob had found SOMETHING. It read as a two-sided population
+    # bound and was not one. `examined` is appended by the loop itself, so a
+    # module the loop stops reaching — a `continue` past a parse error, a
+    # filter added later, an exception swallowed — leaves the population while
+    # the denominator stays where it was. That is the only way the absence
+    # claim below can go quietly vacuous, and it is now the thing measured.
+    scanned(examined, of=files, low=1.0, high=1.0,
+            what="source modules actually parsed for a hand-built arrival "
+                 "baseline",
+            denominator="`.py` files in src/ that the glob offered")
 
     assert not offenders, (
         f"{offenders} call `entrant_actual_for` directly, which means each of "

@@ -1183,10 +1183,18 @@ def test_there_is_one_cluster_resampler_in_the_repository_not_two():
     Both of those are demonstrated below on a constructed directory rather than
     asserted.
     """
-    modules = sorted((ROOT / "src").glob("*.py"))
-    scanned(modules, of=modules, low=1.0, high=1.0,
-            what="modules scanned for a cluster resampler",
-            denominator="`.py` files in src/")
+    # ⛔ NO `scanned()` CALL HERE, DELIBERATELY, AND THE REASON IS THAT THE ONE
+    # THAT USED TO BE HERE COULD NOT FAIL. It read
+    # `scanned(modules, of=modules, low=1.0, high=1.0)` — population and
+    # denominator the same object — so the band reduced to
+    # `len(modules) <= len(modules) <= len(modules)` and the only live check was
+    # that the glob found something. It read as a two-sided population bound and
+    # was not one. Nothing replaces it because nothing needs to: the equality
+    # below is strictly stronger. A scan that lost its input returns `[]`, and
+    # `set([]) == {"score.py", "theta_residual.py"}` is false, so "the scan
+    # scanned nothing" already fails here by name rather than by count — which
+    # is the failure `_support.scanned` exists to catch for an assertion that
+    # only ever says "empty".
     defining = _resampler_definitions(ROOT / "src")
     assert set(defining) == {"score.py", "theta_residual.py"}, (
         f"cluster resamplers are defined in {sorted(defining)}, against the "

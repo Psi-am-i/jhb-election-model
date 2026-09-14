@@ -99,7 +99,16 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            "test_prior_local_fails_closed",
            "test_census_refusal_is_not_swallowed",
            "test_declared_reach_matches_ward_reach",
-           "test_artefact_key_discriminates"]
+           "test_artefact_key_discriminates",
+           # Added 2026-09-14 with the projected-roster declaration.
+           # Same rule as every block above. This one guards a MESSAGE,
+           # which the suite otherwise has no habit of doing — but the
+           # message is the only thing standing between a reader and a
+           # forecast built on an assumed ballot, and its population
+           # check is a bidirectional scan of `pools.resolve_roster`'s
+           # own AST, which goes stale the moment a fourth roster
+           # source is added and nobody notices.
+           "test_projected_roster_declaration"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

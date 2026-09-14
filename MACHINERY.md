@@ -1156,6 +1156,121 @@ run. Coherent seat error, CRPS, raw seat error and the medians-sum are
 bit-identical between the two; the MAE columns agree to 6.7e-15, which is
 floating-point summation order and not a behavioural difference (§1.46).
 
+## The projected roster: declaring it, and scoring it
+
+A forecast for an election that has not been held has no nomination list, so
+**who is on the ballot is itself a forecast.** `pools.resolve_roster` resolves
+it into one of three sources and `montecarlo.roster_for_target` reports two
+states to the run; `montecarlo._projected_roster_declaration` is what the run
+says about it out loud.
+
+| source (`pools.resolve_roster`) | what it is | state at `roster_for_target` |
+|---|---|---|
+| `published` | the target's own **result file** | `published` |
+| `declared` | a nomination list hand-typed into `judgements/<slug>-<year>.toml` under `[roster]` | `projected` |
+| `projected` | the preceding LGE result ∪ the preceding NPE baseline, less two measured floors (`JUDGEMENT-CALLS.md` §K1, §K2) and less the `IND`/`ENTRANT` slots | `projected` |
+
+⚠️ **THE FLAG CLEARS AFTER POLLING DAY, NOT BEFORE IT, AND THE INTUITIVE
+READING IS THE WRONG ONE.** `roster_for_target` branches on
+`cityconfig.CALENDAR[year].results`, and `pools.contesting_parties` reads the
+**result** file — so `published` is unreachable until the election has been held
+and ingested. Pasting the IEC's nomination lists into the judgement file makes
+the roster very much better (`roster_source` becomes `declared`, and with
+`complete = true` it replaces the projection outright and licenses deleting the
+parties it omits) and the run still reports `projected`, because it is still not
+a result file. Anyone who expects the warning to disappear in the weeks before
+the election will read an un-flagged model as flagged.
+
+### What the run declares
+
+`run_model` prints the declaration **unconditionally** — not behind `verbose`,
+because the published run is not verbose — whenever the state is `projected`. It
+carries five fields, and each exists because its absence was a question a reader
+could not answer:
+
+| field | what it answers |
+|---|---|
+| `parties` | how many are on the assumed ballot |
+| `file` | **the spec path that was actually read**, from `scenario["_pools_spec_path"]`, never recomputed. A caller supplying `scenario["pools"]` directly opened no file, and the field says `NO FILE` rather than naming one — printing a path that was not opened is the same class of answer-shaped-non-answer as an empty roster meaning "drop nobody" |
+| `source` | `roster_source` and `reach_source` as the spec recorded them |
+| `how` | the derivation, **per source**. The projected branch names both prior elections by the year the target resolves them to and cites `JUDGEMENT-CALLS.md` §K1/§K2 for the floors. ⛔ It does **not** restate the floors' measured costs — `CLAUDE.md` rule zero; the figures live in §K1/§K2 and are fetched, not copied |
+| `ends` | that `published` arrives with the result file, and that the available action before then is a declared list |
+| `scored` | that **nothing scores the projection** — see below |
+
+`tests/test_projected_roster_declaration.py` holds it up. Its population check
+reads the `roster_source` literals out of `pools.resolve_roster`'s own AST and
+asserts **set equality** with the values the declaration branches on — both
+directions, because a register naming a state the code cannot reach is the same
+defect as a state the register omits, and only one of those two is usually
+checked.
+
+⚠️ **Inert on the tree as it stands.** No `pools_*.json` on disk carries
+`roster_source` at all: the field was added on 2026-09-14 and the batch re-emit
+has not run, so every target still resolves to `not_yet_held` and this
+declaration has never fired against a real spec. It goes live with the re-emit.
+
+### Scoring the projected roster — ⛔ NOT BUILT. This is a specification.
+
+**Nothing compares a projected roster with the ballot that eventually arrives.**
+A projection that is never scored is a guess nobody learns from, and the model
+has made this class of guess in every forecast it has published.
+
+*The question.* Of the parties the projection said would contest, how many did —
+and which real contestants did it miss?
+
+*Why it is not a weekend's work, and what blocks it.* The projection is
+`pools.resolve_roster`'s `_projected` set, which is built from `composition` —
+the fitted pool vectors, i.e. the output of the city fit. At a **published**
+target `_projected` is still computed (it is hoisted above the branch so the
+declared-incomplete case can union with it) and then **thrown away**: nothing
+emits it, so no spec on disk carries the counterfactual projection for a
+city-year whose ballot is known. There are exactly two ways to get one, and the
+choice is the whole design:
+
+1. **Emit it.** Have `resolve_roster` return `_projected` and `emit_pools` write
+   it as a spec field beside `roster` — three lines, one definition, no second
+   copy of the derivation. The scorer then reads two fields off one artefact and
+   never recomputes anything. **Cost: it is a `pools.py` change, so it
+   invalidates every spec and belongs in the pending batch
+   (`POOLS-REEMIT-QUEUE.md`), and it produces no number until that emit runs.**
+2. **Recompute it in the scorer.** Cheaper to start and it is a **second
+   definition of the projection**, whose failure mode is party-shaped and
+   seat-costing. This project's standing rule is one definition only, and the
+   quantity in question is the one that decides whether a party exists at all.
+
+**(1) is the design.** (2) is rejected and this line is the record of it.
+
+*What it must report, and why counts alone are the wrong headline.* Unweighted
+precision and recall treat a party that polls 0.02% as the equal of one that
+polls 16%, and §K1/§K2 exist precisely because those are not equal. The scorer
+must report, per city-year:
+
+* `predicted`, `actual`, `hit`, `missed`, `spurious` — counts, and the **missed
+  set by name**, ordered by the missed party's **actual share at the target**,
+  which is the number that says whether the miss mattered;
+* **missed mass** — the missed parties' combined actual share. This is the
+  headline. A recall of 0.6 costing 0.1pp and a recall of 0.9 costing 16pp are
+  opposite results and the counts cannot tell them apart;
+* **missed mass net of the arrival allowance.** ⚠️ This is the correction
+  without which the scorer libels the model. The ENTRANT slot and
+  `pools.default_seeds` exist *because* a projection cannot name a party that
+  does not yet exist; the arrival total is the model's designed absorber for
+  exactly this miss. A scorer that reports raw recall reports the arrival
+  machinery's job as the roster's failure. What is diagnostic is the missed mass
+  **beyond** what the arrival total was sized to carry.
+
+*What it can and cannot claim.* Every backtested city-year has both halves once
+(1) lands, so the panel is whatever `backtest.runnable_targets` offers across
+`cities/*.toml`. But the §K1/§K2 floors were **chosen by measuring over that same
+panel**, so the score is not out-of-sample with respect to the floors and must
+be reported as in-sample for them. The honest out-of-sample statement is about
+the *sources*, not the floors: how much of the real ballot no projection from
+the preceding LGE and the preceding NPE could ever have named. That quantity
+needs no fit, no floors and no second definition, and is the recall ceiling the
+scorer's recall should be read against.
+
+*Where the numbers go.* `MODEL-LOG.md`, dated, as with every other measurement.
+
 ## Knowing whether the pool spec is stale
 
 Every `pools_*.json` carries an `artefact_key`:

@@ -40,10 +40,20 @@ calling ``roster_for_target``, and a not-yet-held target with a spec roster now
 returns state ``"projected"`` — the SAME fail-closed discipline applies: a spec
 naming a ``roster_source`` with no readable ``roster`` behind it raises, exactly
 as an unreadable ``contesting_parties`` result does for the published state.
-Section 4 below covers this state; sections 1-3 are otherwise unchanged and
-still describe the published/not-yet-held pair, because every spec on disk
-today predates the new fields and so still resolves to ``not_yet_held`` — this
-addition is inert until the pending ``pools.py`` re-emit lands.
+Section 4 below covers this state. ⛔ **AND SECTION 3 WAS REPAIRED ON THE SAME
+DAY, BECAUSE IT HAD TYPED THE ANSWER IN.** It asserted ``NOT_YET_HELD``, size
+``0`` and no drop as literals against a real run — true of every spec on disk,
+and false the moment the pending ``pools.py`` re-emit writes the new fields
+onto them. Reproduced end to end in an isolated tree, against a spec carrying
+those three fields with a STAND-IN roster — the spec's own pool composition, 35
+parties; the real one is ``pools.resolve_roster``'s projection, which only an
+emit can produce, and it is a superset of the composition. The same run returns
+``projected``, a non-zero ``roster_size`` and a non-empty ``roster_dropped`` (13
+against that stand-in), so all three literals failed together — a GREEN TEST
+THAT THE EMIT TURNS RED, which in the middle of a window reads as a regression
+rather than as its own premise expiring. It now DERIVES what it expects from what the
+spec carries (:func:`_expected_from_spec`), so it is correct before the emit
+and after it, and still fails if the wiring between the two breaks.
 
 WHAT THIS FILE HAS TO PROVE, per ``CLAUDE.md`` §4's rule for a test that asserts
 an absence. The claim "no run reaches the drawing stage with a silently empty
@@ -66,8 +76,12 @@ tests fail:
    times. The spy is then re-run against the real function so a test that
    disabled the mechanism cannot leave it disabled.
 3. **CONSTRUCTED INPUT, NOT AN OBSERVED ONE.** Every failure here is injected.
-   Nothing asserts a property of the tree that would expire the day someone
-   fixes something else.
+   ⚠️ **This paragraph was FALSE about section 3 for as long as it stood there**
+   — that test read three constants off a run against a precomputed artefact,
+   which is an observed premise with an expiry date, and the expiry was a
+   re-emit already sitting in a queue. Recorded rather than quietly corrected:
+   the requirement is easy to assert and easy to believe of a file that mostly
+   meets it.
 
 A fourth thing, which is not in the rule and is the one that matters most here:
 ``test_run_model_resolves_its_roster_through_the_checked_path`` patches the
@@ -84,6 +98,7 @@ Run:
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -391,17 +406,134 @@ def test_run_model_resolves_its_roster_through_the_checked_path():
 # 3. the state reaches the run's own output
 # --------------------------------------------------------------------------
 
+def _spec_roster_fields(spec_path) -> tuple[object, object]:
+    """``roster_source`` and ``roster`` AS THE SPEC FILE CARRIES THEM.
+
+    Read straight out of the JSON rather than off the run, which is what makes
+    the assertions below a WIRING check: the expectation comes from the input
+    artefact and the assertion is about the model's output, so a break anywhere
+    between the two shows up. A spec emitted before ``pools.emit_pools`` grew
+    these fields carries neither and ``.get`` returns ``None`` for both — the
+    legacy shape, not a defect.
+    """
+    spec = json.loads(Path(spec_path).read_text())
+    return spec.get("roster_source"), spec.get("roster")
+
+
+def _expected_from_spec(source, roster) -> tuple[str, int]:
+    """The state and roster size an UNHELD target must report, given its spec.
+
+    ⛔ **THE CONTRACT, WRITTEN OUT — NOT THE ANSWER, TYPED IN.** Until
+    2026-09-14 the test below asserted ``NOT_YET_HELD`` and ``0`` as literals.
+    That was true of every spec on disk and FALSE the moment the pending
+    ``pools.py`` re-emit writes ``roster``/``roster_source`` onto them — which
+    is a change the emit is *designed* to make, not an accident of it.
+    Reproduced end to end before this repair, in an isolated tree, against a
+    spec carrying those fields with a stand-in roster (the spec's own pool
+    composition — the real projection is `pools.resolve_roster`'s and only an
+    emit produces it): the run came back ``projected``, with a non-zero roster
+    and a non-empty drop, so all three typed assertions failed at once. A green test that the emit turns red is not a
+    guard; it is a premise that expires mid-window and reads as a regression.
+    CLAUDE.md §4, requirement 3.
+
+    So the expectation is DERIVED from what the spec carries, by the truth
+    table :func:`montecarlo.roster_for_target` documents:
+
+    * **no ``roster_source``** — no spec roster is available, because the spec
+      predates the field or because no spec was read at all. The off-ballot
+      drop is disabled knowingly: ``not_yet_held``, an empty ballot, nothing
+      dropped.
+    * **a ``roster_source`` with a non-empty ``roster``** — the ballot the
+      pools themselves were built from, an ASSUMPTION rather than a result
+      file: ``projected``, sized by that roster.
+
+    The third shape — a ``roster_source`` naming no readable roster — cannot
+    reach here, because the run refuses; section 4 constructs all four of its
+    variants against the helper directly.
+
+    ⚠️ **This derivation is not a second implementation of the branch.** It
+    reads the two SPEC fields and names the state; it does not read the
+    calendar, open a result file, or resolve anything. If the wiring between
+    the spec and the run breaks — the fields stop being stashed onto
+    ``scenario``, or ``roster_for_target`` stops consulting them — the run and
+    this table disagree and the test goes red, which is the whole point.
+    """
+    if source is None:
+        return NOT_YET_HELD, 0
+    assert isinstance(roster, list) and roster, (
+        f"the spec on disk declares roster_source={source!r} with "
+        f"roster={roster!r}. `roster_for_target` REFUSES that shape, so the "
+        f"run under test would have died before returning and this file "
+        f"cannot say what it should have reported. Fix the spec — check "
+        f"`pools.emit_pools`'s call to `resolve_roster` and re-emit — rather "
+        f"than relaxing this.")
+    return PROJECTED, len(set(roster))
+
+
+def _roster_disagreement(run, source, roster) -> str | None:
+    """How the RUN disagrees with the SPEC it was built from, or ``None``.
+
+    Factored out so the identical comparison can be made against a
+    DELIBERATELY WRONG spec shape — the "can it see, and does it go quiet when
+    the violation is reverted" half of CLAUDE.md §4, which this test had no
+    form of at all while it was asserting three constants.
+    """
+    state, size = _expected_from_spec(source, roster)
+    if run.roster_state != state:
+        return (f"the run recorded roster state {run.roster_state!r}; its spec "
+                f"carries roster_source={source!r}, which is state {state!r}. "
+                f"An empty roster means DROP NOBODY, and a run that cannot "
+                f"tell a knowingly disabled drop from a broken one — or an "
+                f"ASSUMED ballot from a published one — is the whole defect "
+                f"F7 exists to end.")
+    if run.roster_size != size:
+        return (f"the run reports {run.roster_size} parties on the ballot and "
+                f"its spec carries {size}. `roster_size` is the positive "
+                f"control: it is how a consumer tells a roster that was READ "
+                f"from one that was merely absent, so the two must be the "
+                f"same count or it is reporting somebody else's ballot.")
+    if run.scenario.get("_roster_state") != state:
+        return (f"the scenario carries _roster_state="
+                f"{run.scenario.get('_roster_state')!r} against the run's "
+                f"{state!r}. The state must travel with the scenario or it "
+                f"never reaches forecast_summary.json, where `_pools_stale` — "
+                f"the same kind of fact about the same kind of input — "
+                f"already is.")
+    if state == NOT_YET_HELD and run.roster_dropped:
+        return (f"the run dropped {run.roster_dropped} with no roster to drop "
+                f"against. `levels.absent_from_ballot` returns [] for an empty "
+                f"roster precisely because deleting the whole baseline over a "
+                f"missing file would be catastrophic rather than "
+                f"conservative.")
+    if state != NOT_YET_HELD:
+        both = sorted(set(run.roster_dropped) & set(roster))
+        if both:
+            return (f"{both} were dropped as NOT on the ballot and are named "
+                    f"ON it by the same spec. The drop and the roster are one "
+                    f"decision read twice.")
+    return None
+
+
 def test_the_run_records_which_roster_state_it_was_in():
     """A state nobody can read is not a distinction.
 
     The point of F7 is that a consumer — `compare_history`'s scoreboard, a
     published summary, a person — can tell a KNOWINGLY disabled off-ballot drop
-    from a broken one. That requires the state to leave `run_model`, so this
-    runs the model and reads it off `ModelRun`.
+    from a broken one, and (since 2026-09-14) a drop running on an ASSUMPTION
+    from one running on the target's own result file. That requires the state
+    to leave `run_model`, so this runs the model and reads it off `ModelRun`.
 
-    Run at the unheld target because that is the state the live forecast is in
-    today, and because a run that legitimately drops nobody is exactly the one
-    the old code was indistinguishable from.
+    Run at the unheld target because that is the state the live forecast is in,
+    and because a run that legitimately drops nobody is exactly the one the old
+    code was indistinguishable from.
+
+    ⛔ **WHAT IT ASSERTS IS DERIVED, NOT TYPED** — see
+    :func:`_expected_from_spec` for why, and for what it cost. The three
+    quantities are compared against the spec the run actually read, so this
+    test is correct both before the pending re-emit (no roster fields: the run
+    must report `not_yet_held`) and after it (a projected roster: the run must
+    report `projected`, sized by that roster). It still fails if the wiring
+    between the two breaks in either direction.
 
     It also checks the guard board that came out with it. `run.guards` is the
     payload of the trace's `41_guards`, which until now existed only inside a
@@ -415,6 +547,8 @@ def test_the_run_records_which_roster_state_it_was_in():
     spec = city.processed / f"pools_{UNHELD}.json"
     if not spec.exists():
         skip(f"no pool spec at {spec}")
+    # READ BEFORE THE RUN, and from the file rather than through the model.
+    source, spec_roster = _spec_roster_fields(spec)
     target = cityconfig.use_target(UNHELD)
     try:
         run = M.run_model(target, M.load_scenario(_Args(draws=20)),
@@ -422,21 +556,45 @@ def test_the_run_records_which_roster_state_it_was_in():
     finally:
         cityconfig.use(CITY)
 
-    assert run.roster_state == NOT_YET_HELD, (
-        f"the {UNHELD} run recorded roster state {run.roster_state!r}. "
-        f"`CALENDAR[{UNHELD!r}].results` is None, so there is no roster to "
-        f"read and the drop is disabled legitimately — the run must SAY so, "
-        f"because an empty roster it could not read looks identical.")
-    assert run.roster_size == 0 and run.roster_dropped == [], (
-        f"the {UNHELD} run reports {run.roster_size} parties on the ballot and "
-        f"dropped {run.roster_dropped}. Nothing may be dropped on a roster that "
-        f"does not exist: `levels.absent_from_ballot` returns [] for an empty "
-        f"roster precisely because dropping the whole baseline over a missing "
-        f"file would be catastrophic rather than conservative.")
-    assert run.scenario.get("_roster_state") == NOT_YET_HELD, (
-        "the roster state did not reach the scenario, so it will not reach "
-        "forecast_summary.json, where `_pools_stale` — the same kind of fact "
-        "about the same kind of input — already is.")
+    # (a) THE WIRING ITSELF. `run_model` stashes the spec's two roster fields
+    #     onto `scenario` before calling `roster_for_target`; if it picked them
+    #     up anywhere else, or stopped picking them up, nothing below means
+    #     what it says.
+    assert run.scenario.get("_pools_roster_source") == source, (
+        f"the run carries _pools_roster_source="
+        f"{run.scenario.get('_pools_roster_source')!r} and {spec.name} carries "
+        f"{source!r}. `run_model` is not reading the spec field it resolves "
+        f"the ballot from, so the pools and the off-ballot drop are once again "
+        f"free to disagree about what the ballot is.")
+    assert run.scenario.get("_pools_roster") == spec_roster, (
+        f"the run carries a {type(run.scenario.get('_pools_roster')).__name__} "
+        f"of "
+        f"{len(run.scenario.get('_pools_roster') or [])} parties as "
+        f"_pools_roster and {spec.name} carries "
+        f"{len(spec_roster or [])}. Same field, two values.")
+
+    # (b) THE STATE AND THE DROP, against the spec rather than against a
+    #     constant. See `_expected_from_spec`.
+    disagreement = _roster_disagreement(run, source, spec_roster)
+    assert disagreement is None, disagreement
+
+    # (c) ⛔ CAN IT SEE, AND DOES IT GO QUIET AGAIN? Re-run the same comparison
+    #     against the OTHER admissible spec shape — which is precisely the
+    #     failure this repair is for: the spec gains (or loses) its roster
+    #     fields and the run does not follow. Constructed in both directions,
+    #     so it fires whichever shape the spec on disk is currently in.
+    inverted = (("projected", ["ANC", "DA", "MK"]) if source is None
+                else (None, None))
+    assert _roster_disagreement(run, *inverted) is not None, (
+        f"the run reports state {run.roster_state!r} with {run.roster_size} "
+        f"parties, and the comparison ACCEPTED a spec claiming "
+        f"roster_source={inverted[0]!r} as well. A check that accepts both "
+        f"answers is not checking; this is the guard that must fail when the "
+        f"emit moves the spec and the model does not follow it.")
+    assert _roster_disagreement(run, source, spec_roster) is None, (
+        "the comparison did not go quiet when the constructed violation was "
+        "reverted, so something above it left state behind and (b) was "
+        "measuring a mutated premise.")
 
     # THE GUARD BOARD. Cross-checked against the typed fields that already have
     # consumers, so an empty or differently-computed board fails here.
@@ -477,11 +635,11 @@ def test_the_run_records_which_roster_state_it_was_in():
 # spec fields and ``run_model`` stashes them onto ``scenario`` before calling
 # ``roster_for_target`` — see both docstrings. Every spec on disk today
 # predates those fields, so these tests call ``roster_for_target`` directly
-# with a CONSTRUCTED scenario rather than through a real spec file, which is
-# also why section 1-3's ``test_the_run_records_which_roster_state_it_was_in``
-# (an end-to-end run against the real 2026 spec) still asserts
-# ``NOT_YET_HELD``: this addition is inert on the tree as it stands, and stays
-# that way until the pending re-emit lands.
+# with a CONSTRUCTED scenario rather than through a real spec file. Section 3's
+# ``test_the_run_records_which_roster_state_it_was_in`` is the end-to-end half
+# and asserts whichever state the spec on disk puts the run in — ``not_yet_held``
+# today, ``projected`` once the pending re-emit lands. It no longer names either
+# as a constant; see ``_expected_from_spec``.
 
 def test_a_projected_roster_is_read_from_the_scenario_the_spec_populated():
     """THE POSITIVE CONTROL for the fourth state.

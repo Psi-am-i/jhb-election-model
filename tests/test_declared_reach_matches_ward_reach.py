@@ -29,12 +29,21 @@ number:
 
 WHAT THIS FILE HAS TO PROVE, per ``CLAUDE.md`` §4:
 
-0. **THE RIGHT POPULATION, BOTH DIRECTIONS.** The population is every PRODUCER
-   of a reach value, not the declared path alone — enumerated by SCANNING
-   ``src/pools.py``'s syntax tree for the computation rather than by listing call
-   sites, and asserted EQUAL to the set of producers this file has a case for. A
-   third producer added later must fail this, or the guard silently stops
-   covering the thing it is named for.
+0. **THE RIGHT POPULATION, BOTH DIRECTIONS — AND ⛔ THIS ONE WAS OVERCLAIMED
+   UNTIL 2026-09-14, WHICH IS THE CLASS OF DEFECT THE PARAGRAPH IS ABOUT.** It
+   said the population was *"every PRODUCER of a reach value … a third producer
+   added later must fail this"*. It was not, and one did not: the scan matched a
+   ``Div`` whose **both operands are literal ``len()`` calls**, and a genuine
+   second definition of reach that bound its two counts to names first was added
+   to ``pools.py`` and **this module stayed green, 6 passed 0 failed**. It also
+   failed the other way, turning red for any unrelated ``len(a)/len(b)``
+   anywhere in the module. The scan now catches the bound spelling as well, and
+   the claim is cut to what a syntax scan can carry: **every ratio of counts in
+   ``pools.py`` is classified** — a reach, which needs a case here, or a line in
+   ``NOT_A_REACH`` saying what it is instead. A reach computed some other way
+   (``sum(1 for …)/n``, a counting helper, another module) is invisible to it,
+   and the registers are maintained by hand. Stated, not claimed away; see
+   :func:`_count_ratios_in_source`.
 1. **IT LOOKED.** The denominators are asserted to be the SAME QUANTITY, not
    merely to match on one example: for a declaration covering the whole ballot,
    ``declared_roster``'s reach equals ``_ward_reach``'s for EVERY party, and the
@@ -86,8 +95,17 @@ CITY = "joburg"
 YEAR = "2021"          # a held election: a real ward ballot, so both producers run
 
 # Every function in `pools.py` that COMPUTES a reach value. Not a list of call
-# sites — the set the scan below must return.
+# sites — the half of the scan below that must have a case in this file.
 REACH_PRODUCERS = {"_ward_reach", "declared_roster"}
+
+# ⛔ AND THE OTHER HALF, WHICH THE SCAN CANNOT TELL APART FROM A REACH. The scan
+# finds a SPELLING — one count divided by another — and a mean, a coverage
+# fraction or a hit rate has that spelling too. Such a function is not a defect
+# and must not turn this file red on its own; it is a prompt to look, and the
+# looking is recorded here with a reason. EMPTY TODAY, and that is a fact about
+# `pools.py` (verified 2026-09-14: the two producers above are the only
+# count-ratios in the module), not a permission to leave a new one unclassified.
+NOT_A_REACH: dict[str, str] = {}
 
 # How much of the ballot a whole-ballot declaration should reproduce. Two-sided
 # against a computed denominator, per `_support.scanned`: a whole-ballot paste
@@ -101,14 +119,44 @@ COMPARED_LO, COMPARED_HI = 0.70, 1.00
 # 0. the population of PRODUCERS, scanned from the code
 # --------------------------------------------------------------------------
 
-def _reach_producers_in_source() -> set[str]:
-    """Every function whose body divides one `len()` by another.
+def _count_ratios_in_source() -> dict[str, list[str]]:
+    """Every function in ``pools.py`` that divides one COUNT by another.
 
-    That is the shape a reach computation has — a count of a party's wards over
-    a count of the denominator's — and scanning for it finds the producers
-    wherever they are, instead of trusting a list that goes stale. Both
-    ``_ward_reach`` (`len(w) / len(seen)`) and ``declared_roster``
-    (`len(set(ws)) / len(city_wards)`) are found this way.
+    ⛔ **WHAT THIS IS AND IS NOT, because the docstring here used to claim the
+    semantic version and deliver the syntactic one.** It claimed *"a third reach
+    producer added to `pools.py` fails here until it is given a case"*. It did
+    not. The predicate was a ``Div`` whose **both operands are literal ``len()``
+    calls**, and a genuine second definition of reach — same computation,
+    disagreeing answer, differing only in binding ``n = len(seen)`` and
+    ``k = len(w)`` before dividing — was added to `pools.py` on 2026-09-14 and
+    **this module stayed fully green, 6 passed 0 failed**. It scanned a
+    SPELLING and called it a population.
+
+    Two changes followed, and only one of them is a widening:
+
+    * **the spelling is widened by one hop**, to a name the same function binds
+      to a ``len()`` call. That closes the demonstrated evasion, which is also
+      the shape an ordinary refactor takes — hoist the two counts, then divide.
+      Verified not to fire on anything new: run against the real `pools.py` it
+      returns exactly the two producers, the same answer the old predicate gave.
+    * **the claim is cut down to what a scan can actually support.** This is a
+      TRIPWIRE over a family of spellings, not an enumeration of reach. A reach
+      computed as ``sum(1 for …) / n``, through a counting helper, from a
+      precomputed total, or in another module, is INVISIBLE to it. Nothing here
+      can see those, and the register above is maintained by hand — which is the
+      same one-directional weakness ``CLAUDE.md`` §5 records for
+      ``test_standalone_modules``, stated rather than papered over.
+
+    It also failed the other way: the old predicate turned this module red for
+    any unrelated ``len(a) / len(b)`` anywhere in a six-thousand-line file, with
+    a message accusing it of being an unguarded reach. Constructed and confirmed
+    the same day — a ``len(composition) / len(pools_d)`` mean made the module
+    fail. That is now a classification rather than a verdict: see
+    ``NOT_A_REACH``.
+
+    Returns ``{function name: [the ratio expressions found in it]}`` — the
+    expressions so the failure message can show a reader what it caught rather
+    than only where.
     """
     tree = ast.parse((Path(pools.__file__)).read_text())
 
@@ -116,40 +164,132 @@ def _reach_producers_in_source() -> set[str]:
         return (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
                 and node.func.id == "len")
 
-    found = set()
+    found: dict[str, list[str]] = {}
     for fn in ast.walk(tree):
         if not isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
+        # Names this function binds to a `len()` call, anywhere in its body.
+        # Deliberately flow-INSENSITIVE: a name that is ever a count is treated
+        # as a count, because the alternative is a dataflow analysis in a test.
+        counts: set[str] = set()
+        for node in ast.walk(fn):
+            if isinstance(node, ast.Assign) and is_len(node.value):
+                counts.update(tgt.id for tgt in node.targets
+                              if isinstance(tgt, ast.Name))
+            elif isinstance(node, (ast.AnnAssign, ast.NamedExpr)):
+                value, target = node.value, node.target
+                if (value is not None and is_len(value)
+                        and isinstance(target, ast.Name)):
+                    counts.add(target.id)
+
+        def is_count(node):
+            return is_len(node) or (isinstance(node, ast.Name)
+                                    and node.id in counts)
+
         for node in ast.walk(fn):
             if (isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div)
-                    and is_len(node.left) and is_len(node.right)):
-                found.add(fn.name)
+                    and is_count(node.left) and is_count(node.right)):
+                found.setdefault(fn.name, []).append(ast.unparse(node))
     return found
 
 
-def test_every_producer_of_a_reach_value_has_a_case_here():
+def test_every_count_ratio_in_pools_is_classified():
     """BOTH DIRECTIONS, AND THIS IS THE ONE THIS REPOSITORY KEEPS MISSING.
 
-    code -> register: a third reach producer added to ``pools.py`` fails here
-    until it is given a case. register -> code: a producer named here that the
-    module no longer contains fails too, so the guard cannot go on claiming to
-    cover something that has moved.
+    code -> register: a ratio of counts added to ``pools.py`` fails here until
+    somebody says which it is — a reach, which needs a case in this file, or
+    something else, which needs a line in ``NOT_A_REACH`` saying why. register
+    -> code: a name in either register that the module no longer contains fails
+    too, so the guard cannot go on claiming to cover something that has moved.
+
+    ⚠️ **THE CLAIM IS NARROWER THAN THE NAME OF THIS FILE, DELIBERATELY.** The
+    old version of this test claimed to catch *any* third producer of reach and
+    a constructed one walked past it (see ``_count_ratios_in_source``). What is
+    asserted now is what a syntax scan can carry: every ratio-of-counts in
+    ``pools.py`` is accounted for. A reach computed some other way is not
+    covered by this test and is not claimed to be.
     """
-    found = _reach_producers_in_source()
-    assert found == REACH_PRODUCERS, (
-        f"`pools.py` computes a ward-count ratio in {sorted(found)} and this "
-        f"file has cases for {sorted(REACH_PRODUCERS)}.\n\n"
-        f"EXTRA in the code ({sorted(found - REACH_PRODUCERS)}): a new producer "
-        f"of reach with nothing asserting it agrees with the others — which is "
-        f"exactly how the declared path came to disagree with `_ward_reach` "
-        f"while a comment said it could not.\n"
-        f"MISSING from the code ({sorted(REACH_PRODUCERS - found)}): this guard "
-        f"is watching a function that has been renamed or deleted, so it covers "
-        f"less than its name says.")
-    for name in REACH_PRODUCERS:
+    found = _count_ratios_in_source()
+    classified = REACH_PRODUCERS | set(NOT_A_REACH)
+    assert set(found) == classified, (
+        f"`pools.py` divides one count by another in {sorted(found)}; this "
+        f"file has cases for {sorted(REACH_PRODUCERS)} and records "
+        f"{sorted(NOT_A_REACH)} as deliberately not reach.\n\n"
+        f"UNCLASSIFIED in the code ({sorted(set(found) - classified)}): "
+        + "; ".join(f"{name} -> {found[name]}"
+                    for name in sorted(set(found) - classified))
+        + f"\nDecide which it is. If it computes reach it needs a case here "
+        f"asserting it agrees with `_ward_reach` — that is exactly how the "
+        f"declared path came to disagree while a comment said it could not. If "
+        f"it is a mean, a coverage fraction or a hit rate, add it to "
+        f"`NOT_A_REACH` with the reason; this scan matches a SPELLING and "
+        f"cannot tell them apart.\n"
+        f"MISSING from the code ({sorted(classified - set(found))}): a register "
+        f"entry watching a function that has been renamed, deleted, or "
+        f"rewritten so its ratio is no longer a ratio of counts — in every case "
+        f"this guard now covers less than its registers say.")
+    assert found, (
+        "the scan found no count-ratio anywhere in `pools.py`. `_ward_reach` "
+        "computes one on its last line, so the scan has lost its input rather "
+        "than passed.")
+    for name in REACH_PRODUCERS | set(NOT_A_REACH):
         assert callable(getattr(pools, name, None)), (
-            f"`pools.{name}` is not callable, so the scan found a name this "
-            f"file cannot exercise.")
+            f"`pools.{name}` is not callable, so a register names something "
+            f"this file cannot exercise.")
+
+
+def test_the_scan_sees_a_count_ratio_however_it_is_spelled():
+    """⛔ CAN IT SEE — on constructed source, and both spellings.
+
+    The detector is run over a module written for the purpose rather than over
+    ``pools.py``, because adding a second reach to ``src/`` to find out is not
+    available to a test. Three cases, and the second is the one the previous
+    predicate failed:
+
+    1. the literal spelling ``len(a) / len(b)`` — what it always caught;
+    2. ⛔ **the bound spelling**, ``n = len(a)`` … ``k = len(b)`` … ``k / n``.
+       A real second definition of reach in exactly this shape was added to
+       ``pools.py`` and the whole module stayed green;
+    3. a ratio that is NOT of counts — ``len(a) / total`` — which must not be
+       caught, or every average in the file becomes a reach.
+
+    And it goes quiet again: the module with the violations removed returns
+    nothing, so a pass above is not the scan having stopped working.
+    """
+    import tempfile as _tf
+
+    def scan(src: str) -> dict[str, list[str]]:
+        with _tf.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fake_pools.py"
+            path.write_text(src)
+            real = pools.__file__
+            try:
+                pools.__file__ = str(path)
+                return _count_ratios_in_source()
+            finally:
+                pools.__file__ = real
+
+    literal = "def a(x, y):\n    return len(x) / len(y)\n"
+    assert sorted(scan(literal)) == ["a"], scan(literal)
+
+    bound = ("def b(x, y):\n"
+             "    n = len(y)\n"
+             "    k = len(x)\n"
+             "    return k / n\n")
+    assert sorted(scan(bound)) == ["b"], (
+        f"the bound spelling was not caught: {scan(bound)}. This is the "
+        f"constructed second definition of reach that walked past the previous "
+        f"predicate while this module reported 6 passed, 0 failed.")
+
+    not_counts = "def c(x, total):\n    return len(x) / total\n"
+    assert scan(not_counts) == {}, (
+        f"a count over a non-count was caught: {scan(not_counts)}. Widening "
+        f"until everything matches is not a guard; it is a permanent red.")
+
+    # ...AND QUIET WHEN THE VIOLATIONS ARE REVERTED.
+    assert scan("def d(x, y):\n    return sum(x) / sum(y)\n") == {}, (
+        "the scan reports a count-ratio in a module that has none, so the "
+        "cases above prove nothing about what it can tell apart.")
 
 
 # --------------------------------------------------------------------------

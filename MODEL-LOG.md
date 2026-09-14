@@ -25708,3 +25708,206 @@ passes under the defect *and* under its fix, which is the live class found in
 this repository the same week. Rewritten to run the real function body with its
 census read blinded, and the mutation is now caught. The four-part rule is the
 cheap approximation; this is the check that it approximated anything.
+
+## 1.239 The tie-break was measured into a commit message and never into the record — and it is TWO bands, not one (2026-09-14)
+
+**What the record already held**, and neither line is superseded by this entry:
+
+* **The ARBITRARINESS band.** `benchmarks.canonical_order`'s docstring (measured
+  2026-09-13, 24 city-years, seat error against published results) and §1.229 at
+  `MODEL-LOG:24426`: run the same panel with the name rule sorted the other way
+  and only two city-years move — Johannesburg 2021 by 2 seats and Nelson Mandela
+  Bay 2021 by 2 — so `uniform-swing+roster` totals **837 under the name rule and
+  841 under its mirror**, against plain `uniform-swing`'s **885**, which has no
+  exact ties and does not move at all.
+* **The canonical panel**, §1.231 at `MODEL-LOG:24751`: model **723**,
+  `uniform-swing+roster` **837** (band **837–841**), `uniform-swing` 885,
+  `last-lge` 1315, `prior-lge-noise` 1361.
+* §1.230 at `MODEL-LOG:24676`: *"Post-fix, one hash six times across seeds;
+  pre-fix, four distinct hashes in five runs. The panel is 837, band 837–841."*
+
+**What was measured on 2026-09-14 and written ONLY into commit `6e0688a`'s
+message**, quoted from it verbatim because that is its only source:
+
+> Measured — 16 hash seeds, 24 city-years, 1000 draws, with negative and
+> positive controls — the model is 723 at width 0 and the opponent 837 at
+> width 0. 837-841 was never the hash band; it is the ARBITRARINESS band […]
+> On that axis the opponent moves 837 -> 841 and the model does not move at
+> all. […] 723 is quotable bare.
+
+**A commit message is not the record.** That measurement decided how the
+headline may be quoted and was reachable only by `git log`, which nothing in
+this repository points a reader at. It is filed here.
+
+### ⛔ THE TWO BANDS MUST NOT BE COLLAPSED, AND THE INSTRUCTION AT `MODEL-LOG:24790` IS NOW READ WRONG
+
+§1.231 conclusion 3 (`MODEL-LOG:24790`) says **"Quote 837–841, never 837
+alone."** That is **still correct, and it is about the OPPONENT.** This file is
+append-only and that line stays as written; this paragraph scopes it.
+
+| axis | opponent | model |
+|---|---|---|
+| **hash reseeding** (16 seeds) | 837, width 0 | 723, width 0 |
+| **arbitrariness** (name rule vs its mirror) | **837 → 841** | 723 → 723 |
+
+So: **723 is quotable bare. 837 still carries 837–841.** A reader who applies
+`:24790`'s instruction to the model's own total is applying an opponent's
+disclosure to a number that has no band on either axis.
+
+**Why the two sides differ, taken from the code rather than from the sweep.**
+`benchmarks.newcomer_shares` gives every newcomer with the same ward reach
+*exactly* the same share, so exact ties are the normal case for the reference —
+`canonical_order`'s docstring records seven groups of parties on identical
+combined totals at Johannesburg 2021, the top two being 4,176 votes across 5
+parties at reach 1.000 and 4,146 votes across 2 parties at reach 0.99259 (ASA
+and CHANGE). The model draws its shares stochastically, so an exact tie is
+measure-zero. The asymmetry runs opposite to the charge that was laid: the
+*reference* is the fragile side.
+
+### ⚠️ WHAT I COULD NOT SOURCE, AND THEREFORE DID NOT WRITE DOWN
+
+The brief that commissioned this entry carried leaf-level control figures — a
+negative control (seed 0 twice) reported as 0/24 rows and 0 of 28,599 leaves
+differing, a positive control (seed 0 vs 1) as 24/24 rows and 1,364 leaves, and
+1,761 leaves varying across seeds of which none integer-valued. **Not one of
+those numbers is in `6e0688a`'s message, anywhere in this repository, or in any
+artefact on this tree.** Searched 2026-09-14 across `src/`, `tests/`, `audits/`,
+`prereg/` and the tracked markdown; the two probe scripts still in `/tmp`
+(`panel_hash.py`, `probe_seed.py`) are neither the sweep nor its output. They
+are omitted rather than copied.
+
+⛔ **The residual defect this entry does NOT close: the sweep script was never
+committed, so the width-0 result cannot be reproduced from this repository.** It
+is a claim with a stated method (16 seeds × 24 city-years × 1000 draws, controls
+run) and no runnable instrument. Anyone re-opening the tie-break question is
+re-running the sweep from scratch.
+
+Second thing not resolved: nothing records **at which site the mirrored name
+rule was imposed**. `canonical_order` is called only from
+`benchmarks.council_from_shares`, and its own docstring says the fix sits there
+and *"leaves the model's own path untouched"*. If the mirror was applied there,
+"the model 723 → 723" is true **by construction** rather than by measurement,
+and the measured part of the model's invariance is the hash axis alone.
+
+
+## 1.240 The committed `history.json` over-declares its own contamination, and a register key that reaches every target is read by no row (2026-09-14)
+
+Verified read-only at `9f5ab4a` against `git show HEAD:data/processed/history.json`.
+Nothing was edited; `history.json` is derived and is not repaired by hand.
+
+**The artefact, measured.** 24 records. `contaminated` carries exactly nine
+distinct keys across the whole file: `contestation_expand`, `dirichlet_scale`,
+`entrant_prob`, `entrant_share`, `level_shrink`, `level_shrink_scale`, `pools`
+and `turnout_correlation` on **24 of 24 rows**, and **`splinter_home` on 16 of
+24**. Per-row length is 8 on eight rows and 9 on sixteen.
+
+**The code that would produce it today disagrees.** On this tree
+`backtest.FITTED_ON["splinter_home"] == ()`, set by commit `69228c1` after it
+established that the emitted 2021 spec used `("2014", "2019")` — both strictly
+before the target — and that the register entry had over-declared since
+2026-08-11, written when the default *was* retrospective. `backtest.contaminated`
+implicates a key only where some year in its register tuple is `>= target`, so an
+empty tuple can reach no target and a re-run would name `splinter_home` on **0**
+rows, not 16.
+
+**The artefact simply predates the fix.** `data/processed/history.json` was last
+written by `251ea6f` (2026-09-13, §1.231); `69228c1` landed after it.
+
+⛔ **RECORDED AS A KNOWN STALENESS THAT RESOLVES WHEN THE PANEL IS RE-MEASURED**
+after the batched re-emit (`POOLS-REEMIT-QUEUE.md`) — not as a defect to fix by
+hand, and not a reason to touch the file.
+
+⚠️ **It does not change the panel's status, and saying so is part of the
+record.** `pools` and the seven `FITTED_ON_UNINSTRUMENTED` keys implicate every
+row on their own, so `in_sample: True` stands 24/24 either way. What is wrong is
+the *count* of implicating constants on 16 rows, which over-declares by one.
+
+### The same artefact, failing in the opposite direction: `plan_bounds`
+
+`backtest.register()` carries **15 keys**. `plan_bounds` declares
+`('2006', '2011', '2016', '2021')` — it reaches **every** target in this panel —
+and it is named in `constants_read` on **0 of 24 rows** and in `contaminated` on
+**0 of 24**.
+
+**The detector is not blind, and that was checked before writing this.**
+`montecarlo.py:2184` records the bound with `note_constant`;
+`tests/test_blended_centres.py::test_plan_bounds_are_recorded_as_read_when_a_party_has_no_theta_band`
+proves the note fires; `tests/test_chain.py:821` proves
+`contaminated("2021", set(), {"plan_bounds": ["ASA"]}) == ["plan_bounds"]`. The
+branch that reads it is the by-election clamp for a party with **no θ band and a
+typed plan bound**, and no panel row reached it.
+
+⚠️ **So "the true count is 10" overstates it, and the brief that asked for this
+entry asserted exactly that.** Nine is the count of constants actually
+implicated; ten is what it would be had a branch been reached that was not. The
+finding worth keeping is narrower and is about the artefact's readability:
+**a register key whose declared years reach every target contributes to no row's
+verdict, and nothing in the row says whether that is because the run did not
+read it or because nothing looked.** Only `constants_read` separates those, and
+it is not printed beside `contaminated` — the same "nothing prints them
+together" shape `69228c1` found for `splinter_home`, in a second place.
+
+For the record, `constants_read` across the 24 rows names only four keys:
+`pools` 24, `contestation` 24, `spine` 24, `splinter_home` 16.
+
+
+## 1.241 Three audit answers checked against the tree: two were already in the record, and the third closes an open item in §1.230 (2026-09-14)
+
+An audit of the 33 numbered remediation fixes returned three results that are
+answers rather than status. Each was verified against this tree before being
+filed, and two of them turn out to be re-discoveries.
+
+**#11's premise — ALREADY RECORDED, §1.229.** The refutation is at
+`MODEL-LOG:24402`ff: in `benchmarks.uniform_swing_roster` ActionSA enters
+Johannesburg 2021 at **0.1638%** and takes **one seat of 270** against 44 actual,
+with the same-day correction that the single seat is decided by the name rule
+and that the panel total is a band. Re-confirmed against
+`uniform_swing_roster`'s docstring on this tree, which carries the same figures
+and the ceiling argument that makes them unrescuable: hand ONE newcomer the
+entire measured **1.9562%** arrival budget — every other arrival at a flat zero,
+the most extreme construction the family permits — and it takes **5 seats of
+270**, still **8.2× short** of 44. Nothing new to file.
+
+**#18 — ALREADY IMPLEMENTED AND ALREADY RECORDED.** Murphy's convex combination
+is `benchmarks.blended_swing`; `BLEND_W = 1.0` at `src/benchmarks.py:509`, fitted
+leave-one-city-year-out; `compare_history.OPPONENTS_NOT_SCORED` names it with the
+reason it is not a panel column (a column identical to `uniform-swing` would
+silently add one to every count of references beaten). Registered at
+JUDGEMENT-CALLS §D9 and MODEL-LOG §1.57.
+⚠️ **The open item is not the implementation, it is the fit's population.** The
+docstring's figures — 594 at w=0.0, 456 at 0.5, 382 at 0.9, **376 at 1.0**, an
+unconstrained grid optimum of w=1.05 at 372 that does not survive leave-one-out
+(380 against 376) — are over **nine city-years**. The panel is now 24 rows and
+the fit has not been re-run on it. Recorded, not done.
+
+**#24 — A CLEAN NULL, AND THIS ONE IS NEW.** `guards.counters.cap_moved` and
+`guards.counters.cap_undershoots` are present on **24 of 24** rows of the
+committed `history.json` and are **0 on every one**. So `POOL_CAPACITY_MARGIN =
+0.98` is inert across the **whole backtest**, not only at the two targets
+§1.227 traced.
+
+⭐ **This closes an open item in §1.230** (`MODEL-LOG:24666`), which recorded that
+`history.json` carried **`guards: null` on all 24 records**, "so any 'measured
+zero' quoted from it is unmeasured." Verified across versions of the artefact:
+null on 24/24 at both `1d9a0e1` and `d08d705`; at `251ea6f` — the canonical run —
+`guards.recorded: True` on every row, carrying 20 counters. **The zero is now
+measured.** What it is *not* is evidence the redistribution rule is sound: a
+guard that never fires cannot validate where it would send the mass.
+
+§1.230 at `MODEL-LOG:24661` had already recorded that "the 39%-of-draws figure is
+2026-only". Confirmed at its generator: **39.2%** was measured by
+`montecarlo --city joburg --target 2026 --draws 600` (the table at
+`MODEL-LOG:3518`), and the **same table records the post-fix value as "nothing
+held, in any of 600 draws."** So the figure is stale twice over — 2026-only *and*
+pre-fix — and it is still quoted as live in `montecarlo.py:624`,
+`MACHINERY.md:156`, `tests/test_drawer.py:256` and JUDGEMENT-CALLS §A28. Four
+copies of a number whose own generator says it is superseded. Named here; not
+repaired, because those files are not this round's.
+
+**Measurement hygiene for all three entries above.** `src/montecarlo.py` was
+modified in the working tree by another worker throughout, so no model was run
+and no panel was measured: everything here is read off the committed artefact,
+the committed code, or a named commit message. `tests/run_all.py -k
+standalone_modules -k drawer -k calibration_report -k data_coverage` was run
+immediately before and immediately after this append; the counts and the failure
+names are in those two runs, which bracket the edit, and neither is a suite run.

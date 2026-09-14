@@ -71,6 +71,7 @@ import csv
 import hashlib
 import datetime as _dt
 import json
+import textwrap as _textwrap
 import math
 import os
 import sys
@@ -3653,6 +3654,133 @@ def roster_for_target(target, scenario: dict | None = None) -> tuple[set[str], s
     return roster, "published"
 
 
+def _projected_roster_declaration(target, roster: set[str],
+                                  scenario: dict) -> str:
+    """What a PROJECTED ballot is, where it lives, and what ends it.
+
+    Returned rather than printed so it can be asserted on without capturing
+    stdout, and so the four facts it has to carry can be checked one at a time.
+    :func:`run_model` prints it UNCONDITIONALLY — not gated on ``verbose`` —
+    for the same reason the stale-spec warning is unconditional: this changes
+    what the off-ballot drop does, and a reader must not have to pass
+    ``verbose=True`` to find out.
+
+    ⛔ **A WARNING THAT NAMES NO FILE CANNOT BE ACTED ON.** The first version
+    of this said the roster came from ``pools_<year>.json`` and stopped there.
+    A reader told *"this is a guess"* and not told **where the guess is**, **how
+    it was made** or **what ends it** has been informed and not equipped, and
+    this is the one message the model prints that exists to be checked. So:
+
+    1. ``file`` — the spec path that was actually READ (``_pools_spec_path``),
+       never recomputed. A caller supplying ``scenario["pools"]`` directly
+       opened no file, and this says so rather than naming one.
+    2. ``how`` — the derivation, per ``roster_source``. The projected branch of
+       :func:`pools.resolve_roster` is *the preceding LGE result unioned with
+       the preceding national baseline, minus two floors*. ⚠️ **The floors'
+       measured justifications are NOT restated here** — ``CLAUDE.md`` rule
+       zero: a number copied into a file nobody re-measures is a defect. This
+       cites ``JUDGEMENT-CALLS.md`` §K1/§K2, which is where they are generated.
+    3. ``ends`` — and this is the one that contradicts the intuitive reading.
+       **The flag clears with the target's own RESULT FILE, not with the
+       nomination list.** :func:`roster_for_target` branches on
+       ``cityconfig.CALENDAR[year].results``, and ``contesting_parties`` reads
+       the *result* file, so ``published`` is only reachable AFTER the election
+       has been held and ingested. A nomination list pasted into the judgement
+       file makes the roster far better and still reports ``projected``,
+       because it is still not a result file. Anyone reading "when the official
+       roster is published this uncertainty vanishes" as *"the flag clears in
+       the weeks before polling day"* has it wrong, and the message says so.
+    4. ``scored`` — **nothing compares the projection with the ballot that
+       eventually arrives.** That is a missing capability, not an oversight
+       this text can repair, and naming it is the only thing this function can
+       do about it. See ``MACHINERY.md``, "Scoring the projected roster".
+    """
+    source = scenario.get("_pools_roster_source")
+    path = scenario.get("_pools_spec_path")
+    reach = scenario.get("_pools_reach_source")
+    where = (f"{path}  (field `roster`)" if path else
+             "NO FILE — `pools` were supplied directly in the scenario, so no "
+             "spec was read and there is nothing on disk to check this against")
+    judgements = f"judgements/{target.city.slug}-{target.year}.toml"
+
+    if source == "projected":
+        how = (f"`pools.resolve_roster`'s own projection: every party in the "
+               f"{target.previous_lge} LGE result for this city UNION every "
+               f"party in the {target.previous_npe} national baseline, minus "
+               f"two floors made on measured evidence — JUDGEMENT-CALLS.md "
+               f"§K1 (a national-share floor on candidates with no prior LOCAL "
+               f"record) and §K2 (a prior-local floor on candidates with no "
+               f"prior NATIONAL vote) — and minus IND/ENTRANT, which are slots "
+               f"rather than parties. Both floors' measured costs live in "
+               f"§K1/§K2; they are not restated here. Ward reach is NOT "
+               f"projected: see `reach` above.")
+    elif source == "declared":
+        how = (f"a nomination list typed by hand into {judgements} under "
+               f"`[roster]`. If that table says `complete = true` it REPLACES "
+               f"the projection and licenses deleting the parties it omits; if "
+               f"it does not, it is UNIONED with the projection (the preceding "
+               f"LGE result and national baseline, less the JUDGEMENT-CALLS.md "
+               f"§K1/§K2 floors) and removes nobody. Read the emit's own "
+               f"`[roster]` line to see which happened.")
+    elif source == "published":
+        how = (f"the spec claims roster_source='published', WHICH THIS STATE "
+               f"CANNOT BE. `published` means the target's own result file was "
+               f"read, and this branch is reached only when the calendar says "
+               f"{target.year} has no result file. The spec and the calendar "
+               f"disagree — treat the roster above as unverified and re-emit.")
+    else:
+        how = (f"roster_source={source!r}, which is not one of published / "
+               f"declared / projected. `pools.resolve_roster` returns no such "
+               f"value, so this spec was not written by it — treat the roster "
+               f"above as unverified.")
+
+    if source == "declared":
+        ends = (f"you have ALREADY declared a list, and this warning still "
+                f"fires, because `published` means {target.year}'s own RESULT "
+                f"file — `roster_for_target` branches on "
+                f"`cityconfig.CALENDAR[{target.year!r}].results`, which stays "
+                f"None until the election has been held and ingested. So the "
+                f"state clears AFTER polling day, never before it. What you "
+                f"can still do before then: confirm the list is the WHOLE "
+                f"ballot and set `complete = true` in {judgements}, which is "
+                f"what licenses deleting the parties it omits, then re-emit.")
+    else:
+        ends = (f"`published` arrives with {target.year}'s own RESULT file, "
+                f"NOT with the nomination list: `roster_for_target` branches "
+                f"on `cityconfig.CALENDAR[{target.year!r}].results`, which "
+                f"stays None until the election has been held and ingested. "
+                f"So this warning clears AFTER polling day. Before then the "
+                f"strongest roster available is a DECLARED one — paste the "
+                f"IEC's nomination list into {judgements} under `[roster]`, "
+                f"add `complete = true` once it is the whole ballot, and "
+                f"re-emit the spec. That replaces the guess with the real "
+                f"ballot and STILL prints this warning, because it is still "
+                f"not a result file.")
+
+    scored = ('NOT SCORED. When the real ballot lands nothing compares it '
+              'with the roster above, so this projection is never marked '
+              'right or wrong and the next one is no better informed. See '
+              'MACHINERY.md, "Scoring the projected roster".')
+
+    # WRAPPED, because a warning nobody can read at 22:00 is a warning nobody
+    # acts on. The label column is fixed so the five facts line up and the eye
+    # can find `file` without reading the prose.
+    head = (f"  ! roster for {target.year} is PROJECTED, not published — the "
+            f"off-ballot drop below is running against an ASSUMPTION about "
+            f"who will contest, not against a result file.")
+    lines = _textwrap.wrap(head, width=78, subsequent_indent="    ")
+    for label, body in (("parties", str(len(roster))),
+                        ("file", where),
+                        ("source", f"roster_source={source!r}; reach={reach!r}"),
+                        ("how", how),
+                        ("ends", ends),
+                        ("scored", scored)):
+        lines += _textwrap.wrap(f"{label:<8} {body}", width=78,
+                                initial_indent="      ",
+                                subsequent_indent="      " + " " * 9)
+    return "\n".join(lines)
+
+
 def run_model(target, scenario: dict,
               data_dir: Path = Path("data/raw/elections"),
               processed: Path | None = None,
@@ -3755,6 +3883,21 @@ def run_model(target, scenario: dict,
             # itself, which `path` above already points at.
             scenario["_pools_roster"] = spec.get("roster")
             scenario["_pools_roster_source"] = spec.get("roster_source")
+            # ⛔ NAMING A FILE IS NOT GIVING A PATH. The projected-roster
+            # declaration below used to say `pools_{year}.json`, which is a
+            # filename in a repository holding one per city-year under two
+            # different roots (`data/processed/` for joburg, `data/processed/
+            # <slug>/` for the rest). A reader told "the roster is a guess"
+            # and not told WHERE the guess is cannot check it, and this is
+            # the one warning the model prints that asks to be checked.
+            #
+            # Taken from the path that was actually READ, never recomputed:
+            # a caller supplying `scenario["pools"]` directly skips this whole
+            # block, and printing a path that was not opened is the same class
+            # of lie as an empty roster meaning "drop nobody". The declaration
+            # says so instead of guessing.
+            scenario["_pools_spec_path"] = str(spec_path)
+            scenario["_pools_reach_source"] = spec.get("reach_source")
             trace.put("02_pools_artefact", {
                 "path": str(spec_path),
                 "artefact_key": spec.get("artefact_key"),
@@ -3858,17 +4001,7 @@ def run_model(target, scenario: dict,
     # `_pools_stale`, which is the same kind of fact about the same kind of input.
     scenario["_roster_state"] = _roster_state
     if _roster_state == "projected":
-        # ⛔ MUST ANNOUNCE ITSELF AS AN ASSUMPTION, NOT PASS AS FACT. Printed
-        # unconditionally (not gated on `verbose`), same as the STALE-spec
-        # warning above — this changes what the off-ballot drop does, at the
-        # live 2026 target, and a reader must not have to pass `verbose=True`
-        # to find out.
-        print(f"  ! roster for {target.year} is PROJECTED, not published: "
-              f"{len(_roster)} parties, from pools_{target.year}.json's own "
-              f"roster_source={scenario.get('_pools_roster_source')!r}. This "
-              f"is an ASSUMPTION about who will contest {target.year} — the "
-              f"election has not been held — and the off-ballot drop below is "
-              f"running against that guess, not against a result file.")
+        print(_projected_roster_declaration(target, _roster, scenario))
     _roster_dropped: list[str] = []
     if _roster:
         # ONE DEFINITION. `theta_residual.residuals` has to reproduce this
