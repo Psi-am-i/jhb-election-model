@@ -60,6 +60,7 @@ from __future__ import annotations
 import itertools
 import json
 import math
+import os
 import statistics
 import sys
 import tempfile
@@ -1267,6 +1268,19 @@ def test_largest_remainder_is_decided_by_dict_order_at_an_exact_tie():
 
     **WHEN THIS TEST FAILS, THE DEFECT HAS BEEN FIXED.** Delete it and assert
     the invariant instead: one seat vector over every ordering.
+
+    ⛔ **THREE SIBLING CONTROLS MUST BE RE-POINTED IN THE SAME COMMIT**, and
+    they are listed here because they will each announce themselves separately
+    and look like three unrelated regressions:
+
+    * ``tests/test_roster_aware_baseline.py:117`` restores the defect with
+      ``BM.canonical_order = dict`` — once the order no longer comes from a set,
+      that monkeypatch stops restoring anything and the control is testing the
+      fixed path while claiming to test the broken one;
+    * ``test_eligible_parties_hands_the_allocator_a_set_ordered_dict`` below,
+      whose bound is written as the negation of each plausible repair
+      **precisely so that it fires here**;
+    * this test, the exact-tie mirror.
     """
     tied = {"BIG1": 101, "BIG2": 101, "AAA": 49, "BBB": 49}
     outcomes = allocation_outcomes_over_orderings(tied, total_seats=3)
@@ -1278,31 +1292,118 @@ def test_largest_remainder_is_decided_by_dict_order_at_an_exact_tie():
     assert len(allocation_outcomes_over_orderings(untied, total_seats=3)) == 1
 
 
+def _output_orders(builder, names, votes):
+    """Every distinct output ORDER ``builder`` produces over all permutations of
+    its inputs, plus how many of them came back in the caller's own order.
+
+    THE PREDICATE, and it is run three ways below: on the production
+    ``eligible_parties``, and on each of the two repairs anybody would plausibly
+    write. A characterisation test is only a characterisation if the same
+    instrument says something different about the repaired state.
+    """
+    orders = list(itertools.permutations(names))
+    distinct, preserved = set(), 0
+    for order in orders:
+        ward = {p: votes[p] for p in order}
+        out = tuple(builder(ward, {p: 1 for p in order}))
+        assert set(out) == set(names), out
+        distinct.add(out)
+        preserved += (list(out) == list(order))
+    return distinct, preserved, len(orders)
+
+
 def test_eligible_parties_hands_the_allocator_a_set_ordered_dict():
     """The mechanism behind the tie, asserted where it actually lives.
 
-    CHARACTERISATION, like the test above. ``eligible_parties`` returns a dict
-    whose insertion order is a set-of-strings iteration order and therefore
-    carries no information from its inputs — reversing the input order changes
-    nothing, which is precisely the proof that the OUTPUT order is not derived
-    from the input at all.
+    CHARACTERISATION, like the test above: ``eligible_parties`` builds its dict
+    by iterating ``set(ward_votes) | set(pr_votes)``, so the insertion order the
+    allocator inherits is a string-hash order carrying nothing from the inputs.
+
+    ⛔ **WHAT THIS ASSERTED UNTIL 2026-09-14 COULD NOT TELL THE TWO STATES
+    APART, AND WOULD HAVE CERTIFIED THE FIX IT NEVER TESTED.** The bound was
+    ``preserved < len(orders)`` — the number of permutations whose output order
+    equals the input order. Measured at ``PYTHONHASHSEED=0`` that count is
+    **1**, and under a ``sorted(...)`` repair it is **1 as well**: an output
+    order that is CONSTANT matches exactly one of the 24 inputs whichever
+    constant it is. ``1 < 24`` passes in both states. **That is requirement 2 of
+    CLAUDE.md §4 broken inside a control written to satisfy requirement 2** —
+    inert would have been better, because a positive control that cannot fail
+    is read as evidence that it can.
+
+    So the bound is now the negation of each repair, checked by running the
+    repairs through the same predicate:
+
+    * a ``sorted(...)`` fix makes the constant order the SORTED one;
+    * an input-order-preserving fix makes the order distinct for all 24.
+
+    ⚠️ **AND THE DEFECT IS WORSE THAN THIS TEST USED TO SAY.** Its old docstring
+    claimed the output order "carries no information from its inputs" and that
+    "reversing the input order changes nothing". That is true at
+    ``PYTHONHASHSEED=0`` and **false at other seeds**: measured at
+    ``PYTHONHASHSEED=12345`` the same four names yield **two** different output
+    orders over the 24 permutations, because a small set's iteration order stops
+    being insertion-independent once two keys collide on a slot. So the order is
+    a function of the hash seed AND, at some seeds, of the input order — and at
+    12345 ``preserved`` is **0**, which the old one-sided bound would also have
+    passed. The seat handed out at an exact tie moves with both.
+
+    That is why this pins the seed rather than asserting across whatever seed it
+    inherits: the claim is only well defined at a fixed one. ``run_all.py``
+    re-execs the suite under ``PYTHONHASHSEED=0`` via ``montecarlo.fix_hash_seed``
+    before anything is imported, so under the suite this always runs.
     """
+    if os.environ.get("PYTHONHASHSEED") != "0":
+        skip(f"PYTHONHASHSEED is {os.environ.get('PYTHONHASHSEED')!r}, not '0'. "
+             f"Set iteration order — the whole subject of this test — is a "
+             f"function of it, and at some seeds this fixture produces two "
+             f"output orders rather than one. Run under tests/run_all.py, "
+             f"which re-execs under a pinned seed.")
+
     names = ["AAA", "BBB", "BIG1", "BIG2"]
     votes = {"AAA": 49, "BBB": 49, "BIG1": 101, "BIG2": 101}
-    orders = list(itertools.permutations(names))
-    preserved = 0
-    for order in orders:
-        ward = {p: votes[p] for p in order}
-        out = list(eligible_parties(ward, {p: 1 for p in order}))
-        assert set(out) == set(names), out
-        preserved += (out == list(order))
-    assert preserved < len(orders), (
-        f"eligible_parties preserved the input order for all {len(orders)} "
-        f"permutations, so its output order is now derived from its inputs. "
-        f"That is what this repository wants — the seat handed out at an "
-        f"exact tie would then follow the caller's own ordering rather than a "
-        f"string hash. Re-read this test and the tie-break one above together "
-        f"and replace both with the invariant.")
+    in_sorted_order = tuple(sorted(names))
+
+    distinct, preserved, n = _output_orders(eligible_parties, names, votes)
+
+    assert len(distinct) < n, (
+        f"eligible_parties produced a different output order for every one of "
+        f"the {n} input permutations, so its output order now IS derived from "
+        f"its inputs. That is what this repository wants — the seat handed out "
+        f"at an exact tie would follow the caller's ordering rather than a "
+        f"string hash. Delete this characterisation and "
+        f"`test_largest_remainder_is_decided_by_dict_order_at_an_exact_tie` "
+        f"and assert the invariant: one seat vector over every ordering.")
+    assert distinct != {in_sorted_order}, (
+        f"eligible_parties now hands the allocator a SORTED dict "
+        f"({in_sorted_order}), so the tie-break is no longer decided by a "
+        f"string hash. The defect is fixed. Replace this and the tie-break "
+        f"test above with the invariant, and re-point the three sibling "
+        f"controls listed in this test's module docstring.")
+
+    # ⛔ CAN THE BOUND SEE A REPAIR? Both plausible fixes, through the SAME
+    #    predicate. If either got past it, everything above is decoration.
+    def sorted_fix(ward, pr):
+        return {p: ward.get(p, 0) + pr.get(p, 0)
+                for p in sorted(set(ward) | set(pr)) if pr.get(p, 0) > 0}
+
+    def input_order_fix(ward, pr):
+        keys = list(ward) + [p for p in pr if p not in ward]
+        return {p: ward.get(p, 0) + pr.get(p, 0)
+                for p in keys if pr.get(p, 0) > 0}
+
+    fixed_distinct, fixed_preserved, _ = _output_orders(sorted_fix, names, votes)
+    assert fixed_distinct == {in_sorted_order}, fixed_distinct
+    assert fixed_preserved == preserved == 1, (
+        f"the OLD bound compared `preserved` ({preserved}) against {n}, and a "
+        f"sorted repair gives {fixed_preserved}. If these two ever differ, say "
+        f"so — the whole reason this test was rewritten is that they do not.")
+
+    kept_distinct, kept_preserved, _ = _output_orders(input_order_fix, names,
+                                                      votes)
+    assert len(kept_distinct) == n and kept_preserved == n, (
+        f"an input-order-preserving `eligible_parties` produced "
+        f"{len(kept_distinct)} distinct orders over {n} permutations, so the "
+        f"`len(distinct) < n` bound above could not see that repair either.")
 
 
 # --------------------------------------------------------------------------

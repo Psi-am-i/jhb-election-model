@@ -4141,20 +4141,75 @@ HISTORY_SCHEMA = 3
 _MANIFEST_FOR_RENDER: dict | None = None
 
 
-def _archive_targets() -> list[tuple[str, str]]:
+def _archive_targets() -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
     """Every city-year the archive supports, regardless of what this run chose.
+
+    Returns ``(targets, unreadable)``.
 
     The denominator `population.excluded` is measured against. Derived, never
     typed — a typed panel list is how §1.69 stayed wrong for months.
+
+    ⛔ AND IT USED TO SWALLOW THE FAILURE THAT SHRINKS IT.
+
+        except Exception:
+            continue
+
+    A city whose config would not load vanished from the archive ENTIRELY —
+    absent from `scored`, absent from `excluded`, absent from the catch-all
+    "not selected by --city/--target" branch, because that branch iterates the
+    archive this function returns. The denominator quietly got smaller and the
+    manifest went on ASSERTING it, with no marker anywhere; `_exit_code` reads
+    `results` and `failures` and never looks here, so the run exited 0.
+
+    That is §1.69 — *"`runnable` reported 9 city-years where the archive
+    supported 24, nothing said why"* — reinstated inside the fix for §1.69, two
+    lines under a docstring that says *"Derived, never typed — a typed panel
+    list is how §1.69 stayed wrong for months."* Deriving it does not help if
+    the derivation is allowed to fail quietly; that is how a typed list behaves,
+    without the honesty of being visible.
+
+    ⚠️ MEASURED, 2026-09-14: with one city's `cityconfig.load` made to raise,
+    the population went 24 → 21 and nothing raised, printed, recorded or
+    exited non-zero. It returned to 24 when the injection was reverted.
+
+    The failure is now carried out as data. It cannot be expressed as a
+    city-year — the whole point is that this city's years could not be
+    enumerated — so it comes back on its own channel and
+    `_population_block_for` records it against the pseudo-year ``<all>``.
     """
-    out = []
+    out, unreadable = [], []
     for slug in CITIES:
         try:
             years, refused = runnable(cityconfig.load(slug))
-        except Exception:
+        except Exception as exc:                                # noqa: BLE001
+            unreadable.append(
+                (slug, f"archive unreadable: {type(exc).__name__}: {exc}"))
             continue
         out += [(slug, y) for y in years] + [(slug, y) for y, _ in refused]
-    return out
+    return out, unreadable
+
+
+def _seed_block(results) -> dict:
+    """`seed`, and `seed_by_row` when the panel did not agree.
+
+    A scalar while every row resolved the same seed, so the field keeps the
+    shape every existing reader expects (`src/declares.py` asks only whether it
+    is present). A SORTED LIST the moment they differ — plural on sight, rather
+    than one city's value standing in for all of them — with the per-row
+    mapping beside it so the disagreement can be read rather than guessed.
+
+    A row with no `scenario_defaults` predates that field. It is `<unrecorded>`,
+    which is NOT the same fact as a row that ran at the default, and the
+    distinction is the one `_guard_block`'s `recorded` flag exists to make.
+    """
+    by_row = {f"{r.get('slug')}:{r.get('year')}":
+              (r.get("scenario_defaults") or {}).get("seed", "<unrecorded>")
+              for r in results}
+    distinct = sorted({str(v) for v in by_row.values()})
+    if len(distinct) == 1:
+        one = next(iter(by_row.values()), None)
+        return {"seed": one, "seed_by_row": by_row}
+    return {"seed": sorted(by_row.values(), key=str), "seed_by_row": by_row}
 
 
 def build_manifest(args, excluded, results) -> dict:
@@ -4183,9 +4238,42 @@ def build_manifest(args, excluded, results) -> dict:
         "generated": _dt.datetime.now(_dt.timezone.utc)
                         .strftime("%Y-%m-%dT%H:%M:%SZ"),
         "draws": args.draws,
-        # The seed every city-year actually ran at. `run_city_year` passes
-        # seed=None, which is falsy, so each one takes DEFAULTS["seed"].
-        "seed": M.DEFAULTS.get("seed"),
+        # ⛔ THE SEED THE ROWS ACTUALLY RESOLVED, READ OFF THE ROWS.
+        #
+        # It was `M.DEFAULTS.get("seed")`, with the comment *"The seed every
+        # city-year actually ran at. `run_city_year` passes seed=None, which is
+        # falsy, so each one takes DEFAULTS['seed']."* Every clause of that is
+        # true and the conclusion does not follow, because `M.DEFAULTS` IS NOT
+        # A CONSTANT: `apply_city` clears it and re-overlays `_PRISTINE_
+        # DEFAULTS` plus the city toml on EVERY city-year (montecarlo.py:1198),
+        # and `cities/joburg.toml` and `cities/tshwane.toml` both declare a
+        # `seed`. So this line read:
+        #
+        #   * under `--jobs 1`, whatever the LAST city in the loop left behind;
+        #   * under `--jobs N`, the pristine default, because the workers mutate
+        #     their own copies in their own processes — the serial and parallel
+        #     paths disagreeing about the artefact's own provenance, which is
+        #     the class `apply_city`'s docstring calls *"luck, not design"*;
+        #   * never `--set seed=N`, because `load_scenario` applies `--set` over
+        #     a DEEPCOPY of DEFAULTS (montecarlo.py:1961) and leaves the module
+        #     global alone. The override was visible in `overrides` and
+        #     contradicted by `seed`, in the same manifest.
+        #
+        # And one scalar cannot describe a panel whose cities may legitimately
+        # differ at all. This is the `~` state — declared and WRONG — inside the
+        # block whose entire purpose is provenance.
+        #
+        # ⚠️ IT READS CORRECTLY TODAY AND THAT IS NOT A DEFENCE. Measured
+        # 2026-09-14: `_PRISTINE_DEFAULTS`, both city overlays and all 24 rows
+        # of the committed `history.json` are 20261104, so every route agrees
+        # and the seed quoted from this manifest was right. It was right by
+        # coincidence of two config files, which is exactly what `apply_city`
+        # warns will stop being true the moment a third city declares another.
+        #
+        # `scenario_defaults` is on every row already (filtered to `DEFAULTS`,
+        # so `seed` is in it) and is what that row RESOLVED — one definition,
+        # read rather than re-derived.
+        **_seed_block(results),
         "overrides": list(args.set or []),
         "git_commit": F._git("rev-parse", "HEAD"),
         "git_dirty": F._dirty_excluding(args.json, args.md),
@@ -4213,12 +4301,11 @@ def build_manifest(args, excluded, results) -> dict:
         # key and no year is named in this file, so `backtest.FITTED_ON` can
         # grow or shrink without stranding this.
         "in_sample": _in_sample_verdict(results),
-        "population": _population_block_for(excluded, results,
-                                           _archive_targets()),
+        "population": _population_block_for(excluded, results, *_archive_targets()),
     }
 
 
-def _population_block_for(excluded, results, archive) -> dict:
+def _population_block_for(excluded, results, archive, unreadable=()) -> dict:
     """What was scored, and what was not — with the RIGHT reason on each row.
 
     Extracted from :func:`build_manifest` so it can be tested without git, a
@@ -4238,14 +4325,29 @@ def _population_block_for(excluded, results, archive) -> dict:
     exception on them — and the dedupe below is what makes that stick: a row
     already carrying a real reason never picks up the catch-all one as well.
     This function is where that is checked.
+
+    ⚠️ `unreadable` IS A THIRD THING AND IT IS NOT A CITY-YEAR. It is a city
+    whose archive could not be ENUMERATED at all (`_archive_targets`), so its
+    years are unknown and it cannot appear in `archive`, in `scored`, or in the
+    catch-all branch below — it used to appear nowhere, which is the defect.
+    It is recorded against the pseudo-year ``<all>``.
+
+    ⛔ SO `scored | excluded == archive` DOES NOT HOLD WHEN `unreadable` IS
+    NON-EMPTY, and that is correct rather than a hole: the left side then
+    contains a row whose right-hand counterpart is precisely what could not be
+    computed. A reader checking that identity must check `unreadable` first —
+    an empty `unreadable` is the licence to treat `archive` as the population.
     """
     scored = {f"{r['slug']}:{r['year']}" for r in results}
     named = {(c, y) for c, y, _ in excluded}
     return {
         "scored": [f"{r['slug']}:{r['year']}" for r in results],
         "n_scored_rows": len(results),
+        "archive_unreadable": [{"city": c, "why": w} for c, w in unreadable],
         "excluded": ([{"city": c, "year": y, "why": w}
                       for c, y, w in excluded]
+                     + [{"city": c, "year": "<all>", "why": w}
+                        for c, w in unreadable]
                      + [{"city": c, "year": y, "why": "not selected by "
                          "--city/--target on this run"}
                         for c, y in archive
@@ -4433,10 +4535,18 @@ def main(argv: list[str] | None = None) -> int:
             print(f"    {slug} {year}: {why}")
         return _exit_code(results, failures)
     args.json.parent.mkdir(parents=True, exist_ok=True)
+    # ⛔ BUILT ONCE. It was called twice — once for the JSON and once for the
+    # render — so `history.json` and `history.md` carried two INDEPENDENT
+    # manifests of the same run: two `generated` stamps (second resolution,
+    # ~0.09 s apart, so they disagree whenever the pair straddles a second),
+    # two `git status` readings and two enumerations of every city's pool
+    # artefact keys. The `.md` is what a human reads and `_citable` stamps its
+    # token from the second one. Two records of one run that can disagree is
+    # §1.214 in miniature, in the layer built to stop it.
+    manifest = build_manifest(args, excluded, results)
     args.json.write_text(json.dumps(
-        {"manifest": build_manifest(args, excluded, results),
-         "records": results}, indent=2, default=float))
-    text = render(results, build_manifest(args, excluded, results))
+        {"manifest": manifest, "records": results}, indent=2, default=float))
+    text = render(results, manifest)
     args.md.write_text(text)
     print(text)
     print(f"\nwrote {args.md} and {args.json}")

@@ -1030,3 +1030,81 @@ records byte-identical, because **no LGE file carries either spelling** and the
 NNP had dissolved before the 2006 local election. It is a correctness fix on the
 national reads, not a repair to a live forecast number — and the reason it is
 worth taking anyway is the class above, not the instance.
+
+---
+
+## 18. 🔴 The results-portal NPE layout carries no ward, so four national elections have voting districts and no wards (found 2026-09-14)
+
+**The class.** The Commission publishes national results in two layouts. The
+**bulk export** carries `WARD` beside `VOTING_DISTRICT`; the **results-portal**
+export does not carry it at all — `src/ingest_npe.py` says so above its
+`COLUMNS` table (*"Ward is blank for the results-portal layout, which does not
+carry it"*) and writes `"Ward": ""` for every portal row, while `parse_bulk_row`
+reads `row["WARD"]`. Both layouts land in the same `npe<year>_<CODE>_vd_party.csv`
+shape with the **same header, `Ward` column included**, so the two are
+indistinguishable by schema and differ only in whether that column holds
+anything.
+
+**The population, measured 2026-09-14** — distinct non-empty `Ward` values per
+file, over `data/raw/elections/npe*_<CODE>_vd_party.csv`:
+
+| | JHB | TSH | EKU | ETH | CPT | MAN | NMA | BUF |
+|---|---|---|---|---|---|---|---|---|
+| `npe1999` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| `npe2004` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| `npe2009` | 109 | 76 | 88 | 100 | 105 | 45 | 60 | 45 |
+| `npe2014` | 130 | 105 | 101 | 103 | 111 | 49 | 60 | 50 |
+| `npe2019` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| `npe2024` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+**32 city-years carry voting districts and no wards** — four national elections
+across all eight metros — while the voting districts themselves are complete
+(Johannesburg: 648 VDs at 1999, 686 at 2004, 853 at 2019, 865 at 2024). The gap
+is the *layout the file was fetched from*, not the city and not the era: 2009 and
+2014 sit between 2004 and 2019 and have every ward.
+
+**What it does in this model, silently.** `pools.vd_map` builds VD→ward from the
+election's own result file, so for those four years it returns an **empty map**.
+Any reprojection *to* one of them therefore maps 0% of the city, and the census
+join refuses. Verified 2026-09-14 by calling `pools.pool_counts` directly on
+joburg, tshwane and capetown for every calendar year:
+
+* `joburg` 1999, 2004, 2019 raise *"only 0 of N election wards found a census
+  population after reprojection"* (N = 1, 110, 136);
+* `tshwane` and `capetown` raise the same at 2004 and 2019 (N = 77/101 and
+  108/117) — 1999 and 2000 are refused earlier by `levels.HELD_BACK` instead.
+
+**2024 is in the same state and escapes the consequence**, because its
+delimitation (2021) already matches the census's, so no reprojection is
+attempted. That is luck, not a property: the moment a census on a different
+delimitation is adopted, 2024 joins the other three.
+
+⛔ **And the refusal does not stop the run — it deletes the year.**
+`pools.registration_series` catches `SystemExit` and continues, under the comment
+*"that election is not on disk for this city"*. **Every one of those files is on
+disk.** Measured the same day: `registration_series` keeps
+`2000, 2006, 2009, 2011, 2014, 2016, 2021, 2024` for Johannesburg — eight cycles,
+while the function's own docstring promises *"ten cycles of it for Johannesburg
+(2000 through 2024)"*. **1999, 2004 and 2019 are missing from the registration
+trend `projected_pool_shares` extrapolates, and nothing anywhere says so.** The
+code-side half of this is entry 22 of `POOLS-REEMIT-QUEUE.md`.
+
+**Fix (IEC).** Publish `WARD` in the results-portal export as well as in the bulk
+one. The Commission holds the assignment — it is the same voting districts, and
+the ward is what the delimitation in force assigns them. Failing that, mark the
+two layouts as different schemas rather than emitting the same header with one
+column silently empty: a column that is present and blank is read as *"this
+voting district is in no ward"*, which is not true of any voting district.
+
+**In the model — NOT fixed, and the repair moves numbers.** The ward assignment
+for those years is *recoverable*: an NPE sits on the delimitation of the
+preceding LGE (2019 → the 2016 delimitation, 2004 → 2000), and that LGE's own
+result file carries ward for every VD. So `vd_map` could fall back to
+`delimitation_for(year)`'s crosswalk when the result file carries no ward. ⛔
+**That is a forecast-moving change, not a fail-closed repair** — it would restore
+three cycles to Johannesburg's registration trend and move every emitted pool
+share — so it is recorded here as a candidate and deliberately NOT bundled with
+entry 22, which only makes the existing refusal audible. **The class is OPEN:**
+nothing has yet measured what the model's trends would do with those three cycles
+restored, and until something does, "the trend is measured over many cycles" is a
+claim about eight of them.

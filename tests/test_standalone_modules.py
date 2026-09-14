@@ -97,15 +97,6 @@ TESTS = ROOT / "tests"
 # ---------------------------------------------------------------------------
 ENTRY_POINTS: dict[str, str] = {
     # --- named in CLAUDE.md's "Running things" -----------------------------
-    "declares":
-        "CLAUDE.md 'Running things': `.venv/bin/python src/declares.py` — the "
-        "declaration audit. One table answering 'does every artefact declare "
-        "what produced it', with a third state for the artefacts that declare "
-        "themselves and are WRONG, which is the state nothing else can see. "
-        "Run by a human before quoting any number, and by `--verify` in CI. "
-        "⚠️ It was itself an orphan on the day it was written — the tool built "
-        "so that everything declares itself, declaring nothing — and this "
-        "guard caught it. §1.219.",
     "arrivals":
         "CLAUDE.md 'Running things': `.venv/bin/python src/arrivals.py` — the "
         "arrival machinery scored on its own, because its failures are "

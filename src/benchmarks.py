@@ -398,10 +398,27 @@ def council_from_shares(ctx: Context, ward_share: np.ndarray,
     previous = M.COUNCIL
     try:
         M.COUNCIL = ctx.council
-        # The same C/D split the model and the ground truth use — one
-        # definition (`seats.outside_pool_wards`). A baseline that allocated
-        # over a different council from the model it is compared against would
-        # put part of the margin in the arithmetic rather than the forecast.
+        # The same C/D split the MODEL uses — one definition
+        # (`seats.outside_pool_wards`). A baseline that allocated over a
+        # different council from the model it is compared against would put
+        # part of the margin in the arithmetic rather than the forecast.
+        #
+        # ⚠️ C IS STRUCTURALLY ZERO HERE AND THAT IS AN ASSUMPTION, NOT A
+        # MEASUREMENT — `montecarlo`'s caveat verbatim, and it was replaced
+        # here by a parity claim that does not hold. `wins` is read off
+        # `ctx.universe`, `build_context` drops INDEPENDENT/IND, so no baseline
+        # can ever seat an independent and `c_wards` is always 0. That matches
+        # the model, which is zero for the same reason; it does NOT match the
+        # GROUND TRUTH, which takes C from the IEC's published Seat Calculation
+        # Detail (`backtest.actual_result`) and allocates over `council - C -
+        # D`. Measured over the 24 runnable city-years on 2026-09-14: official
+        # C > 0 at 2 of them — eThekwini 2011 (C=1) and 2016 (C=4) — so at
+        # those two rows this baseline strikes its quota over up to 4 more pool
+        # seats than the published chamber had, and is charged for the
+        # difference exactly as the model is. Registered in JUDGEMENT-CALLS.md;
+        # forecasting independents is a separate change. D is NOT structurally
+        # zero: a universe party filtered out by `eligible_parties` still lands
+        # in the D term.
         c_wards, d_wards, pool_wins = outside_pool_wards(dict(wins), combined)
         seats, _council, _thr, _over = M.allocate_with_overhang(
             combined, pool_wins, rule=ctx.overhang_rule,
@@ -582,6 +599,20 @@ def roster_split(ctx: Context) -> tuple[list[str], list[str], dict[str, float]]:
     available outcome — a comparison that has stopped being made while still
     printing a column.
 
+    ⛔ **AND ITS EMPTY RETURN IS REFUSED, because it fails open.**
+    ``_ward_reach`` returns ``{}`` both when the archive is absent and when it
+    is present but unreadable, and ``{}`` is not a value this reference can
+    represent: :func:`newcomer_shares` would take its ``fallback`` branch for
+    every newcomer at once, the identical weight would cancel in the
+    normalisation, and the arrival budget would split EVENLY with nothing
+    printed. That is the roster's own failure mode one covariate downstream —
+    ``roster_for_target`` is fail-closed above and this was not — and it is the
+    empty-record-vs-unreachable-record class this project keeps publishing
+    (``montecarlo.roster_for_target`` counts its own instances). **The guard is on the RETURNED MAP, not on ``metro_file``**, because
+    a present-but-empty file reaches the identical degraded output by a route a
+    path check cannot see; both were constructed on 2026-09-14 and returned the
+    same council to the seat.
+
     ``pools._ward_reach`` measures reach. It is private, and it is called
     anyway, because the arrival record this reference sizes newcomers from
     (:func:`arrival_budget`) measures reach WITH THAT FUNCTION. ``levels.
@@ -614,6 +645,28 @@ def roster_split(ctx: Context) -> tuple[list[str], list[str], dict[str, float]]:
     on_ballot = [p for p in ctx.universe if p in roster]
     newcomers = sorted(roster - set(ctx.universe))
     measured = _pools._ward_reach(city.code, str(ctx.target))
+    if not measured:
+        raise SystemExit(
+            f"uniform-swing+roster has no ward-reach archive for {city.code} "
+            f"{ctx.target}, so the only covariate it sizes newcomers by is "
+            f"missing. `pools._ward_reach` returned nothing, which happens two "
+            f"ways and neither can be told from the other downstream: "
+            f"`pools.metro_file` found neither\n"
+            f"  data/raw/elections/_metros/lge{ctx.target}_{city.code}_vd_party.csv\n"
+            f"  data/raw/elections/_reports/"
+            f"lge{ctx.target}_{city.code}_downloadable_party_results.csv\n"
+            f"(both RELATIVE, so a wrong working directory reads as an absent "
+            f"archive), or one of them exists and yielded no ward rows — a "
+            f"truncated or header-only download.\n\n"
+            f"⛔ THE REFERENCE REFUSES RATHER THAN CONTINUING. With no reach "
+            f"at all `newcomer_shares` takes the `fallback` branch for EVERY "
+            f"newcomer, the identical weight cancels in the normalisation, and "
+            f"the arrival budget splits EVENLY — a different council under the "
+            f"same name, with nothing in the output saying the covariate was "
+            f"absent. Measured at joburg 2021 (2026-09-14): ActionSA 0.163835% "
+            f"and sixth of 32 becomes 0.061133% and equal-first, and the "
+            f"allocated council moves by 12 of 270 seats. This is the opponent "
+            f"the model's margin is measured against.")
     return on_ballot, newcomers, {p: measured[p] for p in newcomers
                                   if p in measured}
 

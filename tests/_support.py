@@ -246,6 +246,40 @@ def run_module(namespace) -> int:
     return 1 if failed else 0
 
 
+def declared_city_years() -> set:
+    """The backtest city-years this repository is supposed to cover, COMPUTED.
+
+    Every ``[structure.by_year.<year>]`` block in ``cities/*.toml`` is a target
+    a city can be run at, and the emit loop, the panel and the backtest all
+    iterate that same product. It is offered here rather than in one test file
+    because two of them need it and **a denominator defined twice is a
+    denominator that disagrees with itself.**
+
+    ⛔ **NEVER TYPE THIS COUNT.** ``POOLS-REEMIT-QUEUE.md`` step 3 carried it as
+    a number, the number went stale, and it sent an operator hunting a
+    discrepancy that did not exist — which is the failure that paragraph had
+    been written to warn about. That document now refuses to name a figure in
+    either direction and says to count against what the loop issues. This is
+    that count, taken from the configs the loop iterates and not from the
+    artefacts it wrote, so it cannot be satisfied by the very output under test.
+    """
+    import tomllib
+
+    import cityconfig  # noqa: E402 - SRC is on the path from this module's top
+
+    out = set()
+    for toml_path in sorted(cityconfig.CITIES_DIR.glob("*.toml")):
+        raw = tomllib.loads(toml_path.read_text())
+        for year in ((raw.get("structure") or {}).get("by_year") or {}):
+            out.add((toml_path.stem, str(year)))
+    assert out, (
+        f"no [structure.by_year] blocks in any of "
+        f"{sorted(p.name for p in cityconfig.CITIES_DIR.glob('*.toml'))}. "
+        f"Every caller uses this as a denominator, and a denominator of zero "
+        f"turns a scan into a vacuous pass.")
+    return out
+
+
 def scanned(population, *, of, low, high, what, denominator):
     """Assert a scan LOOKED: population non-empty and inside a two-sided band.
 

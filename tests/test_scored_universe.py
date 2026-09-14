@@ -15,6 +15,21 @@ it is 55 against 19. ``compare_history`` states this exactly and then scopes the
 warning to ``energy`` and ``variogram`` — while the report prints a
 ``crps.total`` margin of 38.3% over uniform-swing off the same column sets.
 
+**CLOSED ON THE COMMITTED PANEL.** ``history.json`` was regenerated after
+``score.hold_universe`` was wired into ``compare_history.run_city_year``, and
+the artefact's own ``manifest`` is what says so — ``git_commit d08d705``,
+``git_dirty false``, generated 2026-09-13. ⚠️ **Cite the manifest and not the
+commit that carries the file**: an artefact is written before it is committed,
+so ``251ea6f`` (which committed this panel) is one commit LATER than the tree
+that produced it. Every row is now scored on one held set, so
+the figures in the paragraph above describe the artefact as it was FOUND and
+not as it is. The mechanism is still reproduced constructively, on production
+code, by ``test_the_default_admission_rule_leaves_two_forecasters_incomparable``;
+``test_the_committed_panel_is_scored_on_one_universe_per_city_year`` asserts the
+repaired state on the live artefact. Until 2026-09-14 that second test asserted
+the DEFECT on the live artefact instead, and went red the day the fix beside it
+shipped — **a test may not require a defect to persist.**
+
 ⛔ **#15 — THE CALIBRATION HEADLINE RESTS ON A POPULATION THE FORECASTER
 SELECTS.** ``claimed`` admits a column when the model gives it a seat in half
 its draws. That rule is very nearly the complement of this model's dominant
@@ -59,7 +74,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _support import ROOT, run_module, scanned, skip  # noqa: E402
+from _support import (ROOT, declared_city_years, run_module,  # noqa: E402
+                      scanned, skip)
 
 import numpy as np  # noqa: E402
 
@@ -450,38 +466,147 @@ def test_the_variogram_crossover_formula_predicts_the_measured_peak():
         f"against one number twice. The second fixture exists to move the peak.")
 
 
-def test_the_committed_panel_is_scored_on_sets_that_differ():
-    """The defect on the real artefact, with the population it covers stated.
+def _rows_with_mixed_column_sets(rows):
+    """THE DETECTOR: city-years where some baseline was scored on a different
+    number of columns from the model.
 
-    Scan-shaped: it reads live repository state, so it must show it scanned the
-    right thing and that the thing is non-empty and within a two-sided band.
+    One definition, run twice — on the live panel, and on a constructed
+    violation of it. A scan that finds nothing is evidence only if the thing
+    doing the finding has been shown to find something.
+    """
+    return [f"{r.get('city')} {r.get('year')}" for r in rows
+            if any(o.get("n_scored") not in (None, r["n_scored"])
+                   for o in r["opponents"].values())]
+
+
+def test_the_committed_panel_is_scored_on_one_universe_per_city_year():
+    """⛔ THE POST-FIX INVARIANT, NOT THE DEFECT. #13 IS CLOSED ON THIS PANEL.
+
+    What stood here until 2026-09-14 asserted the DEFECT on the live artefact:
+    at least 18 of the 24 rows had to still carry per-forecaster column sets,
+    and the model had to be scored over more than 1.5x uniform-swing's columns.
+    Both were true of the artefact it was written against; both are false now.
+    ``history.json`` was regenerated after ``score.hold_universe`` was wired
+    into ``compare_history.run_city_year`` — its own ``manifest`` records the
+    run at ``git_commit d08d705``, ``git_dirty false`` — and the panel is
+    scored on one held set per city-year. **The test went red because the fix
+    it was written beside shipped.**
+
+    That is CLAUDE.md §4 requirement 3 exactly: its premise was an observed
+    state of a derived artefact that the accompanying repair was designed to
+    change, so it was always going to expire the moment it worked. **A test may
+    not require a defect to persist**, and the cost of one that does is not the
+    red line — it is that "revert until it is green again" is the cheapest way
+    to read it.
+
+    **Inverted rather than deleted, and the reason is what each half buys.**
+    The MECHANISM claim — that ``score.seat_matrix``'s admission rule
+    (``truth[i] > 0 or samples[:, i].max() > 0``) makes the column set move with
+    the forecaster — is already reproduced constructively on production code by
+    ``test_the_default_admission_rule_leaves_two_forecasters_incomparable``,
+    which scores one forecaster over 8 columns and the other over 6 through that
+    rule and asserts the predicate names the columns that differ. Nothing about
+    the mechanism is lost by removing it from here. What would be lost is the
+    only thing watching the ARTEFACT the report's margins are computed from: the
+    day ``compare_history`` regresses to per-forecaster columns, every
+    model-vs-baseline number in it silently stops being one comparison, the
+    freeze cannot arbitrate it and the backtest cannot see it. So this asserts
+    what must be true, on the live panel, and the 580:332 measurement stays
+    where a measurement belongs — in the module docstring above and in
+    MODEL-LOG, as a dated description of an artefact that no longer exists.
+
+    Scan-shaped, so it must show it scanned the right thing, that the thing is
+    non-empty against a denominator computed OUTSIDE the artefact, and that the
+    detector can see. The denominator is ``_support.declared_city_years`` —
+    the ``[structure.by_year]`` blocks in ``cities/*.toml`` — and not
+    ``len(records)``, because a panel that stopped scoring a city-year would
+    otherwise shrink its own denominator and report the loss as a pass.
     """
     path = ROOT / "data" / "processed" / "history.json"
     if not path.exists():
         skip(f"{path} is not on disk; run src/compare_history.py")
     records = json.loads(path.read_text())["records"]
 
+    # (0) IT SCANNED THE RIGHT THING, and the claim is bidirectional: it is
+    #     about rows AND the baselines hanging off them, so both populations are
+    #     asserted. The denominator is computed from the configs, not the file.
+    declared = declared_city_years()
+    scanned(records, of=declared, low=1.0, high=1.0,
+            what="city-year rows in history.json",
+            denominator="backtest city-years declared by cities/*.toml "
+                        "[structure.by_year]")
+
     rows = [r for r in records if r.get("n_scored") and r.get("opponents")]
-    scanned(rows, of=records, low=0.9, high=1.0,
-            what="city-year rows carrying both a model n_scored and opponents",
-            denominator="rows in history.json")
+    unscored = [f"{r.get('city')} {r.get('year')}" for r in records
+                if not (r.get("n_scored") and r.get("opponents"))]
+    assert not unscored, (
+        f"{len(unscored)} city-years in history.json carry no `n_scored` or no "
+        f"`opponents` — {unscored[:5]}. They are outside every claim below, so "
+        f"the invariant would be asserted of a panel with holes in it. Re-run "
+        f"src/compare_history.py.")
 
-    differ = [r for r in rows
-              if any(o.get("n_scored") not in (None, r["n_scored"])
-                     for o in r["opponents"].values())]
-    scanned(differ, of=rows, low=0.75, high=1.0,
-            what="city-years where a baseline was scored on a different number "
-                 "of columns from the model",
-            denominator="city-year rows scanned")
+    names = sorted({n for r in rows for n in r["opponents"]})
+    blocks = [o for r in rows for o in r["opponents"].values()]
+    scanned(blocks, of=len(rows) * len(names), low=1.0, high=1.0,
+            what=f"baseline score blocks reachable from the rows scanned "
+                 f"({', '.join(names)})",
+            denominator="rows scanned x distinct baseline names")
 
-    model_cols = sum(r["n_scored"] for r in rows)
-    swing_cols = sum(r["opponents"]["uniform-swing"]["n_scored"] for r in rows
-                     if "n_scored" in r["opponents"].get("uniform-swing", {}))
-    assert model_cols > 1.5 * swing_cols, (
-        f"the model is scored over {model_cols} columns across the panel and "
-        f"uniform-swing over {swing_cols}. This test exists because that ratio "
-        f"was 580:332; if it has closed, say so in MODEL-LOG rather than "
-        f"loosening the assertion.")
+    # (1) THE INVARIANT. Every forecaster on a row was scored on the same number
+    #     of columns as the model, and the row names the single set they share.
+    mixed = _rows_with_mixed_column_sets(rows)
+    assert not mixed, (
+        f"{len(mixed)} city-years score a baseline on a different number of "
+        f"columns from the model — {mixed[:5]}. That is defect #13 back: the "
+        f"scored universe has gone back to being chosen by the forecaster, and "
+        f"every summed margin in history.md over those rows is a difference "
+        f"between two different sums. The fix is `score_seats(universe="
+        f"hold_universe(...))` in `compare_history.run_city_year`, not a "
+        f"loosening here.")
+
+    unkeyed = [f"{r['city']} {r['year']}" for r in rows
+               if not r.get("universe_key")]
+    assert not unkeyed, (
+        f"{len(unkeyed)} rows carry no `universe_key` — {unkeyed[:5]}. "
+        f"`n_scored` is a count and cannot tell two same-sized DIFFERENT sets "
+        f"apart, so without the key an equal count is not evidence of an equal "
+        f"set. These rows predate the held universe and must be re-run.")
+
+    miscounted = [f"{r['city']} {r['year']}: universe_n={r.get('universe_n')} "
+                  f"n_scored={r['n_scored']}" for r in rows
+                  if r.get("universe_n") != r["n_scored"]]
+    assert not miscounted, (
+        f"the held universe and the scored column count disagree on "
+        f"{len(miscounted)} rows — {miscounted[:3]}. The row says it was scored "
+        f"on a universe of one size and the score says another, so one of the "
+        f"two is describing a different run.")
+
+    incomparable = [f"{r['city']} {r['year']}" for r in rows
+                    if r.get("comparable") is not True]
+    assert not incomparable, (
+        f"`score.comparable` itself reports {len(incomparable)} rows "
+        f"incomparable — {incomparable[:5]} — while the column counts above "
+        f"agree. Equal counts over unequal sets is exactly what the predicate "
+        f"exists to catch and the counts cannot.")
+
+    # (2) ⛔ CAN THE DETECTOR SEE, AND DOES IT GO QUIET AGAIN? One baseline's
+    #     column count moved by one, through the same predicate, then put back.
+    victim = json.loads(json.dumps(rows[0]))
+    baseline = sorted(victim["opponents"])[0]
+    here = f"{victim['city']} {victim['year']}"
+    victim["opponents"][baseline]["n_scored"] = victim["n_scored"] + 1
+    assert _rows_with_mixed_column_sets([victim]) == [here], (
+        f"{baseline} was given one more column than the model at {here} and "
+        f"the detector did not name the row. Everything asserted above is then "
+        f"a scan that cannot see, and its silence means nothing.")
+    victim["opponents"][baseline]["n_scored"] = victim["n_scored"]
+    assert _rows_with_mixed_column_sets([victim]) == [], (
+        f"the detector still names {here} after the constructed violation was "
+        f"reverted, so it is reporting something other than the thing it was "
+        f"built to find.")
+
+    print(f"  {len(rows)} city-years, {len(blocks)} baseline blocks over "
+          f"{len(names)} baselines, every one on the row's own universe")
 
 
 # ---------------------------------------------------------------------------

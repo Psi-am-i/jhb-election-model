@@ -25005,3 +25005,521 @@ tracker.
 **And the cheap check that would have caught it existed all along.** The spec
 records `measured_at` precisely so the years can be read rather than assumed.
 Opening one file would have settled it.
+
+## 1.233 Two covariates that failed open, and the first fix proposed for one of them covered half of it (2026-09-14)
+
+**The class, stated once because both defects are the same one.** A covariate
+resolver returns a value that is arithmetically valid when its input is
+unreachable. Nothing raises, nothing prints, and every stage below carries on
+and produces a *different answer under the same name*. Neither site is in
+`pools._EMIT_DEPENDENCIES`, so nothing was re-emitted for either repair.
+
+### 1. `benchmarks.roster_split` — the reach archive
+
+`uniform-swing+roster` is the opponent §1.231's headline is measured against
+(model 723, this reference 837 over 24 rows). It fails CLOSED on the roster —
+`montecarlo.roster_for_target`, `SystemExit` unless the state is `published` —
+and then failed OPEN on the covariate it actually sizes newcomers by.
+
+⚠️ **The two come from DIFFERENT archives and can be present or absent
+independently.** The roster resolves through `pools.contesting_parties` →
+`city.path("raw","elections", template)`; reach resolves through
+`pools.metro_file` → `data/raw/elections/_metros/` then `_reports/`.
+`pools._ward_reach` returns `{}` for an unreachable archive *and* for a party
+with no ward rows, and with it empty `newcomer_shares` takes its `fallback`
+branch for every newcomer at once, the identical weight cancels in the
+normalisation, and the arrival budget splits evenly.
+
+**Constructed at joburg 2021 on 2026-09-14, both routes, seed 20211101,
+`draws=1`:**
+
+| | ActionSA's declared prior | its rank of 32 newcomers | distinct newcomer shares |
+|---|---|---|---|
+| live | 0.163835% | 6th (equal with CHANGE) | 20 |
+| archive unreachable | 0.061133% | equal-first of 32 | 1 |
+
+The allocated council moves by **12 seats of 270**: ANC 110→111, DA 94→95,
+VFPLUS 2→3, and five newcomers holding one seat each (ASA among them) lose it
+to PA, PAC and UDM. **The two routes returned byte-identical councils.**
+
+⛔ **AND THAT IS WHY THE GUARD IS ON `_ward_reach`'S RETURN, NOT ON
+`metro_file`.** The repair first proposed was `if _pools.metro_file(...) is
+None: raise`. It catches route (a), an absent archive, and leaves route (b) —
+a file that exists and yields no ward rows, i.e. a truncated or header-only
+download — producing the identical degraded council with the identical silence.
+Enumerating routes is how the second defect below got its hole; the same
+mistake was about to be written into the repair for the first.
+
+**The degraded path did not run on any published measurement.** Verified
+independently on Atlas: `_metros` carries 8 files, `_reports` 121, and
+`pools._ward_reach` is non-empty at **24 of the 24 runnable city-years**
+(minimum 9 parties, at Buffalo City 2011). 2000 and 2006 have no metro file at
+all, and are outside the population — `backtest.runnable_targets` excludes
+them, so `backtest.TARGETS` raises `KeyError` and `benchmarks.build_context`
+cannot be built there. The refusal therefore changes no reachable answer.
+
+### 2. `backtest.arrival_baseline` — the preceding NPE file
+
+Its docstring is emphatic that `{}` must never be returned: an empty baseline
+does not mean "nobody had a record", it means **everybody arrived**, and
+`entrant_actual_for` then relabels the model's generic ENTRANT onto the largest
+party in the chamber. The guard covered two of the three routes — no
+`previous_npe`, and `resolve_path(path).exists()` false. **It did not cover the
+file existing and yielding no rows.** `fold.citywide({})` returns `{}` rather
+than dividing by zero (the comprehension is empty), and `{}` survives the `> 0`
+filter unchanged.
+
+**Constructed 2026-09-14 at joburg 2021**, with the 2019 NPE file replaced by a
+zero-byte placeholder and then by a header-only truncation — both shapes an
+interrupted fetch leaves behind. Live, `entrant_actual_for_target` returns
+`ASA`; under either injection it returned **`ANC`**, which holds 91 of the 270
+seats and is the largest party in the chamber. Routes 1 and 2 returned `None`
+as designed.
+
+The repair returns `None` before `citywide` when `load` yields no rows, **and
+makes `{}` unreturnable by any route at all** (`return base or None`) rather
+than adding a third item to a list that has to be kept complete. It costs a
+real answer nothing: a non-empty `votes` whose counts are all zero divides by
+zero inside `citywide` and never arrives, so any `votes` reaching the filter
+has a party above zero.
+
+### 3. A parity claim in `benchmarks.py` that was false against the ground truth
+
+Found while verifying the above and reported separately. The comment beside the
+C/D split said *"the same C/D split the model and the ground truth use"*.
+Half of that holds: it is one definition (`seats.outside_pool_wards`), and it
+matches the MODEL. It does not match the GROUND TRUTH. `wins` is read off
+`ctx.universe`; `build_context` drops `INDEPENDENT`/`IND`; so `c_wards` is
+**structurally always 0**, while `backtest.actual_result` takes C from the
+IEC's published Seat Calculation Detail. Measured over the 24 runnable
+city-years on 2026-09-14: official C > 0 at **2 of them** — eThekwini 2011
+(C=1) and 2016 (C=4). At those two rows the baseline strikes its quota over up
+to four more pool seats than the published chamber had.
+
+`montecarlo.py` carries this caveat in full and points at `JUDGEMENT-CALLS.md`
+(row `independent_wards` (C) in the forecast, 🔴, §1.166 — checked, it exists
+and says exactly this). `benchmarks` copied the code and replaced the caveat
+with the parity claim. The caveat is restored; **D is *not* structurally zero**
+and the restored note says so, because a universe party filtered out by
+`eligible_parties` still lands in the D term.
+
+⚠️ **The register names `montecarlo.run_model` only.** `benchmarks` now makes
+the same structural assumption for the same reason and is not listed there.
+Left undone deliberately — the register has its own guard and its own owner —
+and recorded here so it is not silent.
+
+### The lesson
+
+**A fail-open covariate is invisible precisely where a fail-closed one is
+loud.** Both of these sit one line below a guard that was written correctly:
+`roster_for_target` refuses an unreadable roster in twelve lines of argument,
+and the reach call beneath it had none; `arrival_baseline` enumerates two
+routes to an empty record in a docstring about why an empty record is
+catastrophic, and misses the third. ⛔ **Guard the VALUE the consumer will use,
+not the routes by which it can go wrong** — a route list is a claim of
+completeness that nothing checks, and both defects here are that claim being
+wrong. `tests/test_covariate_fail_open.py` holds the four constructed
+violations; its two detector tests were run against the pre-repair sources and
+against the path-check-only repair in a shadow tree, and fail on both.
+
+## 1.234 Four guards that could not fail, and the fixture that made one of them impossible (2026-09-14)
+
+**No forecast number moves. Every change in this entry is in `tests/`.** What
+moves is how much of the suite is load-bearing: four guards were measured, found
+unable to fail, and repaired or retired with the measurement that retired them.
+
+### ⛔ `data/processed/buffalocity/pools_2011.json` IS DEGENERATE FOR CENTRE-LEVER WORK
+
+`_specs()[0]` — the first spec the glob in `tests/test_pool_conservation.py`
+returns — is `buffalocity/pools_2011.json`, and it is the wrong fixture for
+anything that pulls a party's **centre**.
+
+It carries 8 parties over 4 pools. Give every party the flat 2% centre these
+tests use and the DA is already asking for **147% of its own pool capacity**, so
+`montecarlo.capped_targets` clips it. Tripling its centre then changes nothing
+at all: `pool_spec` returns **bit-identical `props` for every pool** before and
+after, and the drawn shares are identical to the last bit. Measured 2026-09-14,
+by running `pool_spec` at `centres[DA] = 0.02` and `0.06` and differencing.
+
+**Anything that pulls a centre lever on this spec is measuring a clip, not a
+mechanism**, and it will report "no change" in exactly the tone of a null
+result. The same probe over all 26 emitted specs found this one degenerate and
+the other 25 healthy, so a fixture chosen by `_specs()[0]` picks the single spec
+that cannot answer the question.
+
+`test_capture_is_zero_outside_a_partys_pools` therefore names
+`data/processed/pools_2021.json` and asserts that its lever moved something,
+rather than taking whatever the glob returns first.
+
+### The arrival test had a threshold BELOW its own noise floor, and no positive case
+
+`test_an_arrival_does_not_touch_pools_it_is_not_in` added a NEWCOMER to one pool
+and asserted the OTHER pool's members' shares of each other moved by less than a
+typed `0.02`. It passed at **0.01931** — 97% of its own threshold. Three
+measurements, on 200-1500 draws and two specs:
+
+| quantity | measured |
+|---|---|
+| the asserted shift, `buffalocity/pools_2011`, 200 draws | 0.01931 |
+| **Monte Carlo noise floor of the same statistic** (same scenario, different seed) | **0.0226 - 0.0261** |
+| newcomer added INTO the watched pool vs AWAY from it (`into/away`) | **0.91 - 1.26** |
+| mean corr(NEWCOMER, host-pool members) vs (other-pool members), joburg 2021 | **-0.0217 vs -0.0196** |
+
+So the threshold sat **below** the noise: whether it passed was decided by the
+RNG seed, not by the code. And the positive case never separated — adding the
+arrival to the pool being watched moves that pool's split by the same amount as
+adding it to a different pool, at ~1x noise, at every draw count tried.
+
+⭐ **WHY, AND IT IS A FACT ABOUT THE MODEL RATHER THAN ABOUT THE TEST.**
+`pool_spec` imposes BOTH margins by IPF. When every party carries the same flat
+centre — which is what these fixtures do — adding a newcomer moves every
+incumbent's party margin by the same proportional amount whichever pool it
+joins, and IPF lands on the matrix closest in KL subject to those margins.
+**With a flat centre vector, pool membership is very nearly unobservable in the
+drawn means**, and the incumbents' aggregate loss equals the newcomer's gain to
+1.000 by renormalisation alone. The old docstring claimed "if a citywide term
+were doing the debiting instead of the pool term, this is the test that would
+catch it". It would have caught neither.
+
+**The lever that IS resolvable is a party's own centre**, because that makes one
+party's margin differ and forces IPF to source the difference from the pools
+that party actually holds. Measured on `pools_2021`, party `GOOD` stripped of
+`Black African`, centre tripled, three seeds:
+
+| pool | internal split shift | vs noise floor |
+|---|---|---|
+| `Black African` — the party no longer holds it | 0.00341 | **0.71x** |
+| `White` — the party holds it | 0.03832 | **7.9x** |
+| `Black African`, with the party restored to it | 0.03582 | **10.8x** |
+
+Stable across four seed triples (0.70-1.15x, 9.85-11.50x) and, in probing, over
+all 26 emitted specs. That contrast is the instrument now; the noise floor is
+**measured inside the test** at a different seed rather than typed.
+
+### The capture test's inner loop had never executed
+
+`test_capture_is_zero_outside_a_partys_pools` iterated the pools a seeded party
+has no weight in and asserted that weight was ~0 — `x <= 0` implies `x <= 1e-9`,
+so it could only have caught a NaN. It could not catch that either: across all
+26 emitted specs there are **0** (seeded party, pool) pairs where the party
+holds no weight, because `pools.balance_within_bounds` seeds every zeroed cell.
+The loop body had never run. **279 of 2878** (party, pool) pairs overall do hold
+no weight — none of them seeded — so the population exists; it simply is not the
+one the test was looking at.
+
+### `eligible_parties`: the characterisation was narrower than the defect
+
+`seats.eligible_parties` iterates `set(ward_votes) | set(pr_votes)`, and
+`test_eligible_parties_hands_the_allocator_a_set_ordered_dict` recorded that its
+output order "carries no information from its inputs". That is true at
+`PYTHONHASHSEED=0`, which `run_all.py` pins. **At `PYTHONHASHSEED=12345` the
+same four names yield two different output orders over the 24 permutations** —
+a small set's iteration order stops being insertion-independent once two keys
+collide on a slot. So the seat handed out at an exact tie is a function of the
+hash seed AND, at some seeds, of the caller's ordering.
+
+The control's own bound was `preserved < len(orders)`, where `preserved` counts
+permutations whose output order matches the input. That is **1** today and **1**
+under a `sorted()` repair — a constant output order matches exactly one of the
+24 inputs whichever constant it is — so `1 < 24` would have gone on passing
+after the defect was fixed. It is now written as the negation of each plausible
+repair and both repairs are run through the same predicate inside the test.
+
+⛔ **Three sibling controls must be re-pointed in the same commit as any
+`seats.allocate` ordering fix**, and they will announce themselves separately:
+`tests/test_roster_aware_baseline.py:117` (`BM.canonical_order = dict` stops
+restoring the defect), and both ordering tests in
+`tests/test_stage_realisation.py`.
+
+### The general lesson
+
+**A positive control that cannot fail is worse than no control**, because its
+silence is read as evidence. Three of the four above were written to satisfy
+CLAUDE.md §4's requirement 2 — "a constructed violation is caught, and the
+detector goes quiet when it is reverted" — and none of them had been run against
+the repaired state they were guarding. The cheap check is the one the rule
+already names: **write the fix, run the test, confirm it goes red.**
+
+## 1.235 Three provenance gates that could not be wrong, and the shape six defects shared (2026-09-14)
+
+**No forecast number moves. All three changes are provenance or safety.** What
+moves is whether three instruments this project relies on can report anything.
+Settled-tree suite after all five work-streams stopped: **662 passed, 9 failed,
+18 skipped over 43 modules**, no `PARTIAL RUN`, exit 1 — against a 644 / 10 / 18
+baseline, **+18 passed, −1 failed, zero new failures** across nineteen files.
+The 9 are the original 10 minus `test_the_committed_panel_is_scored_on_sets_
+that_differ`, which the test-guard stream turned green; that baseline was
+established by stashing the tracked changes and re-running the six failing
+modules on a clean tree, which returned the identical ten FAIL names.
+
+### ⛔ THE SHAPE, STATED ONCE. §1.233 AND §1.234 ARE THE SAME FINDING.
+
+> **A control that never arrives is indistinguishable from a control that does
+> nothing, and neither is distinguishable from a control that works.**
+
+Six instances landed in one day, from four agents who were not talking to each
+other, in four unrelated subsystems:
+
+1. `declares.py --verify` **audited nothing and exited clean** from any working
+   directory but the repository root (below).
+2. `declares.py --verify` **could never exit 0** from the right one (below).
+3. `overhang_regimes.py`'s restore of the published forecast was **skipped by
+   any raise** (below).
+4. `compare_history._archive_targets`'s `except Exception: continue` **shrank
+   the denominator it is the sole source of**, in silence (below).
+5. §1.234's capture test, whose **inner loop body had never executed** on any of
+   26 specs — it examined zero instances, ever.
+6. §1.234's `eligible_parties` control, whose bound **reads 1 under the defect
+   and 1 under the repair**, so it would have gone on passing after the fix.
+
+⚠️ **And §1.233's two fail-open covariates are the same class again**, so the
+day's true count is higher than six; they are written up there and not restated
+here. What is worth carrying forward is that every one of these was *already
+covered* in the sense that mattered to whoever wrote it — there was a guard, a
+test, a restore, an audit. **Coverage was never the variable. Whether the thing
+could report a difference was.** The cheap check is the one CLAUDE.md §4 already
+names and that none of the six had been put through: break it, watch it go red,
+revert it, watch it go quiet.
+
+### 1. `src/declares.py` — the gate CLAUDE.md sends every session through
+
+`CLAUDE.md` instructs every session to run this *"before quoting or believing
+any number"*. **Both of its outcomes carried no information.**
+
+**(a) It failed OPEN from the wrong working directory.** `PROCESSED` was
+`Path("data/processed")`, resolved against the shell, and `rglob` on a missing
+directory yields nothing rather than raising. Measured:
+
+    $ cd src && ../.venv/bin/python declares.py --verify
+    **0 of 0 artefacts that CAN declare themselves do.**        EXIT=0
+
+That is the all-clear the module's own docstring exists to make impossible, and
+`_live_pools_sha` still succeeded there — its `sys.path` insert is absolute — so
+nothing in the output said the scan had found no tree. `PROCESSED` is now
+anchored to `__file__` and `_processed_root` raises `CannotAudit` on an absent
+tree. ⚠️ **`archive.py` was cited to me as the model to follow and is not one**:
+it has the same relative-path habit, no `__file__` anchor, and fails closed only
+*incidentally*, because its manifest is missing from the wrong cwd.
+
+**(b) It could never exit 0 from the right one.** `KINDS["run"]` requires
+`time`; `freeze.py:46` says the bundle *"deliberately does NOT cover
+timestamps"*; `forecast_frozen.json` is committed; `Row.worst` is the worst cell
+and `--verify` failed on `worst`. **That one cell was sufficient on its own** —
+the gate returned 1 on every tree that has existed and every tree that could.
+`Row.unchecked` now records, **at the site that sets each cell** rather than in
+a central list that would drift, the cells this module sets without reading the
+artefact; `--verify` scores `Row.answerable`. A `~` is still counted on an
+exempt cell, so the exemption cannot be used to switch the interesting state
+off. Its size is printed with its denominator (**35 of 181 cells, 19%**, on the
+artefacts that can declare) and bounded two-sidedly in test.
+
+**(c) A `~` was being spent on correct behaviour.** The freeze row compared
+`provenance.git_commit` to HEAD. A freeze records a PAST published forecast, so
+it names a past commit **by construction**, and the cell went red on the next
+commit to the repository whatever that commit touched — spending the state this
+module calls *"the interesting one"* on the one artefact CLAUDE.md §1 calls a
+tripwire. Two further faults in the same six lines: `freeze._git` returns the
+**string** `"<unavailable>"` rather than raising, which is truthy and unequal to
+every commit, so any machine without git got a false `~` — the `_SENTINELS`
+class unguarded inside the module that defines it; and `except Exception: pass`
+left the row reading `DECLARED` when the check could not run. Replaced by a
+check that can actually fail — **does this repository contain the commit the
+freeze names** — with behind-HEAD demoted to a note on a declared row.
+
+**The gate now distinguishes.** On a constructed honest tree it exits 0; a stale
+`pools_sha`, a missing `_generated`, and a freeze naming `0`×40 each drive it to
+1, and each goes quiet on revert. It still exits 1 on the live tree, and now
+says something: **6 `~` and 3 `✗`**. The six are one genuine staleness —
+`forecast_summary.json`, `forecast_frozen.json`, the three `regime_*` summaries
+and `joburg/2021` embed pool keys from a `pools.py` that is no longer on disk.
+**That was NOT silenced.** The three `✗` are `width_budget.json` (no
+`generated`), `sweep.json` and `interactive_data.json` (neither `generated` nor
+`draws`) — fixable by their writers, which were outside this stream.
+
+### 2. `src/overhang_regimes.py` — a counterfactual council on the published paths
+
+Three counterfactual runs wrote straight through the **published** forecast's
+own files, and the restore was a bare statement after the loop with no `try`
+and no `finally`. `allocate_with_overhang` raises `RuntimeError` for the `level`
+rule **by design** (montecarlo.py:3234), and `level` is the **second** of the
+three. Constructed 2026-09-14 against the pre-repair file with the failure
+injected at `level`:
+
+| | `scenario.overhang_rule` | `council` |
+|---|---|---|
+| reference on disk before | `deduct` | 270 |
+| **after the `level` raise** | **`expand`** | **288** |
+
+The site's input, left holding a council grown past 270 with a moved majority
+threshold, under the name the published forecast reads. Nothing downstream
+catches it: `stats.freshness_problems` compares mtimes, nothing asserts the
+published rule, and `data/**` is gitignored. The `--counterfactual` guard's own
+message (montecarlo.py:1167) says these *"must not reach a forecast"*.
+
+The tree is now snapshot before the first run and restored **byte for byte** in
+a `finally`; regime outputs are staged and published only on success. Two
+properties a restore-by-re-running never had: it cannot itself fail, and it is
+the bytes that were published rather than a re-derivation of them.
+
+⛔ **AND THE DOCSTRING'S "deterministic seed — bit-identical" WAS FALSE.**
+`montecarlo.fix_hash_seed` runs only under `montecarlo`'s own `__main__`
+(montecarlo.py:5301). This script imports `montecarlo` and calls `main()` as a
+library. **Seven library-style callers in this repository pin the seed** —
+`compare_history`, `backtest`, `sweep`, `diagnose`, `freeze`, `montecarlo`
+itself, and `tests/run_all.py:260` — and `overhang_regimes.py` was the one that
+did not. Measured: the old file reached `montecarlo.main` with
+`PYTHONHASHSEED=None`; the repaired one requests the re-exec first, matching
+`sweep.py`. **Six-to-one.** It compounds directly with §1.234's `eligible_
+parties` finding — output order stops being insertion-independent once two keys
+collide on a slot, so a tied last seat is decided by the hash seed — meaning the
+"restore" could write a forecast differing from the published one by a seat and
+call it bit-identical.
+
+**What was considered and rejected: `--processed <tmpdir>`.** It is one flag for
+two jobs (montecarlo.py:5052). Checked read by read: `turnout.csv` (:4257) and
+the ward crosswalk (:901) refuse loudly, but `gamma_recent.csv` (:4208),
+`byelection_contest_detail.csv` (:4141) and `byelection_party_deltas.csv`
+(:4446) are **all three `if path.exists()` and fall back in silence**. An empty
+directory does not isolate the run; once the first two are satisfied it hands
+back a model with the by-election evidence and the recent-gamma channel switched
+off, saying nothing. That is instance 7 of the shape above, found while looking
+for somewhere to stand.
+
+### 3. `src/compare_history.py` — the scoreboard's own provenance
+
+**(a) The manifest declared a module global that `apply_city` rewrites every
+row.** `"seed": M.DEFAULTS.get("seed")`, commented *"The seed every city-year
+actually ran at"*. `apply_city` clears `DEFAULTS` and re-overlays
+`_PRISTINE_DEFAULTS` plus the city toml on every city-year
+(montecarlo.py:1198), and two city tomls declare a `seed`. It therefore read the
+**last city's** value under `--jobs 1` and the **pristine** one under `--jobs N`
+— the serial and parallel paths disagreeing about the artefact's own provenance
+— and never reflected `--set seed=N` at all, because `load_scenario` applies
+`--set` over a deepcopy (montecarlo.py:1961), leaving the override visible in
+`overrides` and contradicted by `seed` in the same manifest.
+
+⚠️ **It was RIGHT on the tree it was written against, and that is not a
+defence.** `_PRISTINE_DEFAULTS`, both city overlays and all 24 rows of the
+committed `history.json` read **20261104**, so every route agreed and the seed
+quoted from this manifest was correct. It was right by coincidence of two config
+files — what `apply_city`'s own docstring calls *"luck, not design"*. Now
+derived per row from `scenario_defaults`, plural on sight when rows differ,
+`<unrecorded>` for a row predating that field (added to `declares._SENTINELS`,
+because a truthy string passing a presence check is what that list is for).
+
+**(b) `_archive_targets` swallowed the failure that shrinks its denominator.**
+It is the sole source of the population `population.excluded` is measured
+against, under a docstring reading *"Derived, never typed — a typed panel list
+is how §1.69 stayed wrong for months."* Two lines below: `except Exception:
+continue`. A city whose config would not load vanished entirely — absent from
+`scored`, from `excluded`, and from the catch-all branch, which iterates this
+same archive. Measured with one city's `cityconfig.load` made to raise: the
+population went **24 → 21**, nothing raised, printed, recorded or exited
+non-zero, and it returned to 24 on revert. **That is §1.69 reinstated inside the
+fix for §1.69** — deriving a denominator does not help if the derivation may
+fail quietly; that is a typed list's behaviour without the honesty of being
+visible. The failure now returns on its own channel and is recorded against the
+pseudo-year `<all>`. ⛔ `scored | excluded == archive` no longer holds when
+`archive_unreadable` is non-empty, correctly: an empty `archive_unreadable` is
+the licence to treat `archive` as the population.
+
+**(c) One run wrote two manifests.** `build_manifest` was called twice, at
+`main`'s JSON write and again for the render, so `history.json` and
+`history.md` — the one a human reads, and whose `_citable` token is stamped from
+it — carried two independent records of one run: two `generated` stamps at
+second resolution (0.09 s apart, so they disagree whenever the pair straddles a
+second), two `git status` readings, two enumerations of every city's pool keys.
+Built once. Not in the brief; found while reading around (a).
+
+### The linked pair: two of the nine failures are ONE defect, and it is not this stream's
+
+`test_calibration_report::test_the_relabel_ablation_actually_withholds_the_label`
+fails with *"withholding the arrival label did not make the score worse: 6.9450
+with the label, 6.9450 without"*, and
+`test_freeze::test_the_freeze_records_every_environment_switch` fails with
+*"environment switches missing from the freeze: ['HELD_BACK_OFF',
+'JHB_SCORE_NO_RELABEL']"*. **These are one root cause**: the switch is not
+reaching `calibration_columns` and both `score_seats` calls, only `relabel_run`.
+A control that never arrives, again — the sixth-and-seventh instance of the
+shape at the top of this entry, sitting in the failure list while it was being
+written. **Recorded, not fixed**: it is outside this stream's files. The next
+session should treat the nine as eight distinct defects.
+
+### The probe incident, because the next person writing one needs to find it
+
+⛔ **`fix_hash_seed` RE-EXECS THE PROCESS, SO A STUB INSTALLED IN THE PARENT
+DOES NOT SURVIVE INTO THE CHILD.** The first probe written to measure defect
+2(b) monkeypatched `montecarlo.main` and then let `runpy` run the real
+`__main__` guard. `fix_hash_seed` called `os.execv`; the child started with a
+clean interpreter, no stub, and **ran the real model against the real
+`data/processed`**. Killed with SIGINT inside `expit`. **No damage**:
+`montecarlo` writes only after the draws complete, every published artefact
+still carried its 2026-08-31 12:33:44 mtime, and `declares.py` output was
+byte-identical to the pre-incident audit. The reusable part is the mitigation —
+**intercept `os.execv` rather than letting the re-exec happen, and assert the
+guard's contents by AST**, which is what
+`test_provenance_gates::test_the_regime_script_pins_the_hash_seed_like_every_
+other_caller` does.
+
+### What was NOT checked
+
+* **No forecast was run and no spec re-emitted.** `compare_history`, a bare
+  `montecarlo.py` and `overhang_regimes.py` were all avoided against the real
+  tree; every measurement above is unit-level or in a temporary directory. The
+  `overhang_regimes` repair has **never been exercised against the real
+  `data/processed`** — only against constructed trees with `montecarlo` stubbed.
+* **`declares.py`'s three `✗` were not fixed.** Their writers were outside this
+  stream, so the gate still exits 1 on the live tree.
+* **The six `~` are real staleness and are still there.** Re-running the
+  forecast and re-freezing is what clears them; that is a deliberate act, not a
+  side effect of this work.
+* `tests/test_provenance_gates.py` holds 11 constructed violations, each caught
+  and each shown to go quiet on revert. **11 passed, 0 failed** in the settled
+  run.
+
+## 1.236 Two facts about the repository that nobody owns (2026-09-14)
+
+Recorded because both were found while doing something else and would otherwise
+be lost. Neither is a model defect and neither was changed.
+
+### A self-referential symlink makes any recursive scan of `data/` unbounded
+
+    data/data -> /Users/simondavis/projects/jhb-election-model/data     (31 Aug)
+
+An **absolute** link to its own parent. Measured 2026-09-14:
+
+    glob.glob("data/**/forecast_frozen.json", recursive=True)
+      -> 33 paths, 1 distinct real file
+      -> deepest: data/data/data/.../data/  (24 levels before the cutoff)
+
+It is gitignored and outside `tests/`, and was correctly left alone — nothing in
+`src/` roots a recursive scan at `data/` today. ⚠️ **But anything that starts
+doing so follows it to arbitrary depth**, and the symptom is not a crash: it is
+a population inflated by a large integer factor, every member of it the same
+file. That is the detection heuristic now in `POOLS-REEMIT-QUEUE.md`'s preamble
+— **a scan reporting the same alarming thing about every member of its
+population is describing its own traversal, not the data**. `src/declares.py`
+uses `rglob` under `data/processed` and is unaffected only because the link sits
+one level above it.
+
+### The hand-maintained `run_all.MODULES` list went red twice in one day
+
+`test_every_test_module_is_collected` fired for `test_provenance_gates` and for
+`test_covariate_fail_open` (§1.233) on the same run, added by two agents who
+were not coordinating. The guard worked both times and the list was corrected
+both times.
+
+**Two people hitting one hand-maintained list on one day is a fact about the
+list, not about the people.** Its own comment already records that it lost
+`tests/test_freeze.py` for a day. The guard is the reason this costs a minute
+rather than a week of silent non-coverage, and nothing here proposes replacing
+the list with discovery — a list that must be edited is also the thing that
+makes membership a deliberate claim. Recorded so that the third occurrence is
+read as a pattern rather than as a third accident.
+
+⚠️ A related one-way chain is still open and is documented in CLAUDE.md §5:
+`test_standalone_modules` checks ENTRY_POINTS → document, and **nothing checks
+document → ENTRY_POINTS**. That block is maintained by hand. It did behave
+correctly today in the other direction: giving `declares` an importer made its
+exemption redundant, the guard said so, and the entry was deleted — the same
+call §1.219's `diagnose.py` precedent made on 2026-09-12.

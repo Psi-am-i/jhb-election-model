@@ -1071,7 +1071,19 @@ def arrival_baseline(target, data_dir: Path) -> dict[str, float] | None:
     path = data_dir / target.results(npe)
     if not cityconfig.resolve_path(path).exists():
         return None
-    return {p: v for p, v in citywide(load(path, None)[0]).items() if v > 0}
+    votes, _ward = load(path, None)
+    if not votes:
+        return None
+    base = {p: v for p, v in citywide(votes).items() if v > 0}
+    # ⛔ AND `{}` IS UNREACHABLE FROM HERE BY ANY ROUTE, not just the three
+    # enumerated ones. The guard above covered two of the three ways an
+    # unusable baseline arises and the docstring's whole safety property is
+    # that `{}` is never returned; enumerating routes is how the third one was
+    # missed. `or None` makes the promise total instead of a list that has to
+    # be kept complete. It costs a real answer nothing: a non-empty `votes`
+    # with every count zero divides by zero in `citywide` and never arrives,
+    # so any `votes` reaching here has a party above zero.
+    return base or None
 
 
 def entrant_actual_for_target(target, actual_seats: Mapping[str, int],

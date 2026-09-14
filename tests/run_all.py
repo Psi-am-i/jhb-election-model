@@ -82,7 +82,14 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # membership is not a judgement, only the position is.
            "test_stage_inputs",
            "test_stage_realisation",
-           "test_stage_estimation"]
+           "test_stage_estimation",
+           # Added 2026-09-14 with the provenance gates. Same rule: a module
+           # that is written and never listed here reads as coverage and is
+           # not, and `test_every_test_module_is_collected` says so. It said so
+           # twice in one day: `test_covariate_fail_open` landed from the
+           # fail-open work (§1.233) and was uncollected on the same run.
+           "test_provenance_gates",
+           "test_covariate_fail_open"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.
