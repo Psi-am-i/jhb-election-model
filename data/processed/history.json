@@ -1,11 +1,37 @@
 {
   "manifest": {
     "schema": 3,
-    "generated": "2026-09-13T12:59:12Z",
+    "generated": "2026-09-14T22:20:20Z",
     "draws": 1000,
     "seed": 20261104,
+    "seed_by_row": {
+      "joburg:2011": 20261104,
+      "joburg:2016": 20261104,
+      "joburg:2021": 20261104,
+      "tshwane:2011": 20261104,
+      "tshwane:2016": 20261104,
+      "tshwane:2021": 20261104,
+      "ekurhuleni:2011": 20261104,
+      "ekurhuleni:2016": 20261104,
+      "ekurhuleni:2021": 20261104,
+      "ethekwini:2011": 20261104,
+      "ethekwini:2016": 20261104,
+      "ethekwini:2021": 20261104,
+      "capetown:2011": 20261104,
+      "capetown:2016": 20261104,
+      "capetown:2021": 20261104,
+      "mangaung:2011": 20261104,
+      "mangaung:2016": 20261104,
+      "mangaung:2021": 20261104,
+      "nelsonmandelabay:2011": 20261104,
+      "nelsonmandelabay:2016": 20261104,
+      "nelsonmandelabay:2021": 20261104,
+      "buffalocity:2011": 20261104,
+      "buffalocity:2016": 20261104,
+      "buffalocity:2021": 20261104
+    },
     "overrides": [],
-    "git_commit": "d08d705749c76c0cd885274038a2a48dc85bf211",
+    "git_commit": "be28a194b2e26f0b5dc632e7d35b9af6c7d3e8da",
     "git_dirty": false,
     "env_switches": {
       "raw": {
@@ -34,33 +60,33 @@
         "pools_2011.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "buffalocity",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "00f270b6371ba32b",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2011"
         },
         "pools_2016.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "buffalocity",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "d49599aebcc006a5",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2016"
         },
         "pools_2021.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "buffalocity",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "e49a27590f35a842",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2021"
         }
@@ -69,33 +95,33 @@
         "pools_2011.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "capetown",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "d09f8d1fecc6b7f8",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2011"
         },
         "pools_2016.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "capetown",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "3380b6ced54b15b7",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2016"
         },
         "pools_2021.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "capetown",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "8fe2c0a77329010e",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2021"
         }
@@ -104,33 +130,33 @@
         "pools_2011.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "ekurhuleni",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "d5f51ddb40d9070c",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2011"
         },
         "pools_2016.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "ekurhuleni",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "8f408f836ab4d1fb",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2016"
         },
         "pools_2021.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "ekurhuleni",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "964fbaa6cd07e05f",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2021"
         }
@@ -139,33 +165,33 @@
         "pools_2011.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "ethekwini",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "7dc89b789556051f",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2011"
         },
         "pools_2016.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "ethekwini",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "411208551d6a7591",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2016"
         },
         "pools_2021.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "ethekwini",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "ea6154d251ec0cab",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2021"
         }
@@ -174,55 +200,55 @@
         "pools_2011.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "joburg",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "fab627a741c0c7c8",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2011"
         },
         "pools_2016.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "joburg",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "7ea7faaaafd6e3c5",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2016"
         },
         "pools_2021.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "joburg",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "54e74cd0d54d1a2b",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2021"
         },
         "pools_2026.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "joburg",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "7de48723562cad2e",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2026"
         },
         "pools_2026_simulation.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "joburg",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "7de48723562cad2e",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2026"
         }
@@ -231,33 +257,33 @@
         "pools_2011.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "mangaung",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "9f4268ff8f90c79e",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2011"
         },
         "pools_2016.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "mangaung",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "d76ab60ca822d140",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2016"
         },
         "pools_2021.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "mangaung",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "6022835843c4f3a8",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2021"
         }
@@ -266,33 +292,33 @@
         "pools_2011.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "nelsonmandelabay",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "ff87c0f3e0d557da",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2011"
         },
         "pools_2016.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "nelsonmandelabay",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "3805779d8578848d",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2016"
         },
         "pools_2021.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "nelsonmandelabay",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "e16f81969d7f636c",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2021"
         }
@@ -301,44 +327,44 @@
         "pools_2011.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "tshwane",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "7e332f2873cd5f71",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2011"
         },
         "pools_2016.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "tshwane",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "eaab9b926088bfae",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2016"
         },
         "pools_2021.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "tshwane",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "be5ad21374a8b8d8",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2021"
         },
         "pools_2026.json": {
           "cities_sha": "68080ceed71cbe08",
           "city": "tshwane",
-          "config_sha": "25516d034e2496af",
+          "config_sha": "25f89b38e7b7532f",
           "deps_sha": "53cedeb94115dd98",
-          "gates_sha": "6f4daff30349fefd",
+          "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "cfef4b8ae82e6254",
-          "pools_sha": "843229dbe414b6b9",
+          "pools_sha": "13bf2cf762e45016",
           "schema": 2,
           "target": "2026"
         }
@@ -561,24 +587,6 @@
           "tshwane:2016",
           "tshwane:2021"
         ],
-        "splinter_home": [
-          "buffalocity:2016",
-          "buffalocity:2021",
-          "capetown:2016",
-          "capetown:2021",
-          "ekurhuleni:2016",
-          "ekurhuleni:2021",
-          "ethekwini:2016",
-          "ethekwini:2021",
-          "joburg:2016",
-          "joburg:2021",
-          "mangaung:2016",
-          "mangaung:2021",
-          "nelsonmandelabay:2016",
-          "nelsonmandelabay:2021",
-          "tshwane:2016",
-          "tshwane:2021"
-        ],
         "turnout_correlation": [
           "buffalocity:2011",
           "buffalocity:2016",
@@ -636,6 +644,7 @@
         "buffalocity:2021"
       ],
       "n_scored_rows": 24,
+      "archive_unreadable": [],
       "excluded": []
     }
   },
@@ -3494,7 +3503,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
@@ -5931,7 +5939,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
@@ -8682,7 +8689,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
@@ -10907,7 +10913,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
@@ -13891,7 +13896,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
@@ -15885,7 +15889,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
@@ -18923,7 +18926,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
@@ -21505,7 +21507,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
@@ -24920,7 +24921,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
@@ -27328,7 +27328,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
@@ -29571,7 +29570,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
@@ -30992,7 +30990,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
@@ -33543,7 +33540,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
@@ -35253,7 +35249,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
@@ -37404,7 +37399,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
@@ -39006,7 +39000,6 @@
         "level_shrink",
         "level_shrink_scale",
         "pools",
-        "splinter_home",
         "turnout_correlation"
       ],
       "in_sample": true,
