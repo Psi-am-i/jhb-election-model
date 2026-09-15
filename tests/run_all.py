@@ -108,7 +108,13 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # check is a bidirectional scan of `pools.resolve_roster`'s
            # own AST, which goes stale the moment a fourth roster
            # source is added and nobody notices.
-           "test_projected_roster_declaration"]
+           "test_projected_roster_declaration",
+           # The generated index of levers, folds, windows and methods.
+           # Its job is to REGENERATE and compare, so a committed index
+           # cannot drift from the tree it describes — the same shape
+           # `test_intermediates_are_current` uses for the CSVs, and for
+           # the same reason: an mtime fence does not substitute.
+           "test_model_index"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

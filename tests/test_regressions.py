@@ -769,6 +769,16 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         # `publication.SCHEMA` is — it encodes no belief about an election and
         # cannot reach a forecast. Added 2026-09-09 with the manifest (§1.217).
         "HISTORY_SCHEMA",
+        # `model_index.py` READS the code and writes a markdown index; it
+        # is not part of the model, the same argument that exempts
+        # `theta_residual.py` above. All three are parser limits: how much
+        # source a function may hold and still read as an apportionment,
+        # how much of a non-literal expression to print, and the shortest
+        # glob fragment worth matching. None encodes a belief about an
+        # election and none can reach a forecast — moving any of them
+        # changes what the INDEX says, never what the model draws.
+        "MAX_APPORTIONMENT_CHARS", "MAX_EXPRESSION_CHARS",
+        "MIN_GLOB_FRAGMENT",
         # `stats.DECLARATION_MIN_CHARS` — the shortest string accepted as a
         # REASON on an `unverifiable` or `historical` declaration. OPERATIONAL:
         # it decides whether a sentence counts as an explanation, and it cannot
