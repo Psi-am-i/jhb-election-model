@@ -1,6 +1,110 @@
 # Handover — 2026-08-29, with a 2026-09-12 banner
 
-> ## ⛔ STATE AT 2026-09-14 — BRANCH `remediation`, AND NOTHING IS EMITTED
+> ## ⛔ STATE AT 2026-09-16 — THE WINDOW WAS TAKEN. NOMINATION DAY IS TODAY.
+>
+> **The emit below HAPPENED.** The 27 pre-emit specs were archived at
+> `be28a19` (`archive/pools-preemit-2026-09-14/`), the window was taken, and the
+> canonical measurement was re-taken on a clean tree at `cf707e3` — read that
+> commit message for the run's identity, and quote numbers from it, never from a
+> banner. Both staleness guards cleared. `MODEL-INDEX.md` landed at `73eec0f`,
+> generated from the tree and regenerated-and-compared by its own test.
+>
+> **WHAT IS NOT DONE: the site.** The live pages are the 31 August build and
+> still describe the poll channel as live; the model has run polls OFF since
+> 2026-09-12. `declares.py --verify` exits 1 because the forecast and regime
+> summaries predate the current specs. **The fix is one pass, and it waits for
+> the IEC candidate list** — see the nomination-day runbook below.
+>
+> The 2026-09-14 banner that follows is kept as the record of the state it
+> described, and is SUPERSEDED by this one.
+
+> ## 📋 NOMINATION-DAY RUNBOOK — Johannesburg, 16 September 2026
+>
+> Prepared 2026-09-16 **before** the list landed, so the day is a data drop and
+> not a code change. Pre-registration: `prereg/2026-09-16-declared-roster-at-
+> nomination.md` — read it first; §5 fixes the reporting rule in advance.
+>
+> **What the paste actually switches on.** Not just contestation. A declared
+> roster makes `emit_pools` CONSTRUCT the arrival group for the first time at
+> 2026 (`pools.py:6047-6049` builds it only `if roster_source in ("published",
+> "declared")`), changes which parties the off-ballot drop removes, and makes
+> `contestation_expand` inert (`levels.py:751`). The arrival channel is the one
+> to watch, not the PA's slate.
+>
+> **⛔ THE EMIT IS THE ONLY CHECK OF THE ROSTER, AND THAT IS BY DESIGN.**
+> `resolve_roster` and the off-ballot drop run inside `emit_pools`
+> (`pools.py:5528`), which `main` reaches only under `--emit`, and `pools.py`
+> has **no `--out-dir`** — so there is no way to exercise the roster path
+> end-to-end without writing the real spec. Do not build a pre-flight that
+> re-derives the known-party set: that duplicates `resolve_roster` and this
+> project bars a second definition. **A refused emit writes nothing** — the
+> refusal raises before `main`'s `write_text` (`:6268`) — so the cost of a bad
+> paste is one ~97s fit, not a corrupted artefact. Let it refuse.
+>
+> **Rehearsed 2026-09-16, and what it proved (and did not):**
+> * The READER works. `pools.declared_roster` parsed a 60-party block (the 57
+>   real 2021 CoJ ballot names plus three unseen), canonicalised it, and
+>   defaulted `complete` to False. Runs in seconds, no fit.
+> * Its unknown-key refusal is MUTATION-PROVEN: `parties` → `partys` on the live
+>   block gives *"[roster] … carries ['partys'], which nothing reads"*, and the
+>   file reverts byte-exact. ⚠️ The first attempt at this mutation reported the
+>   detector BLIND — it had hit the commented-out template at line 72 instead of
+>   the live block at 209. A probe bug, not a finding; check which occurrence you
+>   are mutating.
+> * **NOT rehearsed, and not rehearsable: everything from `resolve_roster`
+>   onward** — the drop ceiling, the arrival-group construction, the unknown-name
+>   refusal. Those are emit-time, per the paragraph above.
+>
+> **The steps.**
+>
+> 1. Paste the IEC list into `[roster]` in `judgements/joburg-2026.toml`
+>    (template at the top of that file). `complete = true` ONLY if it is the
+>    whole ballot; bare boolean, never quoted.
+> 2. Two-spec re-emit — **not** the 27-spec window:
+>
+>        .venv/bin/python src/pools.py --city joburg --target 2026 --emit
+>        .venv/bin/python src/pools.py --city joburg --target 2026 --simulation --emit
+>
+> 3. **If it refuses on an unknown name** (`pools.py:5362`): check the spelling
+>    against `parties.py` FIRST. A real party under an unfamiliar IEC spelling is
+>    far likelier than a new one, and "fixing" it with a `[party.X]` table turns
+>    a party that has a baseline into a phantom entrant — the ActionSA failure
+>    with the sign reversed. **Decided in advance (P2): use a `[party.X]` table
+>    in the judgement file, NOT `parties.ALIASES`** — the alias route is
+>    `parties.py`, an emit dependency, so it moves `deps_sha` and invalidates all
+>    27 specs, turning a two-spec night into a full window. Queue entry 19 is the
+>    alias change and stays un-landed for the same reason.
+> 4. **If `complete = true` refuses on drop mass**, read it as *the list is
+>    incomplete*, not *the ceiling is wrong*. Normal is 8 parties / 1.16% (2016)
+>    and 10 / 0.32% (2021), both under the 1.5% bound. `confirm_drop = true` only
+>    after checking names against the IEC's.
+> 5. Check the emit diff: `roster_source` is now `declared`, `arrival_group` is
+>    non-null (it was null), and the drop list is read BY NAME.
+> 6. `.venv/bin/python src/build_all.py --city joburg --model --regimes`, nothing
+>    else touching the tree. This is the slow step and it runs the site audits.
+> 7. Fix only what the build names — `publication.retire` with a reason, or date
+>    a historical claim. **No `--allow-*` flags.**
+> 8. `src/declares.py --verify`, then `tests/run_all.py -k published_page -k
+>    stat_freshness -k publication_ledger -k build_all`.
+> 9. Freeze, `build_site.py --publish …`, commit, push `atlas`, then
+>    `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy`. **Verified 2026-09-16:
+>    wrangler authenticates as psi@whysoserious.club via OAuth. The bare
+>    `npx wrangler whoami` FAILS** — a stale `CLOUDFLARE_API_TOKEN` placeholder
+>    is exported in the environment, so the `env -u` prefix is load-bearing, not
+>    decoration.
+>
+> **Checked while preparing this, so nobody re-checks it:** the 2026 ward map is
+> real and is the 2026 delimitation — `data/processed/vd_ward_2026.csv`, written
+> by `build_concordance.py` from `data/raw/geo/vds2026_JHB.geojson` (MDB
+> `VotingDistricts2026_Final`, ward identity from its own `WardNo`), and
+> `render_map.py` draws `wards2026_JHB.geojson`. So a `[roster.wards]` paste will
+> not refuse for want of a ward map. The `vd_ward_*` CSVs show `✗` in
+> `declares.py` because every CSV intermediate does — a structural hole excluded
+> from `--verify`'s denominator — and they are covered instead by
+> `test_intermediates_are_current`, which regenerates them into a purged scratch
+> root. **Nothing to fix there.**
+
+> ## ⛔ SUPERSEDED (2026-09-16) — STATE AT 2026-09-14 — BRANCH `remediation`, AND NOTHING IS EMITTED
 >
 > **POOLS-REEMIT-QUEUE entries 21-25 are written to code and un-emitted**, on
 > top of entry 26. Five fail-open or cry-wolf paths in `pools.py`, each
