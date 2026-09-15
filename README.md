@@ -43,6 +43,7 @@ model from public records.
 |---|---|
 | [`MACHINERY.md`](MACHINERY.md) | How each stage actually works, and which numbers are measured, argued or declared |
 | [`ITERATING.md`](ITERATING.md) | The four-key bar a change must pass to ship, and why the rule is "more honest usually ships" |
+| [`QC.md`](QC.md) | How a change is made and shown to work: the loop, the gated stage observation the `--run-dir` trace supports, what an absence-shaped test must prove, and what every plan item must name |
 | [`JUDGEMENT-CALLS.md`](JUDGEMENT-CALLS.md) | Every constant the data did not force, with its status, its evidence and how to check it |
 | [`archive/superseded-docs/METHODOLOGY.md`](archive/superseded-docs/METHODOLOGY.md) | **SUPERSEDED** — the original review brief, archived 2026-08-23. `MACHINERY.md` replaces it |
 | [`MODEL-LOG.md`](MODEL-LOG.md) | The running engineering log: findings, obstacles, silent data traps, the assumption register, every decision with its rationale |
