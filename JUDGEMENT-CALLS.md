@@ -2430,6 +2430,51 @@ DA is fitted taking 100% of three pools at once and still cannot reach its actua
 admitted for registration, and that the guard binds on Mangaung's Indian/Asian
 pool.
 
+### §L12 · Two party names in the pasted roster are SUBSTITUTED on judgement, not on evidence — 🔴 typed, and it decides whether a party keeps its baseline
+
+**Where.** `judgements/joburg-2026.toml`, the `[roster] parties` list. No symbol
+in `src/` — the substitution is a hand edit to a hand-written list, which is why
+it is registered here rather than discoverable by grep.
+
+**Now.** Four names in the IEC's certified 2026 list canonicalise to a different
+code from the file the party's baseline comes from. **Two are certain and are not
+judgement calls at all** — `UMKHONTO WESIZWE PARTY` is MK and `VRYHEIDSFRONT
+PLUS | FREEDOM FRONT PLUS` is the VF Plus: same registered party, a suffix and a
+bilingual form. **Two are judgement and are the subject of this entry:**
+
+| written in the roster | instead of the IEC's string | the difference |
+|---|---|---|
+| `THE ORGANIC HUMANITY MOVEMENT` | `ORGANIC HUMANITY MOVEMENT` | a definite article |
+| `CHANGE` | `CHANGE PARTY` | a trailing "PARTY" |
+
+**Why it is a judgement.** Nothing in the record proves either identity. The IEC
+publishes no party ID (`DATA-QUALITY.md` item 17), so the only evidence available
+is the name itself, and a name is exactly what a renaming changes. Both readings
+are plausible and neither is derivable: `CHANGE PARTY` may be the `CHANGE` that
+contested in 2021, or a different registration reusing a common word — and the
+archive scan in §1.242 independently found `CHANGE ← AFRICAN DEMOCRATIC CHANGE`
+at 2019→2021 in two metros, which makes this party's naming history *actively*
+unstable rather than merely ambiguous.
+
+**What it costs if wrong, and the asymmetry.** Substituting wrongly hands a new
+party an incumbent's baseline. NOT substituting when it was the same party sends
+an incumbent through the arrival path instead, and additionally — under
+`complete = true` — deletes the real one from the pools. The second error is the
+larger of the two and is the one the code warns about at
+`pools.resolve_roster`'s refusal. Both are small here: the two parties together
+hold well under a tenth of a percent of the 2021 PR vote.
+
+**How to check it.** Against the IEC's **party register** (registration numbers,
+not the candidate list), which is the only source that can settle identity. Until
+that is done these two stay in this register as typed. ⛔ **Do not resolve them
+with a `[party.X]` table**: that declares the name a NEW party, sizing it from
+the arrival record while `complete = true` deletes the incumbent — the ActionSA
+failure with the sign reversed.
+
+**Record.** Raised 2026-09-16 when the certified list was parsed; the owner's
+instruction was that uncertain names be registered as judgement calls unless they
+can be certified automatically, and nothing available certifies these. §1.242.
+
 ### §L11 · The CONTENDER rule — ⛔ SUPERSEDED 2026-09-07, ITS HEADLINE COMPARISON IS ACROSS TWO MODULES
 
 ⛔ **DO NOT APPLY THIS ENTRY. Its evidence table compares two parties that are

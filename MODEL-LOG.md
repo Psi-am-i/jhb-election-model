@@ -25911,3 +25911,124 @@ the committed code, or a named commit message. `tests/run_all.py -k
 standalone_modules -k drawer -k calibration_report -k data_coverage` was run
 immediately before and immediately after this append; the counts and the failure
 names are in those two runs, which bracket the edit, and neither is a suite run.
+
+## 1.242 The certified nomination list, four spellings, and the renaming class scanned across the whole archive at last (2026-09-16)
+
+The IEC published the certified candidate lists on 16 September. Source, parse
+and traps are in `SOURCES.md`; this entry records what was measured from them.
+
+### The list, and what it says about Johannesburg
+
+PDF only, one per province, with a real text layer. Johannesburg: **9,094 rows,
+75 parties filing PR lists, 80 contesting wards, 82 in union.** The
+`Ward \ List Order` column carries a small integer (a PR list position) OR an
+8-digit WardID, and nothing else distinguishes a ward row from a PR row.
+
+⛔ **PARSE ON WHITESPACE RUNS, NOT BYTE OFFSETS.** The municipality column is
+wider for some rows; offset slicing shifted the party field into neighbouring
+text and produced a confident "85 distinct parties" that is not a number about
+anything.
+
+✅ **AN INDEPENDENT SOURCE CONFIRMS THE 2026 WARD MAP.** The distinct Johannesburg
+WardIDs in the certified list are **identical as a set** to `WardID_2026` in
+`data/processed/vd_ward_2026.csv` — 135 each way, no difference in either
+direction. Ours is derived from the MDB's `VotingDistricts2026_Final`; the IEC's
+comes from the candidate nominations. Two independent routes, same set.
+
+### Four spellings, and why the fix is a substitution rather than a code change
+
+| write in `[roster]` | resolves to | the IEC's string | would resolve to |
+|---|---|---|---|
+| `UMKHONTO WESIZWE` | `MK` | `UMKHONTO WESIZWE PARTY` | `UMKHONTO_WESIZWE_PARTY` |
+| `VRYHEIDSFRONT PLUS` | `VFPLUS` | `VRYHEIDSFRONT PLUS \| FREEDOM FRONT PLUS` | `VRYHEIDSFRONT_PLUS_FREEDOM_FRONT_PLUS` |
+| `THE ORGANIC HUMANITY MOVEMENT` | `THE_ORGANIC_HUMANITY_MOVEMENT` | `ORGANIC HUMANITY MOVEMENT` | `ORGANIC_HUMANITY_MOVEMENT` |
+| `CHANGE` | `CHANGE` | `CHANGE PARTY` | `CHANGE_PARTY` |
+
+⛔ **A WRONG CONCLUSION, CORRECTED BY THE OWNER THE SAME DAY.** This was first
+written up as requiring `parties.ALIASES` entries — `parties.py` is an emit
+dependency, so that would move `deps_sha` and force all 27 specs — and the
+nomination night was declared a full window on that basis. The owner: *"I am
+confused how a name change that we can resolve requires recalculating rather
+than substitution?"* He is right. `[roster] parties` is hand-written and
+canonicalised on read, so writing the recognised spelling resolves the party to
+its own code with no code change and a two-spec emit. An alias is still the
+durable fix, because the 4 November **result** file will carry the IEC's string
+into the ingest path, but that is a later ordinary window with queue entry 19.
+
+The last two rows are judgement, not arithmetic, and are registered as such in
+`JUDGEMENT-CALLS.md` §L12. Four further pairs scored as near-matches and are
+**not** renamings: AZAPO, the African People's Convention and the Congress of
+the People each carry their own history and appear independently; the People's
+Consent Party and the Service Delivery Party have no history at all.
+
+### The drop mass, and which number the ceiling actually charges
+
+`ROSTER_DROP_CEILING` is 0.015 and `resolve_roster` charges it against
+`prior_local` — the **fitting year's** (2021) citywide shares — not the 2024
+baseline. Measured on the certified list:
+
+| roster | vs 2021 PR (what the ceiling charges) | vs npe2024 (context) |
+|---|---|---|
+| IEC strings verbatim | 3.110%, 30 parties | 14.154%, 17 parties |
+| with the four substitutions | **1.704%, 27 parties** | 1.127%, 15 parties |
+
+**The ~13-point collapse in the second column is MK**, and it is the clearest
+statement of what a spelling break costs: without the substitution the roster
+deletes MK's entire baseline, and only the ceiling stands between that and a
+published forecast.
+
+⚠️ **THE REMAINING 1.704% IS NOT AN ERROR AND NOT A SPELLING PROBLEM.** It is 27
+parties that contested Johannesburg in 2021 and are not on the 2026 ballot —
+GOOD at 0.334% of the 2021 PR vote, then Party of Action, Abantu Batho Congress,
+Defenders of the People, Black First Land First, and a tail of micro-parties
+under 0.1% each. Genuine turnover. It exceeds the 1.5% ceiling, so
+`complete = true` is expected to refuse; the lawful answers are `confirm_drop =
+true` after checking the names, or `complete = false`, which adds and deletes
+nothing. **Not a raised ceiling.** ⚠️ This figure sums every unnamed 2021 PR
+code, a looser set than the `deliberate` subset the run actually charges, so
+read 1.704% as an **upper bound**.
+
+### The renaming class, scanned across the whole archive — DATA-QUALITY item 17
+
+Item 17 has said since 2026-09-13 that only the **top** arrival of each
+metro-year was ever checked, so the count of renamings was "unknown and a lower
+bound of one". Scanned properly here: every consecutive election pair in every
+metro we hold, matching parties present in the later file and absent from the
+earlier against those that went the other way, on **raw names with rare-token
+weighting** — never on canonical codes.
+
+⛔ **A CODE-LEVEL SCAN CANNOT DO THIS JOB, AND THAT IS WHY THE CLASS SURVIVED.**
+An alias collapses a long name to a short code, so no string metric sees
+`UMKHONTO_WESIZWE_PARTY` as close to `MK`. The first pass this evening matched on
+codes, reported one break, and missed both certain ones.
+
+**21 raw candidates → 9 after an oscillation filter.** The filter is the finding
+worth keeping: if the scan pairs X←Y in one cycle and Y←X in the next, it has
+found two parties that alternate presence, not a renaming — a real rename is
+monotone in time. It removed the entire CDP / UCDP / CDA family and every
+`AFRICAN INDEPENDENT CONGRESS ← INDEPENDENT` pair, the latter being the
+independents bucket rather than a party at all.
+
+**Every one of the 9 survivors is ≤0.06% of the later vote.** The two plausible
+ones are `CHANGE ← AFRICAN DEMOCRATIC CHANGE` (EKU and JHB, 2019→2021) and
+`BLACK CONSCIOUSNESS FORUM ← BLACK CONSCIOUSNESS PARTY` (JHB 2004→2006); the
+rest pair generic words. So the class is **real, open, and bounded small in this
+archive** — against the known NNP instance, which moved Cape Town's 1999→2004
+arrival pool from 22.28% to 11.45%. The exposure being ignored is an inflation of
+the arrival record, and on this evidence it is ≤0.06% of a cycle's vote per
+instance outside that one case.
+
+⚠️ **WHAT THE SCAN CANNOT SEE:** a rename to an unrelated name. It matches on
+shared tokens, so a party that renames itself to something with no word in common
+is invisible to it, and no amount of tightening changes that. The class is
+bounded, not closed.
+
+### Two commit messages of this batch carry mis-attributed test counts
+
+`3daacb5`: the total (47) is right and every per-module label is wrong.
+`abe00ac`: "25 passed" is wrong; it was 12. Both modules have 6 tests.
+`run_all -k a -k b` prints one summary per module in `run_all.MODULES` order,
+not in the order the flags were typed, and the list was read positionally
+against the command line. **Quote a per-module count only from a run of that
+module alone.** Recorded here rather than in `HANDOVER.md`, which is where it
+was first written: this log is the append-only record and that file is not.

@@ -2873,7 +2873,7 @@ def _arrival_referee(results: list[dict]) -> list[str]:
     on this panel, that free label is worth 11.52 CRPS (3.5%) and 2.17 points of
     the margin over uniform swing"*. That is a **sixteen** city-year measurement,
     taken before the 2026-09-08 emit seeded the 2016 arm, and `ITERATING.md`
-    Key 1 and `HANDOVER.md` had both already struck it with the words *"must not
+    Key 1 and `HANDOVER.md` (now `HANDOVER-ARCHIVE.md`) had both already struck it with the words *"must not
     be resurrected"* while this docstring went on asserting it as current — the
     exact failure mode of a figure typed in three places. **On the live panel
     the label fires at four rows of twenty-four, all 2011, and is worth nothing

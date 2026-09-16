@@ -1017,6 +1017,38 @@ instance anywhere in the tail would move the same statistics in the same
 direction, because the error has a sign: a renamed incumbent always arrives with
 more vote than a real newcomer.
 
+✅ **THE TAIL WAS SCANNED ON 2026-09-16, AND THE CLASS IS NOW BOUNDED — THOUGH
+STILL NOT CLOSED.** The search this item asked for was run over **every**
+consecutive election pair in every metro held, not just the top arrival: parties
+present in the later file and absent from the earlier, matched against those
+going the other way, on raw names with rare-token weighting.
+
+* **21 raw candidates → 9** after an **oscillation filter**, which is the part
+  worth reusing: if the scan pairs X←Y at one cycle and Y←X at the next, it has
+  found two parties that alternate presence, not a renaming — a real rename is
+  monotone in time. It removed the whole CDP / UCDP / CDA family, and every
+  `AFRICAN INDEPENDENT CONGRESS ← INDEPENDENT` pair, the latter being the
+  independents bucket rather than a party.
+* **Every survivor is ≤0.06% of the later vote.** The two plausible ones are
+  `CHANGE ← AFRICAN DEMOCRATIC CHANGE` (Ekurhuleni and Johannesburg, 2019→2021)
+  and `BLACK CONSCIOUSNESS FORUM ← BLACK CONSCIOUSNESS PARTY` (Johannesburg,
+  2004→2006). The rest pair generic words.
+
+So the NNP case remains the only large instance, and the inflation of the
+arrival record from everything else in this archive is at most a rounding error
+per instance. MODEL-LOG §1.242.
+
+⚠️ **STILL OPEN, AND THE LIMIT IS STRUCTURAL: a rename to an UNRELATED name is
+invisible to this method.** It matches shared tokens; a party that renames itself
+to something with no word in common cannot be found this way, and tightening the
+scorer cannot help. Bounded, not closed.
+
+⛔ **AND THE SCAN THAT MISSES THIS CLASS IS THE ONE OVER CANONICAL CODES.** An
+alias collapses a long name to a short code, so nothing sees
+`UMKHONTO_WESIZWE_PARTY` as close to `MK`. A code-level pass over the 2026
+certified list reported one break and missed both certain ones (§1.242). Compare
+**names**, always.
+
 **Fix (IEC).** Publish the registered **party ID** alongside the name in every
 export, and keep it stable across elections when a party re-registers under a new
 name. Failing that, publish a name-change register — *this ID was `X` and is now

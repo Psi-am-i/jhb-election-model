@@ -1633,7 +1633,7 @@ def test_a_width_never_travels_without_its_cycle_split_and_its_leverage():
     # later cycle is the turbulent one); the all-cycles one is the dispersion.
     # Asserting only the widest pair would stay green on 2011 alone if 2016 and
     # 2021 converged completely — which is the exact event rule 8 and the
-    # HANDOVER's item 1 depend on, and it would be reported only in a failure
+    # HANDOVER-ARCHIVE's item 1 depend on, and it would be reported only in a failure
     # MESSAGE. This repository asserts the number, not the message.
     # `bool(nan)` is True, so a `.get(...)` truth test RETAINS a nan cycle and
     # DROPS one whose sd(z) is exactly 0.0 — which is the single case that
@@ -1653,7 +1653,7 @@ def test_a_width_never_travels_without_its_cycle_split_and_its_leverage():
     # is the stronger structural statement, is that sd(z) rises monotonically
     # with the cycle: 0.452 -> 1.155 -> 1.960. That is directed, uses every
     # cycle, carries no tuned threshold, and breaks if ANY adjacent pair
-    # converges or inverts — which is the event rule 8 and the HANDOVER's item
+    # converges or inverts — which is the event rule 8 and the HANDOVER-ARCHIVE's item
     # 1 depend on. §1.132's own reading is preserved; the pair figure it was
     # written against is not. MODEL-LOG entry filed 2026-09-12.
     ordered = [cyc[c]["sd_z"] for c in sorted(spread)]
@@ -1662,7 +1662,7 @@ def test_a_width_never_travels_without_its_cycle_split_and_its_leverage():
         + ", ".join(f"{c} {spread[c]:.3f}" for c in sorted(spread))
         + " — no longer monotone in the cycle. §1.132 reads the later cycles "
           "as the turbulent ones; an inversion or a convergence between "
-          "adjacent cycles changes that, and rule 8 and the HANDOVER's item 1 "
+          "adjacent cycles changes that, and rule 8 and the HANDOVER-ARCHIVE's item 1 "
           "both need re-reading.")
 
     assert hi > 3 * lo, (
@@ -1670,7 +1670,7 @@ def test_a_width_never_travels_without_its_cycle_split_and_its_leverage():
         + ", ".join(f"{c} {spread[c]:.3f}" for c in sorted(spread))
         + f" — widest ratio {hi / lo:.2f}x ({hi_c} over {lo_c}). If the cycles "
         f"have converged, §1.132's central finding — that the pooled width "
-        f"describes NO cycle — has changed, and rule 8 and the HANDOVER's item "
+        f"describes NO cycle — has changed, and rule 8 and the HANDOVER-ARCHIVE's item "
         f"1 both need re-reading. Compare every cycle present: this assertion "
         f"named 2016 and 2021 until 2026-09-12 and missed that 2011 is the "
         f"extreme.")
