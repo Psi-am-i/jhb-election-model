@@ -293,10 +293,22 @@ the lists is the only one that can later be shown to have been a forecast.
 
 ### The list-dependence is measurable NOW, and should be published with it
 
-We can say in advance how much the lists can move the answer, because the
+⛔ **STRUCK 2026-09-16 — THE TABLE BELOW AND THE "±3 SEATS" SENTENCE UNDER IT ARE
+A SUPERSEDED MEASUREMENT AND MUST NOT BE QUOTED OR PUBLISHED.** It was measured
+at §1.60 (2026-08-20), on the nine-city-year panel, at 1200 draws, with the poll
+channel ON and before the 2026-09-08 and 2026-09-14 re-emits. Every one of those
+premises has since moved. **The disclosed judgement call is the lever, not the
+seat figure** — `contestation_expand = 0.220`, `JUDGEMENT-CALLS.md` §A5, status
+🔴 — and a seat sensitivity is a MEASUREMENT, which belongs in `MODEL-LOG.md`
+under the run that produced it, never typed into a publishing instruction. If a
+list-dependence band is wanted for the page, re-measure it on the current tree
+and quote it as a stat token from that run. Kept, struck, as the record of what
+was believed on 2026-08-20.
+
+~~We can say in advance how much the lists can move the answer, because the
 channel they act through is a declared lever. Johannesburg 2026, 1200 draws,
 median seats across the defensible range of `contestation_expand` (§1.60: the
-record's pooled median is 0.220, the most recent cycle alone about 0.5):
+record's pooled median is 0.220, the most recent cycle alone about 0.5):~~
 
 | | 0.0 *(slates unchanged)* | **0.220** *(shipped)* | 0.5 *(last cycle's rate)* |
 |---|---|---|---|
@@ -305,9 +317,10 @@ record's pooled median is 0.220, the most recent cycle alone about 0.5):
 | **PA** | **17** | **19** | **22** |
 | ASA | 25 | 24 | 24 |
 
-So the honest statement to publish is: **the nomination lists are worth about
+~~So the honest statement to publish is: **the nomination lists are worth about
 ±3 seats to the PA and about ∓2 to the DA, and essentially nothing to anyone
-else.** A reader who is told that in August cannot be surprised in September.
+else.**~~ ⛔ **STRUCK 2026-09-16 — see the banner above. Do not publish this
+sentence; re-measure or say nothing.** A reader who is told that in August cannot be surprised in September.
 
 ### What actually changes on 16 September
 

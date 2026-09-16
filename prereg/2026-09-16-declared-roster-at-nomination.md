@@ -19,6 +19,16 @@ rule to be fixed before the lists land, and §5 below is that rule.
 real slates replace the projection, `contestation_expand` goes inert, and the
 published band is *"about ±3 seats to the PA and about ∓2 to the DA"*.
 
+> **[AMENDED 2026-09-16, BEFORE THE RUN AND BEFORE ANY RESULT — and the
+> amendment REMOVES a crutch rather than weakening a prediction.]** That ±3/∓2
+> band is now **STRUCK** in `PUBLISHING-BACKLOG.md` §5c on the owner's
+> instruction: it was measured at §1.60 on 2026-08-20, on the nine-city-year
+> panel, at 1200 draws, with polls ON and two re-emits ago. **It is not a
+> disclosed judgement call and must not be published or quoted.** The disclosed
+> call is the lever — `contestation_expand = 0.220`, `JUDGEMENT-CALLS.md` §A5.
+> Nothing in §1 relied on the band; §5 rule 3 is restated below so that it does
+> not either.
+
 **A pre-registration built on that framing would be void before it was scored**,
 for the reason `MEMORY.md` records under *pre-register the consumer, not the
 quantity*: a correct, confirmed prediction about an inert channel is worthless
@@ -102,11 +112,18 @@ pre-registration exists to prevent.
    both dated (§5c's rule).
 2. **The difference is attributed to a channel, by name**, from the emit diff and
    the trace: arrival group, off-ballot drop, or contestation.
-3. **If the revision moves the headline by more than the published band**, that
-   is a **finding about the projection** and is written up as one — in
-   `MODEL-LOG.md`, in the same commit, saying that §5c's band was too narrow and
-   by how much. It is **not** a reason to adjust the model on the night, and
-   **not** a reason to suppress or delay the revision.
+3. **The size of the revision is reported, against a band declared in the same
+   breath as the revision — never against §5c's struck ±3.** Stage 1's own
+   published interval is the only comparator that exists on the night: if the
+   revision's median sits **inside** Stage 1's 5-95 interval for that party, say
+   so; if it sits **outside**, that is a **finding about the projection** and is
+   written up as one in `MODEL-LOG.md`, in the same commit, naming the channel
+   and the magnitude. Either way it is **not** a reason to adjust the model on
+   the night, and **not** a reason to suppress or delay the revision. ⚠️ Stage
+   1's interval is an output of this model and therefore **not a standard of
+   correctness** (CLAUDE.md §1) — it is being used to say *how far the answer
+   moved*, which is a descriptive statement, never to decide whether the
+   movement is right.
 4. **No widening, no re-tuning, no lever moved on nomination night.** Publication
    gate 5b item 1 (parties with P(≥1 seat) < 0.02) is satisfied by **naming and
    defending** them, never by widening a distribution to make the list shorter.
