@@ -60,10 +60,49 @@
 > 1. Paste the IEC list into `[roster]` in `judgements/joburg-2026.toml`
 >    (template at the top of that file). `complete = true` ONLY if it is the
 >    whole ballot; bare boolean, never quoted.
+>
+>    ⛔ **PASTE THE UNION OF THE WARD AND PR SETS, NOT THE PR SET.**
+>    `contesting_parties`' docstring defines the roster as *"who is on the ballot
+>    at the target"*, and the result files it is modelled on carry both ballots.
+>    Measured on the certified list: **75 parties have PR lists, 80 contest
+>    wards, and the union is 82** — so a PR-only paste with `complete = true`
+>    deletes a party that is genuinely standing. The United Democratic Movement
+>    is the worked example: it contests **wards in Johannesburg and files no PR
+>    list**, and it holds a 2024 baseline, so a PR-only roster deletes a real
+>    party's pool mass. Extract both, union them, paste that.
 > 2. Two-spec re-emit — **not** the 27-spec window:
 >
 >        .venv/bin/python src/pools.py --city joburg --target 2026 --emit
 >        .venv/bin/python src/pools.py --city joburg --target 2026 --simulation --emit
+>
+> ⛔ **P2 IS REVERSED, ON EVIDENCE FROM THE REAL LIST (2026-09-16, after the IEC
+> published). THE NIGHT IS NOT A TWO-SPEC NIGHT.** The certified Gauteng list
+> spells two parties differently from the 2024 national file the 2026 baseline is
+> built from:
+>
+> | the IEC's 2026 string | canonicalises to | the baseline file says | which is |
+> |---|---|---|---|
+> | `UMKHONTO WESIZWE PARTY` | `UMKHONTO_WESIZWE_PARTY` | `UMKHONTO WESIZWE` | `MK` |
+> | `VRYHEIDSFRONT PLUS \| FREEDOM FRONT PLUS` | `VRYHEIDSFRONT_PLUS_FREEDOM_FRONT_PLUS` | `VRYHEIDSFRONT PLUS` | `VFPLUS` |
+>
+> **So the earlier decision — "`[party.X]` table, never `parties.ALIASES`" — is
+> exactly wrong for these two, and `pools.py`'s own refusal message says why: a
+> `[party.X]` table turns a party that HAS a baseline into a phantom entrant
+> sized from the arrival record, while `complete = true` deletes the real one.
+> That is the ActionSA failure with the sign reversed, and MK carries the second
+> largest arrival baseline in the record.** These two need **aliases**. Aliases
+> live in `parties.py`, which is in `pools._EMIT_DEPENDENCIES`, so they move
+> `deps_sha` and invalidate **all 27 specs**: the day is a FULL WINDOW
+> (`POOLS-REEMIT-QUEUE` "The window, when it is taken"), not the two-spec
+> re-emit the judgement file's template describes. Queue entry 19 is the same
+> change and should land in the same window.
+>
+> ⚠️ **AND THE SCAN THAT WAS MEANT TO FIND THESE DID NOT.** A similarity pass
+> over canonical codes reported ONE break and missed both, because an alias
+> collapses a long name to a two-letter code (`MK`) and no string metric sees
+> `UMKHONTO_WESIZWE_PARTY` as close to it. They were found by checking the two
+> known aliased parties BY NAME. **Check the alias targets explicitly; a fuzzy
+> scan over codes cannot do it.**
 >
 > 3. **If it refuses on an unknown name** (`pools.py:5362`): check the spelling
 >    against `parties.py` FIRST. A real party under an unfamiliar IEC spelling is
@@ -74,10 +113,32 @@
 >    `parties.py`, an emit dependency, so it moves `deps_sha` and invalidates all
 >    27 specs, turning a two-spec night into a full window. Queue entry 19 is the
 >    alias change and stays un-landed for the same reason.
-> 4. **If `complete = true` refuses on drop mass**, read it as *the list is
->    incomplete*, not *the ceiling is wrong*. Normal is 8 parties / 1.16% (2016)
->    and 10 / 0.32% (2021), both under the 1.5% bound. `confirm_drop = true` only
->    after checking names against the IEC's.
+> 4. **EXPECT `complete = true` TO REFUSE, AND KNOW WHICH NUMBER IT IS READING.**
+>    The ceiling is measured against `prior_local` — the **fitting year's (2021)
+>    citywide shares** — not the 2024 baseline. Approximated from the certified
+>    list before the night (summing 2021 PR rows by canonical code, which is a
+>    LOOSER set than the `deliberate` subset the run actually charges, so read it
+>    as an over-estimate):
+>
+>    | roster as pasted | parties dropped | share of the 2021 PR vote | vs 1.5% ceiling |
+>    |---|---|---|---|
+>    | union of ward+PR, no aliases | ~30 | **~3.1%** | refuses |
+>    | union of ward+PR, **with the two aliases** | ~29 | **~1.8%** | still refuses |
+>
+>    The remainder is genuine: parties that stood in 2021 and are not standing in
+>    2026 (GOOD is the largest at ~0.33% of the 2021 PR vote, then Party of
+>    Action, Abantu Batho Congress, DOP, Black First Land First). So the refusal
+>    is the guard doing its job on a real deletion, not a sign of a half-typed
+>    list. **Two lawful ways forward, and the choice is the owner's:** check those
+>    names against the IEC list and set `confirm_drop = true`, or leave
+>    `complete = false`, which ADDS parties and deletes none. Do not raise the
+>    ceiling.
+>
+>    ⚠️ **The same measurement against the 2024 baseline is the proof that the
+>    aliases matter: 14.2% dropped without them, 1.1% with.** That ~13-point gap
+>    is MK plus VF Plus — i.e. without the aliases the certified roster deletes
+>    MK's entire baseline, and only the ceiling stands between that and a
+>    published forecast.
 > 5. Check the emit diff: `roster_source` is now `declared`, `arrival_group` is
 >    non-null (it was null), and the drop list is read BY NAME.
 > 6. `.venv/bin/python src/build_all.py --city joburg --model --regimes`, nothing

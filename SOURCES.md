@@ -238,6 +238,46 @@ per-municipality file is the one worth having: voting-district level, every
 party, candidate names, historical comparators. `src/fetch_byelections.py`
 walks all of it — 38 Gauteng ward contests since 2021, 15 in CoJ.
 
+## Nomination lists — certified candidates, LGE 2026
+
+Published **16 September 2026**, the date the IEC's timetable set. Landing page:
+
+```
+https://www.elections.org.za/pw/Parties-And-Candidates/Candidate-Lists-LGE-2026
+```
+
+**PDF only — there is no Excel or CSV.** Checked the page's own markup for
+`.xls`/`.xlsx`/`.csv`: nothing. One national file and one per province, e.g.
+
+```
+.../pw/Documents/Candidate Lists/LGE2026/LGE2026 Certified Candidate List - GP.pdf
+.../pw/Documents/Candidate Lists/LGE2026/LGE2026 Certified Candidates List_16092026.pdf
+```
+
+⚠️ **The `../Documents/...` hrefs on that page resolve under `/pw/`.** The same
+path without it 404s, which reads like a missing file rather than a wrong prefix.
+
+**The PDF carries a real text layer** — `pdftotext -layout` gives a fixed-width
+table, no OCR needed: `Municipality | Party | Ward \ List Order | IDNumber |
+Fullname | Surname`. Parse on runs of two or more spaces, not byte offsets: the
+municipality column is wider for some rows, and offset slicing silently shifts
+the party field into neighbouring text.
+
+⛔ **ONE COLUMN CARRIES TWO THINGS, AND THAT IS HOW WARD AND PR ROWS SEPARATE.**
+`Ward \ List Order` holds a **small integer** (a PR list position) or an
+**8-digit WardID** (`79800001`–`79800135` for Johannesburg). There is no other
+flag. Split on magnitude.
+
+✅ **AN EXTERNAL CHECK OF OUR 2026 WARD MAP, AND IT PASSES EXACTLY.** The
+distinct Johannesburg WardIDs in the IEC's certified list are **identical** as a
+set to `WardID_2026` in `data/processed/vd_ward_2026.csv` — 135 either way, no
+difference in either direction. That map is derived from the MDB's
+`VotingDistricts2026_Final` layer, so this is a genuinely independent source
+agreeing with it.
+
+The Gauteng file is kept at `data/raw/nominations/` (gitignored with the rest of
+`data/**`); re-fetch from the URL above rather than trusting a local copy.
+
 ## Covariates
 
 Stats SA's **Ward-level Small Area Population Estimates 2022** are directly
