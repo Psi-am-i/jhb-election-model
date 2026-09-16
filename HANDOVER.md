@@ -75,27 +75,53 @@
 >        .venv/bin/python src/pools.py --city joburg --target 2026 --emit
 >        .venv/bin/python src/pools.py --city joburg --target 2026 --simulation --emit
 >
-> ⛔ **P2 IS REVERSED, ON EVIDENCE FROM THE REAL LIST (2026-09-16, after the IEC
-> published). THE NIGHT IS NOT A TWO-SPEC NIGHT.** The certified Gauteng list
-> spells two parties differently from the 2024 national file the 2026 baseline is
-> built from:
+> ⛔ **THE CERTIFIED LIST SPELLS FOUR PARTIES DIFFERENTLY FROM THE FILES THEIR
+> BASELINES COME FROM. THE FIX IS IN THE PASTE, AND IT IS STILL A TWO-SPEC
+> NIGHT.** (Corrected 2026-09-16, second pass: an earlier version of this block
+> said the day was a FULL 27-spec WINDOW because the fix had to be an alias in
+> `parties.py`. **That was wrong.** `[roster] parties` is a hand-written list
+> that `declared_roster` canonicalises, so writing the spelling the model already
+> recognises resolves it with **no code change**, no `deps_sha` move, and the
+> two-spec re-emit the judgement template describes. An alias is the DURABLE fix
+> — the 4 November result file will carry the IEC's new string and the ingest
+> path will hit this again — but that is an ordinary window later, with queue
+> entry 19, not tonight.)
 >
 > | the IEC's 2026 string | canonicalises to | the baseline file says | which is |
 > |---|---|---|---|
 > | `UMKHONTO WESIZWE PARTY` | `UMKHONTO_WESIZWE_PARTY` | `UMKHONTO WESIZWE` | `MK` |
 > | `VRYHEIDSFRONT PLUS \| FREEDOM FRONT PLUS` | `VRYHEIDSFRONT_PLUS_FREEDOM_FRONT_PLUS` | `VRYHEIDSFRONT PLUS` | `VFPLUS` |
 >
-> **So the earlier decision — "`[party.X]` table, never `parties.ALIASES`" — is
-> exactly wrong for these two, and `pools.py`'s own refusal message says why: a
-> `[party.X]` table turns a party that HAS a baseline into a phantom entrant
-> sized from the arrival record, while `complete = true` deletes the real one.
-> That is the ActionSA failure with the sign reversed, and MK carries the second
-> largest arrival baseline in the record.** These two need **aliases**. Aliases
-> live in `parties.py`, which is in `pools._EMIT_DEPENDENCIES`, so they move
-> `deps_sha` and invalidate **all 27 specs**: the day is a FULL WINDOW
-> (`POOLS-REEMIT-QUEUE` "The window, when it is taken"), not the two-spec
-> re-emit the judgement file's template describes. Queue entry 19 is the same
-> change and should land in the same window.
+> **⛔ WHAT A `[party.X]` TABLE WOULD DO HERE, AND WHY SUBSTITUTION IS NOT THE
+> SAME THING.** `pools.py`'s refusal message warns that a `[party.X]` table turns
+> a party that HAS a baseline into a phantom entrant sized from the arrival
+> record, while `complete = true` deletes the real one — the ActionSA failure
+> with the sign reversed. Substitution avoids both: the name resolves to the
+> party's OWN code, so it keeps its baseline and nothing is deleted. **Write the
+> left column, not the IEC's string:**
+>
+> | write this in `[roster]` | resolves to | instead of the IEC's | which would resolve to |
+> |---|---|---|---|
+> | `UMKHONTO WESIZWE` | `MK` | `UMKHONTO WESIZWE PARTY` | `UMKHONTO_WESIZWE_PARTY` |
+> | `VRYHEIDSFRONT PLUS` | `VFPLUS` | `VRYHEIDSFRONT PLUS \| FREEDOM FRONT PLUS` | `VRYHEIDSFRONT_PLUS_FREEDOM_FRONT_PLUS` |
+> | `THE ORGANIC HUMANITY MOVEMENT` | `THE_ORGANIC_HUMANITY_MOVEMENT` | `ORGANIC HUMANITY MOVEMENT` | `ORGANIC_HUMANITY_MOVEMENT` |
+> | `CHANGE` | `CHANGE` | `CHANGE PARTY` | `CHANGE_PARTY` |
+>
+> **Record the four substitutions in the judgement file as a comment beside the
+> roster**, naming the IEC string each one replaces: the paste is then no longer
+> a verbatim copy of the certified list, and the next reader must be able to see
+> that and check it.
+>
+> ⚠️ **The last two are judgement, not arithmetic.** A definite article and a
+> trailing "PARTY" are the likeliest renamings in the list, but nothing proves
+> `CHANGE PARTY` is the `CHANGE` of 2021 — check both against the IEC's party
+> register before pasting. The first two are certain.
+>
+> **Four more pairs scored as near-matches and are NOT renamings** — the
+> Azanian People's Organisation, the African People's Convention and the Congress
+> of the People each carry their own history and appear independently, and the
+> People's Consent Party and Service Delivery Party have no history at all, so
+> they are new parties. Do not substitute them.
 >
 > ⚠️ **AND THE SCAN THAT WAS MEANT TO FIND THESE DID NOT.** A similarity pass
 > over canonical codes reported ONE break and missed both, because an alias
