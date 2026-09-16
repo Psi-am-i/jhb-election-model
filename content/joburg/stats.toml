@@ -108,6 +108,20 @@ source = "model:parties.ASA.p95"
 format = "int"
 inserted = "2026-08-07"
 
+[generated_date]
+mode = "free"
+source = "model:_generated"
+format = "date_long"
+inserted = "2026-09-17"
+used_in = "footer colophon and dateline — the run the page's figures come from"
+
+[run_seed]
+mode = "free"
+source = "model:scenario.seed"
+format = "raw"
+inserted = "2026-09-17"
+used_in = "footer colophon"
+
 [n_draws]
 mode = "free"
 source = "derived:n_draws"

@@ -37,6 +37,8 @@ NAMES = {
     "DA": "DA", "ANC": "ANC", "EFF": "EFF", "MK": "MK Party", "ASA": "ActionSA",
     "PA": "PA", "IFP": "IFP", "RISE": "Rise Mzansi", "VFPLUS": "VF+",
     "ACDP": "ACDP", "ALJAMAAH": "Al Jama-ah", "ENTRANT": "New entrant",
+    "SOUTH_AFRICAN_COMMUNIST_PARTY": "SACP", "BOSA": "BOSA",
+    "ALL_CITIZENS_PARTY": "All Citizens Party",
 }
 CHART_PARTIES = ["DA", "ANC", "EFF", "ASA", "MK", "PA", "IFP", "RISE",
                  "ALJAMAAH", "ENTRANT"]
@@ -139,8 +141,9 @@ def main(argv: list[str] | None = None) -> int:
     # filter, cushion, stability, survivability) so the forecast page shows
     # the same table the simulator builds live.
     means = {p: float(S[p].mean()) for p in parties}
-    top = [p for p in sorted(parties, key=lambda q: -means[q])
-           if means[p] >= 0.4][:12]
+    # Every party `seat_draws.csv` tracks. A cap of 12 dropped VF+ (mean 2.2
+    # seats) and flipped the DA's all-together row from 53.7% to 48.6%.
+    top = [p for p in sorted(parties, key=lambda q: -means[q]) if means[p] >= 0.4]
     nT = len(top)
     med_of = {p: int(round(np.median(S[p]))) for p in parties}
     _sum_cache: dict[int, np.ndarray] = {}
@@ -173,101 +176,95 @@ def main(argv: list[str] | None = None) -> int:
                 m |= 1 << top.index(c)
         return m
 
-    g_rows = []
-    seen = set()
-    for codes, key in ((("ANC", "DA"), True), (("DA", "ASA"), False),
-                       (("ANC", "EFF", "MK"), False)):
-        m = mask_of(codes)
-        if not m:
-            continue
-        seen.add(m)
-        g_rows.append({"m": m, "key": key, "label": glabel(m), "p": wp(m),
-                       "med": int(round(np.median(msum(m))))})
-    found = []
-    from itertools import combinations
-    for k in (2, 3):
-        for combo in combinations(range(nT), k):
-            m = 0
-            for i in combo:
-                m |= 1 << i
-            if m in seen:
+    def detail(m, med, barred=frozenset()):
+        """Cushion, stability and survivability for one coalition mask."""
+        cushion = med - 136
+        if cushion <= 0:
+            return f"{'+' if cushion > 0 else ''}{cushion}", "—", "—"
+        members = [top[k] for k in range(nT) if m & (1 << k)]
+        overall = min(100.0, cushion / med * 100)
+        per = ", ".join(
+            f"{min(100.0, cushion / max(med_of[p], 1) * 100):.0f}%&nbsp;of&nbsp;"
+            f"{NAMES.get(p, p)}" for p in members)
+        stab = (f"<b>{overall:.0f}%</b> of all councillors can defect"
+                f'<div style="font-size:11px;color:var(--ink-3);margin-top:2px">'
+                f"survives defection of {per}</div>")
+        bits = []
+        for p in members:
+            low = 1 << top.index(p)
+            if wp(m ^ low) >= 0.5:
+                bits.append(f"survives {NAMES.get(p, p)} exit")
                 continue
-            p = wp(m)
-            if p <= 0.03:
-                continue
-            passenger = False
-            for i in combo:
-                if wp(m ^ (1 << i)) >= p - 0.02:
-                    passenger = True
-                    break
-            if not passenger:
-                found.append({"m": m, "key": False, "label": glabel(m), "p": p,
-                              "med": int(round(np.median(msum(m))))})
-    found.sort(key=lambda r: -r["p"])
-    g_rows += found[:7]
-
-    total_all = stack.sum(axis=0)
-    for codes, names_x in ((("ANC", "EFF", "MK"), ("ANC", "EFF", "MK Party")),
-                           (("DA", "ASA"), ("DA", "ActionSA"))):
-        f = total_all - sum(S[c] for c in codes)
-        lab = "Everything except " + ", ".join(
-            chip_of(c, names_x[i]) for i, c in enumerate(codes))
-        g_rows.append({"m": None, "key": True, "label": lab,
-                       "p": float((f >= thr).mean()),
-                       "med": int(round(np.median(f)))})
-
-    def size_of(r):
-        return bin(r["m"]).count("1") if r["m"] else 99
-
-    shown = sorted([r for r in g_rows if r["p"] >= 0.5],
-                   key=lambda r: (size_of(r), -r["p"]))
-    out_rows = []
-    for r in shown:
-        cushion = r["med"] - 136
-        if r["m"] is None or cushion <= 0:
-            stab = "—"
-            surv = "—"
-        else:
-            members = [top[k] for k in range(nT) if r["m"] & (1 << k)]
-            overall = min(100.0, cushion / r["med"] * 100)
-            per = ", ".join(
-                f"{min(100.0, cushion / max(med_of[p], 1) * 100):.0f}%&nbsp;of&nbsp;"
-                f"{NAMES.get(p, p)}" for p in members)
-            stab = (f"<b>{overall:.0f}%</b> of all councillors can defect"
-                    f'<div style="font-size:11px;color:var(--ink-3);margin-top:2px">'
-                    f"survives defection of {per}</div>")
-            bits = []
-            for p in members:
-                low = 1 << top.index(p)
-                sv = wp(r["m"] ^ low)
-                if sv >= 0.5:
-                    bits.append(f"survives {NAMES.get(p, p)} exit")
+            rescue = None
+            for j in range(nT):
+                # a party the group rules out cannot be the rescuer
+                if m & (1 << j) or top[j] in barred:
                     continue
-                rescue = None
-                for j in range(nT):
-                    if r["m"] & (1 << j):
-                        continue
-                    restore = wp((r["m"] ^ low) | (1 << j))
-                    if restore >= 0.5 and (rescue is None or restore > rescue[1]):
-                        rescue = (top[j], restore)
-                if rescue:
-                    bits.append(f"{NAMES.get(p, p)} exit survivable only if "
-                                f"{NAMES.get(rescue[0], rescue[0])} steps in")
-                else:
-                    bits.append(f"{NAMES.get(p, p)} exit breaks it")
-            surv = "; ".join(bits)
-        out_rows.append({"key": r["key"], "label": r["label"], "med": r["med"],
-                         "cushion": f"{'+' if cushion > 0 else ''}{cushion}",
-                         "stab": stab, "surv": surv})
-    near = sorted([r for r in g_rows if 0.05 < r["p"] < 0.5],
-                  key=lambda r: -r["p"])[:5]
-    import re as _re
-    note = ("Every pair and triple was checked — the rows above are the named "
-            "references plus the strongest discovered combinations. ")
-    if near:
-        note += ("Checked but short of the numbers in most simulations: "
-                 + " · ".join(f"{_re.sub('<[^>]+>', '', r['label'])} "
-                              f"(median {r['med']})" for r in near) + ".")
+                restore = wp((m ^ low) | (1 << j))
+                if restore >= 0.5 and (rescue is None or restore > rescue[1]):
+                    rescue = (top[j], restore)
+            bits.append(f"{NAMES.get(p, p)} exit survivable only if "
+                        f"{NAMES.get(rescue[0], rescue[0])} steps in" if rescue
+                        else f"{NAMES.get(p, p)} exit breaks it")
+        return f"+{cushion}", stab, "; ".join(bits)
+
+    def smallest_share(m):
+        """Share of draws in which `m` is a SMALLEST workable majority: it
+        reaches the threshold and loses it if any one member leaves."""
+        tot = msum(m)
+        ok = tot >= thr
+        for k in range(nT):
+            if m & (1 << k):
+                ok &= (tot - S[top[k]]) < thr
+        return float(ok.mean())
+
+    def row(m, key=False, label=None, barred=frozenset()):
+        med = int(round(np.median(msum(m))))
+        cushion, stab, surv = detail(m, med, barred)
+        return {"key": key, "label": label or glabel(m), "p": wp(m),
+                "mwc": smallest_share(m), "med": med, "cushion": cushion,
+                "stab": stab, "surv": surv}
+
+    # Two questions a reader asks, not one ranked list. Ranking every pair and
+    # triple by P(majority) filled the table with DA + ANC + <anyone>, and the
+    # old p >= 0.5 filter could never show a DA option without the ANC at all.
+    # Each group lists the SMALLEST workable majorities available to its anchor
+    # from the parties it is not barred from — mathematics only; how politically
+    # likely any deal is stays the reader's judgement.
+    from itertools import combinations
+    GROUPS = (("The DA without the ANC, EFF or MK", "DA", {"ANC", "EFF", "MK"}),
+              ("The ANC without the DA", "ANC", {"DA"}))
+    SHOW, MIN_SHARE, MAX_PARTNERS = 6, 0.01, 4
+    out_rows = [row(mask_of(("ANC", "DA")), key=True)]
+    for title, anchor, barred in GROUPS:
+        if anchor not in top:
+            continue
+        pool = [i for i, p in enumerate(top) if p != anchor and p not in barred]
+        base = 1 << top.index(anchor)
+        cands = []
+        for k in range(1, MAX_PARTNERS + 1):
+            for combo in combinations(pool, k):
+                m = base
+                for i in combo:
+                    m |= 1 << i
+                s = smallest_share(m)
+                if s >= MIN_SHARE:
+                    cands.append((s, m))
+        cands.sort(key=lambda sm: -sm[0])
+        out_rows.append({"group": title})
+        out_rows += [row(m, barred=barred) for _, m in cands[:SHOW]]
+        everyone = base
+        for i in pool:
+            everyone |= 1 << i
+        out_rows.append(row(everyone, key=True, barred=barred,
+                            label=f"All of them together: {glabel(everyone)}"))
+    note = ("“Majority in” is the share of simulations in which the combination reaches "
+            "the 136 needed. “Smallest form in” is the share in which it does so with no "
+            "passenger — lose any one partner and the majority goes. A simulation can have "
+            "several smallest forms, so that column does not add to 100%. The simulations "
+            f"track {nT} parties individually; the rest hold {270 - sum(means.values()):.0f} "
+            "seats on average between them and are left out of every row, so the "
+            "all-together rows understate what a broader deal could reach.")
     gen["govern"] = {"rows": out_rows, "note": note}
 
     # --- claims tested: rendered from content/<city>/claims.toml ----------
@@ -334,12 +331,20 @@ def main(argv: list[str] | None = None) -> int:
             floors[k] += 1
         return floors
 
+    # ⛔ MEANS, NOT MEDIANS. Medians do not add: the party medians summed to 240
+    # of 270, so "Smaller parties = 270 − named medians" showed 39 seats against
+    # a real 13-24 (2011-2021), and "ANC list = median total − MEAN wards" showed
+    # 7 list seats for a party that gets none in most draws. Means add exactly,
+    # so wards + list = total holds per party and every bar sums to its size.
+    # `seat_draws.csv` omits the smallest parties, which is why the remainder is
+    # taken from 270 rather than summed.
     OTHER = "__other__"
+    mean_tot = {p: float(S[p].mean()) for p in parties}
     named = [(pty, v) for pty, v in sorted(summary["parties"].items(),
-                                           key=lambda kv: -kv[1]["median"])
-             if NAMES.get(pty) and CHIPS.get(pty) and round(v["median"]) >= 3]
+                                           key=lambda kv: -mean_tot.get(kv[0], 0.0))
+             if NAMES.get(pty) and CHIPS.get(pty) and mean_tot.get(pty, 0.0) >= 2.5]
     ward_raw = {pty: float(v.get("ward_wins_mean", 0.0)) for pty, v in named}
-    tot_raw = {pty: float(v["median"]) for pty, v in named}
+    tot_raw = {pty: mean_tot[pty] for pty, v in named}
     ward_raw[OTHER] = max(135.0 - sum(ward_raw.values()), 0.0)
     tot_raw[OTHER] = max(270.0 - sum(tot_raw.values()), 0.0)
     ward_n = round_to_total(ward_raw, 135)
@@ -355,15 +360,15 @@ def main(argv: list[str] | None = None) -> int:
     totb = [(seg(k)[0], tot_n[k], seg(k)[1]) for k in order if tot_n.get(k, 0) > 0]
 
     anc_list = list_n.get("ANC", 0)
-    if anc_list == 0:
-        anc_note = ("Note the ANC's list bar: <b>zero</b>. Its ward wins meet its full "
-                    "proportional share, so the excessive-seats clause strips its list seats "
-                    "entirely and everyone else's shrink to fit")
-    else:
-        n_word = "a single seat" if anc_list == 1 else f"just {anc_list} seats"
-        anc_note = (f"Note the ANC's list bar: <b>{n_word}</b>. Its ward wins soak up nearly "
-                    "its whole proportional share, leaving next to nothing to come off the list")
-    ballots_caption = (f"Hover a segment for its seats. {anc_note} — while ActionSA, with "
+    p_none = f"{p_excessive:.0%}"
+    n_word = ("<b>under one seat</b>" if anc_list == 0 else
+              "<b>a single seat</b>" if anc_list == 1 else f"<b>{anc_list} seats</b>")
+    anc_note = (f"Note the ANC's list bar: {n_word} on average. In at least {p_none} of simulations "
+                "it gets none at all — its ward wins already exceed its proportional share, "
+                "so the excessive-seats clause strips its list seats and everyone else's "
+                "shrink to fit")
+    ballots_caption = (f"Every bar is the average across all simulations, so the three add up "
+                       f"exactly. Hover a segment for its seats. {anc_note} — while ActionSA, with "
                        "broad support but no stronghold wards, lives almost wholly on the "
                        "list. Two opposite ways of turning votes into seats, in one city.")
     strip = f"""<!-- __BALLOTS_START__ -->

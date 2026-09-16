@@ -8,7 +8,8 @@ drafts/forecast-draft.html.
 Presentation (user reviews 2026-08-06): rotated 90° (north right, marked);
 districts labelled; four confidence tiers — Safe >=90% solid, Strongly
 leaning 75-90% finely hatched, Leaning 60-75% heavily hatched, Toss-up <60%
-grey — with a swatch key; JS tooltips list every party winning >=5% of a
+striped on grey, one stripe per contender in proportion to its share
+(owner, 2026-09-17) — with a swatch key; JS tooltips list every party winning >=5% of a
 ward's simulations plus an "other" remainder.
 
 Usage:  python src/render_map.py
@@ -129,7 +130,11 @@ def main(argv: list[str] | None = None) -> int:
                        for c in p["dist"].split("|")]
             main = [(c, v) for c, v in entries if v >= 0.05]
             other = sum(v for c, v in entries if v < 0.05)
-            share = " · ".join(f"{NAMES.get(c, c.title())} {v:.0%}" for c, v in main)
+            # ⛔ Never print 100%. It says "won every simulation", which reads as
+            # certain, and the ward record has upsets in wards that looked safe.
+            def _pc(v):
+                return "over 99%" if v > 0.99 else f"{v:.0%}"
+            share = " · ".join(f"{NAMES.get(c, c.title())} {_pc(v)}" for c, v in main)
             if other >= 0.005:
                 share += f" · other {other:.0%}"
             challengers = [c for c, v in main if c != winner][:2]
@@ -146,6 +151,30 @@ def main(argv: list[str] | None = None) -> int:
         path_data.append((row, d))
         paths.append(f'<path d="{d}" fill="{fill}" stroke="var(--paper)" '
                      f'stroke-width="0.8" data-tip="{tip}"></path>')
+        # Too close to call gets the leaning treatment too — grey ground, one stripe
+        # per contender, widths in proportion to their shares, so a near 50/50 or
+        # 33/33/33 ward reads as near-equal stripes rather than as blank grey.
+        if p is not None and cls == "grey" and len(main) >= 2:
+            cont = sorted(main, key=lambda cv: -cv[1])[:3]
+            # an unknown party must not vanish as a grey stripe on grey ground
+            cols = [CHIPS.get(c, "#5f6660") for c, _ in cont]
+            top_share = cont[0][1]
+            ratios = [v / top_share for _, v in cont]
+            pid = "h_toss_" + "_".join(c.lstrip("#") for c in cols) + "_" + \
+                  "_".join(f"{max(2.2 * r, 0.7):.1f}".replace(".", "p") for r in ratios)
+            if pid not in patterns:
+                step, base_w = 7.0, 2.2
+                gap = step / len(cols)
+                lines = "".join(
+                    # offset by half a gap: a line at x=0 is clipped to half its
+                    # width by the pattern tile, which shrank the LEADER's stripe
+                    f'<line x1="{(i + 0.5) * gap:.2f}" y1="0" x2="{(i + 0.5) * gap:.2f}" y2="{step}" '
+                    f'stroke="{col}" stroke-width="{max(base_w * r, 0.7):.1f}"/>'
+                    for i, (col, r) in enumerate(zip(cols, ratios)))
+                patterns[pid] = (f'<pattern id="{pid}" width="{step}" height="{step}" '
+                                 f'patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'
+                                 f'{lines}</pattern>')
+            hatches.append(f'<path d="{d}" fill="url(#{pid})" pointer-events="none"></path>')
         if p is not None and cls in ("strong", "lean") and challengers:
             cols = [CHIPS.get(c, GREY) for c in challengers]
             pid = f"h_{cls}_" + "_".join(c.lstrip("#") for c in cols)
@@ -182,8 +211,15 @@ def main(argv: list[str] | None = None) -> int:
 
     # council inset: the city silhouette filled with banded seat proportions
     summary = json.loads(Path("data/processed/forecast_summary.json").read_text())
-    seats = sorted(((k, round(v["median"])) for k, v in summary["parties"].items()
-                    if round(v["median"]) >= 1), key=lambda kv: -kv[1])
+    # MEANS, not medians: medians do not add, so "270 − named medians" handed
+    # the remainder ~30 seats that belong to nobody (see render_sheet's bars).
+    import csv as _csv
+    with (Path("data/processed") / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
+        _draws = list(_csv.DictReader(fh))
+    _mean = {k: sum(int(r[k]) for r in _draws) / len(_draws)
+             for k in _draws[0] if k not in ("draw", "threshold", "council_size")}
+    seats = sorted(((k, round(v)) for k, v in _mean.items() if round(v) >= 1),
+                   key=lambda kv: -kv[1])
     named_total = sum(n for _, n in seats)
     if named_total < 270:
         seats.append(("OTHER", 270 - named_total))

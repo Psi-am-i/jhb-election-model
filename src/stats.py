@@ -227,6 +227,10 @@ def _fmt(value, spec: str | None):
         return f"{float(value) * 100:.0f}"
     if spec == "one_dp":
         return f"{float(value):.1f}"
+    if spec == "date_long":           # 2026-09-16T21:46:15Z -> 16 September 2026
+        from datetime import datetime
+        d = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        return f"{d.day} {d:%B %Y}"
     raise ValueError(f"unknown format {spec!r}")
 
 
