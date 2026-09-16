@@ -162,10 +162,15 @@ here first, so anything stale in this file is read as an instruction.
 >    2026 (GOOD is the largest at ~0.33% of the 2021 PR vote, then Party of
 >    Action, Abantu Batho Congress, DOP, Black First Land First). So the refusal
 >    is the guard doing its job on a real deletion, not a sign of a half-typed
->    list. **Two lawful ways forward, and the choice is the owner's:** check those
->    names against the IEC list and set `confirm_drop = true`, or leave
->    `complete = false`, which ADDS parties and deletes none. Do not raise the
->    ceiling.
+>    list.
+>
+>    ✅ **THE OWNER CONFIRMED THE 27, 2026-09-16: they are not running.** So
+>    `confirm_drop = true` is authorised for this paste, and the refusal — when
+>    it fires — is to be acknowledged rather than investigated again. ⛔ The
+>    authorisation is for THIS list and this deletion set: it is a statement
+>    about 27 named parties, not a standing permission, and a re-paste that
+>    changes the set needs it re-confirmed. Do not raise the ceiling, and do not
+>    carry `confirm_drop = true` into a later window unexamined.
 >
 >    ⚠️ **The same measurement against the 2024 baseline is the proof that the
 >    aliases matter: 14.2% dropped without them, 1.1% with.** That ~13-point gap

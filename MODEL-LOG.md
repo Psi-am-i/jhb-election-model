@@ -26032,3 +26032,72 @@ not in the order the flags were typed, and the list was read positionally
 against the command line. **Quote a per-module count only from a run of that
 module alone.** Recorded here rather than in `HANDOVER.md`, which is where it
 was first written: this log is the append-only record and that file is not.
+
+## 1.243 Every party-identity question in the archive, adjudicated — and the one that matters is not in any record the model reads (2026-09-16)
+
+§1.242 scanned the renaming class at a 0.6 similarity cut and reported nine
+survivors, all ≤0.06%. **The cut was hiding the largest case in the archive
+after the NNP.** Lowered to 0.45 and deduplicated across metros, the scan
+returns **25 distinct pairs**, and the top of that list is not noise.
+
+### The evidence pattern, and why it settles two of them
+
+A rename leaves a signature no similarity score carries: the old name STOPS and
+the new one STARTS, at the same transition, with the vote continuing.
+
+| Cape Town | share |
+|---|---|
+| `CAPE COLOURED CONGRESS` 2021 LGE | 2.804% |
+| `NATIONAL COLOURED CONGRESS` 2024 NPE | 3.482% |
+| `CAPE PARTY / KAAPSE PARTY` 2009→2019, rising | 0.110% → 0.508% |
+| `CAPE INDEPENDENCE PARTY / KAAPSE ONAFHANKLIKHEIDS PARTY` 2021 LGE | 0.635% |
+
+Neither old name appears after its successor; neither successor appears before.
+Both are renames on this evidence — the first with high confidence, the second
+with good confidence.
+
+⛔ **AND THE SAME TEST DEMOTES ONE §1.242 REPORTED AS PLAUSIBLE.** `BLACK
+CONSCIOUSNESS FORUM ← BLACK CONSCIOUSNESS PARTY` looked clean at JHB 2004→2006
+— but the PARTY **returns at 2011** (0.066%). It oscillates, so it is two
+organisations or one that flip-flops its registration, not a rename. §1.242's
+oscillation filter missed it because the return was never paired back into the
+candidate set: the filter catches X←Y with Y←X, and this is X←Y with Y
+reappearing on its own. **A reappearance is as disqualifying as a reversal.**
+
+### ⭐ THE MATERIALITY ANSWER, AND IT IS THE REASON NOT TO ACT ON MOST OF THIS
+
+`pools.arrival_group_record` iterates **LGE years only** and scores each against
+the **preceding NPE** (`prev = cityconfig.preceding(year, "NPE")`). Arrivals are
+therefore measured at 2011, 2016 and 2021 against 2009, 2014 and 2019. **The 2024
+NPE is never a target year**, and `levels.theta_record` pairs an NPE with the LGE
+that follows it, which for 2024 would be the unheld 2026. So **no record the
+model reads spans the 2021→2024 transition** — which is exactly where CCC→NCC
+sits.
+
+Consequences, stated so nobody re-opens this:
+
+* **Johannesburg 2026 is unaffected.** NCC does not appear in Johannesburg's 2024
+  file at all.
+* **No scored backtest row is affected.** The Cape Coloured Congress arrived at
+  CPT 2021 measured against NPE 2019, where neither name existed. It was an
+  arrival, correctly, whatever it later renamed itself to.
+* **The exposure is CAPE TOWN 2026, and it is real.** That forecast takes its
+  baseline from the 2024 NPE, where NCC holds 3.482% with no local record — so it
+  would be sized through the no-history path while CCC's measured 2.804% local
+  result sits under a dead code. **Resolve it before any Cape Town 2026 work**,
+  and resolve it with an alias, since by then the name arrives through the
+  ingest path rather than through a hand-written roster.
+
+### What remains for a human, and what does not
+
+Of the 25 pairs, **two need adjudication** (the two above) and both are Cape
+Town. The rest are ≤0.24%, and every one I could test fails the signature above:
+`INKATHA FREEDOM PARTY ← NATIONAL FREEDOM PARTY` is a split, not a rename, and
+both contest simultaneously; the `PEOPLE'S …` and `AFRICAN …` families pair
+generic words; `MOVEMENT DEMOCRATIC PARTY ← CHRISTIAN DEMOCRATIC PARTY` and
+`NATIONAL PARTY SOUTH AFRICA ← UNITED PARTY OF SOUTH AFRICA` are distinct
+parties.
+
+⚠️ **The scan still cannot see a rename to an UNRELATED name**, and lowering the
+threshold further buys false positives faster than it buys findings: at 0.45 the
+list is already 23 noise to 2 signal.

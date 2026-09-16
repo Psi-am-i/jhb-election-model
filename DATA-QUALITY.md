@@ -1038,6 +1038,32 @@ So the NNP case remains the only large instance, and the inflation of the
 arrival record from everything else in this archive is at most a rounding error
 per instance. MODEL-LOG §1.242.
 
+⛔ **THE 0.6 CUT WAS HIDING THE SECOND-LARGEST CASE. RE-SCANNED AT 0.45
+(2026-09-16, §1.243): 25 pairs, of which TWO are real and both are Cape Town.**
+`CAPE COLOURED CONGRESS` (2.804% at CPT 2021) does not appear at 2024 and
+`NATIONAL COLOURED CONGRESS` (3.482% at CPT 2024) does not appear before it;
+`CAPE PARTY / KAAPSE PARTY` runs 2009-2019 and stops exactly as `CAPE
+INDEPENDENCE PARTY / KAAPSE ONAFHANKLIKHEIDS PARTY` starts. **The signature that
+settles a rename is not a similarity score** — it is the old name stopping and
+the new one starting at the same transition with the vote continuing.
+
+✅ **AND THE SAME SIGNATURE DEMOTES ONE THIS FILE WOULD OTHERWISE HAVE CARRIED.**
+`BLACK CONSCIOUSNESS FORUM ← BLACK CONSCIOUSNESS PARTY` looked clean at
+JHB 2004→2006, but the PARTY **returns at 2011**. A REAPPEARANCE disqualifies a
+rename just as a reversal does, and the oscillation filter did not catch this
+shape.
+
+✅ **NEITHER REAL CASE REACHES A RECORD THE MODEL READS TODAY**, which is why
+neither is being fixed now. `arrival_group_record` walks LGE years against the
+PRECEDING NPE, so arrivals are measured at 2011/2016/2021 against 2009/2014/2019
+and **the 2024 NPE is never a target**; `theta_record` would pair 2024 with the
+unheld 2026. Both Cape Town renames sit at 2021→2024. So: no backtest row moves,
+and Johannesburg 2026 does not see NCC at all. ⛔ **The exposure is CAPE TOWN
+2026** — that forecast's baseline IS the 2024 NPE, where NCC holds 3.482% with
+no local record while CCC's measured 2.804% sits under a dead code. **Fix it
+before any Cape Town 2026 work, with an alias**, because by then the name
+arrives through the ingest path and not through a hand-written roster.
+
 ⚠️ **STILL OPEN, AND THE LIMIT IS STRUCTURAL: a rename to an UNRELATED name is
 invisible to this method.** It matches shared tokens; a party that renames itself
 to something with no word in common cannot be found this way, and tightening the
