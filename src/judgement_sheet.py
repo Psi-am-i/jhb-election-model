@@ -340,16 +340,32 @@ def build() -> dict:
 
 def _firing(symbol, null, conditional, levers) -> str:
     """One phrase for 'is this doing anything at the live target'."""
+    # ⛔ INERT AND CONDITIONAL ARE NOT ALTERNATIVES, AND REPORTING ONLY THE FIRST
+    # HIDES THE EVIDENCE THAT MATTERS MOST.
+    #
+    # The first version returned on the inert entry. But a lever may hold BOTH:
+    # the poll family is inert BY CONFIGURATION at the live target and each one
+    # also carries a conditional entry that opens the gate and proves it still
+    # moves. HANDOVER records that the conditional half is the sole justification
+    # for keeping one of them — so a sheet that printed "CERTIFIED INERT" and
+    # stopped would argue for deleting a lever on evidence it had suppressed.
+    # Rendering both is the difference between "this does nothing" and "this does
+    # nothing HERE, and here is what it does when its gate is open".
     if not symbol:
         return "not linked to a scenario key or module constant"
+    parts: list[str] = []
     if null is not None:
         cause = getattr(null, "cause", "")
         where = " ".join(str(getattr(null, "where", "")).split())
-        return f"CERTIFIED INERT ({cause})" + (f" — {where}" if where else "")
+        parts.append(f"CERTIFIED INERT ({cause})" + (f" — {where}" if where else ""))
     if symbol in conditional:
         why = " ".join(str(getattr(conditional[symbol], "why", "")).split())
-        return "CONDITIONAL — dead as shipped, measured with its gate held open" \
-               + (f": {why}" if why else "")
+        parts.append(
+            ("ALSO CONDITIONAL" if parts else "CONDITIONAL")
+            + " — measured with its gate held open"
+            + (f": {why}" if why else ""))
+    if parts:
+        return "; ".join(parts)
     if symbol in levers:
         return "not certified dead here"
     return "module constant"
