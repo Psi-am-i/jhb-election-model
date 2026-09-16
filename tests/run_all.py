@@ -114,7 +114,13 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # cannot drift from the tree it describes — the same shape
            # `test_intermediates_are_current` uses for the CSVs, and for
            # the same reason: an mtime fence does not substitute.
-           "test_model_index"]
+           "test_model_index",
+           # The reader-facing view of the judgement register, joined to what
+           # `test_levers_are_live` says is firing and to what the interactive
+           # exposes. Same regenerate-and-compare shape as the index above,
+           # plus the guard that keeps a document ABOUT levers from spelling a
+           # deleted one and blinding `test_register_matches_code`.
+           "test_judgement_sheet"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.
