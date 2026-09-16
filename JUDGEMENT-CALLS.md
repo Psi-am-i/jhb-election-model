@@ -2475,6 +2475,47 @@ failure with the sign reversed.
 instruction was that uncertain names be registered as judgement calls unless they
 can be certified automatically, and nothing available certifies these. §1.242.
 
+### §L13 · The SACP's first general ballot is sized by hand from its by-elections — 🔴 typed, and it is the largest single newcomer
+
+**Where.** `judgements/joburg-2026.toml`, `[party.SOUTH_AFRICAN_COMMUNIST_PARTY]`:
+`weights` and `support`. No symbol in `src/`.
+
+**Now.** `support = 0.0131` of the city, drawn from the voter profile
+`weights = [0.8804, 0.0106, 0.0084, 0.1006]` (categories order).
+
+**Why it is a judgement.** The SACP is in the ANC-led alliance and has stood
+through ANC lists; 2026 is its first general ballot under its own name. The
+archive holds it only in `data/raw/byelections/byelections_SA_vd_party.csv` —
+eight wards, 2025-07 to 2026-06, none in Johannesburg, all chosen by the party.
+The owner took the MEAN of two measures over those eight, both defensible:
+
+| measure | value |
+|---|---|
+| median SACP share of the ward vote | 1.815% |
+| median SACP / (SACP + ANC), 2.93%, × the ANC's Johannesburg spine level 28.0% | 0.821% |
+| **mean — the declared `support`** | **1.318%** |
+
+The 28.0% is the model's own ANC spine level from the 2026-09-16 build log, not
+an election result — a model input to a hand value, stated so it is visible.
+
+**The alternatives, measured.** (a) `parent = "ANC"` — the owner's first call —
+seeded it at 5.98% of the city: the split path takes the median of the splinter
+record, whose named cases are COPE, EFF and MK, breakaways led by a national
+figure, not an alliance partner standing a list. (b) An empty table sizes it as a
+generic entrant, ≈0.06% — below the lowest of its eight by-elections (0.80%).
+Both refuted by its own record; a blind review reached the same table and the
+same conclusion independently, and the table was re-derived from the raw file.
+
+**Why not `parent` plus `support`.** ⛔ The split branch of `arrival_rules`
+(`pools.py`, `elif as_split`) never reads `support` or `overperform` — a stated
+size beside a `parent` is discarded in silence, the defect class `PARTY_KEYS`
+exists to close. The `weights` copy is the split path's own emitted voter profile,
+so only the size changes. The defect is a `pools.py` code change and is queued,
+not fixed tonight (it invalidates every spec).
+
+**How to check it.** Against the 2026 result, and against the band the arrival
+record puts around the declared level. **Record.** 2026-09-16, owner's decision.
+
 ### §L11 · The CONTENDER rule — ⛔ SUPERSEDED 2026-09-07, ITS HEADLINE COMPARISON IS ACROSS TWO MODULES
 
 ⛔ **DO NOT APPLY THIS ENTRY. Its evidence table compares two parties that are

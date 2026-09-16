@@ -397,7 +397,7 @@ parties = [
 # purpose: no `support`, so the arrival record sizes each one, not a hand value.
 # Flagged for the owner, not resolved here:
 #   SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION ~ PEOPLE_S_CIVIC_ORGANISATION (2016)
-#   SOUTH_AFRICAN_COMMUNIST_PARTY — owner chose ANC split, see its table
+#   SOUTH_AFRICAN_COMMUNIST_PARTY — owner-sized, see its table (§L13)
 
 [party.ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT]
 
@@ -471,10 +471,18 @@ parties = [
 
 [party.SERVICE_DELIVERY_PARTY]
 
-# OWNER 2026-09-16: SACP is in the ANC alliance and stands alone for the first
-# time on a general ballot (archive: by-elections only). Sized as an ANC split.
+# OWNER 2026-09-16 — JUDGEMENT-CALLS §L13. SACP is in the ANC alliance and stands
+# alone for the first time on a general ballot (archive: by-elections only).
+# Drawn from ANC-shaped pools, sized from its OWN by-election record.
+# NOT `parent = "ANC"`: the split path ignores `support` (pools.py elif as_split)
+# and sized it at the COPE/EFF/MK median, ~6% of the city. `weights` are that
+# split path's own voter profile, copied from the emitted spec, so only the size
+# changes. support = mean of two measures over its 8 by-elections, 2025-07..2026-06:
+#   median SACP vote share                 1.815%
+#   median SACP/(SACP+ANC) 2.9% x ANC 28.0% 0.81%   (ANC spine level, build log)
 [party.SOUTH_AFRICAN_COMMUNIST_PARTY]
-parent = "ANC"
+weights = [0.8804, 0.0106, 0.0084, 0.1006]
+support = 0.0131
 
 [party.SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION]
 
