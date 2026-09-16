@@ -14,11 +14,19 @@ here first, so anything stale in this file is read as an instruction.
 > banner. Both staleness guards cleared. `MODEL-INDEX.md` landed at `73eec0f`,
 > generated from the tree and regenerated-and-compared by its own test.
 >
-> **WHAT IS NOT DONE: the site.** The live pages are the 31 August build and
-> still describe the poll channel as live; the model has run polls OFF since
-> 2026-09-12. `declares.py --verify` exits 1 because the forecast and regime
-> summaries predate the current specs. **The fix is one pass, and it waits for
-> the IEC candidate list** — see the nomination-day runbook below.
+> **NIGHT OF 2026-09-16 — RUNBOOK STEPS 1-8 DONE, STEP 9 HELD FOR THE OWNER.**
+> The certified list is pasted (`6c6bdfd`), the SACP is sized by hand
+> (`JUDGEMENT-CALLS §L13`, `aa7dcd5`), both 2026 specs are re-emitted, and
+> `build_all --model --regimes` built the site. The Zille claim is now dated as
+> history (step 7). The publish checks pass. **Not done: freeze, `--publish`,
+> push, deploy.** The live pages are still the 31 August build. Before
+> deploying, the owner reads the SACP result and the dated Zille intro.
+> `declares.py --verify` still exits 1, on three artefacts that predate this
+> pass: `joburg/2021` and `capetown/2021` `forecast_summary.json` (strays from
+> bare runs on 5 and 10 Sep, not read by the site), `validation_2021.json`
+> (§1.216), and `forecast_frozen.json`, which the step-9 freeze replaces.
+> Open, not queued: at every metro's 2011 spec the ballot is known but no
+> newcomer is seeded, so the generic ENTRANT slot carries their votes.
 >
 > The banners this one supersedes — 2026-09-14 back to 2026-08-29 — are in
 > `HANDOVER-ARCHIVE.md`. They are not maintained and several of their claims are
