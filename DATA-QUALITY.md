@@ -1039,7 +1039,9 @@ arrival record from everything else in this archive is at most a rounding error
 per instance. MODEL-LOG §1.242.
 
 ⛔ **THE 0.6 CUT WAS HIDING THE SECOND-LARGEST CASE. RE-SCANNED AT 0.45
-(2026-09-16, §1.243): 25 pairs, of which TWO are real and both are Cape Town.**
+(2026-09-16, §1.243): 25 pairs, of which TWO are real and both are Cape Town —
+and ⭐ **BOTH WERE CONFIRMED BY THE OWNER, 2026-09-16: "CCC=NCC and CP/KP = CIP".**
+They are no longer candidates; they are known identities awaiting an alias.**
 `CAPE COLOURED CONGRESS` (2.804% at CPT 2021) does not appear at 2024 and
 `NATIONAL COLOURED CONGRESS` (3.482% at CPT 2024) does not appear before it;
 `CAPE PARTY / KAAPSE PARTY` runs 2009-2019 and stops exactly as `CAPE
@@ -1053,8 +1055,18 @@ JHB 2004→2006, but the PARTY **returns at 2011**. A REAPPEARANCE disqualifies 
 rename just as a reversal does, and the oscillation filter did not catch this
 shape.
 
-✅ **NEITHER REAL CASE REACHES A RECORD THE MODEL READS TODAY**, which is why
-neither is being fixed now. `arrival_group_record` walks LGE years against the
+⛔ **THE PARAGRAPH BELOW WAS WRONG AND IS CORRECTED IN PLACE (§1.244).** Measured
+rather than reasoned: adding both aliases moves the record. `CAPE_PARTY_KAAPSE_
+PARTY` goes from 1 to 2 θ observations **in all eight metros** — θ is pooled, so
+a Cape Town identity reaches every city — and the 2026 arrival-group total falls
+1.071016 → 1.064779, which is CIP's 0.635% at Cape Town 2021 ceasing to be an
+arrival. **A merge does not only re-label: it JOINS two half-observations into a
+whole one**, at whatever transition the halves span (here 2019→2021), which is
+why reasoning from the date of the rename gave the wrong answer. Only the CCC→NCC
+half of the claim survives.
+
+~~✅ **NEITHER REAL CASE REACHES A RECORD THE MODEL READS TODAY**, which is why
+neither is being fixed now.~~ `arrival_group_record` walks LGE years against the
 PRECEDING NPE, so arrivals are measured at 2011/2016/2021 against 2009/2014/2019
 and **the 2024 NPE is never a target**; `theta_record` would pair 2024 with the
 unheld 2026. Both Cape Town renames sit at 2021→2024. So: no backtest row moves,

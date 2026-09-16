@@ -77,6 +77,15 @@ here first, so anything stale in this file is read as an instruction.
 >    is the worked example: it contests **wards in Johannesburg and files no PR
 >    list**, and it holds a 2024 baseline, so a PR-only roster deletes a real
 >    party's pool mass. Extract both, union them, paste that.
+> ⛔ **DO NOT LAND THE TWO CONFIRMED CAPE TOWN ALIASES TONIGHT.** The owner
+> confirmed `CCC = NCC` and `CAPE PARTY = CAPE INDEPENDENCE PARTY` on
+> 2026-09-16, and they are queued as entry 27 — **not** because they are
+> unimportant but because they are **not number-neutral**: measured, they add a
+> θ observation in all eight metros and move the 2026 arrival-group total. They
+> need a full window *and* a measured panel, and folding them into tonight would
+> entangle the published forecast with an unmeasured model change. Tonight is
+> the roster paste and nothing else.
+>
 > 2. Two-spec re-emit — **not** the 27-spec window:
 >
 >        .venv/bin/python src/pools.py --city joburg --target 2026 --emit

@@ -26101,3 +26101,63 @@ parties.
 ⚠️ **The scan still cannot see a rename to an UNRELATED name**, and lowering the
 threshold further buys false positives faster than it buys findings: at 0.45 the
 list is already 23 noise to 2 signal.
+
+## 1.244 ⛔ §1.243 IS WRONG: the confirmed renames DO move the record, and the owner said so before the probe did (2026-09-16)
+
+§1.243, committed and pushed an hour before this entry, concluded that neither
+confirmed Cape Town rename "reaches a record the model reads today" and that
+Johannesburg 2026 was therefore unaffected. **That is false.** The owner did not
+accept it — *"the alias' might not, but the historical build up of these
+mismatches might"* — and the probe he prompted proves him right.
+
+### What was measured
+
+Both aliases added in-process (`canonical` reads `ALIASES` at call time and
+nothing in `parties`, `levels` or `pools` caches), then every θ record and every
+arrival-group record recomputed and diffed against a clean subprocess:
+
+    theta_record, ALL EIGHT METROS:  CAPE_PARTY_KAAPSE_PARTY  1 obs -> 2 obs
+    arrival_group_record('2026'):    group-total sum 1.071016 -> 1.064779
+                                     (29 rows, unchanged)
+
+### Why, and which half of the change is which
+
+**The entire effect is the Cape Party merge; CCC→NCC moves nothing today.** The
+reasoning in §1.243 was right about CCC and wrong about the general case:
+
+* `CAPE PARTY / KAAPSE PARTY` holds a 2019 NPE value and, before the merge, no
+  2021 local partner — it "vanished". `CAPE INDEPENDENCE PARTY` holds a 2021
+  local value and no 2019 national partner — it "arrived". **Merging them CREATES
+  a retention observation that did not exist**, which is why the record GREW.
+* The arrival total falls by 0.00624, which is CIP's **0.635%** at Cape Town 2021
+  almost exactly: merged, it is no longer an arrival. This is entry 19's
+  predicted direction — a renamed incumbent inflates the arrival pool — measured
+  a second time, on a second instance.
+* CCC→NCC sits at 2021→2024. θ pairs an NPE with the LGE that FOLLOWS it, and
+  2024's would be the unheld 2026, so it contributes nothing yet. That part of
+  §1.243 stands.
+
+### ⛔ THE GENERAL LESSON, WHICH IS WHY §1.243 WAS WRONG RATHER THAN UNLUCKY
+
+§1.243 reasoned from WHICH TRANSITION a rename sits on and concluded that a
+2021→2024 pair reaches nothing. That is true and insufficient: **a merge does not
+only re-label, it can JOIN two half-observations into a whole one**, and the
+join is created at whatever transition the two halves happen to span — here
+2019→2021, not 2021→2024 at all. The question is never "when did the rename
+happen" but "what pairs become possible once the two codes are one".
+
+⛔ **AND θ IS POOLED ACROSS METROS** (`levels.METRO_CODES`), so a Cape Town
+observation enters the record every city reads, Johannesburg included. There is
+no such thing as a Cape-Town-only identity fix.
+
+### What follows
+
+* **The aliases are NOT number-neutral and must not ride along with the
+  nomination emit.** Tonight stays the two-spec roster re-emit with the
+  substitution in the paste, which touches no code and no other city.
+* **They need a full window AND a measurement**, not merely an emit: θ feeds the
+  prior and the spine for every city-year, and the arrival record feeds sizing.
+  Pre-register it, run the panel both ways, and score it. Queue entry 27.
+* **Do not treat "it is only a data-quality fix" as licence to skip the
+  measurement.** It moves the arrival pool, and `MEMORY.md` records the arrival
+  channel deciding the majority of the live forecast.
