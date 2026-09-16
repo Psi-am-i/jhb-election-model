@@ -93,6 +93,20 @@
 >    is exported in the environment, so the `env -u` prefix is load-bearing, not
 >    decoration.
 >
+> ⚠️ **ERRATUM, 2026-09-16 — TEST COUNTS MIS-ATTRIBUTED IN TWO COMMIT MESSAGES
+> OF THIS BATCH, AND THEY ARE WRONG IN THE COPIES THAT ARE PUSHED.** `3daacb5`
+> reports "judgement_sheet 8, model_index 19, register_matches_code 8,
+> standalone_modules 6, regressions 6 — 47 passed": the **total is right** and
+> the **labels are not**. `abe00ac` reports "judgement_sheet 6, model_index 19 —
+> 25 passed", and the total is **wrong**: it was **12**. Both modules have
+> **6** tests each. The cause is worth more than the numbers: `run_all -k a -k b`
+> prints one summary per module in `run_all.MODULES` order, **not** in the order
+> the flags were typed, and I read the list positionally against my own
+> command line. Quote a per-module count only from a run of that module alone,
+> or from the line that names it. No verdict in this batch rested on these
+> figures — every module reported 0 failed — but a wrong number in the record is
+> a defect here whether or not it changed a decision.
+>
 > **Checked while preparing this, so nobody re-checks it:** the 2026 ward map is
 > real and is the 2026 delimitation — `data/processed/vd_ward_2026.csv`, written
 > by `build_concordance.py` from `data/raw/geo/vds2026_JHB.geojson` (MDB
