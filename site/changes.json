@@ -46,6 +46,66 @@
       "value": 44
     },
     {
+      "display": "8",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "validation:cities",
+      "token": "backtest_cities",
+      "value": 8
+    },
+    {
+      "display": "37%",
+      "fmt": "pct0",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "validation:crps_better_pct",
+      "token": "backtest_crps_better",
+      "value": 0.3660264390301736
+    },
+    {
+      "display": "353",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "validation:seat_err_baseline",
+      "token": "backtest_seat_err_baseline",
+      "value": 353
+    },
+    {
+      "display": "289",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "validation:seat_err_model",
+      "token": "backtest_seat_err_model",
+      "value": 289
+    },
+    {
       "display": "24",
       "fmt": "int",
       "mode": "fixed",
@@ -59,6 +119,51 @@
       "source": "external:the panel we aim to score \u2014 8 metros x 3 elections (2011, 2016, 2021)",
       "token": "backtest_target",
       "value": 24
+    },
+    {
+      "display": "742",
+      "fmt": "comma",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "validation:wards",
+      "token": "backtest_wards",
+      "value": 742
+    },
+    {
+      "display": "721",
+      "fmt": "comma",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "validation:wards_called",
+      "token": "backtest_wards_called",
+      "value": 721
+    },
+    {
+      "display": "7",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "validation:wins",
+      "token": "backtest_wins",
+      "value": 7
     },
     {
       "display": "64%",
@@ -106,8 +211,8 @@
       "value": 65.0
     },
     {
-      "display": "4794.0",
-      "fmt": "raw",
+      "display": "4794",
+      "fmt": "int",
       "mode": "generated",
       "movement": "new",
       "pages": [
@@ -2887,6 +2992,7 @@
       "mode": "free",
       "movement": "new",
       "pages": [
+        "review.html",
         "index.html"
       ],
       "previous": null,
@@ -3114,6 +3220,7 @@
       "mode": "free",
       "movement": "new",
       "pages": [
+        "review.html",
         "index.html"
       ],
       "previous": null,
@@ -3129,6 +3236,7 @@
       "mode": "free",
       "movement": "new",
       "pages": [
+        "review.html",
         "index.html"
       ],
       "previous": null,
@@ -3145,6 +3253,7 @@
       "movement": "new",
       "pages": [
         "methodology.html",
+        "review.html",
         "index.html"
       ],
       "previous": null,
@@ -3822,9 +3931,9 @@
     "draws": 5000,
     "forecast_content_sha256": "38892d3ae100625ab855bb8c5e722ccb328364c386849dd9830ef86ad10efba9",
     "forecast_summary_sha256": "cc19665846cbd4c50e2c22cf3c7c8f5fc3e8cc5c1b1931787f2a6a3a9a3172d6",
-    "git_commit": "709c0d7c705574179a9fa80f418982858d9079fc",
+    "git_commit": "74ddc0fc3baccace8b23aa10d947437ca9422397",
     "git_dirty": true,
-    "model_run_id": "r-38892d3ae100-709c0d7c-dirty",
+    "model_run_id": "r-38892d3ae100-74ddc0fc-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
@@ -3891,7 +4000,14 @@
         "anc_entitlement",
         "anc_ward_median",
         "asa_2021_seats",
+        "backtest_cities",
+        "backtest_crps_better",
+        "backtest_seat_err_baseline",
+        "backtest_seat_err_model",
         "backtest_target",
+        "backtest_wards",
+        "backtest_wards_called",
+        "backtest_wins",
         "ballots.p_anc_excessive",
         "ballots.typical.anc_list",
         "ballots.typical.anc_wards",
@@ -4144,7 +4260,7 @@
         "tile.p_da_largest"
       ]
     },
-    "n": 254,
+    "n": 261,
     "n_rounding": 0,
     "n_visible": 0,
     "nominal": []

@@ -136,6 +136,16 @@
      (owner, 2026-09-18). Same collision as `.pname` in the coalition table. */
   .mstat-move.moved-since{color:var(--ink-3);opacity:.75;}
   .arrowlegend{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;}
+  /* The publication convention's furniture, injected on EVERY page: the forecast
+     sheet had its own copy and the document pages had none, so a dated piece on
+     /review rendered as plain text (owner, 2026-09-18). */
+  .pubdate{font:650 11.5px var(--sans,ui-sans-serif,system-ui);letter-spacing:.06em;
+    text-transform:uppercase;color:var(--accent);margin:2px 0 10px;text-align:left;}
+  .since{margin:16px 0 4px;padding:12px 16px;border-left:4px solid var(--accent);
+    background:var(--accent-soft,rgba(168,98,31,.12));border-radius:0 6px 6px 0;font-size:14.5px;}
+  .since .since-h{font:650 11px var(--sans,ui-sans-serif,system-ui);letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:5px;}
+  .since p{margin:0;}
 </style>
 <script>/*stat-tip*/document.addEventListener('mouseover',function(e){var s=e.target.closest&&e.target.closest('.mstat');if(!s)return;var r=s.getBoundingClientRect();var w=document.documentElement.clientWidth,h=document.documentElement.clientHeight;s.classList.toggle('tip-left',r.left+316>w);s.classList.toggle('tip-up',r.bottom+96>h);});</script>
 </head>
@@ -163,11 +173,29 @@ want the full technical record, every file and every workaround is in the
 <a href="https://github.com/Psi-am-i/jhb-election-model">public repository</a>, and the
 scoring is on the <a href="about">about the model</a> page.</p>
 <h2>How accurate is it?</h2>
-<p>The model has been run against an election that has already happened — the
-2021 municipal election — in <strong>eight cities</strong>, and scored against what
-actually occurred and against three deliberately simple alternatives. It beats
-all of them in seven of the eight. The full scoring, city by city and party by
-party, with our forecast beside the real result, is on the
+<p>A forecast that has never been scored is an opinion. So this one is run against
+an election that has already happened — the 2021 municipal election, in
+<span class="mstat" data-mode="free" data-token="backtest_cities" data-when="2026-09-18" data-live="8" data-prov="8. First published in this edition (17 September 2026). Source: validation:cities, live from the current model run." tabindex="0">8</span> cities — and scored against what actually occurred.</p>
+<p>The comparison that matters is not &ldquo;did it get close&rdquo;, but &ldquo;did it beat what
+anyone could do without a model&rdquo;. The standard in election forecasting is
+<strong>uniform swing</strong>: take the national change since the last election and apply it
+equally everywhere. It is much harder to beat than it sounds, because it already
+knows the last result and the direction the country moved. We score against that
+and two others — the last local result repeating unchanged, and that result with
+uncertainty drawn around it — and compare the model against <strong>whichever did best
+in each city</strong>, not the weakest of the three.</p>
+<p>The model wins in <strong><span class="mstat" data-mode="free" data-token="backtest_wins" data-when="2026-09-18" data-live="7" data-prov="7. First published in this edition (17 September 2026). Source: validation:wins, live from the current model run." tabindex="0">7</span> of <span class="mstat" data-mode="free" data-token="backtest_cities" data-when="2026-09-18" data-live="8" data-prov="8. First published in this edition (17 September 2026). Source: validation:cities, live from the current model run." tabindex="0">8</span></strong> cities on the
+measure that counts a forecast&rsquo;s whole range rather than a single guess (CRPS),
+with <strong><span class="mstat" data-mode="free" data-token="backtest_crps_better" data-when="2026-09-18" data-live="37%" data-prov="37%. First published in this edition (17 September 2026). Source: validation:crps_better_pct, live from the current model run." tabindex="0">37%</span></strong> less error in total. On the blunter measure of
+seats put in the wrong column it misses <strong><span class="mstat" data-mode="free" data-token="backtest_seat_err_model" data-when="2026-09-18" data-live="289" data-prov="289. First published in this edition (17 September 2026). Source: validation:seat_err_model, live from the current model run." tabindex="0">289</span></strong> across
+all those councils against the baselines&rsquo; <strong><span class="mstat" data-mode="free" data-token="backtest_seat_err_baseline" data-when="2026-09-18" data-live="353" data-prov="353. First published in this edition (17 September 2026). Source: validation:seat_err_baseline, live from the current model run." tabindex="0">353</span></strong>, and
+it calls the winner correctly in <strong><span class="mstat" data-mode="free" data-token="backtest_wards_called" data-when="2026-09-18" data-live="721" data-prov="721. First published in this edition (17 September 2026). Source: validation:wards_called, live from the current model run." tabindex="0">721</span> of
+<span class="mstat" data-mode="free" data-token="backtest_wards" data-when="2026-09-18" data-live="742" data-prov="742. First published in this edition (17 September 2026). Source: validation:wards, live from the current model run." tabindex="0">742</span></strong> wards.</p>
+<p>Two honest caveats. Two of the three alternatives produce a single number rather
+than a range, which the range-based score treats kindly. And the model is
+compared against the best baseline in each city, which is the hardest test
+available but still a test of arithmetic, not of politics. The full scoring, city
+by city and party by party, with our forecast beside the real result, is on the
 <a href="about">about the model</a> page.</p>
 <h2>How Johannesburg&rsquo;s council elections actually work</h2>
 <p>Johannesburg&rsquo;s council is elected on two ballots at once. On the first, 135
@@ -239,7 +267,8 @@ overwhelmingly from the same population group and stand on entirely separate
 ground, which is a linguistic and regional division rather than a racial one.
 The right input is <strong>home language by ward</strong>, which Stats SA holds but does not
 publish in the ward product; we have requested it. Income, employment and
-dwelling type would help too, and are also request-only. Until those arrive we
+dwelling type would help too, and are also request-only — reasonably so, since
+at ward level they can identify households. Until those arrive we
 carry one extra pool that the census cannot see, identified instead from a
 party&rsquo;s own geography — the constituency the IFP stands on — and we label it
 for what was measured rather than what we suspect it is.</p>

@@ -136,6 +136,16 @@
      (owner, 2026-09-18). Same collision as `.pname` in the coalition table. */
   .mstat-move.moved-since{color:var(--ink-3);opacity:.75;}
   .arrowlegend{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;}
+  /* The publication convention's furniture, injected on EVERY page: the forecast
+     sheet had its own copy and the document pages had none, so a dated piece on
+     /review rendered as plain text (owner, 2026-09-18). */
+  .pubdate{font:650 11.5px var(--sans,ui-sans-serif,system-ui);letter-spacing:.06em;
+    text-transform:uppercase;color:var(--accent);margin:2px 0 10px;text-align:left;}
+  .since{margin:16px 0 4px;padding:12px 16px;border-left:4px solid var(--accent);
+    background:var(--accent-soft,rgba(168,98,31,.12));border-radius:0 6px 6px 0;font-size:14.5px;}
+  .since .since-h{font:650 11px var(--sans,ui-sans-serif,system-ui);letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:5px;}
+  .since p{margin:0;}
 </style>
 <script>/*stat-tip*/document.addEventListener('mouseover',function(e){var s=e.target.closest&&e.target.closest('.mstat');if(!s)return;var r=s.getBoundingClientRect();var w=document.documentElement.clientWidth,h=document.documentElement.clientHeight;s.classList.toggle('tip-left',r.left+316>w);s.classList.toggle('tip-up',r.bottom+96>h);});</script>
 </head>
@@ -153,11 +163,11 @@
 </nav>
 <header>
   <div class="kicker">The review</div>
+  <div class="pubdate">6 August 2026: Published</div>
   <h1>How the model was broken — and fixed</h1>
-  <p class="standfirst">Most forecasts show you their conclusions. This page shows you our mistakes — six errors, one false headline claim, and the repair, published in full.</p>
+  <p class="standfirst">Six implementation errors found by a hostile read of the model's own plan, one of which made the first forecast's headline claim false, and what each repair changed.</p>
 </header>
-<p>Most forecasts show you their conclusions. This page shows you our mistakes.
-After the first version of this model was built, we reviewed it the way a
+<p>After the first version of this model was built, we reviewed it the way a
 hostile examiner would — against its own written plan, line by line, output by
 output. The review found <strong>six implementation errors</strong>, one of which made the
 forecast&rsquo;s original headline claim outright false. Every error was fixed the
@@ -166,13 +176,13 @@ published, warts and all, in
 <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/model-review.html"><code>model-review.html</code> on GitHub</a>.
 Here is what happened, in plain language — and why we think publishing it
 makes the forecast more worth your trust, not less.</p>
-<div class="pubdate">6 August 2026: Published</div>
+<aside class="since"><div class="since-h"><span class="mstat" data-mode="free" data-token="generated_date" data-when="2026-09-17" data-live="17 September 2026" data-prov="17 September 2026. First published in this edition (17 September 2026). Source: model:_generated, live from the current model run." tabindex="0">17 September 2026</span>: what the model says now</div>
+<p>Every figure below describes the <b>first version</b> of the model, as it stood on
+6 August 2026. None of them is today's forecast: the DA is now the largest party in
+<span class="mstat" data-mode="free" data-token="p_da_largest" data-when="2026-08-07" data-live="47%" data-prov="47%. First published in this edition (17 September 2026). Source: model:structural.P(DA is the largest single party), live from the current model run." tabindex="0">47%</span> of simulations and the ANC in <span class="mstat" data-mode="free" data-token="p_anc_largest" data-when="2026-08-07" data-live="48%" data-prov="48%. First published in this edition (17 September 2026). Source: model:structural.P(ANC is the largest single party), live from the current model run." tabindex="0">48%</span>, and the excessive-seats
+clause fires in <span class="mstat" data-mode="free" data-token="p_excessive_anc" data-when="2026-08-07" data-live="64%" data-prov="64%. First published in this edition (17 September 2026). Source: model:p_excessive_by_party.ANC, live from the current model run." tabindex="0">64%</span>. The page is kept as published because what it
+records is how the errors were found and fixed, and that process is the point.</p></aside>
 
-<p><span data-asof="2026-08-06"><strong>About the numbers on this page.</strong> They describe the
-<strong>first version</strong> of the model, as it stood when the review was done. The model
-has moved on and none of them is today&rsquo;s forecast — the current numbers are on
-the front page. They are kept as published because the discussion is about how
-the errors were found and fixed, and that process is the point.</span></p>
 <p><span data-asof="2026-08-06"></p>
 <h2>The error that mattered most</h2>
 <p>The first version of the forecast declared: <em>no two- or three-party coalition

@@ -6,18 +6,16 @@ origin and records the state it was in when we found it. The full technical
 recipes, file by file, are in
 [`SOURCES.md` on GitHub](https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md).
 
-## Public records, deliberately hard to reach
+## Public records that are hard to reach
 
 The IEC's results sites — `results.elections.org.za` and
 `www.elections.org.za` — do not allow programmatic collection of their data:
-automated requests are simply refused at the door. Why that should be true of
-a public record is unexplained. Election results belong to everyone, and they
-should be freely and easily available — not guarded in ways that make
-independent analysis a test of patience. In practice, most of the raw data
-behind this model had to be collected through an ordinary browser session,
-clicking each file one by one.
+automated requests are refused. Election results are public records, and no
+reason for the restriction is given. In practice most of the raw data behind
+this model was collected through an ordinary browser session, one file at a
+time.
 
-It gets stranger. The portal identifies each election not by its year but by
+The identifiers are also unhelpful. The portal identifies each election not by its year but by
 an arbitrary internal code — and the codes for the national and provincial
 halves of the same election day differ. Guess wrong and the site does not
 error: it quietly hands you a different election's results. And one election —
@@ -50,7 +48,7 @@ Johannesburg's wards have been redrawn before every election. The Municipal
 Demarcation Board publishes the recent layers through its mapping portal; the
 two older ward sets survive only as archived file downloads.
 
-Public geodata also quietly disappears: the Demarcation Board has already
+Public geodata also disappears: the Demarcation Board has already
 retired the per-municipality downloads its old website offered. One dataset
 this model needed — the complete voting-district results of the 2016
 election — now exists in the Internet Archive and nowhere official.
@@ -74,9 +72,9 @@ candidate. That is what the model uses.
 Statistics South Africa publishes ward-level population estimates from Census
 2022 — age, sex and population group for all 135 wards — and those are used in
 the turnout modelling. The more detailed small-area data (income, dwelling
-type, employment) is not published at all: it is supplied on request, by
-email, to those who know to ask. A national census, funded publicly, should
-not work that way.
+type, employment) is not published at all. That is ordinary disclosure
+control: income and employment at ward level can identify households. Access
+under conditions exists, and we have not sought it.
 
 ## What nobody publishes
 

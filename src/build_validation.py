@@ -132,17 +132,45 @@ def collect(target: str, draws: int) -> dict:
     return results
 
 
-def markdown(target: str, results: dict) -> str:
-    total_m = sum(r["model"]["crps"] for r in results.values())
-    total_mae = sum(r["model"]["seat_mae"] for r in results.values())
+def headline(results: dict) -> dict:
+    """The comparison figures this page argues from, as one dict.
+
+    THE ONLY DEFINITION. `markdown` writes them into the page and `stats`
+    resolves `validation:` tokens out of them, so the methodology can quote the
+    scoreboard without a second copy of "which baseline was best" living
+    anywhere. Best = lowest CRPS baseline PER CITY, which is the toughest
+    comparison available in that city rather than the average one.
+    """
     best = {s: min(r["baselines"].items(), key=lambda kv: kv[1]["crps"])
             for s, r in results.items() if r["baselines"]}
+    total_m = sum(r["model"]["crps"] for r in results.values())
     total_b = sum(b[1]["crps"] for b in best.values())
+    total_mae = sum(r["model"]["seat_mae"] for r in results.values())
     total_bmae = sum(b[1]["seat_mae"] for b in best.values())
-    wins = sum(1 for s, r in results.items()
-               if s in best and r["model"]["crps"] < best[s][1]["crps"])
-    seats_called = sum(r["model"]["wards_called"] or 0 for r in results.values())
-    seats_total = sum(r["model"]["wards"] or 0 for r in results.values())
+    return {
+        "cities": len(results),
+        "wins": sum(1 for s, r in results.items()
+                    if s in best and r["model"]["crps"] < best[s][1]["crps"]),
+        "crps_model": total_m,
+        "crps_baseline": total_b,
+        "crps_better_pct": (total_b - total_m) / total_b if total_b else 0.0,
+        "seat_err_model": total_mae,
+        "seat_err_baseline": total_bmae,
+        "seat_better_pct": (total_bmae - total_mae) / total_bmae if total_bmae else 0.0,
+        "wards_called": sum(r["model"]["wards_called"] or 0 for r in results.values()),
+        "wards": sum(r["model"]["wards"] or 0 for r in results.values()),
+        "_best_baseline_per_city": {s: b[0] for s, b in best.items()},
+    }
+
+
+def markdown(target: str, results: dict) -> str:
+    h = headline(results)
+    best = {s: min(r["baselines"].items(), key=lambda kv: kv[1]["crps"])
+            for s, r in results.items() if r["baselines"]}
+    total_m, total_b = h["crps_model"], h["crps_baseline"]
+    total_mae, total_bmae = h["seat_err_model"], h["seat_err_baseline"]
+    wins = h["wins"]
+    seats_called, seats_total = h["wards_called"], h["wards"]
 
     L: list[str] = []
     add = L.append
@@ -325,7 +353,9 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit("no city produced a scored result")
 
     record = {"target": args.target, "draws": args.draws,
-              "generated": date.today().isoformat(), "cities": results}
+              "generated": date.today().isoformat(), "cities": results,
+              # the page's comparison figures, so a token can resolve them
+              "headline": headline(results)}
     out_json = Path("data/processed") / f"validation_{args.target}.json"
     out_json.parent.mkdir(parents=True, exist_ok=True)
     out_json.write_text(json.dumps(record, indent=2))

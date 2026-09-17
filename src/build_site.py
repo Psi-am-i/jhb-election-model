@@ -266,9 +266,9 @@ DOCS = {
     "docs-public/review.md": (
         "review.html",
         "The review",
-        "Most forecasts show you their conclusions. This page shows you our "
-        "mistakes — six errors, one false headline claim, and the repair, "
-        "published in full.",
+        "Six implementation errors found by a hostile read of the model's own "
+        "plan, one of which made the first forecast's headline claim false, and "
+        "what each repair changed.",
         "model-review.html",
     ),
     "docs-public/sources.md": (
@@ -350,11 +350,20 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
     title = lines[start].lstrip("# ").strip()
     body_md = "\n".join(lines[start + 1:])
 
+    # A dated piece leads with its date, above the headline, the way the claim
+    # boxes do (owner, 2026-09-18). The date is taken from the document's own
+    # `<div class="pubdate">…</div>` if it has one, so the markdown stays the
+    # single source and the header stops carrying a second copy.
+    published = ""
+    m = re.search(r'<div class="pubdate">(.*?)</div>\s*', body_md, re.S)
+    if m:
+        published = f'  <div class="pubdate">{m.group(1).strip()}</div>\n'
+        body_md = body_md[:m.start()] + body_md[m.end():]
     html = markdown.markdown(body_md, extensions=["tables", "fenced_code", "smarty"])
     html = html.replace("<table>", '<div class="tablewrap"><table>')
     html = html.replace("</table>", "</table></div>")
 
-    masthead = (f"  <h1>{title}</h1>\n"
+    masthead = (published + f"  <h1>{title}</h1>\n"
                 f'  <p class="standfirst">{standfirst}</p>')
     if str(source).startswith("docs-public/"):
         tech = tech or source.name.replace(".md", "").upper() + ".md"

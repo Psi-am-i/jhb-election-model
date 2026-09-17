@@ -136,6 +136,16 @@
      (owner, 2026-09-18). Same collision as `.pname` in the coalition table. */
   .mstat-move.moved-since{color:var(--ink-3);opacity:.75;}
   .arrowlegend{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;}
+  /* The publication convention's furniture, injected on EVERY page: the forecast
+     sheet had its own copy and the document pages had none, so a dated piece on
+     /review rendered as plain text (owner, 2026-09-18). */
+  .pubdate{font:650 11.5px var(--sans,ui-sans-serif,system-ui);letter-spacing:.06em;
+    text-transform:uppercase;color:var(--accent);margin:2px 0 10px;text-align:left;}
+  .since{margin:16px 0 4px;padding:12px 16px;border-left:4px solid var(--accent);
+    background:var(--accent-soft,rgba(168,98,31,.12));border-radius:0 6px 6px 0;font-size:14.5px;}
+  .since .since-h{font:650 11px var(--sans,ui-sans-serif,system-ui);letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:5px;}
+  .since p{margin:0;}
 </style>
 <script>/*stat-tip*/document.addEventListener('mouseover',function(e){var s=e.target.closest&&e.target.closest('.mstat');if(!s)return;var r=s.getBoundingClientRect();var w=document.documentElement.clientWidth,h=document.documentElement.clientHeight;s.classList.toggle('tip-left',r.left+316>w);s.classList.toggle('tip-up',r.bottom+96>h);});</script>
 </head>

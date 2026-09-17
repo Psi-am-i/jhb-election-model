@@ -1,6 +1,7 @@
 # How the model was broken — and fixed
 
-Most forecasts show you their conclusions. This page shows you our mistakes.
+<div class="pubdate">6 August 2026: Published</div>
+
 After the first version of this model was built, we reviewed it the way a
 hostile examiner would — against its own written plan, line by line, output by
 output. The review found **six implementation errors**, one of which made the
@@ -11,13 +12,12 @@ published, warts and all, in
 Here is what happened, in plain language — and why we think publishing it
 makes the forecast more worth your trust, not less.
 
-<div class="pubdate">6 August 2026: Published</div>
-
-<span data-asof="2026-08-06">**About the numbers on this page.** They describe the
-**first version** of the model, as it stood when the review was done. The model
-has moved on and none of them is today's forecast — the current numbers are on
-the front page. They are kept as published because the discussion is about how
-the errors were found and fixed, and that process is the point.</span>
+<aside class="since"><div class="since-h">{{generated_date}}: what the model says now</div>
+<p>Every figure below describes the <b>first version</b> of the model, as it stood on
+6 August 2026. None of them is today's forecast: the DA is now the largest party in
+{{p_da_largest}} of simulations and the ANC in {{p_anc_largest}}, and the excessive-seats
+clause fires in {{p_excessive_anc}}. The page is kept as published because what it
+records is how the errors were found and fixed, and that process is the point.</p></aside>
 
 <span data-asof="2026-08-06">
 

@@ -442,12 +442,14 @@ def main(argv: list[str] | None = None) -> int:
                 + chance("ballots.p_anc_excessive", p_excessive,
                          "forecast_summary.json p_excessive_by_party")
                 + " of the simulations")
-    ballots_caption = (f"These bars are one real simulation — number "
-                       f"{tok('ballots.typical.draw', typical, 'raw', 'seat_detail_draws.csv')}, "
-                       f"the one closest to every party's median — so the three add up exactly. "
-                       f"Hover a segment for its seats. {anc_note}. ActionSA, with broad support but "
-                       "no stronghold wards, lives almost wholly on the list. Two opposite ways of "
-                       "turning votes into seats, in one city.")
+    ballots_caption = (f"This is our most typical result: of the {{{{n_draws}}}} simulations, the one "
+                       f"closest to the middle of every party's range (simulation "
+                       f"{tok('ballots.typical.draw', typical, 'int', 'seat_detail_draws.csv')}). "
+                       f"Because it is a single result rather than an average of many, the ward seats "
+                       f"and the list seats add up to the council exactly. Hover a segment for its "
+                       f"seats. {anc_note}. ActionSA, with broad support but no stronghold wards, "
+                       "lives almost wholly on the list. Two opposite ways of turning votes into "
+                       "seats, in one city.")
     assert council_n == int(np.median(council)), (council_n, "typical simulation is not a full council")
     strip = f"""<!-- __BALLOTS_START__ -->
   <details class="rollup" data-band="forecast" open>
@@ -458,7 +460,7 @@ def main(argv: list[str] | None = None) -> int:
       {bar(listb, 135, "+ List seats — topping parties up to their share")}
       {bar(totb, 270, "= The council")}
     </div>
-    <figcaption>{ballots_caption}</figcaption>
+    <figcaption class="ballots-note">{ballots_caption}</figcaption>
   </details>
   <!-- __BALLOTS_END__ -->"""
     for tgt in PAGES:

@@ -824,3 +824,62 @@ context = "the 2021 amendment that completes Schedule 1"
 kind = "rule"
 source = "Municipal Structures Act 117 of 1998, Schedule 1, as completed by the 2021 amendment"
 reviewed = "2026-09-17"
+
+# The backtest scoreboard, resolved from data/processed/validation_<year>.json,
+# whose `headline` block build_validation writes from its own comparison. The
+# methodology quotes these rather than repeating the about page's numbers.
+[backtest_cities]
+mode = "free"
+source = "validation:cities"
+format = "int"
+inserted = "2026-09-18"
+used_in = "methodology — how many cities the backtest covers"
+
+[backtest_wins]
+mode = "free"
+source = "validation:wins"
+format = "int"
+inserted = "2026-09-18"
+used_in = "methodology — cities where the model beats the toughest baseline"
+
+[backtest_crps_better]
+mode = "free"
+source = "validation:crps_better_pct"
+format = "pct0"
+inserted = "2026-09-18"
+used_in = "methodology — how much lower the model's distributional error is"
+
+[backtest_seat_err_model]
+mode = "free"
+source = "validation:seat_err_model"
+format = "int"
+inserted = "2026-09-18"
+used_in = "methodology — seats misallocated, model"
+
+[backtest_seat_err_baseline]
+mode = "free"
+source = "validation:seat_err_baseline"
+format = "int"
+inserted = "2026-09-18"
+used_in = "methodology — seats misallocated, best baseline per city"
+
+[backtest_wards_called]
+mode = "free"
+source = "validation:wards_called"
+format = "comma"
+inserted = "2026-09-18"
+used_in = "methodology — ward winners called correctly"
+
+[backtest_wards]
+mode = "free"
+source = "validation:wards"
+format = "comma"
+inserted = "2026-09-18"
+used_in = "methodology — wards scored"
+
+[[audit.fixed]]
+value = "6 August 2026"
+context = "as it stood on 6 August 2026"
+kind = "history"
+source = "the date the first version of the model was reviewed (docs-public/review.md)"
+reviewed = "2026-09-18"

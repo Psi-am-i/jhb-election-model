@@ -9,11 +9,32 @@ scoring is on the [about the model](about) page.
 
 ## How accurate is it?
 
-The model has been run against an election that has already happened — the
-2021 municipal election — in **eight cities**, and scored against what
-actually occurred and against three deliberately simple alternatives. It beats
-all of them in seven of the eight. The full scoring, city by city and party by
-party, with our forecast beside the real result, is on the
+A forecast that has never been scored is an opinion. So this one is run against
+an election that has already happened — the 2021 municipal election, in
+{{backtest_cities}} cities — and scored against what actually occurred.
+
+The comparison that matters is not "did it get close", but "did it beat what
+anyone could do without a model". The standard in election forecasting is
+**uniform swing**: take the national change since the last election and apply it
+equally everywhere. It is much harder to beat than it sounds, because it already
+knows the last result and the direction the country moved. We score against that
+and two others — the last local result repeating unchanged, and that result with
+uncertainty drawn around it — and compare the model against **whichever did best
+in each city**, not the weakest of the three.
+
+The model wins in **{{backtest_wins}} of {{backtest_cities}}** cities on the
+measure that counts a forecast's whole range rather than a single guess (CRPS),
+with **{{backtest_crps_better}}** less error in total. On the blunter measure of
+seats put in the wrong column it misses **{{backtest_seat_err_model}}** across
+all those councils against the baselines' **{{backtest_seat_err_baseline}}**, and
+it calls the winner correctly in **{{backtest_wards_called}} of
+{{backtest_wards}}** wards.
+
+Two honest caveats. Two of the three alternatives produce a single number rather
+than a range, which the range-based score treats kindly. And the model is
+compared against the best baseline in each city, which is the hardest test
+available but still a test of arithmetic, not of politics. The full scoring, city
+by city and party by party, with our forecast beside the real result, is on the
 [about the model](about) page.
 
 ## How Johannesburg's council elections actually work
@@ -98,7 +119,8 @@ overwhelmingly from the same population group and stand on entirely separate
 ground, which is a linguistic and regional division rather than a racial one.
 The right input is **home language by ward**, which Stats SA holds but does not
 publish in the ward product; we have requested it. Income, employment and
-dwelling type would help too, and are also request-only. Until those arrive we
+dwelling type would help too, and are also request-only — reasonably so, since
+at ward level they can identify households. Until those arrive we
 carry one extra pool that the census cannot see, identified instead from a
 party's own geography — the constituency the IFP stands on — and we label it
 for what was measured rather than what we suspect it is.

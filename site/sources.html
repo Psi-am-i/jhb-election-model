@@ -136,6 +136,16 @@
      (owner, 2026-09-18). Same collision as `.pname` in the coalition table. */
   .mstat-move.moved-since{color:var(--ink-3);opacity:.75;}
   .arrowlegend{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;}
+  /* The publication convention's furniture, injected on EVERY page: the forecast
+     sheet had its own copy and the document pages had none, so a dated piece on
+     /review rendered as plain text (owner, 2026-09-18). */
+  .pubdate{font:650 11.5px var(--sans,ui-sans-serif,system-ui);letter-spacing:.06em;
+    text-transform:uppercase;color:var(--accent);margin:2px 0 10px;text-align:left;}
+  .since{margin:16px 0 4px;padding:12px 16px;border-left:4px solid var(--accent);
+    background:var(--accent-soft,rgba(168,98,31,.12));border-radius:0 6px 6px 0;font-size:14.5px;}
+  .since .since-h{font:650 11px var(--sans,ui-sans-serif,system-ui);letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:5px;}
+  .since p{margin:0;}
 </style>
 <script>/*stat-tip*/document.addEventListener('mouseover',function(e){var s=e.target.closest&&e.target.closest('.mstat');if(!s)return;var r=s.getBoundingClientRect();var w=document.documentElement.clientWidth,h=document.documentElement.clientHeight;s.classList.toggle('tip-left',r.left+316>w);s.classList.toggle('tip-up',r.bottom+96>h);});</script>
 </head>
@@ -161,16 +171,14 @@ districts, by-election returns, census tables — this page tracks each to its
 origin and records the state it was in when we found it. The full technical
 recipes, file by file, are in
 <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md"><code>SOURCES.md</code> on GitHub</a>.</p>
-<h2>Public records, deliberately hard to reach</h2>
+<h2>Public records that are hard to reach</h2>
 <p>The IEC&rsquo;s results sites — <code>results.elections.org.za</code> and
 <code>www.elections.org.za</code> — do not allow programmatic collection of their data:
-automated requests are simply refused at the door. Why that should be true of
-a public record is unexplained. Election results belong to everyone, and they
-should be freely and easily available — not guarded in ways that make
-independent analysis a test of patience. In practice, most of the raw data
-behind this model had to be collected through an ordinary browser session,
-clicking each file one by one.</p>
-<p>It gets stranger. The portal identifies each election not by its year but by
+automated requests are refused. Election results are public records, and no
+reason for the restriction is given. In practice most of the raw data behind
+this model was collected through an ordinary browser session, one file at a
+time.</p>
+<p>The identifiers are also unhelpful. The portal identifies each election not by its year but by
 an arbitrary internal code — and the codes for the national and provincial
 halves of the same election day differ. Guess wrong and the site does not
 error: it quietly hands you a different election&rsquo;s results. And one election —
@@ -210,7 +218,7 @@ ward and voting district — across four different boundary revisions, because
 Johannesburg&rsquo;s wards have been redrawn before every election. The Municipal
 Demarcation Board publishes the recent layers through its mapping portal; the
 two older ward sets survive only as archived file downloads.</p>
-<p>Public geodata also quietly disappears: the Demarcation Board has already
+<p>Public geodata also disappears: the Demarcation Board has already
 retired the per-municipality downloads its old website offered. One dataset
 this model needed — the complete voting-district results of the 2016
 election — now exists in the Internet Archive and nowhere official.</p>
@@ -229,9 +237,9 @@ candidate. That is what the model uses.</p>
 <p>Statistics South Africa publishes ward-level population estimates from Census
 2022 — age, sex and population group for all 135 wards — and those are used in
 the turnout modelling. The more detailed small-area data (income, dwelling
-type, employment) is not published at all: it is supplied on request, by
-email, to those who know to ask. A national census, funded publicly, should
-not work that way.</p>
+type, employment) is not published at all. That is ordinary disclosure
+control: income and employment at ward level can identify households. Access
+under conditions exists, and we have not sought it.</p>
 <h2>What nobody publishes</h2>
 <p>Some records could not be obtained because they do not exist in public:</p>
 <ul>

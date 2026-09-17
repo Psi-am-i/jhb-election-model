@@ -212,7 +212,7 @@ The intermediates register names the script that writes each artefact. `agrees` 
 | `pools_*.json` | `pools` | `archive`, `arrivals`, `cityconfig`, `compare_history`, `declares`, `export_interactive`, `fold`, `freeze`, `montecarlo`, `pools`, `stats`, `sweep` | yes |
 | `regime_*_summary.json` | `overhang_regimes` | `archive`, `build_interactive`, `build_portal`, `build_site`, `coalitions`, `declares`, `freeze`, `levels`, `montecarlo`, `overhang_regimes`, `publication`, `render_sheet`, `stats` | yes |
 | `sweep.json` | `sweep` | `declares`, `sweep` | yes |
-| `validation_*.json` | `montecarlo` | `archive`, `build_validation`, `compare_history`, `declares`, `score` | NO |
+| `validation_*.json` | `montecarlo` | `archive`, `build_validation`, `compare_history`, `declares`, `score`, `stats` | NO |
 | `ward_hex_layout.json` | `hex_cartogram` | `hex_cartogram` | yes |
 | `ward_paths.json` | `render_map` | `build_all`, `export_interactive`, `hex_cartogram`, `render_map` | yes |
 | `width_budget.json` | `montecarlo` | `declares`, `width_budget` | NO |

@@ -1,8 +1,6 @@
 # Corrections
 
-When this site has published something wrong, it is listed here, with what it
-said, what is true, and how it happened. A **correction** means the page was
-wrong when it was published. That is different from an **update**, where the
+A **correction** means the page was wrong when it was published. That is different from an **update**, where the
 model or the world moved and the earlier statement was true on its date;
 updates appear beside the original as a dated "what the model says now" box.
 

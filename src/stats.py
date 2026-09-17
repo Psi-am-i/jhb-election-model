@@ -296,6 +296,9 @@ def resolve(source: str, ctx: dict):
     if source.startswith("regime:"):
         _, rule, path = source.split(":", 2)
         return _dig((ctx.get("regimes") or {}).get(rule) or {}, path)
+    if source.startswith("validation:"):
+        return _dig((ctx.get("validation") or {}).get("headline") or {},
+                    source[len("validation:"):])
     if source.startswith("derived:"):
         return _derived(source[len("derived:"):], ctx)
     return None                      # run: / external: — pinned only
@@ -320,6 +323,12 @@ def load_context(processed: Path) -> dict:
     if seat_draws.exists():
         with seat_draws.open(encoding="utf-8", newline="") as fh:
             ctx["draws"] = list(csv.DictReader(fh))
+    # The backtest scoreboard, for `validation:` tokens. `build_validation`
+    # writes its own comparison figures into the artefact, so the methodology
+    # quotes them rather than keeping a second copy.
+    for path in sorted(processed.glob("validation_*.json")):
+        ctx["validation"] = json.loads(path.read_text(encoding="utf-8"))
+        ctx["files"]["validation"] = path
     for path in processed.glob("regime_*_summary.json"):
         rule = path.stem[len("regime_"):-len("_summary")]
         ctx["regimes"][rule] = json.loads(path.read_text(encoding="utf-8"))
@@ -1088,4 +1097,14 @@ STAT_CSS = """  .mstat{display:inline;position:relative;border-bottom:1px dotted
      (owner, 2026-09-18). Same collision as `.pname` in the coalition table. */
   .mstat-move.moved-since{color:var(--ink-3);opacity:.75;}
   .arrowlegend{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;}
+  /* The publication convention's furniture, injected on EVERY page: the forecast
+     sheet had its own copy and the document pages had none, so a dated piece on
+     /review rendered as plain text (owner, 2026-09-18). */
+  .pubdate{font:650 11.5px var(--sans,ui-sans-serif,system-ui);letter-spacing:.06em;
+    text-transform:uppercase;color:var(--accent);margin:2px 0 10px;text-align:left;}
+  .since{margin:16px 0 4px;padding:12px 16px;border-left:4px solid var(--accent);
+    background:var(--accent-soft,rgba(168,98,31,.12));border-radius:0 6px 6px 0;font-size:14.5px;}
+  .since .since-h{font:650 11px var(--sans,ui-sans-serif,system-ui);letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:5px;}
+  .since p{margin:0;}
 """
