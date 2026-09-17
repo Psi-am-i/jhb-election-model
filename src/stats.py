@@ -651,14 +651,121 @@ SOURCED = re.compile(r'<span[^>]*data-token="[^"]*".*?</span>', re.S)
 TAGS = re.compile(r"<[^>]+>")
 SCRIPTS = re.compile(r"<(script|style)[^>]*>.*?</\1>", re.S)
 
-# Figures that are structural rather than modelled: statute, geography, dates.
-# A number here is not a forecast and never goes stale.
-STRUCTURAL = {
-    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
-    "50", "100", "135", "136", "270",
-    "1994", "1999", "2000", "2004", "2006", "2009", "2011", "2014", "2016",
-    "2019", "2021", "2024", "2026",
-}
+# ⛔ THERE IS NO LIST OF BARE NUMBERS THAT ARE "ALWAYS FINE". There was —
+# 0-12, 50, 100, 135, 136, 270 and the election years — and it is how "Note the
+# ANC's list bar: just 7 seats" reached the live page wrong: `7` was structural,
+# so the audit never looked. A number is cleared by a TOKEN, or by a registered
+# fixed fact that names its value AND its context (`[[audit.fixed]]` in the
+# stats registry), never by being small. Owner, 2026-09-17.
+_WORDS = ("zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
+          "thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|"
+          "thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|"
+          "million|billion|half|third|quarter|twice|double")
+_MONTHS = ("January|February|March|April|May|June|July|August|September|October|"
+           "November|December")
+_COUNTED = r"(?:seats?|wards?|votes?|voters?|councillors?|parties|per\s?cent|percent|%)"
+NUMBERISH = re.compile(
+    rf"(?P<date>\b\d{{1,2}}\s(?:{_MONTHS})\s\d{{4}}\b)"
+    # a year is a year only when it is not counting something: "1998 votes" is a number
+    rf"|(?P<year>\b(?:19|20)\d{{2}}\b(?!\s*{_COUNTED}))"
+    # a number glued to letters is still a number: R1.2bn, x2, ward7
+    rf"|(?P<num>(?<![\d.,#])[−-]?\d(?:[\d,]*\d)?(?:\.\d+)?(?:\s?%|pt)?)"
+    # a number WORD that counts something is a number: "just seven seats"
+    rf"|(?P<wnum>\b(?:{_WORDS})\b(?=\s+{_COUNTED}\b))"
+    rf"|(?P<word>\b(?:{_WORDS})\b)", re.I)
+#: Kinds that BLOCK a publish when unreviewed. Years and bare number words are
+#: listed for review but do not block: a gate that fires on "one ballot" is a
+#: gate someone learns to switch off.
+GATING = ("num", "date", "wnum")
+#: The only marker regions a SCRIPT writes. `CLAIMS` is not one: its prose is
+#: typed into claims.toml by hand, so it is scanned as prose. A region name not
+#: in this set is prose, whatever the comment says — otherwise any hand-written
+#: page could exempt itself by typing a marker.
+GENERATED_MARKERS = frozenset({"MAP", "BALLOTS", "REGIMES"})
+REGION = re.compile(r"<!-- __([A-Z]+)_START__ -->(.*?)<!-- __\1_END__ -->", re.S)
+#: Reader-visible attributes: tooltips, accessible labels, link previews.
+ATTRS = re.compile(r'\b(?:title|data-tip|aria-label|alt|content)="([^"]*)"')
+#: The legacy `[audit].allow` entries were written against the old audit, which
+#: only ever saw "NN%" and "N seats". They excuse exactly that shape, in the old
+#: 60/30 window — never a date, never a bare count they were not written for.
+_LEGACY_SHAPE = re.compile(r"^\d{1,3}(?:[.,]\d+)?\s?%$|^\d+$")
+
+
+def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
+                 ) -> list[dict]:
+    """Every number-shaped string a reader can see, classified.
+
+    One dict per occurrence: ``kind`` (num/wnum/date/year/word), ``value``,
+    ``context``, ``region`` (``prose``, ``generated:<MARKER>`` or
+    ``generated-page``, with ``:attr`` appended for attribute text) and
+    ``status``:
+
+    * ``fixed``      — a registered fixed fact whose ``context`` phrase CONTAINS
+      this occurrence (not merely sits near it) and whose ``value`` matches,
+      optionally scoped to one ``page``;
+    * ``allowed``    — a legacy ``[audit].allow`` entry, for the shape it was
+      written against only;
+    * ``unreviewed`` — everything else.
+
+    Token spans are removed first, so a token — including its provenance
+    tooltip — never appears here. Script text is not scanned: a number a script
+    writes at view time is invisible to this function, and says so here rather
+    than being assumed covered.
+    """
+    body = SCRIPTS.sub(" ", text)
+    body = SOURCED.sub(" ", body)
+    fixed = [(str(f.get("value", "")).strip().lower(),
+              str(f.get("context", "")).strip().lower()) for f in fixed]
+    allow_lower = [a.lower() for a in allow if a]
+    out: list[dict] = []
+
+    def classify(prose: str, region: str) -> None:
+        low_all = prose.lower()
+        for m in NUMBERISH.finditer(prose):
+            value = m.group(0).strip()
+            context = prose[max(0, m.start() - 70):m.end() + 40].strip()
+            status = "unreviewed"
+            for v, c in fixed:
+                if not c or v != value.lower():
+                    continue
+                i = low_all.find(c)
+                while i != -1:
+                    if i <= m.start() and i + len(c) >= m.end():
+                        status = "fixed"
+                        break
+                    i = low_all.find(c, i + 1)
+                if status == "fixed":
+                    break
+            if (status == "unreviewed" and m.lastgroup == "num"
+                    and _LEGACY_SHAPE.match(value)):
+                narrow = low_all[max(0, m.start() - 60):m.end() + 30]
+                if any(a in narrow for a in allow_lower):
+                    status = "allowed"
+            out.append({"kind": m.lastgroup, "value": value, "context": context,
+                        "region": region, "status": status})
+
+    def visit(fragment: str, region: str) -> None:
+        for attr in ATTRS.findall(fragment):
+            classify(re.sub(r"\s+", " ", html_unescape(attr)), region + ":attr")
+        classify(re.sub(r"\s+", " ", html_unescape(TAGS.sub(" ", fragment))), region)
+
+    if generated_page:
+        visit(body, "generated-page")
+        return out
+
+    def cut(m):
+        if m.group(1) in GENERATED_MARKERS:
+            visit(m.group(2), f"generated:{m.group(1)}")
+            return " "
+        return m.group(0)
+    visit(REGION.sub(cut, body), "prose")
+    return out
+
+
+def html_unescape(s: str) -> str:
+    import html as _html
+    return _html.unescape(s)
+
 
 # Phrases that assert a model outcome. Each must be tokenised or whitelisted.
 CLAIM_PATTERNS = (
@@ -682,7 +789,7 @@ def _visible(text: str) -> str:
     return TAGS.sub(" ", body)
 
 
-def audit(text: str, *, allow=(), claim_patterns=CLAIM_PATTERNS,
+def audit(text: str, *, allow=(), fixed=(), claim_patterns=CLAIM_PATTERNS,
           ) -> tuple[list[str], list[str]]:
     """Model figures and model claims that reach the reader unsourced.
 
@@ -709,18 +816,10 @@ def audit(text: str, *, allow=(), claim_patterns=CLAIM_PATTERNS,
         low = context.lower()
         return any(a in low for a in allow_lower)
 
-    numbers: list[str] = []
-    for match in re.finditer(r"(?<![\w.])(\d{1,3}(?:[.,]\d+)?\s?%|\d+\s+seats?)",
-                             prose):
-        token = match.group(1)
-        bare = token.replace("%", "").replace("seats", "").replace("seat", "").strip()
-        if bare in STRUCTURAL:
-            continue
-        context = prose[max(0, match.start() - 60):match.end() + 30].strip()
-        if excused(context):
-            continue
-        numbers.append(f"{token.strip()!r}  …{context}…")
-
+    numbers = [f"{h['value']!r}  …{h['context']}…"
+               for h in scan_numbers(text, fixed=fixed, allow=allow)
+               if h["region"] == "prose" and h["kind"] in GATING
+               and h["status"] == "unreviewed"]
     lowered = prose.lower()
     claims: list[str] = []
     for pattern in claim_patterns:
@@ -736,6 +835,7 @@ def load_audit_config(registry: dict) -> dict:
     """The ``[audit]`` block of the stats registry, if it has one."""
     block = registry.get("audit") or {}
     return {"allow": tuple(block.get("allow", ())),
+            "fixed": tuple(block.get("fixed", ())),
             "claim_patterns": tuple(block.get("claim_patterns", CLAIM_PATTERNS))}
 
 

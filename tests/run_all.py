@@ -120,7 +120,7 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # exposes. Same regenerate-and-compare shape as the index above,
            # plus the guard that keeps a document ABOUT levers from spelling a
            # deleted one and blinding `test_register_matches_code`.
-           "test_judgement_sheet"]
+           "test_judgement_sheet", "test_number_scan", "test_map_stripes"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

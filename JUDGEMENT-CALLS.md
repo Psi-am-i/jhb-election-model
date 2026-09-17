@@ -113,7 +113,7 @@ promotion note in §F.
 | `LEVEL_DF` | 7.0 | — | BOUNDED 2026-08-29 to ν ∈ [5, 15] on four constraints, with the committed 7.0 in the middle. The honest label is no longer 'unmeasured' but 'not resolvable further on this panel'; a joint (κ, ν) fit was designed and NOT built. | 🟡 | §F8 + §A18 |
 | `level_floor` | 1e-6 | — | 1e-6; separates the level floor from the deviation floor. | 🟢 | §F19 |
 | `LEVEL_FLOOR` vs `SHARE_FLOOR` | — | `fold.py` | Two separate floors, deliberately. On its own it fixed nothing — the 42 phantom seats were the scale drift above it. | 🟢 | §C4 |
-| `level_sd_default` | 0.45 | `montecarlo.py` | Declared in `DEFAULTS` since §1.63 and MEASURED inert: perturbed to 1.60 the output is byte-identical, because `theta_prior` gives every party in the baseline an sd. | 🟡 | §A29 |
+| `level_sd_default` | 0.45 | `montecarlo.py` | MEASURED inert at 2021 and 2026. Would bind for 44 unmeasured 2026 parties if polls were switched back on (`poll_paths` "off" since 2026-09-12). | 🟡 | §A29 |
 | `level_shrink` (and `level_shrink_scale`) | 0.35 | `montecarlo.compress_levels`, run on the finished… | Adopted 2026-08-17 and unchanged; the largest single improvement this model has had. Two things keep it off green: an L1 form-selection leak, and a tail the uniform renormalisation over-feeds. | 🟡 | §A23 + §F20 |
 | `level_shrink`, `level_shrink_scale` | 0.35, 0.04 | — | See §A. The scale is a SCALE, not a tuned constant — swept twentyfold with no cliff. | 🟡 | §F20 + §A23 |
 | `LOG_CHI2_BIAS` | — | `levels.py`, documented and deliberately unused | Correct, derived, and DELIBERATELY NOT APPLIED: applying it makes the model worse on every metric, because the record it reproduces is marginal and this layer is conditional. | 🟢 | §C5 |
@@ -566,12 +566,14 @@ machinery cannot rot while it is switched off.
 
 **Where.** `montecarlo.py`
 
-**Now.** Declared in `DEFAULTS` since §1.63 and MEASURED inert: perturbed to 1.60 the output is byte-identical, because `theta_prior` gives every party in the baseline an sd.
+**Now.** MEASURED INERT at 2021 and 2026 (perturbed to 1.60, nothing moves). At 2026 44 parties on the certified ballot have no measured `sd(log θ)`, so it would bind for them through the poll blend — which does not run while `poll_paths` is "off" (since 2026-09-12). It becomes live the day polls are switched back on. Declared in `DEFAULTS` since §1.63.
 
 **Record**, oldest first:
 
 1. The level spread for a party with no measured `sd(log θ)`. Typed. Narrower than it looks: `levels.theta_prior` gives every party in the baseline an `sd`, so this binds only on parties outside it.
 2. **PROMOTED 2026-08-20 (§1.63), which was this row's own instruction.** It was read as `scenario.get("level_sd_default", 0.45)` and was in no `DEFAULTS`, so it was frozen at 0.45 and could not be moved by `--set` or a config file — the same defect as `arrival_group_draw` and `turnout_correlation`, all three found at once by the new `test_no_scenario_key_is_read_without_being_declared`. Declared at 0.45, so nothing moved. And the prediction in this row is now **confirmed by measurement**: perturbed to 1.60 it is byte-identical at 2021 and 2026, because the measured branch is taken for every party. It is in `EXPECTED_INERT` with that reason. A fallback that never fires is what you want; it matters only if the baseline ever stops covering the ballot.
+
+3. **THE BASELINE STOPPED COVERING THE BALLOT, 2026-09-16 — the case item 2 said it "matters only if".** The declared certified roster names 82 parties; the lever harness's fallback gate reports 74 parties in the 2026 index, all pool members, and 44 with no measured sd — EXPOSED TO THE FALLBACK. The `EXPECTED_INERT` excuse at 2026 was removed in the same commit. **⛔ CORRECTED THE SAME NIGHT, BY MEASUREMENT.** The line above was written from the gate's report, and the suite then perturbed the lever: nothing moved. The gate was wrong — it asked whether a metro poll exists, not whether polls are on — and is fixed. So 0.45 does NOT shape tonight's forecast; it would shape 44 small parties' level spread if `poll_paths` returns to "all". How to check it then: the arrival record's own dispersion for comparable parties. 🟡.
 
 ### §A30 · Dirichlet floor — `1e-4` — 🟢
 

@@ -14,6 +14,23 @@ here first, so anything stale in this file is read as an instruction.
 > banner. Both staleness guards cleared. `MODEL-INDEX.md` landed at `73eec0f`,
 > generated from the tree and regenerated-and-compared by its own test.
 >
+> **⛔ SIX SUITE FAILURES PREDATE 2026-09-17 AND ARE NOT RECORDED ELSEWHERE.** All
+> read artefacts from the 14-15 Sep window; none touches 2026. Each is a real
+> defect, not noise:
+> * `test_the_documented_figures_match_the_committed_artefact` — ITERATING.md
+>   rule 8 says ranks 1-3 n = 63; `history.json` says 72.
+> * `test_the_standing_refusals_figures_match_the_artefact` — §A38's PA mean and
+>   median disagree with the artefact.
+> * `test_no_emitted_composition_weight_is_arithmetically_impossible` — 2011/2016
+>   specs seed parties to draw more votes than a pool casts (Buffalo City and Cape
+>   Town 2011 DA/White, Mangaung 2016 AIC/Indian, …).
+> * `test_the_three_known_things_hold_at_once` — Mangaung 2016 pool rates sum to
+>   [1, 1, 0, 1]: a pool lost its voters.
+> * `test_the_relabel_ablation_actually_withholds_the_label` — score 6.9450 with
+>   and without the label: the switch does not reach the score.
+> * `test_the_freeze_records_every_environment_switch` — `HELD_BACK_OFF` and
+>   `JHB_SCORE_NO_RELABEL` are not in the freeze.
+>
 > **NIGHT OF 2026-09-16 — RUNBOOK STEPS 1-8 DONE, STEP 9 HELD FOR THE OWNER.**
 > The certified list is pasted (`6c6bdfd`), the SACP is sized by hand
 > (`JUDGEMENT-CALLS §L13`, `aa7dcd5`), both 2026 specs are re-emitted, and

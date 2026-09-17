@@ -28,6 +28,11 @@ routes = [
 # directories — static assets cannot rewrite by host. See src/worker.js.
 main = "src/worker.js"
 
+# Runs before every `wrangler deploy` / `versions upload`: refuses a site whose
+# numbers were not reviewed. Preview: JHB_PREVIEW=1. See src/deploy_check.py.
+[build]
+command = ".venv/bin/python src/deploy_check.py --city joburg"
+
 [assets]
 directory = "./site"
 binding = "ASSETS"

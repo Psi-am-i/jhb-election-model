@@ -55,6 +55,46 @@ COS = float(_MAP.get("cos_lat", 0.898))   # lon->km correction at this latitude
 ANG = math.radians(float(_MAP.get("rotate_deg", 40)))
 
 
+#: A party gets a STRIPE only if it wins the ward in at least one simulation in
+#: ten. Owner, 2026-09-17: "If you win 1:10 I'd say you're reasonably a
+#: contender ... 3/50? or 1/16 ... it's fair not to draw you (but you are in the
+#: tooltip)." The tooltip keeps its 5% cut; a hairline stripe is not information.
+STRIPE_MIN = 0.10
+UNKNOWN_CHIP = "#5f6660"   # never GREY: a grey stripe on grey ground vanishes
+
+
+def stripe_parties(entries, winner=None, limit=2):
+    """Parties that earn a stripe, strongest first, excluding ``winner``."""
+    return [(c, v) for c, v in sorted(entries, key=lambda cv: -cv[1])
+            if c != winner and v >= STRIPE_MIN][:limit]
+
+
+def toss_pattern(contenders, step: float = 7.0):
+    """A too-close-to-call ward's pattern: one BAND per contender.
+
+    The bands tile the whole pattern width in proportion to each contender's
+    share, so no ground colour shows between them. The first version drew thin
+    lines on grey, and the grey gaps read as extra stripes — a 49/49 IFP/MK ward
+    looked like four parties (owner, 2026-09-17). Returns ``(pattern_id, svg)``,
+    or ``None`` with fewer than two contenders (the ward stays plain grey).
+    """
+    if len(contenders) < 2:
+        return None
+    total = sum(v for _, v in contenders)
+    widths = [step * v / total for _, v in contenders]
+    cols = [CHIPS.get(c, UNKNOWN_CHIP) for c, _ in contenders]
+    pid = "h_toss_" + "_".join(
+        f"{col.lstrip('#')}{w:.1f}".replace(".", "p") for col, w in zip(cols, widths))
+    x, lines = 0.0, []
+    for col, w in zip(cols, widths):
+        lines.append(f'<line x1="{x + w / 2:.2f}" y1="0" x2="{x + w / 2:.2f}" '
+                     f'y2="{step}" stroke="{col}" stroke-width="{w:.2f}"/>')
+        x += w
+    return pid, (f'<pattern id="{pid}" width="{step}" height="{step}" '
+                 f'patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'
+                 + "".join(lines) + "</pattern>")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--geo", type=Path, default=Path("data/raw/geo/wards2026_{CODE}.geojson"))
@@ -137,7 +177,7 @@ def main(argv: list[str] | None = None) -> int:
             share = " · ".join(f"{NAMES.get(c, c.title())} {_pc(v)}" for c, v in main)
             if other >= 0.005:
                 share += f" · other {other:.0%}"
-            challengers = [c for c, v in main if c != winner][:2]
+            challengers = [c for c, _ in stripe_parties(main, winner)]
             if pw >= 0.90:
                 fill, cls, verdict = CHIPS.get(winner, GREY), "solid", f"safe {name}"
             elif pw >= 0.75:
@@ -154,31 +194,16 @@ def main(argv: list[str] | None = None) -> int:
         # Too close to call gets the leaning treatment too — grey ground, one stripe
         # per contender, widths in proportion to their shares, so a near 50/50 or
         # 33/33/33 ward reads as near-equal stripes rather than as blank grey.
-        if p is not None and cls == "grey" and len(main) >= 2:
-            cont = sorted(main, key=lambda cv: -cv[1])[:3]
-            # an unknown party must not vanish as a grey stripe on grey ground
-            cols = [CHIPS.get(c, "#5f6660") for c, _ in cont]
-            top_share = cont[0][1]
-            ratios = [v / top_share for _, v in cont]
-            pid = "h_toss_" + "_".join(c.lstrip("#") for c in cols) + "_" + \
-                  "_".join(f"{max(2.2 * r, 0.7):.1f}".replace(".", "p") for r in ratios)
-            if pid not in patterns:
-                step, base_w = 7.0, 2.2
-                gap = step / len(cols)
-                lines = "".join(
-                    # offset by half a gap: a line at x=0 is clipped to half its
-                    # width by the pattern tile, which shrank the LEADER's stripe
-                    f'<line x1="{(i + 0.5) * gap:.2f}" y1="0" x2="{(i + 0.5) * gap:.2f}" y2="{step}" '
-                    f'stroke="{col}" stroke-width="{max(base_w * r, 0.7):.1f}"/>'
-                    for i, (col, r) in enumerate(zip(cols, ratios)))
-                patterns[pid] = (f'<pattern id="{pid}" width="{step}" height="{step}" '
-                                 f'patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'
-                                 f'{lines}</pattern>')
+        toss = (toss_pattern(stripe_parties(main, limit=3))
+                if p is not None and cls == "grey" else None)
+        if toss:
+            pid, svg = toss
+            patterns.setdefault(pid, svg)
             hatches.append(f'<path d="{d}" fill="url(#{pid})" pointer-events="none"></path>')
         if p is not None and cls in ("strong", "lean") and challengers:
             cols = [CHIPS.get(c, GREY) for c in challengers]
             pid = f"h_{cls}_" + "_".join(c.lstrip("#") for c in cols)
-            shares = [v for c, v in main if c != winner][:2]
+            shares = [v for _, v in stripe_parties(main, winner)]
             ratio = (shares[1] / shares[0]) if len(shares) > 1 and shares[0] > 0 else 0
             pid += f"_r{int(ratio*10)}"
             if pid not in patterns:

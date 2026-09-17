@@ -361,7 +361,8 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
               "name",
         blocker="DATA",
         gate_check="arrivals_are_named",
-        claimed_targets=("2016", "2021"),
+        # 2026 added 2026-09-17: the certified roster shut the gate there too.
+        claimed_targets=("2016", "2021", "2026"),
         evidence="the emitted 2021 spec carries 32 positive `seeds`; checked by "
                  "`GATES['arrivals_are_named']` with no model run. ⚠️ What this "
                  "does NOT establish: nothing here says what the generic slot "
@@ -384,6 +385,25 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
                "unnamed one, and a slot standing in for it would forecast the "
                "same voters twice. Live at 2026, whose roster is projected. "
                "§1.218, JUDGEMENT-CALLS §A4.")
+       for lever in ("entrant_prob", "entrant_share", "entrant_geography")},
+    # ⛔ 2026 JOINED 2026-09-16, when the certified IEC list was pasted as a
+    # declared roster. The 2021 entry's reason ends "Live at 2026, whose roster
+    # is projected" — true when written, false from that night. Left standing
+    # there as a record; this entry is what is true now.
+    **{(lever, "2026"): Null(
+        cause="UNDELIVERED",
+        where="`universe` does not contain ENTRANT — the 2026 spec, emitted "
+              "from the declared certified roster, seeds 46 arrivals by name",
+        blocker="DATA",
+        gate_check="arrivals_are_named",
+        claimed_targets=("2016", "2021", "2026"),
+        evidence="`pools_2026.json` carries 46 positive `seeds` and a "
+                 "six-field `arrival_group` since the 2026-09-16 emit; checked "
+                 "by `GATES['arrivals_are_named']` with no model run.",
+        reason="the certified list names every party on the ballot, so there "
+               "is no unnamed arrival for the generic slot to stand in for. "
+               "Owner, 2026-09-16: once the roster is used there can be no "
+               "placeholder. JUDGEMENT-CALLS §A4, §L13.")
        for lever in ("entrant_prob", "entrant_share", "entrant_geography")},
     ("w_bye", "2021"): Null(
         cause="UNDELIVERED",
@@ -461,18 +481,23 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
         "covering the ballot. MODEL-LOG §1.63."),
     ("level_sd_default", "2026"): Null(
         cause="UNDELIVERED",
-        where="the same as at 2021: `handled` covers the whole index, so the "
-              "`individual` list `sd_for_party` serves is empty",
+        where="both consumers are unreachable: `sd_for_party` sees only the "
+              "`individual` path, which is empty (every index party is a pool "
+              "member), and the poll blend's `_sd.get(party, default)` runs "
+              "only when `poll_paths == 'all'` — it has been 'off' since "
+              "2026-09-12",
         blocker="DATA",
         gate_check="level_sd_fallback_never_binds",
-        evidence="44 of 44 index parties are pool members at 2026. The reason "
-                 "below repeats the 2021 claim and inherits its error — see "
-                 "that entry; at 2026 the claim happens to be true (the only "
-                 "index party without a measured sd is ENTRANT, which the "
-                 "fallback's consumers both skip), and it is still not why the "
-                 "lever cannot move.",
-        reason="same reason as at 2021 — theta_prior covers "
-        "every party in the baseline, so the fallback never binds"),
+        evidence="2026-09-17 suite: perturbed to 1.60 at 2026 nothing moved, "
+                 "although 44 parties on the certified ballot have no measured "
+                 "sd. The gate reported them EXPOSED because it asked whether a "
+                 "metro poll exists rather than whether polls are on; fixed in "
+                 "`_gate_no_metro_poll` the same day. Removing this entry on the "
+                 "gate's word, before measuring, was a mistake — restored with "
+                 "the measured reason.",
+        reason="a fallback no consumer can reach; it binds again the day polls "
+               "are switched back on, for the 44 unmeasured 2026 parties. "
+               "JUDGEMENT-CALLS §A29."),
     ("poll_house_k", "2021"): _NO_METRO_POLL_NULL,
     ("poll_house_k", "2026"): Null(
         cause="UNDELIVERED",
@@ -561,39 +586,9 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
     ("poll_half_life_days", "2026"): _polls_off_null(
         where="`polling._recency_weights`, same block",
         evidence="see `CONDITIONAL['poll_half_life_days@2026']`."),
-    ("arrival_group_draw", "2026"): Null(
-        cause="UNDELIVERED",
-        where="`group = scenario.get('arrival_group') or None` — the emitted "
-              "spec carries `arrival_group: null` at this target, so the draw "
-              "the switch selects has nothing to draw",
-        blocker="DATA",
-        gate_check="no_arrival_group_spec",
-        evidence="read straight out of the artefact 2026-08-27: "
-                 "`pools_2026.json` and `pools_2016.json` carry "
-                 "`arrival_group: null`; `pools_2021.json` carries a six-field "
-                 "object. Correction to the reason below, which says the key is "
-                 "ABSENT from the 2026 spec: it is PRESENT and null. The gate "
-                 "is `or None` either way, so the conclusion holds — but a "
-                 "reader checking the claim as written would have found the key "
-                 "there and concluded the entry was stale.",
-        reason=
-        "GATED ON DATA THAT DOES NOT EXIST YET, and the gate is three deep. "
-        "`pools.arrival_group_spec` returns None unless the target has a real "
-        "ROSTER — it splits the group total by each named arrival's ward reach, "
-        "and there are no named arrivals until nomination lists close. Its own "
-        "docstring says so: 'the 2026 forecast therefore still depends on the "
-        "generic entrant slot until nomination lists close.' Confirmed in the "
-        "emitted specs: `arrival_group` is present in pools_2021.json (32 "
-        "members) and ABSENT from pools_2026.json and pools_2016.json. The IEC "
-        "publishes the final 2026 candidate list on **16 September 2026** "
-        "(nominations closed 28 August; polling 4 November), so this is inert "
-        "at 2026 until task A4 ingests them and cannot be made live by any code "
-        "change. Two further layers were fixed on 2026-08-20 to get this far: "
-        "the key was in no DEFAULTS so the mechanism was UNREACHABLE rather "
-        "than off, and the branch raised `NameError: dirichlet_floor` the first "
-        "time anything reached it. Measured where it CAN fire — the eight 2021 "
-        "metros — it is much worse: coherent 254 -> 348, CRPS 232.9 -> 296.0. "
-        "MODEL-LOG §1.63."),
+    # ("arrival_group_draw", "2026") was declared inert here until 2026-09-16. The declared roster
+    # opened its gate (see the 2026-09-16 entries above), the harness found the
+    # lever live, and a live lever carries no excuse. MODEL-LOG, this date.
     ("contestation_expand", "2021"): Null(
         cause="UNDELIVERED",
         where="`if not _contest and _contest_prev` — `levels.contestation` "
@@ -1179,6 +1174,15 @@ def _gate_bye_contest_detail_absent(year: str) -> tuple[bool, str]:
 def _gate_no_metro_poll(year: str) -> tuple[bool, str]:
     """No admitted metro poll, so `_agg` is None and the poll block is skipped."""
     import polling as _pg
+    # ⛔ POLLS SWITCHED OFF IS "NO METRO POLL" FOR EVERY CONSUMER. `run_model`
+    # builds `_metro` only when `poll_paths == "all"`; since 2026-09-12 it is
+    # "off", so the blend never runs whatever `screen` admits. This gate asked
+    # only whether a metro poll EXISTS, and was wrong from that day — silently,
+    # until 2026-09-16 put 44 unmeasured parties on the ballot and it declared
+    # `level_sd_default` exposed through a block that cannot execute.
+    _paths = M.DEFAULTS["poll_paths"]
+    if _paths != "all":
+        return True, f"poll_paths = {_paths!r}, so run_model builds no metro poll list"
     _, target = _joburg(year)
     screened, _declined = _pg.screen(
         target, min_n=float(M.DEFAULTS["poll_min_n"]))
@@ -1187,16 +1191,10 @@ def _gate_no_metro_poll(year: str) -> tuple[bool, str]:
                        f"{year}; metro among them: {metro or 'none'}")
 
 
-def _gate_no_arrival_group_spec(year: str) -> tuple[bool, str]:
-    """The emitted spec carries no arrival group, so the draw has nothing."""
-    _, target = _joburg(year)
-    path = _spec_path(target)
-    if not path.exists():
-        return True, f"no pool spec at {path}"
-    group = json.loads(path.read_text()).get("arrival_group")
-    return not group, (f"{path.name} arrival_group = "
-                       + ("null" if group is None else
-                          f"{len(group)} fields — THE GATE IS OPEN"))
+# `_gate_no_arrival_group_spec` was deleted 2026-09-17. Its only claimant,
+# EXPECTED_INERT[("arrival_group_draw", "2026")], went when the certified roster
+# gave the 2026 spec an arrival group, and a check nobody names is a check that
+# will be believed for a claim it never made.
 
 
 def _gate_real_contestation_lists(year: str) -> tuple[bool, str]:
@@ -1312,7 +1310,6 @@ GATES = {
     "bye_deltas_absent": _gate_bye_deltas_absent,
     "bye_contest_detail_absent": _gate_bye_contest_detail_absent,
     "no_metro_poll": _gate_no_metro_poll,
-    "no_arrival_group_spec": _gate_no_arrival_group_spec,
     "real_contestation_lists": _gate_real_contestation_lists,
     "sigma_two_term_shipped_on": _gate_sigma_two_term_shipped_on,
     "local_bye_weights_shipped_off": _gate_local_bye_weights_shipped_off,
@@ -1331,7 +1328,7 @@ MODEL_FREE_GATES = frozenset(GATES) - {"level_sd_fallback_never_binds"}
 # as a shut gate — correct for their own use (no spec, nothing to draw) and a
 # vacuous pass for anything that generalises, so the file is asserted present
 # before a claim is believed on one of them.
-_SPEC_GATES = frozenset({"arrivals_are_named", "no_arrival_group_spec"})
+_SPEC_GATES = frozenset({"arrivals_are_named"})
 
 # THE TARGETS `test_every_tunable_lever_actually_moves_the_forecast` ACTUALLY
 # SWEEPS. Named once and consumed by the test, so the pair cannot drift: the
@@ -1367,12 +1364,11 @@ GATE_OPEN_AT: dict[tuple[str, str], str] = {
         "measured any of the three here. This is a declared gap, not a null: "
         "nothing has been learned about entrant_prob, entrant_share or "
         "entrant_geography at 2011."),
-    ("arrivals_are_named", "2026"): (
-        "the same, and this one is intended — the 2026 roster is projected, "
-        "nomination lists close on 16 September, and until they are ingested "
-        "the generic slot is the model's only arrival channel. The levers are "
-        "live here and the sweep runs 2026, so they are measured; what no "
-        "backtest can do is score them. JUDGEMENT-CALLS §A4."),
+    # ("arrivals_are_named", "2026") was declared OPEN here until 2026-09-16:
+    # "intended — the 2026 roster is projected, nomination lists close on 16
+    # September". They closed, the certified list was declared, and the emit
+    # seeds 46 arrivals by name. The gate is shut; 2026 is claimed in
+    # EXPECTED_INERT instead.
 }
 
 

@@ -26161,3 +26161,34 @@ no such thing as a Cape-Town-only identity fix.
 * **Do not treat "it is only a data-quality fix" as licence to skip the
   measurement.** It moves the arrival pool, and `MEMORY.md` records the arrival
   channel deciding the majority of the live forecast.
+
+## 1.245 The certified roster retired the generic entrant by itself, and exposed a gate that had been wrong since polls went off (2026-09-16/17)
+
+**What moved.** The 2026 specs were re-emitted from the IEC certified list
+(`[roster]` declared, `complete = true`, 45 names placed as newcomers, the SACP
+sized by hand per JUDGEMENT-CALLS §L13). The emit seeds 46 arrivals by name and
+builds an arrival group, so `montecarlo` no longer appends ENTRANT at 2026. No
+code change was needed for the owner's rule — a known ballot leaves no room for a
+placeholder. Switching the trigger to `roster_source` was rejected: every metro's
+2011 spec is `published` with an empty `entrant_record` and zero seeds, so it
+would have zeroed 2011's arrival mass (blind review agreed; the 2011 case is its
+own open defect — the ballot is known, the newcomers are named, and the generic
+slot still carries them).
+
+**What the suite said, and what was wrong about my first reading of it.**
+* The three entrant levers are inert at 2026 for the same reason as at 2021;
+  `arrival_group_draw` is live there now. Registers updated.
+* `level_sd_default`: the gate reported 44 unmeasured 2026 parties EXPOSED, I
+  removed its excuse and wrote "LIVE AT 2026" into §A29 — and the sweep then
+  measured it inert. The gate asked whether a metro poll EXISTS, not whether
+  `poll_paths` is "all"; since 2026-09-12 the blend cannot run. Gate fixed,
+  excuse restored with the measured reason, §A29 corrected by a dated note.
+  **Lesson:** a gate's report is a claim about reachability; the perturbation is
+  the measurement. Do not act on the first before the second.
+* `test_drawer` goldens re-recorded deliberately (reason in the file): the prior
+  moved because its input did.
+* `test_a_declared_roster_reaches_the_emitted_spec` failed because its input was
+  the live judgement file plus a prepended `[roster]`; the real file now has one.
+  The test now constructs its input.
+
+**Six failures that predate this session**, recorded in HANDOVER, not fixed here.

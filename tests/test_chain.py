@@ -1242,6 +1242,13 @@ def test_a_declared_roster_reaches_the_emitted_spec():
     target = cityconfig.use_target("2026")
     original = pools.lineage_path
     body = pools.lineage_path(city, target).read_text()
+    # ⛔ THE INPUT IS CONSTRUCTED, NOT INHERITED. Until 2026-09-16 the live file
+    # carried no `[roster]` table, so prepending one worked; the certified list
+    # added one and TOML refused the duplicate. The test's premise was a state
+    # of the tree. Strip every live `[roster]` / `[roster.*]` table so this
+    # exercises ITS declaration, whatever the real file has been given since.
+    body = re.sub(r"(?ms)^\[roster(?:\.[^\]]+)?\]\n.*?(?=^\[(?!roster\b)|\Z)",
+                  "", body)
 
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "joburg-2026.toml"

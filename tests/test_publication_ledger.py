@@ -627,7 +627,17 @@ def test_the_real_build_refuses_to_publish_an_unattributable_run():
         out = r.stdout + r.stderr
         assert r.returncode != 0, (
             f"the build published a forecast with no run time.\n{out[-1200:]}")
-        assert "refusing to publish" in out and "run time" in out, out[-1200:]
+        # ⚠️ TWO REFUSALS NOW GUARD THE SAME ABSENT STAMP, AND THE FIRST WINS.
+        # Since 2026-09-17 the footer carries `{{generated_date}}`, sourced from
+        # `model:_generated`, so a summary with no run time is refused as an
+        # unresolved token before the ledger's run-time check is reached. Either
+        # refusal is the guarantee this test exists for; what it must not accept
+        # is a refusal for some OTHER reason, so the message has to name the
+        # missing stamp.
+        assert r.returncode != 0 and (
+            ("refusing to publish" in out and "run time" in out)
+            or ("refusing to publish" in out and "model:_generated" in out)
+        ), out[-1200:]
         assert not list((tmp / "led").rglob("*.jsonl")), (
             "a ledger file was created by a REFUSED publication. The ledger is "
             "append-only; whatever is in it now is permanent.")

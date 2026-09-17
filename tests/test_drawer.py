@@ -92,6 +92,14 @@ TOL = 0.01
 ELECTIONS = ROOT / "data" / "raw" / "elections"
 PROCESSED = ROOT / "data" / "processed"
 
+# RE-RECORDED 2026-09-17, deliberately: THE 2026 SPEC NOW COMES FROM THE CERTIFIED
+# NOMINATION LIST. `pools_2026.json` was re-emitted 2026-09-16 from a declared,
+# complete roster (82 parties, 27 dropped on the owner's confirmation, 46 named
+# arrivals seeded, the generic ENTRANT slot retired) with the SACP sized by hand
+# at 1.31% (JUDGEMENT-CALLS §L13). The prior moved with it — ANC p95 35.16% ->
+# 35.76%, Black African pool mean 50.55% -> 50.15% at the first diff — and that
+# is the input changing, not the drawer. A freeze is a tripwire: it fired, the
+# cause is named here, and the backtest is untouched (2011-2021 specs unchanged).
 # RE-RECORDED 2026-09-02, deliberately: THE CENSUS IS NOW REPROJECTED ONTO THE
 # TARGET'S WARDS INSTEAD OF JOINED TO THEM BY WARD CODE (MODEL-LOG §1.160/§1.161).
 #
@@ -429,21 +437,21 @@ PROCESSED = ROOT / "data" / "processed"
 # records where the 2026 Johannesburg prior now is. No improvement is claimed
 # and none is measured here.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (22.5216, 10.7994, 35.1625),
-    "DA": (26.4646, 17.9717, 35.8335),
-    "EFF": (10.1040, 2.8209, 20.4816),
-    "ASA": (12.6508, 4.6577, 22.8424),
-    "MK": (9.7552, 3.0188, 19.5788),
-    "PA": (6.4458, 3.7914, 9.9925),
-    "VFPLUS": (0.8519, 0.0061, 3.1740),
-    "ALJAMAAH": (0.9099, 0.2436, 1.8881),
-    "ENTRANT": (1.4516, 0.0000, 8.0032),
+    "ANC": (22.5342, 11.1024, 35.7560),
+    "DA": (25.9672, 17.6651, 35.0133),
+    "EFF": (10.3001, 3.0378, 20.3690),
+    "ASA": (12.7277, 5.2447, 22.6611),
+    "MK": (9.5151, 2.8611, 18.8103),
+    "PA": (6.4911, 3.8502, 9.9577),
+    "VFPLUS": (0.8827, 0.0074, 3.2100),
+    "ALJAMAAH": (0.9061, 0.2204, 1.9374),
+    "ENTRANT": (1.3828, 0.0000, 7.5409),
 }
 GOLDEN_POOLS = {
-    "Black African": (50.5506, 42.2597, 58.1623),
-    "Coloured": (10.6273, 7.8487, 14.4213),
-    "Indian/Asian": (4.3190, 3.4004, 5.4251),
-    "White": (33.0514, 26.5267, 40.0176),
+    "Black African": (50.1458, 42.0375, 57.9294),
+    "Coloured": (10.3828, 7.6753, 13.9407),
+    "Indian/Asian": (4.2405, 3.3189, 5.3678),
+    "White": (32.2854, 25.8714, 38.9912),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")

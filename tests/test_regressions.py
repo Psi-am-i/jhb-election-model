@@ -756,6 +756,10 @@ def test_every_tunable_constant_is_in_the_judgement_register():
     EXEMPT = {
         "SOLVE_TOL", "draws", "seed", "COUNCIL",      # run control, not belief
         "SD_FLOOR", "SD_CEILING",                     # bounds on a MEASURED fit
+        # `render_map.STRIPE_MIN` decides which parties get a STRIPE on the
+        # published map — presentation, set by the owner 2026-09-17 ("1 in 10 is
+        # a contender"). It changes no draw, seat or probability.
+        "STRIPE_MIN",
         "MIN_HOME_SPLITS",                            # registered under its own name
         # `theta_residual.py` MEASURES the model; it is not part of it.
         # `SIM_DRAWS` and `NULL_REPS` bound how precisely a REFERENCE

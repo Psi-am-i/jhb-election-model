@@ -173,7 +173,7 @@ everyone else.</p>
 <p>Two consequences shape everything on this site. First, the council is always
 close to proportional, so a fragmented vote produces a fragmented council.
 Second, the excessive-seats clause, which the model expects to catch the ANC
-in <span class="mstat" data-mode="free" data-token="p_excessive_anc" data-when="2026-08-07" data-live="58%" title="Live from the current model run · source: model:p_excessive_by_party.ANC">58%</span> of simulations: a citywide vote in the mid-twenties,
+in <span class="mstat" data-mode="free" data-token="p_excessive_anc" data-when="2026-08-07" data-live="64%" title="Live from the current model run · source: model:p_excessive_by_party.ANC">64%</span> of simulations: a citywide vote in the mid-twenties,
 but stronghold wards that still win. Where it fires, the party&rsquo;s ward count
 becomes an unbreakable floor, its list seats go to zero, and the squeeze lands
 on every other party&rsquo;s list seats — inside a council fixed at
@@ -354,28 +354,47 @@ against three baselines that need no model at all. The results are on the
   same reason. Fixing it means drawing a party&rsquo;s level from its local and
   national records together, weighted by which has actually been more
   informative for a party like it. It is the largest open item on the model.</li>
-<li><strong>Polls ARE used, and one house currently moves the Johannesburg headline.</strong>
-  <em>(Corrected 2026-08-23. Until then this page said &ldquo;no poll is currently used
-  at all&rdquo; — that stopped being true on 2026-08-22 and the page was not
-  changed. It is the most serious error this site has carried.)</em></li>
+<li><strong>No poll is used in the forecast. This changed on 12 September 2026, and
+  before that date polls were used.</strong></li>
 </ul>
-<p>The rule, which we said we would publish before using them at all: a poll is
-  priced by a decomposed standard error — sampling, house effect, likely-voter
-  screen and drift since fieldwork — and blended by inverse variance against
-  the model&rsquo;s own centre. <strong>A single unreplicated house is capped at half the
-  blend</strong>, however large its sample, because a house effect is a common bias
-  that publishing more waves cannot average away.</p>
-<p>The cap binds today. Johannesburg&rsquo;s only 2026 metro polling is two waves from
-  one house, so the effective house count is one and the cap is what stands
-  between that house and the published forecast. Turning the poll channel on
-  moved the DA from 83 to 77 seats. <strong>We publish the forecast with polls and
-  without, side by side, for that reason.</strong></p>
-<p>The caution that motivated the old sentence is unchanged and is why the cap
-  exists: the polls that exist disagree with each other by more than the
-  quantity being forecast — one house had the DA on 42% and the ANC on 18% in
-  the same year another had the ANC on 35% and the DA on 25% — and metro-level
-  polling has little track record here to weight them by; pre-2021 polling
-  missed ActionSA in this city by about ten points.
+<p><em>This page has twice described the wrong state of this switch, and both times
+  in the same direction — the text stayed still while the model moved. It said
+  &ldquo;no poll is currently used at all&rdquo; for a day after that stopped being true on
+  2026-08-22, which is the most serious error this site has carried; it then
+  described a weighting cap for three weeks after that cap was retired. So the
+  date above is not decoration. </em><em>If you are reading this and the site&rsquo;s
+  forecast still differs from a no-polls model, this sentence is stale again and
+  the forecast is what to believe.</em>**</p>
+<p><strong>Why they were taken out.</strong> Polls were an input until 12 September. Removing
+  them is not a judgement that they are worthless — it is that we had no
+  designed answer to how several polls should interact with each other: how much
+  two waves from one house count against one wave from another, how a party-
+  internal poll is discounted, how a national poll and a metro poll combine. The
+  weighting we had was defensible one poll at a time and improvised across
+  several. Rather than keep shipping a forecast that depended on it, the channel
+  is off until that is designed properly.</p>
+<p><strong>What it was worth, measured.</strong> Against the 24 past city-elections we can
+  backtest, removing polls changed the total seat error from
+  <span class="mstat" data-mode="fixed" data-token="polls_off_seat_err_before" data-when="2026-09-12" title="Pinned 2026-09-12 · seed=20261104 draws=1000 rows=24 pools:843229db · source: compare_history:seat_abs_err_coherent, poll_paths=all">725</span> to <span class="mstat" data-mode="fixed" data-token="polls_off_seat_err_after" data-when="2026-09-12" title="Pinned 2026-09-12 · seed=20261104 draws=1000 rows=24 pools:843229db · source: compare_history:seat_abs_err_coherent, poll_paths=off">723</span> and the
+  distributional score (CRPS) from <span class="mstat" data-mode="fixed" data-token="polls_off_crps_before" data-when="2026-09-12" title="Pinned 2026-09-12 · seed=20261104 draws=1000 rows=24 pools:843229db · source: compare_history:crps, poll_paths=all">545.8</span> to
+  <span class="mstat" data-mode="fixed" data-token="polls_off_crps_after" data-when="2026-09-12" title="Pinned 2026-09-12 · seed=20261104 draws=1000 rows=24 pools:843229db · source: compare_history:crps, poll_paths=off">541.4</span>. Both move the right way and neither is large: seven
+  of the 24 elections moved at all, one of them by six seats <em>against</em> the
+  change. The honest summary is that <strong>we cannot distinguish the poll channel&rsquo;s
+  contribution from zero</strong>, which is itself a reason not to let it move a
+  published headline while its design is unsettled.</p>
+<p><strong>What we intend.</strong> To use every poll we receive, and to put the weighting in
+  the reader&rsquo;s hands — a control on this site letting you say how far you trust
+  each individual poll, within that poll&rsquo;s own margin of error, and see the
+  forecast respond. That is the design being worked on; it is not built yet, and
+  we would rather say so than ship the half of it we had.</p>
+<p><strong>The caution that has always motivated this is unchanged</strong>: the polls that
+  exist disagree with each other by more than the quantity being forecast — one
+  house had the DA on 42% and the ANC on 18% in the same year another had the
+  ANC on 35% and the DA on 25% — and metro-level polling has little track record
+  here to weight them by; pre-2021 polling missed ActionSA in this city by about
+  ten points. Every poll we hold is still listed, with its caveats, and the
+  model is still read against them as an outside check that it is in the
+  ballpark. They are evidence we look at. They are not, at present, an input.
 - <strong>Arithmetic is not politics.</strong> The model says which governments are
   numerically possible. Whether people who dislike each other will sit in the
   same room is not a modelling question.</p>
@@ -407,7 +426,7 @@ known defects in the public records we depend on are all published:</p>
 <li><code>SOURCES.md</code> — where every input came from and how to fetch it again</li>
 </ul>
 <div class="colophon">
-  Reader edition, generated from docs-public/methodology.md on 2026-08-31. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
+  Reader edition, generated from docs-public/methodology.md on 2026-09-17. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
   <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>

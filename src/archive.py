@@ -90,6 +90,10 @@ PROVENANCE = {
     # It is a SuperCROSS extract at MUNICIPALITY level -- not the ward table
     # asked for -- so it is held as provenance, not as a model input. See
     # SOURCES.md "Census 2022 home language" and DATA-QUALITY.md.
+    # The IEC's certified candidate list for Gauteng, LGE 2026, published on
+    # nomination day. The source of `[roster]` in judgements/joburg-2026.toml.
+    # SOURCES.md "Nomination lists — certified candidates, LGE 2026".
+    "data/raw/nominations/lge2026_certified_candidates_GP.pdf": "elections.org.za LGE2026 Certified Candidate List - GP.pdf, published 2026-09-16",
     "data/raw/covariates/Languages by Municipalities": "Stats SA User Information Services, emailed 2026-08-24 (SuperCROSS extract, municipality level)",
     # ⛔ EVERY ROW UNDER data/processed CARRIED ONE BLANKET STRING, AND IT WAS
     # FALSE FOR NEARLY ALL OF THEM.
