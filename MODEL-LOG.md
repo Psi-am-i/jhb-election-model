@@ -26192,3 +26192,36 @@ slot still carries them).
   The test now constructs its input.
 
 **Six failures that predate this session**, recorded in HANDOVER, not fixed here.
+
+## 1.246 The published pool claim was false as written, and the offset it describes is weaker than any pair it contrasts with (2026-09-18)
+
+**The claim.** `docs-public/methodology.md`: the DA and ActionSA share a pool,
+"which is why their *combined* range is much tighter than either party's own".
+
+**Measured on the 2026 forecast (`seat_draws.csv`, 5,000 draws).** The combined
+90% range is 70-128 (width 58) against the DA's 45-92 (47) and ActionSA's 11-53
+(42). **Adding two quantities adds their spread** unless they cancel almost
+exactly; a combined range cannot be tighter than its parts and never was.
+
+**What is true.** They are negatively correlated at **-0.19**, so the pair's sd
+is 17.5 against the 19.5 independence would give, and both land in their top
+quarter together in 4.2% of draws against 6.2%. A mild offset, not a see-saw.
+
+**And the example is the weakest one available.** Every pair is somewhat
+negatively correlated because shares sum to one: ANC/EFF **-0.36**, ANC/MK
+**-0.35**, **ANC/DA -0.23**, EFF/MK -0.15, DA/ASA -0.19. The pair the page
+offers as evidence of a shared pool is less correlated than the ANC and the DA,
+which the page does not claim share one. **A correlation that the sum-to-one
+constraint produces on its own is not evidence for the pool structure.**
+
+⚠️ **The blind-test claim beside it is dated, not re-derived**: 129 of 135 ward
+winners is a 2026-08-04 measurement (§1.9) quoted in the present tense through
+a census reprojection, the pool rework and the certified roster. Now wrapped in
+`data-asof="2026-08-04"` with a sentence saying it has not been re-run. Owner's
+call, this date; re-running it is outstanding.
+
+**The lesson is the one this repository keeps relearning.** The sentence was
+not a model defect: the model was fine and the prose overstated it. Nothing
+checked the prose against the artefact, because the sentence quoted no number —
+which is exactly the gap `stats.audit`'s claim patterns exist to close, and
+this sentence names no party outcome, so no pattern matched it.

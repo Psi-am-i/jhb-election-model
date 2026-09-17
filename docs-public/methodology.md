@@ -222,10 +222,10 @@ consequences that no error bar can carry.
 A pool is **not** an alliance, a coalition, or a prediction about who will
 govern with whom. It is a statement about voters, not parties: a set of
 parties competing for the same people. The DA and ActionSA drawing from the
-same pool means that when one rises the other tends to fall in the same
-places — which is why their *combined* range is much tighter than either
-party's own, and why ignoring it produces impossible scenarios where both
-surge at once out of nowhere.
+same pool means they compete for the same voters: when one rises in a
+simulation the other tends to fall in the same places. It shows up as a mild
+offset — together they vary less than they would if they moved independently —
+not as a rule that one gains exactly what the other loses.
 
 It is also not a claim about why anyone votes as they do. We can measure that
 a pool of voters moved; we cannot measure why, and aggregate data can never
@@ -245,9 +245,11 @@ several stand in one ward they cannot be told apart, and we take the
 Commission's own count of independent ward councillors rather than inferring
 it.
 
-**The geography transfers.** Shown only citywide totals for 2021 — nothing
-about where the votes sat — the model placed them well enough to call
-{{blind_test_called}} of {{blind_test_of}} ward winners.
+**The geography transfers.** <span data-asof="2026-08-04">Shown only citywide
+totals for 2021 — nothing about where the votes sat — the model placed them
+well enough to call {{blind_test_called}} of {{blind_test_of}} ward winners.
+That test was run on 4 August 2026; the model has changed since, and it has not
+been re-run.</span>
 
 **The whole thing beats the simple alternatives, in cities it was never built
 for.** This is the test that matters, and the one most forecasts skip. A model
