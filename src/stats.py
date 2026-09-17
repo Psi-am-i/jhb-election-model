@@ -70,6 +70,14 @@ DECLARATION_MIN_CHARS = 12   # a declaration shorter than this is not a reason
 HISTORICAL = "historical"   # see `orphaned_scenario_claims`
 
 TOKEN = re.compile(r"\{\{([a-z0-9_]+)\}\}")
+#: A GENERATED token: a figure a render script computed at build time, written
+#: inline as `{{@name=value;fmt;source}}`. It carries its own value, so it needs
+#: no registry entry — but it renders as the same provenance span, is recorded
+#: for the publication ledger (so it gets arrows), and is invisible to the
+#: number scanner exactly as a registry token is. It replaces figures that page
+#: script used to write into the DOM at view time, which had no provenance, no
+#: history and could not be scanned (owner, 2026-09-17).
+GEN_TOKEN = re.compile(r"\{\{@([A-Za-z0-9_.+\-]+)=([^;{}]*);([a-z0-9_]*);([^{}]*)\}\}")
 
 # ⛔ A DATED CONTEXT IS DECLARED BY THE PROSE, NEVER INFERRED FROM IT.
 #
@@ -225,6 +233,13 @@ def _fmt(value, spec: str | None):
         return f"{float(value) * 100:.1f}%"
     if spec == "pct0_plain":          # 62 (no % sign, for "X of every")
         return f"{float(value) * 100:.0f}"
+    if spec == "chance":              # a share of simulations, never "100%" or "0%"
+        v = float(value)
+        if v > 0.99:
+            return "over 99%"
+        if v < 0.0005:
+            return "under 0.1%"
+        return f"{v * 100:.0f}%" if v >= 0.095 else f"{v * 100:.1f}%"
     if spec == "one_dp":
         return f"{float(value):.1f}"
     if spec == "date_long":           # 2026-09-16T21:46:15Z -> 16 September 2026
@@ -539,6 +554,8 @@ def _span(text: str, entry: dict, name: str, live_str: str | None) -> str:
         if live_str is not None and live_str != text:
             tip += f" · the model now says {live_str}"
         tip += f" · source: {src}"
+    elif mode == "generated":
+        tip = f"Computed at build from the current model run · source: {src}"
     else:
         tip = f"Live from the current model run · source: {src}"
     # the tip goes into an attribute: escape before anything else can break out
@@ -624,6 +641,35 @@ def render(text: str, registry: dict, ctx: dict, *, wrap: bool = True,
             })
         return _span(shown, entry, name, live_str) if wrap else shown
 
+    def _gen(match: re.Match) -> str:
+        name, raw, spec, src = (match.group(1), match.group(2),
+                                match.group(3) or None, match.group(4))
+        try:
+            value = float(raw)
+        except ValueError:
+            value = raw
+        shown = _fmt(value, spec)
+        entry = {"mode": "generated", "source": src}
+        if record is not None:
+            at = match.start()
+            record.append({
+                "token": name, "value": value, "display": shown, "fmt": spec,
+                "source": src, "mode": "generated", "tolerance": None,
+                "dated": any(lo <= at < hi for lo, hi, _ in regions),
+                "asof": next((d for lo, hi, d in regions if lo <= at < hi), ""),
+                "captured": "", "historical": "",
+            })
+        return _span(shown, entry, name, None) if wrap else shown
+
+    # Generated tokens first, then registry tokens — and the dated regions are
+    # re-scanned in between. `_one` locates each occurrence by its offset in the
+    # text it is substituting, and expanding a generated token into a span moves
+    # every offset after it: scanning once, on the original text, put the dated
+    # Zille figures outside their own `data-asof` spans (caught by the build,
+    # 2026-09-17).
+    text = GEN_TOKEN.sub(_gen, text)
+    if record is not None:
+        regions, malformed = _dated_scan(text)
     out_text = TOKEN.sub(_one, text)
     if record is not None and malformed:
         # Surfaced through the record so the caller can REFUSE. A
@@ -759,6 +805,34 @@ def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
             return " "
         return m.group(0)
     visit(REGION.sub(cut, body), "prose")
+    return out
+
+
+#: What a script needs in order to write a figure the build never saw: a data
+#: block to hold it, and a way to put markup or interpolated text into the page.
+#: A published page's scripts may use none of them. `textContent` stays legal —
+#: it cannot create markup, and with no data block there is nothing numeric for
+#: it to write (the map tooltip copies a `data-tip` attribute, which is scanned).
+SCRIPT_FORBIDDEN = (
+    ("a data block", re.compile(r"\b(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*=\s*[\[{]\s*[\"'\d\[{]")),
+    ("HTML injection", re.compile(r"\.(?:innerHTML|outerHTML)\s*\+?=|insertAdjacentHTML|document\.write")),
+    ("template interpolation", re.compile(r"`[^`]*\$\{")),
+)
+
+
+def script_writes(text: str) -> list[str]:
+    """Ways a page's scripts could put a figure on the page at view time.
+
+    Owner, 2026-09-17: script-written figures had no provenance, no ledger row
+    and no arrow, and the number scanner could not see them. Every figure is now
+    rendered at build time; this is the guard that keeps it that way.
+    """
+    out = []
+    for m in re.finditer(r"<script[^>]*>(.*?)</script>", text, re.S):
+        body = m.group(1)
+        for what, pat in SCRIPT_FORBIDDEN:
+            for hit in pat.finditer(body):
+                out.append(f"{what}: …{body[max(0, hit.start() - 40):hit.end() + 40].strip()}…")
     return out
 
 
@@ -902,5 +976,7 @@ def drift_report(rows: list[dict], registry: dict | None = None) -> str:
 # `stat` — that class is already the headline tiles, whose flex-column
 # display turned every inline figure into its own block.
 STAT_CSS = """  .mstat{display:inline;}
+  .mstat-move{font-size:.7em;margin-left:2px;cursor:help;vertical-align:.15em;}
+  .mstat-move.up{color:#2f6d4a;} .mstat-move.down{color:#a33a2a;} .mstat-move.changed{color:var(--ink-3);}
   .mstat[data-mode="fixed"]{border-bottom:1px dotted var(--ink-3);cursor:help;}
 """

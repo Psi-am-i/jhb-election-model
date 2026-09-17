@@ -141,3 +141,16 @@ def test_deploy_check_refuses_a_stale_review_and_unreviewed_numbers(tmp=None):
         (site / "index.html").write_text("<p>a different page</p>")
         assert any("not the page" in p for p in D.check("joburg", site, True, review=review)), (
             "an old review cleared a new build")
+
+
+def test_a_page_script_may_not_carry_or_inject_figures():
+    clean = ("<script>var t = e.target.getAttribute('data-tip'); tip.textContent = t;"
+             " b.textContent = anyOpen ? 'expand all' : 'collapse all';</script>")
+    assert S.script_writes(clean) == []
+    for bad, what in (
+        ('<script>const GEN = {"tiles": [1]};</script>', "a data block"),
+        ("<script>el.innerHTML = rows;</script>", "HTML injection"),
+        ("<script>el.textContent = `${p.med} seats`;</script>", "template interpolation"),
+    ):
+        found = S.script_writes(bad)
+        assert found and found[0].startswith(what), (bad, found)

@@ -3418,6 +3418,16 @@ class ModelRun:
     thresholds: np.ndarray | None = None
     council_sizes: np.ndarray | None = None
     ward_winner_counts: np.ndarray | None = None  # (wards, parties)
+    # ⛔ PER-DRAW WARD WINNERS ARE BACK, AND THIS TIME THEY HAVE A READER.
+    # A (draws, wards) array was deleted 2026-08-10 because nothing read it
+    # (docstring above). On 2026-09-17 the owner asked what a published scenario
+    # rests on — "in what world does the ANC keep 73 seats while the DA wins
+    # outright? Without ward calculations that is just an open assertion" — and
+    # the answer was that the model had computed it and thrown it away.
+    # `main` writes it to `ward_draws.csv`; `scenarios.py` reads it.
+    ward_winner_draws: np.ndarray | None = None   # (draws, wards) universe index
+    over_draws: list[frozenset] = field(default_factory=list)  # overhang parties per draw
+    ward_seat_draws: list[dict[str, int]] = field(default_factory=list)
     ward_win_sum: dict[str, int] = field(default_factory=dict)
     overhang_count: dict[str, int] = field(default_factory=dict)
     excessive_draws: int = 0
@@ -5021,6 +5031,9 @@ def run_model(target, scenario: dict,
     excessive_draws = 0
     ward_win_sum: defaultdict[str, int] = defaultdict(int)
     ward_winner_counts = np.zeros((len(wards), npar), dtype=np.int32)
+    ward_winner_draws = np.zeros((draws, len(wards)), dtype=np.int16)
+    over_draws: list[frozenset] = []
+    ward_seat_draws: list[dict[str, int]] = []
     bounds_violations: defaultdict[str, int] = defaultdict(int)
     bounds_checked = 0
     pr_share_draws = np.zeros((draws, npar))
@@ -5094,6 +5107,7 @@ def run_model(target, scenario: dict,
                 rng.normal(0.0, scenario["ward_noise_sd"], ward_tally.shape))
         winners = ward_tally.argmax(axis=1)
         ward_winner_counts[np.arange(len(wards)), winners] += 1
+        ward_winner_draws[d] = winners
         wins: defaultdict[str, int] = defaultdict(int)
         for w in winners:
             wins[universe[w]] += 1
@@ -5132,6 +5146,8 @@ def run_model(target, scenario: dict,
             independent_wards=c_wards, no_pr_list_wards=d_wards)
 
         seat_draws.append(seats)
+        over_draws.append(frozenset(over))
+        ward_seat_draws.append(dict(wins))
         thresholds[d] = threshold
         council_sizes[d] = council
         for p in over:
@@ -5226,6 +5242,8 @@ def run_model(target, scenario: dict,
         wards=wards, seat_draws=seat_draws, thresholds=thresholds,
         council_sizes=council_sizes,
         ward_winner_counts=ward_winner_counts, ward_win_sum=dict(ward_win_sum),
+        ward_winner_draws=ward_winner_draws, over_draws=over_draws,
+        ward_seat_draws=ward_seat_draws,
         overhang_count=dict(overhang_count), excessive_draws=excessive_draws,
         bounds_violations=dict(bounds_violations), bounds_checked=bounds_checked,
         ipf_balances=int(_ipf_stats.get("balances", 0)),
@@ -5474,6 +5492,31 @@ def main(argv: list[str] | None = None) -> int:
             writer.writerow([
                 w, universe[order[0]],
                 f"{_p_win(ward_winner_counts[wi, order[0]]):.4f}", dist])
+
+    # Per-draw detail, so a scenario on the page can be traced to the draws that
+    # produced it: every ward's winner in every draw, and each party's ward and
+    # list seats with whether the excessive-seats clause fired for it. Written
+    # beside `seat_draws.csv`, which is unchanged in shape — it has consumers.
+    wd_out = processed / "ward_draws.csv"
+    with wd_out.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["draw"] + list(wards))
+        for i in range(len(seat_draws)):
+            writer.writerow([i] + [universe[j] for j in run.ward_winner_draws[i]])
+    sd_out = processed / "seat_detail_draws.csv"
+    with sd_out.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["draw", "party", "ward_seats", "list_seats", "seats",
+                         "excessive"])
+        for i, s in enumerate(seat_draws):
+            ws, ov = run.ward_seat_draws[i], run.over_draws[i]
+            for p in sorted(set(s) | set(ws)):
+                total, w = int(s.get(p, 0)), int(ws.get(p, 0))
+                if total or w:
+                    # list = total - wards; an excessive party keeps its wards
+                    # and takes no list seats, so this is 0 for it by law
+                    writer.writerow([i, p, w, max(total - w, 0), total,
+                                     int(p in ov)])
 
     seats_out = processed / "seat_draws.csv"
     top = ranked[:13]

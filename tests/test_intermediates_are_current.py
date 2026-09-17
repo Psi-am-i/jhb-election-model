@@ -82,6 +82,8 @@ NOT_GENERATED_HERE = (
     "coalition_minority.csv", "coalition_mwc.csv",
     "coalition_pairs_triples.csv", "coalition_power.csv",
     "seat_draws.csv", "ward_winner_probs.csv",
+    # per-simulation detail beside seat_draws.csv, same run (2026-09-17)
+    "ward_draws.csv", "seat_detail_draws.csv",
     "regime_cap_seat_draws.csv", "regime_expand_seat_draws.csv",
     "regime_level_seat_draws.csv",
     # Fold 5 has `lambda_pair: None`, so the default `--turnout level` is

@@ -55,6 +55,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--sheet", type=Path, default=Path("forecast-sheet.html"))
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    # Only the real sheet also writes the draft copy and the shared claim boxes.
+    # A --sheet elsewhere (a test regenerating into a scratch copy) writes that
+    # file and nothing else, so checking the page can never rewrite it.
+    real_sheet = args.sheet.resolve() == Path("forecast-sheet.html").resolve()
+    PAGES = ((Path("forecast-sheet.html"), Path("drafts/forecast-draft.html"))
+             if real_sheet else (args.sheet,))
     cityconfig.use(getattr(args, "city", None))
     args.processed = args.processed or cityconfig.use_target(
         getattr(args, "target", None)).processed
@@ -91,181 +97,168 @@ def main(argv: list[str] | None = None) -> int:
     da_minority = minority.get("DA minority, only ANC opposes (2021 pattern)", 0.0)
     anc_da = coalition("ANC", "DA")
 
-    gen = {
-        "tiles": [
-            {"n": alone_str, "chance": True,
-             "l": "One party reaches a majority alone"},
-            {"n": f"{anc_da['p']:.0%}", "chance": True,
-             "l": "ANC + DA have a majority — the only two-party combination "
-                  "that reliably reaches one"},
-            {"n": f"{p_da_largest:.0%}", "chance": True,
-             "l": "The DA is the largest single party"},
-            {"n": f"{p_anc_largest:.0%}", "chance": True,
-             "l": "The ANC is the largest single party"},
-            {"n": f"{p_excessive:.0%}", "chance": True,
-             "l": "The ANC triggers the excessive-seats clause",
-             "sub": "Keeps every ward it wins, takes zero list seats — "
-                    "everyone else squeezed"},
-            {"n": "270 · 136", "chance": False,
-             "l": "Total seats · majority threshold",
-             "sub": "The excessive-seats law keeps the council at 270"},
-        ],
-        "parties": [
-            {"name": NAMES[p], "chip": CHIPS[p],
-             **dict(zip(("med", "lo", "hi"), q(S[p])))}
-            for p in CHART_PARTIES if p in S
-        ] + [{"name": "Others", "chip": "#8b918b",
-              **dict(zip(("med", "lo", "hi"),
-                         q(sum(S[p] for p in parties
-                               if p not in CHART_PARTIES))))}],
-        "coalitions": [
-            {"name": "ANC + DA", "key": True, **anc_da},
-            {"name": "Eight-party alliance (no ANC, EFF or MK)", "key": True,
-             **coalition(*ALLIANCE_8)},
-            {"name": "Nine-party alliance (no DA or ActionSA)", "key": True,
-             **coalition("ANC", "EFF", "MK", "PA", "IFP", "VFPLUS", "ACDP",
-                         "RISE", "ALJAMAAH")},
-            {"name": "DA + EFF + ActionSA", **coalition("DA", "EFF", "ASA")},
-            {"name": "DA + EFF + MK", **coalition("DA", "EFF", "MK")},
-            {"name": "ANC + EFF + MK", **coalition("ANC", "EFF", "MK")},
-            {"name": "DA + ActionSA", **coalition("DA", "ASA")},
-        ],
-        "minority_da_2021": round(da_minority, 4),
-        "meta": {"threshold_median": thr_med,
-                 "council_median": int(np.median(council)),
-                 "p_excessive_anc": round(p_excessive, 4)},
-    }
+    # ⛔ NO FIGURE ON THE PAGE IS WRITTEN BY SCRIPT ANY MORE (owner, 2026-09-17).
+    # These sections used to be a `const GEN = {...}` JSON block that page script
+    # poured into the DOM at view time. A number written that way had no
+    # provenance underline or tooltip, no ledger row and so no arrow, and was
+    # invisible to the number scanner — which is how the minority section kept
+    # a stale framing under an unflagged figure. Every figure is now a generated
+    # token `{{@name=value;fmt;source}}` rendered into the HTML at build time.
+    N = len(rows)
+    SRC = f"seat_draws.csv, {N:,} simulations"
 
-    # --- "Who can govern": the interactive's full analysis, computed from ---
-    # the published 5,000-draw run (discovered combinations, passenger
-    # filter, cushion, stability, survivability) so the forecast page shows
-    # the same table the simulator builds live.
+    def tok(name, value, fmt, source=SRC):
+        return f"{{{{@{name}={value};{fmt};{source}}}}}"
+
+    def chance(name, value, source=SRC):
+        return tok(name, f"{float(value):.6f}", "chance", source)
+
+    def seats(name, value, source=SRC):
+        return tok(name, int(round(float(value))), "int", source)
+
+    def esc(s):
+        return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+    # --- tiles --------------------------------------------------------------
+    tiles = [
+        (chance("tile.p_alone", p_alone), "One party reaches a majority alone", ""),
+        (chance("tile.p_anc_da", anc_da["p"]),
+         "ANC + DA have a majority — the only two-party combination that reliably "
+         "reaches one", ""),
+        (chance("tile.p_da_largest", p_da_largest), "The DA is the largest single party", ""),
+        (chance("tile.p_anc_largest", p_anc_largest), "The ANC is the largest single party", ""),
+        (chance("tile.p_anc_excessive", p_excessive, "forecast_summary.json p_excessive_by_party"),
+         "The ANC triggers the excessive-seats clause",
+         "Keeps every ward it wins, takes zero list seats — everyone else squeezed"),
+    ]
+    tiles_html = "".join(
+        f'<div class="stat"><div class="n">{n}<span class="chancew"> of simulations</span></div>'
+        f'<div class="l">{l}{f"<span class=sub>{sub}</span>" if sub else ""}</div></div>'
+        for n, l, sub in tiles)
+    tiles_html += ('<div class="stat"><div class="n">{{council_size}} · {{majority}}</div>'
+                   '<div class="l">Total seats · majority threshold'
+                   '<span class="sub">The excessive-seats law keeps the council at {{council_size}}</span>'
+                   '</div></div>')
+
+    # --- where the parties land: ordered by median, then mean ----------------
+    others = sum(S[p] for p in parties if p not in CHART_PARTIES)
+    chart = [(NAMES[p], CHIPS[p], S[p], p) for p in CHART_PARTIES if p in S]
+    chart.sort(key=lambda c: (-np.median(c[2]), -c[2].mean()))
+    chart.append(("Others", "#8b918b", others, "OTHERS"))
+    MAX = 125
+    seats_html = ""
+    for name, chip, series, code in chart:
+        med, lo, hi = q(series)
+        seats_html += (
+            f'<div class="row"><div class="pname"><span class="chip" '
+            f'style="background:{chip}"></span>{name}</div>'
+            f'<div class="track"><span class="band" style="left:{lo / MAX * 100:.2f}%;'
+            f'width:{(hi - lo) / MAX * 100:.2f}%"></span><span class="med" '
+            f'style="left:calc({med / MAX * 100:.2f}% - 1.5px)"></span></div>'
+            f'<div class="val"><b>{seats(f"seats.{code}.median", med)}</b> '
+            f'<span style="color:var(--ink-3)">{seats(f"seats.{code}.p5", lo)}–'
+            f'{seats(f"seats.{code}.p95", hi)}</span></div></div>')
+
+    # --- who can govern ------------------------------------------------------
     means = {p: float(S[p].mean()) for p in parties}
-    # Every party `seat_draws.csv` tracks. A cap of 12 dropped VF+ (mean 2.2
-    # seats) and flipped the DA's all-together row from 53.7% to 48.6%.
-    top = [p for p in sorted(parties, key=lambda q: -means[q]) if means[p] >= 0.4]
+    top = [p for p in sorted(parties, key=lambda q_: -means[q_]) if means[p] >= 0.4]
     nT = len(top)
-    med_of = {p: int(round(np.median(S[p]))) for p in parties}
     _sum_cache: dict[int, np.ndarray] = {}
 
     def msum(m):
         if m not in _sum_cache:
-            tot = None
+            tot = np.zeros(N, dtype=int)
             for k in range(nT):
                 if m & (1 << k):
-                    tot = S[top[k]] if tot is None else tot + S[top[k]]
+                    tot = tot + S[top[k]]
             _sum_cache[m] = tot
         return _sum_cache[m]
 
-    def wp(m):
-        return float((msum(m) >= thr).mean())
+    def members_of(m):
+        return [top[k] for k in range(nT) if m & (1 << k)]
 
-    def chip_of(p, extra=""):
-        c = CHIPS.get(p, "#8b918b")
-        return (f'<span class="chip" style="background:{c};display:inline-block;'
-                f'width:8px;height:8px;border-radius:2px;margin-right:4px">'
-                f'</span>{extra or NAMES.get(p, p)}')
-
-    def glabel(m):
-        return " + ".join(chip_of(top[k]) for k in range(nT) if m & (1 << k))
-
-    def mask_of(codes):
-        m = 0
-        for c in codes:
-            if c in top:
-                m |= 1 << top.index(c)
-        return m
-
-    def detail(m, med, barred=frozenset()):
-        """Cushion, stability and survivability for one coalition mask."""
-        cushion = med - 136
-        if cushion <= 0:
-            return f"{'+' if cushion > 0 else ''}{cushion}", "—", "—"
-        members = [top[k] for k in range(nT) if m & (1 << k)]
-        overall = min(100.0, cushion / med * 100)
-        per = ", ".join(
-            f"{min(100.0, cushion / max(med_of[p], 1) * 100):.0f}%&nbsp;of&nbsp;"
-            f"{NAMES.get(p, p)}" for p in members)
-        stab = (f"<b>{overall:.0f}%</b> of all councillors can defect"
-                f'<div style="font-size:11px;color:var(--ink-3);margin-top:2px">'
-                f"survives defection of {per}</div>")
-        bits = []
-        for p in members:
-            low = 1 << top.index(p)
-            if wp(m ^ low) >= 0.5:
-                bits.append(f"survives {NAMES.get(p, p)} exit")
-                continue
-            rescue = None
-            for j in range(nT):
-                # a party the group rules out cannot be the rescuer
-                if m & (1 << j) or top[j] in barred:
-                    continue
-                restore = wp((m ^ low) | (1 << j))
-                if restore >= 0.5 and (rescue is None or restore > rescue[1]):
-                    rescue = (top[j], restore)
-            bits.append(f"{NAMES.get(p, p)} exit survivable only if "
-                        f"{NAMES.get(rescue[0], rescue[0])} steps in" if rescue
-                        else f"{NAMES.get(p, p)} exit breaks it")
-        return f"+{cushion}", stab, "; ".join(bits)
-
-    def smallest_share(m):
-        """Share of draws in which `m` is a SMALLEST workable majority: it
-        reaches the threshold and loses it if any one member leaves."""
-        tot = msum(m)
+    def smallest(m, tot):
         ok = tot >= thr
-        for k in range(nT):
-            if m & (1 << k):
-                ok &= (tot - S[top[k]]) < thr
-        return float(ok.mean())
+        for p in members_of(m):
+            ok &= (tot - S[p]) < thr
+        return ok
 
-    def row(m, key=False, label=None, barred=frozenset()):
-        med = int(round(np.median(msum(m))))
-        cushion, stab, surv = detail(m, med, barred)
-        return {"key": key, "label": label or glabel(m), "p": wp(m),
-                "mwc": smallest_share(m), "med": med, "cushion": cushion,
-                "stab": stab, "surv": surv}
-
-    # Two questions a reader asks, not one ranked list. Ranking every pair and
-    # triple by P(majority) filled the table with DA + ANC + <anyone>, and the
-    # old p >= 0.5 filter could never show a DA option without the ANC at all.
-    # Each group lists the SMALLEST workable majorities available to its anchor
-    # from the parties it is not barred from — mathematics only; how politically
-    # likely any deal is stays the reader's judgement.
     from itertools import combinations
-    GROUPS = (("The DA without the ANC, EFF or MK", "DA", {"ANC", "EFF", "MK"}),
-              ("The ANC without the DA", "ANC", {"DA"}))
-    SHOW, MIN_SHARE, MAX_PARTNERS = 6, 0.01, 4
-    out_rows = [row(mask_of(("ANC", "DA")), key=True)]
-    for title, anchor, barred in GROUPS:
-        if anchor not in top:
-            continue
-        pool = [i for i, p in enumerate(top) if p != anchor and p not in barred]
-        base = 1 << top.index(anchor)
-        cands = []
-        for k in range(1, MAX_PARTNERS + 1):
-            for combo in combinations(pool, k):
-                m = base
-                for i in combo:
-                    m |= 1 << i
-                s = smallest_share(m)
-                if s >= MIN_SHARE:
-                    cands.append((s, m))
-        cands.sort(key=lambda sm: -sm[0])
-        out_rows.append({"group": title})
-        out_rows += [row(m, barred=barred) for _, m in cands[:SHOW]]
-        everyone = base
-        for i in pool:
-            everyone |= 1 << i
-        out_rows.append(row(everyone, key=True, barred=barred,
-                            label=f"All of them together: {glabel(everyone)}"))
-    note = ("“Majority in” is the share of simulations in which the combination reaches "
-            "the 136 needed. “Smallest form in” is the share in which it does so with no "
-            "passenger — lose any one partner and the majority goes. A simulation can have "
-            "several smallest forms, so that column does not add to 100%. The simulations "
-            f"track {nT} parties individually; the rest hold {270 - sum(means.values()):.0f} "
-            "seats on average between them and are left out of every row, so the "
-            "all-together rows understate what a broader deal could reach.")
-    gen["govern"] = {"rows": out_rows, "note": note}
+    # One simulation in twenty, and at most five parties: at 1% there were 1,049
+    # rows (191 even capped at four parties) — unreadable, and a ledger row for
+    # every figure in each. At 5% the list is 90 rows and still carries every
+    # DA-without-the-ANC option that is ever a smallest majority that often.
+    # Presentation, set 2026-09-17; the owner can move it.
+    MIN_SMALLEST, MAX_SIZE = 0.05, 5
+    cands = {}
+    for k in range(2, MAX_SIZE + 1):
+        for combo in combinations(range(nT), k):
+            m = sum(1 << i for i in combo)
+            tot = msum(m)
+            s = float(smallest(m, tot).mean())
+            if s >= MIN_SMALLEST:
+                cands[m] = s
+            else:
+                _sum_cache.pop(m, None)
+
+    def label(m):
+        return " + ".join(
+            f'<span class="chip" style="background:{CHIPS.get(p, "#8b918b")};display:inline-block;'
+            f'width:8px;height:8px;border-radius:2px;margin-right:4px"></span>{NAMES.get(p, p)}'
+            for p in members_of(m))
+
+    rows_out = []
+    for m, s in sorted(cands.items(), key=lambda ms: -float((msum(ms[0]) >= thr).mean())):
+        tot = msum(m)
+        win = tot >= thr
+        key = "+".join(members_of(m))
+        p_major = float(win.mean())
+        med_w = int(np.median(tot[win]))
+        cushion = med_w - int(np.median(thr))
+        stab = min(100.0, max(cushion, 0) / med_w * 100)
+        surv = []
+        for p in members_of(m):
+            left = float(((tot - S[p]) >= thr)[win].mean())
+            surv.append(f"{NAMES.get(p, p)} leaves: majority holds in "
+                        + chance(f"coal.{key}.survive.{p}", left,
+                                 f"{SRC}, among those where this combination wins"))
+        cond = f"{SRC}, among the simulations where this combination wins"
+        rows_out.append(
+            f'<tr data-parties="{" ".join(members_of(m))}" data-p="{p_major:.4f}">'
+            f"<td>{label(m)}</td>"
+            f'<td class="num">{chance(f"coal.{key}.majority", p_major)}</td>'
+            f'<td class="num">{chance(f"coal.{key}.smallest", s)}</td>'
+            f'<td class="num">{seats(f"coal.{key}.seats_when_wins", med_w, cond)}</td>'
+            f'<td class="num">+{seats(f"coal.{key}.cushion_when_wins", cushion, cond)}</td>'
+            f'<td style="font-size:12px">{tok(f"coal.{key}.stability", f"{stab / 100:.4f}", "pct0", cond)}'
+            f" of its councillors could defect</td>"
+            f'<td style="font-size:12px">{"<br>".join(surv)}</td></tr>')
+    govern_html = "\n".join(rows_out)
+    govern_parties = [p for p in top if any(p in members_of(m) for m in cands)]
+    filter_html = "".join(
+        f'<option value="{p}">{NAMES.get(p, p)}</option>' for p in govern_parties)
+    untracked = 270 - sum(means.values())
+    govern_note = (
+        f"Every combination listed is a smallest workable majority in at least 1 in 20 of the "
+        f"{{{{n_draws}}}} simulations: it reaches the majority, and loses it if any one partner leaves. "
+        f"“Majority in” is the share of simulations in which it has the numbers; "
+        f"“Smallest form in” the share in which it has them with no passenger. Seats, cushion, "
+        f"stability and survivability are measured only over the simulations in which the "
+        f"combination wins. These are shares of simulations, not vote shares and not the "
+        f"chance a deal is made. The simulations track {tok('govern.tracked_parties', nT, 'int')} "
+        f"parties individually; the rest hold {tok('govern.untracked_seats', f'{untracked:.2f}', 'int')} "
+        f"seats on average and are left out of every combination.")
+
+    # --- minority administrations ---------------------------------------------
+    minority_rows = summary["minority"]
+    minority_html = "".join(
+        f"<tr><td>{esc(m['scenario'])}</td><td class=\"num\">"
+        f"{chance('minority.' + re.sub(r'[^A-Za-z0-9]+', '_', m['scenario']).strip('_'), m['p_viable'], 'forecast_summary.json minority')}"
+        f"</td></tr>" for m in minority_rows)
+
+    regions = {"TILES": tiles_html, "SEATS": seats_html, "GOVERN": govern_html,
+               "GOVERN_FILTER": filter_html, "GOVERN_NOTE": govern_note,
+               "MINORITY": minority_html}
 
     # --- claims tested: rendered from content/<city>/claims.toml ----------
     # Claims are data so the newsdesk can propose one as a diff. Verdicts
@@ -300,7 +293,7 @@ def main(argv: list[str] | None = None) -> int:
         claims_html = ("<!-- __CLAIMS_START__ -->\n    "
                        + "\n    ".join(boxes)
                        + "\n    <!-- __CLAIMS_END__ -->")
-        for tgt in (Path("forecast-sheet.html"), Path("drafts/forecast-draft.html")):
+        for tgt in PAGES:
             t = tgt.read_text(encoding="utf-8")
             if "__CLAIMS_START__" in t:
                 a = t.index("<!-- __CLAIMS_START__ -->")
@@ -383,7 +376,7 @@ def main(argv: list[str] | None = None) -> int:
     <figcaption>{ballots_caption}</figcaption>
   </details>
   <!-- __BALLOTS_END__ -->"""
-    for tgt in (Path("forecast-sheet.html"), Path("drafts/forecast-draft.html")):
+    for tgt in PAGES:
         s = tgt.read_text(encoding="utf-8")
         if "__BALLOTS_START__" in s:
             a = s.index("<!-- __BALLOTS_START__ -->")
@@ -479,7 +472,7 @@ def main(argv: list[str] | None = None) -> int:
             f'<thead><tr><th></th>{head}</tr><tr>{sub}</tr></thead>'
             f"<tbody>{body}</tbody></table></div>\n"
             "    <!-- __REGIMES_END__ -->")
-        for tgt in (Path("forecast-sheet.html"), Path("drafts/forecast-draft.html")):
+        for tgt in PAGES:
             s = tgt.read_text(encoding="utf-8")
             if "__REGIMES_START__" in s:
                 a = s.index("<!-- __REGIMES_START__ -->")
@@ -488,18 +481,18 @@ def main(argv: list[str] | None = None) -> int:
         print("regimes table:", " · ".join(
             f"{lab}: council {cm}, thr {tm}" for lab, _, _, cm, tm in regimes))
 
-    html = args.sheet.read_text(encoding="utf-8")
-    start = html.index("// __GEN_START__")
-    start = html.index("\n", start) + 1
-    end = html.index("// __GEN_END__")
-    block = f"const GEN = {json.dumps(gen, indent=1)};\n"
-    args.sheet.write_text(html[:start] + block + html[end:], encoding="utf-8")
-
-    print(f"rewrote GEN block in {args.sheet}:")
-    for t in gen["tiles"]:
-        print(f"  tile {t['n']:>5s}  {t['l'][:60]}")
-    for c in gen["coalitions"]:
-        print(f"  {c['name']:<42s} P={c['p']:.1%}  {c['med']} [{c['lo']}–{c['hi']}]")
+    for tgt in PAGES:
+        if not tgt.exists():
+            continue
+        page = tgt.read_text(encoding="utf-8")
+        for name, body in regions.items():
+            s, e = f"<!-- __{name}_START__ -->", f"<!-- __{name}_END__ -->"
+            if s in page:
+                i, j = page.index(s) + len(s), page.index(e)
+                page = page[:i] + "\n" + body + "\n" + page[j:]
+        tgt.write_text(page, encoding="utf-8")
+    print(f"rendered {len(regions)} regions into {args.sheet}: "
+          f"{len(rows_out)} coalitions, {len(chart)} party rows")
     return 0
 
 

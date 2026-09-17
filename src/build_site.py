@@ -436,6 +436,7 @@ def _ledger_candidates(published: list[dict], ledger: dict, ident: dict,
             "token": name, "movement": movement,
             "value": occ["value"], "display": occ["display"],
             "previous": None if prev is None else prev.display,
+            "previous_value": None if prev is None else prev.value,
             "previous_published_at": None if prev is None else prev.published_at,
             "fmt": occ.get("fmt"), "source": occ.get("source", ""),
             "mode": occ.get("mode"), "pages": pages[name],
@@ -797,6 +798,17 @@ def main(argv: list[str] | None = None) -> int:
         if numbers or claims:
             print(f"  --- {page}")
             print(statlib.audit_report(numbers, claims, limit=6))
+    script_problems = [f"{page}: {w}" for page in sorted(scans)
+                       if (args.out / page).is_file()
+                       for w in statlib.script_writes((args.out / page).read_text(encoding="utf-8"))]
+    if script_problems:
+        print("\nPAGE SCRIPT WRITES FIGURES — refusing to build: every figure must be "
+              "rendered at build time as a token, where it has provenance, a ledger "
+              "row and a scan:")
+        for w in script_problems:
+            print(f"  ✗ {w}")
+        raise SystemExit(1)
+
     # THE NUMBER REVIEW FILE — committed, regenerated every build, so a git diff
     # shows every number that appeared, changed or vanished on the site. Owner,
     # 2026-09-17: "even when we type in by hand, we should be able to scrape
@@ -877,6 +889,52 @@ def main(argv: list[str] | None = None) -> int:
     # published before. Found in blind review 2026-08-31; the print two lines
     # below already counted new separately and this did not.
     moved = [c for c in changes if c["movement"] not in ("none", "new")]
+
+    # THE ARROWS. The ledger has classified every figure against the last
+    # publication since 2026-08-31, and nothing ever drew it: the reader-facing
+    # half of "what changed" did not exist (found 2026-09-17). A figure that
+    # moved visibly gets ▲/▼ (◆ when a string changed) and a tooltip naming what
+    # it was and when; a first publication and a sub-precision move get nothing.
+    import html as _html
+    import re as _re
+    arrows = {}
+    for c in changes:
+        if c["movement"] not in ("material", "minor", "nominal") or c["previous"] is None:
+            continue
+        try:
+            glyph = "▲" if float(c["value"]) > float(c["previous_value"]) else "▼"
+        except (TypeError, ValueError):
+            glyph = "◆"
+        was = (f"was {c['previous']} on {str(c['previous_published_at'])[:10]}")
+        arrows[c["token"]] = (glyph, was)
+    if arrows:
+        for page in sorted({p for c in changes for p in c["pages"]}):
+            f = args.out / page
+            if not f.is_file():
+                continue
+            text = f.read_text(encoding="utf-8")
+
+            def _mark(m):
+                glyph, was = arrows[m.group(2)]
+                cls = {"▲": "up", "▼": "down"}.get(glyph, "changed")
+                return (m.group(0) + f'<span class="mstat-move {cls}" '
+                        f'title="{_html.escape(was, quote=True)}">{glyph}</span>')
+            text = _re.sub(r'(<span class="mstat"[^>]*data-token="([^"]+)"[^>]*>[^<]*</span>)',
+                           lambda m: _mark(m) if m.group(2) in arrows else m.group(0), text)
+            f.write_text(text, encoding="utf-8")
+        # the pages changed, so the number review's page stamp must follow them
+        import hashlib as _hashlib
+        stamp = _re.compile(r"<!-- built-pages: (.*?) blocking=(\d+) -->")
+        body = review_path.read_text(encoding="utf-8")
+        m = stamp.search(body)
+        if m:
+            shas = " ".join(
+                f"{k}={_hashlib.sha256((args.out / k).read_bytes()).hexdigest()}"
+                for k in (pair.split("=", 1)[0] for pair in m.group(1).split()))
+            review_path.write_text(stamp.sub(
+                f"<!-- built-pages: {shas} blocking={m.group(2)} -->", body, count=1),
+                encoding="utf-8")
+    print(f"  arrows: {len(arrows)} figure(s) marked as moved since the last publication")
 
     # NEW IS COUNTED SEPARATELY FROM CHANGED, because they are different
     # sentences to a reader and `summarise` is right to keep them apart: a

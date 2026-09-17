@@ -1731,3 +1731,37 @@ nothing.
 A change to a mechanism belongs in the docstring AND here. A change to a
 *number* belongs in JUDGEMENT-CALLS.md. A finding — including a rejected one —
 belongs in MODEL-LOG.md.
+
+## Per-simulation outputs, the scenario tool, and build-time page figures (2026-09-17)
+
+**What the Monte Carlo writes now.** Besides `seat_draws.csv`,
+`ward_winner_probs.csv` and `forecast_summary.json`, `montecarlo.main` writes:
+
+| file | one row per | columns |
+|---|---|---|
+| `ward_draws.csv` | simulation | `draw`, then the winning party code for every ward |
+| `seat_detail_draws.csv` | simulation × party with seats | `ward_seats`, `list_seats` (= seats − wards), `seats`, `excessive` (1 if the excessive-seats clause fired for it) |
+
+They only record what `run_model` already computed and threw away, so they
+change no draw. This was verified on seed 20261104: the published
+`seat_draws.csv` and `ward_winner_probs.csv` were byte-identical, and the
+summary matched except for `_generated`.
+
+**`src/scenarios.py`** reads them back: `scenarios.py "DA>=136"` lists the
+matching simulations with each party's ward/list split and the wards won by
+someone other than their modal winner. Every narrative claim about a scenario
+should cite simulations found this way. The model is over-confident at ward
+level, so a simulation's ward map looks more settled than an election would.
+
+**Page figures are rendered at build time, never by script.** `render_sheet.py`
+writes each figure as a generated token `{{@name=value;fmt;source}}`.
+`stats.render` turns it into the same provenance span as a registry token and
+records it for the publication ledger. The format `chance` never prints 100% or
+0%. `stats.script_writes` makes the build refuse a page whose script holds a
+data block, injects HTML or interpolates template text. The live 31 August page
+had 12 such violations.
+
+**Arrows.** After ledger classification, `build_site` marks each figure that
+moved visibly since the last publication (▲/▼, ◆ for a changed string), with a
+"was X on <date>" tooltip. It then re-stamps the page hashes in
+`NUMBERS-REVIEW.md`, so `deploy_check` still matches the pages.

@@ -177,6 +177,36 @@ def _run_stamp() -> str:
 # T1 — every live token on the page still says what the model says
 # --------------------------------------------------------------------------
 
+_GENERATED_NOW: dict | None = None
+
+
+def generated_now() -> dict[str, str]:
+    """Every generated token as `render_sheet.py` would render it TODAY.
+
+    Generated figures carry their value inline and have no registry entry, so
+    the registry cannot re-derive them. This does instead: regenerate the sheet
+    into a scratch copy from the current `data/processed`, render it, and read
+    the spans back. Nothing in the tree is written.
+    """
+    global _GENERATED_NOW
+    if _GENERATED_NOW is None:
+        import shutil
+        import subprocess
+        import tempfile
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as tmp:
+            sheet = Path(tmp) / "forecast-sheet.html"
+            shutil.copy(root / "forecast-sheet.html", sheet)
+            r = subprocess.run([str(root / ".venv/bin/python"), str(root / "src/render_sheet.py"),
+                                "--sheet", str(sheet)], capture_output=True, text=True, cwd=root)
+            assert r.returncode == 0, r.stdout[-800:] + r.stderr[-800:]
+            text, _, _ = statlib.render(sheet.read_text(encoding="utf-8"), _registry(),
+                                        statlib.load_context(PROCESSED))
+        _GENERATED_NOW = {s.get("data-token", ""): s["rendered"] for s in _spans(text)
+                          if s.get("data-mode") == "generated"}
+    return _GENERATED_NOW
+
+
 def live_token_faults(pages: dict[str, str], registry: dict,
                       ctx: dict) -> tuple[list[dict], int]:
     """Free spans whose rendered glyph is not what the model says now.
@@ -190,6 +220,16 @@ def live_token_faults(pages: dict[str, str], registry: dict,
     checked = 0
     for page in sorted(pages):
         for span in _spans(pages[page]):
+            if span.get("data-mode") == "generated":
+                token = span.get("data-token", "")
+                now = generated_now().get(token)
+                checked += 1
+                if now != span["rendered"]:
+                    faults.append({"page": page, "token": token,
+                                   "rendered": span["rendered"], "live": now,
+                                   "source": "render_sheet.py, regenerated now",
+                                   "used_in": "", "why": "moved" if now else "unresolvable"})
+                continue
             if span.get("data-mode") != "free":
                 continue
             token = span.get("data-token", "")

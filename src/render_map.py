@@ -322,8 +322,12 @@ def main(argv: list[str] | None = None) -> int:
       <svg width="18" height="12">{key_swatch(3.2)}</svg>
       <b>Leaning</b>&nbsp;60–75% ({called['lean']})</span>
     <span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
-      <svg width="18" height="12"><rect width="18" height="12" rx="2" fill="{GREY}"/></svg>
-      <b>Toss-up</b>&nbsp;under 60% ({called['grey']})</span>"""
+      <svg width="18" height="12"><rect width="9" height="12" fill="{CHIPS['ANC']}"/><rect x="9" width="9" height="12" fill="{CHIPS['DA']}"/></svg>
+      <b>Too close to call</b>&nbsp;no party wins 60% ({called['grey']})</span>
+    <br><span style="font-size:12px;color:var(--ink-3)">Every percentage is a share of the
+      {{{{n_draws}}}} simulations, not a vote share. <b>Stripes</b> are the other parties that win the
+      ward in at least 1 in 10 simulations — the thicker the stripe, the more often. A too-close-to-call
+      ward is banded by its contenders, each band as wide as its share of wins.</span>"""
 
     snippet = f"""{MARK_START}
   <details class="rollup" data-band="forecast" open>
