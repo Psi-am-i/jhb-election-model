@@ -46,6 +46,21 @@
       "value": 44
     },
     {
+      "display": "24",
+      "fmt": "int",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "external:the panel we aim to score \u2014 8 metros x 3 elections (2011, 2016, 2021)",
+      "token": "backtest_target",
+      "value": 24
+    },
+    {
       "display": "64%",
       "fmt": "chance",
       "mode": "generated",
@@ -2879,7 +2894,52 @@
       "previous_value": null,
       "source": "model:_generated",
       "token": "generated_date",
-      "value": "2026-09-17T00:34:05Z"
+      "value": "2026-09-17T21:03:42Z"
+    },
+    {
+      "display": "10",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "govern.anc_routes",
+      "value": 10.0
+    },
+    {
+      "display": "4",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "govern.anc_routes_strong",
+      "value": 4.0
+    },
+    {
+      "display": "13%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "govern.da_best_without",
+      "value": 0.1282
     },
     {
       "display": "13",
@@ -3002,6 +3062,21 @@
       "source": "derived:n_draws",
       "token": "n_draws",
       "value": 5000
+    },
+    {
+      "display": "872",
+      "fmt": "comma",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "model:n_vds",
+      "token": "n_vds",
+      "value": 872
     },
     {
       "display": "0.1%",
@@ -3742,14 +3817,14 @@
   ],
   "city": "joburg",
   "run": {
-    "as_of": "2026-09-17T00:34:05Z",
+    "as_of": "2026-09-17T21:03:42Z",
     "as_of_is": "run time; no input cut-off is recorded yet",
     "draws": 5000,
-    "forecast_content_sha256": "69aa3a5ede06991e76ac2b17a8d09b89379e59063e1675b5ae11759180caf38d",
-    "forecast_summary_sha256": "00e8929f7eb25250467a68880a95e5c2f93883380137281c8d01d3ced9ddec34",
-    "git_commit": "b8cc0fbda8b609a8535b9559f3e98a56590c39b6",
+    "forecast_content_sha256": "38892d3ae100625ab855bb8c5e722ccb328364c386849dd9830ef86ad10efba9",
+    "forecast_summary_sha256": "cc19665846cbd4c50e2c22cf3c7c8f5fc3e8cc5c1b1931787f2a6a3a9a3172d6",
+    "git_commit": "d0a3f2c812bb0428a59597c0f65da1bb66cca5d3",
     "git_dirty": true,
-    "model_run_id": "r-69aa3a5ede06-b8cc0fbd-dirty",
+    "model_run_id": "r-38892d3ae100-d0a3f2c8-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
@@ -3807,7 +3882,7 @@
         "target": "2026"
       }
     },
-    "run_at": "2026-09-17T00:34:05Z",
+    "run_at": "2026-09-17T21:03:42Z",
     "seat_draws_sha256": "6cae35771bc020525158c1733a22b7e9c2c0147bfc9dae86b2dcfd307749207c"
   },
   "summary": {
@@ -3816,6 +3891,7 @@
         "anc_entitlement",
         "anc_ward_median",
         "asa_2021_seats",
+        "backtest_target",
         "ballots.p_anc_excessive",
         "ballots.typical.anc_list",
         "ballots.typical.anc_wards",
@@ -4005,6 +4081,9 @@
         "coal.DA+MK+PA.survive.PA",
         "council_size",
         "generated_date",
+        "govern.anc_routes",
+        "govern.anc_routes_strong",
+        "govern.da_best_without",
         "govern.tracked_parties",
         "govern.untracked_seats",
         "majority",
@@ -4013,6 +4092,7 @@
         "minority.DA_minority_ANC_EFF_MK_oppose",
         "minority.DA_minority_only_ANC_opposes_2021_pattern",
         "n_draws",
+        "n_vds",
         "p_alone",
         "p_anc_da",
         "p_anc_largest",
@@ -4064,7 +4144,7 @@
         "tile.p_da_largest"
       ]
     },
-    "n": 249,
+    "n": 254,
     "n_rounding": 0,
     "n_visible": 0,
     "nominal": []

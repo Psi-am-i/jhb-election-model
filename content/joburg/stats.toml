@@ -524,3 +524,294 @@ captured = "2026-08-31"
 used_in = "Wards, lists article, as published"
 unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
 historical = "published 31 August 2026; kept as the original of a written piece, with a Since-then box"
+
+[backtest_target]
+mode = "fixed"
+value = 24
+format = "int"
+source = "external:the panel we aim to score — 8 metros x 3 elections (2011, 2016, 2021)"
+captured = "2026-09-17"
+used_in = "methodology — the backtest we aim for, not the panel on any given day"
+unverifiable = "a target, not a measurement: what the panel holds today is whatever compare_history reports"
+
+[n_vds]
+mode = "free"
+source = "model:n_vds"
+format = "comma"
+inserted = "2026-09-17"
+used_in = "methodology — the voting districts each run actually uses (was 'roughly 865'; the run reports 872)"
+# Registered 2026-09-17 after the owner's review of the blocking numbers.
+# Each is a fact the model does not produce: a rule, a record, a quote or a
+# stated convention. The context is the phrase it must appear inside.
+[[audit.fixed]]
+value = "4 November 2026"
+context = "Forecast · City of Johannesburg · 4 November 2026 A rarely-used clause in our votin"
+kind = "rule"
+source = "IEC proclamation of the 2026 local government elections"
+reviewed = "2026-09-17"
+page = "index.html"
+
+[[audit.fixed]]
+value = "31"
+context = "the ANC in — a near tie, where on 31 August the DA led clearly. A sing"
+kind = "history"
+source = "the date of the published edition this piece is compared against"
+reviewed = "2026-09-17"
+page = "index.html"
+
+[[audit.fixed]]
+value = "1"
+context = "excessive seats\" clause (Schedule 1, item 16, completed by a 2021 ame"
+kind = "rule"
+source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
+reviewed = "2026-09-17"
+page = "index.html"
+
+[[audit.fixed]]
+value = "16"
+context = "e seats\" clause (Schedule 1, item 16, completed by a 2021 amendment) s"
+kind = "rule"
+source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
+reviewed = "2026-09-17"
+page = "index.html"
+
+[[audit.fixed]]
+value = "four"
+context = "the DA won three of Laingsburg's four wards on just 23% of the vote, a"
+kind = "history"
+source = "IEC Seat Calculation Detail, Laingsburg 2021"
+reviewed = "2026-09-17"
+page = "index.html"
+
+[[audit.fixed]]
+value = "52,000"
+context = "them: the DA's bloc actually lost 52,000 votes of its own over the same st"
+kind = "history"
+source = "MODEL-LOG 1.18 — DA-bloc vote change, 2019 NPE to 2021 LGE"
+reviewed = "2026-09-17"
+page = "index.html"
+
+[[audit.fixed]]
+value = "4,450"
+context = "means the thing occurred in about 4,450 of the runs. The ranges beside ea"
+kind = "convention"
+source = "a worked illustration of what a share of simulations means"
+reviewed = "2026-09-17"
+page = "index.html"
+
+[[audit.fixed]]
+value = "1"
+context = "n pending. We located both the 2021 amendment that completes Schedule"
+kind = "rule"
+source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
+reviewed = "2026-09-17"
+page = "index.html"
+
+[[audit.fixed]]
+value = "490,000"
+context = "ess Day, March 2026 FALSE We need 490,000 registered DA voters to go vote D"
+kind = "quote"
+source = "Helen Zille, Business Day, March 2026 (the claim under test)"
+reviewed = "2026-09-17"
+page = "index.html"
+
+[[audit.fixed]]
+value = "30"
+context = "of them. In the DA takes at least 30 of the ANC's usual wards and the"
+kind = "model"
+source = "seat_detail_draws.csv — the DA-majority simulations"
+reviewed = "2026-09-17"
+page = "index.html"
+
+[[audit.fixed]]
+value = "1"
+context = "uncil seats · majority · Schedule 1 item 16 applied Johannesburg · 20"
+kind = "rule"
+source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
+reviewed = "2026-09-17"
+page = "index.html"
+
+[[audit.fixed]]
+value = "16"
+context = "eats · majority · Schedule 1 item 16 applied Johannesburg · 2026 Local"
+kind = "rule"
+source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
+reviewed = "2026-09-17"
+page = "index.html"
+
+[[audit.fixed]]
+value = "3"
+context = "is tightly concentrated: it wins 3 wards outright, but its overall s"
+kind = "convention"
+source = "a worked example of the excessive-seats clause"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "2"
+context = "both ballots entitles it to only 2 seats. Nobody unseats a ward winn"
+kind = "convention"
+source = "a worked example of the excessive-seats clause"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "3"
+context = "ward winner — the party keeps all 3, and the seat law’s “excessive se"
+kind = "convention"
+source = "a worked example of the excessive-seats clause"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "1"
+context = "excessive seats” clause (Schedule 1, item 16, completed by a 2021 ame"
+kind = "rule"
+source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "16"
+context = "e seats” clause (Schedule 1, item 16, completed by a 2021 amendment) s"
+kind = "rule"
+source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "2022"
+context = "— taken per ward from the Census 2022 Ward Statistical Product. We use"
+kind = "history"
+source = "Stats SA Census 2022 Ward Statistical Product"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "300,000"
+context = "s a lot: the census implies about 300,000 white adults in Johannesburg whil"
+kind = "history"
+source = "Stats SA Census 2022 ward estimates against the IEC voters' roll; DATA-QUALITY.md item 11"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "560,000"
+context = "rg while the roll carries roughly 560,000 registered white voters. We publi"
+kind = "history"
+source = "Stats SA Census 2022 ward estimates against the IEC voters' roll; DATA-QUALITY.md item 11"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "one"
+context = "e name, so where several stand in one ward they cannot be told apart, a"
+kind = "convention"
+source = "a statement of how independents are recorded, not a count"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "5 August 2026"
+context = "ple. We put the question to it on 5 August 2026 and are awaiting an answer; a 202"
+kind = "history"
+source = "the date the question was put to the Electoral Commission"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "five"
+context = "the two routes are close to even, five parties to four. ActionSA is the"
+kind = "history"
+source = "MODEL-LOG — the two routes tested at 2021"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "12 September 2026"
+context = "in the forecast. This changed on 12 September 2026, and before that date polls were"
+kind = "history"
+source = "MODEL-LOG 1.244 — the date polls left the forecast"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "2026-08-22"
+context = "after that stopped being true on 2026-08-22, which is the most serious error"
+kind = "history"
+source = "MODEL-LOG — the date the methodology's poll statement stopped being true"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "12"
+context = "en out. Polls were an input until 12 September. Removing them is not a"
+kind = "history"
+source = "MODEL-LOG 1.244 — the date polls left the forecast"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "six"
+context = "ions moved at all, one of them by six seats against the change. The hon"
+kind = "history"
+source = "MODEL-LOG 1.244 — the poll-removal comparison"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "-2021"
+context = "record here to weight them by; pre-2021 polling missed ActionSA in this c"
+kind = "history"
+source = "POLLING.md — metro polling before 2021 missed ActionSA"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "two"
+context = "23% of the vote, a share entitling it to only two seats"
+kind = "history"
+source = "IEC Seat Calculation Detail, Laingsburg 2021"
+reviewed = "2026-09-17"
+
+[[audit.fixed]]
+value = "three"
+context = "the DA kept all three wards"
+kind = "history"
+source = "IEC Seat Calculation Detail, Laingsburg 2021"
+reviewed = "2026-09-17"
+
+[[audit.fixed]]
+value = "four"
+context = "for everyone else over the four seats that remained"
+kind = "history"
+source = "IEC Seat Calculation Detail, Laingsburg 2021"
+reviewed = "2026-09-17"
+
+[[audit.fixed]]
+value = "1"
+context = "Steps 1–3 describe the last election"
+kind = "convention"
+source = "a reference to this page's own numbered steps"
+reviewed = "2026-09-17"
+
+[[audit.fixed]]
+value = "3"
+context = "Steps 1–3 describe the last election"
+kind = "convention"
+source = "a reference to this page's own numbered steps"
+reviewed = "2026-09-17"
+
+[[audit.fixed]]
+value = "Fifteen"
+context = "Fifteen wards in Johannesburg have held by-elec"
+kind = "history"
+source = "IEC by-election records, CoJ 2021-2026"
+reviewed = "2026-09-17"
+
+[[audit.fixed]]
+value = "1"
+context = "the 2021 amendment that completes Schedule 1"
+kind = "rule"
+source = "Municipal Structures Act 117 of 1998, Schedule 1, as completed by the 2021 amendment"
+reviewed = "2026-09-17"

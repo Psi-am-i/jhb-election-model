@@ -127,6 +127,8 @@
   .mstat.tip-up:hover::after,.mstat.tip-up:focus::after{top:auto;bottom:1.5em;}
   .mstat-move{font-size:.7em;margin-left:2px;cursor:help;vertical-align:.15em;position:relative;}
   .mstat-move.up{color:#2f6d4a;} .mstat-move.down{color:#a33a2a;} .mstat-move.changed{color:var(--ink-3);}
+  .mstat-move.since{color:var(--ink-3);opacity:.75;}
+  .arrowlegend{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;}
 </style>
 <script>/*stat-tip*/document.addEventListener('mouseover',function(e){var s=e.target.closest&&e.target.closest('.mstat');if(!s)return;var r=s.getBoundingClientRect();var w=document.documentElement.clientWidth,h=document.documentElement.clientHeight;s.classList.toggle('tip-left',r.left+316>w);s.classList.toggle('tip-up',r.bottom+96>h);});</script>
 </head>
@@ -139,6 +141,7 @@
   <a href="methodology">methodology</a>
   <a class="active" href="review">review</a>
   <a href="sources">sources</a>
+  <a href="corrections">corrections</a>
   <a href="https://github.com/Psi-am-i/jhb-election-model">source-code</a>
 </nav>
 <header>
@@ -156,6 +159,14 @@ published, warts and all, in
 <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/model-review.html"><code>model-review.html</code> on GitHub</a>.
 Here is what happened, in plain language — and why we think publishing it
 makes the forecast more worth your trust, not less.</p>
+<div class="pubdate">6 August 2026: Published</div>
+
+<p><span data-asof="2026-08-06"><strong>About the numbers on this page.</strong> They describe the
+<strong>first version</strong> of the model, as it stood when the review was done. The model
+has moved on and none of them is today&rsquo;s forecast — the current numbers are on
+the front page. They are kept as published because the discussion is about how
+the errors were found and fixed, and that process is the point.</span></p>
+<p><span data-asof="2026-08-06"></p>
 <h2>The error that mattered most</h2>
 <p>The first version of the forecast declared: <em>no two- or three-party coalition
 can reach a majority except the ANC and DA together.</em> That claim was false —
@@ -172,6 +183,8 @@ nobody had thought to test — DA + EFF + MK — cleared the majority line in
 because the maths was wrong; it was wrong because a human had quietly
 filtered the question through political taste, which is exactly what the plan
 had forbidden.</p>
+<p></span>
+<span data-asof="2026-08-06"></p>
 <h2>The other five, briefly</h2>
 <ul>
 <li><strong>The plan&rsquo;s own scepticism about MK was silently discarded.</strong> The plan
@@ -202,6 +215,8 @@ had forbidden.</p>
 <p>There were also data bugs found along the way — including 87 district-year
 records where more people had voted than were registered, a sign of broken
 registration counts that had quietly poisoned the turnout projections.</p>
+<p></span>
+<span data-asof="2026-08-06"></p>
 <h2>What the fixes changed</h2>
 <p>The corrected forecast is meaningfully different from the one first computed:</p>
 <ul>
@@ -220,6 +235,8 @@ registration counts that had quietly poisoned the turnout projections.</p>
   simulations), or a DA arrangement with one of the parties it has publicly
   ruled out.</li>
 </ul>
+<p></span>
+<span data-asof="2026-08-06"></p>
 <h2>What the review could not fix</h2>
 <p>Honesty about the repairs requires honesty about the remainder. A party that
 does not yet exist cannot be forecast, only allowed for. The legal fine print
@@ -228,6 +245,8 @@ electoral commission — we put the question to the Commission on 5 August 2026 
 is judgement that no amount of testing can turn into fact: bounded by twenty
 years of observed swings, tilted by current evidence, and fully exposed as
 adjustable dials on the interactive page.</p>
+<p></span>
+<span data-asof="2026-08-06"></p>
 <h2>Why publish this at all</h2>
 <p>Because the alternative is worse. Every model contains errors; the only
 question is whether they are found, and whether anyone is told. This one was
@@ -235,6 +254,7 @@ reviewed hard enough to break, fixed in the open, and re-checked — the
 review, the fixes and the re-run are all in the public repository. A forecast
 that shows you its repair history is one you can calibrate your trust
 against. One that doesn&rsquo;t is asking you to take it on faith.</p>
+<p></span></p>
 <div class="colophon">
   Reader edition, generated from docs-public/review.md on 2026-09-17. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/model-review.html">model-review.html on GitHub</a>.
 </div>

@@ -437,9 +437,12 @@ def render(layout: Layout, probs: dict[str, dict], city_name: str = "the city") 
   <details class="rollup" data-band="forecast" data-map="cartogram" open style="display:none">
     <summary><span class="eyebrow">The same forecast, drawn by seats instead of by land</span>
     <h2>Who wins how many</h2></summary>
-    <div class="maptoggle" style="display:flex;gap:6px;margin:4px 0 10px;font-size:13px">
-      <button type="button" data-show="geo" aria-pressed="false">By land area</button>
-      <button type="button" data-show="cartogram" aria-pressed="true">Every ward the same size</button>
+    <p class="maplede">Ward races for half the council — 135 seats, first past the post. A ward needs no
+    majority: the highest total wins. Every ward elects one councillor however big or small it is, so on
+    this map each ward is drawn the same size. Switch to <b>Normal Map</b> to see them by land area.</p>
+    <div class="maptoggle">
+      <button type="button" data-show="geo" aria-pressed="false">Normal Map</button>
+      <button type="button" data-show="cartogram" class="on" aria-pressed="true">Equal Sized Wards</button>
     </div>
     <figure>
       <div style="position:relative">
@@ -456,10 +459,8 @@ def render(layout: Layout, probs: dict[str, dict], city_name: str = "the city") 
       </div>
       <figcaption style="display:flex;flex-direction:column;gap:6px">
         <span>{tier_key}</span>
-        <span>Every ward elects one councillor, so on this map every ward is the same
-        size — each hexagon sits as close to its ward's real position as the grid
-        allows. The geographic map above answers <em>where</em>; this one answers
-        <em>how many</em>. Touch or hover any
+        <span>Each hexagon sits as close to its ward's real position as the grid allows. The
+        normal map answers <em>where</em>; this one answers <em>how many</em>. Touch or hover any
         hexagon for its numbers.</span>
       </figcaption>
     </figure>

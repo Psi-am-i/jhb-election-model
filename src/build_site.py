@@ -152,6 +152,9 @@ NAV_ITEMS = [
     ("methodology", "methodology"),
     ("review", "review"),
     ("sources", "sources"),
+    # Corrections has its own place in the nav (owner, 2026-09-17): a page that
+    # only exists when someone goes looking for it is not a correction record.
+    ("corrections", "corrections"),
     # "plan" was removed from DOCS when the plan became Appendix A of
     # MODEL-LOG.md, but the nav link stayed. Every page on the site therefore
     # linked to site/plan.html — a file no build touches any more, describing
@@ -239,6 +242,12 @@ def inject_nav(html: str, active_href: str) -> str:
 
 # source markdown -> (output, kicker, standfirst)
 DOCS = {
+    "docs-public/corrections.md": (
+        "corrections.html",
+        "Corrections",
+        "Where this site published something that was wrong: what it said, "
+        "what is true, and how it happened.",
+    ),
     "docs-public/methodology.md": (
         "methodology.html",
         "Methodology",
@@ -505,7 +514,15 @@ def main(argv: list[str] | None = None) -> int:
     audits: dict[str, tuple[list[str], list[str]]] = {}
     # Every number-shaped string on every page, for the committed review file.
     scans: dict[str, list[dict]] = {}
-    scan_cfg = {"fixed": audit_cfg["fixed"], "allow": audit_cfg["allow"]}
+    # The council's own constants, from the model's outputs — never typed here.
+    _draw0 = (ctx.get("draws") or [{}])[0]
+    structural = {str(_draw0.get("council_size", "")), str(_draw0.get("threshold", "")),
+                  str(len(ctx.get("wards") or [])) if ctx.get("wards") else ""}
+    structural |= {str(cityconfig.active().wards)} if hasattr(cityconfig.active(), "wards") else set()
+    structural = {s for s in structural if s}
+    scan_cfg = {"fixed": audit_cfg["fixed"], "allow": audit_cfg["allow"],
+                "structural": structural}
+    audit_cfg = {**audit_cfg, "structural": structural}
     generated: list[str] = []
     # Every token OCCURRENCE that reached a reader, in reading order. The
     # ledger needs the raw value AND the displayed string; see `stats.render`.
@@ -913,7 +930,7 @@ def main(argv: list[str] | None = None) -> int:
         except (TypeError, ValueError):
             glyph = "◆"
         was = f"Was {c['previous']}."
-        arrows[c["token"]] = (glyph, was)
+        arrows[c["token"]] = (glyph, was, {"▲": "up", "▼": "down"}.get(glyph, "changed"))
     # Every tooltip states the figure and what the published site last said,
     # so a reader hovering any number sees whether it changed (owner, 2026-09-17:
     # "if something changes, the change should be surfaced").
@@ -934,6 +951,19 @@ def main(argv: list[str] | None = None) -> int:
     for c in changes:
         tracked = (registry_entries.get(c["token"]) or {}).get("tracks")
         if tracked:
+            # A FROZEN figure whose live counterpart has moved gets its own
+            # muted marker: the reader should see that the published number has
+            # since changed, without it being read as a move in this edition.
+            now_disp = display_now.get(tracked)
+            if now_disp and now_disp != c["display"]:
+                def _num(s):
+                    try:
+                        return float(str(s).strip().rstrip("%").replace(",", ""))
+                    except ValueError:
+                        return None
+                a, b = _num(c["display"]), _num(now_disp)
+                arrows[c["token"]] = (("↗" if b > a else "↘") if None not in (a, b) else "◆",
+                                      f"Is now {now_disp}.", "since")
             when = _long((registry_entries[c["token"]] or {}).get("captured", ""))
             now = display_now.get(tracked)
             history[c["token"]] = (
@@ -956,8 +986,7 @@ def main(argv: list[str] | None = None) -> int:
 
             def _mark(m):
                 token = _re.search(r'data-token="([^"]+)"', m.group(0)).group(1)
-                glyph, was = arrows[token]
-                cls = {"▲": "up", "▼": "down"}.get(glyph, "changed")
+                glyph, was, cls = arrows[token]
                 return (m.group(0) + f'<span class="mstat-move {cls}" '
                         f'data-prov="{_html.escape(was, quote=True)}">{glyph}</span>')
             def _prov(m):

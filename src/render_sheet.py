@@ -206,10 +206,10 @@ def main(argv: list[str] | None = None) -> int:
                 _sum_cache.pop(m, None)
 
     def label(m):
-        return " + ".join(
-            f'<span class="chip" style="background:{CHIPS.get(p, "#8b918b")};display:inline-block;'
-            f'width:8px;height:8px;border-radius:2px;margin-right:4px"></span>{NAMES.get(p, p)}'
-            for p in members_of(m))
+        return '<span class="plus">+</span>'.join(
+            f'<span class="cparty"><span class="chip" style="background:{CHIPS.get(p, "#8b918b")};'
+            f'display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px"></span>'
+            f'{NAMES.get(p, p)}</span>' for p in members_of(m))
 
     rows_out = []
     for m, s in sorted(cands.items(), key=lambda ms: -float((msum(ms[0]) >= thr).mean())):
@@ -223,36 +223,61 @@ def main(argv: list[str] | None = None) -> int:
         surv = []
         for p in members_of(m):
             left = float(((tot - S[p]) >= thr)[win].mean())
-            surv.append(f"{NAMES.get(p, p)} leaves: majority holds in "
+            surv.append(f'<span class="survp">{NAMES.get(p, p)} '
                         + chance(f"coal.{key}.survive.{p}", left,
                                  f"{SRC}, among those where this combination wins")
-                        + " of simulations")
+                        + "</span>")
         cond = f"{SRC}, among the simulations where this combination wins"
         rows_out.append(
             f'<tr data-parties="{" ".join(members_of(m))}" data-p="{p_major:.4f}">'
-            f"<td>{label(m)}</td>"
+            f'<td class="combo">{label(m)}</td>'
             f'<td class="num">{chance(f"coal.{key}.majority", p_major)}</td>'
             f'<td class="num">{seats(f"coal.{key}.seats_when_wins", med_w, cond)}</td>'
             f'<td class="num">+{seats(f"coal.{key}.cushion_when_wins", cushion, cond)}</td>'
-            f'<td style="font-size:12px">{tok(f"coal.{key}.stability", f"{stab / 100:.4f}", "pct0", cond)}'
-            f" of its councillors could defect</td>"
-            f'<td style="font-size:12px">{"".join(f"<div>{s_}</div>" for s_ in surv)}</td></tr>')
+            f'<td class="num">{tok(f"coal.{key}.stability", f"{stab / 100:.4f}", "pct0", cond)}</td>'
+            f'<td class="surv">{"".join(surv)}</td></tr>')
     govern_html = "\n".join(rows_out)
     govern_parties = [p for p in top if any(p in members_of(m) for m in cands)]
     filter_html = "".join(
         f'<option value="{p}">{NAMES.get(p, p)}</option>' for p in govern_parties)
     untracked = 270 - sum(means.values())
+    # The lede carries the finding the table exists to show, with both figures
+    # as build-time tokens: the DA's best route without the ANC/EFF/MK, and how
+    # many routes the ANC has without the DA.
+    def _best(anchor, barred):
+        best = 0.0
+        for m in cands:
+            ps = set(members_of(m))
+            if anchor in ps and not (ps & barred):
+                best = max(best, float((msum(m) >= thr).mean()))
+        return best
+    da_best = _best("DA", {"ANC", "EFF", "MK"})
+    anc_routes = sum(1 for m in cands
+                     if "ANC" in members_of(m) and "DA" not in members_of(m))
+    anc_strong = sum(1 for m in cands
+                     if "ANC" in members_of(m) and "DA" not in members_of(m)
+                     and float((msum(m) >= thr).mean()) > 0.5)
+    govern_lede = (
+        f'<p class="lede">The arithmetic is lopsided. If the DA rules out the ANC, the EFF and MK, '
+        f'its best workable majority — with ActionSA and the PA — has the numbers in '
+        f'{chance("govern.da_best_without", da_best)} of the {{{{n_draws}}}} simulations. The ANC '
+        f'without the DA has {tok("govern.anc_routes", anc_routes, "int")} workable majorities, '
+        f'{tok("govern.anc_routes_strong", anc_strong, "int")} of them reaching {{{{majority}}}} '
+        f'seats in more than half the simulations. Nothing here says which deal is politically '
+        f'likely; that judgement is yours.</p>')
+
     govern_note = (
-        f"Every combination listed is a smallest workable majority in at least 1 in 20 of the "
-        f"{{{{n_draws}}}} simulations: it has the numbers, and loses them if any one partner leaves. "
-        f"A partner the majority can do without in most of the simulations where it governs is a "
-        f"passenger, and such combinations are left out — the list shows the version without it. "
-        f"The percentage is the share of simulations in which it can govern — not a vote share, "
-        f"and not the chance the deal is made. Seats, cushion, stability and survivability are "
-        f"measured only over the simulations in which it governs. The simulations track "
+        f"<b>How to read it.</b> Every row is a smallest workable majority: it has the numbers, and "
+        f"loses them if any one partner walks. A partner the majority can do without in most of the "
+        f"simulations it wins is a passenger, and those combinations are left out. "
+        f"<b>% of simulations it can govern</b> — the share of the {{{{n_draws}}}} simulations in which "
+        f"it reaches {{{{majority}}}} seats; a share of simulations, not a vote share, and not the "
+        f"chance a deal is made. <b>Median seats</b>, <b>cushion</b>, <b>stability</b> and "
+        f"<b>survivability</b> count only the simulations in which it governs: stability is the share "
+        f"of its own councillors who could defect without sinking it, survivability how often the "
+        f"majority holds if that partner walks out. The simulations track "
         f"{tok('govern.tracked_parties', nT, 'int')} parties individually; the rest hold "
-        f"{tok('govern.untracked_seats', f'{untracked:.2f}', 'int')} seats on average and are left "
-        f"out of every combination.")
+        f"{tok('govern.untracked_seats', f'{untracked:.2f}', 'int')} seats on average between them.")
 
     # --- minority administrations ---------------------------------------------
     minority_rows = summary["minority"]
@@ -262,6 +287,7 @@ def main(argv: list[str] | None = None) -> int:
         f"</td></tr>" for m in minority_rows)
 
     regions = {"TILES": tiles_html, "SEATS": seats_html, "GOVERN": govern_html,
+               "GOVERN_LEDE": govern_lede,
                "GOVERN_FILTER": filter_html, "GOVERN_NOTE": govern_note,
                "MINORITY": minority_html}
 
@@ -447,9 +473,9 @@ def main(argv: list[str] | None = None) -> int:
     regimes = []
     for key, label, note in (
             ("deduct", "South African law", "fixed 270 — others squeezed"),
-            ("expand", "Germany 2000", "council grows"),
-            ("level", "Germany 2015", "council grows &amp; levelled"),
-            ("cap", "Germany 2023",
+            ("expand", "Germany 2000 law", "council grows"),
+            ("level", "Germany 2015 law", "council grows &amp; levelled"),
+            ("cap", "Germany 2023 law",
              "fixed 270 — wins not seated if not proportional")):
         if key == "deduct":
             summ = summary

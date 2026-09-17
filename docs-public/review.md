@@ -11,6 +11,16 @@ published, warts and all, in
 Here is what happened, in plain language — and why we think publishing it
 makes the forecast more worth your trust, not less.
 
+<div class="pubdate">6 August 2026: Published</div>
+
+<span data-asof="2026-08-06">**About the numbers on this page.** They describe the
+**first version** of the model, as it stood when the review was done. The model
+has moved on and none of them is today's forecast — the current numbers are on
+the front page. They are kept as published because the discussion is about how
+the errors were found and fixed, and that process is the point.</span>
+
+<span data-asof="2026-08-06">
+
 ## The error that mattered most
 
 The first version of the forecast declared: *no two- or three-party coalition
@@ -29,6 +39,9 @@ nobody had thought to test — DA + EFF + MK — cleared the majority line in
 because the maths was wrong; it was wrong because a human had quietly
 filtered the question through political taste, which is exactly what the plan
 had forbidden.
+
+</span>
+<span data-asof="2026-08-06">
 
 ## The other five, briefly
 
@@ -61,6 +74,9 @@ There were also data bugs found along the way — including 87 district-year
 records where more people had voted than were registered, a sign of broken
 registration counts that had quietly poisoned the turnout projections.
 
+</span>
+<span data-asof="2026-08-06">
+
 ## What the fixes changed
 
 The corrected forecast is meaningfully different from the one first computed:
@@ -80,6 +96,9 @@ The corrected forecast is meaningfully different from the one first computed:
   simulations), or a DA arrangement with one of the parties it has publicly
   ruled out.
 
+</span>
+<span data-asof="2026-08-06">
+
 ## What the review could not fix
 
 Honesty about the repairs requires honesty about the remainder. A party that
@@ -90,6 +109,9 @@ is judgement that no amount of testing can turn into fact: bounded by twenty
 years of observed swings, tilted by current evidence, and fully exposed as
 adjustable dials on the interactive page.
 
+</span>
+<span data-asof="2026-08-06">
+
 ## Why publish this at all
 
 Because the alternative is worse. Every model contains errors; the only
@@ -98,3 +120,5 @@ reviewed hard enough to break, fixed in the open, and re-checked — the
 review, the fixes and the re-run are all in the public repository. A forecast
 that shows you its repair history is one you can calibrate your trust
 against. One that doesn't is asking you to take it on faith.
+
+</span>

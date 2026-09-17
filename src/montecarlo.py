@@ -3425,6 +3425,7 @@ class ModelRun:
     # outright? Without ward calculations that is just an open assertion" — and
     # the answer was that the model had computed it and thrown it away.
     # `main` writes it to `ward_draws.csv`; `scenarios.py` reads it.
+    n_vds: int = 0                                # voting districts the run used
     ward_winner_draws: np.ndarray | None = None   # (draws, wards) universe index
     over_draws: list[frozenset] = field(default_factory=list)  # overhang parties per draw
     ward_seat_draws: list[dict[str, int]] = field(default_factory=list)
@@ -5242,6 +5243,7 @@ def run_model(target, scenario: dict,
         wards=wards, seat_draws=seat_draws, thresholds=thresholds,
         council_sizes=council_sizes,
         ward_winner_counts=ward_winner_counts, ward_win_sum=dict(ward_win_sum),
+        n_vds=int(nvd),
         ward_winner_draws=ward_winner_draws, over_draws=over_draws,
         ward_seat_draws=ward_seat_draws,
         overhang_count=dict(overhang_count), excessive_draws=excessive_draws,
@@ -5529,6 +5531,10 @@ def main(argv: list[str] | None = None) -> int:
 
     summary = {
         "scenario": scenario,
+        # The count the run actually used, so the methodology quotes it instead
+        # of an approximation: it said "roughly 865 voting districts" while the
+        # run reported 872 (owner, 2026-09-17: "state the exact value").
+        "n_vds": run.n_vds,
         "parties": {
             p: {"median": float(np.median(series(p))),
                 "p5": float(np.percentile(series(p), 5)),

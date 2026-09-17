@@ -309,9 +309,13 @@ def main(argv: list[str] | None = None) -> int:
   <details class="rollup" data-band="forecast" data-map="geo" open>
     <summary><span class="eyebrow">The map — every ward, called using {{{{n_draws}}}} simulations</span>
     <h2>Who wins where</h2></summary>
-    <div class="maptoggle" style="display:flex;gap:6px;margin:4px 0 10px;font-size:13px">
-      <button type="button" data-show="geo" aria-pressed="true">By land area</button>
-      <button type="button" data-show="cartogram" aria-pressed="false">Every ward the same size</button>
+    <p class="maplede">Ward races for half the council — 135 seats, first past the post. A ward needs no
+    majority: the highest total wins. A geographic map can mislead, because every ward elects one
+    councillor however big or small it is. Switch to <b>Equal Sized Wards</b> to see the same forecast
+    drawn by seats.</p>
+    <div class="maptoggle">
+      <button type="button" data-show="geo" class="on" aria-pressed="true">Normal Map</button>
+      <button type="button" data-show="cartogram" aria-pressed="false">Equal Sized Wards</button>
     </div>
     <figure>
       <div style="position:relative">
@@ -327,9 +331,8 @@ def main(argv: list[str] | None = None) -> int:
       </div>
       <figcaption style="display:flex;flex-direction:column;gap:6px">
         <span>{tier_key}</span>
-        <span>Touch or hover any ward for its numbers. A ward needs no majority — highest total
-        wins. The bar shows the whole council, ward and list seats together, in one typical
-        simulation.</span>
+        <span>Touch or hover any ward for its numbers. The bar shows the whole council, ward and
+        list seats together, in one typical simulation.</span>
       </figcaption>
     </figure>
     <script>

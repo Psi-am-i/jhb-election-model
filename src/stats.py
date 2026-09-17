@@ -713,7 +713,7 @@ _MONTHS = ("January|February|March|April|May|June|July|August|September|October|
            "November|December")
 _COUNTED = r"(?:seats?|wards?|votes?|voters?|councillors?|parties|per\s?cent|percent|%)"
 NUMBERISH = re.compile(
-    rf"(?P<date>\b\d{{1,2}}\s(?:{_MONTHS})\s\d{{4}}\b)"
+    rf"(?P<date>\b\d{{1,2}}\s(?:{_MONTHS})\s\d{{4}}\b|\b\d{{4}}-\d{{2}}-\d{{2}}\b)"
     # a year is a year only when it is not counting something: "1998 votes" is a number
     rf"|(?P<year>\b(?:19|20)\d{{2}}\b(?!\s*{_COUNTED}))"
     # a number glued to letters is still a number: R1.2bn, x2, ward7
@@ -739,14 +739,38 @@ ATTRS = re.compile(r'\b(?:title|data-tip|aria-label|alt|content)="([^"]*)"')
 _LEGACY_SHAPE = re.compile(r"^\d{1,3}(?:[.,]\d+)?\s?%$|^\d+$")
 
 
+#: Page furniture: a chart's scale ticks and the dated labels a piece carries.
+#: Numbers here are not claims about the world — the axis of a chart and the
+#: "31 August 2026: Published" line are structure, and their values come from
+#: the chart's own scale or from the piece's publication date.
+CHROME_CLASSES = ("ticks", "scale", "pubdate", "since-h", "colophon")
+#: A number in a heading is a step marker or a section number — "1. Start by
+#: counting who can vote" — not a claim about the world.
+_HEADING = re.compile(r"<h[1-4][^>]*>.*?</h[1-4]>", re.S)
+_CHROME = re.compile(
+    r"<(\w+)[^>]*class=\"[^\"]*\b(?:" + "|".join(CHROME_CLASSES) + r")\b[^\"]*\"[^>]*>.*?</\1>", re.S)
+
+
 def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
-                 ) -> list[dict]:
+                 structural=(), ) -> list[dict]:
     """Every number-shaped string a reader can see, classified.
 
     One dict per occurrence: ``kind`` (num/wnum/date/year/word), ``value``,
     ``context``, ``region`` (``prose``, ``generated:<MARKER>`` or
     ``generated-page``, with ``:attr`` appended for attribute text) and
     ``status``:
+
+    Cleared automatically, each for a stated reason (owner, 2026-09-17, asked
+    for a rule rather than a row-by-row review of the obvious):
+
+    * ``dated``      — inside a ``data-asof`` passage: the prose already says
+      when it was true, which is the whole obligation;
+    * ``structural`` — a constant of this council (its size, its majority, its
+      ward count), passed in from the model's own configuration, never typed
+      here;
+    * ``chrome``     — a chart's scale ticks or a piece's dated label.
+
+    And by declaration:
 
     * ``fixed``      — a registered fixed fact whose ``context`` phrase CONTAINS
       this occurrence (not merely sits near it) and whose ``value`` matches,
@@ -762,6 +786,7 @@ def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
     """
     body = SCRIPTS.sub(" ", text)
     body = SOURCED.sub(" ", body)
+    structural = {str(s).strip() for s in structural}
     fixed = [(str(f.get("value", "")).strip().lower(),
               str(f.get("context", "")).strip().lower()) for f in fixed]
     allow_lower = [a.lower() for a in allow if a]
@@ -773,6 +798,8 @@ def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
             value = m.group(0).strip()
             context = prose[max(0, m.start() - 70):m.end() + 40].strip()
             status = "unreviewed"
+            if value.replace(",", "") in structural:
+                status = "structural"
             for v, c in fixed:
                 if not c or v != value.lower():
                     continue
@@ -793,6 +820,16 @@ def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
                         "region": region, "status": status})
 
     def visit(fragment: str, region: str) -> None:
+        # chrome first, and out of the fragment: its numbers are listed under
+        # their own region and never block.
+        for m in _HEADING.finditer(fragment):
+            classify(re.sub(r"\s+", " ", html_unescape(TAGS.sub(" ", m.group(0)))),
+                     region + ":heading")
+        fragment = _HEADING.sub(" ", fragment)
+        for m in _CHROME.finditer(fragment):
+            classify(re.sub(r"\s+", " ", html_unescape(TAGS.sub(" ", m.group(0)))),
+                     region + ":chrome")
+        fragment = _CHROME.sub(" ", fragment)
         for attr in ATTRS.findall(fragment):
             classify(re.sub(r"\s+", " ", html_unescape(attr)), region + ":attr")
         classify(re.sub(r"\s+", " ", html_unescape(TAGS.sub(" ", fragment))), region)
@@ -806,7 +843,22 @@ def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
             visit(m.group(2), f"generated:{m.group(1)}")
             return " "
         return m.group(0)
-    visit(REGION.sub(cut, body), "prose")
+    body = REGION.sub(cut, body)
+    # Dated passages are pulled out whole, by the same parser the publication
+    # gate uses, so a figure the prose has already dated is not asked to be a
+    # live token as well.
+    dated, _bad = _dated_scan(body)
+    if dated:
+        keep, last = [], 0
+        for lo, hi, when in sorted(dated):
+            if lo < last:
+                continue
+            keep.append(body[last:lo])
+            visit(body[lo:hi], f"dated:{when}")
+            last = hi
+        keep.append(body[last:])
+        body = " ".join(keep)
+    visit(body, "prose")
     return out
 
 
@@ -882,8 +934,8 @@ def _visible(text: str) -> str:
     return TAGS.sub(" ", body)
 
 
-def audit(text: str, *, allow=(), fixed=(), claim_patterns=CLAIM_PATTERNS,
-          ) -> tuple[list[str], list[str]]:
+def audit(text: str, *, allow=(), fixed=(), structural=(),
+          claim_patterns=CLAIM_PATTERNS) -> tuple[list[str], list[str]]:
     """Model figures and model claims that reach the reader unsourced.
 
     ``allow`` is a list of *context substrings*, not bare values. Whitelisting
@@ -910,7 +962,8 @@ def audit(text: str, *, allow=(), fixed=(), claim_patterns=CLAIM_PATTERNS,
         return any(a in low for a in allow_lower)
 
     numbers = [f"{h['value']!r}  …{h['context']}…"
-               for h in scan_numbers(text, fixed=fixed, allow=allow)
+               for h in scan_numbers(text, fixed=fixed, allow=allow,
+                                     structural=structural)
                if h["region"] == "prose" and h["kind"] in GATING
                and h["status"] == "unreviewed"]
     lowered = prose.lower()
@@ -1005,4 +1058,6 @@ STAT_CSS = """  .mstat{display:inline;position:relative;border-bottom:1px dotted
   .mstat.tip-up:hover::after,.mstat.tip-up:focus::after{top:auto;bottom:1.5em;}
   .mstat-move{font-size:.7em;margin-left:2px;cursor:help;vertical-align:.15em;position:relative;}
   .mstat-move.up{color:#2f6d4a;} .mstat-move.down{color:#a33a2a;} .mstat-move.changed{color:var(--ink-3);}
+  .mstat-move.since{color:var(--ink-3);opacity:.75;}
+  .arrowlegend{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;}
 """

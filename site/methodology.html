@@ -127,6 +127,8 @@
   .mstat.tip-up:hover::after,.mstat.tip-up:focus::after{top:auto;bottom:1.5em;}
   .mstat-move{font-size:.7em;margin-left:2px;cursor:help;vertical-align:.15em;position:relative;}
   .mstat-move.up{color:#2f6d4a;} .mstat-move.down{color:#a33a2a;} .mstat-move.changed{color:var(--ink-3);}
+  .mstat-move.since{color:var(--ink-3);opacity:.75;}
+  .arrowlegend{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;}
 </style>
 <script>/*stat-tip*/document.addEventListener('mouseover',function(e){var s=e.target.closest&&e.target.closest('.mstat');if(!s)return;var r=s.getBoundingClientRect();var w=document.documentElement.clientWidth,h=document.documentElement.clientHeight;s.classList.toggle('tip-left',r.left+316>w);s.classList.toggle('tip-up',r.bottom+96>h);});</script>
 </head>
@@ -139,6 +141,7 @@
   <a class="active" href="methodology">methodology</a>
   <a href="review">review</a>
   <a href="sources">sources</a>
+  <a href="corrections">corrections</a>
   <a href="https://github.com/Psi-am-i/jhb-election-model">source-code</a>
 </nav>
 <header>
@@ -197,7 +200,7 @@ on every other party&rsquo;s list seats — inside a council fixed at
 looks.</p>
 <h3>1. Start by counting who can vote, and where</h3>
 <p>Before any modelling, the Electoral Commission publishes how many people are
-registered to vote in each of Johannesburg&rsquo;s roughly 865 voting districts. We
+registered to vote in each of Johannesburg&rsquo;s <span class="mstat" data-mode="free" data-token="n_vds" data-when="2026-09-17" data-live="872" data-prov="872. First published in this edition (17 September 2026). Source: model:n_vds, live from the current model run." tabindex="0">872</span> voting districts. We
 take that count. It is not estimated, projected or adjusted — it is the roll,
 published before polling day, and it is the foundation everything else sits
 on.</p>
@@ -289,7 +292,7 @@ nationally in 2019 as Julius Malema was in 2014; her party took about
 one-eighteenth as much of the DA&rsquo;s vote in Johannesburg as it did in her own
 Cape Town. A reputation does not travel. A constituency does not move.</p>
 <h3>6. Paint the result back onto the map</h3>
-<p>Each drawn outcome is spread back across all 865 voting districts using each
+<p>Each drawn outcome is spread back across all <span class="mstat" data-mode="free" data-token="n_vds" data-when="2026-09-17" data-live="872" data-prov="872. First published in this edition (17 September 2026). Source: model:n_vds, live from the current model run." tabindex="0">872</span> voting districts using each
 party&rsquo;s own geography — where its votes actually were last time. This is the
 best-tested idea in the model: <em>where</em> a party&rsquo;s support sits barely moves
 between elections even when <em>how much</em> it has swings wildly.</p>
@@ -387,13 +390,15 @@ against three baselines that need no model at all. The results are on the
   weighting we had was defensible one poll at a time and improvised across
   several. Rather than keep shipping a forecast that depended on it, the channel
   is off until that is designed properly.</p>
-<p><strong>What it was worth, measured.</strong> Against the 24 past city-elections we can
-  backtest, removing polls changed the total seat error from
+<p><strong>What it was worth, measured.</strong> We aim to score <span class="mstat" data-mode="fixed" data-token="backtest_target" data-when="2026-09-17" data-prov="24. First published in this edition (17 September 2026). Source: external:the panel we aim to score — 8 metros x 3 elections (2011, 2016, 2021). Pinned 2026-09-17." tabindex="0">24</span> past city
+  elections across the country — eight metros, three elections each — and how
+  many are in the panel on any given day depends on which specs have been
+  emitted. Against the panel as it stood, removing polls changed the total seat
+  error from
   <span class="mstat" data-mode="fixed" data-token="polls_off_seat_err_before" data-when="2026-09-12" data-prov="725. First published in this edition (17 September 2026). Source: compare_history:seat_abs_err_coherent, poll_paths=all. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">725</span> to <span class="mstat" data-mode="fixed" data-token="polls_off_seat_err_after" data-when="2026-09-12" data-prov="723. First published in this edition (17 September 2026). Source: compare_history:seat_abs_err_coherent, poll_paths=off. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">723</span> and the
   distributional score (CRPS) from <span class="mstat" data-mode="fixed" data-token="polls_off_crps_before" data-when="2026-09-12" data-prov="545.8. First published in this edition (17 September 2026). Source: compare_history:crps, poll_paths=all. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">545.8</span> to
   <span class="mstat" data-mode="fixed" data-token="polls_off_crps_after" data-when="2026-09-12" data-prov="541.4. First published in this edition (17 September 2026). Source: compare_history:crps, poll_paths=off. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">541.4</span>. Both move the right way and neither is large: seven
-  of the 24 elections moved at all, one of them by six seats <em>against</em> the
-  change. The honest summary is that <strong>we cannot distinguish the poll channel&rsquo;s
+  elections moved at all, one of them by six seats <em>against</em> the change. The honest summary is that <strong>we cannot distinguish the poll channel&rsquo;s
   contribution from zero</strong>, which is itself a reason not to let it move a
   published headline while its design is unsettled.</p>
 <p><strong>What we intend.</strong> To use every poll we receive, and to put the weighting in

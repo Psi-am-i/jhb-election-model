@@ -61,7 +61,7 @@ looks.
 ### 1. Start by counting who can vote, and where
 
 Before any modelling, the Electoral Commission publishes how many people are
-registered to vote in each of Johannesburg's roughly 865 voting districts. We
+registered to vote in each of Johannesburg's {{n_vds}} voting districts. We
 take that count. It is not estimated, projected or adjusted — it is the roll,
 published before polling day, and it is the foundation everything else sits
 on.
@@ -169,7 +169,7 @@ Cape Town. A reputation does not travel. A constituency does not move.
 
 ### 6. Paint the result back onto the map
 
-Each drawn outcome is spread back across all 865 voting districts using each
+Each drawn outcome is spread back across all {{n_vds}} voting districts using each
 party's own geography — where its votes actually were last time. This is the
 best-tested idea in the model: *where* a party's support sits barely moves
 between elections even when *how much* it has swings wildly.
@@ -283,13 +283,15 @@ against three baselines that need no model at all. The results are on the
   several. Rather than keep shipping a forecast that depended on it, the channel
   is off until that is designed properly.
 
-  **What it was worth, measured.** Against the 24 past city-elections we can
-  backtest, removing polls changed the total seat error from
+  **What it was worth, measured.** We aim to score {{backtest_target}} past city
+  elections across the country — eight metros, three elections each — and how
+  many are in the panel on any given day depends on which specs have been
+  emitted. Against the panel as it stood, removing polls changed the total seat
+  error from
   {{polls_off_seat_err_before}} to {{polls_off_seat_err_after}} and the
   distributional score (CRPS) from {{polls_off_crps_before}} to
   {{polls_off_crps_after}}. Both move the right way and neither is large: seven
-  of the 24 elections moved at all, one of them by six seats *against* the
-  change. The honest summary is that **we cannot distinguish the poll channel's
+  elections moved at all, one of them by six seats *against* the change. The honest summary is that **we cannot distinguish the poll channel's
   contribution from zero**, which is itself a reason not to let it move a
   published headline while its design is unsettled.
 

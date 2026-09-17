@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Johannesburg 2026 — Where the data comes from — and what it took to get it</title>
+<title>Johannesburg 2026 — Corrections</title>
 <meta property="og:site_name" content="Johannesburg 2026 Election Model">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Who governs Johannesburg after 4 November 2026?">
@@ -140,118 +140,64 @@
   <a href="about">about the model</a>
   <a href="methodology">methodology</a>
   <a href="review">review</a>
-  <a class="active" href="sources">sources</a>
-  <a href="corrections">corrections</a>
+  <a href="sources">sources</a>
+  <a class="active" href="corrections">corrections</a>
   <a href="https://github.com/Psi-am-i/jhb-election-model">source-code</a>
 </nav>
 <header>
-  <div class="kicker">Data sources</div>
-  <h1>Where the data comes from — and what it took to get it</h1>
-  <p class="standfirst">Every number in this model traces back to a public record. Where each one lives, what state it was in, and how hard South Africa's public records actually are to reach.</p>
+  <div class="kicker">Corrections</div>
+  <h1>Corrections</h1>
+  <p class="standfirst">Where this site published something that was wrong: what it said, what is true, and how it happened.</p>
 </header>
-<p>Election results at voting-district level, boundary maps of wards and voting
-districts, by-election returns, census tables — this page tracks each to its
-origin and records the state it was in when we found it. The full technical
-recipes, file by file, are in
-<a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md"><code>SOURCES.md</code> on GitHub</a>.</p>
-<h2>Public records, deliberately hard to reach</h2>
-<p>The IEC&rsquo;s results sites — <code>results.elections.org.za</code> and
-<code>www.elections.org.za</code> — do not allow programmatic collection of their data:
-automated requests are simply refused at the door. Why that should be true of
-a public record is unexplained. Election results belong to everyone, and they
-should be freely and easily available — not guarded in ways that make
-independent analysis a test of patience. In practice, most of the raw data
-behind this model had to be collected through an ordinary browser session,
-clicking each file one by one.</p>
-<p>It gets stranger. The portal identifies each election not by its year but by
-an arbitrary internal code — and the codes for the national and provincial
-halves of the same election day differ. Guess wrong and the site does not
-error: it quietly hands you a different election&rsquo;s results. And one election —
-the 2014 national and provincial vote — is missing from the results portal
-altogether; its files turned out to live on a second, older IEC site.</p>
-<h2>The election results themselves</h2>
-<p>The model rests on six elections at voting-district level — the finest grain
-the IEC publishes:</p>
-<div class="tablewrap"><table>
-<thead>
-<tr>
-<th>Election</th>
-<th>What it provides</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>2011, 2016, 2021 municipal elections</td>
-<td>Both ballots — ward and party list — for every voting district</td>
-</tr>
-<tr>
-<td>2014, 2019, 2024 national/provincial elections</td>
-<td>The provincial ballot, the model&rsquo;s between-elections baseline</td>
-</tr>
-</tbody>
-</table></div>
-<p>The files themselves were not clean. Different years arrive in different
-character encodings — one in a format from the DOS era. A voting station with
-a comma in its name silently shifts every later column in the row. One year&rsquo;s
-&ldquo;valid votes&rdquo; column does not contain what its name says. Each of these
-corrupts results without raising any error; each had to be caught by
-cross-checking totals against the IEC&rsquo;s own published reports. The full list
-of traps, and the code that handles them, is on GitHub.</p>
-<h2>The maps</h2>
-<p>Council seats follow geography, so the model needs the boundaries of every
-ward and voting district — across four different boundary revisions, because
-Johannesburg&rsquo;s wards have been redrawn before every election. The Municipal
-Demarcation Board publishes the recent layers through its mapping portal; the
-two older ward sets survive only as archived file downloads.</p>
-<p>Public geodata also quietly disappears: the Demarcation Board has already
-retired the per-municipality downloads its old website offered. One dataset
-this model needed — the complete voting-district results of the 2016
-election — now exists in the Internet Archive and nowhere official.</p>
-<p>One trap worth recording: the 2026 voting-district layer carries a field that
-looks like current voter registration. It is actually a snapshot from 2024.
-Take it at face value and every turnout figure built on it is wrong.</p>
-<h2>By-elections</h2>
-<p>Fifteen wards in Johannesburg have held by-elections since 2021 — the only
-hard evidence of how opinion has moved between elections, and an input to this
-forecast. The IEC&rsquo;s official download page could not supply them: its report
-links only work inside the browser session that created them. The IEC&rsquo;s own
-public dashboard, however, is fed by plain data files that anyone can read —
-richer than the reports, down to voting-district level with every party and
-candidate. That is what the model uses.</p>
-<h2>People</h2>
-<p>Statistics South Africa publishes ward-level population estimates from Census
-2022 — age, sex and population group for all 135 wards — and those are used in
-the turnout modelling. The more detailed small-area data (income, dwelling
-type, employment) is not published at all: it is supplied on request, by
-email, to those who know to ask. A national census, funded publicly, should
-not work that way.</p>
-<h2>What nobody publishes</h2>
-<p>Some records could not be obtained because they do not exist in public:</p>
-<ul>
-<li><strong>Historic voting-district boundaries.</strong> The IEC draws these with its own
-  mapping systems and appears never to have published them. Five archives and
-  catalogues were searched; a request to the IEC&rsquo;s Delimitation Directorate is
-  the only remaining route. The model works around the gap and tests that the
-  workaround does not change its conclusions.</li>
-<li><strong>The voters&rsquo; roll by age and sex below municipality level</strong>, and the
-  registration figures from the 2026 sign-up weekends — the latter simply not
-  released yet.</li>
-</ul>
-<h2>Keeping ourselves honest</h2>
-<p>Because the raw files were assembled by hand from sources that can change or
-vanish, we fingerprint every one of them ourselves: when a file is collected,
-the model&rsquo;s build records its cryptographic checksum — a short code that
-changes if even one byte of the file does. Those fingerprints are published in
-this project&rsquo;s own repository on
-<a href="https://github.com/Psi-am-i/jhb-election-model">GitHub</a> (the raw files are
-bulky, so we publish the fingerprints and the instructions to fetch the files
-rather than the files themselves). That gives everyone two guarantees: anyone
-who re-downloads the same sources can prove they hold exactly the data this
-forecast was computed from, byte for byte — and if a source file is ever
-quietly altered or withdrawn upstream, the mismatch shows up immediately
-instead of silently corrupting the model.</p>
+<p>When this site has published something wrong, it is listed here, with what it
+said, what is true, and how it happened. A <strong>correction</strong> means the page was
+wrong when it was published. That is different from an <strong>update</strong>, where the
+model or the world moved and the earlier statement was true on its date;
+updates appear beside the original as a dated &ldquo;what the model says now&rdquo; box.</p>
+<p>Nothing is removed from this list.</p>
+<p><span data-asof="2026-09-17"></p>
+<h2>17 September 2026 — the headline figures disagreed with the article beside them</h2>
+<p><strong>What we published.</strong> On the front page from 31 August, the summary tiles said
+the DA was the largest party in <strong>62%</strong> of simulations, that the ANC triggered
+the excessive-seats clause in <strong>96%</strong>, and that the ANC and DA together had a
+majority in <strong>88%</strong>. The article immediately below them, drawing on the same
+forecast, said <strong>71%</strong>, <strong>58%</strong> and <strong>58%</strong>.</p>
+<p><strong>What was true.</strong> The article&rsquo;s figures. The tiles were left over from an
+earlier model run.</p>
+<p><strong>How it happened.</strong> The tiles were written into the page by a script when a
+reader opened it, from a block of numbers pasted into the page. Everything else
+came from the build, which checks each figure against the current run. Nothing
+compared the two, so the page could disagree with itself and no check noticed.</p>
+<p><strong>What changed.</strong> Every figure on the site is now written at build time and
+carries its source, and the build refuses to publish a page whose scripts could
+write a figure. The tiles now show their own history: hovering one gives what it
+says today and what it said on 31 August.</p>
+<p></span></p>
+<p><span data-asof="2026-09-17"></p>
+<h2>17 September 2026 — the ANC&rsquo;s list seats were shown as 7</h2>
+<p><strong>What we published.</strong> The &ldquo;two ballots&rdquo; bars showed the ANC taking <strong>7</strong> list
+seats, next to a tile saying the excessive-seats clause fires in most
+simulations — which means it takes <strong>none</strong>.</p>
+<p><strong>What was true.</strong> In 64% of simulations the ANC gets no list seats at all. In
+the rest it gets about nine.</p>
+<p><strong>How it happened.</strong> The bar subtracted the ANC&rsquo;s average ward wins from its
+median total seats. Mixing an average and a median like that produces a number
+no simulation ever produced.</p>
+<p><strong>What changed.</strong> The three bars now show one real simulation — the one closest
+to every party&rsquo;s median — so they add up and agree with the tile beside them.</p>
+<p></span></p>
+<p><span data-asof="2026-09-17"></p>
+<h2>17 September 2026 — &ldquo;smaller parties&rdquo; was shown as 39 seats</h2>
+<p><strong>What we published.</strong> The council bar gave smaller parties <strong>39</strong> of 270 seats.</p>
+<p><strong>What was true.</strong> About 25 on average. Parties outside the named ones won 16
+seats in 2011, 13 in 2016 and 24 in 2021.</p>
+<p><strong>How it happened.</strong> The bar filled the gap left after subtracting each named
+party&rsquo;s median from 270. Medians do not add up: the parties&rsquo; medians together
+came to 240, so the leftover absorbed 30 seats belonging to nobody.</p>
+<p><strong>What changed.</strong> The same fix as above: one real simulation, which adds up.</p>
+<p></span></p>
 <div class="colophon">
-  Reader edition, generated from docs-public/sources.md on 2026-09-17. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md">SOURCES.md on GitHub</a>.
+  Reader edition, generated from docs-public/corrections.md on 2026-09-17. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/CORRECTIONS.md">CORRECTIONS.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
   <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
