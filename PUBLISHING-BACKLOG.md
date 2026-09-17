@@ -442,3 +442,38 @@ presentation work and belongs in this file, not on the model list.
   "ALJAMAAH")`. The cartogram's includes MK. One line, for whoever next holds
   that file — it was left alone because re-running `render_map.py` rewrites
   `forecast-sheet.html`.
+
+## 8. The publication convention — agreed with the owner 2026-09-17, and to be DONE
+
+The owner, on agreeing: *"make a note and to do actions lest it's something we
+agree on enthusiastically and then do not do!"* This section is that note. It
+is presentation only and never a reason to change a forecast (`CLAUDE.md` §1).
+
+**The convention**, taken from forecasting and news practice (FiveThirtyEight,
+The Economist, Silver Bulletin, newsroom correction policy). No polling standard
+prescribes it; AAPOR's transparency code covers disclosure, not revision:
+
+1. **Live data** (tiles, tables, map) is always CURRENT and shows its HISTORY:
+   an arrow and a "was X on <date>" tooltip taken from the publication ledger.
+2. **Written pieces** (headlines, commentary, tested claims) are FROZEN as
+   published and dated. When their figures move materially they get an
+   appended, dated **"Since then (<date>):"** note with today's figures, and the
+   original is never rewritten.
+3. **An update is not a correction.** In an update the model or the world moved
+   and the piece was true on its date. In a correction the piece was wrong when
+   published. A correction carries a visible **"Correction:"** label and goes
+   on a public corrections list.
+
+**To do** (task list, 2026-09-17):
+- [ ] Arrows and "was X on <date>" tooltips on every live figure, from
+      `changes.json`/ledger. Blocked on moving script-written figures to
+      build-time token spans first, since the scripts currently bypass the ledger.
+- [ ] A reusable, token-driven "Since then" block. First use: the Zille claim,
+      keeping the 7 August prediction and adding today's answer.
+- [ ] A "Correction:" label and a public corrections list. First entries: the
+      live 31 August page's "just 7 list seats" (median total minus mean wards)
+      and "Smaller parties — 39 seats" (medians summed as if additive).
+- [ ] The headline archive and headline-change announcements use this same
+      record. Every send needs owner approval.
+- [ ] A build check: a frozen piece whose tokens moved materially must carry a
+      Since-then note, or `--publish` refuses.
