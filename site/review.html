@@ -115,6 +115,20 @@
     h2,h3{break-after:avoid;} table,blockquote,pre{break-inside:avoid;}
   }
 </style>
+<style>/*stat-css*/
+  .mstat{display:inline;position:relative;border-bottom:1px dotted var(--ink-3);cursor:help;}
+  .mstat[data-mode="fixed"]{border-bottom-style:dashed;}
+  @media (min-width:760px){.tablewrap{overflow:visible;}}  /* phones keep sideways scroll */
+  .mstat:hover::after,.mstat:focus::after,.mstat-move:hover::after{content:attr(data-prov);position:absolute;
+    left:0;top:1.5em;z-index:50;width:max-content;max-width:300px;white-space:normal;
+    background:var(--ink,#1a1d1b);color:var(--paper,#fbfbfa);font:500 11.5px/1.35 ui-sans-serif,system-ui;
+    padding:6px 8px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.25);pointer-events:none;}
+  .mstat.tip-left:hover::after,.mstat.tip-left:focus::after{left:auto;right:0;}
+  .mstat.tip-up:hover::after,.mstat.tip-up:focus::after{top:auto;bottom:1.5em;}
+  .mstat-move{font-size:.7em;margin-left:2px;cursor:help;vertical-align:.15em;position:relative;}
+  .mstat-move.up{color:#2f6d4a;} .mstat-move.down{color:#a33a2a;} .mstat-move.changed{color:var(--ink-3);}
+</style>
+<script>/*stat-tip*/document.addEventListener('mouseover',function(e){var s=e.target.closest&&e.target.closest('.mstat');if(!s)return;var r=s.getBoundingClientRect();var w=document.documentElement.clientWidth,h=document.documentElement.clientHeight;s.classList.toggle('tip-left',r.left+316>w);s.classList.toggle('tip-up',r.bottom+96>h);});</script>
 </head>
 <body>
 <div class="page">

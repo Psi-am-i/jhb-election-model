@@ -77,6 +77,23 @@ def flips(winners, modal, draw) -> list[tuple[str, str, str]]:
     return [(w, modal[w], p) for w, p in winners[draw].items() if p != modal[w]]
 
 
+def typical(seats_by_party: dict, parties) -> int:
+    """The simulation closest to every listed party's median seats, each
+    party's distance scaled by its own 5-95% spread. A real simulation adds up
+    exactly and is something the model produced, where a mean or median of each
+    party is not (the ANC's mean list seats were 3.85 while 64% of simulations
+    gave it none). Used by the "two ballots" bars and the map's council bar.
+    ``seats_by_party`` maps party -> sequence of seats per simulation."""
+    import numpy as np
+    parties = [p for p in parties if p in seats_by_party]
+    n = len(next(iter(seats_by_party.values())))
+    meds = {p: float(np.median(seats_by_party[p])) for p in parties}
+    spread = {p: max(float(np.percentile(seats_by_party[p], 95)
+                           - np.percentile(seats_by_party[p], 5)), 1.0) for p in parties}
+    return min(range(n), key=lambda i: sum(
+        abs(seats_by_party[p][i] - meds[p]) / spread[p] for p in parties))
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("conditions", nargs="+")

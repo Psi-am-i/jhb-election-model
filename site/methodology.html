@@ -115,6 +115,20 @@
     h2,h3{break-after:avoid;} table,blockquote,pre{break-inside:avoid;}
   }
 </style>
+<style>/*stat-css*/
+  .mstat{display:inline;position:relative;border-bottom:1px dotted var(--ink-3);cursor:help;}
+  .mstat[data-mode="fixed"]{border-bottom-style:dashed;}
+  @media (min-width:760px){.tablewrap{overflow:visible;}}  /* phones keep sideways scroll */
+  .mstat:hover::after,.mstat:focus::after,.mstat-move:hover::after{content:attr(data-prov);position:absolute;
+    left:0;top:1.5em;z-index:50;width:max-content;max-width:300px;white-space:normal;
+    background:var(--ink,#1a1d1b);color:var(--paper,#fbfbfa);font:500 11.5px/1.35 ui-sans-serif,system-ui;
+    padding:6px 8px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.25);pointer-events:none;}
+  .mstat.tip-left:hover::after,.mstat.tip-left:focus::after{left:auto;right:0;}
+  .mstat.tip-up:hover::after,.mstat.tip-up:focus::after{top:auto;bottom:1.5em;}
+  .mstat-move{font-size:.7em;margin-left:2px;cursor:help;vertical-align:.15em;position:relative;}
+  .mstat-move.up{color:#2f6d4a;} .mstat-move.down{color:#a33a2a;} .mstat-move.changed{color:var(--ink-3);}
+</style>
+<script>/*stat-tip*/document.addEventListener('mouseover',function(e){var s=e.target.closest&&e.target.closest('.mstat');if(!s)return;var r=s.getBoundingClientRect();var w=document.documentElement.clientWidth,h=document.documentElement.clientHeight;s.classList.toggle('tip-left',r.left+316>w);s.classList.toggle('tip-up',r.bottom+96>h);});</script>
 </head>
 <body>
 <div class="page">
@@ -173,11 +187,11 @@ everyone else.</p>
 <p>Two consequences shape everything on this site. First, the council is always
 close to proportional, so a fragmented vote produces a fragmented council.
 Second, the excessive-seats clause, which the model expects to catch the ANC
-in <span class="mstat" data-mode="free" data-token="p_excessive_anc" data-when="2026-08-07" data-live="64%" title="Live from the current model run · source: model:p_excessive_by_party.ANC">64%</span> of simulations: a citywide vote in the mid-twenties,
+in <span class="mstat" data-mode="free" data-token="p_excessive_anc" data-when="2026-08-07" data-live="64%" data-prov="64%. First published in this edition (17 September 2026). Source: model:p_excessive_by_party.ANC, live from the current model run." tabindex="0">64%</span> of simulations: a citywide vote in the mid-twenties,
 but stronghold wards that still win. Where it fires, the party&rsquo;s ward count
 becomes an unbreakable floor, its list seats go to zero, and the squeeze lands
 on every other party&rsquo;s list seats — inside a council fixed at
-<span class="mstat" data-mode="free" data-token="council_size" data-when="2026-08-07" data-live="270" title="Live from the current model run · source: derived:council_size">270</span>, with the majority fixed at <span class="mstat" data-mode="free" data-token="majority" data-when="2026-08-07" data-live="136" title="Live from the current model run · source: derived:majority">136</span>.</p>
+<span class="mstat" data-mode="free" data-token="council_size" data-when="2026-08-07" data-live="270" data-prov="270. First published in this edition (17 September 2026). Source: derived:council_size, live from the current model run." tabindex="0">270</span>, with the majority fixed at <span class="mstat" data-mode="free" data-token="majority" data-when="2026-08-07" data-live="136" data-prov="136. First published in this edition (17 September 2026). Source: derived:majority, live from the current model run." tabindex="0">136</span>.</p>
 <h2>The model, step by step</h2>
 <p>Here is the whole thing in order. Nothing below is more complicated than it
 looks.</p>
@@ -285,14 +299,14 @@ counted separately, each party&rsquo;s split measured from its own past behaviou
 Ward winners are called race by race. Then the statutory formula — the same
 arithmetic the Electoral Commission uses — allocates every seat, excessive
 seats included.</p>
-<h3>8. Do it <span class="mstat" data-mode="free" data-token="n_draws" data-when="2026-08-07" data-live="5,000" title="Live from the current model run · source: derived:n_draws">5,000</span> times</h3>
+<h3>8. Do it <span class="mstat" data-mode="free" data-token="n_draws" data-when="2026-08-07" data-live="5,000" data-prov="5,000. First published in this edition (17 September 2026). Source: derived:n_draws, live from the current model run." tabindex="0">5,000</span> times</h3>
 <p>Each run draws fresh values within every bound. The output is not a
 prediction but a distribution: how often each seat count happens, how often
 each coalition clears the line. Every possible combination of parties is
 checked against that run&rsquo;s own majority line, with no judgement about who
 would work with whom.</p>
 <p>Why simulate at all, rather than publish one number? Because Johannesburg&rsquo;s
-politics runs on thresholds — a coalition either reaches <span class="mstat" data-mode="free" data-token="majority" data-when="2026-08-07" data-live="136" title="Live from the current model run · source: derived:majority">136</span> seats or
+politics runs on thresholds — a coalition either reaches <span class="mstat" data-mode="free" data-token="majority" data-when="2026-08-07" data-live="136" data-prov="136. First published in this edition (17 September 2026). Source: derived:majority, live from the current model run." tabindex="0">136</span> seats or
 it does not — and near a threshold small uncertainties have large, lopsided
 consequences that no error bar can carry.</p>
 <h2>What a pool is — and what it is not</h2>
@@ -319,7 +333,7 @@ Commission&rsquo;s own count of independent ward councillors rather than inferri
 it.</p>
 <p><strong>The geography transfers.</strong> Shown only citywide totals for 2021 — nothing
 about where the votes sat — the model placed them well enough to call
-<span class="mstat" data-mode="fixed" data-token="blind_test_called" data-when="2026-08-04" title="Pinned 2026-08-04 · source: external:fold-2 blind validation (MODEL-LOG 1.9)">129</span> of <span class="mstat" data-mode="fixed" data-token="blind_test_of" data-when="2026-08-04" title="Pinned 2026-08-04 · source: external:ward count at the 2021 delimitation">135</span> ward winners.</p>
+<span class="mstat" data-mode="fixed" data-token="blind_test_called" data-when="2026-08-04" data-prov="129. First published in this edition (17 September 2026). Source: external:fold-2 blind validation (MODEL-LOG 1.9). Pinned 2026-08-04." tabindex="0">129</span> of <span class="mstat" data-mode="fixed" data-token="blind_test_of" data-when="2026-08-04" data-prov="135. First published in this edition (17 September 2026). Source: external:ward count at the 2021 delimitation. Pinned 2026-08-04." tabindex="0">135</span> ward winners.</p>
 <p><strong>The whole thing beats the simple alternatives, in cities it was never built
 for.</strong> This is the test that matters, and the one most forecasts skip. A model
 tuned on one city can look superb there and have learned nothing but that
@@ -375,9 +389,9 @@ against three baselines that need no model at all. The results are on the
   is off until that is designed properly.</p>
 <p><strong>What it was worth, measured.</strong> Against the 24 past city-elections we can
   backtest, removing polls changed the total seat error from
-  <span class="mstat" data-mode="fixed" data-token="polls_off_seat_err_before" data-when="2026-09-12" title="Pinned 2026-09-12 · seed=20261104 draws=1000 rows=24 pools:843229db · source: compare_history:seat_abs_err_coherent, poll_paths=all">725</span> to <span class="mstat" data-mode="fixed" data-token="polls_off_seat_err_after" data-when="2026-09-12" title="Pinned 2026-09-12 · seed=20261104 draws=1000 rows=24 pools:843229db · source: compare_history:seat_abs_err_coherent, poll_paths=off">723</span> and the
-  distributional score (CRPS) from <span class="mstat" data-mode="fixed" data-token="polls_off_crps_before" data-when="2026-09-12" title="Pinned 2026-09-12 · seed=20261104 draws=1000 rows=24 pools:843229db · source: compare_history:crps, poll_paths=all">545.8</span> to
-  <span class="mstat" data-mode="fixed" data-token="polls_off_crps_after" data-when="2026-09-12" title="Pinned 2026-09-12 · seed=20261104 draws=1000 rows=24 pools:843229db · source: compare_history:crps, poll_paths=off">541.4</span>. Both move the right way and neither is large: seven
+  <span class="mstat" data-mode="fixed" data-token="polls_off_seat_err_before" data-when="2026-09-12" data-prov="725. First published in this edition (17 September 2026). Source: compare_history:seat_abs_err_coherent, poll_paths=all. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">725</span> to <span class="mstat" data-mode="fixed" data-token="polls_off_seat_err_after" data-when="2026-09-12" data-prov="723. First published in this edition (17 September 2026). Source: compare_history:seat_abs_err_coherent, poll_paths=off. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">723</span> and the
+  distributional score (CRPS) from <span class="mstat" data-mode="fixed" data-token="polls_off_crps_before" data-when="2026-09-12" data-prov="545.8. First published in this edition (17 September 2026). Source: compare_history:crps, poll_paths=all. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">545.8</span> to
+  <span class="mstat" data-mode="fixed" data-token="polls_off_crps_after" data-when="2026-09-12" data-prov="541.4. First published in this edition (17 September 2026). Source: compare_history:crps, poll_paths=off. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">541.4</span>. Both move the right way and neither is large: seven
   of the 24 elections moved at all, one of them by six seats <em>against</em> the
   change. The honest summary is that <strong>we cannot distinguish the poll channel&rsquo;s
   contribution from zero</strong>, which is itself a reason not to let it move a

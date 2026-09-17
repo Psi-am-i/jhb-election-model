@@ -144,7 +144,7 @@ inserted = "2026-08-07"
 [p_alone]
 mode = "free"
 source = "derived:p_alone"
-format = "pct0"
+format = "chance"   # was pct0, which printed "0%" for 3 of 5,000 (2026-09-17)
 inserted = "2026-08-07"
 
 # ---------------------------------------------------------------------------
@@ -474,3 +474,53 @@ captured = "2026-09-12"
 run = "seed=20261104 draws=1000 rows=24 pools:843229db"
 tolerance = 0.05
 used_in = "methodology.md — distributional score, without polls"
+
+# ---------------------------------------------------------------------------
+# AS PUBLISHED ON 31 AUGUST 2026 — the frozen originals of written pieces.
+# Publication convention (PUBLISHING-BACKLOG §8, owner 2026-09-17): a written
+# piece keeps the figures it was published with, dated, and a "Since then" box
+# beside it carries today's. Values read from the live page's changes.json at
+# git a138788 (site built 2026-08-31).
+[pub0831_p_da_largest]
+mode = "fixed"
+tracks = "p_da_largest"   # the live figure this frozen one is shown against
+value = 0.71
+format = "pct0"
+source = "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)"
+captured = "2026-08-31"
+used_in = "standfirst, as published"
+unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
+historical = "published 31 August 2026; kept as the original of a written piece, with a Since-then box"
+
+[pub0831_anc_ward_median]
+mode = "fixed"
+tracks = "anc_ward_median"   # the live figure this frozen one is shown against
+value = 55
+format = "int"
+source = "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)"
+captured = "2026-08-31"
+used_in = "Wards, lists and Laingsburg articles, as published"
+unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
+historical = "published 31 August 2026; kept as the original of a written piece, with a Since-then box"
+
+[pub0831_anc_entitlement]
+mode = "fixed"
+tracks = "anc_entitlement"   # the live figure this frozen one is shown against
+value = 54
+format = "int"
+source = "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)"
+captured = "2026-08-31"
+used_in = "Wards, lists and Laingsburg articles, as published"
+unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
+historical = "published 31 August 2026; kept as the original of a written piece, with a Since-then box"
+
+[pub0831_p_excessive_anc]
+mode = "fixed"
+tracks = "p_excessive_anc"   # the live figure this frozen one is shown against
+value = 0.58
+format = "pct0"
+source = "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)"
+captured = "2026-08-31"
+used_in = "Wards, lists article, as published"
+unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
+historical = "published 31 August 2026; kept as the original of a written piece, with a Since-then box"

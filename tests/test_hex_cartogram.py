@@ -270,23 +270,19 @@ def test_the_assignment_refuses_more_wards_than_cells():
 # --------------------------------------------------------------------------
 
 def test_the_two_maps_agree_on_the_confidence_tiers():
-    """The tiers are inline in ``render_map.main`` and cannot be imported.
+    """The two maps share ONE definition of how a ward is drawn.
 
-    So they are read out of its source. If someone retunes the geographic map's
-    thresholds, this fails until the cartogram is retuned with it -- which is
-    the only thing standing between "the same object drawn two ways" and two
-    maps that quietly disagree about which wards are safe.
+    This used to read ``render_map.py``'s source for the thresholds, because they
+    were inline and the cartogram copied them. Since 2026-09-17 the rule lives in
+    ``render_map.ward_call`` / ``ward_hatch`` / ``map_key`` and the cartogram
+    imports them, so agreement is identity, not a regex over source.
     """
     import hex_cartogram as hc
     import render_map
 
-    src = (ROOT / "src" / "render_map.py").read_text(encoding="utf-8")
-    for label, value in (("safe", hc.SAFE), ("strong", hc.STRONG), ("lean", hc.LEAN)):
-        assert re.search(rf"pw >= {value:.2f}\b", src), (
-            f"render_map no longer thresholds {label} at {value}; "
-            f"hex_cartogram.{label.upper()} is stale")
-    assert re.search(rf"v >= {hc.TIP_FLOOR:.2f}\b", src), "tooltip floor drifted"
-    assert re.search(rf"other >= {hc.OTHER_FLOOR:.3f}\b", src), "other floor drifted"
+    for name in ("SAFE", "TIP_FLOOR", "OTHER_FLOOR", "ward_call", "ward_hatch", "map_key"):
+        assert getattr(hc, name) is getattr(render_map, name), (
+            f"hex_cartogram.{name} is not render_map's — the two maps can disagree again")
     assert hc.CHIPS is render_map.CHIPS and hc.NAMES is render_map.NAMES
     assert hc.GREY == render_map.GREY
 
@@ -315,14 +311,19 @@ def test_the_tooltip_names_every_party_above_five_percent():
         for party, share in entries:
             named = hc.NAMES.get(party, party.title())
             if share >= hc.TIP_FLOOR:
-                assert f"{named} {share:.0%}" in tip, f"ward {ward}: {named} missing"
+                # never "100%" (owner, 2026-09-17): a certain-looking ward has lost before
+                shown = "over 99%" if share > 0.99 else f"{share:.0%}"
+                assert f"{named} {shown}" in tip, f"ward {ward}: {named} missing"
+                assert "100%" not in tip, f"ward {ward}: prints 100%"
                 checked += 1
         other = sum(v for _, v in entries if v < hc.TIP_FLOOR)
         assert (f"other {other:.0%}" in tip) == (other >= hc.OTHER_FLOOR)
     assert checked > 200, "too few parties exercised to mean anything"
 
 
-def test_the_four_tiers_are_all_exercised_and_grey_is_reserved_for_tossups():
+def test_solid_means_nine_in_ten_and_every_other_ward_is_banded():
+    """Two classes since 2026-09-17: solid when one party wins >= 90% of
+    simulations, otherwise contested and banded by every party at >= 10%."""
     import hex_cartogram as hc
 
     _, probs = _inputs()
@@ -330,12 +331,12 @@ def test_the_four_tiers_are_all_exercised_and_grey_is_reserved_for_tossups():
     for row in probs.values():
         info = hc.classify(row)
         seen[info["cls"]] = seen.get(info["cls"], 0) + 1
-        if info["cls"] == "grey":
-            assert float(row["p_win"]) < hc.LEAN
-            assert info["fill"] == hc.GREY
+        if info["cls"] == "solid":
+            assert float(row["p_win"]) >= hc.SAFE and info["bands"] == []
         else:
-            assert float(row["p_win"]) >= hc.LEAN
-    assert set(seen) == {"solid", "strong", "lean", "grey"}, seen
+            assert float(row["p_win"]) < hc.SAFE and info["fill"] == hc.GREY
+            assert info["bands"] and all(v >= 0.10 for _, v in info["bands"]), row
+    assert set(seen) == {"solid", "contested"}, seen
 
 
 # --------------------------------------------------------------------------

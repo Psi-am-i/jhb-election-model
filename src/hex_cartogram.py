@@ -84,9 +84,8 @@ MARK_END = "<!-- __HEXMAP_END__ -->"
 
 # Tier thresholds. These are NOT free parameters -- they are the geographic
 # map's, and tests/test_hex_cartogram.py asserts they still are.
-SAFE, STRONG, LEAN = 0.90, 0.75, 0.60
-TIP_FLOOR = 0.05          # a party is named in the tooltip at >= this share
-OTHER_FLOOR = 0.005       # ...and the "other" remainder is shown at >= this
+# Tiers, floors and the drawing rule are render_map's — imported, never copied.
+from render_map import SAFE, TIP_FLOOR, OTHER_FLOOR, ward_call, ward_hatch, map_key  # noqa: E402
 
 # Hexagon area as a multiple of (city area / ward count). 1.0 makes the tiles
 # cover the real silhouette; smaller values loosen the packing and shorten the
@@ -354,59 +353,8 @@ def build_layout(ward_paths: dict, method: str = "optimal",
 # --------------------------------------------------------------------------
 
 def classify(row: dict) -> dict:
-    """Tier, colour, tooltip and challengers for one ward.
-
-    Mirrors ``render_map.main`` exactly. If that changes, this must change with
-    it, and ``test_the_two_maps_agree_on_the_confidence_tiers`` fails until it
-    does.
-    """
-    pw = float(row["p_win"])
-    winner = row["winner"]
-    name = NAMES.get(winner, winner.title())
-    entries = [(c.split(":")[0], float(c.split(":")[1]))
-               for c in row["dist"].split("|")]
-    main = [(c, v) for c, v in entries if v >= TIP_FLOOR]
-    other = sum(v for c, v in entries if v < TIP_FLOOR)
-    share = " · ".join(f"{NAMES.get(c, c.title())} {v:.0%}" for c, v in main)
-    if other >= OTHER_FLOOR:
-        share += f" · other {other:.0%}"
-    challengers = [c for c, v in main if c != winner][:2]
-    if pw >= SAFE:
-        fill, cls, verdict = CHIPS.get(winner, GREY), "solid", f"safe {name}"
-    elif pw >= STRONG:
-        fill, cls, verdict = CHIPS.get(winner, GREY), "strong", f"strongly leaning {name}"
-    elif pw >= LEAN:
-        fill, cls, verdict = CHIPS.get(winner, GREY), "lean", f"leaning {name}"
-    else:
-        fill, cls, verdict = GREY, "grey", "too close to call"
-    return {"fill": fill, "cls": cls, "winner": winner,
-            "challengers": challengers,
-            "shares": [v for c, v in main if c != winner][:2],
-            "tip": f"Ward {row['ward']} · {verdict} — {share}"}
-
-
-def _hatch(cls: str, challengers: list[str], shares: list[float],
-           patterns: dict[str, str]) -> str | None:
-    """The challenger-striped fill, byte-identical in rule to the geographic map."""
-    if cls not in ("strong", "lean") or not challengers:
-        return None
-    cols = [CHIPS.get(c, GREY) for c in challengers]
-    pid = f"hx_{cls}_" + "_".join(c.lstrip("#") for c in cols)
-    ratio = (shares[1] / shares[0]) if len(shares) > 1 and shares[0] > 0 else 0
-    pid += f"_r{int(ratio * 10)}"
-    if pid not in patterns:
-        width = 3.2 if cls == "lean" else 1.6
-        step = 7.0
-        lines = (f'<line x1="0" y1="0" x2="0" y2="{step}" stroke="{cols[0]}" '
-                 f'stroke-width="{width}"/>')
-        if len(cols) > 1:
-            w2 = max(width * ratio, 0.7)
-            lines += (f'<line x1="{step/2}" y1="0" x2="{step/2}" y2="{step}" '
-                      f'stroke="{cols[1]}" stroke-width="{w2:.1f}"/>')
-        patterns[pid] = (f'<pattern id="{pid}" width="{step}" height="{step}" '
-                         f'patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'
-                         f'{lines}</pattern>')
-    return pid
+    """One ward's fill, class, tooltip and bands — ``render_map.ward_call``."""
+    return ward_call(row["ward"], row["winner"], float(row["p_win"]), row["dist"])
 
 
 def _luminance(hex_colour: str) -> float:
@@ -429,7 +377,7 @@ def render(layout: Layout, probs: dict[str, dict], city_name: str = "the city") 
     W, H = layout.width, layout.height
     patterns: dict[str, str] = {}
     tiles, hatches, numbers = [], [], []
-    called = {"solid": 0, "strong": 0, "lean": 0, "grey": 0}
+    called = {"solid": 0, "contested": 0}
 
     # ONE hexagon, defined once at the origin and <use>d 135 times. Not a size
     # optimisation: emitting 135 separate <polygon>s with coordinates rounded
@@ -444,8 +392,7 @@ def render(layout: Layout, probs: dict[str, dict], city_name: str = "the city") 
         cx, cy = layout.cells[ward]
         row = probs.get(ward)
         if row is None:
-            info = {"fill": GREY, "cls": "grey", "challengers": [], "shares": [],
-                    "tip": f"Ward {ward}"}
+            info = {"fill": GREY, "cls": "contested", "bands": [], "tip": f"Ward {ward}"}
         else:
             info = classify(row)
         called[info["cls"]] += 1
@@ -453,7 +400,7 @@ def render(layout: Layout, probs: dict[str, dict], city_name: str = "the city") 
         tiles.append(f'<use href="#hexcell" xlink:href="#hexcell" {at} '
                      f'fill="{info["fill"]}" stroke="var(--paper)" '
                      f'stroke-width="1.2" data-tip="{info["tip"]}"></use>')
-        pid = _hatch(info["cls"], info["challengers"], info["shares"], patterns)
+        pid = ward_hatch(info, patterns)
         if pid:
             hatches.append(f'<use href="#hexcell" xlink:href="#hexcell" {at} '
                            f'fill="url(#{pid})" pointer-events="none"></use>')
@@ -484,44 +431,16 @@ def render(layout: Layout, probs: dict[str, dict], city_name: str = "the city") 
         'letter-spacing:.1em;text-transform:uppercase;fill:var(--ink-3);'
         'pointer-events:none">One hexagon = one ward = one councillor</text>')
 
-    party_sw = " ".join(
-        f'<span style="display:inline-flex;align-items:center;gap:5px;margin-right:11px">'
-        f'<span style="width:10px;height:10px;border-radius:2px;background:{CHIPS[c]};'
-        f'display:inline-block"></span>{NAMES[c]}</span>'
-        # MK is in this list and is NOT in render_map's — an omission in the
-        # published key, since MK wins wards in this forecast and has nowhere
-        # to be looked up. Reported rather than fixed in place: render_map.py
-        # cannot be re-run without rewriting the live page, which another
-        # worker owns. See MODEL-LOG §1.90.
-        for c in ("ANC", "DA", "MK", "EFF", "ASA", "PA", "IFP", "ALJAMAAH"))
-    KEY_BASE = "#7d6aa6"
-
-    def key_swatch(pattern_lines: float | None) -> str:
-        base = f'<rect width="18" height="12" rx="2" fill="{KEY_BASE}"/>'
-        if pattern_lines is None:
-            return base
-        return (f'{base}<g stroke="#000" stroke-width="{pattern_lines}" '
-                f'transform="rotate(45 9 6)">'
-                + "".join(f'<line x1="{x}" y1="-8" x2="{x}" y2="20"/>'
-                          for x in range(-8, 27, 6)) + "</g>")
-
-    tier_key = f"""<span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
-      <svg width="18" height="12">{key_swatch(None)}</svg>
-      <b>Safe</b>&nbsp;wins in ≥90% of simulations ({called['solid']})</span>
-    <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
-      <svg width="18" height="12">{key_swatch(1.6)}</svg>
-      <b>Strongly leaning</b>&nbsp;75–90% ({called['strong']})</span>
-    <br><span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
-      <svg width="18" height="12">{key_swatch(3.2)}</svg>
-      <b>Leaning</b>&nbsp;60–75% ({called['lean']})</span>
-    <span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
-      <svg width="18" height="12"><rect width="18" height="12" rx="2" fill="{GREY}"/></svg>
-      <b>Toss-up</b>&nbsp;under 60% ({called['grey']})</span>"""
+    tier_key = map_key(called)
 
     return f"""{MARK_START}
-  <details class="rollup" data-band="forecast" data-map="cartogram" open>
+  <details class="rollup" data-band="forecast" data-map="cartogram" open style="display:none">
     <summary><span class="eyebrow">The same forecast, drawn by seats instead of by land</span>
     <h2>Who wins how many</h2></summary>
+    <div class="maptoggle" style="display:flex;gap:6px;margin:4px 0 10px;font-size:13px">
+      <button type="button" data-show="geo" aria-pressed="false">By land area</button>
+      <button type="button" data-show="cartogram" aria-pressed="true">Every ward the same size</button>
+    </div>
     <figure>
       <div style="position:relative">
       <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardhexmap"
@@ -537,11 +456,10 @@ def render(layout: Layout, probs: dict[str, dict], city_name: str = "the city") 
       </div>
       <figcaption style="display:flex;flex-direction:column;gap:6px">
         <span>{tier_key}</span>
-        <span>{party_sw}</span>
         <span>Every ward elects one councillor, so on this map every ward is the same
         size — each hexagon sits as close to its ward's real position as the grid
         allows. The geographic map above answers <em>where</em>; this one answers
-        <em>how many</em>. Stripes take the challenger's colour. Touch or hover any
+        <em>how many</em>. Touch or hover any
         hexagon for its numbers.</span>
       </figcaption>
     </figure>

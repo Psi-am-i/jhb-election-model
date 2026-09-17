@@ -548,22 +548,24 @@ def _span(text: str, entry: dict, name: str, live_str: str | None) -> str:
     src = entry.get("source", "")
     when = entry.get("captured") or entry.get("inserted") or ""
     if mode == "fixed":
-        tip = f"Pinned {when}"
+        tip = f"Source: {src}. Pinned {when}"
         if entry.get("run"):
-            tip += f" · {entry['run']}"
+            tip += f" ({entry['run']})"
+        tip += "."
         if live_str is not None and live_str != text:
-            tip += f" · the model now says {live_str}"
-        tip += f" · source: {src}"
+            tip += f" The current model gives {live_str}."
     elif mode == "generated":
-        tip = f"Computed at build from the current model run · source: {src}"
+        tip = f"Source: {src}, computed at build from the current model run."
     else:
-        tip = f"Live from the current model run · source: {src}"
+        tip = f"Source: {src}, live from the current model run."
     # the tip goes into an attribute: escape before anything else can break out
     tip = (tip.replace("&", "&amp;").replace("<", "&lt;")
               .replace(">", "&gt;").replace('"', "&quot;"))
     live_attr = f' data-live="{live_str}"' if live_str is not None else ""
+    # `data-prov`, not `title`: a browser shows a title tooltip late or not at
+    # all, and the owner saw none (2026-09-17). STAT_CSS draws it as a hover box.
     return (f'<span class="mstat" data-mode="{mode}" data-token="{name}"'
-            f' data-when="{when}"{live_attr} title="{tip}">{text}</span>')
+            f' data-when="{when}"{live_attr} data-prov="{tip}" tabindex="0">{text}</span>')
 
 
 def render(text: str, registry: dict, ctx: dict, *, wrap: bool = True,
@@ -727,7 +729,7 @@ GATING = ("num", "date", "wnum")
 #: typed into claims.toml by hand, so it is scanned as prose. A region name not
 #: in this set is prose, whatever the comment says — otherwise any hand-written
 #: page could exempt itself by typing a marker.
-GENERATED_MARKERS = frozenset({"MAP", "BALLOTS", "REGIMES"})
+GENERATED_MARKERS = frozenset({"MAP", "HEXMAP", "BALLOTS", "REGIMES"})
 REGION = re.compile(r"<!-- __([A-Z]+)_START__ -->(.*?)<!-- __\1_END__ -->", re.S)
 #: Reader-visible attributes: tooltips, accessible labels, link previews.
 ATTRS = re.compile(r'\b(?:title|data-tip|aria-label|alt|content)="([^"]*)"')
@@ -834,6 +836,23 @@ def script_writes(text: str) -> list[str]:
             for hit in pat.finditer(body):
                 out.append(f"{what}: …{body[max(0, hit.start() - 40):hit.end() + 40].strip()}…")
     return out
+
+
+def inject_stat_css(page: str) -> str:
+    """Put STAT_CSS into a page, once. The only place the token styling comes
+    from: a template that kept its own copy is how a hover box written here
+    never reached the page (2026-09-17)."""
+    if "/*stat-css*/" in page or "</head>" not in page:
+        return page
+    # A pop-over near the right or bottom edge of the window flips so it stays
+    # visible. The script only toggles a class; it writes no text or figure.
+    flip = ("<script>/*stat-tip*/document.addEventListener('mouseover',function(e){"
+            "var s=e.target.closest&&e.target.closest('.mstat');if(!s)return;"
+            "var r=s.getBoundingClientRect();"
+            "var w=document.documentElement.clientWidth,h=document.documentElement.clientHeight;"
+            "s.classList.toggle('tip-left',r.left+316>w);"
+            "s.classList.toggle('tip-up',r.bottom+96>h);});</script>")
+    return page.replace("</head>", f"<style>/*stat-css*/\n{STAT_CSS}</style>\n{flip}\n</head>", 1)
 
 
 def html_unescape(s: str) -> str:
@@ -975,8 +994,15 @@ def drift_report(rows: list[dict], registry: dict | None = None) -> str:
 # Injected into every page that renders tokens. `mstat` (model stat), NOT
 # `stat` — that class is already the headline tiles, whose flex-column
 # display turned every inline figure into its own block.
-STAT_CSS = """  .mstat{display:inline;}
-  .mstat-move{font-size:.7em;margin-left:2px;cursor:help;vertical-align:.15em;}
+STAT_CSS = """  .mstat{display:inline;position:relative;border-bottom:1px dotted var(--ink-3);cursor:help;}
+  .mstat[data-mode="fixed"]{border-bottom-style:dashed;}
+  @media (min-width:760px){.tablewrap{overflow:visible;}}  /* phones keep sideways scroll */
+  .mstat:hover::after,.mstat:focus::after,.mstat-move:hover::after{content:attr(data-prov);position:absolute;
+    left:0;top:1.5em;z-index:50;width:max-content;max-width:300px;white-space:normal;
+    background:var(--ink,#1a1d1b);color:var(--paper,#fbfbfa);font:500 11.5px/1.35 ui-sans-serif,system-ui;
+    padding:6px 8px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.25);pointer-events:none;}
+  .mstat.tip-left:hover::after,.mstat.tip-left:focus::after{left:auto;right:0;}
+  .mstat.tip-up:hover::after,.mstat.tip-up:focus::after{top:auto;bottom:1.5em;}
+  .mstat-move{font-size:.7em;margin-left:2px;cursor:help;vertical-align:.15em;position:relative;}
   .mstat-move.up{color:#2f6d4a;} .mstat-move.down{color:#a33a2a;} .mstat-move.changed{color:var(--ink-3);}
-  .mstat[data-mode="fixed"]{border-bottom:1px dotted var(--ink-3);cursor:help;}
 """

@@ -538,6 +538,7 @@ def main(argv: list[str] | None = None) -> int:
         else:
             audits[output] = statlib.audit(page, **audit_cfg)
             scans[output] = statlib.scan_numbers(page, **scan_cfg)
+        page = statlib.inject_stat_css(page)
         (args.out / output).write_text(page, encoding="utf-8")
         print(f"  rendered {source:<28s} -> site/{output}")
 
@@ -552,6 +553,7 @@ def main(argv: list[str] | None = None) -> int:
         unresolved_all += [f"{source}: {u}" for u in unresolved]
         audits[output] = statlib.audit(html, **audit_cfg)
         scans[output] = statlib.scan_numbers(html, **scan_cfg)
+        html = statlib.inject_stat_css(html)
         (args.out / output).write_text(html, encoding="utf-8")
         print(f"  nav+copy {source:<28s} -> site/{output}")
     # EVERY PAGE THIS BUILD NO LONGER PRODUCES IS REMOVED, not just the one
@@ -680,8 +682,13 @@ def main(argv: list[str] | None = None) -> int:
     # NO ESCAPE HATCH, unlike --allow-orphans and --allow-stale-sources. Those
     # stage a fix that needs model work; this one is satisfied by one call to
     # `publication.retire()` with a reason, which is the whole obligation.
+    # A generated token (`{{@name=…}}`) has no registry entry by design — it
+    # carries its value inline — so "left the registry" is the wrong test for
+    # it. What matters is whether the figure is still on a page this build
+    # writes: gone from both the registry AND the pages, unretired, refuses.
+    on_page = {r["token"] for r in published if r.get("token")}
     vanished = sorted(t for t, row in ledger.items()
-                      if t not in registry and not row.superseded_at)
+                      if t not in registry and t not in on_page and not row.superseded_at)
     if vanished:
         refuse = True
         print("\nPUBLISHED TOKENS THAT LEFT THE REGISTRY UNRETIRED — refusing "
@@ -905,9 +912,42 @@ def main(argv: list[str] | None = None) -> int:
             glyph = "▲" if float(c["value"]) > float(c["previous_value"]) else "▼"
         except (TypeError, ValueError):
             glyph = "◆"
-        was = (f"was {c['previous']} on {str(c['previous_published_at'])[:10]}")
+        was = f"Was {c['previous']}."
         arrows[c["token"]] = (glyph, was)
-    if arrows:
+    # Every tooltip states the figure and what the published site last said,
+    # so a reader hovering any number sees whether it changed (owner, 2026-09-17:
+    # "if something changes, the change should be surfaced").
+    now_date = now[:10]
+    # TOOLTIP CONVENTION (owner, 2026-09-17): the brief statement first, then
+    # dates and source. "{new}. Was {old}." for a live figure that moved;
+    # "{old}. Is now {new}." for a frozen, as-published one.
+    def _long(d):
+        from datetime import date as _date
+        try:
+            y, m, dd = (int(x) for x in str(d)[:10].split("-"))
+            return f"{dd} {_date(y, m, dd):%B %Y}"
+        except (ValueError, TypeError):
+            return str(d)
+    history = {}
+    display_now = {c["token"]: c["display"] for c in changes}
+    registry_entries = {k: v for k, v in registry.items() if isinstance(v, dict)}
+    for c in changes:
+        tracked = (registry_entries.get(c["token"]) or {}).get("tracks")
+        if tracked:
+            when = _long((registry_entries[c["token"]] or {}).get("captured", ""))
+            now = display_now.get(tracked)
+            history[c["token"]] = (
+                (f"{c['display']}. Is now {now}. " if now else f"{c['display']}. ")
+                + f"Published {when}" + (f"; now {_long(now_date)}." if now else "."))
+        elif c["previous"] is None:
+            history[c["token"]] = f"{c['display']}. First published in this edition ({_long(now_date)})."
+        elif c["movement"] in ("none", "rounding"):
+            history[c["token"]] = (f"{c['display']}. Unchanged since "
+                                   f"{_long(c['previous_published_at'])}.")
+        else:
+            history[c["token"]] = (f"{c['display']}. Was {c['previous']}. Published "
+                                   f"{_long(c['previous_published_at'])}; now {_long(now_date)}.")
+    if changes:
         for page in sorted({p for c in changes for p in c["pages"]}):
             f = args.out / page
             if not f.is_file():
@@ -915,12 +955,21 @@ def main(argv: list[str] | None = None) -> int:
             text = f.read_text(encoding="utf-8")
 
             def _mark(m):
-                glyph, was = arrows[m.group(2)]
+                token = _re.search(r'data-token="([^"]+)"', m.group(0)).group(1)
+                glyph, was = arrows[token]
                 cls = {"▲": "up", "▼": "down"}.get(glyph, "changed")
                 return (m.group(0) + f'<span class="mstat-move {cls}" '
-                        f'title="{_html.escape(was, quote=True)}">{glyph}</span>')
+                        f'data-prov="{_html.escape(was, quote=True)}">{glyph}</span>')
+            def _prov(m):
+                span = m.group(1)
+                note = history.get(m.group(2))
+                if note:
+                    span = _re.sub(r'data-prov="([^"]*)"',
+                                   lambda d: f'data-prov="{_html.escape(note, quote=True)} {d.group(1)}"',
+                                   span, count=1)
+                return _mark(_re.match(r"(.*)", span, _re.S)) if m.group(2) in arrows else span
             text = _re.sub(r'(<span class="mstat"[^>]*data-token="([^"]+)"[^>]*>[^<]*</span>)',
-                           lambda m: _mark(m) if m.group(2) in arrows else m.group(0), text)
+                           _prov, text)
             f.write_text(text, encoding="utf-8")
         # the pages changed, so the number review's page stamp must follow them
         import hashlib as _hashlib

@@ -135,10 +135,7 @@ def main(argv: list[str] | None = None) -> int:
         f'<div class="stat"><div class="n">{n}<span class="chancew"> of simulations</span></div>'
         f'<div class="l">{l}{f"<span class=sub>{sub}</span>" if sub else ""}</div></div>'
         for n, l, sub in tiles)
-    tiles_html += ('<div class="stat"><div class="n">{{council_size}} · {{majority}}</div>'
-                   '<div class="l">Total seats · majority threshold'
-                   '<span class="sub">The excessive-seats law keeps the council at {{council_size}}</span>'
-                   '</div></div>')
+    # (no 'council 270 · majority 136' tile: that is the law, not something the simulations say)
 
     # --- where the parties land: ordered by median, then mean ----------------
     others = sum(S[p] for p in parties if p not in CHART_PARTIES)
@@ -196,7 +193,14 @@ def main(argv: list[str] | None = None) -> int:
             m = sum(1 << i for i in combo)
             tot = msum(m)
             s = float(smallest(m, tot).mean())
-            if s >= MIN_SMALLEST:
+            win = tot >= thr
+            # No passengers (owner, 2026-09-17: "if a coalition can survive the
+            # exit of a party, remove the party"). A member whose exit the
+            # majority survives in most of the simulations where it governs is
+            # a passenger, and the combination without it is the one to show.
+            carried = win.any() and all(
+                float(((tot - S[p_]) >= thr)[win].mean()) < 0.5 for p_ in members_of(m))
+            if s >= MIN_SMALLEST and carried:
                 cands[m] = s
             else:
                 _sum_cache.pop(m, None)
@@ -221,18 +225,18 @@ def main(argv: list[str] | None = None) -> int:
             left = float(((tot - S[p]) >= thr)[win].mean())
             surv.append(f"{NAMES.get(p, p)} leaves: majority holds in "
                         + chance(f"coal.{key}.survive.{p}", left,
-                                 f"{SRC}, among those where this combination wins"))
+                                 f"{SRC}, among those where this combination wins")
+                        + " of simulations")
         cond = f"{SRC}, among the simulations where this combination wins"
         rows_out.append(
             f'<tr data-parties="{" ".join(members_of(m))}" data-p="{p_major:.4f}">'
             f"<td>{label(m)}</td>"
             f'<td class="num">{chance(f"coal.{key}.majority", p_major)}</td>'
-            f'<td class="num">{chance(f"coal.{key}.smallest", s)}</td>'
             f'<td class="num">{seats(f"coal.{key}.seats_when_wins", med_w, cond)}</td>'
             f'<td class="num">+{seats(f"coal.{key}.cushion_when_wins", cushion, cond)}</td>'
             f'<td style="font-size:12px">{tok(f"coal.{key}.stability", f"{stab / 100:.4f}", "pct0", cond)}'
             f" of its councillors could defect</td>"
-            f'<td style="font-size:12px">{"<br>".join(surv)}</td></tr>')
+            f'<td style="font-size:12px">{"".join(f"<div>{s_}</div>" for s_ in surv)}</td></tr>')
     govern_html = "\n".join(rows_out)
     govern_parties = [p for p in top if any(p in members_of(m) for m in cands)]
     filter_html = "".join(
@@ -240,14 +244,15 @@ def main(argv: list[str] | None = None) -> int:
     untracked = 270 - sum(means.values())
     govern_note = (
         f"Every combination listed is a smallest workable majority in at least 1 in 20 of the "
-        f"{{{{n_draws}}}} simulations: it reaches the majority, and loses it if any one partner leaves. "
-        f"“Majority in” is the share of simulations in which it has the numbers; "
-        f"“Smallest form in” the share in which it has them with no passenger. Seats, cushion, "
-        f"stability and survivability are measured only over the simulations in which the "
-        f"combination wins. These are shares of simulations, not vote shares and not the "
-        f"chance a deal is made. The simulations track {tok('govern.tracked_parties', nT, 'int')} "
-        f"parties individually; the rest hold {tok('govern.untracked_seats', f'{untracked:.2f}', 'int')} "
-        f"seats on average and are left out of every combination.")
+        f"{{{{n_draws}}}} simulations: it has the numbers, and loses them if any one partner leaves. "
+        f"A partner the majority can do without in most of the simulations where it governs is a "
+        f"passenger, and such combinations are left out — the list shows the version without it. "
+        f"The percentage is the share of simulations in which it can govern — not a vote share, "
+        f"and not the chance the deal is made. Seats, cushion, stability and survivability are "
+        f"measured only over the simulations in which it governs. The simulations track "
+        f"{tok('govern.tracked_parties', nT, 'int')} parties individually; the rest hold "
+        f"{tok('govern.untracked_seats', f'{untracked:.2f}', 'int')} seats on average and are left "
+        f"out of every combination.")
 
     # --- minority administrations ---------------------------------------------
     minority_rows = summary["minority"]
@@ -268,7 +273,47 @@ def main(argv: list[str] | None = None) -> int:
         with claims_path.open("rb") as fh:
             claims = tomllib.load(fh).get("claim", [])
         boxes = []
+        # Figures a claim's "Since then" box may quote, each a generated token.
+        # The DA-alone scenario is read from the per-simulation ward results so
+        # every clause of the narrative points at simulations that exist.
+        import scenarios as _sc
+        _detail, _winners, _wards = _sc.load(args.processed)
+        _modal = _sc.modal_winners(_winners, _wards)
+        _da = _sc.matching(_detail, [("DA", ">=", int(np.median(thr)))])
+        _wall = [d for d in _da if sum(1 for _, a, b in _sc.flips(_winners, _modal, d)
+                                         if a == "ANC" and b == "DA") >= 30]
+        _odd = [d for d in _da if d not in _wall]
+        _sd = "ward_draws.csv + seat_detail_draws.csv"
+
+        def _seats(d, p):
+            return _detail[d].get(p, {}).get("seats", 0)
+        since_vals = {
+            "da_alone_share": chance("claim.da_alone.share", len(_da) / N),
+            "da_alone_count": tok("claim.da_alone.count", len(_da), "int"),
+            "n_draws": "{{n_draws}}",
+            "wall_count": tok("claim.da_alone.wall_count", len(_wall), "int", _sd),
+        }
+        if _wall:
+            anc = [_seats(d, "ANC") for d in _wall]
+            since_vals["wall_anc_low"] = tok("claim.da_alone.wall_anc_low", min(anc), "int", _sd)
+            since_vals["wall_anc_high"] = tok("claim.da_alone.wall_anc_high", max(anc), "int", _sd)
+        if len(_odd) == 1:
+            d = _odd[0]
+            for key, p in (("odd_anc", "ANC"), ("odd_asa", "ASA"), ("odd_eff", "EFF"), ("odd_nfp", "NFP")):
+                since_vals[key] = tok(f"claim.da_alone.{key}", _seats(d, p), "int", f"{_sd}, simulation {d}")
+
+        def _since(text):
+            missing = [k for k in re.findall(r"\[\[(\w+)\]\]", text) if k not in since_vals]
+            if missing:
+                raise SystemExit(f"claims.toml 'since' names {missing}, which render_sheet "
+                                 f"cannot compute for today's simulations — rewrite the box")
+            return re.sub(r"\[\[(\w+)\]\]", lambda m: since_vals[m.group(1)], text)
+
         for c in claims:
+            since_html = ""
+            if c.get("since"):
+                since_html = ('<aside class="since"><div class="since-h">{{generated_date}}: what the '
+                              'model says now</div><p>' + _md(_since(c["since"])) + "</p></aside>")
             steps = "".join(
                 f'<li><div class="stepbody">{_md(step)}</div></li>'
                 for step in c.get("steps", []))
@@ -282,6 +327,7 @@ def main(argv: list[str] | None = None) -> int:
                      f'<span class="chip" style="background:{c["chip"]}"></span>')
             boxes.append(
                 f'<article class="claim" data-party="{c["party"]}">'
+                f'<div class="pubdate">{c["published"]}: Published</div>'
                 f'<div class="claim-top">{ident}'
                 f'<div class="claim-who"><b>{c.get("party_name", c["party"])}'
                 f'</b><span>{c["speaker"]} \u00b7 {link}</span></div>'
@@ -289,7 +335,7 @@ def main(argv: list[str] | None = None) -> int:
                 f'<blockquote class="claim-quote">{c["quote"]}'
                 f'<span class="q-close">\u201d</span></blockquote>'
                 f'<p class="claim-intro">{_md(c["intro"])}</p>'
-                f'<ol class="claimsteps">{steps}</ol></article>')
+                f'<ol class="claimsteps">{steps}</ol>{since_html}</article>')
         claims_html = ("<!-- __CLAIMS_START__ -->\n    "
                        + "\n    ".join(boxes)
                        + "\n    <!-- __CLAIMS_END__ -->")
@@ -324,46 +370,57 @@ def main(argv: list[str] | None = None) -> int:
             floors[k] += 1
         return floors
 
-    # ⛔ MEANS, NOT MEDIANS. Medians do not add: the party medians summed to 240
-    # of 270, so "Smaller parties = 270 − named medians" showed 39 seats against
-    # a real 13-24 (2011-2021), and "ANC list = median total − MEAN wards" showed
-    # 7 list seats for a party that gets none in most draws. Means add exactly,
-    # so wards + list = total holds per party and every bar sums to its size.
-    # `seat_draws.csv` omits the smallest parties, which is why the remainder is
-    # taken from 270 rather than summed.
+    # ⛔ ONE REAL SIMULATION, NOT A SUMMARY STATISTIC. Medians do not add (the
+    # party medians summed to 240 of 270, so "Smaller parties" showed 39 seats).
+    # Means do add, but a mean is an outcome no simulation produces: the ANC's
+    # mean list seats were 3.85 while its MEDIAN is 0 and 64.3% of simulations
+    # give it none — so the bar said "4 list seats" beside a tile saying the
+    # clause fires in 64% (owner, 2026-09-17: "can't be both"). A single real
+    # simulation adds up exactly AND is something the model actually produced:
+    # the one closest to every charted party's median seats.
     OTHER = "__other__"
-    mean_tot = {p: float(S[p].mean()) for p in parties}
-    named = [(pty, v) for pty, v in sorted(summary["parties"].items(),
-                                           key=lambda kv: -mean_tot.get(kv[0], 0.0))
-             if NAMES.get(pty) and CHIPS.get(pty) and mean_tot.get(pty, 0.0) >= 2.5]
-    ward_raw = {pty: float(v.get("ward_wins_mean", 0.0)) for pty, v in named}
-    tot_raw = {pty: mean_tot[pty] for pty, v in named}
-    ward_raw[OTHER] = max(135.0 - sum(ward_raw.values()), 0.0)
-    tot_raw[OTHER] = max(270.0 - sum(tot_raw.values()), 0.0)
-    ward_n = round_to_total(ward_raw, 135)
-    tot_n = round_to_total(tot_raw, 270)
-    list_n = {k: max(tot_n[k] - ward_n[k], 0) for k in tot_n}
-    list_n[OTHER] = max(list_n[OTHER] + 135 - sum(list_n.values()), 0)
+    detail: dict[int, dict[str, tuple[int, int]]] = {}
+    with (args.processed / "seat_detail_draws.csv").open(encoding="utf-8", newline="") as fh:
+        for r in csv.DictReader(fh):
+            detail.setdefault(int(r["draw"]), {})[r["party"]] = (
+                int(r["ward_seats"]), int(r["list_seats"]))
+    import scenarios as _scen
+    typical = _scen.typical(S, CHART_PARTIES)
+    sim = detail[typical]
+    named_codes = [p for p in sorted(sim, key=lambda q_: -sum(sim[q_]))
+                   if NAMES.get(p) and CHIPS.get(p) and sum(sim[p]) >= 3]
+    ward_n = {p: sim[p][0] for p in named_codes}
+    list_n = {p: sim[p][1] for p in named_codes}
+    ward_n[OTHER] = sum(w for p, (w, _) in sim.items() if p not in named_codes)
+    list_n[OTHER] = sum(l_ for p, (_, l_) in sim.items() if p not in named_codes)
+    tot_n = {k: ward_n[k] + list_n[k] for k in ward_n}
 
     def seg(k):
         return ("Smaller parties", "#8b918b") if k == OTHER else (NAMES[k], CHIPS[k])
-    order = [pty for pty, _ in named] + [OTHER]
+    order = named_codes + [OTHER]
     wardsb = [(seg(k)[0], ward_n[k], seg(k)[1]) for k in order if ward_n.get(k, 0) > 0]
     listb = [(seg(k)[0], list_n[k], seg(k)[1]) for k in order if list_n.get(k, 0) > 0]
     totb = [(seg(k)[0], tot_n[k], seg(k)[1]) for k in order if tot_n.get(k, 0) > 0]
+    council_n = sum(tot_n.values())
 
-    anc_list = list_n.get("ANC", 0)
-    p_none = f"{p_excessive:.0%}"
-    n_word = ("<b>under one seat</b>" if anc_list == 0 else
-              "<b>a single seat</b>" if anc_list == 1 else f"<b>{anc_list} seats</b>")
-    anc_note = (f"Note the ANC's list bar: {n_word} on average. In at least {p_none} of simulations "
-                "it gets none at all — its ward wins already exceed its proportional share, "
-                "so the excessive-seats clause strips its list seats and everyone else's "
-                "shrink to fit")
-    ballots_caption = (f"Every bar is the average across all simulations, so the three add up "
-                       f"exactly. Hover a segment for its seats. {anc_note} — while ActionSA, with "
-                       "broad support but no stronghold wards, lives almost wholly on the "
-                       "list. Two opposite ways of turning votes into seats, in one city.")
+    anc_w, anc_l = sim.get("ANC", (0, 0))
+    src_typ = f"seat_detail_draws.csv, simulation {typical}"
+    anc_note = (f"In it the ANC wins {tok('ballots.typical.anc_wards', anc_w, 'int', src_typ)} wards "
+                f"and gets {tok('ballots.typical.anc_list', anc_l, 'int', src_typ)} list seats"
+                + (" — its ward wins already exceed its proportional share, so the excessive-seats "
+                   "clause gives it no list seats and everyone else's list seats shrink to fit. That "
+                   "happens in " if anc_l == 0 else ". The excessive-seats clause strips the ANC's list "
+                   "seats in ")
+                + chance("ballots.p_anc_excessive", p_excessive,
+                         "forecast_summary.json p_excessive_by_party")
+                + " of the simulations")
+    ballots_caption = (f"These bars are one real simulation — number "
+                       f"{tok('ballots.typical.draw', typical, 'raw', 'seat_detail_draws.csv')}, "
+                       f"the one closest to every party's median — so the three add up exactly. "
+                       f"Hover a segment for its seats. {anc_note}. ActionSA, with broad support but "
+                       "no stronghold wards, lives almost wholly on the list. Two opposite ways of "
+                       "turning votes into seats, in one city.")
+    assert council_n == int(np.median(council)), (council_n, "typical simulation is not a full council")
     strip = f"""<!-- __BALLOTS_START__ -->
   <details class="rollup" data-band="forecast" open>
     <summary><span class="eyebrow">The arithmetic — two ballots, one council</span>

@@ -61,6 +61,7 @@ ANG = math.radians(float(_MAP.get("rotate_deg", 40)))
 #: tooltip)." The tooltip keeps its 5% cut; a hairline stripe is not information.
 STRIPE_MIN = 0.10
 UNKNOWN_CHIP = "#5f6660"   # never GREY: a grey stripe on grey ground vanishes
+REST = "__rest__"          # the band for every party below STRIPE_MIN, drawn in GREY
 
 
 def stripe_parties(entries, winner=None, limit=2):
@@ -82,7 +83,7 @@ def toss_pattern(contenders, step: float = 7.0):
         return None
     total = sum(v for _, v in contenders)
     widths = [step * v / total for _, v in contenders]
-    cols = [CHIPS.get(c, UNKNOWN_CHIP) for c, _ in contenders]
+    cols = [GREY if c == REST else CHIPS.get(c, UNKNOWN_CHIP) for c, _ in contenders]
     pid = "h_toss_" + "_".join(
         f"{col.lstrip('#')}{w:.1f}".replace(".", "p") for col, w in zip(cols, widths))
     x, lines = 0.0, []
@@ -93,6 +94,90 @@ def toss_pattern(contenders, step: float = 7.0):
     return pid, (f'<pattern id="{pid}" width="{step}" height="{step}" '
                  f'patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'
                  + "".join(lines) + "</pattern>")
+
+
+#: Solid colour only when one party wins the ward in at least this share of
+#: simulations. Owner, 2026-09-17: "safe = solid colour, wins 90%; stripes show
+#: every party that wins more than 10% of simulations; thicker = more wins.
+#: Leaning and strongly leaning aren't visually different and can be removed."
+SAFE = 0.90
+TIP_FLOOR = 0.05          # a party is named in the tooltip at >= this share
+OTHER_FLOOR = 0.005       # ...and the "other" remainder is shown at >= this
+
+
+def ward_call(ward: str, winner: str, pw: float, dist: str) -> dict:
+    """How ONE ward is drawn and described. The only definition: the geographic
+    map and the hex cartogram both call this, so they cannot disagree.
+
+    ``dist`` is ``ward_winner_probs.csv``'s ``PARTY:share|PARTY:share`` field.
+    Returns ``fill``, ``cls`` (``solid`` or ``contested``), ``tip`` and
+    ``bands`` — the parties that earn a band, strongest first.
+    """
+    entries = [(c.split(":")[0], float(c.split(":")[1])) for c in dist.split("|")]
+    main = [(c, v) for c, v in entries if v >= TIP_FLOOR]
+    other = sum(v for c, v in entries if v < TIP_FLOOR)
+
+    def _pc(v):
+        # ⛔ never "100%": it reads as certain, and wards that looked safe have lost
+        return "over 99%" if v > 0.99 else f"{v:.0%}"
+    share = " · ".join(f"{NAMES.get(c, c.title())} {_pc(v)}" for c, v in main)
+    if other >= OTHER_FLOOR:
+        share += f" · other {other:.0%}"
+    name = NAMES.get(winner, winner.title())
+    if pw >= SAFE:
+        return {"fill": CHIPS.get(winner, UNKNOWN_CHIP), "cls": "solid", "bands": [],
+                "tip": f"Ward {ward} · {name} in over 9 of every 10 simulations — {share}"}
+    bands = stripe_parties(main, limit=4)
+    rest = 1.0 - sum(v for _, v in bands)
+    # A ward under 90% with only ONE party at >= 10% still must not look safe,
+    # and must not be plain grey either (it read as "too close to call", owner
+    # 2026-09-17). Everyone below the stripe line becomes one grey band, sized
+    # to its share, whenever it would be a real band or the only other band.
+    if rest >= STRIPE_MIN or (len(bands) < 2 and rest > 0):
+        bands = bands + [(REST, rest)]
+    return {"fill": GREY, "cls": "contested", "bands": bands,
+            "tip": f"Ward {ward} · contested — share of simulations won: {share}"}
+
+
+def ward_hatch(call: dict, patterns: dict) -> str | None:
+    """The banded fill for a contested ward, registered in ``patterns``."""
+    made = toss_pattern(call["bands"]) if call["cls"] == "contested" else None
+    if not made:
+        return None
+    pid, svg = made
+    patterns.setdefault(pid, svg)
+    return pid
+
+
+#: Key swatch colours that belong to no party: a solid block and a striped one
+#: in these would otherwise read as "the ANC" or "Rise" (owner, 2026-09-17).
+KEY_SOLID, KEY_STRIPE_A, KEY_STRIPE_B = "#d9d3c3", "#d9d3c3", "#4b4f4c"
+KEY_PARTIES = ("ANC", "DA", "EFF", "MK", "ASA", "PA", "IFP", "ALJAMAAH")
+
+
+def party_key() -> str:
+    """The party colours, shown first in both maps' keys."""
+    return " ".join(
+        f'<span style="display:inline-flex;align-items:center;gap:5px;margin-right:11px">'
+        f'<span style="width:10px;height:10px;border-radius:2px;background:{CHIPS[c]};'
+        f'display:inline-block"></span>{NAMES[c]}</span>' for c in KEY_PARTIES)
+
+
+def map_key(called: dict, n_draws_token: str = "{{n_draws}}") -> str:
+    """The key both maps show: party colours, then what solid and striped mean."""
+    stripes = "".join(
+        f'<rect x="{i * 3}" width="3" height="12" fill="{KEY_STRIPE_A if i % 2 == 0 else KEY_STRIPE_B}" '
+        f'transform="skewX(-30)"/>' for i in range(-2, 12))
+    return f"""<span style="display:block;margin-bottom:6px">{party_key()}</span>
+    <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
+      <svg width="18" height="12"><rect width="18" height="12" rx="2" fill="{KEY_SOLID}"/></svg>
+      <b>Solid colour</b>&nbsp;one party wins the ward in at least 9 of every 10 simulations ({called.get('solid', 0)})</span>
+    <span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
+      <svg width="18" height="12"><clipPath id="keyclip"><rect width="18" height="12" rx="2"/></clipPath><g clip-path="url(#keyclip)">{stripes}</g></svg>
+      <b>Stripes</b>&nbsp;contested ({called.get('contested', 0)})</span>
+    <br><span style="font-size:12px;color:var(--ink-3)">A stripe for every party that wins the ward in
+      at least 1 in 10 of the {n_draws_token} simulations; the wider the stripe, the more simulations
+      it wins. Grey is every other party together. These are shares of simulations, not vote shares.</span>"""
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -146,7 +231,7 @@ def main(argv: list[str] | None = None) -> int:
         rx, ry = rot(x, y)
         return ((rx - rminx) * scale + PAD_X, (ry - rminy) * scale + PAD_TOP)
 
-    paths, hatches, called = [], [], {"solid": 0, "strong": 0, "lean": 0, "grey": 0}
+    paths, hatches, called = [], [], {"solid": 0, "contested": 0}
     patterns: dict[str, str] = {}
     path_data: list = []
     for _, row in gdf.iterrows():
@@ -160,65 +245,16 @@ def main(argv: list[str] | None = None) -> int:
                 d += "M" + "L".join(f"{x:.1f} {y:.1f}" for x, y in pts) + "Z"
 
         if p is None:
-            fill, cls = GREY, "grey"
-            tip = f"Ward {row['wardno']}"
+            call = {"fill": GREY, "cls": "contested", "bands": [], "tip": f"Ward {row['wardno']}"}
         else:
-            pw = float(p["p_win"])
-            winner = p["winner"]
-            name = NAMES.get(winner, winner.title())
-            entries = [(c.split(":")[0], float(c.split(":")[1]))
-                       for c in p["dist"].split("|")]
-            main = [(c, v) for c, v in entries if v >= 0.05]
-            other = sum(v for c, v in entries if v < 0.05)
-            # ⛔ Never print 100%. It says "won every simulation", which reads as
-            # certain, and the ward record has upsets in wards that looked safe.
-            def _pc(v):
-                return "over 99%" if v > 0.99 else f"{v:.0%}"
-            share = " · ".join(f"{NAMES.get(c, c.title())} {_pc(v)}" for c, v in main)
-            if other >= 0.005:
-                share += f" · other {other:.0%}"
-            challengers = [c for c, _ in stripe_parties(main, winner)]
-            if pw >= 0.90:
-                fill, cls, verdict = CHIPS.get(winner, GREY), "solid", f"safe {name}"
-            elif pw >= 0.75:
-                fill, cls, verdict = CHIPS.get(winner, GREY), "strong", f"strongly leaning {name}"
-            elif pw >= 0.60:
-                fill, cls, verdict = CHIPS.get(winner, GREY), "lean", f"leaning {name}"
-            else:
-                fill, cls, verdict = GREY, "grey", "too close to call"
-            tip = f"Ward {row['wardno']} · {verdict} — {share}"
-        called[cls] += 1
+            call = ward_call(row["wardno"], p["winner"], float(p["p_win"]), p["dist"])
+        called[call["cls"]] = called.get(call["cls"], 0) + 1
         path_data.append((row, d))
-        paths.append(f'<path d="{d}" fill="{fill}" stroke="var(--paper)" '
-                     f'stroke-width="0.8" data-tip="{tip}"></path>')
-        # Too close to call gets the leaning treatment too — grey ground, one stripe
-        # per contender, widths in proportion to their shares, so a near 50/50 or
-        # 33/33/33 ward reads as near-equal stripes rather than as blank grey.
-        toss = (toss_pattern(stripe_parties(main, limit=3))
-                if p is not None and cls == "grey" else None)
-        if toss:
-            pid, svg = toss
-            patterns.setdefault(pid, svg)
+        paths.append(f'<path d="{d}" fill="{call["fill"]}" stroke="var(--paper)" '
+                     f'stroke-width="0.8" data-tip="{call["tip"]}"></path>')
+        pid = ward_hatch(call, patterns)
+        if pid:
             hatches.append(f'<path d="{d}" fill="url(#{pid})" pointer-events="none"></path>')
-        if p is not None and cls in ("strong", "lean") and challengers:
-            cols = [CHIPS.get(c, GREY) for c in challengers]
-            pid = f"h_{cls}_" + "_".join(c.lstrip("#") for c in cols)
-            shares = [v for _, v in stripe_parties(main, winner)]
-            ratio = (shares[1] / shares[0]) if len(shares) > 1 and shares[0] > 0 else 0
-            pid += f"_r{int(ratio*10)}"
-            if pid not in patterns:
-                width = 3.2 if cls == "lean" else 1.6   # bolder = more contested
-                step = 7.0
-                lines = f'<line x1="0" y1="0" x2="0" y2="{step}" stroke="{cols[0]}" stroke-width="{width}"/>'
-                if len(cols) > 1:   # second challenger: stripe width in proportion
-                    w2 = max(width * ratio, 0.7)
-                    lines += (f'<line x1="{step/2}" y1="0" x2="{step/2}" y2="{step}" '
-                              f'stroke="{cols[1]}" stroke-width="{w2:.1f}"/>')
-                patterns[pid] = (f'<pattern id="{pid}" width="{step}" height="{step}" '
-                                 f'patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'
-                                 f'{lines}</pattern>')
-            hatches.append(f'<path d="{d}" fill="url(#{pid})" '
-                           f'pointer-events="none"></path>')
 
     labels = []
     for name, lx, ly in DISTRICTS:
@@ -234,105 +270,49 @@ def main(argv: list[str] | None = None) -> int:
         f'style="font:600 11px ui-monospace,monospace;fill:var(--ink-3);'
         f'pointer-events:none">N ↗</text>')
 
-    # council inset: the city silhouette filled with banded seat proportions
-    summary = json.loads(Path("data/processed/forecast_summary.json").read_text())
-    # MEANS, not medians: medians do not add, so "270 − named medians" handed
-    # the remainder ~30 seats that belong to nobody (see render_sheet's bars).
+    # The full council as a plain stacked bar, not a city silhouette: PR seats
+    # have no geography, so drawing them inside the city outline suggested one
+    # (owner, 2026-09-17). Same typical simulation as the "two ballots" bars.
     import csv as _csv
+    import scenarios as _scen
     with (Path("data/processed") / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
         _draws = list(_csv.DictReader(fh))
-    _mean = {k: sum(int(r[k]) for r in _draws) / len(_draws)
-             for k in _draws[0] if k not in ("draw", "threshold", "council_size")}
-    seats = sorted(((k, round(v)) for k, v in _mean.items() if round(v) >= 1),
-                   key=lambda kv: -kv[1])
+    _parties = [k for k in _draws[0] if k not in ("draw", "threshold", "council_size")]
+    _S = {p: [int(r[p]) for r in _draws] for p in _parties}
+    _t = _scen.typical(_S, KEY_PARTIES)
+    seats = sorted(((p, _S[p][_t]) for p in _parties if _S[p][_t] > 0), key=lambda kv: -kv[1])
+    council = int(_draws[_t]["council_size"])
     named_total = sum(n for _, n in seats)
-    if named_total < 270:
-        seats.append(("OTHER", 270 - named_total))
-    outline = gdf.geometry.union_all().simplify(0.0012)
-    od = ""
-    for g in (outline.geoms if outline.geom_type == "MultiPolygon" else [outline]):
-        pts = [xy(x, y) for x, y in g.exterior.coords]
-        od += "M" + "L".join(f"{x:.1f} {y:.1f}" for x, y in pts) + "Z"
-    MINI_W = 300.0
-    ms = MINI_W / W
-    mini_h = H * ms
-    mx, my = W - MINI_W - 4, H - mini_h - 24  # bottom-right, clear of the city
-
-    # Area-proportional bands: equal-width strips under-sold whichever party
-    # sat at a narrow end of the silhouette (user review: DA looked small).
-    # Integrate the outline's area profile along x and put band boundaries at
-    # each party's cumulative seat share of the TOTAL AREA.
-    from shapely.geometry import Polygon, box
-    screen_polys = []
-    for g in (outline.geoms if outline.geom_type == "MultiPolygon" else [outline]):
-        screen_polys.append(Polygon([xy(x, y) for x, y in g.exterior.coords]))
-    import numpy as _np
-    xs = _np.linspace(0.0, W, 337)
-    slab = _np.zeros(len(xs) - 1)
-    for i in range(len(xs) - 1):
-        strip = box(xs[i], 0, xs[i + 1], H)
-        slab[i] = sum(pl.intersection(strip).area for pl in screen_polys)
-    cum = _np.concatenate([[0.0], _np.cumsum(slab)])
-    total_area = cum[-1]
-    bands, acc = [], 0
-    cursor_x = 0.0
+    if named_total < council:
+        seats.append(("OTHER", council - named_total))
+    BAR_W, BAR_H = 300.0, 18.0
+    mx, my = W - BAR_W - 8, H - BAR_H - 30
+    bands, cursor_x = [], 0.0
     for party, n in seats:
-        acc += n
-        x_end = float(_np.interp(acc / 270.0 * total_area, cum, xs))
-        col = CHIPS.get(party, GREY)
+        w = BAR_W * n / council
         nm = NAMES.get(party, "Others" if party == "OTHER" else party.title())
-        bands.append(f'<rect x="{cursor_x:.1f}" y="0" width="{x_end - cursor_x:.1f}" '
-                     f'height="{H:.0f}" fill="{col}" '
-                     f'data-tip="{nm} — {n} of 270 seats (median)"/>')
-        cursor_x = x_end
-    inset = f"""<g transform="translate({mx:.0f},{my:.0f}) scale({ms:.4f})">
-      <clipPath id="cityclip"><path d="{od}"/></clipPath>
-      <g clip-path="url(#cityclip)">{''.join(bands)}</g>
-      <path d="{od}" fill="none" stroke="var(--ink-3)" stroke-width="2"/>
-    </g>
-    <text x="{mx + MINI_W:.0f}" y="{my + mini_h + 16:.0f}" text-anchor="end"
+        bands.append(f'<rect x="{cursor_x:.1f}" y="0" width="{w:.1f}" height="{BAR_H:.0f}" '
+                     f'fill="{CHIPS.get(party, GREY)}" data-tip="{nm} — {n} of {council} seats"/>')
+        cursor_x += w
+    inset = f"""<g transform="translate({mx:.0f},{my:.0f})">{''.join(bands)}
+      <rect width="{BAR_W:.0f}" height="{BAR_H:.0f}" fill="none" stroke="var(--ink-3)" stroke-width="1"/></g>
+    <text x="{mx + BAR_W:.0f}" y="{my + BAR_H + 16:.0f}" text-anchor="end"
       style="font:650 10.5px ui-sans-serif,system-ui;letter-spacing:.1em;
-      text-transform:uppercase;fill:var(--ink-3);pointer-events:none">The full council — 270 seats, proportional</text>
+      text-transform:uppercase;fill:var(--ink-3);pointer-events:none">The full council — {council} seats, one typical simulation</text>
     <text x="8" y="16"
       style="font:650 10.5px ui-sans-serif,system-ui;letter-spacing:.1em;
       text-transform:uppercase;fill:var(--ink-3);pointer-events:none">Ward races — 135 seats, first past the post</text>"""
 
-    party_sw = " ".join(
-        f'<span style="display:inline-flex;align-items:center;gap:5px;margin-right:11px">'
-        f'<span style="width:10px;height:10px;border-radius:2px;background:{CHIPS[c]};'
-        f'display:inline-block"></span>{NAMES[c]}</span>'
-        for c in ("ANC", "DA", "EFF", "ASA", "PA", "IFP", "ALJAMAAH"))
-    KEY_BASE = "#7d6aa6"  # neutral purple: no party owns it
-    def key_swatch(pattern_lines: float | None) -> str:
-        base = f'<rect width="18" height="12" rx="2" fill="{KEY_BASE}"/>'
-        if pattern_lines is None:
-            return base
-        return (f'{base}<g stroke="#000" stroke-width="{pattern_lines}" '
-                f'transform="rotate(45 9 6)">'
-                + "".join(f'<line x1="{x}" y1="-8" x2="{x}" y2="20"/>'
-                          for x in range(-8, 27, 6)) + "</g>")
-
-    tier_key = f"""<span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
-      <svg width="18" height="12">{key_swatch(None)}</svg>
-      <b>Safe</b>&nbsp;wins in ≥90% of simulations ({called['solid']})</span>
-    <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
-      <svg width="18" height="12">{key_swatch(1.6)}</svg>
-      <b>Strongly leaning</b>&nbsp;75–90% ({called['strong']})</span>
-    <br><span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
-      <svg width="18" height="12">{key_swatch(3.2)}</svg>
-      <b>Leaning</b>&nbsp;60–75% ({called['lean']})</span>
-    <span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
-      <svg width="18" height="12"><rect width="9" height="12" fill="{CHIPS['ANC']}"/><rect x="9" width="9" height="12" fill="{CHIPS['DA']}"/></svg>
-      <b>Too close to call</b>&nbsp;no party wins 60% ({called['grey']})</span>
-    <br><span style="font-size:12px;color:var(--ink-3)">Every percentage is a share of the
-      {{{{n_draws}}}} simulations, not a vote share. <b>Stripes</b> are the other parties that win the
-      ward in at least 1 in 10 simulations — the thicker the stripe, the more often. A too-close-to-call
-      ward is banded by its contenders, each band as wide as its share of wins.</span>"""
+    tier_key = map_key(called)
 
     snippet = f"""{MARK_START}
-  <details class="rollup" data-band="forecast" open>
-    <summary><span class="eyebrow">The map — every ward, called using 5,000 simulations</span>
+  <details class="rollup" data-band="forecast" data-map="geo" open>
+    <summary><span class="eyebrow">The map — every ward, called using {{{{n_draws}}}} simulations</span>
     <h2>Who wins where</h2></summary>
+    <div class="maptoggle" style="display:flex;gap:6px;margin:4px 0 10px;font-size:13px">
+      <button type="button" data-show="geo" aria-pressed="true">By land area</button>
+      <button type="button" data-show="cartogram" aria-pressed="false">Every ward the same size</button>
+    </div>
     <figure>
       <div style="position:relative">
       <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardmap"
@@ -347,10 +327,9 @@ def main(argv: list[str] | None = None) -> int:
       </div>
       <figcaption style="display:flex;flex-direction:column;gap:6px">
         <span>{tier_key}</span>
-        <span>{party_sw}</span>
-        <span>Stripes take the challenger's colour. Touch or hover any ward for its numbers.
-        A ward needs no majority — highest total wins. Smaller map shows final seats when
-        combined with the Party Proportional Representation ballot.</span>
+        <span>Touch or hover any ward for its numbers. A ward needs no majority — highest total
+        wins. The bar shows the whole council, ward and list seats together, in one typical
+        simulation.</span>
       </figcaption>
     </figure>
     <script>
