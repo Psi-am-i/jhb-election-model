@@ -834,19 +834,19 @@ requirement to measure.
 
    | claimed columns | n | mean PIT | 50% (PIT) | 80% (PIT) | 90% (PIT) | probit-SD |
    |---|---|---|---|---|---|---|
-   | ranks 1-3 | 63 | 0.527 | 73% | 94% | 94% | 0.760 |
-   | ranks 4-12 | 65 | 0.588 | 62% | 91% | 94% | 0.851 |
+   | ranks 1-3 | 72 | 0.528 | 69% | 92% | 94% | 0.748 |
+   | ranks 4-12 | 78 | 0.572 | 65% | 90% | 94% | 0.850 |
 
-   | twenty-one-city-year vote error | signed | absolute |
+   | twenty-four-city-year vote error | signed | absolute |
    |---|---|---|
-   | ranks 1-3 | -4.83pp | 181.50pp |
-   | ranks 4-12 | -12.54pp | 105.77pp |
-   | ranks 13+ | +3.91pp | 24.15pp |
-   | phantom (parties that did not stand) | +13.47pp | — |
+   | ranks 1-3 | -16.36pp | 235.69pp |
+   | ranks 4-12 | -2.52pp | 135.00pp |
+   | ranks 13+ | +12.07pp | 30.61pp |
+   | phantom (parties that did not stand) | +6.81pp | — |
 
-   **BOTH TABLES ARE NOW MEASURED ON TWENTY-ONE CITY-YEARS (2026-09-02,
-   `MODEL-LOG` §1.160/§1.161).** They were nine until §1.70, sixteen until
-   §1.77, and are twenty-one now that the 2011 cycle is emitted. The standing
+   **BOTH TABLES ARE NOW MEASURED ON TWENTY-FOUR CITY-YEARS (re-quoted
+   2026-09-18 from the committed `history.json`).** They were nine until §1.70,
+   sixteen until §1.77, twenty-one at §1.160/§1.161, and twenty-four now. The standing
    instruction from §1.70 — *"every number in this repository predating this
    entry was measured on [the old panel] and must be re-read before it is
    quoted again"* — applies again, to everything quoted off the sixteen.

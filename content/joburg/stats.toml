@@ -417,7 +417,16 @@ allow = [
   "never means a vote share",      # the glossary's own illustration of what a
                                    #   percentage on this page does NOT mean;
                                    #   an example, not a figure
-  "the middle 90%",                # a stated reporting convention (the band the
+  "the middle 90%",
+  # ADDED 2026-09-17, with the figure each rests on named.
+  # The headline. Its claim is that no party governs alone, and the standfirst
+  # under it carries {{p_alone}} — a share of simulations, dated and tokenised.
+  "nobody will win johannesburg",
+  # Commentary, and a statement about the MECHANISM rather than a forecast: a
+  # party can lead without nearing a majority. The seat chart above it carries
+  # every party's range as tokens, and {{p_alone}} says how often anyone gets
+  # there alone.
+  "the da can finish first without ever nearing a majority",                # a stated reporting convention (the band the
                                    #   charts draw), not a model output
 ]
 

@@ -206,10 +206,12 @@ def main(argv: list[str] | None = None) -> int:
                 _sum_cache.pop(m, None)
 
     def label(m):
-        return '<span class="plus">+</span>'.join(
-            f'<span class="cparty"><span class="chip" style="background:{CHIPS.get(p, "#8b918b")};'
+        return "".join(
+            f'<span class="cparty">{"" if i == 0 else chr(43) + " "}'
+            f'<span class="chip" style="background:{CHIPS.get(p, "#8b918b")};'
             f'display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px"></span>'
-            f'{NAMES.get(p, p)}</span>' for p in members_of(m))
+            f'{NAMES.get(p, p)}</span> '
+            for i, p in enumerate(members_of(m)))
 
     rows_out = []
     for m, s in sorted(cands.items(), key=lambda ms: -float((msum(ms[0]) >= thr).mean())):
@@ -223,7 +225,7 @@ def main(argv: list[str] | None = None) -> int:
         surv = []
         for p in members_of(m):
             left = float(((tot - S[p]) >= thr)[win].mean())
-            surv.append(f'<span class="survp">{NAMES.get(p, p)} '
+            surv.append(f'<span class="survp"><span class="survn">{NAMES.get(p, p)}</span> '
                         + chance(f"coal.{key}.survive.{p}", left,
                                  f"{SRC}, among those where this combination wins")
                         + "</span>")

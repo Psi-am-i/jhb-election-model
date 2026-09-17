@@ -954,6 +954,23 @@ def audit(text: str, *, allow=(), fixed=(), structural=(),
 
     Returns ``(numbers, claims)``.
     """
+    # A claim inside a dated passage is history, and a claim whose own sentence
+    # carries a token is sourced — the same two rules the number scan applies.
+    # Without them the checker flagged "the DA is the largest party in 47% of
+    # simulations" while pointing at the token that says so.
+    dated_ranges, _ = _dated_scan(text)
+    if dated_ranges:
+        keep, last = [], 0
+        for lo, hi, _when in sorted(dated_ranges):
+            if lo < last:
+                continue
+            keep.append(text[last:lo])
+            last = hi
+        keep.append(text[last:])
+        text = " ".join(keep)
+    # The same prose, but with each token span marked rather than removed, so a
+    # claim can be checked for a figure standing beside it.
+    marked = re.sub(r"\s+", " ", TAGS.sub(" ", SOURCED.sub(" ⟦TOK⟧ ", SCRIPTS.sub(" ", text))))
     prose = re.sub(r"\s+", " ", _visible(text))
     allow_lower = [a.lower() for a in allow if a]
 
@@ -972,6 +989,10 @@ def audit(text: str, *, allow=(), fixed=(), structural=(),
         for match in re.finditer(pattern, lowered):
             context = prose[max(0, match.start() - 60):match.end() + 40].strip()
             if excused(context):
+                continue
+            # a token within the claim's own sentence is its source
+            here = marked.lower().find(match.group(0))
+            if here != -1 and "⟦tok⟧" in marked.lower()[max(0, here - 160):here + 200]:
                 continue
             claims.append(f"{match.group(0)!r}  …{context}…")
     return numbers, claims
@@ -1054,10 +1075,17 @@ STAT_CSS = """  .mstat{display:inline;position:relative;border-bottom:1px dotted
     left:0;top:1.5em;z-index:50;width:max-content;max-width:300px;white-space:normal;
     background:var(--ink,#1a1d1b);color:var(--paper,#fbfbfa);font:500 11.5px/1.35 ui-sans-serif,system-ui;
     padding:6px 8px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.25);pointer-events:none;}
+  /* Interactive tables: the figure is the point, and a provenance box on every
+     cell buried the row. Tracking is unchanged — only the hover box is off. */
+  .notips .mstat{border-bottom:none;cursor:default;}
+  .notips .mstat:hover::after,.notips .mstat:focus::after,.notips .mstat-move:hover::after{content:none;}
   .mstat.tip-left:hover::after,.mstat.tip-left:focus::after{left:auto;right:0;}
   .mstat.tip-up:hover::after,.mstat.tip-up:focus::after{top:auto;bottom:1.5em;}
   .mstat-move{font-size:.7em;margin-left:2px;cursor:help;vertical-align:.15em;position:relative;}
   .mstat-move.up{color:#2f6d4a;} .mstat-move.down{color:#a33a2a;} .mstat-move.changed{color:var(--ink-3);}
-  .mstat-move.since{color:var(--ink-3);opacity:.75;}
+  /* NOT `.since`: the page's "Since then" boxes own that class, and the marker
+     inherited their panel background — a brown block beside every pinned figure
+     (owner, 2026-09-18). Same collision as `.pname` in the coalition table. */
+  .mstat-move.moved-since{color:var(--ink-3);opacity:.75;}
   .arrowlegend{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;}
 """

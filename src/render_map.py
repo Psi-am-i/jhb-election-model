@@ -70,7 +70,7 @@ def stripe_parties(entries, winner=None, limit=2):
             if c != winner and v >= STRIPE_MIN][:limit]
 
 
-def toss_pattern(contenders, step: float = 7.0):
+def toss_pattern(contenders, step: float = 7.0, prefix: str = "h"):
     """A too-close-to-call ward's pattern: one BAND per contender.
 
     The bands tile the whole pattern width in proportion to each contender's
@@ -84,7 +84,7 @@ def toss_pattern(contenders, step: float = 7.0):
     total = sum(v for _, v in contenders)
     widths = [step * v / total for _, v in contenders]
     cols = [GREY if c == REST else CHIPS.get(c, UNKNOWN_CHIP) for c, _ in contenders]
-    pid = "h_toss_" + "_".join(
+    pid = f"{prefix}_toss_" + "_".join(
         f"{col.lstrip('#')}{w:.1f}".replace(".", "p") for col, w in zip(cols, widths))
     x, lines = 0.0, []
     for col, w in zip(cols, widths):
@@ -139,9 +139,16 @@ def ward_call(ward: str, winner: str, pw: float, dist: str) -> dict:
             "tip": f"Ward {ward} · contested — share of simulations won: {share}"}
 
 
-def ward_hatch(call: dict, patterns: dict) -> str | None:
-    """The banded fill for a contested ward, registered in ``patterns``."""
-    made = toss_pattern(call["bands"]) if call["cls"] == "contested" else None
+def ward_hatch(call: dict, patterns: dict, prefix: str = "h") -> str | None:
+    """The banded fill for a contested ward, registered in ``patterns``.
+
+    ⛔ ``prefix`` IS NOT DECORATION. Both maps are in one document, and a
+    reference resolves to the FIRST element with that id. With shared ids the
+    cartogram's bands pointed at the land map's patterns — and when the land map
+    is hidden by the toggle, a pattern inside it stops rendering, so every
+    contested hexagon went flat grey (owner, 2026-09-18).
+    """
+    made = toss_pattern(call["bands"], prefix=prefix) if call["cls"] == "contested" else None
     if not made:
         return None
     pid, svg = made

@@ -1875,10 +1875,17 @@ def test_the_relabel_ablation_actually_withholds_the_label():
     the baseline and the label would be priced at nothing. **A number this
     repository quotes must come from a switch someone has watched bite.**
 
-    Mangaung 2016 is used because it is small (~7s at 200 draws) and because it
-    is one of the TEN city-years where a label exists. At the other six
-    `entrant_actual` is `None`, the ablation is a no-op by construction, and
-    this test would pass while proving nothing.
+    ⛔ **THE CITY-YEAR MOVED, 2026-09-18, AND THE OLD ONE WENT HOLLOW.** It was
+    Mangaung 2016, chosen because a label exists there. A label is not enough:
+    the ablation withholds the label from a GENERIC `ENTRANT` column, and since
+    arrivals are seeded BY NAME wherever the arrival record supports it, no 2016
+    or 2021 spec builds that column any more. Measured that day: Mangaung 2016
+    scores 6.9450 with the label and 6.9450 without — the test failed for the
+    right reason, and it was the test's premise that had expired.
+    It now uses Ekurhuleni 2011, where BOTH conditions hold: `pools_2011.json`
+    seeds no arrival (so the model has an `ENTRANT` column) and the NFP really
+    arrived (so there is a label to withhold). Both are asserted below rather
+    than assumed, so this fails loudly if either stops being true.
     """
     import os
     import montecarlo as M
@@ -1890,10 +1897,27 @@ def test_the_relabel_ablation_actually_withholds_the_label():
     M.fix_hash_seed()
     prev = os.environ.get("JHB_SCORE_NO_RELABEL")
     try:
+        # THE TWO CONDITIONS, CHECKED not assumed.
+        import json as _json
+        import cityconfig as _cc
+        _cc.use("ekurhuleni")
+        _target = _cc.use_target("2011")
+        _spec_path = Path(ROOT / "data/processed/ekurhuleni/pools_2011.json")
+        _spec = _json.loads(_spec_path.read_text())
+        seeded = sum(1 for v in _spec["seeds"].values() if v > 0)
+        assert seeded == 0, (
+            f"ekurhuleni 2011 now seeds {seeded} arrival(s) by name, so the model "
+            f"builds no generic ENTRANT column and this ablation cannot bite. "
+            f"Move the test to a city-year that still has one, or retire the switch.")
+        _, _label, _ = CH._actual_seats(_target, data)
+        assert _label, (
+            "no arrival is realised at ekurhuleni 2011, so there is no label to "
+            "withhold and this test would pass while proving nothing.")
+
         os.environ.pop("JHB_SCORE_NO_RELABEL", None)
-        on = CH.run_city_year("mangaung", "2016", 200, data)
+        on = CH.run_city_year("ekurhuleni", "2011", 200, data)
         os.environ["JHB_SCORE_NO_RELABEL"] = "1"
-        off = CH.run_city_year("mangaung", "2016", 200, data)
+        off = CH.run_city_year("ekurhuleni", "2011", 200, data)
     finally:
         os.environ.pop("JHB_SCORE_NO_RELABEL", None)
         if prev is not None:

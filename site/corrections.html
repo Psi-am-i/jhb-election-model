@@ -123,11 +123,18 @@
     left:0;top:1.5em;z-index:50;width:max-content;max-width:300px;white-space:normal;
     background:var(--ink,#1a1d1b);color:var(--paper,#fbfbfa);font:500 11.5px/1.35 ui-sans-serif,system-ui;
     padding:6px 8px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.25);pointer-events:none;}
+  /* Interactive tables: the figure is the point, and a provenance box on every
+     cell buried the row. Tracking is unchanged — only the hover box is off. */
+  .notips .mstat{border-bottom:none;cursor:default;}
+  .notips .mstat:hover::after,.notips .mstat:focus::after,.notips .mstat-move:hover::after{content:none;}
   .mstat.tip-left:hover::after,.mstat.tip-left:focus::after{left:auto;right:0;}
   .mstat.tip-up:hover::after,.mstat.tip-up:focus::after{top:auto;bottom:1.5em;}
   .mstat-move{font-size:.7em;margin-left:2px;cursor:help;vertical-align:.15em;position:relative;}
   .mstat-move.up{color:#2f6d4a;} .mstat-move.down{color:#a33a2a;} .mstat-move.changed{color:var(--ink-3);}
-  .mstat-move.since{color:var(--ink-3);opacity:.75;}
+  /* NOT `.since`: the page's "Since then" boxes own that class, and the marker
+     inherited their panel background — a brown block beside every pinned figure
+     (owner, 2026-09-18). Same collision as `.pname` in the coalition table. */
+  .mstat-move.moved-since{color:var(--ink-3);opacity:.75;}
   .arrowlegend{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;}
 </style>
 <script>/*stat-tip*/document.addEventListener('mouseover',function(e){var s=e.target.closest&&e.target.closest('.mstat');if(!s)return;var r=s.getBoundingClientRect();var w=document.documentElement.clientWidth,h=document.documentElement.clientHeight;s.classList.toggle('tip-left',r.left+316>w);s.classList.toggle('tip-up',r.bottom+96>h);});</script>
@@ -197,7 +204,7 @@ came to 240, so the leftover absorbed 30 seats belonging to nobody.</p>
 <p><strong>What changed.</strong> The same fix as above: one real simulation, which adds up.</p>
 <p></span></p>
 <div class="colophon">
-  Reader edition, generated from docs-public/corrections.md on 2026-09-17. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/CORRECTIONS.md">CORRECTIONS.md on GitHub</a>.
+  Reader edition, generated from docs-public/corrections.md on 2026-09-18. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/CORRECTIONS.md">CORRECTIONS.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
   <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>

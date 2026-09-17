@@ -134,6 +134,11 @@ ENV_NOT_RECORDED = {
                        "waits for the artefact lock and can change whether a "
                        "run completes, but it cannot change a number that a "
                        "completed run produces.",
+    "JHB_PREVIEW": "read only by `deploy_check.py`, which decides whether a "
+                   "DEPLOY may carry numbers the owner has not reviewed yet. "
+                   "It runs after the model, reads no model output and writes "
+                   "none; a forecast produced with it set and one without are "
+                   "the same forecast. Added 2026-09-18 with the check itself.",
 }
 
 

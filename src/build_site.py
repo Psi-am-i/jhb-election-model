@@ -963,7 +963,7 @@ def main(argv: list[str] | None = None) -> int:
                         return None
                 a, b = _num(c["display"]), _num(now_disp)
                 arrows[c["token"]] = (("↗" if b > a else "↘") if None not in (a, b) else "◆",
-                                      f"Is now {now_disp}.", "since")
+                                      f"Is now {now_disp}.", "moved-since")
             when = _long((registry_entries[c["token"]] or {}).get("captured", ""))
             now = display_now.get(tracked)
             history[c["token"]] = (

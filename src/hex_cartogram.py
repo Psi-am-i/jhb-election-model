@@ -400,7 +400,7 @@ def render(layout: Layout, probs: dict[str, dict], city_name: str = "the city") 
         tiles.append(f'<use href="#hexcell" xlink:href="#hexcell" {at} '
                      f'fill="{info["fill"]}" stroke="var(--paper)" '
                      f'stroke-width="1.2" data-tip="{info["tip"]}"></use>')
-        pid = ward_hatch(info, patterns)
+        pid = ward_hatch(info, patterns, prefix="hx")
         if pid:
             hatches.append(f'<use href="#hexcell" xlink:href="#hexcell" {at} '
                            f'fill="url(#{pid})" pointer-events="none"></use>')

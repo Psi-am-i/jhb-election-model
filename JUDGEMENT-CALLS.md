@@ -658,10 +658,10 @@ on an outcome that did not happen is an infinite log score, so the instinct is t
 widen the ward noise until the model stops being certain.
 
 **Why that is the wrong repair, with the arithmetic.** The PA was forecast at a
-citywide PR **mean of 0.10% against 2.96% actual — a 30× level miss** (on the
-median, 0.04% against 2.96%, a 79× miss). The ward layer
+citywide PR **mean of 0.09% against 2.96% actual — a 32× level miss** (on the
+median, 0.03% against 2.96%, a 100× miss). The ward layer
 placed a correct citywide total; there was no citywide total to place. Widening
-`ward_noise_sd` far enough to make that 30× level error survivable would spend the
+`ward_noise_sd` far enough to make that 32× level error survivable would spend the
 **96.8% pooled ward hit rate** — the model's one result that beats every naive
 reference in all three cycles — to buy two wards. That is treating the symptom,
 and it would degrade the layer that is working to disguise a failure in the layer
@@ -679,8 +679,8 @@ PA's level is an arrival-channel defect and belongs to the arrival work.
 ⚠️ **The figures above are from `data/processed/history.json`, joburg 2021** —
 the PA's row in that record's `votes` table, which is a POSITIONAL list carrying
 no field names of its own:
-PR median `votes[1]` = 0.0375%,
-PR mean `votes[2]` = 0.0969%,
+PR median `votes[1]` = 0.0297%,
+PR mean `votes[2]` = 0.0937%,
 PR actual `votes[3]` = 2.9604%.
 They are not from a
 `diagnose` run — two runs at different draw counts give slightly different
@@ -693,8 +693,11 @@ figure into prose" — quoted here, inside a rule about discipline, by me.
 "33×" was corrected in the sentence that derives it and left standing in the
 sentence that argues from it, four paragraphs later — so this entry carried 30×,
 79× **and** 33× for one quantity at once. Re-derived from the artefact
-(Atlas, read-only, 2026-09-13): `votes[3]/votes[2]` = 2.9604/0.0969 = **30.5×**
-and `votes[3]/votes[1]` = 2.9604/0.0375 = **78.9×**; there is no 33. *Correcting
+(Atlas, read-only, 2026-09-13; RE-QUOTED 2026-09-18 after the panel grew to 24
+city-years, which moved both the mean and the median): `votes[3]/votes[2]` =
+2.9604/0.0937 = **31.6×** and `votes[3]/votes[1]` = 2.9604/0.0297 = **99.6×**;
+there is no 33, and the earlier 30.5×/78.9× were right for the artefact as it
+stood on 13 September. *Correcting
 a figure means correcting every copy of it, and the copies are where the rule
 actually bites.*
 
