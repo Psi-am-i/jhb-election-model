@@ -23,3 +23,64 @@ steps = [
   """<span data-asof="2026-08-07">**Even {{claim_da_share_surged}}% of the vote doesn't buy {{claim_da_share_surged}}% of the seats.** {{claim_da_share_surged}}% would be {{claim_prop_seats}} seats of {{council_size}}. But the excessive-seats law still fires in nine simulations out of ten, handing the ANC every stronghold ward it holds — about {{claim_anc_wards_surged}} wards on an entitlement of about {{claim_anc_entitlement_surged}}. The surplus is deducted from everyone else's column, the biggest slice from the biggest party. So the DA's median actually lands on {{claim_da_median}} of the {{majority}} needed.</span>""",
   """<span data-asof="2026-08-07">**Could she still be right?** We looked for a reading that works. Her exact words — “We need 490,000 registered DA voters to go vote DA, if they do that we win an outright majority” — never say what total she is measuring against. Against 2021's poll of ~{{claim_poll_2021}} ballots, 490,000 would be {{claim_490k_of_2021}}%. So the claim is true in exactly one world: the DA doubles its vote while every other party combined sheds about {{claim_others_shed}} votes, keeping the voter numbers frozen at the record low. If that happened, is Helen right? Nothing in twenty years of turnout records produces that world — but even assuming it exists, while the ANC holds its ~{{claim_anc_wards_surged}}-ward wall the excessive-seats law means the DA needs about {{claim_vote_share_needed}}% of the vote to reach {{majority}}. So even in a special universe with never-before-seen events, it is false. The few simulations where the DA does govern alone are the ones where its surge breaks the wall itself, flipping stronghold wards — in those draws the ANC falls to ~{{claim_anc_collapse_seats}} seats. To do that, the DA needs to do more than turn out its existing supporters. It needs new ones.</span>""",
 ]
+
+[[claim]]
+party = "ANC"
+party_name = "African National Congress"
+chip = "#007A4D"
+logo = "ANC"
+quote = """We want to restore this city. But we can only be able to do so if the people of greater Johannesburg give their organisation, the ANC, absolute authority without any hesitation"""
+speaker = "Dickson Masemola, ANC NEC member"
+outlet = "Joburg ETC, 13 August 2026"
+url = "https://www.joburgetc.com/news/anc-vows-to-restore-joburg-no-turnaround-plan/"
+verdict = "OUT OF REACH"
+tests = "P(ANC reaches a majority of council alone)"
+captured = "2026-08-13"
+published = "18 September 2026"
+intro = """This is an appeal, not a forecast, so the thing to test is whether the mandate being asked for is available at all. Absolute authority means governing without needing anyone else: {{majority}} of the {{council_size}} seats. In the {{n_draws}} simulations behind today's forecast, the ANC does it in [[anc_alone_count]] of them."""
+steps = [
+  """**Not once, and not close.** The ANC's median is [[anc_median]] seats. Its single best result anywhere in the {{n_draws}} simulations is [[anc_best]] — still [[anc_best_short]] short of {{majority}}, and that draw is the outer edge of the range, not a likely outcome.""",
+  """**Being first is a different question, and that one is open.** The ANC is the largest party in [[anc_largest_share]] of simulations against the DA's [[da_largest_share]]. First place is a genuine contest. Sole control is not: no party reaches {{majority}} alone in more than a handful of draws.""",
+  """**The ANC does have routes — they are all coalitions.** With the EFF and MK, its closest partners on this ballot, the three together reach {{majority}} in [[anc_left_share]] of simulations, on a median of [[anc_left_median]] seats. Going the other way — an ANC-led council built with ActionSA, the PA and the smaller parties instead — reaches it in [[anc_side_share]]. These routes and others are open to the ANC. Absolute authority is not.""",
+]
+
+[[claim]]
+party = "MK"
+party_name = "uMkhonto weSizwe Party"
+chip = "#0B3D2E"
+logo = "MK"
+quote = """We firmly believe that these polls are underpolling MK Party, just as they did in the 2024 elections. According to us, we are going to be the biggest party in the city"""
+speaker = "Bongani Baloyi, MK Party mayoral candidate for Johannesburg"
+outlet = "TimesLive, 9 September 2026"
+url = "https://www.timeslive.co.za/politics/2026-09-09-mkp-mayoral-hopeful-says-polls-undercounting-grassroots-support/"
+verdict = "VERY UNLIKELY"
+tests = "P(MK wins more seats than any other party)"
+captured = "2026-09-09"
+published = "18 September 2026"
+intro = """Unlike most campaign talk this is a precise, checkable prediction: more seats than anyone else. MK is the largest party in [[mk_largest_share]] of the {{n_draws}} simulations."""
+steps = [
+  """**The gap is large, not marginal.** MK's median is [[mk_median]] seats of {{council_size}}. Even at the top of its range — [[mk_p95]] seats, a result it beats in only one simulation in twenty — it is short of the ANC's typical [[anc_median]] and the DA's [[da_median]].""",
+  """**First place is a two-horse race in this forecast.** The ANC is largest in [[anc_largest_share]] of simulations and the DA in [[da_largest_share]]. Everything else, MK included, shares what is left.""",
+  """**The complaint about polls does not reach this forecast.** Our model does not use any poll: it is built from how each of Johannesburg's voting districts actually voted in past elections, adjusted for who lives there now. So the claim that pollsters undercount MK, whether or not it is right, leaves these numbers where they are. To be largest, MK would have to be under-represented in the last election's ballot boxes — a different and much harder argument than being under-represented in a survey.""",
+]
+
+[[claim]]
+party = "DA"
+party_name = "Democratic Alliance"
+chip = "#1B5EA8"
+logo = "DA"
+quote = """We won't go into a coalition with MK, and we will not go into coalition with the EFF. Because our value set is too incompatible. You cannot govern with people who don't share any of your ideology"""
+speaker = "Helen Zille, DA"
+outlet = "Daily Maverick, 13 September 2026"
+url = "https://www.dailymaverick.co.za/article/2026-09-13-zille-draws-coalition-red-lines-as-da-targets-joburg-majority/"
+verdict = "A COIN FLIP"
+tests = "P(a majority exists that excludes the EFF and MK)"
+captured = "2026-09-11"
+published = "18 September 2026"
+intro = """A red line is a choice, not a claim about the world, so there is nothing here to call true or false. What can be tested is what it costs. Ruling out the EFF and MK leaves the DA two high-probability ways to a majority: everyone else in the council except the ANC, which clears {{majority}} in [[no_red_share]] of simulations, or a deal with the ANC itself, which clears it in [[grand_share]]. The narrower option — ActionSA and the PA alone — is the [[three_share]] case discussed just below."""
+steps = [
+  """**Without the ANC, the red line holds about half the time.** A council built from every party except the ANC, the EFF and MK reaches {{majority}} in [[no_red_share]] of the {{n_draws}} simulations. That is the whole of the rest of the council acting as one — the most generous possible reading of the DA's options, and it still comes down to a coin flip.""",
+  """**The plausible version of that coalition is much weaker.** The DA with ActionSA and the Patriotic Alliance — the partners most often named — reaches {{majority}} in [[three_share]] of simulations, on a median of [[three_median]] seats. Getting from there to a majority means adding parties that will each hold a handful of seats, and keeping all of them.""",
+  """**The alternative the red line leaves is a deal with the ANC.** The DA and the ANC together clear {{majority}} in [[grand_share]] of simulations. Neither party has said it wants that. It is, on this arithmetic, the most reliable majority in the city that does not involve the EFF or MK.""",
+  """**The same test applied to the other side.** An ANC-led council excluding the DA, the EFF and MK reaches {{majority}} in [[anc_side_share]] of simulations — almost exactly the same odds as the DA's route. On coalition arithmetic alone, neither leader is better placed than the other.""",
+]

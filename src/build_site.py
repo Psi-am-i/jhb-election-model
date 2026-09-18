@@ -60,14 +60,23 @@ STYLE = """
     }
   }
   *{box-sizing:border-box;margin:0;}
-  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+  /* Three text levels, applied the same way on every page: headings and
+     subheadings at full contrast, running prose one step down, and the
+     apparatus around a figure — keys, captions, footers — one step down
+     again. Set on body and the heading elements so nothing opts out. */
+  body{background:var(--paper);color:var(--ink-2);font-family:var(--sans);
     font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,h4,.standfirst,strong,b{color:var(--ink);}
+  figcaption,.small,.colophon,.sitefooter{color:var(--ink-3);}
+  figcaption b,figcaption strong,.small b{color:inherit;}
   .page{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
 
-  .topnav{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;
-    justify-content:space-between;font-family:var(--mono);font-size:14px;color:var(--ink-3);
+  /* one line at desktop width: the items are short enough to fit, so they
+     must not break — wrapping is kept only for narrow screens. */
+  .topnav{display:flex;flex-wrap:wrap;gap:6px 13px;align-items:baseline;
+    justify-content:space-between;font-family:var(--mono);font-size:13px;color:var(--ink-3);
     border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:26px;}
-  .topnav a{color:var(--ink-3);text-decoration:none;}
+  .topnav a{color:var(--ink-3);text-decoration:none;white-space:nowrap;}
   .topnav a:hover{color:var(--accent);}
   .topnav a.home{color:var(--accent);font-weight:600;}
   .topnav a.active{color:var(--accent);}
@@ -77,7 +86,7 @@ STYLE = """
   h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,40px);
     line-height:1.12;letter-spacing:-.012em;text-wrap:balance;margin:0 0 10px;}
   .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;
-    color:var(--ink-2);text-wrap:pretty;margin-bottom:6px;}
+    text-wrap:pretty;margin-bottom:6px;}
   .dateline{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);
     font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--rule);
     border-bottom:1px solid var(--rule);padding:9px 0;margin:14px 0 8px;}
@@ -148,7 +157,7 @@ NAV_ITEMS = [
     # "interactive" removed with the page itself — see ARTEFACTS. The comment
     # below records what happened the LAST time a nav entry outlived its page:
     # every page linked to plan.html for weeks after no build produced it.
-    ("about", "about the model"),
+    ("about", "the model"),
     ("methodology", "methodology"),
     ("review", "review"),
     ("sources", "sources"),
@@ -186,10 +195,12 @@ NAV_CSS = """<style>
   .layout{grid-template-columns:minmax(0,270px) minmax(0,1fr);}
   @media (max-width:840px){.layout{grid-template-columns:1fr;}}
 {FOOTER_CSS_PLACEHOLDER}
-  .topnav{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;
-    justify-content:space-between;font-family:var(--mono);font-size:14px;color:var(--ink-3);
+  /* one line at desktop width: the items are short enough to fit, so they
+     must not break — wrapping is kept only for narrow screens. */
+  .topnav{display:flex;flex-wrap:wrap;gap:6px 13px;align-items:baseline;
+    justify-content:space-between;font-family:var(--mono);font-size:13px;color:var(--ink-3);
     border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:22px;}
-  .topnav a{color:var(--ink-3);text-decoration:none;}
+  .topnav a{color:var(--ink-3);text-decoration:none;white-space:nowrap;}
   .topnav a:hover{color:var(--accent);}
   .topnav a.home{color:var(--accent);font-weight:600;}
   .topnav a.active{color:var(--accent);}

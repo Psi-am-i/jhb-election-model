@@ -752,7 +752,13 @@ _LEGACY_SHAPE = re.compile(r"^\d{1,3}(?:[.,]\d+)?\s?%$|^\d+$")
 #: Numbers here are not claims about the world — the axis of a chart and the
 #: "31 August 2026: Published" line are structure, and their values come from
 #: the chart's own scale or from the piece's publication date.
-CHROME_CLASSES = ("ticks", "scale", "pubdate", "since-h", "colophon")
+# A claim's attribution line — speaker, outlet, date of the article — is a
+# citation, the same kind of thing as a piece's own dated label: it dates the
+# quote, it does not assert anything about the city.
+CHROME_CLASSES = ("ticks", "scale", "pubdate", "since-h", "colophon",
+                   # and the quotation itself: the page tests that claim, it does
+                   # not assert it. Our own figures about it are tokens below it.
+                   "claim-who", "claim-quote")
 #: A number in a heading is a step marker or a section number — "1. Start by
 #: counting who can vote" — not a claim about the world.
 _HEADING = re.compile(r"<h[1-4][^>]*>.*?</h[1-4]>", re.S)

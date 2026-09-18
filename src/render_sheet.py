@@ -260,13 +260,13 @@ def main(argv: list[str] | None = None) -> int:
                      if "ANC" in members_of(m) and "DA" not in members_of(m)
                      and float((msum(m) >= thr).mean()) > 0.5)
     govern_lede = (
-        f'<p class="lede">The arithmetic is lopsided. If the DA rules out the ANC, the EFF and MK, '
-        f'its best workable majority — with ActionSA and the PA — has the numbers in '
-        f'{chance("govern.da_best_without", da_best)} of the {{{{n_draws}}}} simulations. The ANC '
-        f'without the DA has {tok("govern.anc_routes", anc_routes, "int")} workable majorities, '
-        f'{tok("govern.anc_routes_strong", anc_strong, "int")} of them reaching {{{{majority}}}} '
-        f'seats in more than half the simulations. Nothing here says which deal is politically '
-        f'likely; that judgement is yours.</p>')
+        f'<p class="lede">If the DA rules out the ANC, the EFF and MK, it has one realistic '
+        f'governing option: working with ActionSA and the PA — this coalition has the numbers in '
+        f'{chance("govern.da_best_without", da_best)} of the {{{{n_draws}}}} simulations. By '
+        f'contrast the ANC without the DA has {tok("govern.anc_routes", anc_routes, "int")} '
+        f'workable majorities, {tok("govern.anc_routes_strong", anc_strong, "int")} of them '
+        f'reaching {{{{majority}}}} seats in more than half the simulations. Nothing here says '
+        f'which deal is politically likely; just what is mathematically possible.</p>')
 
     govern_note = (
         f"<b>How to read it.</b> Every row is a smallest workable majority: it has the numbers, and "
@@ -315,11 +315,45 @@ def main(argv: list[str] | None = None) -> int:
 
         def _seats(d, p):
             return _detail[d].get(p, {}).get("seats", 0)
+        _anc_alone = float((S["ANC"] >= thr).mean()) if "ANC" in S else 0.0
+
+        def _bloc(exclude):
+            """Seats held by every party in the simulation except `exclude` —
+            the arithmetic a stated red line leaves behind, not a prediction
+            that those parties would ever sit together."""
+            return sum(S[p] for p in parties if p not in exclude)
+        _no_red = _bloc(("EFF", "MK", "ANC"))
+        _anc_side = _bloc(("EFF", "MK", "DA"))
+        _three = sum(S[p] for p in ("DA", "ASA", "PA") if p in S)
+        _left = sum(S[p] for p in ("ANC", "EFF", "MK") if p in S)
+        _stack = np.stack([S[p] for p in parties])
+        _largest = np.array(parties)[_stack.argmax(axis=0)]
         since_vals = {
+            "anc_alone_share": chance("claim.anc_alone.share", _anc_alone),
+            "anc_alone_count": tok("claim.anc_alone.count", int((S["ANC"] >= thr).sum()), "int"),
+            "anc_best": tok("claim.anc_alone.best", int(S["ANC"].max()), "int"),
+            "anc_best_short": tok("claim.anc_alone.best_short",
+                                  int(np.median(thr)) - int(S["ANC"].max()), "int"),
+            "anc_median": tok("claim.anc.median", int(np.median(S["ANC"])), "int"),
+            "da_median": tok("claim.da.median", int(np.median(S["DA"])), "int"),
+            "mk_largest_share": chance("claim.mk_largest.share", float((_largest == "MK").mean())),
+            "mk_median": tok("claim.mk.median", int(np.median(S["MK"])), "int"),
+            "mk_p95": tok("claim.mk.p95", int(np.percentile(S["MK"], 95)), "int"),
+            "anc_largest_share": chance("claim.anc_largest.share", float((_largest == "ANC").mean())),
+            "da_largest_share": chance("claim.da_largest.share", float((_largest == "DA").mean())),
             "da_alone_share": chance("claim.da_alone.share", len(_da) / N),
             "da_alone_count": tok("claim.da_alone.count", len(_da), "int"),
             "n_draws": "{{n_draws}}",
             "wall_count": tok("claim.da_alone.wall_count", len(_wall), "int", _sd),
+            "no_red_share": chance("claim.red_lines.no_red_share", float((_no_red >= thr).mean())),
+            "no_red_median": tok("claim.red_lines.no_red_median", int(np.median(_no_red)), "int"),
+            "three_share": chance("claim.red_lines.three_share", float((_three >= thr).mean())),
+            "three_median": tok("claim.red_lines.three_median", int(np.median(_three)), "int"),
+            "anc_side_share": chance("claim.red_lines.anc_side_share", float((_anc_side >= thr).mean())),
+            "anc_left_share": chance("claim.anc_routes.left_share", float((_left >= thr).mean())),
+            "anc_left_median": tok("claim.anc_routes.left_median", int(np.median(_left)), "int"),
+            "grand_share": chance("claim.red_lines.grand_share", float((S["ANC"] + S["DA"] >= thr).mean())),
+            "majority": "{{majority}}",
         }
         if _wall:
             anc = [_seats(d, "ANC") for d in _wall]
@@ -330,12 +364,17 @@ def main(argv: list[str] | None = None) -> int:
             for key, p in (("odd_anc", "ANC"), ("odd_asa", "ASA"), ("odd_eff", "EFF"), ("odd_nfp", "NFP")):
                 since_vals[key] = tok(f"claim.da_alone.{key}", _seats(d, p), "int", f"{_sd}, simulation {d}")
 
-        def _since(text):
+        def _fill(text):
             missing = [k for k in re.findall(r"\[\[(\w+)\]\]", text) if k not in since_vals]
             if missing:
                 raise SystemExit(f"claims.toml 'since' names {missing}, which render_sheet "
                                  f"cannot compute for today's simulations — rewrite the box")
             return re.sub(r"\[\[(\w+)\]\]", lambda m: since_vals[m.group(1)], text)
+
+        # Claim prose carries computed figures the same way its "Since then" box
+        # does: a placeholder the build resolves into a token, never a number a
+        # human typed into a quote-testing argument.
+        _since = _fill
 
         for c in claims:
             since_html = ""
@@ -343,7 +382,7 @@ def main(argv: list[str] | None = None) -> int:
                 since_html = ('<aside class="since"><div class="since-h">{{generated_date}}: what the '
                               'model says now</div><p>' + _md(_since(c["since"])) + "</p></aside>")
             steps = "".join(
-                f'<li><div class="stepbody">{_md(step)}</div></li>'
+                f'<li><div class="stepbody">{_md(_fill(step))}</div></li>'
                 for step in c.get("steps", []))
             vclass = "vtrue" if c["verdict"].upper() == "TRUE" else "vfalse"
             link = (f'<a href="{c["url"]}" target="_blank" rel="noopener">'
@@ -362,7 +401,7 @@ def main(argv: list[str] | None = None) -> int:
                 f'{badge}</div>'
                 f'<blockquote class="claim-quote">{c["quote"]}'
                 f'<span class="q-close">\u201d</span></blockquote>'
-                f'<p class="claim-intro">{_md(c["intro"])}</p>'
+                f'<p class="claim-intro">{_md(_fill(c["intro"]))}</p>'
                 f'<ol class="claimsteps">{steps}</ol>{since_html}</article>')
         claims_html = ("<!-- __CLAIMS_START__ -->\n    "
                        + "\n    ".join(boxes)

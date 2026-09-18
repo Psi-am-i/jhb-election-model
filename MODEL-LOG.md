@@ -26225,3 +26225,37 @@ not a model defect: the model was fine and the prose overstated it. Nothing
 checked the prose against the artefact, because the sentence quoted no number —
 which is exactly the gap `stats.audit`'s claim patterns exist to close, and
 this sentence names no party outcome, so no pattern matched it.
+
+## 1.247 Three public claims measured, and the numbers that test a quote now come from the run like every other figure (2026-09-18)
+
+Three claims were put through the same 5,000-simulation artefact the page
+is built from. Sources verified against the primary articles (the newsdesk could
+not reach them; this session could):
+
+* **ANC, Masemola — "absolute authority"** (Joburg ETC, 13 Aug 2026). The ANC
+  reaches the majority alone in **0 of 5,000** simulations; best result 133,
+  three short; median 68. Largest party in 47.5% against the DA's 46.8%. An
+  ANC-led council excluding the DA, EFF and MK clears the line in 52.4%.
+* **MK, Baloyi — "the biggest party in the city"** (TimesLive, 9 Sep 2026). MK
+  is largest in **1.36%** of simulations; median 22 seats, 95th percentile 52.
+  The claim's premise is about polls; the forecast uses none since 2026-09-12,
+  so the complaint does not reach it either way.
+* **DA, Zille — EFF and MK ruled out** (Daily Maverick, 13 Sep 2026, quote
+  confirmed verbatim). Everything except the ANC, EFF and MK clears the
+  majority in **53.7%** (median 137); the named three — DA, ActionSA, PA —
+  in **12.8%** (median 114); DA+ANC in 48.1%. The symmetric test on the other
+  side, ANC-led excluding DA/EFF/MK, is 52.4% — the two leaders' coalition
+  arithmetic is the same to within a point, which is the finding.
+
+**Mechanism.** `render_sheet` already resolved `[[placeholders]]` inside a
+claim's "Since then" box; it now resolves them in the claim's intro and steps
+too. Before this, a claim's argument was the one place on the site where a
+model figure could only be typed by hand — the exact shape rule 2 exists to
+forbid, in the section whose whole purpose is checking other people's numbers.
+
+**Scanner.** `claim-who` and `claim-quote` joined `CHROME_CLASSES`. A citation
+line and a quotation are not the site's assertions: the date on an article and
+the number inside someone else's sentence are theirs. Registering each one as a
+fixed fact would have worked and would have broken on the next reorder, because
+a registration matches by surrounding context and the claims band reorders
+whenever a claim is added.

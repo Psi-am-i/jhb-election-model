@@ -286,6 +286,126 @@
       "value": 15
     },
     {
+      "display": "68",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.anc.median",
+      "value": 68.0
+    },
+    {
+      "display": "133",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.anc_alone.best",
+      "value": 133.0
+    },
+    {
+      "display": "3",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.anc_alone.best_short",
+      "value": 3.0
+    },
+    {
+      "display": "0",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.anc_alone.count",
+      "value": 0.0
+    },
+    {
+      "display": "48%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.anc_largest.share",
+      "value": 0.4752
+    },
+    {
+      "display": "118",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.anc_routes.left_median",
+      "value": 118.0
+    },
+    {
+      "display": "16%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.anc_routes.left_share",
+      "value": 0.1552
+    },
+    {
+      "display": "67",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.da.median",
+      "value": 67.0
+    },
+    {
       "display": "3",
       "fmt": "int",
       "mode": "generated",
@@ -419,6 +539,141 @@
       "source": "ward_draws.csv + seat_detail_draws.csv",
       "token": "claim.da_alone.wall_count",
       "value": 2.0
+    },
+    {
+      "display": "47%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.da_largest.share",
+      "value": 0.4682
+    },
+    {
+      "display": "22",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.mk.median",
+      "value": 22.0
+    },
+    {
+      "display": "52",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.mk.p95",
+      "value": 52.0
+    },
+    {
+      "display": "1.4%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.mk_largest.share",
+      "value": 0.0136
+    },
+    {
+      "display": "52%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.red_lines.anc_side_share",
+      "value": 0.5244
+    },
+    {
+      "display": "48%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.red_lines.grand_share",
+      "value": 0.4806
+    },
+    {
+      "display": "54%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.red_lines.no_red_share",
+      "value": 0.5374
+    },
+    {
+      "display": "114",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.red_lines.three_median",
+      "value": 114.0
+    },
+    {
+      "display": "13%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.red_lines.three_share",
+      "value": 0.1282
     },
     {
       "display": "53",
@@ -3931,9 +4186,9 @@
     "draws": 5000,
     "forecast_content_sha256": "38892d3ae100625ab855bb8c5e722ccb328364c386849dd9830ef86ad10efba9",
     "forecast_summary_sha256": "cc19665846cbd4c50e2c22cf3c7c8f5fc3e8cc5c1b1931787f2a6a3a9a3172d6",
-    "git_commit": "d001b19f5857e1614740b9e5ef302456857b316c",
+    "git_commit": "02e7ad65b338a0bc6adadda7114f8ff95410f885",
     "git_dirty": true,
-    "model_run_id": "r-38892d3ae100-d001b19f-dirty",
+    "model_run_id": "r-38892d3ae100-02e7ad65-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
@@ -4016,6 +4271,14 @@
         "blind_test_of",
         "bloc_leak_votes",
         "byelection_count",
+        "claim.anc.median",
+        "claim.anc_alone.best",
+        "claim.anc_alone.best_short",
+        "claim.anc_alone.count",
+        "claim.anc_largest.share",
+        "claim.anc_routes.left_median",
+        "claim.anc_routes.left_share",
+        "claim.da.median",
         "claim.da_alone.count",
         "claim.da_alone.odd_anc",
         "claim.da_alone.odd_asa",
@@ -4025,6 +4288,15 @@
         "claim.da_alone.wall_anc_high",
         "claim.da_alone.wall_anc_low",
         "claim.da_alone.wall_count",
+        "claim.da_largest.share",
+        "claim.mk.median",
+        "claim.mk.p95",
+        "claim.mk_largest.share",
+        "claim.red_lines.anc_side_share",
+        "claim.red_lines.grand_share",
+        "claim.red_lines.no_red_share",
+        "claim.red_lines.three_median",
+        "claim.red_lines.three_share",
         "claim_490k_of_2021",
         "claim_anc_collapse_seats",
         "claim_anc_entitlement_surged",
@@ -4260,7 +4532,7 @@
         "tile.p_da_largest"
       ]
     },
-    "n": 261,
+    "n": 278,
     "n_rounding": 0,
     "n_visible": 0,
     "nominal": []

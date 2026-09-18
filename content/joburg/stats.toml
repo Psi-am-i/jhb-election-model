@@ -738,7 +738,15 @@ page = "methodology.html"
 
 [[audit.fixed]]
 value = "12 September 2026"
-context = "in the forecast. This changed on 12 September 2026, and before that date polls were"
+context = "Polls were an input until 12 September 2026 and are not one now"
+kind = "history"
+source = "MODEL-LOG 1.244 — the date polls left the forecast"
+reviewed = "2026-09-18"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "12 September 2026"
+context = "The switch went off on 12 September 2026. Before that date polls were"
 kind = "history"
 source = "MODEL-LOG 1.244 — the date polls left the forecast"
 reviewed = "2026-09-17"
@@ -754,7 +762,7 @@ page = "methodology.html"
 
 [[audit.fixed]]
 value = "12"
-context = "en out. Polls were an input until 12 September. Removing them is not a"
+context = "an input until 12 September. Removing them is not a"
 kind = "history"
 source = "MODEL-LOG 1.244 — the date polls left the forecast"
 reviewed = "2026-09-17"

@@ -27,7 +27,8 @@ arithmetic test can see.
 | `diagnose` | `seat_abs_err` | `coherent_err`, `marginal_err` |
 | `levels` | `sd_for` | `at_0.1%`, `at_1%`, `at_10%`, `at_40%` |
 | `publication` | `_sha` | `forecast_summary_sha256`, `seat_draws_sha256` |
-| `render_sheet` | `tok` | `da_alone_count`, `wall_count` |
+| `render_sheet` | `chance` | `anc_alone_share`, `anc_largest_share`, `anc_left_share`, `anc_side_share`, `da_alone_share`, `da_largest_share`, `grand_share`, `mk_largest_share`, `no_red_share`, `three_share` |
+| `render_sheet` | `tok` | `anc_alone_count`, `anc_best`, `anc_best_short`, `anc_left_median`, `anc_median`, `da_alone_count`, `da_median`, `mk_median`, `mk_p95`, `no_red_median`, `three_median`, `wall_count` |
 | `score` | `coverage` | `coverage`, `coverage_all` |
 | `theta_residual` | `anderson_darling` | `ad_candidate`, `ad_incumbent` |
 
@@ -534,7 +535,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `stats.GENERATED_MARKERS` | frozenset({'MAP', 'HEXMAP', 'BALLOTS', 'REGIMES'}) | NO | NO | NO | -- |
 | `stats.REGION` | re.compile('<!-- __([A-Z]+)_START__ -->(.*?)<!-- __\\1_END__ -->', re.S) | NO | NO | NO | -- |
 | `stats.ATTRS` | re.compile('\\b(?:title|data-tip|aria-label|alt|content)="([^"]*)"') | NO | NO | NO | -- |
-| `stats.CHROME_CLASSES` | tuple[5] | NO | NO | NO | -- |
+| `stats.CHROME_CLASSES` | tuple[7] | NO | NO | NO | -- |
 | `stats.SCRIPT_FORBIDDEN` | (('a data block', re.compile('\\b(?:const|let|var)\\s+[A-Za-z_$][\\w$]*\ | NO | NO | NO | -- |
 | `stats.CLAIM_PATTERNS` | tuple[10] | NO | NO | NO | -- |
 | `stats.STAT_CSS` | str | NO | NO | NO | -- |
