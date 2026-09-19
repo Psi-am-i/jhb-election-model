@@ -26259,3 +26259,46 @@ the number inside someone else's sentence are theirs. Registering each one as a
 fixed fact would have worked and would have broken on the next reorder, because
 a registration matches by surrounding context and the claims band reorders
 whenever a claim is added.
+
+## 1.248 The four impossible composition weights are two causes, and one of them is a party fitted at one size and sold at another (2026-09-19)
+
+`test_no_emitted_composition_weight_is_arithmetically_impossible` has been red
+on four party-pool pairs. Read off the emitted specs, they are not four
+problems:
+
+**Three are the same one.** Buffalo City, Cape Town and Nelson Mandela Bay 2011
+all seed **DA in White**, and all three specs record `derived_from: pool vectors
+fitted on <city> 2006`:
+
+| spec | weight on White | pool casts at most | ratio the guard reports |
+|---|---|---|---|
+| buffalocity 2011 | 0.602 | 19,192 | 1.25x |
+| capetown 2011 | 0.536 | 244,563 | 1.14x |
+| nelsonmandelabay 2011 | 0.624 | 73,562 | 1.07x |
+
+In 2006 the DA's vote really was that concentrated. By 2011 it had grown far
+past what that base can supply — in Cape Town it won the city outright, which no
+White pool can produce at any turnout. **The composition carries the party's
+SHAPE from the earlier election and its LEVEL from the target one**, and where a
+party has grown faster than its fitted pools can supply, normalising on votes
+cast (§1.42) does not save it: the shares are rescaled uniformly and the
+smallest pool goes over capacity first. The seed is stale by construction, not
+mis-normalised.
+
+**The fourth is the Mangaung pool that has done this before.** Mangaung 2016
+AIC in Indian/Asian, 25% of a small party's vote seeded into a pool casting
+1,176. That is the same pool, in the same city, whose rate collapse
+`test_the_three_known_things_hold_at_once` reports as `[1, 1, 0, 1]`. Two
+standing failures, one defect.
+
+**What this does NOT license.** The guard's own message is right that the
+election is not impossible — `montecarlo.pool_spec` re-fits by IPF on every
+draw, so the model never allocates a party more votes than a pool casts. And a
+fit-time capacity constraint was already built, measured and reverted (§1.41,
+coherent seat error 306 -> 486). The obvious repair — cap the emitted seed at
+capacity and renormalise — is not free either: IPF preserves the seed's odds
+structure, so changing the seed changes where it converges, and therefore moves
+forecast numbers. It is a measured round against the panel, not a patch.
+
+Recorded here so the next reader starts from the cause rather than from four
+symptoms. Nothing in the model changed in this commit.

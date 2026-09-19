@@ -269,17 +269,27 @@ def main(argv: list[str] | None = None) -> int:
         f'which deal is politically likely; just what is mathematically possible.</p>')
 
     govern_note = (
-        f"<b>How to read it.</b> Every row is a smallest workable majority: it has the numbers, and "
-        f"loses them if any one partner walks. A partner the majority can do without in most of the "
-        f"simulations it wins is a passenger, and those combinations are left out. "
+        f"<b>How to read it.</b> Every row is a \u201csmallest workable majority\u201d: it has the "
+        f"numbers, and usually loses them if any one partner walks out. We have omitted "
+        f"combinations where a partner leaving usually has no effect. "
         f"<b>% of simulations it can govern</b> — the share of the {{{{n_draws}}}} simulations in which "
-        f"it reaches {{{{majority}}}} seats; a share of simulations, not a vote share, and not the "
-        f"chance a deal is made. <b>Median seats</b>, <b>cushion</b>, <b>stability</b> and "
-        f"<b>survivability</b> count only the simulations in which it governs: stability is the share "
-        f"of its own councillors who could defect without sinking it, survivability how often the "
-        f"majority holds if that partner walks out. The simulations track "
-        f"{tok('govern.tracked_parties', nT, 'int')} parties individually; the rest hold "
-        f"{tok('govern.untracked_seats', f'{untracked:.2f}', 'int')} seats on average between them.")
+        f"it reaches {{{{majority}}}} seats; not a vote share, and not the chance a deal is made. "
+        f"<b>Median seats</b>, <b>cushion</b>, <b>stability</b> and <b>survivability</b> apply to the "
+        f"simulations in which it governs: stability is the share of its own councillors who could "
+        f"defect without sinking it, survivability how often the majority holds if that partner "
+        f"walks out.")
+
+    # How many parties the simulation carries, and the seats it leaves to the
+    # ones it does not. This used to sit under the coalition table, which lists
+    # only the large parties — the wrong place for a note about small ones
+    # (owner, 2026-09-18). It belongs to the seats chart, where the reader meets
+    # the pooled "Others" row and can see the bars do not add to the council.
+    seats_note = (
+        f"The simulations carry {tok('govern.tracked_parties', nT, 'int')} parties individually; "
+        f"the chart pools the smallest of them as <b>Others</b>. The parties below that, which no "
+        f"simulation carries separately, hold about "
+        f"{tok('govern.untracked_seats', f'{untracked:.2f}', 'int')} seats between them on average, "
+        f"and are not drawn here.")
 
     # --- minority administrations ---------------------------------------------
     minority_rows = summary["minority"]
@@ -291,6 +301,7 @@ def main(argv: list[str] | None = None) -> int:
     regions = {"TILES": tiles_html, "SEATS": seats_html, "GOVERN": govern_html,
                "GOVERN_LEDE": govern_lede,
                "GOVERN_FILTER": filter_html, "GOVERN_NOTE": govern_note,
+               "SEATS_NOTE": seats_note,
                "MINORITY": minority_html}
 
     # --- claims tested: rendered from content/<city>/claims.toml ----------

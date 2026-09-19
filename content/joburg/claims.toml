@@ -61,7 +61,7 @@ intro = """Unlike most campaign talk this is a precise, checkable prediction: mo
 steps = [
   """**The gap is large, not marginal.** MK's median is [[mk_median]] seats of {{council_size}}. Even at the top of its range — [[mk_p95]] seats, a result it beats in only one simulation in twenty — it is short of the ANC's typical [[anc_median]] and the DA's [[da_median]].""",
   """**First place is a two-horse race in this forecast.** The ANC is largest in [[anc_largest_share]] of simulations and the DA in [[da_largest_share]]. Everything else, MK included, shares what is left.""",
-  """**The complaint about polls does not reach this forecast.** Our model does not use any poll: it is built from how each of Johannesburg's voting districts actually voted in past elections, adjusted for who lives there now. So the claim that pollsters undercount MK, whether or not it is right, leaves these numbers where they are. To be largest, MK would have to be under-represented in the last election's ballot boxes — a different and much harder argument than being under-represented in a survey.""",
+  """**The complaint about polls does not reach this forecast.** Our model uses no poll at all. It is built from the record — how this city has actually voted, and the trajectories we can measure in that record. So the claim that pollsters undercount MK, whether or not it is right, leaves these numbers where they are. To be largest, MK would have to be under-represented in past ballot boxes, not in a survey — a different and much harder argument.""",
 ]
 
 [[claim]]
