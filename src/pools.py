@@ -4361,6 +4361,7 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                   city_code: str | None = None,
                   pooled_splits: list[float] | None = None,
                   group_total: float | None = None,
+                  city_mix: np.ndarray | None = None,
                   ) -> tuple[dict[str, dict], dict[str, str]]:
     """How a party that was not here last time takes its votes.
 
@@ -4635,7 +4636,38 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                    f"{f_hi:.1%} from the {f_kind} splinter record. Every party "
                    f"in those pools gives up the same proportion; none is named.")
         else:
-            vec = np.full(n_pools, 1.0 / n_pools)
+            # AN ENTRANT NOBODY HAS MEASURED DRAWS LIKE THE CITY, NOT LIKE A
+            # UNIFORM DISTRIBUTION OVER CATEGORIES OF WILDLY DIFFERENT SIZE.
+            #
+            # This was `np.full(n_pools, 1/n_pools)`, and it is the SECOND
+            # encoding of that assumption. The first was removed from the
+            # composition path on 2026-08-31 for being, in that comment's own
+            # words, "not a neutral assumption — an impossible one", measured at
+            # Buffalo City 2016 at 228.93x what the pool could cast. This copy
+            # survived, and it runs SECOND: the arrivals loop overwrites
+            # `composition[party]`, so the fixed path's answer was being thrown
+            # away and the artefact's own `no_measured_vector` note ("spread as
+            # the city's own pool composition") described a vector that was not
+            # written. Mangaung 2016 emitted 0.25 in a pool casting 1,176.
+            #
+            # It round-trips exactly: `_capture_from_share` divides by pool size
+            # and `emit_pools` multiplies back by it, so a flat spread in gives
+            # a flat composition out, whatever the pools are worth.
+            #
+            # The vector is PASSED IN rather than computed here, so that
+            # `city_mix_for` stays the one definition of "spread like the city".
+            if city_mix is None:
+                raise ValueError(
+                    "arrival_rules needs city_mix to size an entrant with no "
+                    "parent: spreading it evenly over pools of different sizes "
+                    "is the defect removed from the composition path on "
+                    "2026-08-31, and a silent fallback here would reintroduce "
+                    "it. Pass city_mix_for(ctx, n_pools).")
+            vec = np.asarray(city_mix, dtype=float)
+            if vec.shape != (n_pools,) or not np.isfinite(vec).all() or vec.sum() <= 0:
+                raise ValueError(f"city_mix must be {n_pools} finite "
+                                 f"non-negative weights summing above zero, got {vec!r}")
+            vec = vec / vec.sum()
             reach_used = reach if reach is not None else 0.5
             # REACH CHOOSES THE COMPARATORS. IT DOES NOT CHOOSE THE PLACE.
             #
@@ -4708,7 +4740,8 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             size *= mult
             judged = stated is not None or mult != 1.0
             capture = _capture_from_share(vec, size, pool_size)
-            why = (f"entrant from nothing: even share of every pool. "
+            why = (f"entrant from nothing: spread as the city's own pool "
+                      f"composition. "
                    + (f"Sized at a DECLARED {float(stated):.2%} of the city"
                       if stated is not None else
                       f"Sized at the EXPECTED result for the {len(peers)} "
@@ -5880,7 +5913,8 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
         # measured over a population wider than the one it is spent on --
         # see `_arrival_total_prior`. Do not quote a figure here; it decayed
         # once already.
-        group_total=_arrival_total_prior(target.year))
+        group_total=_arrival_total_prior(target.year),
+        city_mix=city_mix_for(ctx, n))
     # An arrival's composition follows from where it captures, so it does not
     # need a separate vector: the pools it takes from ARE its pool weights.
     for party, rule in arrivals.items():

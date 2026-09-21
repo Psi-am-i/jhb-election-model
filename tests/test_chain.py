@@ -1699,7 +1699,23 @@ def _arrival_kw():
         record=[(0.010, 0.5), (0.004, 0.4), (0.02, 0.6), (0.001, 0.3),
                 (0.05, 0.7), (0.002, 0.45), (0.03, 0.55), (0.007, 0.5)],
         splinter_fractions=[0.10, 0.20, 0.15],
-        pool_size=np.array([1000.0, 2000.0]))
+        pool_size=np.array([1000.0, 2000.0]),
+        # The city's own composition, which an entrant with no parent is spread
+        # by. DELIBERATELY UNEQUAL and deliberately NOT `pool_size`'s own share
+        # (which would be 1/3, 2/3): a flat vector here would pass whatever the
+        # code does with it, which is how the defect this argument exists to
+        # prevent survived its own fix, and a vector equal to the pool sizes
+        # could not tell "spread like the city" apart from "spread like the
+        # electorate".
+        #
+        # It leans to the LARGER pool on purpose. `_capture_from_share` divides
+        # by pool size, so weight on the small pool is what drives a rate into
+        # `MAX_POOL_CAPTURE`; at 0.7/0.3 the x36 case in
+        # `test_a_declared_strength_is_read_and_does_not_narrow_its_own_band`
+        # saturated the cap and the multiplier stopped moving the level, which
+        # that test rightly refuses to accept. This mix has more headroom under
+        # the cap than the flat vector it replaces, not less.
+        city_mix=np.array([0.2, 0.8]))
 
 
 def test_a_declared_strength_is_read_and_does_not_narrow_its_own_band():
@@ -2757,6 +2773,59 @@ def test_the_arrival_definitions_are_not_interchangeable():
         f"both sized from nothing and flagged as having a national record.")
 
 
+def test_an_entrant_with_no_parent_is_spread_like_the_city_not_evenly():
+    """A party nobody has measured draws like the city, not `1/n` per pool.
+
+    THE DEFECT THIS PINS. `arrival_rules` used `np.full(n_pools, 1/n_pools)`
+    here. It round-trips exactly: `_capture_from_share` divides by pool size and
+    `emit_pools` multiplies back by it, so a flat spread in is a flat
+    composition out — 0.25 of a party's vote drawn from a pool casting 0.19% of
+    the ballots at Buffalo City 2016, which is 228.93x what that pool can cast.
+    The same assumption was removed from the COMPOSITION path on 2026-08-31 and
+    survived here, in the copy that runs second and overwrites the first
+    (MODEL-LOG 1.249).
+
+    The fixture's city mix is 0.7/0.3 over pools sized 1000/2000 — unequal, and
+    deliberately not the pools' own share, so neither "it stayed flat" nor "it
+    copied the electorate" can pass by accident.
+    """
+    kw = _arrival_kw()
+    rules, _ = pools.arrival_rules({"NEWPARTY"}, {}, group_total=0.0175, **kw)
+    rule = rules["NEWPARTY"]
+
+    # The composition emit_pools would write from this capture rule.
+    size = kw["pool_size"]
+    vec = np.array([rule["capture"].get(g, 0.0) * size[g] for g in range(len(size))])
+    got = vec / vec.sum()
+
+    assert _close(got, kw["city_mix"]), (
+        f"an entrant with no parent should be spread as the city's own "
+        f"composition {kw['city_mix']}, got {got}")
+    assert not _close(got, np.full(len(size), 1.0 / len(size))), (
+        "the composition is flat across pools of different sizes, which is the "
+        "defect this test exists for")
+
+    # And the size is untouched: shape moved, the party did not grow.
+    seeded = sum(r * size[g] for g, r in rule["capture"].items()) / size.sum()
+    assert 0.0 < seeded < 1.0, seeded
+
+
+def test_arrival_rules_refuses_to_guess_a_city_mix():
+    """The fallback that hid this defect is gone, loudly.
+
+    A silent `1/n` is exactly how the 2026-08-31 fix came to be overwritten
+    without anything noticing for three weeks, so the absence of the vector is
+    an error rather than an assumption.
+    """
+    kw = _arrival_kw()
+    kw.pop("city_mix")
+    try:
+        pools.arrival_rules({"NEWPARTY"}, {}, group_total=0.0175, **kw)
+    except ValueError as exc:
+        assert "city_mix" in str(exc), exc
+    else:
+        raise AssertionError("arrival_rules accepted a missing city_mix and "
+                             "fell back to a spread it should refuse to guess")
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))
-
