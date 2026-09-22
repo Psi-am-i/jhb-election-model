@@ -477,3 +477,70 @@ prescribes it; AAPOR's transparency code covers disclosure, not revision:
       record. Every send needs owner approval.
 - [ ] A build check: a frozen piece whose tokens moved materially must carry a
       Since-then note, or `--publish` refuses.
+
+---
+
+## 9. The interactive, rebuilt on the real model — owner decisions, 2026-09-22
+
+**Engine (decided).** The page runs the Python model itself in the browser
+(Pyodide/WebAssembly). No JavaScript copy of the model, so no second definition
+to drift. Feasibility was measured on 2026-09-22: `run_model` runs unmodified
+and reproduces the project venv bit for bit on one seed once `openpyxl` is
+loaded (MODEL-LOG §1.250). The page's self-check is therefore EXACT equality on
+a fingerprint of the default run, not a tolerance. About 300 draws per change
+(owner: yes).
+
+**Every control maps to an input the Python model reads.** Where no input
+exists, the mechanism is added to the model with a JUDGEMENT-CALLS row and a
+2026 liveness test, never to the page.
+
+**The controls, in the reader's words (owner, 2026-09-22):**
+
+1. **Turnout by community, as the census groups people.** A control per
+   census population group: higher or lower than in past local elections,
+   bounded by the measured range. **Shown beside it: each party's estimated
+   support within each group**, so a reader can see why a turnout change moves
+   the parties it moves. **With a note on coarseness:** four census groups are
+   all the model has. It cannot tell Zulu from Xhosa turnout, or English from
+   Afrikaans, and the group-to-party figures are ecological estimates from ward
+   totals, not a survey of individuals.
+   *Model work:* a per-pool turnout shift applied before calibration (the
+   deleted party tilt's own note at `montecarlo.py` says this is where it
+   belongs). NEW.
+2. **"Do voters cross old lines?"** In place of per-party nudges. Voters move to
+   parties their community has not previously supported, so the pools become
+   more mixed. This is what the DA believes. The owner does not. Default = the
+   model (no extra mixing).
+   *Model work:* a mixing parameter that moves each pool's party composition
+   toward the city's by a fraction. NEW. The honest range and what the record
+   says about past mixing need measuring before the slider's ends are set.
+3. **Polls: add them, but their effect must stay within historical bounds.**
+   The reader can select several. Selected polls are averaged by quality:
+   sample size, city vs national scope, and past accuracy (owner's first
+   thoughts, not yet a specification). Default = polls off, which is the
+   published forecast.
+   *Model work:* per-poll selection (today there is only a global
+   `poll_paths` switch and a `poll_credence` that reaches the metro blend
+   only); a quality weighting; a hard bound from the historical record. NEW.
+   The existing machinery already admits only the two SRF Johannesburg waves.
+   The DA internal poll has no n and is declined by `poll_min_n`.
+4. **Seat law counterfactual: yes.** `overhang_rule` expand/cap, labelled "not
+   the law". Exists.
+5. **Existing levers, reworded:** big parties losing ground to small ones
+   (`level_shrink`), weight of recent by-elections (`w_bye`), how surprising
+   the election can be (`dirichlet_scale`), local record vs national mood
+   (`spine_k`, labelled small effect). Exist.
+
+**Left out, measured:** `turnout_pattern_blend` (≤0.14 seats), `bye_weight_mode`
+(noise), the entrant levers (inert since the certified roster),
+`contestation_expand` (to be made inert by the §1.251 fix).
+
+**Presentation rules, from the blind pollster review:**
+- Compare every what-if with a 300-draw baseline on the same seed, not with the
+  5,000-draw published run.
+- Show whole-seat ranges.
+- Treat majority probability as coarse at 300 draws.
+- The published forecast is the one to cite.
+
+**Order.** The mechanisms (1–3) are model changes and follow the post-review
+window. The page cannot be built on a forecast that is about to move.
