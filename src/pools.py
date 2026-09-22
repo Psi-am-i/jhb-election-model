@@ -4361,6 +4361,7 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                   city_code: str | None = None,
                   pooled_splits: list[float] | None = None,
                   group_total: float | None = None,
+                  city_mix: np.ndarray | None = None,
                   ) -> tuple[dict[str, dict], dict[str, str]]:
     """How a party that was not here last time takes its votes.
 
@@ -4384,10 +4385,14 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
     model; when home-language pools exist the same mechanism will express it by
     leaning the inherited weights, which is a judgement and is meant to be.
 
-    **An entrant has no parent, so it has no pool weights, and the default —
-    an even share of every pool — is almost certainly wrong.** It is deliberate:
-    the flat default makes the absence of a judgement visible instead of
-    convenient, and the question the user must answer is a specific one, which
+    **An entrant has no parent, so it has no pool weights, and the default
+    spreads it like the city**: each pool weighted by its share of the city's
+    votes, from ``city_mix``, the same vector the splinter blend leans on. It is
+    still a default and not a measurement. Until 2026-09-21 it was an even share
+    of every pool, meant to make the missing judgement look wrong, but that
+    assumption was impossible rather than neutral. It gave a pool casting ~1
+    vote a quarter of a party's support (MODEL-LOG §1.249). The question the
+    user must answer is still a specific one, which
     ``judgements/`` now asks in as many words: *which pools does this party pull
     from, and how much support do you expect?* Its size defaults inside the
     range other arrivals have managed, scaled by how much of the city it
@@ -4635,7 +4640,38 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                    f"{f_hi:.1%} from the {f_kind} splinter record. Every party "
                    f"in those pools gives up the same proportion; none is named.")
         else:
-            vec = np.full(n_pools, 1.0 / n_pools)
+            # AN ENTRANT NOBODY HAS MEASURED DRAWS LIKE THE CITY, NOT LIKE A
+            # UNIFORM DISTRIBUTION OVER CATEGORIES OF WILDLY DIFFERENT SIZE.
+            #
+            # This was `np.full(n_pools, 1/n_pools)`, and it is the SECOND
+            # encoding of that assumption. The first was removed from the
+            # composition path on 2026-08-31 for being, in that comment's own
+            # words, "not a neutral assumption — an impossible one", measured at
+            # Buffalo City 2016 at 228.93x what the pool could cast. This copy
+            # survived, and it runs SECOND: the arrivals loop overwrites
+            # `composition[party]`, so the fixed path's answer was being thrown
+            # away and the artefact's own `no_measured_vector` note ("spread as
+            # the city's own pool composition") described a vector that was not
+            # written. Mangaung 2016 emitted 0.25 in a pool casting 1,176.
+            #
+            # It round-trips exactly: `_capture_from_share` divides by pool size
+            # and `emit_pools` multiplies back by it, so a flat spread in gives
+            # a flat composition out, whatever the pools are worth.
+            #
+            # The vector is PASSED IN rather than computed here, so that
+            # `city_mix_for` stays the one definition of "spread like the city".
+            if city_mix is None:
+                raise ValueError(
+                    "arrival_rules needs city_mix to size an entrant with no "
+                    "parent: spreading it evenly over pools of different sizes "
+                    "is the defect removed from the composition path on "
+                    "2026-08-31, and a silent fallback here would reintroduce "
+                    "it. Pass city_mix_for(ctx, n_pools).")
+            vec = np.asarray(city_mix, dtype=float)
+            if vec.shape != (n_pools,) or not np.isfinite(vec).all() or vec.sum() <= 0:
+                raise ValueError(f"city_mix must be {n_pools} finite "
+                                 f"non-negative weights summing above zero, got {vec!r}")
+            vec = vec / vec.sum()
             reach_used = reach if reach is not None else 0.5
             # REACH CHOOSES THE COMPARATORS. IT DOES NOT CHOOSE THE PLACE.
             #
@@ -4708,7 +4744,8 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             size *= mult
             judged = stated is not None or mult != 1.0
             capture = _capture_from_share(vec, size, pool_size)
-            why = (f"entrant from nothing: even share of every pool. "
+            why = (f"entrant from nothing: spread as the city's own pool "
+                      f"composition. "
                    + (f"Sized at a DECLARED {float(stated):.2%} of the city"
                       if stated is not None else
                       f"Sized at the EXPECTED result for the {len(peers)} "
@@ -5101,8 +5138,10 @@ def write_lineage_template(city: cityconfig.City, target: cityconfig.Target,
     has no measured pool vector, and the model has no way to learn one. There
     are exactly two defensible defaults and choosing between them is a human
     call: a **splinter** is defined identically to its parent and takes votes
-    accordingly, an **entrant** defaults to an even share of every pool. Both
-    defaults are usually wrong in an interesting way — it was obvious to any
+    accordingly, an **entrant** is spread like the city (``city_mix``: each
+    pool weighted by its share of the city's votes; an even share of every pool
+    until 2026-09-21, MODEL-LOG §1.249). Both defaults are usually wrong in an
+    interesting way — it was obvious to any
     observer that MK would drain the ANC's Zulu support specifically, and
     nothing in the data could have said so before the fact.
 
@@ -5133,8 +5172,9 @@ def write_lineage_template(city: cityconfig.City, target: cityconfig.Target,
         "#      Or set `weights` directly, in the order",
         f"#        {', '.join(pools_named)}",
         "#      normalised, so [0, 0, 0, 1] means 'entirely the last pool'.",
-        "#      Leave both unset and it takes an even share of every pool,",
-        "#      which is almost certainly wrong and is meant to look wrong.",
+        "#      Leave both unset and it is spread like the city: each pool",
+        "#      weighted by its share of the city's votes. That is a default,",
+        "#      not a measurement. If you know where this party draws from, say.",
         "#",
         "#   2. HOW MUCH SUPPORT DO YOU EXPECT?",
         "#      `support` is its share of the city, and it is read whether or",
@@ -5880,7 +5920,8 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
         # measured over a population wider than the one it is spent on --
         # see `_arrival_total_prior`. Do not quote a figure here; it decayed
         # once already.
-        group_total=_arrival_total_prior(target.year))
+        group_total=_arrival_total_prior(target.year),
+        city_mix=city_mix_for(ctx, n))
     # An arrival's composition follows from where it captures, so it does not
     # need a separate vector: the pools it takes from ARE its pool weights.
     for party, rule in arrivals.items():

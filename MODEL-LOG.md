@@ -26302,3 +26302,56 @@ forecast numbers. It is a measured round against the panel, not a patch.
 
 Recorded here so the next reader starts from the cause rather than from four
 symptoms. Nothing in the model changed in this commit.
+
+## 1.249 "An even share of every pool" was removed once and survived in the copy that runs second (2026-09-21)
+
+§1.248 traced four impossible composition weights to two causes. This is the
+first of them, and it is live code, not a stale artefact: the 27 emitted specs
+all carry `pools_sha 13bf2cf762e45016`, which is what `src/pools.py` hashed to
+before this change.
+
+**The mechanism.** `arrival_rules`' no-parent branch set
+`vec = np.full(n_pools, 1.0 / n_pools)`. `_capture_from_share` turns that into
+`capture_g = share · w_g · electorate / pool_size_g`, and `emit_pools` turns it
+back with `vec[g] = capture_g · registered[g]`. The pool size divides out, so a
+flat spread in is **exactly** `1/n` out, whatever the pools are worth. The
+docstring of `_capture_from_share` already said why that is wrong — *"A pool
+holding 4% of the electorate must give up far more of itself than one holding
+65% to yield the same citywide number, which is exactly why a flat pool spread
+is such a strong assumption."*
+
+**Why it survived its own fix.** The identical assumption was removed from the
+composition path on 2026-08-31 (§1.42's follow-up), with a comment calling it
+*"not a neutral assumption — an impossible one"*, measured at Buffalo City 2016
+at 228.93x what the pool could cast. That fix was correct and it was also
+useless, because the arrivals loop at `pools.py:5890` overwrites
+`composition[party]` afterwards. One rule, two encodings, the unfixed one
+running last.
+
+**Nothing noticed, including the artefact itself.** Every affected spec records
+`no_measured_vector: "entrant, no measured vector — spread as the city's own
+pool composition"` beside weights of exactly `0.25, 0.25, 0.25, 0.25`, while the
+city's own composition at Mangaung 2016 is `[0.722, 0.046, 0.025, 0.207]`. The
+note described the fixed path; the numbers came from the other one.
+
+**Population, counted rather than sampled.** 18 of the 27 emitted specs carry at
+least one exactly-flat vector. **45 of them are in the live Johannesburg 2026
+spec** — the micro-parties certified on nomination day, each seeded small but
+collectively the "Others" mass. So this is not a backtest-only repair: it moves
+the published forecast, which is why it goes through an ultra review before the
+emit rather than after.
+
+**The change.** The vector is passed in from `city_mix_for`, the one definition
+of "spread like the city", rather than re-encoded; and `arrival_rules` raises if
+it is missing, because a silent fallback is precisely how this survived last
+time. Sizes are untouched: `seeds` is `sum(r · registered) / registered.sum()`,
+which is invariant to the shape.
+
+**Not fixed here.** The 2011 DA/White seeds of §1.248, which are a different
+cause, and the Mangaung 2016 Indian/Asian rate collapse, which is an
+identification failure in the fit (`adult_share` on a bound) rather than a seed
+shape. Neither is claimed by this change.
+
+**Measured after the emit, not before.** No `compare_history` figure is quoted
+here because the specs are deliberately left un-emitted until the review has
+run. The guard that reports the four weights stays red until they are.

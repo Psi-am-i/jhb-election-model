@@ -4,8 +4,8 @@
 # pool vectors were fitted on, so nothing measurable says which voters
 # they talk to. Set `parent` to inherit that party's pool vector (a
 # splinter, defined identically to its parent until the numbers say
-# otherwise). Leave `parent` empty to treat it as an entrant, drawing an
-# even share of every pool.
+# otherwise). Leave `parent` empty to treat it as an entrant, spread
+# like the city (each pool weighted by its share of the city's votes).
 #
 # `weights` overrides the inherited vector outright, when you know
 # something the data cannot: order is

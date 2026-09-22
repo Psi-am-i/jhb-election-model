@@ -15,8 +15,9 @@
 #      Or set `weights` directly, in the order
 #        Black African, Coloured, Indian/Asian, White
 #      normalised, so [0, 0, 0, 1] means 'entirely the last pool'.
-#      Leave both unset and it takes an even share of every pool,
-#      which is almost certainly wrong and is meant to look wrong.
+#      Leave both unset and it is spread like the city: each pool
+#      weighted by its share of the city's votes. That is a default,
+#      not a measurement. If you know where this party draws from, say.
 #
 #   2. HOW MUCH SUPPORT DO YOU EXPECT?
 #      `support` is its share of the city. The default is what
