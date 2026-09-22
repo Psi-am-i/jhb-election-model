@@ -68,6 +68,7 @@ Run:
 from __future__ import annotations
 
 import contextlib
+import copy
 import dataclasses
 import io
 import sys
@@ -79,6 +80,7 @@ from _support import run_module, scanned, skip  # noqa: E402
 
 import cityconfig  # noqa: E402
 import numpy as np  # noqa: E402
+import montecarlo as mc  # noqa: E402
 import pools  # noqa: E402
 
 CITY = "joburg"
@@ -441,6 +443,47 @@ def test_a_real_typeerror_inside_pool_counts_propagates():
     finally:
         pools.ward_totals = real
         pools._PANEL_SPREAD_CACHE.clear()
+
+
+def test_run_models_geography_does_not_swallow_a_missing_census_reader():
+    """THE THIRD CALLER: ``run_model``'s own pool geography. MODEL-LOG §1.250.
+
+    It ended in ``except Exception`` — *"geography is a bonus, not a gate"* —
+    which never caught a refusal (those are ``SystemExit``) and so could only
+    catch a defect. The one it did catch: the census is read from .xlsx, and
+    without ``openpyxl`` the import raised, was swallowed, and the model ran
+    WITHOUT pool geography — every draw moved, with notice only under
+    ``verbose``. Latent: no emitted city-year hits it in the project venv. Found
+    running the model under Pyodide.
+
+    The environment is CONSTRUCTED (``openpyxl`` blocked in ``sys.modules``),
+    because the venv having ``openpyxl`` is the state in which the defect is
+    invisible. Mutation-checked 2026-09-22: restore the handler and this fails.
+    """
+    city = cityconfig.use("joburg")
+    target = cityconfig.use_target("2026")
+    mc.apply_city(city)
+    scenario = copy.deepcopy(mc.DEFAULTS)
+    scenario["draws"] = 2
+
+    saved = sys.modules.get("openpyxl", ...)
+    sys.modules["openpyxl"] = None          # `import openpyxl` now raises
+    try:
+        mc.run_model(target, scenario, processed=target.processed,
+                     verbose=False)
+    except ModuleNotFoundError as exc:
+        assert "openpyxl" in str(exc), exc
+    else:
+        raise AssertionError(
+            "run_model completed with openpyxl unimportable. It cannot have "
+            "read the census, so it ran without pool geography — a different "
+            "forecast from the one this environment otherwise produces — and "
+            "nothing refused.")
+    finally:
+        if saved is ...:
+            sys.modules.pop("openpyxl", None)
+        else:
+            sys.modules["openpyxl"] = saved
 
 
 # --------------------------------------------------------------------------

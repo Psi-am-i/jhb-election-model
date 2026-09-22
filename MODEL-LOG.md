@@ -26355,3 +26355,52 @@ shape. Neither is claimed by this change.
 **Measured after the emit, not before.** No `compare_history` figure is quoted
 here because the specs are deliberately left un-emitted until the review has
 run. The guard that reports the four weights stays red until they are.
+
+## 1.250 The forecast depended on whether openpyxl was installed, and said so only under verbose (2026-09-22)
+
+**Found porting the model to the browser.** Run under Pyodide (WebAssembly),
+`run_model` for Johannesburg 2026 gave different seat draws from the project
+venv on the same seed. Draw 0 agreed and every later draw diverged, which is a
+stream falling out of step, not arithmetic drift.
+
+**Isolated by elimination, each step a run on one seed at 50 draws:**
+
+| environment | seat/ward fingerprint |
+|---|---|
+| project `.venv` (numpy 2.5.1, openpyxl installed) | `242a2b3e8c13f718` |
+| clean venv, numpy 2.2.5 / 2.3.5 / 2.4.6 / 2.5.0 / 2.5.1, no openpyxl | `e52e3f7783e04591` |
+| Pyodide 0.28.3 (numpy 2.2.5), no openpyxl | `e52e3f7783e04591` |
+| Pyodide 0.28.3 with openpyxl loaded | `242a2b3e8c13f718` |
+
+So the numpy version and the WebAssembly platform were both irrelevant. The
+cause was `montecarlo.run_model`'s pool geography block, which ended in
+`except Exception` ("geography is a bonus, not a gate"). The census is read
+from .xlsx through `openpyxl`. Without it the import raised
+`ModuleNotFoundError`, the handler swallowed it, and the model ran without
+`_vd_pool_composition`. That is a different forecast: seeded parties keep a
+citywide level but lose their placement. The only notice was a line printed
+when `verbose` is on.
+
+**It was latent, not live.** A probe ran every emitted city-year (26,
+including both 2026 forecasts) at 5 draws with `verbose=True` and looked for
+the handler's message. It fired on none of them in the project venv. The probe
+was shown to see: in the clean venv it reported the swallow for Johannesburg
+2026. No published or measured number was affected.
+
+**The handler could only ever catch a defect.** `pool_counts` refuses with
+`SystemExit`, which `except Exception` never caught. Anything the handler did
+catch was a bug or a broken environment. So the fix removes it and catches
+nothing. It is number-neutral: the project venv's fingerprint is unchanged at
+`242a2b3e8c13f718`.
+
+**Guard.** `test_run_models_geography_does_not_swallow_a_missing_census_reader`,
+in `tests/test_census_refusal_is_not_swallowed.py` beside the two callers entry
+22 already covers, blocks `openpyxl` in `sys.modules` and requires `run_model` to raise. It builds its environment
+rather than reading the tree's, because the venv having `openpyxl` is exactly
+the state in which the defect is invisible. Mutation-checked: restore the
+handler and it fails; remove it and it passes.
+
+**A consequence for the browser port.** WebAssembly reproduces the project
+venv bit for bit once `openpyxl` is loaded. So the interactive can run the
+model itself, and its fidelity check can be exact equality on a fingerprint
+rather than a tolerance.

@@ -3936,20 +3936,23 @@ def run_model(target, scenario: dict,
             scenario["pool_seed_bands"] = spec.get("seed_bands", {})
             scenario["pool_seed_notes"] = spec.get("seed_notes", {})
             scenario["arrival_group"] = spec.get("arrival_group")
-            try:
-                import pools as _pools
-                _cfg = _pools.load_config()
-                _counts = _pools.pool_counts(target.city, spec["fitted_on"], _cfg)
-                _comp = _counts.composition("voted")
-                _by_ward = {w: dict(zip(_counts.categories, _comp[i]))
-                            for i, w in enumerate(_counts.wards)}
-                _ward_of, _ = _pools.vd_map(target.city, spec["fitted_on"])
-                scenario["_vd_pool_composition"] = {
-                    vd: _by_ward[w] for vd, w in _ward_of.items() if w in _by_ward}
-            except Exception as exc:            # geography is a bonus, not a gate
-                if verbose:
-                    print(f"  ! no VD pool composition ({exc}); seeded parties "
-                          f"will have a citywide level but no geography")
+            # ⛔ NOTHING IS CAUGHT HERE (2026-09-22, MODEL-LOG §1.250). This was
+            # `except Exception` — "geography is a bonus, not a gate" — and it
+            # could only ever catch a DEFECT: `pool_counts` refuses with
+            # `SystemExit`, which `except Exception` never caught. What it did
+            # catch was `ModuleNotFoundError: openpyxl` (the census is read
+            # from .xlsx), so in any environment without openpyxl the model
+            # ran WITHOUT pool geography — a different forecast — and said so
+            # only under `verbose`. Found porting the model to the browser.
+            import pools as _pools
+            _cfg = _pools.load_config()
+            _counts = _pools.pool_counts(target.city, spec["fitted_on"], _cfg)
+            _comp = _counts.composition("voted")
+            _by_ward = {w: dict(zip(_counts.categories, _comp[i]))
+                        for i, w in enumerate(_counts.wards)}
+            _ward_of, _ = _pools.vd_map(target.city, spec["fitted_on"])
+            scenario["_vd_pool_composition"] = {
+                vd: _by_ward[w] for vd, w in _ward_of.items() if w in _by_ward}
             if verbose:
                 print(f"  pools: {len(spec['pools'])} measured from "
                       f"{spec['fitted_on']} ({spec['provenance']})")
