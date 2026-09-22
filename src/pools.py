@@ -4385,10 +4385,14 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
     model; when home-language pools exist the same mechanism will express it by
     leaning the inherited weights, which is a judgement and is meant to be.
 
-    **An entrant has no parent, so it has no pool weights, and the default —
-    an even share of every pool — is almost certainly wrong.** It is deliberate:
-    the flat default makes the absence of a judgement visible instead of
-    convenient, and the question the user must answer is a specific one, which
+    **An entrant has no parent, so it has no pool weights, and the default
+    spreads it like the city**: each pool weighted by its share of the city's
+    votes, from ``city_mix``, the same vector the splinter blend leans on. It is
+    still a default and not a measurement. Until 2026-09-21 it was an even share
+    of every pool, meant to make the missing judgement look wrong, but that
+    assumption was impossible rather than neutral. It gave a pool casting ~1
+    vote a quarter of a party's support (MODEL-LOG §1.249). The question the
+    user must answer is still a specific one, which
     ``judgements/`` now asks in as many words: *which pools does this party pull
     from, and how much support do you expect?* Its size defaults inside the
     range other arrivals have managed, scaled by how much of the city it
@@ -5134,8 +5138,10 @@ def write_lineage_template(city: cityconfig.City, target: cityconfig.Target,
     has no measured pool vector, and the model has no way to learn one. There
     are exactly two defensible defaults and choosing between them is a human
     call: a **splinter** is defined identically to its parent and takes votes
-    accordingly, an **entrant** defaults to an even share of every pool. Both
-    defaults are usually wrong in an interesting way — it was obvious to any
+    accordingly, an **entrant** is spread like the city (``city_mix``: each
+    pool weighted by its share of the city's votes; an even share of every pool
+    until 2026-09-21, MODEL-LOG §1.249). Both defaults are usually wrong in an
+    interesting way — it was obvious to any
     observer that MK would drain the ANC's Zulu support specifically, and
     nothing in the data could have said so before the fact.
 
@@ -5166,8 +5172,9 @@ def write_lineage_template(city: cityconfig.City, target: cityconfig.Target,
         "#      Or set `weights` directly, in the order",
         f"#        {', '.join(pools_named)}",
         "#      normalised, so [0, 0, 0, 1] means 'entirely the last pool'.",
-        "#      Leave both unset and it takes an even share of every pool,",
-        "#      which is almost certainly wrong and is meant to look wrong.",
+        "#      Leave both unset and it is spread like the city: each pool",
+        "#      weighted by its share of the city's votes. That is a default,",
+        "#      not a measurement. If you know where this party draws from, say.",
         "#",
         "#   2. HOW MUCH SUPPORT DO YOU EXPECT?",
         "#      `support` is its share of the city, and it is read whether or",
