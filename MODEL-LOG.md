@@ -26404,3 +26404,56 @@ handler and it fails; remove it and it passes.
 venv bit for bit once `openpyxl` is loaded. So the interactive can run the
 model itself, and its fidelity check can be exact equality on a fingerprint
 rather than a tolerance.
+
+## 1.251 The certified per-ward slates are pasted, and the contestation correction still projects them from 2021 (2026-09-22)
+
+**Found sizing sliders for the interactive. Not fixed: it moves forecast
+numbers, so it goes to the owner.**
+
+JUDGEMENT-CALLS §A5 says `contestation_expand` is *"superseded automatically the
+day the IEC publishes 2026 lists"*, and that this is *"asserted in
+`tests/test_levers_are_live.py`"*. The lists were published and pasted on
+2026-09-16, per-ward slates included (`[roster.wards]` in
+`judgements/joburg-2026.toml`). **The lever is still live at Johannesburg
+2026.**
+
+**Why.** Supersession happens only when `levels.contestation(target, city)`
+returns something (`montecarlo.run_model`, the `if not _contest and
+_contest_prev` branch). `contestation` reads who stood from the target's own
+RESULT file, which for 2026 does not exist until after 4 November. The only
+consumer of `[roster.wards]` is `pools.py`'s declared-roster reader, which
+turns it into `reach` for the arrival group. Nothing turns it into the ward
+slates that the contestation correction applies. So the real slates reach the
+pool spec, while the ward-share correction projects slates from 2021 with
+`expand = 0.220`.
+
+**And the guard cannot see it.** `test_levers_are_live` sweeps
+`contestation_expand` only at 2021, where it is inert by construction (every
+backtest has a result file). No entry covers 2026, so "goes inert when the
+lists land" was a promise with no test at the target where it applies.
+
+**Size, INDICATIVE ONLY.** Measured on the specs as they stood on 2026-09-22.
+Those are stale against `pools.py` by `db2bc53`, which is deliberately
+un-emitted pending ultra review 2. Johannesburg 2026, 300 draws, seed as
+shipped, mean seats:
+
+| `contestation_expand` | PA | DA | ANC |
+|---|---|---|---|
+| 0.0 | 16.5 | 69.2 | 64.6 |
+| 0.220 (shipped) | 19.1 | 68.3 | 64.0 |
+| 0.5 | 22.1 | 67.3 | 63.0 |
+
+Same seed but not a paired design (a lever can change how many random numbers
+are consumed), so moves under about 1.5 seats are noise at this draw count. The
+PA's is not. **Quote from a re-run on the post-review tree, not from this
+table.**
+
+**What a fix would be (not done).** At a live target with a declared
+`[roster.wards]`, `contestation` returns the declared slates as each party's
+ward fraction, over the city's own wards (the same denominator repair as
+`reach`, POOLS-REEMIT-QUEUE entry 23 guard C). The projection then does not run
+and the lever is inert, as §A5 already claims. Plus a
+`("contestation_expand", "2026")` liveness entry, so the promise is tested
+where it applies. It moves the published forecast, so it needs a
+pre-registration and a measured run. The natural time is the window after
+ultra review 2, with the §A5 row corrected in the same commit.
