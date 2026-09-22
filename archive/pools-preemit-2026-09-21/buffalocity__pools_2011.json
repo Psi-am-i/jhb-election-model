@@ -1,0 +1,223 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "cities_sha": "68080ceed71cbe08",
+    "city": "buffalocity",
+    "config_sha": "25f89b38e7b7532f",
+    "deps_sha": "53cedeb94115dd98",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "00f270b6371ba32b",
+    "pools_sha": "13bf2cf762e45016",
+    "schema": 2,
+    "target": "2011"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2006",
+  "judgement_file": "judgements/buffalocity-2011.toml",
+  "no_measured_vector": {
+    "AIC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "COPE": "splinter of ANC, 35% its vector and 65% the city average",
+    "PAN_AFRICANIST_MOVEMENT": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.8150058694330591,
+    0.044964416483648316,
+    0.026328757965075493,
+    0.11370095611821707
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on buffalocity 2006; size from the 2011 roll split by each ward's own composition; turnout from buffalocity's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "DA",
+        "PAC",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.7901295305262879,
+        "AIC": 0.9240864727771457,
+        "ANC": 0.9981656040105975,
+        "COPE": 0.9500141687088539,
+        "DA": 0.3601610014448947,
+        "PAC": 0.9999999999999997,
+        "PAN_AFRICANIST_MOVEMENT": 0.9240864727771457,
+        "UDM": 0.9999999999999998
+      },
+      "registered": 334779.1502047185,
+      "turnout": [
+        0.3796676944250986,
+        0.5382711100023715,
+        0.689488234061157
+      ]
+    },
+    "Coloured": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on buffalocity 2006; size from the 2011 roll split by each ward's own composition; turnout from buffalocity's local elections before 2011",
+      "identified": [],
+      "members": {
+        "ACDP": 0.004739577335397053,
+        "AIC": 0.0019042545548830182,
+        "COPE": 0.0012507996723278233,
+        "DA": 0.01444970520845373,
+        "PAN_AFRICANIST_MOVEMENT": 0.0019042545548830182
+      },
+      "registered": 12145.847435395714,
+      "turnout": [
+        0.016967148907433654,
+        0.03182933290958244,
+        0.05892947389573992
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on buffalocity 2006; size from the 2011 roll split by each ward's own composition; turnout from buffalocity's local elections before 2011",
+      "identified": [],
+      "members": {
+        "ACDP": 0.007772505326584508,
+        "AIC": 0.0030149085910380225,
+        "COPE": 0.001981065587120833,
+        "DA": 0.023696292465048233,
+        "PAN_AFRICANIST_MOVEMENT": 0.0030149085910380225
+      },
+      "registered": 13691.167239461292,
+      "turnout": [
+        0.024857670809241676,
+        0.04630589654100231,
+        0.08465396073464058
+      ]
+    },
+    "White": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on buffalocity 2006; size from the 2011 roll split by each ward's own composition; turnout from buffalocity's local elections before 2011",
+      "identified": [
+        "ACDP"
+      ],
+      "members": {
+        "ACDP": 0.1973583868117305,
+        "AIC": 0.07099436407693314,
+        "ANC": 0.0017360839476881645,
+        "COPE": 0.0467539660316974,
+        "DA": 0.6016930008816034,
+        "PAN_AFRICANIST_MOVEMENT": 0.07099436407693314
+      },
+      "registered": 24293.835120424545,
+      "turnout": [
+        0.5090343149579005,
+        0.663846841427275,
+        0.789983831985894
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2006; pools sized by 2009 roll carried to 2011 on the 2006-2009 RATE of change (log-space, invariant to a constant level bias), damped x0.6; roster published; reach 2011 ward ballot",
+  "rates_on_a_bound": [
+    "Indian/Asian: adult_share fitted to 1.0000, which is ON A BOUND \u2014 the ward table cannot identify this pool at this level. The value is a clipped corner and not a measurement. Largest share this pool reaches in any ward: 11.7%."
+  ],
+  "reach_source": "2011 ward ballot",
+  "registration_series": {
+    "2006": [
+      0.8823978521359168,
+      0.02984321104685833,
+      0.032689331078848326,
+      0.05506960573837654
+    ],
+    "2009": [
+      0.8386243434570957,
+      0.0402303357166353,
+      0.028172740043747604,
+      0.09297258078252145
+    ]
+  },
+  "roster": [
+    "ACDP",
+    "AIC",
+    "ANC",
+    "COPE",
+    "DA",
+    "IND",
+    "PAC",
+    "PAN_AFRICANIST_MOVEMENT",
+    "UDM"
+  ],
+  "roster_source": "published",
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeded_arrival_mass": 0.0,
+  "seeds": {},
+  "target": "2011",
+  "transition_ledger": {
+    "arrival_group_record": {
+      "fallback": 9,
+      "metro": 0,
+      "offered": 16,
+      "unavailable": 7
+    },
+    "entrant_record": {
+      "fallback": 9,
+      "metro": 0,
+      "offered": 16,
+      "unavailable": 7
+    },
+    "home_splinter_record": {
+      "fallback": 0,
+      "metro": 0,
+      "offered": 0,
+      "unavailable": 0
+    },
+    "splinter_record": {
+      "fallback": 18,
+      "metro": 0,
+      "offered": 18,
+      "unavailable": 0
+    }
+  },
+  "turnout_limits": {
+    "city": {
+      "high": 0.5639887172108793,
+      "low": 0.4614453140816285,
+      "observed_high": 0.5127170156462538,
+      "observed_low": 0.5127170156462538,
+      "previous": 0.5127170156462538
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.5920982210026087,
+        "low": 0.48444399900213436,
+        "observed_high": 0.5382711100023715,
+        "observed_low": 0.5382711100023715,
+        "previous": 0.5382711100023715
+      },
+      {
+        "high": 0.03501226620054069,
+        "low": 0.028646399618624196,
+        "observed_high": 0.03182933290958244,
+        "observed_low": 0.03182933290958244,
+        "previous": 0.03182933290958244
+      },
+      {
+        "high": 0.05093648619510255,
+        "low": 0.04167530688690208,
+        "observed_high": 0.04630589654100231,
+        "observed_low": 0.04630589654100231,
+        "previous": 0.04630589654100231
+      },
+      {
+        "high": 0.7302315255700026,
+        "low": 0.5974621572845475,
+        "observed_high": 0.663846841427275,
+        "observed_low": 0.663846841427275,
+        "previous": 0.663846841427275
+      }
+    ]
+  },
+  "unclassified_with_national_record": {}
+}
