@@ -1,0 +1,1012 @@
+{
+  "arrival_group": {
+    "alpha": 9.758053453666367,
+    "derived_from": "21 metro-years before 2021; split by ward reach (corr +0.393 on log vote)",
+    "n_observations": 21,
+    "total_log_mean": -4.210044045299374,
+    "total_log_sd": 0.8048927672068766,
+    "weights": {
+      "ABANTU_BATHO_CONGRESS": 0.08,
+      "AFRICAN_MULTICULTURAL_ECONOMIC_CONGRESS": 0.96,
+      "AFRICA_RESTORATION_ALLIANCE": 1.0,
+      "ARUSHA_ECONOMIC_COALITION": 0.06,
+      "BATHO_PELE_MOVEMENT": 0.78,
+      "CAPE_COLOURED_CONGRESS": 0.02,
+      "CIVIC_INDEPENDENT": 0.04,
+      "GOD_SAVE_AFRICA": 0.02,
+      "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": 0.18,
+      "PA": 0.14,
+      "PROGRESSIVE_COMMUNITY_MOVEMENT": 0.26,
+      "THE_ORGANIC_HUMANITY_MOVEMENT": 1.0,
+      "UIM": 1.0
+    }
+  },
+  "artefact_key": {
+    "cities_sha": "68080ceed71cbe08",
+    "city": "buffalocity",
+    "config_sha": "25f89b38e7b7532f",
+    "deps_sha": "53cedeb94115dd98",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "e49a27590f35a842",
+    "pools_sha": "13bf2cf762e45016",
+    "schema": 2,
+    "target": "2021"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [
+    [
+      0.0001110268461123144,
+      0.24324324324324326
+    ],
+    [
+      0.0001168250294844122,
+      0.0625
+    ],
+    [
+      0.00011925248870770664,
+      0.25384615384615383
+    ],
+    [
+      0.0001258578045778785,
+      0.15555555555555556
+    ],
+    [
+      0.0001370911816698668,
+      0.08620689655172414
+    ],
+    [
+      0.0001378063303289429,
+      0.022222222222222223
+    ],
+    [
+      0.00014863271334390475,
+      0.990990990990991
+    ],
+    [
+      0.0001495280911351331,
+      0.04504504504504504
+    ],
+    [
+      0.00015242884799394736,
+      0.5446428571428571
+    ],
+    [
+      0.0001553308347638374,
+      0.5851851851851851
+    ],
+    [
+      0.00018246956986136764,
+      0.05357142857142857
+    ],
+    [
+      0.00018550084663038845,
+      0.7850467289719626
+    ],
+    [
+      0.00018920186476075184,
+      0.12931034482758622
+    ],
+    [
+      0.00020027147911613521,
+      0.09821428571428571
+    ],
+    [
+      0.00020812290109750898,
+      0.028037383177570093
+    ],
+    [
+      0.00021139767240036493,
+      0.6696428571428571
+    ],
+    [
+      0.00021648913334629822,
+      0.015384615384615385
+    ],
+    [
+      0.00022688189714954564,
+      0.15517241379310345
+    ],
+    [
+      0.0002372751146755106,
+      0.08108108108108109
+    ],
+    [
+      0.00023810558488871505,
+      0.00909090909090909
+    ],
+    [
+      0.000246228892587794,
+      0.2702702702702703
+    ],
+    [
+      0.0002523068998052506,
+      1.0
+    ],
+    [
+      0.0002559024455372839,
+      0.16071428571428573
+    ],
+    [
+      0.0002781548321057433,
+      0.3392857142857143
+    ],
+    [
+      0.0002803800707625893,
+      0.05357142857142857
+    ],
+    [
+      0.0002852886460622828,
+      0.023076923076923078
+    ],
+    [
+      0.00029172985289982104,
+      0.25
+    ],
+    [
+      0.0002939337334761846,
+      0.08888888888888889
+    ],
+    [
+      0.0002969529727889678,
+      0.07272727272727272
+    ],
+    [
+      0.0003026959856936318,
+      0.08888888888888889
+    ],
+    [
+      0.0003026959856936318,
+      0.14814814814814814
+    ],
+    [
+      0.00030962779479825307,
+      0.5909090909090909
+    ],
+    [
+      0.00033156055987004605,
+      0.08035714285714286
+    ],
+    [
+      0.0003372877091805844,
+      1.0
+    ],
+    [
+      0.0003382362758405839,
+      0.09821428571428571
+    ],
+    [
+      0.00034713731966697265,
+      0.05172413793103448
+    ],
+    [
+      0.000347475854232611,
+      0.04950495049504951
+    ],
+    [
+      0.00035435264501801827,
+      0.8620689655172413
+    ],
+    [
+      0.0003551543478348011,
+      0.14655172413793102
+    ],
+    [
+      0.00035595605065158394,
+      0.11206896551724138
+    ],
+    [
+      0.00037583215283490455,
+      1.0
+    ],
+    [
+      0.000376065333006965,
+      1.0
+    ],
+    [
+      0.0003928343802235949,
+      0.25862068965517243
+    ],
+    [
+      0.0003974462044340149,
+      1.0
+    ],
+    [
+      0.0004071969804081697,
+      0.7476635514018691
+    ],
+    [
+      0.0004107923362581748,
+      0.038834951456310676
+    ],
+    [
+      0.00041608032976785206,
+      1.0
+    ],
+    [
+      0.00042249738444456026,
+      0.14655172413793102
+    ],
+    [
+      0.0004399973926080438,
+      1.0
+    ],
+    [
+      0.0004433922675555626,
+      0.1588785046728972
+    ],
+    [
+      0.00048050125891329834,
+      0.2
+    ],
+    [
+      0.0004806326596867137,
+      0.8910891089108911
+    ],
+    [
+      0.000487100550029171,
+      0.25384615384615383
+    ],
+    [
+      0.00048796131697027167,
+      0.0761904761904762
+    ],
+    [
+      0.000497855239627684,
+      0.05185185185185185
+    ],
+    [
+      0.0004986591520389306,
+      0.9913793103448276
+    ],
+    [
+      0.000505274573597555,
+      1.0
+    ],
+    [
+      0.0005139468521650683,
+      0.11711711711711711
+    ],
+    [
+      0.0005140301297314137,
+      0.125
+    ],
+    [
+      0.00054916642949625,
+      0.853448275862069
+    ],
+    [
+      0.0005631926306826271,
+      0.4954954954954955
+    ],
+    [
+      0.0005999317508833858,
+      0.08461538461538462
+    ],
+    [
+      0.0006330320983984378,
+      1.0
+    ],
+    [
+      0.0006482535208493195,
+      0.22522522522522523
+    ],
+    [
+      0.0006891041440730882,
+      0.1553398058252427
+    ],
+    [
+      0.0007063416638841086,
+      0.9846153846153847
+    ],
+    [
+      0.000756594233587949,
+      0.04504504504504504
+    ],
+    [
+      0.000764700511322133,
+      1.0
+    ],
+    [
+      0.0007785962091418059,
+      0.7090909090909091
+    ],
+    [
+      0.0007981615201711028,
+      1.0
+    ],
+    [
+      0.0008103542731921111,
+      0.04950495049504951
+    ],
+    [
+      0.0008465981745226862,
+      0.10344827586206896
+    ],
+    [
+      0.00084966723480237,
+      1.0
+    ],
+    [
+      0.0008794679900107829,
+      0.22413793103448276
+    ],
+    [
+      0.0008833912269410571,
+      0.028037383177570093
+    ],
+    [
+      0.0008890467405578373,
+      1.0
+    ],
+    [
+      0.0009316881802775159,
+      0.9904761904761905
+    ],
+    [
+      0.0009383559252073024,
+      0.27927927927927926
+    ],
+    [
+      0.000942463550833279,
+      0.5636363636363636
+    ],
+    [
+      0.0009746048177725196,
+      1.0
+    ],
+    [
+      0.000983439579930808,
+      0.5
+    ],
+    [
+      0.001112176365554744,
+      0.0891089108910891
+    ],
+    [
+      0.0011380251726512225,
+      0.08108108108108109
+    ],
+    [
+      0.001208408509209919,
+      0.18
+    ],
+    [
+      0.0012273679396776255,
+      0.36666666666666664
+    ],
+    [
+      0.0012466013310607905,
+      0.04950495049504951
+    ],
+    [
+      0.0012545630008811313,
+      0.1
+    ],
+    [
+      0.0012898879358506689,
+      0.9805825242718447
+    ],
+    [
+      0.001317100730896891,
+      0.6576576576576577
+    ],
+    [
+      0.0013299509665457127,
+      1.0
+    ],
+    [
+      0.0013547065981284814,
+      0.6036036036036037
+    ],
+    [
+      0.0013562059549935177,
+      0.8909090909090909
+    ],
+    [
+      0.0013568386649499852,
+      0.9795918367346939
+    ],
+    [
+      0.0013646235753137673,
+      0.9833333333333333
+    ],
+    [
+      0.0014657334442407957,
+      0.06306306306306306
+    ],
+    [
+      0.0014855897791423195,
+      0.12244897959183673
+    ],
+    [
+      0.0016068700279226595,
+      0.08
+    ],
+    [
+      0.001616232878634219,
+      0.5603448275862069
+    ],
+    [
+      0.00163095855882571,
+      1.0
+    ],
+    [
+      0.0016504428944947816,
+      0.6
+    ],
+    [
+      0.0017110288875524242,
+      0.17037037037037037
+    ],
+    [
+      0.0017518414705690634,
+      0.37272727272727274
+    ],
+    [
+      0.00181340489175702,
+      1.0
+    ],
+    [
+      0.002314858379599134,
+      0.2
+    ],
+    [
+      0.0024533351479656567,
+      0.990990990990991
+    ],
+    [
+      0.0024757614543390216,
+      0.13333333333333333
+    ],
+    [
+      0.0027171220888632854,
+      0.13846153846153847
+    ],
+    [
+      0.002732329487430198,
+      0.24545454545454545
+    ],
+    [
+      0.0027804357017290103,
+      0.125
+    ],
+    [
+      0.002783512179870044,
+      1.0
+    ],
+    [
+      0.002844795032098351,
+      0.1
+    ],
+    [
+      0.0029172985289982103,
+      0.35
+    ],
+    [
+      0.0032049593453102225,
+      0.54
+    ],
+    [
+      0.003517043963944927,
+      0.918918918918919
+    ],
+    [
+      0.004077113937362384,
+      0.8155339805825242
+    ],
+    [
+      0.004324511330219685,
+      0.08333333333333333
+    ],
+    [
+      0.004346558604755593,
+      1.0
+    ],
+    [
+      0.004610059467693643,
+      0.9238095238095239
+    ],
+    [
+      0.005271877327716847,
+      0.9923076923076923
+    ],
+    [
+      0.0054062911034367285,
+      0.990990990990991
+    ],
+    [
+      0.005511538080618005,
+      0.5918367346938775
+    ],
+    [
+      0.006816360279198117,
+      0.9207920792079208
+    ],
+    [
+      0.007628202301688787,
+      0.5948275862068966
+    ],
+    [
+      0.008010744068816708,
+      0.7166666666666667
+    ],
+    [
+      0.015094807668629454,
+      0.9272727272727272
+    ],
+    [
+      0.01574707338564176,
+      0.04
+    ],
+    [
+      0.016147641587536038,
+      0.26666666666666666
+    ],
+    [
+      0.016241232769230157,
+      0.7777777777777778
+    ],
+    [
+      0.016477892253944235,
+      0.8482142857142857
+    ],
+    [
+      0.02738639701254563,
+      0.26
+    ],
+    [
+      0.03583325491672156,
+      0.06
+    ]
+  ],
+  "fitted_on": "2016",
+  "judgement_file": "judgements/buffalocity-2021.toml",
+  "no_measured_vector": {
+    "ABANTU_BATHO_CONGRESS": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AFRICAN_MULTICULTURAL_ECONOMIC_CONGRESS": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AFRICA_RESTORATION_ALLIANCE": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "ALJAMAAH": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "APC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "ARUSHA_ECONOMIC_COALITION": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "ATM": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "BATHO_PELE_MOVEMENT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "CAPE_COLOURED_CONGRESS": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "CIVIC_INDEPENDENT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "GOD_SAVE_AFRICA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "GOOD": "splinter of DA, 35% its vector and 65% the city average",
+    "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "NFP": "entrant, no measured vector \u2014 spread as the city's own pool composition (parent 'IFP' not measured)",
+    "PA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "PROGRESSIVE_COMMUNITY_MOVEMENT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "THE_ORGANIC_HUMANITY_MOVEMENT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UIM": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "VFPLUS": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.8187990038174705,
+    0.03899232156179775,
+    0.01665910010782212,
+    0.12554957451290952
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 21.0929574804443,
+      "derived_from": "pool vectors fitted on buffalocity 2016; size from the 2021 roll split by each ward's own composition; turnout from buffalocity's local elections before 2021",
+      "identified": [
+        "AIC",
+        "ANC",
+        "COPE",
+        "DA",
+        "EFF",
+        "PAC",
+        "UDM"
+      ],
+      "members": {
+        "ABANTU_BATHO_CONGRESS": 0.25,
+        "ACDP": 0.22911602662169864,
+        "AFRICAN_MULTICULTURAL_ECONOMIC_CONGRESS": 0.25,
+        "AFRICA_RESTORATION_ALLIANCE": 0.24999999999999994,
+        "AIC": 0.9981037676283049,
+        "ALJAMAAH": 0.7808263501260772,
+        "ANC": 0.9896336705342106,
+        "APC": 0.7808263501260772,
+        "ARUSHA_ECONOMIC_COALITION": 0.25,
+        "ATM": 0.7808263501260772,
+        "BATHO_PELE_MOVEMENT": 0.25000000000000006,
+        "CAPE_COLOURED_CONGRESS": 0.25,
+        "CIVIC_INDEPENDENT": 0.25,
+        "COPE": 0.7919777828714857,
+        "DA": 0.1500470537810467,
+        "EFF": 0.9368708044965541,
+        "GOD_SAVE_AFRICA": 0.24999999999999997,
+        "GOOD": 0.5600535964053165,
+        "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": 0.25,
+        "NFP": 0.7808263501260772,
+        "PA": 0.25,
+        "PAC": 1.0,
+        "PROGRESSIVE_COMMUNITY_MOVEMENT": 0.25000000000000006,
+        "THE_ORGANIC_HUMANITY_MOVEMENT": 0.24999999999999994,
+        "UDM": 0.7384802591730957,
+        "UIM": 0.24999999999999994,
+        "VFPLUS": 0.7808263501260772
+      },
+      "registered": 328769.50847021927,
+      "turnout": [
+        0.39863026340957675,
+        0.5219641624253036,
+        0.6426769868918788
+      ]
+    },
+    "Coloured": {
+      "alpha": 28.107715881044996,
+      "derived_from": "pool vectors fitted on buffalocity 2016; size from the 2021 roll split by each ward's own composition; turnout from buffalocity's local elections before 2021",
+      "identified": [
+        "COPE",
+        "UDM"
+      ],
+      "members": {
+        "ABANTU_BATHO_CONGRESS": 0.25,
+        "ACDP": 0.014281076131892828,
+        "AFRICAN_MULTICULTURAL_ECONOMIC_CONGRESS": 0.25000000000000006,
+        "AFRICA_RESTORATION_ALLIANCE": 0.25,
+        "AIC": 0.001896232371695175,
+        "ALJAMAAH": 0.04602762179138284,
+        "ANC": 0.0020098407046727214,
+        "APC": 0.04602762179138284,
+        "ARUSHA_ECONOMIC_COALITION": 0.25,
+        "ATM": 0.04602762179138284,
+        "BATHO_PELE_MOVEMENT": 0.25,
+        "CAPE_COLOURED_CONGRESS": 0.25,
+        "CIVIC_INDEPENDENT": 0.25,
+        "COPE": 0.20802221712851435,
+        "DA": 0.17690750632235397,
+        "EFF": 0.0018241237989128198,
+        "GOD_SAVE_AFRICA": 0.25,
+        "GOOD": 0.09183558137722272,
+        "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": 0.25000000000000006,
+        "NFP": 0.04602762179138284,
+        "PA": 0.25000000000000006,
+        "PROGRESSIVE_COMMUNITY_MOVEMENT": 0.25000000000000006,
+        "THE_ORGANIC_HUMANITY_MOVEMENT": 0.25,
+        "UDM": 0.013851362715099536,
+        "UIM": 0.25,
+        "VFPLUS": 0.04602762179138284
+      },
+      "registered": 16526.672109498868,
+      "turnout": [
+        0.03182933290958244,
+        0.619074624673945,
+        0.9877058909153107
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 35.26607949165376,
+      "derived_from": "pool vectors fitted on buffalocity 2016; size from the 2021 roll split by each ward's own composition; turnout from buffalocity's local elections before 2021",
+      "identified": [],
+      "members": {
+        "ABANTU_BATHO_CONGRESS": 0.25000000000000006,
+        "ACDP": 0.04541204218758073,
+        "AFRICAN_MULTICULTURAL_ECONOMIC_CONGRESS": 0.25,
+        "AFRICA_RESTORATION_ALLIANCE": 0.24999999999999994,
+        "ALJAMAAH": 0.008553824259457086,
+        "ANC": 0.0018821942430363062,
+        "APC": 0.008553824259457086,
+        "ARUSHA_ECONOMIC_COALITION": 0.25000000000000006,
+        "ATM": 0.008553824259457086,
+        "BATHO_PELE_MOVEMENT": 0.25000000000000006,
+        "CAPE_COLOURED_CONGRESS": 0.25000000000000006,
+        "CIVIC_INDEPENDENT": 0.25000000000000006,
+        "DA": 0.026113227955304186,
+        "EFF": 0.014419568524852952,
+        "GOD_SAVE_AFRICA": 0.25,
+        "GOOD": 0.014699615553003571,
+        "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": 0.25,
+        "NFP": 0.008553824259457086,
+        "PA": 0.25,
+        "PROGRESSIVE_COMMUNITY_MOVEMENT": 0.25,
+        "THE_ORGANIC_HUMANITY_MOVEMENT": 0.24999999999999994,
+        "UDM": 0.005559284888366864,
+        "UIM": 0.24999999999999994,
+        "VFPLUS": 0.008553824259457086
+      },
+      "registered": 9674.631077634125,
+      "turnout": [
+        9.999999999999998e-05,
+        0.20356339778955493,
+        0.9984714413103863
+      ]
+    },
+    "White": {
+      "alpha": 114.74554757102781,
+      "derived_from": "pool vectors fitted on buffalocity 2016; size from the 2021 roll split by each ward's own composition; turnout from buffalocity's local elections before 2021",
+      "identified": [
+        "ACDP",
+        "EFF",
+        "UDM"
+      ],
+      "members": {
+        "ABANTU_BATHO_CONGRESS": 0.24999999999999997,
+        "ACDP": 0.7111908550588278,
+        "AFRICAN_MULTICULTURAL_ECONOMIC_CONGRESS": 0.25000000000000006,
+        "AFRICA_RESTORATION_ALLIANCE": 0.25,
+        "ALJAMAAH": 0.164592203823083,
+        "ANC": 0.006474294518080384,
+        "APC": 0.164592203823083,
+        "ARUSHA_ECONOMIC_COALITION": 0.24999999999999997,
+        "ATM": 0.164592203823083,
+        "BATHO_PELE_MOVEMENT": 0.25000000000000006,
+        "CAPE_COLOURED_CONGRESS": 0.24999999999999997,
+        "CIVIC_INDEPENDENT": 0.24999999999999997,
+        "DA": 0.6469322119412951,
+        "EFF": 0.04688550317968013,
+        "GOD_SAVE_AFRICA": 0.25,
+        "GOOD": 0.3334112066644572,
+        "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": 0.25,
+        "NFP": 0.164592203823083,
+        "PA": 0.25,
+        "PROGRESSIVE_COMMUNITY_MOVEMENT": 0.25,
+        "THE_ORGANIC_HUMANITY_MOVEMENT": 0.25,
+        "UDM": 0.24210909322343785,
+        "UIM": 0.25,
+        "VFPLUS": 0.164592203823083
+      },
+      "registered": 51515.18834264777,
+      "turnout": [
+        0.5828222006683121,
+        0.7319985451765015,
+        0.8422682276487985
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2016; pools sized by 2016 roll carried to 2021 on the 2014-2016 RATE of change (log-space, invariant to a constant level bias), damped x0.6; roster published; reach 2021 ward ballot",
+  "rates_on_a_bound": [
+    "Indian/Asian: adult_share fitted to 1.0000, which is ON A BOUND \u2014 the ward table cannot identify this pool at this level. The value is a clipped corner and not a measurement. Largest share this pool reaches in any ward: 11.7%."
+  ],
+  "reach_source": "2021 ward ballot",
+  "registration_series": {
+    "2006": [
+      0.8823978521359168,
+      0.02984321104685833,
+      0.032689331078848326,
+      0.05506960573837654
+    ],
+    "2009": [
+      0.8386243434570957,
+      0.0402303357166353,
+      0.028172740043747604,
+      0.09297258078252145
+    ],
+    "2011": [
+      0.8290452396508474,
+      0.03752051739769995,
+      0.027416919803077644,
+      0.10601732314837495
+    ],
+    "2014": [
+      0.8093263525624412,
+      0.04126712249888832,
+      0.028298613344273204,
+      0.12110791159439716
+    ],
+    "2016": [
+      0.8137505994756701,
+      0.04037386624259723,
+      0.02291215288653404,
+      0.12296338139519865
+    ]
+  },
+  "roster": [
+    "ABANTU_BATHO_CONGRESS",
+    "ACDP",
+    "AFRICAN_MULTICULTURAL_ECONOMIC_CONGRESS",
+    "AFRICA_RESTORATION_ALLIANCE",
+    "AIC",
+    "ALJAMAAH",
+    "ANC",
+    "APC",
+    "ARUSHA_ECONOMIC_COALITION",
+    "ATM",
+    "BATHO_PELE_MOVEMENT",
+    "CAPE_COLOURED_CONGRESS",
+    "CIVIC_INDEPENDENT",
+    "COPE",
+    "DA",
+    "EFF",
+    "GOD_SAVE_AFRICA",
+    "GOOD",
+    "IND",
+    "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION",
+    "NFP",
+    "PA",
+    "PAC",
+    "PROGRESSIVE_COMMUNITY_MOVEMENT",
+    "THE_ORGANIC_HUMANITY_MOVEMENT",
+    "UDM",
+    "UIM",
+    "VFPLUS"
+  ],
+  "roster_source": "published",
+  "seed_bands": {
+    "ABANTU_BATHO_CONGRESS": [
+      0.13208889503482132,
+      1.0,
+      5.266052181878932
+    ],
+    "AFRICAN_MULTICULTURAL_ECONOMIC_CONGRESS": [
+      0.16842650709941215,
+      1.0,
+      5.26389794924973
+    ],
+    "AFRICA_RESTORATION_ALLIANCE": [
+      0.18061869469222774,
+      1.0,
+      5.672532656260205
+    ],
+    "ARUSHA_ECONOMIC_COALITION": [
+      0.13208889503482132,
+      1.0,
+      5.266052181878932
+    ],
+    "BATHO_PELE_MOVEMENT": [
+      0.17073715689615648,
+      1.0,
+      3.848018741624868
+    ],
+    "CAPE_COLOURED_CONGRESS": [
+      0.13043791848745434,
+      1.0,
+      5.681894230325323
+    ],
+    "CIVIC_INDEPENDENT": [
+      0.13208889503482132,
+      1.0,
+      5.266052181878932
+    ],
+    "GOD_SAVE_AFRICA": [
+      0.14773656938978816,
+      1.0,
+      5.103601377923516
+    ],
+    "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": [
+      0.13409308288512733,
+      1.0,
+      4.253375345760197
+    ],
+    "PA": [
+      0.13409308288512733,
+      1.0,
+      4.253375345760197
+    ],
+    "PROGRESSIVE_COMMUNITY_MOVEMENT": [
+      0.13790811741445044,
+      1.0,
+      4.000459518558541
+    ],
+    "THE_ORGANIC_HUMANITY_MOVEMENT": [
+      0.18061869469222774,
+      1.0,
+      5.672532656260205
+    ],
+    "UIM": [
+      0.18061869469222774,
+      1.0,
+      5.672532656260205
+    ]
+  },
+  "seed_notes": {
+    "ABANTU_BATHO_CONGRESS": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 69 arrivals that contested about as much of a city (8% of wards): mean 0.21%, median 0.05%. Band 0.03%-1.12% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.54: 13 entrants summing to 3.03% against an arrival-total record of 1.64%",
+    "AFRICAN_MULTICULTURAL_ECONOMIC_CONGRESS": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 43 arrivals that contested about as much of a city (96% of wards): mean 0.27%, median 0.09%. Band 0.05%-1.44% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.54: 13 entrants summing to 3.03% against an arrival-total record of 1.64%",
+    "AFRICA_RESTORATION_ALLIANCE": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 41 arrivals that contested about as much of a city (100% of wards): mean 0.27%, median 0.09%. Band 0.05%-1.51% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.54: 13 entrants summing to 3.03% against an arrival-total record of 1.64%",
+    "ARUSHA_ECONOMIC_COALITION": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 69 arrivals that contested about as much of a city (6% of wards): mean 0.21%, median 0.05%. Band 0.03%-1.12% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.54: 13 entrants summing to 3.03% against an arrival-total record of 1.64%",
+    "BATHO_PELE_MOVEMENT": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 56 arrivals that contested about as much of a city (78% of wards): mean 0.25%, median 0.10%. Band 0.04%-0.98% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.54: 13 entrants summing to 3.03% against an arrival-total record of 1.64%",
+    "CAPE_COLOURED_CONGRESS": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 67 arrivals that contested about as much of a city (2% of wards): mean 0.22%, median 0.05%. Band 0.03%-1.23% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.54: 13 entrants summing to 3.03% against an arrival-total record of 1.64%",
+    "CIVIC_INDEPENDENT": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 69 arrivals that contested about as much of a city (4% of wards): mean 0.21%, median 0.05%. Band 0.03%-1.12% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.54: 13 entrants summing to 3.03% against an arrival-total record of 1.64%",
+    "GOD_SAVE_AFRICA": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 131 arrivals that contested about as much of a city (50% of wards): mean 0.23%, median 0.07%. Band 0.03%-1.16% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.54: 13 entrants summing to 3.03% against an arrival-total record of 1.64%",
+    "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 73 arrivals that contested about as much of a city (18% of wards): mean 0.21%, median 0.05%. Band 0.03%-0.89% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.54: 13 entrants summing to 3.03% against an arrival-total record of 1.64%",
+    "PA": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 73 arrivals that contested about as much of a city (14% of wards): mean 0.21%, median 0.05%. Band 0.03%-0.89% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.54: 13 entrants summing to 3.03% against an arrival-total record of 1.64%",
+    "PROGRESSIVE_COMMUNITY_MOVEMENT": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 74 arrivals that contested about as much of a city (26% of wards): mean 0.21%, median 0.05%. Band 0.03%-0.83% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.54: 13 entrants summing to 3.03% against an arrival-total record of 1.64%",
+    "THE_ORGANIC_HUMANITY_MOVEMENT": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 41 arrivals that contested about as much of a city (100% of wards): mean 0.27%, median 0.09%. Band 0.05%-1.51% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.54: 13 entrants summing to 3.03% against an arrival-total record of 1.64%",
+    "UIM": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 41 arrivals that contested about as much of a city (100% of wards): mean 0.27%, median 0.09%. Band 0.05%-1.51% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.54: 13 entrants summing to 3.03% against an arrival-total record of 1.64%"
+  },
+  "seeded_arrival_mass": 0.016432802803512517,
+  "seeds": {
+    "ABANTU_BATHO_CONGRESS": 0.001150423774798891,
+    "AFRICAN_MULTICULTURAL_ECONOMIC_CONGRESS": 0.001481227355997662,
+    "AFRICA_RESTORATION_ALLIANCE": 0.0014422069813297194,
+    "ARUSHA_ECONOMIC_COALITION": 0.001150423774798891,
+    "BATHO_PELE_MOVEMENT": 0.0013777069127296699,
+    "CAPE_COLOURED_CONGRESS": 0.0011751825136600063,
+    "CIVIC_INDEPENDENT": 0.001150423774798891,
+    "GOD_SAVE_AFRICA": 0.001226836296504386,
+    "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": 0.0011332292610883646,
+    "PA": 0.0011332292610883646,
+    "PROGRESSIVE_COMMUNITY_MOVEMENT": 0.0011274989340582325,
+    "THE_ORGANIC_HUMANITY_MOVEMENT": 0.0014422069813297194,
+    "UIM": 0.0014422069813297194
+  },
+  "splinter_home": {
+    "fractions": {
+      "GOOD": 0.0558,
+      "NFP": 0.3524
+    },
+    "measured_at": [
+      "2014",
+      "2019"
+    ]
+  },
+  "target": "2021",
+  "transition_ledger": {
+    "arrival_group_record": {
+      "fallback": 9,
+      "metro": 16,
+      "offered": 32,
+      "unavailable": 7
+    },
+    "entrant_record": {
+      "fallback": 17,
+      "metro": 24,
+      "offered": 48,
+      "unavailable": 7
+    },
+    "home_splinter_record": {
+      "fallback": 8,
+      "metro": 0,
+      "offered": 8,
+      "unavailable": 0
+    },
+    "splinter_record": {
+      "fallback": 68,
+      "metro": 0,
+      "offered": 68,
+      "unavailable": 0
+    }
+  },
+  "turnout_limits": {
+    "city": {
+      "high": 0.6145606313888552,
+      "low": 0.4696973914629036,
+      "observed_high": 0.5586914830807774,
+      "observed_low": 0.5218859905143374,
+      "previous": 0.5449525645379408
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.6027116821262949,
+        "low": 0.4697677461827733,
+        "observed_high": 0.5479197110239044,
+        "observed_low": 0.5219641624253036,
+        "previous": 0.5219641624253036
+      },
+      {
+        "high": 0.6809820871413396,
+        "low": 0.028646399618624196,
+        "observed_high": 0.619074624673945,
+        "observed_low": 0.03182933290958244,
+        "previous": 0.619074624673945
+      },
+      {
+        "high": 0.22391973756851044,
+        "low": 0.0,
+        "observed_high": 0.20356339778955493,
+        "observed_low": 0.0,
+        "previous": 0.20356339778955493
+      },
+      {
+        "high": 0.8051983996941517,
+        "low": 0.5974621572845475,
+        "observed_high": 0.7319985451765015,
+        "observed_low": 0.663846841427275,
+        "previous": 0.7319985451765015
+      }
+    ]
+  },
+  "unclassified_with_national_record": {
+    "ATM": 0.008078
+  }
+}
