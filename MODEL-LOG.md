@@ -26502,3 +26502,60 @@ constructed judgement file, mutation-checked in both directions: reverting the
 change trips all five, and a pasted-set denominator trips exactly the
 denominator test), plus the `("contestation_expand", "2026")` liveness entry
 that §A5 has promised since 2026-08-20 and nobody wrote.
+
+## 1.253 The re-emit window: what went in, what it cost, and the number everything is now quoted from (2026-09-23)
+
+**The window took two landed changes into the specs**: §1.249, the entrant with
+no measured vector spread like the city rather than a quarter into every pool
+(ultra review 2, PR #16, one nit found and fixed); and §1.252, the declared ward
+slates reaching the contestation correction. Both moved numbers, which is why
+each went through a review or a pre-registration first.
+
+**The emit.** 27 specs issued, 27 on disk, all carrying one key —
+`pools_sha 7264a92947ba4529 / deps_sha bed2e1a147c10f2d`. Nothing else ran
+while it did. The pre-emit set is archived at
+`archive/pools-preemit-2026-09-21/`.
+
+**Decided before the window, as POOLS-REEMIT-QUEUE asks:** Tshwane gets no
+`--simulation` spec. Nothing reads it — the reader-simulation spec exists so a
+reader can explore a mechanism the published forecast is structurally barred
+from reading — so emitting one would create an artefact with no consumer that
+`test_intermediates_are_current` must still keep current. Johannesburg's exists
+because Johannesburg is the published city. Revisit when Tshwane publishes.
+
+**THE CANONICAL MEASUREMENT, and the only figure anything may be quoted from
+until the next window:**
+
+```
+seat_abs_err_coherent=733/@2ac4c1eb/1000d/pools:7264a929/rows=24
+```
+
+24 city-years, 1,000 draws, seed 20261104, `git_dirty: false`. Margins:
+**17.2%** over uniform swing (a point forecast) and **46.1%** over
+prior-LGE-noise (the only reference that expresses uncertainty). The freeze was
+re-taken after it at 1,500 draws on the same seed, clean tree, all nine
+environment switches recorded.
+
+**What the guards caught, which is what they are for.** Four documents
+disagreed with the new artefact and each was re-read from it rather than
+patched: ITERATING rule 8's two tables (ranks 4-12 n 78 → 74, probit-SD 0.850 →
+0.847; ranks 1-3 0.748 → 0.783 — no conclusion moves, 4-12 is still the one
+departed band), JUDGEMENT-CALLS §A38 (the PA's PR mean 0.0937% → 0.0913%, with
+both ratios recomputed from it, 31.6× → 32.4× and 99.6× → 99.8×), and
+`test_drawer`'s two golden blocks, re-recorded deliberately with the cause
+written into the block.
+
+**The standing failures, after the window.** The arithmetically-impossible
+seeds are down from four to **three**, all of them 2011 DA-in-White: Buffalo
+City, Cape Town and Nelson Mandela Bay. The fourth — Mangaung 2016 AIC in
+Indian/Asian — is **fixed by §1.249**, which is the first evidence that the
+pool-seed change repairs cases beyond the one it was written for. The remaining
+three are §1.248's other cause, a party fitted at one size and sold at another,
+and are not claimed by that change. Mangaung 2016's pool rates still sum to
+[1, 1, 0, 1]: a pool's voters are still lost by the bounded balance, and that is
+its own round.
+
+**Still queued and NOT in this window**: entries 19, 20, 27 and 28. Entry 27 is
+the two Cape Town renames the owner confirmed on 2026-09-16, and it is not
+number-neutral, so it needs its own pre-registration and a measured panel — a
+later window, deliberately.
