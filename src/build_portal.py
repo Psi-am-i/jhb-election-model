@@ -24,11 +24,20 @@ def city_card(slug: str) -> dict:
     """Everything the portal needs about one city, from its own outputs."""
     city = cityconfig.load(slug)
     summary_path = city.processed / "forecast_summary.json"
+    # ⛔ A CITY WITHOUT A SUBDOMAIN IS NOT A CRASH, IT IS A CITY WITH NO PAGE
+    # YET. This read `city.identity["subdomain"]` unconditionally, and the
+    # seven metros ingested on 2026-09-01 carry no subdomain — so the portal
+    # died with a KeyError from the moment the model grew beyond two cities,
+    # and `build_all` stopped before the site every time. The card already has
+    # an "In preparation" state for exactly these cities; it just never got to
+    # use it. A city that IS live and has no address is a different thing and
+    # refuses below.
+    subdomain = city.identity.get("subdomain")
     card = {
         "slug": slug,
         "name": city.name,
         "formal": city.identity.get("formal_name", city.name),
-        "url": "https://" + city.identity["subdomain"],
+        "url": ("https://" + subdomain) if subdomain else None,
         "accent": city.site.get("accent", "#a8621f"),
         "council": city.council,
         "majority": city.majority,
@@ -36,6 +45,13 @@ def city_card(slug: str) -> dict:
         "live": summary_path.exists(),
         "headline": None,
     }
+    if card["live"] and not subdomain:
+        raise SystemExit(
+            f"{slug} has a forecast ({summary_path}) but no `subdomain` in its "
+            f"[identity] block, so the portal would link its card nowhere. "
+            f"Either declare the address it publishes at, or move the summary "
+            f"out of the way — a live card with a dead link is worse than a "
+            f"city the portal says is in preparation.")
     if card["live"]:
         s = json.loads(summary_path.read_text(encoding="utf-8"))
         top = sorted(s["parties"].items(), key=lambda kv: -kv[1]["median"])[:2]

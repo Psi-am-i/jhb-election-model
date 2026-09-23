@@ -154,6 +154,43 @@ def test_a_required_failure_does_not_reach_the_site():
     assert not any("build_site.py" in c for c in ran), ran
 
 
+def test_a_city_with_no_page_yet_does_not_kill_the_portal():
+    """⛔ THE PORTAL DIED THE DAY THE MODEL GREW BEYOND TWO CITIES.
+
+    `build_portal.city_card` read `city.identity["subdomain"]` outright. The
+    seven metros ingested on 2026-09-01 have no subdomain — they have no page —
+    so the portal raised `KeyError: 'subdomain'`, `build_all` stopped at the
+    step before the site, and it stayed that way until 2026-09-23. The card
+    already had an "In preparation" state for exactly these cities and never
+    reached it.
+
+    Both directions are asserted, because only one of them is the bug: a city
+    with no page must render, and a city WITH a forecast and no address must
+    refuse rather than publish a card linking nowhere.
+    """
+    import build_portal
+
+    slugs = sorted(p.stem for p in Path(build_all.__file__).resolve()
+                   .parent.parent.joinpath("cities").glob("*.toml"))
+    pageless = [s for s in slugs
+                if not cityconfig.load(s).identity.get("subdomain")]
+    assert pageless, (
+        "every city declares a subdomain, so this test's premise is gone: it "
+        "is guarding the pageless case and there is no longer one. Re-read it "
+        "rather than deleting it — the portal globs cities/*.toml, so the next "
+        "city ingested without an address brings the case straight back.")
+
+    for slug in pageless:
+        card = build_portal.city_card(slug)
+        assert card["url"] is None and card["live"] is False, (
+            f"{slug} has no subdomain but its card claims url={card['url']!r}, "
+            f"live={card['live']!r}.")
+
+    html = build_portal.render([build_portal.city_card(s) for s in slugs])
+    assert "In preparation" in html and "href=\"None\"" not in html, (
+        "the portal rendered a card with no address as a link.")
+
+
 if __name__ == "__main__":
     # Append new tests ABOVE this line.
     raise SystemExit(run_module(globals()))

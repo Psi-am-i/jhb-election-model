@@ -1,7 +1,7 @@
 {
   "changes": [
     {
-      "display": "59",
+      "display": "58",
       "fmt": "int",
       "mode": "free",
       "movement": "new",
@@ -13,7 +13,7 @@
       "previous_value": null,
       "source": "regime:cap:parties.ANC.median",
       "token": "anc_entitlement",
-      "value": 59.0
+      "value": 58.0
     },
     {
       "display": "61",
@@ -28,7 +28,7 @@
       "previous_value": null,
       "source": "model:parties.ANC.ward_wins_mean",
       "token": "anc_ward_median",
-      "value": 61.3338
+      "value": 60.5452
     },
     {
       "display": "44",
@@ -166,7 +166,7 @@
       "value": 7
     },
     {
-      "display": "64%",
+      "display": "65%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -178,7 +178,7 @@
       "previous_value": null,
       "source": "forecast_summary.json p_excessive_by_party",
       "token": "ballots.p_anc_excessive",
-      "value": 0.6426
+      "value": 0.6474
     },
     {
       "display": "0",
@@ -191,12 +191,12 @@
       "previous": null,
       "previous_published_at": null,
       "previous_value": null,
-      "source": "seat_detail_draws.csv, simulation 4794",
+      "source": "seat_detail_draws.csv, simulation 1764",
       "token": "ballots.typical.anc_list",
       "value": 0.0
     },
     {
-      "display": "65",
+      "display": "75",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -206,12 +206,12 @@
       "previous": null,
       "previous_published_at": null,
       "previous_value": null,
-      "source": "seat_detail_draws.csv, simulation 4794",
+      "source": "seat_detail_draws.csv, simulation 1764",
       "token": "ballots.typical.anc_wards",
-      "value": 65.0
+      "value": 75.0
     },
     {
-      "display": "4794",
+      "display": "1764",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -223,7 +223,7 @@
       "previous_value": null,
       "source": "seat_detail_draws.csv",
       "token": "ballots.typical.draw",
-      "value": 4794.0
+      "value": 1764.0
     },
     {
       "display": "129",
@@ -286,7 +286,7 @@
       "value": 15
     },
     {
-      "display": "68",
+      "display": "67",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -298,10 +298,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.anc.median",
-      "value": 68.0
+      "value": 67.0
     },
     {
-      "display": "133",
+      "display": "128",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -313,10 +313,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.anc_alone.best",
-      "value": 133.0
+      "value": 128.0
     },
     {
-      "display": "3",
+      "display": "8",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -328,7 +328,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.anc_alone.best_short",
-      "value": 3.0
+      "value": 8.0
     },
     {
       "display": "0",
@@ -346,7 +346,7 @@
       "value": 0.0
     },
     {
-      "display": "48%",
+      "display": "47%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -358,10 +358,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.anc_largest.share",
-      "value": 0.4752
+      "value": 0.472
     },
     {
-      "display": "118",
+      "display": "116",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -373,10 +373,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.anc_routes.left_median",
-      "value": 118.0
+      "value": 116.0
     },
     {
-      "display": "16%",
+      "display": "12%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -388,10 +388,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.anc_routes.left_share",
-      "value": 0.1552
+      "value": 0.1158
     },
     {
-      "display": "67",
+      "display": "66",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -403,37 +403,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.da.median",
-      "value": 67.0
-    },
-    {
-      "display": "3",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations",
-      "token": "claim.da_alone.count",
-      "value": 3.0
-    },
-    {
-      "display": "72",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "ward_draws.csv + seat_detail_draws.csv, simulation 828",
-      "token": "claim.da_alone.odd_anc",
-      "value": 72.0
+      "value": 66.0
     },
     {
       "display": "1",
@@ -446,42 +416,12 @@
       "previous": null,
       "previous_published_at": null,
       "previous_value": null,
-      "source": "ward_draws.csv + seat_detail_draws.csv, simulation 828",
-      "token": "claim.da_alone.odd_asa",
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.da_alone.count",
       "value": 1.0
     },
     {
-      "display": "5",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "ward_draws.csv + seat_detail_draws.csv, simulation 828",
-      "token": "claim.da_alone.odd_eff",
-      "value": 5.0
-    },
-    {
-      "display": "11",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "ward_draws.csv + seat_detail_draws.csv, simulation 828",
-      "token": "claim.da_alone.odd_nfp",
-      "value": 11.0
-    },
-    {
-      "display": "0.1%",
+      "display": "under 0.1%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -493,10 +433,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.da_alone.share",
-      "value": 0.0006
+      "value": 0.0002
     },
     {
-      "display": "42",
+      "display": "34",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -508,10 +448,10 @@
       "previous_value": null,
       "source": "ward_draws.csv + seat_detail_draws.csv",
       "token": "claim.da_alone.wall_anc_high",
-      "value": 42.0
+      "value": 34.0
     },
     {
-      "display": "25",
+      "display": "34",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -523,10 +463,10 @@
       "previous_value": null,
       "source": "ward_draws.csv + seat_detail_draws.csv",
       "token": "claim.da_alone.wall_anc_low",
-      "value": 25.0
+      "value": 34.0
     },
     {
-      "display": "2",
+      "display": "1",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -538,7 +478,7 @@
       "previous_value": null,
       "source": "ward_draws.csv + seat_detail_draws.csv",
       "token": "claim.da_alone.wall_count",
-      "value": 2.0
+      "value": 1.0
     },
     {
       "display": "47%",
@@ -553,10 +493,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.da_largest.share",
-      "value": 0.4682
+      "value": 0.4734
     },
     {
-      "display": "22",
+      "display": "21",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -568,10 +508,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.mk.median",
-      "value": 22.0
+      "value": 21.0
     },
     {
-      "display": "52",
+      "display": "50",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -583,7 +523,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.mk.p95",
-      "value": 52.0
+      "value": 50.0
     },
     {
       "display": "1.4%",
@@ -598,10 +538,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.mk_largest.share",
-      "value": 0.0136
+      "value": 0.0142
     },
     {
-      "display": "52%",
+      "display": "57%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -613,10 +553,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.red_lines.anc_side_share",
-      "value": 0.5244
+      "value": 0.5734
     },
     {
-      "display": "48%",
+      "display": "44%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -628,10 +568,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.red_lines.grand_share",
-      "value": 0.4806
+      "value": 0.4398
     },
     {
-      "display": "54%",
+      "display": "59%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -643,10 +583,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.red_lines.no_red_share",
-      "value": 0.5374
+      "value": 0.594
     },
     {
-      "display": "114",
+      "display": "118",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -658,10 +598,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.red_lines.three_median",
-      "value": 114.0
+      "value": 118.0
     },
     {
-      "display": "13%",
+      "display": "17%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -673,7 +613,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.red_lines.three_share",
-      "value": 0.1282
+      "value": 0.168
     },
     {
       "display": "53",
@@ -916,7 +856,7 @@
       "value": 57
     },
     {
-      "display": "17",
+      "display": "15",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -928,10 +868,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF+MK.cushion_when_wins",
-      "value": 17.0
+      "value": 15.0
     },
     {
-      "display": "75%",
+      "display": "70%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -943,10 +883,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+ASA+EFF+MK.majority",
-      "value": 0.7514
+      "value": 0.7032
     },
     {
-      "display": "153",
+      "display": "151",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -958,10 +898,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF+MK.seats_when_wins",
-      "value": 153.0
+      "value": 151.0
     },
     {
-      "display": "11%",
+      "display": "10%",
       "fmt": "pct0",
       "mode": "generated",
       "movement": "new",
@@ -973,7 +913,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF+MK.stability",
-      "value": 0.1111
+      "value": 0.0993
     },
     {
       "display": "1.0%",
@@ -988,10 +928,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+MK.survive.ANC",
-      "value": 0.009848
+      "value": 0.00967
     },
     {
-      "display": "21%",
+      "display": "16%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1003,10 +943,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+MK.survive.ASA",
-      "value": 0.206548
+      "value": 0.164676
     },
     {
-      "display": "26%",
+      "display": "23%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1018,10 +958,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+MK.survive.EFF",
-      "value": 0.263242
+      "value": 0.226678
     },
     {
-      "display": "34%",
+      "display": "30%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1033,10 +973,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+MK.survive.MK",
-      "value": 0.341762
+      "value": 0.299488
     },
     {
-      "display": "16",
+      "display": "17",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -1048,10 +988,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF+PA.cushion_when_wins",
-      "value": 16.0
+      "value": 17.0
     },
     {
-      "display": "64%",
+      "display": "68%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1063,10 +1003,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+ASA+EFF+PA.majority",
-      "value": 0.6372
+      "value": 0.6838
     },
     {
-      "display": "152",
+      "display": "153",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -1078,7 +1018,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF+PA.seats_when_wins",
-      "value": 152.0
+      "value": 153.0
     },
     {
       "display": "11%",
@@ -1093,10 +1033,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF+PA.stability",
-      "value": 0.1053
+      "value": 0.1111
     },
     {
-      "display": "0.8%",
+      "display": "1.0%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1108,10 +1048,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+PA.survive.ANC",
-      "value": 0.008161
+      "value": 0.010237
     },
     {
-      "display": "17%",
+      "display": "21%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1123,10 +1063,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+PA.survive.ASA",
-      "value": 0.167922
+      "value": 0.205323
     },
     {
-      "display": "23%",
+      "display": "28%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1138,10 +1078,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+PA.survive.EFF",
-      "value": 0.226616
+      "value": 0.282539
     },
     {
-      "display": "40%",
+      "display": "31%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1153,10 +1093,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+PA.survive.PA",
-      "value": 0.403013
+      "value": 0.307985
     },
     {
-      "display": "8",
+      "display": "7",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -1168,10 +1108,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF.cushion_when_wins",
-      "value": 8.0
+      "value": 7.0
     },
     {
-      "display": "26%",
+      "display": "21%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1183,10 +1123,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+ASA+EFF.majority",
-      "value": 0.2568
+      "value": 0.2106
     },
     {
-      "display": "144",
+      "display": "143",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -1198,10 +1138,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF.seats_when_wins",
-      "value": 144.0
+      "value": 143.0
     },
     {
-      "display": "6%",
+      "display": "5%",
       "fmt": "pct0",
       "mode": "generated",
       "movement": "new",
@@ -1213,10 +1153,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF.stability",
-      "value": 0.0556
+      "value": 0.049
     },
     {
-      "display": "0.2%",
+      "display": "0.1%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1228,10 +1168,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF.survive.ANC",
-      "value": 0.001558
+      "value": 0.00095
     },
     {
-      "display": "2.7%",
+      "display": "3.2%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1243,10 +1183,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF.survive.ASA",
-      "value": 0.027259
+      "value": 0.032289
     },
     {
-      "display": "7.4%",
+      "display": "6.4%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1258,127 +1198,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF.survive.EFF",
-      "value": 0.073988
-    },
-    {
-      "display": "13",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.ANC+ASA+MK+PA.cushion_when_wins",
-      "value": 13.0
-    },
-    {
-      "display": "57%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations",
-      "token": "coal.ANC+ASA+MK+PA.majority",
-      "value": 0.575
-    },
-    {
-      "display": "149",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.ANC+ASA+MK+PA.seats_when_wins",
-      "value": 149.0
-    },
-    {
-      "display": "9%",
-      "fmt": "pct0",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.ANC+ASA+MK+PA.stability",
-      "value": 0.0872
-    },
-    {
-      "display": "0.2%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.ANC+ASA+MK+PA.survive.ANC",
-      "value": 0.002435
-    },
-    {
-      "display": "13%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.ANC+ASA+MK+PA.survive.ASA",
-      "value": 0.13113
-    },
-    {
-      "display": "25%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.ANC+ASA+MK+PA.survive.MK",
-      "value": 0.25113
-    },
-    {
-      "display": "34%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.ANC+ASA+MK+PA.survive.PA",
-      "value": 0.344
+      "value": 0.063628
     },
     {
       "display": "7",
@@ -1396,7 +1216,7 @@
       "value": 7.0
     },
     {
-      "display": "20%",
+      "display": "16%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1408,7 +1228,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+ASA+MK.majority",
-      "value": 0.1978
+      "value": 0.1594
     },
     {
       "display": "143",
@@ -1456,7 +1276,7 @@
       "value": 0.0
     },
     {
-      "display": "4.6%",
+      "display": "3.4%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1468,10 +1288,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+MK.survive.ASA",
-      "value": 0.045501
+      "value": 0.033877
     },
     {
-      "display": "10%",
+      "display": "8.4%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1483,7 +1303,127 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+MK.survive.MK",
-      "value": 0.096057
+      "value": 0.084065
+    },
+    {
+      "display": "15",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
+      "token": "coal.ANC+ASA+PA+MK.cushion_when_wins",
+      "value": 15.0
+    },
+    {
+      "display": "64%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "coal.ANC+ASA+PA+MK.majority",
+      "value": 0.6416
+    },
+    {
+      "display": "151",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
+      "token": "coal.ANC+ASA+PA+MK.seats_when_wins",
+      "value": 151.0
+    },
+    {
+      "display": "10%",
+      "fmt": "pct0",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
+      "token": "coal.ANC+ASA+PA+MK.stability",
+      "value": 0.0993
+    },
+    {
+      "display": "0.6%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.ANC+ASA+PA+MK.survive.ANC",
+      "value": 0.006234
+    },
+    {
+      "display": "15%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.ANC+ASA+PA+MK.survive.ASA",
+      "value": 0.154925
+    },
+    {
+      "display": "30%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.ANC+ASA+PA+MK.survive.MK",
+      "value": 0.301122
+    },
+    {
+      "display": "25%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.ANC+ASA+PA+MK.survive.PA",
+      "value": 0.248441
     },
     {
       "display": "7",
@@ -1501,7 +1441,7 @@
       "value": 7.0
     },
     {
-      "display": "14%",
+      "display": "19%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1513,7 +1453,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+ASA+PA.majority",
-      "value": 0.1444
+      "value": 0.1932
     },
     {
       "display": "143",
@@ -1561,7 +1501,7 @@
       "value": 0.0
     },
     {
-      "display": "2.9%",
+      "display": "3.0%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1573,10 +1513,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+PA.survive.ASA",
-      "value": 0.029086
+      "value": 0.030021
     },
     {
-      "display": "13%",
+      "display": "6.9%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1588,127 +1528,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+PA.survive.PA",
-      "value": 0.131579
-    },
-    {
-      "display": "12",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.ANC+EFF+MK+PA.cushion_when_wins",
-      "value": 12.0
-    },
-    {
-      "display": "55%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations",
-      "token": "coal.ANC+EFF+MK+PA.majority",
-      "value": 0.5482
-    },
-    {
-      "display": "148",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.ANC+EFF+MK+PA.seats_when_wins",
-      "value": 148.0
-    },
-    {
-      "display": "8%",
-      "fmt": "pct0",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.ANC+EFF+MK+PA.stability",
-      "value": 0.0811
-    },
-    {
-      "display": "0.4%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.ANC+EFF+MK+PA.survive.ANC",
-      "value": 0.003648
-    },
-    {
-      "display": "14%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.ANC+EFF+MK+PA.survive.EFF",
-      "value": 0.137541
-    },
-    {
-      "display": "20%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.ANC+EFF+MK+PA.survive.MK",
-      "value": 0.195184
-    },
-    {
-      "display": "28%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.ANC+EFF+MK+PA.survive.PA",
-      "value": 0.283108
+      "value": 0.069358
     },
     {
       "display": "6",
@@ -1726,7 +1546,7 @@
       "value": 6.0
     },
     {
-      "display": "16%",
+      "display": "12%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1738,7 +1558,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+EFF+MK.majority",
-      "value": 0.1552
+      "value": 0.1158
     },
     {
       "display": "142",
@@ -1771,7 +1591,7 @@
       "value": 0.0423
     },
     {
-      "display": "under 0.1%",
+      "display": "0.2%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1783,10 +1603,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+MK.survive.ANC",
-      "value": 0.0
+      "value": 0.001727
     },
     {
-      "display": "5.8%",
+      "display": "4.7%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1798,10 +1618,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+MK.survive.EFF",
-      "value": 0.05799
+      "value": 0.046632
     },
     {
-      "display": "4.5%",
+      "display": "5.9%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1813,10 +1633,130 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+MK.survive.MK",
-      "value": 0.045103
+      "value": 0.058722
     },
     {
-      "display": "5",
+      "display": "13",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
+      "token": "coal.ANC+EFF+PA+MK.cushion_when_wins",
+      "value": 13.0
+    },
+    {
+      "display": "60%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "coal.ANC+EFF+PA+MK.majority",
+      "value": 0.5992
+    },
+    {
+      "display": "149",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
+      "token": "coal.ANC+EFF+PA+MK.seats_when_wins",
+      "value": 149.0
+    },
+    {
+      "display": "9%",
+      "fmt": "pct0",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
+      "token": "coal.ANC+EFF+PA+MK.stability",
+      "value": 0.0872
+    },
+    {
+      "display": "0.7%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.ANC+EFF+PA+MK.survive.ANC",
+      "value": 0.006676
+    },
+    {
+      "display": "17%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.ANC+EFF+PA+MK.survive.EFF",
+      "value": 0.165888
+    },
+    {
+      "display": "23%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.ANC+EFF+PA+MK.survive.MK",
+      "value": 0.234312
+    },
+    {
+      "display": "19%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.ANC+EFF+PA+MK.survive.PA",
+      "value": 0.193258
+    },
+    {
+      "display": "6",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -1828,10 +1768,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+EFF+PA.cushion_when_wins",
-      "value": 5.0
+      "value": 6.0
     },
     {
-      "display": "11%",
+      "display": "14%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1843,10 +1783,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+EFF+PA.majority",
-      "value": 0.107
+      "value": 0.1404
     },
     {
-      "display": "141",
+      "display": "142",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -1858,7 +1798,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+EFF+PA.seats_when_wins",
-      "value": 141.0
+      "value": 142.0
     },
     {
       "display": "4%",
@@ -1873,10 +1813,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+EFF+PA.stability",
-      "value": 0.0355
+      "value": 0.0423
     },
     {
-      "display": "under 0.1%",
+      "display": "0.3%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1888,10 +1828,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+PA.survive.ANC",
-      "value": 0.0
+      "value": 0.002849
     },
     {
-      "display": "3.9%",
+      "display": "4.1%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1903,10 +1843,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+PA.survive.EFF",
-      "value": 0.039252
+      "value": 0.041311
     },
     {
-      "display": "6.5%",
+      "display": "4.8%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1918,10 +1858,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+PA.survive.PA",
-      "value": 0.065421
+      "value": 0.048433
     },
     {
-      "display": "7",
+      "display": "6",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -1932,11 +1872,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.ANC+MK+PA.cushion_when_wins",
-      "value": 7.0
+      "token": "coal.ANC+PA+MK.cushion_when_wins",
+      "value": 6.0
     },
     {
-      "display": "7.5%",
+      "display": "10%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -1947,11 +1887,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
-      "token": "coal.ANC+MK+PA.majority",
-      "value": 0.0754
+      "token": "coal.ANC+PA+MK.majority",
+      "value": 0.0994
     },
     {
-      "display": "143",
+      "display": "142",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -1962,11 +1902,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.ANC+MK+PA.seats_when_wins",
-      "value": 143.0
+      "token": "coal.ANC+PA+MK.seats_when_wins",
+      "value": 142.0
     },
     {
-      "display": "5%",
+      "display": "4%",
       "fmt": "pct0",
       "mode": "generated",
       "movement": "new",
@@ -1977,8 +1917,8 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.ANC+MK+PA.stability",
-      "value": 0.049
+      "token": "coal.ANC+PA+MK.stability",
+      "value": 0.0423
     },
     {
       "display": "under 0.1%",
@@ -1992,11 +1932,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.ANC+MK+PA.survive.ANC",
+      "token": "coal.ANC+PA+MK.survive.ANC",
       "value": 0.0
     },
     {
-      "display": "5.6%",
+      "display": "5.8%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2007,11 +1947,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.ANC+MK+PA.survive.MK",
-      "value": 0.055703
+      "token": "coal.ANC+PA+MK.survive.MK",
+      "value": 0.05835
     },
     {
-      "display": "12%",
+      "display": "5.4%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2022,11 +1962,131 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.ANC+MK+PA.survive.PA",
-      "value": 0.119363
+      "token": "coal.ANC+PA+MK.survive.PA",
+      "value": 0.054326
     },
     {
-      "display": "12",
+      "display": "8",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
+      "token": "coal.ASA+EFF+PA+MK.cushion_when_wins",
+      "value": 8.0
+    },
+    {
+      "display": "7.7%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "coal.ASA+EFF+PA+MK.majority",
+      "value": 0.0774
+    },
+    {
+      "display": "144",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
+      "token": "coal.ASA+EFF+PA+MK.seats_when_wins",
+      "value": 144.0
+    },
+    {
+      "display": "6%",
+      "fmt": "pct0",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
+      "token": "coal.ASA+EFF+PA+MK.stability",
+      "value": 0.0556
+    },
+    {
+      "display": "5.2%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.ASA+EFF+PA+MK.survive.ASA",
+      "value": 0.05168
+    },
+    {
+      "display": "5.2%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.ASA+EFF+PA+MK.survive.EFF",
+      "value": 0.05168
+    },
+    {
+      "display": "9.0%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.ASA+EFF+PA+MK.survive.MK",
+      "value": 0.090439
+    },
+    {
+      "display": "8.8%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.ASA+EFF+PA+MK.survive.PA",
+      "value": 0.087855
+    },
+    {
+      "display": "11",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -2038,10 +2098,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ANC.cushion_when_wins",
-      "value": 12.0
+      "value": 11.0
     },
     {
-      "display": "48%",
+      "display": "44%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2053,10 +2113,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+ANC.majority",
-      "value": 0.4806
+      "value": 0.4398
     },
     {
-      "display": "148",
+      "display": "147",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -2068,10 +2128,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ANC.seats_when_wins",
-      "value": 148.0
+      "value": 147.0
     },
     {
-      "display": "8%",
+      "display": "7%",
       "fmt": "pct0",
       "mode": "generated",
       "movement": "new",
@@ -2083,10 +2143,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ANC.stability",
-      "value": 0.0811
+      "value": 0.0748
     },
     {
-      "display": "0.1%",
+      "display": "under 0.1%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2098,7 +2158,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ANC.survive.ANC",
-      "value": 0.001248
+      "value": 0.000455
     },
     {
       "display": "under 0.1%",
@@ -2116,7 +2176,7 @@
       "value": 0.0
     },
     {
-      "display": "20",
+      "display": "18",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -2128,10 +2188,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF+MK.cushion_when_wins",
-      "value": 20.0
+      "value": 18.0
     },
     {
-      "display": "72%",
+      "display": "67%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2143,10 +2203,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+ASA+EFF+MK.majority",
-      "value": 0.7212
+      "value": 0.6736
     },
     {
-      "display": "156",
+      "display": "154",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -2158,10 +2218,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF+MK.seats_when_wins",
-      "value": 156.0
+      "value": 154.0
     },
     {
-      "display": "13%",
+      "display": "12%",
       "fmt": "pct0",
       "mode": "generated",
       "movement": "new",
@@ -2173,10 +2233,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF+MK.stability",
-      "value": 0.1282
+      "value": 0.1169
     },
     {
-      "display": "32%",
+      "display": "29%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2188,7 +2248,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+MK.survive.ASA",
-      "value": 0.322795
+      "value": 0.286817
     },
     {
       "display": "1.0%",
@@ -2203,10 +2263,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+MK.survive.DA",
-      "value": 0.010261
+      "value": 0.010095
     },
     {
-      "display": "32%",
+      "display": "30%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2218,10 +2278,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+MK.survive.EFF",
-      "value": 0.315862
+      "value": 0.296615
     },
     {
-      "display": "38%",
+      "display": "35%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2233,10 +2293,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+MK.survive.MK",
-      "value": 0.384914
+      "value": 0.348575
     },
     {
-      "display": "16",
+      "display": "17",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -2248,10 +2308,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF+PA.cushion_when_wins",
-      "value": 16.0
+      "value": 17.0
     },
     {
-      "display": "64%",
+      "display": "69%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2263,10 +2323,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+ASA+EFF+PA.majority",
-      "value": 0.6438
+      "value": 0.6938
     },
     {
-      "display": "152",
+      "display": "153",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -2278,7 +2338,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF+PA.seats_when_wins",
-      "value": 152.0
+      "value": 153.0
     },
     {
       "display": "11%",
@@ -2293,10 +2353,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF+PA.stability",
-      "value": 0.1053
+      "value": 0.1111
     },
     {
-      "display": "22%",
+      "display": "23%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2308,10 +2368,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+PA.survive.ASA",
-      "value": 0.219944
+      "value": 0.23292
     },
     {
-      "display": "0.8%",
+      "display": "1.0%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2323,10 +2383,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+PA.survive.DA",
-      "value": 0.008077
+      "value": 0.010089
     },
     {
-      "display": "20%",
+      "display": "24%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2338,10 +2398,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+PA.survive.EFF",
-      "value": 0.19913
+      "value": 0.242145
     },
     {
-      "display": "43%",
+      "display": "34%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2353,10 +2413,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+PA.survive.PA",
-      "value": 0.43119
+      "value": 0.338426
     },
     {
-      "display": "11",
+      "display": "10",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -2368,10 +2428,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF.cushion_when_wins",
-      "value": 11.0
+      "value": 10.0
     },
     {
-      "display": "28%",
+      "display": "23%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2383,10 +2443,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+ASA+EFF.majority",
-      "value": 0.2776
+      "value": 0.2348
     },
     {
-      "display": "147",
+      "display": "146",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -2398,7 +2458,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF.seats_when_wins",
-      "value": 147.0
+      "value": 146.0
     },
     {
       "display": "7%",
@@ -2413,10 +2473,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF.stability",
-      "value": 0.0748
+      "value": 0.0685
     },
     {
-      "display": "13%",
+      "display": "11%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2428,7 +2488,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF.survive.ASA",
-      "value": 0.127522
+      "value": 0.106474
     },
     {
       "display": "0.1%",
@@ -2443,10 +2503,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF.survive.DA",
-      "value": 0.001441
+      "value": 0.000852
     },
     {
-      "display": "9.1%",
+      "display": "8.1%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2458,130 +2518,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF.survive.EFF",
-      "value": 0.090778
+      "value": 0.08092
     },
     {
-      "display": "14",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+ASA+MK+PA.cushion_when_wins",
-      "value": 14.0
-    },
-    {
-      "display": "57%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations",
-      "token": "coal.DA+ASA+MK+PA.majority",
-      "value": 0.568
-    },
-    {
-      "display": "150",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+ASA+MK+PA.seats_when_wins",
-      "value": 150.0
-    },
-    {
-      "display": "9%",
-      "fmt": "pct0",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+ASA+MK+PA.stability",
-      "value": 0.0933
-    },
-    {
-      "display": "19%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+ASA+MK+PA.survive.ASA",
-      "value": 0.194718
-    },
-    {
-      "display": "0.2%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+ASA+MK+PA.survive.DA",
-      "value": 0.002465
-    },
-    {
-      "display": "23%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+ASA+MK+PA.survive.MK",
-      "value": 0.225704
-    },
-    {
-      "display": "40%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+ASA+MK+PA.survive.PA",
-      "value": 0.401056
-    },
-    {
-      "display": "11",
+      "display": "10",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -2593,10 +2533,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+MK.cushion_when_wins",
-      "value": 11.0
+      "value": 10.0
     },
     {
-      "display": "23%",
+      "display": "20%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2608,10 +2548,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+ASA+MK.majority",
-      "value": 0.2278
+      "value": 0.1998
     },
     {
-      "display": "147",
+      "display": "146",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -2623,7 +2563,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+MK.seats_when_wins",
-      "value": 147.0
+      "value": 146.0
     },
     {
       "display": "7%",
@@ -2638,10 +2578,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+MK.stability",
-      "value": 0.0748
+      "value": 0.0685
     },
     {
-      "display": "10%",
+      "display": "8.2%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2653,7 +2593,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+MK.survive.ASA",
-      "value": 0.101844
+      "value": 0.082082
     },
     {
       "display": "under 0.1%",
@@ -2671,7 +2611,7 @@
       "value": 0.0
     },
     {
-      "display": "11%",
+      "display": "10%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2683,10 +2623,130 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+MK.survive.MK",
-      "value": 0.110623
+      "value": 0.095095
     },
     {
-      "display": "9",
+      "display": "15",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
+      "token": "coal.DA+ASA+PA+MK.cushion_when_wins",
+      "value": 15.0
+    },
+    {
+      "display": "64%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "coal.DA+ASA+PA+MK.majority",
+      "value": 0.6378
+    },
+    {
+      "display": "151",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
+      "token": "coal.DA+ASA+PA+MK.seats_when_wins",
+      "value": 151.0
+    },
+    {
+      "display": "10%",
+      "fmt": "pct0",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
+      "token": "coal.DA+ASA+PA+MK.stability",
+      "value": 0.0993
+    },
+    {
+      "display": "22%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.DA+ASA+PA+MK.survive.ASA",
+      "value": 0.217937
+    },
+    {
+      "display": "0.6%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.DA+ASA+PA+MK.survive.DA",
+      "value": 0.006272
+    },
+    {
+      "display": "26%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.DA+ASA+PA+MK.survive.MK",
+      "value": 0.263405
+    },
+    {
+      "display": "31%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.DA+ASA+PA+MK.survive.PA",
+      "value": 0.313264
+    },
+    {
+      "display": "8",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -2698,10 +2758,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+PA.cushion_when_wins",
-      "value": 9.0
+      "value": 8.0
     },
     {
-      "display": "13%",
+      "display": "17%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2713,10 +2773,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+ASA+PA.majority",
-      "value": 0.1282
+      "value": 0.168
     },
     {
-      "display": "145",
+      "display": "144",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -2728,7 +2788,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+PA.seats_when_wins",
-      "value": 145.0
+      "value": 144.0
     },
     {
       "display": "6%",
@@ -2743,10 +2803,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+PA.stability",
-      "value": 0.0621
+      "value": 0.0556
     },
     {
-      "display": "2.8%",
+      "display": "3.8%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2758,7 +2818,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+PA.survive.ASA",
-      "value": 0.028081
+      "value": 0.038095
     },
     {
       "display": "under 0.1%",
@@ -2776,7 +2836,7 @@
       "value": 0.0
     },
     {
-      "display": "20%",
+      "display": "11%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2788,7 +2848,112 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+PA.survive.PA",
-      "value": 0.196568
+      "value": 0.113095
+    },
+    {
+      "display": "10",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
+      "token": "coal.DA+EFF+MK.cushion_when_wins",
+      "value": 10.0
+    },
+    {
+      "display": "19%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "coal.DA+EFF+MK.majority",
+      "value": 0.1932
+    },
+    {
+      "display": "146",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
+      "token": "coal.DA+EFF+MK.seats_when_wins",
+      "value": 146.0
+    },
+    {
+      "display": "7%",
+      "fmt": "pct0",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
+      "token": "coal.DA+EFF+MK.stability",
+      "value": 0.0685
+    },
+    {
+      "display": "0.1%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.DA+EFF+MK.survive.DA",
+      "value": 0.001035
+    },
+    {
+      "display": "8.5%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.DA+EFF+MK.survive.EFF",
+      "value": 0.084886
+    },
+    {
+      "display": "13%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
+      "token": "coal.DA+EFF+MK.survive.MK",
+      "value": 0.1294
     },
     {
       "display": "16",
@@ -2802,11 +2967,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+EFF+MK+PA.cushion_when_wins",
+      "token": "coal.DA+EFF+PA+MK.cushion_when_wins",
       "value": 16.0
     },
     {
-      "display": "54%",
+      "display": "58%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2817,8 +2982,8 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
-      "token": "coal.DA+EFF+MK+PA.majority",
-      "value": 0.5358
+      "token": "coal.DA+EFF+PA+MK.majority",
+      "value": 0.5818
     },
     {
       "display": "152",
@@ -2832,7 +2997,7 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+EFF+MK+PA.seats_when_wins",
+      "token": "coal.DA+EFF+PA+MK.seats_when_wins",
       "value": 152.0
     },
     {
@@ -2847,11 +3012,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+EFF+MK+PA.stability",
+      "token": "coal.DA+EFF+PA+MK.stability",
       "value": 0.1053
     },
     {
-      "display": "0.4%",
+      "display": "0.7%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2862,11 +3027,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+EFF+MK+PA.survive.DA",
-      "value": 0.003733
+      "token": "coal.DA+EFF+PA+MK.survive.DA",
+      "value": 0.006875
     },
     {
-      "display": "21%",
+      "display": "24%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2877,11 +3042,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+EFF+MK+PA.survive.EFF",
-      "value": 0.20642
+      "token": "coal.DA+EFF+PA+MK.survive.EFF",
+      "value": 0.238914
     },
     {
-      "display": "26%",
+      "display": "28%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2892,11 +3057,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+EFF+MK+PA.survive.MK",
-      "value": 0.264278
+      "token": "coal.DA+EFF+PA+MK.survive.MK",
+      "value": 0.277759
     },
     {
-      "display": "43%",
+      "display": "33%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2907,11 +3072,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+EFF+MK+PA.survive.PA",
-      "value": 0.43449
+      "token": "coal.DA+EFF+PA+MK.survive.PA",
+      "value": 0.332073
     },
     {
-      "display": "12",
+      "display": "10",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -2922,11 +3087,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+EFF+MK.cushion_when_wins",
-      "value": 12.0
+      "token": "coal.DA+EFF+PA.cushion_when_wins",
+      "value": 10.0
     },
     {
-      "display": "23%",
+      "display": "16%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2937,11 +3102,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
-      "token": "coal.DA+EFF+MK.majority",
-      "value": 0.2328
+      "token": "coal.DA+EFF+PA.majority",
+      "value": 0.1616
     },
     {
-      "display": "148",
+      "display": "146",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -2952,11 +3117,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+EFF+MK.seats_when_wins",
-      "value": 148.0
+      "token": "coal.DA+EFF+PA.seats_when_wins",
+      "value": 146.0
     },
     {
-      "display": "8%",
+      "display": "7%",
       "fmt": "pct0",
       "mode": "generated",
       "movement": "new",
@@ -2967,11 +3132,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+EFF+MK.stability",
-      "value": 0.0811
+      "token": "coal.DA+EFF+PA.stability",
+      "value": 0.0685
     },
     {
-      "display": "under 0.1%",
+      "display": "0.2%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2982,11 +3147,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+EFF+MK.survive.DA",
-      "value": 0.0
+      "token": "coal.DA+EFF+PA.survive.DA",
+      "value": 0.002475
     },
     {
-      "display": "10%",
+      "display": "4.0%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -2997,8 +3162,8 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+EFF+MK.survive.EFF",
-      "value": 0.099656
+      "token": "coal.DA+EFF+PA.survive.EFF",
+      "value": 0.039604
     },
     {
       "display": "15%",
@@ -3012,11 +3177,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+EFF+MK.survive.MK",
-      "value": 0.152062
+      "token": "coal.DA+EFF+PA.survive.PA",
+      "value": 0.154703
     },
     {
-      "display": "9",
+      "display": "8",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -3027,8 +3192,8 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+EFF+PA.cushion_when_wins",
-      "value": 9.0
+      "token": "coal.DA+PA+MK.cushion_when_wins",
+      "value": 8.0
     },
     {
       "display": "14%",
@@ -3042,11 +3207,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
-      "token": "coal.DA+EFF+PA.majority",
-      "value": 0.1416
+      "token": "coal.DA+PA+MK.majority",
+      "value": 0.139
     },
     {
-      "display": "145",
+      "display": "144",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -3057,8 +3222,8 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+EFF+PA.seats_when_wins",
-      "value": 145.0
+      "token": "coal.DA+PA+MK.seats_when_wins",
+      "value": 144.0
     },
     {
       "display": "6%",
@@ -3072,8 +3237,8 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+EFF+PA.stability",
-      "value": 0.0621
+      "token": "coal.DA+PA+MK.stability",
+      "value": 0.0556
     },
     {
       "display": "under 0.1%",
@@ -3087,11 +3252,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+EFF+PA.survive.DA",
+      "token": "coal.DA+PA+MK.survive.DA",
       "value": 0.0
     },
     {
-      "display": "2.5%",
+      "display": "4.6%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -3102,11 +3267,11 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+EFF+PA.survive.EFF",
-      "value": 0.025424
+      "token": "coal.DA+PA+MK.survive.MK",
+      "value": 0.046043
     },
     {
-      "display": "25%",
+      "display": "12%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -3117,113 +3282,8 @@
       "previous_published_at": null,
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+EFF+PA.survive.PA",
-      "value": 0.25
-    },
-    {
-      "display": "9",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+MK+PA.cushion_when_wins",
-      "value": 9.0
-    },
-    {
-      "display": "11%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations",
-      "token": "coal.DA+MK+PA.majority",
-      "value": 0.1106
-    },
-    {
-      "display": "145",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+MK+PA.seats_when_wins",
-      "value": 145.0
-    },
-    {
-      "display": "6%",
-      "fmt": "pct0",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+MK+PA.stability",
-      "value": 0.0621
-    },
-    {
-      "display": "under 0.1%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+MK+PA.survive.DA",
-      "value": 0.0
-    },
-    {
-      "display": "3.3%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+MK+PA.survive.MK",
-      "value": 0.03255
-    },
-    {
-      "display": "21%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+MK+PA.survive.PA",
-      "value": 0.209765
+      "token": "coal.DA+PA+MK.survive.PA",
+      "value": 0.117986
     },
     {
       "display": "270",
@@ -3242,7 +3302,7 @@
       "value": 270
     },
     {
-      "display": "17 September 2026",
+      "display": "23 September 2026",
       "fmt": "date_long",
       "mode": "free",
       "movement": "new",
@@ -3255,7 +3315,7 @@
       "previous_value": null,
       "source": "model:_generated",
       "token": "generated_date",
-      "value": "2026-09-17T21:03:42Z"
+      "value": "2026-09-23T06:39:41Z"
     },
     {
       "display": "10",
@@ -3288,7 +3348,7 @@
       "value": 4.0
     },
     {
-      "display": "13%",
+      "display": "17%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -3300,7 +3360,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "govern.da_best_without",
-      "value": 0.1282
+      "value": 0.168
     },
     {
       "display": "13",
@@ -3330,7 +3390,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "govern.untracked_seats",
-      "value": 14.33
+      "value": 14.4
     },
     {
       "display": "136",
@@ -3361,7 +3421,7 @@
       "previous_value": null,
       "source": "forecast_summary.json minority",
       "token": "minority.ANC_minority_DA_ASA_oppose",
-      "value": 0.1286
+      "value": 0.127
     },
     {
       "display": "48%",
@@ -3376,10 +3436,10 @@
       "previous_value": null,
       "source": "forecast_summary.json minority",
       "token": "minority.ANC_minority_only_DA_opposes",
-      "value": 0.4826
+      "value": 0.4808
     },
     {
-      "display": "4.4%",
+      "display": "4.0%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -3391,7 +3451,7 @@
       "previous_value": null,
       "source": "forecast_summary.json minority",
       "token": "minority.DA_minority_ANC_EFF_MK_oppose",
-      "value": 0.0438
+      "value": 0.0396
     },
     {
       "display": "50%",
@@ -3406,7 +3466,7 @@
       "previous_value": null,
       "source": "forecast_summary.json minority",
       "token": "minority.DA_minority_only_ANC_opposes_2021_pattern",
-      "value": 0.5024
+      "value": 0.5
     },
     {
       "display": "5,000",
@@ -3440,7 +3500,7 @@
       "value": 872
     },
     {
-      "display": "0.1%",
+      "display": "under 0.1%",
       "fmt": "chance",
       "mode": "free",
       "movement": "new",
@@ -3452,10 +3512,10 @@
       "previous_value": null,
       "source": "derived:p_alone",
       "token": "p_alone",
-      "value": 0.0006
+      "value": 0.0002
     },
     {
-      "display": "48%",
+      "display": "44%",
       "fmt": "pct0",
       "mode": "free",
       "movement": "new",
@@ -3467,10 +3527,10 @@
       "previous_value": null,
       "source": "model:structural.P(ANC+DA is winning)",
       "token": "p_anc_da",
-      "value": 0.4806
+      "value": 0.4398
     },
     {
-      "display": "48%",
+      "display": "47%",
       "fmt": "pct0",
       "mode": "free",
       "movement": "new",
@@ -3483,7 +3543,7 @@
       "previous_value": null,
       "source": "model:structural.P(ANC is the largest single party)",
       "token": "p_anc_largest",
-      "value": 0.4752
+      "value": 0.472
     },
     {
       "display": "47%",
@@ -3499,10 +3559,10 @@
       "previous_value": null,
       "source": "model:structural.P(DA is the largest single party)",
       "token": "p_da_largest",
-      "value": 0.4682
+      "value": 0.4734
     },
     {
-      "display": "64%",
+      "display": "65%",
       "fmt": "pct0",
       "mode": "free",
       "movement": "new",
@@ -3516,7 +3576,7 @@
       "previous_value": null,
       "source": "model:p_excessive_by_party.ANC",
       "token": "p_excessive_anc",
-      "value": 0.6426
+      "value": 0.6474
     },
     {
       "display": "541.4",
@@ -3654,7 +3714,7 @@
       "value": 20261104
     },
     {
-      "display": "3",
+      "display": "2",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -3666,7 +3726,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.ALJAMAAH.median",
-      "value": 3.0
+      "value": 2.0
     },
     {
       "display": "1",
@@ -3699,7 +3759,7 @@
       "value": 6.0
     },
     {
-      "display": "68",
+      "display": "67",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -3711,7 +3771,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.ANC.median",
-      "value": 68.0
+      "value": 67.0
     },
     {
       "display": "29",
@@ -3729,7 +3789,7 @@
       "value": 29.0
     },
     {
-      "display": "93",
+      "display": "92",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -3741,7 +3801,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.ANC.p95",
-      "value": 93.0
+      "value": 92.0
     },
     {
       "display": "27",
@@ -3774,7 +3834,7 @@
       "value": 11.0
     },
     {
-      "display": "53",
+      "display": "52",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -3786,10 +3846,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.ASA.p95",
-      "value": 53.0
+      "value": 52.0
     },
     {
-      "display": "67",
+      "display": "66",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -3801,7 +3861,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.DA.median",
-      "value": 67.0
+      "value": 66.0
     },
     {
       "display": "45",
@@ -3819,7 +3879,7 @@
       "value": 45.0
     },
     {
-      "display": "92",
+      "display": "90",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -3831,10 +3891,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.DA.p95",
-      "value": 92.0
+      "value": 90.0
     },
     {
-      "display": "25",
+      "display": "24",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -3846,7 +3906,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.EFF.median",
-      "value": 25.0
+      "value": 24.0
     },
     {
       "display": "8",
@@ -3864,7 +3924,7 @@
       "value": 8.0
     },
     {
-      "display": "58",
+      "display": "54",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -3876,7 +3936,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.EFF.p95",
-      "value": 58.0
+      "value": 54.0
     },
     {
       "display": "2",
@@ -3909,7 +3969,7 @@
       "value": 0.0
     },
     {
-      "display": "18",
+      "display": "16",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -3921,10 +3981,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.IFP.p95",
-      "value": 18.0
+      "value": 16.0
     },
     {
-      "display": "22",
+      "display": "21",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -3936,7 +3996,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.MK.median",
-      "value": 22.0
+      "value": 21.0
     },
     {
       "display": "7",
@@ -3954,7 +4014,7 @@
       "value": 7.0
     },
     {
-      "display": "52",
+      "display": "50",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -3966,7 +4026,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.MK.p95",
-      "value": 52.0
+      "value": 50.0
     },
     {
       "display": "9",
@@ -4014,7 +4074,7 @@
       "value": 26.0
     },
     {
-      "display": "19",
+      "display": "23",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -4026,10 +4086,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.PA.median",
-      "value": 19.0
+      "value": 23.0
     },
     {
-      "display": "11",
+      "display": "14",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -4041,10 +4101,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.PA.p5",
-      "value": 11.0
+      "value": 14.0
     },
     {
-      "display": "29",
+      "display": "37",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -4056,7 +4116,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.PA.p95",
-      "value": 29.0
+      "value": 37.0
     },
     {
       "display": "2",
@@ -4089,7 +4149,7 @@
       "value": 0.0
     },
     {
-      "display": "14",
+      "display": "13",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -4101,10 +4161,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.RISE.p95",
-      "value": 14.0
+      "value": 13.0
     },
     {
-      "display": "0.1%",
+      "display": "under 0.1%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -4116,10 +4176,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "tile.p_alone",
-      "value": 0.0006
+      "value": 0.0002
     },
     {
-      "display": "48%",
+      "display": "44%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -4131,10 +4191,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "tile.p_anc_da",
-      "value": 0.4806
+      "value": 0.4398
     },
     {
-      "display": "64%",
+      "display": "65%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -4146,10 +4206,10 @@
       "previous_value": null,
       "source": "forecast_summary.json p_excessive_by_party",
       "token": "tile.p_anc_excessive",
-      "value": 0.6426
+      "value": 0.6474
     },
     {
-      "display": "48%",
+      "display": "47%",
       "fmt": "chance",
       "mode": "generated",
       "movement": "new",
@@ -4161,7 +4221,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "tile.p_anc_largest",
-      "value": 0.4752
+      "value": 0.472
     },
     {
       "display": "47%",
@@ -4176,28 +4236,28 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "tile.p_da_largest",
-      "value": 0.4682
+      "value": 0.4734
     }
   ],
   "city": "joburg",
   "run": {
-    "as_of": "2026-09-17T21:03:42Z",
+    "as_of": "2026-09-23T06:39:41Z",
     "as_of_is": "run time; no input cut-off is recorded yet",
     "draws": 5000,
-    "forecast_content_sha256": "38892d3ae100625ab855bb8c5e722ccb328364c386849dd9830ef86ad10efba9",
-    "forecast_summary_sha256": "cc19665846cbd4c50e2c22cf3c7c8f5fc3e8cc5c1b1931787f2a6a3a9a3172d6",
-    "git_commit": "0de2b0abf2396dbd5a18eb0c852fcbd6790a21a6",
+    "forecast_content_sha256": "661b8783e7cb6dad1f5301c008bd816cc347cb8ee9c69455a685a003289fef86",
+    "forecast_summary_sha256": "6ea8d7976f780e4acf9fec434b55d0140f239927026cce518d580125b7d1a95f",
+    "git_commit": "a23b3ad6e1331e72258ae9468d243995591502f5",
     "git_dirty": true,
-    "model_run_id": "r-38892d3ae100-0de2b0ab-dirty",
+    "model_run_id": "r-661b8783e7cb-a23b3ad6-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
         "city": "joburg",
         "config_sha": "25f89b38e7b7532f",
-        "deps_sha": "53cedeb94115dd98",
+        "deps_sha": "bed2e1a147c10f2d",
         "gates_sha": "2ec84f1fcb67779f",
         "judgements_sha": "fab627a741c0c7c8",
-        "pools_sha": "13bf2cf762e45016",
+        "pools_sha": "7264a92947ba4529",
         "schema": 2,
         "target": "2011"
       },
@@ -4205,10 +4265,10 @@
         "cities_sha": "68080ceed71cbe08",
         "city": "joburg",
         "config_sha": "25f89b38e7b7532f",
-        "deps_sha": "53cedeb94115dd98",
+        "deps_sha": "bed2e1a147c10f2d",
         "gates_sha": "2ec84f1fcb67779f",
         "judgements_sha": "7ea7faaaafd6e3c5",
-        "pools_sha": "13bf2cf762e45016",
+        "pools_sha": "7264a92947ba4529",
         "schema": 2,
         "target": "2016"
       },
@@ -4216,10 +4276,10 @@
         "cities_sha": "68080ceed71cbe08",
         "city": "joburg",
         "config_sha": "25f89b38e7b7532f",
-        "deps_sha": "53cedeb94115dd98",
+        "deps_sha": "bed2e1a147c10f2d",
         "gates_sha": "2ec84f1fcb67779f",
         "judgements_sha": "54e74cd0d54d1a2b",
-        "pools_sha": "13bf2cf762e45016",
+        "pools_sha": "7264a92947ba4529",
         "schema": 2,
         "target": "2021"
       },
@@ -4227,10 +4287,10 @@
         "cities_sha": "68080ceed71cbe08",
         "city": "joburg",
         "config_sha": "25f89b38e7b7532f",
-        "deps_sha": "53cedeb94115dd98",
+        "deps_sha": "bed2e1a147c10f2d",
         "gates_sha": "2ec84f1fcb67779f",
         "judgements_sha": "991de2168bbe9198",
-        "pools_sha": "13bf2cf762e45016",
+        "pools_sha": "7264a92947ba4529",
         "schema": 2,
         "target": "2026"
       },
@@ -4238,16 +4298,16 @@
         "cities_sha": "68080ceed71cbe08",
         "city": "joburg",
         "config_sha": "25f89b38e7b7532f",
-        "deps_sha": "53cedeb94115dd98",
+        "deps_sha": "bed2e1a147c10f2d",
         "gates_sha": "2ec84f1fcb67779f",
         "judgements_sha": "991de2168bbe9198",
-        "pools_sha": "13bf2cf762e45016",
+        "pools_sha": "7264a92947ba4529",
         "schema": 2,
         "target": "2026"
       }
     },
-    "run_at": "2026-09-17T21:03:42Z",
-    "seat_draws_sha256": "6cae35771bc020525158c1733a22b7e9c2c0147bfc9dae86b2dcfd307749207c"
+    "run_at": "2026-09-23T06:39:41Z",
+    "seat_draws_sha256": "536ecab7f4d1aaf0c880bd179366015658af64d3d8a0e508434bf8298932f675"
   },
   "summary": {
     "by_movement": {
@@ -4280,10 +4340,6 @@
         "claim.anc_routes.left_share",
         "claim.da.median",
         "claim.da_alone.count",
-        "claim.da_alone.odd_anc",
-        "claim.da_alone.odd_asa",
-        "claim.da_alone.odd_eff",
-        "claim.da_alone.odd_nfp",
         "claim.da_alone.share",
         "claim.da_alone.wall_anc_high",
         "claim.da_alone.wall_anc_low",
@@ -4336,14 +4392,6 @@
         "coal.ANC+ASA+EFF.survive.ANC",
         "coal.ANC+ASA+EFF.survive.ASA",
         "coal.ANC+ASA+EFF.survive.EFF",
-        "coal.ANC+ASA+MK+PA.cushion_when_wins",
-        "coal.ANC+ASA+MK+PA.majority",
-        "coal.ANC+ASA+MK+PA.seats_when_wins",
-        "coal.ANC+ASA+MK+PA.stability",
-        "coal.ANC+ASA+MK+PA.survive.ANC",
-        "coal.ANC+ASA+MK+PA.survive.ASA",
-        "coal.ANC+ASA+MK+PA.survive.MK",
-        "coal.ANC+ASA+MK+PA.survive.PA",
         "coal.ANC+ASA+MK.cushion_when_wins",
         "coal.ANC+ASA+MK.majority",
         "coal.ANC+ASA+MK.seats_when_wins",
@@ -4351,6 +4399,14 @@
         "coal.ANC+ASA+MK.survive.ANC",
         "coal.ANC+ASA+MK.survive.ASA",
         "coal.ANC+ASA+MK.survive.MK",
+        "coal.ANC+ASA+PA+MK.cushion_when_wins",
+        "coal.ANC+ASA+PA+MK.majority",
+        "coal.ANC+ASA+PA+MK.seats_when_wins",
+        "coal.ANC+ASA+PA+MK.stability",
+        "coal.ANC+ASA+PA+MK.survive.ANC",
+        "coal.ANC+ASA+PA+MK.survive.ASA",
+        "coal.ANC+ASA+PA+MK.survive.MK",
+        "coal.ANC+ASA+PA+MK.survive.PA",
         "coal.ANC+ASA+PA.cushion_when_wins",
         "coal.ANC+ASA+PA.majority",
         "coal.ANC+ASA+PA.seats_when_wins",
@@ -4358,14 +4414,6 @@
         "coal.ANC+ASA+PA.survive.ANC",
         "coal.ANC+ASA+PA.survive.ASA",
         "coal.ANC+ASA+PA.survive.PA",
-        "coal.ANC+EFF+MK+PA.cushion_when_wins",
-        "coal.ANC+EFF+MK+PA.majority",
-        "coal.ANC+EFF+MK+PA.seats_when_wins",
-        "coal.ANC+EFF+MK+PA.stability",
-        "coal.ANC+EFF+MK+PA.survive.ANC",
-        "coal.ANC+EFF+MK+PA.survive.EFF",
-        "coal.ANC+EFF+MK+PA.survive.MK",
-        "coal.ANC+EFF+MK+PA.survive.PA",
         "coal.ANC+EFF+MK.cushion_when_wins",
         "coal.ANC+EFF+MK.majority",
         "coal.ANC+EFF+MK.seats_when_wins",
@@ -4373,6 +4421,14 @@
         "coal.ANC+EFF+MK.survive.ANC",
         "coal.ANC+EFF+MK.survive.EFF",
         "coal.ANC+EFF+MK.survive.MK",
+        "coal.ANC+EFF+PA+MK.cushion_when_wins",
+        "coal.ANC+EFF+PA+MK.majority",
+        "coal.ANC+EFF+PA+MK.seats_when_wins",
+        "coal.ANC+EFF+PA+MK.stability",
+        "coal.ANC+EFF+PA+MK.survive.ANC",
+        "coal.ANC+EFF+PA+MK.survive.EFF",
+        "coal.ANC+EFF+PA+MK.survive.MK",
+        "coal.ANC+EFF+PA+MK.survive.PA",
         "coal.ANC+EFF+PA.cushion_when_wins",
         "coal.ANC+EFF+PA.majority",
         "coal.ANC+EFF+PA.seats_when_wins",
@@ -4380,13 +4436,21 @@
         "coal.ANC+EFF+PA.survive.ANC",
         "coal.ANC+EFF+PA.survive.EFF",
         "coal.ANC+EFF+PA.survive.PA",
-        "coal.ANC+MK+PA.cushion_when_wins",
-        "coal.ANC+MK+PA.majority",
-        "coal.ANC+MK+PA.seats_when_wins",
-        "coal.ANC+MK+PA.stability",
-        "coal.ANC+MK+PA.survive.ANC",
-        "coal.ANC+MK+PA.survive.MK",
-        "coal.ANC+MK+PA.survive.PA",
+        "coal.ANC+PA+MK.cushion_when_wins",
+        "coal.ANC+PA+MK.majority",
+        "coal.ANC+PA+MK.seats_when_wins",
+        "coal.ANC+PA+MK.stability",
+        "coal.ANC+PA+MK.survive.ANC",
+        "coal.ANC+PA+MK.survive.MK",
+        "coal.ANC+PA+MK.survive.PA",
+        "coal.ASA+EFF+PA+MK.cushion_when_wins",
+        "coal.ASA+EFF+PA+MK.majority",
+        "coal.ASA+EFF+PA+MK.seats_when_wins",
+        "coal.ASA+EFF+PA+MK.stability",
+        "coal.ASA+EFF+PA+MK.survive.ASA",
+        "coal.ASA+EFF+PA+MK.survive.EFF",
+        "coal.ASA+EFF+PA+MK.survive.MK",
+        "coal.ASA+EFF+PA+MK.survive.PA",
         "coal.DA+ANC.cushion_when_wins",
         "coal.DA+ANC.majority",
         "coal.DA+ANC.seats_when_wins",
@@ -4416,14 +4480,6 @@
         "coal.DA+ASA+EFF.survive.ASA",
         "coal.DA+ASA+EFF.survive.DA",
         "coal.DA+ASA+EFF.survive.EFF",
-        "coal.DA+ASA+MK+PA.cushion_when_wins",
-        "coal.DA+ASA+MK+PA.majority",
-        "coal.DA+ASA+MK+PA.seats_when_wins",
-        "coal.DA+ASA+MK+PA.stability",
-        "coal.DA+ASA+MK+PA.survive.ASA",
-        "coal.DA+ASA+MK+PA.survive.DA",
-        "coal.DA+ASA+MK+PA.survive.MK",
-        "coal.DA+ASA+MK+PA.survive.PA",
         "coal.DA+ASA+MK.cushion_when_wins",
         "coal.DA+ASA+MK.majority",
         "coal.DA+ASA+MK.seats_when_wins",
@@ -4431,6 +4487,14 @@
         "coal.DA+ASA+MK.survive.ASA",
         "coal.DA+ASA+MK.survive.DA",
         "coal.DA+ASA+MK.survive.MK",
+        "coal.DA+ASA+PA+MK.cushion_when_wins",
+        "coal.DA+ASA+PA+MK.majority",
+        "coal.DA+ASA+PA+MK.seats_when_wins",
+        "coal.DA+ASA+PA+MK.stability",
+        "coal.DA+ASA+PA+MK.survive.ASA",
+        "coal.DA+ASA+PA+MK.survive.DA",
+        "coal.DA+ASA+PA+MK.survive.MK",
+        "coal.DA+ASA+PA+MK.survive.PA",
         "coal.DA+ASA+PA.cushion_when_wins",
         "coal.DA+ASA+PA.majority",
         "coal.DA+ASA+PA.seats_when_wins",
@@ -4438,14 +4502,6 @@
         "coal.DA+ASA+PA.survive.ASA",
         "coal.DA+ASA+PA.survive.DA",
         "coal.DA+ASA+PA.survive.PA",
-        "coal.DA+EFF+MK+PA.cushion_when_wins",
-        "coal.DA+EFF+MK+PA.majority",
-        "coal.DA+EFF+MK+PA.seats_when_wins",
-        "coal.DA+EFF+MK+PA.stability",
-        "coal.DA+EFF+MK+PA.survive.DA",
-        "coal.DA+EFF+MK+PA.survive.EFF",
-        "coal.DA+EFF+MK+PA.survive.MK",
-        "coal.DA+EFF+MK+PA.survive.PA",
         "coal.DA+EFF+MK.cushion_when_wins",
         "coal.DA+EFF+MK.majority",
         "coal.DA+EFF+MK.seats_when_wins",
@@ -4453,6 +4509,14 @@
         "coal.DA+EFF+MK.survive.DA",
         "coal.DA+EFF+MK.survive.EFF",
         "coal.DA+EFF+MK.survive.MK",
+        "coal.DA+EFF+PA+MK.cushion_when_wins",
+        "coal.DA+EFF+PA+MK.majority",
+        "coal.DA+EFF+PA+MK.seats_when_wins",
+        "coal.DA+EFF+PA+MK.stability",
+        "coal.DA+EFF+PA+MK.survive.DA",
+        "coal.DA+EFF+PA+MK.survive.EFF",
+        "coal.DA+EFF+PA+MK.survive.MK",
+        "coal.DA+EFF+PA+MK.survive.PA",
         "coal.DA+EFF+PA.cushion_when_wins",
         "coal.DA+EFF+PA.majority",
         "coal.DA+EFF+PA.seats_when_wins",
@@ -4460,13 +4524,13 @@
         "coal.DA+EFF+PA.survive.DA",
         "coal.DA+EFF+PA.survive.EFF",
         "coal.DA+EFF+PA.survive.PA",
-        "coal.DA+MK+PA.cushion_when_wins",
-        "coal.DA+MK+PA.majority",
-        "coal.DA+MK+PA.seats_when_wins",
-        "coal.DA+MK+PA.stability",
-        "coal.DA+MK+PA.survive.DA",
-        "coal.DA+MK+PA.survive.MK",
-        "coal.DA+MK+PA.survive.PA",
+        "coal.DA+PA+MK.cushion_when_wins",
+        "coal.DA+PA+MK.majority",
+        "coal.DA+PA+MK.seats_when_wins",
+        "coal.DA+PA+MK.stability",
+        "coal.DA+PA+MK.survive.DA",
+        "coal.DA+PA+MK.survive.MK",
+        "coal.DA+PA+MK.survive.PA",
         "council_size",
         "generated_date",
         "govern.anc_routes",
@@ -4532,7 +4596,7 @@
         "tile.p_da_largest"
       ]
     },
-    "n": 278,
+    "n": 282,
     "n_rounding": 0,
     "n_visible": 0,
     "nominal": []
