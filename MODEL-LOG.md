@@ -26457,3 +26457,48 @@ and the lever is inert, as §A5 already claims. Plus a
 where it applies. It moves the published forecast, so it needs a
 pre-registration and a measured run. The natural time is the window after
 ultra review 2, with the §A5 row corrected in the same commit.
+
+## 1.252 The declared ward slates now reach the correction, and every pre-registered prediction held (2026-09-23)
+
+**Scores `prereg/2026-09-23-declared-ward-slates.md`, written and committed
+(`5f7eff6`) before the code.** The finding is §1.251: the certified per-ward
+lists were pasted on 2026-09-16 and the ward contestation correction never saw
+them, because `levels.contestation` reads slates out of the target's RESULT
+file, which 2026 does not have until after 4 November.
+
+**The change.** `contestation` falls back to the DECLARED slates
+(`[roster.wards]`) at a target with no result file, counted over the city's own
+135 wards. A complete roster is authoritative, so a party on it with no ward
+list gets 0.0 — it filed PR lists only. An incomplete roster tops up from the
+projection instead, because absence from a half-typed list is not evidence
+(§1.175). `has_result_file` is the single definition of "live forecast", used by
+both callers.
+
+| prediction | outcome |
+|---|---|
+| **P1** panel bit-identical | **HELD** — joburg 2021, capetown 2016, mangaung 2011, ethekwini 2021 all identical before and after, seat draws and ward winners |
+| **P2** lever inert at 2026 | **HELD** — expand 0.0 / 0.22 / 0.5 give one fingerprint, `16a64e415131c8ba` |
+| **P3** 18 of 28 move, 7 up 11 down, clip binds for 3 | **HELD** exactly, and the three are PA, Bolsheviks, Shosholoza |
+| **P4** PA ratio 1.327 → 2.000, ≥3 seats, DA and ANC fall by less | **HELD** — PA **+4.71** mean seats, DA **−1.36**, ANC **−1.25** |
+| **P5** CHANGE loses its ward ballot, ≤1 seat | **HELD** — slate 0.0, no seat effect |
+| **P6** not a uniform shrinking | **HELD** — PA, AIC and PAC gain while DA, ANC, EFF, MK and ASA lose |
+
+Measured at 400 draws on one seed, with the projection and the declaration as
+the only difference, on the pre-emit specs.
+
+⛔ **THE CLIP ABSORBS 21.6% OF THE PA's CORRECTION, and that is counted here
+rather than found later** (NULL-RESULTS 4.3). Its unclipped ward/PR ratio is
+2.551 against the `[0, 2]` ceiling. So the +4.71 seats is what survives the
+guard, not the mechanism's full size, and anyone reading the PA's number should
+know the ceiling is binding on it.
+
+**What this is not.** It is not a scored improvement and cannot be one:
+contestation is inert at every backtestable target (§1.60), which is what P1
+asserts in its strongest form. It is a forecast that stops projecting an input
+it has been handed. 4 November tests the slates, not the correction's form.
+
+**Guards.** `tests/test_declared_ward_slates.py` (five tests, each on a
+constructed judgement file, mutation-checked in both directions: reverting the
+change trips all five, and a pasted-set denominator trips exactly the
+denominator test), plus the `("contestation_expand", "2026")` liveness entry
+that §A5 has promised since 2026-08-20 and nobody wrote.

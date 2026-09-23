@@ -597,12 +597,14 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
               "is never called",
         blocker="DATA",
         gate_check="real_contestation_lists",
-        evidence="`levels.contestation` returns 55 parties at 2021 and `{}` at "
-                 "2026 (measured 2026-08-27, no model run). That is the gate in "
-                 "both directions, and it is why the lever is live at exactly "
-                 "the one target no backtest can score — stated in the reason "
-                 "below and in JUDGEMENT-CALLS.md, and it does not stop being "
-                 "true because the gate check passes.",
+        evidence="`levels.contestation` returns 55 parties at 2021 (measured "
+                 "2026-08-27, no model run). ⚠️ THE SECOND HALF OF THIS LINE "
+                 "WAS `and {} at 2026`, AND STOPPED BEING TRUE ON 2026-09-23: "
+                 "the certified ward slates are now read from the judgement "
+                 "file, so 2026 returns 82 parties and has an entry of its own "
+                 "below. The 2021 half is unchanged and so is this entry's "
+                 "cause — a backtest reads its own result file. MODEL-LOG "
+                 "§1.251.",
         reason=
         "SUPERSEDED BY DATA, which is the point. It projects a ward slate for a "
         "target whose nomination lists are not published, and `levels."
@@ -620,6 +622,40 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
         "forecast silently assumed every party fields exactly last time's "
         "slate. Verified live at 2026: Johannesburg's PA goes 17 -> 19 -> 22 "
         "median seats at expand 0.0 / 0.220 / 0.5. MODEL-LOG §1.60."),
+    # ⛔ THE ENTRY §A5 PROMISED AND NOBODY WROTE, added 2026-09-23. The row
+    # said the lever is "superseded automatically the day the IEC publishes
+    # 2026 lists" and the only sweep of it was at 2021, where it is inert
+    # whatever the code does. The lists were published on 16 September and
+    # pasted the same night, and the lever was STILL LIVE a week later,
+    # projecting slates for a ballot the file already described. A promise
+    # tested only where it cannot fail is not tested. MODEL-LOG §1.251.
+    ("contestation_expand", "2026"): Null(
+        cause="UNDELIVERED",
+        where="`if (not _contest or _partial) and _contest_prev` — "
+              "`levels.contestation` returns the DECLARED ward slates for a "
+              "target with no result file, so `_contest` is non-empty, the "
+              "roster declares itself complete, and "
+              "`levels.projected_contestation` is never called",
+        blocker="DATA",
+        gate_check="real_contestation_lists",
+        evidence="`levels.contestation` returns 82 parties at 2026 from "
+                 "`[roster.wards]` in judgements/joburg-2026.toml, complete = "
+                 "true (measured 2026-09-23, no model run). Three runs at "
+                 "expand 0.0 / 0.22 / 0.5, one seed, 120 draws, give one seat "
+                 "and ward fingerprint, 16a64e415131c8ba — pre-registered as "
+                 "P2 in prereg/2026-09-23-declared-ward-slates.md.",
+        reason=
+        "SUPERSEDED BY DATA, and now actually so. This is the state the 2021 "
+        "entry's reason describes as the end of the lever's life: real lists "
+        "exist, so the projection is not called. It is NOT the same as the "
+        "2021 gate — there the lists come from the result file, here from a "
+        "declaration in the judgement file, which is why the fix needed its "
+        "own pre-registration and its own tests "
+        "(tests/test_declared_ward_slates.py). ⚠️ A PARTIAL declaration would "
+        "bring the lever back to life on the parties it does not name, by "
+        "design (§1.175: absence from a half-typed list is not evidence), so "
+        "this entry is conditional on `complete = true` and the evidence above "
+        "says which state was measured."),
     ("w_bye_local_ward", "2021"): Null(
         cause="UNDELIVERED",
         where="`if (w_ward or w_pr) and (processed / "

@@ -724,6 +724,82 @@ def theta_record(target: cityconfig.Target,
     return dict(out)
 
 
+def result_path(target: cityconfig.Target,
+                city: cityconfig.City) -> Path | None:
+    """Where this city-year's VD result file would be, or None if unscheduled."""
+    template = cityconfig.CALENDAR[target.year].results
+    return city.path("raw", "elections", template) if template else None
+
+
+def has_result_file(target: cityconfig.Target, city: cityconfig.City) -> bool:
+    """Has this election been held and ingested?
+
+    **The one definition of "is this a live forecast".** Two callers ask it:
+    :func:`contestation`, to decide whether slates come from the result file or
+    from a declaration, and ``montecarlo.run_model``, to decide whether a
+    partial declaration may be topped up with a projection. Writing it out
+    twice is the shape ``DUPLICATION-AUDIT.md`` exists for: a second copy that
+    drifted would make a backtest eligible for gap-filling, which
+    prereg/2026-09-23-declared-ward-slates.md forbids in P1.
+    """
+    path = result_path(target, city)
+    return bool(path and path.exists())
+
+
+def declared_contestation(target: cityconfig.Target, city: cityconfig.City,
+                          ) -> tuple[dict[str, float], bool]:
+    """The ward slates a NOMINATION LIST declares, and whether it is the whole
+    ballot.
+
+    Nomination lists close and are published before polling day, which is the
+    fact :func:`contestation` is built on — but that function reads them out of
+    the target's RESULT file, and a live forecast has none. From 2026-09-16 the
+    certified per-ward lists have sat in the judgement file under
+    ``[roster.wards]``, read only by ``pools`` for an arrival's reach, while the
+    correction that is ABOUT slates went on projecting them from five years ago
+    with ``contestation_expand``. MODEL-LOG §1.251.
+
+    Returns ``({party: fraction of the city's wards}, complete)``, and
+    ``({}, False)`` when nothing is declared.
+
+    **The denominator is the CITY'S wards, never the wards the paste mentions.**
+    That was already a defect once, in the ``reach`` derivation: counting
+    against the named wards made a party's value a function of how far through
+    the list the typist had got, maximal at the first party entered
+    (POOLS-REEMIT-QUEUE entry 23, guard C).
+
+    ⛔ **ZERO IS A FACT ONLY WHEN THE ROSTER SAYS IT IS THE WHOLE BALLOT.** Under
+    ``complete = true`` a roster party with no ward list fields no ward
+    candidates, and 0.0 is its true slate — Johannesburg 2026 has two such
+    parties, CHANGE and PRO SOUTH AFRICA, which filed PR lists only. Under
+    ``complete = false`` the list is half-typed and absence means UNKNOWN, so
+    nothing is filled in and the caller keeps projecting those parties. A
+    partial paste must fail safe: §1.175 measured the drop branch deleting
+    2.4-2.9% of a city's vote when it fires on an incomplete list.
+    """
+    import pools as _pools          # lazy: `pools` imports this module
+
+    roster = _pools.declared_roster(city, target) or {}
+    wards = roster.get("wards") or {}
+    if not wards:
+        return {}, bool(roster.get("complete"))
+    ward_of, _registered = _pools.vd_map(city, target.year)
+    city_wards = set(ward_of.values())
+    # `vd_map` refuses rather than returning nothing, so this cannot be empty —
+    # asserted rather than assumed, because a zero denominator here would
+    # silently make every declared slate infinite.
+    assert city_wards, (
+        f"vd_map({city.slug}, {target.year}) returned no wards; a declared "
+        f"slate cannot be a fraction of nothing.")
+    slates = {party: len(set(ws)) / len(city_wards)
+              for party, ws in wards.items()}
+    complete = bool(roster.get("complete"))
+    if complete:
+        for party in roster.get("parties") or []:
+            slates.setdefault(party, 0.0)
+    return slates, complete
+
+
 def projected_contestation(previous: dict[str, float],
                            expand: float) -> dict[str, float]:
     """A slate for a target whose nomination lists are not published yet.
@@ -1478,10 +1554,16 @@ def contestation(target: cityconfig.Target, city: cityconfig.City,
     here. Not counted: the return is a bare dict with no seam, and the caller
     already separates the two cases by whether the previous LGE's lists exist.
     """
-    template = cityconfig.CALENDAR[target.year].results
-    path = city.path("raw", "elections", template) if template else None
-    if not path or not path.exists():
-        return {}
+    if not has_result_file(target, city):
+        # NO RESULT FILE, BUT THE LISTS MAY STILL BE PUBLISHED. Nominations
+        # close months before polling day, so at a live forecast the slates can
+        # be known even though the outcome is not. Declared slates are read
+        # here; when none are declared this returns {} exactly as before, which
+        # is what routes `montecarlo` to `projected_contestation`.
+        # MODEL-LOG §1.251, prereg/2026-09-23-declared-ward-slates.md.
+        slates, _complete = declared_contestation(target, city)
+        return slates
+    path = result_path(target, city)
     wards: dict[str, set] = defaultdict(set)
     seen: set = set()
     with open(path, encoding="utf-8", errors="replace") as fh:

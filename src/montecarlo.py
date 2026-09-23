@@ -4168,9 +4168,28 @@ def run_model(target, scenario: dict,
         # replaces it with a measured projection, and REAL LISTS SUPERSEDE IT:
         # the moment `contestation` returns anything for the target, this does
         # not run and the lever is inert.
+        # ⛔ "REAL LISTS SUPERSEDE IT" WAS NOT TRUE UNTIL 2026-09-23, and the
+        # paragraph above said it was. `contestation` read the lists out of the
+        # target's RESULT file, so the certified per-ward slates — pasted into
+        # the judgement file on nomination day and read by `pools` ever since —
+        # never reached this branch, and 2026 went on projecting slates from
+        # 2021. MODEL-LOG §1.251; predictions in
+        # prereg/2026-09-23-declared-ward-slates.md.
+        #
+        # Three states now, not two:
+        #   * lists in the result file (every backtest)  -> used, no projection
+        #   * a COMPLETE declaration (2026 today)        -> used, no projection
+        #   * a PARTIAL declaration                      -> used where it
+        #     speaks, and the projection fills the rest, because absence from a
+        #     half-typed list is not evidence that a party is not standing
+        #     (§1.175). `setdefault` is what makes the declaration win.
         _projected = False
-        if not _contest and _contest_prev:
-            _contest = _levels.projected_contestation(
+        _topped_up: list[str] = []
+        _live = not _levels.has_result_file(target, target.city)
+        _partial = _live and bool(_contest) and not _levels.declared_contestation(
+            target, target.city)[1]
+        if (not _contest or _partial) and _contest_prev:
+            _projection = _levels.projected_contestation(
                 _contest_prev,
                 # NOT a fresh literal: `0.0` here was the identity while
                 # DEFAULTS declares 0.220, so if the key were ever absent
@@ -4180,27 +4199,37 @@ def run_model(target, scenario: dict,
                 # on the run that introduced it. MODEL-LOG §1.85.
                 scenario.get("contestation_expand",
                              DEFAULTS["contestation_expand"]))
+            if _contest:
+                _topped_up = sorted(p for p in _projection if p not in _contest)
+                for _party in _topped_up:
+                    _contest[_party] = _projection[_party]
+            else:
+                _contest = _projection
             _projected = bool(_contest)
         if _contest:
             scenario["_contestation"] = _contest
         if _contest_prev:
             scenario["_contestation_prev"] = _contest_prev
         if _contest and _contest_prev:
+            # THE THREE STATES ARE SAID APART. A partial declaration topped up
+            # by the projection is not "from published lists", and reporting it
+            # as such would hide a lever that is still live on the parties the
+            # paste does not mention.
+            _how = (f", {len(_topped_up)} of {len(_contest)} PROJECTED at "
+                    f"contestation_expand="
+                    f"{scenario.get('contestation_expand')} (partial "
+                    f"declaration)" if _topped_up else
+                    f", PROJECTED at contestation_expand="
+                    f"{scenario.get('contestation_expand')}" if _projected else
+                    ", from published lists" if not _live else
+                    ", from the declared nomination lists")
             note_constant(scenario, "contestation",
                           f"{target.year} against {_prev_lge}, "
-                          f"{len(_contest)} parties"
-                          + (f", PROJECTED at contestation_expand="
-                             f"{scenario.get('contestation_expand')}"
-                             if _projected else ", from published lists"))
+                          f"{len(_contest)} parties" + _how)
             if verbose:
                 vals = sorted(_contest.values())
                 print(f"  contestation: {len(_contest)} parties, median "
-                      f"{vals[len(vals) // 2]:.0%} of wards"
-                      + (f" — PROJECTED from {_prev_lge} at "
-                         f"contestation_expand="
-                         f"{scenario.get('contestation_expand')}; no "
-                         f"nomination lists published for {target.year}"
-                         if _projected else " — from published lists"))
+                      f"{vals[len(vals) // 2]:.0%} of wards — " + _how.lstrip(", "))
     except FileNotFoundError as _exc:
         # Missing data is a legitimate reason to fall back; a bug is not. This
         # used to be a bare `except Exception`, and a stale key in the progress

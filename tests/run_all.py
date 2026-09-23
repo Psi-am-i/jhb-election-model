@@ -109,6 +109,11 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # own AST, which goes stale the moment a fourth roster
            # source is added and nobody notices.
            "test_projected_roster_declaration",
+           # Added 2026-09-23 with the declared ward slates. JUDGEMENT-CALLS
+           # §A5 promised the lever went inert "the day the IEC publishes 2026
+           # lists" and nothing tested it at 2026, where it applies; the lists
+           # were pasted on 16 September and it was still live a week later.
+           "test_declared_ward_slates",
            # The generated index of levers, folds, windows and methods.
            # Its job is to REGENERATE and compare, so a committed index
            # cannot drift from the tree it describes — the same shape
