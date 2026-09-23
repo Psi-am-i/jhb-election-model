@@ -826,6 +826,15 @@ requirement to measure.
    re-record was intended for the re-emit window; it landed early because
    re-taking the baseline *is* the re-record, which was not obvious in advance.
 
+   **RE-QUOTED 2026-09-23 from the window's own artefact**
+   (`seat_abs_err_coherent=733/@2ac4c1eb/1000d/pools:7264a929/rows=24`). The
+   window re-emitted every spec under the pool-seed fix (§1.249) and the
+   declared ward slates (§1.252), so every cell here moved and the guard
+   caught it, which is its job. Ranks 4-12's n falls 78 → 74 and its probit-SD
+   0.850 → 0.847; ranks 1-3's rises 0.748 → 0.783. **No conclusion moves**:
+   ranks 4-12 is still the one departed band and ranks 1-3 is still the
+   narrower of the two.
+
    <!-- CHECKED-AGAINST-ARTEFACT: data/processed/history.json, claimed columns.
         tests/test_calibration_report.py::test_the_documented_figures_match_the_committed_artefact
         parses the two tables below and fails the build if they and the artefact
@@ -834,15 +843,15 @@ requirement to measure.
 
    | claimed columns | n | mean PIT | 50% (PIT) | 80% (PIT) | 90% (PIT) | probit-SD |
    |---|---|---|---|---|---|---|
-   | ranks 1-3 | 72 | 0.528 | 69% | 92% | 94% | 0.748 |
-   | ranks 4-12 | 78 | 0.572 | 65% | 90% | 94% | 0.850 |
+   | ranks 1-3 | 72 | 0.527 | 68% | 92% | 94% | 0.783 |
+   | ranks 4-12 | 74 | 0.580 | 64% | 91% | 93% | 0.847 |
 
    | twenty-four-city-year vote error | signed | absolute |
    |---|---|---|
-   | ranks 1-3 | -16.36pp | 235.69pp |
-   | ranks 4-12 | -2.52pp | 135.00pp |
-   | ranks 13+ | +12.07pp | 30.61pp |
-   | phantom (parties that did not stand) | +6.81pp | — |
+   | ranks 1-3 | -15.16pp | 237.31pp |
+   | ranks 4-12 | -3.32pp | 135.39pp |
+   | ranks 13+ | +11.71pp | 30.40pp |
+   | phantom (parties that did not stand) | +6.77pp | — |
 
    **BOTH TABLES ARE NOW MEASURED ON TWENTY-FOUR CITY-YEARS (re-quoted
    2026-09-18 from the committed `history.json`).** They were nine until §1.70,

@@ -92,6 +92,22 @@ TOL = 0.01
 ELECTIONS = ROOT / "data" / "raw" / "elections"
 PROCESSED = ROOT / "data" / "processed"
 
+# RE-RECORDED 2026-09-23, deliberately: THE RE-EMIT WINDOW MOVED THE INPUT, NOT
+# THE DRAWER. Every spec was re-emitted under two landed changes — the pool-seed
+# fix (§1.249: an entrant with no measured vector is spread like the city rather
+# than a quarter into every pool, which touches 45 of the micro-parties in the
+# 2026 spec) and the declared ward slates (§1.252). The canonical artefact is
+# `seat_abs_err_coherent=733/@2ac4c1eb/1000d/pools:7264a929/rows=24`.
+#
+# The movement, against the 2026-09-17 record: ANC mean 22.53% -> 22.29%,
+# MK 9.52% -> 9.78%, ASA p95 22.66% -> 23.73%, Black African pool mean
+# 50.15% -> 50.00%. Several exceed the ±0.01 tolerance, which is how the guard
+# caught it — correctly, and it is the input that changed.
+#
+# ⚠️ ENTRANT IS STILL IN THIS BLOCK and the certified roster retired the generic
+# slot at 2026 (§1.245). It survives because `build_inputs` assembles the
+# drawer's inputs itself; the block records what the drawer does with what it is
+# handed, not what the live forecast hands it. Worth a look, not a silent edit.
 # RE-RECORDED 2026-09-17, deliberately: THE 2026 SPEC NOW COMES FROM THE CERTIFIED
 # NOMINATION LIST. `pools_2026.json` was re-emitted 2026-09-16 from a declared,
 # complete roster (82 parties, 27 dropped on the owner's confirmation, 46 named
@@ -437,21 +453,21 @@ PROCESSED = ROOT / "data" / "processed"
 # records where the 2026 Johannesburg prior now is. No improvement is claimed
 # and none is measured here.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (22.5342, 11.1024, 35.7560),
-    "DA": (25.9672, 17.6651, 35.0133),
-    "EFF": (10.3001, 3.0378, 20.3690),
-    "ASA": (12.7277, 5.2447, 22.6611),
-    "MK": (9.5151, 2.8611, 18.8103),
-    "PA": (6.4911, 3.8502, 9.9577),
-    "VFPLUS": (0.8827, 0.0074, 3.2100),
-    "ALJAMAAH": (0.9061, 0.2204, 1.9374),
-    "ENTRANT": (1.3828, 0.0000, 7.5409),
+    "ANC": (22.2875, 10.7889, 35.6798),
+    "DA": (25.9431, 17.5981, 34.8131),
+    "EFF": (10.1439, 2.9304, 20.3597),
+    "ASA": (12.8348, 4.9102, 23.7333),
+    "MK": (9.7843, 2.9457, 19.3101),
+    "PA": (6.4693, 3.8250, 10.1637),
+    "VFPLUS": (0.8705, 0.0061, 3.1078),
+    "ALJAMAAH": (0.9284, 0.2365, 1.9056),
+    "ENTRANT": (1.4183, 0.0000, 7.6156),
 }
 GOLDEN_POOLS = {
-    "Black African": (50.1458, 42.0375, 57.9294),
-    "Coloured": (10.3828, 7.6753, 13.9407),
-    "Indian/Asian": (4.2405, 3.3189, 5.3678),
-    "White": (32.2854, 25.8714, 38.9912),
+    "Black African": (50.0040, 41.9782, 57.7050),
+    "Coloured": (10.3865, 7.7146, 14.2273),
+    "Indian/Asian": (4.2782, 3.3381, 5.4242),
+    "White": (32.3526, 25.9927, 38.9946),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")

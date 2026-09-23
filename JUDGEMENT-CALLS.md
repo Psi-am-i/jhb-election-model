@@ -682,7 +682,7 @@ PA's level is an arrival-channel defect and belongs to the arrival work.
 the PA's row in that record's `votes` table, which is a POSITIONAL list carrying
 no field names of its own:
 PR median `votes[1]` = 0.0297%,
-PR mean `votes[2]` = 0.0937%,
+PR mean `votes[2]` = 0.0913%,
 PR actual `votes[3]` = 2.9604%.
 They are not from a
 `diagnose` run — two runs at different draw counts give slightly different
@@ -697,9 +697,13 @@ sentence that argues from it, four paragraphs later — so this entry carried 30
 79× **and** 33× for one quantity at once. Re-derived from the artefact
 (Atlas, read-only, 2026-09-13; RE-QUOTED 2026-09-18 after the panel grew to 24
 city-years, which moved both the mean and the median): `votes[3]/votes[2]` =
-2.9604/0.0937 = **31.6×** and `votes[3]/votes[1]` = 2.9604/0.0297 = **99.6×**;
+2.9604/0.0913 = **32.4×** and `votes[3]/votes[1]` = 2.9604/0.0297 = **99.8×**;
 there is no 33, and the earlier 30.5×/78.9× were right for the artefact as it
-stood on 13 September. *Correcting
+stood on 13 September. **RE-QUOTED AGAIN 2026-09-23** from the window's
+artefact (`seat_abs_err_coherent=733/@2ac4c1eb/1000d/pools:7264a929/rows=24`),
+which re-emitted every spec: the mean moved 0.0937% → 0.0913% and both ratios
+were recomputed from it rather than carried across, 31.6× → 32.4× and
+99.6× → 99.8×. *Correcting
 a figure means correcting every copy of it, and the copies are where the rule
 actually bites.*
 
