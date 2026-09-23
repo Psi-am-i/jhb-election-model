@@ -152,10 +152,6 @@ ENTRY_POINTS: dict[str, str] = {
         "README.md step 5: `python src/render_sheet.py`, and a step in "
         "`build_all.plan` ('sheet figures, claims, regimes'), invoked as a "
         "subprocess rather than imported.",
-    "build_portal":
-        "README.md step 5: `python src/build_portal.py`, and the 'portal' step "
-        "in `build_all.plan`, invoked as a subprocess. It imports `build_site` "
-        "for the palette; nothing imports it.",
     "build_validation":
         "README.md 'Scoring it against a past election': `python "
         "src/build_validation.py --target 2021` — runs the model and the "

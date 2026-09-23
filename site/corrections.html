@@ -179,47 +179,16 @@
 model or the world moved and the earlier statement was true on its date;
 updates appear beside the original as a dated &ldquo;what the model says now&rdquo; box.</p>
 <p>Nothing is removed from this list.</p>
-<p><span data-asof="2026-09-17"></p>
-<h2>17 September 2026 — the headline figures disagreed with the article beside them</h2>
-<p><strong>What we published.</strong> On the front page from 31 August, the summary tiles said
-the DA was the largest party in <strong>62%</strong> of simulations, that the ANC triggered
-the excessive-seats clause in <strong>96%</strong>, and that the ANC and DA together had a
-majority in <strong>88%</strong>. The article immediately below them, drawing on the same
-forecast, said <strong>71%</strong>, <strong>58%</strong> and <strong>58%</strong>.</p>
-<p><strong>What was true.</strong> The article&rsquo;s figures. The tiles were left over from an
-earlier model run.</p>
-<p><strong>How it happened.</strong> The tiles were written into the page by a script when a
-reader opened it, from a block of numbers pasted into the page. Everything else
-came from the build, which checks each figure against the current run. Nothing
-compared the two, so the page could disagree with itself and no check noticed.</p>
-<p><strong>What changed.</strong> Every figure on the site is now written at build time and
-carries its source, and the build refuses to publish a page whose scripts could
-write a figure. The tiles now show their own history: hovering one gives what it
-says today and what it said on 31 August.</p>
-<p></span></p>
-<p><span data-asof="2026-09-17"></p>
-<h2>17 September 2026 — the ANC&rsquo;s list seats were shown as 7</h2>
-<p><strong>What we published.</strong> The &ldquo;two ballots&rdquo; bars showed the ANC taking <strong>7</strong> list
-seats, next to a tile saying the excessive-seats clause fires in most
-simulations — which means it takes <strong>none</strong>.</p>
-<p><strong>What was true.</strong> In 64% of simulations the ANC gets no list seats at all. In
-the rest it gets about nine.</p>
-<p><strong>How it happened.</strong> The bar subtracted the ANC&rsquo;s average ward wins from its
-median total seats. Mixing an average and a median like that produces a number
-no simulation ever produced.</p>
-<p><strong>What changed.</strong> The three bars now show one real simulation — the one closest
-to every party&rsquo;s median — so they add up and agree with the tile beside them.</p>
-<p></span></p>
-<p><span data-asof="2026-09-17"></p>
-<h2>17 September 2026 — &ldquo;smaller parties&rdquo; was shown as 39 seats</h2>
-<p><strong>What we published.</strong> The council bar gave smaller parties <strong>39</strong> of 270 seats.</p>
-<p><strong>What was true.</strong> About 25 on average. Parties outside the named ones won 16
-seats in 2011, 13 in 2016 and 24 in 2021.</p>
-<p><strong>How it happened.</strong> The bar filled the gap left after subtracting each named
-party&rsquo;s median from 270. Medians do not add up: the parties&rsquo; medians together
-came to 240, so the leftover absorbed 30 seats belonging to nobody.</p>
-<p><strong>What changed.</strong> The same fix as above: one real simulation, which adds up.</p>
-<p></span></p>
+<p><strong>Nothing is listed here yet.</strong> Checked against the published page on
+2026-09-23: the three entries this page carried in draft all described figures
+that were never public. They came from a local build on 17 September that was
+never deployed — the &ldquo;smaller parties&rdquo; bar said 15 seats on the published page,
+not 39; the published page has no two-ballot bars at all; and its tiles and its
+article agree with each other at 62%. A correction is for what a reader saw.</p>
+<p>The defects those drafts described were real and are fixed — figures written by
+scripts, medians summed as if they added up — and they are recorded in
+<code>MODEL-LOG.md</code>, which is the technical record. They are not corrections,
+because nothing wrong reached a reader.</p>
 <div class="colophon">
   Reader edition, generated from docs-public/corrections.md on 2026-09-23. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/CORRECTIONS.md">CORRECTIONS.md on GitHub</a>.
 </div>

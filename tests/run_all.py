@@ -114,6 +114,10 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # lists" and nothing tested it at 2026, where it applies; the lists
            # were pasted on 16 September and it was still live a week later.
            "test_declared_ward_slates",
+           # Added 2026-09-23 with the site-text round trip. It also keeps
+           # src/site_text.py out of the orphaned-CLI register: the module has
+           # an importer now, which is how diagnose.py earns its place.
+           "test_site_text",
            # The generated index of levers, folds, windows and methods.
            # Its job is to REGENERATE and compare, so a committed index
            # cannot drift from the tree it describes — the same shape
