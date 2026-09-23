@@ -544,3 +544,64 @@ exists, the mechanism is added to the model with a JUDGEMENT-CALLS row and a
 
 **Order.** The mechanisms (1–3) are model changes and follow the post-review
 window. The page cannot be built on a forecast that is about to move.
+
+---
+
+## 10. The home page, and the reader's own forecast — owner, 2026-09-23
+
+**Layout A ("Skyline"), with three changes**, chosen from three mockups:
+
+1. **The map is very large**, as in mockup C, not the half-width band A drew.
+2. **The sections at the bottom carry their own colour highlight**, so a reader
+   can see at a glance that they are different KINDS of content — the tested
+   claims are not the explainers, and neither is the article list.
+3. **A space is reserved for the interactive**, headed in the reader's words:
+   *"Tweak the levers and make your own forecast."*
+
+**Why a home page at all:** so a leading article can be retired. Today the
+article IS the front page, which means a piece written on a date sits at the
+front door looking current forever. On the new page the forecast is the subject
+and always current; articles are dated items below it, and retiring one is a
+content change rather than a redesign.
+
+### The reader's own forecast — the thing the interactive is FOR
+
+The owner's requirement, 2026-09-23, and it is larger than a slider panel:
+
+> *"I want users to be able to make their own forecast — even hand adjusting
+> the ward results ignoring our model — and being able to social share their
+> forecast (with a small callout of how far their forecast differs from ours),
+> then people can come to the site off their friends' forecast and make their
+> own."*
+
+Four things follow, and each is a design constraint on §9's engine:
+
+* **A reader may overrule the model, by hand, ward by ward.** That is not a
+  lever and it is not a model run: it is an override applied on top of one.
+  Seats still come from the statutory allocation (`seats.allocate`), so a
+  hand-built forecast is arithmetically real even when its ward calls are
+  invented. The page must not present it as anything but the reader's.
+* **A forecast must fit in a link.** 135 ward calls plus the exposed levers,
+  compact enough to carry in a URL — one byte per ward before compression — so
+  sharing needs no account, no database and no server state. A stored forecast
+  would mean holding readers' political statements on our infrastructure, and
+  a URL avoids that question entirely.
+* **The distance from OUR forecast is shown, small and factual.** Seats moved
+  per party, against the published run. It is the reason the feature is
+  honest: a reader's forecast is theirs, ours is ours, and the page says which
+  is which without arguing.
+* **A shared link opens in the reader's own hands.** Someone arriving from a
+  friend's forecast sees that forecast, labelled as that friend's, and can
+  change any of it — which is the loop the owner is describing.
+
+⚠️ **Open, and needs deciding before build:** what the social preview card
+shows. A card rendered from a reader's forecast is an image published from our
+domain carrying numbers we did not produce. Either it is clearly framed as a
+reader's forecast, or it is a generic card and the numbers live only on the
+page. This is a presentation decision with a reputational edge, so it is the
+owner's.
+
+**Order.** The home page can be built now: the reserved space is a section with
+a heading and a link, and it says the interactive is coming rather than
+pretending. The interactive itself follows §9's order — the three new model
+mechanisms first, because they are model changes, then the page.
