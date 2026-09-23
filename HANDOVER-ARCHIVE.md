@@ -913,3 +913,53 @@ city can emit a 2026 spec until it lands.
   now, with provenance: five rows spot-checked, F15/F19 verified in full, **the
   rest recovered and not re-verified** — treat those as pointers to look, not as
   findings.
+
+---
+
+## Superseded 2026-09-23 — the 2026-09-16 banner
+
+> ## ⛔ STATE AT 2026-09-16 — THE WINDOW WAS TAKEN. NOMINATION DAY IS TODAY.
+>
+> **The emit below HAPPENED.** The 27 pre-emit specs were archived at
+> `be28a19` (`archive/pools-preemit-2026-09-14/`), the window was taken, and the
+> canonical measurement was re-taken on a clean tree at `cf707e3` — read that
+> commit message for the run's identity, and quote numbers from it, never from a
+> banner. Both staleness guards cleared. `MODEL-INDEX.md` landed at `73eec0f`,
+> generated from the tree and regenerated-and-compared by its own test.
+>
+> **⛔ SIX SUITE FAILURES PREDATE 2026-09-17 AND ARE NOT RECORDED ELSEWHERE.** All
+> read artefacts from the 14-15 Sep window; none touches 2026. Each is a real
+> defect, not noise:
+> * `test_the_documented_figures_match_the_committed_artefact` — ITERATING.md
+>   rule 8 says ranks 1-3 n = 63; `history.json` says 72.
+> * `test_the_standing_refusals_figures_match_the_artefact` — §A38's PA mean and
+>   median disagree with the artefact.
+> * `test_no_emitted_composition_weight_is_arithmetically_impossible` — 2011/2016
+>   specs seed parties to draw more votes than a pool casts (Buffalo City and Cape
+>   Town 2011 DA/White, Mangaung 2016 AIC/Indian, …).
+> * `test_the_three_known_things_hold_at_once` — Mangaung 2016 pool rates sum to
+>   [1, 1, 0, 1]: a pool lost its voters.
+> * `test_the_relabel_ablation_actually_withholds_the_label` — score 6.9450 with
+>   and without the label: the switch does not reach the score.
+> * `test_the_freeze_records_every_environment_switch` — `HELD_BACK_OFF` and
+>   `JHB_SCORE_NO_RELABEL` are not in the freeze.
+>
+> **NIGHT OF 2026-09-16 — RUNBOOK STEPS 1-8 DONE, STEP 9 HELD FOR THE OWNER.**
+> The certified list is pasted (`6c6bdfd`), the SACP is sized by hand
+> (`JUDGEMENT-CALLS §L13`, `aa7dcd5`), both 2026 specs are re-emitted, and
+> `build_all --model --regimes` built the site. The Zille claim is now dated as
+> history (step 7). The publish checks pass. **Not done: freeze, `--publish`,
+> push, deploy.** The live pages are still the 31 August build. Before
+> deploying, the owner reads the SACP result and the dated Zille intro.
+> `declares.py --verify` still exits 1, on three artefacts that predate this
+> pass: `joburg/2021` and `capetown/2021` `forecast_summary.json` (strays from
+> bare runs on 5 and 10 Sep, not read by the site), `validation_2021.json`
+> (§1.216), and `forecast_frozen.json`, which the step-9 freeze replaces.
+> Open, not queued: at every metro's 2011 spec the ballot is known but no
+> newcomer is seeded, so the generic ENTRANT slot carries their votes.
+>
+> The banners this one supersedes — 2026-09-14 back to 2026-08-29 — are in
+> `HANDOVER-ARCHIVE.md`. They are not maintained and several of their claims are
+> false today; read them as a record of what was believed on their dates, never
+> as instructions.
+

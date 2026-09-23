@@ -5,50 +5,63 @@
 `MODEL-LOG.md`, which is append-only and dated. `CLAUDE.md` sends every session
 here first, so anything stale in this file is read as an instruction.
 
-> ## ⛔ STATE AT 2026-09-16 — THE WINDOW WAS TAKEN. NOMINATION DAY IS TODAY.
+> ## ⛔ STATE AT 2026-09-23 — THE WINDOW IS TAKEN AND THE SITE IS BUILT. NOT DEPLOYED.
 >
-> **The emit below HAPPENED.** The 27 pre-emit specs were archived at
-> `be28a19` (`archive/pools-preemit-2026-09-14/`), the window was taken, and the
-> canonical measurement was re-taken on a clean tree at `cf707e3` — read that
-> commit message for the run's identity, and quote numbers from it, never from a
-> banner. Both staleness guards cleared. `MODEL-INDEX.md` landed at `73eec0f`,
-> generated from the tree and regenerated-and-compared by its own test.
+> **The live pages are still the 31 August build.** Everything below is built,
+> committed and pushed, and nothing is published. The owner reviews, then
+> `build_site.py --publish --reason … --change-class …`, then `wrangler deploy`.
 >
-> **⛔ SIX SUITE FAILURES PREDATE 2026-09-17 AND ARE NOT RECORDED ELSEWHERE.** All
-> read artefacts from the 14-15 Sep window; none touches 2026. Each is a real
-> defect, not noise:
-> * `test_the_documented_figures_match_the_committed_artefact` — ITERATING.md
->   rule 8 says ranks 1-3 n = 63; `history.json` says 72.
-> * `test_the_standing_refusals_figures_match_the_artefact` — §A38's PA mean and
->   median disagree with the artefact.
-> * `test_no_emitted_composition_weight_is_arithmetically_impossible` — 2011/2016
->   specs seed parties to draw more votes than a pool casts (Buffalo City and Cape
->   Town 2011 DA/White, Mangaung 2016 AIC/Indian, …).
-> * `test_the_three_known_things_hold_at_once` — Mangaung 2016 pool rates sum to
->   [1, 1, 0, 1]: a pool lost its voters.
-> * `test_the_relabel_ablation_actually_withholds_the_label` — score 6.9450 with
->   and without the label: the switch does not reach the score.
-> * `test_the_freeze_records_every_environment_switch` — `HELD_BACK_OFF` and
->   `JHB_SCORE_NO_RELABEL` are not in the freeze.
+> **THE CANONICAL MEASUREMENT, and the only figure anything may be quoted from
+> until the next window** (MODEL-LOG §1.253):
 >
-> **NIGHT OF 2026-09-16 — RUNBOOK STEPS 1-8 DONE, STEP 9 HELD FOR THE OWNER.**
-> The certified list is pasted (`6c6bdfd`), the SACP is sized by hand
-> (`JUDGEMENT-CALLS §L13`, `aa7dcd5`), both 2026 specs are re-emitted, and
-> `build_all --model --regimes` built the site. The Zille claim is now dated as
-> history (step 7). The publish checks pass. **Not done: freeze, `--publish`,
-> push, deploy.** The live pages are still the 31 August build. Before
-> deploying, the owner reads the SACP result and the dated Zille intro.
-> `declares.py --verify` still exits 1, on three artefacts that predate this
-> pass: `joburg/2021` and `capetown/2021` `forecast_summary.json` (strays from
-> bare runs on 5 and 10 Sep, not read by the site), `validation_2021.json`
-> (§1.216), and `forecast_frozen.json`, which the step-9 freeze replaces.
-> Open, not queued: at every metro's 2011 spec the ballot is known but no
-> newcomer is seeded, so the generic ENTRANT slot carries their votes.
+> ```
+> seat_abs_err_coherent=733/@2ac4c1eb/1000d/pools:7264a929/rows=24
+> ```
 >
-> The banners this one supersedes — 2026-09-14 back to 2026-08-29 — are in
-> `HANDOVER-ARCHIVE.md`. They are not maintained and several of their claims are
-> false today; read them as a record of what was believed on their dates, never
-> as instructions.
+> 24 city-years, 1,000 draws, seed 20261104, clean tree. 17.2% over uniform
+> swing, 46.1% over prior-LGE-noise. The freeze was re-taken after it at 1,500
+> draws, clean, with all nine environment switches recorded.
+>
+> **What went into the window:** §1.249, the entrant spread like the city rather
+> than a quarter into every pool (ultra review 2 on PR #16 — one nit, fixed);
+> and §1.252, the declared ward slates reaching the contestation correction,
+> against `prereg/2026-09-23-declared-ward-slates.md`, all six predictions held.
+> 27 specs, one key `pools_sha 7264a92947ba4529`. Pre-emit set archived at
+> `archive/pools-preemit-2026-09-21/`.
+>
+> ⚠️ **THE HEADLINE MOVED AND THE OWNER HAS NOT SEEN IT YET.** The ANC is now
+> fractionally ahead of the DA on median seats (67 to 66) and "largest party" is
+> a dead heat (47.2% / 47.3%). The live page says the DA leads. The PA gains
+> 4.71 mean seats from the declared slates alone (§1.252), and the `[0, 2]` clip
+> absorbs 21.6% of that correction — its unclipped ward/PR ratio is 2.551.
+>
+> **Two things were found dead and fixed, both predating this work:**
+> * `build_portal` raised `KeyError: 'subdomain'` for every metro ingested on
+>   2026-09-01, so `build_all` stopped one step BEFORE the site — which is part
+>   of why nothing has rebuilt since 31 August.
+> * `montecarlo` swallowed any error in the pool-geography step, so a missing
+>   `openpyxl` silently produced a different forecast (§1.250). Latent: it fired
+>   on no city-year in the project venv.
+>
+> **Suite:** whatever `tests/run_all.py` prints. As of this banner the standing
+> failures are the 2011 DA-in-White impossible seeds (three, down from four —
+> §1.249 fixed Mangaung 2016) and Mangaung 2016's pool rates summing to
+> [1, 1, 0, 1]. ⚠️ **And two date-stamp failures that only appear the day AFTER
+> a build**: each reader edition stamps today's date, so `test_published_page`
+> fails on any later day. It is a test defect, not a page defect, and the
+> proposed fix is to stamp the date the CONTENT last changed.
+>
+> **Still queued, deliberately not in this window:** POOLS-REEMIT-QUEUE entries
+> 19, 20, 27 and 28. Entry 27 is the two Cape Town renames the owner confirmed
+> on 2026-09-16; it is not number-neutral and needs its own pre-registration.
+>
+> **The interactive** is decided and not started: it runs the real model in the
+> browser (Pyodide, measured bit-identical), and three of its reader controls
+> need new model mechanisms. PUBLISHING-BACKLOG §9 has the decisions.
+>
+> The banners this one supersedes are in `HANDOVER-ARCHIVE.md`. They are not
+> maintained and several of their claims are false today.
+
 
 > ## 📋 NOMINATION-DAY RUNBOOK — Johannesburg, 16 September 2026
 >
