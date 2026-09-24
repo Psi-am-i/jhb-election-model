@@ -7,13 +7,17 @@ typed-figure audit already reaches the built page. What had nothing was
 `render_home` itself: the regions, the lede whose wording is chosen by the
 numbers, the "everyone else" row, and the exactly-one-lead refusal.
 
-**Every input here is CONSTRUCTED except two**, and both say so where they are:
-`test_every_figure_the_home_page_prints_is_a_token` regenerates the real page
-(there is no other way to ask "would the build refuse this?"), and
+**Every input here is CONSTRUCTED except three**, and each says so where it is:
+`test_regenerating_clears_exactly_the_regions_render_home_owns` and
+`test_the_typed_figure_gate_reaches_the_home_page` both regenerate the real
+`home.html` (there is no other way to ask "which regions does the generator
+own?" or "would the build refuse this page?"), and
 `test_the_shipped_article_list_carries_exactly_one_lead` reads
 `content/joburg/articles.toml` on purpose — a second lead in the shipped file is
-the defect the refusal exists for. Both carry a mutation: a fault is injected,
-caught, reverted, and the detector shown to go quiet again.
+the defect the refusal exists for. The first two carry their own mutation: a
+fault is injected, caught, reverted byte-exact, and the detector shown to go
+quiet again. The third's mutation is the constructed test above it, which is
+where 0 leads and 2 leads are proven to refuse.
 
 ⛔ `render_home.main` is NOT called in-process. It calls `cityconfig.use`, which
 sets global city state, and the suite imports modules into one interpreter. The
@@ -284,6 +288,11 @@ def test_everyone_else_is_counted_inside_each_simulation():
         assert "[home.seats.others_lo=1]" in html and \
                "[home.seats.others_hi=5]" in html, html
         assert "within" in html, "the note that says per-simulation is gone"
+        # ⛔ AND THE BAND BESIDE IT IS A TOKEN, NOT THE WORD "90". Both pages
+        # typed it until 2026-09-25, which is a second copy of
+        # `scenarios.BAND` sitting in prose — two of the ten `BLOCKS` rows
+        # standing between the build and a `--publish`.
+        assert "[home.band=" in html and "90%" not in html, html
 
 
 def test_a_party_the_page_names_is_never_pooled_into_everyone_else():
@@ -412,9 +421,16 @@ def test_the_typed_figure_gate_reaches_the_home_page():
     assert 20 <= len(population) <= 5000, (
         f"{len(population)} number-shaped strings on the home page — the scan "
         f"is looking at the wrong text, or the page has been gutted")
-    tokens = [h for h in population if h["status"] != "unreviewed"]
-    assert tokens, ("no figure on the page is a token or a registered fact, "
-                    "which cannot be true of a page built from a model run")
+    # `scan_numbers` strips token spans before it looks, so a token is not IN
+    # this population at all: what a non-`unreviewed` status marks is a
+    # structural, fixed or allowed figure. Both are asserted, and separately —
+    # they are different claims and the page needs each.
+    cleared = [h for h in population if h["status"] != "unreviewed"]
+    assert cleared, ("not one number on the page is structural, fixed or "
+                     "allowed — the registry is not reaching this page")
+    assert "{{@home." in raw, (
+        "the regenerated page carries no home token at all, so the scan above "
+        "is measuring a page the generator did not fill")
 
     # IT CAN SEE: one typed model figure, in prose, inside the lede region.
     fault = '<p class="sub">The ANC takes just 7 seats.</p>'

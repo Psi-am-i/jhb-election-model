@@ -511,7 +511,7 @@ document.querySelectorAll(".maptoggle button").forEach(function(b){
       the colour chip is party identification only. Parties that draw on the same voting pools trade
       support: when one rises in a simulation, others fishing in the same pool tend to fall.
       <!-- __SEATS_NOTE_START__ -->
-<b>Others</b> is every party not named above, counted within each simulation: the council minus the named parties' seats. Each row is that party's own middle value and 90% range across the simulations, so the rows do not add up to the council.
+<b>Others</b> is every party not named above, counted within each simulation: the council minus the named parties' seats. Each row is that party's own middle value and {{@seats.band=0.900000;chance;scenarios.BAND, the percentiles seat_quantiles reports}} range across the simulations, so the rows do not add up to the council.
 <!-- __SEATS_NOTE_END__ --></figcaption>
     </figure>
   </details>

@@ -713,12 +713,15 @@ ledger while any exists. The count and the rows are in
 rows under each page, never a figure copied here. Three causes, all from the
 24 September re-cut:
 
-* **`render_home` types `90%` into the seats note** ("the range covering 90% of
-  them"), and `render_sheet.py:296` types the same string. It contradicts
-  `render_home`'s own docstring — *"nothing here types a number into prose"* —
-  and it is a real second copy: the 90 is `scenarios.seat_quantiles`' p5–p95 and
-  lives there. The fix is a token sourced from that function, in both
-  renderers, not a whitelist row.
+* ✅ **FIXED 2026-09-25 — the typed `90%` in the seats note.** Both renderers
+  typed it, which contradicted `render_home`'s own docstring (*"nothing here
+  types a number into prose"*) and was a second copy of `seat_quantiles`'
+  percentiles sitting in prose on a published page. `scenarios.BAND` /
+  `BAND_SHARE` now hold the pair, `seat_quantiles` reads them, and both pages
+  render the figure as a token (`home.band`, `seats.band`) sourced to
+  `scenarios.BAND`. Not a whitelist row — a whitelist would have left the
+  sentence free to say 90 while the code said something else. Rebuilt: the
+  blocking count went from ten rows to eight.
 * **The election date's `[[audit.fixed]]` row has gone stale.**
   `content/joburg/stats.toml` registers `4 November 2026` against the OLD
   page's surrounding words, and a fixed fact is cleared only in its own context
@@ -728,6 +731,12 @@ rows under each page, never a figure copied here. Three causes, all from the
   re-context a row, do not add a new one, and re-date it.
 * The remaining rows are on `corrections.html` and `forecast.html` and were not
   investigated.
+
+**Measured, not read off the committed file** (2026-09-25): a full
+`build_site.py --out <scratch>` with `--allow-orphans --allow-stale-sources`,
+whose review file lands beside that output and leaves the tree untouched. Do
+that rather than grepping `content/joburg/NUMBERS-REVIEW.md`, which is only as
+current as the last build.
 
 **None of this is a model change and none of it moves a forecast number.** It
 is between the finished build and the deploy, which is exactly where it will be

@@ -88,6 +88,17 @@ def majority_alone_share(processed: Path) -> float:
     return alone / total if total else 0.0
 
 
+# The percentiles `seat_quantiles` reports, and the share of simulations they
+# cover. ⛔ THE 90 IS NOT A WORD. Both pages print "the range covering 90% of
+# them" beside the table, and until 2026-09-25 both TYPED it — a second copy of
+# this tuple, sitting in prose on a published page, which is exactly what the
+# number audit blocks (it was two of the ten `BLOCKS` rows standing between the
+# build and a `--publish`). The renderers now print `BAND_SHARE` as a token, so
+# the sentence cannot say 90 while the code says something else.
+BAND = (5, 95)
+BAND_SHARE = (BAND[1] - BAND[0]) / 100
+
+
 def seat_quantiles(series) -> tuple[int, int, int]:
     """(median, p5, p95) of a per-simulation seat series, as whole seats.
 
@@ -98,8 +109,9 @@ def seat_quantiles(series) -> tuple[int, int, int]:
     """
     import numpy as _np
     x = _np.asarray(series)
-    return (int(round(float(_np.median(x)))), int(round(float(_np.percentile(x, 5)))),
-            int(round(float(_np.percentile(x, 95)))))
+    return (int(round(float(_np.median(x)))),
+            int(round(float(_np.percentile(x, BAND[0])))),
+            int(round(float(_np.percentile(x, BAND[1])))))
 
 
 def others_per_draw(processed: Path, named) -> "np.ndarray":

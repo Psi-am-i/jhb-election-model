@@ -3366,6 +3366,21 @@
       "value": 0.168
     },
     {
+      "display": "90%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "scenarios.BAND, the percentiles seat_quantiles reports",
+      "token": "home.band",
+      "value": 0.9
+    },
+    {
       "display": "23 September 2026",
       "fmt": "date_long",
       "mode": "generated",
@@ -4576,6 +4591,21 @@
       "value": 13.0
     },
     {
+      "display": "90%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "forecast.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "scenarios.BAND, the percentiles seat_quantiles reports",
+      "token": "seats.band",
+      "value": 0.9
+    },
+    {
       "display": "under 0.1%",
       "fmt": "chance",
       "mode": "generated",
@@ -4658,9 +4688,9 @@
     "draws": 5000,
     "forecast_content_sha256": "661b8783e7cb6dad1f5301c008bd816cc347cb8ee9c69455a685a003289fef86",
     "forecast_summary_sha256": "6ea8d7976f780e4acf9fec434b55d0140f239927026cce518d580125b7d1a95f",
-    "git_commit": "daffcbc1b9500ec48329fb5bf97997af4f9fef6f",
+    "git_commit": "65ff4ce82377de14e655a754518ad567496aa525",
     "git_dirty": true,
-    "model_run_id": "r-661b8783e7cb-daffcbc1-dirty",
+    "model_run_id": "r-661b8783e7cb-65ff4ce8-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
@@ -4948,6 +4978,7 @@
         "govern.anc_routes",
         "govern.anc_routes_strong",
         "govern.da_best_without",
+        "home.band",
         "home.generated",
         "home.n_draws",
         "home.p_alone",
@@ -5028,6 +5059,7 @@
         "seats.RISE.median",
         "seats.RISE.p5",
         "seats.RISE.p95",
+        "seats.band",
         "tile.p_alone",
         "tile.p_anc_da",
         "tile.p_anc_excessive",
@@ -5035,7 +5067,7 @@
         "tile.p_da_largest"
       ]
     },
-    "n": 309,
+    "n": 311,
     "n_rounding": 0,
     "n_visible": 0,
     "nominal": []

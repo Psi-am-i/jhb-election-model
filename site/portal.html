@@ -12,20 +12,50 @@
  simulated elections, the real seat law, every assumption a slider.">
 <meta property="og:url" content="https://whysoserious.city/">
 <style>
-  :root{
+  :root{color-scheme:dark;
+    --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
+    --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
+    --accent:#d9954f; --accent-soft:#3a2a1a;
+    --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a; --bad:#d98070;
+    --k-article:#7aa6d6; --k-claim:#d9954f; --k-explain:#6fb98a;
+    --k-interactive:#b98ad6;
+  }
+  :root[data-theme="light"]{color-scheme:light;
     --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
     --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
-    --accent:#a8621f; --accent-soft:#f0e2d5; --good:#2f6d4a;
+    --accent:#a8621f; --accent-soft:#f0e2d5;
+    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
+    --k-article:#2f5f96; --k-claim:#a8621f; --k-explain:#2f6d4a;
+    --k-interactive:#7a4a9c;
+  }
+  .themetoggle{font:inherit;color:var(--ink-3);background:none;border:0;
+    padding:0;cursor:pointer;white-space:nowrap;line-height:0;align-self:center;}
+  .themetoggle svg{display:block;}
+  .themetoggle:hover{color:var(--accent);}
+  .themetoggle .to-dark{display:none;}
+  :root[data-theme="light"] .themetoggle .to-light{display:none;}
+  :root[data-theme="light"] .themetoggle .to-dark{display:inline;}
+</style>
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+  })();
+  function toggleTheme() {
+    var root = document.documentElement;
+    var light = root.getAttribute("data-theme") !== "light";
+    if (light) root.setAttribute("data-theme", "light");
+    else root.removeAttribute("data-theme");
+    try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
+  }
+</script>
+<style>
+  :root{
+    /* colours come from THEME_HEAD, the one palette every page shares */
     --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
     --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
-  }
-  @media (prefers-color-scheme:dark){
-    :root{
-      --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
-      --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
-      --accent:#d9954f; --accent-soft:#3a2a1a; --good:#6fb98a;
-    }
   }
   *{box-sizing:border-box;margin:0;}
   /* Three text levels, applied the same way on every page: headings and

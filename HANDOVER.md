@@ -67,13 +67,22 @@ here first, so anything stale in this file is read as an instruction.
 > 2b. ⛔ **FOUND WHILE DOING IT, AND IT IS ON THE DEPLOY PATH:
 >    `build_site.py --publish` WILL REFUSE as the tree stands.** Typed figures
 >    on three pages are `BLOCKS` rows in `content/joburg/NUMBERS-REVIEW.md`
->    (read its `blocking=` token, not a figure copied here). Two are the home
->    page's: `render_home` types `90%` into the seats note against its own
->    docstring (`render_sheet:296` types the same string, and the 90 belongs to
->    `scenarios.seat_quantiles`), and the election date's `[[audit.fixed]]` row
->    matches the pre-24-September wording so it no longer clears. Written up in
->    `PUBLISHING-BACKLOG.md` §11. **The register is the owner's and carries a
->    `reviewed` date per row — re-context, do not add.**
+>    (read its `blocking=` token, not a figure copied here; measure it with a
+>    `build_site.py --out <scratch>` build, not by grepping the committed file).
+>    ✅ **One cause is fixed**: both pages typed `90%` in the seats note, which
+>    is `scenarios.BAND` copied into prose — it is now a token in both
+>    renderers, and the rebuild dropped two rows.
+>    ⛔ **What is left is the owner's.** The election date's `[[audit.fixed]]`
+>    row still matches the pre-24-September wording, so it no longer clears on
+>    either page; that register carries a `reviewed` date per row — **re-context
+>    the row and re-date it, do not add a second one**. The rest are on
+>    `corrections.html` and were not investigated. §11 has the detail.
+> 2c. **Regenerate `MODEL-INDEX.md` BEFORE the suite run you intend to quote,
+>    not after.** It joins the registers, so a new public constant or an
+>    `ENTRY_POINTS` change moves it and `test_model_index` fails on a file
+>    nobody edited — and since regenerating is itself an edit, finding it at the
+>    end costs the whole run again. It cost two runs on 2026-09-25. Now in
+>    `QC.md` §4 with the other preconditions.
 > 3. **Interactive: measure Pyodide speed FIRST.** The notes disagree: ~55 ms per
 >    draw in the browser (~17 s for 300 draws) in one, ~35 s of CPU per 300
 >    draws natively in another. The spike's code was never committed. Whether

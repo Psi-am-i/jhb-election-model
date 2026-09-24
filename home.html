@@ -342,7 +342,7 @@ document.querySelectorAll(".maptoggle button").forEach(function(b){
       <div class="sval rng">{{@home.seats.others_lo=13;int;seat_draws.csv, council minus the named parties in each simulation}}–{{@home.seats.others_hi=55;int;seat_draws.csv, council minus the named parties in each simulation}}</div>
     </div>
   </div>
-  <div class="stamp" style="margin-top:12px">Each party's middle value across the simulations, with the range covering 90% of them. They do not add up to the council: a party's best simulations are not the same ones as its rivals'. "Everyone else" is the council minus the parties named above, taken <em>within</em> each simulation.</div>
+  <div class="stamp" style="margin-top:12px">Each party's middle value across the simulations, with the range covering {{@home.band=0.9;chance;scenarios.BAND, the percentiles seat_quantiles reports}} of them. They do not add up to the council: a party's best simulations are not the same ones as its rivals'. "Everyone else" is the council minus the parties named above, taken <em>within</em> each simulation.</div>
   <!-- __HOMESEATS_END__ -->
 </section>
 

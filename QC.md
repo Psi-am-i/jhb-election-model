@@ -144,7 +144,15 @@ from the run that finished *after* the last edit. **Never pipe it through `tail`
 or `head`** — the pipeline reports the pipe's exit status, so a failing suite
 exits zero.
 
-Two preconditions that are easy to skip and expensive to skip:
+Three preconditions that are easy to skip and expensive to skip:
+
+* **Before the suite run you intend to quote, regenerate the generated
+  documents** — `.venv/bin/python src/model_index.py` above all. `MODEL-INDEX.md`
+  joins the registers, so a new public constant in `src/`, a new `ENTRY_POINTS`
+  entry or a deleted one moves it, and `test_model_index` then fails on a file
+  nobody edited. Discovering that at the END of a whole-suite run costs the
+  whole run again, because the counts must come from the run that finished after
+  the last edit — and regenerating is an edit. (Cost paid twice on 2026-09-25.)
 
 * **Before quoting a number out of any artefact**, `src/declares.py --verify` —
   an artefact declaring nothing is a known gap, one declaring wrongly is a gap

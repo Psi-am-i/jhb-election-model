@@ -290,10 +290,12 @@ def main(argv: list[str] | None = None) -> int:
     # only the large parties — the wrong place for a note about small ones
     # (owner, 2026-09-18). It belongs to the seats chart, where the reader meets
     # the pooled "Others" row and can see the bars do not add to the council.
+    band = chance("seats.band", _scq.BAND_SHARE,
+                  "scenarios.BAND, the percentiles seat_quantiles reports")
     seats_note = (
         "<b>Others</b> is every party not named above, counted within each simulation: the "
         "council minus the named parties' seats. Each row is that party's own middle value and "
-        "90% range across the simulations, so the rows do not add up to the council.")
+        f"{band} range across the simulations, so the rows do not add up to the council.")
 
     # --- minority administrations ---------------------------------------------
     minority_rows = summary["minority"]

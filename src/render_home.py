@@ -167,8 +167,11 @@ def _seats(summary: dict, tok, processed: Path) -> str:
     # across the simulations, and different parties peak in different ones — so
     # the rows do not add to the council and must not be described as if they
     # were one scenario. That conflation is the shape of §1.214.
+    import scenarios as _scn
+    band = tok("home.band", _scn.BAND_SHARE, "chance",
+               "scenarios.BAND, the percentiles seat_quantiles reports")
     note = ('  <div class="stamp" style="margin-top:12px">Each party\'s middle '
-            'value across the simulations, with the range covering 90% of '
+            f'value across the simulations, with the range covering {band} of '
             'them. They do not add up to the council: a party\'s best '
             'simulations are not the same ones as its rivals\'. "Everyone '
             'else" is the council minus the parties named above, taken '
