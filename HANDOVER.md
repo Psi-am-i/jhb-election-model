@@ -53,6 +53,46 @@ here first, so anything stale in this file is read as an instruction.
 > Leftover on atlas: four never-ending `pgrep` wait-loops from an earlier
 > session (they match their own command line); harmless, not this session's.
 
+> ## ⛔ STATE AT 2026-09-24 — THE HOME PAGE IS BUILT. STILL NOT DEPLOYED.
+>
+> **Everything below the 23 September banner still holds** — the window, the
+> canonical measurement, the freeze. This banner adds what happened after it.
+>
+> **The home page is the landing page now.** `home.html` → `index.html`; the
+> forecast sheet → `/forecast`. Built from the current run, layout A with the
+> large map and colour-separated sections (PUBLISHING-BACKLOG §10). The heading
+> leads on the coalition and its STRENGTH is chosen by the measurement, not
+> typed — see `render_home._lede`.
+>
+> **⚠️ THE NEXT THREE THINGS, in order:**
+>
+> 1. **The article page does not exist.** The owner edited
+>    `content/joburg/articles.toml` on 2026-09-24 so three entries point at
+>    `nobody-will-win` (and `nobody-will-win#nobody-catches`,
+>    `#minority`). Nothing builds that page yet — the anchors currently live on
+>    the forecast sheet. Either build the article as its own page and move those
+>    sections into it, or point the hrefs back at `forecast#…`. **The build does
+>    not check internal links, so this will ship broken if nobody looks.**
+> 2. **The home page has no tests.** Everything else on the site has a guard;
+>    this page has none. At minimum: its regions regenerate, its figures are
+>    tokens rather than typed numbers, the "everyone else" row is taken per
+>    simulation, and exactly one article carries `lead`.
+> 3. **The full suite has not run since the home page landed.** Only the six
+>    modules the work touched were run (published_page, number_scan, build_all,
+>    site_text, standalone, model_index) — all green.
+>
+> **Then:** the owner reviews, `build_site.py --publish --reason … --change-class`
+> (append-only, needs the owner's words), and `env -u CLOUDFLARE_API_TOKEN npx
+> wrangler deploy`.
+>
+> **Open questions the owner has not answered yet:** whether the pool-seed fix
+> ships given it costs 10 coherent seats on the panel (§1.253 — it removes an
+> impossible assumption, and ITERATING says more honest usually ships); and what
+> a social preview card shows for a reader's own forecast (§10).
+>
+> **SITE-TEXT.md** is waiting for the owner's language edits; `src/site_text.py
+> --apply` writes them back to source and refuses any edit that changes a figure.
+
 > ## ⛔ STATE AT 2026-09-23 — THE WINDOW IS TAKEN AND THE SITE IS BUILT. NOT DEPLOYED.
 >
 > **The live pages are still the 31 August build.** Everything below is built,
