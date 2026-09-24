@@ -128,46 +128,6 @@ def _lede(summary: dict, processed: Path, tok, chance) -> str:
             f'  <div class="stamp">{stamp}</div>')
 
 
-def _others_from_draws(processed: Path, named: set[str]):
-    """Everyone except the named parties, per simulation, then its quantiles.
-
-    ⛔ PERCENTILES DO NOT ADD, AND THE DRAWN PARTIES ARE NOT THE WHOLE COUNCIL.
-    Two ways to get this row wrong, and the first version managed both:
-
-    * summing each small party's median gives a number no simulation produced,
-      and summing their p5s and p95s gives a "range" wider than any draw — 1 to
-      95 seats, for a row whose real spread is a few. The same arithmetic in the
-      other direction is how "smaller parties — 39 seats" was published.
-    * `seat_draws.csv` carries only the parties drawn INDIVIDUALLY — 13 of
-      them. They sum to about 259 of 270, so a tail built from those columns
-      alone silently loses ~11 seats that belong to parties the model does not
-      draw separately.
-
-    So the quantity is the council minus the named parties, TAKEN WITHIN EACH
-    SIMULATION, where it is simply true: the seats exist and somebody holds
-    them. Quantiles are then read off that distribution.
-    """
-    import csv as _csv
-    path = processed / "seat_draws.csv"
-    if not path.exists():
-        return None
-    totals = []
-    with path.open(encoding="utf-8", newline="") as fh:
-        for row in _csv.DictReader(fh):
-            council = int(float(row.get("council_size") or 0))
-            held = sum(int(float(row.get(p) or 0)) for p in named)
-            totals.append(council - held)
-    if not totals:
-        return None
-    totals.sort()
-    n = len(totals)
-
-    def q(p):
-        return float(totals[min(n - 1, max(0, int(round(p * (n - 1)))))])
-
-    return q(0.5), q(0.05), q(0.95)
-
-
 def _seats(summary: dict, tok, processed: Path) -> str:
     parties = summary["parties"]
     named = [p for p in NAMED if p in parties]
@@ -187,7 +147,8 @@ def _seats(summary: dict, tok, processed: Path) -> str:
             f'</i></div>\n'
             f'      <div class="sval"><b>'
             f'{src_of(f"home.seats.{key}", int(round(med)), "int")}'
-            f'</b> {src_of(f"home.seats.{key}_lo", int(round(lo)), "int")}–'
+            f'</b></div>\n'
+            f'      <div class="sval rng">{src_of(f"home.seats.{key}_lo", int(round(lo)), "int")}–'
             f'{src_of(f"home.seats.{key}_hi", int(round(hi)), "int")}</div>\n'
             f'    </div>')
 
@@ -195,17 +156,12 @@ def _seats(summary: dict, tok, processed: Path) -> str:
         p = parties[code]
         rows.append(row(code, LABEL.get(code, code),
                         float(p["median"]), float(p["p5"]), float(p["p95"])))
-    tail = _others_from_draws(processed, set(named)) if others else None
-    if tail:
-        med, lo, hi = tail
+    if others:
+        import scenarios as _scn
+        med, lo, hi = _scn.seat_quantiles(_scn.others_per_draw(processed, named))
         rows.append(row("Others", "Everyone else", med, lo, hi,
                         source="seat_draws.csv, council minus the named "
                                "parties in each simulation"))
-    elif others:
-        raise SystemExit(
-            "no seat_draws.csv, so the small parties' total cannot be taken "
-            "per simulation — and it may not be faked by adding up their "
-            "medians. Run the model first.")
 
     # ⛔ NOT "the middle simulation". Each row is that PARTY's middle value
     # across the simulations, and different parties peak in different ones — so
@@ -217,7 +173,9 @@ def _seats(summary: dict, tok, processed: Path) -> str:
             'simulations are not the same ones as its rivals\'. "Everyone '
             'else" is the council minus the parties named above, taken '
             '<em>within</em> each simulation.</div>')
-    return '  <div class="seats">\n' + "\n".join(rows) + "\n  </div>\n" + note
+    head = ('    <div class="srow shead"><div></div><div></div>'
+            '<div class="sval">median</div><div class="sval rng">range</div></div>')
+    return '  <div class="seats">\n' + "\n".join([head] + rows) + "\n  </div>\n" + note
 
 
 def _articles(city_dir: Path) -> str:

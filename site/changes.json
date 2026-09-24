@@ -3366,36 +3366,6 @@
       "value": 0.168
     },
     {
-      "display": "13",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations",
-      "token": "govern.tracked_parties",
-      "value": 13.0
-    },
-    {
-      "display": "14",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations",
-      "token": "govern.untracked_seats",
-      "value": 14.4
-    },
-    {
       "display": "23 September 2026",
       "fmt": "date_long",
       "mode": "generated",
@@ -4471,7 +4441,7 @@
       "value": 50.0
     },
     {
-      "display": "9",
+      "display": "23",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -4483,10 +4453,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.OTHERS.median",
-      "value": 9.0
+      "value": 23.0
     },
     {
-      "display": "2",
+      "display": "8",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -4498,10 +4468,10 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.OTHERS.p5",
-      "value": 2.0
+      "value": 8.0
     },
     {
-      "display": "26",
+      "display": "48",
       "fmt": "int",
       "mode": "generated",
       "movement": "new",
@@ -4513,7 +4483,7 @@
       "previous_value": null,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.OTHERS.p95",
-      "value": 26.0
+      "value": 48.0
     },
     {
       "display": "23",
@@ -4688,9 +4658,9 @@
     "draws": 5000,
     "forecast_content_sha256": "661b8783e7cb6dad1f5301c008bd816cc347cb8ee9c69455a685a003289fef86",
     "forecast_summary_sha256": "6ea8d7976f780e4acf9fec434b55d0140f239927026cce518d580125b7d1a95f",
-    "git_commit": "755a3630c86e91dd087d61a6339dc95583ea3364",
+    "git_commit": "50649754ae369b02540cc7fb8b749f083d7b5ea0",
     "git_dirty": true,
-    "model_run_id": "r-661b8783e7cb-755a3630-dirty",
+    "model_run_id": "r-661b8783e7cb-50649754-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
@@ -4978,8 +4948,6 @@
         "govern.anc_routes",
         "govern.anc_routes_strong",
         "govern.da_best_without",
-        "govern.tracked_parties",
-        "govern.untracked_seats",
         "home.generated",
         "home.n_draws",
         "home.p_alone",
@@ -5067,7 +5035,7 @@
         "tile.p_da_largest"
       ]
     },
-    "n": 311,
+    "n": 309,
     "n_rounding": 0,
     "n_visible": 0,
     "nominal": []

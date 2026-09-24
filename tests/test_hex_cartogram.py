@@ -128,13 +128,33 @@ def test_the_cartogram_ink_is_proportional_to_seats():
             f"{party}: {row['ink_share']:.6f} of the ink for "
             f"{row['seat_share']:.6f} of the seats ({row['distortion']:.4f}x)")
 
-    before = hc.ink_table(layout.areas, probs)
-    assert before["DA"]["distortion"] > 1.4, (
-        "the geographic map is supposed to over-draw the DA badly; this "
-        f"instrument reports {before['DA']['distortion']:.2f}x, so it is not "
-        "measuring what the cartogram was built to fix")
-    assert before["MK"]["distortion"] < 0.4, (
-        f"MK under-drawn by only {before['MK']['distortion']:.2f}x")
+    # ⛔ CONSTRUCTED, NOT OBSERVED (CLAUDE.md §4, requirement 3). This used to
+    # assert that the land map over-draws "the DA" and under-draws "MK" on the
+    # LIVE forecast — a premise about the model's output, not the instrument,
+    # and it expired the day the 23 September window moved MK's under-draw to
+    # exactly 0.40 against a `< 0.4` bound. The property being tested is the
+    # GEOMETRY's: big wards over-draw and small wards under-draw. So the
+    # winners are built from the ward areas themselves — the largest quarter
+    # to one party, the smallest quarter to another — and the forecast plays
+    # no part. Measured on the committed ward_paths.json: 2.53x and 0.16x.
+    by_area = sorted(layout.areas, key=lambda w: layout.areas[w])
+    quarter = len(by_area) // 4
+    built = {w: {"winner": "MID"} for w in by_area}
+    for w in by_area[:quarter]:
+        built[w]["winner"] = "SMALL"
+    for w in by_area[-quarter:]:
+        built[w]["winner"] = "BIG"
+    before = hc.ink_table(layout.areas, built)
+    assert before["BIG"]["distortion"] > 1.4, (
+        "the geographic map is supposed to over-draw its largest wards badly; "
+        f"this instrument reports {before['BIG']['distortion']:.2f}x, so it is "
+        "not measuring what the cartogram was built to fix")
+    assert before["SMALL"]["distortion"] < 0.4, (
+        f"the smallest wards under-drawn by only "
+        f"{before['SMALL']['distortion']:.2f}x")
+    # and the cartogram must flatten the SAME constructed forecast to 1
+    for party, row in hc.ink_table(areas, built).items():
+        assert abs(row["distortion"] - 1.0) < 1e-9, (party, row["distortion"])
 
 
 # --------------------------------------------------------------------------

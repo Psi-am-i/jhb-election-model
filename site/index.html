@@ -64,7 +64,7 @@
 
   /* seats */
   .seats{display:flex;flex-direction:column;gap:3px;}
-  .srow{display:grid;grid-template-columns:96px 1fr 76px;align-items:center;
+  .srow{display:grid;grid-template-columns:96px 1fr 38px 58px;align-items:center;
     gap:10px;}
   .sname{font-size:12.5px;display:flex;align-items:center;gap:6px;}
   .strack{position:relative;height:16px;background:var(--rule-soft);
@@ -73,6 +73,9 @@
   .sval{font-family:var(--mono);font-size:12.5px;text-align:right;
     color:var(--ink-2);}
   .sval b{color:var(--ink);}
+  .sval.rng{color:var(--ink-3);}
+  .shead .sval{font-family:var(--sans);font-size:10.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--ink-3);}
   .two{display:grid;grid-template-columns:1fr;gap:26px;}
   @media (min-width:900px){.two{grid-template-columns:1fr 1fr;gap:38px;}}
 
@@ -370,6 +373,15 @@
     })();
     </script>
   </details>
+<style>
+  /* The Normal / Equal Sized switch, styled wherever it is emitted. */
+  .maptoggle{display:flex;gap:0;margin:4px 0 12px;font-size:13px;}
+  .maptoggle button{font:600 12.5px var(--sans,sans-serif);letter-spacing:.02em;padding:6px 14px;
+    border:1px solid var(--rule);background:transparent;color:var(--ink-2);cursor:pointer;}
+  .maptoggle button:first-child{border-radius:4px 0 0 4px;}
+  .maptoggle button:last-child{border-radius:0 4px 4px 0;border-left:none;}
+  .maptoggle button.on{background:var(--accent);border-color:var(--accent);color:var(--paper);}
+</style>
 <script>
 // Switches between the land map and the equal-ward map. Shows or hides the two
 // sections the build wrote; it writes no text or figure. Emitted HERE, with the
@@ -398,45 +410,54 @@ document.querySelectorAll(".maptoggle button").forEach(function(b){
   <div class="eyebrow">Seats, if the election were held now</div>
   <!-- __HOMESEATS_START__ -->
   <div class="seats">
+    <div class="srow shead"><div></div><div></div><div class="sval">median</div><div class="sval rng">range</div></div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--anc)"></span>ANC</div>
       <div class="strack"><i style="width:72.8%;background:var(--anc)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.anc" data-when="" data-prov="67. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">67</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.anc_lo" data-when="" data-prov="29. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">29</span>–<span class="mstat" data-mode="generated" data-token="home.seats.anc_hi" data-when="" data-prov="92. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">92</span></div>
+      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.anc" data-when="" data-prov="67. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">67</span></b></div>
+      <div class="sval rng"><span class="mstat" data-mode="generated" data-token="home.seats.anc_lo" data-when="" data-prov="29. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">29</span>–<span class="mstat" data-mode="generated" data-token="home.seats.anc_hi" data-when="" data-prov="92. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">92</span></div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--da)"></span>DA</div>
       <div class="strack"><i style="width:71.7%;background:var(--da)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.da" data-when="" data-prov="66. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">66</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.da_lo" data-when="" data-prov="45. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">45</span>–<span class="mstat" data-mode="generated" data-token="home.seats.da_hi" data-when="" data-prov="90. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">90</span></div>
+      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.da" data-when="" data-prov="66. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">66</span></b></div>
+      <div class="sval rng"><span class="mstat" data-mode="generated" data-token="home.seats.da_lo" data-when="" data-prov="45. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">45</span>–<span class="mstat" data-mode="generated" data-token="home.seats.da_hi" data-when="" data-prov="90. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">90</span></div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--asa)"></span>ActionSA</div>
       <div class="strack"><i style="width:29.3%;background:var(--asa)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.asa" data-when="" data-prov="27. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">27</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.asa_lo" data-when="" data-prov="11. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">11</span>–<span class="mstat" data-mode="generated" data-token="home.seats.asa_hi" data-when="" data-prov="52. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">52</span></div>
+      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.asa" data-when="" data-prov="27. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">27</span></b></div>
+      <div class="sval rng"><span class="mstat" data-mode="generated" data-token="home.seats.asa_lo" data-when="" data-prov="11. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">11</span>–<span class="mstat" data-mode="generated" data-token="home.seats.asa_hi" data-when="" data-prov="52. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">52</span></div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--eff)"></span>EFF</div>
       <div class="strack"><i style="width:26.1%;background:var(--eff)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.eff" data-when="" data-prov="24. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">24</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.eff_lo" data-when="" data-prov="8. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">8</span>–<span class="mstat" data-mode="generated" data-token="home.seats.eff_hi" data-when="" data-prov="54. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">54</span></div>
+      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.eff" data-when="" data-prov="24. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">24</span></b></div>
+      <div class="sval rng"><span class="mstat" data-mode="generated" data-token="home.seats.eff_lo" data-when="" data-prov="8. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">8</span>–<span class="mstat" data-mode="generated" data-token="home.seats.eff_hi" data-when="" data-prov="54. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">54</span></div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--mk)"></span>MK Party</div>
       <div class="strack"><i style="width:22.8%;background:var(--mk)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.mk" data-when="" data-prov="21. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">21</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.mk_lo" data-when="" data-prov="7. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">7</span>–<span class="mstat" data-mode="generated" data-token="home.seats.mk_hi" data-when="" data-prov="50. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">50</span></div>
+      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.mk" data-when="" data-prov="21. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">21</span></b></div>
+      <div class="sval rng"><span class="mstat" data-mode="generated" data-token="home.seats.mk_lo" data-when="" data-prov="7. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">7</span>–<span class="mstat" data-mode="generated" data-token="home.seats.mk_hi" data-when="" data-prov="50. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">50</span></div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--pa)"></span>PA</div>
       <div class="strack"><i style="width:25.0%;background:var(--pa)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.pa" data-when="" data-prov="23. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">23</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.pa_lo" data-when="" data-prov="14. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">14</span>–<span class="mstat" data-mode="generated" data-token="home.seats.pa_hi" data-when="" data-prov="37. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">37</span></div>
+      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.pa" data-when="" data-prov="23. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">23</span></b></div>
+      <div class="sval rng"><span class="mstat" data-mode="generated" data-token="home.seats.pa_lo" data-when="" data-prov="14. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">14</span>–<span class="mstat" data-mode="generated" data-token="home.seats.pa_hi" data-when="" data-prov="37. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">37</span></div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--oth)"></span>IFP</div>
       <div class="strack"><i style="width:2.2%;background:var(--oth)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.ifp" data-when="" data-prov="2. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">2</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.ifp_lo" data-when="" data-prov="0. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">0</span>–<span class="mstat" data-mode="generated" data-token="home.seats.ifp_hi" data-when="" data-prov="16. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">16</span></div>
+      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.ifp" data-when="" data-prov="2. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">2</span></b></div>
+      <div class="sval rng"><span class="mstat" data-mode="generated" data-token="home.seats.ifp_lo" data-when="" data-prov="0. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">0</span>–<span class="mstat" data-mode="generated" data-token="home.seats.ifp_hi" data-when="" data-prov="16. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">16</span></div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--oth)"></span>Everyone else</div>
       <div class="strack"><i style="width:32.6%;background:var(--oth)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.others" data-when="" data-prov="30. First published in this edition (24 September 2026). Source: seat_draws.csv, council minus the named parties in each simulation, computed at build from the current model run." tabindex="0">30</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.others_lo" data-when="" data-prov="13. First published in this edition (24 September 2026). Source: seat_draws.csv, council minus the named parties in each simulation, computed at build from the current model run." tabindex="0">13</span>–<span class="mstat" data-mode="generated" data-token="home.seats.others_hi" data-when="" data-prov="55. First published in this edition (24 September 2026). Source: seat_draws.csv, council minus the named parties in each simulation, computed at build from the current model run." tabindex="0">55</span></div>
+      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.others" data-when="" data-prov="30. First published in this edition (24 September 2026). Source: seat_draws.csv, council minus the named parties in each simulation, computed at build from the current model run." tabindex="0">30</span></b></div>
+      <div class="sval rng"><span class="mstat" data-mode="generated" data-token="home.seats.others_lo" data-when="" data-prov="13. First published in this edition (24 September 2026). Source: seat_draws.csv, council minus the named parties in each simulation, computed at build from the current model run." tabindex="0">13</span>–<span class="mstat" data-mode="generated" data-token="home.seats.others_hi" data-when="" data-prov="55. First published in this edition (24 September 2026). Source: seat_draws.csv, council minus the named parties in each simulation, computed at build from the current model run." tabindex="0">55</span></div>
     </div>
   </div>
   <div class="stamp" style="margin-top:12px">Each party's middle value across the simulations, with the range covering 90% of them. They do not add up to the council: a party's best simulations are not the same ones as its rivals'. "Everyone else" is the council minus the parties named above, taken <em>within</em> each simulation.</div>

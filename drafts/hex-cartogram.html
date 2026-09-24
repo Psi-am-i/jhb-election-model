@@ -61,6 +61,15 @@ letter-spacing:.1em;text-transform:uppercase}</style>
     })();
     </script>
   </details>
+<style>
+  /* The Normal / Equal Sized switch, styled wherever it is emitted. */
+  .maptoggle{display:flex;gap:0;margin:4px 0 12px;font-size:13px;}
+  .maptoggle button{font:600 12.5px var(--sans,sans-serif);letter-spacing:.02em;padding:6px 14px;
+    border:1px solid var(--rule);background:transparent;color:var(--ink-2);cursor:pointer;}
+  .maptoggle button:first-child{border-radius:4px 0 0 4px;}
+  .maptoggle button:last-child{border-radius:0 4px 4px 0;border-left:none;}
+  .maptoggle button.on{background:var(--accent);border-color:var(--accent);color:var(--paper);}
+</style>
 <script>
 // Switches between the land map and the equal-ward map. Shows or hides the two
 // sections the build wrote; it writes no text or figure. Emitted HERE, with the

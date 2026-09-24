@@ -114,7 +114,7 @@
   figcaption.ballots-note{font-family:var(--serif);font-size:16px;line-height:1.5;color:var(--ink-2);
     margin-top:10px;}
   .chart{display:flex;flex-direction:column;gap:2px;}
-  .row{display:grid;grid-template-columns:104px 1fr 92px;align-items:center;gap:12px;
+  .row{display:grid;grid-template-columns:104px 1fr 44px 64px;align-items:center;gap:12px;
     padding:5px 0;}
   .pname{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:550;}
   .bloc{width:9px;height:9px;border-radius:50%;flex:none;}
@@ -131,7 +131,10 @@
   .val{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums;
     color:var(--ink-2);text-align:right;}
   .val b{color:var(--ink);font-weight:600;}
-  .scale{display:grid;grid-template-columns:104px 1fr 92px;gap:12px;
+  .val.rng{color:var(--ink-3);}
+  .shead .val{font-family:var(--sans);font-size:10.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--ink-3);}
+  .scale{display:grid;grid-template-columns:104px 1fr 44px 64px;gap:12px;
     font-family:var(--mono);font-size:10.5px;color:var(--ink-3);}
   .scale .ticks{display:flex;justify-content:space-between;}
 
@@ -182,7 +185,7 @@
     .page + .page{margin-top:0;border-top:none;padding-top:0;}
   }
   @media (max-width:560px){
-    .row,.scale{grid-template-columns:82px 1fr 78px;gap:8px;}
+    .row,.scale{grid-template-columns:82px 1fr 32px 56px;gap:8px;}
     .pname{font-size:12.5px;}
     .sheet{padding:20px 14px 48px;}
     h1{text-wrap:pretty;}
@@ -203,7 +206,7 @@
   .claim{display:flex;flex-direction:column;gap:14px;margin-top:26px;
     padding-top:24px;border-top:1px solid var(--rule);}
   .claim-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-  .plogo{width:44px;height:44px;border-radius:7px;object-fit:contain;
+  .plogo{width:64px;height:64px;border-radius:7px;object-fit:contain;
     background:#fff;padding:2px;flex:none;}
   .claim-who{display:flex;flex-direction:column;line-height:1.35;margin-right:auto;}
   .claim-who b{font-size:14.5px;}
@@ -265,12 +268,6 @@
   #govMore{margin-top:8px;font:600 12.5px var(--sans,sans-serif);padding:5px 12px;
     border:1px solid var(--rule);background:transparent;color:var(--ink-2);border-radius:4px;cursor:pointer;}
   .maplede{font-size:13.5px;color:var(--ink-2);margin:2px 0 8px;max-width:70ch;}
-  .maptoggle{display:flex;gap:0;margin:4px 0 12px;font-size:13px;}
-  .maptoggle button{font:600 12.5px var(--sans,sans-serif);letter-spacing:.02em;padding:6px 14px;
-    border:1px solid var(--rule);background:transparent;color:var(--ink-2);cursor:pointer;}
-  .maptoggle button:first-child{border-radius:4px 0 0 4px;}
-  .maptoggle button:last-child{border-radius:0 4px 4px 0;border-left:none;}
-  .maptoggle button.on{background:var(--accent);border-color:var(--accent);color:var(--paper);}
   /* .pubdate and .since: injected by build_site from stats.STAT_CSS */
 </style>
 <meta property="og:site_name" content="Johannesburg 2026 Election Model">

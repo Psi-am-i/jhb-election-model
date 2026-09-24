@@ -88,6 +88,52 @@ def majority_alone_share(processed: Path) -> float:
     return alone / total if total else 0.0
 
 
+def seat_quantiles(series) -> tuple[int, int, int]:
+    """(median, p5, p95) of a per-simulation seat series, as whole seats.
+
+    ONE DEFINITION for every seats table on the site. The home page used a
+    nearest-rank quantile and the sheet `np.percentile`, so the same party
+    could print a different range on two pages; `forecast_summary.json`'s
+    p5/p95 are `np.percentile`, so that is the convention.
+    """
+    import numpy as _np
+    x = _np.asarray(series)
+    return (int(round(float(_np.median(x)))), int(round(float(_np.percentile(x, 5)))),
+            int(round(float(_np.percentile(x, 95)))))
+
+
+def others_per_draw(processed: Path, named) -> "np.ndarray":
+    """Seats held by every party NOT in `named`, within each simulation.
+
+    ⛔ ONE DEFINITION, TWO PAGES (owner, 2026-09-24: the two "Others" rows
+    differed by about twenty seats). The sheet summed the small columns of
+    `seat_draws.csv` — but that file keeps only the 13 largest parties, so
+    every seat held by a party ranked lower was silently dropped. The home
+    page took the council minus the named parties in each simulation, which
+    is simply true: the seats exist and somebody holds them. That is this.
+
+    And never a sum of per-party medians or percentiles: those describe no
+    simulation (the "smaller parties — 39 seats" error, §1.214's shape).
+    """
+    import csv as _csv
+    import numpy as _np
+    path = Path(processed) / "seat_draws.csv"
+    if not path.exists():
+        raise SystemExit(
+            f"no {path}: the seats held outside the named parties can only be "
+            f"counted within each simulation, and may not be guessed.")
+    named = set(named)
+    out = []
+    with path.open(encoding="utf-8", newline="") as fh:
+        for row in _csv.DictReader(fh):
+            council = int(float(row["council_size"]))
+            held = sum(int(float(row.get(p) or 0)) for p in named if p in row)
+            out.append(council - held)
+    if not out:
+        raise SystemExit(f"{path} has no simulations in it")
+    return _np.array(out)
+
+
 def matching(detail, conditions) -> list[int]:
     return [d for d in sorted(detail)
             if all(OPS[op](detail[d].get(p, {}).get("seats", 0), n)

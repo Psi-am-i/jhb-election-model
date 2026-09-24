@@ -64,7 +64,7 @@
 
   /* seats */
   .seats{display:flex;flex-direction:column;gap:3px;}
-  .srow{display:grid;grid-template-columns:96px 1fr 76px;align-items:center;
+  .srow{display:grid;grid-template-columns:96px 1fr 38px 58px;align-items:center;
     gap:10px;}
   .sname{font-size:12.5px;display:flex;align-items:center;gap:6px;}
   .strack{position:relative;height:16px;background:var(--rule-soft);
@@ -73,6 +73,9 @@
   .sval{font-family:var(--mono);font-size:12.5px;text-align:right;
     color:var(--ink-2);}
   .sval b{color:var(--ink);}
+  .sval.rng{color:var(--ink-3);}
+  .shead .sval{font-family:var(--sans);font-size:10.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--ink-3);}
   .two{display:grid;grid-template-columns:1fr;gap:26px;}
   @media (min-width:900px){.two{grid-template-columns:1fr 1fr;gap:38px;}}
 
@@ -252,6 +255,15 @@
     })();
     </script>
   </details>
+<style>
+  /* The Normal / Equal Sized switch, styled wherever it is emitted. */
+  .maptoggle{display:flex;gap:0;margin:4px 0 12px;font-size:13px;}
+  .maptoggle button{font:600 12.5px var(--sans,sans-serif);letter-spacing:.02em;padding:6px 14px;
+    border:1px solid var(--rule);background:transparent;color:var(--ink-2);cursor:pointer;}
+  .maptoggle button:first-child{border-radius:4px 0 0 4px;}
+  .maptoggle button:last-child{border-radius:0 4px 4px 0;border-left:none;}
+  .maptoggle button.on{background:var(--accent);border-color:var(--accent);color:var(--paper);}
+</style>
 <script>
 // Switches between the land map and the equal-ward map. Shows or hides the two
 // sections the build wrote; it writes no text or figure. Emitted HERE, with the
@@ -280,45 +292,54 @@ document.querySelectorAll(".maptoggle button").forEach(function(b){
   <div class="eyebrow">Seats, if the election were held now</div>
   <!-- __HOMESEATS_START__ -->
   <div class="seats">
+    <div class="srow shead"><div></div><div></div><div class="sval">median</div><div class="sval rng">range</div></div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--anc)"></span>ANC</div>
       <div class="strack"><i style="width:72.8%;background:var(--anc)"></i></div>
-      <div class="sval"><b>{{@home.seats.anc=67;int;forecast_summary.json, 5,000 simulations}}</b> {{@home.seats.anc_lo=29;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.anc_hi=92;int;forecast_summary.json, 5,000 simulations}}</div>
+      <div class="sval"><b>{{@home.seats.anc=67;int;forecast_summary.json, 5,000 simulations}}</b></div>
+      <div class="sval rng">{{@home.seats.anc_lo=29;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.anc_hi=92;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--da)"></span>DA</div>
       <div class="strack"><i style="width:71.7%;background:var(--da)"></i></div>
-      <div class="sval"><b>{{@home.seats.da=66;int;forecast_summary.json, 5,000 simulations}}</b> {{@home.seats.da_lo=45;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.da_hi=90;int;forecast_summary.json, 5,000 simulations}}</div>
+      <div class="sval"><b>{{@home.seats.da=66;int;forecast_summary.json, 5,000 simulations}}</b></div>
+      <div class="sval rng">{{@home.seats.da_lo=45;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.da_hi=90;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--asa)"></span>ActionSA</div>
       <div class="strack"><i style="width:29.3%;background:var(--asa)"></i></div>
-      <div class="sval"><b>{{@home.seats.asa=27;int;forecast_summary.json, 5,000 simulations}}</b> {{@home.seats.asa_lo=11;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.asa_hi=52;int;forecast_summary.json, 5,000 simulations}}</div>
+      <div class="sval"><b>{{@home.seats.asa=27;int;forecast_summary.json, 5,000 simulations}}</b></div>
+      <div class="sval rng">{{@home.seats.asa_lo=11;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.asa_hi=52;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--eff)"></span>EFF</div>
       <div class="strack"><i style="width:26.1%;background:var(--eff)"></i></div>
-      <div class="sval"><b>{{@home.seats.eff=24;int;forecast_summary.json, 5,000 simulations}}</b> {{@home.seats.eff_lo=8;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.eff_hi=54;int;forecast_summary.json, 5,000 simulations}}</div>
+      <div class="sval"><b>{{@home.seats.eff=24;int;forecast_summary.json, 5,000 simulations}}</b></div>
+      <div class="sval rng">{{@home.seats.eff_lo=8;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.eff_hi=54;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--mk)"></span>MK Party</div>
       <div class="strack"><i style="width:22.8%;background:var(--mk)"></i></div>
-      <div class="sval"><b>{{@home.seats.mk=21;int;forecast_summary.json, 5,000 simulations}}</b> {{@home.seats.mk_lo=7;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.mk_hi=50;int;forecast_summary.json, 5,000 simulations}}</div>
+      <div class="sval"><b>{{@home.seats.mk=21;int;forecast_summary.json, 5,000 simulations}}</b></div>
+      <div class="sval rng">{{@home.seats.mk_lo=7;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.mk_hi=50;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--pa)"></span>PA</div>
       <div class="strack"><i style="width:25.0%;background:var(--pa)"></i></div>
-      <div class="sval"><b>{{@home.seats.pa=23;int;forecast_summary.json, 5,000 simulations}}</b> {{@home.seats.pa_lo=14;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.pa_hi=37;int;forecast_summary.json, 5,000 simulations}}</div>
+      <div class="sval"><b>{{@home.seats.pa=23;int;forecast_summary.json, 5,000 simulations}}</b></div>
+      <div class="sval rng">{{@home.seats.pa_lo=14;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.pa_hi=37;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--oth)"></span>IFP</div>
       <div class="strack"><i style="width:2.2%;background:var(--oth)"></i></div>
-      <div class="sval"><b>{{@home.seats.ifp=2;int;forecast_summary.json, 5,000 simulations}}</b> {{@home.seats.ifp_lo=0;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.ifp_hi=16;int;forecast_summary.json, 5,000 simulations}}</div>
+      <div class="sval"><b>{{@home.seats.ifp=2;int;forecast_summary.json, 5,000 simulations}}</b></div>
+      <div class="sval rng">{{@home.seats.ifp_lo=0;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.ifp_hi=16;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--oth)"></span>Everyone else</div>
       <div class="strack"><i style="width:32.6%;background:var(--oth)"></i></div>
-      <div class="sval"><b>{{@home.seats.others=30;int;seat_draws.csv, council minus the named parties in each simulation}}</b> {{@home.seats.others_lo=13;int;seat_draws.csv, council minus the named parties in each simulation}}–{{@home.seats.others_hi=55;int;seat_draws.csv, council minus the named parties in each simulation}}</div>
+      <div class="sval"><b>{{@home.seats.others=30;int;seat_draws.csv, council minus the named parties in each simulation}}</b></div>
+      <div class="sval rng">{{@home.seats.others_lo=13;int;seat_draws.csv, council minus the named parties in each simulation}}–{{@home.seats.others_hi=55;int;seat_draws.csv, council minus the named parties in each simulation}}</div>
     </div>
   </div>
   <div class="stamp" style="margin-top:12px">Each party's middle value across the simulations, with the range covering 90% of them. They do not add up to the council: a party's best simulations are not the same ones as its rivals'. "Everyone else" is the council minus the parties named above, taken <em>within</em> each simulation.</div>

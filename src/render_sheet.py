@@ -73,9 +73,10 @@ def main(argv: list[str] | None = None) -> int:
     council = np.array([int(r["council_size"]) for r in rows])
     summary = json.loads((args.processed / "forecast_summary.json").read_text())
 
+    import scenarios as _scq
+
     def q(series):
-        return (int(round(np.median(series))), int(round(np.percentile(series, 5))),
-                int(round(np.percentile(series, 95))))
+        return _scq.seat_quantiles(series)
 
     def coalition(*members):
         total = sum(S[p] for p in members if p in S)
@@ -143,7 +144,7 @@ def main(argv: list[str] | None = None) -> int:
     # (no 'council 270 · majority 136' tile: that is the law, not something the simulations say)
 
     # --- where the parties land: ordered by median, then mean ----------------
-    others = sum(S[p] for p in parties if p not in CHART_PARTIES)
+    others = _scq.others_per_draw(args.processed, CHART_PARTIES)
     chart = [(NAMES[p], CHIPS[p], S[p], p) for p in CHART_PARTIES if p in S]
     chart.sort(key=lambda c: (-np.median(c[2]), -c[2].mean()))
     chart.append(("Others", "#8b918b", others, "OTHERS"))
@@ -157,9 +158,9 @@ def main(argv: list[str] | None = None) -> int:
             f'<div class="track"><span class="band" style="left:{lo / MAX * 100:.2f}%;'
             f'width:{(hi - lo) / MAX * 100:.2f}%"></span><span class="med" '
             f'style="left:calc({med / MAX * 100:.2f}% - 1.5px)"></span></div>'
-            f'<div class="val"><b>{seats(f"seats.{code}.median", med)}</b> '
-            f'<span style="color:var(--ink-3)">{seats(f"seats.{code}.p5", lo)}–'
-            f'{seats(f"seats.{code}.p95", hi)}</span></div></div>')
+            f'<div class="val"><b>{seats(f"seats.{code}.median", med)}</b></div>'
+            f'<div class="val rng">{seats(f"seats.{code}.p5", lo)}–'
+            f'{seats(f"seats.{code}.p95", hi)}</div></div>')
 
     # --- who can govern ------------------------------------------------------
     means = {p: float(S[p].mean()) for p in parties}
@@ -290,11 +291,9 @@ def main(argv: list[str] | None = None) -> int:
     # (owner, 2026-09-18). It belongs to the seats chart, where the reader meets
     # the pooled "Others" row and can see the bars do not add to the council.
     seats_note = (
-        f"The simulations carry {tok('govern.tracked_parties', nT, 'int')} parties individually; "
-        f"the chart pools the smallest of them as <b>Others</b>. The parties below that, which no "
-        f"simulation carries separately, hold about "
-        f"{tok('govern.untracked_seats', f'{untracked:.2f}', 'int')} seats between them on average, "
-        f"and are not drawn here.")
+        "<b>Others</b> is every party not named above, counted within each simulation: the "
+        "council minus the named parties' seats. Each row is that party's own middle value and "
+        "90% range across the simulations, so the rows do not add up to the council.")
 
     # --- minority administrations ---------------------------------------------
     minority_rows = summary["minority"]
