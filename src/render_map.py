@@ -372,7 +372,8 @@ def main(argv: list[str] | None = None) -> int:
                    if -10 <= xy(lx, ly)[0] <= W + 10 and -10 <= xy(lx, ly)[1] <= H + 10],
     }, separators=(",", ":")), encoding="utf-8")
 
-    for target in (Path("forecast-sheet.html"), Path("drafts/forecast-draft.html")):
+    for target in (Path("forecast-sheet.html"), Path("home.html"),
+                   Path("drafts/forecast-draft.html")):
         t = target.read_text(encoding="utf-8")
         if MARK_START not in t:
             print(f"  ! no map markers in {target}; skipped")

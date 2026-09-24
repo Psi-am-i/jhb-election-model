@@ -605,3 +605,43 @@ owner's.
 a heading and a link, and it says the interactive is coming rather than
 pretending. The interactive itself follows §9's order — the three new model
 mechanisms first, because they are model changes, then the page.
+
+---
+
+## 11. The home page shipped into the build, and the forecast leads with itself — owner, 2026-09-24
+
+Built and in `site/`, **not deployed** (the live pages are still the 31 August
+build):
+
+* **`/` is the home page** (§10's layout A). It carries the site menu like
+  every other page, with no "home" item — the site name is the link home.
+* **`/forecast` leads with the forecast.** The 31 August article — headline,
+  standfirst, its dated "since then" note and the commentary it opens — is its
+  own page, `/nobody-will-win`, listed with the other articles. Both pages are
+  cut from ONE template (`forecast-sheet.html`, `__ARTICLE_ONLY__` /
+  `__FORECAST_ONLY__` spans, `build_site.cut_spans`), so the stylesheet, the
+  scripts and every generated region stay single. Old `/#section` links are
+  forwarded to wherever that section now lives.
+* **One theme for the whole site**: dark by default (including with no
+  script), a sun/moon toggle in the menu, the choice remembered per reader.
+  `build_site.THEME_HEAD` is the only palette; the per-page copies are gone.
+  This is why pages used to flip — each followed a different rule.
+* **The map's Normal / Equal Sized switch works on every page with both
+  maps.** Its script is now emitted by `hex_cartogram.py` with the cartogram
+  it switches to; the home page had shipped with the buttons and neither the
+  second map nor the script. A page listed for the cartogram without its
+  markers now refuses the build.
+* The model page's backtest table says which election it scores (2021).
+
+**Still open on the site (owner's list, 2026-09-24):** seats table as clean
+*median* and *range* columns; ONE definition of "Others" for both pages (the
+forecast's reads only the 13 columns `seat_draws.csv` keeps, the home page's
+is the council minus the named parties per simulation — they differ by about
+twenty seats); the home map buttons unstyled; bigger party logos in the
+claims; a `/judgement-calls` page generated from a corrected register (live
+calls with a plain intro, the full register collapsed); the forecast page's
+heading ("Who governs Johannesburg") is a placeholder.
+
+**Not current and must be before deploy:** the model page's scores are the
+11 August 400-draw 2021 run, not the 23 September canonical measurement.
+Regenerating needs a re-emit window (`build_validation.collect` emits).

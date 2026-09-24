@@ -289,7 +289,7 @@ against three baselines that need no model at all. The results are on the
 - **No poll is used in the forecast.** Polls were an input until
   12 September 2026 and are not one now. Why they were taken out, what
   they were worth when it was measured, and what we intend to do with
-  them, is in [Where polls fit](#where-polls-fit) below.
+  them, is in *Where polls fit*, below.
 - **Arithmetic is not politics.** The model says which governments are
   numerically possible. Whether people who dislike each other will sit in the
   same room is not a modelling question.

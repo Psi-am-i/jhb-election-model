@@ -155,7 +155,7 @@ def main(argv: list[str] | None = None) -> int:
  Africa's metros for the {ELECTION} local government election: thousands of
  simulated elections, the real seat law, every assumption a slider.">
 <meta property="og:url" content="https://whysoserious.city/">
-<style>{build_site.STYLE}{PORTAL_CSS}</style>
+{build_site.THEME_HEAD}<style>{build_site.STYLE}{PORTAL_CSS}</style>
 </head>
 <body>
 <div class="page">

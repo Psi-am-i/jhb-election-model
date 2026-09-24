@@ -17,20 +17,50 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://joburg.whysoserious.city/share.jpg">
 <style>
-  :root{
+  :root{color-scheme:dark;
+    --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
+    --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
+    --accent:#d9954f; --accent-soft:#3a2a1a;
+    --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a; --bad:#d98070;
+    --k-article:#7aa6d6; --k-claim:#d9954f; --k-explain:#6fb98a;
+    --k-interactive:#b98ad6;
+  }
+  :root[data-theme="light"]{color-scheme:light;
     --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
     --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
-    --accent:#a8621f; --accent-soft:#f0e2d5; --good:#2f6d4a;
+    --accent:#a8621f; --accent-soft:#f0e2d5;
+    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
+    --k-article:#2f5f96; --k-claim:#a8621f; --k-explain:#2f6d4a;
+    --k-interactive:#7a4a9c;
+  }
+  .themetoggle{font:inherit;color:var(--ink-3);background:none;border:0;
+    padding:0;cursor:pointer;white-space:nowrap;line-height:0;align-self:center;}
+  .themetoggle svg{display:block;}
+  .themetoggle:hover{color:var(--accent);}
+  .themetoggle .to-dark{display:none;}
+  :root[data-theme="light"] .themetoggle .to-light{display:none;}
+  :root[data-theme="light"] .themetoggle .to-dark{display:inline;}
+</style>
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+  })();
+  function toggleTheme() {
+    var root = document.documentElement;
+    var light = root.getAttribute("data-theme") !== "light";
+    if (light) root.setAttribute("data-theme", "light");
+    else root.removeAttribute("data-theme");
+    try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
+  }
+</script>
+<style>
+  :root{
+    /* colours come from THEME_HEAD, the one palette every page shares */
     --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
     --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
-  }
-  @media (prefers-color-scheme:dark){
-    :root{
-      --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
-      --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
-      --accent:#d9954f; --accent-soft:#3a2a1a; --good:#6fb98a;
-    }
   }
   *{box-sizing:border-box;margin:0;}
   /* Three text levels, applied the same way on every page: headings and
@@ -162,13 +192,14 @@
 <div class="page">
 <nav class="topnav">
   <a class="home" href="./">joburg.whysoserious.city</a>
-  <a href="./">forecast</a>
+  <a href="forecast">forecast</a>
   <a href="about">the model</a>
   <a class="active" href="methodology">methodology</a>
   <a href="review">review</a>
   <a href="sources">sources</a>
   <a href="corrections">corrections</a>
   <a href="https://github.com/Psi-am-i/jhb-election-model">source-code</a>
+  <button class="themetoggle" type="button" onclick="toggleTheme()" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
 </nav>
 <header>
   <div class="kicker">Methodology</div>
@@ -184,7 +215,7 @@ scoring is on the <a href="about">about the model</a> page.</p>
 <h2>How accurate is it?</h2>
 <p>A forecast that has never been scored is an opinion. So this one is run against
 an election that has already happened — the 2021 municipal election, in
-<span class="mstat" data-mode="free" data-token="backtest_cities" data-when="2026-09-18" data-live="8" data-prov="8. First published in this edition (23 September 2026). Source: validation:cities, live from the current model run." tabindex="0">8</span> cities — and scored against what actually occurred.</p>
+<span class="mstat" data-mode="free" data-token="backtest_cities" data-when="2026-09-18" data-live="8" data-prov="8. First published in this edition (24 September 2026). Source: validation:cities, live from the current model run." tabindex="0">8</span> cities — and scored against what actually occurred.</p>
 <p>The comparison that matters is not &ldquo;did it get close&rdquo;, but &ldquo;did it beat what
 anyone could do without a model&rdquo;. The standard in election forecasting is
 <strong>uniform swing</strong>: take the national change since the last election and apply it
@@ -193,13 +224,13 @@ knows the last result and the direction the country moved. We score against that
 and two others — the last local result repeating unchanged, and that result with
 uncertainty drawn around it — and compare the model against <strong>whichever did best
 in each city</strong>, not the weakest of the three.</p>
-<p>The model wins in <strong><span class="mstat" data-mode="free" data-token="backtest_wins" data-when="2026-09-18" data-live="7" data-prov="7. First published in this edition (23 September 2026). Source: validation:wins, live from the current model run." tabindex="0">7</span> of <span class="mstat" data-mode="free" data-token="backtest_cities" data-when="2026-09-18" data-live="8" data-prov="8. First published in this edition (23 September 2026). Source: validation:cities, live from the current model run." tabindex="0">8</span></strong> cities on the
+<p>The model wins in <strong><span class="mstat" data-mode="free" data-token="backtest_wins" data-when="2026-09-18" data-live="7" data-prov="7. First published in this edition (24 September 2026). Source: validation:wins, live from the current model run." tabindex="0">7</span> of <span class="mstat" data-mode="free" data-token="backtest_cities" data-when="2026-09-18" data-live="8" data-prov="8. First published in this edition (24 September 2026). Source: validation:cities, live from the current model run." tabindex="0">8</span></strong> cities on the
 measure that counts a forecast&rsquo;s whole range rather than a single guess (CRPS),
-with <strong><span class="mstat" data-mode="free" data-token="backtest_crps_better" data-when="2026-09-18" data-live="37%" data-prov="37%. First published in this edition (23 September 2026). Source: validation:crps_better_pct, live from the current model run." tabindex="0">37%</span></strong> less error in total. On the blunter measure of
-seats put in the wrong column it misses <strong><span class="mstat" data-mode="free" data-token="backtest_seat_err_model" data-when="2026-09-18" data-live="289" data-prov="289. First published in this edition (23 September 2026). Source: validation:seat_err_model, live from the current model run." tabindex="0">289</span></strong> across
-all those councils against the baselines&rsquo; <strong><span class="mstat" data-mode="free" data-token="backtest_seat_err_baseline" data-when="2026-09-18" data-live="353" data-prov="353. First published in this edition (23 September 2026). Source: validation:seat_err_baseline, live from the current model run." tabindex="0">353</span></strong>, and
-it calls the winner correctly in <strong><span class="mstat" data-mode="free" data-token="backtest_wards_called" data-when="2026-09-18" data-live="721" data-prov="721. First published in this edition (23 September 2026). Source: validation:wards_called, live from the current model run." tabindex="0">721</span> of
-<span class="mstat" data-mode="free" data-token="backtest_wards" data-when="2026-09-18" data-live="742" data-prov="742. First published in this edition (23 September 2026). Source: validation:wards, live from the current model run." tabindex="0">742</span></strong> wards.</p>
+with <strong><span class="mstat" data-mode="free" data-token="backtest_crps_better" data-when="2026-09-18" data-live="37%" data-prov="37%. First published in this edition (24 September 2026). Source: validation:crps_better_pct, live from the current model run." tabindex="0">37%</span></strong> less error in total. On the blunter measure of
+seats put in the wrong column it misses <strong><span class="mstat" data-mode="free" data-token="backtest_seat_err_model" data-when="2026-09-18" data-live="289" data-prov="289. First published in this edition (24 September 2026). Source: validation:seat_err_model, live from the current model run." tabindex="0">289</span></strong> across
+all those councils against the baselines&rsquo; <strong><span class="mstat" data-mode="free" data-token="backtest_seat_err_baseline" data-when="2026-09-18" data-live="353" data-prov="353. First published in this edition (24 September 2026). Source: validation:seat_err_baseline, live from the current model run." tabindex="0">353</span></strong>, and
+it calls the winner correctly in <strong><span class="mstat" data-mode="free" data-token="backtest_wards_called" data-when="2026-09-18" data-live="721" data-prov="721. First published in this edition (24 September 2026). Source: validation:wards_called, live from the current model run." tabindex="0">721</span> of
+<span class="mstat" data-mode="free" data-token="backtest_wards" data-when="2026-09-18" data-live="742" data-prov="742. First published in this edition (24 September 2026). Source: validation:wards, live from the current model run." tabindex="0">742</span></strong> wards.</p>
 <p>Two honest caveats. Two of the three alternatives produce a single number rather
 than a range, which the range-based score treats kindly. And the model is
 compared against the best baseline in each city, which is the hardest test
@@ -234,17 +265,17 @@ everyone else.</p>
 <p>Two consequences shape everything on this site. First, the council is always
 close to proportional, so a fragmented vote produces a fragmented council.
 Second, the excessive-seats clause, which the model expects to catch the ANC
-in <span class="mstat" data-mode="free" data-token="p_excessive_anc" data-when="2026-08-07" data-live="65%" data-prov="65%. First published in this edition (23 September 2026). Source: model:p_excessive_by_party.ANC, live from the current model run." tabindex="0">65%</span> of simulations: a citywide vote in the mid-twenties,
+in <span class="mstat" data-mode="free" data-token="p_excessive_anc" data-when="2026-08-07" data-live="65%" data-prov="65%. First published in this edition (24 September 2026). Source: model:p_excessive_by_party.ANC, live from the current model run." tabindex="0">65%</span> of simulations: a citywide vote in the mid-twenties,
 but stronghold wards that still win. Where it fires, the party&rsquo;s ward count
 becomes an unbreakable floor, its list seats go to zero, and the squeeze lands
 on every other party&rsquo;s list seats — inside a council fixed at
-<span class="mstat" data-mode="free" data-token="council_size" data-when="2026-08-07" data-live="270" data-prov="270. First published in this edition (23 September 2026). Source: derived:council_size, live from the current model run." tabindex="0">270</span>, with the majority fixed at <span class="mstat" data-mode="free" data-token="majority" data-when="2026-08-07" data-live="136" data-prov="136. First published in this edition (23 September 2026). Source: derived:majority, live from the current model run." tabindex="0">136</span>.</p>
+<span class="mstat" data-mode="free" data-token="council_size" data-when="2026-08-07" data-live="270" data-prov="270. First published in this edition (24 September 2026). Source: derived:council_size, live from the current model run." tabindex="0">270</span>, with the majority fixed at <span class="mstat" data-mode="free" data-token="majority" data-when="2026-08-07" data-live="136" data-prov="136. First published in this edition (24 September 2026). Source: derived:majority, live from the current model run." tabindex="0">136</span>.</p>
 <h2>The model, step by step</h2>
 <p>Here is the whole thing in order. Nothing below is more complicated than it
 looks.</p>
 <h3>1. Start by counting who can vote, and where</h3>
 <p>Before any modelling, the Electoral Commission publishes how many people are
-registered to vote in each of Johannesburg&rsquo;s <span class="mstat" data-mode="free" data-token="n_vds" data-when="2026-09-17" data-live="872" data-prov="872. First published in this edition (23 September 2026). Source: model:n_vds, live from the current model run." tabindex="0">872</span> voting districts. We
+registered to vote in each of Johannesburg&rsquo;s <span class="mstat" data-mode="free" data-token="n_vds" data-when="2026-09-17" data-live="872" data-prov="872. First published in this edition (24 September 2026). Source: model:n_vds, live from the current model run." tabindex="0">872</span> voting districts. We
 take that count. It is not estimated, projected or adjusted — it is the roll,
 published before polling day, and it is the foundation everything else sits
 on.</p>
@@ -337,7 +368,7 @@ nationally in 2019 as Julius Malema was in 2014; her party took about
 one-eighteenth as much of the DA&rsquo;s vote in Johannesburg as it did in her own
 Cape Town. A reputation does not travel. A constituency does not move.</p>
 <h3>6. Paint the result back onto the map</h3>
-<p>Each drawn outcome is spread back across all <span class="mstat" data-mode="free" data-token="n_vds" data-when="2026-09-17" data-live="872" data-prov="872. First published in this edition (23 September 2026). Source: model:n_vds, live from the current model run." tabindex="0">872</span> voting districts using each
+<p>Each drawn outcome is spread back across all <span class="mstat" data-mode="free" data-token="n_vds" data-when="2026-09-17" data-live="872" data-prov="872. First published in this edition (24 September 2026). Source: model:n_vds, live from the current model run." tabindex="0">872</span> voting districts using each
 party&rsquo;s own geography — where its votes actually were last time. This is the
 best-tested idea in the model: <em>where</em> a party&rsquo;s support sits barely moves
 between elections even when <em>how much</em> it has swings wildly.</p>
@@ -347,14 +378,14 @@ counted separately, each party&rsquo;s split measured from its own past behaviou
 Ward winners are called race by race. Then the statutory formula — the same
 arithmetic the Electoral Commission uses — allocates every seat, excessive
 seats included.</p>
-<h3>8. Do it <span class="mstat" data-mode="free" data-token="n_draws" data-when="2026-08-07" data-live="5,000" data-prov="5,000. First published in this edition (23 September 2026). Source: derived:n_draws, live from the current model run." tabindex="0">5,000</span> times</h3>
+<h3>8. Do it <span class="mstat" data-mode="free" data-token="n_draws" data-when="2026-08-07" data-live="5,000" data-prov="5,000. First published in this edition (24 September 2026). Source: derived:n_draws, live from the current model run." tabindex="0">5,000</span> times</h3>
 <p>Each run draws fresh values within every bound. The output is not a
 prediction but a distribution: how often each seat count happens, how often
 each coalition clears the line. Every possible combination of parties is
 checked against that run&rsquo;s own majority line, with no judgement about who
 would work with whom.</p>
 <p>Why simulate at all, rather than publish one number? Because Johannesburg&rsquo;s
-politics runs on thresholds — a coalition either reaches <span class="mstat" data-mode="free" data-token="majority" data-when="2026-08-07" data-live="136" data-prov="136. First published in this edition (23 September 2026). Source: derived:majority, live from the current model run." tabindex="0">136</span> seats or
+politics runs on thresholds — a coalition either reaches <span class="mstat" data-mode="free" data-token="majority" data-when="2026-08-07" data-live="136" data-prov="136. First published in this edition (24 September 2026). Source: derived:majority, live from the current model run." tabindex="0">136</span> seats or
 it does not — and near a threshold small uncertainties have large, lopsided
 consequences that no error bar can carry.</p>
 <h2>What a pool is — and what it is not</h2>
@@ -381,7 +412,7 @@ Commission&rsquo;s own count of independent ward councillors rather than inferri
 it.</p>
 <p><strong>The geography transfers.</strong> <span data-asof="2026-08-04">Shown only citywide
 totals for 2021 — nothing about where the votes sat — the model placed them
-well enough to call <span class="mstat" data-mode="fixed" data-token="blind_test_called" data-when="2026-08-04" data-prov="129. First published in this edition (23 September 2026). Source: external:fold-2 blind validation (MODEL-LOG 1.9). Pinned 2026-08-04." tabindex="0">129</span> of <span class="mstat" data-mode="fixed" data-token="blind_test_of" data-when="2026-08-04" data-prov="135. First published in this edition (23 September 2026). Source: external:ward count at the 2021 delimitation. Pinned 2026-08-04." tabindex="0">135</span> ward winners.
+well enough to call <span class="mstat" data-mode="fixed" data-token="blind_test_called" data-when="2026-08-04" data-prov="129. First published in this edition (24 September 2026). Source: external:fold-2 blind validation (MODEL-LOG 1.9). Pinned 2026-08-04." tabindex="0">129</span> of <span class="mstat" data-mode="fixed" data-token="blind_test_of" data-when="2026-08-04" data-prov="135. First published in this edition (24 September 2026). Source: external:ward count at the 2021 delimitation. Pinned 2026-08-04." tabindex="0">135</span> ward winners.
 That test was run on 4 August 2026; the model has changed since, and it has not
 been re-run.</span></p>
 <p><strong>The whole thing beats the simple alternatives, in cities it was never built
@@ -421,7 +452,7 @@ against three baselines that need no model at all. The results are on the
 <li><strong>No poll is used in the forecast.</strong> Polls were an input until
   12 September 2026 and are not one now. Why they were taken out, what
   they were worth when it was measured, and what we intend to do with
-  them, is in <a href="#where-polls-fit">Where polls fit</a> below.</li>
+  them, is in <em>Where polls fit</em>, below.</li>
 <li><strong>Arithmetic is not politics.</strong> The model says which governments are
   numerically possible. Whether people who dislike each other will sit in the
   same room is not a modelling question.</li>
@@ -447,14 +478,14 @@ weighting we had was defensible one poll at a time and improvised across
 several. Rather than keep shipping a forecast that depended on it, the channel
 is off until that is designed properly.</p>
 <h3>What they were worth, measured</h3>
-<p>We aim to score <span class="mstat" data-mode="fixed" data-token="backtest_target" data-when="2026-09-17" data-prov="24. First published in this edition (23 September 2026). Source: external:the panel we aim to score — 8 metros x 3 elections (2011, 2016, 2021). Pinned 2026-09-17." tabindex="0">24</span> past city
+<p>We aim to score <span class="mstat" data-mode="fixed" data-token="backtest_target" data-when="2026-09-17" data-prov="24. First published in this edition (24 September 2026). Source: external:the panel we aim to score — 8 metros x 3 elections (2011, 2016, 2021). Pinned 2026-09-17." tabindex="0">24</span> past city
 elections across the country — eight metros, three elections each — and how
 many are in the panel on any given day depends on which specs have been
 emitted. Against the panel as it stood, removing polls changed the total seat
 error from
-<span class="mstat" data-mode="fixed" data-token="polls_off_seat_err_before" data-when="2026-09-12" data-prov="725. First published in this edition (23 September 2026). Source: compare_history:seat_abs_err_coherent, poll_paths=all. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">725</span> to <span class="mstat" data-mode="fixed" data-token="polls_off_seat_err_after" data-when="2026-09-12" data-prov="723. First published in this edition (23 September 2026). Source: compare_history:seat_abs_err_coherent, poll_paths=off. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">723</span> and the
-distributional score (CRPS) from <span class="mstat" data-mode="fixed" data-token="polls_off_crps_before" data-when="2026-09-12" data-prov="545.8. First published in this edition (23 September 2026). Source: compare_history:crps, poll_paths=all. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">545.8</span> to
-<span class="mstat" data-mode="fixed" data-token="polls_off_crps_after" data-when="2026-09-12" data-prov="541.4. First published in this edition (23 September 2026). Source: compare_history:crps, poll_paths=off. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">541.4</span>. Both move the right way and neither is large: seven
+<span class="mstat" data-mode="fixed" data-token="polls_off_seat_err_before" data-when="2026-09-12" data-prov="725. First published in this edition (24 September 2026). Source: compare_history:seat_abs_err_coherent, poll_paths=all. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">725</span> to <span class="mstat" data-mode="fixed" data-token="polls_off_seat_err_after" data-when="2026-09-12" data-prov="723. First published in this edition (24 September 2026). Source: compare_history:seat_abs_err_coherent, poll_paths=off. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">723</span> and the
+distributional score (CRPS) from <span class="mstat" data-mode="fixed" data-token="polls_off_crps_before" data-when="2026-09-12" data-prov="545.8. First published in this edition (24 September 2026). Source: compare_history:crps, poll_paths=all. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">545.8</span> to
+<span class="mstat" data-mode="fixed" data-token="polls_off_crps_after" data-when="2026-09-12" data-prov="541.4. First published in this edition (24 September 2026). Source: compare_history:crps, poll_paths=off. Pinned 2026-09-12 (seed=20261104 draws=1000 rows=24 pools:843229db)." tabindex="0">541.4</span>. Both move the right way and neither is large: seven
 elections moved at all, one of them by six seats <em>against</em> the change. The
 honest summary is that <strong>we cannot distinguish the poll channel&rsquo;s
 contribution from zero</strong>, which is itself a reason not to let it move a
@@ -502,7 +533,7 @@ known defects in the public records we depend on are all published:</p>
 <li><code>SOURCES.md</code> — where every input came from and how to fetch it again</li>
 </ul>
 <div class="colophon">
-  Reader edition, generated from docs-public/methodology.md on 2026-09-23. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
+  Reader edition, generated from docs-public/methodology.md on 2026-09-24. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
   <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>

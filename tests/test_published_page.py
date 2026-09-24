@@ -93,12 +93,12 @@ BUILD_DATE = re.compile(r"(?i)(generated from [^<\n]{0,120}? on )(\d{4}-\d{2}-\d
 # retyped: a hand-kept second list is the duplication that let `plan.html` be
 # served for weeks after no build produced it.
 BUILT_PAGES = tuple(sorted(
-    {spec[0] for spec in build_site.DOCS.values()} | set(build_site.ARTEFACTS.values())
+    {spec[0] for spec in build_site.DOCS.values()} | set(build_site.ARTEFACTS)
 ))
 
 # output page -> the file the build reads to produce it.
 PAGE_INPUT = {spec[0]: ROOT / src for src, spec in build_site.DOCS.items()}
-PAGE_INPUT.update({out: ROOT / src for src, out in build_site.ARTEFACTS.items()})
+PAGE_INPUT.update({out: ROOT / spec[0] for out, spec in build_site.ARTEFACTS.items()})
 
 
 # --------------------------------------------------------------------------
@@ -179,14 +179,25 @@ def _run_stamp() -> str:
 
 _GENERATED_NOW: dict | None = None
 
+# (build input, the generator that fills it, the flag naming the page it fills)
+GENERATORS = [
+    ("forecast-sheet.html", "render_sheet.py", "--sheet"),
+    ("home.html", "render_home.py", "--page"),
+]
+
 
 def generated_now() -> dict[str, str]:
-    """Every generated token as `render_sheet.py` would render it TODAY.
+    """Every generated token as its generator would render it TODAY.
 
     Generated figures carry their value inline and have no registry entry, so
-    the registry cannot re-derive them. This does instead: regenerate the sheet
-    into a scratch copy from the current `data/processed`, render it, and read
-    the spans back. Nothing in the tree is written.
+    the registry cannot re-derive them. This does instead: regenerate each page
+    that carries them into a scratch copy from the current `data/processed`,
+    render it, and read the spans back. Nothing in the tree is written.
+
+    ⛔ EVERY GENERATOR, NOT JUST THE SHEET. Until the home page this ran only
+    `render_sheet.py`, so a `home.*` token had nothing to be compared against
+    and reported as unresolvable. A page missing from `GENERATORS` is a page
+    whose figures are unchecked.
     """
     global _GENERATED_NOW
     if _GENERATED_NOW is None:
@@ -194,16 +205,20 @@ def generated_now() -> dict[str, str]:
         import subprocess
         import tempfile
         root = Path(__file__).resolve().parents[1]
-        with tempfile.TemporaryDirectory() as tmp:
-            sheet = Path(tmp) / "forecast-sheet.html"
-            shutil.copy(root / "forecast-sheet.html", sheet)
-            r = subprocess.run([str(root / ".venv/bin/python"), str(root / "src/render_sheet.py"),
-                                "--sheet", str(sheet)], capture_output=True, text=True, cwd=root)
-            assert r.returncode == 0, r.stdout[-800:] + r.stderr[-800:]
-            text, _, _ = statlib.render(sheet.read_text(encoding="utf-8"), _registry(),
-                                        statlib.load_context(PROCESSED))
-        _GENERATED_NOW = {s.get("data-token", ""): s["rendered"] for s in _spans(text)
-                          if s.get("data-mode") == "generated"}
+        found: dict[str, str] = {}
+        for page, script, flag in GENERATORS:
+            with tempfile.TemporaryDirectory() as tmp:
+                copy = Path(tmp) / page
+                shutil.copy(root / page, copy)
+                r = subprocess.run([str(root / ".venv/bin/python"), str(root / "src" / script),
+                                    flag, str(copy)], capture_output=True, text=True, cwd=root)
+                assert r.returncode == 0, r.stdout[-800:] + r.stderr[-800:]
+                text, _, _ = statlib.render(copy.read_text(encoding="utf-8"), _registry(),
+                                            statlib.load_context(PROCESSED))
+            spans = [s for s in _spans(text) if s.get("data-mode") == "generated"]
+            assert spans, f"{script} regenerated {page} with no generated token in it"
+            found.update({s.get("data-token", ""): s["rendered"] for s in spans})
+        _GENERATED_NOW = found
     return _GENERATED_NOW
 
 
@@ -227,7 +242,7 @@ def live_token_faults(pages: dict[str, str], registry: dict,
                 if now != span["rendered"]:
                     faults.append({"page": page, "token": token,
                                    "rendered": span["rendered"], "live": now,
-                                   "source": "render_sheet.py, regenerated now",
+                                   "source": "its generator, regenerated now",
                                    "used_in": "", "why": "moved" if now else "unresolvable"})
                 continue
             if span.get("data-mode") != "free":

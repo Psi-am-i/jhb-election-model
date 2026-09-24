@@ -480,6 +480,25 @@ def render(layout: Layout, probs: dict[str, dict], city_name: str = "the city") 
     }})();
     </script>
   </details>
+<script>
+// Switches between the land map and the equal-ward map. Shows or hides the two
+// sections the build wrote; it writes no text or figure. Emitted HERE, with the
+// cartogram, so every page that has both maps has the switch (the home page
+// once had the buttons and neither the second map nor this script).
+document.querySelectorAll(".maptoggle button").forEach(function(b){{
+  b.addEventListener("click", function(){{
+    var show = b.getAttribute("data-show");
+    document.querySelectorAll("details[data-map]").forEach(function(d){{
+      d.style.display = d.getAttribute("data-map") === show ? "" : "none";
+    }});
+    document.querySelectorAll(".maptoggle button").forEach(function(o){{
+      var on = o.getAttribute("data-show") === show;
+      o.classList.toggle("on", on);
+      o.setAttribute("aria-pressed", on ? "true" : "false");
+    }});
+  }});
+}});
+</script>
   {MARK_END}"""
 
 
@@ -585,7 +604,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.into:
         t = args.into.read_text(encoding="utf-8")
         if MARK_START not in t:
-            print(f"  ! no {MARK_START} in {args.into}; nothing spliced")
+            # A page named here that lacks the markers keeps its toggle
+            # buttons and loses the map they switch to — which is exactly how
+            # the home page shipped. Refuse, do not shrug.
+            raise SystemExit(f"no {MARK_START} in {args.into}: nothing to splice "
+                             f"the equal-ward map into")
             return 1
         start = t.index(MARK_START)
         end = t.index(MARK_END) + len(MARK_END)

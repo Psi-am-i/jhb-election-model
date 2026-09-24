@@ -88,7 +88,12 @@ def main(argv: list[str] | None = None) -> int:
     largest = stack.argmax(axis=0)
     p_da_largest = float((np.array(parties)[largest] == "DA").mean())
     p_anc_largest = float((np.array(parties)[largest] == "ANC").mean())
-    p_alone = float((stack.max(axis=0) >= thr).mean())
+    # ONE DEFINITION, shared with the home page's heading — see
+    # scenarios.majority_alone_share. The inline version lived here and
+    # the heading needed the same number; two copies of "can anyone
+    # govern alone" is how a tile comes to disagree with the prose.
+    import scenarios as _sc_alone
+    p_alone = _sc_alone.majority_alone_share(args.processed)
     alone_str = f"{p_alone:.0%}" if p_alone >= 0.001 else "&lt;0.1%"
 
     p_excessive = summary.get("p_excessive_by_party", {}).get("ANC", 0.0)

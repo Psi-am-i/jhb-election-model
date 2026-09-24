@@ -1,4 +1,10 @@
 <!doctype html>
+<!--
+  ONE TEMPLATE, TWO PAGES (owner, 2026-09-24). build_site cuts this file into
+  /forecast, which drops every __ARTICLE_ONLY__ span and leads with the
+  forecast, and the 31 August article, which drops every __FORECAST_ONLY__
+  span. The stylesheet, the scripts and every generated region stay single.
+-->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -7,45 +13,10 @@
 
 <style>
   :root{
-    /* Cool paper, not cream. Neutrals carry a slight blue bias toward the ink. */
-    --paper:#fbfbfa;
-    --paper-2:#f2f3f1;
-    --rule:#d9dbd6;
-    --rule-soft:#e7e8e4;
-    --ink:#1a1d1b;
-    --ink-2:#4a4f4b;
-    --ink-3:#767b76;
-    /* One accent, spent on the majority threshold — the sheet's whole argument. */
-    --accent:#a8621f;
-    --accent-soft:#f0e2d5;
-    /* Data marks: neutral graphite, deliberately apolitical. */
-    --mark:#3b423e;
-    --mark-band:#c9cec9;
-    --good:#2f6d4a; --bad:#a03d2e;
-
+    /* colours come from build_site.THEME_HEAD, shared by every page */
     --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
     --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
-  }
-  @media (prefers-color-scheme:dark){
-    :root{
-      --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
-      --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
-      --accent:#d9954f; --accent-soft:#3a2a1a;
-      --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a; --bad:#d98070;
-    }
-  }
-  :root[data-theme="dark"]{
-    --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
-    --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
-    --accent:#d9954f; --accent-soft:#3a2a1a;
-    --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a; --bad:#d98070;
-  }
-  :root[data-theme="light"]{
-    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
-    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
-    --accent:#a8621f; --accent-soft:#f0e2d5;
-    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
   }
 
   /* Three text levels, the same on every page of the site (src/build_site.py
@@ -310,6 +281,7 @@
 <!-- ============================ PAGE 1 ============================ -->
 <div class="page">
 
+<!-- __ARTICLE_ONLY_START__ -->
   <header class="masthead">
     <div class="pubdate">31 August 2026: Published</div>
     <div class="kicker">Forecast · City of Johannesburg · 4 November 2026</div>
@@ -327,6 +299,13 @@
     majority on its own in {{p_alone}} of them. The ANC still triggers the excessive-seats clause in
     {{p_excessive_anc}}.</p></aside>
   </header>
+<!-- __ARTICLE_ONLY_END__ -->
+<!-- __FORECAST_ONLY_START__ -->
+  <header class="masthead">
+    <div class="kicker">Forecast · City of Johannesburg · 4 November 2026</div>
+    <h1>Who governs Johannesburg</h1>
+  </header>
+<!-- __FORECAST_ONLY_END__ -->
 
 
 
@@ -337,6 +316,7 @@
 
 
 
+<!-- __FORECAST_ONLY_START__ -->
   <div class="bandhead"><span class="bandtitle">The forecast</span><button type="button" class="bandbtn" data-band="forecast">collapse all</button></div>
 
 <!-- __MAP_START__ -->
@@ -461,6 +441,25 @@
     })();
     </script>
   </details>
+<script>
+// Switches between the land map and the equal-ward map. Shows or hides the two
+// sections the build wrote; it writes no text or figure. Emitted HERE, with the
+// cartogram, so every page that has both maps has the switch (the home page
+// once had the buttons and neither the second map nor this script).
+document.querySelectorAll(".maptoggle button").forEach(function(b){
+  b.addEventListener("click", function(){
+    var show = b.getAttribute("data-show");
+    document.querySelectorAll("details[data-map]").forEach(function(d){
+      d.style.display = d.getAttribute("data-map") === show ? "" : "none";
+    });
+    document.querySelectorAll(".maptoggle button").forEach(function(o){
+      var on = o.getAttribute("data-show") === show;
+      o.classList.toggle("on", on);
+      o.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  });
+});
+</script>
   <!-- __HEXMAP_END__ -->
 
 <!-- __BALLOTS_START__ -->
@@ -583,11 +582,13 @@ The simulations carry {{@govern.tracked_parties=13;int;seat_draws.csv, 5,000 sim
 <!-- __GOVERN_NOTE_END__ --></figcaption>
   </details>
 
+<!-- __FORECAST_ONLY_END__ -->
+<!-- __ARTICLE_ONLY_START__ -->
   <div class="bandhead"><span class="bandtitle">Commentary</span><button type="button" class="bandbtn" data-band="commentary">collapse all</button></div>
 
   <details class="rollup" data-band="commentary" open>
     <summary><span class="eyebrow">The rule that shapes everything</span>
-    <h2>Wards, lists — and the November surprise</h2></summary>
+    <h2 id="the-november-surprise">Wards, lists — and the November surprise</h2></summary>
     <div class="pubdate">31 August 2026: Published</div>
     <p class="lede">Johannesburg votes on two ballots at once: one elects a ward councillor, race
     by race — highest total wins, no majority needed, no runoff — and one is for a party. It seems like they elect two separate halves of the council,
@@ -656,7 +657,7 @@ The simulations carry {{@govern.tracked_parties=13;int;seat_draws.csv, 5,000 sim
 
   <details class="rollup" data-band="commentary" open>
     <summary><span class="eyebrow">The counter-intuitive part</span>
-    <h2>When the ANC falls, nobody catches the votes</h2></summary>
+    <h2 id="nobody-catches">When the ANC falls, nobody catches the votes</h2></summary>
     <div class="pubdate">31 August 2026: Published</div>
     <p class="lede">Most voters assume the ANC's decline must hand victory to someone else. The
     record says otherwise. Between 2019 and 2021 — the ANC bloc's biggest collapse ever — it shed
@@ -679,7 +680,7 @@ The simulations carry {{@govern.tracked_parties=13;int;seat_draws.csv, 5,000 sim
 
   <details class="rollup" data-band="commentary">
     <summary><span class="eyebrow">The third way to govern</span>
-    <h2>Minority administrations</h2></summary>
+    <h2 id="minority">Minority administrations</h2></summary>
     <p class="lede">No coalition table shows it, but the mayor is elected by councillors
     <em>present and voting</em>, so abstention installs minority governments — it is how the DA
     took this mayoralty in 2021. A minority administration is viable when its candidate outpolls
@@ -693,6 +694,8 @@ The simulations carry {{@govern.tracked_parties=13;int;seat_draws.csv, 5,000 sim
     </table></div>
   </details>
 
+<!-- __ARTICLE_ONLY_END__ -->
+<!-- __FORECAST_ONLY_START__ -->
   <div class="bandhead"><span class="bandtitle">About the model</span><button type="button" class="bandbtn" data-band="about">collapse all</button></div>
 
 
@@ -739,7 +742,7 @@ The simulations carry {{@govern.tracked_parties=13;int;seat_draws.csv, 5,000 sim
 
   <!-- "Your turn — simulate it yourself" removed 2026-09-17: the interactive it links to was withdrawn and is not on the site. -->
 
-  <section class="claimband">
+  <section class="claimband" id="claims">
     <div class="claimband-inner">
       <div class="eyebrow">The campaign arithmetic</div>
       <h2 class="claimband-h">The parties' claims, tested</h2>
@@ -753,6 +756,7 @@ The simulations carry {{@govern.tracked_parties=13;int;seat_draws.csv, 5,000 sim
     <!-- __CLAIMS_END__ -->
     </div>
   </section>
+<!-- __FORECAST_ONLY_END__ -->
 
   <div class="colophon">
     Sources: Electoral Commission of South Africa — voting-district results for the 2011, 2016 and
@@ -781,23 +785,6 @@ The simulations carry {{@govern.tracked_parties=13;int;seat_draws.csv, 5,000 sim
 
 </div><!-- /sheet -->
 
-<script>
-// Switches between the land map and the equal-ward map. Shows or hides the two
-// sections the build wrote; it writes no text or figure.
-document.querySelectorAll(".maptoggle button").forEach(function(b){
-  b.addEventListener("click", function(){
-    var show = b.getAttribute("data-show");
-    document.querySelectorAll("details[data-map]").forEach(function(d){
-      d.style.display = d.getAttribute("data-map") === show ? "" : "none";
-    });
-    document.querySelectorAll(".maptoggle button").forEach(function(o){
-      var on = o.getAttribute("data-show") === show;
-      o.classList.toggle("on", on);
-      o.setAttribute("aria-pressed", on ? "true" : "false");
-    });
-  });
-});
-</script>
 <script>
 // Filters the coalition table. It only shows or hides rows the build already
 // wrote; it never writes a figure (every number is a build-time token).
@@ -855,5 +842,15 @@ document.querySelectorAll(".bandbtn").forEach(function(b){
   });
 });
 </script>
+<!-- __FORECAST_ONLY_START__ -->
+<script>
+  /* The 31 August article used to share this page. A hash this page does not
+     hold is one of its sections: forward it rather than drop it at the top. */
+  (function () {
+    var id = decodeURIComponent(location.hash.slice(1));
+    if (id && !document.getElementById(id)) location.replace("nobody-will-win#" + encodeURIComponent(id));
+  })();
+</script>
+<!-- __FORECAST_ONLY_END__ -->
 </body>
 </html>

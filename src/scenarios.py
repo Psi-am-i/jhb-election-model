@@ -58,6 +58,36 @@ def load(processed: Path):
     return detail, winners, wards
 
 
+def majority_alone_share(processed: Path) -> float:
+    """The share of simulations in which ONE party reaches the threshold.
+
+    ⛔ ONE DEFINITION, TWO PAGES. `render_sheet` computed this inline for its
+    tile and the home page needs the same quantity for its heading — and a
+    heading that says a coalition is inevitable has to be reading the same
+    number as the tile that says how often one is not. A second copy is how
+    "the tiles disagreed with the article beside them" happens.
+
+    It is the seat draws' row-wise maximum against that row's own threshold:
+    the threshold varies by draw because the council size does.
+    """
+    import csv as _csv
+
+    path = Path(processed) / "seat_draws.csv"
+    if not path.exists():
+        raise SystemExit(
+            f"no {path}: the share of simulations where one party governs "
+            f"alone cannot be read, and it may not be guessed.")
+    alone = total = 0
+    with path.open(encoding="utf-8", newline="") as fh:
+        for row in _csv.DictReader(fh):
+            threshold = int(float(row["threshold"]))
+            best = max(int(float(v or 0)) for k, v in row.items()
+                       if k not in ("draw", "threshold", "council_size"))
+            alone += best >= threshold
+            total += 1
+    return alone / total if total else 0.0
+
+
 def matching(detail, conditions) -> list[int]:
     return [d for d in sorted(detail)
             if all(OPS[op](detail[d].get(p, {}).get("seats", 0), n)

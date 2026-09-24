@@ -45,19 +45,10 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 STYLE = """
   :root{
-    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
-    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
-    --accent:#a8621f; --accent-soft:#f0e2d5; --good:#2f6d4a;
+    /* colours come from THEME_HEAD, the one palette every page shares */
     --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
     --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
-  }
-  @media (prefers-color-scheme:dark){
-    :root{
-      --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
-      --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
-      --accent:#d9954f; --accent-soft:#3a2a1a; --good:#6fb98a;
-    }
   }
   *{box-sizing:border-box;margin:0;}
   /* Three text levels, applied the same way on every page: headings and
@@ -153,7 +144,9 @@ STYLE = """
 """
 
 NAV_ITEMS = [
-    ("./", "forecast"),
+    # No "home" item: the site name at the left of the bar IS the link home
+    # (owner, 2026-09-24).
+    ("forecast", "forecast"),
     # "interactive" removed with the page itself — see ARTEFACTS. The comment
     # below records what happened the LAST time a nav entry outlived its page:
     # every page linked to plan.html for weeks after no build produced it.
@@ -182,7 +175,63 @@ def nav_for(active_href: str) -> str:
     )
     return ('<nav class="topnav">\n'
             '  <a class="home" href="./">joburg.whysoserious.city</a>\n'
-            f"{links}\n</nav>")
+            f"{links}\n"
+            '  <button class="themetoggle" type="button" onclick="toggleTheme()" '
+            'aria-label="Switch between dark and light" title="Light or dark">'
+            # the sun shows while dark (click for light), the moon while light
+            '<span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span>'
+            '<span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span>'
+            '</button>\n</nav>')
+
+
+# THE SITE'S ONE PALETTE (owner, 2026-09-24: "pages flip between light and dark
+# themes — default to dark with a toggle in the menu bar"). Until this, the
+# reader editions followed the OS, the forecast sheet followed the OS unless a
+# data-theme attribute nobody ever set said otherwise, and the home page was
+# dark only — so walking the nav changed the lights. Every page now takes its
+# colours from here and nowhere else: dark is the bare :root, so a reader with
+# no script and no stored choice still gets dark; light is opt-in, remembered
+# in localStorage, and applied in <head> before first paint so nothing flashes.
+THEME_HEAD = """<style>
+  :root{color-scheme:dark;
+    --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
+    --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
+    --accent:#d9954f; --accent-soft:#3a2a1a;
+    --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a; --bad:#d98070;
+    --k-article:#7aa6d6; --k-claim:#d9954f; --k-explain:#6fb98a;
+    --k-interactive:#b98ad6;
+  }
+  :root[data-theme="light"]{color-scheme:light;
+    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
+    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
+    --accent:#a8621f; --accent-soft:#f0e2d5;
+    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
+    --k-article:#2f5f96; --k-claim:#a8621f; --k-explain:#2f6d4a;
+    --k-interactive:#7a4a9c;
+  }
+  .themetoggle{font:inherit;color:var(--ink-3);background:none;border:0;
+    padding:0;cursor:pointer;white-space:nowrap;line-height:0;align-self:center;}
+  .themetoggle svg{display:block;}
+  .themetoggle:hover{color:var(--accent);}
+  .themetoggle .to-dark{display:none;}
+  :root[data-theme="light"] .themetoggle .to-light{display:none;}
+  :root[data-theme="light"] .themetoggle .to-dark{display:inline;}
+</style>
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+  })();
+  function toggleTheme() {
+    var root = document.documentElement;
+    var light = root.getAttribute("data-theme") !== "light";
+    if (light) root.setAttribute("data-theme", "light");
+    else root.removeAttribute("data-theme");
+    try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
+  }
+</script>
+"""
 
 # Standalone nav styling injected into the artefact pages (which carry their
 # own stylesheets); the rendered documents get it via STYLE above.
@@ -240,9 +289,17 @@ NAV_CSS = NAV_CSS.replace("{FOOTER_CSS_PLACEHOLDER}", FOOTER_CSS)
 def inject_nav(html: str, active_href: str) -> str:
     """Give an artefact page the site navigation: CSS into <head>, nav bar
     at the top of its content container so it aligns with the content."""
-    html = html.replace("</head>", OG_META + NAV_CSS + "\n</head>", 1)
-    marker = '<div class="sheet">'
-    html = html.replace(marker, marker + "\n" + nav_for(active_href), 1)
+    html = html.replace("</head>", OG_META + THEME_HEAD + NAV_CSS + "\n</head>", 1)
+    # The forecast sheet's container is `.sheet`; the home page's is `.wrap`,
+    # which is why the home page shipped with no menu bar at all. Either will
+    # do; neither is a refusal, as it is for the footer below.
+    for marker in ('<div class="sheet">', '<div class="wrap">'):
+        if marker in html:
+            html = html.replace(marker, marker + "\n" + nav_for(active_href), 1)
+            break
+    else:
+        raise SystemExit("artefact page has neither a .sheet nor a .wrap "
+                         "container to carry the nav")
     # Footer goes at the end of the content container so it aligns with it.
     # Marker only — an earlier fallback guessed at closing tags and prepended
     # the footer above the doctype on the sheet. Fail loudly instead.
@@ -309,8 +366,38 @@ DOCS = {
 # schema. `interactive.html` is therefore absent from the site rather than
 # broken on it, and the nav entry goes with it.
 ARTEFACTS = {
-    "forecast-sheet.html": "index.html",
+    # THE HOME PAGE IS THE LANDING PAGE (owner, 2026-09-23) and the forecast
+    # sheet moves to /forecast. Until now the ARTICLE was the landing page, so
+    # a piece written on a date sat at the front door looking current forever;
+    # retiring a stale lead is now one flag in content/<city>/articles.toml.
+    # PUBLISHING-BACKLOG §10.
+    #
+    # Keyed by the OUTPUT page: (source, the marker whose spans are cut, the
+    # page's <title> or None to keep the source's). The forecast sheet makes
+    # two pages (owner, 2026-09-24): /forecast leads with the forecast, and
+    # the dated 31 August article — headline, standfirst, "since then" note
+    # and the commentary it opens — stands on its own among the articles.
+    "index.html": ("home.html", None, None),
+    "forecast.html": ("forecast-sheet.html", "ARTICLE_ONLY", None),
+    "nobody-will-win.html": ("forecast-sheet.html", "FORECAST_ONLY",
+                             "Nobody will win Johannesburg"),
 }
+
+
+def cut_spans(html: str, kind: str | None) -> str:
+    """Drop every `<!-- __KIND_START__ -->…<!-- __KIND_END__ -->` span, and
+    the markers of every other kind. Refuses a template with none, or with a
+    START left unclosed — a missing cut publishes the other page's half."""
+    import re as _re
+    if kind is not None:
+        start, end = f"<!-- __{kind}_START__ -->", f"<!-- __{kind}_END__ -->"
+        if html.count(start) == 0 or html.count(start) != html.count(end):
+            raise SystemExit(f"template has {html.count(start)} {start} and "
+                             f"{html.count(end)} {end}: nothing safe to cut")
+        html = _re.sub(_re.escape(start) + r".*?" + _re.escape(end) + r"\n?",
+                       "", html, flags=_re.S)
+    return _re.sub(r"<!-- __(?:ARTICLE|FORECAST)_ONLY_(?:START|END)__ -->\n?",
+                   "", html)
 
 
 
@@ -321,7 +408,7 @@ def shell(title: str, kicker: str, masthead: str, body: str, generated_note: str
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-{OG_META}<style>{STYLE}</style>
+{OG_META}{THEME_HEAD}<style>{STYLE}</style>
 </head>
 <body>
 <div class="page">
@@ -579,9 +666,13 @@ def main(argv: list[str] | None = None) -> int:
         (args.out / output).write_text(page, encoding="utf-8")
         print(f"  rendered {source:<28s} -> site/{output}")
 
-    for source, output in ARTEFACTS.items():
+    for output, (source, cut, title) in ARTEFACTS.items():
         href = "./" if output == "index.html" else output.removesuffix(".html")
-        html = inject_nav(Path(source).read_text(encoding="utf-8"), href)
+        html = cut_spans(Path(source).read_text(encoding="utf-8"), cut)
+        if title:
+            html = re.sub(r"<title>.*?</title>", f"<title>{title}</title>",
+                          html, count=1, flags=re.S)
+        html = inject_nav(html, href)
         seen = []
         html, drift, unresolved = statlib.render(html, registry, ctx,
                                                  record=seen)
@@ -600,7 +691,7 @@ def main(argv: list[str] | None = None) -> int:
     # and describing a model that had moved on. A page nobody rebuilds is worse
     # than a missing one: it looks current and cannot be.
     produced = {"index.html"} | {spec[0] for spec in DOCS.values()} \
-        | set(ARTEFACTS.values()) | {"portal.html"}
+        | set(ARTEFACTS) | {"portal.html"}
     for page in sorted(args.out.glob("*.html")):
         if page.name not in produced:
             page.unlink()

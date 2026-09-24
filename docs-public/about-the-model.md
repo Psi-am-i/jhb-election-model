@@ -47,9 +47,9 @@ On the simpler measure of how many council seats it got wrong, it misses **289**
 
 It calls the winner correctly in **721 of 742 wards**.
 
-## What it forecast, against what happened
+## What it forecast for 2021, against what happened
 
-Every party that won a seat, in every city. Our figure is the middle of the range the model produced, not its best case.
+Every party that won a seat in 2021, in every city. Our figure is the middle of the range the model produced, not its best case.
 
 ### Johannesburg — 270 seats
 

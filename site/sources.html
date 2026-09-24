@@ -17,20 +17,50 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://joburg.whysoserious.city/share.jpg">
 <style>
-  :root{
+  :root{color-scheme:dark;
+    --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
+    --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
+    --accent:#d9954f; --accent-soft:#3a2a1a;
+    --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a; --bad:#d98070;
+    --k-article:#7aa6d6; --k-claim:#d9954f; --k-explain:#6fb98a;
+    --k-interactive:#b98ad6;
+  }
+  :root[data-theme="light"]{color-scheme:light;
     --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
     --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
-    --accent:#a8621f; --accent-soft:#f0e2d5; --good:#2f6d4a;
+    --accent:#a8621f; --accent-soft:#f0e2d5;
+    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
+    --k-article:#2f5f96; --k-claim:#a8621f; --k-explain:#2f6d4a;
+    --k-interactive:#7a4a9c;
+  }
+  .themetoggle{font:inherit;color:var(--ink-3);background:none;border:0;
+    padding:0;cursor:pointer;white-space:nowrap;line-height:0;align-self:center;}
+  .themetoggle svg{display:block;}
+  .themetoggle:hover{color:var(--accent);}
+  .themetoggle .to-dark{display:none;}
+  :root[data-theme="light"] .themetoggle .to-light{display:none;}
+  :root[data-theme="light"] .themetoggle .to-dark{display:inline;}
+</style>
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+  })();
+  function toggleTheme() {
+    var root = document.documentElement;
+    var light = root.getAttribute("data-theme") !== "light";
+    if (light) root.setAttribute("data-theme", "light");
+    else root.removeAttribute("data-theme");
+    try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
+  }
+</script>
+<style>
+  :root{
+    /* colours come from THEME_HEAD, the one palette every page shares */
     --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
     --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
-  }
-  @media (prefers-color-scheme:dark){
-    :root{
-      --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
-      --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
-      --accent:#d9954f; --accent-soft:#3a2a1a; --good:#6fb98a;
-    }
   }
   *{box-sizing:border-box;margin:0;}
   /* Three text levels, applied the same way on every page: headings and
@@ -162,13 +192,14 @@
 <div class="page">
 <nav class="topnav">
   <a class="home" href="./">joburg.whysoserious.city</a>
-  <a href="./">forecast</a>
+  <a href="forecast">forecast</a>
   <a href="about">the model</a>
   <a href="methodology">methodology</a>
   <a href="review">review</a>
   <a class="active" href="sources">sources</a>
   <a href="corrections">corrections</a>
   <a href="https://github.com/Psi-am-i/jhb-election-model">source-code</a>
+  <button class="themetoggle" type="button" onclick="toggleTheme()" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
 </nav>
 <header>
   <div class="kicker">Data sources</div>
@@ -275,7 +306,7 @@ forecast was computed from, byte for byte — and if a source file is ever
 quietly altered or withdrawn upstream, the mismatch shows up immediately
 instead of silently corrupting the model.</p>
 <div class="colophon">
-  Reader edition, generated from docs-public/sources.md on 2026-09-23. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md">SOURCES.md on GitHub</a>.
+  Reader edition, generated from docs-public/sources.md on 2026-09-24. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md">SOURCES.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
   <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>

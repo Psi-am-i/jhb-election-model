@@ -148,6 +148,10 @@ ENTRY_POINTS: dict[str, str] = {
         "README.md step 3: `python src/gamma_recent.py`. Fits γ for parties "
         "fold 1 never saw and writes `gamma_recent.csv`, which `montecarlo.py` "
         "reads as an ARTEFACT (montecarlo.py:3901), never as an import.",
+    "render_home":
+        "A step in `build_all.plan` ('home page'), invoked as a subprocess "
+        "after render_map; tests/test_published_page.py's GENERATORS also "
+        "runs it on a scratch copy to regenerate the home page's figures.",
     "render_sheet":
         "README.md step 5: `python src/render_sheet.py`, and a step in "
         "`build_all.plan` ('sheet figures, claims, regimes'), invoked as a "

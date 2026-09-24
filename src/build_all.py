@@ -90,11 +90,14 @@ def plan(args, city) -> list[tuple[str, list[str], bool]]:
     steps.append(("ward map", [py, "src/render_map.py", *c], False))
     # The equal-ward cartogram, behind the map's toggle. After render_map, whose
     # ward_paths.json it reads; one splice per page that carries the markers.
-    for page in ("forecast-sheet.html", "drafts/forecast-draft.html"):
+    for page in ("forecast-sheet.html", "home.html", "drafts/forecast-draft.html"):
         steps.append((f"ward cartogram → {page}",
                       [py, "src/hex_cartogram.py", "--into", page], False))
     steps.append(("sheet figures, claims, regimes",
                   [py, "src/render_sheet.py", *c], False))
+    # The home page's own regions: the lede, the seat bars, the article list
+    # and the claims. After render_map, which writes the map into it.
+    steps.append(("home page", [py, "src/render_home.py", *c], False))
     steps.append(("site", [py, "src/build_site.py"], False))
     steps.append(("portal", [py, "src/build_portal.py"], False))
 

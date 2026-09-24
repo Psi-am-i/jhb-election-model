@@ -1,0 +1,50 @@
+# The written pieces, newest first — the home page's article list.
+#
+# ⛔ A PIECE IS FROZEN AND DATED. Once published, its words and its figures stay
+# as they were; when the model moves materially it gets an appended, dated
+# "Since then" note and the original is never rewritten (PUBLISHING-BACKLOG §8).
+# `date` is the day it was published and is what the page shows.
+#
+# `lead = true` marks the piece the home page runs as its lead. EXACTLY ONE may
+# carry it. Retiring a stale lead is moving that one line — which is the whole
+# reason the home page exists: before it, the article WAS the front page and a
+# piece written on a date sat at the front door looking current forever.
+#
+# Figures in a standfirst are the published ones and are left as published. The
+# number audit accepts them because the build wraps each entry in its own dated
+# passage — the same rule the claims use.
+
+[[article]]
+lead = true
+date = "2026-08-31"
+title = "Nobody will win Johannesburg — and an obscure voting law will give the ANC more seats than expected"
+standfirst = """Johannesburg votes on two ballots at once, and they are added
+together. A party with tightly concentrated support can win more wards than its
+share entitles it to — and nobody unseats a ward winner. The shortfall is taken
+from every other party. The clause has fired exactly once before, in a Karoo
+town of seven seats."""
+href = "nobody-will-win"
+
+[[article]]
+date = "2026-08-31"
+title = "When the ANC falls, nobody catches the votes"
+standfirst = """The opposition captured essentially none of the 587,000 votes
+the ANC shed between 2016 and 2021. The city's collapse in ANC support did not
+become anybody else's gain — it became abstention."""
+href = "nobody-will-win#nobody-catches"
+
+[[article]]
+date = "2026-08-31"
+title = "Minority administrations, and why nobody has to win"
+standfirst = """The mayor is elected by the councillors present and voting, so
+abstention installs governments. A council nobody controls is not a council
+nobody can run."""
+href = "nobody-will-win#minority"
+
+[[article]]
+date = "2026-08-06"
+title = "How the model was broken — and fixed"
+standfirst = """A hostile read of the model's own plan found six implementation
+errors, one of which made the first forecast's headline claim false. What each
+one was, and what the repair changed."""
+href = "review"

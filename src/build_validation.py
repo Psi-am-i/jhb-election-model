@@ -252,10 +252,10 @@ def markdown(target: str, results: dict) -> str:
     add(f"It calls the winner correctly in **{seats_called} of {seats_total} "
         f"wards**.")
     add("")
-    add("## What it forecast, against what happened")
+    add(f"## What it forecast for {target}, against what happened")
     add("")
-    add("Every party that won a seat, in every city. Our figure is the "
-        "middle of the range the model produced, not its best case.")
+    add(f"Every party that won a seat in {target}, in every city. Our figure "
+        f"is the middle of the range the model produced, not its best case.")
     add("")
     for slug, r in results.items():
         m = r["model"]

@@ -109,134 +109,16 @@
   @media (max-width:560px){.wrap{padding:20px 14px 56px;}
     .item{grid-template-columns:1fr;gap:2px;}}
 </style>
-<meta property="og:site_name" content="Johannesburg 2026 Election Model">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Who governs Johannesburg after 4 November 2026?">
-<meta property="og:description" content="5,000 simulations of the November vote. Nobody wins — and an obscure clause of the seat law hands the shrinking ANC an unbreakable floor. Explore every ward, every coalition, every assumption.">
-<meta property="og:url" content="https://joburg.whysoserious.city/">
-<link rel="canonical" href="https://joburg.whysoserious.city/">
-<meta property="og:image" content="https://joburg.whysoserious.city/share.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="The Hillbrow Tower silhouetted against a Johannesburg sunset">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://joburg.whysoserious.city/share.jpg">
-<style>
-  :root{color-scheme:dark;
-    --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
-    --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
-    --accent:#d9954f; --accent-soft:#3a2a1a;
-    --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a; --bad:#d98070;
-    --k-article:#7aa6d6; --k-claim:#d9954f; --k-explain:#6fb98a;
-    --k-interactive:#b98ad6;
-  }
-  :root[data-theme="light"]{color-scheme:light;
-    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
-    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
-    --accent:#a8621f; --accent-soft:#f0e2d5;
-    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
-    --k-article:#2f5f96; --k-claim:#a8621f; --k-explain:#2f6d4a;
-    --k-interactive:#7a4a9c;
-  }
-  .themetoggle{font:inherit;color:var(--ink-3);background:none;border:0;
-    padding:0;cursor:pointer;white-space:nowrap;line-height:0;align-self:center;}
-  .themetoggle svg{display:block;}
-  .themetoggle:hover{color:var(--accent);}
-  .themetoggle .to-dark{display:none;}
-  :root[data-theme="light"] .themetoggle .to-light{display:none;}
-  :root[data-theme="light"] .themetoggle .to-dark{display:inline;}
-</style>
-<script>
-  (function () {
-    var t = null;
-    try { t = localStorage.getItem("theme"); } catch (e) {}
-    if (t === "light") document.documentElement.setAttribute("data-theme", "light");
-  })();
-  function toggleTheme() {
-    var root = document.documentElement;
-    var light = root.getAttribute("data-theme") !== "light";
-    if (light) root.setAttribute("data-theme", "light");
-    else root.removeAttribute("data-theme");
-    try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
-  }
-</script>
-<style>
-  /* site-wide standard container: every page, same width and padding */
-  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
-  .sheet{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
-  @media (min-width:1440px){.sheet{max-width:1040px;}}
-  @media (max-width:560px){.sheet{padding:20px 14px 56px;}h1{text-wrap:pretty;}}
-  .layout{grid-template-columns:minmax(0,270px) minmax(0,1fr);}
-  @media (max-width:840px){.layout{grid-template-columns:1fr;}}
-
-  .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
-    border-top:1px solid var(--rule);padding-top:14px;margin-top:44px;}
-  .sitefooter a{color:var(--ink-3);}
-  .sitefooter a:hover{color:var(--accent);}
-  /* one line at desktop width: the items are short enough to fit, so they
-     must not break — wrapping is kept only for narrow screens. */
-  .topnav{display:flex;flex-wrap:wrap;gap:6px 13px;align-items:baseline;
-    justify-content:space-between;font-family:var(--mono);font-size:13px;color:var(--ink-3);
-    border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:22px;}
-  .topnav a{color:var(--ink-3);text-decoration:none;white-space:nowrap;}
-  .topnav a:hover{color:var(--accent);}
-  .topnav a.home{color:var(--accent);font-weight:600;}
-  .topnav a.active{color:var(--accent);}
-</style>
-<style>/*stat-css*/
-  .mstat{display:inline;position:relative;border-bottom:1px dotted var(--ink-3);cursor:help;}
-  .mstat[data-mode="fixed"]{border-bottom-style:dashed;}
-  @media (min-width:760px){.tablewrap{overflow:visible;}}  /* phones keep sideways scroll */
-  .mstat:hover::after,.mstat:focus::after,.mstat-move:hover::after{content:attr(data-prov);position:absolute;
-    left:0;top:1.5em;z-index:50;width:max-content;max-width:300px;white-space:normal;
-    background:var(--ink,#1a1d1b);color:var(--paper,#fbfbfa);font:500 11.5px/1.35 ui-sans-serif,system-ui;
-    padding:6px 8px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.25);pointer-events:none;}
-  /* Interactive tables: the figure is the point, and a provenance box on every
-     cell buried the row. Tracking is unchanged — only the hover box is off. */
-  .notips .mstat{border-bottom:none;cursor:default;}
-  .notips .mstat:hover::after,.notips .mstat:focus::after,.notips .mstat-move:hover::after{content:none;}
-  .mstat.tip-left:hover::after,.mstat.tip-left:focus::after{left:auto;right:0;}
-  .mstat.tip-up:hover::after,.mstat.tip-up:focus::after{top:auto;bottom:1.5em;}
-  .mstat-move{font-size:.7em;margin-left:2px;cursor:help;vertical-align:.15em;position:relative;}
-  .mstat-move.up{color:#2f6d4a;} .mstat-move.down{color:#a33a2a;} .mstat-move.changed{color:var(--ink-3);}
-  /* NOT `.since`: the page's "Since then" boxes own that class, and the marker
-     inherited their panel background — a brown block beside every pinned figure
-     (owner, 2026-09-18). Same collision as `.pname` in the coalition table. */
-  .mstat-move.moved-since{color:var(--ink-3);opacity:.75;}
-  .arrowlegend{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;}
-  /* The publication convention's furniture, injected on EVERY page: the forecast
-     sheet had its own copy and the document pages had none, so a dated piece on
-     /review rendered as plain text (owner, 2026-09-18). */
-  .pubdate{font:650 11.5px var(--sans,ui-sans-serif,system-ui);letter-spacing:.06em;
-    text-transform:uppercase;color:var(--accent);margin:2px 0 10px;text-align:left;}
-  .since{margin:16px 0 4px;padding:12px 16px;border-left:4px solid var(--accent);
-    background:var(--accent-soft,rgba(168,98,31,.12));border-radius:0 6px 6px 0;font-size:14.5px;}
-  .since .since-h{font:650 11px var(--sans,ui-sans-serif,system-ui);letter-spacing:.08em;
-    text-transform:uppercase;color:var(--accent);margin-bottom:5px;}
-  .since p{margin:0;}
-</style>
-<script>/*stat-tip*/document.addEventListener('mouseover',function(e){var s=e.target.closest&&e.target.closest('.mstat');if(!s)return;var r=s.getBoundingClientRect();var w=document.documentElement.clientWidth,h=document.documentElement.clientHeight;s.classList.toggle('tip-left',r.left+316>w);s.classList.toggle('tip-up',r.bottom+96>h);});</script>
 </head>
 <body>
 <div class="wrap">
-<nav class="topnav">
-  <a class="home" href="./">joburg.whysoserious.city</a>
-  <a href="forecast">forecast</a>
-  <a href="about">the model</a>
-  <a href="methodology">methodology</a>
-  <a href="review">review</a>
-  <a href="sources">sources</a>
-  <a href="corrections">corrections</a>
-  <a href="https://github.com/Psi-am-i/jhb-election-model">source-code</a>
-  <button class="themetoggle" type="button" onclick="toggleTheme()" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
-</nav>
 
 <header class="hero">
   <div class="eyebrow">City of Johannesburg · 4 November 2026</div>
   <!-- __HOMELEDE_START__ -->
-  <h1 class="state"><em>A coalition is all but inevitable</em> and we have a dead heat: the ANC and the DA each lead in <span class="mstat" data-mode="generated" data-token="home.p_da_largest" data-when="" data-prov="47%. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">47%</span> of simulations.</h1>
-  <p class="sub">One party governs alone in <span class="mstat" data-mode="generated" data-token="home.p_alone" data-when="" data-prov="under 0.1%. First published in this edition (24 September 2026). Source: seat_draws.csv, one party at or above the threshold, computed at build from the current model run." tabindex="0">under 0.1%</span> of simulations. And a rarely-used clause lets a party keep every ward it wins whatever its proportional share, taking the shortfall from everyone else — it fires in <span class="mstat" data-mode="generated" data-token="home.p_excessive_any" data-when="" data-prov="72%. First published in this edition (24 September 2026). Source: forecast_summary.json p_excessive_any, computed at build from the current model run." tabindex="0">72%</span> of them.</p>
-  <div class="stamp">Model run <span class="mstat" data-mode="generated" data-token="home.generated" data-when="" data-prov="23 September 2026. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">23 September 2026</span> · <span class="mstat" data-mode="generated" data-token="home.n_draws" data-when="" data-prov="5,000. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">5,000</span> simulations</div>
+  <h1 class="state"><em>A coalition is all but inevitable</em> and we have a dead heat: the ANC and the DA each lead in {{@home.p_da_largest=0.473400;chance;forecast_summary.json, 5,000 simulations}} of simulations.</h1>
+  <p class="sub">One party governs alone in {{@home.p_alone=0.000200;chance;seat_draws.csv, one party at or above the threshold}} of simulations. And a rarely-used clause lets a party keep every ward it wins whatever its proportional share, taking the shortfall from everyone else — it fires in {{@home.p_excessive_any=0.715400;chance;forecast_summary.json p_excessive_any}} of them.</p>
+  <div class="stamp">Model run {{@home.generated=2026-09-23T06:39:41Z;date_long;forecast_summary.json, 5,000 simulations}} · {{@home.n_draws=5000;comma;forecast_summary.json, 5,000 simulations}} simulations</div>
   <!-- __HOMELEDE_END__ -->
 </header>
 
@@ -250,7 +132,7 @@
   </div>
   <!-- __MAP_START__ -->
   <details class="rollup" data-band="forecast" data-map="geo" open>
-    <summary><span class="eyebrow">The map — every ward, called using <span class="mstat" data-mode="free" data-token="n_draws" data-when="2026-08-07" data-live="5,000" data-prov="5,000. First published in this edition (24 September 2026). Source: derived:n_draws, live from the current model run." tabindex="0">5,000</span> simulations</span>
+    <summary><span class="eyebrow">The map — every ward, called using {{n_draws}} simulations</span>
     <h2>Who wins where</h2></summary>
     <p class="maplede">Ward races for half the council — 135 seats, first past the post. A ward needs no
     majority: the highest total wins. A geographic map can mislead, because every ward elects one
@@ -288,7 +170,7 @@
       <svg width="18" height="12"><clipPath id="keyclip"><rect width="18" height="12" rx="2"/></clipPath><g clip-path="url(#keyclip)"><rect x="-6" width="3" height="12" fill="#d9d3c3" transform="skewX(-30)"/><rect x="-3" width="3" height="12" fill="#4b4f4c" transform="skewX(-30)"/><rect x="0" width="3" height="12" fill="#d9d3c3" transform="skewX(-30)"/><rect x="3" width="3" height="12" fill="#4b4f4c" transform="skewX(-30)"/><rect x="6" width="3" height="12" fill="#d9d3c3" transform="skewX(-30)"/><rect x="9" width="3" height="12" fill="#4b4f4c" transform="skewX(-30)"/><rect x="12" width="3" height="12" fill="#d9d3c3" transform="skewX(-30)"/><rect x="15" width="3" height="12" fill="#4b4f4c" transform="skewX(-30)"/><rect x="18" width="3" height="12" fill="#d9d3c3" transform="skewX(-30)"/><rect x="21" width="3" height="12" fill="#4b4f4c" transform="skewX(-30)"/><rect x="24" width="3" height="12" fill="#d9d3c3" transform="skewX(-30)"/><rect x="27" width="3" height="12" fill="#4b4f4c" transform="skewX(-30)"/><rect x="30" width="3" height="12" fill="#d9d3c3" transform="skewX(-30)"/><rect x="33" width="3" height="12" fill="#4b4f4c" transform="skewX(-30)"/></g></svg>
       <b>Stripes</b>&nbsp;contested (83)</span>
     <br><span style="font-size:12px;color:var(--ink-3)">A stripe for every party that wins the ward in
-      at least 1 in 10 of the <span class="mstat" data-mode="free" data-token="n_draws" data-when="2026-08-07" data-live="5,000" data-prov="5,000. First published in this edition (24 September 2026). Source: derived:n_draws, live from the current model run." tabindex="0">5,000</span> simulations; the wider the stripe, the more simulations
+      at least 1 in 10 of the {{n_draws}} simulations; the wider the stripe, the more simulations
       it wins. Grey is every other party together. These are shares of simulations, not vote shares.</span></span>
         <span>Touch or hover any ward for its numbers. The bar shows the whole council, ward and
         list seats together, in one typical simulation.</span>
@@ -347,7 +229,7 @@
       <svg width="18" height="12"><clipPath id="keyclip"><rect width="18" height="12" rx="2"/></clipPath><g clip-path="url(#keyclip)"><rect x="-6" width="3" height="12" fill="#d9d3c3" transform="skewX(-30)"/><rect x="-3" width="3" height="12" fill="#4b4f4c" transform="skewX(-30)"/><rect x="0" width="3" height="12" fill="#d9d3c3" transform="skewX(-30)"/><rect x="3" width="3" height="12" fill="#4b4f4c" transform="skewX(-30)"/><rect x="6" width="3" height="12" fill="#d9d3c3" transform="skewX(-30)"/><rect x="9" width="3" height="12" fill="#4b4f4c" transform="skewX(-30)"/><rect x="12" width="3" height="12" fill="#d9d3c3" transform="skewX(-30)"/><rect x="15" width="3" height="12" fill="#4b4f4c" transform="skewX(-30)"/><rect x="18" width="3" height="12" fill="#d9d3c3" transform="skewX(-30)"/><rect x="21" width="3" height="12" fill="#4b4f4c" transform="skewX(-30)"/><rect x="24" width="3" height="12" fill="#d9d3c3" transform="skewX(-30)"/><rect x="27" width="3" height="12" fill="#4b4f4c" transform="skewX(-30)"/><rect x="30" width="3" height="12" fill="#d9d3c3" transform="skewX(-30)"/><rect x="33" width="3" height="12" fill="#4b4f4c" transform="skewX(-30)"/></g></svg>
       <b>Stripes</b>&nbsp;contested (83)</span>
     <br><span style="font-size:12px;color:var(--ink-3)">A stripe for every party that wins the ward in
-      at least 1 in 10 of the <span class="mstat" data-mode="free" data-token="n_draws" data-when="2026-08-07" data-live="5,000" data-prov="5,000. First published in this edition (24 September 2026). Source: derived:n_draws, live from the current model run." tabindex="0">5,000</span> simulations; the wider the stripe, the more simulations
+      at least 1 in 10 of the {{n_draws}} simulations; the wider the stripe, the more simulations
       it wins. Grey is every other party together. These are shares of simulations, not vote shares.</span></span>
         <span>Each hexagon sits as close to its ward's real position as the grid allows. The
         normal map answers <em>where</em>; this one answers <em>how many</em>. Touch or hover any
@@ -401,42 +283,42 @@ document.querySelectorAll(".maptoggle button").forEach(function(b){
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--anc)"></span>ANC</div>
       <div class="strack"><i style="width:72.8%;background:var(--anc)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.anc" data-when="" data-prov="67. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">67</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.anc_lo" data-when="" data-prov="29. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">29</span>–<span class="mstat" data-mode="generated" data-token="home.seats.anc_hi" data-when="" data-prov="92. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">92</span></div>
+      <div class="sval"><b>{{@home.seats.anc=67;int;forecast_summary.json, 5,000 simulations}}</b> {{@home.seats.anc_lo=29;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.anc_hi=92;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--da)"></span>DA</div>
       <div class="strack"><i style="width:71.7%;background:var(--da)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.da" data-when="" data-prov="66. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">66</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.da_lo" data-when="" data-prov="45. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">45</span>–<span class="mstat" data-mode="generated" data-token="home.seats.da_hi" data-when="" data-prov="90. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">90</span></div>
+      <div class="sval"><b>{{@home.seats.da=66;int;forecast_summary.json, 5,000 simulations}}</b> {{@home.seats.da_lo=45;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.da_hi=90;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--asa)"></span>ActionSA</div>
       <div class="strack"><i style="width:29.3%;background:var(--asa)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.asa" data-when="" data-prov="27. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">27</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.asa_lo" data-when="" data-prov="11. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">11</span>–<span class="mstat" data-mode="generated" data-token="home.seats.asa_hi" data-when="" data-prov="52. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">52</span></div>
+      <div class="sval"><b>{{@home.seats.asa=27;int;forecast_summary.json, 5,000 simulations}}</b> {{@home.seats.asa_lo=11;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.asa_hi=52;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--eff)"></span>EFF</div>
       <div class="strack"><i style="width:26.1%;background:var(--eff)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.eff" data-when="" data-prov="24. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">24</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.eff_lo" data-when="" data-prov="8. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">8</span>–<span class="mstat" data-mode="generated" data-token="home.seats.eff_hi" data-when="" data-prov="54. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">54</span></div>
+      <div class="sval"><b>{{@home.seats.eff=24;int;forecast_summary.json, 5,000 simulations}}</b> {{@home.seats.eff_lo=8;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.eff_hi=54;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--mk)"></span>MK Party</div>
       <div class="strack"><i style="width:22.8%;background:var(--mk)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.mk" data-when="" data-prov="21. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">21</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.mk_lo" data-when="" data-prov="7. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">7</span>–<span class="mstat" data-mode="generated" data-token="home.seats.mk_hi" data-when="" data-prov="50. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">50</span></div>
+      <div class="sval"><b>{{@home.seats.mk=21;int;forecast_summary.json, 5,000 simulations}}</b> {{@home.seats.mk_lo=7;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.mk_hi=50;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--pa)"></span>PA</div>
       <div class="strack"><i style="width:25.0%;background:var(--pa)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.pa" data-when="" data-prov="23. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">23</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.pa_lo" data-when="" data-prov="14. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">14</span>–<span class="mstat" data-mode="generated" data-token="home.seats.pa_hi" data-when="" data-prov="37. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">37</span></div>
+      <div class="sval"><b>{{@home.seats.pa=23;int;forecast_summary.json, 5,000 simulations}}</b> {{@home.seats.pa_lo=14;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.pa_hi=37;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--oth)"></span>IFP</div>
       <div class="strack"><i style="width:2.2%;background:var(--oth)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.ifp" data-when="" data-prov="2. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">2</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.ifp_lo" data-when="" data-prov="0. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">0</span>–<span class="mstat" data-mode="generated" data-token="home.seats.ifp_hi" data-when="" data-prov="16. First published in this edition (24 September 2026). Source: forecast_summary.json, 5,000 simulations, computed at build from the current model run." tabindex="0">16</span></div>
+      <div class="sval"><b>{{@home.seats.ifp=2;int;forecast_summary.json, 5,000 simulations}}</b> {{@home.seats.ifp_lo=0;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.ifp_hi=16;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:var(--oth)"></span>Everyone else</div>
       <div class="strack"><i style="width:32.6%;background:var(--oth)"></i></div>
-      <div class="sval"><b><span class="mstat" data-mode="generated" data-token="home.seats.others" data-when="" data-prov="30. First published in this edition (24 September 2026). Source: seat_draws.csv, council minus the named parties in each simulation, computed at build from the current model run." tabindex="0">30</span></b> <span class="mstat" data-mode="generated" data-token="home.seats.others_lo" data-when="" data-prov="13. First published in this edition (24 September 2026). Source: seat_draws.csv, council minus the named parties in each simulation, computed at build from the current model run." tabindex="0">13</span>–<span class="mstat" data-mode="generated" data-token="home.seats.others_hi" data-when="" data-prov="55. First published in this edition (24 September 2026). Source: seat_draws.csv, council minus the named parties in each simulation, computed at build from the current model run." tabindex="0">55</span></div>
+      <div class="sval"><b>{{@home.seats.others=30;int;seat_draws.csv, council minus the named parties in each simulation}}</b> {{@home.seats.others_lo=13;int;seat_draws.csv, council minus the named parties in each simulation}}–{{@home.seats.others_hi=55;int;seat_draws.csv, council minus the named parties in each simulation}}</div>
     </div>
   </div>
   <div class="stamp" style="margin-top:12px">Each party's middle value across the simulations, with the range covering 90% of them. They do not add up to the council: a party's best simulations are not the same ones as its rivals'. "Everyone else" is the council minus the parties named above, taken <em>within</em> each simulation.</div>
@@ -589,10 +471,6 @@ document.querySelectorAll(".maptoggle button").forEach(function(b){
   </div>
 </section>
 
-<footer class="sitefooter">
-  <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
-  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">source &amp; data on GitHub</a></div>
-</footer>
 </div><!-- /sheet -->
 <script>
   /* Until 2026-09 the forecast sheet WAS the landing page, so links already
