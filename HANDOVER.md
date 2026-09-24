@@ -5,6 +5,54 @@
 `MODEL-LOG.md`, which is append-only and dated. `CLAUDE.md` sends every session
 here first, so anything stale in this file is read as an instruction.
 
+> ## ⛔ STATE AT 2026-09-24 — SITE REBUILT AGAIN, STILL NOT DEPLOYED. INTERACTIVE DESIGNED, AWAITING OWNER.
+>
+> Live pages are still the 31 August build. Commits since 23 Sep (remediation,
+> atlas, NOT pushed): `5064975` home page + /forecast (leads with the forecast)
+> + /nobody-will-win (the 31 Aug article), one site theme (dark, sun/moon), map
+> switch everywhere; `ea3d34a` one "Others" definition (`scenarios.others_per_draw`),
+> median/range seat columns, bigger claim logos, cartogram test on constructed
+> input; `d38d57c` MODEL-LOG §1.254 + 12 register rows amended + judgement_sheet
+> parser fixed. Suite at d38d57c: 761 passed, 2 failed (the two standing ones).
+>
+> **Settled:** the 723→733 window "drop" is seed noise (4 seeds: 734 vs 735
+> mean). §1.249 stays. By-elections: a fresh IEC fetch is byte-identical; no
+> Gauteng contest after 2026-02-25.
+>
+> **NEXT, in order** (PUBLISHING-BACKLOG §11 has the site list):
+> 1. **Small-party draw fix** — the within-pool Dirichlet gives micro seeds a
+>    spike at zero plus rare chunks (median drawn share ~500x below real
+>    first-timers) AND starves established small parties; backtest seated-parties
+>    PIT 0.83, 10/24 rows above the 95th pct (model UNDER-seats). JHB 2021 seated
+>    18 (IEC seat report), not 12. Spec: each small/new party its own share draw
+>    from measured history (first-timers by ward reach), vote shares only.
+>    Pre-register, blind review, then change. Owner question open: read reach
+>    from the declared 2026 ward slates? Measurement scripts:
+>    Scout scratchpad `tail/`, atlas `/tmp/smalltail_*`.
+> 2. **Poll with no n is priced MORE precise than SRF** (polling.py fallback
+>    POLL_HOUSE_SD) — live defect, both review passes agree; fix.
+> 3. Register VALUE guard (spec in the 24 Sep audit), then `/judgement-calls`
+>    (owner: live calls + plain intro + full register collapsed, all current).
+> 4. Re-emit window: owner authorised. Must include regenerating
+>    `build_validation` — the public "about the model" table is the 11 Aug run
+>    AND truncated at 12 parties per city (JHB sums to 264 of 270).
+> 5. Owner review → `build_site.py --publish --reason … --change-class …` →
+>    `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy`.
+>
+> **Interactive: designed, reviewed blind, four owner decisions open** —
+> (1) mixing control: geography-only γ, or a direct "DA share among Black African
+> voters" slider (review); (2) turnout ranges: level + differential from the
+> record (review) vs the design's (a)/(b); (3) polls: trust ceiling 3.0pp vs
+> ≥5pp, and add the Sept Ipsos CoJ poll to polls.json first; (4) ward calls:
+> winners only vs carried into votes. Agreed by both: turnout shift goes AFTER
+> the IPF (backlog §9's placement is wrong); best/worst = conditioning on the
+> published 5,000 draws only. Also for the owner: mark §A4/§A43 ⚪ resolved?
+> Page architecture (Pyodide timing unmeasured = decisive risk; ward overrides
+> re-seat exactly) is in the palace drawer of 24 Sep.
+>
+> Leftover on atlas: four never-ending `pgrep` wait-loops from an earlier
+> session (they match their own command line); harmless, not this session's.
+
 > ## ⛔ STATE AT 2026-09-23 — THE WINDOW IS TAKEN AND THE SITE IS BUILT. NOT DEPLOYED.
 >
 > **The live pages are still the 31 August build.** Everything below is built,
