@@ -560,6 +560,33 @@ def _ledger_candidates(published: list[dict], ledger: dict, ident: dict,
     return rows, changes
 
 
+def audit_configs(registry: dict, ctx: dict) -> tuple[dict, dict]:
+    """The settings EVERY page is audited and scanned with, in one place.
+
+    ⛔ ONE DEFINITION. These were assembled inline in `main`, so anything else
+    wanting to ask "would the build refuse this page?" — a test, a preview —
+    had to retype the structural set, and a retyped copy answers a different
+    question the moment the council changes size.
+
+    `structural` is the council's own constants, read from the model's outputs
+    and never typed here: the council size and the threshold as this run
+    reports them, and the ward count. A number that IS the electoral system is
+    not a model figure and must not be demanded as a token.
+
+    Returns ``(audit_cfg, scan_cfg)`` — `scan_cfg` is the subset
+    `stats.scan_numbers` takes, which is not the same set of keys.
+    """
+    audit_cfg = statlib.load_audit_config(registry)
+    draw0 = (ctx.get("draws") or [{}])[0]
+    structural = {str(draw0.get("council_size", "")), str(draw0.get("threshold", "")),
+                  str(len(ctx.get("wards") or [])) if ctx.get("wards") else ""}
+    structural |= {str(cityconfig.active().wards)} if hasattr(cityconfig.active(), "wards") else set()
+    structural = {s for s in structural if s}
+    scan_cfg = {"fixed": audit_cfg["fixed"], "allow": audit_cfg["allow"],
+                "structural": structural}
+    return {**audit_cfg, "structural": structural}, scan_cfg
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=Path("site"))
@@ -615,21 +642,12 @@ def main(argv: list[str] | None = None) -> int:
     args.out.mkdir(exist_ok=True)
     registry = statlib.load_registry(args.stats) if args.stats.exists() else {}
     ctx = statlib.load_context(args.processed)
-    audit_cfg = statlib.load_audit_config(registry)
+    audit_cfg, scan_cfg = audit_configs(registry, ctx)
     all_drift: list[dict] = []
     unresolved_all: list[str] = []
     audits: dict[str, tuple[list[str], list[str]]] = {}
     # Every number-shaped string on every page, for the committed review file.
     scans: dict[str, list[dict]] = {}
-    # The council's own constants, from the model's outputs — never typed here.
-    _draw0 = (ctx.get("draws") or [{}])[0]
-    structural = {str(_draw0.get("council_size", "")), str(_draw0.get("threshold", "")),
-                  str(len(ctx.get("wards") or [])) if ctx.get("wards") else ""}
-    structural |= {str(cityconfig.active().wards)} if hasattr(cityconfig.active(), "wards") else set()
-    structural = {s for s in structural if s}
-    scan_cfg = {"fixed": audit_cfg["fixed"], "allow": audit_cfg["allow"],
-                "structural": structural}
-    audit_cfg = {**audit_cfg, "structural": structural}
     generated: list[str] = []
     # Every token OCCURRENCE that reached a reader, in reading order. The
     # ledger needs the raw value AND the displayed string; see `stats.render`.

@@ -22,10 +22,11 @@ here first, so anything stale in this file is read as an instruction.
 > ⚠️ **Scout cannot run anything**: no `.venv`, and its gitignored `data/` is
 > ten days stale. Run the model, the suite and every measurement on **Atlas**.
 >
-> **Suite, full, Atlas, at `4667fd7`: 761 passed, 2 failed, 18 skipped, no
-> PARTIAL banner** (wall clock 1018.8 s). The two failures are the standing
-> ones, both in `test_pool_bounds`: the 2011 DA-in-White impossible weights and
-> Mangaung 2016's pool rates summing to `[1, 1, 0, 1]`. This evening's commit is
+> **Suite, full, Atlas: 770 passed, 2 failed, 18 skipped, no PARTIAL banner**
+> (2026-09-25, wall clock 1008.6 s, after the home-page tests; the 24 Sep run at
+> `4667fd7` was 761/2/18). The two failures are the standing ones, both in
+> `test_pool_bounds`: the 2011 DA-in-White impossible weights and Mangaung
+> 2016's pool rates summing to `[1, 1, 0, 1]`. The 24 Sep evening commit was
 > documents and an audit folder only.
 >
 > ⛔ **The previous banner's item 1 was FALSE and nothing was changed for it.**
@@ -45,15 +46,34 @@ here first, so anything stale in this file is read as an instruction.
 >    report's caveats carried verbatim). Memory: the `/nobody-will-win` case
 >    appended to `an-unticked-box-is-not-evidence`, and a new
 >    `interactive-is-a-prediction-game` pointer.
-> 2. **Home-page tests.** ⚠️ **"No test module imports `render_home`" is true
->    and misleading** — checked in the tree 2026-09-25:
->    `tests/test_published_page.py:185` already runs `render_home.py` as a
->    subprocess on a scratch copy (its `GENERATORS`), so the home page's
->    *generated tokens* ARE checked against the model, and `index.html` is in
->    `build_site.ARTEFACTS`, so `stats.audit`/`scan_numbers` already covers it
->    for typed numbers. What has NO test is `render_home` itself: the four
->    regions, the lede's branch-by-number, the "everyone else" row taken per
->    simulation, and the exactly-one-`lead` refusal.
+> 2. ✅ **DONE 2026-09-25 — `tests/test_home_page.py`, nine tests, registered in
+>    `run_all.MODULES`.** The four minimum items are covered: the regions
+>    (regenerate the real page over a sentinel and see which ones move — the
+>    survivors must be exactly the map regions, named by `render_map` and
+>    `hex_cartogram`'s own constants), "everyone else" taken per simulation
+>    (constructed `seat_draws.csv` whose columns deliberately do not sum to the
+>    council, so the three wrong answers all differ from the right one),
+>    exactly one `lead` (0 and 2 refuse, 1 runs first), and the typed-figure
+>    gate. The lede's wording-by-number is covered too, each band on its
+>    exclusive edge.
+>    ⚠️ **What the item said was true and misleading.** No module *imports*
+>    `render_home`, but `test_published_page.py:185` already regenerated it and
+>    checked its tokens, and `index.html` is in `build_site.ARTEFACTS`, so the
+>    build's audit already reached the page.
+>    Two things moved with it: `build_site.audit_configs` was extracted so the
+>    audit settings have ONE definition (the test is the first caller outside
+>    the build, MACHINERY.md), and `render_home`'s `ENTRY_POINTS` exemption was
+>    deleted — a test imports it now, so the exemption exempted nothing.
+> 2b. ⛔ **FOUND WHILE DOING IT, AND IT IS ON THE DEPLOY PATH:
+>    `build_site.py --publish` WILL REFUSE as the tree stands.** Typed figures
+>    on three pages are `BLOCKS` rows in `content/joburg/NUMBERS-REVIEW.md`
+>    (read its `blocking=` token, not a figure copied here). Two are the home
+>    page's: `render_home` types `90%` into the seats note against its own
+>    docstring (`render_sheet:296` types the same string, and the 90 belongs to
+>    `scenarios.seat_quantiles`), and the election date's `[[audit.fixed]]` row
+>    matches the pre-24-September wording so it no longer clears. Written up in
+>    `PUBLISHING-BACKLOG.md` §11. **The register is the owner's and carries a
+>    `reviewed` date per row — re-context, do not add.**
 > 3. **Interactive: measure Pyodide speed FIRST.** The notes disagree: ~55 ms per
 >    draw in the browser (~17 s for 300 draws) in one, ~35 s of CPU per 300
 >    draws natively in another. The spike's code was never committed. Whether

@@ -1374,6 +1374,16 @@ module refuses at import by design, so the one-command build died before every
 audit on every city. The interactive steps are now opt-in
 (`build_all.py --interactive`), non-fatal and last. MODEL-LOG §1.89.
 
+**The settings those guards run with are `build_site.audit_configs(registry,
+ctx)` and nowhere else** (extracted 2026-09-25). It returns the `[audit]` block
+of the stats registry plus `structural` — the council size, the threshold and
+the ward count as *this run* reports them, never typed — in the two different
+shapes `stats.audit` and `stats.scan_numbers` take. It was assembled inline in
+`main`, so anything else asking "would the build refuse this page?" had to
+retype the structural set, and a retyped copy answers a different question the
+moment the council changes size. `tests/test_home_page.py` is the first caller
+outside the build.
+
 ## Saying what we published, and when: the publication ledger
 
 Staleness (above) asks whether a number on the page is still current. This asks

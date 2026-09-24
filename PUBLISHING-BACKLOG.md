@@ -681,11 +681,21 @@ build):
   markers now refuses the build.
 * The model page's backtest table says which election it scores (2021).
 
-**Still open on the site (owner's list, 2026-09-24):** seats table as clean
-*median* and *range* columns; ONE definition of "Others" for both pages (the
-forecast's reads only the 13 columns `seat_draws.csv` keeps, the home page's
-is the council minus the named parties per simulation — they differ by about
-twenty seats); the home map buttons unstyled; bigger party logos in the
+**Still open on the site (owner's list, 2026-09-24).** ✅ **Two of these were
+already shipped when the list was written** — checked in the tree 2026-09-25,
+both in commit `ea3d34a` ("One definition of 'Others', seats as median and
+range"): the ~~seats table as clean *median* and *range* columns~~ (the home
+page's table header is `median` / `range`), and ~~ONE definition of "Others"
+for both pages~~ — `render_sheet:147` and `render_home:161` both call
+`scenarios.others_per_draw`, which is the council minus the named parties
+within each simulation. ⚠️ **The two rows still differ, and now by
+construction**: the sheet names ten parties (`render_sheet.CHART_PARTIES`, which
+adds RISE, ALJAMAAH and ENTRANT) and the home page names seven
+(`render_home.NAMED`), so each page's "everyone else" is everyone that page does
+not show. That is defensible and it is not what a reader expects from one
+label. **Whether the two pages may print different "Others" totals is the
+owner's call** — the fix, if he wants one, is one named set, not a second
+definition. Still open: the home map buttons unstyled; bigger party logos in the
 claims; a `/judgement-calls` page generated from a corrected register (live
 calls with a plain intro, the full register collapsed); the forecast page's
 heading ("Who governs Johannesburg") is a placeholder.
@@ -693,3 +703,32 @@ heading ("Who governs Johannesburg") is a placeholder.
 **Not current and must be before deploy:** the model page's scores are the
 11 August 400-draw 2021 run, not the 23 September canonical measurement.
 Regenerating needs a re-emit window (`build_validation.collect` emits).
+
+⛔ **AND A DEPLOY BLOCKER NOBODY HAD RECORDED (found 2026-09-25 while writing
+the home-page tests): `build_site.py --publish` WILL REFUSE AS THE TREE
+STANDS.** Every number typed into prose that is neither a token nor a registered
+fixed fact is a `BLOCKS` row, and `build_site` raises rather than append to the
+ledger while any exists. The count and the rows are in
+`content/joburg/NUMBERS-REVIEW.md` — read its `blocking=` token and the `BLOCKS`
+rows under each page, never a figure copied here. Three causes, all from the
+24 September re-cut:
+
+* **`render_home` types `90%` into the seats note** ("the range covering 90% of
+  them"), and `render_sheet.py:296` types the same string. It contradicts
+  `render_home`'s own docstring — *"nothing here types a number into prose"* —
+  and it is a real second copy: the 90 is `scenarios.seat_quantiles`' p5–p95 and
+  lives there. The fix is a token sourced from that function, in both
+  renderers, not a whitelist row.
+* **The election date's `[[audit.fixed]]` row has gone stale.**
+  `content/joburg/stats.toml` registers `4 November 2026` against the OLD
+  page's surrounding words, and a fixed fact is cleared only in its own context
+  (deliberately — otherwise registering a value excuses every occurrence of it).
+  The pages were re-cut, so the context no longer matches on either page.
+  ⚠️ **That register carries a `reviewed` date per row and is the owner's**:
+  re-context a row, do not add a new one, and re-date it.
+* The remaining rows are on `corrections.html` and `forecast.html` and were not
+  investigated.
+
+**None of this is a model change and none of it moves a forecast number.** It
+is between the finished build and the deploy, which is exactly where it will be
+found at the worst moment if it is not cleared first.

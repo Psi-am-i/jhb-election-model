@@ -64,6 +64,10 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            "test_blended_centres",
            "test_levers_are_live", "test_build_all", "test_stat_freshness",
            "test_publication_ledger", "test_published_page",
+           # Added 2026-09-25: `render_home` shipped on 24 Sep with no test of
+           # its own. Same rule as the blocks below — a module absent from this
+           # list is not collected and reads as coverage.
+           "test_home_page",
            "test_hex_cartogram",
            # Added 2026-09-12 with the Phase 0 instrument repairs.
            # Membership is not optional: `test_every_test_module_is

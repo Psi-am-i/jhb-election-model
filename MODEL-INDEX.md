@@ -179,7 +179,6 @@ An entry point that has acquired an importer no longer needs the exemption: the 
 | `ingest_npe` | yes | -- |
 | `overhang_regimes` | yes | -- |
 | `prep_logos` | yes | -- |
-| `render_home` | yes | -- |
 | `render_sheet` | yes | -- |
 | `sweep` | yes | -- |
 | `validate_seats` | yes | -- |
@@ -613,7 +612,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `backtest.arrival_group_score` | measurement | Score the arrival channel as a GROUP, with **no per-party label**. | `compare_history`, `tests/test_calibration_report`, `tests/test_panel_wiring` |
 | `backtest.relabel_run` | measurement | Rename the generic ``ENTRANT`` **on the run itself**, once, in place. | `compare_history`, `tests/test_calibration_report`, `tests/test_regressions` |
 | `benchmarks.sources_for` | measurement | Files each baseline needs that the backtest's TARGETS table does not name. | -- |
-| `benchmarks.council_size` | measurement | Seats in the target's council, from the city config's per-year structure. | `build_site`, `coalitions`, `montecarlo`, `render_map`, `render_sheet`, `scenarios`, `stats` |
+| `benchmarks.council_size` | measurement | Seats in the target's council, from the city config's per-year structure. | `build_site`, `coalitions`, `montecarlo`, `render_map`, `render_sheet`, `scenarios`, `stats`, `tests/test_home_page` |
 | `benchmarks.build_context` | measurement | Gather every pre-election input the baselines need. | `compare_history`, `diagnose`, `tests/test_covariate_fail_open`, `tests/test_roster_aware_baseline` |
 | `benchmarks.canonical_order` | measurement | The same tally, ordered ``(most votes first, then by NAME)``. | `tests/test_roster_aware_baseline` |
 | `benchmarks.council_from_shares` | measurement | Turn VD-level ballot shares into ``({party: seats}, {ward: winner})``. | -- |
@@ -670,7 +669,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `compare_history.run_city_year` | measurement | -- | `tests/test_calibration_report`, `tests/test_panel_wiring`, `tests/test_scoreboard_disclosure` |
 | `compare_history.render_calibration` | measurement | The calibration block: pooled over city-years, SPLIT BY RANK BAND. | `tests/test_calibration_report`, `tests/test_scoreboard_disclosure` |
 | `compare_history.render_wards` | measurement | The ward-winner table — the only key in this report that sees geography. | `tests/test_scoreboard_disclosure` |
-| `compare_history.render` | measurement | -- | `build_interactive`, `build_portal`, `build_site`, `hex_cartogram`, `judgement_sheet`, `stats`, `tests/test_build_all`, `tests/test_calibration_report`, `tests/test_hex_cartogram`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_scoreboard_disclosure` |
+| `compare_history.render` | measurement | -- | `build_interactive`, `build_portal`, `build_site`, `hex_cartogram`, `judgement_sheet`, `stats`, `tests/test_build_all`, `tests/test_calibration_report`, `tests/test_hex_cartogram`, `tests/test_home_page`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_scoreboard_disclosure` |
 | `compare_history.moved_module_constants` | measurement | ``(moved, unwatched)`` — what would not survive a fork, and what is blind. | -- |
 | `compare_history.build_manifest` | measurement | What produced this scoreboard, assembled from `freeze`'s existing code. | `tests/test_provenance_gates` |
 | `compare_history.load_history` | measurement | Read a scoreboard artefact, and REFUSE the pre-manifest shape. | `tests/test_calibration_report`, `tests/test_pool_bounds`, `tests/test_scoreboard_disclosure` |
@@ -874,7 +873,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `build_geo` | neither | yes | -- | Extract the CoJ subsets from the downloaded boundaries and check them. |
 | `build_interactive` | neither | yes | -- | Assemble forecast-interactive.html from the template and the data packs. |
 | `build_portal` | neither | NO | `tests/test_build_all` | Build the portal at whysoserious.city — one card per city. |
-| `build_site` | neither | NO | `src/build_portal`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_stat_freshness` | Build the public site (joburg.whysoserious.org) into ./site. |
+| `build_site` | neither | NO | `src/build_portal`, `tests/test_home_page`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_stat_freshness` | Build the public site (joburg.whysoserious.org) into ./site. |
 | `build_validation` | neither | yes | -- | Run the validation across every metro and write the page that reports it. |
 | `byelections` | neither | yes | -- | By-election evidence for the target election (plan §3.6, §3.3 covariate). |
 | `cityconfig` | model+measurement | NO | `src/arrivals`, `src/backtest`, `src/benchmarks`, `src/build_all`, `src/build_concordance`, `src/build_crosswalk`, `src/build_geo`, `src/build_interactive`, `src/build_portal`, `src/build_site`, `src/byelections`, `src/coalitions`, `src/compare_history`, `src/diagnose`, `src/export_interactive`, `src/fold`, `src/freeze`, `src/gamma_recent`, `src/iec_csv`, `src/ingest_historic`, `src/ingest_lge`, `src/ingest_npe`, `src/levels`, `src/montecarlo`, `src/polling`, `src/pools`, `src/publication`, `src/render_home`, `src/render_map`, `src/render_sheet`, `src/scenarios`, `src/sweep`, `src/theta_residual`, `src/turnout`, `src/validate_seats`, `src/width_budget`, `tests/_support`, `tests/test_artefact_key_discriminates`, `tests/test_build_all`, `tests/test_calibration_report`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_covariate_fail_open`, `tests/test_data_coverage`, `tests/test_declared_reach_matches_ward_reach`, `tests/test_declared_ward_slates`, `tests/test_drawer`, `tests/test_ipf_feasibility`, `tests/test_levels_dispersion`, `tests/test_levers_are_live`, `tests/test_polling_register`, `tests/test_pool_bounds`, `tests/test_pool_conservation`, `tests/test_prior_local_fails_closed`, `tests/test_projected_roster_declaration`, `tests/test_provenance_gates`, `tests/test_publication_ledger`, `tests/test_regressions`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed`, `tests/test_scoreboard_disclosure`, `tests/test_spine`, `tests/test_stage_estimation`, `tests/test_stage_inputs`, `tests/test_stage_realisation`, `tests/test_theta_prior`, `tests/test_ward_parts`, `tests/test_ward_pr_ratios` | The city and the target election are parameters, not assumptions. |
@@ -892,7 +891,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `fold` | model+measurement | NO | `src/arrivals`, `src/backtest`, `src/benchmarks`, `src/compare_history`, `src/diagnose`, `src/export_interactive`, `src/gamma_recent`, `src/montecarlo`, `tests/test_regressions`, `tests/test_roster_aware_baseline`, `tests/test_ward_pr_ratios` | Backtest a national/provincial baseline against a local-government target (plan §4). |
 | `freeze` | measurement | NO | `src/compare_history`, `src/declares`, `src/publication`, `tests/test_freeze`, `tests/test_provenance_gates` | Freeze a stage-1 forecast, and hash everything that could move it. |
 | `gamma_recent` | neither | yes | -- | Fit γ on the last LGE→NPE transition for parties fold 1 never saw (review A4). |
-| `hex_cartogram` | neither | NO | `tests/test_hex_cartogram` | An equal-area hex tile cartogram: one hexagon per ward, one ward per hexagon. |
+| `hex_cartogram` | neither | NO | `tests/test_hex_cartogram`, `tests/test_home_page` | An equal-area hex tile cartogram: one hexagon per ward, one ward per hexagon. |
 | `iec_csv` | model+measurement | NO | `src/derive_city`, `src/ingest_lge`, `src/ingest_npe` | Shared helpers for reading IEC result CSVs. |
 | `ingest_historic` | neither | NO | `tests/test_data_coverage` | Ingest the pre-2011 IEC bulk archives into the project's canonical VD files. |
 | `ingest_lge` | model+measurement | NO | `src/contested_area`, `src/polling`, `src/pools`, `tests/test_chain`, `tests/test_declared_reach_matches_ward_reach` | Ingest IEC local-government election results to a JHB VD-level subset. |
@@ -908,14 +907,14 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `pools` | model+measurement | NO | `src/benchmarks`, `src/compare_history`, `src/contested_area`, `src/declares`, `src/levels`, `src/montecarlo`, `src/polling`, `tests/run_all`, `tests/test_artefact_key_discriminates`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_covariate_fail_open`, `tests/test_declared_reach_matches_ward_reach`, `tests/test_declared_ward_slates`, `tests/test_delivery_proof`, `tests/test_panel_wiring`, `tests/test_pool_bounds`, `tests/test_prior_local_fails_closed`, `tests/test_projected_roster_declaration`, `tests/test_provenance_gates`, `tests/test_regressions`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed`, `tests/test_stage_inputs`, `tests/test_temporal`, `tests/test_ward_parts` | Voter pools: what a party talks to, measured rather than asserted. |
 | `prep_logos` | neither | yes | -- | Normalise party logos into consistent square badges. |
 | `publication` | neither | NO | `src/build_site`, `tests/test_publication_ledger` | The publication ledger: what this page said, when, and which model said it. |
-| `render_home` | neither | yes | -- | Fill the home page's generated regions from the run that produced them. |
-| `render_map` | neither | NO | `src/hex_cartogram`, `tests/test_hex_cartogram`, `tests/test_map_stripes` | Render the ward-winner map into the forecast pages. |
+| `render_home` | neither | NO | `tests/test_home_page` | Fill the home page's generated regions from the run that produced them. |
+| `render_map` | neither | NO | `src/hex_cartogram`, `tests/test_hex_cartogram`, `tests/test_home_page`, `tests/test_map_stripes` | Render the ward-winner map into the forecast pages. |
 | `render_sheet` | neither | yes | -- | Regenerate forecast-sheet.html's data block from the model outputs. |
-| `scenarios` | neither | NO | `src/render_home`, `src/render_map`, `src/render_sheet`, `tests/test_scenarios` | Which simulations make a scenario, and what their wards did. |
+| `scenarios` | neither | NO | `src/render_home`, `src/render_map`, `src/render_sheet`, `tests/test_home_page`, `tests/test_scenarios` | Which simulations make a scenario, and what their wards did. |
 | `score` | measurement | NO | `src/backtest`, `src/benchmarks`, `src/compare_history`, `tests/test_calibration_report`, `tests/test_chain`, `tests/test_panel_wiring`, `tests/test_regressions`, `tests/test_scored_universe` | Proper scoring rules for a distributional forecast of a council. |
 | `seats` | model+measurement | NO | `src/backtest`, `src/benchmarks`, `src/fold`, `src/levels`, `src/montecarlo`, `src/validate_seats`, `tests/test_overhang`, `tests/test_seats`, `tests/test_stage_realisation` | Seat allocation for a metro council, per Municipal Structures Act Schedule 1. |
 | `site_text` | neither | NO | `tests/test_site_text` | Export the site's editable prose to one markdown file, and apply it back. |
-| `stats` | neither | NO | `src/build_interactive`, `src/build_site`, `src/render_home`, `tests/test_number_scan`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_stat_freshness` | The stat registry: no model result is ever typed into prose by hand. |
+| `stats` | neither | NO | `src/build_interactive`, `src/build_site`, `src/render_home`, `tests/test_home_page`, `tests/test_number_scan`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_stat_freshness` | The stat registry: no model result is ever typed into prose by hand. |
 | `sweep` | neither | yes | -- | Run the model over every metro-year we can score, and hunt for anomalies. |
 | `theta_residual` | neither | NO | `tests/test_levels_dispersion` | The CONDITIONAL dispersion of log θ — the quantity `SD_FLOOR` claims to be. |
 | `turnout` | model+measurement | NO | `src/fold` | VD-level turnout series and the λ drop-off factors (plan §3.3). |
