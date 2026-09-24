@@ -38,14 +38,22 @@ here first, so anything stale in this file is read as an instruction.
 > `forecast#…` would redirect straight back to it. **Confirm with him.**
 >
 > **NEXT, in order:**
-> 1. **Write the palace entries this session could not** (no MemPalace access):
->    a diary entry (wing `jhb_election_model`), a drawer for the poll research,
->    and the 9a decisions. `MEMORY.md` too: the prediction-game requirement, and
->    that `HANDOVER.md` next-steps must be checked against the tree.
-> 2. **Home-page tests**, still missing. No test module imports `render_home`.
->    Minimum: its regions regenerate; its figures are tokens, not typed; the
->    "everyone else" row is taken per simulation; exactly one article carries
->    `lead`.
+> 1. ✅ **DONE 2026-09-25 (atlas-claude).** Palace: diary
+>    `diary_jhb_election_model_20260925_002025241464_98cd12b936b8`, drawers
+>    `drawer_jhb_election_model_decisions_7e0bc936d29b2d6a66ef636d` (§9a) and
+>    `…_findings_5ea60f9c604ae60fa6731d43` (the poll research, with the
+>    report's caveats carried verbatim). Memory: the `/nobody-will-win` case
+>    appended to `an-unticked-box-is-not-evidence`, and a new
+>    `interactive-is-a-prediction-game` pointer.
+> 2. **Home-page tests.** ⚠️ **"No test module imports `render_home`" is true
+>    and misleading** — checked in the tree 2026-09-25:
+>    `tests/test_published_page.py:185` already runs `render_home.py` as a
+>    subprocess on a scratch copy (its `GENERATORS`), so the home page's
+>    *generated tokens* ARE checked against the model, and `index.html` is in
+>    `build_site.ARTEFACTS`, so `stats.audit`/`scan_numbers` already covers it
+>    for typed numbers. What has NO test is `render_home` itself: the four
+>    regions, the lede's branch-by-number, the "everyone else" row taken per
+>    simulation, and the exactly-one-`lead` refusal.
 > 3. **Interactive: measure Pyodide speed FIRST.** The notes disagree: ~55 ms per
 >    draw in the browser (~17 s for 300 draws) in one, ~35 s of CPU per 300
 >    draws natively in another. The spike's code was never committed. Whether
