@@ -1,0 +1,932 @@
+[
+ {
+  "city": "joburg",
+  "year": "2000",
+  "ballot": 12,
+  "has_history": true,
+  "first_stood": 5,
+  "first_list": [
+   "CHRISTIAN_DEMOCRATIC_PARTY",
+   "GEMINI_MOVEMENT",
+   "THE_GREEN_PARTY_OF_SOUTH_AFRICA",
+   "VFPLUS",
+   "WORKERS_PARTY"
+  ]
+ },
+ {
+  "city": "joburg",
+  "year": "2006",
+  "ballot": 17,
+  "has_history": true,
+  "first_stood": 6,
+  "first_list": [
+   "BLACK_CONSCIOUSNESS_FORUM",
+   "CHRISTIAN_FRONT",
+   "GEMINI",
+   "NATIONAL_DEMOCRATIC_CONVENTION",
+   "OKM",
+   "UNITED_INDEPENDENT_FRONT"
+  ]
+ },
+ {
+  "city": "joburg",
+  "year": "2011",
+  "ballot": 21,
+  "has_history": true,
+  "first_stood": 4,
+  "first_list": [
+   "ALJAMAAH",
+   "LIBERAL_DEMOCRATIC_PARTY",
+   "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION",
+   "UNITED_RESIDENTS_FRONT"
+  ],
+  "council": 260,
+  "seated": 13,
+  "ind_seats": 0,
+  "out5": 8,
+  "out7": 6,
+  "first_won": 1,
+  "first_seats": 1,
+  "first_winners": {
+   "ALJAMAAH": 1
+  },
+  "seat_unmatched": []
+ },
+ {
+  "city": "joburg",
+  "year": "2016",
+  "ballot": 26,
+  "has_history": true,
+  "first_stood": 10,
+  "first_list": [
+   "AFRICAN_PEOPLE_S_SOCIALIST_PARTY",
+   "AIC",
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "BUILDING_A_COHESIVE_SOCIETY",
+   "INTERNATIONAL_REVELATION_CONGRESS",
+   "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA",
+   "PEOPLE_S_CIVIC_ORGANISATION",
+   "PREM_PEOPLES_AGENDA",
+   "TRULY_ALLIANCE",
+   "UBUNTU_PARTY"
+  ],
+  "council": 270,
+  "seated": 11,
+  "ind_seats": 0,
+  "out5": 6,
+  "out7": 4,
+  "first_won": 1,
+  "first_seats": 4,
+  "first_winners": {
+   "AIC": 4
+  },
+  "seat_unmatched": []
+ },
+ {
+  "city": "joburg",
+  "year": "2021",
+  "ballot": 54,
+  "has_history": true,
+  "first_stood": 30,
+  "first_list": [
+   "ABAHLALY_BAAHI",
+   "ABANTU_BATHO_CONGRESS",
+   "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA",
+   "AFRICAN_AMBASSADORS_OF_SOUTH_AFRICA",
+   "AFRICAN_FREEDOM_REVOLUTION",
+   "AFRICAN_PEOPLE_S_MOVEMENT",
+   "AFRICAN_SECURITY_CONGRESS",
+   "AFRICA_RESTORATION_ALLIANCE",
+   "AGENCY_FOR_NEW_AGENDA",
+   "AHC",
+   "AMALGAMATED_RAINBOW_MOVEMENT",
+   "BLACK_AND_WHITE_PARTY",
+   "CHANGE",
+   "CIVIC_MOVEMENT_OF_SOUTH_AFRICA",
+   "COMMUNITY_SOLIDARITY_ASSOCIATION",
+   "DEMOCRATIC_ARTISTS_PARTY",
+   "DISRUPT_PARTY",
+   "DOP",
+   "FORUM_4_SERVICE_DELIVERY",
+   "INTERNATIONAL_PARTY",
+   "JUSTICE_AND_EMPLOYMENT_PARTY",
+   "PARTY_OF_ACTION",
+   "PEOPLE_S_FREEDOM_PARTY",
+   "ROYAL_LOYAL_PROGRESS",
+   "SHOSHOLOZA_PROGRESSIVE_PARTY",
+   "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION",
+   "THE_ORGANIC_HUMANITY_MOVEMENT",
+   "UIM",
+   "UNITED_CULTURAL_MOVEMENT",
+   "US_THE_PEOPLE"
+  ],
+  "council": 270,
+  "seated": 18,
+  "ind_seats": 0,
+  "out5": 27,
+  "out7": 16,
+  "first_won": 2,
+  "first_seats": 2,
+  "first_winners": {
+   "AHC": 1,
+   "UIM": 1
+  },
+  "seat_unmatched": []
+ },
+ {
+  "city": "tshwane",
+  "year": "2000",
+  "ballot": 11,
+  "has_history": true,
+  "first_stood": 3,
+  "first_list": [
+   "ASCORA",
+   "CHRISTEN_PROTESTANTE_PARTY_VAN_SUIDER_AFRIKA",
+   "VISION_VISIE_2000"
+  ]
+ },
+ {
+  "city": "tshwane",
+  "year": "2006",
+  "ballot": 17,
+  "has_history": true,
+  "first_stood": 4,
+  "first_list": [
+   "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE",
+   "NATIONAL_DEMOCRATIC_CONVENTION",
+   "SOSHANGUVE_CIVIC_ASSOCIATION",
+   "UNITED_INDEPENDENT_FRONT"
+  ]
+ },
+ {
+  "city": "tshwane",
+  "year": "2011",
+  "ballot": 18,
+  "has_history": true,
+  "first_stood": 2,
+  "first_list": [
+   "CHRISTIAN_FRONT",
+   "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA"
+  ],
+  "council": 210,
+  "seated": 8,
+  "ind_seats": 0,
+  "out5": 3,
+  "out7": 1,
+  "first_won": 0,
+  "first_seats": 0,
+  "first_winners": {},
+  "seat_unmatched": []
+ },
+ {
+  "city": "tshwane",
+  "year": "2016",
+  "ballot": 20,
+  "has_history": true,
+  "first_stood": 4,
+  "first_list": [
+   "AFRICAN_MANDATE_CONGRESS",
+   "AFRICAN_PEOPLE_S_SOCIALIST_PARTY",
+   "FORUM_4_SERVICE_DELIVERY",
+   "UNITED_FRONT_OF_CIVICS"
+  ],
+  "council": 214,
+  "seated": 7,
+  "ind_seats": 0,
+  "out5": 2,
+  "out7": 0,
+  "first_won": 0,
+  "first_seats": 0,
+  "first_winners": {},
+  "seat_unmatched": []
+ },
+ {
+  "city": "tshwane",
+  "year": "2021",
+  "ballot": 46,
+  "has_history": true,
+  "first_stood": 20,
+  "first_list": [
+   "ABANTU_BATHO_CONGRESS",
+   "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA",
+   "AFRICA_RESTORATION_ALLIANCE",
+   "AGENCY_FOR_NEW_AGENDA",
+   "ARUSHA_ECONOMIC_COALITION",
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "CONCERN",
+   "DEMOCRATIC_ARTISTS_PARTY",
+   "DOP",
+   "FEDERAL_PARTY_SA",
+   "GOD_SAVE_AFRICA",
+   "PARTY_OF_ACTION",
+   "POELANO_REVELATION_PARTY",
+   "RCT",
+   "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION",
+   "SPECTRUM_NATIONAL_PARTY",
+   "THE_ORGANIC_HUMANITY_MOVEMENT",
+   "THE_PEOPLE_S_VOICE",
+   "UIM",
+   "UNITED_CULTURAL_MOVEMENT"
+  ],
+  "council": 214,
+  "seated": 15,
+  "ind_seats": 0,
+  "out5": 11,
+  "out7": 8,
+  "first_won": 2,
+  "first_seats": 2,
+  "first_winners": {
+   "DOP": 1,
+   "RCT": 1
+  },
+  "seat_unmatched": []
+ },
+ {
+  "city": "ekurhuleni",
+  "year": "2000",
+  "ballot": 14,
+  "has_history": true,
+  "first_stood": 7,
+  "first_list": [
+   "DAVEYTON_COMMUNITY_PEACE_COMMITTEE",
+   "DISPLACEES_RATE_PAYERS_ASSOCIATION",
+   "EAST_RAND_FORUM_OOSRAND_FORUM",
+   "REGTE_PARTY_RIGHT_PARTY",
+   "SIMUNYE_IN_CHRIST_ORGANISATION",
+   "THEMBISA_CONCERNED_RESIDENTS_ASSOCIATION",
+   "VFPLUS"
+  ]
+ },
+ {
+  "city": "ekurhuleni",
+  "year": "2006",
+  "ballot": 23,
+  "has_history": true,
+  "first_stood": 7,
+  "first_list": [
+   "AFRICAN_RENAISSANCE_CIVIC_MOVEMENT",
+   "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "KHAYALAMI_RESIDENTS_ASSOCIATION",
+   "NATIONAL_DEMOCRATIC_CONVENTION",
+   "TSHWARANANG_CIVIC_ORGANISATION",
+   "UMHLABA_UHLANGENE_PEOPLE_S_UNITED_NATIONS",
+   "UNITED_INDEPENDENT_FRONT"
+  ]
+ },
+ {
+  "city": "ekurhuleni",
+  "year": "2011",
+  "ballot": 22,
+  "has_history": true,
+  "first_stood": 5,
+  "first_list": [
+   "FIRST_NATION_LIBERATION_ALLIANCE",
+   "NATIONAL_REPUBLICAN_PARTY",
+   "PAN_AFRICANIST_MOVEMENT",
+   "PEOPLE_S_CIVIC_ORGANISATION",
+   "THE_REAL_CONGRESS"
+  ],
+  "council": 202,
+  "seated": 12,
+  "ind_seats": 0,
+  "out5": 8,
+  "out7": 5,
+  "first_won": 0,
+  "first_seats": 0,
+  "first_winners": {},
+  "seat_unmatched": []
+ },
+ {
+  "city": "ekurhuleni",
+  "year": "2016",
+  "ballot": 25,
+  "has_history": true,
+  "first_stood": 11,
+  "first_list": [
+   "ACADEMIC_CONGRESS_UNION",
+   "AFRICAN_PEOPLE_S_SOCIALIST_PARTY",
+   "AIC",
+   "ALJAMAAH",
+   "BUILDING_A_COHESIVE_SOCIETY",
+   "EKURHULENI_COMMUNITY_MOVEMENT",
+   "INTERNATIONAL_REVELATION_CONGRESS",
+   "PALMRIDGE_COMMUNITY_FORUM",
+   "PAN_AFRICAN_SOCIALIST_MOVEMENT_OF_AZANIA",
+   "UNITED_FRONT_OF_CIVICS",
+   "UNITED_RESIDENTS_FRONT"
+  ],
+  "council": 224,
+  "seated": 11,
+  "ind_seats": 0,
+  "out5": 7,
+  "out7": 4,
+  "first_won": 1,
+  "first_seats": 4,
+  "first_winners": {
+   "AIC": 4
+  },
+  "seat_unmatched": []
+ },
+ {
+  "city": "ekurhuleni",
+  "year": "2021",
+  "ballot": 36,
+  "has_history": true,
+  "first_stood": 17,
+  "first_list": [
+   "ABANTU_BATHO_CONGRESS",
+   "ABLE_LEADERSHIP",
+   "AFRICAN_FREEDOM_REVOLUTION",
+   "AFRICAN_PEOPLE_S_MOVEMENT",
+   "AFRICAN_SECURITY_CONGRESS",
+   "AFRICA_RESTORATION_ALLIANCE",
+   "ARUSHA_ECONOMIC_COALITION",
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "CHANGE",
+   "DEMOCRATIC_UNION_PLUS",
+   "GOD_SAVE_AFRICA",
+   "INDEPENDENT_CITIZENS_MOVEMENT",
+   "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION",
+   "SPECTRUM_NATIONAL_PARTY",
+   "THE_NATIONALS_OF_SOUTH_AFRICA",
+   "THE_ORGANIC_HUMANITY_MOVEMENT",
+   "UIM"
+  ],
+  "council": 224,
+  "seated": 16,
+  "ind_seats": 0,
+  "out5": 19,
+  "out7": 12,
+  "first_won": 1,
+  "first_seats": 1,
+  "first_winners": {
+   "INDEPENDENT_CITIZENS_MOVEMENT": 1
+  },
+  "seat_unmatched": []
+ },
+ {
+  "city": "ethekwini",
+  "year": "2000",
+  "ballot": 12,
+  "has_history": true,
+  "first_stood": 3,
+  "first_list": [
+   "ACTION_INDEPENDENT_PEOPLES_PARTY",
+   "ECOPEACE",
+   "NATIONAL_UNITED_PEOPLE_S_ORGANISATION"
+  ]
+ },
+ {
+  "city": "ethekwini",
+  "year": "2006",
+  "ballot": 18,
+  "has_history": true,
+  "first_stood": 4,
+  "first_list": [
+   "NATIONAL_DEMOCRATIC_CONVENTION",
+   "SCARA_CIVIC_PARTY",
+   "TRULY_ALLIANCE",
+   "UNITED_INDEPENDENT_FRONT"
+  ]
+ },
+ {
+  "city": "ethekwini",
+  "year": "2011",
+  "ballot": 17,
+  "has_history": true,
+  "first_stood": 5,
+  "first_list": [
+   "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE",
+   "BLACK_CONSCIOUSNESS_PARTY",
+   "SOCIALIST_GREEN_COALITION",
+   "SOLIDARITY_PARTY",
+   "UNITED_ACTION_FRONT"
+  ],
+  "council": 204,
+  "seated": 9,
+  "ind_seats": 0,
+  "out5": 5,
+  "out7": 2,
+  "first_won": 0,
+  "first_seats": 0,
+  "first_winners": {},
+  "seat_unmatched": []
+ },
+ {
+  "city": "ethekwini",
+  "year": "2016",
+  "ballot": 27,
+  "has_history": true,
+  "first_stood": 13,
+  "first_list": [
+   "ACADEMIC_CONGRESS_UNION",
+   "AFRICAN_MANTUNGWA_COMMUNITY",
+   "AIC",
+   "ALLIED_MOVEMENT_FOR_CHANGE",
+   "DEMOCRATIC_LIBERAL_CONGRESS",
+   "INDEPENDENT_PEOPLE_S_PARTY",
+   "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "MINORITIES_OF_SOUTH_AFRICA",
+   "PEOPLE_S_REVOLUTIONARY_MOVEMENT",
+   "SOUTH_AFRICAN_POLITICAL_PARTY",
+   "THE_PROMISE_OF_FREEDOM",
+   "UNITED_PEOPLES_PARTY",
+   "UNITED_RESIDENTS_FRONT"
+  ],
+  "council": 215,
+  "seated": 12,
+  "ind_seats": 0,
+  "out5": 7,
+  "out7": 5,
+  "first_won": 3,
+  "first_seats": 5,
+  "first_winners": {
+   "AIC": 3,
+   "DEMOCRATIC_LIBERAL_CONGRESS": 1,
+   "MINORITIES_OF_SOUTH_AFRICA": 1
+  },
+  "seat_unmatched": []
+ },
+ {
+  "city": "ethekwini",
+  "year": "2021",
+  "ballot": 50,
+  "has_history": true,
+  "first_stood": 22,
+  "first_list": [
+   "ABANTU_BATHO_CONGRESS",
+   "ACTIVE_CITIZENS_COALITION",
+   "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA",
+   "ADVANCED_DYNAMIC_ALLIANCE",
+   "AFRICAN_BASIC_REPUBLICANS",
+   "AFRICAN_DEMOCRATIC_CHANGE",
+   "AFRICAN_FEDERAL_CONVENTION",
+   "AFRICAN_FREEDOM_REVOLUTION",
+   "AFRICAN_PEOPLE_FIRST",
+   "AFRICAN_PEOPLE_S_MOVEMENT",
+   "AFRICA_RESTORATION_ALLIANCE",
+   "DEMOCRATIC_PEOPLE_S_CONGRESS",
+   "FORUM_4_SERVICE_DELIVERY",
+   "GOD_SAVE_AFRICA",
+   "INTERNATIONAL_PARTY",
+   "KZN_INDEPENDENCE",
+   "PA",
+   "PEOPLE_S_FREEDOM_PARTY",
+   "SPECTRUM_NATIONAL_PARTY",
+   "THE_ORGANIC_HUMANITY_MOVEMENT",
+   "UIM",
+   "UNITED_CULTURAL_MOVEMENT"
+  ],
+  "council": 222,
+  "seated": 24,
+  "ind_seats": 0,
+  "out5": 23,
+  "out7": 19,
+  "first_won": 7,
+  "first_seats": 9,
+  "first_winners": {
+   "ABANTU_BATHO_CONGRESS": 2,
+   "ACTIVE_CITIZENS_COALITION": 2,
+   "AFRICAN_DEMOCRATIC_CHANGE": 1,
+   "AFRICAN_PEOPLE_FIRST": 1,
+   "KZN_INDEPENDENCE": 1,
+   "PEOPLE_S_FREEDOM_PARTY": 1,
+   "UIM": 1
+  },
+  "seat_unmatched": []
+ },
+ {
+  "city": "capetown",
+  "year": "2000",
+  "ballot": 13,
+  "has_history": true,
+  "first_stood": 7,
+  "first_list": [
+   "ABOLITION_OF_INCOME_TAX_AND_USURY_PARTY",
+   "AFRICA_MUSLIM_PARTY",
+   "AZAPO",
+   "HELDERBERG_COMMUNITY_CIVIC_ORGANIZATION",
+   "MODERATE_INDEPENDENT_PARTY",
+   "THE_CAPE_PEOPLES_CONGRESS",
+   "THE_GREEN_PARTY_OF_SOUTH_AFRICA"
+  ]
+ },
+ {
+  "city": "capetown",
+  "year": "2006",
+  "ballot": 22,
+  "has_history": true,
+  "first_stood": 7,
+  "first_list": [
+   "ALLIANCE_OF_FREE_DEMOCRATS",
+   "FEDERATION_OF_DEMOCRATS",
+   "FIRST_COMMUNITY_PARTY_OF_SOUTH_AFRICA",
+   "PENSION_POVERTY_RELIEF_AND_UNEMPLOYMENT_FRONT",
+   "PROGRESSIVE_INDEPENDENT_MOVEMENT",
+   "PRO_RATEPAYERS_PARTY_PRO_BELASTINGBETALERS_PARTY",
+   "UNITED_INDEPENDENT_FRONT"
+  ]
+ },
+ {
+  "city": "capetown",
+  "year": "2011",
+  "ballot": 33,
+  "has_history": true,
+  "first_stood": 14,
+  "first_list": [
+   "AFRICAN_BOND_OF_UNITY",
+   "CAPE_MUSLIM_CONGRESS",
+   "COMMUNITY_COALITION",
+   "DEMOCRATS_FOR_CHANGE",
+   "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA",
+   "NATIONAL_ALLIANCE_FOR_DEMOCRACY",
+   "NATIONAL_INDEPENDANT_CIVIC_ORGANISATION",
+   "NATIONAL_PEOPLE_S_PARTY",
+   "PAN_AFRICANIST_MOVEMENT",
+   "SOCIAL_DEMOCRATIC_PARTY",
+   "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION",
+   "UNITED_MAJORITY_FRONT",
+   "UNIVERSAL_CIVICS_OF_SOUTH_AFRICA",
+   "WESTERN_CAPE_COMMUNITY"
+  ],
+  "council": 221,
+  "seated": 11,
+  "ind_seats": 0,
+  "out5": 6,
+  "out7": 4,
+  "first_won": 1,
+  "first_seats": 1,
+  "first_winners": {
+   "CAPE_MUSLIM_CONGRESS": 1
+  },
+  "seat_unmatched": []
+ },
+ {
+  "city": "capetown",
+  "year": "2016",
+  "ballot": 36,
+  "has_history": true,
+  "first_stood": 16,
+  "first_list": [
+   "AL_SHURA_PARTY",
+   "CHRISTIAN_DEMOCRATIC_PARTY",
+   "COLOURED_VOICE",
+   "DEMOCRATIC_INDEPENDENT_PARTY",
+   "INDEPENDENT_SPORT_PARTY",
+   "KHOISAN_KINGDOM_AND_ALL_PEOPLE",
+   "KHOISAN_REVOLUTION",
+   "LOCAL_PEOPLE_S_PARTY",
+   "NATIONALIST_COLOURED_PARTY_OF_SOUTH_AFRICA",
+   "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA",
+   "PEOPLE_S_DEMOCRATIC_MOVEMENT",
+   "SIZWE_UMMAH_NATION",
+   "SOUTH_AFRICAN_PEOPLE_FOR_EQUALITY",
+   "SOUTH_AFRICA_PEOPLE_S_PARTY",
+   "THE_GREENS",
+   "UBUNTU_PARTY"
+  ],
+  "council": 231,
+  "seated": 13,
+  "ind_seats": 0,
+  "out5": 8,
+  "out7": 6,
+  "first_won": 1,
+  "first_seats": 1,
+  "first_winners": {
+   "DEMOCRATIC_INDEPENDENT_PARTY": 1
+  },
+  "seat_unmatched": []
+ },
+ {
+  "city": "capetown",
+  "year": "2021",
+  "ballot": 50,
+  "has_history": true,
+  "first_stood": 25,
+  "first_list": [
+   "ABANTU_BATHO_CONGRESS",
+   "AFRICAN_FREEDOM_REVOLUTION",
+   "AFRICAN_ISLAMIC_MOVEMENT",
+   "AFRICA_RESTORATION_ALLIANCE",
+   "BLACK_FIRST_LAND_FIRST",
+   "CAPE_COLOURED_CONGRESS",
+   "CAPE_INDEPENDENCE_PARTY_KAAPSE_ONAFHANKLIKHEIDS_PARTY",
+   "COMPATRIOTS_OF_SOUTH_AFRICA",
+   "CREDIBLE_ALTERNATIVE_1ST_MOVEMENT",
+   "DEMOCRATIC_LABOUR_PARTY",
+   "DEMOCRATIC_PEOPLE_S_ALTERNATIVE",
+   "DEMOCRATIC_PEOPLE_S_MOVEMENT",
+   "EASTERN_CAPE_MOVEMENT",
+   "ECONOMIC_EMANCIPATION_FORUM",
+   "GOD_SAVE_AFRICA",
+   "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION",
+   "INTERNATIONAL_PARTY",
+   "IQELA_LENTSANGO_DAGGA_PARTY",
+   "ONE_MOVEMENT_FOR_CAPE_TOWN",
+   "OUR_NATION",
+   "SPECTRUM_NATIONAL_PARTY",
+   "THE_ORGANIC_HUMANITY_MOVEMENT",
+   "UIM",
+   "UNITED_PROGRESSIVE_PARTY_SOUTH_AFRICA",
+   "UNITED_SOUTH_AFRICA"
+  ],
+  "council": 231,
+  "seated": 17,
+  "ind_seats": 0,
+  "out5": 27,
+  "out7": 17,
+  "first_won": 4,
+  "first_seats": 12,
+  "first_winners": {
+   "AFRICA_RESTORATION_ALLIANCE": 2,
+   "CAPE_COLOURED_CONGRESS": 7,
+   "CAPE_INDEPENDENCE_PARTY_KAAPSE_ONAFHANKLIKHEIDS_PARTY": 2,
+   "UIM": 1
+  },
+  "seat_unmatched": []
+ },
+ {
+  "city": "mangaung",
+  "year": "2000",
+  "ballot": 8,
+  "has_history": true,
+  "first_stood": 2,
+  "first_list": [
+   "ALLIANCE_2000",
+   "AZAPO"
+  ]
+ },
+ {
+  "city": "mangaung",
+  "year": "2006",
+  "ballot": 11,
+  "has_history": true,
+  "first_stood": 1,
+  "first_list": [
+   "BLACK_CONSCIOUSNESS_FORUM"
+  ]
+ },
+ {
+  "city": "mangaung",
+  "year": "2011",
+  "ballot": 10,
+  "has_history": true,
+  "first_stood": 2,
+  "first_list": [
+   "BLACK_CONSCIOUSNESS_PARTY",
+   "UNITED_RESIDENTS_FRONT"
+  ],
+  "council": 97,
+  "seated": 5,
+  "ind_seats": 0,
+  "out5": 0,
+  "out7": 0,
+  "first_won": 0,
+  "first_seats": 0,
+  "first_winners": {},
+  "seat_unmatched": []
+ },
+ {
+  "city": "mangaung",
+  "year": "2016",
+  "ballot": 15,
+  "has_history": true,
+  "first_stood": 4,
+  "first_list": [
+   "AGENCY_FOR_NEW_AGENDA",
+   "AIC",
+   "AZANIAN_ALLIANCE_CONGRESS",
+   "BOTSHABELO_UNEMPLOYED_MOVEMENT"
+  ],
+  "council": 100,
+  "seated": 7,
+  "ind_seats": 0,
+  "out5": 2,
+  "out7": 0,
+  "first_won": 2,
+  "first_seats": 3,
+  "first_winners": {
+   "AGENCY_FOR_NEW_AGENDA": 1,
+   "AIC": 2
+  },
+  "seat_unmatched": []
+ },
+ {
+  "city": "mangaung",
+  "year": "2021",
+  "ballot": 23,
+  "has_history": true,
+  "first_stood": 7,
+  "first_list": [
+   "AFRICA_S_NEW_DAWN",
+   "FORUM_4_SERVICE_DELIVERY",
+   "INTERNATIONAL_PARTY",
+   "MANGAUNG_COMMUNITY_FORUM",
+   "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION",
+   "THE_ORGANIC_HUMANITY_MOVEMENT",
+   "UIM"
+  ],
+  "council": 101,
+  "seated": 9,
+  "ind_seats": 0,
+  "out5": 5,
+  "out7": 2,
+  "first_won": 0,
+  "first_seats": 0,
+  "first_winners": {},
+  "seat_unmatched": []
+ },
+ {
+  "city": "nelsonmandelabay",
+  "year": "2000",
+  "ballot": 7,
+  "has_history": true,
+  "first_stood": 1,
+  "first_list": [
+   "AFRICAN_TRANSFORMATION_EFFICIENCY_AND_AFFIRMATIVE_MOVEMENT"
+  ]
+ },
+ {
+  "city": "nelsonmandelabay",
+  "year": "2006",
+  "ballot": 13,
+  "has_history": true,
+  "first_stood": 4,
+  "first_list": [
+   "ALLIANCE_FOR_COMMUNITY_TRANSFORMATION",
+   "CONGRESS_MOVEMENT_OF_THE_COLOURED_PEOPLE_IN_SOUTH_AFRICA",
+   "LIBERAL_PARTY",
+   "UNITED_INDEPENDENT_FRONT"
+  ]
+ },
+ {
+  "city": "nelsonmandelabay",
+  "year": "2011",
+  "ballot": 13,
+  "has_history": true,
+  "first_stood": 3,
+  "first_list": [
+   "AFRICAN_COMMUNITY_MOVEMENT",
+   "CHRISTIAN_DEMOCRATIC_PARTY",
+   "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION"
+  ],
+  "council": 120,
+  "seated": 6,
+  "ind_seats": 0,
+  "out5": 1,
+  "out7": 0,
+  "first_won": 0,
+  "first_seats": 0,
+  "first_winners": {},
+  "seat_unmatched": []
+ },
+ {
+  "city": "nelsonmandelabay",
+  "year": "2016",
+  "ballot": 19,
+  "has_history": true,
+  "first_stood": 7,
+  "first_list": [
+   "AFRICAN_POWER_MOVEMENT",
+   "ALTERNATIVE_DEMOCRATS",
+   "BUILDING_A_COHESIVE_SOCIETY",
+   "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA",
+   "PA",
+   "UBUNTU_PARTY",
+   "UNITED_FRONT_OF_THE_EASTERN_CAPE"
+  ],
+  "council": 120,
+  "seated": 9,
+  "ind_seats": 0,
+  "out5": 4,
+  "out7": 2,
+  "first_won": 2,
+  "first_seats": 2,
+  "first_winners": {
+   "PA": 1,
+   "UNITED_FRONT_OF_THE_EASTERN_CAPE": 1
+  },
+  "seat_unmatched": []
+ },
+ {
+  "city": "nelsonmandelabay",
+  "year": "2021",
+  "ballot": 28,
+  "has_history": true,
+  "first_stood": 13,
+  "first_list": [
+   "ABANTU_BATHO_CONGRESS",
+   "ABANTU_INTEGRITY_MOVEMENT",
+   "AFRICA_RESTORATION_ALLIANCE",
+   "COMPATRIOTS_OF_SOUTH_AFRICA",
+   "DOP",
+   "GOD_SAVE_AFRICA",
+   "INDEPENDENT_CIVIC_MOVEMENT",
+   "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION",
+   "MANDELA_BAY_COMMUNITY_MOVEMENT",
+   "NORTHERN_ALLIANCE",
+   "SPECTRUM_NATIONAL_PARTY",
+   "THE_ORGANIC_HUMANITY_MOVEMENT",
+   "UIM"
+  ],
+  "council": 120,
+  "seated": 13,
+  "ind_seats": 0,
+  "out5": 11,
+  "out7": 7,
+  "first_won": 3,
+  "first_seats": 6,
+  "first_winners": {
+   "ABANTU_INTEGRITY_MOVEMENT": 1,
+   "DOP": 2,
+   "NORTHERN_ALLIANCE": 3
+  },
+  "seat_unmatched": []
+ },
+ {
+  "city": "buffalocity",
+  "year": "2000",
+  "ballot": 6,
+  "has_history": true,
+  "first_stood": 0,
+  "first_list": []
+ },
+ {
+  "city": "buffalocity",
+  "year": "2006",
+  "ballot": 9,
+  "has_history": true,
+  "first_stood": 2,
+  "first_list": [
+   "NATIONAL_DEMOCRATIC_CONVENTION",
+   "UNITED_INDEPENDENT_FRONT"
+  ]
+ },
+ {
+  "city": "buffalocity",
+  "year": "2011",
+  "ballot": 8,
+  "has_history": true,
+  "first_stood": 0,
+  "first_list": [],
+  "council": 100,
+  "seated": 6,
+  "ind_seats": 0,
+  "out5": 1,
+  "out7": 0,
+  "first_won": 0,
+  "first_seats": 0,
+  "first_winners": {},
+  "seat_unmatched": []
+ },
+ {
+  "city": "buffalocity",
+  "year": "2016",
+  "ballot": 12,
+  "has_history": true,
+  "first_stood": 2,
+  "first_list": [
+   "PEOPLES_ALLIANCE",
+   "UNITED_FRONT_OF_THE_EASTERN_CAPE"
+  ],
+  "council": 100,
+  "seated": 8,
+  "ind_seats": 0,
+  "out5": 3,
+  "out7": 1,
+  "first_won": 0,
+  "first_seats": 0,
+  "first_winners": {},
+  "seat_unmatched": []
+ },
+ {
+  "city": "buffalocity",
+  "year": "2021",
+  "ballot": 26,
+  "has_history": true,
+  "first_stood": 12,
+  "first_list": [
+   "ABANTU_BATHO_CONGRESS",
+   "AFRICAN_MULTICULTURAL_ECONOMIC_CONGRESS",
+   "AFRICA_RESTORATION_ALLIANCE",
+   "ARUSHA_ECONOMIC_COALITION",
+   "BATHO_PELE_MOVEMENT",
+   "CIVIC_INDEPENDENT",
+   "GOD_SAVE_AFRICA",
+   "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION",
+   "PA",
+   "PROGRESSIVE_COMMUNITY_MOVEMENT",
+   "THE_ORGANIC_HUMANITY_MOVEMENT",
+   "UIM"
+  ],
+  "council": 100,
+  "seated": 9,
+  "ind_seats": 0,
+  "out5": 4,
+  "out7": 2,
+  "first_won": 0,
+  "first_seats": 0,
+  "first_winners": {},
+  "seat_unmatched": []
+ }
+]
