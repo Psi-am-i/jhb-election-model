@@ -545,6 +545,54 @@ exists, the mechanism is added to the model with a JUDGEMENT-CALLS row and a
 **Order.** The mechanisms (1–3) are model changes and follow the post-review
 window. The page cannot be built on a forecast that is about to move.
 
+### 9a. Owner decisions, 2026-09-24 (evening), on the design round's four open questions
+
+Put to the owner after the 24 Sep design round and blind review
+(`audits/2026-09-24-interactive-round1/`). His answers, his words where quoted:
+
+1. **"Do voters cross old lines?" → a direct slider for the DA's share among
+   Black African voters** (the reviewer's option, not γ-only geography). Pool
+   mixing toward the city is level-neutral by algebra, so this is the form that
+   can move totals. The owner's frame for all levers: *"our forecast and then
+   some levers that are all within bounds of history"* — so its range comes from
+   the record, not from the DA's claim.
+2. **Turnout → one overall level plus a per-pool control.** *"As I understand,
+   some voter pools do turn out differently and I would expect it more this
+   year."* Level + differential, each bounded by the record. The shift enters
+   AFTER the IPF (the only placement that moves shares — round 1).
+3. **Polls → not decided; the owner asked what exists first.** Answered in
+   `audits/2026-09-24-interactive-round1/poll-research/REPORT.md`: a third
+   Johannesburg poll exists and is not in the register (Ipsos, June–July 2026);
+   Ipsos is the only house with a scored Johannesburg reading; SRF, the only
+   admitted house, has no scored local-election reading. The trust-ceiling
+   choice (E = 3.0pp vs ≥ 5pp) is still his, now with that in hand.
+4. **Ward calls → carried into votes, and the interactive becomes a prediction
+   game.** *"My intention is to have our forecast and then some levers that are
+   all within bounds of history. Then to let a user literally hand choose the
+   winner in each ward and the overall PR vote. That lets them create a map of
+   their own belief (evidence be damned) but it lets users share their
+   predictions and we can have a kind of competition as well as a social game.
+   Each prediction we can also rate according to our model — right down to the
+   chance of your hand written assertion happening is X (or whatever is true)
+   and after the election we can rate every prediction to the real result. This
+   makes the whole thing less dry and more participatory."*
+
+**What 4 needs that is not designed yet:**
+- **The rating.** The joint chance of 135 hand-picked ward winners is below one
+  in any number of simulations the page can run, so "the chance your forecast
+  happens" printed literally is always ~0 and says nothing. Readable
+  alternatives, to be designed and put to the owner: per-claim chances read
+  straight from the draws (*"our model gives the DA at least 80 seats a 12%
+  chance"* — wording illustrative, figure invented), and a plausibility rank — how the reader's forecast scores under
+  the model's per-ward and vote-share probabilities, against the model's own
+  simulations scored the same way. ARGUED, not built.
+- **Post-election scoring:** wards called right, seat error per party, PR-vote
+  error — computable from the link alone once the results are in.
+- **"Competition" vs §10's URL-only rule.** A leaderboard means storing readers'
+  forecasts, which §10 chose NOT to do (a stored forecast is a reader's
+  political statement held on our infrastructure). Self-scored links keep the
+  rule; a leaderboard breaks it. **Owner's decision.**
+
 ---
 
 ## 10. The home page, and the reader's own forecast — owner, 2026-09-23

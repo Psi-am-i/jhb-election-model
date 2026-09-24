@@ -5,94 +5,94 @@
 `MODEL-LOG.md`, which is append-only and dated. `CLAUDE.md` sends every session
 here first, so anything stale in this file is read as an instruction.
 
-> ## ⛔ STATE AT 2026-09-24 — SITE REBUILT AGAIN, STILL NOT DEPLOYED. INTERACTIVE DESIGNED, AWAITING OWNER.
+> ## ⛔ STATE AT 2026-09-24 (EVENING) — ONE BRANCH, ONE TREE, SUITE RUN. INTERACTIVE: OWNER HAS DECIDED 3 OF 4.
 >
-> Live pages are still the 31 August build. Commits since 23 Sep (remediation,
-> atlas, NOT pushed): `5064975` home page + /forecast (leads with the forecast)
-> + /nobody-will-win (the 31 Aug article), one site theme (dark, sun/moon), map
-> switch everywhere; `ea3d34a` one "Others" definition (`scenarios.others_per_draw`),
-> median/range seat columns, bigger claim logos, cartogram test on constructed
-> input; `d38d57c` MODEL-LOG §1.254 + 12 register rows amended + judgement_sheet
-> parser fixed. Suite at d38d57c: 761 passed, 2 failed (the two standing ones).
+> **Live pages are still the 31 August build.** Nothing was deployed or
+> re-emitted this evening, and no forecast number moved.
 >
-> **Settled:** the 723→733 window "drop" is seed noise (4 seeds: 734 vs 735
-> mean). §1.249 stays. By-elections: a fresh IEC fetch is byte-identical; no
-> Gauteng contest after 2026-02-25.
+> **Tidied.** Two sessions (Atlas, Scout) had worked this branch unaware of each
+> other. Both checkouts are now at the same `remediation` head. Scout's stale
+> uncommitted edits from 14 Sep (deleted `HANDOVER.md` / `PLAN-TO-LIVE.md` /
+> `LAUNCH-THE-REVIEW.md`, a trimmed `POLLING.md`, an empty `agent-os/`) are
+> **stashed on Scout, not dropped** — `git stash list` there, *"scout 2026-09-14
+> local deletions"*; the owner decides whether any of it was meant. Four
+> never-ending `pgrep` wait-loops on Atlas were killed. The two 24 Sep banners
+> are in `HANDOVER-ARCHIVE.md`.
 >
-> **NEXT, in order** (PUBLISHING-BACKLOG §11 has the site list):
-> 1. **Small-party draw fix** — the within-pool Dirichlet gives micro seeds a
->    spike at zero plus rare chunks (median drawn share ~500x below real
->    first-timers) AND starves established small parties; backtest seated-parties
->    PIT 0.83, 10/24 rows above the 95th pct (model UNDER-seats). JHB 2021 seated
->    18 (IEC seat report), not 12. Spec: each small/new party its own share draw
->    from measured history (first-timers by ward reach), vote shares only.
->    Pre-register, blind review, then change. Owner question open: read reach
->    from the declared 2026 ward slates? Measurement scripts:
->    Scout scratchpad `tail/`, atlas `/tmp/smalltail_*`.
-> 2. **Poll with no n is priced MORE precise than SRF** (polling.py fallback
->    POLL_HOUSE_SD) — live defect, both review passes agree; fix.
-> 3. Register VALUE guard (spec in the 24 Sep audit), then `/judgement-calls`
->    (owner: live calls + plain intro + full register collapsed, all current).
-> 4. Re-emit window: owner authorised. Must include regenerating
->    `build_validation` — the public "about the model" table is the 11 Aug run
->    AND truncated at 12 parties per city (JHB sums to 264 of 270).
-> 5. Owner review → `build_site.py --publish --reason … --change-class …` →
->    `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy`.
+> ⚠️ **Scout cannot run anything**: no `.venv`, and its gitignored `data/` is
+> ten days stale. Run the model, the suite and every measurement on **Atlas**.
 >
-> **Interactive: designed, reviewed blind, four owner decisions open** —
-> (1) mixing control: geography-only γ, or a direct "DA share among Black African
-> voters" slider (review); (2) turnout ranges: level + differential from the
-> record (review) vs the design's (a)/(b); (3) polls: trust ceiling 3.0pp vs
-> ≥5pp, and add the Sept Ipsos CoJ poll to polls.json first; (4) ward calls:
-> winners only vs carried into votes. Agreed by both: turnout shift goes AFTER
-> the IPF (backlog §9's placement is wrong); best/worst = conditioning on the
-> published 5,000 draws only. Also for the owner: mark §A4/§A43 ⚪ resolved?
-> Page architecture (Pyodide timing unmeasured = decisive risk; ward overrides
-> re-seat exactly) is in the palace drawer of 24 Sep.
+> **Suite, full, Atlas, at `4667fd7`: 761 passed, 2 failed, 18 skipped, no
+> PARTIAL banner** (wall clock 1018.8 s). The two failures are the standing
+> ones, both in `test_pool_bounds`: the 2011 DA-in-White impossible weights and
+> Mangaung 2016's pool rates summing to `[1, 1, 0, 1]`. This evening's commit is
+> documents and an audit folder only.
 >
-> Leftover on atlas: four never-ending `pgrep` wait-loops from an earlier
-> session (they match their own command line); harmless, not this session's.
-
-> ## ⛔ STATE AT 2026-09-24 — THE HOME PAGE IS BUILT. STILL NOT DEPLOYED.
+> ⛔ **The previous banner's item 1 was FALSE and nothing was changed for it.**
+> It said `/nobody-will-win` did not exist. It does: `build_site.ARTEFACTS` has
+> cut it from `forecast-sheet.html` since `5064975`, and it carries both
+> `#nobody-catches` and `#minority`. `forecast.html` also forwards any anchor it
+> lacks to that page. The owner's `articles.toml` hrefs are correct as they
+> stand. ⚠️ The owner said *"point the hrefs at forecast"* on the strength of
+> that false claim; it was not done, because the page already exists and
+> `forecast#…` would redirect straight back to it. **Confirm with him.**
 >
-> **Everything below the 23 September banner still holds** — the window, the
-> canonical measurement, the freeze. This banner adds what happened after it.
+> **NEXT, in order:**
+> 1. **Write the palace entries this session could not** (no MemPalace access):
+>    a diary entry (wing `jhb_election_model`), a drawer for the poll research,
+>    and the 9a decisions. `MEMORY.md` too: the prediction-game requirement, and
+>    that `HANDOVER.md` next-steps must be checked against the tree.
+> 2. **Home-page tests**, still missing. No test module imports `render_home`.
+>    Minimum: its regions regenerate; its figures are tokens, not typed; the
+>    "everyone else" row is taken per simulation; exactly one article carries
+>    `lead`.
+> 3. **Interactive: measure Pyodide speed FIRST.** The notes disagree: ~55 ms per
+>    draw in the browser (~17 s for 300 draws) in one, ~35 s of CPU per 300
+>    draws natively in another. The spike's code was never committed. Whether
+>    "300 draws per change" is even possible decides the page's design.
+> 4. **The interactive's model mechanisms** (PUBLISHING-BACKLOG §9, now §9a):
+>    per-pool turnout (level + differential, after the IPF), the DA-share-among-
+>    Black-Africans control, and per-poll selection. Each gets a pre-registration,
+>    a blind review, a JUDGEMENT-CALLS row and a 2026 liveness test, and all of
+>    them go into one re-emit window.
+> 5. **Carried from the earlier banner, still open:**
+>    - the **small-party draw fix** (the within-pool Dirichlet gives micro seeds
+>      a spike at zero; backtest seated-parties PIT 0.83; Johannesburg 2021
+>      seated 18 parties, per the IEC seat report). Scripts are in
+>      `audits/2026-09-24-interactive-round1/small-party-tail/`;
+>    - a poll with no n is priced MORE precise than SRF (`POLL_HOUSE_SD`
+>      fallback), a live defect;
+>    - the register VALUE guard, then the `/judgement-calls` page;
+>    - the owner-authorised re-emit window, which must regenerate
+>      `build_validation` (the public table is the 11 Aug run, truncated at 12
+>      parties);
+>    - owner review, then `build_site.py --publish --reason … --change-class …`,
+>      then `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy`.
 >
-> **The home page is the landing page now.** `home.html` → `index.html`; the
-> forecast sheet → `/forecast`. Built from the current run, layout A with the
-> large map and colour-separated sections (PUBLISHING-BACKLOG §10). The heading
-> leads on the coalition and its STRENGTH is chosen by the measurement, not
-> typed — see `render_home._lede`.
+> **Owner decisions, interactive** — recorded in `PUBLISHING-BACKLOG.md` §9a,
+> in his words. **Decided:** a DA-among-Black-Africans slider; turnout as overall
+> plus per pool; ward calls carried into votes, so **the interactive is now a
+> prediction game** (hand-pick every ward and the PR vote, share it, have it
+> rated by the model, scored after the election).
 >
-> **⚠️ THE NEXT THREE THINGS, in order:**
+> **Still his:**
+> - the poll trust ceiling;
+> - whether a "competition" may store readers' forecasts, which would break
+>   §10's URL-only rule;
+> - how a forecast is rated (see §9a: a literal joint chance is always ~0);
+> - the social preview card;
+> - whether §A4 / §A43 are resolved;
+> - whether micro-party reach is read from the declared 2026 ward slates.
 >
-> 1. **The article page does not exist.** The owner edited
->    `content/joburg/articles.toml` on 2026-09-24 so three entries point at
->    `nobody-will-win` (and `nobody-will-win#nobody-catches`,
->    `#minority`). Nothing builds that page yet — the anchors currently live on
->    the forecast sheet. Either build the article as its own page and move those
->    sections into it, or point the hrefs back at `forecast#…`. **The build does
->    not check internal links, so this will ship broken if nobody looks.**
-> 2. **The home page has no tests.** Everything else on the site has a guard;
->    this page has none. At minimum: its regions regenerate, its figures are
->    tokens rather than typed numbers, the "everyone else" row is taken per
->    simulation, and exactly one article carries `lead`.
-> 3. **The full suite has not run since the home page landed.** Only the six
->    modules the work touched were run (published_page, number_scan, build_all,
->    site_text, standalone, model_index) — all green.
->
-> **Then:** the owner reviews, `build_site.py --publish --reason … --change-class`
-> (append-only, needs the owner's words), and `env -u CLOUDFLARE_API_TOKEN npx
-> wrangler deploy`.
->
-> **Open questions the owner has not answered yet:** whether the pool-seed fix
-> ships given it costs 10 coherent seats on the panel (§1.253 — it removes an
-> impossible assumption, and ITERATING says more honest usually ships); and what
-> a social preview card shows for a reader's own forecast (§10).
->
-> **SITE-TEXT.md** is waiting for the owner's language edits; `src/site_text.py
-> --apply` writes them back to source and refuses any edit that changes a figure.
-
+> **Polls, answered for the owner** (`audits/2026-09-24-interactive-round1/poll-research/REPORT.md`):
+> - A third Johannesburg poll exists and is NOT in `polls.json`: **Ipsos,
+>   June–July 2026 fieldwork**, released 4 Sep. ANC 31 / DA 28 / ASA 14 /
+>   EFF 8 / MK 6 / PA 3 / Other 7 / DK 3; no published n, ±5.57 ⇒ ≈310.
+>   Verified from the primary PDF. It is not September fieldwork, and DA is 28,
+>   not 27 as reported elsewhere.
+> - Ipsos is the only house with a scored Johannesburg reading. SRF has no
+>   scored local-election reading at all.
+> - An unverified IOL report ties SRF to a former DA staffer.
 > ## ⛔ STATE AT 2026-09-23 — THE WINDOW IS TAKEN AND THE SITE IS BUILT. NOT DEPLOYED.
 >
 > **The live pages are still the 31 August build.** Everything below is built,
