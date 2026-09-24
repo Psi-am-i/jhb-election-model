@@ -26559,3 +26559,62 @@ its own round.
 the two Cape Town renames the owner confirmed on 2026-09-16, and it is not
 number-neutral, so it needs its own pre-registration and a measured panel — a
 later window, deliberately.
+
+## 1.254 The window's "worse score" is one seed's rounding, and the register was wrong in twelve places (2026-09-24)
+
+**The question** (owner): the 23 September window raised the canonical seat
+error from 723 to 733 — can the change that cost it be improved while staying
+honest?
+
+**Attributed exactly, not guessed.** Two isolated worktrees, nothing written to
+the real tree: A at `33e4a5d` (the commit before §1.249) with the archived
+pre-window specs (`archive/pools-preemit-2026-09-21/`, `pools_sha 13bf2cf7`),
+and B at HEAD with the current specs (`7264a929`). `compare_history --draws
+1000`, seed 20261104:
+
+    A  seat_abs_err_coherent=723/@33e4a5de+dirty/1000d/pools:13bf2cf7/rows=24
+    B  seat_abs_err_coherent=733/@50649754/1000d/pools:7264a929/rows=24
+
+B reproduces the canonical 733, so the harness is sound; A reproduces the
+12 September polls-off 723, so `57daa96` and `9f5ab4a` moved nothing and the
+difference is §1.249 (with §1.250 and §1.252 already shown number-neutral on
+the panel). CRPS 541.39 → 541.53. The ten seats are five one-seat moves in
+party medians in five rows (Ekurhuleni 2016 and 2021, Cape Town 2021,
+Johannesburg 2016 worse; Mangaung 2016 better).
+
+**And they are the seed, not the change.** Seeds 1, 2 and 3 on both trees:
+
+| seed | before §1.249 | after |
+|---|---|---|
+| 20261104 | 723 | 733 |
+| 1 | 735 | 739 |
+| 2 | 735 | 733 |
+| 3 | 743 | 735 |
+| mean | 734.0 | 735.0 |
+
+The seed-to-seed spread is about twenty seats; the change is one. §1.249
+stays as shipped — it replaced an impossible vector with a defensible default,
+and on the proper score it is neutral. ⚠️ "Spread like the city" is still a
+DEFAULT, not a measurement (§1.249's own caveat), and the coherent seat error
+on one seed should not be quoted as moving by less than its seed spread.
+
+**The judgement register, audited against the code** (a read-only agent, every
+row; three findings re-derived by the lead: §A43's reset, §H10's `fold.py`
+calls, §A4's 46 named seeds). Twelve rows were wrong and are amended in place
+with a dated note: §A4 (the generic entrant is retired at 2026 by the named
+seeds), §A5 and §A7 (`contestation_expand` inert at 2026 since §1.252),
+§A17, §A32, §A43 (`apply_city` has reset `DEFAULTS` since 2026-08-18), §D19
+and §D20 (one definition, imported; STRONG/LEAN deleted), §H5, §H8, §H10
+(`fold.py`'s two `allocate` calls omit `total_seats` — a printed diagnostic
+only, no forecast number), §K2, and §H17–§H20 (live only in the poll path,
+which is off at 2026). Every stated VALUE matched the code except where the
+symbol no longer exists. The existing guards check only that a named symbol
+exists, which is why none of this was caught; a value guard is specified and
+queued. `judgement_sheet` counted each table's header as a row and joined
+bare register names against qualified constants, so every module constant
+read "not linked": fixed (109 named, 35 structural, 82 linked).
+
+**Reviewed blind** (pollster standpoint, `scratchpad` brief round 1): the
+review's own verdict on this item was "ship it, with the seed check" — done
+above. Its top priority is the small-party tail of the live forecast (next
+entry, when measured).

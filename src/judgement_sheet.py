@@ -81,13 +81,18 @@ def _tables(text: str) -> tuple[list[list[str]], list[list[str]]]:
     structural: list[list[str]] = []
     current: list[list[str]] | None = None
     width = 0
+    # The first well-formed row under each heading is the table's HEADER. It
+    # was counted as data (register audit, 2026-09-24): every total the sheet
+    # printed was one high per table, and the rendered sheet carried rows
+    # reading "constant" and "the call".
+    header_pending = False
     for line in text.splitlines():
         if line.startswith("### "):
             heading = line[4:].strip().lower()
             if heading.startswith("named"):
-                current, width = named, 6
+                current, width, header_pending = named, 6, True
             elif heading.startswith("judgements with no symbol"):
-                current, width = structural, 5
+                current, width, header_pending = structural, 5, True
             else:
                 current = None
             continue
@@ -100,6 +105,9 @@ def _tables(text: str) -> tuple[list[list[str]], list[list[str]]]:
         if len(cells) != width or set("".join(cells)) <= set("-: "):
             continue
         if cells[0].startswith("---"):
+            continue
+        if header_pending:
+            header_pending = False
             continue
         current.append(cells)
     return named, structural
@@ -273,7 +281,18 @@ def build() -> dict:
         primary = next((name for name in names if name in levers), None)
         kind = "lever"
         if primary is None:
-            primary = next((name for name in names if name in constants), None)
+            # The register writes BARE names (`LEVEL_DF`); the index keys
+            # constants QUALIFIED (`montecarlo.LEVEL_DF`). Matching one against
+            # the other linked nothing, so every module-constant row read "not
+            # linked" (register audit, 2026-09-24). A bare name defined in one
+            # module resolves to it; defined in several, the row's own Where
+            # cell must name the module, or the row is reported ambiguous
+            # rather than guessed.
+            for name in names:
+                found = _qualify(name, where, constants)
+                if found:
+                    primary = found
+                    break
             kind = "module constant" if primary else "unlinked"
         null = inert.get(primary) if primary else None
         rows.append({
@@ -336,6 +355,15 @@ def build() -> dict:
             row["lever"] for row in index["levers"] if not row["registered"]),
         "parsed": {"named": len(named), "structural": len(structural)},
     }
+
+
+def _qualify(name: str, where: str, constants: dict) -> str | None:
+    """The one qualified constant a bare register name refers to, or None."""
+    hits = [q for q in constants if q.rpartition(".")[2] == name]
+    if len(hits) == 1:
+        return hits[0]
+    named_here = [q for q in hits if f"{q.rpartition('.')[0]}.py" in where]
+    return named_here[0] if len(named_here) == 1 else None
 
 
 def _firing(symbol, null, conditional, levers) -> str:

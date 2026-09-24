@@ -83,7 +83,7 @@ promotion note in §F.
 | `_SIGN_EPS` | 1e-9 | `theta_residual.py` | 1e-9, and it decides one of KEY 4's two failure triggers: six orders above the float dust a genuine no-op produced and six below the smallest real effect on record. | 🟡 | §F7 |
 | `ALPHA_MIN_SHARE`, `ALPHA_FLOOR`, `ALPHA_CEILING`, `ALPHA_FALLBACK` | 0.01, 1.0, 200.0, 12.0 | `pools.dirichlet_alpha` | Promoted from inline literals 2026-08-22, number-neutral. They are the SELECTION RULE feeding the dominant width lever, and none has ever been swept. | 🔴 | §F31 |
 | `alpha` per pool (and `dirichlet_scale`) | — | `pools.dirichlet_alpha` | The model's DOMINANT width lever, sweepable since §1.63 via `dirichlet_scale` and NOT retuned — the method-of-moments fit names 1.0. The ranks 4-12 half of the old 'a scalar cannot serve both bands' finding is WITHDRAWN. | 🟡 | §B7 |
-| `apply_city` never resets `DEFAULTS` | — | `montecarlo.py` | Still true; harmless only while Johannesburg's sixteen scalars equal `DEFAULTS`, and guarded by a test that fails the moment they diverge. | 🔴 | §A43 |
+| `apply_city` never resets `DEFAULTS` | — | `montecarlo.py` | **AMENDED 2026-09-24 (register audit).** FIXED: `apply_city` clears `DEFAULTS` and restores a pristine copy before applying a city (since 2026-08-18), guarded by `test_apply_city_does_not_leak_one_citys_scalars_into_the_next`. Johannesburg declares 11 scalars, not sixteen. Status marker left for the owner. | 🔴 | §A43 |
 | `ARRIVAL_BAND_LO`, `ARRIVAL_BAND_HI` | 0.25, 0.95 | — | 0.25 / 0.95, the triangular support of every seeded arrival. 25/95 rather than 10/90 or 5/95 is undefended and never swept. | 🔴 | §F32 |
 | `arrival_group_draw` | False | `montecarlo.py`, read in `make_drawer` | Ships False. The rejection was re-run on the label-free referee 2026-08-29 and refuted again; the 254 → 348 figure is superseded and must not be quoted. | 🟢 | §A6 |
 | `balance_margins` `iters` / `tol` | 2000 / 1e-12 | `pools.py` | 2000 / 1e-12. Nominally operational; registered because the cap is what turns an infeasible problem into an exception. 20,000 iterations move the failure rate 40.9% → 38.9%. | 🟡 | §F10 |
@@ -98,12 +98,12 @@ promotion note in §F.
 | `independent_wards` (C) in the forecast | 0, structurally | `montecarlo.run_model` | The forecast universe drops INDEPENDENT/IND, so no draw can seat an independent and C is always 0. The IEC records C=1 at eThekwini 2011 and C=4 at 2016, both SCORED — the model allocates those seats to parties and is charged for it. An ASSUMPTION, not a measurement; registered 2026-09-02 after being silent. | 🔴 | §1.166 |
 | `CENSUS_COVERAGE_FLOOR` | 0.80 | `pools.py` | A WARNING in `pool_counts` and a REFUSAL in `registered_at_target`, on different denominators. Measured 2026-09-02: 0.9609-0.9979 at the refusal, so it binds nowhere and has never been exercised. The §J2 argument applies to it and has not been applied. | 🔴 | §J1 |
 | `CENSUS_DRIFT_CEILING` | 0.05 | `pools.pool_counts` | The reprojection refusal: how far the CITYWIDE composition moves because of unmappable wards. Bounded by ablation (worst random loss 0.028, segregated loss ~0.28) on one city only. | 🟡 | §J2 |
-| `contestation_expand` | 0.220 | `montecarlo.py`, applied in `levels.projected_cont… | Ships 0.220, live only where no backtest can reach it; superseded automatically the day the IEC publishes 2026 lists. | 🔴 | §A5 |
+| `contestation_expand` | 0.220 | `montecarlo.py`, applied in `levels.projected_cont… | **AMENDED 2026-09-24 (register audit).** Ships 0.220 and is INERT at 2026 since the declared ward slates reached the correction (MODEL-LOG §1.252; `EXPECTED_INERT[("contestation_expand", "2026")]`), for as long as the roster is `complete = true`. It acts at no backtest target either (§1.60). | 🔴 | §A5 |
 | `DIRICHLET_FLOOR` | 1e-4 | — | 1e-4 and inert as committed — but it has a SECOND consumer that floors a CONCENTRATION rather than a mean, and `PERTURB` sweeps it to 0.05 where that would bind. | 🟢 | §F1 |
 | `dirichlet_floor`, `spine_k` (scenario keys) | — | — | Scenario keys mirroring the module constants so a sweep is reproducible. ⚠ This row also lists `poll_k`, which was DELETED on 2026-08-22 (§1.68) and is in no `DEFAULTS` — see the restructure note beneath. | 🟢 | §F21 |
 | `entrant_prob` | 0.25 | `montecarlo.py` | Ships 0.25. Typed, but measurable since 2026-08-17 and the typed value survives the measurement; §G-R2 puts the defensible range at [0.25, 0.29]. | 🟡 | §A3 |
-| `entrant_share` | `[0.01, 0.04, 0.12]` | `montecarlo.py` | Unchanged at [0.01, 0.04, 0.12]; with `entrant_prob` it puts an expected 1.42% of the vote on a generic newcomer in every run. | 🟡 | §A17 |
-| `extrapolation_damping` | 0.6 | `config/dimensions.toml` | 0.6, and typed three more times as a fallback in `pools.py`. | 🔴 | §H8 |
+| `entrant_share` | `[0.01, 0.04, 0.12]` | `montecarlo.py` | **AMENDED 2026-09-24 (register audit).** Unchanged at [0.01, 0.04, 0.12]. It acts only where no arrival is named — of the backtest targets, 2011 alone. At 2016, 2021 and 2026 the named seeds retire the generic slot (§A4), so the "1.42% of the vote in every run" this row used to state holds nowhere the forecast is published. | 🟡 | §A17 |
+| `extrapolation_damping` | 0.6 | `config/dimensions.toml` | **AMENDED 2026-09-24 (register audit).** 0.6. Two other copies in `pools.py`, neither a live fallback: the `Config` dataclass default (marked unreachable — `load_config` refuses a TOML without the key) and `projected_pool_shares`' default argument. | 🔴 | §H8 |
 | `extrapolation_max_years` / `max_extrapolation` | 8 / 8.0 | `dimensions.toml`, `pools.Config` | 8 / 8.0 — two copies of one number, one in TOML and one as a dataclass field. | 🔴 | §H9 |
 | `FRESHNESS_GRACE_S` | — | `stats.py`, `freshness_problems` | Typed at 300s. ARGUED, NOT TESTED — the harness cannot score a publishing guard; the strong half of the check catches the 16-day defect with no window at all. | 🟡 | §D16 |
 | `GAMMA_FOLD` | `{2026:1, 2021:1, 2016:3, 2011:4}` | `montecarlo.py` | The live 2026 forecast uses fold 1, and the code's own comment concedes the constraint does not pick one. A contestable choice on the published forecast. | 🔴 | §H6 |
@@ -128,12 +128,12 @@ promotion note in §F.
 | `OVERHANG_DEDUCT_MAX_ROUNDS_SLACK` | 2 | `montecarlo.py` | Derived, not chosen: any value ≥ 1 is equivalent. | 🟢 | §A39 |
 | `OVERHANG_LEVEL_MAX_ROUNDS` | 200 | `montecarlo.py` | 200 rounds. Bounded on ROUNDS deliberately rather than on council size, because a magnitude off the real panel does not transfer to a toy. | 🟡 | §A40 |
 | `NATIONAL_ONLY_FLOOR` | 0.001 | `pools.py` | The national share below which a party with no local record is NOT assumed onto an unheld ballot. **[16-panel]** Measured over 16 city-years: drops 158 of 226 such candidates for 0.10pp of vote. MK (12.2%) clears it. Owner's decision 2026-09-03; unreachable from any backtest. | 🟢 | §K1 |
-| `PRIOR_LOCAL_FLOOR` | 0.001 | `pools.py` | The prior-LOCAL share below which a party with no national vote is not assumed onto an unheld ballot. Drops 112 of 189 such candidates for 0.038pp and ZERO seats. ⚠️ INERT until entry 3 lets a projected roster drive the off-ballot drop. | 🟢 | §K2 |
+| `PRIOR_LOCAL_FLOOR` | 0.001 | `pools.py` | The prior-LOCAL share below which a party with no national vote is not assumed onto an unheld ballot. Drops 112 of 189 such candidates for 0.038pp and ZERO seats. ⚠️ **AMENDED 2026-09-24 (register audit).** INERT at 2026 for a different reason: the floor filters only the projected roster, and a complete declared roster does not use it (argued from `pools.py`, not perturbed). | 🟢 | §K2 |
 | `overhang_rule` | `"deduct"` | `montecarlo.DEFAULTS` | ⚖️ **STATUTE, reclassified 2026-09-02** — Act 3 of 2021 Schedule 1 item 16. NOT a lever and never swept: refused at the `--set` boundary, out of `PERTURB`. Never bound in 24 metro-years; tightest margin 2 seats. | ⚖️ | §H1 |
 | `pa_contestation_uplift` | DELETED 2026-08-18 | — | DELETED 2026-08-18. The branch now falls back to the previous local election's measured contestation for every party, which makes it backtestable. | ⚪ | §F27 |
 | `PAGE_SIZE` | — | — | Pagination. Reporting, not belief. | 🟢 | §F37 |
 | `PARTIAL_BALANCE_PASSES` | 200 | — | 200. A convergence budget that is not a converging sequence, so the number chooses how close to the boundary it gets. | 🟡 | §F12 |
-| `PLAN_BOUNDS` | 7 party ranges | `montecarlo.py` | **[16-panel]** Present for four of the sixteen panel city-years and absent for twelve, because six of eight metro configs have no `[judgements]` block — which makes the headline seat figure a mixture of two configurations. | 🔴 | §H5 |
+| `PLAN_BOUNDS` | 7 party ranges | `montecarlo.py` | **AMENDED 2026-09-24 (register audit).** Only Johannesburg carries `[judgements.plan_bounds]` (Tshwane's were deleted 2026-08-31), and the clamp needs a by-election file, which exists only for Johannesburg 2026 — so it reads on none of the 24 panel rows and the panel is not a mixture of configurations. Whether it binds at 2026 is unmeasured. | 🔴 | §H5 |
 | `poll_credence` | 1.0 | `montecarlo.DEFAULTS` → the metro-poll blend | Declared at 1.0, which is the identity, so it moves nothing. The value the backtest supports is UNMEASURED — the paired sweep is pre-registered and not run. | 🔴 | §A11 |
 | `poll_deff_subsample` | 1.6 (standalone 1.2) | `montecarlo.DEFAULTS` → `polling.design_effect` | Declared at 1.6 (standalone 1.2) and unmeasured; measurable the day a house publishes its effective base. | 🔴 | §A10 |
 | `poll_half_life_days` | 120.0 | `montecarlo.DEFAULTS`, mirrors `polling.POLL_HALF_… | A real constant since §1.67 and mirrored in `DEFAULTS`, so a sweep can now reach it. Still declared: no SA metro series is long enough to fit it. | 🔴 | §A14 |
@@ -152,14 +152,14 @@ promotion note in §F.
 | `REFERENCE_SHARE`, `REFERENCE_SLATE` | `REFERENCE_SHARE` = 0.0025 · `REFERENCE_SLATE` = 0.25 | `compare_history.reference_universe` | Both typed. The share cut is safe (below every metro's PR quota); the slate cut is the one to attack, and it moves no forecast — only which columns a width comparison is read on. | 🔴 | §D8 |
 | `REG_DRIFT_TOLERANCE` | 0.30 | `build_concordance.py` | RECLASSIFIED 2026-08-24 from 🟢 reporting to 🔴: it reaches the forecast through `fold.suspect_vds` → `w_split` → γ. Declared, never measured, and not a `DEFAULTS` key, so no lever sweep can reach it. | 🔴 | §F38 |
 | `RELIABILITY_HALF` | 0.002 | — | 0.002, a value inherited from the hard cut it replaced; only the smooth form is new, and it has never been swept. | 🟡 | §F16 |
-| `SAFE` / `STRONG` / `LEAN` | — | `hex_cartogram.py` | Copies of `render_map.main`'s tiers, held in step by `test_the_two_maps_agree_on_the_confidence_tiers`. Not an independent judgement. | 🟢 | §D19 |
+| `SAFE` | — | `render_map.py` | **AMENDED 2026-09-24 (register audit).** One definition: `SAFE` lives in `render_map.py` and `hex_cartogram.py` imports it. The STRONG and LEAN tiers were removed by the owner on 2026-09-17 and exist nowhere in `src/`. Not an independent judgement. | 🟢 | §D19 |
 | `SD_FLOOR`, `SD_CEILING` | 0.15, 1.20 | `levels.py`, applied in `sd_for` | 🟡 at ≥15% of the vote. On the corrected harness the width in use is 0.151 against a measured 0.273 [0.136, 0.386] — inside the interval but near its bottom, at 1.81×, binding on 32 of 64. Below 15% every interval EXCLUDES it. | 🟡 (≥15%) | §F17 |
 | `SHRINK` | 2.0 | `levels.py` | 2.0, measured optimal on forward-validated RMSE(log θ) and on the model's own three scores. Upgraded from 'pre-existing' — do not re-file it as untested. | 🟢 | §A24 + §F15 |
 | `SHRINK` | 2.0 | — | Measured optimal 2026-08-17. Do not re-file it here as 'pre-existing'. | 🟢 | §F15 + §A24 |
-| `SIGMA_COMMON` | 1.5pp | The industry-common poll bias | LIVE since 2026-08-24. 1.5pp, declared and sourced from outside this repository; never divided by the number of houses, which is the defect it exists to fix. | 🔴 declared, sourced | §H17 |
-| `SIGMA_DRIFT_PER_ROOT_DAY` | 0.30 pp/√day | Opinion movement between fieldwork and polling day. | LIVE since 2026-08-24. 0.30 pp/√day, declared and sourced; the shipped `POLL_DRIFT_PP_PER_ROOT_DAY` of 0.10 is 2–4× too small. | 🔴 declared, sourced | §H19 |
-| `SIGMA_IDIO` | 1.5pp | The house-specific part | LIVE since 2026-08-24. 1.5pp, declared and sourced; the ONLY term `h_eff` may divide. | 🔴 declared, sourced | §H18 |
-| `SIGMA_VOLATILITY` | 0.8pp | A South Africa adjustment: +0.1pp per 1pp of avera… | LIVE since 2026-08-24. 0.8pp, declared and sourced — a South Africa adjustment for average party swing. | 🔴 declared, sourced | §H20 |
+| `SIGMA_COMMON` | 1.5pp | The industry-common poll bias | LIVE since 2026-08-24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026-09-24 (register audit)). 1.5pp, declared and sourced from outside this repository; never divided by the number of houses, which is the defect it exists to fix. | 🔴 declared, sourced | §H17 |
+| `SIGMA_DRIFT_PER_ROOT_DAY` | 0.30 pp/√day | Opinion movement between fieldwork and polling day. | LIVE since 2026-08-24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026-09-24 (register audit)). 0.30 pp/√day, declared and sourced; the shipped `POLL_DRIFT_PP_PER_ROOT_DAY` of 0.10 is 2–4× too small. | 🔴 declared, sourced | §H19 |
+| `SIGMA_IDIO` | 1.5pp | The house-specific part | LIVE since 2026-08-24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026-09-24 (register audit)). 1.5pp, declared and sourced; the ONLY term `h_eff` may divide. | 🔴 declared, sourced | §H18 |
+| `SIGMA_VOLATILITY` | 0.8pp | A South Africa adjustment: +0.1pp per 1pp of avera… | LIVE since 2026-08-24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026-09-24 (register audit)). 0.8pp, declared and sourced — a South Africa adjustment for average party swing. | 🔴 declared, sourced | §H20 |
 | `SIMULATION_BLOC` | container | `pools.py` | The reader-simulation bloc definition that `within_rate` sits in. | 🔴 | §H12 |
 | `SOLVE_TOL` | 1e-9 | `pools.py` | Operational, and listed EXEMPT in the guard — named here so the exemption is visible in the register and not only in the test. | 🟢 | §F11 |
 | `SPINE_K` | 1.0 | — | See §B. | 🔴 | §F14 + §B1 |
@@ -171,9 +171,9 @@ promotion note in §F.
 | the size-dependence of `sd_for` below 15% | a straight line in log(size) | `levels.py`, inside `theta_prior` | The model is UNCHANGED and the fault is the FORM, not the residual. ⛔ No further functional form may be tried against these two folds, and this row's numbers are Form A's and must not be quoted. | 🔴 | §F18 |
 | `THETA_CENTRAL` | 6 party values | `leverage.py` | NOT LIVE. The plan's six typed party values, and the module holding them has since been retired out of `src/` — see the restructure note beneath. | 🟡 not live | §H16 |
 | `theta_prior` and `_shrunk` | RESOLVED 2026-08-18 | `levels.py` (`theta_prior`, `_shrunk`) | RESOLVED 2026-08-18. Both shrink toward `size_centre`, they agree to 1e-16, and no forecast moved. | ⚪ | §A26 |
-| `TIP_FLOOR` / `OTHER_FLOOR` | — | `hex_cartogram.py` | Same provenance and same drift guard as the tiers above. | 🟢 | §D20 |
+| `TIP_FLOOR` / `OTHER_FLOOR` | — | `render_map.py` | **AMENDED 2026-09-24 (register audit).** One definition in `render_map.py`, imported by `hex_cartogram.py`; 0.05 and 0.005, unchanged. | 🟢 | §D20 |
 | `top = 12` parties per table | — | `compare_history.py` | Cosmetic here — but it is what makes `validation_2021.json` not comparable. | — | §D13 |
-| `total_seats` | 270 | `seats.allocate` | Johannesburg's 270 as a DEFAULT ARGUMENT in the shared allocator. The offending caller this row names was `leverage.py`, since retired — every `allocate` call left in `src/` passes it explicitly, so the trap is latent rather than live. | 🔴 | §H10 |
+| `total_seats` | 270 | `seats.allocate` | **AMENDED 2026-09-24 (register audit).** Johannesburg's 270 as a DEFAULT ARGUMENT in the shared allocator. This row said every remaining call passes it explicitly; it was wrong. Both `allocate` calls in `fold.py` omit it, so `fold.py`'s printed seat diagnostic allocates 270 seats whatever the city. They feed that printout only, not the γ parameters the forecast reads, so no forecast number is affected. | 🔴 | §H10 |
 | `TURNOUT_CORRELATION` | — | `montecarlo.py` | 0.63 applied as ONE constant to every city and pool pair. It supplies 4–12% of drawn variance in the shape a pool-turnout mechanism should have; why it matters so little is still not explained. | 🟡 | §B4 + §F13 |
 | `TURNOUT_CORRELATION` | 0.63 | — | 0.63, declared in `DEFAULTS` since §1.63 and asserted equal to the module constant at import. It MOVES the forecast, so it is a live lever. | 🟡 | §F13 + §B4 |
 | TURNOUT_CORRELATION / SPLINTER_PARENT_WEIGHT / SPLIT_SD_FLOOR — the stale-`n` trio | `TURNOUT_CORRELATION` 0.63 · `SPLINTER_PARENT_WEIGHT` 0.35 · `SPLIT_SD_FLOOR` 0.90 | `montecarlo`, `pools` | Still NOT re-measured against the enlarged θ record, and deliberately so; quote none of their `n` values until the record question below is settled. | 🔴 | §A1 |
@@ -197,8 +197,8 @@ easiest kind to lose, because nothing can grep for them.
 | the call | where | current state | status | entry |
 |---|---|---|---|---|
 | the θ record pools a collapse, a split and a merger | `levels.theta_record` | Not implemented. The 2009→2011 transition is still pooled into θ; a structural-event filter is the proposed instrument and the decision is the owner's. | 🔴 | §A2 |
-| retiring the generic entrant at nomination close | `montecarlo`, `cities/joburg.toml` | OPEN GAP. A one-off decision to be taken when the lists close on 16 September — explicitly NOT to be automated. Task A4. | 🔴 | §A4 |
-| the published 2026 forecast is not the backtested configuration | `montecarlo`, `polling`, and the whole `EXPECTED_I… | **AMENDED 2026-09-12.** No house decides the headline any more — the poll channel is OFF (§A8, MODEL-LOG §1.225). The criticism is REDUCED, not answered: the live forecast still runs `w_bye` and `contestation_expand`, which no backtest row can score, so it went from three unscoreable channels to two. Measured effect of the switch on the headline: DA 79 → 68, and the largest-party call becomes a **dead heat** (ANC 47.3% / DA 47.0%) rather than DA 71.4%. §1.226. | 🔴 | §A7 |
+| retiring the generic entrant at nomination close | `montecarlo`, `cities/joburg.toml` | **AMENDED 2026-09-24 (register audit).** CLOSED by the certified roster rather than by a decision: the ENTRANT slot is added only when no arrival is named (`montecarlo.run_model`, the `named_arrivals` guard) and the 2026 spec names 46 (`pools_2026.json` → `seeds`, `roster_source: declared`); `EXPECTED_INERT` certifies the entrant levers inert at 2026. MODEL-LOG §1.245. Was: OPEN GAP, a decision for 16 September. Status marker left for the owner. | 🔴 | §A4 |
+| the published 2026 forecast is not the backtested configuration | `montecarlo`, `polling`, and the whole `EXPECTED_I… | **AMENDED 2026-09-24 (register audit).** `contestation_expand` and the generic entrant are both inert at 2026 now (§A4, §A5). What no backtest row can score is the by-election channel (`w_bye`), `GAMMA_FOLD`'s 2026 entry and the declared-roster path (§L). The DA/ANC figures quoted after this are §1.226's, on specs superseded by the 16 and 23 September emits. **AMENDED 2026-09-12.** No house decides the headline any more — the poll channel is OFF (§A8, MODEL-LOG §1.225). The criticism is REDUCED, not answered: the live forecast still runs `w_bye` and `contestation_expand`, which no backtest row can score, so it went from three unscoreable channels to two. Measured effect of the switch on the headline: DA 79 → 68, and the largest-party call becomes a **dead heat** (ANC 47.3% / DA 47.0%) rather than DA 71.4%. §1.226. | 🔴 | §A7 |
 | σ_poll, decomposed (`POLL_HOUSE_SD` and the calibration trio) | `polling.poll_sd` / `aggregate_sd` | The flat `POLL_RMS_ERROR` form is retired; the live sum is `polling._sigma_total` and `POLL_HOUSE_SD` survives only as the `n_eff == 0` fallback. | 🟡 | §A9 |
 | the derivedness budget | `ITERATING.md`, "the only question" | Declared at 12 coherent seats and never topped up. Governance, not a code lever; it deliberately has no symbol in `src/`. | 🔴 | §A15 |
 | how unplaced votes are spread over a party's zeroed pool cells | `pools.balance_within_bounds` | Pool-size proportional, and there is no constant in it — the quantity is derived. Argued, not tested: no backtest can separate the three candidate rules. | 🟡 | §A19 |
@@ -208,7 +208,7 @@ easiest kind to lose, because nothing can grep for them.
 | the blend weight ignores the ρ record | `levels.spine` | Deliberate, not an oversight: the symmetric form scores 338 against 312. | 🟢 | §A25 |
 | the capacity redistribution rule | `montecarlo.py:capped_targets`, the `t[free] += ex… | Still proportional to mass held, and still unmeasured against the two defensible alternatives; the quantity moved is now counted on `capped_targets.moved`. | 🔴 | §A27 |
 | the Dirichlet floor | `montecarlo.py` (`DIRICHLET_FLOOR`), applied at `1… | 1e-4 — a numerical guard only. The 0.05 that manufactured ~5pp of citywide vote is gone. | 🟢 | §A30 |
-| turnout spread with one observation | `pools.py` | Typed at 0.30 logits, and it binds at every 2016 target. | 🟡 | §A32 |
+| turnout spread with one observation | `pools.py` | **AMENDED 2026-09-24 (register audit).** 0.30 logits survives only as `_PANEL_SPREAD_FALLBACK`, for a category with no panel measure (and the empty-record default); since §1.162 the width comes from `panel_spread`. The one-prior-election case was 2011, not 2016. Where the fallback still binds is unmeasured. | 🟡 | §A32 |
 | turnout-adjusted by-election weighting | — | CONSIDERED AND REFUSED 2026-08-28 with the measurement (leave-one-contest-out RMSE 36.46pp against uniform's 24.66pp). A per-party sensitivity is worth pre-registering; the uniform form is not. | ⚫ refused | §A34 |
 | ward→PR conversion of the by-election delta | `montecarlo.py` | Adopted 2026-08-28 on out-of-sample evidence. Not a chosen number — it reuses the population and clip `ward_pr_ratios` already applies. | 🟡 | §A36 |
 | the arrival boundary | `montecarlo`, by omission | Still nobody's choice. 16 of the 79 mid-ballot parties sit on the wrong side of it and carry +16.4pp of the −37.4pp band deficit. | 🔴 | §A42 |
@@ -269,7 +269,7 @@ These have no measurement behind them. They are the ones to attack first.
 
 **Where.** `montecarlo`, `cities/joburg.toml`; the roster is available from `pools.contesting_parties` and is not consulted
 
-**Now.** OPEN GAP. A one-off decision to be taken when the lists close on 16 September — explicitly NOT to be automated. Task A4.
+**Now.** **AMENDED 2026-09-24 (register audit).** CLOSED by the certified roster rather than by a decision: the ENTRANT slot is added only when no arrival is named (`montecarlo.run_model`, the `named_arrivals` guard) and the 2026 spec names 46 (`pools_2026.json` → `seeds`, `roster_source: declared`); `EXPECTED_INERT` certifies the entrant levers inert at 2026. MODEL-LOG §1.245. Was: OPEN GAP, a decision for 16 September. Status marker left for the owner.
 
 **Record.** **RAISED BY THE OWNER 2026-08-22 and it is a real gap.** The `ENTRANT` column exists iff `entrant_prob > 0`, and **no code path reads a nomination roster to decide that.** The generic slot is a stand-in for not knowing the ballot; nomination lists close and are published on 16 September, and at that moment the ignorance it models is gone. Two cases and neither is automatic: if the lists carry a genuinely new party it should be **named and seeded** in `judgements/joburg-2026.toml` and `entrant_prob` set to 0, because otherwise the same arrival is counted twice; if they carry none, `entrant_prob` should be 0 because the modelled event is known not to have occurred. Measured cost of leaving it, Johannesburg 2026 at 500 draws: **DA 80 → 81, ANC 63 → 64** between 0.25 and 0. Small, and the wrong kind of small — the slot's MEDIAN is zero while its MEAN carries `0.25 × E[triangular(1%, 4%, 12%)]` ≈ **1.42% of the vote**, `coherent_seats` uses the mean, and largest remainder converts it. It is part of the **+6.54pp phantom** the backtest already reports. **Do NOT automate it as "roster known ⇒ no generic entrant"**: at every backtested target the roster is also known, and there the generic slot IS the forecast for the party that arrived — it is what gets relabelled onto the AIC at Johannesburg 2016. Naming arrivals individually instead is `arrival_group_draw`, measured at 254 → 348 and rejected (§1.63). So this is a decision to be taken once, at nomination close, not a rule. Task A4
 
@@ -279,7 +279,7 @@ These have no measurement behind them. They are the ones to attack first.
 
 **Where.** `montecarlo.py`, applied in `levels.projected_contestation`
 
-**Now.** Ships 0.220, live only where no backtest can reach it; superseded automatically the day the IEC publishes 2026 lists.
+**Now.** **AMENDED 2026-09-24 (register audit).** Ships 0.220 and is INERT at 2026 since the declared ward slates reached the correction (MODEL-LOG §1.252; `EXPECTED_INERT[("contestation_expand", "2026")]`), for as long as the roster is `complete = true`. It acts at no backtest target either (§1.60).
 
 ✅ **TRUE AT 2026 SINCE 2026-09-23 — MODEL-LOG §1.252.** It was FALSE for a week: the lists were pasted on 16 September and nothing wired them into `levels.contestation`, so the lever went on projecting slates it could have read (§1.251). `contestation` now reads the declared `[roster.wards]`, the lever is inert at 2026 (one fingerprint across expand 0.0/0.22/0.5), and `tests/test_levers_are_live.py` finally carries a 2026 entry. ⚠️ An INCOMPLETE declaration revives the lever on the parties it does not name, by design.
 
@@ -301,7 +301,7 @@ These have no measurement behind them. They are the ones to attack first.
 
 **Where.** `montecarlo`, `polling`, and the whole `EXPECTED_INERT` list
 
-**Now.** ⛔ **AMENDED 2026-09-12 — THE "ONE HOUSE DECIDES THE HEADLINE" CLAIM
+**Now.** **AMENDED 2026-09-24 (register audit).** `contestation_expand` and the generic entrant are both inert at 2026 (§A4, §A5); what no backtest row can score is `w_bye`, `GAMMA_FOLD`'s 2026 entry and the declared-roster path (§L). Figures below are §1.226's, on superseded specs. ⛔ **AMENDED 2026-09-12 — THE "ONE HOUSE DECIDES THE HEADLINE" CLAIM
 IS RETIRED. NO POLL REACHES THE FORECAST AT ALL** (`poll_paths="off"`, §A8,
 MODEL-LOG §1.225). Confirmed against a `--run-dir` trace of both targets: neither
 `poll_level` (arrivals) nor `metro_poll` (metro blend) appears in
@@ -458,7 +458,7 @@ machinery cannot rot while it is switched off.
 
 **Where.** `montecarlo.py`
 
-**Now.** Unchanged at [0.01, 0.04, 0.12]; with `entrant_prob` it puts an expected 1.42% of the vote on a generic newcomer in every run.
+**Now.** **AMENDED 2026-09-24 (register audit).** Unchanged at [0.01, 0.04, 0.12]. It acts only where no arrival is named — of the backtest targets, 2011 alone. At 2016, 2021 and 2026 the named seeds retire the generic slot (§A4), so the "1.42% of the vote in every run" this row used to state holds nowhere the forecast is published.
 
 **Record.** The arriving party's size. With `entrant_prob` it puts an expected **1.42%** of the vote on a generic newcomer in every run — which matched the AIC's actual 1.62% in 2016 almost exactly (measured: 1.39% drawn, 3.82 seats, against 1.62% and 4), and was 30× short of ActionSA.
 
@@ -597,7 +597,7 @@ machinery cannot rot while it is switched off.
 
 **Where.** `pools.py`
 
-**Now.** Typed at 0.30 logits, and it binds at every 2016 target.
+**Now.** **AMENDED 2026-09-24 (register audit).** 0.30 logits survives only as `_PANEL_SPREAD_FALLBACK`, for a category with no panel measure (and the empty-record default); since §1.162 the width comes from `panel_spread`. The one-prior-election case was 2011, not 2016. Where the fallback still binds is unmeasured.
 
 **Record.** When a city has only one prior local election, the turnout band's width is typed. **This is every 2016 target.**
 
@@ -760,7 +760,7 @@ correctly — not a ward that was lost because the level was wrong.
 
 **Where.** `montecarlo.py`
 
-**Now.** Still true; harmless only while Johannesburg's sixteen scalars equal `DEFAULTS`, and guarded by a test that fails the moment they diverge.
+**Now.** **AMENDED 2026-09-24 (register audit).** FIXED: `apply_city` clears `DEFAULTS` and restores a pristine copy before applying a city (since 2026-08-18), guarded by `test_apply_city_does_not_leak_one_citys_scalars_into_the_next`. Johannesburg declares 11 scalars, not sixteen. Status marker left for the owner.
 
 **Record.** Six of the eight metro configs set no scalars, `cities/joburg.toml` sets sixteen, and `DEFAULTS` is a module global. So every city after Johannesburg in a multi-city run inherits Johannesburg's judgement values. Harmless **only** because those sixteen currently equal `DEFAULTS`. Guarded by `test_apply_city_does_not_leak_one_citys_scalars_into_the_next`, which fails the moment they diverge.
 
@@ -1082,7 +1082,7 @@ These shape what a reader concludes and are easy to mistake for findings.
 
 **Where.** `hex_cartogram.py`
 
-**Now.** Copies of `render_map.main`'s tiers, held in step by `test_the_two_maps_agree_on_the_confidence_tiers`. Not an independent judgement.
+**Now.** **AMENDED 2026-09-24 (register audit).** One definition: `SAFE` lives in `render_map.py` and `hex_cartogram.py` imports it. The STRONG and LEAN tiers were removed by the owner on 2026-09-17 and exist nowhere in `src/`. Not an independent judgement.
 
 **Record.** The four confidence tiers. **These are NOT free here** — they are `render_map.main`'s, re-declared because they are inline in that function and cannot be imported, and `test_the_two_maps_agree_on_the_confidence_tiers` reads `render_map.py`'s source and fails if the two drift apart. The tiers themselves are a presentation call made in the 2026-08-06 user review; this row exists so that the copy is not mistaken for an independent judgement.
 
@@ -1090,7 +1090,7 @@ These shape what a reader concludes and are easy to mistake for findings.
 
 **Where.** `hex_cartogram.py`
 
-**Now.** Same provenance and same drift guard as the tiers above.
+**Now.** **AMENDED 2026-09-24 (register audit).** One definition in `render_map.py`, imported by `hex_cartogram.py`; 0.05 and 0.005, unchanged.
 
 **Record.** A party is named in a ward's tooltip at ≥5% of simulations, and the swept-up "other" remainder is shown at ≥0.5%. Same provenance and same drift guard as the tier thresholds above: typed in `render_map.main`, re-declared here, checked against that source.
 
@@ -1609,7 +1609,7 @@ cannot be re-checked from the repository.
 
 **Where.** `montecarlo.py`
 
-**Now.** **[16-panel]** Present for four of the sixteen panel city-years and absent for twelve, because six of eight metro configs have no `[judgements]` block — which makes the headline seat figure a mixture of two configurations.
+**Now.** **AMENDED 2026-09-24 (register audit).** Only Johannesburg carries `[judgements.plan_bounds]` (Tshwane's were deleted 2026-08-31), and the clamp needs a by-election file, which exists only for Johannesburg 2026 — so it reads on none of the 24 panel rows and the panel is not a mixture of configurations. Whether it binds at 2026 is unmeasured.
 
 **Record.** The plan's θ table, transcribed. Clamps the by-election channel and drives the §3.5 violation counter. **Six of eight metros have no `[judgements]` block at all**, so `apply_city` sets it to `{}` and the clamp is silently absent — four of sixteen panel city-years run with it, twelve without, which makes the 384 figure a mixture of two configurations
 
@@ -1633,7 +1633,7 @@ cannot be re-checked from the repository.
 
 **Where.** `config/dimensions.toml`
 
-**Now.** 0.6, and typed three more times as a fallback in `pools.py`.
+**Now.** **AMENDED 2026-09-24 (register audit).** 0.6. Two other copies in `pools.py`, neither a live fallback: the `Config` dataclass default (marked unreachable — `load_config` refuses a TOML without the key) and `projected_pool_shares`' default argument.
 
 **Record.** Damping on ward composition extrapolated past Census 2022 — four years for the 2026 forecast. Typed three more times as a fallback in `pools.py`
 
@@ -1649,7 +1649,7 @@ cannot be re-checked from the repository.
 
 **Where.** `seats.allocate`
 
-**Now.** Johannesburg's 270 as a DEFAULT ARGUMENT in the shared allocator. The offending caller this row names was `leverage.py`, since retired — every `allocate` call left in `src/` passes it explicitly, so the trap is latent rather than live.
+**Now.** **AMENDED 2026-09-24 (register audit).** Johannesburg's 270 as a DEFAULT ARGUMENT in the shared allocator. This row said every remaining call passes it explicitly; it was wrong. Both `allocate` calls in `fold.py` omit it, so `fold.py`'s printed seat diagnostic allocates 270 seats whatever the city. They feed that printout only, not the γ parameters the forecast reads, so no forecast number is affected.
 
 **Record.** **Johannesburg's council size as a DEFAULT ARGUMENT in the shared allocator.** Every serious caller passes it explicitly; `leverage.py` does not, so it allocates any city's votes into a 270-seat council. The right fix is to make the argument required — a `TypeError` instead of a silently wrong answer
 
@@ -1722,7 +1722,7 @@ whole point of the replacement. The constants they retire (`POLL_HOUSE_SD`,
 
 **Where.** The industry-common poll bias. **Never divided by the number of houses** — that is the defect it exists to fix.
 
-**Now.** LIVE since 2026-08-24. 1.5pp, declared and sourced from outside this repository; never divided by the number of houses, which is the defect it exists to fix.
+**Now.** LIVE since 2026-08-24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026-09-24 (register audit)). 1.5pp, declared and sourced from outside this repository; never divided by the number of houses, which is the defect it exists to fix.
 
 **Record.** Finland 1.25pp; The Economist's production code 1.30pp; Selb et al., *POQ* 87(4) 2023, 5,240 German polls, 1.5pp mean absolute bias; South Africa 2024, 1.66pp
 
@@ -1730,7 +1730,7 @@ whole point of the replacement. The constants they retire (`POLL_HOUSE_SD`,
 
 **Where.** The house-specific part. The **only** term `h_eff` may divide.
 
-**Now.** LIVE since 2026-08-24. 1.5pp, declared and sourced; the ONLY term `h_eff` may divide.
+**Now.** LIVE since 2026-08-24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026-09-24 (register audit)). 1.5pp, declared and sourced; the ONLY term `h_eff` may divide.
 
 **Record.** Stoetzer prior N(0,1); Bon et al. ≈1.0; Jackman phone-only 1–3; SA 2024 1.71pp
 
@@ -1738,7 +1738,7 @@ whole point of the replacement. The constants they retire (`POLL_HOUSE_SD`,
 
 **Where.** Opinion movement between fieldwork and polling day.
 
-**Now.** LIVE since 2026-08-24. 0.30 pp/√day, declared and sourced; the shipped `POLL_DRIFT_PP_PER_ROOT_DAY` of 0.10 is 2–4× too small.
+**Now.** LIVE since 2026-08-24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026-09-24 (register audit)). 0.30 pp/√day, declared and sourced; the shipped `POLL_DRIFT_PP_PER_ROOT_DAY` of 0.10 is 2–4× too small.
 
 **Record.** Band 0.20 (Ellis, NZ — *estimated* in a state-space model) to 0.41 (derived from Jennings & Wlezien's 4 / 3 / <2pp horizon profile). The shipped `POLL_DRIFT_PP_PER_ROOT_DAY = 0.10` is 2–4× too small
 
@@ -1746,7 +1746,7 @@ whole point of the replacement. The constants they retire (`POLL_HOUSE_SD`,
 
 **Where.** A South Africa adjustment: +0.1pp per 1pp of average party swing.
 
-**Now.** LIVE since 2026-08-24. 0.8pp, declared and sourced — a South Africa adjustment for average party swing.
+**Now.** LIVE since 2026-08-24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026-09-24 (register audit)). 0.8pp, declared and sourced — a South Africa adjustment for average party swing.
 
 **Record.** Survey Methods; independently corroborated by Botten Ada's `kappa` growing with years since the last election
 
