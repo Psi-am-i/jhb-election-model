@@ -577,6 +577,37 @@ Put to the owner after the 24 Sep design round and blind review
    and after the election we can rate every prediction to the real result. This
    makes the whole thing less dry and more participatory."*
 
+### 9b. Owner decision, 2026-09-26 — the wait is a feature, and the engine ships
+
+*"if its honest, we ship it — the time user waits can be dealt with using a nice
+timer that spits out trivia."*
+
+**Decided: the interactive runs the real model, and the wait is handled in the
+page rather than by cutting draws.** Measured before the decision (MODEL-LOG
+§1.260, `run_model` called directly, Johannesburg 2026, one seed, BLAS pinned to
+one thread because Pyodide is single-threaded): a fixed cost of 14.79 s and
+21.6 ms per draw, so 300 draws is 21.3 s native and about 16 s of drawing at the
+browser's measured 55 ms per draw once the fixed cost is paid at load.
+
+What follows for the page:
+
+* **The fixed cost is paid once, at load, not per lever change.** 14.79 s of the
+  21.3 s is setup. A design that re-enters the model from scratch on every change
+  pays it every time and turns a 16-second wait into 35 seconds.
+* **The progress display is content, not a spinner.** Trivia from the model's own
+  record — the Laingsburg clause, the 587,000 votes the ANC shed to abstention,
+  how often the excessive-seats clause fires. Every figure a token, per §2's
+  provenance rule, not typed into the page's script.
+* **The draw count stays at 300** (owner, 2026-09-22), so the honesty of the
+  engine is not traded for latency. The band shown with a 300-draw result is
+  wider than the published 5,000-draw one and the page says so.
+
+⚠️ **Still unmeasured: the browser half.** The 55 ms per draw is the 2026-09-22
+spike's figure and that spike's code was never committed. One Pyodide run of
+`run_model` at two draw counts on one seed, reporting the same fixed/per-draw
+split, closes it — and it is the measurement that decides whether the trivia
+timer runs for 16 seconds or for a minute.
+
 **What 4 needs that is not designed yet:**
 - **The rating.** The joint chance of 135 hand-picked ward winners is below one
   in any number of simulations the page can run, so "the chance your forecast

@@ -27000,3 +27000,69 @@ Limits stated at the claim: the fixed cost was derived from two points (20 and
 was never committed, and it has not been re-measured here. What would settle the
 browser half is one Pyodide run of `run_model` at two draw counts on this seed,
 reporting the same split.
+
+## 1.261 A hard zero in an emitted pool weight is a floor, not a measurement, and the existing fix fires only on infeasibility (2026-09-26)
+
+Owner, 2026-09-26, on the PA emitted at exactly 1.0 Coloured: *"cannot be 100% a
+single population group. Is that seriously true? where is that from?"* Read-only
+from the emitted specs and the code.
+
+### It is in the artefact, and only in some of them
+
+`data/processed/pools_2021.json`, the PA's `members` weights by pool:
+
+| spec (Johannesburg) | Black African | Coloured | Indian/Asian | White |
+|---|---|---|---|---|
+| 2011 | — | — | — | — (PA absent) |
+| 2016 | 0.62726 | 0.06170 | 0.03632 | 0.27472 |
+| **2021** | **0.0** | **1.0** | **0.0** | **0.0** |
+| 2026 (live) | 0.00356 | 0.99412 | 0.00030 | 0.00201 |
+
+What 1.0 asserts, in votes: the PA took 2.96% of Johannesburg 2021, about 36,996
+votes, and the Coloured pool casts 81,157 ballots at central turnout, 6.49% of
+the city. So the artefact says the PA won **45.6% of every Coloured vote in the
+city and zero votes from anybody else**.
+
+### Where the zero comes from, in three steps
+
+1. The joint fit gives a small non-zero rate outside the pool, then
+   `balance_within_bounds` holds every rate inside its Duncan–Davis interval,
+   whose lower bound in the other pools is 0. The fit walks to the bound.
+2. `pools.py:5991` builds the emitted weights as
+   `{p: float(w[g]) for p, w in composition.items() if w[g] > 1e-4}` — a weight
+   at or below 1e-4 is dropped from that pool's members rather than emitted small.
+3. IPF is multiplicative, so a cell at exactly zero is a fixed point that no
+   number of iterations moves (`tests/test_pool_bounds.py`,
+   `test_a_zero_cell_can_still_be_reached`). Absence in the spec is therefore an
+   exact zero in every draw, for the life of the spec.
+
+### It is not honest, and the project already decided that once
+
+`test_the_pa_is_no_longer_a_single_pool_party` exists because this was found
+before, and the fix has two halves: enforce the bounds, and **seed a zero cell,
+because "a zero is treated as 'the fit stopped here', not as a measurement"**.
+That fix is why the live 2026 spec reads 0.00356 / 0.99412 / 0.00030 / 0.00201
+instead of a corner.
+
+⛔ **The seeding fires on INFEASIBILITY, not on honesty.** It runs when a party
+needs more votes than its pool can supply — the PA at 2026 needs about 102% of
+the Coloured pool, so it fired. At 2021 the Coloured pool could supply the PA's
+whole vote at a 45.6% rate, nothing was infeasible, and the zeros survived. A
+cell that was never identified is treated as measured whenever the arithmetic
+happens to close.
+
+Population, measured across the emitted specs: **245 of 3,417 member cells are
+exactly zero (7.2%), and 37 party-city-years put over 99.9% of their weight in
+one pool, across 19 of 24 specs.** The guard scans one fit (joburg 2021, the one
+feeding the live spec) and is green, which is why the class stayed invisible —
+§4's scanned-the-wrong-population shape.
+
+### What it costs
+
+A party with a hard zero cannot win a vote in that pool in any draw, so its
+ward-level geography is frozen and its seat distribution is narrower than the
+evidence supports. That is a calibration cost inside the panel that scores the
+model. The treatment is POOLS-REEMIT-QUEUE entry 33: emit `identified()` per
+party-pool and seed an unidentified cell at the maximum-entropy share, which
+generalises the existing fix from "when the margin cannot close" to "whenever the
+cell was never identified".

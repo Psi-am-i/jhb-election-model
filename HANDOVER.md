@@ -42,46 +42,105 @@ here first, so anything stale in this file is read as an instruction.
 > **NEXT, in order. The pool-input window is PARKED behind its pre-registration;
 > attention moves to the interactive and polling (owner, 2026-09-25).**
 >
-> **A. THE INTERACTIVE.** Measure Pyodide speed first — item 3 below. The two
-> recorded figures disagree in a direction that cannot be right (browser faster
-> than native), so settle what each one timed before measuring anything new: the
-> native figure is probably CPU time across threads and Pyodide is
-> single-threaded, so the native baseline is wall clock under
-> `VECLIB_MAXIMUM_THREADS=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1`. Call
-> `run_model` directly at two draw counts on one seed to separate fixed cost
-> from per-draw cost. ⛔ Never `montecarlo.py` for this: a bare run overwrites
-> that city-year's forecast artefacts and `data/**` is gitignored. Then §9a's
-> three mechanisms, each with a pre-registration, a blind review, a
-> JUDGEMENT-CALLS row and a 2026 liveness test, in ONE re-emit window.
+> ## A. THE INTERACTIVE — decided, and the first measurement is done
 >
-> **B. POLLING.** Three things, all recorded and none started. The owner's
-> trust-ceiling choice (E = 3.0pp against ≥ 5pp) is open, and now has the
-> research behind it: a third Johannesburg poll exists and is not in
-> `polls.json` (Ipsos Khayabus, June–July 2026 fieldwork, released 4 Sep, ANC 31
-> / DA 28 / ASA 14 / EFF 8 / MK 6 / PA 3, n ≈ 310 inferred), Ipsos is the only
-> house with a scored Johannesburg reading, and SRF — the only house admitted at
-> 2026 — has no scored local-election reading at all. A live defect stands: a
-> poll with no `n` is priced MORE precise than SRF through the `POLL_HOUSE_SD`
-> fallback. ⚠️ Admitting any poll is a register change and goes through
-> `polling.screen`; the per-house RMS table in
-> `audits/2026-09-24-interactive-round1/poll-research/REPORT.md` is an agent's
-> arithmetic over secondary inputs and must be re-derived before any of it
-> becomes a constant, with Nelson Mandela Bay 2016 unresolved against
-> `POLL_RMS_ERROR_2016`'s provenance.
+> **A1. ✅ Pyodide speed, measured 2026-09-25 (MODEL-LOG §1.260).** `run_model`
+> called directly (never `montecarlo.py` — a bare run overwrites that city-year's
+> forecast artefacts and `data/**` is gitignored), Johannesburg 2026, seed
+> 20261104, no `run_dir`, BLAS pinned with
+> `VECLIB_MAXIMUM_THREADS=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1
+> MKL_NUM_THREADS=1` because Pyodide is single-threaded:
+> **fixed cost 14.79 s, 21.6 ms per draw, 300 draws = 21.3 s native.**
+> The two figures this file used to carry as contradictory were CPU-across-threads
+> against wall clock; the browser's 55 ms per draw is 2.5x native, an ordinary
+> WASM penalty.
 >
-> **C. THE POOL-INPUT WINDOW — parked, and everything it needs is written.**
+> **A2. Still to measure: the browser half.** One Pyodide run of `run_model` at
+> two draw counts on one seed, reporting the same fixed/per-draw split. The 55 ms
+> figure is the 2026-09-22 spike's and that code was never committed, so nothing
+> in the tree reproduces it. This decides whether the reader waits 16 seconds or
+> a minute, and it is the only thing between the decision in §9b and a build.
+>
+> **A3. Owner decision, 2026-09-26 (PUBLISHING-BACKLOG §9b):** the engine ships
+> and the wait is handled in the page — a progress display carrying trivia from
+> the model's own record rather than a spinner. Three constraints follow: the
+> fixed cost is paid once at load and not per lever change (a design that
+> re-enters the model each time turns 16 seconds into 35); every trivia figure is
+> a token, not typed into the page script; the draw count stays at 300 and the
+> page says its band is wider than the published 5,000-draw one.
+>
+> **A4. Then §9a's three model mechanisms**, which are model changes and come
+> before the page: per-pool turnout applied AFTER the IPF (the only placement
+> measured to move shares), the DA-share-among-Black-Africans slider with its
+> range taken from the record rather than from the DA's claim, and per-poll
+> selection. Each needs a pre-registration, a blind review, a JUDGEMENT-CALLS row
+> and a 2026 liveness test, and all three go into ONE re-emit window.
+>
+> **A5. Undesigned, and the owner's** (§9a): how a reader's hand-built forecast is
+> rated, given that the joint chance of 135 hand-picked ward winners is below one
+> in any number of draws the page can run; and whether a leaderboard may store
+> readers' forecasts, which §10 refused on the grounds that a stored forecast is a
+> reader's political statement held on our infrastructure.
+>
+> ## B. POLLING — three items, all recorded, none started
+>
+> **B1. The trust ceiling is the owner's choice** (E = 3.0pp against >= 5pp), and
+> the research behind it is now in
+> `audits/2026-09-24-interactive-round1/poll-research/REPORT.md`: a third
+> Johannesburg poll exists and is NOT in `polls.json` — Ipsos Khayabus,
+> June-July 2026 fieldwork, released 4 September, ANC 31 / DA 28 / ASA 14 / EFF 8
+> / MK 6 / PA 3 / Other 7 / DK 3, no published n, +-5.57 max MoE implying n ~= 310
+> under SRS. Verified from the primary PDF. It is June-July fieldwork, not
+> September, and the DA figure is 28, not the 27 reported elsewhere.
+>
+> **B2. A live defect: a poll with no `n` is priced MORE precise than SRF**
+> through the `POLL_HOUSE_SD` fallback. That is backwards — an undisclosed sample
+> size should widen, not narrow — and it is live in the code whether or not the
+> poll channel is on.
+>
+> **B3. What must not be taken on trust.** Admitting any poll is a register change
+> and goes through `polling.screen`. The per-house RMS table in that report is an
+> agent's arithmetic over several secondary inputs and must be re-derived before
+> any of it becomes a constant; Nelson Mandela Bay 2016 disagrees with
+> `POLL_RMS_ERROR_2016`'s own provenance (agent 0.2 / 1.7 / 1.5 against
+> polling.py's 3.9 / 2.7 / 0.9) and is unresolved. The finding that bears on the
+> design: Ipsos is the only house with a scored Johannesburg reading, and SRF —
+> the only house admitted at 2026 — has no scored local-election reading at all.
+>
+> ## C. THE POOL-INPUT WINDOW — parked, and everything it needs is written
+>
 > `prereg/2026-09-25-pool-input-repairs.md` fixes what the emit may conclude
-> before it is run; POOLS-REEMIT-QUEUE entries 30–33 carry the four changes;
-> MODEL-LOG §1.255–§1.259 carry the evidence; the blind review is
-> `audits/2026-09-25-pool-inputs/brief-pollster.md`. Its first item is a
-> MEASUREMENT, not a repair: how much of the emitted composition survives the
-> per-draw IPF re-fit, which prices every other item on that side. ⛔ Its
-> standing warning: enlarging the White pools may turn
+> before it runs. POOLS-REEMIT-QUEUE entries 30-33 carry the four changes.
+> MODEL-LOG §1.255-§1.261 carry the evidence. The blind review is
+> `audits/2026-09-25-pool-inputs/brief-pollster.md`, committed before it ran.
+>
+> **C1. The first item is a MEASUREMENT, not a repair:** how much of the emitted
+> composition survives the per-draw IPF re-fit, written into the `--run-dir`
+> trace per city-year and per party. It prices everything else on the seed side,
+> and if little survives, entries 32 (the composition half) and 33 are deferred.
+>
+> **C2. Three nulls are pre-registered**, so a flat result is not a failure: the
+> seat headline should not move for established parties (the centres are imposed
+> through the IPF column margin); ward calls should not improve materially (the
+> panel calls 2,120 of 2,191 wards, and Cape Town has the worst pool split on the
+> panel while calling 342 of 343 with the three lowest Briers); and the one-party
+> selection should survive every repair.
+>
+> **C3. The standing warning.** Enlarging the White pools may turn
 > `test_no_emitted_composition_weight_is_arithmetically_impossible` green while
-> the mechanism behind it — a pool composition carried across a level change
-> with nothing coupling the two — is untouched. All 14 cases in that scan are
-> the DA, none at a 2021 target. Live exposure: the joburg 2026 spec puts 83.6%
-> of the DA's vote in a White pool exhausted at a DA citywide share of 38.9%.
+> the mechanism behind it is untouched: a pool composition carried across a level
+> change with nothing coupling the two. All 14 cases in that scan are the DA,
+> none at a 2021 target, every one where the DA grew since its fitting year. Live
+> exposure: the joburg 2026 spec puts 83.6% of the DA's vote in a White pool that
+> is exhausted at a DA citywide share of 38.9%, against 25.45% in 2021.
+>
+> **C4. A hard zero is a floor, not a measurement** (§1.261, owner's question
+> 2026-09-26). The 2021 Johannesburg spec emits the PA at exactly 1.0 Coloured,
+> which asserts it won 45.6% of every Coloured vote in the city and zero votes
+> from anybody else. 245 of 3,417 member cells are exactly zero and 37
+> party-city-years are single-pool across 19 of 24 specs. The fix already exists
+> and fires only on infeasibility, which is why the live 2026 spec is spread and
+> the 2021 one is a corner. Entry 33.
 >
 > **Superseded numbering below.** Items 1 and 2 are done; 3 is A above.
 >
