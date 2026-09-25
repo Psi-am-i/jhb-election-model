@@ -26809,3 +26809,59 @@ ActionSA/IFP geography mechanism are separate jobs with separate evidence, and
 bundling them would have credited one with the other's gain. §1.256's question
 stands on its own; these three faults are input quality and belong in their own
 window.
+
+## 1.258 Nineteen pool-level rates sit on a bound, and the Buffalo City 2011 spec carries the 2006 split (2026-09-25)
+
+Read-only: `pools.pool_counts` per city-year in a scratch process. Nothing
+written, nothing re-emitted. Two measurements, taken to decide what the repair of
+§1.257's faults 1 and 3 is.
+
+### Rates fitted to a bound rather than estimated
+
+Across the 24 emitted backtest city-years there are 19 such rates. Every one is
+the Indian/Asian pool. `pool_counts` already reports each in `unidentified`; the
+percentage is that pool's share of the city's registered roll.
+
+| level fitted to a bound | value | occurrences | largest pool affected |
+|---|---|---|---|
+| `adult_share` | 1.0000 | 11 | Cape Town 2011, 9.29% of the roll |
+| `registration` | 2.0000 (`REGISTRATION_MAX`) | 5 | Cape Town 2011, 9.29% |
+| `turnout` | 0.0000 | 6 | Buffalo City 2021, 3.29% |
+
+The six `turnout = 0.0000` cases are the ones that remove a pool's voters from
+the election: buffalocity 2011 and 2021, mangaung 2011, 2016 and 2021, and the
+`[1, 1, 0, 1]` that `test_the_three_known_things_hold_at_once` reports is
+mangaung 2016 alone. Cape Town's Indian/Asian pool is 8–9% of that city's roll
+and sits on two bounds at once.
+
+### Buffalo City's registration split, fitted at each election
+
+| year | Black African | Coloured | Indian/Asian | White |
+|---|---|---|---|---|
+| 2006 | 88.24% | 2.98% | 3.27% | **5.51%** |
+| 2011 | 82.90% | 3.75% | 2.74% | **10.60%** |
+| 2016 | 81.38% | 4.04% | 2.29% | 12.30% |
+| 2021 | 80.01% | 4.19% | 3.29% | 12.50% |
+
+The emitted `pools_2011.json` carries the White pool at 6.3% of the roll. That is
+the 2006 value, not the 2011 one: the spec inherits the from-year's split. In the
+series 2011–2021 the White share runs 10.6 / 12.3 / 12.5, so 2006 at 5.51% is the
+outlier, and the 2011 spec inherits the outlier.
+
+Two mechanisms could produce a 2006 fit that low, and this measurement does not
+separate them: the census interpolation for a 2006 election sits between the 2001
+and 2011 censuses, and the 2006 election is on its own delimitation, where a
+ward-level join is the failure mode `config/dimensions.toml` warns about. The
+measurement that separates them is to read the interpolated composition for
+buffalocity 2006 against the 2001 and 2011 census ward tables directly.
+
+### What this fixes if it is repaired
+
+At the 2011 split the White pool holds 40,807 registered voters and casts at most
+32,200 at the top of its turnout band, against the 24,058 the DA's composition
+demands. The capacity breach at buffalocity 2011 is then absent. Cape Town 2011
+and nelsonmandelabay 2011 breach with splits at 0.925 and 0.957 of their fitted
+values, so this repair does not reach them (§1.257 fault 2).
+
+All three faults change pool inputs, so each invalidates every spec and they
+belong in one re-emit window (`POOLS-REEMIT-QUEUE.md`).
