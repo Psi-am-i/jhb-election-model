@@ -1064,6 +1064,18 @@ def main(argv: list[str] | None = None) -> int:
     # so a reader hovering any number sees whether it changed (owner, 2026-09-17:
     # "if something changes, the change should be surfaced").
     now_date = now[:10]
+    # ⛔ A BUILD IS NOT A PUBLICATION, AND TODAY IS NOT A PROVENANCE.
+    # These tooltips used to date every never-published figure to whenever the
+    # build ran — "First published in this edition (24 September 2026)" on a
+    # figure that has been published nowhere, with the date changing each day
+    # and, because the stamp is UTC, changing mid-evening in South Africa. Two
+    # costs: the page asserted a publication that had not happened, and five
+    # pages differed from a fresh build with no token moved and no visible text
+    # changed, which `test_published_page` reported as a real difference
+    # (2026-09-25). Outside a `--publish`, the tooltip states what it knows —
+    # that the figure is new, or that it moved — and dates only what actually
+    # has a date.
+    publishing = bool(getattr(args, "publish", False))
     # TOOLTIP CONVENTION (owner, 2026-09-17): the brief statement first, then
     # dates and source. "{new}. Was {old}." for a live figure that moved;
     # "{old}. Is now {new}." for a frozen, as-published one.
@@ -1097,15 +1109,22 @@ def main(argv: list[str] | None = None) -> int:
             now = display_now.get(tracked)
             history[c["token"]] = (
                 (f"{c['display']}. Is now {now}. " if now else f"{c['display']}. ")
-                + f"Published {when}" + (f"; now {_long(now_date)}." if now else "."))
+                + f"Published {when}"
+                + ((f"; now {_long(now_date)}." if publishing else "; changed since.")
+                   if now else "."))
         elif c["previous"] is None:
-            history[c["token"]] = f"{c['display']}. First published in this edition ({_long(now_date)})."
+            history[c["token"]] = (
+                f"{c['display']}. First published in this edition "
+                f"({_long(now_date)})." if publishing else
+                f"{c['display']}. Not published before; new in this edition.")
         elif c["movement"] in ("none", "rounding"):
             history[c["token"]] = (f"{c['display']}. Unchanged since "
                                    f"{_long(c['previous_published_at'])}.")
         else:
-            history[c["token"]] = (f"{c['display']}. Was {c['previous']}. Published "
-                                   f"{_long(c['previous_published_at'])}; now {_long(now_date)}.")
+            history[c["token"]] = (
+                f"{c['display']}. Was {c['previous']}. Published "
+                f"{_long(c['previous_published_at'])}"
+                + (f"; now {_long(now_date)}." if publishing else "; changed since."))
     if changes:
         for page in sorted({p for c in changes for p in c["pages"]}):
             f = args.out / page

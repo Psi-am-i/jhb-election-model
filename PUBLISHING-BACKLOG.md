@@ -704,6 +704,27 @@ heading ("Who governs Johannesburg") is a placeholder.
 11 August 400-draw 2021 run, not the 23 September canonical measurement.
 Regenerating needs a re-emit window (`build_validation.collect` emits).
 
+✅ **CHECKED IN THE TREE 2026-09-25, and it is still true** — this had been read
+as "stale backlog item" once already. `docs-public/about-the-model.md`'s footer
+says *"Generated 2026-08-11 by `src/build_validation.py` from a 400-draw run per
+city"*, and `data/processed/validation_2021.json` carries `draws: 400`,
+`generated: 2026-08-11`. **The site rebuilds do not touch it**: every other page
+is regenerated from current artefacts, but this page's figures come from that
+JSON, and only `build_validation` rewrites it — which runs the model across
+eight metros and emits. So the one page on the site whose numbers are six weeks
+old is the page that scores the model.
+
+✅ **FIXED 2026-09-25 — the provenance tooltip no longer dates a build as a
+publication.** Every never-published figure carried *"First published in this
+edition (<the day the build ran>)"*. It asserted a publication that had not
+happened, and because the stamp is UTC it changed mid-evening in South Africa,
+so five pages differed from a fresh build with no token moved and no visible
+text changed. Outside a `--publish` the tooltip now says *"Not published before;
+new in this edition"*, and a moved figure says *"; changed since"* rather than
+naming today. Verified: two consecutive builds are byte-identical and the served
+pages match a fresh build. (Owner, 2026-09-25: *"provenance cannot be today so
+that is clearly wrong"*.)
+
 ⛔ **AND A DEPLOY BLOCKER NOBODY HAD RECORDED (found 2026-09-25 while writing
 the home-page tests): `build_site.py --publish` WILL REFUSE AS THE TREE
 STANDS.** Every number typed into prose that is neither a token nor a registered
