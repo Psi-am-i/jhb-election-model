@@ -14,10 +14,12 @@ numbers, the "everyone else" row, and the exactly-one-lead refusal.
 own?" or "would the build refuse this page?"), and
 `test_the_shipped_article_list_carries_exactly_one_lead` reads
 `content/joburg/articles.toml` on purpose — a second lead in the shipped file is
-the defect the refusal exists for. The first two carry their own mutation: a
-fault is injected, caught, reverted byte-exact, and the detector shown to go
-quiet again. The third's mutation is the constructed test above it, which is
-where 0 leads and 2 leads are proven to refuse.
+the defect the refusal exists for. Only the gate test injects a fault, catches
+it, reverts it byte-exact and shows the detector go quiet again. The sentinel test's
+discriminating half is the cleared/survived split — it names which regions the
+generator owns and fails on an unexplained survivor — and its can-see proof is
+the constructed `region()` test above it. The shipped-articles test's proof is
+the constructed test above IT, where 0 leads and 2 leads are shown to refuse.
 
 ⛔ `render_home.main` is NOT called in-process. It calls `cityconfig.use`, which
 sets global city state, and the suite imports modules into one interpreter. The

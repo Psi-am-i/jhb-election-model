@@ -5,7 +5,8 @@
 `MODEL-LOG.md`, which is append-only and dated. `CLAUDE.md` sends every session
 here first, so anything stale in this file is read as an instruction.
 
-> ## ⛔ STATE AT 2026-09-24 (EVENING) — ONE BRANCH, ONE TREE, SUITE RUN. INTERACTIVE: OWNER HAS DECIDED 3 OF 4.
+> ## ⛔ STATE AT 2026-09-25 — THE HOME PAGE HAS TESTS, AND THE PUBLISH GATE IS
+> ## DOWN TO ONE ROW OF THE OWNER'S OWN REGISTER. INTERACTIVE: 3 OF 4 DECIDED.
 >
 > **Live pages are still the 31 August build.** Nothing was deployed or
 > re-emitted this evening, and no forecast number moved.
@@ -69,14 +70,27 @@ here first, so anything stale in this file is read as an instruction.
 >    on three pages are `BLOCKS` rows in `content/joburg/NUMBERS-REVIEW.md`
 >    (read its `blocking=` token, not a figure copied here; measure it with a
 >    `build_site.py --out <scratch>` build, not by grepping the committed file).
->    ✅ **One cause is fixed**: both pages typed `90%` in the seats note, which
->    is `scenarios.BAND` copied into prose — it is now a token in both
->    renderers, and the rebuild dropped two rows.
->    ⛔ **What is left is the owner's.** The election date's `[[audit.fixed]]`
->    row still matches the pre-24-September wording, so it no longer clears on
->    either page; that register carries a `reviewed` date per row — **re-context
->    the row and re-date it, do not add a second one**. The rest are on
->    `corrections.html` and were not investigated. §11 has the detail.
+>    ✅ **TEN ROWS BECAME TWO.** Every one cleared was the same defect — a
+>    figure typed into prose beside the code that computes it — and not one was
+>    cleared with a whitelist row:
+>    * the seats note's `90%`, on BOTH pages, is `scenarios.BAND`; it is now the
+>      tokens `home.band` / `seats.band`;
+>    * `claims.toml` said "at least 30 of the ANC's usual wards" while
+>      `render_sheet` counted that scenario with a literal `>= 30`. It is
+>      `render_sheet.WALL_FLIPS` now, rendered as `claim.da_alone.wall_flips`,
+>      so an edit to one can no longer leave the sentence describing a different
+>      scenario from the number beside it;
+>    * `corrections.md`'s five were not model figures at all — they record what
+>      the published page showed on 2026-09-23, so that passage is now wrapped
+>      as the dated statement it is. ⚠️ **They must never become tokens**: a
+>      token recomputes, and the sentence would then describe today's page
+>      rather than the one the correction is about.
+>    ⛔ **THE LAST TWO ROWS ARE ONE ROW OF THE OWNER'S REGISTER, COUNTED TWICE.**
+>    The election date's `[[audit.fixed]]` entry in `content/joburg/stats.toml`
+>    still matches the pre-24-September wording, so it clears on neither page.
+>    That register carries a `reviewed` date per row — **re-context the row and
+>    re-date it, do not add a second one.** After that the publish gate is
+>    clear. §11 has the detail.
 > 2c. **Regenerate `MODEL-INDEX.md` BEFORE the suite run you intend to quote,
 >    not after.** It joins the registers, so a new public constant or an
 >    `ENTRY_POINTS` change moves it and `test_model_index` fails on a file

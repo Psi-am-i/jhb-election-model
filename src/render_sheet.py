@@ -45,6 +45,14 @@ CHART_PARTIES = ["DA", "ANC", "EFF", "ASA", "MK", "PA", "IFP", "RISE",
 
 ALLIANCE_8 = ("DA", "ASA", "PA", "IFP", "VFPLUS", "ACDP", "RISE", "ALJAMAAH")
 
+# How many ANC wards a DA-majority simulation has to take before the narrative
+# calls it "breaking the wall". ⛔ IT IS A PARAMETER OF THE QUERY, AND THE PAGE
+# USED TO TYPE IT TOO — "at least 30 of the ANC's usual wards" sat in
+# `forecast-sheet.html` beside a count computed with `>= 30` here, so an edit to
+# either left the sentence describing a different scenario from the number next
+# to it. The page now renders it as a token.
+WALL_FLIPS = 30
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -326,7 +334,7 @@ def main(argv: list[str] | None = None) -> int:
         _modal = _sc.modal_winners(_winners, _wards)
         _da = _sc.matching(_detail, [("DA", ">=", int(np.median(thr)))])
         _wall = [d for d in _da if sum(1 for _, a, b in _sc.flips(_winners, _modal, d)
-                                         if a == "ANC" and b == "DA") >= 30]
+                                         if a == "ANC" and b == "DA") >= WALL_FLIPS]
         _odd = [d for d in _da if d not in _wall]
         _sd = "ward_draws.csv + seat_detail_draws.csv"
 
@@ -362,6 +370,9 @@ def main(argv: list[str] | None = None) -> int:
             "da_alone_count": tok("claim.da_alone.count", len(_da), "int"),
             "n_draws": "{{n_draws}}",
             "wall_count": tok("claim.da_alone.wall_count", len(_wall), "int", _sd),
+            "wall_flips": tok("claim.da_alone.wall_flips", WALL_FLIPS, "int",
+                              "render_sheet.WALL_FLIPS, the threshold this "
+                              "scenario is counted at"),
             "no_red_share": chance("claim.red_lines.no_red_share", float((_no_red >= thr).mean())),
             "no_red_median": tok("claim.red_lines.no_red_median", int(np.median(_no_red)), "int"),
             "three_share": chance("claim.red_lines.three_share", float((_three >= thr).mean())),

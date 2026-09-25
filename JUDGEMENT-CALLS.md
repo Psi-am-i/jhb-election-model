@@ -1102,6 +1102,33 @@ These shape what a reader concludes and are easy to mistake for findings.
 
 **Record.** The bound at which a cartogram has stopped being a map: no hexagon may sit further than five hex radii from its ward's true centroid. In radii rather than pixels so it does not move with the figure's size. Johannesburg's worst ward is at 3.8 under the optimal assignment and **8.8 under the greedy one**, so the bound separates the two — which is what it is for. Typed, and a regression guard rather than a claim.
 
+### §D23 · `WALL_FLIPS` = 30 — ⚖️ argued, and it names a scenario rather than measuring one
+
+**Where.** `render_sheet.py`
+
+**Now.** Typed at 30, and registered on 2026-09-25 when the guard caught it as a
+new tunable constant. **It moves no forecast** — no draw, share or seat reads
+it. It selects which of the DA-majority simulations the "since then" box calls
+*breaking the ANC's ward wall*, and the page prints the same figure beside the
+count as the token `claim.da_alone.wall_flips`.
+
+**Record.** How many ANC wards a DA-majority simulation has to take before the
+narrative treats it as the wall breaking rather than an odd draw. There is no
+quantity in the world this estimates: a ward wall has no threshold, and the only
+question the figure answers is which simulations a sentence is allowed to
+describe. So it is **argued, not measured**, and the honest defence is that it
+is well inside the gap between the two kinds of draw the box distinguishes — the
+wall-breaking route and the rivals-collapse route.
+
+⛔ **IT WAS A SECOND COPY UNTIL 2026-09-25, WHICH IS WHY IT IS HERE.**
+`content/joburg/claims.toml` said *"take at least 30 of the ANC's usual wards"*
+while `render_sheet` selected those simulations with a literal `>= 30`. Two
+copies of one threshold, a sentence and a filter, either of which could be
+edited alone — after which the box would have described a different scenario
+from the number standing next to it, with nothing red. Naming the constant is
+what exposed it to this register's guard; the typed figure had been invisible to
+it for as long as it sat in prose.
+
 ### §D22 · `min_clusters` — 8 — 🔴
 
 **Where.** `score.chi2_clustered`

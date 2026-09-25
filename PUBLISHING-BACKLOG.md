@@ -713,7 +713,11 @@ ledger while any exists. The count and the rows are in
 rows under each page, never a figure copied here. Three causes, all from the
 24 September re-cut:
 
-* ✅ **FIXED 2026-09-25 — the typed `90%` in the seats note.** Both renderers
+* ✅ **FIXED 2026-09-25 — ten blocking rows became two**, and every one of the
+  eight was the same defect: a figure typed into prose beside the code that
+  computes it. Not one was cleared with a whitelist row, because a whitelist
+  leaves the sentence free to say one thing while the code says another.
+* ✅ **The typed `90%` in the seats note.** Both renderers
   typed it, which contradicted `render_home`'s own docstring (*"nothing here
   types a number into prose"*) and was a second copy of `seat_quantiles`'
   percentiles sitting in prose on a published page. `scenarios.BAND` /
@@ -729,8 +733,22 @@ rows under each page, never a figure copied here. Three causes, all from the
   The pages were re-cut, so the context no longer matches on either page.
   ⚠️ **That register carries a `reviewed` date per row and is the owner's**:
   re-context a row, do not add a new one, and re-date it.
-* The remaining rows are on `corrections.html` and `forecast.html` and were not
-  investigated.
+* ✅ **The typed `30` in the DA-majority "since then" box.**
+  `content/joburg/claims.toml` said *"take at least 30 of the ANC's usual
+  wards"* while `render_sheet` selected exactly those simulations with a literal
+  `>= 30`. Two copies of one threshold, a sentence and a filter, either of which
+  could be edited alone. It is `render_sheet.WALL_FLIPS` now, and the box renders
+  `[[wall_flips]]` as the token `claim.da_alone.wall_flips`.
+* ✅ **The five on `corrections.html` were not model figures at all.** They are
+  the page's record of what the PUBLISHED page showed on 2026-09-23 — 15 seats
+  and not 39, the tiles and the article agreeing at 62%. That is the dated-passage
+  case, so the paragraph is wrapped in `<span data-asof="2026-09-23">` and the
+  scan reads them as `dated` rather than `unreviewed`.
+  ⚠️ **They must never be made tokens.** A token recomputes, so the sentence
+  would then describe today's page instead of the one the correction is about —
+  which would make the corrections page wrong in the exact way it exists to fix.
+* ⛔ **What is left is TWO ROWS THAT ARE ONE ROW OF THE OWNER'S REGISTER**, the
+  election date, counted once on each page.
 
 **Measured, not read off the committed file** (2026-09-25): a full
 `build_site.py --out <scratch>` with `--allow-orphans --allow-stale-sources`,
