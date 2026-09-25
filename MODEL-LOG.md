@@ -26963,3 +26963,40 @@ then the hard zeros.
 ⛔ **Its warning, which the window must carry in writing: repairing the pool
 sizes may turn the impossibility test green while the one-party selection
 remains.** A green assertion is not evidence that the defect is resolved.
+
+## 1.260 The forecast's fixed cost is 70% of a 300-draw run, and the two disagreeing Pyodide figures reconcile (2026-09-25)
+
+`run_model` called directly (never `montecarlo.py`, which overwrites the
+city-year's forecast artefacts), Johannesburg 2026, seed 20261104, no `run_dir`
+so nothing was written. Native CPython on Atlas with BLAS pinned to one thread
+(`VECLIB_MAXIMUM_THREADS=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1
+MKL_NUM_THREADS=1`), because Pyodide is single-threaded and a multithreaded
+baseline is not comparable to it.
+
+| quantity | measured |
+|---|---|
+| 60 draws, wall clock | 16.09 s |
+| fixed cost, from the 20/60-draw slope | 14.79 s |
+| per draw | 21.6 ms |
+| 300 draws, extrapolated | 21.3 s |
+
+**The two recorded figures were not in conflict.** HANDOVER carried "~55 ms per
+draw in the browser (~17 s for 300 draws)" against "~35 s of CPU per 300 draws
+natively", which read as the browser being faster than native. The native figure
+is CPU time summed across threads: 300 draws is 6.5 s of draw work here, and a
+multithreaded BLAS inflates CPU time by roughly the core count while wall clock
+does not move. The browser's 55 ms per draw against 21.6 ms native is a factor
+of 2.5, which is an ordinary WASM penalty.
+
+**The design consequence is the split, not the total.** 14.79 s of the 21.3 s is
+paid once. If the page pays the fixed cost at load and re-draws only on a lever
+change, a change costs 6.5 s of draw work natively and about 16 s at the
+browser's measured per-draw rate, not 21 s and not 55 s. Whether a reader will
+wait for that is a design question; whether 300 draws per change is possible is
+answered.
+
+Limits stated at the claim: the fixed cost was derived from two points (20 and
+60 draws), so it carries their noise; the browser rate is the spike's, whose code
+was never committed, and it has not been re-measured here. What would settle the
+browser half is one Pyodide run of `run_model` at two draw counts on this seed,
+reporting the same split.
