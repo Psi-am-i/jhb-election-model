@@ -26618,3 +26618,58 @@ read "not linked": fixed (109 named, 35 structural, 82 linked).
 review's own verdict on this item was "ship it, with the seed check" — done
 above. Its top priority is the small-party tail of the live forecast (next
 entry, when measured).
+
+## 1.255 The DA is a different party in each metro, and that is what makes Buffalo City 2011 a data fault rather than a finding (2026-09-25)
+
+Read-only, from the emitted specs and `history.json`. No model change, no
+re-emit, no number on any page moved. Prompted by the owner asking how a seeded
+pool weight can demand more votes than a pool has voters, and then by his own
+inference: *"so does that not mean that the DA in those locations has different
+voting pools?"* It does, the model already fits it per city, and the fit is
+substantively plausible almost everywhere — which is precisely why the one place
+it is not is a broken input rather than a discovery.
+
+**The DA's fitted composition, largest pool, against that pool's share of
+ballots cast at central turnout (the LIFT).** `members[DA]` normalised over
+pools, from every emitted `pools_*.json`:
+
+| city | 2011 | 2016 | 2021 |
+|---|---|---|---|
+| Cape Town | White 53.6% / 23.8% = **2.2x** | **Coloured** 48.9% / 36.3% = 1.3x | **Coloured** 48.2% / 36.7% = 1.3x |
+| eThekwini | White 58.7% / 11.4% = 5.1x | White 46.1% / 10.9% = 4.2x | **Indian/Asian** 51.7% / 18.5% = 2.8x |
+| Nelson Mandela Bay | White 62.4% / 18.2% = 3.4x | White 50.4% / 23.0% = 2.2x | White 53.9% / 28.0% = 1.9x |
+| Johannesburg | White 84.3% / 29.7% = 2.8x | White 70.9% / 28.5% = 2.5x | White 70.3% / 31.2% = 2.2x |
+| Tshwane | White 90.5% / 36.1% = 2.5x | White 86.6% / 37.1% = 2.3x | White 80.3% / 38.5% = 2.1x |
+| Ekurhuleni | White 81.7% / 22.6% = 3.6x | White 76.4% / 24.4% = 3.1x | White 76.4% / 27.6% = 2.8x |
+| Mangaung | White 85.4% / 19.9% = 4.3x | White 78.5% / 23.8% = 3.3x | White 77.4% / 24.0% = 3.2x |
+| Buffalo City | White 60.2% / 8.2% = **7.4x** | White 64.7% / 15.0% = 4.3x | White 64.7% / 17.0% = 3.8x |
+
+**The variation is real and is the interesting part.** The fit makes the DA a
+Coloured-base party in Cape Town from 2016, an Indian/Asian-base party in
+eThekwini by 2021, a Coloured-plus-White party in Nelson Mandela Bay, and a
+White-base party in the four inland metros — and it moves over time, Cape Town
+crossing from White-led to Coloured-led between 2011 and 2016. Nothing in the
+model imposes one national coalition: `fit_city` is per city-year, so the
+composition is free to differ, and it does.
+
+**And that is the evidence that Buffalo City 2011 is an input fault.** Its lift
+is 7.4x against 1.3–5.1x across the other twenty-five city-years, and the White
+pool's share of that city's roll reads **6.3% in 2011, 12% in 2016, 13% in
+2021**. No population group's share of a roll halves in five years. So the 2011
+registration split is the term that is wrong, not the DA's coalition — which is
+also what the pool-level diagnostic says independently, reporting that split as
+154% of the census voting-age estimate for that pool.
+
+⛔ **THE LIFT IS A DIAGNOSTIC AND NOT A BOUND, AND IT MUST NOT BECOME ONE.** A
+high lift is legitimate where a pool votes at several times the city's rate, and
+capacity is breached by `weight x party's citywide share` exceeding the pool's
+top-of-band share — a function of the party's SIZE as well as its
+concentration, which is why Cape Town 2011 breaches at a lift of 2.2x while
+Mangaung 2011 does not at 4.3x. `test_pool_bounds` already tests the right
+inequality. A fit-time capacity cap was built, measured and reverted (§1.41,
+coherent seat error 306 -> 486); this entry adds a way to SEE which city-year to
+distrust, not a new constraint.
+
+**Open, and the first thing to check before anything else** (the test's own
+note): whether `PartyFit.composition` is handed votes cast rather than a
+registration or projected-share vector.
