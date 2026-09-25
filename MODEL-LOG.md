@@ -26750,3 +26750,62 @@ chooses between the two seams is whether the ActionSA and IFP residuals are
 spatially CLUSTERED (contiguous wards → a located bloc) or scattered but
 covariate-linked (→ a tilt). That is a judged measurement, so it is pre-registered
 before it is run, not after.
+
+## 1.257 The two standing pool failures are three different faults, and only one of them is what a tilt dimension is for (2026-09-25)
+
+Read-only: `pools.pool_counts` re-run per city-year in a scratch process and
+compared against each emitted spec. Nothing written, nothing re-emitted. The
+owner asked whether the geography work of §1.256 would deal with the two
+standing `test_pool_bounds` failures "or we have to measure to find out". We had
+to measure. It does not, and the reason is that the two failures are three
+separate faults.
+
+**The spec's PROJECTED pool split against the split fitted AT that year.** The
+ward roll totals are the same real published roll in almost every case (ratio
+1.000), so this compares only how the roll is divided between pools:
+
+| city-year | White: spec / fitted@year | verdict |
+|---|---|---|
+| **buffalocity 2011** | 24,294 / 40,807 = **0.595** | the split is WRONG |
+| capetown 2011 | 314,399 / 339,716 = 0.925 | the split is fine |
+| nelsonmandelabay 2011 | 108,254 / 113,117 = 0.957 | the split is fine |
+| joburg 2011 / 2016 / 2021 | 1.047 / 0.974 / 1.002 | fine, all pools 0.91–1.09 |
+
+**FAULT 1 — buffalocity 2011 is a pool-split defect, not a fit defect.** The
+spec gives its White pool 40% fewer registered voters than a fit at 2011 does.
+At 40,807 the top-of-band capacity is about 32,200, comfortably above the 24,058
+the DA's composition demands, so **the overshoot disappears once the split is
+right**. A tilt dimension would not touch this.
+
+**FAULT 2 — Cape Town 2011 and Nelson Mandela Bay 2011 fail with a SOUND
+split**, so their overshoot is the party fit over-attributing the DA to the White
+pool. Cape Town 2011 is the clear case: the DA won about 61% of the city and the
+fit puts 53.6% of that in a pool casting 23.8% of the ballots. **This is the one
+fault a second dimension could genuinely relieve**, by giving the fit another way
+to explain the DA's ward pattern — and it is a hypothesis, not a plan.
+
+**FAULT 3 — mangaung 2016's `[1, 1, 0, 1]` is an UNIDENTIFIABLE POOL, and
+nothing about geography reaches it.** Measured: the Indian/Asian pool is 3,260
+people, about 0.4% of the city; its registration is fitted to **2.0000**, which
+is `REGISTRATION_MAX`, and its turnout to **exactly 0.0000** — both corners, not
+estimates, and `pool_counts` already reports them in `unidentified`. A pool that
+casts zero votes is why that city-year's rates sum to `[1, 1, 0, 1]`. The remedy
+is in pool DEFINITION — do not fit a pool the city's ward table cannot see — and
+it is not a dimension, a tilt or a bloc.
+
+⚠️ **AND THE SAME CORNER IS PRESENT WHERE NO TEST FIRES.** Buffalo City 2011 and
+2021 both fit Indian/Asian turnout to exactly 0.0000 on the same grounds. So the
+zero-turnout pool is a class of defect in at least three city-years while one
+test reports one of them; whatever closes it should be checked against the set,
+not the symptom (§4's scanned-the-wrong-population shape).
+
+**Secondary, noted not chased:** three city-years' spec roll totals disagree with
+the fitted year's by 3–5% — buffalocity 2016 (0.972), mangaung 2016 (0.973),
+tshwane 2011 (0.946) — where every other spec matches to 1.000. Worth knowing
+before anyone treats a spec's roll as the published roll.
+
+**What this changes about the plan.** The pool-input repairs and the
+ActionSA/IFP geography mechanism are separate jobs with separate evidence, and
+bundling them would have credited one with the other's gain. §1.256's question
+stands on its own; these three faults are input quality and belong in their own
+window.
