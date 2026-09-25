@@ -26673,3 +26673,80 @@ distrust, not a new constraint.
 **Open, and the first thing to check before anything else** (the test's own
 note): whether `PartyFit.composition` is handed votes cast rather than a
 registration or projected-share vector.
+
+## 1.256 Population group already explains the big parties' geography and explains almost none of ActionSA's or the IFP's (2026-09-25)
+
+Read-only. `pools.fit_city('joburg', '2021')` re-run in a scratch process; no
+artefact written, no spec re-emitted, no published number touched. Prompted by
+the owner, after §1.255: *"it is expected that pools will shift by geography. We
+need to think how to capture this properly as all parties will draw different
+segments based on where?"*
+
+**The measurement is the vote-weighted R² of each party's WARD shares against
+the pool mix alone** — that is, how much of a party's geography the single
+city-wide rate vector already accounts for. Johannesburg 2021, 135 wards:
+
+| party | citywide | R² | Black African | Coloured | Indian/Asian | White |
+|---|---|---|---|---|---|---|
+| ANC | 0.3322 | **0.892** | 0.5332 | 0.1258 | 0.1348 | 0.0476 |
+| DA | 0.2545 | **0.962** | 0.0201 | 0.2356 | 0.3296 | 0.6666 |
+| ActionSA | 0.1812 | **0.153** | 0.1828 | 0.0636 | 0.2988 | 0.1887 |
+| EFF | 0.1011 | 0.712 | 0.1606 | 0.0181 | 0.0057 | 0.0269 |
+| PA | 0.0296 | 0.857 | 0.0002 | 0.4097 | 0.0002 | 0.0002 |
+| IFP | 0.0236 | **0.082** | 0.0416 | 0.0000 | 0.0000 | 0.0000 |
+| VF+ | 0.0133 | 0.385 | 0.0006 | 0.0126 | 0.0007 | 0.0376 |
+| ACDP | 0.0103 | 0.208 | 0.0041 | 0.0541 | 0.0161 | 0.0105 |
+
+**So the answer splits in two, and only one half is a gap.**
+
+* **Between cities it is already captured** and working (§1.255): the vectors are
+  fitted per city-year, so the DA is a Coloured-base party in Cape Town and a
+  White-base party in Tshwane without anything being asserted.
+* **Within a city, the big parties need nothing.** At R² 0.962 and 0.892 the pool
+  mix already accounts for essentially all of the DA's and the ANC's ward-to-ward
+  variation. A geographic tilt has almost nothing left to find for them — which
+  is the same verdict the two earlier geography levers reached from the other
+  direction (mixing pool compositions toward the city is level-neutral by
+  algebra; γ scaling moves under a seat).
+* **The gap is ActionSA at 0.153 and the IFP at 0.082**, and their rate vectors
+  say why. ActionSA's rates are nearly FLAT across the four pools (0.18 / 0.06 /
+  0.30 / 0.19) — a party the demographic model has no handle on, because its base
+  is organisational and personal rather than demographic. The IFP's are 4.2% of
+  Black African voters and exactly zero elsewhere, applied uniformly across 135
+  wards, when its actual support sits in particular communities the census
+  cannot see as a category.
+
+⚠️ **These are the two parties the panel already scores worst.** The rank-4-to-12
+band and the locally-organised parties forecast at 0.05–0.17% are the same
+failure seen from the scoreboard, so a mechanism aimed here is aimed at a
+measured error rather than at a tidy idea.
+
+**Two seams already exist, they are NOT interchangeable, and both are
+deliberately closed.**
+
+1. `role = "tilt"` in `config/dimensions.toml` — a second covariate entered as a
+   deviation from the city mean so it cannot re-describe the base dimension.
+   `age` and `sex` are declared, fitted and **rejected by the gate**: in-sample
+   gain of +0.03 to +0.06 R², about 0.00 out of sample. The gate is the right
+   standard and already has teeth — a dimension is admitted only if it improves
+   fit when fitted on one city and tested on another (`pools.py --gate`).
+   ⛔ Two hard facts before anyone plans this: `fit_city` **refuses outright** if
+   a tilt is admitted ("the joint fit does not carry tilt dimensions yet"), so
+   `fit_joint` is the work; and we hold only three covariate tables — Age Group,
+   Population Group, Sex. Income, education and home language are named in that
+   file as slotting in "the day the data exists", and that day has not happened.
+2. `pools.vote_located_bloc` / `SIMULATION_BLOC` — carving out *a pool the census
+   cannot see*, located by the votes of a party only that bloc supports (the IFP,
+   at `within_rate` 0.90). Implemented, opt-in, off by default, and its own
+   docstring calls it a placeholder meant to be replaced. This is the seam that
+   matches the IFP row above, and possibly ActionSA.
+   ⛔ **Its danger is circularity**: locating a bloc by a party's own vote and
+   then predicting that party with it proves nothing. It reads a year strictly
+   before the target, which is necessary and not sufficient — the test is
+   out-of-sample seats, not fit.
+
+**Not started, and it needs a pre-registration first.** The measurement that
+chooses between the two seams is whether the ActionSA and IFP residuals are
+spatially CLUSTERED (contiguous wards → a located bloc) or scattered but
+covariate-linked (→ a tilt). That is a judged measurement, so it is pre-registered
+before it is run, not after.
