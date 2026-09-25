@@ -148,10 +148,6 @@ ENTRY_POINTS: dict[str, str] = {
         "README.md step 3: `python src/gamma_recent.py`. Fits γ for parties "
         "fold 1 never saw and writes `gamma_recent.csv`, which `montecarlo.py` "
         "reads as an ARTEFACT (montecarlo.py:3901), never as an import.",
-    "render_sheet":
-        "README.md step 5: `python src/render_sheet.py`, and a step in "
-        "`build_all.plan` ('sheet figures, claims, regimes'), invoked as a "
-        "subprocess rather than imported.",
     "build_validation":
         "README.md 'Scoring it against a past election': `python "
         "src/build_validation.py --target 2021` — runs the model and the "

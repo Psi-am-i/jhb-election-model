@@ -40,8 +40,12 @@ NAMES = {
     "SOUTH_AFRICAN_COMMUNIST_PARTY": "SACP", "BOSA": "BOSA",
     "ALL_CITIZENS_PARTY": "All Citizens Party",
 }
-CHART_PARTIES = ["DA", "ANC", "EFF", "ASA", "MK", "PA", "IFP", "RISE",
-                 "ALJAMAAH", "ENTRANT"]
+import scenarios as _scenarios  # noqa: E402  (constants below read it)
+
+# ⛔ NOT A LIST OF ITS OWN — `scenarios.NAMED_PARTIES` is the one set both seats
+# tables name, because "Others" is its complement and one word may not mean two
+# numbers. See that constant's note.
+CHART_PARTIES = list(_scenarios.NAMED_PARTIES)
 
 ALLIANCE_8 = ("DA", "ASA", "PA", "IFP", "VFPLUS", "ACDP", "RISE", "ALJAMAAH")
 

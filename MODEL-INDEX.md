@@ -180,7 +180,6 @@ An entry point that has acquired an importer no longer needs the exemption: the 
 | `ingest_npe` | yes | -- |
 | `overhang_regimes` | yes | -- |
 | `prep_logos` | yes | -- |
-| `render_sheet` | yes | -- |
 | `sweep` | yes | -- |
 | `validate_seats` | yes | -- |
 | `width_budget` | yes | -- |
@@ -496,11 +495,11 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `publication.MOVEMENTS` | tuple[6] | NO | NO | NO | -- |
 | `render_home.ROOT` | Path(__file__).resolve().parent.parent | NO | NO | NO | `deploy_check`, `judgement_sheet`, `model_index`, `site_text` |
 | `render_home.PAGE` | ROOT / 'home.html' | NO | NO | NO | -- |
-| `render_home.NAMED` | tuple[7] | NO | NO | NO | -- |
-| `render_home.LABEL` | dict[7] | NO | NO | NO | -- |
-| `render_home.COLOUR` | dict[8] | NO | NO | NO | -- |
-| `render_map.CHIPS` | dict[11] | NO | NO | NO | `render_sheet` |
-| `render_map.NAMES` | dict[8] | NO | NO | NO | `render_sheet` |
+| `render_home.NAMED` | tuple(_scenarios.NAMED_PARTIES) | NO | NO | NO | -- |
+| `render_home.LABEL` | _sheet.NAMES | NO | NO | NO | -- |
+| `render_home.COLOUR` | {**_sheet.CHIPS, 'Others': '#8b918b'} | NO | NO | NO | -- |
+| `render_map.CHIPS` | dict[11] | NO | NO | NO | `render_home`, `render_sheet` |
+| `render_map.NAMES` | dict[8] | NO | NO | NO | `render_home`, `render_sheet` |
 | `render_map.GREY` | str '#9aa09a' | NO | NO | NO | `hex_cartogram` |
 | `render_map.MARK_START` | str '<!-- __MAP_START__ -->' | NO | NO | NO | `hex_cartogram` |
 | `render_map.MARK_END` | str '<!-- __MAP_END__ -->' | NO | NO | NO | `hex_cartogram` |
@@ -518,15 +517,16 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `render_map.KEY_STRIPE_A` | tuple[3] | NO | NO | NO | -- |
 | `render_map.KEY_STRIPE_B` | tuple[3] | NO | NO | NO | -- |
 | `render_map.KEY_PARTIES` | tuple[8] | NO | NO | NO | -- |
-| `render_sheet.CHIPS` | dict[12] | NO | NO | NO | `render_map` |
-| `render_sheet.NAMES` | dict[15] | NO | NO | NO | `render_map` |
-| `render_sheet.CHART_PARTIES` | list[10] | NO | NO | NO | -- |
+| `render_sheet.CHIPS` | dict[12] | NO | NO | NO | `render_home`, `render_map` |
+| `render_sheet.NAMES` | dict[15] | NO | NO | NO | `render_home`, `render_map` |
+| `render_sheet.CHART_PARTIES` | list(_scenarios.NAMED_PARTIES) | NO | NO | NO | -- |
 | `render_sheet.ALLIANCE_8` | tuple[8] | NO | NO | NO | -- |
 | `render_sheet.WALL_FLIPS` | int 30 | NO | NO | yes | -- |
 | `scenarios.OPS` | {'>=': operator.ge, '<=': operator.le, '>': operator.gt, '<': operator.l | NO | NO | NO | -- |
 | `scenarios.COND` | re.compile('^\\s*([A-Za-z_]+)\\s*(>=|<=|==|>|<)\\s*(\\d+)\\s*$') | NO | NO | NO | -- |
 | `scenarios.BAND` | tuple[2] | NO | NO | NO | -- |
 | `scenarios.BAND_SHARE` | (BAND[1] - BAND[0]) / 100 | NO | NO | NO | `render_home`, `render_sheet` |
+| `scenarios.NAMED_PARTIES` | tuple[10] | NO | NO | NO | `render_home`, `render_sheet` |
 | `score.CLAIM_FRACTION` | float 0.5 | NO | NO | yes | `compare_history` |
 | `seats.INDEPENDENT` | str 'INDEPENDENT' | NO | NO | NO | `backtest`, `benchmarks`, `montecarlo`, `parties`, `validate_seats` |
 | `site_text.ROOT` | Path(__file__).resolve().parent.parent | NO | NO | NO | `deploy_check`, `judgement_sheet`, `model_index`, `render_home` |
@@ -913,7 +913,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `publication` | neither | NO | `src/build_site`, `tests/test_publication_ledger` | The publication ledger: what this page said, when, and which model said it. |
 | `render_home` | neither | NO | `tests/test_home_page` | Fill the home page's generated regions from the run that produced them. |
 | `render_map` | neither | NO | `src/hex_cartogram`, `tests/test_hex_cartogram`, `tests/test_home_page`, `tests/test_map_stripes` | Render the ward-winner map into the forecast pages. |
-| `render_sheet` | neither | yes | -- | Regenerate forecast-sheet.html's data block from the model outputs. |
+| `render_sheet` | neither | NO | `src/render_home` | Regenerate forecast-sheet.html's data block from the model outputs. |
 | `scenarios` | neither | NO | `src/render_home`, `src/render_map`, `src/render_sheet`, `tests/test_home_page`, `tests/test_scenarios` | Which simulations make a scenario, and what their wards did. |
 | `score` | measurement | NO | `src/backtest`, `src/benchmarks`, `src/compare_history`, `tests/test_calibration_report`, `tests/test_chain`, `tests/test_panel_wiring`, `tests/test_regressions`, `tests/test_scored_universe` | Proper scoring rules for a distributional forecast of a council. |
 | `seats` | model+measurement | NO | `src/backtest`, `src/benchmarks`, `src/fold`, `src/levels`, `src/montecarlo`, `src/validate_seats`, `tests/test_overhang`, `tests/test_seats`, `tests/test_stage_realisation` | Seat allocation for a metro council, per Municipal Structures Act Schedule 1. |

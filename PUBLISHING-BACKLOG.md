@@ -688,14 +688,18 @@ range"): the ~~seats table as clean *median* and *range* columns~~ (the home
 page's table header is `median` / `range`), and ~~ONE definition of "Others"
 for both pages~~ — `render_sheet:147` and `render_home:161` both call
 `scenarios.others_per_draw`, which is the council minus the named parties
-within each simulation. ⚠️ **The two rows still differ, and now by
-construction**: the sheet names ten parties (`render_sheet.CHART_PARTIES`, which
-adds RISE, ALJAMAAH and ENTRANT) and the home page names seven
-(`render_home.NAMED`), so each page's "everyone else" is everyone that page does
-not show. That is defensible and it is not what a reader expects from one
-label. **Whether the two pages may print different "Others" totals is the
-owner's call** — the fix, if he wants one, is one named set, not a second
-definition. Still open: the home map buttons unstyled; bigger party logos in the
+within each simulation. ✅ **AND THE TWO ROWS NOW PRINT THE SAME NUMBER** (owner, 2026-09-25: *"use
+the same number of others throughout"*). They had differed by construction —
+the sheet named ten parties and the home page seven, so each page's "everyone
+else" was everyone *that page* did not show. `scenarios.NAMED_PARTIES` is now
+the one set, both tables read it, and the home page takes the sheet's labels and
+chip colours with it, so a party added anywhere gains a row on both pages and
+leaves both "Others". Measured after the rebuild: median 23, range 8–48 on both.
+Two side effects worth knowing: the home page gained Rise Mzansi and Al Jama-ah
+rows, and its IFP chip was grey while the sheet's was red — one colour map now.
+⚠️ The two tables still LABEL the row differently, "Others" on the sheet and
+"Everyone else" on the home page. Same quantity, two words; say if that should
+be one. Still open: the home map buttons unstyled; bigger party logos in the
 claims; a `/judgement-calls` page generated from a corrected register (live
 calls with a plain intro, the full register collapsed); the forecast page's
 heading ("Who governs Johannesburg") is a placeholder.

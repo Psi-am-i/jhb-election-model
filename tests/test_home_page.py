@@ -261,22 +261,26 @@ def test_everyone_else_is_counted_inside_each_simulation():
       everyone below them vanish)
     * the other column's median       → 1                       (§1.214's shape:
       a sum of per-party medians describes no simulation at all)
+
+    ⚠️ The tail party is BOSA on purpose: it is outside `scenarios.NAMED_PARTIES`,
+    so it stays in "everyone else" however that set changes. A fixture using a
+    NAMED party has no tail at all, and the row under test is never rendered.
     """
-    rows = [{"ANC": 4, "DA": 3, "RISE": 1},
-            {"ANC": 6, "DA": 3, "RISE": 1},
-            {"ANC": 3, "DA": 2, "RISE": 4}]
+    rows = [{"ANC": 4, "DA": 3, "BOSA": 1},
+            {"ANC": 6, "DA": 3, "BOSA": 1},
+            {"ANC": 3, "DA": 2, "BOSA": 4}]
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
         _seat_draws(tmp, rows, council=10, threshold=6,
-                    columns=["ANC", "DA", "RISE"])
+                    columns=["ANC", "DA", "BOSA"])
         others = SC.others_per_draw(tmp, ("ANC", "DA"))
         assert list(others) == [3, 1, 5], list(others)
 
         med, lo, hi = SC.seat_quantiles(others)
         assert (med, lo, hi) == (3, 1, 5), (med, lo, hi)
-        assert med != sum(r["RISE"] for r in rows) / len(rows), (
+        assert med != sum(r["BOSA"] for r in rows) / len(rows), (
             "the median matched an average of the columns the file keeps")
-        assert med != sorted(r["RISE"] for r in rows)[1], (
+        assert med != sorted(r["BOSA"] for r in rows)[1], (
             "the median matched the small column's own median — the seats held "
             "by parties the file does not list have gone missing")
 
@@ -284,7 +288,7 @@ def test_everyone_else_is_counted_inside_each_simulation():
         summary = {"parties": {
             "ANC": {"median": 4.0, "p5": 3.0, "p95": 6.0},
             "DA": {"median": 3.0, "p5": 2.0, "p95": 3.0},
-            "RISE": {"median": 1.0, "p5": 1.0, "p95": 4.0}}}
+            "BOSA": {"median": 1.0, "p5": 1.0, "p95": 4.0}}}
         html = RH._seats(summary, _tok, tmp)
         assert "[home.seats.others=3]" in html, html
         assert "[home.seats.others_lo=1]" in html and \
@@ -304,13 +308,13 @@ def test_a_party_the_page_names_is_never_pooled_into_everyone_else():
     leave the "everyone else" row in the same change. Here DA moves from named
     to unnamed and the row moves by exactly DA's seats in every draw.
     """
-    rows = [{"ANC": 4, "DA": 3, "RISE": 1},
-            {"ANC": 6, "DA": 3, "RISE": 1},
-            {"ANC": 3, "DA": 2, "RISE": 4}]
+    rows = [{"ANC": 4, "DA": 3, "BOSA": 1},
+            {"ANC": 6, "DA": 3, "BOSA": 1},
+            {"ANC": 3, "DA": 2, "BOSA": 4}]
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
         _seat_draws(tmp, rows, council=10, threshold=6,
-                    columns=["ANC", "DA", "RISE"])
+                    columns=["ANC", "DA", "BOSA"])
         with_da = SC.others_per_draw(tmp, ("ANC", "DA"))
         without_da = SC.others_per_draw(tmp, ("ANC",))
         assert list(without_da - with_da) == [r["DA"] for r in rows], (

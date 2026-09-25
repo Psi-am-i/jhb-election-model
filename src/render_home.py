@@ -30,15 +30,19 @@ import cityconfig
 ROOT = Path(__file__).resolve().parent.parent
 PAGE = ROOT / "home.html"
 
-# The parties the seat table names. Everyone else is pooled into "Others",
-# which is what the council actually looks like: the long tail is real but
-# nobody reads a table of forty rows.
-NAMED = ("ANC", "DA", "ASA", "EFF", "MK", "PA", "IFP")
-LABEL = {"ANC": "ANC", "DA": "DA", "ASA": "ActionSA", "EFF": "EFF",
-         "MK": "MK Party", "PA": "PA", "IFP": "IFP"}
-COLOUR = {"ANC": "var(--anc)", "DA": "var(--da)", "ASA": "var(--asa)",
-          "EFF": "var(--eff)", "MK": "var(--mk)", "PA": "var(--pa)",
-          "IFP": "var(--oth)", "Others": "var(--oth)"}
+import render_sheet as _sheet
+import scenarios as _scenarios
+
+# ⛔ THE SEATS TABLE IS NOT THIS PAGE'S OWN DESIGN, AND THAT IS DELIBERATE.
+# The parties named, their labels and their colours all come from the forecast
+# sheet, so the two tables name the same parties — which is the only way the
+# word "Others" can mean one number on both (owner, 2026-09-25). This page used
+# to declare its own shorter list and its own colour map, and the cost was two
+# "Others" rows differing by the seats of the three parties it left out, plus an
+# IFP chip that was grey here and red there.
+NAMED = tuple(_scenarios.NAMED_PARTIES)
+LABEL = _sheet.NAMES
+COLOUR = {**_sheet.CHIPS, "Others": "#8b918b"}
 
 
 def region(page: str, name: str, body: str) -> str:

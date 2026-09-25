@@ -294,52 +294,64 @@ document.querySelectorAll(".maptoggle button").forEach(function(b){
   <div class="seats">
     <div class="srow shead"><div></div><div></div><div class="sval">median</div><div class="sval rng">range</div></div>
     <div class="srow">
-      <div class="sname"><span class="chip" style="background:var(--anc)"></span>ANC</div>
-      <div class="strack"><i style="width:72.8%;background:var(--anc)"></i></div>
-      <div class="sval"><b>{{@home.seats.anc=67;int;forecast_summary.json, 5,000 simulations}}</b></div>
-      <div class="sval rng">{{@home.seats.anc_lo=29;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.anc_hi=92;int;forecast_summary.json, 5,000 simulations}}</div>
-    </div>
-    <div class="srow">
-      <div class="sname"><span class="chip" style="background:var(--da)"></span>DA</div>
-      <div class="strack"><i style="width:71.7%;background:var(--da)"></i></div>
+      <div class="sname"><span class="chip" style="background:#1B5EA8"></span>DA</div>
+      <div class="strack"><i style="width:71.7%;background:#1B5EA8"></i></div>
       <div class="sval"><b>{{@home.seats.da=66;int;forecast_summary.json, 5,000 simulations}}</b></div>
       <div class="sval rng">{{@home.seats.da_lo=45;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.da_hi=90;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
-      <div class="sname"><span class="chip" style="background:var(--asa)"></span>ActionSA</div>
-      <div class="strack"><i style="width:29.3%;background:var(--asa)"></i></div>
-      <div class="sval"><b>{{@home.seats.asa=27;int;forecast_summary.json, 5,000 simulations}}</b></div>
-      <div class="sval rng">{{@home.seats.asa_lo=11;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.asa_hi=52;int;forecast_summary.json, 5,000 simulations}}</div>
+      <div class="sname"><span class="chip" style="background:#1B7A3D"></span>ANC</div>
+      <div class="strack"><i style="width:72.8%;background:#1B7A3D"></i></div>
+      <div class="sval"><b>{{@home.seats.anc=67;int;forecast_summary.json, 5,000 simulations}}</b></div>
+      <div class="sval rng">{{@home.seats.anc_lo=29;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.anc_hi=92;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
-      <div class="sname"><span class="chip" style="background:var(--eff)"></span>EFF</div>
-      <div class="strack"><i style="width:26.1%;background:var(--eff)"></i></div>
+      <div class="sname"><span class="chip" style="background:#B3202B"></span>EFF</div>
+      <div class="strack"><i style="width:26.1%;background:#B3202B"></i></div>
       <div class="sval"><b>{{@home.seats.eff=24;int;forecast_summary.json, 5,000 simulations}}</b></div>
       <div class="sval rng">{{@home.seats.eff_lo=8;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.eff_hi=54;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
-      <div class="sname"><span class="chip" style="background:var(--mk)"></span>MK Party</div>
-      <div class="strack"><i style="width:22.8%;background:var(--mk)"></i></div>
+      <div class="sname"><span class="chip" style="background:#2FA79B"></span>ActionSA</div>
+      <div class="strack"><i style="width:29.3%;background:#2FA79B"></i></div>
+      <div class="sval"><b>{{@home.seats.asa=27;int;forecast_summary.json, 5,000 simulations}}</b></div>
+      <div class="sval rng">{{@home.seats.asa_lo=11;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.asa_hi=52;int;forecast_summary.json, 5,000 simulations}}</div>
+    </div>
+    <div class="srow">
+      <div class="sname"><span class="chip" style="background:#5B6E22"></span>MK Party</div>
+      <div class="strack"><i style="width:22.8%;background:#5B6E22"></i></div>
       <div class="sval"><b>{{@home.seats.mk=21;int;forecast_summary.json, 5,000 simulations}}</b></div>
       <div class="sval rng">{{@home.seats.mk_lo=7;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.mk_hi=50;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
-      <div class="sname"><span class="chip" style="background:var(--pa)"></span>PA</div>
-      <div class="strack"><i style="width:25.0%;background:var(--pa)"></i></div>
+      <div class="sname"><span class="chip" style="background:#E0A419"></span>PA</div>
+      <div class="strack"><i style="width:25.0%;background:#E0A419"></i></div>
       <div class="sval"><b>{{@home.seats.pa=23;int;forecast_summary.json, 5,000 simulations}}</b></div>
       <div class="sval rng">{{@home.seats.pa_lo=14;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.pa_hi=37;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
-      <div class="sname"><span class="chip" style="background:var(--oth)"></span>IFP</div>
-      <div class="strack"><i style="width:2.2%;background:var(--oth)"></i></div>
+      <div class="sname"><span class="chip" style="background:#C8442A"></span>IFP</div>
+      <div class="strack"><i style="width:2.2%;background:#C8442A"></i></div>
       <div class="sval"><b>{{@home.seats.ifp=2;int;forecast_summary.json, 5,000 simulations}}</b></div>
       <div class="sval rng">{{@home.seats.ifp_lo=0;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.ifp_hi=16;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
-      <div class="sname"><span class="chip" style="background:var(--oth)"></span>Everyone else</div>
-      <div class="strack"><i style="width:32.6%;background:var(--oth)"></i></div>
-      <div class="sval"><b>{{@home.seats.others=30;int;seat_draws.csv, council minus the named parties in each simulation}}</b></div>
-      <div class="sval rng">{{@home.seats.others_lo=13;int;seat_draws.csv, council minus the named parties in each simulation}}–{{@home.seats.others_hi=55;int;seat_draws.csv, council minus the named parties in each simulation}}</div>
+      <div class="sname"><span class="chip" style="background:#7A6BA8"></span>Rise Mzansi</div>
+      <div class="strack"><i style="width:2.2%;background:#7A6BA8"></i></div>
+      <div class="sval"><b>{{@home.seats.rise=2;int;forecast_summary.json, 5,000 simulations}}</b></div>
+      <div class="sval rng">{{@home.seats.rise_lo=0;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.rise_hi=13;int;forecast_summary.json, 5,000 simulations}}</div>
+    </div>
+    <div class="srow">
+      <div class="sname"><span class="chip" style="background:#2E8B72"></span>Al Jama-ah</div>
+      <div class="strack"><i style="width:2.2%;background:#2E8B72"></i></div>
+      <div class="sval"><b>{{@home.seats.aljamaah=2;int;forecast_summary.json, 5,000 simulations}}</b></div>
+      <div class="sval rng">{{@home.seats.aljamaah_lo=1;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.aljamaah_hi=6;int;forecast_summary.json, 5,000 simulations}}</div>
+    </div>
+    <div class="srow">
+      <div class="sname"><span class="chip" style="background:#8b918b"></span>Everyone else</div>
+      <div class="strack"><i style="width:25.0%;background:#8b918b"></i></div>
+      <div class="sval"><b>{{@home.seats.others=23;int;seat_draws.csv, council minus the named parties in each simulation}}</b></div>
+      <div class="sval rng">{{@home.seats.others_lo=8;int;seat_draws.csv, council minus the named parties in each simulation}}–{{@home.seats.others_hi=48;int;seat_draws.csv, council minus the named parties in each simulation}}</div>
     </div>
   </div>
   <div class="stamp" style="margin-top:12px">Each party's middle value across the simulations, with the range covering {{@home.band=0.9;chance;scenarios.BAND, the percentiles seat_quantiles reports}} of them. They do not add up to the council: a party's best simulations are not the same ones as its rivals'. "Everyone else" is the council minus the parties named above, taken <em>within</em> each simulation.</div>

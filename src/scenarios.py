@@ -114,6 +114,18 @@ def seat_quantiles(series) -> tuple[int, int, int]:
             int(round(float(_np.percentile(x, BAND[1])))))
 
 
+# The parties a seats table NAMES, and therefore the complement that "Others"
+# means. ⛔ ONE SET, EVERY PAGE. Until 2026-09-25 the forecast sheet named ten
+# parties and the home page seven, so both pages printed a row labelled
+# "Others" and the two numbers differed by the seats of the three the home page
+# left out — one word, two figures, and nothing wrong with either arithmetic.
+# The owner's ruling: the same "Others" throughout. Adding a party here adds a
+# row to every seats table and removes its seats from every "Others"; that is
+# the point, and it is why the set may not be redeclared per page.
+NAMED_PARTIES = ("DA", "ANC", "EFF", "ASA", "MK", "PA", "IFP", "RISE",
+                 "ALJAMAAH", "ENTRANT")
+
+
 def others_per_draw(processed: Path, named) -> "np.ndarray":
     """Seats held by every party NOT in `named`, within each simulation.
 
