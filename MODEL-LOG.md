@@ -27066,3 +27066,75 @@ model. The treatment is POOLS-REEMIT-QUEUE entry 33: emit `identified()` per
 party-pool and seed an unidentified cell at the maximum-entropy share, which
 generalises the existing fix from "when the margin cannot close" to "whenever the
 cell was never identified".
+
+## 1.262 How a party's rate in a pool is calculated, and how wide the arithmetic leaves it (2026-09-26)
+
+Owner, 2026-09-26: *"How are we calculating the percentage of a pool a party can
+expect?"* Read-only: `pools.fit_city('joburg', '2021')` re-run in a scratch
+process, nothing written.
+
+### The calculation
+
+Per ward: each party's share of that ward's votes, `Y[w, p]`; that ward's
+composition of *voters* across the four pools, `comp[w, g]`; the ward's total
+votes. The model is one equation per ward per party,
+
+    Y[w, p]  ≈  Σ_g  comp[w, g] · r[g, p]
+
+so a party's ward share is the pool-weighted average of its rates. `fit_joint`
+solves for every party at once under two constraints that must hold: no rate is
+negative, and each pool's rates sum to 1 across parties, because every voter
+voted for someone. `balance_within_bounds` then forces both observed margins —
+each pool's total votes cast and each party's total votes — while holding every
+rate inside its Duncan–Davis interval. That interval is the method of bounds: the
+range the ward margins alone permit, with no model in it.
+
+### The answer, with the range the arithmetic permits
+
+Johannesburg 2021, 135 wards. `rate` is the share of that pool's votes; the
+interval is Duncan–Davis.
+
+| party | pool | rate | permitted range | width |
+|---|---|---|---|---|
+| ANC | Black African | 0.5332 | 0.3950 – 0.5723 | 0.177 |
+| ANC | Indian/Asian | 0.1348 | 0.0000 – 0.8030 | 0.803 |
+| DA | White | 0.6666 | 0.3983 – 0.7219 | 0.324 |
+| DA | Indian/Asian | 0.3296 | 0.0099 – 0.8043 | 0.794 |
+| DA | Black African | 0.0201 | 0.0087 – 0.1635 | 0.155 |
+| ActionSA | Black African | 0.1828 | 0.1162 – 0.2614 | 0.145 |
+| ActionSA | Indian/Asian | 0.2988 | 0.0000 – 0.7960 | 0.796 |
+| EFF | Black African | 0.1606 | 0.0934 – 0.1784 | 0.085 |
+| PA | Coloured | 0.4097 | 0.1384 – 0.4097 | 0.271 |
+| PA | Black African | 0.0002 | 0.0002 – 0.0333 | 0.033 |
+| IFP | Black African | 0.0416 | 0.0218 – 0.0416 | 0.020 |
+
+The Black African pool is 65% of the electorate and varies widely between wards,
+so its rates are pinned to within 0.085–0.177. The Indian/Asian pool is 4% and
+never dominates a ward, so the ward arithmetic permits almost anything: the ANC
+there could be 0% or 80% and the data does not say which. `PartyFit.identified()`
+marks those rates as not identified, and the same holds for Coloured across every
+party.
+
+### The PA's vector is a set of corners, not an estimate
+
+Every one of its four rates sits on an end of its own interval: Coloured at
+0.4097, the upper bound exactly; Black African at 0.0002, the lower bound
+exactly; Indian/Asian and White likewise at their floors. The fit pushed each rate
+as far as the arithmetic allowed. That is what produces the emitted
+`{0, 1.0, 0, 0}` of §1.261 — not a measurement of the PA's support, but the
+boundary of the feasible region.
+
+### The gap: the width is computed and never propagated
+
+`bounds` is computed per party-pool, used to clip the fit, and emitted as
+`pools[<pool>].identified` — **a list of the party codes whose weight in that pool
+is identified**. `montecarlo` reads it at `:3959` to print a warning for a pool
+whose list is empty, and nowhere else. So a rate whose permitted range is 0.80
+wide enters the draw as a point, and nothing widens or varies it. Turnout has a
+band; the party's citywide level is drawn; the rate pattern across pools is
+treated as known.
+
+This is the measurement that makes the reviewer's proposal concrete
+(POOLS-REEMIT-QUEUE entry 33 and the determinacy instrument beside it): a badly
+determined rate should be drawn from its interval rather than fixed at a corner
+of it.
