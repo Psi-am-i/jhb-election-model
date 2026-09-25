@@ -26865,3 +26865,101 @@ values, so this repair does not reach them (§1.257 fault 2).
 
 All three faults change pool inputs, so each invalidates every spec and they
 belong in one re-emit window (`POOLS-REEMIT-QUEUE.md`).
+
+## 1.259 The capacity breach selects the DA in 14 of 14 cases, so §1.257's reading of it was wrong (2026-09-25)
+
+Blind pollster review of `audits/2026-09-25-pool-inputs/brief-pollster.md`,
+followed by the lead re-deriving every claim the plan would rest on. Read-only:
+no spec re-emitted, no model run, no published number moved.
+
+### Re-derived by the lead, from the emitted specs and `history.json`
+
+**The impossibility scan, reproduced over all 24 emitted backtest specs.** 14
+cases: 3 fatal, 11 straining.
+
+| | count |
+|---|---|
+| cases that are the DA | **14 of 14** |
+| cases that are the DA in the White pool | 12 |
+| cases at a 2011 target | 8 |
+| cases at a 2016 target | 6 |
+| cases at a 2021 target | **0** |
+
+**The DA's actual PR share at the target over its share at the fitting year.**
+
+| target | range across the 8 metros | direction |
+|---|---|---|
+| 2016 (fitted 2011) | 0.977 – 1.263 | 7 of 8 above 1 |
+| 2021 (fitted 2016) | 0.662 – 0.973 | 8 of 8 below 1 |
+
+Every 2016 target with a violation has a ratio above 1. Mangaung is the one 2016
+target with no violation, and the one where the DA's share fell (0.977). No
+violation exists at any 2021 target.
+
+**⛔ THIS FALSIFIES §1.257's READING OF ITS OWN FAULT 2.** That entry read Cape
+Town 2011 and Nelson Mandela Bay 2011 as the party fit over-attributing the DA to
+a small concentrated pool — an identification problem. A fault in identification
+has no reason to select one party in 14 of 14 cases across seven metros and to
+vanish in the cycle where that party shrank. The pattern is a party growing
+between the fitting year and the target while its pool composition is carried
+across unchanged: nothing couples the composition to the level. §1.257's faults 1
+and 3 stand as measured; its fault 2 is superseded here.
+
+**Three input defects the brief did not contain, each re-derived.**
+
+1. **Four specs declare four pools and emit three**, with the dropped pool's
+   share stated in the same artefact: buffalocity 2016 (Indian/Asian, 2.86% of
+   the roll), mangaung 2011 (0.43%), mangaung 2016 (2.46%), mangaung 2021
+   (1.31%). A spec that contradicts itself about where its electorate is.
+2. **Cape Town's Indian/Asian pool against Census 2022** (municipality 19100
+   ward rows, the same spreadsheet the model reads): spec roll shares 10.00% /
+   9.36% / 8.28% at 2011 / 2016 / 2021 against a census population share of
+   **1.61%**. Black African reads 33.0–33.8% in the specs against 46.35% in the
+   census. eThekwini's Indian/Asian pool is 18.3–19.0% against a census 19.79%,
+   so the machinery is right where the design matrix separates the pools.
+3. **245 of 3,417 member cells are hard zeros (7.2%), and 37 party-city-years
+   put over 99.9% of their weight in one pool, across 19 of the 24 specs.**
+   `test_the_pa_is_no_longer_a_single_pool_party` scans one fit (joburg 2021) and
+   is green. §4's scanned-the-wrong-population class, in the file that already
+   documents two instances of it.
+
+### Reported by the reviewer, NOT re-derived by the lead
+
+Recorded as the reviewer's arithmetic, to be re-derived before anything rests on
+it: that a target-year registration split clears buffalocity 2011
+(1.254 -> 0.913) and leaves capetown 2011 (1.144 -> 1.112) and nelsonmandelabay
+2011 (1.067 -> 1.042) fatal; that `Σ registered` against the counted roll runs
+94.61% at tshwane 2011 and 97–99% at four others; that central-turnout implied
+votes run 70–93% of votes cast at 2011 targets and 123–142% at 2021 targets, and
+cancel in shares because the draw renormalises; that buffalocity 2011 ships
+Coloured turnout 0.0318 and Indian/Asian 0.0463, neither on a bound and so
+neither reported, and that such interior-but-broken rates enter
+`panel_turnout_spread` for all eight metros as genuine transitions.
+
+### Two corrections to the brief itself
+
+* The brief stated the scan population in two conventions at once: the
+  impossibility test iterates emitted **target** specs, while
+  `test_the_three_known_things_hold_at_once` and `rates_on_a_bound` are the
+  **fitting** year's diagnostics. The lead's count of 19 bound-corners is over
+  fits per city-year; the reviewer's 18 is over emitted specs. Both are
+  defensible and the brief conflated them, which is the §4 failure one layer up
+  from the one it was written to avoid.
+* The brief said the per-draw margin is each pool's counted voters. It is
+  `registered × turnout[1]`, central-turnout votes, fixed once in `pool_spec`
+  and reused every draw.
+
+### The reviewer's ranking, and what it rests on
+
+Its first item is a measurement, not a repair: write `‖Rd − R0‖` or
+`KL(Rd ‖ R0)` per city-year and per party into the `--run-dir` trace, because
+IPF re-fits the composition on every draw and nobody has measured how much of the
+emitted seed survives. If little survives, the whole seed-side programme is
+low-value. Then roll conservation; then the unidentified pool levels by partial
+pooling across the panel rather than merging or refusing; then the target-year
+registration split; then a determinacy instrument to replace the bound detector;
+then the hard zeros.
+
+⛔ **Its warning, which the window must carry in writing: repairing the pool
+sizes may turn the impossibility test green while the one-party selection
+remains.** A green assertion is not evidence that the defect is resolved.
