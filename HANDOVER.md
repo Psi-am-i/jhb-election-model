@@ -228,13 +228,20 @@ here first, so anything stale in this file is read as an instruction.
 >      branch's own last commit `c450f8e`. It counted `overhang_regimes.RULES`
 >      plus ours — a figure typed beside the code that computes it. The prose
 >      now states no count: "our seat law and Germany's of 2000, 2015 and 2023".
->    ⛔ **A CLEAR SCRATCH BUILD IS NOT A CLEAR DEPLOY GATE.** `deploy_check.py`
->    reads the COMMITTED `content/joburg/NUMBERS-REVIEW.md`, which still stamps
->    `blocking=3`, and its condition 1 is that every `site/*.html` matches the
->    sha the review scanned. Both clear only after a real `build_site.py` with
->    the default `--out site`. Tests, 6 of 56 modules, 14 passed: home_page,
->    published_page, site_text, number_scan, stat_freshness, model_index.
->    §11 has the detail.
+>    ✅ **REAL BUILD RUN, AND THE DEPLOY GATE IS GREEN** (`5455b6f`):
+>    `deploy_check: ✓ site/ matches its number review`, committed review stamped
+>    `blocking=0`. The rebuild moved three files — the review, `site/index.html`
+>    and `site/changes.json` — so the seat-laws sentence is the only
+>    page-visible change. Tests re-run after it, 6 of 56 modules, 14 passed:
+>    home_page, published_page, site_text, number_scan, stat_freshness,
+>    model_index. **Nothing is published and nothing is deployed**: the build was
+>    a dry run and the ledger is untouched.
+>    ⚠️ **`site/portal.html` SHIPS AND IS NOT SCANNED.** `build_portal.py` writes
+>    it, the review's `built-pages` stamp does not list it, and `deploy_check`
+>    therefore never looks at it — so the typed-figure gate covers eight of the
+>    nine pages in `site/`. It is stale as well as unscanned; this build did not
+>    touch it. Not fixed here, and it is the same hole `deploy_check` exists to
+>    close. §11 has the detail.
 > 2c. **Regenerate `MODEL-INDEX.md` BEFORE the suite run you intend to quote,
 >    not after.** It joins the registers, so a new public constant or an
 >    `ENTRY_POINTS` change moves it and `test_model_index` fails on a file
