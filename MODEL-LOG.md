@@ -27175,3 +27175,59 @@ objection to King-style EI.
 **Where the score work is, for the window after this one.** The level error at
 2011 and 2021 targets, Johannesburg 2021 first: 6.29pp and 86 of the panel's 733
 coherent seats in the one city-year that is published.
+
+## 1.264 The browser half of the interactive: 48.3 ms per draw, and a 141 MB input footprint nobody had costed (2026-09-26)
+
+§1.260 asked for one Pyodide run of `run_model` at two draw counts on this seed,
+reporting the same fixed/per-draw split. This is it.
+
+⚠️ **Hosted by Node, not by a browser.** Pyodide 0.29 (`v314.0.7` runtime) under
+Node v24.5.0 on Atlas, same V8 WebAssembly engine a Chromium browser runs, but
+the file reads go through NODEFS at local-disk speed. A browser fetches those
+bytes over HTTP, so the fixed cost below is a floor for a browser, not an
+estimate of one. `run_model` called directly, Johannesburg 2026, seed 20261104,
+no `run_dir`, so nothing was written.
+
+| quantity | Pyodide/Node | native (§1.260) | ratio |
+|---|---|---|---|
+| Pyodide boot + numpy | 1.68 s | — | — |
+| import `montecarlo` | 0.42 s | — | — |
+| 20 draws, wall clock | 26.03 s | — | — |
+| 60 draws, wall clock | 27.96 s | 16.09 s | 1.74x |
+| fixed cost, from the 20/60 slope | 25.06 s | 14.79 s | 1.69x |
+| per draw | 48.3 ms | 21.6 ms | 2.24x |
+| 300 draws, extrapolated | 39.6 s | 21.3 s | 1.86x |
+
+**The spike's 55 ms per draw stands.** The figure HANDOVER carried from the
+uncommitted 2026-09-22 spike is 14% above what a committed, reproducible harness
+measures. Nothing in the design rests on the difference.
+
+**The design split §1.260 named survives.** 25.06 s of the 39.6 s is paid once.
+A lever change that re-enters only the draw loop costs 300 x 48.3 ms = **14.5 s**.
+
+### The input footprint, which is the new constraint
+
+One run opens **75 files totalling 141 MB** under `data/` (native audit hook on
+the `open` event, 5 draws, same call). The bulk is nationwide VD-level election
+CSVs — `lge2011_CPT_vd_party_clean.csv` and its siblings at 4-9 MB each — read
+for a Johannesburg forecast because the panel machinery resolves them whether or
+not this city-year needs them.
+
+**A page cannot ship 141 MB, so the engine decision does not survive contact with
+its inputs unchanged.** Three routes, none yet costed: prune to what Johannesburg
+2026 actually consumes; precompute the pool fit and the census read into JSON and
+enter the model below them; or split the fixed stage out and serve its output as
+an artefact. The third is the only one that keeps "the page runs the real model"
+literally true.
+
+⚠️ **`openpyxl` is a hard dependency of the run path**, via
+`pools.read_census` -> the census Ward Product `.xlsx`. It is not in Pyodide's
+core set and had to come from `micropip`. A browser build pays that download and
+parses a spreadsheet at load, which is a large share of the 25 s fixed cost and
+is the first thing precomputation would remove.
+
+Limits stated at the claim: two draw counts, one seed, one run each, so the slope
+carries their noise as §1.260's did; the 141 MB is what one 5-draw run opened and
+a lever change that re-enters the fixed stage may open more; and a browser has
+not been measured at all.
+

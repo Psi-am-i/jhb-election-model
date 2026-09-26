@@ -554,11 +554,11 @@ used_in = "methodology — the voting districts each run actually uses (was 'rou
 # stated convention. The context is the phrase it must appear inside.
 [[audit.fixed]]
 value = "4 November 2026"
-context = "Forecast · City of Johannesburg · 4 November 2026 A rarely-used clause in our votin"
+context = "City of Johannesburg · 4 November 2026"
 kind = "rule"
-source = "IEC proclamation of the 2026 local government elections"
-reviewed = "2026-09-17"
-page = "index.html"
+source = "Proclaimed by the Minister of Cooperative Governance and Traditional Affairs, Velenkosini Hlabisa, announced 7 August 2026; the Electoral Commission welcomed the date and opened the 89-day timetable"
+reviewed = "2026-09-26"
+page = "index.html, forecast.html"
 
 [[audit.fixed]]
 value = "31"

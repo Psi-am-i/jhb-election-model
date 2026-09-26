@@ -5,8 +5,8 @@
 `MODEL-LOG.md`, which is append-only and dated. `CLAUDE.md` sends every session
 here first, so anything stale in this file is read as an instruction.
 
-> ## ⛔ STATE AT 2026-09-25 — THE HOME PAGE HAS TESTS, AND THE PUBLISH GATE IS
-> ## DOWN TO ONE ROW OF THE OWNER'S OWN REGISTER. INTERACTIVE: 3 OF 4 DECIDED.
+> ## ⛔ STATE AT 2026-09-26 — THE TYPED-FIGURE GATE MEASURES ZERO BLOCKING IN A
+> ## SCRATCH BUILD, AND NOTHING HAS BEEN PUBLISHED. INTERACTIVE: 3 OF 4 DECIDED.
 >
 > **Live pages are still the 31 August build.** Nothing was deployed or
 > re-emitted this evening, and no forecast number moved.
@@ -55,11 +55,23 @@ here first, so anything stale in this file is read as an instruction.
 > against wall clock; the browser's 55 ms per draw is 2.5x native, an ordinary
 > WASM penalty.
 >
-> **A2. Still to measure: the browser half.** One Pyodide run of `run_model` at
-> two draw counts on one seed, reporting the same fixed/per-draw split. The 55 ms
-> figure is the 2026-09-22 spike's and that code was never committed, so nothing
-> in the tree reproduces it. This decides whether the reader waits 16 seconds or
-> a minute, and it is the only thing between the decision in §9b and a build.
+> **A2. ✅ MEASURED 2026-09-26 (MODEL-LOG §1.264), and it moved the problem.**
+> Pyodide under **Node**, not a browser — same V8 WASM engine, but file reads go
+> through NODEFS at disk speed, so this is a FLOOR for a browser. Fixed cost
+> **25.06 s**, **48.3 ms** per draw, 300 draws **39.6 s** extrapolated; the
+> spike's 55 ms was 14% high and nothing rests on the difference. A lever change
+> that re-enters only the draw loop is **14.5 s**.
+> ⛔ **The constraint is no longer speed. One run opens 75 files totalling
+> 141 MB** under `data/` — nationwide VD-level CSVs at 4-9 MB each, read for a
+> Johannesburg forecast. A page cannot ship that, so §9b's "the engine ships"
+> needs a route: prune the inputs, precompute the fixed stage into JSON, or serve
+> the fixed stage's output as an artefact. Only the third keeps "the page runs
+> the real model" literally true. `openpyxl` is also a hard dependency of the run
+> path (`pools.read_census` on the census `.xlsx`), not in Pyodide's core set,
+> and parsing that spreadsheet is a large share of the 25 s.
+> The harness is committed this time, at
+> `audits/2026-09-26-pyodide-timing/measure.mjs` — the spike it replaces was lost
+> by being left in a scratchpad. Run it with `npm install pyodide` beside it.
 >
 > **A3. Owner decision, 2026-09-26 (PUBLISHING-BACKLOG §9b):** the engine ships
 > and the wait is handled in the page — a progress display carrying trivia from
@@ -197,12 +209,32 @@ here first, so anything stale in this file is read as an instruction.
 >      as the dated statement it is. ⚠️ **They must never become tokens**: a
 >      token recomputes, and the sentence would then describe today's page
 >      rather than the one the correction is about.
->    ⛔ **THE LAST TWO ROWS ARE ONE ROW OF THE OWNER'S REGISTER, COUNTED TWICE.**
->    The election date's `[[audit.fixed]]` entry in `content/joburg/stats.toml`
->    still matches the pre-24-September wording, so it clears on neither page.
->    That register carries a `reviewed` date per row — **re-context the row and
->    re-date it, do not add a second one.** After that the publish gate is
->    clear. §11 has the detail.
+>    ⛔ **MEASURED AGAIN 2026-09-26 (atlas-claude): THERE WERE THREE ROWS, NOT
+>    TWO, AND ALL THREE NOW CLEAR.** `build_site.py --out <scratch>` stamps
+>    `blocking=0`. What was there:
+>    * the election date, twice — one register row matched on neither page.
+>      Its `context` was the pre-24-September masthead wording. It is now the
+>      substring both mastheads share, `City of Johannesburg · 4 November 2026`,
+>      which clears index and forecast from ONE row. `classify()` in `stats.py`
+>      matches on `value` + `context` only, so the row's `page` field is
+>      informational and nothing parses it.
+>      ⚠️ **The row's `source` was wrong and was corrected in the same edit.**
+>      The IEC did not proclaim the date; the COGTA Minister, Velenkosini
+>      Hlabisa, announced it on 7 August 2026 and the IEC welcomed it.
+>      `reviewed` was set to 2026-09-26 — **that is the owner's attestation and
+>      he has not yet confirmed it.**
+>    * a THIRD row that the banner above could not have known about: `four`, in
+>      "The same votes under four seat laws", added to `home.html` by this
+>      branch's own last commit `c450f8e`. It counted `overhang_regimes.RULES`
+>      plus ours — a figure typed beside the code that computes it. The prose
+>      now states no count: "our seat law and Germany's of 2000, 2015 and 2023".
+>    ⛔ **A CLEAR SCRATCH BUILD IS NOT A CLEAR DEPLOY GATE.** `deploy_check.py`
+>    reads the COMMITTED `content/joburg/NUMBERS-REVIEW.md`, which still stamps
+>    `blocking=3`, and its condition 1 is that every `site/*.html` matches the
+>    sha the review scanned. Both clear only after a real `build_site.py` with
+>    the default `--out site`. Tests, 6 of 56 modules, 14 passed: home_page,
+>    published_page, site_text, number_scan, stat_freshness, model_index.
+>    §11 has the detail.
 > 2c. **Regenerate `MODEL-INDEX.md` BEFORE the suite run you intend to quote,
 >    not after.** It joins the registers, so a new public constant or an
 >    `ENTRY_POINTS` change moves it and `test_model_index` fails on a file
@@ -230,7 +262,15 @@ here first, so anything stale in this file is read as an instruction.
 >      `build_validation` (the public table is the 11 Aug run, truncated at 12
 >      parties);
 >    - owner review, then `build_site.py --publish --reason … --change-class …`,
->      then `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy`.
+>      then `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy`;
+>    - ⚠️ **the publication ledger is EMPTY — there is no `publications/`
+>      directory** (measured 2026-09-26). `build_site` never calls
+>      `publication.backfill()`, so the first `--publish` enters all 318 tokens
+>      as first-published and the reader-facing `changes.json` will tell readers
+>      every figure on the site is new, although the live pages have stood since
+>      31 August. Either accept that, or archive the live page's bytes and
+>      backfill against them first — `backfill()` is keyed to an archived page's
+>      sha256 and refuses without one.
 >
 > **Owner decisions, interactive** — recorded in `PUBLISHING-BACKLOG.md` §9a,
 > in his words. **Decided:** a DA-among-Black-Africans slider; turnout as overall
