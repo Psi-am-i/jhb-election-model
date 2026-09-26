@@ -104,6 +104,13 @@
   details.rollup:not([open])>summary::after{content:"+";}
   details.rollup>*:not(summary){margin-top:14px;}
   details.rollup>summary h2{margin:0;}
+  /* ⛔ A HAIRLINE AND AIR BETWEEN ADJACENT BANDS. Thirteen sections with
+     nothing between them read as one wall and the eye finds no place to stop
+     (owner, 2026-09-26: "it all rolls into each other and feels like work").
+     `rule-soft` rather than `rule`: a separator the reader notices only when
+     looking for it, which is what a minor boundary is. */
+  details.rollup + details.rollup{margin-top:30px;padding-top:26px;
+    border-top:1px solid var(--rule-soft);}
 
   /* ---- range chart ---- */
   figure{margin:0;display:flex;flex-direction:column;gap:10px;}
