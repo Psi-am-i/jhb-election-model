@@ -827,7 +827,9 @@ the ledger happens to be empty.
 
 **What was done for it.** The ledger was empty and the site was not, so the
 first `--publish` would have entered all 318 tokens as first-published. The four
-live pages are archived at `archive/live-2026-08-07/` with their sha256, and
+live pages are archived at `archive/live-deployed-2026-08-08/` with their sha256
+— **no commit in the repository produces those bytes**, so the archive is the
+only copy of what readers were shown — and
 `publication.backfill()` — run once, through
 `audits/2026-09-26-ledger-backfill/backfill_live.py`, rehearsed against a
 throwaway `--ledger-root` first — entered the 27 tokens they carried. Against
@@ -841,6 +843,18 @@ movement classes are one. The `arrows:` line is the other, and it is unrelated:
 it marks a FROZEN registry entry whose `tracks` counterpart has since moved, in
 the page rather than in the ledger. Both happen to report 4 today. A rule about
 change has to say which one it governs; this one governs the ledger.
+
+⚠️ **`published_at` is the deployment, not the run.** `wrangler deployments
+list` puts the live build at 2026-08-08T17:29:45Z. Stamped with the time the
+backfill ran instead, the rebuilt pages told readers a figure that has stood
+since August was *"Unchanged since 26 September 2026"*. The pages' own
+`data-when` is a different quantity again — the model's input cut-off, per
+token, spread across 4-7 August — and it is what each row's `as_of` carries.
+
+⚠️ **No definition changed under the four moves.** Every one of the 27 live
+tokens' `source` strings equals today's registry source, so those are the model
+moving, not the quantity being redefined — which is what a `--change-class` on
+the publish batch has to state.
 
 ⚠️ **The rule cannot reach `site/portal.html`.** The hub's headline is read from
 each city's `forecast_summary.json` and written as plain text, so it is neither a

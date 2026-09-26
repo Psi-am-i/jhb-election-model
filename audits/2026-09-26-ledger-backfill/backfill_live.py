@@ -14,8 +14,10 @@ how those rows got there.
     python audits/2026-09-26-ledger-backfill/backfill_live.py --ledger-root <scratch>   # rehearse
     python audits/2026-09-26-ledger-backfill/backfill_live.py                           # the real one
 
-The pages are `archive/live-2026-08-07/`, with their sha256 in MANIFEST.md.
-Every row's `as_of` is the page's own `data-when`, never the file's mtime.
+The pages are `archive/live-deployed-2026-08-08/`, with their sha256 in
+MANIFEST.md. Every row's `as_of` is that token's own `data-when` — the model's
+input cut-off, which is not one date across the site — and `published_at` is
+when the Worker was last deployed, not when this script ran.
 """
 from __future__ import annotations
 
@@ -31,7 +33,14 @@ sys.path.insert(0, str(ROOT / "src"))
 
 import publication  # noqa: E402
 
-PAGES = ROOT / "archive" / "live-2026-08-07"
+PAGES = ROOT / "archive" / "live-deployed-2026-08-08"
+#: When those bytes were PUBLISHED, from `wrangler deployments list` — the
+#: last deployment of this Worker. Not today, and not the pages' own
+#: `data-when`, which is the model's input cut-off and is a different date:
+#: 22 of the 27 tokens say 2026-08-07, three say 08-04, one 08-05, one 08-06.
+#: Set to now, the rebuilt pages told readers a figure live since August was
+#: "Unchanged since 26 September 2026".
+DEPLOYED_AT = "2026-08-08T17:29:45+00:00"
 SPAN = re.compile(r'<span[^>]*data-token="([^"]+)"[^>]*>(.*?)</span>', re.S)
 ATTRS = re.compile(r'(data-when|data-live|data-mode)="([^"]*)"')
 SOURCE = re.compile(r'source:\s*([^"]+)"')
@@ -56,7 +65,7 @@ def _raw(display: str, fmt: str | None):
     return int(value) if float(value).is_integer() and (scale or 1) == 1 else value
 
 
-def rows(registry: dict) -> tuple[list, list]:
+def rows(registry: dict, published_at: str) -> tuple[list, list]:
     out, skipped = [], []
     # ONE ROW PER TOKEN ACROSS THE WHOLE SITE, not per page. `bloc_leak_votes`
     # appears on the front page and in the methodology; it is one published
@@ -92,8 +101,7 @@ def rows(registry: dict) -> tuple[list, list]:
                 # The page's own statement of what the model knew. Not the
                 # file's mtime, which says when the bytes were copied.
                 as_of=attrs.get("data-when") or None,
-                published_at=_dt.datetime.now(_dt.timezone.utc)
-                                .replace(microsecond=0).isoformat(),
+                published_at=published_at,
                 change_class=None, reason=None, movement="new",
                 provenance=ident["provenance"]))
     return out, skipped
@@ -105,13 +113,16 @@ def main(argv=None) -> int:
     ap.add_argument("--ledger-root", type=Path, default=None,
                     help="a throwaway ledger to rehearse against; the real one "
                          "is append-only and cannot be rewritten")
+    ap.add_argument("--published-at", default=DEPLOYED_AT,
+                    help="when the archived pages went live (default: the last "
+                         "deployment this Worker has, from wrangler)")
     ap.add_argument("--dry-run", action="store_true",
                     help="print the rows and write nothing")
     args = ap.parse_args(argv)
 
     registry = tomllib.loads(
         (ROOT / "content" / args.city / "stats.toml").read_text(encoding="utf-8"))
-    batch, skipped = rows(registry)
+    batch, skipped = rows(registry, args.published_at)
     by_page: dict[str, int] = {}
     for row in batch:
         page = row.provenance["reconstructed_from"]["page"]

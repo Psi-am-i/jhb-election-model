@@ -9,7 +9,7 @@
         "nobody-will-win.html"
       ],
       "previous": "65",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 65,
       "source": "regime:cap:parties.ANC.median",
       "token": "anc_entitlement",
@@ -24,7 +24,7 @@
         "nobody-will-win.html"
       ],
       "previous": "74",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 74,
       "source": "model:parties.ANC.ward_wins_mean",
       "token": "anc_ward_median",
@@ -39,7 +39,7 @@
         "forecast.html"
       ],
       "previous": "44",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 44,
       "source": "external:IEC 2021 CoJ result \u2014 ActionSA's first election",
       "token": "asa_2021_seats",
@@ -234,7 +234,7 @@
         "methodology.html"
       ],
       "previous": "129",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 129,
       "source": "external:fold-2 blind validation (MODEL-LOG 1.9)",
       "token": "blind_test_called",
@@ -249,7 +249,7 @@
         "methodology.html"
       ],
       "previous": "135",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 135,
       "source": "external:ward count at the 2021 delimitation",
       "token": "blind_test_of",
@@ -264,7 +264,7 @@
         "nobody-will-win.html"
       ],
       "previous": "587,000",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 587000,
       "source": "external:MODEL-LOG 1.18 \u2014 ANC-bloc vote loss 2019 NPE to 2021 LGE",
       "token": "bloc_leak_votes",
@@ -280,7 +280,7 @@
         "nobody-will-win.html"
       ],
       "previous": "15",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 15,
       "source": "external:IEC by-election records, CoJ 2021-2026",
       "token": "byelection_count",
@@ -640,7 +640,7 @@
         "forecast.html"
       ],
       "previous": "53",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 53,
       "source": "arithmetic: 490,000 as a share of the 2021 poll",
       "token": "claim_490k_of_2021",
@@ -655,7 +655,7 @@
         "forecast.html"
       ],
       "previous": "47",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 47,
       "source": "run:turnout_tilt_da=1 \u2014 ANC median in the draws where the DA reaches 136",
       "token": "claim_anc_collapse_seats",
@@ -670,7 +670,7 @@
         "forecast.html"
       ],
       "previous": "50",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 50,
       "source": "run:turnout_tilt_da=1 \u2014 ANC proportional entitlement in the surged poll",
       "token": "claim_anc_entitlement_surged",
@@ -685,7 +685,7 @@
         "forecast.html"
       ],
       "previous": "62",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 62,
       "source": "run:turnout_tilt_da=1 parties.ANC.ward_wins_mean",
       "token": "claim_anc_wards_surged",
@@ -700,7 +700,7 @@
         "forecast.html"
       ],
       "previous": "97",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 97,
       "source": "run:turnout_tilt_da=1 parties.DA.median",
       "token": "claim_da_median",
@@ -715,7 +715,7 @@
         "forecast.html"
       ],
       "previous": "41",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 41,
       "source": "run:turnout_tilt_da=1 \u2014 DA share of the surged poll",
       "token": "claim_da_share_surged",
@@ -730,7 +730,7 @@
         "forecast.html"
       ],
       "previous": "524,000",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 524000,
       "source": "run:turnout_tilt_da=1 \u2014 DA votes at the record-turnout anchor",
       "token": "claim_da_votes_surge",
@@ -745,7 +745,7 @@
         "forecast.html"
       ],
       "previous": "644,000",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 644000,
       "source": "run:turnout_tilt_da=1 \u2014 half the surged poll",
       "token": "claim_half_surged",
@@ -760,7 +760,7 @@
         "forecast.html"
       ],
       "previous": "75",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 75,
       "source": "derived: registration-weighted highest turnout on record, all VDs",
       "token": "claim_hi_turnout",
@@ -775,7 +775,7 @@
         "forecast.html"
       ],
       "previous": "190,000",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 190000,
       "source": "arithmetic: votes every other party must lose to freeze the poll",
       "token": "claim_others_shed",
@@ -790,7 +790,7 @@
         "forecast.html"
       ],
       "previous": "917,000",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 917000,
       "source": "external:IEC 2021 CoJ Seat Calculation Detail \u2014 A/2, ballots per paper",
       "token": "claim_poll_2021",
@@ -805,7 +805,7 @@
         "forecast.html"
       ],
       "previous": "985,000",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 985000,
       "source": "derived: registered x blended turnout, default scenario",
       "token": "claim_poll_base",
@@ -820,7 +820,7 @@
         "forecast.html"
       ],
       "previous": "1,290,000",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 1290000,
       "source": "run:turnout_tilt_da=1 \u2014 total votes cast",
       "token": "claim_poll_surged",
@@ -835,7 +835,7 @@
         "forecast.html"
       ],
       "previous": "110",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 110,
       "source": "arithmetic: 41% of a 270-seat council",
       "token": "claim_prop_seats",
@@ -850,7 +850,7 @@
         "forecast.html"
       ],
       "previous": "39",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 39,
       "source": "run:turnout_tilt_da=1 \u2014 136 minus DA median",
       "token": "claim_short_by",
@@ -865,7 +865,7 @@
         "forecast.html"
       ],
       "previous": "57",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 57,
       "source": "allocator experiment: DA share needed for 136 with the ANC on 62 wards",
       "token": "claim_vote_share_needed",
@@ -3312,7 +3312,7 @@
         "nobody-will-win.html"
       ],
       "previous": "270",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 270,
       "source": "derived:council_size",
       "token": "council_size",
@@ -3931,7 +3931,7 @@
         "nobody-will-win.html"
       ],
       "previous": "136",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 136,
       "source": "derived:majority",
       "token": "majority",
@@ -4086,7 +4086,7 @@
         "nobody-will-win.html"
       ],
       "previous": "62%",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 0.62,
       "source": "model:structural.P(DA is the largest single party)",
       "token": "p_da_largest",
@@ -4103,7 +4103,7 @@
         "nobody-will-win.html"
       ],
       "previous": "96%",
-      "previous_published_at": "2026-09-26T02:59:30+00:00",
+      "previous_published_at": "2026-08-08T17:29:45+00:00",
       "previous_value": 0.96,
       "source": "model:p_excessive_by_party.ANC",
       "token": "p_excessive_anc",
@@ -4793,9 +4793,9 @@
     "draws": 5000,
     "forecast_content_sha256": "661b8783e7cb6dad1f5301c008bd816cc347cb8ee9c69455a685a003289fef86",
     "forecast_summary_sha256": "6ea8d7976f780e4acf9fec434b55d0140f239927026cce518d580125b7d1a95f",
-    "git_commit": "df70032663ede7b45c1af0e1dd4a0f67acd47a6e",
+    "git_commit": "ab2b20918dafe32de36bdc2b195c0541506ed7ad",
     "git_dirty": true,
-    "model_run_id": "r-661b8783e7cb-df700326-dirty",
+    "model_run_id": "r-661b8783e7cb-ab2b2091-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",

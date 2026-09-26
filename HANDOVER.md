@@ -270,15 +270,21 @@ here first, so anything stale in this file is read as an instruction.
 >      parties);
 >    - owner review, then `build_site.py --publish --reason … --change-class …`,
 >      then `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy`;
->    - ✅ **the ledger has its baseline** (2026-09-26, `191465d`, owner's rule in
+>    - ✅ **the ledger has its baseline** (2026-09-26, owner's rule in
 >      PUBLISHING-BACKLOG §12: *"change must always be against previously
->      published number"*). The live site is FOUR pages carrying 27 tokens and
->      it is the **7 August** build, not the 31 August one — every page stamps
->      `data-when="2026-08-07"`, and `/forecast`, `/about`, `/corrections` and
->      `/nobody-will-win` 404 there. Those pages are archived with their sha256
->      at `archive/live-2026-08-07/`; do not re-save or re-fetch them, the hash
->      is the row identity. The build now reports 4 material moves, 23 unmoved
->      and 291 new.
+>      published number"*). The live site is FOUR pages carrying 27 tokens;
+>      `/forecast`, `/about`, `/corrections` and `/nobody-will-win` 404 there.
+>      ⛔ **It was deployed 2026-08-08, not 31 August**, from `wrangler
+>      deployments list` — and **no commit in this repository produces those
+>      bytes**: all 77 commits touching `site/index.html` were hashed and none
+>      matches, so the build serving readers was never committed. The archive at
+>      `archive/live-deployed-2026-08-08/` is the only copy; do not re-save,
+>      re-fetch or rename it, the hash is the row identity and the path is in
+>      every row. The build now reports 4 material moves, 23 unmoved, 291 new.
+>      ⚠️ `data-when` is per TOKEN and is the model's input cut-off, not a
+>      publication date — 22 tokens say 08-07, three 08-04, one 08-05, one
+>      08-06. `published_at` is the deployment; setting it to the run time made
+>      the pages say "Unchanged since 26 September 2026" about August figures.
 >
 > **Owner decisions, interactive** — recorded in `PUBLISHING-BACKLOG.md` §9a,
 > in his words. **Decided:** a DA-among-Black-Africans slider; turnout as overall
