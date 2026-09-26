@@ -348,13 +348,13 @@ document.querySelectorAll(".maptoggle button").forEach(function(b){
       <div class="sval rng">{{@home.seats.aljamaah_lo=1;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.aljamaah_hi=6;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
-      <div class="sname"><span class="chip" style="background:#8b918b"></span>Everyone else</div>
+      <div class="sname"><span class="chip" style="background:#8b918b"></span>Others</div>
       <div class="strack"><i style="width:25.0%;background:#8b918b"></i></div>
       <div class="sval"><b>{{@home.seats.others=23;int;seat_draws.csv, council minus the named parties in each simulation}}</b></div>
       <div class="sval rng">{{@home.seats.others_lo=8;int;seat_draws.csv, council minus the named parties in each simulation}}–{{@home.seats.others_hi=48;int;seat_draws.csv, council minus the named parties in each simulation}}</div>
     </div>
   </div>
-  <div class="stamp" style="margin-top:12px">Each party's middle value across the simulations, with the range covering {{@home.band=0.9;chance;scenarios.BAND, the percentiles seat_quantiles reports}} of them. They do not add up to the council: a party's best simulations are not the same ones as its rivals'. "Everyone else" is the council minus the parties named above, taken <em>within</em> each simulation.</div>
+  <div class="stamp" style="margin-top:12px">Each party's middle value across the simulations, with the range covering {{@home.band=0.9;chance;scenarios.BAND, the percentiles seat_quantiles reports}} of them. They do not add up to the council: a party's best simulations are not the same ones as its rivals'. "Others" is the council minus the parties named above, taken <em>within</em> each simulation.</div>
   <!-- __HOMESEATS_END__ -->
 </section>
 

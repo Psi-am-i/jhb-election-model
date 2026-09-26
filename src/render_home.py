@@ -163,7 +163,12 @@ def _seats(summary: dict, tok, processed: Path) -> str:
     if others:
         import scenarios as _scn
         med, lo, hi = _scn.seat_quantiles(_scn.others_per_draw(processed, named))
-        rows.append(row("Others", "Everyone else", med, lo, hi,
+        # ⛔ "Others" ON BOTH PAGES, ONE WORD FOR ONE NUMBER. This row read
+        # "Everyone else" here and "Others" on the forecast sheet until
+        # 2026-09-26. The two now print the same figure (`scenarios.NAMED_PARTIES`
+        # is the one named set), and two labels for one figure invites the same
+        # confusion the shared set was adopted to end (owner: settle for one).
+        rows.append(row("Others", "Others", med, lo, hi,
                         source="seat_draws.csv, council minus the named "
                                "parties in each simulation"))
 
@@ -177,8 +182,8 @@ def _seats(summary: dict, tok, processed: Path) -> str:
     note = ('  <div class="stamp" style="margin-top:12px">Each party\'s middle '
             f'value across the simulations, with the range covering {band} of '
             'them. They do not add up to the council: a party\'s best '
-            'simulations are not the same ones as its rivals\'. "Everyone '
-            'else" is the council minus the parties named above, taken '
+            'simulations are not the same ones as its rivals\'. "Others" is '
+            'the council minus the parties named above, taken '
             '<em>within</em> each simulation.</div>')
     head = ('    <div class="srow shead"><div></div><div></div>'
             '<div class="sval">median</div><div class="sval rng">range</div></div>')
