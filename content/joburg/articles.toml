@@ -40,11 +40,3 @@ standfirst = """The mayor is elected by the councillors present and voting, so
 abstention installs governments. A council nobody controls is not a council
 nobody can run."""
 href = "nobody-will-win#minority"
-
-[[article]]
-date = "2026-08-06"
-title = "How the model was broken — and fixed"
-standfirst = """A hostile read of the model's own plan found six implementation
-errors, one of which made the first forecast's headline claim false. What each
-one was, and what the repair changed."""
-href = "review"
