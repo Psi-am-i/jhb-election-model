@@ -27138,3 +27138,40 @@ This is the measurement that makes the reviewer's proposal concrete
 (POOLS-REEMIT-QUEUE entry 33 and the determinacy instrument beside it): a badly
 determined rate should be drawn from its interval rather than fixed at a corner
 of it.
+
+## 1.263 The pool-input window is authorised on honesty, not on expected score (owner, 2026-09-26)
+
+*"lets go for more honest and wrap this up."* Recorded as the decision it is,
+with what it claims and what it does not.
+
+**The basis.** `ITERATING.md`'s rule is that a change which makes the model more
+honest ships even when a headline score worsens; what does not ship is a change
+that scores worse and explains nothing. Four items in this window are
+indefensible independent of any score:
+
+* four specs declare four pools and emit three, with the missing pool's share
+  stated in the same artefact (queue 30);
+* 245 of 3,417 member cells are exactly zero, so a party is given probability zero
+  of winning a vote in a pool where it does win votes (queue 33);
+* Cape Town's Indian/Asian pool is 8–10% of that city's roll against a Census 2022
+  population share of 1.61%, with its registration on the 2.0 cap (queue 31);
+* a Duncan–Davis interval up to 0.80 wide is computed, used to clip, and then the
+  point inside it is carried into every draw as if known (§1.262).
+
+**What the window does not claim.** §1.256 and the review at
+`audits/2026-09-26-pollster-state.md` place the model's error in the level, not in
+this structure: panel PR vote MAE 3.15pp against ward vote MAE 2.98pp, with the
+modal ward winner right in 96.76% of wards, so the shares are wrong by about the
+same amount everywhere rather than wrong in particular places. The
+pre-registration predicts nulls on the seat headline and on ward calls, and this
+decision does not overwrite them. A flat score is the expected result and is not a
+failure of the window.
+
+**What it forecloses.** The two criticisms a reader of the published method would
+reach first: a probability of exactly zero for an outcome that occurs, and an
+ecological point estimate treated as known thereafter — the standard published
+objection to King-style EI.
+
+**Where the score work is, for the window after this one.** The level error at
+2011 and 2021 targets, Johannesburg 2021 first: 6.29pp and 86 of the panel's 733
+coherent seats in the one city-year that is published.

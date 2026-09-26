@@ -107,7 +107,15 @@ here first, so anything stale in this file is read as an instruction.
 > design: Ipsos is the only house with a scored Johannesburg reading, and SRF —
 > the only house admitted at 2026 — has no scored local-election reading at all.
 >
-> ## C. THE POOL-INPUT WINDOW — parked, and everything it needs is written
+> ## C. THE POOL-INPUT WINDOW — AUTHORISED ON HONESTY (owner, 2026-09-26)
+>
+> *"lets go for more honest and wrap this up."* The window ships under
+> `ITERATING.md`'s rule that a more honest model ships even when a headline score
+> worsens. MODEL-LOG §1.263 records what it claims and what it does not: a flat
+> score is the EXPECTED result, because the model's error is in the level and this
+> is structure — panel PR vote MAE 3.15pp against ward vote MAE 2.98pp with the
+> modal ward winner right in 96.76% of wards. The pre-registered nulls stand.
+>
 >
 > `prereg/2026-09-25-pool-input-repairs.md` fixes what the emit may conclude
 > before it runs. POOLS-REEMIT-QUEUE entries 30-33 carry the four changes.
