@@ -268,6 +268,15 @@ def build() -> dict:
 
     interactive = _interactive()
     scalars = _city_scalars()
+    # THE INERT RECORD, kept whole rather than flattened into one column.
+    # Owner, 2026-09-27: "set those inert ones aside in their own section and
+    # describe why for each, for our record — so we can consult it to see if we
+    # can reinstate them, or avoid doing so by mistake only to retire them
+    # again when we rediscover why." Section 5 below is that record; it is
+    # INTERNAL and is not published.
+    inert_record = sorted(
+        ((lever, target, null) for (lever, target), null in reg["EXPECTED_INERT"].items()),
+        key=lambda t: (t[2].blocker or "", t[0]))
     exposed = {key for key in interactive["keys"]
                for keys in scalars.values() if key in keys}
     wanted_missing = sorted(
@@ -343,6 +352,7 @@ def build() -> dict:
         uncovered.append({"lever": lever, "how": how})
 
     return {
+        "inert_record": inert_record,
         "live_target": live_target,
         "legend": _legend(text),
         "uncovered": uncovered,
@@ -487,6 +497,32 @@ def render(sheet: dict) -> str:
     for row in sheet["structural"]:
         add(f"| {row['call']} | {row['where']} | {row['state']} | "
             f"{row['status']} | {row['entry']} |")
+    add("")
+
+    add("## 5 · Levers that are INERT, and what it would take to reinstate one\n")
+    add("⛔ **INTERNAL. This section is not published.** It exists so a lever "
+        "that was retired for a reason is not reinstated by someone who has "
+        "forgotten the reason, and so one that is only switched off is not "
+        "written off as impossible.\n")
+    add("`blocker` is the field that answers the question:\n")
+    add("* **SWITCH** — a value we ship shuts the gate, and the harness CAN "
+        "open it. These are the reinstatable ones; the `where` column names "
+        "the switch.\n"
+        "* **DATA** — the evidence this gate needs does not exist at that "
+        "target. No code or configuration change here opens it, so the lever "
+        "has never been measured there and nothing about it has been learned.\n"
+        "* **CODE** — the wiring is broken. That is a defect, not a null.\n")
+    add("⚠️ **A lever being inert is not a finding about the lever.** Only "
+        "`cause = INERT` is a result; `UNDELIVERED` means the value never "
+        "reached the computation, which says nothing about what it would do "
+        "if it did.\n")
+    add("| lever | target | cause | blocker | what holds it shut | proved by | what was observed |")
+    add("|---|---|---|---|---|---|---|")
+    for lever, target, null in sheet["inert_record"]:
+        where = (null.where or "").replace("|", "\\|")
+        ev = (null.evidence or "—").replace("|", "\\|")
+        add(f"| `{lever}` | {target} | {null.cause} | **{null.blocker or '—'}** | "
+            f"{where} | `{null.gate_check or '—'}` | {ev} |")
     add("")
 
     add("## 4 · Gaps this join can see\n")
