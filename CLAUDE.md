@@ -276,6 +276,41 @@ review inherits a blind spot shaped like the brief. Briefs live in `audits/`.
 
 ---
 
+## 4b. ⛔ Before a forecast of an election that has not happened
+
+A backtest resolves every input from the target's own result file. **A forecast
+has none**, so each input arrives separately, on its own schedule, and both ways
+it goes wrong are silent: an absent input gets a fallback (`levels._citywide`
+returned `{}` for six missing files with no test red, §1.75), and a present one
+goes stale while working perfectly.
+
+**Run `src/inputs_preflight.py --strict` and read it. It is the only thing that
+looks.** Nothing in the model can: by the time a run starts, every one of these
+questions has already been answered by a default.
+
+Three of them have no second source, so if they are wrong nothing downstream
+disagrees:
+
+* **The voters' roll.** Registration ships INSIDE an IEC results file, so every
+  past election brought its own and the one being forecast has none. The IEC
+  publishes it separately, per ward, on a page that holds **one snapshot and
+  overwrites it** — there is no archive and no history. It is read in a browser
+  (the selector will not drive over plain HTTP) and committed to
+  `archive/iec-registration-<date>/`, whose README carries the method.
+* **The certified roster.** `complete = true` in a judgements file LICENSES
+  DELETING every party it omits. It therefore needs the IEC's own certified
+  list. Johannesburg's 82 was typed from newspapers that disagreed — two
+  reported 75 the next day — and the model has been agreeing with one side of a
+  press dispute ever since.
+* **The delimitation.** Wards are redrawn between elections (153 of 860 VDs
+  changed ward between 2021 and 2026), and Johannesburg has **split voting
+  districts** — 1,059 VD-ward rows for 865 VDs. Join through
+  `montecarlo.ward_parts`. A join on `WardID` hands each split VD's whole roll
+  to one ward and produces ward growth from -42% to +254%, which measures the
+  join.
+
+---
+
 ## 5. Running things
 
 `.venv/bin/python`, never bare `python` — numpy is not on the system interpreter.
@@ -286,6 +321,9 @@ review inherits a blind spot shaped like the brief. Briefs live in `audits/`.
     .venv/bin/python tests/run_all.py --list            # module names
     .venv/bin/python src/compare_history.py             # votes/seats vs actual
                                                         #   ⚠️ WRITES history.json/.md
+    .venv/bin/python src/inputs_preflight.py --strict \
+        --city <city> --target <year>                   # ⛔ §4b, before a forecast
+                                                        #   of an UNHELD election
 
 **These have no importer and are alive only because they are named here.**
 `tests/test_standalone_modules.py` cites this section verbatim as the evidence
