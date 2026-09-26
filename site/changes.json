@@ -4,13 +4,13 @@
       "display": "58",
       "fmt": "int",
       "mode": "free",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "nobody-will-win.html"
       ],
-      "previous": "65",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
-      "previous_value": 65,
+      "previous": "58",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 58.0,
       "source": "regime:cap:parties.ANC.median",
       "token": "anc_entitlement",
       "value": 58.0
@@ -19,13 +19,13 @@
       "display": "61",
       "fmt": "int",
       "mode": "free",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "nobody-will-win.html"
       ],
-      "previous": "74",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
-      "previous_value": 74,
+      "previous": "61",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 60.5452,
       "source": "model:parties.ANC.ward_wins_mean",
       "token": "anc_ward_median",
       "value": 60.5452
@@ -39,7 +39,7 @@
         "forecast.html"
       ],
       "previous": "44",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 44,
       "source": "external:IEC 2021 CoJ result \u2014 ActionSA's first election",
       "token": "asa_2021_seats",
@@ -49,13 +49,13 @@
       "display": "8",
       "fmt": "int",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "8",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 8,
       "source": "validation:cities",
       "token": "backtest_cities",
       "value": 8
@@ -64,13 +64,13 @@
       "display": "37%",
       "fmt": "pct0",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "37%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.3660264390301736,
       "source": "validation:crps_better_pct",
       "token": "backtest_crps_better",
       "value": 0.3660264390301736
@@ -79,13 +79,13 @@
       "display": "353",
       "fmt": "int",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "353",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 353,
       "source": "validation:seat_err_baseline",
       "token": "backtest_seat_err_baseline",
       "value": 353
@@ -94,13 +94,13 @@
       "display": "289",
       "fmt": "int",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "289",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 289,
       "source": "validation:seat_err_model",
       "token": "backtest_seat_err_model",
       "value": 289
@@ -109,13 +109,13 @@
       "display": "24",
       "fmt": "int",
       "mode": "fixed",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "24",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 24,
       "source": "external:the panel we aim to score \u2014 8 metros x 3 elections (2011, 2016, 2021)",
       "token": "backtest_target",
       "value": 24
@@ -124,13 +124,13 @@
       "display": "742",
       "fmt": "comma",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "742",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 742,
       "source": "validation:wards",
       "token": "backtest_wards",
       "value": 742
@@ -139,13 +139,13 @@
       "display": "721",
       "fmt": "comma",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "721",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 721,
       "source": "validation:wards_called",
       "token": "backtest_wards_called",
       "value": 721
@@ -154,13 +154,13 @@
       "display": "7",
       "fmt": "int",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "7",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 7,
       "source": "validation:wins",
       "token": "backtest_wins",
       "value": 7
@@ -169,13 +169,13 @@
       "display": "65%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "65%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.6474,
       "source": "forecast_summary.json p_excessive_by_party",
       "token": "ballots.p_anc_excessive",
       "value": 0.6474
@@ -184,13 +184,13 @@
       "display": "0",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0,
       "source": "seat_detail_draws.csv, simulation 1764",
       "token": "ballots.typical.anc_list",
       "value": 0.0
@@ -199,13 +199,13 @@
       "display": "75",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "75",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 75.0,
       "source": "seat_detail_draws.csv, simulation 1764",
       "token": "ballots.typical.anc_wards",
       "value": 75.0
@@ -214,13 +214,13 @@
       "display": "1764",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "1764",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 1764.0,
       "source": "seat_detail_draws.csv",
       "token": "ballots.typical.draw",
       "value": 1764.0
@@ -234,7 +234,7 @@
         "methodology.html"
       ],
       "previous": "129",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 129,
       "source": "external:fold-2 blind validation (MODEL-LOG 1.9)",
       "token": "blind_test_called",
@@ -249,7 +249,7 @@
         "methodology.html"
       ],
       "previous": "135",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 135,
       "source": "external:ward count at the 2021 delimitation",
       "token": "blind_test_of",
@@ -264,7 +264,7 @@
         "nobody-will-win.html"
       ],
       "previous": "587,000",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 587000,
       "source": "external:MODEL-LOG 1.18 \u2014 ANC-bloc vote loss 2019 NPE to 2021 LGE",
       "token": "bloc_leak_votes",
@@ -280,7 +280,7 @@
         "nobody-will-win.html"
       ],
       "previous": "15",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 15,
       "source": "external:IEC by-election records, CoJ 2021-2026",
       "token": "byelection_count",
@@ -290,13 +290,13 @@
       "display": "67",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "67",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 67.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.anc.median",
       "value": 67.0
@@ -305,13 +305,13 @@
       "display": "128",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "128",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 128.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.anc_alone.best",
       "value": 128.0
@@ -320,13 +320,13 @@
       "display": "8",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "8",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 8.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.anc_alone.best_short",
       "value": 8.0
@@ -335,13 +335,13 @@
       "display": "0",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.anc_alone.count",
       "value": 0.0
@@ -350,13 +350,13 @@
       "display": "47%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "47%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.472,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.anc_largest.share",
       "value": 0.472
@@ -365,13 +365,13 @@
       "display": "116",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "116",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 116.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.anc_routes.left_median",
       "value": 116.0
@@ -380,13 +380,13 @@
       "display": "12%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "12%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.1158,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.anc_routes.left_share",
       "value": 0.1158
@@ -395,13 +395,13 @@
       "display": "66",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "66",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 66.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.da.median",
       "value": 66.0
@@ -410,13 +410,13 @@
       "display": "1",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "1",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 1.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.da_alone.count",
       "value": 1.0
@@ -425,13 +425,13 @@
       "display": "under 0.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "under 0.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0002,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.da_alone.share",
       "value": 0.0002
@@ -440,13 +440,13 @@
       "display": "34",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "34",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 34.0,
       "source": "ward_draws.csv + seat_detail_draws.csv",
       "token": "claim.da_alone.wall_anc_high",
       "value": 34.0
@@ -455,13 +455,13 @@
       "display": "34",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "34",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 34.0,
       "source": "ward_draws.csv + seat_detail_draws.csv",
       "token": "claim.da_alone.wall_anc_low",
       "value": 34.0
@@ -470,13 +470,13 @@
       "display": "1",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "1",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 1.0,
       "source": "ward_draws.csv + seat_detail_draws.csv",
       "token": "claim.da_alone.wall_count",
       "value": 1.0
@@ -485,13 +485,13 @@
       "display": "30",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "30",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 30.0,
       "source": "render_sheet.WALL_FLIPS, the threshold this scenario is counted at",
       "token": "claim.da_alone.wall_flips",
       "value": 30.0
@@ -500,13 +500,13 @@
       "display": "47%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "47%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.4734,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.da_largest.share",
       "value": 0.4734
@@ -515,13 +515,13 @@
       "display": "21",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "21",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 21.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.mk.median",
       "value": 21.0
@@ -530,13 +530,13 @@
       "display": "50",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "50",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 50.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.mk.p95",
       "value": 50.0
@@ -545,13 +545,13 @@
       "display": "1.4%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "1.4%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0142,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.mk_largest.share",
       "value": 0.0142
@@ -560,13 +560,13 @@
       "display": "57%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "57%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.5734,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.red_lines.anc_side_share",
       "value": 0.5734
@@ -575,13 +575,13 @@
       "display": "44%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "44%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.4398,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.red_lines.grand_share",
       "value": 0.4398
@@ -590,13 +590,13 @@
       "display": "59%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "59%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.594,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.red_lines.no_red_share",
       "value": 0.594
@@ -605,13 +605,13 @@
       "display": "118",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "118",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 118.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.red_lines.three_median",
       "value": 118.0
@@ -620,13 +620,13 @@
       "display": "17%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "17%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.168,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.red_lines.three_share",
       "value": 0.168
@@ -640,7 +640,7 @@
         "forecast.html"
       ],
       "previous": "53",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 53,
       "source": "arithmetic: 490,000 as a share of the 2021 poll",
       "token": "claim_490k_of_2021",
@@ -655,7 +655,7 @@
         "forecast.html"
       ],
       "previous": "47",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 47,
       "source": "run:turnout_tilt_da=1 \u2014 ANC median in the draws where the DA reaches 136",
       "token": "claim_anc_collapse_seats",
@@ -670,7 +670,7 @@
         "forecast.html"
       ],
       "previous": "50",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 50,
       "source": "run:turnout_tilt_da=1 \u2014 ANC proportional entitlement in the surged poll",
       "token": "claim_anc_entitlement_surged",
@@ -685,7 +685,7 @@
         "forecast.html"
       ],
       "previous": "62",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 62,
       "source": "run:turnout_tilt_da=1 parties.ANC.ward_wins_mean",
       "token": "claim_anc_wards_surged",
@@ -700,7 +700,7 @@
         "forecast.html"
       ],
       "previous": "97",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 97,
       "source": "run:turnout_tilt_da=1 parties.DA.median",
       "token": "claim_da_median",
@@ -715,7 +715,7 @@
         "forecast.html"
       ],
       "previous": "41",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 41,
       "source": "run:turnout_tilt_da=1 \u2014 DA share of the surged poll",
       "token": "claim_da_share_surged",
@@ -730,7 +730,7 @@
         "forecast.html"
       ],
       "previous": "524,000",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 524000,
       "source": "run:turnout_tilt_da=1 \u2014 DA votes at the record-turnout anchor",
       "token": "claim_da_votes_surge",
@@ -745,7 +745,7 @@
         "forecast.html"
       ],
       "previous": "644,000",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 644000,
       "source": "run:turnout_tilt_da=1 \u2014 half the surged poll",
       "token": "claim_half_surged",
@@ -760,7 +760,7 @@
         "forecast.html"
       ],
       "previous": "75",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 75,
       "source": "derived: registration-weighted highest turnout on record, all VDs",
       "token": "claim_hi_turnout",
@@ -775,7 +775,7 @@
         "forecast.html"
       ],
       "previous": "190,000",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 190000,
       "source": "arithmetic: votes every other party must lose to freeze the poll",
       "token": "claim_others_shed",
@@ -790,7 +790,7 @@
         "forecast.html"
       ],
       "previous": "917,000",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 917000,
       "source": "external:IEC 2021 CoJ Seat Calculation Detail \u2014 A/2, ballots per paper",
       "token": "claim_poll_2021",
@@ -805,7 +805,7 @@
         "forecast.html"
       ],
       "previous": "985,000",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 985000,
       "source": "derived: registered x blended turnout, default scenario",
       "token": "claim_poll_base",
@@ -820,7 +820,7 @@
         "forecast.html"
       ],
       "previous": "1,290,000",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 1290000,
       "source": "run:turnout_tilt_da=1 \u2014 total votes cast",
       "token": "claim_poll_surged",
@@ -835,7 +835,7 @@
         "forecast.html"
       ],
       "previous": "110",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 110,
       "source": "arithmetic: 41% of a 270-seat council",
       "token": "claim_prop_seats",
@@ -850,7 +850,7 @@
         "forecast.html"
       ],
       "previous": "39",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 39,
       "source": "run:turnout_tilt_da=1 \u2014 136 minus DA median",
       "token": "claim_short_by",
@@ -865,7 +865,7 @@
         "forecast.html"
       ],
       "previous": "57",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 57,
       "source": "allocator experiment: DA share needed for 136 with the ANC on 62 wards",
       "token": "claim_vote_share_needed",
@@ -875,13 +875,13 @@
       "display": "15",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "15",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 15.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF+MK.cushion_when_wins",
       "value": 15.0
@@ -890,13 +890,13 @@
       "display": "70%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "70%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.7032,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+ASA+EFF+MK.majority",
       "value": 0.7032
@@ -905,13 +905,13 @@
       "display": "151",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "151",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 151.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF+MK.seats_when_wins",
       "value": 151.0
@@ -920,13 +920,13 @@
       "display": "10%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "10%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0993,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF+MK.stability",
       "value": 0.0993
@@ -935,13 +935,13 @@
       "display": "1.0%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "1.0%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.00967,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+MK.survive.ANC",
       "value": 0.00967
@@ -950,13 +950,13 @@
       "display": "16%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "16%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.164676,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+MK.survive.ASA",
       "value": 0.164676
@@ -965,13 +965,13 @@
       "display": "23%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "23%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.226678,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+MK.survive.EFF",
       "value": 0.226678
@@ -980,13 +980,13 @@
       "display": "30%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "30%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.299488,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+MK.survive.MK",
       "value": 0.299488
@@ -995,13 +995,13 @@
       "display": "17",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "17",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 17.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF+PA.cushion_when_wins",
       "value": 17.0
@@ -1010,13 +1010,13 @@
       "display": "68%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "68%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.6838,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+ASA+EFF+PA.majority",
       "value": 0.6838
@@ -1025,13 +1025,13 @@
       "display": "153",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "153",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 153.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF+PA.seats_when_wins",
       "value": 153.0
@@ -1040,13 +1040,13 @@
       "display": "11%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "11%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.1111,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF+PA.stability",
       "value": 0.1111
@@ -1055,13 +1055,13 @@
       "display": "1.0%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "1.0%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.010237,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+PA.survive.ANC",
       "value": 0.010237
@@ -1070,13 +1070,13 @@
       "display": "21%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "21%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.205323,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+PA.survive.ASA",
       "value": 0.205323
@@ -1085,13 +1085,13 @@
       "display": "28%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "28%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.282539,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+PA.survive.EFF",
       "value": 0.282539
@@ -1100,13 +1100,13 @@
       "display": "31%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "31%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.307985,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF+PA.survive.PA",
       "value": 0.307985
@@ -1115,13 +1115,13 @@
       "display": "7",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "7",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 7.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF.cushion_when_wins",
       "value": 7.0
@@ -1130,13 +1130,13 @@
       "display": "21%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "21%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.2106,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+ASA+EFF.majority",
       "value": 0.2106
@@ -1145,13 +1145,13 @@
       "display": "143",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "143",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 143.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF.seats_when_wins",
       "value": 143.0
@@ -1160,13 +1160,13 @@
       "display": "5%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "5%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.049,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+EFF.stability",
       "value": 0.049
@@ -1175,13 +1175,13 @@
       "display": "0.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.00095,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF.survive.ANC",
       "value": 0.00095
@@ -1190,13 +1190,13 @@
       "display": "3.2%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "3.2%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.032289,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF.survive.ASA",
       "value": 0.032289
@@ -1205,13 +1205,13 @@
       "display": "6.4%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "6.4%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.063628,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+EFF.survive.EFF",
       "value": 0.063628
@@ -1220,13 +1220,13 @@
       "display": "7",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "7",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 7.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+MK.cushion_when_wins",
       "value": 7.0
@@ -1235,13 +1235,13 @@
       "display": "16%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "16%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.1594,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+ASA+MK.majority",
       "value": 0.1594
@@ -1250,13 +1250,13 @@
       "display": "143",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "143",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 143.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+MK.seats_when_wins",
       "value": 143.0
@@ -1265,13 +1265,13 @@
       "display": "5%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "5%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.049,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+MK.stability",
       "value": 0.049
@@ -1280,13 +1280,13 @@
       "display": "under 0.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "under 0.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+MK.survive.ANC",
       "value": 0.0
@@ -1295,13 +1295,13 @@
       "display": "3.4%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "3.4%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.033877,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+MK.survive.ASA",
       "value": 0.033877
@@ -1310,13 +1310,13 @@
       "display": "8.4%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "8.4%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.084065,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+MK.survive.MK",
       "value": 0.084065
@@ -1325,13 +1325,13 @@
       "display": "15",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "15",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 15.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+PA+MK.cushion_when_wins",
       "value": 15.0
@@ -1340,13 +1340,13 @@
       "display": "64%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "64%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.6416,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+ASA+PA+MK.majority",
       "value": 0.6416
@@ -1355,13 +1355,13 @@
       "display": "151",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "151",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 151.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+PA+MK.seats_when_wins",
       "value": 151.0
@@ -1370,13 +1370,13 @@
       "display": "10%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "10%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0993,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+PA+MK.stability",
       "value": 0.0993
@@ -1385,13 +1385,13 @@
       "display": "0.6%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0.6%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.006234,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+PA+MK.survive.ANC",
       "value": 0.006234
@@ -1400,13 +1400,13 @@
       "display": "15%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "15%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.154925,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+PA+MK.survive.ASA",
       "value": 0.154925
@@ -1415,13 +1415,13 @@
       "display": "30%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "30%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.301122,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+PA+MK.survive.MK",
       "value": 0.301122
@@ -1430,13 +1430,13 @@
       "display": "25%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "25%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.248441,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+PA+MK.survive.PA",
       "value": 0.248441
@@ -1445,13 +1445,13 @@
       "display": "7",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "7",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 7.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+PA.cushion_when_wins",
       "value": 7.0
@@ -1460,13 +1460,13 @@
       "display": "19%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "19%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.1932,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+ASA+PA.majority",
       "value": 0.1932
@@ -1475,13 +1475,13 @@
       "display": "143",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "143",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 143.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+PA.seats_when_wins",
       "value": 143.0
@@ -1490,13 +1490,13 @@
       "display": "5%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "5%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.049,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+ASA+PA.stability",
       "value": 0.049
@@ -1505,13 +1505,13 @@
       "display": "under 0.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "under 0.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+PA.survive.ANC",
       "value": 0.0
@@ -1520,13 +1520,13 @@
       "display": "3.0%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "3.0%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.030021,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+PA.survive.ASA",
       "value": 0.030021
@@ -1535,13 +1535,13 @@
       "display": "6.9%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "6.9%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.069358,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+ASA+PA.survive.PA",
       "value": 0.069358
@@ -1550,13 +1550,13 @@
       "display": "6",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "6",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 6.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+EFF+MK.cushion_when_wins",
       "value": 6.0
@@ -1565,13 +1565,13 @@
       "display": "12%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "12%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.1158,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+EFF+MK.majority",
       "value": 0.1158
@@ -1580,13 +1580,13 @@
       "display": "142",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "142",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 142.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+EFF+MK.seats_when_wins",
       "value": 142.0
@@ -1595,13 +1595,13 @@
       "display": "4%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "4%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0423,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+EFF+MK.stability",
       "value": 0.0423
@@ -1610,13 +1610,13 @@
       "display": "0.2%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0.2%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.001727,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+MK.survive.ANC",
       "value": 0.001727
@@ -1625,13 +1625,13 @@
       "display": "4.7%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "4.7%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.046632,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+MK.survive.EFF",
       "value": 0.046632
@@ -1640,13 +1640,13 @@
       "display": "5.9%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "5.9%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.058722,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+MK.survive.MK",
       "value": 0.058722
@@ -1655,13 +1655,13 @@
       "display": "13",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "13",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 13.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+EFF+PA+MK.cushion_when_wins",
       "value": 13.0
@@ -1670,13 +1670,13 @@
       "display": "60%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "60%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.5992,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+EFF+PA+MK.majority",
       "value": 0.5992
@@ -1685,13 +1685,13 @@
       "display": "149",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "149",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 149.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+EFF+PA+MK.seats_when_wins",
       "value": 149.0
@@ -1700,13 +1700,13 @@
       "display": "9%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "9%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0872,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+EFF+PA+MK.stability",
       "value": 0.0872
@@ -1715,13 +1715,13 @@
       "display": "0.7%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0.7%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.006676,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+PA+MK.survive.ANC",
       "value": 0.006676
@@ -1730,13 +1730,13 @@
       "display": "17%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "17%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.165888,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+PA+MK.survive.EFF",
       "value": 0.165888
@@ -1745,13 +1745,13 @@
       "display": "23%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "23%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.234312,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+PA+MK.survive.MK",
       "value": 0.234312
@@ -1760,13 +1760,13 @@
       "display": "19%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "19%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.193258,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+PA+MK.survive.PA",
       "value": 0.193258
@@ -1775,13 +1775,13 @@
       "display": "6",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "6",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 6.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+EFF+PA.cushion_when_wins",
       "value": 6.0
@@ -1790,13 +1790,13 @@
       "display": "14%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "14%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.1404,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+EFF+PA.majority",
       "value": 0.1404
@@ -1805,13 +1805,13 @@
       "display": "142",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "142",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 142.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+EFF+PA.seats_when_wins",
       "value": 142.0
@@ -1820,13 +1820,13 @@
       "display": "4%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "4%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0423,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+EFF+PA.stability",
       "value": 0.0423
@@ -1835,13 +1835,13 @@
       "display": "0.3%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0.3%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.002849,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+PA.survive.ANC",
       "value": 0.002849
@@ -1850,13 +1850,13 @@
       "display": "4.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "4.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.041311,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+PA.survive.EFF",
       "value": 0.041311
@@ -1865,13 +1865,13 @@
       "display": "4.8%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "4.8%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.048433,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+EFF+PA.survive.PA",
       "value": 0.048433
@@ -1880,13 +1880,13 @@
       "display": "6",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "6",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 6.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+PA+MK.cushion_when_wins",
       "value": 6.0
@@ -1895,13 +1895,13 @@
       "display": "10%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "10%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0994,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ANC+PA+MK.majority",
       "value": 0.0994
@@ -1910,13 +1910,13 @@
       "display": "142",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "142",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 142.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+PA+MK.seats_when_wins",
       "value": 142.0
@@ -1925,13 +1925,13 @@
       "display": "4%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "4%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0423,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ANC+PA+MK.stability",
       "value": 0.0423
@@ -1940,13 +1940,13 @@
       "display": "under 0.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "under 0.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+PA+MK.survive.ANC",
       "value": 0.0
@@ -1955,13 +1955,13 @@
       "display": "5.8%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "5.8%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.05835,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+PA+MK.survive.MK",
       "value": 0.05835
@@ -1970,13 +1970,13 @@
       "display": "5.4%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "5.4%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.054326,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ANC+PA+MK.survive.PA",
       "value": 0.054326
@@ -1985,13 +1985,13 @@
       "display": "8",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "8",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 8.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ASA+EFF+PA+MK.cushion_when_wins",
       "value": 8.0
@@ -2000,13 +2000,13 @@
       "display": "7.7%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "7.7%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0774,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.ASA+EFF+PA+MK.majority",
       "value": 0.0774
@@ -2015,13 +2015,13 @@
       "display": "144",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "144",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 144.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ASA+EFF+PA+MK.seats_when_wins",
       "value": 144.0
@@ -2030,13 +2030,13 @@
       "display": "6%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "6%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0556,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.ASA+EFF+PA+MK.stability",
       "value": 0.0556
@@ -2045,13 +2045,13 @@
       "display": "5.2%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "5.2%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.05168,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ASA+EFF+PA+MK.survive.ASA",
       "value": 0.05168
@@ -2060,13 +2060,13 @@
       "display": "5.2%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "5.2%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.05168,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ASA+EFF+PA+MK.survive.EFF",
       "value": 0.05168
@@ -2075,13 +2075,13 @@
       "display": "9.0%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "9.0%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.090439,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ASA+EFF+PA+MK.survive.MK",
       "value": 0.090439
@@ -2090,13 +2090,13 @@
       "display": "8.8%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "8.8%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.087855,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.ASA+EFF+PA+MK.survive.PA",
       "value": 0.087855
@@ -2105,13 +2105,13 @@
       "display": "11",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "11",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 11.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ANC.cushion_when_wins",
       "value": 11.0
@@ -2120,13 +2120,13 @@
       "display": "44%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "44%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.4398,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+ANC.majority",
       "value": 0.4398
@@ -2135,13 +2135,13 @@
       "display": "147",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "147",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 147.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ANC.seats_when_wins",
       "value": 147.0
@@ -2150,13 +2150,13 @@
       "display": "7%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "7%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0748,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ANC.stability",
       "value": 0.0748
@@ -2165,13 +2165,13 @@
       "display": "under 0.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "under 0.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.000455,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ANC.survive.ANC",
       "value": 0.000455
@@ -2180,13 +2180,13 @@
       "display": "under 0.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "under 0.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ANC.survive.DA",
       "value": 0.0
@@ -2195,13 +2195,13 @@
       "display": "18",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "18",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 18.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF+MK.cushion_when_wins",
       "value": 18.0
@@ -2210,13 +2210,13 @@
       "display": "67%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "67%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.6736,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+ASA+EFF+MK.majority",
       "value": 0.6736
@@ -2225,13 +2225,13 @@
       "display": "154",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "154",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 154.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF+MK.seats_when_wins",
       "value": 154.0
@@ -2240,13 +2240,13 @@
       "display": "12%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "12%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.1169,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF+MK.stability",
       "value": 0.1169
@@ -2255,13 +2255,13 @@
       "display": "29%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "29%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.286817,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+MK.survive.ASA",
       "value": 0.286817
@@ -2270,13 +2270,13 @@
       "display": "1.0%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "1.0%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.010095,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+MK.survive.DA",
       "value": 0.010095
@@ -2285,13 +2285,13 @@
       "display": "30%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "30%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.296615,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+MK.survive.EFF",
       "value": 0.296615
@@ -2300,13 +2300,13 @@
       "display": "35%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "35%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.348575,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+MK.survive.MK",
       "value": 0.348575
@@ -2315,13 +2315,13 @@
       "display": "17",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "17",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 17.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF+PA.cushion_when_wins",
       "value": 17.0
@@ -2330,13 +2330,13 @@
       "display": "69%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "69%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.6938,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+ASA+EFF+PA.majority",
       "value": 0.6938
@@ -2345,13 +2345,13 @@
       "display": "153",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "153",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 153.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF+PA.seats_when_wins",
       "value": 153.0
@@ -2360,13 +2360,13 @@
       "display": "11%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "11%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.1111,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF+PA.stability",
       "value": 0.1111
@@ -2375,13 +2375,13 @@
       "display": "23%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "23%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.23292,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+PA.survive.ASA",
       "value": 0.23292
@@ -2390,13 +2390,13 @@
       "display": "1.0%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "1.0%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.010089,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+PA.survive.DA",
       "value": 0.010089
@@ -2405,13 +2405,13 @@
       "display": "24%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "24%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.242145,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+PA.survive.EFF",
       "value": 0.242145
@@ -2420,13 +2420,13 @@
       "display": "34%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "34%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.338426,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF+PA.survive.PA",
       "value": 0.338426
@@ -2435,13 +2435,13 @@
       "display": "10",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "10",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 10.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF.cushion_when_wins",
       "value": 10.0
@@ -2450,13 +2450,13 @@
       "display": "23%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "23%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.2348,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+ASA+EFF.majority",
       "value": 0.2348
@@ -2465,13 +2465,13 @@
       "display": "146",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "146",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 146.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF.seats_when_wins",
       "value": 146.0
@@ -2480,13 +2480,13 @@
       "display": "7%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "7%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0685,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+EFF.stability",
       "value": 0.0685
@@ -2495,13 +2495,13 @@
       "display": "11%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "11%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.106474,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF.survive.ASA",
       "value": 0.106474
@@ -2510,13 +2510,13 @@
       "display": "0.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.000852,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF.survive.DA",
       "value": 0.000852
@@ -2525,13 +2525,13 @@
       "display": "8.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "8.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.08092,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+EFF.survive.EFF",
       "value": 0.08092
@@ -2540,13 +2540,13 @@
       "display": "10",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "10",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 10.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+MK.cushion_when_wins",
       "value": 10.0
@@ -2555,13 +2555,13 @@
       "display": "20%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "20%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.1998,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+ASA+MK.majority",
       "value": 0.1998
@@ -2570,13 +2570,13 @@
       "display": "146",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "146",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 146.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+MK.seats_when_wins",
       "value": 146.0
@@ -2585,13 +2585,13 @@
       "display": "7%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "7%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0685,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+MK.stability",
       "value": 0.0685
@@ -2600,13 +2600,13 @@
       "display": "8.2%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "8.2%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.082082,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+MK.survive.ASA",
       "value": 0.082082
@@ -2615,13 +2615,13 @@
       "display": "under 0.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "under 0.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+MK.survive.DA",
       "value": 0.0
@@ -2630,13 +2630,13 @@
       "display": "10%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "10%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.095095,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+MK.survive.MK",
       "value": 0.095095
@@ -2645,13 +2645,13 @@
       "display": "15",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "15",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 15.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+PA+MK.cushion_when_wins",
       "value": 15.0
@@ -2660,13 +2660,13 @@
       "display": "64%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "64%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.6378,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+ASA+PA+MK.majority",
       "value": 0.6378
@@ -2675,13 +2675,13 @@
       "display": "151",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "151",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 151.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+PA+MK.seats_when_wins",
       "value": 151.0
@@ -2690,13 +2690,13 @@
       "display": "10%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "10%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0993,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+PA+MK.stability",
       "value": 0.0993
@@ -2705,13 +2705,13 @@
       "display": "22%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "22%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.217937,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+PA+MK.survive.ASA",
       "value": 0.217937
@@ -2720,13 +2720,13 @@
       "display": "0.6%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0.6%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.006272,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+PA+MK.survive.DA",
       "value": 0.006272
@@ -2735,13 +2735,13 @@
       "display": "26%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "26%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.263405,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+PA+MK.survive.MK",
       "value": 0.263405
@@ -2750,13 +2750,13 @@
       "display": "31%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "31%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.313264,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+PA+MK.survive.PA",
       "value": 0.313264
@@ -2765,13 +2765,13 @@
       "display": "8",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "8",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 8.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+PA.cushion_when_wins",
       "value": 8.0
@@ -2780,13 +2780,13 @@
       "display": "17%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "17%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.168,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+ASA+PA.majority",
       "value": 0.168
@@ -2795,13 +2795,13 @@
       "display": "144",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "144",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 144.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+PA.seats_when_wins",
       "value": 144.0
@@ -2810,13 +2810,13 @@
       "display": "6%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "6%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0556,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+ASA+PA.stability",
       "value": 0.0556
@@ -2825,13 +2825,13 @@
       "display": "3.8%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "3.8%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.038095,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+PA.survive.ASA",
       "value": 0.038095
@@ -2840,13 +2840,13 @@
       "display": "under 0.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "under 0.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+PA.survive.DA",
       "value": 0.0
@@ -2855,13 +2855,13 @@
       "display": "11%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "11%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.113095,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+PA.survive.PA",
       "value": 0.113095
@@ -2870,13 +2870,13 @@
       "display": "10",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "10",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 10.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+EFF+MK.cushion_when_wins",
       "value": 10.0
@@ -2885,13 +2885,13 @@
       "display": "19%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "19%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.1932,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+EFF+MK.majority",
       "value": 0.1932
@@ -2900,13 +2900,13 @@
       "display": "146",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "146",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 146.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+EFF+MK.seats_when_wins",
       "value": 146.0
@@ -2915,13 +2915,13 @@
       "display": "7%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "7%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0685,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+EFF+MK.stability",
       "value": 0.0685
@@ -2930,13 +2930,13 @@
       "display": "0.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.001035,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+EFF+MK.survive.DA",
       "value": 0.001035
@@ -2945,13 +2945,13 @@
       "display": "8.5%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "8.5%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.084886,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+EFF+MK.survive.EFF",
       "value": 0.084886
@@ -2960,13 +2960,13 @@
       "display": "13%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "13%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.1294,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+EFF+MK.survive.MK",
       "value": 0.1294
@@ -2975,13 +2975,13 @@
       "display": "16",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "16",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 16.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+EFF+PA+MK.cushion_when_wins",
       "value": 16.0
@@ -2990,13 +2990,13 @@
       "display": "58%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "58%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.5818,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+EFF+PA+MK.majority",
       "value": 0.5818
@@ -3005,13 +3005,13 @@
       "display": "152",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "152",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 152.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+EFF+PA+MK.seats_when_wins",
       "value": 152.0
@@ -3020,13 +3020,13 @@
       "display": "11%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "11%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.1053,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+EFF+PA+MK.stability",
       "value": 0.1053
@@ -3035,13 +3035,13 @@
       "display": "0.7%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0.7%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.006875,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+EFF+PA+MK.survive.DA",
       "value": 0.006875
@@ -3050,13 +3050,13 @@
       "display": "24%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "24%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.238914,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+EFF+PA+MK.survive.EFF",
       "value": 0.238914
@@ -3065,13 +3065,13 @@
       "display": "28%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "28%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.277759,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+EFF+PA+MK.survive.MK",
       "value": 0.277759
@@ -3080,13 +3080,13 @@
       "display": "33%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "33%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.332073,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+EFF+PA+MK.survive.PA",
       "value": 0.332073
@@ -3095,13 +3095,13 @@
       "display": "10",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "10",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 10.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+EFF+PA.cushion_when_wins",
       "value": 10.0
@@ -3110,13 +3110,13 @@
       "display": "16%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "16%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.1616,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+EFF+PA.majority",
       "value": 0.1616
@@ -3125,13 +3125,13 @@
       "display": "146",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "146",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 146.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+EFF+PA.seats_when_wins",
       "value": 146.0
@@ -3140,13 +3140,13 @@
       "display": "7%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "7%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0685,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+EFF+PA.stability",
       "value": 0.0685
@@ -3155,13 +3155,13 @@
       "display": "0.2%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0.2%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.002475,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+EFF+PA.survive.DA",
       "value": 0.002475
@@ -3170,13 +3170,13 @@
       "display": "4.0%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "4.0%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.039604,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+EFF+PA.survive.EFF",
       "value": 0.039604
@@ -3185,13 +3185,13 @@
       "display": "15%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "15%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.154703,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+EFF+PA.survive.PA",
       "value": 0.154703
@@ -3200,13 +3200,13 @@
       "display": "8",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "8",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 8.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+PA+MK.cushion_when_wins",
       "value": 8.0
@@ -3215,13 +3215,13 @@
       "display": "14%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "14%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.139,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "coal.DA+PA+MK.majority",
       "value": 0.139
@@ -3230,13 +3230,13 @@
       "display": "144",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "144",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 144.0,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+PA+MK.seats_when_wins",
       "value": 144.0
@@ -3245,13 +3245,13 @@
       "display": "6%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "6%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0556,
       "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
       "token": "coal.DA+PA+MK.stability",
       "value": 0.0556
@@ -3260,13 +3260,13 @@
       "display": "under 0.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "under 0.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+PA+MK.survive.DA",
       "value": 0.0
@@ -3275,13 +3275,13 @@
       "display": "4.6%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "4.6%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.046043,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+PA+MK.survive.MK",
       "value": 0.046043
@@ -3290,13 +3290,13 @@
       "display": "12%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "12%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.117986,
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+PA+MK.survive.PA",
       "value": 0.117986
@@ -3312,7 +3312,7 @@
         "nobody-will-win.html"
       ],
       "previous": "270",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 270,
       "source": "derived:council_size",
       "token": "council_size",
@@ -3322,15 +3322,15 @@
       "display": "23 September 2026",
       "fmt": "date_long",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "review.html",
         "forecast.html",
         "nobody-will-win.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "23 September 2026",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": "2026-09-23T06:39:41Z",
       "source": "model:_generated",
       "token": "generated_date",
       "value": "2026-09-23T06:39:41Z"
@@ -3339,13 +3339,13 @@
       "display": "10",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "10",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 10.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "govern.anc_routes",
       "value": 10.0
@@ -3354,13 +3354,13 @@
       "display": "4",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "4",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 4.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "govern.anc_routes_strong",
       "value": 4.0
@@ -3369,13 +3369,13 @@
       "display": "17%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "17%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.168,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "govern.da_best_without",
       "value": 0.168
@@ -3384,13 +3384,13 @@
       "display": "90%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "90%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.9,
       "source": "scenarios.BAND, the percentiles seat_quantiles reports",
       "token": "home.band",
       "value": 0.9
@@ -3399,13 +3399,13 @@
       "display": "23 September 2026",
       "fmt": "date_long",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "23 September 2026",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": "2026-09-23T06:39:41Z",
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.generated",
       "value": "2026-09-23T06:39:41Z"
@@ -3414,13 +3414,13 @@
       "display": "5,000",
       "fmt": "comma",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "5,000",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 5000.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.n_draws",
       "value": 5000.0
@@ -3429,13 +3429,13 @@
       "display": "under 0.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "under 0.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0002,
       "source": "seat_draws.csv, one party at or above the threshold",
       "token": "home.p_alone",
       "value": 0.0002
@@ -3444,13 +3444,13 @@
       "display": "47%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "47%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.4734,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.p_da_largest",
       "value": 0.4734
@@ -3459,13 +3459,13 @@
       "display": "72%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "72%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.7154,
       "source": "forecast_summary.json p_excessive_any",
       "token": "home.p_excessive_any",
       "value": 0.7154
@@ -3474,13 +3474,13 @@
       "display": "2",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "2",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 2.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.aljamaah",
       "value": 2.0
@@ -3489,13 +3489,13 @@
       "display": "6",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "6",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 6.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.aljamaah_hi",
       "value": 6.0
@@ -3504,13 +3504,13 @@
       "display": "1",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "1",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 1.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.aljamaah_lo",
       "value": 1.0
@@ -3519,13 +3519,13 @@
       "display": "67",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "67",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 67.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.anc",
       "value": 67.0
@@ -3534,13 +3534,13 @@
       "display": "92",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "92",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 92.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.anc_hi",
       "value": 92.0
@@ -3549,13 +3549,13 @@
       "display": "29",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "29",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 29.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.anc_lo",
       "value": 29.0
@@ -3564,13 +3564,13 @@
       "display": "27",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "27",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 27.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.asa",
       "value": 27.0
@@ -3579,13 +3579,13 @@
       "display": "52",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "52",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 52.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.asa_hi",
       "value": 52.0
@@ -3594,13 +3594,13 @@
       "display": "11",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "11",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 11.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.asa_lo",
       "value": 11.0
@@ -3609,13 +3609,13 @@
       "display": "66",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "66",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 66.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.da",
       "value": 66.0
@@ -3624,13 +3624,13 @@
       "display": "90",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "90",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 90.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.da_hi",
       "value": 90.0
@@ -3639,13 +3639,13 @@
       "display": "45",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "45",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 45.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.da_lo",
       "value": 45.0
@@ -3654,13 +3654,13 @@
       "display": "24",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "24",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 24.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.eff",
       "value": 24.0
@@ -3669,13 +3669,13 @@
       "display": "54",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "54",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 54.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.eff_hi",
       "value": 54.0
@@ -3684,13 +3684,13 @@
       "display": "8",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "8",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 8.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.eff_lo",
       "value": 8.0
@@ -3699,13 +3699,13 @@
       "display": "2",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "2",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 2.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.ifp",
       "value": 2.0
@@ -3714,13 +3714,13 @@
       "display": "16",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "16",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 16.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.ifp_hi",
       "value": 16.0
@@ -3729,13 +3729,13 @@
       "display": "0",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.ifp_lo",
       "value": 0.0
@@ -3744,13 +3744,13 @@
       "display": "21",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "21",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 21.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.mk",
       "value": 21.0
@@ -3759,13 +3759,13 @@
       "display": "50",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "50",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 50.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.mk_hi",
       "value": 50.0
@@ -3774,13 +3774,13 @@
       "display": "7",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "7",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 7.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.mk_lo",
       "value": 7.0
@@ -3789,13 +3789,13 @@
       "display": "23",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "23",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 23.0,
       "source": "seat_draws.csv, council minus the named parties in each simulation",
       "token": "home.seats.others",
       "value": 23.0
@@ -3804,13 +3804,13 @@
       "display": "48",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "48",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 48.0,
       "source": "seat_draws.csv, council minus the named parties in each simulation",
       "token": "home.seats.others_hi",
       "value": 48.0
@@ -3819,13 +3819,13 @@
       "display": "8",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "8",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 8.0,
       "source": "seat_draws.csv, council minus the named parties in each simulation",
       "token": "home.seats.others_lo",
       "value": 8.0
@@ -3834,13 +3834,13 @@
       "display": "23",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "23",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 23.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.pa",
       "value": 23.0
@@ -3849,13 +3849,13 @@
       "display": "37",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "37",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 37.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.pa_hi",
       "value": 37.0
@@ -3864,13 +3864,13 @@
       "display": "14",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "14",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 14.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.pa_lo",
       "value": 14.0
@@ -3879,13 +3879,13 @@
       "display": "2",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "2",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 2.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.rise",
       "value": 2.0
@@ -3894,13 +3894,13 @@
       "display": "13",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "13",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 13.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.rise_hi",
       "value": 13.0
@@ -3909,13 +3909,13 @@
       "display": "0",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0,
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.rise_lo",
       "value": 0.0
@@ -3931,7 +3931,7 @@
         "nobody-will-win.html"
       ],
       "previous": "136",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
+      "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 136,
       "source": "derived:majority",
       "token": "majority",
@@ -3941,13 +3941,13 @@
       "display": "13%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "nobody-will-win.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "13%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.127,
       "source": "forecast_summary.json minority",
       "token": "minority.ANC_minority_DA_ASA_oppose",
       "value": 0.127
@@ -3956,13 +3956,13 @@
       "display": "48%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "nobody-will-win.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "48%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.4808,
       "source": "forecast_summary.json minority",
       "token": "minority.ANC_minority_only_DA_opposes",
       "value": 0.4808
@@ -3971,13 +3971,13 @@
       "display": "4.0%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "nobody-will-win.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "4.0%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0396,
       "source": "forecast_summary.json minority",
       "token": "minority.DA_minority_ANC_EFF_MK_oppose",
       "value": 0.0396
@@ -3986,13 +3986,13 @@
       "display": "50%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "nobody-will-win.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "50%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.5,
       "source": "forecast_summary.json minority",
       "token": "minority.DA_minority_only_ANC_opposes_2021_pattern",
       "value": 0.5
@@ -4001,16 +4001,16 @@
       "display": "5,000",
       "fmt": "comma",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html",
         "index.html",
         "forecast.html",
         "nobody-will-win.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "5,000",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 5000,
       "source": "derived:n_draws",
       "token": "n_draws",
       "value": 5000
@@ -4019,13 +4019,13 @@
       "display": "872",
       "fmt": "comma",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "872",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 872,
       "source": "model:n_vds",
       "token": "n_vds",
       "value": 872
@@ -4034,13 +4034,13 @@
       "display": "under 0.1%",
       "fmt": "chance",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "nobody-will-win.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "under 0.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0002,
       "source": "derived:p_alone",
       "token": "p_alone",
       "value": 0.0002
@@ -4049,13 +4049,13 @@
       "display": "44%",
       "fmt": "pct0",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "44%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.4398,
       "source": "model:structural.P(ANC+DA is winning)",
       "token": "p_anc_da",
       "value": 0.4398
@@ -4064,14 +4064,14 @@
       "display": "47%",
       "fmt": "pct0",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "review.html",
         "nobody-will-win.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "47%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.472,
       "source": "model:structural.P(ANC is the largest single party)",
       "token": "p_anc_largest",
       "value": 0.472
@@ -4080,14 +4080,14 @@
       "display": "47%",
       "fmt": "pct0",
       "mode": "free",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "review.html",
         "nobody-will-win.html"
       ],
-      "previous": "62%",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
-      "previous_value": 0.62,
+      "previous": "47%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.4734,
       "source": "model:structural.P(DA is the largest single party)",
       "token": "p_da_largest",
       "value": 0.4734
@@ -4096,15 +4096,15 @@
       "display": "65%",
       "fmt": "pct0",
       "mode": "free",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "methodology.html",
         "review.html",
         "nobody-will-win.html"
       ],
-      "previous": "96%",
-      "previous_published_at": "2026-08-08T17:29:45+00:00",
-      "previous_value": 0.96,
+      "previous": "65%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.6474,
       "source": "model:p_excessive_by_party.ANC",
       "token": "p_excessive_anc",
       "value": 0.6474
@@ -4113,13 +4113,13 @@
       "display": "541.4",
       "fmt": null,
       "mode": "fixed",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "541.4",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 541.4,
       "source": "compare_history:crps, poll_paths=off",
       "token": "polls_off_crps_after",
       "value": 541.4
@@ -4128,13 +4128,13 @@
       "display": "545.8",
       "fmt": null,
       "mode": "fixed",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "545.8",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 545.8,
       "source": "compare_history:crps, poll_paths=all",
       "token": "polls_off_crps_before",
       "value": 545.8
@@ -4143,13 +4143,13 @@
       "display": "723",
       "fmt": null,
       "mode": "fixed",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "723",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 723,
       "source": "compare_history:seat_abs_err_coherent, poll_paths=off",
       "token": "polls_off_seat_err_after",
       "value": 723
@@ -4158,13 +4158,13 @@
       "display": "725",
       "fmt": null,
       "mode": "fixed",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "725",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 725,
       "source": "compare_history:seat_abs_err_coherent, poll_paths=all",
       "token": "polls_off_seat_err_before",
       "value": 725
@@ -4173,13 +4173,13 @@
       "display": "54",
       "fmt": "int",
       "mode": "fixed",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "nobody-will-win.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "54",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 54,
       "source": "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)",
       "token": "pub0831_anc_entitlement",
       "value": 54
@@ -4188,13 +4188,13 @@
       "display": "55",
       "fmt": "int",
       "mode": "fixed",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "nobody-will-win.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "55",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 55,
       "source": "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)",
       "token": "pub0831_anc_ward_median",
       "value": 55
@@ -4203,13 +4203,13 @@
       "display": "71%",
       "fmt": "pct0",
       "mode": "fixed",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "nobody-will-win.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "71%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.71,
       "source": "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)",
       "token": "pub0831_p_da_largest",
       "value": 0.71
@@ -4218,13 +4218,13 @@
       "display": "58%",
       "fmt": "pct0",
       "mode": "fixed",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "nobody-will-win.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "58%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.58,
       "source": "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)",
       "token": "pub0831_p_excessive_anc",
       "value": 0.58
@@ -4233,14 +4233,14 @@
       "display": "20261104",
       "fmt": "raw",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html",
         "nobody-will-win.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "20261104",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 20261104,
       "source": "model:scenario.seed",
       "token": "run_seed",
       "value": 20261104
@@ -4249,13 +4249,13 @@
       "display": "2",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "2",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 2.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.ALJAMAAH.median",
       "value": 2.0
@@ -4264,13 +4264,13 @@
       "display": "1",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "1",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 1.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.ALJAMAAH.p5",
       "value": 1.0
@@ -4279,13 +4279,13 @@
       "display": "6",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "6",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 6.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.ALJAMAAH.p95",
       "value": 6.0
@@ -4294,13 +4294,13 @@
       "display": "67",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "67",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 67.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.ANC.median",
       "value": 67.0
@@ -4309,13 +4309,13 @@
       "display": "29",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "29",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 29.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.ANC.p5",
       "value": 29.0
@@ -4324,13 +4324,13 @@
       "display": "92",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "92",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 92.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.ANC.p95",
       "value": 92.0
@@ -4339,13 +4339,13 @@
       "display": "27",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "27",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 27.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.ASA.median",
       "value": 27.0
@@ -4354,13 +4354,13 @@
       "display": "11",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "11",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 11.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.ASA.p5",
       "value": 11.0
@@ -4369,13 +4369,13 @@
       "display": "52",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "52",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 52.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.ASA.p95",
       "value": 52.0
@@ -4384,13 +4384,13 @@
       "display": "66",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "66",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 66.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.DA.median",
       "value": 66.0
@@ -4399,13 +4399,13 @@
       "display": "45",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "45",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 45.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.DA.p5",
       "value": 45.0
@@ -4414,13 +4414,13 @@
       "display": "90",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "90",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 90.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.DA.p95",
       "value": 90.0
@@ -4429,13 +4429,13 @@
       "display": "24",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "24",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 24.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.EFF.median",
       "value": 24.0
@@ -4444,13 +4444,13 @@
       "display": "8",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "8",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 8.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.EFF.p5",
       "value": 8.0
@@ -4459,13 +4459,13 @@
       "display": "54",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "54",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 54.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.EFF.p95",
       "value": 54.0
@@ -4474,13 +4474,13 @@
       "display": "2",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "2",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 2.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.IFP.median",
       "value": 2.0
@@ -4489,13 +4489,13 @@
       "display": "0",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.IFP.p5",
       "value": 0.0
@@ -4504,13 +4504,13 @@
       "display": "16",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "16",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 16.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.IFP.p95",
       "value": 16.0
@@ -4519,13 +4519,13 @@
       "display": "21",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "21",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 21.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.MK.median",
       "value": 21.0
@@ -4534,13 +4534,13 @@
       "display": "7",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "7",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 7.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.MK.p5",
       "value": 7.0
@@ -4549,13 +4549,13 @@
       "display": "50",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "50",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 50.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.MK.p95",
       "value": 50.0
@@ -4564,13 +4564,13 @@
       "display": "23",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "23",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 23.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.OTHERS.median",
       "value": 23.0
@@ -4579,13 +4579,13 @@
       "display": "8",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "8",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 8.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.OTHERS.p5",
       "value": 8.0
@@ -4594,13 +4594,13 @@
       "display": "48",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "48",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 48.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.OTHERS.p95",
       "value": 48.0
@@ -4609,13 +4609,13 @@
       "display": "23",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "23",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 23.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.PA.median",
       "value": 23.0
@@ -4624,13 +4624,13 @@
       "display": "14",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "14",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 14.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.PA.p5",
       "value": 14.0
@@ -4639,13 +4639,13 @@
       "display": "37",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "37",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 37.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.PA.p95",
       "value": 37.0
@@ -4654,13 +4654,13 @@
       "display": "2",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "2",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 2.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.RISE.median",
       "value": 2.0
@@ -4669,13 +4669,13 @@
       "display": "0",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "0",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.RISE.p5",
       "value": 0.0
@@ -4684,13 +4684,13 @@
       "display": "13",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "13",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 13.0,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.RISE.p95",
       "value": 13.0
@@ -4699,13 +4699,13 @@
       "display": "90%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "90%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.9,
       "source": "scenarios.BAND, the percentiles seat_quantiles reports",
       "token": "seats.band",
       "value": 0.9
@@ -4714,13 +4714,13 @@
       "display": "under 0.1%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "under 0.1%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.0002,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "tile.p_alone",
       "value": 0.0002
@@ -4729,13 +4729,13 @@
       "display": "44%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "44%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.4398,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "tile.p_anc_da",
       "value": 0.4398
@@ -4744,13 +4744,13 @@
       "display": "65%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "65%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.6474,
       "source": "forecast_summary.json p_excessive_by_party",
       "token": "tile.p_anc_excessive",
       "value": 0.6474
@@ -4759,13 +4759,13 @@
       "display": "47%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "47%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.472,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "tile.p_anc_largest",
       "value": 0.472
@@ -4774,13 +4774,13 @@
       "display": "47%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "47%",
+      "previous_published_at": "2026-09-26T13:58:54Z",
+      "previous_value": 0.4734,
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "tile.p_da_largest",
       "value": 0.4734
@@ -4793,9 +4793,9 @@
     "draws": 5000,
     "forecast_content_sha256": "661b8783e7cb6dad1f5301c008bd816cc347cb8ee9c69455a685a003289fef86",
     "forecast_summary_sha256": "6ea8d7976f780e4acf9fec434b55d0140f239927026cce518d580125b7d1a95f",
-    "git_commit": "920c59b5d1d9c9a509b292e86ce076e2d890e7df",
+    "git_commit": "3000e306f1162729850ec8e5b6f43036b20e63a5",
     "git_dirty": true,
-    "model_run_id": "r-661b8783e7cb-920c59b5-dirty",
+    "model_run_id": "r-661b8783e7cb-3000e306-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
@@ -4858,13 +4858,10 @@
   },
   "summary": {
     "by_movement": {
-      "material": [
+      "none": [
         "anc_entitlement",
         "anc_ward_median",
-        "p_da_largest",
-        "p_excessive_anc"
-      ],
-      "new": [
+        "asa_2021_seats",
         "backtest_cities",
         "backtest_crps_better",
         "backtest_seat_err_baseline",
@@ -4877,6 +4874,10 @@
         "ballots.typical.anc_list",
         "ballots.typical.anc_wards",
         "ballots.typical.draw",
+        "blind_test_called",
+        "blind_test_of",
+        "bloc_leak_votes",
+        "byelection_count",
         "claim.anc.median",
         "claim.anc_alone.best",
         "claim.anc_alone.best_short",
@@ -4900,6 +4901,22 @@
         "claim.red_lines.no_red_share",
         "claim.red_lines.three_median",
         "claim.red_lines.three_share",
+        "claim_490k_of_2021",
+        "claim_anc_collapse_seats",
+        "claim_anc_entitlement_surged",
+        "claim_anc_wards_surged",
+        "claim_da_median",
+        "claim_da_share_surged",
+        "claim_da_votes_surge",
+        "claim_half_surged",
+        "claim_hi_turnout",
+        "claim_others_shed",
+        "claim_poll_2021",
+        "claim_poll_base",
+        "claim_poll_surged",
+        "claim_prop_seats",
+        "claim_short_by",
+        "claim_vote_share_needed",
         "coal.ANC+ASA+EFF+MK.cushion_when_wins",
         "coal.ANC+ASA+EFF+MK.majority",
         "coal.ANC+ASA+EFF+MK.seats_when_wins",
@@ -5062,6 +5079,7 @@
         "coal.DA+PA+MK.survive.DA",
         "coal.DA+PA+MK.survive.MK",
         "coal.DA+PA+MK.survive.PA",
+        "council_size",
         "generated_date",
         "govern.anc_routes",
         "govern.anc_routes_strong",
@@ -5102,6 +5120,7 @@
         "home.seats.rise",
         "home.seats.rise_hi",
         "home.seats.rise_lo",
+        "majority",
         "minority.ANC_minority_DA_ASA_oppose",
         "minority.ANC_minority_only_DA_opposes",
         "minority.DA_minority_ANC_EFF_MK_oppose",
@@ -5111,6 +5130,8 @@
         "p_alone",
         "p_anc_da",
         "p_anc_largest",
+        "p_da_largest",
+        "p_excessive_anc",
         "polls_off_crps_after",
         "polls_off_crps_before",
         "polls_off_seat_err_after",
@@ -5156,36 +5177,11 @@
         "tile.p_anc_excessive",
         "tile.p_anc_largest",
         "tile.p_da_largest"
-      ],
-      "none": [
-        "asa_2021_seats",
-        "blind_test_called",
-        "blind_test_of",
-        "bloc_leak_votes",
-        "byelection_count",
-        "claim_490k_of_2021",
-        "claim_anc_collapse_seats",
-        "claim_anc_entitlement_surged",
-        "claim_anc_wards_surged",
-        "claim_da_median",
-        "claim_da_share_surged",
-        "claim_da_votes_surge",
-        "claim_half_surged",
-        "claim_hi_turnout",
-        "claim_others_shed",
-        "claim_poll_2021",
-        "claim_poll_base",
-        "claim_poll_surged",
-        "claim_prop_seats",
-        "claim_short_by",
-        "claim_vote_share_needed",
-        "council_size",
-        "majority"
       ]
     },
     "n": 318,
     "n_rounding": 0,
-    "n_visible": 4,
+    "n_visible": 0,
     "nominal": []
   }
 }
