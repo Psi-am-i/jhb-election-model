@@ -79,6 +79,61 @@ because the news domains are outside the egress allowlist. Calling that
 
 ---
 
+## 3b. The point of the routine is a DRAFT ARCHIVE, not a reading list
+
+⛔ **A digest nobody turns into anything is the failure mode this whole file
+exists to end.** Fifteen were written and none reached the site.
+
+When an item clears the bar in §5 **and** names a quantity this model computes,
+the routine writes a **draft article** to `newsroom/drafts/<date>-<slug>.md`, in
+the shape the site already takes:
+
+    ---
+    title: <the headline, as it would appear on the home page>
+    standfirst: |
+      <two or three sentences, the shape of an articles.toml standfirst>
+    href: <the anchor it would live at, if it belongs inside an existing piece>
+    quantity: <the model quantity that decides it, named exactly — e.g.
+              P(MK is the largest single party)>
+    verified: primary | secondary | blocked
+    sources:
+      - <url>
+    ---
+
+    <the body: what was claimed, by whom, on the record, and what the model
+    would have to say for the claim to be true. NO MODEL FIGURES — the routine
+    has no forecast and must not invent one. Leave `{{token}}` placeholders
+    where a number goes.>
+
+⛔ **The routine never states a model number.** It has no `data/`, no run and no
+forecast; anything numeric it wrote about the model would be fabricated. It
+names the quantity and leaves the token. Atlas fills it by running the model.
+
+Publishing one on Atlas is then: read it, run the quantity, replace the tokens,
+move it into `content/joburg/articles.toml` plus the piece it belongs to, build,
+deploy.
+
+---
+
+## 3c. Paywalls: the routine cannot read them, Atlas can
+
+The owner holds a **Daily Maverick** subscription (working) and **News24**
+(broken as of 2026-09-26, with support). A cloud session has neither, and three
+of every four September runs were reduced to search snippets.
+
+So the split is:
+
+* the routine reads what is open, and marks anything it could not reach
+  `verified: blocked`, naming the URL it wanted;
+* **a `blocked` item is a queued instruction to Atlas**, where the owner's
+  browser is logged in. It is read there, and its `verified:` is upgraded by
+  whoever read it.
+
+⛔ **Never upgrade `blocked` to `secondary` because a second outlet repeated the
+same snippet.** Two outlets copying one wire is one source.
+
+---
+
 ## 4. `newsroom/INDEX.md`
 
 The routine appends one row per digest and never edits an existing one. The

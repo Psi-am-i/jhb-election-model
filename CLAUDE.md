@@ -1,6 +1,17 @@
 **MemPalace wing:** `jhb_election_model` — file every diary entry, drawer and KG fact here.
 **Global policy — agent identity, MemPalace, machines, secrets — is in `~/CLAUDE.md` (rules 1-5)** and `~/projects/SECRETS.md`. Do not restate it.
 
+> ⛔ **WHO IS READING THIS.** Two kinds of session reach this file and they get
+> different halves of it.
+>
+> * **The newsdesk routine** — a scheduled cloud session, which cannot see Atlas
+>   and has no `data/`, no `.venv` and no forecast. **Its whole contract is
+>   `newsroom/NEWSDESK-RULES.md`. Read that and nothing else here.** It never
+>   edits a model file, a page, `polls.json` or `MODEL-LOG.md`; it proposes, and
+>   Atlas disposes. The rules below are not addressed to it and following them
+>   would be a mistake.
+> * **A session on Atlas** — everything below is yours.
+>
 > ⛔ **THIS PROJECT RUNS ON ATLAS. If `hostname -s` says anything else, stop and
 > tell the owner before doing any work.** Say: *"This is a <host> session. This
 > project should be run from Atlas."* Why it is Atlas only: `data/**` is
@@ -10,6 +21,12 @@
 > Its local branch also drifts behind silently, so a session there works from
 > an out-of-date `HANDOVER.md`. If the owner says to carry on anyway: `git fetch`
 > first, and run everything through `ssh atlas`.
+>
+> ⛔ **THIS FILE IS ALSO THE ONE GITHUB CARRIES.** GitHub `main` used to hold a
+> DIFFERENT file of the same name — the newsdesk routine's rules, and only
+> those. Whichever file landed there last would have deleted the other. There is
+> one `CLAUDE.md` now, and the routine's rules live in `newsroom/` where they can
+> change without touching the modelling contract.
 
 ---
 
