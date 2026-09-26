@@ -815,3 +815,33 @@ current as the last build.
 **None of this is a model change and none of it moves a forecast number.** It
 is between the finished build and the deploy, which is exactly where it will be
 found at the worst moment if it is not cleared first.
+
+## 12. A change is measured against the number that was published (owner, 2026-09-26)
+
+Owner: *"change must always be against previously published number."*
+
+**Standing rule, not a one-off.** Every figure a reader sees is compared with
+what the site last showed them, and "new" is reserved for a figure that has
+never been published. It is not a licence to call a whole edition new because
+the ledger happens to be empty.
+
+**What was done for it.** The ledger was empty and the site was not, so the
+first `--publish` would have entered all 318 tokens as first-published. The four
+live pages are archived at `archive/live-2026-08-07/` with their sha256, and
+`publication.backfill()` — run once, through
+`audits/2026-09-26-ledger-backfill/backfill_live.py`, rehearsed against a
+throwaway `--ledger-root` first — entered the 27 tokens they carried. Against
+that baseline the build reports **4 material moves**: `anc_entitlement` 65 -> 58,
+`anc_ward_median` 74 -> 61, `p_da_largest` 62% -> 47%, `p_excessive_anc`
+96% -> 65%. 23 tokens report nothing, and 291 are new figures on pages the live
+site does not have.
+
+⚠️ **Two different things in the build call themselves changed.** The ledger's
+movement classes are one. The `arrows:` line is the other, and it is unrelated:
+it marks a FROZEN registry entry whose `tracks` counterpart has since moved, in
+the page rather than in the ledger. Both happen to report 4 today. A rule about
+change has to say which one it governs; this one governs the ledger.
+
+⚠️ **The rule cannot reach `site/portal.html`.** The hub's headline is read from
+each city's `forecast_summary.json` and written as plain text, so it is neither a
+token nor a ledger row.

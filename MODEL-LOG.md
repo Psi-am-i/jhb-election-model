@@ -27181,7 +27181,8 @@ coherent seats in the one city-year that is published.
 §1.260 asked for one Pyodide run of `run_model` at two draw counts on this seed,
 reporting the same fixed/per-draw split. This is it.
 
-⚠️ **Hosted by Node, not by a browser.** Pyodide 0.29 (`v314.0.7` runtime) under
+⚠️ **Hosted by Node, not by a browser.** the `pyodide` npm package at **314.0.7** (its
+`package.json`; nothing here measured a Pyodide release number) under
 Node v24.5.0 on Atlas, same V8 WebAssembly engine a Chromium browser runs, but
 the file reads go through NODEFS at local-disk speed. A browser fetches those
 bytes over HTTP, so the fixed cost below is a floor for a browser, not an

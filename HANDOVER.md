@@ -270,14 +270,15 @@ here first, so anything stale in this file is read as an instruction.
 >      parties);
 >    - owner review, then `build_site.py --publish --reason … --change-class …`,
 >      then `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy`;
->    - ⚠️ **the publication ledger is EMPTY — there is no `publications/`
->      directory** (measured 2026-09-26). `build_site` never calls
->      `publication.backfill()`, so the first `--publish` enters all 318 tokens
->      as first-published and the reader-facing `changes.json` will tell readers
->      every figure on the site is new, although the live pages have stood since
->      31 August. Either accept that, or archive the live page's bytes and
->      backfill against them first — `backfill()` is keyed to an archived page's
->      sha256 and refuses without one.
+>    - ✅ **the ledger has its baseline** (2026-09-26, `191465d`, owner's rule in
+>      PUBLISHING-BACKLOG §12: *"change must always be against previously
+>      published number"*). The live site is FOUR pages carrying 27 tokens and
+>      it is the **7 August** build, not the 31 August one — every page stamps
+>      `data-when="2026-08-07"`, and `/forecast`, `/about`, `/corrections` and
+>      `/nobody-will-win` 404 there. Those pages are archived with their sha256
+>      at `archive/live-2026-08-07/`; do not re-save or re-fetch them, the hash
+>      is the row identity. The build now reports 4 material moves, 23 unmoved
+>      and 291 new.
 >
 > **Owner decisions, interactive** — recorded in `PUBLISHING-BACKLOG.md` §9a,
 > in his words. **Decided:** a DA-among-Black-Africans slider; turnout as overall
