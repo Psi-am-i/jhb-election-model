@@ -380,7 +380,21 @@ def main(argv: list[str] | None = None) -> int:
             "no_red_share": chance("claim.red_lines.no_red_share", float((_no_red >= thr).mean())),
             "no_red_median": tok("claim.red_lines.no_red_median", int(np.median(_no_red)), "int"),
             "three_share": chance("claim.red_lines.three_share", float((_three >= thr).mean())),
+            # TWO MEDIANS, AND THEY ANSWER DIFFERENT QUESTIONS. The
+            # unconditional one is what this combination holds in a typical
+            # simulation; the conditional one is what it holds in the
+            # simulations where it actually reaches a majority, which is what
+            # the who-can-govern table reports as `seats_when_wins`. They
+            # differ by more than 20 seats for DA+ASA+PA, and quoting one
+            # against the other — 118 on this page, 144 in the table, both
+            # called "median" — is how a reader is told the page contradicts
+            # itself. Owner, 2026-09-27: "it can't be 118 seats and 144 seats".
             "three_median": tok("claim.red_lines.three_median", int(np.median(_three)), "int"),
+            "three_median_when_wins": tok(
+                "claim.red_lines.three_median_when_wins",
+                int(np.median(_three[_three >= thr])) if (_three >= thr).any() else 0,
+                "int", f"{_sd}, among the simulations where this combination "
+                       f"reaches a majority"),
             "anc_side_share": chance("claim.red_lines.anc_side_share", float((_anc_side >= thr).mean())),
             "anc_left_share": chance("claim.anc_routes.left_share", float((_left >= thr).mean())),
             "anc_left_median": tok("claim.anc_routes.left_median", int(np.median(_left)), "int"),

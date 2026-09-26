@@ -25,14 +25,22 @@
     --k-article:#7aa6d6; --k-claim:#d9954f; --k-explain:#6fb98a;
     --k-interactive:#b98ad6;
   }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){color-scheme:light;
+    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
+    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
+    --accent:#a8621f; --accent-soft:#f0e2d5;
+    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
+    --k-article:#2f5f96; --k-claim:#a8621f; --k-explain:#2f6d4a;
+    --k-interactive:#7a4a9c;}
+  }
   :root[data-theme="light"]{color-scheme:light;
     --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
     --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
     --accent:#a8621f; --accent-soft:#f0e2d5;
     --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
     --k-article:#2f5f96; --k-claim:#a8621f; --k-explain:#2f6d4a;
-    --k-interactive:#7a4a9c;
-  }
+    --k-interactive:#7a4a9c;}
   .themetoggle{font:inherit;color:var(--ink-3);background:none;border:0;
     padding:0;cursor:pointer;white-space:nowrap;line-height:0;align-self:center;}
   .themetoggle svg{display:block;}
@@ -45,13 +53,23 @@
   (function () {
     var t = null;
     try { t = localStorage.getItem("theme"); } catch (e) {}
-    if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+    if (t !== "light" && t !== "dark") {
+      // No stored choice: the operating system's is the answer, and it is
+      // written onto the element so the toggle and every [data-theme] rule
+      // read one thing. Without this the icon offers to switch to the theme
+      // already showing.
+      t = (window.matchMedia
+           && window.matchMedia("(prefers-color-scheme: light)").matches)
+          ? "light" : "dark";
+    }
+    document.documentElement.setAttribute("data-theme", t);
   })();
   function toggleTheme() {
     var root = document.documentElement;
     var light = root.getAttribute("data-theme") !== "light";
-    if (light) root.setAttribute("data-theme", "light");
-    else root.removeAttribute("data-theme");
+    // Always an explicit value. Removing the attribute used to mean "dark",
+    // which is wrong now that its absence means "ask the OS".
+    root.setAttribute("data-theme", light ? "light" : "dark");
     try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
   }
 </script>
@@ -533,7 +551,7 @@ known defects in the public records we depend on are all published:</p>
 <li><code>SOURCES.md</code> — where every input came from and how to fetch it again</li>
 </ul>
 <div class="colophon">
-  Reader edition, generated from docs-public/methodology.md on 2026-09-26. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
+  Reader edition, generated from docs-public/methodology.md on 2026-09-27. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
   <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>

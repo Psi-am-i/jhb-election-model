@@ -617,6 +617,21 @@
       "value": 118.0
     },
     {
+      "display": "144",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "forecast.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "ward_draws.csv + seat_detail_draws.csv, among the simulations where this combination reaches a majority",
+      "token": "claim.red_lines.three_median_when_wins",
+      "value": 144.0
+    },
+    {
       "display": "17%",
       "fmt": "chance",
       "mode": "generated",
@@ -4793,9 +4808,9 @@
     "draws": 5000,
     "forecast_content_sha256": "661b8783e7cb6dad1f5301c008bd816cc347cb8ee9c69455a685a003289fef86",
     "forecast_summary_sha256": "6ea8d7976f780e4acf9fec434b55d0140f239927026cce518d580125b7d1a95f",
-    "git_commit": "3000e306f1162729850ec8e5b6f43036b20e63a5",
+    "git_commit": "baecc9e86a2f087e840cd70641122139d8f4345e",
     "git_dirty": true,
-    "model_run_id": "r-661b8783e7cb-3000e306-dirty",
+    "model_run_id": "r-661b8783e7cb-baecc9e8-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
@@ -4858,6 +4873,9 @@
   },
   "summary": {
     "by_movement": {
+      "new": [
+        "claim.red_lines.three_median_when_wins"
+      ],
       "none": [
         "anc_entitlement",
         "anc_ward_median",
@@ -5179,7 +5197,7 @@
         "tile.p_da_largest"
       ]
     },
-    "n": 318,
+    "n": 319,
     "n_rounding": 0,
     "n_visible": 0,
     "nominal": []

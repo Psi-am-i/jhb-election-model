@@ -189,9 +189,34 @@ def nav_for(active_href: str) -> str:
 # reader editions followed the OS, the forecast sheet followed the OS unless a
 # data-theme attribute nobody ever set said otherwise, and the home page was
 # dark only — so walking the nav changed the lights. Every page now takes its
-# colours from here and nowhere else: dark is the bare :root, so a reader with
-# no script and no stored choice still gets dark; light is opt-in, remembered
-# in localStorage, and applied in <head> before first paint so nothing flashes.
+# colours from here and nowhere else.
+#
+# ⛔ THE OS DECIDES, NOT THIS FILE (owner, 2026-09-27: "can light dark themes
+# match the OS from the browser?"). Dark is the bare `:root` only because a
+# palette has to be written somewhere; it is NOT the default a reader gets.
+# Three cases, and they are ordered so the more specific statement wins:
+#
+#   1. a reader who has chosen — `data-theme` is set from localStorage in
+#      <head> before first paint, and beats everything below;
+#   2. a reader who has not, with script — the same <head> script reads
+#      `prefers-color-scheme` and sets `data-theme` explicitly, so the toggle's
+#      own icon logic and every `[data-theme]` rule see one consistent answer
+#      rather than an attribute that is absent but effectively light;
+#   3. a reader with NO SCRIPT — the media query below carries the light
+#      palette, so the OS is still honoured. `:not([data-theme="dark"])` keeps
+#      an explicit dark choice winning over an OS that prefers light.
+#
+# The light palette is written ONCE, as `_LIGHT_VARS`, and emitted in both
+# places it is needed. Two hand-maintained copies of the same twelve colours is
+# how one of them goes stale.
+_LIGHT_VARS = """color-scheme:light;
+    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
+    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
+    --accent:#a8621f; --accent-soft:#f0e2d5;
+    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
+    --k-article:#2f5f96; --k-claim:#a8621f; --k-explain:#2f6d4a;
+    --k-interactive:#7a4a9c;"""
+
 THEME_HEAD = """<style>
   :root{color-scheme:dark;
     --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
@@ -201,14 +226,10 @@ THEME_HEAD = """<style>
     --k-article:#7aa6d6; --k-claim:#d9954f; --k-explain:#6fb98a;
     --k-interactive:#b98ad6;
   }
-  :root[data-theme="light"]{color-scheme:light;
-    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
-    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
-    --accent:#a8621f; --accent-soft:#f0e2d5;
-    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
-    --k-article:#2f5f96; --k-claim:#a8621f; --k-explain:#2f6d4a;
-    --k-interactive:#7a4a9c;
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){__LIGHT__}
   }
+  :root[data-theme="light"]{__LIGHT__}
   .themetoggle{font:inherit;color:var(--ink-3);background:none;border:0;
     padding:0;cursor:pointer;white-space:nowrap;line-height:0;align-self:center;}
   .themetoggle svg{display:block;}
@@ -221,17 +242,28 @@ THEME_HEAD = """<style>
   (function () {
     var t = null;
     try { t = localStorage.getItem("theme"); } catch (e) {}
-    if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+    if (t !== "light" && t !== "dark") {
+      // No stored choice: the operating system's is the answer, and it is
+      // written onto the element so the toggle and every [data-theme] rule
+      // read one thing. Without this the icon offers to switch to the theme
+      // already showing.
+      t = (window.matchMedia
+           && window.matchMedia("(prefers-color-scheme: light)").matches)
+          ? "light" : "dark";
+    }
+    document.documentElement.setAttribute("data-theme", t);
   })();
   function toggleTheme() {
     var root = document.documentElement;
     var light = root.getAttribute("data-theme") !== "light";
-    if (light) root.setAttribute("data-theme", "light");
-    else root.removeAttribute("data-theme");
+    // Always an explicit value. Removing the attribute used to mean "dark",
+    // which is wrong now that its absence means "ask the OS".
+    root.setAttribute("data-theme", light ? "light" : "dark");
     try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
   }
 </script>
 """
+THEME_HEAD = THEME_HEAD.replace("__LIGHT__", _LIGHT_VARS)
 
 # Standalone nav styling injected into the artefact pages (which carry their
 # own stylesheets); the rendered documents get it via STYLE above.
