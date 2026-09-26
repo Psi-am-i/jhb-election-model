@@ -783,6 +783,18 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         # changes what the INDEX says, never what the model draws.
         "MAX_APPORTIONMENT_CHARS", "MAX_EXPRESSION_CHARS",
         "MIN_GLOB_FRAGMENT",
+        # `inputs_preflight.SNAPSHOT_STALE_DAYS` — how old the IEC registration
+        # snapshot may be before the preflight calls it stale. OPERATIONAL, the
+        # same argument as `STRIPE_MIN` and `DECLARATION_MIN_CHARS` above: it
+        # decides whether one row of a report prints `ok` or `MISSING`, and no
+        # draw, share or seat depends on it. The module reads the tree and
+        # prints; nothing in the model imports it.
+        # ⚠️ It IS a judgement about how fast registration moves, and it is
+        # written where a person changing it will read why: the constant's own
+        # comment says it is a judgement and not a measurement. Added
+        # 2026-09-27 with the preflight, after this guard caught it — which is
+        # the third time it has caught a constant on the day it was written.
+        "SNAPSHOT_STALE_DAYS",
         # `stats.DECLARATION_MIN_CHARS` — the shortest string accepted as a
         # REASON on an `unverifiable` or `historical` declaration. OPERATIONAL:
         # it decides whether a sentence counts as an explanation, and it cannot
