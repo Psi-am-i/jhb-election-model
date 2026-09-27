@@ -154,8 +154,9 @@ is a correction, not a rewording. *(Owner: add, leave for now.)*
   (`Psi-am-i/jhb-model-newsdesk`), 27 Sept. Its rules are its `CLAUDE.md`; the
   two-`CLAUDE.md` collision is gone. Routine `joburg-daily-newsdesk` repointed
   and its prompt reduced to "follow `CLAUDE.md`".
-* **Owner, open:** close the 13 `newsdesk/*` PRs on the model repo (every digest
-  is in the new repo), and remove the routine's five connectors (Gmail, Drive,
+* ~~Close the 13 `newsdesk/*` PRs~~ — closed 28 Sept with a pointer; their 15
+  `newsdesk/*` branches remain on GitHub.
+* **Owner, open:** remove the routine's five connectors (Gmail, Drive,
   Calendar, Cloudflare, Claude Code Remote) in the routine settings. The API
   would not clear them. Claude Code Remote is what let it schedule its own
   follow-up routines.
