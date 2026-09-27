@@ -242,10 +242,11 @@ One caveat on the comparison. Two of the three baselines produce a single number
 
 ## What this does not prove
 
-**These are not fully out-of-sample scores, and the model says so on every run.** Two inputs could not be confined to the period before the election:
+**These are not fully out-of-sample scores, and the model says so on every run.** At least one input could not be confined to the period before the election, and the run prints the full list above its own results:
 
 * **The census.** Ward-level population figures come from the 2022 census, which was taken after the 2021 election. It is the only census we hold. A census records who lives in a ward, not how they voted, so it cannot leak a result — but it is information from after the fact and it is declared as such.
-* **How much a breakaway party takes.** When a well-known figure leaves a party and starts their own, how much of the old party's vote follows them depends enormously on whether that figure's support is in *this* city. Only one such split had happened anywhere before 2021, and one example is not a pattern. The model used to fill that gap with splits from after 2021 — including MK's, three years later — which flattered this page. Since 14 August 2026 it does not: the record is cut at the election being forecast, the same rule every other record here obeys. Johannesburg's figure is worse for it and is honest.
+
+**How much a breakaway party takes — this one WAS a leak, and is not one now.** When a well-known figure leaves a party and starts their own, how much of the old party's vote follows them depends enormously on whether that figure's support is in *this* city. Only one such split had happened anywhere before 2021, and one example is not a pattern. The model used to fill that gap with splits from after 2021 — including MK's, three years later — which flattered this page. Since 14 August 2026 it does not: the record is cut at the election being forecast, the same rule every other record here obeys. Johannesburg's figure is worse for it and is honest.
 
 Every run prints these above its results. The honest reading is that this is a strong estimate of what the machinery is worth, not a sealed prediction made in 2021.
 

@@ -45,7 +45,7 @@ checked against the archived page rather than assumed. And the rule is now
 explicit where the figures live: the source of a frozen figure is the ledger,
 never a build.</span>
 
-<span data-asof="2026-09-23">**Nothing is listed here yet.** Checked against
+<span data-asof="2026-09-23">**Nothing was outstanding when this page was checked on 2026-09-23.** Checked against
 the published page on 2026-09-23: the three entries this page carried in draft
 all described figures that were never public. They came from a local build on
 17 September that was never deployed — the "smaller parties" bar said 15 seats

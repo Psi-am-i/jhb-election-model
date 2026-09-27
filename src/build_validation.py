@@ -321,16 +321,26 @@ def markdown(target: str, results: dict) -> str:
     add("## What this does not prove")
     add("")
     if any(r["model"]["in_sample"] for r in results.values()):
+        # ⛔ DO NOT TYPE THE COUNT. It said "Two inputs could not be confined",
+        # listed the census and the splinter record, and then the second bullet
+        # explained that the splinter record IS confined now — the page
+        # contradicting itself one paragraph later. It was also wrong in the
+        # other direction: `backtest.contaminated` returns three keys for 2021
+        # and the run's own banner names others the page never mentions. So the
+        # lead-in no longer counts, and the splinter bullet has moved out of
+        # this list into the paragraph below, where it belongs as history.
         add("**These are not fully out-of-sample scores, and the model says so "
-            "on every run.** Two inputs could not be confined to the period "
-            "before the election:")
+            "on every run.** At least one input could not be confined to the "
+            "period before the election, and the run prints the full list "
+            "above its own results:")
         add("")
         add("* **The census.** Ward-level population figures come from the 2022 "
             "census, which was taken after the 2021 election. It is the only "
             "census we hold. A census records who lives in a ward, not how "
             "they voted, so it cannot leak a result — but it is information "
             "from after the fact and it is declared as such.")
-        add("* **How much a breakaway party takes.** When a well-known figure "
+        add("")
+        add("**How much a breakaway party takes — this one WAS a leak, and is not one now.** When a well-known figure "
             "leaves a party and starts their own, how much of the old party's "
             "vote follows them depends enormously on whether that figure's "
             # ⛔ THIS PARAGRAPH WAS FALSE FROM 2026-08-14 TO 2026-09-27.

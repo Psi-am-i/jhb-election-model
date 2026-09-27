@@ -393,7 +393,12 @@ def main(argv: list[str] | None = None) -> int:
             "three_median_when_wins": tok(
                 "claim.red_lines.three_median_when_wins",
                 int(np.median(_three[_three >= thr])) if (_three >= thr).any() else 0,
-                "int", f"{_sd}, among the simulations where this combination "
+                # SRC, not _sd. The value is a median over `_three`, which
+                # is built from `S` — read from seat_draws.csv — while `_sd` is
+                # "ward_draws.csv + seat_detail_draws.csv". Its twin
+                # `three_median` cites SRC correctly, so the tooltip on one of
+                # the pair named a file the figure never touched.
+                "int", f"{SRC}, among the simulations where this combination "
                        f"reaches a majority"),
             "anc_side_share": chance("claim.red_lines.anc_side_share", float((_anc_side >= thr).mean())),
             "anc_left_share": chance("claim.anc_routes.left_share", float((_left >= thr).mean())),

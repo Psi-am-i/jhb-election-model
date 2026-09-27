@@ -612,7 +612,7 @@
       "previous": null,
       "previous_published_at": null,
       "previous_value": null,
-      "source": "ward_draws.csv + seat_detail_draws.csv, among the simulations where this combination reaches a majority",
+      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination reaches a majority",
       "token": "claim.red_lines.three_median_when_wins",
       "value": 144.0
     },
@@ -4793,9 +4793,9 @@
     "draws": 5000,
     "forecast_content_sha256": "661b8783e7cb6dad1f5301c008bd816cc347cb8ee9c69455a685a003289fef86",
     "forecast_summary_sha256": "6ea8d7976f780e4acf9fec434b55d0140f239927026cce518d580125b7d1a95f",
-    "git_commit": "42efe9b8c22de7b60cad98a3536bd318e228608b",
+    "git_commit": "344277d8b8fda23560a49332e7c09238c20d1630",
     "git_dirty": true,
-    "model_run_id": "r-661b8783e7cb-42efe9b8-dirty",
+    "model_run_id": "r-661b8783e7cb-344277d8-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",

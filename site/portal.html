@@ -9,7 +9,7 @@
 <meta property="og:title" content="Who governs your city?">
 <meta property="og:description" content="Voting-district models of South
  Africa's metros for the 4 November 2026 local government election: thousands of
- simulated elections, the real seat law, every assumption a slider.">
+ simulated elections, the real seat law, every assumption written down.">
 <meta property="og:url" content="https://whysoserious.city/">
 <style>
   :root{color-scheme:dark;
@@ -20,14 +20,22 @@
     --k-article:#7aa6d6; --k-claim:#d9954f; --k-explain:#6fb98a;
     --k-interactive:#b98ad6;
   }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){color-scheme:light;
+    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
+    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
+    --accent:#a8621f; --accent-soft:#f0e2d5;
+    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
+    --k-article:#2f5f96; --k-claim:#a8621f; --k-explain:#2f6d4a;
+    --k-interactive:#7a4a9c;}
+  }
   :root[data-theme="light"]{color-scheme:light;
     --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
     --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
     --accent:#a8621f; --accent-soft:#f0e2d5;
     --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
     --k-article:#2f5f96; --k-claim:#a8621f; --k-explain:#2f6d4a;
-    --k-interactive:#7a4a9c;
-  }
+    --k-interactive:#7a4a9c;}
   .themetoggle{font:inherit;color:var(--ink-3);background:none;border:0;
     padding:0;cursor:pointer;white-space:nowrap;line-height:0;align-self:center;}
   .themetoggle svg{display:block;}
@@ -40,13 +48,23 @@
   (function () {
     var t = null;
     try { t = localStorage.getItem("theme"); } catch (e) {}
-    if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+    if (t !== "light" && t !== "dark") {
+      // No stored choice: the operating system's is the answer, and it is
+      // written onto the element so the toggle and every [data-theme] rule
+      // read one thing. Without this the icon offers to switch to the theme
+      // already showing.
+      t = (window.matchMedia
+           && window.matchMedia("(prefers-color-scheme: light)").matches)
+          ? "light" : "dark";
+    }
+    document.documentElement.setAttribute("data-theme", t);
   })();
   function toggleTheme() {
     var root = document.documentElement;
     var light = root.getAttribute("data-theme") !== "light";
-    if (light) root.setAttribute("data-theme", "light");
-    else root.removeAttribute("data-theme");
+    // Always an explicit value. Removing the attribute used to mean "dark",
+    // which is wrong now that its absence means "ask the OS".
+    root.setAttribute("data-theme", light ? "light" : "dark");
     try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
   }
 </script>
@@ -177,11 +195,16 @@
   <header class="pmast">
     <div class="kicker">South African local government · 4 November 2026</div>
     <h1>Who governs your city?</h1>
+    <!-- ⛔ NO SLIDER EXISTS ON ANY PAGE. This read "every assumption a slider
+         you can move", in the present tense, on the one page `deploy_check`
+         does not scan. Describe what is here; the interactive can change this
+         sentence when it ships and not before. -->
     <p class="standfirst">A voting-district model of each metro: thousands of
-    simulated elections, the real seat law, and every assumption a slider you
-    can move. No party is barracked for; nothing is hand-typed. Pick a city.</p>
+    simulated elections, the real seat law, and every assumption written down
+    where you can check it. No party is barracked for; nothing is hand-typed.
+    Pick a city.</p>
   </header>
-  <div class="pcards"><a class="pcard" href="https://joburg.whysoserious.city" style="--city:#a8621f"><div class="pc-name">City of Johannesburg</div><div class="pc-num">67<span>/270</span></div><div class="pc-sub">ANC leads on the median simulation, DA on 66 — 136 needed to govern</div><div class="pc-cta">Open the forecast →</div></a><div class="pcard pcard-soon" style="--city:#a8621f"><div class="pc-name">Buffalo City Metropolitan Municipality</div><div class="pc-num pc-soon">100<span> seats</span></div><div class="pc-sub">50 wards. Not modelled yet — no numbers, and we would rather say so.</div><div class="pc-cta">In preparation</div></div><div class="pcard pcard-soon" style="--city:#a8621f"><div class="pc-name">City of Cape Town</div><div class="pc-num pc-soon">231<span> seats</span></div><div class="pc-sub">116 wards. Not modelled yet — no numbers, and we would rather say so.</div><div class="pc-cta">In preparation</div></div><div class="pcard pcard-soon" style="--city:#a8621f"><div class="pc-name">City of Ekurhuleni</div><div class="pc-num pc-soon">224<span> seats</span></div><div class="pc-sub">112 wards. Not modelled yet — no numbers, and we would rather say so.</div><div class="pc-cta">In preparation</div></div><div class="pcard pcard-soon" style="--city:#a8621f"><div class="pc-name">eThekwini Municipality</div><div class="pc-num pc-soon">222<span> seats</span></div><div class="pc-sub">111 wards. Not modelled yet — no numbers, and we would rather say so.</div><div class="pc-cta">In preparation</div></div><div class="pcard pcard-soon" style="--city:#a8621f"><div class="pc-name">Mangaung Metropolitan Municipality</div><div class="pc-num pc-soon">101<span> seats</span></div><div class="pc-sub">51 wards. Not modelled yet — no numbers, and we would rather say so.</div><div class="pc-cta">In preparation</div></div><div class="pcard pcard-soon" style="--city:#a8621f"><div class="pc-name">Nelson Mandela Bay Metropolitan Municipality</div><div class="pc-num pc-soon">120<span> seats</span></div><div class="pc-sub">60 wards. Not modelled yet — no numbers, and we would rather say so.</div><div class="pc-cta">In preparation</div></div><div class="pcard pcard-soon" style="--city:#6b4fa8"><div class="pc-name">City of Tshwane</div><div class="pc-num pc-soon">214<span> seats</span></div><div class="pc-sub">107 wards. Not modelled yet — no numbers, and we would rather say so.</div><div class="pc-cta">In preparation</div></div></div>
+  <div class="pcards"><a class="pcard" href="https://joburg.whysoserious.city" style="--city:#a8621f"><div class="pc-name">City of Johannesburg</div><div class="pc-num">67<span>/270</span></div><div class="pc-sub">ANC leads on the median simulation, DA on 66 — 136 needed to govern</div><div class="pc-cta">Open the forecast →</div></a><div class="pcard pcard-soon" style="--city:#a8621f"><div class="pc-name">Buffalo City Metropolitan Municipality</div><div class="pc-num pc-soon">100<span> seats</span></div><div class="pc-sub">50 wards. No 2026 forecast yet — its 2021 backtest is on the <a href="https://joburg.whysoserious.city/about">scoring page</a>.</div><div class="pc-cta">In preparation</div></div><div class="pcard pcard-soon" style="--city:#a8621f"><div class="pc-name">City of Cape Town</div><div class="pc-num pc-soon">231<span> seats</span></div><div class="pc-sub">116 wards. No 2026 forecast yet — its 2021 backtest is on the <a href="https://joburg.whysoserious.city/about">scoring page</a>.</div><div class="pc-cta">In preparation</div></div><div class="pcard pcard-soon" style="--city:#a8621f"><div class="pc-name">City of Ekurhuleni</div><div class="pc-num pc-soon">224<span> seats</span></div><div class="pc-sub">112 wards. No 2026 forecast yet — its 2021 backtest is on the <a href="https://joburg.whysoserious.city/about">scoring page</a>.</div><div class="pc-cta">In preparation</div></div><div class="pcard pcard-soon" style="--city:#a8621f"><div class="pc-name">eThekwini Municipality</div><div class="pc-num pc-soon">222<span> seats</span></div><div class="pc-sub">111 wards. No 2026 forecast yet — its 2021 backtest is on the <a href="https://joburg.whysoserious.city/about">scoring page</a>.</div><div class="pc-cta">In preparation</div></div><div class="pcard pcard-soon" style="--city:#a8621f"><div class="pc-name">Mangaung Metropolitan Municipality</div><div class="pc-num pc-soon">101<span> seats</span></div><div class="pc-sub">51 wards. No 2026 forecast yet — its 2021 backtest is on the <a href="https://joburg.whysoserious.city/about">scoring page</a>.</div><div class="pc-cta">In preparation</div></div><div class="pcard pcard-soon" style="--city:#a8621f"><div class="pc-name">Nelson Mandela Bay Metropolitan Municipality</div><div class="pc-num pc-soon">120<span> seats</span></div><div class="pc-sub">60 wards. No 2026 forecast yet — its 2021 backtest is on the <a href="https://joburg.whysoserious.city/about">scoring page</a>.</div><div class="pc-cta">In preparation</div></div><div class="pcard pcard-soon" style="--city:#6b4fa8"><div class="pc-name">City of Tshwane</div><div class="pc-num pc-soon">214<span> seats</span></div><div class="pc-sub">107 wards. No 2026 forecast yet — its 2021 backtest is on the <a href="https://joburg.whysoserious.city/about">scoring page</a>.</div><div class="pc-cta">In preparation</div></div></div>
   <p class="pfoot">Each city is modelled from the Electoral Commission's own
   voting-district results. A city appears here with numbers only once its
   allocator reproduces that city's published 2011, 2016 and 2021 councils
