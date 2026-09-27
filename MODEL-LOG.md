@@ -27232,3 +27232,63 @@ carries their noise as §1.260's did; the 141 MB is what one 5-draw run opened a
 a lever change that re-enters the fixed stage may open more; and a browser has
 not been measured at all.
 
+
+## 1.265 One function reads 90% of the interactive's input, and replacing it with an 89 KB table leaves every drawn number identical (2026-09-28)
+
+Measured natively on Atlas, Johannesburg 2026, BLAS pinned to one thread, harness
+committed at `audits/2026-09-28-route-b/`. Nothing under `data/` was written:
+`run_model` was called directly.
+
+**Where the bytes go.** An audit hook over one 20-draw run records 75 data files,
+147.7 MB (the 141 MiB of §1.264). By the `src/` function that opened them:
+
+| reader | files | MB |
+|---|---|---|
+| `levels._citywide_and_roster` | 65 | 132.90 |
+| `pools.ward_totals` | 1 | 8.69 |
+| `fold.load` | 1 | 4.31 |
+| `pools.read_census_population` | 1 | 1.18 |
+| `pools.read_census` | 1 | 0.41 |
+| `montecarlo.run_model` | 4 | 0.20 |
+| `montecarlo.read_ward_crosswalk` | 1 | 0.05 |
+| `fold.load_parameters` | 1 | 0.00 |
+
+**The reduction.** `_citywide_and_roster` was called 66 times (one path twice).
+Recording what it returned and serialising it — PR shares and roster per path —
+gives a table of **89.2 KB**. `INPUT-ROUTE.md`'s 18.8 KB was the theta record
+alone and did not count the rosters.
+
+**Number-neutrality.** A second run on the same seed with the function replaced
+by a lookup into that table, 60 draws: `seat_draws`, `draws`, `pr_share_draws`,
+`ward_share_draws`, `ward_seat_draws`, `ward_winner_draws`, `excessive_draws`
+and `over_draws` all `np.array_equal`. No lookup missed.
+
+**Speed.** 20-draw run, fresh process per mode, each run twice, two processes
+per mode:
+
+| mode | runs |
+|---|---|
+| parse the files | 15.0, 14.9, 15.0, 14.9 s |
+| read the table | 3.1, 2.9, 3.1, 3.0 s |
+
+A second run in the same process costs the same as the first in both modes, so
+nothing inside `run_model` is cached between runs: §9b's constraint that the
+fixed cost is paid once at load and not per lever change is a page design
+obligation, not something the model already does.
+
+**Limits, stated here.** One seed, one draw count for the identity check, native
+CPython not Pyodide. The identity was checked for a lookup injected in-process;
+the browser will load the table from a file, which adds a JSON round trip the
+check did not exercise. The table was built from one 2026 run, so it holds
+exactly the paths that run asked for; a lever that makes the model ask for a
+different election file would miss. Whether that can happen is unexamined. The
+remaining 15 MB (`ward_totals`, `fold.load`, the census) was not addressed, and
+`openpyxl` is still on the path.
+
+**Why this does not reintroduce the cache `_citywide`'s docstring forbids.** That
+docstring refuses an in-process memo because the temporal spies in
+`tests/_support.py` patch `open`, `Path.open` and `pandas.read_csv`, and a memo
+would let a late file be read without being seen. The native path is unchanged
+and keeps parsing, so every spy keeps watching it. Only the browser would read
+the table, and it forecasts 2026, after which no election file exists. That is
+an argument, not a test, and it goes to the blind review.

@@ -137,3 +137,17 @@ while the ward table counts everyone allocated to a ward, but that is a guess
 and is recorded as one. It changes nothing at this precision — it is 0.025% of a
 denominator — and it is written down so nobody spends an afternoon rediscovering
 it.
+
+## 7. Three more, 2026-09-28
+
+Asked with a recommendation each; the owner overrode one.
+
+* **Route B is built first**, before the seat-law comparison ships on its own
+  (recommended the reverse; owner chose Route B first).
+* **Turnout by area uses the compass sectors** of §1 (north, east, south, west,
+  central), not the City's regions A–G. They are ours and the page has to say
+  how they were drawn.
+* **The untouched page shows the published 5,000-draw forecast.** The engine runs
+  300 draws only once a reader moves a control, and the page then says its band
+  is wider than the published one. This dissolves the "first 300" problem in
+  `INPUT-ROUTE.md`: no 300-draw figure is shown until a reader has asked for one.
