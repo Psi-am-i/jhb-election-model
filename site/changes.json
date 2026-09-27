@@ -61,10 +61,10 @@
       "value": 8
     },
     {
-      "display": "37%",
+      "display": "34%",
       "fmt": "pct0",
       "mode": "free",
-      "movement": "none",
+      "movement": "material",
       "pages": [
         "methodology.html"
       ],
@@ -73,7 +73,7 @@
       "previous_value": 0.3660264390301736,
       "source": "validation:crps_better_pct",
       "token": "backtest_crps_better",
-      "value": 0.3660264390301736
+      "value": 0.3357045468018258
     },
     {
       "display": "353",
@@ -91,10 +91,10 @@
       "value": 353
     },
     {
-      "display": "289",
+      "display": "294",
       "fmt": "int",
       "mode": "free",
-      "movement": "none",
+      "movement": "material",
       "pages": [
         "methodology.html"
       ],
@@ -103,7 +103,7 @@
       "previous_value": 289,
       "source": "validation:seat_err_model",
       "token": "backtest_seat_err_model",
-      "value": 289
+      "value": 294
     },
     {
       "display": "24",
@@ -136,10 +136,10 @@
       "value": 742
     },
     {
-      "display": "721",
+      "display": "719",
       "fmt": "comma",
       "mode": "free",
-      "movement": "none",
+      "movement": "material",
       "pages": [
         "methodology.html"
       ],
@@ -148,7 +148,7 @@
       "previous_value": 721,
       "source": "validation:wards_called",
       "token": "backtest_wards_called",
-      "value": 721
+      "value": 719
     },
     {
       "display": "7",
@@ -447,22 +447,7 @@
       "previous": "34",
       "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 34.0,
-      "source": "ward_draws.csv + seat_detail_draws.csv",
-      "token": "claim.da_alone.wall_anc_high",
-      "value": 34.0
-    },
-    {
-      "display": "34",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "none",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": "34",
-      "previous_published_at": "2026-09-26T13:58:54Z",
-      "previous_value": 34.0,
-      "source": "ward_draws.csv + seat_detail_draws.csv",
+      "source": "ward_draws.csv + seat_detail_draws.csv, over the 1 simulation where this happens",
       "token": "claim.da_alone.wall_anc_low",
       "value": 34.0
     },
@@ -4808,9 +4793,9 @@
     "draws": 5000,
     "forecast_content_sha256": "661b8783e7cb6dad1f5301c008bd816cc347cb8ee9c69455a685a003289fef86",
     "forecast_summary_sha256": "6ea8d7976f780e4acf9fec434b55d0140f239927026cce518d580125b7d1a95f",
-    "git_commit": "b2e10a94b5a4cb90232b32fa79348d77a067e306",
+    "git_commit": "42efe9b8c22de7b60cad98a3536bd318e228608b",
     "git_dirty": true,
-    "model_run_id": "r-661b8783e7cb-b2e10a94-dirty",
+    "model_run_id": "r-661b8783e7cb-42efe9b8-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
@@ -4874,6 +4859,9 @@
   "summary": {
     "by_movement": {
       "material": [
+        "backtest_crps_better",
+        "backtest_seat_err_model",
+        "backtest_wards_called",
         "pub0831_anc_entitlement",
         "pub0831_anc_ward_median",
         "pub0831_p_da_largest",
@@ -4887,12 +4875,9 @@
         "anc_ward_median",
         "asa_2021_seats",
         "backtest_cities",
-        "backtest_crps_better",
         "backtest_seat_err_baseline",
-        "backtest_seat_err_model",
         "backtest_target",
         "backtest_wards",
-        "backtest_wards_called",
         "backtest_wins",
         "ballots.p_anc_excessive",
         "ballots.typical.anc_list",
@@ -4912,7 +4897,6 @@
         "claim.da.median",
         "claim.da_alone.count",
         "claim.da_alone.share",
-        "claim.da_alone.wall_anc_high",
         "claim.da_alone.wall_anc_low",
         "claim.da_alone.wall_count",
         "claim.da_alone.wall_flips",
@@ -5199,9 +5183,9 @@
         "tile.p_da_largest"
       ]
     },
-    "n": 319,
+    "n": 318,
     "n_rounding": 0,
-    "n_visible": 4,
+    "n_visible": 7,
     "nominal": []
   }
 }

@@ -31,92 +31,105 @@ A forecast is only as good as the simplest thing that would have done the same j
 
 | city | seats | our error | best baseline's error | better by |
 |---|---|---|---|---|
-| Johannesburg | 270 | **45.6** | 114.1 (last result plus noise) | **+60%** |
-| Tshwane | 214 | **35.6** | 60.0 (uniform swing) | **+41%** |
-| Ekurhuleni | 224 | **38.7** | 48.0 (uniform swing) | **+19%** |
-| eThekwini | 222 | **31.1** | 36.0 (uniform swing) | **+14%** |
-| Cape Town | 231 | **31.2** | 38.0 (uniform swing) | **+18%** |
-| Mangaung | 101 | **9.5** | 8.0 (uniform swing) | -19% |
-| Nelson Mandela Bay | 120 | **14.3** | 22.0 (uniform swing) | **+35%** |
-| Buffalo City | 100 | **7.9** | 11.3 (last result plus noise) | **+30%** |
-| **all eight** | | **213.9** | 337.4 | **+37%** |
+| Johannesburg | 270 | **66.8** | 114.1 (last result plus noise) | **+41%** |
+| Tshwane | 214 | **27.7** | 60.0 (uniform swing) | **+54%** |
+| Ekurhuleni | 224 | **29.8** | 48.0 (uniform swing) | **+38%** |
+| eThekwini | 222 | **31.0** | 36.0 (uniform swing) | **+14%** |
+| Cape Town | 231 | **34.2** | 38.0 (uniform swing) | **+10%** |
+| Mangaung | 101 | **9.1** | 8.0 (uniform swing) | -14% |
+| Nelson Mandela Bay | 120 | **17.1** | 22.0 (uniform swing) | **+22%** |
+| Buffalo City | 100 | **8.4** | 11.3 (last result plus noise) | **+26%** |
+| **all eight** | | **224.1** | 337.4 | **+34%** |
 
-The model beats the best available baseline in **7 of 8** cities. Across all eight its total error is **37% lower**.
+The model beats the best available baseline in **7 of 8** cities. Across all eight its total error is **34% lower**.
 
-On the simpler measure of how many council seats it got wrong, it misses **289** seats across all eight councils against the baselines' **353** — 18% better. That figure is lower than the headline because it only compares the single most likely outcome, and throws away everything the model says about how uncertain it is.
+On the simpler measure of how many council seats it got wrong, it misses **294** seats across all eight councils against the baselines' **353** — 17% better. That figure is lower than the headline because it only compares the single most likely outcome, and throws away everything the model says about how uncertain it is.
 
-It calls the winner correctly in **721 of 742 wards**.
+It calls the winner correctly in **719 of 742 wards**.
 
 ## What it forecast for 2021, against what happened
 
-Every party that won a seat in 2021, in every city. Our figure is the middle of the range the model produced, not its best case.
+The largest 55 parties in each city, by seats won in 2021. Our figure is the middle of the range the model produced, not its best case.
 
 ### Johannesburg — 270 seats
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| ANC | 91 | 106 | +15 |
-| DA | 71 | 73 | +2 |
-| ActionSA | 44 | 34 | -10 |
-| EFF | 29 | 32 | +3 |
+| ANC | 91 | 105 | +14 |
+| DA | 71 | 89 | +18 |
+| ActionSA | 44 | 15 | -29 |
+| EFF | 29 | 36 | +7 |
 | PA | 8 | 0 | -8 |
-| IFP | 7 | 1 | -6 |
-| VF+ | 4 | 1 | -3 |
+| IFP | 7 | 3 | -4 |
+| VF+ | 4 | 2 | -2 |
 | ACDP | 3 | 1 | -2 |
-| Al Jama-ah | 3 | 0 | -3 |
+| Al Jama-ah | 3 | 1 | -2 |
 | AIC | 2 | 0 | -2 |
 | African Heart Congress | 1 | 0 | -1 |
 | APC | 1 | 0 | -1 |
+| ATM | 1 | 0 | -1 |
+| COPE | 1 | 0 | -1 |
+| GOOD | 1 | 0 | -1 |
+| PAC | 1 | 0 | -1 |
+| UDM | 1 | 0 | -1 |
+| UIM | 1 | 0 | -1 |
 
-*62 seats out in total.*
+*96 seats out in total — across every party that stood, not only the 18 shown above.*
 
 ### Tshwane — 214 seats
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| ANC | 75 | 78 | +3 |
-| DA | 69 | 78 | +9 |
-| EFF | 23 | 26 | +3 |
-| ActionSA | 19 | 1 | -18 |
-| VF+ | 17 | 13 | -4 |
+| ANC | 75 | 79 | +4 |
+| DA | 69 | 71 | +2 |
+| EFF | 23 | 29 | +6 |
+| ActionSA | 19 | 11 | -8 |
+| VF+ | 17 | 10 | -7 |
 | ACDP | 2 | 1 | -1 |
-| AIC | 1 | 0 | -1 |
+| AIC | 1 | 1 | +0 |
 | ATM | 1 | 0 | -1 |
 | COPE | 1 | 0 | -1 |
 | Dop | 1 | 0 | -1 |
 | GOOD | 1 | 0 | -1 |
 | IFP | 1 | 0 | -1 |
+| PA | 1 | 0 | -1 |
+| PAC | 1 | 0 | -1 |
+| Rct | 1 | 0 | -1 |
 
-*47 seats out in total.*
+*36 seats out in total — across every party that stood, not only the 15 shown above.*
 
 ### Ekurhuleni — 224 seats
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| ANC | 86 | 102 | +16 |
-| DA | 65 | 67 | +2 |
-| EFF | 31 | 29 | -2 |
-| ActionSA | 15 | 1 | -14 |
+| ANC | 86 | 98 | +12 |
+| DA | 65 | 66 | +1 |
+| EFF | 31 | 31 | +0 |
+| ActionSA | 15 | 7 | -8 |
 | VF+ | 8 | 6 | -2 |
-| PA | 4 | 0 | -4 |
-| AIC | 3 | 0 | -3 |
+| PA | 4 | 1 | -3 |
+| AIC | 3 | 1 | -2 |
 | IFP | 3 | 1 | -2 |
 | ACDP | 2 | 1 | -1 |
 | ATM | 1 | 0 | -1 |
 | COPE | 1 | 0 | -1 |
 | Independent  | 1 | 0 | -1 |
+| Independent  | 1 | 0 | -1 |
+| NFP | 1 | 0 | -1 |
+| PAC | 1 | 0 | -1 |
+| UDM | 1 | 0 | -1 |
 
-*53 seats out in total.*
+*38 seats out in total — across every party that stood, not only the 16 shown above.*
 
 ### eThekwini — 222 seats
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| ANC | 96 | 107 | +11 |
-| DA | 59 | 56 | -3 |
+| ANC | 96 | 103 | +7 |
+| DA | 59 | 63 | +4 |
 | EFF | 24 | 22 | -2 |
 | IFP | 16 | 10 | -6 |
-| ActionSA | 4 | 1 | -3 |
+| ActionSA | 4 | 2 | -2 |
 | Abantu Batho | 2 | 0 | -2 |
 | ACDP | 2 | 1 | -1 |
 | Active Citiz | 2 | 0 | -2 |
@@ -124,78 +137,96 @@ Every party that won a seat in 2021, in every city. Our figure is the middle of 
 | African Demo | 1 | 0 | -1 |
 | African Peop | 1 | 0 | -1 |
 | Al Jama-ah | 1 | 0 | -1 |
+| ATM | 1 | 0 | -1 |
+| Democratic L | 1 | 1 | +0 |
+| Justice And  | 1 | 0 | -1 |
+| Kzn Independ | 1 | 0 | -1 |
+| Minorities O | 1 | 0 | -1 |
+| Minority Fro | 1 | 1 | +0 |
+| NFP | 1 | 0 | -1 |
+| People S Fre | 1 | 0 | -1 |
+| People S Rev | 1 | 0 | -1 |
+| Truly Allian | 1 | 0 | -1 |
+| UIM | 1 | 0 | -1 |
+| VF+ | 1 | 0 | -1 |
 
-*45 seats out in total.*
+*41 seats out in total — across every party that stood, not only the 24 shown above.*
 
 ### Cape Town — 231 seats
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| DA | 135 | 138 | +3 |
-| ANC | 43 | 51 | +8 |
-| EFF | 10 | 9 | -1 |
-| GOOD | 9 | 6 | -3 |
+| DA | 135 | 141 | +6 |
+| ANC | 43 | 53 | +10 |
+| EFF | 10 | 11 | +1 |
+| GOOD | 9 | 7 | -2 |
 | Cape Coloure | 7 | 0 | -7 |
-| ACDP | 6 | 4 | -2 |
+| ACDP | 6 | 5 | -1 |
 | PA | 4 | 0 | -4 |
-| VF+ | 4 | 1 | -3 |
+| VF+ | 4 | 2 | -2 |
 | Al Jama-ah | 3 | 2 | -1 |
 | Africa Resto | 2 | 0 | -2 |
 | Cape Indepen | 2 | 0 | -2 |
 | AIC | 1 | 0 | -1 |
+| Cape Muslim  | 1 | 0 | -1 |
+| Democratic I | 1 | 0 | -1 |
+| PAC | 1 | 0 | -1 |
+| UDM | 1 | 0 | -1 |
+| UIM | 1 | 0 | -1 |
 
-*43 seats out in total.*
+*44 seats out in total — across every party that stood, not only the 17 shown above.*
 
 ### Mangaung — 101 seats
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| ANC | 51 | 53 | +2 |
-| DA | 26 | 24 | -2 |
+| ANC | 51 | 50 | -1 |
+| DA | 26 | 26 | +0 |
 | EFF | 12 | 12 | +0 |
 | VF+ | 5 | 4 | -1 |
 | Afrikan Alli | 2 | 0 | -2 |
 | PA | 2 | 1 | -1 |
 | ACDP | 1 | 0 | -1 |
-| AIC | 1 | 0 | -1 |
+| AIC | 1 | 1 | +0 |
 | ATM | 1 | 0 | -1 |
 
-*11 seats out in total.*
+*6 seats out in total — across every party that stood, not only the 9 shown above.*
 
 ### Nelson Mandela Bay — 120 seats
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| ANC | 48 | 49 | +1 |
-| DA | 48 | 51 | +3 |
-| EFF | 8 | 8 | +0 |
+| ANC | 48 | 46 | -2 |
+| DA | 48 | 54 | +6 |
+| EFF | 8 | 9 | +1 |
 | Northern All | 3 | 0 | -3 |
 | ACDP | 2 | 1 | -1 |
 | Dop | 2 | 0 | -2 |
 | PA | 2 | 0 | -2 |
-| VF+ | 2 | 1 | -1 |
+| VF+ | 2 | 2 | +0 |
 | Abantu Integ | 1 | 0 | -1 |
 | AIC | 1 | 0 | -1 |
 | GOOD | 1 | 1 | +0 |
 | PAC | 1 | 0 | -1 |
+| UDM | 1 | 0 | -1 |
 
-*18 seats out in total.*
+*21 seats out in total — across every party that stood, not only the 13 shown above.*
 
 ### Buffalo City — 100 seats
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| ANC | 61 | 61 | +0 |
+| ANC | 61 | 57 | -4 |
 | DA | 20 | 22 | +2 |
 | EFF | 13 | 10 | -3 |
 | ACDP | 1 | 1 | +0 |
 | AIC | 1 | 0 | -1 |
 | ATM | 1 | 0 | -1 |
 | PAC | 1 | 0 | -1 |
-| UDM | 1 | 0 | -1 |
+| UDM | 1 | 1 | +0 |
 | VF+ | 1 | 0 | -1 |
 
-*10 seats out in total.*
+*12 seats out in total — across every party that stood, not only the 9 shown above.*
 
 ## The technical measures, in plain language
 
@@ -214,7 +245,7 @@ One caveat on the comparison. Two of the three baselines produce a single number
 **These are not fully out-of-sample scores, and the model says so on every run.** Two inputs could not be confined to the period before the election:
 
 * **The census.** Ward-level population figures come from the 2022 census, which was taken after the 2021 election. It is the only census we hold. A census records who lives in a ward, not how they voted, so it cannot leak a result — but it is information from after the fact and it is declared as such.
-* **How much a breakaway party takes.** When a well-known figure leaves a party and starts their own, how much of the old party's vote follows them depends enormously on whether that figure's support is in *this* city. Only one such split had happened anywhere before 2021, and one example is not a pattern, so the model uses all of them — including two from after 2021. This is a deliberate choice, recorded, and it is the single largest reason the Johannesburg figure improves.
+* **How much a breakaway party takes.** When a well-known figure leaves a party and starts their own, how much of the old party's vote follows them depends enormously on whether that figure's support is in *this* city. Only one such split had happened anywhere before 2021, and one example is not a pattern. The model used to fill that gap with splits from after 2021 — including MK's, three years later — which flattered this page. Since 14 August 2026 it does not: the record is cut at the election being forecast, the same rule every other record here obeys. Johannesburg's figure is worse for it and is honest.
 
 Every run prints these above its results. The honest reading is that this is a strong estimate of what the machinery is worth, not a sealed prediction made in 2021.
 
@@ -224,4 +255,4 @@ Every run prints these above its results. The honest reading is that this is a s
 
 ---
 
-*Generated 2026-08-11 by `src/build_validation.py` from a 400-draw run per city against the 2021 result. The underlying figures are in `data/processed/validation_2021.json`; the code that produced them is public.*
+*Generated 2026-09-27 by `src/build_validation.py` from a 400-draw run per city against the 2021 result. The underlying figures are in `data/processed/validation_2021.json`; the code that produced them is public.*

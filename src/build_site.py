@@ -1192,6 +1192,47 @@ def main(argv: list[str] | None = None) -> int:
             review_path.write_text(stamp.sub(
                 f"<!-- built-pages: {shas} blocking={m.group(2)} -->", body, count=1),
                 encoding="utf-8")
+    # --- the seat-law counterfactuals, as a shippable artefact -------------
+    # ⛔ THE FOUR REGIME RUNS EXIST ONLY ON THE MACHINE THAT MADE THEM.
+    # `overhang_regimes.py` writes them into `data/processed/`, and `data/**`
+    # is gitignored — so the control with the largest measured effect of any
+    # candidate (the ANC at 67 under the shipped rule against 58 under pure
+    # proportionality) had nothing a page could read. This lifts the four
+    # summaries into one small file beside the pages.
+    #
+    # It is a REDUCTION, not a re-run: medians and bands off summaries already
+    # produced at the published 5,000 draws. If a regime summary is missing the
+    # file simply omits it and says which, because a seat-law control that
+    # silently drops a law is worse than one that is absent.
+    regimes = {}
+    for rule, label in (("deduct", "Our law — the surplus is deducted from everyone else"),
+                        ("expand", "Old Germany — the council grows to absorb the surplus"),
+                        ("level", "Modern Germany — every party is topped up to proportionality"),
+                        ("cap", "Germany 2023 — pure proportionality at a fixed council")):
+        src = (args.processed / "forecast_summary.json" if rule == "deduct"
+               else args.processed / f"regime_{rule}_summary.json")
+        if not src.is_file():
+            continue
+        blob = json.loads(src.read_text(encoding="utf-8"))
+        regimes[rule] = {
+            "label": label,
+            "parties": {k: {m: v.get(m) for m in ("median", "p5", "p95")}
+                        for k, v in (blob.get("parties") or {}).items()
+                        if isinstance(v, dict)},
+            "p_excessive_any": blob.get("p_excessive_any"),
+            "threshold_median": blob.get("threshold_median"),
+            "structural": blob.get("structural") or {},
+        }
+    missing = [r for r in ("deduct", "expand", "level", "cap") if r not in regimes]
+    (args.out / "regimes.json").write_text(
+        json.dumps({"rules": regimes, "missing": missing,
+                    "note": "Reduced from the published run's own summaries; "
+                            "no regime was re-run to build this."},
+                   indent=1), encoding="utf-8")
+    print(f"  wrote    regimes.json ({len(regimes)} seat law(s)"
+          + (f"; MISSING {', '.join(missing)} — run src/overhang_regimes.py" if missing else "")
+          + ")")
+
     print(f"  arrows: {len(arrows)} figure(s) marked as moved since the last publication")
 
     # NEW IS COUNTED SEPARATELY FROM CHANGED, because they are different

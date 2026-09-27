@@ -79,8 +79,14 @@ def render(cards: list[dict]) -> str:
         else:
             detail = (f'<div class="pc-num pc-soon">{c["council"]}'
                       f'<span> seats</span></div>'
-                      f'<div class="pc-sub">{c["wards"]} wards. Not modelled '
-                      f'yet — no numbers, and we would rather say so.</div>')
+                      # "Not modelled yet" was flatly contradicted by
+                      # /about, which publishes a 2021 backtest for all eight
+                      # metros. What is missing is a 2026 FORECAST, and the
+                      # card has to say which of the two it means.
+                      f'<div class="pc-sub">{c["wards"]} wards. No 2026 '
+                      f'forecast yet — its 2021 backtest is on the '
+                      f'<a href="https://joburg.whysoserious.city/about">'
+                      f'scoring page</a>.</div>')
             cta = "In preparation"
         klass = "pcard" + ("" if c["live"] else " pcard-soon")
         href = f' href="{c["url"]}"' if c["live"] else ""
@@ -94,9 +100,14 @@ def render(cards: list[dict]) -> str:
   <header class="pmast">
     <div class="kicker">South African local government · {ELECTION}</div>
     <h1>Who governs your city?</h1>
+    <!-- ⛔ NO SLIDER EXISTS ON ANY PAGE. This read "every assumption a slider
+         you can move", in the present tense, on the one page `deploy_check`
+         does not scan. Describe what is here; the interactive can change this
+         sentence when it ships and not before. -->
     <p class="standfirst">A voting-district model of each metro: thousands of
-    simulated elections, the real seat law, and every assumption a slider you
-    can move. No party is barracked for; nothing is hand-typed. Pick a city.</p>
+    simulated elections, the real seat law, and every assumption written down
+    where you can check it. No party is barracked for; nothing is hand-typed.
+    Pick a city.</p>
   </header>
   <div class="pcards">{cards_html}</div>
   <p class="pfoot">Each city is modelled from the Electoral Commission's own
@@ -153,7 +164,7 @@ def main(argv: list[str] | None = None) -> int:
 <meta property="og:title" content="Who governs your city?">
 <meta property="og:description" content="Voting-district models of South
  Africa's metros for the {ELECTION} local government election: thousands of
- simulated elections, the real seat law, every assumption a slider.">
+ simulated elections, the real seat law, every assumption written down.">
 <meta property="og:url" content="https://whysoserious.city/">
 {build_site.THEME_HEAD}<style>{build_site.STYLE}{PORTAL_CSS}</style>
 </head>

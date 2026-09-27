@@ -254,8 +254,20 @@ def markdown(target: str, results: dict) -> str:
     add("")
     add(f"## What it forecast for {target}, against what happened")
     add("")
-    add(f"Every party that won a seat in {target}, in every city. Our figure "
-        f"is the middle of the range the model produced, not its best case.")
+    # ⛔ SAY HOW MANY ROWS THIS IS. It read "Every party that won a seat in
+    # 2021, in every city", and the artefact carries TWELVE parties per city
+    # while Johannesburg seated eighteen. The page then printed a total over
+    # ALL parties beneath rows that do not add up to it — Johannesburg's rows
+    # sum to 56 against a printed 62, and the gap is exactly the six parties
+    # left out. A reader with a calculator got a different number from the one
+    # printed beside the table.
+    # COUNTED from the artefact, not typed. The comment above is the whole
+    # point: a sentence that describes the table has to be derived from the
+    # table, or it goes stale the first time the table changes shape.
+    rows_per_city = max(len(r["model"]["parties"]) for r in results.values())
+    add(f"The largest {rows_per_city} parties in each city, by seats won in "
+        f"{target}. Our figure is the middle of the range the model produced, "
+        f"not its best case.")
     add("")
     for slug, r in results.items():
         m = r["model"]
@@ -263,14 +275,18 @@ def markdown(target: str, results: dict) -> str:
         add("")
         add("| party | actually won | our forecast | out by |")
         add("|---|---|---|---|")
-        for p in m["parties"]:
-            if p["actual"] == 0 and p["forecast"] == 0:
-                continue
+        shown = [p for p in m["parties"]
+                 if not (p["actual"] == 0 and p["forecast"] == 0)]
+        for p in shown:
             name = DISPLAY.get(p["party"], p["party"].replace("_", " ").title())
             add(f"| {name} | {p['actual']} | {p['forecast']} | "
                 f"{p['forecast'] - p['actual']:+d} |")
         add("")
-        add(f"*{m['seat_mae']} seats out in total.*")
+        # The total is over EVERY party, not over the rows above, which are
+        # the largest few. Saying so is the difference between a total and a
+        # total that appears not to add up.
+        add(f"*{m['seat_mae']} seats out in total — across every party that "
+            f"stood, not only the {len(shown)} shown above.*")
         add("")
     add("## The technical measures, in plain language")
     add("")
@@ -317,11 +333,22 @@ def markdown(target: str, results: dict) -> str:
         add("* **How much a breakaway party takes.** When a well-known figure "
             "leaves a party and starts their own, how much of the old party's "
             "vote follows them depends enormously on whether that figure's "
+            # ⛔ THIS PARAGRAPH WAS FALSE FROM 2026-08-14 TO 2026-09-27.
+            # It said the model used splinter records "including two from after
+            # 2021" and called that "the single largest reason the Johannesburg
+            # figure improves". Commit f33528f filtered the home splinter record
+            # to the target on 14 August — so the 2021 backtest stopped using
+            # MK's 2024 result that day — and this hand-written sentence went on
+            # claiming the leak for six weeks, on a page whose second paragraph
+            # says "No number on this page was typed by a person". The sentence
+            # is not a number, which is exactly the hole.
             "support is in *this* city. Only one such split had happened "
-            "anywhere before 2021, and one example is not a pattern, so the "
-            "model uses all of them — including two from after 2021. This is a "
-            "deliberate choice, recorded, and it is the single largest reason "
-            "the Johannesburg figure improves.")
+            "anywhere before 2021, and one example is not a pattern. The model "
+            "used to fill that gap with splits from after 2021 — including "
+            "MK's, three years later — which flattered this page. Since "
+            "14 August 2026 it does not: the record is cut at the election "
+            "being forecast, the same rule every other record here obeys. "
+            "Johannesburg's figure is worse for it and is honest.")
         add("")
         add("Every run prints these above its results. The honest reading is "
             "that this is a strong estimate of what the machinery is worth, "
@@ -339,35 +366,79 @@ def markdown(target: str, results: dict) -> str:
     return "\n".join(L)
 
 
+def _seed() -> int:
+    """The seed the runs used, read from the model rather than typed here."""
+    import montecarlo
+    return int(montecarlo.DEFAULTS["seed"])
+
+
+def _git_head() -> str:
+    import subprocess
+    try:
+        return subprocess.run(["git", "rev-parse", "HEAD"],
+                              cwd=Path(__file__).resolve().parents[1],
+                              capture_output=True, text=True, check=True).stdout.strip()
+    except Exception:
+        return "unknown"
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--target", default="2021")
     ap.add_argument("--draws", type=int, default=400)
+    ap.add_argument("--from-json", action="store_true",
+                    help="rebuild the page from the existing artefact and run "
+                         "nothing; for a wording change, which must never need "
+                         "a model run")
     ap.add_argument("--out", type=Path,
                     default=Path("docs-public/about-the-model.md"))
     args = ap.parse_args(argv)
 
-    print(f"validating against {args.target}, {args.draws} draws per city")
-    results = collect(args.target, args.draws)
-    if not results:
-        raise SystemExit("no city produced a scored result")
-
-    record = {"target": args.target, "draws": args.draws,
-              "generated": date.today().isoformat(), "cities": results,
-              # the page's comparison figures, so a token can resolve them
-              "headline": headline(results)}
     out_json = Path("data/processed") / f"validation_{args.target}.json"
-    out_json.parent.mkdir(parents=True, exist_ok=True)
-    out_json.write_text(json.dumps(record, indent=2))
+
+    if args.from_json:
+        # ⛔ REBUILD THE PAGE, RUN NOTHING. Every other path here re-runs eight
+        # cities and REWRITES the artefact — which is how the 11 August run was
+        # destroyed on 2026-09-27: it was gitignored, so there was no copy. A
+        # wording fix should never need a model run, and until this flag existed
+        # it did.
+        record = json.loads(out_json.read_text())
+        results = record["cities"]
+        print(f"rebuilding the page from {out_json} "
+              f"({record.get('draws')} draws, generated {record.get('generated')}) "
+              f"— nothing re-run")
+    else:
+        print(f"validating against {args.target}, {args.draws} draws per city")
+        results = collect(args.target, args.draws)
+        if not results:
+            raise SystemExit("no city produced a scored result")
+
+        record = {"target": args.target, "draws": args.draws,
+                  "generated": date.today().isoformat(), "cities": results,
+                  # ⛔ WHICH RUN THIS WAS. The artefact promised provenance in
+                  # its docstring and stored none, so attributing a 34-seat
+                  # move took archaeology through six weeks of commits instead
+                  # of a diff of two headers.
+                  "seed": _seed(), "git_commit": _git_head(),
+                  # the page's comparison figures, so a token can resolve them
+                  "headline": headline(results)}
+        out_json.parent.mkdir(parents=True, exist_ok=True)
+        out_json.write_text(json.dumps(record, indent=2))
 
     body = markdown(args.target, results)
+    # FROM THE RECORD, not from the flags. In --from-json the run being
+    # described is the one on disk, and `args.draws` would be whatever the
+    # default happens to be — a footer stating the wrong draw count under
+    # figures it did not produce.
     body += (f"\n---\n\n*Generated {record['generated']} by "
-             f"`src/build_validation.py` from a {args.draws}-draw run per city "
-             f"against the {args.target} result. The underlying figures are in "
-             f"`{out_json}`; the code that produced them is public.*\n")
+             f"`src/build_validation.py` from a {record.get('draws', args.draws)}-draw "
+             f"run per city against the {args.target} result. The underlying "
+             f"figures are in `{out_json}`; the code that produced them is "
+             f"public.*\n")
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(body)
-    print(f"wrote {args.out} and {out_json}")
+    print(f"wrote {args.out}"
+          + ("" if args.from_json else f" and {out_json}"))
     return 0
 
 

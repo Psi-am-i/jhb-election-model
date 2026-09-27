@@ -402,9 +402,19 @@ def main(argv: list[str] | None = None) -> int:
             "majority": "{{majority}}",
         }
         if _wall:
+            # ⛔ A RANGE OVER ONE SIMULATION IS NOT A RANGE. This printed
+            # "the ANC falling to 34 – 34 seats" — min and max of a single
+            # draw, rendered as an interval. The source line now says how many
+            # draws it is over, so a reader can see that "34 – 34" would be one
+            # of them, and the claims text asks for the low bound alone when
+            # there is only one.
             anc = [_seats(d, "ANC") for d in _wall]
-            since_vals["wall_anc_low"] = tok("claim.da_alone.wall_anc_low", min(anc), "int", _sd)
-            since_vals["wall_anc_high"] = tok("claim.da_alone.wall_anc_high", max(anc), "int", _sd)
+            src = f"{_sd}, over the {len(anc)} simulation{'' if len(anc) == 1 else 's'} where this happens"
+            since_vals["wall_anc_low"] = tok("claim.da_alone.wall_anc_low", min(anc), "int", src)
+            since_vals["wall_anc_high"] = tok("claim.da_alone.wall_anc_high", max(anc), "int", src)
+            since_vals["wall_anc_span"] = (
+                since_vals["wall_anc_low"] if len(anc) == 1
+                else f'{since_vals["wall_anc_low"]}–{since_vals["wall_anc_high"]}')
         if len(_odd) == 1:
             d = _odd[0]
             for key, p in (("odd_anc", "ANC"), ("odd_asa", "ASA"), ("odd_eff", "EFF"), ("odd_nfp", "NFP")):
