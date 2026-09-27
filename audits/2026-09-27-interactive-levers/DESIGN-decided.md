@@ -51,11 +51,39 @@ poll happens exactly", and 0 does not turn polls off because the arrivals path
 is gated by `poll_paths` alone. The dial above has to be built, and both paths
 have to be gated together.
 
-## 3. The trust ceiling is the reader's, not ours
+## 3. The trust ceiling is the reader's, and ours is zero
 
-Owner: *"trust ceiling is user defined judgement call."* This closes the
-question put to the owner in September (E = 3.0pp against ≥5pp) by moving it
-onto the page. We ship a default and say what it is; the reader moves it.
+Owner: *"trust ceiling is user defined judgement call."* Then, asked what we
+ship it at: *"our trust ceiling is zero basically."*
+
+That closes the question put to the owner in September (E = 3.0pp against
+≥5pp). It was never a number we had to choose — it is a number we decline to
+use, and the reader supplies their own.
+
+**It is also already true rather than a new position.** Polls left the forecast
+on 12 September 2026 (MODEL-LOG §1.244) and `poll_paths` ships `"off"`. So a
+trust slider at zero is not a default chosen for the page; it is the published
+forecast, exactly.
+
+Three things follow and they are all to our advantage:
+
+* **The page's untouched state reproduces what we publish**, on this dimension.
+  No caveat needed, no divergence to explain, and the reader who moves nothing
+  sees our forecast rather than a variant of it.
+* **We never have to defend a poll weighting**, because we do not apply one.
+  The disagreement between the houses — the ANC at 18 in one Johannesburg poll
+  and 31 in another — is shown to the reader as the state of the evidence,
+  and it is the reader who decides what to do about it. That is a stronger
+  position than any blend we could have justified.
+* **The polls are still published.** At zero they are displayed and not
+  applied. A poll nobody weights is still evidence a reader is entitled to see,
+  and showing it while saying we give it no weight is more honest than omitting
+  it.
+
+⚠️ **Say the default out loud on the page.** A slider that starts at zero looks
+like an unset control. It is a position, it is the site's position, and the page
+has to say so or a reader will read it as an oversight and move it thinking they
+are fixing something.
 
 ## 4. The roster follows the IEC, never a newspaper
 

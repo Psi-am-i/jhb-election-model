@@ -75,7 +75,7 @@ in three weeks. Nothing is deleted from here either.
 | C5 | **Turnout by area** — no geographic grouping of the 135 wards exists anywhere in the model. The City's own regions A–G have an authority behind them; compass points do not | OWNER to choose the grouping |
 | C6 | **The polls dial.** "0 = no effect, 100% = the poll happens exactly" is NOT what `poll_credence` does — 1.0 is the identity and 0 does not turn polls off (the arrivals path is gated by `poll_paths` alone). Needs defining as a new parameterisation | OWNER |
 | C7 | The Ipsos Khayabus CoJ poll (ANC 31 / DA 27–28 / ASA 14 / EFF 8 / MK 6) is not in `polls.json`; the DA figure is disputed between outlets | OPEN |
-| C8 | The poll trust ceiling (E = 3.0pp against ≥5pp) was asked of the owner in September and never answered | OWNER |
+| C8 | The poll trust ceiling (E = 3.0pp against ≥5pp) | **DONE as a decision** 2026-09-27 — it is the reader's, and ours is zero. Already true: `poll_paths` ships `off`, so the slider's zero position IS the published forecast. The page must say that zero is a position, not an unset control |
 | C9 | Eight of the ten reinstatable levers are poll levers behind the single `poll_paths = "off"` | OPEN — context for C6 |
 | C10 | **`within-pool movement` is the only surviving model lever besides `w_bye`**, and B2 says its "halved" reading is inside the noise. If D2 confirms, half that slider does nothing measurable | OPEN |
 | C11 | **The IEC's per-VD 2026 registration** is not published; only ward level is. Worth asking the IEC for it directly | OPEN |
