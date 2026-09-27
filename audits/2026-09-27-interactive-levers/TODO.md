@@ -59,3 +59,31 @@ DONE / OPEN / OWNER / REJECTED, and nothing is deleted from this list.
 | Turnout by group and by area: the control the owner asked for does not exist | OPEN |
 | Polls: define the 0→100% dial; it is not what `poll_credence` does | OWNER |
 | `HANDOVER.md`'s banner was 14 hours stale about what is live | **DONE** — corrected in this pass |
+
+## Raised in conversation and not previously written down
+
+⛔ **This section exists because things were discussed and then lost.** An item
+agreed in conversation and not in this file is an item that will be rediscovered
+in three weeks. Nothing is deleted from here either.
+
+| # | item | status |
+|---|---|---|
+| C1 | **The input route.** 76% of the 141 MB is other metros' VD results, read only to build the theta record, which serialises to 18.8 KB. Route B (precompute the reductions) recommended | **DONE as analysis** `35d5e59` — `INPUT-ROUTE.md`. **OWNER** to choose |
+| C2 | The precomputed theta record must be checked byte-for-byte against the live path, or it becomes a second definition | OPEN — blocks C1 shipping |
+| C3 | Johannesburg's own 31.8 MB has not been broken down by what the draw loop needs vs its setup | OPEN |
+| C4 | **Turnout by population group** — decided (§9a), never built | OPEN |
+| C5 | **Turnout by area** — no geographic grouping of the 135 wards exists anywhere in the model. The City's own regions A–G have an authority behind them; compass points do not | OWNER to choose the grouping |
+| C6 | **The polls dial.** "0 = no effect, 100% = the poll happens exactly" is NOT what `poll_credence` does — 1.0 is the identity and 0 does not turn polls off (the arrivals path is gated by `poll_paths` alone). Needs defining as a new parameterisation | OWNER |
+| C7 | The Ipsos Khayabus CoJ poll (ANC 31 / DA 27–28 / ASA 14 / EFF 8 / MK 6) is not in `polls.json`; the DA figure is disputed between outlets | OPEN |
+| C8 | The poll trust ceiling (E = 3.0pp against ≥5pp) was asked of the owner in September and never answered | OWNER |
+| C9 | Eight of the ten reinstatable levers are poll levers behind the single `poll_paths = "off"` | OPEN — context for C6 |
+| C10 | **`within-pool movement` is the only surviving model lever besides `w_bye`**, and B2 says its "halved" reading is inside the noise. If D2 confirms, half that slider does nothing measurable | OPEN |
+| C11 | **The IEC's per-VD 2026 registration** is not published; only ward level is. Worth asking the IEC for it directly | OPEN |
+| C12 | The IEC's own page gives two CoJ totals 613 apart (2,417,302 vs 2,417,915). Unreconciled | OPEN |
+| C13 | The CoJ PR-ballot party count is disputed 82 vs 75 between outlets, and our roster's `complete = true` licenses deleting parties on the strength of it. The 23 September ballot draw would settle it | OPEN |
+| C14 | `inputs_preflight` reports **Tshwane** missing two required inputs (its roll and roster) | OPEN |
+| C15 | The newsdesk rules are written but not live — they sit in `newsroom/NEWSDESK-RULES.md` and the routine still reads GitHub's `CLAUDE.md` | BLOCKED on the GitHub write |
+| C16 | The newsdesk routine has produced nothing since 20 September; the armed re-check loop is disabled but no replacement schedule exists | OPEN |
+| C17 | `splinter-rule-and-historical-tail`, `atlas/a5e8c5d` and Scout's 14-Sep stash are all marked discard and none has been deleted | OWNER |
+| C18 | Six commits and counting are unpushed to Atlas and Scout | OWNER |
+| C19 | **Post-election scoring** — the review's "move earlier". Rule, result-ingest path and party-name mapping all unfixed, and the IEC spells four Johannesburg parties differently from our baseline files | OPEN — do before 4 November |
