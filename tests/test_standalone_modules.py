@@ -116,6 +116,14 @@ ENTRY_POINTS: dict[str, str] = {
         "README.md step 1 (acquire): `python src/fetch_iec.py`. Human-run "
         "download of the IEC result files; needs a real browser session for "
         "some endpoints (SOURCES.md). Cited as provenance by `archive.py`.",
+    "backup_ignored":
+        "CLAUDE.md 'Running things': `.venv/bin/python src/backup_ignored.py` — "
+        "copies every gitignored file into `backups/<timestamp>/` with a sha256 "
+        "manifest. Nothing imports it and nothing should: it is run BEFORE a "
+        "script that writes into `data/**`, and a module that took a backup as "
+        "a side effect of being imported would take one at moments nobody "
+        "chose. Added 2026-09-27 after `build_validation.py` overwrote the "
+        "11 August validation artefact, which was gitignored and had no copy.",
     "fetch_boundaries":
         "README.md step 1 (acquire): `python src/fetch_boundaries.py`. "
         "Human-run download of MDB ward/VD boundaries; cited as the provenance "

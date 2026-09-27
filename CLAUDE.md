@@ -330,6 +330,10 @@ disagrees:
 that each is not dead — do not remove a line without moving its entry there, and
 let that test, not this file, be the authority on how many there are:
 
+    .venv/bin/python src/backup_ignored.py              # copy every gitignored
+                                                        #   file; run it BEFORE
+                                                        #   anything that writes
+                                                        #   into data/**
     .venv/bin/python src/arrivals.py                    # arrival machinery, scored alone
     .venv/bin/python src/contested_area.py              # poll path's contested-area conversion
     .venv/bin/python src/sweep.py                       # obvious-fault sweep
