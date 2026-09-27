@@ -219,6 +219,33 @@ parent = ""      # e.g. "ANC" to inherit the ANC's pool vector
 #
 # complete/confirm_drop authorised by the owner 2026-09-16 for THIS list only.
 [roster]
+# ⛔ PROVENANCE OF THIS LIST, RECORDED 2026-09-27 BECAUSE `complete` DELETES
+# PARTIES. Owner: "we must match the iec party count and roster — not
+# newspapers." Today this list does NOT: its 82 entries were typed from press
+# reporting of the IEC's 16 September certification, and that reporting
+# disagrees with itself about the Johannesburg count —
+#
+#     82   Sowetan, Sunday Times, Business Day (17 Sept)
+#     75   IOL, Daily Friend (17-18 Sept)
+#
+# all citing the same certification, agreeing on Tshwane 70 and eThekwini 69
+# and differing only on Johannesburg and Ekurhuleni. `complete = true` licenses
+# dropping 27 parties holding 1.70% of the 2021 vote, so a count that is wrong
+# by seven deletes real parties from the pools.
+#
+# ⛔ THE IEC DOES NOT PUBLISH THE PER-MUNICIPALITY CONTESTING-PARTY LIST
+# ANYWHERE REACHABLE (searched 2026-09-27): `Parties-And-Candidates` returns a
+# permission error, `StatsData/Political-Parties-Statistics` a 500,
+# `Elections/Municipal-Elections` a 404, the document library carries SITTING
+# councillor lists only, the site's own search returns just the national
+# statement (136,790 candidates, no per-metro breakdown), and the results
+# dashboard offers 2000-2021 with no 2026. The nomination system is
+# login-gated. So the authoritative list has to be REQUESTED, and this flag
+# stands on newspaper authority until it is.
+#
+# Until then: treat the count as UNVERIFIED and do not narrow the roster
+# further on press reporting. Adding a party is safe; `complete = true` is what
+# is not.
 complete = true
 confirm_drop = true
 parties = [
