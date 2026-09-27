@@ -1,203 +1,225 @@
 {
-  "polls": [
-    {
-      "id": "srf-2026q2-coj",
-      "label": "SRF · Johannesburg · July 2026",
-      "pollster": "Social Research Foundation (fieldwork: Victory Research)",
-      "fieldwork": "8–31 July 2026",
-      "geography": "City of Johannesburg, likely voters (53% turnout model)",
-      "url": "https://www.thecommonsense.co.za/Politics/anc-support-collapses-johannesburg",
-      "numbers": {
-        "DA": 0.42,
-        "ANC": 0.18,
-        "MK": 0.13,
-        "ASA": 0.1,
-        "EFF": 0.08
-      },
-      "caveat": "~500-person metro subsample (±4.4%); single house; its likely-voter screen filters out low-propensity, disproportionately ANC-leaning voters. ANC 18 sits below even the DA's own internal polling.",
-      "fieldwork_start": "2026-07-08",
-      "fieldwork_end": "2026-07-31",
-      "scope": "metro",
-      "house": "SRF/Victory Research",
-      "city": "joburg",
-      "n": 504
-    },
-    {
-      "id": "da-internal-2026aug",
-      "label": "DA internal · Johannesburg · reported Aug 2026",
-      "pollster": "DA internal polling, reported by Helen Zille via News24",
-      "fieldwork": "reported 1 August 2026",
-      "geography": "City of Johannesburg",
-      "url": "https://www.news24.com/politics/internal-polls-show-da-leading-in-johannesburg-says-helen-zille-20260801-0799",
-      "numbers": {
-        "DA": 0.4,
-        "ANC": 0.27
-      },
-      "caveat": "Party-internal, method undisclosed, only two numbers released — and a party has every incentive to publish its best case.",
-      "fieldwork_start": "2026-08-01",
-      "fieldwork_end": "2026-08-01",
-      "scope": "metro",
-      "commissioned_by": "Democratic Alliance",
-      "house": "DA internal",
-      "city": "joburg"
-    },
-    {
-      "id": "srf-2026q1-coj",
-      "label": "SRF · Johannesburg · Feb–Mar 2026",
-      "pollster": "Social Research Foundation",
-      "fieldwork": "16 February – 6 March 2026",
-      "geography": "City of Johannesburg, likely voters",
-      "url": "https://www.thecommonsense.co.za/politics/anc-faces-wipeout-gauteng-metros-lge",
-      "numbers": {
-        "DA": 0.39,
-        "ANC": 0.3,
-        "ASA": 0.1,
-        "MK": 0.08,
-        "EFF": 0.04
-      },
-      "caveat": "~503-person metro subsample; same house and turnout model as the July wave.",
-      "fieldwork_start": "2026-02-16",
-      "fieldwork_end": "2026-03-06",
-      "scope": "metro",
-      "house": "SRF/Victory Research",
-      "city": "joburg",
-      "n": 503
-    },
-    {
-      "id": "ipsos-w2-2025-metros",
-      "label": "Ipsos Khayabus · all metros · Dec 2025–Jan 2026",
-      "pollster": "Ipsos (Pulse of the People W2-2025)",
-      "fieldwork": "December 2025 – January 2026",
-      "geography": "All-metro aggregate — no Johannesburg-only cut published",
-      "url": "https://www.ipsos.com/en-za/nearly-half-south-africans-feel-politically-homeless-ahead-local-elections",
-      "numbers": {
-        "ANC": 0.35,
-        "DA": 0.25,
-        "MK": 0.14,
-        "EFF": 0.13,
-        "PA": 0.04,
-        "ASA": 0.04,
-        "IFP": 0.02
-      },
-      "caveat": "Face-to-face, registered voters, ~43–49% undecided largely unallocated — the methodological opposite of SRF, and the kindest credible read for the ANC. Applies all-metro numbers to Joburg.",
-      "fieldwork_start": "2025-12-01",
-      "fieldwork_end": "2026-01-31",
-      "scope": "metro-aggregate",
-      "house": "Ipsos",
-      "note": "ALL-METRO AGGREGATE with no Johannesburg cut published. Scope is 'metro-aggregate' so it is NOT applied as a city poll: eight metros averaged is not a reading of one of them, and using it as one would import Cape Town's DA and eThekwini's MK into Johannesburg."
-    },
-    {
-      "id": "ipsos-2021-lge-national",
-      "house": "Ipsos",
-      "fieldwork": "16-20 August 2021",
-      "fieldwork_start": "2021-08-16",
-      "fieldwork_end": "2021-08-20",
-      "scope": "national",
-      "geography": "South Africa, registered voters",
-      "n": 1501,
-      "method": "CATI, registered voters",
-      "target": "2021",
-      "numbers": {
-        "ANC": 0.493,
-        "DA": 0.179,
-        "EFF": 0.145,
-        "ASA": 0.015,
-        "IFP": 0.014,
-        "VFPLUS": 0.012,
-        "ACDP": 0.015
-      },
-      "note": "The only INDEPENDENT pre-election poll published for the 2021 local elections. ActionSA's actual national result was 2.34%, so this was low by a factor of 1.6 -- against a model out by 3 in Johannesburg and 6 in Tshwane. Entered so the conversion in src/polling.py can be scored on a target that has happened.",
-      "source": "IEC-reported result and poll table, Wikipedia '2021 South African municipal elections'; Ipsos South Africa releases"
-    },
-    {
-      "id": "actionsa-internal-2021",
-      "house": "commissioned by ActionSA",
-      "fieldwork": "October 2021",
-      "fieldwork_start": "2021-10-01",
-      "fieldwork_end": "2021-10-21",
-      "scope": "metro",
-      "geography": "City of Johannesburg",
-      "target": "2021",
-      "commissioned_by": "ActionSA",
-      "numbers": {},
-      "note": "Reported ActionSA 'on course to win Joburg'. It finished THIRD on 16.05%. Recorded WITHOUT numbers and flagged commissioned_by so it is excluded by default: it is the evidence for the exclusion rule, not evidence about the election.",
-      "source": "thesouthafrican.com, 2021 local elections coverage"
-    },
-    {
-      "house": "Ipsos",
-      "fieldwork": "17 June - 18 July 2016, final release 1 August",
-      "fieldwork_start": "2016-06-17",
-      "fieldwork_end": "2016-08-01",
-      "target": "2016",
-      "method": "RDD panel, registered voters",
-      "source": "Ipsos/eNCA election polls; metro figures as tabulated by businesstech.co.za, 'the predictions vs the outcome', Aug 2016",
-      "id": "ipsos-2016-lge-national",
-      "scope": "national",
-      "n": 3142,
-      "geography": "South Africa, registered voters",
-      "numbers": {
-        "ANC": 0.54,
-        "DA": 0.26,
-        "EFF": 0.08
-      },
-      "note": "Actual national: ANC 53.91, DA 26.90, EFF 8.19. Every party inside the stated margin."
-    },
-    {
-      "house": "Ipsos",
-      "fieldwork": "17 June - 18 July 2016, final release 1 August",
-      "fieldwork_start": "2016-06-17",
-      "fieldwork_end": "2016-08-01",
-      "target": "2016",
-      "method": "RDD panel, registered voters",
-      "source": "Ipsos/eNCA election polls; metro figures as tabulated by businesstech.co.za, 'the predictions vs the outcome', Aug 2016",
-      "id": "ipsos-2016-lge-joburg",
-      "scope": "metro",
-      "city": "joburg",
-      "geography": "City of Johannesburg",
-      "numbers": {
-        "ANC": 0.46,
-        "DA": 0.41,
-        "EFF": 0.08
-      },
-      "note": "Actual 44.6/38.4/11.1. THE MODEL'S WORST CITY-YEAR HAD AN ACCURATE METRO POLL: the model puts the ANC at 53.8 against this poll's 46.0 and an actual 44.6."
-    },
-    {
-      "house": "Ipsos",
-      "fieldwork": "17 June - 18 July 2016, final release 1 August",
-      "fieldwork_start": "2016-06-17",
-      "fieldwork_end": "2016-08-01",
-      "target": "2016",
-      "method": "RDD panel, registered voters",
-      "source": "Ipsos/eNCA election polls; metro figures as tabulated by businesstech.co.za, 'the predictions vs the outcome', Aug 2016",
-      "id": "ipsos-2016-lge-tshwane",
-      "scope": "metro",
-      "city": "tshwane",
-      "geography": "City of Tshwane",
-      "numbers": {
-        "ANC": 0.47,
-        "DA": 0.43,
-        "EFF": 0.09
-      },
-      "note": "Actual 41.2/43.1/11.7."
-    },
-    {
-      "house": "Ipsos",
-      "fieldwork": "17 June - 18 July 2016, final release 1 August",
-      "fieldwork_start": "2016-06-17",
-      "fieldwork_end": "2016-08-01",
-      "target": "2016",
-      "method": "RDD panel, registered voters",
-      "source": "Ipsos/eNCA election polls; metro figures as tabulated by businesstech.co.za, 'the predictions vs the outcome', Aug 2016",
-      "id": "ipsos-2016-lge-nmb",
-      "scope": "metro",
-      "city": "nelsonmandelabay",
-      "geography": "Nelson Mandela Bay",
-      "numbers": {
-        "ANC": 0.37,
-        "DA": 0.44,
-        "EFF": 0.06
-      },
-      "note": "Actual 40.9/46.7/5.1."
-    }
-  ]
+ "polls": [
+  {
+   "id": "srf-2026q2-coj",
+   "label": "SRF · Johannesburg · July 2026",
+   "pollster": "Social Research Foundation (fieldwork: Victory Research)",
+   "fieldwork": "8–31 July 2026",
+   "geography": "City of Johannesburg, likely voters (53% turnout model)",
+   "url": "https://www.thecommonsense.co.za/Politics/anc-support-collapses-johannesburg",
+   "numbers": {
+    "DA": 0.42,
+    "ANC": 0.18,
+    "MK": 0.13,
+    "ASA": 0.1,
+    "EFF": 0.08
+   },
+   "caveat": "~500-person metro subsample (±4.4%); single house; its likely-voter screen filters out low-propensity, disproportionately ANC-leaning voters. ANC 18 sits below even the DA's own internal polling.",
+   "fieldwork_start": "2026-07-08",
+   "fieldwork_end": "2026-07-31",
+   "scope": "metro",
+   "house": "SRF/Victory Research",
+   "city": "joburg",
+   "n": 504
+  },
+  {
+   "id": "da-internal-2026aug",
+   "label": "DA internal · Johannesburg · reported Aug 2026",
+   "pollster": "DA internal polling, reported by Helen Zille via News24",
+   "fieldwork": "reported 1 August 2026",
+   "geography": "City of Johannesburg",
+   "url": "https://www.news24.com/politics/internal-polls-show-da-leading-in-johannesburg-says-helen-zille-20260801-0799",
+   "numbers": {
+    "DA": 0.4,
+    "ANC": 0.27
+   },
+   "caveat": "Party-internal, method undisclosed, only two numbers released — and a party has every incentive to publish its best case.",
+   "fieldwork_start": "2026-08-01",
+   "fieldwork_end": "2026-08-01",
+   "scope": "metro",
+   "commissioned_by": "Democratic Alliance",
+   "house": "DA internal",
+   "city": "joburg"
+  },
+  {
+   "id": "srf-2026q1-coj",
+   "label": "SRF · Johannesburg · Feb–Mar 2026",
+   "pollster": "Social Research Foundation",
+   "fieldwork": "16 February – 6 March 2026",
+   "geography": "City of Johannesburg, likely voters",
+   "url": "https://www.thecommonsense.co.za/politics/anc-faces-wipeout-gauteng-metros-lge",
+   "numbers": {
+    "DA": 0.39,
+    "ANC": 0.3,
+    "ASA": 0.1,
+    "MK": 0.08,
+    "EFF": 0.04
+   },
+   "caveat": "~503-person metro subsample; same house and turnout model as the July wave.",
+   "fieldwork_start": "2026-02-16",
+   "fieldwork_end": "2026-03-06",
+   "scope": "metro",
+   "house": "SRF/Victory Research",
+   "city": "joburg",
+   "n": 503
+  },
+  {
+   "id": "ipsos-w2-2025-metros",
+   "label": "Ipsos Khayabus · all metros · Dec 2025–Jan 2026",
+   "pollster": "Ipsos (Pulse of the People W2-2025)",
+   "fieldwork": "December 2025 – January 2026",
+   "geography": "All-metro aggregate — no Johannesburg-only cut published",
+   "url": "https://www.ipsos.com/en-za/nearly-half-south-africans-feel-politically-homeless-ahead-local-elections",
+   "numbers": {
+    "ANC": 0.35,
+    "DA": 0.25,
+    "MK": 0.14,
+    "EFF": 0.13,
+    "PA": 0.04,
+    "ASA": 0.04,
+    "IFP": 0.02
+   },
+   "caveat": "Face-to-face, registered voters, ~43–49% undecided largely unallocated — the methodological opposite of SRF, and the kindest credible read for the ANC. Applies all-metro numbers to Joburg.",
+   "fieldwork_start": "2025-12-01",
+   "fieldwork_end": "2026-01-31",
+   "scope": "metro-aggregate",
+   "house": "Ipsos",
+   "note": "ALL-METRO AGGREGATE with no Johannesburg cut published. Scope is 'metro-aggregate' so it is NOT applied as a city poll: eight metros averaged is not a reading of one of them, and using it as one would import Cape Town's DA and eThekwini's MK into Johannesburg."
+  },
+  {
+   "id": "ipsos-2021-lge-national",
+   "house": "Ipsos",
+   "fieldwork": "16-20 August 2021",
+   "fieldwork_start": "2021-08-16",
+   "fieldwork_end": "2021-08-20",
+   "scope": "national",
+   "geography": "South Africa, registered voters",
+   "n": 1501,
+   "method": "CATI, registered voters",
+   "target": "2021",
+   "numbers": {
+    "ANC": 0.493,
+    "DA": 0.179,
+    "EFF": 0.145,
+    "ASA": 0.015,
+    "IFP": 0.014,
+    "VFPLUS": 0.012,
+    "ACDP": 0.015
+   },
+   "note": "The only INDEPENDENT pre-election poll published for the 2021 local elections. ActionSA's actual national result was 2.34%, so this was low by a factor of 1.6 -- against a model out by 3 in Johannesburg and 6 in Tshwane. Entered so the conversion in src/polling.py can be scored on a target that has happened.",
+   "source": "IEC-reported result and poll table, Wikipedia '2021 South African municipal elections'; Ipsos South Africa releases"
+  },
+  {
+   "id": "actionsa-internal-2021",
+   "house": "commissioned by ActionSA",
+   "fieldwork": "October 2021",
+   "fieldwork_start": "2021-10-01",
+   "fieldwork_end": "2021-10-21",
+   "scope": "metro",
+   "geography": "City of Johannesburg",
+   "target": "2021",
+   "commissioned_by": "ActionSA",
+   "numbers": {},
+   "note": "Reported ActionSA 'on course to win Joburg'. It finished THIRD on 16.05%. Recorded WITHOUT numbers and flagged commissioned_by so it is excluded by default: it is the evidence for the exclusion rule, not evidence about the election.",
+   "source": "thesouthafrican.com, 2021 local elections coverage"
+  },
+  {
+   "house": "Ipsos",
+   "fieldwork": "17 June - 18 July 2016, final release 1 August",
+   "fieldwork_start": "2016-06-17",
+   "fieldwork_end": "2016-08-01",
+   "target": "2016",
+   "method": "RDD panel, registered voters",
+   "source": "Ipsos/eNCA election polls; metro figures as tabulated by businesstech.co.za, 'the predictions vs the outcome', Aug 2016",
+   "id": "ipsos-2016-lge-national",
+   "scope": "national",
+   "n": 3142,
+   "geography": "South Africa, registered voters",
+   "numbers": {
+    "ANC": 0.54,
+    "DA": 0.26,
+    "EFF": 0.08
+   },
+   "note": "Actual national: ANC 53.91, DA 26.90, EFF 8.19. Every party inside the stated margin."
+  },
+  {
+   "house": "Ipsos",
+   "fieldwork": "17 June - 18 July 2016, final release 1 August",
+   "fieldwork_start": "2016-06-17",
+   "fieldwork_end": "2016-08-01",
+   "target": "2016",
+   "method": "RDD panel, registered voters",
+   "source": "Ipsos/eNCA election polls; metro figures as tabulated by businesstech.co.za, 'the predictions vs the outcome', Aug 2016",
+   "id": "ipsos-2016-lge-joburg",
+   "scope": "metro",
+   "city": "joburg",
+   "geography": "City of Johannesburg",
+   "numbers": {
+    "ANC": 0.46,
+    "DA": 0.41,
+    "EFF": 0.08
+   },
+   "note": "Actual 44.6/38.4/11.1. THE MODEL'S WORST CITY-YEAR HAD AN ACCURATE METRO POLL: the model puts the ANC at 53.8 against this poll's 46.0 and an actual 44.6."
+  },
+  {
+   "house": "Ipsos",
+   "fieldwork": "17 June - 18 July 2016, final release 1 August",
+   "fieldwork_start": "2016-06-17",
+   "fieldwork_end": "2016-08-01",
+   "target": "2016",
+   "method": "RDD panel, registered voters",
+   "source": "Ipsos/eNCA election polls; metro figures as tabulated by businesstech.co.za, 'the predictions vs the outcome', Aug 2016",
+   "id": "ipsos-2016-lge-tshwane",
+   "scope": "metro",
+   "city": "tshwane",
+   "geography": "City of Tshwane",
+   "numbers": {
+    "ANC": 0.47,
+    "DA": 0.43,
+    "EFF": 0.09
+   },
+   "note": "Actual 41.2/43.1/11.7."
+  },
+  {
+   "house": "Ipsos",
+   "fieldwork": "17 June - 18 July 2016, final release 1 August",
+   "fieldwork_start": "2016-06-17",
+   "fieldwork_end": "2016-08-01",
+   "target": "2016",
+   "method": "RDD panel, registered voters",
+   "source": "Ipsos/eNCA election polls; metro figures as tabulated by businesstech.co.za, 'the predictions vs the outcome', Aug 2016",
+   "id": "ipsos-2016-lge-nmb",
+   "scope": "metro",
+   "city": "nelsonmandelabay",
+   "geography": "Nelson Mandela Bay",
+   "numbers": {
+    "ANC": 0.37,
+    "DA": 0.44,
+    "EFF": 0.06
+   },
+   "note": "Actual 40.9/46.7/5.1."
+  },
+  {
+   "id": "ipsos-khayabus-2026-coj",
+   "label": "Ipsos Khayabus · Johannesburg · September 2026",
+   "pollster": "Ipsos (Khayabus omnibus)",
+   "fieldwork": "reported 4 September 2026; fieldwork window not stated in any source reached",
+   "geography": "City of Johannesburg breakout of a national omnibus (n≈3,600 across nine provinces); CoJ subsample size not stated",
+   "url": "https://fullview.co.za/ipsos-poll-shows-anc-retains-narrow-lead-in-coj-no-majority-in-all-metros/",
+   "numbers": {
+    "ANC": 0.31,
+    "DA": 0.28,
+    "ASA": 0.14,
+    "EFF": 0.08,
+    "MK": 0.06
+   },
+   "caveat": "⛔ THE DA FIGURE IS DISPUTED BETWEEN OUTLETS: Daily Maverick and allAfrica report DA 27, Bloomberg reports DA 28 from the same release; 28 is used here because it is the figure the fuller party breakdown came with. NO SOURCE IN THE CHAIN REACHED IPSOS'S OWN RELEASE — the ANC/DA line comes from secondary reporting (newsroom/2026-09-05.md), the ActionSA/EFF/MK split from Fullview citing the same release (newsroom/2026-09-13.md). The CoJ subsample size and the fieldwork window are unverified. First non-SRF, non-party-internal CoJ read since March, and it swings sharply toward the ANC against every other 2026 CoJ number on file. Admitted to the register on the owner's instruction 2026-09-27 ('add all new polls found'); admission to the REGISTER is not admission to the FORECAST, which is gated by poll_paths and is off.",
+   "fieldwork_start": null,
+   "fieldwork_end": "2026-09-04",
+   "scope": "metro",
+   "house": "Ipsos",
+   "city": "joburg",
+   "n": null
+  }
+ ]
 }
