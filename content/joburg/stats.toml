@@ -485,18 +485,36 @@ tolerance = 0.05
 used_in = "methodology.md — distributional score, without polls"
 
 # ---------------------------------------------------------------------------
-# AS PUBLISHED ON 31 AUGUST 2026 — the frozen originals of written pieces.
+# AS PUBLISHED ON 8 AUGUST 2026 — the frozen originals of written pieces.
 # Publication convention (PUBLISHING-BACKLOG §8, owner 2026-09-17): a written
 # piece keeps the figures it was published with, dated, and a "Since then" box
-# beside it carries today's. Values read from the live page's changes.json at
-# git a138788 (site built 2026-08-31).
+# beside it carries today's.
+#
+# ⛔ CORRECTED 2026-09-27. These four were sourced to `a138788 site/changes.json`
+# and dated 31 August. That file is a BUILD, not a publication — every row in it
+# is `movement:"new"`, `previous:null` — and `a138788` was never deployed:
+# `archive/live-deployed-2026-08-08/MANIFEST.md` records that no commit in this
+# repository produces the bytes readers actually had, and `wrangler deployments
+# list` puts the last deploy before 26 September at 2026-08-08T17:29:45Z.
+#
+# The values below are now what READERS WERE SHOWN, read from
+# `publications/joburg/ledger.jsonl` at that timestamp. Three of the four had
+# been frozen BELOW today's figure and rendered a rising arrow, when against the
+# published page they had fallen — the ANC's ward wall 74 -> 61 and the clause
+# 96% -> 65%. The convention was agreed on 2026-09-17 assuming a138788 was live;
+# the discovery that it never was came on 2026-09-26 during the ledger backfill
+# and reached MANIFEST.md, the ledger and §12 — but not these four rows.
+#
+# ⛔ THE SOURCE OF A FROZEN FIGURE IS THE LEDGER, NEVER A BUILD ARTEFACT.
+# `site/changes.json` at any commit says what a build WOULD have changed. Only
+# `publications/joburg/ledger.jsonl` says what was published.
 [pub0831_p_da_largest]
 mode = "fixed"
 tracks = "p_da_largest"   # the live figure this frozen one is shown against
-value = 0.71
+value = 0.62
 format = "pct0"
-source = "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)"
-captured = "2026-08-31"
+source = "external:published forecast page, 8 August 2026 (publications/joburg/ledger.jsonl, published_at 2026-08-08T17:29:45+00:00)"
+captured = "2026-08-08"
 used_in = "standfirst, as published"
 unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
 historical = "published 31 August 2026; kept as the original of a written piece, with a Since-then box"
@@ -504,10 +522,10 @@ historical = "published 31 August 2026; kept as the original of a written piece,
 [pub0831_anc_ward_median]
 mode = "fixed"
 tracks = "anc_ward_median"   # the live figure this frozen one is shown against
-value = 55
+value = 74
 format = "int"
-source = "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)"
-captured = "2026-08-31"
+source = "external:published forecast page, 8 August 2026 (publications/joburg/ledger.jsonl, published_at 2026-08-08T17:29:45+00:00)"
+captured = "2026-08-08"
 used_in = "Wards, lists and Laingsburg articles, as published"
 unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
 historical = "published 31 August 2026; kept as the original of a written piece, with a Since-then box"
@@ -515,10 +533,10 @@ historical = "published 31 August 2026; kept as the original of a written piece,
 [pub0831_anc_entitlement]
 mode = "fixed"
 tracks = "anc_entitlement"   # the live figure this frozen one is shown against
-value = 54
+value = 65
 format = "int"
-source = "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)"
-captured = "2026-08-31"
+source = "external:published forecast page, 8 August 2026 (publications/joburg/ledger.jsonl, published_at 2026-08-08T17:29:45+00:00)"
+captured = "2026-08-08"
 used_in = "Wards, lists and Laingsburg articles, as published"
 unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
 historical = "published 31 August 2026; kept as the original of a written piece, with a Since-then box"
@@ -526,10 +544,10 @@ historical = "published 31 August 2026; kept as the original of a written piece,
 [pub0831_p_excessive_anc]
 mode = "fixed"
 tracks = "p_excessive_anc"   # the live figure this frozen one is shown against
-value = 0.58
+value = 0.96
 format = "pct0"
-source = "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)"
-captured = "2026-08-31"
+source = "external:published forecast page, 8 August 2026 (publications/joburg/ledger.jsonl, published_at 2026-08-08T17:29:45+00:00)"
+captured = "2026-08-08"
 used_in = "Wards, lists article, as published"
 unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
 historical = "published 31 August 2026; kept as the original of a written piece, with a Since-then box"

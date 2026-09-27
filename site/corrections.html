@@ -228,6 +228,68 @@
 model or the world moved and the earlier statement was true on its date;
 updates appear beside the original as a dated &ldquo;what the model says now&rdquo; box.</p>
 <p>Nothing is removed from this list.</p>
+<h2>27 September 2026 — three arrows on &ldquo;Nobody will win Johannesburg&rdquo; pointed the wrong way</h2>
+<p><span data-asof="2026-09-27"><strong>What was wrong.</strong> Four figures on that piece were
+labelled <em>as published on 31 August 2026</em>. They were not published on that date
+or any other. They were read out of a build that was never deployed, and the
+page readers actually had from 8 August until 26 September carried different
+numbers.</p>
+<p><strong>What the page said, and what it should have said.</strong> The figures are shown
+frozen, with an arrow where today&rsquo;s model disagrees. Three of those arrows
+pointed upward against numbers that had in fact fallen:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>the page said we published</th>
+<th>we actually published</th>
+<th>today</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>the ANC&rsquo;s stronghold wards</td>
+<td>55</td>
+<td><strong>74</strong></td>
+<td>61</td>
+</tr>
+<tr>
+<td>its proportional entitlement</td>
+<td>54</td>
+<td><strong>65</strong></td>
+<td>58</td>
+</tr>
+<tr>
+<td>how often the excessive-seats clause fires</td>
+<td>58%</td>
+<td><strong>96%</strong></td>
+<td>65%</td>
+</tr>
+<tr>
+<td>the DA as largest party</td>
+<td>71%</td>
+<td><strong>62%</strong></td>
+<td>47%</td>
+</tr>
+</tbody>
+</table></div>
+<p>So a reader was told the ANC&rsquo;s ward wall had grown and the clause had become
+more likely. Both had weakened, and the clause sharply — from almost every
+simulation to about two in three. A sentence beside them read <em>&ldquo;Still the ANC&rsquo;s
+usual condition, and a stronger one&rdquo;</em>, which was false in the same direction.</p>
+<p><strong>How it happened.</strong> The convention of freezing a piece&rsquo;s figures was adopted on
+17 September, and it took the last build in the repository to be the last thing
+published. That assumption went unchecked until 26 September, when archiving the
+live pages showed that no commit here produces the bytes readers were being
+served. That finding was written into the archive, the publication ledger and
+the publishing rules — and not into these four figures, which had already been
+frozen against the wrong source.</p>
+<p><strong>What changed.</strong> The four are re-sourced to the publication ledger, which
+records what was served and when, and the arrows now compare against it. The
+sentence is rewritten. Five articles dated 31 August are re-dated 8 August,
+checked against the archived page rather than assumed. And the rule is now
+explicit where the figures live: the source of a frozen figure is the ledger,
+never a build.</span></p>
 <p><span data-asof="2026-09-23"><strong>Nothing is listed here yet.</strong> Checked against
 the published page on 2026-09-23: the three entries this page carried in draft
 all described figures that were never public. They came from a local build on

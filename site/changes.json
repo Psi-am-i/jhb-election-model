@@ -4185,64 +4185,64 @@
       "value": 725
     },
     {
-      "display": "54",
+      "display": "65",
       "fmt": "int",
       "mode": "fixed",
-      "movement": "none",
+      "movement": "material",
       "pages": [
         "nobody-will-win.html"
       ],
       "previous": "54",
       "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 54,
-      "source": "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)",
+      "source": "external:published forecast page, 8 August 2026 (publications/joburg/ledger.jsonl, published_at 2026-08-08T17:29:45+00:00)",
       "token": "pub0831_anc_entitlement",
-      "value": 54
+      "value": 65
     },
     {
-      "display": "55",
+      "display": "74",
       "fmt": "int",
       "mode": "fixed",
-      "movement": "none",
+      "movement": "material",
       "pages": [
         "nobody-will-win.html"
       ],
       "previous": "55",
       "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 55,
-      "source": "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)",
+      "source": "external:published forecast page, 8 August 2026 (publications/joburg/ledger.jsonl, published_at 2026-08-08T17:29:45+00:00)",
       "token": "pub0831_anc_ward_median",
-      "value": 55
+      "value": 74
     },
     {
-      "display": "71%",
+      "display": "62%",
       "fmt": "pct0",
       "mode": "fixed",
-      "movement": "none",
+      "movement": "material",
       "pages": [
         "nobody-will-win.html"
       ],
       "previous": "71%",
       "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 0.71,
-      "source": "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)",
+      "source": "external:published forecast page, 8 August 2026 (publications/joburg/ledger.jsonl, published_at 2026-08-08T17:29:45+00:00)",
       "token": "pub0831_p_da_largest",
-      "value": 0.71
+      "value": 0.62
     },
     {
-      "display": "58%",
+      "display": "96%",
       "fmt": "pct0",
       "mode": "fixed",
-      "movement": "none",
+      "movement": "material",
       "pages": [
         "nobody-will-win.html"
       ],
       "previous": "58%",
       "previous_published_at": "2026-09-26T13:58:54Z",
       "previous_value": 0.58,
-      "source": "external:published forecast page, 31 August 2026 (git a138788 site/changes.json)",
+      "source": "external:published forecast page, 8 August 2026 (publications/joburg/ledger.jsonl, published_at 2026-08-08T17:29:45+00:00)",
       "token": "pub0831_p_excessive_anc",
-      "value": 0.58
+      "value": 0.96
     },
     {
       "display": "20261104",
@@ -4808,9 +4808,9 @@
     "draws": 5000,
     "forecast_content_sha256": "661b8783e7cb6dad1f5301c008bd816cc347cb8ee9c69455a685a003289fef86",
     "forecast_summary_sha256": "6ea8d7976f780e4acf9fec434b55d0140f239927026cce518d580125b7d1a95f",
-    "git_commit": "27bc8f7cc6b30f14ff250f2e0d7010639ad97d29",
+    "git_commit": "b2e10a94b5a4cb90232b32fa79348d77a067e306",
     "git_dirty": true,
-    "model_run_id": "r-661b8783e7cb-27bc8f7c-dirty",
+    "model_run_id": "r-661b8783e7cb-b2e10a94-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
@@ -4873,6 +4873,12 @@
   },
   "summary": {
     "by_movement": {
+      "material": [
+        "pub0831_anc_entitlement",
+        "pub0831_anc_ward_median",
+        "pub0831_p_da_largest",
+        "pub0831_p_excessive_anc"
+      ],
       "new": [
         "claim.red_lines.three_median_when_wins"
       ],
@@ -5154,10 +5160,6 @@
         "polls_off_crps_before",
         "polls_off_seat_err_after",
         "polls_off_seat_err_before",
-        "pub0831_anc_entitlement",
-        "pub0831_anc_ward_median",
-        "pub0831_p_da_largest",
-        "pub0831_p_excessive_anc",
         "run_seed",
         "seats.ALJAMAAH.median",
         "seats.ALJAMAAH.p5",
@@ -5199,7 +5201,7 @@
     },
     "n": 319,
     "n_rounding": 0,
-    "n_visible": 0,
+    "n_visible": 4,
     "nominal": []
   }
 }

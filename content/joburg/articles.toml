@@ -1,5 +1,11 @@
 # The written pieces, newest first — the home page's article list.
 #
+# ⛔ RE-DATED 2026-09-27, all five from 31 August to 8 August. They were
+# dated to a build that was never deployed. Checked rather than assumed:
+# the distinguishing text of each — "November surprise", "Laingsburg", the
+# German comparison, "587,000" and "Minority administrations" — is present
+# in archive/live-deployed-2026-08-08/index.html, the bytes readers had.
+#
 # ⛔ A PIECE IS FROZEN AND DATED. Once published, its words and its figures stay
 # as they were; when the model moves materially it gets an appended, dated
 # "Since then" note and the original is never rewritten (PUBLISHING-BACKLOG §8).
@@ -16,7 +22,7 @@
 
 [[article]]
 lead = true
-date = "2026-08-31"
+date = "2026-08-08"
 title = "Nobody will win Johannesburg — and an obscure voting law will give the ANC more seats than expected"
 standfirst = """Johannesburg votes on two ballots at once, and they are added
 together. A party with tightly concentrated support can win more wards than its
@@ -26,7 +32,7 @@ town of seven seats."""
 href = "nobody-will-win"
 
 [[article]]
-date = "2026-08-31"
+date = "2026-08-08"
 title = "When the ANC falls, nobody catches the votes"
 standfirst = """The opposition captured essentially none of the 587,000 votes
 the ANC shed between 2016 and 2021. The city's collapse in ANC support did not
@@ -34,7 +40,7 @@ become anybody else's gain — it became abstention."""
 href = "nobody-will-win#nobody-catches"
 
 [[article]]
-date = "2026-08-31"
+date = "2026-08-08"
 title = "Minority administrations, and why nobody has to win"
 standfirst = """The mayor is elected by the councillors present and voting, so
 abstention installs governments. A council nobody controls is not a council
@@ -42,14 +48,14 @@ nobody can run."""
 href = "nobody-will-win#minority"
 
 [[article]]
-date = "2026-08-31"
+date = "2026-08-08"
 title = "If the law were German instead"
 standfirst = """The same votes under our seat law and Germany's of 2000, 2015
 and 2023."""
 href = "nobody-will-win#other-pr"
 
 [[article]]
-date = "2026-08-31"
+date = "2026-08-08"
 title = "Laingsburg, 2021"
 standfirst = """The only place the clause has fired — the whole mechanism in a
 council of seven."""

@@ -988,5 +988,64 @@ def test_a_published_token_that_left_the_registry_stops_the_build():
         assert "LEFT THE REGISTRY UNRETIRED" not in (r2.stdout + r2.stderr)
 
 
+def test_a_frozen_as_published_figure_is_sourced_to_the_LEDGER_not_to_a_build():
+    """What a build WOULD have shown is not what a reader WAS shown.
+
+    ⛔ THE DEFECT THIS EXISTS FOR, 2026-09-27. Four figures frozen as "published
+    on 31 August 2026" were read out of `site/changes.json` at a commit that was
+    never deployed. Every row in that file is `movement:"new"`, `previous:null`
+    — it is a build artefact. Against the page readers actually had, three of
+    the four had FALLEN, and the site rendered a rising arrow beside each: the
+    ANC's ward wall 74 -> 61 shown as 55 -> 61, and the excessive-seats clause
+    96% -> 65% shown as 58% -> 65%. A reader was told the opposite of what
+    happened, in the largest piece on the site.
+
+    Nothing caught it because the convention named a source in prose and no
+    check read it. `publications/joburg/ledger.jsonl` is the only file that
+    records what was served and when, so a frozen figure must cite it — and
+    must MATCH it, or citing it is decoration.
+    """
+    import tomllib
+    ROOT = Path(__file__).resolve().parents[1]   # the module's own convention
+    registry = tomllib.loads(
+        (ROOT / "content" / "joburg" / "stats.toml").read_text(encoding="utf-8"))
+    rows = [json.loads(line) for line in
+            (ROOT / "publications" / "joburg" / "ledger.jsonl").read_text().splitlines()
+            if line.strip()]
+
+    frozen = {name: entry for name, entry in registry.items()
+              if isinstance(entry, dict) and entry.get("mode") == "fixed"
+              and str(entry.get("source", "")).startswith("external:published forecast page")}
+    assert frozen, ("no frozen as-published figures found at all. Either the "
+                    "convention was removed or this test is looking in the "
+                    "wrong place; both need a human.")
+
+    problems = []
+    for name, entry in sorted(frozen.items()):
+        source = str(entry.get("source", ""))
+        if "ledger.jsonl" not in source:
+            problems.append(
+                f"{name}: sourced to {source!r}. A frozen figure cites the "
+                f"publication ledger or it is not evidence of publication.")
+            continue
+        tracks = entry.get("tracks")
+        captured = str(entry.get("captured", ""))
+        hits = [r for r in rows if r["token"] == tracks
+                and str(r.get("published_at", "")).startswith(captured)]
+        if not hits:
+            problems.append(
+                f"{name}: cites the ledger and dates itself {captured}, but the "
+                f"ledger has no row for {tracks!r} published that day.")
+            continue
+        published = hits[-1]["value"]
+        if abs(float(published) - float(entry["value"])) > 1e-9:
+            problems.append(
+                f"{name}: frozen at {entry['value']}, but the ledger says "
+                f"{tracks!r} was published at {published} on {captured}.")
+    assert not problems, (
+        "a frozen 'as published' figure does not match what was published:\n  "
+        + "\n  ".join(problems))
+
+
 if __name__ == "__main__":
     run_module(globals())

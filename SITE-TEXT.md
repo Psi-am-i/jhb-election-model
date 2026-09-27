@@ -41,7 +41,7 @@ If the DA rules out the ANC, the EFF and MK, it has one realistic governing opti
 <!-- block 9796d4f9 -->
 *p*
 
-Still the ANC's usual condition, and a stronger one: about {{anc_ward_median}} wards on a {{anc_entitlement}}-seat entitlement, with the clause firing in {{p_excessive_anc}} of the {{n_draws}} simulations. In the rest the ANC gets list seats as well.
+Still the ANC's usual condition, though a weaker one than the published piece described: about {{anc_ward_median}} wards on a {{anc_entitlement}}-seat entitlement, with the clause firing in {{p_excessive_anc}} of the {{n_draws}} simulations. In the rest the ANC gets list seats as well.
 
 <!-- /block 9796d4f9 -->
 
