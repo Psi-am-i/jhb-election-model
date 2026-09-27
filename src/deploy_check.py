@@ -42,6 +42,22 @@ def check(city: str, site: Path, preview: bool, review: Path | None = None) -> l
         f = site / page
         if not f.is_file() or hashlib.sha256(f.read_bytes()).hexdigest() != sha:
             problems.append(f"site/{page} is not the page the review scanned — rebuild")
+    # ⛔ A PAGE THE REVIEW NEVER SCANNED IS A PAGE THIS GATE CANNOT SEE.
+    # `wrangler.toml` ships `directory = "./site"` wholesale, so every .html in
+    # there reaches a reader, while the loop above only checks the ones named in
+    # the review's stamp. `portal.html` — the apex page — was outside it, and on
+    # 2026-09-27 it went a whole batch without being regenerated: it would have
+    # shipped claiming sliders that do not exist, and nothing here would have
+    # objected. Check 1 was real for eight pages and blind to the ninth.
+    stamped = {pair.split("=", 1)[0] for pair in head.group(1).split()}
+    unscanned = sorted(f.name for f in site.glob("*.html") if f.name not in stamped)
+    if unscanned:
+        problems.append(
+            f"{len(unscanned)} page(s) ship from {site}/ that the number review "
+            f"never scanned: {', '.join(unscanned)}. Either build them through "
+            f"build_site.py so they enter the stamp, or move them out of the "
+            f"directory wrangler deploys — a page nobody checked is a page "
+            f"nobody can vouch for.")
     blocks = sum(1 for line in text.splitlines() if line.startswith("| BLOCKS |"))
     if blocks != int(head.group(2)):
         problems.append(f"{review} was edited by hand: stamp says "

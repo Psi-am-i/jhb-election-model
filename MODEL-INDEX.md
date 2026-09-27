@@ -889,7 +889,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `build_crosswalk` | neither | yes | -- | Build and check the party crosswalk across every source file. |
 | `build_geo` | neither | yes | -- | Extract the CoJ subsets from the downloaded boundaries and check them. |
 | `build_interactive` | neither | yes | -- | Assemble forecast-interactive.html from the template and the data packs. |
-| `build_portal` | neither | NO | `tests/test_build_all` | Build the portal at whysoserious.city — one card per city. |
+| `build_portal` | neither | NO | `src/build_site`, `tests/test_build_all` | Build the portal at whysoserious.city — one card per city. |
 | `build_site` | neither | NO | `src/build_portal`, `tests/test_home_page`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_stat_freshness` | Build the public site (joburg.whysoserious.org) into ./site. |
 | `build_validation` | neither | yes | -- | Run the validation across every metro and write the page that reports it. |
 | `byelections` | neither | yes | -- | By-election evidence for the target election (plan §3.6, §3.3 covariate). |

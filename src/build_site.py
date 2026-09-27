@@ -963,6 +963,25 @@ def main(argv: list[str] | None = None) -> int:
     if all_drift and args.strict_drift:
         raise SystemExit(1)
 
+    # --- the portal, built HERE so one command produces every page ---------
+    # ⛔ IT USED TO BE A SEPARATE COMMAND, AND THAT IS HOW IT WENT STALE.
+    # `build_portal.py` was edited on 2026-09-27 and the page it writes was not
+    # regenerated for a whole batch, so the apex page would have shipped with a
+    # claim the same batch had removed. Nothing objected, because the review's
+    # stamp did not name it and `deploy_check` only hashes what the stamp names
+    # — while `wrangler.toml` ships `./site` wholesale.
+    #
+    # Building it here means one command produces all nine pages, and the scan
+    # below puts it in the stamp so the gate can see it. It is scanned as a
+    # GENERATED page: every figure on it is read from a city's own
+    # `forecast_summary.json` by `build_portal.city_card`, none is typed.
+    import build_portal
+    build_portal.main(["--out", str(args.out / "portal.html")])
+    portal_page = (args.out / "portal.html").read_text(encoding="utf-8")
+    scans["portal.html"] = statlib.scan_numbers(portal_page, generated_page=True,
+                                                **scan_cfg)
+    generated.append("portal.html")
+
     if generated:
         print(f"\ngenerated pages, exempt from the typed-figure audit because "
               f"every number in them comes from a recorded run: "
