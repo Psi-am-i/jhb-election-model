@@ -1,74 +1,101 @@
-# What the interactive ships, and why it is not 141 MB
+# How the interactive gets its inputs
 
-The open question since A2 was measured: one `run_model` call opens **75 files
-totalling 140.9 MB**, and no page can ship that. Three routes were named and
-none was costed. They are costed here.
+Rewritten 2026-09-27 because the first version answered the wrong question. It
+compared the three routes on **size**. The question that decides it is whether a
+reader's lever still acts at the right point in the model.
 
-## What the 141 MB actually is
+## The two things a route has to do
 
-Measured with an audit hook on `open`, one 5-draw Johannesburg 2026 run:
+1. **Be fast enough to use.** One run today opens 75 files totalling 141 MB and
+   takes about 25 seconds of setup before a single draw.
+2. **Leave every lever acting where it acts now.** A lever that moves a number
+   the page has already precomputed does nothing. This is the test the first
+   version of this document never applied.
 
-| group | files | MB | share |
-|---|---|---|---|
-| **other metros' election results** | 56 | **107.3** | **76%** |
-| Johannesburg's own | 11 | 31.8 | 23% |
-| census / covariates | 2 | 1.5 | 1% |
-| everything else | 6 | 0.2 | — |
+## Where each lever acts
 
-The largest single files are `lge2021_ETH_vd_party_clean.csv` (8.6 MB),
-`lge2021_CPT` (8.0), `lge2021_TSH` (6.3). **A Johannesburg forecast reads
-eThekwini and Cape Town at voting-district level.**
+The model runs in stages. A lever can only work if its stage still runs in the
+browser.
 
-## Why it reads them, and why that is the answer
+| the control | the stage it acts in | can it survive precomputation? |
+|---|---|---|
+| **the seat law** | after every draw — it converts votes to seats | **Yes, entirely.** It does not need the browser at all: all four laws are already computed |
+| **within-pool movement** | the draw itself — it is the spread of the Dirichlet that splits a pool's vote | Only if the draw loop runs in the browser |
+| **by-election weight** | before the draw, when a party's centre is set | Only if that stage runs in the browser |
+| **turnout by group / area** | after the balancing step, before the draw | Only if that stage runs |
+| **polls** | before the draw, adjusting party levels | Only if that stage runs |
 
-`levels.py:868-880`. The other metros are opened for one purpose: to build the
-**theta record**, the party-level transition ratios between consecutive local
-elections. Each file is passed to `_citywide()`, which reduces a
-voting-district table to **citywide party totals** — and the ratios are formed
-from those totals.
+So the levers split cleanly in two: **the seat law needs nothing**, and
+**everything else needs the model from the party-level stage onward.**
 
-So 107.3 MB of CSV exists to produce, for 52 parties, a list of
-`(ratio, weight)` pairs.
+## The three routes, against both tests
 
-    theta_record: 52 parties, serialised 18.8 KB
+### Route A — ship less data, run everything
 
-**107.3 MB becomes 18.8 KB — a reduction of about 5,700 times — and no number
-changes, because `_citywide` is a pure reduction.** The browser does not need
-the other metros. It needs a table those metros produce.
+Prune the archive to what Johannesburg needs.
 
-## The three routes, costed
+* **Levers:** all of them keep working. Nothing is precomputed.
+* **Speed:** does not solve it. 76% of the 141 MB is other metros' results, and
+  they are not surplus — `levels.py:868` reads them to build the theta record,
+  the party-trend table behind a measured 14% improvement. Deleting them deletes
+  that. Pruning to "Johannesburg only" is a model change disguised as a saving.
 
-| | route | payload | what it costs |
-|---|---|---|---|
-| **A** | **Prune** — ship only what Johannesburg needs | **~33 MB** | ⛔ Cannot be done as stated. The other metros are not surplus; deleting them deletes the theta record, which is the evidence-keyed blend (MODEL-LOG task #22, a 14% gain held out by metro). Pruning to "Johannesburg only" is a model change that removes a measured improvement. |
-| **B** | **Precompute the reductions** — serialise the theta record and the census read, enter the model below them | **≈ 20 KB + Johannesburg's own** | Nothing. `_citywide` and the census read are pure functions of files that do not change between runs. The page runs the same `run_model` on the same numbers. It also removes `openpyxl` and the spreadsheet parse from the load path, which A2 measured as a large share of the 25 s fixed cost. |
-| **C** | **Ship the fixed stage's output as an artefact** — precompute everything up to the draw loop | smallest | The page no longer runs the model's setup, only its draws. "The page runs the real model" stops being literally true in the way §9 means it, and the self-check has less to compare. |
+### Route B — precompute the pure reductions, run the rest
 
-## Recommendation
+The other metros are read for one thing: each 8 MB file is reduced to citywide
+party totals, and the ratios between elections become the theta record. That
+record is **18.8 KB for 52 parties**. The census spreadsheet is read the same
+way.
 
-**Route B.** It is not a compromise between A and C — it is the observation that
-the 141 MB is an implementation detail of a reduction, not an input to the
-forecast. It keeps §9's "no second definition to drift" exactly, because the
-page runs the same code on the same numbers; what changes is that a pure
-function is evaluated once on Atlas instead of once per reader.
+* **Levers:** all of them keep working. The reductions happen *before* any
+  lever acts — they are inputs to the party-level stage, not outputs of it.
+* **Speed:** 107 MB of the 141 disappears, and `openpyxl` and the spreadsheet
+  parse leave the load path, which is a large share of the 25 seconds.
+* **The catch:** the shipped record must be checked against what the live path
+  produces, or it becomes a second definition of theta — the thing running the
+  real model was chosen to avoid.
 
-⛔ **The thing that makes B safe is also the thing to test.** The precomputed
-record must be byte-identical to what the live path produces, checked in the
-suite, or B becomes a second definition of the theta record — the precise
-failure §9 chose Pyodide to avoid. The check is cheap: rebuild the record from
-the CSVs and compare with the shipped JSON.
+### Route C — precompute the whole setup, run only the draws
 
-⚠️ **What B does NOT solve.** Johannesburg's own 31.8 MB is still there. It has
-not been broken down by what the draw loop needs against what its setup needs,
-and that is the next measurement. Route B is worth taking before that work
-because it removes three quarters of the problem and can be checked in an
-afternoon.
+* **Levers:** ⛔ **this is where it breaks.** Everything except the seat law and
+  within-pool movement acts in the setup. Precompute the setup and the by-election
+  weight, the turnout controls and the poll dial all become sliders attached to a
+  number that was fixed on Atlas. Four of the five planned controls stop working.
+* **Speed:** the fastest of the three.
 
-## What this decides, and what it does not
+## The recommendation
 
-**Decided, pending the owner:** the browser ships derived tables, not the
-raw archive, and the model code is unchanged.
+**Route B**, and it is not a compromise: the 141 MB is an implementation detail
+of a reduction, not an input to the forecast. It is the only route that is both
+materially faster and leaves every planned lever acting where it acts today.
 
-**Still open:** the draw count and what the page prints before a reader touches
-anything (TODO B1); whether Johannesburg's own 31.8 MB needs the same treatment;
-and the browser timing, which has never been measured in a browser (TODO D7).
+**And ship the seat-law comparison first, separately, before any of this.** It
+needs no browser engine, no reduction and no decision here — four complete
+forecasts at the published 5,000 draws, already reduced into `site/regimes.json`.
+If the browser work slips, that control does not slip with it.
+
+## Three things that were muddled in earlier descriptions, stated plainly
+
+**300 and 400 draws are different things and neither is the published forecast.**
+
+* The **published forecast** is **5,000** draws. That is what the site shows.
+* The **backtest** on `/about` — the 2021 track record — was run at **400** draws
+  per city. That is a different exercise scoring a different election, and it has
+  nothing to do with the interactive.
+* **300** is the count proposed for the **interactive**, so a reader's re-run
+  finishes in a usable time.
+
+**The "first 300" problem is about the interactive only.** The model uses one
+random generator and a plain loop, so a 300-draw run is literally the first 300
+draws of the 5,000. That means the page's untouched default would print
+different headline percentages from the published page — identically for every
+reader, because it is the same 300 draws every time. It is an argument about
+what the interactive may display before a reader touches it. It says nothing
+about the backtest.
+
+**The roster is in hand; the IEC's own list is not.** We have a roster of 82
+parties and the model uses it. What we do not have is the IEC's authoritative
+list to check it against, because the IEC publishes no per-municipality list
+anywhere reachable. The 82 was typed from press reports that disagree with each
+other. So: the roster exists and works, and its provenance is weak — those are
+two different statements and both are true.
