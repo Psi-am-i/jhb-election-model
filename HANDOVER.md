@@ -5,8 +5,18 @@
 `MODEL-LOG.md`, which is append-only and dated. `CLAUDE.md` sends every session
 here first, so anything stale in this file is read as an instruction.
 
-> ## ⛔ STATE AT 2026-09-26 — THE TYPED-FIGURE GATE MEASURES ZERO BLOCKING IN A
-> ## SCRATCH BUILD, AND NOTHING HAS BEEN PUBLISHED. INTERACTIVE: 3 OF 4 DECIDED.
+> ## ⛔ STATE AT 2026-09-27 — PUBLISHED AND DEPLOYED ON 26 SEPTEMBER. A BLIND
+> ## REVIEW FOUND THREE ARROWS POINTING THE WRONG WAY ON THE LIVE SITE; FIXED
+> ## AND CORRECTED. THE FULL LIST IS
+> ## `audits/2026-09-27-interactive-levers/TODO.md` — WORK FROM IT.
+>
+> ⛔ **The banner below was 14 hours stale about the single most consequential
+> fact in it** — it said the live pages were still the 31 August build after
+> `d05b6a2` had deployed. That is the failure this file's own rule names: a
+> superseded instruction here is a false premise delivered with the authority of
+> the rules. It is left in place, struck, rather than deleted.
+>
+> **SUPERSEDED BANNER FOLLOWS.**
 >
 > **Live pages are still the 31 August build.** Nothing was deployed or
 > re-emitted this evening, and no forecast number moved.
