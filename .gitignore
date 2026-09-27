@@ -72,3 +72,8 @@ new data from statsSA/
 # site, not with the model. Listed here because `git add -A` swept them into a
 # commit on 2026-09-13 and they had to be removed from it.
 whysoserious.city/
+
+# Copies of every gitignored file, so a script that overwrites one cannot
+# destroy it. See src/backup_ignored.py. Local protection, not a second copy
+# in the repository.
+backups/
