@@ -79,7 +79,9 @@ here first, so anything stale in this file is read as an instruction.
 > lacks to that page. The owner's `articles.toml` hrefs are correct as they
 > stand. ⚠️ The owner said *"point the hrefs at forecast"* on the strength of
 > that false claim; it was not done, because the page already exists and
-> `forecast#…` would redirect straight back to it. **Confirm with him.**
+> `forecast#…` would redirect straight back to it. ✅ **Closed 2026-09-27:** all
+> four anchors (`nobody-catches`, `minority`, `other-pr`, `laingsburg`) resolve
+> on the live page; the hrefs stay.
 >
 > **NEXT, in order. The pool-input window is PARKED behind its pre-registration;
 > attention moves to the interactive and polling (owner, 2026-09-25).**
@@ -264,7 +266,7 @@ here first, so anything stale in this file is read as an instruction.
 >      The IEC did not proclaim the date; the COGTA Minister, Velenkosini
 >      Hlabisa, announced it on 7 August 2026 and the IEC welcomed it.
 >      `reviewed` was set to 2026-09-26 — **that is the owner's attestation and
->      he has not yet confirmed it.**
+>      he confirmed it on 2026-09-27.**
 >    * a THIRD row that the banner above could not have known about: `four`, in
 >      "The same votes under four seat laws", added to `home.html` by this
 >      branch's own last commit `c450f8e`. It counted `overhang_regimes.RULES`

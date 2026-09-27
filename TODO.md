@@ -14,15 +14,6 @@ more defensible is a change that ships.
 
 ## Open, in the order I would take them
 
-**The backtest score moved and we do not know why.**
-Regenerating the track record gives a worse headline: total error over eight
-cities 213.9 → 224.1, "beats the best baseline by" 37% → 34%, Johannesburg's
-seats-out 62 → 96, while Tshwane and Ekurhuleni improved. The artefact also
-changed shape — 12 party rows per city became 15 to 24. **A blind review is
-running to say whether this is an implementation error before it is read as the
-model being worse.** Everything else about the published track record waits on
-its answer.
-
 **Independents cannot win anything, and the model is charged for it.**
 `IND` is on the certified ballot and on our roster, and has no pool membership,
 so no simulation can seat an independent. Independents took 11,904 votes in
@@ -76,6 +67,11 @@ is a correction, not a rewording. *(Owner: add, leave for now.)*
 
 ## Done
 
+* **The backtest score moved; it was not an implementation error.** Total error
+  over eight cities 213.9 → 224.1. Commit `f33528f` (14 Aug) stopped the 2021
+  backtest sizing ActionSA from a split three years after the election; 213.9
+  was contaminated. Blind review: `audits/2026-09-27-backtest-difference/`.
+  Republished as a bugfix. *(27 Sept)*
 * **The arrows pointed the wrong way** — four figures frozen as "published 31
   August" came from a build that was never deployed; three showed a rise where
   the published number had fallen. Re-sourced to the publication ledger, arrows
@@ -148,7 +144,8 @@ is a correction, not a rewording. *(Owner: add, leave for now.)*
 
 **Publishing**
 
-* Six commits are unshipped; the site is the 26 September build.
+* ~~Six commits are unshipped~~ — deployed and verified live 27 Sept
+  (`fbb829e`).
 * The portal page ships without being scanned by the number gate.
 
 **The newsdesk**
@@ -168,5 +165,16 @@ is a correction, not a rewording. *(Owner: add, leave for now.)*
 
 **Housekeeping**
 
-* Three branches and one stash are marked discard and none has been deleted.
-* Commits are unpushed to Atlas and Scout.
+* **Discard list reviewed 27 Sept; deletion not yet done** (the agent's delete
+  was blocked by the permission check, so the owner runs it):
+  - `splinter-rule-and-historical-tail` — safe. Its tip tree is identical to
+    `efa06f7` on `remediation` ("tree identical to splinter-rule-…"), so all
+    content survives as a squash. Its 56 commits have no patch-equivalent on
+    `remediation`, so tag it before deleting to keep the per-commit history.
+  - `atlas/…` tip `a5e8c5d` (WIP, 2 Sep) — safe. Its four files diff empty
+    against `af054e3` on the splinter branch, whose content reached
+    `remediation` via `efa06f7`.
+  - Scout's 14-Sep stash — not reviewed: Scout offline on 27 Sept.
+  - The site was published from `remediation`, which is not on the list.
+* ~~Commits are unpushed to Atlas~~ — `remediation` pushed to `atlas` 27 Sept.
+  GitHub `origin` is not pushed (see the two-`CLAUDE.md` item).
