@@ -1,0 +1,1826 @@
+<h1 id="thejudgementcallslaidout">The judgement calls, laid out</h1>
+
+<p>⛔ <strong>GENERATED — do not edit.</strong> <code>.venv/bin/python src/judgement_sheet.py</code>, and <code>tests/test_judgement_sheet.py</code> regenerates it and compares.</p>
+
+<p>Every choice a person made that the data did not force, joined to what the registers say about it: what it is, whether it is doing anything at the live target, and whether a reader could move it. The sentence in <em>what it is</em> is <code>JUDGEMENT-CALLS.md</code>&#8217;s own, carried through verbatim — this document writes no new prose about any individual call, so there is one place to correct it.</p>
+
+<h2 id="howtoreadthecolumns">How to read the columns</h2>
+
+<p>Status: 🔴 wants a second opinion · 🟡 defensible, bounded by evidence ·
+🟢 forced by arithmetic or by an identity · ⚪ superseded or resolved ·
+⚫ deleted or refused</p>
+
+<p><strong>doing anything?</strong> is read from <code>tests/test_levers_are_live</code>:</p>
+
+<ul>
+<li><strong>CERTIFIED INERT</strong> — a registered null with a cause and a gate check that proves it. It is not merely unobserved; something was measured.</li>
+<li><strong>CONDITIONAL</strong> — dead in the shipped configuration, and measured with its gate held open, which is the only honest reading of such a lever.</li>
+<li><strong>not certified dead here</strong> — ⚠️ exactly that, and <em>not</em> evidence that it fires. It means no null has been registered at this target. The absence of a certificate is not a measurement.</li>
+</ul>
+
+<p>The live target below is <strong>2026</strong>, taken from the registers' own keys rather than typed here.</p>
+
+<h2 id="1·whatareadercanmove">1 · What a reader can move</h2>
+
+<p>⛔ <strong>NOTHING, TODAY. The interactive refuses to build</strong>, and says why:</p>
+
+<blockquote>
+<p>the interactive page has not been ported to voter pools: its in-browser drawer is the old two-bloc engine and there is nothing left to feed it. See the note at the top of this file. The published page stays frozen in the meantime.</p>
+</blockquote>
+
+<p>So every &#8216;named by the interactive&#8217; below describes a control on a page that is <strong>withheld</strong>, not one a reader can touch. Two things follow, and the second is the one that bites:</p>
+
+<ul>
+<li>the published forecast exposes <strong>no</strong> judgement call to a reader;</li>
+<li>the frozen page&#8217;s controls are not a subset of today&#8217;s levers. The keys it reads that <strong>no city declares</strong> are listed below — each is either a deleted lever or one that never existed here, and the page would drive a control that moves nothing.</li>
+</ul>
+
+<p>Controls the interactive reads off its <code>scalars</code> block that <strong>no city declares</strong> — each is a control with nothing behind it:</p>
+
+<ul>
+<li><code>alpha_anc</code></li>
+<li><code>alpha_da</code></li>
+<li><code>anc_bloc_shift</code></li>
+<li><code>bloc_leak</code></li>
+<li><code>da_bloc_shift</code></li>
+<li><code>f_other</code></li>
+<li><code>turnout_tilt_anc</code></li>
+<li><code>turnout_tilt_da</code></li>
+</ul>
+
+<p>It also reads 1 key(s) off its <code>individual_theta</code> block; those are party codes, not levers, and are not checked against <code>[judgements.scalars]</code> here.
+It also reads 6 key(s) off its <code>theta_mode</code> block; those are party codes, not levers, and are not checked against <code>[judgements.scalars]</code> here.</p>
+
+<h2 id="2·thecallswithasymbol">2 · The calls with a symbol</h2>
+
+<table>
+<colgroup>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</colgroup>
+
+<thead>
+<tr>
+	<th> call </th>
+	<th> value </th>
+	<th> kind </th>
+	<th> doing anything at the live target? </th>
+	<th> reader can move it? </th>
+	<th> what it is </th>
+	<th> status </th>
+	<th> entry </th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+	<td> <code>_LOG_FLOOR</code> </td>
+	<td> 1e-6 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> Unexercised and kept deliberately: every dimension declares exactly one census, so the branch never runs. A flat sweep of it is not a null about the value. </td>
+	<td> 🟡 </td>
+	<td> §A31 </td>
+</tr>
+<tr>
+	<td> <code>_SIGN_EPS</code> </td>
+	<td> 1e-9 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> 1e-9, and it decides one of KEY 4&#8217;s two failure triggers: six orders above the float dust a genuine no-op produced and six below the smallest real effect on record. </td>
+	<td> 🟡 </td>
+	<td> §F7 </td>
+</tr>
+<tr>
+	<td> <code>ALPHA_MIN_SHARE</code>, <code>ALPHA_FLOOR</code>, <code>ALPHA_CEILING</code>, <code>ALPHA_FALLBACK</code> </td>
+	<td> 0.01, 1.0, 200.0, 12.0 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Promoted from inline literals 2026&#8211;08&#8211;22, number-neutral. They are the SELECTION RULE feeding the dominant width lever, and none has ever been swept. </td>
+	<td> 🔴 </td>
+	<td> §F31 </td>
+</tr>
+<tr>
+	<td> <code>alpha</code> per pool (and <code>dirichlet_scale</code>) </td>
+	<td> — </td>
+	<td> lever </td>
+	<td> not certified dead here </td>
+	<td> no </td>
+	<td> The model&#8217;s DOMINANT width lever, sweepable since §1.63 via <code>dirichlet_scale</code> and NOT retuned — the method-of-moments fit names 1.0. The ranks 4&#8211;12 half of the old &#8216;a scalar cannot serve both bands&#8217; finding is WITHDRAWN. </td>
+	<td> 🟡 </td>
+	<td> §B7 </td>
+</tr>
+<tr>
+	<td> <code>apply_city</code> never resets <code>DEFAULTS</code> </td>
+	<td> — </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> <strong>AMENDED 2026&#8211;09&#8211;24 (register audit).</strong> FIXED: <code>apply_city</code> clears <code>DEFAULTS</code> and restores a pristine copy before applying a city (since 2026&#8211;08&#8211;18), guarded by <code>test_apply_city_does_not_leak_one_citys_scalars_into_the_next</code>. Johannesburg declares 11 scalars, not sixteen. Status marker left for the owner. </td>
+	<td> 🔴 </td>
+	<td> §A43 </td>
+</tr>
+<tr>
+	<td> <code>ARRIVAL_BAND_LO</code>, <code>ARRIVAL_BAND_HI</code> </td>
+	<td> 0.25, 0.95 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 0.25 / 0.95, the triangular support of every seeded arrival. 25/95 rather than 10/90 or 5/95 is undefended and never swept. </td>
+	<td> 🔴 </td>
+	<td> §F32 </td>
+</tr>
+<tr>
+	<td> <code>arrival_group_draw</code> </td>
+	<td> False </td>
+	<td> lever </td>
+	<td> not certified dead here </td>
+	<td> no </td>
+	<td> Ships False. The rejection was re-run on the label-free referee 2026&#8211;08&#8211;29 and refuted again; the 254 → 348 figure is superseded and must not be quoted. </td>
+	<td> 🟢 </td>
+	<td> §A6 </td>
+</tr>
+<tr>
+	<td> <code>balance_margins</code> <code>iters</code> / <code>tol</code> </td>
+	<td> 2000 / 1e-12 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> 2000 / 1e-12. Nominally operational; registered because the cap is what turns an infeasible problem into an exception. 20,000 iterations move the failure rate 40.9% → 38.9%. </td>
+	<td> 🟡 </td>
+	<td> §F10 </td>
+</tr>
+<tr>
+	<td> <code>beta</code> </td>
+	<td> 1.0 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> 1.0. It is part of what &#8220;better&#8221; means, so <code>ITERATING.md</code> is arguably its proper home. </td>
+	<td> 🔴 </td>
+	<td> §H14 </td>
+</tr>
+<tr>
+	<td> <code>BINS</code> </td>
+	<td> 5 size bands </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> The size bands behind §1.59/§1.77. The &#8216;≥15% of the vote&#8217; cut this register quotes as though it were natural is a CHOSEN threshold. </td>
+	<td> 🔴 </td>
+	<td> §H15 </td>
+</tr>
+<tr>
+	<td> <code>BLEND_W</code> </td>
+	<td> 1.0 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 1.0, fitted leave-one-city-year-out to the boundary of the family: the optimal blend IS uniform swing. The one constant here legitimately fitted on the scoreboard, because it touches no forecast. </td>
+	<td> 🟢 </td>
+	<td> §D9 </td>
+</tr>
+<tr>
+	<td> <code>bye_local_cap</code>, <code>bye_tau_months</code> </td>
+	<td> 1.5, 18 </td>
+	<td> lever </td>
+	<td> CERTIFIED INERT (UNDELIVERED) — <code>if (w_ward or w_pr) and ...</code> — <code>w_bye_local_ward</code> and <code>w_bye_local_pr</code> both ship at 0.0, so the ward-local block never runs. The DATA is present at this target; only the switch is off; ALSO CONDITIONAL — measured with its gate held open: the cap on one contest&#8217;s logit shift. At the shipped 1.5 it binds on 11 of the 65 party-contests; the question this asks is whether the model can tell the difference between that and no cap at all. </td>
+	<td> no </td>
+	<td> 1.5 / 18, inert in every backtest. </td>
+	<td> 🔴 </td>
+	<td> §F24 </td>
+</tr>
+<tr>
+	<td> <code>BYE_MIN_WEIGHT</code> </td>
+	<td> 30.0 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 30.0, the admission gate on the WHOLE by-election channel, promoted from a bare literal. Same reach into the published forecast, same untestability, same status as <code>w_bye</code>. </td>
+	<td> 🔴 </td>
+	<td> §F33 </td>
+</tr>
+<tr>
+	<td> <code>bye_weight_mode</code> </td>
+	<td> <code>&quot;fixed&quot;</code> </td>
+	<td> lever </td>
+	<td> not certified dead here </td>
+	<td> no </td>
+	<td> Defaults to <code>fixed</code>. <code>inverse_variance</code> is built and derives the weight; switching it moves the published 2026 forecast and no backtest can score either — the owner&#8217;s call. </td>
+	<td> 🟡 </td>
+	<td> §A33 </td>
+</tr>
+<tr>
+	<td> <code>CAMPAIGN_WINDOW_DAYS</code> </td>
+	<td> 550 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 550, typed. </td>
+	<td> 🟡 </td>
+	<td> §F4 </td>
+</tr>
+<tr>
+	<td> <code>CELL_AREA_FACTOR</code> </td>
+	<td> — </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Typed at 1.0. ARGUED, NOT TESTED, and a trade between two goods rather than right against wrong. Touches no forecast. </td>
+	<td> 🟡 </td>
+	<td> §D17 </td>
+</tr>
+<tr>
+	<td> <code>independent_wards</code> (C) in the forecast </td>
+	<td> 0, structurally </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> The forecast universe drops INDEPENDENT/IND, so no draw can seat an independent and C is always 0. The IEC records C=1 at eThekwini 2011 and C=4 at 2016, both SCORED — the model allocates those seats to parties and is charged for it. An ASSUMPTION, not a measurement; registered 2026&#8211;09&#8211;02 after being silent. </td>
+	<td> 🔴 </td>
+	<td> §1.166 </td>
+</tr>
+<tr>
+	<td> <code>CENSUS_COVERAGE_FLOOR</code> </td>
+	<td> 0.80 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> A WARNING in <code>pool_counts</code> and a REFUSAL in <code>registered_at_target</code>, on different denominators. Measured 2026&#8211;09&#8211;02: 0.9609&#8211;0.9979 at the refusal, so it binds nowhere and has never been exercised. The §J2 argument applies to it and has not been applied. </td>
+	<td> 🔴 </td>
+	<td> §J1 </td>
+</tr>
+<tr>
+	<td> <code>CENSUS_DRIFT_CEILING</code> </td>
+	<td> 0.05 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> The reprojection refusal: how far the CITYWIDE composition moves because of unmappable wards. Bounded by ablation (worst random loss 0.028, segregated loss <sub>0</sub>.28) on one city only. </td>
+	<td> 🟡 </td>
+	<td> §J2 </td>
+</tr>
+<tr>
+	<td> <code>contestation_expand</code> </td>
+	<td> 0.220 </td>
+	<td> lever </td>
+	<td> CERTIFIED INERT (UNDELIVERED) — <code>if (not _contest or _partial) and _contest_prev</code> — <code>levels.contestation</code> returns the DECLARED ward slates for a target with no result file, so <code>_contest</code> is non-empty, the roster declares itself complete, and <code>levels.projected_contestation</code> is never called </td>
+	<td> no </td>
+	<td> <strong>AMENDED 2026&#8211;09&#8211;24 (register audit).</strong> Ships 0.220 and is INERT at 2026 since the declared ward slates reached the correction (MODEL-LOG §1.252; <code>EXPECTED_INERT[(&quot;contestation_expand&quot;, &quot;2026&quot;)]</code>), for as long as the roster is <code>complete = true</code>. It acts at no backtest target either (§1.60). </td>
+	<td> 🔴 </td>
+	<td> §A5 </td>
+</tr>
+<tr>
+	<td> <code>DIRICHLET_FLOOR</code> </td>
+	<td> 1e-4 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 1e-4 and inert as committed — but it has a SECOND consumer that floors a CONCENTRATION rather than a mean, and <code>PERTURB</code> sweeps it to 0.05 where that would bind. </td>
+	<td> 🟢 </td>
+	<td> §F1 </td>
+</tr>
+<tr>
+	<td> <code>dirichlet_floor</code>, <code>spine_k</code> (scenario keys) </td>
+	<td> — </td>
+	<td> lever </td>
+	<td> not certified dead here </td>
+	<td> no </td>
+	<td> Scenario keys mirroring the module constants so a sweep is reproducible. ⚠ This row also lists <code>poll_k</code>, which was DELETED on 2026&#8211;08&#8211;22 (§1.68) and is in no <code>DEFAULTS</code> — see the restructure note beneath. </td>
+	<td> 🟢 </td>
+	<td> §F21 </td>
+</tr>
+<tr>
+	<td> <code>entrant_prob</code> </td>
+	<td> 0.25 </td>
+	<td> lever </td>
+	<td> CERTIFIED INERT (UNDELIVERED) — <code>universe</code> does not contain ENTRANT — the 2026 spec, emitted from the declared certified roster, seeds 46 arrivals by name </td>
+	<td> named by the interactive, which is WITHHELD </td>
+	<td> Ships 0.25. Typed, but measurable since 2026&#8211;08&#8211;17 and the typed value survives the measurement; §G-R2 puts the defensible range at [0.25, 0.29]. </td>
+	<td> 🟡 </td>
+	<td> §A3 </td>
+</tr>
+<tr>
+	<td> <code>entrant_share</code> </td>
+	<td> <code>[0.01, 0.04, 0.12]</code> </td>
+	<td> lever </td>
+	<td> CERTIFIED INERT (UNDELIVERED) — <code>universe</code> does not contain ENTRANT — the 2026 spec, emitted from the declared certified roster, seeds 46 arrivals by name </td>
+	<td> named by the interactive, which is WITHHELD </td>
+	<td> <strong>AMENDED 2026&#8211;09&#8211;24 (register audit).</strong> Unchanged at [0.01, 0.04, 0.12]. It acts only where no arrival is named — of the backtest targets, 2011 alone. At 2016, 2021 and 2026 the named seeds retire the generic slot (§A4), so the &#8220;1.42% of the vote in every run&#8221; this row used to state holds nowhere the forecast is published. </td>
+	<td> 🟡 </td>
+	<td> §A17 </td>
+</tr>
+<tr>
+	<td> <code>extrapolation_damping</code> </td>
+	<td> 0.6 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> <strong>AMENDED 2026&#8211;09&#8211;24 (register audit).</strong> 0.6. Two other copies in <code>pools.py</code>, neither a live fallback: the <code>Config</code> dataclass default (marked unreachable — <code>load_config</code> refuses a TOML without the key) and <code>projected_pool_shares</code>' default argument. </td>
+	<td> 🔴 </td>
+	<td> §H8 </td>
+</tr>
+<tr>
+	<td> <code>extrapolation_max_years</code> / <code>max_extrapolation</code> </td>
+	<td> 8 / 8.0 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> 8 / 8.0 — two copies of one number, one in TOML and one as a dataclass field. </td>
+	<td> 🔴 </td>
+	<td> §H9 </td>
+</tr>
+<tr>
+	<td> <code>FRESHNESS_GRACE_S</code> </td>
+	<td> — </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Typed at 300s. ARGUED, NOT TESTED — the harness cannot score a publishing guard; the strong half of the check catches the 16-day defect with no window at all. </td>
+	<td> 🟡 </td>
+	<td> §D16 </td>
+</tr>
+<tr>
+	<td> <code>GAMMA_FOLD</code> </td>
+	<td> <code>{2026:1, 2021:1, 2016:3, 2011:4}</code> </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> The live 2026 forecast uses fold 1, and the code&#8217;s own comment concedes the constraint does not pick one. A contestable choice on the published forecast. </td>
+	<td> 🔴 </td>
+	<td> §H6 </td>
+</tr>
+<tr>
+	<td> <code>GRID_MARGIN_CELLS</code> </td>
+	<td> — </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Typed at 2 and purely operational: the Johannesburg optimum uses no cell in the outermost ring. </td>
+	<td> 🟢 </td>
+	<td> §D18 </td>
+</tr>
+<tr>
+	<td> <code>kappa_bye</code> </td>
+	<td> 0.25 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> 0.25. Same provenance and the same artefact problem as <code>w_recency</code>. </td>
+	<td> 🔴 </td>
+	<td> §H3 </td>
+</tr>
+<tr>
+	<td> <code>LEVEL_DF</code> </td>
+	<td> 7.0 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Ships 7.0, live since 2026&#8211;08&#8211;17 and swept. The sweep cannot distinguish 7 from 30; §F narrows it to ν ∈ [5, 15] on four constraints. </td>
+	<td> 🟡 </td>
+	<td> §A18 + §F8 </td>
+</tr>
+<tr>
+	<td> <code>LEVEL_DF</code> </td>
+	<td> 7.0 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> BOUNDED 2026&#8211;08&#8211;29 to ν ∈ [5, 15] on four constraints, with the committed 7.0 in the middle. The honest label is no longer &#8216;unmeasured&#8217; but &#8216;not resolvable further on this panel&#8217;; a joint (κ, ν) fit was designed and NOT built. </td>
+	<td> 🟡 </td>
+	<td> §F8 + §A18 </td>
+</tr>
+<tr>
+	<td> <code>level_floor</code> </td>
+	<td> 1e-6 </td>
+	<td> lever </td>
+	<td> not certified dead here </td>
+	<td> no </td>
+	<td> 1e-6; separates the level floor from the deviation floor. </td>
+	<td> 🟢 </td>
+	<td> §F19 </td>
+</tr>
+<tr>
+	<td> <code>LEVEL_FLOOR</code> vs <code>SHARE_FLOOR</code> </td>
+	<td> — </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Two separate floors, deliberately. On its own it fixed nothing — the 42 phantom seats were the scale drift above it. </td>
+	<td> 🟢 </td>
+	<td> §C4 </td>
+</tr>
+<tr>
+	<td> <code>level_sd_default</code> </td>
+	<td> 0.45 </td>
+	<td> lever </td>
+	<td> CERTIFIED INERT (UNDELIVERED) — both consumers are unreachable: <code>sd_for_party</code> sees only the <code>individual</code> path, which is empty (every index party is a pool member), and the poll blend&#8217;s <code>_sd.get(party, default)</code> runs only when <code>poll_paths == 'all'</code> — it has been &#8216;off&#8217; since 2026&#8211;09&#8211;12 </td>
+	<td> no </td>
+	<td> MEASURED inert at 2021 and 2026. Would bind for 44 unmeasured 2026 parties if polls were switched back on (<code>poll_paths</code> &#8220;off&#8221; since 2026&#8211;09&#8211;12). </td>
+	<td> 🟡 </td>
+	<td> §A29 </td>
+</tr>
+<tr>
+	<td> <code>level_shrink</code> (and <code>level_shrink_scale</code>) </td>
+	<td> 0.35 </td>
+	<td> lever </td>
+	<td> not certified dead here </td>
+	<td> no </td>
+	<td> Adopted 2026&#8211;08&#8211;17 and unchanged; the largest single improvement this model has had. Two things keep it off green: an L1 form-selection leak, and a tail the uniform renormalisation over-feeds. </td>
+	<td> 🟡 </td>
+	<td> §A23 + §F20 </td>
+</tr>
+<tr>
+	<td> <code>level_shrink</code>, <code>level_shrink_scale</code> </td>
+	<td> 0.35, 0.04 </td>
+	<td> lever </td>
+	<td> not certified dead here </td>
+	<td> no </td>
+	<td> See §A. The scale is a SCALE, not a tuned constant — swept twentyfold with no cliff. </td>
+	<td> 🟡 </td>
+	<td> §F20 + §A23 </td>
+</tr>
+<tr>
+	<td> <code>LOG_CHI2_BIAS</code> </td>
+	<td> — </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Correct, derived, and DELIBERATELY NOT APPLIED: applying it makes the model worse on every metric, because the record it reproduces is marginal and this layer is conditional. </td>
+	<td> 🟢 </td>
+	<td> §C5 </td>
+</tr>
+<tr>
+	<td> <code>MAX_DISPLACEMENT_RADII</code> </td>
+	<td> — </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> Typed at 5.0 radii — a regression guard rather than a claim, and it separates the optimal assignment (3.8) from the greedy one (8.8). </td>
+	<td> 🟡 </td>
+	<td> §D21 </td>
+</tr>
+<tr>
+	<td> <code>max_parties</code> </td>
+	<td> 12 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> 12. Operational in flavour, but it silently truncates the coalition space if a council ever seats more than twelve parties — which the 2026 ballot could. </td>
+	<td> 🔴 </td>
+	<td> §H13 </td>
+</tr>
+<tr>
+	<td> <code>MAX_SIGMA</code>, <code>MIN_SIGMA</code>, <code>NEW_PARTY_SIGMA</code> </td>
+	<td> 2.0, 0.15, 1.0 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Spread bounds for the <code>prior-lge-noise</code> BASELINE, not for the model. </td>
+	<td> 🟡 </td>
+	<td> §F28 </td>
+</tr>
+<tr>
+	<td> <code>METRO_CODES</code> widened 2 → 8 </td>
+	<td> — </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Eight metros. More evidence and no leakage, but it moves θ itself, so it is confounded with the spine in any before/after delta. </td>
+	<td> 🟡 </td>
+	<td> §B6 </td>
+</tr>
+<tr>
+	<td> <code>min_clusters</code> </td>
+	<td> 8 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> Typed. The floor below which the clustered uniformity test prints <code>not established</code> instead of a χ². Moves no forecast; decides whether a calibration verdict is a number or a refusal. Under a known null δ̄ is unbiased at every k from 3 to 24 and its noise is SMOOTH in k, so there is no cliff at 8 — any floor is a line on a continuum. </td>
+	<td> 🔴 </td>
+	<td> §D22 </td>
+</tr>
+<tr>
+	<td> <code>MIN_HOME_SPLITS</code> and the binary home/away </td>
+	<td> 2 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Unchanged: a measured gradient (0.611 / 0.315 / 0.289 / 0.103) modelled as two buckets. </td>
+	<td> 🔴 </td>
+	<td> §A44 </td>
+</tr>
+<tr>
+	<td> <code>min_oos_gain</code> </td>
+	<td> 0.01 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> 0.01, and it is upstream of every pool in the model: age and sex are rejected by this number. </td>
+	<td> 🔴 </td>
+	<td> §H7 </td>
+</tr>
+<tr>
+	<td> <code>MIN_SHARE</code>, <code>CLAIM_FRACTION</code>, <code>F_OTHER</code> </td>
+	<td> 0.005, 0.50, 1.30 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> All three were filed under the wrong module once. <code>MIN_SHARE</code> is <code>gamma_recent.py</code>&#8217;s and is a CLAIM about the model, not reporting; <code>CLAIM_FRACTION</code> is <code>score.py</code>&#8217;s. ⚠ <code>F_OTHER</code> is no longer in <code>src/</code> at all — see the restructure note beneath. </td>
+	<td> 🟡 </td>
+	<td> §F29 </td>
+</tr>
+<tr>
+	<td> <code>OVERHANG_DEDUCT_MAX_ROUNDS_SLACK</code> </td>
+	<td> 2 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Derived, not chosen: any value ≥ 1 is equivalent. </td>
+	<td> 🟢 </td>
+	<td> §A39 </td>
+</tr>
+<tr>
+	<td> <code>OVERHANG_LEVEL_MAX_ROUNDS</code> </td>
+	<td> 200 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 200 rounds. Bounded on ROUNDS deliberately rather than on council size, because a magnitude off the real panel does not transfer to a toy. </td>
+	<td> 🟡 </td>
+	<td> §A40 </td>
+</tr>
+<tr>
+	<td> <code>NATIONAL_ONLY_FLOOR</code> </td>
+	<td> 0.001 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> The national share below which a party with no local record is NOT assumed onto an unheld ballot. <strong>[16-panel]</strong> Measured over 16 city-years: drops 158 of 226 such candidates for 0.10pp of vote. MK (12.2%) clears it. Owner&#8217;s decision 2026&#8211;09&#8211;03; unreachable from any backtest. </td>
+	<td> 🟢 </td>
+	<td> §K1 </td>
+</tr>
+<tr>
+	<td> <code>PRIOR_LOCAL_FLOOR</code> </td>
+	<td> 0.001 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> The prior-LOCAL share below which a party with no national vote is not assumed onto an unheld ballot. Drops 112 of 189 such candidates for 0.038pp and ZERO seats. ⚠️ <strong>AMENDED 2026&#8211;09&#8211;24 (register audit).</strong> INERT at 2026 for a different reason: the floor filters only the projected roster, and a complete declared roster does not use it (argued from <code>pools.py</code>, not perturbed). </td>
+	<td> 🟢 </td>
+	<td> §K2 </td>
+</tr>
+<tr>
+	<td> <code>overhang_rule</code> </td>
+	<td> <code>&quot;deduct&quot;</code> </td>
+	<td> lever </td>
+	<td> not certified dead here </td>
+	<td> no </td>
+	<td> ⚖️ <strong>STATUTE, reclassified 2026&#8211;09&#8211;02</strong> — Act 3 of 2021 Schedule 1 item 16. NOT a lever and never swept: refused at the <code>--set</code> boundary, out of <code>PERTURB</code>. Never bound in 24 metro-years; tightest margin 2 seats. </td>
+	<td> ⚖️ </td>
+	<td> §H1 </td>
+</tr>
+<tr>
+	<td> <code>pa_contestation_uplift</code> </td>
+	<td> DELETED 2026&#8211;08&#8211;18 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> DELETED 2026&#8211;08&#8211;18. The branch now falls back to the previous local election&#8217;s measured contestation for every party, which makes it backtestable. </td>
+	<td> ⚪ </td>
+	<td> §F27 </td>
+</tr>
+<tr>
+	<td> <code>PAGE_SIZE</code> </td>
+	<td> — </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Pagination. Reporting, not belief. </td>
+	<td> 🟢 </td>
+	<td> §F37 </td>
+</tr>
+<tr>
+	<td> <code>PARTIAL_BALANCE_PASSES</code> </td>
+	<td> 200 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 200. A convergence budget that is not a converging sequence, so the number chooses how close to the boundary it gets. </td>
+	<td> 🟡 </td>
+	<td> §F12 </td>
+</tr>
+<tr>
+	<td> <code>PLAN_BOUNDS</code> </td>
+	<td> 7 party ranges </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> <strong>AMENDED 2026&#8211;09&#8211;24 (register audit).</strong> Only Johannesburg carries <code>[judgements.plan_bounds]</code> (Tshwane&#8217;s were deleted 2026&#8211;08&#8211;31), and the clamp needs a by-election file, which exists only for Johannesburg 2026 — so it reads on none of the 24 panel rows and the panel is not a mixture of configurations. Whether it binds at 2026 is unmeasured. </td>
+	<td> 🔴 </td>
+	<td> §H5 </td>
+</tr>
+<tr>
+	<td> <code>poll_credence</code> </td>
+	<td> 1.0 </td>
+	<td> lever </td>
+	<td> CERTIFIED INERT (UNDELIVERED) — <code>if scenario['poll_paths'] == 'all'</code> guards the entire metro blend block; <code>poll_credence</code> multiplies <code>w</code> INSIDE it and is never read; ALSO CONDITIONAL — measured with its gate held open: the dial that chose the 2026 headline while the channel was on (§1.95). 0.0 against the shipped 1.0 is the identity against full belief, so this is the widest perturbation the dial admits. </td>
+	<td> no </td>
+	<td> Declared at 1.0, which is the identity, so it moves nothing. The value the backtest supports is UNMEASURED — the paired sweep is pre-registered and not run. </td>
+	<td> 🔴 </td>
+	<td> §A11 </td>
+</tr>
+<tr>
+	<td> <code>poll_deff_subsample</code> </td>
+	<td> 1.6 (standalone 1.2) </td>
+	<td> lever </td>
+	<td> CERTIFIED INERT (UNDELIVERED) — <code>polling.effective_n</code>, reached only from inside the metro blend block the shipped <code>poll_paths</code> does not enter; ALSO CONDITIONAL — measured with its gate held open: the design effect on a metro subsample — 4.0 prices the <sub>500</sub>-person cut as worth a quarter of its headline n. </td>
+	<td> no </td>
+	<td> Declared at 1.6 (standalone 1.2) and unmeasured; measurable the day a house publishes its effective base. </td>
+	<td> 🔴 </td>
+	<td> §A10 </td>
+</tr>
+<tr>
+	<td> <code>poll_half_life_days</code> </td>
+	<td> 120.0 </td>
+	<td> lever </td>
+	<td> CERTIFIED INERT (UNDELIVERED) — <code>polling._recency_weights</code>, same block; ALSO CONDITIONAL — measured with its gate held open: the recency half-life. At 5 days only the freshest wave counts, which collapses the two SRF waves to one and is the sharpest statement of what recency weighting is doing. </td>
+	<td> no </td>
+	<td> A real constant since §1.67 and mirrored in <code>DEFAULTS</code>, so a sweep can now reach it. Still declared: no SA metro series is long enough to fit it. </td>
+	<td> 🔴 </td>
+	<td> §A14 </td>
+</tr>
+<tr>
+	<td> <code>POLL_HALF_LIFE_DAYS</code> </td>
+	<td> 120 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 120, declared. No SA metro series is long enough to fit it. </td>
+	<td> 🔴 </td>
+	<td> §F3 </td>
+</tr>
+<tr>
+	<td> <code>poll_house_k</code> </td>
+	<td> 1.0 </td>
+	<td> lever </td>
+	<td> CERTIFIED INERT (UNDELIVERED) — <code>_cap = 1.0 if polling.SIGMA_TWO_TERM else weight_cap(..., house_k=...)</code> — the shipped switch takes the branch that never reads the lever; ALSO CONDITIONAL — measured with its gate held open: the retired weight cap. The EXPECTED_INERT entry keeps the lever on the grounds that <code>SIGMA_TWO_TERM=0</code> still reads it — so that is the configuration it is measured in. If this ever goes dead the entry&#8217;s own justification has gone with it and the lever should be deleted. </td>
+	<td> no </td>
+	<td> INERT. The cap it drove was deleted 2026&#8211;08&#8211;24 with the two-term σ; a lone house is now bounded by the derived <code>polling.house_ceiling</code> instead. </td>
+	<td> 🔴 </td>
+	<td> §A12 </td>
+</tr>
+<tr>
+	<td> <code>poll_id</code>, <code>poll_weight</code>, <code>poll_k</code> </td>
+	<td> — </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> DELETED 2026&#8211;08&#8211;22. The legacy path bypassed every admission rule in <code>polling.usable_for</code> and had never executed. </td>
+	<td> ⚪ </td>
+	<td> §F30 </td>
+</tr>
+<tr>
+	<td> <code>POLL_K</code> </td>
+	<td> — </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> DELETED 2026&#8211;08&#8211;22 with the legacy poll path. The shape survives as <code>poll_house_k</code>. </td>
+	<td> ⚪ </td>
+	<td> §F5 </td>
+</tr>
+<tr>
+	<td> <code>poll_min_n</code> </td>
+	<td> 300 </td>
+	<td> lever </td>
+	<td> CERTIFIED INERT (UNDELIVERED) — same — neither <code>national_polls</code> (arrivals) nor the metro block is entered, so nothing calls <code>polling.screen</code> on the forecast path at all; ALSO CONDITIONAL — measured with its gate held open: the same floor at the target where it gates the METRO path: both SRF waves are <sub>500</sub>-person subsamples, so a 5,000 floor admits neither. </td>
+	<td> no </td>
+	<td> Declared at 300 and settable. Note it runs ahead of every scope test, so it also gates the national polls that drive the arrivals path. </td>
+	<td> 🔴 </td>
+	<td> §A16 </td>
+</tr>
+<tr>
+	<td> <code>poll_paths</code> </td>
+	<td> <strong>&#8220;off&#8221;</strong> </td>
+	<td> lever </td>
+	<td> not certified dead here </td>
+	<td> no </td>
+	<td> <strong>SHIPS &#8220;off&#8221; SINCE 2026&#8211;09&#8211;12 — the forecast uses no poll at all.</strong> The owner&#8217;s decision, on design grounds; see §A8 and MODEL-LOG §1.225. Measured on 24 city-years: removing the channel moves coherent seat error 725 → 723 and CRPS 545.8 → 541.4, i.e. <strong>not distinguishable from zero</strong>. Every other poll lever below is inert by configuration while this stands. </td>
+	<td> 🟢 </td>
+	<td> §A8 </td>
+</tr>
+<tr>
+	<td> <code>POLL_RMS_ERROR</code> </td>
+	<td> <sub><sub>0.030</sub></sub> </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> DELETED 2026&#8211;08&#8211;28. Read by nothing; the constant the tests assert against is its neighbour <code>POLL_RMS_ERROR_2016</code>. </td>
+	<td> ⚫ deleted </td>
+	<td> §F2 </td>
+</tr>
+<tr>
+	<td> <code>poll_screen_sd</code>, <code>poll_drift_per_root_day</code>, <code>POLL_MIN_N</code> </td>
+	<td> 0.020 · 0.0010 · 300 </td>
+	<td> lever </td>
+	<td> CERTIFIED INERT (UNDELIVERED) — <code>polling._sigma_total</code>&#8217;s screen term, reached only from inside the metro blend block; ALSO CONDITIONAL — measured with its gate held open: the surcharge for an undisclosed likely-voter screen, priced as ruinous. SRF&#8217;s screen is the caveat the register carries against both admitted waves, so this is the term that decides how much that caveat costs. </td>
+	<td> no </td>
+	<td> All three declared, none measured. The drift rate is fittable from the campaign&#8217;s waves — pre-register that fit before running it. </td>
+	<td> 🔴 </td>
+	<td> §A13 </td>
+</tr>
+<tr>
+	<td> <code>polling_lean</code>, <code>polling_span</code> </td>
+	<td> — </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> DELETED. This row said &#8220;still wired&#8221; for days after they were gone, which is why the register → code guard exists. </td>
+	<td> ⚪ </td>
+	<td> §F26 </td>
+</tr>
+<tr>
+	<td> <code>POOL_CAPACITY_MARGIN</code> </td>
+	<td> 0.98 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Ships 0.98, one full step clear of a measured cliff. It is the guard, not the cure — the cause is an upstream corner solution in the ecological fit. </td>
+	<td> 🔴 </td>
+	<td> §A28 + §F9 </td>
+</tr>
+<tr>
+	<td> <code>POOL_CAPACITY_MARGIN</code> </td>
+	<td> 0.98 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> See §A — a judgement about what to do when two layers disagree, not a tolerance. </td>
+	<td> 🔴 </td>
+	<td> §F9 + §A28 </td>
+</tr>
+<tr>
+	<td> <code>PROJECTED_METRO_SHARE</code> </td>
+	<td> eight per-metro shares of the national vote, 2021 values </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> The last observed value, so nothing is extrapolated; n = 2 and it fires only where no backtest can check it. </td>
+	<td> 🔴 </td>
+	<td> §F36 </td>
+</tr>
+<tr>
+	<td> <code>REFERENCE_SHARE</code>, <code>REFERENCE_SLATE</code> </td>
+	<td> <code>REFERENCE_SHARE</code> = 0.0025 · <code>REFERENCE_SLATE</code> = 0.25 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Both typed. The share cut is safe (below every metro&#8217;s PR quota); the slate cut is the one to attack, and it moves no forecast — only which columns a width comparison is read on. </td>
+	<td> 🔴 </td>
+	<td> §D8 </td>
+</tr>
+<tr>
+	<td> <code>REG_DRIFT_TOLERANCE</code> </td>
+	<td> 0.30 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> RECLASSIFIED 2026&#8211;08&#8211;24 from 🟢 reporting to 🔴: it reaches the forecast through <code>fold.suspect_vds</code> → <code>w_split</code> → γ. Declared, never measured, and not a <code>DEFAULTS</code> key, so no lever sweep can reach it. </td>
+	<td> 🔴 </td>
+	<td> §F38 </td>
+</tr>
+<tr>
+	<td> <code>RELIABILITY_HALF</code> </td>
+	<td> 0.002 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 0.002, a value inherited from the hard cut it replaced; only the smooth form is new, and it has never been swept. </td>
+	<td> 🟡 </td>
+	<td> §F16 </td>
+</tr>
+<tr>
+	<td> <code>SAFE</code> </td>
+	<td> — </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> <strong>AMENDED 2026&#8211;09&#8211;24 (register audit).</strong> One definition: <code>SAFE</code> lives in <code>render_map.py</code> and <code>hex_cartogram.py</code> imports it. The STRONG and LEAN tiers were removed by the owner on 2026&#8211;09&#8211;17 and exist nowhere in <code>src/</code>. Not an independent judgement. </td>
+	<td> 🟢 </td>
+	<td> §D19 </td>
+</tr>
+<tr>
+	<td> <code>SD_FLOOR</code>, <code>SD_CEILING</code> </td>
+	<td> 0.15, 1.20 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 🟡 at ≥15% of the vote. On the corrected harness the width in use is 0.151 against a measured 0.273 [0.136, 0.386] — inside the interval but near its bottom, at 1.81×, binding on 32 of 64. Below 15% every interval EXCLUDES it. </td>
+	<td> 🟡 (≥15%) </td>
+	<td> §F17 </td>
+</tr>
+<tr>
+	<td> <code>SHRINK</code> </td>
+	<td> 2.0 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 2.0, measured optimal on forward-validated RMSE(log θ) and on the model&#8217;s own three scores. Upgraded from &#8216;pre-existing&#8217; — do not re-file it as untested. </td>
+	<td> 🟢 </td>
+	<td> §A24 + §F15 </td>
+</tr>
+<tr>
+	<td> <code>SHRINK</code> </td>
+	<td> 2.0 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Measured optimal 2026&#8211;08&#8211;17. Do not re-file it here as &#8216;pre-existing&#8217;. </td>
+	<td> 🟢 </td>
+	<td> §F15 + §A24 </td>
+</tr>
+<tr>
+	<td> <code>SIGMA_COMMON</code> </td>
+	<td> 1.5pp </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> LIVE since 2026&#8211;08&#8211;24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026&#8211;09&#8211;24 (register audit)). 1.5pp, declared and sourced from outside this repository; never divided by the number of houses, which is the defect it exists to fix. </td>
+	<td> 🔴 declared, sourced </td>
+	<td> §H17 </td>
+</tr>
+<tr>
+	<td> <code>SIGMA_DRIFT_PER_ROOT_DAY</code> </td>
+	<td> 0.30 pp/√day </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> LIVE since 2026&#8211;08&#8211;24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026&#8211;09&#8211;24 (register audit)). 0.30 pp/√day, declared and sourced; the shipped <code>POLL_DRIFT_PP_PER_ROOT_DAY</code> of 0.10 is 2–4× too small. </td>
+	<td> 🔴 declared, sourced </td>
+	<td> §H19 </td>
+</tr>
+<tr>
+	<td> <code>SIGMA_IDIO</code> </td>
+	<td> 1.5pp </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> LIVE since 2026&#8211;08&#8211;24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026&#8211;09&#8211;24 (register audit)). 1.5pp, declared and sourced; the ONLY term <code>h_eff</code> may divide. </td>
+	<td> 🔴 declared, sourced </td>
+	<td> §H18 </td>
+</tr>
+<tr>
+	<td> <code>SIGMA_VOLATILITY</code> </td>
+	<td> 0.8pp </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> LIVE since 2026&#8211;08&#8211;24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026&#8211;09&#8211;24 (register audit)). 0.8pp, declared and sourced — a South Africa adjustment for average party swing. </td>
+	<td> 🔴 declared, sourced </td>
+	<td> §H20 </td>
+</tr>
+<tr>
+	<td> <code>SIMULATION_BLOC</code> </td>
+	<td> container </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> The reader-simulation bloc definition that <code>within_rate</code> sits in. </td>
+	<td> 🔴 </td>
+	<td> §H12 </td>
+</tr>
+<tr>
+	<td> <code>SOLVE_TOL</code> </td>
+	<td> 1e-9 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Operational, and listed EXEMPT in the guard — named here so the exemption is visible in the register and not only in the test. </td>
+	<td> 🟢 </td>
+	<td> §F11 </td>
+</tr>
+<tr>
+	<td> <code>SPINE_K</code> </td>
+	<td> 1.0 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> See §B. </td>
+	<td> 🔴 </td>
+	<td> §F14 + §B1 </td>
+</tr>
+<tr>
+	<td> <code>spine_k = 0</code> on a party with no θ evidence </td>
+	<td> <code>w_local = 0.0</code> </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> A CHOSEN limit (<code>w = 0</code>, pure national spine), inert at the shipped <code>spine_k = None</code> and reachable only by a sweep, which is what it exists for. </td>
+	<td> 🟡 </td>
+	<td> §F22 </td>
+</tr>
+<tr>
+	<td> <code>SPINE_K</code>, reciprocal form </td>
+	<td> — </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 1.0, fitted leave-one-metro-out on a curve that is flat 0.5–1.5. A step function scored better out of sample and was rejected on structural grounds — which is why this is 🔴 despite being fitted. </td>
+	<td> 🔴 </td>
+	<td> §B1 + §F14 </td>
+</tr>
+<tr>
+	<td> <code>SPLINTER_PARENT_WEIGHT</code> </td>
+	<td> 0.35 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 0.35, measured over 22 splinter-metro cases, no bootstrap, and stale since the archive grew (§A). </td>
+	<td> 🔴 </td>
+	<td> §F6 </td>
+</tr>
+<tr>
+	<td> <code>SPLIT_SD_FLOOR</code> </td>
+	<td> — </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 0.90, and it overrides its own measurement at target 2016 while binding at neither 2021 nor 2026 — real work in the one fold where it is least justified. </td>
+	<td> 🔴 </td>
+	<td> §B3 </td>
+</tr>
+<tr>
+	<td> the <code>home</code> city and <code>measured_from</code> pair of each entry in <code>SPLITS</code> </td>
+	<td> ASA→JHB · GOOD→CPT · MK→ETH · NFP→ETH · COPE and EFF→<strong>None</strong> </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> Six typed biographical claims that select WHICH record sizes a splinter. ActionSA&#8217;s is the single assignment behind the panel&#8217;s largest error, and the two unset ones announce nothing at all. Declared 2026&#8211;09&#8211;13, never swept. </td>
+	<td> 🔴 </td>
+	<td> §A47 </td>
+</tr>
+<tr>
+	<td> the size-dependence of <code>sd_for</code> below 15% </td>
+	<td> a straight line in log(size) </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> The model is UNCHANGED and the fault is the FORM, not the residual. ⛔ No further functional form may be tried against these two folds, and this row&#8217;s numbers are Form A&#8217;s and must not be quoted. </td>
+	<td> 🔴 </td>
+	<td> §F18 </td>
+</tr>
+<tr>
+	<td> <code>THETA_CENTRAL</code> </td>
+	<td> 6 party values </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> NOT LIVE. The plan&#8217;s six typed party values, and the module holding them has since been retired out of <code>src/</code> — see the restructure note beneath. </td>
+	<td> 🟡 not live </td>
+	<td> §H16 </td>
+</tr>
+<tr>
+	<td> <code>theta_prior</code> and <code>_shrunk</code> </td>
+	<td> RESOLVED 2026&#8211;08&#8211;18 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> RESOLVED 2026&#8211;08&#8211;18. Both shrink toward <code>size_centre</code>, they agree to 1e-16, and no forecast moved. </td>
+	<td> ⚪ </td>
+	<td> §A26 </td>
+</tr>
+<tr>
+	<td> <code>TIP_FLOOR</code> / <code>OTHER_FLOOR</code> </td>
+	<td> — </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> <strong>AMENDED 2026&#8211;09&#8211;24 (register audit).</strong> One definition in <code>render_map.py</code>, imported by <code>hex_cartogram.py</code>; 0.05 and 0.005, unchanged. </td>
+	<td> 🟢 </td>
+	<td> §D20 </td>
+</tr>
+<tr>
+	<td> <code>top = 12</code> parties per table </td>
+	<td> — </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> Cosmetic here — but it is what makes <code>validation_2021.json</code> not comparable. </td>
+	<td> — </td>
+	<td> §D13 </td>
+</tr>
+<tr>
+	<td> <code>total_seats</code> </td>
+	<td> 270 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> <strong>AMENDED 2026&#8211;09&#8211;24 (register audit).</strong> Johannesburg&#8217;s 270 as a DEFAULT ARGUMENT in the shared allocator. This row said every remaining call passes it explicitly; it was wrong. Both <code>allocate</code> calls in <code>fold.py</code> omit it, so <code>fold.py</code>&#8217;s printed seat diagnostic allocates 270 seats whatever the city. They feed that printout only, not the γ parameters the forecast reads, so no forecast number is affected. </td>
+	<td> 🔴 </td>
+	<td> §H10 </td>
+</tr>
+<tr>
+	<td> <code>TURNOUT_CORRELATION</code> </td>
+	<td> — </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 0.63 applied as ONE constant to every city and pool pair. It supplies 4–12% of drawn variance in the shape a pool-turnout mechanism should have; why it matters so little is still not explained. </td>
+	<td> 🟡 </td>
+	<td> §B4 + §F13 </td>
+</tr>
+<tr>
+	<td> <code>TURNOUT_CORRELATION</code> </td>
+	<td> 0.63 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 0.63, declared in <code>DEFAULTS</code> since §1.63 and asserted equal to the module constant at import. It MOVES the forecast, so it is a live lever. </td>
+	<td> 🟡 </td>
+	<td> §F13 + §B4 </td>
+</tr>
+<tr>
+	<td> TURNOUT_CORRELATION / SPLINTER_PARENT_WEIGHT / SPLIT_SD_FLOOR — the stale-<code>n</code> trio </td>
+	<td> <code>TURNOUT_CORRELATION</code> 0.63 · <code>SPLINTER_PARENT_WEIGHT</code> 0.35 · <code>SPLIT_SD_FLOOR</code> 0.90 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> Still NOT re-measured against the enlarged θ record, and deliberately so; quote none of their <code>n</code> values until the record question below is settled. </td>
+	<td> 🔴 </td>
+	<td> §A1 </td>
+</tr>
+<tr>
+	<td> <code>TURNOUT_DRAW_FLOOR</code>, <code>TURNOUT_DRAW_CEILING</code> </td>
+	<td> 0.02, 0.95 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 0.02 / 0.95, applied per draw. They contradict §C&#8217;s claim that the turnout band &#8216;removes caps rather than adding one&#8217;; whether the ceiling ever binds is unmeasured. </td>
+	<td> 🔴 </td>
+	<td> §F34 </td>
+</tr>
+<tr>
+	<td> <code>turnout_noise_sd</code>, <code>turnout_blend_jitter</code> </td>
+	<td> 0.08, 0.25 </td>
+	<td> lever </td>
+	<td> not certified dead here </td>
+	<td> named by the interactive, which is WITHHELD </td>
+	<td> Typed; <sub>0</sub>.003 citywide, i.e. nothing. </td>
+	<td> 🟡 </td>
+	<td> §F23 + §A41 </td>
+</tr>
+<tr>
+	<td> <code>turnout_pattern_blend</code> / <code>turnout_blend_jitter</code> / <code>turnout_noise_sd</code> </td>
+	<td> 0.5 / 0.25 / 0.08 </td>
+	<td> lever </td>
+	<td> not certified dead here </td>
+	<td> named by the interactive, which is WITHHELD </td>
+	<td> Typed. The citywide effect of the 0.08 is <sub>0</sub>.003, i.e. nothing — but see §G-R5: the turnout knobs move 46 ward wins, so the citywide null is not the whole story. </td>
+	<td> 🟡 </td>
+	<td> §A41 + §F23 </td>
+</tr>
+<tr>
+	<td> <code>w_bye</code> </td>
+	<td> 0.40 </td>
+	<td> lever </td>
+	<td> not certified dead here </td>
+	<td> named by the interactive, which is WITHHELD </td>
+	<td> Typed at 0.40, live in the 2026 forecast and inert in every backtest. Only the 2026 result can bound it. </td>
+	<td> 🔴 </td>
+	<td> §A35 </td>
+</tr>
+<tr>
+	<td> <code>w_bye_local_ward</code> / <code>w_bye_local_pr</code> </td>
+	<td> 0.0 / 0.0 </td>
+	<td> lever </td>
+	<td> not certified dead here </td>
+	<td> no </td>
+	<td> Built and disabled at 0.0 / 0.0. Untestable for the same reason as <code>w_bye</code>. </td>
+	<td> 🟡 </td>
+	<td> §A37 + §F25 </td>
+</tr>
+<tr>
+	<td> <code>w_bye_local_ward</code>, <code>w_bye_local_pr</code> </td>
+	<td> 0.0, 0.0 </td>
+	<td> lever </td>
+	<td> not certified dead here </td>
+	<td> no </td>
+	<td> Built, disabled, untestable. </td>
+	<td> 🟡 </td>
+	<td> §F25 + §A37 </td>
+</tr>
+<tr>
+	<td> <code>w_recency</code> </td>
+	<td> 0.70 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> 0.70, verbatim from the original plan. It reaches the model through 20 committed <code>turnout.csv</code> files that carry no artefact key, so changing it does nothing until someone re-runs the script. </td>
+	<td> 🔴 </td>
+	<td> §H2 </td>
+</tr>
+<tr>
+	<td> <code>w_split</code> </td>
+	<td> 0.6 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> 0.6, plan §3.5 &#8216;Basis: Judgement&#8217;, baked into the fold parameter artefacts. </td>
+	<td> 🔴 </td>
+	<td> §H4 </td>
+</tr>
+<tr>
+	<td> <code>ward_noise_sd</code> </td>
+	<td> 0.10 </td>
+	<td> lever </td>
+	<td> not certified dead here </td>
+	<td> no </td>
+	<td> Typed at 0.10 on an audit, never measured and never bounded. </td>
+	<td> 🟡 </td>
+	<td> §A38 </td>
+</tr>
+<tr>
+	<td> <code>WARD_PR_RATIO_MIN</code>, <code>WARD_PR_RATIO_MAX</code> </td>
+	<td> 0.5, 2.0 </td>
+	<td> module constant </td>
+	<td> module constant </td>
+	<td> no </td>
+	<td> 0.5 / 2.0 — the clip that overrides the record §E says the ward/PR ratio comes from. How often it binds is unmeasured. </td>
+	<td> 🔴 </td>
+	<td> §F35 </td>
+</tr>
+<tr>
+	<td> <code>within_rate</code> </td>
+	<td> 0.90 </td>
+	<td> unlinked </td>
+	<td> not linked to a scenario key or module constant </td>
+	<td> no </td>
+	<td> 0.90, and three copies of one number. </td>
+	<td> 🔴 </td>
+	<td> §H11 </td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="3·thecallswithnosymboloftheirown">3 · The calls with no symbol of their own</h2>
+
+<p>Structural choices the code makes without a constant to name them — the easiest kind to lose, because nothing can grep for them.</p>
+
+<table>
+<colgroup>
+<col />
+<col />
+<col />
+<col />
+<col />
+</colgroup>
+
+<thead>
+<tr>
+	<th> the call </th>
+	<th> where </th>
+	<th> what it is </th>
+	<th> status </th>
+	<th> entry </th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+	<td> the θ record pools a collapse, a split and a merger </td>
+	<td> <code>levels.theta_record</code> </td>
+	<td> Not implemented. The 2009→2011 transition is still pooled into θ; a structural-event filter is the proposed instrument and the decision is the owner&#8217;s. </td>
+	<td> 🔴 </td>
+	<td> §A2 </td>
+</tr>
+<tr>
+	<td> retiring the generic entrant at nomination close </td>
+	<td> <code>montecarlo</code>, <code>cities/joburg.toml</code> </td>
+	<td> <strong>AMENDED 2026&#8211;09&#8211;24 (register audit).</strong> CLOSED by the certified roster rather than by a decision: the ENTRANT slot is added only when no arrival is named (<code>montecarlo.run_model</code>, the <code>named_arrivals</code> guard) and the 2026 spec names 46 (<code>pools_2026.json</code> → <code>seeds</code>, <code>roster_source: declared</code>); <code>EXPECTED_INERT</code> certifies the entrant levers inert at 2026. MODEL-LOG §1.245. Was: OPEN GAP, a decision for 16 September. Status marker left for the owner. </td>
+	<td> 🔴 </td>
+	<td> §A4 </td>
+</tr>
+<tr>
+	<td> the published 2026 forecast is not the backtested configuration </td>
+	<td> <code>montecarlo</code>, <code>polling</code>, and the whole `EXPECTED_I… </td>
+	<td> <strong>AMENDED 2026&#8211;09&#8211;24 (register audit).</strong> <code>contestation_expand</code> and the generic entrant are both inert at 2026 now (§A4, §A5). What no backtest row can score is the by-election channel (<code>w_bye</code>), <code>GAMMA_FOLD</code>&#8217;s 2026 entry and the declared-roster path (§L). The DA/ANC figures quoted after this are §1.226&#8217;s, on specs superseded by the 16 and 23 September emits. <strong>AMENDED 2026&#8211;09&#8211;12.</strong> No house decides the headline any more — the poll channel is OFF (§A8, MODEL-LOG §1.225). The criticism is REDUCED, not answered: the live forecast still runs <code>w_bye</code> and <code>contestation_expand</code>, which no backtest row can score, so it went from three unscoreable channels to two. Measured effect of the switch on the headline: DA 79 → 68, and the largest-party call becomes a <strong>dead heat</strong> (ANC 47.3% / DA 47.0%) rather than DA 71.4%. §1.226. </td>
+	<td> 🔴 </td>
+	<td> §A7 </td>
+</tr>
+<tr>
+	<td> σ_poll, decomposed (<code>POLL_HOUSE_SD</code> and the calibration trio) </td>
+	<td> <code>polling.poll_sd</code> / <code>aggregate_sd</code> </td>
+	<td> The flat <code>POLL_RMS_ERROR</code> form is retired; the live sum is <code>polling._sigma_total</code> and <code>POLL_HOUSE_SD</code> survives only as the <code>n_eff == 0</code> fallback. </td>
+	<td> 🟡 </td>
+	<td> §A9 </td>
+</tr>
+<tr>
+	<td> the derivedness budget </td>
+	<td> <code>ITERATING.md</code>, &#8220;the only question&#8221; </td>
+	<td> Declared at 12 coherent seats and never topped up. Governance, not a code lever; it deliberately has no symbol in <code>src/</code>. </td>
+	<td> 🔴 </td>
+	<td> §A15 </td>
+</tr>
+<tr>
+	<td> how unplaced votes are spread over a party&#8217;s zeroed pool cells </td>
+	<td> <code>pools.balance_within_bounds</code> </td>
+	<td> Pool-size proportional, and there is no constant in it — the quantity is derived. Argued, not tested: no backtest can separate the three candidate rules. </td>
+	<td> 🟡 </td>
+	<td> §A19 </td>
+</tr>
+<tr>
+	<td> the §3.5 θ sanity-range violations </td>
+	<td> see <code>montecarlo.py</code> </td>
+	<td> STILL UNACTED ON. The diagnostic prints against the model on every run and nothing reads it; nobody has decided whether the ranges or the draws are wrong. </td>
+	<td> 🔴 </td>
+	<td> §A20 </td>
+</tr>
+<tr>
+	<td> the width statistic the report quotes </td>
+	<td> <code>compare_history.pit_dispersion</code> </td>
+	<td> Probit-SD is what the report quotes, measured on a fixture and <sub>5</sub>&#8211;10% attenuated at this model&#8217;s shift. Its stated successor <code>dispersion_ratio</code> is now IN <code>compare_history</code> and emitted — this row has not been re-read since. </td>
+	<td> 🟡 </td>
+	<td> §A21 </td>
+</tr>
+<tr>
+	<td> doc-vs-artefact tolerances </td>
+	<td> <code>compare_history</code>, and the test that enforces it </td>
+	<td> Unchanged, and deliberately tight enough that a legitimate re-run will demand the documents be updated. </td>
+	<td> 🟡 </td>
+	<td> §A22 </td>
+</tr>
+<tr>
+	<td> the blend weight ignores the ρ record </td>
+	<td> <code>levels.spine</code> </td>
+	<td> Deliberate, not an oversight: the symmetric form scores 338 against 312. </td>
+	<td> 🟢 </td>
+	<td> §A25 </td>
+</tr>
+<tr>
+	<td> the capacity redistribution rule </td>
+	<td> <code>montecarlo.py:capped_targets</code>, the `t[free] += ex… </td>
+	<td> Still proportional to mass held, and still unmeasured against the two defensible alternatives; the quantity moved is now counted on <code>capped_targets.moved</code>. </td>
+	<td> 🔴 </td>
+	<td> §A27 </td>
+</tr>
+<tr>
+	<td> the Dirichlet floor </td>
+	<td> <code>montecarlo.py</code> (<code>DIRICHLET_FLOOR</code>), applied at `1… </td>
+	<td> 1e-4 — a numerical guard only. The 0.05 that manufactured <sub>5pp</sub> of citywide vote is gone. </td>
+	<td> 🟢 </td>
+	<td> §A30 </td>
+</tr>
+<tr>
+	<td> turnout spread with one observation </td>
+	<td> <code>pools.py</code> </td>
+	<td> <strong>AMENDED 2026&#8211;09&#8211;24 (register audit).</strong> 0.30 logits survives only as <code>_PANEL_SPREAD_FALLBACK</code>, for a category with no panel measure (and the empty-record default); since §1.162 the width comes from <code>panel_spread</code>. The one-prior-election case was 2011, not 2016. Where the fallback still binds is unmeasured. </td>
+	<td> 🟡 </td>
+	<td> §A32 </td>
+</tr>
+<tr>
+	<td> turnout-adjusted by-election weighting </td>
+	<td> — </td>
+	<td> CONSIDERED AND REFUSED 2026&#8211;08&#8211;28 with the measurement (leave-one-contest-out RMSE 36.46pp against uniform&#8217;s 24.66pp). A per-party sensitivity is worth pre-registering; the uniform form is not. </td>
+	<td> ⚫ refused </td>
+	<td> §A34 </td>
+</tr>
+<tr>
+	<td> ward→PR conversion of the by-election delta </td>
+	<td> <code>montecarlo.py</code> </td>
+	<td> Adopted 2026&#8211;08&#8211;28 on out-of-sample evidence. Not a chosen number — it reuses the population and clip <code>ward_pr_ratios</code> already applies. </td>
+	<td> 🟡 </td>
+	<td> §A36 </td>
+</tr>
+<tr>
+	<td> the arrival boundary </td>
+	<td> <code>montecarlo</code>, by omission </td>
+	<td> Still nobody&#8217;s choice. 16 of the 79 mid-ballot parties sit on the wrong side of it and carry +16.4pp of the −37.4pp band deficit. </td>
+	<td> 🔴 </td>
+	<td> §A42 </td>
+</tr>
+<tr>
+	<td> the arrival-group mechanism&#8217;s five typed constants </td>
+	<td> <code>pools.arrival_group_spec</code>, `pools.arrival_group_r… </td>
+	<td> Declared 2026&#8211;08&#8211;29, none swept. The <code>n &lt; 3</code> record drop is live on the INCUMBENT path at every target; the 0.45 cap&#8217;s &#8216;never binding&#8217; comment is wrong at 2026 (5.7e-03 per draw). </td>
+	<td> 🔴 </td>
+	<td> §A45 </td>
+</tr>
+<tr>
+	<td> the peer window that sizes every seeded arrival </td>
+	<td> <code>pools.arrival_rules.comparators</code> </td>
+	<td> Declared 2026&#8211;08&#8211;29. Live in every backtest and in the 2026 forecast, not gated by <code>arrival_group_draw</code>, and the frequency of its whole-record fallback is unmeasured. </td>
+	<td> 🔴 </td>
+	<td> §A46 </td>
+</tr>
+<tr>
+	<td> vote-weighted RMSE as the criterion </td>
+	<td> the #22 fit </td>
+	<td> Unchanged: the weighting chose the winner, and must be stated whenever the spine&#8217;s 14% gain is quoted. </td>
+	<td> 🔴 </td>
+	<td> §B2 </td>
+</tr>
+<tr>
+	<td> Gaussian copula for pool turnout </td>
+	<td> <code>montecarlo.py:_tri_ppf</code> </td>
+	<td> Conventional and unchanged. It has no tail dependence, which is a substantive assumption nothing has tested. </td>
+	<td> 🟡 </td>
+	<td> §B5 </td>
+</tr>
+<tr>
+	<td> <code>Σ base·θ = 1</code> in the IPF </td>
+	<td> <code>fold.calibrate_theta</code> </td>
+	<td> Forced: predicted citywide shares are shares. </td>
+	<td> 🟢 </td>
+	<td> §C1 </td>
+</tr>
+<tr>
+	<td> splinter fraction capped at 1.0 of parent </td>
+	<td> <code>pools._band_from</code> </td>
+	<td> Forced: a party cannot take 117% of the vote its parent had. </td>
+	<td> 🟢 </td>
+	<td> §C2 </td>
+</tr>
+<tr>
+	<td> turnout band in logit space </td>
+	<td> <code>pools.turnout_band</code> </td>
+	<td> A scale choice, and the standard one. Note it REMOVES caps rather than adding them — which §F&#8217;s <code>TURNOUT_DRAW_FLOOR</code>/<code>TURNOUT_DRAW_CEILING</code> row contradicts, and says so. </td>
+	<td> 🟢 </td>
+	<td> §C3 </td>
+</tr>
+<tr>
+	<td> ENTRANT relabelling </td>
+	<td> <code>diagnose.py</code> </td>
+	<td> In place, and asserted by <code>test_the_generic_entrant_is_relabelled_wherever_it_is_reported</code>. </td>
+	<td> — </td>
+	<td> §D1 </td>
+</tr>
+<tr>
+	<td> mean vs median as the point forecast </td>
+	<td> <code>compare_history.py</code> </td>
+	<td> Both are now shown; they differ <sub>5×</sub> for small parties. </td>
+	<td> — </td>
+	<td> §D2 </td>
+</tr>
+<tr>
+	<td> the &#8220;ruled out&#8221; threshold </td>
+	<td> <code>diagnose.py</code>, <code>p &lt; 0.02</code> </td>
+	<td> Typed at p &lt; 0.02. </td>
+	<td> — </td>
+	<td> §D3 </td>
+</tr>
+<tr>
+	<td> anomaly thresholds </td>
+	<td> <code>sweep.py</code> </td>
+	<td> All typed. </td>
+	<td> — </td>
+	<td> §D4 </td>
+</tr>
+<tr>
+	<td> signed-only rank bands </td>
+	<td> <code>compare_history.rank_bands</code>, until 2026&#8211;08&#8211;17 </td>
+	<td> Retired: both the signed and the absolute column are now printed. This row is why §D exists — a reporting choice, argued in a docstring, decided what four months of work looked at. </td>
+	<td> — </td>
+	<td> §D5 </td>
+</tr>
+<tr>
+	<td> phantom mass </td>
+	<td> <code>compare_history.rank_bands</code> </td>
+	<td> Now a column and a total; it was printed nowhere and was 6.53pp across the nine city-years. </td>
+	<td> — </td>
+	<td> §D6 </td>
+</tr>
+<tr>
+	<td> which columns test calibration </td>
+	<td> <code>compare_history.POPULATIONS</code> / `score.CLAIM_FRACT… </td>
+	<td> Four populations are reported. <code>reference</code> is the ONLY one a before/after comparison may be quoted on; <code>seat_holders</code> is outcome-selected, inflated, and labelled so wherever quoted. </td>
+	<td> — </td>
+	<td> §D7 </td>
+</tr>
+<tr>
+	<td> pooled AND per rank band </td>
+	<td> <code>compare_history.pooled_by_band</code> </td>
+	<td> Both are printed; a single city-year row is 4–15 columns of noise and is labelled as such. </td>
+	<td> — </td>
+	<td> §D10 </td>
+</tr>
+<tr>
+	<td> the pooled figure must not be read alone </td>
+	<td> <code>compare_history.pooled_by_band</code>, <code>ITERATING.md</code> r… </td>
+	<td> <code>ITERATING.md</code> rule 8. The pooled mean PIT was the average of two opposite faults; both coverage statistics are printed and the PIT-corrected one is labelled the width verdict. </td>
+	<td> 🟡 </td>
+	<td> §D11 </td>
+</tr>
+<tr>
+	<td> PIT seed derived per city-year </td>
+	<td> <code>compare_history._pit_seed</code> </td>
+	<td> Derived from the city-year name by CRC32; reproducible, and it cannot change a conclusion. </td>
+	<td> — </td>
+	<td> §D12 </td>
+</tr>
+<tr>
+	<td> seat error summed over all parties </td>
+	<td> <code>compare_history.py</code> </td>
+	<td> Unchanged; parties that won nothing contribute 0, so the wider denominator does not inflate it. </td>
+	<td> — </td>
+	<td> §D14 </td>
+</tr>
+<tr>
+	<td> modal ward winner as &#8220;the model&#8217;s call&#8221; </td>
+	<td> <code>diagnose.py</code> </td>
+	<td> A defensible reading of a probabilistic forecast, and it is a reading. </td>
+	<td> — </td>
+	<td> §D15 </td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="5·leversthatareinertandwhatitwouldtaketoreinstateone">5 · Levers that are INERT, and what it would take to reinstate one</h2>
+
+<p>⛔ <strong>INTERNAL. This section is not published.</strong> It exists so a lever that was retired for a reason is not reinstated by someone who has forgotten the reason, and so one that is only switched off is not written off as impossible.</p>
+
+<p><code>blocker</code> is the field that answers the question:</p>
+
+<ul>
+<li><strong>SWITCH</strong> — a value we ship shuts the gate, and the harness CAN open it. These are the reinstatable ones; the <code>where</code> column names the switch.</li>
+<li><strong>DATA</strong> — the evidence this gate needs does not exist at that target. No code or configuration change here opens it, so the lever has never been measured there and nothing about it has been learned.</li>
+<li><strong>CODE</strong> — the wiring is broken. That is a defect, not a null.</li>
+</ul>
+
+<p>⚠️ <strong>A lever being inert is not a finding about the lever.</strong> Only <code>cause = INERT</code> is a result; <code>UNDELIVERED</code> means the value never reached the computation, which says nothing about what it would do if it did.</p>
+
+<table>
+<colgroup>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</colgroup>
+
+<thead>
+<tr>
+	<th> lever </th>
+	<th> target </th>
+	<th> cause </th>
+	<th> blocker </th>
+	<th> what holds it shut </th>
+	<th> proved by </th>
+	<th> what was observed </th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+	<td> <code>bye_local_cap</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> two gates, both shut: <code>byelection_contest_detail.csv</code> is not in a past target&#8217;s processed directory, and <code>w_bye_local_ward</code> / <code>w_bye_local_pr</code> are 0.0. The file is the one no switch opens </td>
+	<td> <code>bye_contest_detail_absent</code> </td>
+	<td> the by-election window is 2022&#8211;06 to 2026&#8211;02, so no past target has a contest detail file at all — opening the weights at 2021 would still not reach this lever. Nothing has been learned about the cap at 2021 and nothing can be. </td>
+</tr>
+<tr>
+	<td> <code>bye_tau_months</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> the same two gates as <code>bye_local_cap</code> at 2021, and the missing contest detail file is again the one no switch opens </td>
+	<td> <code>bye_contest_detail_absent</code> </td>
+	<td> as <code>bye_local_cap</code> at 2021. </td>
+</tr>
+<tr>
+	<td> <code>bye_weight_mode</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>bye</code> is empty at every past target, so the block this lever chooses a weight INSIDE is never entered. It cannot be inert for its own reasons because it is never consulted — the same gate that makes <code>w_bye</code> undeliverable at 2021 </td>
+	<td> <code>bye_deltas_absent</code> </td>
+	<td> the same gate as <code>w_bye</code> above, checked by <code>GATES['bye_deltas_absent']</code> with no model run. At 2026 the lever IS live and measured: derived weights run 0.031 (ATM, 3 contests) to 0.722 (EFF, 11 contests) against a typed 0.40, moving 2.005pp of centre across all parties. NOTE what this does NOT establish: nothing scores which weighting is BETTER, because no backtest reaches the by-election channel. </td>
+</tr>
+<tr>
+	<td> <code>contestation_expand</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>if not _contest and _contest_prev</code> — <code>levels.contestation</code> reads the target&#8217;s own result file, so <code>_contest</code> is non-empty and <code>levels.projected_contestation</code>, the lever&#8217;s only consumer, is never called </td>
+	<td> <code>real_contestation_lists</code> </td>
+	<td> <code>levels.contestation</code> returns 55 parties at 2021 (measured 2026&#8211;08&#8211;27, no model run). ⚠️ THE SECOND HALF OF THIS LINE WAS <code>and {} at 2026</code>, AND STOPPED BEING TRUE ON 2026&#8211;09&#8211;23: the certified ward slates are now read from the judgement file, so 2026 returns 82 parties and has an entry of its own below. The 2021 half is unchanged and so is this entry&#8217;s cause — a backtest reads its own result file. MODEL-LOG §1.251. </td>
+</tr>
+<tr>
+	<td> <code>contestation_expand</code> </td>
+	<td> 2026 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>if (not _contest or _partial) and _contest_prev</code> — <code>levels.contestation</code> returns the DECLARED ward slates for a target with no result file, so <code>_contest</code> is non-empty, the roster declares itself complete, and <code>levels.projected_contestation</code> is never called </td>
+	<td> <code>real_contestation_lists</code> </td>
+	<td> <code>levels.contestation</code> returns 82 parties at 2026 from <code>[roster.wards]</code> in judgements/joburg-2026.toml, complete = true (measured 2026&#8211;09&#8211;23, no model run). Three runs at expand 0.0 / 0.22 / 0.5, one seed, 120 draws, give one seat and ward fingerprint, 16a64e415131c8ba — pre-registered as P2 in prereg/2026&#8211;09&#8211;23-declared-ward-slates.md. </td>
+</tr>
+<tr>
+	<td> <code>entrant_geography</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>universe</code> does not contain ENTRANT — <code>montecarlo</code> appends it only when no arrival is named, and the 2021 spec seeds 32 by name </td>
+	<td> <code>arrivals_are_named</code> </td>
+	<td> the emitted 2021 spec carries 32 positive <code>seeds</code>; checked by <code>GATES['arrivals_are_named']</code> with no model run. ⚠️ What this does NOT establish: nothing here says what the generic slot is worth at 2026, where it IS the only arrival channel and no backtest can reach it.</td>
+</tr>
+<tr>
+	<td>⛔ AND THE REASON BELOW OVER-CLAIMED, CORRECTED HERE RATHER THAN REWRITTEN. It says the levers are inert wherever the ballot is known, which reads across 2011, 2016 and 2021. Measured off the artefacts: <code>pools_2016.json</code> seeds 11 arrivals and <code>pools_2021.json</code> 32 — gate shut, claim true — but <strong><code>pools_2011.json</code> seeds 0</strong>, so the gate is OPEN at 2011 and all three levers are LIVE at a runnable target the sweep has never run. A known ballot does not imply a seeded roster; the seeds come from <code>pools.py</code>&#8217;s arrival rules, and at 2011 it has none. <code>claimed_targets</code> now scopes the entry to what is checked and <code>GATE_OPEN_AT</code> carries 2011 as an open gate, so neither half can be believed without evidence. </td>
+</tr>
+<tr>
+	<td> <code>entrant_geography</code> </td>
+	<td> 2026 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>universe</code> does not contain ENTRANT — the 2026 spec, emitted from the declared certified roster, seeds 46 arrivals by name </td>
+	<td> <code>arrivals_are_named</code> </td>
+	<td> <code>pools_2026.json</code> carries 46 positive <code>seeds</code> and a six-field <code>arrival_group</code> since the 2026&#8211;09&#8211;16 emit; checked by <code>GATES['arrivals_are_named']</code> with no model run. </td>
+</tr>
+<tr>
+	<td> <code>entrant_prob</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>universe</code> does not contain ENTRANT — <code>montecarlo</code> appends it only when no arrival is named, and the 2021 spec seeds 32 by name </td>
+	<td> <code>arrivals_are_named</code> </td>
+	<td> the emitted 2021 spec carries 32 positive <code>seeds</code>; checked by <code>GATES['arrivals_are_named']</code> with no model run. ⚠️ What this does NOT establish: nothing here says what the generic slot is worth at 2026, where it IS the only arrival channel and no backtest can reach it.</td>
+</tr>
+<tr>
+	<td>⛔ AND THE REASON BELOW OVER-CLAIMED, CORRECTED HERE RATHER THAN REWRITTEN. It says the levers are inert wherever the ballot is known, which reads across 2011, 2016 and 2021. Measured off the artefacts: <code>pools_2016.json</code> seeds 11 arrivals and <code>pools_2021.json</code> 32 — gate shut, claim true — but <strong><code>pools_2011.json</code> seeds 0</strong>, so the gate is OPEN at 2011 and all three levers are LIVE at a runnable target the sweep has never run. A known ballot does not imply a seeded roster; the seeds come from <code>pools.py</code>&#8217;s arrival rules, and at 2011 it has none. <code>claimed_targets</code> now scopes the entry to what is checked and <code>GATE_OPEN_AT</code> carries 2011 as an open gate, so neither half can be believed without evidence. </td>
+</tr>
+<tr>
+	<td> <code>entrant_prob</code> </td>
+	<td> 2026 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>universe</code> does not contain ENTRANT — the 2026 spec, emitted from the declared certified roster, seeds 46 arrivals by name </td>
+	<td> <code>arrivals_are_named</code> </td>
+	<td> <code>pools_2026.json</code> carries 46 positive <code>seeds</code> and a six-field <code>arrival_group</code> since the 2026&#8211;09&#8211;16 emit; checked by <code>GATES['arrivals_are_named']</code> with no model run. </td>
+</tr>
+<tr>
+	<td> <code>entrant_share</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>universe</code> does not contain ENTRANT — <code>montecarlo</code> appends it only when no arrival is named, and the 2021 spec seeds 32 by name </td>
+	<td> <code>arrivals_are_named</code> </td>
+	<td> the emitted 2021 spec carries 32 positive <code>seeds</code>; checked by <code>GATES['arrivals_are_named']</code> with no model run. ⚠️ What this does NOT establish: nothing here says what the generic slot is worth at 2026, where it IS the only arrival channel and no backtest can reach it.</td>
+</tr>
+<tr>
+	<td>⛔ AND THE REASON BELOW OVER-CLAIMED, CORRECTED HERE RATHER THAN REWRITTEN. It says the levers are inert wherever the ballot is known, which reads across 2011, 2016 and 2021. Measured off the artefacts: <code>pools_2016.json</code> seeds 11 arrivals and <code>pools_2021.json</code> 32 — gate shut, claim true — but <strong><code>pools_2011.json</code> seeds 0</strong>, so the gate is OPEN at 2011 and all three levers are LIVE at a runnable target the sweep has never run. A known ballot does not imply a seeded roster; the seeds come from <code>pools.py</code>&#8217;s arrival rules, and at 2011 it has none. <code>claimed_targets</code> now scopes the entry to what is checked and <code>GATE_OPEN_AT</code> carries 2011 as an open gate, so neither half can be believed without evidence. </td>
+</tr>
+<tr>
+	<td> <code>entrant_share</code> </td>
+	<td> 2026 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>universe</code> does not contain ENTRANT — the 2026 spec, emitted from the declared certified roster, seeds 46 arrivals by name </td>
+	<td> <code>arrivals_are_named</code> </td>
+	<td> <code>pools_2026.json</code> carries 46 positive <code>seeds</code> and a six-field <code>arrival_group</code> since the 2026&#8211;09&#8211;16 emit; checked by <code>GATES['arrivals_are_named']</code> with no model run. </td>
+</tr>
+<tr>
+	<td> <code>level_sd_default</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>sd_for_party</code> is never called. <code>handled</code> is every party holding membership of any pool, <code>pools.emit_pools</code> gives every baseline party a vector, so the <code>individual</code> list the fallback serves is EMPTY — the fallback is not merely unused, its consumer does not run </td>
+	<td> <code>level_sd_fallback_never_binds</code> </td>
+	<td> measured 2026&#8211;08&#8211;27 against the base run and the emitted spec: every party in the run&#8217;s index is a pool member, at both targets (56 of 56 at 2021, 44 of 44 at 2026), so <code>individual</code> is empty at both.</td>
+</tr>
+<tr>
+	<td><strong>THE REASON BELOW IS WRONG AND IS KEPT AS WRITTEN.</strong> It says <code>levels.theta_prior</code> returns an sd for EVERY party in the baseline. At 2021 it does not: 33 of the 56 parties in the index have no measured sd — ActionSA among them — so if the individual path ever ran, this fallback would bind for a third of the ballot at 1.60 instead of 0.45. The null is real; the stated cause of it is not, and the entry has been right by luck since 2026&#8211;08&#8211;20. Corrected here rather than silently rewritten, per <code>_LEGACY_POLL</code>. At 2026 the second consumer (<code>_sd.get(party, default)</code> in the poll blend) does run, and every party it reaches has a measured sd. </td>
+</tr>
+<tr>
+	<td> <code>level_sd_default</code> </td>
+	<td> 2026 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> both consumers are unreachable: <code>sd_for_party</code> sees only the <code>individual</code> path, which is empty (every index party is a pool member), and the poll blend&#8217;s <code>_sd.get(party, default)</code> runs only when <code>poll_paths == 'all'</code> — it has been &#8216;off&#8217; since 2026&#8211;09&#8211;12 </td>
+	<td> <code>level_sd_fallback_never_binds</code> </td>
+	<td> 2026&#8211;09&#8211;17 suite: perturbed to 1.60 at 2026 nothing moved, although 44 parties on the certified ballot have no measured sd. The gate reported them EXPOSED because it asked whether a metro poll exists rather than whether polls are on; fixed in <code>_gate_no_metro_poll</code> the same day. Removing this entry on the gate&#8217;s word, before measuring, was a mistake — restored with the measured reason. </td>
+</tr>
+<tr>
+	<td> <code>poll_credence</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>_metro</code> is empty, so <code>_agg</code> is None and run_model skips the entire poll-blend block — no lever inside it is read at all </td>
+	<td> <code>no_metro_poll</code> </td>
+	<td> <code>polling.screen(joburg, 2021)</code> admits exactly one poll, <code>ipsos-2021-lge-national</code>, whose scope is <code>national</code>; the only 2021 metro poll on file, <code>actionsa-internal-2021</code>, is declined by the <code>commissioned</code> rule. At 2026 the same call admits two metro waves and every one of these levers is live. Checked 2026&#8211;08&#8211;27 by <code>GATES['no_metro_poll']</code>, which needs no model run.</td>
+</tr>
+<tr>
+	<td>NOTE, and it is not in the reason below: the gate is OPEN at <strong>2016</strong> — <code>ipsos-2016-lge-joburg</code> is admitted as metro — and the sweep does not run 2016, so these six levers have a live target the harness has never swept them at. </td>
+</tr>
+<tr>
+	<td> <code>poll_deff_subsample</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>_metro</code> is empty, so <code>_agg</code> is None and run_model skips the entire poll-blend block — no lever inside it is read at all </td>
+	<td> <code>no_metro_poll</code> </td>
+	<td> <code>polling.screen(joburg, 2021)</code> admits exactly one poll, <code>ipsos-2021-lge-national</code>, whose scope is <code>national</code>; the only 2021 metro poll on file, <code>actionsa-internal-2021</code>, is declined by the <code>commissioned</code> rule. At 2026 the same call admits two metro waves and every one of these levers is live. Checked 2026&#8211;08&#8211;27 by <code>GATES['no_metro_poll']</code>, which needs no model run.</td>
+</tr>
+<tr>
+	<td>NOTE, and it is not in the reason below: the gate is OPEN at <strong>2016</strong> — <code>ipsos-2016-lge-joburg</code> is admitted as metro — and the sweep does not run 2016, so these six levers have a live target the harness has never swept them at. </td>
+</tr>
+<tr>
+	<td> <code>poll_drift_per_root_day</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>_metro</code> is empty, so <code>_agg</code> is None and run_model skips the entire poll-blend block — no lever inside it is read at all </td>
+	<td> <code>no_metro_poll</code> </td>
+	<td> <code>polling.screen(joburg, 2021)</code> admits exactly one poll, <code>ipsos-2021-lge-national</code>, whose scope is <code>national</code>; the only 2021 metro poll on file, <code>actionsa-internal-2021</code>, is declined by the <code>commissioned</code> rule. At 2026 the same call admits two metro waves and every one of these levers is live. Checked 2026&#8211;08&#8211;27 by <code>GATES['no_metro_poll']</code>, which needs no model run.</td>
+</tr>
+<tr>
+	<td>NOTE, and it is not in the reason below: the gate is OPEN at <strong>2016</strong> — <code>ipsos-2016-lge-joburg</code> is admitted as metro — and the sweep does not run 2016, so these six levers have a live target the harness has never swept them at. </td>
+</tr>
+<tr>
+	<td> <code>poll_half_life_days</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>_metro</code> is empty, so <code>_agg</code> is None and run_model skips the entire poll-blend block — no lever inside it is read at all </td>
+	<td> <code>no_metro_poll</code> </td>
+	<td> <code>polling.screen(joburg, 2021)</code> admits exactly one poll, <code>ipsos-2021-lge-national</code>, whose scope is <code>national</code>; the only 2021 metro poll on file, <code>actionsa-internal-2021</code>, is declined by the <code>commissioned</code> rule. At 2026 the same call admits two metro waves and every one of these levers is live. Checked 2026&#8211;08&#8211;27 by <code>GATES['no_metro_poll']</code>, which needs no model run.</td>
+</tr>
+<tr>
+	<td>NOTE, and it is not in the reason below: the gate is OPEN at <strong>2016</strong> — <code>ipsos-2016-lge-joburg</code> is admitted as metro — and the sweep does not run 2016, so these six levers have a live target the harness has never swept them at. </td>
+</tr>
+<tr>
+	<td> <code>poll_house_k</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>_metro</code> is empty, so <code>_agg</code> is None and run_model skips the entire poll-blend block — no lever inside it is read at all </td>
+	<td> <code>no_metro_poll</code> </td>
+	<td> <code>polling.screen(joburg, 2021)</code> admits exactly one poll, <code>ipsos-2021-lge-national</code>, whose scope is <code>national</code>; the only 2021 metro poll on file, <code>actionsa-internal-2021</code>, is declined by the <code>commissioned</code> rule. At 2026 the same call admits two metro waves and every one of these levers is live. Checked 2026&#8211;08&#8211;27 by <code>GATES['no_metro_poll']</code>, which needs no model run.</td>
+</tr>
+<tr>
+	<td>NOTE, and it is not in the reason below: the gate is OPEN at <strong>2016</strong> — <code>ipsos-2016-lge-joburg</code> is admitted as metro — and the sweep does not run 2016, so these six levers have a live target the harness has never swept them at. </td>
+</tr>
+<tr>
+	<td> <code>poll_screen_sd</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>_metro</code> is empty, so <code>_agg</code> is None and run_model skips the entire poll-blend block — no lever inside it is read at all </td>
+	<td> <code>no_metro_poll</code> </td>
+	<td> <code>polling.screen(joburg, 2021)</code> admits exactly one poll, <code>ipsos-2021-lge-national</code>, whose scope is <code>national</code>; the only 2021 metro poll on file, <code>actionsa-internal-2021</code>, is declined by the <code>commissioned</code> rule. At 2026 the same call admits two metro waves and every one of these levers is live. Checked 2026&#8211;08&#8211;27 by <code>GATES['no_metro_poll']</code>, which needs no model run.</td>
+</tr>
+<tr>
+	<td>NOTE, and it is not in the reason below: the gate is OPEN at <strong>2016</strong> — <code>ipsos-2016-lge-joburg</code> is admitted as metro — and the sweep does not run 2016, so these six levers have a live target the harness has never swept them at. </td>
+</tr>
+<tr>
+	<td> <code>w_bye</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>bye</code> is empty — run_model fills it from <code>&lt;target.processed&gt;/byelection_party_deltas.csv</code>, which a past target does not have, so <code>if party in bye and w &gt; 0</code> never fires and <code>w</code> multiplies nothing </td>
+	<td> <code>bye_deltas_absent</code> </td>
+	<td> the file is absent from <code>data/processed/joburg/2021/</code> and present for the 2026 target, where the lever is live and the sweep says so. Checked by <code>GATES['bye_deltas_absent']</code>, no model run needed. NOTE what this does NOT establish: nothing here shows what <code>w_bye</code> is worth, at 2021 or anywhere. It is 0.40 on the published forecast and no backtest can score it. </td>
+</tr>
+<tr>
+	<td> <code>w_bye_local_pr</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> the same gate as <code>w_bye_local_ward</code> at 2021 — no <code>byelection_contest_detail.csv</code> for a past target </td>
+	<td> <code>bye_contest_detail_absent</code> </td>
+	<td> as <code>w_bye_local_ward</code> at 2021; live at 2026, where the sweep reaches it and no entry is needed. </td>
+</tr>
+<tr>
+	<td> <code>w_bye_local_ward</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>DATA</strong> </td>
+	<td> <code>if (w_ward or w_pr) and (processed / 'byelection_contest_detail.csv').exists()</code> — the file is not in a past target&#8217;s processed directory, so the ward-local block does not run even with the weight opened </td>
+	<td> <code>bye_contest_detail_absent</code> </td>
+	<td> absent from <code>data/processed/joburg/2021/</code>, present for the 2026 target (checked 2026&#8211;08&#8211;27, no model run). At 2026 this lever IS live and the sweep says so, which is why there is no 2026 entry. What that means for the pair below matters: at 2026 the file exists and only the weights are shut, so their gate is a SWITCH, not data. </td>
+</tr>
+<tr>
+	<td> <code>bye_local_cap</code> </td>
+	<td> 2026 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>SWITCH</strong> </td>
+	<td> <code>if (w_ward or w_pr) and ...</code> — <code>w_bye_local_ward</code> and <code>w_bye_local_pr</code> both ship at 0.0, so the ward-local block never runs. The DATA is present at this target; only the switch is off </td>
+	<td> <code>local_bye_weights_shipped_off</code> </td>
+	<td> THE GATE WAS OPENED 2026&#8211;08&#8211;27. With both weights at 0.9, <code>bye_local_cap</code> 1.5 -&gt; 40.0 moves the 2026 forecast by 2.0 (40 draws). The lever is CONDITIONAL, not inert; <code>CONDITIONAL['bye_local_cap@2026']</code> perturbs it with its gate on every run of this file. The reason below is true about the shipped forecast and was being read as a statement about the lever, which it never was. </td>
+</tr>
+<tr>
+	<td> <code>bye_tau_months</code> </td>
+	<td> 2026 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>SWITCH</strong> </td>
+	<td> the same shipped-at-0.0 weights as <code>bye_local_cap</code> at 2026 </td>
+	<td> <code>local_bye_weights_shipped_off</code> </td>
+	<td> THE GATE WAS OPENED 2026&#8211;08&#8211;27. With both weights at 0.9, <code>bye_tau_months</code> 18.0 -&gt; 400.0 moves the 2026 forecast by 14.0 (40 draws) — seven times what the cap moves it, which is worth knowing about a decay constant nobody could previously measure. <code>CONDITIONAL['bye_tau_months@2026']</code> keeps it measured. </td>
+</tr>
+<tr>
+	<td> <code>poll_credence</code> </td>
+	<td> 2026 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>SWITCH</strong> </td>
+	<td> <code>if scenario['poll_paths'] == 'all'</code> guards the entire metro blend block; <code>poll_credence</code> multiplies <code>w</code> INSIDE it and is never read </td>
+	<td> <code>polls_shipped_off</code> </td>
+	<td> LIVE UNTIL 2026&#8211;09&#8211;12 — this dial chose the 2026 headline (§1.95) and the two SRF waves it weighted are still in the register. Measured with the gate open by <code>CONDITIONAL['poll_credence@2026']</code>. </td>
+</tr>
+<tr>
+	<td> <code>poll_deff_subsample</code> </td>
+	<td> 2026 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>SWITCH</strong> </td>
+	<td> <code>polling.effective_n</code>, reached only from inside the metro blend block the shipped <code>poll_paths</code> does not enter </td>
+	<td> <code>polls_shipped_off</code> </td>
+	<td> see <code>CONDITIONAL['poll_deff_subsample@2026']</code>. </td>
+</tr>
+<tr>
+	<td> <code>poll_drift_per_root_day</code> </td>
+	<td> 2026 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>SWITCH</strong> </td>
+	<td> <code>polling._sigma_total</code>&#8217;s drift term, same block </td>
+	<td> <code>polls_shipped_off</code> </td>
+	<td> see <code>CONDITIONAL['poll_drift_per_root_day@2026']</code>. </td>
+</tr>
+<tr>
+	<td> <code>poll_half_life_days</code> </td>
+	<td> 2026 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>SWITCH</strong> </td>
+	<td> <code>polling._recency_weights</code>, same block </td>
+	<td> <code>polls_shipped_off</code> </td>
+	<td> see <code>CONDITIONAL['poll_half_life_days@2026']</code>. </td>
+</tr>
+<tr>
+	<td> <code>poll_house_k</code> </td>
+	<td> 2026 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>SWITCH</strong> </td>
+	<td> <code>_cap = 1.0 if polling.SIGMA_TWO_TERM else weight_cap(..., house_k=...)</code> — the shipped switch takes the branch that never reads the lever </td>
+	<td> <code>sigma_two_term_shipped_on</code> </td>
+	<td> THE GATE WAS OPENED, because the entry itself says the retired path stays reachable for A/B and an excuse that names its own escape hatch has to use it. With <code>polling.SIGMA_TWO_TERM = False</code>, <code>poll_house_k</code> 1.0 -&gt; 6.0 moves the 2026 forecast by 226.0 (40 draws, 2026&#8211;08&#8211;27). The lever is not inert and never was: it is CONDITIONAL, and <code>CONDITIONAL['poll_house_k@2026']</code> now perturbs it together with its gate on every run of this file — which is exactly what <code>_LEGACY_POLL</code> says was owed to <code>poll_k</code> and was not done for eight days. </td>
+</tr>
+<tr>
+	<td> <code>poll_min_n</code> </td>
+	<td> 2021 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>SWITCH</strong> </td>
+	<td> <code>_usable = polling.national_polls(...) if scenario['poll_paths'] in ('arrivals', 'all') else []</code> — the arrivals path is not entered, so the min-n floor inside <code>polling.screen</code> is never reached by the only caller that used it at this target </td>
+	<td> <code>polls_shipped_off</code> </td>
+	<td> LIVE UNTIL 2026&#8211;09&#8211;12 and the only poll lever that was: §1.75 struck its <code>_NO_METRO_POLL</code> entry precisely because the floor sits ahead of every scope test in <code>polling.screen</code> and so gated the national poll the arrivals path reads. With <code>poll_paths=off</code> that caller is gone. Measured with the gate open by <code>CONDITIONAL['poll_min_n@2021']</code>. </td>
+</tr>
+<tr>
+	<td> <code>poll_min_n</code> </td>
+	<td> 2026 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>SWITCH</strong> </td>
+	<td> same — neither <code>national_polls</code> (arrivals) nor the metro block is entered, so nothing calls <code>polling.screen</code> on the forecast path at all </td>
+	<td> <code>polls_shipped_off</code> </td>
+	<td> see <code>CONDITIONAL['poll_min_n@2026']</code>, which opens the gate and asserts the lever still moves the forecast there. </td>
+</tr>
+<tr>
+	<td> <code>poll_screen_sd</code> </td>
+	<td> 2026 </td>
+	<td> UNDELIVERED </td>
+	<td> <strong>SWITCH</strong> </td>
+	<td> <code>polling._sigma_total</code>&#8217;s screen term, reached only from inside the metro blend block </td>
+	<td> <code>polls_shipped_off</code> </td>
+	<td> see <code>CONDITIONAL['poll_screen_sd@2026']</code>. </td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="4·gapsthisjoincansee">4 · Gaps this join can see</h2>
+
+<p>Scenario keys the judgement register does not name:</p>
+
+<ul>
+<li><code>draws</code></li>
+<li><code>entrant_geography</code></li>
+<li><code>seed</code></li>
+</ul>
+
+<p>Scenario keys with <strong>no register row under their own name</strong>. Each is still a judgement call; the note says what stands in for its row, and a prose mention is not a row:</p>
+
+<ul>
+<li><code>draws</code> — ⛔ not in the register at all</li>
+<li><code>entrant_geography</code> — ⛔ not in the register at all</li>
+<li><code>pools</code> — ⚠️ named only in the register&#8217;s prose, with no row of its own — enough to count as registered, not enough to read</li>
+<li><code>seed</code> — ⛔ not in the register at all</li>
+<li><code>turnout_correlation</code> — its row is filed under the shadow constant <code>montecarlo.TURNOUT_CORRELATION</code>, tied to it by an assert, so the row does describe it</li>
+</ul>
+
+<p>Register rows parsed: 109 with a symbol, 35 structural. A row whose cell count does not match its header is dropped rather than guessed at, so these counts are the parser&#8217;s own view and a drop shows up as a missing row here rather than as a mangled one.</p>

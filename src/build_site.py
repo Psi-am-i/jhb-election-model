@@ -371,14 +371,6 @@ DOCS = {
         "what each repair changed.",
         "model-review.html",
     ),
-    "docs-public/judgement-calls.md": (
-        "judgement-calls.html",
-        "The judgement calls",
-        "Every choice a person made that the data did not force, with what it "
-        "is set to, whether it is doing anything at this election, and whether "
-        "a reader could move it. Generated from the model's own registers, so "
-        "it cannot flatter them.",
-    ),
     "docs-public/sources.md": (
         "sources.html",
         "Data sources",
