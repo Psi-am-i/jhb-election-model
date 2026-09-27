@@ -150,11 +150,16 @@ is a correction, not a rewording. *(Owner: add, leave for now.)*
 
 **The newsdesk**
 
-* Thirteen pull requests to close; the rewritten rules are not live because they
-  sit in this repository and the routine reads GitHub's copy.
-* The routine has produced nothing since 20 September.
-* Two `CLAUDE.md` files exist — pushing this line to GitHub would delete the
-  routine's instructions.
+* ~~Moved to its own private repository~~ — `~/projects/jhb-model-newsdesk`
+  (`Psi-am-i/jhb-model-newsdesk`), 27 Sept. Its rules are its `CLAUDE.md`; the
+  two-`CLAUDE.md` collision is gone. Routine `joburg-daily-newsdesk` repointed
+  and its prompt reduced to "follow `CLAUDE.md`".
+* **Owner, open:** close the 13 `newsdesk/*` PRs on the model repo (every digest
+  is in the new repo), and remove the routine's five connectors (Gmail, Drive,
+  Calendar, Cloudflare, Claude Code Remote) in the routine settings. The API
+  would not clear them. Claude Code Remote is what let it schedule its own
+  follow-up routines.
+* After changing polls, claims or articles here, run its `bin/sync-context.sh`.
 
 **Data**
 
