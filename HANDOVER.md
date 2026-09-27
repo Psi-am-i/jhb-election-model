@@ -5,10 +5,42 @@
 `MODEL-LOG.md`, which is append-only and dated. `CLAUDE.md` sends every session
 here first, so anything stale in this file is read as an instruction.
 
-> ## ⛔ STATE AT 2026-09-27 — PUBLISHED AND DEPLOYED ON 26 SEPTEMBER. A BLIND
-> ## REVIEW FOUND THREE ARROWS POINTING THE WRONG WAY ON THE LIVE SITE; FIXED
-> ## AND CORRECTED. THE FULL LIST IS
-> ## `audits/2026-09-27-interactive-levers/TODO.md` — WORK FROM IT.
+> ## ⛔ STATE AT 2026-09-27 (evening) — DEPLOYED AND VERIFIED LIVE.
+> ## **WORK FROM `TODO.md` AT THE REPO ROOT**, which is sorted into three
+> ## questions: is the model right, can the interactive ship, everything else.
+>
+> **Live now**, verified by fetching the pages: all nine respond, the apex
+> serves the corrected portal, and the four frozen figures on
+> `/nobody-will-win` read "62% → 47%", "74 → 61", "65 → 58", "96% → 65%",
+> published 8 August. Three of those arrows pointed the WRONG WAY an hour
+> before this deploy.
+>
+> **Published with `--change-class bugfix`**, 318 ledger rows, one reason naming
+> both movements: the four re-sourced figures, and the 2021 track record
+> republished after the temporal leak came out. `/corrections` has its first
+> entry and it is ours.
+>
+> **Two blind reviews ran today and both are worth reading before changing
+> anything they touch:**
+> * `audits/2026-09-27-backtest-difference/` — why the track record moved.
+>   Answer: NOT an implementation error. Commit `f33528f` (14 Aug) stopped the
+>   2021 backtest sizing ActionSA from a split three years AFTER the election.
+>   213.9 was contaminated; 224.1 is honest. Independents explain none of it.
+> * `audits/2026-09-27-preflight-validation/` — said DO NOT SHIP and was right:
+>   `site/portal.html` had not been rebuilt, so the apex would have shipped a
+>   claim the same batch removed. All five findings fixed before deploying.
+>
+> ⛔ **THE SUITE IS NOT GREEN.** 774 passed, 2 failed — the standing
+> `test_pool_bounds` pair, about the EMITTED SPECS in gitignored
+> `data/processed/`. This deploy republished a track record derived from those
+> same specs, and Mangaung — the one city `/about` reports the model losing in —
+> is one of the two. That is top of the model list.
+>
+> ⛔ **`data/**` IS GITIGNORED AND IT COST US AN ARTEFACT TODAY.**
+> `build_validation.py` overwrote `validation_2021.json`, the 11 August run the
+> published track record was built from, and there was no copy anywhere. Run
+> `.venv/bin/python src/backup_ignored.py` BEFORE anything that writes there.
+> `build_validation.py --from-json` rebuilds the page without re-running.
 >
 > ⛔ **The banner below was 14 hours stale about the single most consequential
 > fact in it** — it said the live pages were still the 31 August build after
