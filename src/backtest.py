@@ -353,14 +353,6 @@ FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
         "of the national vote in the municipalities it contests (task #23). "
         "Only for parties with NO record at the preceding national election; "
         "fieldwork must end before polling day or the poll is refused"),
-    # No years: an owner's judgement (JUDGEMENT-CALLS §O1), not fitted to any
-    # result, because no merger in the archive is identifiable. Noted by
-    # `montecarlo.run_model` only when `pools.apply_mergers` moves a baseline.
-    "MERGER_RETENTION": (
-        (),
-        "share of an off-ballot merger partner's baseline moved to the "
-        "partner on the ballot (pools.apply_mergers). An owner's judgement; "
-        "reads no result"),
 }
 
 

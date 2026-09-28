@@ -4058,24 +4058,6 @@ def run_model(target, scenario: dict,
     if _roster_state == "projected":
         print(_projected_roster_declaration(target, _roster, scenario))
     _roster_dropped: list[str] = []
-    # MERGERS (F5), BEFORE the off-ballot drop: a partner not on the ballot
-    # hands `pools.MERGER_RETENTION` of its baseline to the partner that is, in
-    # the citywide share and in every VD, and only where that partner already
-    # holds a national record. The drop below then removes the remainder. One
-    # definition, `pools.apply_mergers`; JUDGEMENT-CALLS §O1.
-    import pools as _pools_merge
-    base_city_d, base_share_d, _mergers = _pools_merge.apply_mergers(
-        base_city_d, _roster, target.year, per_vd=base_share_d)
-    scenario["_mergers"] = _mergers
-    if _mergers:
-        note_constant(scenario, "MERGER_RETENTION",
-                      value=_mergers[0]["retention"],
-                      where="montecarlo:run_model -> pools.apply_mergers")
-        if verbose:
-            for _m in _mergers:
-                print(f"  merger: {_m['predecessor']} -> {_m['successor']}, "
-                      f"{_m['moved']:.3%} of the {target.previous_npe} "
-                      f"baseline at retention {_m['retention']:.2f}")
     if _roster:
         # ONE DEFINITION. `theta_residual.residuals` has to reproduce this
         # baseline exactly — Key 4 scores `theta_prior` and `theta_prior`'s fit
@@ -4674,12 +4656,7 @@ def run_model(target, scenario: dict,
     # the PR base is UNKNOWN, not zero, and `0 + delta` is neither a level nor
     # a swing. Recorded here rather than recomputed there: one definition.
     scenario["_prior_ward_share"] = dict(wc)
-    # MERGERS on `prev_local`, the spine's local route and `blended_centres`'
-    # PR base. Same function and rule as the national baseline above: a
-    # successor with no local record (RISE at 2026) is given none. `pc` itself
-    # is left as read, because the ward/PR ratios below are per-party
-    # measurements of the 2021 ballots and a merger did not happen on them.
-    prior_pr_share, _, _ = _pools_merge.apply_mergers(pc, _roster, target.year)
+    prior_pr_share = pc
     ratio = np.ones(npar)
     # THE SAME RATIOS, KEYED BY PARTY, for the by-election conversion (F46,
     # §1.113). Recorded in this loop rather than recomputed, because two

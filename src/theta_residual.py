@@ -105,7 +105,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import cityconfig
 import levels
-import pools
 
 # Size bins, in national vote share. Chosen to match the bands `size_centre`'s
 # own docstring reports, so these numbers can be read against ones already in
@@ -195,11 +194,7 @@ def _levels_state() -> tuple:
             # it removed". Edit a register, and without these the memo hands
             # back the answer measured under the old one.
             _freeze(getattr(levels, "TYPE_A_EVENTS", None)),
-            _freeze(getattr(levels, "DEMARCATION_CROSSING", None)),
-            # `pools.apply_mergers` reshapes the baseline before the drop.
-            pools.MERGER_RETENTION,
-            _freeze([(tuple(sorted(m.parties)), m.date.isoformat())
-                     for m in pools.MERGERS]))
+            _freeze(getattr(levels, "DEMARCATION_CROSSING", None)))
 
 
 def _freeze(value):
@@ -240,11 +235,6 @@ def _residuals_cached(codes: tuple, _state: tuple) -> tuple:
             # ONLY — `ballot_roster` reads the party column of the target's
             # result file and nothing else, which is the read
             # `pools.contesting_parties` already makes and `run_model` acts on.
-            # MERGERS first, as `run_model` does them: one definition,
-            # `pools.apply_mergers`. No declared merger predates a held
-            # election today, so this moves no row; it is here so the day one
-            # does, this still measures the baseline the model runs.
-            before, _, _ = pools.apply_mergers(before, _roster, year)
             for _gone in levels.absent_from_ballot(before, _roster):
                 before.pop(_gone, None)
             priors, groups = levels.theta_prior(target, before, codes=codes)
