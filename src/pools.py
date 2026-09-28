@@ -3796,10 +3796,12 @@ def merged_vector(successor_vec, successor_mass: float,
                   predecessor_vec, moved: float):
     """The successor's pool vector after a merger: the MASS-WEIGHTED blend.
 
-    ``successor_mass`` is its own share before the transfer and ``moved`` the
-    share it received, both in the one election `apply_mergers` moved them in,
-    so the blend weights are on one footing. At ``moved == 0`` it returns the
-    successor's vector unchanged, which is what makes retention 0 a no-op.
+    ``successor_mass`` is the mass ``successor_vec`` already represents: its
+    pre-merger share plus every earlier transfer into it (see
+    `blend_merger_vectors`, which keeps that running total). ``moved`` is the share it receives now. Both are in the one
+    election `apply_mergers` moved them in, so the blend weights are on one
+    footing. At ``moved == 0`` it returns the successor's vector unchanged,
+    which is what makes retention 0 a no-op.
     """
     s = np.asarray(successor_vec, dtype=float)
     total = float(successor_mass) + float(moved)
@@ -3808,6 +3810,38 @@ def merged_vector(successor_vec, successor_mass: float,
     vec = (float(successor_mass) * s
            + float(moved) * np.asarray(predecessor_vec, dtype=float)) / total
     return vec / vec.sum() if vec.sum() > 0 else s
+
+
+def blend_merger_vectors(composition: dict, pre_merger_baseline: dict,
+                         merger_vectors: dict, mergers_applied: list) -> None:
+    """Blend each applied merger's predecessor vector into its successor's.
+
+    Mutates ``composition`` in place and sets ``m["vector_blended"]`` on each
+    row of ``mergers_applied`` (the rows `apply_mergers` returns).
+
+    ⛔ **THE SUCCESSOR'S MASS RUNS ACROSS THE LOOP.** A second merger into the
+    same successor blends against a vector that already carries the first
+    transfer, so its mass is the pre-merger share PLUS every earlier ``moved``
+    into it, the same running total `apply_mergers` adds to. Blending each
+    against the pre-merger share alone over-weighted every later predecessor
+    and made the result depend on declaration order (ultra review 3 on PR #17,
+    MODEL-LOG §1.278). With the running mass the result is the mass-weighted
+    average of every component, in any order.
+
+    The mass accumulates whether or not a vector was blended: a predecessor
+    with no fitted vector still handed its share to the successor, and that
+    share is spread by the successor's own vector, which is the vector a later
+    blend then weights by the whole of it.
+    """
+    mass: dict = {}
+    for m in mergers_applied:
+        succ, pred = m["successor"], m["predecessor"]
+        held = mass.get(succ, pre_merger_baseline.get(succ, 0.0))
+        m["vector_blended"] = succ in composition and pred in merger_vectors
+        if m["vector_blended"]:
+            composition[succ] = merged_vector(
+                composition[succ], held, merger_vectors[pred], m["moved"])
+        mass[succ] = held + m["moved"]
 
 
 @dataclass(frozen=True)
@@ -5900,6 +5934,11 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     instead of being skipped, which is how four specs came to declare four
     pools and emit three (queue entry 30, MODEL-LOG §1.269). The cause is
     repaired upstream, in :func:`pool_counts`.
+
+    A merger's successor gets the mass-weighted blend of its own vector and
+    each predecessor's, the weights being the baseline shares `apply_mergers`
+    moved; several mergers into one successor average over all of them, in
+    any order (:func:`blend_merger_vectors`).
     """
     # None means "no cutoff" — the retrospective mode. Otherwise the target's
     # own year, so a split that had not happened yet cannot size an arrival.
@@ -6200,15 +6239,13 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
 
     # MERGERS: the successor's vector becomes the mass-weighted blend of its
     # own and its predecessor's, the masses being the baseline shares
-    # `apply_mergers` moved. A predecessor with no fitted vector leaves the
-    # successor's vector as it was, and says so.
+    # `apply_mergers` moved, the successor's running as successive mergers
+    # land on it (`blend_merger_vectors`). A predecessor with no fitted vector
+    # leaves the successor's vector as it was, and says so.
+    blend_merger_vectors(composition, pre_merger_baseline, merger_vectors,
+                         mergers_applied)
     for m in mergers_applied:
         succ, pred = m["successor"], m["predecessor"]
-        m["vector_blended"] = succ in composition and pred in merger_vectors
-        if m["vector_blended"]:
-            composition[succ] = merged_vector(
-                composition[succ], pre_merger_baseline.get(succ, 0.0),
-                merger_vectors[pred], m["moved"])
         if succ in inherited:
             inherited[succ] += (
                 f"; merged with {pred}, {m['moved']:.4%} of the "

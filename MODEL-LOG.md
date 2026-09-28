@@ -27978,3 +27978,42 @@ module red.
 the independent under whatever code each side gives it; that code must be the
 same on the reader roster and the certified roster, which the 2021 file
 cannot exercise.
+
+## 1.278 Several mergers into one successor: the blend's successor mass now runs across the loop (2026-09-29)
+
+**Source.** Ultra review 3 on PR #17, verified by the lead. `emit_pools`
+blended every applied merger with `merged_vector(composition[succ],
+pre_merger_baseline[succ], vec[pred], moved)`. On a second merger into the same
+successor, `composition[succ]` already carried the first transfer (mass
+P_A + m_1) but was weighted by P_A alone, so the second predecessor was
+over-weighted and the result depended on declaration order.
+
+**Fix.** The loop is now `pools.blend_merger_vectors`. It keeps a running mass
+per successor, starting at the pre-merger share and adding each `moved` after
+its blend, the same total `apply_mergers` adds to. The mass accumulates even
+when a predecessor has no fitted vector: that share still reached the
+successor and is spread by the successor's own vector, so a later blend
+weights that vector by all of it. This choice is the lead's to overrule.
+
+**Test** (`tests/test_roster_aware_baseline.py`, constructed, through
+`apply_mergers` at retention 0.75): AAA 0.10 on the ballot, BBB 0.04 and CCC
+0.06 each merged into it, unit-sum 3-vectors. Asserted: the blended AAA vector
+equals (P_A·v_A + m_B·v_B + m_C·v_C) / (P_A + m_B + m_C) to 1e-12, and the two
+declaration orders agree to 1e-12. On the pre-fix loop the first assertion
+failed, got [0.41830239, 0.26445623, 0.31724138] against the closed form
+[0.44285714, 0.27714286, 0.28]; the reversed order gave [0.41830239,
+0.31458886, 0.26710875], so the order assertion fails there too. The test also
+recomputes the pre-fix rule and asserts it differs from the closed form by more
+than 1e-3.
+
+**Johannesburg 2026 unchanged.** The two declared mergers have distinct
+successors (GOOD→RISE, FORUM_4_SERVICE_DELIVERY→ASA), so each successor is
+blended once, against its pre-merger share, as before. Measured in process, no
+emit: `emit_pools(joburg, 2026)` before and after the change differ in one
+field, `artefact_key.pools_sha`. A new test asserts the declared successors
+are distinct and that the helper equals a single `merged_vector` per merger on
+the real 2024 baseline.
+
+**Consequence.** A code change to `pools.py`: every emitted spec's
+`pools_sha` is now stale and joins the batched re-emit in
+`POOLS-REEMIT-QUEUE.md`. No number in any spec moves for the current MERGERS.

@@ -965,6 +965,94 @@ def test_the_declared_mergers_move_the_johannesburg_2026_baseline_by_r_times_p()
     assert not moved, f"a party outside every merger moved: {moved}"
 
 
+def _two_mergers_into_one_successor():
+    """AAA on the ballot; BBB and CCC off it, each merged into AAA.
+
+    Built through `apply_mergers`, so each row's ``moved`` is the real r × P
+    and the helper's masses are on the footing `emit_pools` gives them.
+    Vectors sum to 1, as fitted compositions do, so `merged_vector`'s
+    renormalisation is the identity and cannot mask or fake a difference.
+    """
+    import datetime as _dt
+    import numpy as np
+    d = _dt.date(2020, 1, 1)
+    m_b = pools.Merger(frozenset({"AAA", "BBB"}), d, "constructed")
+    m_c = pools.Merger(frozenset({"AAA", "CCC"}), d, "constructed")
+    shares = {"AAA": 0.10, "BBB": 0.04, "CCC": 0.06, "DDD": 0.80}
+    vecs = {"AAA": np.array([0.7, 0.2, 0.1]),
+            "BBB": np.array([0.1, 0.8, 0.1]),
+            "CCC": np.array([0.1, 0.1, 0.8])}
+    return m_b, m_c, shares, vecs
+
+
+def _blend(order, shares, vecs, retention):
+    _, _, applied = pools.apply_mergers(shares, {"AAA", "DDD"}, "2021",
+                                        retention=retention, mergers=order)
+    composition = {p: v.copy() for p, v in vecs.items()}
+    merger_vectors = {m["predecessor"]: composition[m["predecessor"]]
+                      for m in applied}
+    pools.blend_merger_vectors(composition, dict(shares), merger_vectors,
+                               applied)
+    return composition["AAA"], applied
+
+
+def test_two_mergers_into_one_successor_give_the_mass_weighted_average():
+    """Ultra review 3 on PR #17: the second merger into one successor was
+    blended against the successor's ORIGINAL share although its vector already
+    carried the first transfer, so the second predecessor was over-weighted.
+
+    The emitted vector must be the closed-form mass-weighted average of all
+    three, (P_A·v_A + m_B·v_B + m_C·v_C) / (P_A + m_B + m_C), in either order.
+    """
+    import numpy as np
+    m_b, m_c, shares, vecs = _two_mergers_into_one_successor()
+    r = 0.75
+    got_bc, applied = _blend((m_b, m_c), shares, vecs, r)
+    got_cb, _ = _blend((m_c, m_b), shares, vecs, r)
+    assert len(applied) == 2 and {a["successor"] for a in applied} == {"AAA"}
+    assert all(a["vector_blended"] for a in applied), applied
+    mb, mc = r * shares["BBB"], r * shares["CCC"]
+    closed = ((shares["AAA"] * vecs["AAA"] + mb * vecs["BBB"]
+               + mc * vecs["CCC"]) / (shares["AAA"] + mb + mc))
+    assert np.allclose(got_bc, closed, atol=1e-12, rtol=0), (got_bc, closed)
+    assert np.allclose(got_cb, got_bc, atol=1e-12, rtol=0), (got_cb, got_bc)
+
+    # It can see: the pre-fix rule (every blend against the ORIGINAL share)
+    # differs from the closed form on this input by far more than tolerance,
+    # so this test would have gone red on it.
+    old = vecs["AAA"]
+    for pred, moved in (("BBB", mb), ("CCC", mc)):
+        old = (shares["AAA"] * old + moved * vecs[pred]) / (shares["AAA"] + moved)
+    assert np.abs(old - closed).max() > 1e-3, (old, closed)
+
+
+def test_the_johannesburg_2026_mergers_have_distinct_successors():
+    """The declared mergers do not exercise the running mass: each successor
+    is visited once, so the blend equals a single `merged_vector` against its
+    pre-merger share, exactly as before ultra review 3's fix."""
+    import numpy as np
+    city = cityconfig.use("joburg")
+    target = cityconfig.use_target("2026")
+    roster = set(pools.declared_roster(city, target)["parties"])
+    votes, _ = M.load(Path("data/raw/elections")
+                      / target.results(target.previous_npe), None)
+    raw = M.citywide(votes)
+    _, _, applied = pools.apply_mergers(raw, roster, target.year)
+    succs = [a["successor"] for a in applied]
+    assert applied and len(set(succs)) == len(succs), succs
+    rng = np.random.default_rng(0)
+    parties = set(succs) | {a["predecessor"] for a in applied}
+    vecs = {p: (lambda v: v / v.sum())(rng.random(4)) for p in parties}
+    composition = {p: v.copy() for p, v in vecs.items()}
+    pools.blend_merger_vectors(
+        composition, dict(raw), {a["predecessor"]: vecs[a["predecessor"]]
+                                 for a in applied}, applied)
+    for a in applied:
+        single = pools.merged_vector(vecs[a["successor"]], raw[a["successor"]],
+                                     vecs[a["predecessor"]], a["moved"])
+        assert np.array_equal(composition[a["successor"]], single)
+
+
 def test_every_consumer_the_spec_names_calls_apply_mergers():
     """The leak guard: one definition, called at every declared consumer.
 
