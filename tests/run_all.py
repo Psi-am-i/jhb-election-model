@@ -144,7 +144,20 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # drawn number (checked against the code before the recording and
            # the published seats). Runs the model three times at the full
            # draw count, so it sits with the model runs at the end.
-           "test_draw_record"]
+           "test_draw_record",
+           # Added 2026-09-28 with DESIGN-decided §9: a reader's PR shares and
+           # ward picks seated by the statute alone, in the browser. Runs the
+           # model twice at a small draw count in subprocesses to prove every
+           # draw is reproduced from its own combined tally, so it sits with
+           # the model runs. Writes only into a temporary directory.
+           "test_reader_seats",
+           # Added 2026-09-28 with build steps S2 and S4 of the interactive
+           # (audits/2026-09-28-interactive-architecture/PLAN.md): the draw
+           # file reproduces the published seat files, and re-weighting it
+           # reproduces the published figures and a paired re-run. Both run
+           # the model at the full draw count; both write only into temporary
+           # directories.
+           "test_export_draws", "test_reweight"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

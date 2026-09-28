@@ -730,6 +730,11 @@ class PoolCounts:
     # here has no identifying variation in this city's ward table at that
     # level, and its rate is a clipped corner, not a measurement (§1.164).
     unidentified: list[str] = field(default_factory=list)
+    # Rates that are NOT fitted at all but held at a declared fallback, by
+    # level: ``{"registration": [pool index, ...], "turnout": [...]}``. Such a
+    # rate is neither an estimate nor an observed movement, so
+    # ``panel_turnout_spread`` must not read it as one. See :func:`_nest_holding_silent`, JUDGEMENT-CALLS §L14.
+    imputed: dict[str, list[int]] = field(default_factory=dict)
 
     def composition(self, level: str = "voted") -> np.ndarray:
         counts = getattr(self, level)
@@ -904,15 +909,19 @@ REGISTRATION_MAX = 2.0
 
 
 def _nest(parent: np.ndarray, observed: np.ndarray,
-          upper: float = 1.0) -> tuple[np.ndarray, np.ndarray]:
+          upper: float = 1.0,
+          hold: dict[int, float] | None = None) -> tuple[np.ndarray, np.ndarray]:
     """Split an observed ward total across pools, in proportion to the parent.
 
     One rate per pool is fitted across wards (``observed_w ~ sum_g parent_wg
     r_g``), applied, then each ward is scaled so its pools sum to what was
     actually observed there. The rate carries the between-ward information; the
     scaling makes every ward agree with the published count.
+
+    ``hold`` pins named pools at a stated rate and re-fits the others around
+    them — see :func:`_nnls` and :func:`_nest_holding_silent`.
     """
-    rate = _nnls(parent, observed, upper=upper)
+    rate = _nnls(parent, observed, upper=upper, hold=hold)
     child = parent * rate[None, :]
     row = child.sum(axis=1)
     scale = np.divide(observed, row, out=np.ones_like(row), where=row > 0)
@@ -920,7 +929,8 @@ def _nest(parent: np.ndarray, observed: np.ndarray,
 
 
 def _nnls(A: np.ndarray, b: np.ndarray, iters: int = 40000,
-          upper: float = 1.0) -> np.ndarray:
+          upper: float = 1.0,
+          hold: dict[int, float] | None = None) -> np.ndarray:
     """Fit one non-negative rate per pool, BOUNDED ABOVE BY A PROPORTION.
 
     ⛔ THE UPPER BOUND WAS MISSING AND IT MANUFACTURED EVERY DEGENERATE CELL IN
@@ -946,14 +956,89 @@ def _nnls(A: np.ndarray, b: np.ndarray, iters: int = 40000,
     replace a visibly absurd number with an invisibly wrong one, which is
     worse.
     """
-    x = np.full(A.shape[1], b.sum() / max(A.sum(), 1e-9))
+    x = np.full(A.shape[1], _uninformed_rate(A, b))
     x = np.clip(x, 0.0, upper)
+    # ``hold`` pins a pool's rate and re-fits the others AROUND it: projected
+    # gradient with those coordinates reset after every step is exactly the
+    # least-squares fit of the free pools to what the held ones leave over.
+    held = dict(hold or {})
+    for g, v in held.items():
+        x[g] = v
     lipschitz = float(np.linalg.norm(A, 2) ** 2)
     if lipschitz <= 0:
         return x
     for _ in range(iters):
         x = np.clip(x - (A.T @ (A @ x - b)) / lipschitz, 0.0, upper)
+        for g, v in held.items():
+            x[g] = v
     return x
+
+
+def _uninformed_rate(A: np.ndarray, b: np.ndarray) -> float:
+    """The rate a pool takes when the ward table says nothing about it.
+
+    The city's own pooled rate, ``sum(observed) / sum(parent)`` — for the
+    turnout level, votes cast over registered voters, citywide. It is the value
+    :func:`_nnls` starts every pool at, and so the value a pool with NO parent
+    mass in any ward keeps: its gradient is zero and it never moves.
+
+    ONE DEFINITION, TWO USERS. :func:`_nest_holding_silent` gives the same
+    value to a pool whose fitted rate walked to the 0.0 corner, so "the ward
+    table cannot tell this pool's rate from the city's" means one number
+    wherever it arises. It is a declared fallback, not an estimate —
+    JUDGEMENT-CALLS §L14.
+    """
+    return float(b.sum() / max(A.sum(), 1e-9))
+
+
+def _silent_pools(parent: np.ndarray, rate: np.ndarray) -> dict[int, float]:
+    """Pools that HOLD people at the level above and were fitted to hold none.
+
+    ⛔ THIS IS WHERE PREREG C1 CAME FROM (MODEL-LOG §1.258, §1.259, §1.269).
+    One of the three nested solves walked a small pool to the 0.0 corner, so
+    the pool cast no votes in the fitting election: the turnout solve for
+    Mangaung's Indian/Asian pool at 2011, 2016 and 2021 and Buffalo City's at
+    2011 and 2021, and the REGISTRATION solve for Mangaung's at 2006, whose
+    people and adults are in the census and whose registered voters were
+    fitted to nobody. Its column in the ``voted`` composition was then all
+    zeros, the joint party fit left that pool's rate row at zero
+    (``test_the_three_known_things_hold_at_once``: rows ``[1, 1, 0, 1]``),
+    every party's weight in it was zero, and ``emit_pools`` dropped it — while
+    the same spec sized it in ``pool_shares_at_target``. A spec contradicting
+    itself about where its electorate is.
+
+    A rate of exactly 0.0 on a pool that exists at the level above is not a
+    measurement; it is a pool the least-squares fit found cheaper to silence.
+    Returns ``{pool index: size at the level above}`` for each such pool, so
+    the caller can hold it at :func:`_uninformed_rate` and re-fit the rest. A
+    pool with nothing at the level above is EMPTY, not silent, and is not
+    returned. Only the lower corner: a rate on its UPPER bound keeps the pool
+    in the electorate and is prereg C2's question, not this one.
+    """
+    size = parent.sum(axis=0)
+    return {int(g): float(size[g]) for g in range(len(rate))
+            if rate[g] <= _RATE_BOUND_EPS and size[g] > 0}
+
+
+def _nest_holding_silent(parent: np.ndarray, observed: np.ndarray,
+                         upper: float = 1.0
+                         ) -> tuple[np.ndarray, np.ndarray, dict[int, float]]:
+    """:func:`_nest`, with any pool silenced at the 0.0 corner held and re-fitted.
+
+    Returns ``(child, rate, silenced)`` where ``silenced`` is
+    :func:`_silent_pools` of the FREE fit — the pools that were held, and the
+    size each held at the level above. The held value is the city's own rate,
+    :func:`_uninformed_rate`; the other pools are re-fitted around it, so the
+    reported rates and the ward-scaled counts describe one fit. JUDGEMENT-CALLS
+    §L14.
+    """
+    child, rate = _nest(parent, observed, upper=upper)
+    silenced = _silent_pools(parent, rate)
+    if silenced:
+        fallback = _uninformed_rate(parent, observed)
+        child, rate = _nest(parent, observed, upper=upper,
+                            hold={g: fallback for g in silenced})
+    return child, rate, silenced
 
 
 # How close to a bound a fitted rate must sit before it is reported as
@@ -1150,6 +1235,15 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
     silently capping it would bury a defect in the public record (Census 2022's
     ward-level undercount, or voters registered where they do not live) inside
     our own numbers.
+
+    ⛔ **A pool that exists is never fitted to vanish.** Where any of the three
+    solves lands a pool on the 0.0 bound while the level above holds people in
+    it, that pool is held at the city's own rate for that level and the others
+    are re-fitted around it (:func:`_nest_holding_silent`, JUDGEMENT-CALLS
+    §L14). Left at zero, the pool's column in ``composition("voted")`` was
+    empty, the party fit could not place anyone in it, and ``emit_pools``
+    dropped it from a spec that still sized it — prereg C1, MODEL-LOG §1.269. The held pools are listed in
+    ``imputed`` and, with the corner they came from, in ``unidentified``.
     """
     base = cfg.base()
     when = polling_decimal_year(year, city)
@@ -1338,10 +1432,21 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
 
     people = comp * np.array([people_by_ward[w] for w in wards])[:, None]
 
+    # ⛔ A POOL THAT EXISTS AT ONE LEVEL IS NEVER FITTED TO VANISH AT THE NEXT
+    # (prereg C1, queue entry 30, MODEL-LOG §1.269). Each solve that lands a
+    # pool on the 0.0 corner while the level above holds people in it HOLDS
+    # that pool at the city's own rate for the level and re-fits the rest —
+    # `_nest_holding_silent`. Left at 0.0, the pool's `voted` column was empty,
+    # the joint fit left its rate row empty, and `emit_pools` dropped a pool the
+    # spec itself sized. The fallback is declared, not measured —
+    # JUDGEMENT-CALLS §L14 — and each held pool is still reported below in
+    # `unidentified` with the corner it came from, so a reader sees both.
     rates: dict[str, np.ndarray] = {}
+    held: dict[str, dict[int, float]] = {}
     if adults_by_ward:
         observed_adults = np.array([adults_by_ward.get(w, 0.0) for w in wards])
-        voting_age, rates["adult_share"] = _nest(people, observed_adults)
+        voting_age, rates["adult_share"], held["adult_share"] = \
+            _nest_holding_silent(people, observed_adults)
     else:
         # No age table: every pool assumed equally adult, which is false and
         # said out loud rather than assumed silently.
@@ -1355,11 +1460,13 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
     # the registered roll read 20.0% against 25.2% unclipped. See
     # REGISTRATION_MAX. `adult_share` and `turnout` genuinely cannot exceed 1
     # and keep the tight bound.
-    registered, rates["registration"] = _nest(
-        voting_age, np.array([reg_by_ward[w] for w in wards]),
-        upper=REGISTRATION_MAX)
-    voted, rates["turnout"] = _nest(
+    registered, rates["registration"], held["registration"] = \
+        _nest_holding_silent(voting_age,
+                             np.array([reg_by_ward[w] for w in wards]),
+                             upper=REGISTRATION_MAX)
+    voted, rates["turnout"], held["turnout"] = _nest_holding_silent(
         registered, np.array([votes_by_ward.get(w, 0.0) for w in wards]))
+    imputed = {level: sorted(idx) for level, idx in held.items() if idx}
 
     # How wrong the census would have to be for this to hold. Registration is
     # counted; ward population is a modelled small-area estimate, and for the
@@ -1377,6 +1484,17 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
     # anywhere in the city, so its turnout has never been identifiable and the
     # old code reported 0.0000 as though it were measured.
     unidentified = []
+    _level_above = {"adult_share": "people", "registration": "adults",
+                    "turnout": "registered voters"}
+    for level, pools_held in held.items():
+        for g, size in sorted(pools_held.items()):
+            unidentified.append(
+                f"{categories[g]}: {level} fitted to 0.0000, which is ON A "
+                f"BOUND — a pool of {size:,.0f} {_level_above[level]} fitted to "
+                f"none at this level. HELD at the city's own rate "
+                f"{rates[level][g]:.4f} and the other pools re-fitted around "
+                f"it: a declared fallback, not a measurement (JUDGEMENT-CALLS "
+                f"§L14).")
     # ⚠️ EACH LEVEL IS TESTED AGAINST ITS OWN BOUND. `registration` is bounded
     # at REGISTRATION_MAX, not 1.0, so testing it against 1.0 reported every
     # legitimately-above-one rate as a clipped corner — Johannesburg White at
@@ -1437,7 +1555,7 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
     return PoolCounts(wards=wards, categories=categories, people=people,
                       voting_age=voting_age, registered=registered, voted=voted,
                       rates=rates, violations=violations,
-                      unidentified=unidentified)
+                      unidentified=unidentified, imputed=imputed)
 
 
 # WHICH CITY-YEARS EACH RECORD LOST, AND WHY. `(record, city slug)` ->
@@ -2527,6 +2645,7 @@ def fit_city(city: cityconfig.City, year: str, cfg: Config, *,
     hi = np.column_stack([b[:, 1] for b in dd])
     R = balance_within_bounds(raw, pool_votes, party_votes, lo, hi)
 
+
     fits: dict[str, PartyFit] = {}
     for i, party in enumerate(universe):
         y = Y[:, i]
@@ -2905,15 +3024,24 @@ def panel_turnout_spread(cfg: Config, before: str | None = None,
                                       losses=losses, quiet_stdout=True)
             if pc is None:
                 continue
-            seen[year] = (tuple(pc.categories), pc.rates["turnout"])
+            # Every pool held at ANY level: a turnout fitted on a held
+            # registration is conditioned on the fallback too.
+            seen[year] = (tuple(pc.categories), pc.rates["turnout"],
+                          {g for idx in pc.imputed.values() for g in idx})
         _report_pool_losses("panel_turnout_spread", city, losses)
         years = sorted(seen)
         for a, b in zip(years, years[1:]):
-            (ca, ra), (cb, rb) = seen[a], seen[b]
+            (ca, ra, ia), (cb, rb, ib) = seen[a], seen[b]
             for i, name in enumerate(ca):
                 if name not in cb:
                     continue
                 j = cb.index(name)
+                # A pool HELD at the city's fallback at any level
+                # (JUDGEMENT-CALLS §L14) was not measured, so a transition to
+                # or from it is not a movement either — the same reason a
+                # corner is skipped below.
+                if i in ia or j in ib:
+                    continue
                 x, y = float(ra[i]), float(rb[j])
                 # A pool UNIDENTIFIED at either end gives a movement between
                 # two corner solutions, which is not a movement.
@@ -5578,6 +5706,12 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     ``retrospective_home`` restores the old unfiltered home-splinter record.
     It answers "what is this rule worth once the record exists?", which is a
     real question and not a forecast; see :func:`home_splinter_record`.
+
+    ⛔ **Every declared pool is emitted (prereg P1).** ``set(pools) ==
+    set(categories)``: a pool left with no member above 1e-4 REFUSES the emit
+    instead of being skipped, which is how four specs came to declare four
+    pools and emit three (queue entry 30, MODEL-LOG §1.269). The cause is
+    repaired upstream, in :func:`pool_counts`.
     """
     # None means "no cutoff" — the retrospective mode. Otherwise the target's
     # own year, so a split that had not happened yet cannot size an arrival.
@@ -5990,7 +6124,22 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     for g, name in enumerate(cats):
         members = {p: float(w[g]) for p, w in composition.items() if w[g] > 1e-4}
         if not members:
-            continue
+            # ⛔ REFUSED, NOT SKIPPED (prereg P1, queue entry 30). This was a
+            # bare `continue`, and it is how four specs came to declare four
+            # pools in `categories` and emit three in `pools`, stating the
+            # dropped pool's share of the roll in the same artefact. The cause
+            # was upstream — a pool silenced at the 0.0 corner of one of
+            # `pool_counts`' three solves in the fitting year, see
+            # `_nest_holding_silent` — and is repaired there. A pool with no members is a spec that
+            # contradicts itself, and it is not written.
+            raise SystemExit(
+                f"{city.slug} {target.year}: pool {name!r} has no member with "
+                f"weight above 1e-4 (registered {float(registered[g]):,.0f}, "
+                f"central turnout {float(turnout[g][1]):.4f}, "
+                f"{float(target_shares[g]):.2%} of the projected roll). The "
+                f"spec would declare it in `categories` and omit it from "
+                f"`pools` — prereg P1. Find why the fitting year gave it no "
+                f"votes (MODEL-LOG §1.269) before emitting.")
         lo, mid, hi = turnout[g]
         out[name] = {
             "members": members,

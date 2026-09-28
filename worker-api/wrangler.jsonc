@@ -1,0 +1,108 @@
+// joburg-forecasts: accounts, storage and sharing for readers' forecasts.
+// A separate Worker (BACKEND.md §2). The static site's Worker forwards
+// /f/*, /api/* and /auth/* to it over a service binding; that change is NOT
+// made here (src/worker.js is out of scope for this directory).
+//
+// ⛔ NOTHING HERE IS PROVISIONED. The ids below are placeholders; no D1
+// database, R2 bucket, rate-limit namespace or secret exists. Secrets are
+// NAMES only (README.md "Secrets"), set with `wrangler secret put <NAME>`.
+// Do not put a secret value in this file, in .dev.vars, or in any file.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "joburg-forecasts",
+  "main": "src/index.js",
+  // The newest date the pinned workerd supports (wrangler 4.142).
+  "compatibility_date": "2026-08-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
+
+  // interactive/js/common.js (imported for the ONE card builder and escaper)
+  // computes `new URL("../", import.meta.url)` at module load, for fetching
+  // fixtures in the browser. In a bundled Worker import.meta.url is not a valid
+  // URL base and the Worker fails to start. The server never uses that value;
+  // this gives it a well-formed one. Remove when common.js computes it lazily.
+  "define": { "import.meta.url": "\"https://joburg.whysoserious.city/interactive/js/common.js\"" },
+
+  // Fonts for the server-rendered share card, bundled as ArrayBuffers.
+  "rules": [{ "type": "Data", "globs": ["**/*.ttf"], "fallthrough": false }],
+
+  "vars": {
+    "SITE_ORIGIN": "https://joburg.whysoserious.city",
+    // Owner, 2026-09-28: no new or edited forecasts from 07:00 SAST, 4 Nov 2026.
+    "LOCK_AT": "2026-11-04T07:00:00+02:00",
+    // Owner-set dates. EMPTY = not decided; the scheduled job refuses to act
+    // and logs why. ISO 8601 with an explicit offset.
+    "POST_ELECTION_MESSAGE_AT": "",
+    "DELETION_AT": "",
+    // Names the consent wording shown; bump when the text changes.
+    "CONSENT_WORDING_VERSION": "draft-2026-09-28",
+    "MICROSOFT_TENANT": "common",
+    "MAX_FORECASTS_PER_USER": "20",
+    "SAVES_PER_USER_PER_DAY": "30",
+    "MAX_BODY_BYTES": "16384",
+    "SESSION_DAYS": "30",
+    "TURNSTILE_REQUIRED": "true",
+    "COOKIE_SECURE": "true"
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "joburg-forecasts",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [{ "binding": "CARDS", "bucket_name": "forecast-cards" }],
+
+  // Rate Limiting binding windows are 10 s or 60 s only; the per-user daily
+  // cap is a D1 counter (save_quota).
+  "ratelimits": [
+    { "name": "RL_SAVE", "namespace_id": "1001", "simple": { "limit": 5, "period": 60 } },
+    { "name": "RL_AUTH", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } }
+  ],
+
+  // The seat law: a Python Worker running the project's own src/reader_seats.py
+  // (seats-py/). See README.md "Seats".
+  "services": [{ "binding": "SEATS", "service": "joburg-seats" }],
+
+  // Hourly: stamp locked_at after LOCK_AT; the post-election message and the
+  // deletion run, each once, when their owner-set date has passed.
+  "triggers": { "crons": ["17 * * * *"] },
+
+  "env": {
+    // `wrangler dev --env dev --port 8802`: plain-http cookie names, no Turnstile.
+    "dev": {
+      "define": { "import.meta.url": "\"https://joburg.whysoserious.city/interactive/js/common.js\"" },
+      "vars": {
+        "SITE_ORIGIN": "http://localhost:8802",
+        "LOCK_AT": "2026-11-04T07:00:00+02:00",
+        "POST_ELECTION_MESSAGE_AT": "",
+        "DELETION_AT": "",
+        "CONSENT_WORDING_VERSION": "draft-2026-09-28",
+        "MICROSOFT_TENANT": "common",
+        "MAX_FORECASTS_PER_USER": "20",
+        "SAVES_PER_USER_PER_DAY": "30",
+        "MAX_BODY_BYTES": "16384",
+        "SESSION_DAYS": "30",
+        "TURNSTILE_REQUIRED": "false",
+        "COOKIE_SECURE": "false"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "joburg-forecasts",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [{ "binding": "CARDS", "bucket_name": "forecast-cards" }],
+      "ratelimits": [
+        { "name": "RL_SAVE", "namespace_id": "1001", "simple": { "limit": 5, "period": 60 } },
+        { "name": "RL_AUTH", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } }
+      ],
+      "services": [{ "binding": "SEATS", "service": "joburg-seats" }]
+    }
+  }
+}

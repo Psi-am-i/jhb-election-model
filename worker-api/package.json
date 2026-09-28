@@ -1,0 +1,22 @@
+{
+  "name": "joburg-forecasts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "gen": "node tools/make_schema.mjs",
+    "sync:seats": "node tools/sync_seats_py.mjs",
+    "test": "node tools/make_schema.mjs --check && node tools/sync_seats_py.mjs --check && vitest run",
+    "db:local": "wrangler d1 migrations apply joburg-forecasts --local --env dev",
+    "dev": "wrangler dev --env dev --port 8802 --ip 127.0.0.1"
+  },
+  "dependencies": {
+    "@resvg/resvg-wasm": "2.6.2",
+    "arctic": "3.7.0",
+    "dejavu-fonts-ttf": "2.37.3"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.22.0",
+    "vitest": "4.1.11",
+    "wrangler": "4.142.0"
+  }
+}

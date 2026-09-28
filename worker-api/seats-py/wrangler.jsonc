@@ -1,0 +1,16 @@
+// joburg-seats: the seat law for saved readers' forecasts, as a Python Worker
+// running the project's own src/reader_seats.py (and src/seats.py it imports).
+// Reached ONLY through the SEATS service binding of joburg-forecasts; it has
+// no public route (workers_dev false, no routes).
+//
+// ⛔ NOT BUILT OR DEPLOYED. The .py files it runs are COPIED from ../../src by
+// `node tools/sync_seats_py.mjs` (never retyped); until src/reader_seats.py
+// exists, src/entry.py answers 501 and joburg-forecasts refuses saves with 503.
+// Untested here: Python Workers need `pywrangler`/uv tooling not installed.
+{
+  "name": "joburg-seats",
+  "main": "src/entry.py",
+  "compatibility_date": "2026-08-22",
+  "compatibility_flags": ["python_workers"],
+  "workers_dev": false
+}

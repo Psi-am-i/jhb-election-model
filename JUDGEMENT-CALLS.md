@@ -122,6 +122,7 @@ promotion note in §F.
 | `MAX_SIGMA`, `MIN_SIGMA`, `NEW_PARTY_SIGMA` | 2.0, 0.15, 1.0 | — | Spread bounds for the `prior-lge-noise` BASELINE, not for the model. | 🟡 | §F28 |
 | `METRO_CODES` widened 2 → 8 | — | `levels.py` | Eight metros. More evidence and no leakage, but it moves θ itself, so it is confounded with the spine in any before/after delta. | 🟡 | §B6 |
 | `min_clusters` | 8 | `score.chi2_clustered` | Typed. The floor below which the clustered uniformity test prints `not established` instead of a χ². Moves no forecast; decides whether a calibration verdict is a number or a refusal. Under a known null δ̄ is unbiased at every k from 3 to 24 and its noise is SMOOTH in k, so there is no cliff at 8 — any floor is a line on a continuum. | 🔴 | §D22 |
+| `MIN_EFFECTIVE_DRAWS` | 200 | `reweight.py`, `require_effective` | Typed, from PLAN.md build step S4. The fewest effective draws a re-weighted figure on the interactive may rest on; below it the control greys out. Moves no forecast: it decides whether the page shows a number or a refusal. | 🟡 | §N1 |
 | `MIN_HOME_SPLITS` and the binary home/away | 2 | `pools.py` | Unchanged: a measured gradient (0.611 / 0.315 / 0.289 / 0.103) modelled as two buckets. | 🔴 | §A44 |
 | `min_oos_gain` | 0.01 | `config/dimensions.toml` | 0.01, and it is upstream of every pool in the model: age and sex are rejected by this number. | 🔴 | §H7 |
 | `MIN_SHARE`, `CLAIM_FRACTION`, `F_OTHER` | 0.005, 0.50, 1.30 | — | All three were filed under the wrong module once. `MIN_SHARE` is `gamma_recent.py`'s and is a CLAIM about the model, not reporting; `CLAIM_FRACTION` is `score.py`'s. ⚠ `F_OTHER` is no longer in `src/` at all — see the restructure note beneath. | 🟡 | §F29 |
@@ -231,6 +232,7 @@ easiest kind to lose, because nothing can grep for them.
 | PIT seed derived per city-year | `compare_history._pit_seed` | Derived from the city-year name by CRC32; reproducible, and it cannot change a conclusion. | — | §D12 |
 | seat error summed over all parties | `compare_history.py` | Unchanged; parties that won nothing contribute 0, so the wider denominator does not inflate it. | — | §D14 |
 | modal ward winner as "the model's call" | `diagnose.py` | A defensible reading of a probabilistic forecast, and it is a reading. | — | §D15 |
+| a reader's PR shares stand for both ballots | `reader_seats.reader_seats` | Owner's decision (DESIGN-decided §9). A reader supplies one vote and ward winners, so each party's combined ward+PR vote is taken as share × `total_votes`. Measured cost against the model's own split ballots: `tests/test_reader_seats.py` prints it. | ⚖️ argued | §M1 |
 
 ---
 
@@ -2554,6 +2556,61 @@ not fixed tonight (it invalidates every spec).
 **How to check it.** Against the 2026 result, and against the band the arrival
 record puts around the declared level. **Record.** 2026-09-16, owner's decision.
 
+### §L14 · A pool silenced at the 0.0 corner is held at the city's own rate — 🔴 a declared fallback, not an estimate
+
+**Where.** `pools._nest_holding_silent`, with `pools._silent_pools` and
+`pools._uninformed_rate`, called from `pool_counts` at each of its three nested
+solves. Added 2026-09-28 for prereg C1 / queue entry 30, MODEL-LOG §1.269.
+
+**What.** `pool_counts` fits one rate per pool at each of three levels
+(`adult_share`, `registration`, `turnout`), each bounded below at 0.0. Where a
+solve lands a pool on **0.0** while the level above still holds people in it,
+that pool is HELD at the city's own rate for the level
+(`sum(observed) / sum(parent)`; for turnout, votes cast over registered voters)
+and the other pools are re-fitted around it. The value is the one `_nnls`
+already starts every pool at, and so the one a pool with no parent mass in any
+ward keeps. Only the lower corner: a rate on its upper bound keeps the pool in
+the electorate and belongs to C2.
+
+**Why it is a judgement.** Nothing measured says how a silenced pool registers
+or turns out. Before this, the de facto value was **zero**: no votes, no party
+weight, and the pool dropped from the spec while `pool_shares_at_target` still
+sized it. Zero is also a judgement, and it is the one that contradicts the
+artefact. The city's own rate is the least informative value that keeps the
+pool in the electorate.
+
+**The cells it acts on.** Whatever
+`test_no_fitting_year_leaves_a_pool_of_voters_casting_nothing` prints is the
+current list. On 2026-09-28 it was the Indian/Asian pool every time: turnout at
+mangaung 2006, 2011, 2016, 2021 and buffalocity 2011, 2021; registration at
+mangaung 2006.
+
+⚠️ **The re-fit moves the OTHER pools too.** Holding the silenced pool above
+zero takes votes or registrations from the pools it shares wards with, and
+through `panel_turnout_spread` it reaches turnout bands in cities where nothing
+was held. The sizes are measured in MODEL-LOG §1.269. At Buffalo City one of
+the moved pools is the White pool, where the DA's capacity is tightest (§1.259).
+
+**Not the prereg's repair for C2.** D2 fixes partial pooling toward the panel's
+estimate for the population group as the repair for unidentified pool levels.
+That is F4, deferred past the freeze (TODO §0). This fallback covers only the
+0.0 corners, because they are what drop a pool. The `adult_share` corners at
+1.0 and the `registration` corners at `REGISTRATION_MAX` are untouched. When C2
+lands, the pooled estimate replaces the city's rate in the same place.
+
+**Excluded from the panel spread.** A held rate is not an observed movement, so
+`panel_turnout_spread` skips any transition that starts or ends on a pool held
+at any level (`PoolCounts.imputed`), as it already skipped a corner. A held
+turnout is still in the city's own `turnout_record`, and it becomes the band
+centre where it is the most recent election. That centre is the point of the
+repair.
+
+**How to check it.** `test_a_silenced_pool_is_held_and_the_rest_refitted`
+(mechanism, constructed, with its revert) and
+`test_no_fitting_year_leaves_a_pool_of_voters_casting_nothing` (every fitting
+year a declared target uses). Each held cell stays listed in the spec's
+`rates_on_a_bound` with the corner it came from and the value it was held at.
+
 ### §L11 · The CONTENDER rule — ⛔ SUPERSEDED 2026-09-07, ITS HEADLINE COMPARISON IS ACROSS TWO MODULES
 
 ⛔ **DO NOT APPLY THIS ENTRY. Its evidence table compares two parties that are
@@ -2714,6 +2771,73 @@ the artefact says it was one. A later normal run compares and reports stale.
 **How to check it.** `test_an_environment_gate_moves_the_artefact_key` flips the
 resolved gate and asserts the key moves — and asserts the gate is non-empty by
 default, so the constructed violation is not a change from nothing to nothing.
+
+## M. Added 2026-09-28 — the reader's own forecast (DESIGN-decided §9)
+
+### §M1 · a reader's PR shares stand for both ballots — ⚖️ argued, owner's decision
+
+**Where.** `reader_seats.reader_seats`, which the interactive calls in the
+browser to seat a reader's edited forecast.
+
+**Now.** A reader edits the citywide PR vote shares and the winner of any ward.
+Schedule 1 sizes each party's entitlement from the COMBINED ward + PR vote
+(`seats.py`), and a reader supplies one vote, not two ballots. So each party's
+combined vote is taken as `share × total_votes`: the PR shares stand for both
+ballots. Wards are taken as picked, and list seats fill each entitlement under
+item 16 by `montecarlo.allocate_with_overhang` at the statutory rule.
+
+**Two inputs this makes explicit.**
+
+* `total_votes` is required, not defaulted: the quota is `total // available +
+  1`, so the scale moves a party sitting on a remainder boundary. The page
+  supplies it from the model state the reader started from.
+* An exact tie (equal remainder and equal votes) falls by the order of the
+  reader's shares, where Schedule 1 says "by lot".
+
+**What it costs, measured, not assumed.** A model draw does not satisfy the
+assumption: its ward ballot differs from its PR ballot party by party (the
+ward/PR ratios, §6 of `MACHINERY.md`). `tests/test_reader_seats.py` feeds each
+draw's PR-ballot share at the draw's combined total and prints how many draws
+that reproduces and how many seats move where it does not. Fed the draw's
+COMBINED share instead, every draw is reproduced exactly, which is the
+evidence that the arithmetic itself adds nothing. The printed count is the
+size of this assumption; read it there rather than here, because it moves with
+the model.
+
+**Alternatives, not taken.** Converting the reader's PR shares to a ward ballot
+with the model's ward/PR ratios would close most of that gap, and would put a
+model level back under a forecast the owner specified as "ignoring all our
+levels and logic". Asking the reader for two ballots doubles the edit.
+
+**How to check it.** `tests/test_reader_seats.py`: reproduction from the
+combined tally, statute invariants, two hand-worked item 16 councils, and one
+refusal per validation.
+
+## N. Added 2026-09-28 — re-weighting the published draws (PLAN.md S4)
+
+### §N1 · `MIN_EFFECTIVE_DRAWS` = 200 — 🟡
+
+**Where.** `reweight.py`, read by `require_effective`; the interactive calls it
+on the weights of every control before it shows a figure.
+
+**Now.** Typed at 200, the value `audits/2026-09-28-interactive-architecture/PLAN.md`
+build step S4 names. Below it the page shows a refusal instead of a number.
+
+**Record.** A control re-weights the published draws instead of re-running the
+model, so a figure after a move rests on Kish's effective sample,
+(Σw)²/Σw², not on the draw count. The floor is where that sample is judged too
+thin to show. ARGUED, NOT TESTED: nothing derives 200. Two things bound it. The
+standard error of a re-weighted mean grows as one over the square root of the
+effective sample, so at 200 it is five times the standard error of the same
+figure on all the published draws; and a quantile at the 5th or 95th percentile
+rests on about ten effective draws in its tail at that size. Moves no forecast;
+it decides only where the page stops answering.
+
+**How to check it.** `tests/test_reweight.py` shows the floor refusing on a
+constructed case and not refusing a modest move; the effective draws at the
+headline turnout setting print when that module runs. A reader's view of where
+the control greys out is the effective-draw count the page prints beside every
+figure.
 
 ## Appendix — how this register has failed before
 

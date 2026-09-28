@@ -590,6 +590,32 @@ Which years are lost today is a property of the inputs, not of this mechanism �
 `tests/test_census_refusal_is_not_swallowed.py` asserts the served and lost sets
 PARTITION the on-disk population with no residue.
 
+### A pool silenced at the 0.0 corner is kept at the city's own rate
+
+`pool_counts` splits each ward's people, adults, registered voters and votes
+across pools with one rate per pool per level, each bounded below at 0.0. A
+small pool whose wards run below what the other pools explain is driven to the
+**0.0** corner: people who are not adults, adults who are not registered, or
+registered voters who cast nothing. Until 2026-09-28 that zero travelled all the
+way to the spec. The pool's column in `composition("voted")` was empty,
+`fit_city` left its party-rate row at zero, no party had weight in it, and
+`emit_pools` skipped it. Four specs declared four pools and emitted three
+(prereg C1, queue entry 30): the turnout solve silenced Mangaung's and Buffalo
+City's Indian/Asian pools, and at Mangaung 2006 the registration solve did.
+
+`_nest_holding_silent` runs each level's solve, finds any pool on the 0.0 bound
+that holds people at the level above (`_silent_pools`), holds it at the city's
+own rate for that level (`_uninformed_rate`), and re-fits the others around it
+(`_nest(..., hold=)`). The held pools are recorded in `PoolCounts.imputed` and
+in `unidentified`, which the spec emits as `rates_on_a_bound`.
+`panel_turnout_spread` skips any transition touching a held pool. The fallback
+is declared in JUDGEMENT-CALLS §L14.
+
+`emit_pools` now **refuses** a pool with no members instead of skipping it,
+so prereg P1 (`set(pools) == set(categories)`) is an invariant of the emit.
+The partial-pooling repair prereg D2 fixes for unidentified levels (C2) is not
+this; it replaces the held value in the same place when it lands (F4).
+
 ---
 
 ## 6. Ballots and seats
@@ -1832,5 +1858,120 @@ byte for byte, and the record equals what an independent wrapper around
 comparison with `4711a15` expires at the first legitimate change to a drawn
 number and is then retired, not re-pinned (the test module's docstring).
 
-Not yet written anywhere: `montecarlo.main` does not export the record. The
-export is build step S2 (`src/export_draws.py`).
+`montecarlo.main` does not write the record. `src/export_draws.py` does (next
+section).
+
+## The interactive's draw file and its re-weighting — `src/export_draws.py`, `src/reweight.py` (2026-09-28)
+
+**Why the page re-weights instead of re-running.** The published draws already
+vary in what the turnout and poll controls move: each draw carries its four
+pool turnouts (above) and its PR shares. So a control is a weight on each of
+the published draws, and every figure on the page is a weighted statistic of
+them (`audits/2026-09-28-interactive-architecture/PLAN.md` §§2-5, build steps
+S2 and S4). Controls that change how the model draws (within-pool movement,
+the by-election weight) are not re-weightings; they are PLAN.md §6's grid of
+full runs, not built here.
+
+**The file.** `export_draws.py` calls `run_model` directly, once per seat law
+(`deduct`, `expand`, `level`, `cap`), each in its own process under
+`montecarlo.HASH_SEED`, and writes `base.bin` and `manifest.json` to `--out`
+(never into `data/`). Per draw: seats for every party that wins a seat in any
+draw under any law, plus `OTHER`, under each law, with each law's majority
+threshold and council size; each ward's winner as a one-byte code; PR shares
+for the same parties plus `OTHER`; and the four pool turnouts. Blocks are
+column-major, little-endian; seats and wards are exact, turnouts are float64,
+PR shares are stored in steps of `export_draws.PR_SHARE_STEP`, declared in the
+block table. The layout has one definition, `reweight.pack` / `reweight.unpack`,
+because the reader is the browser.
+
+Before writing, the export refuses if the four laws did not draw identical
+turnouts, PR shares and ward winners (a weight could then not cross laws by
+draw index, PLAN.md §7), if a draw's seats do not sum to its council, or if a
+pool spec's `artefact_key` changed while it ran. The manifest's `artefact_key`
+carries the fields `declares.py` requires of a run, plus `code_sha256` over
+the source directory the model was imported from and each law's scenario
+levers. `declares.py` does not scan the file yet: it is written outside
+`data/processed`, and nothing publishes it.
+
+**The engine.** `reweight.py`, pure Python and numpy, the file the page runs
+under Pyodide. Every party is treated identically (DESIGN-decided §8).
+
+* **Turnout:** `turnout_tilt` takes a shift for EVERY pool (0 holds a pool at
+  its published mean) and returns exponential-tilting weights, w ∝ exp(λ·t),
+  with λ solved by Newton's method so the weighted mean turnouts hit all four
+  targets. Of the weightings that hit them, it is the closest to uniform in
+  Kullback-Leibler divergence. There is no single-pool form: the pools' turnouts
+  are correlated, so selecting on one lifts all four (PLAN.md finding 3). A
+  target outside what the draws span is refused, not extrapolated.
+* **Polls:** `poll_weights` is an independent-normal likelihood on each draw's
+  PR shares, with the draw and the poll both renormalised to the polled
+  parties, raised to the power `trust` in [0, 1]. Trust 0 is uniform weights
+  exactly; trust 1 is "the draws closest to this poll", not "the poll happens".
+  `sigma` has no default: it is the reader's. `combine_polls` averages the
+  switched-on polls on a common base and returns the spread between them.
+* **Floor:** `effective_draws` is Kish's (Σw)²/Σw²; `require_effective` refuses
+  below `MIN_EFFECTIVE_DRAWS` (JUDGEMENT-CALLS §N1).
+* **Statistics:** `weighted_quantile`, `weighted_probability`,
+  `ward_win_probability` (Jeffreys, with the effective sample in place of N) and
+  `weighted_mean_se`. Each reduces to the published formula bit for bit under
+  uniform weights, so the untouched page is the published forecast.
+
+**What stands behind "moving turnout".** The tilt matches a mean; moving turnout
+in the model moves the whole distribution. `tests/test_reweight.py` compares
+the two for Black African turnout +5 points, the other pools held, against a
+paired re-run of the model with that pool's drawn turnout shifted after the IPF
+on the same seed (pre-registered in
+`prereg/2026-09-28-reweight-against-paired-rerun.md`; the result and the
+effective draws are in MODEL-LOG). The agreement is a measurement at that size
+of move, not an identity.
+
+**Tested** in `tests/test_export_draws.py` (the four published seat files and
+`ward_draws.csv` rebuilt byte for byte from the file; conservation; the
+manifest's declaration; the size budget; each refusal on constructed runs) and
+`tests/test_reweight.py` (uniform weights against `forecast_summary.json` and
+`ward_winner_probs.csv`; the paired re-run; the refusal floor; the statistics on
+constructed inputs). Not yet tested: the same fixture under Pyodide
+(INTEGRATION.md §3b's third check).
+
+## A reader's forecast, seated by the statute alone — `src/reader_seats.py` (2026-09-28)
+
+**What it does.** DESIGN-decided §9: a reader edits the citywide PR vote shares
+and the winner of any ward, and seats follow from Schedule 1 with no model
+level, band or pool involved. `reader_seats.reader_seats(pr_shares,
+ward_winners, context, total_votes)` scales the shares to a combined vote
+(`share × total_votes`), takes the pool through `seats.eligible_parties`, takes
+C and D out through `seats.outside_pool_wards`, and allocates with
+`montecarlo.allocate_with_overhang` at `montecarlo.STATUTORY_VALUES`'
+`overhang_rule`. It returns ward, list and total seats per party (C and D ward
+winners included, so totals sum to the council), the council and majority, the
+item 16 parties and their excess, and the stated assumption. It reimplements
+none of the seat law.
+
+**The one assumption** is that the reader's PR shares stand for both ballots
+(JUDGEMENT-CALLS §M1). `total_votes` is a required input because the quota
+depends on the scale.
+
+**It refuses rather than guesses**: unknown parties, missing or unknown wards,
+shares that are not a distribution, a ward won by a zero-share party the roster
+does not list as having no PR list, a share for a list-less party, a share
+below one vote, and an allocation the seat law cannot complete. Each is a
+sentence in `errors`; no seats are returned alongside one.
+
+**The context** (`city`, `target`, `council`, `wards`, `parties`,
+`no_pr_list`) is built at build time by `context_for` / `context_from_run`,
+with council and ward count from `cities/<city>.toml`, and shipped as JSON.
+Nothing is read from disk at call time.
+
+**Under Pyodide** the module needs `montecarlo` and its module-level imports
+(`cityconfig`, `coalitions`, `fold`, `parties`, `polling`, `seats`): numpy and
+the standard library only. That dependency exists because item 16 lives in
+`montecarlo.allocate_with_overhang`, not in `seats.py`.
+
+**Tested** in `tests/test_reader_seats.py`: every draw of a native run at
+Johannesburg 2021 and 2026 is reproduced exactly from its own combined tally
+and ward winners; the PR-ballot-only reproduction rate is printed as the
+assumption's measured cost; statute invariants on real draws and random
+reader edits; two item 16 councils worked by hand, including the
+"equal to" trigger moving a seat between two other parties; one refusal per
+validation; and an import-and-allocate run with pandas unimportable and every
+file open refused.

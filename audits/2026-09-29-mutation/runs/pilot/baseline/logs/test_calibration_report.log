@@ -1,0 +1,11 @@
+/Users/simondavis/projects/jhb-election-model/.venv/lib/python3.13/site-packages/numpy/_core/fromnumeric.py:3862: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/Users/simondavis/projects/jhb-election-model/.venv/lib/python3.13/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/Users/simondavis/projects/jhb-election-model/.venv/lib/python3.13/site-packages/numpy/_core/fromnumeric.py:3862: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/Users/simondavis/projects/jhb-election-model/.venv/lib/python3.13/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+WARNING *** file size (30601) not 512 + multiple of sector size (512)
+WARNING *** file size (30601) not 512 + multiple of sector size (512)
+WARNING *** file size (30601) not 512 + multiple of sector size (512)

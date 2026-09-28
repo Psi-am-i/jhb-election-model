@@ -27429,3 +27429,209 @@ seats only through turnout-weighted mixing and the Dirichlet split.
 single-pool parties include `pools_2026_simulation.json`, which `run_model`
 never loads. Over the 26 loaded specs the figures are 242 of 3,012 (every party
 named) and 172 of 2,581 (the run's universe).
+
+## 1.270 A reader's PR shares cannot stand for both ballots without moving seats: 3.3 per draw at Johannesburg 2021, 8.5 at 2026 (2026-09-28)
+
+**What was built.** `src/reader_seats.py`, the arithmetic DESIGN-decided §9
+asks for: a reader's citywide PR shares and ward picks, seated by Schedule 1
+through the project's own `seats.eligible_parties`, `seats.outside_pool_wards`
+and `montecarlo.allocate_with_overhang`. JUDGEMENT-CALLS §M1 states its one
+assumption, that the reader's PR shares stand for both ballots.
+
+**The arithmetic adds nothing.** Every draw of a native `run_model`
+(Johannesburg 2021 and 2026, 100 draws each, seed 20261104, `PYTHONHASHSEED=0`,
+`src/` from `git archive HEAD`) was re-seated from its own combined-ballot
+tally, captured by a wrapper around `allocate_with_overhang`, and its own ward
+winners. 200 of 200 reproduce the draw's seats, ward seats, item 16 parties and
+council exactly. Item 16 fired in 77 of the 200.
+
+**The assumption costs seats.** The same draws fed their PR-ballot share, at
+the same combined total:
+
+| target | draws reproduced | seats moved where not (mean) | (max) |
+|---|---|---|---|
+| Johannesburg 2021 | 0 of 100 | 3.28 | 6 |
+| Johannesburg 2026 | 0 of 100 | 8.46 | 14 |
+
+"Seats moved" is half the sum over parties of the absolute seat difference.
+Instrument: `tests/test_reader_seats.py::test_the_pr_ballot_assumption_is_measured_not_asserted`,
+which prints the current values. At 2026 draw 0 the largest gap is the PA,
+3.87% on the PR ballot against 5.66% of the combined vote, which is the
+model's ward/PR ratio for it.
+
+**What this means for the page.** A reader who starts from a model draw and
+changes nothing gets a different council from that draw, by this margin,
+unless the page starts them from the draw's combined share. Which share the
+page shows the reader as "the PR vote", and whether the ward/PR ratios should
+convert it (a model quantity the owner's specification excludes), is the
+owner's decision; §M1 lists the alternatives.
+
+## 1.269 C1: a pool fitted to 0.0 at any nested level is held at the city's rate, so no spec drops a declared pool (2026-09-28)
+
+F3 of the freeze plan; prereg `2026-09-25-pool-input-repairs.md` C1 and P1,
+queue entry 30. Code change in `src/pools.py` only. **Nothing re-emitted.**
+Specs were built in-process by `emit_pools` for all 26 emittable city-years
+(24 backtest, joburg and tshwane 2026) under the code at `69cc6cc` and under
+this change, with `write_lineage_template` stubbed. A file listing of `data/`
+and `judgements/` was identical before and after.
+
+### Cause, re-derived
+
+§1.258 read the dropped pool as a turnout fitted to 0.0 in the fitting year.
+That covers three of the four specs. The fourth has a different route:
+
+| spec | fitting year | level `pool_counts` fitted to 0.0 for Indian/Asian |
+|---|---|---|
+| buffalocity 2016 | 2011 | turnout |
+| mangaung 2016 | 2011 | turnout |
+| mangaung 2021 | 2016 | turnout |
+| mangaung 2011 | 2006 | **registration** (2,386 adults fitted to no registered voters), then turnout |
+
+Either way the pool casts no votes in the fitting year. Its column in
+`composition("voted")` is zero, both balances in `fit_city` leave its rate row
+at zero (`test_the_three_known_things_hold_at_once`: `[1, 1, 0, 1]` at
+mangaung 2016), no party has weight in it, and `emit_pools` skipped a pool with
+no members. At mangaung 2011 `registered_at_target` also gave the pool 0
+registered voters, because it splits the target roll by the 2006 registered
+composition (C3's mechanism). A floor on the turnout alone would not have
+reached that spec.
+
+### Fix
+
+`_nest_holding_silent` wraps each of `pool_counts`' three solves. A pool on the
+0.0 bound that holds people at the level above is held at the city's own rate
+for that level (`_uninformed_rate`, the value `_nnls` starts every pool at) and
+the other pools are re-fitted around it. Held pools are listed in
+`PoolCounts.imputed` and in `rates_on_a_bound`, and `panel_turnout_spread`
+skips transitions touching them. `emit_pools` now raises on a pool with no
+members instead of skipping it. The fallback is a judgement:
+JUDGEMENT-CALLS §L14.
+
+Against the prereg's decisions: this is neither D2's partial pooling nor its
+merge fallback, and it refuses no city-year. It touches only the 0.0 corners,
+which are what drop a pool; the upper-bound corners C2 is about are unchanged.
+D2 remains the repair for C2 and would replace the held value in the same
+place. A merge could not satisfy P1, which requires `set(pools) ==
+set(categories)`.
+
+### Measured in-process, old code against new
+
+| | count of 26 |
+|---|---|
+| specs satisfying P1, old code | 22 |
+| specs satisfying P1, new code | **26** |
+| specs identical except `artefact_key` | 16 |
+| the four C1 specs | changed |
+| other specs changed | 6 |
+
+The pool each C1 spec now carries (registered at the target; central turnout):
+
+| spec | Indian/Asian registered | central turnout | members |
+|---|---|---|---|
+| buffalocity 2016 | 11,868 | 0.5522 | 8 |
+| mangaung 2011 | 2,484 | 0.4360 | 7 |
+| mangaung 2016 | 2,698 | 0.5418 | 11 |
+| mangaung 2021 | 6,267 | 0.5605 | 14 |
+
+In the three turnout-route specs the old spec's registered total was short by
+exactly the dropped pool (buffalocity 2016: 407,176 against 419,044). At
+mangaung 2011 the total is unchanged at 372,692 and the pool's voters come out
+of the other three.
+
+**The re-fit moves the other pools.** Holding the silenced pool above zero
+takes votes from the pools sharing its wards. Central turnout of the White
+pool, the fitting-year value carried into the spec: buffalocity 2016
+0.7190 → 0.6459, mangaung 2016 0.6503 → 0.6442, mangaung 2021 0.6712 → 0.6582.
+Buffalo City's Coloured pool: 0.6004 → 0.5287.
+
+**The six other specs that change**, only in turnout bands and `turnout_limits`:
+
+| spec | what moved | size |
+|---|---|---|
+| buffalocity 2021 | Indian/Asian band: its record held a 2011 turnout of 0.0, now 0.5522. The emitted `turnout_limits` move with the 2011 row too | band low 0.0001 → 0.0100, high 0.9985 → 0.8665 |
+| capetown, ekurhuleni, ethekwini, nelsonmandelabay 2021 | Coloured band, via `panel_turnout_spread` (Buffalo City's re-fitted Coloured turnout is an interior value in the 2006→2011 and 2011→2016 transitions) | low end moves up by 0.0016–0.0019, high end down by 0.0010–0.0013 |
+| tshwane 2026 | Black African band, same route | under 0.0004 at either end |
+
+No member weight, `registered` or `alpha` moved in any of those six.
+
+**The capacity scan on the affected specs** (the arithmetic of
+`test_no_emitted_composition_weight_is_arithmetically_impossible`, on the
+in-process specs): buffalocity 2016 DA/White straining 1.011 → 1.040;
+mangaung 2011 DA/White 1.153 → 1.157, and a new straining case, **DA in the
+restored Indian/Asian pool at 1.116**. No new fatal case. The new case is the
+DA again, so it bears on P4 and not against it.
+
+### What goes green, and when
+
+* **Green now, no emit needed:** `test_the_three_known_things_hold_at_once`
+  (reads `fit_city` directly), and the three new tests
+  `test_the_p1_predicate_sees_each_violation_and_goes_quiet_when_reverted`,
+  `test_no_fitting_year_leaves_a_pool_of_voters_casting_nothing`,
+  `test_a_silenced_pool_is_held_and_the_rest_refitted`.
+* **Red until the F8 re-emit:** `test_every_emitted_spec_declares_exactly_the_pools_it_emits`,
+  which reads the specs on disk and names the four C1 specs.
+* **Red before and after, not C1's:**
+  `test_no_emitted_composition_weight_is_arithmetically_impossible` (the
+  capacity scan, C2/C3's territory).
+
+**P1 is scored after F8**, on the re-emitted specs, by the scan test above.
+The in-process result here is evidence the code satisfies it, not the score.
+
+## 1.271 Re-weighting the published draws reproduces a paired re-run of the model: Black African turnout +5 points, 1,243 effective draws (2026-09-28)
+
+Build steps S2 and S4 of `audits/2026-09-28-interactive-architecture/PLAN.md`:
+`src/export_draws.py` writes the published run's draws to one binary file, and
+`src/reweight.py` re-weights them for the interactive. Pre-registered in
+`prereg/2026-09-28-reweight-against-paired-rerun.md`, before either run.
+
+**The runs.** All from a `git archive HEAD src` copy (HEAD `69cc6cc`, another
+agent editing `src/pools.py` in the working tree), Johannesburg 2026, seed
+20261104, 5,000 draws, `PYTHONHASHSEED` 0, `run_model` called directly. The
+pool spec's `artefact_key` was the same before and after every run. The paired
+re-run wraps `montecarlo.correlated_triangular` and adds 0.05 to the Black
+African pool's drawn turnout (identified by its band); its recorded Black
+African column is the base column plus 0.05 in all 5,000 draws, and the other
+three columns are byte-identical to the base.
+
+**Measured.**
+
+| party | re-run Δ mean seats | re-weighted Δ | combined SE | z |
+|---|---|---|---|---|
+| DA | −3.99 | −3.58 | 0.38 | +1.08 |
+| ANC | +2.46 | +2.54 | 0.55 | +0.15 |
+| EFF | +1.32 | +1.70 | 0.44 | +0.87 |
+| PA | −1.45 | −1.70 | 0.19 | −1.31 |
+| MK | +0.68 | +0.56 | 0.39 | −0.31 |
+
+The re-weighting is exponential tilting on all four pools' turnouts, the Black
+African mean moved +0.05 and the other three held at their means. SE is the
+tilt's linearised SE of a weighted mean, in quadrature with the paired re-run's
+sd/√n. Across all 74 parties whose seats vary, the largest |z| is 2.05 (a party
+averaging well under one seat). Effective draws: 1,243 at +5 points, 1,220 at
+−5, 200 at +8; the Black African pool tilted alone keeps 2,630 and moves the
+DA −1.55 seats against −3.58 jointly. These reproduce PLAN.md §3's figures,
+which the lead had carried unverified. PLAN.md §5's poll table re-derives with
+`reweight.poll_weights` at trust 1: 2,323 / 965 / 238 / 14 effective draws and
+ANC means 76.7 / 79.5 / 80.6 / 81.5 at σ 8 / 5 / 3 / 1 points (PLAN.md reported
+2,324 at 8 points).
+
+**Every prediction held** (P0-P6; the scoring is in `prereg/README.md`). The
+four seat laws draw identical turnouts, PR shares and ward winners, so one
+weight vector serves all four laws by draw index.
+
+**The file.** 3,165,000 bytes, 854,487 gzipped, against PLAN.md's 1.5 MB.
+All 74 parties in the run's universe win a seat in some draw under some
+law, so each has its own column and `OTHER` holds nothing. Rebuilt from
+the file, `seat_draws.csv`, the three `regime_*_seat_draws.csv` and
+`ward_draws.csv` are byte-equal to the files published 2026-09-23. Uniform
+weights reproduce every party's median, p5 and p95, the structural
+probabilities and every ward's Jeffreys probability in `forecast_summary.json`
+and `ward_winner_probs.csv` bit for bit. PR shares were stored as float32 in a
+first attempt, which compressed to 1.13 MB on their own; they are now integer
+steps of 1e-5 (`export_draws.PR_SHARE_STEP`).
+
+**Limits.** The tilt matches a mean; the re-run moves the whole distribution.
+Agreement at +5 points says nothing about the tails of a larger move, where the
+effective draws fall to the floor (`MIN_EFFECTIVE_DRAWS`, JUDGEMENT-CALLS §N1)
+anyway. Not tested: the same fixture under Pyodide, and a paired re-run for any
+pool other than Black African.

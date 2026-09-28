@@ -1,0 +1,10 @@
+node_modules/
+.wrangler/
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+# Copied from ../src by tools/sync_seats_py.mjs; the copy is checked, never edited.
+seats-py/src/seats.py
+seats-py/src/reader_seats.py
+seats-py/src/code_ref.py

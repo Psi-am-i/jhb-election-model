@@ -1,0 +1,21 @@
+snapshot: 8 published file(s) held in /var/folders/3l/5pyyvvg93tbcrf7j2shb_yrh0000gn/T/overhang_regimes_gjkswszz/published
+
+=== overhang_rule=expand ===
+
+=== overhang_rule=level ===
+
+⛔ A RUN DID NOT COMPLETE. The published artefacts have been restored byte for byte from the snapshot taken before the first counterfactual: 2 file(s) put back — forecast_summary.json, seat_draws.csv.
+  No regime artefact was published. Re-run when the cause is fixed.
+snapshot: 8 published file(s) held in /var/folders/3l/5pyyvvg93tbcrf7j2shb_yrh0000gn/T/overhang_regimes_yn2gjr1_/published
+
+=== overhang_rule=expand ===
+
+=== overhang_rule=level ===
+
+=== overhang_rule=cap ===
+
+=== re-running the reference (default rule) ===
+  published and re-dated 6 regime artefacts
+
+⚠️ the reference re-run did NOT reproduce the bytes that were on disk: 1 file(s) changed — seat_draws.csv.
+  This is not an error in this script. It means the published artefacts predate the current code (or the current hash seed). The tree now holds the reference this comparison table is actually against; if that was not intended, restore from git-tracked sources or re-publish deliberately.

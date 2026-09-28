@@ -212,3 +212,21 @@ So:
   deletion** at a date the owner fixes. That default is the agent's
   recommendation and is not yet decided.
 * **Lock time:** 07:00 SAST on 4 November, when polls open.
+
+## 10. After the blind pollster review (owner, 2026-09-29)
+
+Review: `audits/2026-09-29-pollster-blind/` (brief committed at `caa350f`
+before it ran).
+
+| question | lead | pollster | owner decided |
+|---|---|---|---|
+| merger retention | 75%, range 50–90% | 50%, range 30–80% | **75%, range 50–90%**, a 🔴 judgement |
+| may a merger create a record the successor lacks | no | no | no: the transfer applies only to records the successor already holds |
+| the merger prereg | a dated amendment | a dated amendment; score the seat prediction as non-discriminating | a dated amendment |
+| what a reader's party slider shows | the combined vote | the PR vote, with the ward ballot scaled from the start state | **the combined vote**: the share of all votes on both ballots, exactly what the statute counts, with no conversion |
+| contact verification | yes | yes (low confidence) | provider-verified contacts only, otherwise one confirmation link |
+
+Owner on retention (2026-09-28): a merger is "not a perfect combination".
+Recorded against the reviewer's view that GOOD–RISE is a stand-down pact whose
+voters follow incompletely. The scalar moves less than one seat in
+Johannesburg either way.

@@ -814,6 +814,12 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         # `SPINE_K` learns to trust the register less. Added 2026-08-31 (§1.141)
         # after this guard correctly caught a bare `SCHEMA = 1` in a new module.
         "SCHEMA",
+        # `export_draws.PR_SHARE_STEP` — the storage precision of the PR shares
+        # in the interactive's draw file (a thousandth of a percentage point).
+        # OPERATIONAL, the `SCHEMA` argument: it sets how a file is laid out,
+        # moves no draw, seat or published figure, and the block table declares
+        # it to the reader. Added 2026-09-28 with the export (PLAN.md S2).
+        "PR_SHARE_STEP",
         # --- operational residue surfaced by the 2026-08-23 widening ---
         "timeout",        # HTTP timeouts in the three fetch_* tools
         "steps",          # `_scale_into_box` solver iterations
