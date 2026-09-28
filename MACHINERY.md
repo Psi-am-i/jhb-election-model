@@ -2052,3 +2052,27 @@ every populated pool. Every held pool is returned, so `PoolCounts.imputed` and
 `rates_on_a_bound` list them all. On the fitting years of the declared targets
 the cascade does not occur (MODEL-LOG §1.275), so the guard moves no
 spec today.
+
+## Scoring forecasts against the result — `src/score_forecasts.py` (2026-09-29)
+
+One scorer for the model and every reader (DESIGN-decided §5, INTEGRATION.md
+§3e); it must be frozen before polls open on 4 November.
+
+* `ingest_result(path, city, target, roster, aliases, official)` reads a
+  cleaned IEC VD file (the `ingest_lge.py` output, not the raw download). Names
+  go alias → `parties.canonical`, and a code outside the certified roster
+  (`certified_roster`, from `[roster]` via `pools.declared_roster`) is refused
+  with the list. Ward MDB ids lose the city's `ward_prefix`; a tied ward is
+  refused. The council is seated by `reader_seats` — the path readers take —
+  with ward-only parties as `no_pr_list`, and an official table is compared
+  party by party, chamber, C and D, every disagreement recorded.
+* `score(forecast, schema, result, seat_source)` takes the stored forecast and
+  the generated schema, re-seats it with `reader_seats` at `x-total-votes`, and
+  returns seat error, wards called and splits correct with per-party detail.
+  It refuses a result whose councils disagree until `seat_source` is named.
+* `model_forecast(...)` writes the model's central state as a stored forecast:
+  modal ward winner, median combined share.
+* `rank_key` / `rank`: the PROPOSED lexicographic ranking, for the owner to
+  decide (module docstring).
+
+Tests: `tests/test_score_forecasts.py`. Findings: MODEL-LOG §1.276.

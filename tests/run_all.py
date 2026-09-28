@@ -157,7 +157,10 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # reproduces the published figures and a paired re-run. Both run
            # the model at the full draw count; both write only into temporary
            # directories.
-           "test_export_draws", "test_reweight"]
+           "test_export_draws", "test_reweight",
+           # One scorer for the model's forecast and every reader's, against
+           # a result; must be frozen before 4 November (TODO §0 gate R6).
+           "test_score_forecasts"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

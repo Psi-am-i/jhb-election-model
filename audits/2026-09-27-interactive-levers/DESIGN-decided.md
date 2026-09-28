@@ -299,3 +299,25 @@ let them overwrite."*
     label.
   * Instagram offers sign-in only to business and creator accounts since
     December 2024, so it is not a provider.
+
+## 13. How readers are ranked after 4 November (owner, 2026-09-29)
+
+Owner: *"correct seat total -> wards won totals -> correct ward calls per party
+(i.e. where a party wins is as important as the number of wards)"*.
+
+The keys, applied in this order:
+
+1. **Seat total error:** Σ over parties of |forecast seats − actual seats|,
+   lower is better.
+2. **Ward-count error:** Σ over parties of |forecast wards won − actual wards
+   won|, lower is better.
+3. **Correct ward calls:** the number of wards where the forecast named the
+   actual winner, higher is better. *Where* a party wins, not just how many.
+
+A forecast tied on all three shares a rank. Where one winner must be named, the
+earlier save before the 07:00 lock wins. The ward/list split is not a separate
+key: it is implied by keys 1 and 2, since list seats are seats minus wards.
+This supersedes the three measures of §5 for ranking.
+
+Forecasts the seat law cannot seat are refused at save by the seat service, so
+they never enter the ranking.

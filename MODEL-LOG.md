@@ -27895,3 +27895,49 @@ both `vector_blended`; RISE's `no_measured_vector` note names the merger; no
 backtest spec changes except `artefact_key` (no merger predates a held
 election, and the cascade guard fires nowhere). `run_model` at Johannesburg
 2026 records both transfers in `scenario["_mergers"]`.
+
+## 1.276 The post-election scorer: one function for the model and every reader; the 2021 result scores perfectly against itself (2026-09-29)
+
+`src/score_forecasts.py` scores a stored reader forecast, and the model's
+central state written in the same shape, against an ingested result by the
+owner's three measures (DESIGN-decided §5): seat error summed over parties,
+wards called, and parties whose ward/list split is exactly right. Seats are
+always recomputed through `reader_seats`; a stored number never scores itself.
+
+**Measured on the 2021 Johannesburg result, as if it were 2026**
+(`tests/test_score_forecasts.py`, no model run):
+
+* The result seated by `reader_seats` matches the IEC's Seat Calculation Detail
+  for every party, the chamber (270), C and D (both 0). No disagreement.
+* The result written as a forecast scores seat error 0, 135 of 135 wards, and
+  18 of 18 seat-holding parties' splits correct, against both seat sources.
+* One ANC ward called for the IFP plus two quotas (2 × 6,794, the IEC's
+  published quota) moved from the EFF to the DA scores seat error 4 (DA +2,
+  EFF −2), 134 wards, 14 of 18 splits — the hand arithmetic in the test's
+  docstring.
+* Eight single-line mutations of the scorer; all eight turn the module red.
+  The first run of the median/mean mutation stayed green because the
+  constructed draws were symmetric; the draws were made asymmetric for one
+  party and it is now caught.
+
+**Decisions the scorer states rather than makes:**
+
+* The model is scored as a reader who saved its central state untouched:
+  modal ward winner (ties to the earlier roster party) and median combined
+  share, seated at the schema's `x-total-votes`. Per-party median seats are
+  not a council (no fixed sum, no ward/list split). The page's start state is
+  today a weighted mean of the placeholder `pr` share and must be built by
+  `model_forecast` instead.
+* ⚖️ **Ranking, a proposal for the owner:** lexicographic — seat error
+  ascending, then wards called descending, then splits correct descending;
+  equal keys share a rank; earlier save before the lock breaks a tie for a
+  single winner. A weighted sum was rejected because its weights would be
+  chosen after the result is known.
+* IEC names map through caller-supplied aliases then `parties.canonical`, and
+  any name whose code is not a certified-roster code is refused with the
+  list. A computed/official council disagreement is refused until the caller
+  names `seat_source`.
+
+**Not tested:** a result with an independent ward winner or a no-list party
+winning a ward (2021 Johannesburg has neither), and any real model run through
+`model_forecast` (the export does not yet carry per-draw combined shares).
