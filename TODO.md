@@ -37,7 +37,7 @@ names what exists when it is done.
 | F7 | Blind review of F3–F6, brief committed before it runs | brief in `audits/`, findings applied or taken to the owner | ½ day |
 | F8 | One re-emit of every spec (backup first; timed) | `declares.py --verify` shows no `~` on specs; suite run | hours |
 | F9 | Measure against both preregistrations; write it up | MODEL-LOG § scoring every P, including what failed | ½ day |
-| F10 | Mutation night (PUBLISHING-BACKLOG §13) | a committed harness and a survivor report, read | 1 day + a night |
+| F10 | **Mechanism census** (PUBLISHING-BACKLOG §15, replacing §13 as the gate): three mutations per claimed mechanism, claims written first; the full line-by-line night (§13) runs afterwards as a background audit | a committed harness and a survivor report, read | 1 day + a night |
 | F11 | Owner review, then `build_site.py --publish`. **This is the freeze** | the live forecast is the frozen model | ½ day |
 
 **Honest total: about 6–8 working days, which lands around 6–8 October, not

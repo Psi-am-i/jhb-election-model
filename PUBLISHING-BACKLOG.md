@@ -917,3 +917,52 @@ changes no forecast number (§1 of `CLAUDE.md`: this file is never a reason to
 change a forecast).
 
 **Done when** the published forecast page carries the disclosure. **Not started.**
+
+## 15. The mechanism census is the gate before a freeze; the full mutation night is a background audit (owner, 2026-09-29)
+
+**Why §13 changes.** A full line-by-line mutation run (5,499 mutants, about 24
+hours: `audits/2026-09-29-mutation/`) asks *would a test notice this line
+changing?*, which is a measure of the test suite. The owner's question is
+different: *is every part live, does it fire, and does it do what we claim?*
+That is answered per **claimed mechanism**, not per line.
+
+**The census.** The population is every traced stage (`QC.md` §3), every
+scenario lever in `montecarlo.DEFAULTS`, every row of the JUDGEMENT-CALLS
+register, and every mechanism MACHINERY.md describes. Each gets a written
+claim, *"X does Y, and acts at stage Z"*, recorded **before** anything runs,
+and three mutations:
+
+| mutation | proves | a finding when |
+|---|---|---|
+| **switch it off** (identity / no-op) | it is live | nothing changes: dead, overridden or absorbed |
+| **nudge it** (a stated small push with a pre-registered direction) | it does what we claim | wrong direction, implausible size, or the change first appears at a stage other than the claimed one |
+| **disable its guard** (where one exists) | the protection works | no test fails |
+
+**Localisation.** Each mutation is read through the `--run-dir` trace, and
+the **first stage that changes** must be the stage the claim names. Seats moving
+is not enough.
+
+**Coverage first, at no cost.** One fixed-seed run at 2026 and one at a
+backtest target, with coverage on. Every line neither executes is listed as
+cannot-be-firing before any mutation runs.
+
+**Output.** Three lists: **dead**, **wrong-way or wrong-stage**, and
+**unguarded**. Each is read before the freeze.
+
+**Cost** (estimate, not measured). Roughly 150–300 mechanisms × 3, about 600
+fixed-seed runs at 3–5 s with the citywide table: **under an hour**. It builds
+on `test_levers_are_live` (switch-off for registered levers) and
+`test_delivery_proof` (a value arrived), filling their gaps. What it cannot
+see is a mechanism nobody wrote down; that is the full night's job.
+
+**The interactive** gets the same three per lever: switch-off (the page
+equals the published forecast), nudge (e.g. Black African turnout up means DA
+down and ANC up), and refusal (too few effective draws).
+
+**Gate.** The census runs before the freeze publish (TODO §0 F10). The full
+line-by-line night runs afterwards in the background and is read, but does not
+gate.
+
+**Done when** a committed harness writes the claims file first, then the three
+lists, and the lists have been read before `build_site.py --publish`.
+**Not started.**
