@@ -2055,8 +2055,8 @@ spec today.
 
 ## Scoring forecasts against the result — `src/score_forecasts.py` (2026-09-29)
 
-One scorer for the model and every reader (DESIGN-decided §5, INTEGRATION.md
-§3e); it must be frozen before polls open on 4 November.
+One scorer for the model and every reader (DESIGN-decided §5 and §13,
+INTEGRATION.md §3e); it must be frozen before polls open on 4 November.
 
 * `ingest_result(path, city, target, roster, aliases, official)` reads a
   cleaned IEC VD file (the `ingest_lge.py` output, not the raw download). Names
@@ -2068,11 +2068,17 @@ One scorer for the model and every reader (DESIGN-decided §5, INTEGRATION.md
   party by party, chamber, C and D, every disagreement recorded.
 * `score(forecast, schema, result, seat_source)` takes the stored forecast and
   the generated schema, re-seats it with `reader_seats` at `x-total-votes`, and
-  returns seat error, wards called and splits correct with per-party detail.
+  returns seat total error, ward-count error (wards won per party, from the
+  ward winners on both sides) and correct ward calls, each with per-party or
+  per-ward detail, plus the ward/list split per party for information.
   It refuses a result whose councils disagree until `seat_source` is named.
 * `model_forecast(...)` writes the model's central state as a stored forecast:
   modal ward winner, median combined share.
-* `rank_key` / `rank`: the PROPOSED lexicographic ranking, for the owner to
-  decide (module docstring).
+* `rank_key` / `rank`: the owner's lexicographic ranking (§13) — seat total
+  error ascending, then ward-count error ascending, then correct ward calls
+  descending; the split is not a key. Full ties share a competition rank;
+  `saved_at` orders a tie so the earlier save names a single winner. `rank`
+  raises, naming each one, if any forecast is unscorable (the seat service
+  refuses those at save with 422), rather than exclude it.
 
-Tests: `tests/test_score_forecasts.py`. Findings: MODEL-LOG §1.276.
+Tests: `tests/test_score_forecasts.py`. Findings: MODEL-LOG §1.276, §1.277.

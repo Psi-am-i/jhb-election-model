@@ -4,8 +4,9 @@ were 2026.
 What this module proves:
 
 1. SELF-SCORE. The 2021 result, written as a stored forecast (its own combined
-   shares, its own ward winners), scores perfectly on all three measures,
-   against the computed council and against the IEC's official table.
+   shares, its own ward winners), scores perfectly on all three ranking keys
+   and on the reported split, against the computed council and against the
+   IEC's official table.
 2. KNOWN ERRORS, BY HAND. A forecast that moves one ANC ward to the IFP and two
    quotas of votes from the EFF to the DA scores exactly what the paper
    arithmetic below says. The quota is read from the IEC's own report, not
@@ -25,8 +26,10 @@ What this module proves:
    statute cannot seat.
 6. THE MODEL AS A READER. `model_forecast` takes the modal ward winner (ties
    to the earlier roster party) and the median combined share.
-7. RANKING. The proposed lexicographic key, competition ranks, the save-time
-   tie-break.
+7. RANKING. The owner's keys (DESIGN-decided §13) in his order: forecasts
+   built on the 2021 result that differ on one key at a time, ranked by hand;
+   a forecast better on a later key and worse on an earlier one ranks lower;
+   shared ranks; the earlier-save tie-break; an unscorable forecast refused.
 
 No model run: every input is the result file, the IEC report or a construction.
 """
@@ -123,6 +126,10 @@ def test_the_result_scored_against_itself_is_perfect_on_every_measure():
         got = S.score(forecast, schema, result, seat_source=source)
         assert got["ok"], got["errors"]
         assert got["seat_error"] == 0, got["seat_error_by_party"]
+        assert got["ward_count_error"] == 0, got["ward_count_error_by_party"]
+        # rule 0: ward counts compared over exactly the ward-winning parties
+        assert set(got["ward_count_error_by_party"]) == \
+            set(result["wards"].values())
         assert got["wards_called"] == got["wards"] == len(result["wards"])
         assert got["wards_missed"] == []
         # rule 0: the split was judged over exactly the seat holders, both ways
@@ -195,7 +202,8 @@ def test_a_constructed_forecast_gets_the_hand_computed_score():
     (neither party's ward count changes). Seat error 4; two more splits
     wrong.
 
-    Total: seat error 4, wards called one fewer, splits correct four fewer.
+    Total: seat error 4, ward-count error 2 (ANC −1, IFP +1), wards called
+    one fewer, splits correct four fewer.
     The premises the paper leans on are asserted, not assumed.
     """
     result, official = _result(), _official()
@@ -221,6 +229,9 @@ def test_a_constructed_forecast_gets_the_hand_computed_score():
     assert got["seat_error"] == 4
     assert {p: e for p, e in got["seat_error_by_party"].items() if e} == \
         {"DA": 2, "EFF": -2}
+    assert got["ward_count_error"] == 2
+    assert {p: e for p, e in got["ward_count_error_by_party"].items() if e} \
+        == {"ANC": -1, "IFP": 1}
     assert got["wards_called"] == len(result["wards"]) - 1
     assert got["wards_missed"] == [ward]
     wrong = {p for p, v in got["split_by_party"].items() if not v["correct"]}
@@ -432,9 +443,9 @@ def test_the_model_forecast_is_the_modal_ward_and_the_median_share():
                      + got["ward_calls"][1:])
     scored = S.score(untouched, schema, result, seat_source="computed")
     assert scored["ok"], scored["errors"]
-    assert (scored["seat_error"], scored["wards_called"],
-            scored["split_correct"]) == (0, scored["wards"],
-                                         scored["split_parties"])
+    assert (scored["seat_error"], scored["ward_count_error"],
+            scored["wards_called"], scored["split_correct"]) == (
+        0, 0, scored["wards"], scored["split_parties"])
 
     # the order of the columns does not matter; the roster order does
     rev = list(reversed(roster))
@@ -456,16 +467,133 @@ def test_the_model_forecast_is_the_modal_ward_and_the_median_share():
 # ------------------------------------------------------------- 7. ranking
 
 
-def test_the_proposed_ranking_is_lexicographic_with_shared_ranks():
-    s = lambda e, w, sp: {"ok": True, "seat_error": e, "wards_called": w,
-                          "split_correct": sp}
-    scores = {"a": s(4, 100, 10), "b": s(2, 90, 5), "c": s(2, 120, 3),
-              "d": s(2, 120, 3), "e": s(2, 120, 4), "x": {"ok": False}}
+def _swap_calls(forecast, schema, result, pairs):
+    """Swap the calls of ``pairs`` of (ward, ward): ward counts are unchanged,
+    every swapped ward is a miss, and no share moves."""
+    out = copy.deepcopy(forecast)
+    ids = schema["x-ward-ids"]
+    for a, b in pairs:
+        ia, ib = ids.index(a), ids.index(b)
+        out["ward_calls"][ia], out["ward_calls"][ib] = \
+            result["wards"][b], result["wards"][a]
+    return out
+
+
+def test_the_owners_ranking_on_constructed_forecasts_by_hand():
+    """DESIGN-decided §13: seat total error, then ward-count error, then
+    correct ward calls. Five forecasts on the 2021 result, W the ward count:
+
+    ======  ===============================================  ============
+    id      edit to the result-as-forecast                   key (by hand)
+    ======  ===============================================  ============
+    self    none                                             (0, 0, W)
+    swap1   one ANC ward and one DA ward swap their calls    (0, 0, W-2)
+    swap2   a different ANC/DA pair swaps                    (0, 0, W-2)
+    ifp     one ANC ward called for the IFP                  (0, 2, W-1)
+    quota   2 quotas of votes moved EFF -> DA, calls as won  (4, 0, W)
+    ======  ===============================================  ============
+
+    Swaps and the IFP call move no share, so no seat total moves (the IFP
+    ward is §2's edit A). The quota move is §2's edit B: DA +2, EFF −2.
+
+    By hand: self 1; swap1 and swap2 share 2; ifp 4; quota 5. ``ifp`` beats
+    the swaps on key 3 (W-1 > W-2) and loses on key 2, so it ranks lower;
+    ``quota`` beats ``ifp`` on keys 2 and 3 and loses on key 1, so it ranks
+    lower. Reversing the key order would put ifp above the swaps and quota
+    first after self; the test fails in either case.
+    """
+    result, official = _result(), _official()
+    schema = _schema(result)
+    total = schema["x-total-votes"]
+    scale = schema["x-share-sum"]["target"]
+    ids = schema["x-ward-ids"]
+    W = len(ids)
+    base = _self_forecast(result, schema)
+    anc = [w for w in ids if result["wards"][w] == "ANC"]
+    da = [w for w in ids if result["wards"][w] == "DA"]
+    assert len(anc) >= 3 and len(da) >= 2
+
+    ifp = copy.deepcopy(base)
+    ifp["ward_calls"][ids.index(anc[2])] = "IFP"
+    quota = copy.deepcopy(base)
+    shift = 2 * official["quota"] / total * scale
+    quota["combined_share"]["DA"] += shift
+    quota["combined_share"]["EFF"] -= shift
+    forecasts = {"self": base,
+                 "swap1": _swap_calls(base, schema, result, [(anc[0], da[0])]),
+                 "swap2": _swap_calls(base, schema, result, [(anc[1], da[1])]),
+                 "ifp": ifp, "quota": quota}
+    scores = {i: S.score(f, schema, result, seat_source="computed")
+              for i, f in forecasts.items()}
+    assert all(s["ok"] for s in scores.values()), \
+        {i: s["errors"] for i, s in scores.items() if not s["ok"]}
+
+    by_hand = {"self": (0, 0, -W), "swap1": (0, 0, -(W - 2)),
+               "swap2": (0, 0, -(W - 2)), "ifp": (0, 2, -(W - 1)),
+               "quota": (4, 0, -W)}
+    assert {i: S.rank_key(s) for i, s in scores.items()} == by_hand
+    # the split is reported, and it is not in the key: the swaps get every
+    # party's split right, ifp and quota do not, and the ranks ignore that
+    assert scores["swap1"]["split_correct"] == scores["swap1"]["split_parties"]
+    assert scores["ifp"]["split_correct"] < scores["ifp"]["split_parties"]
+
     ranked = S.rank(scores)
     assert [(r, i) for r, i, _ in ranked] == [
-        (1, "e"), (2, "c"), (2, "d"), (4, "b"), (5, "a")]
-    tie = S.rank(scores, saved_at={"c": "2026-11-03T10", "d": "2026-11-01T10"})
-    assert [(r, i) for r, i, _ in tie][1:3] == [(2, "d"), (2, "c")]
+        (1, "self"), (2, "swap1"), (2, "swap2"), (4, "ifp"), (5, "quota")]
+
+    # the order of the keys matters: ranked by key 3 alone, ifp would beat
+    # both swaps and quota would tie self; by key 2 first, quota would beat
+    # ifp. Neither is what rank returns.
+    assert sorted(scores, key=lambda i: -scores[i]["wards_called"])[:2] == \
+        ["self", "quota"]
+    assert (scores["quota"]["ward_count_error"]
+            < scores["ifp"]["ward_count_error"])
+
+    # the earlier save names the single winner among a tie, and the rank is
+    # still shared; a tied forecast with no save time goes after
+    tie = S.rank(scores, saved_at={"swap1": "2026-11-03T10:00",
+                                   "swap2": "2026-11-01T10:00"})
+    assert [(r, i) for r, i, _ in tie][1:3] == [(2, "swap2"), (2, "swap1")]
+    tie = S.rank(scores, saved_at={"swap1": "2026-11-03T10:00"})
+    assert [(r, i) for r, i, _ in tie][1:3] == [(2, "swap1"), (2, "swap2")]
+
+
+def test_the_ranking_keys_in_order_on_bare_scores():
+    """The key and the ranks on constructed scores, one key at a time:
+    b is better than a on key 2 but worse on key 1, so it ranks lower;
+    c is better than d on key 3 but worse on key 2, so it ranks lower;
+    d and e tie on all three and share a rank; split_correct, not a key,
+    differs between d and e and changes nothing."""
+    s = lambda e, wc, w, sp=0: {"ok": True, "seat_error": e,
+                                "ward_count_error": wc, "wards_called": w,
+                                "split_correct": sp}
+    scores = {"a": s(2, 10, 100), "b": s(3, 0, 135),
+              "c": s(2, 4, 130), "d": s(2, 2, 90, sp=1),
+              "e": s(2, 2, 90, sp=9), "f": s(0, 6, 80)}
+    ranked = S.rank(scores)
+    assert [(r, i) for r, i, _ in ranked] == [
+        (1, "f"), (2, "d"), (2, "e"), (4, "c"), (5, "a"), (6, "b")]
+    assert S.MEASURES == ("seat_error", "ward_count_error", "wards_called")
+    assert S.rank({}) == []
+
+
+def test_an_unscorable_forecast_stops_the_ranking_and_is_named():
+    good = {"ok": True, "seat_error": 0, "ward_count_error": 0,
+            "wards_called": 1}
+    scores = {"good": good,
+              "bad": {"ok": False, "errors": ["cannot be seated: x"]},
+              "worse": {"ok": False, "errors": ["ward calls: y"]}}
+    try:
+        S.rank(scores)
+    except ValueError as exc:
+        message = str(exc)
+    else:
+        raise AssertionError("an unscorable forecast was ranked or dropped")
+    assert "2 forecast(s)" in message
+    assert "'bad'" in message and "'worse'" in message
+    assert "cannot be seated: x" in message and "'good'" not in message
+    # control: remove them and the same call ranks
+    assert S.rank({"good": good}) == [(1, "good", (0, 0, -1))]
 
 
 def test_the_certified_roster_covers_every_party_a_reader_can_pick():

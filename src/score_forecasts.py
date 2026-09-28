@@ -1,49 +1,49 @@
 """Score ANY forecast of a council — the model's and every reader's — against the
-election result, by the owner's three measures.
+election result, and rank them by the owner's three keys.
 
 ``DESIGN-decided.md`` §5 (owner, 2026-09-27): *"we have a result and thousands
-of forecasts. some are objectively superior to others."* Integration contract:
-``audits/2026-09-28-interactive-architecture/INTEGRATION.md`` §3e. ⛔ This
-module and the rule in it must be frozen (committed, code hash recorded) before
-polls open on 4 November; a rule written once the result is known is not a
-scoring rule.
+of forecasts. some are objectively superior to others."* The ranking is §13
+(owner, 2026-09-29), which supersedes §5's three measures for ranking.
+Integration contract: ``audits/2026-09-28-interactive-architecture/INTEGRATION.md``
+§3e. ⛔ This module and the rule in it must be frozen (committed, code hash
+recorded) before polls open on 4 November; a rule written once the result is
+known is not a scoring rule.
 
-The three measures, the owner's
-===============================
+The ranking keys, the owner's, in his order (§13)
+=================================================
 
-1. **Seat error** — for every party holding a seat in the forecast OR the
+1. **Seat total error** — for every party holding a seat in the forecast OR the
    result, ``|forecast seats − actual seats|``, summed. A party the forecast
    never names is a forecast of zero. Lower is better.
-2. **Wards called** — the wards whose forecast winner is the actual winner, of
-   all the wards. An actual winner that is not on the reader's roster (an
-   independent, while the reader roster lacks one) is a miss for every reader, the
-   same for all of them. Higher is better.
-3. **Split correct** — for every party holding a seat in the forecast OR the
-   result, whether BOTH its ward seats and its list seats match. This is where
-   the excessive-seats clause (item 16) lives: a forecast can have a party's
-   total right and its ward/list split wrong. Reported as a count of parties
-   over the union, with the per-party pairs. Higher is better.
+2. **Ward-count error** — for every party winning a ward in the forecast OR the
+   result, ``|forecast wards won − actual wards won|``, summed. Wards won are
+   counted from the ward winners on both sides (the forecast's ``ward_calls``,
+   the result's ward ballot), so an independent is counted under the code it
+   carries on each side. Lower is better.
+3. **Correct ward calls** — the wards whose forecast winner is the actual
+   winner. *Where* a party wins, not only how many. An actual winner that is
+   not on the reader's roster (an independent, while the reader roster lacks
+   one) is a miss for every reader, the same for all of them. Higher is
+   better.
 
-Coalition and mayor are part of a stored forecast and are **not** scored; they
-are not among the three measures.
+:func:`rank_key` is exactly ``(key 1, key 2, −key 3)``, compared
+lexicographically: one seat of total error outranks any ward-count error, and
+one ward of ward-count error outranks any number of correct calls. Forecasts
+equal on all three share a rank (competition ranking: 1, 2, 2, 4). Where one
+winner must be named, the earlier save before the lock (07:00 SAST,
+4 November) wins: :func:`rank` takes the save times for that and uses nothing
+else. No weight appears anywhere, so none can be chosen after the result.
 
-⚖️ PROPOSED OVERALL RANKING — FOR THE OWNER TO DECIDE, NOT DECIDED
-===================================================================
+**Reported, not ranked:** the ward/list split per party (``split_correct``,
+``split_by_party``). §13 drops it as a key because, party by party, it is
+implied by keys 1 and 2: list seats are seats minus wards.
 
-**Lexicographic, in the owner's own order:** lowest seat error first; among
-equal seat errors, most wards called; among those, most parties with the split
-correct. :func:`rank_key` is exactly that tuple. Forecasts equal on all three
-share a rank (competition ranking: 1, 2, 2, 4). **Tie-break, proposed:** where a
-single winner must be named, the earlier save before the lock (07:00 SAST,
-4 November) wins; :func:`rank` takes the save times for that and uses nothing
-else.
+Coalition and mayor are part of a stored forecast and are **not** scored.
 
-*Why lexicographic and not a weighted sum:* a sum needs weights, and weights
-chosen after the result is known are tuned to the result. The lexicographic
-order needs no number and follows the order the owner listed the measures in.
-*What it costs:* seat error dominates — one seat of error outranks any number of
-wards called. If the owner wants the ward measure to trade against seats, that
-is a weight, and it must be written down before 4 November.
+**An unscorable forecast is an error, not an exclusion.** The seat service
+refuses at save (HTTP 422) a forecast the seat law cannot seat, so none should
+reach the ranking; :func:`rank` refuses the whole ranking, naming every such
+forecast, rather than rank the rest in silence.
 
 What a forecast is
 ==================
@@ -61,14 +61,13 @@ untouched** (:func:`model_forecast`): the MODAL winner of each ward, and each
 roster party's MEDIAN combined share, renormalised, then seated by the same
 statute path at the same ``x-total-votes``. Why these two:
 
-* *modal winner* — the call that maximises the model's expected number of wards
-  called (measure 2), one ward at a time; an exact tie in the draw counts
+* *modal winner* — the call that maximises the model's expected number of
+  correct ward calls (key 3), one ward at a time; an exact tie in the draw counts
   falls to the earlier party in the schema roster;
 * *median share* — each party's own central vote, robust to the long tails the
   draws carry, and a vote vector the statute can seat. The model's per-party
   MEDIAN SEATS are not used: they need not sum to the council and carry no
-  ward/list split, so they are not a council and measure 3 could not be
-  scored on them.
+  ward/list split, so they are not a council.
 
 ⚠️ This council can differ from the published per-party median seats, and the
 modal-ward vector with the median shares need not be any single draw. The
@@ -130,7 +129,10 @@ from pathlib import Path
 import parties as P
 import reader_seats as R
 
-MEASURES = ("seat_error", "wards_called", "split_correct")
+# The ranking keys, in the owner's order (DESIGN-decided §13).
+MEASURES = ("seat_error", "ward_count_error", "wards_called")
+# Computed and reported for information; not a ranking key.
+REPORTED = ("split_correct",)
 SEAT_SOURCES = ("computed", "official")
 
 
@@ -425,8 +427,10 @@ def score(forecast: dict, schema: dict, result: dict, *,
     """Score one stored forecast against one ingested result.
 
     Returns ``{"ok", "errors", "seat_error", "seat_error_by_party",
-    "wards_called", "wards", "wards_missed", "split_correct",
-    "split_parties", "split_by_party", "seat_source", "seats"}``. ``ok`` is
+    "ward_count_error", "ward_count_error_by_party", "wards_called", "wards",
+    "wards_missed", "split_correct", "split_parties", "split_by_party",
+    "seat_source", "seats"}``. The keys named in
+    :data:`MEASURES` rank; the split is reported only. ``ok`` is
     False, with ``errors``, when the forecast cannot be seated or the result
     is not usable as it stands; nothing is scored then.
     """
@@ -470,6 +474,11 @@ def score(forecast: dict, schema: dict, result: dict, *,
     actual_ward: dict[str, int] = defaultdict(int)
     for party in result["wards"].values():
         actual_ward[party] += 1
+    forecast_ward: dict[str, int] = defaultdict(int)
+    for party in seated["ward_winners"].values():
+        forecast_ward[party] += 1
+    ward_count = {p: forecast_ward.get(p, 0) - actual_ward.get(p, 0)
+                  for p in sorted(set(forecast_ward) | set(actual_ward))}
     if source == "official":
         a_total = dict(result["official_seats"])
     else:
@@ -492,6 +501,8 @@ def score(forecast: dict, schema: dict, result: dict, *,
     out.update(ok=True, seat_source=source, seats=f_seats,
                seat_error=sum(abs(v) for v in by_party.values()),
                seat_error_by_party=by_party,
+               ward_count_error=sum(abs(v) for v in ward_count.values()),
+               ward_count_error_by_party=ward_count,
                wards_called=len(ward_ids) - len(missed), wards=len(ward_ids),
                wards_missed=missed,
                split_correct=sum(v["correct"] for v in split.values()),
@@ -500,29 +511,37 @@ def score(forecast: dict, schema: dict, result: dict, *,
 
 
 def rank_key(scored: dict) -> tuple:
-    """The PROPOSED ordering (module docstring): lower sorts first.
+    """The owner's ordering (DESIGN-decided §13): lower sorts first.
 
-    ⚖️ FOR THE OWNER TO DECIDE. Seat error ascending, then wards called
-    descending, then parties with the split correct descending.
+    Seat total error ascending, then ward-count error ascending, then correct
+    ward calls descending. The ward/list split is not in it.
     """
-    return (scored["seat_error"], -scored["wards_called"],
-            -scored["split_correct"])
+    return (scored["seat_error"], scored["ward_count_error"],
+            -scored["wards_called"])
 
 
 def rank(scores: dict, saved_at: dict | None = None) -> list[tuple]:
-    """``[(rank, id, rank_key)]`` over the scorable forecasts in ``scores``.
+    """``[(rank, id, rank_key)]`` over every forecast in ``scores``.
 
     Competition ranking: equal keys share a rank and the next rank skips.
     With ``saved_at`` (``{id: sortable time}``), equal keys are ORDERED by
-    the earlier save — the proposed single-winner tie-break — but still share
-    their rank. Unscorable forecasts (``ok`` False) are not ranked; the caller
-    reports them. ⚖️ That exclusion is itself a ranking decision for the owner
-    (rank last, exclude, or refuse at save): ``validate.js`` stores forecasts
-    the statute cannot seat, such as a ward won by a party with a zero share.
+    the earlier save, so where one winner must be named it is the first entry
+    of the first rank; they still share their rank. A tied forecast with no
+    save time sorts after those with one.
+
+    An unscorable forecast (``ok`` False) is REFUSED, not left out: the seat
+    service returns 422 for a forecast the seat law cannot seat, so one here
+    means a forecast got past the save check or the result was not usable.
+    Every such id is named, with its errors, in one ``ValueError``.
     """
+    bad = {i: s.get("errors") for i, s in scores.items() if not s.get("ok")}
+    if bad:
+        raise ValueError(
+            f"{len(bad)} forecast(s) could not be scored and cannot be ranked "
+            f"or left out in silence: {bad}. The seat service refuses an "
+            f"unseatable forecast at save; find out how these got through.")
     saved_at = saved_at or {}
-    ok = [(rank_key(s), saved_at.get(i), i) for i, s in scores.items()
-          if s.get("ok")]
+    ok = [(rank_key(s), saved_at.get(i), i) for i, s in scores.items()]
     ok.sort(key=lambda t: (t[0], t[1] is None, t[1] if t[1] is not None
                            else "", str(t[2])))
     out, prev, current = [], None, 0

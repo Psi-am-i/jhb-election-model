@@ -27941,3 +27941,40 @@ always recomputed through `reader_seats`; a stored number never scores itself.
 **Not tested:** a result with an independent ward winner or a no-list party
 winning a ward (2021 Johannesburg has neither), and any real model run through
 `model_forecast` (the export does not yet carry per-draw combined shares).
+
+## 1.277 The scorer ranks by the owner's keys: seat total error, then ward-count error, then correct ward calls (2026-09-29)
+
+Follows §1.276. The owner decided the ranking (DESIGN-decided §13), replacing
+§1.276's proposal. `src/score_forecasts.py` now ranks lexicographically on
+
+1. seat total error, Σ over parties |forecast − actual seats|, lower better;
+2. ward-count error, Σ over parties |forecast wards won − actual wards won|,
+   counted from the ward winners on both sides, lower better;
+3. correct ward calls, higher better.
+
+A forecast tied on all three shares a rank; the earlier save before the lock
+names a single winner. The ward/list split is still computed and returned
+(`split_correct`, `split_by_party`) but is not in `rank_key`: party by party it
+is implied by keys 1 and 2. `rank` now refuses, naming each id and its errors,
+when any forecast is unscorable, instead of ranking the rest: the seat service
+returns 422 at save for a forecast the seat law cannot seat, so one reaching
+the ranking is a defect upstream.
+
+**Measured on the 2021 Johannesburg result as if 2026**
+(`tests/test_score_forecasts.py`, no model run). Keys are hand-computed and
+asserted, with W the ward count: the result as a forecast (0, 0, W), rank 1;
+two different ANC/DA call swaps (0, 0, W−2), sharing rank 2; one ANC ward
+called for the IFP (0, 2, W−1), rank 4, below the swaps despite more correct
+calls; two quotas moved EFF → DA (4, 0, W), rank 5, below the IFP forecast
+despite better keys 2 and 3. The self-score is 0 on keys 1 and 2 and W on
+key 3 against both seat sources.
+
+Five single-line mutations (keys 2 and 3 swapped, keys 1 and 2 swapped,
+unscorable forecasts silently excluded, ward-count error without `abs`, a tied
+forecast without a save time sorted by id instead of last) each turn the
+module red.
+
+**Not tested:** a result with an independent ward winner, where key 2 counts
+the independent under whatever code each side gives it; that code must be the
+same on the reader roster and the certified roster, which the 2021 file
+cannot exercise.
