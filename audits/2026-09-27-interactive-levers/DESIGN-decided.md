@@ -277,3 +277,14 @@ finding 3.
 * **Grey area, recorded rather than resolved:** the coalition pick and a named
   public forecast sit closer to preference than a seat count does.
 * **Counsel confirms the one sentence** when reviewing the notice.
+
+**No names, and a label that defaults to a handle (owner, 2026-09-29):**
+*"we are not using names anyway"*, then *"I would default to their handle and
+let them overwrite."*
+* No real name is stored or shown.
+* The label on a shared forecast defaults to the reader's provider handle where
+  one exists. In practice only X returns a username; Google, Microsoft, Apple
+  and Facebook have no public handle, so their default is "A reader".
+* A label is never derived from an email address.
+* The reader can overwrite the label or clear it back to "A reader" before
+  sharing.
