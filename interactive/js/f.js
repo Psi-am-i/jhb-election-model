@@ -34,10 +34,11 @@ if (!f || f.gone) {
     map.setMode(b.dataset.view);
   }));
 
-  const r = allocate({ wardCalls: f.ward_calls, prShare: f.pr_share, parties,
+  const r = allocate({ wardCalls: f.ward_calls, combinedShare: f.combined_share, parties,
     councilSeats: model.council_seats, wardSeats: model.ward_seats });
   const seats = r.seats;
   const wins = r.wardWins;
+  const council = { council: r.council, majority: r.majority };   // as seated, for the card
   $("#legend").innerHTML = Object.entries(wins).filter(([, n]) => n).sort((a, b) => b[1] - a[1])
     .map(([c, n]) => `<span style="white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${byCode[c].colour};margin-right:4px"></span>${esc(byCode[c].name)} ${n}</span>`)
     .join("&ensp; ") + " wards";
@@ -48,25 +49,27 @@ if (!f || f.gone) {
   $("#bars").innerHTML = top.map(([c, n]) => `<div class="bar"><span class="nm">${esc(byCode[c].name)}</span>
     <span class="tr"><span class="fl" style="width:${n / max * 100}%;background:${byCode[c].colour}"></span></span><span class="v">${n}</span></div>`).join("");
   const order = Object.keys(seats).filter(c => seats[c]).sort((a, b) => seats[b] - seats[a]);
-  $("#strip").innerHTML = order.map(c => `<span style="width:${seats[c] / model.council_seats * 100}%;background:${byCode[c].colour}"></span>`).join("") +
-    `<span class="maj" style="left:calc(${(model.majority - 0.5) / model.council_seats} * 100%)"></span>`;
+  $("#strip").innerHTML = order.map(c => `<span style="width:${seats[c] / r.council * 100}%;background:${byCode[c].colour}"></span>`).join("") +
+    `<span class="maj" style="left:calc(${(r.majority - 0.5) / r.council} * 100%)"></span>`;
+  $("#capseats").textContent = `${r.council} seats`;
+  $("#capmaj").textContent = `${r.majority} to govern`;
   const cs = f.coalition.reduce((a, c) => a + (seats[c] || 0), 0);
   $("#coal").innerHTML = f.coalition.map(c => `<b>${esc(byCode[c].name)}</b>`).join(", ") +
-    ` — ${cs} of 270 seats, ` + (cs >= model.majority ? "a majority." : `${model.majority - cs} short of the 136 needed.`) +
+    ` — ${cs} of ${r.council} seats, ` + (cs >= r.majority ? "a majority." : `${r.majority - cs} short of the ${r.majority} needed.`) +
     (f.mayor ? ` Mayor from ${esc(byCode[f.mayor].name)}.` : "");
   const pub = model.published_seats_median;
   $("#delta").innerHTML = "Against the model's forecast (placeholder median): " +
     top.map(([c, n]) => { const d = n - (pub[c] || 0); return `${esc(byCode[c].name)} <b>${d > 0 ? "+" : ""}${d}</b>`; }).join(", ") + ".";
 
   $("#mk").addEventListener("click", () => {
-    try { sessionStorage.setItem("jhb-start-from", JSON.stringify({ calls: f.ward_calls, pr: f.pr_share, coalition: f.coalition, mayor: f.mayor })); } catch (e) {}
+    try { sessionStorage.setItem("jhb-start-from", JSON.stringify({ calls: f.ward_calls, share: f.combined_share, coalition: f.coalition, mayor: f.mayor })); } catch (e) {}
   });
   $("#mk").querySelector(".t").textContent = "Make your own, starting from this one";
 
   $("#share").addEventListener("click", () => openShare({
     url: pageURL("f/?id=" + id), title: `${title} · Johannesburg 2026`,
     text: `${title} for Johannesburg's council on 4 November. Make yours:`,
-    svgFor: size => buildCardSVG({ forecast: f, seats, geom, byCode, model, size, placeholder: true }),
-    alt: cardAlt({ forecast: f, seats, byCode, model }), fileBase: "joburg-forecast-" + id,
+    svgFor: size => buildCardSVG({ forecast: f, seats, geom, byCode, model: council, size, placeholder: true }),
+    alt: cardAlt({ forecast: f, seats, byCode, model: council }), fileBase: "joburg-forecast-" + id,
   }));
 }

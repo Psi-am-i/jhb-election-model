@@ -230,3 +230,27 @@ Owner on retention (2026-09-28): a merger is "not a perfect combination".
 Recorded against the reviewer's view that GOOD–RISE is a stand-down pact whose
 voters follow incompletely. The scalar moves less than one seat in
 Johannesburg either way.
+
+Owner (2026-09-29): **independents stay out of the freeze**, and the model's
+inability to show an independent winning a ward is **disclosed on the forecast
+page** (PUBLISHING-BACKLOG §14; evidence `audits/2026-09-29-zero-cells/`).
+
+## 11. The levers readers get (owner, 2026-09-29)
+
+* **Dropped: within-community movement** (`dirichlet_scale`). It mostly moves
+  the width of the bands, not who wins, and no reader can form a view on it.
+  The lever grid (PLAN.md S3) therefore varies `w_bye` only.
+* **Kept: by-election weight** (`w_bye`: none / 0.40 as published / full),
+  shown **beside the evidence**. For each party the page shows:
+  * the actual by-election swing since 2021, from
+    `data/processed/byelection_party_deltas.csv`, with the number of wards
+    contested;
+  * the model's predicted change in citywide share since 2021, at the lever's
+    current position.
+
+  Owner: *"if we show the actual bye election swing and the models prediction
+  — then i think it is educational and useful."* The page states that
+  by-elections are small, low-turnout contests; that some swings rest on
+  few wards (PA: 4); and that 0.40 is an unmeasured judgement (JUDGEMENT-CALLS
+  §A35) which only the 4 November result can test.
+* **Kept:** turnout by community, polls (one control), the seat law.

@@ -1,6 +1,8 @@
-"""`reader_seats`: a reader's PR shares and ward picks, seated by the statute alone.
+"""`reader_seats`: a reader's combined vote shares and ward picks, seated by the
+statute alone.
 
-DESIGN-decided §9. What this module proves:
+DESIGN-decided §9 and §10 (the reader edits the COMBINED vote, both ballots
+together). What this module proves:
 
 1. REPRODUCTION. For every draw of a native `run_model` at Johannesburg 2021
    and 2026, the draw's own combined-ballot tally (captured by a wrapper around
@@ -9,9 +11,9 @@ DESIGN-decided §9. What this module proves:
    ward seats, excessive-seats parties and council exactly. The comparator is
    shown to see a constructed disagreement and to go quiet when it is reverted.
    The draw's PR-BALLOT share is also fed, and the draws it does not reproduce
-   are COUNTED AND PRINTED, not asserted: that is the size of the stated
-   assumption (JUDGEMENT-CALLS.md, "a reader's PR shares stand for both
-   ballots"), and it is a measurement, not a defect.
+   are COUNTED AND PRINTED, not asserted: that is the cost of the RETIRED input
+   (JUDGEMENT-CALLS.md §M1, MODEL-LOG §1.270), kept as the evidence the owner's
+   §10 decision rests on.
 2. STATUTE INVARIANTS. Seats sum to the council; each party's ward seats equal
    the wards picked for it; list seats are never negative.
 3. EXCESSIVE SEATS, BY HAND. Two councils worked on paper below: a strict
@@ -19,8 +21,14 @@ DESIGN-decided §9. What this module proves:
    parties. Plus a no-PR-list ward winner leaving through D.
 4. REFUSALS. Each validation is triggered by one constructed violation of an
    otherwise valid input, which is shown to pass.
-5. PYODIDE SHAPE. In a fresh interpreter with pandas/openpyxl/scipy made
+5. ROUNDING. The combined votes sum to `total_votes` exactly, on a case where
+   rounding each party alone does not.
+6. PYODIDE SHAPE. In a fresh interpreter with pandas/openpyxl/scipy made
    unimportable and every file open raising, the module imports and allocates.
+7. THE SEAT SERVICE. worker-api/seats-py/src/entry.py passes a request body
+   through as reader_seats' own arguments and reshapes the answer; the files
+   worker-api/tools/sync_seats_py.mjs copies are the module's import closure,
+   both ways.
 
 The model runs in a subprocess from `ROOT/src`, or from the directory named in
 `READER_SEATS_MODEL_SRC` (a `git archive` copy, when another worker is editing
@@ -227,9 +235,12 @@ def test_the_reproduction_comparator_sees_a_constructed_disagreement():
 def test_the_pr_ballot_assumption_is_measured_not_asserted():
     """The draw's PR-ballot share, at the draw's combined total, per draw.
 
-    Printed rather than asserted. Draws it fails to reproduce are the cost of
-    the one assumption a reader's forecast needs (JUDGEMENT-CALLS.md), and the
-    number moves with the model's ward/PR ratios.
+    Printed rather than asserted. This is the RETIRED input: until
+    DESIGN-decided §10 a reader's PR shares stood for both ballots, and the
+    draws this fails to reproduce are what that cost (MODEL-LOG §1.270). The
+    reader now edits the combined vote, which reproduces every draw (above);
+    this stays as the measurement that decision rests on, and the number moves
+    with the model's ward/PR ratios.
     """
     runs = _prepared()
     for target in TARGETS:
@@ -431,7 +442,7 @@ def test_each_violation_is_refused_and_named():
         "zero share": dict(shares={"A": 0.7, "B": 0.3},
                            winners={**_GOOD_WINNERS, "W4": "C"}),
         "have no PR list": dict(context=_toy_context(no_pr_list=["C"])),
-        "too small to be": dict(shares={"A": 0.5, "B": 0.3, "C": 0.1999,
+        "too small to receive": dict(shares={"A": 0.5, "B": 0.3, "C": 0.1999,
                                         "X": 0.0001}),
         "total_votes": dict(total=0),
         "context has no": dict(context={k: v for k, v in _toy_context().items()
@@ -455,7 +466,62 @@ def test_the_seat_law_failing_is_reported_not_raised():
     assert "seat law could not complete" in message, message
 
 
-# -- 5. context and the Pyodide shape ---------------------------------------------
+# -- 5. rounding -------------------------------------------------------------------
+
+def test_the_combined_votes_sum_to_the_total_where_rounding_each_alone_does_not():
+    """Three shares of a third at 1,000 votes: 333 each is 999, not 1,000.
+
+    The old conversion rounded each party on its own. The case is shown to
+    discriminate first — the old expression loses a vote on it — and then
+    `combined_votes` and the allocation's own record of its votes are held to
+    the total. Largest remainder with equal fractions: the first party in the
+    caller's order takes the vote.
+    """
+    shares = {"A": 1 / 3, "B": 1 / 3, "C": 1 / 3}
+    old = {p: int(round(s * 1000)) for p, s in shares.items()}
+    assert sum(old.values()) == 999, old          # the case can see the defect
+    assert R.combined_votes(shares, 1000) == {"A": 334, "B": 333, "C": 333}
+    result = R.reader_seats(shares, _GOOD_WINNERS, _toy_context(), 1000)
+    assert result["ok"], result["errors"]
+    assert sum(result["votes"].values()) == 1000, result["votes"]
+    # Order owns the tie: reversed input, reversed winner.
+    rev = dict(reversed(list(shares.items())))
+    assert R.combined_votes(rev, 1000) == {"C": 334, "B": 333, "A": 333}
+
+
+def test_the_combined_votes_sum_to_the_total_on_random_shares():
+    import numpy as np
+    rng = np.random.default_rng(1)
+    old_missed = 0
+    for n in range(2, 16):
+        for _ in range(200):
+            raw = rng.dirichlet([0.5] * n)
+            shares = {f"P{i}": float(v) for i, v in enumerate(raw)}
+            total = int(rng.integers(n * 10, 2_000_000))
+            votes = R.combined_votes(shares, total)
+            assert sum(votes.values()) == total, (shares, total, votes)
+            # No party moves more than one vote from its exact share.
+            scale = sum(shares.values())
+            assert all(abs(votes[p] - shares[p] / scale * total) < 1
+                       for p in shares), (shares, total, votes)
+            old_missed += sum(int(round(s * total))
+                              for s in shares.values()) != total
+    # The population exercised the defect, not only the healthy case.
+    assert old_missed, "no random case made per-party rounding miss the total"
+    print(f"  per-party rounding missed the total in {old_missed} of "
+          f"{14 * 200} random cases; largest remainder in none")
+
+
+def test_a_share_sum_inside_tolerance_moves_no_vote_between_parties():
+    """0.5 + 0.3 + 0.2 + 1e-7: scaled to one before counting."""
+    shares = {"A": 0.5, "B": 0.3, "C": 0.2 + 1e-7}
+    result = R.reader_seats(shares, _GOOD_WINNERS, _toy_context(), 1000,
+                            tolerance=1e-6)
+    assert result["ok"], result["errors"]
+    assert result["votes"] == {"A": 500, "B": 300, "C": 200}
+
+
+# -- 6. context and the Pyodide shape ---------------------------------------------
 
 def test_the_context_comes_from_the_city_config_and_round_trips_as_json():
     run = _prepared()["2026"]
@@ -516,6 +582,110 @@ def test_it_imports_and_allocates_without_pandas_or_a_file_read():
         cwd=ROOT, capture_output=True, text=True, timeout=300)
     assert caught.returncode != 0 and "file opened at call time" in caught.stderr
 
+
+
+# -- 7. the seat service (worker-api/seats-py) -------------------------------------
+
+_SEATS_PY = ROOT / "worker-api" / "seats-py" / "src" / "entry.py"
+_SYNC = ROOT / "worker-api" / "tools" / "sync_seats_py.mjs"
+
+
+def _load_entry(with_code: bool = True):
+    """entry.py, with the Workers runtime stubbed and src/ as its seat code."""
+    import importlib.util
+    import types
+    workers = types.ModuleType("workers")
+    workers.Response = object
+    workers.WorkerEntrypoint = object
+    saved = {k: sys.modules.get(k) for k in ("workers", "code_ref")}
+    sys.modules["workers"] = workers
+    if with_code:
+        code_ref = types.ModuleType("code_ref")
+        code_ref.CODE_REF = "ab" * 32
+        sys.modules["code_ref"] = code_ref
+    else:
+        sys.modules["code_ref"] = None      # importing it raises ImportError
+    try:
+        spec = importlib.util.spec_from_file_location("seats_entry", _SEATS_PY)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    finally:
+        for k, v in saved.items():
+            if v is None:
+                sys.modules.pop(k, None)
+            else:
+                sys.modules[k] = v
+    return module
+
+
+def test_the_seat_service_passes_the_body_through_as_reader_seats_arguments():
+    import inspect
+    entry = _load_entry()
+    positional = [n for n, prm in inspect.signature(R.reader_seats).parameters.items()
+                  if prm.kind is prm.POSITIONAL_OR_KEYWORD]
+    assert list(entry.ARGUMENTS) == positional, (entry.ARGUMENTS, positional)
+    body = {"combined_shares": {"A": 0.31, "B": 0.40, "C": 0.29},
+            "ward_winners": {w: "A" for w in _toy_context()["wards"]},
+            "context": _toy_context(), "total_votes": 1000}
+    # Through JSON, as the Worker receives it.
+    status, payload = entry.answer(json.loads(json.dumps(body)))
+    assert status == 200, payload
+    assert payload == {"seats": {"A": 5, "B": 3, "C": 2}, "ward": {"A": 5},
+                       "pr": {"B": 3, "C": 2}, "council_total": 10,
+                       "majority": 6, "excessive": {"A": 2},
+                       "code_ref": "ab" * 32}
+
+
+def test_the_seat_service_answers_a_refusal_as_422_and_a_bad_body_as_400():
+    entry = _load_entry()
+    body = {"combined_shares": {"A": 0.7, "B": 0.3},
+            "ward_winners": {**_GOOD_WINNERS, "W4": "C"},
+            "context": _toy_context(), "total_votes": 1000}
+    status, payload = entry.answer(body)
+    assert status == 422 and "zero share" in " ".join(payload["errors"]), payload
+    assert entry.answer({**body, "seats": {}})[0] == 400
+    assert entry.answer([1, 2])[0] == 400
+    # Not copied yet: the stub answer, which build.test.js relies on.
+    assert _load_entry(with_code=False).answer(body)[0] == 501
+
+
+_CLOSURE_PROBE = r'''
+import json, os, sys
+src = os.path.abspath(sys.argv[1])
+sys.path.insert(0, src)
+import reader_seats
+print(json.dumps(sorted(os.path.basename(m.__file__) for m in list(sys.modules.values())
+      if getattr(m, "__file__", None)
+      and os.path.dirname(os.path.abspath(m.__file__)) == src)))
+'''
+
+
+def _files_mismatch(files, closure) -> list[str]:
+    missing, extra = sorted(set(closure) - set(files)), sorted(set(files) - set(closure))
+    return ([f"imported but not copied: {missing}"] if missing else []) + \
+           ([f"copied but not imported: {extra}"] if extra else [])
+
+
+def test_the_seat_service_copies_exactly_the_import_closure_of_reader_seats():
+    import re
+    text = _SYNC.read_text(encoding="utf-8")
+    block = re.search(r"export const FILES = \[([^\]]*)\]", text)
+    assert block, "FILES not found in sync_seats_py.mjs: the scan examines nothing"
+    files = re.findall(r'"([^"]+\.py)"', block.group(1))
+    done = subprocess.run([sys.executable, "-c", _CLOSURE_PROBE, str(ROOT / "src")],
+                          cwd=ROOT, capture_output=True, text=True, timeout=300)
+    assert done.returncode == 0, done.stderr[-3000:]
+    closure = json.loads(done.stdout)
+    # It looked: the closure holds the module and the seat law at least, and no
+    # more modules than src/ has.
+    assert {"reader_seats.py", "seats.py", "montecarlo.py"} <= set(closure)
+    assert len(closure) < len(list((ROOT / "src").glob("*.py")))
+    assert len(files) == len(set(files)), files
+    assert not _files_mismatch(files, closure), _files_mismatch(files, closure)
+    # It can see, both ways, and goes quiet again.
+    assert _files_mismatch(files[1:], closure)
+    assert _files_mismatch(files + ["pools.py"], closure)
+    assert not _files_mismatch(list(reversed(files)), closure)
 
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

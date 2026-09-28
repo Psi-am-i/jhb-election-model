@@ -249,11 +249,17 @@ def build(runs: dict[str, dict]) -> tuple[bytes, dict]:
 
 
 def export(city_slug: str, year: str, draws: int, seed: int, out: Path,
-           laws: tuple[str, ...] = LAWS, jobs: int | None = None) -> dict:
-    """Run each law, build the file, write ``base.bin`` and ``manifest.json`` to ``out``."""
+           laws: tuple[str, ...] | None = None, jobs: int | None = None) -> dict:
+    """Run each law, build the file, write ``base.bin`` and ``manifest.json`` to ``out``.
+
+    ``laws`` defaults to :data:`LAWS`, resolved here at call time rather than
+    bound as a default argument, so a caller who rebinds ``LAWS`` reaches the
+    call (``tests/test_ipf_feasibility.py``, CLASS 13).
+    """
     import cityconfig
     import freeze
 
+    laws = LAWS if laws is None else tuple(laws)
     out = out.resolve()
     data_root = (Path.cwd() / "data").resolve()
     if out == data_root or data_root in out.parents:

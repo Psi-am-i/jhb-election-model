@@ -4,10 +4,13 @@
 // which are SYNTHETIC placeholders (see tools/make_fixtures.py). Nothing here
 // is, or may be mistaken for, the model's forecast.
 
-const base = new URL("../", import.meta.url);   // interactive/
+// interactive/, computed when first asked for and never at module load: the
+// share-card Worker (worker-api) imports this module for esc and possessive,
+// and a bundled Worker has no URL to resolve import.meta.url against.
+const base = () => new URL("../", import.meta.url);
 
 export async function loadJSON(name) {
-  const r = await fetch(new URL("fixtures/" + name, base));
+  const r = await fetch(new URL("fixtures/" + name, base()));
   if (!r.ok) throw new Error(`fixture ${name}: HTTP ${r.status}`);
   return r.json();
 }
@@ -20,7 +23,7 @@ export async function loadAll() {
   return { geom, model, parties, byCode };
 }
 
-export function pageURL(rel) { return new URL(rel, base).href; }
+export function pageURL(rel) { return new URL(rel, base()).href; }
 
 export function esc(s) {
   return String(s).replace(/[&<>"']/g, c =>
@@ -59,7 +62,10 @@ export function wireTheme() {
 
 // Draft storage: a per-viewer convenience only. The saved forecast of record
 // lives on the server (BACKEND.md); here the stub server is api-stub.js.
-const DRAFT = "jhb-interactive-draft-v1";
+// v2 (2026-09-28): the draft's shares became the combined vote (`share`,
+// DESIGN-decided §10); a v1 draft held list-vote shares under `pr` and is not
+// read as if it meant the same thing.
+const DRAFT = "jhb-interactive-draft-v2";
 export function loadDraft() {
   try { return JSON.parse(localStorage.getItem(DRAFT) || "null"); } catch (e) { return null; }
 }

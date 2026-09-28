@@ -782,6 +782,54 @@ def test_a_silenced_pool_is_held_and_the_rest_refitted():
         np.array([[10.0, 0.0]]), np.array([0.5, 0.0])) == {}
 
 
+def test_a_refit_that_silences_a_second_pool_holds_it_too():
+    """The hold's own re-fit must not re-create the defect one pool over.
+
+    Blind review 2026-09-29: holding a silenced pool above zero takes votes
+    from the pools sharing its wards, and one of those can be driven to the
+    0.0 corner in turn. CONSTRUCTED table: pool 1 is silenced by the free fit;
+    holding it at the city's rate drives pool 2, which shares its ward, to 0.0.
+    Checked in four parts: (a) the table really cascades under a single hold,
+    (b) the guard holds BOTH and no populated pool is left at 0.0, (c) with the
+    cascade removed (pool 2's ward carries more votes) only pool 1 is held, and
+    (d) a table where the cascade would hold every populated pool refuses.
+    """
+    registered = np.array([[1000.0, 0.0, 0.0], [800.0, 200.0, 0.0],
+                           [700.0, 200.0, 100.0], [900.0, 0.0, 100.0]])
+    votes = np.array([600.0, 480.0, 420.0, 570.0])
+    _, free = pools._nest(registered, votes)
+    assert list(pools._silent_pools(registered, free)) == [1], free
+    city = pools._uninformed_rate(registered, votes)
+    # (a) the single hold the code used to make silences pool 2 (pool 1 is
+    # held at the city's rate, so it is no longer on the corner itself).
+    _, once = pools._nest(registered, votes, hold={1: city})
+    assert list(pools._silent_pools(registered, once)) == [2], (
+        f"the constructed table no longer cascades ({once}); the rest of "
+        f"this test would prove nothing")
+
+    # (b) the guard holds both, and nothing populated is left silent.
+    voted, rate, held = pools._nest_holding_silent(registered, votes)
+    assert sorted(held) == [1, 2], held
+    assert abs(rate[1] - city) < 1e-12 and abs(rate[2] - city) < 1e-12, rate
+    assert min(rate) > pools._RATE_BOUND_EPS, rate
+    assert np.allclose(voted.sum(axis=1), votes), "ward totals broken"
+
+    # (c) reverted: enough votes in pool 2's wards and the cascade is gone.
+    votes_ok = votes + np.array([0.0, 0.0, 10.0, 10.0])
+    _, rate_ok, held_ok = pools._nest_holding_silent(registered, votes_ok)
+    assert sorted(held_ok) == [1], held_ok
+    assert rate_ok[2] > pools._RATE_BOUND_EPS, rate_ok
+
+    # (d) a cascade that would hold every populated pool is refused.
+    try:
+        pools._nest_holding_silent(np.array([[10.0, 0.0], [100.0, 1000.0]]),
+                                   np.array([5.0, 10.0]))
+    except pools.HoldCascadeRefused:
+        pass
+    else:
+        raise AssertionError("a hold that silenced every pool was accepted")
+
+
 if __name__ == "__main__":
     # `run_module`, NOT a hand-rolled loop. Until 2026-08-23 this file ended with
     # `for name, fn in sorted(globals().items()): ... fn()`, which catches

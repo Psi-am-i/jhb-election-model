@@ -137,3 +137,63 @@ gave 70–72 and 67–69. Nothing moves until the IEC's own list is in hand.
 ⚠️ **Change 1 adds `IND` to the POOLS. It does not change the roster count** —
 `IND` is already one of the 82. The two are independent and this one is not a
 count change.
+
+---
+
+## Amended 2026-09-29, before any run
+
+Written before any run of the merger mechanism. The sweep script had been
+started and none of its output had been read. Nothing above this heading is
+edited; this section adds to it.
+
+### Two premises above are false (audits/2026-09-29-mergers/SPEC.md §0)
+
+1. **RISE is not sized as an arrival.** It has no seed. Its level comes from
+   its 2024 national share in Johannesburg, and the spine gives it the
+   national-only route (`levels.spine`). The paragraph above placing it "where
+   the 2021 record is ActionSA forecast at 34 against an actual 44" describes a
+   mechanism RISE does not go through.
+2. **The quantity transferred is not GOOD's 2021 local vote.** The 6,773
+   (0.367%) above is GOOD's 2021 count over both ballots. The mechanism moves
+   GOOD's share of the 2024 national baseline, 0.225% (3,186 of 1,415,548 in
+   `npe2024_JHB`), onto RISE's 1.557%. Under the owner's rule that a merger
+   never creates a record the successor lacks (DESIGN-decided §10), GOOD's 2021
+   local vote reaches RISE nowhere, because RISE has no 2021 local record.
+
+The event is also not a legal merger: on 2026-05-25 GOOD and RISE announced
+they would contest under their own names with integrated structures
+(SOURCES.md, "Mergers").
+
+### The seat prediction above is scored as written, and cannot discriminate
+
+"RISE's median moves up by 0 to 2 seats and no other party's median moves by
+more than 1" is satisfied by a transfer of exactly zero. It will be scored as
+written, and a pass is recorded as uninformative about whether the mechanism
+works.
+
+### New prediction, on r × P in vote share
+
+With P_GOOD = 0.2251% and B_RISE = 1.5569% (2024 national shares, Johannesburg),
+Forum 4 Service Delivery 0.0184% and ActionSA 6.2176%. Measured on
+`run_model` at Johannesburg 2026, one seed and one draw count for every r,
+r ∈ {0, 0.5, 0.75, 1.0}:
+
+1. **Delivery.** The transfer each run records equals r × P for both
+   declarations, to float precision. Any other value falsifies the wiring.
+2. **RISE's mean drawn PR share rises strictly with r**, and at r = 0.75 its
+   ratio to the r = 0 mean lies in **[1.065, 1.130]**: between 0.6 and 1.2
+   times the proportional expectation 0.75 × P_GOOD / B_RISE = 10.8%. The
+   national-only route multiplies RISE's national share by one retention
+   factor, so the level should move in proportion; the band allows for
+   renormalisation and the pool draw. Below 1.065 the transfer is being
+   absorbed somewhere; above 1.130 it is being amplified.
+3. **ActionSA's mean drawn PR share moves by less than 0.05 percentage points**
+   at every r (0.0184% × r × its retention).
+4. **No other party's mean drawn PR share moves by more than 0.10 percentage
+   points** at any r relative to r = 0. The transferred mass is at most 0.24pp,
+   and it comes from RISE's pools rather than any one party.
+5. **r = 0 is a no-op**: the drawn shares equal those of the same code with the
+   merger declarations removed.
+
+Falsified if any of 1–5 fails. A seat result is reported beside these and is
+not scored.

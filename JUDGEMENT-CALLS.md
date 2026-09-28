@@ -232,7 +232,8 @@ easiest kind to lose, because nothing can grep for them.
 | PIT seed derived per city-year | `compare_history._pit_seed` | Derived from the city-year name by CRC32; reproducible, and it cannot change a conclusion. | — | §D12 |
 | seat error summed over all parties | `compare_history.py` | Unchanged; parties that won nothing contribute 0, so the wider denominator does not inflate it. | — | §D14 |
 | modal ward winner as "the model's call" | `diagnose.py` | A defensible reading of a probabilistic forecast, and it is a reading. | — | §D15 |
-| a reader's PR shares stand for both ballots | `reader_seats.reader_seats` | Owner's decision (DESIGN-decided §9). A reader supplies one vote and ward winners, so each party's combined ward+PR vote is taken as share × `total_votes`. Measured cost against the model's own split ballots: `tests/test_reader_seats.py` prints it. | ⚖️ argued | §M1 |
+| a reader edits the combined vote | `reader_seats.reader_seats` | Owner's decision (DESIGN-decided §10, replacing §9's "PR shares stand for both ballots"). The reader's slider is each party's share of all votes on both ballots together (`combined_shares`), what Schedule 1 counts, with no conversion. What remains a choice: `total_votes` is the start state's combined total, and an exact tie falls by roster order where Schedule 1 says "by lot". The retired assumption's cost: `tests/test_reader_seats.py` prints it. | ⚖️ argued | §M1 |
+| `MERGER_RETENTION` (range `MERGER_RETENTION_RANGE`) | 0.75, range [0.5, 0.9] | `pools.apply_mergers` | Owner's decision 2026-09-28. The share of an off-ballot merger partner's baseline moved to the partner on the ballot, only onto records the successor already holds. Not measured: no merger in the archive is identifiable. Swept at 0, 0.5, 0.75 and 1.0 on Johannesburg 2026 (MODEL-LOG §1.275). | 🔴 | §O1 |
 
 ---
 
@@ -2576,8 +2577,33 @@ the electorate and belongs to C2.
 or turns out. Before this, the de facto value was **zero**: no votes, no party
 weight, and the pool dropped from the spec while `pool_shares_at_target` still
 sized it. Zero is also a judgement, and it is the one that contradicts the
-artefact. The city's own rate is the least informative value that keeps the
-pool in the electorate.
+artefact. **Amended 2026-09-29 (blind review, `audits/2026-09-29-pollster-blind/`).**
+The city's own rate is a prior for the held pool that is consistent with the
+panel: every held TURNOUT (0.436 to 0.560) lies inside the range the
+Indian/Asian pool's turnout takes across the 24 fitting years (0.048 to 0.815);
+the held registration rate at mangaung 2006 was not compared. It is not
+uninformative. It is a specific value, and it
+costs fit and moves other pools:
+
+* **Ward-level fit.** Sum of squared ward residuals of the level's solve, free
+  fit against held fit, on the fitting years of the declared targets
+  (measured 2026-09-29 by instrumenting `_nest_holding_silent` over the
+  population `test_no_fitting_year_leaves_a_pool_of_voters_casting_nothing`
+  scans): turnout at buffalocity 2011 +26.8% (RMS per ward 371 → 417 votes),
+  mangaung 2016 +6.2%, mangaung 2011 +1.6%, mangaung 2006 +1.0%; registration
+  at mangaung 2006 +0.2%.
+* **Displacement.** The re-fit lowers the other pools' rates in every case.
+  At buffalocity 2011 the White turnout goes 0.719 → 0.646 and the Coloured
+  0.600 → 0.529, each moving from above to below the median of that pool's
+  turnout across the 24 fitting years (White median 0.660, Coloured 0.544);
+  at mangaung the White turnout falls by 0.6 to 1.3 points. The held value
+  therefore pushes the White and Coloured pools toward the low end of their
+  panel range, and at Buffalo City the White pool is where the DA's capacity
+  is tightest (§1.259).
+
+A re-fit that silences a second pool holds it by the same rule
+(`HoldCascadeRefused` if every populated pool would be held); on the
+population above this happens nowhere.
 
 **The cells it acts on.** Whatever
 `test_no_fitting_year_leaves_a_pool_of_voters_casting_nothing` prints is the
@@ -2813,6 +2839,23 @@ levels and logic". Asking the reader for two ballots doubles the edit.
 combined tally, statute invariants, two hand-worked item 16 councils, and one
 refusal per validation.
 
+**Amended 2026-09-28 — the assumption is retired; the reader edits the
+combined vote.** Owner, DESIGN-decided §10, after the blind pollster review
+(`audits/2026-09-29-pollster-blind/`): the reader's slider shows each party's
+share of all votes on both ballots together, exactly what Schedule 1 counts,
+with no conversion. The input is `combined_shares`, so no PR share stands for
+anything and nothing above about a PR-ballot input applies to the live code.
+The reason is the measurement in MODEL-LOG §1.270: fed a draw's PR-ballot
+share, the arithmetic moved seats in every draw at Johannesburg 2021 and 2026,
+while the draw's combined share reproduces every draw exactly.
+`test_the_pr_ballot_assumption_is_measured_not_asserted` still prints that
+cost, as the evidence for this decision. What remains a choice: `total_votes`
+is the start state's combined total, supplied by the page and the saved-forecast
+service from the model artefact, and an exact tie (in the quota's remainder or
+in the vote rounding, `reader_seats.combined_votes`) falls by roster order
+where Schedule 1 says "by lot". The register row above keeps its original name
+for this entry.
+
 ## N. Added 2026-09-28 — re-weighting the published draws (PLAN.md S4)
 
 ### §N1 · `MIN_EFFECTIVE_DRAWS` = 200 — 🟡
@@ -2838,6 +2881,55 @@ constructed case and not refusing a modest move; the effective draws at the
 headline turnout setting print when that module runs. A reader's view of where
 the control greys out is the effective-draw count the page prints beside every
 figure.
+
+**Measured 2026-09-28 (MODEL-LOG §1.273).** At Kish = 200 on the published
+run's draws, the worst party's 5th percentile is read from about ten effective
+draws on its side and a 95th from two to seven (`reweight.tail_effective_draws`).
+The floor holds for a mean and does not hold for a tail band. A separate tail
+floor would be a new judgement call; none is set.
+
+## O. Added 2026-09-29 — mergers (F5, audits/2026-09-29-mergers/SPEC.md)
+
+### §O1 · `MERGER_RETENTION` — 0.75, range [0.5, 0.9] — 🔴 declared, not measured
+
+**Where.** `pools.MERGER_RETENTION`, read at call time by `pools.apply_mergers`,
+which every function in `pools.MERGER_CONSUMERS` calls: `montecarlo.run_model`
+(the national baseline and every VD, then the preceding local PR shares),
+`pools.emit_pools` (the spec's baseline and the successor's pool vector), and
+`theta_residual._residuals_cached`. The declarations are data, `pools.MERGERS`,
+with sources in SOURCES.md "Mergers".
+
+**What.** A merger partner NOT on the target's ballot hands `MERGER_RETENTION`
+of its share to the partner that IS, in each election's shares the consumer
+passes. The remainder, (1 − r) of it, is then removed by the off-ballot drop as
+the whole of it was before. Which partner inherits is read from the roster per
+city and target; nothing in code names a successor. Two partners on the ballot
+with a third off it is refused. The successor's pool vector becomes the
+mass-weighted blend of its own and the predecessor's (`pools.merged_vector`).
+
+**The rule that goes with it (owner, DESIGN-decided §10).** A merger adds to a
+record the successor already holds and never creates one. RISE has a 2024
+national record and no 2021 local one, so it takes GOOD's transfer on the
+national route only; ActionSA takes Forum 4 Service Delivery's on both.
+
+**Why it is a judgement.** No merger in the archive identifies a retention.
+The two with elections on both sides (ID into the DA; NNP into the ANC) give
+naive citywide retentions from −17 to +56, because the successor's own swing is
+5 to 20 times the predecessor's mass (SPEC §1). The value is the owner's: a
+merger is "not a perfect combination". The blind review (2026-09-29)
+recommended 0.5 in [0.3, 0.8], on the reading that GOOD–RISE is a stand-down
+pact whose voters follow incompletely; recorded, not adopted.
+
+**How big it is.** The share moved is r × the predecessor's baseline share,
+which MODEL-LOG §1.275 tabulates for each r with the resulting
+medians. It acts at the 2026 targets only: no declared merger predates a held
+election, so no backtest row moves and the backtest cannot score it.
+
+**How to check it.** Against the 2026 result: RISE's and ActionSA's shares
+relative to their 2024 baselines. Tests: `test_roster_aware_baseline.py`'s
+merger block (r × P on constructed shares, the no-new-record rule with its
+revert, the roster's direction, the real-baseline transfer, the consumer scan
+in both directions, and that the mechanism names no party).
 
 ## Appendix — how this register has failed before
 

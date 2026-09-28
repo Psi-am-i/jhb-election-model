@@ -127,7 +127,7 @@ function summary(draws, w) {
 
 const base = (() => { const d = D.cells[`ds${D.grid_default.dirichlet_scale}_wb${D.grid_default.w_bye}`];
   const save = st.law; st.law = "deduct"; const s = summary(d, d.map(() => 1)); st.law = save; return s; })();
-let lastPR = null;
+let lastShare = null;
 
 function update() {
   const draws = cell();
@@ -167,7 +167,12 @@ function update() {
     `<span class="ess">${Math.round(ess)} eff.</span>`;
   announce($("#live"), rows.slice(0, 5).map(c => `${byCode[c].name} ${s[c][1]}`).join(", "));
 
-  lastPR = Object.fromEntries(P.map((c, k) => [c,
+  // The start state handed to "make your own": each party's share of the
+  // vote, which the builder shows as the COMBINED vote (DESIGN-decided §10).
+  // ⚠ PLACEHOLDER: the synthetic draws carry one share per party (`pr`); the
+  // S2 export must carry each draw's combined share for this hand-off, not its
+  // list-ballot share.
+  lastShare = Object.fromEntries(P.map((c, k) => [c,
     Math.round(draws.reduce((a, d, i) => a + d.pr[k] * w[i], 0) / sw * 10) / 10]));
 }
 
@@ -175,7 +180,7 @@ $("#reset").addEventListener("click", () => { location.reload(); });
 $("#tomake").addEventListener("click", () => {
   try {
     sessionStorage.setItem("jhb-start-from", JSON.stringify({
-      calls: null, pr: lastPR, coalition: [], mayor: "" }));
+      calls: null, share: lastShare, coalition: [], mayor: "" }));
   } catch (e) {}
   location.href = "make.html";
 });

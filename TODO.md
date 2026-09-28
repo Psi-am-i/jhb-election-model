@@ -30,9 +30,9 @@ names what exists when it is done.
 |---|---|---|---|
 | F1 ✅ 28 Sept `bfa5d2b` | Record each draw's pool turnouts (not a draw change) | `tests/test_draw_record.py`: all `*draws` arrays identical with recording on and off at seed 20261104, and published seats byte-equal | ½ day |
 | F2 ✅ 28 Sept, MODEL-LOG §1.268 | Measure how much of the emitted pool seed survives the per-draw IPF (pool prereg D1). **Result: it survives whole, but C3's composition side and C4 move no seats, so F6 is deferred.** The `--run-dir` stage was not built | a `--run-dir` stage per city-year and party, and a MODEL-LOG § with the number. It decides whether C3 and C4 are in | ½ day |
-| F3 | C1 conservation: no spec drops a declared pool (queue 30) | prereg P1 holds by arithmetic on every emitted spec; test in `test_pool_bounds` | ½ day |
+| F3 🔧 implemented, not yet re-emitted (MODEL-LOG §1.269, §1.275) | C1 conservation: no spec drops a declared pool (queue 30) | prereg P1 holds by arithmetic on every emitted spec; test in `test_pool_bounds` | ½ day |
 | F4 | C2 unidentified pool levels, partial pooling (queue 31) | prereg P2: Cape Town Indian/Asian below 5% of the roll at all three cycles, eThekwini within 2 points | 1–2 days ⚠️ the hard one |
-| F5 | Mergers: search the panel for a measurable merger, else a 🔴 judgement row; `Merger` beside `Split` in `pools.py` | JUDGEMENT-CALLS row or a measured retention; the merger prereg's RISE prediction checkable | 1 day |
+| F5 🔧 implemented, not yet re-emitted (MODEL-LOG §1.275) | Mergers: search the panel for a measurable merger, else a 🔴 judgement row; `Merger` beside `Split` in `pools.py` | JUDGEMENT-CALLS row or a measured retention; the merger prereg's RISE prediction checkable | 1 day |
 | F6 ⏸ deferred by F2 | C3 and C4, only if F2 says they matter (queue 32, 33) | prereg P3; the single-pool count falls from 37 | 0–1 day |
 | F7 | Blind review of F3–F6, brief committed before it runs | brief in `audits/`, findings applied or taken to the owner | ½ day |
 | F8 | One re-emit of every spec (backup first; timed) | `declares.py --verify` shows no `~` on specs; suite run | hours |

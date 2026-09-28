@@ -1,0 +1,1485 @@
+{
+ "city": "buffalocity",
+ "year": "2016",
+ "draws": 2000,
+ "seed": 20261104,
+ "control": "none",
+ "c4_party": null,
+ "plant_party": null,
+ "plant_wards": [
+  "29200001",
+  "29200002"
+ ],
+ "relabel_entrant": null,
+ "seconds": 14.8,
+ "spec": "data/processed/buffalocity/pools_2016.json",
+ "universe": [
+  "ACDP",
+  "AIC",
+  "ANC",
+  "COPE",
+  "DA",
+  "EFF",
+  "PAC",
+  "PEOPLES_ALLIANCE",
+  "UDM",
+  "UNITED_CONGRESS",
+  "UNITED_FRONT_OF_THE_EASTERN_CAPE"
+ ],
+ "n_wards_model": 50,
+ "n_wards_actual": {
+  "PR": 50,
+  "Ward": 50
+ },
+ "unmatched_actual_wards": {
+  "PR": [],
+  "Ward": []
+ },
+ "cells_scanned": {
+  "PR": 574,
+  "Ward": 419
+ },
+ "near_zero_counts": {
+  "PR": {
+   "1e-12": 47,
+   "1e-09": 47,
+   "1e-06": 47,
+   "0.0001": 47,
+   "0.001": 47
+  },
+  "Ward": {
+   "1e-12": 33,
+   "1e-09": 33,
+   "1e-06": 33,
+   "0.0001": 33,
+   "0.001": 33
+  }
+ },
+ "min_vd_share_W": {
+  "ACDP": 4.564689516694324e-07,
+  "AIC": 7.609493604313833e-07,
+  "ANC": 0.000980401765101921,
+  "COPE": 2.899889714852308e-07,
+  "DA": 0.001050473449210546,
+  "EFF": 2.556710862721509e-05,
+  "PAC": 1.4115986816341423e-07,
+  "PEOPLES_ALLIANCE": 3.357662787449998e-07,
+  "UDM": 2.1437440968129474e-07,
+  "UNITED_CONGRESS": 6.242721996031349e-07,
+  "UNITED_FRONT_OF_THE_EASTERN_CAPE": 3.5427651700379517e-07
+ },
+ "min_over_wards_of_max_share": {
+  "W": {
+   "ACDP": 0.11877701934536546,
+   "AIC": 0.3144148724882316,
+   "ANC": 0.2988928043384951,
+   "COPE": 0.06006452972901071,
+   "DA": 0.2922429277041632,
+   "EFF": 0.07682329101792211,
+   "PAC": 0.057758076989236413,
+   "PEOPLES_ALLIANCE": 0.06670698170299341,
+   "UDM": 0.023157445641526275,
+   "UNITED_CONGRESS": 0.0668090073413994,
+   "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.06739548378878209
+  },
+  "PR": {
+   "ACDP": 0.10447460133625142,
+   "AIC": 0.14777278648929762,
+   "ANC": 0.36689559688335693,
+   "COPE": 0.04496927856096391,
+   "DA": 0.2938739204801134,
+   "EFF": 0.1078517453335626,
+   "PAC": 0.06355727578595144,
+   "PEOPLES_ALLIANCE": 0.07987305021358965,
+   "UDM": 0.05489029754719322,
+   "UNITED_CONGRESS": 0.08286704177844893,
+   "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.08917731862734425
+  }
+ },
+ "zero_cells": [
+  {
+   "ballot": "PR",
+   "ward": "29200001",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 5,
+   "ward_total": 4960,
+   "share": 0.0010080645161290322,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 4960,
+   "share": 0.00020161290322580645,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200003",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 3,
+   "ward_total": 3350,
+   "share": 0.0008955223880597015,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200005",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 2,
+   "ward_total": 5067,
+   "share": 0.00039471087428458656,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200006",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 6,
+   "ward_total": 4516,
+   "share": 0.001328609388839681,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200007",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 1,
+   "ward_total": 3707,
+   "share": 0.0002697599136768276,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200008",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 24,
+   "ward_total": 5064,
+   "share": 0.004739336492890996,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200009",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 2,
+   "ward_total": 4839,
+   "share": 0.0004133085348212441,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200010",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 1,
+   "ward_total": 5349,
+   "share": 0.0001869508319312021,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200011",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 4,
+   "ward_total": 4175,
+   "share": 0.0009580838323353293,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200012",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 5,
+   "ward_total": 4341,
+   "share": 0.001151808339092375,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200013",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 50,
+   "ward_total": 4711,
+   "share": 0.010613457864572278,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200014",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 3,
+   "ward_total": 3783,
+   "share": 0.0007930214115781126,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200015",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 8,
+   "ward_total": 5394,
+   "share": 0.0014831294030404152,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200016",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 17,
+   "ward_total": 4310,
+   "share": 0.00394431554524362,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200017",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 9,
+   "ward_total": 4210,
+   "share": 0.0021377672209026127,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200018",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 1,
+   "ward_total": 6117,
+   "share": 0.00016347882949158083,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200019",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 1,
+   "ward_total": 4773,
+   "share": 0.00020951183741881415,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200020",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 7,
+   "ward_total": 5039,
+   "share": 0.0013891645167692002,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200022",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 6,
+   "ward_total": 4829,
+   "share": 0.0012424932698281218,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200023",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 7,
+   "ward_total": 4335,
+   "share": 0.0016147635524798155,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200024",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 20,
+   "ward_total": 4978,
+   "share": 0.004017677782241864,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200025",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 11,
+   "ward_total": 3440,
+   "share": 0.003197674418604651,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200026",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 11,
+   "ward_total": 4936,
+   "share": 0.002228525121555916,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200027",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 1,
+   "ward_total": 5111,
+   "share": 0.00019565642731363725,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200028",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 2,
+   "ward_total": 6617,
+   "share": 0.0003022517757291824,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200030",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 11,
+   "ward_total": 3945,
+   "share": 0.002788339670468948,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200031",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 14,
+   "ward_total": 4809,
+   "share": 0.002911208151382824,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200032",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 4,
+   "ward_total": 4594,
+   "share": 0.0008707009142359599,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200033",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 4,
+   "ward_total": 4901,
+   "share": 0.0008161599673536013,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200034",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 8,
+   "ward_total": 4351,
+   "share": 0.0018386577798207308,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200035",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 5,
+   "ward_total": 5076,
+   "share": 0.0009850275807722615,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200036",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 1,
+   "ward_total": 4060,
+   "share": 0.0002463054187192118,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200037",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 4,
+   "ward_total": 4808,
+   "share": 0.0008319467554076539,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200038",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 17,
+   "ward_total": 4161,
+   "share": 0.004085556356645037,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200039",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 14,
+   "ward_total": 4587,
+   "share": 0.003052103771528232,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200040",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 46,
+   "ward_total": 4659,
+   "share": 0.00987336338270015,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200041",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 5,
+   "ward_total": 3406,
+   "share": 0.001467997651203758,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200042",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 37,
+   "ward_total": 3484,
+   "share": 0.010619977037887486,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200043",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 10,
+   "ward_total": 4332,
+   "share": 0.0023084025854108957,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200044",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 10,
+   "ward_total": 4962,
+   "share": 0.002015316404675534,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200045",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 18,
+   "ward_total": 4773,
+   "share": 0.003771213073538655,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200046",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 1,
+   "ward_total": 5287,
+   "share": 0.00018914318138831096,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200047",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 20,
+   "ward_total": 2894,
+   "share": 0.006910850034554251,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200048",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 5,
+   "ward_total": 4040,
+   "share": 0.0012376237623762376,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200049",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 3,
+   "ward_total": 4044,
+   "share": 0.000741839762611276,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "29200050",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 2,
+   "ward_total": 4575,
+   "share": 0.0004371584699453552,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 4974,
+   "share": 0.0002010454362685967,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200004",
+   "party": "IND",
+   "votes": 24,
+   "ward_total": 6161,
+   "share": 0.003895471514364551,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200007",
+   "party": "IND",
+   "votes": 574,
+   "ward_total": 3731,
+   "share": 0.15384615384615385,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200008",
+   "party": "IND",
+   "votes": 982,
+   "ward_total": 5056,
+   "share": 0.1942246835443038,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200010",
+   "party": "IND",
+   "votes": 312,
+   "ward_total": 5404,
+   "share": 0.05773501110288675,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200011",
+   "party": "IND",
+   "votes": 342,
+   "ward_total": 4233,
+   "share": 0.08079376328844791,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200013",
+   "party": "IND",
+   "votes": 1036,
+   "ward_total": 4908,
+   "share": 0.2110839445802771,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200013",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 3,
+   "ward_total": 4908,
+   "share": 0.0006112469437652812,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200014",
+   "party": "IND",
+   "votes": 69,
+   "ward_total": 3949,
+   "share": 0.01747277791846037,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200015",
+   "party": "IND",
+   "votes": 255,
+   "ward_total": 5447,
+   "share": 0.046814760418579036,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200017",
+   "party": "IND",
+   "votes": 836,
+   "ward_total": 4267,
+   "share": 0.19592219357862667,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200020",
+   "party": "IND",
+   "votes": 335,
+   "ward_total": 5036,
+   "share": 0.06652104845115171,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200023",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 6,
+   "ward_total": 4356,
+   "share": 0.0013774104683195593,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200024",
+   "party": "IND",
+   "votes": 55,
+   "ward_total": 5058,
+   "share": 0.010873863187030448,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200024",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 25,
+   "ward_total": 5058,
+   "share": 0.0049426650850138395,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200025",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 6,
+   "ward_total": 3445,
+   "share": 0.0017416545718432512,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200026",
+   "party": "IND",
+   "votes": 1008,
+   "ward_total": 5125,
+   "share": 0.1966829268292683,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200030",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 8,
+   "ward_total": 3918,
+   "share": 0.002041858090862685,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200032",
+   "party": "IND",
+   "votes": 593,
+   "ward_total": 4557,
+   "share": 0.13012947114329604,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200033",
+   "party": "IND",
+   "votes": 82,
+   "ward_total": 4894,
+   "share": 0.016755210461789946,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200035",
+   "party": "IND",
+   "votes": 760,
+   "ward_total": 5032,
+   "share": 0.151033386327504,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200037",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 4,
+   "ward_total": 4823,
+   "share": 0.0008293593199253577,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200038",
+   "party": "IND",
+   "votes": 431,
+   "ward_total": 4190,
+   "share": 0.10286396181384248,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200039",
+   "party": "IND",
+   "votes": 71,
+   "ward_total": 4572,
+   "share": 0.01552930883639545,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200039",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 11,
+   "ward_total": 4572,
+   "share": 0.002405949256342957,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200040",
+   "party": "IND",
+   "votes": 895,
+   "ward_total": 4875,
+   "share": 0.1835897435897436,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200040",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 19,
+   "ward_total": 4875,
+   "share": 0.0038974358974358976,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200041",
+   "party": "IND",
+   "votes": 70,
+   "ward_total": 3251,
+   "share": 0.02153183635804368,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200042",
+   "party": "IND",
+   "votes": 946,
+   "ward_total": 3707,
+   "share": 0.2551928783382789,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200044",
+   "party": "IND",
+   "votes": 488,
+   "ward_total": 4965,
+   "share": 0.09828801611278953,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200044",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 2,
+   "ward_total": 4965,
+   "share": 0.0004028197381671702,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200045",
+   "party": "IND",
+   "votes": 2091,
+   "ward_total": 5032,
+   "share": 0.4155405405405405,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200048",
+   "party": "PAN_AFRICANIST_MOVEMENT",
+   "votes": 4,
+   "ward_total": 3994,
+   "share": 0.00100150225338007,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  }
+ ]
+}

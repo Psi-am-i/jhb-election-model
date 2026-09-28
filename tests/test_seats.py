@@ -49,7 +49,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _support import ROOT, run_module, skip  # noqa: E402
 
 import official_seats  # noqa: E402
-from seats import INDEPENDENT, allocate, eligible_parties  # noqa: E402
+from seats import (INDEPENDENT, allocate, eligible_parties,  # noqa: E402
+                   outside_pool_wards, overhang, pr_seats)
 
 ELECTIONS = ROOT / "data" / "raw" / "elections"
 REPORTS = ELECTIONS / "_reports"
@@ -377,6 +378,201 @@ def test_constructed_quota_is_struck_over_seats_less_C_and_D():
         f"the no-deduction control allocates {ignoring.seats}, should be "
         f"BIG 5, MID 3, SMALL 2 — if this ever equals the deducted answer the "
         f"test above can no longer tell the two rules apart")
+
+
+# --------------------------------------------------------------------------
+# outside_pool_wards, and the council it feeds — a second constructed case
+# --------------------------------------------------------------------------
+#
+# The case above derives C and D INLINE, so it never calls
+# `seats.outside_pool_wards` — the function every production caller
+# (`montecarlo`, `benchmarks`, `reader_seats`) uses to split ward wins into C, D
+# and the wins that stay in the pool. The mutation pilot
+# (audits/2026-09-29-mutation/runs/pilot/report.md, `src/seats.py`) found that
+# inverting its last line to `if p in outside` moved `seat_draws`,
+# `excessive_draws` and `over_draws` while every test stayed green. It also
+# found `in`/`not in` swaps on the C and D sums that no test executed, and the
+# C = D = 1 case above could not have told them apart anyway. So this council
+# has C != D, spells its independent "IND" (the merged-row alias the result
+# files use), and gives a pool party wards equal to and above its entitlement.
+#
+#   B = 12 seats. Combined (ward + PR) votes of the list parties:
+#       BIG 10,000   MID 5,000   SMALL 3,200            A = 18,200
+#   Wards won:
+#       IND 2 (independent: out through C)
+#       NOLIST 1 (contested a ward, registered no PR list: out through D)
+#       SMALL 3   MID 2   BIG 0
+#   (Eight wards on twelve seats is not a real metro's ratio; nothing in the
+#   arithmetic below depends on it.)
+#
+#   C = 2, D = 1, so B - C - D = 9 seats in the pool.
+#   Q = 18,200 // 9 + 1 = 2,022 + 1 = 2,023           (9 x 2,022 = 18,198)
+#   floors: BIG 10,000 // 2,023 = 4 (8,092, remainder 1,908 -> .943)
+#           MID  5,000 // 2,023 = 2 (4,046, remainder   954 -> .472)
+#           SMALL 3,200 // 2,023 = 1 (2,023, remainder 1,177 -> .582)
+#   7 by quota, 2 by largest remainder: BIG (.943), SMALL (.582).
+#   Entitlement: BIG 5, MID 2, SMALL 2  (sums to 9).
+#
+#   Ward/PR split (`pr_seats`, entitlement less POOL wins):
+#       BIG 5 - 0 = 5,  MID 2 - 2 = 0,  SMALL 2 - 3 = -1
+#   `overhang` (wins strictly above entitlement): SMALL by 1.
+#
+#   Item 16 as amended by Act 3/2021 (`allocate_with_overhang(rule="deduct")`,
+#   the statutory rule; derivation as in tests/test_overhang.py): a party whose
+#   wards are EQUAL TO OR GREATER than its entitlement keeps its wards and gets
+#   no list seats. SMALL (3 >= 2) and MID (2 >= 2) are both fixed. The quota is
+#   re-struck for the rest over the seats left:
+#       (18,200 - 3,200 - 5,000) // (12 - 3 - 2 - 2 - 1) + 1
+#       = 10,000 // 4 + 1 = 2,501
+#       BIG 10,000 // 2,501 = 3 (7,503), 4 - 3 = 1 seat by remainder -> BIG 4
+#   Council: BIG 4 + MID 2 + SMALL 3 + C 2 + D 1 = 12, and stays 12.
+
+POOL_COMBINED = {"BIG": 10000, "MID": 5000, "SMALL": 3200}
+POOL_WARD_WINS = {"IND": 2, "NOLIST": 1, "SMALL": 3, "MID": 2}
+POOL_COUNCIL = 12
+
+
+def test_outside_pool_wards_splits_C_D_and_the_pool_on_a_constructed_council():
+    """C, D and the pool wins, each counted from a council where C != D."""
+    c, d, pool = outside_pool_wards(dict(POOL_WARD_WINS), dict(POOL_COMBINED))
+    assert c == 2, (
+        f"C is {c}, should be 2 — the two wards the independent (row name "
+        f"'IND', the IEC's merged alias) won")
+    assert d == 1, (
+        f"D is {d}, should be 1 — NOLIST won a ward and is not in the combined "
+        f"pool because it registered no PR list")
+    assert pool == {"SMALL": 3, "MID": 2}, (
+        f"pool wins are {pool}, should be SMALL 3, MID 2 — every ward won by a "
+        f"party that stays in the quota pool, and nothing that left through C "
+        f"or D")
+
+
+def test_the_constructed_council_splits_ward_and_list_seats_as_schedule_1_requires():
+    """Entitlement, then the ward/list split, over `outside_pool_wards`' pool."""
+    c, d, pool = outside_pool_wards(dict(POOL_WARD_WINS), dict(POOL_COMBINED))
+    result = allocate(dict(POOL_COMBINED), total_seats=POOL_COUNCIL,
+                      independent_wards=c, no_pr_list_wards=d)
+    assert result.total_votes == 18200, f"A is {result.total_votes}, should be 18,200"
+    assert result.seats_available == 9, (
+        f"B - C - D is {result.seats_available}, should be 12 - 2 - 1 = 9")
+    assert result.quota == 2023, (
+        f"quota is {result.quota:,}, should be 18,200 // 9 + 1 = 2,023")
+    assert result.seats == {"BIG": 5, "MID": 2, "SMALL": 2}, (
+        f"entitlement is {result.seats}, should be BIG 5, MID 2, SMALL 2 "
+        f"(4 + 2 + 1 on the quota; BIG .943 and SMALL .582 take the two "
+        f"remainder seats over MID's .472)")
+    # `top` sorts stably on seat count, so MID (first in `combined`) precedes
+    # SMALL on the 2-2 tie.
+    assert result.top(2) == [("BIG", 5), ("MID", 2)], (
+        f"top(2) is {result.top(2)}; should be exactly BIG 5 then MID 2")
+
+    split = pr_seats(result, pool)
+    assert split == {"BIG": 5, "MID": 0, "SMALL": -1}, (
+        f"list seats are {split}, should be BIG 5 - 0 = 5, MID 2 - 2 = 0, "
+        f"SMALL 2 - 3 = -1. Any IND or NOLIST key means the C/D wards were "
+        f"charged against the pool")
+    assert overhang(result, pool) == {"SMALL": 1}, (
+        f"overhang is {overhang(result, pool)}, should be SMALL by 1 only — "
+        f"MID holds exactly its entitlement, which is not an excess")
+
+
+def test_the_constructed_council_under_item_16_is_the_statutory_one():
+    """The whole chain production runs per draw, on the statutory `deduct` rule.
+
+    `eligible_parties` -> `outside_pool_wards` -> `allocate_with_overhang`, as
+    `montecarlo.run_model` calls them. Expected values are the long division in
+    the block comment above, not model output.
+
+    Under the pilot's line-102 mutant (`if p in outside`), the pool wins become
+    {IND: 2, NOLIST: 1}. Neither is in `combined`, so `allocate_with_overhang`'s
+    ghost-winner guard raises ValueError before any seat is computed: the kill
+    in THIS test is that exception. The value kill is in the two tests above.
+    """
+    import montecarlo as M
+    from test_overhang import council_of
+
+    c, d, pool = outside_pool_wards(dict(POOL_WARD_WINS), dict(POOL_COMBINED))
+    with council_of(POOL_COUNCIL):
+        seats, council, threshold, over = M.allocate_with_overhang(
+            dict(POOL_COMBINED), pool, "deduct",
+            independent_wards=c, no_pr_list_wards=d)
+    assert seats == {"BIG": 4, "MID": 2, "SMALL": 3}, (
+        f"seats are {seats}, should be BIG 4, MID 2, SMALL 3: SMALL and MID "
+        f"keep their wards (3 >= 2, 2 >= 2) and BIG takes the re-struck pool, "
+        f"10,000 // 4 + 1 = 2,501 -> 3 + 1 by remainder")
+    assert "IND" not in seats and "NOLIST" not in seats, (
+        f"a party that left through C or D was seated from the pool: {seats}")
+    assert sum(seats.values()) + c + d == POOL_COUNCIL == council, (
+        f"{sum(seats.values())} pool seats + C {c} + D {d} != council "
+        f"{council} (should be {POOL_COUNCIL}; `deduct` never grows it)")
+    assert threshold == 7, f"majority threshold is {threshold}, should be 12 // 2 + 1"
+    assert over == {"MID": 0, "SMALL": 1}, (
+        f"item-16 parties are {over}, should be MID (excess 0, fixed on the "
+        f"'equal to' limb) and SMALL (excess 1)")
+
+
+def test_allocate_defaults_to_the_270_seat_council():
+    """`total_seats` defaults to Johannesburg's 270.
+
+    Production always passes `total_seats` (montecarlo passes `COUNCIL`), so no
+    forecast relies on this default; this pins it so a changed default is seen,
+    rather than surviving as the pilot's `270 -> 271` mutant did.
+    """
+    plain = allocate({"A": 200000, "B": 100000})
+    assert plain.seats_available == 270, plain.seats_available
+    assert sum(plain.seats.values()) == 270
+    deducted = allocate({"A": 200000, "B": 100000}, independent_wards=2,
+                        no_pr_list_wards=1)
+    assert deducted.seats_available == 267, (
+        f"270 - 2 - 1 should leave 267, got {deducted.seats_available}")
+
+
+def test_allocate_refuses_a_council_with_no_seats_left_and_fills_one_with_one():
+    """The `available <= 0` boundary, from both sides.
+
+    At zero it must raise ValueError with its own message. The mutants the pilot
+    left alive (`<=` -> `<`, and dropping the raise) reach `// 0` instead and
+    raise ZeroDivisionError, which `except ValueError` does not catch. At one
+    seat (`<= 0` -> `<= 1` would refuse it) the seat must go to the larger
+    remainder: Q = 15 // 1 + 1 = 16, floors 0 and 0, A .625 beats B .3125.
+    """
+    try:
+        allocate({"A": 10}, total_seats=3, independent_wards=2,
+                 no_pr_list_wards=1)
+    except ValueError as exc:
+        assert "no seats left to allocate (0)" in str(exc), str(exc)
+    else:
+        raise AssertionError("allocate accepted a council with 3 - 2 - 1 = 0 "
+                             "seats left")
+
+    one = allocate({"A": 10, "B": 5}, total_seats=3, independent_wards=1,
+                   no_pr_list_wards=1)
+    assert one.seats_available == 1 and one.quota == 16, (one.seats_available,
+                                                          one.quota)
+    assert one.seats == {"A": 1, "B": 0}, one.seats
+
+
+def test_allocate_fills_a_shortfall_equal_to_the_party_count_and_refuses_more():
+    """The largest-remainder guard at `shortfall > len(ranked)`, both sides.
+
+    EQUAL: votes A 3, B 2 over 4 seats. Q = 5 // 4 + 1 = 2; floors A 1, B 1;
+    shortfall 2 == 2 parties, so each gets one more: A 2, B 2. The pilot's
+    `>` -> `>=` mutant refuses this.
+    MORE: votes A 1, B 1 over 5 seats. Q = 2 // 5 + 1 = 1; floors 1 + 1;
+    shortfall 3 > 2 parties, which largest remainder cannot fill.
+    """
+    equal = allocate({"A": 3, "B": 2}, total_seats=4)
+    assert equal.quota == 2 and equal.round_one == {"A": 1, "B": 1}, (
+        equal.quota, equal.round_one)
+    assert equal.seats == {"A": 2, "B": 2}, equal.seats
+
+    try:
+        allocate({"A": 1, "B": 1}, total_seats=5)
+    except ValueError as exc:
+        assert "shortfall 3 exceeds party count 2" in str(exc), str(exc)
+    else:
+        raise AssertionError("allocate handed out 5 seats to 2 one-vote parties "
+                             "with a shortfall it cannot fill")
 
 
 def _make(code: str, year: int, has_votes: bool, has_official: bool):

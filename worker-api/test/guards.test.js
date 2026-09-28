@@ -2,7 +2,7 @@
 import { describe, it, expect } from "vitest";
 import { env } from "cloudflare:test";
 import { exports } from "cloudflare:workers";
-import { checkSeatAnswer, computeSeats } from "../src/seats.js";
+import { checkSeatAnswer, computeSeats, seatRequest } from "../src/seats.js";
 import { checkIdToken, PROVIDERS } from "../src/providers.js";
 import { safeReturn } from "../src/auth.js";
 import { verifyTurnstile } from "../src/turnstile.js";
@@ -14,8 +14,40 @@ const worker = exports.default;
 
 async function goodAnswer(f = validForecast()) {
   return (await fakeSeats(new Request("https://seats/", { method: "POST",
-    body: JSON.stringify({ ward_calls: f.ward_calls, pr_share: f.pr_share, council_seats: schema["x-council"].council_seats }) }))).json();
+    body: JSON.stringify(seatRequest(f, schema)) }))).json();
 }
+
+describe("the seat request is reader_seats' own arguments", () => {
+  const f = validForecast();
+  const req = seatRequest(f, schema);
+  it("carries exactly the four arguments, by name", () => {
+    expect(Object.keys(req).sort()).toEqual(["combined_shares", "context", "total_votes", "ward_winners"]);
+  });
+  it("the shares are the reader's combined shares as fractions summing to 1", () => {
+    const sum = Object.values(req.combined_shares).reduce((a, b) => a + b, 0);
+    expect(Math.abs(sum - 1)).toBeLessThan(1e-12);
+    const pct = Object.values(f.combined_share).reduce((a, b) => a + b, 0);
+    for (const c of roster) expect(req.combined_shares[c]).toBeCloseTo(f.combined_share[c] / pct, 15);
+    expect(Object.keys(req.combined_shares)).toEqual(schema["x-seat-context"].parties);
+  });
+  it("a share sum inside the tolerance still reaches the service summing to 1", () => {
+    const g = clone(f); g.combined_share[roster[0]] += 0.4;
+    const sum = Object.values(seatRequest(g, schema).combined_shares).reduce((a, b) => a + b, 0);
+    expect(Math.abs(sum - 1)).toBeLessThan(1e-12);
+  });
+  it("every ward is keyed by its id, in ward_calls order", () => {
+    const ids = schema["x-ward-ids"];
+    expect(Object.keys(req.ward_winners)).toEqual(ids);
+    ids.forEach((w, i) => expect(req.ward_winners[w]).toBe(f.ward_calls[i]));
+  });
+  it("context and total_votes are the schema's, which the artefact supplied", () => {
+    const ctx = req.context;
+    expect(ctx.council).toBe(schema["x-council"].council_seats);
+    expect(ctx.wards).toEqual(schema["x-ward-ids"]);
+    expect(ctx.parties).toEqual(roster);
+    expect(Number.isInteger(req.total_votes) && req.total_votes > 0).toBe(true);
+  });
+});
 
 describe("the seat seam refuses an answer that does not add up", () => {
   const f = validForecast();
@@ -25,6 +57,9 @@ describe("the seat seam refuses an answer that does not add up", () => {
     ["a party off the roster", a => { a.seats.NOPE = 0; }],
     ["a fractional seat", a => { a.pr[roster[1]] += 0.5; a.seats[roster[1]] += 0.5; }],
     ["council total wrong", a => { a.council_total -= 1; }],
+    ["majority not half the council plus one", a => { a.majority += 1; }],
+    ["excessive missing", a => { delete a.excessive; }],
+    ["an excessive party off the roster", a => { a.excessive.NOPE = 1; }],
     ["no code_ref", a => { delete a.code_ref; }],
   ];
   for (const [what, mutate] of cases) {
@@ -41,6 +76,19 @@ describe("the seat seam refuses an answer that does not add up", () => {
     expect(e.status).toBe(503);
     const e2 = await computeSeats({}, f, schema).catch(x => x);
     expect(e2.status).toBe(503);
+  });
+
+  it("the seat law refusing the picks is the reader's 422, naming the shares, not a 503", async () => {
+    const refusing = errors => ({ SEATS: { fetch: async () => Response.json({ errors }, { status: 422 }) } });
+    const e = await computeSeats(refusing(["wards won by parties with a zero share: ['X']"]), f, schema).catch(x => x);
+    expect(e.status).toBe(422);
+    expect(e.field).toBe("combined_share");
+    expect(e.message).toMatch(/zero share/);
+    // A 422 that does not say why is a broken service, not a reader error.
+    for (const bad of [[], "nope", [3]]) {
+      const e2 = await computeSeats(refusing(bad), f, schema).catch(x => x);
+      expect(e2.status).toBe(503);
+    }
   });
 
   it("a client-sent seats key is refused before the service is asked", async () => {

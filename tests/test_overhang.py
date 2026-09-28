@@ -712,10 +712,16 @@ def test_no_call_site_relies_on_the_signature_default():
     **What it guards NOW.** The blast radius is smaller and still real: a
     two-argument call takes the statute silently instead of the scenario's
     configured ``overhang_rule``, so a run under ``--set overhang_rule=cap`` or
-    a regime sweep gets ``deduct`` with no error anywhere. Both call sites pass
-    it explicitly — ``montecarlo.run_model`` passes ``scenario["overhang_rule"]``
-    and ``benchmarks.council_from_shares`` passes ``ctx.overhang_rule`` — and
-    this asserts that.
+    a regime sweep gets ``deduct`` with no error anywhere. Every call site
+    passes it explicitly — ``montecarlo.run_model`` passes
+    ``scenario["overhang_rule"]``, ``benchmarks.council_from_shares`` passes
+    ``ctx.overhang_rule``, and ``reader_seats.reader_seats`` passes
+    ``STATUTORY_VALUES["overhang_rule"]`` — and this asserts that.
+
+    ``reader_seats`` is the third site by decision, not by drift: a reader's
+    own forecast is seated by the statute alone (DESIGN-decided §9 and §10), so
+    it passes the statutory rule rather than a scenario's, and it is pinned by
+    name below so a fourth caller still fails.
 
     It also pins the configured default to ``"deduct"``, which is justified by
     the amended Act and the Laingsburg precedent, not by what the code returns.
@@ -742,13 +748,23 @@ def test_no_call_site_relies_on_the_signature_default():
     offenders, sites = _two_argument_overhang_calls(
         (ROOT / "src").glob("*.py"))
     # (1) IT LOOKED. `not offenders` is satisfied by finding no calls at all,
-    # and the whole population is two: benchmarks.py and montecarlo.py. If the
-    # function is renamed, inlined, or reached through an alias this scan goes
-    # to zero and reports success.
-    assert len(sites) == 2, (
-        f"allocate_with_overhang is called at {len(sites)} site(s) in src/, "
-        f"not the 2 this pins ({sites}). Zero means the name changed and this "
-        f"scan is examining nothing; three means a new caller nobody reviewed.")
+    # and the whole population is three, one per file: benchmarks.py,
+    # montecarlo.py and reader_seats.py. If the function is renamed, inlined,
+    # or reached through an alias this scan goes to zero and reports success.
+    #
+    # RE-RECORDED 2026-09-28 from two sites to three, deliberately:
+    # `reader_seats.reader_seats` seats a reader's forecast by the statute
+    # alone (audits/2026-09-27-interactive-levers/DESIGN-decided.md §9, §10)
+    # and passes `STATUTORY_VALUES["overhang_rule"]` explicitly. The files are
+    # pinned BY NAME, not only by count, so swapping one caller for another
+    # unreviewed one cannot keep the count and pass.
+    expected = {"benchmarks.py", "montecarlo.py", "reader_seats.py"}
+    files = sorted(site.split(":", 1)[0] for site in sites)
+    assert len(sites) == len(expected) and set(files) == expected, (
+        f"allocate_with_overhang is called at {len(sites)} site(s) in src/ "
+        f"({sites}), not once in each of {sorted(expected)}. Zero means the "
+        f"name changed and this scan is examining nothing; a new file or a "
+        f"second call in one file is a new caller nobody reviewed.")
     assert not offenders, (
         "these calls omit the rule and therefore silently take the SIGNATURE "
         "default — the statute, `deduct` — instead of the scenario's "

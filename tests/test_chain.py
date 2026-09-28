@@ -89,6 +89,7 @@ Runs standalone or under pytest::
 from __future__ import annotations
 
 import collections
+import copy
 import csv
 import os
 import json
@@ -895,22 +896,46 @@ def test_the_model_is_reproducible_from_its_seed():
 
 def test_the_model_refuses_to_run_without_a_pool_spec():
     """There is no second engine. A missing spec must be an error, not a quiet
-    substitution — this repo has twice shipped a different model by accident."""
+    substitution — this repo has twice shipped a different model by accident.
+
+    The spec is hidden by pointing the city's processed directory at an EMPTY
+    temporary one, not by renaming the live ``data/processed/pools_2026.json``.
+    The rename made this test a writer of shared, gitignored state: any other
+    process holding the shared artefact lock (a ``compare_history``, a second
+    suite) saw the live forecast's spec vanish, and a hard kill mid-test left
+    it renamed with nothing to restore it. ``run_model`` reads the spec from
+    ``target.city.processed`` and nowhere else, so overriding that one property
+    on a copy of the city hides it from this call only.
+
+    The refusal is matched on its own message and path. Returning on ANY
+    ``SystemExit`` passed vacuously whenever something earlier exited first.
+    """
     city = _city()
-    target = cityconfig.use_target(TARGET)
+    cityconfig.use_target(TARGET)
     scenario = mc.load_scenario(_Args(draws=10))
     scenario["pools"] = {}
-    moved = city.processed / f"pools_{TARGET}.json"
-    if not moved.exists():
-        skip("no spec on disk to hide")
-    backup = moved.with_suffix(".json.testbak")
-    moved.rename(backup)
-    try:
-        mc.run_model(target, scenario, verbose=False)
-    except SystemExit:
-        return
-    finally:
-        backup.rename(moved)       # always restore, even on assertion failure
+    with tempfile.TemporaryDirectory(prefix="no-pool-spec-") as tmp:
+        empty = Path(tmp)
+
+        class _Specless(type(city)):
+            @property
+            def processed(self) -> Path:
+                return empty
+
+        hidden = copy.copy(city)
+        hidden.__class__ = _Specless
+        target = cityconfig.Target(city=hidden, year=TARGET)
+        try:
+            mc.run_model(target, scenario, verbose=False)
+        except SystemExit as exc:
+            message = str(exc)
+            assert "no pool spec at" in message, (
+                f"run_model exited, but not with the missing-spec refusal: "
+                f"{message[:300]}")
+            assert str(empty / f"pools_{TARGET}.json") in message, (
+                f"the refusal names a path other than the hidden one: "
+                f"{message[:300]}")
+            return
     raise AssertionError("run_model produced a forecast with no pool spec")
 
 

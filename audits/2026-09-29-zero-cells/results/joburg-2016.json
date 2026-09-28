@@ -1,0 +1,6775 @@
+{
+ "city": "joburg",
+ "year": "2016",
+ "draws": 2000,
+ "seed": 20261104,
+ "control": "none",
+ "c4_party": null,
+ "plant_party": null,
+ "plant_wards": [
+  "79800001",
+  "79800002"
+ ],
+ "relabel_entrant": null,
+ "seconds": 32.6,
+ "spec": "data/processed/pools_2016.json",
+ "universe": [
+  "ACDP",
+  "AFRICAN_PEOPLE_S_SOCIALIST_PARTY",
+  "AGANG",
+  "AIC",
+  "ANC",
+  "APC",
+  "AZAPO",
+  "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+  "BUILDING_A_COHESIVE_SOCIETY",
+  "COPE",
+  "DA",
+  "EFF",
+  "IFP",
+  "INTERNATIONAL_REVELATION_CONGRESS",
+  "PA",
+  "PAC",
+  "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA",
+  "PEOPLE_S_CIVIC_ORGANISATION",
+  "PREM_PEOPLES_AGENDA",
+  "TRULY_ALLIANCE",
+  "UBUNTU_PARTY",
+  "UDM",
+  "UNITED_FRONT_OF_CIVICS",
+  "VFPLUS"
+ ],
+ "n_wards_model": 135,
+ "n_wards_actual": {
+  "PR": 135,
+  "Ward": 135
+ },
+ "unmatched_actual_wards": {
+  "PR": [],
+  "Ward": []
+ },
+ "cells_scanned": {
+  "PR": 2811,
+  "Ward": 1674
+ },
+ "near_zero_counts": {
+  "PR": {
+   "1e-12": 252,
+   "1e-09": 252,
+   "1e-06": 252,
+   "0.0001": 252,
+   "0.001": 252
+  },
+  "Ward": {
+   "1e-12": 138,
+   "1e-09": 138,
+   "1e-06": 138,
+   "0.0001": 138,
+   "0.001": 138
+  }
+ },
+ "min_vd_share_W": {
+  "ACDP": 5.511192576891343e-07,
+  "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 7.241325116441245e-07,
+  "AGANG": 3.3229223191044396e-07,
+  "AIC": 6.845373940896724e-07,
+  "ANC": 0.008251494367852654,
+  "APC": 7.968395329082644e-07,
+  "AZAPO": 7.681187434679362e-07,
+  "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 7.304510637745363e-07,
+  "BUILDING_A_COHESIVE_SOCIETY": 7.079869976981502e-07,
+  "COPE": 5.492226593879919e-07,
+  "DA": 0.0018474288906820562,
+  "EFF": 0.00011763910732747643,
+  "IFP": 3.9361224228257614e-07,
+  "INTERNATIONAL_REVELATION_CONGRESS": 6.845373940896724e-07,
+  "PA": 6.6780658079632e-07,
+  "PAC": 6.958791644381821e-07,
+  "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA": 7.079869976981502e-07,
+  "PEOPLE_S_CIVIC_ORGANISATION": 6.969294344698464e-07,
+  "PREM_PEOPLES_AGENDA": 7.304510637745363e-07,
+  "TRULY_ALLIANCE": 7.079869976981502e-07,
+  "UBUNTU_PARTY": 7.248497882782405e-07,
+  "UDM": 5.144194414033589e-07,
+  "UNITED_FRONT_OF_CIVICS": 6.845373940896724e-07,
+  "VFPLUS": 5.994384406066482e-07
+ },
+ "min_over_wards_of_max_share": {
+  "W": {
+   "ACDP": 0.03195219935611548,
+   "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.03181283720924492,
+   "AGANG": 0.017220564205557235,
+   "AIC": 0.024601570448749575,
+   "ANC": 0.3142513495075924,
+   "APC": 0.009312037849188852,
+   "AZAPO": 0.035313276407774104,
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.03261513506087527,
+   "BUILDING_A_COHESIVE_SOCIETY": 0.026483562598684996,
+   "COPE": 0.013138305216421144,
+   "DA": 0.3274823779677469,
+   "EFF": 0.04323573380435655,
+   "IFP": 0.02014371012894717,
+   "INTERNATIONAL_REVELATION_CONGRESS": 0.05131211224146326,
+   "PA": 0.025290814774480464,
+   "PAC": 0.0070704435249636065,
+   "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA": 0.02581948490072744,
+   "PEOPLE_S_CIVIC_ORGANISATION": 0.026394582569832053,
+   "PREM_PEOPLES_AGENDA": 0.026314003983069236,
+   "TRULY_ALLIANCE": 0.02754190977940654,
+   "UBUNTU_PARTY": 0.02960316120869598,
+   "UDM": 0.030525901800471978,
+   "UNITED_FRONT_OF_CIVICS": 0.02839377496037019,
+   "VFPLUS": 0.0499911233033287
+  },
+  "PR": {
+   "ACDP": 0.027959522289744868,
+   "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.03293566251897927,
+   "AGANG": 0.016699046648214245,
+   "AIC": 0.025370581215962307,
+   "ANC": 0.33348446423164363,
+   "APC": 0.051953877387420494,
+   "AZAPO": 0.03590470062283545,
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.032537825563685126,
+   "BUILDING_A_COHESIVE_SOCIETY": 0.031513410333705076,
+   "COPE": 0.020890790100346536,
+   "DA": 0.3188418810834366,
+   "EFF": 0.041603661193521026,
+   "IFP": 0.02893474370259242,
+   "INTERNATIONAL_REVELATION_CONGRESS": 0.058781877180448396,
+   "PA": 0.031437793952291446,
+   "PAC": 0.032254980440509305,
+   "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA": 0.02825641199006548,
+   "PEOPLE_S_CIVIC_ORGANISATION": 0.030533791761967684,
+   "PREM_PEOPLES_AGENDA": 0.029126286074399443,
+   "TRULY_ALLIANCE": 0.02958318265018958,
+   "UBUNTU_PARTY": 0.031164502812213137,
+   "UDM": 0.027056112159355983,
+   "UNITED_FRONT_OF_CIVICS": 0.030875894680579843,
+   "VFPLUS": 0.0506243619579442
+  }
+ },
+ "zero_cells": [
+  {
+   "ballot": "PR",
+   "ward": "79800001",
+   "party": "OKM",
+   "votes": 2,
+   "ward_total": 7481,
+   "share": 0.0002673439379762064,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800001",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 7481,
+   "share": 0.0001336719689881032,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 7481,
+   "share": 0.0001336719689881032,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800002",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 7951,
+   "share": 0.00012577034335303736,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800002",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 7951,
+   "share": 0.00012577034335303736,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800002",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 2,
+   "ward_total": 7951,
+   "share": 0.00025154068670607473,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800003",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 6960,
+   "share": 0.00014367816091954023,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800004",
+   "party": "OKM",
+   "votes": 2,
+   "ward_total": 9714,
+   "share": 0.00020588840848260242,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800004",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 9714,
+   "share": 0.00010294420424130121,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800005",
+   "party": "OKM",
+   "votes": 2,
+   "ward_total": 10433,
+   "share": 0.00019169941531678328,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800005",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 2,
+   "ward_total": 10433,
+   "share": 0.00019169941531678328,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800006",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 7582,
+   "share": 0.0002637826431020839,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800006",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 7582,
+   "share": 0.00013189132155104195,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800007",
+   "party": "ALJAMAAH",
+   "votes": 19,
+   "ward_total": 11849,
+   "share": 0.0016035108447970293,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800007",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 11849,
+   "share": 8.439530762089628e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800008",
+   "party": "ALJAMAAH",
+   "votes": 208,
+   "ward_total": 9542,
+   "share": 0.021798365122615803,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800008",
+   "party": "OKM",
+   "votes": 457,
+   "ward_total": 9542,
+   "share": 0.04789352337036261,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800008",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 9542,
+   "share": 0.00010479983232026829,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800009",
+   "party": "ALJAMAAH",
+   "votes": 713,
+   "ward_total": 9949,
+   "share": 0.07166549401949945,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800009",
+   "party": "OKM",
+   "votes": 13,
+   "ward_total": 9949,
+   "share": 0.0013066639863302844,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800009",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 2,
+   "ward_total": 9949,
+   "share": 0.0002010252286661976,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800010",
+   "party": "ALJAMAAH",
+   "votes": 367,
+   "ward_total": 7727,
+   "share": 0.04749579396919891,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800010",
+   "party": "OKM",
+   "votes": 3,
+   "ward_total": 7727,
+   "share": 0.0003882489970234244,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800011",
+   "party": "ALJAMAAH",
+   "votes": 10,
+   "ward_total": 9550,
+   "share": 0.0010471204188481676,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800011",
+   "party": "OKM",
+   "votes": 3,
+   "ward_total": 9550,
+   "share": 0.00031413612565445024,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800011",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 9550,
+   "share": 0.00010471204188481675,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800012",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 8074,
+   "share": 0.00012385434728758978,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800012",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 8074,
+   "share": 0.00012385434728758978,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800012",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 8074,
+   "share": 0.00012385434728758978,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800013",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 8323,
+   "share": 0.00012014898474107894,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800014",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 7997,
+   "share": 0.00012504689258471927,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800014",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 7997,
+   "share": 0.00012504689258471927,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800015",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 8339,
+   "share": 0.0001199184554502938,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800015",
+   "party": "OKM",
+   "votes": 49,
+   "ward_total": 8339,
+   "share": 0.005876004317064396,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800016",
+   "party": "OKM",
+   "votes": 47,
+   "ward_total": 9273,
+   "share": 0.005068478378086919,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800016",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 9273,
+   "share": 0.00010783996549121104,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800017",
+   "party": "ALJAMAAH",
+   "votes": 39,
+   "ward_total": 11345,
+   "share": 0.0034376377258704275,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800017",
+   "party": "OKM",
+   "votes": 2,
+   "ward_total": 11345,
+   "share": 0.00017628911414720142,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800018",
+   "party": "ALJAMAAH",
+   "votes": 60,
+   "ward_total": 12162,
+   "share": 0.00493339911198816,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800018",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 12162,
+   "share": 8.2223318533136e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800019",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 7977,
+   "share": 0.00012536041118214867,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800019",
+   "party": "OKM",
+   "votes": 5,
+   "ward_total": 7977,
+   "share": 0.0006268020559107434,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800019",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 2,
+   "ward_total": 7977,
+   "share": 0.00025072082236429733,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800020",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 7986,
+   "share": 0.00025043826696719256,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800020",
+   "party": "OKM",
+   "votes": 14,
+   "ward_total": 7986,
+   "share": 0.001753067868770348,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800021",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 8851,
+   "share": 0.00011298158400180771,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800021",
+   "party": "OKM",
+   "votes": 45,
+   "ward_total": 8851,
+   "share": 0.005084171280081346,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800021",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 8851,
+   "share": 0.00011298158400180771,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800022",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 10372,
+   "share": 9.641342074816814e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800022",
+   "party": "OKM",
+   "votes": 38,
+   "ward_total": 10372,
+   "share": 0.0036637099884303894,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800022",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 3,
+   "ward_total": 10372,
+   "share": 0.00028924026224450445,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800023",
+   "party": "ALJAMAAH",
+   "votes": 12,
+   "ward_total": 13160,
+   "share": 0.000911854103343465,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800023",
+   "party": "OKM",
+   "votes": 2,
+   "ward_total": 13160,
+   "share": 0.00015197568389057752,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800024",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 9063,
+   "share": 0.00011033873993158998,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800024",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 9063,
+   "share": 0.00011033873993158998,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800024",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 81,
+   "ward_total": 9063,
+   "share": 0.00893743793445879,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800025",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 9767,
+   "share": 0.0004095423364390294,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800025",
+   "party": "OKM",
+   "votes": 10,
+   "ward_total": 9767,
+   "share": 0.0010238558410975735,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800025",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 4,
+   "ward_total": 9767,
+   "share": 0.0004095423364390294,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800026",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 8273,
+   "share": 0.00036262540795358394,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800026",
+   "party": "OKM",
+   "votes": 17,
+   "ward_total": 8273,
+   "share": 0.0020548773117369757,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800026",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 2,
+   "ward_total": 8273,
+   "share": 0.00024175027196905597,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800027",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 10272,
+   "share": 0.00019470404984423675,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800027",
+   "party": "OKM",
+   "votes": 5,
+   "ward_total": 10272,
+   "share": 0.0004867601246105919,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800028",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 7910,
+   "share": 0.0005056890012642225,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800028",
+   "party": "OKM",
+   "votes": 4,
+   "ward_total": 7910,
+   "share": 0.0005056890012642225,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800028",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 7910,
+   "share": 0.00012642225031605562,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800029",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 9535,
+   "share": 0.0004195070791819612,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800029",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 2,
+   "ward_total": 9535,
+   "share": 0.0002097535395909806,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800030",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 8491,
+   "share": 0.0002355435166647038,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800030",
+   "party": "OKM",
+   "votes": 9,
+   "ward_total": 8491,
+   "share": 0.001059945824991167,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800031",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 6827,
+   "share": 0.00014647722279185587,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800031",
+   "party": "OKM",
+   "votes": 4,
+   "ward_total": 6827,
+   "share": 0.0005859088911674235,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800032",
+   "party": "ALJAMAAH",
+   "votes": 19,
+   "ward_total": 12750,
+   "share": 0.0014901960784313726,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800033",
+   "party": "OKM",
+   "votes": 9,
+   "ward_total": 8269,
+   "share": 0.001088402467045592,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800033",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 8269,
+   "share": 0.00012093360744951022,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800034",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 7612,
+   "share": 0.00013137151865475564,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800034",
+   "party": "OKM",
+   "votes": 7,
+   "ward_total": 7612,
+   "share": 0.0009196006305832896,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800034",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 7,
+   "ward_total": 7612,
+   "share": 0.0009196006305832896,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800035",
+   "party": "OKM",
+   "votes": 4,
+   "ward_total": 7657,
+   "share": 0.0005223978059292151,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800035",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 7657,
+   "share": 0.0001305994514823038,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800036",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 8143,
+   "share": 0.00036841458921773305,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800036",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 8143,
+   "share": 0.00012280486307257767,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800037",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 8563,
+   "share": 0.00011678150181011328,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800038",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 7416,
+   "share": 0.00013484358144552318,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800038",
+   "party": "OKM",
+   "votes": 66,
+   "ward_total": 7416,
+   "share": 0.00889967637540453,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800038",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 7416,
+   "share": 0.00013484358144552318,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800039",
+   "party": "OKM",
+   "votes": 3,
+   "ward_total": 8141,
+   "share": 0.00036850509765385086,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800039",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 8141,
+   "share": 0.00012283503255128362,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800040",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 8335,
+   "share": 0.0001199760047990402,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800041",
+   "party": "OKM",
+   "votes": 20,
+   "ward_total": 10536,
+   "share": 0.0018982536066818527,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800041",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 10536,
+   "share": 9.491268033409264e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800042",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 7837,
+   "share": 0.0003827995406405512,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800042",
+   "party": "OKM",
+   "votes": 3,
+   "ward_total": 7837,
+   "share": 0.0003827995406405512,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800043",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 8881,
+   "share": 0.00011259993244004054,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800043",
+   "party": "OKM",
+   "votes": 8,
+   "ward_total": 8881,
+   "share": 0.0009007994595203243,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800044",
+   "party": "OKM",
+   "votes": 2,
+   "ward_total": 9875,
+   "share": 0.00020253164556962027,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800045",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 9216,
+   "share": 0.00010850694444444444,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800045",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 9216,
+   "share": 0.00010850694444444444,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800046",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 9132,
+   "share": 0.00010950503723171266,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800046",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 9132,
+   "share": 0.00010950503723171266,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800046",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 3,
+   "ward_total": 9132,
+   "share": 0.000328515111695138,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800047",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 8513,
+   "share": 0.00011746740279572419,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800048",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 3,
+   "ward_total": 8868,
+   "share": 0.00033829499323410016,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800049",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 10204,
+   "share": 9.800078400627205e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800049",
+   "party": "OKM",
+   "votes": 2,
+   "ward_total": 10204,
+   "share": 0.0001960015680125441,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800050",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 7679,
+   "share": 0.0001302252897512697,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800050",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 7679,
+   "share": 0.0001302252897512697,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800051",
+   "party": "OKM",
+   "votes": 3,
+   "ward_total": 8368,
+   "share": 0.00035850860420650097,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800052",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 7224,
+   "share": 0.0002768549280177187,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800052",
+   "party": "OKM",
+   "votes": 6,
+   "ward_total": 7224,
+   "share": 0.0008305647840531562,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800054",
+   "party": "ALJAMAAH",
+   "votes": 154,
+   "ward_total": 12622,
+   "share": 0.012200919030264617,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800054",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 12622,
+   "share": 7.922674694977024e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800055",
+   "party": "ALJAMAAH",
+   "votes": 159,
+   "ward_total": 8583,
+   "share": 0.018524991261796575,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800056",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 8939,
+   "share": 0.0004474773464593355,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800057",
+   "party": "ALJAMAAH",
+   "votes": 6,
+   "ward_total": 10702,
+   "share": 0.0005606428704914969,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800057",
+   "party": "OKM",
+   "votes": 2,
+   "ward_total": 10702,
+   "share": 0.00018688095683049897,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800057",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 2,
+   "ward_total": 10702,
+   "share": 0.00018688095683049897,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800058",
+   "party": "ALJAMAAH",
+   "votes": 833,
+   "ward_total": 9888,
+   "share": 0.08424352750809061,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800058",
+   "party": "OKM",
+   "votes": 3,
+   "ward_total": 9888,
+   "share": 0.00030339805825242716,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800058",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 2,
+   "ward_total": 9888,
+   "share": 0.0002022653721682848,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800060",
+   "party": "ALJAMAAH",
+   "votes": 27,
+   "ward_total": 5524,
+   "share": 0.004887762490948588,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800060",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 5524,
+   "share": 0.00018102824040550325,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800060",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 2,
+   "ward_total": 5524,
+   "share": 0.0003620564808110065,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800061",
+   "party": "ALJAMAAH",
+   "votes": 9,
+   "ward_total": 7501,
+   "share": 0.0011998400213304892,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800061",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 7501,
+   "share": 0.0001333155579256099,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800061",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 7501,
+   "share": 0.0001333155579256099,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800062",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 4665,
+   "share": 0.00021436227224008573,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800062",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 4665,
+   "share": 0.00021436227224008573,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800064",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 5712,
+   "share": 0.00017507002801120448,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800065",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 7090,
+   "share": 0.0004231311706629055,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800065",
+   "party": "OKM",
+   "votes": 4,
+   "ward_total": 7090,
+   "share": 0.0005641748942172073,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800066",
+   "party": "ALJAMAAH",
+   "votes": 52,
+   "ward_total": 8045,
+   "share": 0.006463642013673089,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800066",
+   "party": "OKM",
+   "votes": 11,
+   "ward_total": 8045,
+   "share": 0.001367308887507769,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800066",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 4,
+   "ward_total": 8045,
+   "share": 0.0004972032318210068,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800067",
+   "party": "ALJAMAAH",
+   "votes": 5,
+   "ward_total": 4959,
+   "share": 0.001008267795926598,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800067",
+   "party": "OKM",
+   "votes": 4,
+   "ward_total": 4959,
+   "share": 0.0008066142367412785,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800067",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 4959,
+   "share": 0.00020165355918531962,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800068",
+   "party": "ALJAMAAH",
+   "votes": 38,
+   "ward_total": 9474,
+   "share": 0.004010977411864049,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800068",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 9474,
+   "share": 0.00010555203715431708,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800069",
+   "party": "ALJAMAAH",
+   "votes": 28,
+   "ward_total": 8781,
+   "share": 0.0031887028812208175,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800069",
+   "party": "OKM",
+   "votes": 3,
+   "ward_total": 8781,
+   "share": 0.00034164673727365904,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800069",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 2,
+   "ward_total": 8781,
+   "share": 0.0002277644915157727,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800070",
+   "party": "ALJAMAAH",
+   "votes": 95,
+   "ward_total": 13106,
+   "share": 0.00724858843277888,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800070",
+   "party": "OKM",
+   "votes": 2,
+   "ward_total": 13106,
+   "share": 0.00015260186174271325,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800070",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 13106,
+   "share": 7.630093087135663e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800072",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 10362,
+   "share": 9.650646593321752e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800073",
+   "party": "ALJAMAAH",
+   "votes": 74,
+   "ward_total": 9327,
+   "share": 0.007933955183874773,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800073",
+   "party": "OKM",
+   "votes": 6,
+   "ward_total": 9327,
+   "share": 0.000643293663557414,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800073",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 2,
+   "ward_total": 9327,
+   "share": 0.00021443122118580465,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800074",
+   "party": "ALJAMAAH",
+   "votes": 11,
+   "ward_total": 10198,
+   "share": 0.0010786428711512062,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800074",
+   "party": "OKM",
+   "votes": 6,
+   "ward_total": 10198,
+   "share": 0.000588350656991567,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800074",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 10198,
+   "share": 9.805844283192783e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800077",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 7568,
+   "share": 0.0003964059196617336,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800077",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 4,
+   "ward_total": 7568,
+   "share": 0.0005285412262156448,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800078",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 7970,
+   "share": 0.00012547051442910915,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800078",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 7970,
+   "share": 0.00012547051442910915,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800079",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 7827,
+   "share": 0.00012776287210936502,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800079",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 7827,
+   "share": 0.00012776287210936502,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800081",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 9575,
+   "share": 0.0004177545691906005,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800081",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 9575,
+   "share": 0.00010443864229765013,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800082",
+   "party": "ALJAMAAH",
+   "votes": 152,
+   "ward_total": 11067,
+   "share": 0.013734526068491912,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800083",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 12491,
+   "share": 0.0003202305660075254,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800084",
+   "party": "ALJAMAAH",
+   "votes": 38,
+   "ward_total": 11780,
+   "share": 0.0032258064516129032,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800085",
+   "party": "ALJAMAAH",
+   "votes": 7,
+   "ward_total": 12099,
+   "share": 0.0005785602115877345,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800086",
+   "party": "ALJAMAAH",
+   "votes": 85,
+   "ward_total": 13156,
+   "share": 0.006460930373973852,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800086",
+   "party": "OKM",
+   "votes": 2,
+   "ward_total": 13156,
+   "share": 0.00015202189115232594,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800086",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 2,
+   "ward_total": 13156,
+   "share": 0.00015202189115232594,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800087",
+   "party": "ALJAMAAH",
+   "votes": 51,
+   "ward_total": 10109,
+   "share": 0.005045009397566525,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800087",
+   "party": "OKM",
+   "votes": 11,
+   "ward_total": 10109,
+   "share": 0.001088139281828074,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800087",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 10109,
+   "share": 9.892175289346128e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800088",
+   "party": "ALJAMAAH",
+   "votes": 105,
+   "ward_total": 11222,
+   "share": 0.009356620923186598,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800088",
+   "party": "OKM",
+   "votes": 4,
+   "ward_total": 11222,
+   "share": 0.0003564427018356799,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800088",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 11222,
+   "share": 8.911067545891998e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800089",
+   "party": "ALJAMAAH",
+   "votes": 10,
+   "ward_total": 12804,
+   "share": 0.000781005935645111,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800089",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 12804,
+   "share": 7.810059356451109e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800090",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 11687,
+   "share": 0.0002566954736031488,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800090",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 11687,
+   "share": 8.556515786771627e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800091",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 8743,
+   "share": 0.0004575088642342445,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800091",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 4,
+   "ward_total": 8743,
+   "share": 0.0004575088642342445,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800092",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 6619,
+   "share": 0.0004532406707961928,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800092",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 6619,
+   "share": 0.00015108022359873092,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800093",
+   "party": "ALJAMAAH",
+   "votes": 12,
+   "ward_total": 12702,
+   "share": 0.000944733112895607,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800094",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 11176,
+   "share": 0.00035790980672870435,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800095",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 7932,
+   "share": 0.0001260716086737267,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800095",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 7932,
+   "share": 0.0001260716086737267,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800096",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 11787,
+   "share": 8.483922965979469e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800096",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 11787,
+   "share": 8.483922965979469e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800097",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 14865,
+   "share": 6.727211570803902e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800098",
+   "party": "ALJAMAAH",
+   "votes": 11,
+   "ward_total": 11226,
+   "share": 0.0009798681631925886,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800099",
+   "party": "ALJAMAAH",
+   "votes": 15,
+   "ward_total": 10671,
+   "share": 0.0014056789429294349,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800099",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 10671,
+   "share": 9.371192952862899e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800100",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 10367,
+   "share": 9.645992090286486e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800100",
+   "party": "OKM",
+   "votes": 2,
+   "ward_total": 10367,
+   "share": 0.00019291984180572972,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800101",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 13578,
+   "share": 7.364854912358227e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800102",
+   "party": "ALJAMAAH",
+   "votes": 6,
+   "ward_total": 12124,
+   "share": 0.0004948861761794787,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800102",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 12124,
+   "share": 8.248102936324645e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800103",
+   "party": "ALJAMAAH",
+   "votes": 6,
+   "ward_total": 12812,
+   "share": 0.0004683109584764284,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800103",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 12812,
+   "share": 7.805182641273806e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800104",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 11484,
+   "share": 0.00017415534656913968,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800105",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 9128,
+   "share": 0.00010955302366345311,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800106",
+   "party": "ALJAMAAH",
+   "votes": 5,
+   "ward_total": 13099,
+   "share": 0.00038170852736850143,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800106",
+   "party": "OKM",
+   "votes": 2,
+   "ward_total": 13099,
+   "share": 0.00015268341094740057,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800106",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 13099,
+   "share": 7.634170547370028e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800107",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 9473,
+   "share": 0.00021112635912593687,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800107",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 9473,
+   "share": 0.00010556317956296844,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800108",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 6692,
+   "share": 0.00014943215780035862,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800108",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 6692,
+   "share": 0.00014943215780035862,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800109",
+   "party": "ALJAMAAH",
+   "votes": 85,
+   "ward_total": 9607,
+   "share": 0.00884771520766108,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800109",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 9607,
+   "share": 0.00010409076714895389,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800110",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 7449,
+   "share": 0.0002684924150892737,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800112",
+   "party": "ALJAMAAH",
+   "votes": 9,
+   "ward_total": 11035,
+   "share": 0.0008155867693701858,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800112",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 11035,
+   "share": 9.062075215224287e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800113",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 8174,
+   "share": 0.00012233912405187178,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800114",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 7183,
+   "share": 0.00027843519420854795,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800114",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 7183,
+   "share": 0.00013921759710427398,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800115",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 13393,
+   "share": 7.466587023071754e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800115",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 13393,
+   "share": 7.466587023071754e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800115",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 13393,
+   "share": 7.466587023071754e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800116",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 6559,
+   "share": 0.00015246226558926666,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800117",
+   "party": "ALJAMAAH",
+   "votes": 9,
+   "ward_total": 9715,
+   "share": 0.0009264024704065877,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800117",
+   "party": "OKM",
+   "votes": 4,
+   "ward_total": 9715,
+   "share": 0.0004117344312918168,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800117",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 9715,
+   "share": 0.0001029336078229542,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800118",
+   "party": "ALJAMAAH",
+   "votes": 19,
+   "ward_total": 10034,
+   "share": 0.0018935618895754435,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800118",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 10034,
+   "share": 9.966115208291808e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800119",
+   "party": "ALJAMAAH",
+   "votes": 7,
+   "ward_total": 10671,
+   "share": 0.000655983506700403,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800119",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 157,
+   "ward_total": 10671,
+   "share": 0.014712772935994753,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800120",
+   "party": "ALJAMAAH",
+   "votes": 144,
+   "ward_total": 10384,
+   "share": 0.01386748844375963,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800120",
+   "party": "OKM",
+   "votes": 2,
+   "ward_total": 10384,
+   "share": 0.0001926040061633282,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800120",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 10384,
+   "share": 9.63020030816641e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800121",
+   "party": "ALJAMAAH",
+   "votes": 8,
+   "ward_total": 10615,
+   "share": 0.0007536504945831371,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800121",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 10615,
+   "share": 9.420631182289213e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800121",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 10615,
+   "share": 9.420631182289213e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800122",
+   "party": "ALJAMAAH",
+   "votes": 41,
+   "ward_total": 10690,
+   "share": 0.003835360149672591,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800122",
+   "party": "OKM",
+   "votes": 6,
+   "ward_total": 10690,
+   "share": 0.0005612722170252573,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800124",
+   "party": "ALJAMAAH",
+   "votes": 14,
+   "ward_total": 7520,
+   "share": 0.0018617021276595746,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800125",
+   "party": "ALJAMAAH",
+   "votes": 9,
+   "ward_total": 9896,
+   "share": 0.0009094583670169765,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800125",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 9896,
+   "share": 0.00010105092966855295,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800125",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 1,
+   "ward_total": 9896,
+   "share": 0.00010105092966855295,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800126",
+   "party": "ALJAMAAH",
+   "votes": 7,
+   "ward_total": 13371,
+   "share": 0.0005235210530252038,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800127",
+   "party": "OKM",
+   "votes": 1,
+   "ward_total": 7879,
+   "share": 0.00012691965985531158,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800128",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 8901,
+   "share": 0.00044938770924615214,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800128",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 2,
+   "ward_total": 8901,
+   "share": 0.00022469385462307607,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800129",
+   "party": "OKM",
+   "votes": 2,
+   "ward_total": 8469,
+   "share": 0.0002361553902467824,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800129",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 2,
+   "ward_total": 8469,
+   "share": 0.0002361553902467824,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800130",
+   "party": "OKM",
+   "votes": 22,
+   "ward_total": 7506,
+   "share": 0.002930988542499334,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800131",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 8130,
+   "share": 0.0001230012300123001,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800132",
+   "party": "ALJAMAAH",
+   "votes": 8,
+   "ward_total": 13132,
+   "share": 0.0006091989034419738,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800133",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 8274,
+   "share": 0.00012086052695189751,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800133",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 4,
+   "ward_total": 8274,
+   "share": 0.00048344210780759005,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800134",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 10506,
+   "share": 0.00019036740909956216,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800135",
+   "party": "OKM",
+   "votes": 2,
+   "ward_total": 9697,
+   "share": 0.00020624935547076416,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800001",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 7301,
+   "share": 0.00041090261607998904,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 7301,
+   "share": 0.00013696753869332968,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800002",
+   "party": "ALJAMAAH",
+   "votes": 6,
+   "ward_total": 8123,
+   "share": 0.000738643358365136,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800004",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 9773,
+   "share": 0.00010232272587741738,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800005",
+   "party": "IND",
+   "votes": 28,
+   "ward_total": 10574,
+   "share": 0.0026480045394363535,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800006",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 7597,
+   "share": 0.0003948927208108464,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800006",
+   "party": "IND",
+   "votes": 411,
+   "ward_total": 7597,
+   "share": 0.05410030275108595,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800007",
+   "party": "ALJAMAAH",
+   "votes": 19,
+   "ward_total": 11816,
+   "share": 0.0016079891672308735,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800008",
+   "party": "ALJAMAAH",
+   "votes": 153,
+   "ward_total": 9361,
+   "share": 0.016344407648755475,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800008",
+   "party": "IND",
+   "votes": 497,
+   "ward_total": 9361,
+   "share": 0.053092618310009616,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800008",
+   "party": "OKM",
+   "votes": 417,
+   "ward_total": 9361,
+   "share": 0.04454652280739237,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800009",
+   "party": "ALJAMAAH",
+   "votes": 290,
+   "ward_total": 9917,
+   "share": 0.02924271453060401,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800009",
+   "party": "IND",
+   "votes": 2172,
+   "ward_total": 9917,
+   "share": 0.21901784813955832,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800010",
+   "party": "ALJAMAAH",
+   "votes": 334,
+   "ward_total": 7809,
+   "share": 0.04277116148034319,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800010",
+   "party": "IND",
+   "votes": 538,
+   "ward_total": 7809,
+   "share": 0.06889486489947497,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800011",
+   "party": "ALJAMAAH",
+   "votes": 9,
+   "ward_total": 9525,
+   "share": 0.0009448818897637795,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800011",
+   "party": "IND",
+   "votes": 60,
+   "ward_total": 9525,
+   "share": 0.006299212598425197,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800012",
+   "party": "IND",
+   "votes": 79,
+   "ward_total": 8067,
+   "share": 0.009792983761001612,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800015",
+   "party": "OKM",
+   "votes": 73,
+   "ward_total": 8164,
+   "share": 0.008941695247427732,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800016",
+   "party": "OKM",
+   "votes": 53,
+   "ward_total": 9248,
+   "share": 0.005730968858131488,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800017",
+   "party": "ALJAMAAH",
+   "votes": 47,
+   "ward_total": 11314,
+   "share": 0.0041541453066996645,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800018",
+   "party": "ALJAMAAH",
+   "votes": 52,
+   "ward_total": 12107,
+   "share": 0.004295035929627488,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800019",
+   "party": "ALJAMAAH",
+   "votes": 11,
+   "ward_total": 7993,
+   "share": 0.0013762041786563243,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800019",
+   "party": "IND",
+   "votes": 218,
+   "ward_total": 7993,
+   "share": 0.027273864631552607,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800020",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 8518,
+   "share": 0.0003521953510213665,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800021",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 7940,
+   "share": 0.00012594458438287153,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800021",
+   "party": "OKM",
+   "votes": 42,
+   "ward_total": 7940,
+   "share": 0.005289672544080605,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800022",
+   "party": "OKM",
+   "votes": 41,
+   "ward_total": 10464,
+   "share": 0.003918195718654434,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800023",
+   "party": "ALJAMAAH",
+   "votes": 12,
+   "ward_total": 13227,
+   "share": 0.0009072352007257881,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800024",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 9137,
+   "share": 0.0003283353398270767,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800024",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 83,
+   "ward_total": 9137,
+   "share": 0.009083944401882456,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800025",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 9708,
+   "share": 0.00020601565718994644,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800025",
+   "party": "IND",
+   "votes": 734,
+   "ward_total": 9708,
+   "share": 0.07560774618871034,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800026",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 8331,
+   "share": 0.0004801344376425399,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800026",
+   "party": "OKM",
+   "votes": 14,
+   "ward_total": 8331,
+   "share": 0.0016804705317488896,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800028",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 7938,
+   "share": 0.0005039052658100278,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800029",
+   "party": "ALJAMAAH",
+   "votes": 5,
+   "ward_total": 9556,
+   "share": 0.0005232314776056927,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800029",
+   "party": "IND",
+   "votes": 107,
+   "ward_total": 9556,
+   "share": 0.011197153620761825,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800030",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 8673,
+   "share": 0.00011530035743110804,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800030",
+   "party": "IND",
+   "votes": 615,
+   "ward_total": 8673,
+   "share": 0.07090971982013144,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800031",
+   "party": "IND",
+   "votes": 437,
+   "ward_total": 6828,
+   "share": 0.06400117164616285,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800034",
+   "party": "OKM",
+   "votes": 14,
+   "ward_total": 7642,
+   "share": 0.0018319811567652448,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800035",
+   "party": "IND",
+   "votes": 152,
+   "ward_total": 7607,
+   "share": 0.019981595898514525,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800036",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 8158,
+   "share": 0.00024515812699190976,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800036",
+   "party": "IND",
+   "votes": 80,
+   "ward_total": 8158,
+   "share": 0.009806325079676392,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800038",
+   "party": "ALJAMAAH",
+   "votes": 5,
+   "ward_total": 7612,
+   "share": 0.0006568575932737783,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800038",
+   "party": "OKM",
+   "votes": 97,
+   "ward_total": 7612,
+   "share": 0.012743037309511297,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800039",
+   "party": "ALJAMAAH",
+   "votes": 5,
+   "ward_total": 8143,
+   "share": 0.0006140243153628884,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800041",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 10523,
+   "share": 0.0001900598688586905,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800041",
+   "party": "OKM",
+   "votes": 28,
+   "ward_total": 10523,
+   "share": 0.002660838164021667,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800042",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 7795,
+   "share": 0.0001282873636946761,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800043",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 8779,
+   "share": 0.00011390818999886092,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800043",
+   "party": "OKM",
+   "votes": 15,
+   "ward_total": 8779,
+   "share": 0.0017086228499829138,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800044",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 9570,
+   "share": 0.0001044932079414838,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800045",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 9171,
+   "share": 0.00010903936321011885,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800047",
+   "party": "IND",
+   "votes": 2140,
+   "ward_total": 8483,
+   "share": 0.25226924437109516,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800048",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 8786,
+   "share": 0.00011381743683132256,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800049",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 10265,
+   "share": 0.0003896736483195324,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800049",
+   "party": "IND",
+   "votes": 181,
+   "ward_total": 10265,
+   "share": 0.01763273258645884,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800050",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 7801,
+   "share": 0.00012818869375721061,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800051",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 8376,
+   "share": 0.00011938872970391595,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800052",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 7225,
+   "share": 0.0004152249134948097,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800053",
+   "party": "IND",
+   "votes": 530,
+   "ward_total": 9140,
+   "share": 0.05798687089715536,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800054",
+   "party": "ALJAMAAH",
+   "votes": 90,
+   "ward_total": 12532,
+   "share": 0.0071816150654324925,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800055",
+   "party": "ALJAMAAH",
+   "votes": 160,
+   "ward_total": 8544,
+   "share": 0.018726591760299626,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800056",
+   "party": "ALJAMAAH",
+   "votes": 6,
+   "ward_total": 8953,
+   "share": 0.0006701664246621244,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800056",
+   "party": "IND",
+   "votes": 284,
+   "ward_total": 8953,
+   "share": 0.03172121076734056,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800057",
+   "party": "ALJAMAAH",
+   "votes": 9,
+   "ward_total": 10721,
+   "share": 0.0008394739296707397,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800058",
+   "party": "ALJAMAAH",
+   "votes": 157,
+   "ward_total": 9891,
+   "share": 0.015873015873015872,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800058",
+   "party": "IND",
+   "votes": 3227,
+   "ward_total": 9891,
+   "share": 0.32625619249823073,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800067",
+   "party": "ALJAMAAH",
+   "votes": 8,
+   "ward_total": 4869,
+   "share": 0.001643047853768741,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800068",
+   "party": "ALJAMAAH",
+   "votes": 49,
+   "ward_total": 9506,
+   "share": 0.005154639175257732,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800069",
+   "party": "ALJAMAAH",
+   "votes": 30,
+   "ward_total": 8817,
+   "share": 0.003402517863218782,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800070",
+   "party": "ALJAMAAH",
+   "votes": 111,
+   "ward_total": 12903,
+   "share": 0.008602650546384562,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800071",
+   "party": "ALJAMAAH",
+   "votes": 5,
+   "ward_total": 11005,
+   "share": 0.00045433893684688776,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800072",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 10409,
+   "share": 9.607070804111827e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800073",
+   "party": "ALJAMAAH",
+   "votes": 118,
+   "ward_total": 9354,
+   "share": 0.012614924096643148,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800074",
+   "party": "ALJAMAAH",
+   "votes": 11,
+   "ward_total": 10157,
+   "share": 0.0010829969479176922,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800075",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 7264,
+   "share": 0.00013766519823788548,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800076",
+   "party": "ALJAMAAH",
+   "votes": 5,
+   "ward_total": 7076,
+   "share": 0.0007066139061616733,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800077",
+   "party": "IND",
+   "votes": 1356,
+   "ward_total": 7577,
+   "share": 0.17896265012537943,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800078",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 7945,
+   "share": 0.0003775959723096287,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800080",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 6352,
+   "share": 0.00047229219143576825,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800081",
+   "party": "ALJAMAAH",
+   "votes": 7,
+   "ward_total": 9683,
+   "share": 0.0007229164515129609,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800082",
+   "party": "IND",
+   "votes": 773,
+   "ward_total": 11090,
+   "share": 0.069702434625789,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800083",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 12181,
+   "share": 0.0003283802643461128,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800084",
+   "party": "ALJAMAAH",
+   "votes": 44,
+   "ward_total": 11777,
+   "share": 0.0037360957799099943,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800085",
+   "party": "ALJAMAAH",
+   "votes": 11,
+   "ward_total": 12096,
+   "share": 0.0009093915343915343,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800086",
+   "party": "ALJAMAAH",
+   "votes": 119,
+   "ward_total": 13191,
+   "share": 0.009021302403153665,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800087",
+   "party": "ALJAMAAH",
+   "votes": 62,
+   "ward_total": 9984,
+   "share": 0.006209935897435897,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800088",
+   "party": "ALJAMAAH",
+   "votes": 157,
+   "ward_total": 11231,
+   "share": 0.013979164811681951,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800089",
+   "party": "ALJAMAAH",
+   "votes": 9,
+   "ward_total": 12838,
+   "share": 0.0007010437762891416,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800090",
+   "party": "ALJAMAAH",
+   "votes": 6,
+   "ward_total": 11710,
+   "share": 0.0005123825789923143,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800091",
+   "party": "ALJAMAAH",
+   "votes": 11,
+   "ward_total": 8758,
+   "share": 0.001255994519296643,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800092",
+   "party": "IND",
+   "votes": 111,
+   "ward_total": 7458,
+   "share": 0.014883346741753822,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800093",
+   "party": "ALJAMAAH",
+   "votes": 23,
+   "ward_total": 12611,
+   "share": 0.0018238046150186346,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800094",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 11197,
+   "share": 0.00035723854603911763,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800095",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 7925,
+   "share": 0.00012618296529968455,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800096",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 11924,
+   "share": 0.0001677289500167729,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800097",
+   "party": "ALJAMAAH",
+   "votes": 5,
+   "ward_total": 14768,
+   "share": 0.00033856988082340195,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800098",
+   "party": "ALJAMAAH",
+   "votes": 16,
+   "ward_total": 11283,
+   "share": 0.0014180625720109899,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800099",
+   "party": "ALJAMAAH",
+   "votes": 19,
+   "ward_total": 10661,
+   "share": 0.0017821967920457742,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800100",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 10693,
+   "share": 9.351912466099317e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800103",
+   "party": "ALJAMAAH",
+   "votes": 10,
+   "ward_total": 12846,
+   "share": 0.0007784524365561264,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800104",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 11422,
+   "share": 0.0003502013657853266,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800105",
+   "party": "ALJAMAAH",
+   "votes": 4,
+   "ward_total": 9100,
+   "share": 0.00043956043956043956,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800106",
+   "party": "ALJAMAAH",
+   "votes": 7,
+   "ward_total": 12955,
+   "share": 0.0005403319181783095,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800107",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 9520,
+   "share": 0.0002100840336134454,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800108",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 6860,
+   "share": 0.00043731778425655976,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800109",
+   "party": "ALJAMAAH",
+   "votes": 98,
+   "ward_total": 9788,
+   "share": 0.010012259910093992,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800109",
+   "party": "IND",
+   "votes": 143,
+   "ward_total": 9788,
+   "share": 0.014609726195341234,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800110",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 7478,
+   "share": 0.0004011767852366943,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800111",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 7186,
+   "share": 0.00013915947676036738,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800112",
+   "party": "ALJAMAAH",
+   "votes": 12,
+   "ward_total": 11041,
+   "share": 0.0010868580744497782,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800113",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 8027,
+   "share": 0.00024915908807773764,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800114",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 7367,
+   "share": 0.000407221392697163,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800114",
+   "party": "IND",
+   "votes": 90,
+   "ward_total": 7367,
+   "share": 0.01221664178091489,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800115",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 13391,
+   "share": 0.00022403106564110222,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800118",
+   "party": "ALJAMAAH",
+   "votes": 52,
+   "ward_total": 9991,
+   "share": 0.005204684215794215,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800119",
+   "party": "ALJAMAAH",
+   "votes": 15,
+   "ward_total": 10645,
+   "share": 0.0014091122592766556,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800119",
+   "party": "THE_SOCIALIST_PARTY_OF_AZANIA",
+   "votes": 198,
+   "ward_total": 10645,
+   "share": 0.018600281822451856,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800120",
+   "party": "ALJAMAAH",
+   "votes": 174,
+   "ward_total": 10516,
+   "share": 0.016546215290985166,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800120",
+   "party": "IND",
+   "votes": 191,
+   "ward_total": 10516,
+   "share": 0.018162799543552682,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800121",
+   "party": "ALJAMAAH",
+   "votes": 18,
+   "ward_total": 10712,
+   "share": 0.0016803584764749813,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800122",
+   "party": "ALJAMAAH",
+   "votes": 69,
+   "ward_total": 10660,
+   "share": 0.006472795497185741,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800124",
+   "party": "ALJAMAAH",
+   "votes": 15,
+   "ward_total": 7357,
+   "share": 0.0020388745412532284,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800125",
+   "party": "ALJAMAAH",
+   "votes": 13,
+   "ward_total": 9895,
+   "share": 0.0013137948458817584,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800127",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 7698,
+   "share": 0.00012990387113535984,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800127",
+   "party": "IND",
+   "votes": 77,
+   "ward_total": 7698,
+   "share": 0.010002598077422707,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800128",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 8868,
+   "share": 0.00033829499323410016,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800128",
+   "party": "IND",
+   "votes": 84,
+   "ward_total": 8868,
+   "share": 0.009472259810554804,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800129",
+   "party": "ALJAMAAH",
+   "votes": 3,
+   "ward_total": 8451,
+   "share": 0.0003549875754348598,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800129",
+   "party": "IND",
+   "votes": 101,
+   "ward_total": 8451,
+   "share": 0.011951248372973613,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800131",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 8117,
+   "share": 0.00024639645189109276,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800132",
+   "party": "ALJAMAAH",
+   "votes": 9,
+   "ward_total": 13132,
+   "share": 0.0006853487663722206,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800133",
+   "party": "ALJAMAAH",
+   "votes": 1,
+   "ward_total": 8214,
+   "share": 0.00012174336498660823,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800134",
+   "party": "ALJAMAAH",
+   "votes": 2,
+   "ward_total": 10430,
+   "share": 0.00019175455417066154,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800135",
+   "party": "ALJAMAAH",
+   "votes": 6,
+   "ward_total": 9722,
+   "share": 0.0006171569635877391,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Black African",
+    "White"
+   ],
+   "n_pools": 4
+  }
+ ]
+}

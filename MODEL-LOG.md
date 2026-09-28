@@ -27635,3 +27635,263 @@ Agreement at +5 points says nothing about the tails of a larger move, where the
 effective draws fall to the floor (`MIN_EFFECTIVE_DRAWS`, JUDGEMENT-CALLS §N1)
 anyway. Not tested: the same fixture under Pyodide, and a paired re-run for any
 pool other than Black African.
+
+## 1.272 `outside_pool_wards` had no test that called it; a constructed council with C ≠ D now kills the pilot's seats.py survivors (2026-09-28)
+
+**Finding.** The mutation pilot (`audits/2026-09-29-mutation/runs/pilot/report.md`,
+`src/seats.py`) found `seats.py:102` inverted to `if p in outside` moved
+`seat_draws`, `excessive_draws` and `over_draws` with `test_seats`,
+`test_overhang` and `test_stage_realisation` all green. Cause: `test_seats`'
+constructed case derived C and D inline and never called `outside_pool_wards`,
+and its C = D = 1 could not separate a swap of the C and D sums (lines 99/101).
+
+**Repair (tests only).** `tests/test_seats.py` gains a second constructed
+council (12 seats; C = 2 via the `IND` alias, D = 1; SMALL wins wards above its
+entitlement, MID exactly at it), with the Schedule 1 and item 16(3) long
+division in the file, asserted at `outside_pool_wards`, `allocate`,
+`pr_seats`/`overhang`, `Allocation.top`, and the full chain through
+`montecarlo.allocate_with_overhang(rule="deduct")`. Three boundary tests pin the
+270-seat default, `available <= 0` from both sides, and
+`shortfall > len(ranked)` from both sides.
+
+**Measured.** Each mutant applied to a `git archive HEAD` copy, new tests run by
+name: the unmutated copy passes all six; 15 of 16 mutants are killed (L97
+or→and, L99, L101, L102, L108 270→271, L114 `<`, L114 0→1, L115 drop raise,
+L128 `>=`, L52 drop, L53 slice +1, L167 ×3, L157 `ward_wins.get(party, 1)`).
+Under L102 the chain test dies on `allocate_with_overhang`'s ghost-winner
+`ValueError`, not on a seat value; the value kills are in the two
+`outside_pool_wards`/`pr_seats` tests. Survives: L157
+`allocation.seats.get(party, 1)`, equivalent while pool wins are a subset of
+`combined` (which `outside_pool_wards` guarantees). Not addressed: L51
+(`top`'s default `n`) and L65 (`eligible_parties`' `get` defaults).
+
+**`test_chain`'s spec rename.** The pilot README says
+`test_the_model_refuses_to_run_without_a_pool_spec` is not in `SERIAL_ONLY`.
+At `run_all` granularity it is: `SERIAL_ONLY = {"test_chain"}` and the serial
+loop starts after the process pool has drained, so no module in the same
+`run_all` reads `pools_2026.json` during the rename. The hazard is outside
+`run_all`: the suite holds only the SHARED artefact lock, so a concurrent
+`compare_history` or second suite can see the live spec missing, and a hard
+kill mid-test leaves it as `.json.testbak` in a gitignored directory. The test
+also returns on any `SystemExit`. A fix that hides the spec by overriding
+`processed` on a copy of the city, and matches the refusal's message and path,
+was verified in an archive copy (passes; fails when the message is changed;
+passes on revert) and handed to the lead unapplied: `tests/test_chain.py` was
+outside this change's edit scope.
+
+Also observed, not caused here: `test_overhang::test_no_call_site_relies_on_the_signature_default`
+fails at HEAD — it pins 2 call sites of `allocate_with_overhang` and
+`reader_seats.py` (committed in 022f8d4) is a third.
+
+## 1.273 Re-weighting engine: a tilt solved on the poll's weights, one poll control, and what a 5th percentile rests on at the floor (2026-09-28)
+
+Three changes to `src/reweight.py` after the blind pollster review
+(`audits/2026-09-29-pollster-blind/`), findings A7 and A8, plus two
+default-argument captures.
+
+**Default arguments (CLASS 13).** `reweight.require_effective(floor=MIN_EFFECTIVE_DRAWS)`
+and `export_draws.export(laws=LAWS)` bound module constants at import; both now
+take `None` and resolve in the body. `test_ipf_feasibility::test_no_numeric_module_constant_is_a_default_argument`
+and `test_levers_are_live::test_no_numeric_module_constant_is_reachable_only_as_a_default_argument`
+were red on these two sites and are green. `test_reweight::test_the_refusal_floor_is_read_at_call_time`
+rebinds the constant both ways and watches the refusal follow.
+
+**A7 — two controls at once missed the turnout the reader set.** `combine`
+multiplied a turnout tilt solved on uniform weights by a poll's weights. The
+poll moves mean turnout wherever turnout and poll agreement are correlated
+across draws, so the product no longer hit the tilt's targets. `combine` is
+deleted; `turnout_tilt(..., base=poll_weights)` solves the tilt ON the base
+(w ∝ base·exp(λ·t)), which hits every pool's target under the returned
+weights. Measured on a deduct-only export of the published run (seed 20261104,
+5,000 draws, from a `git archive HEAD src` copy; `pools_2026.json` reported
+STALE against HEAD's `pools.py` at that run), Black African +5 points with a
+poll on the five largest parties at their mean shares and the largest (DA)
+moved ±5 points:
+
+| poll | poll sd | poll-only Kish | old: BA miss, pts | old: worst pool miss, pts | new: max miss | new Kish |
+|---|---|---|---|---|---|---|
+| DA −5 | 5 pts | 1,095 | −0.01 | −0.33 | 1e-16 | 269 |
+| DA −5 | 3 pts | 219 | −0.10 | −0.78 | 2e-16 | 68 |
+| DA +5 | 5 pts | 1,160 | −0.27 | −1.33 | 2e-16 | 101 |
+| DA +5 | 3 pts | 270 | +0.52 | −3.84 | 1e-16 | 33 |
+
+The old path's miss on the held pools (targets 0) is the larger error. The new
+weights cost draws: holding turnout where the reader set it against a poll
+that pulls it is a harder selection, and three of the four settings fall below
+`MIN_EFFECTIVE_DRAWS` and are refused, where the old path answered them wrongly.
+`test_reweight::test_a_tilt_solved_on_the_poll_hits_its_target_and_one_multiplied_in_misses`
+builds turnout and a party's share from one common factor; the old product
+misses every pool by more than 0.3 points there and the new tilt is within 1e-9.
+With a base, a zero shift is not a no-op: it holds turnout at the published
+means under the poll. Whether the page applies it when the reader has not
+touched turnout is the page's decision.
+
+**A8 — sd and trust were one degree of freedom.** A likelihood at sd σ raised to
+trust t is the likelihood at sd σ/√t. `poll_weights` now takes one control,
+`sd`; `sd = inf` returns `uniform(n)` exactly, which is DESIGN-decided §3's
+"our trust is zero". A page slider labelled trust maps onto `sd` and must
+reach infinity at its zero; no scale constant is introduced in the engine.
+`POLL_LABEL` ("the model's draws nearest this poll") is attached by
+`reweight.figure(..., poll=True)`.
+
+**Per-statistic reliability.** Two counts, both in draws, beside Kish's:
+`quantile_effective_draws` — P(1−P)/Σw̃²(h−P)², the draws that would place
+the quantile's level as precisely (equals n under uniform weights), with the
+level's SE; and `tail_effective_draws` — Kish over the draws on the quantile's
+own side, the draws its value is read from. Measured at Kish = 200 on the same
+export, over the 19 parties with a published figure whose seats vary. Settings
+found by bisection: Black African turnout +8.0 points, others held; the DA −5
+poll at sd 2.93 points; the DA +5 poll at sd 2.73 points.
+
+| setting (Kish 200) | p5 tail draws: min / median | p95 tail draws: min / median | p5 level-ESS min | p95 level-ESS min |
+|---|---|---|---|---|
+| turnout BA +8 | 10.9 (DA) / 51 | 1.8 (ATM) / 16.8 | 117 | 36 |
+| poll DA −5 | 10.0 (PA) / 65 | 7.0 (PAC) / 12.8 | 181 | 130 |
+| poll DA +5 | 10.2 (DA) / 60 | 7.0 (ACDP) / 16.9 | 176 | 136 |
+| uniform, 5,000 | 254 / 1,468 | 250 / 272 | 5,000 | 5,000 |
+
+Tail draws count ties on the quantile's side, which is why the median party's
+p5 tail holds more than 5% of the draws.
+
+**Does `MIN_EFFECTIVE_DRAWS` = 200 hold for the 5th percentile?** For the
+level, roughly: the quantile-level ESS stays near Kish for the median party.
+For the value, no: at the floor, the worst party's p5 is read from about ten
+effective draws and a p95 from two to seven, so one or two draws decide it.
+The floor protects a mean, not a tail. Not changed here: a tail floor is a new
+judgement call for the owner, and the page can show `tail_effective_draws`
+beside each band now that the engine reports it. JUDGEMENT-CALLS §N1's argued
+"about ten effective draws in its tail" is borne out at the median-to-worst
+parties and optimistic for p95 of minor parties.
+
+**Not tested.** Pyodide; a paired re-run of the model under a poll (the tilt
+against a re-run, §1.271, covers turnout alone); the tail measurement at other
+cities or with the four-law export.
+
+## 1.274 The reader edits the combined vote; its votes now sum to the total they are scaled to (2026-09-28)
+
+**Decision.** DESIGN-decided §10 (owner, after the blind pollster review): a
+reader's party slider is each party's share of all votes, ward and list
+ballots together, with no conversion. `reader_seats.reader_seats` takes
+`combined_shares`; JUDGEMENT-CALLS §M1's "PR shares stand for both ballots" is
+retired (§M1, amendment). The reason is §1.270's measurement: a PR-ballot share
+moved seats in every draw at Johannesburg 2021 and 2026, where the combined
+share reproduces every draw.
+
+**Defect fixed.** Shares became votes as `int(round(share × total_votes))` per
+party, so the votes did not have to sum to `total_votes`, and the quota
+(`total // available + 1`) is struck from their sum. Now largest remainder
+(`reader_seats.combined_votes`): shares scaled to sum to one, floored, the
+leftover votes to the largest fractions in caller order.
+
+**Measured** (`tests/run_all.py -k reader_seats -k overhang`, model runs from a
+`git archive HEAD src` copy, 100 draws per target, seed 20261104):
+
+| quantity | value |
+|---|---|
+| draws reproduced from their combined share, Johannesburg 2021 + 2026 | 200 of 200 |
+| draws where the excessive-seats clause fired | 77 of 200 |
+| random share vectors (2–15 parties, totals up to 2,000,000) where per-party rounding missed `total_votes` | 1,329 of 2,800 |
+| the same, largest remainder | 0 of 2,800 |
+| PR-ballot share alone, draws reproduced (the retired input) | 0 of 100 at 2021, 0 of 100 at 2026; seats moved per draw mean 3.28 / 8.46, max 6 / 14 |
+
+Whether the rounding defect ever moved a SEAT on a real reader input is not
+measured: the table counts vote totals, not councils.
+
+**Also.** `tests/test_overhang.py::test_no_call_site_relies_on_the_signature_default`
+now pins three call sites of `allocate_with_overhang` by file name,
+`reader_seats.py` added, re-recorded with its reason in the test. The
+saved-forecast service (`worker-api/`) calls the real signature; its copy list
+is held equal to `reader_seats`' import closure, both ways.
+
+## 1.275 F5 mergers: the transfer is exactly r × P at the spine, the pre-registered share prediction fails on noise it did not budget for, and F3's hold now re-holds a second silenced pool (2026-09-29)
+
+Code: `pools.Merger`, `MERGERS`, `MERGER_RETENTION` (0.75, JUDGEMENT-CALLS
+§O1), `apply_mergers`, `merged_vector`, called at `montecarlo.run_model`,
+`pools.emit_pools` and `theta_residual._residuals_cached`
+(`pools.MERGER_CONSUMERS`). Declarations GOOD + RISE (2026-05-25) and Forum 4
+Service Delivery + ActionSA (2025-01-15), sources in SOURCES.md "Mergers".
+**Nothing re-emitted.** Pre-registration: the dated amendment to
+`prereg/2026-09-27-independents-and-mergers.md`, written before any output
+was read.
+
+### The sweep
+
+`run_model` called directly on Johannesburg 2026, seed 20261104, with a spec
+built in-process by `emit_pools` at each r (lineage template stubbed, the
+processed directory a `/tmp` copy; nothing under `data/` written). Scripts in
+`/tmp/f5/`, not committed. RISE's 2024 share is 1.5569%, GOOD's 0.2251%.
+
+| r | transfer recorded (GOOD → RISE) | RISE spine level | RISE centre after shrink | RISE mean PR share, 5,000 draws | ratio to r = 0 | RISE median seats |
+|---|---|---|---|---|---|---|
+| 0 | 0 | 1.4411% | 1.7727% | 1.5117% | 1 | 2 |
+| 0.5 | 0.1125% | 1.5453% | 1.8905% | 1.6717% | 1.106 | 2 |
+| 0.75 | 0.1688% | 1.5973% | 1.9490% | 1.7403% | 1.151 | 2 |
+| 1.0 | 0.2251% | 1.6494% | 2.0059% | 1.7579% | 1.163 | 3 |
+
+The spine level scales exactly by 1 + r × P_GOOD / B_RISE (1.0723, 1.1084,
+1.1446): the national-only route multiplies the national share by one
+retention factor, so the transfer arrives whole at the centre. Forum 4 Service
+Delivery → ActionSA moves 0.0092% to 0.0184% of the baseline, and ActionSA's
+spine level by 0.012 to 0.025 points.
+
+Every party whose median seat count moves against r = 0, 5,000 draws:
+r = 0.5 EFF −1, MK +1; r = 0.75 EFF −1; r = 1.0 ANC −1, ActionSA −1, MK +1,
+RISE +1. At 1,000 draws the same comparison moved ANC by −2.5 at r = 1.0.
+
+### The amended pre-registration, scored as written (1,000 draws, the run registered)
+
+| prediction | result |
+|---|---|
+| 1. recorded transfer = r × P | **passed**, to float precision, both declarations, every r |
+| 2. RISE's mean rises strictly with r; ratio at 0.75 in [1.065, 1.130] | **failed**: 1.050, 1.125, 1.068 at r = 0.5, 0.75, 1.0, not monotone |
+| 3. ActionSA moves < 0.05pp at every r | **failed**: +0.40, +0.33, +0.34pp |
+| 4. no other party moves > 0.10pp | **failed**: ANC −0.48pp and MK +0.44pp at r = 1.0 |
+| 5. r = 0 equals no declarations | **passed** for seats (identical); shares differ by at most 2.8e-17, not bitwise |
+
+The 5,000-draw run was made after these results were read and is not the
+registered measurement. On it prediction 2 is monotone but the ratio at 0.75
+is 1.151, above the band; 3 fails at r = 0.75 (+0.094pp) and r = 1.0
+(−0.107pp, the opposite sign); 4 fails at r = 1.0 (DA −0.164pp).
+
+### Why 2–4 fail: the draws are not coupled across specs
+
+At 300 draws, four runs crossed the spec's r with `run_model`'s r. Between the
+r = 0 spec and the r = 0.5 spec, with no transfer in `run_model`, every trace
+stage up to `30_centres` is identical and `40_draws` differs: ActionSA's mean
++0.33pp, RISE's +0.12pp, with no change to any centre. A change to one pool
+vector moves every party's draw. Predictions 3 and 4 were written with no noise
+floor, and a between-run difference at 1,000 draws is of the size they set as
+the limit. Two readings remain for prediction 2's high ratio at 5,000 draws:
+noise of this kind, or a real effect of the vector blend on RISE's draw (GOOD's
+vector moves RISE's Coloured weight 0.072 → 0.133 at r = 0.75). **A
+seed-replicate pair at r = 0, or common random numbers across specs, would
+separate them; neither was run.**
+
+The original seat prediction (RISE +0 to +2, no other party > 1) passes at both
+draw counts and, as the amendment recorded, cannot distinguish the transfer
+from a no-op.
+
+### F3 follow-ups (blind review, 2026-09-29)
+
+* **`_nest_holding_silent` now re-holds a pool its own re-fit silences**, and
+  raises `HoldCascadeRefused` if every populated pool would be held. Test:
+  `test_pool_bounds.py::test_a_refit_that_silences_a_second_pool_holds_it_too`
+  (constructed table; the one-hold code fails it). Over the 24 fitting years of
+  the declared targets, 72 solves, the cascade occurs **zero** times, so no
+  spec moves.
+* **JUDGEMENT-CALLS §L14 reworded**: the city's rate is a panel-consistent
+  prior, not an uninformative value. Its ward-level cost (sum of squared ward
+  residuals, held fit against free fit): turnout at buffalocity 2011 +26.8%,
+  mangaung 2016 +6.2%, 2011 +1.6%, 2006 +1.0%; registration at mangaung 2006
+  +0.2%. It lowers the White and Coloured pools' turnouts; at buffalocity 2011
+  both move from above to below their panel medians.
+
+### What must hold after the re-emit
+
+`pools.py` changed, so every spec's `artefact_key` is stale until the F8
+re-emit. After it: `pools_2026.json` (Johannesburg) carries a `mergers` list
+with GOOD → RISE and FORUM_4_SERVICE_DELIVERY → ActionSA at retention 0.75,
+both `vector_blended`; RISE's `no_measured_vector` note names the merger; no
+backtest spec changes except `artefact_key` (no merger predates a held
+election, and the cascade guard fires nowhere). `run_model` at Johannesburg
+2026 records both transfers in `scenario["_mergers"]`.

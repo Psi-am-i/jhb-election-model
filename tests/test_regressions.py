@@ -605,18 +605,12 @@ def test_no_top_level_function_is_defined_and_never_used():
 # A public top-level function in `src/` whose only "references" are prose —
 # comments and docstrings — and which no code anywhere calls. The test above
 # counts references with a TEXT regex over the concatenated source, so a
-# function named in a sentence reads as used; these four are what that costs.
+# function named in a sentence reads as used; these are what that costs.
 #
 # Each is a real finding, verified 2026-08-31 by counting `ast.Name`/
-# `ast.Attribute` references across `src/` and `tests/` instead:
+# `ast.Attribute` references across `src/` and `tests/` instead. (`seats.overhang`
+# was a fourth until `tests/test_seats.py` called it; its entry is deleted.)
 #
-#   seats.overhang            — 25 regex hits, ALL of them the English word
-#                               "overhang" in comments and docstrings. Zero code
-#                               references, in the seat-allocation module. This
-#                               is the `pools.apply_arrivals` shape exactly: a
-#                               documented mechanism that never runs, being read
-#                               by anyone who opens seats.py to understand how
-#                               overhang is handled.
 #   polling.metro_polls       — one comment in montecarlo.py, one docstring in
 #                               polling.py.
 #   pools.constrain_pool_turnout — a `:func:` docstring reference and a `# NOTE:`
@@ -628,7 +622,6 @@ def test_no_top_level_function_is_defined_and_never_used():
 # guard that says so, until someone deletes or wires each one. `src/` is not
 # this worker's to change.
 PROSE_ONLY_REFERENCES = {
-    "overhang": "seats.py — 25 regex hits, all the English word; zero callers",
     "metro_polls": "polling.py — a comment and a docstring, no caller",
     "constrain_pool_turnout": "pools.py — its own docstring and a # NOTE",
     "dated_spans": "stats.py — one docstring in tests/test_published_page.py",

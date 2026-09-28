@@ -33,7 +33,7 @@ To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 
 | path | what |
 |---|---|
-| `make.html`, `js/make.js` | the builder: map, list vote, coalition, results, save and share |
+| `make.html`, `js/make.js` | the builder: map, vote shares, coalition, results, save and share |
 | `model.html`, `js/model.js` | play with the model, against synthetic draws |
 | `f/index.html`, `js/f.js` | the shared forecast page, `/f/<id>` in production |
 | `js/map.js` | the ward map (geographic and equal-sized), painting, keyboard |
@@ -51,7 +51,7 @@ To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 
 | stub | stands in for | the real thing |
 |---|---|---|
-| `fixtures/placeholder-model.json` | the model's roster, most likely ward winners, list-vote shares and published seats | the S2 export (`site/draws/base.bin` + manifest, PLAN.md) and the certified roster in IEC ballot order |
+| `fixtures/placeholder-model.json` | the model's roster, most likely ward winners, combined vote shares, the combined total they scale to, and published seats | the S2 export (`site/draws/base.bin` + manifest, PLAN.md) and the certified roster in IEC ballot order |
 | `fixtures/placeholder-draws.json` | per-draw pool turnouts, list shares and seats for each grid cell and seat law | S2 and S3 of PLAN.md |
 | `js/model.js` re-weighting | `src/reweight.py` (PLAN S4), run under Pyodide | delete the JavaScript; one definition in Python |
 | `js/allocator-stub.js` | `seats.allocate` | the model's own function under Pyodide; see "Integration" |
@@ -83,14 +83,14 @@ committed. S5 should commit its code and be the one source.
 
 ## Integration: what the real pages need
 
-1. **How a reader's forecast becomes seats. A model decision, not the page's.**
-   `seats.allocate` takes combined ward-plus-list **vote counts**. A reader
-   supplies ward winners and list-vote shares, not votes. Something has to turn
-   one into the other, and that choice decides how a reader's hand-called wards
-   meet the excessive-seats clause. It needs a mechanism in the model and a
-   JUDGEMENT-CALLS row before the page can show a real seat. The stub keeps
-   ward wins and shares 135 list seats on list shares alone, which is the
-   PR-only reading already shown wrong; it is labelled as such on every screen.
+1. **How a reader's forecast becomes seats: `src/reader_seats.py`.** The
+   reader edits each party's COMBINED vote share, ward and list ballots
+   together, which is what the statute counts (DESIGN-decided §10), plus the
+   ward winners. `reader_seats(combined_shares, ward_winners, context,
+   total_votes)` scales the shares to the start state's combined total and
+   seats them by Schedule 1 and item 16 (JUDGEMENT-CALLS §M1). The page must
+   run that file under Pyodide; the stub still shares 135 list seats on the
+   shares alone, and is labelled as a stand-in on every screen.
 2. **The engine**: `reweight.py` and `seats.py` under Pyodide, loaded behind the
    static first paint (PLAN §9). The untouched model page shows the published
    draws exactly; effective draws beside every result; refusal below the floor.
@@ -113,15 +113,16 @@ committed. S5 should commit its code and be the one source.
   page opens with a stamp and a boxed statement that it is not the model's
   forecast, and the share image says so in words.
 * **No party is singled out (DESIGN-decided §8).** Parties are alphabetical
-  everywhere a reader chooses (brush, list vote, coalition), every party has
+  everywhere a reader chooses (brush, vote shares, coalition), every party has
   the same control with the same range, and nothing is pre-selected: tapping a
   ward before choosing a party asks for a party rather than defaulting to one.
   Result lists sort by the reader's own seats.
-* **The list vote starts at the model's shares; the map starts empty.** The
+* **The vote shares start at the model's; the map starts empty.** The
   map is the game, so it starts blank, with "start from the model's map" and
-  "fill empty wards with the model's call" one tap away. The list vote starts
+  "fill empty wards with the model's call" one tap away. The shares start
   where the model is, so a reader who only calls wards still gets a council.
-* **Saving needs all 135 wards, a list vote summing to 100, and a coalition.**
+  Each is a party's share of all votes, ward and list ballots together.
+* **Saving needs all 135 wards, vote shares summing to 100, and a coalition.**
   Making does not need an account; saving and sharing do.
 * **Three ways to call a ward**: tap or drag on the map (drag with mouse or pen
   only, so a finger can scroll), a whole compass sector at once, and a list of
@@ -141,9 +142,12 @@ committed. S5 should commit its code and be the one source.
 * **Share image**: two sizes, 1200×630 for link previews and 1080×1920 for
   stories (content above y = 1720, clear of the reply bar). Site name, the
   reader's map, top five seat totals, the coalition with its seat total against
-  136, the reader's name or "A reader", and "A reader's forecast, not the
-  model's". Names are escaped; a 40-character name drops to a smaller size
-  rather than being cut. The browser's PNG uses system fonts; the server's uses
+  the majority of the council as seated (both from the seat answer, never
+  typed), the reader's name or "A reader", and "A reader's forecast, not the
+  model's". Names are escaped. Text is laid out by measured width in the
+  server's DejaVu faces: a long title drops to a smaller size, and a party
+  name too long for its column shrinks, then is cut with an ellipsis, rather
+  than run into its bar. The browser's PNG uses system fonts; the server's uses
   an embedded font (BACKEND.md §5).
 
 ## Legal

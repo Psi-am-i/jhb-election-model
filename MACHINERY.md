@@ -1903,7 +1903,9 @@ under Pyodide. Every party is treated identically (DESIGN-decided §8).
   Kullback-Leibler divergence. There is no single-pool form: the pools' turnouts
   are correlated, so selecting on one lifts all four (PLAN.md finding 3). A
   target outside what the draws span is refused, not extrapolated.
-* **Polls:** `poll_weights` is an independent-normal likelihood on each draw's
+* **Polls** *(superseded 2026-09-28: the `trust` exponent and `combine` are
+  gone; see the dated paragraph "Changed 2026-09-28, after the blind pollster
+  review" below)*: `poll_weights` is an independent-normal likelihood on each draw's
   PR shares, with the draw and the poll both renormalised to the polled
   parties, raised to the power `trust` in [0, 1]. Trust 0 is uniform weights
   exactly; trust 1 is "the draws closest to this poll", not "the poll happens".
@@ -1932,6 +1934,24 @@ manifest's declaration; the size budget; each refusal on constructed runs) and
 `ward_winner_probs.csv`; the paired re-run; the refusal floor; the statistics on
 constructed inputs). Not yet tested: the same fixture under Pyodide
 (INTEGRATION.md §3b's third check).
+
+**Changed 2026-09-28, after the blind pollster review (MODEL-LOG §1.273).
+Where this conflicts with the bullets above, this paragraph is current.**
+`poll_weights(shares, columns, poll, *, sd)` has ONE control, the reader's poll
+error `sd`; the `trust` exponent is gone, because a likelihood at σ raised to t
+is the likelihood at σ/√t (finding A8). `sd = inf` returns uniform weights
+exactly, the published forecast. `combine` is deleted: a turnout tilt is solved
+ON the poll's weights, `turnout_tilt(turnouts, shift, base=poll_weights)`,
+w ∝ base·exp(λ·t), so the turnout targets (published means plus `shift`) hold
+under the weights returned; multiplying a tilt solved on uniform weights by the
+poll's missed them (finding A7). With a base, a zero shift holds turnout at the
+published means rather than doing nothing. Beside Kish's count, each quantile
+reports `quantile_effective_draws` (the draws that would place its level as
+precisely; n under uniform weights) and `tail_effective_draws` (Kish over the
+draws on its own side, which its value is read from); `figure` returns both
+with the value and, for poll weights, `POLL_LABEL`, "the model's draws nearest
+this poll". `require_effective` and `export_draws.export` resolve their
+defaults (`MIN_EFFECTIVE_DRAWS`, `LAWS`) at call time.
 
 ## A reader's forecast, seated by the statute alone — `src/reader_seats.py` (2026-09-28)
 
@@ -1975,3 +1995,60 @@ reader edits; two item 16 councils worked by hand, including the
 "equal to" trigger moving a seat between two other parties; one refusal per
 validation; and an import-and-allocate run with pandas unimportable and every
 file open refused.
+
+**Amended 2026-09-28 (DESIGN-decided §10, owner, after the blind pollster
+review).** The reader edits each party's COMBINED vote share — its share of all
+votes, ward and list ballots together — which is what Schedule 1 counts, with
+no conversion. The parameter is `combined_shares`
+(`reader_seats(combined_shares, ward_winners, context, total_votes)`), and the
+"PR shares stand for both ballots" assumption above is retired (JUDGEMENT-CALLS
+§M1, amendment). The shares become votes through `reader_seats.combined_votes`:
+scaled to sum to exactly one, floored against `total_votes`, and the leftover
+votes given to the largest fractional parts in the caller's order, so the votes
+sum to `total_votes` exactly; each party rounded on its own could miss the
+total, and the quota is struck from the total. The result carries those votes
+as `votes`. The saved-forecast service (`worker-api/seats-py`) passes the same
+four arguments through, and copies this module's import closure, which
+`tests/test_reader_seats.py` holds equal to its `FILES` list both ways.
+
+## Mergers — `pools.apply_mergers` (F5, 2026-09-29)
+
+The inverse of a split. `pools.MERGERS` holds each declaration as data: the
+partners, a date, and the source. For a target whose polling day is after that
+date, `apply_mergers` reads the target's roster: a partner on the ballot
+inherits, a partner off it hands over `MERGER_RETENTION` of its share
+(JUDGEMENT-CALLS §O1). It moves nothing when every partner is on the ballot,
+when none is, or when the roster is unknown, and it refuses when two partners
+are on the ballot and another is off it.
+
+**It only adds to a record the successor already holds.** The test is per
+share dict: RISE, with a 2024 national share and no 2021 local one, receives
+GOOD's national share and not its local one, so its spine route stays
+national-only.
+
+**Where it runs** (`pools.MERGER_CONSUMERS`, scanned in both directions by
+`test_roster_aware_baseline.py`):
+
+* `montecarlo.run_model`, on the national baseline and every VD's shares,
+  before `levels.absent_from_ballot`, which then removes the predecessor's
+  unretained remainder; and on the preceding local PR shares (`prior_pr_share`)
+  before the spine and `blended_centres`. The ward/PR ratios keep the unmerged
+  2021 ballots. The transfers made are in `scenario["_mergers"]`.
+* `pools.emit_pools`, on the spec's baseline before the off-ballot drop; the
+  successor's pool vector becomes the mass-weighted blend of its own and the
+  predecessor's (`pools.merged_vector`). The spec lists the transfers under
+  `mergers`.
+* `theta_residual._residuals_cached`, so Key 4 measures the baseline
+  `run_model` uses. No declared merger predates a held election, so this moves
+  no row today.
+
+## `_nest_holding_silent` re-holds a pool its own re-fit silences (2026-09-29)
+
+Holding a silenced pool at the city's rate re-fits the others, and that re-fit
+can drive a second pool to the 0.0 corner. The function now checks the re-fit,
+holds any newly silenced pool by the same rule, and re-fits again until no
+populated pool is silent; it raises `HoldCascadeRefused` if that would hold
+every populated pool. Every held pool is returned, so `PoolCounts.imputed` and
+`rates_on_a_bound` list them all. On the fitting years of the declared targets
+the cascade does not occur (MODEL-LOG §1.275), so the guard moves no
+spec today.

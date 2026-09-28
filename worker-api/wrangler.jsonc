@@ -17,13 +17,6 @@
   "workers_dev": false,
   "observability": { "enabled": true, "head_sampling_rate": 1 },
 
-  // interactive/js/common.js (imported for the ONE card builder and escaper)
-  // computes `new URL("../", import.meta.url)` at module load, for fetching
-  // fixtures in the browser. In a bundled Worker import.meta.url is not a valid
-  // URL base and the Worker fails to start. The server never uses that value;
-  // this gives it a well-formed one. Remove when common.js computes it lazily.
-  "define": { "import.meta.url": "\"https://joburg.whysoserious.city/interactive/js/common.js\"" },
-
   // Fonts for the server-rendered share card, bundled as ArrayBuffers.
   "rules": [{ "type": "Data", "globs": ["**/*.ttf"], "fallthrough": false }],
 
@@ -74,7 +67,6 @@
   "env": {
     // `wrangler dev --env dev --port 8802`: plain-http cookie names, no Turnstile.
     "dev": {
-      "define": { "import.meta.url": "\"https://joburg.whysoserious.city/interactive/js/common.js\"" },
       "vars": {
         "SITE_ORIGIN": "http://localhost:8802",
         "LOCK_AT": "2026-11-04T07:00:00+02:00",

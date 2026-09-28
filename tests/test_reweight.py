@@ -8,7 +8,7 @@ proves:
    of a fresh export at the published seed and draws: every party's median,
    p5 and p95 in `forecast_summary.json`, its structural probabilities and
    median threshold, and every ward's Jeffreys win probability in
-   `ward_winner_probs.csv`. Trust 0 on a poll is exactly uniform.
+   `ward_winner_probs.csv`. A poll at infinite error is exactly uniform.
 2. THE TURNOUT TILT AGREES WITH MOVING TURNOUT IN THE MODEL. Black African
    turnout +5 points, the other three pools held at their means, against a
    paired re-run of the model with that pool's drawn turnout shifted by 0.05
@@ -21,6 +21,13 @@ proves:
    target outside the draws, are refused; a modest target is not.
 4. THE WEIGHTED STATISTICS REDUCE CORRECTLY on constructed inputs, including
    numpy's own percentile at every quantile, and are mirror-symmetric.
+5. TWO CONTROLS AT ONCE HIT WHAT THE READER ASKED FOR. A turnout tilt solved
+   on a poll's weights meets its turnout target exactly, on a constructed case
+   where turnout and poll agreement are correlated — the case in which
+   multiplying a tilt solved alone by the poll's weights misses (blind review
+   A7). The poll has one control, its error (A8).
+6. EACH QUANTILE REPORTS WHAT IT RESTS ON, which can be far less than Kish's
+   count for the weights as a whole.
 
 ⚠️ The tilt matches a MEAN and the re-run moves the whole distribution. Check
 2 is what licenses the page to present one as the other, at this size of move
@@ -33,6 +40,7 @@ from __future__ import annotations
 
 import csv
 import json
+import math
 import os
 import pickle
 import subprocess
@@ -248,7 +256,7 @@ def test_uniform_weights_give_every_published_ward_probability_exactly():
     assert not differ, differ
 
 
-def test_trust_zero_is_uniform_exactly_and_trust_above_zero_is_not():
+def test_an_infinite_poll_error_is_uniform_exactly_and_a_finite_one_is_not():
     st = _runs()
     arrays, manifest = st["arrays"], st["manifest"]
     columns = manifest["parties"] + ["OTHER"]
@@ -256,9 +264,9 @@ def test_trust_zero_is_uniform_exactly_and_trust_above_zero_is_not():
     # equal shares (chosen by a rule, not by name)
     means = arrays["pr_share"][:, :-1].mean(axis=0)
     poll = {manifest["parties"][j]: 1.0 for j in np.argsort(-means)[:5]}
-    w0 = R.poll_weights(arrays["pr_share"], columns, poll, sigma=0.05, trust=0.0)
+    w0 = R.poll_weights(arrays["pr_share"], columns, poll, sd=math.inf)
     assert np.array_equal(w0, R.uniform(st["draws"]))
-    w1 = R.poll_weights(arrays["pr_share"], columns, poll, sigma=0.05, trust=1.0)
+    w1 = R.poll_weights(arrays["pr_share"], columns, poll, sd=0.05)
     assert not np.array_equal(w1, w0)
     assert R.effective_draws(w1) < st["draws"]
 
@@ -365,6 +373,25 @@ def _constructed_turnouts(n: int = 5000) -> np.ndarray:
                             for _ in range(4)])
 
 
+def test_the_refusal_floor_is_read_at_call_time():
+    """Rebinding MIN_EFFECTIVE_DRAWS reaches require_effective (CLASS 13)."""
+    w = np.ones(300)
+    kept = R.MIN_EFFECTIVE_DRAWS
+    try:
+        R.MIN_EFFECTIVE_DRAWS = 301
+        try:
+            R.require_effective(w)
+        except R.Refused:
+            pass
+        else:
+            raise AssertionError("a rebound floor did not reach the call")
+        R.MIN_EFFECTIVE_DRAWS = 299
+        assert R.require_effective(w) == 300.0
+    finally:
+        R.MIN_EFFECTIVE_DRAWS = kept
+    assert R.require_effective(w, floor=300) == 300.0
+
+
 def test_the_refusal_floor_fires_below_it_and_not_above():
     t = _constructed_turnouts()
     modest = R.turnout_tilt(t, [0.01, 0.0, 0.0, 0.0])
@@ -441,45 +468,106 @@ def test_poll_weights_use_the_polled_base_and_treat_every_party_alike():
     shares = rng.dirichlet(np.ones(4) * 5, size=400)
     cols = ["A", "B", "C", "D"]
     # the same poll in any units gives the same weights
-    a = R.poll_weights(shares, cols, {"A": 0.3, "B": 0.2}, sigma=0.05, trust=1)
-    b = R.poll_weights(shares, cols, {"A": 30, "B": 20}, sigma=0.05, trust=1)
+    a = R.poll_weights(shares, cols, {"A": 0.3, "B": 0.2}, sd=0.05)
+    b = R.poll_weights(shares, cols, {"A": 30, "B": 20}, sd=0.05)
     assert np.allclose(a, b, rtol=1e-12, atol=0)
     # relabelling the parties relabels nothing else: no party is special
     perm = [2, 3, 0, 1]
     c = R.poll_weights(shares[:, perm], [cols[i] for i in perm],
-                       {"A": 0.3, "B": 0.2}, sigma=0.05, trust=1)
+                       {"A": 0.3, "B": 0.2}, sd=0.05)
     assert np.allclose(a, c, rtol=1e-12, atol=0)
-    # tempering: trust t at sigma equals full trust at sigma / sqrt(t)
-    d = R.poll_weights(shares, cols, {"A": 0.3, "B": 0.2}, sigma=0.05, trust=0.25)
-    e = R.poll_weights(shares, cols, {"A": 0.3, "B": 0.2}, sigma=0.10, trust=1)
-    assert np.allclose(d, e, rtol=1e-12, atol=0)
     try:
-        R.poll_weights(shares, cols, {"Q": 0.3}, sigma=0.05, trust=1)
+        R.poll_weights(shares, cols, {"Q": 0.3}, sd=0.05)
     except ValueError:
         pass
     else:
         raise AssertionError("a poll naming a party the draws lack was accepted")
 
 
-def test_two_controls_combine_by_multiplying_and_trust_zero_changes_nothing():
-    t = _constructed_turnouts(400)
-    tilt = R.turnout_tilt(t, [0.01, 0.0, 0.0, 0.0])
-    rng = np.random.default_rng(6)
-    shares = rng.dirichlet(np.ones(3) * 5, size=400)
-    poll = R.poll_weights(shares, ["A", "B", "C"], {"A": 0.4, "B": 0.3},
-                          sigma=0.05, trust=1.0)
-    both = R.combine(tilt, poll)
+def test_the_poll_has_one_control_and_it_moves_the_weights_monotonically():
+    """A8: sd and a trust exponent were one degree of freedom; only sd remains."""
+    rng = np.random.default_rng(8)
+    shares = rng.dirichlet(np.ones(4) * 5, size=2000)
+    cols, poll = ["A", "B", "C", "D"], {"A": 0.35, "B": 0.25}
+    for bad in ({"sd": 0.05, "trust": 0.5}, {"sigma": 0.05}, {}):
+        try:
+            R.poll_weights(shares, cols, poll, **bad)
+        except TypeError:
+            continue
+        raise AssertionError(f"poll_weights accepted {sorted(bad)}")
+    for bad in (0.0, -0.01, math.nan):
+        try:
+            R.poll_weights(shares, cols, poll, sd=bad)
+        except ValueError:
+            continue
+        raise AssertionError(f"sd={bad} was accepted")
+    # the one control spans the whole range: from the published forecast at
+    # infinity to ever fewer draws as the error shrinks
+    ess = [R.effective_draws(R.poll_weights(shares, cols, poll, sd=sd))
+           for sd in (math.inf, 0.5, 0.1, 0.05, 0.02, 0.01)]
+    assert ess[0] == 2000.0
+    assert all(a > b for a, b in zip(ess, ess[1:])), ess
+
+
+def _correlated_draws(n: int = 5000):
+    """Turnout and party A's share driven by ONE common factor, as in the model.
+
+    A high-turnout draw is a draw where A does well, so a poll putting A high
+    selects high-turnout draws. The constructed case the old test lacked: it
+    drew shares independently of turnout, where multiplying weights happens to
+    work.
+    """
+    rng = np.random.default_rng(12)
+    common = rng.standard_normal(n)
+    t = np.column_stack([0.4 + 0.05 * (0.8 * common + 0.6 * rng.standard_normal(n))
+                         for _ in range(4)])
+    a = 0.35 + 0.04 * (0.7 * common + 0.7 * rng.standard_normal(n))
+    b = 0.25 + 0.03 * rng.standard_normal(n)
+    shares = np.column_stack([a, b, 1.0 - a - b])
+    return t, shares, ["A", "B", "C"]
+
+
+def _turnout_miss(t, w) -> np.ndarray:
+    """Weighted mean turnout minus the published (uniform) mean, per pool."""
+    return (w / w.sum()) @ t - t.mean(axis=0)
+
+
+def test_a_tilt_solved_on_the_poll_hits_its_target_and_one_multiplied_in_misses():
+    t, shares, cols = _correlated_draws()
+    poll = R.poll_weights(shares, cols, {"A": 0.38, "B": 0.25}, sd=0.03)
+    shift = np.array([0.01, 0.0, 0.0, 0.0])
+    # (0) the construction is what it claims: the poll alone moves turnout
+    assert np.all(_turnout_miss(t, poll) > 0.005)
+    # (a) the old behaviour — tilt solved on uniform, poll multiplied in —
+    #     misses the requested turnout on every pool. This is the leg that
+    #     shows the test can see A7.
+    old = R.turnout_tilt(t, shift) * poll
+    assert np.all(np.abs(_turnout_miss(t, old) - shift) > 0.003), \
+        _turnout_miss(t, old) - shift
+    # (b) solved on the poll: every pool exactly on target, the poll kept
+    both = R.turnout_tilt(t, shift, base=poll)
     assert both.max() == 1.0
-    assert np.allclose(both, tilt * poll / (tilt * poll).max(), rtol=1e-12)
-    untouched = R.poll_weights(shares, ["A", "B", "C"], {"A": 0.4, "B": 0.3},
-                               sigma=0.05, trust=0.0)
-    assert np.array_equal(R.combine(tilt, untouched), tilt / tilt.max())
+    assert np.max(np.abs(_turnout_miss(t, both) - shift)) < 1e-9
+    assert R.effective_draws(both) < R.effective_draws(poll)
+    # (c) a uniform base is no base, and an infinite poll error is uniform
+    assert np.allclose(R.turnout_tilt(t, shift, base=R.uniform(len(t))),
+                       R.turnout_tilt(t, shift), rtol=0, atol=1e-12)
+    untouched = R.poll_weights(shares, cols, {"A": 0.38, "B": 0.25},
+                               sd=math.inf)
+    assert np.array_equal(untouched, R.uniform(len(t)))
+    # (d) with a poll on, a zero shift holds turnout at its published mean
+    held = R.turnout_tilt(t, np.zeros(4), base=poll)
+    assert np.max(np.abs(_turnout_miss(t, held))) < 1e-9
+    # (e) a draw the base gives no weight keeps none
+    zeroed = poll.copy()
+    zeroed[:10] = 0.0
+    assert np.all(R.turnout_tilt(t, shift, base=zeroed)[:10] == 0.0)
     try:
-        R.combine(tilt, np.zeros(400))
+        R.turnout_tilt(t, shift, base=np.zeros(len(t)))
     except R.Refused:
         pass
     else:
-        raise AssertionError("controls leaving no draw any weight were answered")
+        raise AssertionError("a base leaving no draw any weight was answered")
 
 
 def test_combine_polls_averages_on_a_common_base_and_reports_the_spread():
@@ -488,6 +576,54 @@ def test_combine_polls_averages_on_a_common_base_and_reports_the_spread():
     assert set(avg) == {"A", "B"}
     assert np.isclose(avg["A"], (0.6 + 0.4) / 2) and np.isclose(avg["B"], 0.5)
     assert np.allclose(spread["A"], (0.4, 0.6))
+
+
+def test_a_quantile_reports_its_own_effective_draws():
+    rng = np.random.default_rng(13)
+    n = 5000
+    x = rng.standard_normal(n)
+    # uniform: every quantile rests on exactly the draw count
+    for q in (0.05, 0.5, 0.95):
+        ess_q, se = R.quantile_effective_draws(x, np.ones(n), q)
+        assert np.isclose(ess_q, n, rtol=1e-12), (q, ess_q)
+        assert np.isclose(se, np.sqrt(q * (1 - q) / n), rtol=0.05)
+    assert R.tail_effective_draws(x, np.ones(n), 0.05) == \
+        float((x <= np.percentile(x, 5)).sum())
+    # constructed: the weights as a whole are healthy, but the lower tail is
+    # carried by eight heavy draws. Kish's count stays in the thousands; the
+    # 5th percentile's level and value both rest on far fewer.
+    w = np.ones(n)
+    tail = np.flatnonzero(x < -1.645)
+    w[tail] = 0.0
+    w[tail[:8]] = 31.0
+    kish = R.effective_draws(w)
+    ess_q, se = R.quantile_effective_draws(x, w, 0.05)
+    assert kish > 1000, kish
+    assert ess_q < 0.25 * kish, (kish, ess_q)
+    assert R.tail_effective_draws(x, w, 0.05) < 10
+    # the upper tail of the same weights is not starved, and says so
+    ess_hi, _ = R.quantile_effective_draws(x, w, 0.95)
+    assert ess_hi > 0.9 * kish, (ess_hi, kish)
+    assert R.tail_effective_draws(x, w, 0.95) > 200
+    # one side only: nothing to estimate
+    assert R.quantile_effective_draws(np.ones(10), np.ones(10), 0.05)[0] == 0.0
+
+
+def test_a_figure_under_a_poll_says_what_it_is():
+    rng = np.random.default_rng(14)
+    x = rng.integers(20, 60, size=1000).astype(float)
+    shares = rng.dirichlet(np.ones(3) * 5, size=1000)
+    poll = R.poll_weights(shares, ["A", "B", "C"], {"A": 0.5, "B": 0.2},
+                          sd=0.05)
+    polled = R.figure(x, poll, 0.05, poll=True)
+    plain = R.figure(x, R.uniform(1000), 0.05, poll=False)
+    assert polled["label"] == R.POLL_LABEL == "the model's draws nearest this poll"
+    assert plain["label"] is None
+    assert plain["value"] == float(np.percentile(x, 5))
+    assert plain["effective_draws"] == 1000.0
+    assert polled["effective_draws"] < plain["effective_draws"]
+    assert polled["quantile_effective_draws"] < plain["quantile_effective_draws"]
+    assert polled["tail_effective_draws"] < plain["tail_effective_draws"]
 
 
 def test_ward_win_probability_under_weights_uses_the_effective_sample():

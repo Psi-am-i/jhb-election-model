@@ -24,12 +24,20 @@ for one party that does not exist for all.
 
 * :func:`turnout_tilt` — the turnout control. A target for ALL FOUR pools at
   once; PLAN.md finding 3 measured why a single-pool tilt is the wrong control.
-* :func:`poll_weights` — a poll as a likelihood on each draw, with a trust
-  setting in which 0 is uniform weights EXACTLY (DESIGN-decided §3).
+  With a poll switched on, the tilt is solved ON the poll's weights
+  (``base=``), so the turnout the reader asked for is the turnout shown.
+* :func:`poll_weights` — a poll as a likelihood on each draw, with ONE control,
+  the reader's poll error ``sd``, in which an infinite error is uniform weights
+  EXACTLY (DESIGN-decided §3: our own trust is zero). Figures computed under
+  it are :data:`POLL_LABEL`, never "what happens if the poll is right".
 * :func:`combine_polls` — the average of the polls a reader switches on, and
   the spread between them, which is shown and never hidden (DESIGN-decided §2).
 * :func:`effective_draws` and :func:`require_effective` — Kish's effective
   sample, and the refusal below :data:`MIN_EFFECTIVE_DRAWS`.
+* :func:`quantile_effective_draws`, :func:`tail_effective_draws` and
+  :func:`figure` — the effective draws behind ONE statistic. Kish's count
+  describes the weights; a 5th percentile rests on how the weight falls either
+  side of it, which can be far fewer.
 * :func:`weighted_quantile`, :func:`weighted_probability`,
   :func:`ward_win_probability`, :func:`weighted_mean_se` — the statistics the
   page reports, each reducing EXACTLY to the published figure's own formula
@@ -63,6 +71,12 @@ import numpy as np
 #: S4). A judgement call, not a measurement: JUDGEMENT-CALLS.md carries the
 #: row, its evidence and how to check it.
 MIN_EFFECTIVE_DRAWS = 200
+
+#: What a figure computed under a poll's weights is, in the page's words. The
+#: weights select the model's own draws that lie near the poll; they do not
+#: make the poll come true, and a draw set with nothing near the poll gives an
+#: answer about the nearest draws there are. :func:`figure` attaches it.
+POLL_LABEL = "the model's draws nearest this poll"
 
 #: The draw file's format identifier. :func:`unpack` refuses any other, so a
 #: page cannot silently read a file laid out by a different version of
@@ -184,8 +198,14 @@ def effective_draws(weights) -> float:
     return float(w.sum() ** 2 / np.square(w).sum())
 
 
-def require_effective(weights, floor: int = MIN_EFFECTIVE_DRAWS) -> float:
-    """The effective draw count, or :class:`Refused` if it is below ``floor``."""
+def require_effective(weights, floor: int | None = None) -> float:
+    """The effective draw count, or :class:`Refused` if it is below ``floor``.
+
+    ``floor`` defaults to :data:`MIN_EFFECTIVE_DRAWS`, read at call time so
+    that rebinding the module constant reaches the call
+    (``tests/test_ipf_feasibility.py``, CLASS 13).
+    """
+    floor = MIN_EFFECTIVE_DRAWS if floor is None else floor
     ess = effective_draws(weights)
     if not ess >= floor:
         raise Refused(f"{ess:.0f} effective draws of {len(weights)}; a figure "
@@ -194,33 +214,42 @@ def require_effective(weights, floor: int = MIN_EFFECTIVE_DRAWS) -> float:
     return ess
 
 
-def combine(*weights) -> np.ndarray:
-    """Several controls at once: their weights multiply, scaled to a maximum of one."""
-    w = np.ones(len(weights[0]))
-    for x in weights:
-        w = w * np.asarray(x, dtype=float)
-    top = w.max()
-    if not top > 0:
-        raise Refused("these controls together leave no draw with any weight")
-    return w / top
-
-
-def _tilt(features: np.ndarray, targets: np.ndarray, *,
+def _tilt(features: np.ndarray, targets: np.ndarray, *, base=None,
           tolerance: float, steps: int) -> np.ndarray:
-    """Exponential tilting: w ∝ exp(λ·x), λ chosen so the weighted mean of x is ``targets``.
+    """Exponential tilting: w ∝ base·exp(λ·x), λ chosen so the weighted mean of x is ``targets``.
 
-    Of all weightings that hit the targets, this is the one closest to uniform
-    in Kullback-Leibler divergence, so it moves the draws no further than the
-    targets require. λ minimises the convex dual log Σ exp(λ·(x − target));
-    Newton's method with step halving. The features are standardised first so
-    one tolerance serves every column.
+    Of all weightings that hit the targets, this is the one closest to
+    ``base`` (uniform when ``base`` is None) in Kullback-Leibler divergence, so
+    it moves the draws no further than the targets require. λ minimises the
+    convex dual log Σ base·exp(λ·(x − target)); Newton's method with step
+    halving. The features are standardised first so one tolerance serves every
+    column.
 
-    Raises :class:`Refused` when a target lies outside what the draws span:
-    the dual then has no minimum and λ runs away, which is the draws saying
-    they hold no weighting with that mean.
+    The targets are met under the RETURNED weights, base included. Solving on
+    uniform weights and multiplying a base in afterwards does not do that: the
+    base moves the means the tilt was solved to hit, by as much as turnout and
+    the base's own quantity are correlated across draws (the blind review's
+    A7; ``tests/test_reweight.py`` builds the correlated case).
+
+    Raises :class:`Refused` when a target lies outside what the draws of
+    positive base weight span: the dual then has no minimum and λ runs away,
+    which is the draws saying they hold no weighting with that mean.
     """
     x = np.asarray(features, dtype=float)
     t = np.asarray(targets, dtype=float)
+    if base is None:
+        logb = np.zeros(x.shape[0])
+    else:
+        b = np.asarray(base, dtype=float)
+        if b.shape != (x.shape[0],) or not np.all(np.isfinite(b)) \
+                or np.any(b < 0):
+            raise ValueError("the base needs one finite, non-negative weight "
+                             "per draw")
+        live = b > 0
+        if not np.any(live):
+            raise Refused("the base leaves no draw with any weight")
+        x = x[live]
+        logb = np.log(b[live])
     centre, scale = x.mean(axis=0), x.std(axis=0)
     if not np.all(scale > 0):
         raise Refused("a column does not vary across the draws, so no weighting "
@@ -234,17 +263,24 @@ def _tilt(features: np.ndarray, targets: np.ndarray, *,
     lam = np.zeros(d.shape[1])
 
     def dual(l):
-        a = d @ l
+        a = logb + d @ l
         m = a.max()
         return m + np.log(np.exp(a - m).sum())
 
+    def result(w):
+        if base is None:
+            return w / w.max()
+        out = np.zeros(len(live))
+        out[live] = w / w.max()
+        return out
+
     for _ in range(steps):
-        a = d @ lam
+        a = logb + d @ lam
         w = np.exp(a - a.max())
         p = w / w.sum()
         grad = p @ d
         if np.max(np.abs(grad)) < tolerance:
-            return w / w.max()
+            return result(w)
         cov = (d * p[:, None]).T @ d - np.outer(grad, grad)
         try:
             step = np.linalg.solve(cov, grad)
@@ -258,7 +294,7 @@ def _tilt(features: np.ndarray, targets: np.ndarray, *,
                   "the draws span")
 
 
-def turnout_tilt(turnouts, shift, *, tolerance: float = 1e-10,
+def turnout_tilt(turnouts, shift, *, base=None, tolerance: float = 1e-10,
                  steps: int = 200) -> np.ndarray:
     """Weights that move EVERY pool's mean turnout by ``shift`` at once.
 
@@ -270,8 +306,22 @@ def turnout_tilt(turnouts, shift, *, tolerance: float = 1e-10,
     high lifts all four, and the reader who asked for "Black African turnout
     up five points" would be shown "everyone's turnout up" instead.
 
-    All shifts zero returns uniform weights exactly: λ = 0 is then the solution
-    and nothing needs solving. Weights are scaled to a maximum of one; call
+    ``base`` is the weights of every other control switched on — a poll's,
+    from :func:`poll_weights`. The tilt is solved ON them, so the returned
+    weights already include the base and hit the turnout targets exactly under
+    it; never multiply a tilt solved without the base by the base afterwards
+    (the blind review's A7: that misses the target by as much as turnout and
+    poll agreement are correlated across draws). The targets are the PUBLISHED
+    means plus ``shift`` whatever the base, because that is what the reader
+    set.
+
+    All shifts zero with no base returns uniform weights exactly: λ = 0 is then
+    the solution and nothing needs solving. With a base, all shifts zero is NOT
+    a no-op: it holds every pool at its published mean under the poll, which a
+    poll correlated with turnout would otherwise move. Whether the page calls
+    this when the reader has not touched turnout — pinning turnout, or letting
+    it go where the poll takes it — is the page's decision, and the page must
+    say which. Weights are scaled to a maximum of one; call
     :func:`require_effective` on them before showing a figure.
 
     Raises :class:`Refused` if a target leaves the range the draws span.
@@ -283,9 +333,10 @@ def turnout_tilt(turnouts, shift, *, tolerance: float = 1e-10,
                          f"{s.shape}")
     if not np.all(np.isfinite(s)):
         raise ValueError("every pool needs a finite target; 0 holds it at its mean")
-    if not np.any(s):
+    if base is None and not np.any(s):
         return uniform(x.shape[0])
-    return _tilt(x, x.mean(axis=0) + s, tolerance=tolerance, steps=steps)
+    return _tilt(x, x.mean(axis=0) + s, base=base, tolerance=tolerance,
+                 steps=steps)
 
 
 def _on_polled_base(shares, columns, poll: dict) -> tuple[np.ndarray, np.ndarray]:
@@ -305,35 +356,38 @@ def _on_polled_base(shares, columns, poll: dict) -> tuple[np.ndarray, np.ndarray
     return x / total, y / y.sum()
 
 
-def poll_weights(shares, columns, poll: dict, *, sigma: float,
-                 trust: float) -> np.ndarray:
-    """A poll as a likelihood on each draw, raised to the power ``trust``.
+def poll_weights(shares, columns, poll: dict, *, sd: float) -> np.ndarray:
+    """A poll as a likelihood on each draw, with ONE control: the poll's error ``sd``.
 
     ``shares`` is the draw file's ``pr_share`` block and ``columns`` its
     column names; ``poll`` maps party to share, in any units. Both the poll and
     each draw are renormalised to the polled parties (PLAN.md §5's "stated
     base"), so a poll that omits parties is compared only on the parties it
-    names. The likelihood is independent normal, sd ``sigma`` (a fraction:
-    0.05 = five points) on each polled party's renormalised share.
+    names. The likelihood is independent normal, sd ``sd`` (a fraction: 0.05 =
+    five points) on each polled party's renormalised share.
 
-    ``trust`` runs from 0 to 1. At 0 every weight is exp(0) = 1 EXACTLY, the
-    published forecast (DESIGN-decided §3: our own trust is zero). At 1 the
-    weights are the full likelihood — not "the poll happens", but "the draws
-    closest to this poll", which is all the draws can offer and what the page
-    must say. Between, the likelihood is tempered, equivalent to sd
-    ``sigma / sqrt(trust)``.
+    ``sd`` is the reader's view of how wrong the poll can be, and the ONLY
+    control. It was two — an sd and a "trust" exponent in [0, 1] — but a
+    likelihood raised to trust t at sd σ is the same likelihood at sd σ/√t, so
+    the two were one degree of freedom shown as two (the blind review's A8).
+    ``sd = math.inf`` is no weight on the poll: every weight is 1 EXACTLY, the
+    published forecast (DESIGN-decided §3: our own trust is zero). As ``sd``
+    falls the weights concentrate on the draws closest to the poll — not "the
+    poll happens", but :data:`POLL_LABEL`, which is all the draws can offer and
+    what the page must say. A page slider labelled trust maps onto ``sd``; the
+    mapping is the page's, and it must reach infinity at its zero.
 
-    ``sigma`` has no default. It is the reader's view of how wrong a poll can
-    be, and a default here would be a number the model chose for them.
+    ``sd`` has no default. A default here would be a number the model chose
+    for the reader.
     """
-    if not 0.0 <= trust <= 1.0:
-        raise ValueError(f"trust is between 0 and 1, not {trust}")
-    if not sigma > 0:
-        raise ValueError(f"sigma must be positive, not {sigma}")
+    sd = float(sd)
+    if not sd > 0:
+        raise ValueError(f"sd must be positive, not {sd}")
     x, y = _on_polled_base(shares, columns, poll)
-    loglik = -0.5 * np.square((x - y) / sigma).sum(axis=1)
-    a = trust * loglik
-    return np.exp(a - a.max())
+    if np.isinf(sd):
+        return uniform(x.shape[0])
+    loglik = -0.5 * np.square((x - y) / sd).sum(axis=1)
+    return np.exp(loglik - loglik.max())
 
 
 def combine_polls(polls: list[dict]) -> tuple[dict, dict]:
@@ -404,6 +458,77 @@ def weighted_quantile(values, weights, q: float) -> float:
         return float(v[-1])
     gamma = (target - pos[k]) / (pos[k + 1] - pos[k])
     return float(_lerp(v[k], v[k + 1], gamma))
+
+
+def quantile_effective_draws(values, weights, q: float) -> tuple[float, float]:
+    """The effective draws behind ONE quantile, and the standard error of its level.
+
+    Kish's count (:func:`effective_draws`) describes the weights as a whole. A
+    quantile rests on something narrower: the weighted share of draws on its
+    own side, P = Σ w̃·h with h = 1[x ≤ x_q] for q ≤ ½ and 1[x ≥ x_q] above
+    (w̃ normalised to sum to one). The self-normalised estimate of P has
+    linearised variance V = Σ w̃²(h − P)², and the effective draws for this
+    statistic are P(1 − P) / V — the number of equally weighted draws that
+    would estimate P as precisely. Under uniform weights V = P(1 − P)/n, so the
+    count is exactly the draw count, the same unit as the floor. When a few
+    heavy draws carry the tail it falls far below Kish's count, which is the
+    case it exists to show.
+
+    Returns ``(effective draws, sqrt(V))``: the second is the standard error of
+    the quantile's LEVEL, as a fraction — how far the reported 5th percentile
+    could sit from the true 5th, in percentile units. Ties count on the
+    quantile's side, so for integer seats P can exceed q.
+
+    Returns ``(0.0, nan)`` when every draw is on one side (P is 0 or 1 and the
+    statistic has no spread to estimate).
+    """
+    v = np.asarray(values, dtype=float)
+    w = np.asarray(weights, dtype=float)
+    p = w / w.sum()
+    h = _quantile_side(v, w, q)
+    share = float(p @ h)
+    var = float(np.square(p) @ np.square(h - share))
+    if not var > 0:
+        return 0.0, float("nan")
+    return share * (1.0 - share) / var, float(np.sqrt(var))
+
+
+def _quantile_side(v: np.ndarray, w: np.ndarray, q: float) -> np.ndarray:
+    """1 for the draws on the quantile's own side, ties included."""
+    xq = weighted_quantile(v, w, q)
+    return (v <= xq) if q <= 0.5 else (v >= xq)
+
+
+def tail_effective_draws(values, weights, q: float) -> float:
+    """Kish's effective count over the draws on the quantile's own side alone.
+
+    Where :func:`quantile_effective_draws` says how precisely the weights place
+    the quantile's LEVEL, this says how many draws its VALUE is read from:
+    under uniform weights, the draw count on that side (about q·n, more with
+    ties). A few heavy draws owning a tail drive it towards their number while
+    Kish's count for the whole weighting stays healthy.
+    """
+    v = np.asarray(values, dtype=float)
+    w = np.asarray(weights, dtype=float)
+    return effective_draws(w * _quantile_side(v, w, q))
+
+
+def figure(values, weights, q: float, *, poll: bool) -> dict:
+    """One quantile as the page shows it: the value, what it rests on, and what it is.
+
+    ``poll`` says whether a poll's weights are among ``weights``; when they
+    are, the figure carries :data:`POLL_LABEL`, and the page prints it beside
+    the number. The effective counts are reported, not enforced: the refusal
+    is :func:`require_effective`'s, on the weights as a whole.
+    """
+    ess_q, level_se = quantile_effective_draws(values, weights, q)
+    return {"value": weighted_quantile(values, weights, q),
+            "q": float(q),
+            "effective_draws": effective_draws(weights),
+            "quantile_effective_draws": ess_q,
+            "tail_effective_draws": tail_effective_draws(values, weights, q),
+            "level_se": level_se,
+            "label": POLL_LABEL if poll else None}
 
 
 def weighted_probability(event, weights) -> float:

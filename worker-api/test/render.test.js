@@ -4,8 +4,10 @@ import { describe, it, expect } from "vitest";
 import { env } from "cloudflare:test";
 import { exports } from "cloudflare:workers";
 import { forecastPage, cardSVG, renderPNG, cardKey } from "../src/render.js";
+import { textWidth } from "../../interactive/js/card.js";
 import { schema, geom } from "../src/forecasts.js";
 import { validateForecast } from "../src/validate.js";
+import { seatRequest } from "../src/seats.js";
 import { fakeSeats } from "./fake-seats.js";
 import { makeUser, api, validForecast } from "./helpers.js";
 
@@ -15,7 +17,7 @@ const worker = exports.default;
 async function fixedRow(name = "Thandi & \"Sipho\" O'Neill") {
   const body = validateForecast({ ...validForecast(), display_name: name }, schema).value;
   const seats = await (await fakeSeats(new Request("https://seats/v1/seats", { method: "POST",
-    body: JSON.stringify({ ward_calls: body.ward_calls, pr_share: body.pr_share, council_seats: schema["x-council"].council_seats }) }))).json();
+    body: JSON.stringify(seatRequest(body, schema)) }))).json();
   return { id: "Snap5hot01", rev: 3, body: JSON.stringify(body), seats: JSON.stringify(seats), seats_code_ref: seats.code_ref,
     created_at: "2026-10-01T08:00:00.000Z", updated_at: "2026-10-02T08:00:00.000Z", model_ref: body.model_ref };
 }
@@ -27,6 +29,8 @@ function pngSize(u8) {
 }
 
 describe("server-rendered share page", () => {
+  // RE-RECORDED 2026-09-28 with the card snapshot below: the embedded card SVG
+  // changed layout, and the stored seats carry majority and excessive.
   it("matches the snapshot", async () => {
     const html = forecastPage(await fixedRow(), schema, geom, env);
     expect(html).toMatchSnapshot();
@@ -72,7 +76,52 @@ describe("server-rendered share page", () => {
   });
 });
 
+// Every bar row as drawn: the name's text, its size and x, and the bar's x.
+function barRows(svg) {
+  const re = /<text class="nm" x="([\d.]+)" y="[\d.]+" font-family="[^"]*" font-size="([\d.]+)" fill="[^"]*">([^<]*)<\/text><rect x="([\d.]+)"/g;
+  const unesc = t => t.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  return [...svg.matchAll(re)].map(m => ({ x: +m[1], fs: +m[2], name: unesc(m[3]), bar: +m[4] }));
+}
+const overlaps = rows => rows.filter(r => r.x + textWidth(r.name, r.fs) > r.bar);
+
+// A schema whose top parties carry long roster names, as a real IEC roster can.
+function longNames(schema) {
+  const s = clone(schema);
+  const long = ["African Transformation Movement", "Patriotic Alliance of South Africa", "All Citizens Party"];
+  s["x-parties"].forEach((p, i) => { p.name = long[i % long.length]; });
+  return s;
+}
+const clone = o => JSON.parse(JSON.stringify(o));
+
 describe("server-rendered card", () => {
+  it("no party name runs into its bar, measured in the DejaVu the server renders with", async () => {
+    const row = await fixedRow();
+    for (const size of ["link", "story"]) {
+      for (const sch of [schema, longNames(schema)]) {
+        const rows = barRows(cardSVG(row, sch, geom, size));
+        expect(rows.length).toBe(5);                    // it looked: the top five
+        expect(overlaps(rows)).toEqual([]);
+      }
+    }
+    // It can see: the same rows with each bar pulled left into its name.
+    const rows = barRows(cardSVG(row, longNames(schema), geom, "link"));
+    expect(overlaps(rows.map(r => ({ ...r, bar: r.x + 20 }))).length).toBe(5);
+  });
+
+  it("says the council the seat law returned, not a typed 270", async () => {
+    const row = await fixedRow();
+    const a = JSON.parse(row.seats);
+    const first = Object.keys(a.seats)[0];
+    a.seats[first] += 2; a.pr[first] += 2; a.council_total += 2; a.majority = Math.floor(a.council_total / 2) + 1;
+    const svg = cardSVG({ ...row, seats: JSON.stringify(a) }, schema, geom, "link");
+    expect(svg).toContain(`${a.council_total}-seat council`);
+    expect(svg).not.toContain(`${schema["x-council"].council_seats}-seat council`);
+    expect(svg).toMatch(new RegExp(` of ${a.council_total} seats`));
+  });
+
+  // RE-RECORDED 2026-09-28, deliberately: the card now lays text out by measured
+  // DejaVu width (party names had run into their bars) and prints the council
+  // from the seat answer. The new layout was checked by eye in rendered PNGs.
   it("the SVG comes from the page's own builder and matches the snapshot", async () => {
     const svg = cardSVG(await fixedRow(), schema, geom, "link");
     expect(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"')).toBe(true);

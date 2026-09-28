@@ -27,10 +27,12 @@ export function byCodeOf(schema) {
 
 function cardInputs(row, schema, geom) {
   const forecast = JSON.parse(row.body);
-  const seats = JSON.parse(row.seats).seats;
+  const answer = JSON.parse(row.seats);
   return {
-    forecast, seats, geom, byCode: byCodeOf(schema),
-    model: { majority: schema["x-council"].majority },
+    forecast, seats: answer.seats, geom, byCode: byCodeOf(schema),
+    // The council and majority the seat law returned for THIS forecast, not
+    // the configured size: the card must say what was seated.
+    model: { council: answer.council_total, majority: answer.majority },
     showName: Boolean(forecast.display_name),
     placeholder: schema["x-placeholder"],
   };

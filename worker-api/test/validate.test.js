@@ -18,7 +18,7 @@ const REFUSALS = [
   ["__proto__ key", f => JSON.parse(JSON.stringify(f).replace(/^\{/, '{"__proto__":{"x":1},')), "__proto__"],
   ["model_ref missing", f => { delete f.model_ref; return f; }, "model_ref"],
   ["ward_calls missing", f => { delete f.ward_calls; return f; }, "ward_calls"],
-  ["pr_share missing", f => { delete f.pr_share; return f; }, "pr_share"],
+  ["combined_share missing", f => { delete f.combined_share; return f; }, "combined_share"],
   ["coalition missing", f => { delete f.coalition; return f; }, "coalition"],
   ["model_ref not published", f => ({ ...f, model_ref: "not-a-run" }), "model_ref"],
   ["ward_calls not an array", f => ({ ...f, ward_calls: {} }), "ward_calls"],
@@ -28,16 +28,16 @@ const REFUSALS = [
   ["ward call empty", f => { f.ward_calls[0] = ""; return f; }, "ward_calls[0]"],
   ["ward call null (uncalled ward)", f => { f.ward_calls[nWards - 1] = null; return f; }, `ward_calls[${nWards - 1}]`],
   ["ward call a number", f => { f.ward_calls[3] = 1; return f; }, "ward_calls[3]"],
-  ["pr_share an array", f => ({ ...f, pr_share: [] }), "pr_share"],
-  ["pr_share party missing", f => { delete f.pr_share[last]; return f; }, `pr_share.${last}`],
-  ["pr_share extra party", f => { f.pr_share.NOPE = 0; return f; }, "pr_share.NOPE"],
-  ["pr_share a string", f => { f.pr_share[last] = "5"; return f; }, `pr_share.${last}`],
-  ["pr_share NaN", f => { f.pr_share[last] = NaN; return f; }, `pr_share.${last}`],
-  ["pr_share Infinity", f => { f.pr_share[last] = Infinity; return f; }, `pr_share.${last}`],
-  ["pr_share negative", f => { f.pr_share[roster[0]] += f.pr_share[last] + 1; f.pr_share[last] = -1; return f; }, `pr_share.${last}`],
-  ["pr_share over 100", f => { f.pr_share[last] = 101; return f; }, `pr_share.${last}`],
-  ["pr_share sums to 100.6", f => { f.pr_share[roster[0]] += 0.6; return f; }, "pr_share"],
-  ["pr_share sums to 99.4", f => { f.pr_share[roster[0]] -= 0.6; return f; }, "pr_share"],
+  ["combined_share an array", f => ({ ...f, combined_share: [] }), "combined_share"],
+  ["combined_share party missing", f => { delete f.combined_share[last]; return f; }, `combined_share.${last}`],
+  ["combined_share extra party", f => { f.combined_share.NOPE = 0; return f; }, "combined_share.NOPE"],
+  ["combined_share a string", f => { f.combined_share[last] = "5"; return f; }, `combined_share.${last}`],
+  ["combined_share NaN", f => { f.combined_share[last] = NaN; return f; }, `combined_share.${last}`],
+  ["combined_share Infinity", f => { f.combined_share[last] = Infinity; return f; }, `combined_share.${last}`],
+  ["combined_share negative", f => { f.combined_share[roster[0]] += f.combined_share[last] + 1; f.combined_share[last] = -1; return f; }, `combined_share.${last}`],
+  ["combined_share over 100", f => { f.combined_share[last] = 101; return f; }, `combined_share.${last}`],
+  ["combined_share sums to 100.6", f => { f.combined_share[roster[0]] += 0.6; return f; }, "combined_share"],
+  ["combined_share sums to 99.4", f => { f.combined_share[roster[0]] -= 0.6; return f; }, "combined_share"],
   ["coalition not an array", f => ({ ...f, coalition: roster[0] }), "coalition"],
   ["coalition empty", f => ({ ...f, coalition: [], mayor: null }), "coalition"],
   ["coalition off the roster", f => ({ ...f, coalition: [roster[0], "NOPE"] }), "coalition[1]"],
@@ -81,7 +81,7 @@ describe("validateForecast refusals", () => {
 
 describe("validateForecast acceptances", () => {
   it("accepts PR shares inside the tolerance", () => {
-    const f = validForecast(); f.pr_share[roster[0]] += 0.4;
+    const f = validForecast(); f.combined_share[roster[0]] += 0.4;
     expect(v(f).ok).toBe(true);
   });
   it("accepts a null mayor and no display name", () => {
@@ -90,12 +90,12 @@ describe("validateForecast acceptances", () => {
     expect(r.ok).toBe(true);
     expect(r.value.display_name).toBe(null);
   });
-  it("rebuilds the value: pr_share in roster order, no caller-attached keys", () => {
+  it("rebuilds the value: combined_share in roster order, no caller-attached keys", () => {
     const f = validForecast();
-    f.pr_share = Object.fromEntries(Object.entries(f.pr_share).reverse());
+    f.combined_share = Object.fromEntries(Object.entries(f.combined_share).reverse());
     const r = v(f);
-    expect(Object.keys(r.value.pr_share)).toEqual(roster);
-    expect(Object.keys(r.value).sort()).toEqual(["coalition", "display_name", "mayor", "model_ref", "pr_share", "ward_calls"]);
+    expect(Object.keys(r.value.combined_share)).toEqual(roster);
+    expect(Object.keys(r.value).sort()).toEqual(["coalition", "combined_share", "display_name", "mayor", "model_ref", "ward_calls"]);
   });
 });
 
@@ -120,6 +120,6 @@ describe("the schema scanned the right population", () => {
     expect(schema["x-ward-ids"].length).toBe(schema["x-council"].ward_seats);
     expect(nWards).toBe(schema["x-council"].ward_seats);
     expect(roster).toEqual(schema["x-parties"].map(p => p.code));
-    expect(Object.keys(schema.properties.pr_share.properties)).toEqual(roster);
+    expect(Object.keys(schema.properties.combined_share.properties)).toEqual(roster);
   });
 });

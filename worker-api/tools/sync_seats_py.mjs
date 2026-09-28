@@ -13,7 +13,12 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const SRC = resolve(here, "../../src");
 const DST = resolve(here, "../seats-py/src");
-export const FILES = ["seats.py", "reader_seats.py"];
+// reader_seats.py and every project module it imports, directly or through
+// montecarlo (item 16 lives there). tests/test_reader_seats.py holds this list
+// equal to the import closure measured in a fresh interpreter, both ways, so a
+// module added to or dropped from that chain turns the suite red.
+export const FILES = ["reader_seats.py", "montecarlo.py", "seats.py", "cityconfig.py",
+  "coalitions.py", "fold.py", "parties.py", "polling.py"];
 
 export function codeRef(bufs) {
   const h = createHash("sha256");

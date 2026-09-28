@@ -861,3 +861,20 @@ and 2006 results concluded they were absent when they were on disk.
 
 **278 files, 520,393,059 bytes, 114 families.**
 
+
+## Mergers — the declarations in `pools.MERGERS` (added 2026-09-29, F5)
+
+Each row is the evidence for one `pools.Merger`. Press reports, read by the
+agent that built F5 on 2026-09-29; no party or IEC document has been obtained.
+The retention applied to them is JUDGEMENT-CALLS §O1, not a sourced number.
+
+| declaration | date used | what the sources say | sources |
+|---|---|---|---|
+| GOOD + RISE | 2026-05-25 | A "strategic cooperation framework": both contest 2026 under their own names; RISE leads in Gauteng municipalities with GOOD's members incorporated, GOOD leads in the Western Cape. Organisational consolidation is promised after the election. A stand-down pact, not a legal merger. Polity dates the announcement 2026-05-22; the date used is the owner's (DESIGN-decided §10) and both precede the 2026 polling day, so the choice moves nothing. | [Business Report, 2026-05-25](https://businessreport.co.za/news/politics/2026-05-25-2026-local-government-elections-good-party-and-rise-mzansi-join-forces/); [Polity, 2026-05-22](https://www.polity.org.za/article/rise-mzansi-and-good-agree-to-amalgamate-campaign-structures-to-contest-2026-local-elections-together-2026-05-22); background: Unite for Change (RISE, GOOD, BOSA) announced 2025-10-05 ([Daily Maverick](https://www.dailymaverick.co.za/article/2025-10-05-what-the-good-bosa-rise-mzansi-merger-means-for-sas-2026-coalition-politics-arena/)) and deferred 2026-04-13 ([EWN](https://www.ewn.co.za/2026/04/13/multi-party-split-good-rise-mzansi-and-bosa-to-contest-polls-separately)). BOSA stands separately and is not declared. |
+| Forum 4 Service Delivery + ActionSA | 2025-01-15 | Merged into a single organisation; Forum 4 Service Delivery campaigns under the ActionSA banner and its leader Mbahare Kekana became ActionSA's deputy president. | [EWN, 2025-01-15](https://www.ewn.co.za/2025/01/15/actionsa-merges-with-forum-4-service-delivery); [BusinessLIVE, 2025-01-15](https://www.businesslive.co.za/bd/politics/2025-01-15-actionsa-merges-with-forum-4-service-delivery-with-eye-on-2026-election/) |
+
+**Found and not declared:** on 2026-01-26 ActionSA announced mergers with the
+Azanian Independent Community Movement and the Creatives Congress Movement
+([IOL](https://iol.co.za/news/politics/2026-01-26-actionsa-announces-merger-with-two-smaller-parties-but-analysts-doubt-merger-will-boost-support/)).
+Whether either holds a Johannesburg baseline has not been checked. Declaring
+them is the owner's call.

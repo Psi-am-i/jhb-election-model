@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Make your own forecast</title>
-<meta name="description" content="Call every Johannesburg ward, set the list vote, pick who governs, and share your forecast.">
+<meta name="description" content="Call every Johannesburg ward, set each party's share of the vote, pick who governs, and share your forecast.">
 <!-- Production: build_site injects OG_META + THEME_HEAD here. This copy of the
      theme's first-paint script keeps the prototype's theme in step with the
      live site (same localStorage key, same OS fallback). -->
@@ -37,7 +37,7 @@
 
   <header class="lede">
     <h1>Make your own forecast</h1>
-    <p>Call the winner in each of the 135 wards, set how the city votes on the party list, and say who governs.
+    <p>Call the winner in each of the 135 wards, set each party's share of all votes (ward and list ballots together), and say who governs.
       Your forecast is yours. The model's forecast is on the <a href="../site/forecast.html">forecast page</a>.</p>
   </header>
 
@@ -84,12 +84,13 @@
 
     <div class="steps">
       <details class="step" id="step2" open>
-        <summary><span class="num" aria-hidden="true">2</span><span class="st">Set the list vote</span><span class="state" id="prstate"></span></summary>
+        <summary><span class="num" aria-hidden="true">2</span><span class="st">Set the vote</span><span class="state" id="prstate"></span></summary>
         <div class="body">
-          <p>The other 135 seats go by each party's share of the citywide vote. Every party has the same control.
-            Parties are listed alphabetically.</p>
+          <p>Each party's share of all votes, ward and list ballots together. That combined vote is what the law
+            counts: it sets each party's seats, and the ward winners you picked take theirs first.
+            Every party has the same control. Parties are listed alphabetically.</p>
           <div class="row">
-            <button class="btn small model" type="button" id="prmodel">Use the model's list vote</button>
+            <button class="btn small model" type="button" id="prmodel">Use the model's vote shares</button>
             <button class="btn small" type="button" id="prscale">Scale to 100%</button>
             <button class="btn small" type="button" id="przero">Set all to zero</button>
           </div>
@@ -101,7 +102,7 @@
       <details class="step" id="step3" open>
         <summary><span class="num" aria-hidden="true">3</span><span class="st">Pick who governs</span><span class="state" id="costate"></span></summary>
         <div class="body">
-          <p>Choose the parties in the governing coalition. A council of 270 needs 136 votes to elect a mayor and pass a budget.</p>
+          <p>Choose the parties in the governing coalition. <span id="coalneed">The council needs a majority</span> to elect a mayor and pass a budget.</p>
           <div class="coal" id="coal" role="group" aria-label="Parties in the coalition"></div>
           <div class="row" style="margin-top:10px"><label for="mayor" style="font-size:13.5px;color:var(--ink)">Mayor from</label>
             <select id="mayor"><option value="">Not chosen</option></select></div>
@@ -114,8 +115,8 @@
         <p class="meta" id="restate"></p>
         <div class="bars" id="bars"></div>
         <div class="council" aria-hidden="true">
-          <div class="strip" id="strip"><span class="maj" style="left:calc(135.5 / 270 * 100%)"></span></div>
-          <div class="cap"><span>270 seats</span><span>136 to govern</span></div>
+          <div class="strip" id="strip"></div>
+          <div class="cap"><span id="capseats"></span><span id="capmaj"></span></div>
         </div>
         <p class="delta" id="delta"></p>
         <p class="stubnote"><b>Placeholder seats.</b> Worked out by a stand-in, not the seat law. The real page uses the model's own seat allocation.</p>

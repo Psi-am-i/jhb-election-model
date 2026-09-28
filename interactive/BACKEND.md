@@ -142,13 +142,14 @@ forecast can be reported from its page. A reader can share as "A reader".
 `POST /api/forecasts` and `PUT /api/forecasts/:id` accept JSON and reject,
 with a 400 naming the field, anything that fails these checks:
 
-* body at most 16 KB (135 calls plus a full-roster `pr_share` with long party codes approaches 8 KB); `Content-Type: application/json`; same-origin `Origin`
+* body at most 16 KB (135 calls plus a full-roster `combined_share` with long party codes approaches 8 KB); `Content-Type: application/json`; same-origin `Origin`
   header (CSRF), plus the `SameSite=Lax` session cookie;
 * `ward_calls`: an array of exactly 135 entries, each a party code in the
   certified roster **for this city and election** (read from the published
   artefact, not from the request), in ward order;
-* `pr_share`: an object whose keys are exactly the roster, values finite,
-  0 ≤ v ≤ 100, summing to 100 ± 0.5;
+* `combined_share`: each party's share of all votes, ward and list ballots
+  together (DESIGN-decided §10); an object whose keys are exactly the roster,
+  values finite, 0 ≤ v ≤ 100, summing to 100 ± 0.5;
 * `coalition`: 1 or more distinct roster codes; `mayor` null or a member of
   `coalition`;
 * `model_ref`: must equal a published run's artefact key; the server records

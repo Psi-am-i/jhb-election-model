@@ -171,12 +171,25 @@ def placeholder(geom) -> tuple[dict, dict]:
         "seed": SEED,
         "model_ref": "placeholder-" + str(SEED),
         "run_date": None,
+        "city": "joburg",
+        "target": "2026",
         "council_seats": 270,
         "ward_seats": 135,
         "majority": 136,
+        # The combined valid vote (ward and list ballots together) the
+        # reader's shares are scaled to by src/reader_seats.py. SYNTHETIC, from
+        # its own seeded generator so the rest of the file is unchanged; the
+        # real value is the start state's combined total from the S2 export.
+        "total_votes": random.Random(f"{SEED}-total-votes").randint(1_200_000, 1_800_000),
+        # Roster parties with no PR list (independents included). None in the
+        # placeholder roster; the certified roster says which (CLAUDE.md §4b).
+        "no_pr_list": [],
         "roster_order": "alphabetical by party code (placeholder for the IEC ballot order)",
         "parties": [{"code": c, "name": n, "colour": col} for c, n, col in ROSTER],
-        "pr_share": {c: round(s * 100, 2) for c, s in zip(codes, shares)},
+        # Each party's share of the COMBINED vote, ward and list ballots
+        # together, in percent: what the reader's slider shows and what the
+        # statute counts (DESIGN-decided §10).
+        "combined_share": {c: round(s * 100, 2) for c, s in zip(codes, shares)},
         "likely_ward_winner": likely,
     }
 
@@ -259,7 +272,7 @@ def demo_forecast(geom, model) -> dict:
     calls = dict(model["likely_ward_winner"])
     for w in rng.sample(sorted(calls, key=int), 30):
         calls[w] = rng.choice(codes[:12])
-    pr = dict(model["pr_share"])
+    pr = dict(model["combined_share"])
     # The demo's coalition: its own three largest parties by ward wins plus a
     # rough list share, so the shared page shows the majority state. Chosen
     # by rule, not by hand, so no party is picked out.
@@ -276,7 +289,7 @@ def demo_forecast(geom, model) -> dict:
         "created_at": "2026-09-28T09:00:00Z",
         "model_ref": model["model_ref"],
         "ward_calls": [calls[w["id"]] for w in geom["wards"]],
-        "pr_share": pr,
+        "combined_share": pr,
         "coalition": coalition,
         "mayor": max(coalition, key=rough.get),
     }

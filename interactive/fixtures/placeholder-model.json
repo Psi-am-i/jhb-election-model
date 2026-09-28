@@ -4,9 +4,13 @@
  "seed": 20260928,
  "model_ref": "placeholder-20260928",
  "run_date": null,
+ "city": "joburg",
+ "target": "2026",
  "council_seats": 270,
  "ward_seats": 135,
  "majority": 136,
+ "total_votes": 1662183,
+ "no_pr_list": [],
  "roster_order": "alphabetical by party code (placeholder for the IEC ballot order)",
  "parties": [
   {
@@ -80,7 +84,7 @@
    "colour": "#B0752D"
   }
  ],
- "pr_share": {
+ "combined_share": {
   "ACDP": 6.94,
   "ALJAMAAH": 12.84,
   "ALL_CITIZENS_PARTY": 6.97,

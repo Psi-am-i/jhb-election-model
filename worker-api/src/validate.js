@@ -4,7 +4,7 @@
 // run exactly the checks the server runs (one definition, INTEGRATION.md §3d).
 //
 // Every rule reads generated/forecast.schema.json: the ward list, the roster,
-// the model_ref and the PR-sum tolerance come from the artefact the schema was
+// the model_ref and the share-sum tolerance come from the artefact the schema was
 // generated from, never from the request and never from a constant typed here.
 //
 // A refusal names the field, so a 400 can say which input was wrong.
@@ -71,23 +71,24 @@ export function validateForecast(input, schema) {
   for (let i = 0; i < wc.length; i++)
     if (!inRoster(wc[i])) return refuse(`ward_calls[${i}]`, "not a party on the roster");
 
-  // pr_share: keys exactly the roster, finite values in range, summing to 100.
-  const pr = input.pr_share;
-  if (!isPlainObject(pr)) return refuse("pr_share", "must be an object");
-  for (const k of Object.keys(pr))
-    if (!roster.includes(k)) return refuse(`pr_share.${k}`, "not a party on the roster");
-  const { minimum, maximum } = props.pr_share.properties[roster[0]];
+  // combined_share: each party's share of all votes on both ballots, in
+  // percent. Keys exactly the roster, finite values in range, summing to 100.
+  const cs = input.combined_share;
+  if (!isPlainObject(cs)) return refuse("combined_share", "must be an object");
+  for (const k of Object.keys(cs))
+    if (!roster.includes(k)) return refuse(`combined_share.${k}`, "not a party on the roster");
+  const { minimum, maximum } = props.combined_share.properties[roster[0]];
   let sum = 0;
   for (const c of roster) {
-    if (!Object.prototype.hasOwnProperty.call(pr, c)) return refuse(`pr_share.${c}`, "required: every party on the roster");
-    const v = pr[c];
-    if (typeof v !== "number" || !Number.isFinite(v)) return refuse(`pr_share.${c}`, "must be a finite number");
-    if (v < minimum || v > maximum) return refuse(`pr_share.${c}`, `must be between ${minimum} and ${maximum}`);
+    if (!Object.prototype.hasOwnProperty.call(cs, c)) return refuse(`combined_share.${c}`, "required: every party on the roster");
+    const v = cs[c];
+    if (typeof v !== "number" || !Number.isFinite(v)) return refuse(`combined_share.${c}`, "must be a finite number");
+    if (v < minimum || v > maximum) return refuse(`combined_share.${c}`, `must be between ${minimum} and ${maximum}`);
     sum += v;
   }
-  const { target, tolerance } = schema["x-pr-sum"];
+  const { target, tolerance } = schema["x-share-sum"];
   if (Math.abs(sum - target) > tolerance)
-    return refuse("pr_share", `must sum to ${target} (±${tolerance}); sums to ${Math.round(sum * 1000) / 1000}`);
+    return refuse("combined_share", `must sum to ${target} (±${tolerance}); sums to ${Math.round(sum * 1000) / 1000}`);
 
   // coalition: one or more distinct roster parties.
   const co = input.coalition;
@@ -117,7 +118,7 @@ export function validateForecast(input, schema) {
     value: {
       model_ref: input.model_ref,
       ward_calls: wc.slice(),
-      pr_share: Object.fromEntries(roster.map(c => [c, pr[c]])),
+      combined_share: Object.fromEntries(roster.map(c => [c, cs[c]])),
       coalition: co.slice(),
       mayor,
       display_name,

@@ -8,7 +8,7 @@ export { schema };
 export const roster = schema.properties.ward_calls.items.enum;
 export const nWards = schema.properties.ward_calls.minItems;
 
-// A valid forecast: wards called round-robin over the roster, PR shares equal
+// A valid forecast: wards called round-robin over the roster, combined shares equal
 // and nudged so they sum to exactly 100.
 export function validForecast() {
   const share = Math.floor(10000 / roster.length) / 100;
@@ -17,7 +17,7 @@ export function validForecast() {
   return {
     model_ref: schema.properties.model_ref.enum[0],
     ward_calls: Array.from({ length: nWards }, (_, i) => roster[i % roster.length]),
-    pr_share: pr,
+    combined_share: pr,
     coalition: [roster[0], roster[1]],
     mayor: roster[0],
     display_name: "Thandi M.",

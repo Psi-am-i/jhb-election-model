@@ -1020,14 +1020,20 @@ def _silent_pools(parent: np.ndarray, rate: np.ndarray) -> dict[int, float]:
             if rate[g] <= _RATE_BOUND_EPS and size[g] > 0}
 
 
+class HoldCascadeRefused(ValueError):
+    """Holding silenced pools silenced every other populated pool in turn."""
+
+
 def _nest_holding_silent(parent: np.ndarray, observed: np.ndarray,
                          upper: float = 1.0
                          ) -> tuple[np.ndarray, np.ndarray, dict[int, float]]:
     """:func:`_nest`, with any pool silenced at the 0.0 corner held and re-fitted.
 
     Returns ``(child, rate, silenced)`` where ``silenced`` is
-    :func:`_silent_pools` of the FREE fit — the pools that were held, and the
-    size each held at the level above. The held value is the city's own rate,
+    :func:`_silent_pools` of the FREE fit plus any pool the re-fit silenced in
+    turn — every pool that was held, and the size each held at the level
+    above. A re-fit that silences a second pool holds it too; one that would
+    hold every populated pool raises :class:`HoldCascadeRefused`. The held value is the city's own rate,
     :func:`_uninformed_rate`; the other pools are re-fitted around it, so the
     reported rates and the ward-scaled counts describe one fit. JUDGEMENT-CALLS
     §L14.
@@ -1036,8 +1042,30 @@ def _nest_holding_silent(parent: np.ndarray, observed: np.ndarray,
     silenced = _silent_pools(parent, rate)
     if silenced:
         fallback = _uninformed_rate(parent, observed)
-        child, rate = _nest(parent, observed, upper=upper,
-                            hold={g: fallback for g in silenced})
+        # ⛔ THE RE-FIT CAN SILENCE A SECOND POOL (blind review 2026-09-29).
+        # Holding one pool above zero takes votes from the pools sharing its
+        # wards, and one of THOSE can then be driven to the 0.0 corner — the
+        # very defect the hold exists to remove, moved one pool over and
+        # reported as fixed. So the re-fit is checked, and every pool it
+        # silences is held by the same rule and the rest re-fitted again. The
+        # hold set only grows, so this ends; if it would hold every pool with
+        # people in it there is nothing left to fit and the solve REFUSES.
+        populated = {g for g in range(parent.shape[1])
+                     if parent[:, g].sum() > 0}
+        while True:
+            child, rate = _nest(parent, observed, upper=upper,
+                                hold={g: fallback for g in silenced})
+            cascade = {g: v for g, v in _silent_pools(parent, rate).items()
+                       if g not in silenced}
+            if not cascade:
+                break
+            silenced.update(cascade)
+            if populated <= set(silenced):
+                raise HoldCascadeRefused(
+                    f"holding the silenced pools at the city's rate "
+                    f"({fallback:.4f}) silenced every other populated pool "
+                    f"in turn ({sorted(silenced)}): the ward table leaves "
+                    f"nothing to fit. JUDGEMENT-CALLS §L14.")
     return child, rate, silenced
 
 
@@ -3622,6 +3650,166 @@ SPLITS: dict[str, Split] = {
 }
 
 
+# ---------------------------------------------------------------------------
+# MERGERS — the inverse of a split, and as generic (F5, DESIGN-decided §8, §10;
+# audits/2026-09-29-mergers/SPEC.md).
+#
+# A split takes a measured FRACTION of its parent. A merger is the reverse: a
+# partner that is NOT on the target's ballot hands a fraction of its baseline to
+# the partner that IS. Nothing in code names a successor. Which partner inherits
+# is read per city, per target, from the roster, so the same declaration is a
+# transfer in one city and a no-op in another (see `apply_mergers`).
+#
+# ⛔ NO MERGER IN THE ARCHIVE IS MEASURABLE. The two with elections on both
+# sides (ID→DA, NNP→ANC) give naive retentions from -17 to +56, because the
+# successor's own swing is 5-20× the predecessor's mass (SPEC §1). So the
+# fraction is a declared judgement, not a measurement: JUDGEMENT-CALLS §O1.
+# ---------------------------------------------------------------------------
+@dataclass(frozen=True)
+class Merger:
+    """Parties that combined, and the date they did.
+
+    ``parties``  every partner, unordered — no successor is named here.
+    ``date``     when the combination was announced; a merger applies to a
+                 target whose polling day is after it.
+    ``why``      what happened, and the source (SOURCES.md, "Mergers").
+    """
+
+    parties: frozenset
+    date: _date
+    why: str
+
+
+# The share of an off-ballot partner's baseline that moves to the partner on
+# the ballot. 🔴 A DECLARED JUDGEMENT, NOT A MEASUREMENT: owner's decision
+# 2026-09-28 ("not a perfect combination"), range [0.5, 0.9]. The blind review
+# recommended 0.5 in [0.3, 0.8]; recorded, not adopted. JUDGEMENT-CALLS §O1.
+# Read at CALL time by `apply_mergers`, never bound as a default (§1.33).
+MERGER_RETENTION = 0.75
+MERGER_RETENTION_RANGE = (0.5, 0.9)
+
+MERGERS: tuple[Merger, ...] = (
+    Merger(frozenset({"GOOD", "RISE"}), _date(2026, 5, 25),
+           "GOOD and RISE Mzansi announce they will contest under their own "
+           "names with integrated structures after Unite for Change was "
+           "deferred; a stand-down pact, not a legal merger. SOURCES.md"),
+    Merger(frozenset({"FORUM_4_SERVICE_DELIVERY", "ASA"}), _date(2025, 1, 15),
+           "Forum 4 Service Delivery merges into ActionSA; its leader becomes "
+           "ActionSA's deputy president. SOURCES.md"),
+)
+
+# Every function that must pass its baseline through `apply_mergers`, as
+# `module.function`. `tests/test_roster_aware_baseline.py` scans `src/` for the
+# calls and asserts this set equals what it finds, in both directions.
+MERGER_CONSUMERS = frozenset({
+    "montecarlo.run_model",          # national baseline, and prev_local
+    "pools.emit_pools",              # the spec's baseline and pool vectors
+    "theta_residual._residuals_cached",   # must reproduce run_model's baseline
+})
+
+
+class MergerRefused(SystemExit):
+    """A merger whose direction the roster cannot decide."""
+
+
+def apply_mergers(shares: dict, roster, target_year: str, *,
+                  per_vd: dict | None = None,
+                  retention: float | None = None,
+                  mergers=None) -> tuple[dict, dict | None, list[dict]]:
+    """Move ``retention × predecessor`` to the partner on the ballot.
+
+    ONE DEFINITION, every consumer in :data:`MERGER_CONSUMERS`.
+
+    ``shares``      one election's citywide shares (a national baseline, or
+                    the preceding local result).
+    ``roster``      the target's ballot. Empty means unknown, and nothing moves:
+                    the same reading `levels.absent_from_ballot` takes.
+    ``per_vd``      optional ``{vd: shares}``, moved by the same rule. The
+                    record test is CITYWIDE, so a VD where the successor polled
+                    nothing still receives its fraction.
+
+    Direction is decided from the roster, per merger: partners on the ballot
+    inherit, partners off it transfer. No-op when every partner is on the
+    ballot or none is; **refused** when two or more are on it while another is
+    off, because nothing says which of them inherits.
+
+    ⛔ **A MERGER NEVER CREATES A RECORD THE SUCCESSOR LACKS** (owner,
+    DESIGN-decided §10). The transfer applies only where the successor already
+    holds a share in ``shares``. RISE has a 2024 national record and no 2021
+    local one: handing it GOOD's 2021 local vote would move it from the spine's
+    national-only route to the blend and pull it DOWN toward GOOD's size. So RISE
+    takes GOOD's transfer on the national route only.
+
+    The predecessor keeps ``(1 − retention) × P``. It is off the ballot, so
+    `absent_from_ballot` removes that remainder next, exactly as it removed the
+    whole of P before mergers existed; the total is conserved until then.
+
+    Returns ``(shares, per_vd, applied)``, new dicts (the inputs are not
+    mutated), with ``applied`` one row per transfer made:
+    ``{"predecessor", "successor", "share", "moved", "retention"}``.
+    """
+    r = float(MERGER_RETENTION if retention is None else retention)
+    if not 0.0 <= r <= 1.0:
+        raise ValueError(f"merger retention {r} is outside [0, 1]")
+    out = dict(shares)
+    vds = ({vd: dict(s) for vd, s in per_vd.items()}
+           if per_vd is not None else None)
+    applied: list[dict] = []
+    roster = set(roster or ())
+    election = cityconfig.CALENDAR.get(str(target_year))
+    if not roster or election is None:
+        return out, vds, applied
+    for merger in (MERGERS if mergers is None else mergers):
+        if merger.date >= election.date:
+            continue
+        on = sorted(p for p in merger.parties if p in roster)
+        off = sorted(p for p in merger.parties if p not in roster)
+        if not on or not off:
+            continue
+        if len(on) > 1:
+            raise MergerRefused(
+                f"merger {sorted(merger.parties)} ({merger.date}): {on} are all "
+                f"on the {target_year} ballot while {off} is not, so nothing "
+                f"says which inherits. Declare the merger per partner pair.")
+        successor = on[0]
+        if out.get(successor, 0.0) <= 0.0:
+            continue            # no record to add to; never create one
+        for predecessor in off:
+            held = float(out.get(predecessor, 0.0))
+            if held <= 0.0:
+                continue
+            moved = r * held
+            out[successor] = out[successor] + moved
+            out[predecessor] = held - moved
+            if vds is not None:
+                for s in vds.values():
+                    p = float(s.get(predecessor, 0.0))
+                    if p > 0.0:
+                        s[successor] = s.get(successor, 0.0) + r * p
+                        s[predecessor] = p - r * p
+            applied.append({"predecessor": predecessor, "successor": successor,
+                            "share": held, "moved": moved, "retention": r})
+    return out, vds, applied
+
+
+def merged_vector(successor_vec, successor_mass: float,
+                  predecessor_vec, moved: float):
+    """The successor's pool vector after a merger: the MASS-WEIGHTED blend.
+
+    ``successor_mass`` is its own share before the transfer and ``moved`` the
+    share it received, both in the one election `apply_mergers` moved them in,
+    so the blend weights are on one footing. At ``moved == 0`` it returns the
+    successor's vector unchanged, which is what makes retention 0 a no-op.
+    """
+    s = np.asarray(successor_vec, dtype=float)
+    total = float(successor_mass) + float(moved)
+    if moved <= 0.0 or total <= 0.0:
+        return s
+    vec = (float(successor_mass) * s
+           + float(moved) * np.asarray(predecessor_vec, dtype=float)) / total
+    return vec / vec.sum() if vec.sum() > 0 else s
+
+
 @dataclass(frozen=True)
 class ArrivalDefinition:
     """One of the ways this module decides that a party has ARRIVED."""
@@ -5822,6 +6010,16 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # states, and only two of them license a deletion — `resolve_roster`.
     roster, roster_source, deliberate, prior_local = resolve_roster(
         city, target, year, composition, baseline)
+    # MERGERS (F5): an off-ballot partner hands `MERGER_RETENTION` of its
+    # baseline to the partner on the ballot, BEFORE the off-ballot drop below
+    # deletes it. Its pool vector is kept here, because that drop pops it, and
+    # is blended into the successor's once the successor has one.
+    # JUDGEMENT-CALLS §O1.
+    pre_merger_baseline = dict(baseline)
+    baseline, _, mergers_applied = apply_mergers(baseline, roster, target.year)
+    merger_vectors = {m["predecessor"]: composition[m["predecessor"]]
+                      for m in mergers_applied
+                      if m["predecessor"] in composition}
     # THE ROSTER CUTS BOTH WAYS. It was only ever used to ADD parties — to find
     # a genuine entrant absent from the baseline — and never to remove one. So a
     # party that contested the last national election and is NOT on this
@@ -5999,6 +6197,24 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
                                 + (f" (parent {parent!r} not measured)"
                                    if parent else ""))
         composition[party] = vec
+
+    # MERGERS: the successor's vector becomes the mass-weighted blend of its
+    # own and its predecessor's, the masses being the baseline shares
+    # `apply_mergers` moved. A predecessor with no fitted vector leaves the
+    # successor's vector as it was, and says so.
+    for m in mergers_applied:
+        succ, pred = m["successor"], m["predecessor"]
+        m["vector_blended"] = succ in composition and pred in merger_vectors
+        if m["vector_blended"]:
+            composition[succ] = merged_vector(
+                composition[succ], pre_merger_baseline.get(succ, 0.0),
+                merger_vectors[pred], m["moved"])
+        if succ in inherited:
+            inherited[succ] += (
+                f"; merged with {pred}, {m['moved']:.4%} of the "
+                f"{target.previous_npe} baseline at retention "
+                f"{m['retention']:.2f}"
+                + ("" if m["vector_blended"] else ", no vector to blend"))
 
     # A pool's size at the target is COUNTED, not drawn: the published roll,
     # split by each ward's own composition. What is uncertain is turnout, and
@@ -6243,6 +6459,9 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             "registration_series": {y: v.tolist() for y, v in series.items()},
             "categories": cats,
             "no_measured_vector": inherited,
+            # F5: every merger transfer this spec made, with the retention it
+            # ran at and whether a vector was blended. JUDGEMENT-CALLS §O1.
+            "mergers": mergers_applied,
             # ⛔ `_nnls`'s docstring promises the caller "must SAY SO rather
             # than quietly using the clipped value — see the `unidentified`
             # list". That list was computed, stored, and read by NOTHING: no

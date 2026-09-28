@@ -172,6 +172,7 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
 #     the pool spec. It snapshots and restores the three published artefacts,
 #     but a concurrent module reading them mid-test would see a 20-draw
 #     forecast. It is correct AND it is not concurrency-safe.
+#     `test_the_model_refuses_to_run_without_a_pool_spec` no longer renames the live spec; it hides it behind an empty temporary `processed`.
 #
 # Being on this list costs wall clock, so a module earns its place by touching
 # state outside a temp directory — not by being slow or by being important.

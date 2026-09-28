@@ -899,3 +899,21 @@ publish waits until every surviving mutant is read.
 **Done when** a committed harness under `audits/` produces a survivor report per
 run, and that report has been read before the next mechanism-class publish.
 **Not started.**
+
+## 14. Disclose that the model cannot seat an independent (owner, 2026-09-29)
+
+Owner's decision (DESIGN-decided §10): independents stay out of the freeze, and
+the forecast page says that the model cannot show an independent winning a ward.
+
+**Evidence.** `audits/2026-09-29-zero-cells/results/vote_fractions.txt`,
+column "IND share of ward ballot" (independents' votes over valid ward-ballot
+votes; no script in that directory writes the file, so its producer is not
+committed). Johannesburg 2021: 1.29%, lead-verified. The largest in the panel
+is eThekwini 2016: 8.33% in that column, and 9.23% in the table's
+"Ward (all)" zero-cell column, which includes independents.
+
+**The page wording is presentation** and ships with the next publish. It
+changes no forecast number (§1 of `CLAUDE.md`: this file is never a reason to
+change a forecast).
+
+**Done when** the published forecast page carries the disclosure. **Not started.**

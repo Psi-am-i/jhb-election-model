@@ -55,14 +55,26 @@ override it where they differ. Decisions taken here are listed below.
 
 ## Seats: the contract with `src/reader_seats.py`
 
-`src/seats.js` posts `{ward_calls, pr_share, council_seats}` to the SEATS
-service and expects `{seats, ward, pr, council_total, code_ref}`. It checks only
-arithmetic identities (ward counts equal the picks, seats = ward + pr, totals add
-up, roster parties only), never the law. `seats-py/src/entry.py` **assumes** the
-Python function is `reader_seats.reader_seats(ward_calls, pr_share,
-council_seats) -> {"seats", "ward", "pr"}`. That name and shape must be agreed
-with the author of `src/reader_seats.py`; until the file exists and is copied,
-the Python Worker answers 501 and every save answers 503.
+`src/seats.js` posts the four arguments of
+`reader_seats.reader_seats(combined_shares, ward_winners, context,
+total_votes)`, by name, to the SEATS service, and `seats-py/src/entry.py`
+passes them through. `combined_shares` is the reader's `combined_share` (each
+party's share of all votes, ward and list ballots together, DESIGN-decided §10)
+divided by its own sum; `ward_winners` keys `ward_calls` by the schema's ward
+ids; `context` and `total_votes` are the schema's `x-seat-context` and
+`x-total-votes`, which `tools/make_schema.mjs` reads from the model artefact and
+refuses to default. The answer is `{seats, ward, pr, council_total, majority,
+excessive, code_ref}`; `seats.js` checks only arithmetic identities (ward counts
+equal the picks, seats = ward + pr, totals add up, majority is half plus one,
+roster parties only), never the law. A 422 from the service (the seat law
+refused the picks, e.g. a ward won by a party given no vote) reaches the reader
+as a 422 naming `combined_share`; any other failure is a 503 and nothing is
+saved.
+
+`tools/sync_seats_py.mjs` copies `reader_seats.py` and its import closure from
+`src/` (the list is `FILES`; `tests/test_reader_seats.py` holds it equal to the
+closure both ways). Until the copy is run, the Python Worker answers 501 and
+every save answers 503.
 
 ## Tests
 
@@ -128,7 +140,7 @@ and `DELETION_AT`.
 | stub | the real thing |
 |---|---|
 | `src/mail.js` sends nothing | Cloudflare Email Service `send_email` binding; contact verification mail is not built either |
-| `seats-py/src/entry.py` answers 501 | `src/reader_seats.py`, copied by `tools/sync_seats_py.mjs`, interface agreed |
+| `seats-py/src/entry.py` answers 501 | `src/reader_seats.py` and its import closure, copied by `tools/sync_seats_py.mjs` (the interface is agreed and tested from both sides) |
 | `/auth/apple/notifications` answers 501 | JWT verification against Apple's JWKS, then deletion |
 | `generated/*` from the prototype's placeholder fixtures | regenerate from the S2 export and the IEC's certified roster (`--model`, `--geometry`) |
 | `src/blocklist.js` holds only impersonation patterns | the owner's content policy |

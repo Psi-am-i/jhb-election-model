@@ -21,7 +21,7 @@ try { from = JSON.parse(sessionStorage.getItem("jhb-start-from") || "null"); ses
 const draft = loadDraft();
 const S = {
   calls: draft?.calls?.length === N ? draft.calls : new Array(N).fill(null),
-  pr: from?.pr || draft?.pr || { ...model.pr_share },
+  share: from?.share || draft?.share || { ...model.combined_share },
   coalition: from?.coalition || draft?.coalition || [],
   mayor: from ? (from.mayor || "") : (draft?.mayor || ""),
   brush: null,
@@ -108,33 +108,35 @@ $("#undo").addEventListener("click", () => {
   S.calls = undo.pop(); $("#undo").disabled = !undo.length; afterCalls();
 });
 
-// ---------- list vote: one identical row per party ----------
+// ---------- the vote: one identical row per party ----------
+// Each party's share of ALL votes, ward and list ballots together: the combined
+// vote the statute seats (DESIGN-decided §10), shown with no conversion.
 $("#prlist").innerHTML = parties.map(p => `
   <div class="prrow">
     <span class="sw" style="background:${p.colour}" aria-hidden="true"></span>
     <label for="pr-n-${p.code}">${esc(p.name)}</label>
     <input type="number" id="pr-n-${p.code}" data-c="${p.code}" min="0" max="100" step="0.1" inputmode="decimal">
     <span></span>
-    <input type="range" data-c="${p.code}" min="0" max="60" step="0.1" aria-label="${esc(p.name)} list vote, percent">
+    <input type="range" data-c="${p.code}" min="0" max="60" step="0.1" aria-label="${esc(p.name)}, share of all votes, percent">
   </div>`).join("");
-function paintPR() {
-  $("#prlist").querySelectorAll("input").forEach(i => { i.value = (+S.pr[i.dataset.c] || 0).toFixed(1); });
+function paintShares() {
+  $("#prlist").querySelectorAll("input").forEach(i => { i.value = (+S.share[i.dataset.c] || 0).toFixed(1); });
 }
 $("#prlist").addEventListener("input", e => {
   const i = e.target.closest("input"); if (!i) return;
   const v = Math.max(0, Math.min(100, parseFloat(i.value) || 0));
-  S.pr[i.dataset.c] = v;
+  S.share[i.dataset.c] = v;
   $("#prlist").querySelectorAll(`input[data-c="${i.dataset.c}"]`).forEach(x => { if (x !== i) x.value = v.toFixed(1); });
-  afterPR();
+  afterShares();
 });
-$("#prmodel").addEventListener("click", () => { S.pr = { ...model.pr_share }; paintPR(); afterPR(); });
-$("#przero").addEventListener("click", () => { S.pr = Object.fromEntries(codes.map(c => [c, 0])); paintPR(); afterPR(); });
+$("#prmodel").addEventListener("click", () => { S.share = { ...model.combined_share }; paintShares(); afterShares(); });
+$("#przero").addEventListener("click", () => { S.share = Object.fromEntries(codes.map(c => [c, 0])); paintShares(); afterShares(); });
 $("#prscale").addEventListener("click", () => {
-  const t = prSum(); if (!t) return;
-  S.pr = Object.fromEntries(codes.map(c => [c, Math.round((+S.pr[c] || 0) / t * 1000) / 10]));
-  paintPR(); afterPR();
+  const t = shareSum(); if (!t) return;
+  S.share = Object.fromEntries(codes.map(c => [c, Math.round((+S.share[c] || 0) / t * 1000) / 10]));
+  paintShares(); afterShares();
 });
-const prSum = () => codes.reduce((s, c) => s + (+S.pr[c] || 0), 0);
+const shareSum = () => codes.reduce((s, c) => s + (+S.share[c] || 0), 0);
 
 // ---------- coalition ----------
 $("#coal").addEventListener("click", e => {
@@ -149,16 +151,16 @@ $("#mayor").addEventListener("change", e => { S.mayor = e.target.value; recomput
 // ---------- results ----------
 let result;
 function afterCalls() { map.setCalls(S.calls); if (!$("#listview").hidden) buildList(); recompute(); }
-function afterPR() { recompute(); }
+function afterShares() { recompute(); }
 
 function recompute() {
-  result = allocate({ wardCalls: S.calls, prShare: S.pr, parties,
+  result = allocate({ wardCalls: S.calls, combinedShare: S.share, parties,
     councilSeats: model.council_seats, wardSeats: model.ward_seats });
   const seats = result.seats;
   const called = S.calls.filter(Boolean).length;
   $("#ncalled").textContent = called;
   $("#nleft").textContent = called < N ? ` ${N - called} to go` : " all called";
-  const sum = prSum();
+  const sum = shareSum();
   $("#prsum").textContent = sum.toFixed(1);
   $("#prwarn").textContent = Math.abs(sum - 100) > 0.5 ? (sum > 100 ? "over 100%" : "under 100%") + " — scale it to save" : "";
   $("#prstate").textContent = `${sum.toFixed(1)}%`;
@@ -178,25 +180,28 @@ function recompute() {
     `<option value="${c}"${c === S.mayor ? " selected" : ""}>${esc(byCode[c].name)}</option>`).join("");
   const cs = S.coalition.reduce((a, c) => a + seats[c], 0);
   $("#coalstat").innerHTML = !S.coalition.length ? "No parties chosen yet."
-    : `${cs} of 270 seats. ` + (cs >= model.majority ? `<span class="ok">Enough to govern.</span>` : `<span class="no">${model.majority - cs} short of the 136 needed.</span>`);
+    : `${cs} of ${result.council} seats. ` + (cs >= result.majority ? `<span class="ok">Enough to govern.</span>` : `<span class="no">${result.majority - cs} short of the ${result.majority} needed.</span>`);
   $("#costate").textContent = S.coalition.length ? `${S.coalition.length} ${S.coalition.length === 1 ? "party" : "parties"}, ${cs} seats` : "";
 
   const top = topN(seats, 5, byCode);
   const max = Math.max(1, ...top.map(t => t[1]));
   $("#bars").innerHTML = top.length ? top.map(([c, n]) => `<div class="bar"><span class="nm">${esc(byCode[c].name)}</span>
     <span class="tr"><span class="fl" style="width:${n / max * 100}%;background:${byCode[c].colour}"></span></span><span class="v">${n}</span></div>`).join("")
-    : `<p style="font-size:13.5px">Call some wards or set a list vote to see seats.</p>`;
+    : `<p style="font-size:13.5px">Call some wards or set the vote shares to see seats.</p>`;
   $("#restate").textContent = `Top five of ${result.total} seats` + (called < N ? `, with ${N - called} wards still to call` : "");
   $("#strip").innerHTML = order.filter(c => seats[c]).map(c =>
-    `<span style="width:${seats[c] / model.council_seats * 100}%;background:${byCode[c].colour}"></span>`).join("") +
-    `<span class="maj" style="left:calc(${(model.majority - 0.5) / model.council_seats} * 100%)"></span>`;
+    `<span style="width:${seats[c] / result.council * 100}%;background:${byCode[c].colour}"></span>`).join("") +
+    `<span class="maj" style="left:calc(${(result.majority - 0.5) / result.council} * 100%)"></span>`;
+  $("#capseats").textContent = `${result.council} seats`;
+  $("#capmaj").textContent = `${result.majority} to govern`;
+  $("#coalneed").textContent = `A council of ${result.council} needs ${result.majority} votes`;
 
   // distance from the model's forecast: seats moved per party, small and factual
   const pub = model.published_seats_median;
   const moved = top.map(([c, n]) => { const d = n - (pub[c] || 0); return `${esc(byCode[c].name)} <b>${d > 0 ? "+" : ""}${d}</b>`; });
   $("#delta").innerHTML = top.length ? `Against the model's forecast (placeholder median): ${moved.join(", ")}.` : "";
   announce($("#live"), top.map(([c, n]) => `${byCode[c].name} ${n}`).join(", "));
-  saveDraft({ calls: S.calls, pr: S.pr, coalition: S.coalition, mayor: S.mayor, id: S.id });
+  saveDraft({ calls: S.calls, share: S.share, coalition: S.coalition, mayor: S.mayor, id: S.id });
 }
 
 // ---------- save and share ----------
@@ -204,7 +209,7 @@ function problems() {
   const out = [];
   const left = S.calls.filter(c => !c).length;
   if (left) out.push(`call the last ${left} ward${left === 1 ? "" : "s"}`);
-  if (Math.abs(prSum() - 100) > 0.5) out.push("make the list vote add up to 100%");
+  if (Math.abs(shareSum() - 100) > 0.5) out.push("make the vote shares add up to 100%");
   if (!S.coalition.length) out.push("pick at least one party to govern");
   return out;
 }
@@ -215,7 +220,7 @@ $("#save").addEventListener("click", async () => {
   const s = await ensureConsent();
   if (!s) { $("#saveerr").textContent = "Not saved. Your forecast is still here."; return; }
   const forecast = { id: S.id, model_ref: model.model_ref, ward_calls: S.calls.slice(),
-    pr_share: { ...S.pr }, coalition: S.coalition.slice(), mayor: S.mayor || null };
+    combined_share: { ...S.share }, coalition: S.coalition.slice(), mayor: S.mayor || null };
   const { id, path } = await saveForecast(forecast);
   S.id = id; recompute();
   const url = pageURL(path);
@@ -225,11 +230,12 @@ $("#save").addEventListener("click", async () => {
     $("#savedline").textContent = "Deleted. The link no longer works.";
   });
   const f = { ...forecast, display_name: s.consent.show_name ? s.display_name : "" };
-  const svgFor = size => buildCardSVG({ forecast: f, seats: result.seats, geom, byCode, model, size, placeholder: true });
+  const council = { council: result.council, majority: result.majority };
+  const svgFor = size => buildCardSVG({ forecast: f, seats: result.seats, geom, byCode, model: council, size, placeholder: true });
   openShare({ url, title: possessive(f.display_name) + " — Johannesburg 2026",
     text: `${possessive(f.display_name)} for Johannesburg's council on 4 November. Make yours:`,
-    svgFor, alt: cardAlt({ forecast: f, seats: result.seats, byCode, model }), fileBase: "joburg-forecast-" + id });
+    svgFor, alt: cardAlt({ forecast: f, seats: result.seats, byCode, model: council }), fileBase: "joburg-forecast-" + id });
 });
 
-paintPR();
+paintShares();
 recompute();
