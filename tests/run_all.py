@@ -134,7 +134,11 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # exposes. Same regenerate-and-compare shape as the index above,
            # plus the guard that keeps a document ABOUT levers from spelling a
            # deleted one and blinding `test_register_matches_code`.
-           "test_judgement_sheet", "test_number_scan", "test_map_stripes", "test_scenarios"]
+           "test_judgement_sheet", "test_number_scan", "test_map_stripes", "test_scenarios",
+           # The browser engine's stand-in for 65 election files, kept an
+           # OUTPUT of `levels._citywide_and_roster` by regenerating it, and
+           # refused when stale, late, short or built for another target.
+           "test_citywide_table"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

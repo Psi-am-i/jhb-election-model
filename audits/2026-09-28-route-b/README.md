@@ -17,3 +17,13 @@ MKL_NUM_THREADS=1`) because Pyodide is single-threaded. None of them writes unde
   in a fresh process in either mode, so the table run cannot inherit a cache.
 
 Results and limits: MODEL-LOG §1.265.
+
+## The Pyodide check (pre-registered in `prereg/2026-09-28-route-b-in-pyodide.md`)
+
+* `identity.mjs` — `npm install pyodide@0.28` in a directory outside the repo,
+  copy this file there, then
+  `node identity.mjs <repo> <draws> <seed> <out.json>`. Runs parse mode then
+  table mode in one Pyodide interpreter and writes the table-mode arrays.
+* `compare_native.py` — from the repo root,
+  `.venv/bin/python audits/2026-09-28-route-b/compare_native.py <out.json>`:
+  a native parse-mode run on the same seed and draws, compared array by array.

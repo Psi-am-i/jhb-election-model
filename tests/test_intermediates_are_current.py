@@ -138,6 +138,12 @@ NOT_REGENERATED_HERE: dict[str, str] = {
     "forecast_frozen.json":
         "src/freeze.py — the tripwire. Self-hashed and checked by "
         "tests/test_freeze.py, which is a stronger guard than regeneration.",
+    "citywide_*.json":
+        "src/citywide_table.py — the browser engine's stand-in for "
+        "levels._citywide_and_roster, recorded from a model run. Regenerated "
+        "and compared byte for byte by tests/test_citywide_table.py, and its "
+        "artefact_key names the code and every input's sha256 (declares.py, "
+        "`reduction` kind).",
 }
 
 # Runtime droppings, not artefacts. Declared for the same reason but exempt

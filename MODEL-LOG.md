@@ -27292,3 +27292,63 @@ would let a late file be read without being seen. The native path is unchanged
 and keeps parsing, so every spy keeps watching it. Only the browser would read
 the table, and it forecasts 2026, after which no election file exists. That is
 an argument, not a test, and it goes to the blind review.
+
+## 1.266 The citywide table is built, locked and refused-on-miss; four corrections to §1.265 (2026-09-28)
+
+A blind review of §1.265 (brief committed first at `332bb6a`,
+`audits/2026-09-28-route-b/brief-blind.md`) agreed the mechanism is sound for
+the 2026 forecast on four conditions, all now built in `src/citywide_table.py`
+and enforced by `tests/test_citywide_table.py` (MACHINERY.md, "The browser
+engine's citywide table"):
+* the table is locked to one target;
+* a miss is a refusal;
+* its key names the code and the input bytes;
+* a native test regenerates it and compares bytes.
+
+**Re-derived by the lead before applying**, each on Atlas:
+
+| the review's claim | the lead's check |
+|---|---|
+| a missing file raised as `FileNotFoundError` is swallowed and the run falls back | read at `montecarlo.py` (contestation and spine handlers): confirmed |
+| 189 calls over 66 distinct paths | 189 and 66: confirmed |
+| environment gates change the paths asked for | `HELD_BACK_OFF=1`: 80 distinct paths, 14 not in the table: confirmed |
+| two election files stay on the browser's load path | table mode still opens `lge2021_JHB_vd_party_clean.csv` and `npe2024_JHB_vd_party.csv` through other readers: confirmed |
+| the native model is not bit-stable across `PYTHONHASHSEED` (≤ 4.7e-16 in shares, seats equal at 20 draws) | **not re-derived**; carried as the reviewer's measurement |
+
+**Corrections to §1.265, which stands as written:**
+* **The call count.** "Called 66 times" was the size of a dict: 189 calls over
+  66 distinct paths.
+* **Which files leave the load path.** 64 of the 66 do, not all 66; the two
+  above are opened by other readers.
+* **The environment gates.** The closing argument omitted them, and it held
+  only with the table locked to its target and with misses refused. Both are
+  now built.
+* **The attainable browser predicate.** It is not bit-identity with Atlas,
+  because Pyodide has its own hash seed and its own numpy and libm builds. It
+  is identity between table and parse inside one interpreter, plus a stated
+  tolerance against Atlas.
+
+**Built and measured:**
+* **The artefact.** `data/processed/citywide_2026.json`, 115.6 KB with its
+  declaration and indentation, 66 entries, and `--check` byte-identical on
+  rebuild.
+* **The tests.** `tests/test_citywide_table.py` runs 8 tests and all pass
+  (`run_all.py -k citywide_table`, a partial run).
+* **Mutations.** Each ran against the named test and went red, and both went
+  green again when reverted:
+  * a miss raising `FileNotFoundError` instead of refusing;
+  * the temporal check deleted.
+* **The gate list.** `test_the_gate_list_is_every_gate_levels_reads` failed on
+  first run. It caught `EXCLUDE_DEMARCATION_CROSSING`, which the lead's own
+  one-line grep had missed because the call spans two lines. That gate is now
+  in `GATES`.
+
+**`declares.py` gained a `reduction` kind**, which re-hashes every input. Adding
+it showed that `report` printed kinds from a literal inside the function: the
+new artefact was counted in the headline and printed nowhere. The order is now
+`REPORT_ORDER`, and a module-level check refuses one that omits a kind in
+`KINDS`.
+
+**Not done:** the browser run itself; the remaining ~15 MB and `openpyxl` on the
+load path; the page's loader. A key-coverage test cannot yet cover the per-poll
+dial or turnout by area, because neither is built.

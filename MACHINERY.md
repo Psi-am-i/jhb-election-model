@@ -1726,6 +1726,41 @@ polygons where the DA must exceed 1.4x — so the check cannot pass by measuring
 nothing.
 
 
+## The browser engine's citywide table — `src/citywide_table.py`
+
+The interactive runs the real `run_model` under Pyodide. Natively, one
+Johannesburg 2026 run opens 65 election files through
+`levels._citywide_and_roster`, which reduces each to its citywide PR shares and
+its ballot roster. The browser cannot ship those files, so it ships
+`data/processed/citywide_<target>.json` and calls `citywide_table.install`,
+which replaces the function with a lookup. The native model never installs it
+and keeps parsing, so the temporal spies in `tests/_support.py` keep watching
+every read.
+
+* **Built, never computed.** `build` runs the real model and records what the
+  real function returned, keyed by the repository-relative path it was asked
+  for. `--check` rebuilds and compares bytes.
+* **Declares itself.** The key names `levels.py` and `parties.py` by AST hash
+  (`pools._code_sha`), the city and target, and the sha256 of every file
+  reduced. `declares.py` audits it as the `reduction` kind, re-hashing each input.
+* **Refuses rather than falls back.** `install` refuses:
+  * another target;
+  * a table holding an election dated at or after its target;
+  * a table naming other code;
+  * any environment gate in `GATES` being set.
+  A path missing from the table raises `TableRefusal`, a `SystemExit`. It is
+  not a `FileNotFoundError`, which `run_model` catches at two sites and answers
+  with fallback constants.
+* **Enforced by** `tests/test_citywide_table.py`:
+  * the table regenerates byte-identically;
+  * the key sets match under every control the page ships;
+  * the temporal lock, a missing entry and a stale code hash are each refused;
+  * a same-seed native run gives identical draws;
+  * `GATES` names every gate `levels.py` reads.
+  Add a control to `LEVER_SETTINGS` there when the page gains one.
+
+Measurement: MODEL-LOG §1.265 and §1.266. Review: `audits/2026-09-28-route-b/`.
+
 ## Where the reasoning lives
 
 | file | what it holds |

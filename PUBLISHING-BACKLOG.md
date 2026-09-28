@@ -859,3 +859,43 @@ the publish batch has to state.
 ⚠️ **The rule cannot reach `site/portal.html`.** The hub's headline is read from
 each city's `forecast_summary.json` and written as plain text, so it is neither a
 token nor a ledger row.
+
+## 13. A mutation night before any model goes live (owner, 2026-09-28)
+
+Owner: *"it's the kind of thing that is worth doing before publishing a new model
+to the live site for main model and interactive where we mutate every variable
+and path in the model. Even if it takes all night it's probably worth it for
+peace of mind! My biggest concern is something inactive or behaving badly and
+missing it completely."*
+
+**What it is.** Change the source one small edit at a time across every `src/`
+module on the forecast path and on the interactive's path: flip a comparison,
+change a constant, drop a statement, invert a branch. After each edit, run the
+suite subset that reaches the module and a fixed-seed `run_model`. Sort each
+mutant into one of three outcomes:
+
+* **killed** — a test failed;
+* **moved numbers, no test noticed** — behaviour nothing checks;
+* **changed nothing at all** — inactive code. **This is the owner's concern,
+  and every such mutant is listed by file and line.**
+
+**Why the existing nets do not cover it.** `test_levers_are_live` proves that
+*registered* levers fire. It cannot see an unregistered constant, a branch no
+path reaches, or a value computed and then never read. The "can it see" controls
+built into individual tests prove only that those tests can detect the
+violation they were written for. The hand mutations of MODEL-LOG §1.266 were
+one-offs.
+
+**Cost.** One fixed-seed run per mutant, the dominant cost. For a mutant outside
+the browser's reach, the native run with the citywide table installed is about
+3 s rather than 15 s (MODEL-LOG §1.265), which is admissible because the table
+reproduces every drawn array. Budget an overnight run on Atlas, with sampling
+where a module's mutant count exceeds the night.
+
+**Gate.** It runs before a model publish (`build_site.py --publish` with
+`--change-class mechanism`) and before the interactive first ships. The
+publish waits until every surviving mutant is read.
+
+**Done when** a committed harness under `audits/` produces a survivor report per
+run, and that report has been read before the next mechanism-class publish.
+**Not started.**

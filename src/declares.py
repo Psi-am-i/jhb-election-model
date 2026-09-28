@@ -191,6 +191,15 @@ KINDS: dict[str, Kind] = {
         "intermediate", ("inputs",),
         "§1.75 — a fitted intermediate outliving the inputs it was fitted "
         "from, undetectable from the artefact itself"),
+    # A reduction stands in for a function over raw files, so it must name the
+    # code that reduced them AND the bytes it reduced. §1.265 and the Route B
+    # blind review: the browser reads `citywide_<target>.json` instead of 65
+    # election files, and a table that outlived either would move the page's
+    # forecast away from the model's with nothing going red.
+    "reduction": Kind(
+        "reduction", ("code", "scope", "inputs"),
+        "§1.265 — a precomputed reduction is a second definition of its "
+        "function unless it names the code and the input bytes it came from"),
 }
 
 
@@ -245,6 +254,15 @@ class Row:
 
 class CannotAudit(SystemExit):
     """The audit could not run its own check. NEVER downgraded to a warning."""
+
+
+#: The order `report` prints the kinds in. It must name every kind in `KINDS`:
+#: until 2026-09-28 it was a literal inside `report`, and a fifth kind added to
+#: `KINDS` was counted in the headline and never printed.
+REPORT_ORDER = ("scoreboard", "run", "spec", "reduction", "intermediate")
+if set(REPORT_ORDER) != set(KINDS):
+    raise CannotAudit(f"REPORT_ORDER {sorted(REPORT_ORDER)} does not name every "
+                      f"kind in KINDS {sorted(KINDS)}")
 
 
 def _display(path: Path) -> str:
@@ -582,12 +600,65 @@ def _intermediate_rows(processed: Path) -> list[Row]:
     return rows
 
 
+def _reduction_rows(processed: Path) -> list[Row]:
+    """`citywide_*.json`: the code it names and every input it hashed, checked.
+
+    `~` when the named `levels.py`/`parties.py` hash is not the live one, or
+    when any file it reduced has different bytes on disk now. The inputs check
+    re-hashes the files; it is the only check here that reads raw data.
+    """
+    import hashlib
+    try:
+        import citywide_table as _ct
+        live = _ct.code_key()
+    except Exception as exc:  # the audit must say it could not look
+        raise CannotAudit(f"cannot import citywide_table: {exc}") from exc
+    rows = []
+    for p in sorted(processed.rglob("citywide_*.json")):
+        r = Row(_display(p), "reduction")
+        try:
+            key = json.loads(p.read_text()).get("artefact_key") or {}
+        except Exception as exc:
+            r.states = {f: UNDECLARED for f in KINDS["reduction"].required}
+            r.notes.append(f"unreadable: {type(exc).__name__}")
+            rows.append(r)
+            continue
+        named = {f: key.get(f) for f in live}
+        if not all(_declared(v) for v in named.values()):
+            r.states["code"] = UNDECLARED
+        elif named != live:
+            r.states["code"] = LYING
+            r.notes.append("names levels/parties code that is not the live "
+                           "code — rebuild with src/citywide_table.py")
+        else:
+            r.states["code"] = DECLARED
+        r.states["scope"] = (DECLARED if all(_declared(key.get(f))
+                                             for f in ("city", "target"))
+                             else UNDECLARED)
+        inputs = key.get("inputs") or {}
+        if not inputs:
+            r.states["inputs"] = UNDECLARED
+        else:
+            moved = [k for k, sha in sorted(inputs.items())
+                     if not (REPO / k).exists()
+                     or hashlib.sha256((REPO / k).read_bytes()).hexdigest() != sha]
+            if moved:
+                r.states["inputs"] = LYING
+                r.notes.append(f"{len(moved)} reduced file(s) changed or "
+                               f"missing since the build, e.g. {moved[0]}")
+            else:
+                r.states["inputs"] = DECLARED
+        rows.append(r)
+    return rows
+
+
 def audit(processed: Path | None = None) -> list[Row]:
     root = _processed_root(processed)
     live_sha = _live_pools_sha()
     spec = _spec_rows(live_sha, root)
     live_keys = {live_sha} if live_sha else set()
-    return spec + _json_rows(live_keys, root) + _intermediate_rows(root)
+    return (spec + _json_rows(live_keys, root) + _reduction_rows(root)
+            + _intermediate_rows(root))
 
 
 def report(rows: list[Row]) -> str:
@@ -660,7 +731,7 @@ def report(rows: list[Row]) -> str:
     for r in rows:
         by_kind.setdefault(r.kind, []).append(r)
 
-    for kind in ("scoreboard", "run", "spec", "intermediate"):
+    for kind in REPORT_ORDER:
         krows = by_kind.get(kind)
         if not krows:
             continue
