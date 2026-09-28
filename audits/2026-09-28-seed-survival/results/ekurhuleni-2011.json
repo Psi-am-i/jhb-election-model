@@ -1,0 +1,674 @@
+{
+ "city": "ekurhuleni",
+ "year": "2011",
+ "draws": 2000,
+ "spec": "data/processed/ekurhuleni/pools_2011.json",
+ "seeds_in_spec": [],
+ "variants": {
+  "base": {
+   "info": {},
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 35.1
+  },
+  "seed2": {
+   "info": {},
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 34.8,
+   "vs_base": {
+    "seats_moved": 1.227,
+    "d_mean_seats": {
+     "ACDP": 0.206,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0345,
+     "ANC": -0.2645,
+     "APC": 0.0525,
+     "COPE": -0.5955,
+     "DA": 0.2495,
+     "ENTRANT": -0.367,
+     "IFP": 0.1675,
+     "PAC": 0.1735,
+     "UDM": 0.244,
+     "VFPLUS": 0.0995
+    },
+    "se_paired": {
+     "ACDP": 0.14930146504214842,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.038566806638444195,
+     "ANC": 0.578808499863951,
+     "APC": 0.06190143591940692,
+     "COPE": 0.34067208369531055,
+     "DA": 0.39221619248295053,
+     "ENTRANT": 0.16907971337430566,
+     "IFP": 0.1713662892098057,
+     "PAC": 0.13606967462729008,
+     "UDM": 0.1379701050044446,
+     "VFPLUS": 0.14056912788680673
+    },
+    "max_z": 2.1705738238835424,
+    "max_abs_d": 0.5955,
+    "same_draw_frac": 0.0,
+    "ward_calls_moved": 0.304,
+    "d_pr_pp": {
+     "ACDP": 0.08839991034014692,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.01568488124563785,
+     "ANC": -0.11791329809927142,
+     "APC": 0.022527766789482737,
+     "COPE": -0.2943165615158988,
+     "DA": 0.14406148834226226,
+     "IFP": 0.1061040932542323,
+     "PAC": 0.08018996085348479,
+     "UDM": 0.09104132139349773,
+     "VFPLUS": 0.051369752175499536,
+     "ENTRANT": -0.18714931477907418
+    },
+    "max_abs_d_pr_pp": 0.2943165615158988,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.14773,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.13573,
+     "ANC": 0.00834,
+     "APC": 0.13573,
+     "COPE": 0.10652,
+     "DA": 0.08251,
+     "IFP": 0.06488,
+     "PAC": 0.01571,
+     "UDM": 0.0,
+     "VFPLUS": 0.15232
+    }
+   }
+  },
+  "placebo": {
+   "info": {},
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 33.8,
+   "vs_base": {
+    "seats_moved": 0.0,
+    "d_mean_seats": {
+     "ACDP": 0.0,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0,
+     "ANC": 0.0,
+     "APC": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "ENTRANT": 0.0,
+     "IFP": 0.0,
+     "PAC": 0.0,
+     "UDM": 0.0,
+     "VFPLUS": 0.0
+    },
+    "se_paired": {
+     "ACDP": 0.0,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0,
+     "ANC": 0.0,
+     "APC": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "ENTRANT": 0.0,
+     "IFP": 0.0,
+     "PAC": 0.0,
+     "UDM": 0.0,
+     "VFPLUS": 0.0
+    },
+    "max_z": 0.0,
+    "max_abs_d": 0.0,
+    "same_draw_frac": 1.0,
+    "ward_calls_moved": 0.0,
+    "d_pr_pp": {
+     "ACDP": -2.3423167717657487e-12,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": -1.0378498709870858e-14,
+     "ANC": -2.1570381036895014e-10,
+     "APC": -1.4012504064601755e-12,
+     "COPE": -4.349875794035663e-11,
+     "DA": 2.8440171537247313e-10,
+     "IFP": -1.1965447316736714e-11,
+     "PAC": -6.116558169358269e-13,
+     "UDM": 2.6715365790677977e-14,
+     "VFPLUS": -8.936676906777236e-12,
+     "ENTRANT": 4.149462785730792e-14
+    },
+    "max_abs_d_pr_pp": 2.8440171537247313e-10,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.0,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0,
+     "ANC": 0.0,
+     "APC": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "IFP": 0.0,
+     "PAC": 0.0,
+     "UDM": 0.0,
+     "VFPLUS": 0.0
+    }
+   }
+  },
+  "c4_eps": {
+   "info": {
+    "zero_cells": 16,
+    "cells": 92,
+    "seed_tv_mean": 7.081245476713473e-11
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 34.4,
+   "vs_base": {
+    "seats_moved": 0.135,
+    "d_mean_seats": {
+     "ACDP": 0.001,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": -0.001,
+     "ANC": 0.009,
+     "APC": 0.0,
+     "COPE": -0.0015,
+     "DA": -0.117,
+     "ENTRANT": 0.0025,
+     "IFP": -0.0155,
+     "PAC": 0.0205,
+     "UDM": 0.0005,
+     "VFPLUS": 0.1015
+    },
+    "se_paired": {
+     "ACDP": 0.007970650264113737,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0015813761017504954,
+     "ANC": 0.015814061536213127,
+     "APC": 0.004302238327581778,
+     "COPE": 0.012137649536386115,
+     "DA": 0.06465095028448029,
+     "ENTRANT": 0.00304162797698456,
+     "IFP": 0.013828430415049713,
+     "PAC": 0.008750895044624922,
+     "UDM": 0.00409368466385279,
+     "VFPLUS": 0.06471238460573586
+    },
+    "max_z": 2.342617514604035,
+    "max_abs_d": 0.117,
+    "same_draw_frac": 0.106,
+    "ward_calls_moved": 0.113,
+    "d_pr_pp": {
+     "ACDP": 0.00018312366435391088,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": -0.000266719649819425,
+     "ANC": 0.004036483955070126,
+     "APC": 0.00018049148866315502,
+     "COPE": 0.0012573780877532575,
+     "DA": -0.0641320932941705,
+     "IFP": -0.0035621225754302686,
+     "PAC": 0.011830406528996825,
+     "UDM": 0.0022470746400523687,
+     "VFPLUS": 0.04830093104678039,
+     "ENTRANT": -7.495389224980849e-05
+    },
+    "max_abs_d_pr_pp": 0.0641320932941705,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.0,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0,
+     "ANC": 0.0,
+     "APC": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "IFP": 0.0,
+     "PAC": 0.0,
+     "UDM": 0.0,
+     "VFPLUS": 0.0
+    }
+   },
+   "seed_tv": {
+    "ACDP": 0.0,
+    "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0,
+    "ANC": 0.0,
+    "APC": 0.0,
+    "COPE": 0.0,
+    "DA": 0.0,
+    "IFP": 0.0,
+    "PAC": 0.0,
+    "UDM": 0.0,
+    "VFPLUS": 0.0
+   }
+  },
+  "c4_mild": {
+   "info": {
+    "zero_cells": 16,
+    "cells": 92,
+    "seed_tv_mean": 0.0034941417847173546
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 33.4,
+   "vs_base": {
+    "seats_moved": 0.1945,
+    "d_mean_seats": {
+     "ACDP": -0.0285,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0055,
+     "ANC": 0.086,
+     "APC": -0.0005,
+     "COPE": 0.0005,
+     "DA": -0.133,
+     "ENTRANT": 0.0005,
+     "IFP": -0.0325,
+     "PAC": 0.02,
+     "UDM": 0.013,
+     "VFPLUS": 0.069
+    },
+    "se_paired": {
+     "ACDP": 0.03423346082300124,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0053618326740781826,
+     "ANC": 0.04452856832077974,
+     "APC": 0.004214113711943307,
+     "COPE": 0.02441409222046715,
+     "DA": 0.07013640322634718,
+     "ENTRANT": 0.002958758544738491,
+     "IFP": 0.01654867983865182,
+     "PAC": 0.017477205908359085,
+     "UDM": 0.01574927045167109,
+     "VFPLUS": 0.06576687723368456
+    },
+    "max_z": 1.963902880282425,
+    "max_abs_d": 0.133,
+    "same_draw_frac": 0.0895,
+    "ward_calls_moved": 0.1165,
+    "d_pr_pp": {
+     "ACDP": -0.013680365171116555,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0027267867644132893,
+     "ANC": 0.04981666807490991,
+     "APC": 0.00013288828569765394,
+     "COPE": -0.002471199211492501,
+     "DA": -0.07175510874069238,
+     "IFP": -0.011865581565952115,
+     "PAC": 0.009491375834657029,
+     "UDM": 0.005345531416470706,
+     "VFPLUS": 0.03192095378683276,
+     "ENTRANT": 0.00033805052627194183
+    },
+    "max_abs_d_pr_pp": 0.07175510874069238,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.00548,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.00438,
+     "ANC": 0.00097,
+     "APC": 0.00438,
+     "COPE": 0.00375,
+     "DA": 0.00174,
+     "IFP": 0.01433,
+     "PAC": 0.01338,
+     "UDM": 0.01573,
+     "VFPLUS": 0.00532
+    }
+   },
+   "seed_tv": {
+    "ACDP": 0.0,
+    "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0,
+    "ANC": 0.001,
+    "APC": 0.0,
+    "COPE": 0.0,
+    "DA": 0.0,
+    "IFP": 0.01303,
+    "PAC": 0.01216,
+    "UDM": 0.014,
+    "VFPLUS": 0.0
+   }
+  },
+  "c4_strong": {
+   "info": {
+    "zero_cells": 16,
+    "cells": 92,
+    "seed_tv_mean": 0.08699400257978428
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 30.3,
+   "vs_base": {
+    "seats_moved": 0.23950000000000002,
+    "d_mean_seats": {
+     "ACDP": -0.018,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": -0.005,
+     "ANC": -0.0685,
+     "APC": 0.007,
+     "COPE": -0.012,
+     "DA": 0.2225,
+     "ENTRANT": -0.002,
+     "IFP": 0.01,
+     "PAC": -0.028,
+     "UDM": -0.05,
+     "VFPLUS": -0.056
+    },
+    "se_paired": {
+     "ACDP": 0.04996084509915249,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.013363262640320927,
+     "ANC": 0.3416764189443446,
+     "APC": 0.011834083097620225,
+     "COPE": 0.16520615768568866,
+     "DA": 0.3634550132386733,
+     "ENTRANT": 0.004000750304817928,
+     "IFP": 0.06987768918419426,
+     "PAC": 0.059282081463046615,
+     "UDM": 0.055387578859758556,
+     "VFPLUS": 0.09219371909691278
+    },
+    "max_z": 0.9027294752601497,
+    "max_abs_d": 0.2225,
+    "same_draw_frac": 0.0015,
+    "ward_calls_moved": 2.3605,
+    "d_pr_pp": {
+     "ACDP": -0.006597340446560016,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": -0.0031591174648235567,
+     "ANC": -0.03415026938420129,
+     "APC": 0.0019594199066169187,
+     "COPE": -0.00031672689037275293,
+     "DA": 0.09055410679320179,
+     "IFP": 0.0071592022362608155,
+     "PAC": -0.01263797757688825,
+     "UDM": -0.014277586502707443,
+     "VFPLUS": -0.028197718978641807,
+     "ENTRANT": -0.00033599169188434707
+    },
+    "max_abs_d_pr_pp": 0.09055410679320179,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.13054,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.08761,
+     "ANC": 0.12827,
+     "APC": 0.08761,
+     "COPE": 0.08441,
+     "DA": 0.29933,
+     "IFP": 0.13653,
+     "PAC": 0.12303,
+     "UDM": 0.13941,
+     "VFPLUS": 0.17654
+    }
+   },
+   "seed_tv": {
+    "ACDP": 0.09545,
+    "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.00293,
+    "ANC": 0.13287,
+    "APC": 0.00293,
+    "COPE": 0.04841,
+    "DA": 0.31704,
+    "IFP": 0.13197,
+    "PAC": 0.12407,
+    "UDM": 0.14202,
+    "VFPLUS": 0.19496
+   }
+  },
+  "c3_target": {
+   "info": {
+    "split_before": {
+     "Black African": 0.7468,
+     "Coloured": 0.0419,
+     "Indian/Asian": 0.035,
+     "White": 0.1763
+    },
+    "split_after": {
+     "Black African": 0.7566,
+     "Coloured": 0.0236,
+     "Indian/Asian": 0.0274,
+     "White": 0.1924
+    },
+    "dose_L1_of_roll": 0.051736037982397697
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 35.1,
+   "vs_base": {
+    "seats_moved": 0.24,
+    "d_mean_seats": {
+     "ACDP": 0.009,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0045,
+     "ANC": 0.182,
+     "APC": 0.007,
+     "COPE": -0.0665,
+     "DA": -0.139,
+     "ENTRANT": 0.0015,
+     "IFP": -0.018,
+     "PAC": -0.0165,
+     "UDM": 0.005,
+     "VFPLUS": 0.031
+    },
+    "se_paired": {
+     "ACDP": 0.03751883968975898,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.006021461948895883,
+     "ANC": 0.08500912466104929,
+     "APC": 0.005521842570436642,
+     "COPE": 0.06933572381029962,
+     "DA": 0.06943882469618559,
+     "ENTRANT": 0.003202187065272812,
+     "IFP": 0.031397944446376246,
+     "PAC": 0.028784164727668145,
+     "UDM": 0.019574960780159238,
+     "VFPLUS": 0.03126512840413523
+    },
+    "max_z": 2.14094664220665,
+    "max_abs_d": 0.182,
+    "same_draw_frac": 0.122,
+    "ward_calls_moved": 0.1775,
+    "d_pr_pp": {
+     "ACDP": 0.0006067967650872356,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0020062347175349793,
+     "ANC": 0.0963391889481964,
+     "APC": 0.002227845275780128,
+     "COPE": -0.03496137678057535,
+     "DA": -0.06975885927828837,
+     "IFP": -0.001451775385473479,
+     "PAC": -0.010284028316856594,
+     "UDM": 0.002000179342660964,
+     "VFPLUS": 0.013269860582695853,
+     "ENTRANT": 5.934129238394969e-06
+    },
+    "max_abs_d_pr_pp": 0.0963391889481964,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.08121,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.04118,
+     "ANC": 0.00864,
+     "APC": 0.04118,
+     "COPE": 0.03243,
+     "DA": 0.05242,
+     "IFP": 0.01425,
+     "PAC": 0.01677,
+     "UDM": 0.0,
+     "VFPLUS": 0.08581
+    }
+   }
+  },
+  "c3_proj": {
+   "info": {
+    "split_before": {
+     "Black African": 0.7468,
+     "Coloured": 0.0419,
+     "Indian/Asian": 0.035,
+     "White": 0.1763
+    },
+    "split_after": {
+     "Black African": 0.7499,
+     "Coloured": 0.0372,
+     "Indian/Asian": 0.0303,
+     "White": 0.1826
+    },
+    "dose_L1_of_roll": 0.018793210459723115
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 23.3,
+   "vs_base": {
+    "seats_moved": 0.134,
+    "d_mean_seats": {
+     "ACDP": -0.018,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.009,
+     "ANC": 0.0855,
+     "APC": -0.003,
+     "COPE": 0.0075,
+     "DA": -0.06,
+     "ENTRANT": 0.0015,
+     "IFP": -0.0415,
+     "PAC": 0.006,
+     "UDM": -0.0115,
+     "VFPLUS": 0.0245
+    },
+    "se_paired": {
+     "ACDP": 0.03448815327555504,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0058289354297437574,
+     "ANC": 0.048644403727530705,
+     "APC": 0.0036745409407928464,
+     "COPE": 0.03258454773931484,
+     "DA": 0.03521107652365911,
+     "ENTRANT": 0.0027843762992253484,
+     "IFP": 0.02178591719652966,
+     "PAC": 0.022276223087802135,
+     "UDM": 0.015076389612963738,
+     "VFPLUS": 0.023637454169597238
+    },
+    "max_z": 1.9049002906616508,
+    "max_abs_d": 0.0855,
+    "same_draw_frac": 0.4465,
+    "ward_calls_moved": 0.1315,
+    "d_pr_pp": {
+     "ACDP": -0.009242169065502603,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0034027653466420756,
+     "ANC": 0.05279644630258167,
+     "APC": -2.3050547162124824e-05,
+     "COPE": 0.004998966312802689,
+     "DA": -0.04136564828006319,
+     "IFP": -0.016003181532392628,
+     "PAC": 0.0007199637867408442,
+     "UDM": -0.00482655175112259,
+     "VFPLUS": 0.009666762137661407,
+     "ENTRANT": -0.00012430271018588725
+    },
+    "max_abs_d_pr_pp": 0.05279644630258167,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.02534,
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.01527,
+     "ANC": 0.00198,
+     "APC": 0.01527,
+     "COPE": 0.01165,
+     "DA": 0.02069,
+     "IFP": 0.01027,
+     "PAC": 0.00382,
+     "UDM": 0.0,
+     "VFPLUS": 0.03197
+    }
+   }
+  }
+ },
+ "structure": {
+  "ipf_parties": [
+   "ACDP",
+   "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE",
+   "ANC",
+   "APC",
+   "COPE",
+   "DA",
+   "IFP",
+   "PAC",
+   "UDM",
+   "VFPLUS"
+  ],
+  "pools": [
+   "Black African",
+   "Coloured",
+   "Indian/Asian",
+   "White"
+  ],
+  "logratio_additive_max_resid": 1.3322676295501878e-15,
+  "zero_pattern_identical_R0": true,
+  "zero_pattern_identical_draws": true,
+  "zero_cells": 8,
+  "cells": 40,
+  "single_pool_parties": [
+   "UDM"
+  ],
+  "seed_vs_post_ipf_tv": {
+   "ACDP": 0.0275,
+   "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0108,
+   "ANC": 0.0031,
+   "APC": 0.0108,
+   "COPE": 0.0036,
+   "DA": 0.0419,
+   "IFP": 0.0024,
+   "PAC": 0.0058,
+   "UDM": 0.0,
+   "VFPLUS": 0.0537
+  },
+  "seed_vs_R0_tv": {
+   "ACDP": 0.0597,
+   "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0498,
+   "ANC": 0.0015,
+   "APC": 0.0498,
+   "COPE": 0.035,
+   "DA": 0.042,
+   "IFP": 0.0225,
+   "PAC": 0.0029,
+   "UDM": 0.0,
+   "VFPLUS": 0.0748
+  },
+  "centres": null,
+  "pool_vote_share": {
+   "Black African": 0.716,
+   "Coloured": 0.0378,
+   "Indian/Asian": 0.0201,
+   "White": 0.2261
+  },
+  "mean_seats": {
+   "ACDP": 2.662,
+   "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.158,
+   "ANC": 118.721,
+   "APC": 0.412,
+   "COPE": 13.887,
+   "DA": 53.695,
+   "ENTRANT": 2.905,
+   "IFP": 3.55,
+   "PAC": 1.506,
+   "UDM": 1.09,
+   "VFPLUS": 3.414
+  }
+ }
+}

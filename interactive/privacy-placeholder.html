@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy notice placeholder</title>
+<meta name="robots" content="noindex">
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t !== "light" && t !== "dark") {
+      t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark";
+    }
+    document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
+<link rel="stylesheet" href="css/interactive.css">
+</head>
+<body>
+<div class="wrap" style="max-width:760px">
+  <p class="proto"><b>Placeholder.</b> This page marks where the privacy notice, the competition rules and the reporting route go.
+    Their text has to be written and checked by someone qualified in South African law before sign-in goes live. See README.md, "Legal".</p>
+  <header class="lede"><h1>Privacy notice</h1>
+    <p>To be written. It must name the responsible party and its Information Officer, and state what is collected, why, the lawful basis,
+      who it is shared with, the transfer outside South Africa, how long it is kept, and how to see, correct or delete it.</p></header>
+  <h2 id="officer">Information Officer</h2>
+  <p style="margin:6px 0 20px">Name and contact, registered with the Information Regulator. To be supplied.</p>
+  <h2 id="competition">Competition rules</h2>
+  <p style="margin:6px 0 20px">Promoter, who may enter, how forecasts are scored (DESIGN-decided §5, frozen before 4 November), prizes, how and when winners are told,
+    and how ties are broken. To be written if there are prizes.</p>
+  <h2 id="report">Report a forecast</h2>
+  <p style="margin:6px 0 20px">For a display name that impersonates someone or is abusive. The route (form or address) is to be decided.</p>
+</div>
+</body>
+</html>

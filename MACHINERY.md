@@ -1810,3 +1810,27 @@ had 12 such violations.
 moved visibly since the last publication (▲/▼, ◆ for a changed string), with a
 "was X on <date>" tooltip. It then re-stamps the page hashes in
 `NUMBERS-REVIEW.md`, so `deploy_check` still matches the pages.
+
+## Per-draw pool turnouts (2026-09-28)
+
+**What is recorded.** In each draw, `draw_pools` (inside `make_drawer`) draws
+one turnout per voter pool with `correlated_triangular`; a tied group draws one
+shock and every member receives it. The value each pool received is appended to
+`draw_pools.turnout_record`, one row per draw, columns in
+`draw_pools.turnout_pools` order (the pools `pool_spec` kept). `run_model`
+carries them out as `ModelRun.pool_turnout_draws`, shape (draws, pools), with
+`ModelRun.pool_turnout_names`. The interactive re-weights the published draws
+by these (`audits/2026-09-28-interactive-architecture/PLAN.md` §3).
+
+**It changes no draw.** The record reads values already drawn and makes no call
+on `rng`. `tests/test_draw_record.py` verifies this at Johannesburg 2026, seed
+20261104, the shipped draw count, under `HASH_SEED`: every `*draws` field of
+`ModelRun` is identical to the code before the recording (commit `4711a15`,
+run from a `git archive` copy), both reproduce the published `seat_draws.csv`
+byte for byte, and the record equals what an independent wrapper around
+`correlated_triangular` captures, pool by pool and draw by draw. The
+comparison with `4711a15` expires at the first legitimate change to a drawn
+number and is then retired, not re-pinned (the test module's docstring).
+
+Not yet written anywhere: `montecarlo.main` does not export the record. The
+export is build step S2 (`src/export_draws.py`).

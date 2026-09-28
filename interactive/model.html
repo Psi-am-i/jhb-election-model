@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Play with the model</title>
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t !== "light" && t !== "dark") {
+      t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark";
+    }
+    document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
+<link rel="stylesheet" href="css/interactive.css">
+<script type="module" src="js/model.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <nav class="topnav" aria-label="Site">
+    <a class="home" href="../site/index.html">joburg.whysoserious.city</a>
+    <a href="../site/forecast.html">forecast</a>
+    <a href="make.html">make yours</a>
+    <a class="active" href="model.html" aria-current="page">play with the model</a>
+    <a href="../site/about.html">the model</a>
+    <a href="../site/methodology.html">methodology</a>
+    <button class="themetoggle" type="button" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
+  </nav>
+
+  <p class="proto"><b>Prototype.</b> The simulations below are a small synthetic fixture, and the re-weighting is a JavaScript stand-in for <code>src/reweight.py</code> (PLAN S4). Nothing here is the model's forecast.</p>
+
+  <header class="lede">
+    <h1>Play with the model</h1>
+    <p>Untouched, this page shows the model's published forecast. Each control picks out the simulated elections that match what you
+      believe, so every answer stays inside what the model already drew. Every control applies to every party in the same way.</p>
+  </header>
+
+  <div class="grid2">
+    <div>
+      <section class="ctl" aria-labelledby="h-turn">
+        <h3 id="h-turn">Turnout, by community</h3>
+        <p>How much more or less each population group turns out than in past local elections, in percentage points. The range is the
+          measured record. The census has four groups, and that is all the model can tell apart.</p>
+        <div id="turnout"></div>
+      </section>
+
+      <section class="ctl" aria-labelledby="h-poll">
+        <h3 id="h-poll">Polls</h3>
+        <p class="pos">Our setting is zero: the published forecast uses no polls. Moving the slider is your judgement, not ours.</p>
+        <div class="tablewrap"><table class="polltab" id="polls"></table></div>
+        <div class="slider" style="margin-top:10px"><label for="trust">How far to trust them</label>
+          <input type="range" id="trust" min="0" max="100" step="5" value="0" aria-describedby="trusthelp"><output id="trustv" for="trust">0</output></div>
+        <p id="trusthelp" style="font-size:12.5px;color:var(--ink-3)">0 leaves the forecast untouched. 100 keeps only the simulations closest to the average of the polls you have switched on. It never means the poll comes true.</p>
+      </section>
+
+      <section class="ctl" aria-labelledby="h-grid">
+        <h3 id="h-grid">How the model draws</h3>
+        <p>These change how the simulations are drawn, so each setting is its own full run.</p>
+        <p style="margin:8px 0 4px;color:var(--ink)">How far voters move within their community</p>
+        <div class="seg" role="group" aria-label="Movement within communities" id="ds"></div>
+        <p style="margin:12px 0 4px;color:var(--ink)">Weight of recent by-elections</p>
+        <div class="seg" role="group" aria-label="Weight of recent by-elections" id="wb"></div>
+      </section>
+
+      <section class="ctl" aria-labelledby="h-law">
+        <h3 id="h-law">Seat law</h3>
+        <p>What happens when a party wins more wards than its share of the vote entitles it to.</p>
+        <div id="laws" role="radiogroup" aria-labelledby="h-law"></div>
+      </section>
+    </div>
+
+    <section class="results" aria-labelledby="h-res" style="border-top-color:var(--accent)">
+      <h2 id="h-res">Seats</h2>
+      <p class="ess" id="ess"></p>
+      <div class="tablewrap"><table class="seatstab" id="seats"></table></div>
+      <p class="stubnote" id="bandnote"></p>
+      <p class="visually-hidden" aria-live="polite" id="live"></p>
+      <div class="cta">
+        <button class="btn primary" type="button" id="tomake">Make my forecast from this</button>
+        <button class="btn" type="button" id="reset">Back to the published forecast</button>
+      </div>
+    </section>
+  </div>
+
+  <a class="mobilesum" id="msum" href="#h-res" aria-hidden="true" tabindex="-1"></a>
+
+  <footer class="sitefooter">
+    <div>Johannesburg 2026 Local Government Election Model.</div>
+    <div><a href="../site/index.html">joburg.whysoserious.city</a></div>
+  </footer>
+</div>
+</body>
+</html>

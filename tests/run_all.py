@@ -138,7 +138,13 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # The browser engine's stand-in for 65 election files, kept an
            # OUTPUT of `levels._citywide_and_roster` by regenerating it, and
            # refused when stale, late, short or built for another target.
-           "test_citywide_table"]
+           "test_citywide_table",
+           # Added 2026-09-28 with F1 of the freeze plan: each draw's pool
+           # turnouts are recorded on `ModelRun`, and recording them moves no
+           # drawn number (checked against the code before the recording and
+           # the published seats). Runs the model three times at the full
+           # draw count, so it sits with the model runs at the end.
+           "test_draw_record"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

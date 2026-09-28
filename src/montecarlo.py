@@ -2704,6 +2704,10 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     at their pool capacity and by how much. ``run_model`` reads it onto the
     ``ModelRun`` so the fallback rate can be asserted in a test and printed in
     the run report, rather than being swallowed. See MODEL-LOG §1.33.
+
+    It also carries ``turnout_record`` (one tuple per draw of the turnout each
+    pool received) and ``turnout_pools`` (the pool names, in column order).
+    See ``draw_pools``.
     """
     n = len(index)
     base_city = np.zeros(n)
@@ -2911,6 +2915,12 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     note_value(scenario, "montecarlo.LEVEL_DF", LEVEL_DF,
                where="montecarlo:make_drawer -> log_shock(df=None)")
 
+    # One row per draw: the turnout each pool received, in `turnout_pools`
+    # order. `pools` is `pool_spec`'s dict, so a declared pool with no member
+    # on the ballot is already absent here and gets no column.
+    turnout_pools: list[str] = list(pools)
+    turnout_record: list[tuple[float, ...]] = []
+
     def draw_pools():
         """One draw. Each pool's VOTES are its counted registration times a
         drawn turnout; the pool's share of the city follows from the votes,
@@ -2926,9 +2936,26 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         shock" — implemented as a copula so that each pool keeps EXACTLY the
         marginal turnout band ``pools.turnout_band`` measured for it, and only
         the dependence between them changes.
+
+        EACH DRAW'S POOL TURNOUTS ARE RECORDED (F1, 2026-09-28). The value each
+        pool received from ``correlated_triangular`` is appended, one tuple per
+        call, to ``draw_pools.turnout_record`` in ``draw_pools.turnout_pools``
+        order; every member of a tied group is recorded with the group's one
+        shared shock. ``run_model`` carries it out as
+        ``ModelRun.pool_turnout_draws``. The record reads values already drawn
+        and makes no call on ``rng``, so no drawn number changes —
+        ``tests/test_draw_record.py`` checks that against the pre-recording
+        code, the published seats, and an independent wrapper around
+        ``correlated_triangular``. It exists so the interactive can re-weight
+        the published draws by pool turnout (MACHINERY.md, "Per-draw pool
+        turnouts").
         """
         target = np.zeros(n)
         totals = {}
+        # The turnout each pool RECEIVED this draw, kept for `turnout_record`
+        # below. A record only: it is filled from values already drawn and
+        # draws nothing itself.
+        drawn = {}
         # One standard normal for the whole city, per draw. Every pool's
         # turnout is pushed by it in proportion to sqrt(rho).
         z_common = rng.standard_normal()
@@ -2936,8 +2963,10 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             if len(names) == 1:
                 name = names[0]
                 # registration (counted) x turnout (drawn) = votes
-                totals[name] = pools[name][1] * correlated_triangular(
+                turnout = correlated_triangular(
                     rng, pools[name][2], z_common, rho_t)
+                drawn[name] = turnout
+                totals[name] = pools[name][1] * turnout
                 continue
             # one shock for the group, shared out in proportion to base, so the
             # group's total moves exactly as a single pool of that size would
@@ -2949,7 +2978,9 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             hi = sum(pools[nm][2][2] for nm in names) / len(names)
             shock = correlated_triangular(rng, (lo, md, hi), z_common, rho_t)
             for nm in names:
+                drawn[nm] = shock
                 totals[nm] = pools[nm][1] * shock
+        turnout_record.append(tuple(drawn[nm] for nm in turnout_pools))
         # Shares follow from votes, so the pool side sums to one by
         # construction rather than by a later division.
         cast = sum(totals.values())
@@ -3112,6 +3143,8 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         return target
 
     draw_pools.ipf_stats = ipf_stats
+    draw_pools.turnout_record = turnout_record
+    draw_pools.turnout_pools = turnout_pools
     return draw_pools
 
 
@@ -3466,6 +3499,14 @@ class ModelRun:
     # reporting only the seat error hides which of those is happening.
     pr_share_draws: np.ndarray | None = None
     ward_share_draws: np.ndarray | None = None
+    # The turnout each voter pool received in each draw, (draws, pools), with
+    # the pool names in `pool_turnout_names` order. A tied group's members all
+    # carry the group's one shared shock. Recorded from values already drawn,
+    # so it changes no draw; see `make_drawer`'s `draw_pools` and
+    # tests/test_draw_record.py. The interactive re-weights the published
+    # draws by these.
+    pool_turnout_draws: np.ndarray | None = None
+    pool_turnout_names: list[str] = field(default_factory=list)
     # WHICH ROSTER STATE THE RUN WAS IN, because two of them used to be one
     # empty set. `roster_state` is "published", "projected" or "not_yet_held"
     # — a roster that should exist and could not be read raises instead of
@@ -5192,6 +5233,13 @@ def run_model(target, scenario: dict,
         if verbose and (d + 1) % 1000 == 0:
             print(f"  {d + 1:,} draws")
 
+    # Each draw's pool turnouts, as `draw_pools` recorded them. One row per call
+    # of `draw_target`, and it is called exactly once per draw above.
+    _turnout_pools = list(getattr(draw_target, "turnout_pools", []))
+    _turnout_record = getattr(draw_target, "turnout_record", [])
+    pool_turnout_draws = np.asarray(_turnout_record, dtype=float).reshape(
+        len(_turnout_record), len(_turnout_pools))
+
     # THE OUTCOME AND THE GUARDS THAT FIRED. Everything below was previously
     # visible only as a printed line or not at all; `cap_moved` and
     # `ipf_failures` in particular are the counters whose SILENCE was read as
@@ -5289,6 +5337,8 @@ def run_model(target, scenario: dict,
         ipf_headroom=dict(_ipf_stats.get("headroom") or {}),
         notes=notes, gamma_source=gamma_source, ratio=ratio, n_vd=nvd,
         pr_share_draws=pr_share_draws, ward_share_draws=ward_share_draws,
+        pool_turnout_draws=pool_turnout_draws,
+        pool_turnout_names=_turnout_pools,
         roster_state=_roster_state, roster_size=len(_roster),
         roster_dropped=sorted(_roster_dropped), guards=dict(guards))
 

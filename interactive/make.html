@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Make your own forecast</title>
+<meta name="description" content="Call every Johannesburg ward, set the list vote, pick who governs, and share your forecast.">
+<!-- Production: build_site injects OG_META + THEME_HEAD here. This copy of the
+     theme's first-paint script keeps the prototype's theme in step with the
+     live site (same localStorage key, same OS fallback). -->
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t !== "light" && t !== "dark") {
+      t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark";
+    }
+    document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
+<link rel="stylesheet" href="css/interactive.css">
+<script type="module" src="js/make.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <nav class="topnav" aria-label="Site">
+    <a class="home" href="../site/index.html">joburg.whysoserious.city</a>
+    <a href="../site/forecast.html">forecast</a>
+    <a class="active" href="make.html" aria-current="page">make yours</a>
+    <a href="model.html">play with the model</a>
+    <a href="../site/about.html">the model</a>
+    <a href="../site/methodology.html">methodology</a>
+    <button class="themetoggle" type="button" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
+  </nav>
+
+  <p class="proto"><b>Prototype.</b> Every figure on this page is placeholder data made up by a random number generator, and seats come from a stand-in that is not the seat law. Nothing here is the model's forecast.</p>
+
+  <header class="lede">
+    <h1>Make your own forecast</h1>
+    <p>Call the winner in each of the 135 wards, set how the city votes on the party list, and say who governs.
+      Your forecast is yours. The model's forecast is on the <a href="../site/forecast.html">forecast page</a>.</p>
+  </header>
+
+  <noscript><p class="notours">This page needs JavaScript to draw the map. The <a href="../site/forecast.html">model's forecast</a> works without it.</p></noscript>
+
+  <div class="builder">
+    <div class="mapcol">
+      <section class="mapcard" aria-labelledby="maph">
+        <div class="mapbar">
+          <h2 id="maph" class="progress"><span class="num" aria-hidden="true" style="color:var(--reader);margin-right:8px">1</span><span id="ncalled">0</span> of 135 wards called<small id="nleft"></small></h2>
+          <div class="seg" role="group" aria-label="Map view">
+            <button type="button" data-view="geo" aria-pressed="true">Map</button>
+            <button type="button" data-view="hex" aria-pressed="false">Equal-sized wards</button>
+            <button type="button" data-view="list" aria-pressed="false">List</button>
+          </div>
+        </div>
+        <div class="mapscroll" id="mapscroll">
+          <svg id="map" role="group" aria-label="Ward map of Johannesburg, north to the right. Arrow keys move between wards, Enter paints the ward with the chosen party, Delete clears it."></svg>
+        </div>
+        <div id="listview" class="db" hidden></div>
+        <p class="maphint" id="maphint">Choose a party below, then tap or drag across wards to give them to it.
+          <span class="narrow">Scroll sideways to see the whole city.</span></p>
+
+        <div class="tray">
+          <div class="brush" role="group" aria-labelledby="brushlab">
+            <p id="brushlab" class="visually-hidden">Party to paint with</p>
+            <div class="brushscroll row" id="brush"></div>
+          </div>
+        </div>
+        <div class="tools">
+          <label>Area <select id="area">
+            <option value="north">North</option><option value="east">East</option>
+            <option value="south">South</option><option value="west">West</option>
+            <option value="central">Central</option></select></label>
+          <button class="btn small" type="button" id="fillarea">Give the area to the chosen party</button>
+          <button class="btn small model" type="button" id="fillempty">Fill empty wards with the model's call</button>
+          <button class="btn small model" type="button" id="copymodel">Start from the model's map</button>
+          <button class="btn small" type="button" id="undo" disabled>Undo</button>
+          <button class="btn small" type="button" id="clear">Clear all</button>
+        </div>
+        <p class="maphint">Areas are compass sectors drawn from the ward boundaries, not the City's regions.</p>
+      </section>
+    </div>
+
+    <div class="steps">
+      <details class="step" id="step2" open>
+        <summary><span class="num" aria-hidden="true">2</span><span class="st">Set the list vote</span><span class="state" id="prstate"></span></summary>
+        <div class="body">
+          <p>The other 135 seats go by each party's share of the citywide vote. Every party has the same control.
+            Parties are listed alphabetically.</p>
+          <div class="row">
+            <button class="btn small model" type="button" id="prmodel">Use the model's list vote</button>
+            <button class="btn small" type="button" id="prscale">Scale to 100%</button>
+            <button class="btn small" type="button" id="przero">Set all to zero</button>
+          </div>
+          <div class="sumline"><span>Total <b id="prsum">0</b>%</span><span id="prwarn" class="off" role="status"></span></div>
+          <div class="prlist" id="prlist"></div>
+        </div>
+      </details>
+
+      <details class="step" id="step3" open>
+        <summary><span class="num" aria-hidden="true">3</span><span class="st">Pick who governs</span><span class="state" id="costate"></span></summary>
+        <div class="body">
+          <p>Choose the parties in the governing coalition. A council of 270 needs 136 votes to elect a mayor and pass a budget.</p>
+          <div class="coal" id="coal" role="group" aria-label="Parties in the coalition"></div>
+          <div class="row" style="margin-top:10px"><label for="mayor" style="font-size:13.5px;color:var(--ink)">Mayor from</label>
+            <select id="mayor"><option value="">Not chosen</option></select></div>
+          <p class="coalstat" id="coalstat" role="status"></p>
+        </div>
+      </details>
+
+      <section class="results" aria-labelledby="resh">
+        <h2 id="resh">Your council</h2>
+        <p class="meta" id="restate"></p>
+        <div class="bars" id="bars"></div>
+        <div class="council" aria-hidden="true">
+          <div class="strip" id="strip"><span class="maj" style="left:calc(135.5 / 270 * 100%)"></span></div>
+          <div class="cap"><span>270 seats</span><span>136 to govern</span></div>
+        </div>
+        <p class="delta" id="delta"></p>
+        <p class="stubnote"><b>Placeholder seats.</b> Worked out by a stand-in, not the seat law. The real page uses the model's own seat allocation.</p>
+        <p class="visually-hidden" aria-live="polite" id="live"></p>
+        <div class="cta">
+          <button class="btn primary" type="button" id="save">Save and share</button>
+          <a class="btn model" href="model.html">Play with the model instead</a>
+        </div>
+        <p class="err" id="saveerr" role="alert"></p>
+        <p class="meta" id="savedline"></p>
+      </section>
+    </div>
+  </div>
+
+  <footer class="sitefooter">
+    <div>Johannesburg 2026 Local Government Election Model. Free to distribute with attribution and linkback.</div>
+    <div><a href="../site/index.html">joburg.whysoserious.city</a> — <a href="privacy-placeholder.html">privacy notice (placeholder)</a></div>
+  </footer>
+</div>
+</body>
+</html>

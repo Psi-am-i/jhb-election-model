@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A reader's forecast</title>
+<!--
+  THE SHARED FORECAST PAGE, /f/<id> in production.
+
+  In production the Worker renders this page on the server (BACKEND.md §4),
+  because link-preview crawlers do not run JavaScript. It writes, per forecast:
+
+    <title>Thandi M.'s forecast · Johannesburg 2026</title>
+    <meta name="description" content="A reader's forecast of the Johannesburg council, not the model's. Make your own.">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Thandi M.'s forecast for Johannesburg">
+    <meta property="og:description" content="Their ward map, seats and coalition. A reader's forecast, not the model's.">
+    <meta property="og:url" content="https://joburg.whysoserious.city/f/<id>">
+    <meta property="og:image" content="https://joburg.whysoserious.city/f/<id>/card.png?v=<rev>">
+    <meta property="og:image:width" content="1200"> <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="<cardAlt() text>">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://joburg.whysoserious.city/f/<id>">
+    <meta name="robots" content="noindex">          (open decision, README)
+
+  and the map, seats, coalition and share links as plain HTML, so the page
+  and every share link work with JavaScript off. In this prototype the same
+  content is drawn by f.js from the stub store, and the <noscript> block
+  below stands in for the server-rendered links of the demo forecast.
+-->
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t !== "light" && t !== "dark") {
+      t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark";
+    }
+    document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
+<link rel="stylesheet" href="../css/interactive.css">
+<script type="module" src="../js/f.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <nav class="topnav" aria-label="Site">
+    <a class="home" href="../../site/index.html">joburg.whysoserious.city</a>
+    <a href="../../site/forecast.html">forecast</a>
+    <a href="../make.html">make yours</a>
+    <a href="../model.html">play with the model</a>
+    <a href="../../site/about.html">the model</a>
+    <button class="themetoggle" type="button" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
+  </nav>
+
+  <p class="proto"><b>Prototype.</b> Placeholder data made up by a random number generator; seats from a stand-in that is not the seat law.</p>
+
+  <main id="main">
+    <header class="lede readerhead">
+      <span class="stamp">A reader's forecast</span>
+      <h1 id="title">A reader's forecast</h1>
+      <p class="meta" id="made"></p>
+    </header>
+
+    <p class="notours" id="notours">This is a forecast made by a reader, not by the model. It shows what they expect, and nobody checked it against the evidence.
+      The model's forecast is on the <a href="../../site/forecast.html">forecast page</a>.</p>
+
+    <div class="grid2">
+      <section class="mapcard" aria-labelledby="maph">
+        <div class="mapbar">
+          <h2 id="maph" class="progress">Who wins each ward</h2>
+          <div class="seg" role="group" aria-label="Map view">
+            <button type="button" data-view="geo" aria-pressed="true">Map</button>
+            <button type="button" data-view="hex" aria-pressed="false">Equal-sized wards</button>
+          </div>
+        </div>
+        <div class="mapscroll"><svg id="map" role="img" aria-label="The reader's ward map"></svg></div>
+        <p class="maphint" id="legend"></p>
+      </section>
+
+      <div class="steps">
+        <section class="results" aria-labelledby="resh">
+          <h2 id="resh">Their council</h2>
+          <p class="meta" id="restate"></p>
+          <div class="bars" id="bars"></div>
+          <div class="council" aria-hidden="true"><div class="strip" id="strip"></div>
+            <div class="cap"><span>270 seats</span><span>136 to govern</span></div></div>
+          <h3 style="margin-top:16px">Who governs</h3>
+          <p id="coal" style="font-size:14.5px;margin-top:4px"></p>
+          <p class="delta" id="delta"></p>
+          <p class="stubnote"><b>Placeholder seats</b> from a stand-in, not the seat law.</p>
+          <div class="cta"><button class="btn" type="button" id="share">Share this forecast</button></div>
+        </section>
+      </div>
+    </div>
+
+    <nav class="biglinks" aria-label="What next">
+      <a class="reader" href="../make.html" id="mk"><span class="t">Make your own forecast</span><span class="d">Call every ward and pick who governs. Start from this one or from scratch.</span></a>
+      <a class="model" href="../model.html"><span class="t">Play with the model</span><span class="d">Move turnout, polls and the seat law and watch the model's seats change.</span></a>
+      <a class="model" href="../../site/forecast.html"><span class="t">See the model's forecast</span><span class="d">Every ward and every coalition, simulated from the record.</span></a>
+    </nav>
+
+    <noscript>
+      <section style="margin-top:22px">
+        <h2>Share this forecast</h2>
+        <p><input type="text" readonly value="https://joburg.whysoserious.city/f/demo7Qx2Lp" style="width:100%" aria-label="Link to this forecast"></p>
+        <p class="row" style="margin-top:8px">
+          <a class="btn small" href="https://x.com/intent/post?url=https%3A%2F%2Fjoburg.whysoserious.city%2Ff%2Fdemo7Qx2Lp">X</a>
+          <a class="btn small" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fjoburg.whysoserious.city%2Ff%2Fdemo7Qx2Lp">Facebook</a>
+          <a class="btn small" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fjoburg.whysoserious.city%2Ff%2Fdemo7Qx2Lp">LinkedIn</a>
+          <a class="btn small" href="https://wa.me/?text=https%3A%2F%2Fjoburg.whysoserious.city%2Ff%2Fdemo7Qx2Lp">WhatsApp</a>
+          <a class="btn small" href="mailto:?subject=A%20Johannesburg%20election%20forecast&amp;body=https%3A%2F%2Fjoburg.whysoserious.city%2Ff%2Fdemo7Qx2Lp">Email</a>
+        </p>
+      </section>
+    </noscript>
+  </main>
+
+  <footer class="sitefooter">
+    <div>Johannesburg 2026 Local Government Election Model. Readers' forecasts are their own.
+      <a href="../privacy-placeholder.html#report">Report this forecast</a></div>
+    <div><a href="../../site/index.html">joburg.whysoserious.city</a> — <a href="../privacy-placeholder.html">privacy notice (placeholder)</a></div>
+  </footer>
+</div>
+</body>
+</html>

@@ -27390,3 +27390,42 @@ reads go through NODEFS at disk speed, so a browser adds the download of the
 remaining ~15 MB, which is still unaddressed. "No seat moved" is 40 draws; a
 share within 1e-15 of an allocation threshold would move a seat, and that has
 not been looked for.
+
+## 1.268 The pool seed survives the IPF whole, and realistic repairs to it move no drawn seat: C3's composition side and C4 are deferred (2026-09-28)
+
+F2 of the freeze plan (TODO §0), answering the pool-repair prereg's D1.
+Measured by a delegated agent at `4711a15b` on a `git archive` of `src/`,
+2,000 draws per variant, paired by common random numbers. Report, harness and
+raw results: `audits/2026-09-28-seed-survival/`.
+
+* **Structure.** IPF carries the seed's shape into every draw exactly: the
+  log-ratio residual is at most 2.8e-15, every zero is kept, and transmission is
+  about 1.0.
+* **Outcome.** A realistic C4 fill (c4_mild) moves 5.7 seats and 3.2 ward calls
+  summed over 26 city-years. The C3 composition swap (c3_target) moves 2.9 and
+  2.9 over 24. Both sit at the paired noise floor. No party moves by more than
+  0.38 mean seats, and none of the 26 runs reaches the materiality threshold
+  fixed before the first run.
+* **The harness can see.** Only an upper-bound perturbation (every column mixed
+  halfway to independence) moves any party beyond 3 standard errors, and it
+  does so at six city-years. The placebo is 0.00 at 25 of 26.
+
+**Checked by the lead:**
+* Joburg 2021 was re-run independently for placebo, c4_mild and c4_strong: all
+  226 numeric fields agree with the agent's results to within 5e-4.
+* The spec is read at exactly one place (`montecarlo.py:3901`, `read_text`),
+  so the perturbation reaches every stage.
+
+**Decision this licenses (prereg D1).** On outcome grounds, C3's composition
+side (queue 32) and C4 (queue 33) are deferred, and the prereg is scored on C1
+and C2. §1.263's honesty case for C4 (a probability of exactly zero) is not
+answered by this, and remains the owner's call.
+
+**Inferred, not measured.** Why the draws are insensitive: a pooled party's
+citywide level is imposed through the IPF column margin, so composition reaches
+seats only through turnout-weighted mixing and the Dirichlet split.
+
+**Correction to the prereg's counts.** Its 245 of 3,417 zero cells and 37
+single-pool parties include `pools_2026_simulation.json`, which `run_model`
+never loads. Over the 26 loaded specs the figures are 242 of 3,012 (every party
+named) and 172 of 2,581 (the run's universe).
