@@ -321,3 +321,29 @@ This supersedes the three measures of §5 for ranking.
 
 Forecasts the seat law cannot seat are refused at save by the seat service, so
 they never enter the ranking.
+
+## 14. The forecast builder can only hold a valid forecast (owner, 2026-09-29)
+
+Owner: *"letting someone do a whole forecast and rejecting on save is annoying
+… you should not be allowed to make impossible ones."*
+
+**Rule: an impossible forecast cannot be built, so an honest save never
+fails.**
+* **Start valid:** the published forecast, or the state the levers produced,
+  with all 135 wards assigned and the vote summing to 100%.
+* **The vote always sums to 100%:** moving one party rescales the others in
+  proportion. There is no sum error to fix.
+* **A party holding a ward cannot be moved below a floor.** Assigning a ward to
+  a party below the floor raises it to the floor, with a visible note. The
+  floor is the smallest share the seat law accepts, derived from `reader_seats`
+  and not typed: the combined tally must hold the ward winner, at least one
+  vote at `total_votes`.
+* **Seats are recomputed live after every edit** by the same seat code the
+  server runs (`reader_seats` under Pyodide). What is on screen is what is
+  saved.
+* **One definition of validity,** shared by the page and the Worker
+  (`worker-api/src/validate.js` plus the seat code). The server's re-check at
+  save exists only for tampered requests.
+
+Queued for a page agent after the backend agent (R5 fixes) finishes, because
+both work in `interactive/`.
