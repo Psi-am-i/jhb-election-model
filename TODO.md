@@ -10,6 +10,45 @@ more defensible is a change that ships.
 
 ---
 
+# 0 · THE FREEZE — the plan until the model is frozen (owner, 2026-09-28)
+
+**Rule.** Launching the interactive freezes the model: after launch, any change
+to how the model draws invalidates readers' saved forecasts. Target:
+**1 October 2026**. **In:** pool repairs and mergers. **Out until after the
+election:** independents, the level error.
+
+The interactive no longer gates the freeze. It re-weights the published draws
+(`audits/2026-09-28-interactive-architecture/`), so only F1 must land before
+the freeze. The rest of it is built afterwards on the frozen model.
+
+**Order.** One step at a time, each finished before the next starts. Each step
+names what exists when it is done.
+
+| # | step | done when | est. |
+|---|---|---|---|
+| F1 | Record each draw's pool turnouts (not a draw change) | `tests/test_draw_record.py`: all `*draws` arrays identical with recording on and off at seed 20261104, and published seats byte-equal | ½ day |
+| F2 | Measure how much of the emitted pool seed survives the per-draw IPF (pool prereg D1) | a `--run-dir` stage per city-year and party, and a MODEL-LOG § with the number. It decides whether C3 and C4 are in | ½ day |
+| F3 | C1 conservation: no spec drops a declared pool (queue 30) | prereg P1 holds by arithmetic on every emitted spec; test in `test_pool_bounds` | ½ day |
+| F4 | C2 unidentified pool levels, partial pooling (queue 31) | prereg P2: Cape Town Indian/Asian below 5% of the roll at all three cycles, eThekwini within 2 points | 1–2 days ⚠️ the hard one |
+| F5 | Mergers: search the panel for a measurable merger, else a 🔴 judgement row; `Merger` beside `Split` in `pools.py` | JUDGEMENT-CALLS row or a measured retention; the merger prereg's RISE prediction checkable | 1 day |
+| F6 | C3 and C4, only if F2 says they matter (queue 32, 33) | prereg P3; the single-pool count falls from 37 | 0–1 day |
+| F7 | Blind review of F3–F6, brief committed before it runs | brief in `audits/`, findings applied or taken to the owner | ½ day |
+| F8 | One re-emit of every spec (backup first; timed) | `declares.py --verify` shows no `~` on specs; suite run | hours |
+| F9 | Measure against both preregistrations; write it up | MODEL-LOG § scoring every P, including what failed | ½ day |
+| F10 | Mutation night (PUBLISHING-BACKLOG §13) | a committed harness and a survivor report, read | 1 day + a night |
+| F11 | Owner review, then `build_site.py --publish`. **This is the freeze** | the live forecast is the frozen model | ½ day |
+
+**Honest total: about 6–8 working days, which lands around 6–8 October, not
+1 October.** Two ways to meet the 1st: drop F4 and F6 (C1 and mergers only, the
+other pool repairs after the election), and shorten F10 to the modules F3–F5
+touched. The owner chooses.
+
+**After the freeze: the interactive**, `audits/2026-09-28-interactive-architecture/PLAN.md`
+S2–S6, about 5 days: export the draws, the Atlas grid, `reweight.py`, sectors,
+the page.
+
+---
+
 # 1 · The model — is it right?
 
 ## Open, in the order I would take them
