@@ -167,3 +167,48 @@ So the DA slider is withdrawn as specified. If it survives at all it becomes
 **each party's support within each population group**, with each range taken
 from that party's own record. That control is larger than one slider and has not
 been designed.
+
+## 9. The freeze, the reader's forecast, and accounts (owner, 2026-09-28)
+
+**Freeze: F3 + F5 only** (TODO §0): C1 conservation and mergers. F4 (partial
+pooling of unidentified pools) waits until after the election; F6 was deferred
+by measurement (MODEL-LOG §1.268). Target 1 October.
+
+**A reader's forecast.** The owner's words:
+*"let them run forecasts and adjust levers. Then make 2 specific changes: a
+change to the PR vote and changes to ward seat winners and arithmetically we
+force them to stay within statute. … it is ignoring all our levels and logic and
+is only constrained by the correct count and law. Once they save it, we can
+analyse how far out we think it is to the bounds of history."*
+
+So:
+* **Start** from a model state: the published forecast, or whatever the levers
+  produce.
+* **Two edits only:** the citywide PR vote shares, and the winner of any ward.
+* **Seats come from the statute alone**, computed in the browser by the
+  project's own seat-law code (`seats.allocate`, served from `src/`, never
+  retyped). No model level, band or logic constrains the reader.
+* **The one assumption the arithmetic needs, stated here so it is visible:** a
+  reader supplies a PR vote and ward winners, not two ballots. The statute
+  sizes each party's entitlement from the combined ward and PR vote, so the
+  reader's PR shares stand for both ballots. Wards are then taken as picked,
+  and PR seats fill each entitlement under the excessive-seats clause.
+* **After saving**, the forecast is scored against the historical record ("how
+  far out it is"). That is analysis of a saved forecast, not a constraint on
+  making one.
+
+**Sign-in is needed to save and share, not to create** (as prototyped).
+
+**Accounts.**
+* **Providers:** Facebook, Instagram, X, Apple, Google, Microsoft. Instagram
+  closed personal-account sign-in in December 2024 (the Basic Display API), so
+  Facebook covers Meta users. X returns an email only if the app is granted it.
+  Library: `arctic`, which runs on Workers.
+* **Data kept: the provider handle and one way to contact** (email, or phone
+  where given), nothing else. Not even a display name unless the reader types
+  one to show on a shared forecast.
+* **After the election every account gets one message** asking whether to
+  delete their data or to be told about the next election. **No reply means
+  deletion** at a date the owner fixes. That default is the agent's
+  recommendation and is not yet decided.
+* **Lock time:** 07:00 SAST on 4 November, when polls open.

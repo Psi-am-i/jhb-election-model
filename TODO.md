@@ -12,6 +12,8 @@ more defensible is a change that ships.
 
 # 0 · THE FREEZE — the plan until the model is frozen (owner, 2026-09-28)
 
+**Decided 2026-09-28: F3 + F5 only, freeze 1 October.** F4 waits until after the election. F6 was deferred by F2.
+
 **Rule.** Launching the interactive freezes the model: after launch, any change
 to how the model draws invalidates readers' saved forecasts. Target:
 **1 October 2026**. **In:** pool repairs and mergers. **Out until after the
