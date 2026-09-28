@@ -15,8 +15,14 @@
 //  * No name is collected. A shared prediction shows a label (js/labels.js).
 //  * An email is stored only once confirmed: one confirmation link, then
 //    nothing unless it is used.
+//
+// In production the session comes from GET /api/me (js/api.js): the deletion
+// date the terms print, the X handle, and the address a provider returned
+// unverified (shown back to prefill the box, never stored). After the
+// provider's redirect the Worker sends the reader to /make?consent=1 and the
+// page calls ensureConsent() again, which opens straight at this screen.
 
-import { session, signIn, recordConsent } from "./api-stub.js";
+import { currentSession, signIn, recordConsent, mode } from "./api.js";
 import { esc } from "./common.js";
 import { consentTerms, consentPayload, wordingVersion, deletionDateText, PROVIDER_LABELS } from "./consent-terms.js";
 
@@ -43,7 +49,7 @@ function screenProviders(resolve) {
     <div class="providers">
       ${PROVIDERS.map(k => `<button class="btn" type="button" data-p="${k}">Continue with ${esc(PROVIDER_LABELS[k])}</button>`).join("")}
     </div>
-    <p class="stubnote"><b>Prototype:</b> these buttons call a stub. No provider is contacted, no email is sent.</p>
+    ${mode() === "stub" ? `<p class="stubnote"><b>Prototype:</b> these buttons call a stub. No provider is contacted, no email is sent.</p>` : ""}
   </div>`;
   dlg.querySelectorAll("[data-p]").forEach(b => b.addEventListener("click", async () => {
     const s = await signIn(b.dataset.p);
@@ -96,6 +102,11 @@ async function screenConsent(resolve, s) {
   const terms = consentTerms({ deletionDate: deletionDateText(s.deletion_date) });
   const version = await wordingVersion(terms);
   dlg.innerHTML = consentScreenHTML(s, terms);
+  // The server hashes the same terms with its own deletion date. A mismatch
+  // means this page's wording is not the server's: the answer would be
+  // refused (409), so say so before the reader fills anything in.
+  const stale = s.wording_version && s.wording_version !== version;
+  if (stale) dlg.querySelector("#cerr").textContent = "This page is out of date with the server's wording. Reload the page, then save again.";
   dlg.querySelector("#cform").addEventListener("submit", async e => {
     e.preventDefault();
     const q = sel => dlg.querySelector(sel);
@@ -104,6 +115,7 @@ async function screenConsent(resolve, s) {
     if (contact && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) errs.push("enter an email address like name@example.com, or leave it empty");
     if (!q("#c-store").checked) errs.push("tick the box to save your prediction");
     if (!q("#c-age").checked) errs.push("confirm you are 18 or older");
+    if (stale) return;
     if (errs.length) { q("#cerr").textContent = "To save, " + errs.join(", ") + "."; return; }
     const body = consentPayload({ store: true, age18: true, contact_if_win: q("#c-win").checked,
       updates: q("#c-upd").checked, contact, wording_version: version });
@@ -118,16 +130,16 @@ async function screenConsent(resolve, s) {
 
 // Resolves with the session once consent is recorded, or null if the reader
 // closes the dialog. Focus returns to whatever opened it.
-export function ensureConsent() {
-  const s = session();
-  if (s?.consent?.store) return Promise.resolve(s);
+export async function ensureConsent() {
+  const s = await currentSession();
+  if (s?.consent?.store) return s;
   if (!dlg) build();
   const opener = document.activeElement;
   return new Promise(resolve => {
-    let done = false;
-    const fin = v => { if (!done) { done = true; resolve(v); } };
+    let done = false, got = null;
+    const fin = v => { got = v; if (!done) { done = true; resolve(v); } };
     dlg.onclick = e => { if (e.target.closest("[data-close]")) { dlg.close(); } };
-    dlg.onclose = () => { fin(session()?.consent?.store ? session() : null); opener?.focus?.(); };
+    dlg.onclose = () => { fin(got?.consent?.store ? got : null); opener?.focus?.(); };
     if (s && !s.consent) screenConsent(fin, s); else screenProviders(fin);
     dlg.showModal();
   });

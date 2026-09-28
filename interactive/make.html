@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Make your own forecast</title>
 <meta name="description" content="Call every Johannesburg ward, set each party's share of the vote, pick who governs, and share your forecast.">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <!-- Production: build_site injects OG_META + THEME_HEAD here. This copy of the
      theme's first-paint script keeps the prototype's theme in step with the
      live site (same localStorage key, same OS fallback). -->
@@ -33,11 +34,11 @@
     <button class="themetoggle" type="button" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
   </nav>
 
-  <p class="proto"><b>Prototype.</b> Every figure on this page is placeholder data made up by a random number generator, and seats come from a stand-in that is not the seat law. Nothing here is the model's forecast.</p>
+  <p class="proto"><b>Prototype.</b> Every figure on this page is placeholder data made up by a random number generator. Seats are worked out from those figures by the project's own seat law. Nothing here is the model's forecast.</p>
 
   <header class="lede">
     <h1>Make your own forecast</h1>
-    <p>Call the winner in each of the 135 wards, set each party's share of all votes (ward and list ballots together), and say who governs.
+    <p>Start from the model's call in each of the <span data-n-wards></span> wards and change any you disagree with, set each party's share of all votes (ward and list ballots together), and say who governs.
       Your forecast is yours. The model's forecast is on the <a href="../site/forecast.html">forecast page</a>.</p>
   </header>
 
@@ -47,7 +48,7 @@
     <div class="mapcol">
       <section class="mapcard" aria-labelledby="maph">
         <div class="mapbar">
-          <h2 id="maph" class="progress"><span class="num" aria-hidden="true" style="color:var(--reader);margin-right:8px">1</span><span id="ncalled">0</span> of 135 wards called<small id="nleft"></small></h2>
+          <h2 id="maph" class="progress"><span class="num" aria-hidden="true" style="color:var(--reader);margin-right:8px">1</span>All <span data-n-wards></span> wards called<small id="nchanged"></small></h2>
           <div class="seg" role="group" aria-label="Map view">
             <button type="button" data-view="geo" aria-pressed="true">Map</button>
             <button type="button" data-view="hex" aria-pressed="false">Equal-sized wards</button>
@@ -68,15 +69,13 @@
           </div>
         </div>
         <div class="tools">
-          <label>Area <select id="area">
+          <label>Area <select id="area" data-edit>
             <option value="north">North</option><option value="east">East</option>
             <option value="south">South</option><option value="west">West</option>
             <option value="central">Central</option></select></label>
-          <button class="btn small" type="button" id="fillarea">Give the area to the chosen party</button>
-          <button class="btn small model" type="button" id="fillempty">Fill empty wards with the model's call</button>
-          <button class="btn small model" type="button" id="copymodel">Start from the model's map</button>
+          <button class="btn small" type="button" id="fillarea" data-edit>Give the area to the chosen party</button>
+          <button class="btn small model" type="button" id="copymodel" data-edit>Reset to the model's map</button>
           <button class="btn small" type="button" id="undo" disabled>Undo</button>
-          <button class="btn small" type="button" id="clear">Clear all</button>
         </div>
         <p class="maphint">Areas are compass sectors drawn from the ward boundaries, not the City's regions.</p>
       </section>
@@ -89,12 +88,12 @@
           <p>Each party's share of all votes, ward and list ballots together. That combined vote is what the law
             counts: it sets each party's seats, and the ward winners you picked take theirs first.
             Every party has the same control. Parties are listed alphabetically.</p>
+          <p class="sumline">The shares always add up to 100%. Moving one party scales the others up or down in proportion.
+            A party that wins a ward on your map keeps at least one vote.</p>
           <div class="row">
-            <button class="btn small model" type="button" id="prmodel">Use the model's vote shares</button>
-            <button class="btn small" type="button" id="prscale">Scale to 100%</button>
-            <button class="btn small" type="button" id="przero">Set all to zero</button>
+            <button class="btn small model" type="button" id="prmodel" data-edit>Use the model's vote shares</button>
           </div>
-          <div class="sumline"><span>Total <b id="prsum">0</b>%</span><span id="prwarn" class="off" role="status"></span></div>
+          <p class="floornote" id="floornote" role="status"></p>
           <div class="prlist" id="prlist"></div>
         </div>
       </details>
@@ -112,6 +111,11 @@
 
       <section class="results" aria-labelledby="resh">
         <h2 id="resh">Your council</h2>
+        <div class="engine" id="engine">
+          <div class="enginebar" id="enginebar" aria-hidden="true"></div>
+          <p class="enginemsg" id="enginemsg" role="status">Loading the seat law…</p>
+        </div>
+        <p class="err" id="engineerr" role="alert"></p>
         <p class="meta" id="restate"></p>
         <div class="bars" id="bars"></div>
         <div class="council" aria-hidden="true">
@@ -119,19 +123,21 @@
           <div class="cap"><span id="capseats"></span><span id="capmaj"></span></div>
         </div>
         <p class="delta" id="delta"></p>
-        <p class="stubnote"><b>Placeholder seats.</b> Worked out by a stand-in, not the seat law. The real page uses the model's own seat allocation.</p>
+        <p class="stubnote" id="engineok"></p>
         <p class="visually-hidden" aria-live="polite" id="live"></p>
         <div class="labelrow" style="margin:12px 0 4px">
           <label for="flabel" style="font-size:13.5px;color:var(--ink)">Label on your shared prediction</label>
           <div class="urlrow"><input id="flabel" type="text" maxlength="40" autocomplete="off"
             placeholder="a random name such as pollster-23" aria-describedby="flabelhelp">
             <button class="btn small" type="button" id="flabelclear">Use a random name</button></div>
+          <p class="err" id="flabelerr" role="status"></p>
           <p id="flabelhelp" style="font-size:12.5px;color:var(--ink-3);margin-top:3px">We never show your name. Leave this empty for a random name, chosen when you save; if you sign in with X, it starts as your @username. Up to 40 characters.</p>
         </div>
         <div class="cta">
-          <button class="btn primary" type="button" id="save">Save and share</button>
+          <button class="btn primary" type="button" id="save" disabled aria-describedby="saveneed">Save and share</button>
           <a class="btn model" href="model.html">Play with the model instead</a>
         </div>
+        <p class="meta" id="saveneed"></p>
         <p class="err" id="saveerr" role="alert"></p>
         <p class="meta" id="savedline"></p>
       </section>

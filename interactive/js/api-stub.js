@@ -68,7 +68,10 @@ export async function recordConsent(body) {
 export function signOut() { try { localStorage.removeItem(SESSION); } catch (e) {} }
 
 // The label rule the server applies: the forecast's own display_name if the
-// reader set one, else a random default assigned once at creation.
+// reader set one, else a random default assigned once at creation. `f` is a
+// body js/api.js has already put through worker-api/src/validate.js, plus the
+// id being edited and the seat answer the page's engine gave for it (the
+// server stores its own recomputation in the same place).
 export async function saveForecast(f) {
   const s = session();
   if (!s?.consent?.store) throw new Error("consent required");

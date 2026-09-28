@@ -2,10 +2,9 @@
 // ?id=; in production from the path, and the Worker has already rendered the
 // same content server-side (see the comment at the top of f/index.html).
 
-import { loadAll, esc, wireTheme, topN, fmtDate, possessive, pageURL } from "./common.js";
+import { loadAll, loadSchema, esc, wireTheme, topN, fmtDate, possessive, pageURL } from "./common.js";
 import { WardMap } from "./map.js";
-import { allocate } from "./allocator-stub.js";
-import { getForecast } from "./api-stub.js";
+import { getForecast } from "./api.js";
 import { openShare } from "./share.js";
 import { buildCardSVG, cardAlt } from "./card.js";
 
@@ -34,10 +33,22 @@ if (!f || f.gone) {
     map.setMode(b.dataset.view);
   }));
 
-  const r = allocate({ wardCalls: f.ward_calls, combinedShare: f.combined_share, parties,
-    councilSeats: model.council_seats, wardSeats: model.ward_seats });
-  const seats = r.seats;
-  const wins = r.wardWins;
+  // The seats stored with the forecast: the server's own recomputation at
+  // save (worker-api/src/seats.js), or in the stub the page's, from the same
+  // code. A forecast stored without them (the demo fixture) is seated here by
+  // the same engine the builder runs.
+  let stored = f.seats;
+  if (!stored) {
+    $("#restate").textContent = "Working out the seats…";
+    const [{ loadSeatEngine }, schema] = await Promise.all([import("./seat-engine.js"), loadSchema()]);
+    const out = (await loadSeatEngine()).seats(f, schema);
+    if (!out.ok) throw new Error("the seat law refused this forecast: " + out.errors.join("; "));
+    stored = out.answer;
+  }
+  const seats = stored.seats;
+  const wins = {};
+  for (const c of f.ward_calls) wins[c] = (wins[c] || 0) + 1;
+  const r = { council: stored.council_total, majority: stored.majority };
   const council = { council: r.council, majority: r.majority };   // as seated, for the card
   $("#legend").innerHTML = Object.entries(wins).filter(([, n]) => n).sort((a, b) => b[1] - a[1])
     .map(([c, n]) => `<span style="white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${byCode[c].colour};margin-right:4px"></span>${esc(byCode[c].name)} ${n}</span>`)
@@ -45,7 +56,7 @@ if (!f || f.gone) {
 
   const top = topN(seats, 5, byCode);
   const max = Math.max(1, ...top.map(t => t[1]));
-  $("#restate").textContent = `Top five of ${r.total} seats`;
+  $("#restate").textContent = `Top five of ${r.council} seats`;
   $("#bars").innerHTML = top.map(([c, n]) => `<div class="bar"><span class="nm">${esc(byCode[c].name)}</span>
     <span class="tr"><span class="fl" style="width:${n / max * 100}%;background:${byCode[c].colour}"></span></span><span class="v">${n}</span></div>`).join("");
   const order = Object.keys(seats).filter(c => seats[c]).sort((a, b) => seats[b] - seats[a]);

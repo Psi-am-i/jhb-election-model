@@ -2,10 +2,11 @@
 
 "Make your own forecast", "play with the model", sign-in to save, the share
 sheet and share image, and the shared forecast page, for
-joburg.whysoserious.city. **A prototype**: every figure is synthetic, seats come
-from a stand-in that is not the seat law, and sign-in and saving are stubs that
-never leave the browser. Nothing under `site/` or `src/` is touched or read at
-run time.
+joburg.whysoserious.city. **A prototype**: every figure is synthetic, and on a
+loopback host sign-in and saving are stubs that never leave the browser. Seats
+on the builder and the shared page come from the project's own seat code
+(`src/reader_seats.py` and its imports) running under Pyodide, from a served
+copy in `py/`. Nothing under `site/` or `src/` is touched at run time.
 
 The backend is specified, not built: `BACKEND.md`.
 
@@ -24,7 +25,19 @@ python3 -m http.server 8801 --bind 127.0.0.1      # port 8801, never 8765
 | Privacy notice placeholder | http://127.0.0.1:8801/interactive/privacy-placeholder.html |
 
 Serve the repository root, not `interactive/`: the nav links point at the live
-pages in `../site/`. The pages are ES modules, so `file://` does not work.
+pages in `../site/`, and the builder imports the Worker's own `validate.js`,
+`seats.js` and generated schema from `../worker-api/`. The pages are ES modules,
+so `file://` does not work.
+
+**Copy the seat code first**, after checkout and after any change to it:
+`node interactive/tools/sync_py.mjs` (`--check` to verify). It writes
+`interactive/py/` (gitignored) with worker-api's own copy rule and file list,
+plus the seat Worker's `entry.py` and a `manifest.json`. Without it the builder
+stays locked and says which command to run.
+
+Tests: `node --test interactive/tests/*.test.mjs`. Set `PYODIDE_NODE` to a
+directory holding `node_modules/pyodide` (0.29.5) to also run the page's engine
+under Pyodide; otherwise that one test is skipped and says so.
 Screenshots at 375 px and 1440 px are in `screenshots/`.
 
 To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
@@ -34,6 +47,11 @@ To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 | path | what |
 |---|---|
 | `make.html`, `js/make.js` | the builder: map, vote shares, coalition, results, save and share |
+| `js/builder-state.js` | the builder's state and every edit to it; pure, and can only hold a valid forecast (DESIGN-decided §14) |
+| `js/seat-engine.js`, `pyboot/boot.py` | seats under Pyodide: the Worker's `seatRequest`, the seat Worker's `entry.answer`, the Worker's `checkSeatAnswer` |
+| `tools/sync_py.mjs`, `py/` | the served copy of the seat code (gitignored; written by the tool) |
+| `js/api.js` | the one backend door: the stub on loopback hosts, the Worker API elsewhere (`?api=stub` / `?api=live` override) |
+| `tests/` | `node --test`: random builder edits against `validate.js` and the seat law; `/api/me` mapping |
 | `model.html`, `js/model.js` | play with the model, against synthetic draws |
 | `f/index.html`, `js/f.js` | the shared forecast page, `/f/<id>` in production |
 | `js/map.js` | the ward map (geographic and equal-sized), painting, keyboard |
@@ -42,8 +60,7 @@ To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 | `js/auth-ui.js` | sign-in and the consent screen, rendered from `js/consent-terms.js` |
 | `js/consent-terms.js` | the consent wording, its keys and its version hash: one definition, imported by the page and `worker-api` |
 | `js/labels.js` | the default-label word list and generator: one definition, imported by the page stub and `worker-api` |
-| `js/api-stub.js` | **stub** of the API in BACKEND.md, in localStorage |
-| `js/allocator-stub.js` | **stub** seat allocator, deliberately not the law |
+| `js/api-stub.js` | **stub** of the API in BACKEND.md, in localStorage; used through `js/api.js` |
 | `js/common.js` | fixture loading, escaping, theme toggle |
 | `css/interactive.css` | styles; a copy of the site palette |
 | `fixtures/` | **placeholders**, below |
@@ -56,8 +73,7 @@ To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 | `fixtures/placeholder-model.json` | the model's roster, most likely ward winners, combined vote shares, the combined total they scale to, and published seats | the S2 export (`site/draws/base.bin` + manifest, PLAN.md) and the certified roster in IEC ballot order |
 | `fixtures/placeholder-draws.json` | per-draw pool turnouts, list shares and seats for each grid cell and seat law | S2 and S3 of PLAN.md |
 | `js/model.js` re-weighting | `src/reweight.py` (PLAN S4), run under Pyodide | delete the JavaScript; one definition in Python |
-| `js/allocator-stub.js` | `seats.allocate` | the model's own function under Pyodide; see "Integration" |
-| `js/api-stub.js`, `js/auth-ui.js` provider buttons | the Worker API and OAuth | `worker-api/` |
+| `js/api-stub.js` (loopback hosts only) | the Worker API and OAuth | `worker-api/`, reached through `js/api.js` on any other host |
 | `fixtures/geometry.json` sectors | the S5 ward-to-sector file | S5 |
 | `privacy-placeholder.html` | DRAFT privacy notice (placeholders for the owner's decisions), competition rules, report route | the owner's decisions filled in, checked by counsel |
 
@@ -85,14 +101,16 @@ committed. S5 should commit its code and be the one source.
 
 ## Integration: what the real pages need
 
-1. **How a reader's forecast becomes seats: `src/reader_seats.py`.** The
-   reader edits each party's COMBINED vote share, ward and list ballots
-   together, which is what the statute counts (DESIGN-decided §10), plus the
-   ward winners. `reader_seats(combined_shares, ward_winners, context,
-   total_votes)` scales the shares to the start state's combined total and
-   seats them by Schedule 1 and item 16 (JUDGEMENT-CALLS §M1). The page must
-   run that file under Pyodide; the stub still shares 135 list seats on the
-   shares alone, and is labelled as a stand-in on every screen.
+1. **How a reader's forecast becomes seats: `src/reader_seats.py`, BUILT.**
+   The reader edits each party's COMBINED vote share and the ward winners
+   (DESIGN-decided §10). The builder (`js/make.js`) sends the Worker's own
+   request (`seatRequest`) to the seat Worker's own handler (`entry.answer`)
+   under Pyodide and checks the answer with the Worker's `checkSeatAnswer`, so
+   the seats on screen are the seats the server stores. The page paints first
+   and unlocks its controls when Pyodide, numpy and the seat modules have
+   loaded; the load times are logged to the console and kept in
+   `window.__seatEngineTimes`. The builder can only hold a valid forecast
+   (§14): see "Design decisions".
 2. **The engine**: `reweight.py` and `seats.py` under Pyodide, loaded behind the
    static first paint (PLAN §9). The untouched model page shows the published
    draws exactly; effective draws beside every result; refusal below the floor.
@@ -104,6 +122,18 @@ committed. S5 should commit its code and be the one source.
    (CLAUDE.md §4b).
 5. **Server-rendered `/f/<id>`** with Open Graph tags; the comment at the top of
    `f/index.html` lists them.
+6. **Production mode is wired, not exercised.** On a non-loopback host
+   `js/api.js` talks to the Worker: sign-in goes to `/auth/<provider>/start`,
+   the callback's `/make?consent=1` opens the consent screen from `GET /api/me`
+   (deletion date, X handle, unverified address), and a page whose wording hash
+   differs from the server's says so before the reader fills anything in.
+   **Not built:** the Turnstile widget. `POST /api/forecasts` needs its token
+   when `TURNSTILE_REQUIRED` is on, so a production save fails until it is.
+7. **What production must serve beside the page:** `worker-api/src/validate.js`,
+   `blocklist.js`, `seats.js`, `http.js`, `generated/forecast.schema.json`, and
+   `interactive/py/` + `pyboot/`, at the same relative paths (or rewrite the
+   imports in one place at build). The page loads Pyodide 0.29.5 and numpy
+   from cdn.jsdelivr.net.
 
 ## Design decisions made here
 
@@ -119,18 +149,25 @@ committed. S5 should commit its code and be the one source.
   the same control with the same range, and nothing is pre-selected: tapping a
   ward before choosing a party asks for a party rather than defaulting to one.
   Result lists sort by the reader's own seats.
-* **The vote shares start at the model's; the map starts empty.** The
-  map is the game, so it starts blank, with "start from the model's map" and
-  "fill empty wards with the model's call" one tap away. The shares start
-  where the model is, so a reader who only calls wards still gets a council.
-  Each is a party's share of all votes, ward and list ballots together.
-* **Saving needs all 135 wards, vote shares summing to 100, and a coalition.**
+* **An impossible forecast cannot be built (DESIGN-decided §14).** The map
+  starts with every ward at the model's call (or the model page's lever state),
+  and the vote at the model's shares. There is no eraser and no "clear": a ward
+  changes winner, it is never empty. The vote is held as whole votes summing
+  exactly to the combined total the seat law scales to, so it always sums to
+  100%; moving one party rescales the others in proportion. A party that wins
+  a ward keeps at least one vote, which is the seat law's own condition
+  (`reader_seats` refuses a ward winner with no votes); giving a ward to a
+  party with none raises it to one vote, with a note. Undo restores the ward
+  calls and the votes together. The only things left for the reader before a
+  save are choices, not repairs: a coalition, and a label the validator
+  accepts (checked as they type with the Worker's own `cleanDisplayName`).
   Making does not need an account; saving and sharing do.
 * **Three ways to call a ward**: tap or drag on the map (drag with mouse or pen
   only, so a finger can scroll), a whole compass sector at once, and a list of
-  135 selects grouped by sector for keyboard and screen-reader users. The map
-  is one tab stop; arrow keys move between neighbouring wards, Enter paints,
-  Delete clears. Undo keeps the last 60 strokes.
+  one select per ward, grouped by sector, for keyboard and screen-reader users.
+  The map is one tab stop; arrow keys move between neighbouring wards, Enter
+  paints (Delete explains that every ward needs a winner). Undo keeps the last
+  60 edits.
 * **On a phone** the map scrolls sideways at a size where a ward is tappable;
   the party chips ride along at the bottom of the map card; the model page
   keeps a one-line result bar at the bottom of the screen.
@@ -201,6 +238,4 @@ before sign-in goes live.**
 7. Whether a reader's name appears on any public leaderboard (needs its own
    consent, not built).
 8. Per-user cap on saved forecasts (proposed 20) and the D1 location hint.
-9. How ward calls become combined votes for `seats.allocate` (Integration 1),
-   which is a model question.
-10. The trust-slider mapping (Integration 3).
+9. The trust-slider mapping (Integration 3).

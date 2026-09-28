@@ -23,6 +23,18 @@ export async function loadAll() {
   return { geom, model, parties, byCode };
 }
 
+// The one definition of a reader's forecast, the file the Worker validates
+// against (worker-api/generated/forecast.schema.json, generated from the
+// model artefact). Fetched once.
+let schemaP = null;
+export function loadSchema() {
+  schemaP ??= fetch(new URL("../worker-api/generated/forecast.schema.json", base())).then(r => {
+    if (!r.ok) throw new Error(`forecast schema: HTTP ${r.status}`);
+    return r.json();
+  });
+  return schemaP;
+}
+
 export function pageURL(rel) { return new URL(rel, base()).href; }
 
 export function esc(s) {
@@ -65,7 +77,10 @@ export function wireTheme() {
 // v2 (2026-09-28): the draft's shares became the combined vote (`share`,
 // DESIGN-decided §10); a v1 draft held list-vote shares under `pr` and is not
 // read as if it meant the same thing.
-const DRAFT = "jhb-interactive-draft-v2";
+// v3 (2026-09-29): the builder holds whole votes (`votes`) and every ward
+// called (DESIGN-decided §14); a v2 draft could hold uncalled wards and a
+// share sum off 100, so it is not read.
+const DRAFT = "jhb-interactive-draft-v3";
 export function loadDraft() {
   try { return JSON.parse(localStorage.getItem(DRAFT) || "null"); } catch (e) { return null; }
 }
