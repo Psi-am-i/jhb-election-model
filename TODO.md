@@ -45,6 +45,23 @@ names what exists when it is done.
 other pool repairs after the election), and shorten F10 to the modules F3–F5
 touched. The owner chooses.
 
+**Independent review gates (owner, 2026-09-29).** A review sits where a
+mistake is expensive to undo. Each brief is committed before the review runs,
+gives evidence and questions rather than the lead's conclusion, and forbids the
+reviewer from delegating.
+
+| gate | before | what is reviewed | why here |
+|---|---|---|---|
+| **R1** | F8 re-emit | the model diff (F3, F5, the ActionSA declarations) against its specs. **Candidate for an owner-triggered ultra review** | the re-emit rewrites every spec; a bug means redoing the emit and every measurement after it |
+| **R2** | F9 scoring | that the scoring script measures exactly what each prereg named, checked before any number is seen | a prereg is scored once; wrong-quantity scoring has happened twice here |
+| **R3** | F10 census | the census claims file | a wrong claim misreads a live mechanism as broken or a dead one as fine |
+| **R4** | F11 publish | changed pages, the ledger and the change reasons, blind (as 2026-09-27) | public, and it is the freeze |
+| **R5** | sign-in going live | a security and privacy review of `worker-api/`, plus a real-browser test on phone and desktop | personal data in a political category; legal and reputational cost |
+| **R6** | 4 November | the reader-scoring rule and code, run on 2021 as if it were 2026 | a rule written after the result is not a rule |
+
+No gate on the lever wiring or the draw export: their tests compare with the
+published run bit for bit, so a mistake there fails loudly.
+
 **After the freeze: the interactive**, `audits/2026-09-28-interactive-architecture/PLAN.md`
 S2–S6, about 5 days: export the draws, the Atlas grid, `reweight.py`, sectors,
 the page.
