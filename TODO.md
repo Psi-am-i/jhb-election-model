@@ -45,6 +45,16 @@ names what exists when it is done.
 other pool repairs after the election), and shorten F10 to the modules F3–F5
 touched. The owner chooses.
 
+**Pending the IEC roster: two ActionSA mergers** (owner decided on
+2026-09-29 to declare them for completeness). The Azanian Independent Community
+Movement and the Creatives Congress Movement (IOL, 2026-01-26) appear in no IEC
+file for any city and on no roster, so their only spelling is the press
+spelling. A declaration keyed on it would never fire if the IEC spells the
+party differently, and nothing would say so. Both hold zero votes, so the
+declaration changes no number. Declare each with `parties.canonical(<IEC
+name>)` once the certified roster arrives; the edit plan is in the agent's
+report, recorded in MODEL-LOG when applied.
+
 **Independent review gates (owner, 2026-09-29).** A review sits where a
 mistake is expensive to undo. Each brief is committed before the review runs,
 gives evidence and questions rather than the lead's conclusion, and forbids the
