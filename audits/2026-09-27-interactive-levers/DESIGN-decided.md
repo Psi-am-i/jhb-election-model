@@ -288,3 +288,14 @@ let them overwrite."*
 * A label is never derived from an email address.
 * The reader can overwrite the label or clear it back to "A reader" before
   sharing.
+* **Randomised default labels** (owner, same day, superseding "A reader"). A
+  reader with no provider handle gets a label like `politico-23`,
+  `pollster-4` or `swingvoter-71`, *"so it looks like different people"*.
+  * The words come from a neutral election-watcher list: no party names,
+    colours or slogans, nothing official or offensive.
+  * The label is unique and assigned per forecast, so two forecasts by one
+    person are not linkable by their label.
+  * X users still default to their handle, and every reader can overwrite the
+    label.
+  * Instagram offers sign-in only to business and creator accounts since
+    December 2024, so it is not a provider.
