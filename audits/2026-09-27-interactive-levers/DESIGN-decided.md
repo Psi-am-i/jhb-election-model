@@ -151,3 +151,19 @@ Asked with a recommendation each; the owner overrode one.
   300 draws only once a reader moves a control, and the page then says its band
   is wider than the published one. This dissolves the "first 300" problem in
   `INPUT-ROUTE.md`: no 300-draw figure is shown until a reader has asked for one.
+
+## 8. No party is singled out (owner, 2026-09-28)
+
+Owner, on the DA-among-Black-Africans slider of PUBLISHING-BACKLOG §9a:
+*"doing it for one party is pointless. everything applies to everyone. no
+special treatment."*
+
+**Rule: every control a reader has applies to every party.** No control, range,
+default or label exists for one party that does not exist for all. A
+one-party control tells readers which claim we think matters. That is the
+model taking a side, whatever the range.
+
+So the DA slider is withdrawn as specified. If it survives at all it becomes
+**each party's support within each population group**, with each range taken
+from that party's own record. That control is larger than one slider and has not
+been designed.
