@@ -22,6 +22,7 @@
 
 import { Google, Apple, Facebook, Twitter, MicrosoftEntraId, decodeIdToken } from "arctic";
 import { HttpError } from "./http.js";
+import { handleLabel } from "../../interactive/js/labels.js";
 
 const callback = (env, p) => `${env.SITE_ORIGIN}/auth/${p}/callback`;
 
@@ -69,7 +70,8 @@ async function getJson(url, headers) {
 
 // Each provider: pkce, the HTTP method its callback arrives by, the SameSite
 // the state cookie needs to survive that callback, authorizationURL(), identity().
-// identity() returns { sub, contact_kind, contact, contact_verified }.
+// identity() returns { sub, contact_kind, contact, contact_verified } and, for X
+// only, `handle` (the username). No provider's name is ever read.
 export const PROVIDERS = {
   google: {
     pkce: true, callbackMethod: "GET", sameSite: "Lax",
@@ -150,7 +152,12 @@ export const PROVIDERS = {
       const tokens = await this.client(env).validateAuthorizationCode(code, verifier);
       const me = await getJson("https://api.x.com/2/users/me?user.fields=confirmed_email",
         { authorization: `Bearer ${tokens.accessToken()}` });
-      return contactFromEmail(String(me.data.id), me.data.confirmed_email, Boolean(me.data.confirmed_email));
+      // X also returns the display `name`: it is never read. The `username` is
+      // offered as the default label (owner, 2026-09-29) and is stored only if
+      // the reader keeps it as a forecast's label; until then it lives in a
+      // signed cookie in the reader's own browser (auth.js).
+      return { ...contactFromEmail(String(me.data.id), me.data.confirmed_email, Boolean(me.data.confirmed_email)),
+        handle: handleLabel(me.data.username) ? me.data.username : null };
     },
   },
 

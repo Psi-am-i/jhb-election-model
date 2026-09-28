@@ -121,6 +121,13 @@
         <p class="delta" id="delta"></p>
         <p class="stubnote"><b>Placeholder seats.</b> Worked out by a stand-in, not the seat law. The real page uses the model's own seat allocation.</p>
         <p class="visually-hidden" aria-live="polite" id="live"></p>
+        <div class="labelrow" style="margin:12px 0 4px">
+          <label for="flabel" style="font-size:13.5px;color:var(--ink)">Label on your shared prediction</label>
+          <div class="urlrow"><input id="flabel" type="text" maxlength="40" autocomplete="off"
+            placeholder="a random name such as pollster-23" aria-describedby="flabelhelp">
+            <button class="btn small" type="button" id="flabelclear">Use a random name</button></div>
+          <p id="flabelhelp" style="font-size:12.5px;color:var(--ink-3);margin-top:3px">We never show your name. Leave this empty for a random name, chosen when you save; if you sign in with X, it starts as your @username. Up to 40 characters.</p>
+        </div>
         <div class="cta">
           <button class="btn primary" type="button" id="save">Save and share</button>
           <a class="btn model" href="model.html">Play with the model instead</a>

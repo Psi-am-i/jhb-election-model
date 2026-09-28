@@ -77,7 +77,11 @@ export function build(modelBuf, geomBuf, srcNames) {
       },
       coalition: { type: "array", minItems: 1, uniqueItems: true, items: code },
       mayor: { oneOf: [{ type: "null" }, code] },
-      display_name: { oneOf: [{ type: "null" }, { type: "string", minLength: 1, maxLength: 40 }] },
+      // The forecast's LABEL (owner, 2026-09-29): the reader's own text or X
+      // @username, or null for the forecast's random default label, which the
+      // server assigns. Never a real name; never derived from an email.
+      display_name: { description: "label shown on the shared forecast; null = the server-assigned random label",
+        oneOf: [{ type: "null" }, { type: "string", minLength: 1, maxLength: 40 }] },
     },
     "x-share-sum": { target: 100, tolerance: 0.5 },
     "x-ward-ids": wardIds,

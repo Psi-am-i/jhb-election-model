@@ -185,6 +185,7 @@
    ]
   },
   "display_name": {
+   "description": "label shown on the shared forecast; null = the server-assigned random label",
    "oneOf": [
     {
      "type": "null"

@@ -14,37 +14,52 @@
 //   PUT    /api/forecasts/:id                   edit (owner; not after the lock)
 //   DELETE /api/forecasts/:id                   delete (owner; also after the lock)
 //   POST   /api/forecasts/:id/report
-//   GET    /api/reply?t=   POST /api/reply      the post-election message's answer
+//   POST   /api/contact                         ask for the one confirmation email
+//   GET    /api/contact/confirm#t=  POST ...     confirm an address (token in the fragment)
+//   GET    /api/reply/(delete|notify)#t=        the post-election message's answer:
+//   POST   /api/reply                             GET shows a button, POST acts
 //   GET    /api/deletion-status
 //   GET    /f/:id                               HTML with Open Graph tags
 //   GET    /f/:id/card.png?v=rev                1200x630, rendered here
 //   GET    /f/:id/card-story.png?v=rev          1080x1920
 
 import { errorResponse, json, requireSameOrigin, HttpError, clearCookie } from "./http.js";
-import { startAuth, callbackAuth, sessionUser, readPending, logout, requireUser } from "./auth.js";
-import { postConsent, currentConsents } from "./consent.js";
+import { startAuth, callbackAuth, sessionUser, readPending, logout, requireUser, readHandle } from "./auth.js";
+import { postConsent, currentConsents, currentWordingVersion, requestConfirmation, confirmGet, confirmPost } from "./consent.js";
+import { deletionDateText } from "../../interactive/js/consent-terms.js";
 import { createForecast, updateForecast, removeForecast, listMine, getPublic, sharePage, card, report } from "./forecasts.js";
 import { deleteUser } from "./deletion.js";
-import { runScheduled, replyGet, replyPost, facebookDataDeletion, deletionStatus, appleNotifications } from "./lifecycle.js";
+import { runScheduled, replyGet, replyPost, facebookDataDeletion, deletionStatus, appleNotifications, handleEmailEvents } from "./lifecycle.js";
 
+// `deletion_date` and `wording_version` let the page render the consent terms
+// exactly as the server will hash them (interactive/js/consent-terms.js).
 async function me(request, env) {
+  const terms = { deletion_date: env.DELETION_AT || null, wording_version: await currentWordingVersion(env),
+    deletion_date_text: deletionDateText(env.DELETION_AT) };
   const u = await sessionUser(request, env);
   if (u) {
     return json({ signed_in: true, provider: u.provider, contact_kind: u.contact_kind,
-      has_contact: Boolean(u.contact), contact_verified: Boolean(u.contact_verified),
-      consents: await currentConsents(env, u.id), wording_version: env.CONSENT_WORDING_VERSION });
+      has_contact: Boolean(u.contact), confirmation_sent: Boolean(u.confirm_sent_at),
+      handle: await readHandle(request, env, u.id),
+      consents: await currentConsents(env, u.id), ...terms });
   }
   const p = await readPending(request, env);
-  if (p) return json({ signed_in: false, pending: true, provider: p.provider, has_contact: Boolean(p.c),
-    wording_version: env.CONSENT_WORDING_VERSION });
-  return json({ signed_in: false });
+  // An address the provider did not verify is shown back to its owner (to
+  // prefill the confirmation box), never stored.
+  if (p) return json({ signed_in: false, pending: true, provider: p.provider,
+    contact_confirmed: Boolean(p.c && p.cv), unconfirmed_contact: p.c && !p.cv ? p.c : null,
+    handle: p.h || null, ...terms });
+  return json({ signed_in: false, ...terms });
 }
 
 async function deleteMe(request, env) {
   requireSameOrigin(request, env);
   const u = await requireUser(request, env);
   const r = await deleteUser(env, u.id);
-  return json({ deleted: true, ...r }, 200, { "set-cookie": clearCookie(env, "session") });
+  const h = new Headers({ "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+  h.append("set-cookie", clearCookie(env, "session"));
+  h.append("set-cookie", clearCookie(env, "handle"));
+  return new Response(JSON.stringify({ deleted: true, ...r }), { status: 200, headers: h });
 }
 
 async function route(request, env, ctx) {
@@ -70,7 +85,10 @@ async function route(request, env, ctx) {
     if (m === "DELETE") return removeForecast(request, env, g[1]);
   }
   if ((g = path.match(/^\/api\/forecasts\/([^/]+)\/report$/)) && m === "POST") return report(request, env, g[1]);
-  if (path === "/api/reply" && m === "GET") return replyGet(request, env);
+  if (path === "/api/contact" && m === "POST") return requestConfirmation(request, env);
+  if (path === "/api/contact/confirm" && m === "GET") return confirmGet();
+  if (path === "/api/contact/confirm" && m === "POST") return confirmPost(request, env);
+  if ((g = path.match(/^\/api\/reply\/(delete|notify)$/)) && m === "GET") return replyGet(g[1]);
   if (path === "/api/reply" && m === "POST") return replyPost(request, env);
   if (path === "/api/deletion-status" && m === "GET") return deletionStatus();
 
@@ -87,6 +105,15 @@ export default {
     } catch (e) {
       return errorResponse(e);
     }
+  },
+  // Email Service delivery events (a hard bounce after the message was accepted).
+  // ⛔ NOT WIRED: no queue or event subscription exists in wrangler.jsonc; the
+  // owner creates the queue, subscribes it to the sending domain's events and
+  // adds the consumer. Until then a hard bounce is only seen synchronously
+  // (E_RECIPIENT_SUPPRESSED, src/mail.js).
+  async queue(batch, env) {
+    await handleEmailEvents(env, batch.messages.map(m => m.body));
+    batch.ackAll();
   },
   async scheduled(controller, env, ctx) {
     ctx.waitUntil(runScheduled(env, controller.scheduledTime).then(r => console.log(JSON.stringify({ scheduled: r }))));

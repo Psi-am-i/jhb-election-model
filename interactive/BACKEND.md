@@ -1,8 +1,15 @@
 # Readers' forecasts: backend specification
 
-**Status: specification only.** Nothing here is built, provisioned or deployed.
-No Cloudflare resource exists for it. The prototype pages call
-`js/api-stub.js`, which imitates the API below in the browser's localStorage.
+**Status: the original specification, partly superseded.** The backend is built
+in `worker-api/` (not provisioned or deployed), and where it differs from this
+file, `worker-api/README.md` ("Decisions taken here") and the code are current.
+Superseded here in particular: the magic-link email sign-in (dropped; Microsoft
+added); `display_name` and `show_name` on the user (no name is collected: each
+forecast carries a label, owner 2026-09-29); an unverified email stored on the
+user (only a confirmed address is stored); the "special personal information"
+framing (owner 2026-09-29: a forecast is a prediction, ordinary personal
+information, counsel to confirm). The prototype pages call `js/api-stub.js`,
+which imitates the built API in the browser's localStorage.
 
 Secrets, memory and machine policy are global: see `~/CLAUDE.md` rule 4 and
 `~/projects/SECRETS.md`. This file names the secrets this service needs and

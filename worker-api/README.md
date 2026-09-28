@@ -22,7 +22,9 @@ override it where they differ. Decisions taken here are listed below.
 | `tools/make_schema.mjs` | writes `generated/`; `--check` fails if it is stale |
 | `src/providers.js` | Google, Apple, Facebook, X, Microsoft on `arctic` 3.7.0 |
 | `src/auth.js` | OAuth start/callback, the pending identity, sessions |
-| `src/consent.js` | the consent screen's answer; the append-only log |
+| `src/consent.js` | the consent screen's answer; the append-only log; contact confirmation |
+| `../interactive/js/consent-terms.js` | the consent wording, the keys the page sends, the wording-version hash (one definition, page and Worker) |
+| `../interactive/js/labels.js` | default labels for shared forecasts (one definition, page stub and Worker) |
 | `src/forecasts.js` | save, edit, read, share page, card, report |
 | `src/render.js` | `/f/<id>` HTML with Open Graph tags; card PNG via resvg-wasm |
 | `src/seats.js` | the seam to the seat law (below) |
@@ -30,6 +32,7 @@ override it where they differ. Decisions taken here are listed below.
 | `src/lifecycle.js` | lock stamping, post-election message, reply, deletion run, Facebook deletion callback |
 | `src/turnstile.js`, `src/blocklist.js`, `src/mail.js`, `src/crypto.js`, `src/http.js` | as named |
 | `migrations/0001_init.sql` | D1 schema, including the consent-log triggers |
+| `migrations/0002_message_confirmation_labels.sql` | per-account message stamps, the confirmation stamp, default labels |
 | `seats-py/` | the Python Worker that runs `src/reader_seats.py` (stub) |
 | `tools/sync_seats_py.mjs` | copies `src/seats.py` and `src/reader_seats.py` into `seats-py/`, byte for byte |
 
@@ -39,19 +42,26 @@ override it where they differ. Decisions taken here are listed below.
 |---|---|---|
 | One Worker or two (INTEGRATION.md §3d says extend `src/worker.js`) | **Separate Worker**, `joburg-forecasts`, as BACKEND.md §2 | owner's brief; keeps secrets and D1 out of the static site's deploy gate. §3d is superseded on this point |
 | Magic-link email sign-in (BACKEND.md §3) | **Dropped** | not in the owner's provider list (DESIGN-decided §9) |
-| Where a display name lives | **In the forecast body**, nullable; never on `users` | owner: no name unless typed to show on a shared forecast |
-| What `users` holds | provider, provider account id, one contact (email or phone), whether it is verified | owner's minimum |
+| What a shared forecast is labelled | **A label per forecast**, never a name: the reader's own text or X `@username` in the body's `display_name`; otherwise a random `<word>-<number>` default (`labels.js`, CSPRNG) in `forecasts.default_label`, assigned once at creation, unique among live labels (retried on collision). Clearing a typed label returns the default. An email-shaped label is refused | owner, 2026-09-29: no real names stored or shown; per forecast so one reader's forecasts are not linkable by label |
+| The X username | offered as the default label; kept in a signed HttpOnly cookie (`handle`), never in D1 unless the reader keeps it as a label | owner, 2026-09-29 |
+| What `users` holds | provider, provider account id, one CONFIRMED contact, and the message and confirmation stamps | owner's minimum; R5 findings 2 and 7 |
+| Unverified or typed addresses | **Not stored.** One confirmation email per account (`confirm_sent_at`), the address inside the signed link; stored as the contact only when the link's POST is made. Facebook and Microsoft addresses take this route (neither asserts verification) | owner, 2026-09-29; R5 findings 2, 7 |
+| An account that never confirms | holds no contact, gets no post-election message, and is deleted by the deletion run on `DELETION_AT`; the consent screen says so ("No confirmed email") | R5 finding 2 |
+| Consent wording version | **The hash of the displayed text** (`consent-terms.js`), including the deletion date. The page sends the hash it rendered; the server recomputes and refuses a mismatch (409). Not a config value | R5 finding 6 |
 | When the account row is created | **At consent**, not at sign-in. Between callback and consent the identity is a 30-minute signed cookie | a person who signs in and leaves holds nothing in the database |
 | Consent log shape (§3d had `withdrawn_at`) | one row per decision per purpose, `granted` 0/1, `wording_version`; withdrawal is a new row | `withdrawn_at` is an UPDATE; the log is append-only, enforced by triggers |
 | Withdrawing `store` or `age18` | deletes that account's forecasts, keeps the account and log | the lawful basis for holding them is gone |
 | Seats | **Server trusts only the picks and recomputes** via the `SEATS` service binding to a Python Worker running `src/reader_seats.py`; a client `seats` key is refused | no JavaScript seat law (BACKEND §6); the page shows seats from the same Python file under Pyodide, the server's are stored |
 | Seat service down | save answers **503**, nothing stored | a stored forecast without seats would need a second, later card |
 | Card cache key | `cards/<id>/<rev>-<seats_code_ref>/<size>.png` | a fixed seat-code bug must not leave a stale PNG at an immutable URL |
-| Post-election deletion | runs only after the message run has recorded **every** message as sent | deleting people who were never asked is not "no reply". While mail is a stub, nothing is deleted; logged hourly |
+| Post-election message | **per account**: `message_sent_at`, `message_status` (`sent` or `undeliverable`). Up to `MESSAGE_BATCH_SIZE` accounts per hourly run, `MAIL_CONCURRENCY` in flight; a stamped account is never mailed again. A permanent per-recipient failure (`E_RECIPIENT_SUPPRESSED`, or a hard-bounce event) is `undeliverable`; anything else, including a sender-side fault, is retried | R5 finding 1 |
+| Post-election deletion | runs only when **no** account with a confirmed contact is unstamped; each refusal is logged at error level with `alert: "deletion_refused"`. Deletes in batches of `DELETION_BATCH_SIZE` | deleting people who were never asked is not "no reply". While mail is unconfigured, nothing is deleted |
 | After "tell me about the next election" | forecasts deleted at `DELETION_AT`; sign-in id and contact kept | the message says so |
-| Reply and verification links | GET shows a button; only POST acts | mail scanners follow GET links |
+| Reply and confirmation links | GET shows a button; only POST acts. The token is in the URL **fragment** (`/api/reply/delete#t=…`, `/api/contact/confirm#t=…`), copied into the form by a script, so it never reaches a request log | mail scanners follow GET links; R5 finding 10 |
+| Request logs | `observability.logs.invocation_logs: false`: invocation logs record the URL, and OAuth callbacks carry the code and state in it. Only this code's structured logs are kept; none carries a URL, token, address or forecast | R5 finding 10 |
 | `noindex` on `/f/*` | **on** (meta and `X-Robots-Tag`) | README open decision 6 recommended it; reversible in `render.js` |
-| Rate limits | per IP: the `ratelimits` bindings (saves, sign-in starts); per account: a D1 counter of saves per day and a cap on live forecasts; all values in `wrangler.jsonc` | the binding's windows are 10 s or 60 s only, so BACKEND's "per hour" limits became per minute |
+| Rate limits | per IP: the `ratelimits` bindings (saves, sign-in starts, confirmation requests); per account: a D1 counter of saves per day and a cap on live forecasts; all values in `wrangler.jsonc` | the binding's windows are 10 s or 60 s only, so BACKEND's "per hour" limits became per minute |
+| Daily quota order | the per-minute limiter and Turnstile, then the body, then a quota **check**, then the seat call; the quota is **taken** only after the seat law answers (conditional, so racing saves cannot both take the last one) and refunded if the write then fails | owner, 2026-09-29: a save the seat law refuses (422) must not use up the quota |
 
 ## Seats: the contract with `src/reader_seats.py`
 
@@ -73,12 +83,14 @@ saved.
 
 `tools/sync_seats_py.mjs` copies `reader_seats.py` and its import closure from
 `src/` (the list is `FILES`; `tests/test_reader_seats.py` holds it equal to the
-closure both ways). Until the copy is run, the Python Worker answers 501 and
-every save answers 503.
+closure both ways). The copies are gitignored (all of `seats-py/src/` except
+`entry.py`), so **a fresh clone must run `npm run sync:seats` before `npm test`**:
+`--check` fails on a missing, partial or stale copy, or a stale `code_ref.py`.
 
 ## Tests
 
-    npm test          # schema currency, seat-code copy check, then vitest
+    npm run sync:seats   # once per clone, and after any change to the seat code
+    npm test             # schema currency, seat-code copy check, then vitest
 
 Two vitest projects: `node` (`test/node/`, build checks) and `workers` (inside
 workerd with local D1 and R2). The workers project replaces the SEATS binding
@@ -132,16 +144,19 @@ callback of every provider is `https://joburg.whysoserious.city/auth/<provider>/
 D1 `joburg-forecasts` (location hint: open decision), R2 `forecast-cards`, two
 rate-limit namespace ids, the `joburg-seats` Python Worker, the three-line
 service-binding forward in `src/worker.js` for `/f/*`, `/api/*`, `/auth/*`, an
-Email Service sending domain and binding, and the dates `POST_ELECTION_MESSAGE_AT`
-and `DELETION_AT`.
+Email Service sending domain, its `send_email` binding `EMAIL` and the `MAIL_FROM`
+var, a queue subscribed to the domain's delivery events (for hard bounces), and
+the dates `POST_ELECTION_MESSAGE_AT` and `DELETION_AT`.
 
 ## Stubs
 
 | stub | the real thing |
 |---|---|
-| `src/mail.js` sends nothing | Cloudflare Email Service `send_email` binding; contact verification mail is not built either |
+| `src/mail.js` sends nothing while unconfigured | written against the Email Service `send_email` binding (`EMAIL`) and `MAIL_FROM`; neither is set. Hard bounces reported after sending need a queue subscribed to the sending domain's events and a consumer (`index.js` exports `queue`, handled by `handleEmailEvents`); none is configured |
 | `seats-py/src/entry.py` answers 501 | `src/reader_seats.py` and its import closure, copied by `tools/sync_seats_py.mjs` (the interface is agreed and tested from both sides) |
 | `/auth/apple/notifications` answers 501 | JWT verification against Apple's JWKS, then deletion |
 | `generated/*` from the prototype's placeholder fixtures | regenerate from the S2 export and the IEC's certified roster (`--model`, `--geometry`) |
 | `src/blocklist.js` holds only impersonation patterns | the owner's content policy |
-| post-election message wording (`src/mail.js`) | owner and counsel |
+| post-election and confirmation message wording (`src/mail.js`) | owner and counsel |
+| consent wording (`interactive/js/consent-terms.js`), including a placeholder "Where" line | owner and counsel; the "Where" line is R5 finding 3 |
+| draft privacy notice (`interactive/privacy-placeholder.html`) | owner and counsel: responsible party, Information Officer, jurisdiction, the two dates |

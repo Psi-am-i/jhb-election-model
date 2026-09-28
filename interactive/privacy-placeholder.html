@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Privacy notice placeholder</title>
+<title>Privacy notice (draft)</title>
 <meta name="robots" content="noindex">
 <script>
   (function () {
@@ -16,21 +16,136 @@
   })();
 </script>
 <link rel="stylesheet" href="css/interactive.css">
+<style>
+  .draft h2{margin-top:22px}.draft p,.draft li{margin:6px 0}.draft ul{padding-left:20px}
+  .draft table{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0}
+  .draft th,.draft td{border-bottom:1px solid var(--rule, #8884);padding:5px 8px 5px 0;text-align:left;vertical-align:top}
+  .ph{background:var(--reader-bg, #d9807022);padding:0 3px;border-radius:3px}
+</style>
 </head>
 <body>
-<div class="wrap" style="max-width:760px">
-  <p class="proto"><b>Placeholder.</b> This page marks where the privacy notice, the competition rules and the reporting route go.
-    Their text has to be written and checked by someone qualified in South African law before sign-in goes live. See README.md, "Legal".</p>
-  <header class="lede"><h1>Privacy notice</h1>
-    <p>To be written. It must name the responsible party and its Information Officer, and state what is collected, why, the lawful basis,
-      who it is shared with, the transfer outside South Africa, how long it is kept, and how to see, correct or delete it.</p></header>
+<div class="wrap draft" style="max-width:760px">
+  <p class="proto"><b>DRAFT for the owner and counsel. Not a published notice.</b> Written 2026-09-29 from the code in
+    <code>worker-api/</code> as it stands. Every <span class="ph">[bracketed]</span> item is a decision or fact the owner
+    must supply; the jurisdiction (R5 finding 3) and the two dates (R5 finding 4) are deliberately left open. It is not
+    legal advice and must be checked by someone qualified in South African law before sign-in goes live
+    (README.md, "Legal").</p>
+
+  <header class="lede"><h1>Privacy notice: predictions at joburg.whysoserious.city</h1>
+    <p>This notice explains what we keep when you sign in to save and share a prediction of the Johannesburg council
+      election of 4 November 2026, why, for how long, who processes it for us, and how to delete it.</p></header>
+
+  <h2>Who we are</h2>
+  <p>The responsible party is <span class="ph">[Responsible party: legal name, registration number, postal and email address]</span>.</p>
+
   <h2 id="officer">Information Officer</h2>
-  <p style="margin:6px 0 20px">Name and contact, registered with the Information Regulator. To be supplied.</p>
+  <p><span class="ph">[Information Officer: name, email address, registration with the Information Regulator]</span>.
+    You may complain to the Information Regulator (South Africa), <span class="ph">[Regulator's current contact details]</span>.</p>
+
+  <h2>What we keep</h2>
+  <ul>
+    <li><b>Your sign-in:</b> which service you used (Google, Apple, Microsoft, Facebook or X) and the account id that
+      service gives us for you. We do not collect your name, photo, friends or location from any of them.</li>
+    <li><b>One email address, only once it is confirmed.</b> If your sign-in service tells us it has verified your
+      address (Google, Apple and X can), we keep it. Otherwise, if you give us an address, we send it one email with a
+      link to confirm it and keep the address only if the link is used. We never email an unconfirmed address apart
+      from that one link.</li>
+    <li><b>Your predictions:</b> the ward winners, vote shares and coalition you chose, the seats our seat calculation
+      gives them, and the dates they were made and changed.</li>
+    <li><b>A label for each shared prediction.</b> We do not collect your name. A prediction shows your X @username if
+      you signed in with X and keep it, a random label such as "pollster-23" (chosen afresh for each prediction), or
+      words you type yourself. Your X username is stored only if you keep it as a label.</li>
+    <li><b>Your choices on the consent screen</b>, each with the date and a code identifying the exact wording you
+      were shown.</li>
+    <li>We do not store your IP address. Our service provider sees it when you connect (below).</li>
+  </ul>
+
+  <h2>Why, and on what basis</h2>
+  <ul>
+    <li>To save your prediction, show it at its link, score it against the result, and analyse saved predictions
+      against the result and against past elections. Basis: your consent (POPIA section 11(1)(a)), given by the box
+      "Save my prediction".</li>
+    <li>To send the one email after the election described below, and anything else you ticked (telling you if your
+      prediction wins; updates). Basis: your consent; updates are electronic direct marketing and are sent only if
+      you opt in (section 69).</li>
+    <li>To keep the service working and safe: bot checks, rate limits, error logs. Basis: our legitimate interest
+      (section 11(1)(f)).</li>
+  </ul>
+  <p><b>Our view of what a prediction is.</b> A saved prediction is a forecast of how the election will turn out, not a
+    statement of how you vote or what you believe. The responsible party therefore treats it as ordinary personal
+    information, not special personal information under section 26, and the protections above (explicit consent,
+    separate unticked options, 18 or older, deletion at any time) apply anyway.
+    <span class="ph">[counsel to confirm]</span></p>
+  <p>You must be 18 or older to save a prediction.</p>
+
+  <h2>Who can see it</h2>
+  <p>Anyone with the link to a prediction can see it, with its label. Links are not listed anywhere by us and are
+    marked so that search engines do not index them. If you share a link, the people and services you share it with
+    can see it and may keep a copy, including the preview image.</p>
+
+  <h2>Who processes it for us</h2>
+  <table>
+    <tr><th>Processor</th><th>What it does</th><th>What it sees</th></tr>
+    <tr><td>Google, Apple, Microsoft, Meta (Facebook) and X Corp</td><td>Sign-in, when you choose that service</td><td>That you signed in to this site; they send us your account id and, where they have it, your email address</td></tr>
+    <tr><td>Cloudflare Workers</td><td>Runs this service</td><td>Every request, including your IP address</td></tr>
+    <tr><td>Cloudflare D1</td><td>The database</td><td>Everything listed under "What we keep"</td></tr>
+    <tr><td>Cloudflare R2</td><td>Stores the share images of predictions</td><td>The image: label, map and seats</td></tr>
+    <tr><td>Cloudflare Workers Logs</td><td>Our error and job logs</td><td>Counts and error codes; our code writes no address, token or prediction to them, and records no request addresses</td></tr>
+    <tr><td>Cloudflare Turnstile</td><td>The bot check when you save</td><td>Signals from your browser and your IP address, under Cloudflare's own terms <span class="ph">[link to Cloudflare's Turnstile privacy terms]</span></td></tr>
+    <tr><td>Cloudflare Email Service</td><td>Sends the confirmation link and the post-election email</td><td>Your email address and the message</td></tr>
+  </table>
+
+  <h2>Where it is stored</h2>
+  <p><span class="ph">[Where the data is stored: the owner and counsel to decide (R5 finding 3). Name the country or
+    region of the D1 database and R2 bucket, and whether Cloudflare's jurisdiction setting is used.]</span>
+    Cloudflare and the sign-in services operate outside South Africa, so your information is transferred abroad. We
+    rely on section 72 of POPIA: <span class="ph">[the ground relied on, for example your consent under section
+    72(1)(b), or the recipient being bound by law or agreement giving adequate protection under section 72(1)(a)]</span>.</p>
+
+  <h2>How long we keep it</h2>
+  <ul>
+    <li><b>After the election</b>, on <span class="ph">[Post-election message date]</span>, we send one email to your
+      confirmed address, whatever you ticked, asking whether to delete your data now or keep your address to tell you
+      about the next election.</li>
+    <li>If you do not answer, your account, predictions and address are deleted on <span class="ph">[Deletion date]</span>.
+      If we hold no confirmed address for you, we cannot send that email, and your account and predictions are
+      deleted on that date without it.</li>
+    <li>If you ask to hear about the next election, we delete your predictions on that date and keep only your sign-in
+      id and address until you ask us to stop.</li>
+    <li>You can delete any prediction, or your whole account, at any time from "My forecasts". You do not need an email
+      address to delete. A deleted prediction's link stops working at once.</li>
+  </ul>
+
+  <h3>Copies that outlast a deletion</h3>
+  <p>Deleting removes the record from our database and the image from our image store at once. Some copies last
+    longer, and we cannot shorten them:</p>
+  <table>
+    <tr><th>Copy</th><th>How long</th><th>Source</th></tr>
+    <tr><td>Database history (Cloudflare D1 Time Travel, always on, cannot be turned off)</td><td>The database can be restored to any moment in the last 30 days (Workers Paid plan; 7 days on the Free plan), which would bring back deleted rows. <span class="ph">[plan in use]</span></td><td>Cloudflare D1 documentation, "Time Travel", read 2026-09-29</td></tr>
+    <tr><td>Service logs (Cloudflare Workers Logs)</td><td>Up to 7 days (Workers Paid; 3 days on Free). They hold no address, token or prediction.</td><td>Workers Logs documentation, "Pricing" and "Limits", read 2026-09-29</td></tr>
+    <tr><td>Share images already shown by a browser</td><td>Up to one year: we mark them as unchanging for one year, so a browser that has shown one may keep its copy</td><td>Our own setting</td></tr>
+    <tr><td>Prediction pages already shown by a browser</td><td>Up to 60 seconds</td><td>Our own setting</td></tr>
+    <tr><td>Cloudflare's edge cache</td><td>This service does not ask Cloudflare to cache its responses. <span class="ph">[unconfirmed: depends on how the site's main Worker forwards requests, which is not yet written]</span></td><td>Workers Cache documentation</td></tr>
+    <tr><td>Deleted images in R2</td><td>Removed at once. <span class="ph">[unconfirmed: whether R2 keeps any copy after deletion was not found in Cloudflare's documentation]</span></td><td>none found</td></tr>
+    <tr><td>Link previews held by apps you shared with (WhatsApp, Facebook, X and others)</td><td><span class="ph">[unconfirmed: set by each app, outside our control]</span></td><td>none</td></tr>
+  </table>
+
+  <h2>Your rights</h2>
+  <p>You may ask what we hold about you, ask us to correct or delete it, withdraw any consent at any time (withdrawing
+    consent to store predictions deletes them), and object to processing. Most of this you can do yourself from
+    "My forecasts"; otherwise write to the Information Officer above. Withdrawing consent does not make earlier
+    processing unlawful.</p>
+
   <h2 id="competition">Competition rules</h2>
-  <p style="margin:6px 0 20px">Promoter, who may enter, how forecasts are scored (DESIGN-decided §5, frozen before 4 November), prizes, how and when winners are told,
-    and how ties are broken. To be written if there are prizes.</p>
-  <h2 id="report">Report a forecast</h2>
-  <p style="margin:6px 0 20px">For a display name that impersonates someone or is abusive. The route (form or address) is to be decided.</p>
+  <p><span class="ph">[Promoter, who may enter, how predictions are scored (DESIGN-decided §5, frozen before 4 November),
+    prizes, how and when winners are told, and how ties are broken. To be written if there are prizes.]</span></p>
+
+  <h2 id="report">Report a prediction</h2>
+  <p><span class="ph">[For a label that impersonates someone or is abusive. The route (form or address) is to be decided.]</span></p>
+
+  <h2>Changes</h2>
+  <p>This notice is dated <span class="ph">[date of publication]</span>. If we change what we do with your information,
+    we will ask again before doing it.</p>
 </div>
 </body>
 </html>

@@ -1,27 +1,28 @@
 // Sign in, then consent. Two screens in one modal dialog.
 //
-// POPIA design (to be checked by counsel — see README "Legal"):
-//  * A saved forecast can reveal political persuasion, which POPIA s26 treats
-//    as special personal information. The lawful basis used is the reader's
-//    explicit consent (s27(1)(a)): a separate, unticked, required box that says
-//    exactly that, with purpose, retention and deletion stated beside it.
+// Everything the consent screen SAYS comes from js/consent-terms.js, and the
+// body it posts is built there too (consentPayload), so the page and the
+// server (worker-api/src/consent.js) accept exactly the same keys and the
+// wording version recorded is the hash of the text shown. Nothing here adds
+// wording of its own; test/node/consent-screen.test.js holds that.
+//
+// POPIA design (to be checked by counsel; see README "Legal"):
+//  * Owner, 2026-09-29: a saved forecast is a PREDICTION, treated as ordinary
+//    personal information. The protections stay: explicit consent to store it
+//    (a separate, unticked, required box), 18+ confirmed, deletion at any time.
 //  * "Contact me if I win" and "send me updates" are SEPARATE, UNTICKED and
-//    OPTIONAL. Saving works with both unticked (consent must be voluntary;
-//    electronic direct marketing needs opt-in, s69).
-//  * Showing the reader's name on a public page is its own required choice with
-//    no default, because it publishes a view against a name.
-//  * 18+ is confirmed, which also keeps children's data (s34) out.
-//  * Only a display name, an email and the provider's account id are kept.
+//    OPTIONAL. Saving works with both unticked (s69 opt-in).
+//  * No name is collected. A shared prediction shows a label (js/labels.js).
+//  * An email is stored only once confirmed: one confirmation link, then
+//    nothing unless it is used.
 
 import { session, signIn, recordConsent } from "./api-stub.js";
-import { cleanName, esc } from "./common.js";
+import { esc } from "./common.js";
+import { consentTerms, consentPayload, wordingVersion, deletionDateText, PROVIDER_LABELS } from "./consent-terms.js";
 
-const PROVIDERS = [
-  ["google", "Continue with Google"],
-  ["apple", "Continue with Apple"],
-  ["facebook", "Continue with Facebook"],
-  ["x", "Continue with X"],
-];
+// Sign-in options (owner, DESIGN-decided §9). Instagram has no personal-account
+// sign-in (Meta closed it in December 2024); Facebook covers Meta users.
+export const PROVIDERS = ["google", "apple", "microsoft", "facebook", "x"];
 
 let dlg;
 
@@ -34,123 +35,85 @@ function build() {
 
 function screenProviders(resolve) {
   dlg.innerHTML = `
-  <div class="dh"><h2 id="auth-title">Sign in to save your forecast</h2>
+  <div class="dh"><h2 id="auth-title">Sign in to save your prediction</h2>
     <button class="x" type="button" data-close aria-label="Close">×</button></div>
   <div class="db">
-    <p style="font-size:14px;margin-bottom:12px">Signing in keeps your forecast, gives it a link to share,
+    <p style="font-size:14px;margin-bottom:12px">Signing in keeps your prediction, gives it a link to share,
       and lets us score it against the result. You choose what else we may do on the next screen.</p>
     <div class="providers">
-      ${PROVIDERS.map(([k, l]) => `<button class="btn" type="button" data-p="${k}">${l}</button>`).join("")}
+      ${PROVIDERS.map(k => `<button class="btn" type="button" data-p="${k}">Continue with ${esc(PROVIDER_LABELS[k])}</button>`).join("")}
     </div>
-    <div class="or">or</div>
-    <form id="mlform" novalidate>
-      <label for="mlemail" style="font-size:13.5px;color:var(--ink)">Email me a sign-in link</label>
-      <div class="urlrow"><input id="mlemail" type="email" autocomplete="email" inputmode="email"
-        placeholder="you@example.com" required>
-        <button class="btn" type="submit">Send link</button></div>
-      <p class="err" id="mlerr" role="alert"></p>
-    </form>
     <p class="stubnote"><b>Prototype:</b> these buttons call a stub. No provider is contacted, no email is sent.</p>
   </div>`;
   dlg.querySelectorAll("[data-p]").forEach(b => b.addEventListener("click", async () => {
     const s = await signIn(b.dataset.p);
     screenConsent(resolve, s);
   }));
-  dlg.querySelector("#mlform").addEventListener("submit", async e => {
-    e.preventDefault();
-    const v = dlg.querySelector("#mlemail").value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
-      dlg.querySelector("#mlerr").textContent = "Enter an email address like name@example.com.";
-      return;
-    }
-    dlg.querySelector(".db").innerHTML = `
-      <p style="font-size:15px;color:var(--ink)">We've sent a sign-in link to <b>${esc(v)}</b>.</p>
-      <p style="font-size:13.5px;margin-top:8px">It works once and expires in 15 minutes. Your forecast stays on this page while you look.</p>
-      <p class="stubnote" style="margin-top:12px"><b>Prototype:</b> nothing was sent. Continue as if you had clicked the link.</p>
-      <div class="row" style="margin-top:14px"><button class="btn primary" type="button" id="mlgo">I clicked the link</button></div>`;
-    dlg.querySelector("#mlgo").addEventListener("click", async () => {
-      const s = await signIn("email", v);
-      screenConsent(resolve, s);
-    });
-    dlg.querySelector("#mlgo").focus();
-  });
   dlg.querySelector("[data-p]").focus();
 }
 
-function screenConsent(resolve, s) {
-  const needEmail = !s.email;
-  dlg.innerHTML = `
-  <div class="dh"><h2 id="auth-title">Before we save your forecast</h2>
-    <button class="x" type="button" data-close aria-label="Close">×</button></div>
+// The consent screen's HTML, from the terms and the sign-in state only. Pure,
+// so a test can check that every word shown is in the hashed terms.
+//   s: { provider, contact_confirmed, unconfirmed_contact }
+export function consentScreenHTML(s, terms) {
+  const askContact = !s.contact_confirmed;
+  return `
+  <div class="dh"><h2 id="auth-title">${esc(terms.title)}</h2>
+    <button class="x" type="button" data-close aria-label="${esc(terms.cancel)}">×</button></div>
   <form class="db consent" id="cform" novalidate>
-    <p>Signed in with ${esc({ google: "Google", apple: "Apple", facebook: "Facebook", x: "X", email: "an email link" }[s.provider])}.</p>
-
-    <div>
-      <label for="dname" style="color:var(--ink);font-weight:600">Your name as others will see it</label>
-      <input id="dname" type="text" maxlength="40" autocomplete="nickname" value="${esc(s.name || "")}"
-        style="width:100%;margin-top:4px" aria-describedby="dnamehelp">
-      <p id="dnamehelp" style="font-size:12.5px;color:var(--ink-3);margin-top:3px">Up to 40 characters. First name and an initial is plenty.</p>
-    </div>
-    ${needEmail ? `<div><label for="cemail" style="color:var(--ink);font-weight:600">Your email</label>
-      <input id="cemail" type="email" autocomplete="email" style="width:100%;margin-top:4px">
-      <p style="font-size:12.5px;color:var(--ink-3);margin-top:3px">X did not give us an email. We need one to let you delete your forecast or tell you if you win.</p></div>` : ""}
-
-    <fieldset class="req" style="border-left-width:3px">
-      <legend style="color:var(--ink);font-weight:600;padding:0 4px">On shared links and images, show</legend>
-      <label class="box"><input type="radio" name="showname" value="1"><span>my name</span></label>
-      <label class="box"><input type="radio" name="showname" value="0"><span>"A reader" instead of my name</span></label>
-    </fieldset>
+    <p>${esc(terms.signedInWith)} ${esc(PROVIDER_LABELS[s.provider] || s.provider)}.</p>
 
     <div class="req">
-      <label class="box"><input type="checkbox" id="c-store" required>
-        <span><b>Save my forecast and link it to me.</b> A forecast can show which parties I expect or want to govern,
-        which the law treats as information about my political views. I agree to it being kept for the purposes below.</span></label>
-      <label class="box" style="margin-top:8px"><input type="checkbox" id="c-age" required>
-        <span><b>I am 18 or older.</b></span></label>
+      <p style="color:var(--ink);font-weight:600;margin-bottom:6px">${esc(terms.requiredHeading)}</p>
+      <label class="box"><input type="checkbox" id="c-store" required><span><b>${esc(terms.boxes.store)}</b></span></label>
+      <label class="box" style="margin-top:8px"><input type="checkbox" id="c-age" required><span><b>${esc(terms.boxes.age18)}</b></span></label>
     </div>
 
     <div>
-      <p style="color:var(--ink);font-weight:600;margin-bottom:6px">Optional — leave these unticked and your forecast is still saved</p>
-      <label class="box"><input type="checkbox" id="c-win">
-        <span>Email me if my forecast wins. <a href="../privacy-placeholder.html#competition">Competition rules</a></span></label>
-      <label class="box" style="margin-top:6px"><input type="checkbox" id="c-upd">
-        <span>Email me updates about the forecast before and after the election. Unsubscribe from any email.</span></label>
+      <p style="color:var(--ink);font-weight:600;margin-bottom:6px">${esc(terms.optionalHeading)}</p>
+      <label class="box"><input type="checkbox" id="c-win"><span>${esc(terms.boxes.contact_if_win)}</span></label>
+      <label class="box" style="margin-top:6px"><input type="checkbox" id="c-upd"><span>${esc(terms.boxes.updates)}</span></label>
     </div>
+    ${askContact ? `<div><label for="cemail" style="color:var(--ink);font-weight:600">${esc(terms.contactLabel)}</label>
+      <input id="cemail" type="email" autocomplete="email" style="width:100%;margin-top:4px" value="${esc(s.unconfirmed_contact || "")}" aria-describedby="cemailhelp">
+      <p id="cemailhelp" style="font-size:12.5px;color:var(--ink-3);margin-top:3px">${esc(terms.contactHelp)}</p></div>` : ""}
 
     <dl>
-      <dt>We keep</dt><dd>your display name, email, sign-in provider and account id, your forecasts, and these choices with the date.</dd>
-      <dt>To</dt><dd>save and show your forecast, score it against the result on 4 November, and contact you only for what you ticked.</dd>
-      <dt>Until</dt><dd><i>[retention period — owner to decide; proposed: 30 June 2027, then deleted]</i>. Updates continue only until you unsubscribe.</dd>
-      <dt>Delete</dt><dd>any forecast, or everything, at any time from “My forecasts”. A deleted link stops working.</dd>
-      <dt>Where</dt><dd>on Cloudflare's servers, which may be outside South Africa.</dd>
-      <dt>Never</dt><dd>sold, never used for advertising, never shared except as you choose to share it.</dd>
+      ${terms.facts.map(([dt, dd]) => `<dt>${esc(dt)}</dt><dd>${esc(dd)}</dd>`).join("\n      ")}
     </dl>
-    <p style="font-size:12.5px"><a href="../privacy-placeholder.html">Privacy notice</a> ·
-      <a href="../privacy-placeholder.html#officer">Information Officer</a></p>
+    <p style="font-size:12.5px"><a href="../privacy-placeholder.html">${esc(terms.links.notice)}</a> ·
+      <a href="../privacy-placeholder.html#officer">${esc(terms.links.officer)}</a> ·
+      <a href="../privacy-placeholder.html#competition">${esc(terms.links.competition)}</a></p>
     <p class="err" id="cerr" role="alert"></p>
     <div class="row">
-      <button class="btn primary" type="submit">Agree and save</button>
-      <button class="btn" type="button" data-close>Don't save</button>
+      <button class="btn primary" type="submit">${esc(terms.submit)}</button>
+      <button class="btn" type="button" data-close>${esc(terms.cancel)}</button>
     </div>
   </form>`;
-  dlg.querySelector("#cform").addEventListener("submit", e => {
+}
+
+async function screenConsent(resolve, s) {
+  const terms = consentTerms({ deletionDate: deletionDateText(s.deletion_date) });
+  const version = await wordingVersion(terms);
+  dlg.innerHTML = consentScreenHTML(s, terms);
+  dlg.querySelector("#cform").addEventListener("submit", async e => {
     e.preventDefault();
     const q = sel => dlg.querySelector(sel);
-    const show = dlg.querySelector('input[name="showname"]:checked');
-    const name = cleanName(q("#dname").value);
-    const email = needEmail ? q("#cemail").value.trim() : null;
+    const contact = q("#cemail")?.value.trim() || "";
     const errs = [];
-    if (!show) errs.push("choose whether to show your name");
-    if (show?.value === "1" && !name) errs.push("enter the name to show");
-    if (needEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.push("enter your email");
-    if (!q("#c-store").checked) errs.push("tick the box to save your forecast");
+    if (contact && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) errs.push("enter an email address like name@example.com, or leave it empty");
+    if (!q("#c-store").checked) errs.push("tick the box to save your prediction");
     if (!q("#c-age").checked) errs.push("confirm you are 18 or older");
     if (errs.length) { q("#cerr").textContent = "To save, " + errs.join(", ") + "."; return; }
-    const out = recordConsent({ store: true, age18: true, show_name: show.value === "1",
-      display_name: name, contact_if_win: q("#c-win").checked, updates: q("#c-upd").checked, email });
-    resolve(out); dlg.close();
+    const body = consentPayload({ store: true, age18: true, contact_if_win: q("#c-win").checked,
+      updates: q("#c-upd").checked, contact, wording_version: version });
+    try {
+      resolve(await recordConsent(body)); dlg.close();
+    } catch (err) {
+      q("#cerr").textContent = String(err.message || err);
+    }
   });
-  dlg.querySelector("#dname").focus();
+  dlg.querySelector("#c-store").focus();
 }
 
 // Resolves with the session once consent is recorded, or null if the reader

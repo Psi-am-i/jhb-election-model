@@ -25,8 +25,17 @@ export function byCodeOf(schema) {
   return Object.fromEntries(schema["x-parties"].map(p => [p.code, p]));
 }
 
+// The label a shared forecast shows (owner, 2026-09-29): the reader's own
+// text or X @username if the body carries one, otherwise the random default
+// assigned to this forecast at creation. A row without either (none are
+// created now) shows "A reader".
+export function labelOf(body, row) {
+  return body.display_name ?? row.default_label ?? null;
+}
+
 function cardInputs(row, schema, geom) {
-  const forecast = JSON.parse(row.body);
+  const body = JSON.parse(row.body);
+  const forecast = { ...body, display_name: labelOf(body, row) };
   const answer = JSON.parse(row.seats);
   return {
     forecast, seats: answer.seats, geom, byCode: byCodeOf(schema),

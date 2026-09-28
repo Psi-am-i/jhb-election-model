@@ -4,7 +4,8 @@
 // the seat law: this copy is the only way it reaches seats-py/.
 //
 //   node tools/sync_seats_py.mjs          copy (refuses if a source is missing)
-//   node tools/sync_seats_py.mjs --check  exit 1 if any copy differs from src/
+//   node tools/sync_seats_py.mjs --check  exit 1 if any copy is missing, differs
+//                                         from src/, or code_ref.py is stale
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, resolve } from "node:path";
@@ -26,22 +27,44 @@ export function codeRef(bufs) {
   return h.digest("hex");
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const missing = FILES.filter(f => !existsSync(resolve(SRC, f)));
-  if (process.argv.includes("--check")) {
-    let bad = 0;
-    for (const f of FILES) {
-      const d = resolve(DST, f);
-      if (!existsSync(d)) { console.log(`not copied yet: ${f}`); continue; }
-      if (!existsSync(resolve(SRC, f)) || !readFileSync(d).equals(readFileSync(resolve(SRC, f)))) {
-        console.error(`STALE: seats-py/src/${f} differs from src/${f}`); bad++;
-      }
-    }
-    process.exit(bad ? 1 : 0);
+// Every problem with the copy in `dst` against the sources in `src`, as
+// strings; empty means the copy is complete and current. A MISSING copy is a
+// problem (R5 finding 16): a partial copy would deploy a seat Worker whose
+// import fails, and "not copied yet" used to pass. code_ref.py must exist and
+// name the hash of exactly these sources.
+export function checkCopy(src = SRC, dst = DST) {
+  const problems = [];
+  for (const f of FILES) {
+    const s = resolve(src, f), d = resolve(dst, f);
+    if (!existsSync(s)) problems.push(`source missing: src/${f}`);
+    else if (!existsSync(d)) problems.push(`not copied: seats-py/src/${f}`);
+    else if (!readFileSync(d).equals(readFileSync(s))) problems.push(`STALE: seats-py/src/${f} differs from src/${f}`);
   }
-  if (missing.length) { console.error(`cannot copy: src/${missing.join(", src/")} does not exist yet`); process.exit(1); }
-  const bufs = FILES.map(f => readFileSync(resolve(SRC, f)));
-  FILES.forEach((f, i) => writeFileSync(resolve(DST, f), bufs[i]));
-  writeFileSync(resolve(DST, "code_ref.py"), `# Written by worker-api/tools/sync_seats_py.mjs. Do not edit.\nCODE_REF = "${codeRef(bufs)}"\n`);
+  const ref = resolve(dst, "code_ref.py");
+  if (!existsSync(ref)) problems.push("not written: seats-py/src/code_ref.py");
+  else if (FILES.every(f => existsSync(resolve(src, f)))) {
+    const want = codeRef(FILES.map(f => readFileSync(resolve(src, f))));
+    if (!readFileSync(ref, "utf8").includes(`CODE_REF = "${want}"`)) problems.push("STALE: seats-py/src/code_ref.py does not name the current sources");
+  }
+  return problems;
+}
+
+export function copy(src = SRC, dst = DST) {
+  const missing = FILES.filter(f => !existsSync(resolve(src, f)));
+  if (missing.length) throw new Error(`cannot copy: src/${missing.join(", src/")} does not exist`);
+  const bufs = FILES.map(f => readFileSync(resolve(src, f)));
+  FILES.forEach((f, i) => writeFileSync(resolve(dst, f), bufs[i]));
+  writeFileSync(resolve(dst, "code_ref.py"), `# Written by worker-api/tools/sync_seats_py.mjs. Do not edit.\nCODE_REF = "${codeRef(bufs)}"\n`);
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  if (process.argv.includes("--check")) {
+    const problems = checkCopy();
+    for (const p of problems) console.error(p);
+    if (problems.length) console.error("run `npm run sync:seats` to copy the seat code into seats-py/");
+    else console.log(`seats-py/src carries ${FILES.length} files and code_ref.py, current`);
+    process.exit(problems.length ? 1 : 0);
+  }
+  try { copy(); } catch (e) { console.error(e.message); process.exit(1); }
   console.log(`copied ${FILES.join(", ")}; code_ref written`);
 }

@@ -15,7 +15,12 @@
   "compatibility_date": "2026-08-22",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": false,
-  "observability": { "enabled": true, "head_sampling_rate": 1 },
+  // Invocation logs are OFF (R5 finding 10): each one records the request URL,
+  // and OAuth callbacks carry the authorisation code and state in the query
+  // string, which the provider decides, not us. Only the structured
+  // console.log / console.error lines this code writes reach Workers Logs, and
+  // none of them carries a URL, a token, an address or a forecast.
+  "observability": { "enabled": true, "head_sampling_rate": 1, "logs": { "invocation_logs": false } },
 
   // Fonts for the server-rendered share card, bundled as ArrayBuffers.
   "rules": [{ "type": "Data", "globs": ["**/*.ttf"], "fallthrough": false }],
@@ -28,8 +33,17 @@
     // and logs why. ISO 8601 with an explicit offset.
     "POST_ELECTION_MESSAGE_AT": "",
     "DELETION_AT": "",
-    // Names the consent wording shown; bump when the text changes.
-    "CONSENT_WORDING_VERSION": "draft-2026-09-28",
+    // The consent wording's version is NOT configured: it is the hash of the
+    // displayed text (interactive/js/consent-terms.js).
+    // The post-election message: accounts mailed per hourly run, and how many
+    // sends are in flight at once; accounts processed per deletion run.
+    "MESSAGE_BATCH_SIZE": "500",
+    "MAIL_CONCURRENCY": "10",
+    "DELETION_BATCH_SIZE": "200",
+    // Sender address on a verified Email Service domain. EMPTY = not set up;
+    // no mail is sent (src/mail.js). The `send_email` binding EMAIL is not
+    // declared either: the owner adds both with the sending domain.
+    "MAIL_FROM": "",
     "MICROSOFT_TENANT": "common",
     "MAX_FORECASTS_PER_USER": "20",
     "SAVES_PER_USER_PER_DAY": "30",
@@ -39,6 +53,8 @@
     "COOKIE_SECURE": "true"
   },
 
+  // Where D1 and R2 hold the data (location hint or jurisdiction) is the
+  // owner's decision, with counsel (R5 finding 3). Deliberately unset here.
   "d1_databases": [
     {
       "binding": "DB",
@@ -72,7 +88,10 @@
         "LOCK_AT": "2026-11-04T07:00:00+02:00",
         "POST_ELECTION_MESSAGE_AT": "",
         "DELETION_AT": "",
-        "CONSENT_WORDING_VERSION": "draft-2026-09-28",
+        "MESSAGE_BATCH_SIZE": "500",
+        "MAIL_CONCURRENCY": "10",
+        "DELETION_BATCH_SIZE": "200",
+        "MAIL_FROM": "",
         "MICROSOFT_TENANT": "common",
         "MAX_FORECASTS_PER_USER": "20",
         "SAVES_PER_USER_PER_DAY": "30",

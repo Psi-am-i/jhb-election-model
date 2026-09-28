@@ -285,7 +285,7 @@ def demo_forecast(geom, model) -> dict:
     return {
         "_about": "PLACEHOLDER — a made-up reader forecast for the prototype's shared page.",
         "id": "demo7Qx2Lp",
-        "display_name": "Thandi M.",
+        "display_name": "pollster-23",
         "created_at": "2026-09-28T09:00:00Z",
         "model_ref": model["model_ref"],
         "ward_calls": [calls[w["id"]] for w in geom["wards"]],

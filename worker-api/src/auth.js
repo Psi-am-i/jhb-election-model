@@ -70,11 +70,12 @@ export async function callbackAuth(request, env, name) {
   const user = await env.DB.prepare("SELECT id FROM users WHERE provider = ? AND provider_sub = ?")
     .bind(name, id.sub).first();
   if (user) {
-    const sess = await createSession(env, user.id);
-    return redirect(st.r, [clear, sess]);
+    const cookies = [clear, await createSession(env, user.id)];
+    if (id.handle) cookies.push(await handleCookie(env, user.id, id.handle));
+    return redirect(st.r, cookies);
   }
   const pending = await signToken(env.SESSION_SIGNING_KEY, "pending",
-    { provider: name, sub: id.sub, ck: id.contact_kind, c: id.contact, cv: id.contact_verified, r: st.r }, PENDING_TTL);
+    { provider: name, sub: id.sub, ck: id.contact_kind, c: id.contact, cv: id.contact_verified, h: id.handle || null, r: st.r }, PENDING_TTL);
   return redirect(`/make?consent=1&return=${encodeURIComponent(st.r)}`,
     [clear, setCookie(env, "pending", pending, { maxAge: PENDING_TTL })]);
 }
@@ -117,5 +118,22 @@ export async function requireUser(request, env) {
 export async function logout(request, env) {
   const raw = readCookies(request)[cookieName(env, "session")];
   if (raw) await env.DB.prepare("DELETE FROM sessions WHERE id_hash = ?").bind(await sha256Hex(raw)).run();
-  return new Response(null, { status: 204, headers: { "set-cookie": clearCookie(env, "session") } });
+  const h = new Headers();
+  h.append("set-cookie", clearCookie(env, "session"));
+  h.append("set-cookie", clearCookie(env, "handle"));
+  return new Response(null, { status: 204, headers: h });
+}
+
+// The X username, offered as the default label, is NOT stored in D1 (owner,
+// 2026-09-29: store it only if the reader keeps it as a label). It lives in a
+// signed HttpOnly cookie bound to the account, for as long as the session.
+export async function handleCookie(env, userId, handle, now = Date.now()) {
+  const days = intVar(env, "SESSION_DAYS");
+  const t = await signToken(env.SESSION_SIGNING_KEY, "handle", { u: userId, h: handle }, days * 86400, now);
+  return setCookie(env, "handle", t, { maxAge: days * 86400 });
+}
+
+export async function readHandle(request, env, userId) {
+  const p = await verifyToken(env.SESSION_SIGNING_KEY, "handle", readCookies(request)[cookieName(env, "handle")]);
+  return p && p.u === userId && typeof p.h === "string" ? p.h : null;
 }

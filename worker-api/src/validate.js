@@ -13,6 +13,7 @@
 // (a `seats` key, a __proto__ key, a getter) survives into storage.
 
 import { BLOCKED_NAME_PATTERNS } from "./blocklist.js";
+import { LABEL_RE } from "../../interactive/js/labels.js";
 
 const refuse = (field, reason) => ({ ok: false, field, reason });
 
@@ -40,6 +41,12 @@ export function cleanDisplayName(raw, schema) {
   if (n === 0) return refuse("display_name", "empty after removing invisible characters");
   if (n > max) return refuse("display_name", `longer than ${max} characters`);
   if (/[<>]/.test(s)) return refuse("display_name", "may not contain < or >");
+  // A typed label may not take the shape of a random default ("pollster-23"):
+  // it could copy another reader's label. A reader who wants their own
+  // default back sends null.
+  if (LABEL_RE.test(s.toLowerCase())) return refuse("display_name", "that shape is kept for random labels; leave the label empty to use yours");
+  // Owner, 2026-09-29: a label is never an email address (nor derived from one).
+  if (/[^\s@]+@[^\s@]+\.[^\s@]+/.test(s)) return refuse("display_name", "may not contain an email address");
   if (URLISH.test(s)) return refuse("display_name", "may not contain a web address");
   for (const re of BLOCKED_NAME_PATTERNS)
     if (re.test(s)) return refuse("display_name", "not accepted; share as \"A reader\" or choose another name");
@@ -105,7 +112,10 @@ export function validateForecast(input, schema) {
     if (!co.includes(mayor)) return refuse("mayor", "must be a member of the coalition");
   }
 
-  // display_name: only when the reader typed one to show.
+  // display_name: the forecast's LABEL, when the reader chose one (their own
+  // text, or their X @username kept as the default). null means "show this
+  // forecast's random default label" (interactive/js/labels.js), which the
+  // server assigns; no real name is ever collected.
   let display_name = null;
   if (input.display_name !== undefined && input.display_name !== null) {
     const n = cleanDisplayName(input.display_name, schema);

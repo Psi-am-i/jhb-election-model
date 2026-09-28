@@ -39,7 +39,9 @@ To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 | `js/map.js` | the ward map (geographic and equal-sized), painting, keyboard |
 | `js/card.js` | the share image, SVG to PNG, 1200×630 and 1080×1920 |
 | `js/share.js` | the share sheet |
-| `js/auth-ui.js` | sign-in and the consent screen |
+| `js/auth-ui.js` | sign-in and the consent screen, rendered from `js/consent-terms.js` |
+| `js/consent-terms.js` | the consent wording, its keys and its version hash: one definition, imported by the page and `worker-api` |
+| `js/labels.js` | the default-label word list and generator: one definition, imported by the page stub and `worker-api` |
 | `js/api-stub.js` | **stub** of the API in BACKEND.md, in localStorage |
 | `js/allocator-stub.js` | **stub** seat allocator, deliberately not the law |
 | `js/common.js` | fixture loading, escaping, theme toggle |
@@ -55,9 +57,9 @@ To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 | `fixtures/placeholder-draws.json` | per-draw pool turnouts, list shares and seats for each grid cell and seat law | S2 and S3 of PLAN.md |
 | `js/model.js` re-weighting | `src/reweight.py` (PLAN S4), run under Pyodide | delete the JavaScript; one definition in Python |
 | `js/allocator-stub.js` | `seats.allocate` | the model's own function under Pyodide; see "Integration" |
-| `js/api-stub.js`, `js/auth-ui.js` provider buttons | the Worker API, OAuth, magic-link email | BACKEND.md |
+| `js/api-stub.js`, `js/auth-ui.js` provider buttons | the Worker API and OAuth | `worker-api/` |
 | `fixtures/geometry.json` sectors | the S5 ward-to-sector file | S5 |
-| `privacy-placeholder.html` | privacy notice, competition rules, report route | written text, checked by counsel |
+| `privacy-placeholder.html` | DRAFT privacy notice (placeholders for the owner's decisions), competition rules, report route | the owner's decisions filled in, checked by counsel |
 
 **The fixtures are synthetic on purpose.** A seeded random generator made them;
 none is derived from `ward_draws.csv`, `seat_draws.csv` or any model artefact,
@@ -158,14 +160,15 @@ before sign-in goes live.**
 
 | requirement | how the prototype meets it |
 |---|---|
-| A saved forecast (which parties govern) can reveal political persuasion: special personal information, POPIA s26 | Lawful basis is explicit consent, s27(1)(a): its own required, unticked box, worded to say so, with purpose, retention, deletion and cross-border storage stated beside it |
+| What a saved forecast is | Owner, 2026-09-29: a PREDICTION of the outcome, treated as ordinary personal information, not s26 special personal information (the draft notice states this as the responsible party's view, **counsel to confirm**). Explicit consent is kept anyway: its own required, unticked box |
+| Consent informed and specific | The screen's text (`js/consent-terms.js`) states the one post-election email sent whatever is ticked, that anyone with the link can see a prediction, the analysis against past elections, what happens without a confirmed email, and the copies that outlast a deletion. Its version is a hash of that text, checked by the server |
 | Consent voluntary and specific | "Contact me if I win" and "send me updates" are separate, unticked and optional; saving works with both off |
 | Electronic direct marketing needs opt-in, s69 | "Updates" is opt-in; every email carries an unsubscribe link (BACKEND §8) |
-| Minimality, s10 | display name, email, provider account id; no photo, contacts or location; scopes minimised |
-| Publishing a view against a name | showing the name on shared links is a required choice with no default; "A reader" is the alternative |
+| Minimality, s10 | provider account id and one CONFIRMED email; no name, photo, contacts or location. An unconfirmed address gets one confirmation link and is stored only if it is used |
+| No name on shared links | Owner, 2026-09-29: a shared forecast shows a label: the reader's own text, their X @username, or a random "pollster-23" style label chosen per forecast (`js/labels.js`) |
 | Children, s34–35 | 18+ confirmed before saving |
-| Transfer outside South Africa, s72 | stated on the consent screen; to be in the privacy notice |
-| Deletion, s24 | delete a forecast or everything; deleted links answer 410 |
+| Transfer outside South Africa, s72 | placeholder on the consent screen and in the draft notice: the jurisdiction is the owner's decision (R5 finding 3) |
+| Deletion, s24 | delete a forecast or everything, no email needed; deleted links answer 410; the copies that outlast it (D1 Time Travel, Workers Logs, browser caches) are listed in the draft notice |
 | Competitions (Consumer Protection Act s36 and regulations) | rules page placeholder linked from the opt-in; rules must exist before any prize is offered |
 
 **Declined or changed from the request, and why:**
@@ -184,9 +187,11 @@ before sign-in goes live.**
 ## Open decisions for the owner
 
 1. Sign in to **create**, or sign in to **save and share** (built as the latter).
-2. Which providers: Google, Apple, Facebook, X and email link are built as
-   buttons. Each needs an app registration, a privacy-policy URL and (Apple,
-   Facebook) a data-deletion URL. X does not reliably return an email.
+2. Which providers: Google, Apple, Microsoft, Facebook and X are built as
+   buttons (the email link was dropped). Each needs an app registration, a
+   privacy-policy URL and (Apple, Facebook) a data-deletion URL. X does not
+   reliably return an email. Instagram has no personal-account sign-in (Meta
+   closed it in December 2024).
 3. Retention: proposed deletion on 30 June 2027; updates until unsubscribe.
 4. Prizes: whether there are any, the rules, the promoter, how ties break, and
    who may enter. The scoring rule is frozen before 4 November (DESIGN-decided §5).

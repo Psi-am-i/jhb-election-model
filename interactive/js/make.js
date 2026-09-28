@@ -1,7 +1,8 @@
 // "Make your own forecast". §8 of DESIGN-decided: every control applies to
 // every party identically; nothing is pre-selected for one party.
 
-import { loadAll, esc, wireTheme, loadDraft, saveDraft, topN, announce, pageURL, possessive } from "./common.js";
+import { loadAll, esc, wireTheme, loadDraft, saveDraft, topN, announce, pageURL, possessive, cleanName } from "./common.js";
+import { handleLabel } from "./labels.js";
 import { WardMap } from "./map.js";
 import { allocate } from "./allocator-stub.js";
 import { ensureConsent } from "./auth-ui.js";
@@ -205,6 +206,8 @@ function recompute() {
 }
 
 // ---------- save and share ----------
+let labelOffered = false;
+$("#flabelclear").addEventListener("click", () => { $("#flabel").value = ""; $("#flabel").focus(); });
 function problems() {
   const out = [];
   const left = S.calls.filter(c => !c).length;
@@ -219,9 +222,24 @@ $("#save").addEventListener("click", async () => {
   $("#saveerr").textContent = "";
   const s = await ensureConsent();
   if (!s) { $("#saveerr").textContent = "Not saved. Your forecast is still here."; return; }
+  // Owner, 2026-09-29: an X reader's label starts as their @username. It is
+  // filled in here, and the save stops once, so they see it and can change or
+  // clear it before anything is shared.
+  const xLabel = handleLabel(s.handle);
+  if (xLabel && !labelOffered) {
+    labelOffered = true;
+    if (!$("#flabel").value.trim()) {
+      $("#flabel").value = xLabel;
+      $("#saveerr").textContent = `Your shared prediction will show ${xLabel}. Change or clear the label, then press Save and share again.`;
+      $("#flabel").focus();
+      return;
+    }
+  }
+  const label = cleanName($("#flabel").value);
   const forecast = { id: S.id, model_ref: model.model_ref, ward_calls: S.calls.slice(),
-    combined_share: { ...S.share }, coalition: S.coalition.slice(), mayor: S.mayor || null };
-  const { id, path } = await saveForecast(forecast);
+    combined_share: { ...S.share }, coalition: S.coalition.slice(), mayor: S.mayor || null,
+    display_name: label || null };
+  const { id, path, label: shown } = await saveForecast(forecast);
   S.id = id; recompute();
   const url = pageURL(path);
   $("#savedline").innerHTML = `Saved. <a href="${esc(path)}">Open your forecast's page</a> — <button class="linkbtn" type="button" id="del">Delete it</button>`;
@@ -229,7 +247,8 @@ $("#save").addEventListener("click", async () => {
     await deleteForecast(id); S.id = null; recompute();
     $("#savedline").textContent = "Deleted. The link no longer works.";
   });
-  const f = { ...forecast, display_name: s.consent.show_name ? s.display_name : "" };
+  $("#savedline").insertAdjacentHTML("beforeend", ` Shown as <b>${esc(shown)}</b>.`);
+  const f = { ...forecast, display_name: shown };
   const council = { council: result.council, majority: result.majority };
   const svgFor = size => buildCardSVG({ forecast: f, seats: result.seats, geom, byCode, model: council, size, placeholder: true });
   openShare({ url, title: possessive(f.display_name) + " — Johannesburg 2026",
