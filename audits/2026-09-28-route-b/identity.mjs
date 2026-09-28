@@ -6,11 +6,13 @@ const now = () => Number(process.hrtime.bigint()) / 1e9;
 const t0 = now();
 const py = await loadPyodide();
 await py.loadPackage(["numpy", "micropip"]);
-await py.runPythonAsync(`import micropip\nawait micropip.install("openpyxl")`);
+try { await py.runPythonAsync(`import micropip\nawait micropip.install("openpyxl")`); }
+catch (e) { console.log("OPENPYXL INSTALL FAILED:\n" + String(e.message).slice(-1500)); process.exit(1); }
 const boot = now() - t0;
 py.FS.mkdir("/repo");
 py.FS.mount(py.FS.filesystems.NODEFS, { root: repo }, "/repo");
-const res = await py.runPythonAsync(`
+let res;
+try { res = await py.runPythonAsync(`
 import sys, os, time, json
 sys.dont_write_bytecode = True
 os.chdir("/repo"); sys.path.insert(0, "/repo/src")
@@ -36,8 +38,9 @@ levels._citywide_and_roster = real
 same = {n: bool(np.array_equal(parse[n], tab[n])) for n in parse}
 json.dumps({"same_interpreter_identical": same, "parse_s": t_parse, "table_s": t_tab,
             "election_files_opened_in_table_mode": sorted(opened),
-            "arrays": {n: tab[n].tolist() for n in tab}})
-`);
+            "arrays": {n: tab[n].tolist() for n in tab}},
+           default=lambda o: sorted(o) if isinstance(o, (set, frozenset)) else str(o))
+`); } catch (e) { console.log("PYERR:\n" + String(e.message).slice(-2500)); process.exit(1); }
 const r = JSON.parse(res);
 r.boot_s = boot; r.node = process.version; r.draws = +draws; r.seed = +seed;
 (await import("fs")).writeFileSync(out, JSON.stringify(r));

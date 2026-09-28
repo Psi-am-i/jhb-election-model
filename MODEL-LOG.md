@@ -27352,3 +27352,41 @@ new artefact was counted in the headline and printed nowhere. The order is now
 **Not done:** the browser run itself; the remaining ~15 MB and `openpyxl` on the
 load path; the page's loader. A key-coverage test cannot yet cover the per-poll
 dial or turnout by area, because neither is built.
+
+## 1.267 In Pyodide, the citywide table reproduces Atlas seat for seat, in 6.6 s instead of 28 s (2026-09-28)
+
+Pre-registered before the run in `prereg/2026-09-28-route-b-in-pyodide.md`
+(committed at `de92c0b`). The run: Pyodide 0.28.3 under Node v24.5.0, numpy
+2.2.5 from Pyodide's distribution, `openpyxl` from `micropip`, Johannesburg
+2026, seed 20261104, 40 draws. The native comparison ran on Atlas with one BLAS
+thread. Harness: `audits/2026-09-28-route-b/identity.mjs` and
+`compare_native.py`.
+
+| prediction | result | verdict |
+|---|---|---|
+| **P1** Pyodide table mode equals Pyodide parse mode, every `*draws` array exact | all 8 arrays `np.array_equal` | **held** |
+| **P2** Pyodide table mode against native: integer arrays exact, floats within 1e-12 | `draws`, `seat_draws`, `ward_seat_draws`, `ward_winner_draws`, `excessive_draws`, `over_draws` exact; `pr_share_draws` max abs diff 9.85e-16, `ward_share_draws` 9.44e-16 | **held** |
+| **P3** table mode opens exactly `lge2021_JHB_vd_party_clean.csv` and `npe2024_JHB_vd_party.csv` | exactly those two | **held** |
+| **P4** table-mode 40-draw run 4–9 s, parse-mode 20–35 s | 6.6 s and 28.0 s (Pyodide boot 1.5 s, separate) | **held** |
+
+**Harness defects fixed between the first attempt and the scored run. None of
+them touched the model or the table:**
+* the first attempt crashed at output, because `over_draws` holds frozensets
+  that JSON cannot serialise;
+* error reporting was added so a Python failure prints its traceback rather than
+  Node's minified source line;
+* `compare_native.py` compared the set-valued array against lists and was
+  rewritten to compare sets as sorted lists.
+
+Both model runs had completed in the first attempt; only the dump failed.
+
+**What this licenses.** The browser engine can run the real model with Route B's
+table, and its draws are Atlas's draws to within floating-point rounding: no
+seat moved in 40 draws. The page may say a reader's re-run uses the published
+model.
+
+**Limits.** One seed, 40 draws, the default scenario. Node, not a browser: file
+reads go through NODEFS at disk speed, so a browser adds the download of the
+remaining ~15 MB, which is still unaddressed. "No seat moved" is 40 draws; a
+share within 1e-15 of an allocation threshold would move a seat, and that has
+not been looked for.
