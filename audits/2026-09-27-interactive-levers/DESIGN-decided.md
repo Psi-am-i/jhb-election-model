@@ -254,3 +254,26 @@ page** (PUBLISHING-BACKLOG §14; evidence `audits/2026-09-29-zero-cells/`).
   few wards (PA: 4); and that 0.40 is an unmeasured judgement (JUDGEMENT-CALLS
   §A35) which only the 4 November result can test.
 * **Kept:** turnout by community, polls (one control), the seat law.
+
+## 12. A forecast is a prediction, not a political view (owner, 2026-09-29)
+
+Owner: *"not sure a forecast is a political view. Its a prediction."*
+
+**Position.** A saved forecast records what the reader expects to happen, not
+what they believe or support. It is treated as ordinary personal information,
+not POPIA special personal information ("political persuasion"). This
+supersedes the stricter reading in DESIGN-decided §9 and in the R5 review's
+finding 3.
+
+* **What changes:**
+  * the consent wording says "your prediction";
+  * cross-border transfer is handled under the ordinary conditions (POPIA s72,
+    consent), not s57 prior authorisation.
+* **What does not change:**
+  * the privacy notice and the retention and deletion dates are required for
+    any personal information, so R5 finding 4 still blocks launch;
+  * every protection already built stays: explicit consent, unticked opt-ins,
+    18+, deletion.
+* **Grey area, recorded rather than resolved:** the coalition pick and a named
+  public forecast sit closer to preference than a seat count does.
+* **Counsel confirms the one sentence** when reviewing the notice.
