@@ -730,6 +730,11 @@ class PoolCounts:
     # here has no identifying variation in this city's ward table at that
     # level, and its rate is a clipped corner, not a measurement (§1.164).
     unidentified: list[str] = field(default_factory=list)
+    # Rates that are NOT fitted at all but held at a declared fallback, by
+    # level: ``{"registration": [pool index, ...], "turnout": [...]}``. Such a
+    # rate is neither an estimate nor an observed movement, so
+    # ``panel_turnout_spread`` must not read it as one. See :func:`_nest_holding_silent`, JUDGEMENT-CALLS §L14.
+    imputed: dict[str, list[int]] = field(default_factory=dict)
 
     def composition(self, level: str = "voted") -> np.ndarray:
         counts = getattr(self, level)
@@ -904,15 +909,19 @@ REGISTRATION_MAX = 2.0
 
 
 def _nest(parent: np.ndarray, observed: np.ndarray,
-          upper: float = 1.0) -> tuple[np.ndarray, np.ndarray]:
+          upper: float = 1.0,
+          hold: dict[int, float] | None = None) -> tuple[np.ndarray, np.ndarray]:
     """Split an observed ward total across pools, in proportion to the parent.
 
     One rate per pool is fitted across wards (``observed_w ~ sum_g parent_wg
     r_g``), applied, then each ward is scaled so its pools sum to what was
     actually observed there. The rate carries the between-ward information; the
     scaling makes every ward agree with the published count.
+
+    ``hold`` pins named pools at a stated rate and re-fits the others around
+    them — see :func:`_nnls` and :func:`_nest_holding_silent`.
     """
-    rate = _nnls(parent, observed, upper=upper)
+    rate = _nnls(parent, observed, upper=upper, hold=hold)
     child = parent * rate[None, :]
     row = child.sum(axis=1)
     scale = np.divide(observed, row, out=np.ones_like(row), where=row > 0)
@@ -920,7 +929,8 @@ def _nest(parent: np.ndarray, observed: np.ndarray,
 
 
 def _nnls(A: np.ndarray, b: np.ndarray, iters: int = 40000,
-          upper: float = 1.0) -> np.ndarray:
+          upper: float = 1.0,
+          hold: dict[int, float] | None = None) -> np.ndarray:
     """Fit one non-negative rate per pool, BOUNDED ABOVE BY A PROPORTION.
 
     ⛔ THE UPPER BOUND WAS MISSING AND IT MANUFACTURED EVERY DEGENERATE CELL IN
@@ -946,14 +956,117 @@ def _nnls(A: np.ndarray, b: np.ndarray, iters: int = 40000,
     replace a visibly absurd number with an invisibly wrong one, which is
     worse.
     """
-    x = np.full(A.shape[1], b.sum() / max(A.sum(), 1e-9))
+    x = np.full(A.shape[1], _uninformed_rate(A, b))
     x = np.clip(x, 0.0, upper)
+    # ``hold`` pins a pool's rate and re-fits the others AROUND it: projected
+    # gradient with those coordinates reset after every step is exactly the
+    # least-squares fit of the free pools to what the held ones leave over.
+    held = dict(hold or {})
+    for g, v in held.items():
+        x[g] = v
     lipschitz = float(np.linalg.norm(A, 2) ** 2)
     if lipschitz <= 0:
         return x
     for _ in range(iters):
         x = np.clip(x - (A.T @ (A @ x - b)) / lipschitz, 0.0, upper)
+        for g, v in held.items():
+            x[g] = v
     return x
+
+
+def _uninformed_rate(A: np.ndarray, b: np.ndarray) -> float:
+    """The rate a pool takes when the ward table says nothing about it.
+
+    The city's own pooled rate, ``sum(observed) / sum(parent)`` — for the
+    turnout level, votes cast over registered voters, citywide. It is the value
+    :func:`_nnls` starts every pool at, and so the value a pool with NO parent
+    mass in any ward keeps: its gradient is zero and it never moves.
+
+    ONE DEFINITION, TWO USERS. :func:`_nest_holding_silent` gives the same
+    value to a pool whose fitted rate walked to the 0.0 corner, so "the ward
+    table cannot tell this pool's rate from the city's" means one number
+    wherever it arises. It is a declared fallback, not an estimate —
+    JUDGEMENT-CALLS §L14.
+    """
+    return float(b.sum() / max(A.sum(), 1e-9))
+
+
+def _silent_pools(parent: np.ndarray, rate: np.ndarray) -> dict[int, float]:
+    """Pools that HOLD people at the level above and were fitted to hold none.
+
+    ⛔ THIS IS WHERE PREREG C1 CAME FROM (MODEL-LOG §1.258, §1.259, §1.269).
+    One of the three nested solves walked a small pool to the 0.0 corner, so
+    the pool cast no votes in the fitting election: the turnout solve for
+    Mangaung's Indian/Asian pool at 2011, 2016 and 2021 and Buffalo City's at
+    2011 and 2021, and the REGISTRATION solve for Mangaung's at 2006, whose
+    people and adults are in the census and whose registered voters were
+    fitted to nobody. Its column in the ``voted`` composition was then all
+    zeros, the joint party fit left that pool's rate row at zero
+    (``test_the_three_known_things_hold_at_once``: rows ``[1, 1, 0, 1]``),
+    every party's weight in it was zero, and ``emit_pools`` dropped it — while
+    the same spec sized it in ``pool_shares_at_target``. A spec contradicting
+    itself about where its electorate is.
+
+    A rate of exactly 0.0 on a pool that exists at the level above is not a
+    measurement; it is a pool the least-squares fit found cheaper to silence.
+    Returns ``{pool index: size at the level above}`` for each such pool, so
+    the caller can hold it at :func:`_uninformed_rate` and re-fit the rest. A
+    pool with nothing at the level above is EMPTY, not silent, and is not
+    returned. Only the lower corner: a rate on its UPPER bound keeps the pool
+    in the electorate and is prereg C2's question, not this one.
+    """
+    size = parent.sum(axis=0)
+    return {int(g): float(size[g]) for g in range(len(rate))
+            if rate[g] <= _RATE_BOUND_EPS and size[g] > 0}
+
+
+class HoldCascadeRefused(ValueError):
+    """Holding silenced pools silenced every other populated pool in turn."""
+
+
+def _nest_holding_silent(parent: np.ndarray, observed: np.ndarray,
+                         upper: float = 1.0
+                         ) -> tuple[np.ndarray, np.ndarray, dict[int, float]]:
+    """:func:`_nest`, with any pool silenced at the 0.0 corner held and re-fitted.
+
+    Returns ``(child, rate, silenced)`` where ``silenced`` is
+    :func:`_silent_pools` of the FREE fit plus any pool the re-fit silenced in
+    turn — every pool that was held, and the size each held at the level
+    above. A re-fit that silences a second pool holds it too; one that would
+    hold every populated pool raises :class:`HoldCascadeRefused`. The held value is the city's own rate,
+    :func:`_uninformed_rate`; the other pools are re-fitted around it, so the
+    reported rates and the ward-scaled counts describe one fit. JUDGEMENT-CALLS
+    §L14.
+    """
+    child, rate = _nest(parent, observed, upper=upper)
+    silenced = _silent_pools(parent, rate)
+    if silenced:
+        fallback = _uninformed_rate(parent, observed)
+        # ⛔ THE RE-FIT CAN SILENCE A SECOND POOL (blind review 2026-09-29).
+        # Holding one pool above zero takes votes from the pools sharing its
+        # wards, and one of THOSE can then be driven to the 0.0 corner — the
+        # very defect the hold exists to remove, moved one pool over and
+        # reported as fixed. So the re-fit is checked, and every pool it
+        # silences is held by the same rule and the rest re-fitted again. The
+        # hold set only grows, so this ends; if it would hold every pool with
+        # people in it there is nothing left to fit and the solve REFUSES.
+        populated = {g for g in range(parent.shape[1])
+                     if parent[:, g].sum() > 0}
+        while True:
+            child, rate = _nest(parent, observed, upper=upper,
+                                hold={g: fallback for g in silenced})
+            cascade = {g: v for g, v in _silent_pools(parent, rate).items()
+                       if g not in silenced}
+            if not cascade:
+                break
+            silenced.update(cascade)
+            if populated <= set(silenced):
+                raise HoldCascadeRefused(
+                    f"holding the silenced pools at the city's rate "
+                    f"({fallback:.4f}) silenced every other populated pool "
+                    f"in turn ({sorted(silenced)}): the ward table leaves "
+                    f"nothing to fit. JUDGEMENT-CALLS §L14.")
+    return child, rate, silenced
 
 
 # How close to a bound a fitted rate must sit before it is reported as
@@ -1150,6 +1263,15 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
     silently capping it would bury a defect in the public record (Census 2022's
     ward-level undercount, or voters registered where they do not live) inside
     our own numbers.
+
+    ⛔ **A pool that exists is never fitted to vanish.** Where any of the three
+    solves lands a pool on the 0.0 bound while the level above holds people in
+    it, that pool is held at the city's own rate for that level and the others
+    are re-fitted around it (:func:`_nest_holding_silent`, JUDGEMENT-CALLS
+    §L14). Left at zero, the pool's column in ``composition("voted")`` was
+    empty, the party fit could not place anyone in it, and ``emit_pools``
+    dropped it from a spec that still sized it — prereg C1, MODEL-LOG §1.269. The held pools are listed in
+    ``imputed`` and, with the corner they came from, in ``unidentified``.
     """
     base = cfg.base()
     when = polling_decimal_year(year, city)
@@ -1338,10 +1460,21 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
 
     people = comp * np.array([people_by_ward[w] for w in wards])[:, None]
 
+    # ⛔ A POOL THAT EXISTS AT ONE LEVEL IS NEVER FITTED TO VANISH AT THE NEXT
+    # (prereg C1, queue entry 30, MODEL-LOG §1.269). Each solve that lands a
+    # pool on the 0.0 corner while the level above holds people in it HOLDS
+    # that pool at the city's own rate for the level and re-fits the rest —
+    # `_nest_holding_silent`. Left at 0.0, the pool's `voted` column was empty,
+    # the joint fit left its rate row empty, and `emit_pools` dropped a pool the
+    # spec itself sized. The fallback is declared, not measured —
+    # JUDGEMENT-CALLS §L14 — and each held pool is still reported below in
+    # `unidentified` with the corner it came from, so a reader sees both.
     rates: dict[str, np.ndarray] = {}
+    held: dict[str, dict[int, float]] = {}
     if adults_by_ward:
         observed_adults = np.array([adults_by_ward.get(w, 0.0) for w in wards])
-        voting_age, rates["adult_share"] = _nest(people, observed_adults)
+        voting_age, rates["adult_share"], held["adult_share"] = \
+            _nest_holding_silent(people, observed_adults)
     else:
         # No age table: every pool assumed equally adult, which is false and
         # said out loud rather than assumed silently.
@@ -1355,11 +1488,13 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
     # the registered roll read 20.0% against 25.2% unclipped. See
     # REGISTRATION_MAX. `adult_share` and `turnout` genuinely cannot exceed 1
     # and keep the tight bound.
-    registered, rates["registration"] = _nest(
-        voting_age, np.array([reg_by_ward[w] for w in wards]),
-        upper=REGISTRATION_MAX)
-    voted, rates["turnout"] = _nest(
+    registered, rates["registration"], held["registration"] = \
+        _nest_holding_silent(voting_age,
+                             np.array([reg_by_ward[w] for w in wards]),
+                             upper=REGISTRATION_MAX)
+    voted, rates["turnout"], held["turnout"] = _nest_holding_silent(
         registered, np.array([votes_by_ward.get(w, 0.0) for w in wards]))
+    imputed = {level: sorted(idx) for level, idx in held.items() if idx}
 
     # How wrong the census would have to be for this to hold. Registration is
     # counted; ward population is a modelled small-area estimate, and for the
@@ -1377,6 +1512,17 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
     # anywhere in the city, so its turnout has never been identifiable and the
     # old code reported 0.0000 as though it were measured.
     unidentified = []
+    _level_above = {"adult_share": "people", "registration": "adults",
+                    "turnout": "registered voters"}
+    for level, pools_held in held.items():
+        for g, size in sorted(pools_held.items()):
+            unidentified.append(
+                f"{categories[g]}: {level} fitted to 0.0000, which is ON A "
+                f"BOUND — a pool of {size:,.0f} {_level_above[level]} fitted to "
+                f"none at this level. HELD at the city's own rate "
+                f"{rates[level][g]:.4f} and the other pools re-fitted around "
+                f"it: a declared fallback, not a measurement (JUDGEMENT-CALLS "
+                f"§L14).")
     # ⚠️ EACH LEVEL IS TESTED AGAINST ITS OWN BOUND. `registration` is bounded
     # at REGISTRATION_MAX, not 1.0, so testing it against 1.0 reported every
     # legitimately-above-one rate as a clipped corner — Johannesburg White at
@@ -1437,7 +1583,7 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
     return PoolCounts(wards=wards, categories=categories, people=people,
                       voting_age=voting_age, registered=registered, voted=voted,
                       rates=rates, violations=violations,
-                      unidentified=unidentified)
+                      unidentified=unidentified, imputed=imputed)
 
 
 # WHICH CITY-YEARS EACH RECORD LOST, AND WHY. `(record, city slug)` ->
@@ -2527,6 +2673,7 @@ def fit_city(city: cityconfig.City, year: str, cfg: Config, *,
     hi = np.column_stack([b[:, 1] for b in dd])
     R = balance_within_bounds(raw, pool_votes, party_votes, lo, hi)
 
+
     fits: dict[str, PartyFit] = {}
     for i, party in enumerate(universe):
         y = Y[:, i]
@@ -2905,15 +3052,24 @@ def panel_turnout_spread(cfg: Config, before: str | None = None,
                                       losses=losses, quiet_stdout=True)
             if pc is None:
                 continue
-            seen[year] = (tuple(pc.categories), pc.rates["turnout"])
+            # Every pool held at ANY level: a turnout fitted on a held
+            # registration is conditioned on the fallback too.
+            seen[year] = (tuple(pc.categories), pc.rates["turnout"],
+                          {g for idx in pc.imputed.values() for g in idx})
         _report_pool_losses("panel_turnout_spread", city, losses)
         years = sorted(seen)
         for a, b in zip(years, years[1:]):
-            (ca, ra), (cb, rb) = seen[a], seen[b]
+            (ca, ra, ia), (cb, rb, ib) = seen[a], seen[b]
             for i, name in enumerate(ca):
                 if name not in cb:
                     continue
                 j = cb.index(name)
+                # A pool HELD at the city's fallback at any level
+                # (JUDGEMENT-CALLS §L14) was not measured, so a transition to
+                # or from it is not a movement either — the same reason a
+                # corner is skipped below.
+                if i in ia or j in ib:
+                    continue
                 x, y = float(ra[i]), float(rb[j])
                 # A pool UNIDENTIFIED at either end gives a movement between
                 # two corner solutions, which is not a movement.
@@ -3492,6 +3648,166 @@ SPLITS: dict[str, Split] = {
                   "the party in October 2019",
                   home="JHB"),
 }
+
+
+# ---------------------------------------------------------------------------
+# MERGERS — the inverse of a split, and as generic (F5, DESIGN-decided §8, §10;
+# audits/2026-09-29-mergers/SPEC.md).
+#
+# A split takes a measured FRACTION of its parent. A merger is the reverse: a
+# partner that is NOT on the target's ballot hands a fraction of its baseline to
+# the partner that IS. Nothing in code names a successor. Which partner inherits
+# is read per city, per target, from the roster, so the same declaration is a
+# transfer in one city and a no-op in another (see `apply_mergers`).
+#
+# ⛔ NO MERGER IN THE ARCHIVE IS MEASURABLE. The two with elections on both
+# sides (ID→DA, NNP→ANC) give naive retentions from -17 to +56, because the
+# successor's own swing is 5-20× the predecessor's mass (SPEC §1). So the
+# fraction is a declared judgement, not a measurement: JUDGEMENT-CALLS §O1.
+# ---------------------------------------------------------------------------
+@dataclass(frozen=True)
+class Merger:
+    """Parties that combined, and the date they did.
+
+    ``parties``  every partner, unordered — no successor is named here.
+    ``date``     when the combination was announced; a merger applies to a
+                 target whose polling day is after it.
+    ``why``      what happened, and the source (SOURCES.md, "Mergers").
+    """
+
+    parties: frozenset
+    date: _date
+    why: str
+
+
+# The share of an off-ballot partner's baseline that moves to the partner on
+# the ballot. 🔴 A DECLARED JUDGEMENT, NOT A MEASUREMENT: owner's decision
+# 2026-09-28 ("not a perfect combination"), range [0.5, 0.9]. The blind review
+# recommended 0.5 in [0.3, 0.8]; recorded, not adopted. JUDGEMENT-CALLS §O1.
+# Read at CALL time by `apply_mergers`, never bound as a default (§1.33).
+MERGER_RETENTION = 0.75
+MERGER_RETENTION_RANGE = (0.5, 0.9)
+
+MERGERS: tuple[Merger, ...] = (
+    Merger(frozenset({"GOOD", "RISE"}), _date(2026, 5, 25),
+           "GOOD and RISE Mzansi announce they will contest under their own "
+           "names with integrated structures after Unite for Change was "
+           "deferred; a stand-down pact, not a legal merger. SOURCES.md"),
+    Merger(frozenset({"FORUM_4_SERVICE_DELIVERY", "ASA"}), _date(2025, 1, 15),
+           "Forum 4 Service Delivery merges into ActionSA; its leader becomes "
+           "ActionSA's deputy president. SOURCES.md"),
+)
+
+# Every function that must pass its baseline through `apply_mergers`, as
+# `module.function`. `tests/test_roster_aware_baseline.py` scans `src/` for the
+# calls and asserts this set equals what it finds, in both directions.
+MERGER_CONSUMERS = frozenset({
+    "montecarlo.run_model",          # national baseline, and prev_local
+    "pools.emit_pools",              # the spec's baseline and pool vectors
+    "theta_residual._residuals_cached",   # must reproduce run_model's baseline
+})
+
+
+class MergerRefused(SystemExit):
+    """A merger whose direction the roster cannot decide."""
+
+
+def apply_mergers(shares: dict, roster, target_year: str, *,
+                  per_vd: dict | None = None,
+                  retention: float | None = None,
+                  mergers=None) -> tuple[dict, dict | None, list[dict]]:
+    """Move ``retention × predecessor`` to the partner on the ballot.
+
+    ONE DEFINITION, every consumer in :data:`MERGER_CONSUMERS`.
+
+    ``shares``      one election's citywide shares (a national baseline, or
+                    the preceding local result).
+    ``roster``      the target's ballot. Empty means unknown, and nothing moves:
+                    the same reading `levels.absent_from_ballot` takes.
+    ``per_vd``      optional ``{vd: shares}``, moved by the same rule. The
+                    record test is CITYWIDE, so a VD where the successor polled
+                    nothing still receives its fraction.
+
+    Direction is decided from the roster, per merger: partners on the ballot
+    inherit, partners off it transfer. No-op when every partner is on the
+    ballot or none is; **refused** when two or more are on it while another is
+    off, because nothing says which of them inherits.
+
+    ⛔ **A MERGER NEVER CREATES A RECORD THE SUCCESSOR LACKS** (owner,
+    DESIGN-decided §10). The transfer applies only where the successor already
+    holds a share in ``shares``. RISE has a 2024 national record and no 2021
+    local one: handing it GOOD's 2021 local vote would move it from the spine's
+    national-only route to the blend and pull it DOWN toward GOOD's size. So RISE
+    takes GOOD's transfer on the national route only.
+
+    The predecessor keeps ``(1 − retention) × P``. It is off the ballot, so
+    `absent_from_ballot` removes that remainder next, exactly as it removed the
+    whole of P before mergers existed; the total is conserved until then.
+
+    Returns ``(shares, per_vd, applied)``, new dicts (the inputs are not
+    mutated), with ``applied`` one row per transfer made:
+    ``{"predecessor", "successor", "share", "moved", "retention"}``.
+    """
+    r = float(MERGER_RETENTION if retention is None else retention)
+    if not 0.0 <= r <= 1.0:
+        raise ValueError(f"merger retention {r} is outside [0, 1]")
+    out = dict(shares)
+    vds = ({vd: dict(s) for vd, s in per_vd.items()}
+           if per_vd is not None else None)
+    applied: list[dict] = []
+    roster = set(roster or ())
+    election = cityconfig.CALENDAR.get(str(target_year))
+    if not roster or election is None:
+        return out, vds, applied
+    for merger in (MERGERS if mergers is None else mergers):
+        if merger.date >= election.date:
+            continue
+        on = sorted(p for p in merger.parties if p in roster)
+        off = sorted(p for p in merger.parties if p not in roster)
+        if not on or not off:
+            continue
+        if len(on) > 1:
+            raise MergerRefused(
+                f"merger {sorted(merger.parties)} ({merger.date}): {on} are all "
+                f"on the {target_year} ballot while {off} is not, so nothing "
+                f"says which inherits. Declare the merger per partner pair.")
+        successor = on[0]
+        if out.get(successor, 0.0) <= 0.0:
+            continue            # no record to add to; never create one
+        for predecessor in off:
+            held = float(out.get(predecessor, 0.0))
+            if held <= 0.0:
+                continue
+            moved = r * held
+            out[successor] = out[successor] + moved
+            out[predecessor] = held - moved
+            if vds is not None:
+                for s in vds.values():
+                    p = float(s.get(predecessor, 0.0))
+                    if p > 0.0:
+                        s[successor] = s.get(successor, 0.0) + r * p
+                        s[predecessor] = p - r * p
+            applied.append({"predecessor": predecessor, "successor": successor,
+                            "share": held, "moved": moved, "retention": r})
+    return out, vds, applied
+
+
+def merged_vector(successor_vec, successor_mass: float,
+                  predecessor_vec, moved: float):
+    """The successor's pool vector after a merger: the MASS-WEIGHTED blend.
+
+    ``successor_mass`` is its own share before the transfer and ``moved`` the
+    share it received, both in the one election `apply_mergers` moved them in,
+    so the blend weights are on one footing. At ``moved == 0`` it returns the
+    successor's vector unchanged, which is what makes retention 0 a no-op.
+    """
+    s = np.asarray(successor_vec, dtype=float)
+    total = float(successor_mass) + float(moved)
+    if moved <= 0.0 or total <= 0.0:
+        return s
+    vec = (float(successor_mass) * s
+           + float(moved) * np.asarray(predecessor_vec, dtype=float)) / total
+    return vec / vec.sum() if vec.sum() > 0 else s
 
 
 @dataclass(frozen=True)
@@ -5578,6 +5894,12 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     ``retrospective_home`` restores the old unfiltered home-splinter record.
     It answers "what is this rule worth once the record exists?", which is a
     real question and not a forecast; see :func:`home_splinter_record`.
+
+    ⛔ **Every declared pool is emitted (prereg P1).** ``set(pools) ==
+    set(categories)``: a pool left with no member above 1e-4 REFUSES the emit
+    instead of being skipped, which is how four specs came to declare four
+    pools and emit three (queue entry 30, MODEL-LOG §1.269). The cause is
+    repaired upstream, in :func:`pool_counts`.
     """
     # None means "no cutoff" — the retrospective mode. Otherwise the target's
     # own year, so a split that had not happened yet cannot size an arrival.
@@ -5688,6 +6010,16 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # states, and only two of them license a deletion — `resolve_roster`.
     roster, roster_source, deliberate, prior_local = resolve_roster(
         city, target, year, composition, baseline)
+    # MERGERS (F5): an off-ballot partner hands `MERGER_RETENTION` of its
+    # baseline to the partner on the ballot, BEFORE the off-ballot drop below
+    # deletes it. Its pool vector is kept here, because that drop pops it, and
+    # is blended into the successor's once the successor has one.
+    # JUDGEMENT-CALLS §O1.
+    pre_merger_baseline = dict(baseline)
+    baseline, _, mergers_applied = apply_mergers(baseline, roster, target.year)
+    merger_vectors = {m["predecessor"]: composition[m["predecessor"]]
+                      for m in mergers_applied
+                      if m["predecessor"] in composition}
     # THE ROSTER CUTS BOTH WAYS. It was only ever used to ADD parties — to find
     # a genuine entrant absent from the baseline — and never to remove one. So a
     # party that contested the last national election and is NOT on this
@@ -5866,6 +6198,24 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
                                    if parent else ""))
         composition[party] = vec
 
+    # MERGERS: the successor's vector becomes the mass-weighted blend of its
+    # own and its predecessor's, the masses being the baseline shares
+    # `apply_mergers` moved. A predecessor with no fitted vector leaves the
+    # successor's vector as it was, and says so.
+    for m in mergers_applied:
+        succ, pred = m["successor"], m["predecessor"]
+        m["vector_blended"] = succ in composition and pred in merger_vectors
+        if m["vector_blended"]:
+            composition[succ] = merged_vector(
+                composition[succ], pre_merger_baseline.get(succ, 0.0),
+                merger_vectors[pred], m["moved"])
+        if succ in inherited:
+            inherited[succ] += (
+                f"; merged with {pred}, {m['moved']:.4%} of the "
+                f"{target.previous_npe} baseline at retention "
+                f"{m['retention']:.2f}"
+                + ("" if m["vector_blended"] else ", no vector to blend"))
+
     # A pool's size at the target is COUNTED, not drawn: the published roll,
     # split by each ward's own composition. What is uncertain is turnout, and
     # that is measured from this city's own local elections. The pool "ratio"
@@ -5990,7 +6340,22 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     for g, name in enumerate(cats):
         members = {p: float(w[g]) for p, w in composition.items() if w[g] > 1e-4}
         if not members:
-            continue
+            # ⛔ REFUSED, NOT SKIPPED (prereg P1, queue entry 30). This was a
+            # bare `continue`, and it is how four specs came to declare four
+            # pools in `categories` and emit three in `pools`, stating the
+            # dropped pool's share of the roll in the same artefact. The cause
+            # was upstream — a pool silenced at the 0.0 corner of one of
+            # `pool_counts`' three solves in the fitting year, see
+            # `_nest_holding_silent` — and is repaired there. A pool with no members is a spec that
+            # contradicts itself, and it is not written.
+            raise SystemExit(
+                f"{city.slug} {target.year}: pool {name!r} has no member with "
+                f"weight above 1e-4 (registered {float(registered[g]):,.0f}, "
+                f"central turnout {float(turnout[g][1]):.4f}, "
+                f"{float(target_shares[g]):.2%} of the projected roll). The "
+                f"spec would declare it in `categories` and omit it from "
+                f"`pools` — prereg P1. Find why the fitting year gave it no "
+                f"votes (MODEL-LOG §1.269) before emitting.")
         lo, mid, hi = turnout[g]
         out[name] = {
             "members": members,
@@ -6094,6 +6459,9 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             "registration_series": {y: v.tolist() for y, v in series.items()},
             "categories": cats,
             "no_measured_vector": inherited,
+            # F5: every merger transfer this spec made, with the retention it
+            # ran at and whether a vector was blended. JUDGEMENT-CALLS §O1.
+            "mergers": mergers_applied,
             # ⛔ `_nnls`'s docstring promises the caller "must SAY SO rather
             # than quietly using the clipped value — see the `unidentified`
             # list". That list was computed, stored, and read by NOTHING: no
