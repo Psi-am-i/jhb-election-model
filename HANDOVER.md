@@ -5,6 +5,63 @@
 `MODEL-LOG.md`, which is append-only and dated. `CLAUDE.md` sends every session
 here first, so anything stale in this file is read as an instruction.
 
+> ## ⛔ STATE AT 2026-09-29: THE FREEZE IS IN PROGRESS. WORK FROM `TODO.md` §0.
+>
+> **The plan is `TODO.md` §0.** The model freeze is launching the interactive
+> (saved forecasts depend on the model), and it contains F3 and F5 only.
+>
+> **Done:**
+> * F1: per-draw pool turnouts are recorded.
+> * F2: C3 and C4 are deferred on measurement.
+> * F3: a silent pool is held at the city rate.
+> * F5: mergers, at retention 0.75.
+> * R1: blind pollster review, and ultra review 3 on PR #17. Its one nit is
+>   fixed in `899b7a1`.
+>
+> **NEXT, in order:**
+> 1. **F8 re-emit.** One writer only; run `src/backup_ignored.py` first. It
+>    turns green `test_chain` (artefact key), `test_stage_inputs` and
+>    `test_pool_bounds` P1.
+> 2. **R2, then F9.** Review the scoring script against both preregs, then
+>    measure.
+> 3. **R3, then F10.** Review the census claims, then run the mechanism census
+>    (PUBLISHING-BACKLOG §15).
+> 4. **R4, then F11.** Blind pre-publish review, then the owner's publish. That
+>    is the freeze.
+>
+> ⛔ **Ten suite failures are EXPECTED until the freeze republish.** They are
+> `test_draw_record` ×3, `test_export_draws` ×3 and `test_reweight` ×4, and
+> all compare the live model with the published run. Mergers move the live
+> forecast by design. The lead verified that with `pools.MERGERS = ()` the live
+> code equals `4711a15` bit for bit. `test_draw_record`'s pin to `4711a15` is to
+> be **retired, not re-pinned**, at the freeze. Standing failures:
+> `test_pool_bounds` impossibility scan, and `test_published_page` ×2 (build
+> date stamps). The last full suite: 862 passed, 17 failed; the 17th was a
+> stale index, fixed in `054ba3b`.
+>
+> **Interactive.** The design is `audits/2026-09-27-interactive-levers/DESIGN-decided.md`
+> §7–§14; the architecture is `audits/2026-09-28-interactive-architecture/`.
+> * The page re-weights the published draws (`src/export_draws.py`,
+>   `src/reweight.py`).
+> * A reader edits the COMBINED vote and ward winners. The builder can only
+>   hold a valid forecast, and seats come from `reader_seats` under Pyodide.
+> * The backend is `worker-api/`: the R5 fixes are done, but it is not deployed
+>   and not provisioned.
+> * The scorer is `src/score_forecasts.py`, ranking by seat error, then
+>   ward-count error, then correct ward calls.
+>
+> **Owner to do:**
+> * the privacy notice blanks and the two dates (R5 blocker 4);
+> * the data location;
+> * the provider app registrations (`worker-api/README.md`);
+> * the IEC certified roster request, which also gives the registered names
+>   for the two pending ActionSA mergers.
+>
+> **Review gates R1–R6** are in `TODO.md` §0. The next due is R2.
+>
+> **EARLIER BANNER FOLLOWS** (2026-09-27; its "work from TODO.md" still
+> applies, but §0 now leads).
+>
 > ## ⛔ STATE AT 2026-09-27 (evening) — DEPLOYED AND VERIFIED LIVE.
 > ## **WORK FROM `TODO.md` AT THE REPO ROOT**, which is sorted into three
 > ## questions: is the model right, can the interactive ship, everything else.
