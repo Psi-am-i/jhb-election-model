@@ -1,0 +1,1014 @@
+{
+ "artefact:turnout.csv": {
+  "dropped": 0,
+  "kinds": [
+   "consulted"
+  ],
+  "reads": 1,
+  "values": [
+   {
+    "level_col": "turnout_2011",
+    "mean_level": 0.5499923606626269,
+    "mean_ratio": 0.4803925678185285,
+    "projected_col": "turnout_2016_projected",
+    "vds": 215
+   }
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "dirichlet_floor": {
+  "dropped": 0,
+  "kinds": [
+   "consulted"
+  ],
+  "reads": 1,
+  "values": [
+   0.0001
+  ],
+  "where": [
+   "montecarlo:make_drawer"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "levels.DEMARCATION_CROSSING": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   [
+    [
+     "BUF",
+     "2011"
+    ],
+    [
+     "MAN",
+     "2011"
+    ]
+   ]
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "levels.EXCLUDE_DEMARCATION_CROSSING": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   false
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "levels.FILTER_TYPE_A": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   false
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "levels.KNOWN_ABSENT": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   {}
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "levels.METRO_CODES": {
+  "dropped": 0,
+  "kinds": [
+   "resolved-frozen"
+  ],
+  "reads": 1,
+  "values": [
+   [
+    "JHB",
+    "TSH",
+    "CPT",
+    "ETH",
+    "EKU",
+    "MAN",
+    "NMA",
+    "BUF"
+   ]
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "levels.RELIABILITY_HALF": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   0.002
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "levels.SD_CEILING": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   1.2
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "levels.SD_FLOOR": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   0.15
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "levels.SHRINK": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   2.0
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "levels.SPINE_K": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   1.0
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "levels.THETA_EXCLUDE_TARGETS": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   []
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "levels.THETA_WINDOW": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   0
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "levels.TYPE_A_EVENTS": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   {
+    "2011": {
+     "COPE": "POST_FORMATION_COLLAPSE",
+     "DA": "MERGER_ABSORBED",
+     "IFP": "SPLIT_PARENT"
+    },
+    "2016": {
+     "AGANG": "POST_FORMATION_COLLAPSE",
+     "MINORITY_FRONT": "LEADER_DEATH"
+    },
+    "2021": {
+     "DA": "SPLIT_PARENT"
+    }
+   }
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.BYE_MIN_WEIGHT": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   30.0
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.COUNCIL": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   100
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.DIRICHLET_FLOOR": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   0.0001
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.FOLDS": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   {
+    "1": {
+     "base": {
+      "__repr__": "('npe2014_{CODE}_vd_party.csv', None)",
+      "sha": "6db4b4cb997a"
+     },
+     "lambda_pair": {
+      "__repr__": "('2009', '2011')",
+      "sha": "93dceb5024a6"
+     },
+     "prior_lge": "2011",
+     "target": {
+      "__repr__": "('lge2016_{CODE}_vd_party_clean.csv', True)",
+      "sha": "245767894cec"
+     }
+    },
+    "2": {
+     "base": {
+      "__repr__": "('npe2019_{CODE}_vd_party.csv', None)",
+      "sha": "659912c2f5da"
+     },
+     "lambda_pair": {
+      "__repr__": "('2014', '2016')",
+      "sha": "4cc37c5370db"
+     },
+     "prior_lge": "2016",
+     "target": {
+      "__repr__": "('lge2021_{CODE}_vd_party_clean.csv', True)",
+      "sha": "1e85185d7dd5"
+     }
+    },
+    "3": {
+     "base": {
+      "__repr__": "('npe2009_{CODE}_vd_party.csv', None)",
+      "sha": "7a7c6e35de67"
+     },
+     "lambda_pair": {
+      "__repr__": "('2004', '2006')",
+      "sha": "edc3e15eb580"
+     },
+     "prior_lge": "2006",
+     "target": {
+      "__repr__": "('lge2011_{CODE}_vd_party_clean.csv', True)",
+      "sha": "3940e9f1c753"
+     }
+    },
+    "4": {
+     "base": {
+      "__repr__": "('npe2004_{CODE}_vd_party.csv', None)",
+      "sha": "de076f18792b"
+     },
+     "lambda_pair": {
+      "__repr__": "('1999', '2000')",
+      "sha": "18262d745dd9"
+     },
+     "prior_lge": "2000",
+     "target": {
+      "__repr__": "('lge2006_{CODE}_vd_party_clean.csv', True)",
+      "sha": "3e9f07123b23"
+     }
+    },
+    "5": {
+     "base": {
+      "__repr__": "('npe1999_approx_{CODE}_vd_party.csv', None)",
+      "sha": "aa692fe1545a"
+     },
+     "lambda_pair": null,
+     "prior_lge": null,
+     "target": {
+      "__repr__": "('lge2000_{CODE}_vd_party_clean.csv', True)",
+      "sha": "352ccac1749e"
+     }
+    }
+   }
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.GAMMA_FOLD": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   {
+    "2011": 4,
+    "2016": 3,
+    "2021": 1,
+    "2026": 1
+   }
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.HASH_SEED": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   "0"
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.LEVEL_DF": {
+  "dropped": 0,
+  "kinds": [
+   "consulted",
+   "resolved"
+  ],
+  "reads": 2,
+  "values": [
+   7.0
+  ],
+  "where": [
+   "montecarlo:make_drawer -> log_shock(df=None)",
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.PARTIAL_BALANCE_PASSES": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   200
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.PLAN_BOUNDS": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   {}
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.POOL_CAPACITY_MARGIN": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   0.98
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.SHARE_FLOOR": {
+  "dropped": 0,
+  "kinds": [
+   "consulted",
+   "resolved"
+  ],
+  "reads": 2,
+  "values": [
+   0.002
+  ],
+  "where": [
+   "montecarlo:run_model baseline fill, logit(floor=None)",
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.TURNOUT_CORRELATION": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   0.63
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.TURNOUT_DRAW_CEILING": {
+  "dropped": 0,
+  "kinds": [
+   "consulted",
+   "resolved"
+  ],
+  "reads": 2,
+  "values": [
+   0.95
+  ],
+  "where": [
+   "montecarlo:run_model per-draw turnout clip",
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.TURNOUT_DRAW_FLOOR": {
+  "dropped": 0,
+  "kinds": [
+   "consulted",
+   "resolved"
+  ],
+  "reads": 2,
+  "values": [
+   0.02
+  ],
+  "where": [
+   "montecarlo:run_model per-draw turnout clip",
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.WARD_PR_RATIO_MAX": {
+  "dropped": 0,
+  "kinds": [
+   "consulted",
+   "resolved"
+  ],
+  "reads": 2,
+  "values": [
+   2.0
+  ],
+  "where": [
+   "montecarlo:run_model ward/PR ratio clip",
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "montecarlo.WARD_PR_RATIO_MIN": {
+  "dropped": 0,
+  "kinds": [
+   "consulted",
+   "resolved"
+  ],
+  "reads": 2,
+  "values": [
+   0.5
+  ],
+  "where": [
+   "montecarlo:run_model ward/PR ratio clip",
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "parties.ALIASES": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   {
+    "__dict__": 17,
+    "sha": "0a768014907f"
+   }
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "parties.MINOR_ALIASES": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   {
+    "__dict__": 22,
+    "sha": "d08846bf8127"
+   }
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "polling.CAMPAIGN_WINDOW_DAYS": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   550
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "polling.NATIONAL_VOTES": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   {
+    "2016": 15257544,
+    "2021": 11999076
+   }
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "polling.POLL_DEFF_STANDALONE": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   1.2
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "polling.POLL_DRIFT_PP_PER_ROOT_DAY": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   0.001
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "polling.POLL_HALF_LIFE_DAYS": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   120.0
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "polling.POLL_HOUSE_K": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   1.0
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "polling.POLL_HOUSE_SD": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   0.025
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "polling.POLL_MIN_N": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   300
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "polling.PROJECTED_METRO_SHARE": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   {
+    "BUF": 0.015,
+    "CPT": 0.0761,
+    "EKU": 0.0559,
+    "ETH": 0.0646,
+    "JHB": 0.077,
+    "MAN": 0.0147,
+    "NMA": 0.022,
+    "TSH": 0.0561
+   }
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "polling.REGISTER": {
+  "dropped": 0,
+  "kinds": [
+   "resolved-frozen"
+  ],
+  "reads": 1,
+  "values": [
+   "polls.json"
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "polling.SIGMA_COMMON": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   0.015
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "polling.SIGMA_DRIFT_PER_ROOT_DAY": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   0.003
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "polling.SIGMA_IDIO": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   0.015
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "polling.SIGMA_TWO_TERM": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   true
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "polling.SIGMA_VOLATILITY": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   0.008
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "pools": {
+  "dropped": 0,
+  "kinds": [
+   "consulted"
+  ],
+  "reads": 1,
+  "values": [
+   {
+    "cities_sha": "68080ceed71cbe08",
+    "city": "mangaung",
+    "config_sha": "25f89b38e7b7532f",
+    "deps_sha": "bed2e1a147c10f2d",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "d76ab60ca822d140",
+    "pools_sha": "0d4296fe678c5fe1",
+    "schema": 2,
+    "target": "2016"
+   }
+  ],
+  "where": [
+   "montecarlo:run_model <- pools_2016.json"
+  ],
+  "who": [
+   "fitted on 2011"
+  ]
+ },
+ "pools.METRO_CODES": {
+  "dropped": 0,
+  "kinds": [
+   "resolved"
+  ],
+  "reads": 1,
+  "values": [
+   [
+    "JHB",
+    "TSH",
+    "EKU",
+    "ETH",
+    "CPT",
+    "MAN",
+    "NMA",
+    "BUF"
+   ]
+  ],
+  "where": [
+   "montecarlo:run_model"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "spine": {
+  "dropped": 0,
+  "kinds": [
+   "consulted"
+  ],
+  "reads": 1,
+  "values": [
+   1.0
+  ],
+  "where": [
+   "montecarlo:run_model -> levels.spine"
+  ],
+  "who": [
+   "k=1.0, 175 \u03b8 and 83 \u03c1 observations before 2016"
+  ]
+ },
+ "spine_level.reached": {
+  "dropped": 0,
+  "kinds": [
+   "consulted"
+  ],
+  "reads": 1,
+  "values": [
+   16
+  ],
+  "where": [
+   "montecarlo:blended_centres"
+  ],
+  "who": [
+   "(all)"
+  ]
+ },
+ "turnout_correlation": {
+  "dropped": 0,
+  "kinds": [
+   "consulted"
+  ],
+  "reads": 1,
+  "values": [
+   0.63
+  ],
+  "where": [
+   "montecarlo:make_drawer"
+  ],
+  "who": [
+   "(all)"
+  ]
+ }
+}

@@ -36,7 +36,9 @@ STAGES = ("00_target", "01_scenario_in", "02_pools_artefact", "03_roster",
           "45_delivered")
 # `path` differs by construction; `artefact_key` and `stale_reason` carry the
 # code hash, which a source edit moves by construction (R3 F1).
-IGNORED_KEYS = ("path", "artefact_key", "stale_reason")
+# `pools_sha` too: `45_delivered` carries it bare (found on the CONTROL run,
+# whose only trace difference it was).
+IGNORED_KEYS = ("path", "artefact_key", "stale_reason", "pools_sha")
 TEST_MODULES = ("pool_bounds", "pool_conservation", "roster_aware_baseline",
                 "theta", "chain")
 
@@ -310,7 +312,7 @@ def selftest() -> None:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=("selftest", "run"))
+    ap.add_argument("cmd", choices=("selftest", "run", "recompare"))
     ap.add_argument("--out", type=Path)
     ap.add_argument("--only", nargs="*")
     a = ap.parse_args(argv)
@@ -318,6 +320,24 @@ def main(argv=None) -> int:
         selftest()
         return 0
     out = a.out
+    if a.cmd == "recompare":
+        # Re-read saved outputs only; runs nothing.
+        base_fail = set(json.loads((out / "base" / "done.json").read_text())
+                        .get("tests", {}).get("failed", []))
+        results = {}
+        for n in a.only or list(MUTANTS):
+            f = out / n / "result.json"
+            if not f.exists():
+                continue
+            r = json.loads(f.read_text())
+            r["compare"] = compare(out / "base", out / n, MUTANTS[n])
+            if "tests" in r:
+                r["new_test_failures"] = sorted(set(r["tests"]["failed"]) - base_fail)
+            f.write_text(json.dumps(r, indent=1))
+            results[n] = r
+        (out / "results.json").write_text(json.dumps(results, indent=1))
+        print(f"recompared {len(results)}")
+        return 0
     out.mkdir(parents=True, exist_ok=True)
     scratch = Path(tempfile.mkdtemp(prefix="census-"))
     names = a.only or list(MUTANTS)
