@@ -5,7 +5,7 @@
 `MODEL-LOG.md`, which is append-only and dated. `CLAUDE.md` sends every session
 here first, so anything stale in this file is read as an instruction.
 
-> ## ⛔ STATE AT 2026-09-29 (later): F8 DONE; R2 IS NEXT. WORK FROM `TODO.md` §0.
+> ## ⛔ STATE AT 2026-09-29 (evening): F8 AND F9 DONE; R3 IS NEXT. WORK FROM `TODO.md` §0.
 >
 > **The plan is `TODO.md` §0.** The model freeze is launching the interactive
 > (saved forecasts depend on the model), and it contains F3 and F5 only.
@@ -24,13 +24,12 @@ here first, so anything stale in this file is read as an instruction.
 >
 > **NEXT, in order:**
 > 1. ~~F8 re-emit~~ done.
-> 2. **R2, then F9.** The scoring script is
->    `audits/2026-09-29-f9-scoring/score_f9.py` and the brief is `R2-brief.md`
->    beside it, both committed before the review. After R2: run
->    `compare_history` in a worktree at `69cc6cc` on a copy of the backup's
->    `data/` (the "before"; overlay with `cp -Rc <backup>/data/. <wt>/data/`,
->    since `cp -R` into an existing dir nests it), then on this tree (the
->    "after"), then score. Same seed and draws on both sides.
+> 2. ~~R2, then F9~~ done: MODEL-LOG §1.280. P1 passed; the window's
+>    per-cycle CRPS test fails at 2011 on one row (Mangaung 2011), within the
+>    seed spread; every other paired move is also within it. Scored with the
+>    reviewed `audits/2026-09-29-f9-scoring/score_f9.py`; findings and their
+>    disposition in `R2-findings.md`. `history.json` is now the after-run.
+>    `freeze.py` is left to F11 so the frozen record is what is published.
 > 3. **R3, then F10.** Review the census claims, then run the mechanism census
 >    (PUBLISHING-BACKLOG §15).
 > 4. **R4, then F11.** Blind pre-publish review, then the owner's publish. That

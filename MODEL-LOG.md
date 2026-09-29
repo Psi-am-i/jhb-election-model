@@ -28115,3 +28115,73 @@ recorded one, so it is not a numpy version change; which library moved is
 still not known. Also checked for the F9 pair: from the `69cc6cc` worktree on
 the backup data, `declares.py --verify` shows all 27 backup specs declared
 and agreeing, and `pools` imports from the worktree's `src`.
+
+## 1.280 F9: the freeze batch scored against its pre-registrations. P1 holds; the window's per-cycle CRPS test fails at 2011 on one row, within the seed spread (2026-09-29)
+
+Prereg `2026-09-25-pool-input-repairs.md` and
+`2026-09-27-independents-and-mergers.md`. Scorer
+`audits/2026-09-29-f9-scoring/score_f9.py`, reviewed blind (R2) and
+fix-checked before any run (`R2-findings.md`); full output
+`audits/2026-09-29-f9-scoring/result.json`.
+
+### The pair
+
+* **before:** a worktree at `69cc6cc` (the commit before F3), its specs
+  re-emitted today from that commit so both sides share one environment
+  (§1.279's drift); all 27 carry `pools_sha 7264a929`. Every file under the
+  two trees' `data/` other than the 27 specs is byte-identical (sha256, by
+  hand).
+* **after:** this tree at `a2bc44c` on the F8 specs. Its run is the new
+  canonical `data/processed/history.json`:
+  `seat_abs_err_coherent=735/@a2bc44c9/1000d/pools:c70b8fc5/rows=24`.
+* Both at seed 20261104, 1000 draws, `PYTHONHASHSEED=0`, no filter, both
+  trees clean, each history bound to its spec directory. Every pair check the
+  script makes passed.
+* **noise:** the before tree at seeds 1-5, full panel. Every noise check
+  passed. The spread is printed beside each paired statistic and changes no
+  verdict.
+
+**The placebo holds.** The 15 backtest specs that differ only in their key
+gave identical rows, whole row less `constants_read`. The code between the
+two commits that is not F3 moves no scored number. Nine rows moved: the four
+C1 specs and the five whose turnout band alone moved (§1.269).
+
+### Scored as written
+
+| item | result | number |
+|---|---|---|
+| P1 conservation | **passed** | 24 of 24 specs; 4 violated before |
+| P2 Cape Town split toward census | not tested: C2 not made | Cape Town Indian/Asian still 8.3-10.0% of the roll |
+| P3 impossibility scan falls | not tested: stated after C3 | fatal 3 → 3; total cases 14 → 15 |
+| P4 one-party selection | not tested: stated after all four repairs | all 15 cases DA, none at 2021 |
+| P5 seat headline | **passed, uninformative** | Σ coherent seat error 733 → 735 (+2), one city (Mangaung 2016, 8 → 10); a one-city move cannot exclude zero. Seed spread of the same sum: −6 to +2 |
+| P5 directional: arrival group improves | **failed** | Σ\|arrival seats_err\| +0.50; seed spread +0.23 to +0.85, every re-seed positive |
+| P6 ward calls | **passed** | 2,120 called before and after; Cape Town 0; Brier 0.0531 → 0.0534 |
+| P7 dose-response | not tested: premise (C3) absent | per-row table in `result.json` |
+| window: CRPS net loss in any cycle | **failed** | 2011 +0.32 (one row, Mangaung 2011); 2016 −0.30; 2021 −0.27. Seed spread max \|·\|: 1.45, 0.51, 1.07 |
+| window: calibration | **passed** | coverage at 50/80/90 identical to 4 dp; mean PIT 0.5842 → 0.5839 |
+| window: seats improve, votes do not | **passed** (seats did not improve) | Σ PR MAE +0.35, Σ ward MAE +0.26 over 24 rows; no seed spread computed for these |
+| window: P1 fails | not triggered | |
+| window: no dose-response | not tested (P7) | |
+| mergers prereg | Change 1 not shipped; Change 2 scored in §1.275; Change 3 nothing to score | |
+
+### What it says
+
+**C1 restores the declared pools, and the backtest cannot tell whether it
+helped or hurt.** Every paired move is the size a re-seed of the unchanged
+model produces, and the one failure criterion that fired, a CRPS loss at the
+2011 cycle, rests on a single row (Mangaung 2011, +0.32) against a seed spread
+of up to 1.45 for that cycle's sum. The directional arrival prediction fails
+the same way: the before run's seed is a favourable draw for the arrival
+group, and every re-seed is worse than it by more than the change is.
+
+Two readings remain and this measurement does not separate them: the change
+is inert on the panel, or it moves scores by less than seed noise at 1000
+draws. More draws, or common random numbers across the two specs, would.
+
+F3 is in the freeze by the owner's decision of 2026-09-28. On this
+measurement it restores a declared pool in four specs, and its effect on
+scores is not distinguishable from seed noise at 1000 draws.
+
+**Not done:** `freeze.py` (queue step 4's second half) is left to F11, so the
+frozen record is the forecast actually published.
