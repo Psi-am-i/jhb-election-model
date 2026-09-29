@@ -70,9 +70,29 @@ function, so it stayed green while one call in a function that has another
 was removed. Item 5 had no scan at all: nothing looked for
 `blend_merger_vectors`.
 
-**Not measured:** C4 (the run-time composition). Its mutants ran with the
-test modules off, so whether a test notices its removal is unknown. Re-run
-with tests on: see `runs/r2-guards` once it has run.
+## The guards, re-run (`runs/r2-guards`, after the review's fixes)
+
+The unguarded mutants re-run with the new tests, the test modules on for
+C4, and the CONTROL again. Base: the one standing failure only. CONTROL:
+spec, trace and tests identical.
+
+| mutant | new failing tests |
+|---|---|
+| C3-guard | `test_emit_refuses_a_spec_that_would_drop_a_declared_pool` |
+| C9-off | `test_the_panel_spread_does_not_count_a_held_pool_as_a_movement` |
+| C5-off | the consumer scan; `test_the_run_model_mergers_reach_the_spine` |
+| C6-off | the consumer scan; `test_the_run_model_mergers_reach_the_spine` |
+| C7-off | the consumer scan; `test_the_current_johannesburg_spec_was_emitted_with_the_vector_blend` |
+| C4-off | **none** |
+| C4-nudge | **none** |
+
+Stages as in r1 (C9-off `40_draws` at B, no change at J; C5 `10_theta_prior`;
+C6 `20_spine`; C7 and C4 `40_draws`).
+
+**Unguarded after the re-run: C4 only**, the run-time rebuild of the
+fitting year's composition in `run_model` (`_vd_pool_composition`). Removing
+or nudging its hold moves the draw and no test in the five modules notices.
+Left open, recorded here and in MODEL-LOG.
 
 **Harness note.** `first_changed` treats a stage missing on both sides as
 equal. The per-draw stages 42–44 were deleted after the recompare, so running

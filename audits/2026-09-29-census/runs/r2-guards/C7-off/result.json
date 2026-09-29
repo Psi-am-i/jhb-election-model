@@ -1,0 +1,48 @@
+{
+ "name": "C7-off",
+ "tests": {
+  "failed": [
+   "test_every_consumer_the_spec_names_calls_apply_mergers",
+   "test_no_emitted_composition_weight_is_arithmetically_impossible",
+   "test_the_current_johannesburg_spec_was_emitted_with_the_vector_blend"
+  ]
+ },
+ "compare": {
+  "joburg-2026": {
+   "spec_fields_changed": [
+    "mergers",
+    "no_measured_vector",
+    "pools"
+   ],
+   "trace": {
+    "first": "40_draws",
+    "changed": [
+     "40_draws",
+     "41_guards",
+     "42_pr_share_draws",
+     "43_ward_share_draws",
+     "44_seat_draws"
+    ],
+    "compared": [
+     "00_target",
+     "01_scenario_in",
+     "02_pools_artefact",
+     "03_roster",
+     "10_theta_prior",
+     "20_spine",
+     "30_centres",
+     "40_draws",
+     "41_guards",
+     "42_pr_share_draws",
+     "43_ward_share_draws",
+     "44_seat_draws",
+     "45_delivered"
+    ]
+   }
+  }
+ },
+ "new_test_failures": [
+  "test_every_consumer_the_spec_names_calls_apply_mergers",
+  "test_the_current_johannesburg_spec_was_emitted_with_the_vector_blend"
+ ]
+}
