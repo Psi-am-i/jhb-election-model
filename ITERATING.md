@@ -848,13 +848,13 @@ requirement to measure.
 
    | twenty-four-city-year vote error | signed | absolute |
    |---|---|---|
-   | ranks 1-3 | -15.16pp | 237.31pp |
-   | ranks 4-12 | -3.32pp | 135.39pp |
+   | ranks 1-3 | -15.11pp | 238.21pp |
+   | ranks 4-12 | -3.87pp | 135.31pp |
    | ranks 13+ | +11.71pp | 30.40pp |
    | phantom (parties that did not stand) | +6.77pp | — |
 
    **BOTH TABLES ARE NOW MEASURED ON TWENTY-FOUR CITY-YEARS (re-quoted
-   2026-09-18 from the committed `history.json`).** They were nine until §1.70,
+   2026-09-29 from the committed `history.json`, the F9 after-run, MODEL-LOG §1.280).** They were nine until §1.70,
    sixteen until §1.77, twenty-one at §1.160/§1.161, and twenty-four now. The standing
    instruction from §1.70 — *"every number in this repository predating this
    entry was measured on [the old panel] and must be re-read before it is

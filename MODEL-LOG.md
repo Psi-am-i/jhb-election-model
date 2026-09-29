@@ -28214,3 +28214,9 @@ frozen record is the forecast actually published.
   re-emit from the 23/27 September backup (both `7264a929`); these hashes and
   the whole-`data/` sha256 comparison above are the record of which set was
   read. The worktree is removed.
+
+**Owner, 2026-09-29, after reading the result above: keep F3.** F10's census
+is limited to the modules F3 and F5 touched. With the new `history.json`, the
+two rank-band rows in ITERATING.md rule 8 were re-quoted from the artefact
+(`test_calibration_report` names them); the full suite on `7be7848` otherwise
+showed only the 12 expected failures.
