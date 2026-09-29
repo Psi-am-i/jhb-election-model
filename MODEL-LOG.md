@@ -28259,3 +28259,42 @@ from the committed run files.
   regenerated.
 
 None of these changes a verdict in the table above.
+
+## 1.281 F10: the mechanism census of F3 and F5. No mechanism dead or acting at the wrong stage; five of six unguarded mechanisms now guarded (2026-09-29)
+
+PUBLISHING-BACKLOG §15, scope limited by the owner to the mechanisms F3 and
+F5 added. Claims written first (`audits/2026-09-29-census/CLAIMS.md`),
+reviewed blind (R3) and fix-checked before any mutation ran; results
+reviewed by a second blind reviewer and fix-checked
+(`R3-findings.md`, `R-tests-findings.md`). Full record:
+`audits/2026-09-29-census/RESULTS.md`, runs `runs/r1` and `runs/r2-guards`.
+
+**Method.** Each mutation is an exact source edit applied to a scratch copy
+of `src/` and `tests/` in a root that mirrors the repository with
+`data/processed` an APFS clone; the fixture specs (Mangaung 2016, Johannesburg
+2026) are emitted and the model run with a full trace in fresh processes,
+and five test modules run against the edit. A CONTROL mutant (an inert code
+edit) changed no spec, trace or test.
+
+**Dead:** none. **Wrong-way or wrong-stage:** none; every first changed
+stage is the one claimed, every nudge moved as stated. Examples: the held
+turnout scales by exactly 1.10 under a ×1.10 nudge; RISE's spine level under
+retention 0.85 matches (B + 0.85P)/(B + 0.75P) with B and P read from the 2024
+result file, to 2e-16; without the rule that a merger never creates a
+record, RISE is moved onto the local blend and its level falls from 1.60% to
+0.19%.
+
+**Unguarded, found by the census:** the memberless-pool refusal in
+`emit_pools`, the panel spread's skip of held pools, both `apply_mergers`
+calls in `run_model`, and `emit_pools`' blend call. Four new tests and a
+per-call consumer scan now guard all five; each goes red under its
+mutation (`runs/r2-guards`). **Still unguarded: C4**, the run-time rebuild of
+the fitting year's composition in `run_model`.
+
+**Found building the harness.** The draw follows the order of the members'
+keys in a spec. `emit_pools` writes with `sort_keys=True`, so every spec on
+disk is sorted; a caller passing `run_model` an unsorted in-memory spec would
+draw differently from the same spec on disk.
+
+**Queued** (POOLS-REEMIT-QUEUE): lift the memberless-pool refusal into a
+function so it can be tested on a constructed composition.

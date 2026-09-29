@@ -5,7 +5,9 @@
 `MODEL-LOG.md`, which is append-only and dated. `CLAUDE.md` sends every session
 here first, so anything stale in this file is read as an instruction.
 
-> ## ⛔ STATE AT 2026-09-29 (evening): F8 AND F9 DONE; R3 IS NEXT. WORK FROM `TODO.md` §0.
+> ## ⛔ STATE AT 2026-09-29 (night): F8, F9, F10 DONE; F11 (build, R4, publish) IS NEXT. WORK FROM `TODO.md` §0.
+>
+> **The repository folder is now `~/projects/atlas-jhb-election-model`** (owner, 2026-09-29); the MemPalace wing is unchanged.
 >
 > **The plan is `TODO.md` §0.** The model freeze is launching the interactive
 > (saved forecasts depend on the model), and it contains F3 and F5 only.
@@ -30,8 +32,8 @@ here first, so anything stale in this file is read as an instruction.
 >    reviewed `audits/2026-09-29-f9-scoring/score_f9.py`; findings and their
 >    disposition in `R2-findings.md`. `history.json` is now the after-run.
 >    `freeze.py` is left to F11 so the frozen record is what is published.
-> 3. **R3, then F10.** Review the census claims, then run the mechanism census
->    (PUBLISHING-BACKLOG §15).
+> 3. ~~R3, then F10~~ done: MODEL-LOG §1.281, `audits/2026-09-29-census/`.
+>    No dead or wrong-stage mechanism; five gaps guarded; C4 left unguarded.
 > 4. **R4, then F11.** Blind pre-publish review, then the owner's publish. That
 >    is the freeze.
 >
