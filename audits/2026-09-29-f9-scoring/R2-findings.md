@@ -26,3 +26,21 @@ reviewer and is applied as reporting only.
 The reviewer checked it by hand on the backup (only the 27 specs differ), and
 the before tree's `data/` is an APFS clone of that backup plus today's
 re-emitted specs.
+
+## Fix check (on `af9551e`), and what was done
+
+The same reviewer checked the fixes under the same rules. Six were confirmed
+as they stood (F2, F4, F7, F8, F11, F13). Each remaining point was
+re-derived and applied:
+
+| point | the defect | re-derived | applied |
+|---|---|---|---|
+| F1 | a pinned bound misses opposite signs: Mangaung −300 ×3 and Buffalo City +1 once gives [−112.5, +0.125], read as informative | resamples drawing neither city are (6/8)^8 = 10% and are exactly 0; those drawing Buffalo City alone are (7/8)^8 − (6/8)^8 = 24% and positive, so zero is inside at any magnitude | informative iff ((k−m)/k)^k ≤ 2.5%, m = cities with any nonzero difference; pinned bound and zero mass reported; self-test case added |
+| F3 | `arrived()` returned the BASELINED parties, the inverse; seeded columns are not all arrivals | `arrival_baseline`'s docstring; seven seeded parties hold a 2019/2014 share | renamed `baselined`; established = baselined and not seeded; seeded-and-baselined columns reported as context; READING restated; a real-data check (ACDP baselined, ActionSA not, Johannesburg 2021) in the self-test |
+| F5 | binding is by `pools_sha`, shared by the backup and the worktree re-emit | both `7264a929` | stated in the code; which spec set the before run read is recorded in MODEL-LOG |
+| F6a | noise runs unchecked | — | each must match the before commit, be clean, share draws, hash seed and overrides, carry a different seed, and be bound to the before specs; a failing run is not used |
+| F6b | `headline_noise` is a sum over moved rows beside a per-row mean | — | READING says compare with `headline.total` |
+| F9, F12 | pair checks and branches not flipped | — | self-test flips filters, excluded, before dirt, before binding, noise validity, a round-off placebo break, and the directional VOID |
+
+Remaining by hand: the "only specs differ" data check, re-run on the worktree
+after its re-emit.

@@ -224,6 +224,26 @@ def _manifest_keys(manifest: dict) -> dict[tuple[str, str], str]:
     return out
 
 
+def noise_check(mb: dict, mn: dict, rn: dict, specs_b: dict) -> dict:
+    """A noise run is the BEFORE tree at another seed: same commit, clean,
+    same draws, hash seed and overrides, a DIFFERENT seed, and every row it
+    carries bound to the before specs. It may be filtered to the moved rows."""
+    declared = _manifest_keys(mn)
+    return {
+        "before_commit": str(mn.get("git_commit", "")) == str(mb.get("git_commit")),
+        "clean": mn.get("git_dirty") is False,
+        "same_draws": mn.get("draws") == mb.get("draws"),
+        "same_env_switches": mn.get("env_switches") == mb.get("env_switches"),
+        "same_overrides_less_seed": [o for o in (mn.get("overrides") or [])
+                                     if not str(o).startswith("seed=")]
+        == [o for o in (mb.get("overrides") or [])
+            if not str(o).startswith("seed=")],
+        "different_seed": mn.get("seed") != mb.get("seed"),
+        "rows_bound_to_before_specs": bool(rn) and all(
+            declared.get(k) == (specs_b.get(k) or {}).get("artefact_key", {})
+            .get("pools_sha") for k in rn)}
+
+
 def pair_checks(mb, ma, rb, ra, specs_b, specs_a) -> dict:
     """Every condition under which a paired difference means anything.
     Each is a boolean; the pair is valid only if all hold."""
@@ -237,6 +257,10 @@ def pair_checks(mb, ma, rb, ra, specs_b, specs_a) -> dict:
                           == (ma.get("population") or {}).get("excluded"))
     c["before_commit"] = str(mb.get("git_commit", "")).startswith(BEFORE_COMMIT)
     c["both_clean"] = mb.get("git_dirty") is False and ma.get("git_dirty") is False
+    # ⚠️ The binding is by `pools_sha`, which the 23/27 Sept backup and the
+    # worktree re-emit of `69cc6cc` share. It cannot tell those two spec sets
+    # apart; that the before run read the re-emit is established outside
+    # this script (MODEL-LOG, the F9 entry). A mismatch fails toward VOID.
     c["population_is_prereg"] = len(pop) == PREREG_POPULATION
     c["rows_are_population"] = (sorted(rb) == pop and sorted(ra) == pop)
     for side, m, specs in (("before", mb, specs_b), ("after", ma, specs_a)):
@@ -253,13 +277,11 @@ def pair_checks(mb, ma, rb, ra, specs_b, specs_a) -> dict:
 
 def paired(values: dict, label: str) -> dict:
     """Mean paired difference with a city-clustered percentile interval
-    (`score.cluster_bootstrap`). When a percentile bound sits EXACTLY at
-    zero, the interval cannot exclude zero whatever the size of the move: an
-    integer statistic that moves in few cities leaves enough all-zero
-    resamples to pin it (R2 F1). Containing zero is then no test, and
-    `informative` is False. `zero_mass` (the share of replicates exactly zero)
-    is reported beside it; on its own it is not the test, because symmetric
-    moves also produce exact zeros with zero well inside the interval."""
+    (`score.cluster_bootstrap`). `informative` is False when so few cities
+    moved that the resamples drawing none of them put zero inside the
+    interval at any magnitude (R2 F1 and its fix check); containing zero is
+    then no test. Neither a pinned bound (misses opposite signs) nor the
+    zero mass (counts cancellation) is the test; both are reported."""
     finite = {k: v for k, v in values.items() if v == v}
     groups: dict[str, list[float]] = {}
     for (slug, _year), v in sorted(finite.items()):
@@ -267,11 +289,21 @@ def paired(values: dict, label: str) -> dict:
     ci = cluster_bootstrap(list(groups.values()))
     reps = ci["replicates"]
     zero_mass = float((reps == 0).mean()) if reps.size else float("nan")
-    informative = ci["lo"] == ci["lo"] and ci["lo"] != 0.0 and ci["hi"] != 0.0
+    # STRUCTURAL: with m of k cities holding any nonzero difference, a share
+    # ((k-m)/k)**k of resamples draws none of them and is exactly 0. Above
+    # (1-level)/2 zero is inside the interval at ANY magnitude, whatever the
+    # signs (R2 fix check: one city -300, another +1 still contains zero).
+    k = len(groups)
+    m = sum(any(x != 0 for x in g) for g in groups.values())
+    p_all_zero = ((k - m) / k) ** k if k else float("nan")
+    informative = bool(k) and p_all_zero <= (1 - ci["level"]) / 2
+    pinned = ci["lo"] == 0.0 or ci["hi"] == 0.0
     return {"what": label, "n": len(finite),
             "total": float(sum(finite.values())),
             "mean": ci["point"], "lo": ci["lo"], "hi": ci["hi"],
             "clusters": ci["clusters"], "zero_mass": zero_mass,
+            "cities_moved": m, "p_resample_all_zero": p_all_zero,
+            "bound_pinned_at_zero": pinned,
             "informative": bool(informative),
             "contains_zero": (bool(ci["lo"] <= 0.0 <= ci["hi"])
                               if ci["lo"] == ci["lo"] else None)}
@@ -284,10 +316,11 @@ def _abs_err(seats: dict, parties) -> float:
                      if p in seats))
 
 
-def arrived(key) -> set | None:
-    """Parties with seats or votes at the target and no preceding-NPE share,
-    by `backtest.arrival_baseline`, the one definition. Reads inputs only.
-    None when the baseline is unreadable."""
+def baselined(key) -> set | None:
+    """Parties WITH a preceding-NPE share at this target, by
+    `backtest.arrival_baseline`, the one definition ("a party absent from what
+    this returns arrived from nothing"). An arrival is a column NOT in this
+    set. Reads inputs only; None when the baseline is unreadable."""
     import backtest
     import cityconfig
     target = cityconfig.Target(city=cityconfig.load(key[0]), year=key[1])
@@ -355,10 +388,15 @@ def score(before_specs, after_specs, before_hist, after_hist,
           noise_hists=()) -> dict:
     (mb, rb), (ma, ra) = before_hist, after_hist
     # A noise run need only carry the rows that move; the rest are the before
-    # run's, which is what a placebo row is by definition.
+    # run's, which is what a placebo row is by definition. Each is CHECKED:
+    # an unchecked run silently becomes the yardstick (R2 fix check F6a).
+    noise_checks = [noise_check(mb, m, rows_, before_specs)
+                    for m, rows_ in noise_hists]
     noise = [{**rb, **{k: r for k, r in h[1].items() if k in rb}}
-             for h in noise_hists]
-    res: dict = {"inputs": {}, "predictions": {}, "window": {}}
+             for h, c in zip(noise_hists, noise_checks) if all(c.values())]
+    res: dict = {"inputs": {"noise_checks": noise_checks,
+                            "noise_used": len(noise)},
+                 "predictions": {}, "window": {}}
 
     checks = pair_checks(mb, ma, rb, ra, before_specs, after_specs)
     res["inputs"]["checks"] = checks
@@ -459,15 +497,22 @@ def score(before_specs, after_specs, before_hist, after_hist,
     d_arr = dd(arrival_err)
     arr_total = float(sum(x for x in d_arr.values() if x == x))
 
-    arrivals = {k: arrived(k) for k in rows} if valid else {}
-    established = {}
+    base = {k: baselined(k) for k in rows} if valid else {}
+    established, seeded_baselined = {}, {}
     for k in rows:
-        a_set = arrivals.get(k) or set()
+        cols_all = set(ra[k]["seats"]) | set(rb[k]["seats"])
+        b_set = base.get(k)
         seeds = (set((after_specs.get(k) or {}).get("seeds", {}))
                  | set((before_specs.get(k) or {}).get("seeds", {})))
-        cols = (set(ra[k]["seats"]) | set(rb[k]["seats"])) - seeds - a_set
-        established[k] = (_abs_err(ra[k]["seats"], cols)
-                          - _abs_err(rb[k]["seats"], cols))
+        if b_set is None:
+            established[k] = seeded_baselined[k] = float("nan")
+            continue
+        est = (cols_all & b_set) - seeds          # baselined, not seeded
+        sb = seeds & b_set                        # seeded AND baselined
+        established[k] = (_abs_err(ra[k]["seats"], est)
+                          - _abs_err(rb[k]["seats"], est))
+        seeded_baselined[k] = (_abs_err(ra[k]["seats"], sb)
+                               - _abs_err(rb[k]["seats"], sb))
     res["predictions"]["P5"] = {
         "verdict": v(p5),
         "headline": headline,
@@ -483,19 +528,27 @@ def score(before_specs, after_specs, before_hist, after_hist,
                                  for k in moved
                                  if arrival_err(o[k]) == arrival_err(o[k])),
                 rb, noise)},
+        "context_seeded_with_baseline_median": {
+            "d_total": float(sum(x for x in seeded_baselined.values()
+                                 if x == x)),
+            "note": "seeded columns that HAVE a preceding-NPE share are not in "
+                    "the arrival group, so the directional verdict omits them; "
+                    "their MEDIAN |error| change is here (R2 fix check F3)."},
         "context_established_median": paired(
             established, "Δ Σ|actual−median| over columns neither seeded nor "
                          "arrived (MEDIAN statistic; context only)"),
         "READING": "'changes by less than its own paired bootstrap interval' = "
                    "the 95% city-cluster interval of the mean paired change "
-                   "contains zero; when a bound sits exactly at zero the interval "
-                   "cannot exclude zero and the result is recorded PASSED "
-                   "(uninformative). The established-columns "
+                   "contains zero; when so few cities moved that more than 2.5% of "
+                   "resamples draw none of them, the interval cannot exclude "
+                   "zero and the result is recorded PASSED (uninformative). The established-columns "
                    "clause cannot be scored on the coherent statistic (no "
                    "per-party coherent seat is stored) and is context. The "
-                   "directional claim is scored on the arrival group's "
-                   "|seats_err| (seeded columns are arrivals, so they are "
-                   "counted once)."}
+                   "directional claim is scored on the arrival group's |seats_err| "
+                   "only; seeded columns with a national baseline are not in "
+                   "that group and are reported as context, not scored. "
+                   "`headline_noise` is a SUM over moved rows: compare it "
+                   "with `headline.total`, not the per-row mean."}
 
     # --- P6 -------------------------------------------------------------------
     called_b = sum(rb[k]["wards"]["called"] for k in rows)
@@ -719,14 +772,14 @@ def _fixture(n_cities=8):
 
 
 def _score(b, a, hb, ha, noise=()):
-    # `arrived` reads real inputs; the fixture's cities have none.
-    global arrived
-    real = arrived
-    arrived = lambda key: set()                 # noqa: E731
+    # `baselined` reads real inputs; the fixture's cities have none.
+    global baselined
+    real = baselined
+    baselined = lambda key: {"P", "Q"}                 # noqa: E731
     try:
         return score(b, a, hb, ha, noise)
     finally:
-        arrived = real
+        baselined = real
 
 
 def self_test() -> None:
@@ -842,7 +895,7 @@ def self_test() -> None:
 
     # CRPS by cycle: a net loss fails; the noise spread is carried.
     ha13 = C(ha); ha13[1][("c0", "2016")]["crps"] = 6.0
-    hn = C(hb); hn[1][("c0", "2016")]["crps"] = 5.5
+    hn = (dict(hb[0], seed=2), C(hb[1])); hn[1][("c0", "2016")]["crps"] = 5.5
     r13 = _score(b, a, hb, ha13, [hn])["window"]["crps_by_cycle"]
     assert r13["verdict"] == FAIL and r13["within_noise"]["2016"] is False
     hn[1][("c0", "2016")]["crps"] = 7.0
@@ -871,6 +924,58 @@ def self_test() -> None:
     assert _score(b, a, hb, ha16)["window"]["seats_without_votes"]["verdict"] == FAIL
     ha16[1][("c0", "2016")]["pr_mae"] = 0.9
     assert _score(b, a, hb, ha16)["window"]["seats_without_votes"]["verdict"] == PASS
+    # P5 degenerate with OPPOSITE signs: two cities moved, one hugely.
+    ha17 = C(ha)
+    for y in ("2011", "2016", "2021"):
+        ha17[1][("c0", y)]["seat_abs_err_coherent"] = -290
+    ha17[1][("c1", "2016")]["seat_abs_err_coherent"] = 11
+    a17 = C(a)
+    for y in ("2011", "2021"):
+        a17[("c0", y)]["pools"]["A"]["turnout"] = [0.31, 0.5, 0.7]
+    a17[("c1", "2016")]["pools"]["A"]["turnout"] = [0.31, 0.5, 0.7]
+    ha17 = (_manifest_like(ha17[0], a17), ha17[1])
+    r17 = _score(b, a17, hb, ha17)["predictions"]["P5"]
+    assert r17["verdict"] == UNINFORMATIVE and not r17["headline"]["bound_pinned_at_zero"], r17
+
+    # The directional verdict goes VOID on a placebo trip.
+    assert (r5["predictions"]["P5"]["directional_arrival"]["verdict"]
+            == VOID)
+    # A round-off placebo row whose history row differs voids everything.
+    ha18 = C(ha); ha18[1][("c3", "2011")]["crps"] = 5.01
+    r18 = _score(b, a5, hb, ha18)
+    assert not r18["placebo"]["holds"] and r18["predictions"]["P6"]["verdict"] == VOID
+
+    # The remaining pair checks, each on its own.
+    for side, f, val in (("a", "filters", {"city": "c0", "target": None}),
+                         ("a", "population", {"excluded": [["c9", "2011", "x"]]}),
+                         ("b", "git_dirty", True)):
+        hbx = (dict(hb[0], **{f: val}), hb[1]) if side == "b" else hb
+        hax = (dict(ha[0], **{f: val}), ha[1]) if side == "a" else ha
+        assert not _score(b, a, hbx, hax)["inputs"]["paired_valid"], f
+    both = {"city": "c0", "target": None}
+    rnf = _score(b, a, (dict(hb[0], filters=both), hb[1]),
+                 (dict(ha[0], filters=both), ha[1]))
+    assert rnf["inputs"]["checks"]["same_filters"]
+    assert not rnf["inputs"]["checks"]["no_filter"]
+    hb19 = (_manifest_like(hb[0], a), hb[1])    # before history names NEW specs
+    assert not _score(b, a, hb19, ha)["inputs"]["checks"]["before_bound_to_specs"]
+
+    # Noise runs are checked: a valid one is used, an invalid one is not.
+    good = (dict(hb[0], seed=2), {("c0", "2016"): C(hb[1][("c0", "2016")])})
+    assert _score(b, a, hb, ha, [good])["inputs"]["noise_used"] == 1
+    for bad in (dict(good[0], seed=1), dict(good[0], draws=11),
+                dict(good[0], git_commit="other"), dict(good[0], git_dirty=True),
+                _manifest_like(good[0], a)):
+        assert _score(b, a, hb, ha, [(bad, good[1])])["inputs"]["noise_used"] == 0
+
+    # The REAL baseline lookup has the direction its name says: ACDP stood
+    # at the 2019 national election (baselined); ActionSA did not (arrival).
+    try:
+        jb = baselined(("joburg", "2021"))
+    except Exception as exc:                     # no inputs on this machine
+        print(f"  (real baseline check skipped: {type(exc).__name__})")
+    else:
+        assert jb is not None and "ACDP" in jb and "ASA" not in jb, sorted(jb)[:10]
     print("self-test: every branch flipped as constructed, and reverted")
 
 
