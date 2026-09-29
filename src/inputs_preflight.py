@@ -49,7 +49,15 @@ REQUIRED, ADVISORY = "required", "advisory"
 def _rows(city: str, target: str) -> list[dict]:
     """One row per input. `ok` False means the `fix` line has to be done."""
     out: list[dict] = []
-    code = {"joburg": "JHB", "tshwane": "TSH", "ekurhuleni": "EKU"}.get(city, city.upper())
+    # The IEC municipality code, from the city's own config. This was a typed
+    # map of three Gauteng cities with `city.upper()` as the fallback, so every
+    # other metro looked for `vds2026_ETHEKWINI.geojson` and reported its
+    # boundaries and both baselines MISSING while all of them were on disk.
+    # A city with no config has no code, and so no input can match it: every
+    # required row then reads MISSING, which is the truth about that city.
+    import cityconfig
+    code = (cityconfig.load(city).code
+            if (ROOT / "cities" / f"{city}.toml").exists() else f"<no config for {city}>")
 
     # --- 1. boundaries: which VD is in which ward, for THIS delimitation ----
     vds = ROOT / "data" / "raw" / "geo" / f"vds{target}_{code}.geojson"

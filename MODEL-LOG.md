@@ -28017,3 +28017,89 @@ the real 2024 baseline.
 **Consequence.** A code change to `pools.py`: every emitted spec's
 `pools_sha` is now stale and joins the batched re-emit in
 `POOLS-REEMIT-QUEUE.md`. No number in any spec moves for the current MERGERS.
+
+## 1.279 F8: every spec re-emitted under one `pools_sha`; the placebo set is 13, not 16, because of float drift since 8 September (2026-09-29)
+
+Freeze step F8, the batched window in `POOLS-REEMIT-QUEUE.md`. One writer,
+nothing else running. Backup first: `backups/2026-09-29T005624Z`.
+
+### The emit
+
+The queue's loop, 27 invocations (8 cities × 2011/2016/2021, Johannesburg 2026
+and its `--simulation`, Tshwane 2026), 1,593 s wall. Every invocation exited 0,
+no log contains a traceback or `HoldCascadeRefused`. The set of spec files is
+the same 27 paths as before the emit, every file's mtime is in the emit window,
+and every spec carries one `pools_sha`, `c70b8fc5bcd79279`, which is
+`pools._code_sha(src/pools.py)` at `265e990`. `declares.py --verify`: all 27
+specs `✓`. It still exits 1, on nine artefacts none of which is a spec:
+`history.json` and the published run artefacts, which point at superseded
+specs until the after-run and the F11 republish.
+
+The Tshwane `--simulation` question in the queue stays undecided; the loop
+emitted what it emits today.
+
+### What moved, field by field (old spec from the backup, new from disk)
+
+| | specs |
+|---|---|
+| only `artefact_key`, and `mergers: []` added (F5's field, empty at every backtest target) | 13: buffalocity 2011, capetown 2011, ekurhuleni 2011, ethekwini 2011/2016, joburg 2011/2016/2021, nelsonmandelabay 2011/2016, tshwane 2011/2016/2021 |
+| the four C1 specs: P1 violations 2 → 0 each | buffalocity 2016, mangaung 2011/2016/2021 |
+| `turnout` band of one pool only, as §1.269 listed | buffalocity 2021 (Indian/Asian), ekurhuleni, ethekwini, nelsonmandelabay 2021 (Coloured), tshwane 2026 (Black African) |
+| member weights and `alpha` at float round-off, max 1.6e-13 | capetown 2016, ekurhuleni 2016, capetown 2021 (plus its Coloured band) |
+| mergers | joburg 2026 and its simulation variant |
+
+**The round-off is not F3 or F5.** Cape Town 2016 built in process from
+`69cc6cc`'s code on the backup data is identical to the same build from HEAD,
+and both differ from the 8 September spec at 1e-14. Two HEAD builds are
+identical to each other and to the new file on disk. So today's environment
+does not reproduce the 8 September floats of unchanged code; nothing here says
+which library moved. §1.269 counted 16 specs "identical except `artefact_key`"
+in process, on today's environment against itself; on disk against the
+8 September files the count is 13.
+
+### §1.275's post-emit checks
+
+`pools_2026.json` (Johannesburg) carries `mergers`: GOOD → RISE, 0.1688% of the
+2024 baseline moved, and FORUM_4_SERVICE_DELIVERY → ASA, 0.0138%, both at
+retention 0.75 and both `vector_blended`. RISE's `no_measured_vector` note
+names the merger. No backtest spec carries a non-empty `mergers`. `run_model`'s
+`scenario["_mergers"]` was not exercised in this step.
+
+### The suite, and the one golden re-recorded
+
+Full suite after the emit: 866 passed, 14 failed, 18 skipped. Green again, as
+expected: `test_chain` (artefact key), `test_stage_inputs`, and
+`test_pool_bounds`' P1 scan. The failures, by module: `test_draw_record` ×3,
+`test_export_draws` ×3, `test_reweight` ×3 (all compare with the published run,
+and mergers move the live forecast by design), `test_pool_bounds` capacity scan
+(standing), `test_published_page` ×2 (build date stamps), and `test_drawer` ×2,
+which the handover did not list.
+
+`test_drawer`'s goldens are the 2026 Johannesburg citywide prior, read from
+`pools_2026.json`. Pointed at the pre-F8 spec under the same code, both pass as
+recorded on 2026-09-23, so the new spec is the whole of the movement.
+Re-recorded, with the reason in the file.
+
+**The suite on the committed tree** (after the re-record, the preflight fix and
+this entry): 868 passed, 13 failed, 18 skipped. The 13th was
+`test_model_index`, stale because this batch added a test; `MODEL-INDEX.md`
+was regenerated in the same commit and that module re-run alone passes 6 of 6.
+The 12 left are the ones listed above less `test_drawer`.
+
+### Two tooling changes in the same commit
+
+* `tests/test_pool_bounds.py`: the capacity scan's per-spec arithmetic is
+  lifted into `_capacity_cases`, so F9's scoring reads the one definition. On
+  the settled tree the old and new test give identical output, including all
+  12 straining cases.
+* `src/inputs_preflight.py` looked up every city outside the three Gauteng
+  metros under `city.upper()` and reported its boundaries and both baselines
+  missing while all were on disk. It now reads the code from the city config.
+  New test `test_every_declared_city_is_looked_up_under_its_own_iec_code`, red
+  with the old map restored. With the fix, each of the seven metros other than
+  Johannesburg lacks exactly two required inputs for 2026: the voters' roll
+  and the certified roster.
+
+F9 (the paired measurement) has not started. Its scoring script and the R2
+brief are in `audits/2026-09-29-f9-scoring/`, committed before the review and
+before either `compare_history` run.

@@ -92,6 +92,17 @@ TOL = 0.01
 ELECTIONS = ROOT / "data" / "raw" / "elections"
 PROCESSED = ROOT / "data" / "processed"
 
+# RE-RECORDED 2026-09-29, deliberately: THE F8 RE-EMIT MOVED THE INPUT, NOT
+# THE DRAWER. `pools_2026.json` now carries F5's mergers (MODEL-LOG §1.275):
+# GOOD's vector is blended into RISE's, and Forum 4 Service Delivery's into
+# ActionSA's. Attributed, not assumed: this fixture, pointed at the pre-F8 spec
+# (`backups/2026-09-29T005624Z`) under the same code, passes both goldens as
+# recorded on 2026-09-23. So the new spec is the whole of the movement.
+# Largest moves: MK p95 19.31% -> 18.69%, ASA p95 23.73% -> 23.19%,
+# ANC p5 10.79% -> 11.21%. That a change to one pool vector moves every party's
+# draw is §1.275's finding (the draws are not coupled across specs). No
+# improvement is claimed and none is measured here.
+#
 # RE-RECORDED 2026-09-23, deliberately: THE RE-EMIT WINDOW MOVED THE INPUT, NOT
 # THE DRAWER. Every spec was re-emitted under two landed changes — the pool-seed
 # fix (§1.249: an entrant with no measured vector is spread like the city rather
@@ -453,21 +464,21 @@ PROCESSED = ROOT / "data" / "processed"
 # records where the 2026 Johannesburg prior now is. No improvement is claimed
 # and none is measured here.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (22.2875, 10.7889, 35.6798),
-    "DA": (25.9431, 17.5981, 34.8131),
-    "EFF": (10.1439, 2.9304, 20.3597),
-    "ASA": (12.8348, 4.9102, 23.7333),
-    "MK": (9.7843, 2.9457, 19.3101),
-    "PA": (6.4693, 3.8250, 10.1637),
-    "VFPLUS": (0.8705, 0.0061, 3.1078),
-    "ALJAMAAH": (0.9284, 0.2365, 1.9056),
-    "ENTRANT": (1.4183, 0.0000, 7.6156),
+    "ANC": (22.6370, 11.2134, 35.9215),
+    "DA": (25.9153, 17.5052, 34.9631),
+    "EFF": (10.1629, 2.8692, 20.2316),
+    "ASA": (12.8341, 5.1188, 23.1866),
+    "MK": (9.5373, 2.9465, 18.6908),
+    "PA": (6.4727, 3.9309, 9.7485),
+    "VFPLUS": (0.8537, 0.0062, 3.1525),
+    "ALJAMAAH": (0.9354, 0.2395, 1.9662),
+    "ENTRANT": (1.3435, 0.0000, 7.4467),
 }
 GOLDEN_POOLS = {
-    "Black African": (50.0040, 41.9782, 57.7050),
-    "Coloured": (10.3865, 7.7146, 14.2273),
-    "Indian/Asian": (4.2782, 3.3381, 5.4242),
-    "White": (32.3526, 25.9927, 38.9946),
+    "Black African": (50.0392, 41.8216, 57.8897),
+    "Coloured": (10.4949, 7.8926, 14.0890),
+    "Indian/Asian": (4.2785, 3.3657, 5.4453),
+    "White": (32.2843, 25.9593, 39.2394),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")

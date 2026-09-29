@@ -5,7 +5,7 @@
 `MODEL-LOG.md`, which is append-only and dated. `CLAUDE.md` sends every session
 here first, so anything stale in this file is read as an instruction.
 
-> ## ⛔ STATE AT 2026-09-29: THE FREEZE IS IN PROGRESS. WORK FROM `TODO.md` §0.
+> ## ⛔ STATE AT 2026-09-29 (later): F8 DONE; R2 IS NEXT. WORK FROM `TODO.md` §0.
 >
 > **The plan is `TODO.md` §0.** The model freeze is launching the interactive
 > (saved forecasts depend on the model), and it contains F3 and F5 only.
@@ -18,26 +18,34 @@ here first, so anything stale in this file is read as an instruction.
 > * R1: blind pollster review, and ultra review 3 on PR #17. Its one nit is
 >   fixed in `899b7a1`.
 >
+> **F8 is done (29 Sept, MODEL-LOG §1.279).** 27 specs, one `pools_sha`,
+> backup `backups/2026-09-29T005624Z`. `test_drawer` was re-recorded for the
+> merger (attributed in §1.279).
+>
 > **NEXT, in order:**
-> 1. **F8 re-emit.** One writer only; run `src/backup_ignored.py` first. It
->    turns green `test_chain` (artefact key), `test_stage_inputs` and
->    `test_pool_bounds` P1.
-> 2. **R2, then F9.** Review the scoring script against both preregs, then
->    measure.
+> 1. ~~F8 re-emit~~ done.
+> 2. **R2, then F9.** The scoring script is
+>    `audits/2026-09-29-f9-scoring/score_f9.py` and the brief is `R2-brief.md`
+>    beside it, both committed before the review. After R2: run
+>    `compare_history` in a worktree at `69cc6cc` on a copy of the backup's
+>    `data/` (the "before"; overlay with `cp -Rc <backup>/data/. <wt>/data/`,
+>    since `cp -R` into an existing dir nests it), then on this tree (the
+>    "after"), then score. Same seed and draws on both sides.
 > 3. **R3, then F10.** Review the census claims, then run the mechanism census
 >    (PUBLISHING-BACKLOG §15).
 > 4. **R4, then F11.** Blind pre-publish review, then the owner's publish. That
 >    is the freeze.
 >
-> ⛔ **Ten suite failures are EXPECTED until the freeze republish.** They are
-> `test_draw_record` ×3, `test_export_draws` ×3 and `test_reweight` ×4, and
+> ⛔ **Nine suite failures are EXPECTED until the freeze republish.** They are
+> `test_draw_record` ×3, `test_export_draws` ×3 and `test_reweight` ×3 (the
+> three `uniform_weights_give_…published…`; the earlier "×4" is not what the
+> post-F8 suite shows), and
 > all compare the live model with the published run. Mergers move the live
 > forecast by design. The lead verified that with `pools.MERGERS = ()` the live
 > code equals `4711a15` bit for bit. `test_draw_record`'s pin to `4711a15` is to
 > be **retired, not re-pinned**, at the freeze. Standing failures:
 > `test_pool_bounds` impossibility scan, and `test_published_page` ×2 (build
-> date stamps). The last full suite: 862 passed, 17 failed; the 17th was a
-> stale index, fixed in `054ba3b`.
+> date stamps). The last full suite is quoted in MODEL-LOG §1.279.
 >
 > **Interactive.** The design is `audits/2026-09-27-interactive-levers/DESIGN-decided.md`
 > §7–§14; the architecture is `audits/2026-09-28-interactive-architecture/`.

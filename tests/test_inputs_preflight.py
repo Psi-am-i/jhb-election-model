@@ -52,6 +52,34 @@ def test_split_voting_districts_are_counted_from_the_file():
         "no split VDs found in Johannesburg, which contradicts ward_parts"
 
 
+def test_every_declared_city_is_looked_up_under_its_own_iec_code():
+    """The boundary and baseline rows use the code in ``cities/<slug>.toml``.
+
+    ⛔ They used a typed map of three Gauteng cities and fell back to
+    ``city.upper()``, so eThekwini, Cape Town, Mangaung, Nelson Mandela Bay and
+    Buffalo City looked for ``vds2026_ETHEKWINI.geojson`` and the like, and
+    reported their boundaries and both baselines MISSING while every file was
+    on disk (2026-09-29). The population is every declared city, both ways.
+    """
+    import cityconfig
+    slugs = sorted(p.stem for p in (ROOT / "cities").glob("*.toml"))
+    assert 2 <= len(slugs) <= 50, f"declared cities out of range: {slugs}"
+    found_outside_gauteng = False
+    for slug in slugs:
+        city = cityconfig.load(slug)
+        rows = _rows(slug)
+        vds = ROOT / "data" / "raw" / "geo" / f"vds2026_{city.code}.geojson"
+        assert rows["2026 voting districts"]["ok"] == vds.exists(), (
+            f"{slug}: the preflight and the file named by its IEC code "
+            f"{city.code!r} disagree about the 2026 voting districts")
+        if vds.exists() and city.province != "GP":
+            found_outside_gauteng = True
+    if any((ROOT / "data" / "raw" / "geo").glob("vds2026_*.geojson")):
+        assert found_outside_gauteng, (
+            "no city outside Gauteng has its 2026 voting districts found — "
+            "the lookup this test guards is the one that failed that way")
+
+
 def test_a_missing_required_input_is_reported_and_exits_under_strict(tmp_path=None):
     """The whole point: absence must be loud, because the model is quiet."""
     rows = P._rows("nosuchcity", "2026")

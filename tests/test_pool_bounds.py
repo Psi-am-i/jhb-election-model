@@ -314,6 +314,100 @@ def test_an_infeasible_system_is_refused_rather_than_approximated():
             "neither the bounds nor the margins and nothing would say so")
 
 
+def _actual_shares(record: dict) -> dict:
+    """A history row's realised PR shares, as the capacity scan reads them."""
+    return {p: a for p, _md, _mn, a, *_ in record["votes"] if a == a and a > 0}
+
+
+def _capacity_cases(spec: dict, actual: dict) -> list[dict]:
+    """Every party-pool weight in ``spec`` the pool cannot carry, as numbers.
+
+    The arithmetic of
+    :func:`test_no_emitted_composition_weight_is_arithmetically_impossible`,
+    lifted out so the F9 scoring (`audits/2026-09-29-f9-scoring/`) reads the
+    same definition instead of a copy; the prereg's D4 asks for the strain as
+    a continuous number per case, which the test's messages only printed.
+
+    ``kind`` is ``"zero"`` (the pool casts nothing and still carries weight),
+    ``"fatal"`` (``ratio`` = votes needed / the pool's top-of-band vote) or
+    ``"straining"`` (``ratio`` = the weight / its central-turnout ceiling).
+    """
+    out = []
+    pools_ = spec["pools"]
+    names = list(pools_)
+    votes = {nm: pools_[nm].get("registered", 0.0)
+             * float((pools_[nm].get("turnout") or [0, 1, 0])[1])
+             for nm in names}
+    total = sum(votes.values())
+    if total <= 0:
+        return out
+    share = {nm: votes[nm] / total for nm in names}
+    for party, s_p in actual.items():
+        if s_p <= 0:
+            continue
+        w = {nm: float((pools_[nm].get("members") or {}).get(party, 0.0))
+             for nm in names}
+        wsum = sum(w.values())
+        if wsum <= 0:
+            continue
+        for nm in names:
+            if w[nm] <= 0:
+                continue
+            # ⛔ TESTED AT THE POOL'S OWN TOP-OF-BAND TURNOUT, NOT THE MIDDLE.
+            #
+            # Turnout is DRAWN per pool, not fixed, and the pools have
+            # separate turnout levers — so a composition that will not fit at
+            # the central turnout may fit perfectly at a draw the model
+            # actually makes. Testing the middle alone condemned four
+            # city-years the model can legitimately reach.
+            #
+            # ⚠️ AND RAISING EVERY POOL TOGETHER IS THE WRONG TEST, which is
+            # how this was first got wrong: lifting all pools lifts the CITY
+            # total too, so a pool's SHARE can fall and the ceiling gets
+            # tighter rather than looser. The question is what ONE pool can
+            # cast when its own turnout is at the top of its band and the
+            # others sit at theirs — which is what a per-group lever does.
+            # ⛔ COMPARED IN VOTES, NOT IN SHARES OF A SHIFTING TOTAL.
+            # A ratio against `pool_share / party_share` lets the CITY total
+            # grow when this pool's turnout rises, which silently inflates
+            # the party's implied vote count on the other side of the
+            # inequality. The party's vote is a FIXED, OBSERVED number; only
+            # the pool's capacity is being flexed. So: hold the party's
+            # votes at the central-turnout city size and ask whether this
+            # pool can cast that many.
+            party_votes = s_p * total
+            pool_hi = (pools_[nm].get("registered", 0.0)
+                       * float((pools_[nm].get("turnout") or [0, 1, 0])[2]))
+            if share[nm] <= 0:
+                # A pool that casts NOTHING, with a party weighted into it.
+                # The shipped test divided by this and raised
+                # ZeroDivisionError — an error, not a finding, so it read as
+                # a broken test rather than a broken spec.
+                out.append({"party": party, "pool": nm, "kind": "zero",
+                            "weight": w[nm] / wsum, "ratio": float("inf")})
+                continue
+            rel = w[nm] / wsum
+            # FATAL only if it cannot fit even when this pool's own turnout
+            # is at the top of its band — i.e. more of the party's vote than
+            # the pool can cast under ANY draw the model makes. That is the
+            # owner's constraint: no party can take more votes from a pool
+            # than the pool has voters.
+            need = rel * party_votes
+            if pool_hi > 0 and need > pool_hi * (1.0 + 1e-9):
+                out.append({"party": party, "pool": nm, "kind": "fatal",
+                            "weight": rel, "need": need, "pool_hi": pool_hi,
+                            "ratio": need / pool_hi})
+            elif rel > (share[nm] / s_p) * (1.0 + 1e-9):
+                # Straining but reachable: impossible at central turnout,
+                # possible at the top of this pool's band. Recorded, not
+                # fatal — the model draws there.
+                ceiling = share[nm] / s_p
+                out.append({"party": party, "pool": nm, "kind": "straining",
+                            "weight": rel, "ceiling": ceiling,
+                            "ratio": rel / ceiling})
+    return out
+
+
 def test_no_emitted_composition_weight_is_arithmetically_impossible():
     """A party cannot draw more from a pool than the pool casts.
 
@@ -401,83 +495,24 @@ def test_no_emitted_composition_weight_is_arithmetically_impossible():
         if not spec_path.exists() or (slug + year) not in hist:
             continue
         spec = json.loads(spec_path.read_text())
-        actual = {p: a for p, _md, _mn, a, *_ in hist[slug + year]["votes"]
-                  if a == a and a > 0}
-        pools_ = spec["pools"]
-        names = list(pools_)
-        votes = {nm: pools_[nm].get("registered", 0.0)
-                 * float((pools_[nm].get("turnout") or [0, 1, 0])[1])
-                 for nm in names}
-        total = sum(votes.values())
-        if total <= 0:
-            continue
-        share = {nm: votes[nm] / total for nm in names}
-        for party, s_p in actual.items():
-            if s_p <= 0:
-                continue
-            w = {nm: float((pools_[nm].get("members") or {}).get(party, 0.0))
-                 for nm in names}
-            wsum = sum(w.values())
-            if wsum <= 0:
-                continue
-            for nm in names:
-                if w[nm] <= 0:
-                    continue
-                # ⛔ TESTED AT THE POOL'S OWN TOP-OF-BAND TURNOUT, NOT THE MIDDLE.
-                #
-                # Turnout is DRAWN per pool, not fixed, and the pools have
-                # separate turnout levers — so a composition that will not fit at
-                # the central turnout may fit perfectly at a draw the model
-                # actually makes. Testing the middle alone condemned four
-                # city-years the model can legitimately reach.
-                #
-                # ⚠️ AND RAISING EVERY POOL TOGETHER IS THE WRONG TEST, which is
-                # how this was first got wrong: lifting all pools lifts the CITY
-                # total too, so a pool's SHARE can fall and the ceiling gets
-                # tighter rather than looser. The question is what ONE pool can
-                # cast when its own turnout is at the top of its band and the
-                # others sit at theirs — which is what a per-group lever does.
-                # ⛔ COMPARED IN VOTES, NOT IN SHARES OF A SHIFTING TOTAL.
-                # A ratio against `pool_share / party_share` lets the CITY total
-                # grow when this pool's turnout rises, which silently inflates
-                # the party's implied vote count on the other side of the
-                # inequality. The party's vote is a FIXED, OBSERVED number; only
-                # the pool's capacity is being flexed. So: hold the party's
-                # votes at the central-turnout city size and ask whether this
-                # pool can cast that many.
-                party_votes = s_p * total
-                pool_hi = (pools_[nm].get("registered", 0.0)
-                           * float((pools_[nm].get("turnout") or [0, 1, 0])[2]))
-                if share[nm] <= 0:
-                    # A pool that casts NOTHING, with a party weighted into it.
-                    # The shipped test divided by this and raised
-                    # ZeroDivisionError — an error, not a finding, so it read as
-                    # a broken test rather than a broken spec.
-                    bad.append(f"{slug} {year} {party} in {nm}: the pool casts "
-                               f"ZERO votes and still carries weight "
-                               f"{w[nm] / wsum:.4f}")
-                    continue
-                rel = w[nm] / wsum
-                # FATAL only if it cannot fit even when this pool's own turnout
-                # is at the top of its band — i.e. more of the party's vote than
-                # the pool can cast under ANY draw the model makes. That is the
-                # owner's constraint: no party can take more votes from a pool
-                # than the pool has voters.
-                need = rel * party_votes
-                if pool_hi > 0 and need > pool_hi * (1.0 + 1e-9):
-                    bad.append(
-                        f"{slug} {year} {party} in {nm}: needs {need:,.0f} votes "
-                        f"from a pool that casts at most {pool_hi:,.0f} even at "
-                        f"the TOP of its turnout band — {need - pool_hi:,.0f} "
-                        f"more votes than that pool has voters ({need/pool_hi:.2f}x)")
-                elif rel > (share[nm] / s_p) * (1.0 + 1e-9):
-                    # Straining but reachable: impossible at central turnout,
-                    # possible at the top of this pool's band. Recorded, not
-                    # fatal — the model draws there.
-                    straining.append(
-                        f"{slug} {year} {party} in {nm}: {rel:.4f} against "
-                        f"{share[nm]/s_p:.4f} at central turnout, but fits at "
-                        f"the top of the band")
+        actual = _actual_shares(hist[slug + year])
+        for case in _capacity_cases(spec, actual):
+            where = f"{slug} {year} {case['party']} in {case['pool']}"
+            if case["kind"] == "zero":
+                bad.append(f"{where}: the pool casts ZERO votes and still "
+                           f"carries weight {case['weight']:.4f}")
+            elif case["kind"] == "fatal":
+                bad.append(
+                    f"{where}: needs {case['need']:,.0f} votes from a pool "
+                    f"that casts at most {case['pool_hi']:,.0f} even at the "
+                    f"TOP of its turnout band — "
+                    f"{case['need'] - case['pool_hi']:,.0f} more votes than "
+                    f"that pool has voters ({case['ratio']:.2f}x)")
+            else:
+                straining.append(
+                    f"{where}: {case['weight']:.4f} against "
+                    f"{case['ceiling']:.4f} at central turnout, but fits at "
+                    f"the top of the band")
     assert not bad, (
         "these emitted pool weights describe an election that cannot happen — "
         "the party is SEEDED to draw more from the pool than the pool "
