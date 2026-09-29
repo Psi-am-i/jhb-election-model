@@ -28220,3 +28220,42 @@ is limited to the modules F3 and F5 touched. With the new `history.json`, the
 two rank-band rows in ITERATING.md rule 8 were re-quoted from the artefact
 (`test_calibration_report` names them); the full suite on `7be7848` otherwise
 showed only the 12 expected failures.
+
+**Correction to §1.280 and its addendum, 2026-09-29, after an independent
+review** (`audits/2026-09-29-census/R-tests-brief.md`). Each point re-derived
+from the committed run files.
+
+* **The arrival group.** "Every re-seed is worse than it by more than the
+  change is" and the addendum's "the arrival group shows the same pattern"
+  are wrong for one seed: the re-seeds move Σ|arrival seats_err| by +0.62,
+  +0.85, +0.72, +0.83 and +0.23 against the change's +0.50. Four of five
+  re-seeds are worse than the change; seed 5 is nearer the base than it.
+* **The yardstick, split by the kind of row.** The addendum pooled nine
+  moved rows. Per-row |ΔCRPS|, F3 against a re-seed of the SAME rows
+  (5 seeds each):
+
+  | rows | F3 | re-seed median / 90th pct / max |
+  |---|---|---|
+  | the four C1 specs (buffalocity 2016, mangaung 2011/2016/2021) | 0.225, 0.323, 0.077, 0.224 | 0.263 / 0.867 / 1.454 |
+  | the five band-only specs (2021) | 0.050, 0.003, 0.000, 0.004, 0.000 | 0.161 / 0.430 / 0.672 |
+
+  On the C1 rows F3's moves are the size of a re-seed's; "not
+  distinguishable from seed noise" holds there. On the band-only rows F3
+  barely moved the score while a re-seed moves it by 0.01 to 0.67, so for
+  those rows the same-seed pair stayed correlated. That contradicts the
+  premise in `score_f9.py`'s docstring, taken from §1.275, that a change to
+  one pool vector decorrelates the draw as a new seed does: it holds for the
+  C1 changes and not for a small band change. "Every paired move is the size
+  a re-seed produces" should read "no larger than": P6's Δ is 0 against a
+  seed spread of −1 to 0, and coverage is identical against a spread of up to
+  0.012.
+* **Buffalo City 2021** moved in `turnout_limits` as well as its Indian/Asian
+  turnout band (`spec_diff` fields: `pools`, `turnout_limits`), as §1.269
+  recorded. "Whose turnout band alone moved" is wrong for that row.
+* **The whole-`data/` comparison is reported, not recorded.** Only the 27
+  before-spec hashes are saved (`runs/before_specs_sha256.json`); the sha256
+  comparison of every other file was made by hand in the session and its
+  manifest was not kept. The worktree is removed, so it cannot be
+  regenerated.
+
+None of these changes a verdict in the table above.

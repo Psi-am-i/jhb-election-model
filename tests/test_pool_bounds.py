@@ -865,6 +865,102 @@ def test_a_refit_that_silences_a_second_pool_holds_it_too():
         raise AssertionError("a hold that silenced every pool was accepted")
 
 
+# --------------------------------------------------------------------------
+# Guards the F10 census found missing (audits/2026-09-29-census/RESULTS.md):
+# removing either mechanism below turned no test red.
+# --------------------------------------------------------------------------
+
+def _free_nest(parent, observed, upper=1.0):
+    """`_nest_holding_silent` with the hold removed: the free fit, nothing held."""
+    child, rate = pools._nest(parent, observed, upper=upper)
+    return child, rate, {}
+
+
+def test_emit_refuses_a_spec_that_would_drop_a_declared_pool():
+    """`emit_pools` refuses a pool with no members rather than skipping it.
+
+    With F3's hold on, nothing reaches this refusal, so no spec on disk shows
+    it working. Removing the hold re-creates the C1 defect at Mangaung 2016
+    (Indian/Asian silenced by the 2011 turnout solve), and the emit must
+    refuse. It can see: the census showed that with the refusal replaced by a
+    `continue`, the same emit returns a spec that violates P1.
+
+    ⚠️ ITS INPUT IS OBSERVED, NOT CONSTRUCTED. It rests on the real 2011
+    Mangaung table producing a memberless Indian/Asian pool once the hold is
+    removed. An arrival vector carrying Indian/Asian weight above 1e-4 would
+    break that premise (CLAIMS.md C1). The constructed version needs the
+    member-building loop lifted out of `emit_pools`, a `pools.py` code change
+    queued for the next re-emit window (POOLS-REEMIT-QUEUE.md).
+    Asserts the refusal and the pool it names, not the wording.
+    """
+    import contextlib
+    import io
+    saved = (pools._nest_holding_silent, pools.write_lineage_template)
+    pools._PANEL_SPREAD_CACHE.clear()
+    pools._nest_holding_silent = _free_nest
+    pools.write_lineage_template = lambda c, t, *a, **k: pools.lineage_path(c, t)
+    try:
+        city = cityconfig.use("mangaung")
+        target = cityconfig.use_target("2016")
+        with contextlib.redirect_stdout(io.StringIO()):
+            pools.emit_pools(city, target, pools.load_config())
+    except SystemExit as exc:
+        assert "'Indian/Asian'" in str(exc), exc
+    else:
+        raise AssertionError(
+            "with the hold removed, Mangaung 2016's emit returned a spec: "
+            "the memberless-pool refusal in `emit_pools` is gone (prereg P1)")
+    finally:
+        pools._nest_holding_silent, pools.write_lineage_template = saved
+        pools._PANEL_SPREAD_CACHE.clear()
+
+
+def test_the_panel_spread_does_not_count_a_held_pool_as_a_movement():
+    """A transition to or from a pool held at the city's rate is skipped.
+
+    The held set is RECORDED, not typed: the unmutated panel pass records the
+    category of every held index `pool_counts` reports. The same panel is
+    then recomputed with every held set emptied. Held transitions come back,
+    so the observation count must rise and at least one held pool's spread
+    must change. If the skip is removed the two runs agree and this fails.
+    A pool that is not held may also move, through the pooled fallback a
+    pool with too few own moves takes; that is reported, not failed.
+    """
+    import dataclasses
+    cfg = pools.load_config()
+    real = pools.pool_counts
+    held_names: set[str] = set()
+
+    def recording(*a, **k):
+        pc = real(*a, **k)
+        for idx in pc.imputed.values():
+            held_names.update(pc.categories[g] for g in idx)
+        return pc
+
+    def unheld(*a, **k):
+        return dataclasses.replace(real(*a, **k), imputed={})
+
+    pools._PANEL_SPREAD_CACHE.clear()
+    try:
+        pools.pool_counts = recording
+        held_spread, held_n = pools.panel_turnout_spread(cfg, before="2016")
+        pools._PANEL_SPREAD_CACHE.clear()
+        pools.pool_counts = unheld
+        free_spread, free_n = pools.panel_turnout_spread(cfg, before="2016")
+    finally:
+        pools.pool_counts = real
+        pools._PANEL_SPREAD_CACHE.clear()
+    assert held_names, "no pool is held anywhere in the panel: nothing to test"
+    assert held_n > 0 and free_n > held_n, (held_n, free_n)
+    moved = {g for g in held_spread if held_spread[g] != free_spread.get(g)}
+    assert moved & held_names, (
+        f"no held pool's spread depends on the skip (held {sorted(held_names)}, "
+        f"moved {sorted(moved)})")
+    others = sorted(moved - held_names)
+    if others:
+        print(f"  not held but moved (pooled fallback): {others}")
+
+
 if __name__ == "__main__":
     # `run_module`, NOT a hand-rolled loop. Until 2026-08-23 this file ended with
     # `for name, fn in sorted(globals().items()): ... fn()`, which catches

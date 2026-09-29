@@ -84,7 +84,8 @@ MUTANTS: dict[str, dict] = {
     "C3-guard": {"fix": [B], "edits": [(P, C3_OLD, C3_NEW)]},
     "C3-guard+C1-off": {"fix": [B], "tests": False,
                         "edits": [(P, C3_OLD, C3_NEW), C1_OFF]},
-    "C4-off": {"fix": [B], "tests": False, "edits": [
+    # Tests ON since the review (C4's guard status was never measured in r1).
+    "C4-off": {"fix": [B], "edits": [
         FLAGS, HOLD_OFF, _runtime("_CENSUS_HOLD_OFF", "True", "False")]},
     "C4-nudge": {"fix": [B], "tests": False, "edits": [
         FLAGS, HOLD_SCALE, _runtime("_CENSUS_HOLD_SCALE", "1.10", "1.0")]},

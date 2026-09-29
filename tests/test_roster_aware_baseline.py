@@ -55,6 +55,7 @@ Run:
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 import tempfile
@@ -1064,20 +1065,23 @@ def test_every_consumer_the_spec_names_calls_apply_mergers():
     """
     import ast
 
-    def callers(sources: dict[str, str]) -> set[str]:
-        found = set()
+    from collections import Counter
+
+    def callers(sources: dict[str, str], name: str = "apply_mergers") -> Counter:
+        """Calls to ``name`` per enclosing function (``module.function``).
+        ONE matcher, used for the set, the counts and the self-checks."""
+        found: Counter = Counter()
         for mod, text in sources.items():
-            tree = ast.parse(text)
-            for fn in ast.walk(tree):
+            for fn in ast.walk(ast.parse(text)):
                 if not isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     continue
                 for node in ast.walk(fn):
                     if isinstance(node, ast.Call):
                         f = node.func
-                        name = (f.attr if isinstance(f, ast.Attribute)
-                                else getattr(f, "id", None))
-                        if name == "apply_mergers":
-                            found.add(f"{mod}.{fn.name}")
+                        called = (f.attr if isinstance(f, ast.Attribute)
+                                  else getattr(f, "id", None))
+                        if called == name:
+                            found[f"{mod}.{fn.name}"] += 1
         return found
 
     src = ROOT / "src"
@@ -1085,19 +1089,91 @@ def test_every_consumer_the_spec_names_calls_apply_mergers():
     scanned(sources, of=len(list(src.glob("*.py"))), low=1.0, high=1.0,
             what="src modules parsed", denominator="src/*.py")
     got = callers(sources)
-    assert got == set(pools.MERGER_CONSUMERS), (
-        f"declared, not calling: {sorted(set(pools.MERGER_CONSUMERS) - got)}; "
-        f"calling, not declared: {sorted(got - set(pools.MERGER_CONSUMERS))}")
+    assert set(got) == set(pools.MERGER_CONSUMERS), (
+        f"declared, not calling: {sorted(set(pools.MERGER_CONSUMERS) - set(got))}; "
+        f"calling, not declared: {sorted(set(got) - set(pools.MERGER_CONSUMERS))}")
+    # PER CALL, not per function (F10 census, RESULTS.md): `run_model` makes
+    # two calls, the national baseline and the preceding local result, and a
+    # per-function set stayed green with either one removed. The counts are
+    # the arity of each consumer's use, stated here because `pools.py` holds
+    # the consumer list and editing it would re-key every spec. A call that
+    # is present but disabled (`if False:`, a discarded result) is invisible
+    # to any source scan; `test_the_run_model_mergers_reach_the_spine` is the
+    # behavioural guard for that.
+    expected_calls = {"montecarlo.run_model": 2, "pools.emit_pools": 1,
+                      "theta_residual._residuals_cached": 1}
+    assert dict(got) == expected_calls, (
+        f"apply_mergers calls per consumer: {dict(got)}, expected {expected_calls}")
+    # ... and emit_pools applies the vector blend, which nothing else checked.
+    assert callers(sources, "blend_merger_vectors").get("pools.emit_pools") == 1, \
+        "emit_pools no longer calls blend_merger_vectors"
 
-    # It can see: remove the call from one consumer, and add one elsewhere.
+    # It can see: remove a call from one consumer, remove ONE of run_model's
+    # two calls, and add a call elsewhere.
     cut = dict(sources)
     cut["theta_residual"] = cut["theta_residual"].replace(
         "pools.apply_mergers(", "pools.dict_passthrough(")
     assert "theta_residual._residuals_cached" not in callers(cut)
+    one = dict(sources)
+    marker = "_pools_merge.apply_mergers(pc,"
+    assert one["montecarlo"].count(marker) == 1, "the local-result call moved"
+    one["montecarlo"] = one["montecarlo"].replace(marker, "_pools_merge.passthrough(pc,")
+    assert callers(one)["montecarlo.run_model"] == 1
     extra = dict(sources)
     extra["sweep"] = extra.get("sweep", "") + (
         "\n\ndef _leaky():\n    return pools.apply_mergers({}, set(), '2026')\n")
     assert "sweep._leaky" in callers(extra)
+    noblend = dict(sources)
+    noblend["pools"] = noblend["pools"].replace(
+        "    blend_merger_vectors(composition,", "    _no_blend(composition,")
+    assert "pools.emit_pools" not in callers(noblend, "blend_merger_vectors")
+
+
+_SPINE_PROBE = r"""
+import argparse, contextlib, io, json, sys, tempfile
+sys.path.insert(0, "src")
+import cityconfig, montecarlo as M, pools
+out = {}
+for label, mergers in (("declared", pools.MERGERS), ("none", ())):
+    pools.MERGERS = mergers
+    city = cityconfig.use("joburg"); target = cityconfig.use_target("2026")
+    M.apply_city(city)
+    sc = M.load_scenario(argparse.Namespace(config=None, set=["seed=20261104"],
+        draws=50, seed=None, city="joburg", target="2026"))
+    with tempfile.TemporaryDirectory() as d, contextlib.redirect_stdout(io.StringIO()):
+        M.run_model(target, sc, verbose=False, run_dir=d)
+        lv = json.load(open(d + "/20_spine.json"))["level"]
+    out[label] = {"RISE": lv.get("RISE"), "ASA": lv.get("ASA"),
+                  "mergers": [m["successor"] for m in sc.get("_mergers") or []]}
+print(json.dumps(out))
+"""
+
+
+def test_the_run_model_mergers_reach_the_spine():
+    """Behavioural guard for both `apply_mergers` calls in `run_model`.
+
+    A source scan cannot see a call that is present but disabled. So the
+    model is run at Johannesburg 2026 with the declared mergers and with none,
+    in a fresh process (it reads module globals), and the spine is read from
+    the trace. RISE takes GOOD's transfer only through the NATIONAL call (it
+    has no local record); ASA's spine level is its local level, so it moves
+    only through the LOCAL call (MODEL-LOG §1.275, census C5 and C6). Both
+    must differ. The census showed each call removed leaves its party's level
+    unchanged.
+    """
+    r = subprocess.run([sys.executable, "-c", _SPINE_PROBE], cwd=ROOT,
+                       capture_output=True, text=True,
+                       env={"PYTHONHASHSEED": "0", "PATH": "/usr/bin:/bin"})
+    assert r.returncode == 0, r.stderr[-2000:]
+    got = json.loads(r.stdout.strip().splitlines()[-1])
+    dec, none = got["declared"], got["none"]
+    assert sorted(dec["mergers"]) == ["ASA", "RISE"] and none["mergers"] == [], got
+    assert dec["RISE"] > none["RISE"], (
+        f"RISE's spine level did not rise with the mergers ({none['RISE']} -> "
+        f"{dec['RISE']}): the national-baseline call has no effect")
+    assert dec["ASA"] > none["ASA"], (
+        f"ASA's spine level did not rise with the mergers ({none['ASA']} -> "
+        f"{dec['ASA']}): the preceding-local call has no effect")
 
 
 def test_the_merger_mechanism_names_no_party():

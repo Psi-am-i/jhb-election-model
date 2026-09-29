@@ -562,3 +562,14 @@ a reason to spend it.
 * **F18's crosswalk deduplication** — deliberately scoped to leave `pools.py`
   alone. `pools._target_roll` is a separate, intentional roll sum and stays
   (§1.116).
+
+### Queued 2026-09-29 (F10 census review): lift the memberless-pool refusal out of `emit_pools`
+
+The member-building loop and its refusal (`emit_pools`, the `if not members:`
+block) cannot be tested on a constructed composition while it is inline, so
+`test_pool_bounds::test_emit_refuses_a_spec_that_would_drop_a_declared_pool`
+exercises it on the real Mangaung 2016 table with the hold removed, an
+observed premise. Lift it into a small function taking a composition and
+the categories; test that on a constructed one-column-zero composition and
+assert on the pool name as data. A code change, so it waits for the next
+window. `audits/2026-09-29-census/RESULTS.md`, review finding T3.
