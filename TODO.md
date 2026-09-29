@@ -202,6 +202,14 @@ is a correction, not a rewording. *(Owner: add, leave for now.)*
 
 # 3 · Everything else
 
+**Other metros (owner, 2026-09-29): only after the Johannesburg interactive is
+finished.** Not a full site per metro: a ward and seat predictor with headline
+numbers only. **Tshwane is the second**, and the only one planned. Its gaps for
+a 2026 forecast (`src/inputs_preflight.py --strict --city tshwane --target
+2026`) are the voters' roll and the certified roster; it already has a 2026
+spec and judgements file. Do not start acquiring rolls before Johannesburg's
+interactive is done.
+
 **Before the election**
 
 * **Post-election scoring must be frozen before 4 November** — seat count per
