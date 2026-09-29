@@ -226,7 +226,7 @@ interactive is done.
 
 **The newsdesk**
 
-* ~~Moved to its own private repository~~ — `~/projects/jhb-model-newsdesk`
+* ~~Moved to its own private repository~~ — `~/projects/atlas-jhb-model-newsdesk`
   (`Psi-am-i/jhb-model-newsdesk`), 27 Sept. Its rules are its `CLAUDE.md`; the
   two-`CLAUDE.md` collision is gone. Routine `joburg-daily-newsdesk` repointed
   and its prompt reduced to "follow `CLAUDE.md`".

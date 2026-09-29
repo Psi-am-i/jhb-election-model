@@ -1,7 +1,7 @@
 **MemPalace wing:** `jhb_election_model` — file every diary entry, drawer and KG fact here.
 **Global policy — agent identity, MemPalace, machines, secrets — is in `~/CLAUDE.md` (rules 1-5)** and `~/projects/SECRETS.md`. Do not restate it.
 
-> **The newsdesk is a separate repository**, `~/projects/jhb-model-newsdesk`
+> **The newsdesk is a separate repository**, `~/projects/atlas-jhb-model-newsdesk`
 > (private, `Psi-am-i/jhb-model-newsdesk`). Its digests arrive there; its rules
 > are its own `CLAUDE.md`. After changing polls, claims or articles here, run
 > its `bin/sync-context.sh` so the routine judges "new" against current state.

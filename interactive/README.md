@@ -13,7 +13,7 @@ The backend is specified, not built: `BACKEND.md`.
 ## Open it
 
 ```
-cd ~/projects/jhb-election-model
+cd ~/projects/atlas-jhb-election-model
 python3 -m http.server 8801 --bind 127.0.0.1      # port 8801, never 8765
 ```
 
