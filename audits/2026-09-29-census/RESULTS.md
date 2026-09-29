@@ -72,7 +72,7 @@ was removed. Item 5 had no scan at all: nothing looked for
 
 **Not measured:** C4 (the run-time composition). Its mutants ran with the
 test modules off, so whether a test notices its removal is unknown. Re-run
-with tests on in `runs/r2-guards`.
+with tests on: see `runs/r2-guards` once it has run.
 
 **Harness note.** `first_changed` treats a stage missing on both sides as
 equal. The per-draw stages 42–44 were deleted after the recompare, so running

@@ -1143,8 +1143,12 @@ for label, mergers in (("declared", pools.MERGERS), ("none", ())):
     with tempfile.TemporaryDirectory() as d, contextlib.redirect_stdout(io.StringIO()):
         M.run_model(target, sc, verbose=False, run_dir=d)
         lv = json.load(open(d + "/20_spine.json"))["level"]
+        det = json.load(open(d + "/20_spine.json"))["detail"]
     out[label] = {"RISE": lv.get("RISE"), "ASA": lv.get("ASA"),
-                  "mergers": [m["successor"] for m in sc.get("_mergers") or []]}
+                  "routes": {p: {"route": det[p]["route"], "w_local": det[p]["w_local"]}
+                             for p in ("RISE", "ASA") if p in det},
+                  "mergers": [[m["predecessor"], m["successor"]]
+                              for m in sc.get("_mergers") or []]}
 print(json.dumps(out))
 """
 
@@ -1167,13 +1171,50 @@ def test_the_run_model_mergers_reach_the_spine():
     assert r.returncode == 0, r.stderr[-2000:]
     got = json.loads(r.stdout.strip().splitlines()[-1])
     dec, none = got["declared"], got["none"]
-    assert sorted(dec["mergers"]) == ["ASA", "RISE"] and none["mergers"] == [], got
-    assert dec["RISE"] > none["RISE"], (
-        f"RISE's spine level did not rise with the mergers ({none['RISE']} -> "
-        f"{dec['RISE']}): the national-baseline call has no effect")
+    # Every declared merger that predates the election fired; none without.
+    election = cityconfig.CALENDAR["2026"].date
+    live = [m for m in pools.MERGERS if m.date < election]
+    assert len(dec["mergers"]) == len(live) and none["mergers"] == [], got
+    succ = {s for _p, s in dec["mergers"]}
+    assert {"RISE", "ASA"} <= succ, f"the premise's successors changed: {succ}"
+    # The PREMISES, asserted so a changed route fails with the right message:
+    # RISE reaches the spine by the national route only, ASA at its local level.
+    assert dec["routes"]["RISE"]["w_local"] == 0.0, dec["routes"]
+    assert dec["routes"]["ASA"]["w_local"] == 1.0, dec["routes"]
+    # RISE (national call): the SIZE, not only the direction. The spine carries
+    # the national share times one factor, so the level scales exactly by
+    # (B + r*P) / B, with B and P read from the 2024 result file.
+    import levels
+    base = levels._citywide(
+        "data/raw/elections/" + cityconfig.CALENDAR["2024"].results.replace("{CODE}", "JHB"))
+    pred = [pp for pp, s in dec["mergers"] if s == "RISE"][0]
+    B, P, r = base["RISE"], base[pred], pools.MERGER_RETENTION
+    want = (B + r * P) / B
+    assert abs(dec["RISE"] / none["RISE"] - want) < 1e-9, (
+        f"RISE's spine moved by {dec['RISE'] / none['RISE']:.10f}, expected "
+        f"{want:.10f}: the national-baseline call is not applying r x P")
+    # ASA (local call): its level is its local level (w_local = 1 above), so it
+    # can only move through the preceding-local transfer.
     assert dec["ASA"] > none["ASA"], (
         f"ASA's spine level did not rise with the mergers ({none['ASA']} -> "
         f"{dec['ASA']}): the preceding-local call has no effect")
+
+
+def test_the_current_johannesburg_spec_was_emitted_with_the_vector_blend():
+    """Behavioural guard for `emit_pools`' `blend_merger_vectors` call.
+
+    `vector_blended` is set only inside `blend_merger_vectors`, and the loop
+    after the call reads it. So a spec whose every merger row says True was
+    emitted with the blend applied: a call disabled (`if False:`), fed no
+    vectors, or moved before the successor's vector exists leaves False or
+    crashes the emit. `test_chain` separately asserts the spec is current for
+    this code. Reads the artefact; runs nothing.
+    """
+    spec = json.loads((ROOT / "data/processed/pools_2026.json").read_text())
+    rows = spec.get("mergers") or []
+    election = cityconfig.CALENDAR["2026"].date
+    assert len(rows) == len([m for m in pools.MERGERS if m.date < election]), rows
+    assert rows and all(m.get("vector_blended") is True for m in rows), rows
 
 
 def test_the_merger_mechanism_names_no_party():

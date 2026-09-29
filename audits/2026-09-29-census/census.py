@@ -87,7 +87,7 @@ MUTANTS: dict[str, dict] = {
     # Tests ON since the review (C4's guard status was never measured in r1).
     "C4-off": {"fix": [B], "edits": [
         FLAGS, HOLD_OFF, _runtime("_CENSUS_HOLD_OFF", "True", "False")]},
-    "C4-nudge": {"fix": [B], "tests": False, "edits": [
+    "C4-nudge": {"fix": [B], "edits": [
         FLAGS, HOLD_SCALE, _runtime("_CENSUS_HOLD_SCALE", "1.10", "1.0")]},
     "C9-off": {"fix": [B, J], "spread": True, "edits": [
         (P, "                if i in ia or j in ib:\n                    continue\n", "")]},

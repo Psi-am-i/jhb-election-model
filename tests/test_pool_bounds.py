@@ -892,6 +892,8 @@ def test_emit_refuses_a_spec_that_would_drop_a_declared_pool():
     member-building loop lifted out of `emit_pools`, a `pools.py` code change
     queued for the next re-emit window (POOLS-REEMIT-QUEUE.md).
     Asserts the refusal and the pool it names, not the wording.
+    ⚠️ One pool at one city-year is exercised: a refusal gated on size
+    (only pools above N registered) would still refuse here and stay green.
     """
     import contextlib
     import io
@@ -925,6 +927,11 @@ def test_the_panel_spread_does_not_count_a_held_pool_as_a_movement():
     must change. If the skip is removed the two runs agree and this fails.
     A pool that is not held may also move, through the pooled fallback a
     pool with too few own moves takes; that is reported, not failed.
+
+    ⚠️ LIMITS, stated: this sees the skip REMOVED. A one-sided skip (only
+    `i in ia`), or a held set narrowed to one level, would probably still
+    leave some held pool moving and stay green; so would a panel with no held
+    transition before 2016, which instead fails `free_n > held_n` loudly.
     """
     import dataclasses
     cfg = pools.load_config()
