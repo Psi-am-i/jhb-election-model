@@ -1,0 +1,140 @@
+  polls.json: no malformed records
+  map into forecast-sheet.html
+  map into home.html
+  map into drafts/forecast-draft.html
+called: {'solid': 50, 'contested': 85}  ·  840x596  ·  svg ~61 KB
+geographic choropleth — ink by real ward area
+party       wards   seat %    ink %  distortion
+ANC            70     51.9     32.7       0.63x
+DA             44     32.6     52.9       1.62x
+PA             10      7.4     11.5       1.56x
+MK              9      6.7      2.2       0.33x
+EFF             2      1.5      0.6       0.42x
+
+hex cartogram — ink by hexagon
+party       wards   seat %    ink %  distortion
+ANC            70     51.9     51.9       1.00x
+DA             44     32.6     32.6       1.00x
+PA             10      7.4      7.4       1.00x
+MK              9      6.7      6.7       1.00x
+EFF             2      1.5      1.5       1.00x
+
+assignment: optimal  ·  radius 24.60px  ·  displacement mean 36.2px, median 33.7px, max 92.6px
+  layout into data/processed/ward_hex_layout.json
+  preview into drafts/hex-cartogram.html
+  cartogram into forecast-sheet.html
+geographic choropleth — ink by real ward area
+party       wards   seat %    ink %  distortion
+ANC            70     51.9     32.7       0.63x
+DA             44     32.6     52.9       1.62x
+PA             10      7.4     11.5       1.56x
+MK              9      6.7      2.2       0.33x
+EFF             2      1.5      0.6       0.42x
+
+hex cartogram — ink by hexagon
+party       wards   seat %    ink %  distortion
+ANC            70     51.9     51.9       1.00x
+DA             44     32.6     32.6       1.00x
+PA             10      7.4      7.4       1.00x
+MK              9      6.7      6.7       1.00x
+EFF             2      1.5      1.5       1.00x
+
+assignment: optimal  ·  radius 24.60px  ·  displacement mean 36.2px, median 33.7px, max 92.6px
+  layout into data/processed/ward_hex_layout.json
+  preview into drafts/hex-cartogram.html
+  cartogram into home.html
+geographic choropleth — ink by real ward area
+party       wards   seat %    ink %  distortion
+ANC            70     51.9     32.7       0.63x
+DA             44     32.6     52.9       1.62x
+PA             10      7.4     11.5       1.56x
+MK              9      6.7      2.2       0.33x
+EFF             2      1.5      0.6       0.42x
+
+hex cartogram — ink by hexagon
+party       wards   seat %    ink %  distortion
+ANC            70     51.9     51.9       1.00x
+DA             44     32.6     32.6       1.00x
+PA             10      7.4      7.4       1.00x
+MK              9      6.7      6.7       1.00x
+EFF             2      1.5      1.5       1.00x
+
+assignment: optimal  ·  radius 24.60px  ·  displacement mean 36.2px, median 33.7px, max 92.6px
+  layout into data/processed/ward_hex_layout.json
+  preview into drafts/hex-cartogram.html
+  cartogram into drafts/forecast-draft.html
+claims: 4 box(es) rendered from content/joburg/claims.toml
+regimes table: South African law: council 270, thr 136 · Germany 2000 law: council 274, thr 138 · Germany 2015 law: council 287, thr 144 · Germany 2023 law: council 270, thr 136
+rendered 8 regions into forecast-sheet.html: 24 coalitions, 10 party rows
+home: lede, 10 named parties + others, 5 articles -> home.html
+  rendered docs-public/corrections.md   -> site/corrections.html
+  rendered docs-public/methodology.md   -> site/methodology.html
+  rendered docs-public/about-the-model.md -> site/about.html
+  rendered docs-public/review.md        -> site/review.html
+  rendered docs-public/sources.md       -> site/sources.html
+  nav+copy home.html                    -> site/index.html
+  nav+copy forecast-sheet.html          -> site/forecast.html
+  nav+copy forecast-sheet.html          -> site/nobody-will-win.html
+
+stats: 25 free tokens resolved live · 33 pinned
+  no drift among the pinned stats that CAN be drift-checked
+  (33 pinned token(s) carry an `unverifiable` declaration and are therefore unchecked rather than checked-and-fine)
+portal: 8 cities (1 live) -> site/portal.html
+
+generated pages, exempt from the typed-figure audit because every number in them comes from a recorded run: about.html, portal.html
+
+sourcing audit: 0 unsourced figure(s), 0 unsourced claim(s) across 7 page(s)
+number review: 0 blocking, 3957 scanned -> /Users/simondavis/projects/atlas-jhb-election-model/content/joburg/NUMBERS-REVIEW.md
+  wrote    regimes.json (4 seat law(s))
+  arrows: 136 figure(s) marked as moved since the last publication
+
+publication ledger (joburg): 333 token(s) on the page · 16 published for the first time · 132 visibly changed · 46 moved below the displayed precision
+  material  anc_ward_median              61 -> 60
+  material  ballots.p_anc_excessive      65% -> 62%
+  material  ballots.typical.anc_wards    75 -> 69
+  material  ballots.typical.draw         1764 -> 1622
+  material  claim.anc.median             67 -> 66
+  material  claim.anc_alone.best         128 -> 144
+  material  claim.anc_alone.best_short   8 -> -8
+  material  claim.anc_alone.count        0 -> 1
+  material  claim.da_alone.count         1 -> 3
+  material  claim.da_alone.share         under 0.1% -> 0.1%
+  material  claim.da_alone.wall_anc_low  34 -> 21
+  new       claim.da_alone.wall_anc_top  — -> 52
+  … and 136 more
+  wrote    site/changes.json (the reader-facing 'what changed')
+  (dry run — pass --publish to append these to the ledger)
+  wrote    _headers + robots.txt (utf-8; /dev and /drafts noindex)
+site: 9 pages, 852 KB total
+portal: 8 cities (1 live) -> site/portal.html
+building Johannesburg (JHB) — council 270, majority 136, 135 wards
+
+• poll register
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python -c import sys; sys.path.insert(0, 'src'); import polling; polling.validate_or_die(); print('  polls.json: no malformed records')
+
+• ward map
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/render_map.py --city joburg
+
+• ward cartogram → forecast-sheet.html
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/hex_cartogram.py --into forecast-sheet.html
+
+• ward cartogram → home.html
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/hex_cartogram.py --into home.html
+
+• ward cartogram → drafts/forecast-draft.html
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/hex_cartogram.py --into drafts/forecast-draft.html
+
+• sheet figures, claims, regimes
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/render_sheet.py --city joburg
+
+• home page
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/render_home.py --city joburg
+
+• site
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/build_site.py
+
+• portal
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/build_portal.py
+
+not deployed. To publish:
+  env -u CLOUDFLARE_API_TOKEN npx wrangler deploy

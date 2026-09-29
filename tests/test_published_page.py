@@ -877,6 +877,33 @@ def test_a_malformed_dated_region_dates_NOTHING_and_says_so():
         "'banana' bought the dating exemption. The declaration must say WHEN.")
 
 
+def test_a_coalition_token_is_spelled_the_same_whatever_the_seat_order():
+    """`render_sheet.coalition_key` may not depend on a run's seat ranking.
+
+    Found at the F11 build (2026-09-29): MK and the PA swapped places and
+    seven still-listed coalitions were read as retired and re-born with no
+    history. Every permutation of a member list must give one key, and that
+    key must be the spelling the ledger already carries for a coalition it
+    has published (read from the ledger, not typed). It can see: the old
+    rule, joining in the given order, gives two keys for two orders.
+    """
+    import itertools
+    import render_sheet as R
+    ledger = ROOT / "publications/joburg/ledger.jsonl"
+    keys = sorted({json.loads(line)["token"].split(".")[1]
+                   for line in ledger.read_text().splitlines()
+                   if json.loads(line)["token"].startswith("coal.")})
+    assert keys, "the ledger holds no coalition token: nothing to check"
+    for key in keys:
+        members = key.split("+")
+        spelled = {R.coalition_key(list(order))
+                   for order in itertools.permutations(members)}
+        assert spelled == {key}, (
+            f"{key}: permutations of its members give {sorted(spelled)}")
+    old = {"+".join(o) for o in itertools.permutations(["ANC", "PA", "MK"])}
+    assert len(old) > 1, "the old rule would not have differed; test is blind"
+
+
 if __name__ == "__main__":
     # Append new tests ABOVE this line.
     raise SystemExit(run_module(globals()))

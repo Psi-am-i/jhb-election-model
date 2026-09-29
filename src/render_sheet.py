@@ -42,6 +42,26 @@ NAMES = {
 }
 import scenarios as _scenarios  # noqa: E402  (constants below read it)
 
+# ⛔ A COALITION TOKEN'S IDENTITY MAY NOT DEPEND ON A RUN'S SEAT RANKING. The
+# key was `"+".join(members_of(m))`, and `members_of` follows the parties'
+# mean-seat order, so when MK and the PA swapped places between the
+# 27 September edition and the F11 build every four-party key containing both
+# changed spelling ("ANC+ASA+PA+MK" became "ANC+ASA+MK+PA"): the ledger read
+# seven still-listed coalitions as retired and seven identical ones as new,
+# with no history. The key now spells members in this fixed order, which is
+# the order every coalition token in the ledger was first published in;
+# a party not listed follows, alphabetically. Presentation only: the row's
+# displayed order is still by seats. Set 2026-09-29.
+COALITION_KEY_ORDER = ("DA", "ANC", "ASA", "EFF", "PA", "MK")
+
+
+def coalition_key(members) -> str:
+    rank = {p: i for i, p in enumerate(COALITION_KEY_ORDER)}
+    return "+".join(sorted(members,
+                           key=lambda p: (rank.get(p, len(rank)), p)))
+
+
+
 # ⛔ NOT A LIST OF ITS OWN — `scenarios.NAMED_PARTIES` is the one set both seats
 # tables name, because "Others" is its complement and one word may not mean two
 # numbers. See that constant's note.
@@ -235,7 +255,7 @@ def main(argv: list[str] | None = None) -> int:
     for m, s in sorted(cands.items(), key=lambda ms: -float((msum(ms[0]) >= thr).mean())):
         tot = msum(m)
         win = tot >= thr
-        key = "+".join(members_of(m))
+        key = coalition_key(members_of(m))
         p_major = float(win.mean())
         med_w = int(np.median(tot[win]))
         cushion = med_w - int(np.median(thr))
@@ -416,7 +436,11 @@ def main(argv: list[str] | None = None) -> int:
             anc = [_seats(d, "ANC") for d in _wall]
             src = f"{_sd}, over the {len(anc)} simulation{'' if len(anc) == 1 else 's'} where this happens"
             since_vals["wall_anc_low"] = tok("claim.da_alone.wall_anc_low", min(anc), "int", src)
-            since_vals["wall_anc_high"] = tok("claim.da_alone.wall_anc_high", max(anc), "int", src)
+            # `wall_anc_TOP`, not `wall_anc_high`: the latter was retired on
+            # 2026-09-27 when the range collapsed to one simulation, and a
+            # retired token is not brought back (owner, 2026-09-29). The upper
+            # end starts again as a new figure; the old record stays whole.
+            since_vals["wall_anc_high"] = tok("claim.da_alone.wall_anc_top", max(anc), "int", src)
             since_vals["wall_anc_span"] = (
                 since_vals["wall_anc_low"] if len(anc) == 1
                 else f'{since_vals["wall_anc_low"]}–{since_vals["wall_anc_high"]}')
