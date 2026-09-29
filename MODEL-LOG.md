@@ -28185,3 +28185,32 @@ scores is not distinguishable from seed noise at 1000 draws.
 
 **Not done:** `freeze.py` (queue step 4's second half) is left to F11, so the
 frozen record is the forecast actually published.
+
+**Addendum, 2026-09-29, same day.**
+
+* **The yardstick measured as one.** Per-row |ΔCRPS|, median / 90th
+  percentile / max: F3 on the 9 moved rows 0.050 / 0.245 / 0.323; a re-seed
+  of the unchanged before tree on the 15 placebo rows (75 row-seed pairs)
+  0.305 / 1.266 / 1.702; a re-seed on the 9 moved rows 0.199 / 0.621 / 1.454.
+  F3's row moves are smaller than what a new seed does to rows F3 did not
+  touch.
+* **Mangaung 2011, the row that decides the 2011 criterion:** CRPS 18.667 in
+  the before run, 18.989 after (+0.32); the five re-seeds of the before tree
+  are all worse than the base, by +0.40, +0.86, +0.75, +1.45, +0.97. The base
+  seed is a favourable draw for that row and the after run sits nearer it
+  than any re-seed. The arrival group shows the same pattern (after +0.50,
+  re-seeds +0.23 to +0.85, all positive).
+* **"Established columns move materially"** (P5's falsifier) cannot be
+  scored on the coherent statistic; on the median statistic the established
+  columns' summed error moved 0.0.
+* **A pre-registered failure criterion fired** (net CRPS loss in the 2011
+  cycle). The sentence above that F3 is in the freeze by the owner's decision
+  of 2026-09-28 records a decision taken before this measurement; the
+  question is put to the owner before F11.
+* **The before run's inputs are recorded** in
+  `audits/2026-09-29-f9-scoring/runs/`: the before, and five noise, history
+  files, and the sha256 of each re-emitted before spec
+  (`before_specs_sha256.json`). The histories' `pools_sha` cannot tell the
+  re-emit from the 23/27 September backup (both `7264a929`); these hashes and
+  the whole-`data/` sha256 comparison above are the record of which set was
+  read. The worktree is removed.
