@@ -132,6 +132,22 @@ def registered_dose(before: dict, after: dict) -> float:
     return sum(abs(ra[n] - rb[n]) for n in names) / roll
 
 
+def band_dose(before: dict, after: dict) -> float:
+    """Sum over pools of |Δ| in the turnout triple (lo, centre, hi).
+
+    Reported beside `registered_dose`, never instead of it: P7 names the
+    `registered` vector. A spec whose turnout band moved with no registered
+    change (Buffalo City 2021's Indian/Asian pool) is zero-dose by the
+    prereg's measure and visibly not unchanged by this one.
+    """
+    total = 0.0
+    for n in set(before.get("pools", {})) | set(after.get("pools", {})):
+        tb = (before.get("pools", {}).get(n, {}).get("turnout") or [0, 0, 0])
+        ta = (after.get("pools", {}).get(n, {}).get("turnout") or [0, 0, 0])
+        total += sum(abs(float(x) - float(y)) for x, y in zip(tb, ta))
+    return total
+
+
 def spec_diff(before: dict, after: dict) -> dict:
     """Per city-year: P1 on each side, whether anything but the key moved,
     which top-level fields moved, and the registered dose."""
@@ -147,7 +163,8 @@ def spec_diff(before: dict, after: dict) -> dict:
                   "p1_after": _p1_violations(a),
                   "key_only": not moved,
                   "fields_moved": moved,
-                  "dose": registered_dose(b, a)}
+                  "dose": registered_dose(b, a),
+                  "band_dose": band_dose(b, a)}
     return out
 
 
@@ -196,7 +213,12 @@ def score(before_specs, after_specs, before_hist, after_hist) -> dict:
     res: dict = {"inputs": {}, "predictions": {}, "window": {}}
 
     # --- the pair is a pair -------------------------------------------------
-    same = {f: (mb.get(f), ma.get(f)) for f in ("seed", "draws", "seed_by_row")}
+    # `env_switches` carries PYTHONHASHSEED: under a different hash seed the
+    # summation order changes the last float bit (test_drawer's header), and
+    # the placebo compares with `!=`, so a mismatch there voids nothing
+    # honestly -- it refuses the pair instead.
+    same = {f: (mb.get(f), ma.get(f))
+            for f in ("seed", "draws", "seed_by_row", "env_switches")}
     res["inputs"]["manifest_match"] = {f: v[0] == v[1] for f, v in same.items()}
     res["inputs"]["git"] = {"before": mb.get("git_commit"),
                             "after": ma.get("git_commit"),
@@ -377,6 +399,10 @@ def score(before_specs, after_specs, before_hist, after_hist) -> dict:
                     FAIL if undosed_max >= top_move else PASS),
         "dosed": {f"{s} {y}": {"dose": dosed[(s, y)],
                                 "d_crps": d_crps[(s, y)]} for s, y in dosed},
+        "undosed_with_band_dose": {
+            f"{s} {y}": {"band_dose": diff[(s, y)]["band_dose"],
+                         "d_crps": d_crps[(s, y)]}
+            for s, y in undosed if diff[(s, y)].get("band_dose", 0) > 0},
         "undosed_nonzero": {f"{s} {y}": d_crps[(s, y)] for s, y in undosed
                             if d_crps[(s, y)] != 0},
         "top_dose_row": f"{top[0]} {top[1]}" if top else None,
@@ -390,7 +416,12 @@ def score(before_specs, after_specs, before_hist, after_hist) -> dict:
                    "spec whose `registered` did not move (dose 0) shows a "
                    "|ΔCRPS| at least as large as the highest-dose spec's. "
                    "'Largest at 2011, smallest at 2021' was a C3 claim and is "
-                   "reported by cycle, not scored."}
+                   "reported by cycle, not scored. The verdict uses the "
+                   "prereg's `registered` dose only; specs with zero "
+                   "registered dose but a moved turnout band are listed in "
+                   "`undosed_with_band_dose`, because a large |ΔCRPS| there "
+                   "would read as P7 falsified for a reason the registered "
+                   "dose cannot see."}
 
     # --- the window -----------------------------------------------------------
     cyc = {}

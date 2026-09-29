@@ -28103,3 +28103,15 @@ The 12 left are the ones listed above less `test_drawer`.
 F9 (the paired measurement) has not started. Its scoring script and the R2
 brief are in `audits/2026-09-29-f9-scoring/`, committed before the review and
 before either `compare_history` run.
+
+**Correction, 2026-09-29, same day.** The heading and the round-off paragraph
+above say the old specs are from 8 September. They are not: the backup's spec
+files carry mtimes of 2026-09-23 (e.g. `capetown/pools_2016.json`) and
+2026-09-27 (e.g. `pools_2021.json`, Johannesburg), consistent with the
+2026-09-23 re-emit recorded in `tests/test_drawer.py`. So the float drift
+between unchanged code's output then and now is over six days at most, not
+three weeks. numpy is 2.5.1 both in today's `--record` header and in the
+recorded one, so it is not a numpy version change; which library moved is
+still not known. Also checked for the F9 pair: from the `69cc6cc` worktree on
+the backup data, `declares.py --verify` shows all 27 backup specs declared
+and agreeing, and `pools` imports from the worktree's `src`.
