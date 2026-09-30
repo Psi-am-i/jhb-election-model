@@ -7,6 +7,16 @@ here first, so anything stale in this file is read as an instruction.
 
 > ## ⛔ STATE AT 2026-09-30: THE MODEL IS FROZEN (F3 + F5), PUBLISHED TO THE LEDGER (run `r-c68c627d287e`). DEPLOY PENDING (owner). NEXT: THE INTERACTIVE.
 >
+> **Deploy review (2026-09-30, `audits/2026-09-29-f11/R-deploy-brief.md`): ship
+> after fixes, applied** — `site/_headers` regenerated alone (the live site
+> serves every non-HTML file as text/html); `site/draws/` held back until the
+> page ships (its manifests carried a local path and internal poll notes, to be
+> fixed in `export_draws` first); `deploy_check` and `test_site_headers` now
+> refuse a stale `_headers`. Deploy from a CLEAN tree: wrangler uploads the
+> working directory. After deploying, check content types with curl
+> (`/logos/ANC.png` image/png, `/robots.txt` text/plain, `/regimes.json`
+> application/json, `/` text/html).
+>
 > **Frozen and published, MODEL-LOG §1.282.** Deploy with
 > `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy` from the repo root (the agent
 > is not permitted to), then check workers.dev with a cache-buster: the ANC

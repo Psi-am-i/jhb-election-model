@@ -141,6 +141,10 @@ def test_every_file_under_the_served_site_matches_one_non_html_rule():
     exts = {p.suffix for p in population}
     assert ".html" in exts and exts - {".html"}, exts
     assert _problems(site, B.headers_text()) == []
+    # ...and the file that SHIPS is that one (deploy review F5: this test used
+    # to check only the generator, and passed while site/_headers was stale).
+    shipped = (site / "_headers").read_text(encoding="utf-8")
+    assert _problems(site, shipped) == [], "site/_headers is stale; regenerate it"
 
 
 def test_the_check_can_see_a_missing_type_and_an_overlapping_rule():

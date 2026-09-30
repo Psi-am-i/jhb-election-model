@@ -15,6 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+import build_site  # noqa: E402
 import stats as S  # noqa: E402
 
 PAGE = (
@@ -124,6 +125,7 @@ def test_deploy_check_refuses_a_stale_review_and_unreviewed_numbers(tmp=None):
         site = tmp / "site"
         site.mkdir()
         (site / "index.html").write_text("<p>page</p>")
+        (site / "_headers").write_text(build_site.headers_text())   # the gate checks it
         sha = hashlib.sha256((site / "index.html").read_bytes()).hexdigest()
         review = tmp / "NUMBERS-REVIEW.md"
 
@@ -339,6 +341,7 @@ def test_deploy_check_scans_nested_pages():
         site = tmp / "site"
         (site / "play").mkdir(parents=True)
         (site / "index.html").write_text("<p>page</p>")
+        (site / "_headers").write_text(build_site.headers_text())   # the gate checks it
         (site / "play" / "index.html").write_text("<p>nested</p>")
         review = tmp / "NUMBERS-REVIEW.md"
 

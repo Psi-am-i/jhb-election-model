@@ -64,6 +64,22 @@ def check(city: str, site: Path, preview: bool, review: Path | None = None) -> l
             f"build_site.py so they enter the stamp, or move them out of the "
             f"directory wrangler deploys — a page nobody checked is a page "
             f"nobody can vouch for.")
+    # ⛔ THE SHIPPED `_headers` MUST BE THE ONE THE CODE GENERATES (deploy
+    # review, 2026-09-30). `build_site.headers_text()` was corrected in 34297da
+    # and `site/_headers` was not rewritten, so every non-HTML file would have
+    # gone out as text/html while every test passed on the generator alone.
+    headers = site / "_headers"
+    try:
+        import build_site as _B
+        want = _B.headers_text()
+    except Exception as exc:          # a gate that cannot look must not pass
+        problems.append(f"cannot generate the expected _headers ({exc!r})")
+    else:
+        if not headers.is_file() or headers.read_text(encoding="utf-8") != want:
+            problems.append(
+                f"{headers} is not what build_site.headers_text() generates — "
+                f"rewrite it (only that file; a full build strips a published "
+                f"edition's arrows)")
     blocks = sum(1 for line in text.splitlines() if line.startswith("| BLOCKS |"))
     if blocks != int(head.group(2)):
         problems.append(f"{review} was edited by hand: stamp says "
