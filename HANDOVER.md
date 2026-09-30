@@ -7,6 +7,22 @@ here first, so anything stale in this file is read as an instruction.
 
 > ## ⛔ STATE AT 2026-09-30: THE MODEL IS FROZEN (F3 + F5), PUBLISHED TO THE LEDGER (run `r-c68c627d287e`). DEPLOY PENDING (owner). NEXT: THE INTERACTIVE.
 >
+> **Fault-finder review (2026-09-30, `audits/2026-09-29-f11/R-final-faultfinder-brief.md`)**:
+> glaring items fixed and rendered in `c3f6aa8` (claim dates from the ledger,
+> the red-lines claim retitled, the Zille quote dated 13 Sep, the share text,
+> "8 August", two corrections, `/play/` opt-in). **Fix soon (not done):**
+> GitHub links dead/retired and the published commit not on GitHub (push only
+> after `export_draws` drops `code_dir` and serves reader-facing poll caveats —
+> `site/draws/` is committed with a local path and internal notes); `changes.json`
+> provenance names a commit made after the run (`publication.run_identity`);
+> `/methodology` inverts the CRPS caveat that `/about` states; `/about` calls the
+> seven other cities "never designed against" and says "largest 55 parties";
+> `/review` still says polls are "wired in"; `/play/` wording ("sampling error"
+> vs total error; SRF waves multiplied as independent; "the model's own
+> Python"); the largest-party tie-break favours the DA (60 tied draws);
+> Pyodide from jsdelivr without SRI; the Worker soft-404s with status 200;
+> wrangler unpinned.
+>
 > **Deploy review (2026-09-30, `audits/2026-09-29-f11/R-deploy-brief.md`): ship
 > after fixes, applied** — `site/_headers` regenerated alone (the live site
 > serves every non-HTML file as text/html); `site/draws/` held back until the
