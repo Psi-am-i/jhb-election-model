@@ -64,7 +64,7 @@
       "display": "34%",
       "fmt": "pct0",
       "mode": "free",
-      "movement": "none",
+      "movement": "rounding",
       "pages": [
         "methodology.html"
       ],
@@ -73,7 +73,7 @@
       "previous_value": 0.3357045468018258,
       "source": "validation:crps_better_pct",
       "token": "backtest_crps_better",
-      "value": 0.3357045468018258
+      "value": 0.33549706562333276
     },
     {
       "display": "353",
@@ -91,10 +91,10 @@
       "value": 353
     },
     {
-      "display": "294",
+      "display": "297",
       "fmt": "int",
       "mode": "free",
-      "movement": "none",
+      "movement": "material",
       "pages": [
         "methodology.html"
       ],
@@ -103,7 +103,7 @@
       "previous_value": 294,
       "source": "validation:seat_err_model",
       "token": "backtest_seat_err_model",
-      "value": 294
+      "value": 297
     },
     {
       "display": "24",
@@ -317,21 +317,6 @@
       "value": 144.0
     },
     {
-      "display": "-8",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "material",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": "8",
-      "previous_published_at": "2026-09-27T18:44:27Z",
-      "previous_value": 8.0,
-      "source": "seat_draws.csv, 5,000 simulations",
-      "token": "claim.anc_alone.best_short",
-      "value": -8.0
-    },
-    {
       "display": "1",
       "fmt": "int",
       "mode": "generated",
@@ -345,6 +330,21 @@
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "claim.anc_alone.count",
       "value": 1.0
+    },
+    {
+      "display": "under 0.1%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "forecast.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_value": null,
+      "source": "seat_draws.csv, 5,000 simulations",
+      "token": "claim.anc_alone.share",
+      "value": 0.0002
     },
     {
       "display": "47%",
@@ -2117,216 +2117,6 @@
       "value": 0.079012
     },
     {
-      "display": "28",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+ANC+ASA.cushion_when_wins",
-      "value": 28.0
-    },
-    {
-      "display": "86%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations",
-      "token": "coal.DA+ANC+ASA.majority",
-      "value": 0.8552
-    },
-    {
-      "display": "164",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+ANC+ASA.seats_when_wins",
-      "value": 164.0
-    },
-    {
-      "display": "17%",
-      "fmt": "pct0",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+ANC+ASA.stability",
-      "value": 0.1707
-    },
-    {
-      "display": "2.1%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+ANC+ASA.survive.ANC",
-      "value": 0.021282
-    },
-    {
-      "display": "50%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+ANC+ASA.survive.ASA",
-      "value": 0.499532
-    },
-    {
-      "display": "1.4%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+ANC+ASA.survive.DA",
-      "value": 0.014032
-    },
-    {
-      "display": "27",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+ANC+EFF.cushion_when_wins",
-      "value": 27.0
-    },
-    {
-      "display": "86%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations",
-      "token": "coal.DA+ANC+EFF.majority",
-      "value": 0.8568
-    },
-    {
-      "display": "163",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+ANC+EFF.seats_when_wins",
-      "value": 163.0
-    },
-    {
-      "display": "17%",
-      "fmt": "pct0",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination wins",
-      "token": "coal.DA+ANC+EFF.stability",
-      "value": 0.1656
-    },
-    {
-      "display": "3.5%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+ANC+EFF.survive.ANC",
-      "value": 0.035247
-    },
-    {
-      "display": "0.7%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+ANC+EFF.survive.DA",
-      "value": 0.006769
-    },
-    {
-      "display": "50%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
-      "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
-      "token": "coal.DA+ANC+EFF.survive.EFF",
-      "value": 0.498599
-    },
-    {
       "display": "11",
       "fmt": "int",
       "mode": "generated",
@@ -3669,16 +3459,16 @@
       "display": "47%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "rounding",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_value": null,
+      "previous": "47%",
+      "previous_published_at": "2026-09-27T18:44:27Z",
+      "previous_value": 0.4734,
       "source": "forecast_summary.json, 5,000 simulations",
-      "token": "home.p_anc_largest",
-      "value": 0.4682
+      "token": "home.p_da_largest",
+      "value": 0.4658
     },
     {
       "display": "70%",
@@ -5018,9 +4808,9 @@
     "draws": 5000,
     "forecast_content_sha256": "c68c627d287e5e103ac0effbf1aaab9dbcffdb4d2945720ec43d771a9945efad",
     "forecast_summary_sha256": "97efecf5c70e0020412d801b20bce579c1f7e31e8f5bb8c3e0a8423106bc84bd",
-    "git_commit": "9e9cadee57b84495874140064729089c6965242e",
+    "git_commit": "ce19b76647419ae027f1f3fc6df65eff1d803c62",
     "git_dirty": true,
-    "model_run_id": "r-c68c627d287e-9e9cadee-dirty",
+    "model_run_id": "r-c68c627d287e-ce19b766-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
@@ -5085,12 +4875,12 @@
     "by_movement": {
       "material": [
         "anc_ward_median",
+        "backtest_seat_err_model",
         "ballots.p_anc_excessive",
         "ballots.typical.anc_wards",
         "ballots.typical.draw",
         "claim.anc.median",
         "claim.anc_alone.best",
-        "claim.anc_alone.best_short",
         "claim.anc_alone.count",
         "claim.da_alone.count",
         "claim.da_alone.share",
@@ -5216,22 +5006,8 @@
         "tile.p_anc_excessive"
       ],
       "new": [
-        "claim.da_alone.wall_anc_top",
-        "coal.DA+ANC+ASA.cushion_when_wins",
-        "coal.DA+ANC+ASA.majority",
-        "coal.DA+ANC+ASA.seats_when_wins",
-        "coal.DA+ANC+ASA.stability",
-        "coal.DA+ANC+ASA.survive.ANC",
-        "coal.DA+ANC+ASA.survive.ASA",
-        "coal.DA+ANC+ASA.survive.DA",
-        "coal.DA+ANC+EFF.cushion_when_wins",
-        "coal.DA+ANC+EFF.majority",
-        "coal.DA+ANC+EFF.seats_when_wins",
-        "coal.DA+ANC+EFF.stability",
-        "coal.DA+ANC+EFF.survive.ANC",
-        "coal.DA+ANC+EFF.survive.DA",
-        "coal.DA+ANC+EFF.survive.EFF",
-        "home.p_anc_largest"
+        "claim.anc_alone.share",
+        "claim.da_alone.wall_anc_top"
       ],
       "nominal": [
         "generated_date",
@@ -5241,9 +5017,7 @@
         "anc_entitlement",
         "asa_2021_seats",
         "backtest_cities",
-        "backtest_crps_better",
         "backtest_seat_err_baseline",
-        "backtest_seat_err_model",
         "backtest_target",
         "backtest_wards",
         "backtest_wards_called",
@@ -5379,6 +5153,7 @@
         "seats.band"
       ],
       "rounding": [
+        "backtest_crps_better",
         "claim.anc_largest.share",
         "claim.da_largest.share",
         "claim.mk_largest.share",
@@ -5417,6 +5192,7 @@
         "coal.DA+PA+MK.majority",
         "coal.DA+PA+MK.stability",
         "coal.DA+PA+MK.survive.PA",
+        "home.p_da_largest",
         "minority.ANC_minority_DA_ASA_oppose",
         "minority.ANC_minority_only_DA_opposes",
         "minority.DA_minority_ANC_EFF_MK_oppose",
@@ -5427,8 +5203,8 @@
         "tile.p_da_largest"
       ]
     },
-    "n": 333,
-    "n_rounding": 46,
+    "n": 319,
+    "n_rounding": 48,
     "n_visible": 132,
     "nominal": [
       "generated_date",

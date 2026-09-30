@@ -36,14 +36,14 @@ A forecast is only as good as the simplest thing that would have done the same j
 | Ekurhuleni | 224 | **29.8** | 48.0 (uniform swing) | **+38%** |
 | eThekwini | 222 | **31.0** | 36.0 (uniform swing) | **+14%** |
 | Cape Town | 231 | **34.2** | 38.0 (uniform swing) | **+10%** |
-| Mangaung | 101 | **9.1** | 8.0 (uniform swing) | -14% |
+| Mangaung | 101 | **9.2** | 8.0 (uniform swing) | -15% |
 | Nelson Mandela Bay | 120 | **17.1** | 22.0 (uniform swing) | **+22%** |
-| Buffalo City | 100 | **8.4** | 11.3 (last result plus noise) | **+26%** |
-| **all eight** | | **224.1** | 337.4 | **+34%** |
+| Buffalo City | 100 | **8.3** | 11.3 (last result plus noise) | **+26%** |
+| **all eight** | | **224.2** | 337.4 | **+34%** |
 
 The model beats the best available baseline in **7 of 8** cities. Across all eight its total error is **34% lower**.
 
-On the simpler measure of how many council seats it got wrong, it misses **294** seats across all eight councils against the baselines' **353** — 17% better. That figure is lower than the headline because it only compares the single most likely outcome, and throws away everything the model says about how uncertain it is.
+On the simpler measure of how many council seats it got wrong, it misses **297** seats across all eight councils against the baselines' **353** — 16% better. That figure is lower than the headline because it only compares the single most likely outcome, and throws away everything the model says about how uncertain it is.
 
 It calls the winner correctly in **719 of 742 wards**.
 
@@ -180,9 +180,9 @@ The largest 55 parties in each city, by seats won in 2021. Our figure is the mid
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| ANC | 51 | 50 | -1 |
-| DA | 26 | 26 | +0 |
-| EFF | 12 | 12 | +0 |
+| ANC | 51 | 51 | +0 |
+| DA | 26 | 25 | -1 |
+| EFF | 12 | 11 | -1 |
 | VF+ | 5 | 4 | -1 |
 | Afrikan Alli | 2 | 0 | -2 |
 | PA | 2 | 1 | -1 |
@@ -190,7 +190,7 @@ The largest 55 parties in each city, by seats won in 2021. Our figure is the mid
 | AIC | 1 | 1 | +0 |
 | ATM | 1 | 0 | -1 |
 
-*6 seats out in total — across every party that stood, not only the 9 shown above.*
+*8 seats out in total — across every party that stood, not only the 9 shown above.*
 
 ### Nelson Mandela Bay — 120 seats
 
@@ -210,7 +210,7 @@ The largest 55 parties in each city, by seats won in 2021. Our figure is the mid
 | PAC | 1 | 0 | -1 |
 | UDM | 1 | 0 | -1 |
 
-*21 seats out in total — across every party that stood, not only the 13 shown above.*
+*22 seats out in total — across every party that stood, not only the 13 shown above.*
 
 ### Buffalo City — 100 seats
 
@@ -221,7 +221,7 @@ The largest 55 parties in each city, by seats won in 2021. Our figure is the mid
 | EFF | 13 | 10 | -3 |
 | ACDP | 1 | 1 | +0 |
 | AIC | 1 | 0 | -1 |
-| ATM | 1 | 0 | -1 |
+| ATM | 1 | 1 | +0 |
 | PAC | 1 | 0 | -1 |
 | UDM | 1 | 1 | +0 |
 | VF+ | 1 | 0 | -1 |
@@ -256,4 +256,4 @@ Every run prints these above its results. The honest reading is that this is a s
 
 ---
 
-*Generated 2026-09-27 by `src/build_validation.py` from a 400-draw run per city against the 2021 result. The underlying figures are in `data/processed/validation_2021.json`; the code that produced them is public.*
+*Generated 2026-09-30 by `src/build_validation.py` from a 400-draw run per city against the 2021 result. The underlying figures are in `data/processed/validation_2021.json`; the code that produced them is public.*

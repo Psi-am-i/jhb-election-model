@@ -236,8 +236,14 @@ def main(argv: list[str] | None = None) -> int:
             # exit of a party, remove the party"). A member whose exit the
             # majority survives in most of the simulations where it governs is
             # a passenger, and the combination without it is the one to show.
+            # JUDGED ON THE PRINTED FIGURE (owner, 2026-09-30: "keep as is,
+            # just round all numbers, so 49.86 is 50%"). Two rows at 49.86%
+            # and 49.95% survival printed "50%" beside a note saying the
+            # coalition usually loses them; rounding to the displayed
+            # precision first makes the cut agree with what a reader sees.
             carried = win.any() and all(
-                float(((tot - S[p_]) >= thr)[win].mean()) < 0.5 for p_ in members_of(m))
+                round(float(((tot - S[p_]) >= thr)[win].mean()), 2) < 0.5
+                for p_ in members_of(m))
             if s >= MIN_SMALLEST and carried:
                 cands[m] = s
             else:
@@ -381,8 +387,6 @@ def main(argv: list[str] | None = None) -> int:
             "anc_alone_share": chance("claim.anc_alone.share", _anc_alone),
             "anc_alone_count": tok("claim.anc_alone.count", int((S["ANC"] >= thr).sum()), "int"),
             "anc_best": tok("claim.anc_alone.best", int(S["ANC"].max()), "int"),
-            "anc_best_short": tok("claim.anc_alone.best_short",
-                                  int(np.median(thr)) - int(S["ANC"].max()), "int"),
             "anc_median": tok("claim.anc.median", int(np.median(S["ANC"])), "int"),
             "da_median": tok("claim.da.median", int(np.median(S["DA"])), "int"),
             "mk_largest_share": chance("claim.mk_largest.share", float((_largest == "MK").mean())),

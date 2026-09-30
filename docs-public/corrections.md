@@ -6,6 +6,20 @@ updates appear beside the original as a dated "what the model says now" box.
 
 Nothing is removed from this list.
 
+## 30 September 2026 — "the most reliable majority" left out a word
+
+<span data-asof="2026-09-30">**What was wrong.** The claim *"A government can be
+formed without the EFF or MK"* (published 18 September) said
+that the DA and the ANC together are "the most reliable majority in the city
+that does not involve the EFF or MK". The same box reported a more reliable one:
+every party except the ANC, the EFF and MK together, which also excludes the EFF
+and MK. What was meant, and what the numbers support, is that DA + ANC is the
+most reliable **two-party** majority: on 27 September it reached a majority in
+44% of simulations.
+
+**What changed.** The sentence now says "the most reliable two-party majority
+in the city". The figures in the claim are unchanged by this correction.</span>
+
 ## 27 September 2026 — three arrows on "Nobody will win Johannesburg" pointed the wrong way
 
 <span data-asof="2026-09-27">**What was wrong.** Four figures on that piece were

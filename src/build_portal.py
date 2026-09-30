@@ -70,10 +70,19 @@ def render(cards: list[dict]) -> str:
     def card_html(c: dict) -> str:
         if c["live"]:
             h = c["headline"]
+            # ⛔ A TIE IS NOT A LEAD. With both medians at 66 this printed
+            # "DA leads on the median simulation, ANC on 66", the leader
+            # chosen by dictionary order (R4, 2026-09-30) — the defect
+            # `render_home` already guards against for the largest-party odds.
+            if h["leader_seats"] == h["second_seats"]:
+                sub = (f'{h["leader"]} and {h["second"]} tie on the median '
+                       f'simulation, {h["leader_seats"]} seats each')
+            else:
+                sub = (f'{h["leader"]} leads on the median simulation, '
+                       f'{h["second"]} on {h["second_seats"]}')
             detail = (f'<div class="pc-num">{h["leader_seats"]}'
                       f'<span>/{c["council"]}</span></div>'
-                      f'<div class="pc-sub">{h["leader"]} leads on the median '
-                      f'simulation, {h["second"]} on {h["second_seats"]} — '
+                      f'<div class="pc-sub">{sub} — '
                       f'{c["majority"]} needed to govern</div>')
             cta = "Open the forecast →"
         else:

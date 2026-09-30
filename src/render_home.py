@@ -29,6 +29,10 @@ import cityconfig
 
 ROOT = Path(__file__).resolve().parent.parent
 PAGE = ROOT / "home.html"
+# The head-to-head's fixed order, for the one figure a dead heat prints.
+# Presentation, not a ranking: the order `home.p_da_largest` was first
+# published in (ledger, 2026-09-26). See `render_home`'s dead-heat branch.
+HEAD_TO_HEAD_ORDER = ("DA", "ANC")
 
 import render_sheet as _sheet
 import scenarios as _scenarios
@@ -105,8 +109,19 @@ def _lede(summary: dict, processed: Path, tok, chance) -> str:
     # whether the difference survives the formatter.
     import stats as _stats
     if _stats._fmt(max(anc, da), "chance") == _stats._fmt(min(anc, da), "chance"):
+        # ⛔ ONE TOKEN, WHICHEVER PARTY IS AHEAD BEFORE ROUNDING. A dead heat
+        # prints one shared figure; printing the unrounded leader's token made
+        # the token flip between `home.p_da_largest` and `home.p_anc_largest`
+        # on a 0.2-point move that no reader can see, and a flipped-out token
+        # has to be retired (a retired token can never be printed again, so
+        # the next flip back would block the build). Found at R4 for the
+        # freeze edition, 2026-09-30. The figure is the first party in
+        # HEAD_TO_HEAD_ORDER, the order the ledger first published it in.
+        first = HEAD_TO_HEAD_ORDER[0]
+        p_heat = chance(f"home.p_{first.lower()}_largest",
+                        da if first == "DA" else anc)
         race = (f'we have a dead heat: the ANC and the DA each lead in '
-                f'{p_lead} of simulations')
+                f'{p_heat} of simulations')
     elif abs(anc - da) < 0.05:
         race = (f'the race is too close to call: the {lead} leads in {p_lead} '
                 f'of simulations, the {trail} in {p_trail}')
