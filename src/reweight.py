@@ -8,7 +8,19 @@ draws (``audits/2026-09-28-interactive-architecture/PLAN.md`` §§2-5, build ste
 S4). This module is that arithmetic, and it is the ONE definition of it: the
 browser runs this file under Pyodide, copied byte for byte, never a
 translation (INTEGRATION.md §3b). So it is pure Python plus numpy: no file
-access, no scipy, no import from the rest of ``src/``.
+access, no scipy, and no TOP-LEVEL import from the rest of ``src/``.
+
+Two functions import from ``src/`` inside their bodies, because the rule they
+apply is the model's and has one definition there:
+
+* :func:`page_polls` imports ``polling`` (and through it ``cityconfig``) and
+  ``montecarlo``, and reads ``polls.json``. It runs at BUILD time, never in the
+  browser.
+* :func:`poll_trust_sd`, and :func:`poll_weights` when given ``trust``,
+  import ``polling`` for ``polling.poll_sd``. At ``trust == 0`` neither
+  imports anything, so the untouched page needs only numpy. A page that offers
+  the trust dial must serve ``polling.py`` and ``cityconfig.py`` beside this
+  file.
 
 It also defines the draw file's binary layout (:func:`pack`, :func:`unpack`),
 because the reader is the browser and a format with a writer in one file and a
@@ -26,10 +38,17 @@ for one party that does not exist for all.
   once; PLAN.md finding 3 measured why a single-pool tilt is the wrong control.
   With a poll switched on, the tilt is solved ON the poll's weights
   (``base=``), so the turnout the reader asked for is the turnout shown.
-* :func:`poll_weights` — a poll as a likelihood on each draw, with ONE control,
-  the reader's poll error ``sd``, in which an infinite error is uniform weights
-  EXACTLY (DESIGN-decided §3: our own trust is zero). Figures computed under
-  it are :data:`POLL_LABEL`, never "what happens if the poll is right".
+* :func:`page_polls` — the polls the page offers: exactly those the model's
+  own admission rules (``polling.screen`` / ``polling.metro_polls``) admit for
+  the target (the S6 review's F8).
+* :func:`poll_weights` — a poll as a likelihood on each draw, with ONE control:
+  either the reader's trust ``t`` in [0, 1] (preferred, :func:`poll_trust_sd`)
+  or the poll error ``sd`` directly. Zero trust, like an infinite error, is
+  uniform weights EXACTLY (DESIGN-decided §3: our own trust is zero). Figures
+  computed under it are :data:`POLL_LABEL`, never "what happens if the poll is
+  right".
+* :func:`poll_trust_sd` — the trust dial's meaning (owner's decision 2,
+  2026-09-30; JUDGEMENT-CALLS §N2): ``sd(t) = polling.poll_sd / t``.
 * :func:`combine_polls` — the average of the polls a reader switches on, and
   the spread between them, which is shown and never hidden (DESIGN-decided §2).
 * :func:`effective_draws` and :func:`require_effective` — Kish's effective
@@ -38,6 +57,14 @@ for one party that does not exist for all.
   :func:`figure` — the effective draws behind ONE statistic. Kish's count
   describes the weights; a 5th percentile rests on how the weight falls either
   side of it, which can be far fewer.
+* :func:`sampling_se` — the Monte Carlo sampling error of one weighted
+  quantile, in seats, so the page can say when two figures differ by less than
+  the draws can resolve (the review's F2: the by-election cells are unpaired).
+* :func:`figure` WITHHOLDS a quantile whose sampling error exceeds
+  :data:`MAX_FIGURE_SE_SEATS`, and :func:`within_precision` tells the page
+  when a control has reached that point for any figure it shows (the review's
+  F17, as the owner re-decided it on 2026-09-30). The Kish floor,
+  :data:`MIN_EFFECTIVE_DRAWS`, stays as a separate whole-page refusal.
 * :func:`weighted_quantile`, :func:`weighted_probability`,
   :func:`ward_win_probability`, :func:`weighted_mean_se` — the statistics the
   page reports, each reducing EXACTLY to the published figure's own formula
@@ -69,8 +96,17 @@ import numpy as np
 #: The fewest effective draws a re-weighted figure may rest on. Below it the
 #: page greys the control out rather than show a number (PLAN.md build step
 #: S4). A judgement call, not a measurement: JUDGEMENT-CALLS.md carries the
-#: row, its evidence and how to check it.
+#: row, its evidence and how to check it. It is a WHOLE-PAGE refusal on the
+#: weights; whether one figure is shown is :data:`MAX_FIGURE_SE_SEATS`'s.
 MIN_EFFECTIVE_DRAWS = 200
+
+#: The largest Monte Carlo standard error, in seats, a figure the page shows
+#: may carry (:func:`sampling_se`). Above it :func:`figure` withholds the
+#: figure and :func:`within_precision` stops the control. The owner's rule of
+#: 2026-09-30, superseding an absolute tail-draw floor that withheld every
+#: range at any move. A judgement call: JUDGEMENT-CALLS.md §N2 carries it with
+#: its evidence. In the values' own units, which on the page are seats.
+MAX_FIGURE_SE_SEATS = 2.0
 
 #: What a figure computed under a poll's weights is, in the page's words. The
 #: weights select the model's own draws that lie near the poll; they do not
@@ -294,8 +330,8 @@ def _tilt(features: np.ndarray, targets: np.ndarray, *, base=None,
                   "the draws span")
 
 
-def turnout_tilt(turnouts, shift, *, base=None, tolerance: float = 1e-10,
-                 steps: int = 200) -> np.ndarray:
+def turnout_tilt(turnouts, shift, *, base=None, pin_to=None,
+                 tolerance: float = 1e-10, steps: int = 200) -> np.ndarray:
     """Weights that move EVERY pool's mean turnout by ``shift`` at once.
 
     ``turnouts`` is the draw file's ``pool_turnout`` block, ``(draws, pools)``;
@@ -311,17 +347,27 @@ def turnout_tilt(turnouts, shift, *, base=None, tolerance: float = 1e-10,
     weights already include the base and hit the turnout targets exactly under
     it; never multiply a tilt solved without the base by the base afterwards
     (the blind review's A7: that misses the target by as much as turnout and
-    poll agreement are correlated across draws). The targets are the PUBLISHED
+    poll agreement are correlated across draws). The targets are the pinned
     means plus ``shift`` whatever the base, because that is what the reader
     set.
 
-    All shifts zero with no base returns uniform weights exactly: λ = 0 is then
-    the solution and nothing needs solving. With a base, all shifts zero is NOT
-    a no-op: it holds every pool at its published mean under the poll, which a
-    poll correlated with turnout would otherwise move. Whether the page calls
-    this when the reader has not touched turnout — pinning turnout, or letting
-    it go where the poll takes it — is the page's decision, and the page must
-    say which. Weights are scaled to a maximum of one; call
+    ``pin_to`` is the per-pool mean turnout the targets are measured from.
+    Omitted, it is these draws' own unweighted mean — the published mean when
+    ``turnouts`` is the published cell. Two cases need it passed (the S6
+    review's F4 and F10):
+
+    * **A poll is on.** The page pins turnout at the PUBLISHED mean — calling
+      this with ``base=`` the poll's weights and ``pin_to=`` the published
+      cell's mean turnouts, even when the reader has not touched turnout — so
+      a poll never moves turnout by the back door. The page says so.
+    * **Another cell is shown.** The cells are unpaired re-runs, so a cell's
+      own mean turnout differs from the published one by sampling alone; a
+      target taken from it would mean a different turnout in each cell.
+
+    All shifts zero with no base and no ``pin_to`` returns uniform weights
+    exactly: λ = 0 is then the solution and nothing needs solving. With a base
+    or a ``pin_to``, all shifts zero is NOT a no-op: it holds every pool at the
+    pinned mean under the base. Weights are scaled to a maximum of one; call
     :func:`require_effective` on them before showing a figure.
 
     Raises :class:`Refused` if a target leaves the range the draws span.
@@ -333,17 +379,122 @@ def turnout_tilt(turnouts, shift, *, base=None, tolerance: float = 1e-10,
                          f"{s.shape}")
     if not np.all(np.isfinite(s)):
         raise ValueError("every pool needs a finite target; 0 holds it at its mean")
-    if base is None and not np.any(s):
-        return uniform(x.shape[0])
-    return _tilt(x, x.mean(axis=0) + s, base=base, tolerance=tolerance,
-                 steps=steps)
+    if pin_to is None:
+        if base is None and not np.any(s):
+            return uniform(x.shape[0])
+        centre = x.mean(axis=0)
+    else:
+        centre = np.asarray(pin_to, dtype=float)
+        if centre.shape != (x.shape[1],) or not np.all(np.isfinite(centre)):
+            raise ValueError(f"pin_to needs one finite mean per pool: turnouts "
+                             f"{x.shape}, pin_to {centre.shape}")
+    return _tilt(x, centre + s, base=base, tolerance=tolerance, steps=steps)
+
+
+def page_polls(target) -> list[dict]:
+    """The polls the page offers for ``target``: those the model's own rules admit.
+
+    ``target`` is a ``cityconfig.Target``. The set is ``polling.metro_polls``
+    after ``polling.validate_or_die`` — the same calls, in the same order, with
+    the same sample-size floor (``montecarlo.DEFAULTS["poll_min_n"]``) that
+    ``montecarlo.run_model`` makes before it blends a poll. So a poll the model
+    refuses (after polling day, commissioned, another city, no city, too small,
+    undated) never appears, and nothing here restates a rule (the S6 review's
+    F8). A malformed register raises, as it does for the model.
+
+    ``poll_paths`` is deliberately NOT applied. It is the model's switch for
+    whether the published forecast USES the admitted polls (``"off"`` since
+    2026-09-12), not a rule about which polls are admissible; the page's dial
+    exists to let a reader turn on what the forecast leaves off, at a trust the
+    site states as zero.
+
+    Each record is returned as a copy with one field added, ``asof``: the
+    target's polling day, ISO 8601. :func:`poll_trust_sd` prices a poll at that
+    date, as the model does (``asof=target.date``), so the dial's 1 is the
+    model's own error for the poll, drift included.
+
+    BUILD TIME ONLY: it reads ``polls.json`` from the working directory
+    (``polling.REGISTER``) and imports ``montecarlo``.
+    """
+    import montecarlo
+    import polling
+
+    polling.validate_or_die()
+    kept = polling.metro_polls(
+        target, min_n=float(montecarlo.DEFAULTS["poll_min_n"]))
+    asof = target.date.isoformat()
+    return [dict(p, asof=asof) for p in kept]
+
+
+def _asof(poll: dict, asof):
+    """The date a poll is priced at: ``asof`` if given, else the record's own."""
+    from datetime import date
+
+    when = asof if asof is not None else poll.get("asof")
+    if when is None:
+        raise Refused(f"poll {poll.get('id', '<no id>')!r} carries no date to "
+                      f"price its drift at; pass asof, or take it from "
+                      f"page_polls, which stamps the target's polling day")
+    return when if isinstance(when, date) else date.fromisoformat(str(when))
+
+
+def poll_trust_sd(poll: dict, share: float, trust: float, *,
+                  asof=None) -> float:
+    """The poll error the trust dial means: ``polling.poll_sd / trust``.
+
+    The owner's decision 2 (2026-09-30; JUDGEMENT-CALLS §N2). ``trust`` is in
+    [0, 1]; the page shows it as 0-100.
+
+    * ``trust == 1`` is the poll at the model's own error for it,
+      ``polling.poll_sd(poll, share, asof=…)``: sampling from the poll's
+      effective sample, plus the house term, the undisclosed-screen term and
+      drift since fieldwork. It is that TOTAL, not sampling error alone; a
+      poll with no published ``n`` is priced on the house term (``poll_sd``'s
+      own fallback).
+    * ``trust == 0`` is ``math.inf``: no weight on the poll, uniform weights
+      exactly, the published forecast. It returns before touching ``polling``.
+    * In between, the error grows as ``1 / trust``, so the likelihood's width
+      is always a multiple of a number the model derived, never one the page
+      chose.
+
+    ``poll`` is the register record (``polling.poll_sd`` reads ``n``,
+    ``n_basis``, ``deff``, ``screen_disclosed``, ``fieldwork_end``) and
+    ``share`` that party's share as the poll reports it. ``asof`` is the date
+    the drift is measured to; if omitted, the record's own ``asof``
+    (:func:`page_polls` stamps it); if neither exists, :class:`Refused`
+    rather than a drift of zero.
+
+    Refuses ``trust`` outside [0, 1] (NaN included): above 1 would claim more
+    than the model's own reading of the poll.
+    """
+    t = float(trust)
+    if not 0.0 <= t <= 1.0:
+        raise Refused(f"trust is {trust!r}; it runs from 0 (the published "
+                      f"forecast) to 1 (the poll at the model's own error)")
+    if t == 0.0:
+        return float("inf")
+    import polling
+
+    return float(polling.poll_sd(poll, share, asof=_asof(poll, asof))) / t
+
+
+def _numbers(poll: dict) -> dict:
+    """Party to share: a register record's ``numbers``, or the map itself."""
+    numbers = poll.get("numbers")
+    return numbers if isinstance(numbers, dict) else poll
 
 
 def _on_polled_base(shares, columns, poll: dict) -> tuple[np.ndarray, np.ndarray]:
-    """Each draw's shares and the poll, both renormalised to the polled parties."""
+    """Each draw's shares and the poll, both renormalised to the polled parties.
+
+    Every failure is :class:`Refused` (the S6 review's F9): each is a poll the
+    draws cannot answer, which the page reports as a reason, not a crash.
+    """
     missing = sorted(set(poll) - set(columns))
     if missing:
-        raise ValueError(f"the poll names {missing}, which the draws do not carry")
+        raise Refused(f"the poll names {missing}, which the draws do not carry")
+    if not poll:
+        raise Refused("the poll names no party")
     names = sorted(poll)
     idx = [list(columns).index(p) for p in names]
     x = np.asarray(shares, dtype=float)[:, idx]
@@ -352,65 +503,121 @@ def _on_polled_base(shares, columns, poll: dict) -> tuple[np.ndarray, np.ndarray
         raise Refused("some draw gives the polled parties no votes at all")
     y = np.array([float(poll[p]) for p in names])
     if not y.sum() > 0:
-        raise ValueError("the poll gives its parties no share")
+        raise Refused("the poll gives its parties no share")
     return x / total, y / y.sum()
 
 
-def poll_weights(shares, columns, poll: dict, *, sd: float) -> np.ndarray:
-    """A poll as a likelihood on each draw, with ONE control: the poll's error ``sd``.
+def poll_weights(shares, columns, poll: dict, *, sd: float | None = None,
+                 trust: float | None = None, asof=None) -> np.ndarray:
+    """A poll as a likelihood on each draw, with ONE control: ``trust`` or ``sd``.
 
     ``shares`` is the draw file's ``pr_share`` block and ``columns`` its
-    column names; ``poll`` maps party to share, in any units. Both the poll and
-    each draw are renormalised to the polled parties (PLAN.md §5's "stated
-    base"), so a poll that omits parties is compared only on the parties it
-    names. The likelihood is independent normal, sd ``sd`` (a fraction: 0.05 =
-    five points) on each polled party's renormalised share.
+    column names. ``poll`` is a register record (its ``numbers`` are read) or
+    a bare party-to-share map, in any units. Both the poll and each draw are
+    renormalised to the polled parties (PLAN.md §5's "stated base"), so a poll
+    that omits parties is compared only on the parties it names. The
+    likelihood is independent normal on each polled party's RENORMALISED
+    share.
 
-    ``sd`` is the reader's view of how wrong the poll can be, and the ONLY
-    control. It was two — an sd and a "trust" exponent in [0, 1] — but a
-    likelihood raised to trust t at sd σ is the same likelihood at sd σ/√t, so
-    the two were one degree of freedom shown as two (the blind review's A8).
-    ``sd = math.inf`` is no weight on the poll: every weight is 1 EXACTLY, the
-    published forecast (DESIGN-decided §3: our own trust is zero). As ``sd``
-    falls the weights concentrate on the draws closest to the poll — not "the
-    poll happens", but :data:`POLL_LABEL`, which is all the draws can offer and
-    what the page must say. A page slider labelled trust maps onto ``sd``; the
-    mapping is the page's, and it must reach infinity at its zero.
+    Exactly one control, never both and never neither (a default would be a
+    number the model chose for the reader):
 
-    ``sd`` has no default. A default here would be a number the model chose
-    for the reader.
+    * ``trust`` in [0, 1] — preferred, the page's dial (owner's decision 2).
+      Each polled party ``p`` gets its own error, :func:`poll_trust_sd` of
+      the record at the poll's reported share ``y_p``, divided by ``S``, the
+      sum of the poll's reported shares over the parties it names. ``poll_sd``
+      is in the poll's raw units; renormalising a share divides it by ``S``,
+      and so divides its error by ``S`` (holding the denominator fixed). This
+      puts the error on the base the comparison is made on. Needs the record,
+      not a bare map. ``trust == 0`` is uniform weights EXACTLY and imports
+      nothing.
+    * ``sd`` — one error for every party, on the renormalised base, as a
+      fraction (0.05 = five points). ``sd = math.inf`` is uniform EXACTLY.
+
+    A likelihood raised to a power t at sd σ is the same likelihood at sd
+    σ/√t, so a second exponent would be the same degree of freedom shown twice
+    (the blind review's A8); there is none. As the error falls the weights
+    concentrate on the draws closest to the poll — not "the poll happens", but
+    :data:`POLL_LABEL`, which is all the draws can offer and what the page
+    must say.
+
+    SEVERAL POLLS ON: the likelihoods are independent in this function's
+    arithmetic, so the page's weights for several polls are the PRODUCT of
+    each poll's weights at the one trust. Two waves of one house share its
+    house error, which that product does not know; ``polling.effective_houses``
+    measures how many independent houses stand behind a set of polls.
     """
-    sd = float(sd)
-    if not sd > 0:
-        raise ValueError(f"sd must be positive, not {sd}")
-    x, y = _on_polled_base(shares, columns, poll)
-    if np.isinf(sd):
-        return uniform(x.shape[0])
-    loglik = -0.5 * np.square((x - y) / sd).sum(axis=1)
+    if (sd is None) == (trust is None):
+        raise TypeError("poll_weights takes exactly one of trust= and sd=")
+    numbers = _numbers(poll)
+    x, y = _on_polled_base(shares, columns, numbers)
+    if trust is not None:
+        if not isinstance(poll.get("numbers"), dict):
+            raise Refused("trust prices the poll from its register record; a "
+                          "bare party-to-share map carries no sample size")
+        if poll_trust_sd(poll, 0.5, trust, asof=asof) == float("inf"):
+            return uniform(x.shape[0])
+        names = sorted(numbers)
+        raw = np.array([float(numbers[p]) for p in names])
+        scale = raw.sum()
+        sds = np.array([poll_trust_sd(poll, share, trust, asof=asof)
+                        for share in raw]) / scale
+    else:
+        sd = float(sd)
+        if not sd > 0:
+            raise ValueError(f"sd must be positive, not {sd}")
+        if np.isinf(sd):
+            return uniform(x.shape[0])
+        sds = sd
+    loglik = -0.5 * np.square((x - y) / sds).sum(axis=1)
     return np.exp(loglik - loglik.max())
 
 
 def combine_polls(polls: list[dict]) -> tuple[dict, dict]:
     """The average of the polls switched on, and the spread between them.
 
-    Each poll is first renormalised over the parties ALL of them name, so they
-    are averaged on one base. Returns ``(average, spread)``; ``spread`` maps
-    each party to ``(lowest, highest)`` across the polls, which the page shows
-    beside the average (DESIGN-decided §2: the disagreement is the finding).
+    Each poll (a register record or a party-to-share map) is renormalised over
+    the parties IT names, and the average is taken over every party that at
+    least two of the polls name, each party averaged over the polls that name
+    it. The party base is NOT shrunk to the parties every poll names: one poll
+    naming fewer parties would otherwise delete the rest from all of them (the
+    S6 review's F8). A party only one poll names is left out, because one
+    reading has no average and no spread.
+
+    Returns ``(average, spread)``; ``spread`` maps each party to ``(lowest,
+    highest)`` across the polls naming it, which the page shows beside the
+    average (DESIGN-decided §2: the disagreement is the finding). The average
+    is on no single poll's base, so its shares need not sum to one;
+    :func:`poll_weights` renormalises whatever it is given.
+
+    ONE poll is returned as itself, renormalised, with each spread its single
+    value: there is nothing to combine, and no disagreement can be measured.
+    Two or more polls with no party in common between any two:
+    :class:`Refused`.
     """
     if not polls:
         raise ValueError("no poll is switched on")
-    common = sorted(set.intersection(*(set(p) for p in polls)))
-    if not common:
-        raise Refused("the polls switched on share no party")
     rows = []
     for p in polls:
-        y = np.array([float(p[k]) for k in common])
-        rows.append(y / y.sum())
-    m = np.array(rows)
-    average = {k: float(v) for k, v in zip(common, m.mean(axis=0))}
-    spread = {k: (float(lo), float(hi))
-              for k, lo, hi in zip(common, m.min(axis=0), m.max(axis=0))}
+        numbers = _numbers(p)
+        total = sum(float(v) for v in numbers.values())
+        if not total > 0:
+            raise Refused(f"poll {p.get('id', '<no id>')!r} gives its parties "
+                          f"no share")
+        rows.append({k: float(v) / total for k, v in numbers.items()})
+    counts: dict[str, int] = {}
+    for r in rows:
+        for k in r:
+            counts[k] = counts.get(k, 0) + 1
+    need = 1 if len(rows) == 1 else 2
+    parties = sorted(k for k, c in counts.items() if c >= need)
+    if not parties:
+        raise Refused("no party is named by two of the polls switched on")
+    average, spread = {}, {}
+    for k in parties:
+        vals = np.array([r[k] for r in rows if k in r])
+        average[k] = float(vals.mean())
+        spread[k] = (float(vals.min()), float(vals.max()))
     return average, spread
 
 
@@ -423,10 +630,38 @@ def _lerp(a, b, t):
 
     Reproduced rather than approximated: ``np.percentile`` computes a + (b-a)t
     and, for t >= 0.5, b - (b-a)(1-t), and the two differ in the last place.
-    Uniform weights must give the published p5/p95 bit for bit.
+    Uniform weights must give the published p5/p95 bit for bit. Elementwise,
+    so one call serves many quantiles; each element is computed by the same
+    floating-point operations as a scalar call would.
     """
     diff = b - a
-    return b - diff * (1 - t) if t >= 0.5 else a + diff * t
+    return np.where(t >= 0.5, b - diff * (1 - t), a + diff * t)
+
+
+def _weighted_quantiles(values, weights, qs) -> np.ndarray:
+    """:func:`weighted_quantile` at every level in ``qs``, sorting once.
+
+    The one definition of the weighted quantile; :func:`weighted_quantile` is
+    this at a single level, and :func:`sampling_se` calls it at many.
+    """
+    v = np.asarray(values, dtype=float)
+    w = np.asarray(weights, dtype=float)
+    keep = w > 0
+    v, w = v[keep], w[keep] / w[keep].max()
+    order = np.argsort(v, kind="stable")
+    v, w = v[order], w[order]
+    q = np.asarray(qs, dtype=float)
+    if len(v) == 1:
+        return np.full(q.shape, v[0])
+    cum = np.cumsum(w)
+    pos = cum - w / 2 - w[0] / 2
+    target = q * (cum[-1] - w[0] / 2 - w[-1] / 2)
+    k = np.searchsorted(pos, target, side="right") - 1
+    k = np.clip(k, 0, len(v) - 1)
+    last = k == len(v) - 1
+    k = np.minimum(k, len(v) - 2)
+    gamma = (target - pos[k]) / (pos[k + 1] - pos[k])
+    return np.where(last, v[-1], _lerp(v[k], v[k + 1], gamma))
 
 
 def weighted_quantile(values, weights, q: float) -> float:
@@ -443,21 +678,7 @@ def weighted_quantile(values, weights, q: float) -> float:
     Weights are scaled to a maximum of one first, so any constant weighting is
     exactly the unit case. Draws of zero weight are dropped.
     """
-    v = np.asarray(values, dtype=float)
-    w = np.asarray(weights, dtype=float)
-    keep = w > 0
-    v, w = v[keep], w[keep] / w[keep].max()
-    order = np.argsort(v, kind="stable")
-    v, w = v[order], w[order]
-    cum = np.cumsum(w)
-    pos = cum - w / 2 - w[0] / 2
-    target = q * (cum[-1] - w[0] / 2 - w[-1] / 2)
-    k = int(np.searchsorted(pos, target, side="right")) - 1
-    k = min(max(k, 0), len(v) - 1)
-    if k == len(v) - 1:
-        return float(v[-1])
-    gamma = (target - pos[k]) / (pos[k + 1] - pos[k])
-    return float(_lerp(v[k], v[k + 1], gamma))
+    return float(_weighted_quantiles(values, weights, [q])[0])
 
 
 def quantile_effective_draws(values, weights, q: float) -> tuple[float, float]:
@@ -513,22 +734,113 @@ def tail_effective_draws(values, weights, q: float) -> float:
     return effective_draws(w * _quantile_side(v, w, q))
 
 
+def sampling_se(values, weights, q: float) -> float:
+    """The Monte Carlo standard error of one weighted quantile, in the values' units.
+
+    How far the ``q``-quantile of these draws under these weights could move
+    if the model were run again with a different seed — the noise the page
+    compares a lever's effect against (the S6 review's F2), and the number
+    :data:`MAX_FIGURE_SE_SEATS` is set on. On the page the values are seats,
+    so this is in seats.
+
+    THE ESTIMATOR, and why this one. Bootstrap-free, because the page runs it
+    on every control move. The sample quantile is the population quantile
+    function read at a random LEVEL: to first order the level it lands on is
+    normal about ``q`` with standard deviation ``s``, the linearised standard
+    error of the self-normalised level estimate, Σ w̃²(h − P)² — the second
+    return of :func:`quantile_effective_draws`, which carries the weights
+    (a few heavy draws raise ``s``). So the SE is the standard deviation of
+    ``Q(q + s·Z)``, Z standard normal, with Q this draw set's own weighted
+    quantile function (:func:`weighted_quantile`), taken by Gauss–Hermite
+    quadrature. It is the large-sample form of Maritz & Jarrett's (1978)
+    quantile SE.
+
+    The textbook alternative, the asymptotic ``s / f(x_q)`` with a density
+    ``f`` (or Woodruff's finite difference over a narrow level interval), is
+    what this reduces to where the values are smooth — and it fails on seats.
+    Seats are integers: a quantile inside a block of tied values has a flat
+    quantile function nearby, so a density-based SE is zero, while a
+    re-run moves the figure by a whole seat whenever the level crosses the
+    block's edge. Integrating over the level's distribution counts those
+    crossings. ``tests/test_reweight.py`` checks it against a bootstrap and
+    against repeated samples, on integer values.
+
+    Its limit: for an integer-valued figure the true SE depends on where the
+    population quantile sits within its block, which one draw set estimates
+    only roughly, so on integers it is a noisy estimate of a noisy quantity.
+    Where the quantile sits deep inside a block (true SE zero) it overstates,
+    by about a tenth of a seat on average, and a bootstrap does the same; where
+    re-runs flip the figure between two seats it and the bootstrap both
+    understate by up to about a quarter. Neither is an error of this
+    estimator in particular; both are what one draw set can say.
+    Returns 0.0 when every draw lies on the quantile's side (nothing to
+    estimate, as :func:`quantile_effective_draws` reports).
+    """
+    _, level = quantile_effective_draws(values, weights, q)
+    if not np.isfinite(level):
+        return 0.0
+    # 41 nodes integrates Q(q + s·Z) to well within a draw's resolution: the
+    # outermost nodes sit near ±8.6 s, beyond which the normal carries no
+    # weight worth summing. Numerical accuracy, not a belief about elections.
+    z, g = np.polynomial.hermite_e.hermegauss(41)
+    g = g / g.sum()
+    levels = np.clip(float(q) + level * z, 0.0, 1.0)
+    vals = _weighted_quantiles(values, weights, levels)
+    mean = float(g @ vals)
+    return float(np.sqrt(g @ np.square(vals - mean)))
+
+
+def _too_imprecise(se: float) -> bool:
+    """The page's rule for one figure. The ceiling is read at call time."""
+    return not se <= MAX_FIGURE_SE_SEATS
+
+
 def figure(values, weights, q: float, *, poll: bool) -> dict:
     """One quantile as the page shows it: the value, what it rests on, and what it is.
 
+    ``withheld`` is True, and ``value`` None, when the figure's sampling
+    standard error (:func:`sampling_se`) exceeds :data:`MAX_FIGURE_SE_SEATS`
+    (owner, 2026-09-30); the page shows a refusal in its place. That rule is
+    per figure. :func:`require_effective` is separate: a refusal of the
+    weights as a whole, below which the page shows no figure at all.
+
     ``poll`` says whether a poll's weights are among ``weights``; when they
     are, the figure carries :data:`POLL_LABEL`, and the page prints it beside
-    the number. The effective counts are reported, not enforced: the refusal
-    is :func:`require_effective`'s, on the weights as a whole.
+    the number. The effective counts are reported for the reader.
     """
     ess_q, level_se = quantile_effective_draws(values, weights, q)
-    return {"value": weighted_quantile(values, weights, q),
+    se = sampling_se(values, weights, q)
+    withheld = _too_imprecise(se)
+    return {"value": None if withheld else weighted_quantile(values, weights, q),
             "q": float(q),
+            "withheld": withheld,
+            "sampling_se": se,
             "effective_draws": effective_draws(weights),
             "quantile_effective_draws": ess_q,
             "tail_effective_draws": tail_effective_draws(values, weights, q),
             "level_se": level_se,
             "label": POLL_LABEL if poll else None}
+
+
+def imprecise_figures(figures: dict, weights) -> list:
+    """The names of the figures :func:`figure` would withhold under ``weights``.
+
+    ``figures`` maps a name (anything the page uses to find the figure) to
+    ``(values, q)``. Same rule as :func:`figure`, by the same function.
+    """
+    return [name for name, (values, q) in figures.items()
+            if _too_imprecise(sampling_se(values, weights, q))]
+
+
+def within_precision(figures: dict, weights) -> bool:
+    """True when EVERY figure the page shows passes :data:`MAX_FIGURE_SE_SEATS`.
+
+    The page's stop for a slider: it moves a control only as far as this
+    stays true, so the reader is never walked into a page of withheld figures.
+    ``figures`` is as for :func:`imprecise_figures`, and should be every
+    median and range end the page shows.
+    """
+    return not imprecise_figures(figures, weights)
 
 
 def weighted_probability(event, weights) -> float:

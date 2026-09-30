@@ -28,6 +28,16 @@ proves:
    A7). The poll has one control, its error (A8).
 6. EACH QUANTILE REPORTS WHAT IT RESTS ON, which can be far less than Kish's
    count for the weights as a whole.
+7. THE S6 LANE R ADDITIONS (`audits/2026-09-30-interactive-s6/SPEC-v2.md`),
+   each on a constructed case that fails when the function is broken: the
+   trust dial's mapping and its endpoints (decision 2), `poll_weights` under
+   trust, `page_polls` admitting exactly what `polling.screen` admits (F8),
+   `combine_polls` keeping every party two polls name (F8), `Refused` on the
+   polled base (F9), `turnout_tilt(pin_to=)` (F4, F10), `sampling_se` against
+   a bootstrap and against repeated samples on INTEGER values (F2), and the
+   owner's per-figure precision rule, `MAX_FIGURE_SE_SEATS` (F17 as
+   re-decided 2026-09-30). On the published draws: uniform weights withhold
+   no published figure, and a tilt past the draws' reach does.
 
 ⚠️ The tilt matches a MEAN and the re-run moves the whole distribution. Check
 2 is what licenses the page to present one as the other, at this size of move
@@ -478,14 +488,16 @@ def test_poll_weights_use_the_polled_base_and_treat_every_party_alike():
     assert np.allclose(a, c, rtol=1e-12, atol=0)
     try:
         R.poll_weights(shares, cols, {"Q": 0.3}, sd=0.05)
-    except ValueError:
+    except R.Refused:
         pass
     else:
         raise AssertionError("a poll naming a party the draws lack was accepted")
 
 
 def test_the_poll_has_one_control_and_it_moves_the_weights_monotonically():
-    """A8: sd and a trust exponent were one degree of freedom; only sd remains."""
+    """A8: an sd and a trust exponent were one degree of freedom. The control is
+    now trust (decision 2) or sd, exactly one of them, never both and never
+    neither."""
     rng = np.random.default_rng(8)
     shares = rng.dirichlet(np.ones(4) * 5, size=2000)
     cols, poll = ["A", "B", "C", "D"], {"A": 0.35, "B": 0.25}
@@ -570,12 +582,39 @@ def test_a_tilt_solved_on_the_poll_hits_its_target_and_one_multiplied_in_misses(
         raise AssertionError("a base leaving no draw any weight was answered")
 
 
-def test_combine_polls_averages_on_a_common_base_and_reports_the_spread():
-    avg, spread = R.combine_polls([{"A": 30, "B": 20, "C": 50},
-                                   {"A": 0.2, "B": 0.3}])
-    assert set(avg) == {"A", "B"}
-    assert np.isclose(avg["A"], (0.6 + 0.4) / 2) and np.isclose(avg["B"], 0.5)
-    assert np.allclose(spread["A"], (0.4, 0.6))
+def test_combine_polls_keeps_every_party_two_polls_name_and_reports_the_spread():
+    """F8: one poll naming fewer parties must not delete the rest from all."""
+    p1 = {"A": 30, "B": 20, "C": 50}            # renormalised: .3 .2 .5
+    p2 = {"A": 0.2, "B": 0.2, "C": 0.4, "D": 0.2}
+    p3 = {"id": "rec", "numbers": {"A": 0.3, "B": 0.1}}   # a register record
+    avg, spread = R.combine_polls([p1, p2, p3])
+    # C is named by two polls and kept; D by one and left out. The old rule —
+    # the intersection — would have kept A and B only.
+    assert set(avg) == {"A", "B", "C"}
+    assert np.isclose(avg["C"], (0.5 + 0.4) / 2)
+    assert np.isclose(avg["A"], (0.3 + 0.2 + 0.75) / 3)
+    assert np.isclose(avg["B"], (0.2 + 0.2 + 0.25) / 3)
+    assert np.allclose(spread["A"], (0.2, 0.75))
+    assert np.allclose(spread["C"], (0.4, 0.5))
+    # each poll on its own base: A in p3 is .3/.4, not .3
+    assert np.isclose(spread["A"][1], 0.75)
+    # one poll is itself, renormalised, and its spread is its one value
+    one, one_spread = R.combine_polls([p1])
+    assert one == {"A": 0.3, "B": 0.2, "C": 0.5}
+    assert one_spread["C"] == (0.5, 0.5)
+    # no party named by two polls: refused, not an empty average
+    try:
+        R.combine_polls([{"A": 1.0}, {"B": 1.0}])
+    except R.Refused:
+        pass
+    else:
+        raise AssertionError("polls with no party in common were combined")
+    try:
+        R.combine_polls([{"A": 0.0}, {"A": 0.0}])
+    except R.Refused:
+        pass
+    else:
+        raise AssertionError("a poll giving its parties no share was combined")
 
 
 def test_a_quantile_reports_its_own_effective_draws():
@@ -619,7 +658,9 @@ def test_a_figure_under_a_poll_says_what_it_is():
     plain = R.figure(x, R.uniform(1000), 0.05, poll=False)
     assert polled["label"] == R.POLL_LABEL == "the model's draws nearest this poll"
     assert plain["label"] is None
+    assert plain["withheld"] is False and polled["withheld"] is False
     assert plain["value"] == float(np.percentile(x, 5))
+    assert plain["sampling_se"] == R.sampling_se(x, R.uniform(1000), 0.05)
     assert plain["effective_draws"] == 1000.0
     assert polled["effective_draws"] < plain["effective_draws"]
     assert polled["quantile_effective_draws"] < plain["quantile_effective_draws"]
@@ -633,6 +674,372 @@ def test_ward_win_probability_under_weights_uses_the_effective_sample():
     ess = R.effective_draws(w)
     assert np.isclose(p[0, 1], (ess * 4 / 6 + 0.5) / (ess + 1))
     assert np.isclose(p[0].sum(), (ess + 1.0) / (ess + 1.0))
+
+
+# -- 7: S6 lane R -------------------------------------------------------------
+
+def _record(**extra) -> dict:
+    """A constructed register record that `polling.validate` accepts."""
+    rec = {"id": "constructed", "scope": "metro", "city": "joburg",
+           "house": "H", "n": 800, "n_basis": "standalone",
+           "fieldwork_end": "2026-07-01",
+           "numbers": {"A": 0.35, "B": 0.25}, "asof": "2026-11-04"}
+    rec.update(extra)
+    return rec
+
+
+def test_the_trust_dial_is_the_models_own_poll_error_over_trust():
+    """Decision 2: sd(t) = polling.poll_sd / t; 0 is infinite; [0, 1] only."""
+    import polling
+    from datetime import date
+    rec = _record()
+    own = polling.poll_sd(rec, 0.35, asof=date(2026, 11, 4))
+    # the 1 end is the model's own number for this poll, drift to polling day
+    assert R.poll_trust_sd(rec, 0.35, 1.0) == own
+    assert own > polling.poll_sd(rec, 0.35)          # drift is in it
+    # the mapping is 1/t, not 1/sqrt(t) (the exponent reading, A8)
+    assert R.poll_trust_sd(rec, 0.35, 0.5) == own / 0.5
+    assert R.poll_trust_sd(rec, 0.35, 0.25) == own / 0.25
+    # the 0 end is infinite, before anything is priced: a record with no date
+    # at all still answers at zero trust
+    undated = _record()
+    del undated["asof"]
+    assert R.poll_trust_sd(undated, 0.35, 0.0) == math.inf
+    # at non-zero trust an undated record is refused, not priced at zero drift
+    try:
+        R.poll_trust_sd(undated, 0.35, 0.5)
+    except R.Refused:
+        pass
+    else:
+        raise AssertionError("a poll with no date to price drift at was priced")
+    assert R.poll_trust_sd(undated, 0.35, 1.0, asof="2026-11-04") == own
+    for bad in (-0.01, 1.01, math.nan, math.inf):
+        try:
+            R.poll_trust_sd(rec, 0.35, bad)
+        except R.Refused:
+            continue
+        raise AssertionError(f"trust {bad} was accepted")
+
+
+def test_poll_weights_under_trust_price_each_party_on_the_polled_base():
+    import polling
+    from datetime import date
+    rng = np.random.default_rng(21)
+    shares = rng.dirichlet(np.ones(4) * 5, size=3000)
+    cols = ["A", "B", "C", "D"]
+    rec = _record()
+    w = R.poll_weights(shares, cols, rec, trust=0.5)
+    # by hand: each party its own poll_sd at its reported share, over trust,
+    # divided by the polled total S, on the renormalised base
+    raw = {"A": 0.35, "B": 0.25}
+    s_total = sum(raw.values())
+    x = shares[:, :2] / shares[:, :2].sum(axis=1, keepdims=True)
+    y = np.array([raw["A"], raw["B"]]) / s_total
+    sds = np.array([polling.poll_sd(rec, raw[p], asof=date(2026, 11, 4)) / 0.5
+                    for p in ("A", "B")]) / s_total
+    ll = -0.5 * np.square((x - y) / sds).sum(axis=1)
+    assert np.allclose(w, np.exp(ll - ll.max()), rtol=1e-12, atol=0)
+    # the per-party error matters: one sd for both parties gives other weights
+    one = R.poll_weights(shares, cols, raw, sd=float(sds.mean()))
+    assert not np.allclose(w, one, rtol=1e-6, atol=0)
+    # zero trust is the published forecast exactly
+    assert np.array_equal(R.poll_weights(shares, cols, rec, trust=0.0),
+                          R.uniform(len(shares)))
+    # more trust, fewer draws
+    ess = [R.effective_draws(R.poll_weights(shares, cols, rec, trust=t))
+           for t in (0.0, 0.25, 0.5, 1.0)]
+    assert all(a > b for a, b in zip(ess, ess[1:])), ess
+    # trust needs the record: a bare map carries no sample size
+    try:
+        R.poll_weights(shares, cols, raw, trust=0.5)
+    except R.Refused:
+        pass
+    else:
+        raise AssertionError("trust was priced without the poll's record")
+
+
+def test_the_polled_base_refuses_with_refused_not_a_bare_value_error():
+    """F9: each is a poll the draws cannot answer, which the page reports."""
+    shares = np.array([[0.5, 0.5, 0.0], [0.4, 0.4, 0.2]])
+    cols = ["A", "B", "C"]
+    cases = {"names a party the draws lack": {"Q": 0.3},
+             "names no party": {},
+             "gives its parties no share": {"A": 0.0, "B": 0.0},
+             "a draw gives the polled parties nothing": {"C": 0.3}}
+    for why, poll in cases.items():
+        try:
+            R._on_polled_base(shares, cols, poll)
+        except R.Refused:
+            continue
+        except ValueError as exc:
+            raise AssertionError(f"{why}: ValueError, not Refused: {exc}")
+        raise AssertionError(f"{why}: answered")
+    x, y = R._on_polled_base(shares, cols, {"A": 3, "B": 1})
+    assert np.allclose(y, [0.75, 0.25]) and np.allclose(x[0], [0.5, 0.5])
+
+
+def _joburg_2026():
+    import cityconfig
+    return cityconfig.Target(city=cityconfig.load("joburg"), year="2026")
+
+
+def test_page_polls_are_exactly_what_the_models_rules_admit():
+    """F8, on a constructed register: one poll of each refusal, one admitted."""
+    import montecarlo
+    import polling
+    floor = float(montecarlo.DEFAULTS["poll_min_n"])
+    ok = _record(id="ok")
+    del ok["asof"]
+    register = [
+        ok,
+        dict(ok, id="after-polling-day", fieldwork_end="2026-11-10"),
+        dict(ok, id="commissioned", commissioned_by="a party"),
+        dict(ok, id="other-city", city="tshwane"),
+        dict(ok, id="other-election", target="2021"),
+        dict(ok, id="small", n=floor - 1),
+        dict(ok, id="national", scope="national", city=None),
+    ]
+    kept_load = polling.load
+    kept_floor = montecarlo.DEFAULTS["poll_min_n"]
+    polling.load = lambda path=polling.REGISTER: [dict(p) for p in register]
+    try:
+        got = R.page_polls(_joburg_2026())
+        assert [p["id"] for p in got] == ["ok"]
+        assert got[0]["asof"] == "2026-11-04" == _joburg_2026().date.isoformat()
+        assert "asof" not in register[0]            # a copy, not the record
+        # the floor is the model's, read at call time: lower it and the
+        # small poll is admitted, exactly as the model would admit it
+        montecarlo.DEFAULTS["poll_min_n"] = floor - 2
+        assert [p["id"] for p in R.page_polls(_joburg_2026())] == ["ok", "small"]
+        # a malformed register raises here as it does for the model
+        polling.load = lambda path=polling.REGISTER: [dict(ok, scope="Metro")]
+        try:
+            R.page_polls(_joburg_2026())
+        except polling.PollRegisterError:
+            pass
+        else:
+            raise AssertionError("a malformed register was offered on the page")
+    finally:
+        polling.load = kept_load
+        montecarlo.DEFAULTS["poll_min_n"] = kept_floor
+
+
+def test_page_polls_on_the_real_register_both_directions():
+    import montecarlo
+    import polling
+    target = _joburg_2026()
+    page = R.page_polls(target)
+    kept, declined = polling.screen(
+        target, min_n=float(montecarlo.DEFAULTS["poll_min_n"]))
+    admitted = {p["id"] for p in kept if p.get("scope") == "metro"}
+    scanned(len(page), of=len(polling.load()), low=0.05, high=1.0,
+            what="polls on the page", denominator="records in the register")
+    # page -> rules, and rules -> page
+    assert {p["id"] for p in page} == admitted
+    assert not {p["id"] for p in page} & {x.poll_id for x in declined}
+
+
+def test_a_pinned_tilt_holds_another_cells_turnout_at_the_published_mean():
+    """F4/F10: a cell's own mean is not the published one; pin_to says which."""
+    published = _constructed_turnouts()
+    rng = np.random.default_rng(22)
+    # a second, unpaired cell: its own draws, its mean off by sampling
+    cell = published[rng.permutation(len(published))] + 0.004
+    pin = published.mean(axis=0)
+    held = R.turnout_tilt(cell, np.zeros(4), pin_to=pin)
+    assert np.max(np.abs((held / held.sum()) @ cell - pin)) < 1e-9
+    assert not np.array_equal(held, R.uniform(len(cell)))
+    # unpinned, a zero shift is the cell's own mean: uniform, and off the pin
+    free = R.turnout_tilt(cell, np.zeros(4))
+    assert np.array_equal(free, R.uniform(len(cell)))
+    assert np.all(np.abs(cell.mean(axis=0) - pin) > 0.003)
+    # a shift is measured from the pin
+    moved = R.turnout_tilt(cell, [0.01, 0, 0, 0], pin_to=pin)
+    assert np.allclose((moved / moved.sum()) @ cell, pin + [0.01, 0, 0, 0],
+                       rtol=0, atol=1e-9)
+    # with a poll on and pin_to the published mean, the poll cannot move turnout
+    t, shares, cols = _correlated_draws()
+    poll = R.poll_weights(shares, cols, {"A": 0.38, "B": 0.25}, sd=0.03)
+    both = R.turnout_tilt(t, np.zeros(4), base=poll, pin_to=t.mean(axis=0))
+    assert np.max(np.abs(_turnout_miss(t, both))) < 1e-9
+    for bad in (pin[:3], [np.nan, 0.4, 0.4, 0.4]):
+        try:
+            R.turnout_tilt(cell, np.zeros(4), pin_to=bad)
+        except ValueError:
+            continue
+        raise AssertionError(f"pin_to {bad} was accepted")
+
+
+def _bootstrap_se(v, w, q, reps: int, seed: int) -> float:
+    """Resample the draws with their weights; the sd of the weighted quantile."""
+    rng = np.random.default_rng(seed)
+    n = len(v)
+    out = []
+    for _ in range(reps):
+        i = rng.integers(0, n, n)
+        out.append(R.weighted_quantile(v[i], w[i], q))
+    return float(np.std(out))
+
+
+#: How close `sampling_se` must come to the check it is compared with: within
+#: this RATIO, or within SE_FLOOR seats, whichever is looser. The floor is for
+#: integer figures whose true SE is near zero (the quantile sits deep inside a
+#: block of tied seats, so a re-run rarely moves it), where a ratio of two
+#: near-zero numbers means nothing; it is a twentieth of the page's ceiling.
+SE_TOLERANCE = 0.30
+SE_FLOOR = 0.10
+
+
+def _agrees(est: float, check: float) -> bool:
+    return abs(est - check) <= max(SE_TOLERANCE * check, SE_FLOOR)
+
+
+def test_sampling_se_agrees_with_a_bootstrap_on_weighted_integer_seats():
+    rng = np.random.default_rng(23)
+    n = 5000
+    seats = np.round(rng.normal(80.3, 15.0, n))
+    driver = (seats - seats.mean()) / seats.std() + rng.standard_normal(n)
+    tilted = np.exp(driver)
+    uni = R.uniform(n)
+    ratios = []
+    for q in (0.05, 0.5, 0.95):
+        est_u = R.sampling_se(seats, uni, q)
+        est_w = R.sampling_se(seats, tilted, q)
+        boot_u = _bootstrap_se(seats, uni, q, 400, 1)
+        boot_w = _bootstrap_se(seats, tilted, q, 400, 2)
+        print(f"  q={q}: uniform {est_u:.3f} (bootstrap {boot_u:.3f}); "
+              f"tilted {est_w:.3f} (bootstrap {boot_w:.3f}); "
+              f"Kish {R.effective_draws(tilted):.0f}")
+        assert _agrees(est_u, boot_u), (q, est_u, boot_u)
+        assert _agrees(est_w, boot_w), (q, est_w, boot_w)
+        ratios.append(est_w / est_u)
+    # it can see the weights: the tilt starves the upper tail, the bootstrap
+    # agrees, and an estimator that ignored the weights would not
+    assert max(ratios) > 3.0, ratios
+    # and the check can see a wrong estimator: the uniform SE offered for the
+    # tilted p95 is caught, and the real one passes again
+    wrong = R.sampling_se(seats, uni, 0.95)
+    boot = _bootstrap_se(seats, tilted, 0.95, 400, 2)
+    assert not _agrees(wrong, boot)
+    assert _agrees(R.sampling_se(seats, tilted, 0.95), boot)
+
+
+def test_sampling_se_matches_repeated_samples_where_a_density_would_say_zero():
+    """Integer values: an estimator built on a density, or on a narrow
+    difference of the quantile function, is zero inside a block of ties,
+    while a re-run moves the figure by a seat when the level crosses the
+    block's edge.
+
+    Two checks per case, each the mean over one-sample estimates: against a
+    bootstrap on the SAME samples, always; and against the spread of repeated
+    independent samples, where a re-run really moves the figure. Where it does
+    not (the quantile deep inside a block, true SE zero), a one-sample
+    estimate cannot know the block edge exactly and overstates the SE — the
+    bootstrap as much as this estimator, measured 2026-09-30 at a tenth of a
+    seat on average. That is the conservative direction and is printed, not
+    asserted."""
+    rng = np.random.default_rng(24)
+    n = 5000
+    repeated_all = []
+    for mean, sd in ((60.5, 8.0), (30.2, 5.0)):
+        for q in (0.05, 0.5, 0.95):
+            repeated = float(np.std([
+                np.percentile(np.round(rng.normal(mean, sd, n)), 100 * q)
+                for _ in range(200)]))
+            ests, boots = [], []
+            for k in range(10):
+                x = np.round(rng.normal(mean, sd, n))
+                ests.append(R.sampling_se(x, R.uniform(n), q))
+                boots.append(_bootstrap_se(x, R.uniform(n), q, 100, k))
+            est, boot = float(np.mean(ests)), float(np.mean(boots))
+            print(f"  mean {mean}, q={q}: estimate {est:.3f}, bootstrap "
+                  f"{boot:.3f}, repeated samples {repeated:.3f}")
+            assert _agrees(est, boot), (mean, q, est, boot)
+            if repeated > 3 * SE_FLOOR:
+                assert _agrees(est, repeated), (mean, q, est, repeated)
+            repeated_all.append(repeated)
+    # the cases include ones where a re-run really moves the figure, which is
+    # where a density-based SE of zero would fail
+    assert max(repeated_all) > 3 * SE_FLOOR, repeated_all
+    # and on smooth values it is the textbook s / f(x_q): the median of a
+    # normal has SE sqrt(pi/2) sd / sqrt(n)
+    x = rng.normal(0.0, 3.0, n)
+    textbook = math.sqrt(math.pi / 2) * 3.0 / math.sqrt(n)
+    assert abs(R.sampling_se(x, R.uniform(n), 0.5) / textbook - 1) < 0.15
+    # every draw alike: nothing to estimate
+    assert R.sampling_se(np.full(50, 7.0), R.uniform(50), 0.05) == 0.0
+
+
+def test_many_quantiles_at_once_are_the_single_quantile_bit_for_bit():
+    rng = np.random.default_rng(25)
+    x = rng.integers(0, 40, size=777).astype(float)
+    w = rng.uniform(0.0, 2.0, size=777)
+    levels = np.linspace(0, 1, 101)
+    many = R._weighted_quantiles(x, w, levels)
+    assert [float(v) for v in many] == [R.weighted_quantile(x, w, q)
+                                        for q in levels]
+
+
+def test_a_figure_above_the_se_ceiling_is_withheld_and_the_slider_stops():
+    rng = np.random.default_rng(26)
+    n = 5000
+    seats = np.round(rng.normal(60.0, 8.0, n))
+    uni = R.uniform(n)
+    heavy = np.exp(3.0 * (seats - seats.mean()) / seats.std())
+    figs = {("X", 0.05): (seats, 0.05), ("X", 0.5): (seats, 0.5),
+            ("X", 0.95): (seats, 0.95)}
+    assert R.within_precision(figs, uni)
+    assert R.imprecise_figures(figs, uni) == []
+    shown = R.figure(seats, uni, 0.05, poll=False)
+    assert shown["withheld"] is False and shown["value"] is not None
+    # a constructed heavy tilt: some figures fall past the ceiling and some do
+    # not, and the slider's stop and the figure's own rule name the same ones
+    ses = {k: R.sampling_se(v, heavy, q) for k, (v, q) in figs.items()}
+    bad = R.imprecise_figures(figs, heavy)
+    assert bad == [k for k, se in ses.items() if se > R.MAX_FIGURE_SE_SEATS]
+    assert bad and len(bad) < len(figs), ses
+    assert bad == [k for k, (v, q) in figs.items()
+                   if R.figure(v, heavy, q, poll=False)["withheld"]]
+    assert not R.within_precision(figs, heavy)
+    hidden = R.figure(seats, heavy, bad[0][1], poll=False)
+    assert hidden["withheld"] is True and hidden["value"] is None
+    assert hidden["sampling_se"] > R.MAX_FIGURE_SE_SEATS
+    q_hidden = bad[0][1]
+    # the ceiling is read at call time: raise it past the SE and it is shown
+    kept = R.MAX_FIGURE_SE_SEATS
+    try:
+        R.MAX_FIGURE_SE_SEATS = hidden["sampling_se"] + 1.0
+        assert R.figure(seats, heavy, q_hidden, poll=False)["withheld"] is False
+        assert R.within_precision({bad[0]: (seats, q_hidden)}, heavy)
+    finally:
+        R.MAX_FIGURE_SE_SEATS = kept
+    assert R.figure(seats, heavy, q_hidden, poll=False)["withheld"] is True
+
+
+def test_uniform_weights_withhold_no_published_figure_and_a_far_tilt_does():
+    st = _runs()
+    arrays, manifest = st["arrays"], st["manifest"]
+    summary = json.loads(SUMMARY.read_text())["parties"]
+    seats = arrays["seats/deduct"].astype(float)
+    col = {p: j for j, p in enumerate(manifest["parties"])}
+    w = R.uniform(st["draws"])
+    qs = {"p5": 0.05, "median": 0.5, "p95": 0.95}
+    figs = {(p, k): (seats[:, col[p]], q) for p in summary for k, q in qs.items()}
+    scanned(len(figs), of=3 * len(manifest["parties"]), low=0.05, high=1.0,
+            what="published figures checked", denominator="3 x the file's parties")
+    for (p, k), (v, q) in figs.items():
+        f = R.figure(v, w, q, poll=False)
+        assert f["withheld"] is False, (p, k, f["sampling_se"])
+        assert f["value"] == summary[p][k], (p, k)
+    assert R.within_precision(figs, w)
+    # Black African +8 points with the others held: past what the draws carry
+    names = _pools(manifest)
+    shift = np.zeros(len(names))
+    shift[names.index(POOL)] = 0.08
+    far = R.turnout_tilt(arrays["pool_turnout"], shift)
+    worst = R.imprecise_figures(figs, far)
+    print(f"  withheld at {POOL} +8: {len(worst)} of {len(figs)} figures")
+    assert worst and not R.within_precision(figs, far)
 
 
 if __name__ == "__main__":

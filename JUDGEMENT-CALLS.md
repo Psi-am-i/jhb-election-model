@@ -2888,6 +2888,66 @@ draws on its side and a 95th from two to seven (`reweight.tail_effective_draws`)
 The floor holds for a mean and does not hold for a tail band. A separate tail
 floor would be a new judgement call; none is set.
 
+### §N2 · The poll-trust dial, `sd(t) = poll_sd / t`, and `MAX_FIGURE_SE_SEATS` = 2.0 — ⚖️ argued, owner's decisions (2026-09-30)
+
+**Where.** `reweight.poll_trust_sd`, called by `reweight.poll_weights` when
+it is given `trust`; `reweight.MAX_FIGURE_SE_SEATS`, read at call time by
+`reweight.figure`, `reweight.imprecise_figures` and `reweight.within_precision`.
+Spec: `audits/2026-09-30-interactive-s6/SPEC-v2.md`, decision 2 and lane R.
+
+**The trust mapping.** The page's poll dial runs 0-100; `reweight` takes it as
+`t` in [0, 1] and prices each polled party's reading with a normal likelihood
+of sd `polling.poll_sd(poll, share, asof) / t`. At `t = 1` the width is the
+model's own error for that poll; at `t = 0` it is infinite, which is uniform
+weights exactly (the published forecast, and the site's stated position). The
+width is always a multiple of a number the model derived, never one the page
+chose. The alternative in the review (B4), "100 = the poll comes true",
+collapses the effective draws, and there is no value past 1: trust above the
+model's own reading of the poll is refused.
+
+Four details are part of the mapping and are choices:
+
+* `poll_sd` is the TOTAL error the model carries (sampling from the effective
+  sample, `POLL_HOUSE_SD`, the undisclosed-screen term and drift), not
+  sampling error alone, though decision 2 calls it "the poll's own sampling
+  error". A poll with no published `n` is priced on the house term, which is
+  `poll_sd`'s own fallback.
+* Drift is measured to the target's polling day, as `montecarlo.run_model`
+  measures it. `page_polls` stamps that date on each record as `asof`; a
+  record without one is refused at non-zero trust rather than priced at zero
+  drift.
+* The comparison is on the polled parties' renormalised shares, so each sd is
+  divided by the poll's reported total over those parties. That is the
+  first-order change of units; it ignores the error in the denominator.
+* Several polls on multiply their likelihoods, which treats them as
+  independent. Two waves of one house share its house error, and the product
+  does not know it (`polling.effective_houses` counts houses; nothing here
+  uses it).
+
+**The precision ceiling.** A figure the page shows (a party's median, 5th or
+95th percentile of seats) is withheld when its Monte Carlo standard error,
+`reweight.sampling_se`, exceeds 2.0 seats, and a control stops where any shown
+figure would be withheld. This replaced SPEC-v2's rule of a 200-draw floor on
+the tail's effective draws (F17), which the owner rejected: under uniform
+weights a 5th or 95th percentile already rests on about 255 draws, so that
+rule withheld every range at any move. `MIN_EFFECTIVE_DRAWS` stays as the
+separate, whole-page refusal on the weights.
+
+**Evidence for 2.0** (the lead's bootstrap, 400 resamples over the published
+cell's draws, ANC seats): uniform weights, 5th/95th percentile SE ≈ 0.6/0.8
+seats; Black African turnout +5 points with the other pools held, ≈ 1.5/1.4;
++8 points, ≈ 4.1/3.5. So the ceiling admits the pre-registered headline move
+(+5, `prereg/2026-09-28-reweight-against-paired-rerun.md`) and stops short of
++8. ARGUED, NOT TESTED against any election: 2.0 is the owner's line for how
+much re-run noise a shown seat figure may carry. It moves no forecast.
+
+**How to check it.** `tests/test_reweight.py`: the mapping's two ends and its
+1/t form on a constructed record; `sampling_se` against a bootstrap and
+against repeated samples on integer seats; on the published draws, uniform
+weights withhold no published figure and Black African +8 withholds some.
+`sampling_se` on the published draws can be compared with the bootstrap
+figures above at any time.
+
 ## O. Added 2026-09-29 — mergers (F5, audits/2026-09-29-mergers/SPEC.md)
 
 ### §O1 · `MERGER_RETENTION` — 0.75, range [0.5, 0.9] — 🔴 declared, not measured
