@@ -5,7 +5,19 @@
 `MODEL-LOG.md`, which is append-only and dated. `CLAUDE.md` sends every session
 here first, so anything stale in this file is read as an instruction.
 
-> ## ⛔ STATE AT 2026-09-29 (night): F8, F9, F10 DONE; F11 (build, R4, publish) IS NEXT. WORK FROM `TODO.md` §0.
+> ## ⛔ STATE AT 2026-09-30: THE MODEL IS FROZEN (F3 + F5), PUBLISHED TO THE LEDGER (run `r-c68c627d287e`). DEPLOY PENDING (owner). NEXT: THE INTERACTIVE.
+>
+> **Frozen and published, MODEL-LOG §1.282.** Deploy with
+> `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy` from the repo root (the agent
+> is not permitted to), then check workers.dev with a cache-buster: the ANC
+> claim reads "Not close." with its note, the home lede is a dead heat at 47%,
+> `/corrections` has the 30 September entry. **Next:** the interactive,
+> `audits/2026-09-28-interactive-architecture/PLAN.md` S2–S6, on the frozen
+> model. Open items are listed at the end of §1.282.
+> ⚠️ `test_the_published_pages_are_what_this_tree_builds_today` fails after a
+> publish on the movement arrows alone (§1.282); that is expected.
+>
+> **EARLIER STATE (2026-09-29 night):** F8, F9, F10 DONE; F11 (build, R4, publish) WAS NEXT.
 >
 > **The repository folder is now `~/projects/atlas-jhb-election-model`** (owner, 2026-09-29); the MemPalace wing is unchanged.
 >

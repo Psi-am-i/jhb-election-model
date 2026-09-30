@@ -28298,3 +28298,48 @@ draw differently from the same spec on disk.
 
 **Queued** (POOLS-REEMIT-QUEUE): lift the memberless-pool refusal into a
 function so it can be tested on a constructed composition.
+
+## 1.282 F11: the freeze edition, reviewed (R4), frozen and published to the ledger; the deploy is the owner's (2026-09-30)
+
+**The model is frozen at F3 + F5.** `build_all --model --regimes` on the F8
+specs; `freeze.py` re-taken on a clean tree (`forecast_frozen.json`, commit
+`60fe57e`, `git_dirty` false, `seat_draws_sha256 223366…`); `build_site.py
+--publish --change-class mechanism` appended 319 rows as run
+`r-c68c627d287e` (commit `09fa6d6`), 0 blocking figures, `deploy_check`
+passing. The live model reproduces the published `seat_draws.csv` byte for
+byte (`test_draw_record`, check 2).
+
+**R4 (blind, `audits/2026-09-29-f11/R4-brief.md`) and its fix check** found,
+and the owner decided: an ANC claim made false by the new forecast ("Not
+once", "−8 short"), now "Not close." with a dated note that cannot go false;
+a red-lines sentence wrong since 18 September, now "two-party" with a
+labelled correction; a portal "lead" between equal medians; two coalition
+rows admitted at a printed "50%" (the passenger cut now uses the printed
+figure); the 2021 track record re-scored on the frozen model (7 of 8 cities,
+seat error 294 → 297, within seed noise per §1.280). Two retirements of
+mine had inaccurate reasons; both rows were unpublished and were replaced.
+
+**Found building it:** coalition token names followed the parties' seat
+ranking, and a home-page token followed the unrounded leader, so a reordering
+no reader can see renamed or retired published figures, and a retired token
+can never be printed again. Both are now keyed in a fixed order
+(`render_sheet.COALITION_KEY_ORDER`, `render_home.HEAD_TO_HEAD_ORDER`).
+
+**`test_draw_record` check 1 retired** as its docstring planned (live vs
+`4711a15` expired with F3/F8); removed, not re-pinned.
+
+**Post-publish behaviour, recorded not fixed:**
+`test_published_page::test_the_published_pages_are_what_this_tree_builds_today`
+fails after every `--publish` until the next change, because the served pages
+carry the edition's movement arrows and a no-flag rebuild compares against
+the rows just appended. At this publish all five differing pages differ only
+in ▲/▼/◆ glyphs; no token moved.
+
+**Order error, stated:** `09fa6d6` was committed and pushed to `atlas` before
+that failing test had been read. The failure was benign; the sequence should
+have been test, read, commit.
+
+**Not done here:** the Cloudflare deploy (blocked for the agent; the owner's
+command). Open: the "18 September 2026: Published" labels on the claim boxes
+are unconfirmed by the ledger (first rows 26 September); "Not close." is fixed
+text beside live figures; C4 unguarded (§1.281); the minor R4 items.

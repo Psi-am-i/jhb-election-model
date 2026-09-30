@@ -38,7 +38,7 @@ names what exists when it is done.
 | F8 ✅ 29 Sept, MODEL-LOG §1.279 | One re-emit of every spec (backup first; timed) | `declares.py --verify` shows no `~` on specs; suite run | hours |
 | F9 ✅ 29 Sept, MODEL-LOG §1.280 | Measure against both preregistrations; write it up | MODEL-LOG § scoring every P, including what failed | ½ day |
 | F10 ✅ 29 Sept, MODEL-LOG §1.281 (owner: F3–F5 modules only) | **Mechanism census** (PUBLISHING-BACKLOG §15, replacing §13 as the gate): three mutations per claimed mechanism, claims written first; the full line-by-line night (§13) runs afterwards as a background audit | a committed harness and a survivor report, read | 1 day + a night |
-| F11 | Owner review, then `build_site.py --publish`. **This is the freeze** | the live forecast is the frozen model | ½ day |
+| F11 ✅ 30 Sept, MODEL-LOG §1.282 (deploy: owner) | Owner review, then `build_site.py --publish`. **This is the freeze** | the live forecast is the frozen model | ½ day |
 
 **Honest total: about 6–8 working days, which lands around 6–8 October, not
 1 October.** Two ways to meet the 1st: drop F4 and F6 (C1 and mergers only, the
