@@ -30,313 +30,313 @@
   },
   "parties": {
    "ACDP": {
-    "mean": 1.622,
+    "mean": 1.575333,
     "median": 1.0,
     "p5": 0.0,
-    "p95": 7.0
+    "p95": 6.0
    },
    "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": {
-    "mean": 0.176667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 1.0
-   },
-   "AFRICAN_CONGRESS_FOR_TRANSFORMATION": {
-    "mean": 0.119333,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "AFRICAN_ECONOMIC_FREEDOM": {
-    "mean": 0.18,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 1.0
-   },
-   "AFRICAN_LABOUR_CONVENTION": {
-    "mean": 0.128667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "AFRICAN_RENAISSANCE_UNITY": {
-    "mean": 0.151333,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 1.0
-   },
-   "AFRICAN_ROYAL_RAINBOW_CONGRESS": {
-    "mean": 0.088,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "AFRICAN_UNEMPLOYED_CONGRESS": {
-    "mean": 0.148,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 1.0
-   },
-   "AFRICA_RESTORATION_ALLIANCE": {
-    "mean": 0.096667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "AFRIKA_MAYIBUYE_MOVEMENT": {
-    "mean": 0.167333,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 1.0
-   },
-   "AFRIKA_UNITE_CONGRESS": {
-    "mean": 0.058667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "AHC": {
-    "mean": 1.080667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 6.0
-   },
-   "AIC": {
-    "mean": 1.15,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 7.0
-   },
-   "ALJAMAAH": {
-    "mean": 2.768,
-    "median": 2.0,
-    "p5": 1.0,
-    "p95": 6.0
-   },
-   "ALLIED_INDEPENDENTS_UMBRELLA": {
-    "mean": 0.179333,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 1.0
-   },
-   "ALL_CITIZENS_PARTY": {
-    "mean": 2.133333,
-    "median": 1.0,
-    "p5": 0.0,
-    "p95": 9.0
-   },
-   "ALL_NATIVES_OF_SOUTH_AFRICA": {
-    "mean": 0.162667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 1.0
-   },
-   "ANC": {
-    "mean": 64.166667,
-    "median": 67.0,
-    "p5": 28.950000000000003,
-    "p95": 93.0
-   },
-   "APC": {
-    "mean": 0.372,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 2.0
-   },
-   "ASA": {
-    "mean": 28.736,
-    "median": 27.0,
-    "p5": 11.0,
-    "p95": 52.049999999999955
-   },
-   "ATM": {
-    "mean": 1.354667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 7.0
-   },
-   "AZANIAN_GROUND_FORCES": {
-    "mean": 0.188667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 1.0
-   },
-   "AZANIA_PEACEFUL_REVOLUTION": {
-    "mean": 0.067333,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "AZAPO": {
-    "mean": 0.262667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 1.0
-   },
-   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": {
-    "mean": 0.132667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "BOSA": {
-    "mean": 2.628,
-    "median": 1.0,
-    "p5": 0.0,
-    "p95": 11.0
-   },
-   "CHRIST_KINGDOM_PARTY": {
-    "mean": 0.082,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": {
-    "mean": 0.162667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 1.0
-   },
-   "COMBAT": {
-    "mean": 0.063333,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "COMMUNITY_FIRST_MOVEMENT": {
-    "mean": 0.086667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "COPE": {
-    "mean": 0.169333,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 1.0
-   },
-   "DA": {
-    "mean": 67.070667,
-    "median": 66.0,
-    "p5": 46.0,
-    "p95": 92.0
-   },
-   "DUDULA": {
-    "mean": 0.324667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 2.0
-   },
-   "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": {
-    "mean": 0.146,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 1.0
-   },
-   "ECONOMIC_REDRESS_MOVEMENT": {
-    "mean": 0.104,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "EFF": {
-    "mean": 26.179333,
-    "median": 24.0,
-    "p5": 8.0,
-    "p95": 53.0
-   },
-   "EKHETHU_PEOPLES_PARTY": {
     "mean": 0.161333,
     "median": 0.0,
     "p5": 0.0,
     "p95": 1.0
    },
-   "GAP_FIXERS_OF_SOUTH_AFRICA": {
-    "mean": 0.078667,
+   "AFRICAN_CONGRESS_FOR_TRANSFORMATION": {
+    "mean": 0.099333,
     "median": 0.0,
     "p5": 0.0,
     "p95": 0.0
    },
-   "GAZA_DEMOCRATIC_FRONT": {
-    "mean": 0.108667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "IFP": {
-    "mean": 4.202,
-    "median": 2.0,
-    "p5": 0.0,
-    "p95": 17.0
-   },
-   "ILIZWE_NATHI": {
-    "mean": 0.04,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "IMSTAYING": {
-    "mean": 0.058667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "INDEPENDENT_CITIZENS_MOVEMENT": {
-    "mean": 0.166,
+   "AFRICAN_ECONOMIC_FREEDOM": {
+    "mean": 0.140667,
     "median": 0.0,
     "p5": 0.0,
     "p95": 1.0
    },
-   "KINGDOM_COVENANT_DEMOCRATIC_PARTY": {
-    "mean": 0.078667,
+   "AFRICAN_LABOUR_CONVENTION": {
+    "mean": 0.111333,
     "median": 0.0,
     "p5": 0.0,
     "p95": 0.0
    },
-   "KNOW_YOUR_POWER": {
-    "mean": 0.192667,
+   "AFRICAN_RENAISSANCE_UNITY": {
+    "mean": 0.178,
     "median": 0.0,
     "p5": 0.0,
     "p95": 1.0
    },
-   "LABOUR_PARTY_OF_SOUTH_AFRICA": {
-    "mean": 0.16,
+   "AFRICAN_ROYAL_RAINBOW_CONGRESS": {
+    "mean": 0.098,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "AFRICAN_UNEMPLOYED_CONGRESS": {
+    "mean": 0.158,
     "median": 0.0,
     "p5": 0.0,
     "p95": 1.0
    },
-   "LAND_PARTY": {
-    "mean": 0.123333,
+   "AFRICA_RESTORATION_ALLIANCE": {
+    "mean": 0.068,
     "median": 0.0,
     "p5": 0.0,
     "p95": 0.0
    },
-   "LEKWE_BEPE_KINGDOM_PARTY": {
-    "mean": 0.093333,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "MAWUSA_MOVEMENT_PARTY": {
-    "mean": 0.062667,
-    "median": 0.0,
-    "p5": 0.0,
-    "p95": 0.0
-   },
-   "MINORITY_FRONT": {
+   "AFRIKA_MAYIBUYE_MOVEMENT": {
     "mean": 0.173333,
     "median": 0.0,
     "p5": 0.0,
     "p95": 1.0
    },
+   "AFRIKA_UNITE_CONGRESS": {
+    "mean": 0.088667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "AHC": {
+    "mean": 1.044667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 6.0
+   },
+   "AIC": {
+    "mean": 0.999333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 6.0
+   },
+   "ALJAMAAH": {
+    "mean": 2.725333,
+    "median": 2.0,
+    "p5": 1.0,
+    "p95": 6.0
+   },
+   "ALLIED_INDEPENDENTS_UMBRELLA": {
+    "mean": 0.160667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "ALL_CITIZENS_PARTY": {
+    "mean": 2.329333,
+    "median": 1.0,
+    "p5": 0.0,
+    "p95": 10.0
+   },
+   "ALL_NATIVES_OF_SOUTH_AFRICA": {
+    "mean": 0.207333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "ANC": {
+    "mean": 64.0,
+    "median": 66.0,
+    "p5": 29.0,
+    "p95": 93.0
+   },
+   "APC": {
+    "mean": 0.282,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 2.0
+   },
+   "ASA": {
+    "mean": 28.452,
+    "median": 27.0,
+    "p5": 11.950000000000003,
+    "p95": 52.0
+   },
+   "ATM": {
+    "mean": 1.275333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 7.0
+   },
+   "AZANIAN_GROUND_FORCES": {
+    "mean": 0.148667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "AZANIA_PEACEFUL_REVOLUTION": {
+    "mean": 0.046667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "AZAPO": {
+    "mean": 0.229333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": {
+    "mean": 0.158,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "BOSA": {
+    "mean": 2.419333,
+    "median": 1.0,
+    "p5": 0.0,
+    "p95": 10.0
+   },
+   "CHRIST_KINGDOM_PARTY": {
+    "mean": 0.077333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": {
+    "mean": 0.194667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "COMBAT": {
+    "mean": 0.101333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "COMMUNITY_FIRST_MOVEMENT": {
+    "mean": 0.104667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "COPE": {
+    "mean": 0.112,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "DA": {
+    "mean": 66.561333,
+    "median": 66.0,
+    "p5": 44.0,
+    "p95": 89.04999999999995
+   },
+   "DUDULA": {
+    "mean": 0.288,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": {
+    "mean": 0.128667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "ECONOMIC_REDRESS_MOVEMENT": {
+    "mean": 0.084,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "EFF": {
+    "mean": 27.330667,
+    "median": 24.5,
+    "p5": 8.0,
+    "p95": 57.0
+   },
+   "EKHETHU_PEOPLES_PARTY": {
+    "mean": 0.209333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "GAP_FIXERS_OF_SOUTH_AFRICA": {
+    "mean": 0.074667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "GAZA_DEMOCRATIC_FRONT": {
+    "mean": 0.072667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "IFP": {
+    "mean": 4.337333,
+    "median": 2.0,
+    "p5": 0.0,
+    "p95": 17.0
+   },
+   "ILIZWE_NATHI": {
+    "mean": 0.072,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "IMSTAYING": {
+    "mean": 0.084,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "INDEPENDENT_CITIZENS_MOVEMENT": {
+    "mean": 0.136,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "KINGDOM_COVENANT_DEMOCRATIC_PARTY": {
+    "mean": 0.066,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "KNOW_YOUR_POWER": {
+    "mean": 0.193333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "LABOUR_PARTY_OF_SOUTH_AFRICA": {
+    "mean": 0.140667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "LAND_PARTY": {
+    "mean": 0.086667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "LEKWE_BEPE_KINGDOM_PARTY": {
+    "mean": 0.072667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "MAWUSA_MOVEMENT_PARTY": {
+    "mean": 0.075333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "MINORITY_FRONT": {
+    "mean": 0.152,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
    "MK": {
-    "mean": 24.214,
-    "median": 21.0,
-    "p5": 6.0,
+    "mean": 24.389333,
+    "median": 22.0,
+    "p5": 7.0,
     "p95": 50.0
    },
    "MOVEMENT_OF_RESIDENTS_PARTY": {
-    "mean": 0.071333,
+    "mean": 0.088,
     "median": 0.0,
     "p5": 0.0,
     "p95": 0.0
@@ -348,127 +348,127 @@
     "p95": 1.0
    },
    "NATIONAL_DEMOCRATIC_CONVENTION": {
-    "mean": 0.192667,
+    "mean": 0.16,
     "median": 0.0,
     "p5": 0.0,
     "p95": 1.0
    },
    "NCC": {
-    "mean": 0.178667,
+    "mean": 0.198667,
     "median": 0.0,
     "p5": 0.0,
     "p95": 1.0
    },
    "NFP": {
-    "mean": 0.13,
+    "mean": 0.114,
     "median": 0.0,
     "p5": 0.0,
     "p95": 0.0
    },
    "PA": {
-    "mean": 24.203333,
+    "mean": 23.804667,
     "median": 23.0,
     "p5": 14.0,
-    "p95": 37.0
+    "p95": 35.0
    },
    "PAC": {
-    "mean": 0.976667,
+    "mean": 0.836667,
     "median": 0.0,
     "p5": 0.0,
-    "p95": 5.0
+    "p95": 4.0
    },
    "PEOPLE_OF_JOBURG": {
-    "mean": 0.133333,
+    "mean": 0.134667,
     "median": 0.0,
     "p5": 0.0,
     "p95": 1.0
    },
    "PEOPLE_S_CONSENT_PARTY": {
-    "mean": 0.048667,
+    "mean": 0.052,
     "median": 0.0,
     "p5": 0.0,
     "p95": 0.0
    },
    "PEOPLE_S_MOVEMENT_FOR_CHANGE": {
-    "mean": 0.154667,
+    "mean": 0.183333,
     "median": 0.0,
     "p5": 0.0,
     "p95": 1.0
    },
    "PRO_SOUTH_AFRICA": {
-    "mean": 0.120667,
+    "mean": 0.092667,
     "median": 0.0,
     "p5": 0.0,
     "p95": 0.0
    },
    "RESIDENT_DEVELOPMENT": {
-    "mean": 0.059333,
+    "mean": 0.056,
     "median": 0.0,
     "p5": 0.0,
     "p95": 0.0
    },
    "RISE": {
-    "mean": 3.671333,
+    "mean": 4.384667,
     "median": 2.0,
     "p5": 0.0,
-    "p95": 14.0
+    "p95": 15.0
    },
    "SERVICE_DELIVERY_PARTY": {
-    "mean": 0.156,
+    "mean": 0.168,
     "median": 0.0,
     "p5": 0.0,
     "p95": 1.0
    },
    "SOUTH_AFRICAN_COMMUNIST_PARTY": {
-    "mean": 3.331333,
+    "mean": 3.545333,
     "median": 2.0,
     "p5": 0.0,
-    "p95": 13.0
+    "p95": 14.0
    },
    "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": {
-    "mean": 0.136667,
+    "mean": 0.128,
     "median": 0.0,
     "p5": 0.0,
     "p95": 1.0
    },
    "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": {
-    "mean": 0.050667,
+    "mean": 0.058,
     "median": 0.0,
     "p5": 0.0,
     "p95": 0.0
    },
    "TRUTH_AND_SOLIDARITY_MOVEMENT": {
-    "mean": 0.210667,
+    "mean": 0.216667,
     "median": 0.0,
     "p5": 0.0,
     "p95": 1.0
    },
    "UDM": {
-    "mean": 0.362,
+    "mean": 0.322,
     "median": 0.0,
     "p5": 0.0,
     "p95": 2.0
    },
    "UMPHAKATHI_WARONA": {
-    "mean": 0.17,
+    "mean": 0.176,
     "median": 0.0,
     "p5": 0.0,
     "p95": 1.0
    },
    "UNITED_AFRICANS_TRANSFORMATION": {
-    "mean": 0.432667,
+    "mean": 0.355333,
     "median": 0.0,
     "p5": 0.0,
     "p95": 2.0
    },
    "VFPLUS": {
-    "mean": 2.238,
+    "mean": 2.158667,
     "median": 1.0,
     "p5": 0.0,
     "p95": 8.0
    },
    "VUKA_SA": {
-    "mean": 0.197333,
+    "mean": 0.139333,
     "median": 0.0,
     "p5": 0.0,
     "p95": 1.0
@@ -482,7 +482,7 @@
     "deps_sha": "bed2e1a147c10f2d",
     "gates_sha": "2ec84f1fcb67779f",
     "judgements_sha": "fab627a741c0c7c8",
-    "pools_sha": "7264a92947ba4529",
+    "pools_sha": "c70b8fc5bcd79279",
     "schema": 2,
     "target": "2011"
    },
@@ -493,7 +493,7 @@
     "deps_sha": "bed2e1a147c10f2d",
     "gates_sha": "2ec84f1fcb67779f",
     "judgements_sha": "7ea7faaaafd6e3c5",
-    "pools_sha": "7264a92947ba4529",
+    "pools_sha": "c70b8fc5bcd79279",
     "schema": 2,
     "target": "2016"
    },
@@ -504,7 +504,7 @@
     "deps_sha": "bed2e1a147c10f2d",
     "gates_sha": "2ec84f1fcb67779f",
     "judgements_sha": "54e74cd0d54d1a2b",
-    "pools_sha": "7264a92947ba4529",
+    "pools_sha": "c70b8fc5bcd79279",
     "schema": 2,
     "target": "2021"
    },
@@ -515,7 +515,7 @@
     "deps_sha": "bed2e1a147c10f2d",
     "gates_sha": "2ec84f1fcb67779f",
     "judgements_sha": "991de2168bbe9198",
-    "pools_sha": "7264a92947ba4529",
+    "pools_sha": "c70b8fc5bcd79279",
     "schema": 2,
     "target": "2026"
    },
@@ -526,7 +526,7 @@
     "deps_sha": "bed2e1a147c10f2d",
     "gates_sha": "2ec84f1fcb67779f",
     "judgements_sha": "991de2168bbe9198",
-    "pools_sha": "7264a92947ba4529",
+    "pools_sha": "c70b8fc5bcd79279",
     "schema": 2,
     "target": "2026"
    }
@@ -562,7 +562,7 @@
    "poll_screen_sd": 0.02,
    "pools": {
     "Black African": {
-     "alpha": 16.309775655834297,
+     "alpha": 16.310155444677434,
      "derived_from": "pool vectors fitted on joburg 2021; size from the 2026 roll split by each ward's own composition; turnout from joburg's local elections before 2026",
      "identified": [
       "ACDP",
@@ -598,7 +598,7 @@
       "AMALGAMATED_RAINBOW_MOVEMENT": 0.2237977259117076,
       "ANC": 0.9078775243176804,
       "APC": 0.598598398372578,
-      "ASA": 0.5648433229090166,
+      "ASA": 0.5647865685085698,
       "ATM": 0.9561502977908437,
       "AZANIAN_GROUND_FORCES": 0.5667264682030716,
       "AZANIA_PEACEFUL_REVOLUTION": 0.5667264682030716,
@@ -645,7 +645,7 @@
       "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.5667264682030716,
       "PRO_SOUTH_AFRICA": 0.5667264682030715,
       "RESIDENT_DEVELOPMENT": 0.5667264682030715,
-      "RISE": 0.5667264682030716,
+      "RISE": 0.5201668658221068,
       "SERVICE_DELIVERY_PARTY": 0.5667264682030716,
       "SHOSHOLOZA_PROGRESSIVE_PARTY": 0.14751184525772607,
       "SOUTH_AFRICAN_COMMUNIST_PARTY": 0.8804,
@@ -668,7 +668,7 @@
      ]
     },
     "Coloured": {
-     "alpha": 20.864721487004765,
+     "alpha": 20.865133707048283,
      "derived_from": "pool vectors fitted on joburg 2021; size from the 2026 roll split by each ward's own composition; turnout from joburg's local elections before 2026",
      "identified": [
       "ACDP",
@@ -698,7 +698,7 @@
       "AMALGAMATED_RAINBOW_MOVEMENT": 0.6307742915221846,
       "ANC": 0.02719253681051601,
       "APC": 0.2169246065076809,
-      "ASA": 0.024943763161758194,
+      "ASA": 0.02489892490024599,
       "ATM": 0.008363928658702372,
       "AZANIAN_GROUND_FORCES": 0.07183694364726195,
       "AZANIA_PEACEFUL_REVOLUTION": 0.07183694364726197,
@@ -744,7 +744,7 @@
       "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.07183694364726195,
       "PRO_SOUTH_AFRICA": 0.07183694364726195,
       "RESIDENT_DEVELOPMENT": 0.07183694364726195,
-      "RISE": 0.07183694364726197,
+      "RISE": 0.13317024886867052,
       "SERVICE_DELIVERY_PARTY": 0.07183694364726195,
       "SHOSHOLOZA_PROGRESSIVE_PARTY": 0.16260429944640192,
       "SOUTH_AFRICAN_COMMUNIST_PARTY": 0.0106,
@@ -767,7 +767,7 @@
      ]
     },
     "Indian/Asian": {
-     "alpha": 21.377117525008053,
+     "alpha": 21.378509461250385,
      "derived_from": "pool vectors fitted on joburg 2021; size from the 2026 roll split by each ward's own composition; turnout from joburg's local elections before 2026",
      "identified": [
       "ACDP",
@@ -795,7 +795,7 @@
       "AMALGAMATED_RAINBOW_MOVEMENT": 0.01912117633218769,
       "ANC": 0.017944840939077833,
       "APC": 0.024255422448105732,
-      "ASA": 0.07217699438015568,
+      "ASA": 0.07215002616187244,
       "ATM": 0.004665743974230477,
       "AZANIAN_GROUND_FORCES": 0.04358644737780241,
       "AZANIA_PEACEFUL_REVOLUTION": 0.043586447377802415,
@@ -841,7 +841,7 @@
       "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.04358644737780241,
       "PRO_SOUTH_AFRICA": 0.0435864473778024,
       "RESIDENT_DEVELOPMENT": 0.0435864473778024,
-      "RISE": 0.043586447377802415,
+      "RISE": 0.039692539279308825,
       "SERVICE_DELIVERY_PARTY": 0.04358644737780241,
       "SHOSHOLOZA_PROGRESSIVE_PARTY": 0.09070737703347678,
       "SOUTH_AFRICAN_COMMUNIST_PARTY": 0.0084,
@@ -864,7 +864,7 @@
      ]
     },
     "White": {
-     "alpha": 22.06092307624216,
+     "alpha": 22.058096070624327,
      "derived_from": "pool vectors fitted on joburg 2021; size from the 2026 roll split by each ward's own composition; turnout from joburg's local elections before 2026",
      "identified": [
       "ACDP",
@@ -893,7 +893,7 @@
       "AMALGAMATED_RAINBOW_MOVEMENT": 0.1263068062339201,
       "ANC": 0.04698509793272576,
       "APC": 0.16022157267163542,
-      "ASA": 0.3380359195490696,
+      "ASA": 0.33816448042931185,
       "ATM": 0.030820029576223467,
       "AZANIAN_GROUND_FORCES": 0.31785014077186413,
       "AZANIA_PEACEFUL_REVOLUTION": 0.3178501407718642,
@@ -939,7 +939,7 @@
       "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.31785014077186413,
       "PRO_SOUTH_AFRICA": 0.3178501407718642,
       "RESIDENT_DEVELOPMENT": 0.31785014077186413,
-      "RISE": 0.3178501407718642,
+      "RISE": 0.3069703460299139,
       "SERVICE_DELIVERY_PARTY": 0.31785014077186413,
       "SHOSHOLOZA_PROGRESSIVE_PARTY": 0.5991764782623952,
       "SOUTH_AFRICAN_COMMUNIST_PARTY": 0.10059999999999998,
@@ -973,13 +973,13 @@
    "w_bye_local_ward": 0.0,
    "ward_noise_sd": 0.1
   },
-  "seat_draws_sha256": "e32a6072b1763d016a10394db02ef8be26b1613e7f3f93a32d102a2be8692b46",
+  "seat_draws_sha256": "223366170311b2f52c554ec00bd20880a8a8a2bcf35660b7998c4cd45c9e84ac",
   "seed": 20261104,
   "target": "2026"
  },
- "content_sha256": "7ed4d3e5a63d308c9e525b9c8f5737f1ddefa1d1b4b259d3fb713fe549d67076",
+ "content_sha256": "cbf6576040cd8d33677331057af5a8ca9c2406ab2e6430db94911d15ad6598ce",
  "provenance": {
-  "git_commit": "250b76da9fd33d5f1a1ee67b8d8a85c6a823a81c",
+  "git_commit": "60fe57e51b132bd1d880de5c78ad01b9ac627ee9",
   "git_dirty": false,
   "numpy": "2.5.1",
   "python": "3.13.4"
