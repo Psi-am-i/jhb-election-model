@@ -121,7 +121,8 @@ def _git(*args: str) -> str:
         return "<unavailable>"
 
 
-def _run_law(rule: str, city_slug: str, year: str, draws: int, seed: int) -> dict:
+def _run_law(rule: str, city_slug: str, year: str, draws: int, seed: int,
+             overrides: tuple[str, ...] = ()) -> dict:
     """One full run under one seat law. Returns plain arrays, in a worker process.
 
     The same order of set-up as ``montecarlo.main``: city, target, then
@@ -138,10 +139,14 @@ def _run_law(rule: str, city_slug: str, year: str, draws: int, seed: int) -> dic
     city = cityconfig.use(city_slug)
     target = cityconfig.use_target(year)
     M.apply_city(city)
+    # `overrides` are the lever-grid cells (PLAN.md S3; owner 2026-09-29:
+    # `w_bye` only). A cell with any override is a counterfactual, like a
+    # non-statute seat law: it never stands for the published run.
+    extra = [] if rule == "deduct" else [f"overhang_rule={rule}"]
     args = argparse.Namespace(
         config=None, draws=draws, seed=seed,
-        set=None if rule == "deduct" else [f"overhang_rule={rule}"],
-        counterfactual=rule != "deduct")
+        set=(list(overrides) + extra) or None,
+        counterfactual=rule != "deduct" or bool(overrides))
     scenario = M.load_scenario(args)
     config = {k: scenario[k] for k in sorted(M.DEFAULTS) if k in scenario}
     config = json.loads(json.dumps(config, default=str))
@@ -249,7 +254,8 @@ def build(runs: dict[str, dict]) -> tuple[bytes, dict]:
 
 
 def export(city_slug: str, year: str, draws: int, seed: int, out: Path,
-           laws: tuple[str, ...] | None = None, jobs: int | None = None) -> dict:
+           laws: tuple[str, ...] | None = None, jobs: int | None = None,
+           overrides: tuple[str, ...] = ()) -> dict:
     """Run each law, build the file, write ``base.bin`` and ``manifest.json`` to ``out``.
 
     ``laws`` defaults to :data:`LAWS`, resolved here at call time rather than
@@ -273,7 +279,8 @@ def export(city_slug: str, year: str, draws: int, seed: int, out: Path,
     keys_before = freeze.pool_artefact_keys(city)
     ctx = multiprocessing.get_context("spawn")
     with ProcessPoolExecutor(max_workers=jobs or len(laws), mp_context=ctx) as pool:
-        futures = {law: pool.submit(_run_law, law, city_slug, year, draws, seed)
+        futures = {law: pool.submit(_run_law, law, city_slug, year, draws, seed,
+                                    tuple(overrides))
                    for law in laws}
         runs = {law: futures[law].result() for law in laws}
     keys_after = freeze.pool_artefact_keys(city)
@@ -295,6 +302,7 @@ def export(city_slug: str, year: str, draws: int, seed: int, out: Path,
         "env": freeze.resolved_switches(),
         "inputs": keys_before,
         "config": {law: runs[law]["config"] for law in laws},
+        "overrides": list(overrides),
         "time": _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
     out.mkdir(parents=True, exist_ok=True)
@@ -304,6 +312,36 @@ def export(city_slug: str, year: str, draws: int, seed: int, out: Path,
     return {"out": str(out), "bytes": len(blob),
             "gzip_bytes": len(gzip.compress(blob, compresslevel=9)),
             "manifest_bytes": (out / "manifest.json").stat().st_size}
+
+
+def write_index(root: Path) -> dict:
+    """``root/index.json``: every exported cell under ``root``, read from the
+    cells' own manifests, so the page loads one file to learn the grid.
+
+    ⚠️ THE CELLS ARE NOT PAIRED (measured 2026-09-30, MODEL-LOG §1.283): a
+    `w_bye` override shifts the random stream after the first few draws, so
+    draw i of one cell is not draw i of another. A weight computed on one
+    cell's draws must never be applied to another's; the index says so.
+    """
+    cells = []
+    for manifest in sorted(root.rglob("manifest.json")):
+        key = json.loads(manifest.read_text())["artefact_key"]
+        cells.append({
+            "path": manifest.parent.relative_to(root).as_posix() or ".",
+            "overrides": key.get("overrides", []),
+            "w_bye": key["config"]["deduct"].get("w_bye"),
+            "code_sha256": key["code_sha256"],
+            "draws": key["draws"],
+            "seed": key["seed"],
+        })
+    if len({c["code_sha256"] for c in cells}) > 1:
+        raise SystemExit("the cells were exported by different code; re-export "
+                         "them together so the page compares like with like")
+    index = {"cells": cells, "paired": False,
+             "note": "cells are independent samples; weights do not carry "
+                     "across cells by draw index"}
+    (root / "index.json").write_text(json.dumps(index, indent=1) + "\n")
+    return index
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -319,16 +357,25 @@ def main(argv: list[str] | None = None) -> int:
                         help="default: montecarlo.DEFAULTS, the published seed")
     parser.add_argument("--laws", nargs="+", default=list(LAWS), choices=LAWS)
     parser.add_argument("--jobs", type=int, default=None)
+    parser.add_argument("--set", action="append", default=[], metavar="KEY=VALUE",
+                        help="a lever-grid cell, e.g. --set w_bye=0 (PLAN.md S3); "
+                             "recorded in the manifest")
+    parser.add_argument("--index", type=Path, default=None, metavar="ROOT",
+                        help="write ROOT/index.json from the cells under ROOT "
+                             "and exit")
     parser.add_argument("--out", type=Path, default=None,
                         help="default: a new scratch directory")
     args = parser.parse_args(argv)
+    if args.index:
+        print(json.dumps(write_index(args.index), indent=1))
+        return 0
     city = cityconfig.use(getattr(args, "city", None))
     target = cityconfig.use_target(getattr(args, "target", None))
     draws = args.draws or int(M.DEFAULTS["draws"])
     seed = args.seed or int(M.DEFAULTS["seed"])
     out = args.out or Path(tempfile.mkdtemp(prefix="export_draws_"))
     report = export(city.slug, target.year, draws, seed, out,
-                    tuple(args.laws), args.jobs)
+                    tuple(args.laws), args.jobs, tuple(args.set))
     print(json.dumps(report, indent=1))
     return 0
 
