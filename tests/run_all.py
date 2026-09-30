@@ -159,6 +159,10 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # the model at the full draw count; both write only into temporary
            # directories.
            "test_export_draws", "test_reweight",
+           # Added 2026-09-30 with S6 lane E (review B3): the committed
+           # `site/draws/` bytes against the published files and the ledger.
+           # Runs no model.
+           "test_served_draws",
            # One scorer for the model's forecast and every reader's, against
            # a result; must be frozen before 4 November (TODO §0 gate R6).
            "test_score_forecasts"]

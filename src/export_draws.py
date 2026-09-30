@@ -60,6 +60,50 @@ source directory the model was actually imported from — the commit alone does
 not describe a tree with uncommitted modules in it — and ``config``, the
 scenario levers each law ran with.
 
+Four fields answer S6 (``audits/2026-09-30-interactive-s6/SPEC-v2.md``, lane E):
+
+* ``artefact_key.model_sha256`` and ``artefact_key.model_modules`` — WHICH MODEL
+  drew these numbers. ``code_sha256`` covers this file too, so an edit to the
+  exporter changed it and no cell could ever match a published run (review
+  B3). The model's import closure is determined DYNAMICALLY: in each worker,
+  after ``run_model`` returns, every entry of ``sys.modules`` whose file is a
+  ``.py`` in the source directory, minus ``export_draws.py`` itself (matched by
+  file path, so the spawn child's ``__mp_main__`` alias is caught), unioned
+  over the laws — a non-statute rule may import what ``deduct`` does not. The
+  worker imports nothing of this module's before the model (``reweight`` is
+  imported lazily in :func:`build`), so everything in the closure was imported
+  by the model's set-up or by ``run_model``. ``model_modules`` lists the file
+  names, so the hash can be recomputed with :func:`files_sha256`.
+* ``published_run`` — the ledger's latest run (``publications/<city>/
+  ledger.jsonl`` via :func:`publication.history`, the row with the newest
+  ``published_at``): its ``model_run_id``, ``published_at`` and
+  ``pool_artefact_keys``, and ``inputs_match_ledger``, whether the pool specs
+  this export ran on are the ones that run recorded. RECORDED, NOT ENFORCED
+  HERE: an export before a publication is legitimate; the gate is
+  ``tests/test_served_draws.py``, which checks the served cells against the
+  ledger.
+* ``centres`` — each party's DETERMINISTIC blended centre, the level the draws
+  scatter around, so a lever's effect can be shown without draw noise (review
+  F3). ``ModelRun`` does not carry it, so it is read from the run's own trace
+  (``run_model(..., run_dir=...)``, stage ``30_centres``, ``after_shrink``),
+  which changes no drawn number
+  (``test_chain.py::test_passing_a_run_directory_changes_no_drawn_number``).
+  Keyed like the seat blocks: the file's parties, then ``OTHER`` summing the
+  rest. They are ``blended_centres``' citywide LEVELS, not shares: nothing
+  normalises them to one before the draw does, so their sum is not one and a
+  page must compare a cell's centre with another cell's centre, never with a
+  drawn share. The centres must agree across laws (the law acts after them) or the
+  export refuses. Stage 30 is the drawn centre only while metro polls are not
+  blended in afterwards (``poll_paths != "all"``); under ``"all"`` the field
+  is a stated refusal, not a number.
+* ``combined_share`` — a STATED REFUSAL. Seats are allocated from the combined
+  ward + PR tally built inside ``run_model``'s draw loop through
+  ``seats.eligible_parties``; ``ModelRun`` exposes ``pr_share_draws`` and
+  ``ward_share_draws`` as shares, without each ballot's vote total or that
+  membership test, so a combined share derived here would be a second
+  definition of the statutory pool. Lifting it needs ``run_model`` to record
+  the per-draw combined tally, which is a model change, not an export one.
+
 Storage choices, stated because they lose information: seats, thresholds and
 councils are unsigned integers of the smallest width that holds the largest
 value (exact); ward winners are one byte per ward (exact); pool turnouts are
@@ -88,7 +132,29 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import reweight  # noqa: E402
+# `reweight` is imported inside `build`, not here: the spawn workers import this
+# module before the model, and `model_sha256` is the closure of what the model
+# imported. A module-level import would put the page's re-weighter into the
+# model's identity (or, filtered out by name, hide it the day the model starts
+# importing it).
+
+#: The trace stage the deterministic centres are read from, and its key.
+CENTRES_STAGE = ("30_centres", "after_shrink")
+
+#: Why `combined_share` is not in the file. Stated in the manifest.
+COMBINED_SHARE_REFUSAL = {
+    "refused": True,
+    "reason": ("seats are allocated from the combined ward + PR tally built "
+               "inside run_model's draw loop through seats.eligible_parties; "
+               "ModelRun exposes pr_share_draws and ward_share_draws as shares "
+               "only, without each ballot's vote total or that membership "
+               "test, so a combined share derived here would be a second "
+               "definition of the statutory pool"),
+    "exposed": ["ModelRun.pr_share_draws", "ModelRun.ward_share_draws"],
+    "missing": ["per-draw ward and PR vote totals",
+                "seats.eligible_parties membership per draw"],
+    "lift": "run_model records the per-draw combined tally (a model change)",
+}
 
 #: PR shares are stored as whole multiples of this, in 16 bits while every
 #: share is under about 0.65 (32 bits above, for a city where one party takes
@@ -105,12 +171,52 @@ PR_SHARE_STEP = 1e-5
 LAWS = ("deduct", "expand", "level", "cap")
 
 
-def _code_sha256(src: Path) -> str:
-    """sha256 over every ``.py`` file in ``src``, by name and content."""
+def files_sha256(paths) -> str:
+    """sha256 over ``paths``, by file name and content, in name order.
+
+    One recipe for both hashes in the manifest: ``code_sha256`` over every
+    ``.py`` file in the source directory, ``model_sha256`` over the model's
+    import closure (``artefact_key.model_modules``).
+    """
     h = hashlib.sha256()
-    for path in sorted(src.glob("*.py")):
+    for path in sorted((Path(p) for p in paths), key=lambda q: q.name):
         h.update(path.name.encode() + b"\0" + path.read_bytes() + b"\0")
     return h.hexdigest()
+
+
+def _code_sha256(src: Path) -> str:
+    """sha256 over every ``.py`` file in ``src``, by name and content."""
+    return files_sha256(src.glob("*.py"))
+
+
+def model_closure(src: Path) -> list[str]:
+    """The ``.py`` files in ``src`` this process has imported, minus this one.
+
+    Called in a worker after ``run_model`` returns, so it is the model's import
+    closure (see the module docstring). Matched by resolved file path: the
+    spawn child imports this file as ``__mp_main__`` when it ran as a script.
+    """
+    src = src.resolve()
+    me = Path(__file__).resolve()
+    names = set()
+    for module in list(sys.modules.values()):
+        f = getattr(module, "__file__", None)
+        if not f:
+            continue
+        path = Path(f).resolve()
+        if path.parent == src and path.suffix == ".py" and path != me:
+            names.add(path.name)
+    return sorted(names)
+
+
+def _centres_from_trace(run_dir: Path) -> dict[str, float]:
+    """Stage ``30_centres`` of a trace: each party's deterministic centre."""
+    stage, key = CENTRES_STAGE
+    trace = json.loads((run_dir / f"{stage}.json").read_text())
+    if "__unserialisable__" in trace:
+        raise SystemExit(f"the trace could not record {stage}: "
+                         f"{trace['__unserialisable__']}")
+    return {p: float(v) for p, v in trace[key].items()}
 
 
 def _git(*args: str) -> str:
@@ -150,7 +256,12 @@ def _run_law(rule: str, city_slug: str, year: str, draws: int, seed: int,
     scenario = M.load_scenario(args)
     config = {k: scenario[k] for k in sorted(M.DEFAULTS) if k in scenario}
     config = json.loads(json.dumps(config, default=str))
-    run = M.run_model(target, scenario, verbose=False)
+    # The trace is the only route the deterministic centres have out of
+    # `run_model` (`ModelRun` does not carry them); it changes no drawn number.
+    with tempfile.TemporaryDirectory(prefix="export_draws_trace_") as trace_dir:
+        run = M.run_model(target, scenario, verbose=False, run_dir=trace_dir)
+        centres = _centres_from_trace(Path(trace_dir))
+    src = Path(M.__file__).resolve().parent
     universe = list(run.universe)
     seats = np.array([[s.get(p, 0) for p in universe] for s in run.seat_draws],
                      dtype=np.int64)
@@ -166,7 +277,10 @@ def _run_law(rule: str, city_slug: str, year: str, draws: int, seed: int,
         "pr_shares": np.asarray(run.pr_share_draws, dtype=float),
         "pool_turnouts": np.asarray(run.pool_turnout_draws, dtype=float),
         "pool_names": list(run.pool_turnout_names),
+        "centres": centres,
+        "poll_paths": scenario.get("poll_paths", M.DEFAULTS["poll_paths"]),
         "model_file": str(Path(M.__file__).resolve()),
+        "model_modules": model_closure(src),
     }
 
 
@@ -193,7 +307,34 @@ def shared_draw_differences(runs: dict[str, dict]) -> list[str]:
             a, b = run[key], first[key]
             if a.shape != b.shape or a.dtype != b.dtype or not np.array_equal(a, b):
                 differ.append(f"{rule}:{key}")
+        # the deterministic centres come before any draw, so before the law
+        if run.get("centres") != first.get("centres"):
+            differ.append(f"{rule}:centres")
     return differ
+
+
+def centres_block(runs: dict[str, dict], parties: list[str]) -> dict:
+    """The manifest's ``centres``: stage 30's centres on the file's columns.
+
+    Keyed ``parties + ["OTHER"]``, OTHER summing every centre not in
+    ``parties``. A seat-winning party with no centre is listed under
+    ``absent`` rather than given a zero. Under ``poll_paths == "all"`` the
+    metro poll blend moves the centres after stage 30, so the block is a
+    refusal.
+    """
+    first = runs[next(iter(runs))]
+    stage, key = CENTRES_STAGE
+    source = f"run_model trace, stage {stage}, {key}"
+    if first.get("poll_paths") == "all":
+        return {"refused": True, "source": source,
+                "reason": "poll_paths is 'all': metro polls move the centres "
+                          "after stage 30, so it is not the drawn centre"}
+    centres = first["centres"]
+    values = {p: centres[p] for p in parties if p in centres}
+    values["OTHER"] = float(sum(v for p, v in centres.items()
+                                if p not in parties))
+    return {"source": source, "values": values,
+            "absent": [p for p in parties if p not in centres]}
 
 
 def build(runs: dict[str, dict]) -> tuple[bytes, dict]:
@@ -202,6 +343,8 @@ def build(runs: dict[str, dict]) -> tuple[bytes, dict]:
     Refuses if the laws' shared draws differ, or if any draw's seats do not
     sum to its council.
     """
+    import reweight
+
     differ = shared_draw_differences(runs)
     if differ:
         raise SystemExit(f"the seat laws did not share their draws ({differ}); "
@@ -249,8 +392,35 @@ def build(runs: dict[str, dict]) -> tuple[bytes, dict]:
         "parties": parties,
         "ward_parties": ward_parties,
         "blocks": table,
+        "centres": centres_block(runs, parties),
+        "combined_share": COMBINED_SHARE_REFUSAL,
     }
     return blob, data
+
+
+def published_run(city_slug: str, inputs: dict, root: Path | None = None) -> dict:
+    """The ledger's latest run, and whether ``inputs`` are the specs it recorded.
+
+    Read through :func:`publication.history`; "latest" is the row with the
+    newest ``published_at``. Recorded, not enforced (module docstring).
+    """
+    import publication
+
+    root = (Path(__file__).resolve().parents[1] / "publications"
+            if root is None else root)
+    rows = publication.history(city_slug, root=root)
+    if not rows:
+        return {"model_run_id": None,
+                "reason": f"no ledger rows under {root / city_slug}"}
+    row = max(rows, key=lambda r: r.published_at)
+    keys = (row.provenance or {}).get("pool_artefact_keys")
+    return {"model_run_id": row.model_run_id,
+            "published_at": row.published_at,
+            "run_at": row.run_at,
+            "pool_artefact_keys": keys,
+            "inputs_match_ledger": keys == inputs,
+            "source": f"publications/{city_slug}/ledger.jsonl, newest "
+                      f"published_at"}
 
 
 def export(city_slug: str, year: str, draws: int, seed: int, out: Path,
@@ -290,10 +460,14 @@ def export(city_slug: str, year: str, draws: int, seed: int, out: Path,
 
     blob, manifest = build(runs)
     src = Path(runs[laws[0]]["model_file"]).parent
+    modules = sorted(set().union(*(runs[law]["model_modules"] for law in laws)))
+    manifest["published_run"] = published_run(city_slug, keys_before)
     manifest["artefact_key"] = {
         "git": {"commit": _git("rev-parse", "HEAD"),
                 "dirty": bool(_git("status", "--porcelain", "--", "src"))},
         "code_sha256": _code_sha256(src),
+        "model_sha256": files_sha256(src / m for m in modules),
+        "model_modules": modules,
         "code_dir": str(src),
         "city": city_slug,
         "target": year,
@@ -325,12 +499,17 @@ def write_index(root: Path) -> dict:
     """
     cells = []
     for manifest in sorted(root.rglob("manifest.json")):
-        key = json.loads(manifest.read_text())["artefact_key"]
+        whole = json.loads(manifest.read_text())
+        key = whole["artefact_key"]
         cells.append({
             "path": manifest.parent.relative_to(root).as_posix() or ".",
             "overrides": key.get("overrides", []),
             "w_bye": key["config"]["deduct"].get("w_bye"),
             "code_sha256": key["code_sha256"],
+            # absent from a cell exported before S6; test_served_draws says so
+            "model_sha256": key.get("model_sha256"),
+            "published_run": (whole.get("published_run") or {}).get(
+                "model_run_id"),
             "draws": key["draws"],
             "seed": key["seed"],
         })

@@ -19,9 +19,21 @@ from `forecast_summary.json`, not typed here), by running the export itself:
 3. THE FILE DECLARES ITSELF. The manifest's `artefact_key` carries every field
    `declares.py` requires of a run, each one a real value.
 4. SIZE. Under PLAN.md's budget gzipped.
-5. THE REFUSALS SEE. On constructed runs: laws that do not share their draws,
-   a draw whose seats miss its council, and a file whose manifest disagrees
-   with it are each refused, and the refusal goes quiet when reverted.
+5. THE REFUSALS SEE. On constructed runs: laws that do not share their draws
+   or their centres, a draw whose seats miss its council, and a file whose
+   manifest disagrees with it are each refused, and the refusal goes quiet
+   when reverted.
+6. THE S6 FIELDS (`audits/2026-09-30-interactive-s6/SPEC-v2.md`, lane E).
+   `model_sha256` recomputes from `model_modules`, which holds the model and
+   not the exporter or the re-weighter, and moves with any one module's bytes;
+   `published_run` names the ledger's newest run (and, on a constructed
+   ledger, picks the newest row and reports a spec that differs); `centres`
+   are keyed like the seat blocks and refused when metro polls move them
+   after the traced stage; `combined_share` is a stated refusal.
+
+The served copy of the file, `site/draws/`, is checked by
+`tests/test_served_draws.py`, not here: this module checks what the export
+WRITES, that one what the site SERVES.
 
 ⚠️ Check 1 holds while the published files are what the code produces. When
 the published forecast is regenerated from a changed model, both sides move
@@ -270,7 +282,9 @@ def _constructed_runs(draws: int = 6) -> dict:
                      "pool_names": ["p", "q"], "seats": seats,
                      "thresholds": council // 2 + 1, "council_sizes": council,
                      "ward_winners": winners.copy(), "pr_shares": shares.copy(),
-                     "pool_turnouts": turnouts.copy()}
+                     "pool_turnouts": turnouts.copy(),
+                     "centres": {"A": 0.4, "B": 0.3, "C": 0.2, "Z": 0.15},
+                     "poll_paths": "off"}
     return runs
 
 
@@ -286,6 +300,29 @@ def test_the_build_puts_every_seat_winner_in_a_column_and_the_rest_in_other():
     assert np.allclose(other_pr, runs["deduct"]["pr_shares"][:, 3],
                        atol=E.PR_SHARE_STEP / 2 + 1e-12)
     assert np.array_equal(arrays["pool_turnout"], runs["deduct"]["pool_turnouts"])
+    # the centres: the seat columns' keys, OTHER summing the never-seated Z
+    centres = manifest["centres"]
+    assert list(centres["values"]) == ["A", "B", "C", "OTHER"]
+    assert centres["values"]["OTHER"] == 0.15 and centres["absent"] == []
+    assert manifest["combined_share"]["refused"] is True
+
+
+def test_the_centres_are_refused_when_they_are_not_the_drawn_centres():
+    runs = _constructed_runs()
+    blob, manifest = E.build(runs)
+    assert "values" in manifest["centres"]
+    for run in runs.values():
+        run["poll_paths"] = "all"
+    _, manifest = E.build(runs)
+    assert manifest["centres"].get("refused") is True
+    assert "values" not in manifest["centres"]
+    # a seat-winner with no centre is named, never given a zero
+    for run in runs.values():
+        run["poll_paths"] = "off"
+        run["centres"] = {"A": 0.4, "B": 0.3, "Z": 0.15}
+    _, manifest = E.build(runs)
+    assert manifest["centres"]["absent"] == ["C"]
+    assert "C" not in manifest["centres"]["values"]
 
 
 # -- 5: the refusals see ------------------------------------------------------
@@ -306,6 +343,12 @@ def test_laws_that_do_not_share_their_draws_are_refused_and_then_accepted():
     runs["cap"]["pool_turnouts"] = kept
     assert E.shared_draw_differences(runs) == []
     E.build(runs)
+    # the centres precede the law, so a law with other centres is refused too
+    kept = runs["expand"]["centres"]
+    runs["expand"]["centres"] = dict(kept, B=kept["B"] + 1e-12)
+    assert E.shared_draw_differences(runs) == ["expand:centres"]
+    runs["expand"]["centres"] = kept
+    assert E.shared_draw_differences(runs) == []
 
 
 def test_a_draw_that_misses_its_council_is_refused():
@@ -356,6 +399,88 @@ def test_the_manifest_carries_every_field_declares_requires_of_a_run():
     import cityconfig
     import freeze
     assert key["inputs"] == freeze.pool_artefact_keys(cityconfig.use("joburg"))
+
+
+def test_the_model_hash_is_the_model_s_import_closure_and_recomputes():
+    st = _export()
+    key = st["manifest"]["artefact_key"]
+    modules = key["model_modules"]
+    src = Path(key["code_dir"])
+    # 0. the right population: the model's own module is in it, and neither
+    # the exporter nor the page's re-weighter (imported only by `build`)
+    assert "montecarlo.py" in modules
+    assert "export_draws.py" not in modules and "reweight.py" not in modules
+    # 1. it looked: a closure, not the whole directory and not one file
+    scanned(len(modules), of=len(list(src.glob("*.py"))), low=0.02, high=0.9,
+            what="modules in the model's import closure",
+            denominator="the .py files in the source directory")
+    assert key["model_sha256"] == E.files_sha256(src / m for m in modules)
+    assert key["model_sha256"] != key["code_sha256"]
+    # 2. it can see: the hash moves with any one module's bytes
+    with tempfile.TemporaryDirectory() as tmp:
+        copies = []
+        for m in modules:
+            (Path(tmp) / m).write_bytes((src / m).read_bytes())
+            copies.append(Path(tmp) / m)
+        assert E.files_sha256(copies) == key["model_sha256"]
+        copies[0].write_bytes(copies[0].read_bytes() + b"\n")
+        assert E.files_sha256(copies) != key["model_sha256"]
+
+
+def test_the_manifest_names_the_ledger_s_latest_run():
+    st = _export()
+    import publication
+    rows = publication.history("joburg", root=ROOT / "publications")
+    newest = max(rows, key=lambda r: r.published_at)
+    run = st["manifest"]["published_run"]
+    assert run["model_run_id"] == newest.model_run_id
+    assert run["published_at"] == newest.published_at
+    assert run["pool_artefact_keys"] == newest.provenance["pool_artefact_keys"]
+    assert run["inputs_match_ledger"] is (
+        st["manifest"]["artefact_key"]["inputs"] == run["pool_artefact_keys"])
+
+
+def test_published_run_reads_the_newest_row_and_compares_the_inputs():
+    """On a constructed ledger: the newest `published_at` wins, whatever the
+    file order, and a spec key that differs from the row's is reported."""
+    keys = {"pools_2026.json": {"pools_sha": "aaa"}}
+
+    def row(run_id: str, when: str) -> str:
+        return json.dumps({
+            "token": "t", "value": 1, "display": "1", "fmt": None,
+            "source": "s", "model_run_id": run_id, "run_at": when,
+            "as_of": when, "published_at": when, "change_class": None,
+            "reason": None, "movement": "new", "schema": 1,
+            "provenance": {"pool_artefact_keys": keys}})
+
+    with tempfile.TemporaryDirectory() as tmp:
+        (Path(tmp) / "x").mkdir()
+        (Path(tmp) / "x" / "ledger.jsonl").write_text(
+            row("r-new", "2026-09-02T00:00:00Z") + "\n"
+            + row("r-old", "2026-09-01T00:00:00Z") + "\n")
+        got = E.published_run("x", keys, root=Path(tmp))
+        assert got["model_run_id"] == "r-new"
+        assert got["inputs_match_ledger"] is True
+        got = E.published_run("x", {"pools_2026.json": {"pools_sha": "bbb"}},
+                              root=Path(tmp))
+        assert got["inputs_match_ledger"] is False
+        assert E.published_run("absent", keys, root=Path(tmp))[
+            "model_run_id"] is None
+
+
+def test_the_manifest_centres_are_the_trace_s_and_combined_share_is_refused():
+    st = _export()
+    manifest = st["manifest"]
+    centres = manifest["centres"]
+    assert list(centres["values"]) == manifest["parties"] + ["OTHER"]
+    assert centres["absent"] == []
+    values = np.array(list(centres["values"].values()))
+    assert np.all(values >= 0) and np.all(np.isfinite(values))
+    # levels, not shares: some party carries a real level, none is all of it
+    top = max(centres["values"], key=centres["values"].get)
+    assert 0.05 < centres["values"][top] < 0.95, top
+    refusal = manifest["combined_share"]
+    assert refusal["refused"] is True and refusal["reason"]
 
 
 def test_the_file_is_within_the_budget_gzipped():
