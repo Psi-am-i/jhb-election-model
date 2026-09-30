@@ -28366,3 +28366,10 @@ another; a turnout or poll weight must be computed on each cell's own draws,
 and a reader switching cells sees the lever's effect plus a re-sample. The
 index records `paired: false`. The page's treatment is under blind review
 (`audits/2026-09-30-interactive-s6/`).
+
+**Correction to §1.283, 2026-09-30, after the S6 review.** "Pool turnouts are
+equal for the first 79 draws" is wrong. The equal rows are scattered: 79 for
+`w_bye=0` (draw 0, then runs between 295 and 564) and 122 for `w_bye=1`
+(scattered up to draw 1630); no PR-share row is equal in either cell.
+Per-pool correlation over draws 100–4999 is 0.001–0.006 (`w_bye=0`) and
+0.029–0.039 (`w_bye=1`). The conclusion stands: the cells are unpaired.

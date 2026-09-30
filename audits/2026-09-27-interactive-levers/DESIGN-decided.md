@@ -347,3 +347,18 @@ fails.**
 
 Queued for a page agent after the backend agent (R5 fixes) finishes, because
 both work in `interactive/`.
+
+## 15. Owner's decisions after the S6 review (2026-09-30)
+
+* **Live figures are exempt from the 17 September build-time rule, clearly
+  labelled**: the untouched page is ledgered tokens; a reader's figures
+  appear only in labelled LIVE regions written by allow-listed modules;
+  `deploy_check` scans every page recursively.
+* **The poll dial's 100 means the poll's own sampling error** (`sd =
+  poll_sd / trust`), superseding §2's "the poll's result is taken as the
+  outcome". JUDGEMENT-CALLS records it.
+* **Turnout by area is dropped for launch.**
+* **The by-election cells stay unpaired**; the page shows measured sampling
+  noise and the lever's effect through deterministic centres.
+* §7's "300 draws" default is superseded: the page uses all 5,000 draws of
+  the chosen cell.
