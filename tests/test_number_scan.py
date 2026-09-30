@@ -303,6 +303,8 @@ def test_a_listed_module_may_write_only_into_its_live_regions():
             ("document.getElementById('seats').textContent = n;", "not a LIVE selector"),
             ("document.querySelector('[data-live=\"seats\"], p').textContent = n;",
              "not a LIVE selector"),
+            ("document.querySelector('[data-live=\"seats\"]' + ', p').textContent = n;",
+             "not a LIVE selector"),
             ("document.querySelector('[data-live=\"other\"]').textContent = n;", "not listed for"),
             ("out.parentNode.textContent = n;", "traversal out of the region"),
             ("out.after(n);", "insertion beside the region"),

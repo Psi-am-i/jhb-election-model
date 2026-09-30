@@ -1014,8 +1014,10 @@ WRITER_FORBIDDEN = (
     ("an import this check cannot follow", re.compile(r"\bimport\s*\(")),
 )
 _SELECTOR_CALL = re.compile(r"\bquerySelector(?:All)?\s*\(\s*")
+#: The whole argument must be the literal: `'[data-live="x"]' + ', p'` would
+#: select outside the region, so the call must close right after the quote.
 _LIVE_SELECTOR = re.compile(
-    r"""^(["'`])\[data-live=(["']?)([a-z][a-z0-9-]*)\2\](?:\s+[^,"'`$]*)?\1""")
+    r"""^(["'`])\[data-live=(["']?)([a-z][a-z0-9-]*)\2\](?:\s+[^,"'`$]*)?\1\s*\)""")
 _SCRIPT_TAG = re.compile(r"<script\b([^>]*)>(.*?)</script>", re.S | re.I)
 _SRC = re.compile(r"""\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))""", re.I)
 _STATIC_IMPORT = re.compile(
