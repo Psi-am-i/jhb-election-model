@@ -27,6 +27,14 @@ shipped draw count, each run in its own interpreter under `HASH_SEED`:
 A tied group (none at Johannesburg 2026) is covered at `make_drawer` level by
 tying two pools in memory: every member records the group's one shock.
 
+⛔ CHECK 1 WAS RETIRED AT THE FREEZE (2026-09-30), AS PLANNED. F3 and F8
+changed drawn numbers legitimately, so the live model no longer matches
+`4711a15` and the off-vs-on comparison expired. It was removed, not re-pinned:
+re-pinning would compare the model with itself. It held from F1 (`bfa5d2b`)
+until then, which is the window the recording landed in. Check 2 now compares
+only the live run with the published seats, which the freeze edition
+regenerated from this model. The original note follows.
+
 ⚠️ CHECK 1 HAS A SHELF LIFE, AND IT ENDS LOUDLY. It compares the live model
 with commit `BEFORE_RECORDING`. It holds only while no drawn number has
 legitimately changed since that commit; the first pool repair (F3) or re-emit
@@ -50,7 +58,6 @@ import os
 import pickle
 import subprocess
 import sys
-import tarfile
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -65,9 +72,6 @@ import montecarlo as M  # noqa: E402
 
 CITY, TARGET = "joburg", "2026"
 SEED = 20261104
-#: The last commit before the recording. See the module docstring on why this
-#: is pinned and when to retire the comparison that uses it.
-BEFORE_RECORDING = "4711a15"
 PUBLISHED_SEATS = ROOT / "data" / "processed" / "seat_draws.csv"
 SPEC = ROOT / "data" / "processed" / "pools_2026.json"
 RECORD = "pool_turnout_draws"
@@ -120,19 +124,15 @@ def _launch(src: Path, out: Path, wrap: bool, worker: Path) -> Path:
 
 
 def _runs() -> dict:
-    """HEAD-before-recording, live, and live+wrapper, run once and cached."""
+    """Live, and live+wrapper, run once and cached. (The pre-recording run
+    was retired with check 1 at the freeze; see the module docstring.)"""
     if _STATE:
         return _STATE
     tmp = tempfile.TemporaryDirectory(prefix="draw_record_")
     base = Path(tmp.name)
-    archive = subprocess.run(["git", "archive", BEFORE_RECORDING, "src"],
-                             cwd=ROOT, capture_output=True, check=True).stdout
-    with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
-        tar.extractall(base / "before", filter="data")
     worker = base / "worker.py"
     worker.write_text(_WORKER, encoding="utf-8")
-    jobs = {"off": (base / "before" / "src", False),
-            "on": (ROOT / "src", False),
+    jobs = {"on": (ROOT / "src", False),
             "wrapped": (ROOT / "src", True)}
     with ThreadPoolExecutor(max_workers=len(jobs)) as pool:
         futures = {k: pool.submit(_launch, src, base / f"{k}.pkl", wrap, worker)
@@ -141,7 +141,6 @@ def _runs() -> dict:
             with fut.result().open("rb") as handle:
                 _STATE[k] = pickle.load(handle)
     _STATE["_tmp"] = tmp
-    _STATE["_before_src"] = (base / "before" / "src").resolve()
     return _STATE
 
 
@@ -217,40 +216,7 @@ def _published_top() -> list[str]:
 
 # -- 0: the comparison ran the code it claims to have run ---------------------
 
-def test_the_off_run_is_the_code_before_the_recording():
-    runs = _runs()
-    off_file = Path(runs["off"]["file"]).resolve()
-    on_file = Path(runs["on"]["file"]).resolve()
-    assert off_file.is_relative_to(runs["_before_src"]), off_file
-    assert on_file == (ROOT / "src" / "montecarlo.py").resolve(), on_file
-    assert not runs["off"]["has_record"], (
-        f"commit {BEFORE_RECORDING} already records pool turnouts, so the "
-        f"on/off comparison is live against live and proves nothing. Retire "
-        f"it (see the module docstring).")
-    assert runs["on"]["has_record"] and runs["wrapped"]["has_record"]
-
-
-# -- 1: recording changes no drawn number -------------------------------------
-
-def test_every_drawn_array_is_identical_with_recording_on_and_off():
-    runs = _runs()
-    off, on = runs["off"]["fields"], runs["on"]["fields"]
-    assert set(on) ^ set(off) == {RECORD}, (
-        f"the fields differ by {sorted(set(on) ^ set(off))}; the recording "
-        f"should add {RECORD} and nothing else")
-    common = sorted(set(off) & set(on))
-    differ = _differing_fields(off, on)
-    assert not differ, (
-        f"{differ} differ between commit {BEFORE_RECORDING} and the live code. "
-        f"If a legitimate model change landed since that commit, this "
-        f"comparison has expired: retire it (module docstring).")
-    scanned(common, of=len(off), low=1.0, high=1.0,
-            what="drawn fields compared", denominator="the off run's *draws fields")
-    scanned(on["seat_draws"], of=int(M.DEFAULTS["draws"]), low=1.0, high=1.0,
-            what="draws in the run", denominator="the shipped draw count")
-
-
-def test_the_published_seats_are_byte_equal_with_recording_on_and_off():
+def test_the_published_seats_are_byte_equal_with_recording_on():
     runs = _runs()
     published = PUBLISHED_SEATS.read_bytes()
     top = _published_top()
@@ -258,12 +224,6 @@ def test_the_published_seats_are_byte_equal_with_recording_on_and_off():
     ranked = sorted(runs["on"]["universe"],
                     key=lambda p: -np.mean([s.get(p, 0) for s in seats]))
     assert top == ranked[:len(top)], "published columns are not the run's ranking"
-    # Off first, so a failure names the right cause: if the code before the
-    # recording does not reproduce the published file, the file is stale and
-    # the recording is not to blame.
-    assert _seat_csv_bytes(runs["off"], top) == published, (
-        f"commit {BEFORE_RECORDING} does not reproduce {PUBLISHED_SEATS.name}: "
-        f"the published forecast is not this model's, whatever the recording does")
     assert _seat_csv_bytes(runs["on"], top) == published, (
         "with the recording in place the published seats are not reproduced")
 
@@ -317,16 +277,17 @@ def test_each_check_catches_a_constructed_violation_and_then_goes_quiet():
     record[5, 2] = kept
     assert _outside_band(record, names) == []
 
-    # one drawn share changed between the off and on runs
-    off = runs["off"]["fields"]
-    on = dict(runs["on"]["fields"])
-    assert _differing_fields(off, on) == []
-    pr = np.array(on["pr_share_draws"], copy=True)
+    # one drawn share changed between two otherwise identical runs (the
+    # wrapped run is a pass-through of the live one)
+    on = runs["on"]["fields"]
+    wr = dict(runs["wrapped"]["fields"])
+    assert _differing_fields(on, wr) == []
+    pr = np.array(wr["pr_share_draws"], copy=True)
     pr[3, 0] = np.nextafter(pr[3, 0], 1.0)
-    on["pr_share_draws"] = pr
-    assert _differing_fields(off, on) == ["pr_share_draws"]
-    on["pr_share_draws"] = runs["on"]["fields"]["pr_share_draws"]
-    assert _differing_fields(off, on) == []
+    wr["pr_share_draws"] = pr
+    assert _differing_fields(on, wr) == ["pr_share_draws"]
+    wr["pr_share_draws"] = runs["wrapped"]["fields"]["pr_share_draws"]
+    assert _differing_fields(on, wr) == []
 
 
 # -- 4: inside the bands ------------------------------------------------------
