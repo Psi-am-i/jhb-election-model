@@ -1,0 +1,14 @@
+{
+ "_about": "The fixed control settings the native-vs-Pyodide harness computes (F19). Read by interactive/tools/native_play.py and interactive/tests/page.test.mjs; one list, so both sides compute the same cases. `polls: \"*\"` means every poll page_polls offers.",
+ "cases": [
+  {"name": "untouched", "settings": {"cell": ".", "law": "deduct", "shift": [0, 0, 0, 0], "polls": [], "trust": 0}},
+  {"name": "black-african-plus-5", "settings": {"cell": ".", "law": "deduct", "shift": [5, 0, 0, 0], "polls": [], "trust": 0}},
+  {"name": "white-minus-3-expand", "settings": {"cell": ".", "law": "expand", "shift": [0, 0, 0, -3], "polls": [], "trust": 0}},
+  {"name": "polls-on-trust-0", "settings": {"cell": ".", "law": "deduct", "shift": [0, 0, 0, 0], "polls": "*", "trust": 0}},
+  {"name": "polls-on-trust-0.3", "settings": {"cell": ".", "law": "deduct", "shift": [0, 0, 0, 0], "polls": "*", "trust": 0.3}},
+  {"name": "polls-on-trust-0.3-black-african-minus-2", "settings": {"cell": ".", "law": "level", "shift": [-2, 0, 0, 0], "polls": "*", "trust": 0.3}},
+  {"name": "w_bye-0-untouched", "settings": {"cell": "w_bye-0", "law": "deduct", "shift": [0, 0, 0, 0], "polls": [], "trust": 0}},
+  {"name": "w_bye-1-black-african-plus-3-cap", "settings": {"cell": "w_bye-1", "law": "cap", "shift": [3, 0, 0, 0], "polls": [], "trust": 0}},
+  {"name": "beyond-the-draws", "settings": {"cell": ".", "law": "deduct", "shift": [40, 0, 0, 0], "polls": [], "trust": 0}}
+ ]
+}

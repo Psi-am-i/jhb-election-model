@@ -1,188 +1,293 @@
-// "Play with the model", against the synthetic draws fixture.
+// "Play with the model": the page. It holds the controls and writes the figures
+// the model's Python returns; it computes none of them.
 //
-// ⛔ STAND-IN. The re-weighting below is a JavaScript sketch of what
-// src/reweight.py will do under Pyodide (audits/2026-09-28-interactive-
-// architecture/PLAN.md S4). It exists to design the page, not to be shipped:
-// the one-definition rule puts the arithmetic in Python, and this file is
-// deleted when the page loads reweight.py.
+// Every figure a control produces is computed by src/reweight.py, through
+// pyboot/page.py, under Pyodide, in a Web Worker (js/model-worker.js; SPEC-v2
+// Lane P, F11). The JavaScript re-weighting this file used to hold is deleted:
+// one definition, in Python (INTEGRATION §3b).
 //
-//  * Turnout: an exponential tilt on all four pool turnouts at once (PLAN §3:
-//    one pool alone is the wrong control, because pools move together).
-//    For a normal marginal, weight exp(λ·t) with λ = shift / variance moves
-//    that pool's mean by `shift`.
-//  * Polls: each draw weighted by closeness of its list-vote shares, renormalised
-//    to the polled parties, to the average of the polls switched on (PLAN §5).
-//    Trust 0 = uniform weights = the published forecast exactly.
-//  * Grid cells and seat laws select a different recorded run (PLAN §6, §7).
-//  * Effective draws (Kish) shown beside the result; below the floor the page
-//    refuses to show a figure.
+// ⛔ THE ONE MODULE THAT WRITES FIGURES. Every figure is written by this file,
+// and only into an element carrying `data-live="<name>"`, which holds no
+// build-time digits and carries the visible label LIVE_LABEL (SPEC-v2
+// decision 1). It is the path for `stats.LIVE_WRITERS`.
+//
+// First paint (F6): the published forecast's panels (js/published.js, a
+// prototype shim build_site replaces) and no Python. The seat table switches to
+// the computed one only once a control moves away from the published setting;
+// the published panels then say they are of the published forecast (F14).
 
-import { loadAll, loadJSON, esc, wireTheme, announce } from "./common.js";
+import { loadAll, esc, wireTheme, announce } from "./common.js";
+import * as PS from "./play-state.js";
+import { paintPublished } from "./published.js";
 
 wireTheme();
 const $ = s => document.querySelector(s);
-const [{ model, byCode }, D] = await Promise.all([loadAll(), loadJSON("placeholder-draws.json")]);
-const P = D.parties;
+const LIVE_LABEL = "Computed in your browser from your settings.";
+const DEBOUNCE_MS = 200;
+const published = paintPublished();
 
-const st = {
-  shift: Object.fromEntries(D.pools.map(p => [p, 0])),
-  polls: Object.fromEntries(D.polls.map(p => [p.id, true])),
-  trust: 0,
-  ds: D.grid_default.dirichlet_scale,
-  wb: D.grid_default.w_bye,
-  law: "deduct",
+// Party names and colours. ⚠ ADAPTER until Lane E's manifest carries the
+// roster: the site's names and colours for the parties the prototype fixture
+// lists, and the IEC code, spaced, for every other party.
+const { byCode } = await loadAll();
+const party = c => byCode[c] ?? { code: c, name: c.replace(/_/g, " ").toLowerCase().replace(/(^|\s)\S/g, m => m.toUpperCase()), colour: "var(--ink-3)" };
+
+// ⚠ ADAPTER: the by-election evidence (DESIGN-decided §11) has no served
+// source yet. data/processed/byelection_party_deltas.csv is gitignored and in
+// no export; this reads it where the prototype server happens to reach it, and
+// says so when it cannot. The export (Lane E) or build_site must serve it.
+async function loadByelectionEvidence() {
+  try {
+    const r = await fetch(new URL("../../data/processed/byelection_party_deltas.csv", import.meta.url));
+    if (!r.ok) return null;
+    const [head, ...rows] = (await r.text()).trim().split("\n").map(l => l.split(","));
+    return rows.map(r => Object.fromEntries(head.map((h, i) => [h, r[i]])));
+  } catch (e) { return null; }
+}
+const evidenceP = loadByelectionEvidence();
+
+// ---------- the engine ----------
+const worker = new Worker(new URL("./model-worker.js", import.meta.url), { type: "module" });
+let ctx = null, st = null, seq = 0, lastMoved = null, baseline = null, timer = null, lastResult = null;
+const pending = new Map();
+
+function ask(settings) {
+  const id = ++seq;
+  worker.postMessage({ type: "compute", seq: id, settings });
+  return new Promise((ok, no) => pending.set(id, { ok, no }));
+}
+
+worker.onmessage = e => {
+  const m = e.data;
+  if (m.type === "stage") $("#engine").textContent = `${m.label}…`;
+  else if (m.type === "failed") {
+    $("#engine").textContent = m.missing ? m.message : `The model's Python did not load: ${m.message}. The published forecast is shown.`;
+    $("#engine").classList.add("low");
+  } else if (m.type === "ready") ready(m);
+  else if (m.type === "result" || m.type === "error") {
+    const p = pending.get(m.seq);
+    pending.delete(m.seq);
+    // an older request superseded by a newer one is dropped, not shown
+    for (const k of [...pending.keys()]) if (k < m.seq) { pending.get(k).no(new Error("superseded")); pending.delete(k); }
+    if (p) m.type === "result" ? p.ok(m) : p.no(new Error(m.message));
+  }
 };
-const cell = () => D.cells[`ds${st.ds}_wb${st.wb}`];
 
 // ---------- controls ----------
-$("#turnout").innerHTML = D.pools.map(p => `<div class="slider">
-  <label for="t-${p}">${esc(D.pool_labels[p])}</label>
-  <input type="range" id="t-${p}" data-pool="${p}" min="-5" max="5" step="0.5" value="0">
-  <output for="t-${p}" id="to-${p}">0</output></div>`).join("");
-$("#turnout").addEventListener("input", e => {
-  const p = e.target.dataset.pool; if (!p) return;
-  st.shift[p] = +e.target.value;
-  $("#to-" + p).textContent = (st.shift[p] > 0 ? "+" : "") + st.shift[p];
-  update();
-});
-
-const polled = [...new Set(D.polls.flatMap(p => Object.keys(p.shares)))];
-$("#polls").innerHTML = `<thead><tr><th scope="col">Use</th><th scope="col">Poll</th>` +
-  polled.map(c => `<th scope="col">${esc(byCode[c].name)}</th>`).join("") + `</tr></thead><tbody>` +
-  D.polls.map(p => `<tr><td><input type="checkbox" data-poll="${p.id}" checked aria-label="Use ${esc(p.house)}"></td>
-    <td>${esc(p.house)}<br><span class="cav">${esc(p.date)}, ${p.n.toLocaleString("en-ZA")} people. ${esc(p.caveat)}</span></td>` +
-    polled.map(c => `<td>${p.shares[c] ?? "—"}</td>`).join("") + `</tr>`).join("") +
-  `<tr><td></td><td><b>Spread across the polls switched on</b></td>` + polled.map(c => `<td id="spr-${c}"></td>`).join("") + `</tr></tbody>`;
-$("#polls").addEventListener("change", e => {
-  const id = e.target.dataset.poll; if (!id) return;
-  st.polls[id] = e.target.checked; update();
-});
-$("#trust").addEventListener("input", e => { st.trust = +e.target.value; $("#trustv").textContent = st.trust; update(); });
-
-function seg(el, key, vals, labels) {
-  $(el).innerHTML = vals.map((v, i) => `<button type="button" data-v="${v}" aria-pressed="${v === st[key]}">${labels[i]}</button>`).join("");
-  $(el).addEventListener("click", e => {
-    const b = e.target.closest("[data-v]"); if (!b) return;
-    st[key] = +b.dataset.v;
-    $(el).querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
-    update();
-  });
-}
-const lab = (vals, def, names) => vals.map((v, i) => v === def ? names[i] + " (model)" : names[i]);
-seg("#ds", "ds", D.grid.dirichlet_scale, lab(D.grid.dirichlet_scale, D.grid_default.dirichlet_scale, ["Less", "Middle", "More"]));
-seg("#wb", "wb", D.grid.w_bye, lab(D.grid.w_bye, D.grid_default.w_bye, ["None", "Some", "Full"]));
-
-$("#laws").innerHTML = Object.entries(D.laws).map(([k, l]) => `<label style="display:flex;gap:8px;align-items:flex-start;margin:6px 0;font-size:13.5px">
-  <input type="radio" name="law" value="${k}"${k === st.law ? " checked" : ""} style="margin-top:4px;accent-color:var(--accent)"><span>${esc(l)}</span></label>`).join("");
-$("#laws").addEventListener("change", e => { st.law = e.target.value; update(); });
-
-// ---------- the stand-in re-weighting ----------
-function weights(draws) {
-  const n = draws.length;
-  const w = new Array(n).fill(1);
-  D.pools.forEach((p, k) => {
-    const s = st.shift[p] / 100; if (!s) return;
-    const xs = draws.map(d => d.t[k]);
-    const m = xs.reduce((a, b) => a + b, 0) / n;
-    const v = xs.reduce((a, b) => a + (b - m) ** 2, 0) / n;
-    const lam = s / v;
-    xs.forEach((x, i) => { w[i] *= Math.exp(lam * (x - m)); });
-  });
-  const on = D.polls.filter(p => st.polls[p.id]);
-  if (st.trust > 0 && on.length) {
-    const avg = {};
-    for (const c of polled) {
-      const v = on.map(p => p.shares[c]).filter(x => x != null);
-      avg[c] = v.reduce((a, b) => a + b, 0) / v.length;
-    }
-    const at = polled.reduce((a, c) => a + avg[c], 0);
-    const sigma = 3 + 27 * (1 - st.trust / 100) ** 2;   // stand-in: 30pp near 0, 3pp at 100 (PLAN §5 measured 3pp). The real mapping is a design decision.
-    const idx = polled.map(c => P.indexOf(c));
-    draws.forEach((d, i) => {
-      const tot = idx.reduce((a, j) => a + d.pr[j], 0);
-      let q = 0;
-      polled.forEach((c, k) => { q += (d.pr[idx[k]] / tot * 100 - avg[c] / at * 100) ** 2; });
-      w[i] *= Math.exp(-q / (2 * sigma * sigma));
-    });
-  }
-  return w;
+function ready(m) {
+  const cells = [...m.cells].sort((a, b) => a.w_bye - b.w_bye);
+  ctx = { pools: m.pools, polls: m.polls.map(p => p.id), pollRows: m.polls, laws: m.laws,
+          cells: cells.map(c => c.path), cellRows: cells, modelVersion: m.modelVersion };
+  window.__playEngineTimes = m.times;
+  console.log("play engine load (ms)", m.times);
+  const parsed = PS.parse(location.search, ctx);
+  st = parsed.state;
+  const notes = [];
+  if (parsed.dropped.length) notes.push(`Some settings in this link were not applied: ${parsed.dropped.join("; ")}.`);
+  if (parsed.otherVersion) notes.push("This link was made against a different version of the model; its settings are applied to the current one.");
+  if (notes.length) { $("#linknote").textContent = notes.join(" "); $("#linknote").hidden = false; }
+  buildControls();
+  $("#controls").setAttribute("aria-busy", "false");
+  $("#engine").textContent = "The model's Python is ready. Move a control.";
+  ask(PS.engineSettings(PS.defaults(ctx))).then(r => { baseline = r.result; update(true); }, () => {});
 }
 
-function wquant(vals, w, q) {
-  const o = vals.map((v, i) => [v, w[i]]).sort((a, b) => a[0] - b[0]);
-  const tot = o.reduce((a, b) => a + b[1], 0);
-  let acc = 0;
-  for (const [v, wi] of o) { acc += wi; if (acc >= q * tot) return v; }
-  return o.at(-1)[0];
-}
-
-function summary(draws, w) {
-  const out = {};
-  P.forEach((c, k) => {
-    const v = draws.map(d => d.seats[st.law][k]);
-    out[c] = [wquant(v, w, 0.05), wquant(v, w, 0.5), wquant(v, w, 0.95)];
-  });
-  return out;
-}
-
-const base = (() => { const d = D.cells[`ds${D.grid_default.dirichlet_scale}_wb${D.grid_default.w_bye}`];
-  const save = st.law; st.law = "deduct"; const s = summary(d, d.map(() => 1)); st.law = save; return s; })();
-let lastShare = null;
-
-function update() {
-  const draws = cell();
-  const w = weights(draws);
-  const sw = w.reduce((a, b) => a + b, 0), sw2 = w.reduce((a, b) => a + b * b, 0);
-  const ess = sw * sw / sw2;
-  const floor = D.refusal_floor_fraction * draws.length;
-  const touched = Object.values(st.shift).some(Boolean) || st.trust > 0 ||
-    st.ds !== D.grid_default.dirichlet_scale || st.wb !== D.grid_default.w_bye || st.law !== "deduct";
-
-  // spread across enabled polls
-  const on = D.polls.filter(p => st.polls[p.id]);
-  polled.forEach(c => {
-    const v = on.map(p => p.shares[c]).filter(x => x != null);
-    $("#spr-" + c).textContent = v.length ? `${Math.min(...v)}–${Math.max(...v)}` : "—";
+function buildControls() {
+  $("#turnrange").textContent = `Range offered: ${PS.TURNOUT.min} to +${PS.TURNOUT.max} points. Tested against a re-run of the model for ${PS.TESTED_POOL} turnout; argued, not tested, for the others.`;
+  $("#turnout").innerHTML = `<p class="livelabel">${LIVE_LABEL}</p>` + ctx.pools.map((p, i) => `<div class="slider" data-group="turnout:${i}">
+    <label for="t-${i}">${esc(p)}<br><span class="cav">${p === PS.TESTED_POOL ? "tested" : "argued, not tested"}</span></label>
+    <input type="range" id="t-${i}" data-pool="${i}" min="${PS.TURNOUT.min}" max="${PS.TURNOUT.max}" step="${PS.TURNOUT.step}" value="${st.shift[i]}">
+    <output for="t-${i}" id="to-${i}"></output></div>`).join("");
+  $("#turnout").addEventListener("input", e => {
+    const i = e.target.dataset.pool; if (i == null) return;
+    st.shift[+i] = +e.target.value; moved(`turnout:${i}`, true);
   });
 
-  $("#ess").textContent = `${Math.round(ess)} effective simulations of ${draws.length}` + (touched ? "" : " — the published forecast");
-  $("#ess").classList.toggle("low", ess < floor);
-  if (ess < floor) {
-    $("#seats").innerHTML = `<tbody><tr><td>Too few simulations match these settings to say anything. Move a control back towards the middle.</td></tr></tbody>`;
-    $("#seats").classList.add("greyed");
-    $("#tomake").disabled = true;
+  const polled = [...new Set(ctx.pollRows.flatMap(p => Object.keys(p.numbers || {})))].sort((a, b) => party(a).name.localeCompare(party(b).name));
+  $("#polls").innerHTML = `<thead><tr><th scope="col">Use</th><th scope="col">Poll</th>` +
+    polled.map(c => `<th scope="col">${esc(party(c).name)}</th>`).join("") + `</tr></thead><tbody>` +
+    ctx.pollRows.map(p => `<tr><td><input type="checkbox" data-poll="${esc(p.id)}"${st.polls.includes(p.id) ? " checked" : ""} aria-label="Use ${esc(p.label || p.id)}"></td>
+      <td>${esc(p.label || p.id)}<br><span class="cav">${esc(p.pollster || p.house || "")}, fieldwork ended ${esc(p.fieldwork_end || "undated")}, ${p.n ? `${Number(p.n).toLocaleString("en-ZA")} people` : "sample size not published"}. ${esc(p.caveat || "")}</span></td>` +
+      polled.map(c => `<td>${p.numbers?.[c] != null ? Math.round(p.numbers[c] * 1000) / 10 + "%" : "—"}</td>`).join("") + `</tr>`).join("") + `</tbody>`;
+  $("#polls").addEventListener("change", e => {
+    const id = e.target.dataset.poll; if (!id) return;
+    st.polls = e.target.checked ? [...new Set([...st.polls, id])] : st.polls.filter(x => x !== id);
+    moved("polls", false);
+  });
+  const tr = $("#trust");
+  Object.assign(tr, { min: PS.TRUST.min, max: PS.TRUST.max, step: PS.TRUST.step, value: st.trust, disabled: false });
+  tr.closest(".slider").dataset.group = "trust";
+  tr.addEventListener("input", () => { st.trust = +tr.value; moved("trust", true); });
+
+  const cellName = c => c.w_bye === 0 ? "None" : c.w_bye === 1 ? "Full" : `As published (${c.w_bye.toFixed(2)})`;
+  $("#cells").innerHTML = ctx.cellRows.map(c => `<button type="button" data-cell="${esc(c.path)}" aria-pressed="${c.path === st.cell}">${esc(cellName(c))}</button>`).join("");
+  $("#cells").dataset.group = "cell";
+  $("#cells").addEventListener("click", e => {
+    const b = e.target.closest("[data-cell]"); if (!b) return;
+    st.cell = b.dataset.cell; moved("cell", false);
+  });
+
+  const LAW = { deduct: "The law: the surplus is deducted from every other party", expand: "Not the law: the council grows by the excess",
+                level: "Not the law: the council grows until every party is covered", cap: "Not the law: excess ward winners are not seated" };
+  $("#laws").innerHTML = ctx.laws.map(k => `<label style="display:flex;gap:8px;align-items:flex-start;margin:6px 0;font-size:13.5px">
+    <input type="radio" name="law" value="${esc(k)}"${k === st.law ? " checked" : ""} style="margin-top:4px;accent-color:var(--accent)"><span>${esc(LAW[k] || k)}</span></label>`).join("");
+  $("#laws").dataset.group = "law";
+  $("#laws").addEventListener("change", e => { st.law = e.target.value; moved("law", false); });
+  syncControls();
+}
+
+// Put every control and its echo in line with `st` (after a reset or a link).
+function syncControls() {
+  ctx.pools.forEach((_, i) => {
+    $(`#t-${i}`).value = st.shift[i];
+    $(`#to-${i}`).textContent = (st.shift[i] > 0 ? "+" : "") + st.shift[i];
+  });
+  document.querySelectorAll("[data-poll]").forEach(b => { b.checked = st.polls.includes(b.dataset.poll); });
+  $("#trust").value = st.trust;
+  $("#trustv").textContent = String(st.trust);
+  document.querySelectorAll("[data-cell]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cell === st.cell)));
+  document.querySelectorAll('input[name="law"]').forEach(r => { r.checked = r.value === st.law; });
+}
+
+function moved(group, debounce) {
+  lastMoved = group;
+  syncControls();
+  history.replaceState(null, "", location.pathname + PS.serialize(st, ctx) + location.hash);
+  clearTimeout(timer);
+  if (debounce) timer = setTimeout(() => update(), DEBOUNCE_MS);
+  else update();
+}
+
+// ---------- figures ----------
+const fmtSeats = f => f.withheld ? `<abbr title="Withheld: its tail rests on too few simulations">withheld</abbr>` : String(Math.round(f.value * 10) / 10);
+const pct = x => `${Math.round(x * 1000) / 10}%`;
+
+async function update(fromReady = false) {
+  if (!ctx) return;
+  const touched = PS.isTouched(st);
+  $("#pubseats").hidden = touched;
+  $("#liveseats").hidden = !touched;
+  $("#esslabel").hidden = !touched;
+  $("#pubnote").hidden = !touched;
+  document.querySelectorAll("[data-group]").forEach(el => el.classList.remove("greyed"));
+  if (!touched) {
+    $("#ess").textContent = "The published forecast: every simulation counts once.";
+    $("#ess").classList.remove("low");
+    $("#turnpin").hidden = true;
+    $("#pollavg").hidden = true;
+    renderBye(baseline);
+    handoff(baseline);
     return;
   }
-  $("#seats").classList.remove("greyed"); $("#tomake").disabled = false;
-  const s = summary(draws, w);
-  const rows = P.filter(c => s[c][2] > 0).sort((a, b) => s[b][1] - s[a][1] || byCode[a].name.localeCompare(byCode[b].name));
-  $("#seats").innerHTML = `<thead><tr><th scope="col">Party</th><th scope="col">Middle</th><th scope="col">Range</th><th scope="col">Change</th></tr></thead><tbody>` +
-    rows.map(c => { const d = s[c][1] - base[c][1];
-      return `<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${byCode[c].colour};margin-right:6px"></span>${esc(byCode[c].name)}</td>
-      <td><b>${s[c][1]}</b></td><td>${s[c][0]}–${s[c][2]}</td><td class="chg">${d ? (d > 0 ? "+" : "") + d : "—"}</td></tr>`; }).join("") + `</tbody>`;
-  $("#bandnote").textContent = "Middle is the median seat count; range covers nine in ten of the weighted simulations. " +
-    (touched ? "Fewer effective simulations make the range less certain than the published one." : "");
-  // on a phone the results sit below every control, so the top of them rides along
-  $("#msum").innerHTML = rows.slice(0, 4).map(c => `<span><span class="sw" style="background:${byCode[c].colour}"></span>${esc(byCode[c].name)} <b>${s[c][1]}</b></span>`).join("") +
-    `<span class="ess">${Math.round(ess)} eff.</span>`;
-  announce($("#live"), rows.slice(0, 5).map(c => `${byCode[c].name} ${s[c][1]}`).join(", "));
+  $("#ess").textContent = "Computing…";
+  let m;
+  try { m = await ask(PS.engineSettings(st)); }
+  catch (e) { if (e.message !== "superseded") $("#ess").textContent = `The model's Python refused: ${e.message}`; return; }
+  const r = m.result;
+  lastResult = r;
+  if (r.refused) {
+    // F17: the control that took the draws past the floor greys out, and no figure is shown
+    // (a link opened at the floor has no last move: every control away from
+    // the published setting greys instead)
+    const groups = lastMoved ? [lastMoved] : [
+      ...st.shift.map((x, i) => x !== 0 ? `turnout:${i}` : null),
+      st.trust ? "trust" : null, st.trust && st.polls.length ? "polls" : null,
+      st.cell !== PS.PUBLISHED_CELL ? "cell" : null, st.law !== PS.PUBLISHED_LAW ? "law" : null].filter(Boolean);
+    for (const g of groups) document.querySelector(`[data-group="${g}"]`)?.classList.add("greyed");
+    $("#ess").textContent = `Too few simulations match these settings to say anything: ${r.refused} Move the greyed control back towards the published setting.`;
+    $("#ess").classList.add("low");
+    $("#seats").innerHTML = "";
+    $("#bandnote").textContent = "";
+    $("#tomake").disabled = true;
+    renderBye(null);
+    return;
+  }
+  $("#tomake").disabled = false;
+  $("#ess").classList.remove("low");
+  $("#ess").textContent = `${Math.round(r.effective_draws).toLocaleString("en-ZA")} effective simulations of ${r.draws.toLocaleString("en-ZA")}, computed in ${m.ms} ms.`;
+  $("#turnpin").hidden = !r.turnout_pinned;
 
-  // The start state handed to "make your own": each party's share of the
-  // vote, which the builder shows as the COMBINED vote (DESIGN-decided §10).
-  // ⚠ PLACEHOLDER: the synthetic draws carry one share per party (`pr`); the
-  // S2 export must carry each draw's combined share for this hand-off, not its
-  // list-ballot share.
-  lastShare = Object.fromEntries(P.map((c, k) => [c,
-    Math.round(draws.reduce((a, d, i) => a + d.pr[k] * w[i], 0) / sw * 10) / 10]));
+  const codes = Object.keys(r.seats).filter(c => r.seats[c].p95.value > 0 || r.seats[c].median.value > 0)
+    .sort((a, b) => r.seats[b].median.value - r.seats[a].median.value || party(a).name.localeCompare(party(b).name));
+  const base = baseline && r.law === baseline.law ? baseline.seats : null;
+  $("#seats").innerHTML = `<thead><tr><th scope="col">Party</th><th scope="col">Middle</th><th scope="col">Range</th><th scope="col">Change</th></tr></thead><tbody>` +
+    codes.map(c => {
+      const s = r.seats[c], b = base?.[c];
+      const d = b && !s.median.withheld ? Math.round((s.median.value - b.median.value) * 10) / 10 : null;
+      return `<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${party(c).colour};margin-right:6px"></span>${esc(party(c).name)}</td>
+        <td><b>${fmtSeats(s.median)}</b></td><td>${fmtSeats(s.p5)}–${fmtSeats(s.p95)}</td><td class="chg">${d ? (d > 0 ? "+" : "") + d : "—"}</td></tr>`;
+    }).join("") + `</tbody>`;
+  const label = r.poll ? ` With a poll trusted, these figures are ${r.poll.label}, not what happens if the poll is right.` : "";
+  $("#bandnote").textContent = "Middle is the median seat count; the range covers nine in ten of the weighted simulations. " +
+    (base ? "Change is against the published forecast under this seat law. " : "Change is shown only under the published seat law. ") +
+    "Fewer effective simulations make every figure less certain than the published one." + label;
+  $("#msum").innerHTML = codes.slice(0, 4).map(c => `<span><span class="sw" style="background:${party(c).colour}"></span>${esc(party(c).name)} <b>${fmtSeats(r.seats[c].median)}</b></span>`).join("") +
+    `<span class="ess">${Math.round(r.effective_draws)} eff., computed in your browser</span>`;
+  announce($("#live"), codes.slice(0, 5).map(c => `${party(c).name} ${fmtSeats(r.seats[c].median)}`).join(", "));
+
+  if (r.poll) {
+    const parts = Object.keys(r.poll.average).sort((a, b) => r.poll.average[b] - r.poll.average[a]);
+    $("#pollavgtext").textContent = "Average of the polls switched on, on the parties they all name (lowest to highest poll in brackets): " +
+      parts.map(k => `${party(k).name} ${pct(r.poll.average[k])} (${pct(r.poll.spread[k][0])}–${pct(r.poll.spread[k][1])})`).join(", ") + ".";
+    $("#pollavg").hidden = false;
+  } else $("#pollavg").hidden = true;
+  renderBye(r);
+  handoff(r);
 }
 
-$("#reset").addEventListener("click", () => { location.reload(); });
+async function renderBye(r) {
+  const ev = await evidenceP;
+  const cmp = r?.against_published_cell;
+  const centres = r?.centres, pubCentres = r?.published_cell?.centres ?? baseline?.centres;
+  const rows = ev ? ev.filter(x => x.party !== "UNKNOWN" && x.party !== "IND") : [];
+  const head = `<thead><tr><th scope="col">Party</th><th scope="col">By-election swing, contested wards only</th><th scope="col">Wards contested</th>` +
+    `<th scope="col">Model's citywide share at this weight</th><th scope="col">Middle seats against the published weight</th></tr></thead>`;
+  if (!ev) {
+    $("#bye").innerHTML = head + `<tbody><tr><td colspan="5">The by-election evidence is not served with this prototype yet.</td></tr></tbody>`;
+    return;
+  }
+  const centre = c => centres && centres[c] != null
+    ? pct(centres[c]) + (pubCentres && pubCentres[c] != null ? ` (published ${pct(pubCentres[c])})` : "")
+    : "not in this export yet";
+  const noise = c => !cmp ? (r && r.cell !== PS.PUBLISHED_CELL ? "—" : "the published weight")
+    : cmp[c] ? (cmp[c].within_noise ? "within sampling noise" : `${cmp[c].difference > 0 ? "+" : ""}${Math.round(cmp[c].difference * 10) / 10}, more than sampling noise`) : "—";
+  $("#bye").innerHTML = head + `<tbody>` + rows.map(x => `<tr><td>${esc(party(x.party).name)}</td>
+    <td>${(+x.weighted_delta > 0 ? "+" : "") + Math.round(+x.weighted_delta * 1000) / 10} points</td><td>${esc(x.contests)}</td>
+    <td>${centre(x.party)}</td><td>${noise(x.party)}</td></tr>`).join("") + `</tbody>`;
+}
+
+// The start state handed to "make your own": the combined vote the builder
+// shows (DESIGN-decided §10). The draws carry only the list vote until Lane E
+// exports the combined share (F13), and a list share is not handed over as if
+// it were the combined one.
+function handoff(r) {
+  const ok = !!r?.combined_share;
+  $("#tomakenote").hidden = ok;
+  $("#tomakenote").textContent = ok ? "" : "The published draws do not carry the combined vote yet, so the builder starts from its own default.";
+}
+
+$("#reset").addEventListener("click", () => {
+  if (!ctx) return;
+  st = PS.defaults(ctx); lastMoved = null;
+  syncControls();
+  history.replaceState(null, "", location.pathname + location.hash);
+  update();
+});
+$("#copylink").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(location.href); $("#copylink").textContent = "Link copied"; }
+  catch (e) { $("#copylink").textContent = "Copy the address bar"; }
+  setTimeout(() => { $("#copylink").textContent = "Copy a link to these settings"; }, 2000);
+});
 $("#tomake").addEventListener("click", () => {
-  try {
-    sessionStorage.setItem("jhb-start-from", JSON.stringify({
-      calls: null, share: lastShare, coalition: [], mayor: "" }));
-  } catch (e) {}
+  const r = st && PS.isTouched(st) ? lastResult : baseline;
+  if (r?.combined_share) {
+    try {
+      sessionStorage.setItem("jhb-start-from", JSON.stringify({
+        calls: null, share: Object.fromEntries(Object.entries(r.combined_share).map(([k, v]) => [k, Math.round(v * 1000) / 10])),
+        coalition: [], mayor: "" }));
+    } catch (e) {}
+  }
   location.href = "make.html";
 });
 
-update();
+await published;

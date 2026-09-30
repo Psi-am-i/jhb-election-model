@@ -2,8 +2,11 @@
 
 "Make your own forecast", "play with the model", sign-in to save, the share
 sheet and share image, and the shared forecast page, for
-joburg.whysoserious.city. **A prototype**: every figure is synthetic, and on a
-loopback host sign-in and saving are stubs that never leave the browser. Seats
+joburg.whysoserious.city. **A prototype**: the builder's and shared page's
+figures are synthetic, and on a loopback host sign-in and saving are stubs that
+never leave the browser. "Play with the model" runs on the model's published
+draws (`site/draws/`) and computes every figure with `src/reweight.py` under
+Pyodide in a Web Worker (below). Seats
 on the builder and the shared page come from the project's own seat code
 (`src/reader_seats.py` and its imports) running under Pyodide, from a served
 copy in `py/`. Nothing under `site/` or `src/` is touched at run time.
@@ -24,20 +27,32 @@ python3 -m http.server 8801 --bind 127.0.0.1      # port 8801, never 8765
 | A shared forecast (demo) | http://127.0.0.1:8801/interactive/f/?id=demo7Qx2Lp |
 | Privacy notice placeholder | http://127.0.0.1:8801/interactive/privacy-placeholder.html |
 
+`python3 -m http.server` listens with a backlog of five, and the pages fetch
+enough modules at once that some connections are reset; if a page fails to
+load a module, serve with a larger backlog:
+`python3 -c "import http.server as h, functools; S=type('S',(h.ThreadingHTTPServer,),{'request_queue_size':128}); S(('127.0.0.1',8801), functools.partial(h.SimpleHTTPRequestHandler, directory='.')).serve_forever()"`.
+
 Serve the repository root, not `interactive/`: the nav links point at the live
 pages in `../site/`, and the builder imports the Worker's own `validate.js`,
 `seats.js` and generated schema from `../worker-api/`. The pages are ES modules,
 so `file://` does not work.
 
-**Copy the seat code first**, after checkout and after any change to it:
+**Copy the Python first**, after checkout and after any change to it:
 `node interactive/tools/sync_py.mjs` (`--check` to verify). It writes
-`interactive/py/` (gitignored) with worker-api's own copy rule and file list,
-plus the seat Worker's `entry.py` and a `manifest.json`. Without it the builder
-stays locked and says which command to run.
+`interactive/py/` (gitignored): the seat code, with worker-api's own copy rule
+and file list, plus the seat Worker's `entry.py`; and, separately, the page
+code in `py/page/` (`PAGE_FILES`: `reweight.py` and its import closure;
+`PAGE_DATA`: the poll register and the city file it opens). `manifest.json`
+carries both lists and a hash of each. Without it the builder stays locked and
+"play with the model" keeps the published forecast, and each says which
+command to run.
 
 Tests: `node --test interactive/tests/*.test.mjs`. Set `PYODIDE_NODE` to a
-directory holding `node_modules/pyodide` (0.29.5) to also run the page's engine
-under Pyodide; otherwise that one test is skipped and says so.
+directory holding `node_modules/pyodide` (0.29.5) to also run both engines
+under Pyodide; otherwise those two tests are skipped and say so. After a
+re-export of `site/draws/` or a change to the page code, regenerate the native
+fixture: `.venv/bin/python interactive/tools/native_play.py --write` (the test
+says when).
 Screenshots at 375 px and 1440 px are in `screenshots/`.
 
 To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
@@ -52,7 +67,11 @@ To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 | `tools/sync_py.mjs`, `py/` | the served copy of the seat code (gitignored; written by the tool) |
 | `js/api.js` | the one backend door: the stub on loopback hosts, the Worker API elsewhere (`?api=stub` / `?api=live` override) |
 | `tests/` | `node --test`: random builder edits against `validate.js` and the seat law; `/api/me` mapping |
-| `model.html`, `js/model.js` | play with the model, against synthetic draws |
+| `model.html`, `js/model.js` | play with the model: controls, share URL, and the ONE module that writes figures, only into `data-live` regions |
+| `js/model-worker.js`, `js/reweight-engine.js`, `pyboot/page.py` | the Web Worker, the engine loader (injectable, also run by the node test), and the Python entry that routes settings to `src/reweight.py` |
+| `js/play-state.js` | the reader's settings, their bounds and the URL form (F16); pure |
+| `js/published.js` | ⛔ PROTOTYPE SHIM: first paint shows the published page's own TILES/SEATS/GOVERN/CLAIMS/MAP regions; `build_site` replaces it |
+| `tools/native_play.py`, `tests/native-play.json`, `tests/play-settings.json` | the native side of the native-vs-Pyodide harness (F19), its stored output, and the settings both sides compute; `--measure` reports what `page.py` imports and opens |
 | `f/index.html`, `js/f.js` | the shared forecast page, `/f/<id>` in production |
 | `js/map.js` | the ward map (geographic and equal-sized), painting, keyboard |
 | `js/card.js` | the share image, SVG to PNG, 1200×630 and 1080×1920 |
@@ -71,8 +90,10 @@ To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 | stub | stands in for | the real thing |
 |---|---|---|
 | `fixtures/placeholder-model.json` | the model's roster, most likely ward winners, combined vote shares, the combined total they scale to, and published seats | the S2 export (`site/draws/base.bin` + manifest, PLAN.md) and the certified roster in IEC ballot order |
-| `fixtures/placeholder-draws.json` | per-draw pool turnouts, list shares and seats for each grid cell and seat law | S2 and S3 of PLAN.md |
-| `js/model.js` re-weighting | `src/reweight.py` (PLAN S4), run under Pyodide | delete the JavaScript; one definition in Python |
+| `js/published.js` | the published forecast's panels on first paint | `build_site` rendering the ledgered tokens into the page |
+| roster names and colours on the model page (`placeholder-model.json`, and the code spaced out for other parties) | the roster | Lane E's manifest |
+| by-election evidence read from `data/processed/byelection_party_deltas.csv` | the evidence column (DESIGN-decided §11) | a served copy, from the export or `build_site` |
+| the ADAPTER block in `pyboot/page.py` | Lane R's `page_polls`, `poll_trust_sd`, `poll_weights(trust=)`, `turnout_tilt(pin_to=)`, `figure()["withheld"]`, `sampling_se`, and Lane E's `model_sha256` | delete the block's fallbacks at merge |
 | `js/api-stub.js` (loopback hosts only) | the Worker API and OAuth | `worker-api/`, reached through `js/api.js` on any other host |
 | `fixtures/geometry.json` sectors | the S5 ward-to-sector file | S5 |
 | `privacy-placeholder.html` | DRAFT privacy notice (placeholders for the owner's decisions), competition rules, report route | the owner's decisions filled in, checked by counsel |
@@ -111,12 +132,16 @@ committed. S5 should commit its code and be the one source.
    loaded; the load times are logged to the console and kept in
    `window.__seatEngineTimes`. The builder can only hold a valid forecast
    (§14): see "Design decisions".
-2. **The engine**: `reweight.py` and `seats.py` under Pyodide, loaded behind the
-   static first paint (PLAN §9). The untouched model page shows the published
-   draws exactly; effective draws beside every result; refusal below the floor.
-3. **The trust-slider mapping** from 0–100 to a poll error is a design decision.
-   The stand-in maps 0 to "off" and otherwise 30 to 3 points; PLAN §5's table
-   gives the effective draws each poll error leaves.
+2. **The engine: BUILT (S6 Lane P).** `src/reweight.py` under Pyodide in a Web
+   Worker, behind a first paint of the published forecast. Each cell's
+   `manifest.json` + `base.bin` is fetched when first chosen. Until a control
+   moves the page shows the published panels and runs no figure; once one
+   moves, the seat table is computed and every published panel says it is of
+   the published forecast. Below the floor the last-moved control greys and
+   no figure is shown; a figure `figure()` withholds shows "withheld".
+3. **The trust-slider mapping** is the owner's (SPEC-v2 decision 2): trust t
+   gives the poll error `poll_sd / t`, so 100 is the poll's own sampling error
+   and 0 is no weight.
 4. **Ward order and ids** in the forecast body must be the 2026 delimitation's
    135 wards in ward-number order, and the roster the IEC's certified list
    (CLAUDE.md §4b).
@@ -238,4 +263,4 @@ before sign-in goes live.**
 7. Whether a reader's name appears on any public leaderboard (needs its own
    consent, not built).
 8. Per-user cap on saved forecasts (proposed 20) and the D1 location hint.
-9. The trust-slider mapping (Integration 3).
+9. ~~The trust-slider mapping (Integration 3).~~ Decided 2026-09-30.

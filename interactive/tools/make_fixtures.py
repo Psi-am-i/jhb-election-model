@@ -14,9 +14,12 @@ Two kinds of file:
   processed files directly, or the S5 ward-to-sector file once it exists.
   The source paths and sha256 of each input are written into the file.
 
-* **placeholder-model.json / placeholder-draws.json** — SYNTHETIC. A seeded
+* **placeholder-model.json** — SYNTHETIC. A seeded
   random generator makes up a roster, a "most likely" ward map, citywide
-  shares and draws so the page has something to render. They are not derived
+  shares and draws so the builder has something to render. The synthetic
+  draws are no longer written out: "play with the model" reads the published
+  draws (site/draws/) since S6, and they are kept here only because the
+  model fixture's `published_seats_median` is computed from them. They are not derived
   from ward_draws.csv, seat_draws.csv or any other artefact of the model,
   because the model is about to be re-emitted and a real-looking number in a
   prototype is a model number in a page. Party names and colours are the
@@ -298,14 +301,13 @@ def demo_forecast(geom, model) -> dict:
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     geom = geometry()
-    model, draws = placeholder(geom)
+    model, _ = placeholder(geom)
     counts: dict[str, int] = {}
     for w in geom["wards"]:
         counts[w["sector"]] = counts.get(w["sector"], 0) + 1
     print("sector ward counts:", counts)
     (OUT / "geometry.json").write_text(json.dumps(geom, separators=(",", ":")))
     (OUT / "placeholder-model.json").write_text(json.dumps(model, indent=1))
-    (OUT / "placeholder-draws.json").write_text(json.dumps(draws, separators=(",", ":")))
     (OUT / "demo-forecast.json").write_text(json.dumps(demo_forecast(geom, model), indent=1))
     for p in sorted(OUT.iterdir()):
         print(f"{p.name:28s} {p.stat().st_size:>9,d} bytes")

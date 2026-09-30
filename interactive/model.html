@@ -29,7 +29,8 @@
     <button class="themetoggle" type="button" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
   </nav>
 
-  <p class="proto"><b>Prototype.</b> The simulations below are a small synthetic fixture, and the re-weighting is a JavaScript stand-in for <code>src/reweight.py</code> (PLAN S4). Nothing here is the model's forecast.</p>
+  <p class="proto"><b>Prototype.</b> The simulations are the model's published draws, and every figure a control produces is computed by
+    the model's own Python (<code>src/reweight.py</code>) running in your browser. The page itself is not yet built into the site.</p>
 
   <header class="lede">
     <h1>Play with the model</h1>
@@ -37,34 +38,51 @@
       believe, so every answer stays inside what the model already drew. Every control applies to every party in the same way.</p>
   </header>
 
+  <p class="ess" id="engine" role="status">Loading the model's Python. The published forecast is shown until it is ready.</p>
+  <p class="stubnote" id="linknote" hidden></p>
+
   <div class="grid2">
-    <div>
-      <section class="ctl" aria-labelledby="h-turn">
+    <div id="controls" aria-busy="true">
+      <section class="ctl" aria-labelledby="h-turn" data-control-group="turnout">
         <h3 id="h-turn">Turnout, by community</h3>
-        <p>How much more or less each population group turns out than in past local elections, in percentage points. The range is the
-          measured record. The census has four groups, and that is all the model can tell apart.</p>
-        <div id="turnout"></div>
+        <p>How much more or less each population group turns out than in the published forecast, in percentage points. The census has
+          four groups, and that is all the model can tell apart. Moving one holds the other three at the published turnout.</p>
+        <div data-live="turnout-range"><p class="livelabel">Computed in your browser from your settings.</p><p class="pos" id="turnrange"></p></div>
+        <div id="turnout" data-live="turnout"></div>
+        <p class="stubnote" id="turnpin" hidden>A poll is on and turnout is untouched, so turnout is held at the published mean: the poll
+          moves who wins, not how many vote.</p>
       </section>
 
-      <section class="ctl" aria-labelledby="h-poll">
+      <section class="ctl" aria-labelledby="h-poll" data-control-group="polls">
         <h3 id="h-poll">Polls</h3>
-        <p class="pos">Our setting is zero: the published forecast uses no polls. Moving the slider is your judgement, not ours.</p>
-        <div class="tablewrap"><table class="polltab" id="polls"></table></div>
-        <div class="slider" style="margin-top:10px"><label for="trust">How far to trust them</label>
-          <input type="range" id="trust" min="0" max="100" step="5" value="0" aria-describedby="trusthelp"><output id="trustv" for="trust">0</output></div>
-        <p id="trusthelp" style="font-size:12.5px;color:var(--ink-3)">0 leaves the forecast untouched. 100 keeps only the simulations closest to the average of the polls you have switched on. It never means the poll comes true.</p>
+        <p class="pos">Our setting is zero trust: the published forecast uses no polls. Moving the slider is your judgement, not ours.</p>
+        <p>These are the polls of Johannesburg the model's own rules admit. At full trust each poll counts with its own sampling error;
+          at half trust with twice that error; at zero it has no weight at all. Full trust never means the poll comes true: the
+          figures then describe the model's draws nearest the polls.</p>
+        <div class="tablewrap" data-live="polls" data-group="polls"><p class="livelabel">Computed in your browser from your settings: each house's published figures.</p><table class="polltab" id="polls"></table></div>
+        <div data-live="trust"><p class="livelabel">Computed in your browser from your settings.</p>
+          <div class="slider" style="margin-top:4px"><label for="trust">How far to trust them</label>
+          <input type="range" id="trust" value="0" aria-describedby="trusthelp" disabled><output id="trustv" for="trust"></output></div></div>
+        <p id="trusthelp" style="font-size:12.5px;color:var(--ink-3)">Zero leaves the forecast untouched whatever is switched on.</p>
+        <div data-live="poll-average" id="pollavg" hidden><p class="livelabel">Computed in your browser from your settings.</p><p id="pollavgtext"></p></div>
       </section>
 
-      <section class="ctl" aria-labelledby="h-grid">
-        <h3 id="h-grid">How the model draws</h3>
-        <p>These change how the simulations are drawn, so each setting is its own full run.</p>
-        <p style="margin:8px 0 4px;color:var(--ink)">How far voters move within their community</p>
-        <div class="seg" role="group" aria-label="Movement within communities" id="ds"></div>
-        <p style="margin:12px 0 4px;color:var(--ink)">Weight of recent by-elections</p>
-        <div class="seg" role="group" aria-label="Weight of recent by-elections" id="wb"></div>
+      <section class="ctl" aria-labelledby="h-bye" data-control-group="cell">
+        <h3 id="h-bye">Weight of recent by-elections</h3>
+        <p>How much the model leans on the ward by-elections held since the last local election. Each setting is its own full run of
+          the model. The published weight is an unmeasured judgement (JUDGEMENT-CALLS §A35) that only the November result can test.</p>
+        <div data-live="cells"><p class="livelabel">Computed in your browser from your settings.</p>
+          <div class="seg" role="group" aria-label="Weight of recent by-elections" id="cells"></div></div>
+        <p class="stubnote">By-elections are small, low-turnout contests, and some swings rest on a handful of wards. The swing column is
+          measured in the wards that held by-elections only; the model's column is citywide. They are different quantities: compare the
+          direction, not the size.</p>
+        <p class="stubnote">The three settings are separate runs, not the same simulations re-weighted, so part of any difference between
+          them is sampling noise. A change in a party's middle seat count is marked "within sampling noise" when it is smaller than
+          twice the combined standard error of the two settings' middle counts.</p>
+        <div class="tablewrap" data-live="byelection"><p class="livelabel">Computed in your browser from your settings.</p><table class="polltab" id="bye"></table></div>
       </section>
 
-      <section class="ctl" aria-labelledby="h-law">
+      <section class="ctl" aria-labelledby="h-law" data-control-group="law">
         <h3 id="h-law">Seat law</h3>
         <p>What happens when a party wins more wards than its share of the vote entitles it to.</p>
         <div id="laws" role="radiogroup" aria-labelledby="h-law"></div>
@@ -73,18 +91,32 @@
 
     <section class="results" aria-labelledby="h-res" style="border-top-color:var(--accent)">
       <h2 id="h-res">Seats</h2>
-      <p class="ess" id="ess"></p>
-      <div class="tablewrap"><table class="seatstab" id="seats"></table></div>
-      <p class="stubnote" id="bandnote"></p>
+      <div data-live="effective-draws"><p class="livelabel" id="esslabel" hidden>Computed in your browser from your settings.</p><p class="ess" id="ess"></p></div>
+      <div id="pubseats"><p class="stubnote">The published forecast.</p><div class="published" data-published="seats"></div></div>
+      <div class="tablewrap" data-live="seats" id="liveseats" hidden><p class="livelabel">Computed in your browser from your settings.</p><table class="seatstab" id="seats"></table>
+        <p class="stubnote" id="bandnote"></p></div>
       <p class="visually-hidden" aria-live="polite" id="live"></p>
       <div class="cta">
         <button class="btn primary" type="button" id="tomake">Make my forecast from this</button>
         <button class="btn" type="button" id="reset">Back to the published forecast</button>
+        <button class="btn" type="button" id="copylink">Copy a link to these settings</button>
       </div>
+      <p class="stubnote" id="tomakenote" hidden></p>
     </section>
   </div>
 
-  <a class="mobilesum" id="msum" href="#h-res" aria-hidden="true" tabindex="-1"></a>
+  <section class="ctl" aria-labelledby="h-pub" id="pubpanels">
+    <h2 id="h-pub">The published forecast</h2>
+    <p class="pos" id="pubnote" hidden>These panels are of the published forecast. Your settings are not applied to them: they apply only
+      to the Seats panel and to the figures beside the controls.</p>
+    <div class="published" data-published="tiles"></div>
+    <h3>Who can govern</h3>
+    <div class="published" data-published="govern"></div>
+    <div class="published" data-published="map"></div>
+    <div class="published" data-published="claims"></div>
+  </section>
+
+  <a class="mobilesum" id="msum" href="#h-res" aria-hidden="true" tabindex="-1" data-live="summary"></a>
 
   <footer class="sitefooter">
     <div>Johannesburg 2026 Local Government Election Model.</div>
