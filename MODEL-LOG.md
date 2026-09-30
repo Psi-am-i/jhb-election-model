@@ -28343,3 +28343,26 @@ have been test, read, commit.
 command). Open: the "18 September 2026: Published" labels on the claim boxes
 are unconfirmed by the ledger (first rows 26 September); "Not close." is fixed
 text beside live figures; C4 unguarded (§1.281); the minor R4 items.
+
+## 1.283 S2 and S3: the frozen model's draws exported for the interactive; the by-election cells are not paired (2026-09-30)
+
+**S2.** `export_draws.py --out site/draws` on the frozen model: 5,000 draws
+× four seat laws, ward winners, PR shares, pool turnouts; 3,165,000 bytes,
+855 KB gzipped. `test_export_draws` 12/12 (the seat columns byte-equal
+`seat_draws.csv` and the three `regime_*` CSVs); `test_reweight` 20/20
+(uniform weights reproduce the published figures).
+
+**S3.** The grid is `w_bye` only (owner, DESIGN-decided §11): cells at 0 and
+1 beside the published 0.40, via `export_draws --set w_bye=…`, listed in
+`site/draws/index.json` (`export_draws --index`). A control cell exported
+with `--set w_bye=0.4` is byte-identical to `base.bin`, so the passthrough is
+inert at the published value. All three manifests carry one code hash.
+
+**The cells are not paired**, contrary to PLAN §6's assumption. A `w_bye`
+override shifts the random stream after the first draws: pool turnouts are
+equal for the first 79 draws and then independent (per-pool correlation
+0.003–0.006 against the base cell). So draw i of one cell is not draw i of
+another; a turnout or poll weight must be computed on each cell's own draws,
+and a reader switching cells sees the lever's effect plus a re-sample. The
+index records `paired: false`. The page's treatment is under blind review
+(`audits/2026-09-30-interactive-s6/`).

@@ -1,0 +1,34 @@
+{
+ "cells": [
+  {
+   "path": ".",
+   "overrides": [],
+   "w_bye": 0.4,
+   "code_sha256": "0706e01037ea1c363439d4a3d2289ed72eae65675f4a57bfb54a99dae7047366",
+   "draws": 5000,
+   "seed": 20261104
+  },
+  {
+   "path": "w_bye-0",
+   "overrides": [
+    "w_bye=0"
+   ],
+   "w_bye": 0,
+   "code_sha256": "0706e01037ea1c363439d4a3d2289ed72eae65675f4a57bfb54a99dae7047366",
+   "draws": 5000,
+   "seed": 20261104
+  },
+  {
+   "path": "w_bye-1",
+   "overrides": [
+    "w_bye=1"
+   ],
+   "w_bye": 1,
+   "code_sha256": "0706e01037ea1c363439d4a3d2289ed72eae65675f4a57bfb54a99dae7047366",
+   "draws": 5000,
+   "seed": 20261104
+  }
+ ],
+ "paired": false,
+ "note": "cells are independent samples; weights do not carry across cells by draw index"
+}
