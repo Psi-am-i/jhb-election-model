@@ -91,6 +91,7 @@ It also reads 6 key(s) off its `theta_mode` block; those are party codes, not le
 | `METRO_CODES` widened 2 → 8 | — | module constant | module constant | no | Eight metros. More evidence and no leakage, but it moves θ itself, so it is confounded with the spine in any before/after delta. | 🟡 | §B6 |
 | `min_clusters` | 8 | unlinked | not linked to a scenario key or module constant | no | Typed. The floor below which the clustered uniformity test prints `not established` instead of a χ². Moves no forecast; decides whether a calibration verdict is a number or a refusal. Under a known null δ̄ is unbiased at every k from 3 to 24 and its noise is SMOOTH in k, so there is no cliff at 8 — any floor is a line on a continuum. | 🔴 | §D22 |
 | `MIN_EFFECTIVE_DRAWS` | 200 | module constant | module constant | no | Typed, from PLAN.md build step S4. The fewest effective draws a re-weighted figure on the interactive may rest on; below it the control greys out. Moves no forecast: it decides whether the page shows a number or a refusal. | 🟡 | §N1 |
+| `MAX_FIGURE_SE_SEATS` | 2.0 | module constant | module constant | no | Owner, 2026-09-30. The largest Monte Carlo standard error, in seats, a figure on the interactive may carry; above it the figure is withheld and the control that caused it stops. Moves no forecast. With it, the poll dial's width `poll_sd / trust`. | ⚖️ | §N2 |
 | `MIN_HOME_SPLITS` and the binary home/away | 2 | module constant | module constant | no | Unchanged: a measured gradient (0.611 / 0.315 / 0.289 / 0.103) modelled as two buckets. | 🔴 | §A44 |
 | `min_oos_gain` | 0.01 | unlinked | not linked to a scenario key or module constant | no | 0.01, and it is upstream of every pool in the model: age and sex are rejected by this number. | 🔴 | §H7 |
 | `MIN_SHARE`, `CLAIM_FRACTION`, `F_OTHER` | 0.005, 0.50, 1.30 | module constant | module constant | no | All three were filed under the wrong module once. `MIN_SHARE` is `gamma_recent.py`'s and is a CLAIM about the model, not reporting; `CLAIM_FRACTION` is `score.py`'s. ⚠ `F_OTHER` is no longer in `src/` at all — see the restructure note beneath. | 🟡 | §F29 |
@@ -274,5 +275,5 @@ Scenario keys with **no register row under their own name**. Each is still a jud
 * `seed` — ⛔ not in the register at all
 * `turnout_correlation` — its row is filed under the shadow constant `montecarlo.TURNOUT_CORRELATION`, tied to it by an assert, so the row does describe it
 
-Register rows parsed: 110 with a symbol, 36 structural. A row whose cell count does not match its header is dropped rather than guessed at, so these counts are the parser's own view and a drop shows up as a missing row here rather than as a mangled one.
+Register rows parsed: 111 with a symbol, 36 structural. A row whose cell count does not match its header is dropped rather than guessed at, so these counts are the parser's own view and a drop shows up as a missing row here rather than as a mangled one.
 

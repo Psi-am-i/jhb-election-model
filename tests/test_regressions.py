@@ -609,10 +609,9 @@ def test_no_top_level_function_is_defined_and_never_used():
 #
 # Each is a real finding, verified 2026-08-31 by counting `ast.Name`/
 # `ast.Attribute` references across `src/` and `tests/` instead. (`seats.overhang`
-# was a fourth until `tests/test_seats.py` called it; its entry is deleted.)
+# was a fourth until `tests/test_seats.py` called it; its entry is deleted, and
+# `polling.metro_polls` left when `reweight.page_polls` became its caller, 2026-09-30.)
 #
-#   polling.metro_polls       — one comment in montecarlo.py, one docstring in
-#                               polling.py.
 #   pools.constrain_pool_turnout — a `:func:` docstring reference and a `# NOTE:`
 #                               comment, both inside pools.py itself.
 #   stats.dated_spans         — one docstring in tests/test_published_page.py.
@@ -622,7 +621,6 @@ def test_no_top_level_function_is_defined_and_never_used():
 # guard that says so, until someone deletes or wires each one. `src/` is not
 # this worker's to change.
 PROSE_ONLY_REFERENCES = {
-    "metro_polls": "polling.py — a comment and a docstring, no caller",
     "constrain_pool_turnout": "pools.py — its own docstring and a # NOTE",
     "dated_spans": "stats.py — one docstring in tests/test_published_page.py",
 }

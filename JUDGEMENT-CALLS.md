@@ -123,6 +123,7 @@ promotion note in §F.
 | `METRO_CODES` widened 2 → 8 | — | `levels.py` | Eight metros. More evidence and no leakage, but it moves θ itself, so it is confounded with the spine in any before/after delta. | 🟡 | §B6 |
 | `min_clusters` | 8 | `score.chi2_clustered` | Typed. The floor below which the clustered uniformity test prints `not established` instead of a χ². Moves no forecast; decides whether a calibration verdict is a number or a refusal. Under a known null δ̄ is unbiased at every k from 3 to 24 and its noise is SMOOTH in k, so there is no cliff at 8 — any floor is a line on a continuum. | 🔴 | §D22 |
 | `MIN_EFFECTIVE_DRAWS` | 200 | `reweight.py`, `require_effective` | Typed, from PLAN.md build step S4. The fewest effective draws a re-weighted figure on the interactive may rest on; below it the control greys out. Moves no forecast: it decides whether the page shows a number or a refusal. | 🟡 | §N1 |
+| `MAX_FIGURE_SE_SEATS` | 2.0 | `reweight.py`, `figure` / `within_precision` | Owner, 2026-09-30. The largest Monte Carlo standard error, in seats, a figure on the interactive may carry; above it the figure is withheld and the control that caused it stops. Moves no forecast. With it, the poll dial's width `poll_sd / trust`. | ⚖️ | §N2 |
 | `MIN_HOME_SPLITS` and the binary home/away | 2 | `pools.py` | Unchanged: a measured gradient (0.611 / 0.315 / 0.289 / 0.103) modelled as two buckets. | 🔴 | §A44 |
 | `min_oos_gain` | 0.01 | `config/dimensions.toml` | 0.01, and it is upstream of every pool in the model: age and sex are rejected by this number. | 🔴 | §H7 |
 | `MIN_SHARE`, `CLAIM_FRACTION`, `F_OTHER` | 0.005, 0.50, 1.30 | — | All three were filed under the wrong module once. `MIN_SHARE` is `gamma_recent.py`'s and is a CLAIM about the model, not reporting; `CLAIM_FRACTION` is `score.py`'s. ⚠ `F_OTHER` is no longer in `src/` at all — see the restructure note beneath. | 🟡 | §F29 |
@@ -2885,8 +2886,8 @@ figure.
 **Measured 2026-09-28 (MODEL-LOG §1.273).** At Kish = 200 on the published
 run's draws, the worst party's 5th percentile is read from about ten effective
 draws on its side and a 95th from two to seven (`reweight.tail_effective_draws`).
-The floor holds for a mean and does not hold for a tail band. A separate tail
-floor would be a new judgement call; none is set.
+The floor holds for a mean and does not hold for a tail band. Tails are now
+governed separately, by a precision ceiling in seats (§N2, owner 2026-09-30).
 
 ### §N2 · The poll-trust dial, `sd(t) = poll_sd / t`, and `MAX_FIGURE_SE_SEATS` = 2.0 — ⚖️ argued, owner's decisions (2026-09-30)
 
