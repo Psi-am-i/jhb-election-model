@@ -1072,6 +1072,15 @@ def _resolve(spec: str, base: Path, root: Path) -> tuple[Path | None, str]:
     return f, ""
 
 
+#: The ONE remote script a page may load: Cloudflare Web Analytics' beacon,
+#: emitted by `build_site.analytics_head()` only when the owner has set a site
+#: token. It reads the browser's performance timings and posts them to
+#: Cloudflare; it writes nothing into the page, so it cannot put a figure in
+#: front of a reader. Matched as the exact URL, no query string: any other
+#: remote script, including this host with another path, is still refused.
+ANALYTICS_BEACON = "https://static.cloudflareinsights.com/beacon.min.js"
+
+
 def _forbidden(body: str, where: str = "") -> list[str]:
     return [f"{where}{what}: …{body[max(0, hit.start() - 40):hit.end() + 40].strip()}…"
             for what, pat in SCRIPT_FORBIDDEN for hit in pat.finditer(body)]
@@ -1112,6 +1121,8 @@ def script_writes(text: str, *, page: Path | None = None, root: Path | None = No
             out += _forbidden(m.group(2))
             continue
         spec = next(g for g in src.groups() if g is not None)
+        if spec == ANALYTICS_BEACON and not m.group(2).strip():
+            continue
         if page is None or root is None:
             out.append(f"a script the check was given no path to read: {spec}")
             continue

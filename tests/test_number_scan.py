@@ -357,3 +357,29 @@ def test_deploy_check_scans_nested_pages():
         (site / "play" / "index.html").write_text("<p>changed</p>")
         assert any("site/play/index.html is not the page" in p
                    for p in D.check("joburg", site, preview=False, review=review))
+
+
+def test_the_analytics_beacon_is_the_only_remote_script_a_page_may_load():
+    """Web Analytics (owner, 2026-09-30) is emitted only when a site token is
+    set, and `script_writes` passes that exact tag and no other remote script."""
+    import tempfile
+    assert build_site.analytics_head("") == ""
+    tag = build_site.analytics_head("0123456789abcdef0123456789abcdef")
+    assert tag.count("<script") == 1 and S.ANALYTICS_BEACON in tag
+    try:
+        build_site.analytics_head("not-a-token")
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("a malformed site token was emitted")
+    with tempfile.TemporaryDirectory() as t:
+        tmp = _site(Path(t), {"index.html": tag})
+        assert _writes(tmp, page="index.html") == []
+        for other in (S.ANALYTICS_BEACON + "?x=1",
+                      "https://static.cloudflareinsights.com/other.js"):
+            (tmp / "index.html").write_text(f'<script defer src="{other}"></script>')
+            assert any("remote" in w for w in _writes(tmp, page="index.html")), other
+        # the beacon's URL does not excuse an inline body carried on the same tag
+        (tmp / "index.html").write_text(
+            f'<script src="{S.ANALYTICS_BEACON}">el.innerHTML = rows;</script>')
+        assert _writes(tmp, page="index.html"), "an inline body rode on the beacon"

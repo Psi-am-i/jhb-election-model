@@ -265,6 +265,43 @@ THEME_HEAD = """<style>
 """
 THEME_HEAD = THEME_HEAD.replace("__LIGHT__", _LIGHT_VARS)
 
+# CLOUDFLARE WEB ANALYTICS — the site's only analytics (owner, 2026-09-30:
+# cookieless, no consent banner, no Google tag). What readers are told about it
+# is docs-public/privacy.md; change the two together.
+#
+# ⛔ LEAVE THIS EMPTY WHILE AUTOMATIC SETUP IS ON. Two ways to run it, never both
+# (Cloudflare's FAQ: one beacon per page, or visits are counted twice):
+#   * automatic — Web Analytics injects the beacon at the edge. Nothing here.
+#   * manual    — paste the site token from the dashboard's JS snippet below,
+#                 and every page this build writes carries the beacon.
+# Cloudflare's documentation does not say whether automatic injection reaches
+# responses a Worker serves on a custom domain, which is how this site is
+# served. Try automatic first and check the served HTML for
+# `cloudflareinsights`; fall back to the token only if it is absent.
+#
+# The token is PUBLIC — it is printed into every page's source by design — so
+# it is a constant here, not a Keychain secret (~/CLAUDE.md rule 4 does not
+# apply to it). It lives in THEME_HEAD because that is the one head fragment
+# every page carries: the rendered documents, the nav-injected artefacts, the
+# portal (`build_portal`) and /play/ (`build_play.assemble`).
+CF_WEB_ANALYTICS_TOKEN = ""
+
+
+def analytics_head(token: str = CF_WEB_ANALYTICS_TOKEN) -> str:
+    """The Web Analytics beacon, or nothing when no token is set."""
+    token = token.strip()
+    if not token:
+        return ""
+    if not re.fullmatch(r"[0-9a-f]{32}", token):
+        raise SystemExit(f"CF_WEB_ANALYTICS_TOKEN {token!r} is not a Cloudflare "
+                         "Web Analytics site token (32 lowercase hex characters)")
+    # `stats.script_writes` refuses every remote script except this exact URL.
+    return (f'<script defer src="{statlib.ANALYTICS_BEACON}" '
+            f"data-cf-beacon='{{\"token\": \"{token}\"}}'></script>\n")
+
+
+THEME_HEAD += analytics_head()
+
 # Standalone nav styling injected into the artefact pages (which carry their
 # own stylesheets); the rendered documents get it via STYLE above.
 NAV_CSS = """<style>
@@ -306,6 +343,7 @@ OG_META = """<meta property="og:site_name" content="Johannesburg 2026 Election M
 FOOTER = """<footer class="sitefooter">
   <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
   <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">source &amp; data on GitHub</a></div>
+  <div><a href="support">support this site</a> · <a href="privacy">privacy</a></div>
 </footer>"""
 
 FOOTER_CSS = """
@@ -377,6 +415,24 @@ DOCS = {
         "Every number in this model traces back to a public record. Where "
         "each one lives, what state it was in, and how hard South Africa's "
         "public records actually are to reach.",
+    ),
+    # The site's own policies. Linked from the footer, not the nav: the nav
+    # holds the model and its record, and these describe the site around it.
+    # `False` in the fourth slot: no technical record on GitHub backs them, so
+    # the colophon must not point at one.
+    "docs-public/support.md": (
+        "support.html",
+        "Support",
+        "Why the site exists, who may fund it, and what a supporter gets in "
+        "return: a name on this page, and no say over what is published.",
+        False,
+    ),
+    "docs-public/privacy.md": (
+        "privacy.html",
+        "Privacy",
+        "What this site measures about its readers, what it does not, and "
+        "who handles it.",
+        False,
     ),
     # The plan is no longer published as a page of its own: it is Appendix A
     # of MODEL-LOG.md, where it belongs. It is the model's starting point and
@@ -461,7 +517,9 @@ def shell(title: str, kicker: str, masthead: str, body: str, generated_note: str
 
 
 def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
-               tech: str | None = None) -> str:
+               tech: str | None | bool = None) -> str:
+    """`tech` names the technical record on GitHub that a reader edition is
+    drawn from; None derives it from the file name, False says there is none."""
     text = source.read_text(encoding="utf-8")
     lines = text.splitlines()
     # Skip any leading HTML comment and blank lines before taking the title.
@@ -495,7 +553,7 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
 
     masthead = (published + f"  <h1>{title}</h1>\n"
                 f'  <p class="standfirst">{standfirst}</p>')
-    if str(source).startswith("docs-public/"):
+    if str(source).startswith("docs-public/") and tech is not False:
         tech = tech or source.name.replace(".md", "").upper() + ".md"
         note = (f"Reader edition, generated from {source} on "
                 f"{date.today().isoformat()}. The full technical record — "
