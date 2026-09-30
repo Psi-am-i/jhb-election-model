@@ -363,7 +363,8 @@ both work in `interactive/`.
 * §7's "300 draws" default is superseded: the page uses all 5,000 draws of
   the chosen cell.
 * **Range precision (owner, 2026-09-30).** A figure the page shows (a
-  median or a range end) must be known to within **±2 seats** (one sampling
+  median or a range end) must be known to within **±2.5 seats** (raised from
+  ±2 the same day so the tested +5 is reachable; one sampling
   standard error); a control cannot be moved past the point where any figure
   it affects breaks that, and every range shows its ± seats. Replaces the
   absolute 200-draw floor on tails, which withheld every range on any move

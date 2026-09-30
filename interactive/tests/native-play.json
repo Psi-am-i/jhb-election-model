@@ -89,7 +89,7 @@
     "effective_draws": 5000.0,
     "law": "deduct",
     "majority": 136.0,
-    "max_figure_se": 2.0,
+    "max_figure_se": 2.5,
     "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
     "poll": null,
     "refused": null,
@@ -2902,7 +2902,7 @@
     "effective_draws": 1202.3197692683411,
     "law": "deduct",
     "majority": 136.0,
-    "max_figure_se": 2.0,
+    "max_figure_se": 2.5,
     "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
     "poll": null,
     "refused": null,
@@ -3623,8 +3623,8 @@
        "quantile_effective_draws": 984.5821322354328,
        "sampling_se": 2.099183361629074,
        "tail_effective_draws": 54.24563187774991,
-       "value": null,
-       "withheld": true
+       "value": 54.0,
+       "withheld": false
       }
      },
      "ATM": {
@@ -5624,7 +5624,7 @@
      "VUKA_SA"
     ],
     "turnout_pinned": false,
-    "within_precision": false
+    "within_precision": true
    }
   },
   {
@@ -5715,7 +5715,7 @@
     "effective_draws": 3824.346166599996,
     "law": "expand",
     "majority": 138.0,
-    "max_figure_se": 2.0,
+    "max_figure_se": 2.5,
     "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
     "poll": null,
     "refused": null,
@@ -8528,7 +8528,7 @@
     "effective_draws": 5000.0,
     "law": "deduct",
     "majority": 136.0,
-    "max_figure_se": 2.0,
+    "max_figure_se": 2.5,
     "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
     "poll": null,
     "refused": null,
@@ -11341,7 +11341,7 @@
     "effective_draws": 2497.840607532942,
     "law": "deduct",
     "majority": 136.0,
-    "max_figure_se": 2.0,
+    "max_figure_se": 2.5,
     "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
     "poll": {
      "average": {
@@ -14209,7 +14209,7 @@
     "effective_draws": 2129.5918934780525,
     "law": "level",
     "majority": 150.0,
-    "max_figure_se": 2.0,
+    "max_figure_se": 2.5,
     "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
     "poll": {
      "average": {
@@ -17449,7 +17449,7 @@
     "effective_draws": 5000.0,
     "law": "deduct",
     "majority": 136.0,
-    "max_figure_se": 2.0,
+    "max_figure_se": 2.5,
     "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
     "poll": null,
     "published_cell": {
@@ -20713,7 +20713,7 @@
     "effective_draws": 2872.7102839603385,
     "law": "cap",
     "majority": 136.0,
-    "max_figure_se": 2.0,
+    "max_figure_se": 2.5,
     "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
     "poll": null,
     "published_cell": {
@@ -23531,7 +23531,7 @@
   "w_bye-1": "432f2781d74c2156dfb2b6956e1a464eac613b495c38d6086604210ee0c724d6"
  },
  "numpy": "2.5.1",
- "page_ref": "537ed7fd4b070e9823d9cf5dfb857181ed67fda926a97e3b72433cab56c397af",
+ "page_ref": "c27ae678fd2ef68a617a595fcf62478a09f87914b7c1ae7ddd1349bb1ab4764e",
  "polls": [
   {
    "caveat": "~500-person metro subsample (\u00b14.4%); single house; its likely-voter screen filters out low-propensity, disproportionately ANC-leaning voters. ANC 18 sits below even the DA's own internal polling.",

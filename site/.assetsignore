@@ -1,0 +1,5 @@
+# Never uploaded by wrangler (Workers static assets honour .assetsignore).
+# draws/: the interactive's exported draws ship with the /play/ page, after
+# export_draws stops writing a local path and internal poll notes (deploy
+# review 2026-09-30, F2/F3). Until then they stay local for tests.
+draws/

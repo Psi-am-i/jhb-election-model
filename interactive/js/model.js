@@ -256,12 +256,35 @@ async function update() {
   const bad = r.refused ? `too few simulations match that setting to say anything (${r.refused})`
     : r.within_precision === false ? `a figure on this page would be known to worse than ±${r.max_figure_se} seats` : null;
   if (bad && lastMoved && accepted) {
-    // The control stops: back to the last setting every shown figure passed.
+    // The control stops at the FURTHEST setting every shown figure passes, not
+    // back at the last accepted one (owner, 2026-09-30): a slider is bisected
+    // between its accepted and requested positions, on its own step. A
+    // discrete control (seat law, a poll toggle, a by-election cell) reverts.
     const which = lastMoved;
-    st = copyState(accepted.state);
+    let stop = { state: copyState(accepted.state), result: accepted.result };
+    const slider = which === "trust" ? { get: s => s.trust, set: (s, v) => { s.trust = v; }, step: PS.TRUST.step }
+      : which.startsWith("turnout:") ? (i => ({ get: s => s.shift[i], set: (s, v) => { s.shift[i] = v; }, step: PS.TURNOUT.step }))(Number(which.split(":")[1]))
+      : null;
+    if (slider) {
+      const from = slider.get(accepted.state), to = slider.get(st);
+      const dir = Math.sign(to - from), n = Math.round(Math.abs(to - from) / slider.step);
+      let lo = 0, hi = n;
+      while (hi - lo > 1) {
+        const mid = (lo + hi) >> 1;
+        const trial = copyState(accepted.state);
+        slider.set(trial, from + dir * mid * slider.step);
+        let tr;
+        try { tr = (await ask(PS.engineSettings(trial))).result; }
+        catch (e) { if (e.message === "superseded") return; throw e; }
+        if (!tr.refused && tr.within_precision !== false) { lo = mid; stop = { state: trial, result: tr }; }
+        else hi = mid;
+      }
+      if (lo > 0) accepted = { state: copyState(stop.state), result: stop.result };
+    }
+    st = copyState(stop.state);
     syncControls();
     writeURL();
-    render(accepted.result, PS.isTouched(st));
+    render(stop.result, PS.isTouched(st));
     greyOnly([which]);
     R.ess.textContent = `The greyed control stops here: one step further and ${bad}.`;
     R.ess.classList.add("low");

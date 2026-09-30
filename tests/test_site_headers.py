@@ -80,7 +80,8 @@ def _problems(site: Path, text: str) -> list[str]:
     for dirpath, _dirs, files in os.walk(site):
         for name in files:
             rel = (Path(dirpath) / name).relative_to(site).as_posix()
-            if rel == "_headers":            # consumed by Cloudflare, never served
+            # consumed by Cloudflare / wrangler, never served
+            if rel in ("_headers", ".assetsignore"):
                 continue
             ctype, setters = _served("/" + rel, text)
             want = HTML if rel.endswith(".html") else mimetypes.guess_type(name)[0]

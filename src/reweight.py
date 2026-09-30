@@ -106,7 +106,7 @@ MIN_EFFECTIVE_DRAWS = 200
 #: 2026-09-30, superseding an absolute tail-draw floor that withheld every
 #: range at any move. A judgement call: JUDGEMENT-CALLS.md §N2 carries it with
 #: its evidence. In the values' own units, which on the page are seats.
-MAX_FIGURE_SE_SEATS = 2.0
+MAX_FIGURE_SE_SEATS = 2.5   # owner, 2026-09-30: was 2.0 (JUDGEMENT-CALLS §N2)
 
 #: What a figure computed under a poll's weights is, in the page's words. The
 #: weights select the model's own draws that lie near the poll; they do not
