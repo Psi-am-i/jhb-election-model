@@ -60,10 +60,13 @@ test("PAGE_FILES is exactly the src/ modules page.py imports, both directions", 
 });
 
 test("PAGE_DATA is exactly the files page.py opens, both directions", () => {
+  // Since 2026-09-30 the page opens NO data file: the poll set arrives in
+  // index.json. So both lists are empty, and the checks below show the
+  // comparison still sees a file in either direction.
   const m = measured();
-  assert.ok(m.opened.length >= 1 && m.opened.length <= 10, JSON.stringify(m.opened));
+  assert.ok(m.opened.length <= 10, JSON.stringify(m.opened));
   assert.deepEqual(listVsMeasured(PAGE_DATA, m.opened), { unlisted: [], unused: [] });
-  assert.deepEqual(listVsMeasured(PAGE_DATA.slice(1), m.opened).unlisted, [PAGE_DATA[0]]);
+  assert.deepEqual(listVsMeasured(PAGE_DATA, [...m.opened, "polls.json"]).unlisted, ["polls.json"]);
   assert.deepEqual(listVsMeasured([...PAGE_DATA, "cities/tshwane.toml"], m.opened).unused, ["cities/tshwane.toml"]);
 });
 
@@ -95,7 +98,7 @@ test("both served sets are hashed into the manifest, and one byte moves the righ
     let undo = flip(resolve(srcCopy, "reweight.py"));
     assert.notEqual(pageRef(srcCopy, repoCopy), pageRef());
     undo();
-    undo = flip(resolve(repoCopy, "polls.json"));
+    undo = flip(resolve(srcCopy, "polling.py"));
     assert.notEqual(pageRef(srcCopy, repoCopy), pageRef());
     undo();
     assert.equal(pageRef(srcCopy, repoCopy), pageRef());

@@ -51,7 +51,9 @@ export const PAGE_FILES = ["cityconfig.py", "polling.py", "reweight.py"];
 // Files the page code opens, relative to the repository root, which is the
 // page's working directory: the poll register (polling.REGISTER) and the city
 // file (cityconfig.CITIES_DIR). Measured the same way, with an audit hook.
-export const PAGE_DATA = ["polls.json", "cities/joburg.toml"];
+// Empty since 2026-09-30: the poll set is selected at build time and served in
+// site/draws/index.json, so page.py opens no data file (measured with --measure).
+export const PAGE_DATA = [];
 export const PAGE_DST = resolve(DST, "page");
 const PAGE_BOOT = resolve(REPO, "interactive/pyboot/page.py");
 

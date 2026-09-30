@@ -54,6 +54,8 @@ def run(ns) -> list[dict]:
         d = DRAWS / c["path"]
         ns["load_cell"](c["path"], (d / "manifest.json").read_text(),
                         (d / "base.bin").read_bytes())
+    # As the page does: the poll set comes from index.json (build-time selection).
+    ns["set_polls"](json.dumps(json.loads((DRAWS / "index.json").read_text()).get("polls", [])))
     ids = [p["id"] for p in ns["polls"]()]
     out = []
     for case in json.loads(SETTINGS.read_text())["cases"]:
@@ -86,7 +88,10 @@ def measure() -> dict:
     def hook(event, args):
         if event == "open" and isinstance(args[0], (str, Path)):
             p = os.path.abspath(str(args[0]))
-            if p.startswith(repo + os.sep):
+            # Project files only: the interpreter's own packages (numpy comes
+            # from Pyodide in the browser) and bytecode caches are not page data.
+            if (p.startswith(repo + os.sep) and "__pycache__" not in p
+                    and not p.startswith(os.path.join(repo, ".venv") + os.sep)):
                 opened.add(os.path.relpath(p, repo))
 
     src = REPO / "src"
@@ -106,7 +111,8 @@ def main(argv: list[str]) -> int:
         print(json.dumps(measure()))
         return 0
     ns = _page(SERVED, SERVED)
-    doc = {**describe(ns), "cases": run(ns)}
+    cases = run(ns)          # first: it hands the page its poll set
+    doc = {**describe(ns), "cases": cases}
     text = json.dumps(doc, indent=1, sort_keys=True) + "\n"
     if "--write" in argv:
         FIXTURE.write_text(text)

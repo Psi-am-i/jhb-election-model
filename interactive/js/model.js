@@ -32,16 +32,13 @@ const published = paintPublished();
 const { byCode } = await loadAll();
 const party = c => byCode[c] ?? { code: c, name: c.replace(/_/g, " ").toLowerCase().replace(/(^|\s)\S/g, m => m.toUpperCase()), colour: "var(--ink-3)" };
 
-// ⚠ ADAPTER: the by-election evidence (DESIGN-decided §11) has no served
-// source yet. data/processed/byelection_party_deltas.csv is gitignored and in
-// no export; this reads it where the prototype server happens to reach it, and
-// says so when it cannot. The export (Lane E) or build_site must serve it.
+// The by-election evidence (DESIGN-decided §11), served in site/draws/index.json
+// by export_draws --index from the model's own input file.
 async function loadByelectionEvidence() {
   try {
-    const r = await fetch(new URL("../../data/processed/byelection_party_deltas.csv", import.meta.url));
+    const r = await fetch(new URL("../../site/draws/index.json", import.meta.url));
     if (!r.ok) return null;
-    const [head, ...rows] = (await r.text()).trim().split("\n").map(l => l.split(","));
-    return rows.map(r => Object.fromEntries(head.map((h, i) => [h, r[i]])));
+    return (await r.json()).byelection ?? null;
   } catch (e) { return null; }
 }
 const evidenceP = loadByelectionEvidence();

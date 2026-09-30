@@ -516,7 +516,35 @@ def write_index(root: Path) -> dict:
     if len({c["code_sha256"] for c in cells}) > 1:
         raise SystemExit("the cells were exported by different code; re-export "
                          "them together so the page compares like with like")
-    index = {"cells": cells, "paired": False,
+    # The poll set the page offers, selected here at build time by the one
+    # definition (`reweight.page_polls`), so the browser need not import the
+    # model to apply the screening rules. Records carry `asof`.
+    import cityconfig
+    import reweight
+    first = json.loads(sorted(root.rglob("manifest.json"))[0].read_text())["artefact_key"]
+    cityconfig.use(first["city"])
+    polls = reweight.page_polls(cityconfig.use_target(first["target"]))
+    # The by-election evidence the page shows beside the w_bye control
+    # (DESIGN-decided §11): the model's own input file, with whether each
+    # party reaches `montecarlo.BYE_MIN_WEIGHT` (the same rule for every
+    # party). `UNKNOWN` is not a party and is left out (review F20).
+    import csv
+    import montecarlo
+    bye_path = Path(montecarlo.__file__).resolve().parents[1] / "data/processed/byelection_party_deltas.csv"
+    byelection = []
+    if bye_path.exists():
+        with bye_path.open(encoding="utf-8", newline="") as fh:
+            for row in csv.DictReader(fh):
+                if row["party"] == "UNKNOWN":
+                    continue
+                byelection.append({
+                    "party": row["party"], "contests": int(row["contests"]),
+                    "weight_sum": float(row["weight_sum"]),
+                    "weighted_delta": float(row["weighted_delta"]),
+                    "reaches_model": float(row["weight_sum"]) >= montecarlo.BYE_MIN_WEIGHT})
+    index = {"cells": cells, "paired": False, "polls": polls,
+             "byelection": byelection,
+             "byelection_min_weight": montecarlo.BYE_MIN_WEIGHT,
              "note": "cells are independent samples; weights do not carry "
                      "across cells by draw index"}
     (root / "index.json").write_text(json.dumps(index, indent=1) + "\n")

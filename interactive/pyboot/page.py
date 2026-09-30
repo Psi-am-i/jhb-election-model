@@ -25,7 +25,6 @@ The settings (``js/play-state.js`` holds the page's copy and its bounds)::
 
 from __future__ import annotations
 
-import inspect
 import json
 import math
 
@@ -44,12 +43,8 @@ _POLLS: list[dict] | None = None
 
 
 # ==========================================================================
-# ADAPTER — REMOVE AT MERGE.
-#
-# Lane R (SPEC-v2) adds these to src/reweight.py. Each is called here through
-# `getattr(R, name, None)`: once Lane R merges, the real function is used and
-# the fallback below it is dead code, to be deleted with this block. Nothing
-# outside this block calls a fallback directly.
+# THE PAGE'S CALLS INTO src/reweight.py. Thin by design: every rule lives in
+# reweight.py (one definition); these only fix the page's target and shape.
 # ==========================================================================
 
 def _target():
@@ -57,105 +52,51 @@ def _target():
     return cityconfig.use_target("2026")
 
 
-def page_polls() -> list[dict]:
-    """The poll set the page offers: ``reweight.page_polls(target)``.
+def set_polls(records_json: str) -> int:
+    """The poll set, as ``site/draws/index.json`` carries it.
 
-    Fallback: ``polling.metro_polls``, which is ``polling.screen`` filtered to
-    readings of this city, the source SPEC-v2 names (F8).
+    ``reweight.page_polls`` selects it at BUILD time (``export_draws --index``):
+    the selection reads ``montecarlo.DEFAULTS``, and importing the model into
+    the browser to read one default would ship its whole closure. The records
+    arrive with ``asof`` stamped, which ``poll_weights(trust>0)`` requires.
     """
-    fn = getattr(R, "page_polls", None)
-    t = _target()
-    return list(fn(t)) if fn else polling.metro_polls(t)
+    global _POLLS
+    _POLLS = json.loads(records_json)
+    return len(_POLLS)
 
 
-def poll_trust_sd(poll: dict, share: float, trust: float) -> float:
-    """``reweight.poll_trust_sd``: decision 2, ``sd = poll_sd / trust``.
+def poll_weights(shares, columns, polls_on: list[dict], trust: float) -> np.ndarray:
+    """Each switched-on poll's ``reweight.poll_weights(trust=...)``, multiplied.
 
-    Fallback: that mapping, with ``polling.poll_sd`` at its defaults.
+    Multiplying treats the polls as independent; two waves of one house are
+    not, and JUDGEMENT-CALLS §N2 says so. At trust 0 every factor is uniform.
     """
-    fn = getattr(R, "poll_trust_sd", None)
-    if fn:
-        return float(fn(poll, share, trust))
-    trust = float(trust)
-    if not 0.0 <= trust <= 1.0:
-        raise R.Refused(f"trust must lie in [0, 1], not {trust}")
-    if trust == 0.0:
-        return math.inf
-    return polling.poll_sd(poll, share) / trust
-
-
-def poll_weights(shares, columns, average: dict, polls_on: list[dict],
-                 trust: float) -> np.ndarray:
-    """``reweight.poll_weights(..., trust=...)``.
-
-    Fallback: one ``sd`` for the combined poll, the root mean square over the
-    switched-on polls and the polled parties of :func:`poll_trust_sd` at the
-    combined share. An approximation standing in for Lane R's rule, which
-    replaces it.
-    """
-    fn = R.poll_weights
-    if "trust" in inspect.signature(fn).parameters:
-        return fn(shares, columns, average, trust=trust, polls=polls_on)
-    if trust == 0.0:
-        return fn(shares, columns, average, sd=math.inf)
-    sds = [poll_trust_sd(p, average[k], trust) for p in polls_on for k in average]
-    return fn(shares, columns, average, sd=math.sqrt(np.mean(np.square(sds))))
+    w = R.uniform(len(shares))
+    for poll in polls_on:
+        w = w * R.poll_weights(shares, columns, poll, trust=trust)
+    return w / w.sum()
 
 
 def turnout_tilt(turnouts, shift, *, base, pin_to) -> np.ndarray:
-    """``reweight.turnout_tilt(..., pin_to=)``: targets are ``pin_to + shift``.
-
-    ``pin_to`` is the PUBLISHED cell's mean turnout per pool (F4, F10), so a
-    reader's "+5" means five points on the published turnout in every cell.
-    Fallback: the same targets through ``reweight._tilt``, which
-    ``turnout_tilt`` itself calls.
-    """
-    fn = R.turnout_tilt
-    if "pin_to" in inspect.signature(fn).parameters:
-        return fn(turnouts, shift, base=base, pin_to=pin_to)
-    return R._tilt(np.asarray(turnouts, dtype=float),
-                   np.asarray(pin_to, dtype=float) + np.asarray(shift, dtype=float),
-                   base=base, tolerance=1e-10, steps=200)
+    """``reweight.turnout_tilt(..., pin_to=)``: targets are ``pin_to + shift``,
+    ``pin_to`` the PUBLISHED cell's mean turnout per pool (F4, F10)."""
+    return R.turnout_tilt(turnouts, shift, base=base, pin_to=pin_to)
 
 
 def figure(values, weights, q: float, *, poll: bool) -> dict:
-    """``reweight.figure``, with Lane R's ``withheld`` (F17).
-
-    Fallback for ``withheld``: the tail effective draws under
-    ``MIN_EFFECTIVE_DRAWS``, the rule SPEC-v2 states.
-    """
-    out = R.figure(values, weights, q, poll=poll)
-    if "withheld" not in out:
-        out["withheld"] = bool(out["tail_effective_draws"] < R.MIN_EFFECTIVE_DRAWS)
-    return out
+    """``reweight.figure``, which withholds a figure above MAX_FIGURE_SE_SEATS."""
+    return R.figure(values, weights, q, poll=poll)
 
 
 def sampling_se(values, weights, q: float) -> float:
-    """``reweight.sampling_se``: the standard error of a weighted quantile (F2).
-
-    Fallback: the quantile's level error from
-    ``reweight.quantile_effective_draws``, carried through the weighted
-    quantile function: (Q(q + se) - Q(q - se)) / 2.
-    """
-    fn = getattr(R, "sampling_se", None)
-    if fn:
-        return float(fn(values, weights, q))
-    _, level = R.quantile_effective_draws(values, weights, q)
-    if not math.isfinite(level):
-        return 0.0
-    lo = R.weighted_quantile(values, weights, max(q - level, 0.0))
-    hi = R.weighted_quantile(values, weights, min(q + level, 1.0))
-    return (hi - lo) / 2.0
+    """``reweight.sampling_se``, in seats (F2)."""
+    return float(R.sampling_se(values, weights, q))
 
 
 def model_version(manifest: dict) -> str:
-    """Lane E's ``model_sha256``; fallback, the draws' ``code_sha256``."""
-    return str(manifest.get("model_sha256")
-               or manifest["artefact_key"]["code_sha256"])
+    """The model-only code hash (Lane E), the page's ``model_version``."""
+    return str(manifest["artefact_key"]["model_sha256"])
 
-# ==========================================================================
-# END ADAPTER
-# ==========================================================================
 
 
 def load_cell(path: str, manifest_json: str, blob) -> dict:
@@ -171,9 +112,8 @@ def load_cell(path: str, manifest_json: str, blob) -> dict:
 
 def polls() -> list[dict]:
     """The page's poll rows: the register's own fields, as the register holds them."""
-    global _POLLS
     if _POLLS is None:
-        _POLLS = page_polls()
+        raise R.Refused("no poll set: call set_polls with index.json's polls first")
     keep = ("id", "label", "pollster", "house", "fieldwork", "fieldwork_end",
             "n", "caveat", "numbers", "url")
     return [{k: p.get(k) for k in keep} for p in _POLLS]
@@ -194,12 +134,13 @@ def _weights(cell: dict, settings: dict) -> tuple[np.ndarray, dict]:
     info = {"poll": None, "turnout_pinned": False}
     base = None
     if trust > 0 and on:
-        average, spread = R.combine_polls([p["numbers"] for p in on])
-        base = poll_weights(a["pr_share"], pr, average, on, trust)
+        average, spread = R.combine_polls(on)
+        base = poll_weights(a["pr_share"], pr, on, trust)
         info["poll"] = {"average": average, "spread": spread,
                         "label": R.POLL_LABEL, "trust": trust,
-                        "sd": {k: [poll_trust_sd(p, average[k], trust) for p in on]
-                               for k in average}}
+                        "sd": {p["id"]: {k: R.poll_trust_sd(p, s, trust)
+                                         for k, s in p["numbers"].items()}
+                               for p in on}}
     shift = np.asarray(settings.get("shift") or [0, 0, 0, 0], dtype=float) / 100.0
     if base is None and not np.any(shift):
         return R.uniform(a["pool_turnout"].shape[0]), info

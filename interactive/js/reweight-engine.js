@@ -89,6 +89,8 @@ export async function loadReweightEngine({ onStage = () => {}, loadPyodide, read
     }
     return proxyOrValue;
   }
+  // The poll set is chosen at build time and served in index.json (page.py set_polls).
+  py.globals.get("set_polls")(JSON.stringify((await index).polls || []));
   const polls = JSON.parse(py.runPython("import json\njson.dumps(polls())"));
   const pools = toJS(poolsPy("."));
 
