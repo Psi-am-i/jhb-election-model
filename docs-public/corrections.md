@@ -9,7 +9,7 @@ Nothing is removed from this list.
 ## 30 September 2026 — "the most reliable majority" left out a word
 
 <span data-asof="2026-09-30">**What was wrong.** The claim *"A government can be
-formed without the EFF or MK"* (published 18 September) said
+formed without the EFF or MK"* said
 that the DA and the ANC together are "the most reliable majority in the city
 that does not involve the EFF or MK". The same box reported a more reliable one:
 every party except the ANC, the EFF and MK together, which also excludes the EFF
