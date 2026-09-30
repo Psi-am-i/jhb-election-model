@@ -12,6 +12,15 @@
  *
  * Anything shared across cities (logos, share images, robots.txt, _headers)
  * stays at the root and is served to every host unchanged.
+ *
+ * Staging (wrangler.staging.toml sets STAGING = "1"), every *.workers.dev
+ * host (including `wrangler versions upload` preview URLs) and the staging
+ * custom domain serve the Johannesburg build from the root, and every response
+ * they send carries X-Robots-Tag: noindex, nofollow. Without this branch those
+ * hosts fell through to the city-directory lookup and showed the portal.
+ *
+ * /go on the Johannesburg site (live and staging) is the billboard short URL:
+ * a 302 to the home page with the campaign's UTM parameters.
  */
 
 // NB: request "/portal", not "/portal.html" — the assets layer 307s the
@@ -27,11 +36,40 @@ const SHARED = [
   "/logos/", "/share.jpg", "/robots.txt", "/favicon", "/_headers", "/sitemap",
 ];
 
+// Hosts that are not the public site. They serve Johannesburg and are never
+// indexed. The staging Worker is caught by env.STAGING whatever its hostname;
+// this set also catches the staging domain if it is ever routed to live.
+const STAGING_HOSTS = new Set(["uat-joburg.whysoserious.city"]);
+const NOINDEX = "noindex, nofollow";
+
+// Billboard short URL (DOOH campaign, 2026 local government election).
+const GO_PATHS = new Set(["/go", "/go/"]);
+const GO_TARGET = "/?utm_source=billboard&utm_medium=dooh&utm_campaign=lge2026";
+
+function isStaging(host, env) {
+  return (env && env.STAGING === "1") || host.endsWith(".workers.dev") ||
+    STAGING_HOSTS.has(host);
+}
+
+function go(url) {
+  return new Response(null, {
+    status: 302,
+    headers: { Location: new URL(GO_TARGET, url).toString() },
+  });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const host = url.hostname.toLowerCase();
     const path = url.pathname;
+
+    if (isStaging(host, env)) {
+      const res = GO_PATHS.has(path) ? go(url) : await env.ASSETS.fetch(request);
+      const out = new Response(res.body, res);
+      out.headers.set("X-Robots-Tag", NOINDEX);
+      return out;
+    }
 
     if (PORTAL_HOSTS.has(host)) {
       if (path === "/" || path === "/index.html") {
@@ -41,6 +79,8 @@ export default {
     }
 
     const sub = host.split(".")[0];
+
+    if (ROOT_CITIES.has(sub) && GO_PATHS.has(path)) return go(url);
 
     // Johannesburg, and anything shared, is served straight from the root.
     if (ROOT_CITIES.has(sub) || SHARED.some((p) => path.startsWith(p))) {

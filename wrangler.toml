@@ -5,6 +5,8 @@
 # ⚠️ If a CLOUDFLARE_API_TOKEN env var is present it may be a stale
 # placeholder — deploy with `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy`
 # to use the OAuth session instead.
+#
+# Staging (a separate Worker serving the same site/): wrangler.staging.toml.
 
 name = "joburg-whysoserious"
 compatibility_date = "2026-08-01"
