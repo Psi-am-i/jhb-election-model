@@ -734,12 +734,182 @@
    ]
   }
  ],
+ "centres": {
+  "source": "run_model trace, stage 30_centres, after_shrink",
+  "values": {
+   "ACDP": 0.008113088621547112,
+   "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.0008557543895855848,
+   "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.00047844239101867494,
+   "AFRICAN_ECONOMIC_FREEDOM": 0.000861844448071089,
+   "AFRICAN_LABOUR_CONVENTION": 0.0005086116292327282,
+   "AFRICAN_RENAISSANCE_UNITY": 0.0008977442372731225,
+   "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.000420784447354738,
+   "AFRICAN_UNEMPLOYED_CONGRESS": 0.000861844448071089,
+   "AFRICA_RESTORATION_ALLIANCE": 0.00041119180317818573,
+   "AFRIKA_MAYIBUYE_MOVEMENT": 0.000861844448071089,
+   "AFRIKA_UNITE_CONGRESS": 0.00038874047195350513,
+   "AHC": 0.00419569735219384,
+   "AIC": 0.0023646629627280345,
+   "ALJAMAAH": 0.009858498272872327,
+   "ALLIED_INDEPENDENTS_UMBRELLA": 0.000861844448071089,
+   "ALL_CITIZENS_PARTY": 0.024513002588400758,
+   "ALL_NATIVES_OF_SOUTH_AFRICA": 0.000861844448071089,
+   "ANC": 0.2509323256576297,
+   "APC": 0.0013022406435192785,
+   "ASA": 0.16429120550676735,
+   "ATM": 0.006218990779119426,
+   "AZANIAN_GROUND_FORCES": 0.000861844448071089,
+   "AZANIA_PEACEFUL_REVOLUTION": 0.00021172535551374988,
+   "AZAPO": 0.001070351827853443,
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.00039670685232856556,
+   "BOSA": 0.011923725433789027,
+   "CHRIST_KINGDOM_PARTY": 0.00038874047195350513,
+   "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 0.000861844448071089,
+   "COMBAT": 0.00042204149733854,
+   "COMMUNITY_FIRST_MOVEMENT": 0.00042204149733854,
+   "COPE": 0.0006577931819799281,
+   "DA": 0.31958967033915814,
+   "DUDULA": 0.0013316989776517836,
+   "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.000581530104571963,
+   "ECONOMIC_REDRESS_MOVEMENT": 0.00043197167559102417,
+   "EFF": 0.10853711503085008,
+   "EKHETHU_PEOPLES_PARTY": 0.000861844448071089,
+   "GAP_FIXERS_OF_SOUTH_AFRICA": 0.0004290724608967283,
+   "GAZA_DEMOCRATIC_FRONT": 0.000420784447354738,
+   "IFP": 0.02209235245840464,
+   "ILIZWE_NATHI": 0.000420784447354738,
+   "IMSTAYING": 0.000420784447354738,
+   "INDEPENDENT_CITIZENS_MOVEMENT": 0.0008652095603715796,
+   "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.0004290724608967283,
+   "KNOW_YOUR_POWER": 0.000861844448071089,
+   "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.000861844448071089,
+   "LAND_PARTY": 0.00043197167559102417,
+   "LEKWE_BEPE_KINGDOM_PARTY": 0.00038874047195350513,
+   "MAWUSA_MOVEMENT_PARTY": 0.000420784447354738,
+   "MINORITY_FRONT": 0.000861844448071089,
+   "MK": 0.10707903109120957,
+   "MOVEMENT_OF_RESIDENTS_PARTY": 0.000420784447354738,
+   "MOVE_SA": 0.0008645819635727655,
+   "NATIONAL_DEMOCRATIC_CONVENTION": 0.0008137527239276919,
+   "NCC": 0.000861844448071089,
+   "NFP": 0.0006919660036171568,
+   "PA": 0.08677408212296893,
+   "PAC": 0.003738403984631781,
+   "PEOPLE_OF_JOBURG": 0.000861844448071089,
+   "PEOPLE_S_CONSENT_PARTY": 0.0003321347487994589,
+   "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.000861844448071089,
+   "PRO_SOUTH_AFRICA": 0.0006076948284602611,
+   "RESIDENT_DEVELOPMENT": 0.0003321347487994589,
+   "RISE": 0.019505793823437905,
+   "SERVICE_DELIVERY_PARTY": 0.000861844448071089,
+   "SOUTH_AFRICAN_COMMUNIST_PARTY": 0.01623753016343207,
+   "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.0008521312228788685,
+   "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.0003321347487994589,
+   "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.00147833365165767,
+   "UDM": 0.0017189164736544154,
+   "UMPHAKATHI_WARONA": 0.0008521312228788685,
+   "UNITED_AFRICANS_TRANSFORMATION": 0.0018603137390172592,
+   "VFPLUS": 0.009782637824210374,
+   "VUKA_SA": 0.0008715936071576356,
+   "OTHER": 0.0004519878753688663
+  },
+  "absent": []
+ },
+ "combined_share": {
+  "refused": true,
+  "reason": "seats are allocated from the combined ward + PR tally built inside run_model's draw loop through seats.eligible_parties; ModelRun exposes pr_share_draws and ward_share_draws as shares only, without each ballot's vote total or that membership test, so a combined share derived here would be a second definition of the statutory pool",
+  "exposed": [
+   "ModelRun.pr_share_draws",
+   "ModelRun.ward_share_draws"
+  ],
+  "missing": [
+   "per-draw ward and PR vote totals",
+   "seats.eligible_parties membership per draw"
+  ],
+  "lift": "run_model records the per-draw combined tally (a model change)"
+ },
+ "published_run": {
+  "model_run_id": "r-c68c627d287e-0e0abf3b-dirty",
+  "published_at": "2026-09-30T04:21:21Z",
+  "run_at": "2026-09-29T17:59:46Z",
+  "pool_artefact_keys": {
+   "pools_2011.json": {
+    "cities_sha": "68080ceed71cbe08",
+    "city": "joburg",
+    "config_sha": "25f89b38e7b7532f",
+    "deps_sha": "bed2e1a147c10f2d",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "fab627a741c0c7c8",
+    "pools_sha": "c70b8fc5bcd79279",
+    "schema": 2,
+    "target": "2011"
+   },
+   "pools_2016.json": {
+    "cities_sha": "68080ceed71cbe08",
+    "city": "joburg",
+    "config_sha": "25f89b38e7b7532f",
+    "deps_sha": "bed2e1a147c10f2d",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "7ea7faaaafd6e3c5",
+    "pools_sha": "c70b8fc5bcd79279",
+    "schema": 2,
+    "target": "2016"
+   },
+   "pools_2021.json": {
+    "cities_sha": "68080ceed71cbe08",
+    "city": "joburg",
+    "config_sha": "25f89b38e7b7532f",
+    "deps_sha": "bed2e1a147c10f2d",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "54e74cd0d54d1a2b",
+    "pools_sha": "c70b8fc5bcd79279",
+    "schema": 2,
+    "target": "2021"
+   },
+   "pools_2026.json": {
+    "cities_sha": "68080ceed71cbe08",
+    "city": "joburg",
+    "config_sha": "25f89b38e7b7532f",
+    "deps_sha": "bed2e1a147c10f2d",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "991de2168bbe9198",
+    "pools_sha": "c70b8fc5bcd79279",
+    "schema": 2,
+    "target": "2026"
+   },
+   "pools_2026_simulation.json": {
+    "cities_sha": "68080ceed71cbe08",
+    "city": "joburg",
+    "config_sha": "25f89b38e7b7532f",
+    "deps_sha": "bed2e1a147c10f2d",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "991de2168bbe9198",
+    "pools_sha": "c70b8fc5bcd79279",
+    "schema": 2,
+    "target": "2026"
+   }
+  },
+  "inputs_match_ledger": true,
+  "source": "publications/joburg/ledger.jsonl, newest published_at"
+ },
  "artefact_key": {
   "git": {
-   "commit": "e7db67770fb66b224197c67c86c090e90667f59a",
+   "commit": "f105ce1303a76f76957144f5e0303d3b0fa210e0",
    "dirty": false
   },
-  "code_sha256": "0706e01037ea1c363439d4a3d2289ed72eae65675f4a57bfb54a99dae7047366",
+  "code_sha256": "432f2781d74c2156dfb2b6956e1a464eac613b495c38d6086604210ee0c724d6",
+  "model_sha256": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
+  "model_modules": [
+   "cityconfig.py",
+   "coalitions.py",
+   "fold.py",
+   "levels.py",
+   "montecarlo.py",
+   "parties.py",
+   "polling.py",
+   "pools.py",
+   "seats.py"
+  ],
   "code_dir": "/Users/simondavis/projects/atlas-jhb-election-model/src",
   "city": "joburg",
   "target": "2026",
@@ -993,6 +1163,6 @@
   "overrides": [
    "w_bye=1"
   ],
-  "time": "2026-09-30T09:03:13Z"
+  "time": "2026-09-30T11:27:06Z"
  }
 }

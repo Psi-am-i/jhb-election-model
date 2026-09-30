@@ -362,3 +362,12 @@ both work in `interactive/`.
   noise and the lever's effect through deterministic centres.
 * §7's "300 draws" default is superseded: the page uses all 5,000 draws of
   the chosen cell.
+* **Range precision (owner, 2026-09-30).** A figure the page shows (a
+  median or a range end) must be known to within **±2 seats** (one sampling
+  standard error); a control cannot be moved past the point where any figure
+  it affects breaks that, and every range shows its ± seats. Replaces the
+  absolute 200-draw floor on tails, which withheld every range on any move
+  (at Black African +5 the ANC's range ends rest on 47 and 67 effective
+  draws, yet are known to ±1.5 seats). The turnout slider's hard range stays
+  at the tested ±5 points. Evidence: the lead's bootstrap table, recorded in
+  JUDGEMENT-CALLS with the threshold.
