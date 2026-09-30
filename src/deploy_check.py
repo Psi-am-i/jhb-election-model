@@ -49,8 +49,14 @@ def check(city: str, site: Path, preview: bool, review: Path | None = None) -> l
     # 2026-09-27 it went a whole batch without being regenerated: it would have
     # shipped claiming sliders that do not exist, and nothing here would have
     # objected. Check 1 was real for eight pages and blind to the ninth.
+    #
+    # RECURSIVE since 2026-09-30 (blind review B2): the interactive ships pages
+    # below the root (`/play/`, `/f/`), and a top-level glob could not see them.
+    # Stamp keys are paths relative to site/, so `play/index.html` is a key.
     stamped = {pair.split("=", 1)[0] for pair in head.group(1).split()}
-    unscanned = sorted(f.name for f in site.glob("*.html") if f.name not in stamped)
+    unscanned = sorted(rel for rel in (f.relative_to(site).as_posix()
+                                       for f in site.rglob("*.html"))
+                       if rel not in stamped)
     if unscanned:
         problems.append(
             f"{len(unscanned)} page(s) ship from {site}/ that the number review "

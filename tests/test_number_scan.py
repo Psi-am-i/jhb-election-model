@@ -151,6 +151,204 @@ def test_a_page_script_may_not_carry_or_inject_figures():
         ('<script>const GEN = {"tiles": [1]};</script>', "a data block"),
         ("<script>el.innerHTML = rows;</script>", "HTML injection"),
         ("<script>el.textContent = `${p.med} seats`;</script>", "template interpolation"),
+        ("<script>fetch('/x.json').then(r => r.json()).then(d => el.textContent = d.n);</script>",
+         "a data source"),
     ):
         found = S.script_writes(bad)
         assert found and found[0].startswith(what), (bad, found)
+
+
+# --- LIVE regions (owner's decision 1, 2026-09-30; SPEC-v2 Lane G) ------------
+# A figure computed in the reader's browser may appear only inside an element
+# marked `data-live="<name>"`, which must hold NO build-time digit. Every input
+# is constructed; each check is shown to fire and to go quiet when reverted.
+
+def _blocking(html, **kw):
+    return [(h["value"], h["region"]) for h in S.scan_numbers(html, **kw)
+            if S.is_blocking(h)]
+
+
+def test_a_typed_digit_in_a_live_region_blocks_and_an_empty_one_does_not():
+    outside = "<p>The page says just 7 seats.</p>"
+    bad = outside + '<p>You get <output data-live="seats-da">41 seats</output>.</p>'
+    ok = outside + '<p>You get <output data-live="seats-da"></output>.</p>'
+    # scanned the right thing: the prose outside is still prose, both times
+    assert sorted(_blocking(bad)) == [("41", "live:seats-da"), ("7", "prose")], _blocking(bad)
+    assert _blocking(ok) == [("7", "prose")], _blocking(ok)
+    numbers, _ = S.audit(bad)
+    assert any("'41'" in n for n in numbers), numbers
+    assert not any("'41'" in n for n in S.audit(ok)[0])
+
+
+def test_nothing_clears_a_digit_inside_a_live_region():
+    fixed = [{"value": "41", "context": "you get 41"}]
+    token = ('<span class="mstat" data-mode="free" data-token="x" data-live="55%"'
+             ' data-prov="Source: x">55%</span>')
+    for inner, kw in (("You get 41", {"fixed": fixed}),
+                      ("270 seats", {"structural": ["270"]}),
+                      (token, {}),
+                      ("<h3>Step 2</h3>", {}),
+                      ('<span title="ANC 41%">x</span>', {})):
+        page = f'<div data-live="mine">{inner}</div>'
+        assert _blocking(page, **kw), f"a digit inside a LIVE region was cleared: {inner}"
+        assert _blocking('<div data-live="mine"></div>', **kw) == []
+    # and the same clearances still work outside a region
+    assert _blocking("<p>You get 41</p>", fixed=fixed) == []
+    assert _blocking(f"<p>{token}</p>") == []
+
+
+def test_a_token_spans_own_data_live_is_not_a_region():
+    """`stats._span` writes `data-live="<current value>"` on pinned tokens. That
+    attribute must not turn every token into a LIVE region full of digits."""
+    page = ('<p><span class="mstat" data-mode="fixed" data-token="x" data-live="5,000"'
+            ' data-prov="Source: x">5,000</span> draws</p>')
+    assert S._live_scan(page) == ([], [])
+    assert _blocking(page) == []
+    # the detector is not simply off: the same attribute on a non-token is a region
+    assert S._live_scan('<p data-live="draws">5,000</p>')[0]
+
+
+def test_a_malformed_live_marker_blocks():
+    for bad in ('<div data-live="seats">never closed',
+                '<div data-live="Seats 1">x</div>',
+                '<div data-live="">x</div>',
+                '<br data-live="seats"/>'):
+        hits = S.scan_numbers("<p>ok</p>" + bad)
+        assert any(h["kind"] == "malformed" and S.is_blocking(h) for h in hits), (bad, hits)
+    assert not any(h["kind"] == "malformed"
+                   for h in S.scan_numbers('<p>ok</p><div data-live="seats"></div>'))
+
+
+def test_live_is_not_a_generated_marker_and_applies_on_every_page_kind():
+    assert "LIVE" not in S.GENERATED_MARKERS
+    page = '<div data-live="seats">12</div>'
+    assert _blocking(page, generated_page=True) == [("12", "live:seats")]
+    inside_map = f"<!-- __MAP_START__ -->{page}<!-- __MAP_END__ -->"
+    assert _blocking(inside_map) == [("12", "live:seats")]
+    dated = f'<section data-asof="2026-08-07">{page}</section>'
+    assert _blocking(dated) == [("12", "live:seats")]
+    assert _blocking('<section data-asof="2026-08-07"><div data-live="seats"></div></section>') == []
+
+
+def _site(tmp, files):
+    import textwrap
+    for rel, body in files.items():
+        f = tmp / rel
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(textwrap.dedent(body))
+    return tmp
+
+
+def _writes(tmp, page="play/index.html", writers=None):
+    return S.script_writes((tmp / page).read_text(), page=tmp / page, root=tmp,
+                           writers=writers or {})
+
+
+PAGE_LOADS = ('<div data-live="seats"></div>'
+              '<script type="module" src="js/main.js"></script>')
+WRITER = """
+    import { draw } from "./engine.js";
+    const out = document.querySelector('[data-live="seats"]');
+    const res = await fetch("/draws/index.json");
+    out.textContent = `${(await res.json()).n} seats`;
+"""
+
+
+def test_an_unlisted_module_writing_figures_is_blocked():
+    import tempfile
+    with tempfile.TemporaryDirectory() as t:
+        tmp = _site(Path(t), {"play/index.html": PAGE_LOADS,
+                              "play/js/main.js": WRITER,
+                              "play/js/engine.js": "export function draw() { return 1; }\n"})
+        found = _writes(tmp)
+        kinds = {w.split(": ")[1] for w in found}
+        assert {"a data source", "template interpolation"} <= kinds, found
+        # listed, the same module is allowed
+        assert _writes(tmp, writers={"play/js/main.js": frozenset({"seats"})}) == []
+        # an inert module is quiet unlisted
+        (tmp / "play/js/main.js").write_text("document.body.classList.add('js');\n")
+        assert _writes(tmp) == []
+        # a page given no path cannot have its scripts read, so it is refused
+        assert S.script_writes(PAGE_LOADS), "an unread script passed"
+
+
+def test_an_imported_module_is_read_too():
+    import tempfile
+    with tempfile.TemporaryDirectory() as t:
+        tmp = _site(Path(t), {"play/index.html": PAGE_LOADS,
+                              "play/js/main.js": 'import "./ui.js";\n',
+                              "play/js/ui.js": "el.innerHTML = rows;\n"})
+        found = _writes(tmp)
+        assert found and found[0].startswith("play/js/ui.js: HTML injection"), found
+        (tmp / "play/js/ui.js").write_text("el.classList.toggle('open');\n")
+        assert _writes(tmp) == []
+        (tmp / "play/js/main.js").write_text('import "./gone.js";\n')
+        assert any("does not exist" in w for w in _writes(tmp))
+        (tmp / "play/js/main.js").write_text('import x from "lodash";\n')
+        assert any("bare module" in w for w in _writes(tmp))
+        (tmp / "play/index.html").write_text('<script src="https://cdn.example/x.js"></script>')
+        assert any("remote" in w for w in _writes(tmp))
+
+
+def test_a_listed_module_may_write_only_into_its_live_regions():
+    import tempfile
+    listed = {"play/js/main.js": frozenset({"seats"})}
+    with tempfile.TemporaryDirectory() as t:
+        tmp = _site(Path(t), {"play/index.html": PAGE_LOADS,
+                              "play/js/main.js": WRITER,
+                              "play/js/engine.js": "export const k = 1;\n"})
+        assert _writes(tmp, writers=listed) == []
+        for escape, what in (
+            ("document.querySelector('#headline').textContent = n;", "not a LIVE selector"),
+            ("document.getElementById('seats').textContent = n;", "not a LIVE selector"),
+            ("document.querySelector('[data-live=\"seats\"], p').textContent = n;",
+             "not a LIVE selector"),
+            ("document.querySelector('[data-live=\"other\"]').textContent = n;", "not listed for"),
+            ("out.parentNode.textContent = n;", "traversal out of the region"),
+            ("out.after(n);", "insertion beside the region"),
+            ("out.innerHTML = n;", "HTML injection"),
+            ("document.title = n;", "a document-level handle"),
+            ("e.target.textContent = n;", "a write through an event target"),
+            ("import('./late.js');", "an import this check cannot follow"),
+        ):
+            (tmp / "play/js/main.js").write_text(WRITER + escape + "\n")
+            found = _writes(tmp, writers=listed)
+            assert any(what in w for w in found), (escape, found)
+            (tmp / "play/js/main.js").write_text(WRITER)
+            assert _writes(tmp, writers=listed) == [], escape
+
+
+def test_the_registry_names_served_modules_and_region_names():
+    """`LIVE_WRITERS` maps a module's path under the site root to the LIVE
+    region names it may write. Checked for every entry it holds, whatever that
+    number is."""
+    assert isinstance(S.LIVE_WRITERS, dict)
+    for rel, names in S.LIVE_WRITERS.items():
+        assert not rel.startswith("/") and rel.endswith((".js", ".mjs")), rel
+        assert names and all(S.LIVE_NAME.match(n) for n in names), (rel, names)
+
+
+def test_deploy_check_scans_nested_pages():
+    import hashlib
+    import tempfile
+    import deploy_check as D
+    with tempfile.TemporaryDirectory() as t:
+        tmp = Path(t)
+        site = tmp / "site"
+        (site / "play").mkdir(parents=True)
+        (site / "index.html").write_text("<p>page</p>")
+        (site / "play" / "index.html").write_text("<p>nested</p>")
+        review = tmp / "NUMBERS-REVIEW.md"
+
+        def sha(rel):
+            return hashlib.sha256((site / rel).read_bytes()).hexdigest()
+
+        review.write_text(f"<!-- built-pages: index.html={sha('index.html')} blocking=0 -->\n")
+        found = D.check("joburg", site, preview=False, review=review)
+        assert any("play/index.html" in p for p in found), found
+        review.write_text(f"<!-- built-pages: index.html={sha('index.html')} "
+                          f"play/index.html={sha('play/index.html')} blocking=0 -->\n")
+        assert D.check("joburg", site, preview=False, review=review) == []
+        (site / "play" / "index.html").write_text("<p>changed</p>")
+        assert any("site/play/index.html is not the page" in p
+                   for p in D.check("joburg", site, preview=False, review=review))

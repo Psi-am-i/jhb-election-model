@@ -98,8 +98,12 @@ GEN_TOKEN = re.compile(r"\{\{@([A-Za-z0-9_.+\-]+)=([^;{}]*);([a-z0-9_]*);([^{}]*
 _ASOF_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
-class _AsOfScanner(HTMLParser):
-    """Character ranges of elements carrying a well-formed ``data-asof``.
+class _RegionScanner(HTMLParser):
+    """Character ranges of elements carrying a well-formed ``attr``.
+
+    One parser for every attribute that marks out a region of a page:
+    ``data-asof`` (a dated passage) and ``data-live`` (a LIVE region, below).
+    An element's extent means the same thing for both.
 
     ⛔ **THIS WAS A REGEX AND THE REGEX FAILED OPEN.** It matched
     ``<tag …data-asof…>.*?</tag>`` non-greedily, which is not what an element
@@ -118,13 +122,18 @@ class _AsOfScanner(HTMLParser):
     that guess. This is a real parser with a depth counter, so an element's
     extent is its extent.
 
-    **The date is validated, not merely present.** ``data-asof="banana"`` used
+    **The value is validated, not merely present.** ``data-asof="banana"`` used
     to buy the exemption; the obligation is to say WHEN a figure was true, and a
-    string that is not a date says nothing.
+    string that is not a date says nothing. ``valid`` is the pattern and
+    ``wants`` what it is called in the refusal. ``skip`` names elements that
+    carry the attribute with another meaning (a token span's ``data-live``).
     """
 
-    def __init__(self) -> None:
+    def __init__(self, attr: str = "data-asof", valid: re.Pattern | None = None,
+                 wants: str = "a YYYY-MM-DD date", skip=None) -> None:
         super().__init__(convert_charrefs=False)
+        self.attr, self.valid, self.wants = attr, valid or _ASOF_DATE, wants
+        self.skip = skip or (lambda attrs: False)
         self.spans: list[tuple[int, int, str]] = []
         self._dates: dict[int, str] = {}
         self._open: list[tuple[str, int, int | None]] = []   # tag, depth, start
@@ -147,26 +156,27 @@ class _AsOfScanner(HTMLParser):
         for tag, _, start in self._open:
             if start is not None:
                 self.malformed.append(
-                    f"<{tag} data-asof=…> at offset {start} is never closed")
+                    f"<{tag} {self.attr}=…> at offset {start} is never closed")
 
     def handle_starttag(self, tag, attrs):
         d = dict(attrs)
         start = None
-        if "data-asof" in d:
-            value = (d.get("data-asof") or "").strip()
-            if _ASOF_DATE.match(value):
+        if self.attr in d and not self.skip(d):
+            value = (d.get(self.attr) or "").strip()
+            if self.valid.match(value):
                 start = self._offset()
                 self._dates[start] = value
             else:
                 self.malformed.append(
-                    f'<{tag} data-asof="{value}"> is not a YYYY-MM-DD date')
+                    f'<{tag} {self.attr}="{value}"> is not {self.wants}')
         self._open.append((tag, self._depth, start))
         self._depth += 1
 
     def handle_startendtag(self, tag, attrs):
-        if "data-asof" in dict(attrs):
+        d = dict(attrs)
+        if self.attr in d and not self.skip(d):
             self.malformed.append(
-                f"<{tag} data-asof=… /> is self-closing and encloses nothing")
+                f"<{tag} {self.attr}=… /> is self-closing and encloses nothing")
 
     def handle_endtag(self, tag):
         for i in range(len(self._open) - 1, -1, -1):
@@ -185,14 +195,58 @@ def dated_spans(text: str) -> list[tuple[int, int, str]]:
     return _dated_scan(text)[0]
 
 
+def _region_scan(text: str, parser: _RegionScanner
+                 ) -> tuple[list[tuple[int, int, str]], list[str]]:
+    try:
+        parser.feed_text(text)
+    except Exception:                                        # noqa: BLE001
+        return [], [f"the page could not be parsed for {parser.attr} regions"]
+    return parser.spans, parser.malformed
+
+
 def _dated_scan(text: str) -> tuple[list[tuple[int, int, str]], list[str]]:
     """``(spans, malformed)`` — the second is why a build may refuse."""
-    p = _AsOfScanner()
-    try:
-        p.feed_text(text)
-    except Exception:                                        # noqa: BLE001
-        return [], ["the page could not be parsed for data-asof regions"]
-    return p.spans, p.malformed
+    return _region_scan(text, _RegionScanner())
+
+
+# --------------------------------------------------------------------------
+# LIVE regions (owner's decision 1, 2026-09-30, audits/2026-09-30-interactive-s6)
+# --------------------------------------------------------------------------
+#
+# A figure computed in the reader's browser from the reader's own settings has
+# no build-time value, so it cannot be a token. It may appear ONLY inside an
+# element marked
+#
+#     <output data-live="seats-da"></output>
+#
+# and such an element holds NO build-time digits: whatever the build writes
+# there is blocking, whatever its status — a token, a registered fixed fact or
+# a structural constant inside a LIVE region is still a number the build put
+# where the page says the reader's browser computes. Only a module listed in
+# `LIVE_WRITERS` may write into one (`script_writes`).
+#
+# ⚠️ `data-live` ALSO APPEARS ON EVERY PINNED TOKEN SPAN, meaning something
+# else: `_span` writes the current model value there. An element carrying
+# `data-token` is therefore a token and never a LIVE region. Nothing reads the
+# token's attribute; renaming it would remove the overload.
+#
+# Deliberately NOT a `GENERATED_MARKERS` entry: a generated region is scanned
+# and its figures listed as script-made; a LIVE region must be EMPTY of figures.
+LIVE_ATTR = "data-live"
+LIVE_NAME = re.compile(r"^[a-z][a-z0-9-]*$")
+
+#: The only modules allowed to write figures into a page, and the LIVE regions
+#: each may write into. Keyed by the module's path under the site root, as
+#: served (``"play/js/live.js"``); the value is the set of ``data-live`` names.
+#: A module not listed here may write no figure anywhere.
+LIVE_WRITERS: dict[str, frozenset[str]] = {}
+
+
+def _live_scan(text: str) -> tuple[list[tuple[int, int, str]], list[str]]:
+    """``(spans, malformed)`` for LIVE regions: ``(start, end, name)``."""
+    return _region_scan(text, _RegionScanner(
+        LIVE_ATTR, LIVE_NAME, f"a region name matching {LIVE_NAME.pattern}",
+        skip=lambda attrs: "data-token" in attrs))
 
 
 # The run every other artefact in data/processed is dated against. A file-backed
@@ -797,10 +851,15 @@ def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
     Token spans are removed first, so a token — including its provenance
     tooltip — never appears here. Script text is not scanned: a number a script
     writes at view time is invisible to this function, and says so here rather
-    than being assumed covered.
+    than being assumed covered (`script_writes` is the guard on scripts).
+
+    **LIVE regions are cut out before anything else**, tokens included, and
+    listed under ``live:<name>``: every digit in one is blocking whatever its
+    status would otherwise be (`is_blocking`). A malformed LIVE marker is a hit
+    of kind ``malformed`` and blocks too — an unparseable region cannot be
+    shown to be empty.
     """
     body = SCRIPTS.sub(" ", text)
-    body = SOURCED.sub(" ", body)
     structural = {str(s).strip() for s in structural}
     fixed = [(str(f.get("value", "")).strip().lower(),
               str(f.get("context", "")).strip().lower()) for f in fixed]
@@ -831,6 +890,9 @@ def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
                 narrow = low_all[max(0, m.start() - 60):m.end() + 30]
                 if any(a in narrow for a in allow_lower):
                     status = "allowed"
+            if region.startswith("live:"):
+                # nothing clears a build-time figure inside a LIVE region
+                status = "unreviewed"
             out.append({"kind": m.lastgroup, "value": value, "context": context,
                         "region": region, "status": status})
 
@@ -848,6 +910,24 @@ def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
         for attr in ATTRS.findall(fragment):
             classify(re.sub(r"\s+", " ", html_unescape(attr)), region + ":attr")
         classify(re.sub(r"\s+", " ", html_unescape(TAGS.sub(" ", fragment))), region)
+
+    # LIVE regions first, with their token spans still in them: a token inside
+    # a LIVE region is a build-time digit and must be seen.
+    live, bad_live = _live_scan(body)
+    for why in bad_live:
+        out.append({"kind": "malformed", "value": LIVE_ATTR, "context": why,
+                    "region": "live:malformed", "status": "unreviewed"})
+    if live:
+        keep, last = [], 0
+        for lo, hi, name in sorted(live):
+            if lo < last:
+                continue
+            keep.append(body[last:lo])
+            visit(body[lo:hi], f"live:{name}")
+            last = hi
+        keep.append(body[last:])
+        body = " ".join(keep)
+    body = SOURCED.sub(" ", body)
 
     if generated_page:
         visit(body, "generated-page")
@@ -877,31 +957,177 @@ def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
     return out
 
 
+def is_blocking(hit: dict) -> bool:
+    """Does this `scan_numbers` hit stop a publish? The one definition, used by
+    `audit` and by `build_site`'s number review.
+
+    * outside LIVE regions: an unreviewed digit, date or counting word in prose
+      (`GATING`) — headings, chrome and generated regions are listed, not gated;
+    * inside a LIVE region (``live:*``, sub-regions included): ANY digit, and a
+      malformed marker. The region must hold no build-time figure at all.
+    """
+    if hit["status"] != "unreviewed":
+        return False
+    if hit["region"].startswith("live:"):
+        return hit["kind"] == "malformed" or any(c.isdigit() for c in hit["value"])
+    return hit["region"] == "prose" and hit["kind"] in GATING
+
+
 #: What a script needs in order to write a figure the build never saw: a data
-#: block to hold it, and a way to put markup or interpolated text into the page.
-#: A published page's scripts may use none of them. `textContent` stays legal —
-#: it cannot create markup, and with no data block there is nothing numeric for
-#: it to write (the map tooltip copies a `data-tip` attribute, which is scanned).
+#: block or a data source to hold it, and a way to put markup or interpolated
+#: text into the page. A script not in `LIVE_WRITERS` may use none of them.
+#: `textContent` stays legal — it cannot create markup, and with no data there
+#: is nothing numeric for it to write (the map tooltip copies a `data-tip`
+#: attribute, which is scanned).
+#:
+#: "a data source" was added with external modules (2026-09-30): a module that
+#: `fetch`es JSON and writes it with `textContent` evades the other three.
 SCRIPT_FORBIDDEN = (
     ("a data block", re.compile(r"\b(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*=\s*[\[{]\s*[\"'\d\[{]")),
     ("HTML injection", re.compile(r"\.(?:innerHTML|outerHTML)\s*\+?=|insertAdjacentHTML|document\.write")),
     ("template interpolation", re.compile(r"`[^`]*\$\{")),
+    ("a data source", re.compile(
+        r"\bfetch\s*\(|\bXMLHttpRequest\b|\bnew\s+(?:Shared)?Worker\s*\(|\bonmessage\b"
+        r"|addEventListener\(\s*[\"']message|\bWebSocket\b|\bEventSource\b"
+        r"|\bimport\s*\(|\bimport\b[^;]*\.json[\"']")),
 )
 
+#: What a LIVE writer may NOT do, because each reaches outside the LIVE region
+#: it selected or past this check: HTML injection (and `document.write`),
+#: sibling insertion, traversal upwards or sideways, document-level handles,
+#: lookups by id or class, writing through an event's target, and a dynamic
+#: import this check cannot follow.
+WRITER_FORBIDDEN = (
+    ("HTML injection", re.compile(r"\.(?:innerHTML|outerHTML)\b|insertAdjacent\w*|document\.write")),
+    ("insertion beside the region", re.compile(r"\.(?:before|after|replaceWith)\s*\(")),
+    ("traversal out of the region", re.compile(
+        r"\.(?:parentNode|parentElement|closest|previousSibling|nextSibling"
+        r"|previousElementSibling|nextElementSibling|ownerDocument|getRootNode)\b")),
+    ("a document-level handle", re.compile(
+        r"\bdocument\.(?:body|documentElement|head|all|forms|links|images|children"
+        r"|firstChild|lastChild|firstElementChild|lastElementChild|title)\b")),
+    ("a lookup that is not a LIVE selector", re.compile(
+        r"\b(?:getElementById|getElementsBy\w+|elementFromPoint|elementsFromPoint)\s*\(")),
+    ("a write through an event target", re.compile(
+        r"\b(?:target|currentTarget|srcElement)\b[\w$.\[\]'\"]*\.(?:textContent|innerText"
+        r"|nodeValue|data|value)\s*\+?=(?!=)")),
+    ("an import this check cannot follow", re.compile(r"\bimport\s*\(")),
+)
+_SELECTOR_CALL = re.compile(r"\bquerySelector(?:All)?\s*\(\s*")
+_LIVE_SELECTOR = re.compile(
+    r"""^(["'`])\[data-live=(["']?)([a-z][a-z0-9-]*)\2\](?:\s+[^,"'`$]*)?\1""")
+_SCRIPT_TAG = re.compile(r"<script\b([^>]*)>(.*?)</script>", re.S | re.I)
+_SRC = re.compile(r"""\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))""", re.I)
+_STATIC_IMPORT = re.compile(
+    r"""\bimport\s*["']([^"']+)["']"""
+    r"""|\b(?:import|export)\b[^;'"`]*?\bfrom\s*["']([^"']+)["']""")
 
-def script_writes(text: str) -> list[str]:
+
+def _writer_problems(body: str, regions: frozenset[str]) -> list[str]:
+    out = []
+    for what, pat in WRITER_FORBIDDEN:
+        for hit in pat.finditer(body):
+            out.append(f"{what}: …{body[max(0, hit.start() - 40):hit.end() + 40].strip()}…")
+    for call in _SELECTOR_CALL.finditer(body):
+        sel = _LIVE_SELECTOR.match(body[call.end():])
+        here = body[max(0, call.start() - 20):call.end() + 60].strip()
+        if not sel:
+            out.append(f"a lookup that is not a LIVE selector: …{here}…")
+        elif sel.group(3) not in regions:
+            out.append(f"a LIVE region it is not listed for ({sel.group(3)!r}; "
+                       f"listed: {', '.join(sorted(regions)) or 'none'}): …{here}…")
+    return out
+
+
+def _module_imports(body: str) -> list[str]:
+    return [m.group(1) or m.group(2) for m in _STATIC_IMPORT.finditer(body)]
+
+
+def _resolve(spec: str, base: Path, root: Path) -> tuple[Path | None, str]:
+    """A script reference as a file under ``root``, or ``(None, why)``."""
+    if re.match(r"^(?:[a-z][a-z0-9+.-]*:|//)", spec, re.I):
+        return None, f"a remote or inline script cannot be read: {spec}"
+    clean = re.split(r"[?#]", spec, maxsplit=1)[0]
+    if base.suffix in (".js", ".mjs") and not clean.startswith(("/", "./", "../")):
+        return None, f"a bare module specifier cannot be resolved: {spec}"
+    f = (root / clean.lstrip("/")) if clean.startswith("/") else (base.parent / clean)
+    f = f.resolve()
+    try:
+        f.relative_to(root.resolve())
+    except ValueError:
+        return None, f"a script outside the site cannot ship with it: {spec}"
+    if not f.is_file():
+        return None, f"a script the page loads does not exist: {spec}"
+    return f, ""
+
+
+def _forbidden(body: str, where: str = "") -> list[str]:
+    return [f"{where}{what}: …{body[max(0, hit.start() - 40):hit.end() + 40].strip()}…"
+            for what, pat in SCRIPT_FORBIDDEN for hit in pat.finditer(body)]
+
+
+def script_writes(text: str, *, page: Path | None = None, root: Path | None = None,
+                  writers: dict[str, frozenset[str]] | None = None) -> list[str]:
     """Ways a page's scripts could put a figure on the page at view time.
 
     Owner, 2026-09-17: script-written figures had no provenance, no ledger row
-    and no arrow, and the number scanner could not see them. Every figure is now
-    rendered at build time; this is the guard that keeps it that way.
+    and no arrow, and the number scanner could not see them. Every figure is
+    rendered at build time; this is the guard that keeps it that way, with ONE
+    exception (decision 1, 2026-09-30): a module in ``writers`` (default
+    `LIVE_WRITERS`) may compute figures, and may put them only into the LIVE
+    regions it is listed for, reached by a literal ``[data-live="<name>"]``
+    selector.
+
+    Scanned: every inline ``<script>``, every ``<script src>`` the page loads
+    (resolved against ``page``, and against ``root`` when ``/``-rooted), and
+    every module those import statically, transitively. A reference that cannot
+    be read — remote, bare, outside ``root``, missing, or on a page given
+    without ``page``/``root`` — is itself a problem: a script nobody read is one
+    nobody can vouch for.
+
+    **Limits.** This is a lexical check over JavaScript, not an analysis of it.
+    It catches the ways a figure reaches a page by accident — a data block, a
+    fetch, an ``innerHTML``, a lookup outside the region — and each breach of
+    the writer contract has a visible spelling. A module written to evade a
+    regex can. Workers are not followed: a Worker cannot touch the page, and
+    the module that creates one is flagged unless it is a listed writer.
     """
-    out = []
-    for m in re.finditer(r"<script[^>]*>(.*?)</script>", text, re.S):
-        body = m.group(1)
-        for what, pat in SCRIPT_FORBIDDEN:
-            for hit in pat.finditer(body):
-                out.append(f"{what}: …{body[max(0, hit.start() - 40):hit.end() + 40].strip()}…")
+    writers = LIVE_WRITERS if writers is None else writers
+    out: list[str] = []
+    queue: list[Path] = []
+    for m in _SCRIPT_TAG.finditer(text):
+        src = _SRC.search(m.group(1))
+        if not src:
+            out += _forbidden(m.group(2))
+            continue
+        spec = next(g for g in src.groups() if g is not None)
+        if page is None or root is None:
+            out.append(f"a script the check was given no path to read: {spec}")
+            continue
+        f, why = _resolve(spec, page, root)
+        if f is None:
+            out.append(why)
+        else:
+            queue.append(f)
+    seen: set[Path] = set()
+    while queue:
+        f = queue.pop(0)
+        if f in seen:
+            continue
+        seen.add(f)
+        rel = f.relative_to(root.resolve()).as_posix()
+        body = f.read_text(encoding="utf-8")
+        if rel in writers:
+            out += [f"{rel} (LIVE writer): {w}"
+                    for w in _writer_problems(body, frozenset(writers[rel]))]
+        else:
+            out += _forbidden(body, f"{rel}: ")
+        for imp in _module_imports(body):
+            g, why = _resolve(imp, f, root)
+            if g is None:
+                out.append(f"{rel}: {why}")
+            else:
+                queue.append(g)
     return out
 
 
@@ -996,8 +1222,7 @@ def audit(text: str, *, allow=(), fixed=(), structural=(),
     numbers = [f"{h['value']!r}  …{h['context']}…"
                for h in scan_numbers(text, fixed=fixed, allow=allow,
                                      structural=structural)
-               if h["region"] == "prose" and h["kind"] in GATING
-               and h["status"] == "unreviewed"]
+               if is_blocking(h)]
     lowered = prose.lower()
     claims: list[str] = []
     for pattern in claim_patterns:

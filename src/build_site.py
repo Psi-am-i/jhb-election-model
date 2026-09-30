@@ -619,6 +619,48 @@ def audit_configs(registry: dict, ctx: dict) -> tuple[dict, dict]:
     return {**audit_cfg, "structural": structural}, scan_cfg
 
 
+#: The Content-Type of every non-HTML file the site serves, by extension.
+#:
+#: Pages are served as UTF-8 HTML by a blanket `/*` rule, because their URLs
+#: carry no extension (`/forecast`) — the sheet once shipped without a <head>
+#: and mojibake'd every em-dash (review of the deployed site, 2026-08-04). That
+#: rule also matched every other file, so `/draws/*.bin`, `/py/*.py` and any
+#: `.js` module were served as text/html and ES modules refused to run (blind
+#: review B1, 2026-09-30). Each extension below DETACHES the blanket type and
+#: sets its own.
+#:
+#: ⛔ ONE RULE PER EXTENSION, NEVER ONE PER DIRECTORY AS WELL. Cloudflare applies
+#: every matching rule and comma-joins a header two rules set, so `/draws/*`
+#: beside `/*.json` would serve `draws/index.json` as
+#: "application/octet-stream, application/json". `/draws/*`, `/py/*` and `/js/*`
+#: are covered by their files' extensions. A file whose extension is not here
+#: is served as HTML — `tests/test_site_headers.py` fails on one.
+CONTENT_TYPES = {
+    ".bin": "application/octet-stream",
+    ".json": "application/json; charset=utf-8",
+    ".py": "text/x-python; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+    ".mjs": "text/javascript; charset=utf-8",
+    ".wasm": "application/wasm",
+    ".css": "text/css; charset=utf-8",
+    ".txt": "text/plain; charset=utf-8",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".svg": "image/svg+xml",
+}
+
+
+def headers_text() -> str:
+    """The `_headers` file: HTML by default, each asset type by extension, and
+    the working copies (`/dev/`, `/drafts/`) reachable but never indexed."""
+    rules = ["/*\n  Content-Type: text/html; charset=utf-8\n"]
+    rules += [f"/*{ext}\n  ! Content-Type\n  Content-Type: {ctype}\n"
+              for ext, ctype in CONTENT_TYPES.items()]
+    rules += ["/dev/*\n  X-Robots-Tag: noindex, nofollow\n",
+              "/drafts/*\n  X-Robots-Tag: noindex, nofollow\n"]
+    return "".join(rules)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=Path("site"))
@@ -1004,7 +1046,9 @@ def main(argv: list[str] | None = None) -> int:
             print(statlib.audit_report(numbers, claims, limit=6))
     script_problems = [f"{page}: {w}" for page in sorted(scans)
                        if (args.out / page).is_file()
-                       for w in statlib.script_writes((args.out / page).read_text(encoding="utf-8"))]
+                       for w in statlib.script_writes(
+                           (args.out / page).read_text(encoding="utf-8"),
+                           page=args.out / page, root=args.out)]
     if script_problems:
         print("\nPAGE SCRIPT WRITES FIGURES — refusing to build: every figure must be "
               "rendered at build time as a token, where it has provenance, a ledger "
@@ -1041,7 +1085,7 @@ def main(argv: list[str] | None = None) -> int:
         for h in hits:
             if h["status"] != "unreviewed":
                 continue
-            gate = h["region"] == "prose" and h["kind"] in statlib.GATING
+            gate = statlib.is_blocking(h)
             blocking += gate
             ctx = h["context"].replace("|", "\\|")
             lines.append(f"| {'BLOCKS' if gate else 'review'} | {h['kind']} | "
@@ -1312,17 +1356,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print("  (dry run — pass --publish to append these to the ledger)")
 
-    # Serve everything as UTF-8 regardless of meta tags — the sheet originally
-    # shipped without a <head> and mojibake'd every em-dash (review of the
-    # deployed site, 2026-08-04). All assets here are HTML, so a blanket
-    # header is safe; revisit if non-HTML assets are ever added.
-    (args.out / "_headers").write_text(
-        "/*\n  Content-Type: text/html; charset=utf-8\n"
-        "/share.jpg\n  ! Content-Type\n  Content-Type: image/jpeg\n"
-        # working copies: reachable for review, never indexed
-        "/dev/*\n  X-Robots-Tag: noindex, nofollow\n"
-        "/drafts/*\n  X-Robots-Tag: noindex, nofollow\n",
-        encoding="utf-8")
+    (args.out / "_headers").write_text(headers_text(), encoding="utf-8")
     (args.out / "robots.txt").write_text(
         "# The published pages are meant to be indexed. Working copies are\n"
         "# not: /dev/ is the pre-release build and /drafts/ holds\n"
