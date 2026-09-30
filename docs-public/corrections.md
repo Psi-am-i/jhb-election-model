@@ -6,6 +6,31 @@ updates appear beside the original as a dated "what the model says now" box.
 
 Nothing is removed from this list.
 
+## 30 September 2026 — a claim's title said something its test did not
+
+<span data-asof="2026-09-30">**What was wrong.** One tested claim was titled *"A
+government can be formed without the EFF or MK"* and given the verdict "a coin
+flip". The test behind the verdict was narrower: whether a council without the
+ANC, the EFF and MK reaches a majority. Almost every simulation has some
+majority without the EFF and MK, so the title and the verdict disagreed.
+
+**What changed.** The title now says what was tested: *"The DA can govern
+without the ANC, the EFF or MK"*. The verdict and its figures are unchanged.
+The quote it tests is now dated 13 September, the date of its cited report;
+it was shown as 11 September.</span>
+
+## 30 September 2026 — publication dates on the tested claims
+
+<span data-asof="2026-09-30">**What was wrong.** Three tested claims were
+labelled as published on 18 September, and one on 7 August. The deploy record
+shows no publication on 18 September: those three first reached readers on 26
+September, and the other on 8 August. It is the same class of error as the
+27 September correction below.
+
+**What changed.** Each claim's published date is now taken from the
+publication ledger. The dates beside the claims on the home page are the dates
+of the quotes, and now say so.</span>
+
 ## 30 September 2026 — "the most reliable majority" left out a word
 
 <span data-asof="2026-09-30">**What was wrong.** The claim *"A government can be

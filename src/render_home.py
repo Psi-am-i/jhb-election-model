@@ -244,9 +244,12 @@ def _claims(city_dir: Path) -> str:
     out = []
     for c in items:
         when = c.get("captured", "")
+        # The date of the QUOTE, and labelled so: it is not when we published
+        # the test (fault-finder review 2026-09-30; that is the claim box's
+        # `published`, from the ledger).
         out.append(
             f'    <div class="item" data-asof="{when}">\n'
-            f'      <div class="when">{_pretty(when)}</div>\n'
+            f'      <div class="when">said {_pretty(when)}</div>\n'
             f'      <div>\n'
             f'        <div class="t"><a href="forecast#claims">'
             f'{html.escape(c.get("label") or c.get("tests") or c.get("quote", "")[:90])}</a></div>\n'

@@ -579,11 +579,11 @@ reviewed = "2026-09-26"
 page = "index.html, forecast.html"
 
 [[audit.fixed]]
-value = "31"
-context = "the ANC in — a near tie, where on 31 August the DA led clearly. A sing"
+value = "8"
+context = "the ANC in — a near tie, where on 8 August the DA led clearly. A sing"
 kind = "history"
-source = "the date of the published edition this piece is compared against"
-reviewed = "2026-09-17"
+source = "the date of the published edition this piece is compared against (the 8 August deploy; /corrections, 27 September)"
+reviewed = "2026-09-30"
 page = "index.html"
 
 [[audit.fixed]]

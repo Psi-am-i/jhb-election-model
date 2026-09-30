@@ -292,7 +292,7 @@ NAV_CSS = """<style>
 OG_META = """<meta property="og:site_name" content="Johannesburg 2026 Election Model">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Who governs Johannesburg after 4 November 2026?">
-<meta property="og:description" content="5,000 simulations of the November vote. Nobody wins — and an obscure clause of the seat law hands the shrinking ANC an unbreakable floor. Explore every ward, every coalition, every assumption.">
+<meta property="og:description" content="5,000 simulations of the November vote: who could govern Johannesburg, how the seat law shapes the council, and how sure the model is. Explore every ward, every coalition, every assumption.">
 <meta property="og:url" content="https://joburg.whysoserious.city/">
 <link rel="canonical" href="https://joburg.whysoserious.city/">
 <meta property="og:image" content="https://joburg.whysoserious.city/share.jpg">
@@ -687,6 +687,9 @@ def main(argv: list[str] | None = None) -> int:
                              "so the end-to-end build can be exercised against "
                              "a throwaway ledger — the real one is append-only "
                              "and a test must never be able to write to it.")
+    parser.add_argument("--with-play", action="store_true",
+                        help="also build /play/ (off until site/draws ships; "
+                             "see site/.assetsignore)")
     parser.add_argument("--publish", action="store_true",
                         help="APPEND this build's figures to the publication "
                              "ledger. Without it the build reports what moved "
@@ -784,7 +787,10 @@ def main(argv: list[str] | None = None) -> int:
     # reads. Its scripts are held to the LIVE-writer contract below, with every
     # other page's (`statlib.script_writes`). The page runs on Johannesburg's
     # draws (site/draws/), so no other city's build writes it.
-    if cityconfig.active().slug == "joburg":
+    # OPT-IN until the draws ship (fault-finder review 2026-09-30): site/draws
+    # is in site/.assetsignore, so a /play/ built now would deploy without its
+    # data. `--with-play` builds it; the default build does not.
+    if cityconfig.active().slug == "joburg" and args.with_play:
         import build_play
         written = build_play.write_assets(args.out)
         html = build_play.assemble(theme_head=THEME_HEAD, nav=nav_for(""), footer=FOOTER,

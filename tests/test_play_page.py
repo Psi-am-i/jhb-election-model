@@ -44,12 +44,12 @@ STAMP = re.compile(r"<!-- built-pages: (.*?) blocking=(\d+) -->")
 _BUILT: dict = {}
 
 
-def _build(out: Path) -> tuple[int | str | None, str]:
+def _build(out: Path, *extra: str) -> tuple[int | str | None, str]:
     buf = io.StringIO()
     code: int | str | None = 0
     try:
         with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
-            code = build_site.main(["--out", str(out)])
+            code = build_site.main(["--out", str(out), "--with-play", *extra])
     except SystemExit as exc:
         code = exc.code
     return code, buf.getvalue()
@@ -214,6 +214,25 @@ def test_the_build_itself_blocks_an_unlisted_writer_and_a_typed_live_digit():
         code, log = _build(Path(t) / "c")
         assert code in (0, None), log[-2000:]
         assert _stamp(Path(t) / "c")[1] == 0
+
+
+def test_the_default_build_writes_no_play_page():
+    """Until the draws ship (site/.assetsignore), /play/ is opt-in: a build
+    without `--with-play` writes no play/ directory, so a deploy cannot carry a
+    page whose data is excluded. It can see: the opt-in build does write it."""
+    import tempfile
+    if not (ROOT / "data" / "processed" / "forecast_summary.json").is_file():
+        skip("data/processed/forecast_summary.json is absent")
+    with tempfile.TemporaryDirectory() as d:
+        out = Path(d) / "site"
+        buf = io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+                build_site.main(["--out", str(out)])
+        except SystemExit:
+            pass
+        assert not (out / "play").exists(), "the default build wrote /play/"
+    assert (_built() / "play" / "index.html").is_file(), "the opt-in build wrote no /play/"
 
 
 if __name__ == "__main__":
