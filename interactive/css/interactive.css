@@ -359,3 +359,15 @@ footer.sitefooter a{color:var(--ink-3);}
 .published{display:block;margin:8px 0;}
 #pubpanels{margin-top:22px;}
 [data-group].greyed{opacity:.45;}
+
+/* "Play with the model": the published panels and the computed seats swap on
+   the seats region's data-touched attribute, which js/model.js sets. CSS, not
+   script, because the published panels hold build-time tokens and so cannot be
+   LIVE regions a writer may reach (stats.script_writes). */
+.pubnote{display:none;}
+body:has([data-live="seats"][data-touched]) .pubnote{display:block;}
+body:has([data-live="seats"][data-touched]) .pubseats{display:none;}
+[data-live="seats"][data-touched] .seatsempty{display:none;}
+.seatstab .se{font-size:11px;color:var(--ink-3);font-weight:400;margin-left:3px;}
+.mobilesum .sumrow{display:contents;}
+.mobilesum .livelabel{flex-basis:100%;margin:0;}

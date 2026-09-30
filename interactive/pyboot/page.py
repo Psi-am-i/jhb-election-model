@@ -88,11 +88,6 @@ def figure(values, weights, q: float, *, poll: bool) -> dict:
     return R.figure(values, weights, q, poll=poll)
 
 
-def sampling_se(values, weights, q: float) -> float:
-    """``reweight.sampling_se``, in seats (F2)."""
-    return float(R.sampling_se(values, weights, q))
-
-
 def model_version(manifest: dict) -> str:
     """The model-only code hash (Lane E), the page's ``model_version``."""
     return str(manifest["artefact_key"]["model_sha256"])
@@ -150,23 +145,37 @@ def _weights(cell: dict, settings: dict) -> tuple[np.ndarray, dict]:
     return w, info
 
 
-def _seats(cell: dict, law: str, w: np.ndarray, poll: bool) -> dict:
-    """Median and 90% range of every party that wins a seat in any draw, under ``w``."""
+#: The quantiles the seat table shows for each party: its range ends and middle.
+SHOWN_QUANTILES = {"p5": 0.05, "median": 0.5, "p95": 0.95}
+
+
+def _seats(cell: dict, law: str, w: np.ndarray, poll: bool) -> tuple[dict, list, bool]:
+    """Median and 90% range of every party that wins a seat in any draw, under ``w``.
+
+    Also returns the parties the page SHOWS (a middle or an upper end above
+    zero, or a figure withheld, so a withheld row is shown as withheld rather
+    than dropped) and whether every figure it shows passes the precision rule
+    (``reweight.within_precision``, DESIGN-decided §15): the page stops a
+    control at the last setting for which this was true. Deciding here which
+    rows are shown keeps the rule and the rows it covers in one place.
+    """
     block = cell["arrays"][f"seats/{law}"]
     cols = next(b for b in cell["manifest"]["blocks"]
                 if b["name"] == f"seats/{law}")["columns"]
-    out = {}
+    out, values = {}, {}
     for j, party in enumerate(cols):
         v = block[:, j].astype(float)
         if party == "OTHER" or not v.max() > 0:
             continue
-        out[party] = {
-            "p5": figure(v, w, 0.05, poll=poll),
-            "median": figure(v, w, 0.5, poll=poll),
-            "p95": figure(v, w, 0.95, poll=poll),
-            "median_se": sampling_se(v, w, 0.5),
-        }
-    return out
+        values[party] = v
+        out[party] = {k: figure(v, w, q, poll=poll) for k, q in SHOWN_QUANTILES.items()}
+        out[party]["median_se"] = out[party]["median"]["sampling_se"]
+    shown = [p for p, f in out.items()
+             if any(f[k]["withheld"] for k in SHOWN_QUANTILES)
+             or f["median"]["value"] > 0 or f["p95"]["value"] > 0]
+    precise = R.within_precision(
+        {f"{p}.{k}": (values[p], q) for p in shown for k, q in SHOWN_QUANTILES.items()}, w)
+    return out, shown, precise
 
 
 def _one(path: str, settings: dict) -> dict:
@@ -180,12 +189,19 @@ def _one(path: str, settings: dict) -> dict:
     except R.Refused as exc:
         return {"cell": path, "refused": str(exc)}
     council = cell["arrays"][f"council/{law}"]
+    seats, shown, precise = _seats(cell, law, w, info["poll"] is not None)
+    centres = cell["manifest"].get("centres") or {}
     out = {"cell": path, "law": law, "refused": None,
            "draws": int(cell["manifest"]["draws"]), "effective_draws": ess,
-           "seats": _seats(cell, law, w, info["poll"] is not None),
+           "seats": seats, "shown": shown, "within_precision": precise,
+           "max_figure_se": R.MAX_FIGURE_SE_SEATS,
            "majority": R.weighted_quantile(council[:, 0], w, 0.5),
            "council": R.weighted_quantile(council[:, 1], w, 0.5),
-           "centres": cell["manifest"].get("centres"),
+           # the model's deterministic LEVELS (run_model's centres after the
+           # shrink), not shares: they do not sum to one, and the page compares
+           # them only cell against cell (review F20, DESIGN-decided §11)
+           "centres": centres.get("values"),
+           "centres_source": centres.get("source"),
            "model_version": model_version(cell["manifest"]), **info}
     if "combined_share" in cell["arrays"]:
         cols = next(b for b in cell["manifest"]["blocks"]

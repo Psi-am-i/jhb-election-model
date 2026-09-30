@@ -776,6 +776,30 @@ def main(argv: list[str] | None = None) -> int:
         html = statlib.inject_stat_css(html)
         (args.out / output).write_text(html, encoding="utf-8")
         print(f"  nav+copy {source:<28s} -> site/{output}")
+
+    # --- "play with the model" (/play/), Johannesburg's only ----------------
+    # Assembled by build_play from interactive/model.html, then rendered,
+    # audited and scanned HERE exactly like the pages above, so its first
+    # paint is ledgered tokens and it enters the review stamp deploy_check
+    # reads. Its scripts are held to the LIVE-writer contract below, with every
+    # other page's (`statlib.script_writes`). The page runs on Johannesburg's
+    # draws (site/draws/), so no other city's build writes it.
+    if cityconfig.active().slug == "joburg":
+        import build_play
+        written = build_play.write_assets(args.out)
+        html = build_play.assemble(theme_head=THEME_HEAD, nav=nav_for(""), footer=FOOTER,
+                                   stat_css=statlib.STAT_CSS, cut_markers=cut_spans)
+        seen = []
+        html, drift, unresolved = statlib.render(html, registry, ctx, record=seen)
+        published += [{**r, "page": build_play.PLAY_PAGE} for r in seen]
+        all_drift += drift
+        unresolved_all += [f"interactive/model.html: {u}" for u in unresolved]
+        audits[build_play.PLAY_PAGE] = statlib.audit(html, **audit_cfg)
+        scans[build_play.PLAY_PAGE] = statlib.scan_numbers(html, **scan_cfg)
+        html = statlib.inject_stat_css(html)
+        (args.out / build_play.PLAY_PAGE).write_text(html, encoding="utf-8")
+        print(f"  play     interactive/model.html       -> site/{build_play.PLAY_PAGE} "
+              f"(+{len(written)} files under site/{build_play.PLAY_DIR}/)")
     # EVERY PAGE THIS BUILD NO LONGER PRODUCES IS REMOVED, not just the one
     # somebody remembered. A single hard-coded `forecast.html` unlink stood here
     # for months while `plan.html` and, the moment the interactive was withheld,

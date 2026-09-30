@@ -7,8 +7,10 @@
 // injectable:
 //   loadPyodide(opts)   Pyodide's loader
 //   readText(rel)       text of a file relative to interactive/ ("py/x.py")
-//   readBytes(rel)      bytes of a file relative to the repository root
-//                       ("site/draws/base.bin"), as a Uint8Array
+//   readBytes(rel)      bytes of `${drawsDir}/<file>`, as a Uint8Array; the node
+//                       test reads from the repository root with the default
+//                       drawsDir ("site/draws/base.bin"), the Worker from the
+//                       draws directory itself with drawsDir "."
 //
 // The Python is the served copy in interactive/py/page/, written by
 // tools/sync_py.mjs; its manifest names the files and their hash, and a copy
@@ -101,6 +103,9 @@ export async function loadReweightEngine({ onStage = () => {}, loadPyodide, read
     return JSON.parse(computePy(JSON.stringify(settings)));
   }
 
-  return { compute, loadCell, cells, base, polls, pools, pageRef, times,
+  // The by-election evidence column (DESIGN-decided §11), selected at build
+  // time by export_draws --index from the model's own input file.
+  const byelection = (await index).byelection ?? null;
+  return { compute, loadCell, cells, base, polls, pools, pageRef, times, byelection,
            modelVersion: base.model_version };
 }

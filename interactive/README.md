@@ -6,7 +6,8 @@ joburg.whysoserious.city. **A prototype**: the builder's and shared page's
 figures are synthetic, and on a loopback host sign-in and saving are stubs that
 never leave the browser. "Play with the model" runs on the model's published
 draws (`site/draws/`) and computes every figure with `src/reweight.py` under
-Pyodide in a Web Worker (below). Seats
+Pyodide in a Web Worker (below); `build_site.py` builds it into the site as
+`/play/` (`src/build_play.py`, "Play with the model, built" below). Seats
 on the builder and the shared page come from the project's own seat code
 (`src/reader_seats.py` and its imports) running under Pyodide, from a served
 copy in `py/`. Nothing under `site/` or `src/` is touched at run time.
@@ -57,6 +58,30 @@ Screenshots at 375 px and 1440 px are in `screenshots/`.
 
 To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 
+## Play with the model, built
+
+`build_site.py` builds the page into the site on every Johannesburg build
+(`src/build_play.py` assembles it; `build_site` renders, audits, scans and
+stamps it like every other page). Served layout, under the site root:
+
+| path | what |
+|---|---|
+| `play/index.html` | `model.html` with the site's `THEME_HEAD`, nav and footer, and the published forecast's TILES, SEATS, GOVERN, MAP and CLAIMS panels cut from `forecast-sheet.html` as `{{tokens}}` in two declarative shadow roots: first paint is ledgered tokens, no script |
+| `play/js/` | `model.js` (the LIVE writer), `play-state.js`, `model-worker.js` (its one draws line rewritten to `../../draws/`), `reweight-engine.js` |
+| `play/css/interactive.css`, `play/pyboot/page.py` | copies |
+| `play/py/manifest.json`, `play/py/page/` | the page's Python, copied by `tools/sync_py.mjs`, which the build runs |
+| `play/parties.json` | party names and colours |
+| `draws/` | the published draws (`export_draws`), already under `site/` |
+
+The number gate holds it: every figure a reader's settings produce is written
+by `play/js/model.js` alone, into `data-live` regions that hold no digit at
+build time and carry the label "computed in your browser from your settings";
+`stats.script_writes` refuses the build otherwise
+(`tests/test_play_page.py`). Opened from the repository as the prototype, the
+page shows no published panels (they exist only once built): build into a
+scratch directory, copy `site/draws/` and `site/logos/` beside it, and serve
+that directory to see the page as it ships.
+
 ## Files
 
 | path | what |
@@ -67,10 +92,9 @@ To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 | `tools/sync_py.mjs`, `py/` | the served copy of the seat code (gitignored; written by the tool) |
 | `js/api.js` | the one backend door: the stub on loopback hosts, the Worker API elsewhere (`?api=stub` / `?api=live` override) |
 | `tests/` | `node --test`: random builder edits against `validate.js` and the seat law; `/api/me` mapping |
-| `model.html`, `js/model.js` | play with the model: controls, share URL, and the ONE module that writes figures, only into `data-live` regions |
+| `model.html`, `js/model.js` | play with the model: the page's one source (the build cuts its `__DEVONLY__` spans and fills its `__PLAY…__` / `__PUBLISHED:…__` markers), and the ONE module that writes figures, only into `data-live` regions (`stats.LIVE_WRITERS["play/js/model.js"]`) |
 | `js/model-worker.js`, `js/reweight-engine.js`, `pyboot/page.py` | the Web Worker, the engine loader (injectable, also run by the node test), and the Python entry that routes settings to `src/reweight.py` |
 | `js/play-state.js` | the reader's settings, their bounds and the URL form (F16); pure |
-| `js/published.js` | ⛔ PROTOTYPE SHIM: first paint shows the published page's own TILES/SEATS/GOVERN/CLAIMS/MAP regions; `build_site` replaces it |
 | `tools/native_play.py`, `tests/native-play.json`, `tests/play-settings.json` | the native side of the native-vs-Pyodide harness (F19), its stored output, and the settings both sides compute; `--measure` reports what `page.py` imports and opens |
 | `f/index.html`, `js/f.js` | the shared forecast page, `/f/<id>` in production |
 | `js/map.js` | the ward map (geographic and equal-sized), painting, keyboard |
@@ -90,9 +114,7 @@ To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 | stub | stands in for | the real thing |
 |---|---|---|
 | `fixtures/placeholder-model.json` | the model's roster, most likely ward winners, combined vote shares, the combined total they scale to, and published seats | the S2 export (`site/draws/base.bin` + manifest, PLAN.md) and the certified roster in IEC ballot order |
-| `js/published.js` | the published forecast's panels on first paint | `build_site` rendering the ledgered tokens into the page |
-| roster names and colours on the model page (`placeholder-model.json`, and the code spaced out for other parties) | the roster | Lane E's manifest |
-| by-election evidence read from `data/processed/byelection_party_deltas.csv` | the evidence column (DESIGN-decided §11) | a served copy, from the export or `build_site` |
+| roster names and colours on the unbuilt model page (`placeholder-model.json`, and the code spaced out for other parties) | the roster | served: `play/parties.json`, written by `build_play.py` from `render_sheet.NAMES`/`CHIPS` and `parties.display_name` |
 | the ADAPTER block in `pyboot/page.py` | Lane R's `page_polls`, `poll_trust_sd`, `poll_weights(trust=)`, `turnout_tilt(pin_to=)`, `figure()["withheld"]`, `sampling_se`, and Lane E's `model_sha256` | delete the block's fallbacks at merge |
 | `js/api-stub.js` (loopback hosts only) | the Worker API and OAuth | `worker-api/`, reached through `js/api.js` on any other host |
 | `fixtures/geometry.json` sectors | the S5 ward-to-sector file | S5 |
@@ -137,8 +159,11 @@ committed. S5 should commit its code and be the one source.
    `manifest.json` + `base.bin` is fetched when first chosen. Until a control
    moves the page shows the published panels and runs no figure; once one
    moves, the seat table is computed and every published panel says it is of
-   the published forecast. Below the floor the last-moved control greys and
-   no figure is shown; a figure `figure()` withholds shows "withheld".
+   the published forecast. Every figure shows its ± seats (`figure()`'s
+   `sampling_se`); a move that would take any figure the page shows past
+   `reweight.MAX_FIGURE_SE_SEATS` (`within_precision`, via `pyboot/page.py`)
+   or below the effective-draw floor stops: the control returns to the last
+   setting that passed and greys. A link opened past it shows "withheld".
 3. **The trust-slider mapping** is the owner's (SPEC-v2 decision 2): trust t
    gives the poll error `poll_sd / t`, so 100 is the poll's own sampling error
    and 0 is no weight.

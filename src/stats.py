@@ -239,7 +239,14 @@ LIVE_NAME = re.compile(r"^[a-z][a-z0-9-]*$")
 #: each may write into. Keyed by the module's path under the site root, as
 #: served (``"play/js/live.js"``); the value is the set of ``data-live`` names.
 #: A module not listed here may write no figure anywhere.
-LIVE_WRITERS: dict[str, frozenset[str]] = {}
+LIVE_WRITERS: dict[str, frozenset[str]] = {
+    # "Play with the model" (src/build_play.py, from interactive/js/model.js):
+    # the controls it builds and every figure a reader's settings produce.
+    "play/js/model.js": frozenset({
+        "engine", "turnout", "polls", "trust", "poll-average", "cells",
+        "byelection", "law", "effective-draws", "seats", "actions", "summary",
+    }),
+}
 
 
 def _live_scan(text: str) -> tuple[list[tuple[int, int, str]], list[str]]:
