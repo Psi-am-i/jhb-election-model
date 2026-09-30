@@ -1,0 +1,39 @@
+  rendered docs-public/corrections.md   -> site/corrections.html
+  rendered docs-public/methodology.md   -> site/methodology.html
+  rendered docs-public/about-the-model.md -> site/about.html
+  rendered docs-public/review.md        -> site/review.html
+  rendered docs-public/sources.md       -> site/sources.html
+  nav+copy home.html                    -> site/index.html
+  nav+copy forecast-sheet.html          -> site/forecast.html
+  nav+copy forecast-sheet.html          -> site/nobody-will-win.html
+
+stats: 25 free tokens resolved live · 33 pinned
+  no drift among the pinned stats that CAN be drift-checked
+  (33 pinned token(s) carry an `unverifiable` declaration and are therefore unchecked rather than checked-and-fine)
+portal: 8 cities (1 live) -> site/portal.html
+
+generated pages, exempt from the typed-figure audit because every number in them comes from a recorded run: about.html, portal.html
+
+sourcing audit: 0 unsourced figure(s), 0 unsourced claim(s) across 7 page(s)
+number review: 0 blocking, 3965 scanned -> /Users/simondavis/projects/atlas-jhb-election-model/content/joburg/NUMBERS-REVIEW.md
+  wrote    regimes.json (4 seat law(s))
+  arrows: 136 figure(s) marked as moved since the last publication
+
+publication ledger (joburg): 319 token(s) on the page · 2 published for the first time · 132 visibly changed · 48 moved below the displayed precision
+  material  anc_ward_median              61 -> 60
+  material  backtest_seat_err_model      294 -> 297
+  material  ballots.p_anc_excessive      65% -> 62%
+  material  ballots.typical.anc_wards    75 -> 69
+  material  ballots.typical.draw         1764 -> 1622
+  material  claim.anc.median             67 -> 66
+  material  claim.anc_alone.best         128 -> 144
+  material  claim.anc_alone.count        0 -> 1
+  new       claim.anc_alone.share        — -> under 0.1%
+  material  claim.da_alone.count         1 -> 3
+  material  claim.da_alone.share         under 0.1% -> 0.1%
+  material  claim.da_alone.wall_anc_low  34 -> 21
+  … and 122 more
+  wrote    site/changes.json (the reader-facing 'what changed')
+  appended 319 row(s) to /Users/simondavis/projects/atlas-jhb-election-model/publications/joburg/ledger.jsonl as run r-c68c627d287e-0e0abf3b-dirty
+  wrote    _headers + robots.txt (utf-8; /dev and /drafts noindex)
+site: 9 pages, 850 KB total
