@@ -182,7 +182,7 @@ def test_a_typed_digit_in_a_live_region_blocks_and_an_empty_one_does_not():
 
 def test_nothing_clears_a_digit_inside_a_live_region():
     fixed = [{"value": "41", "context": "you get 41"}]
-    token = ('<span class="mstat" data-mode="free" data-token="x" data-live="55%"'
+    token = ('<span class="mstat" data-mode="free" data-token="x" data-current="55%"'
              ' data-prov="Source: x">55%</span>')
     for inner, kw in (("You get 41", {"fixed": fixed}),
                       ("270 seats", {"structural": ["270"]}),

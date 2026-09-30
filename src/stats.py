@@ -225,10 +225,10 @@ def _dated_scan(text: str) -> tuple[list[tuple[int, int, str]], list[str]]:
 # where the page says the reader's browser computes. Only a module listed in
 # `LIVE_WRITERS` may write into one (`script_writes`).
 #
-# ⚠️ `data-live` ALSO APPEARS ON EVERY PINNED TOKEN SPAN, meaning something
-# else: `_span` writes the current model value there. An element carrying
-# `data-token` is therefore a token and never a LIVE region. Nothing reads the
-# token's attribute; renaming it would remove the overload.
+# A pinned token span used to carry `data-live="<current value>"` as well;
+# it is `data-current` since 2026-09-30, so the overload is gone. Pages built
+# before then still carry the old attribute, so an element with `data-token`
+# is still never treated as a LIVE region.
 #
 # Deliberately NOT a `GENERATED_MARKERS` entry: a generated region is scanned
 # and its figures listed as script-made; a LIVE region must be EMPTY of figures.
@@ -624,7 +624,9 @@ def _span(text: str, entry: dict, name: str, live_str: str | None) -> str:
     # the tip goes into an attribute: escape before anything else can break out
     tip = (tip.replace("&", "&amp;").replace("<", "&lt;")
               .replace(">", "&gt;").replace('"', "&quot;"))
-    live_attr = f' data-live="{live_str}"' if live_str is not None else ""
+    # `data-current`, not `data-live` (renamed 2026-09-30): `data-live` now
+    # marks a LIVE region, and one attribute may not mean two things.
+    live_attr = f' data-current="{live_str}"' if live_str is not None else ""
     # `data-prov`, not `title`: a browser shows a title tooltip late or not at
     # all, and the owner saw none (2026-09-17). STAT_CSS draws it as a hover box.
     return (f'<span class="mstat" data-mode="{mode}" data-token="{name}"'
