@@ -269,10 +269,12 @@ THEME_HEAD = THEME_HEAD.replace("__LIGHT__", _LIGHT_VARS)
 # cookieless, no consent banner, no Google tag). What readers are told about it
 # is docs-public/privacy.md; change the two together.
 #
-# ⛔ THE TOKEN GATES THE POLICY PAGES. While it is empty the build emits no
-# beacon AND publishes neither /privacy nor /support, nor the footer line that
-# links them (`docs_for`, `footer_for`): a privacy page describing a beacon the
-# site does not carry is false. Set the token and both pages appear.
+# ⛔ THE TOKEN GATES THE BEACON AND ITS PARAGRAPH, NOT THE PAGES. /privacy and
+# /support are always published, with the footer line that links them. While
+# the token is empty the build emits no beacon, and `render_doc` keeps
+# privacy.md's `<!-- no-analytics -->` block and drops its `<!-- analytics -->`
+# block (`analytics_blocks`); with a token it does the reverse. A privacy page
+# describing a beacon the site does not carry is false.
 #
 # SETUP (manual snippet, the only mode this site uses). In the Cloudflare
 # dashboard:
@@ -353,18 +355,19 @@ OG_META = """<meta property="og:site_name" content="Johannesburg 2026 Election M
 SITE_URL = "https://joburg.whysoserious.city"
 
 
-def footer_for(token: str | None = None) -> str:
-    """The site footer. The support/privacy line appears only with the pages
-    it links, i.e. only when the analytics token is set (`docs_for`). Its links
-    are absolute: the footer is also carried by /play/ and the portal, where a
-    relative `support` resolves somewhere else."""
-    token = CF_WEB_ANALYTICS_TOKEN if token is None else token
-    policies = (f'\n  <div><a href="{SITE_URL}/support">support this site</a> · '
-                f'<a href="{SITE_URL}/privacy">privacy</a></div>'
-                if token.strip() else "")
+#: Where the raw results the model starts from can be downloaded.
+IEC_RESULTS_URL = "https://results.elections.org.za/"
+
+
+def footer_for() -> str:
+    """The site footer. Its links are absolute: the footer is also carried by
+    /play/ and the portal, where a relative `support` resolves somewhere else.
+    The licence wording matches LICENSE (code, MIT) and LICENSE-CONTENT (site
+    text, charts and published figures, CC BY 4.0)."""
     return f"""<footer class="sitefooter">
-  <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
-  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">source &amp; data on GitHub</a></div>{policies}
+  <div>Johannesburg · 2026 Local Government Election Model · Site text, charts and figures: <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, free to reuse with attribution and a link back.</div>
+  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">code on GitHub</a> (MIT licence) · raw results from the <a href="{IEC_RESULTS_URL}">IEC</a></div>
+  <div><a href="{SITE_URL}/support">support this site</a> · <a href="{SITE_URL}/privacy">privacy</a></div>
 </footer>"""
 
 
@@ -454,9 +457,8 @@ MODEL_DOCS = {
 # says what the page is instead of pointing at one. The fifth slot is the share
 # card's description (`shell(og=…)`), which carries no model figure.
 #
-# ⛔ PUBLISHED ONLY WHILE THE ANALYTICS TOKEN IS SET (`docs_for`). privacy.md
-# describes the Web Analytics beacon, and support.md is linked from the same
-# footer line; neither goes out describing a site that does not exist yet.
+# Always published. privacy.md's Web Analytics paragraph is conditional on the
+# token (`analytics_blocks`); the rest of the page is true either way.
 POLICY_DOCS = {
     "docs-public/support.md": (
         "support.html",
@@ -474,21 +476,44 @@ POLICY_DOCS = {
         "What this site measures about its readers, what it does not, and "
         "who handles it.",
         False,
-        "What the Johannesburg 2026 Election Model measures about its readers: "
-        "cookieless page counts, the short link a visitor arrived through, and "
-        "nothing sold.",
+        "What the Johannesburg 2026 Election Model records about its readers, "
+        "who is responsible for it, where it is processed, and the rights "
+        "readers have over it.",
     ),
 }
 
 
-def docs_for(token: str | None = None) -> dict:
-    """The rendered documents: the model's pages, plus the policy pages only
-    when the analytics token is set."""
-    token = CF_WEB_ANALYTICS_TOKEN if token is None else token
-    return {**MODEL_DOCS, **(POLICY_DOCS if token.strip() else {})}
+DOCS = {**MODEL_DOCS, **POLICY_DOCS}
+
+_ANALYTICS_BLOCK = re.compile(
+    r"^<!-- (no-analytics|analytics) -->\n(.*?)^<!-- /\1 -->\n?", re.S | re.M)
 
 
-DOCS = docs_for()
+def analytics_blocks(text: str, token: str | None = None) -> str:
+    """Keep a document's `<!-- analytics -->` blocks when the Web Analytics
+    token is set and its `<!-- no-analytics -->` blocks when it is not; drop
+    the other kind and every marker."""
+    token = (CF_WEB_ANALYTICS_TOKEN if token is None else token).strip()
+    keep = "analytics" if token else "no-analytics"
+    return _ANALYTICS_BLOCK.sub(
+        lambda m: m.group(2) if m.group(1) == keep else "", text)
+
+
+# ⛔ THE PRIVACY PAGE NAMES A RESPONSIBLE PARTY, AND THE OWNER HAS NOT FILLED IT.
+# POPIA requires the responsible party's identity and address. Until the
+# `OWNER:` line in docs-public/privacy.md is replaced, `--publish` refuses
+# (`publish_blockers`); a build without --publish (UAT, tests) still runs.
+PRIVACY_SOURCE = REPO_ROOT / "docs-public" / "privacy.md"
+OWNER_PLACEHOLDER = re.compile(r"^OWNER:", re.M)
+
+
+def publish_blockers(text: str) -> list[str]:
+    """Why privacy.md's text may not be published, or [] when it may."""
+    if OWNER_PLACEHOLDER.search(text):
+        return ["docs-public/privacy.md still carries the `OWNER:` placeholder: "
+                "replace it with the responsible party's legal name and "
+                "physical address"]
+    return []
 
 # already-styled artefacts copied verbatim under stable public names
 # already-styled artefacts, nav-injected; the forecast IS the landing page
@@ -586,12 +611,15 @@ def shell(title: str, kicker: str, masthead: str, body: str, generated_note: str
 
 
 def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
-               tech: str | None | bool = None, og: str | None = None) -> str:
+               tech: str | None | bool = None, og: str | None = None,
+               token: str | None = None) -> str:
     """`tech` names the technical record on GitHub that a reader edition is
     drawn from; None derives it from the file name, False says there is none
     (a page about the site, not the model). `og` is the page's own share-card
-    description; None keeps the site-wide one."""
-    text = source.read_text(encoding="utf-8")
+    description; None keeps the site-wide one. `token` is the Web Analytics
+    token that picks the document's analytics blocks; None reads the
+    module's."""
+    text = analytics_blocks(source.read_text(encoding="utf-8"), token)
     lines = text.splitlines()
     # Skip any leading HTML comment and blank lines before taking the title.
     # A generated page opens with a "do not edit by hand" marker, and without
@@ -858,8 +886,19 @@ def main(argv: list[str] | None = None) -> int:
                              "than the reference run. Staging escape hatch "
                              "only — the number is live-looking prose fed by a "
                              "dead model, and nothing downstream can tell.")
+    parser.add_argument("--privacy-source", type=Path, default=None,
+                        help="the privacy page whose OWNER line gates "
+                             "--publish (default: docs-public/privacy.md). "
+                             "Exists so a test can reach the refusals after "
+                             "that one; the page rendered is always the real one.")
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    # Before anything is written anywhere, the ledger and --out included.
+    if args.publish:
+        privacy = args.privacy_source or PRIVACY_SOURCE
+        blockers = publish_blockers(privacy.read_text(encoding="utf-8"))
+        if blockers:
+            raise SystemExit("refusing to publish: " + "; ".join(blockers))
     cityconfig.use(getattr(args, "city", None))
     args.processed = args.processed or cityconfig.use_target(
         getattr(args, "target", None)).processed
@@ -1536,10 +1575,10 @@ def main(argv: list[str] | None = None) -> int:
         print("  (dry run — pass --publish to append these to the ledger)")
 
     (args.out / "_headers").write_text(headers_text(), encoding="utf-8")
+    # No comment in robots.txt: it is public, and a line describing /dev/
+    # tells every reader where the unreleased build is. The Disallow lines
+    # stay; /dev/ and /drafts/ duplicate live content.
     (args.out / "robots.txt").write_text(
-        "# The published pages are meant to be indexed. Working copies are\n"
-        "# not: /dev/ is the pre-release build and /drafts/ holds\n"
-        "# side-by-side rewrites, both of which duplicate live content.\n"
         "User-agent: *\n"
         "Disallow: /dev/\n"
         "Disallow: /drafts/\n"

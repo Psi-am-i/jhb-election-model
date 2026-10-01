@@ -385,24 +385,70 @@ def test_the_analytics_beacon_is_the_only_remote_script_a_page_may_load():
         assert _writes(tmp, page="index.html"), "an inline body rode on the beacon"
 
 
-def test_the_policy_pages_and_their_footer_line_need_the_analytics_token():
-    """privacy.md describes the Web Analytics beacon, so neither it, support.md
-    nor the footer line linking them is built while the token is empty
-    (lane review, 2026-10-01). Both states are checked, not just today's."""
+def test_the_policy_pages_ship_in_both_analytics_states():
+    """/privacy and /support, and the footer line linking them, are published
+    whether or not the Web Analytics token is set (final review, 2026-10-01).
+    Only privacy.md's Web Analytics paragraph, and the beacon, follow the
+    token. Both states are rendered, not just today's."""
     tok = "0123456789abcdef0123456789abcdef"
     policy = {"support.html", "privacy.html"}
-    off = {spec[0] for spec in build_site.docs_for("").values()}
-    on = {spec[0] for spec in build_site.docs_for(tok).values()}
-    assert not (off & policy) and policy <= on and on - off == policy
-    assert "privacy" not in build_site.footer_for("")
-    foot = build_site.footer_for(tok)
+    assert policy <= {spec[0] for spec in build_site.DOCS.values()}
+    foot = build_site.footer_for()
     for page in ("support", "privacy"):
         assert f'href="https://joburg.whysoserious.city/{page}"' in foot
-    # The module's own state is the function of its own token.
-    token = build_site.CF_WEB_ANALYTICS_TOKEN
-    assert build_site.DOCS == build_site.docs_for(token)
-    assert build_site.FOOTER == build_site.footer_for(token)
-    assert ("privacy.html" in {s[0] for s in build_site.DOCS.values()}) == bool(token.strip())
+    assert build_site.FOOTER == foot
+    root = Path(build_site.__file__).parents[1]
+    src = "docs-public/privacy.md"
+    output, kicker, standfirst, tech, og = build_site.POLICY_DOCS[src]
+    pages = {state: build_site.render_doc(root / src, kicker, standfirst, output,
+                                          tech, og, token=t)
+             for state, t in (("off", ""), ("on", tok))}
+    for state, html in pages.items():
+        assert "<!-- analytics" not in html and "<!-- /" not in html, state
+        assert "Workers Logs" in html and "Information Regulator" in html, state
+    assert "Cloudflare Web Analytics" in pages["on"]
+    assert "Cloudflare Web Analytics" not in pages["off"]
+    assert "no analytics script" in pages["off"]
+    assert "no analytics script" not in pages["on"]
+    assert build_site.analytics_head("") == "" and build_site.analytics_head(tok)
+
+
+def test_analytics_blocks_fires_and_quiets():
+    text = ("a\n<!-- analytics -->\nWITH\n<!-- /analytics -->\n"
+            "<!-- no-analytics -->\nWITHOUT\n<!-- /no-analytics -->\nb\n")
+    assert build_site.analytics_blocks(text, "x" * 32) == "a\nWITH\nb\n"
+    assert build_site.analytics_blocks(text, "") == "a\nWITHOUT\nb\n"
+    assert build_site.analytics_blocks("plain\n", "") == "plain\n"
+
+
+def test_publish_refuses_while_the_privacy_owner_placeholder_is_present():
+    """POPIA needs the responsible party's identity and address. `--publish`
+    refuses while privacy.md carries the `OWNER:` line, before writing
+    anything; a build without --publish is not stopped by it."""
+    import tempfile
+    filled = "## Who is responsible\n\nA. Person, 1 Some Street, Johannesburg.\n"
+    placeholder = "## Who is responsible\n\nOWNER: legal name and physical address\n"
+    assert build_site.publish_blockers(filled) == []
+    assert build_site.publish_blockers(placeholder)
+    # a mention of the word mid-line is not the placeholder
+    assert build_site.publish_blockers("The OWNER: line was filled.\n") == []
+    saved = build_site.PRIVACY_SOURCE
+    with tempfile.TemporaryDirectory() as t:
+        tmp = Path(t)
+        priv = tmp / "privacy.md"
+        priv.write_text(placeholder, encoding="utf-8")
+        out, ledger = tmp / "site", tmp / "ledger"
+        build_site.PRIVACY_SOURCE = priv
+        try:
+            build_site.main(["--publish", "--out", str(out),
+                             "--ledger-root", str(ledger)])
+        except SystemExit as exc:
+            assert "OWNER" in str(exc.code), exc.code
+        else:
+            raise AssertionError("--publish ran with the OWNER placeholder present")
+        finally:
+            build_site.PRIVACY_SOURCE = saved
+        assert not out.exists() and not ledger.exists(), "the refusal wrote something"
 
 
 def test_a_policy_page_carries_its_own_share_card_and_a_reader_note():

@@ -927,3 +927,12 @@ kind = "rule"
 source = "the site's funding policy (docs-public/support.md): sponsors are named with the amount band they gave"
 reviewed = "2026-10-01"
 page = "support.html"
+
+# The site-content licence's version, in the footer of every page. The name of
+# a licence, not a model figure; it changes only with LICENSE-CONTENT.
+[[audit.fixed]]
+value = "4.0"
+context = "CC BY 4.0"
+kind = "convention"
+source = "the licence the site's text, charts and figures are published under (LICENSE-CONTENT)"
+reviewed = "2026-10-01"

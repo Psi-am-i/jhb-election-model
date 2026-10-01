@@ -544,9 +544,15 @@ def _build(tmp, *extra):
     """Run the real build into a throwaway site and a throwaway ledger."""
     import subprocess
     root = Path(__file__).resolve().parents[1]
+    # privacy.md's OWNER placeholder is a separate refusal that runs first
+    # (test_number_scan covers it); a filled copy steps past it so the
+    # refusals below are the ones reached.
+    filled = tmp / "privacy-filled.md"
+    filled.write_text("# Privacy\n\nA. Person, 1 Some Street.\n", encoding="utf-8")
     return subprocess.run(
         [str(root / ".venv/bin/python"), str(root / "src/build_site.py"),
          "--out", str(tmp / "site"), "--ledger-root", str(tmp / "led"),
+         "--privacy-source", str(filled),
          # The tree's live orphaned claims and stale source file are a REAL and
          # separate refusal (§1.142). They stop the build before it ever
          # reaches the ledger, which is exactly why this test exists — and why

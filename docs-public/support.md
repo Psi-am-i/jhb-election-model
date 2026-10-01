@@ -9,9 +9,13 @@ This site exists to explain that system to voters and to forecast its result.
 
 It publishes the forecast together with everything behind it: the
 [method](methodology), the [sources](sources), the [review](review) that found
-the model's errors, and the [corrections](corrections). It is free to read, and
-free to redistribute with attribution and a link back. The code and data are
-public on [GitHub](https://github.com/Psi-am-i/jhb-election-model).
+the model's errors, and the [corrections](corrections). It is free to read. Its
+text, charts and published figures are licensed
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): reuse them with
+attribution and a link back. The model's code is on
+[GitHub](https://github.com/Psi-am-i/jhb-election-model) under the MIT licence.
+The raw election results it starts from can be downloaded from the
+[IEC](https://results.elections.org.za/).
 
 ## Who pays for it now
 
