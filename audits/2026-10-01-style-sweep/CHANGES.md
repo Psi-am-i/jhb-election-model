@@ -117,4 +117,9 @@ share").
   `test_published_page` fails as before (site/ is the UAT build).
 - `node --test interactive/tests/*.test.mjs`: 31 pass, 0 fail, 2 skipped
   (Pyodide not installed), as before.
-- The whole suite: see the commit message.
+- The whole suite (`tests/run_all.py`, 67 modules, after the last edit): four
+  failures. `test_published_page` (known; site/ is the UAT build). Three that
+  touch no file in this sweep: `test_model_index` (MODEL-INDEX.md lists
+  `reweight.MAX_FIGURE_SE_SEATS` under 2.0; the constant is 2.5 at HEAD),
+  `test_no_numeric_module_constant_is_a_default_argument` (`deploy_check.py:34`),
+  `test_pool_bounds::test_no_emitted_composition_weight_is_arithmetically_impossible`.
