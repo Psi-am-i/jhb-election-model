@@ -212,6 +212,7 @@
 <nav class="topnav">
   <a class="home" href="./">joburg.whysoserious.city</a>
   <a href="forecast">forecast</a>
+  <a href="play/">play with the model</a>
   <a href="about">the model</a>
   <a href="methodology">methodology</a>
   <a href="review">review</a>
@@ -257,6 +258,10 @@ channels bring readers.</p>
 holds those lines, with the metadata Cloudflare attaches to each one, and any
 error the site&rsquo;s server code raises. It is set not to keep a record of each
 request. It keeps every entry for at most seven days.</p>
+<p>The same count, the channel and the site&rsquo;s address for each arrival and nothing
+about the visitor, is also kept in Cloudflare&rsquo;s
+<a href="https://developers.cloudflare.com/analytics/analytics-engine/">Workers Analytics Engine</a>,
+which deletes it after three months.</p>
 <h2>Network error reports</h2>
 <p>Cloudflare&rsquo;s response headers <code>NEL</code> and <code>Report-To</code> ask your browser to report
 failed connections to the site, not successful ones, to Cloudflare&rsquo;s

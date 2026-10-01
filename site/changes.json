@@ -292,7 +292,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "67",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -307,7 +308,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "128",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -322,7 +324,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "0",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -337,7 +340,8 @@
       "mode": "generated",
       "movement": "new",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": null,
       "previous_published_at": null,
@@ -352,7 +356,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "47%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -367,7 +372,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "116",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -382,7 +388,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "12%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -397,7 +404,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "66",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -412,7 +420,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "1",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -427,7 +436,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "under 0.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -442,7 +452,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "34",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -457,7 +468,8 @@
       "mode": "generated",
       "movement": "new",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": null,
       "previous_published_at": null,
@@ -472,7 +484,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "1",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -487,7 +500,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "30",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -502,7 +516,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "47%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -517,7 +532,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "21",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -532,7 +548,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "50",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -547,7 +564,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "1.4%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -562,7 +580,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "57%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -577,7 +596,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "44%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -592,7 +612,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "59%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -607,7 +628,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "118",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -622,7 +644,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "144",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -637,7 +660,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "17%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -652,7 +676,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "53",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -667,7 +692,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "47",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -682,7 +708,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "50",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -697,7 +724,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "62",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -712,7 +740,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "97",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -727,7 +756,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "41",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -742,7 +772,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "524,000",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -757,7 +788,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "644,000",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -772,7 +804,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "75",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -787,7 +820,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "190,000",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -802,7 +836,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "917,000",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -817,7 +852,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "985,000",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -832,7 +868,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "1,290,000",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -847,7 +884,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "110",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -862,7 +900,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "39",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -877,7 +916,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "57",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -892,7 +932,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "15",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -907,7 +948,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "70%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -922,7 +964,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "151",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -937,7 +980,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "10%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -952,7 +996,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "1.0%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -967,7 +1012,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "16%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -982,7 +1028,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "23%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -997,7 +1044,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "30%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1012,7 +1060,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "17",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1027,7 +1076,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "68%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1042,7 +1092,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "153",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1057,7 +1108,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "11%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1072,7 +1124,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "1.0%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1087,7 +1140,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "21%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1102,7 +1156,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "28%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1117,7 +1172,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "31%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1132,7 +1188,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "7",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1147,7 +1204,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "21%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1162,7 +1220,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "143",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1177,7 +1236,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "5%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1192,7 +1252,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "0.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1207,7 +1268,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "3.2%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1222,7 +1284,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "6.4%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1237,7 +1300,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "7",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1252,7 +1316,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "16%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1267,7 +1332,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "143",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1282,7 +1348,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "5%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1297,7 +1364,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "under 0.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1312,7 +1380,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "3.4%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1327,7 +1396,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "8.4%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1342,7 +1412,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "15",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1357,7 +1428,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "64%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1372,7 +1444,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "151",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1387,7 +1460,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "10%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1402,7 +1476,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "0.6%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1417,7 +1492,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "15%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1432,7 +1508,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "30%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1447,7 +1524,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "25%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1462,7 +1540,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "7",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1477,7 +1556,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "19%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1492,7 +1572,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "143",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1507,7 +1588,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "5%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1522,7 +1604,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "under 0.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1537,7 +1620,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "3.0%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1552,7 +1636,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "6.9%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1567,7 +1652,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "6",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1582,7 +1668,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "12%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1597,7 +1684,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "142",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1612,7 +1700,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "4%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1627,7 +1716,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "0.2%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1642,7 +1732,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "4.7%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1657,7 +1748,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "5.9%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1672,7 +1764,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "13",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1687,7 +1780,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "60%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1702,7 +1796,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "149",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1717,7 +1812,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "9%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1732,7 +1828,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "0.7%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1747,7 +1844,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "17%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1762,7 +1860,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "23%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1777,7 +1876,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "19%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1792,7 +1892,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "6",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1807,7 +1908,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "14%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1822,7 +1924,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "142",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1837,7 +1940,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "4%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1852,7 +1956,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "0.3%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1867,7 +1972,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "4.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1882,7 +1988,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "4.8%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1897,7 +2004,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "6",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1912,7 +2020,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "10%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1927,7 +2036,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "142",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1942,7 +2052,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "4%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1957,7 +2068,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "under 0.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1972,7 +2084,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "5.8%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -1987,7 +2100,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "5.4%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2002,7 +2116,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "8",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2017,7 +2132,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "7.7%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2032,7 +2148,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "144",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2047,7 +2164,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "6%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2062,7 +2180,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "5.2%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2077,7 +2196,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "5.2%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2092,7 +2212,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "9.0%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2107,7 +2228,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "8.8%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2122,7 +2244,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "11",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2137,7 +2260,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "44%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2152,7 +2276,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "147",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2167,7 +2292,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "7%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2182,7 +2308,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "under 0.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2197,7 +2324,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "under 0.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2212,7 +2340,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "18",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2227,7 +2356,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "67%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2242,7 +2372,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "154",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2257,7 +2388,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "12%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2272,7 +2404,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "29%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2287,7 +2420,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "1.0%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2302,7 +2436,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "30%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2317,7 +2452,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "35%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2332,7 +2468,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "17",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2347,7 +2484,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "69%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2362,7 +2500,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "153",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2377,7 +2516,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "11%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2392,7 +2532,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "23%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2407,7 +2548,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "1.0%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2422,7 +2564,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "24%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2437,7 +2580,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "34%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2452,7 +2596,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "10",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2467,7 +2612,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "23%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2482,7 +2628,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "146",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2497,7 +2644,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "7%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2512,7 +2660,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "11%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2527,7 +2676,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "0.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2542,7 +2692,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "8.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2557,7 +2708,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "10",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2572,7 +2724,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "20%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2587,7 +2740,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "146",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2602,7 +2756,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "7%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2617,7 +2772,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "8.2%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2632,7 +2788,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "under 0.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2647,7 +2804,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "10%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2662,7 +2820,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "15",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2677,7 +2836,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "64%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2692,7 +2852,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "151",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2707,7 +2868,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "10%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2722,7 +2884,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "22%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2737,7 +2900,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "0.6%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2752,7 +2916,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "26%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2767,7 +2932,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "31%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2782,7 +2948,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "8",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2797,7 +2964,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "17%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2812,7 +2980,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "144",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2827,7 +2996,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "6%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2842,7 +3012,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "3.8%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2857,7 +3028,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "under 0.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2872,7 +3044,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "11%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2887,7 +3060,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "10",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2902,7 +3076,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "19%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2917,7 +3092,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "146",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2932,7 +3108,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "7%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2947,7 +3124,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "0.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2962,7 +3140,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "8.5%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2977,7 +3156,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "13%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -2992,7 +3172,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "16",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3007,7 +3188,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "58%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3022,7 +3204,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "152",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3037,7 +3220,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "11%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3052,7 +3236,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "0.7%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3067,7 +3252,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "24%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3082,7 +3268,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "28%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3097,7 +3284,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "33%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3112,7 +3300,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "10",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3127,7 +3316,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "16%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3142,7 +3332,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "146",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3157,7 +3348,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "7%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3172,7 +3364,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "0.2%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3187,7 +3380,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "4.0%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3202,7 +3396,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "15%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3217,7 +3412,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "8",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3232,7 +3428,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "14%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3247,7 +3444,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "144",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3262,7 +3460,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "6%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3277,7 +3476,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "under 0.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3292,7 +3492,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "4.6%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3307,7 +3508,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "12%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3324,7 +3526,8 @@
       "pages": [
         "methodology.html",
         "forecast.html",
-        "nobody-will-win.html"
+        "nobody-will-win.html",
+        "play/index.html"
       ],
       "previous": "270",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3341,7 +3544,8 @@
       "pages": [
         "review.html",
         "forecast.html",
-        "nobody-will-win.html"
+        "nobody-will-win.html",
+        "play/index.html"
       ],
       "previous": "23 September 2026",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3356,7 +3560,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "10",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3371,7 +3576,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "4",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3386,7 +3592,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "17%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3943,7 +4150,8 @@
       "pages": [
         "methodology.html",
         "forecast.html",
-        "nobody-will-win.html"
+        "nobody-will-win.html",
+        "play/index.html"
       ],
       "previous": "136",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4021,7 +4229,8 @@
         "methodology.html",
         "index.html",
         "forecast.html",
-        "nobody-will-win.html"
+        "nobody-will-win.html",
+        "play/index.html"
       ],
       "previous": "5,000",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4266,7 +4475,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "2",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4281,7 +4491,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "1",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4296,7 +4507,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "6",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4311,7 +4523,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "67",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4326,7 +4539,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "29",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4341,7 +4555,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "92",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4356,7 +4571,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "27",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4371,7 +4587,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "11",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4386,7 +4603,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "52",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4401,7 +4619,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "66",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4416,7 +4635,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "45",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4431,7 +4651,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "90",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4446,7 +4667,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "24",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4461,7 +4683,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "8",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4476,7 +4699,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "54",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4491,7 +4715,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "2",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4506,7 +4731,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "0",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4521,7 +4747,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "16",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4536,7 +4763,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "21",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4551,7 +4779,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "7",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4566,7 +4795,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "50",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4581,7 +4811,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "23",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4596,7 +4827,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "8",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4611,7 +4843,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "48",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4626,7 +4859,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "23",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4641,7 +4875,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "14",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4656,7 +4891,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "37",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4671,7 +4907,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "2",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4686,7 +4923,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "0",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4701,7 +4939,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "13",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4716,7 +4955,8 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "90%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4731,7 +4971,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "under 0.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4746,7 +4987,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "44%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4761,7 +5003,8 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "65%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4776,7 +5019,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "47%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4791,7 +5035,8 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "forecast.html",
+        "play/index.html"
       ],
       "previous": "47%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4808,9 +5053,9 @@
     "draws": 5000,
     "forecast_content_sha256": "c68c627d287e5e103ac0effbf1aaab9dbcffdb4d2945720ec43d771a9945efad",
     "forecast_summary_sha256": "97efecf5c70e0020412d801b20bce579c1f7e31e8f5bb8c3e0a8423106bc84bd",
-    "git_commit": "65decb500d9b974c30082db7ca59106b2271d395",
+    "git_commit": "df32c91f186f21de4a37647e0c14b433184d2fad",
     "git_dirty": true,
-    "model_run_id": "r-c68c627d287e-65decb50-dirty",
+    "model_run_id": "r-c68c627d287e-df32c91f-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
