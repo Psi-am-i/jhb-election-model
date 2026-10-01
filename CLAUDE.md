@@ -88,6 +88,9 @@ each time it was invoked.)*
 **`PUBLISHING-BACKLOG.md` is presentation and is never a reason to change a
 forecast.**
 
+**Every reader-facing word follows `STYLE.md`** (dry; every sentence informs;
+corrections say what was wrong and what changed, nothing else).
+
 ---
 
 ## 2. Documentation is part of the model
