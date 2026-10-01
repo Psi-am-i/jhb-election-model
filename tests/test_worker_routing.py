@@ -26,7 +26,8 @@ request. Detectors, each a function returning a list of problems:
                         status and headers through the noindex wrap.
 * `channel_problems`  — every channel path, in any case and with or without a
                         trailing slash, answers 302 to the home page, fetches
-                        nothing and writes exactly one arrival line.
+                        nothing and logs exactly one arrival object (an object,
+                        so Workers Logs indexes its keys as fields).
 * `config_problems`   — `wrangler.toml` states workers_dev, preview_urls and
                         [observability] where wrangler reads them.
 
@@ -103,7 +104,8 @@ for (const c of cases) {
     return new Response(hit ? "asset:" + u.pathname : "missing",
       { status: hit ? 200 : 404, headers: { "x-asset": u.pathname } });
   } } };
-  console.log = (...a) => logs.push(a.join(" "));
+  console.log = (...a) => logs.push(a.length === 1 && typeof a[0] === "object"
+    ? a[0] : { text: a.join(" ") });
   let res;
   try { res = await worker.fetch(new Request(c.url, { headers: c.headers || {} }), env); }
   finally { console.log = realLog; }
@@ -224,10 +226,7 @@ def channel_problems(src: str) -> list[str]:
             out.append(f"{r['url']}: {r['status']} {h.get('location')!r} "
                        f"fetched {r['fetched']}")
         want = {"event": "arrival", "channel": name, "host": host}
-        try:
-            logged = [json.loads(x) for x in r["logs"]]
-        except ValueError:
-            logged = r["logs"]
+        logged = r["logs"]  # each a logged object; a string arrives as {"text": ...}
         if logged != [want]:
             out.append(f"{r['url']}: logged {r['logs']}, want [{want}]")
         if preview != (h.get("x-robots-tag") == NOINDEX):
@@ -321,7 +320,9 @@ def test_channel_check_fires_on_each_constructed_violation():
     for a, b in (('["go", "billboard"]', '["go", "dooh"]'),
                  ("path.toLowerCase()", "path"),
                  ("status: 302", "status: 301"),
-                 ("  console.log(JSON.stringify({ event: \"arrival\", channel, host }));\n", ""),
+                 ('  console.log({ event: "arrival", channel, host });\n', ""),
+                 ('console.log({ event: "arrival", channel, host })',
+                  'console.log(JSON.stringify({ event: "arrival", channel, host }))'),
                  ('/^\\/([a-z]+)\\/?$/', '/^\\/([a-z]+)$/'),
                  ('new URL("/", url)', 'new URL("/forecast", url)'),
                  ('  ["ig", "instagram"],\n', "")):
@@ -331,7 +332,7 @@ def test_channel_check_fires_on_each_constructed_violation():
 
 # ---------------------------------------------------------------- config
 
-def config_problems(text: str) -> list[str]:
+def config_problems(text: str, staging_file: bool | None = None) -> list[str]:
     cfg = tomllib.loads(text)
     out = []
     if cfg.get("workers_dev") is not True:
@@ -349,7 +350,9 @@ def config_problems(text: str) -> list[str]:
         out.append("vars.STAGING is set on the live Worker")
     if not cfg.get("routes"):
         out.append("no top-level routes")
-    if (ROOT / "wrangler.staging.toml").exists():
+    if staging_file is None:
+        staging_file = (ROOT / "wrangler.staging.toml").exists()
+    if staging_file:
         out.append("wrangler.staging.toml exists; UAT is a Version URL now")
     return out
 
@@ -375,3 +378,4 @@ def test_config_check_fires_on_each_constructed_violation():
     for name, t in cases.items():
         assert t != text, name
         assert config_problems(t), f"config check blind to {name}"
+    assert config_problems(text, staging_file=True), "blind to wrangler.staging.toml"

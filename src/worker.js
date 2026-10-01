@@ -22,8 +22,8 @@
  *
  * Channel short paths (/go, /x, /li, /fb, /ig, /g; any case, optional trailing
  * slash) on the Johannesburg host and on workers.dev hosts answer 302 to the
- * home page and write one JSON line to the Worker log:
- *   {"event":"arrival","channel":"<name>","host":"<hostname>"}
+ * home page and log one object, which Workers Logs indexes as fields:
+ *   {event: "arrival", channel: "<name>", host: "<hostname>"}
  * Cloudflare Web Analytics does not record query strings, so UTM tags are
  * invisible there; Workers Logs ([observability] in wrangler.toml) counts these
  * lines instead. Version URLs are not visible in Workers Logs, so UAT clicks
@@ -66,7 +66,9 @@ function channelOf(path) {
 }
 
 function arrival(url, host, channel) {
-  console.log(JSON.stringify({ event: "arrival", channel, host }));
+  // An object, not a JSON string: Workers Logs indexes an object's keys as
+  // fields (filter event, group by channel); a string is one message field.
+  console.log({ event: "arrival", channel, host });
   return new Response(null, {
     status: 302,
     headers: { Location: new URL("/", url).toString() },

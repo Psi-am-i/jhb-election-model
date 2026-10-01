@@ -176,8 +176,9 @@ block; `routes`, `assets`, `build`, `workers_dev`, `preview_urls` and
 `observability` are inheritable keys
 (developers.cloudflare.com/workers/wrangler/configuration/, "Inheritable
 keys"). UAT is now a Version URL of the live Worker, not a staging Worker:
-`docs/DEPLOY-UAT.md`. Cloudflare *versions/preview URLs*
-are useful for eyeballing but awkward on a custom-domain Worker.
+`docs/DEPLOY-UAT.md`. ~~Cloudflare *versions/preview URLs*
+are useful for eyeballing but awkward on a custom-domain Worker.~~ (superseded
+2026-10-01: Version URLs are the UAT path.)
 
 Staging sends `X-Robots-Tag: noindex` via the existing `_headers` file. The
 current `/dev/` convention on the live Worker is zero-config and useful but

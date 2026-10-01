@@ -49,7 +49,7 @@ binding = "ASSETS"
 # executes. Found the hard way: the apex kept serving the Joburg forecast.
 run_worker_first = true
 
-# Workers Logs: counts the {"event":"arrival","channel":...} lines that
+# Workers Logs: counts the {event: "arrival", channel, host} objects that
 # src/worker.js writes for the channel short paths (/go, /x, /li, /fb, /ig, /g).
 [observability]
 enabled = true

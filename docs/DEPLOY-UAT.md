@@ -26,7 +26,8 @@ Source: `src/worker.js`. Tests: `tests/test_worker_routing.py`.
 
 Cloudflare Web Analytics does not record query strings, so `utm_` tags on links
 cannot be counted there. Each channel gets its own short path instead. The Worker
-answers it with a 302 to the home page and writes one JSON line to the Worker log.
+answers it with a 302 to the home page and logs one object, whose keys Workers Logs
+indexes as fields.
 
 | Link to use | Channel in the log |
 |---|---|
@@ -39,7 +40,7 @@ answers it with a 302 to the home page and writes one JSON line to the Worker lo
 
 Matching ignores case and one trailing slash (`/GO`, `/go/`). A query string on the
 short path, such as the `gclid` Google Ads appends, still matches and is dropped
-from the redirect. Log line:
+from the redirect. Logged object:
 
 ```json
 {"event":"arrival","channel":"billboard","host":"joburg.whysoserious.city"}
