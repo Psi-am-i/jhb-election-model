@@ -909,3 +909,21 @@ context = "as it stood on 6 August 2026"
 kind = "history"
 source = "the date the first version of the model was reviewed (docs-public/review.md)"
 reviewed = "2026-09-18"
+
+# The support page's amount bands: the site's funding policy, not a model
+# figure. Set by the owner; change them here and in docs-public/support.md.
+[[audit.fixed]]
+value = "10,000"
+context = "under R10,000, R10,000 to R50,000, or over R50,000"
+kind = "rule"
+source = "the site's funding policy (docs-public/support.md): sponsors are named with the amount band they gave"
+reviewed = "2026-10-01"
+page = "support.html"
+
+[[audit.fixed]]
+value = "50,000"
+context = "under R10,000, R10,000 to R50,000, or over R50,000"
+kind = "rule"
+source = "the site's funding policy (docs-public/support.md): sponsors are named with the amount band they gave"
+reviewed = "2026-10-01"
+page = "support.html"
