@@ -32,7 +32,14 @@ here first, so anything stale in this file is read as an instruction.
 > (`play-card.js`, `play-share.js`, both in `stats.LIVE_WRITERS`); no storage,
 > so `/privacy` is unchanged. The /play/ fix-soon wording items are done.
 > `site/` was rebuilt the UAT way (scratch ledger, first 665 rows).
-> Screenshots: `interactive/screenshots/play-*.png`. **Owner:** UAT per
+> Screenshots: `interactive/screenshots/play-*.png`. Review fixes applied
+> 2026-10-01 (card banner, date and model version; link text never echoed;
+> `deploy_check` refuses untracked files under `site/`; writer-guard gaps).
+> **Owner decisions open from the critic's review:** the dial prices each poll
+> with `polling.poll_sd` (§N2), narrower than the model's `aggregate_sd`, and
+> two waves multiply as independent; a poll with no `n` is priced on the house
+> term; `src/polling.py` comments characterise SRF and are served and public;
+> the run id's `-dirty`. **Owner:** UAT per
 > `docs/DEPLOY-UAT.md` (now with /play/ and /draws/ checks); a new poll needs
 > a reader caveat or `export_draws --index` refuses; tell the newsdesk.
 >
