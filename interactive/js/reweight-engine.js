@@ -31,7 +31,7 @@ export async function loadReweightEngine({ onStage = () => {}, loadPyodide, read
     let manifest;
     try { manifest = JSON.parse(await readText("py/manifest.json")); }
     catch (e) {
-      throw new PageCodeMissing("The model's Python is not being served (interactive/py/manifest.json is missing). " +
+      throw new PageCodeMissing("The re-weighting code is not being served (interactive/py/manifest.json is missing). " +
         "Run `node interactive/tools/sync_py.mjs` and reload.");
     }
     if (!manifest.page) throw new PageCodeMissing("interactive/py/manifest.json predates the page code. Run `node interactive/tools/sync_py.mjs`.");

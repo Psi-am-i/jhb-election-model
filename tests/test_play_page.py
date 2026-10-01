@@ -39,6 +39,9 @@ import stats as S  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 WRITER = "play/js/model.js"
+SHARE = "play/js/play-share.js"
+#: The page's writers: the page, its share sheet, and the share image.
+PLAY_WRITERS = (WRITER, SHARE, "play/js/play-card.js")
 STAMP = re.compile(r"<!-- built-pages: (.*?) blocking=(\d+) -->")
 
 _BUILT: dict = {}
@@ -49,7 +52,7 @@ def _build(out: Path, *extra: str) -> tuple[int | str | None, str]:
     code: int | str | None = 0
     try:
         with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
-            code = build_site.main(["--out", str(out), "--with-play", *extra])
+            code = build_site.main(["--out", str(out), *extra])
     except SystemExit as exc:
         code = exc.code
     return code, buf.getvalue()
@@ -115,7 +118,14 @@ def test_first_paint_is_tokens_and_the_live_regions_are_the_listed_ones():
     # every LIVE region on the page is one the writer is listed for, and every
     # listed region is on the page (both directions)
     on_page = {name for _, _, name in S._live_scan(html)[0]}
-    assert on_page == set(S.LIVE_WRITERS[WRITER]), (on_page ^ set(S.LIVE_WRITERS[WRITER]))
+    listed = set().union(*(S.LIVE_WRITERS[w] for w in PLAY_WRITERS))
+    assert on_page == listed, (on_page ^ listed)
+    # each region has exactly one writer
+    assert sum(len(S.LIVE_WRITERS[w]) for w in PLAY_WRITERS) == len(listed)
+    # every writer listed for this page ships with it, and nothing else under play/js is one
+    assert {w for w in S.LIVE_WRITERS if w.startswith("play/")} == set(PLAY_WRITERS)
+    for w in PLAY_WRITERS:
+        assert (site / w).is_file(), w
     # each figure region carries its visible label; none is hidden at build time
     for name in on_page - {"engine", "law", "actions"}:
         assert re.search(rf'data-live="{name}"[^>]*>(?:(?!data-live=).)*?[Cc]omputed in your browser',
@@ -163,6 +173,17 @@ def test_a_figure_outside_a_live_region_is_refused_and_the_refusal_reverts():
             assert any(what in w for w in found), (line, found)
             writer.write_text(body, encoding="utf-8")
             assert _writes(site) == [], line
+        # the share sheet, writing into the seat table it is not listed for,
+        # and the share image, which is listed for no region at all
+        for f, line in ((SHARE, "document.querySelector('[data-live=\"seats\"] table').textContent = '1';\n"),
+                        ("play/js/play-card.js", "document.querySelector('[data-live=\"share\"] img').alt = '1';\n")):
+            mod = site / f
+            kept = mod.read_text(encoding="utf-8")
+            mod.write_text(kept + line, encoding="utf-8")
+            found = _writes(site)
+            assert any(w.startswith(f"{f} (LIVE writer): a LIVE region it is not listed for") for w in found), (f, found)
+            mod.write_text(kept, encoding="utf-8")
+            assert _writes(site) == [], f
         # a module that is NOT listed, imported by the writer, writing a figure
         extra = site / "play/js/extra.js"
         extra.write_text("export function show(n) {\n"
@@ -216,23 +237,29 @@ def test_the_build_itself_blocks_an_unlisted_writer_and_a_typed_live_digit():
         assert _stamp(Path(t) / "c")[1] == 0
 
 
-def test_the_default_build_writes_no_play_page():
-    """Until the draws ship (site/.assetsignore), /play/ is opt-in: a build
-    without `--with-play` writes no play/ directory, so a deploy cannot carry a
-    page whose data is excluded. It can see: the opt-in build does write it."""
-    import tempfile
-    if not (ROOT / "data" / "processed" / "forecast_summary.json").is_file():
-        skip("data/processed/forecast_summary.json is absent")
-    with tempfile.TemporaryDirectory() as d:
-        out = Path(d) / "site"
-        buf = io.StringIO()
-        try:
-            with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
-                build_site.main(["--out", str(out)])
-        except SystemExit:
-            pass
-        assert not (out / "play").exists(), "the default build wrote /play/"
-    assert (_built() / "play" / "index.html").is_file(), "the opt-in build wrote no /play/"
+def test_the_default_build_writes_the_play_page_links_it_and_gives_it_its_own_card():
+    """/play/ is in every Johannesburg build (its draws ship since 2026-10-01),
+    so one build command makes the whole site. Every page's nav links to it,
+    and its share card is its own and carries no figure."""
+    site = _built()
+    assert (site / build_play.PLAY_PAGE).is_file(), "the default build wrote no /play/"
+    assert not (ROOT / "site" / ".assetsignore").exists() or \
+        "draws/" not in (ROOT / "site" / ".assetsignore").read_text(encoding="utf-8"), \
+        "the draws are still excluded from the upload, so /play/ would ship without them"
+    # the nav: every page links to /play/, the play page one level down
+    # the portal is the apex site's page, with no city nav
+    pages = sorted(p for p in site.glob("*.html") if p.name != "portal.html")
+    assert len(pages) >= 5, pages
+    for page in pages:
+        assert 'href="play/">play with the model</a>' in page.read_text(encoding="utf-8"), page.name
+    play = (site / build_play.PLAY_PAGE).read_text(encoding="utf-8")
+    assert 'class="active" href="../play/">play with the model</a>' in play
+    # its own card: title, description and url, and no digit in either text
+    og = dict(re.findall(r'<meta property="og:(title|description|url)" content="([^"]*)"', play))
+    assert og["title"] == build_play.OG_TITLE and og["url"].endswith("/play/"), og
+    from html import unescape
+    assert not re.search(r"\d", unescape(og["title"] + og["description"])), og
+    assert play.count('property="og:image"') == 1
 
 
 if __name__ == "__main__":

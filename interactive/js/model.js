@@ -17,7 +17,9 @@
 //     handles), and writes nothing through an event's target.
 // Each region holds no digits at build time and carries the visible label
 // "Computed in your browser from your settings" (SPEC-v2 decision 1).
-// The only module it imports, play-state.js, is scanned as a NON-writer.
+// Its imports: play-state.js is scanned as a NON-writer; play-card.js (the
+// party order, seat format and setting names it shares with the share image)
+// and play-share.js (region "share") are writers in their own right.
 //
 // First paint (F6): the published forecast's panels, rendered by build_site as
 // ledgered tokens, and no Python. The seat table fills in only once a control
@@ -32,6 +34,8 @@
 // reweight.within_precision held.
 
 import * as PS from "./play-state.js";
+import { order, seatText, LAW_TEXT, cellName } from "./play-card.js";
+import { setShareable } from "./play-share.js";
 
 const DEBOUNCE_MS = 200;
 
@@ -57,7 +61,6 @@ const R = {
   announce: document.querySelector('[data-live="seats"] .announce'),
   tomake: document.querySelector('[data-live="actions"] .tomake'),
   reset: document.querySelector('[data-live="actions"] .reset'),
-  copylink: document.querySelector('[data-live="actions"] .copylink'),
   tomakenote: document.querySelector('[data-live="actions"] .tomakenote'),
   summary: document.querySelector('[data-live="summary"] .sumrow'),
 };
@@ -100,7 +103,7 @@ worker.onmessage = e => {
   const m = e.data;
   if (m.type === "stage") R.engine.textContent = `${m.label}…`;
   else if (m.type === "failed") {
-    R.engine.textContent = m.missing ? m.message : `The model's Python did not load: ${m.message}. The published forecast is shown.`;
+    R.engine.textContent = m.missing ? m.message : `The re-weighting code did not load: ${m.message}. The published forecast is shown.`;
     R.engine.classList.add("low");
   } else if (m.type === "ready") ready(m);
   else if (m.type === "result" || m.type === "error") {
@@ -128,7 +131,7 @@ function ready(m) {
   if (parsed.otherVersion) notes.push("This link was made against a different version of the model; its settings are applied to the current one.");
   if (notes.length) { R.linknote.textContent = notes.join(" "); R.linknote.hidden = false; }
   buildControls();
-  R.engine.textContent = "The model's Python is ready. Move a control.";
+  R.engine.textContent = "The re-weighting code is ready. Move a control.";
   ask(PS.engineSettings(PS.defaults(ctx))).then(r => {
     baseline = r.result;
     accepted = { state: PS.defaults(ctx), result: baseline };
@@ -176,7 +179,6 @@ function buildControls() {
   R.trust.addEventListener("input", () => { st.trust = +R.trust.value; moved("trust", true); });
   groups.trust = R.trustGroup;
 
-  const cellName = c => c.w_bye === 0 ? "None" : c.w_bye === 1 ? "Full" : `As published (${c.w_bye.toFixed(2)})`;
   clear(R.cells);
   for (const c of ctx.cellRows) {
     const b = el("button", { type: "button" }, cellName(c));
@@ -186,14 +188,12 @@ function buildControls() {
   }
   groups.cell = R.cells;
 
-  const LAW = { deduct: "The law: the surplus is deducted from every other party", expand: "Not the law: the council grows by the excess",
-                level: "Not the law: the council grows until every party is covered", cap: "Not the law: excess ward winners are not seated" };
   clear(R.law);
   for (const k of ctx.laws) {
     const radio = el("input", { type: "radio", name: "law", value: k, style: "margin-top:4px;accent-color:var(--accent)" });
     radio.addEventListener("change", () => { st.law = k; moved("law", false); });
     inputs.law.push(radio);
-    R.law.append(el("label", { style: "display:flex;gap:8px;align-items:flex-start;margin:6px 0;font-size:13.5px" }, radio, el("span", {}, LAW[k] || k)));
+    R.law.append(el("label", { style: "display:flex;gap:8px;align-items:flex-start;margin:6px 0;font-size:13.5px" }, radio, el("span", {}, LAW_TEXT[k] || k)));
   }
   groups.law = R.law;
   syncControls();
@@ -226,12 +226,11 @@ function moved(group, debounce) {
 
 // ---------- figures ----------
 const pct = x => `${Math.round(x * 1000) / 10}%`;
-const seatNum = f => String(Math.round(f.value * 10) / 10);
 const pm = f => `±${f.sampling_se.toFixed(1)}`;
 // One figure with its ± seats, or the refusal in its place.
 function fig(f, strong = false) {
   if (f.withheld) return el("abbr", { title: "Withheld: known to worse than the page's precision" }, "withheld");
-  return el("span", {}, strong ? el("b", {}, seatNum(f)) : seatNum(f), el("span", { className: "se" }, pm(f)));
+  return el("span", {}, strong ? el("b", {}, seatText(f)) : seatText(f), el("span", { className: "se" }, pm(f)));
 }
 
 function greyOnly(names) {
@@ -251,7 +250,7 @@ async function update() {
   R.ess.textContent = "Computing…";
   let m;
   try { m = await ask(PS.engineSettings(st)); }
-  catch (e) { if (e.message !== "superseded") R.ess.textContent = `The model's Python refused: ${e.message}`; return; }
+  catch (e) { if (e.message !== "superseded") R.ess.textContent = `The re-weighting code refused: ${e.message}`; return; }
   const r = m.result;
   const bad = r.refused ? `too few simulations match that setting to say anything (${r.refused})`
     : r.within_precision === false ? `a figure on this page would be known to worse than ±${r.max_figure_se} seats` : null;
@@ -301,6 +300,7 @@ async function update() {
     clear(R.seats);
     R.bandnote.textContent = "";
     renderBye(baseline);
+    offerShare(null);
     return;
   }
   if (r.within_precision) accepted = { state: copyState(st), result: r };
@@ -308,7 +308,15 @@ async function update() {
   render(r, true, m.ms);
 }
 
+// The share sheet is handed the result the seat table shows, never a second
+// computation: its image draws these same figures (play-card.js).
+function offerShare(r) {
+  setShareable({ url: new URL(location.pathname + PS.serialize(st, ctx), location.href).href,
+                 r, st: copyState(st), ctx, party });
+}
+
 function render(r, touched, ms) {
+  offerShare(touched ? r : null);
   if (touched) R.seatsRegion.setAttribute("data-touched", "");
   else R.seatsRegion.removeAttribute("data-touched");
   R.ess.classList.remove("low");
@@ -326,8 +334,7 @@ function render(r, touched, ms) {
   R.ess.textContent = `${Math.round(r.effective_draws).toLocaleString("en-ZA")} effective simulations of ${r.draws.toLocaleString("en-ZA")}` +
     (ms != null ? `, computed in ${ms} ms.` : ".");
 
-  const val = f => (f.withheld ? Infinity : f.value);
-  const codes = r.shown.slice().sort((a, b) => val(r.seats[b].median) - val(r.seats[a].median) || party(a).name.localeCompare(party(b).name));
+  const codes = order(r, c => party(c).name);
   const base = baseline && r.law === baseline.law ? baseline.seats : null;
   clear(R.seats);
   R.seats.append(el("thead", {}, el("tr", {}, ...["Party", "Middle", "Range", "Change"].map(h => el("th", { scope: "col" }, h)))));
@@ -344,22 +351,34 @@ function render(r, touched, ms) {
   R.seats.append(tbody);
   const label = r.poll ? ` With a poll trusted, these figures are ${r.poll.label}, not what happens if the poll is right.` : "";
   R.bandnote.textContent = "Middle is the median seat count; the range covers nine in ten of the weighted simulations. " +
-    `The ± under each figure is its sampling error, in seats: how far it could move if the model were run again; no control goes past ±${r.max_figure_se}. ` +
+    `The ± under each figure is simulation error only, in seats: how far that figure could move with a fresh set of simulations. It is not the forecast's uncertainty, which is the range. No control goes past ±${r.max_figure_se}. ` +
     (base ? "Change is against the published forecast under this seat law. " : "Change is shown only under the published seat law. ") +
     "Fewer effective simulations make every figure less certain than the published one." + label;
 
   clear(R.summary);
   R.summary.append(...codes.slice(0, 4).map(c => el("span", {}, el("span", { className: "sw", style: `background:${party(c).colour}` }),
-    `${party(c).name} `, el("b", {}, r.seats[c].median.withheld ? "withheld" : seatNum(r.seats[c].median)))),
+    `${party(c).name} `, el("b", {}, r.seats[c].median.withheld ? "withheld" : seatText(r.seats[c].median)))),
     el("span", { className: "ess" }, `${Math.round(r.effective_draws)} eff., computed in your browser`));
-  const said = codes.slice(0, 5).map(c => `${party(c).name} ${r.seats[c].median.withheld ? "withheld" : seatNum(r.seats[c].median)}`).join(", ");
+  const said = codes.slice(0, 5).map(c => `${party(c).name} ${r.seats[c].median.withheld ? "withheld" : seatText(r.seats[c].median)}`).join(", ");
   if (R.announce.textContent !== said) R.announce.textContent = said;
 
   if (r.poll) {
     const parts = Object.keys(r.poll.average).sort((a, b) => r.poll.average[b] - r.poll.average[a]);
     R.pollavg.textContent = "Average of the polls switched on, on the parties they all name (lowest to highest poll in brackets): " +
-      parts.map(k => `${party(k).name} ${pct(r.poll.average[k])} (${pct(r.poll.spread[k][0])}–${pct(r.poll.spread[k][1])})`).join(", ") + ".";
+      parts.map(k => `${party(k).name} ${pct(r.poll.average[k])} (${pct(r.poll.spread[k][0])}–${pct(r.poll.spread[k][1])})`).join(", ") + "." +
+      sameHouse(st.polls);
   } else R.pollavg.textContent = "No poll is switched on with any trust.";
+}
+
+// JUDGEMENT-CALLS §N2: polls switched on together multiply as independent
+// readings, which two waves of one house are not. Said in words wherever it
+// applies, from the poll rows' own `house`, the same rule for every house.
+function sameHouse(ids) {
+  const by = {};
+  for (const p of ctx.pollRows) if (ids.includes(p.id) && p.house) (by[p.house] ??= []).push(p.label || p.id);
+  return Object.entries(by).filter(([, ls]) => ls.length > 1)
+    .map(([h, ls]) => ` ${ls.join(" and ")} are from one polling house (${h}) and are counted as independent, so that house's lean counts once for each.`)
+    .join("");
 }
 
 // The by-election column (DESIGN-decided §11, review F20). `centres` are the
@@ -413,11 +432,6 @@ R.reset.addEventListener("click", () => {
   syncControls();
   history.replaceState(null, "", location.pathname + location.hash);
   update();
-});
-R.copylink.addEventListener("click", async () => {
-  try { await navigator.clipboard.writeText(location.href); R.copylink.textContent = "Link copied"; }
-  catch (e) { R.copylink.textContent = "Copy the address bar"; }
-  setTimeout(() => { R.copylink.textContent = "Copy a link to these settings"; }, 2000);
 });
 R.tomake.addEventListener("click", () => {
   const r = st && PS.isTouched(st) ? lastResult : baseline;

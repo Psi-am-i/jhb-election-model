@@ -66,11 +66,13 @@
     <h1>Play with the model</h1>
     <p>Untouched, this page shows the model's published forecast. Each control picks out the simulated elections that match what you
       believe, so every answer stays inside what the model already drew. Every control applies to every party in the same way.</p>
-    <p class="pos">Figures under the label "computed in your browser from your settings" are worked out on your device by the model's own
-      Python, from your settings. They are not part of the published forecast and are not recorded anywhere.</p>
+    <p class="pos">Figures under the label "computed in your browser from your settings" are worked out on your device: this site's
+      re-weighting code, in Python, runs in your browser on the model's published simulations. It does not re-run the model. These
+      figures are not part of the published forecast and are not recorded anywhere; your settings are kept only in this page's address,
+      so a link to the page carries them.</p>
   </header>
 
-  <div data-live="engine"><p class="ess" role="status">Loading the model's Python. The published forecast is shown until it is ready.</p>
+  <div data-live="engine"><p class="ess" role="status">Loading the re-weighting code. The published forecast is shown until it is ready.</p>
     <p class="stubnote linknote" hidden></p></div>
 
   <div class="grid2">
@@ -88,14 +90,18 @@
       <section class="ctl" aria-labelledby="h-poll">
         <h3 id="h-poll">Polls</h3>
         <p class="pos">Our setting is zero trust: the published forecast uses no polls. Moving the slider is your judgement, not ours.</p>
-        <p>These are the polls of Johannesburg the model's own rules admit. At full trust each poll counts with its own sampling error;
-          at half trust with twice that error; at zero it has no weight at all. Full trust never means the poll comes true: the
-          figures then describe the model's draws nearest the polls.</p>
+        <p>These are the polls of Johannesburg the model's own rules admit. At full trust each poll counts with the whole error the
+          model gives it: sampling error, the polling house's usual lean, its likely-voter screen and the drift since fieldwork. At half
+          trust that error is doubled; at zero the poll has no weight at all. Full trust never means the poll comes true: the figures
+          then describe the model's draws nearest the polls.</p>
         <div class="tablewrap" data-live="polls"><p class="livelabel">Computed in your browser from your settings: each house's published figures.</p><table class="polltab"></table></div>
         <div data-live="trust"><p class="livelabel">Computed in your browser from your settings.</p>
           <div class="slider" style="margin-top:4px"><label for="trust">How far to trust them</label>
           <input type="range" id="trust" aria-describedby="trusthelp" disabled><output for="trust"></output></div></div>
         <p id="trusthelp" style="font-size:12.5px;color:var(--ink-3)">Zero leaves the forecast untouched whatever is switched on.</p>
+        <p class="stubnote">Polls switched on together are counted as independent readings. Two waves from the same polling house share
+          that house's lean, so switching both on counts the lean twice and pulls the figures further towards that house than two
+          waves justify.</p>
         <div data-live="poll-average"><p class="livelabel">Computed in your browser from your settings.</p><p class="pollavg"></p></div>
       </section>
 
@@ -138,8 +144,35 @@
       <div class="cta" data-live="actions">
         <button class="btn primary tomake" type="button" disabled>Make my forecast from this</button>
         <button class="btn reset" type="button">Back to the published forecast</button>
-        <button class="btn copylink" type="button">Copy a link to these settings</button>
         <p class="stubnote tomakenote">The published draws do not carry the combined vote yet, so there is nothing to hand the builder.</p>
+      </div>
+      <div class="sharebox" data-live="share"><p class="livelabel">Computed in your browser from your settings.</p>
+        <button class="btn primary shareopen" type="button" disabled>Share these settings</button>
+        <p class="stubnote">Sharing is anonymous: the link carries your settings and nothing about you, and nothing is saved by this site.</p>
+        <dialog class="sheet" aria-labelledby="share-title">
+          <div class="dh"><h2 id="share-title">Share these settings</h2>
+            <button class="x" type="button" aria-label="Close">×</button></div>
+          <div class="db">
+            <p class="stubnote shabout"></p>
+            <div class="urlrow">
+              <label class="visually-hidden" for="shurl">Link to these settings</label>
+              <input class="shurl" id="shurl" type="text" readonly value="">
+              <button class="btn shcopy" type="button">Copy link</button>
+            </div>
+            <div class="shimage" hidden>
+              <div class="seg sizes" role="group" aria-label="Image size" style="margin-bottom:8px">
+                <button type="button" data-size="link" aria-pressed="true">Link preview</button>
+                <button type="button" data-size="story" aria-pressed="false">Story</button>
+              </div>
+              <div class="preview"><img alt=""></div>
+              <div class="cta" style="margin-top:0">
+                <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
+                <button class="btn shdl" type="button" disabled>Download image</button>
+              </div>
+            </div>
+            <p class="toast" role="status" aria-live="polite"></p>
+          </div>
+        </dialog>
       </div>
     </section>
   </div>

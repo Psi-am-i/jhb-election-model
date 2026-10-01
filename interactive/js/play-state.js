@@ -13,7 +13,9 @@
 //   &k=0              trust, 0-100 (0 = the published forecast: no weight on polls)
 //   &l=deduct         seat law
 //   &b=.              by-election cell: the published one, or a grid cell's path
-//   &mv=<sha>         the model version the link was made against
+//   &mv=<sha>         the model version the link was made against, its first
+//                     MV_CHARS hex digits (enough to tell versions apart)
+// Commas are written bare, not as %2C, so a link stays readable.
 
 // F21: the turnout range is what was tested: ±5 points for Black African
 // against a paired re-run of the model (prereg/2026-09-28-reweight-against-
@@ -25,6 +27,7 @@ export const TRUST = { min: 0, max: 100, step: 5 };
 export const TESTED_POOL = "Black African";
 export const PUBLISHED_LAW = "deduct";
 export const PUBLISHED_CELL = ".";
+export const MV_CHARS = 12;
 
 export function defaults(ctx) {
   return { shift: ctx.pools.map(() => 0), polls: [], trust: 0, law: PUBLISHED_LAW, cell: PUBLISHED_CELL };
@@ -71,7 +74,7 @@ export function parse(search, ctx) {
     else dropped.push('by-election setting "' + q.get("b") + '" is not in this export');
   }
   const mv = q.get("mv");
-  return { state: st, dropped, otherVersion: mv && mv !== ctx.modelVersion ? mv : null };
+  return { state: st, dropped, otherVersion: mv && !String(ctx.modelVersion).startsWith(mv) ? mv : null };
 }
 
 // Only fields that differ from the published setting are written, plus mv.
@@ -82,8 +85,8 @@ export function serialize(st, ctx) {
   if (st.trust) q.set("k", String(st.trust));
   if (st.law !== PUBLISHED_LAW) q.set("l", st.law);
   if (st.cell !== PUBLISHED_CELL) q.set("b", st.cell);
-  if ([...q.keys()].length) q.set("mv", ctx.modelVersion);
-  const s = q.toString();
+  if ([...q.keys()].length) q.set("mv", String(ctx.modelVersion).slice(0, MV_CHARS));
+  const s = q.toString().replace(/%2C/g, ",");
   return s ? "?" + s : "";
 }
 

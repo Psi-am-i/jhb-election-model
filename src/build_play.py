@@ -42,8 +42,20 @@ The ``MAP`` region keeps its markers, so the number scan classifies its
 figures as generated, exactly as on ``/forecast``.
 
 Figures a reader's settings produce are NOT here: they are written at view
-time into ``data-live`` regions by ``play/js/model.js`` only
-(``stats.LIVE_WRITERS``), and ``stats.script_writes`` holds it to that.
+time into ``data-live`` regions by ``play/js/model.js``, and the share sheet
+(region ``share``) by ``play/js/play-share.js``, which shows an image that
+``play/js/play-card.js`` draws from the same result (``stats.LIVE_WRITERS``);
+``stats.script_writes`` holds each to that.
+
+Share card and preview
+======================
+
+The page's own ``og:title``/``og:description`` (:data:`OG_TITLE`,
+:data:`OG_DESCRIPTION`) carry no figure, and ``og:image`` is the site's
+``share.jpg``. A link with settings in its query string gets the same generic
+preview: nothing renders a card per link on the server. The image of a
+reader's settings is drawn in their browser and attached or downloaded by
+them.
 """
 from __future__ import annotations
 
@@ -61,9 +73,18 @@ DRAWS = REPO_ROOT / "site" / "draws"
 #: Where the page is served, relative to the site root.
 PLAY_DIR = "play"
 PLAY_PAGE = f"{PLAY_DIR}/index.html"
+#: The page's address in the nav and in og:url.
+PLAY_HREF = f"{PLAY_DIR}/"
+#: The page's own share card text. It carries no figure: a shared link with
+#: settings (``?t=…``) shows this same generic card, because nothing renders
+#: per-link previews on the server. og:image stays the site's share.jpg.
+OG_TITLE = "Play with the Johannesburg election model"
+OG_DESCRIPTION = ("Move turnout, polls and the seat law, and see how the model's "
+                  "simulations of the Johannesburg council change.")
 #: The modules the page loads, statically or as its Worker. Nothing else under
 #: interactive/js ships: the builder's modules are not part of this page.
-PLAY_JS = ("model.js", "play-state.js", "model-worker.js", "reweight-engine.js")
+PLAY_JS = ("model.js", "play-state.js", "model-worker.js", "reweight-engine.js",
+           "play-card.js", "play-share.js", "card-text.js")
 PLAY_CSS = ("interactive.css",)
 PLAY_PYBOOT = ("page.py",)
 #: The one line of the Worker that differs between the prototype and the site.

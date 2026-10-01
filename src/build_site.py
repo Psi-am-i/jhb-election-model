@@ -147,6 +147,8 @@ NAV_ITEMS = [
     # No "home" item: the site name at the left of the bar IS the link home
     # (owner, 2026-09-24).
     ("forecast", "forecast"),
+    # /play/ (src/build_play.py), built by every Johannesburg build.
+    ("play/", "play with the model"),
     # "interactive" removed with the page itself — see ARTEFACTS. The comment
     # below records what happened the LAST time a nav entry outlived its page:
     # every page linked to plan.html for weeks after no build produced it.
@@ -863,9 +865,6 @@ def main(argv: list[str] | None = None) -> int:
                              "so the end-to-end build can be exercised against "
                              "a throwaway ledger — the real one is append-only "
                              "and a test must never be able to write to it.")
-    parser.add_argument("--with-play", action="store_true",
-                        help="also build /play/ (off until site/draws ships; "
-                             "see site/.assetsignore)")
     parser.add_argument("--publish", action="store_true",
                         help="APPEND this build's figures to the publication "
                              "ledger. Without it the build reports what moved "
@@ -974,14 +973,16 @@ def main(argv: list[str] | None = None) -> int:
     # paint is ledgered tokens and it enters the review stamp deploy_check
     # reads. Its scripts are held to the LIVE-writer contract below, with every
     # other page's (`statlib.script_writes`). The page runs on Johannesburg's
-    # draws (site/draws/), so no other city's build writes it.
-    # OPT-IN until the draws ship (fault-finder review 2026-09-30): site/draws
-    # is in site/.assetsignore, so a /play/ built now would deploy without its
-    # data. `--with-play` builds it; the default build does not.
-    if cityconfig.active().slug == "joburg" and args.with_play:
+    # draws (site/draws/), so no other city's build writes it. Built by every
+    # Johannesburg build since the draws ship (2026-10-01: export_draws writes
+    # no local path and no internal poll note, so site/.assetsignore is gone).
+    if cityconfig.active().slug == "joburg":
         import build_play
         written = build_play.write_assets(args.out)
-        html = build_play.assemble(theme_head=THEME_HEAD, nav=nav_for(""), footer=FOOTER,
+        html = build_play.assemble(theme_head=page_og(build_play.OG_DESCRIPTION,
+                                                      build_play.OG_TITLE, build_play.PLAY_HREF)
+                                   + THEME_HEAD,
+                                   nav=nav_for(build_play.PLAY_HREF), footer=FOOTER,
                                    stat_css=statlib.STAT_CSS, cut_markers=cut_spans)
         seen = []
         html, drift, unresolved = statlib.render(html, registry, ctx, record=seen)

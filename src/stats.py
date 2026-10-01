@@ -246,6 +246,14 @@ LIVE_WRITERS: dict[str, frozenset[str]] = {
         "engine", "turnout", "polls", "trust", "poll-average", "cells",
         "byelection", "law", "effective-draws", "seats", "actions", "summary",
     }),
+    # Its share sheet (interactive/js/play-share.js): the link to the reader's
+    # settings and the image of their figures, inside the one region "share".
+    "play/js/play-share.js": frozenset({"share"}),
+    # The share image (interactive/js/play-card.js): an SVG of the figures the
+    # seat table shows, from the same compute result. It builds figures and
+    # reaches NO region; play-share.js puts the image in the sheet. Listed so
+    # the writer contract, not the non-writer one, applies to it.
+    "play/js/play-card.js": frozenset(),
 }
 
 

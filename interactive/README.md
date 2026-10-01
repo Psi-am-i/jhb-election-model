@@ -67,20 +67,35 @@ stamps it like every other page). Served layout, under the site root:
 | path | what |
 |---|---|
 | `play/index.html` | `model.html` with the site's `THEME_HEAD`, nav and footer, and the published forecast's TILES, SEATS, GOVERN, MAP and CLAIMS panels cut from `forecast-sheet.html` as `{{tokens}}` in two declarative shadow roots: first paint is ledgered tokens, no script |
-| `play/js/` | `model.js` (the LIVE writer), `play-state.js`, `model-worker.js` (its one draws line rewritten to `../../draws/`), `reweight-engine.js` |
+| `play/js/` | `model.js` (the LIVE writer), `play-state.js`, `model-worker.js` (its one draws line rewritten to `../../draws/`), `reweight-engine.js`, `play-share.js` (the share sheet, LIVE writer of region `share`), `play-card.js` (the share image, a LIVE writer of no region), `card-text.js` |
 | `play/css/interactive.css`, `play/pyboot/page.py` | copies |
 | `play/py/manifest.json`, `play/py/page/` | the page's Python, copied by `tools/sync_py.mjs`, which the build runs |
 | `play/parties.json` | party names and colours |
 | `draws/` | the published draws (`export_draws`), already under `site/` |
 
 The number gate holds it: every figure a reader's settings produce is written
-by `play/js/model.js` alone, into `data-live` regions that hold no digit at
+by `play/js/model.js` (and the share sheet by `play/js/play-share.js`), into `data-live` regions that hold no digit at
 build time and carry the label "computed in your browser from your settings";
 `stats.script_writes` refuses the build otherwise
 (`tests/test_play_page.py`). Opened from the repository as the prototype, the
 page shows no published panels (they exist only once built): build into a
 scratch directory, copy `site/draws/` and `site/logos/` beside it, and serve
 that directory to see the page as it ships.
+
+### Saving and sharing, anonymous
+
+A reader's settings live in the page's address (`js/play-state.js`:
+`?t=…&p=…&k=…&l=…&b=…&mv=…`, only the fields that differ from the published
+setting, checked against the controls' bounds on load; a field out of bounds
+falls back to the published setting and the page says which). "Share these
+settings" opens a sheet with the link (copy, or the phone's own share sheet)
+and an image of the seats those settings give, at 1200×630 or 1080×1920,
+drawn in the browser by `js/play-card.js` from the same compute result the
+seat table shows, stamped as the reader's settings and not the model's
+forecast. No account, no name, no cookie, no storage, nothing sent: a shared
+link shows the page's generic preview (`og:` tags with no figure, the site's
+`share.jpg`). Tests: `tests/play-share.test.mjs`, `tests/test_play_page.py`.
+Screenshots: `screenshots/play-*.png`.
 
 ## Files
 
@@ -95,6 +110,7 @@ that directory to see the page as it ships.
 | `model.html`, `js/model.js` | play with the model: the page's one source (the build cuts its `__DEVONLY__` spans and fills its `__PLAY…__` / `__PUBLISHED:…__` markers), and the ONE module that writes figures, only into `data-live` regions (`stats.LIVE_WRITERS["play/js/model.js"]`) |
 | `js/model-worker.js`, `js/reweight-engine.js`, `pyboot/page.py` | the Web Worker, the engine loader (injectable, also run by the node test), and the Python entry that routes settings to `src/reweight.py` |
 | `js/play-state.js` | the reader's settings, their bounds and the URL form (F16); pure |
+| `js/play-share.js`, `js/play-card.js`, `js/card-text.js` | play's share sheet, its share image, and the measured text layout and PNG step both share images use |
 | `tools/native_play.py`, `tests/native-play.json`, `tests/play-settings.json` | the native side of the native-vs-Pyodide harness (F19), its stored output, and the settings both sides compute; `--measure` reports what `page.py` imports and opens |
 | `f/index.html`, `js/f.js` | the shared forecast page, `/f/<id>` in production |
 | `js/map.js` | the ward map (geographic and equal-sized), painting, keyboard |

@@ -87,8 +87,12 @@ address. `--publish` refuses while that line is present. A build without
 `--publish` is not stopped by it, so a UAT version can carry the placeholder;
 live must not.
 
-Build `site/` and pass the number review as `HANDOVER.md` describes. Wrangler
-uploads the working directory, so start from a clean tree:
+Build `site/` and pass the number review as `HANDOVER.md` describes. One
+command builds every page, `/play/` ("play with the model") included; its
+draws are committed under `site/draws/` and upload with the rest (there is no
+`site/.assetsignore`). A re-export of the draws is a separate step
+(`src/export_draws.py`, then `--index site/draws`), never part of a build.
+Wrangler uploads the working directory, so start from a clean tree:
 
 ```sh
 git status --short          # expect no output
@@ -121,13 +125,21 @@ curl -sI "$U/" | grep -iE '^(HTTP|content-type|x-robots-tag)'
 curl -sI "$U/share.jpg"     | grep -iE '^(HTTP|content-type)'     # 200 · image/jpeg
 curl -sI "$U/robots.txt"    | grep -iE '^(HTTP|content-type)'     # 200 · text/plain
 curl -sI "$U/regimes.json"  | grep -iE '^(HTTP|content-type)'     # 200 · application/json
+curl -sI "$U/play/"                 | grep -iE '^(HTTP|content-type)'   # 200 · text/html
+curl -sI "$U/play/js/model.js"      | grep -iE '^(HTTP|content-type)'   # 200 · text/javascript
+curl -sI "$U/play/py/manifest.json" | grep -iE '^(HTTP|content-type)'   # 200 · application/json
+curl -sI "$U/draws/index.json"      | grep -iE '^(HTTP|content-type)'   # 200 · application/json
+curl -sI "$U/draws/base.bin"        | grep -iE '^(HTTP|content-type)'   # 200 · application/octet-stream
 for p in go x li fb ig g GO go/; do
   printf '%-4s ' "$p"; curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' "$U/$p"
 done
 #   every line: 302 https://<version-prefix>-joburg-whysoserious.<sub>.workers.dev/
 ```
 
-Then open `$U/?v=<anything>` in a browser and read the pages that changed. The
+Then open `$U/?v=<anything>` in a browser and read the pages that changed. On
+`$U/play/`, wait for "The re-weighting code is ready", move a control, press
+"Share these settings", and open the copied link in a private window: it must
+show the same seat figures. The
 arrival log line cannot be checked here: Workers Logs does not show Version URL
 requests. The loop above does write eight Analytics Engine points under the
 Version URL host; the count excludes them by host.
