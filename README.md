@@ -136,6 +136,12 @@ slider position on the website reproduces exactly here.
 
 ## Licence
 
-Free to use and distribute with attribution and a link back to
-[joburg.whysoserious.city](https://joburg.whysoserious.city).
+- **Code:** MIT, in [`LICENSE`](LICENSE).
+- **Site text, charts and published figures:** CC BY 4.0, in
+  [`LICENSE-CONTENT`](LICENSE-CONTENT). Reuse them with attribution and a link
+  back to [joburg.whysoserious.city](https://joburg.whysoserious.city).
+- **Election results and other third-party sources** stay under their owners'
+  terms (`SOURCES.md`). The raw IEC results are downloadable from
+  [results.elections.org.za](https://results.elections.org.za/).
+
 Model design: psi@whysoserious.city · part of picnic labs.

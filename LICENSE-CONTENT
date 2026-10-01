@@ -1,0 +1,22 @@
+Site content licence
+
+The text, charts and published figures of joburg.whysoserious.city (the pages
+built from docs-public/, the forecast and article pages, and the images and
+data files served with them) are licensed under the Creative Commons
+Attribution 4.0 International licence (CC BY 4.0):
+
+    https://creativecommons.org/licenses/by/4.0/
+    Legal code: https://creativecommons.org/licenses/by/4.0/legalcode
+
+Attribution: name "Johannesburg 2026 Local Government Election Model,
+whysoserious.city" and link to https://joburg.whysoserious.city.
+
+Not covered by this licence:
+- the source code in this repository, which is licensed under the MIT licence
+  (LICENSE);
+- the Electoral Commission of South Africa's results and the other third-party
+  sources listed in SOURCES.md, which remain under their owners' terms. The raw
+  IEC results are downloadable from https://results.elections.org.za/;
+- party names and logos, which belong to the parties.
+
+Copyright (c) 2026 the author of whysoserious.city (psi@whysoserious.city).
