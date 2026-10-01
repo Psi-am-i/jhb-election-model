@@ -77,3 +77,4 @@ whysoserious.city/
 # destroy it. See src/backup_ignored.py. Local protection, not a second copy
 # in the repository.
 backups/
+marketing/   # lives in the private atlas-jhb-model-newsdesk repo
