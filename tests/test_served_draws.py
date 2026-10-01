@@ -256,8 +256,10 @@ def test_every_served_cell_is_the_ledger_s_newest_run():
 
 # -- 6: nothing private ships --------------------------------------------------
 
-#: An absolute path on a Unix or Windows machine, or a home directory.
-_PATH = re.compile(r'"(?:/(?:Users|home|private|tmp|var)/|[A-Za-z]:\\\\|~/)')
+#: An absolute path on a Unix or Windows machine, or a home directory, at the
+#: start of a JSON string or after a space, bracket, = or : inside one ("built
+#: at /Users/..."); a URL's own path segments are not matched.
+_PATH = re.compile(r'(?:^|[\s"\'(=:])(?:/(?:Users|home|private|tmp|var)/|[A-Za-z]:\\\\|~/)')
 
 
 def _private_problems(manifests: dict[str, dict], index: dict) -> list[str]:
@@ -304,6 +306,12 @@ def test_a_served_path_or_working_note_is_caught_then_quiet():
     assert any("code_dir" in f for f in found) and any("absolute path" in f for f in found), found
     del manifests[first]["artefact_key"]["code_dir"]
     assert _private_problems(manifests, index) == []
+    # a path in the middle of a string is caught too, and a URL is not
+    index["note"] = "built at /Users/someone/src from C:\\work"
+    assert _private_problems(manifests, index) == ["index.json: an absolute path"]
+    index["note"] = "see https://example.org/var/tmp/Users/x"
+    assert _private_problems(manifests, index) == []
+    index["note"] = st["index"]["note"]
     register = {p["id"]: p for p in polling.load(ROOT / "polls.json")}
     poll = next(p for p in index["polls"] if register[p["id"]].get("caveat"))
     kept = poll["caveat"]

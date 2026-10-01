@@ -5,7 +5,9 @@ Wired as `[build] command` in `wrangler.toml`, so wrangler runs it before every
 `build_site.py --publish` can, because deploying is a separate command that
 ships `site/` whatever the ledger says (blind review, 2026-09-17).
 
-It checks two things against `content/<city>/NUMBERS-REVIEW.md`:
+It checks that every file wrangler would upload from the repository's own
+`site/` is committed (`untracked`), and two things against
+`content/<city>/NUMBERS-REVIEW.md`:
 
 1. the review describes THESE pages — the sha256 of every page it scanned
    matches the file about to ship, so an old review cannot clear a new build;
@@ -22,10 +24,37 @@ import argparse
 import hashlib
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def untracked(site: Path, root: Path = ROOT) -> list[str]:
+    """Files under ``site`` that git does not track, as paths relative to it.
+
+    ⛔ WRANGLER UPLOADS THE DIRECTORY, NOT THE COMMIT (code review, 2026-10-01).
+    Two `.pyc` files written into `site/play/py/page/__pycache__/` by an
+    ad-hoc import of the served Python were gitignored, so the runbook's
+    `git status --short` stayed clean, and nothing here looked: they carried
+    the machine's absolute path and would have been served. A file nobody
+    committed is a file nobody reviewed, so it is refused here, whatever it is.
+    `site/.assetsignore` is the second line (wrangler skips what it lists);
+    this check does not rely on it.
+
+    ``check`` runs it only for a ``site`` inside this repository: a test's
+    temporary build has no git index to compare with. Raises if git cannot be asked: a gate that
+    cannot look must not pass.
+    """
+    site, root = site.resolve(), root.resolve()
+    rel = site.relative_to(root).as_posix()
+    tracked = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--", rel],
+                             check=True, capture_output=True).stdout.decode()
+    tracked = {Path(t).relative_to(rel).as_posix() for t in tracked.split("\0") if t}
+    on_disk = {f.relative_to(site).as_posix() for f in site.rglob("*") if f.is_file()}
+    # Finder's .DS_Store is the one exception: `site/.assetsignore` lists it.
+    return sorted(f for f in on_disk - tracked if Path(f).name != ".DS_Store")
 
 
 def check(city: str, site: Path, preview: bool, review: Path | None = None) -> list[str]:
@@ -37,6 +66,21 @@ def check(city: str, site: Path, preview: bool, review: Path | None = None) -> l
     if not head:
         return [f"{review} carries no built-pages stamp — rebuild with build_site.py"]
     problems = []
+    try:
+        inside = site.resolve().is_relative_to(ROOT.resolve())
+    except OSError:
+        inside = False
+    if inside:
+        try:
+            stray = untracked(site)
+        except (OSError, subprocess.CalledProcessError) as exc:
+            problems.append(f"cannot ask git which files under {site} are committed ({exc!r})")
+        else:
+            if stray:
+                problems.append(
+                    f"{len(stray)} file(s) under {site}/ are not committed, and wrangler "
+                    f"uploads the directory: {', '.join(stray[:10])}"
+                    f"{' …' if len(stray) > 10 else ''}. Commit them or delete them.")
     for pair in head.group(1).split():
         page, sha = pair.split("=", 1)
         f = site / page

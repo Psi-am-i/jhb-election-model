@@ -244,7 +244,7 @@ LIVE_WRITERS: dict[str, frozenset[str]] = {
     # the controls it builds and every figure a reader's settings produce.
     "play/js/model.js": frozenset({
         "engine", "turnout", "polls", "trust", "poll-average", "cells",
-        "byelection", "law", "effective-draws", "seats", "actions", "summary",
+        "byelection", "law", "seats", "actions", "summary",
     }),
     # Its share sheet (interactive/js/play-share.js): the link to the reader's
     # settings and the image of their figures, inside the one region "share".
@@ -1019,10 +1019,12 @@ WRITER_FORBIDDEN = (
     ("insertion beside the region", re.compile(r"\.(?:before|after|replaceWith)\s*\(")),
     ("traversal out of the region", re.compile(
         r"\.(?:parentNode|parentElement|closest|previousSibling|nextSibling"
-        r"|previousElementSibling|nextElementSibling|ownerDocument|getRootNode)\b")),
+        r"|previousElementSibling|nextElementSibling|ownerDocument|getRootNode"
+        r"|form|labels|offsetParent)\b")),
     ("a document-level handle", re.compile(
         r"\bdocument\.(?:body|documentElement|head|all|forms|links|images|children"
-        r"|firstChild|lastChild|firstElementChild|lastElementChild|title)\b")),
+        r"|firstChild|lastChild|firstElementChild|lastElementChild|title)\b"
+        r"|\bdocument\s*\[")),
     ("a lookup that is not a LIVE selector", re.compile(
         r"\b(?:getElementById|getElementsBy\w+|elementFromPoint|elementsFromPoint)\s*\(")),
     ("a write through an event target", re.compile(
@@ -1033,8 +1035,11 @@ WRITER_FORBIDDEN = (
 _SELECTOR_CALL = re.compile(r"\bquerySelector(?:All)?\s*\(\s*")
 #: The whole argument must be the literal: `'[data-live="x"]' + ', p'` would
 #: select outside the region, so the call must close right after the quote.
+#: The part after the region is a descendant selector with no combinator:
+#: `'[data-live="x"] ~ main p'` selects a sibling of the region, so `~`, `+`
+#: and `>` are refused there (code review of /play/ share, 2026-10-01).
 _LIVE_SELECTOR = re.compile(
-    r"""^(["'`])\[data-live=(["']?)([a-z][a-z0-9-]*)\2\](?:\s+[^,"'`$]*)?\1\s*\)""")
+    r"""^(["'`])\[data-live=(["']?)([a-z][a-z0-9-]*)\2\](?:\s+[^,"'`$~+>]*)?\1\s*\)""")
 _SCRIPT_TAG = re.compile(r"<script\b([^>]*)>(.*?)</script>", re.S | re.I)
 _SRC = re.compile(r"""\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))""", re.I)
 _STATIC_IMPORT = re.compile(
@@ -1042,9 +1047,18 @@ _STATIC_IMPORT = re.compile(
     r"""|\b(?:import|export)\b[^;'"`]*?\bfrom\s*["']([^"']+)["']""")
 
 
+#: What a writer listed for NO region may not do either: it reaches no element,
+#: so its figures can only come from the result it is handed. A data block or a
+#: data source would let it draw figures the page never computed (code review
+#: of /play/ share, 2026-10-01: listing play-card.js had lifted these two).
+_NO_REGION_FORBIDDEN = tuple((w, p) for w, p in SCRIPT_FORBIDDEN
+                             if w in ("a data block", "a data source"))
+
+
 def _writer_problems(body: str, regions: frozenset[str]) -> list[str]:
     out = []
-    for what, pat in WRITER_FORBIDDEN:
+    for what, pat in (WRITER_FORBIDDEN if regions
+                      else WRITER_FORBIDDEN + _NO_REGION_FORBIDDEN):
         for hit in pat.finditer(body):
             out.append(f"{what}: …{body[max(0, hit.start() - 40):hit.end() + 40].strip()}…")
     for call in _SELECTOR_CALL.finditer(body):

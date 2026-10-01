@@ -314,12 +314,51 @@ def test_a_listed_module_may_write_only_into_its_live_regions():
             ("document.title = n;", "a document-level handle"),
             ("e.target.textContent = n;", "a write through an event target"),
             ("import('./late.js');", "an import this check cannot follow"),
+            # code review 2026-10-01: a combinator after the region selects
+            # outside it, and `.form` / `document[...]` reach outside it too
+            ("document.querySelector('[data-live=\"seats\"] ~ main p').textContent = n;",
+             "not a LIVE selector"),
+            ("document.querySelector('[data-live=\"seats\"] + p').textContent = n;",
+             "not a LIVE selector"),
+            ("document.querySelector('[data-live=\"seats\"] > p').textContent = n;",
+             "not a LIVE selector"),
+            ("out.form.textContent = n;", "traversal out of the region"),
+            ("out.offsetParent.textContent = n;", "traversal out of the region"),
+            ('document["body"].append(n);', "a document-level handle"),
         ):
             (tmp / "play/js/main.js").write_text(WRITER + escape + "\n")
             found = _writes(tmp, writers=listed)
             assert any(what in w for w in found), (escape, found)
             (tmp / "play/js/main.js").write_text(WRITER)
             assert _writes(tmp, writers=listed) == [], escape
+
+
+def test_a_module_listed_for_no_region_may_hold_no_data_and_load_none():
+    """A writer listed for NO region (play-card.js, the share image) draws
+    figures only from the result it is handed: it is refused a data block and
+    a data source as a non-writer is, while a writer with regions keeps the
+    writer contract alone (code review 2026-10-01)."""
+    import tempfile
+    card = ("export function card(r) {\n"
+            "  return `<text>${r.seats}</text>`;\n}\n")
+    page = PAGE_LOADS
+    with tempfile.TemporaryDirectory() as t:
+        tmp = _site(Path(t), {"play/index.html": page,
+                              "play/js/main.js": WRITER + 'import { card } from "./card.js";\n',
+                              "play/js/engine.js": "export const k = 1;\n",
+                              "play/js/card.js": card})
+        listed = {"play/js/main.js": frozenset({"seats"}), "play/js/card.js": frozenset()}
+        assert _writes(tmp, writers=listed) == []
+        for extra, what in (("export const D = [412, 38];", "a data block"),
+                            ('fetch("../draws/index.json");', "a data source"),
+                            ('document["body"].append("97 seats");', "a document-level handle"),
+                            ("document.querySelector('[data-live=\"seats\"] p').textContent = 1;",
+                             "a LIVE region it is not listed for")):
+            (tmp / "play/js/card.js").write_text(card + extra + "\n")
+            found = _writes(tmp, writers=listed)
+            assert any(w.startswith("play/js/card.js (LIVE writer): " + what) for w in found), (extra, found)
+            (tmp / "play/js/card.js").write_text(card)
+            assert _writes(tmp, writers=listed) == [], extra
 
 
 def test_the_registry_names_served_modules_and_region_names():

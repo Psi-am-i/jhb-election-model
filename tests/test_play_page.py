@@ -184,6 +184,18 @@ def test_a_figure_outside_a_live_region_is_refused_and_the_refusal_reverts():
             assert any(w.startswith(f"{f} (LIVE writer): a LIVE region it is not listed for") for w in found), (f, found)
             mod.write_text(kept, encoding="utf-8")
             assert _writes(site) == [], f
+        # the share image, listed for no region, may neither hold nor load
+        # figures of its own (code review 2026-10-01), nor reach the document
+        card = site / "play/js/play-card.js"
+        kept = card.read_text(encoding="utf-8")
+        for line, what in (("export const D = [412, 38];\n", "a data block"),
+                           ('fetch("../draws/index.json");\n', "a data source"),
+                           ('document["body"].append("97 seats");\n', "a document-level handle")):
+            card.write_text(kept + line, encoding="utf-8")
+            found = _writes(site)
+            assert any(w.startswith(f"play/js/play-card.js (LIVE writer): {what}") for w in found), (line, found)
+            card.write_text(kept, encoding="utf-8")
+            assert _writes(site) == [], line
         # a module that is NOT listed, imported by the writer, writing a figure
         extra = site / "play/js/extra.js"
         extra.write_text("export function show(n) {\n"
@@ -235,6 +247,34 @@ def test_the_build_itself_blocks_an_unlisted_writer_and_a_typed_live_digit():
         code, log = _build(Path(t) / "c")
         assert code in (0, None), log[-2000:]
         assert _stamp(Path(t) / "c")[1] == 0
+
+
+def test_deploy_check_refuses_a_file_git_does_not_track_then_goes_quiet():
+    """Wrangler uploads site/ from disk, ignored files included: two gitignored
+    .pyc files carrying a local path sat in site/play/ unseen by the runbook's
+    `git status` (code review 2026-10-01). Shown on a throwaway repository."""
+    import subprocess
+    with tempfile.TemporaryDirectory() as t:
+        repo = Path(t)
+        site = repo / "site"
+        (site / "play/py/page").mkdir(parents=True)
+        (site / "index.html").write_text("<p>page</p>", encoding="utf-8")
+        (repo / ".gitignore").write_text("__pycache__/\n*.pyc\n.DS_Store\n", encoding="utf-8")
+        git = lambda *a: subprocess.run(["git", "-C", str(repo), *a], check=True, capture_output=True)
+        git("init", "-q")
+        git("add", "-A")
+        git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "site")
+        assert deploy_check.untracked(site, root=repo) == []
+        stray = site / "play/py/page/__pycache__/polling.cpython-313.pyc"
+        stray.parent.mkdir()
+        stray.write_bytes(b"/Users/someone/site/play/py/page/polling.py")
+        (site / "new.js").write_text("x", encoding="utf-8")
+        (site / ".DS_Store").write_bytes(b"")
+        assert deploy_check.untracked(site, root=repo) == [
+            "new.js", "play/py/page/__pycache__/polling.cpython-313.pyc"]
+        stray.unlink()
+        git("add", "site/new.js")
+        assert deploy_check.untracked(site, root=repo) == []
 
 
 def test_the_default_build_writes_the_play_page_links_it_and_gives_it_its_own_card():

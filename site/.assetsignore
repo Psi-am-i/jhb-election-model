@@ -1,0 +1,6 @@
+# Read by wrangler, never uploaded: files it must skip in site/.
+# deploy_check refuses any file under site/ that git does not track,
+# whatever this lists; this is the second line, not the first.
+__pycache__
+*.pyc
+.DS_Store

@@ -89,14 +89,17 @@ live must not.
 
 Build `site/` and pass the number review as `HANDOVER.md` describes. One
 command builds every page, `/play/` ("play with the model") included; its
-draws are committed under `site/draws/` and upload with the rest (there is no
-`site/.assetsignore`). A re-export of the draws is a separate step
-(`src/export_draws.py`, then `--index site/draws`), never part of a build.
-Wrangler uploads the working directory, so start from a clean tree:
+draws are committed under `site/draws/` and upload with the rest
+(`site/.assetsignore` lists only `__pycache__`, `*.pyc` and `.DS_Store`). A
+re-export of the draws is a separate step (`src/export_draws.py`, then
+`--index site/draws`), never part of a build. Wrangler uploads the working
+directory, ignored files included, so start from a clean tree:
 
 ```sh
-git status --short          # expect no output
+git status --short --ignored site/   # expect no output
 ```
+
+`deploy_check` also refuses any file under `site/` that git does not track.
 
 `[build]` in `wrangler.toml` runs `src/deploy_check.py --city joburg` before every
 upload; a build whose numbers were not reviewed is refused there.
