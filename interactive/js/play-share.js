@@ -64,7 +64,7 @@ function fill() {
     S.imagebox.hidden = true;
     return;
   }
-  S.about.textContent = "The link opens this page with your settings, and anyone who follows it sees the same figures. " +
+    S.about.textContent = "The link opens this page with your settings; anyone who follows it sees the same figures. " +
     "The image shows the seats your settings give: the model's simulations re-weighted by your assumptions, not its forecast.";
   S.imagebox.hidden = false;
   draw();

@@ -31,7 +31,7 @@ import { TRUST, MV_CHARS } from "./play-state.js";
 
 export const SIZES = { link: [1200, 630], story: [1080, 1920] };
 export const SITE = "joburg.whysoserious.city";
-export const STAMP = "Your settings, the model's simulations. Not the model's forecast.";
+export const STAMP = "The model's simulations under your settings. Not the model's forecast.";
 export const INVITE = "Try your own at " + SITE + "/play";
 // In the header, beside the site's name, so a crop of the card's foot cannot
 // leave the figures reading as the forecast (critic S3, 2026-10-01).
@@ -72,14 +72,22 @@ export function order(r, name) {
 const signedPoints = x => (x > 0 ? "+" : "") + x + (Math.abs(x) === 1 ? " point" : " points");
 
 // JUDGEMENT-CALLS §N2: polls switched on together multiply as independent
-// readings, which two waves of one house are not. One sentence per house with
+// readings, which two waves of one house are not. One entry per house with
 // more than one poll switched on, from the poll rows' own `house`, the same
-// rule for every house. The page (model.js) and the card both print these.
-export function sameHouse(ids, pollRows) {
+// rule for every house. The page (model.js) prints `sameHouse`, which names
+// the polls; the card prints `sameHouseShort`, because its settings line has
+// already listed them (owner's style sweep, 2026-10-01).
+function housesTwice(ids, pollRows) {
   const by = {};
   for (const p of pollRows) if (ids.includes(p.id) && p.house) (by[p.house] ??= []).push(p.label || p.id);
-  return Object.entries(by).filter(([, ls]) => ls.length > 1)
+  return Object.entries(by).filter(([, ls]) => ls.length > 1);
+}
+export function sameHouse(ids, pollRows) {
+  return housesTwice(ids, pollRows)
     .map(([h, ls]) => `${ls.join(" and ")} are from one polling house (${h}) and are counted as independent, so that house's error counts once for each.`);
+}
+export function sameHouseShort(ids, pollRows) {
+  return housesTwice(ids, pollRows).map(([h]) => `Counted as independent: polls from one house, ${h}`);
 }
 
 // When the card was made and against which model: a card outlives the
@@ -98,7 +106,7 @@ export function settingsLines(st, ctx) {
     : "Turnout: as published"];
   const on = ctx.pollRows.filter(p => st.polls.includes(p.id)).map(p => p.label || p.id);
   lines.push(st.trust > 0 && on.length ? "Polls at trust " + st.trust + " of " + TRUST.max + ": " + on.join("; ") : "Polls: none trusted, as published");
-  if (st.trust > 0) lines.push(...sameHouse(st.polls, ctx.pollRows).map(l => "Counted as independent: " + l));
+    if (st.trust > 0) lines.push(...sameHouseShort(st.polls, ctx.pollRows));
   const cell = ctx.cellRows.find(c => c.path === st.cell);
   lines.push("Weight of recent by-elections: " + (cell ? cellName(cell) : st.cell));
   lines.push(LAW_TEXT[st.law] || "Seat law: " + st.law);

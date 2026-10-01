@@ -301,7 +301,7 @@ async function update() {
     greyOnly([...st.shift.map((x, i) => x !== 0 ? `turnout:${i}` : null),
       st.trust ? "trust" : null, st.trust && st.polls.length ? "polls" : null,
       st.cell !== PS.PUBLISHED_CELL ? "cell" : null, st.law !== PS.PUBLISHED_LAW ? "law" : null].filter(Boolean));
-    R.ess.textContent = `Too few simulations match these settings to say anything: ${r.refused} Move the greyed control back towards the published setting.`;
+    R.ess.textContent = `Too few simulations match these settings: ${r.refused} Move the greyed control back towards the published setting.`;
     R.ess.classList.add("low");
     clear(R.seats);
     R.bandnote.textContent = "";
@@ -362,8 +362,8 @@ function render(r, touched, ms, state = st) {
   R.seats.append(tbody);
   const label = r.poll ? ` With a poll trusted, these figures are ${r.poll.label}, not what happens if the poll is right.` : "";
   R.bandnote.textContent = "Middle is the median seat count; the range covers nine in ten of the weighted simulations. " +
-    `The ± under each figure is simulation error only, in seats: how far that figure could move with a fresh set of simulations. It is not the forecast's uncertainty, which is the range. No control goes past ±${r.max_figure_se}. ` +
-    (base ? "Against published is the change in the middle count from the published forecast under this seat law; the arrows on the published forecast's panel, shown when no control is moved, compare it with the previous edition. " : "Against published is shown only under the published seat law. ") +
+    `The ± under each figure is simulation error only, in seats: how far it could move with a fresh set of simulations. It is not the forecast's uncertainty, which is the range. No control goes past ±${r.max_figure_se}. ` +
+    (base ? "Against published is the change in the middle count from the published forecast under this seat law. The arrows on the published forecast's panel, shown when no control is moved, compare it with the previous edition. " : "Against published is shown only under the published seat law. ") +
     "Fewer effective simulations make every figure less certain than the published one." + label;
 
   clear(R.summary);
@@ -394,7 +394,7 @@ function renderBye(r) {
     .map(h => el("th", { scope: "col" }, h)))));
   const tbody = el("tbody");
   if (!evidence) {
-    tbody.append(el("tr", {}, el("td", { colspan: 7 }, "The by-election evidence is not served with these draws.")));
+    tbody.append(el("tr", {}, el("td", { colspan: 7 }, "The by-election evidence is not served with these simulations.")));
     R.bye.append(tbody);
     return;
   }

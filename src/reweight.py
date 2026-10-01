@@ -112,7 +112,7 @@ MAX_FIGURE_SE_SEATS = 2.5   # owner, 2026-09-30: was 2.0 (JUDGEMENT-CALLS §N2)
 #: weights select the model's own draws that lie near the poll; they do not
 #: make the poll come true, and a draw set with nothing near the poll gives an
 #: answer about the nearest draws there are. :func:`figure` attaches it.
-POLL_LABEL = "the model's draws nearest this poll"
+POLL_LABEL = "the model's simulations nearest this poll"
 
 #: The draw file's format identifier. :func:`unpack` refuses any other, so a
 #: page cannot silently read a file laid out by a different version of
@@ -244,9 +244,9 @@ def require_effective(weights, floor: int | None = None) -> float:
     floor = MIN_EFFECTIVE_DRAWS if floor is None else floor
     ess = effective_draws(weights)
     if not ess >= floor:
-        raise Refused(f"{ess:.0f} effective draws of {len(weights)}; a figure "
-                      f"needs at least {floor}. The draws do not reach this "
-                      f"setting.")
+        raise Refused(f"{ess:.0f} effective simulations of {len(weights)}; a "
+                      f"figure needs at least {floor}. The simulations do not "
+                      f"reach this setting.")
     return ess
 
 

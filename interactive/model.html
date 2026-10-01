@@ -64,13 +64,12 @@
 
   <header class="lede">
     <h1>Play with the model</h1>
-    <p>Untouched, this page shows the model's published forecast. Each control picks out the simulated elections that match what you
-      believe, so every answer stays inside what the model already drew. Every control is one mechanism applied to all parties; its
-      effect differs by party.</p>
-    <p class="pos">Figures under the label "computed in your browser from your settings" are worked out on your device: this site's
-      re-weighting code, in Python, runs in your browser on the model's published simulations. It does not re-run the model. These
-      figures are not part of the published forecast and are not recorded anywhere; your settings are kept only in this page's address,
-      so a link to the page carries them.</p>
+    <p>Untouched, this page shows the model's published forecast. Each control picks out the simulated elections that match your
+      settings, so every answer stays within what the model drew. A control applies one mechanism to every party; its effect differs
+      by party.</p>
+    <p class="pos">Figures labelled "computed in your browser from your settings" are worked out on your device: the site's
+      re-weighting code runs in your browser on the model's published simulations, without re-running the model. They are not part
+      of the published forecast and are not recorded. Your settings are kept only in the page's address, so a link carries them.</p>
   </header>
 
   <div data-live="engine"><p class="ess" role="status">Loading the re-weighting code. The published forecast is shown until it is ready.</p>
@@ -80,8 +79,8 @@
     <div id="controls">
       <section class="ctl" aria-labelledby="h-turn">
         <h3 id="h-turn">Turnout, by community</h3>
-        <p>How much more or less each population group turns out than in the published forecast, in percentage points. The census has
-          four groups, and that is all the model can tell apart. Moving one holds the other three at the published turnout.</p>
+        <p>Each population group's turnout, in percentage points above or below the published forecast. The census has four groups,
+          the most the model can tell apart. Moving one holds the other three at the published turnout.</p>
         <div data-live="turnout"><p class="livelabel">Computed in your browser from your settings.</p>
           <p class="pos turnrange"></p><div class="sliders"></div>
           <p class="stubnote turnpin" hidden>A poll is on and turnout is untouched, so turnout is held at the published mean: the poll
@@ -90,15 +89,14 @@
 
       <section class="ctl" aria-labelledby="h-poll">
         <h3 id="h-poll">Polls</h3>
-        <p class="pos">Our setting is zero trust: the published forecast uses no polls. Why, and what polls were worth when that was
-          measured, is under "Where polls fit" on the <a href="../methodology">methodology page</a>. Moving the slider is your
-          judgement, not ours.</p>
-        <p>These are the polls of Johannesburg the model's own rules admit. At full trust each poll counts with the error the model
-          computes for that poll taken on its own: sampling error, a typical house error that is the same for every house, a charge
-          for an undisclosed likely-voter screen, and the drift since fieldwork. A poll that published no sample size is given the
-          typical house error in place of its sampling error. This is narrower than the error the model's own poll blend would use,
-          which prices the polls together. At half trust that error is doubled; at zero the poll has no weight at all. Full trust never means the poll comes true: the figures
-          then describe the model's draws nearest the polls.</p>
+        <p class="pos">The published forecast uses no polls: its setting is zero trust. Why, and what polls were worth when that was
+          measured, is under "Where polls fit" on the <a href="../methodology">methodology page</a>.</p>
+        <p>These are the Johannesburg polls the model's rules admit. At full trust each poll counts with the error the model computes
+          for it alone: sampling error, a typical house error (the same for every house), a charge for an undisclosed likely-voter
+          screen, and drift since fieldwork. A poll with no published sample size gets the typical house error in place of sampling
+          error. This is narrower than the error the model's own poll blend uses, which prices the polls together. At half trust the
+          error is doubled; at zero the poll has no weight. Full trust does not make the poll come true: the figures then describe
+          the simulations nearest the polls.</p>
         <div class="tablewrap" data-live="polls"><p class="livelabel">Computed in your browser from your settings: each house's published figures.</p><table class="polltab"></table></div>
         <div data-live="trust"><p class="livelabel">Computed in your browser from your settings.</p>
           <div class="slider" style="margin-top:4px"><label for="trust">How far to trust them</label>
@@ -112,17 +110,16 @@
 
       <section class="ctl" aria-labelledby="h-bye">
         <h3 id="h-bye">Weight of recent by-elections</h3>
-        <p>How much the model leans on the ward by-elections held since the last local election. Each setting is its own full run of
-          the model. The published weight is an unmeasured judgement, recorded in the model's register of judgement calls, that only
-          the November result can test.</p>
+        <p>How much the model relies on the ward by-elections held since the last local election. Each setting is a separate full run
+          of the model. The published weight is an unmeasured judgement, recorded in the model's register of judgement calls; only
+          the November result can test it.</p>
         <div data-live="cells"><p class="livelabel">Computed in your browser from your settings.</p>
           <div class="seg" role="group" aria-label="Weight of recent by-elections"></div></div>
         <p class="stubnote">By-elections are small, low-turnout contests, and some swings rest on a handful of wards. The swing column is
           measured in the wards that held by-elections only.</p>
-        <p class="stubnote">The model's column is its central level for each party at this weight: the deterministic value its
-          simulations are drawn around, before any simulation is drawn. Levels are not vote shares and do not add up to a whole, so a
-          level is compared only with the same party's level at the published weight, never with a drawn share or with the swing
-          column.</p>
+        <p class="stubnote">The model's column is each party's central level at this weight: the value its simulations are drawn
+          around. Levels are not vote shares and do not add up to a whole, so compare a level only with the same party's level at
+          the published weight, not with a share or with the swing column.</p>
         <p class="stubnote">The three settings are separate runs, not the same simulations re-weighted, so part of any difference between
           them is sampling noise. A change in a party's middle seat count is marked "within sampling noise" when it is smaller than
           twice the combined standard error of the two settings' middle counts.</p>
@@ -141,18 +138,18 @@
       <div class="pubseats"><p class="stubnote">The published forecast.</p>
         <div class="published"><!-- __PUBLISHED:seats__ --></div></div>
       <div class="tablewrap" data-live="seats"><p class="livelabel">Computed in your browser from your settings.</p><p class="ess"></p>
-        <p class="stubnote seatsempty">Move a control and the seats it gives are computed here.</p>
+        <p class="stubnote seatsempty">Move a control to compute the seats it gives.</p>
         <table class="seatstab"></table>
         <p class="stubnote bandnote"></p>
         <p class="visually-hidden announce" aria-live="polite"></p></div>
       <div class="cta" data-live="actions">
         <button class="btn primary tomake" type="button" disabled>Make my forecast from this</button>
         <button class="btn reset" type="button">Back to the published forecast</button>
-        <p class="stubnote tomakenote">The published draws do not carry the combined vote yet, so there is nothing to hand the builder.</p>
+        <p class="stubnote tomakenote">The published simulations do not yet carry the combined vote, so the builder cannot start from here.</p>
       </div>
       <div class="sharebox" data-live="share"><p class="livelabel">Computed in your browser from your settings.</p>
         <button class="btn primary shareopen" type="button" disabled>Share these settings</button>
-        <p class="stubnote">Sharing is anonymous: the link carries your settings and nothing about you, and nothing is saved by this site.</p>
+        <p class="stubnote">The link carries your settings and nothing about you. The site saves nothing.</p>
         <dialog class="sheet" aria-labelledby="share-title">
           <div class="dh"><h2 id="share-title">Share these settings</h2>
             <button class="x" type="button" aria-label="Close">×</button></div>
@@ -183,8 +180,8 @@
 
   <section class="ctl" aria-labelledby="h-pub">
     <h2 id="h-pub">The published forecast</h2>
-    <p class="pos pubnote">These panels are of the published forecast. Your settings are not applied to them: they apply only
-      to the Seats panel and to the figures beside the controls.</p>
+    <p class="pos pubnote">These panels show the published forecast. Your settings apply only to the Seats panel and the figures
+      beside the controls.</p>
     <div class="published"><!-- __PUBLISHED:panels__ --></div>
   </section>
 

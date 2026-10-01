@@ -413,7 +413,7 @@ def test_the_refusal_floor_fires_below_it_and_not_above():
     try:
         R.require_effective(steep)
     except R.Refused as exc:
-        assert "effective draws" in str(exc)
+        assert "effective simulations" in str(exc)
     else:
         raise AssertionError("a setting below the floor was not refused")
 
@@ -656,7 +656,7 @@ def test_a_figure_under_a_poll_says_what_it_is():
                           sd=0.05)
     polled = R.figure(x, poll, 0.05, poll=True)
     plain = R.figure(x, R.uniform(1000), 0.05, poll=False)
-    assert polled["label"] == R.POLL_LABEL == "the model's draws nearest this poll"
+    assert polled["label"] == R.POLL_LABEL == "the model's simulations nearest this poll"
     assert plain["label"] is None
     assert plain["withheld"] is False and polled["withheld"] is False
     assert plain["value"] == float(np.percentile(x, 5))

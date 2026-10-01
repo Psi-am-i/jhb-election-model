@@ -11351,7 +11351,7 @@
       "EFF": 0.07460738495221253,
       "MK": 0.09991158267020335
      },
-     "label": "the model's draws nearest this poll",
+     "label": "the model's simulations nearest this poll",
      "sd": {
       "ipsos-khayabus-2026-coj": {
        "ANC": 0.13788078586630959,
@@ -11404,7 +11404,7 @@
      "ACDP": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.008996018264777016,
        "q": 0.5,
        "quantile_effective_draws": 2550.7013558458293,
@@ -11416,7 +11416,7 @@
       "median_se": 1.657625442347606e-11,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00988534521327896,
        "q": 0.05,
        "quantile_effective_draws": 2479.2579787675754,
@@ -11427,7 +11427,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004974006419479412,
        "q": 0.95,
        "quantile_effective_draws": 2391.172644155382,
@@ -11440,7 +11440,7 @@
      "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004272853729523996,
        "q": 0.5,
        "quantile_effective_draws": 2854.2002987923393,
@@ -11452,7 +11452,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004272853729523996,
        "q": 0.05,
        "quantile_effective_draws": 2854.2002987923393,
@@ -11463,7 +11463,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004272853729523997,
        "q": 0.95,
        "quantile_effective_draws": 2854.2002987923447,
@@ -11476,7 +11476,7 @@
      "AFRICAN_CONGRESS_FOR_TRANSFORMATION": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004058864194552112,
        "q": 0.5,
        "quantile_effective_draws": 2387.7082779179677,
@@ -11488,7 +11488,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004058864194552112,
        "q": 0.05,
        "quantile_effective_draws": 2387.7082779179677,
@@ -11499,7 +11499,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -11512,7 +11512,7 @@
      "AFRICAN_ECONOMIC_FREEDOM": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005038711524348225,
        "q": 0.5,
        "quantile_effective_draws": 2396.215932686802,
@@ -11524,7 +11524,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005038711524348225,
        "q": 0.05,
        "quantile_effective_draws": 2396.215932686802,
@@ -11535,7 +11535,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005038711524348225,
        "q": 0.95,
        "quantile_effective_draws": 2396.215932686808,
@@ -11548,7 +11548,7 @@
      "AFRICAN_LABOUR_CONVENTION": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0035262218602240434,
        "q": 0.5,
        "quantile_effective_draws": 2603.017091412938,
@@ -11560,7 +11560,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0035262218602240434,
        "q": 0.05,
        "quantile_effective_draws": 2603.017091412938,
@@ -11571,7 +11571,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -11584,7 +11584,7 @@
      "AFRICAN_RENAISSANCE_UNITY": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004887553241817184,
        "q": 0.5,
        "quantile_effective_draws": 2599.052846210629,
@@ -11596,7 +11596,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004887553241817184,
        "q": 0.05,
        "quantile_effective_draws": 2599.052846210629,
@@ -11607,7 +11607,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004887553241817184,
        "q": 0.95,
        "quantile_effective_draws": 2599.0528462106317,
@@ -11620,7 +11620,7 @@
      "AFRICAN_ROYAL_RAINBOW_CONGRESS": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00357937101067146,
        "q": 0.5,
        "quantile_effective_draws": 2418.7381966373327,
@@ -11632,7 +11632,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00357937101067146,
        "q": 0.05,
        "quantile_effective_draws": 2418.7381966373327,
@@ -11643,7 +11643,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -11656,7 +11656,7 @@
      "AFRICAN_UNEMPLOYED_CONGRESS": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004661814276305172,
        "q": 0.5,
        "quantile_effective_draws": 2584.2745636147215,
@@ -11668,7 +11668,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004661814276305172,
        "q": 0.05,
        "quantile_effective_draws": 2584.2745636147215,
@@ -11679,7 +11679,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004661814276305172,
        "q": 0.95,
        "quantile_effective_draws": 2584.274563614723,
@@ -11692,7 +11692,7 @@
      "AFRICA_RESTORATION_ALLIANCE": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0034719867563195272,
        "q": 0.5,
        "quantile_effective_draws": 2511.0613055588738,
@@ -11704,7 +11704,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0034719867563195272,
        "q": 0.05,
        "quantile_effective_draws": 2511.0613055588738,
@@ -11715,7 +11715,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -11728,7 +11728,7 @@
      "AFRIKA_MAYIBUYE_MOVEMENT": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00493855937593988,
        "q": 0.5,
        "quantile_effective_draws": 2513.521171305286,
@@ -11740,7 +11740,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00493855937593988,
        "q": 0.05,
        "quantile_effective_draws": 2513.521171305286,
@@ -11751,7 +11751,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004938559375939879,
        "q": 0.95,
        "quantile_effective_draws": 2513.521171305288,
@@ -11764,7 +11764,7 @@
      "AFRIKA_UNITE_CONGRESS": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0033493632914967358,
        "q": 0.5,
        "quantile_effective_draws": 2455.5147800454597,
@@ -11776,7 +11776,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0033493632914967358,
        "q": 0.05,
        "quantile_effective_draws": 2455.5147800454597,
@@ -11787,7 +11787,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -11800,7 +11800,7 @@
      "AHC": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.008958053159457883,
        "q": 0.5,
        "quantile_effective_draws": 2453.3733035121763,
@@ -11812,7 +11812,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.008958053159457883,
        "q": 0.05,
        "quantile_effective_draws": 2453.3733035121763,
@@ -11823,7 +11823,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004829211875342589,
        "q": 0.95,
        "quantile_effective_draws": 2198.369778365508,
@@ -11836,7 +11836,7 @@
      "AIC": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.008254626506068279,
        "q": 0.5,
        "quantile_effective_draws": 2559.0518682659967,
@@ -11848,7 +11848,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.008254626506068279,
        "q": 0.05,
        "quantile_effective_draws": 2559.0518682659967,
@@ -11859,7 +11859,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004336812297391578,
        "q": 0.95,
        "quantile_effective_draws": 2622.062846545596,
@@ -11872,7 +11872,7 @@
      "ALJAMAAH": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009960741183519993,
        "q": 0.5,
        "quantile_effective_draws": 2508.306325113003,
@@ -11884,7 +11884,7 @@
       "median_se": 0.024581623711988167,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.008644473353006976,
        "q": 0.05,
        "quantile_effective_draws": 2459.8241135172216,
@@ -11895,7 +11895,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004720028483368454,
        "q": 0.95,
        "quantile_effective_draws": 2449.7814052177528,
@@ -11908,7 +11908,7 @@
      "ALLIED_INDEPENDENTS_UMBRELLA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004525749642352617,
        "q": 0.5,
        "quantile_effective_draws": 2661.064184912122,
@@ -11920,7 +11920,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004525749642352617,
        "q": 0.05,
        "quantile_effective_draws": 2661.064184912122,
@@ -11931,7 +11931,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004525749642352617,
        "q": 0.95,
        "quantile_effective_draws": 2661.064184912126,
@@ -11944,7 +11944,7 @@
      "ALL_CITIZENS_PARTY": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009669256125611026,
        "q": 0.5,
        "quantile_effective_draws": 2502.771052514324,
@@ -11956,7 +11956,7 @@
       "median_se": 2.8824964800973267e-13,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00982250277445409,
        "q": 0.05,
        "quantile_effective_draws": 2483.369539751113,
@@ -11967,7 +11967,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004846980244917982,
        "q": 0.95,
        "quantile_effective_draws": 2362.5669459320893,
@@ -11980,7 +11980,7 @@
      "ALL_NATIVES_OF_SOUTH_AFRICA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004920630009768256,
        "q": 0.5,
        "quantile_effective_draws": 2548.7272351146257,
@@ -11992,7 +11992,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004920630009768256,
        "q": 0.05,
        "quantile_effective_draws": 2548.7272351146257,
@@ -12003,7 +12003,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004920630009768257,
        "q": 0.95,
        "quantile_effective_draws": 2548.7272351146316,
@@ -12016,7 +12016,7 @@
      "ANC": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009999133381248707,
        "q": 0.5,
        "quantile_effective_draws": 2496.658562218592,
@@ -12028,7 +12028,7 @@
       "median_se": 0.2796057694138704,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0029820882009133605,
        "q": 0.05,
        "quantile_effective_draws": 5758.73807522651,
@@ -12039,7 +12039,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0034408579431489668,
        "q": 0.95,
        "quantile_effective_draws": 4752.460497480091,
@@ -12052,7 +12052,7 @@
      "APC": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005819139816215196,
        "q": 0.5,
        "quantile_effective_draws": 2663.0253590453412,
@@ -12064,7 +12064,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005819139816215196,
        "q": 0.05,
        "quantile_effective_draws": 2663.0253590453412,
@@ -12075,7 +12075,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005819139816215196,
        "q": 0.95,
        "quantile_effective_draws": 2663.025359045345,
@@ -12088,7 +12088,7 @@
      "ASA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00997575272559986,
        "q": 0.5,
        "quantile_effective_draws": 2510.6977090701353,
@@ -12100,7 +12100,7 @@
       "median_se": 0.31247864904160066,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004171838165318554,
        "q": 0.05,
        "quantile_effective_draws": 2892.073124964482,
@@ -12111,7 +12111,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.002978112880454269,
        "q": 0.95,
        "quantile_effective_draws": 5697.078643088118,
@@ -12124,7 +12124,7 @@
      "ATM": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009354010802748945,
        "q": 0.5,
        "quantile_effective_draws": 2432.973612473692,
@@ -12136,7 +12136,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009354010802748945,
        "q": 0.05,
        "quantile_effective_draws": 2432.973612473692,
@@ -12147,7 +12147,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0050231675806447626,
        "q": 0.95,
        "quantile_effective_draws": 2234.4857995787083,
@@ -12160,7 +12160,7 @@
      "AZANIAN_GROUND_FORCES": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0045581061434331015,
        "q": 0.5,
        "quantile_effective_draws": 2621.3164114653646,
@@ -12172,7 +12172,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0045581061434331015,
        "q": 0.05,
        "quantile_effective_draws": 2621.3164114653646,
@@ -12183,7 +12183,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0045581061434331015,
        "q": 0.95,
        "quantile_effective_draws": 2621.316411465369,
@@ -12196,7 +12196,7 @@
      "AZANIA_PEACEFUL_REVOLUTION": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.002486319755523035,
        "q": 0.5,
        "quantile_effective_draws": 2785.512820450907,
@@ -12208,7 +12208,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.002486319755523035,
        "q": 0.05,
        "quantile_effective_draws": 2785.512820450907,
@@ -12219,7 +12219,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -12232,7 +12232,7 @@
      "AZAPO": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004846776559470659,
        "q": 0.5,
        "quantile_effective_draws": 2691.028180773783,
@@ -12244,7 +12244,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004846776559470659,
        "q": 0.05,
        "quantile_effective_draws": 2691.028180773783,
@@ -12255,7 +12255,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004846776559470658,
        "q": 0.95,
        "quantile_effective_draws": 2691.0281807737806,
@@ -12268,7 +12268,7 @@
      "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004075398157425275,
        "q": 0.5,
        "quantile_effective_draws": 2602.451020173026,
@@ -12280,7 +12280,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004075398157425275,
        "q": 0.05,
        "quantile_effective_draws": 2602.451020173026,
@@ -12291,7 +12291,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -12304,7 +12304,7 @@
      "BOSA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009913009224669582,
        "q": 0.5,
        "quantile_effective_draws": 2494.826894757818,
@@ -12316,7 +12316,7 @@
       "median_se": 1.0440778402077301e-06,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009393305677289047,
        "q": 0.05,
        "quantile_effective_draws": 2519.8247463282155,
@@ -12327,7 +12327,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00439854827023571,
        "q": 0.95,
        "quantile_effective_draws": 2498.7670837870483,
@@ -12340,7 +12340,7 @@
      "CHRIST_KINGDOM_PARTY": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0036097914638553055,
        "q": 0.5,
        "quantile_effective_draws": 2223.909391267797,
@@ -12352,7 +12352,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0036097914638553055,
        "q": 0.05,
        "quantile_effective_draws": 2223.909391267797,
@@ -12363,7 +12363,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -12376,7 +12376,7 @@
      "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00482145039311307,
        "q": 0.5,
        "quantile_effective_draws": 2567.8833014042025,
@@ -12388,7 +12388,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00482145039311307,
        "q": 0.05,
        "quantile_effective_draws": 2567.8833014042025,
@@ -12399,7 +12399,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00482145039311307,
        "q": 0.95,
        "quantile_effective_draws": 2567.8833014042057,
@@ -12412,7 +12412,7 @@
      "COMBAT": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0036469389804348233,
        "q": 0.5,
        "quantile_effective_draws": 2418.186949776964,
@@ -12424,7 +12424,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0036469389804348233,
        "q": 0.05,
        "quantile_effective_draws": 2418.186949776964,
@@ -12435,7 +12435,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -12448,7 +12448,7 @@
      "COMMUNITY_FIRST_MOVEMENT": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0037513577141686477,
        "q": 0.5,
        "quantile_effective_draws": 2390.926616462364,
@@ -12460,7 +12460,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0037513577141686477,
        "q": 0.05,
        "quantile_effective_draws": 2390.926616462364,
@@ -12471,7 +12471,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -12484,7 +12484,7 @@
      "COPE": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004527607828393504,
        "q": 0.5,
        "quantile_effective_draws": 2516.985292105669,
@@ -12496,7 +12496,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004527607828393504,
        "q": 0.05,
        "quantile_effective_draws": 2516.985292105669,
@@ -12507,7 +12507,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004527607828393503,
        "q": 0.95,
        "quantile_effective_draws": 2516.985292105677,
@@ -12520,7 +12520,7 @@
      "DA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010059761477781993,
        "q": 0.5,
        "quantile_effective_draws": 2466.1854875152917,
@@ -12532,7 +12532,7 @@
       "median_se": 0.2323542033274345,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00323684471799391,
        "q": 0.05,
        "quantile_effective_draws": 4761.727940757609,
@@ -12543,7 +12543,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004918608393457869,
        "q": 0.95,
        "quantile_effective_draws": 2181.105771191502,
@@ -12556,7 +12556,7 @@
      "DUDULA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006226693126263522,
        "q": 0.5,
        "quantile_effective_draws": 2438.8254752113116,
@@ -12568,7 +12568,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006226693126263522,
        "q": 0.05,
        "quantile_effective_draws": 2438.8254752113116,
@@ -12579,7 +12579,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004386639453118363,
        "q": 0.95,
        "quantile_effective_draws": 2474.7558706941563,
@@ -12592,7 +12592,7 @@
      "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004459857505769596,
        "q": 0.5,
        "quantile_effective_draws": 2542.0493826799348,
@@ -12604,7 +12604,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004459857505769596,
        "q": 0.05,
        "quantile_effective_draws": 2542.0493826799348,
@@ -12615,7 +12615,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004459857505769596,
        "q": 0.95,
        "quantile_effective_draws": 2542.049382679946,
@@ -12628,7 +12628,7 @@
      "ECONOMIC_REDRESS_MOVEMENT": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0030428514771023963,
        "q": 0.5,
        "quantile_effective_draws": 2776.3606379380167,
@@ -12640,7 +12640,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0030428514771023963,
        "q": 0.05,
        "quantile_effective_draws": 2776.3606379380167,
@@ -12651,7 +12651,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -12664,7 +12664,7 @@
      "EFF": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009827675175470514,
        "q": 0.5,
        "quantile_effective_draws": 2572.1422683401747,
@@ -12676,7 +12676,7 @@
       "median_se": 0.49048705452973046,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004459731949360975,
        "q": 0.05,
        "quantile_effective_draws": 2506.9704201063523,
@@ -12687,7 +12687,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0029218140868656323,
        "q": 0.95,
        "quantile_effective_draws": 6523.671639299303,
@@ -12700,7 +12700,7 @@
      "EKHETHU_PEOPLES_PARTY": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005325267029542433,
        "q": 0.5,
        "quantile_effective_draws": 2364.0853712470443,
@@ -12712,7 +12712,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005325267029542433,
        "q": 0.05,
        "quantile_effective_draws": 2364.0853712470443,
@@ -12723,7 +12723,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005325267029542433,
        "q": 0.95,
        "quantile_effective_draws": 2364.085371247048,
@@ -12736,7 +12736,7 @@
      "GAP_FIXERS_OF_SOUTH_AFRICA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0036526773729006518,
        "q": 0.5,
        "quantile_effective_draws": 2464.009093476195,
@@ -12748,7 +12748,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0036526773729006518,
        "q": 0.05,
        "quantile_effective_draws": 2464.009093476195,
@@ -12759,7 +12759,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -12772,7 +12772,7 @@
      "GAZA_DEMOCRATIC_FRONT": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0033061096786897977,
        "q": 0.5,
        "quantile_effective_draws": 2641.7119526633223,
@@ -12784,7 +12784,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0033061096786897977,
        "q": 0.05,
        "quantile_effective_draws": 2641.7119526633223,
@@ -12795,7 +12795,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -12808,7 +12808,7 @@
      "IFP": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00992313136499919,
        "q": 0.5,
        "quantile_effective_draws": 2502.7149414252035,
@@ -12820,7 +12820,7 @@
       "median_se": 0.00022534560497557767,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.008902969775113442,
        "q": 0.05,
        "quantile_effective_draws": 2510.594045701712,
@@ -12831,7 +12831,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004593831716178196,
        "q": 0.95,
        "quantile_effective_draws": 2340.4962614034885,
@@ -12844,7 +12844,7 @@
      "ILIZWE_NATHI": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0037179998681528574,
        "q": 0.5,
        "quantile_effective_draws": 2505.9477024321536,
@@ -12856,7 +12856,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0037179998681528574,
        "q": 0.05,
        "quantile_effective_draws": 2505.9477024321536,
@@ -12867,7 +12867,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -12880,7 +12880,7 @@
      "IMSTAYING": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0031463942301259828,
        "q": 0.5,
        "quantile_effective_draws": 2820.11627605108,
@@ -12892,7 +12892,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0031463942301259828,
        "q": 0.05,
        "quantile_effective_draws": 2820.11627605108,
@@ -12903,7 +12903,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -12916,7 +12916,7 @@
      "INDEPENDENT_CITIZENS_MOVEMENT": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004759553517756232,
        "q": 0.5,
        "quantile_effective_draws": 2472.805875087522,
@@ -12928,7 +12928,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004759553517756232,
        "q": 0.05,
        "quantile_effective_draws": 2472.805875087522,
@@ -12939,7 +12939,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004759553517756232,
        "q": 0.95,
        "quantile_effective_draws": 2472.8058750875243,
@@ -12952,7 +12952,7 @@
      "KINGDOM_COVENANT_DEMOCRATIC_PARTY": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0037312638395098066,
        "q": 0.5,
        "quantile_effective_draws": 2342.606484016212,
@@ -12964,7 +12964,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0037312638395098066,
        "q": 0.05,
        "quantile_effective_draws": 2342.606484016212,
@@ -12975,7 +12975,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -12988,7 +12988,7 @@
      "KNOW_YOUR_POWER": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004414019153209988,
        "q": 0.5,
        "quantile_effective_draws": 2728.64893346017,
@@ -13000,7 +13000,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004414019153209988,
        "q": 0.05,
        "quantile_effective_draws": 2728.64893346017,
@@ -13011,7 +13011,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004414019153209988,
        "q": 0.95,
        "quantile_effective_draws": 2728.6489334601747,
@@ -13024,7 +13024,7 @@
      "LABOUR_PARTY_OF_SOUTH_AFRICA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004957931835414851,
        "q": 0.5,
        "quantile_effective_draws": 2357.491568395711,
@@ -13036,7 +13036,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004957931835414851,
        "q": 0.05,
        "quantile_effective_draws": 2357.491568395711,
@@ -13047,7 +13047,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004957931835414851,
        "q": 0.95,
        "quantile_effective_draws": 2357.491568395715,
@@ -13060,7 +13060,7 @@
      "LAND_PARTY": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003357679088090086,
        "q": 0.5,
        "quantile_effective_draws": 2372.3469888626164,
@@ -13072,7 +13072,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003357679088090086,
        "q": 0.05,
        "quantile_effective_draws": 2372.3469888626164,
@@ -13083,7 +13083,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -13096,7 +13096,7 @@
      "LEKWE_BEPE_KINGDOM_PARTY": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003535480566225501,
        "q": 0.5,
        "quantile_effective_draws": 2306.9777694407308,
@@ -13108,7 +13108,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003535480566225501,
        "q": 0.05,
        "quantile_effective_draws": 2306.9777694407308,
@@ -13119,7 +13119,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -13132,7 +13132,7 @@
      "MAWUSA_MOVEMENT_PARTY": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0036424048814860427,
        "q": 0.5,
        "quantile_effective_draws": 2410.358987707659,
@@ -13144,7 +13144,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0036424048814860427,
        "q": 0.05,
        "quantile_effective_draws": 2410.358987707659,
@@ -13155,7 +13155,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -13168,7 +13168,7 @@
      "MINORITY_FRONT": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005020129096161651,
        "q": 0.5,
        "quantile_effective_draws": 2288.9826757334654,
@@ -13180,7 +13180,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005020129096161651,
        "q": 0.05,
        "quantile_effective_draws": 2288.9826757334654,
@@ -13191,7 +13191,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005020129096161651,
        "q": 0.95,
        "quantile_effective_draws": 2288.982675733469,
@@ -13204,7 +13204,7 @@
      "MK": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009972641889494297,
        "q": 0.5,
        "quantile_effective_draws": 2506.88155117556,
@@ -13216,7 +13216,7 @@
       "median_se": 0.20868379291783654,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003937115673336077,
        "q": 0.05,
        "quantile_effective_draws": 3295.853133121945,
@@ -13227,7 +13227,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003084246980598147,
        "q": 0.95,
        "quantile_effective_draws": 5192.355024651021,
@@ -13240,7 +13240,7 @@
      "MOVEMENT_OF_RESIDENTS_PARTY": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0033364487544091455,
        "q": 0.5,
        "quantile_effective_draws": 2476.841293895244,
@@ -13252,7 +13252,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0033364487544091455,
        "q": 0.05,
        "quantile_effective_draws": 2476.841293895244,
@@ -13263,7 +13263,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -13276,7 +13276,7 @@
      "MOVE_SA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004885111633953562,
        "q": 0.5,
        "quantile_effective_draws": 2377.9020255201617,
@@ -13288,7 +13288,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004885111633953562,
        "q": 0.05,
        "quantile_effective_draws": 2377.9020255201617,
@@ -13299,7 +13299,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004885111633953562,
        "q": 0.95,
        "quantile_effective_draws": 2377.9020255201685,
@@ -13312,7 +13312,7 @@
      "NATIONAL_DEMOCRATIC_CONVENTION": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004851928371029657,
        "q": 0.5,
        "quantile_effective_draws": 2499.006484215742,
@@ -13324,7 +13324,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004851928371029657,
        "q": 0.05,
        "quantile_effective_draws": 2499.006484215742,
@@ -13335,7 +13335,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004851928371029658,
        "q": 0.95,
        "quantile_effective_draws": 2499.0064842157462,
@@ -13348,7 +13348,7 @@
      "NCC": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005128769427810778,
        "q": 0.5,
        "quantile_effective_draws": 2319.8745660604045,
@@ -13360,7 +13360,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005128769427810778,
        "q": 0.05,
        "quantile_effective_draws": 2319.8745660604045,
@@ -13371,7 +13371,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005128769427810779,
        "q": 0.95,
        "quantile_effective_draws": 2319.874566060408,
@@ -13384,7 +13384,7 @@
      "NFP": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003996683857856677,
        "q": 0.5,
        "quantile_effective_draws": 2473.5470490758853,
@@ -13396,7 +13396,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003996683857856677,
        "q": 0.05,
        "quantile_effective_draws": 2473.5470490758853,
@@ -13407,7 +13407,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -13420,7 +13420,7 @@
      "PA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009974275710049827,
        "q": 0.5,
        "quantile_effective_draws": 2500.649473278453,
@@ -13432,7 +13432,7 @@
       "median_se": 0.05697028968833705,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004697018170991255,
        "q": 0.05,
        "quantile_effective_draws": 2479.932139709161,
@@ -13443,7 +13443,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004557178939032654,
        "q": 0.95,
        "quantile_effective_draws": 2516.9524733000135,
@@ -13456,7 +13456,7 @@
      "PAC": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.008508131718928731,
        "q": 0.5,
        "quantile_effective_draws": 2515.014787068934,
@@ -13468,7 +13468,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.008508131718928731,
        "q": 0.05,
        "quantile_effective_draws": 2515.014787068934,
@@ -13479,7 +13479,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004609124721655046,
        "q": 0.95,
        "quantile_effective_draws": 2386.176501913276,
@@ -13492,7 +13492,7 @@
      "PEOPLE_OF_JOBURG": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004483000117220637,
        "q": 0.5,
        "quantile_effective_draws": 2616.849631994094,
@@ -13504,7 +13504,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004483000117220637,
        "q": 0.05,
        "quantile_effective_draws": 2616.849631994094,
@@ -13515,7 +13515,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004483000117220637,
        "q": 0.95,
        "quantile_effective_draws": 2616.8496319941,
@@ -13528,7 +13528,7 @@
      "PEOPLE_S_CONSENT_PARTY": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003161665761764192,
        "q": 0.5,
        "quantile_effective_draws": 2547.9503408395544,
@@ -13540,7 +13540,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003161665761764192,
        "q": 0.05,
        "quantile_effective_draws": 2547.9503408395544,
@@ -13551,7 +13551,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -13564,7 +13564,7 @@
      "PEOPLE_S_MOVEMENT_FOR_CHANGE": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00509655417358736,
        "q": 0.5,
        "quantile_effective_draws": 2414.5350066920214,
@@ -13576,7 +13576,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00509655417358736,
        "q": 0.05,
        "quantile_effective_draws": 2414.5350066920214,
@@ -13587,7 +13587,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00509655417358736,
        "q": 0.95,
        "quantile_effective_draws": 2414.5350066920223,
@@ -13600,7 +13600,7 @@
      "PRO_SOUTH_AFRICA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0041584772163662,
        "q": 0.5,
        "quantile_effective_draws": 2479.2379339981057,
@@ -13612,7 +13612,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0041584772163662,
        "q": 0.05,
        "quantile_effective_draws": 2479.2379339981057,
@@ -13623,7 +13623,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -13636,7 +13636,7 @@
      "RESIDENT_DEVELOPMENT": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0033252888031824273,
        "q": 0.5,
        "quantile_effective_draws": 2198.414197991398,
@@ -13648,7 +13648,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0033252888031824273,
        "q": 0.05,
        "quantile_effective_draws": 2198.414197991398,
@@ -13659,7 +13659,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -13672,7 +13672,7 @@
      "RISE": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010005545134790718,
        "q": 0.5,
        "quantile_effective_draws": 2497.1407772677658,
@@ -13684,7 +13684,7 @@
       "median_se": 0.49044679430503746,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00704562968155059,
        "q": 0.05,
        "quantile_effective_draws": 2525.127450765806,
@@ -13695,7 +13695,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004555222373776777,
        "q": 0.95,
        "quantile_effective_draws": 2296.8178392724694,
@@ -13708,7 +13708,7 @@
      "SERVICE_DELIVERY_PARTY": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00481470626374057,
        "q": 0.5,
        "quantile_effective_draws": 2328.7153719810362,
@@ -13720,7 +13720,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00481470626374057,
        "q": 0.05,
        "quantile_effective_draws": 2328.7153719810362,
@@ -13731,7 +13731,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00481470626374057,
        "q": 0.95,
        "quantile_effective_draws": 2328.715371981041,
@@ -13744,7 +13744,7 @@
      "SOUTH_AFRICAN_COMMUNIST_PARTY": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009800068820205416,
        "q": 0.5,
        "quantile_effective_draws": 2487.488060724887,
@@ -13756,7 +13756,7 @@
       "median_se": 0.4074930702137066,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009323301128269457,
        "q": 0.05,
        "quantile_effective_draws": 2482.459649456862,
@@ -13767,7 +13767,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004650032025994645,
        "q": 0.95,
        "quantile_effective_draws": 2288.762375205204,
@@ -13780,7 +13780,7 @@
      "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005127458065714278,
        "q": 0.5,
        "quantile_effective_draws": 2318.751863820634,
@@ -13792,7 +13792,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005127458065714278,
        "q": 0.05,
        "quantile_effective_draws": 2318.751863820634,
@@ -13803,7 +13803,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005127458065714278,
        "q": 0.95,
        "quantile_effective_draws": 2318.751863820636,
@@ -13816,7 +13816,7 @@
      "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0033387027387929607,
        "q": 0.5,
        "quantile_effective_draws": 2350.468147557421,
@@ -13828,7 +13828,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0033387027387929607,
        "q": 0.05,
        "quantile_effective_draws": 2350.468147557421,
@@ -13839,7 +13839,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 2.2214056338254404e-18,
        "q": 0.95,
        "quantile_effective_draws": 2.2498548058632503e+19,
@@ -13852,7 +13852,7 @@
      "TRUTH_AND_SOLIDARITY_MOVEMENT": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005440775627478028,
        "q": 0.5,
        "quantile_effective_draws": 2596.478403826538,
@@ -13864,7 +13864,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005440775627478028,
        "q": 0.05,
        "quantile_effective_draws": 2596.478403826538,
@@ -13875,7 +13875,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005440775627478028,
        "q": 0.95,
        "quantile_effective_draws": 2596.478403826542,
@@ -13888,7 +13888,7 @@
      "UDM": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006438377305917918,
        "q": 0.5,
        "quantile_effective_draws": 2437.0503652220345,
@@ -13900,7 +13900,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006438377305917918,
        "q": 0.05,
        "quantile_effective_draws": 2437.0503652220345,
@@ -13911,7 +13911,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004929452980952848,
        "q": 0.95,
        "quantile_effective_draws": 2358.0629673208873,
@@ -13924,7 +13924,7 @@
      "UMPHAKATHI_WARONA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004951594317807389,
        "q": 0.5,
        "quantile_effective_draws": 2487.8789148770547,
@@ -13936,7 +13936,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004951594317807389,
        "q": 0.05,
        "quantile_effective_draws": 2487.8789148770547,
@@ -13947,7 +13947,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004951594317807388,
        "q": 0.95,
        "quantile_effective_draws": 2487.8789148770534,
@@ -13960,7 +13960,7 @@
      "UNITED_AFRICANS_TRANSFORMATION": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006809409910023969,
        "q": 0.5,
        "quantile_effective_draws": 2519.0586624212497,
@@ -13972,7 +13972,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006809409910023969,
        "q": 0.05,
        "quantile_effective_draws": 2519.0586624212497,
@@ -13983,7 +13983,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005182792453995158,
        "q": 0.95,
        "quantile_effective_draws": 2485.5839304554847,
@@ -13996,7 +13996,7 @@
      "VFPLUS": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009720215759929884,
        "q": 0.5,
        "quantile_effective_draws": 2532.6422518457334,
@@ -14008,7 +14008,7 @@
       "median_se": 2.882496480097327e-13,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009562710287807837,
        "q": 0.05,
        "quantile_effective_draws": 2489.38623407414,
@@ -14019,7 +14019,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004652646559194161,
        "q": 0.95,
        "quantile_effective_draws": 2794.8831220788998,
@@ -14032,7 +14032,7 @@
      "VUKA_SA": {
       "median": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005023958600086365,
        "q": 0.5,
        "quantile_effective_draws": 2354.0742374856172,
@@ -14044,7 +14044,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005023958600086365,
        "q": 0.05,
        "quantile_effective_draws": 2354.0742374856172,
@@ -14055,7 +14055,7 @@
       },
       "p95": {
        "effective_draws": 2497.840607532942,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005023958600086365,
        "q": 0.95,
        "quantile_effective_draws": 2354.074237485619,
@@ -14219,7 +14219,7 @@
       "EFF": 0.07460738495221253,
       "MK": 0.09991158267020335
      },
-     "label": "the model's draws nearest this poll",
+     "label": "the model's simulations nearest this poll",
      "sd": {
       "ipsos-khayabus-2026-coj": {
        "ANC": 0.13788078586630959,
@@ -14272,7 +14272,7 @@
      "ACDP": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010064800299289276,
        "q": 0.5,
        "quantile_effective_draws": 2148.80753143461,
@@ -14284,7 +14284,7 @@
       "median_se": 1.5067149392725836e-15,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010578161160725318,
        "q": 0.05,
        "quantile_effective_draws": 2122.423066811516,
@@ -14295,7 +14295,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005258448594556747,
        "q": 0.95,
        "quantile_effective_draws": 1827.0850355444254,
@@ -14308,7 +14308,7 @@
      "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005087043002643109,
        "q": 0.5,
        "quantile_effective_draws": 2198.385484908966,
@@ -14320,7 +14320,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005087043002643109,
        "q": 0.05,
        "quantile_effective_draws": 2198.385484908966,
@@ -14331,7 +14331,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005087043002643108,
        "q": 0.95,
        "quantile_effective_draws": 2198.3854849089635,
@@ -14344,7 +14344,7 @@
      "AFRICAN_CONGRESS_FOR_TRANSFORMATION": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004173388807704224,
        "q": 0.5,
        "quantile_effective_draws": 2332.8566092737724,
@@ -14356,7 +14356,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004173388807704224,
        "q": 0.05,
        "quantile_effective_draws": 2332.8566092737724,
@@ -14367,7 +14367,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -14380,7 +14380,7 @@
      "AFRICAN_ECONOMIC_FREEDOM": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005274055486679294,
        "q": 0.5,
        "quantile_effective_draws": 2256.8682171189625,
@@ -14392,7 +14392,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005274055486679294,
        "q": 0.05,
        "quantile_effective_draws": 2256.8682171189625,
@@ -14403,7 +14403,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005274055486679294,
        "q": 0.95,
        "quantile_effective_draws": 2256.868217118959,
@@ -14416,7 +14416,7 @@
      "AFRICAN_LABOUR_CONVENTION": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00428034677096148,
        "q": 0.5,
        "quantile_effective_draws": 1903.0709405687692,
@@ -14428,7 +14428,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00428034677096148,
        "q": 0.05,
        "quantile_effective_draws": 1903.0709405687692,
@@ -14439,7 +14439,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -14452,7 +14452,7 @@
      "AFRICAN_RENAISSANCE_UNITY": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00565029298776938,
        "q": 0.5,
        "quantile_effective_draws": 2132.1987442211707,
@@ -14464,7 +14464,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00565029298776938,
        "q": 0.05,
        "quantile_effective_draws": 2132.1987442211707,
@@ -14475,7 +14475,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00565029298776938,
        "q": 0.95,
        "quantile_effective_draws": 2132.198744221169,
@@ -14488,7 +14488,7 @@
      "AFRICAN_ROYAL_RAINBOW_CONGRESS": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003659928140875426,
        "q": 0.5,
        "quantile_effective_draws": 2120.3565840527253,
@@ -14500,7 +14500,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003659928140875426,
        "q": 0.05,
        "quantile_effective_draws": 2120.3565840527253,
@@ -14511,7 +14511,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -14524,7 +14524,7 @@
      "AFRICAN_UNEMPLOYED_CONGRESS": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005508959229243426,
        "q": 0.5,
        "quantile_effective_draws": 2026.8175568409902,
@@ -14536,7 +14536,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005508959229243426,
        "q": 0.05,
        "quantile_effective_draws": 2026.8175568409902,
@@ -14547,7 +14547,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005508959229243426,
        "q": 0.95,
        "quantile_effective_draws": 2026.8175568409874,
@@ -14560,7 +14560,7 @@
      "AFRICA_RESTORATION_ALLIANCE": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004343696336079811,
        "q": 0.5,
        "quantile_effective_draws": 1877.21349475889,
@@ -14572,7 +14572,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004343696336079811,
        "q": 0.05,
        "quantile_effective_draws": 1877.21349475889,
@@ -14583,7 +14583,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -14596,7 +14596,7 @@
      "AFRIKA_MAYIBUYE_MOVEMENT": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005800208088052989,
        "q": 0.5,
        "quantile_effective_draws": 1919.4887994806813,
@@ -14608,7 +14608,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005800208088052989,
        "q": 0.05,
        "quantile_effective_draws": 1919.4887994806813,
@@ -14619,7 +14619,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005800208088052989,
        "q": 0.95,
        "quantile_effective_draws": 1919.4887994806813,
@@ -14632,7 +14632,7 @@
      "AFRIKA_UNITE_CONGRESS": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0035607638065884213,
        "q": 0.5,
        "quantile_effective_draws": 2281.2712339560894,
@@ -14644,7 +14644,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0035607638065884213,
        "q": 0.05,
        "quantile_effective_draws": 2281.2712339560894,
@@ -14655,7 +14655,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -14668,7 +14668,7 @@
      "AHC": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009597836190030963,
        "q": 0.5,
        "quantile_effective_draws": 2116.483328570774,
@@ -14680,7 +14680,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009597836190030963,
        "q": 0.05,
        "quantile_effective_draws": 2116.483328570774,
@@ -14691,7 +14691,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004817338519979864,
        "q": 0.95,
        "quantile_effective_draws": 2181.3284487362316,
@@ -14704,7 +14704,7 @@
      "AIC": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0091908496122555,
        "q": 0.5,
        "quantile_effective_draws": 2113.4197916447297,
@@ -14716,7 +14716,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0091908496122555,
        "q": 0.05,
        "quantile_effective_draws": 2113.4197916447297,
@@ -14727,7 +14727,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00477539325375179,
        "q": 0.95,
        "quantile_effective_draws": 2173.463446629607,
@@ -14740,7 +14740,7 @@
      "ALJAMAAH": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010669795169524075,
        "q": 0.5,
        "quantile_effective_draws": 2057.5548322692243,
@@ -14752,7 +14752,7 @@
       "median_se": 8.7631464729536e-09,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.008164415734514556,
        "q": 0.05,
        "quantile_effective_draws": 2263.051464058073,
@@ -14763,7 +14763,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005819924465504262,
        "q": 0.95,
        "quantile_effective_draws": 1916.4480059230125,
@@ -14776,7 +14776,7 @@
      "ALLIED_INDEPENDENTS_UMBRELLA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004847325903611208,
        "q": 0.5,
        "quantile_effective_draws": 2389.780695351475,
@@ -14788,7 +14788,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004847325903611208,
        "q": 0.05,
        "quantile_effective_draws": 2389.780695351475,
@@ -14799,7 +14799,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004847325903611208,
        "q": 0.95,
        "quantile_effective_draws": 2389.7806953514737,
@@ -14812,7 +14812,7 @@
      "ALL_CITIZENS_PARTY": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010735359142018903,
        "q": 0.5,
        "quantile_effective_draws": 2110.6662332786264,
@@ -14824,7 +14824,7 @@
       "median_se": 1.1081579976760577e-07,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010432185629895289,
        "q": 0.05,
        "quantile_effective_draws": 2137.151404285385,
@@ -14835,7 +14835,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005128930762839471,
        "q": 0.95,
        "quantile_effective_draws": 1856.9155590567805,
@@ -14848,7 +14848,7 @@
      "ALL_NATIVES_OF_SOUTH_AFRICA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006167913617780557,
        "q": 0.5,
        "quantile_effective_draws": 1861.1291728890692,
@@ -14860,7 +14860,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006167913617780557,
        "q": 0.05,
        "quantile_effective_draws": 1861.1291728890692,
@@ -14871,7 +14871,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006167913617780557,
        "q": 0.95,
        "quantile_effective_draws": 1861.129172889071,
@@ -14884,7 +14884,7 @@
      "ANC": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010835454205556405,
        "q": 0.5,
        "quantile_effective_draws": 2129.30928915426,
@@ -14896,7 +14896,7 @@
       "median_se": 0.5148619057819507,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003124658634562178,
        "q": 0.05,
        "quantile_effective_draws": 4967.066267283849,
@@ -14907,7 +14907,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0035386516231971743,
        "q": 0.95,
        "quantile_effective_draws": 4034.294695678322,
@@ -14920,7 +14920,7 @@
      "APC": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006656246281594111,
        "q": 0.5,
        "quantile_effective_draws": 2107.906224469749,
@@ -14932,7 +14932,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006656246281594111,
        "q": 0.05,
        "quantile_effective_draws": 2107.906224469749,
@@ -14943,7 +14943,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00487478927231976,
        "q": 0.95,
        "quantile_effective_draws": 2181.320500755287,
@@ -14956,7 +14956,7 @@
      "ASA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010808137223666272,
        "q": 0.5,
        "quantile_effective_draws": 2138.009890432418,
@@ -14968,7 +14968,7 @@
       "median_se": 0.3822882350240143,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0043769986561894994,
        "q": 0.05,
        "quantile_effective_draws": 2895.9458533249212,
@@ -14979,7 +14979,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003351688178740556,
        "q": 0.95,
        "quantile_effective_draws": 4328.76345424113,
@@ -14992,7 +14992,7 @@
      "ATM": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.01028339505224438,
        "q": 0.5,
        "quantile_effective_draws": 2069.7639454405034,
@@ -15004,7 +15004,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.01028339505224438,
        "q": 0.05,
        "quantile_effective_draws": 2069.7639454405034,
@@ -15015,7 +15015,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00520458784453173,
        "q": 0.95,
        "quantile_effective_draws": 2042.0115523510083,
@@ -15028,7 +15028,7 @@
      "AZANIAN_GROUND_FORCES": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004878217400444728,
        "q": 0.5,
        "quantile_effective_draws": 2295.7497398855344,
@@ -15040,7 +15040,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004878217400444728,
        "q": 0.05,
        "quantile_effective_draws": 2295.7497398855344,
@@ -15051,7 +15051,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004878217400444729,
        "q": 0.95,
        "quantile_effective_draws": 2295.749739885537,
@@ -15064,7 +15064,7 @@
      "AZANIA_PEACEFUL_REVOLUTION": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0026045554166052452,
        "q": 0.5,
        "quantile_effective_draws": 2508.4169244643695,
@@ -15076,7 +15076,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0026045554166052452,
        "q": 0.05,
        "quantile_effective_draws": 2508.4169244643695,
@@ -15087,7 +15087,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -15100,7 +15100,7 @@
      "AZAPO": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005009174857746016,
        "q": 0.5,
        "quantile_effective_draws": 2562.116812207108,
@@ -15112,7 +15112,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005009174857746016,
        "q": 0.05,
        "quantile_effective_draws": 2562.116812207108,
@@ -15123,7 +15123,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005009174857746015,
        "q": 0.95,
        "quantile_effective_draws": 2562.116812207103,
@@ -15136,7 +15136,7 @@
      "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004478780661307987,
        "q": 0.5,
        "quantile_effective_draws": 2234.495738937774,
@@ -15148,7 +15148,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004478780661307987,
        "q": 0.05,
        "quantile_effective_draws": 2234.495738937774,
@@ -15159,7 +15159,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -15172,7 +15172,7 @@
      "BOSA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010786576097186406,
        "q": 0.5,
        "quantile_effective_draws": 2132.7697899794157,
@@ -15184,7 +15184,7 @@
       "median_se": 0.0031421420737334903,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010266680318220842,
        "q": 0.05,
        "quantile_effective_draws": 2080.4942329712862,
@@ -15195,7 +15195,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004722709216736388,
        "q": 0.95,
        "quantile_effective_draws": 2185.541988942619,
@@ -15208,7 +15208,7 @@
      "CHRIST_KINGDOM_PARTY": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003759830638676389,
        "q": 0.5,
        "quantile_effective_draws": 2102.1445837470837,
@@ -15220,7 +15220,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003759830638676389,
        "q": 0.05,
        "quantile_effective_draws": 2102.1445837470837,
@@ -15231,7 +15231,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -15244,7 +15244,7 @@
      "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005693865937898086,
        "q": 0.5,
        "quantile_effective_draws": 2061.235756568943,
@@ -15256,7 +15256,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005693865937898086,
        "q": 0.05,
        "quantile_effective_draws": 2061.235756568943,
@@ -15267,7 +15267,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005693865937898086,
        "q": 0.95,
        "quantile_effective_draws": 2061.2357565689413,
@@ -15280,7 +15280,7 @@
      "COMBAT": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004310839062563898,
        "q": 0.5,
        "quantile_effective_draws": 1947.034694556219,
@@ -15292,7 +15292,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004310839062563898,
        "q": 0.05,
        "quantile_effective_draws": 1947.034694556219,
@@ -15303,7 +15303,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -15316,7 +15316,7 @@
      "COMMUNITY_FIRST_MOVEMENT": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0036884353238226977,
        "q": 0.5,
        "quantile_effective_draws": 2421.6875049687005,
@@ -15328,7 +15328,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0036884353238226977,
        "q": 0.05,
        "quantile_effective_draws": 2421.6875049687005,
@@ -15339,7 +15339,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -15352,7 +15352,7 @@
      "COPE": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005413996214387037,
        "q": 0.5,
        "quantile_effective_draws": 1988.1528132274875,
@@ -15364,7 +15364,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005413996214387037,
        "q": 0.05,
        "quantile_effective_draws": 1988.1528132274875,
@@ -15375,7 +15375,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005413996214387037,
        "q": 0.95,
        "quantile_effective_draws": 1988.1528132274852,
@@ -15388,7 +15388,7 @@
      "DA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010976298260730615,
        "q": 0.5,
        "quantile_effective_draws": 2068.8507257130746,
@@ -15400,7 +15400,7 @@
       "median_se": 0.5031962033207898,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0028557914234872733,
        "q": 0.05,
        "quantile_effective_draws": 6419.673185832226,
@@ -15411,7 +15411,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004931997913777594,
        "q": 0.95,
        "quantile_effective_draws": 1977.5140596369465,
@@ -15424,7 +15424,7 @@
      "DUDULA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006588477016929534,
        "q": 0.5,
        "quantile_effective_draws": 2238.5617858477676,
@@ -15436,7 +15436,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006588477016929534,
        "q": 0.05,
        "quantile_effective_draws": 2238.5617858477676,
@@ -15447,7 +15447,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004928465186713268,
        "q": 0.95,
        "quantile_effective_draws": 2185.6348979153677,
@@ -15460,7 +15460,7 @@
      "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004899891991207625,
        "q": 0.5,
        "quantile_effective_draws": 2259.614782144899,
@@ -15472,7 +15472,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004899891991207625,
        "q": 0.05,
        "quantile_effective_draws": 2259.614782144899,
@@ -15483,7 +15483,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004899891991207625,
        "q": 0.95,
        "quantile_effective_draws": 2259.6147821448985,
@@ -15496,7 +15496,7 @@
      "ECONOMIC_REDRESS_MOVEMENT": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003262080195659006,
        "q": 0.5,
        "quantile_effective_draws": 2524.863626730116,
@@ -15508,7 +15508,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003262080195659006,
        "q": 0.05,
        "quantile_effective_draws": 2524.863626730116,
@@ -15519,7 +15519,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -15532,7 +15532,7 @@
      "EFF": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010804669230573908,
        "q": 0.5,
        "quantile_effective_draws": 2140.668605106451,
@@ -15544,7 +15544,7 @@
       "median_se": 0.42620214816638713,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004835341561755728,
        "q": 0.05,
        "quantile_effective_draws": 2204.8988452708027,
@@ -15555,7 +15555,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003031183472965857,
        "q": 0.95,
        "quantile_effective_draws": 5644.465354331774,
@@ -15568,7 +15568,7 @@
      "EKHETHU_PEOPLES_PARTY": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00594043148513405,
        "q": 0.5,
        "quantile_effective_draws": 2033.1893718250658,
@@ -15580,7 +15580,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00594043148513405,
        "q": 0.05,
        "quantile_effective_draws": 2033.1893718250658,
@@ -15591,7 +15591,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00594043148513405,
        "q": 0.95,
        "quantile_effective_draws": 2033.1893718250642,
@@ -15604,7 +15604,7 @@
      "GAP_FIXERS_OF_SOUTH_AFRICA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004285416762573696,
        "q": 0.5,
        "quantile_effective_draws": 1826.211512636401,
@@ -15616,7 +15616,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004285416762573696,
        "q": 0.05,
        "quantile_effective_draws": 1826.211512636401,
@@ -15627,7 +15627,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -15640,7 +15640,7 @@
      "GAZA_DEMOCRATIC_FRONT": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003938265683746177,
        "q": 0.5,
        "quantile_effective_draws": 2068.9522274580486,
@@ -15652,7 +15652,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003938265683746177,
        "q": 0.05,
        "quantile_effective_draws": 2068.9522274580486,
@@ -15663,7 +15663,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -15676,7 +15676,7 @@
      "IFP": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010763695151847143,
        "q": 0.5,
        "quantile_effective_draws": 2142.4331638023973,
@@ -15688,7 +15688,7 @@
       "median_se": 0.009424039326673917,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00970494184600182,
        "q": 0.05,
        "quantile_effective_draws": 2112.481120203179,
@@ -15699,7 +15699,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0047327540768645595,
        "q": 0.95,
        "quantile_effective_draws": 2225.911555293514,
@@ -15712,7 +15712,7 @@
      "ILIZWE_NATHI": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004229725945789654,
        "q": 0.5,
        "quantile_effective_draws": 2085.64128415251,
@@ -15724,7 +15724,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004229725945789654,
        "q": 0.05,
        "quantile_effective_draws": 2085.64128415251,
@@ -15735,7 +15735,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -15748,7 +15748,7 @@
      "IMSTAYING": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0041428156300523725,
        "q": 0.5,
        "quantile_effective_draws": 2023.418724219977,
@@ -15760,7 +15760,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0041428156300523725,
        "q": 0.05,
        "quantile_effective_draws": 2023.418724219977,
@@ -15771,7 +15771,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -15784,7 +15784,7 @@
      "INDEPENDENT_CITIZENS_MOVEMENT": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004958272199535158,
        "q": 0.5,
        "quantile_effective_draws": 2311.4127486173743,
@@ -15796,7 +15796,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004958272199535158,
        "q": 0.05,
        "quantile_effective_draws": 2311.4127486173743,
@@ -15807,7 +15807,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004958272199535158,
        "q": 0.95,
        "quantile_effective_draws": 2311.4127486173666,
@@ -15820,7 +15820,7 @@
      "KINGDOM_COVENANT_DEMOCRATIC_PARTY": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003861103011665432,
        "q": 0.5,
        "quantile_effective_draws": 2267.9363155245637,
@@ -15832,7 +15832,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003861103011665432,
        "q": 0.05,
        "quantile_effective_draws": 2267.9363155245637,
@@ -15843,7 +15843,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -15856,7 +15856,7 @@
      "KNOW_YOUR_POWER": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004829814417441047,
        "q": 0.5,
        "quantile_effective_draws": 2385.275002096103,
@@ -15868,7 +15868,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004829814417441047,
        "q": 0.05,
        "quantile_effective_draws": 2385.275002096103,
@@ -15879,7 +15879,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004829814417441047,
        "q": 0.95,
        "quantile_effective_draws": 2385.275002096099,
@@ -15892,7 +15892,7 @@
      "LABOUR_PARTY_OF_SOUTH_AFRICA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005166009562299771,
        "q": 0.5,
        "quantile_effective_draws": 2181.7549086741533,
@@ -15904,7 +15904,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005166009562299771,
        "q": 0.05,
        "quantile_effective_draws": 2181.7549086741533,
@@ -15915,7 +15915,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005166009562299771,
        "q": 0.95,
        "quantile_effective_draws": 2181.754908674151,
@@ -15928,7 +15928,7 @@
      "LAND_PARTY": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003431162807682472,
        "q": 0.5,
        "quantile_effective_draws": 2314.741858335147,
@@ -15940,7 +15940,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003431162807682472,
        "q": 0.05,
        "quantile_effective_draws": 2314.741858335147,
@@ -15951,7 +15951,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -15964,7 +15964,7 @@
      "LEKWE_BEPE_KINGDOM_PARTY": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003323229711311692,
        "q": 0.5,
        "quantile_effective_draws": 2490.6869927146013,
@@ -15976,7 +15976,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003323229711311692,
        "q": 0.05,
        "quantile_effective_draws": 2490.6869927146013,
@@ -15987,7 +15987,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -16000,7 +16000,7 @@
      "MAWUSA_MOVEMENT_PARTY": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004299174808377938,
        "q": 0.5,
        "quantile_effective_draws": 1983.2129916495796,
@@ -16012,7 +16012,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004299174808377938,
        "q": 0.05,
        "quantile_effective_draws": 1983.2129916495796,
@@ -16023,7 +16023,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -16036,7 +16036,7 @@
      "MINORITY_FRONT": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00531747023561586,
        "q": 0.5,
        "quantile_effective_draws": 2156.659470611245,
@@ -16048,7 +16048,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00531747023561586,
        "q": 0.05,
        "quantile_effective_draws": 2156.659470611245,
@@ -16059,7 +16059,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00531747023561586,
        "q": 0.95,
        "quantile_effective_draws": 2156.659470611243,
@@ -16072,7 +16072,7 @@
      "MK": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010804556872607887,
        "q": 0.5,
        "quantile_effective_draws": 2135.880452028178,
@@ -16084,7 +16084,7 @@
       "median_se": 0.3927915660192332,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00480371532461239,
        "q": 0.05,
        "quantile_effective_draws": 2715.380625702425,
@@ -16095,7 +16095,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0033238271602447846,
        "q": 0.95,
        "quantile_effective_draws": 4698.648350793096,
@@ -16108,7 +16108,7 @@
      "MOVEMENT_OF_RESIDENTS_PARTY": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0036173585825519956,
        "q": 0.5,
        "quantile_effective_draws": 2102.8779657581244,
@@ -16120,7 +16120,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0036173585825519956,
        "q": 0.05,
        "quantile_effective_draws": 2102.8779657581244,
@@ -16131,7 +16131,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -16144,7 +16144,7 @@
      "MOVE_SA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005882407653292922,
        "q": 0.5,
        "quantile_effective_draws": 1885.1505373970663,
@@ -16156,7 +16156,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005882407653292922,
        "q": 0.05,
        "quantile_effective_draws": 1885.1505373970663,
@@ -16167,7 +16167,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005882407653292922,
        "q": 0.95,
        "quantile_effective_draws": 1885.1505373970615,
@@ -16180,7 +16180,7 @@
      "NATIONAL_DEMOCRATIC_CONVENTION": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005588590167193776,
        "q": 0.5,
        "quantile_effective_draws": 2014.8092607668907,
@@ -16192,7 +16192,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005588590167193776,
        "q": 0.05,
        "quantile_effective_draws": 2014.8092607668907,
@@ -16203,7 +16203,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005588590167193776,
        "q": 0.95,
        "quantile_effective_draws": 2014.809260766885,
@@ -16216,7 +16216,7 @@
      "NCC": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006071606548731433,
        "q": 0.5,
        "quantile_effective_draws": 1834.1067547078544,
@@ -16228,7 +16228,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006071606548731433,
        "q": 0.05,
        "quantile_effective_draws": 1834.1067547078544,
@@ -16239,7 +16239,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006071606548731433,
        "q": 0.95,
        "quantile_effective_draws": 1834.1067547078517,
@@ -16252,7 +16252,7 @@
      "NFP": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003989556652127227,
        "q": 0.5,
        "quantile_effective_draws": 2457.9444209582125,
@@ -16264,7 +16264,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003989556652127227,
        "q": 0.05,
        "quantile_effective_draws": 2457.9444209582125,
@@ -16275,7 +16275,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -16288,7 +16288,7 @@
      "PA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010849865549144551,
        "q": 0.5,
        "quantile_effective_draws": 2123.301381958036,
@@ -16300,7 +16300,7 @@
       "median_se": 0.42077131014001823,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004395683443651555,
        "q": 0.05,
        "quantile_effective_draws": 2706.9410519815406,
@@ -16311,7 +16311,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005202089077848899,
        "q": 0.95,
        "quantile_effective_draws": 1952.835164750427,
@@ -16324,7 +16324,7 @@
      "PAC": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00931428753608623,
        "q": 0.5,
        "quantile_effective_draws": 2149.925733171924,
@@ -16336,7 +16336,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00931428753608623,
        "q": 0.05,
        "quantile_effective_draws": 2149.925733171924,
@@ -16347,7 +16347,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0048219929402846685,
        "q": 0.95,
        "quantile_effective_draws": 2120.1778311983535,
@@ -16360,7 +16360,7 @@
      "PEOPLE_OF_JOBURG": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005643321012752412,
        "q": 0.5,
        "quantile_effective_draws": 1859.865966109336,
@@ -16372,7 +16372,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005643321012752412,
        "q": 0.05,
        "quantile_effective_draws": 1859.865966109336,
@@ -16383,7 +16383,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005643321012752412,
        "q": 0.95,
        "quantile_effective_draws": 1859.865966109336,
@@ -16396,7 +16396,7 @@
      "PEOPLE_S_CONSENT_PARTY": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003409172118410349,
        "q": 0.5,
        "quantile_effective_draws": 2238.755790163081,
@@ -16408,7 +16408,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003409172118410349,
        "q": 0.05,
        "quantile_effective_draws": 2238.755790163081,
@@ -16419,7 +16419,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -16432,7 +16432,7 @@
      "PEOPLE_S_MOVEMENT_FOR_CHANGE": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00603306389940259,
        "q": 0.5,
        "quantile_effective_draws": 1912.5349679832284,
@@ -16444,7 +16444,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00603306389940259,
        "q": 0.05,
        "quantile_effective_draws": 1912.5349679832284,
@@ -16455,7 +16455,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.00603306389940259,
        "q": 0.95,
        "quantile_effective_draws": 1912.5349679832277,
@@ -16468,7 +16468,7 @@
      "PRO_SOUTH_AFRICA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0045563115167861264,
        "q": 0.5,
        "quantile_effective_draws": 2163.552869165744,
@@ -16480,7 +16480,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0045563115167861264,
        "q": 0.05,
        "quantile_effective_draws": 2163.552869165744,
@@ -16491,7 +16491,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -16504,7 +16504,7 @@
      "RESIDENT_DEVELOPMENT": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003179506187647479,
        "q": 0.5,
        "quantile_effective_draws": 2342.9936608609178,
@@ -16516,7 +16516,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.003179506187647479,
        "q": 0.05,
        "quantile_effective_draws": 2342.9936608609178,
@@ -16527,7 +16527,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -16540,7 +16540,7 @@
      "RISE": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010705117321841248,
        "q": 0.5,
        "quantile_effective_draws": 2132.753914361558,
@@ -16552,7 +16552,7 @@
       "median_se": 0.11303369188675971,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0073989275103037875,
        "q": 0.05,
        "quantile_effective_draws": 2124.0832336486596,
@@ -16563,7 +16563,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0049908519559163055,
        "q": 0.95,
        "quantile_effective_draws": 2109.5631475194696,
@@ -16576,7 +16576,7 @@
      "SERVICE_DELIVERY_PARTY": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004981054292307083,
        "q": 0.5,
        "quantile_effective_draws": 2256.1836761933423,
@@ -16588,7 +16588,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004981054292307083,
        "q": 0.05,
        "quantile_effective_draws": 2256.1836761933423,
@@ -16599,7 +16599,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004981054292307083,
        "q": 0.95,
        "quantile_effective_draws": 2256.1836761933414,
@@ -16612,7 +16612,7 @@
      "SOUTH_AFRICAN_COMMUNIST_PARTY": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010742552194178088,
        "q": 0.5,
        "quantile_effective_draws": 2120.5317148208287,
@@ -16624,7 +16624,7 @@
       "median_se": 0.11303369188675971,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.009996616290281807,
        "q": 0.05,
        "quantile_effective_draws": 2112.999538122789,
@@ -16635,7 +16635,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005156080437167689,
        "q": 0.95,
        "quantile_effective_draws": 1945.6045765864817,
@@ -16648,7 +16648,7 @@
      "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005152136514055361,
        "q": 0.5,
        "quantile_effective_draws": 2304.4178823185466,
@@ -16660,7 +16660,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005152136514055361,
        "q": 0.05,
        "quantile_effective_draws": 2304.4178823185466,
@@ -16671,7 +16671,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005152136514055361,
        "q": 0.95,
        "quantile_effective_draws": 2304.4178823185466,
@@ -16684,7 +16684,7 @@
      "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0033941756032185733,
        "q": 0.5,
        "quantile_effective_draws": 2261.9275770693594,
@@ -16696,7 +16696,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0033941756032185733,
        "q": 0.05,
        "quantile_effective_draws": 2261.9275770693594,
@@ -16707,7 +16707,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": null,
        "q": 0.95,
        "quantile_effective_draws": 0.0,
@@ -16720,7 +16720,7 @@
      "TRUTH_AND_SOLIDARITY_MOVEMENT": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006175109974113142,
        "q": 0.5,
        "quantile_effective_draws": 2139.0452838747397,
@@ -16732,7 +16732,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006175109974113142,
        "q": 0.05,
        "quantile_effective_draws": 2139.0452838747397,
@@ -16743,7 +16743,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006175109974113142,
        "q": 0.95,
        "quantile_effective_draws": 2139.0452838747397,
@@ -16756,7 +16756,7 @@
      "UDM": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006989584704795045,
        "q": 0.5,
        "quantile_effective_draws": 2117.5030592869407,
@@ -16768,7 +16768,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.006989584704795045,
        "q": 0.05,
        "quantile_effective_draws": 2117.5030592869407,
@@ -16779,7 +16779,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005277137562794308,
        "q": 0.95,
        "quantile_effective_draws": 2108.4147058056633,
@@ -16792,7 +16792,7 @@
      "UMPHAKATHI_WARONA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005220818439394999,
        "q": 0.5,
        "quantile_effective_draws": 2278.9724916157074,
@@ -16804,7 +16804,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005220818439394999,
        "q": 0.05,
        "quantile_effective_draws": 2278.9724916157074,
@@ -16815,7 +16815,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005220818439394999,
        "q": 0.95,
        "quantile_effective_draws": 2278.9724916157074,
@@ -16828,7 +16828,7 @@
      "UNITED_AFRICANS_TRANSFORMATION": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.007419060362400029,
        "q": 0.5,
        "quantile_effective_draws": 2180.5008030184626,
@@ -16840,7 +16840,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.007419060362400029,
        "q": 0.05,
        "quantile_effective_draws": 2180.5008030184626,
@@ -16851,7 +16851,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.004449779620410282,
        "q": 0.95,
        "quantile_effective_draws": 2450.5482563136848,
@@ -16864,7 +16864,7 @@
      "VFPLUS": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010739908482686479,
        "q": 0.5,
        "quantile_effective_draws": 2130.091801074447,
@@ -16876,7 +16876,7 @@
       "median_se": 7.667374571121405e-06,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.010173475451575478,
        "q": 0.05,
        "quantile_effective_draws": 2134.0646980542033,
@@ -16887,7 +16887,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005009169966314313,
        "q": 0.95,
        "quantile_effective_draws": 2138.0354684686517,
@@ -16900,7 +16900,7 @@
      "VUKA_SA": {
       "median": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0055739481678926586,
        "q": 0.5,
        "quantile_effective_draws": 2068.1054380570927,
@@ -16912,7 +16912,7 @@
       "median_se": 0.0,
       "p5": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.0055739481678926586,
        "q": 0.05,
        "quantile_effective_draws": 2068.1054380570927,
@@ -16923,7 +16923,7 @@
       },
       "p95": {
        "effective_draws": 2129.5918934780525,
-       "label": "the model's draws nearest this poll",
+       "label": "the model's simulations nearest this poll",
        "level_se": 0.005573948167892658,
        "q": 0.95,
        "quantile_effective_draws": 2068.1054380570913,
@@ -23531,7 +23531,7 @@
   "w_bye-1": "432f2781d74c2156dfb2b6956e1a464eac613b495c38d6086604210ee0c724d6"
  },
  "numpy": "2.5.1",
- "page_ref": "c27ae678fd2ef68a617a595fcf62478a09f87914b7c1ae7ddd1349bb1ab4764e",
+ "page_ref": "076984ee590897f7110a6365cf687b0836fd8a926ad3227f46049b619d40bf3a",
  "polls": [
   {
    "caveat": "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll.",
