@@ -314,12 +314,16 @@ async function update() {
   render(r, true, m.ms, asked);
 }
 
+// The local date, YYYY-MM-DD, built by hand: a locale's own format varies.
+const two = n => String(n).padStart(2, "0");
+const today = (d = new Date()) => d.getFullYear() + "-" + two(d.getMonth() + 1) + "-" + two(d.getDate());
+
 // The share sheet is handed the result the seat table shows, never a second
 // computation, with the settings that result was computed for (not whatever
 // `st` holds by then): its image and its link carry the same setting.
 function offerShare(r, state) {
   setShareable({ url: new URL(location.pathname + PS.serialize(state, ctx), location.href).href,
-                 r, st: copyState(state), ctx, party, made: new Date().toLocaleDateString("en-CA") });
+                 r, st: copyState(state), ctx, party, made: today() });
 }
 
 function render(r, touched, ms, state = st) {
@@ -359,7 +363,7 @@ function render(r, touched, ms, state = st) {
   const label = r.poll ? ` With a poll trusted, these figures are ${r.poll.label}, not what happens if the poll is right.` : "";
   R.bandnote.textContent = "Middle is the median seat count; the range covers nine in ten of the weighted simulations. " +
     `The ± under each figure is simulation error only, in seats: how far that figure could move with a fresh set of simulations. It is not the forecast's uncertainty, which is the range. No control goes past ±${r.max_figure_se}. ` +
-    (base ? "Against published is the change in the middle count from the published forecast under this seat law; the arrows on the published panel compare it with the previous edition. " : "Against published is shown only under the published seat law. ") +
+    (base ? "Against published is the change in the middle count from the published forecast under this seat law; the arrows on the published forecast's panel, shown when no control is moved, compare it with the previous edition. " : "Against published is shown only under the published seat law. ") +
     "Fewer effective simulations make every figure less certain than the published one." + label;
 
   clear(R.summary);
