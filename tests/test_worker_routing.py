@@ -1,27 +1,37 @@
-"""`src/worker.js` hostname routing: live unchanged, staging serves Joburg
-unindexed, /go redirects (UAT/staging Worker, 2026-09-30).
+"""`src/worker.js` hostname routing: live unchanged, workers.dev and Version
+URLs serve Joburg unindexed, channel short paths redirect and log (2026-10-01).
 
-Before this change every `*.workers.dev` host, every `wrangler versions upload`
-preview URL and any staging hostname fell through to the city-directory lookup
-(first hostname label as a city slug), found nothing, and served the portal.
+UAT is a Version URL of the live Worker (`wrangler versions upload`, then
+`versions deploy <id>@100%`; docs/DEPLOY-UAT.md). Before this change every
+`*.workers.dev` host, Version URLs included, fell through to the city-directory
+lookup (first hostname label as a city slug), found nothing, and served the
+portal.
 
 The worker is run for real under node, with `env.ASSETS` stubbed by a fake that
-records every URL it is asked for and answers 200 for a fixed asset set, 404
-otherwise (so the portal fallback is exercised). Three detectors, each a
-function returning a list of problems:
+records every URL it is asked for and answers 200 for a fixed asset set, 307
+with a Location for an extension URL, 304 for a conditional request, and 404
+otherwise (so the portal fallback is exercised). `console.log` is captured per
+request. Detectors, each a function returning a list of problems:
 
-* `live_diffs`       — DIFFERENTIAL against the worker as it was at BASELINE,
-                       over every live hostname in `wrangler.toml` plus built
-                       and unbuilt city subdomains, times a path set. Compares
-                       status, headers, body and every asset URL requested.
-* `staging_problems` — every staging-class host serves the requested path
-                       from the asset root and carries X-Robots-Tag.
-* `go_problems`      — /go and /go/ answer 302 to the exact campaign URL on
-                       the live Joburg host and on staging, and fetch nothing.
+* `live_diffs`        — DIFFERENTIAL against the worker as it was at BASELINE,
+                        over every live hostname in `wrangler.toml` plus built
+                        and unbuilt city subdomains, times a path set. Compares
+                        status, headers, body, every asset URL requested and
+                        every log line. Channel paths are excluded on the
+                        Joburg host only; on the portal and other cities they
+                        must behave exactly as before.
+* `preview_problems`  — every workers.dev host serves the requested path from
+                        the asset root, logs nothing, and carries X-Robots-Tag.
+* `passthrough_problems` — a 307 with Location and a 304 from ASSETS keep their
+                        status and headers through the noindex wrap.
+* `channel_problems`  — every channel path, in any case and with or without a
+                        trailing slash, answers 302 to the home page, fetches
+                        nothing and writes exactly one arrival line.
+* `config_problems`   — `wrangler.toml` states workers_dev, preview_urls and
+                        [observability] where wrangler reads them.
 
-Each is shown to fire on a mutated worker source and to be quiet on the real
-one (CLAUDE.md §4). `staging_config_problems` does the same for
-`wrangler.staging.toml` against `wrangler.toml`.
+Each is shown to fire on a constructed violation and to be quiet on the real
+source (CLAUDE.md §4).
 """
 from __future__ import annotations
 
@@ -39,45 +49,66 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _support import ROOT, skip  # noqa: E402
 
 WORKER = ROOT / "src" / "worker.js"
-#: The commit the staging branch was cut from: the last worker.js with no
-#: staging branch and no /go. Live behaviour must equal this one's.
+WRANGLER = ROOT / "wrangler.toml"
+#: The last worker.js with no preview branch and no short paths. Live
+#: behaviour outside the Joburg channel paths must equal this one's.
 BASELINE = "749d5ec"
 
-GO_LOCATION = "/?utm_source=billboard&utm_medium=dooh&utm_campaign=lge2026"
 NOINDEX = "noindex, nofollow"
+
+#: Short path -> channel name in the arrival log (the cross-lane decision of
+#: 2026-10-01). Ad and post links use these paths.
+CHANNELS = {"go": "billboard", "x": "x", "li": "linkedin", "fb": "facebook",
+            "ig": "instagram", "g": "google_ads"}
+#: Every spelling that must count: lower, upper, mixed, trailing slash, and a
+#: query string such as the gclid Google Ads appends.
+CHANNEL_PATHS = {f"/{v}": n for k, n in CHANNELS.items()
+                 for v in (k, k + "/", k.upper(), k.upper() + "/",
+                           k[0].upper() + k[1:])}
+CHANNEL_PATHS.update({"/g?gclid=abc": "google_ads", "/Go?x=1": "billboard"})
 
 #: What the fake asset layer holds. Paths with no extension stand for what the
 #: real layer serves at an extensionless URL.
-ASSETS = ["/", "/index.html", "/forecast", "/about.html", "/portal",
-          "/logos/ANC.png", "/robots.txt", "/share.jpg",
+ASSETS = ["/", "/index.html", "/forecast", "/about", "/portal",
+          "/logos/party.png", "/robots.txt", "/share.jpg",
           "/tshwane/index.html", "/tshwane/forecast"]
+#: The real layer 307s an .html URL to its extensionless form.
+REDIRECTS = {"/about.html": "/about"}
 
-#: /go and /go/ are the one intended change on live Joburg; they are tested by
-#: go_problems and excluded from the differential. Near misses stay in.
-GO_PATHS = ["/go", "/go/"]
+#: Near misses: none of these is a channel path on any host.
 LIVE_PATHS = ["/", "/index.html", "/forecast", "/about.html", "/nope",
-              "/logos/ANC.png", "/robots.txt", "/share.jpg", "/?x=1",
-              "/go/x", "/gone", "/go.html"]
+              "/logos/party.png", "/robots.txt", "/share.jpg", "/?x=1",
+              "/go/x", "/gone", "/go.html", "/xx", "/gg", "/g/x", "/G/x",
+              "/li.html", "/fbx", "/ig/ig", "//go"]
 
 DRIVER = r"""
 import { readFileSync } from "node:fs";
 const [workerPath, casesPath] = process.argv.slice(2);
 const worker = (await import("file://" + workerPath)).default;
-const { assets, cases } = JSON.parse(readFileSync(casesPath, "utf8"));
+const { assets, redirects, cases } = JSON.parse(readFileSync(casesPath, "utf8"));
 const have = new Set(assets);
 const out = [];
+const realLog = console.log;
 for (const c of cases) {
-  const fetched = [];
+  const fetched = [], logs = [];
   const env = { ...c.env, ASSETS: { async fetch(req) {
     const u = new URL(req.url);
     fetched.push(u.pathname + u.search);
+    if (redirects[u.pathname]) return new Response(null, { status: 307,
+      headers: { Location: redirects[u.pathname], "x-asset": u.pathname } });
+    if (req.headers.get("if-none-match") === '"v1"' && have.has(u.pathname))
+      return new Response(null, { status: 304,
+        headers: { ETag: '"v1"', "x-asset": u.pathname } });
     const hit = have.has(u.pathname);
     return new Response(hit ? "asset:" + u.pathname : "missing",
       { status: hit ? 200 : 404, headers: { "x-asset": u.pathname } });
   } } };
-  const res = await worker.fetch(new Request(c.url), env);
-  out.push({ url: c.url, env: c.env, status: res.status,
-             headers: [...res.headers].sort(), body: await res.text(), fetched });
+  console.log = (...a) => logs.push(a.join(" "));
+  let res;
+  try { res = await worker.fetch(new Request(c.url, { headers: c.headers || {} }), env); }
+  finally { console.log = realLog; }
+  out.push({ url: c.url, status: res.status, headers: [...res.headers].sort(),
+             body: await res.text(), fetched, logs });
 }
 process.stdout.write(JSON.stringify(out));
 """
@@ -91,13 +122,14 @@ def _node() -> str:
 
 
 def run_worker(source: str, cases: list[dict]) -> list[dict]:
-    """Run `source` (worker.js text) over `cases` ({url, env}) under node."""
+    """Run `source` (worker.js text) over `cases` ({url, env, headers?})."""
     node = _node()
     with tempfile.TemporaryDirectory() as t:
         w, d, c = Path(t, "worker.mjs"), Path(t, "driver.mjs"), Path(t, "cases.json")
         w.write_text(source, encoding="utf-8")
         d.write_text(DRIVER, encoding="utf-8")
-        c.write_text(json.dumps({"assets": ASSETS, "cases": cases}), encoding="utf-8")
+        c.write_text(json.dumps({"assets": ASSETS, "redirects": REDIRECTS,
+                                 "cases": cases}), encoding="utf-8")
         p = subprocess.run([node, str(d), str(w), str(c)], capture_output=True,
                            text=True, timeout=60)
     assert p.returncode == 0, p.stderr
@@ -108,31 +140,35 @@ def baseline_source() -> str:
     p = subprocess.run(["git", "show", f"{BASELINE}:src/worker.js"], cwd=ROOT,
                        capture_output=True, text=True)
     assert p.returncode == 0, f"cannot read the baseline worker: {p.stderr}"
-    assert "STAGING" not in p.stdout and "/go" not in p.stdout, "wrong baseline"
+    assert "workers.dev" not in p.stdout and "console.log" not in p.stdout, "wrong baseline"
     return p.stdout
 
 
+def source() -> str:
+    return WORKER.read_text(encoding="utf-8")
+
+
+def _path(url: str) -> str:
+    return re.sub(r"^https://[^/]+", "", url)
+
+
+JOBURG = "joburg.whysoserious.city"
+PREVIEW_HOSTS = ("joburg-whysoserious.acct.workers.dev",           # live's workers.dev
+                 "3f2a91bc-joburg-whysoserious.acct.workers.dev",  # Version URL
+                 "uat-joburg-whysoserious.acct.workers.dev")       # aliased Version URL
+
+
 def live_hosts() -> list[str]:
-    routes = tomllib.loads((ROOT / "wrangler.toml").read_text())["routes"]
+    routes = tomllib.loads(WRANGLER.read_text())["routes"]
     return [r["pattern"] for r in routes] + ["tshwane.whysoserious.city",
                                              "capetown.whysoserious.city"]
 
 
 def live_cases() -> list[dict]:
-    return [{"url": f"https://{h}{p}", "env": {}} for h in live_hosts() for p in LIVE_PATHS]
-
-
-STAGING_CASES = (
-    [{"url": f"https://{h}{p}", "env": {}}
-     for h in ("joburg-whysoserious.acct.workers.dev",           # live's workers.dev
-               "3f2a91bc-joburg-whysoserious.acct.workers.dev",  # versions upload
-               "uat-joburg.whysoserious.city")                   # staging domain
-     for p in LIVE_PATHS]
-    + [{"url": f"https://{h}{p}", "env": {"STAGING": "1"}}
-       for h in ("joburg-whysoserious-staging.acct.workers.dev",
-                 "uat-joburg.whysoserious.city", "whysoserious.city",
-                 "tshwane.whysoserious.city")
-       for p in LIVE_PATHS])
+    """Every live host x near misses; channel paths too, except on Joburg."""
+    return [{"url": f"https://{h}{p}", "env": {}}
+            for h in live_hosts()
+            for p in LIVE_PATHS + ([] if h == JOBURG else list(CHANNEL_PATHS))]
 
 
 def live_diffs(new: str, old: str) -> list[str]:
@@ -141,172 +177,201 @@ def live_diffs(new: str, old: str) -> list[str]:
     return [f"{x['url']}: {x} != {y}" for x, y in zip(a, b) if x != y]
 
 
-def staging_problems(source: str) -> list[str]:
+PREVIEW_CASES = [{"url": f"https://{h}{p}", "env": {}}
+                 for h in PREVIEW_HOSTS for p in LIVE_PATHS]
+
+
+def preview_problems(src: str) -> list[str]:
     out = []
-    for r in run_worker(source, STAGING_CASES):
-        u = re.sub(r"^https://[^/]+", "", r["url"])
+    for r in run_worker(src, PREVIEW_CASES):
         h = dict(r["headers"])
         if h.get("x-robots-tag") != NOINDEX:
-            out.append(f"{r['url']} {r['env']}: X-Robots-Tag {h.get('x-robots-tag')!r}")
-        if r["fetched"] != [u]:
-            out.append(f"{r['url']} {r['env']}: fetched {r['fetched']}, want [{u!r}]")
+            out.append(f"{r['url']}: X-Robots-Tag {h.get('x-robots-tag')!r}")
+        if r["fetched"] != [_path(r["url"])]:
+            out.append(f"{r['url']}: fetched {r['fetched']}, want [{_path(r['url'])!r}]")
+        if r["logs"]:
+            out.append(f"{r['url']}: logged {r['logs']}")
     return out
 
 
-def go_problems(source: str) -> list[str]:
-    hosts = [("joburg.whysoserious.city", {}, False),
-             ("joburg-whysoserious.acct.workers.dev", {}, True),
-             ("joburg-whysoserious-staging.acct.workers.dev", {"STAGING": "1"}, True),
-             ("uat-joburg.whysoserious.city", {"STAGING": "1"}, True)]
-    cases = [{"url": f"https://{h}{p}", "env": e} for h, e, _ in hosts for p in GO_PATHS]
+def passthrough_problems(src: str) -> list[str]:
+    """A 307 and a 304 from ASSETS survive the noindex wrap unchanged."""
+    host = PREVIEW_HOSTS[1]
+    cases = [{"url": f"https://{host}/about.html", "env": {}},
+             {"url": f"https://{host}/forecast", "env": {},
+              "headers": {"If-None-Match": '"v1"'}}]
+    r307, r304 = run_worker(src, cases)
     out = []
-    for r, (host, _e, staged) in zip(run_worker(source, cases),
-                                     [x for x in hosts for _ in GO_PATHS]):
+    for r, status, key, want in ((r307, 307, "location", "/about"),
+                                 (r304, 304, "etag", '"v1"')):
         h = dict(r["headers"])
-        want = f"https://{host}{GO_LOCATION}"
-        if r["status"] != 302 or h.get("location") != want or r["fetched"]:
-            out.append(f"{r['url']}: {r['status']} {h.get('location')!r} "
-                       f"fetched {r['fetched']}")
-        if staged != (h.get("x-robots-tag") == NOINDEX):
+        if r["status"] != status or h.get(key) != want or r["body"]:
+            out.append(f"{r['url']}: {r['status']} {key}={h.get(key)!r} "
+                       f"body={r['body'][:20]!r}, want {status} {want!r}")
+        if h.get("x-robots-tag") != NOINDEX:
             out.append(f"{r['url']}: X-Robots-Tag {h.get('x-robots-tag')!r}")
     return out
 
 
-def _mutate(source: str, old: str, new: str) -> str:
-    assert source.count(old) == 1, f"mutation anchor not unique: {old!r}"
-    return source.replace(old, new)
+def channel_problems(src: str) -> list[str]:
+    hosts = [(JOBURG, False)] + [(h, True) for h in PREVIEW_HOSTS]
+    keys = [(h, p, n, pv) for h, pv in hosts for p, n in CHANNEL_PATHS.items()]
+    cases = [{"url": f"https://{h}{p}", "env": {}} for h, p, _n, _pv in keys]
+    out = []
+    for r, (host, _p, name, preview) in zip(run_worker(src, cases), keys):
+        h = dict(r["headers"])
+        if r["status"] != 302 or h.get("location") != f"https://{host}/" or r["fetched"]:
+            out.append(f"{r['url']}: {r['status']} {h.get('location')!r} "
+                       f"fetched {r['fetched']}")
+        want = {"event": "arrival", "channel": name, "host": host}
+        try:
+            logged = [json.loads(x) for x in r["logs"]]
+        except ValueError:
+            logged = r["logs"]
+        if logged != [want]:
+            out.append(f"{r['url']}: logged {r['logs']}, want [{want}]")
+        if preview != (h.get("x-robots-tag") == NOINDEX):
+            out.append(f"{r['url']}: X-Robots-Tag {h.get('x-robots-tag')!r}")
+    return out
+
+
+def _mutate(src: str, old: str, new: str) -> str:
+    assert src.count(old) == 1, f"mutation anchor not unique: {old!r}"
+    return src.replace(old, new)
 
 
 # ---------------------------------------------------------------- live
 
 def test_the_live_population_is_the_one_wrangler_routes():
-    hosts = live_hosts()
-    routed = {r["pattern"] for r in tomllib.loads((ROOT / "wrangler.toml").read_text())["routes"]}
-    assert routed <= set(hosts) and {"joburg.whysoserious.city", "whysoserious.city",
-                                     "www.whysoserious.city"} <= routed, routed
+    routed = {r["pattern"] for r in tomllib.loads(WRANGLER.read_text())["routes"]}
+    assert {JOBURG, "whysoserious.city", "www.whysoserious.city"} <= routed, routed
+    assert not any(h.endswith(".workers.dev") for h in routed)
     n = len(live_cases())
-    assert 40 <= n <= 200, n
-    assert not set(GO_PATHS) & set(LIVE_PATHS)
+    assert 100 <= n <= 400, n
+    assert not {p.split("?")[0].lower().rstrip("/") for p in LIVE_PATHS} & \
+        {"/" + k for k in CHANNELS}
 
 
 def test_live_routing_matches_the_baseline_worker():
     old = baseline_source()
     # the differential looked: the baseline exercised the portal, the root,
-    # the city directory and the unbuilt-city fallback
-    fetched = {f for r in run_worker(old, live_cases()) for f in r["fetched"]}
-    assert {"/portal", "/", "/tshwane/index.html", "/capetown/index.html"} <= fetched, fetched
-    assert live_diffs(WORKER.read_text(encoding="utf-8"), old) == []
+    # the city directory, the unbuilt-city fallback and the 307
+    runs = run_worker(old, live_cases())
+    fetched = {f for r in runs for f in r["fetched"]}
+    assert {"/portal", "/", "/tshwane/index.html", "/capetown/index.html",
+            "/tshwane/go", "/about.html"} <= fetched, fetched
+    assert any(r["status"] == 307 for r in runs)
+    assert live_diffs(source(), old) == []
 
 
 def test_live_differential_fires_on_a_changed_live_route():
-    src, old = WORKER.read_text(encoding="utf-8"), baseline_source()
-    for a, b in ((' || host.endsWith(".workers.dev")', ' || host.endsWith(".city")'),
-                 ('["uat-joburg.whysoserious.city"]', '["www.whysoserious.city"]'),
-                 ('if (ROOT_CITIES.has(sub) && GO_PATHS.has(path))',
-                  'if (ROOT_CITIES.has(sub) && path.startsWith("/go"))')):
+    src, old = source(), baseline_source()
+    for a, b in (('host.endsWith(".workers.dev")', 'host.endsWith(".city")'),
+                 ("    if (ROOT_CITIES.has(sub)) {\n      const channel",
+                  "    if (true) {\n      const channel"),
+                 ('/^\\/([a-z]+)\\/?$/', '/^\\/([a-z]+)\\/?/')):
         assert live_diffs(_mutate(src, a, b), old), f"differential blind to {b!r}"
 
 
-def test_live_joburg_is_never_noindexed():
-    for r in run_worker(WORKER.read_text(encoding="utf-8"), live_cases()):
+def test_live_hosts_are_never_noindexed():
+    for r in run_worker(source(), live_cases()):
         assert "x-robots-tag" not in dict(r["headers"]), r["url"]
 
 
-# ---------------------------------------------------------------- staging
+# ---------------------------------------------------------------- preview
 
-def test_staging_hosts_serve_joburg_with_noindex():
-    assert len(STAGING_CASES) == 7 * len(LIVE_PATHS)
-    assert staging_problems(WORKER.read_text(encoding="utf-8")) == []
+def test_workers_dev_hosts_serve_joburg_with_noindex():
+    assert len(PREVIEW_CASES) == len(PREVIEW_HOSTS) * len(LIVE_PATHS)
+    assert preview_problems(source()) == []
 
 
-def test_staging_check_fires_without_the_header_or_on_portal_routing():
-    src = WORKER.read_text(encoding="utf-8")
+def test_preview_check_fires_without_the_header_or_on_portal_routing():
+    src = source()
     no_header = _mutate(src, '      out.headers.set("X-Robots-Tag", NOINDEX);\n', "")
-    found = staging_problems(no_header)
-    assert len(found) == len(STAGING_CASES), found[:3]
-    no_workers_dev = _mutate(src, ' || host.endsWith(".workers.dev")', "")
-    found = staging_problems(no_workers_dev)
-    assert found and all("workers.dev" in f for f in found), found[:3]
+    assert len(preview_problems(no_header)) == len(PREVIEW_CASES)
+    no_branch = _mutate(src, 'return host.endsWith(".workers.dev");', "return false;")
+    assert preview_problems(no_branch)
     # the baseline worker is the defect this change repairs
-    assert staging_problems(baseline_source())
+    assert preview_problems(baseline_source())
 
 
-# ---------------------------------------------------------------- /go
-
-def test_go_redirects_to_the_campaign_url():
-    assert go_problems(WORKER.read_text(encoding="utf-8")) == []
+def test_307_and_304_survive_the_noindex_wrap():
+    assert passthrough_problems(source()) == []
 
 
-def test_go_check_fires_on_a_wrong_target_or_status():
-    src = WORKER.read_text(encoding="utf-8")
-    for a, b in (("utm_campaign=lge2026", "utm_campaign=lge2027"),
+def test_passthrough_check_fires_when_the_wrap_drops_status_or_headers():
+    src = source()
+    anchor = "const out = new Response(res.body, res);"
+    for b in ("const out = new Response(res.body, { headers: res.headers });",
+              "const out = new Response(res.body, { status: res.status });"):
+        assert passthrough_problems(_mutate(src, anchor, b)), f"blind to {b!r}"
+
+
+# ---------------------------------------------------------------- channels
+
+def test_every_channel_path_redirects_home_and_logs_one_arrival():
+    for k in CHANNELS:  # each short path in lower, upper and slash forms
+        assert {f"/{k}", f"/{k}/", f"/{k.upper()}", f"/{k.upper()}/"} <= set(CHANNEL_PATHS), k
+    assert set(CHANNEL_PATHS.values()) == set(CHANNELS.values())
+    assert channel_problems(source()) == []
+
+
+def test_channel_check_fires_on_each_constructed_violation():
+    src = source()
+    for a, b in (('["go", "billboard"]', '["go", "dooh"]'),
+                 ("path.toLowerCase()", "path"),
                  ("status: 302", "status: 301"),
-                 ('new Set(["/go", "/go/"])', 'new Set(["/go"])')):
-        assert go_problems(_mutate(src, a, b)), f"/go check blind to {b!r}"
-    assert go_problems(baseline_source())
+                 ("  console.log(JSON.stringify({ event: \"arrival\", channel, host }));\n", ""),
+                 ('/^\\/([a-z]+)\\/?$/', '/^\\/([a-z]+)$/'),
+                 ('new URL("/", url)', 'new URL("/forecast", url)'),
+                 ('  ["ig", "instagram"],\n', "")):
+        assert channel_problems(_mutate(src, a, b)), f"channel check blind to {b!r}"
+    assert channel_problems(baseline_source())
 
 
 # ---------------------------------------------------------------- config
 
-def staging_config_problems(live_text: str, staging_text: str, worker: str) -> list[str]:
-    live, stg = tomllib.loads(live_text), tomllib.loads(staging_text)
+def config_problems(text: str) -> list[str]:
+    cfg = tomllib.loads(text)
     out = []
-    if stg.get("name") in (None, live.get("name")):
-        out.append(f"staging name {stg.get('name')!r} is not separate from live")
-    for key in ("main", "compatibility_date", "assets", "build"):
-        if stg.get(key) != live.get(key):
-            out.append(f"{key}: staging {stg.get(key)!r} != live {live.get(key)!r}")
-    if stg.get("vars", {}).get("STAGING") != "1":
-        out.append("staging does not set vars.STAGING = \"1\"")
-    if "STAGING" in live.get("vars", {}):
-        out.append("live wrangler.toml sets STAGING: the live site would be noindexed")
-    if stg.get("workers_dev") is not True or stg.get("preview_urls") is not True:
-        out.append("staging must state workers_dev = true and preview_urls = true")
-    for table in ("assets", "vars", "build"):
-        if "routes" in stg.get(table, {}):
-            out.append(f"routes sits under [{table}] and is ignored")
-    routes = stg.get("routes")
-    if not routes:
-        out.append("staging has no top-level routes")
-    live_patterns = {r["pattern"] for r in live.get("routes", [])}
-    known = set(re.findall(r'"([^"]+)"', re.search(
-        r"STAGING_HOSTS = new Set\(\[(.*?)\]\)", worker).group(1)))
-    for r in routes or []:
-        if r.get("pattern") in live_patterns:
-            out.append(f"staging routes a live hostname: {r['pattern']}")
-        if r.get("pattern") not in known:
-            out.append(f"{r.get('pattern')} is not in worker.js STAGING_HOSTS")
+    if cfg.get("workers_dev") is not True:
+        out.append("workers_dev is not true at the top level")
+    if cfg.get("preview_urls") is not True:
+        out.append("preview_urls is not true at the top level: no Version URL for UAT")
+    if cfg.get("observability", {}).get("enabled") is not True:
+        out.append("[observability] enabled is not true: arrivals are not counted")
+    for table, body in cfg.items():
+        if isinstance(body, dict):
+            for key in ("routes", "preview_urls", "workers_dev"):
+                if key in body:
+                    out.append(f"{key} sits under [{table}] and is ignored")
+    if "STAGING" in cfg.get("vars", {}):
+        out.append("vars.STAGING is set on the live Worker")
+    if not cfg.get("routes"):
+        out.append("no top-level routes")
+    if (ROOT / "wrangler.staging.toml").exists():
+        out.append("wrangler.staging.toml exists; UAT is a Version URL now")
     return out
 
 
-def _configs() -> tuple[str, str, str]:
-    return ((ROOT / "wrangler.toml").read_text(encoding="utf-8"),
-            (ROOT / "wrangler.staging.toml").read_text(encoding="utf-8"),
-            WORKER.read_text(encoding="utf-8"))
+def test_wrangler_toml_states_preview_urls_and_observability():
+    assert config_problems(WRANGLER.read_text(encoding="utf-8")) == []
 
 
-def test_staging_config_restates_live_and_differs_only_where_it_must():
-    assert staging_config_problems(*_configs()) == []
-
-
-def test_staging_config_check_fires_on_each_constructed_violation():
-    live, stg, worker = _configs()
-    routes = ('routes = [\n  { pattern = "uat-joburg.whysoserious.city", '
-              'custom_domain = true }\n]\n')
-    assert routes in stg
-    buried = stg.replace(routes, "") + "routes = [{ pattern = \"x\" }]\n"
+def test_config_check_fires_on_each_constructed_violation():
+    text = WRANGLER.read_text(encoding="utf-8")
+    line = "preview_urls = true\n"
+    assert text.count(line) == 1
     cases = {
-        "under [assets]": (live, buried, worker),
-        "live name": (live, stg.replace('name = "joburg-whysoserious-staging"',
-                                        'name = "joburg-whysoserious"'), worker),
-        "live host": (live, stg.replace("uat-joburg.whysoserious.city",
-                                        "joburg.whysoserious.city"), worker),
-        "live STAGING": (live + '\n[vars]\nSTAGING = "1"\n', stg, worker),
-        "assets drift": (live, stg.replace("run_worker_first = true",
-                                           "run_worker_first = false"), worker),
-        "no var": (live, stg.replace('STAGING = "1"', 'STAGING = "0"'), worker),
-        "unknown host": (live, stg, worker.replace('"uat-joburg.whysoserious.city"',
-                                                   '"uat.whysoserious.city"')),
+        "preview_urls under [assets]": text.replace(line, "").replace(
+            "run_worker_first = true\n", "run_worker_first = true\n" + line),
+        "preview_urls off": text.replace(line, "preview_urls = false\n"),
+        "preview_urls absent": text.replace(line, ""),
+        "observability off": text.replace("[observability]\nenabled = true",
+                                          "[observability]\nenabled = false"),
+        "observability absent": text.replace("[observability]\nenabled = true\n", ""),
+        "STAGING var": text + '\n[vars]\nSTAGING = "1"\n',
     }
-    for name, args in cases.items():
-        assert staging_config_problems(*args), f"config check blind to {name}"
+    for name, t in cases.items():
+        assert t != text, name
+        assert config_problems(t), f"config check blind to {name}"

@@ -13,14 +13,21 @@
  * Anything shared across cities (logos, share images, robots.txt, _headers)
  * stays at the root and is served to every host unchanged.
  *
- * Staging (wrangler.staging.toml sets STAGING = "1"), every *.workers.dev
- * host (including `wrangler versions upload` preview URLs) and the staging
- * custom domain serve the Johannesburg build from the root, and every response
- * they send carries X-Robots-Tag: noindex, nofollow. Without this branch those
- * hosts fell through to the city-directory lookup and showed the portal.
+ * Every *.workers.dev host serves the Johannesburg build from the root, and
+ * every response it sends carries X-Robots-Tag: noindex, nofollow. That covers
+ * the Worker's own workers.dev URL and every Version URL printed by
+ * `wrangler versions upload`, which is the UAT path (docs/DEPLOY-UAT.md).
+ * Without this branch those hosts fell through to the city-directory lookup
+ * and showed the portal.
  *
- * /go on the Johannesburg site (live and staging) is the billboard short URL:
- * a 302 to the home page with the campaign's UTM parameters.
+ * Channel short paths (/go, /x, /li, /fb, /ig, /g; any case, optional trailing
+ * slash) on the Johannesburg host and on workers.dev hosts answer 302 to the
+ * home page and write one JSON line to the Worker log:
+ *   {"event":"arrival","channel":"<name>","host":"<hostname>"}
+ * Cloudflare Web Analytics does not record query strings, so UTM tags are
+ * invisible there; Workers Logs ([observability] in wrangler.toml) counts these
+ * lines instead. Version URLs are not visible in Workers Logs, so UAT clicks
+ * are never counted.
  */
 
 // NB: request "/portal", not "/portal.html" — the assets layer 307s the
@@ -36,25 +43,33 @@ const SHARED = [
   "/logos/", "/share.jpg", "/robots.txt", "/favicon", "/_headers", "/sitemap",
 ];
 
-// Hosts that are not the public site. They serve Johannesburg and are never
-// indexed. The staging Worker is caught by env.STAGING whatever its hostname;
-// this set also catches the staging domain if it is ever routed to live.
-const STAGING_HOSTS = new Set(["uat-joburg.whysoserious.city"]);
 const NOINDEX = "noindex, nofollow";
 
-// Billboard short URL (DOOH campaign, 2026 local government election).
-const GO_PATHS = new Set(["/go", "/go/"]);
-const GO_TARGET = "/?utm_source=billboard&utm_medium=dooh&utm_campaign=lge2026";
+// Short path (lowercase, no slashes) -> channel name in the arrival log.
+const CHANNELS = new Map([
+  ["go", "billboard"],
+  ["x", "x"],
+  ["li", "linkedin"],
+  ["fb", "facebook"],
+  ["ig", "instagram"],
+  ["g", "google_ads"],
+]);
 
-function isStaging(host, env) {
-  return (env && env.STAGING === "1") || host.endsWith(".workers.dev") ||
-    STAGING_HOSTS.has(host);
+function isPreview(host) {
+  return host.endsWith(".workers.dev");
 }
 
-function go(url) {
+// "/GO", "/go/" -> "billboard"; anything else -> undefined.
+function channelOf(path) {
+  const m = /^\/([a-z]+)\/?$/.exec(path.toLowerCase());
+  return m ? CHANNELS.get(m[1]) : undefined;
+}
+
+function arrival(url, host, channel) {
+  console.log(JSON.stringify({ event: "arrival", channel, host }));
   return new Response(null, {
     status: 302,
-    headers: { Location: new URL(GO_TARGET, url).toString() },
+    headers: { Location: new URL("/", url).toString() },
   });
 }
 
@@ -64,8 +79,9 @@ export default {
     const host = url.hostname.toLowerCase();
     const path = url.pathname;
 
-    if (isStaging(host, env)) {
-      const res = GO_PATHS.has(path) ? go(url) : await env.ASSETS.fetch(request);
+    if (isPreview(host)) {
+      const channel = channelOf(path);
+      const res = channel ? arrival(url, host, channel) : await env.ASSETS.fetch(request);
       const out = new Response(res.body, res);
       out.headers.set("X-Robots-Tag", NOINDEX);
       return out;
@@ -80,7 +96,10 @@ export default {
 
     const sub = host.split(".")[0];
 
-    if (ROOT_CITIES.has(sub) && GO_PATHS.has(path)) return go(url);
+    if (ROOT_CITIES.has(sub)) {
+      const channel = channelOf(path);
+      if (channel) return arrival(url, host, channel);
+    }
 
     // Johannesburg, and anything shared, is served straight from the root.
     if (ROOT_CITIES.has(sub) || SHARED.some((p) => path.startsWith(p))) {

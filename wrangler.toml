@@ -6,11 +6,17 @@
 # placeholder — deploy with `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy`
 # to use the OAuth session instead.
 #
-# Staging (a separate Worker serving the same site/): wrangler.staging.toml.
+# UAT is a Version URL of THIS Worker: `versions upload`, check the printed
+# *.workers.dev URL, then `versions deploy <id>@100%` promotes those exact
+# bytes. Runbook: docs/DEPLOY-UAT.md.
 
 name = "joburg-whysoserious"
 compatibility_date = "2026-08-01"
 workers_dev = true
+# Version URLs (<version-prefix>-joburg-whysoserious.<sub>.workers.dev) are the
+# UAT path. Stated, not left to the wrangler-version-dependent default. Must
+# sit above every [table] header, like routes below.
+preview_urls = true
 
 # Custom domain: joburg.whysoserious.city (zone registered 2026-08-04 for
 # this purpose; the earlier .org plan was dropped — that domain's DNS lives
@@ -42,3 +48,8 @@ binding = "ASSETS"
 # so "/" resolves straight to index.html and the hostname routing never
 # executes. Found the hard way: the apex kept serving the Joburg forecast.
 run_worker_first = true
+
+# Workers Logs: counts the {"event":"arrival","channel":...} lines that
+# src/worker.js writes for the channel short paths (/go, /x, /li, /fb, /ig, /g).
+[observability]
+enabled = true
