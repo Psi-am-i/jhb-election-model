@@ -23534,7 +23534,7 @@
  "page_ref": "c27ae678fd2ef68a617a595fcf62478a09f87914b7c1ae7ddd1349bb1ab4764e",
  "polls": [
   {
-   "caveat": "~500-person metro subsample (\u00b14.4%); single house; its likely-voter screen filters out low-propensity, disproportionately ANC-leaning voters. ANC 18 sits below even the DA's own internal polling.",
+   "caveat": "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll.",
    "fieldwork": "8\u201331 July 2026",
    "fieldwork_end": "2026-07-31",
    "house": "SRF/Victory Research",
@@ -23552,7 +23552,7 @@
    "url": "https://www.thecommonsense.co.za/Politics/anc-support-collapses-johannesburg"
   },
   {
-   "caveat": "~503-person metro subsample; same house and turnout model as the July wave.",
+   "caveat": "A Johannesburg subsample of a larger survey, from the same house, sample design and likely-voter screen as the July wave, so the two waves share any error that method has.",
    "fieldwork": "16 February \u2013 6 March 2026",
    "fieldwork_end": "2026-03-06",
    "house": "SRF/Victory Research",
@@ -23570,7 +23570,7 @@
    "url": "https://www.thecommonsense.co.za/politics/anc-faces-wipeout-gauteng-metros-lge"
   },
   {
-   "caveat": "\u26d4 THE DA FIGURE IS DISPUTED BETWEEN OUTLETS: Daily Maverick and allAfrica report DA 27, Bloomberg reports DA 28 from the same release; 28 is used here because it is the figure the fuller party breakdown came with. NO SOURCE IN THE CHAIN REACHED IPSOS'S OWN RELEASE \u2014 the ANC/DA line comes from secondary reporting (newsroom/2026-09-05.md), the ActionSA/EFF/MK split from Fullview citing the same release (newsroom/2026-09-13.md). The CoJ subsample size and the fieldwork window are unverified. First non-SRF, non-party-internal CoJ read since March, and it swings sharply toward the ANC against every other 2026 CoJ number on file. Admitted to the register on the owner's instruction 2026-09-27 ('add all new polls found'); admission to the REGISTER is not admission to the FORECAST, which is gated by poll_paths and is off.",
+   "caveat": "The Johannesburg breakout of a national omnibus survey. Ipsos's own release was not available: the figures come from news reports, which gave two DA figures a point apart, and the higher is used here. The Johannesburg sample size and the fieldwork dates were not reported.",
    "fieldwork": "reported 4 September 2026; fieldwork window not stated in any source reached",
    "fieldwork_end": "2026-09-04",
    "house": "Ipsos",

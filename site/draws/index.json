@@ -51,14 +51,14 @@
     "ASA": 0.1,
     "EFF": 0.08
    },
-   "caveat": "~500-person metro subsample (\u00b14.4%); single house; its likely-voter screen filters out low-propensity, disproportionately ANC-leaning voters. ANC 18 sits below even the DA's own internal polling.",
    "fieldwork_start": "2026-07-08",
    "fieldwork_end": "2026-07-31",
    "scope": "metro",
    "house": "SRF/Victory Research",
    "city": "joburg",
    "n": 504,
-   "asof": "2026-11-04"
+   "asof": "2026-11-04",
+   "caveat": "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll."
   },
   {
    "id": "srf-2026q1-coj",
@@ -74,14 +74,14 @@
     "MK": 0.08,
     "EFF": 0.04
    },
-   "caveat": "~503-person metro subsample; same house and turnout model as the July wave.",
    "fieldwork_start": "2026-02-16",
    "fieldwork_end": "2026-03-06",
    "scope": "metro",
    "house": "SRF/Victory Research",
    "city": "joburg",
    "n": 503,
-   "asof": "2026-11-04"
+   "asof": "2026-11-04",
+   "caveat": "A Johannesburg subsample of a larger survey, from the same house, sample design and likely-voter screen as the July wave, so the two waves share any error that method has."
   },
   {
    "id": "ipsos-khayabus-2026-coj",
@@ -97,14 +97,14 @@
     "EFF": 0.08,
     "MK": 0.06
    },
-   "caveat": "\u26d4 THE DA FIGURE IS DISPUTED BETWEEN OUTLETS: Daily Maverick and allAfrica report DA 27, Bloomberg reports DA 28 from the same release; 28 is used here because it is the figure the fuller party breakdown came with. NO SOURCE IN THE CHAIN REACHED IPSOS'S OWN RELEASE \u2014 the ANC/DA line comes from secondary reporting (newsroom/2026-09-05.md), the ActionSA/EFF/MK split from Fullview citing the same release (newsroom/2026-09-13.md). The CoJ subsample size and the fieldwork window are unverified. First non-SRF, non-party-internal CoJ read since March, and it swings sharply toward the ANC against every other 2026 CoJ number on file. Admitted to the register on the owner's instruction 2026-09-27 ('add all new polls found'); admission to the REGISTER is not admission to the FORECAST, which is gated by poll_paths and is off.",
    "fieldwork_start": null,
    "fieldwork_end": "2026-09-04",
    "scope": "metro",
    "house": "Ipsos",
    "city": "joburg",
    "n": null,
-   "asof": "2026-11-04"
+   "asof": "2026-11-04",
+   "caveat": "The Johannesburg breakout of a national omnibus survey. Ipsos's own release was not available: the figures come from news reports, which gave two DA figures a point apart, and the higher is used here. The Johannesburg sample size and the fieldwork dates were not reported."
   }
  ],
  "byelection": [

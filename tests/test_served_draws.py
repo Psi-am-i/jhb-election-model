@@ -29,7 +29,12 @@ What it proves, on the base cell (the one with no lever override):
    each carries `model_sha256`. A cell exported before S6 carries neither and
    FAILS with the instruction to re-export — it does not skip, because the
    cell is on disk and stale, which is a finding.
-6. THE CHECKS SEE. One flipped byte inside a compared seat column breaks
+6. NOTHING PRIVATE SHIPS (deploy review 2026-09-30, F2/F3). No served manifest
+   carries `export_draws.PRIVATE_KEYS` or an absolute path, and every poll in
+   `index.json` carries the reader caveat from `content/joburg/poll-caveats.toml`,
+   not the register's working note. A constructed manifest with a path, and an
+   index with the register's caveat, are each caught and go quiet when reverted.
+7. THE CHECKS SEE. One flipped byte inside a compared seat column breaks
    check 1, a changed ward column breaks check 2 and a changed summary median
    breaks check 3, each quiet when reverted; a manifest with the wrong run id, or
    none, breaks check 5 and goes quiet when reverted. In memory only: nothing
@@ -42,6 +47,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -248,7 +254,66 @@ def test_every_served_cell_is_the_ledger_s_newest_run():
         + "\n  ".join(problems) + f"\nRE-EXPORT NEEDED: {REEXPORT}.")
 
 
-# -- 6: the checks see --------------------------------------------------------
+# -- 6: nothing private ships --------------------------------------------------
+
+#: An absolute path on a Unix or Windows machine, or a home directory.
+_PATH = re.compile(r'"(?:/(?:Users|home|private|tmp|var)/|[A-Za-z]:\\\\|~/)')
+
+
+def _private_problems(manifests: dict[str, dict], index: dict) -> list[str]:
+    import export_draws as E
+    import polling
+
+    out = []
+    for path, manifest in manifests.items():
+        leaked = set(E.PRIVATE_KEYS) & set(manifest.get("artefact_key", {}))
+        if leaked:
+            out.append(f"{path}: artefact_key carries {sorted(leaked)}")
+        if _PATH.search(json.dumps(manifest)):
+            out.append(f"{path}: an absolute path")
+    if _PATH.search(json.dumps(index)):
+        out.append("index.json: an absolute path")
+    register = {p["id"]: p.get("caveat") for p in polling.load(ROOT / "polls.json")}
+    want = {p["id"]: p["caveat"] for p in E.reader_polls(
+        [{k: v for k, v in p.items() if k != "caveat"} for p in index["polls"]], "joburg")}
+    for poll in index["polls"]:
+        if poll.get("caveat") != want[poll["id"]]:
+            out.append(f"index.json: poll {poll['id']} does not carry its reader caveat")
+        if register.get(poll["id"]) and poll.get("caveat") == register[poll["id"]]:
+            out.append(f"index.json: poll {poll['id']} carries the register's note")
+    return out
+
+
+def test_nothing_private_is_served():
+    st = _served()
+    manifests = {p: c["manifest"] for p, c in st["cells"].items()}
+    # it looked: every cell, and every poll the page offers
+    assert len(manifests) == len(st["index"]["cells"]) >= 1
+    assert st["index"]["polls"], "index.json offers no poll, so no caveat was checked"
+    assert _private_problems(manifests, st["index"]) == []
+
+
+def test_a_served_path_or_working_note_is_caught_then_quiet():
+    import polling
+    st = _served()
+    manifests = {p: json.loads(json.dumps(c["manifest"])) for p, c in st["cells"].items()}
+    index = json.loads(json.dumps(st["index"]))
+    first = next(iter(manifests))
+    manifests[first]["artefact_key"]["code_dir"] = "/Users/someone/src"
+    found = _private_problems(manifests, index)
+    assert any("code_dir" in f for f in found) and any("absolute path" in f for f in found), found
+    del manifests[first]["artefact_key"]["code_dir"]
+    assert _private_problems(manifests, index) == []
+    register = {p["id"]: p for p in polling.load(ROOT / "polls.json")}
+    poll = next(p for p in index["polls"] if register[p["id"]].get("caveat"))
+    kept = poll["caveat"]
+    poll["caveat"] = register[poll["id"]]["caveat"]
+    assert len(_private_problems(manifests, index)) == 2
+    poll["caveat"] = kept
+    assert _private_problems(manifests, index) == []
+
+
+# -- 7: the checks see --------------------------------------------------------
 
 def test_a_flipped_byte_in_a_served_seat_column_is_caught_then_quiet():
     st = _served()

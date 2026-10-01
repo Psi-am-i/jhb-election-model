@@ -104,6 +104,23 @@ Four fields answer S6 (``audits/2026-09-30-interactive-s6/SPEC-v2.md``, lane E):
   definition of the statutory pool. Lifting it needs ``run_model`` to record
   the per-draw combined tally, which is a model change, not an export one.
 
+What the manifest and the index do NOT carry
+============================================
+
+Both are served with the page (``site/draws/``), so neither may carry a path
+on the machine that exported them or a note written for the model's authors
+(deploy review 2026-09-30, F2/F3):
+
+* ``artefact_key`` names the source directory by nothing but its modules'
+  file names (``model_modules``); ``code_dir``, the absolute path it once
+  carried, is gone. :data:`PRIVATE_KEYS` lists it, and ``--index`` removes it
+  from a manifest written before the change (:func:`public_manifest`), which
+  rewrites the JSON only, never ``base.bin``.
+* Each poll in ``index.json`` carries its READER caveat, from
+  ``content/<city>/poll-caveats.toml``, in place of the register's own
+  ``caveat`` (:func:`reader_polls`); a poll with no reader caveat stops the
+  index.
+
 Storage choices, stated because they lose information: seats, thresholds and
 councils are unsigned integers of the smallest width that holds the largest
 value (exact); ward winners are one byte per ward (exact); pool turnouts are
@@ -398,6 +415,48 @@ def build(runs: dict[str, dict]) -> tuple[bytes, dict]:
     return blob, data
 
 
+#: ``artefact_key`` fields that describe the exporting machine, not the run.
+#: Never written; :func:`public_manifest` removes them from an older manifest.
+PRIVATE_KEYS = ("code_dir",)
+
+
+def public_manifest(manifest: dict) -> dict:
+    """``manifest`` without :data:`PRIVATE_KEYS` in its ``artefact_key``.
+
+    Everything else, the hashes and the block table included, is kept as it
+    is, so the draw file it describes is unchanged and still unpacks.
+    """
+    key = {k: v for k, v in manifest["artefact_key"].items()
+           if k not in PRIVATE_KEYS}
+    return {**manifest, "artefact_key": key}
+
+
+#: Where each city's reader-facing poll caveats are (one file per city).
+POLL_CAVEATS = Path(__file__).resolve().parents[1] / "content" / "{city}" / "poll-caveats.toml"
+
+
+def reader_polls(polls: list[dict], city_slug: str,
+                 caveats_path: Path | None = None) -> list[dict]:
+    """The page's polls with the register's ``caveat`` replaced by the reader's.
+
+    The register's ``caveat`` (``polls.json``) is a working note and does not
+    ship. Every other field is kept: ``reweight.poll_trust_sd`` prices a poll
+    from them. Refuses, naming them, when a poll has no reader caveat.
+    """
+    import tomllib
+
+    path = caveats_path or Path(str(POLL_CAVEATS).format(city=city_slug))
+    table = (tomllib.loads(path.read_text(encoding="utf-8")).get("caveats", {})
+             if path.is_file() else {})
+    missing = [p["id"] for p in polls if not str(table.get(p["id"], "")).strip()]
+    if missing:
+        raise SystemExit(f"no reader caveat in {path} for poll(s) {missing}: the "
+                         f"register's own caveat is a working note and does not "
+                         f"ship. Add one per poll, in the reader's language.")
+    return [{**{k: v for k, v in p.items() if k != "caveat"},
+             "caveat": table[p["id"]]} for p in polls]
+
+
 def published_run(city_slug: str, inputs: dict, root: Path | None = None) -> dict:
     """The ledger's latest run, and whether ``inputs`` are the specs it recorded.
 
@@ -468,7 +527,6 @@ def export(city_slug: str, year: str, draws: int, seed: int, out: Path,
         "code_sha256": _code_sha256(src),
         "model_sha256": files_sha256(src / m for m in modules),
         "model_modules": modules,
-        "code_dir": str(src),
         "city": city_slug,
         "target": year,
         "draws": int(draws),
@@ -481,7 +539,7 @@ def export(city_slug: str, year: str, draws: int, seed: int, out: Path,
     }
     out.mkdir(parents=True, exist_ok=True)
     (out / "base.bin").write_bytes(blob)
-    (out / "manifest.json").write_text(json.dumps(manifest, indent=1),
+    (out / "manifest.json").write_text(json.dumps(public_manifest(manifest), indent=1),
                                        encoding="utf-8")
     return {"out": str(out), "bytes": len(blob),
             "gzip_bytes": len(gzip.compress(blob, compresslevel=9)),
@@ -492,6 +550,10 @@ def write_index(root: Path) -> dict:
     """``root/index.json``: every exported cell under ``root``, read from the
     cells' own manifests, so the page loads one file to learn the grid.
 
+    A cell's manifest that still carries a :data:`PRIVATE_KEYS` field is
+    rewritten without it first (:func:`public_manifest`); its ``base.bin`` is
+    not opened. The polls carry their reader caveats (:func:`reader_polls`).
+
     ⚠️ THE CELLS ARE NOT PAIRED (measured 2026-09-30, MODEL-LOG §1.283): a
     `w_bye` override shifts the random stream after the first few draws, so
     draw i of one cell is not draw i of another. A weight computed on one
@@ -500,6 +562,11 @@ def write_index(root: Path) -> dict:
     cells = []
     for manifest in sorted(root.rglob("manifest.json")):
         whole = json.loads(manifest.read_text())
+        if any(k in whole["artefact_key"] for k in PRIVATE_KEYS):
+            # a manifest written before PRIVATE_KEYS: the JSON is rewritten,
+            # base.bin is not touched
+            whole = public_manifest(whole)
+            manifest.write_text(json.dumps(whole, indent=1), encoding="utf-8")
         key = whole["artefact_key"]
         cells.append({
             "path": manifest.parent.relative_to(root).as_posix() or ".",
@@ -523,7 +590,8 @@ def write_index(root: Path) -> dict:
     import reweight
     first = json.loads(sorted(root.rglob("manifest.json"))[0].read_text())["artefact_key"]
     cityconfig.use(first["city"])
-    polls = reweight.page_polls(cityconfig.use_target(first["target"]))
+    polls = reader_polls(reweight.page_polls(cityconfig.use_target(first["target"])),
+                         first["city"])
     # The by-election evidence the page shows beside the w_bye control
     # (DESIGN-decided §11): the model's own input file, with whether each
     # party reaches `montecarlo.BYE_MIN_WEIGHT` (the same rule for every

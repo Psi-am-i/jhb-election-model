@@ -1,0 +1,17 @@
+# What /play/ says about each poll it offers, in the reader's language.
+#
+# src/export_draws.py --index writes these into site/draws/index.json as each
+# poll's `caveat`, in place of the register's own `caveat` in polls.json, which
+# is a working note for the model's authors and does not ship (deploy review
+# 2026-09-30, F3). Keyed by poll id. A poll the page offers with no entry here
+# stops the index from being written, so a newly admitted poll cannot reach
+# readers carrying the internal note.
+#
+# Rules: say what the poll is and what limits it, for every poll alike; no
+# figure that the poll table on the page already shows; nothing about a party
+# that is not about the poll's method.
+
+[caveats]
+"srf-2026q2-coj" = "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll."
+"srf-2026q1-coj" = "A Johannesburg subsample of a larger survey, from the same house, sample design and likely-voter screen as the July wave, so the two waves share any error that method has."
+"ipsos-khayabus-2026-coj" = "The Johannesburg breakout of a national omnibus survey. Ipsos's own release was not available: the figures come from news reports, which gave two DA figures a point apart, and the higher is used here. The Johannesburg sample size and the fieldwork dates were not reported."

@@ -405,7 +405,9 @@ def test_the_model_hash_is_the_model_s_import_closure_and_recomputes():
     st = _export()
     key = st["manifest"]["artefact_key"]
     modules = key["model_modules"]
-    src = Path(key["code_dir"])
+    # the manifest names no directory (E.PRIVATE_KEYS); the export ran this tree's src/
+    assert not set(E.PRIVATE_KEYS) & set(key), sorted(key)
+    src = ROOT / "src"
     # 0. the right population: the model's own module is in it, and neither
     # the exporter nor the page's re-weighter (imported only by `build`)
     assert "montecarlo.py" in modules
