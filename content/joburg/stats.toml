@@ -936,3 +936,19 @@ context = "CC BY 4.0"
 kind = "convention"
 source = "the licence the site's text, charts and figures are published under (LICENSE-CONTENT)"
 reviewed = "2026-10-01"
+
+# The responsible party's street address on /privacy (POPIA requires it). An
+# address, not a model figure; it changes only if the owner moves.
+[[audit.fixed]]
+value = "91"
+context = "91 St Patrick Road"
+kind = "convention"
+source = "the owner's address as the POPIA responsible party (docs-public/privacy.md), given by the owner 2026-10-01"
+reviewed = "2026-10-01"
+
+[[audit.fixed]]
+value = "2198"
+context = "Johannesburg 2198"
+kind = "convention"
+source = "the postal code of the owner's address as the POPIA responsible party (docs-public/privacy.md), given by the owner 2026-10-01"
+reviewed = "2026-10-01"

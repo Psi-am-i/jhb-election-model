@@ -3,9 +3,7 @@
 ## Who is responsible
 
 The responsible party for this site under the Protection of Personal
-Information Act (POPIA) is the site's author.
-
-OWNER: legal name and physical address
+Information Act (POPIA) is the site's author, Simon Davis, 91 St Patrick Road, Johannesburg 2198.
 
 Contact: [psi@whysoserious.city](mailto:psi@whysoserious.city).
 
